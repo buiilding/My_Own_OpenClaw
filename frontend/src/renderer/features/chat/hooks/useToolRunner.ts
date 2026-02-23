@@ -20,6 +20,8 @@ import {
   type TranscriptModelContext,
 } from '../utils/toolRunnerMessages';
 
+const TERMINAL_STREAM_PHASES = new Set(['idle', 'complete', 'error']);
+
 function shouldSkipToolExecution(
   metadata: Record<string, unknown> | undefined,
 ): boolean {
@@ -27,6 +29,20 @@ function shouldSkipToolExecution(
     return false;
   }
   return metadata.skip_frontend_execution === true;
+}
+
+function shouldIgnoreToolEventForTurn(turnRef: string | null | undefined): boolean {
+  if (!turnRef) {
+    return false;
+  }
+  const { streamTracking } = useChatStore.getState();
+  if (!streamTracking.activeTurnRef) {
+    return true;
+  }
+  if (streamTracking.activeTurnRef !== turnRef) {
+    return true;
+  }
+  return TERMINAL_STREAM_PHASES.has(streamTracking.phase);
 }
 
 /**
@@ -92,6 +108,9 @@ export function useToolRunner(enabled = true) {
   }, [addMessage, enabled]);
 
   const handleToolBundle = useCallback((event: ToolBundleEvent) => {
+    if (shouldIgnoreToolEventForTurn(event.turn_ref)) {
+      return;
+    }
     const bundleId = event.payload?.bundle_id || `bundle-${crypto.randomUUID()}`;
     const tools = mapBundleTools(event.payload?.tools);
 
@@ -107,6 +126,9 @@ export function useToolRunner(enabled = true) {
   }, []);
 
   const handleToolCall = useCallback((event: ToolCallEvent) => {
+    if (shouldIgnoreToolEventForTurn(event.turn_ref)) {
+      return;
+    }
     const toolName = event.payload?.tool_name;
     const parameters = event.payload?.parameters;
     if (!toolName || !parameters || typeof parameters !== 'object' || Array.isArray(parameters)) {

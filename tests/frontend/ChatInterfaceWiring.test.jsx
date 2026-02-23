@@ -23,6 +23,7 @@ const mockClearMessages = jest.fn();
 const mockSetIsSending = jest.fn();
 const mockSetThinkingStatus = jest.fn();
 const mockSetTokenCounts = jest.fn();
+const mockUpdateStreamTracking = jest.fn();
 const mockSetActiveConversationRef = jest.fn();
 const mockChatState = {
   messages: [],
@@ -34,6 +35,7 @@ const mockChatState = {
   setIsSending: (...args) => mockSetIsSending(...args),
   setThinkingStatus: (...args) => mockSetThinkingStatus(...args),
   setTokenCounts: (...args) => mockSetTokenCounts(...args),
+  updateStreamTracking: (...args) => mockUpdateStreamTracking(...args),
 };
 
 jest.mock('../../frontend/src/renderer/features/chat/hooks/useChatMessageSender', () => ({
@@ -112,6 +114,7 @@ describe('ChatInterface wiring', () => {
     mockSetIsSending.mockClear();
     mockSetThinkingStatus.mockClear();
     mockSetTokenCounts.mockClear();
+    mockUpdateStreamTracking.mockClear();
     mockSetActiveConversationRef.mockClear();
     mockChatState.streamTracking.phase = 'idle';
   });
@@ -177,6 +180,9 @@ describe('ChatInterface wiring', () => {
 
     fireEvent.click(stopButton);
     expect(mockStopQuery).toHaveBeenCalledTimes(1);
+    expect(mockSetIsSending).toHaveBeenCalledWith(false);
+    expect(mockSetThinkingStatus).toHaveBeenCalledWith(null);
+    expect(mockUpdateStreamTracking).toHaveBeenCalledTimes(1);
   });
 
   test('stop button is disabled when no active stream is running', () => {
