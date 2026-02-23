@@ -23,6 +23,7 @@ Includes the last 300 commits on `main`.
 - fix(testing): align sidecar chrome-launcher assertions with WindieOS dedicated profile/CDP defaults and restore missing `scripts/python-in-env`, `scripts/test*`, and run-wrapper helpers referenced by docs
 - fix(scripts): mark restored `scripts/python-in-env`, `scripts/test*`, and run-wrapper files executable in git so `./scripts/...` commands work on fresh checkout
 - docs(planning): consolidate planning docs into `docs/planning/` by moving former `docs/product/*` plan docs and updating cross-doc links to the new single-folder plan location
+- docs(planning): delete implemented `docs/planning/STOP_BUTTON_END_TO_END_PLAN.md` and remove stale references from planning index/OS-layer UX doc
 - fix(stop-query): track multiple concurrent query tasks per user in `SessionManager` and cancel all active tasks on `stop-query` to prevent orphaned tool waits from older turns
 - fix(tool-runner): when stale/ignored `tool-call` or `tool-bundle` events arrive after turn reset/stop, frontend now sends synthetic failure `tool-result`/`tool-bundle-result` (`frontend_stale_turn_cancelled`) so backend tool futures unblock instead of waiting indefinitely
 - fix(wakeword-audio): make renderer wakeword audio cleanup idempotent by safely closing `AudioContext`, nulling refs before async close, and using `void` stop/start effect calls to prevent `Cannot close a closed AudioContext` unhandled promise races that can interrupt tool-result flow

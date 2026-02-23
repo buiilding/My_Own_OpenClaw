@@ -23,7 +23,6 @@ Single entrypoint for future work. Use this page first.
 ## Initiative Plans (Execution Tracks)
 
 - `OS_LAYER_UX_EVOLUTION_PLAN.md`
-- `STOP_BUTTON_END_TO_END_PLAN.md`
 - `WINDIEOS_INSTALL_PERMISSION_ONBOARDING_PLAN.md`
 - `WINDIEOS_MOBILE_APP_PLAN.md`
 - `WINDIEOS_SELF_EDIT_CONFIG_PLAN.md`
