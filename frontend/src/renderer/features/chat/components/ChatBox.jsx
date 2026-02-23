@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { getRoundedFrameSize } from '../utils/overlayFrameSize';
+import { subscribeResponseOverlayPhase } from '../utils/overlayPhaseListener';
 
 const CLICK_THROUGH_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
 const OVERLAY_ACTIVE_PHASES = new Set(['awaiting-first-chunk', 'streaming']);
@@ -89,12 +91,11 @@ function ChatBox() {
     }
 
     const updateSize = async () => {
-      const rect = shellRef.current?.getBoundingClientRect();
-      if (!rect) {
+      const nextFrame = getRoundedFrameSize(shellRef.current);
+      if (!nextFrame) {
         return;
       }
-      const width = Math.max(1, Math.round(rect.width));
-      const height = Math.max(1, Math.round(rect.height));
+      const { width, height } = nextFrame;
 
       if (lastSizeRef.current.width === width && lastSizeRef.current.height === height) {
         return;
@@ -124,16 +125,7 @@ function ChatBox() {
   }, []);
 
   useEffect(() => {
-    const removePhaseListener = IpcBridge.on(ON_CHANNELS.RESPONSE_OVERLAY_PHASE, (payload) => {
-      const phase = typeof payload?.phase === 'string' ? payload.phase : null;
-      if (!phase) {
-        return;
-      }
-      setOverlayPhase(phase);
-    });
-    return () => {
-      removePhaseListener?.();
-    };
+    return subscribeResponseOverlayPhase(setOverlayPhase);
   }, []);
 
   useEffect(() => {
