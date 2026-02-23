@@ -9,6 +9,10 @@ Includes the last 300 commits on `main`.
 ### Added
 - docs(docs-structure): regroup `docs/` into topic subfolders (`getting-started`, `architecture`, `browser`, `development`, `operations`, `reference`, `product`, `planning`) and remove implemented `docs/planning/BROWSER_USE_PLAN.md`
 - docs(planning): remove implemented `docs/planning/CONVERSATION_REF_RESUME_PLAN.md` from planning docs set
+- fix(chat-new-session): mint fresh `conversation_ref` immediately on `New Chat` and ignore stale backend stream events from other conversations to prevent cross-chat leakage
+- refactor(chat-new-session): centralize New Chat reset flow in `frontend/src/renderer/features/chat/utils/newChatSession.ts` and reuse shared conversation-ref generator
+- test(chat-stream): add regression coverage for stale `conversation_ref` event filtering and compatibility for events without conversation refs
+- docs(planning): remove implemented `docs/planning/WINDIEOS_NEW_CHAT_SESSION_PLAN.md` and document shipped New Chat behavior in `docs/getting-started/USER_GUIDE.md`
 - docs(plan): add `docs/plan/WINDIEOS_SELF_EDIT_CONFIG_PLAN.md` for safe natural-language self-configuration (TTS/screenshot/voice preference intents) and link it from docs index + future roadmap
 - fix(frontend-chatbox-focus): run a chatbox-only pre-query hook that restores the previously focused external Windows app before query system-state capture, preventing `active_window` from being captured as Desktop Assistant when chat pill queries are sent
 - fix(frontend-chatbox-input): block drag-start on chat pill interactive controls (`input`/editable/action areas) so users can immediately click/focus/type after startup and after response completion without needing Win+Alt+W hide/show refresh
