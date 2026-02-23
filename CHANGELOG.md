@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 5 execution slice for knip-driven export-surface cleanup (dead legacy hooks, internal-only helper/type de-exports, and verification gates)
 - refactor(frontend-deps): remove unused frontend deps (`clipboardy`, `pngjs`, `systeminformation`, `baseline-browser-mapping`), regenerate lockfile, and calibrate `knip` intentional tooling dependencies to drop dependency-level false positives
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 4 execution slice for knip-driven dependency cleanup and tooling-ignore calibration
 - refactor(frontend-dashboard): remove unused dashboard placeholder component (`MemorySection.jsx`), clean stale structure/knip references, and add direct regression tests for `useMemoryContextMenuHotkeys` (`Escape`/`Delete`/no-menu behavior)
