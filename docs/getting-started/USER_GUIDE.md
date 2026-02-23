@@ -45,6 +45,8 @@ Default section on open: **Chat**.
 - Type and send messages.
 - Shows streaming responses, tool output, and screenshots.
 - Mode badge shows **Chat** or **Agent**.
+- **New Chat** starts a fresh conversation immediately (new conversation id) and clears the visible timeline.
+- **Stop** cancels the active response/tool run and returns the UI to ready state.
 - **Shift + Tab** toggles Chat/Agent mode.
 
 ### Episodic Memory

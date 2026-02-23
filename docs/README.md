@@ -60,7 +60,6 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Mobile App Plan**](planning/WINDIEOS_MOBILE_APP_PLAN.md) - Phased plan for iOS/Android client architecture, capability negotiation, and rollout
 - [**VM Multi-Agent Plan**](planning/WINDIEOS_VM_MULTI_AGENT_PLAN.md) - One-agent-per-VM architecture, agent-port workflow, and user remote-control plan
 - [**Install Permission Onboarding Plan**](planning/WINDIEOS_INSTALL_PERMISSION_ONBOARDING_PLAN.md) - First-run permission-first wizard and capability gating plan
-- [**New Chat Session Plan**](planning/WINDIEOS_NEW_CHAT_SESSION_PLAN.md) - UI-triggered new conversation session flow with fresh `conversation_ref`, backend history isolation, and stale-stream guards
 - [**Self-Edit Config Plan**](planning/WINDIEOS_SELF_EDIT_CONFIG_PLAN.md) - Natural-language user preference edits (for example TTS/screenshot attach toggles) through a safe allowlisted config path
 - [**Contributing Guide**](development/CONTRIBUTING.md) - How to contribute to the project
 

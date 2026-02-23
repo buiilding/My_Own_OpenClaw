@@ -8,10 +8,10 @@ import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { ApiClient } from '../../../infrastructure/api/client';
 import { PlayerService } from '../../../infrastructure/audio/PlayerService';
-import { setActiveConversationRef } from '../../../infrastructure/transcript/TranscriptWriter';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { extractAudioChunkPayload } from '../utils/backendAudioEvents';
 import { selectChatInterfaceState } from '../utils/chatSelectors';
+import { startNewChatSession } from '../utils/newChatSession';
 import '../../../styles/ChatInterface.css';
 
 const ACTIVE_STREAM_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
@@ -100,15 +100,18 @@ function ChatInterface() {
   }, [canStop, setIsSending, setThinkingStatus, stopPlayback, updateStreamTracking]);
 
   const handleNewChat = useCallback(() => {
-    if (canStop) {
-      stopPlayback();
-      ApiClient.stopQuery();
-    }
-    clearMessages();
-    setIsSending(false);
-    setThinkingStatus(null);
-    setTokenCounts(null);
-    setActiveConversationRef(null);
+    startNewChatSession({
+      clearMessages,
+      setIsSending,
+      setThinkingStatus,
+      setTokenCounts,
+      stopActiveQuery: canStop
+        ? () => {
+          stopPlayback();
+          ApiClient.stopQuery();
+        }
+        : undefined,
+    });
   }, [
     canStop,
     clearMessages,
