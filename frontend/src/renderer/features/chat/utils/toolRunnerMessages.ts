@@ -6,7 +6,7 @@ export type TranscriptModelContext = {
   modelProvider: string | null;
 };
 
-export type BundleToolInput = {
+type BundleToolInput = {
   name?: unknown;
   args?: unknown;
 };

@@ -2,7 +2,7 @@ import { extractOSstate } from './SystemCapture';
 import { COMPUTER_USE_TOOLS } from './ToolExecutionTypes';
 import type { SystemState, ToolResult } from './MessageFormatter';
 
-export type ToolCaptureResult = {
+type ToolCaptureResult = {
   screenshot: string | null;
   screenshotContentType: string | null;
   systemState: SystemState | null;
@@ -10,7 +10,7 @@ export type ToolCaptureResult = {
   captureTime: number;
 };
 
-export type AutoCaptureResult = {
+type AutoCaptureResult = {
   screenshot: string | null;
   screenshotContentType: string | null;
   systemState: SystemState | null;

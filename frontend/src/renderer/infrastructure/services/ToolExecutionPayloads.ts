@@ -1,9 +1,9 @@
 import type { BundledToolResult, SystemState, ToolResult } from './MessageFormatter';
 import type { BundleStepResult } from './ToolExecutionBundleRunner';
 
-export type BundleStatus = 'success' | 'partial_failure' | 'failure';
+type BundleStatus = 'success' | 'partial_failure' | 'failure';
 
-export type NormalizedBundleResult = {
+type NormalizedBundleResult = {
   tool_name: string;
   _rawResult: ToolResult;
   success: boolean;
@@ -13,7 +13,7 @@ export type NormalizedBundleResult = {
   };
 };
 
-export type ToolResultPayloadOptions = {
+type ToolResultPayloadOptions = {
   screenshotRef?: string | null;
   systemState?: SystemState | null;
   includeScreenshot?: boolean;

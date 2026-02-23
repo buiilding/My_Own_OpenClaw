@@ -6,7 +6,7 @@
 
 import { IpcBridge, SEND_CHANNELS } from '../ipc/bridge';
 
-export type RehydrateConversationEntry = {
+type RehydrateConversationEntry = {
   role: 'user' | 'assistant' | 'tool';
   content: string;
   message_type?: string;

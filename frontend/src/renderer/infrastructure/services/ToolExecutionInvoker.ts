@@ -2,7 +2,7 @@ import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
 import { getStoredDisplayBounds } from '../../utils/displaySelection';
 import type { ToolResult } from './MessageFormatter';
 
-export type ToolInvokeOutcome = {
+type ToolInvokeOutcome = {
   result: ToolResult;
   toolInvokeTime: number;
 };

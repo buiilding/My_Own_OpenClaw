@@ -1,4 +1,4 @@
-export type TranscriptionRegion = {
+type TranscriptionRegion = {
   start: number;
   end: number;
   active: boolean;

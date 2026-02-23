@@ -15,7 +15,7 @@ type AssistantMessageFullPayload = {
   content?: unknown;
 };
 
-export type StreamingResponseAction =
+type StreamingResponseAction =
   | { type: 'append'; messageId: string; nextText: string }
   | { type: 'new'; text: string; turnRef?: string };
 

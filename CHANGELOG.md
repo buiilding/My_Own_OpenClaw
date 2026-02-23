@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-knip-types): de-export local-only frontend type/interface declarations across chat/infrastructure/transcript modules, remove unused `ToolExecutionService` type re-exports, internalize transcript session storage key, and update transcript storage/writer tests to use explicit fixture key constants
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 6 execution slice for knip type/export-surface cleanup (de-export local-only types, remove unused service re-exports, and transcript storage-key fixture updates)
 - refactor(frontend-export-surface): trim unused frontend export surface by removing dead legacy hooks (`useAppContext`, `useChatContext`), de-exporting internal-only helpers/types (`getBackendHttpUrl`, `DisplayBounds`, `TranscriptSessionState`, chat stream payload helper types), and dropping unused backend endpoint constant exports; refresh related tests/docs for private storage-key usage
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 5 execution slice for knip-driven export-surface cleanup (dead legacy hooks, internal-only helper/type de-exports, and verification gates)

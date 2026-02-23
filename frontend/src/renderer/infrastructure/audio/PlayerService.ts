@@ -7,7 +7,7 @@
 /**
  * Audio chunk structure
  */
-export interface AudioChunk {
+interface AudioChunk {
   audio: string; // base64-encoded PCM data
   sample_rate: number;
 }

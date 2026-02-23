@@ -1,6 +1,6 @@
 import type { PendingUserMessage } from './types';
 
-export type PendingUserQueue = {
+type PendingUserQueue = {
   size: () => number;
   enqueue: (message: PendingUserMessage) => void;
   drain: () => PendingUserMessage[];

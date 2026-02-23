@@ -30,15 +30,6 @@ export interface ToolExecutionOptions {
 }
 
 /**
- * Tool bundle item.
- */
-export interface ToolBundleItem {
-  toolName: string;
-  args: any;
-  correlationId: string;
-}
-
-/**
  * Tool execution result with metadata.
  */
 export interface ToolExecutionResult {

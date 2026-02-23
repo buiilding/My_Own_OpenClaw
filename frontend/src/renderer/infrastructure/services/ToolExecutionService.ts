@@ -47,10 +47,8 @@ import {
 import { runToolBundle } from './ToolExecutionBundleRunner';
 
 export {
-  ToolExecutionOptions,
   ToolExecutionResult,
   BundleExecutionResult,
-  ToolExecutionCallbacks,
 };
 
 /**

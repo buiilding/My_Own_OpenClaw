@@ -281,3 +281,23 @@ read_when:
   - `cd frontend && npm run test:ci -- tests/frontend/AppProvider.test.tsx tests/frontend/configStorage.test.js tests/frontend/TranscriptSessionState.test.ts tests/frontend/ChatStreamFormatting.test.ts tests/frontend/ArtifactUploader.test.ts` (pass)
   - `cd frontend && npm run test:ci -- tests/frontend/displaySelection.test.ts tests/frontend/SystemCapture.test.ts tests/frontend/ToolExecutionInvoker.test.ts tests/frontend/ToolExecutionService.test.ts` (pass)
   - `cd frontend && npm run audit:knip` (remaining command non-zero from residual export/type findings)
+
+## Phase 6 Outcome (2026-02-23)
+
+- Type-surface cleanup shipped:
+  - de-exported local-only type/interface declarations across chat/infrastructure/transcript modules.
+  - removed now-dead internal `ToolBundleItem` interface from `ToolExecutionTypes` after de-export.
+- Export cleanup shipped:
+  - removed unused type re-exports from `ToolExecutionService`:
+    - `ToolExecutionOptions`
+    - `ToolExecutionCallbacks`
+  - de-exported `TRANSCRIPT_SESSION_STORAGE_KEY` from `sessionInfoStorage`.
+  - updated transcript storage/writer tests to use explicit fixture key value (`transcript-session-info`) while preserving behavioral assertions.
+- knip findings delta after Phase 6 slice:
+  - unused exports: `34 -> 31`
+  - unused exported types: `17 -> 0`
+- Verification:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/TranscriptStorage.test.ts tests/frontend/TranscriptWriter.test.ts tests/frontend/ToolExecutionService.test.ts` (pass)
+  - `cd frontend && npm run test:ci` (pass)
+  - `cd frontend && npm run audit:knip` (remaining command non-zero from residual unused exports only)

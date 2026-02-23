@@ -1,6 +1,6 @@
 import type { PendingToolMessage } from './types';
 
-export type PendingToolQueue = {
+type PendingToolQueue = {
   size: () => number;
   enqueue: (message: PendingToolMessage) => void;
   drain: () => PendingToolMessage[];
