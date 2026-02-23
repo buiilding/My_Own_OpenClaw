@@ -222,11 +222,4 @@ async function buildQueryPayloadContent({
 
 module.exports = {
   buildQueryPayloadContent,
-  escapeXml,
-  formatMemorySection,
-  appendMemorySections,
-  formatInitialStateXml,
-  formatSequentialStateXml,
-  extractQueryRuntimeSystemState,
-  formatFallbackStateXml,
 };

@@ -325,3 +325,25 @@ read_when:
   - `cd frontend && npm run test:ci -- tests/frontend/TranscriptStorage.test.ts tests/frontend/TranscriptWriter.test.ts tests/frontend/ToolExecutionService.test.ts` (pass)
   - `cd frontend && npm run test:ci` (pass)
   - `cd frontend && npm run audit:knip` (remaining command non-zero from residual unused exports only)
+
+## Phase 7 Outcome (2026-02-23)
+
+- Query payload export cleanup shipped:
+  - pruned helper-only CJS exports from `frontend/src/main/query_payload_builder.cjs`.
+  - retained only `buildQueryPayloadContent` as module export.
+- Config helper export cleanup shipped:
+  - internalized test-only config helpers in `frontend/src/renderer/utils/configStorage.js`:
+    - `DEFAULT_FRONTEND_CONFIG`
+    - `hasStoredConfig`
+    - `getConfigVersion`
+    - `clearConfigStorage`
+  - removed `isFrontendConfigOnly` export from `frontend/src/renderer/utils/configFilter.js`.
+  - updated config tests to validate public behavior and explicit storage fixtures.
+- knip findings delta after Phase 7 slice:
+  - unused exports: `31 -> 19`
+  - unused exported types: `0 -> 0`
+- Verification:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/QueryPayloadBuilder.test.cjs tests/frontend/configStorage.test.js tests/frontend/configFilter.test.js` (pass)
+  - `cd frontend && npm run test:ci` (pass)
+  - `cd frontend && npm run audit:knip` (remaining command non-zero from residual unused exports only)

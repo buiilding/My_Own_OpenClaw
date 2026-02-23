@@ -1,14 +1,19 @@
 import {
-  DEFAULT_FRONTEND_CONFIG,
-  clearConfigStorage,
-  getConfigVersion,
-  hasStoredConfig,
   loadConfigFromStorage,
   saveConfigToStorage,
 } from '../../frontend/src/renderer/utils/configStorage.js';
 
 const CONFIG_KEY = 'desktop-assistant-config';
 const VERSION_KEY = 'desktop-assistant-config-version';
+const DEFAULT_FRONTEND_CONFIG = {
+  model_mode: 'online',
+  model_provider: 'openai',
+  selected_model_id: 'gpt-5.1',
+  interaction_mode: 'chat',
+  voice_mode_enabled: false,
+  speech_mode_enabled: false,
+  include_query_screenshot: true,
+};
 
 describe('configStorage', () => {
   beforeEach(() => {
@@ -17,7 +22,7 @@ describe('configStorage', () => {
 
   test('loadConfigFromStorage returns defaults when empty', () => {
     expect(loadConfigFromStorage()).toEqual(DEFAULT_FRONTEND_CONFIG);
-    expect(hasStoredConfig()).toBe(false);
+    expect(localStorage.getItem(CONFIG_KEY)).toBeNull();
   });
 
   test('loadConfigFromStorage returns a new config object each call', () => {
@@ -79,15 +84,15 @@ describe('configStorage', () => {
   test('saveConfigToStorage persists config and version', () => {
     const ok = saveConfigToStorage(DEFAULT_FRONTEND_CONFIG, 123);
     expect(ok).toBe(true);
-    expect(hasStoredConfig()).toBe(true);
-    expect(getConfigVersion()).toBe(123);
+    expect(JSON.parse(localStorage.getItem(CONFIG_KEY))).toEqual(DEFAULT_FRONTEND_CONFIG);
+    expect(localStorage.getItem(VERSION_KEY)).toBe('123');
   });
 
   test('saveConfigToStorage uses Date.now when version omitted', () => {
     const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(456);
     const ok = saveConfigToStorage(DEFAULT_FRONTEND_CONFIG);
     expect(ok).toBe(true);
-    expect(getConfigVersion()).toBe(456);
+    expect(localStorage.getItem(VERSION_KEY)).toBe('456');
     nowSpy.mockRestore();
   });
 
@@ -95,35 +100,8 @@ describe('configStorage', () => {
     const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(789);
     const ok = saveConfigToStorage(DEFAULT_FRONTEND_CONFIG, null);
     expect(ok).toBe(true);
-    expect(getConfigVersion()).toBe(789);
+    expect(localStorage.getItem(VERSION_KEY)).toBe('789');
     nowSpy.mockRestore();
-  });
-
-  test('getConfigVersion returns null for invalid value', () => {
-    localStorage.setItem(VERSION_KEY, 'not-a-number');
-    expect(getConfigVersion()).toBeNull();
-  });
-
-  test('getConfigVersion returns null when key is missing', () => {
-    expect(getConfigVersion()).toBeNull();
-  });
-
-  test('hasStoredConfig handles storage errors', () => {
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
-    const getItemSpy = jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
-      throw new Error('boom');
-    });
-
-    expect(hasStoredConfig()).toBe(false);
-    getItemSpy.mockRestore();
-    errorSpy.mockRestore();
-  });
-
-  test('clearConfigStorage removes stored values', () => {
-    saveConfigToStorage(DEFAULT_FRONTEND_CONFIG, 123);
-    clearConfigStorage();
-    expect(localStorage.getItem(CONFIG_KEY)).toBeNull();
-    expect(localStorage.getItem(VERSION_KEY)).toBeNull();
   });
 
   test('saveConfigToStorage returns false when storage write throws', () => {
@@ -134,28 +112,6 @@ describe('configStorage', () => {
 
     expect(saveConfigToStorage(DEFAULT_FRONTEND_CONFIG, 111)).toBe(false);
     setItemSpy.mockRestore();
-    errorSpy.mockRestore();
-  });
-
-  test('getConfigVersion returns null when storage read throws', () => {
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
-    const getItemSpy = jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
-      throw new Error('read-failed');
-    });
-
-    expect(getConfigVersion()).toBeNull();
-    getItemSpy.mockRestore();
-    errorSpy.mockRestore();
-  });
-
-  test('clearConfigStorage swallows remove errors', () => {
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
-    const removeItemSpy = jest.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
-      throw new Error('remove-failed');
-    });
-
-    expect(() => clearConfigStorage()).not.toThrow();
-    removeItemSpy.mockRestore();
     errorSpy.mockRestore();
   });
 });

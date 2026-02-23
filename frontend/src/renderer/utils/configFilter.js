@@ -35,18 +35,3 @@ export function filterFrontendConfig(config) {
   }
   return filtered;
 }
-
-/**
- * Checks if a configuration object contains only frontend-managed fields.
- * 
- * @param {Object} config - Configuration object to check
- * @returns {boolean} - True if config only contains frontend-managed fields
- */
-export function isFrontendConfigOnly(config) {
-  if (!config || typeof config !== 'object') {
-    return false;
-  }
-
-  const keys = Object.keys(config);
-  return keys.every(key => FRONTEND_CONFIG_FIELDS.includes(key));
-}
