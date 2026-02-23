@@ -274,6 +274,9 @@ class TestTokenCountEvent:
             total_tokens=150,
             conversation_tokens=1000,
             usage_source="provider",
+            cached_tokens=40,
+            cache_hit=True,
+            cache_status="hit",
         )
         
         assert event.prompt_tokens == 100
@@ -283,6 +286,9 @@ class TestTokenCountEvent:
         assert event.total_tokens == 150
         assert event.conversation_tokens == 1000
         assert event.usage_source == "provider"
+        assert event.cached_tokens == 40
+        assert event.cache_hit is True
+        assert event.cache_status == "hit"
         assert event.type.value == "token_count"
 
     def test_to_dict(self):
@@ -294,6 +300,9 @@ class TestTokenCountEvent:
             total_tokens=150,
             conversation_tokens=1000,
             usage_source="estimated",
+            cached_tokens=None,
+            cache_hit=None,
+            cache_status="unknown",
         )
         result = event.to_dict()
         
@@ -305,6 +314,9 @@ class TestTokenCountEvent:
         assert result["total_tokens"] == 150
         assert result["conversation_tokens"] == 1000
         assert result["usage_source"] == "estimated"
+        assert result["cached_tokens"] is None
+        assert result["cache_hit"] is None
+        assert result["cache_status"] == "unknown"
 
 
 class TestMemoryStoreEvent:

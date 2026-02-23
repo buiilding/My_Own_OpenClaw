@@ -57,6 +57,9 @@ def test_token_count_formatter_output_matches_schema() -> None:
             "total_tokens": 16,
             "conversation_tokens": 200,
             "usage_source": "provider",
+            "cached_tokens": 10,
+            "cache_hit": True,
+            "cache_status": "hit",
         },
         "msg_2",
     )
@@ -70,6 +73,9 @@ def test_token_count_formatter_output_matches_schema() -> None:
     )
     assert parsed.payload.total_tokens == 16
     assert parsed.payload.thinking_tokens == 1
+    assert parsed.payload.cached_tokens == 10
+    assert parsed.payload.cache_hit is True
+    assert parsed.payload.cache_status == "hit"
 
 
 def test_memory_store_formatter_output_matches_schema() -> None:

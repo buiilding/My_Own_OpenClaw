@@ -26,6 +26,7 @@ class MockProvider(LLMProvider):
         tools=None,
         tool_choice=None,
         parallel_tool_calls=None,
+        prompt_cache_key=None,
     ):
         return {"content": "test", "tool_calls": None}
     
@@ -36,6 +37,7 @@ class MockProvider(LLMProvider):
         tools=None,
         tool_choice=None,
         parallel_tool_calls=None,
+        prompt_cache_key=None,
     ):
         yield ChunkEvent(content="Hello")
         yield StreamingCompleteEvent()
@@ -736,6 +738,7 @@ class TestGetCompletionStream:
                 tools=None,
                 tool_choice=None,
                 parallel_tool_calls=None,
+                prompt_cache_key=None,
             ):
                 # Must raise immediately before any yield
                 raise litellm.RateLimitError(
@@ -768,6 +771,7 @@ class TestGetCompletionStream:
                 tools=None,
                 tool_choice=None,
                 parallel_tool_calls=None,
+                prompt_cache_key=None,
             ):
                 raise litellm.APIError(
                     message="API error",
@@ -797,6 +801,7 @@ class TestGetCompletionStream:
                 tools=None,
                 tool_choice=None,
                 parallel_tool_calls=None,
+                prompt_cache_key=None,
             ):
                 raise ValueError("Generic error")
                 yield ChunkEvent(content="")  # pragma: no cover

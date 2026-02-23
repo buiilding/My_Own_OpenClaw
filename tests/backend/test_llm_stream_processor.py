@@ -46,6 +46,18 @@ class _KimiSession:
     cfg = _KimiConfig()
     history = _FakeHistory()
     session_id = "session-kimi"
+    runtime = None
+
+
+class _KimiRuntime:
+    active_conversation_ref = "conv-kimi"
+
+
+class _KimiSessionWithConversationRef:
+    cfg = _KimiConfig()
+    history = _FakeHistory()
+    session_id = "session-kimi"
+    runtime = _KimiRuntime()
 
 
 class _FakeLLMClient:
@@ -139,7 +151,7 @@ class _ProviderUsageLLMClient:
             "model": "gpt-test",
             "status": "hit",
             "cache_hit": True,
-            "cached_tokens": 0,
+            "cached_tokens": 24,
             "prompt_tokens": 50,
             "completion_tokens": 20,
             "thinking_tokens": 9,
@@ -164,6 +176,9 @@ class _MissingUsageLLMClient:
 
 
 class _KimiToolCompletionLLMClient:
+    def __init__(self):
+        self.last_prompt_cache_key = None
+
     async def get_completion_response(
         self,
         model,
@@ -171,7 +186,9 @@ class _KimiToolCompletionLLMClient:
         tools=None,
         tool_choice=None,
         parallel_tool_calls=None,
+        prompt_cache_key=None,
     ):
+        self.last_prompt_cache_key = prompt_cache_key
         return {
             "content": "",
             "tool_calls": [
@@ -191,6 +208,7 @@ class _KimiToolCompletionLLMClient:
         tools=None,
         tool_choice=None,
         parallel_tool_calls=None,
+        prompt_cache_key=None,
     ):
         raise AssertionError("Tool turns should use non-stream completion path")
 
@@ -215,6 +233,7 @@ class _KimiStreamingToolTurnLLMClient:
             ],
             "finish_reason": "tool_calls",
         }
+        self.last_prompt_cache_key = None
 
     async def get_completion_response(
         self,
@@ -223,6 +242,7 @@ class _KimiStreamingToolTurnLLMClient:
         tools=None,
         tool_choice=None,
         parallel_tool_calls=None,
+        prompt_cache_key=None,
     ):
         raise AssertionError("Tool turns should stay on stream path when supported")
 
@@ -233,8 +253,10 @@ class _KimiStreamingToolTurnLLMClient:
         tools=None,
         tool_choice=None,
         parallel_tool_calls=None,
+        prompt_cache_key=None,
     ):
         _ = (model, messages, tools, tool_choice, parallel_tool_calls)
+        self.last_prompt_cache_key = prompt_cache_key
         yield ThinkingEvent(content="thinking...")
 
     def get_last_stream_cache_diagnostics(self):
@@ -351,6 +373,9 @@ async def test_token_count_prefers_provider_usage_and_reasoning_tokens(monkeypat
     assert token_event.output_tokens_total == 20
     assert token_event.total_tokens == 70
     assert token_event.usage_source == "provider"
+    assert token_event.cached_tokens == 24
+    assert token_event.cache_hit is True
+    assert token_event.cache_status == "hit"
 
 
 @pytest.mark.asyncio
@@ -373,6 +398,9 @@ async def test_token_count_falls_back_to_estimate_when_provider_usage_missing(mo
     assert token_event.output_tokens_total == 1
     assert token_event.total_tokens == 2
     assert token_event.usage_source == "estimated"
+    assert token_event.cached_tokens is None
+    assert token_event.cache_hit is None
+    assert token_event.cache_status is None
 
 
 @pytest.mark.asyncio
@@ -381,8 +409,9 @@ async def test_kimi_uses_non_stream_completion_when_tools_present_if_streaming_u
         "backend.src.agent.llm.llm_stream_processor.get_token_service",
         lambda: _FakeTokenService(),
     )
+    llm_client = _KimiToolCompletionLLMClient()
     processor = LLMStreamProcessor(
-        llm_client=_KimiToolCompletionLLMClient(),
+        llm_client=llm_client,
         session=_KimiSession(),
     )
 
@@ -405,6 +434,7 @@ async def test_kimi_uses_non_stream_completion_when_tools_present_if_streaming_u
     assert payload["content"] == ""
     assert payload["finish_reason"] == "tool_calls"
     assert payload["tool_calls"][0]["id"] == "call_1"
+    assert llm_client.last_prompt_cache_key == "session-kimi"
 
 
 @pytest.mark.asyncio
@@ -437,3 +467,33 @@ async def test_kimi_streams_thinking_when_tools_present_if_streaming_supported(m
     assert payload is not None
     assert payload["finish_reason"] == "tool_calls"
     assert payload["tool_calls"][0]["id"] == "call_1"
+    assert processor.llm_client.last_prompt_cache_key == "session-kimi"
+
+
+@pytest.mark.asyncio
+async def test_kimi_prefers_conversation_ref_for_prompt_cache_key(monkeypatch):
+    monkeypatch.setattr(
+        "backend.src.agent.llm.llm_stream_processor.get_token_service",
+        lambda: _FakeTokenService(),
+    )
+    llm_client = _KimiToolCompletionLLMClient()
+    processor = LLMStreamProcessor(
+        llm_client=llm_client,
+        session=_KimiSessionWithConversationRef(),
+    )
+
+    noop_tools = [
+        {
+            "type": "function",
+            "function": {"name": "read_file", "parameters": {"type": "object"}},
+        }
+    ]
+    _ = [
+        event
+        async for event in processor.get_response(
+            [{"role": "user", "content": "hello"}],
+            tools=noop_tools,
+        )
+    ]
+
+    assert llm_client.last_prompt_cache_key == "conv-kimi"
