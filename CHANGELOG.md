@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-settings): dedupe repeated SettingsSection toggle JSX via shared `SettingsToggleField` and add `SettingsSection.test.jsx` regressions for wakeword toggle dispatch, config-update payload wiring, and suppressed-listening helper visibility
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 12 execution slice for SettingsSection jscpd dedupe (shared toggle renderer) and new regression coverage for settings-toggle wiring
 - refactor(frontend-wakeword-bridge): internalize `startWakewordService`/`stopWakewordService` exports in `wakeword_bridge.cjs`, preserve runtime API with `initializeWakewordBridge`, and migrate wakeword lifecycle tests to public IPC + `beforeExit` paths
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 11 execution slice for wakeword-bridge final export cleanup and public-lifecycle-path test migration (`initializeWakewordBridge`, IPC handlers, `beforeExit` hook)

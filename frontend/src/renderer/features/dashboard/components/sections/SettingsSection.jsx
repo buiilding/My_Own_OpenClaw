@@ -13,6 +13,41 @@ import {
 } from '../../utils/settingsDisplayUtils';
 import '../../../../styles/SettingsPanel.css';
 
+function SettingsToggleField({
+  label,
+  checked,
+  onToggle,
+  helpText = '',
+  children = null,
+}) {
+  return (
+    <div className="settings-field">
+      <label className="toggle-label">
+        <span>{label}</span>
+        <div className="toggle-switch">
+          <input
+            type="checkbox"
+            checked={checked}
+            onChange={(event) => onToggle(event.target.checked)}
+            className="toggle-input"
+          />
+          <span className="toggle-slider"></span>
+        </div>
+      </label>
+      {helpText ? <p className="settings-help">{helpText}</p> : null}
+      {children}
+    </div>
+  );
+}
+
+SettingsToggleField.propTypes = {
+  label: PropTypes.string.isRequired,
+  checked: PropTypes.bool.isRequired,
+  onToggle: PropTypes.func.isRequired,
+  helpText: PropTypes.string,
+  children: PropTypes.node,
+};
+
 function SettingsSection({ config, onConfigChange }) {
   const { wakewordEnabled, wakewordSuppressed, setWakewordEnabled } = useAppConfigContext();
   const [displays, setDisplays] = useState([]);
@@ -78,57 +113,31 @@ function SettingsSection({ config, onConfigChange }) {
 
       <section className="settings-section">
         <h3>Wakeword</h3>
-        <div className="settings-field">
-          <label className="toggle-label">
-            <span>Wakeword Listening (Hey Jarvis)</span>
-            <div className="toggle-switch">
-              <input
-                type="checkbox"
-                checked={wakewordEnabled}
-                onChange={(event) => setWakewordEnabled(event.target.checked)}
-                className="toggle-input"
-              />
-              <span className="toggle-slider"></span>
-            </div>
-          </label>
-          <p className="settings-help">Press Win + Alt + W to show or hide the chatbox.</p>
+        <SettingsToggleField
+          label="Wakeword Listening (Hey Jarvis)"
+          checked={wakewordEnabled}
+          onToggle={setWakewordEnabled}
+          helpText="Press Win + Alt + W to show or hide the chatbox."
+        >
           {wakewordSuppressed ? (
             <p className="settings-help">Listening is paused while the chatbox is visible.</p>
           ) : null}
-        </div>
+        </SettingsToggleField>
       </section>
 
       <section className="settings-section">
         <h3>Audio</h3>
-        <div className="settings-field">
-          <label className="toggle-label">
-            <span>Voice Mode (Nova Gateway)</span>
-            <div className="toggle-switch">
-              <input
-                type="checkbox"
-                checked={voiceModeEnabled}
-                onChange={(event) => handleVoiceModeToggle(event.target.checked)}
-                className="toggle-input"
-              />
-              <span className="toggle-slider"></span>
-            </div>
-          </label>
-          <p className="settings-help">Streams microphone audio to ws://localhost:5026 for live transcription.</p>
-        </div>
-        <div className="settings-field">
-          <label className="toggle-label">
-            <span>Speech Replies (TTS)</span>
-            <div className="toggle-switch">
-              <input
-                type="checkbox"
-                checked={speechModeEnabled}
-                onChange={(event) => handleSpeechModeToggle(event.target.checked)}
-                className="toggle-input"
-              />
-              <span className="toggle-slider"></span>
-            </div>
-          </label>
-        </div>
+        <SettingsToggleField
+          label="Voice Mode (Nova Gateway)"
+          checked={voiceModeEnabled}
+          onToggle={handleVoiceModeToggle}
+          helpText="Streams microphone audio to ws://localhost:5026 for live transcription."
+        />
+        <SettingsToggleField
+          label="Speech Replies (TTS)"
+          checked={speechModeEnabled}
+          onToggle={handleSpeechModeToggle}
+        />
       </section>
 
       <section className="settings-section">
@@ -158,21 +167,12 @@ function SettingsSection({ config, onConfigChange }) {
             </select>
           )}
         </div>
-        <div className="settings-field">
-          <label className="toggle-label">
-            <span>Attach Image To User Query</span>
-            <div className="toggle-switch">
-              <input
-                type="checkbox"
-                checked={includeQueryScreenshot}
-                onChange={(event) => handleQueryScreenshotToggle(event.target.checked)}
-                className="toggle-input"
-              />
-              <span className="toggle-slider"></span>
-            </div>
-          </label>
-          <p className="settings-help">When enabled, each user query includes the latest screenshot as image context.</p>
-        </div>
+        <SettingsToggleField
+          label="Attach Image To User Query"
+          checked={includeQueryScreenshot}
+          onToggle={handleQueryScreenshotToggle}
+          helpText="When enabled, each user query includes the latest screenshot as image context."
+        />
       </section>
 
       <section className="settings-section">

@@ -544,3 +544,25 @@ read_when:
   - `cd frontend && npm run test:ci -- tests/frontend/WakewordBridge.test.cjs` (pass)
   - `cd frontend && npm run test:ci` (pass; 78 suites)
   - `cd frontend && npm run audit:knip` (pass; no findings)
+
+## Phase 12 Outcome (2026-02-23)
+
+- Dashboard settings dedupe shipped:
+  - extracted shared `SettingsToggleField` in `frontend/src/renderer/features/dashboard/components/sections/SettingsSection.jsx`.
+  - replaced repeated toggle JSX blocks for:
+    - wakeword listening
+    - voice mode
+    - speech replies
+    - attach image to user query
+- Regression coverage shipped:
+  - added `tests/frontend/SettingsSection.test.jsx` validating wakeword setter dispatch, `onConfigChange` payload wiring, and suppressed wakeword helper messaging.
+- jscpd delta after Phase 12 slice:
+  - clones: `225 -> 222`
+  - duplicated lines: `3325 -> 3292`
+  - duplicated tokens: `29329 -> 29060`
+- Verification:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/SettingsSection.test.jsx` (pass)
+  - `cd frontend && npm run test:ci` (pass; 79 suites)
+  - `cd frontend && npm run audit:knip` (pass; no findings)
+  - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
