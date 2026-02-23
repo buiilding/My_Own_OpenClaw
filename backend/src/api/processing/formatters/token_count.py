@@ -22,5 +22,8 @@ class TokenCountEventFormatter(EventFormatter):
                 "total_tokens": event_dict.get("total_tokens"),
                 "conversation_tokens": event_dict.get("conversation_tokens"),
                 "usage_source": event_dict.get("usage_source"),
+                "cached_tokens": event_dict.get("cached_tokens"),
+                "cache_hit": event_dict.get("cache_hit"),
+                "cache_status": event_dict.get("cache_status"),
             },
         }

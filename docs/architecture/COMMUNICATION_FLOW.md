@@ -284,7 +284,7 @@ Identity notes:
 
 **`token-count`**
 - Purpose: Token usage metrics for the current turn/conversation.
-- Payload: `{ prompt_tokens, output_tokens_total, total_tokens, conversation_tokens, ... }`
+- Payload: `{ prompt_tokens, visible_output_tokens, thinking_tokens, output_tokens_total, total_tokens, conversation_tokens, usage_source, cached_tokens?, cache_hit?, cache_status? }`
 
 **`memory-store`**
 - Purpose: Request sidecar memory persistence.

@@ -136,6 +136,7 @@ class LocalLLMProvider(LLMProvider):
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Any] = None,
         parallel_tool_calls: Optional[bool] = None,
+        prompt_cache_key: Optional[str] = None,
     ) -> NormalizedLLMResponse:
         params = self._build_request_params(
             model,
@@ -143,6 +144,7 @@ class LocalLLMProvider(LLMProvider):
             tools=tools,
             tool_choice=tool_choice,
             parallel_tool_calls=parallel_tool_calls,
+            prompt_cache_key=prompt_cache_key,
         )
         return await self._get_completion_with_standard_errors(
             provider_label=self._provider_name(),
@@ -157,6 +159,7 @@ class LocalLLMProvider(LLMProvider):
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Any] = None,
         parallel_tool_calls: Optional[bool] = None,
+        prompt_cache_key: Optional[str] = None,
     ) -> AsyncGenerator[StreamingEvent, None]:
         """
         Internal streaming implementation for local providers.
@@ -168,6 +171,7 @@ class LocalLLMProvider(LLMProvider):
             tools=tools,
             tool_choice=tool_choice,
             parallel_tool_calls=parallel_tool_calls,
+            prompt_cache_key=prompt_cache_key,
         )
         params["stream"] = True
         params["stream_options"] = {"include_usage": True}
@@ -251,6 +255,7 @@ class LocalLLMProvider(LLMProvider):
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Any] = None,
         parallel_tool_calls: Optional[bool] = None,
+        prompt_cache_key: Optional[str] = None,
     ) -> dict:
         params = super()._build_request_params(
             model,
@@ -258,6 +263,7 @@ class LocalLLMProvider(LLMProvider):
             tools=tools,
             tool_choice=tool_choice,
             parallel_tool_calls=parallel_tool_calls,
+            prompt_cache_key=prompt_cache_key,
         )
         # Local models often need to be told they are compatible with OpenAI's API
         params["custom_llm_provider"] = "openai"
