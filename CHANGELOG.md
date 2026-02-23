@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-landing): dedupe repeated `PrivacySection` highlight-item markup by switching to mapped highlight data while preserving visible copy/icon output, with landing-page regression coverage kept green
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 15 execution slice for landing `PrivacySection` highlight-item dedupe via data-driven rendering
 - refactor(frontend-chat-overlay): dedupe chat overlay phase/listener and frame-size normalization logic by introducing shared `overlayPhaseListener` + `overlayFrameSize` helpers, rewiring `ChatBox`/`ChatBoxResponse`, and adding focused regression suites (`OverlayPhaseListener`, `OverlayFrameSize`)
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 14 execution slice for shared chat overlay-phase listener extraction (`ChatBox` + `ChatBoxResponse`) and helper regression coverage

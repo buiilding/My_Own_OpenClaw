@@ -674,3 +674,22 @@ read_when:
   - `cd frontend && npm run test:ci` (pass; 81 suites)
   - `cd frontend && npm run audit:knip` (pass; no findings)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
+
+## Phase 15 Outcome (2026-02-23)
+
+- Landing privacy highlight dedupe shipped:
+  - refactored repeated `privacy-highlights` JSX blocks in `frontend/src/landing/components/PrivacySection.jsx` to data-driven rendering.
+  - preserved existing copy and icon semantics for:
+    - `Local-First`
+    - `Transparent`
+    - `Your Choice`
+- jscpd delta after Phase 15 slice:
+  - clones: `220 -> 218`
+  - duplicated lines: `3275 -> 3264`
+  - duplicated tokens: `28878 -> 28722`
+- Verification:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/landing/LandingPage.test.jsx` (pass)
+  - `cd frontend && npm run test:ci` (pass; 81 suites)
+  - `cd frontend && npm run audit:knip` (pass; no findings)
+  - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
