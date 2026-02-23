@@ -565,6 +565,25 @@ function initializeOverlayHandlers() {
     }
   });
 
+  ipcMain.on('move-chatbox-by', (event, { dx, dy } = {}) => {
+    if (!chatWindow || chatWindow.isDestroyed()) {
+      return;
+    }
+    const deltaX = Math.round(Number(dx) || 0);
+    const deltaY = Math.round(Number(dy) || 0);
+    if (deltaX === 0 && deltaY === 0) {
+      return;
+    }
+
+    try {
+      const currentBounds = chatWindow.getBounds();
+      chatWindow.setPosition(currentBounds.x + deltaX, currentBounds.y + deltaY, false);
+      positionResponseWindow();
+    } catch (error) {
+      console.warn('[Main] Failed to move chatbox:', error?.message || error);
+    }
+  });
+
   ipcMain.handle('set-responsebox-size', async (event, { width, height, visible } = {}) => {
     if (!responseWindow || responseWindow.isDestroyed()) {
       return { success: false, reason: 'Response window not available' };

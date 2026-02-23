@@ -3,12 +3,19 @@ import { useChatStore } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import { ApiClient } from '../../../infrastructure/api/client';
 import { setActiveConversationRef } from '../../../infrastructure/transcript/TranscriptWriter';
-import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
 
 const CLICK_THROUGH_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
 const OVERLAY_ACTIVE_PHASES = new Set(['awaiting-first-chunk', 'streaming']);
 const OVERLAY_TERMINAL_PHASES = new Set(['idle', 'complete', 'error']);
 const ACTIVE_QUERY_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
+
+function isDragBlockedTarget(target) {
+  if (!(target instanceof Element)) {
+    return false;
+  }
+  return Boolean(target.closest('button, a, [role="button"]'));
+}
 
 function SettingsIcon() {
   return (
@@ -51,6 +58,13 @@ function ChatBox() {
   const shellRef = useRef(null);
   const inputRef = useRef(null);
   const lastSizeRef = useRef({ width: 0, height: 0 });
+  const dragStateRef = useRef({
+    isDragging: false,
+    startClientX: 0,
+    startClientY: 0,
+    lastScreenX: 0,
+    lastScreenY: 0,
+  });
 
   const setOverlayIgnore = useCallback(async (ignore) => {
     if (ignoreMouseRef.current === ignore) {
@@ -197,10 +211,66 @@ function ChatBox() {
     setTokenCounts,
   ]);
 
+  const handleDragMove = useCallback((event) => {
+    const dragState = dragStateRef.current;
+    if (!dragState.isDragging) {
+      return;
+    }
+
+    const screenX = Math.round(Number(event.screenX) || 0);
+    const screenY = Math.round(Number(event.screenY) || 0);
+    const clientX = Math.round(Number(event.clientX) || 0);
+    const clientY = Math.round(Number(event.clientY) || 0);
+    const movedDistance = Math.abs(clientX - dragState.startClientX) + Math.abs(clientY - dragState.startClientY);
+
+    if (movedDistance < 2) {
+      return;
+    }
+
+    const dx = screenX - dragState.lastScreenX;
+    const dy = screenY - dragState.lastScreenY;
+    dragState.lastScreenX = screenX;
+    dragState.lastScreenY = screenY;
+
+    if (dx === 0 && dy === 0) {
+      return;
+    }
+
+    IpcBridge.send(SEND_CHANNELS.MOVE_CHATBOX_BY, { dx, dy });
+    event.preventDefault();
+  }, []);
+
+  const stopDragging = useCallback(() => {
+    dragStateRef.current.isDragging = false;
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('mousemove', handleDragMove);
+    window.addEventListener('mouseup', stopDragging);
+    window.addEventListener('blur', stopDragging);
+    return () => {
+      window.removeEventListener('mousemove', handleDragMove);
+      window.removeEventListener('mouseup', stopDragging);
+      window.removeEventListener('blur', stopDragging);
+    };
+  }, [handleDragMove, stopDragging]);
+
+  const handlePillMouseDown = useCallback((event) => {
+    if (event.button !== 0 || isDragBlockedTarget(event.target)) {
+      return;
+    }
+
+    dragStateRef.current.isDragging = true;
+    dragStateRef.current.startClientX = Math.round(Number(event.clientX) || 0);
+    dragStateRef.current.startClientY = Math.round(Number(event.clientY) || 0);
+    dragStateRef.current.lastScreenX = Math.round(Number(event.screenX) || 0);
+    dragStateRef.current.lastScreenY = Math.round(Number(event.screenY) || 0);
+  }, []);
+
   return (
     <div className="chatbox-shell-wrap">
       <div className="chatbox-shell" ref={shellRef}>
-        <form className="chatbox-pill" onSubmit={handleSubmit}>
+        <form className="chatbox-pill" onSubmit={handleSubmit} onMouseDown={handlePillMouseDown}>
           <button
             type="button"
             className="chatbox-pill-close"

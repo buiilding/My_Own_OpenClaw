@@ -38,12 +38,7 @@ body {
   padding: 10px 12px;
   margin: 0;
   position: relative;
-  -webkit-app-region: drag;
-  cursor: grab;
-}
-
-.chatbox-pill:active {
-  cursor: grabbing;
+  cursor: default;
 }
 
 .chatbox-pill-close {
@@ -63,7 +58,6 @@ body {
   line-height: 1;
   padding: 0;
   cursor: pointer;
-  -webkit-app-region: no-drag;
 }
 
 .chatbox-pill-close:hover {
@@ -84,7 +78,6 @@ body {
   line-height: 1.2;
   outline: none;
   padding: 6px 4px 6px 8px;
-  -webkit-app-region: no-drag;
 }
 
 .chatbox-input::placeholder {
@@ -111,7 +104,6 @@ body {
   padding: 0;
   cursor: pointer;
   transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
-  -webkit-app-region: no-drag;
 }
 
 .chatbox-icon svg {
