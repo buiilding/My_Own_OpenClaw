@@ -2,7 +2,7 @@ import type { SessionInfo } from './types';
 
 type ReadSessionInfo = () => SessionInfo;
 
-export type TranscriptSessionState = {
+type TranscriptSessionState = {
   get: () => SessionInfo;
   resolve: (override?: Partial<SessionInfo>) => SessionInfo;
   update: (conversationRef?: string | null, userId?: string | null) => SessionInfo;

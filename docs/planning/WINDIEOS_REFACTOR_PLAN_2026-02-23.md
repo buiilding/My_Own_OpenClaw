@@ -233,3 +233,32 @@ read_when:
   - `cd frontend && npm run lint` (pass)
   - `cd frontend && npm run test:ci -- tests/frontend/useMemoryContextMenuHotkeys.test.js tests/frontend/ToolRunnerHook.events.test.ts tests/frontend/ToolRunnerHook.callbacks.test.ts` (pass)
   - `cd frontend && npm run audit:knip` (dependency findings removed; command still non-zero from export/type findings)
+
+## Phase 5 Outcome (2026-02-23)
+
+- Export-surface cleanup shipped:
+  - removed unused legacy hook exports:
+    - `useAppContext` from `frontend/src/renderer/app/providers/AppContextHooks.js`
+    - `useChatContext` from `frontend/src/renderer/app/providers/ChatContext.jsx`
+  - removed unused CJS exports from `frontend/src/main/backend_endpoints.cjs`:
+    - `DEFAULT_BACKEND_HOST`
+    - `DEFAULT_BACKEND_PORT`
+  - de-exported internal-only helper/type symbols:
+    - `getBackendHttpUrl`
+    - `DisplayBounds`
+    - `TranscriptSessionState`
+    - `ToolCallPayloadLike`
+    - `ToolBundlePayloadLike`
+    - `ToolOutputPayloadLike`
+- Regression-assertion integrity fixes shipped:
+  - updated display-selection related tests to use explicit storage-key fixtures after storage-key de-export, preserving meaningful assertions.
+  - updated stale AppProvider comment that referenced removed legacy `useAppContext`.
+  - updated folder-structure docs comments for removed hook exports.
+- knip findings delta after Phase 5 slice:
+  - unused exports: `42 -> 34`
+  - unused exported types: `23 -> 17`
+- Verification:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/AppProvider.test.tsx tests/frontend/configStorage.test.js tests/frontend/TranscriptSessionState.test.ts tests/frontend/ChatStreamFormatting.test.ts tests/frontend/ArtifactUploader.test.ts` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/displaySelection.test.ts tests/frontend/SystemCapture.test.ts tests/frontend/ToolExecutionInvoker.test.ts tests/frontend/ToolExecutionService.test.ts` (pass)
+  - `cd frontend && npm run audit:knip` (remaining command non-zero from residual export/type findings)

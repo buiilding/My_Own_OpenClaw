@@ -79,8 +79,7 @@ function AppContextCoordinator({ children }) {
  * AppProvider - Combines AppConfigProvider and AppStatusProvider.
  *
  * This maintains backward compatibility while using split contexts internally.
- * Components can use useAppConfigContext() and useAppStatusContext() directly
- * for better performance, or use the legacy useAppContext() for convenience.
+ * Components should use useAppConfigContext() and useAppStatusContext() directly.
  */
 export function AppProvider({ children }) {
   return (
