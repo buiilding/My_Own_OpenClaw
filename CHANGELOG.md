@@ -10,6 +10,7 @@ Includes the last 300 commits on `main`.
 - docs(setup): expand `docs/PLATFORM_SETUP_BACKEND_FRONTEND.md` with RapidOCR 15s timeout diagnostics, CUDA/onnxruntime-gpu reinstall flow, and `WINDIE_PYTHON_PATH` usage for Electron sidecar Python 3.11
 - fix(frontend-electron): make `npm run electron` auto-fallback to `xvfb-run -a` when Linux has no `$DISPLAY`, reducing startup failures in headless/container dev environments
 - docs(setup): add `docs/PLATFORM_SETUP_BACKEND_FRONTEND.md` with Windows/Ubuntu/macOS instructions for Python 3.11 backend + sidecar environments, CUDA-aware torch/onnxruntime-gpu validation, and frontend npm dev/electron startup flow
+- docs(planning): add `docs/planning/WINDIEOS_SELF_UI_API_PLAN.md` with a phased architecture for safe agent self-UI interaction via typed internal actions, IPC broker routing, strict allowlists, and audit/kill-switch controls
 - fix(testing): align sidecar chrome-launcher assertions with WindieOS dedicated profile/CDP defaults and restore missing `scripts/python-in-env`, `scripts/test*`, and run-wrapper helpers referenced by docs
 - fix(scripts): mark restored `scripts/python-in-env`, `scripts/test*`, and run-wrapper files executable in git so `./scripts/...` commands work on fresh checkout
 - fix(stop-query): track multiple concurrent query tasks per user in `SessionManager` and cancel all active tasks on `stop-query` to prevent orphaned tool waits from older turns
