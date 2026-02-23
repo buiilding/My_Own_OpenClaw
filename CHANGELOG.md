@@ -7,6 +7,9 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(setup): expand `docs/PLATFORM_SETUP_BACKEND_FRONTEND.md` with RapidOCR 15s timeout diagnostics, CUDA/onnxruntime-gpu reinstall flow, and `WINDIE_PYTHON_PATH` usage for Electron sidecar Python 3.11
+- fix(frontend-electron): make `npm run electron` auto-fallback to `xvfb-run -a` when Linux has no `$DISPLAY`, reducing startup failures in headless/container dev environments
+- docs(setup): add `docs/PLATFORM_SETUP_BACKEND_FRONTEND.md` with Windows/Ubuntu/macOS instructions for Python 3.11 backend + sidecar environments, CUDA-aware torch/onnxruntime-gpu validation, and frontend npm dev/electron startup flow
 - docs(plan): add `docs/plan/WINDIEOS_SELF_EDIT_CONFIG_PLAN.md` for safe natural-language self-configuration (TTS/screenshot/voice preference intents) and link it from docs index + future roadmap
 - fix(frontend-chatbox-focus): run a chatbox-only pre-query hook that restores the previously focused external Windows app before query system-state capture, preventing `active_window` from being captured as Desktop Assistant when chat pill queries are sent
 - fix(frontend-chatbox-input): block drag-start on chat pill interactive controls (`input`/editable/action areas) so users can immediately click/focus/type after startup and after response completion without needing Win+Alt+W hide/show refresh
