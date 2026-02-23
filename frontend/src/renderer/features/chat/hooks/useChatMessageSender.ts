@@ -48,11 +48,15 @@ export function useChatMessageSender(
   const { config } = useAppConfigContext();
   const { senderSurface = 'overlay-chatbox', returnToChatboxPolicy } = options;
   const includeQueryScreenshot = config?.include_query_screenshot ?? true;
-  const { shouldReturnToChatboxOnSend } = resolveMessageSendUiBehavior({
+  const shouldCaptureQueryScreenshot = senderSurface !== 'main-window' && includeQueryScreenshot;
+  const sendUiBehavior = resolveMessageSendUiBehavior({
     senderSurface,
     returnToChatboxPolicy,
-    includeQueryScreenshot,
+    includeQueryScreenshot: shouldCaptureQueryScreenshot,
   });
+  const shouldReturnToChatboxOnSend = senderSurface === 'main-window'
+    ? false
+    : sendUiBehavior.shouldReturnToChatboxOnSend;
 
   const appendSendFailureMessage = useCallback(() => {
     addMessage({
@@ -106,7 +110,7 @@ export function useChatMessageSender(
     
     let screenshot: string | null = null;
     let screenshotContentType: string | null = null;
-    if (includeQueryScreenshot) {
+    if (shouldCaptureQueryScreenshot) {
       // Extract OS state (screenshot and system state).
       const isFirstUserMessage = !hadUserMessages;
       try {
@@ -168,7 +172,7 @@ export function useChatMessageSender(
     setThinkingStatus,
     stopPlayback,
     shouldReturnToChatboxOnSend,
-    includeQueryScreenshot,
+    shouldCaptureQueryScreenshot,
     ensureConversationRef,
   ]);
 

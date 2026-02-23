@@ -97,7 +97,7 @@ describe('useChatMessageSender', () => {
     delete (window as any).ipc;
   });
 
-  test('returns to chatbox without focus when configured', async () => {
+  test('does not return to chatbox from main-window sends', async () => {
     const { result } = renderHook(() =>
       useChatMessageSender(undefined, { senderSurface: 'main-window' }),
     );
@@ -106,9 +106,9 @@ describe('useChatMessageSender', () => {
       await result.current.sendMessage('hello');
     });
 
-    expect((window as any).ipc.invoke).toHaveBeenCalledWith(
+    expect((window as any).ipc.invoke).not.toHaveBeenCalledWith(
       INVOKE_CHANNELS.SHOW_CHATBOX,
-      { focus: false },
+      expect.anything(),
     );
   });
 
@@ -142,11 +142,14 @@ describe('useChatMessageSender', () => {
     );
   });
 
-  test('continues send flow when return-to-chatbox invoke fails', async () => {
+  test('continues send flow when overlay return-to-chatbox invoke fails', async () => {
     (window as any).ipc.invoke = jest.fn().mockRejectedValue(new Error('show-failed'));
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
     const { result } = renderHook(() =>
-      useChatMessageSender(undefined, { senderSurface: 'main-window' }),
+      useChatMessageSender(undefined, {
+        senderSurface: 'overlay-chatbox',
+        returnToChatboxPolicy: 'always',
+      }),
     );
 
     await act(async () => {
@@ -178,11 +181,29 @@ describe('useChatMessageSender', () => {
     );
   });
 
-  test('returns to chatbox when explicit always policy overrides screenshot-disabled config', async () => {
+  test('ignores explicit always return policy for main-window sends', async () => {
     mockFrontendConfig = { include_query_screenshot: false };
     const { result } = renderHook(() =>
       useChatMessageSender(undefined, {
         senderSurface: 'main-window',
+        returnToChatboxPolicy: 'always',
+      }),
+    );
+
+    await act(async () => {
+      await result.current.sendMessage('hello');
+    });
+
+    expect((window as any).ipc.invoke).not.toHaveBeenCalledWith(
+      INVOKE_CHANNELS.SHOW_CHATBOX,
+      expect.anything(),
+    );
+  });
+
+  test('overlay surface honors explicit always return policy', async () => {
+    const { result } = renderHook(() =>
+      useChatMessageSender(undefined, {
+        senderSurface: 'overlay-chatbox',
         returnToChatboxPolicy: 'always',
       }),
     );
@@ -257,6 +278,20 @@ describe('useChatMessageSender', () => {
     expect(mockExtractOSstate).not.toHaveBeenCalled();
     expect(mockUploadArtifactBase64).not.toHaveBeenCalled();
     expect(mockSendQuery).toHaveBeenCalledWith('no image', 'conv_msg-1', null, null);
+  });
+
+  test('skips screenshot capture for main-window sends', async () => {
+    const { result } = renderHook(() =>
+      useChatMessageSender(undefined, { senderSurface: 'main-window' }),
+    );
+
+    await act(async () => {
+      await result.current.sendMessage('dashboard text');
+    });
+
+    expect(mockExtractOSstate).not.toHaveBeenCalled();
+    expect(mockUploadArtifactBase64).not.toHaveBeenCalled();
+    expect(mockSendQuery).toHaveBeenCalledWith('dashboard text', 'conv_msg-1', null, null);
   });
 
   test('calls stopPlayback when provided', async () => {
