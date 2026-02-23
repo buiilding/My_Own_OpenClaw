@@ -7,6 +7,11 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-chat-send): make main-window/dashboard sends in `useChatMessageSender` bypass chatbox-return behavior and skip screenshot capture/upload entirely, so dashboard-typed queries send text-only without hiding or capture side effects
+- feat(api-stop-query): add incoming `stop-query` contract + handler wiring, active-query task tracking/cancellation in `SessionManager`, and frontend `ApiClient.stopQuery()` transport path
+- feat(frontend-chat-controls): add `Stop` controls to both dashboard chat (`ChatInterface`) and chat pill (`ChatBox`) with stream-phase gating
+- feat(frontend-chat-controls): add `New Chat` controls to dashboard and pill that clear local chat state, reset active `conversation_ref`, and cancel active streaming when needed
+- feat(frontend-chatbox): add top-right close button to the chat pill (`hide-chatbox`) and switch pill dragging to native Electron drag regions for immediate cursor-follow movement
 - chore(docs-tooling): replace removed `bin/docs-list` with repo-local `scripts/doc-lists.js` docs front-matter lister for `windieos/docs`
 - chore(docs): remove obsolete Browser Use port planning/migration prompt docs and superseded ADR planning notes from `docs/plan/`, `docs/prompts/`, and `docs/adr/`
 - refactor(query-payload-builder): normalize system-state and memory enrichment in `frontend/src/main/query_payload_builder.cjs` via shared helpers (`resolveSystemStateEnrichment`, `resolveMemoryEnrichment`) and replace settled-result orchestration with direct normalized `Promise.all(...)` flow

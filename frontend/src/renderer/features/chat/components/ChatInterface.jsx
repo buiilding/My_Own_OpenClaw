@@ -6,20 +6,28 @@ import TokenCountDisplay from './TokenCountDisplay';
 import { useChatStore } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
+import { ApiClient } from '../../../infrastructure/api/client';
 import { PlayerService } from '../../../infrastructure/audio/PlayerService';
+import { setActiveConversationRef } from '../../../infrastructure/transcript/TranscriptWriter';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { extractAudioChunkPayload } from '../utils/backendAudioEvents';
 import { selectChatInterfaceState } from '../utils/chatSelectors';
 import '../../../styles/ChatInterface.css';
+
+const ACTIVE_STREAM_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
 
 /**
  * A clean and simple chat interface component.
  * Orchestrates the chat interaction using store and hooks.
  */
 function ChatInterface() {
-  const { messages, isSending, thinkingStatus, tokenCounts } = useChatStore(
+  const { messages, isSending, thinkingStatus, tokenCounts, streamPhase } = useChatStore(
     useShallow(selectChatInterfaceState),
   );
+  const clearMessages = useChatStore((state) => state.clearMessages);
+  const setIsSending = useChatStore((state) => state.setIsSending);
+  const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
+  const setTokenCounts = useChatStore((state) => state.setTokenCounts);
   // Use AppConfigContext directly for better performance
   // This avoids re-renders when saveStatus changes in AppStatusContext
   const { config } = useAppConfigContext();
@@ -48,6 +56,7 @@ function ChatInterface() {
   const interactionMode = config?.interaction_mode || 'chat';
   const voiceModeEnabled = config?.voice_mode_enabled === true;
   const interactionModeLabel = interactionMode === 'agent' ? 'Agent' : 'Chat';
+  const canStop = ACTIVE_STREAM_PHASES.has(streamPhase);
 
   const stopPlayback = useCallback(() => {
     audioPlayerRef.current?.stopPlayback();
@@ -70,6 +79,33 @@ function ChatInterface() {
       console.warn('[ChatInterface] Failed to close window:', error);
     });
   }, []);
+
+  const handleStopQuery = useCallback(() => {
+    if (!canStop) {
+      return;
+    }
+    stopPlayback();
+    ApiClient.stopQuery();
+  }, [canStop, stopPlayback]);
+
+  const handleNewChat = useCallback(() => {
+    if (canStop) {
+      stopPlayback();
+      ApiClient.stopQuery();
+    }
+    clearMessages();
+    setIsSending(false);
+    setThinkingStatus(null);
+    setTokenCounts(null);
+    setActiveConversationRef(null);
+  }, [
+    canStop,
+    clearMessages,
+    setIsSending,
+    setThinkingStatus,
+    setTokenCounts,
+    stopPlayback,
+  ]);
 
   const { sendMessage } = useChatMessageSender(stopPlayback, {
     senderSurface: 'main-window',
@@ -115,6 +151,25 @@ function ChatInterface() {
             <div className={`chat-mode-badge chat-mode-${interactionMode}`}>
               Mode: {interactionModeLabel}
             </div>
+            <button
+              type="button"
+              className="chat-new-chat-button"
+              onClick={handleNewChat}
+              aria-label="New chat"
+              title="New chat"
+            >
+              New Chat
+            </button>
+            <button
+              type="button"
+              className="chat-stop-button"
+              onClick={handleStopQuery}
+              disabled={!canStop}
+              aria-label="Stop response"
+              title="Stop response"
+            >
+              Stop
+            </button>
             <TokenCountDisplay tokenCounts={tokenCounts} />
           </div>
         </div>

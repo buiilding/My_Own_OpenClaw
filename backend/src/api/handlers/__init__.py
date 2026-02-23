@@ -35,6 +35,7 @@ from backend.src.api.handlers.rehydrate import RehydrateConversationHandler
 from backend.src.api.handlers.settings import (
     ListModelsHandler,
 )
+from backend.src.api.handlers.stop_query import StopQueryHandler
 from backend.src.api.handlers.wakeword import WakewordHandler
 from backend.src.api.handlers.tool_result import ToolResultHandler
 
@@ -43,6 +44,7 @@ __all__ = [
     "TypedMessageHandler",
     "MessageHandlerRegistry",
     "QueryMessageHandler",
+    "StopQueryHandler",
     "RehydrateConversationHandler",
     "ListModelsHandler",
     "WakewordHandler",

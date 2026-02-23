@@ -37,8 +37,8 @@ frontend/src/renderer/
 │   │
 │   ├── chat/                            # Chat feature module
 │   │   ├── components/                  # Chat UI components
-│   │   │   ├── ChatBox.jsx              # ChatBox - Floating quick chat overlay UI
-│   │   │   ├── ChatInterface.jsx        # ChatInterface - Main chat orchestrator (composes MessageList, MessageInput, TokenCountDisplay)
+│   │   │   ├── ChatBox.jsx              # ChatBox - Floating quick chat overlay UI (new-chat + stop controls)
+│   │   │   ├── ChatInterface.jsx        # ChatInterface - Main chat orchestrator (composes MessageList, MessageInput, TokenCountDisplay; includes new-chat + stop controls)
 │   │   │   ├── MessageContent.jsx       # MessageContent - Renders message body by type
 │   │   │   ├── MessageInput.jsx         # MessageInput - Input field with voice transcription support
 │   │   │   ├── MessageList.jsx          # MessageList - Renders messages with transparency sections
@@ -48,7 +48,7 @@ frontend/src/renderer/
 │   │   │   └── TransparencySection.jsx  # TransparencySection - Collapsible sections for system prompts, tool schemas, full messages
 │   │   │
 │   │   ├── hooks/                       # Chat business logic hooks
-│   │   │   ├── useChatMessageSender.ts  # useChatMessageSender - Handles message sending with screenshot capture
+│   │   │   ├── useChatMessageSender.ts  # useChatMessageSender - Handles message sending (dashboard sends skip screenshot capture/window handoff)
 │   │   │   ├── useChatStream.ts         # useChatStream - Handles streaming events (llm-thought, streaming-response, tool-call, etc.)
 │   │   │   ├── useToolRunner.ts         # useToolRunner - Connects UI to ToolExecutionService, handles tool execution events
 │   │   │   └── useTranscription.ts      # useTranscription - Manages input state and voice transcription text insertion
@@ -109,7 +109,7 @@ frontend/src/renderer/
 ├── infrastructure/                        # Core infrastructure services
 │   │
 │   ├── api/                              # API client
-│   │   └── client.ts                    # ApiClient - Typed API client for backend communication (sendQuery, updateSettings, listModels, wakewordDetected)
+│   │   └── client.ts                    # ApiClient - Typed API client for backend communication (sendQuery, stopQuery, updateSettings, listModels, wakewordDetected)
 │   │
 │   ├── audio/                            # Audio services
 │   │   └── PlayerService.ts            # PlayerService - Audio playback queue management (TTS audio chunks from backend)
@@ -206,8 +206,8 @@ frontend/src/renderer/
    └─> features/chat/hooks/useChatMessageSender.ts
        ├─> Create user message (immediate UI display)
        ├─> Add to chatStore
-       ├─> Minimize window (delayed, after message display)
-       ├─> extractOSstate() - Capture screenshot and system state
+       ├─> Main-window sender path: send query directly (no screenshot capture, no window handoff)
+       ├─> Overlay sender path: optional extractOSstate() screenshot capture
        └─> ApiClient.sendQuery() - Send to backend via IPC
            ↓
 3. IPC BRIDGE

@@ -23,6 +23,7 @@ from backend.src.api.schemas.incoming import (
     ListModelsMessage,
     LoadSettingsMessage,
     QueryMessage,
+    StopQueryMessage,
     RehydrateConversationMessage,
     ToolBundleResultMessage,
     ToolResultMessage,
@@ -59,6 +60,7 @@ class MessageContract:
 
 INCOMING_CONTRACTS: tuple[MessageContract, ...] = (
     MessageContract(IncomingMessageType.QUERY, QueryMessage),
+    MessageContract(IncomingMessageType.STOP_QUERY, StopQueryMessage),
     MessageContract(
         IncomingMessageType.REHYDRATE_CONVERSATION,
         RehydrateConversationMessage,

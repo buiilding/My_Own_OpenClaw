@@ -109,6 +109,51 @@
   color: #d6dce6;
 }
 
+.chat-stop-button {
+  border: 1px solid rgba(255, 137, 137, 0.4);
+  background: rgba(128, 27, 27, 0.22);
+  color: #ffd7d7;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+}
+
+.chat-stop-button:hover:not(:disabled) {
+  border-color: rgba(255, 137, 137, 0.68);
+  background: rgba(168, 35, 35, 0.34);
+  color: #fff5f5;
+}
+
+.chat-stop-button:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.chat-new-chat-button {
+  border: 1px solid rgba(130, 152, 184, 0.38);
+  background: rgba(40, 50, 67, 0.26);
+  color: #d7e3f6;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+}
+
+.chat-new-chat-button:hover {
+  border-color: rgba(160, 190, 232, 0.64);
+  background: rgba(58, 76, 101, 0.36);
+  color: #edf4ff;
+}
+
 .message-list {
   flex: 1;
   min-height: 0;

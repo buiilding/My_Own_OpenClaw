@@ -21,6 +21,7 @@ describe('chatSelectors', () => {
       isSending: true,
       thinkingStatus: 'thinking',
       tokenCounts: { total_tokens: 42 },
+      streamPhase: 'streaming',
     });
   });
 
@@ -73,6 +74,7 @@ describe('chatSelectors', () => {
       isSending: false,
       thinkingStatus: null,
       tokenCounts: undefined,
+      streamPhase: 'idle',
     });
   });
 
