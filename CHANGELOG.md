@@ -13,6 +13,7 @@ Includes the last 300 commits on `main`.
 - refactor(frontend-chat-utils): internalize test-only chat helper exports (message-send policy helpers, stream selector helper, message-input normalization helper, token-count formatting helpers) and update tests to validate behavior through public APIs
 - docs(planning): add `docs/planning/WINDIEOS_VC_PRODUCT_VISION.md` as a non-technical investor/stakeholder brief describing the product thesis (agent messaging/control platform, local primary agent + remote VM agents, mobile as control/messaging client)
 - docs(planning): replace the VC brief with `docs/planning/WINDIEOS_PRODUCT_OVERVIEW.md`, a non-technical overview focused on current capabilities plus future product direction
+- docs(docs): move non-technical product overview from planning to `docs/getting-started/PRODUCT_OVERVIEW.md` so planning stays implementation-focused
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 8 execution slice for chat helper export internalization and public-behavior test updates
 - refactor(frontend-knip-exports): prune helper-only exports in `query_payload_builder.cjs`, internalize test-only config helper exports in `configStorage.js`, remove `isFrontendConfigOnly` export from `configFilter.js`, and migrate config tests to explicit fixture/public-behavior assertions
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 7 execution slice for query-payload/config helper export cleanup and test fixture-based assertion updates
