@@ -19,25 +19,20 @@ playwright install chromium
 
 `browser_use` is vendored in this repository at `frontend/src/main/python/tools/browser/browser_use`, so no pip install of the `browser-use` package is required.
 
-To resync Browser Use implementation code from `../browser-use/browser_use`:
+Vendored Browser Use sync is currently manual (no in-repo helper script):
 
-```bash
-cd WindieOS
-./scripts/sync-browser-use-vendor
-```
-
-The sync command also writes `frontend/src/main/python/tools/browser/browser_use_vendor_manifest.json` with source commit metadata.
+- Copy updates from `../browser-use/browser_use` into `frontend/src/main/python/tools/browser/browser_use`.
+- Update `frontend/src/main/python/tools/browser/browser_use_vendor_manifest.json` (`source_commit`, `synced_at_utc`, `pruned_paths`) after each sync.
 
 To verify vendored parity + import origin:
 
 ```bash
 cd WindieOS
-./scripts/check-browser-use-vendor
+python -m pytest tests/sidecar/tools/test_browser_use_tool_parity.py -q
 ```
 
 This check also enforces that sidecar requirements do not reintroduce `browser-use` as a pip dependency.
-It also enforces that non-runtime vendored Browser Use paths remain pruned:
-`skill_cli`, `mcp`, `actor/playground`, `dom/playground`, `llm/tests`, `tokens/tests`, `browser/cloud`, `sync`, `telemetry`.
+It also enforces Browser Use action parity across sidecar schema, backend schema, native handlers, and adapter dispatch coverage.
 
 ### Step 2: Run WindieOS
 

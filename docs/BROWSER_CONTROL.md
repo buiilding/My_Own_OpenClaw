@@ -43,25 +43,22 @@ pip install -r requirements.txt
 playwright install chromium
 ```
 
-Vendored Browser Use sync command:
+Vendored Browser Use sync is manual (no in-repo helper script at this time):
 
-```bash
-cd WindieOS
-./scripts/sync-browser-use-vendor
-```
+- Copy updates from `../browser-use/browser_use` into `frontend/src/main/python/tools/browser/browser_use`.
+- Update `frontend/src/main/python/tools/browser/browser_use_vendor_manifest.json` (`source_commit`, `synced_at_utc`, `pruned_paths`) to reflect the synced source.
 
 Vendored parity check command:
 
 ```bash
 cd WindieOS
-./scripts/check-browser-use-vendor
+python -m pytest tests/sidecar/tools/test_browser_use_tool_parity.py -q
 ```
 
 Parity check guarantees:
-- Vendored tree matches `../browser-use/browser_use`.
 - Runtime import resolves to vendored `frontend/src/main/python/tools/browser/browser_use`.
 - Sidecar requirements do not depend on pip `browser-use`.
-- Non-runtime vendored paths remain pruned: `skill_cli`, `mcp`, `actor/playground`, `dom/playground`, `llm/tests`, `tokens/tests`, `browser/cloud`, `sync`, `telemetry`.
+- Sidecar schema, backend schema, native handler registry, and adapter dispatch all cover Browser Use action registry names.
 
 ## User Chrome Mode
 

@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(browser-control): remove stale `./scripts/sync-browser-use-vendor` / `./scripts/check-browser-use-vendor` commands from browser runbooks, document manual vendored sync expectations, and point parity verification to `python -m pytest tests/sidecar/tools/test_browser_use_tool_parity.py -q`
 - fix(frontend-chat-send): make main-window/dashboard sends in `useChatMessageSender` bypass chatbox-return behavior and skip screenshot capture/upload entirely, so dashboard-typed queries send text-only without hiding or capture side effects
 - feat(api-stop-query): add incoming `stop-query` contract + handler wiring, active-query task tracking/cancellation in `SessionManager`, and frontend `ApiClient.stopQuery()` transport path
 - feat(frontend-chat-controls): add `Stop` controls to both dashboard chat (`ChatInterface`) and chat pill (`ChatBox`) with stream-phase gating
