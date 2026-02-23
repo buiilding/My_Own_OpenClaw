@@ -48,6 +48,7 @@ function ChatBox() {
   const setIsSending = useChatStore((state) => state.setIsSending);
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setTokenCounts = useChatStore((state) => state.setTokenCounts);
+  const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
   const canStop = ACTIVE_QUERY_PHASES.has(streamPhase);
   const { sendMessage } = useChatMessageSender(undefined, {
     senderSurface: 'overlay-chatbox',
@@ -192,8 +193,18 @@ function ChatBox() {
     if (!canStop) {
       return;
     }
+    const stoppedAt = new Date().toISOString();
+    setIsSending(false);
+    setThinkingStatus(null);
+    updateStreamTracking((current) => ({
+      ...current,
+      phase: 'complete',
+      completedAt: stoppedAt,
+      lastEventAt: stoppedAt,
+      lastEventType: 'stop-query',
+    }));
     ApiClient.stopQuery();
-  }, [canStop]);
+  }, [canStop, setIsSending, setThinkingStatus, updateStreamTracking]);
 
   const handleNewChat = useCallback(() => {
     if (canStop) {

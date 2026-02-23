@@ -28,6 +28,7 @@ function ChatInterface() {
   const setIsSending = useChatStore((state) => state.setIsSending);
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setTokenCounts = useChatStore((state) => state.setTokenCounts);
+  const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
   // Use AppConfigContext directly for better performance
   // This avoids re-renders when saveStatus changes in AppStatusContext
   const { config } = useAppConfigContext();
@@ -84,9 +85,19 @@ function ChatInterface() {
     if (!canStop) {
       return;
     }
+    const stoppedAt = new Date().toISOString();
+    setIsSending(false);
+    setThinkingStatus(null);
+    updateStreamTracking((current) => ({
+      ...current,
+      phase: 'complete',
+      completedAt: stoppedAt,
+      lastEventAt: stoppedAt,
+      lastEventType: 'stop-query',
+    }));
     stopPlayback();
     ApiClient.stopQuery();
-  }, [canStop, stopPlayback]);
+  }, [canStop, setIsSending, setThinkingStatus, stopPlayback, updateStreamTracking]);
 
   const handleNewChat = useCallback(() => {
     if (canStop) {

@@ -54,6 +54,21 @@ describe('useToolRunner', () => {
       isSending: false,
       thinkingStatus: null,
       tokenCounts: null,
+      streamTracking: {
+        activeTurnRef: null,
+        phase: 'idle',
+        startedAt: null,
+        firstChunkAt: null,
+        completedAt: null,
+        lastEventAt: null,
+        lastEventType: null,
+        eventCount: 0,
+        chunkCount: 0,
+        toolCallCount: 0,
+        toolOutputCount: 0,
+        lastChunkSize: 0,
+        lastError: null,
+      },
     });
 
     (global as any).crypto = {
@@ -119,6 +134,43 @@ describe('useToolRunner', () => {
     );
   });
 
+  test('ignores tool-call events for a completed active turn', async () => {
+    useChatStore.setState({
+      streamTracking: {
+        activeTurnRef: 'turn-1',
+        phase: 'complete',
+        startedAt: null,
+        firstChunkAt: null,
+        completedAt: null,
+        lastEventAt: null,
+        lastEventType: null,
+        eventCount: 0,
+        chunkCount: 0,
+        toolCallCount: 0,
+        toolOutputCount: 0,
+        lastChunkSize: 0,
+        lastError: null,
+      },
+    });
+
+    renderHook(() => useToolRunner(true));
+
+    await act(async () => {
+      backendHandler?.({
+        type: 'tool-call',
+        id: 'event-id',
+        turn_ref: 'turn-1',
+        payload: {
+          tool_name: 'read_file',
+          parameters: { file_path: '/tmp/a' },
+          correlation_id: 'corr-1',
+        },
+      });
+    });
+
+    expect(mockExecuteTool).not.toHaveBeenCalled();
+  });
+
   test('dispatches tool-bundle events with mapped tools', async () => {
     renderHook(() => useToolRunner(true));
 
@@ -143,6 +195,43 @@ describe('useToolRunner', () => {
       ],
       'bundle-abc',
     );
+  });
+
+  test('ignores tool-bundle events from stale turns', async () => {
+    useChatStore.setState({
+      streamTracking: {
+        activeTurnRef: 'turn-active',
+        phase: 'streaming',
+        startedAt: null,
+        firstChunkAt: null,
+        completedAt: null,
+        lastEventAt: null,
+        lastEventType: null,
+        eventCount: 0,
+        chunkCount: 0,
+        toolCallCount: 0,
+        toolOutputCount: 0,
+        lastChunkSize: 0,
+        lastError: null,
+      },
+    });
+
+    renderHook(() => useToolRunner(true));
+
+    await act(async () => {
+      backendHandler?.({
+        type: 'tool-bundle',
+        turn_ref: 'turn-old',
+        payload: {
+          bundle_id: 'bundle-abc',
+          tools: [
+            { name: 'read_file', args: { file_path: '/tmp/a' } },
+          ],
+        },
+      });
+    });
+
+    expect(mockExecuteToolBundle).not.toHaveBeenCalled();
   });
 
   test('uses generated bundle id when bundle_id is missing', async () => {

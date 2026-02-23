@@ -10,6 +10,7 @@ const mockClearMessages = jest.fn();
 const mockSetIsSending = jest.fn();
 const mockSetThinkingStatus = jest.fn();
 const mockSetTokenCounts = jest.fn();
+const mockUpdateStreamTracking = jest.fn();
 const mockSetActiveConversationRef = jest.fn();
 const mockSendMessage = jest.fn();
 const mockUseChatMessageSender = jest.fn(() => ({
@@ -45,6 +46,7 @@ const mockChatState = {
   setIsSending: (...args) => mockSetIsSending(...args),
   setThinkingStatus: (...args) => mockSetThinkingStatus(...args),
   setTokenCounts: (...args) => mockSetTokenCounts(...args),
+  updateStreamTracking: (...args) => mockUpdateStreamTracking(...args),
 };
 
 jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
@@ -82,6 +84,7 @@ describe('ChatBox overlay mouse ignore', () => {
     mockSetIsSending.mockClear();
     mockSetThinkingStatus.mockClear();
     mockSetTokenCounts.mockClear();
+    mockUpdateStreamTracking.mockClear();
     mockSetActiveConversationRef.mockClear();
     mockChatState.streamTracking.phase = 'idle';
   });
@@ -188,6 +191,9 @@ describe('ChatBox overlay mouse ignore', () => {
 
     fireEvent.click(stopButton);
     expect(mockStopQuery).toHaveBeenCalledTimes(1);
+    expect(mockSetIsSending).toHaveBeenCalledWith(false);
+    expect(mockSetThinkingStatus).toHaveBeenCalledWith(null);
+    expect(mockUpdateStreamTracking).toHaveBeenCalledTimes(1);
   });
 
   test('stop button remains disabled while idle', () => {
