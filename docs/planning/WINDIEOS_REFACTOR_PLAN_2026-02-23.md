@@ -415,3 +415,21 @@ read_when:
   - `cd frontend && npm run test:ci -- tests/frontend/MessageSendUiPolicy.test.ts tests/frontend/ChatSelectors.test.js tests/frontend/MessageInputUtils.test.js tests/frontend/TokenCounts.test.js` (pass)
   - `cd frontend && npm run test:ci` (pass)
   - `cd frontend && npm run audit:knip` (remaining command non-zero from residual unused exports only)
+
+## Phase 9 Outcome (2026-02-23)
+
+- Dead module cleanup shipped:
+  - removed unused `frontend/src/renderer/features/chat/utils/chatBoxPresentation.js`.
+  - removed module-specific test `tests/frontend/ChatBoxPresentation.test.js`.
+  - removed stale folder-structure reference for `chatBoxPresentation.js`.
+- Logger export cleanup shipped:
+  - de-exported `shortCorrelationId` in `frontend/src/renderer/infrastructure/services/ToolExecutionLogger.ts`.
+  - updated logger tests to validate correlation-id truncation/default behavior through public `logToolStart` API.
+- knip findings delta after Phase 9 slice:
+  - unused exports: `13 -> 8`
+  - unused exported types: `0 -> 0`
+- Verification:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/ToolExecutionLogger.test.ts tests/frontend/ChatBoxResponse.test.jsx` (pass)
+  - `cd frontend && npm run test:ci` (pass; 78 suites after dead-module test removal)
+  - `cd frontend && npm run audit:knip` (remaining command non-zero from residual unused exports only)
