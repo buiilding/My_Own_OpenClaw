@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 10 execution slice for test-only helper export internalization (`episodicMemoryUtils`, `MessageFormatter`, `ToolExecutionCapture`) and public-API behavior-test migration gates
 - refactor(frontend-chatbox-logger): remove dead `chatBoxPresentation` utility + test, update renderer folder-structure docs, and internalize `shortCorrelationId` with logger tests asserting truncation/default behavior via public `logToolStart`
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 9 execution slice for dead chatbox-presentation module removal and logger helper export internalization
 - refactor(frontend-chat-utils): internalize test-only chat helper exports (message-send policy helpers, stream selector helper, message-input normalization helper, token-count formatting helpers) and update tests to validate behavior through public APIs
