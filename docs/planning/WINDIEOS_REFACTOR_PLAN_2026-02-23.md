@@ -178,6 +178,27 @@ read_when:
   - `cd frontend && npm run test:ci -- tests/frontend/QueryPayloadBuilder.test.cjs tests/frontend/configStorage.test.js tests/frontend/configFilter.test.js`
   - `cd frontend && npm run audit:knip` (expect unused exports count reduction)
 
+## Phase 8
+
+- `knip` export-surface cleanup (chat helper internals):
+  - internalize helper exports that are only used inside their module.
+  - keep runtime-facing entrypoints exported (`resolveMessageSendUiBehavior`, `buildOutgoingMessage`, `buildTokenCountItems`, selector roots).
+  - migrate tests from private helper imports to public behavior assertions.
+
+### Phase 8 Execution Slice (Current Loop)
+
+- Chat policy/helper export pruning:
+  - de-export `defaultReturnToChatboxPolicyForSurface` and `resolveReturnToChatboxOnSend` from `messageSendUiPolicy.ts`.
+  - de-export `selectStreamTracking` from `chatSelectors.js`.
+  - de-export `normalizeMessageForSend` from `messageInput.js`.
+  - de-export `formatTokenCount` and `getActiveConversationTokenCount` from `tokenCounts.js`.
+- Test updates:
+  - update `MessageSendUiPolicy`, `ChatSelectors`, `MessageInputUtils`, and `TokenCounts` tests to validate behavior through public exported APIs only.
+- Success checks:
+  - `cd frontend && npm run lint`
+  - `cd frontend && npm run test:ci -- tests/frontend/MessageSendUiPolicy.test.ts tests/frontend/ChatSelectors.test.js tests/frontend/MessageInputUtils.test.js tests/frontend/TokenCounts.test.js`
+  - `cd frontend && npm run audit:knip` (expect unused exports count reduction)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):
