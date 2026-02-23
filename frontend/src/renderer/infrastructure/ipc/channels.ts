@@ -8,7 +8,7 @@
  */
 export const SEND_CHANNELS = {
   TO_BACKEND: 'to-backend',
-  MOVE_CHATBOX_BY: 'move-chatbox-by',
+  MOVE_CHATBOX_TO: 'move-chatbox-to',
   WAKEWORD_AUDIO_CHUNK: 'wakeword-audio-chunk',
   WAKEWORD_ENABLE: 'wakeword-enable',
   WAKEWORD_DISABLE: 'wakeword-disable',

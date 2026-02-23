@@ -23,12 +23,11 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     on: () => () => {},
   },
   SEND_CHANNELS: {
-    MOVE_CHATBOX_BY: 'move-chatbox-by',
+    MOVE_CHATBOX_TO: 'move-chatbox-to',
   },
   INVOKE_CHANNELS: {
     SET_OVERLAY_IGNORE_MOUSE: 'set-overlay-ignore-mouse',
     SET_CHATBOX_SIZE: 'set-chatbox-size',
-    MOVE_CHATBOX_BY: 'move-chatbox-by',
     SHOW_MAIN_WINDOW: 'show-main-window',
     HIDE_CHATBOX: 'hide-chatbox',
   },
@@ -157,7 +156,18 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(sawHideChatbox).toBe(true);
   });
 
-  test('dragging pill sends move-chatbox-by deltas', () => {
+  test('dragging pill sends absolute move-chatbox-to coordinates', () => {
+    Object.defineProperty(window, 'screenX', {
+      value: 90,
+      configurable: true,
+      writable: true,
+    });
+    Object.defineProperty(window, 'screenY', {
+      value: 90,
+      configurable: true,
+      writable: true,
+    });
+
     const { container } = render(<ChatBox />);
     const pill = container.querySelector('.chatbox-pill');
     expect(pill).toBeTruthy();
@@ -166,7 +176,7 @@ describe('ChatBox overlay mouse ignore', () => {
     fireEvent.mouseMove(window, { clientX: 18, clientY: 20, screenX: 110, screenY: 118 });
     fireEvent.mouseUp(window);
 
-    expect(mockSend).toHaveBeenCalledWith('move-chatbox-by', { dx: 10, dy: 18 });
+    expect(mockSend).toHaveBeenCalledWith('move-chatbox-to', { x: 100, y: 108 });
   });
 
   test('stop button calls stop-query when a response is active', () => {

@@ -13,6 +13,7 @@ Includes the last 300 commits on `main`.
 - feat(frontend-chat-controls): add `New Chat` controls to dashboard and pill that clear local chat state, reset active `conversation_ref`, and cancel active streaming when needed
 - feat(frontend-chatbox): add top-right close button to the chat pill (`hide-chatbox`) and switch pill dragging to native Electron drag regions for immediate cursor-follow movement
 - fix(frontend-chatbox-drag): replace brittle native drag-region behavior with click-hold manual drag dispatch (`move-chatbox-by`) via low-overhead renderer `send` IPC, restoring reliable pill movement on platforms where native drag regions do not move transparent toolbar windows
+- fix(frontend-chatbox-drag): eliminate drag drift by switching to absolute cursor-anchored movement (`move-chatbox-to` with fixed pointer offset), so the chat pill tracks the mouse position in real time during click-hold drag
 - chore(docs-tooling): replace removed `bin/docs-list` with repo-local `scripts/doc-lists.js` docs front-matter lister for `windieos/docs`
 - chore(docs): remove obsolete Browser Use port planning/migration prompt docs and superseded ADR planning notes from `docs/plan/`, `docs/prompts/`, and `docs/adr/`
 - refactor(query-payload-builder): normalize system-state and memory enrichment in `frontend/src/main/query_payload_builder.cjs` via shared helpers (`resolveSystemStateEnrichment`, `resolveMemoryEnrichment`) and replace settled-result orchestration with direct normalized `Promise.all(...)` flow
