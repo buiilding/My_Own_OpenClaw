@@ -387,6 +387,18 @@ describe('useToolRunner', () => {
       { type: 'tool-result', payload: { ok: true } },
     );
 
+    act(() => {
+      backendHandler?.({
+        type: 'tool-call',
+        id: 'event-track-corr-2',
+        payload: {
+          tool_name: 'read_file',
+          parameters: { file_path: '/tmp/a' },
+          correlation_id: 'corr-2',
+        },
+      });
+    });
+
     mockCapturedServiceCallbacks.onToolResult({
       toolName: 'read_file',
       result: { success: true, data: { metadata: { request_id: 'corr-2' } }, error: null },
@@ -419,6 +431,18 @@ describe('useToolRunner', () => {
 
   test('writes bundled tool results via onBundleResult callback', () => {
     renderHook(() => useToolRunner(true));
+
+    act(() => {
+      backendHandler?.({
+        type: 'tool-bundle',
+        payload: {
+          bundle_id: 'bundle-corr',
+          tools: [
+            { name: 'read_file', args: { file_path: '/tmp/a' } },
+          ],
+        },
+      });
+    });
 
     mockCapturedServiceCallbacks.onBundleResult({
       formattedMessage: 'bundle formatted output',
@@ -482,6 +506,18 @@ describe('useToolRunner', () => {
 
     expect(ToolExecutionServiceMock).toHaveBeenCalledTimes(1);
 
+    act(() => {
+      backendHandler?.({
+        type: 'tool-call',
+        id: 'event-track-corr-config',
+        payload: {
+          tool_name: 'read_file',
+          parameters: { file_path: '/tmp/a' },
+          correlation_id: 'corr-config',
+        },
+      });
+    });
+
     mockCapturedServiceCallbacks.onToolResult({
       toolName: 'read_file',
       result: { success: true, data: { metadata: {} }, error: null },
@@ -499,5 +535,85 @@ describe('useToolRunner', () => {
         modelProvider: 'updated-provider',
       }),
     );
+  });
+
+  test('drops late tool results after active turn is stopped/completed', async () => {
+    useChatStore.setState({
+      streamTracking: {
+        activeTurnRef: 'turn-stop',
+        phase: 'streaming',
+        startedAt: null,
+        firstChunkAt: null,
+        completedAt: null,
+        lastEventAt: null,
+        lastEventType: null,
+        eventCount: 0,
+        chunkCount: 0,
+        toolCallCount: 0,
+        toolOutputCount: 0,
+        lastChunkSize: 0,
+        lastError: null,
+      },
+    });
+    renderHook(() => useToolRunner(true));
+
+    await act(async () => {
+      backendHandler?.({
+        type: 'tool-call',
+        id: 'event-track-corr-stop',
+        turn_ref: 'turn-stop',
+        payload: {
+          tool_name: 'read_file',
+          parameters: { file_path: '/tmp/a' },
+          correlation_id: 'corr-stop',
+        },
+      });
+    });
+
+    await act(async () => {
+      useChatStore.setState({
+        streamTracking: {
+          activeTurnRef: 'turn-stop',
+          phase: 'complete',
+          startedAt: null,
+          firstChunkAt: null,
+          completedAt: null,
+          lastEventAt: null,
+          lastEventType: null,
+          eventCount: 0,
+          chunkCount: 0,
+          toolCallCount: 0,
+          toolOutputCount: 0,
+          lastChunkSize: 0,
+          lastError: null,
+        },
+      });
+      await Promise.resolve();
+    });
+
+    const messagesBefore = useChatStore.getState().messages.length;
+    (IpcBridge.send as jest.Mock).mockClear();
+    (recordToolMessage as jest.Mock).mockClear();
+
+    await act(async () => {
+      mockCapturedServiceCallbacks.onToolResult({
+        toolName: 'read_file',
+        result: { success: true, data: { metadata: {} }, error: null },
+        executionTime: 0.1,
+        correlationId: 'corr-stop',
+        formattedMessage: 'should be dropped',
+        screenshotRef: null,
+        screenshotUrl: null,
+      });
+    });
+
+    mockCapturedServiceCallbacks.sendToBackend({
+      type: 'tool-result',
+      payload: { request_id: 'corr-stop', success: true, data: {} },
+    });
+
+    expect(useChatStore.getState().messages.length).toBe(messagesBefore);
+    expect(recordToolMessage).not.toHaveBeenCalled();
+    expect(IpcBridge.send).not.toHaveBeenCalled();
   });
 });
