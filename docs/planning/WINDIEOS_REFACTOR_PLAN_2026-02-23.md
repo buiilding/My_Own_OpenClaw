@@ -199,6 +199,27 @@ read_when:
   - `cd frontend && npm run test:ci -- tests/frontend/MessageSendUiPolicy.test.ts tests/frontend/ChatSelectors.test.js tests/frontend/MessageInputUtils.test.js tests/frontend/TokenCounts.test.js`
   - `cd frontend && npm run audit:knip` (expect unused exports count reduction)
 
+## Phase 9
+
+- `knip` export/dead-code cleanup (chatbox/logger):
+  - remove dead chatbox presentation helper module that has no runtime imports.
+  - internalize logger helper export that is only used inside logger module/tests.
+  - keep behavior coverage by validating public logger APIs and existing chatbox component tests.
+
+### Phase 9 Execution Slice (Current Loop)
+
+- Dead module removal:
+  - delete `frontend/src/renderer/features/chat/utils/chatBoxPresentation.js`.
+  - delete `tests/frontend/ChatBoxPresentation.test.js` (dead-module-only test).
+  - update docs references (folder structure) for removed module.
+- Logger helper export pruning:
+  - de-export `shortCorrelationId` in `frontend/src/renderer/infrastructure/services/ToolExecutionLogger.ts`.
+  - update logger test assertions to validate truncation/missing-id behavior via `logToolStart` return value.
+- Success checks:
+  - `cd frontend && npm run lint`
+  - `cd frontend && npm run test:ci -- tests/frontend/ToolExecutionLogger.test.ts tests/frontend/ChatBoxResponse.test.jsx`
+  - `cd frontend && npm run audit:knip` (expect unused exports count reduction)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):
