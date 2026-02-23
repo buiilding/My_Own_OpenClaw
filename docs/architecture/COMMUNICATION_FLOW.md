@@ -518,4 +518,4 @@ Settings are persisted locally and synced to the backend session:
 For more detailed information, see:
 - [Frontend Architecture](FRONTEND_ARCHITECTURE.md)
 - [Backend Architecture](BACKEND_ARCHITECTURE.md)
-- [API Reference](API_REFERENCE.md)
+- [API Reference](../reference/API_REFERENCE.md)

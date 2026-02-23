@@ -209,8 +209,8 @@ Frontend tests:
 
 ## Follow-up Docs To Update After Implementation
 
-- `docs/COMMUNICATION_FLOW.md`
-- `docs/API_REFERENCE.md`
-- `docs/FRONTEND_ARCHITECTURE.md`
-- `docs/BACKEND_ARCHITECTURE.md`
-- `docs/PYTHON_SIDECAR.md`
+- `docs/architecture/COMMUNICATION_FLOW.md`
+- `docs/reference/API_REFERENCE.md`
+- `docs/architecture/FRONTEND_ARCHITECTURE.md`
+- `docs/architecture/BACKEND_ARCHITECTURE.md`
+- `docs/architecture/PYTHON_SIDECAR.md`

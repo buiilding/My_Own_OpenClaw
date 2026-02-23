@@ -11,90 +11,85 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 ## 📚 Documentation Index
 
 ### Getting Started
-- [**Overview**](OVERVIEW.md) - Project overview, vision, and key capabilities
-- [**Quick Start Guide**](QUICK_START.md) - Get up and running quickly
-- [**Installation Guide**](INSTALLATION.md) - Detailed installation instructions
+- [**Overview**](getting-started/OVERVIEW.md) - Project overview, vision, and key capabilities
+- [**Quick Start Guide**](getting-started/QUICK_START.md) - Get up and running quickly
+- [**Installation Guide**](getting-started/INSTALLATION.md) - Detailed installation instructions
 
 ### Architecture & Design
-- [**System Architecture**](ARCHITECTURE.md) - High-level system design and components
-- [**Backend Architecture**](BACKEND_ARCHITECTURE.md) - Backend system design and patterns
-- [**Frontend Architecture**](FRONTEND_ARCHITECTURE.md) - Frontend system design and patterns
-- [**Communication Flow**](COMMUNICATION_FLOW.md) - How frontend and backend communicate
+- [**System Architecture**](architecture/ARCHITECTURE.md) - High-level system design and components
+- [**Backend Architecture**](architecture/BACKEND_ARCHITECTURE.md) - Backend system design and patterns
+- [**Frontend Architecture**](architecture/FRONTEND_ARCHITECTURE.md) - Frontend system design and patterns
+- [**Communication Flow**](architecture/COMMUNICATION_FLOW.md) - How frontend and backend communicate
 
 ### Core Systems
-- [**Agent System**](AGENT_SYSTEM.md) - Agent orchestrator and execution flow
-- [**Tool System**](TOOL_SYSTEM.md) - Tool execution architecture and development
-- [**Browser Control**](BROWSER_CONTROL.md) - Browser automation architecture and tool behavior
-- [**Browser Control Runbook**](BROWSER_CONTROL_RUN.md) - Practical setup/testing flow for browser control
-- [**Memory System**](MEMORY_SYSTEM.md) - Memory management and retrieval
-- [**Python Sidecar**](PYTHON_SIDECAR.md) - Local tool execution + memory service
-- [**LLM Integration**](LLM_INTEGRATION.md) - LLM providers and configuration
-- [**Billing & Usage (Planned)**](BILLING_AND_USAGE.md) - Subscriptions, entitlements, and usage limits
+- [**Agent System**](architecture/AGENT_SYSTEM.md) - Agent orchestrator and execution flow
+- [**Tool System**](architecture/TOOL_SYSTEM.md) - Tool execution architecture and development
+- [**Browser Control**](browser/BROWSER_CONTROL.md) - Browser automation architecture and tool behavior
+- [**Browser Control Runbook**](browser/BROWSER_CONTROL_RUN.md) - Practical setup/testing flow for browser control
+- [**Memory System**](architecture/MEMORY_SYSTEM.md) - Memory management and retrieval
+- [**Python Sidecar**](architecture/PYTHON_SIDECAR.md) - Local tool execution + memory service
+- [**LLM Integration**](architecture/LLM_INTEGRATION.md) - LLM providers and configuration
+- [**Billing & Usage (Planned)**](product/BILLING_AND_USAGE.md) - Subscriptions, entitlements, and usage limits
 
 ### Development Guides
-- [**Developer Guide**](DEVELOPER_GUIDE.md) - Comprehensive development guide
+- [**Developer Guide**](development/DEVELOPER_GUIDE.md) - Comprehensive development guide
 - Developer Guide includes local automation scripts (`bin/docs-list`, `scripts/check`, `scripts/test`, `scripts/check-loc.py`).
-- [**Dev Tool Selection**](DEV_TOOL_SELECTION.md) - Backend-only tool schema allow/denylist controls for development
-- [**Tool Development Guide**](TOOL_DEVELOPMENT.md) - Creating custom tools
-- [**API Reference**](API_REFERENCE.md) - Complete API documentation
-- [**Extension Points**](EXTENSION_POINTS.md) - How to extend the system
+- [**Dev Tool Selection**](development/DEV_TOOL_SELECTION.md) - Backend-only tool schema allow/denylist controls for development
+- [**Tool Development Guide**](development/TOOL_DEVELOPMENT.md) - Creating custom tools
+- [**API Reference**](reference/API_REFERENCE.md) - Complete API documentation
+- [**Extension Points**](architecture/EXTENSION_POINTS.md) - How to extend the system
 
 ### Configuration & Deployment
-- [**Configuration Guide**](CONFIGURATION.md) - Configuration options and settings
-- [**Deployment Guide**](DEPLOYMENT.md) - Production deployment instructions
-- [**Release Guide**](release.md) - Repeatable release checklist and guardrails
-- [**Future Product Plan (Draft)**](FUTURE_PLAN.md) - Sequenced roadmap for packaging, hosted rollout, and major future features
-- [**Environment Setup**](ENVIRONMENT_SETUP.md) - Development environment configuration
-- [**Security & Compliance (Planned)**](SECURITY_AND_COMPLIANCE.md) - Security posture and compliance roadmap
-- [**Plan Matrix (Draft)**](PLAN_MATRIX.md) - Subscription tiers and limits
+- [**Configuration Guide**](operations/CONFIGURATION.md) - Configuration options and settings
+- [**Deployment Guide**](operations/DEPLOYMENT.md) - Production deployment instructions
+- [**Release Guide**](operations/release.md) - Repeatable release checklist and guardrails
+- [**Future Product Plan (Draft)**](product/FUTURE_PLAN.md) - Sequenced roadmap for packaging, hosted rollout, and major future features
+- [**Environment Setup**](development/ENVIRONMENT_SETUP.md) - Development environment configuration
+- [**Security & Compliance (Planned)**](product/SECURITY_AND_COMPLIANCE.md) - Security posture and compliance roadmap
+- [**Plan Matrix (Draft)**](product/PLAN_MATRIX.md) - Subscription tiers and limits
 
 ### User Guides
-- [**User Guide**](USER_GUIDE.md) - End-user documentation
-- [**Troubleshooting**](TROUBLESHOOTING.md) - Common issues and solutions
+- [**User Guide**](getting-started/USER_GUIDE.md) - End-user documentation
+- [**Troubleshooting**](getting-started/TROUBLESHOOTING.md) - Common issues and solutions
 
 ### Additional Resources
-- [**Testing Guide**](TESTING.md) - Testing strategies and practices
-- [**Security Guide**](SECURITY.md) - Security considerations and best practices
-- [**Multi-User Runtime Hardening**](MULTI_USER_RUNTIME_HARDENING.md) - Session identity, multi-device policy, and per-user model isolation guidance
-- [**Performance Guide**](PERFORMANCE.md) - Performance optimization strategies
-- [**Browser-Use Plan (Time-Locked Baseline)**](BROWSER_USE_PLAN.md) - Historical parity baseline and phased Browser Use capability plan
-- [**Browser-Use Port Implementation Plan**](plan/BROWSER_USE_PORT_IMPLEMENTATION_PLAN.md) - Migration plan preserving WindieOS orchestration with Browser Use execution internals
-- [**Browser-Use Port Phase 0 Artifacts**](plan/BROWSER_USE_PORT_PHASE0_PARITY_LEDGER.md) - Action parity ledger, baseline run log, and non-direct mapping decisions
-- [**Browser-Use Port Phase 1 Architecture Spec**](plan/BROWSER_USE_PORT_PHASE1_ARCHITECTURE_AND_ADAPTER_SPEC.md) - Ownership boundary, end-to-end sequence diagram, and adapter interface/normalized return contract
-- [**Browser-Use Port Phase 2 Progress**](plan/BROWSER_USE_PORT_PHASE2_COMPAT_WRAPPER_PROGRESS.md) - Compatibility-wrapper module wiring and current action routing coverage
-- [**Mobile App Plan**](plan/WINDIEOS_MOBILE_APP_PLAN.md) - Phased plan for iOS/Android client architecture, capability negotiation, and rollout
-- [**VM Multi-Agent Plan**](plan/WINDIEOS_VM_MULTI_AGENT_PLAN.md) - One-agent-per-VM architecture, agent-port workflow, and user remote-control plan
-- [**Install Permission Onboarding Plan**](plan/WINDIEOS_INSTALL_PERMISSION_ONBOARDING_PLAN.md) - First-run permission-first wizard and capability gating plan
-- [**New Chat Session Plan**](plan/WINDIEOS_NEW_CHAT_SESSION_PLAN.md) - UI-triggered new conversation session flow with fresh `conversation_ref`, backend history isolation, and stale-stream guards
-- [**Self-Edit Config Plan**](plan/WINDIEOS_SELF_EDIT_CONFIG_PLAN.md) - Natural-language user preference edits (for example TTS/screenshot attach toggles) through a safe allowlisted config path
-- [**Contributing Guide**](CONTRIBUTING.md) - How to contribute to the project
+- [**Testing Guide**](development/TESTING.md) - Testing strategies and practices
+- [**Security Guide**](operations/SECURITY.md) - Security considerations and best practices
+- [**Multi-User Runtime Hardening**](operations/MULTI_USER_RUNTIME_HARDENING.md) - Session identity, multi-device policy, and per-user model isolation guidance
+- [**Performance Guide**](operations/PERFORMANCE.md) - Performance optimization strategies
+- [**Mobile App Plan**](planning/WINDIEOS_MOBILE_APP_PLAN.md) - Phased plan for iOS/Android client architecture, capability negotiation, and rollout
+- [**VM Multi-Agent Plan**](planning/WINDIEOS_VM_MULTI_AGENT_PLAN.md) - One-agent-per-VM architecture, agent-port workflow, and user remote-control plan
+- [**Install Permission Onboarding Plan**](planning/WINDIEOS_INSTALL_PERMISSION_ONBOARDING_PLAN.md) - First-run permission-first wizard and capability gating plan
+- [**New Chat Session Plan**](planning/WINDIEOS_NEW_CHAT_SESSION_PLAN.md) - UI-triggered new conversation session flow with fresh `conversation_ref`, backend history isolation, and stale-stream guards
+- [**Self-Edit Config Plan**](planning/WINDIEOS_SELF_EDIT_CONFIG_PLAN.md) - Natural-language user preference edits (for example TTS/screenshot attach toggles) through a safe allowlisted config path
+- [**Contributing Guide**](development/CONTRIBUTING.md) - How to contribute to the project
 
 ### Hosted Platform (Planned)
-- [**Future Product Plan (Draft)**](FUTURE_PLAN.md) - Feature sequencing and decision tracks
-- [**Billing & Usage (Planned)**](BILLING_AND_USAGE.md) - Subscriptions, entitlements, and usage limits
-- [**Security & Compliance (Planned)**](SECURITY_AND_COMPLIANCE.md) - Security posture and compliance roadmap
-- [**Plan Matrix (Draft)**](PLAN_MATRIX.md) - Subscription tiers and limits
-- [**Database Schema (Planned)**](DATABASE_SCHEMA.md) - Multi-tenant DB tables
-- [**Usage Limits (Planned)**](USAGE_LIMITS.md) - Rate limits + quota enforcement
+- [**Future Product Plan (Draft)**](product/FUTURE_PLAN.md) - Feature sequencing and decision tracks
+- [**Billing & Usage (Planned)**](product/BILLING_AND_USAGE.md) - Subscriptions, entitlements, and usage limits
+- [**Security & Compliance (Planned)**](product/SECURITY_AND_COMPLIANCE.md) - Security posture and compliance roadmap
+- [**Plan Matrix (Draft)**](product/PLAN_MATRIX.md) - Subscription tiers and limits
+- [**Database Schema (Planned)**](product/DATABASE_SCHEMA.md) - Multi-tenant DB tables
+- [**Usage Limits (Planned)**](product/USAGE_LIMITS.md) - Rate limits + quota enforcement
 
 ## 🎯 Quick Navigation
 
 ### For Developers
 Start with:
-1. [Developer Guide](DEVELOPER_GUIDE.md) - Understand the codebase structure
-2. [Architecture Overview](ARCHITECTURE.md) - Learn the system design
-3. [Tool Development Guide](TOOL_DEVELOPMENT.md) - Create custom tools
+1. [Developer Guide](development/DEVELOPER_GUIDE.md) - Understand the codebase structure
+2. [Architecture Overview](architecture/ARCHITECTURE.md) - Learn the system design
+3. [Tool Development Guide](development/TOOL_DEVELOPMENT.md) - Create custom tools
 
 ### For System Administrators
 Start with:
-1. [Installation Guide](INSTALLATION.md) - Set up the system
-2. [Configuration Guide](CONFIGURATION.md) - Configure the application
-3. [Deployment Guide](DEPLOYMENT.md) - Deploy to production
+1. [Installation Guide](getting-started/INSTALLATION.md) - Set up the system
+2. [Configuration Guide](operations/CONFIGURATION.md) - Configure the application
+3. [Deployment Guide](operations/DEPLOYMENT.md) - Deploy to production
 
 ### For Users
 Start with:
-1. [User Guide](USER_GUIDE.md) - Learn how to use the assistant
-2. [Troubleshooting](TROUBLESHOOTING.md) - Solve common issues
+1. [User Guide](getting-started/USER_GUIDE.md) - Learn how to use the assistant
+2. [Troubleshooting](getting-started/TROUBLESHOOTING.md) - Solve common issues
 
 ## 📖 Documentation Structure
 
@@ -118,7 +113,7 @@ This documentation is maintained alongside the codebase. When making changes:
 
 ## 📝 Contributing to Documentation
 
-See [Contributing Guide](CONTRIBUTING.md) for guidelines on improving documentation.
+See [Contributing Guide](development/CONTRIBUTING.md) for guidelines on improving documentation.
 
 ---
 

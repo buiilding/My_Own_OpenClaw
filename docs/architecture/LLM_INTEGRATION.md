@@ -608,6 +608,6 @@ async def test_llm_integration():
 ---
 
 For more information, see:
-- [Configuration Guide](CONFIGURATION.md)
-- [API Reference](API_REFERENCE.md)
+- [Configuration Guide](../operations/CONFIGURATION.md)
+- [API Reference](../reference/API_REFERENCE.md)
 - [Backend Architecture](BACKEND_ARCHITECTURE.md)

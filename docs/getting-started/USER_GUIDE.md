@@ -88,4 +88,4 @@ Default section on open: **Chat**.
 
 ## Troubleshooting
 
-See `docs/TROUBLESHOOTING.md` for common fixes.
+See `docs/getting-started/TROUBLESHOOTING.md` for common fixes.

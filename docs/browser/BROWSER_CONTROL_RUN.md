@@ -421,5 +421,5 @@ export PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH="/usr/bin/chromium"
 ## Next Steps
 
 - Read the full [Browser Control Documentation](BROWSER_CONTROL.md)
-- Check [Architecture Decision Record](adr/004-browser-extension-auto-attach.md) for future extension mode
-- See [Tool Development Guide](TOOL_DEVELOPMENT.md) to extend browser capabilities
+- Check ADR 004 (`docs/adr/004-browser-extension-auto-attach.md`) for future extension mode
+- See [Tool Development Guide](../development/TOOL_DEVELOPMENT.md) to extend browser capabilities

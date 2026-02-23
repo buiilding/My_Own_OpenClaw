@@ -1311,7 +1311,7 @@ Planned sequence:
 ---
 
 For more detailed information, see:
-- [Communication Flow](COMMUNICATION_FLOW.md)
-- [Backend Architecture](BACKEND_ARCHITECTURE.md)
-- [Frontend Architecture](FRONTEND_ARCHITECTURE.md)
-- [ADR 005: Frontend-Sourced Tool Schemas](adr/005-frontend-tool-schema-source-of-truth.md)
+- [Communication Flow](../architecture/COMMUNICATION_FLOW.md)
+- [Backend Architecture](../architecture/BACKEND_ARCHITECTURE.md)
+- [Frontend Architecture](../architecture/FRONTEND_ARCHITECTURE.md)
+- ADR 005: `docs/adr/005-frontend-tool-schema-source-of-truth.md`
