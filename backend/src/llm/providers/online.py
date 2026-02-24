@@ -52,6 +52,20 @@ class OnlineLLMProvider(LLMProvider):
             **completion_kwargs,
         )
 
+    def _build_stream_request_kwargs(
+        self,
+        *,
+        model: str,
+        messages: List[LLMMessage],
+        completion_kwargs: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Build normalized kwargs payload used by provider stream implementations."""
+        return self._build_stream_completion_params(
+            model=model,
+            messages=messages,
+            **completion_kwargs,
+        )
+
     async def _stream_internal(
         self,
         model: str,
@@ -59,10 +73,10 @@ class OnlineLLMProvider(LLMProvider):
         **completion_kwargs: Any,
     ) -> AsyncGenerator[StreamingEvent, None]:
         """Internal streaming implementation. Exceptions bubble up to base class."""
-        params = self._build_stream_completion_params(
+        params = self._build_stream_request_kwargs(
             model=model,
             messages=messages,
-            **completion_kwargs,
+            completion_kwargs=completion_kwargs,
         )
         stream_handler = (
             self._stream_thinking_and_text_events
