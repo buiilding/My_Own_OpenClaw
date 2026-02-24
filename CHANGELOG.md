@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-local-backend): split `frontend/src/main/local_backend_bridge.cjs` into focused bridge helper modules (`local_backend_bridge_utils.cjs`, `local_backend_bridge_rpc_mappers.cjs`, `local_backend_bridge_windows.cjs`) and reduce main bridge file size to 447 LOC while preserving IPC behavior
 - docs(planning): add Phase 53 full-gate revalidation snapshot (lint audit, knip, jscpd, frontend tests, backend tests, sidecar tests) after transcript-suite split + wakeword test noise cleanup + dependency pin refresh
 - build(frontend-deps): bump `@types/react-dom` manifest pin from `^18.2.7` to `^18.3.7` (lockfile refreshed) to align with installed 18.3 typings while staying on React 18
 - perf(frontend-tests): silence wakeword bridge console logs in `tests/frontend/WakewordBridge.test.cjs` to keep `jest --runInBand` output readable while preserving all wakeword lifecycle assertions
