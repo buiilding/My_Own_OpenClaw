@@ -44,6 +44,7 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 - [Backend WebSocket Contracts](../backend/contracts/WEBSOCKET_MESSAGE_CONTRACTS.md)
 - [Backend Message Schema + Formatter Reference](../backend/contracts/MESSAGE_SCHEMA_AND_FORMATTER_REFERENCE.md)
 - [Backend Query Execution Pipeline Reference](../backend/runtime/QUERY_EXECUTION_AND_STREAM_PIPELINE_REFERENCE.md)
+- [Backend Non-Query Handler Control Flow Reference](../backend/api/NON_QUERY_HANDLER_AND_CONTROL_FLOW_REFERENCE.md)
 - [Backend Provider Factory + Runtime Selection Reference](../backend/llm/PROVIDER_FACTORY_AND_RUNTIME_SELECTION_REFERENCE.md)
 - [Backend Tool Result Ingress Reference](../backend/tools/TOOL_RESULT_INGRESS_AND_STORAGE_REFERENCE.md)
 - [Backend Config Runtime Policy](../backend/config/CONFIG_FIELDS_AND_RUNTIME_POLICY.md)
