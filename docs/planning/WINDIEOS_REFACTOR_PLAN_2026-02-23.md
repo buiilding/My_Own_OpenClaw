@@ -2587,3 +2587,20 @@ read_when:
     - `./scripts/test-backend` (pass; 966 tests)
   - sidecar tests:
     - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+
+## Phase 93 Outcome (2026-02-24)
+
+- App config provider models test duplication cleanup shipped:
+  - added helper in `tests/frontend/AppConfigProvider.models.test.tsx`:
+    - `setupModelsListedHandlerHarness`
+  - removed repeated `mockUseSettingsManagement` setup + backend-listener retrieval boilerplate across models-listed routing tests.
+- Verification:
+  - `cd frontend && npx jest ../tests/frontend/AppConfigProvider.models.test.tsx --runInBand` (pass; 10 tests)
+  - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
+  - `cd frontend && npm run audit:knip` (pass)
+  - `cd frontend && npm run audit:jscpd` (pass)
+  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - jscpd snapshot deltas:
+    - clones: `127 -> 126`
+    - duplicated lines: `2138 -> 2125`
+    - duplicated tokens: `18728 -> 18624`

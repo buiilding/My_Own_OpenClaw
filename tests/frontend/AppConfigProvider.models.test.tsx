@@ -17,6 +17,19 @@ import {
 registerAppConfigProviderSuiteLifecycle();
 
 describe('AppConfigProvider model + config wiring', () => {
+  function setupModelsListedHandlerHarness() {
+    const settingsHandlers = {
+      handleModelsListed: jest.fn(),
+    };
+    mockUseSettingsManagement.mockReturnValue(settingsHandlers);
+    renderAppConfigContext();
+
+    const backendHandler = getBackendHandler(ON_CHANNELS.FROM_BACKEND);
+    expect(backendHandler).toEqual(expect.any(Function));
+
+    return { settingsHandlers, backendHandler };
+  }
+
   test('registers backend listener before requesting model list', () => {
     renderAppConfigContext();
 
@@ -53,15 +66,7 @@ describe('AppConfigProvider model + config wiring', () => {
   });
 
   test('routes models-listed event to settings handler', () => {
-    const settingsHandlers = {
-      handleModelsListed: jest.fn(),
-    };
-    mockUseSettingsManagement.mockReturnValue(settingsHandlers);
-
-    renderAppConfigContext();
-
-    const backendHandler = getBackendHandler(ON_CHANNELS.FROM_BACKEND);
-    expect(backendHandler).toEqual(expect.any(Function));
+    const { settingsHandlers, backendHandler } = setupModelsListedHandlerHarness();
 
     act(() => {
       backendHandler?.({
@@ -79,15 +84,7 @@ describe('AppConfigProvider model + config wiring', () => {
   });
 
   test('ignores unsupported backend events', () => {
-    const settingsHandlers = {
-      handleModelsListed: jest.fn(),
-    };
-    mockUseSettingsManagement.mockReturnValue(settingsHandlers);
-
-    renderAppConfigContext();
-
-    const backendHandler = getBackendHandler(ON_CHANNELS.FROM_BACKEND);
-    expect(backendHandler).toEqual(expect.any(Function));
+    const { settingsHandlers, backendHandler } = setupModelsListedHandlerHarness();
 
     act(() => {
       backendHandler?.({
