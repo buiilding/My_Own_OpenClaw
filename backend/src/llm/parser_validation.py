@@ -3,7 +3,6 @@ from typing import Any, Dict, List, Optional
 import json
 import logging
 
-from backend.src.core.types.enums import CoordinateFindingMethod
 from backend.src.core.infrastructure.exceptions import ParseValidationError
 from backend.src.tools.tool_policy import ToolPolicy
 
@@ -131,15 +130,6 @@ class ToolCallValidator:
             args=args,
             selection=self._dev_tool_selection,
         )
-
-    @staticmethod
-    def _normalize_coordinate_method(value: Any) -> str:
-        """Normalize enum/string coordinate method value to lowercase string."""
-        if isinstance(value, CoordinateFindingMethod):
-            return value.value
-        if isinstance(value, str):
-            return value.strip().lower()
-        return str(value).strip().lower()
 
     @staticmethod
     def _serialized_param_size(param_value: Any) -> Optional[int]:
