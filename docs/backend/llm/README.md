@@ -12,10 +12,13 @@ title: "Backend LLM Docs Hub"
 
 - [LLM Models and Parsing](llm_models_and_parsing.md)
 - [Provider Docs Hub](providers/README.md)
+- [Prompt Docs Hub](prompts/README.md)
 - [Provider Factory and Runtime Selection Reference](provider_factory_and_runtime_selection_reference.md)
 - [Parser Trust Boundary and Native Tool-Call Reference](parser_trust_boundary_and_native_tool_call_reference.md)
 - [Base Request, Stream, and Normalization Reference](providers/base_request_stream_and_normalization_reference.md)
 - [Provider-Specific Overrides and Local Runtime Reference](providers/provider_specific_overrides_and_local_runtime_reference.md)
+- [Prompt Constructor and Transparency Metadata Reference](prompts/prompt_constructor_and_transparency_metadata_reference.md)
+- [Prompt Manager and System Prompt Lifecycle Reference](prompts/prompt_manager_and_system_prompt_lifecycle_reference.md)
 
 ## Code Scope
 
