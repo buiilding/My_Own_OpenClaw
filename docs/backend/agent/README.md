@@ -11,8 +11,11 @@ title: "Backend Agent Docs Hub"
 ## Deep Pages
 
 - [History Docs Hub](history/README.md)
+- [Agent LLM Docs Hub](llm/README.md)
 - [Session Runtime and Config Rewire Reference](session_runtime_and_config_rewire_reference.md)
 - [Interaction Loop and Tool-Turn Orchestration Reference](interaction_loop_and_tool_turn_orchestration_reference.md)
+- [Conversation Context and Event Presenter Prompt-Metadata Reference](llm/conversation_context_and_event_presenter_prompt_metadata_reference.md)
+- [LLM Stream Processor Token Count and Cache Diagnostics Reference](llm/llm_stream_processor_token_count_and_cache_diagnostics_reference.md)
 - [History Committer and Result-Processor Boundary Reference](history/history_committer_and_result_processor_boundary_reference.md)
 - [Tool-Call-ID Staging and Tool-Output History Row Contract Reference](history/tool_call_id_staging_and_tool_output_history_row_contract_reference.md)
 - [Recovery Docs Hub](recovery/README.md)
