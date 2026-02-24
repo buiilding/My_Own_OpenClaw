@@ -78,10 +78,12 @@ Covers:
 
 - [Runtime Docs Hub](runtime/README.md)
 - [Agent Docs Hub](agent/README.md)
+- [Agent Recovery Docs Hub](agent/recovery/README.md)
 - [Agent and Tool Runtime](runtime/agent_and_tool_runtime.md)
 - [Session State and Lifecycle](runtime/session_state_and_lifecycle.md)
 - [Session Runtime and Config Rewire Reference](agent/session_runtime_and_config_rewire_reference.md)
 - [Interaction Loop and Tool-Turn Orchestration Reference](agent/interaction_loop_and_tool_turn_orchestration_reference.md)
+- [Tool-Call Error Recovery and Synthetic Tool-Output Replay Reference](agent/recovery/tool_call_error_recovery_and_synthetic_tool_output_replay_reference.md)
 - [Query Execution and Stream Pipeline Reference](runtime/query_execution_and_stream_pipeline_reference.md)
 - [Conversation History and Prompt Context Runtime Reference](runtime/conversation_history_and_prompt_context_runtime_reference.md)
 - [Token Count Event and Usage Diagnostics Reference](runtime/token_count_event_and_usage_diagnostics_reference.md)
