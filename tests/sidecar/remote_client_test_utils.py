@@ -1,0 +1,83 @@
+import sys
+import types
+from pathlib import Path
+
+
+def ensure_aiohttp_with_stubs():
+    try:
+        import aiohttp  # type: ignore
+
+        return aiohttp
+    except Exception:
+        aiohttp = types.SimpleNamespace()
+
+        class ClientTimeout:
+            def __init__(self, total=None):
+                self.total = total
+
+        class ClientError(Exception):
+            pass
+
+        class ClientSession:
+            async def close(self):
+                return None
+
+        aiohttp.ClientTimeout = ClientTimeout
+        aiohttp.ClientError = ClientError
+        aiohttp.ClientSession = ClientSession
+        sys.modules["aiohttp"] = aiohttp
+        return aiohttp
+
+
+def ensure_frontend_python_path() -> None:
+    frontend_python_dir = (
+        Path(__file__).resolve().parents[2] / "frontend" / "src" / "main" / "python"
+    )
+    frontend_python_dir_str = str(frontend_python_dir)
+    if frontend_python_dir_str not in sys.path:
+        sys.path.insert(0, frontend_python_dir_str)
+
+
+class DummyResponse:
+    def __init__(self, status, json_data=None, text_data=""):
+        self.status = status
+        self._json = json_data or {}
+        self._text = text_data
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        return False
+
+    async def json(self):
+        return self._json
+
+    async def text(self):
+        return self._text
+
+
+class DummySession:
+    def __init__(self, response=None, *, post_error=None, get_error=None):
+        self.response = response
+        self.post_error = post_error
+        self.get_error = get_error
+        self.last_post = None
+        self.last_get = None
+        self.close_calls = 0
+
+    def post(self, url, json=None, timeout=None):
+        if self.post_error is not None:
+            raise self.post_error
+        self.last_post = (url, json, timeout)
+        return self.response
+
+    def get(self, url, timeout=None):
+        if self.get_error is not None:
+            raise self.get_error
+        self.last_get = (url, timeout)
+        return self.response
+
+    async def close(self):
+        self.close_calls += 1
+        return None

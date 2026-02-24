@@ -1,82 +1,18 @@
-import sys
-import types
-from pathlib import Path
-
 import numpy as np
 import pytest
 
+from tests.sidecar.remote_client_test_utils import (
+    DummyResponse,
+    DummySession,
+    ensure_aiohttp_with_stubs,
+    ensure_frontend_python_path,
+)
 
-try:
-    import aiohttp  # type: ignore
-except Exception:
-    aiohttp = types.SimpleNamespace()
-
-    class ClientTimeout:
-        def __init__(self, total=None):
-            self.total = total
-
-    class ClientError(Exception):
-        pass
-
-    class ClientSession:
-        async def close(self):
-            return None
-
-    aiohttp.ClientTimeout = ClientTimeout
-    aiohttp.ClientError = ClientError
-    aiohttp.ClientSession = ClientSession
-    sys.modules["aiohttp"] = aiohttp
-
-frontend_python_dir = Path(__file__).resolve().parents[2] / "frontend" / "src" / "main" / "python"
-sys.path.insert(0, str(frontend_python_dir))
+aiohttp = ensure_aiohttp_with_stubs()
+ensure_frontend_python_path()
 
 from core import remote_embedding_client as remote_embedding_client_module  # noqa: E402
 from core.remote_embedding_client import RemoteEmbeddingClient  # noqa: E402
-
-
-class DummyResponse:
-    def __init__(self, status, json_data=None, text_data=""):
-        self.status = status
-        self._json = json_data or {}
-        self._text = text_data
-
-    async def __aenter__(self):
-        return self
-
-    async def __aexit__(self, exc_type, exc, tb):
-        return False
-
-    async def json(self):
-        return self._json
-
-    async def text(self):
-        return self._text
-
-
-class DummySession:
-    def __init__(self, response, *, post_error=None, get_error=None):
-        self.response = response
-        self.post_error = post_error
-        self.get_error = get_error
-        self.last_post = None
-        self.last_get = None
-        self.close_calls = 0
-
-    def post(self, url, json=None, timeout=None):
-        if self.post_error is not None:
-            raise self.post_error
-        self.last_post = (url, json, timeout)
-        return self.response
-
-    def get(self, url, timeout=None):
-        if self.get_error is not None:
-            raise self.get_error
-        self.last_get = (url, timeout)
-        return self.response
-
-    async def close(self):
-        self.close_calls += 1
-        return None
 
 
 @pytest.mark.asyncio
