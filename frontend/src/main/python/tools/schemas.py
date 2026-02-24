@@ -258,6 +258,35 @@ class WaitToolArgs(BaseModel):
 
 # --- Additional Filesystem Tool Schemas ---
 
+def _before_context_field():
+    return Field(
+        None,
+        description="Optional exact text that must appear immediately before old_string",
+    )
+
+
+def _after_context_field():
+    return Field(
+        None,
+        description="Optional exact text that must appear immediately after old_string",
+    )
+
+
+def _occurrence_index_field():
+    return Field(
+        None,
+        ge=1,
+        description="Optional 1-based match index to replace when multiple matches exist",
+    )
+
+
+def _require_eof_field():
+    return Field(
+        False,
+        description="If true, match must end at file EOF (allowing trailing newline)",
+    )
+
+
 class ReplaceOperationArgs(BaseModel):
     """Arguments for one replacement operation in a batched replace call."""
     model_config = ConfigDict(extra='ignore')
@@ -268,23 +297,10 @@ class ReplaceOperationArgs(BaseModel):
         False,
         description="If true, replace all occurrences in this operation",
     )
-    before_context: Optional[str] = Field(
-        None,
-        description="Optional exact text that must appear immediately before old_string",
-    )
-    after_context: Optional[str] = Field(
-        None,
-        description="Optional exact text that must appear immediately after old_string",
-    )
-    occurrence_index: Optional[int] = Field(
-        None,
-        ge=1,
-        description="Optional 1-based match index to replace when multiple matches exist",
-    )
-    require_eof: bool = Field(
-        False,
-        description="If true, match must end at file EOF (allowing trailing newline)",
-    )
+    before_context: Optional[str] = _before_context_field()
+    after_context: Optional[str] = _after_context_field()
+    occurrence_index: Optional[int] = _occurrence_index_field()
+    require_eof: bool = _require_eof_field()
     match_mode: Optional[Literal['strict', 'lenient']] = Field(
         None,
         description="Matching mode override for this operation",
@@ -330,23 +346,10 @@ class ReplaceArgs(BaseModel):
         False,
         description="If true, replace all occurrences; if false, replace only the first occurrence",
     )
-    before_context: Optional[str] = Field(
-        None,
-        description="Optional exact text that must appear immediately before old_string",
-    )
-    after_context: Optional[str] = Field(
-        None,
-        description="Optional exact text that must appear immediately after old_string",
-    )
-    occurrence_index: Optional[int] = Field(
-        None,
-        ge=1,
-        description="Optional 1-based match index to replace when multiple matches exist",
-    )
-    require_eof: bool = Field(
-        False,
-        description="If true, match must end at file EOF (allowing trailing newline)",
-    )
+    before_context: Optional[str] = _before_context_field()
+    after_context: Optional[str] = _after_context_field()
+    occurrence_index: Optional[int] = _occurrence_index_field()
+    require_eof: bool = _require_eof_field()
     match_mode: Literal['strict', 'lenient'] = Field(
         'lenient',
         description="Matching mode for single operation and default for replacements[]",
