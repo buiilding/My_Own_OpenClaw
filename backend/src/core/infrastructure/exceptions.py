@@ -8,6 +8,17 @@ consistent error handling and logging throughout the system.
 from typing import Any, Dict, List, Optional
 
 
+def _merge_metadata_if(
+    metadata: Optional[Dict[str, Any]],
+    include: bool,
+    **extra: Any,
+) -> Optional[Dict[str, Any]]:
+    """Merge additional metadata fields only when the caller condition is met."""
+    if not include:
+        return metadata
+    return {**(metadata or {}), **extra}
+
+
 class BaseAppError(Exception):
     """
     Base exception for all application errors.
@@ -74,7 +85,7 @@ class ConfigurationError(BaseAppError):
         super().__init__(
             message=message,
             error_code="CONFIG_ERROR",
-            metadata={**(metadata or {}), "config_key": config_key} if config_key else metadata,
+            metadata=_merge_metadata_if(metadata, bool(config_key), config_key=config_key),
             cause=cause,
         )
         self.config_key = config_key
@@ -97,7 +108,7 @@ class LLMError(BaseAppError):
         super().__init__(
             message=message,
             error_code="LLM_ERROR",
-            metadata={**(metadata or {}), "model": model} if model else metadata,
+            metadata=_merge_metadata_if(metadata, bool(model), model=model),
             cause=cause,
         )
         self.model = model
@@ -117,7 +128,7 @@ class LLMAPIError(LLMError):
         super().__init__(
             message=message,
             model=model,
-            metadata={**(metadata or {}), "status_code": status_code} if status_code else metadata,
+            metadata=_merge_metadata_if(metadata, bool(status_code), status_code=status_code),
             cause=cause,
         )
         self.error_code = "LLM_API_ERROR"
@@ -138,7 +149,7 @@ class LLMRateLimitError(LLMError):
         super().__init__(
             message=message,
             model=model,
-            metadata={**(metadata or {}), "retry_after": retry_after} if retry_after else metadata,
+            metadata=_merge_metadata_if(metadata, bool(retry_after), retry_after=retry_after),
             cause=cause,
         )
         self.error_code = "LLM_RATE_LIMIT"
@@ -162,7 +173,7 @@ class ToolExecutionError(BaseAppError):
         super().__init__(
             message=message,
             error_code="TOOL_EXECUTION_ERROR",
-            metadata={**(metadata or {}), "tool_name": tool_name} if tool_name else metadata,
+            metadata=_merge_metadata_if(metadata, bool(tool_name), tool_name=tool_name),
             cause=cause,
         )
         self.tool_name = tool_name
@@ -182,7 +193,11 @@ class ToolValidationError(ToolExecutionError):
         super().__init__(
             message=message,
             tool_name=tool_name,
-            metadata={**(metadata or {}), "validation_errors": validation_errors} if validation_errors else metadata,
+            metadata=_merge_metadata_if(
+                metadata,
+                bool(validation_errors),
+                validation_errors=validation_errors,
+            ),
             cause=cause,
         )
         self.error_code = "TOOL_VALIDATION_ERROR"
@@ -224,7 +239,7 @@ class MemoryError(BaseAppError):
         super().__init__(
             message=message,
             error_code="MEMORY_ERROR",
-            metadata={**(metadata or {}), "user_id": user_id} if user_id else metadata,
+            metadata=_merge_metadata_if(metadata, bool(user_id), user_id=user_id),
             cause=cause,
         )
         self.user_id = user_id
@@ -244,7 +259,7 @@ class MemoryStoreError(MemoryError):
         super().__init__(
             message=message,
             user_id=user_id,
-            metadata={**(metadata or {}), "operation": operation} if operation else metadata,
+            metadata=_merge_metadata_if(metadata, bool(operation), operation=operation),
             cause=cause,
         )
         self.error_code = "MEMORY_STORE_ERROR"
@@ -288,11 +303,12 @@ class SessionError(BaseAppError):
         super().__init__(
             message=message,
             error_code="SESSION_ERROR",
-            metadata={
-                **(metadata or {}),
-                "session_id": session_id,
-                "user_id": user_id,
-            } if session_id or user_id else metadata,
+            metadata=_merge_metadata_if(
+                metadata,
+                bool(session_id or user_id),
+                session_id=session_id,
+                user_id=user_id,
+            ),
             cause=cause,
         )
         self.session_id = session_id
@@ -318,12 +334,13 @@ class InputSizeLimitError(BaseAppError):
         super().__init__(
             message=message,
             error_code="INPUT_SIZE_LIMIT_ERROR",
-            metadata={
-                **(metadata or {}),
-                "actual_size": actual_size,
-                "max_size": max_size,
-                "boundary_name": boundary_name,
-            } if any([actual_size, max_size, boundary_name]) else metadata,
+            metadata=_merge_metadata_if(
+                metadata,
+                any([actual_size, max_size, boundary_name]),
+                actual_size=actual_size,
+                max_size=max_size,
+                boundary_name=boundary_name,
+            ),
             cause=cause,
         )
         self.actual_size = actual_size
@@ -345,11 +362,12 @@ class ParseTimeoutError(BaseAppError):
         super().__init__(
             message=message,
             error_code="PARSE_TIMEOUT_ERROR",
-            metadata={
-                **(metadata or {}),
-                "timeout_seconds": timeout_seconds,
-                "boundary_name": boundary_name,
-            } if any([timeout_seconds, boundary_name]) else metadata,
+            metadata=_merge_metadata_if(
+                metadata,
+                any([timeout_seconds, boundary_name]),
+                timeout_seconds=timeout_seconds,
+                boundary_name=boundary_name,
+            ),
             cause=cause,
         )
         self.timeout_seconds = timeout_seconds
@@ -370,15 +388,15 @@ class ParseValidationError(BaseAppError):
         super().__init__(
             message=message,
             error_code="PARSE_VALIDATION_ERROR",
-            metadata={
-                **(metadata or {}),
-                "validation_errors": validation_errors,
-                "boundary_name": boundary_name,
-            } if any([validation_errors, boundary_name]) else metadata,
+            metadata=_merge_metadata_if(
+                metadata,
+                any([validation_errors, boundary_name]),
+                validation_errors=validation_errors,
+                boundary_name=boundary_name,
+            ),
             cause=cause,
         )
         self.validation_errors = validation_errors or []
         self.boundary_name = boundary_name
-
 
 
