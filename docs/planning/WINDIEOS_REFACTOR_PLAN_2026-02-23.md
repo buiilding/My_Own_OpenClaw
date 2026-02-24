@@ -600,6 +600,24 @@ read_when:
   - `pytest tests/backend/test_tool_preparer.py tests/backend/test_coordinate_scaling.py tests/backend/test_coordinate_contract.py tests/backend/test_vision_coordinates.py`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
+## Phase 28
+
+- `jscpd` duplication cleanup (remote tool export surface):
+  - remove duplicated remote-tool class import blocks between:
+    - `backend/src/tools/remote_tools/__init__.py`
+    - `backend/src/tools/remote_tools/registry.py`
+  - keep `backend/src/tools/remote_tools/__init__.py` as stable public export surface.
+  - centralize remote-tool class import list in registry and re-export from package init.
+
+### Phase 28 Execution Slice (Current Loop)
+
+- Backend dedupe:
+  - make `remote_tools.__init__` source class symbols from `remote_tools.registry`.
+  - preserve all existing exports used by `backend/src/tools/remote.py` and tests.
+- Verification checks:
+  - `pytest tests/backend/test_remote_tools.py tests/backend/test_browser_remote_tool.py tests/backend/test_remote_tool_contract.py`
+  - `cd frontend && npm run audit:jscpd` (expect clone reduction)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):
