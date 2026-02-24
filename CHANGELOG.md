@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): add phase-64 full-gate revalidation snapshot (frontend audits/tests + backend + sidecar) after IPC lifecycle-suite dedupe
 - refactor(frontend-ipc-tests): dedupe lifecycle-suite setup/event/config helpers in `tests/frontend/IpcMainBridge.lifecycle.test.cjs` (`setupOpenedIpc`, `emitBackendMessage`, `expectClientEndpoints`, `invokeLoadFrontendConfig`, `mockFrontendConfigFile`) and reduce file size from 202 LOC to 177 LOC; jscpd improved from clones `160 -> 159` and duplicated lines `2470 -> 2464`
 - refactor(frontend-test-harnesses): dedupe repeated local-backend harness bootstrap in `tests/frontend/__mocks__/localBackendBridgeHarness.cjs` via shared `resetHarnessState`, `createMainWindow`, and `initializeBridgeHarness` helpers; jscpd improved from clones `161 -> 160` and duplicated lines `2490 -> 2470`
 - docs(refactor-plan): add phase-61 lint/dead-code revalidation snapshot after IPC query-suite dedupe
