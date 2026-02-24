@@ -27,6 +27,26 @@ describe('ipc.cjs bridge query handling', () => {
     return JSON.parse(ws.sent[ws.sent.length - 1]);
   }
 
+  function getLatestLocalUserMessage(mainWindow) {
+    const localUserMessages = mainWindow.webContents.send.mock.calls
+      .filter(([channel, payload]) => channel === 'from-backend' && payload?.type === 'local-user-message');
+    return localUserMessages[localUserMessages.length - 1][1];
+  }
+
+  function expectQueryContentWithEmptyMemories(content, queryText) {
+    expect(content).toContain('<episodic_memory>\nNone\n</episodic_memory>');
+    expect(content).toContain('<semantic_memory>\nNone\n</semantic_memory>');
+    expect(content).toContain(`<user_query>\n${queryText}\n</user_query>`);
+  }
+
+  function emitSettingsUpdatedAck(ws, messageId) {
+    ws.handlers.message(JSON.stringify({
+      type: 'settings-updated',
+      id: messageId,
+      payload: { updated_keys: ['interaction_mode'] },
+    }));
+  }
+
   test('runs overlay pre-capture hook for chatbox-origin query sends', async () => {
     const onBeforeOverlayQueryCapture = jest.fn().mockResolvedValue(undefined);
     const { handlers } = setupQueryBridge({ onBeforeOverlayQueryCapture });
@@ -122,9 +142,7 @@ describe('ipc.cjs bridge query handling', () => {
     expect(outgoingQuery.type).toBe('query');
     expect(outgoingQuery.payload.conversation_ref).toBe('conv-backfill');
 
-    const localUserMessages = mainWindow.webContents.send.mock.calls
-      .filter(([channel, payload]) => channel === 'from-backend' && payload?.type === 'local-user-message');
-    const latestLocalUserMessage = localUserMessages[localUserMessages.length - 1][1];
+    const latestLocalUserMessage = getLatestLocalUserMessage(mainWindow);
 
     expect(latestLocalUserMessage.conversation_ref).toBe('conv-backfill');
     expect(latestLocalUserMessage.payload.conversation_ref).toBe('conv-backfill');
@@ -212,9 +230,7 @@ describe('ipc.cjs bridge query handling', () => {
     await sendQuery(handlers, { text: 'memory fail', conversation_ref: 'conv-4' });
 
     const lastMessage = getLastSentMessage(ws);
-    expect(lastMessage.payload.content).toContain('<episodic_memory>\nNone\n</episodic_memory>');
-    expect(lastMessage.payload.content).toContain('<semantic_memory>\nNone\n</semantic_memory>');
-    expect(lastMessage.payload.content).toContain('<user_query>\nmemory fail\n</user_query>');
+    expectQueryContentWithEmptyMemories(lastMessage.payload.content, 'memory fail');
     expect(lastMessage.payload).not.toHaveProperty('system_state_internal');
   });
 
@@ -229,9 +245,7 @@ describe('ipc.cjs bridge query handling', () => {
     await sendQuery(handlers, { text: 'memory malformed', conversation_ref: 'conv-4b' });
 
     const lastMessage = getLastSentMessage(ws);
-    expect(lastMessage.payload.content).toContain('<episodic_memory>\nNone\n</episodic_memory>');
-    expect(lastMessage.payload.content).toContain('<semantic_memory>\nNone\n</semantic_memory>');
-    expect(lastMessage.payload.content).toContain('<user_query>\nmemory malformed\n</user_query>');
+    expectQueryContentWithEmptyMemories(lastMessage.payload.content, 'memory malformed');
   });
 
   test('gates first query behind settings-updated ack when frontend config exists', async () => {
@@ -255,11 +269,7 @@ describe('ipc.cjs bridge query handling', () => {
       interaction_mode: 'agent',
     }));
 
-    ws.handlers.message(JSON.stringify({
-      type: 'settings-updated',
-      id: settingsMessage.id,
-      payload: { updated_keys: ['interaction_mode'] },
-    }));
+    emitSettingsUpdatedAck(ws, settingsMessage.id);
 
     await queryPromise;
 
@@ -284,11 +294,7 @@ describe('ipc.cjs bridge query handling', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(JSON.parse(ws.sent[ws.sent.length - 1]).type).toBe('update-settings');
 
-    ws.handlers.message(JSON.stringify({
-      type: 'settings-updated',
-      id: updateSettingsMessage.id,
-      payload: { updated_keys: ['interaction_mode'] },
-    }));
+    emitSettingsUpdatedAck(ws, updateSettingsMessage.id);
 
     await queryPromise;
 
@@ -356,9 +362,7 @@ describe('ipc.cjs bridge query handling', () => {
 
       await sendQuery(handlers, { text: 'fresh query after reconnect' });
 
-      const localUserMessages = mainWindow.webContents.send.mock.calls
-        .filter(([channel, payload]) => channel === 'from-backend' && payload?.type === 'local-user-message');
-      const latestLocalUserMessage = localUserMessages[localUserMessages.length - 1][1];
+      const latestLocalUserMessage = getLatestLocalUserMessage(mainWindow);
 
       expect(latestLocalUserMessage.conversation_ref).toBeNull();
       expect(latestLocalUserMessage.payload.conversation_ref).toBeNull();
