@@ -9,6 +9,10 @@ import { subscribeResponseOverlayPhase } from '../utils/overlayPhaseListener';
 
 const RESPONSE_TYPES = new Set(['tool-call', 'llm-text', 'error']);
 const FIRST_CHUNK_TYPES = new Set(['llm-text', 'tool-call', 'error']);
+const RESPONSE_MIN_HEIGHT = 92;
+const RESPONSE_MAX_HEIGHT = 460;
+const RESPONSE_CHROME_HEIGHT = 28;
+const RESPONSE_BOTTOM_STICK_THRESHOLD = 20;
 
 function renderResponseContent(response, markdownHtml) {
   if (!response) {
@@ -65,7 +69,12 @@ function ChatBoxResponse() {
   const [closedResponseId, setClosedResponseId] = useState(null);
   const [awaitingFirstChunk, setAwaitingFirstChunk] = useState(false);
   const [overlayPhase, setOverlayPhase] = useState('idle');
+  const [responseHeight, setResponseHeight] = useState(RESPONSE_MIN_HEIGHT);
+  const [hasOverflowAbove, setHasOverflowAbove] = useState(false);
   const shellRef = useRef(null);
+  const responsePillRef = useRef(null);
+  const responseBodyRef = useRef(null);
+  const shouldStickToBottomRef = useRef(true);
   const lastUserMessageIdRef = useRef(null);
   const lastFrameRef = useRef({ width: 0, height: 0, visible: null });
 
@@ -184,6 +193,8 @@ function ChatBoxResponse() {
     lastUserMessageIdRef.current = lastUserMessageId;
     setAwaitingFirstChunk(true);
     setClosedResponseId(null);
+    shouldStickToBottomRef.current = true;
+    setHasOverflowAbove(false);
   }, [lastUserMessageId]);
 
   useEffect(() => {
@@ -192,6 +203,90 @@ function ChatBoxResponse() {
     }
     setAwaitingFirstChunk(false);
   }, [awaitingFirstChunk, firstTextOrError]);
+
+  const syncScrollState = useCallback(() => {
+    const responseEl = responsePillRef.current;
+    if (!responseEl) {
+      setHasOverflowAbove(false);
+      shouldStickToBottomRef.current = true;
+      return;
+    }
+
+    setHasOverflowAbove(responseEl.scrollTop > 2);
+    const distanceFromBottom = responseEl.scrollHeight - responseEl.clientHeight - responseEl.scrollTop;
+    shouldStickToBottomRef.current = distanceFromBottom <= RESPONSE_BOTTOM_STICK_THRESHOLD;
+  }, []);
+
+  const handleResponseScroll = useCallback(() => {
+    syncScrollState();
+  }, [syncScrollState]);
+
+  useEffect(() => {
+    if (!showResponse) {
+      setResponseHeight(RESPONSE_MIN_HEIGHT);
+      setHasOverflowAbove(false);
+      shouldStickToBottomRef.current = true;
+      return;
+    }
+
+    const bodyEl = responseBodyRef.current;
+    if (!bodyEl) {
+      return;
+    }
+
+    let animationFrameId = null;
+    let resizeObserver = null;
+
+    const recalcHeight = () => {
+      const measuredHeight = bodyEl.scrollHeight + RESPONSE_CHROME_HEIGHT;
+      const nextHeight = Math.max(
+        RESPONSE_MIN_HEIGHT,
+        Math.min(RESPONSE_MAX_HEIGHT, measuredHeight),
+      );
+      setResponseHeight((prevHeight) => (prevHeight === nextHeight ? prevHeight : nextHeight));
+    };
+
+    const scheduleRecalc = () => {
+      if (animationFrameId !== null) {
+        window.cancelAnimationFrame(animationFrameId);
+      }
+      animationFrameId = window.requestAnimationFrame(() => {
+        animationFrameId = null;
+        recalcHeight();
+      });
+    };
+
+    scheduleRecalc();
+
+    if (typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(scheduleRecalc);
+      resizeObserver.observe(bodyEl);
+    }
+
+    return () => {
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+      if (animationFrameId !== null) {
+        window.cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, [showResponse, activeResponse?.id]);
+
+  useEffect(() => {
+    if (!showResponse) {
+      return;
+    }
+    const responseEl = responsePillRef.current;
+    if (!responseEl) {
+      return;
+    }
+
+    if (shouldStickToBottomRef.current) {
+      responseEl.scrollTop = responseEl.scrollHeight;
+    }
+    syncScrollState();
+  }, [showResponse, activeResponse?.id, activeResponse?.text, responseHeight, syncScrollState]);
 
   useEffect(() => {
     let observer = null;
@@ -243,7 +338,12 @@ function ChatBoxResponse() {
     <div className="chatbox-shell-wrap">
       <div className="chatbox-shell" ref={shellRef}>
         {showResponse ? (
-          <div className="chatbox-response-pill">
+          <div
+            className={`chatbox-response-pill${hasOverflowAbove ? ' has-overflow-above' : ''}`}
+            ref={responsePillRef}
+            style={{ height: `${responseHeight}px` }}
+            onScroll={handleResponseScroll}
+          >
             <button
               type="button"
               className="chatbox-response-close"
@@ -253,7 +353,9 @@ function ChatBoxResponse() {
             >
               ×
             </button>
-            {renderResponseContent(activeResponse, responseMarkdownHtml)}
+            <div className="chatbox-response-body" ref={responseBodyRef}>
+              {renderResponseContent(activeResponse, responseMarkdownHtml)}
+            </div>
           </div>
         ) : null}
 

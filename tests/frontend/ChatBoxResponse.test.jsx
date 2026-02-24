@@ -135,4 +135,46 @@ describe('ChatBoxResponse', () => {
       expect(screen.queryByText('something failed')).not.toBeInTheDocument();
     });
   });
+
+  test('shows top overflow indicator when response pane is scrolled above bottom', async () => {
+    setChatState([
+      { id: 'user-1', text: 'question', sender: 'user' },
+      {
+        id: 'assistant-1',
+        text: 'line 1\nline 2\nline 3\nline 4\nline 5',
+        sender: 'assistant',
+        type: 'llm-text',
+        isComplete: false,
+      },
+    ]);
+
+    const { container } = render(<ChatBoxResponse />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/line 1/)).toBeInTheDocument();
+    });
+
+    const responsePane = container.querySelector('.chatbox-response-pill');
+    expect(responsePane).toBeTruthy();
+
+    Object.defineProperty(responsePane, 'scrollHeight', {
+      value: 500,
+      configurable: true,
+    });
+    Object.defineProperty(responsePane, 'clientHeight', {
+      value: 180,
+      configurable: true,
+    });
+    Object.defineProperty(responsePane, 'scrollTop', {
+      value: 120,
+      writable: true,
+      configurable: true,
+    });
+
+    fireEvent.scroll(responsePane);
+
+    await waitFor(() => {
+      expect(responsePane.classList.contains('has-overflow-above')).toBe(true);
+    });
+  });
 });
