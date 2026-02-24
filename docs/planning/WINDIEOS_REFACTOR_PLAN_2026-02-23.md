@@ -1510,3 +1510,21 @@ read_when:
 - Verification:
   - `pytest tests/backend/test_exceptions.py tests/backend/test_llm_client.py tests/backend/test_local_llm_providers.py` (pass; 68 tests)
   - `cd frontend && npm run audit:jscpd` (pass; clone/duplicate reduction confirmed)
+
+## Phase 36 Outcome (2026-02-24)
+
+- OpenRouter completion/stream request-param dedupe shipped:
+  - added shared OpenRouter completion-param builder in:
+    - `backend/src/llm/providers/openrouter.py` (`_build_completion_params`)
+  - rewired both OpenRouter completion paths to consume the shared builder:
+    - `OpenRouterProvider.get_completion`
+    - `OpenRouterProvider._stream_internal`
+  - preserved prompt-cache key forwarding and stream usage options (`include_usage`).
+- jscpd delta after Phase 36 slice:
+  - clones: `188 -> 189`
+  - duplicated lines: `2927 -> 2906`
+  - duplicated tokens: `25865 -> 25746`
+  - note: clone count regressed by one due clone regrouping, but duplicated volume decreased.
+- Verification:
+  - `pytest tests/backend/test_llm_provider_base.py tests/backend/test_local_llm_providers.py tests/backend/test_llm_client.py` (pass; 101 tests)
+  - `cd frontend && npm run audit:jscpd` (pass; duplicated lines/tokens reduction confirmed)
