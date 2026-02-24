@@ -14,6 +14,7 @@ title: "Frontend Renderer Docs Hub"
 - [Renderer Provider Docs Hub](providers/README.md)
 - [Renderer Overlay Docs Hub](overlays/README.md)
 - [Renderer Infrastructure Docs Hub](infrastructure/README.md)
+- [Renderer Infrastructure Audio Docs Hub](infrastructure/audio/README.md)
 - [Renderer Transcript Docs Hub](transcript/README.md)
 - [Feature Module Matrix](feature_module_matrix.md)
 - [Dashboard Memory Management and Resume Reference](dashboard_memory_management_and_resume_reference.md)
@@ -27,6 +28,7 @@ title: "Frontend Renderer Docs Hub"
 - [Response Overlay Phase and Tool-Ghost Runtime Reference](overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md)
 - [Tool Execution Service and Hook Runtime Reference](infrastructure/tool_execution_service_and_hook_runtime_reference.md)
 - [Capture, Artifact Upload, and Payload Normalization Reference](infrastructure/capture_artifact_upload_and_payload_normalization_reference.md)
+- [Player Service Queue, Generation, and Error-Recovery Reference](infrastructure/audio/player_service_queue_generation_and_error_recovery_reference.md)
 
 ## Code Scope
 

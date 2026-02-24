@@ -42,6 +42,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Renderer Provider Docs Hub](renderer/providers/README.md)
 - [Renderer Overlay Docs Hub](renderer/overlays/README.md)
 - [Renderer Infrastructure Docs Hub](renderer/infrastructure/README.md)
+- [Renderer Infrastructure Audio Docs Hub](renderer/infrastructure/audio/README.md)
 - [Renderer Transcript Docs Hub](renderer/transcript/README.md)
 - [Renderer Runtime](renderer/renderer_runtime.md)
 - [Feature Module Matrix](renderer/feature_module_matrix.md)
@@ -56,6 +57,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Response Overlay Phase and Tool-Ghost Runtime Reference](renderer/overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md)
 - [Tool Execution Service and Hook Runtime Reference](renderer/infrastructure/tool_execution_service_and_hook_runtime_reference.md)
 - [Capture, Artifact Upload, and Payload Normalization Reference](renderer/infrastructure/capture_artifact_upload_and_payload_normalization_reference.md)
+- [Player Service Queue, Generation, and Error-Recovery Reference](renderer/infrastructure/audio/player_service_queue_generation_and_error_recovery_reference.md)
 
 ### Runtime
 

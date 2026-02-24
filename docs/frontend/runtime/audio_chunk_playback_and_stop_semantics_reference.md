@@ -133,6 +133,7 @@ If audio events are ignored by typed stream hooks:
 
 ## Cross-Doc References
 
+- PlayerService internals and test-backed queue contracts: `docs/frontend/renderer/infrastructure/audio/player_service_queue_generation_and_error_recovery_reference.md`
 - stream state machine and typed event flow: `docs/frontend/runtime/stream_event_state_machine.md`
 - chat stream/tool runtime details: `docs/frontend/renderer/chat_stream_and_tool_execution_reference.md`
 - backend speech production details: `docs/backend/services/tts_and_wakeword_audio_runtime_reference.md`
