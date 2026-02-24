@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 20 execution slice for shared chat hook store-selector dedupe (`useChatMessageSender`, `useChatStream`)
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 19 execution slice for shared Electron main-process Python executable resolution dedupe (`runtime_paths`, `local_backend_bridge`, `wakeword_bridge`)
 - refactor(frontend-main-runtime-paths): centralize Electron Python executable resolution in `runtime_paths.resolvePythonExecutablePath`, reuse it in `local_backend_bridge` and `wakeword_bridge`, preserve local backend path caching, and internalize now-unused runtime-path helper exports surfaced by `knip`
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 18 execution slice for `TranscriptWriter` immediate-store/queue dedupe across user/assistant/tool recording paths
