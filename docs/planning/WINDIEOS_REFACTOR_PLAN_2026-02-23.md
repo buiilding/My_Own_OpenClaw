@@ -2537,3 +2537,20 @@ read_when:
     - `./scripts/test-backend` (pass; 966 tests)
   - sidecar tests:
     - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+
+## Phase 90 Outcome (2026-02-24)
+
+- Chat box response test duplication cleanup shipped:
+  - extracted shared helper in `tests/frontend/ChatBoxResponse.test.jsx`:
+    - `renderToolCallGhost`
+  - removed repeated tool-call state setup, overlay phase trigger, and preview wait blocks across tool ghost tests.
+- Verification:
+  - `cd frontend && npx jest ../tests/frontend/ChatBoxResponse.test.jsx --runInBand` (pass; 10 tests)
+  - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
+  - `cd frontend && npm run audit:knip` (pass)
+  - `cd frontend && npm run audit:jscpd` (pass)
+  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - jscpd snapshot deltas:
+    - clones: `129 -> 128`
+    - duplicated lines: `2168 -> 2147`
+    - duplicated tokens: `18971 -> 18798`

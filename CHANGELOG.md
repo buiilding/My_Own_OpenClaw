@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-chatbox-response-tests): extract shared `renderToolCallGhost` helper in `tests/frontend/ChatBoxResponse.test.jsx` to dedupe repeated tool-call setup/phase activation/preview wait logic; jscpd improved from clones `129 -> 128` and duplicated lines `2168 -> 2147`
 - docs(refactor-plan): add phase-89 full-gate snapshot after app-provider dedupe wave (frontend audits/tests + backend + sidecar)
 - refactor(frontend-app-provider-tests): dedupe repeated provider render + shift-tab keyboard fixture setup in `tests/frontend/AppProvider.test.tsx` via `renderProvider` and `createTabKeydown`; jscpd improved from clones `131 -> 129` and duplicated lines `2197 -> 2168`
 - docs(refactor-plan): add phase-87 full-gate snapshot after ipc-query + local-rpc dedupe wave (frontend audits/tests + backend + sidecar)
