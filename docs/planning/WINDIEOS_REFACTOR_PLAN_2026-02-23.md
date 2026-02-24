@@ -1436,3 +1436,20 @@ read_when:
 - Verification:
   - `pytest tests/backend/test_llm_client.py tests/backend/test_local_llm_providers.py tests/backend/test_llm_stream_processor.py` (pass; 42 tests)
   - `cd frontend && npm run audit:jscpd` (pass; clone/duplicate reduction confirmed)
+
+## Phase 34 Outcome (2026-02-24)
+
+- LLM optional-field exception constructor dedupe shipped:
+  - added shared base class for single optional-field LLM exceptions:
+    - `backend/src/core/infrastructure/exceptions.py` (`_LLMOptionalFieldError`)
+  - rewired duplicated constructor wiring in:
+    - `LLMAPIError`
+    - `LLMRateLimitError`
+  - preserved constructor signatures, error-code defaults, metadata include rules, and public attributes (`status_code`, `retry_after`).
+- jscpd delta after Phase 34 slice:
+  - clones: `190 -> 189`
+  - duplicated lines: `2944 -> 2935`
+  - duplicated tokens: `26048 -> 25965`
+- Verification:
+  - `pytest tests/backend/test_llm_client.py tests/backend/test_local_llm_providers.py tests/backend/test_parser_validation.py` (pass; 52 tests)
+  - `cd frontend && npm run audit:jscpd` (pass; clone/duplicate reduction confirmed)
