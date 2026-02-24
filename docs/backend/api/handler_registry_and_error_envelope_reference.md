@@ -154,3 +154,9 @@ If middleware appears ignored:
 1. verify middleware was added to registry instance used by runtime container
 2. verify middleware is not swallowing its own exceptions for critical policy paths
 3. verify exceptions are not converted to success responses downstream
+
+## Related Pages
+
+- `docs/backend/contracts/routing/README.md`
+- `docs/backend/contracts/routing/incoming_route_table_schema_parity_and_handler_binding_reference.md`
+- `docs/backend/contracts/README.md`
