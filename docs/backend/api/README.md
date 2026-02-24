@@ -22,6 +22,7 @@ title: "Backend API Docs Hub"
 - [Non-Query Handler and Control Flow Reference](non_query_handler_and_control_flow_reference.md)
 - [Formatter Dispatch and Schema Alignment Reference](processing/formatter_dispatch_and_schema_alignment_reference.md)
 - [Stream Pipeline, Completion, and TTS Concurrency Reference](processing/stream_pipeline_completion_and_tts_concurrency_reference.md)
+- [Query Execution Runtime-State and Completion Resolver Reference](processing/query_execution_runtime_state_and_completion_resolver_reference.md)
 - [Safe WebSocket and Transport Envelope Reference](transport/safe_websocket_and_transport_envelope_reference.md)
 
 ## Code Scope

@@ -56,6 +56,7 @@ Covers:
 - [Non-Query Handler and Control Flow Reference](api/non_query_handler_and_control_flow_reference.md)
 - [Formatter Dispatch and Schema Alignment Reference](api/processing/formatter_dispatch_and_schema_alignment_reference.md)
 - [Stream Pipeline, Completion, and TTS Concurrency Reference](api/processing/stream_pipeline_completion_and_tts_concurrency_reference.md)
+- [Query Execution Runtime-State and Completion Resolver Reference](api/processing/query_execution_runtime_state_and_completion_resolver_reference.md)
 - [WebSocket Message Contracts](contracts/websocket_message_contracts.md)
 - [Message Schema and Formatter Reference](contracts/message_schema_and_formatter_reference.md)
 - [Handler Behavior Matrix](api/handler_behavior_matrix.md)

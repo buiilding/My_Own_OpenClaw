@@ -64,6 +64,7 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 - [Backend Non-Query Handler Control Flow Reference](../backend/api/non_query_handler_and_control_flow_reference.md)
 - [Backend Formatter Dispatch and Schema Alignment Reference](../backend/api/processing/formatter_dispatch_and_schema_alignment_reference.md)
 - [Backend Stream Pipeline, Completion, and TTS Concurrency Reference](../backend/api/processing/stream_pipeline_completion_and_tts_concurrency_reference.md)
+- [Backend Query Execution Runtime-State and Completion Resolver Reference](../backend/api/processing/query_execution_runtime_state_and_completion_resolver_reference.md)
 - [Backend Provider Factory + Runtime Selection Reference](../backend/llm/provider_factory_and_runtime_selection_reference.md)
 - [Backend Parser Trust Boundary + Native Tool-Call Reference](../backend/llm/parser_trust_boundary_and_native_tool_call_reference.md)
 - [Backend LLM Base Request, Stream, and Normalization Reference](../backend/llm/providers/base_request_stream_and_normalization_reference.md)

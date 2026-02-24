@@ -25,6 +25,7 @@ Related deep dives:
 - [API Processing Docs Hub](../api/processing/README.md)
 - [Formatter Dispatch and Schema Alignment Reference](../api/processing/formatter_dispatch_and_schema_alignment_reference.md)
 - [Stream Pipeline, Completion, and TTS Concurrency Reference](../api/processing/stream_pipeline_completion_and_tts_concurrency_reference.md)
+- [Query Execution Runtime-State and Completion Resolver Reference](../api/processing/query_execution_runtime_state_and_completion_resolver_reference.md)
 
 ## WebSocket Query Entry
 
