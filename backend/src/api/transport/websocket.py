@@ -134,27 +134,25 @@ class SafeWebSocket:
                 msg_type, data, mode, future = await self._send_queue.get()
 
                 try:
+                    should_stop = False
                     if msg_type == "json":
                         await self._websocket.send_json(data, mode=mode)
-                        self._set_future_result(future, None)
-                        continue
-
-                    if msg_type == "text":
+                    elif msg_type == "text":
                         await self._websocket.send_text(data)
-                        self._set_future_result(future, None)
-                        continue
-
-                    if msg_type == "close":
+                    elif msg_type == "close":
                         await self._websocket.close(code=data, reason=mode)
-                        self._set_future_result(future, None)
+                        should_stop = True
+                    else:
+                        unknown_type_error = RuntimeError(
+                            f"Unknown websocket queue message type: {msg_type}"
+                        )
+                        self._set_future_exception(future, unknown_type_error)
+                        self._sender_error = unknown_type_error
                         break
 
-                    unknown_type_error = RuntimeError(
-                        f"Unknown websocket queue message type: {msg_type}"
-                    )
-                    self._set_future_exception(future, unknown_type_error)
-                    self._sender_error = unknown_type_error
-                    break
+                    self._set_future_result(future, None)
+                    if should_stop:
+                        break
 
                 except (WebSocketDisconnect, RuntimeError, ConnectionError) as e:
                     logger.debug("Send failed (connection closed): %s", e)
