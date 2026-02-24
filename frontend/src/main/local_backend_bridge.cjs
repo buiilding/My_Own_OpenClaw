@@ -1,15 +1,23 @@
-/**
- * Local Backend Bridge - Electron IPC bridge for Python local backend
- * 
- * Spawns Python local backend subprocess and handles JSON-RPC protocol
- * communication between Electron main process and Python backend.
- */
-
 const { spawn } = require('child_process');
 const path = require('path');
 const { ipcMain } = require('electron');
 const { v4: uuidv4 } = require('uuid');
 const { resolveBackendEndpoints } = require('./backend_endpoints.cjs');
+const {
+  COMPILED_RPC_HANDLER_DEFINITIONS,
+  mapSearchMemoryPayload,
+  registerMappedRpcHandlers,
+} = require('./local_backend_bridge_rpc_mappers.cjs');
+const {
+  createWindowResolvers,
+  withHiddenWindowForScreenshot,
+} = require('./local_backend_bridge_windows.cjs');
+const {
+  getErrorMessage,
+  shouldSuppressStderrLine,
+  toErrorResponse,
+  withLocalBackendNodeOptions,
+} = require('./local_backend_bridge_utils.cjs');
 const {
   resolvePythonExecutablePath,
   resolvePythonScriptPath,
@@ -21,12 +29,7 @@ let pendingRequests = new Map();
 let stdoutBuffer = '';
 let readinessCheckCallback = null;
 let readinessCheckToken = 0;
-const SUPPRESSED_STDERR_PATTERNS = [
-  '[DEP0169] DeprecationWarning: `url.parse()`',
-  'Use `node --trace-deprecation ...` to show where the warning was created',
-];
 
-// Cache Python path to avoid repeated file system checks
 let cachedPythonPath = null;
 
 function getReadinessRetryDelay(attempt) {
@@ -52,166 +55,6 @@ function markBackendReady(mainWindow) {
   mainWindow?.webContents.send('local-backend-status', { ready: true });
 }
 
-function getErrorMessage(error) {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  return String(error);
-}
-
-function toErrorResponse(error) {
-  return {
-    success: false,
-    error: getErrorMessage(error),
-  };
-}
-
-function getPayloadObject(payload = {}) {
-  if (payload && typeof payload === 'object') {
-    return payload;
-  }
-  return {};
-}
-
-function createPayloadMapper(fieldMap) {
-  const compiledMappings = Object.entries(fieldMap).map(([targetKey, mapping]) => {
-    if (typeof mapping === 'function') {
-      return {
-        targetKey,
-        mapperType: 'function',
-        mapping,
-      };
-    }
-    if (Array.isArray(mapping)) {
-      return {
-        targetKey,
-        mapperType: 'fallback',
-        sourceKeys: mapping,
-      };
-    }
-    return {
-      targetKey,
-      mapperType: 'direct',
-      sourceKey: mapping,
-    };
-  });
-
-  return (payload) => {
-    const source = getPayloadObject(payload);
-    const mapped = {};
-
-    for (const compiled of compiledMappings) {
-      if (compiled.mapperType === 'function') {
-        mapped[compiled.targetKey] = compiled.mapping(source);
-        continue;
-      }
-      if (compiled.mapperType === 'fallback') {
-        let resolved;
-        for (const sourceKey of compiled.sourceKeys) {
-          if (source[sourceKey] !== undefined) {
-            resolved = source[sourceKey];
-            break;
-          }
-        }
-        mapped[compiled.targetKey] = resolved;
-        continue;
-      }
-      mapped[compiled.targetKey] = source[compiled.sourceKey];
-    }
-
-    return mapped;
-  };
-}
-
-function registerMappedRpcHandlers(registerRpcHandler, definitions) {
-  for (const { channel, method, mapParams } of definitions) {
-    registerRpcHandler(channel, method, mapParams);
-  }
-}
-
-const mapSearchMemoryPayload = createPayloadMapper({
-  query: 'query',
-  user_id: 'user_id',
-  limit: 'limit',
-  memory_type: 'memory_type',
-  exclude_conversation_id: ['excludeConversationId', 'exclude_conversation_id'],
-});
-
-const COMPILED_RPC_HANDLER_DEFINITIONS = [
-  {
-    channel: 'list-conversations',
-    method: 'list_conversations',
-    mapParams: createPayloadMapper({
-      user_id: 'userId',
-      limit: 'limit',
-      record_kind: 'recordKind',
-    }),
-  },
-  {
-    channel: 'get-conversation',
-    method: 'get_conversation',
-    mapParams: createPayloadMapper({
-      user_id: 'userId',
-      conversation_id: ({ conversationId }) => conversationId ?? null,
-      limit: 'limit',
-      record_kind: 'recordKind',
-    }),
-  },
-  {
-    channel: 'list-semantic-memories',
-    method: 'list_semantic_memories',
-    mapParams: createPayloadMapper({
-      user_id: 'userId',
-      limit: 'limit',
-    }),
-  },
-  {
-    channel: 'delete-conversation',
-    method: 'delete_conversation',
-    mapParams: createPayloadMapper({
-      user_id: 'userId',
-      conversation_id: ({ conversationId }) => conversationId ?? null,
-      record_kind: 'recordKind',
-    }),
-  },
-  {
-    channel: 'delete-semantic-memory',
-    method: 'delete_semantic_memory',
-    mapParams: createPayloadMapper({
-      user_id: 'userId',
-      memory_id: 'memoryId',
-    }),
-  },
-  {
-    channel: 'store-memory',
-    method: 'store_memory',
-    mapParams: createPayloadMapper({
-      user_query: 'userQuery',
-      assistant_response: 'assistantResponse',
-      memory_type: 'memoryType',
-      user_id: 'userId',
-      session_id: 'sessionId',
-    }),
-  },
-  {
-    channel: 'store-transcript',
-    method: 'store_transcript',
-    mapParams: createPayloadMapper({
-      content: 'content',
-      user_id: 'userId',
-      conversation_ref: 'conversationRef',
-      role: 'role',
-      message_type: 'messageType',
-      tool_name: 'toolName',
-      correlation_id: 'correlationId',
-      message_index: 'messageIndex',
-      model_id: 'modelId',
-      model_provider: 'modelProvider',
-      screenshot: 'screenshot',
-      timestamp: 'timestamp',
-    }),
-  },
-];
 
 function rejectPendingRequests(reason) {
   const pendingEntries = Array.from(pendingRequests.entries());
@@ -241,11 +84,7 @@ function notifyBackendUnavailable(mainWindow, error) {
   });
 }
 
-/**
- * Get Python executable path (cached after first lookup)
- */
 function getPythonPath() {
-  // Return cached path if available
   if (cachedPythonPath !== null) {
     return cachedPythonPath;
   }
@@ -254,32 +93,12 @@ function getPythonPath() {
   return cachedPythonPath;
 }
 
-function withLocalBackendNodeOptions(baseEnv) {
-  const env = { ...baseEnv };
-  const nodeOptions = (env.NODE_OPTIONS || '').trim();
-
-  if (nodeOptions.includes('--no-deprecation')) {
-    return env;
-  }
-
-  env.NODE_OPTIONS = nodeOptions
-    ? `${nodeOptions} --no-deprecation`
-    : '--no-deprecation';
-  return env;
-}
-
-/**
- * Check if Python backend is ready by sending ping
- * Retries with exponential backoff until ready or max attempts
- */
 function checkReadiness(mainWindow, attempt = 1, maxAttempts = 10) {
   if (!pythonProcess) {
     return;
   }
   const checkToken = ++readinessCheckToken;
 
-  // Send ping request to check if backend is ready
-  // Use a special marker ID that won't conflict with normal requests
   const requestId = `__readiness_check_${attempt}__`;
   const request = {
     jsonrpc: '2.0',
@@ -297,7 +116,6 @@ function checkReadiness(mainWindow, attempt = 1, maxAttempts = 10) {
     return;
   }
 
-  // Store callback to handle ping response
   readinessCheckCallback = (response) => {
     if (checkToken !== readinessCheckToken) {
       return;
@@ -306,15 +124,12 @@ function checkReadiness(mainWindow, attempt = 1, maxAttempts = 10) {
       readinessCheckCallback = null;
       
       if (response.result && response.result.status === 'ok') {
-        // Only log in development
         if (process.env.NODE_ENV !== 'production') {
           console.log('[LocalBackend] Python service ready (verified via ping)');
         }
         markBackendReady(mainWindow);
       } else {
-        // Retry if ping failed
         if (!scheduleReadinessRetry(mainWindow, attempt, maxAttempts, checkToken)) {
-          // Max attempts reached, mark as ready anyway to avoid blocking
           console.warn('[LocalBackend] Backend readiness check failed after max attempts, marking as ready');
           markBackendReady(mainWindow);
         }
@@ -322,26 +137,20 @@ function checkReadiness(mainWindow, attempt = 1, maxAttempts = 10) {
     }
   };
 
-  // Set timeout for readiness check
   setTimeout(() => {
     if (checkToken !== readinessCheckToken) {
       return;
     }
     if (readinessCheckCallback) {
       readinessCheckCallback = null;
-      // Ping timed out, retry if attempts remain
       if (!scheduleReadinessRetry(mainWindow, attempt, maxAttempts, checkToken)) {
         console.warn('[LocalBackend] Backend readiness check timed out after max attempts');
-        // Mark as ready anyway to avoid blocking forever
         markBackendReady(mainWindow);
       }
     }
   }, 500);
 }
 
-/**
- * Start Python local backend service
- */
 function startLocalBackend(mainWindow) {
   if (pythonProcess) {
     console.log('[LocalBackend] Service already running');
@@ -351,10 +160,8 @@ function startLocalBackend(mainWindow) {
   const pythonPath = getPythonPath();
   const scriptPath = resolvePythonScriptPath('local_backend.py');
 
-  // Verify script exists (only check once - script location is static)
   const fs = require('fs');
   if (!fs.existsSync(scriptPath)) {
-    // Only log error - don't block startup with console.error in production
     if (process.env.NODE_ENV !== 'production') {
       console.error(`[LocalBackend] Script not found at: ${scriptPath}`);
     }
@@ -365,7 +172,6 @@ function startLocalBackend(mainWindow) {
     return;
   }
 
-  // Only log startup in development
   if (process.env.NODE_ENV !== 'production') {
     console.log(`[LocalBackend] Starting Python local backend: ${pythonPath} ${scriptPath}`);
   }
@@ -382,20 +188,16 @@ function startLocalBackend(mainWindow) {
     }),
   });
 
-  // Check readiness by sending ping request instead of arbitrary delay
-  // This allows the frontend to start immediately while backend initializes
   checkReadiness(mainWindow);
 
   stdoutBuffer = '';
 
-  // Handle stdout (JSON-RPC responses, one line per message)
   pythonProcess.stdout.on('data', (data) => {
     try {
       stdoutBuffer += data.toString();
       
-      // Process complete lines
       const lines = stdoutBuffer.split('\n');
-      stdoutBuffer = lines.pop() || ''; // Keep incomplete line
+      stdoutBuffer = lines.pop() || '';
 
       for (const line of lines) {
         if (line.trim()) {
@@ -412,13 +214,12 @@ function startLocalBackend(mainWindow) {
     }
   });
 
-  // Handle stderr (logs from Python)
   pythonProcess.stderr.on('data', (data) => {
     const text = data.toString();
     const lines = text.split('\n');
     for (const line of lines) {
       if (line.trim()) {
-        if (SUPPRESSED_STDERR_PATTERNS.some((pattern) => line.includes(pattern))) {
+        if (shouldSuppressStderrLine(line)) {
           continue;
         }
         console.log(`[LocalBackend Python] ${line}`);
@@ -426,7 +227,6 @@ function startLocalBackend(mainWindow) {
     }
   });
 
-  // Handle process exit
   pythonProcess.on('exit', (code, signal) => {
     console.log(`[LocalBackend] Python process exited with code ${code}, signal ${signal}`);
     resetBackendProcessState('Local backend process exited');
@@ -436,7 +236,6 @@ function startLocalBackend(mainWindow) {
     notifyBackendUnavailable(mainWindow, exitError);
   });
 
-  // Handle process errors
   pythonProcess.on('error', (error) => {
     console.error('[LocalBackend] Failed to start Python process:', error);
     resetBackendProcessState('Local backend process error');
@@ -450,13 +249,9 @@ function startLocalBackend(mainWindow) {
   });
 }
 
-/**
- * Handle responses from Python process
- */
 function handlePythonResponse(response) {
   const requestId = response.id;
   
-  // Check if this is a readiness check response
   if (readinessCheckCallback && requestId && requestId.startsWith('__readiness_check_')) {
     readinessCheckCallback(response);
     return;
@@ -477,9 +272,6 @@ function handlePythonResponse(response) {
   }
 }
 
-/**
- * Send JSON-RPC request to Python process
- */
 function sendRequest(method, params = {}, options = {}) {
   if (!pythonProcess || !isPythonReady) {
     throw new Error('Local backend not ready');
@@ -495,7 +287,6 @@ function sendRequest(method, params = {}, options = {}) {
 
   return new Promise((resolve, reject) => {
     const timeoutMs = typeof options.timeoutMs === 'number' ? options.timeoutMs : 30000;
-    // Set timeout
     const timeout = setTimeout(() => {
       if (pendingRequests.has(requestId)) {
         pendingRequests.delete(requestId);
@@ -545,16 +336,12 @@ async function sendMemorySearchRequest(payload = {}) {
   );
 }
 
-/**
- * Stop the Python local backend service
- */
 function stopLocalBackend() {
   if (pythonProcess) {
     const processToStop = pythonProcess;
     console.log('[LocalBackend] Stopping Python process...');
     processToStop.kill('SIGTERM');
 
-    // Force kill if still running after 5 seconds
     setTimeout(() => {
       if (pythonProcess && pythonProcess === processToStop) {
         console.log('[LocalBackend] Force killing Python process');
@@ -564,46 +351,12 @@ function stopLocalBackend() {
   }
 }
 
-/**
- * Initialize IPC handlers for local backend communication
- */
 function initializeLocalBackendBridge(getWindows) {
-  const resolveWindowProvider = () => {
-    if (typeof getWindows === 'function') {
-      return getWindows;
-    }
-    if (getWindows && typeof getWindows === 'object') {
-      if ('mainWindow' in getWindows || 'chatWindow' in getWindows) {
-        return () => getWindows;
-      }
-      return () => ({ mainWindow: getWindows, chatWindow: null });
-    }
-    return () => ({});
-  };
-  const getWindowState = resolveWindowProvider();
-
-  const resolveWindows = () => {
-    const result = getWindowState();
-    if (result && typeof result === 'object') {
-      const { mainWindow, chatWindow, responseWindow } = result;
-      return [mainWindow, chatWindow, responseWindow].filter(Boolean);
-    }
-    return [];
-  };
-  const resolveChatWindow = () => {
-    const result = getWindowState();
-    if (result && typeof result === 'object') {
-      return result.chatWindow || null;
-    }
-    return null;
-  };
-  const resolveResponseWindow = () => {
-    const result = getWindowState();
-    if (result && typeof result === 'object') {
-      return result.responseWindow || null;
-    }
-    return null;
-  };
+  const {
+    resolveWindows,
+    resolveChatWindow,
+    resolveResponseWindow,
+  } = createWindowResolvers(getWindows);
 
   const [mainWindow] = resolveWindows();
   startLocalBackend(mainWindow);
@@ -617,73 +370,6 @@ function initializeLocalBackendBridge(getWindows) {
     ));
   };
 
-  async function withHiddenWindowForScreenshot(task) {
-    if (process.platform !== 'linux') {
-      return task();
-    }
-    const windows = resolveWindows().filter((win) => win && !win.isDestroyed());
-    const chatWindow = resolveChatWindow();
-    const responseWindow = resolveResponseWindow();
-    if (windows.length === 0) {
-      return task();
-    }
-
-    const windowStates = windows.map((win) => ({
-      win,
-      wasVisible: win.isVisible(),
-      wasFocused: win.isFocused(),
-      wasMinimized: win.isMinimized(),
-    }));
-    const focusedWindow = windowStates.find((state) => state.wasFocused)?.win || null;
-
-    for (const state of windowStates) {
-      if (state.wasVisible && !state.wasMinimized) {
-        state.win.hide();
-      }
-    }
-    await new Promise((resolve) => setTimeout(resolve, 320));
-
-    try {
-      return await task();
-    } finally {
-      for (const state of windowStates) {
-        if (state.wasVisible && !state.wasMinimized && !state.win.isDestroyed()) {
-          const isOverlayWindow = (
-            (chatWindow && state.win === chatWindow)
-            || (responseWindow && state.win === responseWindow)
-          );
-          if (isOverlayWindow && typeof state.win.showInactive === 'function') {
-            state.win.showInactive();
-          } else {
-            state.win.show();
-            if (
-              chatWindow &&
-              state.win === chatWindow &&
-              !state.wasFocused &&
-              typeof state.win.blur === 'function'
-            ) {
-              state.win.blur();
-            }
-          }
-          if (isOverlayWindow) {
-            try {
-              state.win.setAlwaysOnTop(true, 'floating');
-              if (typeof state.win.moveTop === 'function') {
-                state.win.moveTop();
-              }
-            } catch (error) {
-              console.warn('[LocalBackend] Failed to keep overlay on top:', error?.message || error);
-            }
-          }
-        }
-      }
-      if (focusedWindow && !focusedWindow.isDestroyed()) {
-        focusedWindow.focus();
-      }
-    }
-  }
-
-  // Handle tool execution requests
   ipcMain.handle('execute-tool', async (event, { toolName, args }) => {
     try {
       const timeoutMs = toolName === 'browser' ? 120000 : 30000;
@@ -693,10 +379,14 @@ function initializeLocalBackendBridge(getWindows) {
           args: args,
         }, { timeoutMs });
       const result = toolName === 'screenshot'
-        ? await withHiddenWindowForScreenshot(runTool)
+        ? await withHiddenWindowForScreenshot({
+          task: runTool,
+          resolveWindows,
+          resolveChatWindow,
+          resolveResponseWindow,
+        })
         : await runTool();
       
-      // Convert Python result format to expected format
       if (result.success === false) {
         return { success: false, error: result.error };
       }
@@ -714,34 +404,25 @@ function initializeLocalBackendBridge(getWindows) {
     }
   });
 
-  // Handle system state requests
   ipcMain.handle('get-system-state', async (event, { fields } = {}) => {
     return getSystemStateFromBackend(fields);
   });
 
-  // Handle memory search requests (integrated into local backend)
   ipcMain.handle('search-memory', async (event, payload = {}) => (
     sendMemorySearchRequest(payload)
   ));
 
   registerMappedRpcHandlers(registerRpcHandler, COMPILED_RPC_HANDLER_DEFINITIONS);
 
-  // Only log initialization in development
   if (process.env.NODE_ENV !== 'production') {
     console.log('[LocalBackend] Local backend bridge initialized');
   }
 }
 
-/**
- * Helper function to get system state (for use in ipc.cjs)
- */
 async function getSystemState(fields = null) {
   return getSystemStateFromBackend(fields);
 }
 
-/**
- * Helper function to search memory (for use in ipc.cjs)
- */
 async function searchMemory(
   query,
   user_id,
