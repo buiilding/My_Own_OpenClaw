@@ -25,6 +25,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Backend Functionality Map**](backend/README.md) - Detailed module-level backend runtime and API maps
 - [**Backend Config Runtime Policy**](backend/config/CONFIG_FIELDS_AND_RUNTIME_POLICY.md) - Exact config fields, runtime normalization, and frontend patch boundaries
 - [**Frontend Stream State Machine**](frontend/runtime/STREAM_EVENT_STATE_MACHINE.md) - Event-to-phase transitions and per-turn stream tracking behavior
+- [**Frontend Runtime Paths and Endpoints**](frontend/main/RUNTIME_PATHS_AND_ENDPOINTS.md) - Backend ws/http endpoint derivation, packaged Python path lookup, and frontend config persistence path
 - [**Frontend IPC Channel Reference**](frontend/contracts/IPC_CHANNEL_AND_HANDLER_REFERENCE.md) - Exact send/invoke/on channel ownership and handler map
 - [**System Architecture**](architecture/ARCHITECTURE.md) - High-level system design and components
 - [**Backend Architecture**](architecture/BACKEND_ARCHITECTURE.md) - Backend system design and patterns
