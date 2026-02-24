@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): add phase-101 full-gate snapshot after frontend test mock-wiring tightening wave (frontend audits/tests + backend + sidecar)
 - docs(refactor-plan): add phase-100 full-gate snapshot after chat-ui selector-helper dedupe wave (frontend audits/tests + backend + sidecar)
 - refactor(frontend-tool-runner-chat-wiring-tests): rename the ToolRunner app-config mock handle for explicit test intent and switch `ChatInterfaceWiring` to shared top-level selector helper alias (`mockSelectStoreState`) to remove inline `require` duplication; jscpd improved from clones `122 -> 120` and duplicated lines `2066 -> 2049`
 - refactor(frontend-chat-ui-tests): add shared selector helper `tests/frontend/storeSelectorTestUtils.cjs` and reuse it in `ChatInterfaceWiring.test.jsx` + `ChatBoxOverlayMouseIgnore.test.jsx` for mock store selection wiring
