@@ -13,6 +13,8 @@ Transport deep reference:
 - [Safe WebSocket and Transport Envelope Reference](transport/safe_websocket_and_transport_envelope_reference.md)
 - [Transport Sender Docs Hub](transport/sender/README.md)
 - [SafeWebSocket Queue Lifecycle and Close Serialization Reference](transport/sender/safe_websocket_queue_lifecycle_and_close_serialization_reference.md)
+- [API WebSocket Docs Hub](websocket/README.md)
+- [WebSocket Message Parse, Validation Guard, and Task-Scheduling Reference](websocket/websocket_message_parse_validation_guard_and_task_scheduling_reference.md)
 
 ## Router Surface
 
