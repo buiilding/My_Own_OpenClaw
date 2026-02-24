@@ -477,6 +477,28 @@ async def test_get_completion_response_normalizes_tool_calls(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_get_completion_response_rejects_non_list_tool_calls(monkeypatch):
+    cfg = AppConfig()
+    client = LiteLLMClient(cfg)
+    provider = DummyProvider(response={"content": "", "tool_calls": {"bad": "value"}})
+    monkeypatch.setattr("backend.src.llm.client.get_provider", lambda *_: provider)
+
+    with pytest.raises(LLMAPIError, match="Invalid tool_calls type"):
+        await client.get_completion_response("model", [])
+
+
+@pytest.mark.asyncio
+async def test_get_completion_response_rejects_non_string_finish_reason(monkeypatch):
+    cfg = AppConfig()
+    client = LiteLLMClient(cfg)
+    provider = DummyProvider(response={"content": "", "finish_reason": 123})
+    monkeypatch.setattr("backend.src.llm.client.get_provider", lambda *_: provider)
+
+    with pytest.raises(LLMAPIError, match="Invalid finish_reason type"):
+        await client.get_completion_response("model", [])
+
+
+@pytest.mark.asyncio
 async def test_native_tool_calling_params_and_tool_calls_always_preserved(monkeypatch):
     cfg = AppConfig()
     client = LiteLLMClient(cfg)

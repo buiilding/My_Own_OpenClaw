@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(todo): mark completed UI click-through and thinking-UI tasks in TODO checklist
+- refactor(backend-llm-client): split normalized response parsing into focused `_normalize_tool_calls` and `_normalize_finish_reason` helpers and add regression coverage for invalid tool-calls/finish-reason payload types in `tests/backend/test_llm_client.py`
 - refactor(backend-safe-websocket): extract shared `_enqueue_and_await` helper and reuse it for both non-close sends and queued close serialization to remove duplicate future/await boilerplate
 - refactor(frontend-app-config-provider): extract shared `applyBackendConnectionSnapshot` callback for IPC status + initial client snapshot paths to dedupe transcript/user-id/backend-url sync logic
 - refactor(backend-parser-validation): compute tool whitelist membership once per call (`tool_is_whitelisted`) and reuse it for whitelist error + method-level validation gating to remove repeated set-membership checks
