@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): add phase-136 full-gate snapshot after backend parser-validation duplicate dead-method removal (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)
 - refactor(backend-parser-validation): remove unused duplicated `_normalize_coordinate_method` from `backend/src/llm/parser_validation.py`; jscpd improved from clones `63 -> 62` and duplicated lines `1284 -> 1274`
 - docs(refactor-plan): add phase-135 full-gate snapshot after shared sidecar system-metrics collector extraction (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)
 - refactor(sidecar-system-metrics): extract shared `collect_system_stats` in `frontend/src/main/python/core/system_metrics.py` and reuse it from `core/system_state.py` + `tools/system/stats_tool.py`; add regression coverage in `tests/sidecar/test_system_tools.py` for shared collector delegation; jscpd improved from clones `64 -> 63` and duplicated lines `1308 -> 1284`
