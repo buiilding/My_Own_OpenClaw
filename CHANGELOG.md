@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(backend-artifact-tests): reuse shared route deps-shim helper in `tests/backend/test_artifact_routes.py` to remove duplicate `backend.src.api.deps` module-shim setup/restore logic while keeping artifact route import behavior unchanged
 - docs(refactor-plan): add phase-108 full-gate snapshot after backend route-test deps-shim helper reuse wave (frontend audits/tests + backend + sidecar)
 - refactor(backend-route-tests): reuse shared `backend.src.api.deps` shim install/restore helpers in `tests/backend/test_websocket_route.py` and `tests/backend/test_memory_routes.py` to remove duplicated route-import prelude while preserving suite behavior; jscpd totals unchanged in this slice
 - docs(refactor-plan): add phase-107 full-gate snapshot after websocket-route deps-shim utility extraction wave (frontend audits/tests + backend + sidecar)
