@@ -9,7 +9,7 @@ Includes the last 300 commits on `main`.
 ### Added
 - refactor(frontend-chat-stream): split `useChatStream` tracking/conversation guard logic into `chatStreamTracking.ts` and `chatStreamConversationGate.ts`, remove dead `messageToolMetadata` utility/test, and trim duplicate transcript integration cases now covered by focused helper tests
 - refactor(backend-tool-sender): centralize ToolCall/ToolBundle metadata shaping in `_build_tool_event_metadata` and add bundle metadata parity regression coverage in `tests/backend/test_tool_sender.py`
-- refactor(test-kimi-stream): add shared stream patch/chunk helper scaffolding in `tests/backend/test_kimi_coding_provider.py` and remove duplicated tool-stream test setup blocks
+- refactor(test-kimi-stream): add shared `_run_stream_tool_case` + stream chunk helpers in `tests/backend/test_kimi_coding_provider.py` and remove duplicated tool-stream provider/event setup blocks
 - refactor(frontend-app-provider): remove unnecessary `useEffect` ref-mirror in `AppContextCoordinator` (`AppProvider.jsx`) by assigning refs during render
 - docs(refactor-plan): add phase-152/153 audit + full-gate outcomes; jscpd improved to clones `28`, duplicated lines `535`, duplicated tokens `5247`
 - chore(prompts): add `prompts/update-docs.txt` with reusable docs-update instruction template

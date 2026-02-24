@@ -47,6 +47,22 @@ async def _collect_stream_events_for_tool(
     )
 
 
+async def _run_stream_tool_case(
+    monkeypatch,
+    *,
+    fake_stream_factory,
+    tool_name: str,
+):
+    provider = KimiCodingProvider(api_key="test-key")
+    events = await _collect_stream_events_for_tool(
+        provider,
+        monkeypatch,
+        fake_stream_factory=fake_stream_factory,
+        tool_name=tool_name,
+    )
+    return provider, events
+
+
 def _build_stream_chunk(
     *,
     tool_name: str | None = None,
@@ -113,8 +129,6 @@ async def test_kimi_completion_uses_anthropic_custom_provider(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_kimi_stream_emits_thinking_and_captures_stream_tool_calls(monkeypatch):
-    provider = KimiCodingProvider(api_key="test-key")
-
     async def fake_stream():
         yield _build_stream_chunk(
             reasoning_content="step-1",
@@ -129,8 +143,7 @@ async def test_kimi_stream_emits_thinking_and_captures_stream_tool_calls(monkeyp
             finish_reason="tool_calls",
         )
 
-    events = await _collect_stream_events_for_tool(
-        provider,
+    provider, events = await _run_stream_tool_case(
         monkeypatch,
         fake_stream_factory=fake_stream,
         tool_name="read_file",
@@ -183,8 +196,6 @@ async def test_kimi_stream_sets_stream_options_and_custom_provider(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_kimi_stream_emits_error_event_when_tool_arguments_json_is_invalid(monkeypatch):
-    provider = KimiCodingProvider(api_key="test-key")
-
     async def fake_stream():
         yield _build_stream_chunk(
             tool_name="replace",
@@ -193,8 +204,7 @@ async def test_kimi_stream_emits_error_event_when_tool_arguments_json_is_invalid
             finish_reason="tool_calls",
         )
 
-    events = await _collect_stream_events_for_tool(
-        provider,
+    provider, events = await _run_stream_tool_case(
         monkeypatch,
         fake_stream_factory=fake_stream,
         tool_name="replace",
