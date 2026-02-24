@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-remote-client-tests): add shared `assert_client_initialize_reuses_session_and_close_resets` helper in `tests/sidecar/remote_client_test_utils.py` and reuse it in embedding/semantic client suites to remove duplicated session lifecycle assertions; jscpd improved from clones `94 -> 93` and duplicated lines `1693 -> 1680`
 - refactor(backend-validator-test-utils): extract shared tool-validator test scaffolding into `tests/backend/tool_validator_test_utils.py` and reuse it in `test_parser_validation.py` + `test_dev_tool_selection.py` to remove duplicated `DummyMetrics`/`DummyRegistry` + validator wiring; jscpd improved from clones `95 -> 94` and duplicated lines `1712 -> 1693`
 - docs(refactor-plan): add phase-121 full-gate snapshot after backend local-provider helper dedupe wave (frontend audits/tests + backend + sidecar)
 - refactor(backend-local-provider-tests): extract shared `_patch_provider_get` helper in `tests/backend/test_local_llm_providers.py` to dedupe repeated client-mock wiring across Ollama/LMStudio list-model tests; jscpd improved from clones `99 -> 95` and duplicated lines `1746 -> 1712`
