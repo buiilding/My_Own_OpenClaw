@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-app-config-provider): remove `handlersRef`/`configRef` sync `useEffect` hooks and assign both refs during render so backend-event routing always reads the latest handlers/config without extra effect churn
 - refactor(frontend-wakeword): hoist wakeword cooldown constant to module scope and reuse one formatted confidence string in detection logs to reduce per-render/per-event duplicate work
 - refactor(frontend-settings-hook): drop compatibility-only unused parameters from `useSettingsManagement`, simplify `AppConfigProvider` call-site to pass only `setAvailableModels`, and update hook tests for the trimmed API
 - refactor(frontend-wakeword): remove redundant second cooldown check in `useWakewordDetection` detection handler (the cooldown guard already runs before threshold evaluation), reducing duplicate branch logic while preserving behavior

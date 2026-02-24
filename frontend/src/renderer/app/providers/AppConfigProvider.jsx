@@ -52,6 +52,8 @@ export function AppConfigProvider({ children }) {
   const handlersRef = useRef(settingsHandlers);
   const configRef = useRef(config);
   const saveStatusCallbackRef = useRef(null);
+  handlersRef.current = settingsHandlers;
+  configRef.current = config;
 
   const syncCurrentConfigToBackend = useCallback(() => {
     const currentConfig = configRef.current;
@@ -59,14 +61,6 @@ export function AppConfigProvider({ children }) {
       ApiClient.updateSettings(currentConfig);
     }
   }, []);
-
-  useEffect(() => {
-    handlersRef.current = settingsHandlers;
-  }, [settingsHandlers]);
-
-  useEffect(() => {
-    configRef.current = config;
-  }, [config]);
 
   const registerSaveStatusCallback = useCallback((callback) => {
     saveStatusCallbackRef.current = typeof callback === 'function' ? callback : null;
