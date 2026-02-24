@@ -563,6 +563,25 @@ read_when:
   - `pytest tests/backend/test_exceptions.py tests/backend/test_validation_utils.py tests/backend/test_api_errors.py`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
+## Phase 26
+
+- `jscpd` duplication cleanup (API schema re-export surface):
+  - remove duplicated schema export lists between:
+    - `backend/src/api/schema.py`
+    - `backend/src/api/schemas/__init__.py`
+  - keep `backend/src/api/schema.py` as backward-compatible import path.
+  - centralize export membership in one source of truth (`api.schemas.__all__`).
+  - preserve all existing schema symbols and import contracts used by handlers/tests.
+
+### Phase 26 Execution Slice (Current Loop)
+
+- Backend dedupe:
+  - make `backend/src/api/schema.py` a thin compatibility facade that reuses `api.schemas` export surface.
+  - avoid symbol drift by binding compatibility module `__all__` directly to `api.schemas.__all__`.
+- Verification checks:
+  - `pytest tests/backend/test_api_handlers.py tests/backend/test_websocket_message_handler.py tests/backend/test_outgoing_schema_contract.py tests/backend/test_api_contract_registry.py`
+  - `cd frontend && npm run audit:jscpd` (expect clone reduction)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):
