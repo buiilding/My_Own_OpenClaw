@@ -92,6 +92,38 @@ class ToolPreparer:
         )
         return result
 
+    @staticmethod
+    def _initialize_resolved_call(
+        tool_call: ParsedToolCall,
+        execution_ref: ExecutionRef,
+    ) -> ResolvedToolCall:
+        """Apply execution metadata and build resolved call skeleton."""
+        tool_call.metadata = execution_ref.apply_to_metadata(tool_call.metadata)
+        resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
+        resolved_call.metadata = execution_ref.apply_to_metadata(resolved_call.metadata)
+        attach_coordinate_method_metadata(tool_call, resolved_call)
+        return resolved_call
+
+    async def _resolve_coordinates_for_call(
+        self,
+        tool_call: ParsedToolCall,
+        resolved_call: ResolvedToolCall,
+        session: "AgentSession",
+        context_id: str,
+    ) -> None:
+        """Resolve coordinates for a mouse tool call."""
+        await resolve_tool_with_coordinates(
+            tool_call,
+            resolved_call,
+            session,
+            self.screenshot_manager,
+            self.ocr_coordinator,
+            self.coordinate_resolver,
+            self.vision_service,
+            self.vision_service_provider,
+            context_id,
+        )
+
     async def _prepare_bundle(
         self,
         tool_calls: List[ParsedToolCall],
@@ -109,22 +141,14 @@ class ToolPreparer:
         errors: List[Tuple[ParsedToolCall, str]] = []
 
         for tool_call in tool_calls:
-            tool_call.metadata = execution_ref.apply_to_metadata(tool_call.metadata)
-            resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
-            resolved_call.metadata = execution_ref.apply_to_metadata(resolved_call.metadata)
-            attach_coordinate_method_metadata(tool_call, resolved_call)
+            resolved_call = self._initialize_resolved_call(tool_call, execution_ref)
 
             if self._needs_coordinate_resolution(tool_call):
                 try:
-                    await resolve_tool_with_coordinates(
+                    await self._resolve_coordinates_for_call(
                         tool_call,
                         resolved_call,
                         session,
-                        self.screenshot_manager,
-                        self.ocr_coordinator,
-                        self.coordinate_resolver,
-                        self.vision_service,
-                        self.vision_service_provider,
                         bundle_id,
                     )
                 except Exception as exc:
@@ -161,22 +185,14 @@ class ToolPreparer:
         execution_ref = ExecutionRef.single(request_id)
         tool_preparation_start_time = time.perf_counter()
 
-        tool_call.metadata = execution_ref.apply_to_metadata(tool_call.metadata)
-        resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
-        resolved_call.metadata = execution_ref.apply_to_metadata(resolved_call.metadata)
-        attach_coordinate_method_metadata(tool_call, resolved_call)
+        resolved_call = self._initialize_resolved_call(tool_call, execution_ref)
 
         if self._needs_coordinate_resolution(tool_call):
             try:
-                await resolve_tool_with_coordinates(
+                await self._resolve_coordinates_for_call(
                     tool_call,
                     resolved_call,
                     session,
-                    self.screenshot_manager,
-                    self.ocr_coordinator,
-                    self.coordinate_resolver,
-                    self.vision_service,
-                    self.vision_service_provider,
                     request_id,
                 )
                 tool_preparation_time = time.perf_counter() - tool_preparation_start_time

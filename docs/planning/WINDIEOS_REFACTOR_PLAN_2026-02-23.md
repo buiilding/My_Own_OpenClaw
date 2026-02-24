@@ -1180,3 +1180,22 @@ read_when:
 - Verification:
   - `pytest tests/backend/test_api_handlers.py tests/backend/test_websocket_message_handler.py tests/backend/test_outgoing_schema_contract.py tests/backend/test_api_contract_registry.py` (pass; 61 tests)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
+
+## Phase 27 Outcome (2026-02-24)
+
+- Tool preparation flow dedupe shipped:
+  - added shared resolved-call initialization helper in:
+    - `backend/src/agent/tools/preparation/preparer.py` (`_initialize_resolved_call`)
+  - added shared coordinate-resolution invoke helper in:
+    - `backend/src/agent/tools/preparation/preparer.py` (`_resolve_coordinates_for_call`)
+  - rewired bundle and single-call preparation paths to use shared helpers while preserving:
+    - bundle short-circuit-on-first-error behavior
+    - single-call timing and error-return semantics
+    - request/bundle context id usage.
+- jscpd delta after Phase 27 slice:
+  - clones: `196 -> 195`
+  - duplicated lines: `3030 -> 3014`
+  - duplicated tokens: `26634 -> 26517`
+- Verification:
+  - `pytest tests/backend/test_tool_preparer.py tests/backend/test_coordinate_scaling.py tests/backend/test_coordinate_contract.py tests/backend/test_vision_coordinates.py` (pass; 25 tests)
+  - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
