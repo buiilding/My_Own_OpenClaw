@@ -19,6 +19,7 @@ Includes the last 300 commits on `main`.
 - fix(chatbox-loop-visual): add ambient animated glow around the chat pill while agent loop phases are active (`awaiting-first-chunk`, `streaming`, `tool-call`, `tool-output`)
 - feat(chatbox-tool-preview): ground fake cursor preview with tool-call coordinate metadata (`coordinate_contract.normalized_coordinates` + display size) so tool ghost movement reflects actual target region when available
 - feat(chatbox-tool-preview): add optional `target_rect` support for ghost preview so ring/ripple scale adapts to target region size when rectangle metadata is provided
+- refactor(chatbox-styles): split response-overlay ghost/thinking/typing styles into `frontend/src/renderer/styles/ChatBoxResponseOverlay.css` to keep `ChatBox.css` smaller and easier to maintain
 - fix(chatbox-response): redesign the response pane above the chat pill to a single black panel with brighter text, smooth height animation, auto-stick scrolling, and a top opaque overflow indicator when previous streamed text is above the viewport
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 36 execution slice for OpenRouter completion/stream request-param assembly dedupe in `backend/src/llm/providers/openrouter.py`
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 35 execution slice for scoped exception constructor dedupe in `backend/src/core/infrastructure/exceptions.py` (`LLMError`, `MemoryError`)
