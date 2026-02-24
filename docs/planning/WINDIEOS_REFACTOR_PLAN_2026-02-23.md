@@ -715,6 +715,25 @@ read_when:
   - `pytest tests/backend/test_llm_client.py tests/backend/test_local_llm_providers.py tests/backend/test_llm_stream_processor.py`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
+## Phase 34
+
+- `jscpd` duplication cleanup (LLM optional-field exception constructors):
+  - extract shared optional-field constructor base for LLM error subclasses in:
+    - `backend/src/core/infrastructure/exceptions.py`
+  - reuse for both:
+    - `LLMAPIError`
+    - `LLMRateLimitError`
+  - preserve error-code values, metadata include rules, and public attributes.
+
+### Phase 34 Execution Slice (Current Loop)
+
+- Backend dedupe:
+  - remove duplicated optional-field constructor wiring in LLM exception subclasses.
+  - keep existing constructor signatures and default error messages unchanged.
+- Verification checks:
+  - `pytest tests/backend/test_llm_client.py tests/backend/test_local_llm_providers.py tests/backend/test_parser_validation.py`
+  - `cd frontend && npm run audit:jscpd` (expect clone reduction)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):
