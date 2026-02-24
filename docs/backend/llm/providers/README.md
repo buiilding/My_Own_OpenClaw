@@ -14,6 +14,8 @@ title: "Backend LLM Provider Docs Hub"
 - [Provider-Specific Overrides and Local Runtime Reference](provider_specific_overrides_and_local_runtime_reference.md)
 - [Backend Kimi Provider Docs Hub](kimi/README.md)
 - [Stream Tool-Call Aggregation and Fail-Closed Argument Parsing Reference](kimi/stream_tool_call_aggregation_and_fail_closed_argument_parsing_reference.md)
+- [Backend Local Provider Docs Hub](local/README.md)
+- [Model Listing, Connection Pooling, and Placeholder Key Reference](local/model_listing_connection_pooling_and_placeholder_key_reference.md)
 
 ## Code Scope
 
