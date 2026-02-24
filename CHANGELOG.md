@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(planning): add Phase 44 full-gate revalidation snapshot (lint/knip/jscpd/frontend tests/backend tests/sidecar tests) and refresh `.audit/plan1/jscpd-report` metrics artifact
 - refactor(api-routes): centralize FastAPI router registration through `backend.src.api.routes.API_ROUTERS` and simplify `register_api_routes` to iterate a single canonical router tuple
 - refactor(frontend-voice-audio): remove deprecation-lint noise by replacing direct `ScriptProcessorNode` type usage with a local legacy processor compatibility type in voice hooks + audio cleanup utils
 - perf(frontend-tests): silence `ipc.cjs` bridge console logs in split IPC suites via shared harness helper to reduce test noise and improve `jest --runInBand` runtime stability
