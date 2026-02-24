@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 21 execution slice for shared voice audio-capture ref hook dedupe (`useVoiceMode`, `useWakewordDetection`)
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 20 execution slice for shared chat hook store-selector dedupe (`useChatMessageSender`, `useChatStream`)
 - refactor(frontend-chat-hooks): extract shared `useChatCommonActions` store-selector hook for `addMessage`/`updateMessage`/`setIsSending`/`setThinkingStatus`, reuse it in `useChatMessageSender` and `useChatStream`, and preserve existing send/stream behavior
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 19 execution slice for shared Electron main-process Python executable resolution dedupe (`runtime_paths`, `local_backend_bridge`, `wakeword_bridge`)
