@@ -64,6 +64,9 @@ Added/expanded in this docs pass:
 - `getting-started/DOCS_HUB.md`: central docs entrypoint.
 - `backend/`: backend functionality maps and subsystem docs.
 - `frontend/`: frontend/electron/renderer/sidecar functionality maps.
+- Sub-hubs added for layered navigation:
+- `backend/bootstrap/README.md`, `backend/api/README.md`, `backend/contracts/README.md`, `backend/tools/README.md`
+- `frontend/main/README.md`, `frontend/renderer/README.md`, `frontend/contracts/README.md`, `frontend/sidecar/README.md`
 
 ## WindieOS Section Policy (Proposed)
 
