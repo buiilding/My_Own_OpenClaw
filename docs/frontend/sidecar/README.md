@@ -15,6 +15,7 @@ title: "Frontend Sidecar Docs Hub"
 - [Memory Pipeline and Summarization](MEMORY_PIPELINE_AND_SUMMARIZATION.md)
 - [Browser Automation Stack](BROWSER_AUTOMATION_STACK.md)
 - [Local Backend JSON-RPC Reference](LOCAL_BACKEND_JSONRPC_REFERENCE.md)
+- [Local Backend Process Lifecycle Reference](LOCAL_BACKEND_PROCESS_LIFECYCLE_REFERENCE.md)
 
 ## Code Scope
 

@@ -65,6 +65,7 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 - [Frontend Config Sync + Settings Lifecycle Reference](../frontend/runtime/CONFIG_SYNC_AND_SETTINGS_LIFECYCLE_REFERENCE.md)
 - [Frontend Sidecar Browser Stack](../frontend/sidecar/BROWSER_AUTOMATION_STACK.md)
 - [Frontend Sidecar JSON-RPC Reference](../frontend/sidecar/LOCAL_BACKEND_JSONRPC_REFERENCE.md)
+- [Frontend Sidecar Process Lifecycle Reference](../frontend/sidecar/LOCAL_BACKEND_PROCESS_LIFECYCLE_REFERENCE.md)
 - [API Reference](../reference/API_REFERENCE.md)
 
 ## Development and Operations
