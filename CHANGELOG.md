@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): add phase-68 full-gate snapshot after transcript/wakeword/transcription test dedupe wave (frontend audits/tests + backend + sidecar)
 - refactor(frontend-transcription-tests): dedupe repeated `useTranscription` hook actions in `tests/frontend/TranscriptionHook.test.ts` via shared `updateTranscription` and `changeInput` helpers; jscpd improved from clones `152 -> 150` and duplicated lines `2377 -> 2357`
 - refactor(frontend-transcript-writer-tests): dedupe repeated `store-transcript` payload assertions in `TranscriptWriter.userAssistant|tool` suites via shared `createStoreTranscriptPayload` and `expectStoreTranscriptCall` helpers in `tests/frontend/TranscriptWriter.testUtils.ts`; jscpd improved from clones `157 -> 152` and duplicated lines `2442 -> 2377`
 - refactor(frontend-wakeword-tests): dedupe `tests/frontend/WakewordDetectionHook.test.ts` listener/send-count/media-device/status-ready setup via shared helpers (`getChannelHandler`, `getSendCallCount`, `withMockedMediaDevices`, `renderEnabledHookAndEmitReady`); jscpd improved from clones `159 -> 157` and duplicated lines `2464 -> 2442`
