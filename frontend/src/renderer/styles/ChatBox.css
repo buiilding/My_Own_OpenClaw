@@ -163,6 +163,7 @@ body {
 .chatbox-context-indicator {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   min-width: 0;
   max-width: 148px;
@@ -178,6 +179,35 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.chatbox-context-indicator.is-stale {
+  border-color: rgba(255, 199, 97, 0.42);
+  background: rgba(255, 199, 97, 0.08);
+}
+
+.chatbox-context-indicator.is-offline {
+  border-color: rgba(255, 132, 132, 0.38);
+  background: rgba(255, 132, 132, 0.08);
+}
+
+.chatbox-context-status-dot {
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(126, 232, 169, 0.92);
+  box-shadow: 0 0 8px rgba(126, 232, 169, 0.52);
+}
+
+.chatbox-context-status-dot.is-stale {
+  background: rgba(255, 199, 97, 0.95);
+  box-shadow: 0 0 8px rgba(255, 199, 97, 0.5);
+}
+
+.chatbox-context-status-dot.is-offline {
+  background: rgba(255, 132, 132, 0.95);
+  box-shadow: 0 0 8px rgba(255, 132, 132, 0.42);
 }
 
 .chatbox-context-icon {
