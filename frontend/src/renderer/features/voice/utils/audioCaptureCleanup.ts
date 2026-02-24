@@ -1,6 +1,14 @@
 import type { MutableRefObject } from 'react';
 
-type ScriptNodeRef = MutableRefObject<ScriptProcessorNode | null>;
+export type LegacyAudioProcessEvent = {
+  inputBuffer: AudioBuffer;
+};
+
+export type LegacyAudioProcessorNode = AudioNode & {
+  onaudioprocess: ((event: LegacyAudioProcessEvent) => void) | null;
+};
+
+type ScriptNodeRef = MutableRefObject<LegacyAudioProcessorNode | null>;
 type SourceNodeRef = MutableRefObject<MediaStreamAudioSourceNode | null>;
 type MediaStreamRef = MutableRefObject<MediaStream | null>;
 type AudioContextRef = MutableRefObject<AudioContext | null>;

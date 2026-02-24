@@ -4,6 +4,7 @@ import { float32ToPcm16, normalizeScriptProcessorChunkSize } from '../utils/audi
 import {
   cleanupAudioCaptureNodes,
   closeAudioContextSafely,
+  type LegacyAudioProcessorNode,
   takeAudioContext,
 } from '../utils/audioCaptureCleanup';
 import {
@@ -43,7 +44,7 @@ export function useWakewordDetection(
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const sourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
-  const scriptNodeRef = useRef<ScriptProcessorNode | null>(null);
+  const scriptNodeRef = useRef<LegacyAudioProcessorNode | null>(null);
   const isCapturingRef = useRef(false);
   const captureGenerationRef = useRef(0);
   const lastDetectionRef = useRef(0);
@@ -122,7 +123,7 @@ export function useWakewordDetection(
 
       // Create ScriptProcessorNode for audio processing
       const bufferSize = chunkSize;
-      const scriptNode = audioContext.createScriptProcessor(bufferSize, 1, 1);
+      const scriptNode = audioContext.createScriptProcessor(bufferSize, 1, 1) as unknown as LegacyAudioProcessorNode;
       scriptNodeRef.current = scriptNode;
 
       scriptNode.onaudioprocess = (event) => {
