@@ -39,6 +39,9 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Frontend Stream State Machine**](frontend/runtime/stream_event_state_machine.md) - Event-to-phase transitions and per-turn stream tracking behavior
 - [**Frontend Chat Stream + Tool Runtime**](frontend/renderer/chat_stream_and_tool_execution_reference.md) - Provider ownership, query-send flow, backend event routing, stale-turn cancellation, and tool-result relay semantics
 - [**Frontend Renderer Overlay Hub**](frontend/renderer/overlays/README.md) - Chatbox input-pill and response overlay renderer internals
+- [**Frontend Renderer Provider Hub**](frontend/renderer/providers/README.md) - Root app composition, view routing, and provider coordination internals
+- [**Frontend Entrypoint View Routing + Provider Stack**](frontend/renderer/providers/entrypoint_view_routing_and_provider_stack_reference.md) - `view`-based root selection and per-surface `ChatProvider` capability flags
+- [**Frontend App Provider Coordinator + Save-Status Runtime**](frontend/renderer/providers/app_provider_coordinator_and_save_status_runtime_reference.md) - `AppConfig/AppStatus` bridge callback, shift-tab interaction-mode toggle, and config persistence guardrails
 - [**Frontend Chatbox Overlay Input + Drag Runtime**](frontend/renderer/overlays/chatbox_overlay_input_drag_and_clickthrough_reference.md) - Overlay click-through toggles, drag IPC flow, focus contract, and size-report behavior
 - [**Frontend Response Overlay + Tool Ghost Runtime**](frontend/renderer/overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md) - Response visibility state machine, thinking stream rendering, closeability rules, and coordinate-based tool-ghost preview
 - [**Frontend Renderer Infrastructure Hub**](frontend/renderer/infrastructure/README.md) - Focused runtime docs for tool execution service orchestration and backend-bound payload normalization

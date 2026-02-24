@@ -36,6 +36,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 ### Renderer
 
 - [Renderer Docs Hub](renderer/README.md)
+- [Renderer Provider Docs Hub](renderer/providers/README.md)
 - [Renderer Overlay Docs Hub](renderer/overlays/README.md)
 - [Renderer Infrastructure Docs Hub](renderer/infrastructure/README.md)
 - [Renderer Runtime](renderer/renderer_runtime.md)
@@ -44,6 +45,8 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Chat Stream and Tool Execution Reference](renderer/chat_stream_and_tool_execution_reference.md)
 - [Transcript Session and Rehydrate Reference](renderer/transcript_session_and_rehydrate_reference.md)
 - [Voice Capture and Wakeword Controller Reference](renderer/voice_capture_and_wakeword_controller_reference.md)
+- [Entrypoint View Routing and Provider Stack Reference](renderer/providers/entrypoint_view_routing_and_provider_stack_reference.md)
+- [App Provider Coordinator and Save-Status Runtime Reference](renderer/providers/app_provider_coordinator_and_save_status_runtime_reference.md)
 - [Chatbox Overlay Input, Drag, and Click-Through Reference](renderer/overlays/chatbox_overlay_input_drag_and_clickthrough_reference.md)
 - [Response Overlay Phase and Tool-Ghost Runtime Reference](renderer/overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md)
 - [Tool Execution Service and Hook Runtime Reference](renderer/infrastructure/tool_execution_service_and_hook_runtime_reference.md)

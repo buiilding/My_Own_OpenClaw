@@ -11,6 +11,7 @@ title: "Frontend Renderer Docs Hub"
 ## Deep Pages
 
 - [Renderer Runtime](renderer_runtime.md)
+- [Renderer Provider Docs Hub](providers/README.md)
 - [Renderer Overlay Docs Hub](overlays/README.md)
 - [Renderer Infrastructure Docs Hub](infrastructure/README.md)
 - [Feature Module Matrix](feature_module_matrix.md)
@@ -18,6 +19,8 @@ title: "Frontend Renderer Docs Hub"
 - [Chat Stream and Tool Execution Reference](chat_stream_and_tool_execution_reference.md)
 - [Transcript Session and Rehydrate Reference](transcript_session_and_rehydrate_reference.md)
 - [Voice Capture and Wakeword Controller Reference](voice_capture_and_wakeword_controller_reference.md)
+- [Entrypoint View Routing and Provider Stack Reference](providers/entrypoint_view_routing_and_provider_stack_reference.md)
+- [App Provider Coordinator and Save-Status Runtime Reference](providers/app_provider_coordinator_and_save_status_runtime_reference.md)
 - [Chatbox Overlay Input, Drag, and Click-Through Reference](overlays/chatbox_overlay_input_drag_and_clickthrough_reference.md)
 - [Response Overlay Phase and Tool-Ghost Runtime Reference](overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md)
 - [Tool Execution Service and Hook Runtime Reference](infrastructure/tool_execution_service_and_hook_runtime_reference.md)
