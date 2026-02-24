@@ -80,6 +80,14 @@ export function useWakewordDetection(
     IpcBridge.send(SEND_CHANNELS.WAKEWORD_AUDIO_CHUNK, buffer);
   }, []);
 
+  const requestWakewordEnable = useCallback(() => {
+    IpcBridge.send(SEND_CHANNELS.WAKEWORD_ENABLE);
+  }, []);
+
+  const requestWakewordDisable = useCallback(() => {
+    IpcBridge.send(SEND_CHANNELS.WAKEWORD_DISABLE);
+  }, []);
+
   const logUnexpectedAudioContextCloseError = useCallback((err: unknown) => {
     console.warn('[Wakeword] Failed to close AudioContext:', err);
   }, []);
@@ -223,7 +231,7 @@ export function useWakewordDetection(
         console.log(`[Wakeword] *** DETECTED *** ${data.model} (confidence: ${confidenceText})`);
         
         // Immediately disable wakeword processing to prevent buffered chunks from triggering again
-        IpcBridge.send(SEND_CHANNELS.WAKEWORD_DISABLE);
+        requestWakewordDisable();
         
         if (onWakewordDetectedRef.current) {
           onWakewordDetectedRef.current({
@@ -256,13 +264,13 @@ export function useWakewordDetection(
     });
 
     // Enable wakeword detection in main process (this will trigger status response)
-    IpcBridge.send(SEND_CHANNELS.WAKEWORD_ENABLE);
+    requestWakewordEnable();
 
     return () => {
       unsubscribe?.();
       statusUnsubscribe?.();
     };
-  }, [threshold]);
+  }, [requestWakewordDisable, requestWakewordEnable, threshold]);
 
   // Start/stop audio capture based on enabled state
   useEffect(() => {
@@ -273,7 +281,7 @@ export function useWakewordDetection(
         // Reset cooldown when re-enabling to prevent old buffered chunks from triggering
         lastDetectionRef.current = Date.now();
         // Send enable signal to main process to clear buffers
-        IpcBridge.send(SEND_CHANNELS.WAKEWORD_ENABLE);
+        requestWakewordEnable();
         void startAudioCapture();
       }
     } else {
@@ -284,7 +292,7 @@ export function useWakewordDetection(
           // Reset cooldown when disabled to prevent immediate re-triggering when re-enabled
           lastDetectionRef.current = Date.now();
           // Send disable signal to main process to clear buffers
-          IpcBridge.send(SEND_CHANNELS.WAKEWORD_DISABLE);
+          requestWakewordDisable();
         } else if (!isReady) {
           console.log('[Wakeword] Service not ready, stopping audio capture');
         }
@@ -295,7 +303,7 @@ export function useWakewordDetection(
     return () => {
       void stopAudioCapture();
     };
-  }, [enabled, isReady, startAudioCapture, stopAudioCapture]);
+  }, [enabled, isReady, requestWakewordDisable, requestWakewordEnable, startAudioCapture, stopAudioCapture]);
 
   return {
     isReady,

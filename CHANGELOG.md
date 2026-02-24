@@ -8,6 +8,7 @@ Includes the last 300 commits on `main`.
 
 ### Added
 - docs(todo): mark completed UI click-through and thinking-UI tasks in TODO checklist
+- refactor(frontend-wakeword): extract `requestWakewordEnable`/`requestWakewordDisable` callbacks in `useWakewordDetection` and reuse them across mount, detection, enable, and disable flows to remove repeated IPC send boilerplate
 - refactor(frontend-voice-mode): extract shared `shutdownVoiceMode` callback in `useVoiceMode` and reuse it for disable + unmount cleanup paths to remove repeated stop/disconnect calls
 - refactor(backend-parser-validation): extract `_format_tool_whitelist_preview` helper so whitelist error message rendering lives in one path while preserving existing truncation behavior
 - refactor(backend-safe-websocket): replace repeated queue message-type string literals with module constants (`_WS_MSG_JSON`, `_WS_MSG_TEXT`, `_WS_MSG_CLOSE`) to reduce typo risk and keep sender-loop/send-call paths aligned
