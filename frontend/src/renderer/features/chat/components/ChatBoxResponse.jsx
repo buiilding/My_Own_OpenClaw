@@ -153,11 +153,24 @@ function ChatBoxResponse() {
     }
     const xOffset = Math.round((toolGhostPreview.xRatio - 0.5) * 52);
     const yOffset = Math.round((toolGhostPreview.yRatio - 0.5) * 34);
-    return {
+    const style = {
       '--ghost-offset-x': `${xOffset}px`,
       '--ghost-offset-y': `${yOffset}px`,
       '--ghost-target-scale': `${toolGhostPreview.targetScale}`,
     };
+    if (
+      toolGhostPreview.hasRect
+      && Number.isFinite(toolGhostPreview.rectLeftRatio)
+      && Number.isFinite(toolGhostPreview.rectTopRatio)
+      && Number.isFinite(toolGhostPreview.rectWidthRatio)
+      && Number.isFinite(toolGhostPreview.rectHeightRatio)
+    ) {
+      style['--ghost-rect-left'] = `${toolGhostPreview.rectLeftRatio * 100}%`;
+      style['--ghost-rect-top'] = `${toolGhostPreview.rectTopRatio * 100}%`;
+      style['--ghost-rect-width'] = `${toolGhostPreview.rectWidthRatio * 100}%`;
+      style['--ghost-rect-height'] = `${toolGhostPreview.rectHeightRatio * 100}%`;
+    }
+    return style;
   }, [toolGhostPreview]);
   const responseMarkdownHtml = useMemo(() => {
     if (!activeResponse || activeResponse.type === 'tool-call' || activeResponse.type === 'error') {
@@ -464,10 +477,13 @@ function ChatBoxResponse() {
         {showToolGhost ? (
           <div className="chatbox-tool-ghost" aria-label="Assistant tool action preview">
             <div
-              className={`chatbox-tool-ghost-track${toolGhostPreview.hasTarget ? ' is-targeted' : ''}`}
+              className={`chatbox-tool-ghost-track${toolGhostPreview.hasTarget ? ' is-targeted' : ''}${toolGhostPreview.hasRect ? ' has-rect' : ''}`}
               style={toolGhostTrackStyle || undefined}
             >
               <div className="chatbox-tool-ghost-cursor-wrap" aria-hidden="true">
+                {toolGhostPreview.hasRect ? (
+                  <div className="chatbox-tool-ghost-target-rect" />
+                ) : null}
                 <div className="chatbox-tool-ghost-ring" />
                 <div className="chatbox-tool-ghost-ripple" />
                 <div className="chatbox-tool-ghost-cursor" />

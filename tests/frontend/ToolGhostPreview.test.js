@@ -82,5 +82,9 @@ describe('toolGhostPreview', () => {
     expect(preview.hasTarget).toBe(true);
     expect(preview.hasRect).toBe(true);
     expect(preview.targetScale).toBeGreaterThan(1);
+    expect(preview.rectLeftRatio).toBeCloseTo(100 / 1920);
+    expect(preview.rectTopRatio).toBeCloseTo(200 / 1080);
+    expect(preview.rectWidthRatio).toBeCloseTo(500 / 1920);
+    expect(preview.rectHeightRatio).toBeCloseTo(350 / 1080);
   });
 });

@@ -156,9 +156,20 @@ function resolveToolTargetPoint(entry) {
   }
 
   let targetScale = 1;
+  let rectRatios = null;
   if (rect) {
     const areaRatio = Math.sqrt((rect.width * rect.height) / (size.width * size.height));
     targetScale = clamp((areaRatio * 6.5) || 1, 0.85, 2.2);
+    const leftRatio = clamp(rect.x / size.width, 0, 1);
+    const topRatio = clamp(rect.y / size.height, 0, 1);
+    const rightRatio = clamp((rect.x + rect.width) / size.width, 0, 1);
+    const bottomRatio = clamp((rect.y + rect.height) / size.height, 0, 1);
+    rectRatios = {
+      leftRatio,
+      topRatio,
+      widthRatio: Math.max(0, rightRatio - leftRatio),
+      heightRatio: Math.max(0, bottomRatio - topRatio),
+    };
   }
 
   return {
@@ -166,6 +177,7 @@ function resolveToolTargetPoint(entry) {
     yRatio: clamp(y / size.height, 0, 1),
     targetScale,
     hasRect: Boolean(rect),
+    rectRatios,
   };
 }
 
@@ -211,5 +223,9 @@ export function buildToolGhostPreviewFromMessageText(messageText) {
     xRatio: selected.targetPoint.xRatio,
     yRatio: selected.targetPoint.yRatio,
     targetScale: selected.targetPoint.targetScale,
+    rectLeftRatio: selected.targetPoint.rectRatios?.leftRatio,
+    rectTopRatio: selected.targetPoint.rectRatios?.topRatio,
+    rectWidthRatio: selected.targetPoint.rectRatios?.widthRatio,
+    rectHeightRatio: selected.targetPoint.rectRatios?.heightRatio,
   };
 }

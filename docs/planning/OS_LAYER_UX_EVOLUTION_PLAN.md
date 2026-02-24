@@ -43,12 +43,14 @@ Completed in code:
 6. Ambient context indicator (initial):
    - Chat pill now shows a low-frequency-polled active-app badge from `get-system-state.active_window`.
    - Badge now includes app/category icon mapping with improved fidelity (Edge/Firefox/Safari/VS Code/Cursor/Windsurf + category fallbacks) and improved active-window title parsing.
+   - Badge now includes freshness semantics (`fresh`, `stale`, `offline`) with status-dot color states and status-aware aria labels.
+7. Ghost preview rectangle grounding:
+   - Tool-call ghost preview now renders rectangle highlights when `target_rect` metadata is present, while retaining point-only behavior when rectangle data is absent.
 
 Still in progress:
 
-1. Ghost preview rectangle-level grounding (`target_rect` box rendering) is not yet wired.
-2. Mission dock / trust dial / approval threshold surfaces are not started.
-3. Richer ambient context semantics (multi-window confidence, explicit app/window ids, and context freshness status) are not started.
+1. Mission dock / trust dial / approval threshold surfaces are not started.
+2. Richer ambient context semantics (multi-window confidence, explicit app/window ids, and active-window fallback from message metadata when polling is unavailable) are not started.
 
 ## Codebase Reality (Current Baseline)
 

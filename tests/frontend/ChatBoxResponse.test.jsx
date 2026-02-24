@@ -123,6 +123,44 @@ describe('ChatBoxResponse', () => {
     expect(ghostTrack.style.getPropertyValue('--ghost-offset-y')).not.toBe('0px');
   });
 
+  test('renders a target rectangle when target_rect metadata is present', async () => {
+    setChatState([
+      { id: 'user-1', text: 'click panel', sender: 'user' },
+      {
+        id: 'tool-1',
+        text: JSON.stringify({
+          name: 'mouse_control',
+          args: { explanation: 'Clicking panel' },
+          metadata: {
+            target_rect: { x: 100, y: 200, width: 500, height: 350 },
+            coordinate_contract: {
+              target_display_size: [1920, 1080],
+            },
+          },
+        }),
+        sender: 'assistant',
+        type: 'tool-call',
+      },
+    ]);
+
+    const { container } = render(<ChatBoxResponse />);
+    const onPhase = mockListeners.get('response-overlay-phase');
+    act(() => {
+      onPhase({ phase: 'tool-call' });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Assistant tool action preview')).toBeInTheDocument();
+    });
+
+    const ghostTrack = container.querySelector('.chatbox-tool-ghost-track');
+    expect(ghostTrack).toBeTruthy();
+    expect(ghostTrack.classList.contains('has-rect')).toBe(true);
+    expect(ghostTrack.style.getPropertyValue('--ghost-rect-left')).toBeTruthy();
+    expect(ghostTrack.style.getPropertyValue('--ghost-rect-width')).toBeTruthy();
+    expect(container.querySelector('.chatbox-tool-ghost-target-rect')).toBeTruthy();
+  });
+
   test('shows awaiting indicator when no assistant response exists yet', async () => {
     setChatState([
       { id: 'user-1', text: 'run command', sender: 'user' },
