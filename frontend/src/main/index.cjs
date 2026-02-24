@@ -136,6 +136,49 @@ function loadRendererView(targetWindow, view) {
   targetWindow.loadURL(devUrl);
 }
 
+function createOverlayBrowserWindow({ width, height, show }) {
+  const windowOptions = {
+    width,
+    height,
+    frame: false,
+    transparent: true,
+    backgroundColor: '#00000000',
+    resizable: false,
+    minimizable: false,
+    maximizable: false,
+    fullscreenable: false,
+    skipTaskbar: true,
+    alwaysOnTop: true,
+    // Use CSS shadow for overlay windows; WM shadows are often rectangular on Linux.
+    hasShadow: false,
+    // Hint to Linux compositors that this is a small utility window.
+    type: 'toolbar',
+    webPreferences: {
+      preload: path.join(__dirname, '../preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  };
+  if (typeof show === 'boolean') {
+    windowOptions.show = show;
+  }
+  return new BrowserWindow(windowOptions);
+}
+
+function enableContentProtectionSafely(targetWindow, windowLabel) {
+  if (process.platform !== 'win32' && process.platform !== 'darwin') {
+    return;
+  }
+  try {
+    targetWindow.setContentProtection(true);
+  } catch (error) {
+    console.warn(
+      `[Main] Failed to enable ${windowLabel} content protection:`,
+      error?.message || error
+    );
+  }
+}
+
 function isResponseOverlayStreamingPhase() {
   return (
     responseOverlayPhase === RESPONSE_OVERLAY_PHASE.AWAITING_FIRST_CHUNK
@@ -464,13 +507,7 @@ function createWindow() {
     // skipTaskbar: true,
   });
 
-  if (process.platform === 'win32' || process.platform === 'darwin') {
-    try {
-      mainWindow.setContentProtection(true);
-    } catch (error) {
-      console.warn('[Main] Failed to enable content protection:', error?.message || error);
-    }
-  }
+  enableContentProtectionSafely(mainWindow, 'main window');
 
   loadRendererView(mainWindow);
   // mainWindow.webContents.openDevTools();
@@ -508,36 +545,8 @@ function createWindow() {
 }
 
 function createChatWindow() {
-  chatWindow = new BrowserWindow({
-    width: 520,
-    height: 96,
-    frame: false,
-    transparent: true,
-    backgroundColor: '#00000000',
-    resizable: false,
-    minimizable: false,
-    maximizable: false,
-    fullscreenable: false,
-    skipTaskbar: true,
-    alwaysOnTop: true,
-    // Use CSS shadow for the pill; WM window shadows are often rectangular on Linux.
-    hasShadow: false,
-    // Hint to Linux compositors that this is a small utility window (often reduces WM shadows).
-    type: 'toolbar',
-    webPreferences: {
-      preload: path.join(__dirname, '../preload.js'),
-      contextIsolation: true,
-      nodeIntegration: false,
-    },
-  });
-
-  if (process.platform === 'win32' || process.platform === 'darwin') {
-    try {
-      chatWindow.setContentProtection(true);
-    } catch (error) {
-      console.warn('[Main] Failed to enable chat box content protection:', error?.message || error);
-    }
-  }
+  chatWindow = createOverlayBrowserWindow({ width: 520, height: 96 });
+  enableContentProtectionSafely(chatWindow, 'chat box');
 
   chatWindow.setAlwaysOnTop(true, 'floating');
   chatWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
@@ -562,35 +571,8 @@ function createChatWindow() {
 }
 
 function createResponseWindow() {
-  responseWindow = new BrowserWindow({
-    width: 520,
-    height: 1,
-    frame: false,
-    transparent: true,
-    backgroundColor: '#00000000',
-    resizable: false,
-    minimizable: false,
-    maximizable: false,
-    fullscreenable: false,
-    skipTaskbar: true,
-    alwaysOnTop: true,
-    hasShadow: false,
-    type: 'toolbar',
-    show: false,
-    webPreferences: {
-      preload: path.join(__dirname, '../preload.js'),
-      contextIsolation: true,
-      nodeIntegration: false,
-    },
-  });
-
-  if (process.platform === 'win32' || process.platform === 'darwin') {
-    try {
-      responseWindow.setContentProtection(true);
-    } catch (error) {
-      console.warn('[Main] Failed to enable response overlay content protection:', error?.message || error);
-    }
-  }
+  responseWindow = createOverlayBrowserWindow({ width: 520, height: 1, show: false });
+  enableContentProtectionSafely(responseWindow, 'response overlay');
 
   responseWindow.setAlwaysOnTop(true, 'floating');
   responseWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
@@ -619,35 +601,12 @@ function createResponseWindow() {
 }
 
 function createContextLabelWindow() {
-  contextLabelWindow = new BrowserWindow({
+  contextLabelWindow = createOverlayBrowserWindow({
     width: CONTEXT_LABEL_WIDTH,
     height: CONTEXT_LABEL_HEIGHT,
-    frame: false,
-    transparent: true,
-    backgroundColor: '#00000000',
-    resizable: false,
-    minimizable: false,
-    maximizable: false,
-    fullscreenable: false,
-    skipTaskbar: true,
-    alwaysOnTop: true,
-    hasShadow: false,
-    type: 'toolbar',
     show: false,
-    webPreferences: {
-      preload: path.join(__dirname, '../preload.js'),
-      contextIsolation: true,
-      nodeIntegration: false,
-    },
   });
-
-  if (process.platform === 'win32' || process.platform === 'darwin') {
-    try {
-      contextLabelWindow.setContentProtection(true);
-    } catch (error) {
-      console.warn('[Main] Failed to enable context label content protection:', error?.message || error);
-    }
-  }
+  enableContentProtectionSafely(contextLabelWindow, 'context label');
 
   contextLabelWindow.setAlwaysOnTop(true, 'floating');
   contextLabelWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
