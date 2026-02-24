@@ -42,14 +42,18 @@ class FakeResultStorage:
         return True
 
 
-@pytest.mark.asyncio
-async def test_route_individual_result_processes_screenshot_and_stores():
-    router = ToolResultRouter(
+def _make_router() -> ToolResultRouter:
+    return ToolResultRouter(
         receiver=None,
         screenshot_processor=FakeScreenshotProcessor(),
         result_storage=FakeResultStorage(),
         session=DummySession(),
     )
+
+
+@pytest.mark.asyncio
+async def test_route_individual_result_processes_screenshot_and_stores():
+    router = _make_router()
     result = ToolResult(success=True, data={"screenshot": "shot"})
 
     await router.route_individual_result("req-1", result)
@@ -61,12 +65,7 @@ async def test_route_individual_result_processes_screenshot_and_stores():
 
 @pytest.mark.asyncio
 async def test_route_individual_result_without_screenshot():
-    router = ToolResultRouter(
-        receiver=None,
-        screenshot_processor=FakeScreenshotProcessor(),
-        result_storage=FakeResultStorage(),
-        session=DummySession(),
-    )
+    router = _make_router()
     result = ToolResult(success=True, data={"output": "ok"})
 
     await router.route_individual_result("req-1", result)
@@ -78,12 +77,7 @@ async def test_route_individual_result_without_screenshot():
 
 @pytest.mark.asyncio
 async def test_route_individual_result_updates_session_system_state():
-    router = ToolResultRouter(
-        receiver=None,
-        screenshot_processor=FakeScreenshotProcessor(),
-        result_storage=FakeResultStorage(),
-        session=DummySession(),
-    )
+    router = _make_router()
     result = ToolResult(
         success=True,
         data={"output": "ok", "system_state": {"screen_resolution": "1920x1080"}},
@@ -96,12 +90,7 @@ async def test_route_individual_result_updates_session_system_state():
 
 @pytest.mark.asyncio
 async def test_route_individual_result_prefers_internal_system_state():
-    router = ToolResultRouter(
-        receiver=None,
-        screenshot_processor=FakeScreenshotProcessor(),
-        result_storage=FakeResultStorage(),
-        session=DummySession(),
-    )
+    router = _make_router()
     result = ToolResult(
         success=True,
         data={
@@ -118,12 +107,7 @@ async def test_route_individual_result_prefers_internal_system_state():
 
 @pytest.mark.asyncio
 async def test_route_individual_result_resolves_screenshot_ref(monkeypatch):
-    router = ToolResultRouter(
-        receiver=None,
-        screenshot_processor=FakeScreenshotProcessor(),
-        result_storage=FakeResultStorage(),
-        session=DummySession(),
-    )
+    router = _make_router()
     monkeypatch.setattr(router, "_looks_like_artifact_id", lambda value: value == "shot.png")
     monkeypatch.setattr(router, "_resolve_screenshot_ref", lambda _value: "decoded-shot")
     result = ToolResult(success=True, data={"screenshot_ref": "shot.png"})
@@ -136,12 +120,7 @@ async def test_route_individual_result_resolves_screenshot_ref(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_route_bundle_result_processes_screenshot_and_resolves():
-    router = ToolResultRouter(
-        receiver=None,
-        screenshot_processor=FakeScreenshotProcessor(),
-        result_storage=FakeResultStorage(),
-        session=DummySession(),
-    )
+    router = _make_router()
     result = ToolResult(success=True, data={"screenshot": "shot"})
 
     await router.route_bundle_result("bundle-1", result)
@@ -153,12 +132,7 @@ async def test_route_bundle_result_processes_screenshot_and_resolves():
 
 @pytest.mark.asyncio
 async def test_route_bundle_result_resolves_screenshot_ref(monkeypatch):
-    router = ToolResultRouter(
-        receiver=None,
-        screenshot_processor=FakeScreenshotProcessor(),
-        result_storage=FakeResultStorage(),
-        session=DummySession(),
-    )
+    router = _make_router()
     monkeypatch.setattr(router, "_looks_like_artifact_id", lambda value: value == "bundle.jpg")
     monkeypatch.setattr(router, "_resolve_screenshot_ref", lambda _value: "decoded-bundle-shot")
     result = ToolResult(success=True, data={"screenshot_ref": "bundle.jpg"})
@@ -171,12 +145,7 @@ async def test_route_bundle_result_resolves_screenshot_ref(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_route_result_shared_pipeline_for_bundle_updates_state_and_storage():
-    router = ToolResultRouter(
-        receiver=None,
-        screenshot_processor=FakeScreenshotProcessor(),
-        result_storage=FakeResultStorage(),
-        session=DummySession(),
-    )
+    router = _make_router()
     result = ToolResult(success=True, data={"system_state": {"active_window": "Browser"}})
 
     await router.route_result("bundle-2", result, route_mode="bundle")
