@@ -114,6 +114,8 @@ This prevents partial frontend dispatch for atomic bundles.
 ## Related Pages
 
 - [Backend Tools Execution Docs Hub](README.md)
+- [Backend Tool Sender Docs Hub](sender/README.md)
+- [Request-ID Extraction and Failed-Bundle Storage Reference](sender/request_id_extraction_and_failed_bundle_result_storage_reference.md)
 - [Tool Result Orchestrator Bundle Detection and Wait Path Reference](tool_result_orchestrator_bundle_detection_and_wait_path_reference.md)
 - [Tool Preparation and Coordinate Resolution Reference](../tool_preparation_and_coordinate_resolution_reference.md)
 - [Tool Result Ingress and Storage Reference](../tool_result_ingress_and_storage_reference.md)
