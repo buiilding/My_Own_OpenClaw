@@ -1,5 +1,5 @@
 ---
-summary: "Python sidecar tool catalog and execution model, including schema validation, async dispatch, and result normalization."
+summary: "Python sidecar tool catalog and execution model, including registry dispatch, schema-definition boundaries, and result normalization."
 read_when:
   - When adding/changing sidecar tool implementations.
   - When debugging sidecar tool output shape or backend compatibility.
@@ -23,6 +23,10 @@ Core modules:
 5. Output normalized to `ToolResult` shape.
 6. Main process maps result back to renderer/backend payload flow.
 
+Detailed registry behavior:
+
+- [Tool Registry Exposed Schema and Result Normalization Reference](tools/registry/tool_registry_exposed_schema_and_result_normalization_reference.md)
+
 ## Tool Families
 
 ### Computer tools
@@ -31,6 +35,10 @@ Core modules:
 - `keyboard_control`
 - `screenshot`
 - `scroll_control`
+
+Deep runtime reference:
+
+- [Mouse, Keyboard, Scroll, and Screenshot Runtime Reference](tools/computer/mouse_keyboard_scroll_and_screenshot_runtime_reference.md)
 
 ### Filesystem tools
 
@@ -53,23 +61,31 @@ Deep runtime reference:
 Deep runtime reference:
 
 - [Shell and Process Session Runtime Reference](tools/shell_and_process_session_runtime_reference.md)
+- [Wait, Window, and Stats Runtime Reference](tools/system/wait_window_stats_runtime_reference.md)
 
 ### Browser tools
 
 - `browser`
 
-## Schema Validation
+## Schema Definitions and Validation Boundary
 
 `tools/schemas.py` defines Pydantic arg models for tool parameters.
 
-Validation examples:
+Schema classes include validation rules such as:
 
 - coordinate requirements for mouse actions
 - action-specific required fields for keyboard and scroll
 - shell command timeout/output limits
 - process tool action/session argument rules
 
-This is the first line of safety before running sidecar actions.
+Current runtime boundary:
+
+- `ToolRegistry.execute_tool` does not instantiate these schema models before invoking tools.
+- Effective validation today is split between callers and tool implementations themselves.
+
+Implication:
+
+- schema-only changes do not enforce runtime behavior unless registry/tool execution path is updated too.
 
 ## Backend Compatibility Constraint
 
