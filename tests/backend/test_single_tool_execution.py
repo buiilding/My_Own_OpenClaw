@@ -39,6 +39,17 @@ def _assert_pending_result_consumed(session: DummySession, request_id: str) -> N
     assert storage.get_result_future(request_id) is None
 
 
+def _store_pending_result(
+    session: DummySession,
+    request_id: str,
+    *,
+    payload: dict | None = None,
+) -> ToolResult:
+    result = ToolResult(success=True, data=payload or {"ok": True})
+    session.get_result_storage().store_pending_result(request_id, result)
+    return result
+
+
 @pytest.mark.asyncio
 async def test_execute_single_tool_missing_request_id_returns_placeholder():
     session = DummySession()
@@ -69,8 +80,7 @@ async def test_execute_single_tool_stale_screen_fails_fast():
 async def test_execute_single_tool_uses_pending_result():
     session = DummySession()
     tool_call = _parsed_tool_call("type", request_id="req-1")
-    pending_result = ToolResult(success=True, data={"ok": True})
-    session.get_result_storage().store_pending_result("req-1", pending_result)
+    pending_result = _store_pending_result(session, "req-1")
 
     result_obj = await execute_single_tool(tool_call, session)
 
@@ -95,8 +105,7 @@ async def test_execute_single_tool_resolved_call_without_to_parsed_call():
     )
 
     tool_call = _parsed_tool_call("click", {"x": 1, "y": 2}, request_id="req-1")
-    pending_result = ToolResult(success=True, data={"ok": True})
-    session.get_result_storage().store_pending_result("req-1", pending_result)
+    pending_result = _store_pending_result(session, "req-1")
 
     result_obj = await execute_single_tool(tool_call, session)
 
