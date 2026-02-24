@@ -57,6 +57,14 @@ Current accepted typed event types:
 
 Events outside this set are ignored by typed consumers.
 
+Notable control ACK events outside typed union:
+
+- `models-listed`
+- `settings-updated`
+- `settings-loaded`
+
+These are handled by provider-level non-typed listeners.
+
 ## Multi-Consumer Listener Contract
 
 `from-backend` has multiple listeners with different filters:
@@ -144,6 +152,7 @@ If audio drops but text stream works:
 ## Related Pages
 
 - [Frontend Contracts Events Docs Hub](README.md)
+- [Settings and Model ACK Event Routing Reference](settings_and_model_ack_event_routing_reference.md)
 - [Backend Event Consumer Matrix Reference](../backend_event_consumer_matrix_reference.md)
 - [Schema Generation and Event Guard Reference](../schema_generation_and_event_guard_reference.md)
 - [IPC Channel and Handler Reference](../ipc_channel_and_handler_reference.md)

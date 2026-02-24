@@ -128,6 +128,7 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 - [Frontend Backend Event Consumer Matrix](../frontend/contracts/backend_event_consumer_matrix_reference.md)
 - [Frontend From-Backend Ingress + Audio Side-Channel Reference](../frontend/contracts/events/from_backend_event_ingress_typed_guard_and_audio_side_channel_reference.md)
 - [Frontend Local User Message + Query Send-Failure Synthesis Reference](../frontend/contracts/events/local_user_message_and_query_send_failure_synthesis_reference.md)
+- [Frontend Settings + Models ACK Event Routing Reference](../frontend/contracts/events/settings_and_model_ack_event_routing_reference.md)
 - [Frontend Overlay + Wakeword Control Channel Reference](../frontend/contracts/overlay_and_wakeword_control_channel_reference.md)
 - [Frontend Dashboard Memory Management + Resume Reference](../frontend/renderer/dashboard_memory_management_and_resume_reference.md)
 - [Frontend Chat Stream + Tool Execution Reference](../frontend/renderer/chat_stream_and_tool_execution_reference.md)

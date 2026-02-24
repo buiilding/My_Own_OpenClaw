@@ -11,6 +11,7 @@ title: "Frontend Contracts Docs Hub"
 ## Deep Pages
 
 - [Events Contracts Docs Hub](events/README.md)
+- [Settings and Model ACK Event Routing Reference](events/settings_and_model_ack_event_routing_reference.md)
 - [IPC Contracts Docs Hub](ipc/README.md)
 - [IPC Channels and Event Contracts](ipc_channels_and_event_contracts.md)
 - [IPC Channel and Handler Reference](ipc_channel_and_handler_reference.md)
