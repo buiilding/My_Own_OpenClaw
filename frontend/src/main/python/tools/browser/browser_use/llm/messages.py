@@ -26,6 +26,15 @@ def _format_image_url(url: str, max_length: int = 50) -> str:
 		return _truncate(url, max_length)
 
 
+def _extract_text_content(content: str | list[BaseModel]) -> str:
+	"""Extract newline-joined text parts from either string or content-part list."""
+	if isinstance(content, str):
+		return content
+	if isinstance(content, list):
+		return '\n'.join(part.text for part in content if getattr(part, 'type', None) == 'text')
+	return ''
+
+
 class ContentPartTextParam(BaseModel):
 	text: str
 	type: Literal['text'] = 'text'
@@ -151,12 +160,7 @@ class UserMessage(_MessageBase):
 		"""
 		Automatically parse the text inside content, whether it's a string or a list of content parts.
 		"""
-		if isinstance(self.content, str):
-			return self.content
-		elif isinstance(self.content, list):
-			return '\n'.join([part.text for part in self.content if part.type == 'text'])
-		else:
-			return ''
+		return _extract_text_content(self.content)
 
 	def __str__(self) -> str:
 		return f'UserMessage(content={self.text})'
@@ -179,12 +183,7 @@ class SystemMessage(_MessageBase):
 		"""
 		Automatically parse the text inside content, whether it's a string or a list of content parts.
 		"""
-		if isinstance(self.content, str):
-			return self.content
-		elif isinstance(self.content, list):
-			return '\n'.join([part.text for part in self.content if part.type == 'text'])
-		else:
-			return ''
+		return _extract_text_content(self.content)
 
 	def __str__(self) -> str:
 		return f'SystemMessage(content={self.text})'
