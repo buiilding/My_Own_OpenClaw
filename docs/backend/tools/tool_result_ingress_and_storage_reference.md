@@ -149,3 +149,9 @@ If bundle processing mismatches tool count/order:
 1. verify frontend step_results ordering matches original parsed tool-call order
 2. inspect bundle expansion path in `execute_bundle` for fallback error generation
 3. verify bundle status/error fields are present in `tool-bundle-result`
+
+## Related Pages
+
+- [Backend Tools Waiting Docs Hub](waiting/README.md)
+- [Tool Result Receiver and Router Shared Route-Mode Reference](waiting/tool_result_receiver_and_router_shared_route_mode_reference.md)
+- [Tool Result Storage Future Lifecycle and Cleanup Reference](waiting/tool_result_storage_future_lifecycle_and_cleanup_reference.md)
