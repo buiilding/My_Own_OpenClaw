@@ -53,6 +53,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Sidecar Browser Automation Stack**](frontend/sidecar/BROWSER_AUTOMATION_STACK.md) - Renderer->main->sidecar browser runtime and CDP orchestration details
 - [**Sidecar JSON-RPC Reference**](frontend/sidecar/LOCAL_BACKEND_JSONRPC_REFERENCE.md) - Main-process bridge method map and local backend JSON-RPC contract details
 - [**Sidecar Process Lifecycle**](frontend/sidecar/LOCAL_BACKEND_PROCESS_LIFECYCLE_REFERENCE.md) - Python sidecar spawn env/readiness probe loop, request correlation/timeouts, and restart/failure recovery behavior
+- [**Wakeword Bridge + Audio Framing**](frontend/sidecar/WAKEWORD_BRIDGE_AND_AUDIO_FRAMING_REFERENCE.md) - Wakeword subprocess lifecycle, length-prefixed audio transport, enable/disable buffering policy, and detection event propagation
 - [**Browser Control Runbook**](browser/BROWSER_CONTROL_RUN.md) - Practical setup/testing flow for browser control
 - [**Memory System**](architecture/MEMORY_SYSTEM.md) - Memory management and retrieval
 - [**Python Sidecar**](architecture/PYTHON_SIDECAR.md) - Local tool execution + memory service
