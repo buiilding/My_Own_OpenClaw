@@ -127,3 +127,9 @@ Main process bridge responsibilities:
 - binary chunk framing
 - readiness and detection signaling
 - error propagation to renderer status surfaces
+
+## Related Pages
+
+- [Sidecar Core Docs Hub](core/README.md)
+- [Backend URL Resolution, Remote Memory Clients, and Thread-Pool Runtime Reference](core/backend_url_resolution_remote_memory_clients_and_thread_pool_runtime_reference.md)
+- [JSON-RPC Protocol, Stdout Framing, and Shutdown Signal Runtime Reference](core/json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md)

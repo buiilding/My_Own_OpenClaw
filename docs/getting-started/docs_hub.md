@@ -162,6 +162,7 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 - [Frontend Contracts Events Tool Runtime Docs Hub](../frontend/contracts/events/tool_runtime/README.md)
 - [Frontend Contracts IPC Docs Hub](../frontend/contracts/ipc/README.md)
 - [Frontend Sidecar Docs Hub](../frontend/sidecar/README.md)
+- [Frontend Sidecar Core Docs Hub](../frontend/sidecar/core/README.md)
 - [Frontend Sidecar Browser Docs Hub](../frontend/sidecar/browser/README.md)
 - [Frontend Sidecar Browser Contracts Docs Hub](../frontend/sidecar/browser/contracts/README.md)
 - [Frontend Sidecar Browser Chrome Docs Hub](../frontend/sidecar/browser/chrome/README.md)
@@ -237,6 +238,8 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 - [Frontend Sidecar JSON-RPC Reference](../frontend/sidecar/local_backend_jsonrpc_reference.md)
 - [Frontend Sidecar Process Lifecycle Reference](../frontend/sidecar/local_backend_process_lifecycle_reference.md)
 - [Frontend Wakeword Bridge + Audio Framing Reference](../frontend/sidecar/wakeword_bridge_and_audio_framing_reference.md)
+- [Frontend Sidecar JSON-RPC Protocol, Stdout Framing, and Shutdown Signal Runtime Reference](../frontend/sidecar/core/json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md)
+- [Frontend Sidecar Backend URL Resolution, Remote Memory Clients, and Thread-Pool Runtime Reference](../frontend/sidecar/core/backend_url_resolution_remote_memory_clients_and_thread_pool_runtime_reference.md)
 - [API Reference](../reference/api_reference.md)
 
 ## Development and Operations
