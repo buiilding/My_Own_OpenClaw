@@ -11,7 +11,6 @@ import {
   isWithinCooldown,
   resolveConfidence,
 } from '../utils/wakewordEventUtils';
-import { useAudioCaptureRefs } from './useAudioCaptureRefs';
 
 /**
  * Custom hook for wakeword detection using openWakeWord.
@@ -41,7 +40,10 @@ export function useWakewordDetection(
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  const { mediaStreamRef, audioContextRef, sourceNodeRef, scriptNodeRef } = useAudioCaptureRefs();
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const sourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const scriptNodeRef = useRef<ScriptProcessorNode | null>(null);
   const isCapturingRef = useRef(false);
   const captureGenerationRef = useRef(0);
   const lastDetectionRef = useRef(0);
