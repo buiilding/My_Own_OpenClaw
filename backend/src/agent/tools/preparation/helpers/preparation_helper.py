@@ -7,8 +7,9 @@ Pure infrastructure code - no side effects beyond tool resolution.
 import logging
 import platform
 import time
-from typing import Optional, TYPE_CHECKING, Any
+from typing import Optional, TYPE_CHECKING
 
+from backend.src.core.utils.coordinate_methods import normalize_coordinate_method
 from backend.src.agent.tools.preparation.helpers.coordinate_contract import (
     CoordinateContract,
     NormalizedCoordinates,
@@ -35,14 +36,6 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def _normalize_coordinate_method(value: Any) -> str:
-    if isinstance(value, CoordinateFindingMethod):
-        return value.value
-    if isinstance(value, str) and value.strip():
-        return value.strip().lower()
-    return CoordinateFindingMethod.MANUAL.value
-
-
 def _should_disable_coordinate_normalization() -> bool:
     """Disable screenshot->display coordinate scaling on Linux."""
     return platform.system().lower() == "linux"
@@ -64,7 +57,10 @@ def attach_coordinate_method_metadata(
     if not resolved_call.metadata:
         resolved_call.metadata = {}
 
-    method = _normalize_coordinate_method(tool_call.parameters.get("find_coordinates_by"))
+    method = normalize_coordinate_method(
+        tool_call.parameters.get("find_coordinates_by"),
+        default=CoordinateFindingMethod.MANUAL.value,
+    )
     resolved_call.metadata["coordinate_method"] = method
 
 

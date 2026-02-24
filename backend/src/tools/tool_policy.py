@@ -14,7 +14,7 @@ from dataclasses import dataclass
 import logging
 from typing import Any, Dict, List, Optional, Sequence
 
-from backend.src.core.types.enums import CoordinateFindingMethod
+from backend.src.core.utils.coordinate_methods import normalize_coordinate_method
 from backend.src.tools.tool_selection import ToolSelection, load_tool_selection
 
 logger = logging.getLogger(__name__)
@@ -106,11 +106,8 @@ class ToolPolicy:
                 "Tool name 'mouse_control' is disabled by dev tool selection (no coordinate methods enabled)"
             ]
 
-        raw_method = args.get(
-            "find_coordinates_by",
-            CoordinateFindingMethod.MANUAL.value,
-        )
-        normalized_method = self._normalize_coordinate_method(raw_method)
+        raw_method = args.get("find_coordinates_by")
+        normalized_method = normalize_coordinate_method(raw_method, default="manual")
         if normalized_method in allowed_methods:
             return []
 
@@ -169,15 +166,6 @@ class ToolPolicy:
                 if isinstance(name, str)
             }
         return None
-
-    @staticmethod
-    def _normalize_coordinate_method(value: Any) -> str:
-        """Normalize enum/string coordinate method value to lowercase string."""
-        if isinstance(value, CoordinateFindingMethod):
-            return value.value
-        if isinstance(value, str):
-            return value.strip().lower()
-        return str(value).strip().lower()
 
     @staticmethod
     def _extract_tool_name(schema: Dict[str, Any]) -> Optional[str]:
