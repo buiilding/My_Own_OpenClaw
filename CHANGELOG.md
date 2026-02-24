@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(test-coordinate-scaling): add shared `_build_mouse_call` helper in `tests/backend/test_coordinate_scaling.py` and reuse it across OCR/prediction resolution tests to remove duplicate ParsedToolCall scaffolding
 - refactor(test-config-loader): add `_set_disabled_tts_module_state` helper in `tests/backend/test_config_loader.py` and reuse it across load-settings tests to remove duplicate module-state setup
 - refactor(test-artifact-routes): extract shared `_container` and `_artifact_request` helpers in `tests/backend/test_artifact_routes.py` to remove duplicated route-test setup payloads
 - refactor(test-event-bus): extract shared wrapper call helper and reusable bound-method owner class in `tests/backend/test_event_bus.py` to remove duplicate setup blocks in wrapper/store regression tests

@@ -78,6 +78,19 @@ def _patch_coordinate_resolution(monkeypatch, x: int, y: int, os_name: str):
     )
 
 
+def _build_mouse_call(
+    *,
+    method: CoordinateFindingMethod,
+    **extra_parameters,
+) -> tuple[ParsedToolCall, ResolvedToolCall]:
+    tool_call = ParsedToolCall(
+        tool_name="mouse_control",
+        parameters={"find_coordinates_by": method, **extra_parameters},
+        raw_call="{}",
+    )
+    return tool_call, ResolvedToolCall.from_parsed_call(tool_call)
+
+
 async def _resolve_with_stubs(tool_call, resolved_call, session, screenshot_manager, context_id: str):
     await resolve_tool_with_coordinates(
         tool_call=tool_call,
@@ -116,12 +129,10 @@ async def test_resolve_tool_with_coordinates_scales_or_disables_by_os(
         screenshot_w, screenshot_h, f"{screen_w}x{screen_h}"
     )
 
-    tool_call = ParsedToolCall(
-        tool_name="mouse_control",
-        parameters={"find_coordinates_by": CoordinateFindingMethod.OCR, "ocr_text": "Submit"},
-        raw_call="{}",
+    tool_call, resolved_call = _build_mouse_call(
+        method=CoordinateFindingMethod.OCR,
+        ocr_text="Submit",
     )
-    resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
 
     _patch_coordinate_resolution(monkeypatch, 1000, 1000, os_name)
     await _resolve_with_stubs(tool_call, resolved_call, session, screenshot_manager, "bundle-id")
@@ -145,12 +156,10 @@ async def test_resolve_tool_with_coordinates_keeps_contract_when_target_missing(
     screenshot_w, screenshot_h = 3840, 2160
     session, screenshot_manager = _create_session_and_manager(screenshot_w, screenshot_h)
 
-    tool_call = ParsedToolCall(
-        tool_name="mouse_control",
-        parameters={"find_coordinates_by": CoordinateFindingMethod.OCR, "ocr_text": "Submit"},
-        raw_call="{}",
+    tool_call, resolved_call = _build_mouse_call(
+        method=CoordinateFindingMethod.OCR,
+        ocr_text="Submit",
     )
-    resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
 
     _patch_coordinate_resolution(monkeypatch, 1000, 600, "Windows")
     await _resolve_with_stubs(tool_call, resolved_call, session, screenshot_manager, "single-id")
@@ -169,10 +178,9 @@ async def test_resolve_tool_with_coordinates_uses_latest_system_resolution_each_
     screenshot_w, screenshot_h = 3840, 2160
     session, screenshot_manager = _create_session_and_manager(screenshot_w, screenshot_h, "1920x1080")
 
-    tool_call = ParsedToolCall(
-        tool_name="mouse_control",
-        parameters={"find_coordinates_by": CoordinateFindingMethod.OCR, "ocr_text": "Submit"},
-        raw_call="{}",
+    tool_call, _ = _build_mouse_call(
+        method=CoordinateFindingMethod.OCR,
+        ocr_text="Submit",
     )
 
     _patch_coordinate_resolution(monkeypatch, 1000, 1000, "Windows")
@@ -205,15 +213,10 @@ async def test_resolve_tool_with_coordinates_preserves_prediction_description(mo
     screenshot_w, screenshot_h = 1920, 1080
     session, screenshot_manager = _create_session_and_manager(screenshot_w, screenshot_h, "1920x1080")
 
-    tool_call = ParsedToolCall(
-        tool_name="mouse_control",
-        parameters={
-            "find_coordinates_by": CoordinateFindingMethod.PREDICTION,
-            "description": "the cheapest shoe listing card",
-        },
-        raw_call="{}",
+    tool_call, resolved_call = _build_mouse_call(
+        method=CoordinateFindingMethod.PREDICTION,
+        description="the cheapest shoe listing card",
     )
-    resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
 
     _patch_coordinate_resolution(monkeypatch, 743, 873, "Windows")
     await _resolve_with_stubs(tool_call, resolved_call, session, screenshot_manager, "prediction-id")
