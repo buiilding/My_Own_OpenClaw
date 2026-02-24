@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(test-memory-routes): add shared `_local_ollama_config` and `_patch_semantic_client` helpers in `tests/backend/test_memory_routes.py` to remove duplicate summarization-route config/monkeypatch setup
 - refactor(test-single-tool-execution): add `_assert_pending_result_consumed` helper in `tests/backend/test_single_tool_execution.py` and reuse it across pending-result tests to dedupe storage cleanup assertions
 - refactor(test-model-service): add shared `_parallel_state` and `_get_local_models_with_factory` helpers in `tests/backend/test_model_service.py` to remove repeated provider-factory monkeypatch and local-model fetch scaffolding across async local-model tests
 - refactor(test-llm-client): add shared provider-error and stream-event helpers in `tests/backend/test_llm_client.py` (`attach_provider_error`, `collect_stream_events`, `assert_single_error_event`) and reuse them across stream/provider error-path tests to reduce duplicate assertions/setup

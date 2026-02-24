@@ -57,6 +57,19 @@ class FakeSessionManager:
         return self._session
 
 
+def _local_ollama_config(model_id: str) -> AppConfig:
+    return AppConfig(
+        model_mode="local",
+        model_provider="ollama",
+        selected_model_id=model_id,
+    )
+
+
+def _patch_semantic_client(monkeypatch, fake_client: FakeLLMClient) -> None:
+    monkeypatch.setattr(semantic_routes, "get_llm_client", lambda cfg: fake_client)
+    monkeypatch.setattr(semantic_routes, "load_api_key_for_provider", lambda cfg: cfg)
+
+
 @pytest.mark.asyncio
 async def test_generate_embedding_success() -> None:
     container = SimpleNamespace(embedder=FakeEmbedder())
@@ -116,22 +129,13 @@ def test_extract_fallback_facts_filters_short_lines() -> None:
 
 @pytest.mark.asyncio
 async def test_summarize_conversations_uses_session_config(monkeypatch) -> None:
-    session_cfg = AppConfig(
-        model_mode="local",
-        model_provider="ollama",
-        selected_model_id="session-model",
-    )
-    container_cfg = AppConfig(
-        model_mode="local",
-        model_provider="ollama",
-        selected_model_id="container-model",
-    )
+    session_cfg = _local_ollama_config("session-model")
+    container_cfg = _local_ollama_config("container-model")
     fake_client = FakeLLMClient(
         "SUMMARY: concise summary\n\nFACTS:\n- likes tests\n- values reliability\n"
     )
 
-    monkeypatch.setattr(semantic_routes, "get_llm_client", lambda cfg: fake_client)
-    monkeypatch.setattr(semantic_routes, "load_api_key_for_provider", lambda cfg: cfg)
+    _patch_semantic_client(monkeypatch, fake_client)
 
     container = SimpleNamespace(config=container_cfg, llm_client=object())
     session = SimpleNamespace(cfg=session_cfg)
@@ -154,20 +158,11 @@ async def test_summarize_conversations_uses_session_config(monkeypatch) -> None:
 
 @pytest.mark.asyncio
 async def test_summarize_conversations_does_not_use_other_active_session(monkeypatch) -> None:
-    other_session_cfg = AppConfig(
-        model_mode="local",
-        model_provider="ollama",
-        selected_model_id="other-active-session-model",
-    )
-    container_cfg = AppConfig(
-        model_mode="local",
-        model_provider="ollama",
-        selected_model_id="container-model",
-    )
+    other_session_cfg = _local_ollama_config("other-active-session-model")
+    container_cfg = _local_ollama_config("container-model")
     fake_client = FakeLLMClient("SUMMARY: container summary\n\nFACTS:\n- from container config\n")
 
-    monkeypatch.setattr(semantic_routes, "get_llm_client", lambda cfg: fake_client)
-    monkeypatch.setattr(semantic_routes, "load_api_key_for_provider", lambda cfg: cfg)
+    _patch_semantic_client(monkeypatch, fake_client)
 
     container = SimpleNamespace(config=container_cfg, llm_client=object())
     other_active_session = SimpleNamespace(cfg=other_session_cfg)
