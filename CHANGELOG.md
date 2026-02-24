@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-chatbox-context-headroom): add top headroom and lift floating active-window label above pill edge so it renders outside (not inside) the chat pill
 - fix(frontend-chatbox-context-position): allow chat pill overflow so floating active-window text sits on top edge of the pill instead of clipping inside
 - fix(frontend-chatbox-response-style): align response-pane background with chat input pill tone/transparency (less black, same translucent look, stronger blur)
 - fix(frontend-chatbox-context-visibility): hide active-window label while response overlay pane is visible; show it again when only the input pill remains (wired via new `response-overlay-visibility` IPC event)
