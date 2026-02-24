@@ -1687,3 +1687,20 @@ read_when:
   - `cd frontend && npm run test:ci` (pass; 86 suites, 607 tests)
   - `./scripts/test-backend` (pass; 966 tests)
   - `./scripts/test-sidecar` (pass; 462 tests)
+
+## Phase 41 Outcome (2026-02-24)
+
+- Frontend slow-test/noise optimization shipped:
+  - added shared console silencing helper in:
+    - `tests/frontend/__mocks__/ipcMainBridgeHarness.cjs` (`silenceBridgeLogs`)
+  - wired helper into split IPC suites:
+    - `tests/frontend/IpcMainBridge.lifecycle.test.cjs`
+    - `tests/frontend/IpcMainBridge.query.test.cjs`
+  - result: removed high-volume `ipc.cjs` log spam from suite output while preserving assertions.
+- Timing snapshot (same machine, `jest --runInBand`):
+  - previous top IPC suite runtime: `486ms` (`IpcMainBridge.query.test.cjs`)
+  - after log silencing: `476ms` (`IpcMainBridge.query.test.cjs`)
+  - note: larger gain was readability/stability; runtime change is modest.
+- Verification:
+  - `cd frontend && npm test -- IpcMainBridge.lifecycle.test.cjs IpcMainBridge.query.test.cjs` (pass; 27 tests)
+  - `cd frontend && npm run test:ci -- --json --outputFile ../.audit/plan1/jest-report-latest.json` (pass; 86 suites, 607 tests)
