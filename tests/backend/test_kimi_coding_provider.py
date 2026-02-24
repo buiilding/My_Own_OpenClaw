@@ -2,7 +2,7 @@
 
 import pytest
 
-from backend.src.core.events.streaming_events import ChunkEvent, ThinkingEvent
+from backend.src.core.events.streaming_events import ChunkEvent, ErrorEvent, ThinkingEvent
 from backend.src.llm.providers.kimi_coding import KimiCodingProvider
 
 
@@ -136,3 +136,49 @@ async def test_kimi_stream_sets_stream_options_and_custom_provider(monkeypatch):
     assert captured_kwargs["stream_options"] == {"include_usage": True}
     assert captured_kwargs["custom_llm_provider"] == "anthropic"
     assert captured_kwargs["prompt_cache_key"] == "cache-key"
+
+
+@pytest.mark.asyncio
+async def test_kimi_stream_emits_error_event_when_tool_arguments_json_is_invalid(monkeypatch):
+    provider = KimiCodingProvider(api_key="test-key")
+
+    async def fake_stream():
+        yield {
+            "choices": [
+                {
+                    "delta": {
+                        "tool_calls": [
+                            {
+                                "index": 0,
+                                "id": "call_bad",
+                                "function": {
+                                    "name": "replace",
+                                    "arguments": "{\"file_path\":\"/tmp/a\",\"new_string\":\"unterminated",
+                                },
+                            }
+                        ],
+                    },
+                    "finish_reason": "tool_calls",
+                }
+            ]
+        }
+
+    async def fake_acompletion(**_kwargs):
+        return fake_stream()
+
+    monkeypatch.setattr("backend.src.llm.providers.kimi_coding.litellm.acompletion", fake_acompletion)
+
+    events = []
+    async for event in provider.get_completion_stream(
+        model="k2p5",
+        messages=[{"role": "user", "content": "hi"}],
+        tools=[{"type": "function", "function": {"name": "replace", "parameters": {"type": "object"}}}],
+    ):
+        events.append(event)
+
+    assert any(isinstance(event, ErrorEvent) for event in events)
+    error_messages = [
+        event.content for event in events if isinstance(event, ErrorEvent)
+    ]
+    assert any("failed to parse streamed tool-call arguments" in message for message in error_messages)
+    assert provider.get_last_stream_response_payload() is None
