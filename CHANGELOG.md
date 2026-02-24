@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(llm-providers): dedupe text-stream chunk loop via shared `LLMProvider._stream_text_content_events` reused by OpenAI/Mistral/Local/OpenRouter providers while preserving stream usage and chunk emission behavior
+- docs(planning): record Phase 38 provider text-stream loop dedupe outcome/verification in `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md`
 - refactor(llm-providers): dedupe provider stream request flag wiring via shared `LLMProvider._enable_stream_with_usage` reused by Anthropic/Gemini/Kimi/Local/Mistral/OpenAI/OpenRouter stream paths while preserving provider-specific params
 - docs(planning): record Phase 37 provider stream-flag dedupe outcome/verification in `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md`
 - refactor(openrouter-provider): dedupe OpenRouter completion/stream request-param assembly in `backend/src/llm/providers/openrouter.py` via shared `_build_completion_params`, preserving prompt-cache forwarding and stream usage options

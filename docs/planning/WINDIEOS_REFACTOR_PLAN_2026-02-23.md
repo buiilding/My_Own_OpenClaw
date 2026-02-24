@@ -796,6 +796,27 @@ read_when:
   - `pytest tests/backend/test_llm_provider_base.py tests/backend/test_local_llm_providers.py tests/backend/test_llm_client.py`
   - `cd frontend && npm run audit:jscpd` (track duplicate-volume delta; note repository-wide churn can shift global totals)
 
+## Phase 38
+
+- `jscpd` duplication cleanup (provider text-stream loop):
+  - extract shared stream loop helper in:
+    - `backend/src/llm/providers/base.py`
+  - reuse for simple text-stream providers:
+    - `OpenAIProvider._stream_internal`
+    - `MistralProvider._stream_internal`
+    - `LocalLLMProvider._stream_internal`
+    - `OpenRouterProvider._stream_internal`
+  - preserve stream usage recording, delta extraction, and emitted `ChunkEvent` semantics.
+
+### Phase 38 Execution Slice (Current Loop)
+
+- Backend dedupe:
+  - remove duplicated `litellm.acompletion` + chunk iteration + content-yield loop blocks in text-stream providers.
+  - keep provider-specific request-param wiring intact (`_build_request_params`, `custom_llm_provider`, prompt-cache key forwarding).
+- Verification checks:
+  - `pytest tests/backend/test_llm_provider_base.py tests/backend/test_local_llm_providers.py tests/backend/test_llm_client.py`
+  - `cd frontend && npm run audit:jscpd` (track clone/duplicate delta; annotate global file-set churn when present)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):
@@ -1575,3 +1596,23 @@ read_when:
 - Verification:
   - `pytest tests/backend/test_llm_provider_base.py tests/backend/test_local_llm_providers.py tests/backend/test_llm_client.py` (pass; 101 tests)
   - `cd frontend && npm run audit:jscpd` (completed; global totals drifted upward during broader repo changes)
+
+## Phase 38 Outcome (2026-02-24)
+
+- Provider text-stream loop dedupe shipped:
+  - added shared text-stream event helper in:
+    - `backend/src/llm/providers/base.py` (`_stream_text_content_events`)
+  - rewired duplicate stream iteration blocks in:
+    - `backend/src/llm/providers/openai.py`
+    - `backend/src/llm/providers/mistral.py`
+    - `backend/src/llm/providers/local.py`
+    - `backend/src/llm/providers/openrouter.py`
+  - preserved stream usage capture, delta parsing, and chunk emission behavior.
+- jscpd delta after Phase 38 slice:
+  - clones: `190 -> 187`
+  - duplicated lines: `2909 -> 2854`
+  - duplicated tokens: `25763 -> 25335`
+  - note: run included broader repository churn (`774` files analyzed).
+- Verification:
+  - `pytest tests/backend/test_llm_provider_base.py tests/backend/test_local_llm_providers.py tests/backend/test_llm_client.py` (pass; 101 tests)
+  - `cd frontend && npm run audit:jscpd` (pass; clone/duplicate reduction confirmed)

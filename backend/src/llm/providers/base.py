@@ -8,7 +8,7 @@ import json
 import litellm
 from litellm import exceptions as litellm_exceptions
 
-from backend.src.core.events.streaming_events import ErrorEvent, StreamingEvent
+from backend.src.core.events.streaming_events import ChunkEvent, ErrorEvent, StreamingEvent
 from backend.src.core.infrastructure.exceptions import (
     LLMAPIError,
     LLMError,
@@ -551,6 +551,19 @@ class LLMProvider(ABC):
         params["stream"] = True
         params["stream_options"] = {"include_usage": True}
         return params
+
+    async def _stream_text_content_events(
+        self,
+        params: Dict[str, Any],
+    ) -> AsyncGenerator[StreamingEvent, None]:
+        """Stream request and yield text chunk events for providers without thinking deltas."""
+        stream = await litellm.acompletion(**params)
+        async for chunk in stream:
+            self._record_stream_usage_from_chunk(chunk)
+            delta = self._extract_stream_delta(chunk)
+            content = self._extract_delta_content(delta)
+            if content:
+                yield ChunkEvent(content=content)
 
     @staticmethod
     def _normalize_messages_for_provider(
