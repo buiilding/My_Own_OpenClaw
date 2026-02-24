@@ -1721,3 +1721,14 @@ read_when:
 - Verification:
   - `cd frontend && npm run lint:audit` (pass; no warnings)
   - `cd frontend && npm test -- VoiceModeHook.test.ts WakewordDetectionHook.test.ts VoiceAudioCleanup.test.ts` (pass; 18 tests)
+
+## Phase 43 Outcome (2026-02-24)
+
+- API route consolidation shipped:
+  - introduced canonical router tuple in:
+    - `backend/src/api/routes/__init__.py` (`API_ROUTERS`)
+  - simplified shared app assembly route registration to iterate canonical router tuple:
+    - `backend/src/api/app_assembly.py` (`register_api_routes`)
+  - effect: route wiring now centralized; adding/removing routes is a single-list edit.
+- Verification:
+  - `./scripts/python-in-env backend pytest tests/backend/test_app_assembly.py -q` (pass; 3 tests)

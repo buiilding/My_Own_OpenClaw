@@ -9,8 +9,7 @@ from typing import Callable
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.src.api.routes import artifacts, websocket
-from backend.src.api.routes.memory import embeddings, semantic
+from backend.src.api.routes import API_ROUTERS
 
 LifespanHandler = Callable[[FastAPI], AbstractAsyncContextManager[None]]
 DEFAULT_ALLOWED_ORIGINS = ("http://localhost:5173",)
@@ -18,10 +17,8 @@ DEFAULT_ALLOWED_ORIGINS = ("http://localhost:5173",)
 
 def register_api_routes(app: FastAPI) -> None:
     """Attach all public API routers to the provided app."""
-    app.include_router(websocket.router)
-    app.include_router(artifacts.router)
-    app.include_router(embeddings.router)
-    app.include_router(semantic.router)
+    for router in API_ROUTERS:
+        app.include_router(router)
 
 
 def configure_default_cors(
@@ -50,4 +47,3 @@ def create_api_app(
     configure_default_cors(app, allow_origins=allow_origins)
     register_api_routes(app)
     return app
-
