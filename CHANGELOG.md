@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): add phase-110 full-gate snapshot after parser-test fixture dedupe wave (frontend audits/tests + backend + sidecar)
 - refactor(backend-parser-tests): add shared parser test doubles/factory in `tests/backend/response_parser_test_utils.py` and reuse in `test_response_parser.py` + `test_response_parser_limits.py` to reduce duplicated fixture scaffolding
 - docs(refactor-plan): add phase-109 full-gate snapshot after artifact-route test deps-shim helper reuse wave (frontend audits/tests + backend + sidecar)
 - refactor(backend-artifact-tests): reuse shared route deps-shim helper in `tests/backend/test_artifact_routes.py` to remove duplicate `backend.src.api.deps` module-shim setup/restore logic while keeping artifact route import behavior unchanged
