@@ -1,0 +1,8 @@
+I want you to refactor windieos. use jscpdfor code duplication, knip for
+dead code, running eslint’s react-compilerand deprecation plugins, checking if we introduced
+api routes that can be consolidated, maintaining my docs, breaking apart files that grew too
+large, adding tests and code comments for tricky parts, updating dependencies, tool
+upgrades, file restructuring, finding and rewriting slow tests, mentioning modern react
+patterns and rewriting code (e.g. you might not need useEffect). Of course, you can find
+other refactoring approaches and other optimization techniques, add tests, update docs. After that, run tests, fix if
+there are errors.
