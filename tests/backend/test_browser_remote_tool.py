@@ -132,6 +132,18 @@ class TestBrowserControlArgs:
         assert args.text == "Hello"
         assert args.submit is True
 
+    def test_press_action_key_field(self):
+        """Test press action key field remains available."""
+        args = BrowserControlArgs(action="press", key="Enter")
+        assert args.action == "press"
+        assert args.key == "Enter"
+
+    def test_screenshot_action_supports_file_name(self):
+        """Test screenshot action keeps file_name support."""
+        args = BrowserControlArgs(action="screenshot", file_name="capture.png")
+        assert args.action == "screenshot"
+        assert args.file_name == "capture.png"
+
     def test_default_values(self):
         """Test default values."""
         args = BrowserControlArgs(action="snapshot")
