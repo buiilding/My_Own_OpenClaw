@@ -188,3 +188,9 @@ If browser action fails unexpectedly:
 4. verify connection state before connection-required actions
 5. check timeout boundary (main bridge 120s for browser tool) vs actual runtime latency
 6. inspect `error_code` and `native_source` for failure layer attribution
+
+## Related Pages
+
+- [Sidecar Browser Docs Hub](browser/README.md)
+- [Browser Runtime Provider, Vendoring, and Native Handler Bridge Reference](browser/browser_runtime_provider_vendoring_and_native_handler_bridge_reference.md)
+- [Browser Adapter Action Routing and Compatibility Semantics Reference](browser/browser_adapter_action_routing_and_compatibility_semantics_reference.md)
