@@ -37,6 +37,8 @@ Covers:
 - [Event Bus and Cache Infrastructure Reference](core/event_bus_and_cache_infrastructure_reference.md)
 - [Core Observability Docs Hub](core/observability/README.md)
 - [Trust-Boundary Metrics and Enforcement Reference](core/observability/trust_boundary_metrics_and_enforcement_reference.md)
+- [Core Validation Docs Hub](core/validation/README.md)
+- [Input Validation and Frontend Patch Guard Reference](core/validation/input_validation_and_frontend_patch_guard_reference.md)
 
 ### API and Contracts
 

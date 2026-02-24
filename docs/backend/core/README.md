@@ -13,12 +13,15 @@ title: "Backend Core Infrastructure Docs Hub"
 - [Event Bus and Cache Infrastructure Reference](event_bus_and_cache_infrastructure_reference.md)
 - [Core Observability Docs Hub](observability/README.md)
 - [Trust-Boundary Metrics and Enforcement Reference](observability/trust_boundary_metrics_and_enforcement_reference.md)
+- [Core Validation Docs Hub](validation/README.md)
+- [Input Validation and Frontend Patch Guard Reference](validation/input_validation_and_frontend_patch_guard_reference.md)
 
 ## Code Scope
 
 - `backend/src/core/infrastructure/*`
 - `backend/src/core/events/*`
 - `backend/src/core/observability/*`
+- `backend/src/core/validation/*`
 - `backend/src/core/config/service.py`
 - `backend/src/core/config/subscriptions.py`
 - `backend/src/tools/schema_registry.py`

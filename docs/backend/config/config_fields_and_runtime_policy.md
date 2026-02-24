@@ -126,6 +126,10 @@ From `load_api_key_for_provider(...)`:
 
 Validated by `FrontendConfigPatch` in `backend/src/core/validation/validators.py`.
 
+Deep validation reference:
+
+- [Input Validation and Frontend Patch Guard Reference](../core/validation/input_validation_and_frontend_patch_guard_reference.md)
+
 Allowed patch keys only:
 
 - `model_mode`

@@ -11,6 +11,7 @@ title: "Backend Config Docs Hub"
 ## Deep Pages
 
 - [Config Fields and Runtime Policy](config_fields_and_runtime_policy.md)
+- [Input Validation and Frontend Patch Guard Reference](../core/validation/input_validation_and_frontend_patch_guard_reference.md)
 
 ## Code Scope
 
