@@ -68,15 +68,17 @@ export function useToolRunner(enabled = true) {
   const addMessage = useChatStore((state) => state.addMessage);
   const streamTracking = useChatStore((state) => state.streamTracking);
   const { config } = useAppConfigContext();
-  const modelId = config?.selected_model_id || null;
-  const modelProvider = config?.model_provider || null;
 
   const toolServiceRef = useRef<ToolExecutionService | null>(null);
   const trackedExecutionTurnsRef = useRef<Map<string, string | null>>(new Map());
   const modelContextRef = useRef<TranscriptModelContext>({
-    modelId,
-    modelProvider,
+    modelId: null,
+    modelProvider: null,
   });
+  modelContextRef.current = {
+    modelId: config?.selected_model_id || null,
+    modelProvider: config?.model_provider || null,
+  };
 
   const trackExecution = useCallback((correlationId: string | null | undefined, turnRef: string | null) => {
     if (!correlationId) {
@@ -98,10 +100,6 @@ export function useToolRunner(enabled = true) {
     }
     return trackedExecutionTurnsRef.current.has(correlationId);
   }, []);
-
-  useEffect(() => {
-    modelContextRef.current = { modelId, modelProvider };
-  }, [modelId, modelProvider]);
 
   useEffect(() => {
     const activeTurnRef = streamTracking.activeTurnRef;
