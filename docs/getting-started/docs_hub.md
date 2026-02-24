@@ -157,6 +157,7 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 - [Frontend Sidecar Shell and Process Session Runtime Reference](../frontend/sidecar/tools/shell_and_process_session_runtime_reference.md)
 - [Frontend Sidecar Filesystem Read and Replace Runtime Reference](../frontend/sidecar/tools/filesystem_read_replace_runtime_reference.md)
 - [Frontend Sidecar Summarizer Watermark and Conversation Batch Reference](../frontend/sidecar/memory/summarizer_watermark_and_conversation_batch_reference.md)
+- [Frontend Sidecar Transcript Storage, Semantic Candidate, and Watermark Reference](../frontend/sidecar/memory/transcript_storage_semantic_candidate_and_watermark_reference.md)
 - [Frontend Sidecar JSON-RPC Reference](../frontend/sidecar/local_backend_jsonrpc_reference.md)
 - [Frontend Sidecar Process Lifecycle Reference](../frontend/sidecar/local_backend_process_lifecycle_reference.md)
 - [Frontend Wakeword Bridge + Audio Framing Reference](../frontend/sidecar/wakeword_bridge_and_audio_framing_reference.md)

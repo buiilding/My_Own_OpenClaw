@@ -131,6 +131,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Sidecar JSON-RPC Reference**](frontend/sidecar/local_backend_jsonrpc_reference.md) - Main-process bridge method map and local backend JSON-RPC contract details
 - [**Sidecar Process Lifecycle**](frontend/sidecar/local_backend_process_lifecycle_reference.md) - Python sidecar spawn env/readiness probe loop, request correlation/timeouts, and restart/failure recovery behavior
 - [**Sidecar Summarizer Watermark + Conversation Batch Runtime**](frontend/sidecar/memory/summarizer_watermark_and_conversation_batch_reference.md) - Semantic summarizer run-loop gating, pending watermark counters, user/conversation batch selection, transcript filtering rules, and dedupe/hash semantics
+- [**Sidecar Transcript Storage + Semantic Candidate Runtime**](frontend/sidecar/memory/transcript_storage_semantic_candidate_and_watermark_reference.md) - `store_transcript` role/message-type candidate gates, message-index ordering contract, and pending watermark increment semantics
 - [**Wakeword Bridge + Audio Framing**](frontend/sidecar/wakeword_bridge_and_audio_framing_reference.md) - Wakeword subprocess lifecycle, length-prefixed audio transport, enable/disable buffering policy, and detection event propagation
 - [**Browser Control Runbook**](browser/browser_control_run.md) - Practical setup/testing flow for browser control
 - [**Memory System**](architecture/memory_system.md) - Memory management and retrieval

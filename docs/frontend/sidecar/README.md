@@ -20,6 +20,7 @@ title: "Frontend Sidecar Docs Hub"
 - [Sidecar Memory Docs Hub](memory/README.md)
 - [Memory Pipeline and Summarization](memory_pipeline_and_summarization.md)
 - [Summarizer Watermark and Conversation Batch Reference](memory/summarizer_watermark_and_conversation_batch_reference.md)
+- [Transcript Storage, Semantic Candidate, and Watermark Reference](memory/transcript_storage_semantic_candidate_and_watermark_reference.md)
 - [Browser Automation Stack](browser_automation_stack.md)
 - [Browser Action Compatibility and Runtime Reference](browser_action_compatibility_and_runtime_reference.md)
 - [Local Backend JSON-RPC Reference](local_backend_jsonrpc_reference.md)

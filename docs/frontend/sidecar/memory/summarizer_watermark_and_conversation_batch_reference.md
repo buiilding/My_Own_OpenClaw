@@ -149,3 +149,8 @@ Chunking:
 2. Loosening transcript tool-entry filtering can pollute semantic memory with low-signal execution chatter.
 3. Altering summary-hash inputs can reintroduce duplicate semantic writes for same memory window.
 4. Raising chunk size/count caps without safeguards can increase semantic request latency and failure blast radius.
+
+## Related Pages
+
+- [Frontend Sidecar Memory Docs Hub](README.md)
+- [Transcript Storage, Semantic Candidate, and Watermark Reference](transcript_storage_semantic_candidate_and_watermark_reference.md)
