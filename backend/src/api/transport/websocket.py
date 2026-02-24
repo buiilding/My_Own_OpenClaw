@@ -210,8 +210,26 @@ class SafeWebSocket:
             raise self._resolve_sender_exception(self._sender_error)
 
         self._ensure_sender_task()
+        await self._enqueue_and_await(
+            msg_type=msg_type,
+            data=data,
+            mode=mode,
+        )
+
+    async def _enqueue_and_await(
+        self,
+        *,
+        msg_type: str,
+        data: Any,
+        mode: Optional[str],
+        allow_closed: bool = False,
+    ) -> None:
+        """Enqueue one sender-loop message and await completion."""
         future = asyncio.get_running_loop().create_future()
-        await self._enqueue((msg_type, data, mode, future))
+        await self._enqueue(
+            (msg_type, data, mode, future),
+            allow_closed=allow_closed,
+        )
         await future
 
     async def _close_direct(self, *, code: int, reason: Optional[str]) -> None:
@@ -243,10 +261,13 @@ class SafeWebSocket:
             return
 
         # Sender exists: enqueue close and let sender loop serialize it.
-        future = asyncio.get_running_loop().create_future()
         try:
-            await self._enqueue(("close", code, reason, future), allow_closed=True)
-            await future
+            await self._enqueue_and_await(
+                msg_type="close",
+                data=code,
+                mode=reason,
+                allow_closed=True,
+            )
         except Exception as e:
             logger.debug(
                 "Close enqueue/flush failed, falling back to direct close: %s", e
