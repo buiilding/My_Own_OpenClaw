@@ -43,6 +43,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Browser Automation Stack](sidecar/BROWSER_AUTOMATION_STACK.md)
 - [Local Backend JSON-RPC Reference](sidecar/LOCAL_BACKEND_JSONRPC_REFERENCE.md)
 - [Local Backend Process Lifecycle Reference](sidecar/LOCAL_BACKEND_PROCESS_LIFECYCLE_REFERENCE.md)
+- [Wakeword Bridge and Audio Framing Reference](sidecar/WAKEWORD_BRIDGE_AND_AUDIO_FRAMING_REFERENCE.md)
 
 ### Contracts
 

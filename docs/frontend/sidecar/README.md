@@ -16,6 +16,7 @@ title: "Frontend Sidecar Docs Hub"
 - [Browser Automation Stack](BROWSER_AUTOMATION_STACK.md)
 - [Local Backend JSON-RPC Reference](LOCAL_BACKEND_JSONRPC_REFERENCE.md)
 - [Local Backend Process Lifecycle Reference](LOCAL_BACKEND_PROCESS_LIFECYCLE_REFERENCE.md)
+- [Wakeword Bridge and Audio Framing Reference](WAKEWORD_BRIDGE_AND_AUDIO_FRAMING_REFERENCE.md)
 
 ## Code Scope
 

@@ -1,0 +1,139 @@
+---
+summary: "Wakeword runtime reference across renderer capture hooks and Electron wakeword bridge: subprocess lifecycle, binary audio framing, enable/disable buffering policy, and detection event fan-out."
+read_when:
+  - When changing wakeword subprocess startup, audio chunk transport, or detection event handling.
+  - When debugging false retriggers, readiness status drift, or missing wakeword-detected events.
+title: "Wakeword Bridge and Audio Framing Reference"
+---
+
+# Wakeword Bridge and Audio Framing Reference
+
+## Canonical Modules
+
+- `frontend/src/main/wakeword_bridge.cjs`
+- `frontend/src/main/runtime_paths.cjs`
+- `frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts`
+- `frontend/src/renderer/features/voice/hooks/useVoiceMode.ts`
+
+## Process Lifecycle (Main Process)
+
+Bridge entrypoint:
+
+- `initializeWakewordBridge(mainWindow, onWakewordDetected)`
+
+Startup path:
+
+1. resolve Python executable and `wakeword_service.py` script path
+2. spawn subprocess with stdio pipes
+3. parse readiness/error status messages from stderr JSON lines
+4. parse detection payload stream from stdout (length-prefixed JSON frames)
+
+Ready state signal:
+
+- bridge emits `wakeword-status { ready: true|false, error? }` to renderer
+
+Failure behavior:
+
+- process `exit`/`error` clears buffers and ready state
+- emits status with explicit error message where available
+
+## IPC Surface
+
+Renderer -> main channels:
+
+- `wakeword-audio-chunk`
+- `wakeword-enable`
+- `wakeword-disable`
+
+Main -> renderer channels:
+
+- `wakeword-status`
+- `wakeword-detected`
+
+Main forwards `wakeword-detected` payload with:
+
+- `model`
+- `confidence`
+- `score`
+
+## Audio Transport Framing
+
+### Renderer capture (`useWakewordDetection`)
+
+- acquires microphone stream
+- converts Float32 PCM to Int16
+- sends chunk buffers via `wakeword-audio-chunk`
+
+### Main bridge input framing to Python
+
+For each audio chunk:
+
+1. write 4-byte little-endian length prefix
+2. write raw audio bytes
+
+Chunk input types accepted by bridge:
+
+- base64 string
+- Node `Buffer`
+- `ArrayBuffer`
+
+Invalid payload types are rejected with logging.
+
+## Detection Output Framing (Python -> Main)
+
+Main keeps `resultBuffer` and parses stream as:
+
+1. read 4-byte little-endian message length
+2. wait until full payload bytes available
+3. parse JSON payload
+4. if detected and enabled, emit callbacks/events and clear buffer
+
+This buffering avoids partial-frame parse failures when stdout chunks split messages.
+
+## Enable/Disable Policy and Retrigger Prevention
+
+State flag:
+
+- `isWakewordEnabled`
+
+Behavior:
+
+- disabled state ignores incoming detection frames
+- disable path clears result buffer
+- disable path sends reset frame to Python (`length=0` only)
+- enable path restarts service if absent, otherwise re-emits ready status when already ready
+
+Renderer hook guardrails (`useWakewordDetection`):
+
+- 2s cooldown window between accepted detections
+- immediate `wakeword-disable` send after accepted detection to avoid buffered retriggers
+- threshold check (`confidence >= threshold`) before callback invocation
+
+## Renderer Voice Stack Interaction
+
+`useWakewordDetection` and `useVoiceMode` are independent pipelines:
+
+- wakeword pipeline: local detection bridge + binary audio stream to wakeword subprocess
+- voice mode pipeline: websocket connection to external Nova-Voice gateway
+
+Both can coexist, but they use different transport channels and runtime services.
+
+## Debug Checklist
+
+If wakeword never becomes ready:
+
+1. verify resolved Python/script paths are valid
+2. inspect stderr JSON status lines for startup/import errors
+3. verify bridge emits `wakeword-status` to renderer after spawn
+
+If detections fire repeatedly:
+
+1. verify `wakeword-disable` is sent immediately after accepted detection
+2. verify bridge `isWakewordEnabled` false path is active
+3. verify result buffer is cleared on disable and after detection emit
+
+If audio chunks appear ignored:
+
+1. verify bridge has `isPythonReady=true`
+2. verify renderer chunk conversion produces non-empty Int16 payloads
+3. verify chunk payload type is one of string/Buffer/ArrayBuffer

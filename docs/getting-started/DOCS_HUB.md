@@ -67,6 +67,7 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 - [Frontend Sidecar Browser Stack](../frontend/sidecar/BROWSER_AUTOMATION_STACK.md)
 - [Frontend Sidecar JSON-RPC Reference](../frontend/sidecar/LOCAL_BACKEND_JSONRPC_REFERENCE.md)
 - [Frontend Sidecar Process Lifecycle Reference](../frontend/sidecar/LOCAL_BACKEND_PROCESS_LIFECYCLE_REFERENCE.md)
+- [Frontend Wakeword Bridge + Audio Framing Reference](../frontend/sidecar/WAKEWORD_BRIDGE_AND_AUDIO_FRAMING_REFERENCE.md)
 - [API Reference](../reference/API_REFERENCE.md)
 
 ## Development and Operations
