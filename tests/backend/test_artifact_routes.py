@@ -1,6 +1,4 @@
 import io
-import sys
-import types
 from types import SimpleNamespace
 
 import pytest
@@ -10,14 +8,13 @@ from starlette.requests import Request
 from starlette.responses import FileResponse
 
 from backend.src.core.config.models import AppConfig
+from tests.backend.websocket_route_test_utils import (
+    install_route_deps_shim,
+    restore_route_deps_shim,
+)
 
 # Test-only shim: avoid importing full app container dependencies during route import.
-_original_deps = sys.modules.get("backend.src.api.deps")
-fake_deps = types.ModuleType("backend.src.api.deps")
-fake_deps.ContainerDep = object
-fake_deps.SessionManagerDep = object
-fake_deps.HandlerRegistryDep = object
-sys.modules["backend.src.api.deps"] = fake_deps
+_original_deps = install_route_deps_shim()
 
 try:
     from backend.src.api.routes import artifacts as artifacts_routes
@@ -26,10 +23,7 @@ except RuntimeError as exc:
         pytest.skip("python-multipart not installed in test environment", allow_module_level=True)
     raise
 finally:
-    if _original_deps is not None:
-        sys.modules["backend.src.api.deps"] = _original_deps
-    else:
-        sys.modules.pop("backend.src.api.deps", None)
+    restore_route_deps_shim(_original_deps)
 
 
 def _upload_file(data: bytes, filename: str, content_type: str) -> UploadFile:
