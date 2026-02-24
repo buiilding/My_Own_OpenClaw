@@ -7,20 +7,17 @@ import { selectChatBoxState } from '../utils/chatSelectors';
 import { getRoundedFrameSize } from '../utils/overlayFrameSize';
 import { subscribeResponseOverlayPhase } from '../utils/overlayPhaseListener';
 
-const RESPONSE_TYPES = new Set(['tool-call', 'llm-text', 'error']);
-const FIRST_CHUNK_TYPES = new Set(['llm-text', 'tool-call', 'error']);
+const RESPONSE_TYPES = new Set(['llm-text', 'error']);
+const FIRST_CHUNK_TYPES = new Set(['llm-text', 'error']);
 const RESPONSE_MIN_HEIGHT = 92;
 const RESPONSE_MAX_HEIGHT = 460;
 const RESPONSE_CHROME_HEIGHT = 28;
 const RESPONSE_BOTTOM_STICK_THRESHOLD = 20;
+const THINKING_BOTTOM_STICK_THRESHOLD = 12;
 
 function renderResponseContent(response, markdownHtml) {
   if (!response) {
     return null;
-  }
-
-  if (response.type === 'tool-call') {
-    return <pre className="chatbox-response-text chatbox-response-pre">{response.text}</pre>;
   }
 
   if (response.type === 'error') {
@@ -65,16 +62,19 @@ function findLatestMessageAfterUser(messages, lastUserIndex, allowedTypes) {
 }
 
 function ChatBoxResponse() {
-  const { messages } = useChatStore(useShallow(selectChatBoxState));
+  const { messages, thinkingStatus } = useChatStore(useShallow(selectChatBoxState));
   const [closedResponseId, setClosedResponseId] = useState(null);
   const [awaitingFirstChunk, setAwaitingFirstChunk] = useState(false);
   const [overlayPhase, setOverlayPhase] = useState('idle');
   const [responseHeight, setResponseHeight] = useState(RESPONSE_MIN_HEIGHT);
   const [hasOverflowAbove, setHasOverflowAbove] = useState(false);
+  const [hasThinkingOverflowAbove, setHasThinkingOverflowAbove] = useState(false);
   const shellRef = useRef(null);
   const responsePillRef = useRef(null);
   const responseBodyRef = useRef(null);
+  const thinkingTextRef = useRef(null);
   const shouldStickToBottomRef = useRef(true);
+  const shouldStickThinkingToBottomRef = useRef(true);
   const lastUserMessageIdRef = useRef(null);
   const lastFrameRef = useRef({ width: 0, height: 0, visible: null });
 
@@ -126,6 +126,10 @@ function ChatBoxResponse() {
     }
     return toSanitizedMarkdownHtml(activeResponse.text ?? '');
   }, [activeResponse]);
+  const thinkingText = useMemo(
+    () => (typeof thinkingStatus === 'string' ? thinkingStatus.trim() : ''),
+    [thinkingStatus],
+  );
 
   const reportOverlaySize = useCallback(async (visible) => {
     if (!visible) {
@@ -195,6 +199,8 @@ function ChatBoxResponse() {
     setClosedResponseId(null);
     shouldStickToBottomRef.current = true;
     setHasOverflowAbove(false);
+    shouldStickThinkingToBottomRef.current = true;
+    setHasThinkingOverflowAbove(false);
   }, [lastUserMessageId]);
 
   useEffect(() => {
@@ -220,6 +226,23 @@ function ChatBoxResponse() {
   const handleResponseScroll = useCallback(() => {
     syncScrollState();
   }, [syncScrollState]);
+
+  const syncThinkingScrollState = useCallback(() => {
+    const thinkingEl = thinkingTextRef.current;
+    if (!thinkingEl) {
+      setHasThinkingOverflowAbove(false);
+      shouldStickThinkingToBottomRef.current = true;
+      return;
+    }
+
+    setHasThinkingOverflowAbove(thinkingEl.scrollTop > 2);
+    const distanceFromBottom = thinkingEl.scrollHeight - thinkingEl.clientHeight - thinkingEl.scrollTop;
+    shouldStickThinkingToBottomRef.current = distanceFromBottom <= THINKING_BOTTOM_STICK_THRESHOLD;
+  }, []);
+
+  const handleThinkingScroll = useCallback(() => {
+    syncThinkingScrollState();
+  }, [syncThinkingScrollState]);
 
   useEffect(() => {
     if (!showResponse) {
@@ -287,6 +310,24 @@ function ChatBoxResponse() {
     }
     syncScrollState();
   }, [showResponse, activeResponse?.id, activeResponse?.text, responseHeight, syncScrollState]);
+
+  useEffect(() => {
+    if (!showAwaitingReply || !thinkingText) {
+      setHasThinkingOverflowAbove(false);
+      shouldStickThinkingToBottomRef.current = true;
+      return;
+    }
+
+    const thinkingEl = thinkingTextRef.current;
+    if (!thinkingEl) {
+      return;
+    }
+
+    if (shouldStickThinkingToBottomRef.current) {
+      thinkingEl.scrollTop = thinkingEl.scrollHeight;
+    }
+    syncThinkingScrollState();
+  }, [showAwaitingReply, thinkingText, syncThinkingScrollState]);
 
   useEffect(() => {
     let observer = null;
@@ -360,11 +401,25 @@ function ChatBoxResponse() {
         ) : null}
 
         {showAwaitingReply ? (
-          <div className="chatbox-typing-indicator" aria-label="Assistant is awaiting reply">
-            <span />
-            <span />
-            <span />
-          </div>
+          <>
+            {thinkingText ? (
+              <div
+                className={`chatbox-thinking-stream${hasThinkingOverflowAbove ? ' has-overflow-above' : ''}`}
+                ref={thinkingTextRef}
+                onScroll={handleThinkingScroll}
+                role="status"
+                aria-live="polite"
+                aria-label="Assistant reasoning stream"
+              >
+                <pre className="chatbox-thinking-stream-text">{thinkingText}</pre>
+              </div>
+            ) : null}
+            <div className="chatbox-typing-indicator" aria-label="Assistant is awaiting reply">
+              <span />
+              <span />
+              <span />
+            </div>
+          </>
         ) : null}
       </div>
     </div>
