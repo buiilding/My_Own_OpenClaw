@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(backend-llm-streaming): extract shared `LLMProvider._extract_stream_finish_reason` and reuse it in `KimiCodingProvider` to remove duplicate finish-reason parsing from stream chunks; add regression coverage in `tests/backend/test_llm_provider_base.py`
 - docs(refactor-plan): add phase-146 full-gate snapshot after backend Kimi stream-helper dedupe + browser-schema literal alias refactors (frontend lint:audit+knip+jscpd+tests, backend tests, sidecar tests)
 - refactor(backend-browser-schemas): add shared browser `Literal` type aliases (`BrowserAction`, navigation/snapshot/button/scroll/wait enums) in `backend/src/tools/browser/schemas.py` and reuse them across schema models to reduce repeated action/enum declarations without behavior changes
 - refactor(backend-kimi-streaming): extract shared `OnlineLLMProvider._build_stream_completion_params` and reuse it in `KimiCodingProvider` to standardize stream request setup; dedupe Kimi tool-call delta state initialization; add regression coverage in `tests/backend/test_llm_provider_base.py` and `tests/backend/test_kimi_coding_provider.py`

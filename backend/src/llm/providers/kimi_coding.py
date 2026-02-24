@@ -61,7 +61,7 @@ class KimiCodingProvider(OnlineLLMProvider):
         finish_reason: Optional[str] = None
         async for chunk in stream:
             self._record_stream_usage_from_chunk(chunk)
-            finish_reason = self._extract_chunk_finish_reason(chunk) or finish_reason
+            finish_reason = self._extract_stream_finish_reason(chunk) or finish_reason
             delta = self._extract_stream_delta(chunk)
             if not delta:
                 continue
@@ -110,20 +110,6 @@ class KimiCodingProvider(OnlineLLMProvider):
         _ = model
         params["custom_llm_provider"] = "anthropic"
         return params
-
-    @staticmethod
-    def _extract_chunk_finish_reason(chunk: Any) -> Optional[str]:
-        """Extract finish_reason when provider includes it on stream chunks."""
-        if not chunk:
-            return None
-        choices = chunk.get("choices") if isinstance(chunk, dict) else getattr(chunk, "choices", None)
-        first_choice = LLMProvider._first_item(choices)
-        if first_choice is None:
-            return None
-        value = LLMProvider._get_value(first_choice, "finish_reason")
-        if value is None:
-            return None
-        return str(value)
 
     def _accumulate_stream_tool_calls(
         self,

@@ -1021,6 +1021,20 @@ class LLMProvider(ABC):
         return getattr(first_choice, "delta", None)
 
     @staticmethod
+    def _extract_stream_finish_reason(chunk: Any) -> Optional[str]:
+        """Extract finish_reason from a stream chunk when present."""
+        if not chunk:
+            return None
+        choices = chunk.get("choices") if isinstance(chunk, dict) else getattr(chunk, "choices", None)
+        first_choice = LLMProvider._first_item(choices)
+        if first_choice is None:
+            return None
+        finish_reason = LLMProvider._get_value(first_choice, "finish_reason")
+        if finish_reason is None:
+            return None
+        return str(finish_reason)
+
+    @staticmethod
     def _extract_delta_content(delta: Any) -> Optional[str]:
         """Extract textual content from a stream delta payload."""
         if not delta:

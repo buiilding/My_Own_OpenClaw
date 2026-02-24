@@ -468,6 +468,20 @@ class TestStreamDeltaHelpers:
         assert provider._extract_delta_content({"content": ""}) is None
         assert provider._extract_delta_content({"content": 123}) is None
 
+    def test_extract_stream_finish_reason_supports_dict_and_object_chunks(self, provider):
+        dict_chunk = {"choices": [{"delta": {"content": "hi"}, "finish_reason": "stop"}]}
+        obj_chunk = SimpleNamespace(
+            choices=[SimpleNamespace(delta=SimpleNamespace(content="ok"), finish_reason="tool_calls")]
+        )
+
+        assert provider._extract_stream_finish_reason(dict_chunk) == "stop"
+        assert provider._extract_stream_finish_reason(obj_chunk) == "tool_calls"
+
+    def test_extract_stream_finish_reason_returns_none_for_missing_values(self, provider):
+        assert provider._extract_stream_finish_reason(None) is None
+        assert provider._extract_stream_finish_reason({"choices": []}) is None
+        assert provider._extract_stream_finish_reason({"choices": [{"delta": {"content": "x"}}]}) is None
+
 
 class TestStreamUsageDiagnostics:
     @pytest.fixture
