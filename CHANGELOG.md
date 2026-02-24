@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-observability): extract shared `_build_observe_kwargs` and `_resolve_observe_decorator` helpers in `browser_use/observability.py` to centralize observe/observe_debug decorator setup; add regression coverage in `tests/sidecar/test_browser_use_observability_helpers.py` (jscpd clone count held at `33`)
 - docs(refactor-plan): add phase-148 full-gate snapshot after sidecar Browser-Use dedupe wave (frontend lint:audit+knip+jscpd+tests, backend tests, sidecar tests)
 - refactor(sidecar-utils): extract shared `_resolve_execution_logger` in `browser_use/utils.py` and reuse it in sync/async timing decorators; add regression coverage in `tests/sidecar/test_browser_use_utils_logger_resolution.py`; jscpd improved to clones `33`, duplicated lines `721`
 - refactor(sidecar-session-manager): extract shared `_count_ready_target_sessions` in `session_manager.py` and reuse it for readiness polling + timeout reporting; add regression coverage in `tests/sidecar/test_session_manager_ready_count.py`; jscpd improved to clones `34`, duplicated lines `739`
