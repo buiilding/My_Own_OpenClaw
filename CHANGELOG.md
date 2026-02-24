@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-session-manager): extract shared `_count_ready_target_sessions` in `session_manager.py` and reuse it for readiness polling + timeout reporting; add regression coverage in `tests/sidecar/test_session_manager_ready_count.py`; jscpd improved to clones `34`, duplicated lines `739`
 - refactor(sidecar-dom-watchdog): extract shared `_build_fallback_page_info` helper in `dom_watchdog.py` for empty-page and timeout fallback paths; add regression coverage in `tests/sidecar/test_dom_watchdog_page_info_helper.py`; jscpd improved to clones `35`, duplicated lines `752`
 - refactor(sidecar-filesystem): make `BaseFile.sync_to_disk` delegate to `sync_to_disk_sync` in the executor so custom file types share one async path; remove duplicated async overrides in `PdfFile`/`DocxFile`; add regression coverage in `tests/sidecar/test_browser_use_file_system_async_sync.py`; jscpd improved to clones `36`, duplicated lines `766`
 - refactor(sidecar-har-watchdog): extract shared `_normalize_headers` in `har_recording_watchdog.py` and reuse request/response header normalization paths; add regression coverage in `tests/sidecar/test_har_recording_watchdog_headers.py`; jscpd improved to clones `37`, duplicated lines `775`
