@@ -482,11 +482,14 @@ function ChatBoxResponse() {
 
         {showToolGhost ? (
           <div className="chatbox-tool-ghost" aria-label="Assistant tool action preview">
-            <div className="chatbox-tool-ghost-cursor-wrap" aria-hidden="true">
-              <div className="chatbox-tool-ghost-ring" />
-              <div className="chatbox-tool-ghost-cursor" />
+            <div className="chatbox-tool-ghost-track">
+              <div className="chatbox-tool-ghost-cursor-wrap" aria-hidden="true">
+                <div className="chatbox-tool-ghost-ring" />
+                <div className="chatbox-tool-ghost-ripple" />
+                <div className="chatbox-tool-ghost-cursor" />
+              </div>
+              <div className="chatbox-tool-ghost-label">{toolGhostLabel}</div>
             </div>
-            <div className="chatbox-tool-ghost-label">{toolGhostLabel}</div>
           </div>
         ) : null}
       </div>

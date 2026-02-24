@@ -358,47 +358,66 @@ body {
 
 .chatbox-tool-ghost {
   align-self: flex-start;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  display: inline-flex;
   margin-bottom: 4px;
 }
 
+.chatbox-tool-ghost-track {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 10px;
+  animation: chatboxToolGhostTrack 2.1s ease-in-out infinite;
+}
+
 .chatbox-tool-ghost-cursor-wrap {
-  width: 60px;
-  height: 60px;
+  width: 76px;
+  height: 76px;
   position: relative;
 }
 
 .chatbox-tool-ghost-ring {
   position: absolute;
-  inset: 10px;
+  inset: 12px;
   border-radius: 999px;
-  border: 1px solid rgba(132, 205, 255, 0.56);
-  box-shadow: 0 0 28px rgba(72, 172, 255, 0.22);
-  animation: chatboxToolGhostPulse 1.3s ease-in-out infinite;
+  border: 1px solid rgba(132, 205, 255, 0.66);
+  box-shadow:
+    0 0 32px rgba(72, 172, 255, 0.22),
+    inset 0 0 12px rgba(84, 182, 255, 0.22);
+  animation: chatboxToolGhostPulse 1.9s ease-in-out infinite;
+}
+
+.chatbox-tool-ghost-ripple {
+  position: absolute;
+  left: 23px;
+  top: 22px;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 1px solid rgba(161, 221, 255, 0.74);
+  background: rgba(127, 199, 255, 0.1);
+  animation: chatboxToolGhostRipple 1.9s ease-in-out infinite;
 }
 
 .chatbox-tool-ghost-cursor {
   position: absolute;
-  left: 20px;
-  top: 9px;
-  width: 15px;
-  height: 22px;
+  left: 27px;
+  top: 10px;
+  width: 19px;
+  height: 28px;
   border-radius: 2px 2px 10px 2px;
   background: rgba(255, 255, 255, 0.95);
   clip-path: polygon(0 0, 0 100%, 37% 70%, 58% 100%, 75% 92%, 54% 62%, 100% 62%);
   box-shadow:
     0 6px 16px rgba(0, 0, 0, 0.5),
     0 0 10px rgba(255, 255, 255, 0.32);
-  transform: rotate(-14deg);
-  animation: chatboxToolGhostCursor 1.3s ease-in-out infinite;
+  transform: rotate(-14deg) translateY(0);
+  animation: chatboxToolGhostCursor 1.9s ease-in-out infinite;
 }
 
 .chatbox-tool-ghost-label {
   width: fit-content;
-  max-width: 280px;
-  padding: 7px 10px;
+  max-width: 300px;
+  padding: 8px 11px;
   border-radius: 10px;
   background: rgba(14, 18, 24, 0.92);
   border: 1px solid rgba(255, 255, 255, 0.14);
@@ -451,12 +470,12 @@ body {
 @keyframes chatboxToolGhostPulse {
   0%,
   100% {
-    transform: scale(0.92);
-    opacity: 0.46;
+    transform: scale(0.9);
+    opacity: 0.42;
   }
   50% {
     transform: scale(1);
-    opacity: 0.96;
+    opacity: 0.92;
   }
 }
 
@@ -466,6 +485,28 @@ body {
     transform: translateY(0) rotate(-14deg);
   }
   50% {
-    transform: translateY(-2px) rotate(-14deg);
+    transform: translateY(-3px) rotate(-14deg);
+  }
+}
+
+@keyframes chatboxToolGhostRipple {
+  0%,
+  100% {
+    transform: scale(0.7);
+    opacity: 0.78;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 0.18;
+  }
+}
+
+@keyframes chatboxToolGhostTrack {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(6px);
   }
 }
