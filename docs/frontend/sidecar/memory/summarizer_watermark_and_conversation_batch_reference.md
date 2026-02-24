@@ -20,6 +20,11 @@ title: "Summarizer Watermark and Conversation Batch Reference"
 
 The sidecar summarizer periodically converts transcript-backed episodic rows into semantic memories while preventing duplicate summaries and uncontrolled background churn.
 
+Dev toggle:
+
+- `WINDIE_ENABLE_SEMANTIC_SUMMARIZER=0` disables summarizer startup in `local_backend.py`.
+- When disabled, transcript writes still persist to episodic memory; periodic semanticization loop does not run.
+
 ## Settings and Scheduling Model
 
 `SummarizerSettings` defaults:
