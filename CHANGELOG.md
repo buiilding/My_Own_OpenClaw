@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(backend-llm-client): add shared `_build_request_kwargs` helper in `backend/src/llm/client.py` and reuse it across completion + stream paths so transport-kwargs wiring is single-sourced at the client layer
 - refactor(backend-vision-internvl): extract `_run_generate_fallback_with_chat_error` in `backend/src/services/vision/providers/internvl.py` to centralize duplicated CUDA chat->generate fallback error handling; add regression coverage in `tests/backend/test_vision_provider_loader.py` for helper success and wrapped dual-failure behavior
 - refactor(backend-tool-declarations): optimize `ToolRegistry.get_function_declarations_filtered` with set-based name lookup and tighten `SchemaRegistry.get_declarations` to append only dict schemas, preserving behavior while reducing repeated linear membership checks
 - refactor(backend-tool-registry): extract schema parameter parsing into `_extract_schema_parameters` in `backend/src/tools/registry.py` and simplify `get_tool_capabilities` control flow while preserving compatibility fallback to empty parameter maps for malformed function-schema payloads

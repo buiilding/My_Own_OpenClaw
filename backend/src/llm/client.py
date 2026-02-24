@@ -297,6 +297,22 @@ class LiteLLMClient(LLMClient):
         self._last_stream_cache_diagnostics = None
         self._last_stream_response_payload = None
 
+    @staticmethod
+    def _build_request_kwargs(
+        *,
+        tools: Optional[List[Dict[str, Any]]],
+        tool_choice: Optional[Any],
+        parallel_tool_calls: Optional[bool],
+        prompt_cache_key: Optional[str],
+    ) -> Dict[str, Any]:
+        """Build provider transport kwargs for completion and stream calls."""
+        return build_tool_transport_kwargs(
+            tools=tools,
+            tool_choice=tool_choice,
+            parallel_tool_calls=parallel_tool_calls,
+            prompt_cache_key=prompt_cache_key,
+        )
+
     def _capture_stream_tracking_state(
         self,
         *,
@@ -328,7 +344,7 @@ class LiteLLMClient(LLMClient):
         self._reset_stream_tracking_state(provider)
 
         try:
-            request_kwargs = build_tool_transport_kwargs(
+            request_kwargs = self._build_request_kwargs(
                 tools=tools,
                 tool_choice=tool_choice,
                 parallel_tool_calls=parallel_tool_calls,
@@ -403,7 +419,7 @@ class LiteLLMClient(LLMClient):
 
         self._reset_stream_tracking_state(provider)
         try:
-            request_kwargs = build_tool_transport_kwargs(
+            request_kwargs = self._build_request_kwargs(
                 tools=tools,
                 tool_choice=tool_choice,
                 parallel_tool_calls=parallel_tool_calls,
