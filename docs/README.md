@@ -31,6 +31,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Frontend Stream State Machine**](frontend/runtime/STREAM_EVENT_STATE_MACHINE.md) - Event-to-phase transitions and per-turn stream tracking behavior
 - [**Frontend Chat Stream + Tool Runtime**](frontend/renderer/CHAT_STREAM_AND_TOOL_EXECUTION_REFERENCE.md) - Provider ownership, query-send flow, backend event routing, stale-turn cancellation, and tool-result relay semantics
 - [**Frontend Runtime Paths and Endpoints**](frontend/main/RUNTIME_PATHS_AND_ENDPOINTS.md) - Backend ws/http endpoint derivation, packaged Python path lookup, and frontend config persistence path
+- [**Frontend Query Payload Relay**](frontend/main/QUERY_PAYLOAD_AND_RELAY_REFERENCE.md) - Main-process query enrichment pipeline, initial settings ACK gate, local-user-message synthesis, and backend relay failure semantics
 - [**Frontend Config Sync Lifecycle**](frontend/runtime/CONFIG_SYNC_AND_SETTINGS_LIFECYCLE_REFERENCE.md) - AppConfig/AppStatus provider ownership, local+disk persistence layering, and main-process `update-settings` ACK gating
 - [**Frontend IPC Channel Reference**](frontend/contracts/IPC_CHANNEL_AND_HANDLER_REFERENCE.md) - Exact send/invoke/on channel ownership and handler map
 - [**System Architecture**](architecture/ARCHITECTURE.md) - High-level system design and components

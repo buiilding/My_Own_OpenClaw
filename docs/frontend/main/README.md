@@ -13,6 +13,7 @@ title: "Frontend Main Docs Hub"
 - [Electron Main and IPC](ELECTRON_MAIN_AND_IPC.md)
 - [Window and Overlay Lifecycle](WINDOW_AND_OVERLAY_LIFECYCLE.md)
 - [Runtime Paths and Endpoints](RUNTIME_PATHS_AND_ENDPOINTS.md)
+- [Query Payload and Relay Reference](QUERY_PAYLOAD_AND_RELAY_REFERENCE.md)
 
 ## Code Scope
 
