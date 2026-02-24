@@ -1,4 +1,6 @@
 import {
+  createStoreTranscriptPayload,
+  expectStoreTranscriptCall,
   flushMicrotasks,
   loadTranscriptWriter,
   registerTranscriptWriterSuiteLifecycle,
@@ -6,6 +8,14 @@ import {
 } from './TranscriptWriter.testUtils';
 
 describe('TranscriptWriter session lifecycle', () => {
+  const createSessionUpdateRecorder = () => {
+    const updates: Array<{ conversationRef: string | null; userId: string | null }> = [];
+    const handler = (event: Event) => {
+      updates.push((event as CustomEvent<{ conversationRef: string | null; userId: string | null }>).detail);
+    };
+    return { updates, handler };
+  };
+
   registerTranscriptWriterSuiteLifecycle();
 
   test('loads session info from sessionStorage', () => {
@@ -23,10 +33,7 @@ describe('TranscriptWriter session lifecycle', () => {
 
   test('emits transcript-session-update event and persists session info on update', () => {
     const { writer } = loadTranscriptWriter();
-    const updates: Array<{ conversationRef: string | null; userId: string | null }> = [];
-    const handler = (event: Event) => {
-      updates.push((event as CustomEvent<{ conversationRef: string | null; userId: string | null }>).detail);
-    };
+    const { updates, handler } = createSessionUpdateRecorder();
     window.addEventListener('transcript-session-update', handler);
 
     writer.updateTranscriptSession('conv-2', 'user-2');
@@ -41,10 +48,7 @@ describe('TranscriptWriter session lifecycle', () => {
 
   test('skips redundant persistence and session-update events when session info is unchanged', () => {
     const { writer } = loadTranscriptWriter();
-    const updates: Array<{ conversationRef: string | null; userId: string | null }> = [];
-    const handler = (event: Event) => {
-      updates.push((event as CustomEvent<{ conversationRef: string | null; userId: string | null }>).detail);
-    };
+    const { updates, handler } = createSessionUpdateRecorder();
     const setItemSpy = jest.spyOn(Storage.prototype, 'setItem');
     window.addEventListener('transcript-session-update', handler);
 
@@ -103,18 +107,12 @@ describe('TranscriptWriter session lifecycle', () => {
     writer.setActiveConversationRef('conv-new');
     await flushMicrotasks();
     expect(invokeMock).toHaveBeenCalledTimes(1);
-    expect(invokeMock).toHaveBeenCalledWith('store-transcript', {
+    expectStoreTranscriptCall(invokeMock, createStoreTranscriptPayload({
       content: 'message after clear',
       userId: 'user-1',
       conversationRef: 'conv-new',
       role: 'user',
       messageType: 'user',
-      toolName: undefined,
-      correlationId: undefined,
-      modelId: undefined,
-      modelProvider: undefined,
-      screenshot: undefined,
-      timestamp: undefined,
-    });
+    }));
   });
 });
