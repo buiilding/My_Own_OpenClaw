@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 
 import pytest
+from pydantic import BaseModel
 
 from tests.sidecar.browser_use_test_utils import ensure_local_browser_use_path
 
@@ -41,3 +42,38 @@ def test_openai_choice_helper_raises_with_proxy_hint():
 )
 def test_google_strip_markdown_code_fence(raw_text, expected):
     assert ChatGoogle._strip_markdown_code_fence(raw_text) == expected
+
+
+def test_google_parse_json_text_response_returns_typed_completion():
+    class _Output(BaseModel):
+        value: int
+
+    llm = ChatGoogle(model="gemini-2.5-flash")
+    response = SimpleNamespace(candidates=[SimpleNamespace(finish_reason="stop")])
+
+    result = llm._parse_json_text_response(
+        raw_text="```json\n{\"value\": 3}\n```",
+        output_format=_Output,
+        usage=None,
+        response=response,
+    )
+
+    assert isinstance(result.completion, _Output)
+    assert result.completion.value == 3
+    assert result.stop_reason == "stop"
+
+
+def test_google_parse_json_text_response_raises_on_invalid_json():
+    class _Output(BaseModel):
+        value: int
+
+    llm = ChatGoogle(model="gemini-2.5-flash")
+    response = SimpleNamespace(candidates=[SimpleNamespace(finish_reason="stop")])
+
+    with pytest.raises(ValueError):
+        llm._parse_json_text_response(
+            raw_text="not json",
+            output_format=_Output,
+            usage=None,
+            response=response,
+        )

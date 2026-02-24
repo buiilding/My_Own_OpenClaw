@@ -1,6 +1,6 @@
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
-from typing import Any, Literal, TypeVar, overload
+from typing import Any, Literal, TypeVar
 
 import httpx
 from openai import APIConnectionError, APIStatusError, AsyncOpenAI, RateLimitError
@@ -158,14 +158,6 @@ class ChatOpenAI(BaseChatModel):
 				model=self.name,
 			)
 		return choice
-
-	@overload
-	async def ainvoke(
-		self, messages: list[BaseMessage], output_format: None = None, **kwargs: Any
-	) -> ChatInvokeCompletion[str]: ...
-
-	@overload
-	async def ainvoke(self, messages: list[BaseMessage], output_format: type[T], **kwargs: Any) -> ChatInvokeCompletion[T]: ...
 
 	async def ainvoke(
 		self, messages: list[BaseMessage], output_format: type[T] | None = None, **kwargs: Any
