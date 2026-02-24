@@ -54,24 +54,17 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
   const onTranscriptionUpdateRef = useRef(onTranscriptionUpdate);
   const onUtteranceEndRef = useRef(onUtteranceEnd);
 
+  // Keep mutable refs synced without effect churn.
+  enabledRef.current = enabled;
+  onTranscriptionUpdateRef.current = onTranscriptionUpdate;
+  onUtteranceEndRef.current = onUtteranceEnd;
+
   const clearReconnectTimeout = useCallback(() => {
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
       reconnectTimeoutRef.current = null;
     }
   }, []);
-
-  useEffect(() => {
-    enabledRef.current = enabled;
-  }, [enabled]);
-
-  useEffect(() => {
-    onTranscriptionUpdateRef.current = onTranscriptionUpdate;
-  }, [onTranscriptionUpdate]);
-
-  useEffect(() => {
-    onUtteranceEndRef.current = onUtteranceEnd;
-  }, [onUtteranceEnd]);
 
   // Connect to Nova-Voice Gateway WebSocket
   const connectWebSocket = useCallback(() => {
