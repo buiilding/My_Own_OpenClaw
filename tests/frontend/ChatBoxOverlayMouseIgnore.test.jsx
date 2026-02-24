@@ -55,7 +55,7 @@ const expectInvokeCall = (predicate) => {
 
 const expectActiveAppIndicator = async ({
   ariaLabel,
-  initials,
+  visibleText,
   contextIndicator,
   stateClass,
 }) => {
@@ -67,8 +67,8 @@ const expectActiveAppIndicator = async ({
     expect(contextIndicator.classList.contains(stateClass)).toBe(true);
   }
 
-  if (initials) {
-    expect(screen.getByText(initials)).toBeInTheDocument();
+  if (visibleText) {
+    expect(screen.getByText(visibleText)).toBeInTheDocument();
   }
 };
 
@@ -242,7 +242,7 @@ describe('ChatBox overlay mouse ignore', () => {
 
     await expectActiveAppIndicator({
       ariaLabel: 'Active app: VS Code',
-      initials: 'ED',
+      visibleText: 'VS Code',
     });
   });
 
@@ -277,7 +277,7 @@ describe('ChatBox overlay mouse ignore', () => {
 
     await expectActiveAppIndicator({
       ariaLabel: 'Active app: Chrome (stale)',
-      initials: 'WB',
+      visibleText: 'Chrome',
       contextIndicator,
       stateClass: 'is-stale',
     });

@@ -345,13 +345,6 @@ function ChatBox() {
             aria-label={buildContextAriaLabel(activeWindowContext, activeWindowStatus)}
             title={activeWindowContext.fullLabel}
           >
-            <span
-              className={`chatbox-context-status-dot is-${activeWindowStatus}`}
-              aria-hidden="true"
-            />
-            <span className="chatbox-context-icon" aria-hidden="true">
-              {activeWindowContext.icon}
-            </span>
             <span className="chatbox-context-label">{activeWindowContext.label}</span>
           </div>
           <div className="chatbox-input-wrap">
