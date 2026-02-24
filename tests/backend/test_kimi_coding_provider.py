@@ -12,6 +12,32 @@ def test_kimi_provider_supports_streaming_tool_turns():
 
 
 @pytest.mark.asyncio
+async def test_kimi_completion_uses_anthropic_custom_provider(monkeypatch):
+    provider = KimiCodingProvider(api_key="test-key")
+    captured_kwargs = {}
+
+    async def fake_acompletion(**kwargs):
+        captured_kwargs.update(kwargs)
+        return {
+            "choices": [
+                {
+                    "message": {"content": "ok"},
+                }
+            ]
+        }
+
+    monkeypatch.setattr("backend.src.llm.providers.base.litellm.acompletion", fake_acompletion)
+
+    result = await provider.get_completion(
+        model="k2p5",
+        messages=[{"role": "user", "content": "hi"}],
+    )
+
+    assert captured_kwargs["custom_llm_provider"] == "anthropic"
+    assert result["content"] == "ok"
+
+
+@pytest.mark.asyncio
 async def test_kimi_stream_emits_thinking_and_captures_stream_tool_calls(monkeypatch):
     provider = KimiCodingProvider(api_key="test-key")
 

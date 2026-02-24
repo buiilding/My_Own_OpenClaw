@@ -7,14 +7,16 @@ import litellm
 from backend.src.core.events.streaming_events import ChunkEvent, StreamingEvent, ThinkingEvent
 from backend.src.core.types.schemas import LLMMessage, NormalizedLLMResponse
 from backend.src.llm.providers.base import LLMProvider
+from backend.src.llm.providers.online import OnlineLLMProvider
 
 logger = logging.getLogger(__name__)
 
 
-class KimiCodingProvider(LLMProvider):
+class KimiCodingProvider(OnlineLLMProvider):
     """Provider for Kimi Coding (Anthropic-compatible endpoint)."""
 
     DEFAULT_BASE_URL = "https://api.kimi.com/coding"
+    provider_label = "Kimi Coding"
 
     def __init__(
         self,
@@ -28,40 +30,12 @@ class KimiCodingProvider(LLMProvider):
             base_url = base_url[: -len("/v1")]
         super().__init__(api_key=api_key, base_url=base_url, timeout=timeout)
 
-    def _validate_dependencies(self) -> None:
-        """Kimi Coding requires an API key."""
-        self._require_api_key("KimiCodingProvider")
-
     def supports_streaming_tool_turns(self, model: str) -> bool:
         """
         Kimi stream path accumulates and finalizes tool-call payloads safely.
         """
         _ = model
         return True
-
-    async def get_completion(
-        self,
-        model: str,
-        messages: List[LLMMessage],
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Any] = None,
-        parallel_tool_calls: Optional[bool] = None,
-        prompt_cache_key: Optional[str] = None,
-    ) -> NormalizedLLMResponse:
-        params = self._build_request_params(
-            model,
-            messages,
-            tools=tools,
-            tool_choice=tool_choice,
-            parallel_tool_calls=parallel_tool_calls,
-            prompt_cache_key=prompt_cache_key,
-        )
-        params["custom_llm_provider"] = "anthropic"
-        return await self._get_completion_with_standard_errors(
-            provider_label="Kimi Coding",
-            model=model,
-            params=params,
-        )
 
     async def _stream_internal(
         self,
@@ -73,16 +47,15 @@ class KimiCodingProvider(LLMProvider):
         prompt_cache_key: Optional[str] = None,
     ) -> AsyncGenerator[StreamingEvent, None]:
         """Internal streaming implementation. Exceptions bubble up to base class."""
-        params = self._build_request_params(
+        params = self._build_standard_completion_params(
             model,
             messages,
             tools=tools,
             tool_choice=tool_choice,
             parallel_tool_calls=parallel_tool_calls,
             prompt_cache_key=prompt_cache_key,
+            include_stream=True,
         )
-        params["custom_llm_provider"] = "anthropic"
-        self._enable_stream_with_usage(params)
         stream = await litellm.acompletion(**params)
         full_text_parts: List[str] = []
         tool_call_deltas: Dict[int, Dict[str, Any]] = {}
@@ -118,10 +91,6 @@ class KimiCodingProvider(LLMProvider):
             normalized_response["finish_reason"] = finish_reason
         self._set_last_stream_response_payload(normalized_response)
 
-    async def list_models(self) -> List[Dict[str, str]]:
-        """Lists available Kimi Coding models (static config preferred)."""
-        return []
-
     def _get_full_model_string(self, model_id: str) -> str:
         if model_id == "kimi-for-coding":
             return "k2p5"
@@ -132,6 +101,26 @@ class KimiCodingProvider(LLMProvider):
         if model_id.startswith("anthropic/"):
             return model_id.split("/", 1)[1]
         return model_id
+
+    def _build_request_params(
+        self,
+        model: str,
+        messages: List[LLMMessage],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        tool_choice: Optional[Any] = None,
+        parallel_tool_calls: Optional[bool] = None,
+        prompt_cache_key: Optional[str] = None,
+    ) -> dict:
+        params = super()._build_request_params(
+            model,
+            messages,
+            tools=tools,
+            tool_choice=tool_choice,
+            parallel_tool_calls=parallel_tool_calls,
+            prompt_cache_key=prompt_cache_key,
+        )
+        params["custom_llm_provider"] = "anthropic"
+        return params
 
     @staticmethod
     def _extract_chunk_finish_reason(chunk: Any) -> Optional[str]:
