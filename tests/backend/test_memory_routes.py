@@ -1,28 +1,21 @@
 from types import SimpleNamespace
-import sys
-import types
 
 import pytest
 from fastapi import HTTPException
 from pydantic import ValidationError
+from tests.backend.websocket_route_test_utils import (
+    install_route_deps_shim,
+    restore_route_deps_shim,
+)
 
-# Test-only shim: avoid pulling full app container deps during route import.
-_original_deps = sys.modules.get("backend.src.api.deps")
-fake_deps = types.ModuleType("backend.src.api.deps")
-fake_deps.ContainerDep = object
-fake_deps.SessionManagerDep = object
-fake_deps.HandlerRegistryDep = object
-sys.modules["backend.src.api.deps"] = fake_deps
+_original_deps = install_route_deps_shim()
 
 from backend.src.api.routes.memory import embeddings as embeddings_routes
 from backend.src.api.routes.memory import health as health_routes
 from backend.src.api.routes.memory import semantic as semantic_routes
 from backend.src.core.config.models import AppConfig
 
-if _original_deps is not None:
-    sys.modules["backend.src.api.deps"] = _original_deps
-else:
-    sys.modules.pop("backend.src.api.deps", None)
+restore_route_deps_shim(_original_deps)
 
 
 class FakeArray:
