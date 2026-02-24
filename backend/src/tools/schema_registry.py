@@ -19,31 +19,40 @@ class SchemaRegistry:
     def __init__(self, cache_manager: "CacheManager"):
         self._cache_manager = cache_manager
 
+    def _get_cached_schema(self, tool: "SDKTool") -> Optional[Dict[str, Any]]:
+        """Return cached canonical schema for a tool, or None when missing/invalid."""
+        cache_key = self._cache_manager.get_tool_schema_key(tool.name)
+        schema = self._cache_manager.tool_schemas.get(cache_key)
+        if schema is None:
+            return None
+        if self._is_canonical_tool_schema(schema):
+            return schema
+        logger.warning(
+            "Cached schema for tool %s is not canonical tool object; regenerating.",
+            tool.name,
+        )
+        return None
+
+    def _generate_and_cache_schema(self, tool: "SDKTool") -> Dict[str, Any]:
+        """Generate canonical schema for a tool and persist it in cache."""
+        schema = tool.get_json_schema()
+        if not self._is_canonical_tool_schema(schema):
+            raise ValueError(
+                f"Tool {tool.name} emitted non-canonical schema. "
+                "Expected {type:'function', function:{name, parameters}}."
+            )
+        cache_key = self._cache_manager.get_tool_schema_key(tool.name)
+        self._cache_manager.tool_schemas.set(cache_key, schema)
+        return schema
+
     def get_schema(self, tool: "SDKTool") -> Optional[Dict[str, Any]]:
         """
         Get schema for a tool, using cache if available.
         """
         try:
-            # Try cache first
-            cache_key = self._cache_manager.get_tool_schema_key(tool.name)
-            schema = self._cache_manager.tool_schemas.get(cache_key)
-
-            if schema is not None and not self._is_canonical_tool_schema(schema):
-                logger.warning(
-                    "Cached schema for tool %s is not canonical tool object; regenerating.",
-                    tool.name,
-                )
-                schema = None
-
+            schema = self._get_cached_schema(tool)
             if schema is None:
-                # Cache miss - generate schema
-                schema = tool.get_json_schema()
-                if not self._is_canonical_tool_schema(schema):
-                    raise ValueError(
-                        f"Tool {tool.name} emitted non-canonical schema. "
-                        "Expected {type:'function', function:{name, parameters}}."
-                    )
-                self._cache_manager.tool_schemas.set(cache_key, schema)
+                schema = self._generate_and_cache_schema(tool)
             
             return schema
         except Exception as e:
