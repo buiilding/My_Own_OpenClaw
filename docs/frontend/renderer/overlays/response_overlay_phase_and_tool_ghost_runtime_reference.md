@@ -121,6 +121,11 @@ If coordinates absent:
 - preview still renders label
 - target defaults to centered neutral ghost
 
+Execution sync behavior:
+
+- click-like `mouse_control` actions (`click`, `double_click`, `right_click`) are delayed `1900ms` in `useToolRunner` before real sidecar execution.
+- this delay is intentional to let ghost click animation complete before real click dispatch.
+
 ## Overlay Frame Size IPC
 
 `reportOverlaySize(visible)` sends:

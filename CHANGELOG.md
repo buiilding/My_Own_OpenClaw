@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(frontend-tool-runner): defer click-like `mouse_control` actions (`click`, `double_click`, `right_click`) by 1900ms so response-overlay ghost click animation finishes before real sidecar execution; re-check turn staleness after delay and cancel stale clicks, with regression coverage in `tests/frontend/ToolRunnerHook.events.test.ts` and runtime docs updates
 - docs(planning): add Codex-aligned conversation-history compaction implementation plan with multi-provider strategy architecture and phased execution map in `docs/planning/windieos_conversation_history_compaction_plan_2026-02-24.md`
 - fix(backend-kimi-streaming): fail closed when streamed Kimi tool-call arguments cannot be parsed; remove silent `{}` fallback and surface parse failure via stream error event payload
 - fix(backend-interaction-loop): treat malformed LLM tool-call format errors as recoverable synthetic tool outputs (history + frontend ToolCall/ToolOutput events) and continue loop for self-correction, while still aborting on non-recoverable stream errors

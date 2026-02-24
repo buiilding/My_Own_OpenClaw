@@ -50,6 +50,10 @@ Turn guardrails:
 - stale events emit explicit cancellation payloads:
   - single tool: `tool-result` with `frontend_stale_turn_cancelled`
   - bundle: `tool-bundle-result` with `frontend_stale_turn_cancelled`
+- click-action sync gate:
+  - `mouse_control` actions `click`, `double_click`, `right_click` wait `1900ms` before execution
+  - after wait, stale-turn guard re-check runs before invoking sidecar tool
+  - if stale after wait, runner emits cancellation payload instead of executing click
 
 Correlation tracking:
 
