@@ -1,11 +1,11 @@
 
 # Copy/paste detection report
 
-> Duplications detection: Found 199 exact clones with 3097(2.71%) duplicated lines in 771 (8 formats) files.
+> Duplications detection: Found 197 exact clones with 3084(2.69%) duplicated lines in 771 (8 formats) files.
 
 | Format     | Files analyzed | Total lines | Total tokens | Clones found | Duplicated lines | Duplicated tokens |
 | ---------- | -------------- | ----------- | ------------ | ------------ | ---------------- | ----------------- |
-| python     | 506            | 82200       | 570849       | 131          | 2297 (2.79%)     | 19686 (3.45%)     |
+| python     | 506            | 82295       | 571444       | 129          | 2284 (2.78%)     | 19554 (3.42%)     |
 | javascript | 91             | 8767        | 72506        | 21           | 325 (3.71%)      | 2864 (3.95%)      |
 | jsx        | 57             | 5479        | 47871        | 5            | 51 (0.93%)       | 437 (0.91%)       |
 | typescript | 87             | 11480       | 97742        | 23           | 236 (2.06%)      | 2257 (2.31%)      |
@@ -13,4 +13,4 @@
 | css        | 11             | 2153        | 13859        | 0            | 0 (0%)           | 0 (0%)            |
 | markdown   | 9              | 2024        | 14920        | 0            | 0 (0%)           | 0 (0%)            |
 | tsx        | 7              | 2201        | 19293        | 19           | 188 (8.54%)      | 1733 (8.98%)      |
-| **Total:** | **771**        | **114381**  | **837405**   | **199**      | **3097 (2.71%)** | **26977 (3.22%)** |
+| **Total:** | **771**        | **114476**  | **838000**   | **197**      | **3084 (2.69%)** | **26845 (3.2%)**  |

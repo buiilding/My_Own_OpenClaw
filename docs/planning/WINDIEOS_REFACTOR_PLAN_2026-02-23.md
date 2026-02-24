@@ -1105,3 +1105,25 @@ read_when:
 - Verification:
   - `pytest tests/backend/test_exceptions.py tests/backend/test_validation_utils.py tests/backend/test_api_errors.py` (pass; 57 tests)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
+
+## Phase 25 Outcome (2026-02-24)
+
+- Exception constructor specialization dedupe shipped:
+  - added shared optional-metadata helpers in:
+    - `backend/src/core/infrastructure/exceptions.py`
+      - `_metadata_with_optional_field`
+      - `_merge_trust_boundary_metadata`
+  - centralized subclass default error-code wiring for:
+    - `LLMError` family (`LLMAPIError`, `LLMRateLimitError`)
+    - `MemoryError` family (`MemoryStoreError`, `EmbeddingError`)
+  - extracted shared trust-boundary base constructor flow for:
+    - `_TrustBoundaryError`
+    - `InputSizeLimitError`, `ParseTimeoutError`, `ParseValidationError`
+  - preserved existing exception attributes, metadata include semantics, and error-code values.
+- jscpd delta after Phase 25 slice:
+  - clones: `199 -> 197`
+  - duplicated lines: `3097 -> 3084`
+  - duplicated tokens: `26977 -> 26845`
+- Verification:
+  - `pytest tests/backend/test_exceptions.py tests/backend/test_validation_utils.py tests/backend/test_api_errors.py` (pass; 57 tests)
+  - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
