@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): add phase-61 lint/dead-code revalidation snapshot after IPC query-suite dedupe
 - refactor(frontend-ipc-tests): dedupe `IpcMainBridge` query-suite setup/send parsing boilerplate in `tests/frontend/IpcMainBridge.query.test.cjs` using shared `setupQueryBridge`, `sendQuery`, and `getLastSentMessage` helpers; jscpd improved from clones `163 -> 161` and duplicated lines `2510 -> 2490`
 - refactor(frontend-ipc): extract frontend-config disk persistence from `frontend/src/main/ipc.cjs` into `frontend/src/main/ipc_frontend_config.cjs`, reducing main IPC bridge file size from 692 LOC to 663 LOC while preserving load/save handler behavior and settings-sync bootstrap flow
 - refactor(frontend-chat-message-sender-tests): extract shared send/render/assert helpers in `tests/frontend/ChatMessageSender.test.tsx` to remove repeated hook wiring and query assertions; jscpd snapshot improved from clones `170 -> 163` and duplicated lines `2588 -> 2510`
