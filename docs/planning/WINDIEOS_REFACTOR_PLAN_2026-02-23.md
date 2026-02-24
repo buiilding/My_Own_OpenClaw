@@ -1288,3 +1288,20 @@ read_when:
 - Verification:
   - `pytest tests/backend/test_llm_stream_processor.py tests/backend/test_llm_client.py tests/backend/test_local_llm_providers.py` (pass; 42 tests)
   - `cd frontend && npm run audit:jscpd` (pass; duplicate-lines/tokens reduction confirmed)
+
+## Phase 30 Outcome (2026-02-24)
+
+- Session tool-result delegation wrapper dedupe shipped:
+  - simplified session pass-through methods in:
+    - `backend/src/agent/session/session.py`
+      - `process_frontend_tool_result`
+      - `process_frontend_tool_bundle_result`
+  - switched explicit arg-list wrappers to keyword-forwarding payload wrappers delegated to `ToolResultHandler`.
+  - preserved API handler keyword-call behavior and tool-result routing semantics.
+- jscpd delta after Phase 30 slice:
+  - clones: `194 -> 193`
+  - duplicated lines: `2995 -> 2971`
+  - duplicated tokens: `26397 -> 26296`
+- Verification:
+  - `pytest tests/backend/test_api_handlers.py tests/backend/test_websocket_message_handler.py tests/backend/test_tool_result_handler.py` (pass; 50 tests)
+  - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
