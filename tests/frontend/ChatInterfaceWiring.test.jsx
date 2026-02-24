@@ -43,7 +43,8 @@ jest.mock('../../frontend/src/renderer/features/chat/hooks/useChatMessageSender'
 }));
 
 jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
-  useChatStore: (selector) => (typeof selector === 'function' ? selector(mockChatState) : mockChatState),
+  useChatStore: (selector) =>
+    require('./storeSelectorTestUtils.cjs').selectMockStoreState(selector, mockChatState),
 }));
 
 jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
