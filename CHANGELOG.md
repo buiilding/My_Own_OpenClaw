@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(backend-tool-preparer): extract shared `tool_call_needs_coordinate_resolution` helper in `preparation_helper.py`, reuse it in `ToolPreparer._needs_coordinate_resolution`, and add regression coverage in `tests/backend/test_tool_preparer.py`
 - docs(refactor-plan): add phase-150 full-gate snapshot after sidecar browser-schema split + lazy import type-stub dedupe (frontend lint:audit+knip+jscpd+tests, backend tests, sidecar tests)
 - refactor(sidecar-lazy-import-types): add shared `browser_use.llm._type_stubs` and reuse it in top-level `browser_use` + `browser_use.llm` TYPE_CHECKING imports to reduce duplicated chat-stub import blocks
 - refactor(sidecar-browser-schemas): split OpenClaw compatibility schema into `tools/browser/openclaw_compat_schema.py`, derive compat action registry entries from one source, and add schema-registry coverage for all compat actions

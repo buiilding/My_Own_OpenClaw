@@ -17,6 +17,7 @@ from backend.src.agent.tools.preparation.coordinate_resolution import Coordinate
 from backend.src.agent.tools.preparation.helpers.preparation_helper import (
     attach_coordinate_method_metadata,
     resolve_tool_with_coordinates,
+    tool_call_needs_coordinate_resolution,
 )
 from backend.src.agent.tools.preparation.helpers.vision_service_provider import (
     VisionServiceProvider,
@@ -26,7 +27,6 @@ from backend.src.agent.tools.preparation.screenshot import ScreenshotManager
 from backend.src.agent.tools.preparation.types.execution_ref import ExecutionRef
 from backend.src.agent.tools.preparation.types.resolved_tool_call import ResolvedToolCall
 from backend.src.agent.tools.shared.logging_utils import short_id
-from backend.src.core.types.enums import CoordinateFindingMethod
 from backend.src.llm.parser_types import ParsedToolCall
 
 if TYPE_CHECKING:
@@ -232,11 +232,4 @@ class ToolPreparer:
 
     def _needs_coordinate_resolution(self, tool_call: ParsedToolCall) -> bool:
         """Check if the tool call requires coordinate resolution."""
-        if tool_call.tool_name != "mouse_control":
-            return False
-
-        method = tool_call.parameters.get("find_coordinates_by")
-        return method in (
-            CoordinateFindingMethod.OCR,
-            CoordinateFindingMethod.PREDICTION,
-        )
+        return tool_call_needs_coordinate_resolution(tool_call)

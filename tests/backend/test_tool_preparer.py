@@ -1,6 +1,9 @@
 import pytest
 
 from backend.src.agent.tools.preparation.preparer import ToolPreparer
+from backend.src.agent.tools.preparation.helpers.preparation_helper import (
+    tool_call_needs_coordinate_resolution,
+)
 from backend.src.core.types.enums import CoordinateFindingMethod
 from backend.src.llm.parser import ParsedToolCall
 
@@ -90,3 +93,46 @@ async def test_prepare_mouse_control_manual_sets_coordinate_method_metadata():
     assert result is not None
     assert result.resolved_calls
     assert result.resolved_calls[0].metadata["coordinate_method"] == "manual"
+
+
+def test_tool_call_needs_coordinate_resolution_requires_mouse_control_and_supported_method():
+    assert (
+        tool_call_needs_coordinate_resolution(
+            ParsedToolCall(
+                tool_name="mouse_control",
+                parameters={"find_coordinates_by": CoordinateFindingMethod.OCR},
+                raw_call="{}",
+            )
+        )
+        is True
+    )
+    assert (
+        tool_call_needs_coordinate_resolution(
+            ParsedToolCall(
+                tool_name="mouse_control",
+                parameters={"find_coordinates_by": CoordinateFindingMethod.PREDICTION},
+                raw_call="{}",
+            )
+        )
+        is True
+    )
+    assert (
+        tool_call_needs_coordinate_resolution(
+            ParsedToolCall(
+                tool_name="mouse_control",
+                parameters={"find_coordinates_by": CoordinateFindingMethod.MANUAL},
+                raw_call="{}",
+            )
+        )
+        is False
+    )
+    assert (
+        tool_call_needs_coordinate_resolution(
+            ParsedToolCall(
+                tool_name="read_file",
+                parameters={"find_coordinates_by": CoordinateFindingMethod.OCR},
+                raw_call="{}",
+            )
+        )
+        is False
+    )
