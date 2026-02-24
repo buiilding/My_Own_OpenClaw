@@ -50,6 +50,13 @@ function encodeInt16Samples(samples: number[]): string {
   return Buffer.from(bytes).toString('base64');
 }
 
+function enqueueTwoChunks(service: PlayerService) {
+  const chunk = { audio: encodeInt16Samples([1, 2]), sample_rate: 16000 };
+  service.enqueueAudio(chunk);
+  service.enqueueAudio(chunk);
+  return MockAudioContext.instances[0];
+}
+
 describe('PlayerService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -73,12 +80,7 @@ describe('PlayerService', () => {
 
   test('plays queued chunks sequentially after source end', () => {
     const service = new PlayerService();
-    const chunk = { audio: encodeInt16Samples([1, 2]), sample_rate: 16000 };
-
-    service.enqueueAudio(chunk);
-    service.enqueueAudio(chunk);
-
-    const context = MockAudioContext.instances[0];
+    const context = enqueueTwoChunks(service);
     expect(context.createBufferSource).toHaveBeenCalledTimes(1);
 
     context.sources[0].onended?.();
@@ -87,12 +89,7 @@ describe('PlayerService', () => {
 
   test('stopPlayback stops active source and prevents stale onended from continuing playback', () => {
     const service = new PlayerService();
-    const chunk = { audio: encodeInt16Samples([1, 2]), sample_rate: 16000 };
-
-    service.enqueueAudio(chunk);
-    service.enqueueAudio(chunk);
-
-    const context = MockAudioContext.instances[0];
+    const context = enqueueTwoChunks(service);
     const firstSource = context.sources[0];
 
     service.stopPlayback();

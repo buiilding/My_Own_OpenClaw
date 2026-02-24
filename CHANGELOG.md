@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-player-service-tests): dedupe repeated two-chunk queue fixture setup in `tests/frontend/PlayerService.test.ts` via `enqueueTwoChunks`; jscpd improved from clones `136 -> 135` and duplicated lines `2233 -> 2225`
 - refactor(frontend-transcript-session-state-tests): tighten lazy-load assertion in `tests/frontend/TranscriptSessionState.test.ts` (`expect(readStoredSessionInfo).not.toHaveBeenCalled()` before first `get`) to remove duplicate fixture shape while preserving behavior checks; jscpd improved from clones `137 -> 136` and duplicated lines `2238 -> 2233`
 - refactor(frontend-transcript-session-tests): extract shared transcript-session event harness (`tests/frontend/transcriptSessionEvent.testUtils.ts`) and reuse it in `tests/frontend/TranscriptWriter.session.test.ts` + `tests/frontend/TranscriptStorage.test.ts`; jscpd improved from clones `138 -> 137` and duplicated lines `2244 -> 2238`
 - refactor(frontend-transcript-writer-tests): dedupe repeated store-failure retry scaffolding in `tests/frontend/TranscriptWriter.tool.test.ts` and `tests/frontend/TranscriptWriter.userAssistant.test.ts` via shared helpers in `tests/frontend/TranscriptWriter.testUtils.ts` (`setupStoreFailureRetry`, `withSuppressedConsoleWarn`); jscpd improved from clones `139 -> 138` and duplicated lines `2251 -> 2244`

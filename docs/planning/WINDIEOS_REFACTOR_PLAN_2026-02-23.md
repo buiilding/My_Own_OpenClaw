@@ -2381,3 +2381,20 @@ read_when:
     - clones: `137 -> 136`
     - duplicated lines: `2238 -> 2233`
     - duplicated tokens: `19650 -> 19560`
+
+## Phase 81 Outcome (2026-02-24)
+
+- Player service test duplication cleanup shipped:
+  - added `enqueueTwoChunks` helper in `tests/frontend/PlayerService.test.ts`.
+  - reused helper in sequential playback and stop-playback stale callback tests.
+  - no behavior change; queue/stop assertions preserved.
+- Verification:
+  - `cd frontend && npx jest ../tests/frontend/PlayerService.test.ts --runInBand` (pass; 9 tests)
+  - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
+  - `cd frontend && npm run audit:knip` (pass)
+  - `cd frontend && npm run audit:jscpd` (pass)
+  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - jscpd snapshot deltas:
+    - clones: `136 -> 135`
+    - duplicated lines: `2233 -> 2225`
+    - duplicated tokens: `19560 -> 19470`
