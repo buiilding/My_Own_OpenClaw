@@ -15,6 +15,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**OpenClaw Docs Structure Reference**](reference/OPENCLAW_DOCS_STRUCTURE_REFERENCE.md) - Structure benchmark and WindieOS mapping
 - [**Backend Bootstrap/API/Contracts Hubs**](backend/README.md) - Subfolder-level backend navigation mirroring OpenClaw-style layered docs
 - [**Frontend Main/Renderer/Contracts/Sidecar Hubs**](frontend/README.md) - Subfolder-level frontend navigation for process/runtime boundaries
+- [**Backend Config/LLM/Services Hubs**](backend/README.md) - Additional backend sub-hub navigation for config policy, model stack, and runtime services
 
 ### Getting Started
 - [**Product Overview**](getting-started/PRODUCT_OVERVIEW.md) - Non-technical summary of current capabilities and future direction
