@@ -12,8 +12,11 @@ title: "Frontend Sidecar Docs Hub"
 
 - [Python Sidecar and Memory](python_sidecar_and_memory.md)
 - [Sidecar System-State Docs Hub](system_state/README.md)
+- [Sidecar Tools Docs Hub](tools/README.md)
 - [System-State Collection and Platform Adapter Reference](system_state/system_state_collection_and_platform_adapter_reference.md)
 - [Sidecar Tool Catalog and Execution Model](tool_catalog_and_execution_model.md)
+- [Shell and Process Session Runtime Reference](tools/shell_and_process_session_runtime_reference.md)
+- [Filesystem Read and Replace Runtime Reference](tools/filesystem_read_replace_runtime_reference.md)
 - [Memory Pipeline and Summarization](memory_pipeline_and_summarization.md)
 - [Browser Automation Stack](browser_automation_stack.md)
 - [Browser Action Compatibility and Runtime Reference](browser_action_compatibility_and_runtime_reference.md)

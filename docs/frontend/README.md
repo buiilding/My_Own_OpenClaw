@@ -55,9 +55,12 @@ This hub documents WindieOS frontend implementation details across Electron main
 
 - [Sidecar Docs Hub](sidecar/README.md)
 - [Sidecar System-State Docs Hub](sidecar/system_state/README.md)
+- [Sidecar Tools Docs Hub](sidecar/tools/README.md)
 - [Python Sidecar and Memory](sidecar/python_sidecar_and_memory.md)
 - [Sidecar System-State Collection and Platform Adapter Reference](sidecar/system_state/system_state_collection_and_platform_adapter_reference.md)
 - [Sidecar Tool Catalog and Execution Model](sidecar/tool_catalog_and_execution_model.md)
+- [Sidecar Shell and Process Session Runtime Reference](sidecar/tools/shell_and_process_session_runtime_reference.md)
+- [Sidecar Filesystem Read and Replace Runtime Reference](sidecar/tools/filesystem_read_replace_runtime_reference.md)
 - [Memory Pipeline and Summarization](sidecar/memory_pipeline_and_summarization.md)
 - [Browser Automation Stack](sidecar/browser_automation_stack.md)
 - [Browser Action Compatibility and Runtime Reference](sidecar/browser_action_compatibility_and_runtime_reference.md)
