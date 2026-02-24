@@ -1,12 +1,11 @@
 import sqlite3
-import sys
 from pathlib import Path
 
 import numpy as np
 import pytest
+from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 
-frontend_python_dir = Path(__file__).resolve().parents[2] / "frontend" / "src" / "main" / "python"
-sys.path.insert(0, str(frontend_python_dir))
+ensure_frontend_python_path()
 
 from memory.local_store import LocalMemoryStore  # noqa: E402
 

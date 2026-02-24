@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-test-bootstrap): extend shared `ensure_frontend_python_path()` reuse to `tests/sidecar/test_json_rpc_protocol.py`, `tests/sidecar/test_linux_window_manager.py`, and `tests/sidecar/test_local_store_delete_cleanup.py` to remove repeated import-path setup boilerplate
 - docs(refactor-plan): add phase-113 full-gate snapshot after sidecar test bootstrap helper reuse wave (frontend audits/tests + backend + sidecar)
 - refactor(sidecar-test-bootstrap): reuse `ensure_frontend_python_path()` from `tests/sidecar/remote_client_test_utils.py` in selected sidecar suites (`test_backend_config.py`, `test_file_utils.py`, `test_runtime_shutdown.py`, `test_stdout_json.py`, `test_system_state.py`) to remove repeated frontend-python path prelude boilerplate
 - docs(refactor-plan): add phase-112 full-gate snapshot after sidecar stdout-json harness dedupe wave (frontend audits/tests + backend + sidecar)
