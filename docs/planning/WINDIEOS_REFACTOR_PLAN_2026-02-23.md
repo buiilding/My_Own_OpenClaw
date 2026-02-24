@@ -2571,3 +2571,19 @@ read_when:
     - clones: `128 -> 127`
     - duplicated lines: `2147 -> 2138`
     - duplicated tokens: `18798 -> 18728`
+
+## Phase 92 Outcome (2026-02-24)
+
+- Full-gate revalidation after chatbox/app-status dedupe wave (Phases 90-91):
+  - frontend lint audits:
+    - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
+  - dead-code audit:
+    - `cd frontend && npm run audit:knip` (pass)
+  - duplication audit:
+    - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `127`, duplicated lines `2138`, duplicated tokens `18728`)
+  - frontend tests:
+    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - backend tests:
+    - `./scripts/test-backend` (pass; 966 tests)
+  - sidecar tests:
+    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
