@@ -121,44 +121,23 @@ async def test_perform_handshake_large_payload_uses_executor(monkeypatch) -> Non
 
 
 @pytest.mark.asyncio
-async def test_perform_handshake_invalid_json_closes_socket() -> None:
-    websocket = DummyWebSocket("{not-json")
-    safe_ws = DummySafeWebSocket()
-
-    assigned_user_id = await perform_handshake(websocket, safe_ws)
-
-    assert assigned_user_id is None
-    assert safe_ws.closed
-    assert safe_ws.closed[0][0] == 1008
-
-
-@pytest.mark.asyncio
-async def test_perform_handshake_invalid_payload_closes_socket() -> None:
-    websocket = DummyWebSocket(json.dumps({"type": "handshake"}))
-    safe_ws = DummySafeWebSocket()
-
-    assigned_user_id = await perform_handshake(websocket, safe_ws)
-
-    assert assigned_user_id is None
-    assert safe_ws.closed
-    assert safe_ws.closed[0][0] == 1008
-
-
-@pytest.mark.asyncio
-async def test_perform_handshake_invalid_user_id_closes_socket() -> None:
-    websocket = DummyWebSocket(json.dumps({"type": "handshake", "user_id": "   "}))
-    safe_ws = DummySafeWebSocket()
-
-    assigned_user_id = await perform_handshake(websocket, safe_ws)
-
-    assert assigned_user_id is None
-    assert safe_ws.closed
-    assert safe_ws.closed[0][0] == 1008
-
-
-@pytest.mark.asyncio
-async def test_perform_handshake_non_object_payload_closes_socket() -> None:
-    websocket = DummyWebSocket(json.dumps(["handshake", "client_user"]))
+@pytest.mark.parametrize(
+    "payload",
+    [
+        "{not-json",
+        json.dumps({"type": "handshake"}),
+        json.dumps({"type": "handshake", "user_id": "   "}),
+        json.dumps(["handshake", "client_user"]),
+    ],
+    ids=[
+        "invalid-json",
+        "missing-user-id",
+        "blank-user-id",
+        "non-object-payload",
+    ],
+)
+async def test_perform_handshake_invalid_payloads_close_socket(payload: str) -> None:
+    websocket = DummyWebSocket(payload)
     safe_ws = DummySafeWebSocket()
 
     assigned_user_id = await perform_handshake(websocket, safe_ws)
