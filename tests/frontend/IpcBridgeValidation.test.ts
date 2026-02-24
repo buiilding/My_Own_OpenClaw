@@ -1,24 +1,17 @@
-const setupIpc = () => {
-  (window as any).ipc = {
-    send: jest.fn(),
-    invoke: jest.fn().mockResolvedValue('ok'),
-    on: jest.fn().mockReturnValue(() => undefined),
-    once: jest.fn(),
-  };
-};
+import { clearMockIpc, installMockIpc } from './ipcBridge.testUtils';
 
 describe('IpcBridge validation', () => {
   const originalEnv = process.env.NODE_ENV;
 
   afterEach(() => {
     process.env.NODE_ENV = originalEnv;
-    delete (window as any).ipc;
+    clearMockIpc();
   });
 
   test('throws on invalid channels in development', async () => {
     process.env.NODE_ENV = 'development';
     jest.resetModules();
-    setupIpc();
+    installMockIpc();
 
     const { IpcBridge } = require('../../frontend/src/renderer/infrastructure/ipc/bridge');
 
@@ -39,7 +32,7 @@ describe('IpcBridge validation', () => {
   test('skips channel validation in production', async () => {
     process.env.NODE_ENV = 'production';
     jest.resetModules();
-    setupIpc();
+    installMockIpc();
 
     const { IpcBridge } = require('../../frontend/src/renderer/infrastructure/ipc/bridge');
 
