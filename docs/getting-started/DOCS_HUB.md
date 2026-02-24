@@ -54,6 +54,7 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 - [Backend OCR + Vision Coordinate Runtime Reference](../backend/services/OCR_AND_VISION_COORDINATE_RUNTIME_REFERENCE.md)
 - [Backend Tool Result Ingress Reference](../backend/tools/TOOL_RESULT_INGRESS_AND_STORAGE_REFERENCE.md)
 - [Backend Tool Preparation + Coordinate Resolution Reference](../backend/tools/TOOL_PREPARATION_AND_COORDINATE_RESOLUTION_REFERENCE.md)
+- [Backend Tool Security Policy + Executor Reference](../backend/tools/TOOL_SECURITY_POLICY_AND_EXECUTOR_REFERENCE.md)
 - [Backend Config Runtime Policy](../backend/config/CONFIG_FIELDS_AND_RUNTIME_POLICY.md)
 - [Backend Endpoint Reference](../backend/api/HTTP_AND_WS_ENDPOINT_REFERENCE.md)
 - [Backend App Assembly + Container Dependency Reference](../backend/api/APP_ASSEMBLY_AND_CONTAINER_DEPENDENCY_REFERENCE.md)

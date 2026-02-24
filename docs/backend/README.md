@@ -56,6 +56,7 @@ Covers:
 - [Token Count Event and Usage Diagnostics Reference](runtime/TOKEN_COUNT_EVENT_AND_USAGE_DIAGNOSTICS_REFERENCE.md)
 - [Tools Docs Hub](tools/README.md)
 - [Frontend Tool Bridge and Policy](tools/FRONTEND_TOOL_BRIDGE_AND_POLICY.md)
+- [Tool Security Policy and Executor Reference](tools/TOOL_SECURITY_POLICY_AND_EXECUTOR_REFERENCE.md)
 - [Tool Result Ingress and Storage Reference](tools/TOOL_RESULT_INGRESS_AND_STORAGE_REFERENCE.md)
 - [Tool Preparation and Coordinate Resolution Reference](tools/TOOL_PREPARATION_AND_COORDINATE_RESOLUTION_REFERENCE.md)
 
