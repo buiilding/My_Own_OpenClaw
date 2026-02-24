@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): add phase-131 full-gate snapshot after shared uvicorn-runner entrypoint extraction (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)
 - refactor(backend-entrypoints): add shared `run_uvicorn_app` helper in `backend/src/core/bootstrap/entrypoint.py` and switch `backend/src/main.py`, `backend/src/simulation/main.py`, and `backend/src/simulation/browser.py` to use it for consistent launch/access-log behavior; jscpd totals held at clones `66`, duplicated lines `1330`
 - docs(refactor-plan): add phase-130 full-gate snapshot after simulation entrypoint lifecycle-helper extraction (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)
 - refactor(simulation-entrypoints): extract shared simulation lifespan bootstrap (`backend/src/simulation/lifespan_factory.py`) and shared entrypoint logging/access-log helpers (`backend/src/core/bootstrap/entrypoint.py`), then wire `backend/src/main.py`, `backend/src/simulation/main.py`, and `backend/src/simulation/browser.py` to the new helpers; jscpd improved from clones `68 -> 66` and duplicated lines `1367 -> 1330`
