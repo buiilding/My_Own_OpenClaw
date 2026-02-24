@@ -80,6 +80,19 @@ class Registry(Generic[Context]):
 			'extraction_schema': None,  # dict | None, skip type validation
 		}
 
+	@staticmethod
+	def _raise_missing_special_parameter(action_name: str, param_name: str) -> None:
+		"""Raise a consistent missing-special-parameter error."""
+		if param_name in {
+			'browser_session',
+			'page_extraction_llm',
+			'file_system',
+			'page',
+			'available_file_paths',
+		}:
+			raise ValueError(f'Action {action_name} requires {param_name} but none provided.')
+		raise ValueError(f"{action_name}() missing required special parameter '{param_name}'")
+
 	def _normalize_action_function_signature(
 		self,
 		func: Callable,
@@ -217,47 +230,21 @@ class Registry(Generic[Context]):
 						value = kwargs[param.name]
 						# Check if required special param is None
 						if value is None and param.default == Parameter.empty:
-							if param.name == 'browser_session':
-								raise ValueError(f'Action {func.__name__} requires browser_session but none provided.')
-							elif param.name == 'page_extraction_llm':
-								raise ValueError(f'Action {func.__name__} requires page_extraction_llm but none provided.')
-							elif param.name == 'file_system':
-								raise ValueError(f'Action {func.__name__} requires file_system but none provided.')
-							elif param.name == 'page':
-								raise ValueError(f'Action {func.__name__} requires page but none provided.')
-							elif param.name == 'available_file_paths':
-								raise ValueError(f'Action {func.__name__} requires available_file_paths but none provided.')
-							elif param.name == 'file_system':
-								raise ValueError(f'Action {func.__name__} requires file_system but none provided.')
-							else:
-								raise ValueError(f"{func.__name__}() missing required special parameter '{param.name}'")
+							self._raise_missing_special_parameter(func.__name__, param.name)
 						call_args.append(value)
 					elif param.default != Parameter.empty:
 						call_args.append(param.default)
 					else:
 						# Special param is required but not provided
-						if param.name == 'browser_session':
-							raise ValueError(f'Action {func.__name__} requires browser_session but none provided.')
-						elif param.name == 'page_extraction_llm':
-							raise ValueError(f'Action {func.__name__} requires page_extraction_llm but none provided.')
-						elif param.name == 'file_system':
-							raise ValueError(f'Action {func.__name__} requires file_system but none provided.')
-						elif param.name == 'page':
-							raise ValueError(f'Action {func.__name__} requires page but none provided.')
-						elif param.name == 'available_file_paths':
-							raise ValueError(f'Action {func.__name__} requires available_file_paths but none provided.')
-						elif param.name == 'file_system':
-							raise ValueError(f'Action {func.__name__} requires file_system but none provided.')
-						else:
-							raise ValueError(f"{func.__name__}() missing required special parameter '{param.name}'")
+						self._raise_missing_special_parameter(func.__name__, param.name)
+			else:
+				# This is an action parameter
+				if param.name in params_dict:
+					call_args.append(params_dict[param.name])
+				elif param.default != Parameter.empty:
+					call_args.append(param.default)
 				else:
-					# This is an action parameter
-					if param.name in params_dict:
-						call_args.append(params_dict[param.name])
-					elif param.default != Parameter.empty:
-						call_args.append(param.default)
-					else:
-						raise ValueError(f"{func.__name__}() missing required parameter '{param.name}'")
+					raise ValueError(f"{func.__name__}() missing required parameter '{param.name}'")
 
 			# Call original function with positional args
 			if iscoroutinefunction(func):

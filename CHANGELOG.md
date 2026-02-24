@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-browser-use-registry): extract shared `_raise_missing_special_parameter` in `frontend/src/main/python/tools/browser/browser_use/tools/registry/service.py` and add `tests/sidecar/tools/test_browser_use_registry_service.py` to lock required-special-parameter error behavior for both direct wrapper invocation and `execute_action`; jscpd improved from clones `65 -> 64` and duplicated lines `1322 -> 1308`
 - docs(refactor-plan): add phase-132 full-gate snapshot after sidecar browser checked-state resolver extraction (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)
 - refactor(sidecar-browser-utils): extract shared `_resolve_checked_state` helper in `frontend/src/main/python/tools/browser/browser_use/tools/utils.py` to remove repeated AX checkbox-state fallback logic in click descriptions; jscpd improved from clones `66 -> 65` and duplicated lines `1330 -> 1322`
 - docs(refactor-plan): add phase-131 full-gate snapshot after shared uvicorn-runner entrypoint extraction (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)
