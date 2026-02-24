@@ -204,13 +204,14 @@ describe('ChatBox overlay mouse ignore', () => {
   test('shows ambient active app indicator from system-state polling', async () => {
     mockInvoke.mockImplementation((channel) => {
       if (channel === 'get-system-state') {
-        return Promise.resolve({ active_window: 'Inbox - Chrome' });
+        return Promise.resolve({ active_window: 'main.py - Visual Studio Code' });
       }
       return Promise.resolve({ success: true });
     });
 
     render(<ChatBox />);
 
-    expect(await screen.findByLabelText('Active app: Chrome')).toBeInTheDocument();
+    expect(await screen.findByLabelText('Active app: Code')).toBeInTheDocument();
+    expect(screen.getByText('ED')).toBeInTheDocument();
   });
 });
