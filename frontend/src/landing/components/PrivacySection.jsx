@@ -1,3 +1,6 @@
+import SectionIntro from './SectionIntro';
+import ProviderStackIcon from './icons/ProviderStackIcon';
+
 const PrivacySection = () => {
   const privacyFeatures = [
     {
@@ -42,13 +45,7 @@ const PrivacySection = () => {
       description: 'WindieOS is open source. You can inspect the code, verify what data is collected, and modify it to meet your specific privacy requirements.'
     },
     {
-      icon: (
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-          <path d="M2 17l10 5 10-5"/>
-          <path d="M2 12l10 5 10-5"/>
-        </svg>
-      ),
+      icon: <ProviderStackIcon />,
       title: 'Provider Choice',
       description: 'Use local models via Ollama for complete privacy, or choose your preferred cloud provider. You control where your data goes.'
     },
@@ -86,13 +83,7 @@ const PrivacySection = () => {
     {
       title: 'Your Choice',
       detail: 'Pick your LLM provider',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-          <path d="M2 17l10 5 10-5"/>
-          <path d="M2 12l10 5 10-5"/>
-        </svg>
-      ),
+      icon: <ProviderStackIcon size={20} />,
     },
   ];
 
@@ -101,18 +92,13 @@ const PrivacySection = () => {
       <div className="container">
         <div className="privacy-grid">
           <div className="privacy-content">
-            <span className="badge badge-primary mb-4">Privacy & Trust</span>
-            
-            <h2 className="heading-2 mb-4">
-              Your data.
-              <br />
-              <span className="gradient-text">Your control.</span>
-            </h2>
-            
-            <p className="text-large text-secondary mb-6">
-              WindieOS is built on a local-first philosophy. We believe AI assistants 
-              should enhance your productivity without compromising your privacy.
-            </p>
+            <SectionIntro
+              badge="Privacy & Trust"
+              headingPrefix="Your data."
+              headingGradient="Your control."
+              description="WindieOS is built on a local-first philosophy. We believe AI assistants should enhance your productivity without compromising your privacy."
+              descriptionClassName="text-large text-secondary mb-6"
+            />
             
             <div className="privacy-highlights">
               {privacyHighlights.map((highlight) => (

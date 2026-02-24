@@ -714,3 +714,27 @@ read_when:
   - `cd frontend && npm run test:ci` (pass; 81 suites)
   - `cd frontend && npm run audit:knip` (pass; no findings)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
+
+## Phase 16 Outcome (2026-02-23)
+
+- Landing section intro dedupe shipped:
+  - added shared `SectionIntro` component at `frontend/src/landing/components/SectionIntro.jsx`.
+  - migrated shared badge/heading/description intro markup in:
+    - `frontend/src/landing/components/WhySection.jsx`
+    - `frontend/src/landing/components/PrivacySection.jsx`
+- Additional landing icon dedupe shipped:
+  - added shared `ProviderStackIcon` component at `frontend/src/landing/components/icons/ProviderStackIcon.jsx`.
+  - replaced repeated provider-stack SVG blocks in:
+    - `frontend/src/landing/components/WhySection.jsx`
+    - `frontend/src/landing/components/PrivacySection.jsx`
+    - `frontend/src/landing/components/CTAFooter.jsx`
+- jscpd delta after Phase 16 slice:
+  - clones: `218 -> 215`
+  - duplicated lines: `3264 -> 3244`
+  - duplicated tokens: `28722 -> 28487`
+- Verification:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/landing/LandingPage.test.jsx` (pass)
+  - `cd frontend && npm run test:ci` (pass; 81 suites)
+  - `cd frontend && npm run audit:knip` (pass; no findings)
+  - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
