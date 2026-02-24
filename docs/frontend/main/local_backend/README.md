@@ -12,6 +12,8 @@ title: "Frontend Main Local-Backend Docs Hub"
 
 - [Local-Backend Process Lifecycle, Readiness, and Request-Correlation Reference](process_lifecycle_readiness_and_request_correlation_reference.md)
 - [Local-Backend RPC Handler Registry and Payload-Mapper Reference](rpc_handler_registry_and_payload_mapper_reference.md)
+- [Local-Backend Windows Docs Hub](windows/README.md)
+- [Window Resolver Shapes and Linux Screenshot Hide/Restore Orchestration Reference](windows/window_resolver_shapes_and_linux_screenshot_hide_restore_orchestration_reference.md)
 
 ## Related Pages
 

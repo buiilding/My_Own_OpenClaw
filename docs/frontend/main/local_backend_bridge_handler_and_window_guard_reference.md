@@ -17,6 +17,8 @@ This page is the entrypoint for Electron-main local-backend bridge behavior. Det
 - [Frontend Main Local-Backend Docs Hub](local_backend/README.md)
 - [Local-Backend Process Lifecycle, Readiness, and Request-Correlation Reference](local_backend/process_lifecycle_readiness_and_request_correlation_reference.md)
 - [Local-Backend RPC Handler Registry and Payload-Mapper Reference](local_backend/rpc_handler_registry_and_payload_mapper_reference.md)
+- [Local-Backend Windows Docs Hub](local_backend/windows/README.md)
+- [Window Resolver Shapes and Linux Screenshot Hide/Restore Orchestration Reference](local_backend/windows/window_resolver_shapes_and_linux_screenshot_hide_restore_orchestration_reference.md)
 
 ## Window Guard Docs (Detailed)
 
