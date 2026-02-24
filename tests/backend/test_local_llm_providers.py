@@ -20,12 +20,21 @@ class DummyResponse:
         return self._payload
 
 
+def _patch_provider_get(monkeypatch: pytest.MonkeyPatch, provider, response):
+    get_mock = AsyncMock(return_value=response)
+    monkeypatch.setattr(
+        provider,
+        "_get_http_client",
+        AsyncMock(return_value=type("Client", (), {"get": get_mock})()),
+    )
+    return get_mock
+
+
 @pytest.mark.asyncio
 async def test_ollama_list_models_uses_root_tags_endpoint(monkeypatch):
     provider = OllamaProvider(base_url="http://localhost:11434/v1")
     response = DummyResponse(200, {"models": [{"name": "llama3:latest"}]})
-    get_mock = AsyncMock(return_value=response)
-    monkeypatch.setattr(provider, "_get_http_client", AsyncMock(return_value=type("Client", (), {"get": get_mock})()))
+    get_mock = _patch_provider_get(monkeypatch, provider, response)
 
     models = await provider.list_models()
 
@@ -39,8 +48,7 @@ async def test_ollama_list_models_uses_root_tags_endpoint(monkeypatch):
 async def test_ollama_list_models_returns_empty_on_non_200(monkeypatch):
     provider = OllamaProvider(base_url="http://localhost:11434/v1")
     response = DummyResponse(503, {"error": "unavailable"})
-    get_mock = AsyncMock(return_value=response)
-    monkeypatch.setattr(provider, "_get_http_client", AsyncMock(return_value=type("Client", (), {"get": get_mock})()))
+    _patch_provider_get(monkeypatch, provider, response)
 
     assert await provider.list_models() == []
 
@@ -49,8 +57,7 @@ async def test_ollama_list_models_returns_empty_on_non_200(monkeypatch):
 async def test_ollama_list_models_handles_non_list_models_field(monkeypatch):
     provider = OllamaProvider(base_url="http://localhost:11434/v1")
     response = DummyResponse(200, {"models": {"name": "not-a-list"}})
-    get_mock = AsyncMock(return_value=response)
-    monkeypatch.setattr(provider, "_get_http_client", AsyncMock(return_value=type("Client", (), {"get": get_mock})()))
+    _patch_provider_get(monkeypatch, provider, response)
 
     assert await provider.list_models() == []
 
@@ -59,8 +66,7 @@ async def test_ollama_list_models_handles_non_list_models_field(monkeypatch):
 async def test_ollama_list_models_uses_default_host_for_v1_only_base_url(monkeypatch):
     provider = OllamaProvider(base_url="/v1")
     response = DummyResponse(200, {"models": []})
-    get_mock = AsyncMock(return_value=response)
-    monkeypatch.setattr(provider, "_get_http_client", AsyncMock(return_value=type("Client", (), {"get": get_mock})()))
+    get_mock = _patch_provider_get(monkeypatch, provider, response)
 
     await provider.list_models()
 
@@ -71,8 +77,7 @@ async def test_ollama_list_models_uses_default_host_for_v1_only_base_url(monkeyp
 async def test_lmstudio_list_models_handles_non_list_payload(monkeypatch):
     provider = LMStudioProvider(base_url="http://localhost:1234/v1")
     response = DummyResponse(200, {"data": {"id": "should-be-list"}})
-    get_mock = AsyncMock(return_value=response)
-    monkeypatch.setattr(provider, "_get_http_client", AsyncMock(return_value=type("Client", (), {"get": get_mock})()))
+    _patch_provider_get(monkeypatch, provider, response)
 
     assert await provider.list_models() == []
 
@@ -81,8 +86,7 @@ async def test_lmstudio_list_models_handles_non_list_payload(monkeypatch):
 async def test_lmstudio_list_models_returns_models(monkeypatch):
     provider = LMStudioProvider(base_url="http://localhost:1234/v1")
     response = DummyResponse(200, {"data": [{"id": "model-a"}, {"id": "model-b"}]})
-    get_mock = AsyncMock(return_value=response)
-    monkeypatch.setattr(provider, "_get_http_client", AsyncMock(return_value=type("Client", (), {"get": get_mock})()))
+    get_mock = _patch_provider_get(monkeypatch, provider, response)
 
     models = await provider.list_models()
 
@@ -100,12 +104,7 @@ async def test_ollama_list_models_filters_invalid_rows(monkeypatch):
         200,
         {"models": [{"name": "ok-model"}, {"name": ""}, {"name": None}, "bad-row"]},
     )
-    get_mock = AsyncMock(return_value=response)
-    monkeypatch.setattr(
-        provider,
-        "_get_http_client",
-        AsyncMock(return_value=type("Client", (), {"get": get_mock})()),
-    )
+    _patch_provider_get(monkeypatch, provider, response)
 
     models = await provider.list_models()
 
@@ -132,12 +131,7 @@ async def test_lmstudio_list_models_trims_and_filters_blank_ids(monkeypatch):
         200,
         {"data": [{"id": "  model-a  "}, {"id": "   "}, {"id": None}]},
     )
-    get_mock = AsyncMock(return_value=response)
-    monkeypatch.setattr(
-        provider,
-        "_get_http_client",
-        AsyncMock(return_value=type("Client", (), {"get": get_mock})()),
-    )
+    _patch_provider_get(monkeypatch, provider, response)
 
     models = await provider.list_models()
 

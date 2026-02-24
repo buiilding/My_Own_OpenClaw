@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(backend-local-provider-tests): extract shared `_patch_provider_get` helper in `tests/backend/test_local_llm_providers.py` to dedupe repeated client-mock wiring across Ollama/LMStudio list-model tests; jscpd improved from clones `99 -> 95` and duplicated lines `1746 -> 1712`
 - docs(refactor-plan): add phase-120 full-gate snapshot after backend parser-validation helper dedupe wave (frontend audits/tests + backend + sidecar)
 - refactor(backend-parser-validation-tests): add shared validator-construction helper (`_make_validator_for_registry`) in `tests/backend/test_parser_validation.py` and reuse it across registry/metadata/cache tests to remove repeated setup blocks; jscpd improved from clones `101 -> 99` and duplicated lines `1766 -> 1746`
 - docs(refactor-plan): add phase-119 full-gate snapshot after backend coordinate-scaling test helper dedupe wave (frontend audits/tests + backend + sidecar)
