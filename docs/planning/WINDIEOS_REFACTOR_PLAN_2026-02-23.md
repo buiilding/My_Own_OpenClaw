@@ -2285,3 +2285,25 @@ read_when:
     - `./scripts/test-backend` (pass; 966 tests)
   - sidecar tests:
     - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+
+## Phase 76 Outcome (2026-02-24)
+
+- Tool bundle runner test-suite duplication cleanup shipped:
+  - extracted shared helpers/constants in `tests/frontend/ToolExecutionBundleRunner.test.ts`:
+    - `READ_FILE_STEP`
+    - `MOUSE_CLICK_STEP`
+    - `runReadFileBundle`
+    - `runDefaultTwoStepBundle`
+    - `expectSingleStepResult`
+  - removed repeated inline read-file bundle fixtures and repeated single-step result assertions while preserving all bundle-runner success/failure/capture-path checks.
+- Verification:
+  - `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/ToolExecutionBundleRunner.test.ts --watch=false` (pass; 9 tests)
+  - `cd frontend && npm run lint -- --quiet` (pass)
+  - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
+  - `cd frontend && npm run audit:knip` (pass)
+  - `cd frontend && npm run audit:jscpd` (pass)
+  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - jscpd snapshot deltas:
+    - clones: `142 -> 139`
+    - duplicated lines: `2279 -> 2251`
+    - duplicated tokens: `20137 -> 19857`

@@ -22,6 +22,20 @@ import {
 const mockInvokeTool = invokeTool as jest.MockedFunction<typeof invokeTool>;
 const mockCaptureAfterTool = captureAfterTool as jest.MockedFunction<typeof captureAfterTool>;
 const mockIsComputerUseTool = isComputerUseTool as jest.MockedFunction<typeof isComputerUseTool>;
+const READ_FILE_STEP = { toolName: 'read_file', args: { file_path: '/tmp/a' } };
+const MOUSE_CLICK_STEP = { toolName: 'mouse_control', args: { action: 'click', x: 1, y: 2 } };
+
+const runReadFileBundle = () => runToolBundle([READ_FILE_STEP]);
+const runDefaultTwoStepBundle = () => runToolBundle([READ_FILE_STEP, MOUSE_CLICK_STEP]);
+const expectSingleStepResult = (
+  outcome: Awaited<ReturnType<typeof runReadFileBundle>>,
+  status: 'ok' | 'error',
+  output: string,
+) => {
+  expect(outcome.stepResults).toEqual([
+    { tool: 'read_file', status, output },
+  ]);
+};
 
 describe('ToolExecutionBundleRunner', () => {
   beforeEach(() => {
@@ -55,16 +69,13 @@ describe('ToolExecutionBundleRunner', () => {
       captureTime: 0.03,
     });
 
-    const outcome = await runToolBundle([
-      { toolName: 'read_file', args: { file_path: '/tmp/a' } },
-      { toolName: 'mouse_control', args: { action: 'click', x: 1, y: 2 } },
-    ]);
+    const outcome = await runDefaultTwoStepBundle();
 
-    expect(mockInvokeTool).toHaveBeenNthCalledWith(1, 'read_file', { file_path: '/tmp/a' }, true);
-    expect(mockInvokeTool).toHaveBeenNthCalledWith(2, 'mouse_control', { action: 'click', x: 1, y: 2 }, true);
+    expect(mockInvokeTool).toHaveBeenNthCalledWith(1, READ_FILE_STEP.toolName, READ_FILE_STEP.args, true);
+    expect(mockInvokeTool).toHaveBeenNthCalledWith(2, MOUSE_CLICK_STEP.toolName, MOUSE_CLICK_STEP.args, true);
     expect(mockCaptureAfterTool).toHaveBeenCalledWith(
       'mouse_control',
-      { action: 'click', x: 1, y: 2 },
+      MOUSE_CLICK_STEP.args,
       true,
       0,
     );
@@ -87,10 +98,7 @@ describe('ToolExecutionBundleRunner', () => {
       toolInvokeTime: 0.01,
     });
 
-    const outcome = await runToolBundle([
-      { toolName: 'read_file', args: { file_path: '/tmp/a' } },
-      { toolName: 'mouse_control', args: { action: 'click', x: 1, y: 2 } },
-    ]);
+    const outcome = await runDefaultTwoStepBundle();
 
     expect(mockInvokeTool).toHaveBeenCalledTimes(1);
     expect(outcome.stepResults).toEqual([
@@ -101,38 +109,26 @@ describe('ToolExecutionBundleRunner', () => {
   test('converts thrown non-error values to step output text', async () => {
     mockInvokeTool.mockRejectedValueOnce('bad failure');
 
-    const outcome = await runToolBundle([
-      { toolName: 'read_file', args: { file_path: '/tmp/a' } },
-    ]);
+    const outcome = await runReadFileBundle();
 
-    expect(outcome.stepResults).toEqual([
-      { tool: 'read_file', status: 'error', output: 'bad failure' },
-    ]);
+    expectSingleStepResult(outcome, 'error', 'bad failure');
     expect(outcome.toolExecutionTimes).toHaveLength(1);
   });
 
   test('uses Error.message when invokeTool throws an Error', async () => {
     mockInvokeTool.mockRejectedValueOnce(new Error('explicit error'));
 
-    const outcome = await runToolBundle([
-      { toolName: 'read_file', args: { file_path: '/tmp/a' } },
-    ]);
+    const outcome = await runReadFileBundle();
 
-    expect(outcome.stepResults).toEqual([
-      { tool: 'read_file', status: 'error', output: 'explicit error' },
-    ]);
+    expectSingleStepResult(outcome, 'error', 'explicit error');
   });
 
   test('uses Unknown error when thrown value is non-string and non-Error', async () => {
     mockInvokeTool.mockRejectedValueOnce(404);
 
-    const outcome = await runToolBundle([
-      { toolName: 'read_file', args: { file_path: '/tmp/a' } },
-    ]);
+    const outcome = await runReadFileBundle();
 
-    expect(outcome.stepResults).toEqual([
-      { tool: 'read_file', status: 'error', output: 'Unknown error' },
-    ]);
+    expectSingleStepResult(outcome, 'error', 'Unknown error');
   });
 
   test('uses no-output success fallback when tool succeeds without output payload', async () => {
@@ -141,13 +137,9 @@ describe('ToolExecutionBundleRunner', () => {
       toolInvokeTime: 0.01,
     });
 
-    const outcome = await runToolBundle([
-      { toolName: 'read_file', args: { file_path: '/tmp/a' } },
-    ]);
+    const outcome = await runReadFileBundle();
 
-    expect(outcome.stepResults).toEqual([
-      { tool: 'read_file', status: 'ok', output: 'Tool read_file executed successfully (no output)' },
-    ]);
+    expectSingleStepResult(outcome, 'ok', 'Tool read_file executed successfully (no output)');
   });
 
   test('uses llm_content for success output when output field is missing', async () => {
@@ -156,13 +148,9 @@ describe('ToolExecutionBundleRunner', () => {
       toolInvokeTime: 0.01,
     });
 
-    const outcome = await runToolBundle([
-      { toolName: 'read_file', args: { file_path: '/tmp/a' } },
-    ]);
+    const outcome = await runReadFileBundle();
 
-    expect(outcome.stepResults).toEqual([
-      { tool: 'read_file', status: 'ok', output: 'formatted-file-content' },
-    ]);
+    expectSingleStepResult(outcome, 'ok', 'formatted-file-content');
   });
 
   test('uses Unknown error output when failed result has no error text', async () => {
@@ -171,13 +159,9 @@ describe('ToolExecutionBundleRunner', () => {
       toolInvokeTime: 0.01,
     } as any);
 
-    const outcome = await runToolBundle([
-      { toolName: 'read_file', args: { file_path: '/tmp/a' } },
-    ]);
+    const outcome = await runReadFileBundle();
 
-    expect(outcome.stepResults).toEqual([
-      { tool: 'read_file', status: 'error', output: 'Unknown error' },
-    ]);
+    expectSingleStepResult(outcome, 'error', 'Unknown error');
   });
 
   test('captures non-final computer tool without overwriting systemState', async () => {
