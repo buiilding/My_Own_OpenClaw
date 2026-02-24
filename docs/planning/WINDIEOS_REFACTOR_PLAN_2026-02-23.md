@@ -1217,3 +1217,19 @@ read_when:
 - Verification:
   - `pytest tests/backend/test_tool_preparer.py tests/backend/test_coordinate_scaling.py tests/backend/test_coordinate_contract.py tests/backend/test_vision_coordinates.py` (pass; 25 tests)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
+
+## Phase 28 Outcome (2026-02-24)
+
+- Remote tool export-surface dedupe shipped:
+  - rewired package export module to source remote-tool class symbols from:
+    - `backend/src/tools/remote_tools/registry.py`
+  - removed duplicate class import blocks from:
+    - `backend/src/tools/remote_tools/__init__.py`
+  - preserved package public exports consumed by `backend/src/tools/remote.py` and backend tests.
+- jscpd delta after Phase 28 slice:
+  - clones: `195 -> 194`
+  - duplicated lines: `3014 -> 3000`
+  - duplicated tokens: `26517 -> 26419`
+- Verification:
+  - `pytest tests/backend/test_remote_tools.py tests/backend/test_browser_remote_tool.py tests/backend/test_remote_tool_contract.py` (pass; 27 tests)
+  - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
