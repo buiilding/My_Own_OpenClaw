@@ -27,6 +27,7 @@ Covers:
 ### Bootstrap
 
 - [Bootstrap and Config](bootstrap/BOOTSTRAP_AND_CONFIG.md)
+- [Container DI and Initialization Lifecycle Reference](bootstrap/CONTAINER_DI_AND_INIT_LIFECYCLE_REFERENCE.md)
 - [Config Fields and Runtime Policy](config/CONFIG_FIELDS_AND_RUNTIME_POLICY.md)
 
 ### API and Contracts
