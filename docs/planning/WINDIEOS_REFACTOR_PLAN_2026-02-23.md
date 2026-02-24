@@ -1789,3 +1789,23 @@ read_when:
 - Verification:
   - `cd frontend && npm run test:ci -- tests/frontend/LocalBackendBridge.rpc.test.cjs tests/frontend/LocalBackendBridge.lifecycle.test.cjs` (pass; 22 tests)
   - `cd frontend && npm run lint` (pass)
+
+## Phase 48 Outcome (2026-02-24)
+
+- Frontend CJS harness lifecycle dedupe shipped:
+  - extracted shared backend-env reset/restore + log silencing + suite lifecycle hook wiring into:
+    - `tests/frontend/__mocks__/bridgeSuiteLifecycle.cjs`
+  - rewired harnesses to consume shared lifecycle utility:
+    - `tests/frontend/__mocks__/ipcMainBridgeHarness.cjs`
+    - `tests/frontend/__mocks__/localBackendBridgeHarness.cjs`
+  - preserved existing harness exports and suite behavior.
+- jscpd delta after harness dedupe:
+  - clones: `181 -> 179`
+  - duplicated lines: `2709 -> 2682`
+  - duplicated tokens: `23928 -> 23709`
+- Verification:
+  - `cd frontend && npm run test:ci -- tests/frontend/IpcMainBridge.lifecycle.test.cjs tests/frontend/IpcMainBridge.query.test.cjs tests/frontend/LocalBackendBridge.rpc.test.cjs tests/frontend/LocalBackendBridge.lifecycle.test.cjs` (pass; 49 tests)
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run lint:audit` (pass)
+  - `cd frontend && npm run audit:jscpd` (pass)
+  - `cd frontend && npm run test:ci` (pass; 89 suites, 607 tests)

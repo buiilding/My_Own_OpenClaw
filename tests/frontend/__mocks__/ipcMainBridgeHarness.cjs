@@ -65,7 +65,18 @@ jest.mock('../../../frontend/src/main/local_backend_bridge.cjs', () => ({
   searchMemory: jest.fn(),
 }));
 
+const { createBridgeSuiteLifecycle } = require('./bridgeSuiteLifecycle.cjs');
+
 const ORIGINAL_ENV = process.env;
+
+const {
+  resetBackendEnv,
+  restoreBackendEnv,
+  silenceBridgeLogs,
+  registerBridgeSuiteLifecycleHooks,
+} = createBridgeSuiteLifecycle({
+  originalEnv: ORIGINAL_ENV,
+});
 
 const DEFAULT_SYSTEM_STATE = {
   active_window: 'App',
@@ -76,40 +87,6 @@ const DEFAULT_MEMORY_RESULT = {
   success: true,
   data: { memories: { episodic: [], semantic: [] } },
 };
-
-function resetBackendEnv() {
-  process.env = { ...ORIGINAL_ENV };
-  delete process.env.BACKEND_HOST;
-  delete process.env.BACKEND_PORT;
-  delete process.env.BACKEND_HTTP_URL;
-  delete process.env.BACKEND_WS_URL;
-}
-
-function restoreBackendEnv() {
-  process.env = ORIGINAL_ENV;
-}
-
-function silenceBridgeLogs() {
-  // ipc.cjs logs heavily; mute in tests to keep runs fast and readable.
-  jest.spyOn(console, 'log').mockImplementation(() => {});
-  jest.spyOn(console, 'warn').mockImplementation(() => {});
-  jest.spyOn(console, 'error').mockImplementation(() => {});
-}
-
-function registerBridgeSuiteLifecycleHooks() {
-  beforeEach(() => {
-    resetBackendEnv();
-    silenceBridgeLogs();
-  });
-
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
-  afterAll(() => {
-    restoreBackendEnv();
-  });
-}
 
 function primeQueryContext(backendBridge, options = {}) {
   if (options.systemStateError) {
