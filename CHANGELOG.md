@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): add phase-99 full-gate snapshot after app-config + local-rpc test-helper dedupe wave (frontend audits/tests + backend + sidecar)
 - refactor(frontend-test-utils): add shared app-config test helpers in `tests/frontend/appConfigTestUtils.ts`, reuse them in `ChatStreamThinkingStatus.testUtils.ts` + `ToolRunnerHook.testUtils.ts`, and add `expectResolvedSuccess` helper in `LocalBackendBridge.rpc.test.cjs` to dedupe success-response assertions; jscpd improved from clones `123 -> 122` and duplicated lines `2072 -> 2065`
 - docs(refactor-plan): add phase-98 full-gate snapshot after tool-runner utility dedupe wave (frontend audits/tests + backend + sidecar)
 - refactor(frontend-tool-runner-tests): reuse shared `resetChatStoreForTests` in `tests/frontend/ToolRunnerHook.testUtils.ts` and remove local `STREAM_TRACKING_BASE` literal by deriving stream tracking from live store state; jscpd improved from clones `124 -> 123` and duplicated lines `2088 -> 2072`
