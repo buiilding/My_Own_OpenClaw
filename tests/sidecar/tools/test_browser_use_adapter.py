@@ -121,6 +121,60 @@ def make_controller():
     return _make_controller
 
 
+def _build_fake_browser_use_import_module(
+    *,
+    execute_action: mock.AsyncMock,
+    extra_modules: dict[str, ModuleType] | None = None,
+) -> tuple[mock.Mock, SimpleNamespace]:
+    fake_service_module = ModuleType("browser_use.tools.service")
+    fake_browser_module = ModuleType("browser_use.browser")
+    fake_filesystem_module = ModuleType("browser_use.filesystem.file_system")
+    tools_state = SimpleNamespace(last_instance=None)
+
+    class FakeTools:
+        def __init__(self):
+            self.registry = SimpleNamespace(execute_action=execute_action)
+            self.coordinate_clicking_enabled = False
+            tools_state.last_instance = self
+
+        def set_coordinate_clicking(self, enabled: bool):
+            self.coordinate_clicking_enabled = enabled
+
+    class FakeBrowserSession:
+        def __init__(self, **_kwargs):
+            pass
+
+        async def start(self):
+            return None
+
+        async def stop(self):
+            return None
+
+    class FakeFileSystem:
+        def __init__(self, *_args, **_kwargs):
+            pass
+
+    fake_service_module.Tools = FakeTools
+    fake_browser_module.BrowserSession = FakeBrowserSession
+    fake_filesystem_module.FileSystem = FakeFileSystem
+
+    modules = {
+        "browser_use.tools.service": fake_service_module,
+        "browser_use.browser": fake_browser_module,
+        "browser_use.filesystem.file_system": fake_filesystem_module,
+    }
+    if extra_modules:
+        modules.update(extra_modules)
+
+    def _import_module(name: str):
+        module = modules.get(name)
+        if module is not None:
+            return module
+        raise ImportError(name)
+
+    return mock.Mock(side_effect=_import_module), tools_state
+
+
 class TestBrowserUseCompatibilityAdapter:
     @staticmethod
     def _make_adapter(controller: SimpleNamespace) -> BrowserUseCompatibilityAdapter:
@@ -1134,48 +1188,17 @@ class TestBrowserUseCompatibilityAdapter:
     async def test_default_native_handler_registry_includes_browser_use_wait_seconds(
         self,
     ):
-        fake_service_module = ModuleType("browser_use.tools.service")
-        fake_browser_module = ModuleType("browser_use.browser")
-        fake_filesystem_module = ModuleType("browser_use.filesystem.file_system")
         execute_action = mock.AsyncMock(
             return_value=SimpleNamespace(extracted_content="Waited for 2 seconds")
         )
-
-        class FakeTools:
-            def __init__(self):
-                self.registry = SimpleNamespace(execute_action=execute_action)
-
-        class FakeBrowserSession:
-            def __init__(self, **_kwargs):
-                pass
-
-            async def start(self):
-                return None
-
-            async def stop(self):
-                return None
-
-        class FakeFileSystem:
-            def __init__(self, *_args, **_kwargs):
-                pass
-
-        fake_service_module.Tools = FakeTools
-        fake_browser_module.BrowserSession = FakeBrowserSession
-        fake_filesystem_module.FileSystem = FakeFileSystem
-
-        def _import_module(name: str):
-            if name == "browser_use.tools.service":
-                return fake_service_module
-            if name == "browser_use.browser":
-                return fake_browser_module
-            if name == "browser_use.filesystem.file_system":
-                return fake_filesystem_module
-            raise ImportError(name)
+        import_module_mock, _ = _build_fake_browser_use_import_module(
+            execute_action=execute_action
+        )
 
         with (
             mock.patch(
                 "tools.browser.browser_tool.import_module",
-                side_effect=_import_module,
+                new=import_module_mock,
             ),
             mock.patch(
                 "tools.browser.browser_runtime.asyncio.sleep",
@@ -1192,52 +1215,18 @@ class TestBrowserUseCompatibilityAdapter:
 
     @pytest.mark.asyncio
     async def test_wait_seconds_uses_browser_use_when_connected(self):
-        fake_service_module = ModuleType("browser_use.tools.service")
-        fake_browser_module = ModuleType("browser_use.browser")
-        fake_filesystem_module = ModuleType("browser_use.filesystem.file_system")
         execute_action = mock.AsyncMock(
             return_value=SimpleNamespace(extracted_content="Waited")
         )
-
-        class FakeTools:
-            def __init__(self):
-                self.registry = SimpleNamespace(execute_action=execute_action)
-
-            def set_coordinate_clicking(self, _enabled: bool):
-                pass
-
-        class FakeBrowserSession:
-            def __init__(self, **_kwargs):
-                pass
-
-            async def start(self):
-                return None
-
-            async def stop(self):
-                return None
-
-        class FakeFileSystem:
-            def __init__(self, *_args, **_kwargs):
-                pass
-
-        fake_service_module.Tools = FakeTools
-        fake_browser_module.BrowserSession = FakeBrowserSession
-        fake_filesystem_module.FileSystem = FakeFileSystem
-
-        def _import_module(name: str):
-            if name == "browser_use.tools.service":
-                return fake_service_module
-            if name == "browser_use.browser":
-                return fake_browser_module
-            if name == "browser_use.filesystem.file_system":
-                return fake_filesystem_module
-            raise ImportError(name)
+        import_module_mock, _ = _build_fake_browser_use_import_module(
+            execute_action=execute_action
+        )
 
         controller = SimpleNamespace(is_connected=True, _mode="managed", _cdp_url=None)
 
         with mock.patch(
             "tools.browser.browser_tool.import_module",
-            side_effect=_import_module,
+            new=import_module_mock,
         ):
             handlers = get_native_runtime_handlers(controller=controller)
             result = await handlers["wait_seconds"](seconds=2.2)
@@ -1258,64 +1247,26 @@ class TestBrowserUseCompatibilityAdapter:
     async def test_native_handler_registry_enables_coordinate_clicking_and_upload_paths(
         self,
     ):
-        fake_service_module = ModuleType("browser_use.tools.service")
-        fake_browser_module = ModuleType("browser_use.browser")
-        fake_filesystem_module = ModuleType("browser_use.filesystem.file_system")
         execute_action = mock.AsyncMock(
             return_value=SimpleNamespace(extracted_content="Uploaded file")
         )
-
-        class FakeTools:
-            last_instance = None
-
-            def __init__(self):
-                self.registry = SimpleNamespace(execute_action=execute_action)
-                self.coordinate_clicking_enabled = False
-                FakeTools.last_instance = self
-
-            def set_coordinate_clicking(self, enabled: bool):
-                self.coordinate_clicking_enabled = enabled
-
-        class FakeBrowserSession:
-            def __init__(self, **_kwargs):
-                pass
-
-            async def start(self):
-                return None
-
-            async def stop(self):
-                return None
-
-        class FakeFileSystem:
-            def __init__(self, *_args, **_kwargs):
-                pass
-
-        fake_service_module.Tools = FakeTools
-        fake_browser_module.BrowserSession = FakeBrowserSession
-        fake_filesystem_module.FileSystem = FakeFileSystem
-
-        def _import_module(name: str):
-            if name == "browser_use.tools.service":
-                return fake_service_module
-            if name == "browser_use.browser":
-                return fake_browser_module
-            if name == "browser_use.filesystem.file_system":
-                return fake_filesystem_module
-            raise ImportError(name)
+        import_module_mock, tools_state = _build_fake_browser_use_import_module(
+            execute_action=execute_action
+        )
 
         controller = SimpleNamespace(is_connected=True, _mode="managed", _cdp_url=None)
 
         with mock.patch(
             "tools.browser.browser_tool.import_module",
-            side_effect=_import_module,
+            new=import_module_mock,
         ):
             handlers = get_native_runtime_handlers(controller=controller)
             result = await handlers["upload_file"](index=3, path="/tmp/upload.txt")
 
         assert result["success"] is True
         assert result["native_source"] == "browser_use.tools"
-        assert FakeTools.last_instance is not None
-        assert FakeTools.last_instance.coordinate_clicking_enabled is True
+        assert tools_state.last_instance is not None
+        assert tools_state.last_instance.coordinate_clicking_enabled is True
         execute_action.assert_awaited_once_with(
             "upload_file",
             {"index": 3, "path": "/tmp/upload.txt"},
@@ -1329,49 +1280,17 @@ class TestBrowserUseCompatibilityAdapter:
     async def test_native_handler_extract_uses_configured_browser_use_llm_and_filesystem(
         self,
     ):
-        fake_service_module = ModuleType("browser_use.tools.service")
-        fake_browser_module = ModuleType("browser_use.browser")
-        fake_filesystem_module = ModuleType("browser_use.filesystem.file_system")
         fake_llm_models_module = ModuleType("browser_use.llm.models")
         execute_action = mock.AsyncMock(
             return_value=SimpleNamespace(extracted_content="Extracted content")
         )
         fake_page_extraction_llm = object()
         get_llm_by_name = mock.Mock(return_value=fake_page_extraction_llm)
-
-        class FakeTools:
-            def __init__(self):
-                self.registry = SimpleNamespace(execute_action=execute_action)
-
-        class FakeBrowserSession:
-            def __init__(self, **_kwargs):
-                pass
-
-            async def start(self):
-                return None
-
-            async def stop(self):
-                return None
-
-        class FakeFileSystem:
-            def __init__(self, *_args, **_kwargs):
-                pass
-
-        fake_service_module.Tools = FakeTools
-        fake_browser_module.BrowserSession = FakeBrowserSession
-        fake_filesystem_module.FileSystem = FakeFileSystem
         fake_llm_models_module.get_llm_by_name = get_llm_by_name
-
-        def _import_module(name: str):
-            if name == "browser_use.tools.service":
-                return fake_service_module
-            if name == "browser_use.browser":
-                return fake_browser_module
-            if name == "browser_use.filesystem.file_system":
-                return fake_filesystem_module
-            if name == "browser_use.llm.models":
-                return fake_llm_models_module
-            raise ImportError(name)
+        import_module_mock, _ = _build_fake_browser_use_import_module(
+            execute_action=execute_action,
+            extra_modules={"browser_use.llm.models": fake_llm_models_module},
+        )
 
         controller = SimpleNamespace(is_connected=True, _mode="managed", _cdp_url=None)
 
@@ -1381,7 +1300,7 @@ class TestBrowserUseCompatibilityAdapter:
             clear=False,
         ), mock.patch(
             "tools.browser.browser_tool.import_module",
-            side_effect=_import_module,
+            new=import_module_mock,
         ):
             handlers = get_native_runtime_handlers(controller=controller)
             result = await handlers["extract"](query="pricing")
@@ -1402,51 +1321,20 @@ class TestBrowserUseCompatibilityAdapter:
     async def test_native_handler_extract_uses_windie_provider_model_settings(
         self,
     ):
-        fake_service_module = ModuleType("browser_use.tools.service")
-        fake_browser_module = ModuleType("browser_use.browser")
-        fake_filesystem_module = ModuleType("browser_use.filesystem.file_system")
         fake_openai_chat_module = ModuleType("browser_use.llm.openai.chat")
         execute_action = mock.AsyncMock(
             return_value=SimpleNamespace(extracted_content="Extracted content")
         )
 
-        class FakeTools:
-            def __init__(self):
-                self.registry = SimpleNamespace(execute_action=execute_action)
-
-        class FakeBrowserSession:
-            def __init__(self, **_kwargs):
-                pass
-
-            async def start(self):
-                return None
-
-            async def stop(self):
-                return None
-
-        class FakeFileSystem:
-            def __init__(self, *_args, **_kwargs):
-                pass
-
         class FakeChatOpenAI:
             def __init__(self, **kwargs):
                 self.kwargs = kwargs
 
-        fake_service_module.Tools = FakeTools
-        fake_browser_module.BrowserSession = FakeBrowserSession
-        fake_filesystem_module.FileSystem = FakeFileSystem
         fake_openai_chat_module.ChatOpenAI = FakeChatOpenAI
-
-        def _import_module(name: str):
-            if name == "browser_use.tools.service":
-                return fake_service_module
-            if name == "browser_use.browser":
-                return fake_browser_module
-            if name == "browser_use.filesystem.file_system":
-                return fake_filesystem_module
-            if name == "browser_use.llm.openai.chat":
-                return fake_openai_chat_module
-            raise ImportError(name)
+        import_module_mock, _ = _build_fake_browser_use_import_module(
+            execute_action=execute_action,
+            extra_modules={"browser_use.llm.openai.chat": fake_openai_chat_module},
+        )
 
         controller = SimpleNamespace(is_connected=True, _mode="managed", _cdp_url=None)
 
@@ -1460,7 +1348,7 @@ class TestBrowserUseCompatibilityAdapter:
             clear=False,
         ), mock.patch(
             "tools.browser.browser_tool.import_module",
-            side_effect=_import_module,
+            new=import_module_mock,
         ):
             handlers = get_native_runtime_handlers(controller=controller)
             result = await handlers["extract"](query="pricing")
