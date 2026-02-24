@@ -478,6 +478,28 @@ read_when:
   - `cd frontend && npm run audit:knip`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
+## Phase 22
+
+- `jscpd` duplication cleanup (settings panel shared item styles):
+  - extract shared CSS selector blocks for duplicated item visual styles in:
+    - `frontend/src/renderer/styles/SettingsPanel.css`
+  - consolidate shared declarations for:
+    - `.model-item` + `.memory-item`
+    - shared `:hover` + `.active` states
+  - keep existing settings/memory panel rendering behavior unchanged.
+
+### Phase 22 Execution Slice (Current Loop)
+
+- Frontend dedupe:
+  - merge duplicated item style/state declarations into shared selector groups.
+  - retain section-specific declarations where they differ.
+- Verification checks:
+  - `cd frontend && npm run lint`
+  - `cd frontend && npm run test:ci -- tests/frontend/SettingsSection.test.jsx tests/frontend/SemanticMemorySection.test.jsx tests/frontend/EpisodicMemorySectionDelete.test.jsx`
+  - `cd frontend && npm run test:ci`
+  - `cd frontend && npm run audit:knip`
+  - `cd frontend && npm run audit:jscpd` (expect clone reduction)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):
