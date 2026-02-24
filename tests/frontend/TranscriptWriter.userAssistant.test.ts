@@ -5,7 +5,9 @@ import {
   flushMicrotasks,
   loadTranscriptWriter,
   registerTranscriptWriterSuiteLifecycle,
+  setupStoreFailureRetry,
   TRANSCRIPT_SESSION_STORAGE_KEY,
+  withSuppressedConsoleWarn,
 } from './TranscriptWriter.testUtils';
 
 describe('TranscriptWriter user + assistant writes', () => {
@@ -59,13 +61,11 @@ describe('TranscriptWriter user + assistant writes', () => {
   });
 
   test('recordUserMessage requeues immediate writes when IPC store fails', async () => {
-    const error = new Error('store failed');
     const { writer, invokeMock } = loadTranscriptWriter();
-    invokeMock.mockRejectedValueOnce(error).mockResolvedValue(undefined);
+    setupStoreFailureRetry(invokeMock);
     writer.updateTranscriptSession('conv-retry', 'user-retry');
 
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-    try {
+    await withSuppressedConsoleWarn(async () => {
       writer.recordUserMessage('retry user message');
       await flushMicrotasks();
 
@@ -89,9 +89,7 @@ describe('TranscriptWriter user + assistant writes', () => {
         role: 'user',
         messageType: 'user',
       }));
-    } finally {
-      warnSpy.mockRestore();
-    }
+    });
   });
 
   test('recordUserMessage ignores empty text payloads', async () => {
@@ -150,13 +148,11 @@ describe('TranscriptWriter user + assistant writes', () => {
   });
 
   test('recordAssistantMessage requeues immediate writes when IPC store fails', async () => {
-    const error = new Error('store failed');
     const { writer, invokeMock } = loadTranscriptWriter();
-    invokeMock.mockRejectedValueOnce(error).mockResolvedValue(undefined);
+    setupStoreFailureRetry(invokeMock);
     writer.updateTranscriptSession('conv-assistant-retry', 'user-assistant-retry');
 
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-    try {
+    await withSuppressedConsoleWarn(async () => {
       writer.recordAssistantMessage('retry assistant message', {
         messageType: 'llm-text',
       });
@@ -182,9 +178,7 @@ describe('TranscriptWriter user + assistant writes', () => {
         role: 'assistant',
         messageType: 'llm-text',
       }));
-    } finally {
-      warnSpy.mockRestore();
-    }
+    });
   });
 
   test('recordAssistantMessage ignores empty text payloads', async () => {
@@ -198,12 +192,10 @@ describe('TranscriptWriter user + assistant writes', () => {
   });
 
   test('requeues queued user messages when a pending flush write fails', async () => {
-    const error = new Error('store failed');
     const { writer, invokeMock } = loadTranscriptWriter();
-    invokeMock.mockRejectedValueOnce(error).mockResolvedValue(undefined);
+    setupStoreFailureRetry(invokeMock);
 
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-    try {
+    await withSuppressedConsoleWarn(async () => {
       writer.recordUserMessage('queued user message 1');
       writer.recordUserMessage('queued user message 2');
 
@@ -237,8 +229,6 @@ describe('TranscriptWriter user + assistant writes', () => {
         role: 'user',
         messageType: 'user',
       }));
-    } finally {
-      warnSpy.mockRestore();
-    }
+    });
   });
 });

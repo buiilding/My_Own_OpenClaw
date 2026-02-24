@@ -78,3 +78,16 @@ export function expectNthStoreTranscriptCall(
 ) {
   expect(invokeMock).toHaveBeenNthCalledWith(callIndex, 'store-transcript', payload);
 }
+
+export function setupStoreFailureRetry(invokeMock: jest.Mock, errorMessage = 'store failed') {
+  invokeMock.mockRejectedValueOnce(new Error(errorMessage)).mockResolvedValue(undefined);
+}
+
+export async function withSuppressedConsoleWarn(run: () => Promise<void> | void) {
+  const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  try {
+    await run();
+  } finally {
+    warnSpy.mockRestore();
+  }
+}

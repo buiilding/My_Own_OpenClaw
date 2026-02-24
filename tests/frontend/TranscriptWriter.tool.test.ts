@@ -5,6 +5,8 @@ import {
   flushMicrotasks,
   loadTranscriptWriter,
   registerTranscriptWriterSuiteLifecycle,
+  setupStoreFailureRetry,
+  withSuppressedConsoleWarn,
 } from './TranscriptWriter.testUtils';
 
 describe('TranscriptWriter tool writes', () => {
@@ -39,13 +41,11 @@ describe('TranscriptWriter tool writes', () => {
   });
 
   test('recordToolMessage requeues immediate writes when IPC store fails', async () => {
-    const error = new Error('store failed');
     const { writer, invokeMock } = loadTranscriptWriter();
-    invokeMock.mockRejectedValueOnce(error).mockResolvedValue(undefined);
+    setupStoreFailureRetry(invokeMock);
     writer.updateTranscriptSession('conv-tool-retry', 'user-tool-retry');
 
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-    try {
+    await withSuppressedConsoleWarn(async () => {
       writer.recordToolMessage('retry tool output', {
         messageType: 'tool-output',
         toolName: 'read_file',
@@ -77,9 +77,7 @@ describe('TranscriptWriter tool writes', () => {
         toolName: 'read_file',
         correlationId: 'corr-retry',
       }));
-    } finally {
-      warnSpy.mockRestore();
-    }
+    });
   });
 
   test('recordToolMessage ignores empty text payloads', async () => {
@@ -125,12 +123,10 @@ describe('TranscriptWriter tool writes', () => {
   });
 
   test('requeues queued tool messages when a pending flush write fails', async () => {
-    const error = new Error('store failed');
     const { writer, invokeMock } = loadTranscriptWriter();
-    invokeMock.mockRejectedValueOnce(error).mockResolvedValue(undefined);
+    setupStoreFailureRetry(invokeMock);
 
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-    try {
+    await withSuppressedConsoleWarn(async () => {
       writer.recordToolMessage('queued tool message 1', {
         messageType: 'tool-call',
         toolName: 'read_file',
@@ -178,8 +174,6 @@ describe('TranscriptWriter tool writes', () => {
         toolName: 'read_file',
         correlationId: 'corr-2',
       }));
-    } finally {
-      warnSpy.mockRestore();
-    }
+    });
   });
 });
