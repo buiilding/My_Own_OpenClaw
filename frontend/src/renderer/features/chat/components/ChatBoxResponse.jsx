@@ -341,7 +341,7 @@ function ChatBoxResponse() {
           xRatio: clampRatio(parsedMouse.x / targetDisplayWidth),
           yRatio: clampRatio(parsedMouse.y / targetDisplayHeight),
         });
-      }).catch((_error) => {
+      }).catch(() => {
         beginGhostLifecycle({ xRatio: 0.5, yRatio: 0.5 });
       });
     }
