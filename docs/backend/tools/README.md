@@ -12,6 +12,7 @@ title: "Backend Tools Docs Hub"
 
 - [Frontend Tool Bridge and Policy](FRONTEND_TOOL_BRIDGE_AND_POLICY.md)
 - [Tool Result Ingress and Storage Reference](TOOL_RESULT_INGRESS_AND_STORAGE_REFERENCE.md)
+- [Tool Preparation and Coordinate Resolution Reference](TOOL_PREPARATION_AND_COORDINATE_RESOLUTION_REFERENCE.md)
 
 ## Code Scope
 
