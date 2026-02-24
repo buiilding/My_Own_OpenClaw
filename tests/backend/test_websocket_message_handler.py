@@ -263,12 +263,15 @@ async def test_parse_and_validate_message_large_payload_uses_executor(monkeypatc
 
     called = {"executor": False}
 
-    class FakeLoop:
-        async def run_in_executor(self, executor, fn, data):
-            called["executor"] = True
-            return fn(data)
+    async def fake_run_in_executor(_executor, fn, data):
+        called["executor"] = True
+        return fn(data)
 
-    monkeypatch.setattr(mh.asyncio, "get_running_loop", lambda: FakeLoop())
+    monkeypatch.setattr(
+        mh.asyncio,
+        "get_running_loop",
+        lambda: SimpleNamespace(run_in_executor=fake_run_in_executor),
+    )
 
     message, error = await mh.parse_and_validate_message(
         payload, user_id="user_1", max_message_size=4096
