@@ -414,6 +414,28 @@ read_when:
   - `cd frontend && npm run audit:knip`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
+## Phase 19
+
+- `jscpd` duplication cleanup (Electron main Python executable resolution):
+  - extract shared runtime helper for Python executable path resolution into:
+    - `frontend/src/main/runtime_paths.cjs`
+  - reuse helper from:
+    - `frontend/src/main/local_backend_bridge.cjs`
+    - `frontend/src/main/wakeword_bridge.cjs`
+  - preserve current resolution order and platform fallback semantics.
+
+### Phase 19 Execution Slice (Current Loop)
+
+- Main-process dedupe:
+  - centralize `WINDIE_PYTHON_PATH`/bundled-runtime/conda/fallback resolution logic in runtime-path helper.
+  - keep local backend bridge path caching behavior unchanged.
+- Verification checks:
+  - `cd frontend && npm run lint`
+  - `cd frontend && npm run test:ci -- tests/frontend/LocalBackendBridge.test.cjs tests/frontend/WakewordBridge.test.cjs`
+  - `cd frontend && npm run test:ci`
+  - `cd frontend && npm run audit:knip`
+  - `cd frontend && npm run audit:jscpd` (expect clone reduction)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):

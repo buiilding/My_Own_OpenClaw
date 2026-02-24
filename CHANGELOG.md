@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 19 execution slice for shared Electron main-process Python executable resolution dedupe (`runtime_paths`, `local_backend_bridge`, `wakeword_bridge`)
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 18 execution slice for `TranscriptWriter` immediate-store/queue dedupe across user/assistant/tool recording paths
 - refactor(frontend-transcript-writer): dedupe `TranscriptWriter` immediate transcript record/store-retry flow by extracting shared session resolution and immediate-store retry helpers used by user/assistant/tool message paths, while preserving queue-on-failure semantics
 - refactor(frontend-voice-hooks): extract shared audio capture cleanup utilities (`audioCaptureCleanup`) and reuse them in `useVoiceMode` + `useWakewordDetection`, with direct cleanup utility regression coverage in `tests/frontend/VoiceAudioCleanup.test.ts`
