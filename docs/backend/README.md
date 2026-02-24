@@ -39,6 +39,7 @@ Covers:
 - [API and Transport](api/API_AND_TRANSPORT.md)
 - [HTTP and WebSocket Endpoint Reference](api/HTTP_AND_WS_ENDPOINT_REFERENCE.md)
 - [WebSocket Connection and Task Lifecycle Reference](api/WEBSOCKET_CONNECTION_AND_TASK_LIFECYCLE_REFERENCE.md)
+- [Handler Registry and Error Envelope Reference](api/HANDLER_REGISTRY_AND_ERROR_ENVELOPE_REFERENCE.md)
 - [Non-Query Handler and Control Flow Reference](api/NON_QUERY_HANDLER_AND_CONTROL_FLOW_REFERENCE.md)
 - [WebSocket Message Contracts](contracts/WEBSOCKET_MESSAGE_CONTRACTS.md)
 - [Message Schema and Formatter Reference](contracts/MESSAGE_SCHEMA_AND_FORMATTER_REFERENCE.md)
