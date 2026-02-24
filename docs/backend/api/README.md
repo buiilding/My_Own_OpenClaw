@@ -11,6 +11,7 @@ title: "Backend API Docs Hub"
 ## Deep Pages
 
 - [API and Transport](api_and_transport.md)
+- [API Handlers Docs Hub](handlers/README.md)
 - [API Processing Docs Hub](processing/README.md)
 - [API Processing Formatters Docs Hub](processing/formatters/README.md)
 - [API Processing TTS Docs Hub](processing/tts/README.md)
@@ -21,6 +22,8 @@ title: "Backend API Docs Hub"
 - [WebSocket Connection and Task Lifecycle Reference](websocket_connection_and_task_lifecycle_reference.md)
 - [Handler Registry and Error Envelope Reference](handler_registry_and_error_envelope_reference.md)
 - [Handler Behavior Matrix](handler_behavior_matrix.md)
+- [Query Handler and Query Execution Service Runtime Reference](handlers/query_handler_and_query_execution_service_runtime_reference.md)
+- [Non-Query Handler Dispatch and Payload Normalization Reference](handlers/non_query_handler_dispatch_and_payload_normalization_reference.md)
 - [Non-Query Handler and Control Flow Reference](non_query_handler_and_control_flow_reference.md)
 - [Formatter Dispatch and Schema Alignment Reference](processing/formatter_dispatch_and_schema_alignment_reference.md)
 - [Stream Pipeline, Completion, and TTS Concurrency Reference](processing/stream_pipeline_completion_and_tts_concurrency_reference.md)

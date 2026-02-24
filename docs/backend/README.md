@@ -43,6 +43,7 @@ Covers:
 ### API and Contracts
 
 - [API Docs Hub](api/README.md)
+- [API Handlers Docs Hub](api/handlers/README.md)
 - [API Processing Docs Hub](api/processing/README.md)
 - [API Processing Formatters Docs Hub](api/processing/formatters/README.md)
 - [API Processing TTS Docs Hub](api/processing/tts/README.md)
@@ -59,6 +60,8 @@ Covers:
 - [WebSocket Connection and Task Lifecycle Reference](api/websocket_connection_and_task_lifecycle_reference.md)
 - [Handler Registry and Error Envelope Reference](api/handler_registry_and_error_envelope_reference.md)
 - [Non-Query Handler and Control Flow Reference](api/non_query_handler_and_control_flow_reference.md)
+- [Query Handler and Query Execution Service Runtime Reference](api/handlers/query_handler_and_query_execution_service_runtime_reference.md)
+- [Non-Query Handler Dispatch and Payload Normalization Reference](api/handlers/non_query_handler_dispatch_and_payload_normalization_reference.md)
 - [Formatter Dispatch and Schema Alignment Reference](api/processing/formatter_dispatch_and_schema_alignment_reference.md)
 - [Stream Pipeline, Completion, and TTS Concurrency Reference](api/processing/stream_pipeline_completion_and_tts_concurrency_reference.md)
 - [Query Execution Runtime-State and Completion Resolver Reference](api/processing/query_execution_runtime_state_and_completion_resolver_reference.md)
