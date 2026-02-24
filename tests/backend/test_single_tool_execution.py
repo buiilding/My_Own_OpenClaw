@@ -23,10 +23,20 @@ class DummySession:
         return self._current_screenshot_id
 
 
+def _parsed_tool_call(tool_name: str, parameters: dict | None = None, request_id: str | None = None):
+    metadata = {"request_id": request_id} if request_id is not None else None
+    return ParsedToolCall(
+        tool_name=tool_name,
+        parameters=parameters or {},
+        raw_call="{}",
+        metadata=metadata,
+    )
+
+
 @pytest.mark.asyncio
 async def test_execute_single_tool_missing_request_id_returns_placeholder():
     session = DummySession()
-    tool_call = ParsedToolCall(tool_name="click", parameters={}, raw_call="{}")
+    tool_call = _parsed_tool_call("click")
 
     result_obj = await execute_single_tool(tool_call, session)
 
@@ -41,12 +51,7 @@ async def test_execute_single_tool_stale_screen_fails_fast():
         metadata={"coordinate_resolution_screenshot_id": "old-shot"}
     )
     session = DummySession(resolved_call=resolved_call, current_screenshot_id="new-shot")
-    tool_call = ParsedToolCall(
-        tool_name="click",
-        parameters={},
-        raw_call="{}",
-        metadata={"request_id": "req-1"},
-    )
+    tool_call = _parsed_tool_call("click", request_id="req-1")
 
     result_obj = await execute_single_tool(tool_call, session)
 
@@ -57,12 +62,7 @@ async def test_execute_single_tool_stale_screen_fails_fast():
 @pytest.mark.asyncio
 async def test_execute_single_tool_uses_pending_result():
     session = DummySession()
-    tool_call = ParsedToolCall(
-        tool_name="type",
-        parameters={},
-        raw_call="{}",
-        metadata={"request_id": "req-1"},
-    )
+    tool_call = _parsed_tool_call("type", request_id="req-1")
     pending_result = ToolResult(success=True, data={"ok": True})
     session.get_result_storage().store_pending_result("req-1", pending_result)
 
@@ -89,12 +89,7 @@ async def test_execute_single_tool_resolved_call_without_to_parsed_call():
         current_screenshot_id="same-shot",
     )
 
-    tool_call = ParsedToolCall(
-        tool_name="click",
-        parameters={"x": 1, "y": 2},
-        raw_call="{}",
-        metadata={"request_id": "req-1"},
-    )
+    tool_call = _parsed_tool_call("click", {"x": 1, "y": 2}, request_id="req-1")
     pending_result = ToolResult(success=True, data={"ok": True})
     session.get_result_storage().store_pending_result("req-1", pending_result)
 
