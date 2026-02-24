@@ -48,6 +48,30 @@ const renderAndGetContextIndicator = () => {
   return contextIndicator;
 };
 
+const expectInvokeCall = (predicate) => {
+  const sawCall = mockInvoke.mock.calls.some(predicate);
+  expect(sawCall).toBe(true);
+};
+
+const expectActiveAppIndicator = async ({
+  ariaLabel,
+  initials,
+  contextIndicator,
+  stateClass,
+}) => {
+  await waitFor(() => {
+    expect(screen.getByLabelText(ariaLabel)).toBeInTheDocument();
+  });
+
+  if (stateClass && contextIndicator) {
+    expect(contextIndicator.classList.contains(stateClass)).toBe(true);
+  }
+
+  if (initials) {
+    expect(screen.getByText(initials)).toBeInTheDocument();
+  }
+};
+
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   IpcBridge: {
     invoke: (...args) => mockInvoke(...args),
@@ -131,13 +155,12 @@ describe('ChatBox overlay mouse ignore', () => {
       rafQueue.splice(0).forEach((cb) => cb());
     });
 
-    const sawResize = mockInvoke.mock.calls.some(
+    expectInvokeCall(
       ([channel, payload]) =>
         channel === 'set-chatbox-size'
         && payload?.width === 200
         && payload?.height === 100,
     );
-    expect(sawResize).toBe(true);
   });
 
   test('wires overlay sender surface for centralized UI send behavior', () => {
@@ -153,10 +176,9 @@ describe('ChatBox overlay mouse ignore', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Open settings' }));
 
-    const sawShowMainWindow = mockInvoke.mock.calls.some(
+    expectInvokeCall(
       ([channel]) => channel === 'show-main-window',
     );
-    expect(sawShowMainWindow).toBe(true);
   });
 
   test('dragging pill sends absolute move-chatbox-to coordinates', () => {
@@ -217,18 +239,21 @@ describe('ChatBox overlay mouse ignore', () => {
 
     render(<ChatBox />);
 
-    expect(await screen.findByLabelText('Active app: VS Code')).toBeInTheDocument();
-    expect(screen.getByText('ED')).toBeInTheDocument();
+    await expectActiveAppIndicator({
+      ariaLabel: 'Active app: VS Code',
+      initials: 'ED',
+    });
   });
 
   test('shows offline context state when active-window polling fails', async () => {
     mockSystemStateResponse(() => Promise.reject(new Error('system unavailable')));
     const contextIndicator = renderAndGetContextIndicator();
 
-    await waitFor(() => {
-      expect(screen.getByLabelText('Active app: No active app (offline)')).toBeInTheDocument();
+    await expectActiveAppIndicator({
+      ariaLabel: 'Active app: No active app (offline)',
+      contextIndicator,
+      stateClass: 'is-offline',
     });
-    expect(contextIndicator.classList.contains('is-offline')).toBe(true);
   });
 
   test('falls back to user-message metadata active-window context when polling fails', async () => {
@@ -249,10 +274,11 @@ describe('ChatBox overlay mouse ignore', () => {
     mockSystemStateResponse(() => Promise.reject(new Error('system unavailable')));
     const contextIndicator = renderAndGetContextIndicator();
 
-    await waitFor(() => {
-      expect(screen.getByLabelText('Active app: Chrome (stale)')).toBeInTheDocument();
+    await expectActiveAppIndicator({
+      ariaLabel: 'Active app: Chrome (stale)',
+      initials: 'WB',
+      contextIndicator,
+      stateClass: 'is-stale',
     });
-    expect(contextIndicator.classList.contains('is-stale')).toBe(true);
-    expect(screen.getByText('WB')).toBeInTheDocument();
   });
 });
