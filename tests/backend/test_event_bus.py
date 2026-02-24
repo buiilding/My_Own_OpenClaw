@@ -29,8 +29,20 @@ class ChildEvent(ParentEvent):
     """Child event for handler-store tests."""
 
 
+class _HandlerOwner:
+    def on_event(self, event):
+        return None
+
+
 class MockEventHandlerWrapper:
     """Tests for EventHandlerWrapper class."""
+
+    @staticmethod
+    async def _invoke(handler):
+        wrapper = EventHandlerWrapper(handler)
+        event = MockEvent()
+        await wrapper.call(event)
+        return event
 
     def test_init_with_function(self):
         def handler(event):
@@ -93,29 +105,21 @@ class MockEventHandlerWrapper:
     @pytest.mark.asyncio
     async def test_call_sync_handler(self):
         called = []
-        
+
         def handler(event):
             called.append(event)
-        
-        wrapper = EventHandlerWrapper(handler)
-        event = MockEvent()
-        
-        await wrapper.call(event)
-        
+
+        event = await self._invoke(handler)
         assert called == [event]
 
     @pytest.mark.asyncio
     async def test_call_async_handler(self):
         called = []
-        
+
         async def handler(event):
             called.append(event)
-        
-        wrapper = EventHandlerWrapper(handler)
-        event = MockEvent()
-        
-        await wrapper.call(event)
-        
+
+        event = await self._invoke(handler)
         assert called == [event]
 
     @pytest.mark.asyncio
@@ -516,11 +520,7 @@ class TestEventHandlerStore:
     def test_filter_active_handlers_removes_dead_bound_method_subscribers(self):
         store = EventHandlerStore(threading.RLock())
 
-        class HandlerOwner:
-            def on_event(self, event):
-                return None
-
-        owner = HandlerOwner()
+        owner = _HandlerOwner()
         store.subscribe(ChildEvent, owner.on_event)
 
         resolved = store.resolve_handlers(ChildEvent)
@@ -558,11 +558,7 @@ class TestEventHandlerStore:
     def test_unsubscribe_bound_method_with_new_method_reference(self):
         store = EventHandlerStore(threading.RLock())
 
-        class HandlerOwner:
-            def on_event(self, event):
-                return None
-
-        owner = HandlerOwner()
+        owner = _HandlerOwner()
         store.subscribe(ChildEvent, owner.on_event)
 
         # Accessing the bound method again creates a new method object.
