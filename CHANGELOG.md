@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 31 execution slice for `LLMStreamProcessor` request-path signature dedupe in `backend/src/agent/llm/llm_stream_processor.py`
 - refactor(agent-session): dedupe tool-result delegation wrappers in `backend/src/agent/session/session.py` by forwarding keyword payloads directly to `ToolResultHandler`, preserving existing routing behavior
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 30 execution slice for `AgentSession` tool-result delegation wrapper dedupe in `backend/src/agent/session/session.py`
 - refactor(llm-stream-processor): centralize shared completion request-kwargs construction in `backend/src/agent/llm/llm_stream_processor.py` and reuse it across stream/non-stream completion paths while preserving prompt-cache and tool-turn behavior
