@@ -12,6 +12,11 @@ This hub documents WindieOS frontend implementation details across Electron main
 
 ## Deep Pages
 
+### Landing
+
+- [Landing Docs Hub](landing/README.md)
+- [Landing Page Runtime and Content Reference](landing/LANDING_PAGE_RUNTIME_AND_CONTENT_REFERENCE.md)
+
 ### Main Process
 
 - [Main Docs Hub](main/README.md)
@@ -67,7 +72,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - `frontend/src/preload.js`: sandbox-safe IPC exposure to renderer
 - `frontend/src/renderer`: React app, contexts, feature modules, infrastructure services
 - `frontend/src/main/python`: local backend sidecar, memory service, wakeword subprocess, tool implementations
-- `frontend/src/landing`: landing-page frontend variant
+- `frontend/src/landing`: standalone landing page entrypoint, section composition, and shared marketing style system
 
 ## End-to-End Runtime Path (Condensed)
 
