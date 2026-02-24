@@ -1,24 +1,17 @@
 import json
-import sys
-import types
 
 import pytest
+from tests.backend.websocket_route_test_utils import (
+    install_route_deps_shim,
+    restore_route_deps_shim,
+)
 
-# Test-only shim: avoid pulling full app container deps during route import.
-_original_deps = sys.modules.get("backend.src.api.deps")
-fake_deps = types.ModuleType("backend.src.api.deps")
-fake_deps.ContainerDep = object
-fake_deps.SessionManagerDep = object
-fake_deps.HandlerRegistryDep = object
-sys.modules["backend.src.api.deps"] = fake_deps
+_original_deps = install_route_deps_shim()
 
 from backend.src.api.routes.websocket import connection as connection_module
 from backend.src.api.routes.websocket.connection import cleanup_connection, perform_handshake
 
-if _original_deps is not None:
-    sys.modules["backend.src.api.deps"] = _original_deps
-else:
-    sys.modules.pop("backend.src.api.deps", None)
+restore_route_deps_shim(_original_deps)
 
 
 class DummyWebSocket:
