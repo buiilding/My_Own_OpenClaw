@@ -2323,3 +2323,24 @@ read_when:
     - `./scripts/test-backend` (pass; 966 tests)
   - sidecar tests:
     - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+
+## Phase 78 Outcome (2026-02-24)
+
+- Transcript writer retry-path test duplication cleanup shipped:
+  - added shared helpers in `tests/frontend/TranscriptWriter.testUtils.ts`:
+    - `setupStoreFailureRetry`
+    - `withSuppressedConsoleWarn`
+  - replaced repeated `mockRejectedValueOnce + console.warn try/finally` scaffolding in:
+    - `tests/frontend/TranscriptWriter.tool.test.ts`
+    - `tests/frontend/TranscriptWriter.userAssistant.test.ts`
+  - behavior unchanged; test intent preserved.
+- Verification:
+  - `cd frontend && npx jest ../tests/frontend/TranscriptWriter.tool.test.ts ../tests/frontend/TranscriptWriter.userAssistant.test.ts --runInBand` (pass; 14 tests)
+  - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
+  - `cd frontend && npm run audit:knip` (pass)
+  - `cd frontend && npm run audit:jscpd` (pass)
+  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - jscpd snapshot deltas:
+    - clones: `139 -> 138`
+    - duplicated lines: `2251 -> 2244`
+    - duplicated tokens: `19857 -> 19760`
