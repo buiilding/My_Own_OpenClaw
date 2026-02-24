@@ -140,6 +140,21 @@ class ToolRegistry:
         """Check if a tool is available."""
         return tool_name in self.tools
 
+    @staticmethod
+    def _extract_schema_parameters(schema: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+        """Extract parameters from schema while preserving compatibility fallback behavior."""
+        if schema is None:
+            return None
+        if not isinstance(schema, dict):
+            return {}
+        function_schema = schema.get("function", {})
+        if not isinstance(function_schema, dict):
+            return {}
+        parameters = function_schema.get("parameters", {})
+        if not isinstance(parameters, dict):
+            return {}
+        return parameters
+
     def get_tool_capabilities(self, tool_name: str) -> Optional[Dict[str, Any]]:
         """
         Get capabilities information for a tool.
@@ -151,19 +166,17 @@ class ToolRegistry:
             Tool capabilities dictionary, or None if tool not found
         """
         tool = self.get_tool(tool_name)
-        if tool:
-            schema = self.schema_registry.get_schema(tool)
-            if schema:
-                function_schema = schema.get("function", {})
-                parameters = (
-                    function_schema.get("parameters", {})
-                    if isinstance(function_schema, dict)
-                    else {}
-                )
-                return {
-                    "name": tool.name,
-                    "description": tool.description,
-                    "parameters": parameters,
-                    "requires_context": True,
-                }
-        return None
+        if not tool:
+            return None
+
+        schema = self.schema_registry.get_schema(tool)
+        parameters = self._extract_schema_parameters(schema)
+        if parameters is None:
+            return None
+
+        return {
+            "name": tool.name,
+            "description": tool.description,
+            "parameters": parameters,
+            "requires_context": True,
+        }
