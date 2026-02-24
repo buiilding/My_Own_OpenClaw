@@ -138,3 +138,9 @@ If completion text is empty despite chunk output:
 1. verify chunk event type is in `_TEXT_CHUNK_EVENT_TYPES`
 2. verify chunk payload text is non-whitespace
 3. verify `saw_text_chunk` flag transitions before completion handling
+
+## Related Pages
+
+- [API Processing Completion Docs Hub](completion/README.md)
+- [Query Execution Helper Contracts and Compatibility Event Extraction Reference](completion/query_execution_helper_contracts_and_compatibility_event_extraction_reference.md)
+- [Stream Pipeline, Completion, and TTS Concurrency Reference](stream_pipeline_completion_and_tts_concurrency_reference.md)

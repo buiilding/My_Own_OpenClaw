@@ -180,3 +180,5 @@ If TTS reads tool JSON/code:
 - [API Processing TTS Docs Hub](tts/README.md)
 - [TTS Manager Audio Stream and Cleanup Reference](tts/tts_manager_audio_stream_and_cleanup_reference.md)
 - [TTS Processor Suppression State-Machine Reference](tts/tts_processor_suppression_state_machine_reference.md)
+- [API Processing Completion Docs Hub](completion/README.md)
+- [Query Execution Helper Contracts and Compatibility Event Extraction Reference](completion/query_execution_helper_contracts_and_compatibility_event_extraction_reference.md)
