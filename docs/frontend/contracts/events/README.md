@@ -13,6 +13,8 @@ title: "Frontend Contracts Events Docs Hub"
 - [From-Backend Event Ingress, Typed Guard, and Audio Side-Channel Reference](from_backend_event_ingress_typed_guard_and_audio_side_channel_reference.md)
 - [Local User Message and Query Send-Failure Synthesis Reference](local_user_message_and_query_send_failure_synthesis_reference.md)
 - [Settings and Model ACK Event Routing Reference](settings_and_model_ack_event_routing_reference.md)
+- [Tool Runtime Docs Hub](tool_runtime/README.md)
+- [Tool-Call and Tool-Output Recovery/Skip-Execution Contract Reference](tool_runtime/tool_call_and_tool_output_recovery_skip_execution_contract_reference.md)
 
 ## Code Scope
 

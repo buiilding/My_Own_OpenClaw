@@ -112,6 +112,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 
 - [Contracts Docs Hub](contracts/README.md)
 - [Contracts Events Docs Hub](contracts/events/README.md)
+- [Contracts Events Tool Runtime Docs Hub](contracts/events/tool_runtime/README.md)
 - [Contracts IPC Docs Hub](contracts/ipc/README.md)
 - [IPC Channels and Event Contracts](contracts/ipc_channels_and_event_contracts.md)
 - [IPC Channel and Handler Reference](contracts/ipc_channel_and_handler_reference.md)
@@ -123,6 +124,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [From-Backend Event Ingress, Typed Guard, and Audio Side-Channel Reference](contracts/events/from_backend_event_ingress_typed_guard_and_audio_side_channel_reference.md)
 - [Local User Message and Query Send-Failure Synthesis Reference](contracts/events/local_user_message_and_query_send_failure_synthesis_reference.md)
 - [Settings and Model ACK Event Routing Reference](contracts/events/settings_and_model_ack_event_routing_reference.md)
+- [Tool-Call and Tool-Output Recovery/Skip-Execution Contract Reference](contracts/events/tool_runtime/tool_call_and_tool_output_recovery_skip_execution_contract_reference.md)
 - [Overlay and Wakeword Control Channel Reference](contracts/overlay_and_wakeword_control_channel_reference.md)
 
 ## Frontend Code Layout

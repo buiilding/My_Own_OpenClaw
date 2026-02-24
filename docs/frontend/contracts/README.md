@@ -12,6 +12,8 @@ title: "Frontend Contracts Docs Hub"
 
 - [Events Contracts Docs Hub](events/README.md)
 - [Settings and Model ACK Event Routing Reference](events/settings_and_model_ack_event_routing_reference.md)
+- [Events Tool Runtime Docs Hub](events/tool_runtime/README.md)
+- [Tool-Call and Tool-Output Recovery/Skip-Execution Contract Reference](events/tool_runtime/tool_call_and_tool_output_recovery_skip_execution_contract_reference.md)
 - [IPC Contracts Docs Hub](ipc/README.md)
 - [IPC Channels and Event Contracts](ipc_channels_and_event_contracts.md)
 - [IPC Channel and Handler Reference](ipc_channel_and_handler_reference.md)
