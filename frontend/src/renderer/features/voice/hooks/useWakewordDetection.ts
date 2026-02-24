@@ -12,6 +12,7 @@ import {
   isWithinCooldown,
   resolveConfidence,
 } from '../utils/wakewordEventUtils';
+import { useAudioCaptureRefs } from './useAudioCaptureRefs';
 
 /**
  * Custom hook for wakeword detection using openWakeWord.
@@ -40,11 +41,17 @@ export function useWakewordDetection(
 
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  const mediaStreamRef = useRef<MediaStream | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const sourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
-  const scriptNodeRef = useRef<LegacyAudioProcessorNode | null>(null);
+
+  const {
+    mediaStreamRef,
+    audioContextRef,
+    sourceNodeRef,
+    scriptNodeRef,
+    setMediaStreamRef,
+    setAudioContextRef,
+    setSourceNodeRef,
+    setScriptNodeRef,
+  } = useAudioCaptureRefs();
   const isCapturingRef = useRef(false);
   const captureGenerationRef = useRef(0);
   const lastDetectionRef = useRef(0);
@@ -102,7 +109,7 @@ export function useWakewordDetection(
         return;
       }
 
-      mediaStreamRef.current = stream;
+      setMediaStreamRef(stream);
 
       // Create audio context
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({
@@ -115,16 +122,16 @@ export function useWakewordDetection(
         return;
       }
 
-      audioContextRef.current = audioContext;
+      setAudioContextRef(audioContext);
 
       // Create source node from media stream
       const sourceNode = audioContext.createMediaStreamSource(stream);
-      sourceNodeRef.current = sourceNode;
+      setSourceNodeRef(sourceNode);
 
       // Create ScriptProcessorNode for audio processing
       const bufferSize = chunkSize;
       const scriptNode = audioContext.createScriptProcessor(bufferSize, 1, 1) as unknown as LegacyAudioProcessorNode;
-      scriptNodeRef.current = scriptNode;
+      setScriptNodeRef(scriptNode);
 
       scriptNode.onaudioprocess = (event) => {
         if (!isCapturingRef.current) {
@@ -155,14 +162,14 @@ export function useWakewordDetection(
       isCapturingRef.current = false;
     }
   }, [
-    audioContextRef,
     chunkSize,
     logUnexpectedAudioContextCloseError,
-    mediaStreamRef,
     sampleRate,
-    scriptNodeRef,
+    setAudioContextRef,
+    setMediaStreamRef,
+    setScriptNodeRef,
+    setSourceNodeRef,
     sendAudioChunk,
-    sourceNodeRef,
   ]);
 
   // Stop audio capture
