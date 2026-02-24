@@ -38,6 +38,7 @@ Covers:
 - [Contracts Docs Hub](contracts/README.md)
 - [API and Transport](api/API_AND_TRANSPORT.md)
 - [HTTP and WebSocket Endpoint Reference](api/HTTP_AND_WS_ENDPOINT_REFERENCE.md)
+- [Non-Query Handler and Control Flow Reference](api/NON_QUERY_HANDLER_AND_CONTROL_FLOW_REFERENCE.md)
 - [WebSocket Message Contracts](contracts/WEBSOCKET_MESSAGE_CONTRACTS.md)
 - [Message Schema and Formatter Reference](contracts/MESSAGE_SCHEMA_AND_FORMATTER_REFERENCE.md)
 - [Handler Behavior Matrix](api/HANDLER_BEHAVIOR_MATRIX.md)
