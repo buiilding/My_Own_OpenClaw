@@ -17,21 +17,26 @@ class DummyService:
         self.signals.append(signum)
 
 
-def test_request_stdin_shutdown_marks_service_and_closes_open_stdin(monkeypatch):
+class DummyTrackableStdin:
+    def __init__(self, closed=False):
+        self.closed = closed
+        self.close_calls = 0
+
+    def close(self):
+        self.closed = True
+        self.close_calls += 1
+
+
+def _service_logger_with_stdin(monkeypatch, stdin):
     service = DummyService()
     logger = logging.getLogger("test.runtime_shutdown")
-
-    class DummyStdin:
-        def __init__(self):
-            self.closed = False
-            self.close_calls = 0
-
-        def close(self):
-            self.closed = True
-            self.close_calls += 1
-
-    stdin = DummyStdin()
     monkeypatch.setattr(runtime_shutdown_module.sys, "stdin", stdin)
+    return service, logger
+
+
+def test_request_stdin_shutdown_marks_service_and_closes_open_stdin(monkeypatch):
+    stdin = DummyTrackableStdin()
+    service, logger = _service_logger_with_stdin(monkeypatch, stdin)
 
     runtime_shutdown_module.request_stdin_shutdown(service, logger, signal.SIGTERM)
 
@@ -42,20 +47,8 @@ def test_request_stdin_shutdown_marks_service_and_closes_open_stdin(monkeypatch)
 
 
 def test_request_stdin_shutdown_is_idempotent(monkeypatch):
-    service = DummyService()
-    logger = logging.getLogger("test.runtime_shutdown")
-
-    class DummyStdin:
-        def __init__(self):
-            self.closed = False
-            self.close_calls = 0
-
-        def close(self):
-            self.closed = True
-            self.close_calls += 1
-
-    stdin = DummyStdin()
-    monkeypatch.setattr(runtime_shutdown_module.sys, "stdin", stdin)
+    stdin = DummyTrackableStdin()
+    service, logger = _service_logger_with_stdin(monkeypatch, stdin)
 
     runtime_shutdown_module.request_stdin_shutdown(service, logger, signal.SIGTERM)
     runtime_shutdown_module.request_stdin_shutdown(service, logger, signal.SIGTERM)
