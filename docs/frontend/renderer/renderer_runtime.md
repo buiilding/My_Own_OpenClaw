@@ -98,3 +98,9 @@ Frontend-managed settings are explicitly filtered and sanitized before syncing:
 - query screenshot inclusion
 
 Backend remains source of truth for non-frontend runtime fields.
+
+## Related Provider Deep Dives
+
+- `docs/frontend/renderer/providers/README.md`
+- `docs/frontend/renderer/providers/entrypoint_view_routing_and_provider_stack_reference.md`
+- `docs/frontend/renderer/providers/app_provider_coordinator_and_save_status_runtime_reference.md`

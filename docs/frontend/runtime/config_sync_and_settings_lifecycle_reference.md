@@ -170,3 +170,9 @@ If settings revert unexpectedly:
 1. inspect storage event cross-window sync path
 2. verify disk-loaded config was filtered/sanitized correctly
 3. verify frontend only merges frontend-owned fields from backend payloads
+
+## Related Renderer Provider Deep Dives
+
+- `docs/frontend/renderer/providers/README.md`
+- `docs/frontend/renderer/providers/entrypoint_view_routing_and_provider_stack_reference.md`
+- `docs/frontend/renderer/providers/app_provider_coordinator_and_save_status_runtime_reference.md`
