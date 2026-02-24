@@ -65,6 +65,7 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 - [Frontend Voice Capture + Wakeword Controller Reference](../frontend/renderer/VOICE_CAPTURE_AND_WAKEWORD_CONTROLLER_REFERENCE.md)
 - [Frontend Runtime Paths and Endpoints](../frontend/main/RUNTIME_PATHS_AND_ENDPOINTS.md)
 - [Frontend Query Payload + Relay Reference](../frontend/main/QUERY_PAYLOAD_AND_RELAY_REFERENCE.md)
+- [Frontend WebSocket Handshake + Settings Sync Reference](../frontend/main/WEBSOCKET_HANDSHAKE_AND_SETTINGS_SYNC_REFERENCE.md)
 - [Frontend Stream State Machine](../frontend/runtime/STREAM_EVENT_STATE_MACHINE.md)
 - [Frontend Config Sync + Settings Lifecycle Reference](../frontend/runtime/CONFIG_SYNC_AND_SETTINGS_LIFECYCLE_REFERENCE.md)
 - [Frontend Audio Chunk Playback + Stop Semantics Reference](../frontend/runtime/AUDIO_CHUNK_PLAYBACK_AND_STOP_SEMANTICS_REFERENCE.md)

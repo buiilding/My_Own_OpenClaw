@@ -19,6 +19,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Window and Overlay Lifecycle](main/WINDOW_AND_OVERLAY_LIFECYCLE.md)
 - [Runtime Paths and Endpoints](main/RUNTIME_PATHS_AND_ENDPOINTS.md)
 - [Query Payload and Relay Reference](main/QUERY_PAYLOAD_AND_RELAY_REFERENCE.md)
+- [WebSocket Handshake and Settings Sync Reference](main/WEBSOCKET_HANDSHAKE_AND_SETTINGS_SYNC_REFERENCE.md)
 
 ### Renderer
 
