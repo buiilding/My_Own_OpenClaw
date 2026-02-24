@@ -8,6 +8,7 @@ Includes the last 300 commits on `main`.
 
 ### Added
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 33 execution slice for `LiteLLMClient` provider request-kwargs dedupe in `backend/src/llm/client.py`
+- refactor(llm-client): dedupe `LiteLLMClient` provider request-kwargs assembly in `backend/src/llm/client.py` via shared helper reused by completion + streaming paths while preserving prompt-cache key normalization and error semantics
 - refactor(tool-schemas): add shared `backend/src/tools/schema_fields.py` helpers for explanation and post-action wait fields, and reuse them across system/filesystem/computer schema modules while preserving existing argument contracts
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 32 execution slice for shared tool-schema field helper dedupe in `backend/src/tools/schema_fields.py`
 - refactor(llm-stream-processor): dedupe stream/non-stream request-path signatures in `backend/src/agent/llm/llm_stream_processor.py` by building completion kwargs once in `get_response` and removing the redundant non-stream wrapper

@@ -240,6 +240,25 @@ class LiteLLMClient(LLMClient):
         normalized = LiteLLMClient._normalize_response_payload(response, model)
         return normalized["content"]
 
+    @staticmethod
+    def _build_provider_request_kwargs(
+        tools: Optional[List[Dict[str, Any]]],
+        tool_choice: Optional[Any],
+        parallel_tool_calls: Optional[bool],
+        prompt_cache_key: Optional[str],
+    ) -> Dict[str, Any]:
+        """Build shared provider kwargs for completion and streaming requests."""
+        request_kwargs = {
+            "tools": tools,
+            "tool_choice": tool_choice,
+            "parallel_tool_calls": parallel_tool_calls,
+        }
+        if isinstance(prompt_cache_key, str):
+            normalized_key = prompt_cache_key.strip()
+            if normalized_key:
+                request_kwargs["prompt_cache_key"] = normalized_key
+        return request_kwargs
+
     async def get_completion_response(
         self,
         model: str,
@@ -258,15 +277,12 @@ class LiteLLMClient(LLMClient):
         self._last_stream_response_payload = None
 
         try:
-            request_kwargs = {
-                "tools": tools,
-                "tool_choice": tool_choice,
-                "parallel_tool_calls": parallel_tool_calls,
-            }
-            if isinstance(prompt_cache_key, str):
-                normalized_key = prompt_cache_key.strip()
-                if normalized_key:
-                    request_kwargs["prompt_cache_key"] = normalized_key
+            request_kwargs = self._build_provider_request_kwargs(
+                tools=tools,
+                tool_choice=tool_choice,
+                parallel_tool_calls=parallel_tool_calls,
+                prompt_cache_key=prompt_cache_key,
+            )
             response = await provider.get_completion(
                 model,
                 messages,
@@ -337,15 +353,12 @@ class LiteLLMClient(LLMClient):
         self._last_stream_cache_diagnostics = None
         self._last_stream_response_payload = None
         try:
-            request_kwargs = {
-                "tools": tools,
-                "tool_choice": tool_choice,
-                "parallel_tool_calls": parallel_tool_calls,
-            }
-            if isinstance(prompt_cache_key, str):
-                normalized_key = prompt_cache_key.strip()
-                if normalized_key:
-                    request_kwargs["prompt_cache_key"] = normalized_key
+            request_kwargs = self._build_provider_request_kwargs(
+                tools=tools,
+                tool_choice=tool_choice,
+                parallel_tool_calls=parallel_tool_calls,
+                prompt_cache_key=prompt_cache_key,
+            )
             # Provider's get_completion_stream handles its own exceptions and yields ErrorEvent
             async for event in provider.get_completion_stream(
                 model,
