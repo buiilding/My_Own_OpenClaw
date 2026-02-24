@@ -7,6 +7,7 @@ from unittest import mock
 
 from backend.src.tools.browser import RemoteBrowserTool
 from backend.src.tools.browser.schemas import BrowserControlArgs
+from backend.src.tools.browser.openclaw_compat_schema import BrowserOpenClawCompatArgs
 from backend.src.tools.remote import REMOTE_TOOLS, get_remote_tool
 
 
@@ -144,3 +145,8 @@ class TestBrowserControlArgs:
         """Test Browser Use fractional scroll pages."""
         args = BrowserControlArgs(action="scroll", pages=0.5)
         assert args.pages == 0.5
+
+    def test_openclaw_compat_args_still_available(self):
+        """Test OpenClaw-specific schema model remains available after split."""
+        args = BrowserOpenClawCompatArgs(action="status")
+        assert args.action == "status"
