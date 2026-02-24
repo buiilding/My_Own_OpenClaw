@@ -36,6 +36,32 @@ function setChatState(messages) {
 }
 
 describe('ChatBoxResponse', () => {
+  async function renderToolCallGhost({ userText, toolText }) {
+    setChatState([
+      { id: 'user-1', text: userText, sender: 'user' },
+      {
+        id: 'tool-1',
+        text: toolText,
+        sender: 'assistant',
+        type: 'tool-call',
+      },
+    ]);
+
+    const renderResult = render(<ChatBoxResponse />);
+    const onPhase = mockListeners.get('response-overlay-phase');
+    expect(onPhase).toEqual(expect.any(Function));
+
+    act(() => {
+      onPhase({ phase: 'tool-call' });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Assistant tool action preview')).toBeInTheDocument();
+    });
+
+    return renderResult;
+  }
+
   beforeEach(() => {
     mockInvoke.mockClear();
     mockListeners.clear();
@@ -57,63 +83,30 @@ describe('ChatBoxResponse', () => {
   });
 
   test('shows tool-action ghost during tool-call phase and hides typing indicator', async () => {
-    setChatState([
-      { id: 'user-1', text: 'run command', sender: 'user' },
-      {
-        id: 'tool-1',
-        text: JSON.stringify({
-          name: 'mouse_control',
-          args: { explanation: 'Clicking Chrome icon' },
-        }),
-        sender: 'assistant',
-        type: 'tool-call',
-      },
-    ]);
-
-    render(<ChatBoxResponse />);
-
-    const onPhase = mockListeners.get('response-overlay-phase');
-    expect(onPhase).toEqual(expect.any(Function));
-
-    act(() => {
-      onPhase({ phase: 'tool-call' });
-    });
-
-    await waitFor(() => {
-      expect(screen.getByLabelText('Assistant tool action preview')).toBeInTheDocument();
+    await renderToolCallGhost({
+      userText: 'run command',
+      toolText: JSON.stringify({
+        name: 'mouse_control',
+        args: { explanation: 'Clicking Chrome icon' },
+      }),
     });
     expect(screen.getByText('Clicking Chrome icon')).toBeInTheDocument();
     expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
   });
 
   test('uses coordinate contract metadata to position targeted tool ghost preview', async () => {
-    setChatState([
-      { id: 'user-1', text: 'open chrome', sender: 'user' },
-      {
-        id: 'tool-1',
-        text: JSON.stringify({
-          name: 'mouse_control',
-          args: { explanation: 'Clicking Chrome icon' },
-          metadata: {
-            coordinate_contract: {
-              target_display_size: [1920, 1080],
-              normalized_coordinates: { x: 1600, y: 900 },
-            },
+    const { container } = await renderToolCallGhost({
+      userText: 'open chrome',
+      toolText: JSON.stringify({
+        name: 'mouse_control',
+        args: { explanation: 'Clicking Chrome icon' },
+        metadata: {
+          coordinate_contract: {
+            target_display_size: [1920, 1080],
+            normalized_coordinates: { x: 1600, y: 900 },
           },
-        }),
-        sender: 'assistant',
-        type: 'tool-call',
-      },
-    ]);
-
-    const { container } = render(<ChatBoxResponse />);
-    const onPhase = mockListeners.get('response-overlay-phase');
-    act(() => {
-      onPhase({ phase: 'tool-call' });
-    });
-
-    await waitFor(() => {
-      expect(screen.getByLabelText('Assistant tool action preview')).toBeInTheDocument();
+        },
+      }),
     });
 
     const ghostTrack = container.querySelector('.chatbox-tool-ghost-track');
@@ -124,33 +117,18 @@ describe('ChatBoxResponse', () => {
   });
 
   test('renders a target rectangle when target_rect metadata is present', async () => {
-    setChatState([
-      { id: 'user-1', text: 'click panel', sender: 'user' },
-      {
-        id: 'tool-1',
-        text: JSON.stringify({
-          name: 'mouse_control',
-          args: { explanation: 'Clicking panel' },
-          metadata: {
-            target_rect: { x: 100, y: 200, width: 500, height: 350 },
-            coordinate_contract: {
-              target_display_size: [1920, 1080],
-            },
+    const { container } = await renderToolCallGhost({
+      userText: 'click panel',
+      toolText: JSON.stringify({
+        name: 'mouse_control',
+        args: { explanation: 'Clicking panel' },
+        metadata: {
+          target_rect: { x: 100, y: 200, width: 500, height: 350 },
+          coordinate_contract: {
+            target_display_size: [1920, 1080],
           },
-        }),
-        sender: 'assistant',
-        type: 'tool-call',
-      },
-    ]);
-
-    const { container } = render(<ChatBoxResponse />);
-    const onPhase = mockListeners.get('response-overlay-phase');
-    act(() => {
-      onPhase({ phase: 'tool-call' });
-    });
-
-    await waitFor(() => {
-      expect(screen.getByLabelText('Assistant tool action preview')).toBeInTheDocument();
+        },
+      }),
     });
 
     const ghostTrack = container.querySelector('.chatbox-tool-ghost-track');
