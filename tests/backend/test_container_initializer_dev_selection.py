@@ -39,6 +39,15 @@ class DummyOcrService:
         self.calls += 1
 
 
+def _build_ocr_initializer():
+    ocr_service = DummyOcrService()
+    container = SimpleNamespace(
+        ocr_service=ocr_service,
+        config=SimpleNamespace(ocr_config=object()),
+    )
+    return ContainerInitializer(container), ocr_service
+
+
 @pytest.mark.asyncio
 async def test_initialize_vision_service_skipped_when_disabled(monkeypatch: pytest.MonkeyPatch):
     vision_service = DummyVisionService()
@@ -53,12 +62,7 @@ async def test_initialize_vision_service_skipped_when_disabled(monkeypatch: pyte
 
 @pytest.mark.asyncio
 async def test_initialize_ocr_service_skipped_and_disabled_when_disabled(monkeypatch: pytest.MonkeyPatch):
-    ocr_service = DummyOcrService()
-    container = SimpleNamespace(
-        ocr_service=ocr_service,
-        config=SimpleNamespace(ocr_config=object()),
-    )
-    initializer = ContainerInitializer(container)
+    initializer, ocr_service = _build_ocr_initializer()
     monkeypatch.setattr(initializer, "_should_initialize_ocr_service", lambda: False)
 
     await initializer._initialize_ocr_service()
@@ -69,12 +73,7 @@ async def test_initialize_ocr_service_skipped_and_disabled_when_disabled(monkeyp
 
 @pytest.mark.asyncio
 async def test_initialize_ocr_service_runs_when_enabled(monkeypatch: pytest.MonkeyPatch):
-    ocr_service = DummyOcrService()
-    container = SimpleNamespace(
-        ocr_service=ocr_service,
-        config=SimpleNamespace(ocr_config=object()),
-    )
-    initializer = ContainerInitializer(container)
+    initializer, ocr_service = _build_ocr_initializer()
     monkeypatch.setattr(initializer, "_should_initialize_ocr_service", lambda: True)
 
     await initializer._initialize_ocr_service()
