@@ -11,6 +11,7 @@ Includes the last 300 commits on `main`.
 - refactor(test-chatbox-response): extract shared tool-call phase/payload helpers in `tests/frontend/ChatBoxResponse.test.jsx` to remove duplicate ghost setup blocks; jscpd clone count returns to `28`
 - refactor(frontend-tool-ghost-runtime): remove unused exported click-phase constants from `toolGhostRuntime.ts` and tighten `ChatBoxResponse` fallback error handler to satisfy `lint:audit` + `audit:knip` with no findings
 - perf(test-chrome-launcher): remove real-time waits from sidecar chrome launcher tests by mocking timeout/sleep paths in timeout/kill/shutdown cases; `tests/sidecar` runtime drops by ~14s in local duration profiling
+- perf(test-browser-use-adapter): mock timed-wait sleep in `test_default_native_handler_registry_includes_browser_use_wait_seconds` to remove a real 2.2s delay; sidecar duration profile now has no tests above 0.2s
 - refactor(backend-tool-sender): centralize ToolCall/ToolBundle metadata shaping in `_build_tool_event_metadata` and add bundle metadata parity regression coverage in `tests/backend/test_tool_sender.py`
 - refactor(test-kimi-stream): add shared `_run_stream_tool_case` + stream chunk helpers in `tests/backend/test_kimi_coding_provider.py` and remove duplicated tool-stream provider/event setup blocks
 - refactor(frontend-app-provider): remove unnecessary `useEffect` ref-mirror in `AppContextCoordinator` (`AppProvider.jsx`) by assigning refs during render
