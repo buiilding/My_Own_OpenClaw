@@ -4,7 +4,7 @@ import logging
 import random
 import time
 from dataclasses import dataclass, field
-from typing import Any, Literal, TypeVar, overload
+from typing import Any, Literal, TypeVar
 
 from google import genai
 from google.auth.credentials import Credentials
@@ -197,13 +197,22 @@ class ChatGoogle(BaseChatModel):
 			return stripped[3:-3].strip()
 		return stripped
 
-	@overload
-	async def ainvoke(
-		self, messages: list[BaseMessage], output_format: None = None, **kwargs: Any
-	) -> ChatInvokeCompletion[str]: ...
-
-	@overload
-	async def ainvoke(self, messages: list[BaseMessage], output_format: type[T], **kwargs: Any) -> ChatInvokeCompletion[T]: ...
+	def _parse_json_text_response(
+		self,
+		*,
+		raw_text: str,
+		output_format: type[T],
+		usage: ChatInvokeUsage | None,
+		response: types.GenerateContentResponse,
+	) -> ChatInvokeCompletion[T]:
+		"""Parse JSON text into typed completion payload."""
+		text = self._strip_markdown_code_fence(raw_text)
+		parsed_data = json.loads(text)
+		return ChatInvokeCompletion(
+			completion=output_format.model_validate(parsed_data),
+			usage=usage,
+			stop_reason=self._get_stop_reason(response),
+		)
 
 	async def ainvoke(
 		self, messages: list[BaseMessage], output_format: type[T] | None = None, **kwargs: Any
@@ -359,15 +368,11 @@ class ChatGoogle(BaseChatModel):
 							# When using response_schema, Gemini returns JSON as text
 							if response.text:
 								try:
-									# Handle JSON wrapped in markdown code blocks (common Gemini behavior)
-									text = self._strip_markdown_code_fence(response.text)
-
-									# Parse the JSON text and validate with the Pydantic model
-									parsed_data = json.loads(text)
-									return ChatInvokeCompletion(
-										completion=output_format.model_validate(parsed_data),
+									return self._parse_json_text_response(
+										raw_text=response.text,
+										output_format=output_format,
 										usage=usage,
-										stop_reason=self._get_stop_reason(response),
+										response=response,
 									)
 								except (json.JSONDecodeError, ValueError) as e:
 									self.logger.error(f'❌ Failed to parse JSON response: {str(e)}')
@@ -434,15 +439,11 @@ class ChatGoogle(BaseChatModel):
 						# Try to extract JSON from the text response
 						if response.text:
 							try:
-								# Try to find JSON in the response
-								text = self._strip_markdown_code_fence(response.text)
-
-								# Parse and validate
-								parsed_data = json.loads(text)
-								return ChatInvokeCompletion(
-									completion=output_format.model_validate(parsed_data),
+								return self._parse_json_text_response(
+									raw_text=response.text,
+									output_format=output_format,
 									usage=usage,
-									stop_reason=self._get_stop_reason(response),
+									response=response,
 								)
 							except (json.JSONDecodeError, ValueError) as e:
 								self.logger.error(f'❌ Failed to parse fallback JSON: {str(e)}')

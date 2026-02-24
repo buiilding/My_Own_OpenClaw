@@ -5,7 +5,7 @@ import logging
 import os
 from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any, TypeVar, cast, overload
+from typing import Any, TypeVar, cast
 
 import httpx
 from pydantic import BaseModel
@@ -157,14 +157,6 @@ class ChatMistral(BaseChatModel):
 			return response.json()
 		except Exception as e:
 			raise ModelProviderError(message=f'Failed to parse Mistral response: {e}', model=self.name) from e
-
-	@overload
-	async def ainvoke(
-		self, messages: list[BaseMessage], output_format: None = None, **kwargs: Any
-	) -> ChatInvokeCompletion[str]: ...
-
-	@overload
-	async def ainvoke(self, messages: list[BaseMessage], output_format: type[T], **kwargs: Any) -> ChatInvokeCompletion[T]: ...
 
 	async def ainvoke(
 		self, messages: list[BaseMessage], output_format: type[T] | None = None, **kwargs: Any
