@@ -7,6 +7,8 @@ ensure_frontend_python_path()
 from tools.schemas import (  # noqa: E402
     KeyboardControlArgs,
     MouseControlArgs,
+    ReplaceArgs,
+    ReplaceOperationArgs,
     ScrollControlArgs,
 )
 
@@ -98,3 +100,18 @@ def test_scroll_control_scroll_up_down_do_not_require_direction():
 
     assert up_args.direction is None
     assert down_args.direction is None
+
+
+def test_replace_args_default_context_and_matching_fields():
+    args = ReplaceArgs(file_path="/tmp/a.txt", old_string="old", new_string="new")
+
+    assert args.before_context is None
+    assert args.after_context is None
+    assert args.occurrence_index is None
+    assert args.require_eof is False
+    assert args.match_mode == "lenient"
+
+
+def test_replace_operation_occurrence_index_must_be_positive():
+    with pytest.raises(ValidationError):
+        ReplaceOperationArgs(old_string="old", new_string="new", occurrence_index=0)
