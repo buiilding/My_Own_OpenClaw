@@ -217,12 +217,6 @@ export function useWakewordDetection(
       console.log(`[Wakeword] Detection event: model=${data.model}, confidence=${confidence.toFixed(4)}, threshold=${threshold}`);
       
       if (confidence >= threshold) {
-        const timeSinceLastDetection = now - lastDetectionRef.current;
-        if (isWithinCooldown(now, lastDetectionRef.current, cooldownPeriod)) {
-          console.log(`[Wakeword] Ignoring (cooldown: ${timeSinceLastDetection}ms < ${cooldownPeriod}ms)`);
-          return;
-        }
-        
         lastDetectionRef.current = now;
         console.log(`[Wakeword] *** DETECTED *** ${data.model} (confidence: ${confidence.toFixed(4)})`);
         
