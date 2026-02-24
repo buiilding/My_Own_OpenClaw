@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): add phase-127 full-gate snapshot after backend/sidecar dedupe wave (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)
 - refactor(sidecar-chrome-launcher-tests): extract shared `TestIsCdpAvailable._patch_client_session` helper in `tests/sidecar/tools/test_chrome_launcher.py` to dedupe client-session mock wiring; jscpd improved from clones `73 -> 72` and duplicated lines `1425 -> 1416`
 - refactor(backend-response-parser-tests): merge metadata-wrapper order coverage into one parameterized test in `tests/backend/test_response_parser.py`; jscpd improved from clones `74 -> 73` and duplicated lines `1434 -> 1425`
 - refactor(sidecar-system-state-tests): add shared `_patch_system_state_collectors` helper in `tests/sidecar/test_system_state.py` to dedupe repeated collector monkeypatch setup; jscpd improved from clones `75 -> 74` and duplicated lines `1443 -> 1434`
