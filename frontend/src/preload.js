@@ -63,6 +63,7 @@ contextBridge.exposeInMainWorld('ipc', {
       'wakeword-toggle',
       'chatbox-focus',
       'response-overlay-phase',
+      'response-overlay-visibility',
     ];
     if (validChannels.includes(channel)) {
       // Deliberately strip event as it includes `sender`
@@ -84,6 +85,7 @@ contextBridge.exposeInMainWorld('ipc', {
       'wakeword-toggle',
       'chatbox-focus',
       'response-overlay-phase',
+      'response-overlay-visibility',
     ];
     if (validChannels.includes(channel)) {
       ipcRenderer.once(channel, (event, ...args) => func(...args));

@@ -11,6 +11,7 @@ const mockInvoke = jest.fn((channel) => {
   return Promise.resolve({ success: true });
 });
 const mockSend = jest.fn();
+const mockListeners = new Map();
 const mockSendMessage = jest.fn();
 const mockUseChatMessageSender = jest.fn(() => ({
   sendMessage: mockSendMessage,
@@ -76,7 +77,12 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   IpcBridge: {
     invoke: (...args) => mockInvoke(...args),
     send: (...args) => mockSend(...args),
-    on: () => () => {},
+    on: (channel, listener) => {
+      mockListeners.set(channel, listener);
+      return () => {
+        mockListeners.delete(channel);
+      };
+    },
   },
   SEND_CHANNELS: {
     MOVE_CHATBOX_TO: 'move-chatbox-to',
@@ -89,6 +95,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
   ON_CHANNELS: {
     CHATBOX_FOCUS: 'chatbox-focus',
+    RESPONSE_OVERLAY_VISIBILITY: 'response-overlay-visibility',
   },
 }));
 
@@ -119,6 +126,7 @@ describe('ChatBox overlay mouse ignore', () => {
     mockInvoke.mockClear();
     mockSystemStateResponse({});
     mockSend.mockClear();
+    mockListeners.clear();
     mockUseChatMessageSender.mockClear();
     mockSendMessage.mockClear();
     mockChatState.messages = [];
@@ -244,6 +252,25 @@ describe('ChatBox overlay mouse ignore', () => {
       ariaLabel: 'Active app: VS Code',
       visibleText: 'VS Code',
     });
+  });
+
+  test('hides active app indicator while response overlay is visible', async () => {
+    mockSystemStateResponse({ active_window: 'main.py - Visual Studio Code' });
+    render(<ChatBox />);
+
+    await expectActiveAppIndicator({
+      ariaLabel: 'Active app: VS Code',
+      visibleText: 'VS Code',
+    });
+
+    const onResponseOverlayVisibility = mockListeners.get('response-overlay-visibility');
+    expect(onResponseOverlayVisibility).toBeTruthy();
+
+    act(() => {
+      onResponseOverlayVisibility({ visible: true });
+    });
+
+    expect(screen.queryByLabelText('Active app: VS Code')).not.toBeInTheDocument();
   });
 
   test('shows offline context state when active-window polling fails', async () => {
