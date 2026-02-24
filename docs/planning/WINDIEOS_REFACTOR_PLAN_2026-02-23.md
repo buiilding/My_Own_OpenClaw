@@ -3392,3 +3392,19 @@ read_when:
     - `./scripts/test-backend` (pass; 974 tests)
   - sidecar tests:
     - `./scripts/test-sidecar` (pass; 461 tests, 4 skipped, 3 known swig deprecation warnings)
+
+## Phase 143 Outcome (2026-02-24)
+
+- Full-gate revalidation after shared provider request-param hook migration (Phase 143 code slice):
+  - frontend lint audits:
+    - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
+  - dead-code audit:
+    - `cd frontend && npm run audit:knip` (pass)
+  - duplication audit:
+    - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `42`, duplicated lines `959`, duplicated tokens `9194`)
+  - frontend tests:
+    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - backend tests:
+    - `./scripts/test-backend` (pass; 975 tests)
+  - sidecar tests:
+    - `./scripts/test-sidecar` (pass; 461 tests, 4 skipped, 3 known swig deprecation warnings)
