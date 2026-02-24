@@ -77,6 +77,9 @@ Important behavior:
 - Filters tool schemas through centralized `ToolPolicy` before injection.
 - Emits metadata for transparency events (`system-prompt`, `tool-schemas`, user full message context).
 - Includes context XML extraction helpers for user message transparency payloads.
+- Detailed prompt references:
+- `llm/prompts/prompt_constructor_and_transparency_metadata_reference.md`
+- `llm/prompts/prompt_manager_and_system_prompt_lifecycle_reference.md`
 
 ## Response Parsing Trust Boundary
 
