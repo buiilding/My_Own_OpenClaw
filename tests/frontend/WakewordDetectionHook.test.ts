@@ -9,6 +9,44 @@ import { useWakewordDetection } from '../../frontend/src/renderer/features/voice
 
 describe('useWakewordDetection', () => {
   const listeners = new Map<string, (data: any) => void>();
+  const getChannelHandler = (channel: string) => {
+    const handler = listeners.get(channel);
+    expect(handler).toEqual(expect.any(Function));
+    return handler;
+  };
+  const getSendCallCount = (channel: string) => (
+    (IpcBridge.send as jest.Mock).mock.calls.filter((call) => call[0] === channel).length
+  );
+
+  const withMockedMediaDevices = (
+    mediaDevices: MediaDevices,
+    run: () => Promise<void>,
+  ) => {
+    const originalMediaDevices = navigator.mediaDevices;
+    Object.defineProperty(navigator, 'mediaDevices', {
+      configurable: true,
+      value: mediaDevices,
+    });
+    return run().finally(() => {
+      Object.defineProperty(navigator, 'mediaDevices', {
+        configurable: true,
+        value: originalMediaDevices,
+      });
+    });
+  };
+
+  const renderEnabledHookAndEmitReady = async () => {
+    const rendered = renderHook(
+      ({ enabled }) => useWakewordDetection(enabled),
+      { initialProps: { enabled: true } },
+    );
+    const statusHandler = getChannelHandler(ON_CHANNELS.WAKEWORD_STATUS);
+    await act(async () => {
+      statusHandler?.({ ready: true });
+      await Promise.resolve();
+    });
+    return rendered;
+  };
 
   beforeEach(() => {
     jest.spyOn(console, 'warn').mockImplementation(() => {});
@@ -47,21 +85,15 @@ describe('useWakewordDetection', () => {
     const onWakewordDetected = jest.fn();
     renderHook(() => useWakewordDetection(false, onWakewordDetected));
 
-    const handler = listeners.get(ON_CHANNELS.WAKEWORD_DETECTED);
-    expect(handler).toEqual(expect.any(Function));
-    const initialDisableCalls = (IpcBridge.send as jest.Mock).mock.calls.filter(
-      (call) => call[0] === SEND_CHANNELS.WAKEWORD_DISABLE,
-    ).length;
+    const handler = getChannelHandler(ON_CHANNELS.WAKEWORD_DETECTED);
+    const initialDisableCalls = getSendCallCount(SEND_CHANNELS.WAKEWORD_DISABLE);
 
     act(() => {
       handler?.({ model: 'jarvis', confidence: 'not-a-number' });
     });
 
     expect(onWakewordDetected.mock.calls.length).toBe(0);
-    const disableCalls = (IpcBridge.send as jest.Mock).mock.calls.filter(
-      (call) => call[0] === SEND_CHANNELS.WAKEWORD_DISABLE,
-    );
-    expect(disableCalls.length).toBe(initialDisableCalls);
+    expect(getSendCallCount(SEND_CHANNELS.WAKEWORD_DISABLE)).toBe(initialDisableCalls);
   });
 
   test('triggers callback and disable signal for detections above threshold with cooldown guard', () => {
@@ -71,11 +103,8 @@ describe('useWakewordDetection', () => {
     let now = 5000;
     const nowSpy = jest.spyOn(Date, 'now').mockImplementation(() => now);
 
-    const handler = listeners.get(ON_CHANNELS.WAKEWORD_DETECTED);
-    expect(handler).toEqual(expect.any(Function));
-    const initialDisableCalls = (IpcBridge.send as jest.Mock).mock.calls.filter(
-      (call) => call[0] === SEND_CHANNELS.WAKEWORD_DISABLE,
-    ).length;
+    const handler = getChannelHandler(ON_CHANNELS.WAKEWORD_DETECTED);
+    const initialDisableCalls = getSendCallCount(SEND_CHANNELS.WAKEWORD_DISABLE);
 
     act(() => {
       now = 10000;
@@ -90,10 +119,7 @@ describe('useWakewordDetection', () => {
       confidence: 0.8,
       score: 0.91,
     });
-    const disableCalls = (IpcBridge.send as jest.Mock).mock.calls.filter(
-      (call) => call[0] === SEND_CHANNELS.WAKEWORD_DISABLE,
-    );
-    expect(disableCalls.length).toBe(initialDisableCalls + 1);
+    expect(getSendCallCount(SEND_CHANNELS.WAKEWORD_DISABLE)).toBe(initialDisableCalls + 1);
 
     nowSpy.mockRestore();
   });
@@ -116,42 +142,21 @@ describe('useWakewordDetection', () => {
       getTracks: () => [track],
     } as unknown as MediaStream;
 
-    const originalMediaDevices = navigator.mediaDevices;
-    try {
-      Object.defineProperty(navigator, 'mediaDevices', {
-        configurable: true,
-        value: {
-          getUserMedia: jest.fn(() => pendingMedia),
-        },
-      });
+    await withMockedMediaDevices(
+      { getUserMedia: jest.fn(() => pendingMedia) } as unknown as MediaDevices,
+      async () => {
+        const { rerender } = await renderEnabledHookAndEmitReady();
 
-      const { rerender } = renderHook(
-        ({ enabled }) => useWakewordDetection(enabled),
-        { initialProps: { enabled: true } },
-      );
+        rerender({ enabled: false });
 
-      const statusHandler = listeners.get(ON_CHANNELS.WAKEWORD_STATUS);
-      expect(statusHandler).toEqual(expect.any(Function));
+        await act(async () => {
+          resolveMedia?.(lateStream);
+          await Promise.resolve();
+        });
 
-      await act(async () => {
-        statusHandler?.({ ready: true });
-        await Promise.resolve();
-      });
-
-      rerender({ enabled: false });
-
-      await act(async () => {
-        resolveMedia?.(lateStream);
-        await Promise.resolve();
-      });
-
-      expect(track.stop).toHaveBeenCalledTimes(1);
-    } finally {
-      Object.defineProperty(navigator, 'mediaDevices', {
-        configurable: true,
-        value: originalMediaDevices,
-      });
-    }
+        expect(track.stop).toHaveBeenCalledTimes(1);
+      },
+    );
   });
 
   test('stops audio safely when stop is triggered multiple times', async () => {
@@ -178,48 +183,31 @@ describe('useWakewordDetection', () => {
       close: closeMock,
     };
 
-    const originalMediaDevices = navigator.mediaDevices;
     const originalAudioContext = (window as any).AudioContext;
     const originalWebkitAudioContext = (window as any).webkitAudioContext;
 
-    try {
-      Object.defineProperty(navigator, 'mediaDevices', {
-        configurable: true,
-        value: {
-          getUserMedia: jest.fn(async () => stream),
-        },
-      });
-      (window as any).AudioContext = jest.fn(() => fakeAudioContext);
-      (window as any).webkitAudioContext = undefined;
+    await withMockedMediaDevices(
+      { getUserMedia: jest.fn(async () => stream) } as unknown as MediaDevices,
+      async () => {
+        try {
+          (window as any).AudioContext = jest.fn(() => fakeAudioContext);
+          (window as any).webkitAudioContext = undefined;
 
-      const { rerender, unmount } = renderHook(
-        ({ enabled }) => useWakewordDetection(enabled),
-        { initialProps: { enabled: true } },
-      );
+          const { rerender, unmount } = await renderEnabledHookAndEmitReady();
 
-      const statusHandler = listeners.get(ON_CHANNELS.WAKEWORD_STATUS);
-      expect(statusHandler).toEqual(expect.any(Function));
+          await act(async () => {
+            rerender({ enabled: false });
+            unmount();
+            await Promise.resolve();
+          });
 
-      await act(async () => {
-        statusHandler?.({ ready: true });
-        await Promise.resolve();
-      });
-
-      await act(async () => {
-        rerender({ enabled: false });
-        unmount();
-        await Promise.resolve();
-      });
-
-      expect(closeMock).toHaveBeenCalledTimes(1);
-      expect(track.stop).toHaveBeenCalledTimes(1);
-    } finally {
-      Object.defineProperty(navigator, 'mediaDevices', {
-        configurable: true,
-        value: originalMediaDevices,
-      });
-      (window as any).AudioContext = originalAudioContext;
-      (window as any).webkitAudioContext = originalWebkitAudioContext;
-    }
+          expect(closeMock).toHaveBeenCalledTimes(1);
+          expect(track.stop).toHaveBeenCalledTimes(1);
+        } finally {
+          (window as any).AudioContext = originalAudioContext;
+          (window as any).webkitAudioContext = originalWebkitAudioContext;
+        }
+      },
+    );
   });
 });
