@@ -125,3 +125,9 @@ When changing contract fields:
 5. update `ipc.cjs` normalization/dispatch rules for new message types
 6. update contracts docs and consumer matrix docs
 
+## Related Pages
+
+- `docs/frontend/contracts/ipc/README.md`
+- `docs/frontend/contracts/ipc/preload_allowlist_and_channel_constant_parity_reference.md`
+- `docs/frontend/contracts/ipc_channel_and_handler_reference.md`
+- `docs/frontend/contracts/events/README.md`
