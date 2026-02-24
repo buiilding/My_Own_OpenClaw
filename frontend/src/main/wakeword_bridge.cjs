@@ -9,8 +9,7 @@ const { spawn } = require('child_process');
 const path = require('path');
 const { ipcMain } = require('electron');
 const {
-  firstExistingPath,
-  getBundledPythonExecutableCandidates,
+  resolvePythonExecutablePath,
   resolvePythonScriptPath,
 } = require('./runtime_paths.cjs');
 
@@ -23,38 +22,7 @@ let wakewordDetectedCallback = null;
  * Get Python executable path
  */
 function getPythonPath() {
-  const fs = require('fs');
-
-  const explicitPythonPath = process.env.WINDIE_PYTHON_PATH;
-  if (explicitPythonPath && fs.existsSync(explicitPythonPath)) {
-    return explicitPythonPath;
-  }
-
-  const bundledPython = firstExistingPath(getBundledPythonExecutableCandidates());
-  if (bundledPython) {
-    return bundledPython;
-  }
-  
-  // Check conda environment first (common on Windows)
-  const condaPrefix = process.env.CONDA_PREFIX;
-  if (condaPrefix) {
-    const condaPython = process.platform === 'win32'
-      ? path.join(condaPrefix, 'python.exe')
-      : path.join(condaPrefix, 'bin', 'python3');
-    
-    if (fs.existsSync(condaPython)) {
-      return condaPython;
-    }
-  }
-  
-  // Try common Python paths
-  if (process.platform === 'win32') {
-    // Windows: try py launcher first, then python
-    return 'py';
-  } else {
-    // Unix-like: try python3 first, then python
-    return 'python3';
-  }
+  return resolvePythonExecutablePath();
 }
 
 /**

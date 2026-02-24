@@ -11,8 +11,7 @@ const { ipcMain } = require('electron');
 const { v4: uuidv4 } = require('uuid');
 const { resolveBackendEndpoints } = require('./backend_endpoints.cjs');
 const {
-  firstExistingPath,
-  getBundledPythonExecutableCandidates,
+  resolvePythonExecutablePath,
   resolvePythonScriptPath,
 } = require('./runtime_paths.cjs');
 
@@ -251,35 +250,7 @@ function getPythonPath() {
     return cachedPythonPath;
   }
 
-  const fs = require('fs');
-
-  const explicitPythonPath = process.env.WINDIE_PYTHON_PATH;
-  if (explicitPythonPath && fs.existsSync(explicitPythonPath)) {
-    cachedPythonPath = explicitPythonPath;
-    return cachedPythonPath;
-  }
-
-  const bundledPython = firstExistingPath(getBundledPythonExecutableCandidates());
-  if (bundledPython) {
-    cachedPythonPath = bundledPython;
-    return cachedPythonPath;
-  }
-  
-  // Check conda environment first (common on Windows)
-  const condaPrefix = process.env.CONDA_PREFIX;
-  if (condaPrefix) {
-    const condaPython = process.platform === 'win32'
-      ? path.join(condaPrefix, 'python.exe')
-      : path.join(condaPrefix, 'bin', 'python3');
-    
-    if (fs.existsSync(condaPython)) {
-      cachedPythonPath = condaPython;
-      return cachedPythonPath;
-    }
-  }
-  
-  // Try common Python paths (no file check needed - will fail at spawn if invalid)
-  cachedPythonPath = process.platform === 'win32' ? 'py' : 'python3';
+  cachedPythonPath = resolvePythonExecutablePath();
   return cachedPythonPath;
 }
 
