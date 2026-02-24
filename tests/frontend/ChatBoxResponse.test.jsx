@@ -17,6 +17,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
   INVOKE_CHANNELS: {
     SET_RESPONSEBOX_SIZE: 'set-responsebox-size',
+    GET_SYSTEM_STATE: 'get-system-state',
   },
   ON_CHANNELS: {
     RESPONSE_OVERLAY_PHASE: 'response-overlay-phase',
@@ -63,7 +64,13 @@ describe('ChatBoxResponse', () => {
   }
 
   beforeEach(() => {
-    mockInvoke.mockClear();
+    mockInvoke.mockReset();
+    mockInvoke.mockImplementation((channel) => {
+      if (channel === 'get-system-state') {
+        return Promise.resolve({ mouse_position: '(960, 540)' });
+      }
+      return Promise.resolve({ success: true });
+    });
     mockListeners.clear();
     setChatState([]);
   });
@@ -87,11 +94,45 @@ describe('ChatBoxResponse', () => {
       userText: 'run command',
       toolText: JSON.stringify({
         name: 'mouse_control',
-        args: { explanation: 'Clicking Chrome icon' },
+        arguments: { action: 'click', explanation: 'Clicking Chrome icon' },
       }),
     });
     expect(screen.getByText('Clicking Chrome icon')).toBeInTheDocument();
     expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
+  });
+
+  test('uses current mouse position as click-ghost animation start point', async () => {
+    mockInvoke.mockImplementation((channel) => {
+      if (channel === 'get-system-state') {
+        return Promise.resolve({ mouse_position: '(100, 120)' });
+      }
+      return Promise.resolve({ success: true });
+    });
+
+    const { container } = await renderToolCallGhost({
+      userText: 'run command',
+      toolText: JSON.stringify({
+        name: 'mouse_control',
+        arguments: { action: 'click', explanation: 'Clicking Chrome icon' },
+        metadata: {
+          coordinate_contract: {
+            target_display_size: [1000, 1000],
+            normalized_coordinates: { x: 800, y: 750 },
+          },
+        },
+      }),
+    });
+
+    const ghostTrack = container.querySelector('.chatbox-tool-ghost-track');
+    expect(ghostTrack).toBeTruthy();
+    expect(ghostTrack.classList.contains('is-click-animating')).toBe(true);
+
+    await waitFor(() => {
+      expect(ghostTrack.style.getPropertyValue('--ghost-start-offset-x')).not.toBe('0px');
+      expect(ghostTrack.style.getPropertyValue('--ghost-start-offset-y')).not.toBe('0px');
+      expect(ghostTrack.style.getPropertyValue('--ghost-end-offset-x')).not.toBe('0px');
+      expect(ghostTrack.style.getPropertyValue('--ghost-end-offset-y')).not.toBe('0px');
+    });
   });
 
   test('uses coordinate contract metadata to position targeted tool ghost preview', async () => {

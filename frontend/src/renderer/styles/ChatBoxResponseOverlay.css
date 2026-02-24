@@ -50,7 +50,12 @@
 .chatbox-tool-ghost-track {
   --ghost-offset-x: 0px;
   --ghost-offset-y: 0px;
+  --ghost-start-offset-x: 0px;
+  --ghost-start-offset-y: 0px;
+  --ghost-end-offset-x: 0px;
+  --ghost-end-offset-y: 0px;
   --ghost-target-scale: 1;
+  --ghost-motion-duration: 550ms;
   --ghost-rect-left: 44%;
   --ghost-rect-top: 36%;
   --ghost-rect-width: 18%;
@@ -69,8 +74,30 @@
   width: 76px;
   height: 76px;
   position: relative;
-  transform: translate(var(--ghost-offset-x), var(--ghost-offset-y));
+  transform: translate(var(--ghost-end-offset-x), var(--ghost-end-offset-y));
   transition: transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.chatbox-tool-ghost-track.is-click-animating {
+  animation: none;
+}
+
+.chatbox-tool-ghost-track.is-click-animating .chatbox-tool-ghost-cursor-wrap {
+  transform: translate(var(--ghost-start-offset-x), var(--ghost-start-offset-y));
+  transition: none;
+  animation: chatboxToolGhostMove var(--ghost-motion-duration) cubic-bezier(0.22, 1, 0.36, 1) 1 forwards;
+}
+
+.chatbox-tool-ghost-track.is-click-animating .chatbox-tool-ghost-ring {
+  animation: chatboxToolGhostPulse var(--ghost-motion-duration) ease-in-out 1 forwards;
+}
+
+.chatbox-tool-ghost-track.is-click-animating .chatbox-tool-ghost-ripple {
+  animation: chatboxToolGhostRipple var(--ghost-motion-duration) ease-in-out 1 forwards;
+}
+
+.chatbox-tool-ghost-track.is-click-animating .chatbox-tool-ghost-cursor {
+  animation: chatboxToolGhostCursor var(--ghost-motion-duration) ease-in-out 1 forwards;
 }
 
 .chatbox-tool-ghost-target-rect {
@@ -242,5 +269,14 @@
   }
   50% {
     transform: translateX(6px);
+  }
+}
+
+@keyframes chatboxToolGhostMove {
+  0% {
+    transform: translate(var(--ghost-start-offset-x), var(--ghost-start-offset-y));
+  }
+  100% {
+    transform: translate(var(--ghost-end-offset-x), var(--ghost-end-offset-y));
   }
 }
