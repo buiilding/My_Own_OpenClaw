@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 36 execution slice for OpenRouter completion/stream request-param assembly dedupe in `backend/src/llm/providers/openrouter.py`
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 35 execution slice for scoped exception constructor dedupe in `backend/src/core/infrastructure/exceptions.py` (`LLMError`, `MemoryError`)
 - refactor(core-exceptions): dedupe scoped constructor + optional-field wiring in `backend/src/core/infrastructure/exceptions.py` using shared scoped-init helpers reused by `LLMError` and `MemoryError` while preserving error-code defaults/metadata scope attributes
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 34 execution slice for `exceptions.py` LLM optional-field constructor dedupe (`LLMAPIError`, `LLMRateLimitError`)

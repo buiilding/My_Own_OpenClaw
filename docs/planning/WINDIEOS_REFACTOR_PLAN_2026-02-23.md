@@ -753,6 +753,25 @@ read_when:
   - `pytest tests/backend/test_exceptions.py tests/backend/test_llm_client.py tests/backend/test_local_llm_providers.py`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
+## Phase 36
+
+- `jscpd` duplication cleanup (OpenRouter request param assembly):
+  - extract shared request-param builder wrapper in:
+    - `backend/src/llm/providers/openrouter.py`
+  - reuse for both:
+    - `OpenRouterProvider.get_completion`
+    - `OpenRouterProvider._stream_internal`
+  - preserve prompt-cache key forwarding, stream usage reporting, and existing provider error semantics.
+
+### Phase 36 Execution Slice (Current Loop)
+
+- Backend dedupe:
+  - remove duplicated `_build_request_params(...)` argument assembly in OpenRouter provider completion paths.
+  - keep stream chunk parsing and `stream_options` behavior unchanged.
+- Verification checks:
+  - `pytest tests/backend/test_llm_provider_base.py tests/backend/test_local_llm_providers.py tests/backend/test_llm_client.py`
+  - `cd frontend && npm run audit:jscpd` (expect clone reduction)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):
