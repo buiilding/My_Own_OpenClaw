@@ -8,6 +8,7 @@ import { subscribeResponseOverlayPhase } from '../utils/overlayPhaseListener';
 const CLICK_THROUGH_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
 const OVERLAY_ACTIVE_PHASES = new Set(['awaiting-first-chunk', 'streaming']);
 const OVERLAY_TERMINAL_PHASES = new Set(['idle', 'complete', 'error']);
+const LOOP_ACTIVE_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
 
 function isDragBlockedTarget(target) {
   if (!(target instanceof Element)) {
@@ -224,9 +225,10 @@ function ChatBox() {
     dragStateRef.current.lastTargetY = windowScreenY;
     event.preventDefault();
   }, []);
+  const isLoopActive = LOOP_ACTIVE_PHASES.has(streamPhase) || LOOP_ACTIVE_PHASES.has(overlayPhase);
 
   return (
-    <div className="chatbox-shell-wrap">
+    <div className={`chatbox-shell-wrap${isLoopActive ? ' loop-active' : ''}`}>
       <div className="chatbox-shell" ref={shellRef}>
         <form className="chatbox-pill" onSubmit={handleSubmit} onMouseDown={handlePillMouseDown}>
           <button

@@ -6,6 +6,33 @@ body {
   width: min(560px, 100vw);
   margin: 0 auto;
   animation: fadeUp 320ms ease;
+  position: relative;
+}
+
+.chatbox-shell-wrap::after {
+  content: '';
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: -8px;
+  height: 20px;
+  border-radius: 999px;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(110, 199, 255, 0.46) 0%,
+    rgba(57, 153, 246, 0.22) 42%,
+    rgba(12, 24, 36, 0) 78%
+  );
+  filter: blur(10px);
+  transform: scale(0.94);
+  transition: opacity 220ms ease;
+}
+
+.chatbox-shell-wrap.loop-active::after {
+  opacity: 0.95;
+  animation: chatboxLoopGlow 1.9s ease-in-out infinite;
 }
 
 .chatbox-shell {
@@ -463,6 +490,18 @@ body {
   }
   40% {
     transform: translateY(-2px);
+    opacity: 1;
+  }
+}
+
+@keyframes chatboxLoopGlow {
+  0%,
+  100% {
+    transform: scale(0.94);
+    opacity: 0.62;
+  }
+  50% {
+    transform: scale(1);
     opacity: 1;
   }
 }

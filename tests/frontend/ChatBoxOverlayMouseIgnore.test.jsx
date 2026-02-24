@@ -163,6 +163,18 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(mockSend).not.toHaveBeenCalledWith('move-chatbox-to', expect.anything());
   });
 
+  test('adds ambient loop glow class while active stream phases are running', () => {
+    mockChatState.streamTracking.phase = 'tool-call';
+    const { container, rerender } = render(<ChatBox />);
+    const shellWrap = container.querySelector('.chatbox-shell-wrap');
+    expect(shellWrap).toBeTruthy();
+    expect(shellWrap.classList.contains('loop-active')).toBe(true);
+
+    mockChatState.streamTracking.phase = 'idle';
+    rerender(<ChatBox />);
+    expect(shellWrap.classList.contains('loop-active')).toBe(false);
+  });
+
   test('send button dispatches message and clears input', async () => {
     render(<ChatBox />);
     const input = screen.getByPlaceholderText('Ask me anything...');
