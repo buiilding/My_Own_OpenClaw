@@ -22,6 +22,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 
 - [Renderer Runtime](renderer/RENDERER_RUNTIME.md)
 - [Feature Module Matrix](renderer/FEATURE_MODULE_MATRIX.md)
+- [Chat Stream and Tool Execution Reference](renderer/CHAT_STREAM_AND_TOOL_EXECUTION_REFERENCE.md)
 - [Tool Execution and Streaming](runtime/TOOL_EXECUTION_AND_STREAMING.md)
 - [Stream Event State Machine](runtime/STREAM_EVENT_STATE_MACHINE.md)
 

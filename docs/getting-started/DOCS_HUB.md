@@ -40,6 +40,7 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 - [Frontend Functionality Map](../frontend/README.md)
 - [Frontend IPC/Event Contracts](../frontend/contracts/IPC_CHANNELS_AND_EVENT_CONTRACTS.md)
 - [Frontend IPC Channel Handler Reference](../frontend/contracts/IPC_CHANNEL_AND_HANDLER_REFERENCE.md)
+- [Frontend Chat Stream + Tool Execution Reference](../frontend/renderer/CHAT_STREAM_AND_TOOL_EXECUTION_REFERENCE.md)
 - [Frontend Runtime Paths and Endpoints](../frontend/main/RUNTIME_PATHS_AND_ENDPOINTS.md)
 - [Frontend Stream State Machine](../frontend/runtime/STREAM_EVENT_STATE_MACHINE.md)
 - [Frontend Sidecar Browser Stack](../frontend/sidecar/BROWSER_AUTOMATION_STACK.md)
