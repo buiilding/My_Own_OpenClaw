@@ -367,6 +367,34 @@ read_when:
   - `cd frontend && npm run audit:knip`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
+## Phase 17
+
+- `jscpd` duplication cleanup (voice audio-capture lifecycle):
+  - extract shared cleanup helpers for ScriptProcessor/source/media-stream/audio-context teardown.
+  - reuse helpers in both voice hooks:
+    - `useVoiceMode`
+    - `useWakewordDetection`
+  - keep hook API and runtime behavior unchanged.
+- Deprecation/react-compiler audit check:
+  - run `npm run lint:audit` after refactor and record current deprecation warning status.
+
+### Phase 17 Execution Slice (Current Loop)
+
+- Frontend dedupe:
+  - add shared voice utility module under `frontend/src/renderer/features/voice/utils/` for audio-capture teardown helpers.
+  - replace duplicated cleanup blocks in:
+    - `frontend/src/renderer/features/voice/hooks/useVoiceMode.ts`
+    - `frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts`
+- Regression coverage:
+  - add focused utility tests for cleanup helpers (safe close + ref reset behavior).
+- Success checks:
+  - `cd frontend && npm run lint`
+  - `cd frontend && npm run test:ci -- tests/frontend/VoiceModeHook.test.ts tests/frontend/WakewordDetectionHook.test.ts tests/frontend/VoiceAudioCleanup.test.ts`
+  - `cd frontend && npm run lint:audit`
+  - `cd frontend && npm run test:ci`
+  - `cd frontend && npm run audit:knip`
+  - `cd frontend && npm run audit:jscpd` (expect clone reduction)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):
