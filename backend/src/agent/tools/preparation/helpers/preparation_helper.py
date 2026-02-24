@@ -35,10 +35,22 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+_COORDINATE_RESOLUTION_METHODS = (
+    CoordinateFindingMethod.OCR,
+    CoordinateFindingMethod.PREDICTION,
+)
+
 
 def _should_disable_coordinate_normalization() -> bool:
     """Disable screenshot->display coordinate scaling on Linux."""
     return platform.system().lower() == "linux"
+
+
+def tool_call_needs_coordinate_resolution(tool_call: ParsedToolCall) -> bool:
+    """Return whether a tool call should run OCR/prediction coordinate resolution."""
+    if tool_call.tool_name != "mouse_control":
+        return False
+    return tool_call.parameters.get("find_coordinates_by") in _COORDINATE_RESOLUTION_METHODS
 
 
 def attach_coordinate_method_metadata(
@@ -128,10 +140,7 @@ async def resolve_tool_with_coordinates(
 
     # Normalize to frontend mouse coordinate space when screenshot pixel space differs
     # (common with HiDPI scaling where screenshot is physical pixels).
-    requires_coordinate_normalization = tool_call.parameters.get("find_coordinates_by") in (
-        CoordinateFindingMethod.OCR,
-        CoordinateFindingMethod.PREDICTION,
-    )
+    requires_coordinate_normalization = tool_call_needs_coordinate_resolution(tool_call)
     if requires_coordinate_normalization:
         contract = _build_coordinate_contract(session, screenshot_data, x, y)
         if _should_disable_coordinate_normalization():
