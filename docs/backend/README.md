@@ -24,11 +24,24 @@ Covers:
 
 ## Deep Pages
 
-- [Bootstrap and Config](BOOTSTRAP_AND_CONFIG.md)
-- [API and Transport](API_AND_TRANSPORT.md)
-- [Agent and Tool Runtime](AGENT_AND_TOOL_RUNTIME.md)
-- [LLM Models and Parsing](LLM_MODELS_AND_PARSING.md)
-- [Services and Storage](SERVICES_AND_STORAGE.md)
+### Bootstrap
+
+- [Bootstrap and Config](bootstrap/BOOTSTRAP_AND_CONFIG.md)
+
+### API and Contracts
+
+- [API and Transport](api/API_AND_TRANSPORT.md)
+- [WebSocket Message Contracts](contracts/WEBSOCKET_MESSAGE_CONTRACTS.md)
+
+### Runtime and Tools
+
+- [Agent and Tool Runtime](runtime/AGENT_AND_TOOL_RUNTIME.md)
+- [Frontend Tool Bridge and Policy](tools/FRONTEND_TOOL_BRIDGE_AND_POLICY.md)
+
+### LLM and Services
+
+- [LLM Models and Parsing](llm/LLM_MODELS_AND_PARSING.md)
+- [Services and Storage](services/SERVICES_AND_STORAGE.md)
 
 ## Backend Layout (Code)
 
