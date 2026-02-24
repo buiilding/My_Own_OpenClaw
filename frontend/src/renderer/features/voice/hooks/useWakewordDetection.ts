@@ -59,9 +59,7 @@ export function useWakewordDetection(
   
   // Use ref to store callback so effect doesn't re-run when callback changes
   const onWakewordDetectedRef = useRef(onWakewordDetected);
-  useEffect(() => {
-    onWakewordDetectedRef.current = onWakewordDetected;
-  }, [onWakewordDetected]);
+  onWakewordDetectedRef.current = onWakewordDetected;
 
   useEffect(() => {
     const warningMessage = getChunkSizeWarning(rawChunkSize, chunkSize);
