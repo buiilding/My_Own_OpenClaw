@@ -15,6 +15,7 @@ Includes the last 300 commits on `main`.
 - refactor(chatbox-response): split `ChatBoxResponse` tool-ghost lifecycle + view-model helpers into `useToolGhostLifecycle.js` and `chatBoxResponseUtils.js`, reducing the component to `451` LOC (from `605`) while preserving behavior/test coverage
 - refactor(online-provider-streaming): add shared `OnlineLLMProvider._build_stream_request_kwargs` and reuse it from both online and Kimi stream internals to keep provider stream-request assembly single-sourced
 - refactor(test-browser-use-adapter): extract shared fake BrowserUse import-module builder in `tests/sidecar/tools/test_browser_use_adapter.py` and reuse it across wait/upload/extract handler tests, trimming duplicated scaffolding and reducing file size by ~100 lines
+- docs(frontend-overlay-runtime): update renderer folder map + response overlay runtime reference to include `chatBoxResponseUtils.js` and `useToolGhostLifecycle.js` as canonical ChatBoxResponse dependencies
 - refactor(backend-tool-sender): centralize ToolCall/ToolBundle metadata shaping in `_build_tool_event_metadata` and add bundle metadata parity regression coverage in `tests/backend/test_tool_sender.py`
 - refactor(test-kimi-stream): add shared `_run_stream_tool_case` + stream chunk helpers in `tests/backend/test_kimi_coding_provider.py` and remove duplicated tool-stream provider/event setup blocks
 - refactor(frontend-app-provider): remove unnecessary `useEffect` ref-mirror in `AppContextCoordinator` (`AppProvider.jsx`) by assigning refs during render

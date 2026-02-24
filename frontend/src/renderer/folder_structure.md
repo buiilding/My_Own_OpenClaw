@@ -38,6 +38,7 @@ frontend/src/renderer/
 │   ├── chat/                            # Chat feature module
 │   │   ├── components/                  # Chat UI components
 │   │   │   ├── ChatBox.jsx              # ChatBox - Floating quick chat overlay UI (new-chat + stop controls)
+│   │   │   ├── ChatBoxResponse.jsx      # ChatBoxResponse - Response overlay (awaiting/thinking/response/tool-ghost modes)
 │   │   │   ├── ChatInterface.jsx        # ChatInterface - Main chat orchestrator (composes MessageList, MessageInput, TokenCountDisplay; includes new-chat + stop controls)
 │   │   │   ├── MessageContent.jsx       # MessageContent - Renders message body by type
 │   │   │   ├── MessageInput.jsx         # MessageInput - Input field with voice transcription support
@@ -45,6 +46,8 @@ frontend/src/renderer/
 │   │   │   ├── MessageTransparencySections.jsx # MessageTransparencySections - Renders transparency panels
 │   │   │   ├── ThinkingDisplay.jsx      # ThinkingDisplay - Displays LLM thinking/reasoning tokens (collapsible)
 │   │   │   ├── TokenCountDisplay.jsx    # TokenCountDisplay - Shows token usage statistics
+│   │   │   ├── chatBoxResponseUtils.js  # chatBoxResponseUtils - Response/tool-call selection + tool-ghost track style builders
+│   │   │   ├── useToolGhostLifecycle.js # useToolGhostLifecycle - Mouse-origin tool-ghost click animation lifecycle state
 │   │   │   └── TransparencySection.jsx  # TransparencySection - Collapsible sections for system prompts, tool schemas, full messages
 │   │   │
 │   │   ├── hooks/                       # Chat business logic hooks

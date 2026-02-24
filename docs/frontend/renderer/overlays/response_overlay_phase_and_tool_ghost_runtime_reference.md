@@ -12,6 +12,8 @@ title: "Response Overlay Phase and Tool-Ghost Runtime Reference"
 
 - `frontend/src/renderer/app/ChatBoxResponseApp.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
+- `frontend/src/renderer/features/chat/components/chatBoxResponseUtils.js`
+- `frontend/src/renderer/features/chat/components/useToolGhostLifecycle.js`
 - `frontend/src/renderer/features/chat/utils/chatSelectors.js`
 - `frontend/src/renderer/features/chat/utils/overlayPhaseListener.js`
 - `frontend/src/renderer/features/chat/utils/overlayFrameSize.js`
@@ -27,9 +29,9 @@ Primary store inputs:
 
 Selection logic:
 
-1. find latest user index
-2. find latest assistant message after that user for allowed response types (`llm-text`, `error`)
-3. find latest assistant tool-call message after that user for tool-ghost mode
+1. `findLastUserIndex(messages)` finds the latest user turn boundary.
+2. `findLatestMessageAfterUser(...)` selects latest assistant response (`llm-text` or `error`) after that boundary.
+3. `findLatestToolCallAfterUser(...)` selects latest assistant tool-call after that boundary.
 
 Closeability:
 
@@ -124,7 +126,7 @@ If coordinates absent:
 Execution sync behavior:
 
 - click-like `mouse_control` actions (`click`, `double_click`, `right_click`) are delayed `3200ms` in `useToolRunner` before real sidecar execution.
-- ghost cursor lifecycle:
+- `useToolGhostLifecycle(...)` drives ghost cursor lifecycle:
   - appears at current cursor position (`get-system-state` mouse position) and holds `1000ms`
   - moves to model target coordinate over `1200ms`
   - holds at target `1000ms`
