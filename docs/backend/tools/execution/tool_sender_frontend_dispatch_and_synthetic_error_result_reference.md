@@ -117,3 +117,5 @@ This prevents partial frontend dispatch for atomic bundles.
 - [Tool Result Orchestrator Bundle Detection and Wait Path Reference](tool_result_orchestrator_bundle_detection_and_wait_path_reference.md)
 - [Tool Preparation and Coordinate Resolution Reference](../tool_preparation_and_coordinate_resolution_reference.md)
 - [Tool Result Ingress and Storage Reference](../tool_result_ingress_and_storage_reference.md)
+- [Backend Tools Processing Docs Hub](../processing/README.md)
+- [Synthetic Result Factory and Coordinate-Resolution Failure Tool-Output Reference](../processing/synthetic_result_factory_and_coordinate_resolution_failure_tool_output_reference.md)
