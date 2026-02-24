@@ -156,34 +156,12 @@ class LiteLLMClient(LLMClient):
             raise LLMAPIError(f"LLM provider error: {exc}", model=model) from exc
 
     @staticmethod
-    def _normalize_response_payload(
-        response: Any, model: str
-    ) -> NormalizedLLMResponse:
-        """Validate provider response against the canonical normalized contract."""
-        if not isinstance(response, dict):
-            raise LLMAPIError(
-                f"Invalid response type from provider: expected dict, got {type(response).__name__}",
-                model=model,
-            )
-
-        if "content" not in response:
-            raise LLMAPIError(
-                f"Invalid response structure from provider: missing 'content' key. Keys: {list(response.keys())}",
-                model=model,
-            )
-
-        content = response["content"]
-        if content is None:
-            content = ""
-        if not isinstance(content, str):
-            raise LLMAPIError(
-                f"Invalid content type from provider: expected str, got {type(content).__name__}",
-                model=model,
-            )
-
-        normalized: NormalizedLLMResponse = {"content": content}
-
-        tool_calls = response.get("tool_calls")
+    def _normalize_tool_calls(
+        tool_calls: Any,
+        *,
+        model: str,
+    ) -> Optional[List[Dict[str, Any]]]:
+        """Normalize provider tool calls into canonical [{id,name,arguments}] form."""
         if tool_calls is not None:
             if not isinstance(tool_calls, list):
                 raise LLMAPIError(
@@ -221,17 +199,65 @@ class LiteLLMClient(LLMClient):
                 normalized_tool_calls.append(
                     {"id": tool_id, "name": tool_name, "arguments": arguments}
                 )
+            return normalized_tool_calls
+        return None
 
+    @staticmethod
+    def _normalize_finish_reason(
+        finish_reason: Any,
+        *,
+        model: str,
+    ) -> Optional[str]:
+        """Normalize finish reason type from provider response."""
+        if finish_reason is None:
+            return None
+        if not isinstance(finish_reason, str):
+            raise LLMAPIError(
+                "Invalid finish_reason type from provider: expected str or None",
+                model=model,
+            )
+        return finish_reason
+
+    @staticmethod
+    def _normalize_response_payload(
+        response: Any, model: str
+    ) -> NormalizedLLMResponse:
+        """Validate provider response against the canonical normalized contract."""
+        if not isinstance(response, dict):
+            raise LLMAPIError(
+                f"Invalid response type from provider: expected dict, got {type(response).__name__}",
+                model=model,
+            )
+
+        if "content" not in response:
+            raise LLMAPIError(
+                f"Invalid response structure from provider: missing 'content' key. Keys: {list(response.keys())}",
+                model=model,
+            )
+
+        content = response["content"]
+        if content is None:
+            content = ""
+        if not isinstance(content, str):
+            raise LLMAPIError(
+                f"Invalid content type from provider: expected str, got {type(content).__name__}",
+                model=model,
+            )
+
+        normalized: NormalizedLLMResponse = {"content": content}
+
+        normalized_tool_calls = LiteLLMClient._normalize_tool_calls(
+            response.get("tool_calls"),
+            model=model,
+        )
+        if normalized_tool_calls is not None:
             normalized["tool_calls"] = normalized_tool_calls
 
         if "finish_reason" in response:
-            finish_reason = response["finish_reason"]
-            if finish_reason is not None and not isinstance(finish_reason, str):
-                raise LLMAPIError(
-                    "Invalid finish_reason type from provider: expected str or None",
-                    model=model,
-                )
-            normalized["finish_reason"] = finish_reason
+            normalized["finish_reason"] = LiteLLMClient._normalize_finish_reason(
+                response["finish_reason"],
+                model=model,
+            )
 
         return normalized
 
