@@ -26,6 +26,13 @@ from tools.browser.chrome_launcher import (
 
 class TestIsCdpAvailable:
     """Test is_cdp_available function."""
+
+    @staticmethod
+    def _patch_client_session(mock_session_class, get_context_manager):
+        mock_session = mock.MagicMock()
+        mock_session.get = mock.MagicMock(return_value=get_context_manager)
+        mock_session_class.return_value.__aenter__ = mock.AsyncMock(return_value=mock_session)
+        mock_session_class.return_value.__aexit__ = mock.AsyncMock(return_value=False)
     
     @pytest.mark.asyncio
     async def test_cdp_available_success(self):
@@ -39,13 +46,8 @@ class TestIsCdpAvailable:
         mock_get_cm.__aenter__ = mock.AsyncMock(return_value=mock_response)
         mock_get_cm.__aexit__ = mock.AsyncMock(return_value=False)
         
-        # Create session mock - get() should return the context manager directly
-        mock_session = mock.MagicMock()
-        mock_session.get = mock.MagicMock(return_value=mock_get_cm)
-        
         with mock.patch("tools.browser.chrome_launcher.aiohttp.ClientSession") as mock_session_class:
-            mock_session_class.return_value.__aenter__ = mock.AsyncMock(return_value=mock_session)
-            mock_session_class.return_value.__aexit__ = mock.AsyncMock(return_value=False)
+            self._patch_client_session(mock_session_class, mock_get_cm)
             
             result = await is_cdp_available(DEFAULT_CDP_URL)
             
@@ -58,12 +60,8 @@ class TestIsCdpAvailable:
         mock_get_cm.__aenter__ = mock.AsyncMock(side_effect=Exception("Connection refused"))
         mock_get_cm.__aexit__ = mock.AsyncMock(return_value=False)
 
-        mock_session = mock.MagicMock()
-        mock_session.get = mock.MagicMock(return_value=mock_get_cm)
-
         with mock.patch("tools.browser.chrome_launcher.aiohttp.ClientSession") as mock_session_class:
-            mock_session_class.return_value.__aenter__ = mock.AsyncMock(return_value=mock_session)
-            mock_session_class.return_value.__aexit__ = mock.AsyncMock(return_value=False)
+            self._patch_client_session(mock_session_class, mock_get_cm)
 
             result = await is_cdp_available(DEFAULT_CDP_URL)
 
