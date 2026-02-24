@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(backend-safe-websocket): extract `_close_direct` helper and reuse it in both senderless close and enqueue-fallback close paths to dedupe direct-close race handling
 - refactor(backend-llm-client): return deep-copied cache diagnostics and stream payload snapshots from `LiteLLMClient` getters to avoid nested caller mutation leaking into stored client state; add regression coverage in `tests/backend/test_llm_client.py`
 - refactor(backend-safe-websocket): extract shared `_send_message` helper and route both `send_json`/`send_text` through one enqueue-await path to reduce duplicate sender-task/future boilerplate
 - refactor(backend-safe-websocket): simplify `_sender_loop` success path by consolidating one future-resolution point across `json`/`text`/`close` queue message types while preserving unknown-type and connection-failure handling

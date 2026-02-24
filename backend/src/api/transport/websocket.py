@@ -214,6 +214,13 @@ class SafeWebSocket:
         await self._enqueue((msg_type, data, mode, future))
         await future
 
+    async def _close_direct(self, *, code: int, reason: Optional[str]) -> None:
+        """Close underlying websocket directly, swallowing already-closed races."""
+        try:
+            await self._websocket.close(code=code, reason=reason)
+        except Exception as close_error:
+            logger.debug("Direct close failed (already closed): %s", close_error)
+
     async def close(self, code: int = 1000, reason: Optional[str] = None) -> None:
         """
         Thread-safe close.
@@ -230,9 +237,7 @@ class SafeWebSocket:
         # No sender loop yet: close directly.
         if self._sender_task is None:
             try:
-                await self._websocket.close(code=code, reason=reason)
-            except Exception as e:
-                logger.debug("Close failed (already closed): %s", e)
+                await self._close_direct(code=code, reason=reason)
             finally:
                 self._close_event.set()
             return
@@ -246,12 +251,7 @@ class SafeWebSocket:
             logger.debug(
                 "Close enqueue/flush failed, falling back to direct close: %s", e
             )
-            try:
-                await self._websocket.close(code=code, reason=reason)
-            except Exception as close_error:
-                logger.debug(
-                    "Direct close fallback failed (already closed): %s", close_error
-                )
+            await self._close_direct(code=code, reason=reason)
         finally:
             await self._close_event.wait()
 
