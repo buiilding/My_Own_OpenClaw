@@ -542,6 +542,27 @@ read_when:
   - `pytest tests/backend/test_exceptions.py tests/backend/test_validation_utils.py tests/backend/test_api_errors.py`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
+## Phase 25
+
+- `jscpd` duplication cleanup (exception constructor specialization):
+  - extract shared optional-field metadata helper and trust-boundary metadata helper in:
+    - `backend/src/core/infrastructure/exceptions.py`
+  - centralize default error-code behavior for LLM + memory exception families.
+  - reduce repeated constructor blocks in:
+    - `LLMAPIError`, `LLMRateLimitError`
+    - `MemoryError`, `MemoryStoreError`, `EmbeddingError`
+    - `InputSizeLimitError`, `ParseTimeoutError`, `ParseValidationError`
+  - preserve existing error-code values, attributes, and metadata semantics.
+
+### Phase 25 Execution Slice (Current Loop)
+
+- Backend dedupe:
+  - keep exception public API stable while collapsing repeated constructor paths.
+  - retain existing handling for falsey optional metadata values (`0`, `None`, `[]`).
+- Verification checks:
+  - `pytest tests/backend/test_exceptions.py tests/backend/test_validation_utils.py tests/backend/test_api_errors.py`
+  - `cd frontend && npm run audit:jscpd` (expect clone reduction)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):
