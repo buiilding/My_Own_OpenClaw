@@ -89,6 +89,13 @@ function restoreBackendEnv() {
   process.env = ORIGINAL_ENV;
 }
 
+function silenceBridgeLogs() {
+  // ipc.cjs logs heavily; mute in tests to keep runs fast and readable.
+  jest.spyOn(console, 'log').mockImplementation(() => {});
+  jest.spyOn(console, 'warn').mockImplementation(() => {});
+  jest.spyOn(console, 'error').mockImplementation(() => {});
+}
+
 function primeQueryContext(backendBridge, options = {}) {
   if (options.systemStateError) {
     backendBridge.getSystemState.mockRejectedValue(options.systemStateError);
@@ -141,4 +148,5 @@ module.exports = {
   primeQueryContext,
   resetBackendEnv,
   restoreBackendEnv,
+  silenceBridgeLogs,
 };

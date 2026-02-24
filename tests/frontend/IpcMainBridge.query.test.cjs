@@ -5,11 +5,13 @@ const {
   primeQueryContext,
   resetBackendEnv,
   restoreBackendEnv,
+  silenceBridgeLogs,
 } = require('./__mocks__/ipcMainBridgeHarness.cjs');
 
 describe('ipc.cjs bridge query handling', () => {
   beforeEach(() => {
     resetBackendEnv();
+    silenceBridgeLogs();
   });
 
   afterEach(() => {
