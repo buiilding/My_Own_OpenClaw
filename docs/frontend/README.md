@@ -46,6 +46,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Sidecar Tool Catalog and Execution Model](sidecar/TOOL_CATALOG_AND_EXECUTION_MODEL.md)
 - [Memory Pipeline and Summarization](sidecar/MEMORY_PIPELINE_AND_SUMMARIZATION.md)
 - [Browser Automation Stack](sidecar/BROWSER_AUTOMATION_STACK.md)
+- [Browser Action Compatibility and Runtime Reference](sidecar/BROWSER_ACTION_COMPATIBILITY_AND_RUNTIME_REFERENCE.md)
 - [Local Backend JSON-RPC Reference](sidecar/LOCAL_BACKEND_JSONRPC_REFERENCE.md)
 - [Local Backend Process Lifecycle Reference](sidecar/LOCAL_BACKEND_PROCESS_LIFECYCLE_REFERENCE.md)
 - [Wakeword Bridge and Audio Framing Reference](sidecar/WAKEWORD_BRIDGE_AND_AUDIO_FRAMING_REFERENCE.md)

@@ -64,6 +64,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Backend Tool Preparation + Coordinate Resolution**](backend/tools/TOOL_PREPARATION_AND_COORDINATE_RESOLUTION_REFERENCE.md) - Pre-dispatch tool resolution internals: execution refs, OCR/prediction coordinate flow, normalization metadata contract, synthetic failure paths, and stale-screen execution guard
 - [**Browser Control**](browser/BROWSER_CONTROL.md) - Browser automation architecture and tool behavior
 - [**Sidecar Browser Automation Stack**](frontend/sidecar/BROWSER_AUTOMATION_STACK.md) - Renderer->main->sidecar browser runtime and CDP orchestration details
+- [**Sidecar Browser Action Compatibility + Runtime**](frontend/sidecar/BROWSER_ACTION_COMPATIBILITY_AND_RUNTIME_REFERENCE.md) - OpenClaw-compatible browser action surface, adapter normalization rules, native runtime handler mapping, and timeout/error-code behavior
 - [**Sidecar JSON-RPC Reference**](frontend/sidecar/LOCAL_BACKEND_JSONRPC_REFERENCE.md) - Main-process bridge method map and local backend JSON-RPC contract details
 - [**Sidecar Process Lifecycle**](frontend/sidecar/LOCAL_BACKEND_PROCESS_LIFECYCLE_REFERENCE.md) - Python sidecar spawn env/readiness probe loop, request correlation/timeouts, and restart/failure recovery behavior
 - [**Wakeword Bridge + Audio Framing**](frontend/sidecar/WAKEWORD_BRIDGE_AND_AUDIO_FRAMING_REFERENCE.md) - Wakeword subprocess lifecycle, length-prefixed audio transport, enable/disable buffering policy, and detection event propagation

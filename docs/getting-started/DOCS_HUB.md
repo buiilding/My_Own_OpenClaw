@@ -78,6 +78,7 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 - [Frontend Config Sync + Settings Lifecycle Reference](../frontend/runtime/CONFIG_SYNC_AND_SETTINGS_LIFECYCLE_REFERENCE.md)
 - [Frontend Audio Chunk Playback + Stop Semantics Reference](../frontend/runtime/AUDIO_CHUNK_PLAYBACK_AND_STOP_SEMANTICS_REFERENCE.md)
 - [Frontend Sidecar Browser Stack](../frontend/sidecar/BROWSER_AUTOMATION_STACK.md)
+- [Frontend Sidecar Browser Action Compatibility + Runtime Reference](../frontend/sidecar/BROWSER_ACTION_COMPATIBILITY_AND_RUNTIME_REFERENCE.md)
 - [Frontend Sidecar JSON-RPC Reference](../frontend/sidecar/LOCAL_BACKEND_JSONRPC_REFERENCE.md)
 - [Frontend Sidecar Process Lifecycle Reference](../frontend/sidecar/LOCAL_BACKEND_PROCESS_LIFECYCLE_REFERENCE.md)
 - [Frontend Wakeword Bridge + Audio Framing Reference](../frontend/sidecar/WAKEWORD_BRIDGE_AND_AUDIO_FRAMING_REFERENCE.md)
