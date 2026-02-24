@@ -182,3 +182,10 @@ If resumed conversation loses screenshots/tool linkage:
 1. inspect rehydrate mapping in `toRehydrateMessage(...)`
 2. verify inline image vs ref detection (base64 vs artifact id)
 3. verify `correlation_id` and `tool_name` fields survive list/get round-trip
+
+## Related Pages
+
+- [Frontend Renderer Transcript Docs Hub](transcript/README.md)
+- [Transcript Writer Queue Flush and Session Event Reference](transcript/transcript_writer_queue_flush_and_session_event_reference.md)
+- [Memory IPC and RPC Mapping Reference](../contracts/memory_ipc_and_rpc_mapping_reference.md)
+- [Transcript Storage, Semantic Candidate, and Watermark Reference](../sidecar/memory/transcript_storage_semantic_candidate_and_watermark_reference.md)
