@@ -4,6 +4,8 @@ Pydantic schemas for filesystem tools.
 from typing import List, Literal, Optional
 from pydantic import BaseModel, Field, ConfigDict
 
+from backend.src.tools.schema_fields import explanation_field
+
 # --- Read File Schemas ---
 
 class ReadFileArgs(BaseModel):
@@ -23,10 +25,7 @@ class ReadFileArgs(BaseModel):
         description="Maximum number of lines to read (defaults to 2000 when omitted)",
     )
 
-    explanation: str = Field(
-        ...,
-        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
-    )
+    explanation: str = explanation_field()
 
 
 # --- Replace Schemas ---
@@ -150,7 +149,4 @@ class ReplaceArgs(BaseModel):
             "When provided, patch_chunks cannot be combined with old_string/new_string/replacements."
         )
     )
-    explanation: str = Field(
-        ...,
-        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
-    )
+    explanation: str = explanation_field()

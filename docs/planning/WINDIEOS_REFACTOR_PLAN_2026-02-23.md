@@ -1362,3 +1362,22 @@ read_when:
 - Verification:
   - `pytest tests/backend/test_llm_stream_processor.py tests/backend/test_llm_client.py tests/backend/test_local_llm_providers.py` (pass; 42 tests)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
+
+## Phase 32 Outcome (2026-02-24)
+
+- Shared tool-schema field helper dedupe shipped:
+  - added shared field helper module:
+    - `backend/src/tools/schema_fields.py`
+  - rewired repeated explanation field declarations to shared helper in:
+    - `backend/src/tools/system/schemas.py`
+    - `backend/src/tools/filesystem/schemas.py`
+  - rewired repeated post-action wait field declarations to shared helper in:
+    - `backend/src/tools/computer/schemas.py`
+  - preserved tool argument defaults and descriptions.
+- jscpd delta after Phase 32 slice:
+  - clones: `191 -> 191`
+  - duplicated lines: `2957 -> 2957`
+  - duplicated tokens: `26147 -> 26147`
+- Verification:
+  - `pytest tests/backend/test_remote_tools.py tests/backend/test_browser_remote_tool.py tests/backend/test_remote_tool_contract.py` (pass; 27 tests)
+  - `cd frontend && npm run audit:jscpd` (pass; metrics unchanged this slice)

@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(tool-schemas): add shared `backend/src/tools/schema_fields.py` helpers for explanation and post-action wait fields, and reuse them across system/filesystem/computer schema modules while preserving existing argument contracts
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 32 execution slice for shared tool-schema field helper dedupe in `backend/src/tools/schema_fields.py`
 - refactor(llm-stream-processor): dedupe stream/non-stream request-path signatures in `backend/src/agent/llm/llm_stream_processor.py` by building completion kwargs once in `get_response` and removing the redundant non-stream wrapper
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 31 execution slice for `LLMStreamProcessor` request-path signature dedupe in `backend/src/agent/llm/llm_stream_processor.py`
