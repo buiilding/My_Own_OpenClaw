@@ -38,6 +38,9 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Backend Config Runtime Policy**](backend/config/config_fields_and_runtime_policy.md) - Exact config fields, runtime normalization, and frontend patch boundaries
 - [**Frontend Stream State Machine**](frontend/runtime/stream_event_state_machine.md) - Event-to-phase transitions and per-turn stream tracking behavior
 - [**Frontend Chat Stream + Tool Runtime**](frontend/renderer/chat_stream_and_tool_execution_reference.md) - Provider ownership, query-send flow, backend event routing, stale-turn cancellation, and tool-result relay semantics
+- [**Frontend Renderer Chat Hub**](frontend/renderer/chat/README.md) - Sub-hub for chat send-path policy, screenshot attachment flow, and store/session rotation contracts
+- [**Frontend Message Send Surface Policy + Screenshot Capture**](frontend/renderer/chat/message_send_surface_policy_and_screenshot_capture_reference.md) - Main-window vs overlay send behavior, optimistic message update ordering, and screenshot upload fallback semantics
+- [**Frontend Chat Store State + New Session Rotation**](frontend/renderer/chat/chat_store_state_and_new_session_rotation_reference.md) - Zustand no-op guards, stream-tracking reset behavior, and new-chat/resume conversation-ref synchronization
 - [**Frontend Renderer Overlay Hub**](frontend/renderer/overlays/README.md) - Chatbox input-pill and response overlay renderer internals
 - [**Frontend Renderer Provider Hub**](frontend/renderer/providers/README.md) - Root app composition, view routing, and provider coordination internals
 - [**Frontend Renderer Transcript Hub**](frontend/renderer/transcript/README.md) - TranscriptWriter queue/flush internals, session identity persistence rules, and session-event contracts
