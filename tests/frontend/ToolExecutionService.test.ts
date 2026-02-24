@@ -38,6 +38,27 @@ const executeDefaultToolBundle = (
   bundleId: string,
 ) => service.executeToolBundle(createDefaultToolBundleSteps(), bundleId);
 
+type ToolExecutionServiceOptions = NonNullable<ConstructorParameters<typeof ToolExecutionService>[0]>;
+
+const createServiceWithSendToBackend = (
+  options: Partial<ToolExecutionServiceOptions> = {},
+) => {
+  const sendToBackend = jest.fn();
+  return {
+    sendToBackend,
+    service: new ToolExecutionService({ sendToBackend, ...options }),
+  };
+};
+
+const executeDefaultToolBundleWithBackend = async (
+  bundleId: string,
+  options: Partial<ToolExecutionServiceOptions> = {},
+) => {
+  const { service, sendToBackend } = createServiceWithSendToBackend(options);
+  const result = await executeDefaultToolBundle(service, bundleId);
+  return { result, sendToBackend };
+};
+
 const expectBundleResultEnvelope = (
   sendToBackend: jest.Mock,
   bundleId: string,
@@ -271,10 +292,9 @@ describe('ToolExecutionService', () => {
     });
 
     const onBundleResult = jest.fn();
-    const sendToBackend = jest.fn();
-    const service = new ToolExecutionService({ onBundleResult, sendToBackend });
-
-    const result = await executeDefaultToolBundle(service, 'bundle-1');
+    const { result, sendToBackend } = await executeDefaultToolBundleWithBackend('bundle-1', {
+      onBundleResult,
+    });
 
     expect(invokeSpy).toHaveBeenNthCalledWith(1, INVOKE_CHANNELS.EXECUTE_TOOL, {
       toolName: 'read_file',
@@ -329,10 +349,7 @@ describe('ToolExecutionService', () => {
       data: null,
     });
 
-    const sendToBackend = jest.fn();
-    const service = new ToolExecutionService({ sendToBackend });
-
-    const result = await executeDefaultToolBundle(service, 'bundle-2');
+    const { result, sendToBackend } = await executeDefaultToolBundleWithBackend('bundle-2');
 
     expect(result.results).toHaveLength(1);
     expectBundleResultEnvelope(sendToBackend, 'bundle-2', 'partial_failure');
@@ -343,10 +360,7 @@ describe('ToolExecutionService', () => {
       .mockResolvedValueOnce({ success: true, data: { output: 'ok' } })
       .mockResolvedValueOnce({ success: false, error: 'boom', data: null });
 
-    const sendToBackend = jest.fn();
-    const service = new ToolExecutionService({ sendToBackend });
-
-    const result = await executeDefaultToolBundle(service, 'bundle-3');
+    const { result, sendToBackend } = await executeDefaultToolBundleWithBackend('bundle-3');
 
     expect(result.results).toHaveLength(2);
     expectBundleResultEnvelope(sendToBackend, 'bundle-3', 'failure', { error: 'boom' });
