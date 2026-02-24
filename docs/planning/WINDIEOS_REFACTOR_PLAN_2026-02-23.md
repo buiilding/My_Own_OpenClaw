@@ -985,3 +985,23 @@ read_when:
   - `cd frontend && npm run test:ci` (pass; 82 suites)
   - `cd frontend && npm run audit:knip` (pass; no findings)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
+
+## Phase 22 Outcome (2026-02-24)
+
+- Settings panel style dedupe shipped:
+  - consolidated duplicated item card selectors in:
+    - `frontend/src/renderer/styles/SettingsPanel.css`
+  - merged shared base + state declarations for:
+    - `.model-item` + `.memory-item`
+    - shared `:hover` + `.active` states
+  - preserved model-specific layout declarations (`display`/`flex-direction`/`gap`) as local-only styles.
+- jscpd delta after Phase 22 slice:
+  - clones: `209 -> 208`
+  - duplicated lines: `3182 -> 3172`
+  - duplicated tokens: `27860 -> 27753`
+- Verification:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/SettingsSection.test.jsx tests/frontend/SemanticMemorySection.test.jsx tests/frontend/EpisodicMemorySectionDelete.test.jsx` (pass)
+  - `cd frontend && npm run test:ci` (pass; 82 suites)
+  - `cd frontend && npm run audit:knip` (pass; no findings)
+  - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
