@@ -153,3 +153,5 @@ Signal routing:
 - [Frontend Sidecar Services Docs Hub](README.md)
 - [Wakeword Service Model Bootstrap and Binary Framing Reference](wakeword_service_model_bootstrap_and_binary_framing_reference.md)
 - [Memory Pipeline and Summarization](../memory_pipeline_and_summarization.md)
+- [Frontend Sidecar Memory Storage Docs Hub](../memory/storage/README.md)
+- [Local Memory Store Embedding, Search, and Memory-Type Routing Reference](../memory/storage/local_memory_store_embedding_search_and_memory_type_routing_reference.md)

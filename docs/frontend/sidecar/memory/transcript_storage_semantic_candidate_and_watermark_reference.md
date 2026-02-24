@@ -164,6 +164,9 @@ If resume order appears scrambled:
 ## Related Pages
 
 - [Frontend Sidecar Memory Docs Hub](README.md)
+- [Frontend Sidecar Memory Storage Docs Hub](storage/README.md)
 - [Summarizer Watermark and Conversation Batch Reference](summarizer_watermark_and_conversation_batch_reference.md)
+- [Local Memory Store Embedding, Search, and Memory-Type Routing Reference](storage/local_memory_store_embedding_search_and_memory_type_routing_reference.md)
+- [Conversation Transcript Window Queries and FAISS Artifact Cleanup Reference](storage/conversation_transcript_window_queries_and_faiss_artifact_cleanup_reference.md)
 - [Memory IPC and RPC Mapping Reference](../../contracts/memory_ipc_and_rpc_mapping_reference.md)
 - [Transcript Session and Rehydrate Reference](../../renderer/transcript_session_and_rehydrate_reference.md)
