@@ -11,6 +11,7 @@ import { useChatStore } from '../stores/chatStore';
 import { recordToolMessage } from '../../../infrastructure/transcript/TranscriptWriter';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { type ToolBundleEvent, type ToolCallEvent, isBackendEvent } from '../../../types/backendEvents';
+import { TOOL_GHOST_CLICK_SYNC_DELAY_MS } from '../constants/toolGhostRuntime';
 import {
   buildBundleOutputMessage,
   buildToolOutputMessage,
@@ -22,7 +23,6 @@ import {
 
 const TERMINAL_STREAM_PHASES = new Set(['idle', 'complete', 'error']);
 const MOUSE_CLICK_ACTIONS = new Set(['click', 'double_click', 'right_click']);
-const TOOL_GHOST_CLICK_SYNC_DELAY_MS = 1900;
 
 function shouldSkipToolExecution(
   metadata: Record<string, unknown> | undefined,

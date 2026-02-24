@@ -7,9 +7,12 @@ describe('toolGhostPreview', () => {
       label: 'Running tool action',
       hasTarget: false,
       hasRect: false,
+      isMouseClick: false,
       xRatio: 0.5,
       yRatio: 0.5,
       targetScale: 1,
+      targetDisplayWidth: null,
+      targetDisplayHeight: null,
     });
   });
 
@@ -21,6 +24,16 @@ describe('toolGhostPreview', () => {
 
     expect(preview.label).toBe('Clicking Chrome icon');
     expect(preview.hasTarget).toBe(false);
+  });
+
+  test('extracts explanation label from model-facing arguments payload shape', () => {
+    const preview = buildToolGhostPreviewFromMessageText(JSON.stringify({
+      name: 'mouse_control',
+      arguments: { action: 'click', explanation: 'Clicking submit button' },
+    }));
+
+    expect(preview.label).toBe('Clicking submit button');
+    expect(preview.isMouseClick).toBe(true);
   });
 
   test('derives target ratios from coordinate contract metadata', () => {
@@ -38,6 +51,8 @@ describe('toolGhostPreview', () => {
     expect(preview.hasTarget).toBe(true);
     expect(preview.xRatio).toBeCloseTo(1600 / 1920);
     expect(preview.yRatio).toBeCloseTo(900 / 1080);
+    expect(preview.targetDisplayWidth).toBe(1920);
+    expect(preview.targetDisplayHeight).toBe(1080);
   });
 
   test('selects first bundle step with coordinates when available', () => {

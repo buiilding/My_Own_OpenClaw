@@ -3,11 +3,15 @@ const DEFAULT_GHOST_PREVIEW = Object.freeze({
   label: DEFAULT_TOOL_GHOST_LABEL,
   hasTarget: false,
   hasRect: false,
+  isMouseClick: false,
   xRatio: 0.5,
   yRatio: 0.5,
   targetScale: 1,
+  targetDisplayWidth: null,
+  targetDisplayHeight: null,
 });
 const TOOL_LABEL_MAX_LENGTH = 120;
+const MOUSE_CLICK_ACTIONS = new Set(['click', 'double_click', 'right_click']);
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
@@ -67,9 +71,20 @@ function normalizeToolEntry(rawEntry) {
   }
 
   const name = typeof rawEntry.name === 'string' ? rawEntry.name.trim() : '';
-  const args = (
-    rawEntry.args && typeof rawEntry.args === 'object' && !Array.isArray(rawEntry.args)
-  ) ? rawEntry.args : {};
+  const argsCandidate = (
+    rawEntry.args
+    && typeof rawEntry.args === 'object'
+    && !Array.isArray(rawEntry.args)
+  )
+    ? rawEntry.args
+    : (
+      rawEntry.arguments
+      && typeof rawEntry.arguments === 'object'
+      && !Array.isArray(rawEntry.arguments)
+    )
+      ? rawEntry.arguments
+      : {};
+  const args = argsCandidate;
   const metadata = (
     rawEntry.metadata && typeof rawEntry.metadata === 'object' && !Array.isArray(rawEntry.metadata)
   ) ? rawEntry.metadata : {};
@@ -109,6 +124,10 @@ function resolveToolLabel(entry) {
     return explanation.slice(0, TOOL_LABEL_MAX_LENGTH);
   }
 
+  if (entry?.name === 'mouse_control') {
+    return 'Mouse action';
+  }
+
   const waitSeconds = toFiniteNumber(entry?.args?.wait_seconds);
   if (entry?.name && waitSeconds !== null) {
     return `${entry.name} (wait ${waitSeconds}s)`;
@@ -119,6 +138,16 @@ function resolveToolLabel(entry) {
   }
 
   return DEFAULT_TOOL_GHOST_LABEL;
+}
+
+function isMouseClickAction(entry) {
+  if (entry?.name !== 'mouse_control') {
+    return false;
+  }
+  const action = typeof entry?.args?.action === 'string'
+    ? entry.args.action.trim().toLowerCase()
+    : '';
+  return MOUSE_CLICK_ACTIONS.has(action);
 }
 
 function resolveToolTargetPoint(entry) {
@@ -178,6 +207,8 @@ function resolveToolTargetPoint(entry) {
     targetScale,
     hasRect: Boolean(rect),
     rectRatios,
+    targetDisplayWidth: size.width,
+    targetDisplayHeight: size.height,
   };
 }
 
@@ -204,15 +235,19 @@ export function buildToolGhostPreviewFromMessageText(messageText) {
   }));
   const selected = scored.find((item) => item.targetPoint) || scored[0];
   const label = resolveToolLabel(selected.entry);
+  const isMouseClick = isMouseClickAction(selected.entry);
 
   if (!selected.targetPoint) {
     return {
       label,
       hasTarget: false,
       hasRect: false,
+      isMouseClick,
       xRatio: DEFAULT_GHOST_PREVIEW.xRatio,
       yRatio: DEFAULT_GHOST_PREVIEW.yRatio,
       targetScale: DEFAULT_GHOST_PREVIEW.targetScale,
+      targetDisplayWidth: null,
+      targetDisplayHeight: null,
     };
   }
 
@@ -220,9 +255,12 @@ export function buildToolGhostPreviewFromMessageText(messageText) {
     label,
     hasTarget: true,
     hasRect: selected.targetPoint.hasRect,
+    isMouseClick,
     xRatio: selected.targetPoint.xRatio,
     yRatio: selected.targetPoint.yRatio,
     targetScale: selected.targetPoint.targetScale,
+    targetDisplayWidth: selected.targetPoint.targetDisplayWidth,
+    targetDisplayHeight: selected.targetPoint.targetDisplayHeight,
     rectLeftRatio: selected.targetPoint.rectRatios?.leftRatio,
     rectTopRatio: selected.targetPoint.rectRatios?.topRatio,
     rectWidthRatio: selected.targetPoint.rectRatios?.widthRatio,

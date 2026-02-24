@@ -7,6 +7,7 @@ import { selectChatBoxState } from '../utils/chatSelectors';
 import { getRoundedFrameSize } from '../utils/overlayFrameSize';
 import { subscribeResponseOverlayPhase } from '../utils/overlayPhaseListener';
 import { buildToolGhostPreviewFromMessageText } from '../utils/toolGhostPreview';
+import { TOOL_GHOST_CLICK_SYNC_DELAY_MS } from '../constants/toolGhostRuntime';
 
 const RESPONSE_TYPES = new Set(['llm-text', 'error']);
 const FIRST_CHUNK_TYPES = new Set(['llm-text', 'error']);
@@ -15,6 +16,28 @@ const RESPONSE_MAX_HEIGHT = 460;
 const RESPONSE_CHROME_HEIGHT = 28;
 const RESPONSE_BOTTOM_STICK_THRESHOLD = 20;
 const THINKING_BOTTOM_STICK_THRESHOLD = 12;
+const TOOL_GHOST_OFFSET_X_SPAN = 52;
+const TOOL_GHOST_OFFSET_Y_SPAN = 34;
+
+function clampRatio(value) {
+  return Math.min(1, Math.max(0, value));
+}
+
+function parseMousePosition(rawValue) {
+  if (typeof rawValue !== 'string') {
+    return null;
+  }
+  const match = rawValue.match(/(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/);
+  if (!match) {
+    return null;
+  }
+  const x = Number.parseFloat(match[1]);
+  const y = Number.parseFloat(match[2]);
+  if (!Number.isFinite(x) || !Number.isFinite(y)) {
+    return null;
+  }
+  return { x, y };
+}
 
 function renderResponseContent(response, markdownHtml) {
   if (!response) {
@@ -87,6 +110,8 @@ function ChatBoxResponse() {
   const [responseHeight, setResponseHeight] = useState(RESPONSE_MIN_HEIGHT);
   const [hasOverflowAbove, setHasOverflowAbove] = useState(false);
   const [hasThinkingOverflowAbove, setHasThinkingOverflowAbove] = useState(false);
+  const [toolGhostStartRatio, setToolGhostStartRatio] = useState({ xRatio: 0.5, yRatio: 0.5 });
+  const [toolGhostHidden, setToolGhostHidden] = useState(false);
   const shellRef = useRef(null);
   const responsePillRef = useRef(null);
   const responseBodyRef = useRef(null);
@@ -141,22 +166,30 @@ function ChatBoxResponse() {
   const showAwaitingReply = (
     awaitingFirstChunk || overlayPhase === 'awaiting-first-chunk'
   ) && !showResponse && overlayPhase !== 'tool-call';
-  const showToolGhost = !showResponse && overlayPhase === 'tool-call' && Boolean(activeToolCall);
-  const isVisible = showResponse || showAwaitingReply || showToolGhost;
   const toolGhostPreview = useMemo(
     () => buildToolGhostPreviewFromMessageText(activeToolCall?.text ?? ''),
     [activeToolCall],
   );
+  const shouldShowToolGhostBase = !showResponse && overlayPhase === 'tool-call' && Boolean(activeToolCall);
+  const showToolGhost = shouldShowToolGhostBase && (!toolGhostPreview.isMouseClick || !toolGhostHidden);
+  const isVisible = showResponse || showAwaitingReply || showToolGhost;
   const toolGhostTrackStyle = useMemo(() => {
     if (!toolGhostPreview.hasTarget) {
       return null;
     }
-    const xOffset = Math.round((toolGhostPreview.xRatio - 0.5) * 52);
-    const yOffset = Math.round((toolGhostPreview.yRatio - 0.5) * 34);
+    const startXOffset = Math.round((toolGhostStartRatio.xRatio - 0.5) * TOOL_GHOST_OFFSET_X_SPAN);
+    const startYOffset = Math.round((toolGhostStartRatio.yRatio - 0.5) * TOOL_GHOST_OFFSET_Y_SPAN);
+    const endXOffset = Math.round((toolGhostPreview.xRatio - 0.5) * TOOL_GHOST_OFFSET_X_SPAN);
+    const endYOffset = Math.round((toolGhostPreview.yRatio - 0.5) * TOOL_GHOST_OFFSET_Y_SPAN);
     const style = {
-      '--ghost-offset-x': `${xOffset}px`,
-      '--ghost-offset-y': `${yOffset}px`,
+      '--ghost-start-offset-x': `${startXOffset}px`,
+      '--ghost-start-offset-y': `${startYOffset}px`,
+      '--ghost-end-offset-x': `${endXOffset}px`,
+      '--ghost-end-offset-y': `${endYOffset}px`,
+      '--ghost-offset-x': `${endXOffset}px`,
+      '--ghost-offset-y': `${endYOffset}px`,
       '--ghost-target-scale': `${toolGhostPreview.targetScale}`,
+      '--ghost-motion-duration': `${TOOL_GHOST_CLICK_SYNC_DELAY_MS}ms`,
     };
     if (
       toolGhostPreview.hasRect
@@ -171,7 +204,7 @@ function ChatBoxResponse() {
       style['--ghost-rect-height'] = `${toolGhostPreview.rectHeightRatio * 100}%`;
     }
     return style;
-  }, [toolGhostPreview]);
+  }, [toolGhostPreview, toolGhostStartRatio.xRatio, toolGhostStartRatio.yRatio]);
   const responseMarkdownHtml = useMemo(() => {
     if (!activeResponse || activeResponse.type === 'tool-call' || activeResponse.type === 'error') {
       return '';
@@ -254,6 +287,62 @@ function ChatBoxResponse() {
     shouldStickThinkingToBottomRef.current = true;
     setHasThinkingOverflowAbove(false);
   }, [lastUserMessageId]);
+
+  useEffect(() => {
+    if (!shouldShowToolGhostBase || !toolGhostPreview.isMouseClick) {
+      setToolGhostHidden(false);
+      setToolGhostStartRatio({ xRatio: 0.5, yRatio: 0.5 });
+      return undefined;
+    }
+
+    let cancelled = false;
+    setToolGhostHidden(false);
+    setToolGhostStartRatio({ xRatio: 0.5, yRatio: 0.5 });
+
+    const targetDisplayWidth = toolGhostPreview.targetDisplayWidth;
+    const targetDisplayHeight = toolGhostPreview.targetDisplayHeight;
+    const canMapCurrentMouse = Number.isFinite(targetDisplayWidth)
+      && Number.isFinite(targetDisplayHeight)
+      && targetDisplayWidth > 0
+      && targetDisplayHeight > 0;
+
+    if (canMapCurrentMouse) {
+      void IpcBridge.invoke(INVOKE_CHANNELS.GET_SYSTEM_STATE, {
+        fields: ['mouse_position'],
+      }).then((systemState) => {
+        if (cancelled) {
+          return;
+        }
+        const parsedMouse = parseMousePosition(systemState?.mouse_position);
+        if (!parsedMouse) {
+          return;
+        }
+        setToolGhostStartRatio({
+          xRatio: clampRatio(parsedMouse.x / targetDisplayWidth),
+          yRatio: clampRatio(parsedMouse.y / targetDisplayHeight),
+        });
+      }).catch((_error) => {
+        // Ignore start-point lookup failures and keep center fallback.
+      });
+    }
+
+    const hideTimer = window.setTimeout(() => {
+      if (!cancelled) {
+        setToolGhostHidden(true);
+      }
+    }, TOOL_GHOST_CLICK_SYNC_DELAY_MS);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(hideTimer);
+    };
+  }, [
+    shouldShowToolGhostBase,
+    toolGhostPreview.isMouseClick,
+    toolGhostPreview.targetDisplayWidth,
+    toolGhostPreview.targetDisplayHeight,
+    activeToolCall?.id,
+  ]);
 
   useEffect(() => {
     if (!awaitingFirstChunk || !firstTextOrError) {
@@ -477,7 +566,7 @@ function ChatBoxResponse() {
         {showToolGhost ? (
           <div className="chatbox-tool-ghost" aria-label="Assistant tool action preview">
             <div
-              className={`chatbox-tool-ghost-track${toolGhostPreview.hasTarget ? ' is-targeted' : ''}${toolGhostPreview.hasRect ? ' has-rect' : ''}`}
+              className={`chatbox-tool-ghost-track${toolGhostPreview.hasTarget ? ' is-targeted' : ''}${toolGhostPreview.hasRect ? ' has-rect' : ''}${toolGhostPreview.isMouseClick ? ' is-click-animating' : ''}`}
               style={toolGhostTrackStyle || undefined}
             >
               <div className="chatbox-tool-ghost-cursor-wrap" aria-hidden="true">

@@ -13,6 +13,7 @@ import {
   restoreToolRunnerMocks,
   setStreamTracking,
 } from './ToolRunnerHook.testUtils';
+import { TOOL_GHOST_CLICK_SYNC_DELAY_MS } from '../../frontend/src/renderer/features/chat/constants/toolGhostRuntime';
 
 describe('useToolRunner event handling', () => {
   beforeEach(() => {
@@ -84,7 +85,7 @@ describe('useToolRunner event handling', () => {
       expect(mockExecuteTool).not.toHaveBeenCalled();
 
       await act(async () => {
-        jest.advanceTimersByTime(1899);
+        jest.advanceTimersByTime(TOOL_GHOST_CLICK_SYNC_DELAY_MS - 1);
         await Promise.resolve();
       });
       expect(mockExecuteTool).not.toHaveBeenCalled();
@@ -167,7 +168,7 @@ describe('useToolRunner event handling', () => {
       });
 
       await act(async () => {
-        jest.advanceTimersByTime(1900);
+        jest.advanceTimersByTime(TOOL_GHOST_CLICK_SYNC_DELAY_MS);
         await Promise.resolve();
       });
 

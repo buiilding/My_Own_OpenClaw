@@ -1,0 +1,1 @@
+export const TOOL_GHOST_CLICK_SYNC_DELAY_MS = 550;
