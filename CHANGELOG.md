@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): add phase-84 full-gate snapshot after ipc-bridge test dedupe wave (frontend audits/tests + backend + sidecar)
 - refactor(frontend-ipc-bridge-tests): extract shared IPC mock harness to `tests/frontend/ipcBridge.testUtils.ts` and reuse in `tests/frontend/IpcBridge.test.ts` + `tests/frontend/IpcBridgeValidation.test.ts`; jscpd improved from clones `135 -> 134` and duplicated lines `2225 -> 2218`
 - docs(refactor-plan): add phase-82 full-gate snapshot after player-service dedupe wave (frontend audits/tests + backend + sidecar)
 - refactor(frontend-player-service-tests): dedupe repeated two-chunk queue fixture setup in `tests/frontend/PlayerService.test.ts` via `enqueueTwoChunks`; jscpd improved from clones `136 -> 135` and duplicated lines `2233 -> 2225`
