@@ -18,6 +18,7 @@ title: "Backend Tools Docs Hub"
 - [Browser Schema Docs Hub](browser/schema/README.md)
 - [Policy Docs Hub](policy/README.md)
 - [Remote Tools Docs Hub](remote/README.md)
+- [Waiting Docs Hub](waiting/README.md)
 - [Remote Tool Registry, Schema Cache, and Cross-Layer Parity Reference](registry/remote_tool_registry_schema_cache_and_cross_layer_parity_reference.md)
 - [Browser Remote Schema Surface and Compatibility Contract Reference](browser/browser_remote_schema_surface_and_compatibility_contract_reference.md)
 - [Browser Control Unified Schema and Compatibility Field Matrix Reference](browser/schema/browser_control_unified_schema_and_compatibility_field_matrix_reference.md)
@@ -28,6 +29,8 @@ title: "Backend Tools Docs Hub"
 - [Tool Security Policy and Executor Reference](tool_security_policy_and_executor_reference.md)
 - [Policy Permissions, Audit Sanitization, and Executor Registry Reference](security/policy_permissions_audit_and_executor_registry_reference.md)
 - [Tool Result Ingress and Storage Reference](tool_result_ingress_and_storage_reference.md)
+- [Tool Result Receiver and Router Shared Route-Mode Reference](waiting/tool_result_receiver_and_router_shared_route_mode_reference.md)
+- [Tool Result Storage Future Lifecycle and Cleanup Reference](waiting/tool_result_storage_future_lifecycle_and_cleanup_reference.md)
 - [Tool Preparation and Coordinate Resolution Reference](tool_preparation_and_coordinate_resolution_reference.md)
 
 ## Code Scope
