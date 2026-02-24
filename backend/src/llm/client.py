@@ -5,6 +5,7 @@ This module provides a unified interface for interacting with over 100
 different Large Language Models (LLMs) through the LiteLLM library.
 """
 
+import copy
 import logging
 from abc import ABC, abstractmethod
 from typing import Any, AsyncGenerator, Dict, List, Optional, TYPE_CHECKING
@@ -397,13 +398,13 @@ class LiteLLMClient(LLMClient):
         """Return cached diagnostics for the most recent streaming request."""
         if self._last_stream_cache_diagnostics is None:
             return None
-        return dict(self._last_stream_cache_diagnostics)
+        return copy.deepcopy(self._last_stream_cache_diagnostics)
 
     def get_last_stream_response_payload(self) -> Optional[NormalizedLLMResponse]:
         """Return normalized payload captured for the most recent stream turn."""
         if self._last_stream_response_payload is None:
             return None
-        return dict(self._last_stream_response_payload)
+        return copy.deepcopy(self._last_stream_response_payload)
 
     def supports_streaming_tool_turns(self, model: str) -> bool:
         """
