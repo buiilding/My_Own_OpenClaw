@@ -43,6 +43,8 @@ const RESPONSE_OVERLAY_PHASES = new Set([
   'idle',
   'awaiting-first-chunk',
   'streaming',
+  'tool-call',
+  'tool-output',
   'complete',
   'error',
 ]);
@@ -428,6 +430,10 @@ function connect() {
       }
       if (data.type === 'streaming-response') {
         setResponseOverlayPhase('streaming', 'backend');
+      } else if (data.type === 'tool-call' || data.type === 'tool-bundle') {
+        setResponseOverlayPhase('tool-call', 'backend');
+      } else if (data.type === 'tool-output') {
+        setResponseOverlayPhase('awaiting-first-chunk', 'backend');
       } else if (data.type === 'streaming-complete') {
         setResponseOverlayPhase('complete', 'backend');
       } else if (data.type === 'error' && responseOverlayPhase !== 'idle') {
