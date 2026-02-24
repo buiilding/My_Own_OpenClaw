@@ -147,3 +147,9 @@ Keep these in sync whenever adding a channel:
 2. `channels.ts` constants
 3. `ipc.cjs` / `index.cjs` / `local_backend_bridge.cjs` / `wakeword_bridge.cjs` handler registration
 4. renderer call sites (`IpcBridge.send|invoke|on`)
+
+## Related Pages
+
+- `docs/frontend/contracts/ipc/README.md`
+- `docs/frontend/contracts/ipc/preload_allowlist_and_channel_constant_parity_reference.md`
+- `docs/frontend/contracts/ipc/main_process_ipc_handler_ownership_and_rpc_mapper_reference.md`

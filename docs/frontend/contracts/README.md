@@ -11,8 +11,11 @@ title: "Frontend Contracts Docs Hub"
 ## Deep Pages
 
 - [Events Contracts Docs Hub](events/README.md)
+- [IPC Contracts Docs Hub](ipc/README.md)
 - [IPC Channels and Event Contracts](ipc_channels_and_event_contracts.md)
 - [IPC Channel and Handler Reference](ipc_channel_and_handler_reference.md)
+- [Preload Allowlist and Channel-Constant Parity Reference](ipc/preload_allowlist_and_channel_constant_parity_reference.md)
+- [Main-Process IPC Handler Ownership and RPC Mapper Reference](ipc/main_process_ipc_handler_ownership_and_rpc_mapper_reference.md)
 - [Schema Generation and Event Guard Reference](schema_generation_and_event_guard_reference.md)
 - [Memory IPC and RPC Mapping Reference](memory_ipc_and_rpc_mapping_reference.md)
 - [Backend Event Consumer Matrix Reference](backend_event_consumer_matrix_reference.md)
