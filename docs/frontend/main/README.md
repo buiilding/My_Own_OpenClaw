@@ -11,12 +11,15 @@ title: "Frontend Main Docs Hub"
 ## Deep Pages
 
 - [Electron Main and IPC](electron_main_and_ipc.md)
+- [Main Overlay Focus Docs Hub](overlays/README.md)
 - [Window and Overlay Lifecycle](window_and_overlay_lifecycle.md)
 - [Context Label Overlay and Active-Window Runtime Reference](context_label_overlay_and_active_window_runtime_reference.md)
 - [Runtime Paths and Endpoints](runtime_paths_and_endpoints.md)
 - [Query Payload and Relay Reference](query_payload_and_relay_reference.md)
 - [WebSocket Handshake and Settings Sync Reference](websocket_handshake_and_settings_sync_reference.md)
 - [Local Backend Bridge Handler and Window Guard Reference](local_backend_bridge_handler_and_window_guard_reference.md)
+- [External Focus Snapshot, Restore, and Query-Capture Reference](overlays/external_focus_snapshot_restore_and_query_capture_reference.md)
+- [Linux Screenshot Window Hide and Restore Guard Reference](overlays/linux_screenshot_window_hide_and_restore_guard_reference.md)
 
 ## Code Scope
 

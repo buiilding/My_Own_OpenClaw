@@ -181,3 +181,9 @@ If requests fail intermittently with timeout:
 1. inspect bridge timeout tier (`30s` vs `120s` browser)
 2. inspect sidecar stdout JSON framing and readiness status
 3. inspect pending request rejection reason after process exit/reset
+
+## Related Overlay Focus/Capture Deep Dives
+
+- `docs/frontend/main/overlays/README.md`
+- `docs/frontend/main/overlays/external_focus_snapshot_restore_and_query_capture_reference.md`
+- `docs/frontend/main/overlays/linux_screenshot_window_hide_and_restore_guard_reference.md`

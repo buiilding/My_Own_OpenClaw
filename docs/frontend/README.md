@@ -20,6 +20,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 ### Main Process
 
 - [Main Docs Hub](main/README.md)
+- [Main Overlay Focus Docs Hub](main/overlays/README.md)
 - [Electron Main and IPC](main/electron_main_and_ipc.md)
 - [Window and Overlay Lifecycle](main/window_and_overlay_lifecycle.md)
 - [Context Label Overlay and Active-Window Runtime Reference](main/context_label_overlay_and_active_window_runtime_reference.md)
@@ -27,6 +28,8 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Query Payload and Relay Reference](main/query_payload_and_relay_reference.md)
 - [WebSocket Handshake and Settings Sync Reference](main/websocket_handshake_and_settings_sync_reference.md)
 - [Local Backend Bridge Handler and Window Guard Reference](main/local_backend_bridge_handler_and_window_guard_reference.md)
+- [External Focus Snapshot, Restore, and Query-Capture Reference](main/overlays/external_focus_snapshot_restore_and_query_capture_reference.md)
+- [Linux Screenshot Window Hide and Restore Guard Reference](main/overlays/linux_screenshot_window_hide_and_restore_guard_reference.md)
 
 ### Preload Boundary
 

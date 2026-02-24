@@ -153,3 +153,8 @@ For renderer-only deep dives:
 - temporarily hides app windows before screenshot tool execution
 - restores previous visibility/focus and always-on-top state after capture
 - prevents overlay artifacts leaking into screenshot payloads
+
+For deeper focus/capture guard internals:
+
+- `docs/frontend/main/overlays/external_focus_snapshot_restore_and_query_capture_reference.md`
+- `docs/frontend/main/overlays/linux_screenshot_window_hide_and_restore_guard_reference.md`
