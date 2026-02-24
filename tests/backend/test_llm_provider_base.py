@@ -1044,6 +1044,38 @@ class TestOnlineLLMProvider:
         assert calls == {"text": 0, "thinking": 1}
         assert [event.content for event in events] == ["thinking"]
 
+    @pytest.mark.asyncio
+    async def test_stream_internal_forwards_completion_kwargs(self, monkeypatch):
+        provider = self._MockOnlineProvider(api_key="test-key")
+        build_params_mock = MagicMock(return_value={})
+
+        async def fake_text_stream(_params):
+            yield ChunkEvent(content="text")
+
+        monkeypatch.setattr(provider, "_build_stream_completion_params", build_params_mock)
+        monkeypatch.setattr(provider, "_stream_text_content_events", fake_text_stream)
+
+        events = []
+        async for event in provider._stream_internal(
+            "model",
+            [],
+            tools=[{"type": "function", "function": {"name": "noop"}}],
+            tool_choice="auto",
+            parallel_tool_calls=True,
+            prompt_cache_key="cache-key",
+        ):
+            events.append(event)
+
+        build_params_mock.assert_called_once_with(
+            model="model",
+            messages=[],
+            tools=[{"type": "function", "function": {"name": "noop"}}],
+            tool_choice="auto",
+            parallel_tool_calls=True,
+            prompt_cache_key="cache-key",
+        )
+        assert [event.content for event in events] == ["text"]
+
     def test_build_stream_completion_params_enables_stream_mode(self, monkeypatch):
         provider = self._MockOnlineProvider(api_key="test-key")
         build_params_mock = MagicMock(return_value={"ok": True})

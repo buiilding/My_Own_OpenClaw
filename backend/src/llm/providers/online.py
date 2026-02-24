@@ -39,41 +39,30 @@ class OnlineLLMProvider(LLMProvider):
 
     def _build_stream_completion_params(
         self,
+        *,
         model: str,
         messages: List[LLMMessage],
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Any] = None,
-        parallel_tool_calls: Optional[bool] = None,
-        prompt_cache_key: Optional[str] = None,
+        **completion_kwargs: Any,
     ) -> Dict[str, Any]:
         """Build standard stream params with usage metadata enabled."""
         return self._build_standard_completion_params(
             model,
             messages,
-            tools=tools,
-            tool_choice=tool_choice,
-            parallel_tool_calls=parallel_tool_calls,
-            prompt_cache_key=prompt_cache_key,
             include_stream=True,
+            **completion_kwargs,
         )
 
     async def _stream_internal(
         self,
         model: str,
         messages: List[LLMMessage],
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Any] = None,
-        parallel_tool_calls: Optional[bool] = None,
-        prompt_cache_key: Optional[str] = None,
+        **completion_kwargs: Any,
     ) -> AsyncGenerator[StreamingEvent, None]:
         """Internal streaming implementation. Exceptions bubble up to base class."""
         params = self._build_stream_completion_params(
             model=model,
             messages=messages,
-            tools=tools,
-            tool_choice=tool_choice,
-            parallel_tool_calls=parallel_tool_calls,
-            prompt_cache_key=prompt_cache_key,
+            **completion_kwargs,
         )
         stream_handler = (
             self._stream_thinking_and_text_events
