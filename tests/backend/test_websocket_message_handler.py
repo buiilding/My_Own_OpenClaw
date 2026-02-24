@@ -33,6 +33,54 @@ class DummyRegistry:
             raise self.exc
 
 
+def _query_message(message_id: str) -> QueryMessage:
+    return QueryMessage(
+        id=message_id,
+        type="query",
+        user_id="user_1",
+        payload={"text": "test", "conversation_ref": "conv_test"},
+    )
+
+
+def _capture_logger_calls(monkeypatch):
+    warning_calls = []
+    error_calls = []
+    monkeypatch.setattr(
+        mh.logger,
+        "warning",
+        lambda *args, **kwargs: warning_calls.append((args, kwargs)),
+    )
+    monkeypatch.setattr(
+        mh.logger,
+        "error",
+        lambda *args, **kwargs: error_calls.append((args, kwargs)),
+    )
+    return warning_calls, error_calls
+
+
+def _capture_send_error_calls(monkeypatch):
+    sent_errors = []
+
+    async def fake_send_error(ws, msg_id, error_message):
+        sent_errors.append((ws, msg_id, error_message))
+
+    monkeypatch.setattr(mh, "send_error", fake_send_error)
+    return sent_errors
+
+
+def _capture_send_error_response(monkeypatch):
+    captured = {}
+
+    async def fake_send_error_response(ws, msg_id, message, exception=None):
+        captured["ws"] = ws
+        captured["msg_id"] = msg_id
+        captured["message"] = message
+        captured["exception"] = exception
+
+    monkeypatch.setattr(mh, "send_error_response", fake_send_error_response)
+    return captured
+
+
 @pytest.mark.asyncio
 async def test_parse_and_validate_message_success() -> None:
     payload = json.dumps(
@@ -251,12 +299,7 @@ async def test_parse_and_validate_message_large_payload_uses_executor(monkeypatc
 async def test_handle_message_routes_to_registry() -> None:
     registry = DummyRegistry()
     websocket = SimpleNamespace()
-    message = QueryMessage(
-        id="msg_100",
-        type="query",
-        user_id="user_1",
-        payload={"text": "test", "conversation_ref": "conv_test"},
-    )
+    message = _query_message("msg_100")
 
     await mh.handle_message(websocket, message, registry, "user_1")
 
@@ -268,18 +311,8 @@ async def test_handle_message_routes_to_registry() -> None:
 async def test_handle_message_sends_value_error_message(monkeypatch) -> None:
     registry = DummyRegistry(exc=ValueError("bad request"))
     websocket = SimpleNamespace()
-    message = QueryMessage(
-        id="msg_101",
-        type="query",
-        user_id="user_1",
-        payload={"text": "test", "conversation_ref": "conv_test"},
-    )
-    sent_errors = []
-
-    async def fake_send_error(ws, msg_id, error_message):
-        sent_errors.append((ws, msg_id, error_message))
-
-    monkeypatch.setattr(mh, "send_error", fake_send_error)
+    message = _query_message("msg_101")
+    sent_errors = _capture_send_error_calls(monkeypatch)
 
     await mh.handle_message(websocket, message, registry, "user_1")
 
@@ -290,18 +323,8 @@ async def test_handle_message_sends_value_error_message(monkeypatch) -> None:
 async def test_handle_message_sends_sanitized_unexpected_error(monkeypatch) -> None:
     registry = DummyRegistry(exc=RuntimeError("sensitive stack details"))
     websocket = SimpleNamespace()
-    message = QueryMessage(
-        id="msg_102",
-        type="query",
-        user_id="user_1",
-        payload={"text": "test", "conversation_ref": "conv_test"},
-    )
-    sent_errors = []
-
-    async def fake_send_error(ws, msg_id, error_message):
-        sent_errors.append((ws, msg_id, error_message))
-
-    monkeypatch.setattr(mh, "send_error", fake_send_error)
+    message = _query_message("msg_102")
+    sent_errors = _capture_send_error_calls(monkeypatch)
 
     await mh.handle_message(websocket, message, registry, "user_1")
 
@@ -313,15 +336,7 @@ async def test_handle_message_sends_sanitized_unexpected_error(monkeypatch) -> N
 @pytest.mark.asyncio
 async def test_send_error_delegates_to_send_error_response(monkeypatch) -> None:
     websocket = SimpleNamespace()
-    captured = {}
-
-    async def fake_send_error_response(ws, msg_id, message, exception=None):
-        captured["ws"] = ws
-        captured["msg_id"] = msg_id
-        captured["message"] = message
-        captured["exception"] = exception
-
-    monkeypatch.setattr(mh, "send_error_response", fake_send_error_response)
+    captured = _capture_send_error_response(monkeypatch)
 
     await mh.send_error(websocket, "msg_300", "boom")
 
@@ -333,16 +348,8 @@ async def test_send_error_delegates_to_send_error_response(monkeypatch) -> None:
 @pytest.mark.asyncio
 async def test_send_error_forwards_exception_when_provided(monkeypatch) -> None:
     websocket = SimpleNamespace()
-    captured = {}
-
-    async def fake_send_error_response(ws, msg_id, message, exception=None):
-        captured["ws"] = ws
-        captured["msg_id"] = msg_id
-        captured["message"] = message
-        captured["exception"] = exception
-
+    captured = _capture_send_error_response(monkeypatch)
     error = RuntimeError("sensitive")
-    monkeypatch.setattr(mh, "send_error_response", fake_send_error_response)
 
     await mh.send_error(websocket, "msg_301", "ignored message", exception=error)
 
@@ -356,18 +363,8 @@ async def test_send_error_forwards_exception_when_provided(monkeypatch) -> None:
 async def test_handle_message_uses_sanitize_error_message_result(monkeypatch) -> None:
     registry = DummyRegistry(exc=RuntimeError("raw exception"))
     websocket = SimpleNamespace()
-    message = QueryMessage(
-        id="msg_105",
-        type="query",
-        user_id="user_1",
-        payload={"text": "test", "conversation_ref": "conv_test"},
-    )
-    sent_errors = []
-
-    async def fake_send_error(ws, msg_id, error_message):
-        sent_errors.append((ws, msg_id, error_message))
-
-    monkeypatch.setattr(mh, "send_error", fake_send_error)
+    message = _query_message("msg_105")
+    sent_errors = _capture_send_error_calls(monkeypatch)
     monkeypatch.setattr(mh, "sanitize_error_message", lambda _e: "sanitized")
 
     await mh.handle_message(websocket, message, registry, "user_1")
@@ -379,30 +376,13 @@ async def test_handle_message_uses_sanitize_error_message_result(monkeypatch) ->
 async def test_handle_message_does_not_raise_if_send_error_fails_for_value_error(monkeypatch) -> None:
     registry = DummyRegistry(exc=ValueError("bad request"))
     websocket = SimpleNamespace()
-    message = QueryMessage(
-        id="msg_103",
-        type="query",
-        user_id="user_1",
-        payload={"text": "test", "conversation_ref": "conv_test"},
-    )
+    message = _query_message("msg_103")
 
     async def failing_send_error(_ws, _msg_id, _error_message):
         raise RuntimeError("socket already closed")
 
-    warning_calls = []
-    error_calls = []
-
     monkeypatch.setattr(mh, "send_error", failing_send_error)
-    monkeypatch.setattr(
-        mh.logger,
-        "warning",
-        lambda *args, **kwargs: warning_calls.append((args, kwargs)),
-    )
-    monkeypatch.setattr(
-        mh.logger,
-        "error",
-        lambda *args, **kwargs: error_calls.append((args, kwargs)),
-    )
+    warning_calls, error_calls = _capture_logger_calls(monkeypatch)
 
     # Should swallow send_error failure and not raise.
     await mh.handle_message(websocket, message, registry, "user_1")
@@ -414,30 +394,13 @@ async def test_handle_message_does_not_raise_if_send_error_fails_for_value_error
 async def test_handle_message_does_not_raise_if_send_error_fails_for_unexpected_error(monkeypatch) -> None:
     registry = DummyRegistry(exc=RuntimeError("unexpected"))
     websocket = SimpleNamespace()
-    message = QueryMessage(
-        id="msg_104",
-        type="query",
-        user_id="user_1",
-        payload={"text": "test", "conversation_ref": "conv_test"},
-    )
+    message = _query_message("msg_104")
 
     async def failing_send_error(_ws, _msg_id, _error_message):
         raise RuntimeError("socket already closed")
 
-    warning_calls = []
-    error_calls = []
-
     monkeypatch.setattr(mh, "send_error", failing_send_error)
-    monkeypatch.setattr(
-        mh.logger,
-        "warning",
-        lambda *args, **kwargs: warning_calls.append((args, kwargs)),
-    )
-    monkeypatch.setattr(
-        mh.logger,
-        "error",
-        lambda *args, **kwargs: error_calls.append((args, kwargs)),
-    )
+    warning_calls, error_calls = _capture_logger_calls(monkeypatch)
 
     # Should swallow send_error failure and not raise.
     await mh.handle_message(websocket, message, registry, "user_1")
