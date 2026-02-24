@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): add phase-126 full-gate snapshot after llm-stream-processor test helper extraction (frontend audits/tests + backend + sidecar)
 - refactor(backend-llm-stream-processor-tests): extract shared helpers in `tests/backend/test_llm_stream_processor.py` for fake token-service patching, hello prompt generation, tool schema generation, and async event collection; jscpd improved from clones `88 -> 86` and duplicated lines `1602 -> 1577`
 - docs(refactor-plan): add phase-125 full-gate snapshot after model-service normalization test parameterization (frontend audits/tests + backend + sidecar)
 - refactor(backend-model-service-tests): consolidate three local-model normalization tests into one parameterized `test_get_local_models_normalizes_ids_provider_and_display_name` case table in `tests/backend/test_model_service.py`; jscpd improved from clones `89 -> 88` and duplicated lines `1624 -> 1602`
