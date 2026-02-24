@@ -7,7 +7,9 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
-- fix(chatbox-thinking): stop rendering tool-call payloads in the response pane and render thinking tokens as a transparent scrolling reasoning stream (with top overflow affordance) above the typing indicator
+- refactor(openrouter-provider): dedupe OpenRouter completion/stream request-param assembly in `backend/src/llm/providers/openrouter.py` via shared `_build_completion_params`, preserving prompt-cache forwarding and stream usage options
+- docs(planning): record Phase 36 outcome metrics/verification in `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` for OpenRouter completion/stream request-param dedupe
+- fix(chatbox-thinking): stop rendering tool-call payloads in the response pane, render thinking tokens as a transparent scrolling reasoning stream (with top overflow affordance), and show a fake tool-action cursor preview during tool-call phase with explanation text
 - fix(chatbox-response): redesign the response pane above the chat pill to a single black panel with brighter text, smooth height animation, auto-stick scrolling, and a top opaque overflow indicator when previous streamed text is above the viewport
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 36 execution slice for OpenRouter completion/stream request-param assembly dedupe in `backend/src/llm/providers/openrouter.py`
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 35 execution slice for scoped exception constructor dedupe in `backend/src/core/infrastructure/exceptions.py` (`LLMError`, `MemoryError`)

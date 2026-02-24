@@ -14,6 +14,7 @@ const RESPONSE_MAX_HEIGHT = 460;
 const RESPONSE_CHROME_HEIGHT = 28;
 const RESPONSE_BOTTOM_STICK_THRESHOLD = 20;
 const THINKING_BOTTOM_STICK_THRESHOLD = 12;
+const TOOL_LABEL_MAX_LENGTH = 120;
 
 function renderResponseContent(response, markdownHtml) {
   if (!response) {
@@ -61,6 +62,54 @@ function findLatestMessageAfterUser(messages, lastUserIndex, allowedTypes) {
   return null;
 }
 
+function findLatestToolCallAfterUser(messages, lastUserIndex) {
+  if (lastUserIndex < 0) {
+    return null;
+  }
+  for (let i = messages.length - 1; i > lastUserIndex; i -= 1) {
+    const message = messages[i];
+    if (message.sender !== 'assistant' || message.type !== 'tool-call') {
+      continue;
+    }
+    if (!message.text) {
+      continue;
+    }
+    return message;
+  }
+  return null;
+}
+
+function resolveToolGhostLabel(message) {
+  if (!message?.text) {
+    return 'Running tool action';
+  }
+
+  try {
+    const parsed = JSON.parse(message.text);
+    const toolName = typeof parsed?.name === 'string' ? parsed.name : null;
+    const explanation = typeof parsed?.args?.explanation === 'string'
+      ? parsed.args.explanation
+      : null;
+    const waitSeconds = typeof parsed?.args?.wait_seconds === 'number'
+      ? parsed.args.wait_seconds
+      : null;
+
+    if (explanation && explanation.trim().length > 0) {
+      return explanation.trim().slice(0, TOOL_LABEL_MAX_LENGTH);
+    }
+    if (toolName && waitSeconds !== null) {
+      return `${toolName} (wait ${waitSeconds}s)`;
+    }
+    if (toolName) {
+      return `Running ${toolName}`;
+    }
+  } catch (_) {
+    // Tool-call message is formatted text fallback.
+  }
+
+  return 'Running tool action';
+}
+
 function ChatBoxResponse() {
   const { messages, thinkingStatus } = useChatStore(useShallow(selectChatBoxState));
   const [closedResponseId, setClosedResponseId] = useState(null);
@@ -99,6 +148,10 @@ function ChatBoxResponse() {
     () => findLatestMessageAfterUser(messages, lastUserIndex, FIRST_CHUNK_TYPES),
     [messages, lastUserIndex],
   );
+  const activeToolCall = useMemo(
+    () => findLatestToolCallAfterUser(messages, lastUserIndex),
+    [messages, lastUserIndex],
+  );
 
   const responseIsCloseable = useMemo(() => {
     if (!activeResponse) {
@@ -118,8 +171,13 @@ function ChatBoxResponse() {
 
   const showAwaitingReply = (
     awaitingFirstChunk || overlayPhase === 'awaiting-first-chunk'
-  ) && !showResponse;
-  const isVisible = showResponse || showAwaitingReply;
+  ) && !showResponse && overlayPhase !== 'tool-call';
+  const showToolGhost = !showResponse && overlayPhase === 'tool-call' && Boolean(activeToolCall);
+  const isVisible = showResponse || showAwaitingReply || showToolGhost;
+  const toolGhostLabel = useMemo(
+    () => resolveToolGhostLabel(activeToolCall),
+    [activeToolCall],
+  );
   const responseMarkdownHtml = useMemo(() => {
     if (!activeResponse || activeResponse.type === 'tool-call' || activeResponse.type === 'error') {
       return '';
@@ -371,7 +429,7 @@ function ChatBoxResponse() {
     setClosedResponseId(activeResponse.id);
   }, [activeResponse, responseIsCloseable]);
 
-  if (!isVisible) {
+  if (!isVisible && !showToolGhost) {
     return null;
   }
 
@@ -420,6 +478,16 @@ function ChatBoxResponse() {
               <span />
             </div>
           </>
+        ) : null}
+
+        {showToolGhost ? (
+          <div className="chatbox-tool-ghost" aria-label="Assistant tool action preview">
+            <div className="chatbox-tool-ghost-cursor-wrap" aria-hidden="true">
+              <div className="chatbox-tool-ghost-ring" />
+              <div className="chatbox-tool-ghost-cursor" />
+            </div>
+            <div className="chatbox-tool-ghost-label">{toolGhostLabel}</div>
+          </div>
         ) : null}
       </div>
     </div>

@@ -56,6 +56,36 @@ describe('ChatBoxResponse', () => {
     expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
   });
 
+  test('shows tool-action ghost during tool-call phase and hides typing indicator', async () => {
+    setChatState([
+      { id: 'user-1', text: 'run command', sender: 'user' },
+      {
+        id: 'tool-1',
+        text: JSON.stringify({
+          name: 'mouse_control',
+          args: { explanation: 'Clicking Chrome icon' },
+        }),
+        sender: 'assistant',
+        type: 'tool-call',
+      },
+    ]);
+
+    render(<ChatBoxResponse />);
+
+    const onPhase = mockListeners.get('response-overlay-phase');
+    expect(onPhase).toEqual(expect.any(Function));
+
+    act(() => {
+      onPhase({ phase: 'tool-call' });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Assistant tool action preview')).toBeInTheDocument();
+    });
+    expect(screen.getByText('Clicking Chrome icon')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
+  });
+
   test('shows awaiting indicator when no assistant response exists yet', async () => {
     setChatState([
       { id: 'user-1', text: 'run command', sender: 'user' },
