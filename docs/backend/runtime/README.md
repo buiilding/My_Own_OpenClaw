@@ -13,6 +13,7 @@ title: "Backend Runtime Docs Hub"
 - [Agent and Tool Runtime](agent_and_tool_runtime.md)
 - [Session State and Lifecycle](session_state_and_lifecycle.md)
 - [Query Execution and Stream Pipeline Reference](query_execution_and_stream_pipeline_reference.md)
+- [Conversation History and Prompt Context Runtime Reference](conversation_history_and_prompt_context_runtime_reference.md)
 - [Token Count Event and Usage Diagnostics Reference](token_count_event_and_usage_diagnostics_reference.md)
 
 ## Code Scope
