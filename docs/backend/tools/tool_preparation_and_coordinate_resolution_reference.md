@@ -181,5 +181,8 @@ If execution fails with stale-screen error:
 
 ## Cross-Doc References
 
+- preparation screenshot/OCR state hub: `docs/backend/tools/preparation/README.md`
+- screenshot + OCR task lifecycle deep dive: `docs/backend/tools/preparation/screenshot_manager_and_ocr_task_lifecycle_reference.md`
+- resolved-call storage/session execution contract: `docs/backend/tools/preparation/resolved_tool_call_storage_and_session_access_contract_reference.md`
 - OCR/vision runtime details: `docs/backend/services/ocr_and_vision_coordinate_runtime_reference.md`
 - tool-result ingress and wait storage: `docs/backend/tools/tool_result_ingress_and_storage_reference.md`
