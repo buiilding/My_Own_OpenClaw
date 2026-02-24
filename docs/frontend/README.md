@@ -16,6 +16,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 
 - [Electron Main and IPC](main/ELECTRON_MAIN_AND_IPC.md)
 - [Window and Overlay Lifecycle](main/WINDOW_AND_OVERLAY_LIFECYCLE.md)
+- [Runtime Paths and Endpoints](main/RUNTIME_PATHS_AND_ENDPOINTS.md)
 
 ### Renderer
 
