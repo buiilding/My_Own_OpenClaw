@@ -12,6 +12,7 @@ title: "Backend Contracts Docs Hub"
 
 - [Streaming Events Contracts Docs Hub](events/README.md)
 - [Routing Contracts Docs Hub](routing/README.md)
+- [Message Types Docs Hub](message_types/README.md)
 - [WebSocket Message Contracts](websocket_message_contracts.md)
 - [Message Schema and Formatter Reference](message_schema_and_formatter_reference.md)
 
@@ -23,3 +24,4 @@ title: "Backend Contracts Docs Hub"
 - `backend/src/core/events/streaming_events.py`
 - `backend/src/core/types/enums.py`
 - `backend/src/core/container/incoming_routing.py`
+- `backend/src/api/contracts/message_types.py`
