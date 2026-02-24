@@ -33,6 +33,7 @@ Completed in code:
    - During awaiting/think phases, reasoning text is rendered as transparent scrolling text (no separate old thinking pill).
 3. Tool-action ghost preview:
    - Fake cursor + click-region ripple + explanation bubble during `tool-call` phase.
+   - Cursor movement now maps to tool-call coordinate metadata when available (`coordinate_contract.normalized_coordinates` + display size).
 4. Overlay phase wiring:
    - Backend `tool-call` events now drive overlay `tool-call` phase.
    - Backend `tool-output` events now return overlay to `awaiting-first-chunk` so typing/thinking resumes cleanly before next assistant chunk.
@@ -41,7 +42,7 @@ Completed in code:
 
 Still in progress:
 
-1. Ghost preview geometry grounding from backend coordinates (`target_point` / `target_rect`) is not yet wired.
+1. Ghost preview rectangle-level grounding (`target_rect` box rendering) is not yet wired.
 2. Mission dock / trust dial / approval threshold surfaces are not started.
 3. Ambient active-window indicator is not started.
 
