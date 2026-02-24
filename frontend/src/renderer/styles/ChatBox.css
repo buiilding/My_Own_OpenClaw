@@ -392,6 +392,7 @@ body {
 .chatbox-tool-ghost-track {
   --ghost-offset-x: 0px;
   --ghost-offset-y: 0px;
+  --ghost-target-scale: 1;
   display: inline-flex;
   align-items: flex-end;
   gap: 10px;
@@ -517,11 +518,11 @@ body {
 @keyframes chatboxToolGhostPulse {
   0%,
   100% {
-    transform: scale(0.9);
+    transform: scale(calc(var(--ghost-target-scale) * 0.9));
     opacity: 0.42;
   }
   50% {
-    transform: scale(1);
+    transform: scale(var(--ghost-target-scale));
     opacity: 0.92;
   }
 }
@@ -539,11 +540,11 @@ body {
 @keyframes chatboxToolGhostRipple {
   0%,
   100% {
-    transform: scale(0.7);
+    transform: scale(calc(var(--ghost-target-scale) * 0.68));
     opacity: 0.78;
   }
   50% {
-    transform: scale(1);
+    transform: scale(calc(var(--ghost-target-scale) * 1.08));
     opacity: 0.18;
   }
 }
