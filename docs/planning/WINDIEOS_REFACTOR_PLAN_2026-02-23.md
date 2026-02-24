@@ -618,6 +618,25 @@ read_when:
   - `pytest tests/backend/test_remote_tools.py tests/backend/test_browser_remote_tool.py tests/backend/test_remote_tool_contract.py`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
+## Phase 29
+
+- `jscpd` duplication cleanup (LLM completion request kwargs):
+  - extract shared request-kwargs builder in:
+    - `backend/src/agent/llm/llm_stream_processor.py`
+  - reuse builder for both:
+    - `_iter_completion_stream`
+    - `_get_completion_response`
+  - preserve prompt cache key normalization and existing completion transport args.
+
+### Phase 29 Execution Slice (Current Loop)
+
+- Backend dedupe:
+  - remove duplicate native completion request-kwargs assembly logic.
+  - keep stream/non-stream branch behavior unchanged for tool turns.
+- Verification checks:
+  - `pytest tests/backend/test_llm_stream_processor.py tests/backend/test_llm_client.py tests/backend/test_local_llm_providers.py`
+  - `cd frontend && npm run audit:jscpd` (expect clone reduction)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):
