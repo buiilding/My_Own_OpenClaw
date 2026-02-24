@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-local-backend-tests): split oversized `tests/frontend/LocalBackendBridge.test.cjs` into focused `LocalBackendBridge.rpc.test.cjs` and `LocalBackendBridge.lifecycle.test.cjs` suites, with shared `tests/frontend/__mocks__/localBackendBridgeHarness.cjs` setup and preserved 22 assertions
 - refactor(frontend-chat-stream-tests): split oversized `tests/frontend/ChatStreamThinkingStatus.test.tsx` into focused `state`, `transcript`, and `metadata` suites with shared `ChatStreamThinkingStatus.testUtils.ts` harness; preserve all 30 assertions while keeping each test file under ~500 LOC
 - refactor(frontend-ipc-tests): dedupe repeated split-suite lifecycle hooks by adding `registerBridgeSuiteLifecycleHooks` in `tests/frontend/__mocks__/ipcMainBridgeHarness.cjs` and reusing it in both IPC bridge suites
 - docs(planning): add Phase 44 full-gate revalidation snapshot (lint/knip/jscpd/frontend tests/backend tests/sidecar tests) and refresh `.audit/plan1/jscpd-report` metrics artifact

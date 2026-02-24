@@ -1,130 +1,17 @@
 /** @jest-environment node */
 
-const path = require('path');
+const {
+  getLastWrittenRequest,
+  initBridge,
+  markReady,
+  registerBridgeSuiteLifecycleHooks,
+} = require('./__mocks__/localBackendBridgeHarness.cjs');
 
-jest.mock('child_process', () => ({
-  spawn: jest.fn(),
-}));
-
-jest.mock('electron', () => ({
-  ipcMain: {
-    handle: jest.fn(),
-  },
-}));
-
-jest.mock('uuid', () => ({
-  v4: jest.fn(() => 'req-1'),
-}));
-
-jest.mock('fs', () => ({
-  existsSync: jest.fn(() => true),
-}));
-
-describe('local_backend_bridge', () => {
-  const ORIGINAL_ENV = process.env;
-  let spawn;
-  let ipcMain;
-  let uuid;
-  let handlers;
-  let stdoutHandler;
-  let stderrHandler;
-  let processHandlers;
-  let pythonProcess;
-  let bridge;
-
-  beforeEach(() => {
-    process.env = { ...ORIGINAL_ENV };
-    delete process.env.BACKEND_HOST;
-    delete process.env.BACKEND_PORT;
-    delete process.env.BACKEND_HTTP_URL;
-    delete process.env.BACKEND_WS_URL;
-    jest.spyOn(console, 'log').mockImplementation(() => {});
-    jest.spyOn(console, 'warn').mockImplementation(() => {});
-    jest.spyOn(console, 'error').mockImplementation(() => {});
-  });
-
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
-  afterAll(() => {
-    process.env = ORIGINAL_ENV;
-  });
-
-  const initBridge = () => {
-    jest.resetModules();
-    handlers = {};
-    stdoutHandler = null;
-    stderrHandler = null;
-    processHandlers = {};
-
-    spawn = require('child_process').spawn;
-    ipcMain = require('electron').ipcMain;
-    uuid = require('uuid');
-
-    pythonProcess = {
-      stdin: { write: jest.fn() },
-      stdout: {
-        on: jest.fn((event, handler) => {
-          if (event === 'data') {
-            stdoutHandler = handler;
-          }
-        }),
-      },
-      stderr: {
-        on: jest.fn((event, handler) => {
-          if (event === 'data') {
-            stderrHandler = handler;
-          }
-        }),
-      },
-      on: jest.fn((event, handler) => {
-        processHandlers[event] = handler;
-      }),
-      kill: jest.fn(),
-    };
-
-    spawn.mockReturnValue(pythonProcess);
-    ipcMain.handle.mockImplementation((channel, handler) => {
-      handlers[channel] = handler;
-    });
-
-    bridge = require(path.join(
-      __dirname,
-      '../../frontend/src/main/local_backend_bridge.cjs',
-    ));
-
-    const mainWindow = {
-      webContents: {
-        send: jest.fn(),
-      },
-    };
-
-    bridge.initializeLocalBackendBridge(mainWindow);
-
-    return { mainWindow };
-  };
-
-  const markReady = () => {
-    stdoutHandler(
-      Buffer.from(
-        `${JSON.stringify({
-          jsonrpc: '2.0',
-          id: '__readiness_check_1__',
-          result: { status: 'ok' },
-        })}\n`,
-      ),
-    );
-  };
-
-  const getLastWrittenRequest = () => {
-    const calls = pythonProcess.stdin.write.mock.calls;
-    const lastCall = calls[calls.length - 1];
-    return JSON.parse(lastCall[0].trim());
-  };
+describe('local_backend_bridge RPC handlers', () => {
+  registerBridgeSuiteLifecycleHooks();
 
   test('execute-tool handler returns success for valid response', async () => {
-    initBridge();
+    const { handlers, stdoutHandler } = initBridge();
     markReady();
 
     const response = {
@@ -138,7 +25,7 @@ describe('local_backend_bridge', () => {
       args: { file_path: '/tmp/a' },
     });
 
-    stdoutHandler(Buffer.from(`${JSON.stringify(response)}\n`));
+    stdoutHandler()(Buffer.from(`${JSON.stringify(response)}\n`));
 
     const result = await promise;
     expect(result).toEqual({ success: true, data: { value: 1 } });
@@ -147,7 +34,7 @@ describe('local_backend_bridge', () => {
   test('passes resolved backend http URL to Python sidecar env', () => {
     process.env.BACKEND_HOST = '192.168.1.55';
     process.env.BACKEND_PORT = '8811';
-    initBridge();
+    const { spawn } = initBridge();
     markReady();
 
     expect(spawn).toHaveBeenCalledWith(
@@ -163,7 +50,7 @@ describe('local_backend_bridge', () => {
 
   test('adds --no-deprecation to Node options for local backend subprocesses', () => {
     process.env.NODE_OPTIONS = '--max-old-space-size=4096';
-    initBridge();
+    const { spawn } = initBridge();
     markReady();
 
     expect(spawn).toHaveBeenCalledWith(
@@ -178,10 +65,10 @@ describe('local_backend_bridge', () => {
   });
 
   test('suppresses known Node deprecation stderr lines from local backend logs', () => {
-    initBridge();
+    const { stderrHandler } = initBridge();
     markReady();
 
-    stderrHandler(
+    stderrHandler()(
       Buffer.from(
         [
           '(node:71611) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized',
@@ -204,7 +91,7 @@ describe('local_backend_bridge', () => {
   });
 
   test('execute-tool handler returns error on json-rpc error', async () => {
-    initBridge();
+    const { handlers, stdoutHandler } = initBridge();
     markReady();
 
     const response = {
@@ -218,14 +105,14 @@ describe('local_backend_bridge', () => {
       args: { file_path: '/tmp/a' },
     });
 
-    stdoutHandler(Buffer.from(`${JSON.stringify(response)}\n`));
+    stdoutHandler()(Buffer.from(`${JSON.stringify(response)}\n`));
 
     const result = await promise;
     expect(result).toEqual({ success: false, error: 'bad' });
   });
 
   test('get-system-state handler returns null on error response', async () => {
-    initBridge();
+    const { handlers, stdoutHandler } = initBridge();
     markReady();
 
     const response = {
@@ -235,14 +122,14 @@ describe('local_backend_bridge', () => {
     };
 
     const promise = handlers['get-system-state'](null, { fields: ['active_window'] });
-    stdoutHandler(Buffer.from(`${JSON.stringify(response)}\n`));
+    stdoutHandler()(Buffer.from(`${JSON.stringify(response)}\n`));
 
     const result = await promise;
     expect(result).toBeNull();
   });
 
   test('search-memory handler returns error on json-rpc error', async () => {
-    initBridge();
+    const { handlers, stdoutHandler } = initBridge();
     markReady();
 
     const promise = handlers['search-memory'](null, {
@@ -271,14 +158,14 @@ describe('local_backend_bridge', () => {
       id: 'req-1',
       error: { message: 'nope' },
     };
-    stdoutHandler(Buffer.from(`${JSON.stringify(response)}\n`));
+    stdoutHandler()(Buffer.from(`${JSON.stringify(response)}\n`));
 
     const result = await promise;
     expect(result).toEqual({ success: false, error: 'nope' });
   });
 
   test('search-memory handler accepts snake_case exclude_conversation_id payload key', async () => {
-    initBridge();
+    const { handlers, stdoutHandler } = initBridge();
     markReady();
 
     const promise = handlers['search-memory'](null, {
@@ -302,7 +189,7 @@ describe('local_backend_bridge', () => {
       }),
     );
 
-    stdoutHandler(Buffer.from(`${JSON.stringify({
+    stdoutHandler()(Buffer.from(`${JSON.stringify({
       jsonrpc: '2.0',
       id: 'req-1',
       result: { success: true, data: { memories: [] } },
@@ -313,7 +200,7 @@ describe('local_backend_bridge', () => {
   });
 
   test('list-conversations handler maps payload keys to backend params', async () => {
-    initBridge();
+    const { handlers, stdoutHandler } = initBridge();
     markReady();
 
     const promise = handlers['list-conversations'](null, {
@@ -334,7 +221,7 @@ describe('local_backend_bridge', () => {
       }),
     );
 
-    stdoutHandler(
+    stdoutHandler()(
       Buffer.from(
         `${JSON.stringify({
           jsonrpc: '2.0',
@@ -348,7 +235,7 @@ describe('local_backend_bridge', () => {
   });
 
   test('list-conversations handler safely handles non-object payloads', async () => {
-    initBridge();
+    const { handlers, stdoutHandler } = initBridge();
     markReady();
 
     const promise = handlers['list-conversations'](null, 'invalid-payload');
@@ -361,7 +248,7 @@ describe('local_backend_bridge', () => {
       }),
     );
 
-    stdoutHandler(
+    stdoutHandler()(
       Buffer.from(
         `${JSON.stringify({
           jsonrpc: '2.0',
@@ -375,7 +262,7 @@ describe('local_backend_bridge', () => {
   });
 
   test('list-semantic-memories handler maps payload keys to backend params', async () => {
-    initBridge();
+    const { handlers, stdoutHandler } = initBridge();
     markReady();
 
     const promise = handlers['list-semantic-memories'](null, {
@@ -394,7 +281,7 @@ describe('local_backend_bridge', () => {
       }),
     );
 
-    stdoutHandler(
+    stdoutHandler()(
       Buffer.from(
         `${JSON.stringify({
           jsonrpc: '2.0',
@@ -408,7 +295,7 @@ describe('local_backend_bridge', () => {
   });
 
   test('get-conversation handler maps missing conversationId to null', async () => {
-    initBridge();
+    const { handlers, stdoutHandler } = initBridge();
     markReady();
 
     const promise = handlers['get-conversation'](null, {
@@ -430,7 +317,7 @@ describe('local_backend_bridge', () => {
       }),
     );
 
-    stdoutHandler(
+    stdoutHandler()(
       Buffer.from(
         `${JSON.stringify({
           jsonrpc: '2.0',
@@ -444,7 +331,7 @@ describe('local_backend_bridge', () => {
   });
 
   test('delete-conversation handler maps payload keys to backend params', async () => {
-    initBridge();
+    const { handlers, stdoutHandler } = initBridge();
     markReady();
 
     const promise = handlers['delete-conversation'](null, {
@@ -465,7 +352,7 @@ describe('local_backend_bridge', () => {
       }),
     );
 
-    stdoutHandler(
+    stdoutHandler()(
       Buffer.from(
         `${JSON.stringify({
           jsonrpc: '2.0',
@@ -479,7 +366,7 @@ describe('local_backend_bridge', () => {
   });
 
   test('delete-semantic-memory handler maps payload keys to backend params', async () => {
-    initBridge();
+    const { handlers, stdoutHandler } = initBridge();
     markReady();
 
     const promise = handlers['delete-semantic-memory'](null, {
@@ -498,7 +385,7 @@ describe('local_backend_bridge', () => {
       }),
     );
 
-    stdoutHandler(
+    stdoutHandler()(
       Buffer.from(
         `${JSON.stringify({
           jsonrpc: '2.0',
@@ -512,7 +399,7 @@ describe('local_backend_bridge', () => {
   });
 
   test('store-transcript handler returns standardized error payload', async () => {
-    initBridge();
+    const { handlers, stdoutHandler } = initBridge();
     markReady();
 
     const promise = handlers['store-transcript'](null, {
@@ -534,7 +421,7 @@ describe('local_backend_bridge', () => {
       }),
     );
 
-    stdoutHandler(
+    stdoutHandler()(
       Buffer.from(
         `${JSON.stringify({
           jsonrpc: '2.0',
@@ -548,7 +435,7 @@ describe('local_backend_bridge', () => {
   });
 
   test('store-memory handler maps payload keys to backend params', async () => {
-    initBridge();
+    const { handlers, stdoutHandler } = initBridge();
     markReady();
 
     const promise = handlers['store-memory'](null, {
@@ -573,7 +460,7 @@ describe('local_backend_bridge', () => {
       }),
     );
 
-    stdoutHandler(
+    stdoutHandler()(
       Buffer.from(
         `${JSON.stringify({
           jsonrpc: '2.0',
@@ -584,277 +471,5 @@ describe('local_backend_bridge', () => {
     );
 
     await expect(promise).resolves.toEqual({ success: true, data: { stored: true } });
-  });
-
-  test('execute-tool rejects in-flight request when sidecar exits', async () => {
-    initBridge();
-    markReady();
-
-    const promise = handlers['execute-tool'](null, {
-      toolName: 'read_file',
-      args: { file_path: '/tmp/a' },
-    });
-
-    processHandlers.exit?.(1, null);
-
-    await expect(promise).resolves.toEqual({
-      success: false,
-      error: 'Local backend process exited',
-    });
-  });
-
-  test('sidecar non-zero exit reports unavailable status', () => {
-    const { mainWindow } = initBridge();
-    markReady();
-
-    processHandlers.exit?.(2, null);
-
-    expect(mainWindow.webContents.send).toHaveBeenCalledWith('local-backend-status', {
-      ready: false,
-      error: 'Python process exited with code 2',
-    });
-  });
-
-  test('execute-tool rejects in-flight request when sidecar emits process error', async () => {
-    const { mainWindow } = initBridge();
-    markReady();
-
-    const promise = handlers['execute-tool'](null, {
-      toolName: 'read_file',
-      args: { file_path: '/tmp/a' },
-    });
-
-    processHandlers.error?.(new Error('spawn fail'));
-
-    await expect(promise).resolves.toEqual({
-      success: false,
-      error: 'Local backend process error',
-    });
-    expect(mainWindow.webContents.send).toHaveBeenCalledWith('local-backend-status', {
-      ready: false,
-      error: 'spawn fail',
-    });
-  });
-
-  test('stale readiness timeout from previous process does not cancel new readiness callback', () => {
-    jest.useFakeTimers();
-
-    const createProcess = () => {
-      const procHandlers = {};
-      const proc = {
-        stdin: { write: jest.fn() },
-        stdout: {
-          on: jest.fn((event, handler) => {
-            if (event === 'data') {
-              proc._stdoutHandler = handler;
-            }
-          }),
-        },
-        stderr: { on: jest.fn() },
-        on: jest.fn((event, handler) => {
-          procHandlers[event] = handler;
-        }),
-        kill: jest.fn(),
-        _handlers: procHandlers,
-        _stdoutHandler: null,
-      };
-      return proc;
-    };
-
-    const firstProcess = createProcess();
-    const secondProcess = createProcess();
-    jest.resetModules();
-    handlers = {};
-    stdoutHandler = null;
-    processHandlers = {};
-    spawn = require('child_process').spawn;
-    ipcMain = require('electron').ipcMain;
-    spawn.mockImplementationOnce(() => firstProcess);
-    spawn.mockImplementationOnce(() => secondProcess);
-    ipcMain.handle.mockImplementation((channel, handler) => {
-      handlers[channel] = handler;
-    });
-    bridge = require(path.join(
-      __dirname,
-      '../../frontend/src/main/local_backend_bridge.cjs',
-    ));
-
-    const mainWindow = {
-      webContents: {
-        send: jest.fn(),
-      },
-    };
-
-    bridge.initializeLocalBackendBridge(mainWindow);
-
-    // Move time forward before restarting so first timeout fires earlier than second.
-    jest.advanceTimersByTime(50);
-
-    firstProcess._handlers.exit?.(0, null);
-    bridge.initializeLocalBackendBridge(mainWindow);
-
-    // Fire only the first process timeout at t=500ms.
-    jest.advanceTimersByTime(450);
-
-    secondProcess._stdoutHandler?.(
-      Buffer.from(
-        `${JSON.stringify({
-          jsonrpc: '2.0',
-          id: '__readiness_check_1__',
-          result: { status: 'ok' },
-        })}\n`,
-      ),
-    );
-
-    expect(mainWindow.webContents.send).toHaveBeenCalledWith('local-backend-status', {
-      ready: true,
-    });
-    jest.useRealTimers();
-  });
-
-  test('stale readiness retry timer from previous process does not override new readiness request', () => {
-    jest.useFakeTimers();
-
-    const createProcess = () => {
-      const procHandlers = {};
-      const proc = {
-        stdin: { write: jest.fn() },
-        stdout: {
-          on: jest.fn((event, handler) => {
-            if (event === 'data') {
-              proc._stdoutHandler = handler;
-            }
-          }),
-        },
-        stderr: { on: jest.fn() },
-        on: jest.fn((event, handler) => {
-          procHandlers[event] = handler;
-        }),
-        kill: jest.fn(),
-        _handlers: procHandlers,
-        _stdoutHandler: null,
-      };
-      return proc;
-    };
-
-    const firstProcess = createProcess();
-    const secondProcess = createProcess();
-    jest.resetModules();
-    handlers = {};
-    stdoutHandler = null;
-    processHandlers = {};
-    spawn = require('child_process').spawn;
-    ipcMain = require('electron').ipcMain;
-    spawn.mockImplementationOnce(() => firstProcess);
-    spawn.mockImplementationOnce(() => secondProcess);
-    ipcMain.handle.mockImplementation((channel, handler) => {
-      handlers[channel] = handler;
-    });
-    bridge = require(path.join(
-      __dirname,
-      '../../frontend/src/main/local_backend_bridge.cjs',
-    ));
-
-    const mainWindow = {
-      webContents: {
-        send: jest.fn(),
-      },
-    };
-
-    bridge.initializeLocalBackendBridge(mainWindow);
-
-    // Let first readiness timeout fire so it schedules retry attempt 2.
-    jest.advanceTimersByTime(500);
-
-    // Restart before that retry fires; stale retry must not affect new process.
-    firstProcess._handlers.exit?.(0, null);
-    bridge.initializeLocalBackendBridge(mainWindow);
-
-    // Run stale retry timer from first process generation.
-    jest.advanceTimersByTime(50);
-
-    secondProcess._stdoutHandler?.(
-      Buffer.from(
-        `${JSON.stringify({
-          jsonrpc: '2.0',
-          id: '__readiness_check_1__',
-          result: { status: 'ok' },
-        })}\n`,
-      ),
-    );
-
-    expect(mainWindow.webContents.send).toHaveBeenCalledWith('local-backend-status', {
-      ready: true,
-    });
-
-    const pingRequestIds = secondProcess.stdin.write.mock.calls.map(([payload]) => (
-      JSON.parse(payload.trim()).id
-    ));
-    expect(pingRequestIds).toEqual(['__readiness_check_1__']);
-    jest.useRealTimers();
-  });
-
-  test('stopLocalBackend force-kill timer does not kill restarted process', () => {
-    jest.useFakeTimers();
-
-    const createProcess = () => {
-      const procHandlers = {};
-      const proc = {
-        stdin: { write: jest.fn() },
-        stdout: {
-          on: jest.fn((event, handler) => {
-            if (event === 'data') {
-              proc._stdoutHandler = handler;
-            }
-          }),
-        },
-        stderr: { on: jest.fn() },
-        on: jest.fn((event, handler) => {
-          procHandlers[event] = handler;
-        }),
-        kill: jest.fn(),
-        _handlers: procHandlers,
-        _stdoutHandler: null,
-      };
-      return proc;
-    };
-
-    const firstProcess = createProcess();
-    const secondProcess = createProcess();
-    jest.resetModules();
-    handlers = {};
-    stdoutHandler = null;
-    processHandlers = {};
-    spawn = require('child_process').spawn;
-    ipcMain = require('electron').ipcMain;
-    spawn.mockImplementationOnce(() => firstProcess);
-    spawn.mockImplementationOnce(() => secondProcess);
-    ipcMain.handle.mockImplementation((channel, handler) => {
-      handlers[channel] = handler;
-    });
-    bridge = require(path.join(
-      __dirname,
-      '../../frontend/src/main/local_backend_bridge.cjs',
-    ));
-
-    const mainWindow = {
-      webContents: {
-        send: jest.fn(),
-      },
-    };
-
-    bridge.initializeLocalBackendBridge(mainWindow);
-
-    bridge.stopLocalBackend();
-    expect(firstProcess.kill).toHaveBeenCalledWith('SIGTERM');
-
-    firstProcess._handlers.exit?.(0, null);
-    bridge.initializeLocalBackendBridge(mainWindow);
-
-    jest.advanceTimersByTime(5000);
-
-    expect(firstProcess.kill).not.toHaveBeenCalledWith('SIGKILL');
-    expect(secondProcess.kill).not.toHaveBeenCalledWith('SIGKILL');
-    jest.useRealTimers();
   });
 });

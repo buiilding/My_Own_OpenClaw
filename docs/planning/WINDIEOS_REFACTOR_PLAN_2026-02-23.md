@@ -431,7 +431,7 @@ read_when:
   - keep local backend bridge path caching behavior unchanged.
 - Verification checks:
   - `cd frontend && npm run lint`
-  - `cd frontend && npm run test:ci -- tests/frontend/LocalBackendBridge.test.cjs tests/frontend/WakewordBridge.test.cjs`
+  - `cd frontend && npm run test:ci -- tests/frontend/LocalBackendBridge.rpc.test.cjs tests/frontend/LocalBackendBridge.lifecycle.test.cjs tests/frontend/WakewordBridge.test.cjs`
   - `cd frontend && npm run test:ci`
   - `cd frontend && npm run audit:knip`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
@@ -1277,7 +1277,7 @@ read_when:
   - duplicated tokens: `28138 -> 28043`
 - Verification:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/LocalBackendBridge.test.cjs tests/frontend/WakewordBridge.test.cjs` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/LocalBackendBridge.rpc.test.cjs tests/frontend/LocalBackendBridge.lifecycle.test.cjs tests/frontend/WakewordBridge.test.cjs` (pass)
   - `cd frontend && npm run test:ci` (pass; 82 suites)
   - `cd frontend && npm run audit:knip` (pass; no findings)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
@@ -1776,3 +1776,16 @@ read_when:
   - `cd frontend && npm test -- tests/frontend/ChatStreamThinkingStatus.state.test.tsx tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx tests/frontend/ChatStreamThinkingStatus.metadata.test.tsx` (pass; 30 tests)
   - `cd frontend && npm run lint` (pass)
   - `cd frontend && npm run test:ci` (pass; 88 suites, 607 tests)
+
+## Phase 47 Outcome (2026-02-24)
+
+- Oversized local-backend bridge suite split shipped:
+  - replaced `tests/frontend/LocalBackendBridge.test.cjs` (`860` LOC) with focused suites:
+    - `tests/frontend/LocalBackendBridge.rpc.test.cjs`
+    - `tests/frontend/LocalBackendBridge.lifecycle.test.cjs`
+  - extracted shared CJS harness and suite lifecycle wiring:
+    - `tests/frontend/__mocks__/localBackendBridgeHarness.cjs`
+  - preserved existing bridge request/response, process-exit, readiness-timeout, and force-kill timer assertions (`22` tests total).
+- Verification:
+  - `cd frontend && npm run test:ci -- tests/frontend/LocalBackendBridge.rpc.test.cjs tests/frontend/LocalBackendBridge.lifecycle.test.cjs` (pass; 22 tests)
+  - `cd frontend && npm run lint` (pass)
