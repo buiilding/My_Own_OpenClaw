@@ -1986,3 +1986,23 @@ read_when:
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run audit:jscpd` (pass; totals unchanged at clones `163`, duplicated lines `2510`, duplicated tokens `22274`)
   - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+
+## Phase 60 Outcome (2026-02-24)
+
+- IPC query-suite duplication cleanup shipped:
+  - extracted shared helpers in:
+    - `tests/frontend/IpcMainBridge.query.test.cjs`
+      - `setupQueryBridge`
+      - `sendQuery`
+      - `getLastSentMessage`
+  - removed repeated ws-open/query-send/message-parse boilerplate while preserving all `27` IPC query/lifecycle assertions.
+  - reduced `tests/frontend/IpcMainBridge.query.test.cjs` size from `425` LOC to `369` LOC.
+- Verification:
+  - `cd frontend && npm run test:ci -- tests/frontend/IpcMainBridge.query.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs` (pass; 27 tests)
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run audit:jscpd` (pass)
+  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - jscpd snapshot deltas:
+    - clones: `163 -> 161`
+    - duplicated lines: `2510 -> 2490`
+    - duplicated tokens: `22274 -> 22048`
