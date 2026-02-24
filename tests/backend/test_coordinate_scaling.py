@@ -93,7 +93,21 @@ async def _resolve_with_stubs(tool_call, resolved_call, session, screenshot_mana
 
 
 @pytest.mark.asyncio
-async def test_resolve_tool_with_coordinates_scales_to_screen_resolution(monkeypatch):
+@pytest.mark.parametrize(
+    ("os_name", "expected_x", "expected_y", "expected_status"),
+    [
+        ("Windows", 500, 500, "scaled_to_display"),
+        ("Linux", 1000, 1000, "disabled_on_linux"),
+    ],
+    ids=["windows-scales", "linux-no-scale"],
+)
+async def test_resolve_tool_with_coordinates_scales_or_disables_by_os(
+    monkeypatch,
+    os_name: str,
+    expected_x: int,
+    expected_y: int,
+    expected_status: str,
+):
     # Screenshot is physical pixels, but frontend mouse coords are logical pixels.
     screenshot_w, screenshot_h = 3840, 2160
     screen_w, screen_h = 1920, 1080
@@ -109,11 +123,11 @@ async def test_resolve_tool_with_coordinates_scales_to_screen_resolution(monkeyp
     )
     resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
 
-    _patch_coordinate_resolution(monkeypatch, 1000, 1000, "Windows")
+    _patch_coordinate_resolution(monkeypatch, 1000, 1000, os_name)
     await _resolve_with_stubs(tool_call, resolved_call, session, screenshot_manager, "bundle-id")
 
-    assert resolved_call.parameters["x"] == 500
-    assert resolved_call.parameters["y"] == 500
+    assert resolved_call.parameters["x"] == expected_x
+    assert resolved_call.parameters["y"] == expected_y
     assert resolved_call.parameters["ocr_text"] == "Submit"
     assert "find_coordinates_by" not in resolved_call.parameters
     assert resolved_call.metadata["coordinate_method"] == "ocr"
@@ -121,9 +135,9 @@ async def test_resolve_tool_with_coordinates_scales_to_screen_resolution(monkeyp
     assert contract["coordinate_space"] == "screenshot_px"
     assert contract["source_image_size"] == {"width": screenshot_w, "height": screenshot_h}
     assert contract["target_display_size"] == {"width": screen_w, "height": screen_h}
-    assert contract["normalized_coordinates"] == {"x": 500, "y": 500}
+    assert contract["normalized_coordinates"] == {"x": expected_x, "y": expected_y}
     assert contract["normalized_space"] == "display_px"
-    assert contract["normalization_status"] == "scaled_to_display"
+    assert contract["normalization_status"] == expected_status
 
 
 @pytest.mark.asyncio
@@ -184,34 +198,6 @@ async def test_resolve_tool_with_coordinates_uses_latest_system_resolution_each_
         "width": 2560,
         "height": 1440,
     }
-
-
-@pytest.mark.asyncio
-async def test_resolve_tool_with_coordinates_disables_scaling_on_linux(monkeypatch):
-    screenshot_w, screenshot_h = 3840, 2160
-    screen_w, screen_h = 1920, 1080
-
-    session, screenshot_manager = _create_session_and_manager(
-        screenshot_w, screenshot_h, f"{screen_w}x{screen_h}"
-    )
-
-    tool_call = ParsedToolCall(
-        tool_name="mouse_control",
-        parameters={"find_coordinates_by": CoordinateFindingMethod.OCR, "ocr_text": "Submit"},
-        raw_call="{}",
-    )
-    resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
-
-    _patch_coordinate_resolution(monkeypatch, 1000, 1000, "Linux")
-    await _resolve_with_stubs(tool_call, resolved_call, session, screenshot_manager, "linux-id")
-
-    assert resolved_call.parameters["x"] == 1000
-    assert resolved_call.parameters["y"] == 1000
-    contract = resolved_call.metadata["coordinate_contract"]
-    assert contract["source_image_size"] == {"width": screenshot_w, "height": screenshot_h}
-    assert contract["target_display_size"] == {"width": screen_w, "height": screen_h}
-    assert contract["normalized_coordinates"] == {"x": 1000, "y": 1000}
-    assert contract["normalization_status"] == "disabled_on_linux"
 
 
 @pytest.mark.asyncio
