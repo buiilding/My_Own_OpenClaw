@@ -471,7 +471,9 @@ class BrowserControlArgs(BaseModel):
     )
     index: Optional[int] = Field(None, description="Browser Use element index", ge=0)
     tab_id: Optional[str] = Field(None, description="Browser Use tab id")
-    file_name: Optional[str] = Field(None, description="Filename for file actions")
+    file_name: Optional[str] = Field(
+        None, description="Filename for file or screenshot actions"
+    )
     content: Optional[str] = Field(None, description="Content for write_file action")
     append: Optional[bool] = Field(None, description="Append mode for write_file")
     trailing_newline: Optional[bool] = Field(
@@ -498,7 +500,9 @@ class BrowserControlArgs(BaseModel):
         None, description="Text for type action", max_length=10000
     )
     submit: bool = Field(False, description="Submit after type")
-    key: Optional[str] = Field(None, description="Key for press action")
+    key: Optional[str] = Field(
+        None, description="Key for press action or storage key"
+    )
     code: Optional[str] = Field(None, description="Browser Use evaluate code")
     double_click: bool = Field(False, description="Double click")
     coordinate_x: Optional[int] = Field(
@@ -520,7 +524,6 @@ class BrowserControlArgs(BaseModel):
     amount: int = Field(500, description="Scroll amount", ge=100, le=5000)
     down: Optional[bool] = Field(None, description="Browser Use scroll direction flag")
     pages: Optional[float] = Field(None, description="Browser Use page count", gt=0)
-    index: Optional[int] = Field(None, description="Optional Browser Use element index", ge=0)
 
     # Screenshot args
     full_page: bool = Field(False, description="Full page screenshot")
@@ -528,7 +531,6 @@ class BrowserControlArgs(BaseModel):
         None, description="Optional CSS selector to screenshot"
     )
     type: Literal["png", "jpeg"] = Field("png", description="Screenshot image type")
-    file_name: Optional[str] = Field(None, description="Browser Use screenshot filename")
     quality: Optional[int] = Field(
         None,
         description="JPEG quality (1-100)",
@@ -544,7 +546,6 @@ class BrowserControlArgs(BaseModel):
 
     # Tab args
     target_id: Optional[str] = Field(None, description="Tab target ID")
-    tab_id: Optional[str] = Field(None, description="Browser Use tab id")
     targetId: Optional[str] = Field(None, description="Tab target ID (camelCase alias)")
     target_url: Optional[str] = Field(
         None, description="Open/navigate URL (snake_case)"
@@ -590,7 +591,6 @@ class BrowserControlArgs(BaseModel):
         None, description="Storage kind"
     )
     values: Optional[Dict[str, Any]] = Field(None, description="Storage key-values")
-    key: Optional[str] = Field(None, description="Single storage key")
     value: Optional[Any] = Field(None, description="Single storage value")
     limit: Optional[int] = Field(
         None,
