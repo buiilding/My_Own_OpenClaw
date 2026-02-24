@@ -31,6 +31,7 @@ Completed in code:
 2. Thinking stream presentation shift:
    - Tool-call JSON is no longer rendered in the response pane.
    - During awaiting/think phases, reasoning text is rendered as transparent scrolling text (no separate old thinking pill).
+   - Dashboard/message-list reasoning display was aligned to the same transparent stream style (legacy collapsible reasoning card removed).
 3. Tool-action ghost preview:
    - Fake cursor + click-region ripple + explanation bubble during `tool-call` phase.
    - Cursor movement now maps to tool-call coordinate metadata when available (`coordinate_contract.normalized_coordinates` + display size).
