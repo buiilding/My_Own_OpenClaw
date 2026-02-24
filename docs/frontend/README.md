@@ -12,10 +12,23 @@ This hub documents WindieOS frontend implementation details across Electron main
 
 ## Deep Pages
 
-- [Electron Main and IPC](ELECTRON_MAIN_AND_IPC.md)
-- [Renderer Runtime](RENDERER_RUNTIME.md)
-- [Tool Execution and Streaming](TOOL_EXECUTION_AND_STREAMING.md)
-- [Python Sidecar and Memory](PYTHON_SIDECAR_AND_MEMORY.md)
+### Main Process
+
+- [Electron Main and IPC](main/ELECTRON_MAIN_AND_IPC.md)
+
+### Renderer
+
+- [Renderer Runtime](renderer/RENDERER_RUNTIME.md)
+- [Tool Execution and Streaming](runtime/TOOL_EXECUTION_AND_STREAMING.md)
+
+### Sidecar
+
+- [Python Sidecar and Memory](sidecar/PYTHON_SIDECAR_AND_MEMORY.md)
+- [Sidecar Tool Catalog and Execution Model](sidecar/TOOL_CATALOG_AND_EXECUTION_MODEL.md)
+
+### Contracts
+
+- [IPC Channels and Event Contracts](contracts/IPC_CHANNELS_AND_EVENT_CONTRACTS.md)
 
 ## Frontend Code Layout
 
