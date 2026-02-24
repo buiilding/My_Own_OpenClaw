@@ -15,6 +15,7 @@ title: "Frontend Main Docs Hub"
 - [Runtime Paths and Endpoints](RUNTIME_PATHS_AND_ENDPOINTS.md)
 - [Query Payload and Relay Reference](QUERY_PAYLOAD_AND_RELAY_REFERENCE.md)
 - [WebSocket Handshake and Settings Sync Reference](WEBSOCKET_HANDSHAKE_AND_SETTINGS_SYNC_REFERENCE.md)
+- [Local Backend Bridge Handler and Window Guard Reference](LOCAL_BACKEND_BRIDGE_HANDLER_AND_WINDOW_GUARD_REFERENCE.md)
 
 ## Code Scope
 
