@@ -157,6 +157,11 @@ Net effect:
 3. removing shallow-change guard and causing write storms
 4. changing save-status error string matching without aligned backend message text
 
+## Related Pages
+
+- [Renderer Provider Shortcut Docs Hub](shortcuts/README.md)
+- [Shift+Tab Mode Toggle and Editable Target Guard Reference](shortcuts/shift_tab_mode_toggle_and_editable_target_guard_reference.md)
+
 ## Debug Checklist
 
 If settings button shows perpetual saving:
