@@ -26,12 +26,15 @@ Covers:
 
 ### Bootstrap
 
+- [Bootstrap Docs Hub](bootstrap/README.md)
 - [Bootstrap and Config](bootstrap/BOOTSTRAP_AND_CONFIG.md)
 - [Container DI and Initialization Lifecycle Reference](bootstrap/CONTAINER_DI_AND_INIT_LIFECYCLE_REFERENCE.md)
 - [Config Fields and Runtime Policy](config/CONFIG_FIELDS_AND_RUNTIME_POLICY.md)
 
 ### API and Contracts
 
+- [API Docs Hub](api/README.md)
+- [Contracts Docs Hub](contracts/README.md)
 - [API and Transport](api/API_AND_TRANSPORT.md)
 - [HTTP and WebSocket Endpoint Reference](api/HTTP_AND_WS_ENDPOINT_REFERENCE.md)
 - [WebSocket Message Contracts](contracts/WEBSOCKET_MESSAGE_CONTRACTS.md)

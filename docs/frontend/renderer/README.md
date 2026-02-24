@@ -1,0 +1,21 @@
+---
+summary: "Frontend renderer docs sub-hub for provider ownership, feature modules, stream lifecycle, and chat/tool runtime behavior."
+read_when:
+  - When changing renderer state providers, chat hooks, or event-to-message rendering logic.
+  - When debugging stream tracking, transcript writes, or stale-turn tool output handling.
+title: "Frontend Renderer Docs Hub"
+---
+
+# Frontend Renderer Docs Hub
+
+## Deep Pages
+
+- [Renderer Runtime](RENDERER_RUNTIME.md)
+- [Feature Module Matrix](FEATURE_MODULE_MATRIX.md)
+- [Chat Stream and Tool Execution Reference](CHAT_STREAM_AND_TOOL_EXECUTION_REFERENCE.md)
+
+## Code Scope
+
+- `frontend/src/renderer/app/providers/*`
+- `frontend/src/renderer/features/*`
+- `frontend/src/renderer/infrastructure/*`

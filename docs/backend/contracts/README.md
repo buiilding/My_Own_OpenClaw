@@ -1,0 +1,20 @@
+---
+summary: "Backend contract docs sub-hub for websocket message schemas, incoming route mapping, and formatter alignment guards."
+read_when:
+  - When changing websocket payload fields or adding new message types.
+  - When debugging schema-validation mismatches between runtime events and outbound payloads.
+title: "Backend Contracts Docs Hub"
+---
+
+# Backend Contracts Docs Hub
+
+## Deep Pages
+
+- [WebSocket Message Contracts](WEBSOCKET_MESSAGE_CONTRACTS.md)
+- [Message Schema and Formatter Reference](MESSAGE_SCHEMA_AND_FORMATTER_REFERENCE.md)
+
+## Code Scope
+
+- `backend/src/api/schema.py`
+- `backend/src/core/container/incoming_routing.py`
+- `backend/src/api/processing/formatter.py`
