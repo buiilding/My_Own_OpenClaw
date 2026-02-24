@@ -14,6 +14,7 @@ title: "Frontend Main Docs Hub"
 - [Window and Overlay Lifecycle](WINDOW_AND_OVERLAY_LIFECYCLE.md)
 - [Runtime Paths and Endpoints](RUNTIME_PATHS_AND_ENDPOINTS.md)
 - [Query Payload and Relay Reference](QUERY_PAYLOAD_AND_RELAY_REFERENCE.md)
+- [WebSocket Handshake and Settings Sync Reference](WEBSOCKET_HANDSHAKE_AND_SETTINGS_SYNC_REFERENCE.md)
 
 ## Code Scope
 
