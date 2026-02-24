@@ -231,9 +231,13 @@ class TestLaunchChromeWithCdp:
         mock_process.poll.return_value = None
         mock_popen.return_value = mock_process
         mock_available.return_value = False  # Never becomes available
-        
-        with pytest.raises(ChromeLaunchTimeoutError):
-            await launch_chrome_with_cdp()
+
+        with (
+            mock.patch("tools.browser.chrome_launcher.CHROME_STARTUP_TIMEOUT", 0),
+            mock.patch("tools.browser.chrome_launcher.asyncio.sleep", new=mock.AsyncMock()),
+        ):
+            with pytest.raises(ChromeLaunchTimeoutError):
+                await launch_chrome_with_cdp()
         
         # Should have tried to kill the process
         mock_process.terminate.assert_called_once()
@@ -251,8 +255,9 @@ class TestKillExistingChrome:
         mock_system.return_value = "Linux"
         mock_run.return_value = mock.Mock(returncode=0)
         mock_find.side_effect = [12345, None]  # Running, then killed
-        
-        result = await kill_existing_chrome()
+
+        with mock.patch("tools.browser.chrome_launcher.asyncio.sleep", new=mock.AsyncMock()):
+            result = await kill_existing_chrome()
         
         assert result is True
         mock_run.assert_called_with(["pkill", "-f", "chrome"], capture_output=True)
@@ -349,11 +354,12 @@ class TestChromeLauncher:
         """Test shutdown functionality."""
         mock_process = mock.Mock()
         mock_process.poll.return_value = 0  # Already terminated
-        
+
         launcher = ChromeLauncher()
         launcher.process = mock_process
         launcher._launched_by_us = True
-        
-        await launcher.shutdown()
+
+        with mock.patch("tools.browser.chrome_launcher.asyncio.sleep", new=mock.AsyncMock()):
+            await launcher.shutdown()
         
         mock_process.terminate.assert_called_once()
