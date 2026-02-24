@@ -1,29 +1,11 @@
 import pytest
 
-from backend.src.core.config.models import AppConfig, SecurityLimits
+from backend.src.core.config.models import SecurityLimits
 from backend.src.core.infrastructure.exceptions import ParseValidationError
 from backend.src.llm.parser_validation import ToolCallValidator
 from backend.src.tools.categorization import ToolDomain
 from backend.src.tools.tool_selection import ToolSelection
-
-
-class DummyMetrics:
-    def __init__(self):
-        self.calls = []
-
-    def record_validation_violation(self, **kwargs):
-        self.calls.append(kwargs)
-
-
-class DummyRegistry:
-    def __init__(self, tool_names):
-        self._tool_names = tool_names
-
-    def get_tool_names(self):
-        return self._tool_names
-
-    def get_tool(self, _name):
-        return None
+from tests.backend.tool_validator_test_utils import DummyRegistry, make_tool_call_validator
 
 
 class BrokenRegistry(DummyRegistry):
@@ -64,19 +46,11 @@ def _make_validator(tool_names, interaction_mode="agent"):
 
 
 def _make_validator_for_registry(tool_registry, interaction_mode="agent", limits=None):
-    resolved_limits = limits or SecurityLimits()
-    config = AppConfig(
+    return make_tool_call_validator(
+        tool_registry,
         interaction_mode=interaction_mode,
-        security_limits=resolved_limits,
+        limits=limits,
     )
-    metrics = DummyMetrics()
-    validator = ToolCallValidator(
-        config=config,
-        tool_registry=tool_registry,
-        metrics=metrics,
-        limits=resolved_limits,
-    )
-    return validator, metrics
 
 
 def test_validate_tool_call_rejects_non_dict_args_without_crashing():
