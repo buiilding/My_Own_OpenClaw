@@ -19,6 +19,7 @@ title: "Backend Tools Docs Hub"
 - [Policy Docs Hub](policy/README.md)
 - [Remote Tools Docs Hub](remote/README.md)
 - [Execution Docs Hub](execution/README.md)
+- [Preparation Docs Hub](preparation/README.md)
 - [Waiting Docs Hub](waiting/README.md)
 - [Remote Tool Registry, Schema Cache, and Cross-Layer Parity Reference](registry/remote_tool_registry_schema_cache_and_cross_layer_parity_reference.md)
 - [Browser Remote Schema Surface and Compatibility Contract Reference](browser/browser_remote_schema_surface_and_compatibility_contract_reference.md)
@@ -35,6 +36,8 @@ title: "Backend Tools Docs Hub"
 - [Tool Result Receiver and Router Shared Route-Mode Reference](waiting/tool_result_receiver_and_router_shared_route_mode_reference.md)
 - [Tool Result Storage Future Lifecycle and Cleanup Reference](waiting/tool_result_storage_future_lifecycle_and_cleanup_reference.md)
 - [Tool Preparation and Coordinate Resolution Reference](tool_preparation_and_coordinate_resolution_reference.md)
+- [Screenshot Manager and OCR Task Lifecycle Reference](preparation/screenshot_manager_and_ocr_task_lifecycle_reference.md)
+- [Resolved Tool-Call Storage and Session Access Contract Reference](preparation/resolved_tool_call_storage_and_session_access_contract_reference.md)
 
 ## Code Scope
 
