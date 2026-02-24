@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(backend-api-transport): add sender subhub for SafeWebSocket queue tuple lifecycle, close serialization, and terminal sender-error fan-out invariants
 - docs(frontend-sidecar-system-state): add platform subhub detailing probe-layer vs window-manager adapter boundaries and OS-specific activation/matching semantics
 - docs(backend-api-processing-formatters): add formatter registry subhub with response formatter lazy-spec lifecycle, typed/dict dispatch precedence, and context-envelope attachment reference
 - test(ghost-visual-harness): add visual ghost cursor test page (`/?view=tool-ghost-visual-test`) plus `frontend` script `npm run test:ghost-visual` for manual on-screen verification of hold/move/hide timeline; add regression test `tests/frontend/ToolGhostVisualTestApp.test.jsx`
