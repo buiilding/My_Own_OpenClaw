@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): add phase-71 full-gate revalidation snapshot after chatbox/episodic test dedupe wave (frontend audits/tests + backend + sidecar)
 - refactor(frontend-episodic-tests): dedupe repeated conversation/memory IPC mock boilerplate in `tests/frontend/EpisodicMemorySectionDelete.test.jsx` via shared helpers (`ok`, `buildConversation`, `buildMemory`, `mockInvokeHandlers`); jscpd improved from clones `148 -> 146` and duplicated lines `2333 -> 2312`
 - refactor(frontend-chatbox-overlay-tests): dedupe repeated screen-position/system-state/context-indicator setup in `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx` via shared helpers (`setWindowScreenPosition`, `mockSystemStateResponse`, `renderAndGetContextIndicator`); jscpd improved from clones `150 -> 148` and duplicated lines `2357 -> 2333`
 - docs(refactor-plan): add phase-68 full-gate snapshot after transcript/wakeword/transcription test dedupe wave (frontend audits/tests + backend + sidecar)
