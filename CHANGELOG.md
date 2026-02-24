@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-system-state-tests): add shared `_patch_system_state_collectors` helper in `tests/sidecar/test_system_state.py` to dedupe repeated collector monkeypatch setup; jscpd improved from clones `75 -> 74` and duplicated lines `1443 -> 1434`
 - refactor(backend-single-tool-tests): extract `_parsed_tool_call` helper in `tests/backend/test_single_tool_execution.py` to remove repeated parsed-call construction scaffolding; jscpd improved from clones `76 -> 75` and duplicated lines `1453 -> 1443`
 - refactor(backend-provider-factory-tests): extract shared `_patch_factory_provider_classes` helper in `tests/backend/test_provider_factory_helpers.py` to remove duplicate provider monkeypatch setup; jscpd improved from clones `77 -> 76` and duplicated lines `1464 -> 1453`
 - refactor(sidecar-browser-controller-tests): add shared role-ref/select-locator helpers in `tests/sidecar/tools/test_browser_controller.py` and reuse them in click-fallback + role-ref cases; jscpd improved from clones `79 -> 77` and duplicated lines `1482 -> 1464`
