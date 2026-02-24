@@ -42,6 +42,7 @@ import {
   formatToolBundlePayload,
   formatToolCallPayload,
   formatToolOutputText,
+  resolveModelFacingToolCall,
 } from '../utils/chatStreamFormatting';
 import {
   buildScreenshotAttachment,
@@ -299,6 +300,7 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const handleToolCall = useCallback((event: ToolCallEvent) => {
     setThinkingStatus(null);
+    const modelFacingToolCall = resolveModelFacingToolCall(event.payload);
     const formattedText = formatToolCallPayload(event.payload);
 
     const newMessage: ChatMessage = {
@@ -306,6 +308,12 @@ export function useChatStream(enableTranscript: boolean = true) {
       text: formattedText,
       sender: 'assistant',
       type: 'tool-call',
+      modelFacingToolCall,
+      toolCallDetails: (
+        event.payload && typeof event.payload === 'object'
+          ? { ...event.payload }
+          : null
+      ),
       turnRef: event.turn_ref,
     };
     addMessage(newMessage);
@@ -345,6 +353,12 @@ export function useChatStream(enableTranscript: boolean = true) {
       executionTime: event.payload?.execution_time,
       success: event.payload?.success,
       correlationId: resolveToolOutputCorrelationId(event.payload, event.id),
+      modelFacingToolOutput: outputText,
+      toolOutputDetails: (
+        event.payload && typeof event.payload === 'object'
+          ? { ...event.payload }
+          : null
+      ),
       turnRef: event.turn_ref,
     };
 
@@ -377,6 +391,11 @@ export function useChatStream(enableTranscript: boolean = true) {
       text: formattedText,
       sender: 'assistant',
       type: 'tool-call',
+      toolCallDetails: (
+        event.payload && typeof event.payload === 'object'
+          ? { ...event.payload }
+          : null
+      ),
       turnRef: event.turn_ref,
     };
     addMessage(newMessage);

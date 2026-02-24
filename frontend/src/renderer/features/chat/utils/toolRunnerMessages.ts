@@ -12,6 +12,13 @@ type BundleToolInput = {
 };
 
 export function buildToolOutputMessage(result: ToolExecutionResult): ChatMessage {
+  const toolOutputDetails = {
+    result: result.result,
+    system_state: result.systemState || null,
+    correlation_id: result.correlationId,
+    tool_name: result.toolName,
+    execution_time: result.executionTime,
+  };
   return {
     id: crypto.randomUUID(),
     text: result.formattedMessage,
@@ -26,10 +33,18 @@ export function buildToolOutputMessage(result: ToolExecutionResult): ChatMessage
     executionTime: result.executionTime,
     success: result.result.success,
     correlationId: result.correlationId,
+    modelFacingToolOutput: result.formattedMessage,
+    toolOutputDetails,
   };
 }
 
 export function buildBundleOutputMessage(result: BundleExecutionResult): ChatMessage {
+  const toolOutputDetails = {
+    bundled: true,
+    results: result.results,
+    correlation_id: result.correlationId,
+    execution_time_total: result.totalTime,
+  };
   return {
     id: crypto.randomUUID(),
     text: result.formattedMessage,
@@ -50,6 +65,8 @@ export function buildBundleOutputMessage(result: BundleExecutionResult): ChatMes
     executionTime: result.totalTime,
     success: result.results.every((toolResult) => toolResult.success),
     correlationId: result.correlationId,
+    modelFacingToolOutput: result.formattedMessage,
+    toolOutputDetails,
   };
 }
 

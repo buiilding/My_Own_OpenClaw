@@ -6,7 +6,7 @@ Only responsible for sending frontend events (ToolCallEvent, ToolBundleEvent, To
 Delegates preparation to ToolPreparer.
 """
 import logging
-from typing import TYPE_CHECKING, AsyncGenerator, List
+from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, List, Optional
 
 from backend.src.core.events import AgentStreamingEvent
 from backend.src.core.events.streaming_events import (
@@ -88,6 +88,14 @@ class ToolSender:
             # the request/response state machine.
             # Mark failed-resolution tool calls as non-executable on frontend.
             tool_metadata = dict(tool_call.metadata) if isinstance(tool_call.metadata, dict) else {}
+            tool_metadata.setdefault(
+                "model_facing_tool_call",
+                self._build_model_facing_tool_call(
+                    tool_name=tool_call.tool_name,
+                    parameters=tool_call.parameters,
+                    metadata=tool_call.metadata,
+                ),
+            )
             tool_metadata["coordinate_resolution_failed"] = True
             tool_metadata["skip_frontend_execution"] = True
             tool_metadata.setdefault("request_id", request_id)
@@ -134,13 +142,24 @@ class ToolSender:
             # Bundle: send single ToolBundleEvent
             tools = []
             for resolved_call in preparation_result.resolved_calls:
+                tool_metadata = (
+                    dict(resolved_call.metadata)
+                    if isinstance(resolved_call.metadata, dict)
+                    else {}
+                )
+                tool_metadata.setdefault(
+                    "model_facing_tool_call",
+                    self._build_model_facing_tool_call(
+                        tool_name=resolved_call.original_call.tool_name,
+                        parameters=resolved_call.original_call.parameters,
+                        metadata=resolved_call.original_call.metadata,
+                    ),
+                )
                 tool_dict = {
                     "name": resolved_call.tool_name,
                     "args": resolved_call.parameters,
                 }
-                # Include metadata if present (for computer-use tools)
-                if resolved_call.metadata:
-                    tool_dict["metadata"] = resolved_call.metadata
+                tool_dict["metadata"] = tool_metadata
                 tools.append(tool_dict)
             
             yield ToolBundleEvent(
@@ -156,13 +175,44 @@ class ToolSender:
                 request_id = execution_ref.request_id if execution_ref else None
                 
                 if request_id:
+                    tool_metadata = (
+                        dict(resolved_call.metadata)
+                        if isinstance(resolved_call.metadata, dict)
+                        else {}
+                    )
+                    tool_metadata.setdefault(
+                        "model_facing_tool_call",
+                        self._build_model_facing_tool_call(
+                            tool_name=resolved_call.original_call.tool_name,
+                            parameters=resolved_call.original_call.parameters,
+                            metadata=resolved_call.original_call.metadata,
+                        ),
+                    )
                     yield ToolCallEvent(
                         tool_name=resolved_call.tool_name,
                         parameters=resolved_call.parameters,
                         request_id=request_id,
-                        metadata=resolved_call.metadata,
+                        metadata=tool_metadata,
                     )
                     logger.debug(f"Sent tool call event: {resolved_call.tool_name} (request_id={request_id[:15]})")
+
+    @staticmethod
+    def _build_model_facing_tool_call(
+        *,
+        tool_name: str,
+        parameters: Optional[Dict[str, Any]],
+        metadata: Optional[Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        """Build canonical model-facing tool-call payload for frontend transparency."""
+        model_tool_call: Dict[str, Any] = {
+            "name": tool_name,
+            "arguments": dict(parameters or {}),
+        }
+        if isinstance(metadata, dict):
+            tool_call_id = metadata.get("tool_call_id")
+            if isinstance(tool_call_id, str) and tool_call_id:
+                model_tool_call["id"] = tool_call_id
+        return model_tool_call
 
     def _store_failed_bundle_result(
         self,

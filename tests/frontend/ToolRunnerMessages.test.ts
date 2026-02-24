@@ -38,6 +38,20 @@ describe('toolRunnerMessages', () => {
       executionTime: 1.23,
       success: true,
       correlationId: 'corr-1',
+      modelFacingToolOutput: 'tool output',
+      toolOutputDetails: {
+        result: {
+          success: true,
+          data: {
+            output: 'ok',
+            metadata: { rows: 2 },
+          },
+        },
+        system_state: null,
+        correlation_id: 'corr-1',
+        tool_name: 'read_file',
+        execution_time: 1.23,
+      },
     });
 
     uuidSpy.mockRestore();
@@ -90,6 +104,16 @@ describe('toolRunnerMessages', () => {
         { tool_name: 'a', success: true, error: null },
         { tool_name: 'b', success: true, error: null },
       ],
+    });
+    expect(successMessage.modelFacingToolOutput).toBe('bundle output');
+    expect(successMessage.toolOutputDetails).toEqual({
+      bundled: true,
+      results: [
+        { tool_name: 'a', success: true, error: null },
+        { tool_name: 'b', success: true, error: null },
+      ],
+      correlation_id: 'corr-bundle',
+      execution_time_total: 2.5,
     });
 
     const failedMessage = buildBundleOutputMessage({

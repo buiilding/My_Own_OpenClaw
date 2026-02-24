@@ -10,6 +10,9 @@ Includes the last 300 commits on `main`.
 - docs(planning): add Codex-aligned conversation-history compaction implementation plan with multi-provider strategy architecture and phased execution map in `docs/planning/windieos_conversation_history_compaction_plan_2026-02-24.md`
 - fix(backend-kimi-streaming): fail closed when streamed Kimi tool-call arguments cannot be parsed; remove silent `{}` fallback and surface parse failure via stream error event payload
 - fix(backend-interaction-loop): treat malformed LLM tool-call format errors as recoverable synthetic tool outputs (history + frontend ToolCall/ToolOutput events) and continue loop for self-correction, while still aborting on non-recoverable stream errors
+- feat(tool-transparency-ui): show model-facing tool calls/outputs in chat by default and add per-message `Details` toggle for full tool payload metadata
+- fix(tool-output-display): prefer payload `output` over `error` string fallback when rendering tool-output messages so UI mirrors the model-facing history content
+- feat(backend-tool-events): include `model_facing_tool_call` metadata on ToolCall/ToolBundle events so frontend can display exact LLM-generated call payloads even when execution args are rewritten
 - test(backend-kimi-streaming): add regression coverage for invalid streamed Kimi tool-call JSON to ensure parser failures emit `ErrorEvent` and do not materialize normalized tool calls
 - docs(architecture-llm): document streamed tool-turn recovery behavior for invalid tool-call argument JSON (synthetic tool output + continue loop, fatal errors still abort)
 - feat(frontend-scripts): add `npm run electron:no-summarizer` helper to launch Electron with `WINDIE_ENABLE_SEMANTIC_SUMMARIZER=0`
