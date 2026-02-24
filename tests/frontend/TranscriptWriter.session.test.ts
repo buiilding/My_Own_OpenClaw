@@ -6,16 +6,12 @@ import {
   registerTranscriptWriterSuiteLifecycle,
   TRANSCRIPT_SESSION_STORAGE_KEY,
 } from './TranscriptWriter.testUtils';
+import {
+  createSessionUpdateRecorder,
+  withTranscriptSessionUpdateListener,
+} from './transcriptSessionEvent.testUtils';
 
 describe('TranscriptWriter session lifecycle', () => {
-  const createSessionUpdateRecorder = () => {
-    const updates: Array<{ conversationRef: string | null; userId: string | null }> = [];
-    const handler = (event: Event) => {
-      updates.push((event as CustomEvent<{ conversationRef: string | null; userId: string | null }>).detail);
-    };
-    return { updates, handler };
-  };
-
   registerTranscriptWriterSuiteLifecycle();
 
   test('loads session info from sessionStorage', () => {
@@ -31,36 +27,35 @@ describe('TranscriptWriter session lifecycle', () => {
     });
   });
 
-  test('emits transcript-session-update event and persists session info on update', () => {
+  test('emits transcript-session-update event and persists session info on update', async () => {
     const { writer } = loadTranscriptWriter();
     const { updates, handler } = createSessionUpdateRecorder();
-    window.addEventListener('transcript-session-update', handler);
 
-    writer.updateTranscriptSession('conv-2', 'user-2');
+    await withTranscriptSessionUpdateListener(handler, () => {
+      writer.updateTranscriptSession('conv-2', 'user-2');
+    });
 
     expect(updates).toEqual([{ conversationRef: 'conv-2', userId: 'user-2' }]);
     expect(window.sessionStorage.getItem(TRANSCRIPT_SESSION_STORAGE_KEY)).toBe(
       JSON.stringify({ conversationRef: 'conv-2', userId: 'user-2' }),
     );
-
-    window.removeEventListener('transcript-session-update', handler);
   });
 
-  test('skips redundant persistence and session-update events when session info is unchanged', () => {
+  test('skips redundant persistence and session-update events when session info is unchanged', async () => {
     const { writer } = loadTranscriptWriter();
     const { updates, handler } = createSessionUpdateRecorder();
     const setItemSpy = jest.spyOn(Storage.prototype, 'setItem');
-    window.addEventListener('transcript-session-update', handler);
 
     try {
-      writer.updateTranscriptSession('conv-stable', 'user-stable');
-      writer.updateTranscriptSession('conv-stable', 'user-stable');
-      writer.setActiveConversationRef('conv-stable');
+      await withTranscriptSessionUpdateListener(handler, () => {
+        writer.updateTranscriptSession('conv-stable', 'user-stable');
+        writer.updateTranscriptSession('conv-stable', 'user-stable');
+        writer.setActiveConversationRef('conv-stable');
+      });
 
       expect(updates).toEqual([{ conversationRef: 'conv-stable', userId: 'user-stable' }]);
       expect(setItemSpy).toHaveBeenCalledTimes(1);
     } finally {
-      window.removeEventListener('transcript-session-update', handler);
       setItemSpy.mockRestore();
     }
   });

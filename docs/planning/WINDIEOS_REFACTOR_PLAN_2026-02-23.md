@@ -2344,3 +2344,24 @@ read_when:
     - clones: `139 -> 138`
     - duplicated lines: `2251 -> 2244`
     - duplicated tokens: `19857 -> 19760`
+
+## Phase 79 Outcome (2026-02-24)
+
+- Transcript session event test duplication cleanup shipped:
+  - added shared harness file:
+    - `tests/frontend/transcriptSessionEvent.testUtils.ts`
+    - exports: `createSessionUpdateRecorder`, `withTranscriptSessionUpdateListener`
+  - reused harness in:
+    - `tests/frontend/TranscriptWriter.session.test.ts`
+    - `tests/frontend/TranscriptStorage.test.ts`
+  - removed repeated custom-event recorder/listener boilerplate.
+- Verification:
+  - `cd frontend && npx jest ../tests/frontend/TranscriptWriter.session.test.ts ../tests/frontend/TranscriptStorage.test.ts --runInBand` (pass; 15 tests)
+  - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
+  - `cd frontend && npm run audit:knip` (pass)
+  - `cd frontend && npm run audit:jscpd` (pass)
+  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - jscpd snapshot deltas:
+    - clones: `138 -> 137`
+    - duplicated lines: `2244 -> 2238`
+    - duplicated tokens: `19760 -> 19650`

@@ -3,6 +3,10 @@ import {
   persistSessionInfoToStorage,
   readSessionInfoFromStorage,
 } from '../../frontend/src/renderer/infrastructure/transcript/sessionInfoStorage';
+import {
+  createSessionUpdateRecorder,
+  withTranscriptSessionUpdateListener,
+} from './transcriptSessionEvent.testUtils';
 
 const TRANSCRIPT_SESSION_STORAGE_KEY = 'transcript-session-info';
 
@@ -97,15 +101,11 @@ describe('transcript session info storage', () => {
     window.sessionStorage.getItem = originalGetItem;
   });
 
-  test('emits transcript-session-update custom event', () => {
-    const updates: Array<{ conversationRef: string | null; userId: string | null }> = [];
-    const handler = (event: Event) => {
-      updates.push((event as CustomEvent<{ conversationRef: string | null; userId: string | null }>).detail);
-    };
-
-    window.addEventListener('transcript-session-update', handler);
-    emitSessionUpdateEvent({ conversationRef: 'conv-3', userId: 'user-3' });
-    window.removeEventListener('transcript-session-update', handler);
+  test('emits transcript-session-update custom event', async () => {
+    const { updates, handler } = createSessionUpdateRecorder();
+    await withTranscriptSessionUpdateListener(handler, () => {
+      emitSessionUpdateEvent({ conversationRef: 'conv-3', userId: 'user-3' });
+    });
 
     expect(updates).toEqual([{ conversationRef: 'conv-3', userId: 'user-3' }]);
   });
