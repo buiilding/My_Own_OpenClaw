@@ -167,6 +167,11 @@ Shared helper `_list_models_from_json_endpoint(...)`:
   - `<base_url>/models`
 - expects `data` array with `id` fields.
 
+Detailed local-provider runtime behavior:
+
+- [Backend Local Provider Docs Hub](local/README.md)
+- [Model Listing, Connection Pooling, and Placeholder Key Reference](local/model_listing_connection_pooling_and_placeholder_key_reference.md)
+
 ## Provider Factory and Alias Normalization
 
 Provider factory normalization from `providers/__init__.py`:
