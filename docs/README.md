@@ -25,6 +25,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Backend Functionality Map**](backend/README.md) - Detailed module-level backend runtime and API maps
 - [**Backend Config Runtime Policy**](backend/config/CONFIG_FIELDS_AND_RUNTIME_POLICY.md) - Exact config fields, runtime normalization, and frontend patch boundaries
 - [**Frontend Stream State Machine**](frontend/runtime/STREAM_EVENT_STATE_MACHINE.md) - Event-to-phase transitions and per-turn stream tracking behavior
+- [**Frontend IPC Channel Reference**](frontend/contracts/IPC_CHANNEL_AND_HANDLER_REFERENCE.md) - Exact send/invoke/on channel ownership and handler map
 - [**System Architecture**](architecture/ARCHITECTURE.md) - High-level system design and components
 - [**Backend Architecture**](architecture/BACKEND_ARCHITECTURE.md) - Backend system design and patterns
 - [**Frontend Architecture**](architecture/FRONTEND_ARCHITECTURE.md) - Frontend system design and patterns
@@ -35,6 +36,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Tool System**](architecture/TOOL_SYSTEM.md) - Tool execution architecture and development
 - [**Browser Control**](browser/BROWSER_CONTROL.md) - Browser automation architecture and tool behavior
 - [**Sidecar Browser Automation Stack**](frontend/sidecar/BROWSER_AUTOMATION_STACK.md) - Renderer->main->sidecar browser runtime and CDP orchestration details
+- [**Sidecar JSON-RPC Reference**](frontend/sidecar/LOCAL_BACKEND_JSONRPC_REFERENCE.md) - Main-process bridge method map and local backend JSON-RPC contract details
 - [**Browser Control Runbook**](browser/BROWSER_CONTROL_RUN.md) - Practical setup/testing flow for browser control
 - [**Memory System**](architecture/MEMORY_SYSTEM.md) - Memory management and retrieval
 - [**Python Sidecar**](architecture/PYTHON_SIDECAR.md) - Local tool execution + memory service
