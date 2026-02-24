@@ -13,6 +13,7 @@ title: "Backend API Docs Hub"
 - [API and Transport](API_AND_TRANSPORT.md)
 - [HTTP and WebSocket Endpoint Reference](HTTP_AND_WS_ENDPOINT_REFERENCE.md)
 - [WebSocket Connection and Task Lifecycle Reference](WEBSOCKET_CONNECTION_AND_TASK_LIFECYCLE_REFERENCE.md)
+- [Handler Registry and Error Envelope Reference](HANDLER_REGISTRY_AND_ERROR_ENVELOPE_REFERENCE.md)
 - [Handler Behavior Matrix](HANDLER_BEHAVIOR_MATRIX.md)
 - [Non-Query Handler and Control Flow Reference](NON_QUERY_HANDLER_AND_CONTROL_FLOW_REFERENCE.md)
 
