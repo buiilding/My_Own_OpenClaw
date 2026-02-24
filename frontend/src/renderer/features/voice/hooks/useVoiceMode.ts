@@ -285,23 +285,26 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
     setClientId(null);
   }, [clearReconnectTimeout]);
 
+  const shutdownVoiceMode = useCallback(() => {
+    void stopAudioCapture();
+    disconnectWebSocket();
+  }, [disconnectWebSocket, stopAudioCapture]);
+
   // Enable/disable voice mode
   useEffect(() => {
     if (enabled) {
       connectWebSocket();
     } else {
-      stopAudioCapture();
-      disconnectWebSocket();
+      shutdownVoiceMode();
       setError(null);
     }
 
     return () => {
       if (!enabled) {
-        stopAudioCapture();
-        disconnectWebSocket();
+        shutdownVoiceMode();
       }
     };
-  }, [enabled, connectWebSocket, stopAudioCapture, disconnectWebSocket]);
+  }, [enabled, connectWebSocket, shutdownVoiceMode]);
 
   // Start audio capture when connected
   useEffect(() => {
@@ -313,10 +316,9 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      stopAudioCapture();
-      disconnectWebSocket();
+      shutdownVoiceMode();
     };
-  }, [stopAudioCapture, disconnectWebSocket]);
+  }, [shutdownVoiceMode]);
 
   return {
     isConnected,
