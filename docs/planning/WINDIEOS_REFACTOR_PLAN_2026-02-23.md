@@ -734,6 +734,25 @@ read_when:
   - `pytest tests/backend/test_llm_client.py tests/backend/test_local_llm_providers.py tests/backend/test_parser_validation.py`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
+## Phase 35
+
+- `jscpd` duplication cleanup (scoped exception constructor path):
+  - extract shared scoped-constructor base in:
+    - `backend/src/core/infrastructure/exceptions.py`
+  - reuse for both:
+    - `LLMError` (`model` scope)
+    - `MemoryError` (`user_id` scope)
+  - preserve constructor signatures, default error-code behavior, metadata include rules, and public attributes.
+
+### Phase 35 Execution Slice (Current Loop)
+
+- Backend dedupe:
+  - remove duplicated scoped constructor metadata/error-code wiring in `LLMError` and `MemoryError`.
+  - keep optional-field subclass wiring (`LLMAPIError`, `LLMRateLimitError`, `MemoryStoreError`) behavior unchanged.
+- Verification checks:
+  - `pytest tests/backend/test_exceptions.py tests/backend/test_llm_client.py tests/backend/test_local_llm_providers.py`
+  - `cd frontend && npm run audit:jscpd` (expect clone reduction)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):
