@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-chat-message-sender-tests): extract shared send/render/assert helpers in `tests/frontend/ChatMessageSender.test.tsx` to remove repeated hook wiring and query assertions; jscpd snapshot improved from clones `170 -> 163` and duplicated lines `2588 -> 2510`
 - docs(planning): add Phase 57 full-gate revalidation snapshot after local-backend RPC fixture dedupe (`lint:audit`, `knip`, `frontend test:ci`, `test-backend`, `test-sidecar`)
 - refactor(frontend-local-backend-tests): dedupe JSON-RPC response fixture boilerplate in `tests/frontend/LocalBackendBridge.rpc.test.cjs` via shared `emitRpcMessage|emitRpcResult|emitRpcError` helpers and small readiness helper reuse in `tests/frontend/__mocks__/localBackendBridgeHarness.cjs`, reducing jscpd totals from clones `173 -> 170` and duplicated lines `2629 -> 2588`
 - refactor(frontend-app-config-tests): split oversized `tests/frontend/AppConfigProvider.test.tsx` into focused `AppConfigProvider.models.test.tsx` and `AppConfigProvider.storageAndIpc.test.tsx` suites with shared `AppConfigProvider.testUtils.tsx`, preserving all 25 assertions while keeping files <500 LOC
