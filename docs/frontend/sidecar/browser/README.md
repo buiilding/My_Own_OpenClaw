@@ -12,6 +12,8 @@ title: "Frontend Sidecar Browser Docs Hub"
 
 - [Browser Runtime Provider, Vendoring, and Native Handler Bridge Reference](browser_runtime_provider_vendoring_and_native_handler_bridge_reference.md)
 - [Browser Adapter Action Routing and Compatibility Semantics Reference](browser_adapter_action_routing_and_compatibility_semantics_reference.md)
+- [Browser Use Runtime Docs Hub](browser_use/README.md)
+- [Browser Use Config, Logging, Observability, and Lazy Import Runtime Reference](browser_use/config_logging_observability_and_lazy_import_runtime_reference.md)
 
 ## Related Pages
 
@@ -26,6 +28,7 @@ title: "Frontend Sidecar Browser Docs Hub"
 - `frontend/src/main/python/tools/browser/browser_adapter.py`
 - `frontend/src/main/python/tools/browser/schemas.py`
 - `frontend/src/main/python/tools/browser/openclaw_compat_schema.py`
+- `frontend/src/main/python/tools/browser/browser_use/*`
 - `frontend/src/main/python/tools/registry.py`
 - `frontend/src/main/python/local_backend.py`
 - `tests/sidecar/tools/test_browser_use_adapter.py`
