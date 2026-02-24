@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): add phase-147 full-gate snapshot after sidecar Browser-Use LLM helper/message dedupe wave (frontend lint:audit+knip+jscpd+tests, backend tests, sidecar tests)
 - refactor(sidecar-browser-use-messages): extract shared `_extract_text_content` for `UserMessage`/`SystemMessage` text parsing and add regression coverage in `tests/sidecar/test_browser_use_llm_messages.py`; add `tests/sidecar/browser_use_test_utils.py` to centralize repo-local `browser_use` path bootstrap for sidecar tests
 - refactor(sidecar-browser-use-llm): dedupe repeated choice-validation and markdown-code-fence JSON normalization in `ChatOpenAI`/`ChatGoogle` helpers; add regression coverage in `tests/sidecar/test_browser_use_llm_chat_helpers.py`
 - refactor(backend-llm-streaming): extract shared `LLMProvider._extract_stream_finish_reason` and reuse it in `KimiCodingProvider` to remove duplicate finish-reason parsing from stream chunks; add regression coverage in `tests/backend/test_llm_provider_base.py`
