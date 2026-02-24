@@ -171,6 +171,30 @@ class TestBrowserControllerActions:
         self.controller._page.mouse.wheel = mock.AsyncMock()
         self.controller._browser = mock.AsyncMock()
         self.controller._context = mock.AsyncMock()
+
+    def _register_role_ref(self, ref: str, role: str, name: str) -> None:
+        target_id = str(id(self.controller._page))
+        self.controller._role_refs_by_tab[target_id] = {ref: RoleRef(role=role, name=name)}
+        self.controller._role_refs_frame_by_tab[target_id] = None
+
+    def _setup_select_locator(
+        self,
+        *,
+        click_side_effect,
+        evaluate_payload,
+        select_option_return_value=None,
+        select_option_side_effect=None,
+    ):
+        mock_locator = mock.MagicMock()
+        mock_locator.click = mock.AsyncMock(side_effect=click_side_effect)
+        mock_locator.dblclick = mock.AsyncMock()
+        mock_locator.evaluate = mock.AsyncMock(return_value=evaluate_payload)
+        if select_option_side_effect is not None:
+            mock_locator.select_option = mock.AsyncMock(side_effect=select_option_side_effect)
+        else:
+            mock_locator.select_option = mock.AsyncMock(return_value=select_option_return_value)
+        self.controller._page.locator.return_value = mock_locator
+        return mock_locator
     
     @pytest.mark.asyncio
     async def test_navigate(self):
@@ -254,21 +278,18 @@ class TestBrowserControllerActions:
     @pytest.mark.asyncio
     async def test_click_select_prefers_select_option_fallback(self):
         """Use select_option fallback for select refs when click is intercepted."""
-        mock_locator = mock.MagicMock()
-        mock_locator.click = mock.AsyncMock(side_effect=Exception("intercepts pointer events"))
-        mock_locator.dblclick = mock.AsyncMock()
-        mock_locator.evaluate = mock.AsyncMock(
-            return_value={
+        mock_locator = self._setup_select_locator(
+            click_side_effect=Exception("intercepts pointer events"),
+            evaluate_payload={
                 "source_tag": "select",
                 "use_ancestor_select": False,
                 "value": "price-desc-rank",
                 "label": "Price: High to Low",
                 "current_value": "price-desc-rank",
                 "current_label": "Price: High to Low",
-            }
+            },
+            select_option_return_value=["price-desc-rank"],
         )
-        mock_locator.select_option = mock.AsyncMock(return_value=["price-desc-rank"])
-        self.controller._page.locator.return_value = mock_locator
 
         result = await self.controller.click("1")
 
@@ -283,26 +304,18 @@ class TestBrowserControllerActions:
     @pytest.mark.asyncio
     async def test_click_falls_back_to_force_when_select_option_fails(self):
         """If select_option fallback fails, force-click should still run."""
-        mock_locator = mock.MagicMock()
-        mock_locator.click = mock.AsyncMock(
-            side_effect=[
-                Exception("intercepts pointer events"),
-                None,
-            ]
-        )
-        mock_locator.dblclick = mock.AsyncMock()
-        mock_locator.evaluate = mock.AsyncMock(
-            return_value={
+        mock_locator = self._setup_select_locator(
+            click_side_effect=[Exception("intercepts pointer events"), None],
+            evaluate_payload={
                 "source_tag": "select",
                 "use_ancestor_select": False,
                 "value": "price-desc-rank",
                 "label": "Price: High to Low",
                 "current_value": "price-desc-rank",
                 "current_label": "Price: High to Low",
-            }
+            },
+            select_option_side_effect=Exception("selection failed"),
         )
-        mock_locator.select_option = mock.AsyncMock(side_effect=Exception("selection failed"))
-        self.controller._page.locator.return_value = mock_locator
 
         result = await self.controller.click("1")
 
@@ -321,11 +334,7 @@ class TestBrowserControllerActions:
         role_locator.evaluate = mock.AsyncMock()
         self.controller._page.get_by_role.return_value = role_locator
 
-        target_id = str(id(self.controller._page))
-        self.controller._role_refs_by_tab[target_id] = {
-            "e1": RoleRef(role="button", name="Submit")
-        }
-        self.controller._role_refs_frame_by_tab[target_id] = None
+        self._register_role_ref("e1", "button", "Submit")
 
         result = await self.controller.click("e1")
 
@@ -362,11 +371,7 @@ class TestBrowserControllerActions:
         self.controller._page.viewport_size = {"width": 1280, "height": 720}
         self.controller._page.get_by_role.return_value = base_locator
 
-        target_id = str(id(self.controller._page))
-        self.controller._role_refs_by_tab[target_id] = {
-            "e9": RoleRef(role="combobox", name="Sort by:")
-        }
-        self.controller._role_refs_frame_by_tab[target_id] = None
+        self._register_role_ref("e9", "combobox", "Sort by:")
 
         result = await self.controller.click("e9")
 
@@ -400,11 +405,7 @@ class TestBrowserControllerActions:
         self.controller._page.viewport_size = {"width": 1280, "height": 720}
         self.controller._page.get_by_role.return_value = base_locator
 
-        target_id = str(id(self.controller._page))
-        self.controller._role_refs_by_tab[target_id] = {
-            "e3": RoleRef(role="button", name="Save")
-        }
-        self.controller._role_refs_frame_by_tab[target_id] = None
+        self._register_role_ref("e3", "button", "Save")
 
         result = await self.controller.click("e3")
 

@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-browser-controller-tests): add shared role-ref/select-locator helpers in `tests/sidecar/tools/test_browser_controller.py` and reuse them in click-fallback + role-ref cases; jscpd improved from clones `79 -> 77` and duplicated lines `1482 -> 1464`
 - refactor(backend-coordinate-scaling-tests): merge Windows/Linux scaling assertions into one parameterized `test_resolve_tool_with_coordinates_scales_or_disables_by_os` in `tests/backend/test_coordinate_scaling.py`; jscpd improved from clones `80 -> 79` and duplicated lines `1496 -> 1482`
 - refactor(backend-event-bus-tests): parameterize error-recovery behavior assertions in `tests/backend/test_event_bus.py` to remove duplicate enabled/disabled handler-chain setup; jscpd improved from clones `81 -> 80` and duplicated lines `1510 -> 1496`
 - refactor(sidecar-local-store-tests): parameterize `test_delete_conversation_clears_faiss_artifacts_when_empty` in `tests/sidecar/test_local_store_delete_cleanup.py` for null/non-null conversation ids and remove duplicate setup; jscpd improved from clones `82 -> 81` and duplicated lines `1525 -> 1510`
