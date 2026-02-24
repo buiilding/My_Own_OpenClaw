@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-lazy-imports): add shared `resolve_lazy_attr` helper and reuse it in `browser_use.__getattr__` and `browser_use.llm.__getattr__`; extend lazy import tests for cache + missing-symbol behavior
 - refactor(sidecar-observability-tests): make `observe_debug` a kwargs-driven wrapper over `_observe_with_tags` and dedupe capture scaffolding in `test_browser_use_observability_helpers.py`; jscpd improved to clones `31`, duplicated lines `669`
 - refactor(sidecar-lazy-imports): add shared `browser_use._lazy_import.import_lazy` and reuse it in top-level `browser_use` + `browser_use.llm` lazy import paths; add regression coverage in `tests/sidecar/test_browser_use_lazy_import.py` (jscpd clone count held at `32`)
 - refactor(sidecar-observability): add shared `_observe_with_tags` helper and shorten `observe_debug` boilerplate while keeping behavior; extend helper coverage in `tests/sidecar/test_browser_use_observability_helpers.py`; jscpd duplicated lines improved to `677` (clones held at `32`)
