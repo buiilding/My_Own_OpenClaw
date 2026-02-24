@@ -3504,3 +3504,19 @@ read_when:
     - `./scripts/test-backend` (pass; 982 tests)
   - sidecar tests:
     - `./scripts/test-sidecar` (pass; 488 tests, 4 skipped, 3 known swig deprecation warnings)
+
+## Phase 150 Outcome (2026-02-24)
+
+- Full-gate revalidation after sidecar browser-schema split + lazy import type-stub dedupe:
+  - frontend lint audits:
+    - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
+  - dead-code audit:
+    - `cd frontend && npm run audit:knip` (pass)
+  - duplication audit:
+    - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `30`, duplicated lines `658`, duplicated tokens `6759`)
+  - frontend tests:
+    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - backend tests:
+    - `./scripts/test-backend` (pass; 982 tests)
+  - sidecar tests:
+    - `./scripts/test-sidecar` (pass; 498 tests, 4 skipped, 3 known swig deprecation warnings)
