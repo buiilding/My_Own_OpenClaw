@@ -14,6 +14,7 @@ title: "Frontend Sidecar Docs Hub"
 - [Sidecar Tool Catalog and Execution Model](TOOL_CATALOG_AND_EXECUTION_MODEL.md)
 - [Memory Pipeline and Summarization](MEMORY_PIPELINE_AND_SUMMARIZATION.md)
 - [Browser Automation Stack](BROWSER_AUTOMATION_STACK.md)
+- [Browser Action Compatibility and Runtime Reference](BROWSER_ACTION_COMPATIBILITY_AND_RUNTIME_REFERENCE.md)
 - [Local Backend JSON-RPC Reference](LOCAL_BACKEND_JSONRPC_REFERENCE.md)
 - [Local Backend Process Lifecycle Reference](LOCAL_BACKEND_PROCESS_LIFECYCLE_REFERENCE.md)
 - [Wakeword Bridge and Audio Framing Reference](WAKEWORD_BRIDGE_AND_AUDIO_FRAMING_REFERENCE.md)
