@@ -4,6 +4,7 @@ import pytest
 from tests.sidecar.remote_client_test_utils import (
     DummyResponse,
     DummySession,
+    assert_client_initialize_reuses_session_and_close_resets,
     ensure_aiohttp_with_stubs,
     ensure_frontend_python_path,
 )
@@ -90,29 +91,11 @@ async def test_health_check_returns_false_when_request_raises():
 
 @pytest.mark.asyncio
 async def test_initialize_reuses_session_and_close_resets(monkeypatch):
-    created = []
-
-    class FakeClientSession:
-        def __init__(self):
-            self.closed = False
-            created.append(self)
-
-        async def close(self):
-            self.closed = True
-
-    monkeypatch.setattr(remote_embedding_client_module.aiohttp, "ClientSession", FakeClientSession)
-
-    client = RemoteEmbeddingClient()
-    await client.initialize()
-    first_session = client._session
-
-    await client.initialize()
-    assert client._session is first_session
-    assert len(created) == 1
-
-    await client.close()
-    assert first_session.closed is True
-    assert client._session is None
+    await assert_client_initialize_reuses_session_and_close_resets(
+        monkeypatch,
+        remote_embedding_client_module.aiohttp,
+        RemoteEmbeddingClient(),
+    )
 
 
 @pytest.mark.asyncio

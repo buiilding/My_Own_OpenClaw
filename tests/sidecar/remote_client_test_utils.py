@@ -81,3 +81,32 @@ class DummySession:
     async def close(self):
         self.close_calls += 1
         return None
+
+
+async def assert_client_initialize_reuses_session_and_close_resets(
+    monkeypatch,
+    aiohttp_module,
+    client,
+) -> None:
+    created = []
+
+    class FakeClientSession:
+        def __init__(self):
+            self.closed = False
+            created.append(self)
+
+        async def close(self):
+            self.closed = True
+
+    monkeypatch.setattr(aiohttp_module, "ClientSession", FakeClientSession)
+
+    await client.initialize()
+    first_session = client._session
+
+    await client.initialize()
+    assert client._session is first_session
+    assert len(created) == 1
+
+    await client.close()
+    assert first_session.closed is True
+    assert client._session is None

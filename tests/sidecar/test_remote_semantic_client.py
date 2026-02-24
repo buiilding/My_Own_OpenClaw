@@ -3,6 +3,7 @@ import pytest
 from tests.sidecar.remote_client_test_utils import (
     DummyResponse,
     DummySession,
+    assert_client_initialize_reuses_session_and_close_resets,
     ensure_aiohttp_with_stubs,
     ensure_frontend_python_path,
 )
@@ -78,34 +79,12 @@ async def test_summarize_wraps_network_client_error():
 
 
 @pytest.mark.asyncio
-async def test_initialize_creates_single_session_and_close_resets():
-    created = []
-
-    class FakeClientSession:
-        def __init__(self):
-            created.append(self)
-            self.closed = False
-
-        async def close(self):
-            self.closed = True
-
-    monkeypatch = pytest.MonkeyPatch()
-    try:
-        monkeypatch.setattr(remote_semantic_client_module.aiohttp, "ClientSession", FakeClientSession)
-
-        client = RemoteSemanticClient()
-        await client.initialize()
-        first_session = client._session
-
-        await client.initialize()
-        assert client._session is first_session
-        assert len(created) == 1
-
-        await client.close()
-        assert first_session.closed is True
-        assert client._session is None
-    finally:
-        monkeypatch.undo()
+async def test_initialize_creates_single_session_and_close_resets(monkeypatch):
+    await assert_client_initialize_reuses_session_and_close_resets(
+        monkeypatch,
+        remote_semantic_client_module.aiohttp,
+        RemoteSemanticClient(),
+    )
 
 
 @pytest.mark.asyncio
