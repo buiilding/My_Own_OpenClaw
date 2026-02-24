@@ -29,29 +29,6 @@ class OpenRouterProvider(LLMProvider):
         """OpenRouter requires an API key."""
         self._require_api_key("OpenRouterProvider")
 
-    def _build_completion_params(
-        self,
-        model: str,
-        messages: List[LLMMessage],
-        tool_defs: Optional[List[Dict[str, Any]]],
-        preferred_tool: Optional[Any],
-        allow_parallel_calls: Optional[bool],
-        cache_key: Optional[str],
-        include_stream: bool = False,
-    ) -> Dict[str, Any]:
-        """Build completion params shared by stream/non-stream paths."""
-        params = self._build_request_params(
-            model,
-            messages,
-            tools=tool_defs,
-            tool_choice=preferred_tool,
-            parallel_tool_calls=allow_parallel_calls,
-            prompt_cache_key=cache_key,
-        )
-        if include_stream:
-            self._enable_stream_with_usage(params)
-        return params
-
     async def get_completion(
         self,
         model: str,
@@ -61,18 +38,14 @@ class OpenRouterProvider(LLMProvider):
         parallel_tool_calls: Optional[bool] = None,
         prompt_cache_key: Optional[str] = None,
     ) -> NormalizedLLMResponse:
-        params = self._build_completion_params(
-            model,
-            messages,
-            tools,
-            tool_choice,
-            parallel_tool_calls,
-            prompt_cache_key,
-        )
-        return await self._get_completion_with_standard_errors(
+        return await self._get_completion_with_standard_params(
             provider_label="OpenRouter",
             model=model,
-            params=params,
+            messages=messages,
+            tools=tools,
+            tool_choice=tool_choice,
+            parallel_tool_calls=parallel_tool_calls,
+            prompt_cache_key=prompt_cache_key,
         )
 
     async def _stream_internal(
@@ -85,13 +58,13 @@ class OpenRouterProvider(LLMProvider):
         prompt_cache_key: Optional[str] = None,
     ) -> AsyncGenerator[StreamingEvent, None]:
         """Internal streaming implementation. Exceptions bubble up to base class."""
-        params = self._build_completion_params(
+        params = self._build_standard_completion_params(
             model,
             messages,
-            tools,
-            tool_choice,
-            parallel_tool_calls,
-            prompt_cache_key,
+            tools=tools,
+            tool_choice=tool_choice,
+            parallel_tool_calls=parallel_tool_calls,
+            prompt_cache_key=prompt_cache_key,
             include_stream=True,
         )
         async for event in self._stream_text_content_events(params):

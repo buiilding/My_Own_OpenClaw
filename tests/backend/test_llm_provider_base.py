@@ -781,6 +781,59 @@ class TestStandardCompletionHelper:
     def provider(self):
         return MockProvider()
 
+    def test_build_standard_completion_params_adds_stream_fields_when_enabled(self, provider):
+        messages = [{"role": "user", "content": "Hello"}]
+
+        params = provider._build_standard_completion_params(
+            "gpt-4",
+            messages,
+            include_stream=True,
+        )
+
+        assert params["model"] == "mock/gpt-4"
+        assert params["stream"] is True
+        assert params["stream_options"] == {"include_usage": True}
+
+    @pytest.mark.asyncio
+    async def test_get_completion_with_standard_params_builds_params_then_delegates(
+        self, provider, monkeypatch
+    ):
+        messages = [{"role": "user", "content": "Hello"}]
+        tools = [{"type": "function", "function": {"name": "ping", "parameters": {"type": "object"}}}]
+        built_params = {"model": "mock/model", "messages": messages}
+        build_params_mock = MagicMock(return_value=built_params)
+        get_completion_mock = AsyncMock(return_value={"content": "ok"})
+
+        monkeypatch.setattr(provider, "_build_standard_completion_params", build_params_mock)
+        monkeypatch.setattr(provider, "_get_completion_with_standard_errors", get_completion_mock)
+
+        result = await provider._get_completion_with_standard_params(
+            provider_label="Mock",
+            model="gpt-4",
+            messages=messages,
+            tools=tools,
+            tool_choice="auto",
+            parallel_tool_calls=True,
+            prompt_cache_key="cache-key",
+            invalid_response_message="Invalid response",
+        )
+
+        build_params_mock.assert_called_once_with(
+            "gpt-4",
+            messages,
+            tools=tools,
+            tool_choice="auto",
+            parallel_tool_calls=True,
+            prompt_cache_key="cache-key",
+        )
+        get_completion_mock.assert_awaited_once_with(
+            provider_label="Mock",
+            model="gpt-4",
+            params=built_params,
+            invalid_response_message="Invalid response",
+        )
+        assert result == {"content": "ok"}
+
     @pytest.mark.asyncio
     async def test_returns_content_for_valid_response(self, provider, monkeypatch):
         response = SimpleNamespace(
