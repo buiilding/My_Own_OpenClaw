@@ -152,6 +152,9 @@ If bundle processing mismatches tool count/order:
 
 ## Related Pages
 
+- [Backend Tools Execution Docs Hub](execution/README.md)
+- [Tool Sender Frontend Dispatch and Synthetic Error Result Reference](execution/tool_sender_frontend_dispatch_and_synthetic_error_result_reference.md)
+- [Tool Result Orchestrator Bundle Detection and Wait Path Reference](execution/tool_result_orchestrator_bundle_detection_and_wait_path_reference.md)
 - [Backend Tools Waiting Docs Hub](waiting/README.md)
 - [Tool Result Receiver and Router Shared Route-Mode Reference](waiting/tool_result_receiver_and_router_shared_route_mode_reference.md)
 - [Tool Result Storage Future Lifecycle and Cleanup Reference](waiting/tool_result_storage_future_lifecycle_and_cleanup_reference.md)
