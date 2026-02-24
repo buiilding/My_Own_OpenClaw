@@ -26,6 +26,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Backend Container DI Lifecycle**](backend/bootstrap/CONTAINER_DI_AND_INIT_LIFECYCLE_REFERENCE.md) - Container composition, startup phase sequencing, lazy runtime binders, and config-update propagation
 - [**Backend Config Runtime Policy**](backend/config/CONFIG_FIELDS_AND_RUNTIME_POLICY.md) - Exact config fields, runtime normalization, and frontend patch boundaries
 - [**Frontend Stream State Machine**](frontend/runtime/STREAM_EVENT_STATE_MACHINE.md) - Event-to-phase transitions and per-turn stream tracking behavior
+- [**Frontend Chat Stream + Tool Runtime**](frontend/renderer/CHAT_STREAM_AND_TOOL_EXECUTION_REFERENCE.md) - Provider ownership, query-send flow, backend event routing, stale-turn cancellation, and tool-result relay semantics
 - [**Frontend Runtime Paths and Endpoints**](frontend/main/RUNTIME_PATHS_AND_ENDPOINTS.md) - Backend ws/http endpoint derivation, packaged Python path lookup, and frontend config persistence path
 - [**Frontend IPC Channel Reference**](frontend/contracts/IPC_CHANNEL_AND_HANDLER_REFERENCE.md) - Exact send/invoke/on channel ownership and handler map
 - [**System Architecture**](architecture/ARCHITECTURE.md) - High-level system design and components
