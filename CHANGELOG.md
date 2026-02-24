@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(test-incoming-routing): add `_make_handler_instances` helper in `tests/backend/test_incoming_routing.py` and reuse it across binding-order/missing-key tests to remove duplicate handler-map setup boilerplate
 - refactor(test-llm-client): extract shared `make_client`/provider-attach helpers and centralize default stream diagnostics in `tests/backend/test_llm_client.py` to remove repetitive setup boilerplate while preserving coverage behavior
 - docs(todo): mark completed UI click-through and thinking-UI tasks in TODO checklist
 - refactor(backend-llm-client): extract `_normalize_content` helper and route `_normalize_response_payload` through it to centralize required content-field validation/coercion
