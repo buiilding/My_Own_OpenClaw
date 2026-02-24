@@ -7,7 +7,13 @@ import { selectChatBoxState } from '../utils/chatSelectors';
 import { getRoundedFrameSize } from '../utils/overlayFrameSize';
 import { subscribeResponseOverlayPhase } from '../utils/overlayPhaseListener';
 import { buildToolGhostPreviewFromMessageText } from '../utils/toolGhostPreview';
-import { TOOL_GHOST_CLICK_SYNC_DELAY_MS } from '../constants/toolGhostRuntime';
+import { useToolGhostLifecycle } from './useToolGhostLifecycle';
+import {
+  buildToolGhostTrackStyle,
+  findLastUserIndex,
+  findLatestMessageAfterUser,
+  findLatestToolCallAfterUser,
+} from './chatBoxResponseUtils';
 
 const RESPONSE_TYPES = new Set(['llm-text', 'error']);
 const FIRST_CHUNK_TYPES = new Set(['llm-text', 'error']);
@@ -16,28 +22,6 @@ const RESPONSE_MAX_HEIGHT = 460;
 const RESPONSE_CHROME_HEIGHT = 28;
 const RESPONSE_BOTTOM_STICK_THRESHOLD = 20;
 const THINKING_BOTTOM_STICK_THRESHOLD = 12;
-const TOOL_GHOST_OFFSET_X_SPAN = 52;
-const TOOL_GHOST_OFFSET_Y_SPAN = 34;
-
-function clampRatio(value) {
-  return Math.min(1, Math.max(0, value));
-}
-
-function parseMousePosition(rawValue) {
-  if (typeof rawValue !== 'string') {
-    return null;
-  }
-  const match = rawValue.match(/(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/);
-  if (!match) {
-    return null;
-  }
-  const x = Number.parseFloat(match[1]);
-  const y = Number.parseFloat(match[2]);
-  if (!Number.isFinite(x) || !Number.isFinite(y)) {
-    return null;
-  }
-  return { x, y };
-}
 
 function renderResponseContent(response, markdownHtml) {
   if (!response) {
@@ -56,52 +40,6 @@ function renderResponseContent(response, markdownHtml) {
   );
 }
 
-function findLastUserIndex(messages) {
-  for (let i = messages.length - 1; i >= 0; i -= 1) {
-    if (messages[i].sender === 'user') {
-      return i;
-    }
-  }
-  return -1;
-}
-
-function findLatestMessageAfterUser(messages, lastUserIndex, allowedTypes) {
-  if (lastUserIndex < 0) {
-    return null;
-  }
-  for (let i = messages.length - 1; i > lastUserIndex; i -= 1) {
-    const message = messages[i];
-    if (message.sender !== 'assistant') {
-      continue;
-    }
-    if (!message.text) {
-      continue;
-    }
-    if (!allowedTypes.has(message.type)) {
-      continue;
-    }
-    return message;
-  }
-  return null;
-}
-
-function findLatestToolCallAfterUser(messages, lastUserIndex) {
-  if (lastUserIndex < 0) {
-    return null;
-  }
-  for (let i = messages.length - 1; i > lastUserIndex; i -= 1) {
-    const message = messages[i];
-    if (message.sender !== 'assistant' || message.type !== 'tool-call') {
-      continue;
-    }
-    if (!message.text) {
-      continue;
-    }
-    return message;
-  }
-  return null;
-}
-
 function ChatBoxResponse() {
   const { messages, thinkingStatus } = useChatStore(useShallow(selectChatBoxState));
   const [closedResponseId, setClosedResponseId] = useState(null);
@@ -110,9 +48,6 @@ function ChatBoxResponse() {
   const [responseHeight, setResponseHeight] = useState(RESPONSE_MIN_HEIGHT);
   const [hasOverflowAbove, setHasOverflowAbove] = useState(false);
   const [hasThinkingOverflowAbove, setHasThinkingOverflowAbove] = useState(false);
-  const [toolGhostStartRatio, setToolGhostStartRatio] = useState({ xRatio: 0.5, yRatio: 0.5 });
-  const [toolGhostReady, setToolGhostReady] = useState(true);
-  const [toolGhostHidden, setToolGhostHidden] = useState(false);
   const shellRef = useRef(null);
   const responsePillRef = useRef(null);
   const responseBodyRef = useRef(null);
@@ -172,42 +107,22 @@ function ChatBoxResponse() {
     [activeToolCall],
   );
   const shouldShowToolGhostBase = !showResponse && overlayPhase === 'tool-call' && Boolean(activeToolCall);
+  const {
+    toolGhostStartRatio,
+    toolGhostReady,
+    toolGhostHidden,
+  } = useToolGhostLifecycle({
+    shouldShowToolGhostBase,
+    toolGhostPreview,
+    activeToolCallId: activeToolCall?.id,
+  });
   const showToolGhost = shouldShowToolGhostBase && (
     !toolGhostPreview.isMouseClick || (toolGhostReady && !toolGhostHidden)
   );
   const isVisible = showResponse || showAwaitingReply || showToolGhost;
   const toolGhostTrackStyle = useMemo(() => {
-    if (!toolGhostPreview.hasTarget) {
-      return null;
-    }
-    const startXOffset = Math.round((toolGhostStartRatio.xRatio - 0.5) * TOOL_GHOST_OFFSET_X_SPAN);
-    const startYOffset = Math.round((toolGhostStartRatio.yRatio - 0.5) * TOOL_GHOST_OFFSET_Y_SPAN);
-    const endXOffset = Math.round((toolGhostPreview.xRatio - 0.5) * TOOL_GHOST_OFFSET_X_SPAN);
-    const endYOffset = Math.round((toolGhostPreview.yRatio - 0.5) * TOOL_GHOST_OFFSET_Y_SPAN);
-    const style = {
-      '--ghost-start-offset-x': `${startXOffset}px`,
-      '--ghost-start-offset-y': `${startYOffset}px`,
-      '--ghost-end-offset-x': `${endXOffset}px`,
-      '--ghost-end-offset-y': `${endYOffset}px`,
-      '--ghost-offset-x': `${endXOffset}px`,
-      '--ghost-offset-y': `${endYOffset}px`,
-      '--ghost-target-scale': `${toolGhostPreview.targetScale}`,
-      '--ghost-motion-duration': `${TOOL_GHOST_CLICK_SYNC_DELAY_MS}ms`,
-    };
-    if (
-      toolGhostPreview.hasRect
-      && Number.isFinite(toolGhostPreview.rectLeftRatio)
-      && Number.isFinite(toolGhostPreview.rectTopRatio)
-      && Number.isFinite(toolGhostPreview.rectWidthRatio)
-      && Number.isFinite(toolGhostPreview.rectHeightRatio)
-    ) {
-      style['--ghost-rect-left'] = `${toolGhostPreview.rectLeftRatio * 100}%`;
-      style['--ghost-rect-top'] = `${toolGhostPreview.rectTopRatio * 100}%`;
-      style['--ghost-rect-width'] = `${toolGhostPreview.rectWidthRatio * 100}%`;
-      style['--ghost-rect-height'] = `${toolGhostPreview.rectHeightRatio * 100}%`;
-    }
-    return style;
-  }, [toolGhostPreview, toolGhostStartRatio.xRatio, toolGhostStartRatio.yRatio]);
+    return buildToolGhostTrackStyle(toolGhostPreview, toolGhostStartRatio);
+  }, [toolGhostPreview, toolGhostStartRatio]);
   const responseMarkdownHtml = useMemo(() => {
     if (!activeResponse || activeResponse.type === 'tool-call' || activeResponse.type === 'error') {
       return '';
@@ -290,75 +205,6 @@ function ChatBoxResponse() {
     shouldStickThinkingToBottomRef.current = true;
     setHasThinkingOverflowAbove(false);
   }, [lastUserMessageId]);
-
-  useEffect(() => {
-    if (!shouldShowToolGhostBase || !toolGhostPreview.isMouseClick) {
-      setToolGhostHidden(false);
-      setToolGhostReady(true);
-      setToolGhostStartRatio({ xRatio: 0.5, yRatio: 0.5 });
-      return undefined;
-    }
-
-    let cancelled = false;
-    let hideTimer = null;
-    setToolGhostHidden(false);
-    setToolGhostReady(false);
-    setToolGhostStartRatio({ xRatio: 0.5, yRatio: 0.5 });
-
-    const targetDisplayWidth = toolGhostPreview.targetDisplayWidth;
-    const targetDisplayHeight = toolGhostPreview.targetDisplayHeight;
-    const canMapCurrentMouse = Number.isFinite(targetDisplayWidth)
-      && Number.isFinite(targetDisplayHeight)
-      && targetDisplayWidth > 0
-      && targetDisplayHeight > 0;
-
-    const beginGhostLifecycle = (nextStartRatio) => {
-      if (cancelled) {
-        return;
-      }
-      setToolGhostStartRatio(nextStartRatio);
-      setToolGhostReady(true);
-      hideTimer = window.setTimeout(() => {
-        if (cancelled) {
-          return;
-        }
-        setToolGhostHidden(true);
-      }, TOOL_GHOST_CLICK_SYNC_DELAY_MS);
-    };
-
-    if (!canMapCurrentMouse) {
-      beginGhostLifecycle({ xRatio: 0.5, yRatio: 0.5 });
-    } else {
-      void IpcBridge.invoke(INVOKE_CHANNELS.GET_SYSTEM_STATE, {
-        fields: ['mouse_position'],
-      }).then((systemState) => {
-        const parsedMouse = parseMousePosition(systemState?.mouse_position);
-        if (!parsedMouse) {
-          beginGhostLifecycle({ xRatio: 0.5, yRatio: 0.5 });
-          return;
-        }
-        beginGhostLifecycle({
-          xRatio: clampRatio(parsedMouse.x / targetDisplayWidth),
-          yRatio: clampRatio(parsedMouse.y / targetDisplayHeight),
-        });
-      }).catch(() => {
-        beginGhostLifecycle({ xRatio: 0.5, yRatio: 0.5 });
-      });
-    }
-
-    return () => {
-      cancelled = true;
-      if (hideTimer !== null) {
-        window.clearTimeout(hideTimer);
-      }
-    };
-  }, [
-    shouldShowToolGhostBase,
-    toolGhostPreview.isMouseClick,
-    toolGhostPreview.targetDisplayWidth,
-    toolGhostPreview.targetDisplayHeight,
-    activeToolCall?.id,
-  ]);
 
   useEffect(() => {
     if (!awaitingFirstChunk || !firstTextOrError) {
