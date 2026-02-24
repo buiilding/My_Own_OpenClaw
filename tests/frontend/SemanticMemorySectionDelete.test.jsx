@@ -1,26 +1,16 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
-const mockInvoke = jest.fn();
-
-jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
-  IpcBridge: {
-    invoke: (...args) => mockInvoke(...args),
-  },
-  INVOKE_CHANNELS: {
-    LIST_SEMANTIC_MEMORIES: 'list-semantic-memories',
-    DELETE_SEMANTIC_MEMORY: 'delete-semantic-memory',
-  },
-}));
-
-jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
-  getTranscriptSessionInfo: () => ({ conversationRef: null, userId: 'peter-bui' }),
-}));
+const {
+  mockInvoke,
+  resetSemanticMemoryHarness,
+  SEMANTIC_MEMORY_USER_ID,
+} = require('./__mocks__/semanticMemorySectionHarness.cjs');
 
 describe('SemanticMemorySection delete', () => {
   const originalConfirm = window.confirm;
 
   beforeEach(() => {
-    mockInvoke.mockReset();
+    resetSemanticMemoryHarness();
     window.confirm = jest.fn(() => true);
   });
 
@@ -66,7 +56,7 @@ describe('SemanticMemorySection delete', () => {
 
     await waitFor(() => {
       expect(mockInvoke).toHaveBeenCalledWith('delete-semantic-memory', {
-        userId: 'peter-bui',
+        userId: SEMANTIC_MEMORY_USER_ID,
         memoryId: 'm-1',
       });
     });
