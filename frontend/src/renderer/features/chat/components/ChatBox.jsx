@@ -9,6 +9,28 @@ const CLICK_THROUGH_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool
 const OVERLAY_ACTIVE_PHASES = new Set(['awaiting-first-chunk', 'streaming']);
 const OVERLAY_TERMINAL_PHASES = new Set(['idle', 'complete', 'error']);
 const LOOP_ACTIVE_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
+const ACTIVE_WINDOW_POLL_INTERVAL_MS = 5000;
+
+function resolveActiveWindowLabel(activeWindowValue) {
+  if (typeof activeWindowValue !== 'string') {
+    return 'No active app';
+  }
+  const trimmed = activeWindowValue.trim();
+  if (!trimmed) {
+    return 'No active app';
+  }
+
+  const segments = trimmed
+    .split(/\s[-|]\s/)
+    .map((segment) => segment.trim())
+    .filter(Boolean);
+  const candidate = segments.length > 1 ? segments[segments.length - 1] : segments[0];
+  if (!candidate) {
+    return 'No active app';
+  }
+
+  return candidate.length > 26 ? `${candidate.slice(0, 25)}…` : candidate;
+}
 
 function isDragBlockedTarget(target) {
   if (!(target instanceof Element)) {
@@ -45,6 +67,7 @@ function ChatBox() {
   });
   const [inputValue, setInputValue] = useState('');
   const [overlayPhase, setOverlayPhase] = useState('idle');
+  const [activeWindowLabel, setActiveWindowLabel] = useState('No active app');
   const ignoreMouseRef = useRef(undefined);
   const shellRef = useRef(null);
   const inputRef = useRef(null);
@@ -127,6 +150,39 @@ function ChatBox() {
 
   useEffect(() => {
     return subscribeResponseOverlayPhase(setOverlayPhase);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    let intervalId = null;
+
+    const refreshActiveWindow = async () => {
+      try {
+        const state = await IpcBridge.invoke(INVOKE_CHANNELS.GET_SYSTEM_STATE, {
+          fields: ['active_window'],
+        });
+        if (cancelled) {
+          return;
+        }
+        setActiveWindowLabel(resolveActiveWindowLabel(state?.active_window));
+      } catch (_error) {
+        if (!cancelled) {
+          setActiveWindowLabel('No active app');
+        }
+      }
+    };
+
+    void refreshActiveWindow();
+    intervalId = window.setInterval(() => {
+      void refreshActiveWindow();
+    }, ACTIVE_WINDOW_POLL_INTERVAL_MS);
+
+    return () => {
+      cancelled = true;
+      if (intervalId !== null) {
+        window.clearInterval(intervalId);
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -240,6 +296,9 @@ function ChatBox() {
           >
             <SettingsIcon />
           </button>
+          <div className="chatbox-context-indicator" aria-label={`Active app: ${activeWindowLabel}`}>
+            {activeWindowLabel}
+          </div>
           <div className="chatbox-input-wrap">
             <input
               ref={inputRef}

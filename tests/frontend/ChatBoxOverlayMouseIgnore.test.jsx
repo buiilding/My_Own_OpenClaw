@@ -3,7 +3,12 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 
 import ChatBox from '../../frontend/src/renderer/features/chat/components/ChatBox';
 
-const mockInvoke = jest.fn().mockResolvedValue({ success: true });
+const mockInvoke = jest.fn((channel) => {
+  if (channel === 'get-system-state') {
+    return Promise.resolve({});
+  }
+  return Promise.resolve({ success: true });
+});
 const mockSend = jest.fn();
 const mockSendMessage = jest.fn();
 const mockUseChatMessageSender = jest.fn(() => ({
@@ -23,6 +28,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     SET_OVERLAY_IGNORE_MOUSE: 'set-overlay-ignore-mouse',
     SET_CHATBOX_SIZE: 'set-chatbox-size',
     SHOW_MAIN_WINDOW: 'show-main-window',
+    GET_SYSTEM_STATE: 'get-system-state',
   },
   ON_CHANNELS: {
     CHATBOX_FOCUS: 'chatbox-focus',
@@ -53,6 +59,12 @@ jest.mock('../../frontend/src/renderer/features/chat/hooks/useChatMessageSender'
 describe('ChatBox overlay mouse ignore', () => {
   beforeEach(() => {
     mockInvoke.mockClear();
+    mockInvoke.mockImplementation((channel) => {
+      if (channel === 'get-system-state') {
+        return Promise.resolve({});
+      }
+      return Promise.resolve({ success: true });
+    });
     mockSend.mockClear();
     mockUseChatMessageSender.mockClear();
     mockSendMessage.mockClear();
@@ -187,5 +199,18 @@ describe('ChatBox overlay mouse ignore', () => {
 
     expect(mockSendMessage).toHaveBeenCalledWith('hello world');
     expect(input).toHaveValue('');
+  });
+
+  test('shows ambient active app indicator from system-state polling', async () => {
+    mockInvoke.mockImplementation((channel) => {
+      if (channel === 'get-system-state') {
+        return Promise.resolve({ active_window: 'Inbox - Chrome' });
+      }
+      return Promise.resolve({ success: true });
+    });
+
+    render(<ChatBox />);
+
+    expect(await screen.findByLabelText('Active app: Chrome')).toBeInTheDocument();
   });
 });
