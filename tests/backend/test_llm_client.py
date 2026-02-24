@@ -174,6 +174,30 @@ async def test_get_completion_response_stores_usage_diagnostics(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_get_last_stream_cache_diagnostics_returns_deep_copy(monkeypatch):
+    cfg = AppConfig()
+    client = LiteLLMClient(cfg)
+    provider = DummyProvider(
+        response={"content": "ok"},
+        diagnostics={
+            "model": "model",
+            "status": "hit",
+            "nested": {"prompt_tokens": 7},
+        },
+    )
+    monkeypatch.setattr("backend.src.llm.client.get_provider", lambda *_: provider)
+
+    _ = await client.get_completion_response("model", [])
+    diagnostics = client.get_last_stream_cache_diagnostics()
+    assert diagnostics is not None
+    diagnostics["nested"]["prompt_tokens"] = 999
+
+    diagnostics_again = client.get_last_stream_cache_diagnostics()
+    assert diagnostics_again is not None
+    assert diagnostics_again["nested"]["prompt_tokens"] == 7
+
+
+@pytest.mark.asyncio
 async def test_get_completion_response_clears_tracking_state_on_provider_failure(
     monkeypatch,
 ):
@@ -300,6 +324,29 @@ async def test_get_completion_stream_stores_last_stream_response_payload(monkeyp
     assert payload["content"] == "final"
     assert payload["finish_reason"] == "tool_calls"
     assert payload["tool_calls"][0]["id"] == "call_1"
+
+
+@pytest.mark.asyncio
+async def test_get_last_stream_response_payload_returns_deep_copy(monkeypatch):
+    cfg = AppConfig()
+    client = LiteLLMClient(cfg)
+    provider = DummyProvider(
+        stream_events=[ChunkEvent(content="partial")],
+        stream_payload={
+            "content": "final",
+            "tool_calls": [{"id": "call_1", "name": "read_file", "arguments": {"path": "/tmp/a"}}],
+        },
+    )
+    monkeypatch.setattr("backend.src.llm.client.get_provider", lambda *_: provider)
+
+    _ = [event async for event in client.get_completion_stream("model", [])]
+    payload = client.get_last_stream_response_payload()
+    assert payload is not None
+    payload["tool_calls"][0]["arguments"]["path"] = "/tmp/mutated"
+
+    payload_again = client.get_last_stream_response_payload()
+    assert payload_again is not None
+    assert payload_again["tool_calls"][0]["arguments"]["path"] == "/tmp/a"
 
 
 def test_extract_content_rejects_invalid_payloads():
