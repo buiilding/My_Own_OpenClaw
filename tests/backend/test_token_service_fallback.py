@@ -14,11 +14,28 @@ class MessageObj:
     content: object
 
 
-def test_count_tokens_falls_back_on_exception(monkeypatch):
+def _patch_token_counter_to_raise(monkeypatch) -> None:
     def boom(*_args, **_kwargs):
         raise RuntimeError("boom")
 
     monkeypatch.setattr(litellm, "token_counter", boom)
+
+
+def _patch_token_counter_capture(monkeypatch, *, return_value: int) -> dict:
+    captured: dict = {}
+
+    def fake_counter(*, model, messages, use_default_image_token_count):
+        captured["model"] = model
+        captured["messages"] = messages
+        captured["use_default_image_token_count"] = use_default_image_token_count
+        return return_value
+
+    monkeypatch.setattr(litellm, "token_counter", fake_counter)
+    return captured
+
+
+def test_count_tokens_falls_back_on_exception(monkeypatch):
+    _patch_token_counter_to_raise(monkeypatch)
     messages = [
         {"role": "user", "content": "abcd"},
         {"role": "assistant", "content": [{"type": "text", "text": "abcdefgh"}]},
@@ -27,10 +44,7 @@ def test_count_tokens_falls_back_on_exception(monkeypatch):
 
 
 def test_count_tokens_fallback_handles_object_messages(monkeypatch):
-    def boom(*_args, **_kwargs):
-        raise RuntimeError("boom")
-
-    monkeypatch.setattr(litellm, "token_counter", boom)
+    _patch_token_counter_to_raise(monkeypatch)
     messages = [
         {"role": "user", "content": "abcd"},
         MessageObj(
@@ -45,10 +59,7 @@ def test_count_tokens_fallback_handles_object_messages(monkeypatch):
 
 
 def test_count_tokens_fallback_handles_dict_and_input_text_parts(monkeypatch):
-    def boom(*_args, **_kwargs):
-        raise RuntimeError("boom")
-
-    monkeypatch.setattr(litellm, "token_counter", boom)
+    _patch_token_counter_to_raise(monkeypatch)
     messages = [
         {"role": "user", "content": {"type": "text", "text": "abcd"}},
         {
@@ -64,10 +75,7 @@ def test_count_tokens_fallback_handles_dict_and_input_text_parts(monkeypatch):
 
 
 def test_count_tokens_fallback_counts_text_part_content_key(monkeypatch):
-    def boom(*_args, **_kwargs):
-        raise RuntimeError("boom")
-
-    monkeypatch.setattr(litellm, "token_counter", boom)
+    _patch_token_counter_to_raise(monkeypatch)
     messages = [
         {
             "role": "assistant",
@@ -82,10 +90,7 @@ def test_count_tokens_fallback_counts_text_part_content_key(monkeypatch):
 
 
 def test_count_tokens_fallback_counts_string_fragments_in_content_list(monkeypatch):
-    def boom(*_args, **_kwargs):
-        raise RuntimeError("boom")
-
-    monkeypatch.setattr(litellm, "token_counter", boom)
+    _patch_token_counter_to_raise(monkeypatch)
     messages = [
         {
             "role": "assistant",
@@ -114,15 +119,7 @@ def test_count_tokens_empty_messages_short_circuit(monkeypatch):
 
 
 def test_count_tokens_normalizes_object_message_for_litellm(monkeypatch):
-    captured = {}
-
-    def fake_counter(*, model, messages, use_default_image_token_count):
-        captured["model"] = model
-        captured["messages"] = messages
-        captured["use_default_image_token_count"] = use_default_image_token_count
-        return 5
-
-    monkeypatch.setattr(litellm, "token_counter", fake_counter)
+    captured = _patch_token_counter_capture(monkeypatch, return_value=5)
 
     token_count = TokenService.count_tokens(
         [MessageObj(role="assistant", content="hello world")],
@@ -136,13 +133,7 @@ def test_count_tokens_normalizes_object_message_for_litellm(monkeypatch):
 
 
 def test_count_tokens_normalizes_partial_dict_without_mutating_input(monkeypatch):
-    captured = {}
-
-    def fake_counter(*, model, messages, use_default_image_token_count):
-        captured["messages"] = messages
-        return 3
-
-    monkeypatch.setattr(litellm, "token_counter", fake_counter)
+    captured = _patch_token_counter_capture(monkeypatch, return_value=3)
     original = {"content": "hello"}
 
     result = TokenService.count_tokens([original], model="gpt-4o-mini")
@@ -154,13 +145,7 @@ def test_count_tokens_normalizes_partial_dict_without_mutating_input(monkeypatch
 
 
 def test_count_tokens_normalizes_invalid_role_and_none_content_in_dict(monkeypatch):
-    captured = {}
-
-    def fake_counter(*, model, messages, use_default_image_token_count):
-        captured["messages"] = messages
-        return 2
-
-    monkeypatch.setattr(litellm, "token_counter", fake_counter)
+    captured = _patch_token_counter_capture(monkeypatch, return_value=2)
 
     result = TokenService.count_tokens(
         [{"role": None, "content": None}],
@@ -172,13 +157,7 @@ def test_count_tokens_normalizes_invalid_role_and_none_content_in_dict(monkeypat
 
 
 def test_count_tokens_strips_whitespace_from_dict_role(monkeypatch):
-    captured = {}
-
-    def fake_counter(*, model, messages, use_default_image_token_count):
-        captured["messages"] = messages
-        return 2
-
-    monkeypatch.setattr(litellm, "token_counter", fake_counter)
+    captured = _patch_token_counter_capture(monkeypatch, return_value=2)
 
     result = TokenService.count_tokens(
         [{"role": "  assistant  ", "content": "hello"}],
@@ -190,13 +169,7 @@ def test_count_tokens_strips_whitespace_from_dict_role(monkeypatch):
 
 
 def test_count_tokens_normalizes_object_message_with_blank_role_and_none_content(monkeypatch):
-    captured = {}
-
-    def fake_counter(*, model, messages, use_default_image_token_count):
-        captured["messages"] = messages
-        return 1
-
-    monkeypatch.setattr(litellm, "token_counter", fake_counter)
+    captured = _patch_token_counter_capture(monkeypatch, return_value=1)
 
     token_count = TokenService.count_tokens(
         [MessageObj(role="   ", content=None)],
@@ -208,13 +181,7 @@ def test_count_tokens_normalizes_object_message_with_blank_role_and_none_content
 
 
 def test_count_tokens_strips_whitespace_from_object_role(monkeypatch):
-    captured = {}
-
-    def fake_counter(*, model, messages, use_default_image_token_count):
-        captured["messages"] = messages
-        return 1
-
-    monkeypatch.setattr(litellm, "token_counter", fake_counter)
+    captured = _patch_token_counter_capture(monkeypatch, return_value=1)
 
     token_count = TokenService.count_tokens(
         [MessageObj(role="  assistant  ", content="hello")],
@@ -226,13 +193,7 @@ def test_count_tokens_strips_whitespace_from_object_role(monkeypatch):
 
 
 def test_count_tokens_normalizes_internal_assistant_tool_calls_for_litellm(monkeypatch):
-    captured = {}
-
-    def fake_counter(*, model, messages, use_default_image_token_count):
-        captured["messages"] = messages
-        return 9
-
-    monkeypatch.setattr(litellm, "token_counter", fake_counter)
+    captured = _patch_token_counter_capture(monkeypatch, return_value=9)
 
     token_count = TokenService.count_tokens(
         [
@@ -278,13 +239,7 @@ def test_count_tokens_normalizes_internal_assistant_tool_calls_for_litellm(monke
 
 
 def test_count_tokens_stringifies_canonical_assistant_tool_call_arguments(monkeypatch):
-    captured = {}
-
-    def fake_counter(*, model, messages, use_default_image_token_count):
-        captured["messages"] = messages
-        return 4
-
-    monkeypatch.setattr(litellm, "token_counter", fake_counter)
+    captured = _patch_token_counter_capture(monkeypatch, return_value=4)
 
     token_count = TokenService.count_tokens(
         [
