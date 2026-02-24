@@ -2398,3 +2398,19 @@ read_when:
     - clones: `136 -> 135`
     - duplicated lines: `2233 -> 2225`
     - duplicated tokens: `19560 -> 19470`
+
+## Phase 82 Outcome (2026-02-24)
+
+- Full-gate revalidation after transcript/player dedupe wave (Phases 78-81):
+  - frontend lint audits:
+    - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
+  - dead-code audit:
+    - `cd frontend && npm run audit:knip` (pass)
+  - duplication audit:
+    - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `135`, duplicated lines `2225`, duplicated tokens `19470`)
+  - frontend tests:
+    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - backend tests:
+    - `./scripts/test-backend` (pass; 966 tests)
+  - sidecar tests:
+    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
