@@ -103,6 +103,7 @@ Covers:
 - [LLM Prompt Docs Hub](llm/prompts/README.md)
 - [Services Docs Hub](services/README.md)
 - [Services Token Docs Hub](services/token/README.md)
+- [Services Screen-Grounding Docs Hub](services/screen_grounding/README.md)
 - [LLM Models and Parsing](llm/llm_models_and_parsing.md)
 - [Provider Factory and Runtime Selection Reference](llm/provider_factory_and_runtime_selection_reference.md)
 - [Parser Trust Boundary and Native Tool-Call Reference](llm/parser_trust_boundary_and_native_tool_call_reference.md)
@@ -115,7 +116,9 @@ Covers:
 - [Embedding and Semantic Memory Runtime Reference](services/embedding_and_semantic_memory_runtime_reference.md)
 - [Artifact, Screenshot, and System-State Flow Reference](services/artifact_screenshot_and_system_state_flow_reference.md)
 - [TTS and Wakeword Audio Runtime Reference](services/tts_and_wakeword_audio_runtime_reference.md)
-- [OCR and Vision Coordinate Runtime Reference](services/ocr_and_vision_coordinate_runtime_reference.md)
+- [OCR and Vision Coordinate Runtime Overview](services/ocr_and_vision_coordinate_runtime_reference.md)
+- [OCR Service and Screenshot State-Machine Reference](services/screen_grounding/ocr_service_and_screenshot_state_machine_reference.md)
+- [Vision Provider Runtime and Coordinate-Scaling Reference](services/screen_grounding/vision_provider_runtime_and_coordinate_scaling_reference.md)
 
 ### Simulation
 
