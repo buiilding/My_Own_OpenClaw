@@ -1732,3 +1732,20 @@ read_when:
   - effect: route wiring now centralized; adding/removing routes is a single-list edit.
 - Verification:
   - `./scripts/python-in-env backend pytest tests/backend/test_app_assembly.py -q` (pass; 3 tests)
+
+## Phase 44 Outcome (2026-02-24)
+
+- Full-gate revalidation after Phases 40-43:
+  - frontend lint audits:
+    - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
+  - dead-code audit:
+    - `cd frontend && npm run audit:knip` (pass)
+  - duplication audit:
+    - `cd frontend && npm run audit:jscpd` (pass)
+    - snapshot totals: clones `182`, duplicated lines `2779`, duplicated tokens `24683`
+  - frontend tests:
+    - `cd frontend && npm run test:ci` (pass; 86 suites, 607 tests)
+  - backend tests:
+    - `./scripts/test-backend` (pass; 966 tests)
+  - sidecar tests:
+    - `./scripts/test-sidecar` (pass; 462 tests)
