@@ -27,18 +27,14 @@ class MistralProvider(LLMProvider):
         parallel_tool_calls: Optional[bool] = None,
         prompt_cache_key: Optional[str] = None,
     ) -> NormalizedLLMResponse:
-        params = self._build_request_params(
-            model,
-            messages,
+        return await self._get_completion_with_standard_params(
+            provider_label="Mistral",
+            model=model,
+            messages=messages,
             tools=tools,
             tool_choice=tool_choice,
             parallel_tool_calls=parallel_tool_calls,
             prompt_cache_key=prompt_cache_key,
-        )
-        return await self._get_completion_with_standard_errors(
-            provider_label="Mistral",
-            model=model,
-            params=params,
         )
 
     async def _stream_internal(
@@ -51,15 +47,15 @@ class MistralProvider(LLMProvider):
         prompt_cache_key: Optional[str] = None,
     ) -> AsyncGenerator[StreamingEvent, None]:
         """Internal streaming implementation. Exceptions bubble up to base class."""
-        params = self._build_request_params(
+        params = self._build_standard_completion_params(
             model,
             messages,
             tools=tools,
             tool_choice=tool_choice,
             parallel_tool_calls=parallel_tool_calls,
             prompt_cache_key=prompt_cache_key,
+            include_stream=True,
         )
-        self._enable_stream_with_usage(params)
         async for event in self._stream_text_content_events(params):
             yield event
 

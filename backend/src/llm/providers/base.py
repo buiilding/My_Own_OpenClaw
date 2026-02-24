@@ -147,6 +147,58 @@ class LLMProvider(ABC):
                 cause=e,
             )
 
+    def _build_standard_completion_params(
+        self,
+        model: str,
+        messages: List[LLMMessage],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        tool_choice: Optional[Any] = None,
+        parallel_tool_calls: Optional[bool] = None,
+        prompt_cache_key: Optional[str] = None,
+        *,
+        include_stream: bool = False,
+    ) -> Dict[str, Any]:
+        """Build normalized completion params used by stream and non-stream calls."""
+        params = self._build_request_params(
+            model,
+            messages,
+            tools=tools,
+            tool_choice=tool_choice,
+            parallel_tool_calls=parallel_tool_calls,
+            prompt_cache_key=prompt_cache_key,
+        )
+        if include_stream:
+            self._enable_stream_with_usage(params)
+        return params
+
+    async def _get_completion_with_standard_params(
+        self,
+        *,
+        provider_label: str,
+        model: str,
+        messages: List[LLMMessage],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        tool_choice: Optional[Any] = None,
+        parallel_tool_calls: Optional[bool] = None,
+        prompt_cache_key: Optional[str] = None,
+        invalid_response_message: Optional[str] = None,
+    ) -> NormalizedLLMResponse:
+        """Build params then execute completion with standard error mapping."""
+        params = self._build_standard_completion_params(
+            model,
+            messages,
+            tools=tools,
+            tool_choice=tool_choice,
+            parallel_tool_calls=parallel_tool_calls,
+            prompt_cache_key=prompt_cache_key,
+        )
+        return await self._get_completion_with_standard_errors(
+            provider_label=provider_label,
+            model=model,
+            params=params,
+            invalid_response_message=invalid_response_message,
+        )
+
     async def get_completion_stream(
         self,
         model: str,

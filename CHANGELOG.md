@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(backend-llm-providers): add shared `LLMProvider._build_standard_completion_params` + `LLMProvider._get_completion_with_standard_params` and migrate OpenAI/Mistral/Gemini/Anthropic/OpenRouter/Local providers to the shared helper path for completion + stream request wiring; added regression coverage in `tests/backend/test_llm_provider_base.py`; jscpd improved from duplicated lines `1247 -> 1233` (clones held at `59`)
 - docs(refactor-plan): add phase-139 full-gate snapshot after backend LLM-provider API-key validation/helper dedupe (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)
 - refactor(backend-llm-providers): add shared `_require_api_key` helper on `LLMProvider`, remove duplicated passthrough `__init__` methods in OpenAI/Mistral/Gemini/Anthropic providers, and switch API-key validations across online providers to the shared helper; jscpd improved from clones `62 -> 59` and duplicated lines `1274 -> 1247`
 - docs(refactor-plan): add phase-138 full-gate snapshot after shared simulation run-helper extraction (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)
