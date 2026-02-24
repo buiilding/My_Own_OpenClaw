@@ -193,6 +193,8 @@ If transcript rows missing:
 ## Related References
 
 - [Renderer Chat Docs Hub](chat/README.md)
+- [Renderer Chat Payload Docs Hub](chat/payloads/README.md)
+- [Tool Call/Output and Transparency Section Rendering Reference](chat/payloads/tool_call_output_and_transparency_section_rendering_reference.md)
 - [Message Send Surface Policy and Screenshot Capture Reference](chat/message_send_surface_policy_and_screenshot_capture_reference.md)
 - [Chat Store State and New Session Rotation Reference](chat/chat_store_state_and_new_session_rotation_reference.md)
 - [Renderer Overlay Docs Hub](overlays/README.md)

@@ -28,6 +28,8 @@ title: "Frontend Renderer Docs Hub"
 - [Renderer Chat Stream Docs Hub](chat/stream/README.md)
 - [Conversation Gate and Active-Turn Filtering Reference](chat/stream/conversation_gate_and_active_turn_filtering_reference.md)
 - [Tracking, Formatting, and Message-Update Utility Reference](chat/stream/tracking_formatting_and_message_update_utility_reference.md)
+- [Renderer Chat Payload Docs Hub](chat/payloads/README.md)
+- [Tool Call/Output and Transparency Section Rendering Reference](chat/payloads/tool_call_output_and_transparency_section_rendering_reference.md)
 - [Settings Section Display Selection and Config Toggle Reference](settings/settings_section_display_selection_and_config_toggle_reference.md)
 - [Transcript Session and Rehydrate Reference](transcript_session_and_rehydrate_reference.md)
 - [Transcript Writer Queue Flush and Session Event Reference](transcript/transcript_writer_queue_flush_and_session_event_reference.md)

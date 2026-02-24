@@ -15,6 +15,8 @@ title: "Frontend Renderer Chat Docs Hub"
 - [Renderer Chat Stream Docs Hub](stream/README.md)
 - [Conversation Gate and Active-Turn Filtering Reference](stream/conversation_gate_and_active_turn_filtering_reference.md)
 - [Tracking, Formatting, and Message-Update Utility Reference](stream/tracking_formatting_and_message_update_utility_reference.md)
+- [Renderer Chat Payload Docs Hub](payloads/README.md)
+- [Tool Call/Output and Transparency Section Rendering Reference](payloads/tool_call_output_and_transparency_section_rendering_reference.md)
 
 ## Related Pages
 
@@ -34,13 +36,19 @@ title: "Frontend Renderer Chat Docs Hub"
 - `frontend/src/renderer/features/chat/utils/chatStreamFormatting.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamMessageUpdates.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamEventUtils.ts`
+- `frontend/src/renderer/features/chat/utils/messageTransparency.js`
 - `frontend/src/renderer/features/chat/utils/newChatSession.ts`
 - `frontend/src/renderer/features/chat/utils/conversationRef.ts`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
+- `frontend/src/renderer/features/chat/components/MessageContent.jsx`
+- `frontend/src/renderer/features/chat/components/MessageTransparencySections.jsx`
+- `frontend/src/renderer/features/chat/components/TransparencySection.jsx`
 - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
 - `tests/frontend/ChatMessageSender.test.tsx`
 - `tests/frontend/ChatStore.test.ts`
 - `tests/frontend/MessageSendUiPolicy.test.ts`
 - `tests/frontend/ChatStreamConversationGate.test.ts`
 - `tests/frontend/ChatStreamTracking.test.ts`
+- `tests/frontend/MessageContent.test.jsx`
+- `tests/frontend/MessageTransparency.test.js`
