@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): add phase-106 full-gate snapshot after backend message-handler route-deps shim helper wave (frontend audits/tests + backend + sidecar)
 - docs(refactor-plan): add phase-105 full-gate snapshot after backend message-handler send-error parameterization wave (frontend audits/tests + backend + sidecar)
 - refactor(backend-message-handler-tests): wrap websocket-route dependency shim setup in local `_install_route_deps_shim()` helper to remove repeated top-level prelude duplication while preserving route-import behavior; jscpd improved from clones `114 -> 113` and duplicated lines `1968 -> 1958`
 - docs(refactor-plan): add phase-104 full-gate snapshot after backend websocket message-handler helper dedupe wave (frontend audits/tests + backend + sidecar)
