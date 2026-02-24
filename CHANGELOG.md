@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 25 execution slice for exception constructor specialization dedupe in `core/infrastructure/exceptions.py`
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 24 execution slice for core exception metadata + validation helper dedupe (`core/infrastructure/exceptions.py`, `core/validation/validators.py`)
 - refactor(core-validation-exceptions): add shared metadata/error-detail helpers in `core/infrastructure/exceptions.py` and `core/validation/validators.py` to dedupe constructor metadata merges and Pydantic field-error extraction while preserving existing error contracts
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 23 execution slice for backend API formatter required-field dedupe (`base`, `chunk`, `thinking`, `assistant_message`, `tool_call`, `tool_output`)
