@@ -50,6 +50,20 @@ def assert_single_error_event(events: list, *, expected_substring: str) -> None:
     assert expected_substring in events[0].content
 
 
+def make_stream_payload(
+    *,
+    arguments: dict | None = None,
+    include_finish_reason: bool = False,
+) -> dict:
+    payload = {
+        "content": "final",
+        "tool_calls": [{"id": "call_1", "name": "read_file", "arguments": arguments or {}}],
+    }
+    if include_finish_reason:
+        payload["finish_reason"] = "tool_calls"
+    return payload
+
+
 class DummyProvider:
     def __init__(
         self,
@@ -298,11 +312,7 @@ async def test_get_completion_stream_stores_cache_diagnostics(monkeypatch):
 async def test_get_completion_stream_stores_last_stream_response_payload(monkeypatch):
     provider = DummyProvider(
         stream_events=[ChunkEvent(content="partial")],
-        stream_payload={
-            "content": "final",
-            "tool_calls": [{"id": "call_1", "name": "read_file", "arguments": {}}],
-            "finish_reason": "tool_calls",
-        },
+        stream_payload=make_stream_payload(include_finish_reason=True),
     )
     client = make_client_with_provider(monkeypatch, provider)
 
@@ -318,10 +328,7 @@ async def test_get_completion_stream_stores_last_stream_response_payload(monkeyp
 async def test_get_last_stream_response_payload_returns_deep_copy(monkeypatch):
     provider = DummyProvider(
         stream_events=[ChunkEvent(content="partial")],
-        stream_payload={
-            "content": "final",
-            "tool_calls": [{"id": "call_1", "name": "read_file", "arguments": {"path": "/tmp/a"}}],
-        },
+        stream_payload=make_stream_payload(arguments={"path": "/tmp/a"}),
     )
     client = make_client_with_provider(monkeypatch, provider)
 
