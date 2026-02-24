@@ -88,6 +88,7 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 - [Frontend Transcript Session + Rehydrate Reference](../frontend/renderer/transcript_session_and_rehydrate_reference.md)
 - [Frontend Voice Capture + Wakeword Controller Reference](../frontend/renderer/voice_capture_and_wakeword_controller_reference.md)
 - [Frontend Runtime Paths and Endpoints](../frontend/main/runtime_paths_and_endpoints.md)
+- [Frontend Context Label Overlay + Active-Window Runtime Reference](../frontend/main/context_label_overlay_and_active_window_runtime_reference.md)
 - [Frontend Query Payload + Relay Reference](../frontend/main/query_payload_and_relay_reference.md)
 - [Frontend WebSocket Handshake + Settings Sync Reference](../frontend/main/websocket_handshake_and_settings_sync_reference.md)
 - [Frontend Local Backend Bridge Handler + Window Guard Reference](../frontend/main/local_backend_bridge_handler_and_window_guard_reference.md)

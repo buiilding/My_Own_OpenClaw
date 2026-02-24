@@ -23,6 +23,9 @@ Window set:
 - `mainWindow`: dashboard/settings surface (`frame: false`, hidden on start)
 - `chatWindow`: bottom-center overlay input pill (`transparent`, `alwaysOnTop`)
 - `responseWindow`: response overlay above chat pill (`transparent`, `alwaysOnTop`)
+- `contextLabelWindow`: active-app context label above chat pill (`transparent`, `alwaysOnTop`)
+
+For deeper context-label runtime details, see [Context Label Overlay and Active-Window Runtime Reference](context_label_overlay_and_active_window_runtime_reference.md).
 
 ## Creation and Startup Flow
 
