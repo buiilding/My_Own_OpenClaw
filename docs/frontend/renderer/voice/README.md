@@ -1,0 +1,34 @@
+---
+summary: "Frontend renderer voice docs sub-hub for gateway transcription lifecycle, wakeword IPC audio capture, cooldown/threshold gating, and shared audio resource cleanup semantics."
+read_when:
+  - When changing `frontend/src/renderer/features/voice/*` hooks or utility modules.
+  - When debugging microphone capture leaks, wakeword retriggers, or transcription reconnect behavior.
+title: "Frontend Renderer Voice Docs Hub"
+---
+
+# Frontend Renderer Voice Docs Hub
+
+## Deep Pages
+
+- [Voice Mode Gateway Connection and Transcription Region Reference](voice_mode_gateway_connection_and_transcription_region_reference.md)
+- [Wakeword Detection IPC Capture and Cooldown Reference](wakeword_detection_ipc_capture_and_cooldown_reference.md)
+
+## Related Pages
+
+- [Frontend Renderer Docs Hub](../README.md)
+- [Voice Capture and Wakeword Controller Reference](../voice_capture_and_wakeword_controller_reference.md)
+- [Frontend Overlay and Wakeword Control Channel Reference](../../contracts/overlay_and_wakeword_control_channel_reference.md)
+- [Frontend Sidecar Wakeword Bridge and Audio Framing Reference](../../sidecar/wakeword_bridge_and_audio_framing_reference.md)
+
+## Code Scope
+
+- `frontend/src/renderer/app/WakewordController.jsx`
+- `frontend/src/renderer/features/chat/components/MessageInput.jsx`
+- `frontend/src/renderer/features/chat/hooks/useTranscription.ts`
+- `frontend/src/renderer/features/voice/hooks/useVoiceMode.ts`
+- `frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts`
+- `frontend/src/renderer/features/voice/hooks/useAudioCaptureRefs.ts`
+- `frontend/src/renderer/features/voice/utils/audioEncoding.ts`
+- `frontend/src/renderer/features/voice/utils/audioCaptureCleanup.ts`
+- `frontend/src/renderer/features/voice/utils/wakewordEventUtils.ts`
+- `frontend/src/renderer/infrastructure/ipc/channels.ts`
