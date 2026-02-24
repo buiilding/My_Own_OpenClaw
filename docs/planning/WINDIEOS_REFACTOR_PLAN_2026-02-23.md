@@ -637,6 +637,25 @@ read_when:
   - `pytest tests/backend/test_llm_stream_processor.py tests/backend/test_llm_client.py tests/backend/test_local_llm_providers.py`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
+## Phase 30
+
+- `jscpd` duplication cleanup (session tool-result delegation wrappers):
+  - simplify pass-through delegation methods in:
+    - `backend/src/agent/session/session.py`
+  - replace duplicated explicit argument lists with keyword-forwarding wrappers to:
+    - `ToolResultHandler.process_frontend_tool_result`
+    - `ToolResultHandler.process_frontend_tool_bundle_result`
+  - preserve websocket/API handler call behavior and result-routing semantics.
+
+### Phase 30 Execution Slice (Current Loop)
+
+- Backend dedupe:
+  - keep delegation behavior identical while reducing wrapper duplication in `AgentSession`.
+  - preserve API handler keyword-call contract for tool-result and tool-bundle-result messages.
+- Verification checks:
+  - `pytest tests/backend/test_api_handlers.py tests/backend/test_websocket_message_handler.py tests/backend/test_tool_result_handler.py`
+  - `cd frontend && npm run audit:jscpd` (expect clone reduction)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):
