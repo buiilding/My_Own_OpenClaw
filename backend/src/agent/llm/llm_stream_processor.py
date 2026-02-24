@@ -20,6 +20,7 @@ from backend.src.core.events.streaming_events import (
 )
 from backend.src.core.infrastructure.exceptions import LLMAPIError, LLMRateLimitError
 from backend.src.core.types.schemas import LLMMessage, NormalizedLLMResponse
+from backend.src.llm.request_kwargs import build_tool_transport_kwargs
 from backend.src.services.token_service import get_token_service
 
 if TYPE_CHECKING:
@@ -249,14 +250,15 @@ class LLMStreamProcessor:
         request_kwargs: Dict[str, Any] = {
             "model": model_id,
             "messages": prompt,
-            "tools": tools,
-            "tool_choice": tool_choice,
-            "parallel_tool_calls": parallel_tool_calls,
         }
-        if isinstance(prompt_cache_key, str):
-            normalized_cache_key = prompt_cache_key.strip()
-            if normalized_cache_key:
-                request_kwargs["prompt_cache_key"] = normalized_cache_key
+        request_kwargs.update(
+            build_tool_transport_kwargs(
+                tools=tools,
+                tool_choice=tool_choice,
+                parallel_tool_calls=parallel_tool_calls,
+                prompt_cache_key=prompt_cache_key,
+            )
+        )
         return request_kwargs
 
     def _log_prompt_cache_hint(self, prompt: List[LLMMessage], model_id: str) -> int:
