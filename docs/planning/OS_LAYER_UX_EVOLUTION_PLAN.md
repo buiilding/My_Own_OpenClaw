@@ -42,7 +42,7 @@ Completed in code:
    - Chat pill now displays ambient glow while loop-active phases run (`awaiting-first-chunk`, `streaming`, `tool-call`, `tool-output`).
 6. Ambient context indicator (initial):
    - Chat pill now shows a low-frequency-polled active-app badge from `get-system-state.active_window`.
-   - Badge now includes category/icon mapping (browser/code/terminal/mail/chat/design/docs + fallback initials) and improved active-window title parsing.
+   - Badge now includes app/category icon mapping with improved fidelity (Edge/Firefox/Safari/VS Code/Cursor/Windsurf + category fallbacks) and improved active-window title parsing.
 
 Still in progress:
 
