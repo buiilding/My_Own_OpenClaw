@@ -19,9 +19,17 @@ describe('activeWindowContext', () => {
 
   test('maps editor windows to code context', () => {
     expect(resolveActiveWindowContext('main.py - Visual Studio Code')).toEqual({
-      label: 'Code',
+      label: 'VS Code',
       icon: 'ED',
       fullLabel: 'main.py - Visual Studio Code',
+    });
+  });
+
+  test('maps edge windows to edge context', () => {
+    expect(resolveActiveWindowContext('Docs - Microsoft Edge')).toEqual({
+      label: 'Edge',
+      icon: 'WB',
+      fullLabel: 'Docs - Microsoft Edge',
     });
   });
 
@@ -34,4 +42,3 @@ describe('activeWindowContext', () => {
       });
   });
 });
-
