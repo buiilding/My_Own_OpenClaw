@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(test-tool-result-router): add shared `_make_router` factory in `tests/backend/test_tool_result_router.py` and reuse it across individual/bundle route tests to remove duplicate router-construction scaffolding
 - refactor(test-container-initializer): add shared `_build_ocr_initializer` helper in `tests/backend/test_container_initializer_dev_selection.py` and reuse it in OCR-enabled/disabled initialization tests to remove duplicate initializer/container setup
 - refactor(test-token-service-fallback): add shared `_patch_token_counter_to_raise` and `_patch_token_counter_capture` helpers in `tests/backend/test_token_service_fallback.py` to remove repeated LiteLLM monkeypatch scaffolding across fallback/normalization tests
 - refactor(test-memory-routes): add shared `_local_ollama_config` and `_patch_semantic_client` helpers in `tests/backend/test_memory_routes.py` to remove duplicate summarization-route config/monkeypatch setup
