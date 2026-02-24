@@ -63,10 +63,10 @@ class SchemaRegistry:
         """
         Get function declarations for a list of tools.
         """
-        declarations = []
+        declarations: List[Dict[str, Any]] = []
         for tool in tools:
             schema = self.get_schema(tool)
-            if schema:
+            if isinstance(schema, dict):
                 declarations.append(schema)
         return declarations
 
