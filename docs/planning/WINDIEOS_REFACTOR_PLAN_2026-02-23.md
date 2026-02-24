@@ -1067,3 +1067,20 @@ read_when:
 - Verification:
   - `pytest tests/backend/test_formatters.py tests/backend/test_outgoing_schema_contract.py tests/backend/test_response_formatter.py` (pass; 37 tests)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
+
+## Phase 24 Outcome (2026-02-24)
+
+- Core exception + validation dedupe shipped:
+  - added shared metadata merge helper in:
+    - `backend/src/core/infrastructure/exceptions.py`
+  - rewired repeated constructor metadata-merge paths in configuration/LLM/tool/memory/session/trust-boundary exceptions.
+  - added shared Pydantic field-error mapper in:
+    - `backend/src/core/validation/validators.py`
+  - rewired `validate_message` and `validate_dict` to reuse shared error-detail mapping.
+- jscpd delta after Phase 24 slice:
+  - clones: `200 -> 199`
+  - duplicated lines: `3105 -> 3097`
+  - duplicated tokens: `27067 -> 26977`
+- Verification:
+  - `pytest tests/backend/test_exceptions.py tests/backend/test_validation_utils.py tests/backend/test_api_errors.py` (pass; 57 tests)
+  - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)

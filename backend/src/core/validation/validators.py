@@ -51,6 +51,14 @@ class ValidationError(Exception):
         self.errors = errors or {}
 
 
+def _pydantic_error_details(error: PydanticValidationError) -> Dict[str, str]:
+    """Flatten Pydantic validation errors into field->message mapping."""
+    return {
+        ".".join(str(loc) for loc in item["loc"]): item["msg"]
+        for item in error.errors()
+    }
+
+
 def validate_message(
     data: Dict[str, Any], message_type: str, model_class: Type[T]
 ) -> T:
@@ -71,11 +79,7 @@ def validate_message(
     try:
         return model_class(**data)
     except PydanticValidationError as e:
-        error_details = {}
-        for error in e.errors():
-            field = ".".join(str(loc) for loc in error["loc"])
-            error_details[field] = error["msg"]
-
+        error_details = _pydantic_error_details(e)
         error_message = f"Validation failed for {message_type} message"
         logger.warning(f"{error_message}: {error_details}")
         raise ValidationError(error_message, errors=error_details) from e
@@ -105,11 +109,7 @@ def validate_dict(
     try:
         return model_class(**data)
     except PydanticValidationError as e:
-        error_details = {}
-        for error in e.errors():
-            field = ".".join(str(loc) for loc in error["loc"])
-            error_details[field] = error["msg"]
-
+        error_details = _pydantic_error_details(e)
         context_str = f" ({context})" if context else ""
         error_message = f"Validation failed{context_str}"
         logger.warning(f"{error_message}: {error_details}")
