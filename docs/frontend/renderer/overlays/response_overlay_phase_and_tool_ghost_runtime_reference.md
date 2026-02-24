@@ -123,8 +123,12 @@ If coordinates absent:
 
 Execution sync behavior:
 
-- click-like `mouse_control` actions (`click`, `double_click`, `right_click`) are delayed `550ms` in `useToolRunner` before real sidecar execution.
-- ghost cursor move now starts from current cursor position (`get-system-state` mouse position), animates toward the model target point, then hides before real click dispatch.
+- click-like `mouse_control` actions (`click`, `double_click`, `right_click`) are delayed `3200ms` in `useToolRunner` before real sidecar execution.
+- ghost cursor lifecycle:
+  - appears at current cursor position (`get-system-state` mouse position) and holds `1000ms`
+  - moves to model target coordinate over `1200ms`
+  - holds at target `1000ms`
+  - hides, then real click is dispatched immediately.
 
 ## Overlay Frame Size IPC
 

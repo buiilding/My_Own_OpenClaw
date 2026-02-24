@@ -111,6 +111,7 @@ function ChatBoxResponse() {
   const [hasOverflowAbove, setHasOverflowAbove] = useState(false);
   const [hasThinkingOverflowAbove, setHasThinkingOverflowAbove] = useState(false);
   const [toolGhostStartRatio, setToolGhostStartRatio] = useState({ xRatio: 0.5, yRatio: 0.5 });
+  const [toolGhostReady, setToolGhostReady] = useState(true);
   const [toolGhostHidden, setToolGhostHidden] = useState(false);
   const shellRef = useRef(null);
   const responsePillRef = useRef(null);
@@ -171,7 +172,9 @@ function ChatBoxResponse() {
     [activeToolCall],
   );
   const shouldShowToolGhostBase = !showResponse && overlayPhase === 'tool-call' && Boolean(activeToolCall);
-  const showToolGhost = shouldShowToolGhostBase && (!toolGhostPreview.isMouseClick || !toolGhostHidden);
+  const showToolGhost = shouldShowToolGhostBase && (
+    !toolGhostPreview.isMouseClick || (toolGhostReady && !toolGhostHidden)
+  );
   const isVisible = showResponse || showAwaitingReply || showToolGhost;
   const toolGhostTrackStyle = useMemo(() => {
     if (!toolGhostPreview.hasTarget) {
@@ -291,12 +294,15 @@ function ChatBoxResponse() {
   useEffect(() => {
     if (!shouldShowToolGhostBase || !toolGhostPreview.isMouseClick) {
       setToolGhostHidden(false);
+      setToolGhostReady(true);
       setToolGhostStartRatio({ xRatio: 0.5, yRatio: 0.5 });
       return undefined;
     }
 
     let cancelled = false;
+    let hideTimer = null;
     setToolGhostHidden(false);
+    setToolGhostReady(false);
     setToolGhostStartRatio({ xRatio: 0.5, yRatio: 0.5 });
 
     const targetDisplayWidth = toolGhostPreview.targetDisplayWidth;
@@ -306,35 +312,45 @@ function ChatBoxResponse() {
       && targetDisplayWidth > 0
       && targetDisplayHeight > 0;
 
-    if (canMapCurrentMouse) {
-      void IpcBridge.invoke(INVOKE_CHANNELS.GET_SYSTEM_STATE, {
-        fields: ['mouse_position'],
-      }).then((systemState) => {
+    const beginGhostLifecycle = (nextStartRatio) => {
+      if (cancelled) {
+        return;
+      }
+      setToolGhostStartRatio(nextStartRatio);
+      setToolGhostReady(true);
+      hideTimer = window.setTimeout(() => {
         if (cancelled) {
           return;
         }
+        setToolGhostHidden(true);
+      }, TOOL_GHOST_CLICK_SYNC_DELAY_MS);
+    };
+
+    if (!canMapCurrentMouse) {
+      beginGhostLifecycle({ xRatio: 0.5, yRatio: 0.5 });
+    } else {
+      void IpcBridge.invoke(INVOKE_CHANNELS.GET_SYSTEM_STATE, {
+        fields: ['mouse_position'],
+      }).then((systemState) => {
         const parsedMouse = parseMousePosition(systemState?.mouse_position);
         if (!parsedMouse) {
+          beginGhostLifecycle({ xRatio: 0.5, yRatio: 0.5 });
           return;
         }
-        setToolGhostStartRatio({
+        beginGhostLifecycle({
           xRatio: clampRatio(parsedMouse.x / targetDisplayWidth),
           yRatio: clampRatio(parsedMouse.y / targetDisplayHeight),
         });
       }).catch((_error) => {
-        // Ignore start-point lookup failures and keep center fallback.
+        beginGhostLifecycle({ xRatio: 0.5, yRatio: 0.5 });
       });
     }
 
-    const hideTimer = window.setTimeout(() => {
-      if (!cancelled) {
-        setToolGhostHidden(true);
-      }
-    }, TOOL_GHOST_CLICK_SYNC_DELAY_MS);
-
     return () => {
       cancelled = true;
-      window.clearTimeout(hideTimer);
+      if (hideTimer !== null) {
+        window.clearTimeout(hideTimer);
+      }
     };
   }, [
     shouldShowToolGhostBase,

@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 import ChatBoxResponse from '../../frontend/src/renderer/features/chat/components/ChatBoxResponse';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import { TOOL_GHOST_CLICK_SYNC_DELAY_MS } from '../../frontend/src/renderer/features/chat/constants/toolGhostRuntime';
 
 const mockInvoke = jest.fn().mockResolvedValue({ success: true });
 const mockListeners = new Map();
@@ -133,6 +134,54 @@ describe('ChatBoxResponse', () => {
       expect(ghostTrack.style.getPropertyValue('--ghost-end-offset-x')).not.toBe('0px');
       expect(ghostTrack.style.getPropertyValue('--ghost-end-offset-y')).not.toBe('0px');
     });
+  });
+
+  test('hides click ghost immediately after full click animation timeline', async () => {
+    jest.useFakeTimers();
+    try {
+      setChatState([
+        { id: 'user-1', text: 'run command', sender: 'user' },
+        {
+          id: 'tool-1',
+          text: JSON.stringify({
+            name: 'mouse_control',
+            arguments: { action: 'click', explanation: 'Clicking Chrome icon' },
+            metadata: {
+              coordinate_contract: {
+                target_display_size: [1000, 1000],
+                normalized_coordinates: { x: 800, y: 750 },
+              },
+            },
+          }),
+          sender: 'assistant',
+          type: 'tool-call',
+        },
+      ]);
+
+      render(<ChatBoxResponse />);
+      const onPhase = mockListeners.get('response-overlay-phase');
+      expect(onPhase).toEqual(expect.any(Function));
+      act(() => {
+        onPhase({ phase: 'tool-call' });
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(screen.getByLabelText('Assistant tool action preview')).toBeInTheDocument();
+
+      act(() => {
+        jest.advanceTimersByTime(TOOL_GHOST_CLICK_SYNC_DELAY_MS - 1);
+      });
+      expect(screen.getByLabelText('Assistant tool action preview')).toBeInTheDocument();
+
+      act(() => {
+        jest.advanceTimersByTime(1);
+      });
+      expect(screen.queryByLabelText('Assistant tool action preview')).not.toBeInTheDocument();
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   test('uses coordinate contract metadata to position targeted tool ghost preview', async () => {

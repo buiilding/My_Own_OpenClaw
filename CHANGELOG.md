@@ -9,7 +9,7 @@ Includes the last 300 commits on `main`.
 ### Added
 - chore(prompts): add `prompts/update-docs.txt` with reusable docs-update instruction template
 - chore(repo-maintenance): checkpoint pending workspace updates across docs guidance, chatbox UI files, docs tooling scripts, and `.audit/plan1` refactor artifacts; remove obsolete `BUG.md`, `REFACTOR.md`, and `prompts/refactor_plan_delegate_subagent.txt`
-- feat(frontend-tool-runner): defer click-like `mouse_control` actions (`click`, `double_click`, `right_click`) by 550ms so response-overlay ghost click animation can move from live cursor position to target, hide immediately after animation, then dispatch real click; re-check turn staleness after delay and cancel stale clicks, with regression coverage in `tests/frontend/ToolRunnerHook.events.test.ts`
+- feat(frontend-tool-runner): defer click-like `mouse_control` actions (`click`, `double_click`, `right_click`) by full ghost-click timeline (`3200ms`: hold current cursor `1000ms` + move `1200ms` + hold target `1000ms`) so response-overlay click animation completes before real click; re-check turn staleness after delay and cancel stale clicks, with regression coverage in `tests/frontend/ToolRunnerHook.events.test.ts`
 - docs(sidecar-memory-storage): add local store and persistence references (`d7b9e821`)
 - docs(frontend-renderer-voice-utils): add utility-level voice references (`5d998397`)
 - docs(backend-tools-processing): add transform and synthetic failure references (`a6bfab4b`)
