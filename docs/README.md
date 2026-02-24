@@ -10,6 +10,10 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 
 ## 📚 Documentation Index
 
+### Documentation Hubs
+- [**Documentation Hub**](getting-started/DOCS_HUB.md) - Domain-based navigation for architecture, backend, frontend, and operations
+- [**OpenClaw Docs Structure Reference**](reference/OPENCLAW_DOCS_STRUCTURE_REFERENCE.md) - Structure benchmark and WindieOS mapping
+
 ### Getting Started
 - [**Product Overview**](getting-started/PRODUCT_OVERVIEW.md) - Non-technical summary of current capabilities and future direction
 - [**Overview**](getting-started/OVERVIEW.md) - Project overview, vision, and key capabilities

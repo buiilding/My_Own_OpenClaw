@@ -1,0 +1,58 @@
+---
+summary: "Documentation hub with domain-based navigation for backend, frontend, sidecar, operations, and reference."
+read_when:
+  - When you need a fast entrypoint to WindieOS docs by domain.
+  - When deciding where new documentation should be added.
+title: "Documentation Hub"
+---
+
+# Documentation Hub
+
+This page mirrors the domain-based docs navigation style used in OpenClaw, but adapted to WindieOS architecture.
+
+## Start Here
+
+- [Overview](OVERVIEW.md)
+- [Quick Start](QUICK_START.md)
+- [Installation](INSTALLATION.md)
+- [Platform Setup: Backend + Frontend](PLATFORM_SETUP_BACKEND_FRONTEND.md)
+
+## Architecture Hubs
+
+- [System Architecture](../architecture/ARCHITECTURE.md)
+- [Communication Flow](../architecture/COMMUNICATION_FLOW.md)
+- [Backend Architecture (high level)](../architecture/BACKEND_ARCHITECTURE.md)
+- [Frontend Architecture (high level)](../architecture/FRONTEND_ARCHITECTURE.md)
+- [Python Sidecar (high level)](../architecture/PYTHON_SIDECAR.md)
+- [Agent System](../architecture/AGENT_SYSTEM.md)
+- [Tool System](../architecture/TOOL_SYSTEM.md)
+- [Memory System](../architecture/MEMORY_SYSTEM.md)
+- [LLM Integration](../architecture/LLM_INTEGRATION.md)
+
+## Deep Technical Maps
+
+- [Backend Functionality Map](../backend/README.md)
+- [Frontend Functionality Map](../frontend/README.md)
+- [API Reference](../reference/API_REFERENCE.md)
+
+## Development and Operations
+
+- [Developer Guide](../development/DEVELOPER_GUIDE.md)
+- [Environment Setup](../development/ENVIRONMENT_SETUP.md)
+- [Testing Guide](../development/TESTING.md)
+- [Configuration](../operations/CONFIGURATION.md)
+- [Deployment](../operations/DEPLOYMENT.md)
+- [Release Guide](../operations/release.md)
+- [Security](../operations/SECURITY.md)
+- [Performance](../operations/PERFORMANCE.md)
+
+## Planning
+
+- [Planning Hub](../planning/README.md)
+- [Future Product Plan](../planning/FUTURE_PLAN.md)
+- [Plan Matrix](../planning/PLAN_MATRIX.md)
+- [Security and Compliance (Planned)](../planning/SECURITY_AND_COMPLIANCE.md)
+
+## Documentation Design Notes
+
+- [OpenClaw Docs Structure Reference](../reference/OPENCLAW_DOCS_STRUCTURE_REFERENCE.md)
