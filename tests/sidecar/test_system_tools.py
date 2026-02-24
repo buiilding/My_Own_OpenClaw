@@ -126,6 +126,24 @@ async def test_get_system_stats_success_with_battery(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_get_system_stats_uses_shared_metrics_collector(monkeypatch):
+    async def fake_collect():
+        return {
+            "cpu_percent": 7.5,
+            "memory_percent": 22.0,
+            "battery_percent": None,
+            "battery_charging": None,
+        }
+
+    monkeypatch.setattr(stats_tool, "collect_system_stats", fake_collect)
+
+    result = await stats_tool.get_system_stats({})
+
+    assert result["success"] is True
+    assert result["data"]["stats"]["cpu_percent"] == 7.5
+
+
+@pytest.mark.asyncio
 async def test_get_system_stats_without_battery_support(monkeypatch):
     def _raise_not_implemented():
         raise NotImplementedError

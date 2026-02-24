@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-system-metrics): extract shared `collect_system_stats` in `frontend/src/main/python/core/system_metrics.py` and reuse it from `core/system_state.py` + `tools/system/stats_tool.py`; add regression coverage in `tests/sidecar/test_system_tools.py` for shared collector delegation; jscpd improved from clones `64 -> 63` and duplicated lines `1308 -> 1284`
 - docs(refactor-plan): add phase-134 full-gate snapshot after shared simulation app-factory extraction (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)
 - refactor(simulation-entrypoints): extract shared `create_simulation_app` helper in `backend/src/simulation/app_factory.py` and switch both `backend/src/simulation/main.py` and `backend/src/simulation/browser.py` to use it for common lifespan/app assembly wiring; jscpd totals remained stable at clones `64` and duplicated lines `1308`
 - docs(refactor-plan): add phase-133 full-gate snapshot after sidecar browser-use registry special-parameter dedupe + regression tests (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)

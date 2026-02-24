@@ -2,9 +2,10 @@
 System Stats Tool - Python implementation using psutil.
 """
 
-import asyncio
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any
+
+from core.system_metrics import collect_system_stats
 
 logger = logging.getLogger(__name__)
 
@@ -20,29 +21,7 @@ async def get_system_stats(args: Dict[str, Any]) -> Dict[str, Any]:
         Dictionary with success status and system stats
     """
     try:
-        import psutil
-        
-        def _get_stats():
-            cpu_percent = psutil.cpu_percent(interval=0.1)
-            mem = psutil.virtual_memory()
-            try:
-                battery = psutil.sensors_battery()
-                battery_percent = battery.percent if battery else None
-                battery_charging = battery.power_plugged if battery else None
-            except (AttributeError, NotImplementedError):
-                # Battery info not available on all systems
-                battery_percent = None
-                battery_charging = None
-            
-            return {
-                "cpu_percent": cpu_percent,
-                "memory_percent": mem.percent,
-                "battery_percent": battery_percent,
-                "battery_charging": battery_charging,
-            }
-        
-        loop = asyncio.get_event_loop()
-        stats = await loop.run_in_executor(None, _get_stats)
+        stats = await collect_system_stats()
         
         import json
         content = json.dumps(stats, indent=2)
