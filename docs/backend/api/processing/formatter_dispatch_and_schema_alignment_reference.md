@@ -185,5 +185,7 @@ If context metadata is missing:
 ## Related Formatter Deep Dives
 
 - [API Processing Formatters Docs Hub](formatters/README.md)
+- [Formatter Registry Docs Hub](formatters/registry/README.md)
+- [Response Formatter Registry Lifecycle, Lazy Specs, and Context Attachment Reference](formatters/registry/response_formatter_registry_lifecycle_lazy_specs_and_context_attachment_reference.md)
 - [Base Formatter Guard Utilities and Skip Semantics Reference](formatters/base_formatter_guard_utilities_and_skip_semantics_reference.md)
 - [Formatter Validation and Contract-Test Matrix Reference](formatters/formatter_validation_and_contract_test_matrix_reference.md)

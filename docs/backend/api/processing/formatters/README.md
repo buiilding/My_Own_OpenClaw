@@ -12,6 +12,8 @@ title: "Backend API Processing Formatters Docs Hub"
 
 - [Base Formatter Guard Utilities and Skip Semantics Reference](base_formatter_guard_utilities_and_skip_semantics_reference.md)
 - [Formatter Validation and Contract-Test Matrix Reference](formatter_validation_and_contract_test_matrix_reference.md)
+- [Formatter Registry Docs Hub](registry/README.md)
+- [Response Formatter Registry Lifecycle, Lazy Specs, and Context Attachment Reference](registry/response_formatter_registry_lifecycle_lazy_specs_and_context_attachment_reference.md)
 
 ## Code Scope
 
@@ -19,6 +21,8 @@ title: "Backend API Processing Formatters Docs Hub"
 - `backend/src/api/processing/formatters/*.py`
 - `backend/src/api/processing/formatter.py`
 - `backend/src/api/contracts/formatter_specs.py`
+- `backend/src/api/contracts/registry.py`
+- `backend/src/api/transport/envelope.py`
 - `tests/backend/test_formatters.py`
 - `tests/backend/test_response_formatter.py`
 - `tests/backend/test_outgoing_schema_contract.py`
