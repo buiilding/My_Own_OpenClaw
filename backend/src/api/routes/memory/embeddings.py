@@ -8,7 +8,7 @@ import logging
 import time
 from typing import Dict, Any, List
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from backend.src.api.deps import ContainerDep
