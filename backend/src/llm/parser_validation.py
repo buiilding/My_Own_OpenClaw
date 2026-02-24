@@ -66,13 +66,7 @@ class ToolCallValidator:
         tool_name_is_string = isinstance(tool_name, str)
         tool_is_whitelisted = tool_name_is_string and tool_name in valid_tool_name_set
         if tool_name_is_string and not tool_is_whitelisted:
-            if len(valid_tool_names) <= 15:
-                tools_display = ", ".join(valid_tool_names)
-            else:
-                tools_display = (
-                    f"{', '.join(valid_tool_names[:10])}... "
-                    f"(and {len(valid_tool_names) - 10} more)"
-                )
+            tools_display = self._format_tool_whitelist_preview(valid_tool_names)
             validation_errors.append(
                 f"Tool name '{tool_name}' is not in whitelist. "
                 f"Valid tools ({len(valid_tool_names)}): {tools_display}"
@@ -188,6 +182,16 @@ class ToolCallValidator:
     def _get_valid_tool_names(self) -> List[str]:
         valid_tool_names, _valid_tool_name_set = self._get_valid_tool_name_index()
         return list(valid_tool_names)
+
+    @staticmethod
+    def _format_tool_whitelist_preview(valid_tool_names: List[str]) -> str:
+        """Format human-readable whitelist preview for validation error messages."""
+        if len(valid_tool_names) <= 15:
+            return ", ".join(valid_tool_names)
+        return (
+            f"{', '.join(valid_tool_names[:10])}... "
+            f"(and {len(valid_tool_names) - 10} more)"
+        )
 
     def validate_metadata(
         self, tool_name: str, metadata: Optional[Dict[str, Any]]
