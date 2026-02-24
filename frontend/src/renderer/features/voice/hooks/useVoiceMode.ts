@@ -66,6 +66,11 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
     }
   }, []);
 
+  const markConnectionError = useCallback((message: string) => {
+    setError(message);
+    setIsConnected(false);
+  }, []);
+
   // Connect to Nova-Voice Gateway WebSocket
   const connectWebSocket = useCallback(() => {
     if (websocketRef.current?.readyState === WebSocket.OPEN) {
@@ -137,8 +142,7 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
 
       ws.onerror = (err) => {
         console.error('[VoiceMode] WebSocket error:', err);
-        setError('WebSocket connection error');
-        setIsConnected(false);
+        markConnectionError('WebSocket connection error');
       };
 
       ws.onclose = () => {
@@ -173,10 +177,9 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
       };
     } catch (err) {
       console.error('[VoiceMode] Error creating WebSocket:', err);
-      setError('Failed to connect to voice gateway');
-      setIsConnected(false);
+      markConnectionError('Failed to connect to voice gateway');
     }
-  }, [clearReconnectTimeout, gatewayUrl]);
+  }, [clearReconnectTimeout, gatewayUrl, markConnectionError]);
 
   // Start audio capture
   const startAudioCapture = useCallback(async () => {
