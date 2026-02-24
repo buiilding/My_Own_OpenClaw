@@ -156,6 +156,7 @@ function ChatBoxResponse() {
     return {
       '--ghost-offset-x': `${xOffset}px`,
       '--ghost-offset-y': `${yOffset}px`,
+      '--ghost-target-scale': `${toolGhostPreview.targetScale}`,
     };
   }, [toolGhostPreview]);
   const responseMarkdownHtml = useMemo(() => {

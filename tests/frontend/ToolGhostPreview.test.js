@@ -6,8 +6,10 @@ describe('toolGhostPreview', () => {
     expect(preview).toEqual({
       label: 'Running tool action',
       hasTarget: false,
+      hasRect: false,
       xRatio: 0.5,
       yRatio: 0.5,
+      targetScale: 1,
     });
   });
 
@@ -64,5 +66,21 @@ describe('toolGhostPreview', () => {
     expect(preview.xRatio).toBeCloseTo(0.3);
     expect(preview.yRatio).toBeCloseTo(0.2);
   });
-});
 
+  test('derives target scale when target_rect metadata is present', () => {
+    const preview = buildToolGhostPreviewFromMessageText(JSON.stringify({
+      name: 'mouse_control',
+      args: { explanation: 'Clicking big panel' },
+      metadata: {
+        target_rect: { x: 100, y: 200, width: 500, height: 350 },
+        coordinate_contract: {
+          target_display_size: [1920, 1080],
+        },
+      },
+    }));
+
+    expect(preview.hasTarget).toBe(true);
+    expect(preview.hasRect).toBe(true);
+    expect(preview.targetScale).toBeGreaterThan(1);
+  });
+});

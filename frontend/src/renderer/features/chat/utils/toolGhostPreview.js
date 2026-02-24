@@ -2,8 +2,10 @@ const DEFAULT_TOOL_GHOST_LABEL = 'Running tool action';
 const DEFAULT_GHOST_PREVIEW = Object.freeze({
   label: DEFAULT_TOOL_GHOST_LABEL,
   hasTarget: false,
+  hasRect: false,
   xRatio: 0.5,
   yRatio: 0.5,
+  targetScale: 1,
 });
 const TOOL_LABEL_MAX_LENGTH = 120;
 
@@ -29,6 +31,30 @@ function parseSizeTuple(value) {
     const height = toFiniteNumber(value.height);
     if (width && height && width > 0 && height > 0) {
       return { width, height };
+    }
+  }
+
+  return null;
+}
+
+function parseRect(value) {
+  if (Array.isArray(value) && value.length >= 4) {
+    const x = toFiniteNumber(value[0]);
+    const y = toFiniteNumber(value[1]);
+    const width = toFiniteNumber(value[2]);
+    const height = toFiniteNumber(value[3]);
+    if (x !== null && y !== null && width && height && width > 0 && height > 0) {
+      return { x, y, width, height };
+    }
+  }
+
+  if (value && typeof value === 'object') {
+    const x = toFiniteNumber(value.x);
+    const y = toFiniteNumber(value.y);
+    const width = toFiniteNumber(value.width);
+    const height = toFiniteNumber(value.height);
+    if (x !== null && y !== null && width && height && width > 0 && height > 0) {
+      return { x, y, width, height };
     }
   }
 
@@ -101,28 +127,45 @@ function resolveToolTargetPoint(entry) {
       && typeof entry.metadata.coordinate_contract === 'object'
       && !Array.isArray(entry.metadata.coordinate_contract)
   ) ? entry.metadata.coordinate_contract : null;
-
-  const normalizedCoordinates = (
-    coordinateContract?.normalized_coordinates
-      && typeof coordinateContract.normalized_coordinates === 'object'
-      && !Array.isArray(coordinateContract.normalized_coordinates)
-  ) ? coordinateContract.normalized_coordinates : null;
-
-  const x = toFiniteNumber(normalizedCoordinates?.x) ?? toFiniteNumber(entry?.args?.x);
-  const y = toFiniteNumber(normalizedCoordinates?.y) ?? toFiniteNumber(entry?.args?.y);
-  if (x === null || y === null) {
-    return null;
-  }
-
   const size = parseSizeTuple(coordinateContract?.target_display_size)
     || parseSizeTuple(coordinateContract?.source_image_size);
   if (!size) {
     return null;
   }
 
+  const explicitRect = parseRect(entry?.metadata?.target_rect) || parseRect(entry?.args?.target_rect);
+  const contractRect = parseRect(coordinateContract?.target_rect);
+  const rect = explicitRect || contractRect;
+
+  const normalizedCoordinates = (
+    coordinateContract?.normalized_coordinates
+      && typeof coordinateContract.normalized_coordinates === 'object'
+      && !Array.isArray(coordinateContract.normalized_coordinates)
+  ) ? coordinateContract.normalized_coordinates : null;
+  const pointX = toFiniteNumber(normalizedCoordinates?.x) ?? toFiniteNumber(entry?.args?.x);
+  const pointY = toFiniteNumber(normalizedCoordinates?.y) ?? toFiniteNumber(entry?.args?.y);
+
+  let x = pointX;
+  let y = pointY;
+  if ((x === null || y === null) && rect) {
+    x = rect.x + (rect.width / 2);
+    y = rect.y + (rect.height / 2);
+  }
+  if (x === null || y === null) {
+    return null;
+  }
+
+  let targetScale = 1;
+  if (rect) {
+    const areaRatio = Math.sqrt((rect.width * rect.height) / (size.width * size.height));
+    targetScale = clamp((areaRatio * 6.5) || 1, 0.85, 2.2);
+  }
+
   return {
     xRatio: clamp(x / size.width, 0, 1),
     yRatio: clamp(y / size.height, 0, 1),
+    targetScale,
+    hasRect: Boolean(rect),
   };
 }
 
@@ -154,16 +197,19 @@ export function buildToolGhostPreviewFromMessageText(messageText) {
     return {
       label,
       hasTarget: false,
+      hasRect: false,
       xRatio: DEFAULT_GHOST_PREVIEW.xRatio,
       yRatio: DEFAULT_GHOST_PREVIEW.yRatio,
+      targetScale: DEFAULT_GHOST_PREVIEW.targetScale,
     };
   }
 
   return {
     label,
     hasTarget: true,
+    hasRect: selected.targetPoint.hasRect,
     xRatio: selected.targetPoint.xRatio,
     yRatio: selected.targetPoint.yRatio,
+    targetScale: selected.targetPoint.targetScale,
   };
 }
-
