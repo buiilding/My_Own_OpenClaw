@@ -19,6 +19,9 @@ Policy implementation lives in `backend/src/tools/tool_policy.py` and is used by
 - available-tool capability listing
 - container startup gating for OCR/Vision
 
+Deep runtime reference:
+- [`docs/backend/tools/policy/tool_policy_and_dev_tool_selection_runtime_reference.md`](../backend/tools/policy/tool_policy_and_dev_tool_selection_runtime_reference.md)
+
 ## Ready Profiles
 
 Prebuilt profiles:
