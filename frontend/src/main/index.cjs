@@ -20,6 +20,7 @@ process.env.GALLIUM_DRIVER = 'llvmpipe';
 let mainWindow = null;
 let chatWindow = null;
 let responseWindow = null;
+let contextLabelWindow = null;
 let tray = null;
 let overlayHandlersInitialized = false;
 let responseOverlayVisible = false;
@@ -27,6 +28,10 @@ let responseOverlayPhase = 'idle';
 let lastExternalFocusedWindowId = null;
 let lastExternalFocusedWindowTitle = null;
 const WAKEWORD_HOTKEY = 'Super+Alt+W';
+const CONTEXT_LABEL_WIDTH = 280;
+const CONTEXT_LABEL_HEIGHT = 26;
+const CONTEXT_LABEL_OFFSET_X = 14;
+const CONTEXT_LABEL_GAP_ABOVE_CHATBOX = 6;
 const RESPONSE_OVERLAY_PHASE = Object.freeze({
   IDLE: 'idle',
   AWAITING_FIRST_CHUNK: 'awaiting-first-chunk',
@@ -162,6 +167,7 @@ function positionChatWindow() {
   const { x, y } = getChatWindowBounds(width, height);
   chatWindow.setPosition(x, y, false);
   positionResponseWindow();
+  positionContextLabelWindow();
 }
 
 function getChatWindowBounds(width, height) {
@@ -189,6 +195,26 @@ function getResponseWindowBounds(width, height) {
   };
 }
 
+function getContextLabelWindowBounds() {
+  if (!chatWindow || chatWindow.isDestroyed()) {
+    const fallback = getChatWindowBounds(CONTEXT_LABEL_WIDTH, CONTEXT_LABEL_HEIGHT);
+    return {
+      x: fallback.x,
+      y: fallback.y - CONTEXT_LABEL_HEIGHT - CONTEXT_LABEL_GAP_ABOVE_CHATBOX,
+      width: CONTEXT_LABEL_WIDTH,
+      height: CONTEXT_LABEL_HEIGHT,
+    };
+  }
+
+  const chatBounds = chatWindow.getBounds();
+  return {
+    x: chatBounds.x + CONTEXT_LABEL_OFFSET_X,
+    y: chatBounds.y - CONTEXT_LABEL_HEIGHT - CONTEXT_LABEL_GAP_ABOVE_CHATBOX,
+    width: CONTEXT_LABEL_WIDTH,
+    height: CONTEXT_LABEL_HEIGHT,
+  };
+}
+
 function positionResponseWindow() {
   if (!responseWindow || responseWindow.isDestroyed() || !responseOverlayVisible) {
     return;
@@ -196,6 +222,14 @@ function positionResponseWindow() {
   const [width, height] = responseWindow.getSize();
   const bounds = getResponseWindowBounds(width, height);
   responseWindow.setBounds(bounds, false);
+}
+
+function positionContextLabelWindow() {
+  if (!contextLabelWindow || contextLabelWindow.isDestroyed()) {
+    return;
+  }
+  const bounds = getContextLabelWindowBounds();
+  contextLabelWindow.setBounds(bounds, false);
 }
 
 function ensureChatWindowOnTop() {
@@ -226,6 +260,20 @@ function ensureResponseWindowOnTop() {
   }
 }
 
+function ensureContextLabelWindowOnTop() {
+  if (!contextLabelWindow || contextLabelWindow.isDestroyed() || !contextLabelWindow.isVisible()) {
+    return;
+  }
+  try {
+    contextLabelWindow.setAlwaysOnTop(true, 'floating');
+    if (typeof contextLabelWindow.moveTop === 'function') {
+      contextLabelWindow.moveTop();
+    }
+  } catch (error) {
+    console.warn('[Main] Failed to keep context label on top:', error?.message || error);
+  }
+}
+
 function showResponseWindowInactive() {
   if (!responseWindow || responseWindow.isDestroyed()) {
     return;
@@ -238,6 +286,39 @@ function showResponseWindowInactive() {
   ensureResponseWindowOnTop();
 }
 
+function showContextLabelWindowInactive() {
+  if (!contextLabelWindow || contextLabelWindow.isDestroyed()) {
+    return;
+  }
+  positionContextLabelWindow();
+  if (typeof contextLabelWindow.showInactive === 'function') {
+    contextLabelWindow.showInactive();
+  } else {
+    contextLabelWindow.show();
+  }
+  ensureContextLabelWindowOnTop();
+}
+
+function syncContextLabelWindowVisibility() {
+  if (!contextLabelWindow || contextLabelWindow.isDestroyed()) {
+    return;
+  }
+  const shouldShow = Boolean(
+    chatWindow
+      && !chatWindow.isDestroyed()
+      && chatWindow.isVisible()
+      && !responseOverlayVisible,
+  );
+
+  if (!shouldShow) {
+    if (contextLabelWindow.isVisible()) {
+      contextLabelWindow.hide();
+    }
+    return;
+  }
+  showContextLabelWindowInactive();
+}
+
 function sendWakewordToggle(enabled) {
   if (!mainWindow || mainWindow.isDestroyed()) {
     return;
@@ -247,7 +328,7 @@ function sendWakewordToggle(enabled) {
 
 function broadcastResponseOverlayVisibility(visible = responseOverlayVisible) {
   const payload = { visible: Boolean(visible) };
-  const rendererWindows = [mainWindow, chatWindow, responseWindow];
+  const rendererWindows = [mainWindow, chatWindow, responseWindow, contextLabelWindow];
   for (const win of rendererWindows) {
     if (!win || win.isDestroyed() || !win.webContents) {
       continue;
@@ -279,6 +360,7 @@ function showChatWindow({ focus = true } = {}) {
     responseWindow && !responseWindow.isDestroyed() && responseWindow.isVisible(),
   );
   broadcastResponseOverlayVisibility(responseIsVisible);
+  syncContextLabelWindowVisibility();
   if (focus) {
     capturePreviousExternalFocusedWindow();
     chatWindow.focus();
@@ -297,6 +379,9 @@ function hideChatWindow() {
   }
   if (responseWindow && !responseWindow.isDestroyed() && responseWindow.isVisible()) {
     responseWindow.hide();
+  }
+  if (contextLabelWindow && !contextLabelWindow.isDestroyed() && contextLabelWindow.isVisible()) {
+    contextLabelWindow.hide();
   }
   broadcastResponseOverlayVisibility(false);
   sendWakewordToggle(true);
@@ -332,6 +417,7 @@ function handleResponseOverlayPhaseChange(event = {}) {
       responseWindow.hide();
     }
     broadcastResponseOverlayVisibility(false);
+    syncContextLabelWindowVisibility();
     return;
   }
 
@@ -345,6 +431,7 @@ function handleResponseOverlayPhaseChange(event = {}) {
     if (chatWindow && !chatWindow.isDestroyed() && chatWindow.isVisible()) {
       showResponseWindowInactive();
     }
+    syncContextLabelWindowVisibility();
     return;
   }
 
@@ -358,6 +445,7 @@ function handleResponseOverlayPhaseChange(event = {}) {
   ) {
     showResponseWindowInactive();
   }
+  syncContextLabelWindowVisibility();
 }
 
 function createWindow() {
@@ -392,7 +480,12 @@ function createWindow() {
     onBeforeOverlayQueryCapture: prepareOverlayQueryCaptureFocus,
   });
   initializeWakewordBridge(mainWindow, () => showChatWindow({ focus: true }));
-  initializeLocalBackendBridge(() => ({ mainWindow, chatWindow, responseWindow }));
+  initializeLocalBackendBridge(() => ({
+    mainWindow,
+    chatWindow,
+    responseWindow,
+    contextLabelWindow,
+  }));
   initializeOverlayHandlers();
 
   if (process.platform !== 'darwin') {
@@ -510,6 +603,7 @@ function createResponseWindow() {
       responseOverlayVisible = false;
       responseWindow.hide();
       broadcastResponseOverlayVisibility(false);
+      syncContextLabelWindowVisibility();
     }
     return false;
   });
@@ -518,9 +612,62 @@ function createResponseWindow() {
     responseWindow = null;
     responseOverlayVisible = false;
     broadcastResponseOverlayVisibility(false);
+    syncContextLabelWindowVisibility();
   });
 
   return responseWindow;
+}
+
+function createContextLabelWindow() {
+  contextLabelWindow = new BrowserWindow({
+    width: CONTEXT_LABEL_WIDTH,
+    height: CONTEXT_LABEL_HEIGHT,
+    frame: false,
+    transparent: true,
+    backgroundColor: '#00000000',
+    resizable: false,
+    minimizable: false,
+    maximizable: false,
+    fullscreenable: false,
+    skipTaskbar: true,
+    alwaysOnTop: true,
+    hasShadow: false,
+    type: 'toolbar',
+    show: false,
+    webPreferences: {
+      preload: path.join(__dirname, '../preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+
+  if (process.platform === 'win32' || process.platform === 'darwin') {
+    try {
+      contextLabelWindow.setContentProtection(true);
+    } catch (error) {
+      console.warn('[Main] Failed to enable context label content protection:', error?.message || error);
+    }
+  }
+
+  contextLabelWindow.setAlwaysOnTop(true, 'floating');
+  contextLabelWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  positionContextLabelWindow();
+
+  loadRendererView(contextLabelWindow, 'chatbox-context-label');
+
+  contextLabelWindow.on('close', (event) => {
+    if (!app.isQuitting) {
+      event.preventDefault();
+      contextLabelWindow.hide();
+    }
+    return false;
+  });
+
+  contextLabelWindow.on('closed', () => {
+    contextLabelWindow = null;
+  });
+
+  return contextLabelWindow;
 }
 
 function createTray() {
@@ -559,6 +706,7 @@ app.whenReady().then(() => {
   createWindow();
   createChatWindow();
   createResponseWindow();
+  createContextLabelWindow();
   createTray();
   sendWakewordToggle(false);
 
@@ -568,10 +716,15 @@ app.whenReady().then(() => {
   if (responseWindow) {
     registerRendererWindow(responseWindow);
   }
+  if (contextLabelWindow) {
+    registerRendererWindow(contextLabelWindow);
+  }
+  syncContextLabelWindowVisibility();
 
   screen.on('display-metrics-changed', () => {
     positionChatWindow();
     positionResponseWindow();
+    positionContextLabelWindow();
   });
 
   const registered = globalShortcut.register(WAKEWORD_HOTKEY, () => {
@@ -594,12 +747,17 @@ app.whenReady().then(() => {
       createWindow();
       const chatOverlay = createChatWindow();
       const responseOverlay = createResponseWindow();
+      const contextLabelOverlay = createContextLabelWindow();
       if (chatOverlay) {
         registerRendererWindow(chatOverlay);
       }
       if (responseOverlay) {
         registerRendererWindow(responseOverlay);
       }
+      if (contextLabelOverlay) {
+        registerRendererWindow(contextLabelOverlay);
+      }
+      syncContextLabelWindowVisibility();
     } else {
       showMainWindow({ focus: true });
     }
@@ -633,7 +791,7 @@ function initializeOverlayHandlers() {
   }
   overlayHandlersInitialized = true;
   ipcMain.handle('set-overlay-ignore-mouse', async (event, { ignore } = {}) => {
-    const targetWindows = [chatWindow, responseWindow].filter(
+    const targetWindows = [chatWindow, responseWindow, contextLabelWindow].filter(
       (win) => win && !win.isDestroyed(),
     );
     if (targetWindows.length === 0) {
@@ -668,6 +826,8 @@ function initializeOverlayHandlers() {
       const bounds = getChatWindowBounds(nextWidth, nextHeight);
       chatWindow.setBounds(bounds, false);
       positionResponseWindow();
+      positionContextLabelWindow();
+      syncContextLabelWindowVisibility();
       return { success: true, resized: true, width: nextWidth, height: nextHeight };
     } catch (error) {
       return { success: false, reason: `Failed to resize chatbox: ${error.message}` };
@@ -687,6 +847,8 @@ function initializeOverlayHandlers() {
     try {
       chatWindow.setPosition(nextX, nextY, false);
       positionResponseWindow();
+      positionContextLabelWindow();
+      syncContextLabelWindowVisibility();
     } catch (error) {
       console.warn('[Main] Failed to move chatbox:', error?.message || error);
     }
@@ -704,6 +866,7 @@ function initializeOverlayHandlers() {
         responseWindow.hide();
       }
       broadcastResponseOverlayVisibility(false);
+      syncContextLabelWindowVisibility();
       return { success: true, visible: false };
     }
 
@@ -722,6 +885,7 @@ function initializeOverlayHandlers() {
         ensureResponseWindowOnTop();
       }
       broadcastResponseOverlayVisibility(true);
+      syncContextLabelWindowVisibility();
       return {
         success: true,
         visible: true,

@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import ChatBoxApp from './ChatBoxApp';
 import ChatBoxResponseApp from './ChatBoxResponseApp';
+import ChatBoxContextLabelApp from './ChatBoxContextLabelApp';
 
 // This is the standard entry point for a React application.
 // StrictMode causes double rendering in development - disable in production for performance
@@ -13,6 +14,8 @@ const RootComponent = view === 'chatbox'
   ? ChatBoxApp
   : view === 'chatbox-response'
     ? ChatBoxResponseApp
+    : view === 'chatbox-context-label'
+      ? ChatBoxContextLabelApp
     : App;
 
 if (isDev) {
