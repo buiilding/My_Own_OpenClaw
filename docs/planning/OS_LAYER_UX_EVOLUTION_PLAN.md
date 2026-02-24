@@ -42,12 +42,13 @@ Completed in code:
    - Chat pill now displays ambient glow while loop-active phases run (`awaiting-first-chunk`, `streaming`, `tool-call`, `tool-output`).
 6. Ambient context indicator (initial):
    - Chat pill now shows a low-frequency-polled active-app badge from `get-system-state.active_window`.
+   - Badge now includes category/icon mapping (browser/code/terminal/mail/chat/design/docs + fallback initials) and improved active-window title parsing.
 
 Still in progress:
 
 1. Ghost preview rectangle-level grounding (`target_rect` box rendering) is not yet wired.
 2. Mission dock / trust dial / approval threshold surfaces are not started.
-3. Ambient active-window icon mapping + richer context semantics are not started.
+3. Richer ambient context semantics (multi-window confidence, explicit app/window ids, and context freshness status) are not started.
 
 ## Codebase Reality (Current Baseline)
 
