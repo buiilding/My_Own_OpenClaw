@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(test-config-loader): add `_set_disabled_tts_module_state` helper in `tests/backend/test_config_loader.py` and reuse it across load-settings tests to remove duplicate module-state setup
 - refactor(test-artifact-routes): extract shared `_container` and `_artifact_request` helpers in `tests/backend/test_artifact_routes.py` to remove duplicated route-test setup payloads
 - refactor(test-event-bus): extract shared wrapper call helper and reusable bound-method owner class in `tests/backend/test_event_bus.py` to remove duplicate setup blocks in wrapper/store regression tests
 - refactor(test-incoming-routing): add `_make_handler_instances` helper in `tests/backend/test_incoming_routing.py` and reuse it across binding-order/missing-key tests to remove duplicate handler-map setup boilerplate

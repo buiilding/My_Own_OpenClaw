@@ -10,6 +10,17 @@ from backend.src.core.config.loader import (
 from backend.src.core.config.models import AppConfig
 
 
+def _set_disabled_tts_module_state(monkeypatch) -> None:
+    from backend.src.core.config import app_config
+
+    monkeypatch.setattr(
+        app_config,
+        "APP_CONFIG",
+        AppConfig(tts_enabled=False, tts_model_path=None),
+    )
+    monkeypatch.setattr(loader, "get_default_tts_model_path", lambda: "/tmp/tts.onnx")
+
+
 def test_load_api_key_for_local_mode(monkeypatch):
     monkeypatch.setenv("OPENAI_API_KEY", "should-not-use")
     cfg = AppConfig(model_mode="local", model_provider="openai")
@@ -39,14 +50,7 @@ def test_load_api_key_kimi_fallback(monkeypatch):
 
 
 def test_load_settings_forces_tts_enabled(monkeypatch):
-    from backend.src.core.config import app_config
-
-    monkeypatch.setattr(
-        app_config,
-        "APP_CONFIG",
-        AppConfig(tts_enabled=False, tts_model_path=None),
-    )
-    monkeypatch.setattr(loader, "get_default_tts_model_path", lambda: "/tmp/tts.onnx")
+    _set_disabled_tts_module_state(monkeypatch)
 
     cfg = load_settings_from_file()
     assert cfg.tts_enabled is True
@@ -121,14 +125,7 @@ def test_load_api_key_for_provider_with_no_env_var_config(
 
 
 def test_load_settings_reload_failure_uses_existing_module_state(monkeypatch):
-    from backend.src.core.config import app_config
-
-    monkeypatch.setattr(
-        app_config,
-        "APP_CONFIG",
-        AppConfig(tts_enabled=False, tts_model_path=None),
-    )
-    monkeypatch.setattr(loader, "get_default_tts_model_path", lambda: "/tmp/tts.onnx")
+    _set_disabled_tts_module_state(monkeypatch)
     monkeypatch.setattr(
         loader.importlib,
         "reload",
