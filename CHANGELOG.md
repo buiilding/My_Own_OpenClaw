@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-app-config-provider): extract shared `applyBackendConnectionSnapshot` callback for IPC status + initial client snapshot paths to dedupe transcript/user-id/backend-url sync logic
 - refactor(backend-parser-validation): compute tool whitelist membership once per call (`tool_is_whitelisted`) and reuse it for whitelist error + method-level validation gating to remove repeated set-membership checks
 - refactor(backend-safe-websocket): extract `_close_direct` helper and reuse it in both senderless close and enqueue-fallback close paths to dedupe direct-close race handling
 - refactor(backend-llm-client): return deep-copied cache diagnostics and stream payload snapshots from `LiteLLMClient` getters to avoid nested caller mutation leaking into stored client state; add regression coverage in `tests/backend/test_llm_client.py`
