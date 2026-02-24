@@ -19,6 +19,29 @@ def _merge_metadata_if(
     return {**(metadata or {}), **extra}
 
 
+def _metadata_with_optional_field(
+    metadata: Optional[Dict[str, Any]],
+    field_name: str,
+    field_value: Any,
+) -> Optional[Dict[str, Any]]:
+    """Attach one optional metadata field using existing truthy semantics."""
+    return _merge_metadata_if(metadata, bool(field_value), **{field_name: field_value})
+
+
+def _merge_trust_boundary_metadata(
+    metadata: Optional[Dict[str, Any]],
+    boundary_name: Optional[str],
+    **fields: Any,
+) -> Optional[Dict[str, Any]]:
+    """Attach trust-boundary metadata with existing include rules."""
+    return _merge_metadata_if(
+        metadata,
+        bool(boundary_name or any(fields.values())),
+        boundary_name=boundary_name,
+        **fields,
+    )
+
+
 class BaseAppError(Exception):
     """
     Base exception for all application errors.
@@ -97,6 +120,8 @@ class ConfigurationError(BaseAppError):
 
 class LLMError(BaseAppError):
     """Base exception for all LLM-related errors."""
+
+    default_error_code = "LLM_ERROR"
     
     def __init__(
         self,
@@ -104,18 +129,40 @@ class LLMError(BaseAppError):
         model: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
         cause: Optional[Exception] = None,
+        error_code: Optional[str] = None,
     ):
         super().__init__(
             message=message,
-            error_code="LLM_ERROR",
+            error_code=error_code or self.default_error_code,
             metadata=_merge_metadata_if(metadata, bool(model), model=model),
             cause=cause,
         )
         self.model = model
 
+    def _init_optional_field(
+        self,
+        message: str,
+        model: Optional[str],
+        metadata: Optional[Dict[str, Any]],
+        cause: Optional[Exception],
+        field_name: str,
+        field_value: Any,
+    ) -> None:
+        """Initialize an LLM-derived error that adds one optional metadata field."""
+        LLMError.__init__(
+            self,
+            message=message,
+            model=model,
+            metadata=_metadata_with_optional_field(metadata, field_name, field_value),
+            cause=cause,
+            error_code=self.default_error_code,
+        )
+
 
 class LLMAPIError(LLMError):
     """Raised for general LLM API errors."""
+
+    default_error_code = "LLM_API_ERROR"
     
     def __init__(
         self,
@@ -125,18 +172,21 @@ class LLMAPIError(LLMError):
         metadata: Optional[Dict[str, Any]] = None,
         cause: Optional[Exception] = None,
     ):
-        super().__init__(
+        self._init_optional_field(
             message=message,
             model=model,
-            metadata=_merge_metadata_if(metadata, bool(status_code), status_code=status_code),
+            metadata=metadata,
             cause=cause,
+            field_name="status_code",
+            field_value=status_code,
         )
-        self.error_code = "LLM_API_ERROR"
         self.status_code = status_code
 
 
 class LLMRateLimitError(LLMError):
     """Raised when an LLM API rate limit is exceeded."""
+
+    default_error_code = "LLM_RATE_LIMIT"
     
     def __init__(
         self,
@@ -146,13 +196,14 @@ class LLMRateLimitError(LLMError):
         metadata: Optional[Dict[str, Any]] = None,
         cause: Optional[Exception] = None,
     ):
-        super().__init__(
+        self._init_optional_field(
             message=message,
             model=model,
-            metadata=_merge_metadata_if(metadata, bool(retry_after), retry_after=retry_after),
+            metadata=metadata,
             cause=cause,
+            field_name="retry_after",
+            field_value=retry_after,
         )
-        self.error_code = "LLM_RATE_LIMIT"
         self.retry_after = retry_after
 
 
@@ -228,6 +279,8 @@ class ToolNotFoundError(ToolExecutionError):
 
 class MemoryError(BaseAppError):
     """Base exception for memory-related errors."""
+
+    default_error_code = "MEMORY_ERROR"
     
     def __init__(
         self,
@@ -235,18 +288,40 @@ class MemoryError(BaseAppError):
         user_id: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
         cause: Optional[Exception] = None,
+        error_code: Optional[str] = None,
     ):
         super().__init__(
             message=message,
-            error_code="MEMORY_ERROR",
+            error_code=error_code or self.default_error_code,
             metadata=_merge_metadata_if(metadata, bool(user_id), user_id=user_id),
             cause=cause,
         )
         self.user_id = user_id
 
+    def _init_optional_field(
+        self,
+        message: str,
+        user_id: Optional[str],
+        metadata: Optional[Dict[str, Any]],
+        cause: Optional[Exception],
+        field_name: str,
+        field_value: Any,
+    ) -> None:
+        """Initialize a memory-derived error that adds one optional metadata field."""
+        MemoryError.__init__(
+            self,
+            message=message,
+            user_id=user_id,
+            metadata=_metadata_with_optional_field(metadata, field_name, field_value),
+            cause=cause,
+            error_code=self.default_error_code,
+        )
+
 
 class MemoryStoreError(MemoryError):
     """Raised when memory storage operations fail."""
+
+    default_error_code = "MEMORY_STORE_ERROR"
     
     def __init__(
         self,
@@ -256,33 +331,21 @@ class MemoryStoreError(MemoryError):
         metadata: Optional[Dict[str, Any]] = None,
         cause: Optional[Exception] = None,
     ):
-        super().__init__(
+        self._init_optional_field(
             message=message,
             user_id=user_id,
-            metadata=_merge_metadata_if(metadata, bool(operation), operation=operation),
+            metadata=metadata,
             cause=cause,
+            field_name="operation",
+            field_value=operation,
         )
-        self.error_code = "MEMORY_STORE_ERROR"
         self.operation = operation
 
 
 class EmbeddingError(MemoryError):
     """Raised when embedding generation fails."""
-    
-    def __init__(
-        self,
-        message: str,
-        user_id: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-        cause: Optional[Exception] = None,
-    ):
-        super().__init__(
-            message=message,
-            user_id=user_id,
-            metadata=metadata,
-            cause=cause,
-        )
-        self.error_code = "EMBEDDING_ERROR"
+
+    default_error_code = "EMBEDDING_ERROR"
 
 
 # ============================================================================
@@ -319,7 +382,49 @@ class SessionError(BaseAppError):
 # Trust Boundary Errors (Security)
 # ============================================================================
 
-class InputSizeLimitError(BaseAppError):
+class _TrustBoundaryError(BaseAppError):
+    """Base trust-boundary error with shared metadata/attribute wiring."""
+
+    def __init__(
+        self,
+        message: str,
+        error_code: str,
+        boundary_name: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        cause: Optional[Exception] = None,
+        **fields: Any,
+    ):
+        super().__init__(
+            message=message,
+            error_code=error_code,
+            metadata=_merge_trust_boundary_metadata(metadata, boundary_name, **fields),
+            cause=cause,
+        )
+        self.boundary_name = boundary_name
+
+    def _init_with_single_field(
+        self,
+        message: str,
+        error_code: str,
+        boundary_name: Optional[str],
+        metadata: Optional[Dict[str, Any]],
+        cause: Optional[Exception],
+        field_name: str,
+        field_value: Any,
+    ) -> None:
+        """Initialize trust-boundary error with one additional optional metadata field."""
+        _TrustBoundaryError.__init__(
+            self,
+            message=message,
+            error_code=error_code,
+            boundary_name=boundary_name,
+            metadata=metadata,
+            cause=cause,
+            **{field_name: field_value},
+        )
+
+
+class InputSizeLimitError(_TrustBoundaryError):
     """Raised when input exceeds size limits in trust boundaries."""
     
     def __init__(
@@ -334,21 +439,17 @@ class InputSizeLimitError(BaseAppError):
         super().__init__(
             message=message,
             error_code="INPUT_SIZE_LIMIT_ERROR",
-            metadata=_merge_metadata_if(
-                metadata,
-                any([actual_size, max_size, boundary_name]),
-                actual_size=actual_size,
-                max_size=max_size,
-                boundary_name=boundary_name,
-            ),
+            boundary_name=boundary_name,
+            metadata=metadata,
             cause=cause,
+            actual_size=actual_size,
+            max_size=max_size,
         )
         self.actual_size = actual_size
         self.max_size = max_size
-        self.boundary_name = boundary_name
 
 
-class ParseTimeoutError(BaseAppError):
+class ParseTimeoutError(_TrustBoundaryError):
     """Raised when parsing exceeds timeout in trust boundaries."""
     
     def __init__(
@@ -359,22 +460,19 @@ class ParseTimeoutError(BaseAppError):
         metadata: Optional[Dict[str, Any]] = None,
         cause: Optional[Exception] = None,
     ):
-        super().__init__(
+        self._init_with_single_field(
             message=message,
             error_code="PARSE_TIMEOUT_ERROR",
-            metadata=_merge_metadata_if(
-                metadata,
-                any([timeout_seconds, boundary_name]),
-                timeout_seconds=timeout_seconds,
-                boundary_name=boundary_name,
-            ),
+            boundary_name=boundary_name,
+            metadata=metadata,
             cause=cause,
+            field_name="timeout_seconds",
+            field_value=timeout_seconds,
         )
         self.timeout_seconds = timeout_seconds
-        self.boundary_name = boundary_name
 
 
-class ParseValidationError(BaseAppError):
+class ParseValidationError(_TrustBoundaryError):
     """Raised when parsed data fails validation in trust boundaries."""
     
     def __init__(
@@ -385,18 +483,13 @@ class ParseValidationError(BaseAppError):
         metadata: Optional[Dict[str, Any]] = None,
         cause: Optional[Exception] = None,
     ):
-        super().__init__(
+        self._init_with_single_field(
             message=message,
             error_code="PARSE_VALIDATION_ERROR",
-            metadata=_merge_metadata_if(
-                metadata,
-                any([validation_errors, boundary_name]),
-                validation_errors=validation_errors,
-                boundary_name=boundary_name,
-            ),
+            boundary_name=boundary_name,
+            metadata=metadata,
             cause=cause,
+            field_name="validation_errors",
+            field_value=validation_errors,
         )
         self.validation_errors = validation_errors or []
-        self.boundary_name = boundary_name
-
-
