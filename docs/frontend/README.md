@@ -19,12 +19,14 @@ This hub documents WindieOS frontend implementation details across Electron main
 ### Renderer
 
 - [Renderer Runtime](renderer/RENDERER_RUNTIME.md)
+- [Feature Module Matrix](renderer/FEATURE_MODULE_MATRIX.md)
 - [Tool Execution and Streaming](runtime/TOOL_EXECUTION_AND_STREAMING.md)
 
 ### Sidecar
 
 - [Python Sidecar and Memory](sidecar/PYTHON_SIDECAR_AND_MEMORY.md)
 - [Sidecar Tool Catalog and Execution Model](sidecar/TOOL_CATALOG_AND_EXECUTION_MODEL.md)
+- [Memory Pipeline and Summarization](sidecar/MEMORY_PIPELINE_AND_SUMMARIZATION.md)
 
 ### Contracts
 

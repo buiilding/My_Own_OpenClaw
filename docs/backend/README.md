@@ -32,6 +32,7 @@ Covers:
 
 - [API and Transport](api/API_AND_TRANSPORT.md)
 - [WebSocket Message Contracts](contracts/WEBSOCKET_MESSAGE_CONTRACTS.md)
+- [Handler Behavior Matrix](api/HANDLER_BEHAVIOR_MATRIX.md)
 
 ### Runtime and Tools
 
