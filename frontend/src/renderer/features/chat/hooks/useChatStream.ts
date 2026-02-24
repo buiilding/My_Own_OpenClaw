@@ -132,19 +132,14 @@ export function useChatStream(enableTranscript: boolean = true) {
   const setTokenCounts = useChatStore((state) => state.setTokenCounts);
   const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
   const { config } = useAppConfigContext();
-  const modelId = config?.selected_model_id || null;
-  const modelProvider = config?.model_provider || null;
   const modelContextRef = useRef<TranscriptModelContext>({
-    modelId,
-    modelProvider,
+    modelId: null,
+    modelProvider: null,
   });
-
-  useEffect(() => {
-    modelContextRef.current = {
-      modelId,
-      modelProvider,
-    };
-  }, [modelId, modelProvider]);
+  modelContextRef.current = {
+    modelId: config?.selected_model_id || null,
+    modelProvider: config?.model_provider || null,
+  };
 
   const recordTrackingEvent = useCallback((
     eventType: BackendEventType,

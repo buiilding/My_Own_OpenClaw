@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-chat-stream): remove `modelContextRef` sync `useEffect` in `frontend/src/renderer/features/chat/hooks/useChatStream.ts` and assign model context during render; verify with ChatStreamThinkingStatus state/metadata/transcript suites
 - refactor(frontend-tool-runner): remove `modelContextRef` sync `useEffect` in `frontend/src/renderer/features/chat/hooks/useToolRunner.ts` and assign latest model context during render to reduce effect churn; verify with `ToolRunnerHook.events` + `ToolRunnerHook.callbacks` suites
 - refactor(frontend-main-overlays): extract shared `createOverlayBrowserWindow` + `enableContentProtectionSafely` helpers in `frontend/src/main/index.cjs` and reuse them across chat/response/context overlay windows (plus main-window content protection), removing repeated BrowserWindow option blocks; frontend `jscpd` no longer reports the duplicate overlay window clone
 - refactor(backend-vision-internvl): extract `_run_chat_with_fallbacks` in `backend/src/services/vision/providers/internvl.py` to isolate chat/retry/generate fallback orchestration from `_predict_sync`; add focused regression coverage in `tests/backend/test_vision_provider_loader.py` for success, CUDA retry, non-CUDA fallback, and retry-failure fallback branches
