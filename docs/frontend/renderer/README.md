@@ -13,6 +13,7 @@ title: "Frontend Renderer Docs Hub"
 - [Renderer Runtime](RENDERER_RUNTIME.md)
 - [Feature Module Matrix](FEATURE_MODULE_MATRIX.md)
 - [Chat Stream and Tool Execution Reference](CHAT_STREAM_AND_TOOL_EXECUTION_REFERENCE.md)
+- [Transcript Session and Rehydrate Reference](TRANSCRIPT_SESSION_AND_REHYDRATE_REFERENCE.md)
 - [Voice Capture and Wakeword Controller Reference](VOICE_CAPTURE_AND_WAKEWORD_CONTROLLER_REFERENCE.md)
 
 ## Code Scope
