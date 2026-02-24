@@ -80,6 +80,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Browser Control**](browser/browser_control.md) - Browser automation architecture and tool behavior
 - [**Sidecar Browser Automation Stack**](frontend/sidecar/browser_automation_stack.md) - Renderer->main->sidecar browser runtime and CDP orchestration details
 - [**Sidecar Browser Action Compatibility + Runtime**](frontend/sidecar/browser_action_compatibility_and_runtime_reference.md) - OpenClaw-compatible browser action surface, adapter normalization rules, native runtime handler mapping, and timeout/error-code behavior
+- [**Sidecar System-State Collection + Platform Adapter Runtime**](frontend/sidecar/system_state/system_state_collection_and_platform_adapter_reference.md) - `get-system-state` field semantics, per-OS probes, fallback defaults, and renderer/main/sidecar integration contracts
 - [**Sidecar JSON-RPC Reference**](frontend/sidecar/local_backend_jsonrpc_reference.md) - Main-process bridge method map and local backend JSON-RPC contract details
 - [**Sidecar Process Lifecycle**](frontend/sidecar/local_backend_process_lifecycle_reference.md) - Python sidecar spawn env/readiness probe loop, request correlation/timeouts, and restart/failure recovery behavior
 - [**Wakeword Bridge + Audio Framing**](frontend/sidecar/wakeword_bridge_and_audio_framing_reference.md) - Wakeword subprocess lifecycle, length-prefixed audio transport, enable/disable buffering policy, and detection event propagation
