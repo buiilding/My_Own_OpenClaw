@@ -457,6 +457,27 @@ read_when:
   - `cd frontend && npm run audit:knip`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
+## Phase 21
+
+- `jscpd` duplication cleanup (voice audio-capture ref declarations):
+  - extract shared hook for audio-capture refs (`MediaStream`, `AudioContext`, source node, script node).
+  - reuse helper in:
+    - `frontend/src/renderer/features/voice/hooks/useVoiceMode.ts`
+    - `frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts`
+  - preserve voice-mode and wakeword runtime behavior.
+
+### Phase 21 Execution Slice (Current Loop)
+
+- Frontend dedupe:
+  - add shared voice hook helper for audio-capture node refs.
+  - remove duplicated ref declarations in both voice hooks.
+- Verification checks:
+  - `cd frontend && npm run lint`
+  - `cd frontend && npm run test:ci -- tests/frontend/VoiceModeHook.test.ts tests/frontend/WakewordDetectionHook.test.ts tests/frontend/VoiceAudioCleanup.test.ts`
+  - `cd frontend && npm run test:ci`
+  - `cd frontend && npm run audit:knip`
+  - `cd frontend && npm run audit:jscpd` (expect clone reduction)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):
