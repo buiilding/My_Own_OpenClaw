@@ -109,11 +109,16 @@ Kimi stream path accumulates text + tool-call deltas and emits final normalized 
 - tracks partial arguments across stream chunks,
 - merges OpenAI-style `delta.tool_calls` and Anthropic-style `content[type=tool_use]`,
 - reconstructs JSON arguments from chunked strings,
-- falls back to `{}` when streamed argument decoding fails,
+- fails closed when streamed argument decoding fails (emits stream error event, no payload persisted),
 - synthesizes missing ids as `tool_call_<index>`,
 - preserves stream `finish_reason`.
 
 Result is persisted via `get_last_stream_response_payload()` for runtime loop tool processing.
+
+Detailed Kimi-only stream behavior:
+
+- [Backend Kimi Provider Docs Hub](kimi/README.md)
+- [Stream Tool-Call Aggregation and Fail-Closed Argument Parsing Reference](kimi/stream_tool_call_aggregation_and_fail_closed_argument_parsing_reference.md)
 
 ## Local Provider Runtime (`LocalLLMProvider`, `OllamaProvider`, `LMStudioProvider`)
 
