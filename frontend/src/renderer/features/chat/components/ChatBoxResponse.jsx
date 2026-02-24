@@ -109,6 +109,7 @@ function ChatBoxResponse() {
   const shouldShowToolGhostBase = !showResponse && overlayPhase === 'tool-call' && Boolean(activeToolCall);
   const {
     toolGhostStartRatio,
+    toolGhostResolvedTargetRatio,
     toolGhostReady,
     toolGhostHidden,
   } = useToolGhostLifecycle({
@@ -120,9 +121,15 @@ function ChatBoxResponse() {
     !toolGhostPreview.isMouseClick || (toolGhostReady && !toolGhostHidden)
   );
   const isVisible = showResponse || showAwaitingReply || showToolGhost;
+  const effectiveTargetRatio = toolGhostResolvedTargetRatio || (
+    toolGhostPreview.hasTarget
+      ? { xRatio: toolGhostPreview.xRatio, yRatio: toolGhostPreview.yRatio }
+      : null
+  );
+  const hasEffectiveTarget = Boolean(effectiveTargetRatio);
   const toolGhostTrackStyle = useMemo(() => {
-    return buildToolGhostTrackStyle(toolGhostPreview, toolGhostStartRatio);
-  }, [toolGhostPreview, toolGhostStartRatio]);
+    return buildToolGhostTrackStyle(toolGhostPreview, toolGhostStartRatio, effectiveTargetRatio);
+  }, [toolGhostPreview, toolGhostStartRatio, effectiveTargetRatio]);
   const responseMarkdownHtml = useMemo(() => {
     if (!activeResponse || activeResponse.type === 'tool-call' || activeResponse.type === 'error') {
       return '';
@@ -428,7 +435,7 @@ function ChatBoxResponse() {
         {showToolGhost ? (
           <div className="chatbox-tool-ghost" aria-label="Assistant tool action preview">
             <div
-              className={`chatbox-tool-ghost-track${toolGhostPreview.hasTarget ? ' is-targeted' : ''}${toolGhostPreview.hasRect ? ' has-rect' : ''}${toolGhostPreview.isMouseClick ? ' is-click-animating' : ''}`}
+              className={`chatbox-tool-ghost-track${hasEffectiveTarget ? ' is-targeted' : ''}${toolGhostPreview.hasRect ? ' has-rect' : ''}${toolGhostPreview.isMouseClick ? ' is-click-animating' : ''}`}
               style={toolGhostTrackStyle || undefined}
             >
               <div className="chatbox-tool-ghost-cursor-wrap" aria-hidden="true">

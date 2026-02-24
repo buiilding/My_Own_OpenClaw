@@ -84,7 +84,10 @@ describe('ChatBoxResponse', () => {
     mockInvoke.mockReset();
     mockInvoke.mockImplementation((channel) => {
       if (channel === 'get-system-state') {
-        return Promise.resolve({ mouse_position: '(960, 540)' });
+        return Promise.resolve({
+          mouse_position: '(960, 540)',
+          screen_resolution: '1920x1080',
+        });
       }
       return Promise.resolve({ success: true });
     });
@@ -121,7 +124,10 @@ describe('ChatBoxResponse', () => {
   test('uses current mouse position as click-ghost animation start point', async () => {
     mockInvoke.mockImplementation((channel) => {
       if (channel === 'get-system-state') {
-        return Promise.resolve({ mouse_position: '(100, 120)' });
+        return Promise.resolve({
+          mouse_position: '(100, 120)',
+          screen_resolution: '1000x1000',
+        });
       }
       return Promise.resolve({ success: true });
     });
@@ -138,6 +144,40 @@ describe('ChatBoxResponse', () => {
     await waitFor(() => {
       expect(ghostTrack.style.getPropertyValue('--ghost-start-offset-x')).not.toBe('0px');
       expect(ghostTrack.style.getPropertyValue('--ghost-start-offset-y')).not.toBe('0px');
+      expect(ghostTrack.style.getPropertyValue('--ghost-end-offset-x')).not.toBe('0px');
+      expect(ghostTrack.style.getPropertyValue('--ghost-end-offset-y')).not.toBe('0px');
+    });
+  });
+
+  test('maps click target from raw coordinates when target display size is missing', async () => {
+    mockInvoke.mockImplementation((channel) => {
+      if (channel === 'get-system-state') {
+        return Promise.resolve({
+          mouse_position: '(100, 100)',
+          screen_resolution: '1000x1000',
+        });
+      }
+      return Promise.resolve({ success: true });
+    });
+
+    const { container } = await renderToolCallGhost({
+      userText: 'run command',
+      toolText: JSON.stringify({
+        name: 'mouse_control',
+        arguments: { action: 'click', explanation: 'Clicking Chrome icon', x: 900, y: 800 },
+        metadata: {
+          coordinate_contract: {
+            target_display_size: null,
+            normalized_coordinates: { x: 900, y: 800 },
+          },
+        },
+      }),
+    });
+
+    const ghostTrack = container.querySelector('.chatbox-tool-ghost-track');
+    expect(ghostTrack).toBeTruthy();
+    await waitFor(() => {
+      expect(ghostTrack.classList.contains('is-targeted')).toBe(true);
       expect(ghostTrack.style.getPropertyValue('--ghost-end-offset-x')).not.toBe('0px');
       expect(ghostTrack.style.getPropertyValue('--ghost-end-offset-y')).not.toBe('0px');
     });

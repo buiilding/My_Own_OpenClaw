@@ -13,6 +13,8 @@ describe('toolGhostPreview', () => {
       targetScale: 1,
       targetDisplayWidth: null,
       targetDisplayHeight: null,
+      rawTargetX: null,
+      rawTargetY: null,
     });
   });
 
@@ -53,6 +55,23 @@ describe('toolGhostPreview', () => {
     expect(preview.yRatio).toBeCloseTo(900 / 1080);
     expect(preview.targetDisplayWidth).toBe(1920);
     expect(preview.targetDisplayHeight).toBe(1080);
+  });
+
+  test('keeps raw target coordinates when coordinate contract lacks display size', () => {
+    const preview = buildToolGhostPreviewFromMessageText(JSON.stringify({
+      name: 'mouse_control',
+      arguments: { action: 'click', x: 900, y: 800 },
+      metadata: {
+        coordinate_contract: {
+          target_display_size: null,
+          normalized_coordinates: { x: 900, y: 800 },
+        },
+      },
+    }));
+
+    expect(preview.hasTarget).toBe(false);
+    expect(preview.rawTargetX).toBe(900);
+    expect(preview.rawTargetY).toBe(800);
   });
 
   test('selects first bundle step with coordinates when available', () => {
