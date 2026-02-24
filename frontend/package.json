@@ -26,6 +26,7 @@
     "electron:no-summarizer": "WINDIE_ENABLE_SEMANTIC_SUMMARIZER=0 npm run electron",
     "test": "NODE_OPTIONS=--no-deprecation jest --config jest.config.cjs",
     "test:ci": "NODE_OPTIONS=--no-deprecation jest --config jest.config.cjs --runInBand",
+    "test:ghost-visual": "vite --open '/?view=tool-ghost-visual-test'",
     "test:shell": "node src/main/test_shell.cjs"
   },
   "dependencies": {
