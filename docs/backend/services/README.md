@@ -11,6 +11,7 @@ title: "Backend Services Docs Hub"
 ## Deep Pages
 
 - [Services and Storage](SERVICES_AND_STORAGE.md)
+- [Artifact, Screenshot, and System-State Flow Reference](ARTIFACT_SCREENSHOT_AND_SYSTEM_STATE_FLOW_REFERENCE.md)
 
 ## Code Scope
 
