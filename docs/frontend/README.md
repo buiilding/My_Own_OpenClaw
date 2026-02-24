@@ -30,10 +30,12 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Sidecar Tool Catalog and Execution Model](sidecar/TOOL_CATALOG_AND_EXECUTION_MODEL.md)
 - [Memory Pipeline and Summarization](sidecar/MEMORY_PIPELINE_AND_SUMMARIZATION.md)
 - [Browser Automation Stack](sidecar/BROWSER_AUTOMATION_STACK.md)
+- [Local Backend JSON-RPC Reference](sidecar/LOCAL_BACKEND_JSONRPC_REFERENCE.md)
 
 ### Contracts
 
 - [IPC Channels and Event Contracts](contracts/IPC_CHANNELS_AND_EVENT_CONTRACTS.md)
+- [IPC Channel and Handler Reference](contracts/IPC_CHANNEL_AND_HANDLER_REFERENCE.md)
 
 ## Frontend Code Layout
 

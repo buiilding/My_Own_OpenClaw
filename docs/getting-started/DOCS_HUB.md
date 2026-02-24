@@ -38,8 +38,10 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 - [Backend Endpoint Reference](../backend/api/HTTP_AND_WS_ENDPOINT_REFERENCE.md)
 - [Frontend Functionality Map](../frontend/README.md)
 - [Frontend IPC/Event Contracts](../frontend/contracts/IPC_CHANNELS_AND_EVENT_CONTRACTS.md)
+- [Frontend IPC Channel Handler Reference](../frontend/contracts/IPC_CHANNEL_AND_HANDLER_REFERENCE.md)
 - [Frontend Stream State Machine](../frontend/runtime/STREAM_EVENT_STATE_MACHINE.md)
 - [Frontend Sidecar Browser Stack](../frontend/sidecar/BROWSER_AUTOMATION_STACK.md)
+- [Frontend Sidecar JSON-RPC Reference](../frontend/sidecar/LOCAL_BACKEND_JSONRPC_REFERENCE.md)
 - [API Reference](../reference/API_REFERENCE.md)
 
 ## Development and Operations

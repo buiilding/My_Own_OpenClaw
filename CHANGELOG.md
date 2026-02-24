@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-contracts): add `docs/frontend/contracts/IPC_CHANNEL_AND_HANDLER_REFERENCE.md` and `docs/frontend/sidecar/LOCAL_BACKEND_JSONRPC_REFERENCE.md` for preload allowlists, channel-to-handler ownership, renderer IPC->JSON-RPC mapping, sidecar method registry, and timeout/error semantics; wire links from frontend/docs hubs
 - docs(refactor-plan): add phase-151 full-gate snapshot after backend tool-preparer coordinate-resolution helper extraction (frontend lint:audit+knip+jscpd+tests, backend tests, sidecar tests)
 - docs(backend-contracts): add `docs/backend/contracts/MESSAGE_SCHEMA_AND_FORMATTER_REFERENCE.md` documenting base-envelope constraints, incoming/outgoing payload fields, route bindings, and event->formatter mappings; link from backend docs hub + docs hub
 - refactor(backend-tool-preparer): extract shared `tool_call_needs_coordinate_resolution` helper in `preparation_helper.py`, reuse it in `ToolPreparer._needs_coordinate_resolution`, and add regression coverage in `tests/backend/test_tool_preparer.py`
