@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-tool-execution-tests): dedupe repeated default bundle fixture and result-envelope assertions in `tests/frontend/ToolExecutionService.test.ts` via shared helpers (`createDefaultToolBundleSteps`, `executeDefaultToolBundle`, `expectBundleResultEnvelope`); jscpd improved from clones `144 -> 142` and duplicated lines `2296 -> 2279`
 - refactor(frontend-semantic-memory-tests): extract shared semantic-memory bridge/transcript harness to `tests/frontend/__mocks__/semanticMemorySectionHarness.cjs` and reuse across `SemanticMemorySection` + delete suites; jscpd improved from clones `145 -> 144` and duplicated lines `2306 -> 2296`
 - refactor(frontend-transcript-session-tests): dedupe transcript session update recorder and store payload assertion boilerplate in `tests/frontend/TranscriptWriter.session.test.ts` via shared helpers from `TranscriptWriter.testUtils.ts`; jscpd improved from clones `146 -> 145` and duplicated lines `2312 -> 2306`
 - docs(refactor-plan): add phase-71 full-gate revalidation snapshot after chatbox/episodic test dedupe wave (frontend audits/tests + backend + sidecar)

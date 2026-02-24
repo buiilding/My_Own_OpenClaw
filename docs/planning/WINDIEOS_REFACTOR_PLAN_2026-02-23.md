@@ -2249,3 +2249,23 @@ read_when:
     - clones: `145 -> 144`
     - duplicated lines: `2306 -> 2296`
     - duplicated tokens: `20434 -> 20347`
+
+## Phase 74 Outcome (2026-02-24)
+
+- Tool execution service test-suite duplication cleanup shipped:
+  - added shared bundle helpers in `tests/frontend/ToolExecutionService.test.ts`:
+    - `createDefaultToolBundleSteps`
+    - `executeDefaultToolBundle`
+    - `expectBundleResultEnvelope`
+  - reduced repeated bundle fixture literals and repeated `tool-bundle-result` envelope assertions while preserving execution and failure-path checks.
+- Verification:
+  - `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/ToolExecutionService.test.ts --watch=false` (pass; 11 tests)
+  - `cd frontend && npm run lint -- --quiet` (pass)
+  - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
+  - `cd frontend && npm run audit:knip` (pass)
+  - `cd frontend && npm run audit:jscpd` (pass)
+  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - jscpd snapshot deltas:
+    - clones: `144 -> 142`
+    - duplicated lines: `2296 -> 2279`
+    - duplicated tokens: `20347 -> 20137`
