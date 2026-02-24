@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-chatbox-context-positioning): nudge separate active-window label up by 1px for final micro-alignment
+- refactor(backend-llm-client): extract shared `LiteLLMClient` stream-tracking helpers (`_reset_stream_tracking_state`, `_capture_stream_tracking_state`) to dedupe completion/stream paths and add regression coverage in `tests/backend/test_llm_client.py` ensuring stale diagnostics/payload state is cleared when completion provider calls fail
 - fix(frontend-chatbox-context-positioning): nudge separate active-window label slightly higher (2px) for final alignment tuning
 - fix(frontend-chatbox-context-positioning): push active-window label lower by moving the separate label window down into slight overlap with pill top and adding in-window top offset for text
 - fix(frontend-chatbox-context-positioning): lower separate active-window label a bit more by removing extra gap above the chat pill
