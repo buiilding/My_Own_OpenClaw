@@ -90,6 +90,17 @@ def test_validate_tool_call_rejects_non_sized_args_without_crashing():
     assert metrics.calls[0]["metadata"]["param_count"] is None
 
 
+def test_validate_tool_call_rejects_unhashable_tool_name_without_crashing():
+    validator, metrics = _make_validator(["read_file"])
+
+    with pytest.raises(ParseValidationError, match="Tool name must be a string"):
+        validator.validate_tool_call({"bad": "name"}, {})
+
+    assert len(metrics.calls) == 1
+    assert metrics.calls[0]["metadata"]["tool_name"] == {"bad": "name"}
+    assert metrics.calls[0]["metadata"]["param_count"] == 0
+
+
 def test_validate_tool_call_filters_non_string_tool_names():
     validator, _metrics = _make_validator(["read_file", None, 123])
 

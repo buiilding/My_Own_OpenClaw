@@ -63,7 +63,8 @@ class ToolCallValidator:
             )
 
         valid_tool_names, valid_tool_name_set = self._get_valid_tool_name_index()
-        if tool_name not in valid_tool_name_set:
+        tool_name_is_string = isinstance(tool_name, str)
+        if tool_name_is_string and tool_name not in valid_tool_name_set:
             if len(valid_tool_names) <= 15:
                 tools_display = ", ".join(valid_tool_names)
             else:
@@ -82,7 +83,7 @@ class ToolCallValidator:
             )
             return validation_errors
 
-        if tool_name in valid_tool_name_set:
+        if tool_name_is_string and tool_name in valid_tool_name_set:
             validation_errors.extend(
                 self._collect_method_level_validation_errors(tool_name, args)
             )
