@@ -2,6 +2,11 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { IpcBridge, SEND_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { float32ToPcm16, normalizeScriptProcessorChunkSize } from '../utils/audioEncoding';
 import {
+  cleanupAudioCaptureNodes,
+  closeAudioContextSafely,
+  takeAudioContext,
+} from '../utils/audioCaptureCleanup';
+import {
   getChunkSizeWarning,
   isWithinCooldown,
   resolveConfidence,
@@ -68,22 +73,8 @@ export function useWakewordDetection(
     IpcBridge.send(SEND_CHANNELS.WAKEWORD_AUDIO_CHUNK, buffer);
   }, []);
 
-  const closeAudioContextSafely = useCallback(async (audioContext: AudioContext | null) => {
-    if (!audioContext || audioContext.state === 'closed') {
-      return;
-    }
-
-    try {
-      await audioContext.close();
-    } catch (err: any) {
-      const message = String(err?.message || '').toLowerCase();
-      const alreadyClosed = message.includes('cannot close a closed audiocontext')
-        || message.includes('cannot close closed audiocontext')
-        || message.includes('already closed');
-      if (!alreadyClosed) {
-        console.warn('[Wakeword] Failed to close AudioContext:', err);
-      }
-    }
+  const logUnexpectedAudioContextCloseError = useCallback((err: unknown) => {
+    console.warn('[Wakeword] Failed to close AudioContext:', err);
   }, []);
 
   // Start audio capture
@@ -119,7 +110,7 @@ export function useWakewordDetection(
 
       if (generation !== captureGenerationRef.current) {
         stream.getTracks().forEach(track => track.stop());
-        await closeAudioContextSafely(audioContext);
+        await closeAudioContextSafely(audioContext, logUnexpectedAudioContextCloseError);
         return;
       }
 
@@ -162,7 +153,7 @@ export function useWakewordDetection(
       setError(`Audio capture failed: ${err.message}`);
       isCapturingRef.current = false;
     }
-  }, [sampleRate, chunkSize, sendAudioChunk, closeAudioContextSafely]);
+  }, [sampleRate, chunkSize, sendAudioChunk, logUnexpectedAudioContextCloseError]);
 
   // Stop audio capture
   const stopAudioCapture = useCallback(async () => {
@@ -177,31 +168,15 @@ export function useWakewordDetection(
 
     isCapturingRef.current = false;
 
-    // Disconnect and cleanup audio nodes
-    if (scriptNodeRef.current) {
-      scriptNodeRef.current.disconnect();
-      scriptNodeRef.current.onaudioprocess = null;
-      scriptNodeRef.current = null;
-    }
+    cleanupAudioCaptureNodes(scriptNodeRef, sourceNodeRef, mediaStreamRef);
 
-    if (sourceNodeRef.current) {
-      sourceNodeRef.current.disconnect();
-      sourceNodeRef.current = null;
-    }
-
-    if (mediaStreamRef.current) {
-      mediaStreamRef.current.getTracks().forEach(track => track.stop());
-      mediaStreamRef.current = null;
-    }
-
-    const audioContext = audioContextRef.current;
-    audioContextRef.current = null;
-    await closeAudioContextSafely(audioContext);
+    const audioContext = takeAudioContext(audioContextRef);
+    await closeAudioContextSafely(audioContext, logUnexpectedAudioContextCloseError);
 
     if (hadResources) {
       console.log('[Wakeword] Audio capture stopped');
     }
-  }, [closeAudioContextSafely]);
+  }, [logUnexpectedAudioContextCloseError]);
 
   // Handle wakeword detection from main process
   useEffect(() => {

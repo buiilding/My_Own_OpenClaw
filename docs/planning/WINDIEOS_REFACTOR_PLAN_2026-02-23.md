@@ -766,3 +766,32 @@ read_when:
   - `cd frontend && npm run test:ci` (pass; 81 suites)
   - `cd frontend && npm run audit:knip` (pass; no findings)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
+
+## Phase 17 Outcome (2026-02-23)
+
+- Voice audio-capture teardown dedupe shipped:
+  - added shared cleanup utility:
+    - `frontend/src/renderer/features/voice/utils/audioCaptureCleanup.ts`
+  - reused shared teardown helpers in:
+    - `frontend/src/renderer/features/voice/hooks/useVoiceMode.ts`
+    - `frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts`
+- Regression coverage shipped:
+  - added direct cleanup utility tests:
+    - `tests/frontend/VoiceAudioCleanup.test.ts`
+- `lint:audit` deprecation status:
+  - `react-compiler` audit: no blocking errors.
+  - deprecation warnings remain for `ScriptProcessorNode`/`onaudioprocess` in:
+    - `useVoiceMode.ts`
+    - `useWakewordDetection.ts`
+    - `audioCaptureCleanup.ts`
+- jscpd delta after Phase 17 slice:
+  - clones: `215 -> 214`
+  - duplicated lines: `3244 -> 3225`
+  - duplicated tokens: `28487 -> 28350`
+- Verification:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/VoiceModeHook.test.ts tests/frontend/WakewordDetectionHook.test.ts tests/frontend/VoiceAudioCleanup.test.ts` (pass)
+  - `cd frontend && npm run lint:audit` (pass; deprecation warnings only)
+  - `cd frontend && npm run test:ci` (pass; 82 suites)
+  - `cd frontend && npm run audit:knip` (pass; no findings)
+  - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)

@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-voice-hooks): extract shared audio capture cleanup utilities (`audioCaptureCleanup`) and reuse them in `useVoiceMode` + `useWakewordDetection`, with direct cleanup utility regression coverage in `tests/frontend/VoiceAudioCleanup.test.ts`
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 17 execution slice for voice-hook audio-capture teardown dedupe (`useVoiceMode` + `useWakewordDetection`) and `lint:audit` deprecation/react-compiler validation
 - refactor(frontend-landing): extract shared landing `SectionIntro` and `ProviderStackIcon` components, migrate `WhySection`/`PrivacySection` intro markup to shared rendering, and dedupe repeated provider-stack SVG usage in `WhySection`, `PrivacySection`, and `CTAFooter` while keeping landing regression coverage green
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 16 execution slice for landing shared section-intro extraction in `WhySection` and `PrivacySection`
