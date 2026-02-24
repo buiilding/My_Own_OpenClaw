@@ -5,20 +5,11 @@ Intercepts LLM calls and returns hardcoded responses based on simulation steps.
 This allows the simulation to run the exact same backend flow without actual LLM calls.
 """
 import json
-import logging
 import platform
-from typing import AsyncGenerator, List
 
 from backend.src.core.config import AppConfig
-from backend.src.core.events.streaming_events import ChunkEvent, StreamingEvent
-from backend.src.core.types.schemas import LLMMessage, NormalizedLLMResponse
 from backend.src.llm.client import LLMClient
-from backend.src.simulation.native_tool_adapter import (
-    build_normalized_response,
-    extract_response_text,
-)
-
-logger = logging.getLogger(__name__)
+from backend.src.simulation.base_mock_llm_client import BaseSimulationLLMClient
 
 
 def get_chrome_command() -> str:
@@ -277,7 +268,7 @@ SIMULATION_RESPONSES = [
 ]
 
 
-class MockLLMClient(LLMClient):
+class MockLLMClient(BaseSimulationLLMClient):
     """
     Mock LLM Client that returns hardcoded responses based on simulation steps.
     
@@ -287,128 +278,13 @@ class MockLLMClient(LLMClient):
     """
     
     def __init__(self, cfg: AppConfig):
-        """
-        Initialize the mock LLM client.
-        
-        Args:
-            cfg: Application configuration (required by interface, but not used)
-        """
-        self.config = cfg
-        self._iteration = 0
-        self._max_iterations = len(SIMULATION_RESPONSES)
-        self._pending_final_response: str | None = None
-        logger.info(f"MockLLMClient initialized with {self._max_iterations} hardcoded responses")
-    
-    async def get_completion(
-        self,
-        model: str,
-        messages: List[LLMMessage],
-        tools=None,
-        tool_choice=None,
-        parallel_tool_calls=None,
-    ) -> str:
-        """
-        Get a non-streaming completion (not used in normal flow, but required by interface).
-        
-        Args:
-            model: Model identifier (ignored)
-            messages: Conversation messages (ignored)
-            
-        Returns:
-            Hardcoded response for current iteration
-        """
-        if self._iteration >= self._max_iterations:
-            logger.warning("MockLLMClient: Exceeded max iterations, returning final message")
-            return SIMULATION_RESPONSES[-1]["response"]
-        
-        response = SIMULATION_RESPONSES[self._iteration]["response"]
-        self._iteration += 1
-        logger.info(f"MockLLMClient.get_completion: Returning response for iteration {self._iteration - 1}")
-        return response
-
-    async def get_completion_response(
-        self,
-        model: str,
-        messages: List[LLMMessage],
-        tools=None,
-        tool_choice=None,
-        parallel_tool_calls=None,
-    ) -> NormalizedLLMResponse:
-        """
-        Return native structured tool calls for simulation compatibility.
-        """
-        if self._pending_final_response:
-            pending_text = self._pending_final_response
-            self._pending_final_response = None
-            return {"content": pending_text, "finish_reason": "stop"}
-
-        if self._iteration >= self._max_iterations:
-            logger.warning("MockLLMClient: Exceeded max iterations, returning final message")
-            final_response = extract_response_text(SIMULATION_RESPONSES[-1]["response"])
-            return {"content": final_response, "finish_reason": "stop"}
-
-        response_text = SIMULATION_RESPONSES[self._iteration]["response"]
-        iteration_num = self._iteration
-        self._iteration += 1
-
-        normalized = build_normalized_response(
-            response_text,
+        """Initialize the mock LLM client."""
+        super().__init__(
+            cfg,
+            SIMULATION_RESPONSES,
             call_id_prefix="simulation_call",
-            iteration=iteration_num,
+            logger_name="MockLLMClient",
         )
-        if normalized.get("tool_calls") and normalized.get("content"):
-            # Match native model behavior: tool turns should not emit final text content.
-            self._pending_final_response = normalized["content"]
-            normalized["content"] = ""
-        return normalized
-    
-    async def get_completion_stream(
-        self,
-        model: str,
-        messages: List[LLMMessage],
-        tools=None,
-        tool_choice=None,
-        parallel_tool_calls=None,
-    ) -> AsyncGenerator[StreamingEvent, None]:
-        """
-        Get a streaming completion (used by InteractionLoop).
-        
-        Args:
-            model: Model identifier (ignored)
-            messages: Conversation messages (ignored)
-            
-        Yields:
-            StreamingEvent objects (ChunkEvent, then FullResponseEvent)
-        """
-        if self._iteration >= self._max_iterations:
-            logger.warning("MockLLMClient: Exceeded max iterations, returning final message")
-            final_response = SIMULATION_RESPONSES[-1]["response"]
-            # Stream it character by character to simulate real streaming
-            for char in final_response:
-                yield ChunkEvent(content=char)
-            # Don't yield FullResponseEvent here - LLMInteractionHandler will yield it
-            return
-        
-        response = SIMULATION_RESPONSES[self._iteration]["response"]
-        iteration_num = self._iteration
-        self._iteration += 1
-        
-        logger.info(f"MockLLMClient.get_completion_stream: Returning response for iteration {iteration_num}")
-        logger.debug(f"MockLLMClient: Response content: {response[:200]}...")
-        
-        # Stream the response character by character to simulate real LLM streaming
-        # This ensures the backend processes it exactly like a real LLM response
-        for char in response:
-            yield ChunkEvent(content=char)
-        
-        # Don't yield FullResponseEvent here - LLMInteractionHandler will yield it
-        # after aggregating all chunks. This prevents duplication.
-    
-    def reset(self):
-        """Reset iteration counter (useful for testing or restarting simulation)."""
-        self._iteration = 0
-        self._pending_final_response = None
-        logger.info("MockLLMClient: Reset iteration counter")
 
 
 def get_mock_llm_client(cfg: AppConfig) -> LLMClient:

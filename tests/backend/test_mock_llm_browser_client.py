@@ -84,10 +84,11 @@ class TestMockLLMBrowserClient:
 
         result = await client.get_completion_response("gpt-4", [], tools=[{}])
 
-        assert result["content"] == ""
         assert result["finish_reason"] == "tool_calls"
-        assert len(result["tool_calls"]) == 1
-        tool_call = result["tool_calls"][0]
+        assert result["content"] == ""
+        tool_calls = result.get("tool_calls", [])
+        assert len(tool_calls) == 1
+        tool_call = tool_calls[0]
         assert tool_call["id"].startswith("browser_simulation_call_0_")
         assert tool_call["name"] == "browser"
         assert tool_call["arguments"]["action"] == "connect"
