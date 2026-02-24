@@ -20,6 +20,31 @@ Implement the five UX directions below using the current Electron + backend + Py
 
 This plan assumes Stop/cancel semantics are part of the same UX surface.
 
+## Current Execution Snapshot (2026-02-24)
+
+Completed in code:
+
+1. Response pane restyle above chat pill:
+   - Single black pane with bright text.
+   - Smooth dynamic height transition.
+   - Top overflow affordance when scrolled above latest content.
+2. Thinking stream presentation shift:
+   - Tool-call JSON is no longer rendered in the response pane.
+   - During awaiting/think phases, reasoning text is rendered as transparent scrolling text (no separate old thinking pill).
+3. Tool-action ghost preview:
+   - Fake cursor + click-region ripple + explanation bubble during `tool-call` phase.
+4. Overlay phase wiring:
+   - Backend `tool-call` events now drive overlay `tool-call` phase.
+   - Backend `tool-output` events now return overlay to `awaiting-first-chunk` so typing/thinking resumes cleanly before next assistant chunk.
+5. Ambient loop signal:
+   - Chat pill now displays ambient glow while loop-active phases run (`awaiting-first-chunk`, `streaming`, `tool-call`, `tool-output`).
+
+Still in progress:
+
+1. Ghost preview geometry grounding from backend coordinates (`target_point` / `target_rect`) is not yet wired.
+2. Mission dock / trust dial / approval threshold surfaces are not started.
+3. Ambient active-window indicator is not started.
+
 ## Codebase Reality (Current Baseline)
 
 ### Overlay/window model today
