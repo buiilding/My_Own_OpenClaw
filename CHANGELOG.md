@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(test-llm-client): add shared provider-error and stream-event helpers in `tests/backend/test_llm_client.py` (`attach_provider_error`, `collect_stream_events`, `assert_single_error_event`) and reuse them across stream/provider error-path tests to reduce duplicate assertions/setup
 - refactor(test-coordinate-scaling): add shared `_build_mouse_call` helper in `tests/backend/test_coordinate_scaling.py` and reuse it across OCR/prediction resolution tests to remove duplicate ParsedToolCall scaffolding
 - refactor(test-config-loader): add `_set_disabled_tts_module_state` helper in `tests/backend/test_config_loader.py` and reuse it across load-settings tests to remove duplicate module-state setup
 - refactor(test-artifact-routes): extract shared `_container` and `_artifact_request` helpers in `tests/backend/test_artifact_routes.py` to remove duplicated route-test setup payloads

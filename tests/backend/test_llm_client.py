@@ -33,6 +33,23 @@ def make_client_with_provider(monkeypatch, provider) -> LiteLLMClient:
     return client
 
 
+def attach_provider_error(monkeypatch, error: Exception) -> None:
+    def raise_provider(*_args, **_kwargs):
+        raise error
+
+    monkeypatch.setattr("backend.src.llm.client.get_provider", raise_provider)
+
+
+async def collect_stream_events(client: LiteLLMClient, model: str = "model") -> list:
+    return [event async for event in client.get_completion_stream(model, [])]
+
+
+def assert_single_error_event(events: list, *, expected_substring: str) -> None:
+    assert len(events) == 1
+    assert isinstance(events[0], ErrorEvent)
+    assert expected_substring in events[0].content
+
+
 class DummyProvider:
     def __init__(
         self,
@@ -225,31 +242,19 @@ async def test_get_completion_response_clears_tracking_state_on_provider_failure
 @pytest.mark.asyncio
 async def test_get_completion_stream_provider_error(monkeypatch):
     client = make_client()
+    attach_provider_error(monkeypatch, ValueError("no provider"))
 
-    def raise_provider(*_args, **_kwargs):
-        raise ValueError("no provider")
-
-    monkeypatch.setattr("backend.src.llm.client.get_provider", raise_provider)
-
-    events = [event async for event in client.get_completion_stream("model", [])]
-    assert len(events) == 1
-    assert isinstance(events[0], ErrorEvent)
-    assert "LLM provider error" in events[0].content
+    events = await collect_stream_events(client)
+    assert_single_error_event(events, expected_substring="LLM provider error")
 
 
 @pytest.mark.asyncio
 async def test_get_completion_stream_provider_unexpected_error(monkeypatch):
     client = make_client()
+    attach_provider_error(monkeypatch, RuntimeError("broken provider registry"))
 
-    def raise_provider(*_args, **_kwargs):
-        raise RuntimeError("broken provider registry")
-
-    monkeypatch.setattr("backend.src.llm.client.get_provider", raise_provider)
-
-    events = [event async for event in client.get_completion_stream("model", [])]
-    assert len(events) == 1
-    assert isinstance(events[0], ErrorEvent)
-    assert "broken provider registry" in events[0].content
+    events = await collect_stream_events(client)
+    assert_single_error_event(events, expected_substring="broken provider registry")
 
 
 @pytest.mark.asyncio
@@ -257,7 +262,7 @@ async def test_get_completion_stream_yields_provider_events(monkeypatch):
     provider = DummyProvider(stream_events=[ChunkEvent(content="hi")])
     client = make_client_with_provider(monkeypatch, provider)
 
-    events = [event async for event in client.get_completion_stream("model", [])]
+    events = await collect_stream_events(client)
     assert len(events) == 1
     assert isinstance(events[0], ChunkEvent)
     assert events[0].content == "hi"
@@ -282,7 +287,7 @@ async def test_get_completion_stream_stores_cache_diagnostics(monkeypatch):
     )
     client = make_client_with_provider(monkeypatch, provider)
 
-    _ = [event async for event in client.get_completion_stream("model", [])]
+    _ = await collect_stream_events(client)
     diagnostics = client.get_last_stream_cache_diagnostics()
     assert diagnostics is not None
     assert diagnostics["status"] == "hit"
@@ -301,7 +306,7 @@ async def test_get_completion_stream_stores_last_stream_response_payload(monkeyp
     )
     client = make_client_with_provider(monkeypatch, provider)
 
-    _ = [event async for event in client.get_completion_stream("model", [])]
+    _ = await collect_stream_events(client)
     payload = client.get_last_stream_response_payload()
     assert payload is not None
     assert payload["content"] == "final"
@@ -320,7 +325,7 @@ async def test_get_last_stream_response_payload_returns_deep_copy(monkeypatch):
     )
     client = make_client_with_provider(monkeypatch, provider)
 
-    _ = [event async for event in client.get_completion_stream("model", [])]
+    _ = await collect_stream_events(client)
     payload = client.get_last_stream_response_payload()
     assert payload is not None
     payload["tool_calls"][0]["arguments"]["path"] = "/tmp/mutated"
@@ -344,11 +349,7 @@ def test_extract_content_rejects_invalid_payloads():
 @pytest.mark.asyncio
 async def test_get_completion_wraps_provider_resolution_error(monkeypatch):
     client = make_client()
-
-    def raise_provider(*_args, **_kwargs):
-        raise ValueError("no provider")
-
-    monkeypatch.setattr("backend.src.llm.client.get_provider", raise_provider)
+    attach_provider_error(monkeypatch, ValueError("no provider"))
 
     with pytest.raises(LLMAPIError, match="LLM provider error"):
         await client.get_completion("model", [])
@@ -376,10 +377,8 @@ async def test_get_completion_stream_handles_iteration_error(monkeypatch):
     client = make_client()
     monkeypatch.setattr("backend.src.llm.client.get_provider", lambda *_: FailingStreamProvider())
 
-    events = [event async for event in client.get_completion_stream("model", [])]
-    assert len(events) == 1
-    assert isinstance(events[0], ErrorEvent)
-    assert "LLM streaming error" in events[0].content
+    events = await collect_stream_events(client)
+    assert_single_error_event(events, expected_substring="LLM streaming error")
 
 
 @pytest.mark.asyncio
