@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(backend-simulation-clients): extract shared `BaseSimulationLLMClient` in `backend/src/simulation/base_mock_llm_client.py` and migrate `MockLLMClient` + `MockLLMBrowserClient` to inherit it; tighten browser mock-tool-call assertion shape in `tests/backend/test_mock_llm_browser_client.py` to remove residual clone drift; jscpd improved from clones `71 -> 68` and duplicated lines `1410 -> 1367`
 - docs(refactor-plan): add phase-128 full-gate snapshot after browser-controller typing-locator helper dedupe (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)
 - refactor(sidecar-browser-controller-tests): add shared `_setup_typing_locator` helper in `tests/sidecar/tools/test_browser_controller.py` to dedupe text-entry mock setup; jscpd improved from clones `72 -> 71` and duplicated lines `1416 -> 1410`
 - docs(refactor-plan): add phase-127 full-gate snapshot after backend/sidecar dedupe wave (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)

@@ -8,19 +8,10 @@ Uses browser tool instead of computer-use tools for more
 reliable automation via Playwright.
 """
 import json
-import logging
-from typing import AsyncGenerator, List
 
 from backend.src.core.config import AppConfig
-from backend.src.core.events.streaming_events import ChunkEvent, StreamingEvent
-from backend.src.core.types.schemas import LLMMessage, NormalizedLLMResponse
 from backend.src.llm.client import LLMClient
-from backend.src.simulation.native_tool_adapter import (
-    build_normalized_response,
-    extract_response_text,
-)
-
-logger = logging.getLogger(__name__)
+from backend.src.simulation.base_mock_llm_client import BaseSimulationLLMClient
 
 
 # ============================================================================
@@ -312,7 +303,7 @@ BROWSER_SIMULATION_RESPONSES = [
 ]
 
 
-class MockLLMBrowserClient(LLMClient):
+class MockLLMBrowserClient(BaseSimulationLLMClient):
     """
     Mock LLM Client that demonstrates browser tool.
     
@@ -336,116 +327,12 @@ class MockLLMBrowserClient(LLMClient):
         Args:
             cfg: Application configuration (required by interface, but not used)
         """
-        self.config = cfg
-        self._iteration = 0
-        self._max_iterations = len(BROWSER_SIMULATION_RESPONSES)
-        self._pending_final_response: str | None = None
-        logger.info(f"MockLLMBrowserClient initialized with {self._max_iterations} hardcoded responses")
-    
-    async def get_completion(
-        self,
-        model: str,
-        messages: List[LLMMessage],
-        tools=None,
-        tool_choice=None,
-        parallel_tool_calls=None,
-    ) -> str:
-        """
-        Get a non-streaming completion.
-        
-        Args:
-            model: Model identifier (ignored)
-            messages: Conversation messages (ignored)
-            
-        Returns:
-            Hardcoded response for current iteration
-        """
-        if self._iteration >= self._max_iterations:
-            logger.warning("MockLLMBrowserClient: Exceeded max iterations, returning final message")
-            return BROWSER_SIMULATION_RESPONSES[-1]["response"]
-        
-        response = BROWSER_SIMULATION_RESPONSES[self._iteration]["response"]
-        self._iteration += 1
-        logger.info(f"MockLLMBrowserClient.get_completion: Returning response for iteration {self._iteration - 1}")
-        return response
-
-    async def get_completion_response(
-        self,
-        model: str,
-        messages: List[LLMMessage],
-        tools=None,
-        tool_choice=None,
-        parallel_tool_calls=None,
-    ) -> NormalizedLLMResponse:
-        """
-        Return native structured tool calls for browser simulation.
-        """
-        if self._pending_final_response:
-            pending_text = self._pending_final_response
-            self._pending_final_response = None
-            return {"content": pending_text, "finish_reason": "stop"}
-
-        if self._iteration >= self._max_iterations:
-            logger.warning("MockLLMBrowserClient: Exceeded max iterations, returning final message")
-            final_response = extract_response_text(BROWSER_SIMULATION_RESPONSES[-1]["response"])
-            return {"content": final_response, "finish_reason": "stop"}
-
-        response_text = BROWSER_SIMULATION_RESPONSES[self._iteration]["response"]
-        iteration_num = self._iteration
-        self._iteration += 1
-
-        normalized = build_normalized_response(
-            response_text,
+        super().__init__(
+            cfg,
+            BROWSER_SIMULATION_RESPONSES,
             call_id_prefix="browser_simulation_call",
-            iteration=iteration_num,
+            logger_name="MockLLMBrowserClient",
         )
-        if normalized.get("tool_calls") and normalized.get("content"):
-            # Avoid showing final-response text during the same turn as a tool call.
-            self._pending_final_response = normalized["content"]
-            normalized["content"] = ""
-        return normalized
-    
-    async def get_completion_stream(
-        self,
-        model: str,
-        messages: List[LLMMessage],
-        tools=None,
-        tool_choice=None,
-        parallel_tool_calls=None,
-    ) -> AsyncGenerator[StreamingEvent, None]:
-        """
-        Get a streaming completion (used by InteractionLoop).
-        
-        Args:
-            model: Model identifier (ignored)
-            messages: Conversation messages (ignored)
-            
-        Yields:
-            StreamingEvent objects (ChunkEvent)
-        """
-        if self._iteration >= self._max_iterations:
-            logger.warning("MockLLMBrowserClient: Exceeded max iterations, returning final message")
-            final_response = BROWSER_SIMULATION_RESPONSES[-1]["response"]
-            for char in final_response:
-                yield ChunkEvent(content=char)
-            return
-        
-        response = BROWSER_SIMULATION_RESPONSES[self._iteration]["response"]
-        iteration_num = self._iteration
-        self._iteration += 1
-        
-        logger.info(f"MockLLMBrowserClient.get_completion_stream: Returning response for iteration {iteration_num}")
-        logger.debug(f"MockLLMBrowserClient: Response content: {response[:200]}...")
-        
-        # Stream the response character by character
-        for char in response:
-            yield ChunkEvent(content=char)
-    
-    def reset(self):
-        """Reset iteration counter (useful for testing or restarting simulation)."""
-        self._iteration = 0
-        self._pending_final_response = None
-        logger.info("MockLLMBrowserClient: Reset iteration counter")
 
 
 def get_mock_llm_browser_client(cfg: AppConfig) -> LLMClient:
