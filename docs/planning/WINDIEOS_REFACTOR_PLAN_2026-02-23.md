@@ -1400,3 +1400,20 @@ read_when:
 - Verification:
   - `pytest tests/backend/test_remote_tools.py tests/backend/test_browser_remote_tool.py tests/backend/test_remote_tool_contract.py` (pass; 27 tests)
   - `cd frontend && npm run audit:jscpd` (pass; metrics unchanged this slice)
+
+## Phase 33 Outcome (2026-02-24)
+
+- `LiteLLMClient` provider request-kwargs dedupe shipped:
+  - added shared provider-kwargs builder in:
+    - `backend/src/llm/client.py`
+  - rewired both completion paths to consume shared builder:
+    - `LiteLLMClient.get_completion_response`
+    - `LiteLLMClient.get_completion_stream`
+  - preserved prompt-cache key normalization and stream/non-stream error semantics.
+- jscpd delta after Phase 33 slice:
+  - clones: `191 -> 190`
+  - duplicated lines: `2957 -> 2944`
+  - duplicated tokens: `26147 -> 26048`
+- Verification:
+  - `pytest tests/backend/test_llm_client.py tests/backend/test_local_llm_providers.py tests/backend/test_llm_stream_processor.py` (pass; 42 tests)
+  - `cd frontend && npm run audit:jscpd` (pass; clone/duplicate reduction confirmed)
