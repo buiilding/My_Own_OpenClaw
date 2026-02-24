@@ -11,6 +11,7 @@ import {
   isWithinCooldown,
   resolveConfidence,
 } from '../utils/wakewordEventUtils';
+import { useAudioCaptureRefs } from './useAudioCaptureRefs';
 
 /**
  * Custom hook for wakeword detection using openWakeWord.
@@ -40,10 +41,7 @@ export function useWakewordDetection(
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  const mediaStreamRef = useRef<MediaStream | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const sourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
-  const scriptNodeRef = useRef<ScriptProcessorNode | null>(null);
+  const { mediaStreamRef, audioContextRef, sourceNodeRef, scriptNodeRef } = useAudioCaptureRefs();
   const isCapturingRef = useRef(false);
   const captureGenerationRef = useRef(0);
   const lastDetectionRef = useRef(0);
@@ -153,7 +151,16 @@ export function useWakewordDetection(
       setError(`Audio capture failed: ${err.message}`);
       isCapturingRef.current = false;
     }
-  }, [sampleRate, chunkSize, sendAudioChunk, logUnexpectedAudioContextCloseError]);
+  }, [
+    audioContextRef,
+    chunkSize,
+    logUnexpectedAudioContextCloseError,
+    mediaStreamRef,
+    sampleRate,
+    scriptNodeRef,
+    sendAudioChunk,
+    sourceNodeRef,
+  ]);
 
   // Stop audio capture
   const stopAudioCapture = useCallback(async () => {
@@ -176,7 +183,13 @@ export function useWakewordDetection(
     if (hadResources) {
       console.log('[Wakeword] Audio capture stopped');
     }
-  }, [logUnexpectedAudioContextCloseError]);
+  }, [
+    audioContextRef,
+    logUnexpectedAudioContextCloseError,
+    mediaStreamRef,
+    scriptNodeRef,
+    sourceNodeRef,
+  ]);
 
   // Handle wakeword detection from main process
   useEffect(() => {
