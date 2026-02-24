@@ -52,8 +52,7 @@ class OpenRouterProvider(LLMProvider):
             prompt_cache_key=cache_key,
         )
         if include_stream:
-            params["stream"] = True
-            params["stream_options"] = {"include_usage": True}
+            self._enable_stream_with_usage(params)
         return params
 
     async def get_completion(

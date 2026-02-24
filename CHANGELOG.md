@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(llm-providers): dedupe provider stream request flag wiring via shared `LLMProvider._enable_stream_with_usage` reused by Anthropic/Gemini/Kimi/Local/Mistral/OpenAI/OpenRouter stream paths while preserving provider-specific params
+- docs(planning): record Phase 37 provider stream-flag dedupe outcome/verification in `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md`
 - refactor(openrouter-provider): dedupe OpenRouter completion/stream request-param assembly in `backend/src/llm/providers/openrouter.py` via shared `_build_completion_params`, preserving prompt-cache forwarding and stream usage options
 - docs(planning): record Phase 36 outcome metrics/verification in `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` for OpenRouter completion/stream request-param dedupe
 - fix(chatbox-thinking): stop rendering tool-call payloads in the response pane, render thinking tokens as a transparent scrolling reasoning stream (with top overflow affordance), and show a fake tool-action cursor preview during tool-call phase with explanation text
