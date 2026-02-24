@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(chatbox-ghost-motion): add dedicated renderer test `tests/frontend/ChatBoxResponseGhostMotion.test.js` validating start/end ghost cursor offsets differ and motion duration matches full click timeline; tighten `ChatBoxResponse.test.jsx` to assert real travel (start offsets != end offsets)
 - fix(chatbox-ghost-click): map raw `mouse_control` click coordinates with live `screen_resolution` when `coordinate_contract.target_display_size` is absent so fake cursor still animates from current cursor to target before real click dispatch
 - refactor(frontend-chat-stream): split `useChatStream` tracking/conversation guard logic into `chatStreamTracking.ts` and `chatStreamConversationGate.ts`, remove dead `messageToolMetadata` utility/test, and trim duplicate transcript integration cases now covered by focused helper tests
 - refactor(test-chatbox-response): extract shared tool-call phase/payload helpers in `tests/frontend/ChatBoxResponse.test.jsx` to remove duplicate ghost setup blocks; jscpd clone count returns to `28`

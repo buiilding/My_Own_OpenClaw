@@ -50,6 +50,10 @@ function buildClickToolCallText() {
   });
 }
 
+function parsePxValue(rawValue) {
+  return Number.parseInt((rawValue || '').replace('px', ''), 10);
+}
+
 describe('ChatBoxResponse', () => {
   function emitOverlayPhase(phase) {
     const onPhase = mockListeners.get('response-overlay-phase');
@@ -142,10 +146,12 @@ describe('ChatBoxResponse', () => {
     expect(ghostTrack.classList.contains('is-click-animating')).toBe(true);
 
     await waitFor(() => {
-      expect(ghostTrack.style.getPropertyValue('--ghost-start-offset-x')).not.toBe('0px');
-      expect(ghostTrack.style.getPropertyValue('--ghost-start-offset-y')).not.toBe('0px');
-      expect(ghostTrack.style.getPropertyValue('--ghost-end-offset-x')).not.toBe('0px');
-      expect(ghostTrack.style.getPropertyValue('--ghost-end-offset-y')).not.toBe('0px');
+      const startX = parsePxValue(ghostTrack.style.getPropertyValue('--ghost-start-offset-x'));
+      const startY = parsePxValue(ghostTrack.style.getPropertyValue('--ghost-start-offset-y'));
+      const endX = parsePxValue(ghostTrack.style.getPropertyValue('--ghost-end-offset-x'));
+      const endY = parsePxValue(ghostTrack.style.getPropertyValue('--ghost-end-offset-y'));
+      expect(startX).not.toBe(endX);
+      expect(startY).not.toBe(endY);
     });
   });
 
