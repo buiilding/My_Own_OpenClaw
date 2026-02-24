@@ -189,6 +189,9 @@ If transcript rows missing:
 
 ## Related References
 
+- [Renderer Chat Docs Hub](chat/README.md)
+- [Message Send Surface Policy and Screenshot Capture Reference](chat/message_send_surface_policy_and_screenshot_capture_reference.md)
+- [Chat Store State and New Session Rotation Reference](chat/chat_store_state_and_new_session_rotation_reference.md)
 - [Renderer Overlay Docs Hub](overlays/README.md)
 - [Chatbox Overlay Input, Drag, and Click-Through Reference](overlays/chatbox_overlay_input_drag_and_clickthrough_reference.md)
 - [Response Overlay Phase and Tool-Ghost Runtime Reference](overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md)
