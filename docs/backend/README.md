@@ -52,6 +52,7 @@ Covers:
 - [Tools Docs Hub](tools/README.md)
 - [Frontend Tool Bridge and Policy](tools/FRONTEND_TOOL_BRIDGE_AND_POLICY.md)
 - [Tool Result Ingress and Storage Reference](tools/TOOL_RESULT_INGRESS_AND_STORAGE_REFERENCE.md)
+- [Tool Preparation and Coordinate Resolution Reference](tools/TOOL_PREPARATION_AND_COORDINATE_RESOLUTION_REFERENCE.md)
 
 ### LLM and Services
 
