@@ -3136,3 +3136,19 @@ read_when:
     - `./scripts/test-backend` (pass; 966 tests)
   - sidecar tests:
     - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+
+## Phase 127 Outcome (2026-02-24)
+
+- Full-gate revalidation after backend/sidecar test dedupe wave (`llm-provider-base`, `runtime-shutdown`, `local-store`, `event-bus`, `coordinate-scaling`, `browser-controller`, `provider-factory`, `single-tool-execution`, `system-state`, `response-parser`, `chrome-launcher`):
+  - frontend lint audits:
+    - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
+  - dead-code audit:
+    - `cd frontend && npm run audit:knip` (pass)
+  - duplication audit:
+    - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `72`, duplicated lines `1416`, duplicated tokens `13009`)
+  - frontend tests:
+    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - backend tests:
+    - `./scripts/test-backend` (pass; 966 tests)
+  - sidecar tests:
+    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
