@@ -153,5 +153,6 @@ Where errors are normalized:
 ## Related Pages
 
 - [Sidecar Browser Docs Hub](browser/README.md)
+- [Sidecar Browser Chrome Docs Hub](browser/chrome/README.md)
 - [Browser Runtime Provider, Vendoring, and Native Handler Bridge Reference](browser/browser_runtime_provider_vendoring_and_native_handler_bridge_reference.md)
 - [Browser Adapter Action Routing and Compatibility Semantics Reference](browser/browser_adapter_action_routing_and_compatibility_semantics_reference.md)
