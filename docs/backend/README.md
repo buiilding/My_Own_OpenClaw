@@ -41,8 +41,10 @@ Covers:
 ### API and Contracts
 
 - [API Docs Hub](api/README.md)
+- [API Transport Docs Hub](api/transport/README.md)
 - [Contracts Docs Hub](contracts/README.md)
 - [API and Transport](api/api_and_transport.md)
+- [Safe WebSocket and Transport Envelope Reference](api/transport/safe_websocket_and_transport_envelope_reference.md)
 - [HTTP and WebSocket Endpoint Reference](api/http_and_ws_endpoint_reference.md)
 - [App Assembly and Container Dependency Reference](api/app_assembly_and_container_dependency_reference.md)
 - [Memory Route Validation and Fallback Reference](api/memory_route_validation_and_fallback_reference.md)

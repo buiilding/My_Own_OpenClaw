@@ -8,6 +8,10 @@ title: "API and Transport"
 
 # API and Transport
 
+Transport deep reference:
+
+- [Safe WebSocket and Transport Envelope Reference](transport/safe_websocket_and_transport_envelope_reference.md)
+
 ## Router Surface
 
 Registered routers (`api/routes/__init__.py`):
