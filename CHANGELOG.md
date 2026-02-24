@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(backend-schema-registry): split `SchemaRegistry.get_schema` cache/read-generate/write flow into `_get_cached_schema` and `_generate_and_cache_schema` helpers in `backend/src/tools/schema_registry.py` to centralize canonical-shape enforcement and simplify main control flow
 - refactor(backend-llm-request-kwargs): add shared `build_tool_transport_kwargs` in `backend/src/llm/request_kwargs.py` and reuse it from `LiteLLMClient` + `LLMStreamProcessor` so prompt-cache/tool transport kwarg normalization lives in one implementation
 - refactor(backend-remote-tools): collapse `backend/src/tools/remote.py` into a compatibility re-export shim (`from ...remote_tools import *`) and source `__all__` from `remote_tools.__all__` so remote tool export lists stay single-sourced
 - refactor(backend-browser-schemas): add shared `BrowserSharedCompatFields` base model in `backend/src/tools/browser/shared_compat_fields.py` and reuse it from `BrowserControlArgs` + `BrowserOpenClawCompatArgs` to centralize duplicated dialog/storage/network/emulation compatibility fields
