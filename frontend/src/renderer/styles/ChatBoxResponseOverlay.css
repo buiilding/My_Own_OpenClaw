@@ -85,19 +85,19 @@
 .chatbox-tool-ghost-track.is-click-animating .chatbox-tool-ghost-cursor-wrap {
   transform: translate(var(--ghost-start-offset-x), var(--ghost-start-offset-y));
   transition: none;
-  animation: chatboxToolGhostMove var(--ghost-motion-duration) cubic-bezier(0.22, 1, 0.36, 1) 1 forwards;
+  animation: chatboxToolGhostMove var(--ghost-motion-duration) linear 1 forwards;
 }
 
 .chatbox-tool-ghost-track.is-click-animating .chatbox-tool-ghost-ring {
-  animation: chatboxToolGhostPulse var(--ghost-motion-duration) ease-in-out 1 forwards;
+  animation: none;
 }
 
 .chatbox-tool-ghost-track.is-click-animating .chatbox-tool-ghost-ripple {
-  animation: chatboxToolGhostRipple var(--ghost-motion-duration) ease-in-out 1 forwards;
+  animation: none;
 }
 
 .chatbox-tool-ghost-track.is-click-animating .chatbox-tool-ghost-cursor {
-  animation: chatboxToolGhostCursor var(--ghost-motion-duration) ease-in-out 1 forwards;
+  animation: none;
 }
 
 .chatbox-tool-ghost-target-rect {
@@ -273,9 +273,11 @@
 }
 
 @keyframes chatboxToolGhostMove {
-  0% {
+  0%,
+  31.25% {
     transform: translate(var(--ghost-start-offset-x), var(--ghost-start-offset-y));
   }
+  68.75%,
   100% {
     transform: translate(var(--ghost-end-offset-x), var(--ghost-end-offset-y));
   }

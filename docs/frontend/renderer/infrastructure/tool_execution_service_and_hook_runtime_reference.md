@@ -51,7 +51,10 @@ Turn guardrails:
   - single tool: `tool-result` with `frontend_stale_turn_cancelled`
   - bundle: `tool-bundle-result` with `frontend_stale_turn_cancelled`
 - click-action sync gate:
-  - `mouse_control` actions `click`, `double_click`, `right_click` wait `550ms` before execution
+  - `mouse_control` actions `click`, `double_click`, `right_click` wait full ghost-click timeline (`3200ms`) before execution:
+    - hold at current cursor for `1000ms`
+    - move to target for `1200ms`
+    - hold at target for `1000ms`
   - after wait, stale-turn guard re-check runs before invoking sidecar tool
   - if stale after wait, runner emits cancellation payload instead of executing click
 
