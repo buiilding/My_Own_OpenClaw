@@ -38,6 +38,8 @@ title: "Frontend Renderer Docs Hub"
 - [Transcription Region State Machine and Input Edit Reconciliation Reference](voice/utils/transcription_region_state_machine_and_input_edit_reconciliation_reference.md)
 - [Entrypoint View Routing and Provider Stack Reference](providers/entrypoint_view_routing_and_provider_stack_reference.md)
 - [App Provider Coordinator and Save-Status Runtime Reference](providers/app_provider_coordinator_and_save_status_runtime_reference.md)
+- [Renderer Provider Shortcut Docs Hub](providers/shortcuts/README.md)
+- [Shift+Tab Mode Toggle and Editable Target Guard Reference](providers/shortcuts/shift_tab_mode_toggle_and_editable_target_guard_reference.md)
 - [Chatbox Overlay Input, Drag, and Click-Through Reference](overlays/chatbox_overlay_input_drag_and_clickthrough_reference.md)
 - [Response Overlay Phase and Tool-Ghost Runtime Reference](overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md)
 - [Tool Execution Service and Hook Runtime Reference](infrastructure/tool_execution_service_and_hook_runtime_reference.md)

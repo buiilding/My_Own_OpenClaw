@@ -12,6 +12,8 @@ title: "Frontend Renderer Provider Docs Hub"
 
 - [Entrypoint View Routing and Provider Stack Reference](entrypoint_view_routing_and_provider_stack_reference.md)
 - [App Provider Coordinator and Save-Status Runtime Reference](app_provider_coordinator_and_save_status_runtime_reference.md)
+- [Renderer Provider Shortcut Docs Hub](shortcuts/README.md)
+- [Shift+Tab Mode Toggle and Editable Target Guard Reference](shortcuts/shift_tab_mode_toggle_and_editable_target_guard_reference.md)
 
 ## Code Scope
 
