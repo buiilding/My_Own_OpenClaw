@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(backend-llm-providers): migrate `KimiCodingProvider` onto shared `OnlineLLMProvider` completion/dependency/list-model plumbing while preserving custom stream tool-call aggregation and Anthropic compatibility routing via `_build_request_params`; add regression coverage in `tests/backend/test_kimi_coding_provider.py` for non-stream `custom_llm_provider` wiring (jscpd clone count held at `47`)
 - docs(refactor-plan): add phase-141 full-gate snapshot after backend shared online-provider base extraction (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)
 - refactor(backend-llm-providers): extract shared `OnlineLLMProvider` base (`backend/src/llm/providers/online.py`) and migrate OpenAI/Mistral/OpenRouter/Gemini/Anthropic providers to class-attribute-driven API-key/completion/stream/list-model/prefix behavior while preserving provider-specific thinking-param overrides; add `TestOnlineLLMProvider` coverage in `tests/backend/test_llm_provider_base.py`; jscpd improved from clones `59 -> 47` and duplicated lines `1233 -> 1013`
 - docs(refactor-plan): add phase-140 full-gate snapshot after backend LLM-provider standard completion-param helper dedupe + regression coverage (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)
