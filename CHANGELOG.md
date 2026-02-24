@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-browser-schemas): split OpenClaw compatibility schema into `tools/browser/openclaw_compat_schema.py`, derive compat action registry entries from one source, and add schema-registry coverage for all compat actions
 - docs(backend-config-runtime): add `docs/backend/config/CONFIG_FIELDS_AND_RUNTIME_POLICY.md` for immutable `AppConfig` field defaults, env var/API-key resolution, TTS runtime normalization, and frontend-owned `update-settings` patch boundaries; add `docs/backend/runtime/SESSION_STATE_AND_LIFECYCLE.md` for `SessionManager` lock/task maps, `SessionRuntimeState` containers, cancellation flow, and cleanup semantics; link both pages from `docs/backend/README.md`
 - refactor(sidecar-lazy-imports): add shared `resolve_lazy_attr` helper and reuse it in `browser_use.__getattr__` and `browser_use.llm.__getattr__`; extend lazy import tests for cache + missing-symbol behavior
 - refactor(sidecar-observability-tests): make `observe_debug` a kwargs-driven wrapper over `_observe_with_tags` and dedupe capture scaffolding in `test_browser_use_observability_helpers.py`; jscpd improved to clones `31`, duplicated lines `669`
