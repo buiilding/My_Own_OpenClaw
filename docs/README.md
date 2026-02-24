@@ -37,6 +37,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Frontend Audio Chunk Playback Runtime**](frontend/runtime/AUDIO_CHUNK_PLAYBACK_AND_STOP_SEMANTICS_REFERENCE.md) - Backend `audio-chunk` relay path, renderer playback queue/decoding behavior, and stop/new-query audio reset semantics
 - [**Frontend IPC Channel Reference**](frontend/contracts/IPC_CHANNEL_AND_HANDLER_REFERENCE.md) - Exact send/invoke/on channel ownership and handler map
 - [**Frontend Backend Event Consumer Matrix**](frontend/contracts/BACKEND_EVENT_CONSUMER_MATRIX_REFERENCE.md) - Which renderer modules consume each `from-backend` event type (typed stream, tool runner, config/save status, audio chunks) and drift hotspots
+- [**Frontend Overlay + Wakeword Control Channels**](frontend/contracts/OVERLAY_AND_WAKEWORD_CONTROL_CHANNEL_REFERENCE.md) - Main/renderer contracts for `wakeword-toggle`, `response-overlay-phase`, `response-overlay-visibility`, and `chatbox-focus` behavior
 - [**Frontend Voice Capture + Wakeword Controller**](frontend/renderer/VOICE_CAPTURE_AND_WAKEWORD_CONTROLLER_REFERENCE.md) - Renderer voice transcription and wakeword lifecycle: config gates, mic capture/encoding paths, IPC event flow, and retrigger guardrails
 - [**System Architecture**](architecture/ARCHITECTURE.md) - High-level system design and components
 - [**Backend Architecture**](architecture/BACKEND_ARCHITECTURE.md) - Backend system design and patterns

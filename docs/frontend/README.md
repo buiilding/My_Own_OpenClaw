@@ -54,6 +54,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [IPC Channels and Event Contracts](contracts/IPC_CHANNELS_AND_EVENT_CONTRACTS.md)
 - [IPC Channel and Handler Reference](contracts/IPC_CHANNEL_AND_HANDLER_REFERENCE.md)
 - [Backend Event Consumer Matrix Reference](contracts/BACKEND_EVENT_CONSUMER_MATRIX_REFERENCE.md)
+- [Overlay and Wakeword Control Channel Reference](contracts/OVERLAY_AND_WAKEWORD_CONTROL_CHANNEL_REFERENCE.md)
 
 ## Frontend Code Layout
 
