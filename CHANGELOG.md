@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(test-websocket-connection): merge four duplicated invalid-handshake close-path tests into one parameterized `test_perform_handshake_invalid_payloads_close_socket` case table in `tests/backend/test_websocket_connection.py`
 - refactor(test-tool-preparer): add `_assert_single_result_with_coordinate_method` helper in `tests/backend/test_tool_preparer.py` and reuse it across OCR/manual mouse-preparation tests to remove duplicate assertion blocks
 - refactor(test-tool-result-router): add shared `_make_router` factory in `tests/backend/test_tool_result_router.py` and reuse it across individual/bundle route tests to remove duplicate router-construction scaffolding
 - refactor(test-container-initializer): add shared `_build_ocr_initializer` helper in `tests/backend/test_container_initializer_dev_selection.py` and reuse it in OCR-enabled/disabled initialization tests to remove duplicate initializer/container setup
