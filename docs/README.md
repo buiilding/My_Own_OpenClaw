@@ -27,6 +27,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Frontend Functionality Map**](frontend/README.md) - Detailed module-level renderer, electron-main, and sidecar runtime maps
 - [**Frontend Landing Runtime + Content Reference**](frontend/landing/LANDING_PAGE_RUNTIME_AND_CONTENT_REFERENCE.md) - Standalone landing entrypoint wiring, section/anchor contracts, static content sources, and CSS token/animation behavior
 - [**Backend Functionality Map**](backend/README.md) - Detailed module-level backend runtime and API maps
+- [**Backend Event Bus + Cache Infrastructure**](backend/core/EVENT_BUS_AND_CACHE_INFRASTRUCTURE_REFERENCE.md) - Core event dispatch internals (weakref handlers, MRO cache, error recovery) and cache semantics (TTL/LRU/negative caching/stampede guards)
 - [**Backend Container DI Lifecycle**](backend/bootstrap/CONTAINER_DI_AND_INIT_LIFECYCLE_REFERENCE.md) - Container composition, startup phase sequencing, lazy runtime binders, and config-update propagation
 - [**Backend Config Runtime Policy**](backend/config/CONFIG_FIELDS_AND_RUNTIME_POLICY.md) - Exact config fields, runtime normalization, and frontend patch boundaries
 - [**Frontend Stream State Machine**](frontend/runtime/STREAM_EVENT_STATE_MACHINE.md) - Event-to-phase transitions and per-turn stream tracking behavior
