@@ -1,0 +1,27 @@
+---
+summary: "Frontend renderer transcript docs sub-hub for TranscriptWriter queue/flush behavior, session identity state updates, and session-event persistence contracts."
+read_when:
+  - When changing `frontend/src/renderer/infrastructure/transcript/*` modules or transcript write/retry behavior.
+  - When debugging queued transcript rows, session identity drift, or `transcript-session-update` event delivery.
+title: "Frontend Renderer Transcript Docs Hub"
+---
+
+# Frontend Renderer Transcript Docs Hub
+
+## Deep Pages
+
+- [Transcript Writer Queue Flush and Session Event Reference](transcript_writer_queue_flush_and_session_event_reference.md)
+
+## Code Scope
+
+- `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+- `frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts`
+- `frontend/src/renderer/infrastructure/transcript/sessionInfoStorage.ts`
+- `frontend/src/renderer/infrastructure/transcript/pendingUserQueue.ts`
+- `frontend/src/renderer/infrastructure/transcript/pendingAssistantQueue.ts`
+- `frontend/src/renderer/infrastructure/transcript/pendingToolQueue.ts`
+- `tests/frontend/TranscriptWriter.session.test.ts`
+- `tests/frontend/TranscriptWriter.userAssistant.test.ts`
+- `tests/frontend/TranscriptWriter.tool.test.ts`
+- `tests/frontend/TranscriptSessionState.test.ts`
+- `tests/frontend/TranscriptStorage.test.ts`
