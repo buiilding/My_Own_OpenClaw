@@ -111,9 +111,8 @@ class BaseFile(BaseModel, ABC):
 		file_path.write_text(self.content)
 
 	async def sync_to_disk(self, path: Path) -> None:
-		file_path = path / self.full_name
 		with ThreadPoolExecutor() as executor:
-			await asyncio.get_event_loop().run_in_executor(executor, lambda: file_path.write_text(self.content))
+			await asyncio.get_event_loop().run_in_executor(executor, lambda: self.sync_to_disk_sync(path))
 
 	async def write(self, content: str, path: Path) -> None:
 		self.write_file_content(content)
@@ -223,11 +222,6 @@ class PdfFile(BaseFile):
 		except Exception as e:
 			raise FileSystemError(f"Error: Could not write to file '{self.full_name}'. {str(e)}")
 
-	async def sync_to_disk(self, path: Path) -> None:
-		with ThreadPoolExecutor() as executor:
-			await asyncio.get_event_loop().run_in_executor(executor, lambda: self.sync_to_disk_sync(path))
-
-
 class DocxFile(BaseFile):
 	"""DOCX file implementation"""
 
@@ -262,11 +256,6 @@ class DocxFile(BaseFile):
 			doc.save(str(file_path))
 		except Exception as e:
 			raise FileSystemError(f"Error: Could not write to file '{self.full_name}'. {str(e)}")
-
-	async def sync_to_disk(self, path: Path) -> None:
-		with ThreadPoolExecutor() as executor:
-			await asyncio.get_event_loop().run_in_executor(executor, lambda: self.sync_to_disk_sync(path))
-
 
 class HtmlFile(BaseFile):
 	"""HTML file implementation"""
