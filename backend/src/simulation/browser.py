@@ -10,7 +10,7 @@ from __future__ import annotations
 from backend.src.api.app_assembly import create_api_app
 from backend.src.core.bootstrap.entrypoint import (
     initialize_entrypoint_logger,
-    is_verbose_access_log,
+    run_uvicorn_app,
 )
 from backend.src.simulation.lifespan_factory import build_simulation_lifespan
 from backend.src.simulation.mock_llm_browser_client import get_mock_llm_browser_client
@@ -33,14 +33,8 @@ app = create_api_app(
 
 
 def run() -> None:
-    import uvicorn
-
-    access_log = is_verbose_access_log()
-    uvicorn.run(
+    run_uvicorn_app(
         "backend.src.simulation.browser:app",
-        host="0.0.0.0",
-        port=8765,
-        access_log=access_log,
         reload=True,
         reload_dirs=["backend/src"],
     )

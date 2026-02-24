@@ -13,7 +13,7 @@ from backend.src.api.deps import set_container
 from backend.src.core.bootstrap.coordinator import InitializationCoordinator
 from backend.src.core.bootstrap.entrypoint import (
     initialize_entrypoint_logger,
-    is_verbose_access_log,
+    run_uvicorn_app,
 )
 
 logger = initialize_entrypoint_logger(__name__)
@@ -41,13 +41,7 @@ app = create_api_app(
 )
 
 if __name__ == "__main__":
-    import uvicorn
-    access_log = is_verbose_access_log()
-
-    uvicorn.run(
+    run_uvicorn_app(
         "backend.src.main:app",
-        host="0.0.0.0",
-        port=8765,
-        access_log=access_log,
         reload=False,
     )
