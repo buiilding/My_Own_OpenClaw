@@ -8,6 +8,7 @@ Includes the last 300 commits on `main`.
 
 ### Added
 - docs(refactor-plan): add phase-102 full-gate snapshot after voice-hook shared audio-capture refs dedupe wave (frontend audits/tests + backend + sidecar)
+- refactor(backend-websocket-tests): extract shared logger monkeypatch helper in `tests/backend/test_websocket_connection.py` to dedupe repeated warning/error capture scaffolding in handshake failure tests; jscpd improved from clones `119 -> 118` and duplicated lines `2044 -> 2029`
 - docs(refactor-plan): add phase-101 full-gate snapshot after frontend test mock-wiring tightening wave (frontend audits/tests + backend + sidecar)
 - refactor(frontend-voice-hooks): extract shared `useAudioCaptureRefs` for `useVoiceMode` + `useWakewordDetection` and route capture-ref writes through shared setters to satisfy react-compiler immutability checks while removing remaining TypeScript duplication; jscpd improved from clones `120 -> 119` and duplicated lines `2049 -> 2044`
 - docs(refactor-plan): add phase-100 full-gate snapshot after chat-ui selector-helper dedupe wave (frontend audits/tests + backend + sidecar)
