@@ -31,6 +31,8 @@ const RESPONSE_OVERLAY_PHASE = Object.freeze({
   IDLE: 'idle',
   AWAITING_FIRST_CHUNK: 'awaiting-first-chunk',
   STREAMING: 'streaming',
+  TOOL_CALL: 'tool-call',
+  TOOL_OUTPUT: 'tool-output',
   COMPLETE: 'complete',
   ERROR: 'error',
 });
@@ -133,6 +135,8 @@ function isResponseOverlayStreamingPhase() {
   return (
     responseOverlayPhase === RESPONSE_OVERLAY_PHASE.AWAITING_FIRST_CHUNK
     || responseOverlayPhase === RESPONSE_OVERLAY_PHASE.STREAMING
+    || responseOverlayPhase === RESPONSE_OVERLAY_PHASE.TOOL_CALL
+    || responseOverlayPhase === RESPONSE_OVERLAY_PHASE.TOOL_OUTPUT
   );
 }
 

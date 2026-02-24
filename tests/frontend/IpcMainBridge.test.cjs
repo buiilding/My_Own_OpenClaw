@@ -125,6 +125,37 @@ describe('ipc.cjs bridge', () => {
     expect(handshake.user_id).toBe('bad_user_');
   });
 
+  test('switches response overlay phase to tool-call when backend emits tool-call', () => {
+    const onResponseOverlayPhaseChange = jest.fn();
+    const { ws } = initIpc({ onResponseOverlayPhaseChange });
+    ws.triggerOpen();
+
+    ws.handlers.message(JSON.stringify({ type: 'tool-call', payload: {} }));
+
+    expect(onResponseOverlayPhaseChange).toHaveBeenCalledWith({
+      phase: 'tool-call',
+      source: 'backend',
+    });
+  });
+
+  test('switches response overlay phase back to awaiting-first-chunk after tool-output', () => {
+    const onResponseOverlayPhaseChange = jest.fn();
+    const { ws } = initIpc({ onResponseOverlayPhaseChange });
+    ws.triggerOpen();
+
+    ws.handlers.message(JSON.stringify({ type: 'tool-call', payload: {} }));
+    ws.handlers.message(JSON.stringify({ type: 'tool-output', payload: {} }));
+
+    expect(onResponseOverlayPhaseChange).toHaveBeenNthCalledWith(1, {
+      phase: 'tool-call',
+      source: 'backend',
+    });
+    expect(onResponseOverlayPhaseChange).toHaveBeenNthCalledWith(2, {
+      phase: 'awaiting-first-chunk',
+      source: 'backend',
+    });
+  });
+
   test('ignores malformed to-backend event payloads without crashing', async () => {
     const { handlers, ws } = initIpc();
     ws.triggerOpen();
