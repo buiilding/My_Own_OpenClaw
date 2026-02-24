@@ -27,7 +27,10 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Runtime Paths and Endpoints](main/runtime_paths_and_endpoints.md)
 - [Query Payload and Relay Reference](main/query_payload_and_relay_reference.md)
 - [WebSocket Handshake and Settings Sync Reference](main/websocket_handshake_and_settings_sync_reference.md)
-- [Local Backend Bridge Handler and Window Guard Reference](main/local_backend_bridge_handler_and_window_guard_reference.md)
+- [Main Local-Backend Docs Hub](main/local_backend/README.md)
+- [Local Backend Bridge Overview and Window Guard Index](main/local_backend_bridge_handler_and_window_guard_reference.md)
+- [Local-Backend Process Lifecycle, Readiness, and Request-Correlation Reference](main/local_backend/process_lifecycle_readiness_and_request_correlation_reference.md)
+- [Local-Backend RPC Handler Registry and Payload-Mapper Reference](main/local_backend/rpc_handler_registry_and_payload_mapper_reference.md)
 - [External Focus Snapshot, Restore, and Query-Capture Reference](main/overlays/external_focus_snapshot_restore_and_query_capture_reference.md)
 - [Linux Screenshot Window Hide and Restore Guard Reference](main/overlays/linux_screenshot_window_hide_and_restore_guard_reference.md)
 
