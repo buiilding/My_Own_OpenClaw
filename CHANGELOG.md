@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(planning): add Phase 53 full-gate revalidation snapshot (lint audit, knip, jscpd, frontend tests, backend tests, sidecar tests) after transcript-suite split + wakeword test noise cleanup + dependency pin refresh
 - build(frontend-deps): bump `@types/react-dom` manifest pin from `^18.2.7` to `^18.3.7` (lockfile refreshed) to align with installed 18.3 typings while staying on React 18
 - perf(frontend-tests): silence wakeword bridge console logs in `tests/frontend/WakewordBridge.test.cjs` to keep `jest --runInBand` output readable while preserving all wakeword lifecycle assertions
 - refactor(frontend-transcript-tests): split oversized `tests/frontend/TranscriptWriter.test.ts` into focused `TranscriptWriter.session|userAssistant|tool` suites with shared `TranscriptWriter.testUtils.ts`, preserving all 20 transcript-writer assertions while keeping each file <500 LOC
