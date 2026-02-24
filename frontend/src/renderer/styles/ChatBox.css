@@ -165,7 +165,7 @@ body {
 
 .chatbox-context-indicator {
   position: absolute;
-  top: 1px;
+  top: -2px;
   left: 14px;
   transform: translateY(-100%);
   display: inline-flex;
