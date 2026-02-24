@@ -86,7 +86,9 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Agent System**](architecture/agent_system.md) - Agent orchestrator and execution flow
 - [**Tool System**](architecture/tool_system.md) - Tool execution architecture and development
 - [**Backend Tools Docs Hub**](backend/tools/README.md) - Backend schema bridge, policy filtering, and wait/ingress runtime docs for frontend-executed tools
+- [**Backend Tools Security Docs Hub**](backend/tools/security/README.md) - Core security policy primitives, audit sanitization controls, and tool-executor registry isolation contracts
 - [**Backend Tool Security Policy + Executor**](backend/tools/tool_security_policy_and_executor_reference.md) - Active vs planned tool-security boundary: ToolPolicy filtering, fail-closed permission checks, audit-log hardening, and sandbox executor registry behavior
+- [**Backend Policy Permissions + Audit Sanitization + Executor Registry**](backend/tools/security/policy_permissions_audit_and_executor_registry_reference.md) - `core/security` fail-closed permission rules, path/resource checks, bounded audit-log sanitization semantics, and runtime executor swap behavior
 - [**Backend Tool Result Ingress Reference**](backend/tools/tool_result_ingress_and_storage_reference.md) - End-to-end `tool-result`/`tool-bundle-result` flow across API handler, session routing, storage, and futures
 - [**Backend Query Execution Pipeline**](backend/runtime/query_execution_and_stream_pipeline_reference.md) - Query handler to stream pipeline internals, completion backfill rules, and cancellation/task-tracking behavior
 - [**Backend API Processing Hub**](backend/api/processing/README.md) - Formatter dispatch, stream pipeline ordering, completion fallback resolution, and TTS concurrency docs

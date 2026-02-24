@@ -98,3 +98,7 @@ Current default execution path is direct executor semantics; sandboxed executor 
 4. Implement sandboxed executor isolation strategy before selecting `ProcessSandboxedExecutor`.
 5. Add tests that assert deny-by-default, blocked paths/tools, and audit truncation behavior.
 
+## Related Pages
+
+- [Backend Tools Security Docs Hub](security/README.md)
+- [Policy Permissions, Audit Sanitization, and Executor Registry Reference](security/policy_permissions_audit_and_executor_registry_reference.md)
