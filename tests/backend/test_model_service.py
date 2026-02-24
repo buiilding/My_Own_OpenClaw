@@ -84,24 +84,31 @@ class GeneratorModelsProvider:
         )
 
 
-@pytest.mark.asyncio
-async def test_get_local_models_fetches_local_providers_in_parallel(monkeypatch):
-    state = {
+def _parallel_state() -> dict:
+    return {
         "active_calls": 0,
         "max_active_calls": 0,
         "lock": asyncio.Lock(),
     }
-    factory = {
-        "ollama": FakeLocalProvider("ollama", state),
-        "lmstudio": FakeLocalProvider("lmstudio", state),
-    }
+
+
+async def _get_local_models_with_factory(monkeypatch, factory: dict):
     monkeypatch.setattr(
         "backend.src.llm.providers.create_provider_factory",
         lambda _cfg: factory,
     )
-
     service = ModelService(AppConfig())
-    models = await service.get_local_models()
+    return await service.get_local_models()
+
+
+@pytest.mark.asyncio
+async def test_get_local_models_fetches_local_providers_in_parallel(monkeypatch):
+    state = _parallel_state()
+    factory = {
+        "ollama": FakeLocalProvider("ollama", state),
+        "lmstudio": FakeLocalProvider("lmstudio", state),
+    }
+    models = await _get_local_models_with_factory(monkeypatch, factory)
 
     assert len(models) == 2
     assert {model["provider"] for model in models} == {"ollama", "lmstudio"}
@@ -110,22 +117,12 @@ async def test_get_local_models_fetches_local_providers_in_parallel(monkeypatch)
 
 @pytest.mark.asyncio
 async def test_get_local_models_tolerates_partial_provider_failure(monkeypatch):
-    state = {
-        "active_calls": 0,
-        "max_active_calls": 0,
-        "lock": asyncio.Lock(),
-    }
+    state = _parallel_state()
     factory = {
         "ollama": FakeLocalProvider("ollama", state, should_fail=True),
         "lmstudio": FakeLocalProvider("lmstudio", state),
     }
-    monkeypatch.setattr(
-        "backend.src.llm.providers.create_provider_factory",
-        lambda _cfg: factory,
-    )
-
-    service = ModelService(AppConfig())
-    models = await service.get_local_models()
+    models = await _get_local_models_with_factory(monkeypatch, factory)
 
     assert len(models) == 1
     assert models[0]["provider"] == "lmstudio"
@@ -137,13 +134,7 @@ async def test_get_local_models_deduplicates_provider_model_pairs(monkeypatch):
         "ollama": DuplicateLocalProvider(),
         "lmstudio": DuplicateLocalProvider(),
     }
-    monkeypatch.setattr(
-        "backend.src.llm.providers.create_provider_factory",
-        lambda _cfg: factory,
-    )
-
-    service = ModelService(AppConfig())
-    models = await service.get_local_models()
+    models = await _get_local_models_with_factory(monkeypatch, factory)
 
     assert len(models) == 1
     assert models[0]["provider"] == "ollama"
@@ -153,29 +144,17 @@ async def test_get_local_models_deduplicates_provider_model_pairs(monkeypatch):
 @pytest.mark.asyncio
 async def test_get_local_models_returns_defensive_copy(monkeypatch):
     factory = {"ollama": SharedModelProvider()}
-    monkeypatch.setattr(
-        "backend.src.llm.providers.create_provider_factory",
-        lambda _cfg: factory,
-    )
-
-    service = ModelService(AppConfig())
-    first = await service.get_local_models()
+    first = await _get_local_models_with_factory(monkeypatch, factory)
     first[0]["id"] = "mutated-id"
 
-    second = await service.get_local_models()
+    second = await _get_local_models_with_factory(monkeypatch, factory)
     assert second[0]["id"] == "shared-model"
 
 
 @pytest.mark.asyncio
 async def test_get_local_models_ignores_non_list_provider_payload(monkeypatch):
     factory = {"ollama": MalformedModelsProvider({"id": "not-a-list"})}
-    monkeypatch.setattr(
-        "backend.src.llm.providers.create_provider_factory",
-        lambda _cfg: factory,
-    )
-
-    service = ModelService(AppConfig())
-    models = await service.get_local_models()
+    models = await _get_local_models_with_factory(monkeypatch, factory)
 
     assert models == []
 
@@ -192,13 +171,7 @@ async def test_get_local_models_filters_invalid_model_entries(monkeypatch):
             ]
         )
     }
-    monkeypatch.setattr(
-        "backend.src.llm.providers.create_provider_factory",
-        lambda _cfg: factory,
-    )
-
-    service = ModelService(AppConfig())
-    models = await service.get_local_models()
+    models = await _get_local_models_with_factory(monkeypatch, factory)
 
     assert models == [
         {"id": "valid-model", "provider": "ollama", "display_name": "ollama/valid-model"}
@@ -208,13 +181,7 @@ async def test_get_local_models_filters_invalid_model_entries(monkeypatch):
 @pytest.mark.asyncio
 async def test_get_local_models_accepts_iterable_provider_payloads(monkeypatch):
     factory = {"ollama": GeneratorModelsProvider()}
-    monkeypatch.setattr(
-        "backend.src.llm.providers.create_provider_factory",
-        lambda _cfg: factory,
-    )
-
-    service = ModelService(AppConfig())
-    models = await service.get_local_models()
+    models = await _get_local_models_with_factory(monkeypatch, factory)
 
     assert models == [
         {"id": "g-model", "provider": "ollama", "display_name": "ollama/g-model"}
@@ -269,13 +236,7 @@ async def test_get_local_models_normalizes_ids_provider_and_display_name(
     expected_model,
 ):
     factory = {"ollama": MalformedModelsProvider([raw_model])}
-    monkeypatch.setattr(
-        "backend.src.llm.providers.create_provider_factory",
-        lambda _cfg: factory,
-    )
-
-    service = ModelService(AppConfig())
-    models = await service.get_local_models()
+    models = await _get_local_models_with_factory(monkeypatch, factory)
 
     assert models == [expected_model]
 
