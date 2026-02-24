@@ -34,6 +34,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Tool Execution and Streaming](runtime/TOOL_EXECUTION_AND_STREAMING.md)
 - [Stream Event State Machine](runtime/STREAM_EVENT_STATE_MACHINE.md)
 - [Config Sync and Settings Lifecycle Reference](runtime/CONFIG_SYNC_AND_SETTINGS_LIFECYCLE_REFERENCE.md)
+- [Audio Chunk Playback and Stop Semantics Reference](runtime/AUDIO_CHUNK_PLAYBACK_AND_STOP_SEMANTICS_REFERENCE.md)
 
 ### Sidecar
 
