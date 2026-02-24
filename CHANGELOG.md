@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): add phase-132 full-gate snapshot after sidecar browser checked-state resolver extraction (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)
 - refactor(sidecar-browser-utils): extract shared `_resolve_checked_state` helper in `frontend/src/main/python/tools/browser/browser_use/tools/utils.py` to remove repeated AX checkbox-state fallback logic in click descriptions; jscpd improved from clones `66 -> 65` and duplicated lines `1330 -> 1322`
 - docs(refactor-plan): add phase-131 full-gate snapshot after shared uvicorn-runner entrypoint extraction (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)
 - refactor(backend-entrypoints): add shared `run_uvicorn_app` helper in `backend/src/core/bootstrap/entrypoint.py` and switch `backend/src/main.py`, `backend/src/simulation/main.py`, and `backend/src/simulation/browser.py` to use it for consistent launch/access-log behavior; jscpd totals held at clones `66`, duplicated lines `1330`
