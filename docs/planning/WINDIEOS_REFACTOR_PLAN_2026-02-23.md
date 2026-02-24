@@ -1472,3 +1472,22 @@ read_when:
 - Verification:
   - `pytest tests/backend/test_llm_client.py tests/backend/test_local_llm_providers.py tests/backend/test_parser_validation.py` (pass; 52 tests)
   - `cd frontend && npm run audit:jscpd` (pass; clone/duplicate reduction confirmed)
+
+## Phase 35 Outcome (2026-02-24)
+
+- Scoped exception constructor-path dedupe shipped:
+  - added shared scoped-constructor helpers in:
+    - `backend/src/core/infrastructure/exceptions.py`
+      - `_init_scoped_context_error`
+      - `_init_optional_scoped_context_error`
+  - rewired duplicated scoped init paths in:
+    - `LLMError` (`model` scope)
+    - `MemoryError` (`user_id` scope)
+  - preserved constructor signatures, error-code defaults, metadata include rules, and public attributes (`model`, `user_id`).
+- jscpd delta after Phase 35 slice:
+  - clones: `189 -> 188`
+  - duplicated lines: `2935 -> 2927`
+  - duplicated tokens: `25965 -> 25865`
+- Verification:
+  - `pytest tests/backend/test_exceptions.py tests/backend/test_llm_client.py tests/backend/test_local_llm_providers.py` (pass; 68 tests)
+  - `cd frontend && npm run audit:jscpd` (pass; clone/duplicate reduction confirmed)
