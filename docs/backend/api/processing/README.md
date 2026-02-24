@@ -10,10 +10,13 @@ title: "Backend API Processing Docs Hub"
 
 ## Deep Pages
 
+- [API Processing Formatters Docs Hub](formatters/README.md)
 - [API Processing TTS Docs Hub](tts/README.md)
 - [Formatter Dispatch and Schema Alignment Reference](formatter_dispatch_and_schema_alignment_reference.md)
 - [Stream Pipeline, Completion, and TTS Concurrency Reference](stream_pipeline_completion_and_tts_concurrency_reference.md)
 - [Query Execution Runtime-State and Completion Resolver Reference](query_execution_runtime_state_and_completion_resolver_reference.md)
+- [Base Formatter Guard Utilities and Skip Semantics Reference](formatters/base_formatter_guard_utilities_and_skip_semantics_reference.md)
+- [Formatter Validation and Contract-Test Matrix Reference](formatters/formatter_validation_and_contract_test_matrix_reference.md)
 - [TTS Manager Audio Stream and Cleanup Reference](tts/tts_manager_audio_stream_and_cleanup_reference.md)
 - [TTS Processor Suppression State-Machine Reference](tts/tts_processor_suppression_state_machine_reference.md)
 

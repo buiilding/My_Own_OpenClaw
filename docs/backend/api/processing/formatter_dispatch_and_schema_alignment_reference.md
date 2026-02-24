@@ -181,3 +181,9 @@ If context metadata is missing:
 1. check `QueryExecutionService._build_stream_context(...)` values
 2. check field values are non-empty (falsy values are not attached)
 3. verify message passed through `ResponseFormatter` path rather than direct sender path
+
+## Related Formatter Deep Dives
+
+- [API Processing Formatters Docs Hub](formatters/README.md)
+- [Base Formatter Guard Utilities and Skip Semantics Reference](formatters/base_formatter_guard_utilities_and_skip_semantics_reference.md)
+- [Formatter Validation and Contract-Test Matrix Reference](formatters/formatter_validation_and_contract_test_matrix_reference.md)

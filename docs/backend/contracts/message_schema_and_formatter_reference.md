@@ -175,3 +175,9 @@ Key types emitted to renderer:
 - `backend/src/api/contracts/registry.py:validate_registry_alignment()` checks constant lists vs schema-contract tables.
 - route-table validation checks incoming message literals vs DI route bindings.
 - schema models use `extra="forbid"` in most payloads, with explicit `extra="allow"` only where tool-specific extensibility is intended.
+
+## Related Formatter Deep Dives
+
+- `docs/backend/api/processing/formatters/README.md`
+- `docs/backend/api/processing/formatters/base_formatter_guard_utilities_and_skip_semantics_reference.md`
+- `docs/backend/api/processing/formatters/formatter_validation_and_contract_test_matrix_reference.md`
