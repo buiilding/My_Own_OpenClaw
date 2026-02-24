@@ -332,6 +332,107 @@ def test_internvl_generate_fallback_helper_wraps_dual_failure(monkeypatch):
             chat_error=chat_error,
         )
 
+
+def test_internvl_chat_fallback_helper_returns_chat_output(monkeypatch):
+    model = InternVLModel.__new__(InternVLModel)
+    monkeypatch.setattr(model, "_run_chat_generation", lambda **_kwargs: "chat output")
+
+    output = model._run_chat_with_fallbacks(
+        pixel_values=object(),
+        question="q",
+        num_patches_list=[1],
+        generation_config={"max_new_tokens": 1},
+        model_device="cuda",
+    )
+
+    assert output == "chat output"
+
+
+def test_internvl_chat_fallback_helper_uses_retry_after_cuda_kernel_error(monkeypatch):
+    model = InternVLModel.__new__(InternVLModel)
+    calls = {"count": 0}
+
+    def _chat_impl(**_kwargs):
+        calls["count"] += 1
+        if calls["count"] == 1:
+            raise RuntimeError("no kernel image is available for execution on the device")
+        return "retry output"
+
+    monkeypatch.setattr(model, "_run_chat_generation", _chat_impl)
+    monkeypatch.setattr(model, "_disable_flash_attention_runtime", lambda: True)
+
+    output = model._run_chat_with_fallbacks(
+        pixel_values=object(),
+        question="q",
+        num_patches_list=[1],
+        generation_config={"max_new_tokens": 1},
+        model_device="cuda",
+    )
+
+    assert output == "retry output"
+    assert calls["count"] == 2
+
+
+def test_internvl_chat_fallback_helper_uses_generate_fallback_on_non_cuda_error(monkeypatch):
+    model = InternVLModel.__new__(InternVLModel)
+    captured = {}
+
+    def _chat_impl(**_kwargs):
+        raise RuntimeError("chat failed")
+
+    def _fallback_impl(**kwargs):
+        captured.update(kwargs)
+        return "generated output"
+
+    monkeypatch.setattr(model, "_run_chat_generation", _chat_impl)
+    monkeypatch.setattr(model, "_run_generate_fallback_with_chat_error", _fallback_impl)
+    monkeypatch.setattr(model, "_disable_flash_attention_runtime", lambda: False)
+
+    output = model._run_chat_with_fallbacks(
+        pixel_values="pv",
+        question="q",
+        num_patches_list=[1],
+        generation_config={"max_new_tokens": 1},
+        model_device="cuda",
+    )
+
+    assert output == "generated output"
+    assert str(captured["chat_error"]) == "chat failed"
+    assert captured["model_device"] == "cuda"
+
+
+def test_internvl_chat_fallback_helper_uses_retry_error_for_generate_fallback(monkeypatch):
+    model = InternVLModel.__new__(InternVLModel)
+    calls = {"count": 0}
+    captured = {}
+
+    def _chat_impl(**_kwargs):
+        calls["count"] += 1
+        if calls["count"] == 1:
+            raise RuntimeError("cudaErrorNoKernelImageForDevice")
+        raise RuntimeError("retry failed")
+
+    def _fallback_impl(**kwargs):
+        captured.update(kwargs)
+        return "generated output"
+
+    monkeypatch.setattr(model, "_run_chat_generation", _chat_impl)
+    monkeypatch.setattr(model, "_disable_flash_attention_runtime", lambda: True)
+    monkeypatch.setattr(model, "_run_generate_fallback_with_chat_error", _fallback_impl)
+
+    output = model._run_chat_with_fallbacks(
+        pixel_values="pv",
+        question="q",
+        num_patches_list=[1],
+        generation_config={"max_new_tokens": 1},
+        model_device="cuda",
+    )
+
+    assert output == "generated output"
+    assert calls["count"] == 2
+    assert str(captured["chat_error"]) == "retry failed"
+
+
 def test_loader_falls_back_to_direct_cuda_loading_when_device_map_fails():
     fake_torch = _FakeTorch(cuda_available=True)
     calls = {"device_map": 0, "direct": []}
