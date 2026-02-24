@@ -180,3 +180,9 @@ If wakeword greeting text appears but no greeting audio:
 1. verify wakeword activation payload shows `speech_mode_enabled: true`
 2. inspect `TTSManager.initialize_if_enabled` path for service creation
 3. inspect timeout warnings around `wait_for_audio_completion`
+
+## Related API-Layer Deep Dives
+
+- `docs/backend/api/processing/tts/README.md`
+- `docs/backend/api/processing/tts/tts_manager_audio_stream_and_cleanup_reference.md`
+- `docs/backend/api/processing/tts/tts_processor_suppression_state_machine_reference.md`
