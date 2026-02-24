@@ -1,7 +1,7 @@
 ---
 summary: "Backend runtime services and storage layers: vision, OCR, embeddings, artifacts, semantic APIs, and observability hooks."
 read_when:
-  - When changing OCR/vision behavior, embeddings, or artifact handling.
+  - When changing OCR/vision behavior, embeddings, token counting, or artifact handling.
   - When tracing performance and capacity issues in backend runtime services.
 title: "Services and Storage"
 ---
@@ -62,6 +62,28 @@ Used by:
 
 - `/api/embeddings` endpoint
 - memory-layer retrieval and indexing workflows
+
+## Token Counting Service
+
+Module:
+
+- `services/token_service.py:TokenService`
+
+Responsibilities:
+
+- Normalizes message role/content/tool-call payloads into LiteLLM-compatible shape.
+- Calls `litellm.token_counter(..., use_default_image_token_count=True)` for primary token counting.
+- Falls back to text-character heuristic (`chars // 4`) when LiteLLM counting fails.
+- Exposes process-wide singleton accessor (`get_token_service`) with lock-guarded lazy init.
+
+Used by:
+
+- `agent/llm/token_counting.py` local token estimates in token-count event pipeline
+- conversation-history token cache recompute/increment paths
+
+Deep reference:
+
+- `services/token/token_service_message_normalization_and_fallback_reference.md`
 
 ## Artifact Storage
 

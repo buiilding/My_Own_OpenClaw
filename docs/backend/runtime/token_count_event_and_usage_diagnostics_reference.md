@@ -157,3 +157,8 @@ If token counting becomes expensive:
 1. inspect cache invalidation churn in `ConversationHistory`
 2. inspect repeated fallback path usage from `TokenService` logs
 3. inspect tool-output heavy turns for pruning-driven cache resets
+
+## Related Pages
+
+- [Backend Services Token Docs Hub](../services/token/README.md)
+- [Token Service Message Normalization and Fallback Reference](../services/token/token_service_message_normalization_and_fallback_reference.md)
