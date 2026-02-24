@@ -71,7 +71,7 @@ describe('MessageContent', () => {
 
     expect(screen.getByText('model-facing output')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Details' }));
-    expect(screen.getByText('Model-Facing Tool Output')).toBeInTheDocument();
+    expect(screen.getByText('Tool Output Details')).toBeInTheDocument();
     expect(screen.getByText(/"request_id": "req-1"/)).toBeInTheDocument();
   });
 
@@ -98,7 +98,7 @@ describe('MessageContent', () => {
 
     expect(screen.getByText(/"name": "read_file"/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Details' }));
-    expect(screen.getByText('Model-Facing Tool Call')).toBeInTheDocument();
+    expect(screen.getByText('Tool Call Details')).toBeInTheDocument();
     expect(screen.getByText(/"request_id": "req-1"/)).toBeInTheDocument();
   });
 });

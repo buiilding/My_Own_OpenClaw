@@ -65,10 +65,6 @@ function ToolOutputMessage({ message }) {
       {showDetails && (
         <div className="tool-details-panel">
           <div className="tool-details-block">
-            <div className="tool-details-label">Model-Facing Tool Output</div>
-            <pre className="tool-details-content">{modelFacingOutput}</pre>
-          </div>
-          <div className="tool-details-block">
             <div className="tool-details-label">Tool Output Details</div>
             <pre className="tool-details-content">{JSON.stringify(detailsPayload, null, 2)}</pre>
           </div>
@@ -128,10 +124,6 @@ function ToolCallMessage({ message }) {
       <pre className="tool-call-content">{modelFacingText}</pre>
       {showDetails && (
         <div className="tool-details-panel">
-          <div className="tool-details-block">
-            <div className="tool-details-label">Model-Facing Tool Call</div>
-            <pre className="tool-details-content">{modelFacingText}</pre>
-          </div>
           <div className="tool-details-block">
             <div className="tool-details-label">Tool Call Details</div>
             <pre className="tool-details-content">{JSON.stringify(detailsPayload, null, 2)}</pre>
