@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(backend-vision-internvl): extract `_run_chat_with_fallbacks` in `backend/src/services/vision/providers/internvl.py` to isolate chat/retry/generate fallback orchestration from `_predict_sync`; add focused regression coverage in `tests/backend/test_vision_provider_loader.py` for success, CUDA retry, non-CUDA fallback, and retry-failure fallback branches
 - refactor(frontend-tooling): add explicit `babel-jest` dev dependency in `frontend/package.json` (and lockfile) to satisfy Jest transform dependency resolution, and exclude obsolete manual script `src/main/test_shell.cjs` from `frontend/knip.json` project analysis so `knip` unresolved-import noise is eliminated
 - refactor(backend-browser-schemas): extract shared snapshot-scope field aliases (`refs`, `interactive`, `compact`, `depth`, `selector`, `frame`) into `backend/src/tools/browser/snapshot_scope_fields.py` and reuse them in `BrowserControlArgs` + `BrowserSnapshotArgs`; add regression coverage in `tests/backend/test_browser_remote_tool.py`
 - refactor(backend-llm-provider): add shared `apply_prompt_cache_key` helper in `backend/src/llm/request_kwargs.py`, reuse it in `build_tool_transport_kwargs` and `LLMProvider._build_request_params`, and add `tests/backend/test_llm_request_kwargs.py` to lock prompt-cache normalization behavior
