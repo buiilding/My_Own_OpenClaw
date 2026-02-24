@@ -96,6 +96,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Backend Event Consumer Matrix Reference](contracts/backend_event_consumer_matrix_reference.md)
 - [From-Backend Event Ingress, Typed Guard, and Audio Side-Channel Reference](contracts/events/from_backend_event_ingress_typed_guard_and_audio_side_channel_reference.md)
 - [Local User Message and Query Send-Failure Synthesis Reference](contracts/events/local_user_message_and_query_send_failure_synthesis_reference.md)
+- [Settings and Model ACK Event Routing Reference](contracts/events/settings_and_model_ack_event_routing_reference.md)
 - [Overlay and Wakeword Control Channel Reference](contracts/overlay_and_wakeword_control_channel_reference.md)
 
 ## Frontend Code Layout

@@ -161,4 +161,5 @@ If tool events execute on wrong turn:
 - `docs/frontend/contracts/events/README.md`
 - `docs/frontend/contracts/events/from_backend_event_ingress_typed_guard_and_audio_side_channel_reference.md`
 - `docs/frontend/contracts/events/local_user_message_and_query_send_failure_synthesis_reference.md`
+- `docs/frontend/contracts/events/settings_and_model_ack_event_routing_reference.md`
 - `docs/frontend/contracts/schema_generation_and_event_guard_reference.md`
