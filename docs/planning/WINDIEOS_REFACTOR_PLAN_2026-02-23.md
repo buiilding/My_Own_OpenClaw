@@ -943,3 +943,23 @@ read_when:
   - `cd frontend && npm run test:ci` (pass; 82 suites)
   - `cd frontend && npm run audit:knip` (pass; no findings)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
+
+## Phase 21 Outcome (2026-02-23)
+
+- Voice audio-capture ref dedupe shipped:
+  - added shared ref hook:
+    - `frontend/src/renderer/features/voice/hooks/useAudioCaptureRefs.ts`
+  - rewired duplicated audio-capture ref declarations in:
+    - `frontend/src/renderer/features/voice/hooks/useVoiceMode.ts`
+    - `frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts`
+  - preserved existing audio capture lifecycle behavior across voice mode and wakeword detection.
+- jscpd delta after Phase 21 slice:
+  - clones: `210 -> 209`
+  - duplicated lines: `3187 -> 3182`
+  - duplicated tokens: `27952 -> 27860`
+- Verification:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/VoiceModeHook.test.ts tests/frontend/WakewordDetectionHook.test.ts tests/frontend/VoiceAudioCleanup.test.ts` (pass)
+  - `cd frontend && npm run test:ci` (pass; 82 suites)
+  - `cd frontend && npm run audit:knip` (pass; no findings)
+  - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
