@@ -15,10 +15,10 @@ export const mockExecuteTool = jest.fn().mockResolvedValue(undefined);
 export const mockExecuteToolBundle = jest.fn().mockResolvedValue(undefined);
 let mockCapturedServiceCallbacks: any = null;
 let mockConfig: TestAppConfig = createDefaultTestAppConfig();
-const mockUseAppConfigContext = jest.fn(() => ({ config: mockConfig }));
+const mockUseToolRunnerAppConfigContext = jest.fn(() => ({ config: mockConfig }));
 
 jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
-  useAppConfigContext: () => mockUseAppConfigContext(),
+  useAppConfigContext: () => mockUseToolRunnerAppConfigContext(),
 }));
 
 jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
@@ -53,7 +53,7 @@ export function setStreamTracking(overrides: Record<string, unknown>) {
 
 export function setMockConfig(nextConfig: TestAppConfig) {
   mockConfig = nextConfig;
-  setMockAppConfigContextValue(mockUseAppConfigContext, mockConfig);
+  setMockAppConfigContextValue(mockUseToolRunnerAppConfigContext, mockConfig);
 }
 
 export function getCapturedServiceCallbacks() {
