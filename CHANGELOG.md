@@ -12,6 +12,7 @@ Includes the last 300 commits on `main`.
 - fix(chatbox-thinking): stop rendering tool-call payloads in the response pane, render thinking tokens as a transparent scrolling reasoning stream (with top overflow affordance), and show a fake tool-action cursor preview during tool-call phase with explanation text
 - fix(chatbox-overlay-phase): drive overlay phase transitions from backend tool events so `tool-call` shows ghost-action mode and `tool-output` returns to awaiting/typing state before next streamed assistant chunk
 - fix(chatbox-tool-preview): refine tool ghost UI with slower larger cursor motion, click-region ripple, and right-side explanation bubble for clearer action narration
+- fix(chatbox-loop-visual): add ambient animated glow around the chat pill while agent loop phases are active (`awaiting-first-chunk`, `streaming`, `tool-call`, `tool-output`)
 - fix(chatbox-response): redesign the response pane above the chat pill to a single black panel with brighter text, smooth height animation, auto-stick scrolling, and a top opaque overflow indicator when previous streamed text is above the viewport
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 36 execution slice for OpenRouter completion/stream request-param assembly dedupe in `backend/src/llm/providers/openrouter.py`
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 35 execution slice for scoped exception constructor dedupe in `backend/src/core/infrastructure/exceptions.py` (`LLMError`, `MemoryError`)
