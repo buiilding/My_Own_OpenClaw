@@ -6,6 +6,8 @@ read_when:
 
 # Backend Architecture
 
+See also: [Backend Functionality Map](../backend/README.md) for implementation-level module docs.
+
 ## Overview
 
 The backend is built using Python 3.11 with FastAPI, following clean architecture principles. It uses dependency injection, protocol-based interfaces, and service-based extensions (vision/OCR) instead of plugins.
