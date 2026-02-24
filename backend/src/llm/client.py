@@ -259,6 +259,27 @@ class LiteLLMClient(LLMClient):
                 request_kwargs["prompt_cache_key"] = normalized_key
         return request_kwargs
 
+    def _reset_stream_tracking_state(self, provider: "LLMProvider") -> None:
+        """Reset cached stream diagnostics/payload before a new provider call."""
+        provider.clear_last_stream_usage()
+        self._last_stream_cache_diagnostics = None
+        self._last_stream_response_payload = None
+
+    def _capture_stream_tracking_state(
+        self,
+        *,
+        provider: "LLMProvider",
+        model: str,
+        response_payload: Optional[NormalizedLLMResponse] = None,
+    ) -> None:
+        """Capture provider diagnostics and payload after completion/streaming."""
+        self._last_stream_cache_diagnostics = provider.get_stream_cache_diagnostics(
+            model=model
+        )
+        if response_payload is None:
+            response_payload = provider.get_last_stream_response_payload()
+        self._last_stream_response_payload = response_payload
+
     async def get_completion_response(
         self,
         model: str,
@@ -272,9 +293,7 @@ class LiteLLMClient(LLMClient):
         Delegates completion to provider and validates canonical response payload.
         """
         provider = self._resolve_provider(model)
-        provider.clear_last_stream_usage()
-        self._last_stream_cache_diagnostics = None
-        self._last_stream_response_payload = None
+        self._reset_stream_tracking_state(provider)
 
         try:
             request_kwargs = self._build_provider_request_kwargs(
@@ -294,10 +313,11 @@ class LiteLLMClient(LLMClient):
             raise LLMAPIError(f"LLM completion error: {exc}", model=model) from exc
 
         normalized = self._normalize_response_payload(response, model)
-        self._last_stream_cache_diagnostics = provider.get_stream_cache_diagnostics(
-            model=model
+        self._capture_stream_tracking_state(
+            provider=provider,
+            model=model,
+            response_payload=normalized,
         )
-        self._last_stream_response_payload = normalized
         return normalized
 
     async def get_completion(
@@ -349,9 +369,7 @@ class LiteLLMClient(LLMClient):
             yield ErrorEvent(content=str(exc))
             return
 
-        provider.clear_last_stream_usage()
-        self._last_stream_cache_diagnostics = None
-        self._last_stream_response_payload = None
+        self._reset_stream_tracking_state(provider)
         try:
             request_kwargs = self._build_provider_request_kwargs(
                 tools=tools,
@@ -370,11 +388,9 @@ class LiteLLMClient(LLMClient):
             logger.error("Streaming iteration failed: %s", exc, exc_info=True)
             yield ErrorEvent(content=f"LLM streaming error: {str(exc)}")
         finally:
-            self._last_stream_cache_diagnostics = provider.get_stream_cache_diagnostics(
-                model=model
-            )
-            self._last_stream_response_payload = (
-                provider.get_last_stream_response_payload()
+            self._capture_stream_tracking_state(
+                provider=provider,
+                model=model,
             )
 
     def get_last_stream_cache_diagnostics(self) -> Optional[Dict[str, Any]]:

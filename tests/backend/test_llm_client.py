@@ -174,6 +174,40 @@ async def test_get_completion_response_stores_usage_diagnostics(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_get_completion_response_clears_tracking_state_on_provider_failure(
+    monkeypatch,
+):
+    cfg = AppConfig()
+    client = LiteLLMClient(cfg)
+
+    healthy_provider = DummyProvider(
+        response={"content": "ok"},
+        diagnostics={"model": "model", "status": "hit"},
+    )
+    monkeypatch.setattr("backend.src.llm.client.get_provider", lambda *_: healthy_provider)
+    _ = await client.get_completion_response("model", [])
+    assert client.get_last_stream_cache_diagnostics() is not None
+    assert client.get_last_stream_response_payload() == {"content": "ok"}
+
+    class ExplodingProvider(DummyProvider):
+        async def get_completion(self, model, messages, **kwargs):
+            _ = (model, messages, kwargs)
+            raise RuntimeError("boom")
+
+    exploding_provider = ExplodingProvider(response={"content": "unused"})
+    monkeypatch.setattr(
+        "backend.src.llm.client.get_provider",
+        lambda *_: exploding_provider,
+    )
+
+    with pytest.raises(LLMAPIError, match="LLM completion error"):
+        await client.get_completion_response("model", [])
+
+    assert client.get_last_stream_cache_diagnostics() is None
+    assert client.get_last_stream_response_payload() is None
+
+
+@pytest.mark.asyncio
 async def test_get_completion_stream_provider_error(monkeypatch):
     cfg = AppConfig()
     client = LiteLLMClient(cfg)
