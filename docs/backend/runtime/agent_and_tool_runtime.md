@@ -8,6 +8,11 @@ title: "Agent and Tool Runtime"
 
 # Agent and Tool Runtime
 
+Deep split references:
+
+- [Session Runtime and Config Rewire Reference](../agent/session_runtime_and_config_rewire_reference.md)
+- [Interaction Loop and Tool-Turn Orchestration Reference](../agent/interaction_loop_and_tool_turn_orchestration_reference.md)
+
 ## Core Runtime Object
 
 Primary orchestrator:
