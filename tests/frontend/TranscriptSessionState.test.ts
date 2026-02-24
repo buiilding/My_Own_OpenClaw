@@ -24,6 +24,7 @@ describe('transcript session state', () => {
     const readStoredSessionInfo = jest.fn(() => ({ conversationRef: 'conv-1', userId: 'user-1' }));
     const state = createTranscriptSessionState(readStoredSessionInfo);
 
+    expect(readStoredSessionInfo).not.toHaveBeenCalled();
     expect(state.get()).toEqual({ conversationRef: 'conv-1', userId: 'user-1' });
     expect(readStoredSessionInfo).toHaveBeenCalledTimes(1);
   });
