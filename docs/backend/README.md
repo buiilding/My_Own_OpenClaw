@@ -22,6 +22,7 @@ Covers:
 - LLM provider/model/prompt/parser stack
 - Runtime services (OCR, vision, embeddings, artifacts)
 - Simulation runtime and mock LLM entrypoints
+- SDK tool contracts and sub-agent helper utilities
 
 ## Deep Pages
 
@@ -62,6 +63,9 @@ Covers:
 - [Tool Security Policy and Executor Reference](tools/tool_security_policy_and_executor_reference.md)
 - [Tool Result Ingress and Storage Reference](tools/tool_result_ingress_and_storage_reference.md)
 - [Tool Preparation and Coordinate Resolution Reference](tools/tool_preparation_and_coordinate_resolution_reference.md)
+- [SDK Docs Hub](sdk/README.md)
+- [Tool Context and Schema Contract Reference](sdk/tool_context_and_schema_contract_reference.md)
+- [Sub-Agent Session Helper Runtime Reference](sdk/subagent_session_helper_runtime_reference.md)
 
 ### LLM and Services
 
@@ -90,6 +94,7 @@ Primary folders under `backend/src`:
 - `core/`: bootstrap, DI containers, config, events, interfaces, validation
 - `llm/`: provider abstraction, model cataloging, prompt construction, parsing
 - `tools/`: backend-visible tool schema registry and orchestration bridge
+- `sdk/`: SDK base classes/context contract and helper utilities for child sessions
 - `services/`: OCR, vision, artifacts, token counting
 - `embeddings/`: sentence-transformer embedding provider
 - `simulation/`: mock LLM entrypoints, simulation lifespan wiring, legacy payload adapters
