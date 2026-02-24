@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(simulation-entrypoints): extract shared simulation lifespan bootstrap (`backend/src/simulation/lifespan_factory.py`) and shared entrypoint logging/access-log helpers (`backend/src/core/bootstrap/entrypoint.py`), then wire `backend/src/main.py`, `backend/src/simulation/main.py`, and `backend/src/simulation/browser.py` to the new helpers; jscpd improved from clones `68 -> 66` and duplicated lines `1367 -> 1330`
 - docs(refactor-plan): add phase-129 full-gate snapshot after backend simulation-client base extraction + mock-browser native-tool-call assertion dedupe (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)
 - refactor(backend-simulation-clients): extract shared `BaseSimulationLLMClient` in `backend/src/simulation/base_mock_llm_client.py` and migrate `MockLLMClient` + `MockLLMBrowserClient` to inherit it; tighten browser mock-tool-call assertion shape in `tests/backend/test_mock_llm_browser_client.py` to remove residual clone drift; jscpd improved from clones `71 -> 68` and duplicated lines `1410 -> 1367`
 - docs(refactor-plan): add phase-128 full-gate snapshot after browser-controller typing-locator helper dedupe (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)

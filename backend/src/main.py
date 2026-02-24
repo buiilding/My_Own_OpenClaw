@@ -4,8 +4,6 @@ Main Application Entry Point.
 This module initializes the FastAPI application, sets up dependency injection,
 configures CORS, and manages the application lifecycle including startup and shutdown.
 """
-import logging
-import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -13,11 +11,12 @@ from fastapi import FastAPI
 from backend.src.api.app_assembly import create_api_app
 from backend.src.api.deps import set_container
 from backend.src.core.bootstrap.coordinator import InitializationCoordinator
-from backend.src.core.logging_setup import configure_logging
+from backend.src.core.bootstrap.entrypoint import (
+    initialize_entrypoint_logger,
+    is_verbose_access_log,
+)
 
-configure_logging()
-
-logger = logging.getLogger(__name__)
+logger = initialize_entrypoint_logger(__name__)
 
 
 @asynccontextmanager
@@ -43,7 +42,7 @@ app = create_api_app(
 
 if __name__ == "__main__":
     import uvicorn
-    access_log = os.getenv("WINDIEOS_LOG_PROFILE", "important").lower() == "verbose"
+    access_log = is_verbose_access_log()
 
     uvicorn.run(
         "backend.src.main:app",

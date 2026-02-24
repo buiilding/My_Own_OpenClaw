@@ -4,90 +4,24 @@ Simulation Backend Main Entry Point.
 This is EXACTLY like the main backend, but intercepts LLM calls and returns
 hardcoded responses based on simulation steps. All other features work identically.
 """
-import logging
-import os
-from contextlib import asynccontextmanager
-
-from fastapi import FastAPI
-
 from backend.src.api.app_assembly import create_api_app
-from backend.src.api.deps import set_container
-from backend.src.core.bootstrap.coordinator import InitializationCoordinator
-from backend.src.core.logging_setup import configure_logging
+from backend.src.core.bootstrap.entrypoint import (
+    initialize_entrypoint_logger,
+    is_verbose_access_log,
+)
+from backend.src.simulation.lifespan_factory import build_simulation_lifespan
 from backend.src.simulation.mock_llm_client import get_mock_llm_client
 
-configure_logging()
-
-logger = logging.getLogger(__name__)
+logger = initialize_entrypoint_logger(__name__)
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """
-    Application lifespan manager.
-    
-    Initializes all services using the same InitializationCoordinator as main backend,
-    but overrides the LLM client factory to use MockLLMClient instead.
-    """
-    # Startup: Initialize using the same coordinator as main backend
-    logger.info("Initializing simulation backend (using MockLLMClient)...")
-    
-    from dependency_injector import providers
-    from backend.src.core.bootstrap.coordinator import InitializationCoordinator
-    
-    class SimulationInitializationCoordinator(InitializationCoordinator):
-        """Initialization coordinator for simulation mode."""
-        
-        async def _initialize_container(self) -> None:
-            """Initialize container for simulation mode."""
-            logger.info("Phase 2: Initializing container (simulation mode)...")
-            
-            from backend.src.core.container.facade import Container
-            
-            self.container = Container()
-            
-            # Initialize container normally (including vision service)
-            await self.container.initialize()
-            
-            logger.info("Container initialized (simulation mode).")
-    
-    coordinator = SimulationInitializationCoordinator()
-    container, _session_manager = await coordinator.initialize(app)
-    set_container(container, app=app, force=True)
-    
-    try:
-        # CRITICAL: Override LLM client factory to use MockLLMClient
-        # This intercepts all LLM calls and returns hardcoded responses
-        # Override the provider in the DI container
-        # Note: The factory accepts an optional config parameter for session-specific configs
-        # but always uses MockLLMClient regardless of the config
-        def mock_llm_client_factory(session_config=None):
-            """Factory that always returns MockLLMClient, accepting optional session config."""
-            # Use session config if provided, otherwise use global config
-            cfg = session_config if session_config is not None else container._di_container.core.config()
-            return get_mock_llm_client(cfg)
-        
-        container._di_container.core.llm_client.override(
-            providers.Factory(mock_llm_client_factory)
-        )
-        # Store reference to mock factory so container can use it directly
-        container._mock_llm_factory = mock_llm_client_factory
-        logger.info("LLM client factory overridden to use MockLLMClient")
-        
-        # Reset session factory so it will be recreated with MockLLMClient on next session creation
-        # This ensures all new sessions use the mock client
-        container.invalidate_session_factory()
-        logger.info("Session factory reset - will use MockLLMClient on next session creation")
-        
-        logger.info("Simulation backend initialized successfully")
-        logger.info("Waiting for WebSocket connections on ws://0.0.0.0:8765/ws")
-        
-        yield
-    finally:
-        # Shutdown
-        logger.info("Shutting down simulation backend...")
-        set_container(None, app=app, force=True)
-        logger.info("Shutdown complete.")
+lifespan = build_simulation_lifespan(
+    logger=logger,
+    client_factory=get_mock_llm_client,
+    client_name="MockLLMClient",
+    startup_message="Initializing simulation backend (using MockLLMClient)...",
+    shutdown_message="Shutting down simulation backend...",
+)
 
 
 app = create_api_app(
@@ -97,7 +31,7 @@ app = create_api_app(
 
 if __name__ == "__main__":
     import uvicorn
-    access_log = os.getenv("WINDIEOS_LOG_PROFILE", "important").lower() == "verbose"
+    access_log = is_verbose_access_log()
 
     uvicorn.run(
         "backend.src.simulation.main:app",
