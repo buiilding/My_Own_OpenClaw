@@ -9,6 +9,7 @@ Includes the last 300 commits on `main`.
 ### Added
 - refactor(frontend-chat-stream): split `useChatStream` tracking/conversation guard logic into `chatStreamTracking.ts` and `chatStreamConversationGate.ts`, remove dead `messageToolMetadata` utility/test, and trim duplicate transcript integration cases now covered by focused helper tests
 - refactor(test-chatbox-response): extract shared tool-call phase/payload helpers in `tests/frontend/ChatBoxResponse.test.jsx` to remove duplicate ghost setup blocks; jscpd clone count returns to `28`
+- refactor(frontend-tool-ghost-runtime): remove unused exported click-phase constants from `toolGhostRuntime.ts` and tighten `ChatBoxResponse` fallback error handler to satisfy `lint:audit` + `audit:knip` with no findings
 - refactor(backend-tool-sender): centralize ToolCall/ToolBundle metadata shaping in `_build_tool_event_metadata` and add bundle metadata parity regression coverage in `tests/backend/test_tool_sender.py`
 - refactor(test-kimi-stream): add shared `_run_stream_tool_case` + stream chunk helpers in `tests/backend/test_kimi_coding_provider.py` and remove duplicated tool-stream provider/event setup blocks
 - refactor(frontend-app-provider): remove unnecessary `useEffect` ref-mirror in `AppContextCoordinator` (`AppProvider.jsx`) by assigning refs during render
