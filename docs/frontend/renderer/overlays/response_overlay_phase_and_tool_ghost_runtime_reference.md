@@ -151,6 +151,12 @@ Unmount cleanup forces hide payload.
 - `tests/frontend/OverlayPhaseListener.test.js`
 - `tests/frontend/OverlayFrameSize.test.js`
 
+## Related Pages
+
+- [Renderer Overlay Tool Ghost Docs Hub](tool_ghost/README.md)
+- [Tool Ghost Preview Payload Parsing and Target Mapping Reference](tool_ghost/tool_ghost_preview_payload_parsing_and_target_mapping_reference.md)
+- [Frontend Renderer Overlay Docs Hub](README.md)
+
 ## Debug Checklist
 
 If overlay stays in awaiting mode after chunks arrive:
