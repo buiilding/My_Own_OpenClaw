@@ -10,6 +10,7 @@ title: "Backend Contracts Docs Hub"
 
 ## Deep Pages
 
+- [Streaming Events Contracts Docs Hub](events/README.md)
 - [WebSocket Message Contracts](websocket_message_contracts.md)
 - [Message Schema and Formatter Reference](message_schema_and_formatter_reference.md)
 
@@ -18,3 +19,5 @@ title: "Backend Contracts Docs Hub"
 - `backend/src/api/schema.py`
 - `backend/src/core/container/incoming_routing.py`
 - `backend/src/api/processing/formatter.py`
+- `backend/src/core/events/streaming_events.py`
+- `backend/src/core/types/enums.py`

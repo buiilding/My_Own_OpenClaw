@@ -178,6 +178,8 @@ Key types emitted to renderer:
 
 ## Related Formatter Deep Dives
 
+- `docs/backend/contracts/events/README.md`
+- `docs/backend/contracts/events/streaming_event_to_formatter_and_outgoing_contract_alignment_reference.md`
 - `docs/backend/api/processing/formatters/README.md`
 - `docs/backend/api/processing/formatters/base_formatter_guard_utilities_and_skip_semantics_reference.md`
 - `docs/backend/api/processing/formatters/formatter_validation_and_contract_test_matrix_reference.md`

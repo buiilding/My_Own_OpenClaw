@@ -48,6 +48,7 @@ Covers:
 - [API Processing TTS Docs Hub](api/processing/tts/README.md)
 - [API Transport Docs Hub](api/transport/README.md)
 - [Contracts Docs Hub](contracts/README.md)
+- [Contracts Streaming Events Docs Hub](contracts/events/README.md)
 - [API and Transport](api/api_and_transport.md)
 - [Safe WebSocket and Transport Envelope Reference](api/transport/safe_websocket_and_transport_envelope_reference.md)
 - [HTTP and WebSocket Endpoint Reference](api/http_and_ws_endpoint_reference.md)
@@ -65,6 +66,8 @@ Covers:
 - [TTS Processor Suppression State-Machine Reference](api/processing/tts/tts_processor_suppression_state_machine_reference.md)
 - [WebSocket Message Contracts](contracts/websocket_message_contracts.md)
 - [Message Schema and Formatter Reference](contracts/message_schema_and_formatter_reference.md)
+- [Streaming Event Dataclass and Enum Semantics Reference](contracts/events/streaming_event_dataclass_and_enum_semantics_reference.md)
+- [Streaming Event to Formatter and Outgoing Contract Alignment Reference](contracts/events/streaming_event_to_formatter_and_outgoing_contract_alignment_reference.md)
 - [Handler Behavior Matrix](api/handler_behavior_matrix.md)
 
 ### Runtime and Tools
