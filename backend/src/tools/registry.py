@@ -133,7 +133,8 @@ class ToolRegistry:
         Returns:
             List of function declarations for the specified tools
         """
-        filtered_tools = [t for t in self.get_all_tools() if t.name in tool_names]
+        tool_name_set = set(tool_names)
+        filtered_tools = [tool for tool in self.get_all_tools() if tool.name in tool_name_set]
         return self.schema_registry.get_declarations(filtered_tools)
 
     def is_tool_available(self, tool_name: str) -> bool:
