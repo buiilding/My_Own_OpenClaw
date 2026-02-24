@@ -1,0 +1,1921 @@
+{
+  "statistics": {
+    "detectionDate": "2026-02-24T18:07:53.815Z",
+    "formats": {
+      "python": {
+        "sources": {
+          "tests/backend/websocket_route_test_utils.py": {
+            "lines": 19,
+            "tokens": 144,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/tool_validator_test_utils.py": {
+            "lines": 36,
+            "tokens": 252,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_websocket_task_manager.py": {
+            "lines": 242,
+            "tokens": 1806,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_websocket_route.py": {
+            "lines": 88,
+            "tokens": 700,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_websocket_message_handler.py": {
+            "lines": 395,
+            "tokens": 3077,
+            "sources": 1,
+            "clones": 3,
+            "duplicatedLines": 40,
+            "duplicatedTokens": 254,
+            "percentage": 10.13,
+            "percentageTokens": 8.25,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_websocket_json_parse.py": {
+            "lines": 143,
+            "tokens": 997,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_websocket_connection.py": {
+            "lines": 269,
+            "tokens": 2190,
+            "sources": 1,
+            "clones": 7,
+            "duplicatedLines": 74,
+            "duplicatedTokens": 512,
+            "percentage": 27.51,
+            "percentageTokens": 23.38,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_vision_venus_provider.py": {
+            "lines": 56,
+            "tokens": 539,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_vision_utils.py": {
+            "lines": 29,
+            "tokens": 168,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_vision_service.py": {
+            "lines": 132,
+            "tokens": 1108,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_vision_provider_loader.py": {
+            "lines": 368,
+            "tokens": 2582,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_vision_coordinates.py": {
+            "lines": 69,
+            "tokens": 594,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_validation_utils.py": {
+            "lines": 120,
+            "tokens": 883,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_tts_buffer.py": {
+            "lines": 226,
+            "tokens": 1844,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_trust_boundary_metrics.py": {
+            "lines": 130,
+            "tokens": 952,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_transport_sender.py": {
+            "lines": 36,
+            "tokens": 285,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_transport_envelope.py": {
+            "lines": 93,
+            "tokens": 614,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_tool_sender.py": {
+            "lines": 133,
+            "tokens": 1163,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_tool_result_storage.py": {
+            "lines": 128,
+            "tokens": 1096,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_tool_result_router.py": {
+            "lines": 185,
+            "tokens": 1616,
+            "sources": 1,
+            "clones": 12,
+            "duplicatedLines": 100,
+            "duplicatedTokens": 804,
+            "percentage": 54.05,
+            "percentageTokens": 49.75,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_tool_result_receiver.py": {
+            "lines": 76,
+            "tokens": 584,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_tool_result_orchestrator.py": {
+            "lines": 120,
+            "tokens": 824,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_tool_result_handler.py": {
+            "lines": 84,
+            "tokens": 689,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_tool_result_formatting.py": {
+            "lines": 114,
+            "tokens": 868,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_tool_registry_schema.py": {
+            "lines": 187,
+            "tokens": 1525,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_tool_preparer.py": {
+            "lines": 137,
+            "tokens": 1068,
+            "sources": 1,
+            "clones": 2,
+            "duplicatedLines": 16,
+            "duplicatedTokens": 144,
+            "percentage": 11.68,
+            "percentageTokens": 13.48,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_tool_policy.py": {
+            "lines": 111,
+            "tokens": 811,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_tool_bundle_formatter.py": {
+            "lines": 58,
+            "tokens": 493,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_token_service_fallback.py": {
+            "lines": 355,
+            "tokens": 2575,
+            "sources": 1,
+            "clones": 8,
+            "duplicatedLines": 72,
+            "duplicatedTokens": 578,
+            "percentage": 20.28,
+            "percentageTokens": 22.45,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_stream_pipeline.py": {
+            "lines": 87,
+            "tokens": 767,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_single_tool_execution.py": {
+            "lines": 105,
+            "tokens": 933,
+            "sources": 1,
+            "clones": 2,
+            "duplicatedLines": 16,
+            "duplicatedTokens": 164,
+            "percentage": 15.24,
+            "percentageTokens": 17.58,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_session_manager.py": {
+            "lines": 239,
+            "tokens": 2083,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_session_llm_factory.py": {
+            "lines": 75,
+            "tokens": 511,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_session_initializer.py": {
+            "lines": 232,
+            "tokens": 1661,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_session_cleanup.py": {
+            "lines": 71,
+            "tokens": 624,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_screenshot_state.py": {
+            "lines": 86,
+            "tokens": 724,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_screenshot_manager.py": {
+            "lines": 146,
+            "tokens": 1212,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_safe_websocket.py": {
+            "lines": 169,
+            "tokens": 1681,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_result_helpers.py": {
+            "lines": 85,
+            "tokens": 616,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_response_parser_limits.py": {
+            "lines": 55,
+            "tokens": 371,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_response_parser.py": {
+            "lines": 215,
+            "tokens": 1790,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_response_formatter.py": {
+            "lines": 130,
+            "tokens": 902,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_resolved_tool_call_storage.py": {
+            "lines": 51,
+            "tokens": 429,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_remote_tools.py": {
+            "lines": 122,
+            "tokens": 1042,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_remote_tool_contract.py": {
+            "lines": 29,
+            "tokens": 235,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_provider_factory_helpers.py": {
+            "lines": 141,
+            "tokens": 986,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_prompt_manager.py": {
+            "lines": 152,
+            "tokens": 1186,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_prompt_constructor_utils.py": {
+            "lines": 238,
+            "tokens": 1615,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_parser_validation.py": {
+            "lines": 261,
+            "tokens": 2000,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_parser_types.py": {
+            "lines": 65,
+            "tokens": 500,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_parser_extraction.py": {
+            "lines": 196,
+            "tokens": 1287,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_outgoing_schema_contract.py": {
+            "lines": 100,
+            "tokens": 669,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_ocr_service.py": {
+            "lines": 223,
+            "tokens": 1953,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_ocr_coordinate_resolver.py": {
+            "lines": 204,
+            "tokens": 1777,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_model_service.py": {
+            "lines": 260,
+            "tokens": 1868,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_mock_llm_client.py": {
+            "lines": 67,
+            "tokens": 579,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_mock_llm_browser_client.py": {
+            "lines": 172,
+            "tokens": 1255,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_messages_and_converters.py": {
+            "lines": 134,
+            "tokens": 1089,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_message_handler_registry.py": {
+            "lines": 96,
+            "tokens": 722,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_memory_routes.py": {
+            "lines": 242,
+            "tokens": 1818,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_logging_setup.py": {
+            "lines": 13,
+            "tokens": 72,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_local_llm_providers.py": {
+            "lines": 198,
+            "tokens": 1617,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_llm_stream_processor.py": {
+            "lines": 467,
+            "tokens": 3109,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_llm_client.py": {
+            "lines": 555,
+            "tokens": 4488,
+            "sources": 1,
+            "clones": 2,
+            "duplicatedLines": 10,
+            "duplicatedTokens": 120,
+            "percentage": 1.8,
+            "percentageTokens": 2.67,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_kimi_coding_provider.py": {
+            "lines": 137,
+            "tokens": 1029,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_interaction_loop.py": {
+            "lines": 126,
+            "tokens": 898,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_incoming_routing.py": {
+            "lines": 151,
+            "tokens": 1011,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_formatters.py": {
+            "lines": 411,
+            "tokens": 2967,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_exceptions.py": {
+            "lines": 333,
+            "tokens": 2162,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_events.py": {
+            "lines": 384,
+            "tokens": 2735,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_event_bus.py": {
+            "lines": 661,
+            "tokens": 4666,
+            "sources": 1,
+            "clones": 1,
+            "duplicatedLines": 10,
+            "duplicatedTokens": 78,
+            "percentage": 1.51,
+            "percentageTokens": 1.67,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_embeddings_provider.py": {
+            "lines": 82,
+            "tokens": 735,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_dev_tool_selection.py": {
+            "lines": 119,
+            "tokens": 859,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_coordinate_scaling.py": {
+            "lines": 230,
+            "tokens": 1961,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_coordinate_contract.py": {
+            "lines": 57,
+            "tokens": 450,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_conversation_history.py": {
+            "lines": 206,
+            "tokens": 1619,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_context_factory.py": {
+            "lines": 125,
+            "tokens": 1074,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_container_initializer_dev_selection.py": {
+            "lines": 82,
+            "tokens": 603,
+            "sources": 1,
+            "clones": 2,
+            "duplicatedLines": 14,
+            "duplicatedTokens": 146,
+            "percentage": 17.07,
+            "percentageTokens": 24.21,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_config_subscriptions.py": {
+            "lines": 190,
+            "tokens": 1285,
+            "sources": 1,
+            "clones": 1,
+            "duplicatedLines": 10,
+            "duplicatedTokens": 78,
+            "percentage": 5.26,
+            "percentageTokens": 6.07,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_config_service.py": {
+            "lines": 264,
+            "tokens": 2109,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_config_models.py": {
+            "lines": 252,
+            "tokens": 1970,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_config_manager.py": {
+            "lines": 134,
+            "tokens": 941,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_config_loader.py": {
+            "lines": 137,
+            "tokens": 935,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_categorization.py": {
+            "lines": 55,
+            "tokens": 470,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_cache_layer.py": {
+            "lines": 86,
+            "tokens": 679,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_cache_entry.py": {
+            "lines": 133,
+            "tokens": 1088,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_bundle_result_formatter.py": {
+            "lines": 116,
+            "tokens": 799,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_bundle_execution.py": {
+            "lines": 105,
+            "tokens": 869,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_bundle_detection.py": {
+            "lines": 56,
+            "tokens": 440,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_browser_remote_tool.py": {
+            "lines": 163,
+            "tokens": 1233,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_artifacts_store.py": {
+            "lines": 188,
+            "tokens": 1609,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_artifact_routes.py": {
+            "lines": 135,
+            "tokens": 1058,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_app_assembly.py": {
+            "lines": 47,
+            "tokens": 357,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_api_errors.py": {
+            "lines": 203,
+            "tokens": 1366,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_api_contract_registry.py": {
+            "lines": 112,
+            "tokens": 895,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/test_api_container_source.py": {
+            "lines": 106,
+            "tokens": 792,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "tests/backend/response_parser_test_utils.py": {
+            "lines": 45,
+            "tokens": 384,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          }
+        },
+        "total": {
+          "lines": 15451,
+          "tokens": 118266,
+          "sources": 97,
+          "clones": 20,
+          "duplicatedLines": 181,
+          "duplicatedTokens": 1439,
+          "percentage": 1.17,
+          "percentageTokens": 1.22,
+          "newDuplicatedLines": 0,
+          "newClones": 0
+        }
+      }
+    },
+    "total": {
+      "lines": 15451,
+      "tokens": 118266,
+      "sources": 97,
+      "clones": 20,
+      "duplicatedLines": 181,
+      "duplicatedTokens": 1439,
+      "percentage": 1.17,
+      "percentageTokens": 1.22,
+      "newDuplicatedLines": 0,
+      "newClones": 0
+    }
+  },
+  "duplicates": [
+    {
+      "format": "python",
+      "lines": 17,
+      "fragment": ",\n                \"screenshot_url\": \"http://127.0.0.1:8765/api/artifacts/shot.jpg\",\n            },\n        }\n    )\n\n    message, error = await mh.parse_and_validate_message(\n        payload, user_id=\"user_1\", max_message_size=4096\n    )\n\n    assert message is None\n    assert error is not None\n    assert \"screenshot_url\" in error\n\n\n@pytest.mark.asyncio\nasync def test_parse_and_validate_message_accepts_structured_bundle_step_output",
+      "tokens": 0,
+      "firstFile": {
+        "name": "tests/backend/test_websocket_message_handler.py",
+        "start": 195,
+        "end": 211,
+        "startLoc": {
+          "line": 195,
+          "column": 2,
+          "position": 1409
+        },
+        "endLoc": {
+          "line": 211,
+          "column": 70,
+          "position": 1502
+        }
+      },
+      "secondFile": {
+        "name": "tests/backend/test_websocket_message_handler.py",
+        "start": 171,
+        "end": 187,
+        "startLoc": {
+          "line": 171,
+          "column": 12,
+          "position": 1253
+        },
+        "endLoc": {
+          "line": 187,
+          "column": 73,
+          "position": 1346
+        }
+      }
+    },
+    {
+      "format": "python",
+      "lines": 9,
+      "fragment": ", 1)\n    called = {\"executor\": False}\n\n    class FakeLoop:\n        async def run_in_executor(self, executor, fn, data):\n            called[\"executor\"] = True\n            return fn(data)\n\n    monkeypatch.setattr(connection_module",
+      "tokens": 0,
+      "firstFile": {
+        "name": "tests/backend/test_websocket_connection.py",
+        "start": 106,
+        "end": 114,
+        "startLoc": {
+          "line": 106,
+          "column": 38,
+          "position": 863
+        },
+        "endLoc": {
+          "line": 114,
+          "column": 18,
+          "position": 931
+        }
+      },
+      "secondFile": {
+        "name": "tests/backend/test_websocket_message_handler.py",
+        "start": 271,
+        "end": 280,
+        "startLoc": {
+          "line": 271,
+          "column": 28,
+          "position": 1991
+        },
+        "endLoc": {
+          "line": 280,
+          "column": 3,
+          "position": 2060
+        }
+      }
+    },
+    {
+      "format": "python",
+      "lines": 12,
+      "fragment": ")\n    safe_ws = DummySafeWebSocket()\n\n    assigned_user_id = await perform_handshake(websocket, safe_ws)\n\n    assert assigned_user_id is None\n    assert safe_ws.closed\n    assert safe_ws.closed[0][0] == 1008\n\n\n@pytest.mark.asyncio\nasync def test_perform_handshake_invalid_user_id_closes_socket",
+      "tokens": 0,
+      "firstFile": {
+        "name": "tests/backend/test_websocket_connection.py",
+        "start": 137,
+        "end": 148,
+        "startLoc": {
+          "line": 137,
+          "column": 2,
+          "position": 1128
+        },
+        "endLoc": {
+          "line": 148,
+          "column": 53,
+          "position": 1201
+        }
+      },
+      "secondFile": {
+        "name": "tests/backend/test_websocket_connection.py",
+        "start": 125,
+        "end": 136,
+        "startLoc": {
+          "line": 125,
+          "column": 12,
+          "position": 1027
+        },
+        "endLoc": {
+          "line": 136,
+          "column": 53,
+          "position": 1100
+        }
+      }
+    },
+    {
+      "format": "python",
+      "lines": 12,
+      "fragment": "}))\n    safe_ws = DummySafeWebSocket()\n\n    assigned_user_id = await perform_handshake(websocket, safe_ws)\n\n    assert assigned_user_id is None\n    assert safe_ws.closed\n    assert safe_ws.closed[0][0] == 1008\n\n\n@pytest.mark.asyncio\nasync def test_perform_handshake_non_object_payload_closes_socket",
+      "tokens": 0,
+      "firstFile": {
+        "name": "tests/backend/test_websocket_connection.py",
+        "start": 149,
+        "end": 160,
+        "startLoc": {
+          "line": 149,
+          "column": 6,
+          "position": 1233
+        },
+        "endLoc": {
+          "line": 160,
+          "column": 56,
+          "position": 1308
+        }
+      },
+      "secondFile": {
+        "name": "tests/backend/test_websocket_connection.py",
+        "start": 137,
+        "end": 136,
+        "startLoc": {
+          "line": 137,
+          "column": 12,
+          "position": 1126
+        },
+        "endLoc": {
+          "line": 136,
+          "column": 53,
+          "position": 1100
+        }
+      }
+    },
+    {
+      "format": "python",
+      "lines": 12,
+      "fragment": "))\n    safe_ws = DummySafeWebSocket()\n\n    assigned_user_id = await perform_handshake(websocket, safe_ws)\n\n    assert assigned_user_id is None\n    assert safe_ws.closed\n    assert safe_ws.closed[0][0] == 1008\n\n\n@pytest.mark.asyncio\nasync def test_perform_handshake_parse_runtime_error_closes_socket",
+      "tokens": 0,
+      "firstFile": {
+        "name": "tests/backend/test_websocket_connection.py",
+        "start": 161,
+        "end": 172,
+        "startLoc": {
+          "line": 161,
+          "column": 2,
+          "position": 1335
+        },
+        "endLoc": {
+          "line": 172,
+          "column": 57,
+          "position": 1409
+        }
+      },
+      "secondFile": {
+        "name": "tests/backend/test_websocket_connection.py",
+        "start": 137,
+        "end": 136,
+        "startLoc": {
+          "line": 137,
+          "column": 2,
+          "position": 1127
+        },
+        "endLoc": {
+          "line": 136,
+          "column": 53,
+          "position": 1100
+        }
+      }
+    },
+    {
+      "format": "python",
+      "lines": 8,
+      "fragment": "():\n    router = ToolResultRouter(\n        receiver=None,\n        screenshot_processor=FakeScreenshotProcessor(),\n        result_storage=FakeResultStorage(),\n        session=DummySession(),\n    )\n    result = ToolResult(success=True, data={\"output\"",
+      "tokens": 0,
+      "firstFile": {
+        "name": "tests/backend/test_tool_result_router.py",
+        "start": 63,
+        "end": 70,
+        "startLoc": {
+          "line": 63,
+          "column": 48,
+          "position": 524
+        },
+        "endLoc": {
+          "line": 70,
+          "column": 9,
+          "position": 584
+        }
+      },
+      "secondFile": {
+        "name": "tests/backend/test_tool_result_router.py",
+        "start": 46,
+        "end": 53,
+        "startLoc": {
+          "line": 46,
+          "column": 61,
+          "position": 364
+        },
+        "endLoc": {
+          "line": 53,
+          "column": 13,
+          "position": 424
+        }
+      }
+    },
+    {
+      "format": "python",
+      "lines": 10,
+      "fragment": "():\n    router = ToolResultRouter(\n        receiver=None,\n        screenshot_processor=FakeScreenshotProcessor(),\n        result_storage=FakeResultStorage(),\n        session=DummySession(),\n    )\n    result = ToolResult(\n        success=True,\n        data={\"output\": \"ok\",",
+      "tokens": 0,
+      "firstFile": {
+        "name": "tests/backend/test_tool_result_router.py",
+        "start": 80,
+        "end": 89,
+        "startLoc": {
+          "line": 80,
+          "column": 58,
+          "position": 666
+        },
+        "endLoc": {
+          "line": 89,
+          "column": 2,
+          "position": 733
+        }
+      },
+      "secondFile": {
+        "name": "tests/backend/test_tool_result_router.py",
+        "start": 46,
+        "end": 70,
+        "startLoc": {
+          "line": 46,
+          "column": 61,
+          "position": 364
+        },
+        "endLoc": {
+          "line": 70,
+          "column": 2,
+          "position": 588
+        }
+      }
+    },
+    {
+      "format": "python",
+      "lines": 12,
+      "fragment": "():\n    router = ToolResultRouter(\n        receiver=None,\n        screenshot_processor=FakeScreenshotProcessor(),\n        result_storage=FakeResultStorage(),\n        session=DummySession(),\n    )\n    result = ToolResult(\n        success=True,\n        data={\n            \"output\": \"ok\",\n            \"system_state\": {\"active_window\"",
+      "tokens": 0,
+      "firstFile": {
+        "name": "tests/backend/test_tool_result_router.py",
+        "start": 98,
+        "end": 109,
+        "startLoc": {
+          "line": 98,
+          "column": 59,
+          "position": 796
+        },
+        "endLoc": {
+          "line": 109,
+          "column": 16,
+          "position": 872
+        }
+      },
+      "secondFile": {
+        "name": "tests/backend/test_tool_result_router.py",
+        "start": 46,
+        "end": 89,
+        "startLoc": {
+          "line": 46,
+          "column": 61,
+          "position": 364
+        },
+        "endLoc": {
+          "line": 89,
+          "column": 20,
+          "position": 739
+        }
+      }
+    },
+    {
+      "format": "python",
+      "lines": 10,
+      "fragment": "():\n    router = ToolResultRouter(\n        receiver=None,\n        screenshot_processor=FakeScreenshotProcessor(),\n        result_storage=FakeResultStorage(),\n        session=DummySession(),\n    )\n    result = ToolResult(success=True, data={\"screenshot\": \"shot\"})\n\n    await router.route_bundle_result",
+      "tokens": 0,
+      "firstFile": {
+        "name": "tests/backend/test_tool_result_router.py",
+        "start": 138,
+        "end": 147,
+        "startLoc": {
+          "line": 138,
+          "column": 59,
+          "position": 1129
+        },
+        "endLoc": {
+          "line": 147,
+          "column": 20,
+          "position": 1202
+        }
+      },
+      "secondFile": {
+        "name": "tests/backend/test_tool_result_router.py",
+        "start": 46,
+        "end": 55,
+        "startLoc": {
+          "line": 46,
+          "column": 61,
+          "position": 364
+        },
+        "endLoc": {
+          "line": 55,
+          "column": 24,
+          "position": 437
+        }
+      }
+    },
+    {
+      "format": "python",
+      "lines": 8,
+      "fragment": "(monkeypatch):\n    router = ToolResultRouter(\n        receiver=None,\n        screenshot_processor=FakeScreenshotProcessor(),\n        result_storage=FakeResultStorage(),\n        session=DummySession(),\n    )\n    monkeypatch.setattr(router, \"_looks_like_artifact_id\", lambda value: value == \"bundle.jpg\"",
+      "tokens": 0,
+      "firstFile": {
+        "name": "tests/backend/test_tool_result_router.py",
+        "start": 155,
+        "end": 162,
+        "startLoc": {
+          "line": 155,
+          "column": 49,
+          "position": 1289
+        },
+        "endLoc": {
+          "line": 162,
+          "column": 13,
+          "position": 1355
+        }
+      },
+      "secondFile": {
+        "name": "tests/backend/test_tool_result_router.py",
+        "start": 120,
+        "end": 127,
+        "startLoc": {
+          "line": 120,
+          "column": 53,
+          "position": 950
+        },
+        "endLoc": {
+          "line": 127,
+          "column": 11,
+          "position": 1016
+        }
+      }
+    },
+    {
+      "format": "python",
+      "lines": 8,
+      "fragment": "():\n    router = ToolResultRouter(\n        receiver=None,\n        screenshot_processor=FakeScreenshotProcessor(),\n        result_storage=FakeResultStorage(),\n        session=DummySession(),\n    )\n    result = ToolResult(success=True, data={\"system_state\"",
+      "tokens": 0,
+      "firstFile": {
+        "name": "tests/backend/test_tool_result_router.py",
+        "start": 173,
+        "end": 180,
+        "startLoc": {
+          "line": 173,
+          "column": 71,
+          "position": 1468
+        },
+        "endLoc": {
+          "line": 180,
+          "column": 15,
+          "position": 1528
+        }
+      },
+      "secondFile": {
+        "name": "tests/backend/test_tool_result_router.py",
+        "start": 46,
+        "end": 53,
+        "startLoc": {
+          "line": 46,
+          "column": 61,
+          "position": 364
+        },
+        "endLoc": {
+          "line": 53,
+          "column": 13,
+          "position": 424
+        }
+      }
+    },
+    {
+      "format": "python",
+      "lines": 9,
+      "fragment": ",\n    )\n\n    events, result = await _collect_preparation(preparer, [tool_call])\n\n    assert events == []\n    assert result is not None\n    assert result.resolved_calls\n    assert result.resolved_calls[0].metadata[\"coordinate_method\"] == \"manual\"",
+      "tokens": 0,
+      "firstFile": {
+        "name": "tests/backend/test_tool_preparer.py",
+        "start": 87,
+        "end": 95,
+        "startLoc": {
+          "line": 87,
+          "column": 5,
+          "position": 779
+        },
+        "endLoc": {
+          "line": 95,
+          "column": 9,
+          "position": 851
+        }
+      },
+      "secondFile": {
+        "name": "tests/backend/test_tool_preparer.py",
+        "start": 70,
+        "end": 78,
+        "startLoc": {
+          "line": 70,
+          "column": 14,
+          "position": 625
+        },
+        "endLoc": {
+          "line": 78,
+          "column": 6,
+          "position": 697
+        }
+      }
+    },
+    {
+      "format": "python",
+      "lines": 8,
+      "fragment": "(monkeypatch):\n    def boom(*_args, **_kwargs):\n        raise RuntimeError(\"boom\")\n\n    monkeypatch.setattr(litellm, \"token_counter\", boom)\n    messages = [\n        {\"role\": \"user\", \"content\": \"abcd\"},\n        MessageObj",
+      "tokens": 0,
+      "firstFile": {
+        "name": "tests/backend/test_token_service_fallback.py",
+        "start": 29,
+        "end": 36,
+        "startLoc": {
+          "line": 29,
+          "column": 51,
+          "position": 196
+        },
+        "endLoc": {
+          "line": 36,
+          "column": 11,
+          "position": 261
+        }
+      },
+      "secondFile": {
+        "name": "tests/backend/test_token_service_fallback.py",
+        "start": 17,
+        "end": 24,
+        "startLoc": {
+          "line": 17,
+          "column": 42,
+          "position": 82
+        },
+        "endLoc": {
+          "line": 24,
+          "column": 2,
+          "position": 147
+        }
+      }
+    },
+    {
+      "format": "python",
+      "lines": 10,
+      "fragment": "(monkeypatch):\n    def boom(*_args, **_kwargs):\n        raise RuntimeError(\"boom\")\n\n    monkeypatch.setattr(litellm, \"token_counter\", boom)\n    messages = [\n        {\n            \"role\": \"assistant\",\n            \"content\": [\n                \"abcd\"",
+      "tokens": 0,
+      "firstFile": {
+        "name": "tests/backend/test_token_service_fallback.py",
+        "start": 84,
+        "end": 93,
+        "startLoc": {
+          "line": 84,
+          "column": 67,
+          "position": 628
+        },
+        "endLoc": {
+          "line": 93,
+          "column": 7,
+          "position": 694
+        }
+      },
+      "secondFile": {
+        "name": "tests/backend/test_token_service_fallback.py",
+        "start": 66,
+        "end": 75,
+        "startLoc": {
+          "line": 66,
+          "column": 56,
+          "position": 497
+        },
+        "endLoc": {
+          "line": 75,
+          "column": 2,
+          "position": 563
+        }
+      }
+    },
+    {
+      "format": "python",
+      "lines": 11,
+      "fragment": "(monkeypatch):\n    captured = {}\n\n    def fake_counter(*, model, messages, use_default_image_token_count):\n        captured[\"messages\"] = messages\n        return 2\n\n    monkeypatch.setattr(litellm, \"token_counter\", fake_counter)\n\n    result = TokenService.count_tokens(\n        [{\"role\": \"  assistant  \"",
+      "tokens": 0,
+      "firstFile": {
+        "name": "tests/backend/test_token_service_fallback.py",
+        "start": 174,
+        "end": 184,
+        "startLoc": {
+          "line": 174,
+          "column": 51,
+          "position": 1344
+        },
+        "endLoc": {
+          "line": 184,
+          "column": 16,
+          "position": 1423
+        }
+      },
+      "secondFile": {
+        "name": "tests/backend/test_token_service_fallback.py",
+        "start": 156,
+        "end": 166,
+        "startLoc": {
+          "line": 156,
+          "column": 67,
+          "position": 1205
+        },
+        "endLoc": {
+          "line": 166,
+          "column": 5,
+          "position": 1284
+        }
+      }
+    },
+    {
+      "format": "python",
+      "lines": 11,
+      "fragment": "(monkeypatch):\n    captured = {}\n\n    def fake_counter(*, model, messages, use_default_image_token_count):\n        captured[\"messages\"] = messages\n        return 1\n\n    monkeypatch.setattr(litellm, \"token_counter\", fake_counter)\n\n    token_count = TokenService.count_tokens(\n        [MessageObj(role=\"  assistant  \"",
+      "tokens": 0,
+      "firstFile": {
+        "name": "tests/backend/test_token_service_fallback.py",
+        "start": 210,
+        "end": 220,
+        "startLoc": {
+          "line": 210,
+          "column": 53,
+          "position": 1621
+        },
+        "endLoc": {
+          "line": 220,
+          "column": 16,
+          "position": 1700
+        }
+      },
+      "secondFile": {
+        "name": "tests/backend/test_token_service_fallback.py",
+        "start": 192,
+        "end": 202,
+        "startLoc": {
+          "line": 192,
+          "column": 77,
+          "position": 1483
+        },
+        "endLoc": {
+          "line": 202,
+          "column": 6,
+          "position": 1562
+        }
+      }
+    },
+    {
+      "format": "python",
+      "lines": 9,
+      "fragment": ", request_id=\"req-1\")\n    pending_result = ToolResult(success=True, data={\"ok\": True})\n    session.get_result_storage().store_pending_result(\"req-1\", pending_result)\n\n    result_obj = await execute_single_tool(tool_call, session)\n\n    assert result_obj.result is pending_result\n    _assert_pending_result_consumed(session, \"req-1\")\n    assert",
+      "tokens": 0,
+      "firstFile": {
+        "name": "tests/backend/test_single_tool_execution.py",
+        "start": 97,
+        "end": 105,
+        "startLoc": {
+          "line": 97,
+          "column": 2,
+          "position": 815
+        },
+        "endLoc": {
+          "line": 105,
+          "column": 7,
+          "position": 897
+        }
+      },
+      "secondFile": {
+        "name": "tests/backend/test_single_tool_execution.py",
+        "start": 71,
+        "end": 81,
+        "startLoc": {
+          "line": 71,
+          "column": 7,
+          "position": 608
+        },
+        "endLoc": {
+          "line": 81,
+          "column": 8,
+          "position": 691
+        }
+      }
+    },
+    {
+      "format": "python",
+      "lines": 6,
+      "fragment": "(monkeypatch):\n    provider = DummyProvider(\n        stream_events=[ChunkEvent(content=\"partial\")],\n        stream_payload={\n            \"content\": \"final\",\n            \"tool_calls\": [{\"id\": \"call_1\", \"name\": \"read_file\", \"arguments\": {\"path\"",
+      "tokens": 0,
+      "firstFile": {
+        "name": "tests/backend/test_llm_client.py",
+        "start": 318,
+        "end": 323,
+        "startLoc": {
+          "line": 318,
+          "column": 56,
+          "position": 2551
+        },
+        "endLoc": {
+          "line": 323,
+          "column": 7,
+          "position": 2611
+        }
+      },
+      "secondFile": {
+        "name": "tests/backend/test_llm_client.py",
+        "start": 298,
+        "end": 303,
+        "startLoc": {
+          "line": 298,
+          "column": 63,
+          "position": 2369
+        },
+        "endLoc": {
+          "line": 303,
+          "column": 2,
+          "position": 2429
+        }
+      }
+    },
+    {
+      "format": "python",
+      "lines": 8,
+      "fragment": "(monkeypatch: pytest.MonkeyPatch):\n    ocr_service = DummyOcrService()\n    container = SimpleNamespace(\n        ocr_service=ocr_service,\n        config=SimpleNamespace(ocr_config=object()),\n    )\n    initializer = ContainerInitializer(container)\n    monkeypatch.setattr(initializer, \"_should_initialize_ocr_service\", lambda: True",
+      "tokens": 0,
+      "firstFile": {
+        "name": "tests/backend/test_container_initializer_dev_selection.py",
+        "start": 71,
+        "end": 78,
+        "startLoc": {
+          "line": 71,
+          "column": 46,
+          "position": 496
+        },
+        "endLoc": {
+          "line": 78,
+          "column": 5,
+          "position": 569
+        }
+      },
+      "secondFile": {
+        "name": "tests/backend/test_container_initializer_dev_selection.py",
+        "start": 55,
+        "end": 62,
+        "startLoc": {
+          "line": 55,
+          "column": 63,
+          "position": 374
+        },
+        "endLoc": {
+          "line": 62,
+          "column": 6,
+          "position": 447
+        }
+      }
+    },
+    {
+      "format": "python",
+      "lines": 11,
+      "fragment": ", args=(i,))\n            for i in range(10)\n        ]\n        \n        for t in threads:\n            t.start()\n        for t in threads:\n            t.join()\n        \n        assert len(errors) == 0\n        assert len",
+      "tokens": 0,
+      "firstFile": {
+        "name": "tests/backend/test_config_subscriptions.py",
+        "start": 181,
+        "end": 191,
+        "startLoc": {
+          "line": 181,
+          "column": 15,
+          "position": 1198
+        },
+        "endLoc": {
+          "line": 191,
+          "column": 4,
+          "position": 1276
+        }
+      },
+      "secondFile": {
+        "name": "tests/backend/test_event_bus.py",
+        "start": 448,
+        "end": 458,
+        "startLoc": {
+          "line": 448,
+          "column": 18,
+          "position": 3045
+        },
+        "endLoc": {
+          "line": 458,
+          "column": 4,
+          "position": 3123
+        }
+      }
+    }
+  ]
+}

@@ -140,95 +140,95 @@ dist/assets/react-vendor-b7c888e5.js       140.88 kB │ gzip: 45.26 kB
 dist/assets/index-48c9b10f.js              156.82 kB │ gzip: 49.27 kB
 ✓ built in 798ms
 Listing all markdown files in docs folder:
-architecture/AGENT_SYSTEM.md - Agent System
+architecture/agent_system.md - Agent System
   Read when: When updating agent protocols or tool execution flow.; When refactoring session runtime state, tool preparation metadata, or interaction-loop policies.
-architecture/ARCHITECTURE.md - System Architecture
+architecture/architecture.md - System Architecture
   Read when: When making cross-cutting system changes.
-architecture/BACKEND_ARCHITECTURE.md - Backend Architecture
+architecture/BACKEND_architecture.md - Backend Architecture
   Read when: When editing backend services or APIs.
-architecture/COMMUNICATION_FLOW.md - Communication Flow
+architecture/communication_flow.md - Communication Flow
   Read when: When changing IPC or event flow.
-architecture/EXTENSION_POINTS.md - Extension Points
+architecture/extension_points.md - Extension Points
   Read when: When adding tools, providers, or integrations.
-architecture/FRONTEND_ARCHITECTURE.md - Frontend Architecture
+architecture/FRONTEND_architecture.md - Frontend Architecture
   Read when: When changing renderer or Electron main process.
-architecture/LLM_INTEGRATION.md - LLM Integration
+architecture/llm_integration.md - LLM Integration
   Read when: When touching model providers or prompts.
-architecture/MEMORY_SYSTEM.md - Memory System
+architecture/memory_system.md - Memory System
   Read when: When editing memory storage or retrieval.
-architecture/PYTHON_SIDECAR.md - Python Sidecar
+architecture/python_sidecar.md - Python Sidecar
   Read when: When changing the Python sidecar or IPC.
-architecture/TOOL_SYSTEM.md - Tool System
+architecture/tool_system.md - Tool System
   Read when: When changing tool registry or execution.
-browser/BROWSER_CONTROL_RUN.md - How to Run Browser Control
+browser/browser_control_run.md - How to Run Browser Control
   Read when: Running browser for the first time; Testing the browser automation
-browser/BROWSER_CONTROL.md - Browser Control Tool
+browser/browser_control.md - Browser Control Tool
   Read when: Setting up browser automation; Using browser tool; Troubleshooting browser connection
-development/CONTRIBUTING.md - Contributing
+development/contributing.md - Contributing
   Read when: When preparing PRs or working on dev workflow.
-development/DEV_TOOL_SELECTION.md - [missing front matter]
-development/DEVELOPER_GUIDE.md - Developer Guide
+development/dev_tool_selection.md - [missing front matter]
+development/developer_guide.md - Developer Guide
   Read when: When onboarding developers or setting up local dev.
-development/ENVIRONMENT_SETUP.md - Environment Setup
+development/environment_setup.md - Environment Setup
   Read when: When setting up local environment.
-development/TESTING.md - Testing Guide
+development/testing.md - Testing Guide
   Read when: When adding tests or running CI.
-development/TOOL_DEVELOPMENT.md - Tool Development Guide
+development/tool_development.md - Tool Development Guide
   Read when: When creating or modifying tools.
-getting-started/INSTALLATION.md - Installation Guide
+getting-started/installation.md - Installation Guide
   Read when: When installing app or dependencies.
-getting-started/OVERVIEW.md - Desktop Assistant - Project Overview
+getting-started/overview.md - Desktop Assistant - Project Overview
   Read when: When you need a high-level product overview.
-getting-started/PLATFORM_SETUP_BACKEND_FRONTEND.md - [missing front matter]
-getting-started/QUICK_START.md - Quick Start Guide
+getting-started/platform_setup_backend_frontend.md - [missing front matter]
+getting-started/quick_start.md - Quick Start Guide
   Read when: When running first-time setup.
-getting-started/TROUBLESHOOTING.md - Troubleshooting Guide
+getting-started/troubleshooting.md - Troubleshooting Guide
   Read when: When diagnosing runtime issues.
-getting-started/USER_GUIDE.md - User Guide (Local Build)
+getting-started/user_guide.md - User Guide (Local Build)
   Read when: When updating user-facing behavior or UX.
-operations/CONFIGURATION.md - Configuration Guide
+operations/configuration.md - Configuration Guide
   Read when: When adding or changing config/env vars.
-operations/DEPLOYMENT.md - Deployment & Packaging Plan
+operations/deployment.md - Deployment & Packaging Plan
   Read when: When shipping desktop builds.; When planning hosted infrastructure.; When rolling out multi-user support.
-operations/MULTI_USER_RUNTIME_HARDENING.md - Multi-User Runtime Hardening
+operations/multi_user_runtime_hardening.md - Multi-User Runtime Hardening
   Read when: When running one backend for multiple users/devices.; When changing WebSocket identity/session lifecycle behavior.; When changing semantic summarization model/session selection.
-operations/PERFORMANCE.md - Performance Notes (Current)
+operations/performance.md - Performance Notes (Current)
   Read when: When working on performance or profiling.
 operations/release.md - Release Guide
   Read when: When preparing a release.
-operations/SECURITY.md - Security Notes (Current)
+operations/security.md - Security Notes (Current)
   Read when: When changing security-relevant code.
-operations/SIDECAR_RUNTIME_PACKAGING.md - Bundled Sidecar Python Runtime Packaging
+operations/sidecar_runtime_packaging.md - Bundled Sidecar Python Runtime Packaging
   Read when: When shipping frontend-only installers with no system Python requirement.; When preparing Windows/macOS/Linux release artifacts for end users.
-planning/OS_LAYER_UX_EVOLUTION_PLAN.md - Architecture-aligned plan to evolve WindieOS from chat surfaces into a trusted OS-layer experience (dynamic island, ghost actions, mission dock, trust dial, ambient context).
+planning/os_layer_ux_evolution_plan.md - Architecture-aligned plan to evolve WindieOS from chat surfaces into a trusted OS-layer experience (dynamic island, ghost actions, mission dock, trust dial, ambient context).
   Read when: Planning the next UX layer beyond the current chatbox + response overlay.; Implementing trust/transparency UX for tool execution.; Sequencing OS-layer features without disrupting active development.
 planning/STOP_BUTTON_END_TO_END_PLAN.md - Implementation plan for a dashboard/pill Stop button that cancels active work across frontend streaming, backend/provider execution, and sidecar tool runs.
   Read when: Implementing user-triggered cancellation of an active WindieOS turn.; Adding a Stop button in the dashboard and chat pill UI.; Ensuring cancellation does not interfere with ongoing development work.
-planning/WINDIEOS_INSTALL_PERMISSION_ONBOARDING_PLAN.md - Plan for install-time permission-first onboarding so users explicitly grant all WindieOS-required capabilities before normal use.
+planning/windieos_install_permission_onboarding_plan.md - Plan for install-time permission-first onboarding so users explicitly grant all WindieOS-required capabilities before normal use.
   Read when: Designing first-run UX and installer/onboarding flow.; Implementing OS permission checks, prompts, and gating.; Defining capability policy for current and planned WindieOS features.
-planning/WINDIEOS_MOBILE_APP_PLAN.md - Phased implementation plan to ship WindieOS as a mobile app (iOS/Android) while preserving backend protocol compatibility and defining a mobile-safe tool/runtime model.
+planning/windieos_mobile_app_plan.md - Phased implementation plan to ship WindieOS as a mobile app (iOS/Android) while preserving backend protocol compatibility and defining a mobile-safe tool/runtime model.
   Read when: Planning a mobile client for WindieOS.; Refactoring renderer code to remove Electron-only assumptions.; Defining mobile-safe tool policy and capability negotiation.
-planning/WINDIEOS_SELF_EDIT_CONFIG_PLAN.md - Implementation plan for agent-managed self-configuration so users can change WindieOS behavior with natural language instead of manually toggling settings.
+planning/windieos_self_edit_config_plan.md - Implementation plan for agent-managed self-configuration so users can change WindieOS behavior with natural language instead of manually toggling settings.
   Read when: Planning natural-language preference changes (for example TTS on/off, query screenshot attach on/off).; Extending frontend-managed config updates while keeping backend schema safety.; Designing safe self-edit limits for user-facing settings.
 planning/WINDIEOS_SELF_UI_API_PLAN.md - Implementation plan for letting WindieOS interact with its own UI through safe internal APIs instead of brittle click automation.
   Read when: Designing agent self-interaction mode for settings/skills flows.; Choosing between UI state APIs vs raw DOM/pixel automation.; Defining guardrails for autonomous in-product maintenance actions.
-planning/WINDIEOS_VM_MULTI_AGENT_PLAN.md - Implementation plan for multi-agent WindieOS execution on isolated virtual machines with user remote-control access per agent VM.
+planning/windieos_vm_multi_agent_plan.md - Implementation plan for multi-agent WindieOS execution on isolated virtual machines with user remote-control access per agent VM.
   Read when: Designing hosted VM workspaces for WindieOS agents.; Planning one-agent-per-VM orchestration and lifecycle APIs.; Defining secure remote-control and human override behavior.
-product/BILLING_AND_USAGE.md - Billing & Usage (Planned)
+product/billing_and_usage.md - Billing & Usage (Planned)
   Read when: When changing billing, usage limits, or metering.
-product/DATABASE_SCHEMA.md - Database Schema (Planned)
+product/database_schema.md - Database Schema (Planned)
   Read when: When changing persistence or DB schema.
-product/FUTURE_PLAN.md - Future Product Plan
+product/future_plan.md - Future Product Plan
   Read when: When planning roadmap and sequencing.; When evaluating high-risk future capabilities.
-product/PLAN_MATRIX.md - Plan Matrix (Draft)
+product/plan_matrix.md - Plan Matrix (Draft)
   Read when: When deciding plan tiers or feature gating.
-product/SECURITY_AND_COMPLIANCE.md - Security & Compliance (Planned)
+product/security_and_compliance.md - Security & Compliance (Planned)
   Read when: When handling security or compliance requirements.
-product/USAGE_LIMITS.md - Usage Limits (Planned)
+product/usage_limits.md - Usage Limits (Planned)
   Read when: When changing quotas or limits.
 README.md - Desktop Assistant Documentation
   Read when: When browsing the repo entrypoint.
-reference/API_REFERENCE.md - API Reference
+reference/api_reference.md - API Reference
   Read when: When integrating backend APIs or client calls.
 
 Reminder: keep docs up to date as behavior changes. When your task matches any "Read when" hint above (React hooks, cache directives, database work, tests, etc.), read that doc before coding, and suggest new coverage when it is missing.

@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- chore(repo-maintenance): checkpoint pending workspace updates across docs guidance, chatbox UI files, docs tooling scripts, and `.audit/plan1` refactor artifacts; remove obsolete `BUG.md`, `REFACTOR.md`, and `prompts/refactor_plan_delegate_subagent.txt`
 - feat(frontend-tool-runner): defer click-like `mouse_control` actions (`click`, `double_click`, `right_click`) by 1900ms so response-overlay ghost click animation finishes before real sidecar execution; re-check turn staleness after delay and cancel stale clicks, with regression coverage in `tests/frontend/ToolRunnerHook.events.test.ts` and runtime docs updates
 - docs(sidecar-memory-storage): add local store and persistence references (`d7b9e821`)
 - docs(frontend-renderer-voice-utils): add utility-level voice references (`5d998397`)

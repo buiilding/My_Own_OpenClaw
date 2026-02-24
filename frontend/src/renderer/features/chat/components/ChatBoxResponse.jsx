@@ -428,7 +428,7 @@ function ChatBoxResponse() {
   }
 
   return (
-    <div className="chatbox-shell-wrap">
+    <div className={`chatbox-shell-wrap${showResponse ? ' has-response-pill' : ''}`}>
       <div className="chatbox-shell" ref={shellRef}>
         {showResponse ? (
           <div

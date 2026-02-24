@@ -138,7 +138,7 @@ frontend/src/
 
 ### Local Automation
 
-- `node scripts/doc-lists.js`: Lists docs and front-matter metadata.
+- `bin/docs-list` (or `node scripts/docs-list.js`): Lists docs and front-matter metadata.
 - `scripts/test`: Runs backend + sidecar tests, then frontend tests when `frontend/node_modules` exists.
 - `scripts/check`: Runs docs list, backend + sidecar tests, frontend lint + tests.
 - `scripts/check-loc.py --max 500`: Reports files over the LOC guideline (`--fail` to exit non-zero).

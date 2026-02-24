@@ -20,6 +20,12 @@ body {
   position: relative;
 }
 
+.chatbox-shell-wrap.has-response-pill {
+  border-radius: 18px;
+  clip-path: inset(0 round 18px);
+  overflow: hidden;
+}
+
 .chatbox-shell-wrap::after {
   content: '';
   position: absolute;
@@ -223,9 +229,11 @@ body {
 
 .chatbox-response-pill {
   border-radius: 18px;
+  clip-path: inset(0 round 18px);
   position: relative;
   padding: 14px 16px 12px;
   height: 92px;
+  overflow-x: hidden;
   overflow-y: auto;
   scrollbar-gutter: stable;
   word-break: break-word;
