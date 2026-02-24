@@ -70,6 +70,17 @@ export function AppConfigProvider({ children }) {
     routeConfigBackendEvent(data, handlersRef);
   }, []);
 
+  const applyBackendConnectionSnapshot = useCallback((data) => {
+    const userId = extractTranscriptUserId(data);
+    if (userId) {
+      updateTranscriptSession(undefined, userId);
+    }
+    setBackendHttpUrl(data?.backendHttpUrl);
+    if (data?.isConnected === true) {
+      syncCurrentConfigToBackend();
+    }
+  }, [syncCurrentConfigToBackend]);
+
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, onBackendEvent);
     const view = new URLSearchParams(window.location.search).get('view');
@@ -88,34 +99,20 @@ export function AppConfigProvider({ children }) {
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.IPC_STATUS, (data) => {
-      const userId = extractTranscriptUserId(data);
-      if (userId) {
-        updateTranscriptSession(undefined, userId);
-      }
-      setBackendHttpUrl(data?.backendHttpUrl);
-      if (data?.isConnected === true) {
-        syncCurrentConfigToBackend();
-      }
+      applyBackendConnectionSnapshot(data);
     });
     return () => {
       removeListener?.();
     };
-  }, [syncCurrentConfigToBackend]);
+  }, [applyBackendConnectionSnapshot]);
 
   useEffect(() => {
     IpcBridge.invoke(INVOKE_CHANNELS.GET_CLIENT_USER_ID)
       .then((result) => {
-        const userId = extractTranscriptUserId(result);
-        if (userId) {
-          updateTranscriptSession(undefined, userId);
-        }
-        setBackendHttpUrl(result?.backendHttpUrl);
-        if (result?.isConnected === true) {
-          syncCurrentConfigToBackend();
-        }
+        applyBackendConnectionSnapshot(result);
       })
       .catch(() => {});
-  }, [syncCurrentConfigToBackend]);
+  }, [applyBackendConnectionSnapshot]);
 
   useEffect(() => {
     let isMounted = true;
