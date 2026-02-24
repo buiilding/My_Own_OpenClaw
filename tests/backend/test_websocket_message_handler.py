@@ -5,13 +5,18 @@ from types import SimpleNamespace
 
 import pytest
 
-# Test-only shim: avoid pulling full app container deps during route import.
-_original_deps = sys.modules.get("backend.src.api.deps")
-fake_deps = types.ModuleType("backend.src.api.deps")
-fake_deps.ContainerDep = object
-fake_deps.SessionManagerDep = object
-fake_deps.HandlerRegistryDep = object
-sys.modules["backend.src.api.deps"] = fake_deps
+def _install_route_deps_shim():
+    # Test-only shim: avoid pulling full app container deps during route import.
+    original_deps = sys.modules.get("backend.src.api.deps")
+    fake_deps = types.ModuleType("backend.src.api.deps")
+    fake_deps.ContainerDep = object
+    fake_deps.SessionManagerDep = object
+    fake_deps.HandlerRegistryDep = object
+    sys.modules["backend.src.api.deps"] = fake_deps
+    return original_deps
+
+
+_original_deps = _install_route_deps_shim()
 
 from backend.src.api.routes.websocket import message_handler as mh
 from backend.src.api.schema import QueryMessage, ToolBundleResultMessage

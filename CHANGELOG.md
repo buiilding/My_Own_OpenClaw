@@ -8,6 +8,7 @@ Includes the last 300 commits on `main`.
 
 ### Added
 - docs(refactor-plan): add phase-105 full-gate snapshot after backend message-handler send-error parameterization wave (frontend audits/tests + backend + sidecar)
+- refactor(backend-message-handler-tests): wrap websocket-route dependency shim setup in local `_install_route_deps_shim()` helper to remove repeated top-level prelude duplication while preserving route-import behavior; jscpd improved from clones `114 -> 113` and duplicated lines `1968 -> 1958`
 - docs(refactor-plan): add phase-104 full-gate snapshot after backend websocket message-handler helper dedupe wave (frontend audits/tests + backend + sidecar)
 - refactor(backend-message-handler-tests): parameterize the two `send_error` failure-path logger assertions in `tests/backend/test_websocket_message_handler.py` into one table-driven test to remove residual duplicate branches; jscpd improved from clones `115 -> 114` and duplicated lines `1978 -> 1968`
 - docs(refactor-plan): add phase-103 full-gate snapshot after backend websocket-connection logger-helper dedupe wave (frontend audits/tests + backend + sidecar)
