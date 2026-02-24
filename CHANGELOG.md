@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): add phase-134 full-gate snapshot after shared simulation app-factory extraction (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)
 - refactor(simulation-entrypoints): extract shared `create_simulation_app` helper in `backend/src/simulation/app_factory.py` and switch both `backend/src/simulation/main.py` and `backend/src/simulation/browser.py` to use it for common lifespan/app assembly wiring; jscpd totals remained stable at clones `64` and duplicated lines `1308`
 - docs(refactor-plan): add phase-133 full-gate snapshot after sidecar browser-use registry special-parameter dedupe + regression tests (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)
 - refactor(sidecar-browser-use-registry): extract shared `_raise_missing_special_parameter` in `frontend/src/main/python/tools/browser/browser_use/tools/registry/service.py` and add `tests/sidecar/tools/test_browser_use_registry_service.py` to lock required-special-parameter error behavior for both direct wrapper invocation and `execute_action`; jscpd improved from clones `65 -> 64` and duplicated lines `1322 -> 1308`
