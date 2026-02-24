@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-voice-audio): remove deprecation-lint noise by replacing direct `ScriptProcessorNode` type usage with a local legacy processor compatibility type in voice hooks + audio cleanup utils
 - perf(frontend-tests): silence `ipc.cjs` bridge console logs in split IPC suites via shared harness helper to reduce test noise and improve `jest --runInBand` runtime stability
 - fix(frontend-voice-hooks): resolve React Compiler immutability errors by replacing shared audio-ref object hook with direct `useRef` declarations in `useVoiceMode` and `useWakewordDetection`, and remove now-unused `useAudioCaptureRefs` hook
 - refactor(frontend-ipc-tests): split oversized `IpcMainBridge` suite into lifecycle/query suites with shared harness (`tests/frontend/IpcMainBridge.lifecycle.test.cjs`, `tests/frontend/IpcMainBridge.query.test.cjs`, `tests/frontend/__mocks__/ipcMainBridgeHarness.cjs`) while preserving 27 IPC bridge assertions

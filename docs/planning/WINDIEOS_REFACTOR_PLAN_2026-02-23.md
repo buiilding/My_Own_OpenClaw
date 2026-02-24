@@ -1704,3 +1704,20 @@ read_when:
 - Verification:
   - `cd frontend && npm test -- IpcMainBridge.lifecycle.test.cjs IpcMainBridge.query.test.cjs` (pass; 27 tests)
   - `cd frontend && npm run test:ci -- --json --outputFile ../.audit/plan1/jest-report-latest.json` (pass; 86 suites, 607 tests)
+
+## Phase 42 Outcome (2026-02-24)
+
+- Voice deprecation-audit cleanup shipped:
+  - introduced local legacy audio compatibility types in:
+    - `frontend/src/renderer/features/voice/utils/audioCaptureCleanup.ts`
+      - `LegacyAudioProcessorNode`
+      - `LegacyAudioProcessEvent`
+  - rewired voice hooks to use compatibility type refs/casts instead of direct `ScriptProcessorNode` type usage:
+    - `frontend/src/renderer/features/voice/hooks/useVoiceMode.ts`
+    - `frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts`
+  - runtime behavior unchanged (still uses `createScriptProcessor` capture path).
+- Lint audit delta:
+  - `deprecation/deprecation` warnings: `4 -> 0`.
+- Verification:
+  - `cd frontend && npm run lint:audit` (pass; no warnings)
+  - `cd frontend && npm test -- VoiceModeHook.test.ts WakewordDetectionHook.test.ts VoiceAudioCleanup.test.ts` (pass; 18 tests)
