@@ -63,6 +63,7 @@ Covers:
 - [LLM Models and Parsing](llm/LLM_MODELS_AND_PARSING.md)
 - [Provider Factory and Runtime Selection Reference](llm/PROVIDER_FACTORY_AND_RUNTIME_SELECTION_REFERENCE.md)
 - [Services and Storage](services/SERVICES_AND_STORAGE.md)
+- [Embedding and Semantic Memory Runtime Reference](services/EMBEDDING_AND_SEMANTIC_MEMORY_RUNTIME_REFERENCE.md)
 - [Artifact, Screenshot, and System-State Flow Reference](services/ARTIFACT_SCREENSHOT_AND_SYSTEM_STATE_FLOW_REFERENCE.md)
 - [TTS and Wakeword Audio Runtime Reference](services/TTS_AND_WAKEWORD_AUDIO_RUNTIME_REFERENCE.md)
 - [OCR and Vision Coordinate Runtime Reference](services/OCR_AND_VISION_COORDINATE_RUNTIME_REFERENCE.md)
