@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(backend-config-runtime): add `docs/backend/config/CONFIG_FIELDS_AND_RUNTIME_POLICY.md` for immutable `AppConfig` field defaults, env var/API-key resolution, TTS runtime normalization, and frontend-owned `update-settings` patch boundaries; add `docs/backend/runtime/SESSION_STATE_AND_LIFECYCLE.md` for `SessionManager` lock/task maps, `SessionRuntimeState` containers, cancellation flow, and cleanup semantics; link both pages from `docs/backend/README.md`
 - refactor(sidecar-lazy-imports): add shared `resolve_lazy_attr` helper and reuse it in `browser_use.__getattr__` and `browser_use.llm.__getattr__`; extend lazy import tests for cache + missing-symbol behavior
 - refactor(sidecar-observability-tests): make `observe_debug` a kwargs-driven wrapper over `_observe_with_tags` and dedupe capture scaffolding in `test_browser_use_observability_helpers.py`; jscpd improved to clones `31`, duplicated lines `669`
 - refactor(sidecar-lazy-imports): add shared `browser_use._lazy_import.import_lazy` and reuse it in top-level `browser_use` + `browser_use.llm` lazy import paths; add regression coverage in `tests/sidecar/test_browser_use_lazy_import.py` (jscpd clone count held at `32`)
