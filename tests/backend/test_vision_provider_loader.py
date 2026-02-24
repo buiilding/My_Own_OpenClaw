@@ -295,6 +295,43 @@ def test_disable_flash_attention_runtime_turns_off_flags():
     assert [m.use_flash_attn for m in model.model.modules()] == [False, False, False]
 
 
+def test_internvl_generate_fallback_helper_returns_text(monkeypatch):
+    model = InternVLModel.__new__(InternVLModel)
+    monkeypatch.setattr(
+        model,
+        "_run_generate_fallback",
+        lambda **_kwargs: "generated text",
+    )
+
+    result = model._run_generate_fallback_with_chat_error(
+        pixel_values=object(),
+        question="q",
+        num_patches_list=[1],
+        model_device="cuda",
+        chat_error=RuntimeError("chat failed"),
+    )
+
+    assert result == "generated text"
+
+
+def test_internvl_generate_fallback_helper_wraps_dual_failure(monkeypatch):
+    model = InternVLModel.__new__(InternVLModel)
+    chat_error = RuntimeError("chat failed")
+
+    def raise_generate_error(**_kwargs):
+        raise ValueError("generate failed")
+
+    monkeypatch.setattr(model, "_run_generate_fallback", raise_generate_error)
+
+    with pytest.raises(RuntimeError, match="Vision model inference failed on CUDA"):
+        model._run_generate_fallback_with_chat_error(
+            pixel_values=object(),
+            question="q",
+            num_patches_list=[1],
+            model_device="cuda",
+            chat_error=chat_error,
+        )
+
 def test_loader_falls_back_to_direct_cuda_loading_when_device_map_fails():
     fake_torch = _FakeTorch(cuda_available=True)
     calls = {"device_map": 0, "direct": []}
