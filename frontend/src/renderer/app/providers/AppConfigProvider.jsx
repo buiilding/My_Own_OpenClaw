@@ -62,6 +62,12 @@ export function AppConfigProvider({ children }) {
     }
   }, []);
 
+  const buildMergedFrontendConfig = useCallback((incomingConfig) => {
+    return sanitizeFrontendProviderConfig(
+      mergeFrontendProviderConfig(configRef.current, filterFrontendConfig(incomingConfig)),
+    );
+  }, []);
+
   const registerSaveStatusCallback = useCallback((callback) => {
     saveStatusCallbackRef.current = typeof callback === 'function' ? callback : null;
   }, []);
@@ -121,9 +127,7 @@ export function AppConfigProvider({ children }) {
       if (!isMounted || !diskConfig || typeof diskConfig !== 'object') {
         return;
       }
-      const filteredConfig = sanitizeFrontendProviderConfig(
-        mergeFrontendProviderConfig(configRef.current, filterFrontendConfig(diskConfig)),
-      );
+      const filteredConfig = buildMergedFrontendConfig(diskConfig);
       const didApplyConfig = applyConfigIfChanged(filteredConfig, configRef, setConfig);
       if (!didApplyConfig) {
         return;
@@ -137,7 +141,7 @@ export function AppConfigProvider({ children }) {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [buildMergedFrontendConfig]);
 
   useEffect(() => {
     const handleStorage = (event) => {
@@ -153,9 +157,7 @@ export function AppConfigProvider({ children }) {
         return;
       }
 
-      const filteredConfig = sanitizeFrontendProviderConfig(
-        mergeFrontendProviderConfig(configRef.current, filterFrontendConfig(syncedConfig)),
-      );
+      const filteredConfig = buildMergedFrontendConfig(syncedConfig);
       applyConfigIfChanged(filteredConfig, configRef, setConfig);
     };
 
@@ -163,12 +165,10 @@ export function AppConfigProvider({ children }) {
     return () => {
       window.removeEventListener('storage', handleStorage);
     };
-  }, []);
+  }, [buildMergedFrontendConfig]);
 
   const updateConfig = useCallback((newConfig) => {
-    const filteredConfig = sanitizeFrontendProviderConfig(
-      mergeFrontendProviderConfig(configRef.current, filterFrontendConfig(newConfig)),
-    );
+    const filteredConfig = buildMergedFrontendConfig(newConfig);
     const didApplyConfig = applyConfigIfChanged(filteredConfig, configRef, setConfig);
     if (!didApplyConfig) {
       logConfigInfo('[Settings Update] No changes detected, skipping save');
@@ -186,7 +186,7 @@ export function AppConfigProvider({ children }) {
       console.warn('[Settings Update] Failed to save config to disk:', error?.message || error);
     });
     ApiClient.updateSettings(filteredConfig);
-  }, []);
+  }, [buildMergedFrontendConfig]);
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.WAKEWORD_TOGGLE, (data) => {
