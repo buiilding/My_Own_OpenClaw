@@ -43,6 +43,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 
 - [Renderer Docs Hub](renderer/README.md)
 - [Renderer Chat Docs Hub](renderer/chat/README.md)
+- [Renderer Settings Docs Hub](renderer/settings/README.md)
 - [Renderer Provider Docs Hub](renderer/providers/README.md)
 - [Renderer Overlay Docs Hub](renderer/overlays/README.md)
 - [Renderer Infrastructure Docs Hub](renderer/infrastructure/README.md)
@@ -54,6 +55,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Chat Stream and Tool Execution Reference](renderer/chat_stream_and_tool_execution_reference.md)
 - [Message Send Surface Policy and Screenshot Capture Reference](renderer/chat/message_send_surface_policy_and_screenshot_capture_reference.md)
 - [Chat Store State and New Session Rotation Reference](renderer/chat/chat_store_state_and_new_session_rotation_reference.md)
+- [Settings Section Display Selection and Config Toggle Reference](renderer/settings/settings_section_display_selection_and_config_toggle_reference.md)
 - [Transcript Session and Rehydrate Reference](renderer/transcript_session_and_rehydrate_reference.md)
 - [Transcript Writer Queue Flush and Session Event Reference](renderer/transcript/transcript_writer_queue_flush_and_session_event_reference.md)
 - [Voice Capture and Wakeword Controller Reference](renderer/voice_capture_and_wakeword_controller_reference.md)
