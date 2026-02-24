@@ -12,6 +12,7 @@ title: "Backend LLM Docs Hub"
 
 - [LLM Models and Parsing](LLM_MODELS_AND_PARSING.md)
 - [Provider Factory and Runtime Selection Reference](PROVIDER_FACTORY_AND_RUNTIME_SELECTION_REFERENCE.md)
+- [Parser Trust Boundary and Native Tool-Call Reference](PARSER_TRUST_BOUNDARY_AND_NATIVE_TOOL_CALL_REFERENCE.md)
 
 ## Code Scope
 
