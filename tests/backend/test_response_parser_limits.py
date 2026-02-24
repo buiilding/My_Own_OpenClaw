@@ -1,34 +1,12 @@
 import pytest
 
-from backend.src.core.config.models import AppConfig, SecurityLimits
+from backend.src.core.config.models import SecurityLimits
 from backend.src.core.infrastructure.exceptions import InputSizeLimitError, ParseValidationError
-from backend.src.llm.parser import ResponseParser
-from backend.src.tools.categorization import ToolDomain
-
-
-class DummyTool:
-    def __init__(self, name, category=ToolDomain.FILESYSTEM):
-        self.name = name
-        self.category = category
-        self.description = name
-
-
-class DummyRegistry:
-    def __init__(self, tools):
-        self._tools = {tool.name: tool for tool in tools}
-
-    def get_tool_names(self):
-        return list(self._tools.keys())
-
-    def get_tool(self, name):
-        return self._tools.get(name)
+from tests.backend.response_parser_test_utils import DummyTool, make_response_parser
 
 
 def _make_parser(limits):
-    return ResponseParser(
-        config=AppConfig(security_limits=limits),
-        tool_registry=DummyRegistry([DummyTool("read_file")]),
-    )
+    return make_response_parser([DummyTool("read_file", description="read_file")], limits=limits)
 
 
 @pytest.mark.asyncio
