@@ -2451,3 +2451,22 @@ read_when:
     - `./scripts/test-backend` (pass; 966 tests)
   - sidecar tests:
     - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+
+## Phase 85 Outcome (2026-02-24)
+
+- IPC query bridge test duplication cleanup shipped:
+  - extracted shared helpers in `tests/frontend/IpcMainBridge.query.test.cjs`:
+    - `getLatestLocalUserMessage`
+    - `expectQueryContentWithEmptyMemories`
+    - `emitSettingsUpdatedAck`
+  - removed repeated local-user-message filtering, empty-memory content assertions, and `settings-updated` ack payload literals.
+- Verification:
+  - `cd frontend && npx jest ../tests/frontend/IpcMainBridge.query.test.cjs --runInBand` (pass; 14 tests)
+  - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
+  - `cd frontend && npm run audit:knip` (pass)
+  - `cd frontend && npm run audit:jscpd` (pass)
+  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - jscpd snapshot deltas:
+    - clones: `134 -> 131`
+    - duplicated lines: `2218 -> 2199`
+    - duplicated tokens: `19383 -> 19162`
