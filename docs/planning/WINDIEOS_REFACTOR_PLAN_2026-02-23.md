@@ -582,6 +582,24 @@ read_when:
   - `pytest tests/backend/test_api_handlers.py tests/backend/test_websocket_message_handler.py tests/backend/test_outgoing_schema_contract.py tests/backend/test_api_contract_registry.py`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
+## Phase 27
+
+- `jscpd` duplication cleanup (tool preparation flow):
+  - extract shared coordinate-resolution invoke helper in:
+    - `backend/src/agent/tools/preparation/preparer.py`
+  - reuse shared helper for bundle and single-call preparation paths to remove repeated
+    `resolve_tool_with_coordinates(...)` argument wiring.
+  - preserve existing error handling, request/bundle identifiers, and timing logs.
+
+### Phase 27 Execution Slice (Current Loop)
+
+- Backend dedupe:
+  - keep metadata/registration flow unchanged while collapsing duplicate coordinate-resolution call wiring.
+  - avoid behavior changes in bundle short-circuit-on-error and single-call error return contract.
+- Verification checks:
+  - `pytest tests/backend/test_tool_preparer.py tests/backend/test_coordinate_scaling.py tests/backend/test_coordinate_contract.py tests/backend/test_vision_coordinates.py`
+  - `cd frontend && npm run audit:jscpd` (expect clone reduction)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):
