@@ -28,6 +28,34 @@ const mockFormatBundledToolOutputMessage =
   formatBundledToolOutputMessage as jest.MockedFunction<typeof formatBundledToolOutputMessage>;
 const mockUploadArtifactBase64 = uploadArtifactBase64 as jest.MockedFunction<typeof uploadArtifactBase64>;
 
+const createDefaultToolBundleSteps = () => ([
+  { toolName: 'read_file', args: { file_path: '/tmp/a' } },
+  { toolName: 'mouse_control', args: { action: 'click', x: 1, y: 2 } },
+]);
+
+const executeDefaultToolBundle = (
+  service: ToolExecutionService,
+  bundleId: string,
+) => service.executeToolBundle(createDefaultToolBundleSteps(), bundleId);
+
+const expectBundleResultEnvelope = (
+  sendToBackend: jest.Mock,
+  bundleId: string,
+  status: 'success' | 'partial_failure' | 'failure',
+  extraPayload: Record<string, unknown> = {},
+) => {
+  expect(sendToBackend).toHaveBeenCalledWith(
+    expect.objectContaining({
+      type: 'tool-bundle-result',
+      payload: expect.objectContaining({
+        bundle_id: bundleId,
+        status,
+        ...extraPayload,
+      }),
+    }),
+  );
+};
+
 describe('ToolExecutionService', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
@@ -246,13 +274,7 @@ describe('ToolExecutionService', () => {
     const sendToBackend = jest.fn();
     const service = new ToolExecutionService({ onBundleResult, sendToBackend });
 
-    const result = await service.executeToolBundle(
-      [
-        { toolName: 'read_file', args: { file_path: '/tmp/a' } },
-        { toolName: 'mouse_control', args: { action: 'click', x: 1, y: 2 } },
-      ],
-      'bundle-1',
-    );
+    const result = await executeDefaultToolBundle(service, 'bundle-1');
 
     expect(invokeSpy).toHaveBeenNthCalledWith(1, INVOKE_CHANNELS.EXECUTE_TOOL, {
       toolName: 'read_file',
@@ -267,19 +289,12 @@ describe('ToolExecutionService', () => {
     expect(mockExtractOSstate).toHaveBeenCalledWith(true, true, 0, false);
     expect(result.screenshot).toBe('bundle-shot');
     expect(onBundleResult).toHaveBeenCalledTimes(1);
-    expect(sendToBackend).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'tool-bundle-result',
-        payload: expect.objectContaining({
-          bundle_id: 'bundle-1',
-          status: 'success',
-          step_results: [
-            { tool: 'read_file', status: 'ok', output: 'a' },
-            { tool: 'mouse_control', status: 'ok', output: 'b' },
-          ],
-        }),
-      }),
-    );
+    expectBundleResultEnvelope(sendToBackend, 'bundle-1', 'success', {
+      step_results: [
+        { tool: 'read_file', status: 'ok', output: 'a' },
+        { tool: 'mouse_control', status: 'ok', output: 'b' },
+      ],
+    });
     expect(mockFormatBundledToolOutputMessage).toHaveBeenCalledWith(
       [
         expect.objectContaining({
@@ -317,24 +332,10 @@ describe('ToolExecutionService', () => {
     const sendToBackend = jest.fn();
     const service = new ToolExecutionService({ sendToBackend });
 
-    const result = await service.executeToolBundle(
-      [
-        { toolName: 'read_file', args: { file_path: '/tmp/a' } },
-        { toolName: 'mouse_control', args: { action: 'click', x: 1, y: 2 } },
-      ],
-      'bundle-2',
-    );
+    const result = await executeDefaultToolBundle(service, 'bundle-2');
 
     expect(result.results).toHaveLength(1);
-    expect(sendToBackend).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'tool-bundle-result',
-        payload: expect.objectContaining({
-          bundle_id: 'bundle-2',
-          status: 'partial_failure',
-        }),
-      }),
-    );
+    expectBundleResultEnvelope(sendToBackend, 'bundle-2', 'partial_failure');
   });
 
   test('executeToolBundle reports failure and error when last tool fails', async () => {
@@ -345,25 +346,10 @@ describe('ToolExecutionService', () => {
     const sendToBackend = jest.fn();
     const service = new ToolExecutionService({ sendToBackend });
 
-    const result = await service.executeToolBundle(
-      [
-        { toolName: 'read_file', args: { file_path: '/tmp/a' } },
-        { toolName: 'mouse_control', args: { action: 'click', x: 1, y: 2 } },
-      ],
-      'bundle-3',
-    );
+    const result = await executeDefaultToolBundle(service, 'bundle-3');
 
     expect(result.results).toHaveLength(2);
-    expect(sendToBackend).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'tool-bundle-result',
-        payload: expect.objectContaining({
-          bundle_id: 'bundle-3',
-          status: 'failure',
-          error: 'boom',
-        }),
-      }),
-    );
+    expectBundleResultEnvelope(sendToBackend, 'bundle-3', 'failure', { error: 'boom' });
   });
 
   test('executeToolBundle injects display bounds for bundled screenshot tool', async () => {
