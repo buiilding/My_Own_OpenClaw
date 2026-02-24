@@ -5,33 +5,13 @@ from pathlib import Path
 
 import pytest
 
-from backend.src.core.config.models import AppConfig, SecurityLimits
 from backend.src.core.infrastructure.exceptions import ParseValidationError
-from backend.src.llm.parser_validation import ToolCallValidator
 from backend.src.tools.tool_selection import (
     load_tool_selection,
     should_initialize_ocr,
     should_initialize_vision,
 )
-
-
-class DummyMetrics:
-    def __init__(self):
-        self.calls = []
-
-    def record_validation_violation(self, **kwargs):
-        self.calls.append(kwargs)
-
-
-class DummyRegistry:
-    def __init__(self, tool_names):
-        self._tool_names = tool_names
-
-    def get_tool_names(self):
-        return self._tool_names
-
-    def get_tool(self, _name):
-        return None
+from tests.backend.tool_validator_test_utils import DummyRegistry, make_tool_call_validator
 
 
 def test_load_tool_selection_returns_none_when_disabled(tmp_path: Path):
@@ -107,13 +87,8 @@ def test_tool_call_validator_applies_dev_denylist(monkeypatch: pytest.MonkeyPatc
     p.write_text('enabled = true\nmode = "denylist"\ntools = ["write_file"]\n', encoding="utf-8")
     monkeypatch.setenv("WINDIEOS_DEV_TOOL_SELECTION_PATH", str(p))
 
-    config = AppConfig(interaction_mode="agent", security_limits=SecurityLimits())
-    metrics = DummyMetrics()
-    validator = ToolCallValidator(
-        config=config,
+    validator, metrics = make_tool_call_validator(
         tool_registry=DummyRegistry(["read_file", "write_file"]),
-        metrics=metrics,
-        limits=config.security_limits,
     )
 
     validator.validate_tool_call("read_file", {})
