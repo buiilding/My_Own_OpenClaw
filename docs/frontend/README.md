@@ -15,18 +15,21 @@ This hub documents WindieOS frontend implementation details across Electron main
 ### Main Process
 
 - [Electron Main and IPC](main/ELECTRON_MAIN_AND_IPC.md)
+- [Window and Overlay Lifecycle](main/WINDOW_AND_OVERLAY_LIFECYCLE.md)
 
 ### Renderer
 
 - [Renderer Runtime](renderer/RENDERER_RUNTIME.md)
 - [Feature Module Matrix](renderer/FEATURE_MODULE_MATRIX.md)
 - [Tool Execution and Streaming](runtime/TOOL_EXECUTION_AND_STREAMING.md)
+- [Stream Event State Machine](runtime/STREAM_EVENT_STATE_MACHINE.md)
 
 ### Sidecar
 
 - [Python Sidecar and Memory](sidecar/PYTHON_SIDECAR_AND_MEMORY.md)
 - [Sidecar Tool Catalog and Execution Model](sidecar/TOOL_CATALOG_AND_EXECUTION_MODEL.md)
 - [Memory Pipeline and Summarization](sidecar/MEMORY_PIPELINE_AND_SUMMARIZATION.md)
+- [Browser Automation Stack](sidecar/BROWSER_AUTOMATION_STACK.md)
 
 ### Contracts
 

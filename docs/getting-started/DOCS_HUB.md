@@ -33,8 +33,11 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 
 - [Backend Functionality Map](../backend/README.md)
 - [Backend WebSocket Contracts](../backend/contracts/WEBSOCKET_MESSAGE_CONTRACTS.md)
+- [Backend Config Runtime Policy](../backend/config/CONFIG_FIELDS_AND_RUNTIME_POLICY.md)
 - [Frontend Functionality Map](../frontend/README.md)
 - [Frontend IPC/Event Contracts](../frontend/contracts/IPC_CHANNELS_AND_EVENT_CONTRACTS.md)
+- [Frontend Stream State Machine](../frontend/runtime/STREAM_EVENT_STATE_MACHINE.md)
+- [Frontend Sidecar Browser Stack](../frontend/sidecar/BROWSER_AUTOMATION_STACK.md)
 - [API Reference](../reference/API_REFERENCE.md)
 
 ## Development and Operations
