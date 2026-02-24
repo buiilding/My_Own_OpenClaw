@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(simulation-entrypoints): add shared `run_simulation_app` launch helper in `backend/src/simulation/app_factory.py` and reuse it in `backend/src/simulation/main.py` + `backend/src/simulation/browser.py` for common simulation uvicorn reload wiring; jscpd totals held at clones `62` and duplicated lines `1274`
 - docs(refactor-plan): add phase-137 full-gate snapshot after shared backend coordinate-method normalization helper extraction (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)
 - refactor(backend-coordinate-methods): add shared `normalize_coordinate_method` utility in `backend/src/core/utils/coordinate_methods.py` and reuse it in `backend/src/tools/tool_policy.py` + `backend/src/agent/tools/preparation/helpers/preparation_helper.py` to centralize coordinate-method normalization behavior; jscpd totals held at clones `62` and duplicated lines `1274`
 - docs(refactor-plan): add phase-136 full-gate snapshot after backend parser-validation duplicate dead-method removal (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)

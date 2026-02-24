@@ -6,9 +6,8 @@ hardcoded responses based on simulation steps. All other features work identical
 """
 from backend.src.core.bootstrap.entrypoint import (
     initialize_entrypoint_logger,
-    run_uvicorn_app,
 )
-from backend.src.simulation.app_factory import create_simulation_app
+from backend.src.simulation.app_factory import create_simulation_app, run_simulation_app
 from backend.src.simulation.mock_llm_client import get_mock_llm_client
 
 logger = initialize_entrypoint_logger(__name__)
@@ -24,8 +23,4 @@ app = create_simulation_app(
 )
 
 if __name__ == "__main__":
-    run_uvicorn_app(
-        "backend.src.simulation.main:app",
-        reload=True,
-        reload_dirs=["backend/src"],
-    )
+    run_simulation_app("backend.src.simulation.main:app")
