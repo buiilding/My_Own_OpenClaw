@@ -20,6 +20,18 @@ class DummyResponse:
         return self._payload
 
 
+@pytest.mark.parametrize(
+    ("provider_cls", "expected_message"),
+    [
+        (OllamaProvider, "OllamaProvider requires a valid 'base_url'."),
+        (LMStudioProvider, "LMStudioProvider requires a valid 'base_url'."),
+    ],
+)
+def test_local_providers_require_base_url(provider_cls, expected_message):
+    with pytest.raises(ValueError, match=expected_message):
+        provider_cls(base_url="")
+
+
 def _patch_provider_get(monkeypatch: pytest.MonkeyPatch, provider, response):
     get_mock = AsyncMock(return_value=response)
     monkeypatch.setattr(
@@ -153,6 +165,16 @@ def test_ollama_build_tags_url_helper():
     assert OllamaProvider._build_tags_url("http://localhost:11434") == "http://localhost:11434/api/tags"
     assert OllamaProvider._build_tags_url("/v1") == "http://localhost:11434/api/tags"
     assert OllamaProvider._build_tags_url("/") is None
+
+
+def test_local_provider_model_prefix_normalization():
+    ollama = OllamaProvider(base_url="http://localhost:11434/v1")
+    lmstudio = LMStudioProvider(base_url="http://localhost:1234/v1")
+
+    assert ollama._get_full_model_string("llama3") == "ollama/llama3"
+    assert ollama._get_full_model_string("ollama/llama3") == "ollama/llama3"
+    assert lmstudio._get_full_model_string("qwen") == "lmstudio/qwen"
+    assert lmstudio._get_full_model_string("lmstudio/qwen") == "lmstudio/qwen"
 
 
 @pytest.mark.asyncio
