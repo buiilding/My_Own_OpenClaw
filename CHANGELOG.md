@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-test-bootstrap): reuse shared frontend-python path bootstrap in `test_local_backend.py`, `test_memory_service.py`, and `test_shell_process_registry.py` while keeping module-level `sys` monkeypatch assertions intact
 - docs(refactor-plan): add phase-116 full-gate snapshot after sidecar memory/replace-suite bootstrap helper reuse wave (frontend audits/tests + backend + sidecar)
 - refactor(sidecar-test-bootstrap): apply shared `ensure_frontend_python_path()` bootstrap in memory/file tool sidecar suites (`test_memory_tool.py`, `test_memory_summarizer.py`, `test_replace_tool.py`) to remove repeated frontend-python prelude duplication
 - docs(refactor-plan): add phase-115 full-gate snapshot after sidecar tool-suite bootstrap helper reuse wave (frontend audits/tests + backend + sidecar)
