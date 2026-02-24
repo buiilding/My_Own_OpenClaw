@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): add phase-100 full-gate snapshot after chat-ui selector-helper dedupe wave (frontend audits/tests + backend + sidecar)
 - refactor(frontend-chat-ui-tests): add shared selector helper `tests/frontend/storeSelectorTestUtils.cjs` and reuse it in `ChatInterfaceWiring.test.jsx` + `ChatBoxOverlayMouseIgnore.test.jsx` for mock store selection wiring
 - docs(refactor-plan): add phase-99 full-gate snapshot after app-config + local-rpc test-helper dedupe wave (frontend audits/tests + backend + sidecar)
 - refactor(frontend-test-utils): add shared app-config test helpers in `tests/frontend/appConfigTestUtils.ts`, reuse them in `ChatStreamThinkingStatus.testUtils.ts` + `ToolRunnerHook.testUtils.ts`, and add `expectResolvedSuccess` helper in `LocalBackendBridge.rpc.test.cjs` to dedupe success-response assertions; jscpd improved from clones `123 -> 122` and duplicated lines `2072 -> 2065`
