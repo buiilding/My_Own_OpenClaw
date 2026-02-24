@@ -1146,3 +1146,19 @@ read_when:
 - Verification:
   - `pytest tests/backend/test_exceptions.py tests/backend/test_validation_utils.py tests/backend/test_api_errors.py` (pass; 57 tests)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
+
+## Phase 26 Outcome (2026-02-24)
+
+- API schema re-export dedupe shipped:
+  - converted compatibility module to thin facade in:
+    - `backend/src/api/schema.py`
+  - removed duplicated export list maintenance by sourcing symbols from:
+    - `backend/src/api/schemas/__init__.py` (`__all__`)
+  - preserved backward-compatible import path and schema symbol availability for existing handlers/tests.
+- jscpd delta after Phase 26 slice:
+  - clones: `197 -> 196`
+  - duplicated lines: `3084 -> 3030`
+  - duplicated tokens: `26845 -> 26634`
+- Verification:
+  - `pytest tests/backend/test_api_handlers.py tests/backend/test_websocket_message_handler.py tests/backend/test_outgoing_schema_contract.py tests/backend/test_api_contract_registry.py` (pass; 61 tests)
+  - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
