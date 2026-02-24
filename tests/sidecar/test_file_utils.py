@@ -2,8 +2,9 @@ import sys
 import builtins
 from pathlib import Path
 
-frontend_python_dir = Path(__file__).resolve().parents[2] / "frontend" / "src" / "main" / "python"
-sys.path.insert(0, str(frontend_python_dir))
+from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
+
+ensure_frontend_python_path()
 
 from tools.filesystem import file_utils, gitignore_utils  # noqa: E402
 

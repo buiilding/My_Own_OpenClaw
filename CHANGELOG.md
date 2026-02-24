@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-test-bootstrap): reuse `ensure_frontend_python_path()` from `tests/sidecar/remote_client_test_utils.py` in selected sidecar suites (`test_backend_config.py`, `test_file_utils.py`, `test_runtime_shutdown.py`, `test_stdout_json.py`, `test_system_state.py`) to remove repeated frontend-python path prelude boilerplate
 - docs(refactor-plan): add phase-112 full-gate snapshot after sidecar stdout-json harness dedupe wave (frontend audits/tests + backend + sidecar)
 - refactor(sidecar-stdout-json-tests): extract shared stdout buffer harness helper in `tests/sidecar/test_stdout_json.py` to dedupe repeated monkeypatched `sys.stdout` setup; jscpd improved from clones `107 -> 105` and duplicated lines `1867 -> 1829`
 - docs(refactor-plan): add phase-111 full-gate snapshot after sidecar remote-client test util dedupe wave (frontend audits/tests + backend + sidecar)

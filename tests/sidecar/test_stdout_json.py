@@ -1,10 +1,8 @@
-import sys
-from pathlib import Path
-
 import pytest
 
-frontend_python_dir = Path(__file__).resolve().parents[2] / "frontend" / "src" / "main" / "python"
-sys.path.insert(0, str(frontend_python_dir))
+from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
+
+ensure_frontend_python_path()
 
 from core import stdout_json as stdout_json_module  # noqa: E402
 
