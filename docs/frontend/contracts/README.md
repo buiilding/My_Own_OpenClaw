@@ -12,6 +12,7 @@ title: "Frontend Contracts Docs Hub"
 
 - [IPC Channels and Event Contracts](IPC_CHANNELS_AND_EVENT_CONTRACTS.md)
 - [IPC Channel and Handler Reference](IPC_CHANNEL_AND_HANDLER_REFERENCE.md)
+- [Backend Event Consumer Matrix Reference](BACKEND_EVENT_CONSUMER_MATRIX_REFERENCE.md)
 
 ## Code Scope
 
