@@ -10,6 +10,8 @@ from backend.src.core.events.streaming_events import (
     ErrorEvent,
     FullResponseEvent,
     StreamingCompleteEvent,
+    ToolCallEvent,
+    ToolOutputEvent,
 )
 from backend.src.core.messages.structures import StoredMessage
 from backend.src.core.types.enums import MessageRole, MessageType
@@ -23,12 +25,17 @@ class _FakeHistory:
     def __init__(self, stored_messages):
         self._stored_messages = list(stored_messages)
         self.assistant_messages = []
+        self.tool_outputs = []
+        self.staged_tool_call_ids = []
 
     def add_assistant_message(self, message, tool_calls=None):
         self.assistant_messages.append((message, tool_calls))
 
     def stage_tool_call_ids(self, tool_call_ids, consume_all_on_next_output=False):
-        return None
+        self.staged_tool_call_ids.append((list(tool_call_ids), consume_all_on_next_output))
+
+    def add_tool_output(self, message, image_data=None):
+        self.tool_outputs.append((message, image_data))
 
     def get_stored_messages(self):
         return list(self._stored_messages)
@@ -133,6 +140,9 @@ async def test_interaction_loop_emits_fallback_when_final_response_empty_after_t
 
 
 class _ErrorOnlyLLMHandler:
+    def __init__(self):
+        self.calls = 0
+
     async def get_response(
         self,
         prompt,
@@ -141,15 +151,26 @@ class _ErrorOnlyLLMHandler:
         parallel_tool_calls=None,
     ):
         _ = (prompt, tools, tool_choice, parallel_tool_calls)
-        yield ErrorEvent(content="Unexpected system error: streamed tool arguments invalid")
-        yield FullResponseEvent(content="")
+        self.calls += 1
+        if self.calls == 1:
+            yield ErrorEvent(
+                content=(
+                    "Unexpected system error: Invalid response from stream: "
+                    "failed to parse streamed tool-call arguments for id=tool_bad name=replace"
+                )
+            )
+            yield FullResponseEvent(content="")
+            return
+        yield FullResponseEvent(content="Recovered and sending corrected tool call.")
 
     def get_last_response_payload(self):
-        return {"content": ""}
+        if self.calls == 1:
+            return {"content": ""}
+        return {"content": "Recovered and sending corrected tool call."}
 
 
 @pytest.mark.asyncio
-async def test_interaction_loop_stops_after_stream_error_event_without_executing_tools():
+async def test_interaction_loop_recovers_after_stream_tool_call_format_error():
     stored_messages = []
     session = _FakeSession(stored_messages)
     tool_executor = _FakeToolExecutor()
@@ -164,6 +185,48 @@ async def test_interaction_loop_stops_after_stream_error_event_without_executing
     events = [event async for event in loop.run_loop()]
 
     assert any(isinstance(event, ErrorEvent) for event in events)
+    assert any(isinstance(event, ToolCallEvent) for event in events)
+    assert any(isinstance(event, ToolOutputEvent) for event in events)
+    assert any(isinstance(event, StreamingCompleteEvent) for event in events)
+    assert tool_executor.execute_called is False
+    assert session.history.assistant_messages[-1][0] == "Recovered and sending corrected tool call."
+    assert session.history.tool_outputs
+    assert "malformed tool-call arguments from model" in session.history.tool_outputs[-1][0]
+
+
+class _FatalErrorOnlyLLMHandler:
+    async def get_response(
+        self,
+        prompt,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+    ):
+        _ = (prompt, tools, tool_choice, parallel_tool_calls)
+        yield ErrorEvent(content="Unexpected system error: dependency initialization failed")
+        yield FullResponseEvent(content="")
+
+    def get_last_response_payload(self):
+        return {"content": ""}
+
+
+@pytest.mark.asyncio
+async def test_interaction_loop_stops_after_nonrecoverable_stream_error_event():
+    stored_messages = []
+    session = _FakeSession(stored_messages)
+    tool_executor = _FakeToolExecutor()
+    loop = InteractionLoop(
+        session=session,
+        prompt_coordinator=_FakePromptCoordinator(),
+        llm_handler=_FatalErrorOnlyLLMHandler(),
+        tool_executor=tool_executor,
+        event_presenter=_FakeEventPresenter(),
+    )
+
+    events = [event async for event in loop.run_loop()]
+
+    assert any(isinstance(event, ErrorEvent) for event in events)
     assert not any(isinstance(event, StreamingCompleteEvent) for event in events)
+    assert not any(isinstance(event, ToolOutputEvent) for event in events)
     assert tool_executor.execute_called is False
     assert session.history.assistant_messages[-1][0].startswith("[System Error:")
