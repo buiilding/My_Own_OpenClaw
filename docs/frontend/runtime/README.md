@@ -13,6 +13,7 @@ title: "Frontend Runtime Docs Hub"
 - [Tool Execution and Streaming](TOOL_EXECUTION_AND_STREAMING.md)
 - [Stream Event State Machine](STREAM_EVENT_STATE_MACHINE.md)
 - [Config Sync and Settings Lifecycle Reference](CONFIG_SYNC_AND_SETTINGS_LIFECYCLE_REFERENCE.md)
+- [Audio Chunk Playback and Stop Semantics Reference](AUDIO_CHUNK_PLAYBACK_AND_STOP_SEMANTICS_REFERENCE.md)
 
 ## Code Scope
 
