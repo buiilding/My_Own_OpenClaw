@@ -47,14 +47,7 @@ export function AppConfigProvider({ children }) {
   const [wakewordEnabled, setWakewordEnabled] = useState(true);
   const [wakewordSuppressed, setWakewordSuppressed] = useState(true);
 
-  const settingsHandlers = useSettingsManagement(
-    setConfig,
-    setAvailableModels,
-    () => {},
-    null,
-    null,
-    null
-  );
+  const settingsHandlers = useSettingsManagement(setAvailableModels);
 
   const handlersRef = useRef(settingsHandlers);
   const configRef = useRef(config);

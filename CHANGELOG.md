@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-settings-hook): drop compatibility-only unused parameters from `useSettingsManagement`, simplify `AppConfigProvider` call-site to pass only `setAvailableModels`, and update hook tests for the trimmed API
 - refactor(frontend-wakeword): remove redundant second cooldown check in `useWakewordDetection` detection handler (the cooldown guard already runs before threshold evaluation), reducing duplicate branch logic while preserving behavior
 - fix(frontend-chatbox-context-positioning): nudge separate active-window label up by 1px for final micro-alignment
 - refactor(backend-llm-client): extract shared `LiteLLMClient` stream-tracking helpers (`_reset_stream_tracking_state`, `_capture_stream_tracking_state`) to dedupe completion/stream paths and add regression coverage in `tests/backend/test_llm_client.py` ensuring stale diagnostics/payload state is cleared when completion provider calls fail
