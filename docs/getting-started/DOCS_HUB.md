@@ -64,6 +64,7 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 - [Frontend Sidecar Docs Hub](../frontend/sidecar/README.md)
 - [Frontend IPC/Event Contracts](../frontend/contracts/IPC_CHANNELS_AND_EVENT_CONTRACTS.md)
 - [Frontend IPC Channel Handler Reference](../frontend/contracts/IPC_CHANNEL_AND_HANDLER_REFERENCE.md)
+- [Frontend Memory IPC + RPC Mapping Reference](../frontend/contracts/MEMORY_IPC_AND_RPC_MAPPING_REFERENCE.md)
 - [Frontend Backend Event Consumer Matrix](../frontend/contracts/BACKEND_EVENT_CONSUMER_MATRIX_REFERENCE.md)
 - [Frontend Overlay + Wakeword Control Channel Reference](../frontend/contracts/OVERLAY_AND_WAKEWORD_CONTROL_CHANNEL_REFERENCE.md)
 - [Frontend Dashboard Memory Management + Resume Reference](../frontend/renderer/DASHBOARD_MEMORY_MANAGEMENT_AND_RESUME_REFERENCE.md)
