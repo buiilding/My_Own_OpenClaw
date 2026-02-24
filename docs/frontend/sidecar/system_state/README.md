@@ -11,6 +11,8 @@ title: "Sidecar System-State Docs Hub"
 ## Deep Pages
 
 - [System-State Collection and Platform Adapter Reference](system_state_collection_and_platform_adapter_reference.md)
+- [System-State Platform Docs Hub](platform/README.md)
+- [System-State Probe Layer and Window-Manager Adapter Boundary Reference](platform/system_state_probe_layer_and_window_manager_adapter_boundary_reference.md)
 
 ## Code Scope
 
