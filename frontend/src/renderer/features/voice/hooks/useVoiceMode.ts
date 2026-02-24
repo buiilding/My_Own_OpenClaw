@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { buildGatewayAudioMessage, float32ToPcm16 } from '../utils/audioEncoding';
+import { cleanupAudioCaptureNodes, takeAudioContext } from '../utils/audioCaptureCleanup';
 
 const MAX_RECONNECT_ATTEMPTS = 5;
 const RECONNECT_DELAY_BASE_MS = 1000;
@@ -252,26 +253,11 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
     isRecordingRef.current = false;
     setIsRecording(false);
 
-    // Disconnect and cleanup audio nodes
-    if (scriptNodeRef.current) {
-      scriptNodeRef.current.disconnect();
-      scriptNodeRef.current.onaudioprocess = null;
-      scriptNodeRef.current = null;
-    }
+    cleanupAudioCaptureNodes(scriptNodeRef, sourceNodeRef, mediaStreamRef);
 
-    if (sourceNodeRef.current) {
-      sourceNodeRef.current.disconnect();
-      sourceNodeRef.current = null;
-    }
-
-    if (mediaStreamRef.current) {
-      mediaStreamRef.current.getTracks().forEach(track => track.stop());
-      mediaStreamRef.current = null;
-    }
-
-    if (audioContextRef.current) {
-      await audioContextRef.current.close();
-      audioContextRef.current = null;
+    const audioContext = takeAudioContext(audioContextRef);
+    if (audioContext) {
+      await audioContext.close();
     }
 
     console.log('[VoiceMode] Audio capture stopped');
