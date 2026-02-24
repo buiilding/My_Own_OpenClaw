@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): add phase-128 full-gate snapshot after browser-controller typing-locator helper dedupe (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)
 - refactor(sidecar-browser-controller-tests): add shared `_setup_typing_locator` helper in `tests/sidecar/tools/test_browser_controller.py` to dedupe text-entry mock setup; jscpd improved from clones `72 -> 71` and duplicated lines `1416 -> 1410`
 - docs(refactor-plan): add phase-127 full-gate snapshot after backend/sidecar dedupe wave (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)
 - refactor(sidecar-chrome-launcher-tests): extract shared `TestIsCdpAvailable._patch_client_session` helper in `tests/sidecar/tools/test_chrome_launcher.py` to dedupe client-session mock wiring; jscpd improved from clones `73 -> 72` and duplicated lines `1425 -> 1416`
