@@ -1324,3 +1324,20 @@ read_when:
 - Verification:
   - `pytest tests/backend/test_api_handlers.py tests/backend/test_websocket_message_handler.py tests/backend/test_tool_result_handler.py` (pass; 50 tests)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
+
+## Phase 31 Outcome (2026-02-24)
+
+- LLM request-path signature dedupe shipped:
+  - built native completion request kwargs once in `get_response` and reused them across:
+    - non-stream completion (`get_completion_response`)
+    - stream completion (`_iter_completion_stream`)
+  - removed redundant non-stream wrapper method:
+    - `_get_completion_response`
+  - preserved prompt-cache key normalization, tool-turn branch behavior, and event emission semantics.
+- jscpd delta after Phase 31 slice:
+  - clones: `193 -> 191`
+  - duplicated lines: `2971 -> 2957`
+  - duplicated tokens: `26296 -> 26147`
+- Verification:
+  - `pytest tests/backend/test_llm_stream_processor.py tests/backend/test_llm_client.py tests/backend/test_local_llm_providers.py` (pass; 42 tests)
+  - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)

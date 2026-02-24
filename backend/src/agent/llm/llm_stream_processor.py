@@ -79,6 +79,14 @@ class LLMStreamProcessor:
         model_id = self.session.cfg.selected_model_id
         turn = self._log_prompt_cache_hint(prompt, model_id)
         prompt_cache_key = self._resolve_prompt_cache_key()
+        request_kwargs = self._build_completion_request_kwargs(
+            model_id=model_id,
+            prompt=prompt,
+            tools=tools,
+            tool_choice=tool_choice,
+            parallel_tool_calls=parallel_tool_calls,
+            prompt_cache_key=prompt_cache_key,
+        )
         self._last_response_payload = None
         logger.info(
             "[Timing] LLM request started (session=%s, turn=%s, model=%s)",
@@ -89,14 +97,7 @@ class LLMStreamProcessor:
 
         try:
             if self._should_use_native_completion_path(tools, model_id):
-                response = await self._get_completion_response(
-                    model_id=model_id,
-                    prompt=prompt,
-                    tools=tools,
-                    tool_choice=tool_choice,
-                    parallel_tool_calls=parallel_tool_calls,
-                    prompt_cache_key=prompt_cache_key,
-                )
+                response = await self.llm_client.get_completion_response(**request_kwargs)
                 full_text = response.get("content", "")
                 self._last_response_payload = response
 
@@ -109,12 +110,7 @@ class LLMStreamProcessor:
                 first_token_time = None
                 full_text = ""
                 async for event in self._iter_completion_stream(
-                    model_id=model_id,
-                    prompt=prompt,
-                    tools=tools,
-                    tool_choice=tool_choice,
-                    parallel_tool_calls=parallel_tool_calls,
-                    prompt_cache_key=prompt_cache_key,
+                    request_kwargs=request_kwargs,
                 ):
                     if first_token_time is None:
                         first_token_time = time.perf_counter()
@@ -232,46 +228,13 @@ class LLMStreamProcessor:
 
     async def _iter_completion_stream(
         self,
-        model_id: str,
-        prompt: List[LLMMessage],
-        tools: Optional[List[Dict[str, Any]]],
-        tool_choice: Optional[Any],
-        parallel_tool_calls: Optional[bool],
-        prompt_cache_key: Optional[str],
+        request_kwargs: Dict[str, Any],
     ) -> AsyncGenerator[AgentStreamingEvent, None]:
         """Stream completion using native tool-calling transport params."""
-        request_kwargs = self._build_completion_request_kwargs(
-            model_id=model_id,
-            prompt=prompt,
-            tools=tools,
-            tool_choice=tool_choice,
-            parallel_tool_calls=parallel_tool_calls,
-            prompt_cache_key=prompt_cache_key,
-        )
         async for event in self.llm_client.get_completion_stream(
             **request_kwargs,
         ):
             yield event
-
-    async def _get_completion_response(
-        self,
-        model_id: str,
-        prompt: List[LLMMessage],
-        tools: Optional[List[Dict[str, Any]]],
-        tool_choice: Optional[Any],
-        parallel_tool_calls: Optional[bool],
-        prompt_cache_key: Optional[str],
-    ) -> NormalizedLLMResponse:
-        """Completion call using native tool-calling transport params."""
-        request_kwargs = self._build_completion_request_kwargs(
-            model_id=model_id,
-            prompt=prompt,
-            tools=tools,
-            tool_choice=tool_choice,
-            parallel_tool_calls=parallel_tool_calls,
-            prompt_cache_key=prompt_cache_key,
-        )
-        return await self.llm_client.get_completion_response(**request_kwargs)
 
     @staticmethod
     def _build_completion_request_kwargs(
