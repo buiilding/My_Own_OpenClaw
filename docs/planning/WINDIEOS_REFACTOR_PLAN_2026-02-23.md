@@ -675,6 +675,27 @@ read_when:
   - `pytest tests/backend/test_llm_stream_processor.py tests/backend/test_llm_client.py tests/backend/test_local_llm_providers.py`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
+## Phase 32
+
+- `jscpd` duplication cleanup (tool schema shared field definitions):
+  - extract shared schema-field helpers in:
+    - `backend/src/tools/schema_fields.py`
+  - replace repeated explanation field declarations in:
+    - `backend/src/tools/system/schemas.py`
+    - `backend/src/tools/filesystem/schemas.py`
+  - replace repeated post-action wait field declarations in:
+    - `backend/src/tools/computer/schemas.py`
+  - preserve schema defaults and field descriptions.
+
+### Phase 32 Execution Slice (Current Loop)
+
+- Backend dedupe:
+  - keep tool argument contracts unchanged while reducing repeated Field blocks.
+  - avoid touching browser schema contracts in this slice.
+- Verification checks:
+  - `pytest tests/backend/test_remote_tools.py tests/backend/test_browser_remote_tool.py tests/backend/test_remote_tool_contract.py`
+  - `cd frontend && npm run audit:jscpd` (expect clone reduction)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):
