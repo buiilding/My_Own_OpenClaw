@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-wakeword): remove callback-ref sync `useEffect` in `frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts` and sync the mutable callback ref during render to avoid redundant effect work
 - refactor(frontend-voice-mode): remove three ref-sync `useEffect` hooks in `frontend/src/renderer/features/voice/hooks/useVoiceMode.ts` and sync mutable callback/enabled refs during render to reduce effect churn while preserving latest-callback semantics
 - test(frontend-voice-mode): rewrite reconnect-limit assertion in `tests/frontend/VoiceModeHook.test.ts` to drive max-attempt error through repeated close events on the same mock socket (no timer queue churn), keeping coverage while reducing unnecessary test work
 - refactor(backend-browser-schemas): split shared browser literal aliases into `backend/src/tools/browser/schema_types.py` and move oversized unified `BrowserControlArgs` into `backend/src/tools/browser/browser_control_args_schema.py`; keep `backend/src/tools/browser/schemas.py` as import-stable entrypoint and update OpenClaw compat schema to consume the shared aliases
