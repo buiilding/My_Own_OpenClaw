@@ -13,6 +13,7 @@ Includes the last 300 commits on `main`.
 - feat(tool-transparency-ui): show model-facing tool calls/outputs in chat by default and add per-message `Details` toggle for full tool payload metadata
 - fix(tool-transparency-ui): remove duplicated model-facing tool call/output sections from expanded `Details` panels; keep only payload detail JSON there
 - fix(tool-output-display): prefer payload `output` over `error` string fallback when rendering tool-output messages so UI mirrors the model-facing history content
+- fix(frontend-chat-stream): only suppress mismatched `conversation_ref` backend events while a non-terminal turn is active; allow cross-window conversation handoff after completion/error/idle so dashboard can pick up chat-pill conversations
 - feat(backend-tool-events): include `model_facing_tool_call` metadata on ToolCall/ToolBundle events so frontend can display exact LLM-generated call payloads even when execution args are rewritten
 - test(backend-kimi-streaming): add regression coverage for invalid streamed Kimi tool-call JSON to ensure parser failures emit `ErrorEvent` and do not materialize normalized tool calls
 - docs(architecture-llm): document streamed tool-turn recovery behavior for invalid tool-call argument JSON (synthetic tool output + continue loop, fatal errors still abort)
