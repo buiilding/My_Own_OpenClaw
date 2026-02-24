@@ -34,13 +34,32 @@ def _upload_file(data: bytes, filename: str, content_type: str) -> UploadFile:
     )
 
 
+def _container(tmp_path, *, artifact_max_bytes: int = 1024) -> SimpleNamespace:
+    return SimpleNamespace(
+        config=AppConfig(
+            artifact_store_path=str(tmp_path),
+            artifact_max_bytes=artifact_max_bytes,
+        )
+    )
+
+
+def _artifact_request() -> Request:
+    return Request(
+        {
+            "type": "http",
+            "scheme": "http",
+            "server": ("testserver", 80),
+            "path": "/api/artifacts/",
+            "headers": [],
+        }
+    )
+
+
 @pytest.mark.asyncio
 async def test_get_artifact_returns_file_response(tmp_path) -> None:
     path = tmp_path / "abc123.png"
     path.write_bytes(b"png-bytes")
-    container = SimpleNamespace(
-        config=AppConfig(artifact_store_path=str(tmp_path), artifact_max_bytes=1024)
-    )
+    container = _container(tmp_path)
 
     response = await artifacts_routes.get_artifact("abc123.png", container)
 
@@ -51,9 +70,7 @@ async def test_get_artifact_returns_file_response(tmp_path) -> None:
 
 @pytest.mark.asyncio
 async def test_get_artifact_invalid_id_returns_400(tmp_path) -> None:
-    container = SimpleNamespace(
-        config=AppConfig(artifact_store_path=str(tmp_path), artifact_max_bytes=1024)
-    )
+    container = _container(tmp_path)
 
     with pytest.raises(HTTPException) as exc_info:
         await artifacts_routes.get_artifact("not-an-image.txt", container)
@@ -63,9 +80,7 @@ async def test_get_artifact_invalid_id_returns_400(tmp_path) -> None:
 
 @pytest.mark.asyncio
 async def test_get_artifact_missing_file_returns_404(tmp_path) -> None:
-    container = SimpleNamespace(
-        config=AppConfig(artifact_store_path=str(tmp_path), artifact_max_bytes=1024)
-    )
+    container = _container(tmp_path)
 
     with pytest.raises(HTTPException) as exc_info:
         await artifacts_routes.get_artifact("abc123.png", container)
@@ -75,9 +90,7 @@ async def test_get_artifact_missing_file_returns_404(tmp_path) -> None:
 
 @pytest.mark.asyncio
 async def test_get_artifact_wraps_unexpected_errors_with_500(tmp_path, monkeypatch) -> None:
-    container = SimpleNamespace(
-        config=AppConfig(artifact_store_path=str(tmp_path), artifact_max_bytes=1024)
-    )
+    container = _container(tmp_path)
 
     class BrokenStore:
         def resolve_path(self, _artifact_id: str):
@@ -98,19 +111,9 @@ async def test_get_artifact_wraps_unexpected_errors_with_500(tmp_path, monkeypat
 
 @pytest.mark.asyncio
 async def test_upload_artifact_returns_metadata_and_url(tmp_path) -> None:
-    container = SimpleNamespace(
-        config=AppConfig(artifact_store_path=str(tmp_path), artifact_max_bytes=1024)
-    )
+    container = _container(tmp_path)
     upload = _upload_file(b"png-bytes", "shot.png", "image/png")
-    request = Request(
-        {
-            "type": "http",
-            "scheme": "http",
-            "server": ("testserver", 80),
-            "path": "/api/artifacts/",
-            "headers": [],
-        }
-    )
+    request = _artifact_request()
 
     response = await artifacts_routes.upload_artifact(request, container, file=upload)
 
@@ -123,19 +126,9 @@ async def test_upload_artifact_returns_metadata_and_url(tmp_path) -> None:
 
 @pytest.mark.asyncio
 async def test_upload_artifact_enforces_size_limit(tmp_path) -> None:
-    container = SimpleNamespace(
-        config=AppConfig(artifact_store_path=str(tmp_path), artifact_max_bytes=4)
-    )
+    container = _container(tmp_path, artifact_max_bytes=4)
     upload = _upload_file(b"png-bytes", "shot.png", "image/png")
-    request = Request(
-        {
-            "type": "http",
-            "scheme": "http",
-            "server": ("testserver", 80),
-            "path": "/api/artifacts/",
-            "headers": [],
-        }
-    )
+    request = _artifact_request()
 
     with pytest.raises(HTTPException) as exc_info:
         await artifacts_routes.upload_artifact(request, container, file=upload)
