@@ -2622,3 +2622,21 @@ read_when:
     - clones: `126 -> 126`
     - duplicated lines: `2125 -> 2125`
     - duplicated tokens: `18624 -> 18624`
+
+## Phase 95 Outcome (2026-02-24)
+
+- Tool execution bundle runner test fixture cleanup shipped:
+  - added helpers in `tests/frontend/ToolExecutionBundleRunner.test.ts`:
+    - `mockSingleReadFileInvokeResult`
+    - `mockTwoStepInvokeResults`
+  - replaced repeated `mockInvokeTool.mockResolvedValueOnce` fixture setup blocks for single-step and two-step success/error-path tests.
+- Verification:
+  - `cd frontend && npx jest ../tests/frontend/ToolExecutionBundleRunner.test.ts --runInBand` (pass; 9 tests)
+  - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
+  - `cd frontend && npm run audit:knip` (pass)
+  - `cd frontend && npm run audit:jscpd` (pass)
+  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - jscpd snapshot deltas:
+    - clones: `126 -> 126`
+    - duplicated lines: `2125 -> 2125`
+    - duplicated tokens: `18624 -> 18624`

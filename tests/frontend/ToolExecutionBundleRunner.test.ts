@@ -36,6 +36,23 @@ const expectSingleStepResult = (
     { tool: 'read_file', status, output },
   ]);
 };
+const mockSingleReadFileInvokeResult = (result: unknown) => {
+  mockInvokeTool.mockResolvedValueOnce({
+    result,
+    toolInvokeTime: 0.01,
+  } as any);
+};
+const mockTwoStepInvokeResults = (firstResult: unknown, secondResult: unknown) => {
+  mockInvokeTool
+    .mockResolvedValueOnce({
+      result: firstResult,
+      toolInvokeTime: 0.01,
+    } as any)
+    .mockResolvedValueOnce({
+      result: secondResult,
+      toolInvokeTime: 0.02,
+    } as any);
+};
 
 describe('ToolExecutionBundleRunner', () => {
   beforeEach(() => {
@@ -49,15 +66,10 @@ describe('ToolExecutionBundleRunner', () => {
   });
 
   test('runs tools sequentially and captures only for computer-use tools', async () => {
-    mockInvokeTool
-      .mockResolvedValueOnce({
-        result: { success: true, data: { output: 'first' } },
-        toolInvokeTime: 0.01,
-      })
-      .mockResolvedValueOnce({
-        result: { success: true, data: { output: 'second' } },
-        toolInvokeTime: 0.02,
-      });
+    mockTwoStepInvokeResults(
+      { success: true, data: { output: 'first' } },
+      { success: true, data: { output: 'second' } },
+    );
     mockIsComputerUseTool
       .mockReturnValueOnce(false)
       .mockReturnValueOnce(true);
@@ -132,10 +144,7 @@ describe('ToolExecutionBundleRunner', () => {
   });
 
   test('uses no-output success fallback when tool succeeds without output payload', async () => {
-    mockInvokeTool.mockResolvedValueOnce({
-      result: { success: true, data: { value: 'no-output-field' } },
-      toolInvokeTime: 0.01,
-    });
+    mockSingleReadFileInvokeResult({ success: true, data: { value: 'no-output-field' } });
 
     const outcome = await runReadFileBundle();
 
@@ -143,9 +152,9 @@ describe('ToolExecutionBundleRunner', () => {
   });
 
   test('uses llm_content for success output when output field is missing', async () => {
-    mockInvokeTool.mockResolvedValueOnce({
-      result: { success: true, data: { content: 'raw-file-content', llm_content: 'formatted-file-content' } },
-      toolInvokeTime: 0.01,
+    mockSingleReadFileInvokeResult({
+      success: true,
+      data: { content: 'raw-file-content', llm_content: 'formatted-file-content' },
     });
 
     const outcome = await runReadFileBundle();
@@ -154,10 +163,7 @@ describe('ToolExecutionBundleRunner', () => {
   });
 
   test('uses Unknown error output when failed result has no error text', async () => {
-    mockInvokeTool.mockResolvedValueOnce({
-      result: { success: false, data: null },
-      toolInvokeTime: 0.01,
-    } as any);
+    mockSingleReadFileInvokeResult({ success: false, data: null });
 
     const outcome = await runReadFileBundle();
 
@@ -165,15 +171,10 @@ describe('ToolExecutionBundleRunner', () => {
   });
 
   test('captures non-final computer tool without overwriting systemState', async () => {
-    mockInvokeTool
-      .mockResolvedValueOnce({
-        result: { success: true, data: { output: 'step-1' } },
-        toolInvokeTime: 0.01,
-      })
-      .mockResolvedValueOnce({
-        result: { success: true, data: { output: 'step-2' } },
-        toolInvokeTime: 0.02,
-      });
+    mockTwoStepInvokeResults(
+      { success: true, data: { output: 'step-1' } },
+      { success: true, data: { output: 'step-2' } },
+    );
     mockIsComputerUseTool
       .mockReturnValueOnce(true)
       .mockReturnValueOnce(false);
