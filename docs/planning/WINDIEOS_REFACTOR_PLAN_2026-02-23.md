@@ -500,6 +500,29 @@ read_when:
   - `cd frontend && npm run audit:knip`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
+## Phase 23
+
+- `jscpd` duplication cleanup (API formatter required-field handling):
+  - extract shared required-field + missing-fields warning helpers in:
+    - `backend/src/api/processing/formatters/base.py`
+  - reuse helper paths in:
+    - `backend/src/api/processing/formatters/chunk.py`
+    - `backend/src/api/processing/formatters/thinking.py`
+    - `backend/src/api/processing/formatters/assistant_message.py`
+    - `backend/src/api/processing/formatters/tool_call.py`
+    - `backend/src/api/processing/formatters/tool_output.py`
+  - preserve outgoing payload contracts and warning semantics.
+
+### Phase 23 Execution Slice (Current Loop)
+
+- Backend dedupe:
+  - centralize required-field warning flow in formatter base.
+  - remove repeated per-formatter required-content checks where behavior is identical.
+  - keep tool-call/tool-output validation behavior unchanged (`tool_name` + params/output guards).
+- Verification checks:
+  - `pytest tests/backend/test_formatters.py tests/backend/test_outgoing_schema_contract.py tests/backend/test_response_formatter.py`
+  - `cd frontend && npm run audit:jscpd` (expect clone reduction)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):

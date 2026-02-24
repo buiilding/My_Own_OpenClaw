@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 23 execution slice for backend API formatter required-field dedupe (`base`, `chunk`, `thinking`, `assistant_message`, `tool_call`, `tool_output`)
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 22 execution slice for `SettingsPanel.css` shared item-state selector dedupe (`.model-item`, `.memory-item`)
 - refactor(frontend-settings-styles): dedupe shared `.model-item` and `.memory-item` base/hover/active selectors in `SettingsPanel.css` while preserving model-only layout declarations
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 21 execution slice for shared voice audio-capture ref hook dedupe (`useVoiceMode`, `useWakewordDetection`)
