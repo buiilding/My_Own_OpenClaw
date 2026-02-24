@@ -37,6 +37,32 @@ def _test_logger():
     return logging.getLogger("tests.vision.provider.loader")
 
 
+def _load_model_with_defaults(
+    torch_module,
+    *,
+    load_device_map_model,
+    load_direct_model,
+    provider_label: str = "InternVL",
+    failure_message: str = "Failed to load vision model",
+    device_map_dtype=None,
+):
+    resolved_device_map_dtype = (
+        torch_module.bfloat16 if device_map_dtype is None else device_map_dtype
+    )
+    return load_model_with_fallbacks(
+        provider_label=provider_label,
+        model_name="provider/model",
+        torch_module=torch_module,
+        device_map_dtype=resolved_device_map_dtype,
+        load_device_map_model=load_device_map_model,
+        load_direct_model=load_direct_model,
+        logger_instance=_test_logger(),
+        direct_retry_message="trying direct loading",
+        cpu_retry_message="trying CPU fallback",
+        failure_message=failure_message,
+    )
+
+
 class _Param:
     def __init__(self, device):
         self.device = device
@@ -281,17 +307,10 @@ def test_loader_falls_back_to_direct_cuda_loading_when_device_map_fails():
         calls["direct"].append((dtype, device))
         return {"path": "direct", "device": device, "dtype": dtype}
 
-    model, dtype = load_model_with_fallbacks(
-        provider_label="InternVL",
-        model_name="provider/model",
-        torch_module=fake_torch,
-        device_map_dtype=fake_torch.bfloat16,
+    model, dtype = _load_model_with_defaults(
+        fake_torch,
         load_device_map_model=load_device_map,
         load_direct_model=load_direct,
-        logger_instance=_test_logger(),
-        direct_retry_message="trying direct loading",
-        cpu_retry_message="trying CPU fallback",
-        failure_message="Failed to load vision model",
     )
 
     assert calls["device_map"] == 1
@@ -313,17 +332,10 @@ def test_loader_uses_cpu_fallback_when_direct_loading_fails():
             raise RuntimeError("direct failed")
         return {"path": "cpu_fallback", "device": device, "dtype": dtype}
 
-    model, dtype = load_model_with_fallbacks(
-        provider_label="InternVL",
-        model_name="provider/model",
-        torch_module=fake_torch,
-        device_map_dtype=fake_torch.bfloat16,
+    model, dtype = _load_model_with_defaults(
+        fake_torch,
         load_device_map_model=load_device_map,
         load_direct_model=load_direct,
-        logger_instance=_test_logger(),
-        direct_retry_message="trying direct loading",
-        cpu_retry_message="trying CPU fallback",
-        failure_message="Failed to load vision model",
     )
 
     assert calls["direct"] == [(fake_torch.float16, "cuda"), (fake_torch.float32, "cpu")]
@@ -345,17 +357,13 @@ def test_loader_raises_runtime_error_when_all_attempts_fail():
         raise RuntimeError("direct failed")
 
     with pytest.raises(RuntimeError) as exc_info:
-        load_model_with_fallbacks(
-            provider_label="Venus",
-            model_name="provider/model",
-            torch_module=fake_torch,
-            device_map_dtype=fake_torch.float32,
+        _load_model_with_defaults(
+            fake_torch,
             load_device_map_model=load_device_map,
             load_direct_model=load_direct,
-            logger_instance=_test_logger(),
-            direct_retry_message="trying direct loading",
-            cpu_retry_message="trying CPU fallback",
+            provider_label="Venus",
             failure_message="Failed to load Venus vision model",
+            device_map_dtype=fake_torch.float32,
         )
 
     assert "Failed to load Venus vision model" in str(exc_info.value)
