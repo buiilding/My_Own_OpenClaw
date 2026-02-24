@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-local-store-tests): parameterize `test_delete_conversation_clears_faiss_artifacts_when_empty` in `tests/sidecar/test_local_store_delete_cleanup.py` for null/non-null conversation ids and remove duplicate setup; jscpd improved from clones `82 -> 81` and duplicated lines `1525 -> 1510`
 - refactor(sidecar-runtime-shutdown-tests): extract shared stdin/service setup helpers in `tests/sidecar/test_runtime_shutdown.py` and dedupe repeated idempotency setup blocks; jscpd improved from clones `83 -> 82` and duplicated lines `1542 -> 1525`
 - refactor(backend-llm-provider-base-tests): extract shared stream/message fixtures in `tests/backend/test_llm_provider_base.py` and parameterize stream error mapping assertions; jscpd improved from clones `86 -> 83` and duplicated lines `1577 -> 1542`
 - docs(refactor-plan): add phase-126 full-gate snapshot after llm-stream-processor test helper extraction (frontend audits/tests + backend + sidecar)

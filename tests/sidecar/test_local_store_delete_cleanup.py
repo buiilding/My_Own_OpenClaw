@@ -169,45 +169,19 @@ async def test_delete_semantic_memory_clears_faiss_artifacts_when_empty(tmp_path
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(faiss is None, reason="faiss is required")
-async def test_delete_conversation_clears_faiss_artifacts_when_empty(tmp_path: Path):
-    store = _build_store(tmp_path)
-    _create_episodic_memories_table(store.episodic_db_path)
-
-    with sqlite3.connect(store.episodic_db_path) as conn:
-        conn.execute(
-            """
-            INSERT INTO memories (id, user_id, embedding_id, conversation_id, record_kind)
-            VALUES (?, ?, ?, ?, ?)
-            """,
-            ("episodic-1", "user-1", 3, "conv-1", "transcript"),
-        )
-        conn.commit()
-
-    store.episodic_memory_id_to_vector_id = {"episodic-1": 3}
-    store.episodic_vector_id_to_memory_id = {3: "episodic-1"}
-    store.episodic_next_vector_id = 9
-    store.episodic_index = faiss.IndexFlatIP(store.embedder.dimension)
-    store.episodic_index_path.write_bytes(b"stale-index")
-
-    deleted_count = await store.delete_conversation(
-        user_id="user-1",
-        conversation_id="conv-1",
-        record_kind="transcript",
-    )
-
-    assert deleted_count == 1
-    assert store.episodic_memory_id_to_vector_id == {}
-    assert store.episodic_vector_id_to_memory_id == {}
-    assert store.episodic_next_vector_id == 0
-    assert store.episodic_index is not None
-    assert store.episodic_index.ntotal == 0
-    assert store.episodic_index_path.exists() is False
-
-
-@pytest.mark.asyncio
-@pytest.mark.skipif(faiss is None, reason="faiss is required")
-async def test_delete_conversation_with_null_conversation_id_clears_faiss_artifacts_when_empty(
+@pytest.mark.parametrize(
+    ("memory_id", "embedding_id", "conversation_id"),
+    [
+        ("episodic-1", 3, "conv-1"),
+        ("episodic-null", 5, None),
+    ],
+    ids=["conversation-id", "null-conversation-id"],
+)
+async def test_delete_conversation_clears_faiss_artifacts_when_empty(
     tmp_path: Path,
+    memory_id: str,
+    embedding_id: int,
+    conversation_id: str | None,
 ):
     store = _build_store(tmp_path)
     _create_episodic_memories_table(store.episodic_db_path)
@@ -218,19 +192,19 @@ async def test_delete_conversation_with_null_conversation_id_clears_faiss_artifa
             INSERT INTO memories (id, user_id, embedding_id, conversation_id, record_kind)
             VALUES (?, ?, ?, ?, ?)
             """,
-            ("episodic-null", "user-1", 5, None, "transcript"),
+            (memory_id, "user-1", embedding_id, conversation_id, "transcript"),
         )
         conn.commit()
 
-    store.episodic_memory_id_to_vector_id = {"episodic-null": 5}
-    store.episodic_vector_id_to_memory_id = {5: "episodic-null"}
+    store.episodic_memory_id_to_vector_id = {memory_id: embedding_id}
+    store.episodic_vector_id_to_memory_id = {embedding_id: memory_id}
     store.episodic_next_vector_id = 10
     store.episodic_index = faiss.IndexFlatIP(store.embedder.dimension)
     store.episodic_index_path.write_bytes(b"stale-index")
 
     deleted_count = await store.delete_conversation(
         user_id="user-1",
-        conversation_id=None,
+        conversation_id=conversation_id,
         record_kind="transcript",
     )
 
