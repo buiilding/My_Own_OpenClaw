@@ -14,12 +14,12 @@ function formatTokenCount(value, fallback = '0') {
 }
 
 function getActiveConversationTokenCount(tokenCounts) {
-  const conversationTokens = tokenCounts?.conversation_tokens;
-  if (typeof conversationTokens === 'number') {
-    return formatTokenCount(conversationTokens);
+  const totalTokens = tokenCounts?.total_tokens;
+  if (typeof totalTokens === 'number') {
+    return formatTokenCount(totalTokens);
   }
 
-  return formatTokenCount(tokenCounts?.total_tokens);
+  return formatTokenCount(tokenCounts?.conversation_tokens);
 }
 
 export function buildTokenCountItems(tokenCounts) {
