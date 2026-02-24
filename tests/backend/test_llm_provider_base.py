@@ -153,6 +153,18 @@ class TestBuildRequestParams:
         
         assert params["model"] == "custom/model"
 
+    def test_build_applies_provider_request_param_hook(self, provider, monkeypatch):
+        messages = [{"role": "user", "content": "Hello"}]
+        apply_hook_mock = MagicMock(
+            side_effect=lambda params, *, model: {**params, "hook_model": model}
+        )
+        monkeypatch.setattr(provider, "_apply_provider_request_params", apply_hook_mock)
+
+        params = provider._build_request_params("gpt-4", messages)
+
+        apply_hook_mock.assert_called_once()
+        assert params["hook_model"] == "gpt-4"
+
     def test_build_raises_on_none_model(self, provider):
         messages = [{"role": "user", "content": "Hello"}]
         

@@ -237,23 +237,13 @@ class LocalLLMProvider(LLMProvider):
             logger.warning(f"Error listing {provider_label} models: {e}")
             return []
 
-    def _build_request_params(
+    def _apply_provider_request_params(
         self,
+        params: Dict[str, Any],
+        *,
         model: str,
-        messages: List[LLMMessage],
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Any] = None,
-        parallel_tool_calls: Optional[bool] = None,
-        prompt_cache_key: Optional[str] = None,
-    ) -> dict:
-        params = super()._build_request_params(
-            model,
-            messages,
-            tools=tools,
-            tool_choice=tool_choice,
-            parallel_tool_calls=parallel_tool_calls,
-            prompt_cache_key=prompt_cache_key,
-        )
+    ) -> Dict[str, Any]:
+        _ = model
         # Local models often need to be told they are compatible with OpenAI's API
         params["custom_llm_provider"] = "openai"
         if not params.get("api_key"):
