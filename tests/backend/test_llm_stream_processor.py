@@ -269,12 +269,35 @@ class _KimiStreamingToolTurnLLMClient:
         _ = model
         return True
 
-@pytest.mark.asyncio
-async def test_logs_cache_hint_and_provider_cache_diagnostics(caplog, monkeypatch):
+
+def _patch_fake_token_service(monkeypatch):
     monkeypatch.setattr(
         "backend.src.agent.llm.llm_stream_processor.get_token_service",
         lambda: _FakeTokenService(),
     )
+
+
+def _hello_prompt():
+    return [{"role": "user", "content": "hello"}]
+
+
+def _single_function_tool(name: str):
+    return [{"type": "function", "function": {"name": name, "parameters": {"type": "object"}}}]
+
+
+async def _collect_response_events(processor, *, tools=None):
+    return [
+        event
+        async for event in processor.get_response(
+            _hello_prompt(),
+            tools=tools,
+        )
+    ]
+
+
+@pytest.mark.asyncio
+async def test_logs_cache_hint_and_provider_cache_diagnostics(caplog, monkeypatch):
+    _patch_fake_token_service(monkeypatch)
 
     processor = LLMStreamProcessor(llm_client=_FakeLLMClient(), session=_FakeSession())
     caplog.set_level(logging.INFO)
@@ -307,10 +330,7 @@ async def test_logs_cache_hint_and_provider_cache_diagnostics(caplog, monkeypatc
 
 @pytest.mark.asyncio
 async def test_rejects_unsupported_stream_event_types(monkeypatch):
-    monkeypatch.setattr(
-        "backend.src.agent.llm.llm_stream_processor.get_token_service",
-        lambda: _FakeTokenService(),
-    )
+    _patch_fake_token_service(monkeypatch)
 
     processor = LLMStreamProcessor(
         llm_client=_UnsupportedEventLLMClient(),
@@ -319,7 +339,7 @@ async def test_rejects_unsupported_stream_event_types(monkeypatch):
 
     events = []
     with pytest.raises(TypeError, match="Unsupported stream event type"):
-        async for event in processor.get_response([{"role": "user", "content": "hello"}]):
+        async for event in processor.get_response(_hello_prompt()):
             events.append(event)
 
     assert any(isinstance(event, ErrorEvent) for event in events)
@@ -327,24 +347,15 @@ async def test_rejects_unsupported_stream_event_types(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_maps_http_520_api_error_to_retry_friendly_error_event(monkeypatch):
-    monkeypatch.setattr(
-        "backend.src.agent.llm.llm_stream_processor.get_token_service",
-        lambda: _FakeTokenService(),
-    )
+    _patch_fake_token_service(monkeypatch)
 
     processor = LLMStreamProcessor(llm_client=_Api520LLMClient(), session=_FakeSession())
     events = []
 
     with pytest.raises(LLMAPIError, match="HTTP 520"):
-        noop_tools = [
-            {
-                "type": "function",
-                "function": {"name": "noop", "parameters": {"type": "object"}},
-            }
-        ]
         async for event in processor.get_response(
-            [{"role": "user", "content": "hello"}],
-            tools=noop_tools,
+            _hello_prompt(),
+            tools=_single_function_tool("noop"),
         ):
             events.append(event)
 
@@ -355,16 +366,13 @@ async def test_maps_http_520_api_error_to_retry_friendly_error_event(monkeypatch
 
 @pytest.mark.asyncio
 async def test_token_count_prefers_provider_usage_and_reasoning_tokens(monkeypatch):
-    monkeypatch.setattr(
-        "backend.src.agent.llm.llm_stream_processor.get_token_service",
-        lambda: _FakeTokenService(),
-    )
+    _patch_fake_token_service(monkeypatch)
     processor = LLMStreamProcessor(
         llm_client=_ProviderUsageLLMClient(),
         session=_FakeSession(),
     )
 
-    events = [event async for event in processor.get_response([{"role": "user", "content": "hello"}])]
+    events = await _collect_response_events(processor)
     token_event = next(event for event in events if isinstance(event, TokenCountEvent))
 
     assert token_event.prompt_tokens == 50
@@ -380,16 +388,13 @@ async def test_token_count_prefers_provider_usage_and_reasoning_tokens(monkeypat
 
 @pytest.mark.asyncio
 async def test_token_count_falls_back_to_estimate_when_provider_usage_missing(monkeypatch):
-    monkeypatch.setattr(
-        "backend.src.agent.llm.llm_stream_processor.get_token_service",
-        lambda: _FakeTokenService(),
-    )
+    _patch_fake_token_service(monkeypatch)
     processor = LLMStreamProcessor(
         llm_client=_MissingUsageLLMClient(),
         session=_FakeSession(),
     )
 
-    events = [event async for event in processor.get_response([{"role": "user", "content": "hello"}])]
+    events = await _collect_response_events(processor)
     token_event = next(event for event in events if isinstance(event, TokenCountEvent))
 
     assert token_event.prompt_tokens == 1
@@ -405,29 +410,17 @@ async def test_token_count_falls_back_to_estimate_when_provider_usage_missing(mo
 
 @pytest.mark.asyncio
 async def test_kimi_uses_non_stream_completion_when_tools_present_if_streaming_unsupported(monkeypatch):
-    monkeypatch.setattr(
-        "backend.src.agent.llm.llm_stream_processor.get_token_service",
-        lambda: _FakeTokenService(),
-    )
+    _patch_fake_token_service(monkeypatch)
     llm_client = _KimiToolCompletionLLMClient()
     processor = LLMStreamProcessor(
         llm_client=llm_client,
         session=_KimiSession(),
     )
 
-    noop_tools = [
-        {
-            "type": "function",
-            "function": {"name": "read_file", "parameters": {"type": "object"}},
-        }
-    ]
-    events = [
-        event
-        async for event in processor.get_response(
-            [{"role": "user", "content": "hello"}],
-            tools=noop_tools,
-        )
-    ]
+    events = await _collect_response_events(
+        processor,
+        tools=_single_function_tool("read_file"),
+    )
     assert not any(isinstance(event, ChunkEvent) for event in events)
     payload = processor.get_last_response_payload()
     assert payload is not None
@@ -439,28 +432,16 @@ async def test_kimi_uses_non_stream_completion_when_tools_present_if_streaming_u
 
 @pytest.mark.asyncio
 async def test_kimi_streams_thinking_when_tools_present_if_streaming_supported(monkeypatch):
-    monkeypatch.setattr(
-        "backend.src.agent.llm.llm_stream_processor.get_token_service",
-        lambda: _FakeTokenService(),
-    )
+    _patch_fake_token_service(monkeypatch)
     processor = LLMStreamProcessor(
         llm_client=_KimiStreamingToolTurnLLMClient(),
         session=_KimiSession(),
     )
 
-    noop_tools = [
-        {
-            "type": "function",
-            "function": {"name": "read_file", "parameters": {"type": "object"}},
-        }
-    ]
-    events = [
-        event
-        async for event in processor.get_response(
-            [{"role": "user", "content": "hello"}],
-            tools=noop_tools,
-        )
-    ]
+    events = await _collect_response_events(
+        processor,
+        tools=_single_function_tool("read_file"),
+    )
 
     assert any(isinstance(event, ThinkingEvent) for event in events)
     payload = processor.get_last_response_payload()
@@ -472,28 +453,16 @@ async def test_kimi_streams_thinking_when_tools_present_if_streaming_supported(m
 
 @pytest.mark.asyncio
 async def test_kimi_prefers_conversation_ref_for_prompt_cache_key(monkeypatch):
-    monkeypatch.setattr(
-        "backend.src.agent.llm.llm_stream_processor.get_token_service",
-        lambda: _FakeTokenService(),
-    )
+    _patch_fake_token_service(monkeypatch)
     llm_client = _KimiToolCompletionLLMClient()
     processor = LLMStreamProcessor(
         llm_client=llm_client,
         session=_KimiSessionWithConversationRef(),
     )
 
-    noop_tools = [
-        {
-            "type": "function",
-            "function": {"name": "read_file", "parameters": {"type": "object"}},
-        }
-    ]
-    _ = [
-        event
-        async for event in processor.get_response(
-            [{"role": "user", "content": "hello"}],
-            tools=noop_tools,
-        )
-    ]
+    _ = await _collect_response_events(
+        processor,
+        tools=_single_function_tool("read_file"),
+    )
 
     assert llm_client.last_prompt_cache_key == "conv-kimi"
