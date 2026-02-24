@@ -168,6 +168,8 @@ This split keeps envelope strict while preserving per-tool extensibility.
 ## Related Pages
 
 - [Backend API Handlers Docs Hub](README.md)
+- [Backend API Services Docs Hub](../services/README.md)
+- [Rehydrate and Wakeword Execution Service and TTS Session Reference](../services/rehydrate_and_wakeword_execution_service_and_tts_session_reference.md)
 - [Query Handler and Query Execution Service Runtime Reference](query_handler_and_query_execution_service_runtime_reference.md)
 - [Handler Behavior Matrix](../handler_behavior_matrix.md)
 - [Memory Route Validation and Fallback Reference](../memory_route_validation_and_fallback_reference.md)

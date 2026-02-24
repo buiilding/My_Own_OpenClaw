@@ -44,6 +44,7 @@ Covers:
 
 - [API Docs Hub](api/README.md)
 - [API Handlers Docs Hub](api/handlers/README.md)
+- [API Services Docs Hub](api/services/README.md)
 - [API Processing Docs Hub](api/processing/README.md)
 - [API Processing Formatters Docs Hub](api/processing/formatters/README.md)
 - [API Processing TTS Docs Hub](api/processing/tts/README.md)
@@ -62,6 +63,8 @@ Covers:
 - [Non-Query Handler and Control Flow Reference](api/non_query_handler_and_control_flow_reference.md)
 - [Query Handler and Query Execution Service Runtime Reference](api/handlers/query_handler_and_query_execution_service_runtime_reference.md)
 - [Non-Query Handler Dispatch and Payload Normalization Reference](api/handlers/non_query_handler_dispatch_and_payload_normalization_reference.md)
+- [Query Execution Service Stream Context and Completion Fallback Reference](api/services/query_execution_service_stream_context_and_completion_fallback_reference.md)
+- [Rehydrate and Wakeword Execution Service and TTS Session Reference](api/services/rehydrate_and_wakeword_execution_service_and_tts_session_reference.md)
 - [Formatter Dispatch and Schema Alignment Reference](api/processing/formatter_dispatch_and_schema_alignment_reference.md)
 - [Stream Pipeline, Completion, and TTS Concurrency Reference](api/processing/stream_pipeline_completion_and_tts_concurrency_reference.md)
 - [Query Execution Runtime-State and Completion Resolver Reference](api/processing/query_execution_runtime_state_and_completion_resolver_reference.md)

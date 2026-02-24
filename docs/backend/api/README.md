@@ -12,6 +12,7 @@ title: "Backend API Docs Hub"
 
 - [API and Transport](api_and_transport.md)
 - [API Handlers Docs Hub](handlers/README.md)
+- [API Services Docs Hub](services/README.md)
 - [API Processing Docs Hub](processing/README.md)
 - [API Processing Formatters Docs Hub](processing/formatters/README.md)
 - [API Processing TTS Docs Hub](processing/tts/README.md)
@@ -24,6 +25,8 @@ title: "Backend API Docs Hub"
 - [Handler Behavior Matrix](handler_behavior_matrix.md)
 - [Query Handler and Query Execution Service Runtime Reference](handlers/query_handler_and_query_execution_service_runtime_reference.md)
 - [Non-Query Handler Dispatch and Payload Normalization Reference](handlers/non_query_handler_dispatch_and_payload_normalization_reference.md)
+- [Query Execution Service Stream Context and Completion Fallback Reference](services/query_execution_service_stream_context_and_completion_fallback_reference.md)
+- [Rehydrate and Wakeword Execution Service and TTS Session Reference](services/rehydrate_and_wakeword_execution_service_and_tts_session_reference.md)
 - [Non-Query Handler and Control Flow Reference](non_query_handler_and_control_flow_reference.md)
 - [Formatter Dispatch and Schema Alignment Reference](processing/formatter_dispatch_and_schema_alignment_reference.md)
 - [Stream Pipeline, Completion, and TTS Concurrency Reference](processing/stream_pipeline_completion_and_tts_concurrency_reference.md)
@@ -38,5 +41,6 @@ title: "Backend API Docs Hub"
 
 - `backend/src/api/routes/*`
 - `backend/src/api/handlers/*`
+- `backend/src/api/services/*`
 - `backend/src/api/processing/*`
 - `backend/src/api/transport/*`

@@ -16,6 +16,7 @@ title: "Backend API Handlers Docs Hub"
 ## Related Pages
 
 - [Backend API Docs Hub](../README.md)
+- [Backend API Services Docs Hub](../services/README.md)
 - [Handler Behavior Matrix](../handler_behavior_matrix.md)
 - [WebSocket Connection and Task Lifecycle Reference](../websocket_connection_and_task_lifecycle_reference.md)
 - [Stream Pipeline, Completion, and TTS Concurrency Reference](../processing/stream_pipeline_completion_and_tts_concurrency_reference.md)
