@@ -156,6 +156,29 @@ class LiteLLMClient(LLMClient):
             raise LLMAPIError(f"LLM provider error: {exc}", model=model) from exc
 
     @staticmethod
+    def _normalize_content(
+        response: Dict[str, Any],
+        *,
+        model: str,
+    ) -> str:
+        """Normalize required content field from provider response payload."""
+        if "content" not in response:
+            raise LLMAPIError(
+                f"Invalid response structure from provider: missing 'content' key. Keys: {list(response.keys())}",
+                model=model,
+            )
+
+        content = response["content"]
+        if content is None:
+            content = ""
+        if not isinstance(content, str):
+            raise LLMAPIError(
+                f"Invalid content type from provider: expected str, got {type(content).__name__}",
+                model=model,
+            )
+        return content
+
+    @staticmethod
     def _normalize_tool_call_entry(
         tool_call: Any,
         *,
@@ -242,22 +265,9 @@ class LiteLLMClient(LLMClient):
                 model=model,
             )
 
-        if "content" not in response:
-            raise LLMAPIError(
-                f"Invalid response structure from provider: missing 'content' key. Keys: {list(response.keys())}",
-                model=model,
-            )
-
-        content = response["content"]
-        if content is None:
-            content = ""
-        if not isinstance(content, str):
-            raise LLMAPIError(
-                f"Invalid content type from provider: expected str, got {type(content).__name__}",
-                model=model,
-            )
-
-        normalized: NormalizedLLMResponse = {"content": content}
+        normalized: NormalizedLLMResponse = {
+            "content": LiteLLMClient._normalize_content(response, model=model)
+        }
 
         normalized_tool_calls = LiteLLMClient._normalize_tool_calls(
             response.get("tool_calls"),
