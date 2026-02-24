@@ -33,6 +33,7 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 
 - [Backend Functionality Map](../backend/README.md)
 - [Backend WebSocket Contracts](../backend/contracts/WEBSOCKET_MESSAGE_CONTRACTS.md)
+- [Backend Message Schema + Formatter Reference](../backend/contracts/MESSAGE_SCHEMA_AND_FORMATTER_REFERENCE.md)
 - [Backend Config Runtime Policy](../backend/config/CONFIG_FIELDS_AND_RUNTIME_POLICY.md)
 - [Backend Endpoint Reference](../backend/api/HTTP_AND_WS_ENDPOINT_REFERENCE.md)
 - [Frontend Functionality Map](../frontend/README.md)
