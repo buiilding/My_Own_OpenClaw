@@ -1,3 +1,6 @@
+import SectionIntro from './SectionIntro';
+import ProviderStackIcon from './icons/ProviderStackIcon';
+
 const WhySection = () => {
   const features = [
     {
@@ -56,13 +59,7 @@ const WhySection = () => {
       description: 'Navigate websites, fill forms, extract data, and interact with web applications—all through natural language commands with full visual feedback.'
     },
     {
-      icon: (
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-          <path d="M2 17l10 5 10-5"/>
-          <path d="M2 12l10 5 10-5"/>
-        </svg>
-      ),
+      icon: <ProviderStackIcon />,
       title: 'Multi-Provider Support',
       description: 'Connect to OpenAI, Anthropic, or other LLM providers. Switch models based on your needs—use powerful models for complex tasks, faster ones for quick queries.'
     }
@@ -71,19 +68,14 @@ const WhySection = () => {
   return (
     <section id="why-windieos" className="why-section">
       <div className="container">
-        <div className="section-header">
-          <span className="badge badge-primary mb-4">Why WindieOS</span>
-          <h2 className="heading-2 mb-4">
-            Beyond the IDE.
-            <br />
-            <span className="gradient-text">Beyond the browser.</span>
-          </h2>
-          <p className="text-large text-secondary max-w-2xl mx-auto">
-            Most AI assistants are trapped in a single application. WindieOS works 
-            across your entire operating system, understanding context from any app 
-            and taking action wherever needed.
-          </p>
-        </div>
+        <SectionIntro
+          badge="Why WindieOS"
+          headingPrefix="Beyond the IDE."
+          headingGradient="Beyond the browser."
+          description="Most AI assistants are trapped in a single application. WindieOS works across your entire operating system, understanding context from any app and taking action wherever needed."
+          wrapperClassName="section-header"
+          descriptionClassName="text-large text-secondary max-w-2xl mx-auto"
+        />
         
         <div className="features-grid">
           {features.map((feature, index) => (
