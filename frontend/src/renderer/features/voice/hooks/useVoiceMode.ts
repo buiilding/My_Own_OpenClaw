@@ -5,6 +5,7 @@ import {
   takeAudioContext,
   type LegacyAudioProcessorNode,
 } from '../utils/audioCaptureCleanup';
+import { useAudioCaptureRefs } from './useAudioCaptureRefs';
 
 const MAX_RECONNECT_ATTEMPTS = 5;
 const RECONNECT_DELAY_BASE_MS = 1000;
@@ -36,10 +37,16 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
   const [clientId, setClientId] = useState<string | null>(null);
 
   const websocketRef = useRef<WebSocket | null>(null);
-  const mediaStreamRef = useRef<MediaStream | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const sourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
-  const scriptNodeRef = useRef<LegacyAudioProcessorNode | null>(null);
+  const {
+    mediaStreamRef,
+    audioContextRef,
+    sourceNodeRef,
+    scriptNodeRef,
+    setMediaStreamRef,
+    setAudioContextRef,
+    setSourceNodeRef,
+    setScriptNodeRef,
+  } = useAudioCaptureRefs();
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttemptsRef = useRef(0);
   const isRecordingRef = useRef(false);
@@ -195,22 +202,22 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
         }
       });
 
-      mediaStreamRef.current = stream;
+      setMediaStreamRef(stream);
 
       // Create audio context
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({
         sampleRate: 16000
       });
-      audioContextRef.current = audioContext;
+      setAudioContextRef(audioContext);
 
       // Create source node from media stream
       const sourceNode = audioContext.createMediaStreamSource(stream);
-      sourceNodeRef.current = sourceNode;
+      setSourceNodeRef(sourceNode);
 
       // Create ScriptProcessorNode for raw audio processing
       const bufferSize = 4096;
       const scriptNode = audioContext.createScriptProcessor(bufferSize, 1, 1) as unknown as LegacyAudioProcessorNode;
-      scriptNodeRef.current = scriptNode;
+      setScriptNodeRef(scriptNode);
 
       scriptNode.onaudioprocess = (event) => {
         if (!isRecordingRef.current || !websocketRef.current || websocketRef.current.readyState !== WebSocket.OPEN) {
@@ -246,7 +253,12 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
       setIsRecording(false);
       isRecordingRef.current = false;
     }
-  }, [audioContextRef, mediaStreamRef, scriptNodeRef, sourceNodeRef]);
+  }, [
+    setAudioContextRef,
+    setMediaStreamRef,
+    setScriptNodeRef,
+    setSourceNodeRef,
+  ]);
 
   // Stop audio capture
   const stopAudioCapture = useCallback(async () => {
