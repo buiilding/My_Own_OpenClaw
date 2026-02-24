@@ -87,6 +87,11 @@ Behavior:
 - uses remote embedding client (`core/remote_embedding_client.py`) against backend embeddings API
 - optionally consolidates episodic memories into semantic summaries using backend semantic summarization endpoint
 
+Memory deep references:
+
+- [Sidecar Memory Docs Hub](memory/README.md)
+- [Summarizer Watermark and Conversation Batch Reference](memory/summarizer_watermark_and_conversation_batch_reference.md)
+
 ## System State and Platform Adapters
 
 System context capture:

@@ -8,6 +8,11 @@ title: "Memory Pipeline and Summarization"
 
 # Memory Pipeline and Summarization
 
+Deep split references:
+
+- [Sidecar Memory Docs Hub](memory/README.md)
+- [Summarizer Watermark and Conversation Batch Reference](memory/summarizer_watermark_and_conversation_batch_reference.md)
+
 ## Memory Storage Core
 
 Primary store:
