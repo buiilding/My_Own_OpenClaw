@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-wakeword): hoist wakeword cooldown constant to module scope and reuse one formatted confidence string in detection logs to reduce per-render/per-event duplicate work
 - refactor(frontend-settings-hook): drop compatibility-only unused parameters from `useSettingsManagement`, simplify `AppConfigProvider` call-site to pass only `setAvailableModels`, and update hook tests for the trimmed API
 - refactor(frontend-wakeword): remove redundant second cooldown check in `useWakewordDetection` detection handler (the cooldown guard already runs before threshold evaluation), reducing duplicate branch logic while preserving behavior
 - fix(frontend-chatbox-context-positioning): nudge separate active-window label up by 1px for final micro-alignment

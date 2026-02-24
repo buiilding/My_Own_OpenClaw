@@ -14,6 +14,8 @@ import {
 } from '../utils/wakewordEventUtils';
 import { useAudioCaptureRefs } from './useAudioCaptureRefs';
 
+const WAKEWORD_COOLDOWN_MS = 2000;
+
 /**
  * Custom hook for wakeword detection using openWakeWord.
  * 
@@ -55,7 +57,6 @@ export function useWakewordDetection(
   const isCapturingRef = useRef(false);
   const captureGenerationRef = useRef(0);
   const lastDetectionRef = useRef(0);
-  const cooldownPeriod = 2000; // 2 seconds cooldown between detections
   
   // Use ref to store callback so effect doesn't re-run when callback changes
   const onWakewordDetectedRef = useRef(onWakewordDetected);
@@ -208,17 +209,18 @@ export function useWakewordDetection(
         console.warn('[Wakeword] Invalid confidence value in detection event');
         return;
       }
+      const confidenceText = confidence.toFixed(4);
       
       // Cooldown check to prevent multiple rapid detections
-      if (isWithinCooldown(now, lastDetectionRef.current, cooldownPeriod)) {
+      if (isWithinCooldown(now, lastDetectionRef.current, WAKEWORD_COOLDOWN_MS)) {
         return;
       }
 
-      console.log(`[Wakeword] Detection event: model=${data.model}, confidence=${confidence.toFixed(4)}, threshold=${threshold}`);
+      console.log(`[Wakeword] Detection event: model=${data.model}, confidence=${confidenceText}, threshold=${threshold}`);
       
       if (confidence >= threshold) {
         lastDetectionRef.current = now;
-        console.log(`[Wakeword] *** DETECTED *** ${data.model} (confidence: ${confidence.toFixed(4)})`);
+        console.log(`[Wakeword] *** DETECTED *** ${data.model} (confidence: ${confidenceText})`);
         
         // Immediately disable wakeword processing to prevent buffered chunks from triggering again
         IpcBridge.send(SEND_CHANNELS.WAKEWORD_DISABLE);
@@ -233,7 +235,7 @@ export function useWakewordDetection(
           console.warn('[Wakeword] No callback provided');
         }
       } else {
-        console.log(`[Wakeword] Below threshold (${confidence.toFixed(4)} < ${threshold})`);
+        console.log(`[Wakeword] Below threshold (${confidenceText} < ${threshold})`);
       }
     });
 
