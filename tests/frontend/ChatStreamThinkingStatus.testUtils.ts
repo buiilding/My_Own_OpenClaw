@@ -10,11 +10,13 @@ import {
   createAssistantSeedMessage,
   resetChatStoreForTests,
 } from './chatStoreTestUtils';
+import {
+  createDefaultTestAppConfig,
+  setMockAppConfigContextValue,
+  type TestAppConfig,
+} from './appConfigTestUtils';
 
-let mockConfig = {
-  selected_model_id: 'test-model',
-  model_provider: 'test-provider',
-};
+let mockConfig: TestAppConfig = createDefaultTestAppConfig();
 let mockActiveConversationRef: string | null = null;
 const mockUseAppConfigContext = jest.fn(() => ({ config: mockConfig }));
 
@@ -37,19 +39,16 @@ export const transcriptSpies = {
 
 export function resetChatStreamTestState() {
   jest.clearAllMocks();
-  mockConfig = {
-    selected_model_id: 'test-model',
-    model_provider: 'test-provider',
-  };
+  mockConfig = createDefaultTestAppConfig();
   mockActiveConversationRef = null;
-  mockUseAppConfigContext.mockReturnValue({ config: mockConfig });
+  setMockAppConfigContextValue(mockUseAppConfigContext, mockConfig);
 
   resetChatStoreForTests(createAssistantSeedMessage());
 }
 
-export function setMockConfig(config: { selected_model_id: string; model_provider: string }) {
+export function setMockConfig(config: TestAppConfig) {
   mockConfig = config;
-  mockUseAppConfigContext.mockReturnValue({ config: mockConfig });
+  setMockAppConfigContextValue(mockUseAppConfigContext, mockConfig);
 }
 
 export function setMockActiveConversationRef(conversationRef: string | null) {
