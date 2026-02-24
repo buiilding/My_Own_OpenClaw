@@ -37,6 +37,10 @@ Core modules:
 - `read_file`
 - `replace`
 
+Deep runtime reference:
+
+- [Filesystem Read and Replace Runtime Reference](tools/filesystem_read_replace_runtime_reference.md)
+
 ### System tools
 
 - `run_shell_command`
@@ -45,6 +49,10 @@ Core modules:
 - `get_open_windows`
 - `get_system_stats`
 - `wait`
+
+Deep runtime reference:
+
+- [Shell and Process Session Runtime Reference](tools/shell_and_process_session_runtime_reference.md)
 
 ### Browser tools
 

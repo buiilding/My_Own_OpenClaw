@@ -1,0 +1,156 @@
+---
+summary: "Sidecar filesystem tool reference for `read_file` and `replace`: path/encoding guards, windowed read contracts, lenient-vs-strict replacement matching, and patch-chunk application semantics."
+read_when:
+  - When changing sidecar filesystem tool behavior, especially read pagination or replace matching rules.
+  - When debugging replace ambiguity failures, patch-chunk context misses, or read-file truncation messages.
+title: "Filesystem Read and Replace Runtime Reference"
+---
+
+# Filesystem Read and Replace Runtime Reference
+
+## Canonical Modules
+
+- `frontend/src/main/python/tools/filesystem/read_file_tool.py`
+- `frontend/src/main/python/tools/filesystem/replace_tool.py`
+- `frontend/src/main/python/tools/filesystem/replace_engine.py`
+- `frontend/src/main/python/tools/filesystem/file_utils.py`
+- `frontend/src/main/python/tools/schemas.py` (`ReadFileArgs`, `ReplaceArgs`)
+- `tests/sidecar/test_read_file_tool.py`
+- `tests/sidecar/test_replace_tool.py`
+
+## Runtime Purpose
+
+The sidecar filesystem surface is intentionally narrow:
+
+- `read_file`: safe text reads with pagination + truncation hints
+- `replace`: deterministic edits with strict/lenient matching and atomic file writes
+
+Both require absolute file paths.
+
+## `read_file` Contract
+
+Entry: `read_file(args: dict) -> ToolResult`.
+
+Validation:
+
+- `file_path` must be absolute and point to existing regular file
+- binary-like files are rejected via extension/signature/null-byte/printable-ratio checks (`file_utils.is_binary_file`)
+- `offset` must be non-negative int
+- `limit` must be positive int
+
+Defaults:
+
+- `DEFAULT_LINE_LIMIT = 2000`
+- per-line truncation limit `MAX_LINE_LENGTH = 500`
+
+Read behavior:
+
+- file read happens in executor thread (`run_in_executor`) to avoid blocking loop
+- returns line window starting at `offset`
+- line endings preserved while truncating overlong line bodies
+- reports:
+  - `total_lines`
+  - `read_lines`
+  - `is_truncated` (windowed read or EOF not fully shown)
+  - `truncated_line_count`
+  - `line_truncation_limit`
+
+LLM content shape:
+
+- always starts with `File path: ...`
+- truncated windows include explicit paging instructions with next offset
+- empty file returns deterministic `"File is empty."`
+
+## `replace` Contract
+
+Entry: `replace(args: dict) -> ToolResult`.
+
+Modes:
+
+- single operation (`old_string` + `new_string`)
+- batched `replacements[]` (applied atomically in memory)
+- `patch_chunks[]` ordered line-based update mode (cannot be combined with operation mode fields)
+
+Path + creation policy:
+
+- absolute path required
+- existing file edits reject `old_string == ""`
+- missing-file creation allowed only for exactly one unconstrained operation with `old_string == ""`
+- missing-file + `patch_chunks` is rejected
+
+Write policy:
+
+- performs all matching in memory
+- writes once via atomic temp-file + `os.replace`
+- failed match never writes partial content
+
+Result payload:
+
+- `replacements` total count
+- `matched_spans` + per-operation metadata
+- `unified_diff` between normalized before/after content
+- `is_new_file`
+
+## Replacement Matching Engine (`replace_engine.py`)
+
+Normalization:
+
+- all content normalized to `\n` line endings before matching/diffing
+
+Match modes:
+
+- `strict`: exact string/line matching only
+- `lenient` (default): tolerates whitespace and common unicode punctuation variants
+
+Context constraints:
+
+- optional `before_context` and `after_context`
+- optional `require_eof`
+- optional `occurrence_index` (1-based)
+- `replace_all` supported; incompatible with `occurrence_index`
+
+Ambiguity handling:
+
+- if multiple matches and no disambiguation -> explicit error requiring context/index/replace_all
+
+Fallback path:
+
+- if exact spans fail in lenient mode, engine attempts line-sequence matching
+
+Patch chunk mode:
+
+- each chunk defines `old_lines` -> `new_lines`
+- optional `change_context` anchor moves search cursor after matching line
+- optional `is_end_of_file` enforces EOF match
+- chunks resolved to line replacements then applied in reverse order to preserve offsets
+- final output normalized with trailing newline behavior
+
+## Behavioral Guarantees (Tests)
+
+`tests/sidecar/test_read_file_tool.py` verifies:
+
+- default limit window (`2000`)
+- offset/limit paging
+- long-line truncation behavior
+- offset past EOF window semantics
+- empty file message
+- large-file paging stability
+
+`tests/sidecar/test_replace_tool.py` verifies:
+
+- unique/single replacement flow
+- multi-match rejection without disambiguation
+- `replace_all`, `occurrence_index`, `require_eof`
+- strict vs lenient behavior differences
+- unicode/whitespace lenient normalization
+- context-anchor disambiguation
+- batch atomicity (no partial writes on failure)
+- file creation path
+- patch-chunk ordered updates, insertions, EOF matching, and change-context anchors
+
+## Drift Hotspots
+
+1. Changing lenient normalization can silently widen/narrow match scope and break deterministic edits.
+2. Adjusting truncation limits/messages in `read_file` can break downstream prompt behavior that depends on offset hints.
+3. Altering patch-chunk ordering/search cursor semantics can create hard-to-debug multi-hunk misapplies.
+4. Replacing atomic write path with direct write increases partial-write risk on process interruption.

@@ -66,6 +66,11 @@ Defines Pydantic argument models and validation for:
 
 This schema layer is the primary runtime guard before tool execution.
 
+Tool-specific deep references:
+
+- [Shell and Process Session Runtime Reference](tools/shell_and_process_session_runtime_reference.md)
+- [Filesystem Read and Replace Runtime Reference](tools/filesystem_read_replace_runtime_reference.md)
+
 ## Memory Storage Stack
 
 Key modules:
