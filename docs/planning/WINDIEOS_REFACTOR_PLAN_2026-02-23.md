@@ -2604,3 +2604,21 @@ read_when:
     - clones: `127 -> 126`
     - duplicated lines: `2138 -> 2125`
     - duplicated tokens: `18728 -> 18624`
+
+## Phase 94 Outcome (2026-02-24)
+
+- Chat box overlay mouse-ignore test assertion cleanup shipped:
+  - added helpers in `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`:
+    - `expectInvokeCall`
+    - `expectActiveAppIndicator`
+  - replaced repeated invoke-call scanning and active-app label/class assertions in settings + context indicator tests.
+- Verification:
+  - `cd frontend && npx jest ../tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx --runInBand` (pass; 10 tests)
+  - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
+  - `cd frontend && npm run audit:knip` (pass)
+  - `cd frontend && npm run audit:jscpd` (pass)
+  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - jscpd snapshot deltas:
+    - clones: `126 -> 126`
+    - duplicated lines: `2125 -> 2125`
+    - duplicated tokens: `18624 -> 18624`

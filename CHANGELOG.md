@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-chatbox-overlay-tests): extract `expectInvokeCall` and `expectActiveAppIndicator` in `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx` to simplify repeated invoke/context assertions; jscpd totals remained stable at clones `126`, duplicated lines `2125`
 - refactor(frontend-app-config-model-tests): add shared `setupModelsListedHandlerHarness` in `tests/frontend/AppConfigProvider.models.test.tsx` to dedupe backend-listener setup used by models-listed routing/ignore tests; jscpd improved from clones `127 -> 126` and duplicated lines `2138 -> 2125`
 - docs(refactor-plan): add phase-92 full-gate snapshot after chatbox/app-status dedupe wave (frontend audits/tests + backend + sidecar)
 - refactor(frontend-app-status-provider-tests): extract `expectStatusAfterAdvance` helper in `tests/frontend/AppStatusProvider.test.tsx` to dedupe repeated timer-advance/status assertions; jscpd improved from clones `128 -> 127` and duplicated lines `2147 -> 2138`
