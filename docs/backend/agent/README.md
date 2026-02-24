@@ -10,8 +10,11 @@ title: "Backend Agent Docs Hub"
 
 ## Deep Pages
 
+- [History Docs Hub](history/README.md)
 - [Session Runtime and Config Rewire Reference](session_runtime_and_config_rewire_reference.md)
 - [Interaction Loop and Tool-Turn Orchestration Reference](interaction_loop_and_tool_turn_orchestration_reference.md)
+- [History Committer and Result-Processor Boundary Reference](history/history_committer_and_result_processor_boundary_reference.md)
+- [Tool-Call-ID Staging and Tool-Output History Row Contract Reference](history/tool_call_id_staging_and_tool_output_history_row_contract_reference.md)
 - [Recovery Docs Hub](recovery/README.md)
 - [Tool-Call Error Recovery and Synthetic Tool-Output Replay Reference](recovery/tool_call_error_recovery_and_synthetic_tool_output_replay_reference.md)
 
