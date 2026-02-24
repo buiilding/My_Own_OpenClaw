@@ -2172,3 +2172,24 @@ read_when:
     - clones: `150 -> 148`
     - duplicated lines: `2357 -> 2333`
     - duplicated tokens: `20962 -> 20739`
+
+## Phase 70 Outcome (2026-02-24)
+
+- Episodic memory delete test-suite duplication cleanup shipped:
+  - extracted shared IPC response/build helpers in `tests/frontend/EpisodicMemorySectionDelete.test.jsx`:
+    - `ok`
+    - `buildConversation`
+    - `buildMemory`
+    - `mockInvokeHandlers`
+  - reduced repeated per-test `mockInvoke` routing and conversation/memory fixture boilerplate while preserving existing delete/resume/filter assertions.
+- Verification:
+  - `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/EpisodicMemorySectionDelete.test.jsx --watch=false` (pass; 3 tests)
+  - `cd frontend && npm run lint -- --quiet` (pass)
+  - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
+  - `cd frontend && npm run audit:knip` (pass)
+  - `cd frontend && npm run audit:jscpd` (pass)
+  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - jscpd snapshot deltas:
+    - clones: `148 -> 146`
+    - duplicated lines: `2333 -> 2312`
+    - duplicated tokens: `20739 -> 20565`

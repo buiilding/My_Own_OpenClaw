@@ -5,6 +5,35 @@ const mockSendRehydrateConversation = jest.fn();
 const mockSetActiveConversationRef = jest.fn();
 const mockUpdateTranscriptSession = jest.fn();
 let mockSessionInfo = { conversationRef: null, userId: 'peter-bui' };
+const ok = (data = {}) => Promise.resolve({ success: true, data });
+
+const buildConversation = (overrides = {}) => ({
+  conversation_id: 'c-1',
+  first_timestamp: '2026-02-02T21:00:00Z',
+  last_timestamp: '2026-02-02T21:02:00Z',
+  entry_count: 2,
+  record_kind: 'transcript',
+  model_id: 'gpt-4o-mini',
+  model_provider: 'openai',
+  ...overrides,
+});
+
+const buildMemory = (overrides = {}) => ({
+  id: 'm-1',
+  content: 'hello',
+  role: 'user',
+  message_type: 'user',
+  timestamp: '2026-02-02T21:00:00Z',
+  metadata: {},
+  ...overrides,
+});
+
+const mockInvokeHandlers = (handlers = {}) => {
+  mockInvoke.mockImplementation((channel) => {
+    const handler = handlers[channel];
+    return handler ? handler() : ok();
+  });
+};
 
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   IpcBridge: {
@@ -51,29 +80,13 @@ describe('EpisodicMemorySection delete', () => {
   });
 
   test('right click shows delete menu and invokes delete', async () => {
-    mockInvoke.mockImplementation((channel) => {
-      if (channel === 'list-conversations') {
-        return Promise.resolve({
-          success: true,
-          data: {
-            conversations: [
-              {
-                conversation_id: 'c-1',
-                first_timestamp: '2026-02-02T21:00:00Z',
-                last_timestamp: '2026-02-02T21:02:00Z',
-                entry_count: 2,
-                record_kind: 'transcript',
-                model_id: 'gpt-4o-mini',
-                model_provider: 'openai',
-              },
-            ],
-          },
-        });
-      }
-      if (channel === 'delete-conversation') {
-        return Promise.resolve({ success: true, data: { deleted_count: 2 } });
-      }
-      return Promise.resolve({ success: true, data: {} });
+    mockInvokeHandlers({
+      'list-conversations': () => ok({
+        conversations: [
+          buildConversation(),
+        ],
+      }),
+      'delete-conversation': () => ok({ deleted_count: 2 }),
     });
 
     const { default: EpisodicMemorySection } = await import(
@@ -105,53 +118,27 @@ describe('EpisodicMemorySection delete', () => {
   });
 
   test('shows continue conversation action for resumable refs', async () => {
-    mockInvoke.mockImplementation((channel) => {
-      if (channel === 'list-conversations') {
-        return Promise.resolve({
-          success: true,
-          data: {
-            conversations: [
-              {
-                conversation_id: 'conv_1',
-                first_timestamp: '2026-02-02T21:00:00Z',
-                last_timestamp: '2026-02-02T21:02:00Z',
-                entry_count: 2,
-                record_kind: 'transcript',
-                is_resumable: true,
-                model_id: 'gpt-4o-mini',
-                model_provider: 'openai',
-              },
-            ],
-          },
-        });
-      }
-      if (channel === 'get-conversation') {
-        return Promise.resolve({
-          success: true,
-          data: {
-            memories: [
-              {
-                id: 'm-1',
-                content: 'hello',
-                role: 'user',
-                message_type: 'user',
-                timestamp: '2026-02-02T21:00:00Z',
-                screenshot: 'artifact-1',
-                metadata: {},
-              },
-              {
-                id: 'm-2',
-                content: 'hi',
-                role: 'assistant',
-                message_type: 'llm-text',
-                timestamp: '2026-02-02T21:00:02Z',
-                metadata: {},
-              },
-            ],
-          },
-        });
-      }
-      return Promise.resolve({ success: true, data: {} });
+    mockInvokeHandlers({
+      'list-conversations': () => ok({
+        conversations: [
+          buildConversation({
+            conversation_id: 'conv_1',
+            is_resumable: true,
+          }),
+        ],
+      }),
+      'get-conversation': () => ok({
+        memories: [
+          buildMemory({ screenshot: 'artifact-1' }),
+          buildMemory({
+            id: 'm-2',
+            content: 'hi',
+            role: 'assistant',
+            message_type: 'llm-text',
+            timestamp: '2026-02-02T21:00:02Z',
+          }),
+        ],
+      }),
     });
 
     const { default: EpisodicMemorySection } = await import(
@@ -183,43 +170,23 @@ describe('EpisodicMemorySection delete', () => {
   test('does not show the currently active conversation in episodic list', async () => {
     mockSessionInfo = { conversationRef: 'conv_active', userId: 'peter-bui' };
 
-    mockInvoke.mockImplementation((channel) => {
-      if (channel === 'list-conversations') {
-        return Promise.resolve({
-          success: true,
-          data: {
-            conversations: [
-              {
-                conversation_id: 'conv_active',
-                first_timestamp: '2026-02-02T21:00:00Z',
-                last_timestamp: '2026-02-02T21:10:00Z',
-                entry_count: 4,
-                record_kind: 'transcript',
-                model_id: 'gpt-4o-mini',
-                model_provider: 'openai',
-              },
-              {
-                conversation_id: 'conv_old',
-                first_timestamp: '2026-02-02T20:00:00Z',
-                last_timestamp: '2026-02-02T20:10:00Z',
-                entry_count: 3,
-                record_kind: 'transcript',
-                model_id: 'gpt-4o-mini',
-                model_provider: 'openai',
-              },
-            ],
-          },
-        });
-      }
-      if (channel === 'get-conversation') {
-        return Promise.resolve({
-          success: true,
-          data: {
-            memories: [],
-          },
-        });
-      }
-      return Promise.resolve({ success: true, data: {} });
+    mockInvokeHandlers({
+      'list-conversations': () => ok({
+        conversations: [
+          buildConversation({
+            conversation_id: 'conv_active',
+            last_timestamp: '2026-02-02T21:10:00Z',
+            entry_count: 4,
+          }),
+          buildConversation({
+            conversation_id: 'conv_old',
+            first_timestamp: '2026-02-02T20:00:00Z',
+            last_timestamp: '2026-02-02T20:10:00Z',
+            entry_count: 3,
+          }),
+        ],
+      }),
+      'get-conversation': () => ok({ memories: [] }),
     });
 
     const { default: EpisodicMemorySection } = await import(
