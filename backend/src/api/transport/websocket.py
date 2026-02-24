@@ -183,13 +183,7 @@ class SafeWebSocket:
             RuntimeError: If connection error occurs
             ConnectionError: If connection error occurs
         """
-        if self._closed:
-            raise self._resolve_sender_exception(self._sender_error)
-
-        self._ensure_sender_task()
-        future = asyncio.get_running_loop().create_future()
-        await self._enqueue(("json", data, mode, future))
-        await future
+        await self._send_message(msg_type="json", data=data, mode=mode)
 
     async def send_text(self, data: str) -> None:
         """
@@ -202,12 +196,22 @@ class SafeWebSocket:
             RuntimeError: If connection error occurs
             ConnectionError: If connection error occurs
         """
+        await self._send_message(msg_type="text", data=data)
+
+    async def _send_message(
+        self,
+        *,
+        msg_type: str,
+        data: Any,
+        mode: Optional[str] = None,
+    ) -> None:
+        """Shared enqueue-and-await path for non-close websocket sends."""
         if self._closed:
             raise self._resolve_sender_exception(self._sender_error)
 
         self._ensure_sender_task()
         future = asyncio.get_running_loop().create_future()
-        await self._enqueue(("text", data, None, future))
+        await self._enqueue((msg_type, data, mode, future))
         await future
 
     async def close(self, code: int = 1000, reason: Optional[str] = None) -> None:
