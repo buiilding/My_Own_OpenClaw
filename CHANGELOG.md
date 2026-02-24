@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): add phase-105 full-gate snapshot after backend message-handler send-error parameterization wave (frontend audits/tests + backend + sidecar)
 - docs(refactor-plan): add phase-104 full-gate snapshot after backend websocket message-handler helper dedupe wave (frontend audits/tests + backend + sidecar)
 - refactor(backend-message-handler-tests): parameterize the two `send_error` failure-path logger assertions in `tests/backend/test_websocket_message_handler.py` into one table-driven test to remove residual duplicate branches; jscpd improved from clones `115 -> 114` and duplicated lines `1978 -> 1968`
 - docs(refactor-plan): add phase-103 full-gate snapshot after backend websocket-connection logger-helper dedupe wave (frontend audits/tests + backend + sidecar)
