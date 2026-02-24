@@ -2097,3 +2097,23 @@ read_when:
     - clones: `159 -> 157`
     - duplicated lines: `2464 -> 2442`
     - duplicated tokens: `21842 -> 21612`
+
+## Phase 66 Outcome (2026-02-24)
+
+- Transcript writer test duplication cleanup shipped:
+  - added shared transcript assertion helpers in `tests/frontend/TranscriptWriter.testUtils.ts`:
+    - `createStoreTranscriptPayload`
+    - `expectStoreTranscriptCall`
+    - `expectNthStoreTranscriptCall`
+  - rewired `tests/frontend/TranscriptWriter.userAssistant.test.ts` and `tests/frontend/TranscriptWriter.tool.test.ts` to remove repeated `store-transcript` payload literals while preserving all retry/queue semantics assertions.
+- Verification:
+  - `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/TranscriptWriter.userAssistant.test.ts ../tests/frontend/TranscriptWriter.tool.test.ts --watch=false` (pass; 14 tests)
+  - `cd frontend && npm run lint -- --quiet` (pass)
+  - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
+  - `cd frontend && npm run audit:knip` (pass)
+  - `cd frontend && npm run audit:jscpd` (pass)
+  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - jscpd snapshot deltas:
+    - clones: `157 -> 152`
+    - duplicated lines: `2442 -> 2377`
+    - duplicated tokens: `21612 -> 21162`

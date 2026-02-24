@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-transcript-writer-tests): dedupe repeated `store-transcript` payload assertions in `TranscriptWriter.userAssistant|tool` suites via shared `createStoreTranscriptPayload` and `expectStoreTranscriptCall` helpers in `tests/frontend/TranscriptWriter.testUtils.ts`; jscpd improved from clones `157 -> 152` and duplicated lines `2442 -> 2377`
 - refactor(frontend-wakeword-tests): dedupe `tests/frontend/WakewordDetectionHook.test.ts` listener/send-count/media-device/status-ready setup via shared helpers (`getChannelHandler`, `getSendCallCount`, `withMockedMediaDevices`, `renderEnabledHookAndEmitReady`); jscpd improved from clones `159 -> 157` and duplicated lines `2464 -> 2442`
 - docs(refactor-plan): add phase-64 full-gate revalidation snapshot (frontend audits/tests + backend + sidecar) after IPC lifecycle-suite dedupe
 - refactor(frontend-ipc-tests): dedupe lifecycle-suite setup/event/config helpers in `tests/frontend/IpcMainBridge.lifecycle.test.cjs` (`setupOpenedIpc`, `emitBackendMessage`, `expectClientEndpoints`, `invokeLoadFrontendConfig`, `mockFrontendConfigFile`) and reduce file size from 202 LOC to 177 LOC; jscpd improved from clones `160 -> 159` and duplicated lines `2470 -> 2464`

@@ -1,4 +1,7 @@
 import {
+  createStoreTranscriptPayload,
+  expectNthStoreTranscriptCall,
+  expectStoreTranscriptCall,
   flushMicrotasks,
   loadTranscriptWriter,
   registerTranscriptWriterSuiteLifecycle,
@@ -21,7 +24,7 @@ describe('TranscriptWriter tool writes', () => {
     });
     await Promise.resolve();
 
-    expect(invokeMock).toHaveBeenCalledWith('store-transcript', {
+    expectStoreTranscriptCall(invokeMock, createStoreTranscriptPayload({
       content: 'tool output',
       userId: 'user-tool',
       conversationRef: 'conv-tool',
@@ -32,8 +35,7 @@ describe('TranscriptWriter tool writes', () => {
       modelId: 'model-a',
       modelProvider: 'provider-a',
       screenshot: 'artifact-1',
-      timestamp: undefined,
-    });
+    }));
   });
 
   test('recordToolMessage requeues immediate writes when IPC store fails', async () => {
@@ -52,7 +54,7 @@ describe('TranscriptWriter tool writes', () => {
       await flushMicrotasks();
 
       expect(invokeMock).toHaveBeenCalledTimes(1);
-      expect(invokeMock).toHaveBeenNthCalledWith(1, 'store-transcript', {
+      expectNthStoreTranscriptCall(invokeMock, 1, createStoreTranscriptPayload({
         content: 'retry tool output',
         userId: 'user-tool-retry',
         conversationRef: 'conv-tool-retry',
@@ -60,17 +62,13 @@ describe('TranscriptWriter tool writes', () => {
         messageType: 'tool-output',
         toolName: 'read_file',
         correlationId: 'corr-retry',
-        modelId: undefined,
-        modelProvider: undefined,
-        screenshot: undefined,
-        timestamp: undefined,
-      });
+      }));
 
       writer.updateTranscriptSession('conv-tool-retry', 'user-tool-retry');
       await flushMicrotasks();
 
       expect(invokeMock).toHaveBeenCalledTimes(2);
-      expect(invokeMock).toHaveBeenNthCalledWith(2, 'store-transcript', {
+      expectNthStoreTranscriptCall(invokeMock, 2, createStoreTranscriptPayload({
         content: 'retry tool output',
         userId: 'user-tool-retry',
         conversationRef: 'conv-tool-retry',
@@ -78,11 +76,7 @@ describe('TranscriptWriter tool writes', () => {
         messageType: 'tool-output',
         toolName: 'read_file',
         correlationId: 'corr-retry',
-        modelId: undefined,
-        modelProvider: undefined,
-        screenshot: undefined,
-        timestamp: undefined,
-      });
+      }));
     } finally {
       warnSpy.mockRestore();
     }
@@ -116,7 +110,7 @@ describe('TranscriptWriter tool writes', () => {
     writer.updateTranscriptSession('conv-tool-queued', 'user-tool-queued');
     await flushMicrotasks();
 
-    expect(invokeMock).toHaveBeenCalledWith('store-transcript', {
+    expectStoreTranscriptCall(invokeMock, createStoreTranscriptPayload({
       content: 'tool call payload',
       userId: 'user-tool-queued',
       conversationRef: 'conv-tool-queued',
@@ -127,8 +121,7 @@ describe('TranscriptWriter tool writes', () => {
       modelId: 'model-z',
       modelProvider: 'provider-z',
       screenshot: 'artifact-tool',
-      timestamp: undefined,
-    });
+    }));
   });
 
   test('requeues queued tool messages when a pending flush write fails', async () => {
@@ -153,7 +146,7 @@ describe('TranscriptWriter tool writes', () => {
       await flushMicrotasks();
 
       expect(invokeMock).toHaveBeenCalledTimes(1);
-      expect(invokeMock).toHaveBeenNthCalledWith(1, 'store-transcript', {
+      expectNthStoreTranscriptCall(invokeMock, 1, createStoreTranscriptPayload({
         content: 'queued tool message 1',
         userId: 'user-retry-tool',
         conversationRef: 'conv-retry-tool',
@@ -161,17 +154,13 @@ describe('TranscriptWriter tool writes', () => {
         messageType: 'tool-call',
         toolName: 'read_file',
         correlationId: 'corr-1',
-        modelId: undefined,
-        modelProvider: undefined,
-        screenshot: undefined,
-        timestamp: undefined,
-      });
+      }));
 
       writer.updateTranscriptSession('conv-retry-tool', 'user-retry-tool');
       await flushMicrotasks();
 
       expect(invokeMock).toHaveBeenCalledTimes(3);
-      expect(invokeMock).toHaveBeenNthCalledWith(2, 'store-transcript', {
+      expectNthStoreTranscriptCall(invokeMock, 2, createStoreTranscriptPayload({
         content: 'queued tool message 1',
         userId: 'user-retry-tool',
         conversationRef: 'conv-retry-tool',
@@ -179,12 +168,8 @@ describe('TranscriptWriter tool writes', () => {
         messageType: 'tool-call',
         toolName: 'read_file',
         correlationId: 'corr-1',
-        modelId: undefined,
-        modelProvider: undefined,
-        screenshot: undefined,
-        timestamp: undefined,
-      });
-      expect(invokeMock).toHaveBeenNthCalledWith(3, 'store-transcript', {
+      }));
+      expectNthStoreTranscriptCall(invokeMock, 3, createStoreTranscriptPayload({
         content: 'queued tool message 2',
         userId: 'user-retry-tool',
         conversationRef: 'conv-retry-tool',
@@ -192,11 +177,7 @@ describe('TranscriptWriter tool writes', () => {
         messageType: 'tool-output',
         toolName: 'read_file',
         correlationId: 'corr-2',
-        modelId: undefined,
-        modelProvider: undefined,
-        screenshot: undefined,
-        timestamp: undefined,
-      });
+      }));
     } finally {
       warnSpy.mockRestore();
     }

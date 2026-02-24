@@ -1,4 +1,7 @@
 import {
+  createStoreTranscriptPayload,
+  expectNthStoreTranscriptCall,
+  expectStoreTranscriptCall,
   flushMicrotasks,
   loadTranscriptWriter,
   registerTranscriptWriterSuiteLifecycle,
@@ -22,19 +25,17 @@ describe('TranscriptWriter user + assistant writes', () => {
     writer.updateTranscriptSession('conv-1', 'user-1');
     await Promise.resolve();
 
-    expect(invokeMock).toHaveBeenCalledWith('store-transcript', {
+    expectStoreTranscriptCall(invokeMock, createStoreTranscriptPayload({
       content: 'queued user message',
       userId: 'user-1',
       conversationRef: 'conv-1',
       role: 'user',
       messageType: 'user',
-      toolName: undefined,
-      correlationId: undefined,
       modelId: 'model-a',
       modelProvider: 'provider-a',
       screenshot: 'artifact-1',
       timestamp: '2026-01-01T00:00:00Z',
-    });
+    }));
   });
 
   test('recordUserMessage writes immediately when conversation/user provided in options', async () => {
@@ -47,19 +48,14 @@ describe('TranscriptWriter user + assistant writes', () => {
     });
     await Promise.resolve();
 
-    expect(invokeMock).toHaveBeenCalledWith('store-transcript', {
+    expectStoreTranscriptCall(invokeMock, createStoreTranscriptPayload({
       content: 'direct user message',
       userId: 'user-direct',
       conversationRef: 'conv-direct',
       role: 'user',
       messageType: 'user',
-      toolName: undefined,
-      correlationId: undefined,
-      modelId: undefined,
-      modelProvider: undefined,
-      screenshot: undefined,
       timestamp: '2026-02-01T00:00:00Z',
-    });
+    }));
   });
 
   test('recordUserMessage requeues immediate writes when IPC store fails', async () => {
@@ -74,37 +70,25 @@ describe('TranscriptWriter user + assistant writes', () => {
       await flushMicrotasks();
 
       expect(invokeMock).toHaveBeenCalledTimes(1);
-      expect(invokeMock).toHaveBeenNthCalledWith(1, 'store-transcript', {
+      expectNthStoreTranscriptCall(invokeMock, 1, createStoreTranscriptPayload({
         content: 'retry user message',
         userId: 'user-retry',
         conversationRef: 'conv-retry',
         role: 'user',
         messageType: 'user',
-        toolName: undefined,
-        correlationId: undefined,
-        modelId: undefined,
-        modelProvider: undefined,
-        screenshot: undefined,
-        timestamp: undefined,
-      });
+      }));
 
       writer.updateTranscriptSession('conv-retry', 'user-retry');
       await flushMicrotasks();
 
       expect(invokeMock).toHaveBeenCalledTimes(2);
-      expect(invokeMock).toHaveBeenNthCalledWith(2, 'store-transcript', {
+      expectNthStoreTranscriptCall(invokeMock, 2, createStoreTranscriptPayload({
         content: 'retry user message',
         userId: 'user-retry',
         conversationRef: 'conv-retry',
         role: 'user',
         messageType: 'user',
-        toolName: undefined,
-        correlationId: undefined,
-        modelId: undefined,
-        modelProvider: undefined,
-        screenshot: undefined,
-        timestamp: undefined,
-      });
+      }));
     } finally {
       warnSpy.mockRestore();
     }
@@ -134,19 +118,16 @@ describe('TranscriptWriter user + assistant writes', () => {
     writer.updateTranscriptSession('conv-assistant-queued', 'user-assistant-queued');
     await Promise.resolve();
 
-    expect(invokeMock).toHaveBeenCalledWith('store-transcript', {
+    expectStoreTranscriptCall(invokeMock, createStoreTranscriptPayload({
       content: 'assistant message',
       userId: 'user-assistant-queued',
       conversationRef: 'conv-assistant-queued',
       role: 'assistant',
       messageType: 'llm-text',
-      toolName: undefined,
-      correlationId: undefined,
       modelId: 'model-a',
       modelProvider: 'provider-a',
       screenshot: 'artifact-1',
-      timestamp: undefined,
-    });
+    }));
   });
 
   test('recordAssistantMessage uses default message type llm-text', async () => {
@@ -159,19 +140,13 @@ describe('TranscriptWriter user + assistant writes', () => {
     writer.recordAssistantMessage('assistant message');
     await Promise.resolve();
 
-    expect(invokeMock).toHaveBeenCalledWith('store-transcript', {
+    expectStoreTranscriptCall(invokeMock, createStoreTranscriptPayload({
       content: 'assistant message',
       userId: 'stored-user',
       conversationRef: 'conv-stored',
       role: 'assistant',
       messageType: 'llm-text',
-      toolName: undefined,
-      correlationId: undefined,
-      modelId: undefined,
-      modelProvider: undefined,
-      screenshot: undefined,
-      timestamp: undefined,
-    });
+    }));
   });
 
   test('recordAssistantMessage requeues immediate writes when IPC store fails', async () => {
@@ -188,37 +163,25 @@ describe('TranscriptWriter user + assistant writes', () => {
       await flushMicrotasks();
 
       expect(invokeMock).toHaveBeenCalledTimes(1);
-      expect(invokeMock).toHaveBeenNthCalledWith(1, 'store-transcript', {
+      expectNthStoreTranscriptCall(invokeMock, 1, createStoreTranscriptPayload({
         content: 'retry assistant message',
         userId: 'user-assistant-retry',
         conversationRef: 'conv-assistant-retry',
         role: 'assistant',
         messageType: 'llm-text',
-        toolName: undefined,
-        correlationId: undefined,
-        modelId: undefined,
-        modelProvider: undefined,
-        screenshot: undefined,
-        timestamp: undefined,
-      });
+      }));
 
       writer.updateTranscriptSession('conv-assistant-retry', 'user-assistant-retry');
       await flushMicrotasks();
 
       expect(invokeMock).toHaveBeenCalledTimes(2);
-      expect(invokeMock).toHaveBeenNthCalledWith(2, 'store-transcript', {
+      expectNthStoreTranscriptCall(invokeMock, 2, createStoreTranscriptPayload({
         content: 'retry assistant message',
         userId: 'user-assistant-retry',
         conversationRef: 'conv-assistant-retry',
         role: 'assistant',
         messageType: 'llm-text',
-        toolName: undefined,
-        correlationId: undefined,
-        modelId: undefined,
-        modelProvider: undefined,
-        screenshot: undefined,
-        timestamp: undefined,
-      });
+      }));
     } finally {
       warnSpy.mockRestore();
     }
@@ -248,50 +211,32 @@ describe('TranscriptWriter user + assistant writes', () => {
       await flushMicrotasks();
 
       expect(invokeMock).toHaveBeenCalledTimes(1);
-      expect(invokeMock).toHaveBeenNthCalledWith(1, 'store-transcript', {
+      expectNthStoreTranscriptCall(invokeMock, 1, createStoreTranscriptPayload({
         content: 'queued user message 1',
         userId: 'user-retry-user',
         conversationRef: 'conv-retry-user',
         role: 'user',
         messageType: 'user',
-        toolName: undefined,
-        correlationId: undefined,
-        modelId: undefined,
-        modelProvider: undefined,
-        screenshot: undefined,
-        timestamp: undefined,
-      });
+      }));
 
       writer.updateTranscriptSession('conv-retry-user', 'user-retry-user');
       await flushMicrotasks();
 
       expect(invokeMock).toHaveBeenCalledTimes(3);
-      expect(invokeMock).toHaveBeenNthCalledWith(2, 'store-transcript', {
+      expectNthStoreTranscriptCall(invokeMock, 2, createStoreTranscriptPayload({
         content: 'queued user message 1',
         userId: 'user-retry-user',
         conversationRef: 'conv-retry-user',
         role: 'user',
         messageType: 'user',
-        toolName: undefined,
-        correlationId: undefined,
-        modelId: undefined,
-        modelProvider: undefined,
-        screenshot: undefined,
-        timestamp: undefined,
-      });
-      expect(invokeMock).toHaveBeenNthCalledWith(3, 'store-transcript', {
+      }));
+      expectNthStoreTranscriptCall(invokeMock, 3, createStoreTranscriptPayload({
         content: 'queued user message 2',
         userId: 'user-retry-user',
         conversationRef: 'conv-retry-user',
         role: 'user',
         messageType: 'user',
-        toolName: undefined,
-        correlationId: undefined,
-        modelId: undefined,
-        modelProvider: undefined,
-        screenshot: undefined,
-        timestamp: undefined,
-      });
+      }));
     } finally {
       warnSpy.mockRestore();
     }
