@@ -373,10 +373,23 @@ async def test_handle_message_uses_sanitize_error_message_result(monkeypatch) ->
 
 
 @pytest.mark.asyncio
-async def test_handle_message_does_not_raise_if_send_error_fails_for_value_error(monkeypatch) -> None:
-    registry = DummyRegistry(exc=ValueError("bad request"))
+@pytest.mark.parametrize(
+    ("message_id", "registry_error", "expected_warning_count", "expected_error_count"),
+    [
+        ("msg_103", ValueError("bad request"), 1, 0),
+        ("msg_104", RuntimeError("unexpected"), 0, 1),
+    ],
+)
+async def test_handle_message_does_not_raise_if_send_error_fails(
+    monkeypatch,
+    message_id: str,
+    registry_error: Exception,
+    expected_warning_count: int,
+    expected_error_count: int,
+) -> None:
+    registry = DummyRegistry(exc=registry_error)
     websocket = SimpleNamespace()
-    message = _query_message("msg_103")
+    message = _query_message(message_id)
 
     async def failing_send_error(_ws, _msg_id, _error_message):
         raise RuntimeError("socket already closed")
@@ -386,23 +399,5 @@ async def test_handle_message_does_not_raise_if_send_error_fails_for_value_error
 
     # Should swallow send_error failure and not raise.
     await mh.handle_message(websocket, message, registry, "user_1")
-    assert len(warning_calls) == 1
-    assert error_calls == []
-
-
-@pytest.mark.asyncio
-async def test_handle_message_does_not_raise_if_send_error_fails_for_unexpected_error(monkeypatch) -> None:
-    registry = DummyRegistry(exc=RuntimeError("unexpected"))
-    websocket = SimpleNamespace()
-    message = _query_message("msg_104")
-
-    async def failing_send_error(_ws, _msg_id, _error_message):
-        raise RuntimeError("socket already closed")
-
-    monkeypatch.setattr(mh, "send_error", failing_send_error)
-    warning_calls, error_calls = _capture_logger_calls(monkeypatch)
-
-    # Should swallow send_error failure and not raise.
-    await mh.handle_message(websocket, message, registry, "user_1")
-    assert len(error_calls) == 1
-    assert warning_calls == []
+    assert len(warning_calls) == expected_warning_count
+    assert len(error_calls) == expected_error_count
