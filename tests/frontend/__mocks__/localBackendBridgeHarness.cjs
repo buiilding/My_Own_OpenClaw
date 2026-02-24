@@ -18,7 +18,14 @@ jest.mock('fs', () => ({
   existsSync: jest.fn(() => true),
 }));
 
+const { createBridgeSuiteLifecycle } = require('./bridgeSuiteLifecycle.cjs');
+
 const ORIGINAL_ENV = process.env;
+const { registerBridgeSuiteLifecycleHooks } = createBridgeSuiteLifecycle({
+  originalEnv: ORIGINAL_ENV,
+  useRealTimersAfterEach: true,
+});
+
 let spawn;
 let ipcMain;
 let uuid;
@@ -28,40 +35,6 @@ let stderrHandler;
 let processHandlers;
 let pythonProcess;
 let bridge;
-
-function resetBackendEnv() {
-  process.env = { ...ORIGINAL_ENV };
-  delete process.env.BACKEND_HOST;
-  delete process.env.BACKEND_PORT;
-  delete process.env.BACKEND_HTTP_URL;
-  delete process.env.BACKEND_WS_URL;
-}
-
-function restoreBackendEnv() {
-  process.env = ORIGINAL_ENV;
-}
-
-function silenceBridgeLogs() {
-  jest.spyOn(console, 'log').mockImplementation(() => {});
-  jest.spyOn(console, 'warn').mockImplementation(() => {});
-  jest.spyOn(console, 'error').mockImplementation(() => {});
-}
-
-function registerBridgeSuiteLifecycleHooks() {
-  beforeEach(() => {
-    resetBackendEnv();
-    silenceBridgeLogs();
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
-    jest.restoreAllMocks();
-  });
-
-  afterAll(() => {
-    restoreBackendEnv();
-  });
-}
 
 function createMockPythonProcess() {
   const procHandlers = {};
