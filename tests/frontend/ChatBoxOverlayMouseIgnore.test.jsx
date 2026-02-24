@@ -15,6 +15,38 @@ const mockSendMessage = jest.fn();
 const mockUseChatMessageSender = jest.fn(() => ({
   sendMessage: mockSendMessage,
 }));
+const GET_SYSTEM_STATE = 'get-system-state';
+
+const setWindowScreenPosition = (x, y) => {
+  Object.defineProperty(window, 'screenX', {
+    value: x,
+    configurable: true,
+    writable: true,
+  });
+  Object.defineProperty(window, 'screenY', {
+    value: y,
+    configurable: true,
+    writable: true,
+  });
+};
+
+const mockSystemStateResponse = (valueOrFactory) => {
+  mockInvoke.mockImplementation((channel) => {
+    if (channel === GET_SYSTEM_STATE) {
+      return typeof valueOrFactory === 'function'
+        ? valueOrFactory()
+        : Promise.resolve(valueOrFactory);
+    }
+    return Promise.resolve({ success: true });
+  });
+};
+
+const renderAndGetContextIndicator = () => {
+  const { container } = render(<ChatBox />);
+  const contextIndicator = container.querySelector('.chatbox-context-indicator');
+  expect(contextIndicator).toBeTruthy();
+  return contextIndicator;
+};
 
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   IpcBridge: {
@@ -60,12 +92,7 @@ jest.mock('../../frontend/src/renderer/features/chat/hooks/useChatMessageSender'
 describe('ChatBox overlay mouse ignore', () => {
   beforeEach(() => {
     mockInvoke.mockClear();
-    mockInvoke.mockImplementation((channel) => {
-      if (channel === 'get-system-state') {
-        return Promise.resolve({});
-      }
-      return Promise.resolve({ success: true });
-    });
+    mockSystemStateResponse({});
     mockSend.mockClear();
     mockUseChatMessageSender.mockClear();
     mockSendMessage.mockClear();
@@ -133,16 +160,7 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('dragging pill sends absolute move-chatbox-to coordinates', () => {
-    Object.defineProperty(window, 'screenX', {
-      value: 90,
-      configurable: true,
-      writable: true,
-    });
-    Object.defineProperty(window, 'screenY', {
-      value: 90,
-      configurable: true,
-      writable: true,
-    });
+    setWindowScreenPosition(90, 90);
 
     const { container } = render(<ChatBox />);
     const pill = container.querySelector('.chatbox-pill');
@@ -156,16 +174,7 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('input interactions do not start drag movement', () => {
-    Object.defineProperty(window, 'screenX', {
-      value: 90,
-      configurable: true,
-      writable: true,
-    });
-    Object.defineProperty(window, 'screenY', {
-      value: 90,
-      configurable: true,
-      writable: true,
-    });
+    setWindowScreenPosition(90, 90);
 
     render(<ChatBox />);
     const input = screen.getByPlaceholderText('Ask me anything...');
@@ -204,12 +213,7 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('shows ambient active app indicator from system-state polling', async () => {
-    mockInvoke.mockImplementation((channel) => {
-      if (channel === 'get-system-state') {
-        return Promise.resolve({ active_window: 'main.py - Visual Studio Code' });
-      }
-      return Promise.resolve({ success: true });
-    });
+    mockSystemStateResponse({ active_window: 'main.py - Visual Studio Code' });
 
     render(<ChatBox />);
 
@@ -218,16 +222,8 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('shows offline context state when active-window polling fails', async () => {
-    mockInvoke.mockImplementation((channel) => {
-      if (channel === 'get-system-state') {
-        return Promise.reject(new Error('system unavailable'));
-      }
-      return Promise.resolve({ success: true });
-    });
-
-    const { container } = render(<ChatBox />);
-    const contextIndicator = container.querySelector('.chatbox-context-indicator');
-    expect(contextIndicator).toBeTruthy();
+    mockSystemStateResponse(() => Promise.reject(new Error('system unavailable')));
+    const contextIndicator = renderAndGetContextIndicator();
 
     await waitFor(() => {
       expect(screen.getByLabelText('Active app: No active app (offline)')).toBeInTheDocument();
@@ -250,16 +246,8 @@ describe('ChatBox overlay mouse ignore', () => {
       },
     ];
 
-    mockInvoke.mockImplementation((channel) => {
-      if (channel === 'get-system-state') {
-        return Promise.reject(new Error('system unavailable'));
-      }
-      return Promise.resolve({ success: true });
-    });
-
-    const { container } = render(<ChatBox />);
-    const contextIndicator = container.querySelector('.chatbox-context-indicator');
-    expect(contextIndicator).toBeTruthy();
+    mockSystemStateResponse(() => Promise.reject(new Error('system unavailable')));
+    const contextIndicator = renderAndGetContextIndicator();
 
     await waitFor(() => {
       expect(screen.getByLabelText('Active app: Chrome (stale)')).toBeInTheDocument();

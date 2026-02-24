@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-chatbox-overlay-tests): dedupe repeated screen-position/system-state/context-indicator setup in `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx` via shared helpers (`setWindowScreenPosition`, `mockSystemStateResponse`, `renderAndGetContextIndicator`); jscpd improved from clones `150 -> 148` and duplicated lines `2357 -> 2333`
 - docs(refactor-plan): add phase-68 full-gate snapshot after transcript/wakeword/transcription test dedupe wave (frontend audits/tests + backend + sidecar)
 - refactor(frontend-transcription-tests): dedupe repeated `useTranscription` hook actions in `tests/frontend/TranscriptionHook.test.ts` via shared `updateTranscription` and `changeInput` helpers; jscpd improved from clones `152 -> 150` and duplicated lines `2377 -> 2357`
 - refactor(frontend-transcript-writer-tests): dedupe repeated `store-transcript` payload assertions in `TranscriptWriter.userAssistant|tool` suites via shared `createStoreTranscriptPayload` and `expectStoreTranscriptCall` helpers in `tests/frontend/TranscriptWriter.testUtils.ts`; jscpd improved from clones `157 -> 152` and duplicated lines `2442 -> 2377`

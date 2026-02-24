@@ -2152,3 +2152,23 @@ read_when:
     - `./scripts/test-backend` (pass; 966 tests)
   - sidecar tests:
     - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+
+## Phase 69 Outcome (2026-02-24)
+
+- ChatBox overlay test-suite duplication cleanup shipped:
+  - extracted shared helpers in `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`:
+    - `setWindowScreenPosition`
+    - `mockSystemStateResponse`
+    - `renderAndGetContextIndicator`
+  - reduced repeated drag setup and active-window context indicator boilerplate while preserving all overlay behavior assertions.
+- Verification:
+  - `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx --watch=false` (pass; 10 tests)
+  - `cd frontend && npm run lint -- --quiet` (pass)
+  - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
+  - `cd frontend && npm run audit:knip` (pass)
+  - `cd frontend && npm run audit:jscpd` (pass)
+  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - jscpd snapshot deltas:
+    - clones: `150 -> 148`
+    - duplicated lines: `2357 -> 2333`
+    - duplicated tokens: `20962 -> 20739`
