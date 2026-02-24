@@ -127,6 +127,7 @@ async def test_kimi_stream_sets_stream_options_and_custom_provider(monkeypatch):
     async for event in provider.get_completion_stream(
         model="k2p5",
         messages=[{"role": "user", "content": "ping"}],
+        prompt_cache_key="cache-key",
     ):
         events.append(event)
 
@@ -134,3 +135,4 @@ async def test_kimi_stream_sets_stream_options_and_custom_provider(monkeypatch):
     assert captured_kwargs["stream"] is True
     assert captured_kwargs["stream_options"] == {"include_usage": True}
     assert captured_kwargs["custom_llm_provider"] == "anthropic"
+    assert captured_kwargs["prompt_cache_key"] == "cache-key"

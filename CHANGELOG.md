@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(backend-kimi-provider): align `KimiCodingProvider._stream_internal` to shared `**completion_kwargs` stream-plumbing path and add prompt-cache-key forwarding regression coverage in `tests/backend/test_kimi_coding_provider.py`
 - refactor(backend-online-provider): simplify stream request plumbing in `OnlineLLMProvider` by forwarding `**completion_kwargs` through `_build_stream_completion_params` and `_stream_internal` to remove repeated parameter boilerplate while preserving behavior; add kwargs-forwarding regression coverage in `tests/backend/test_llm_provider_base.py`
 - docs(frontend-contracts): add `docs/frontend/contracts/IPC_CHANNEL_AND_HANDLER_REFERENCE.md` and `docs/frontend/sidecar/LOCAL_BACKEND_JSONRPC_REFERENCE.md` for preload allowlists, channel-to-handler ownership, renderer IPC->JSON-RPC mapping, sidecar method registry, and timeout/error semantics; wire links from frontend/docs hubs
 - docs(refactor-plan): add phase-151 full-gate snapshot after backend tool-preparer coordinate-resolution helper extraction (frontend lint:audit+knip+jscpd+tests, backend tests, sidecar tests)
