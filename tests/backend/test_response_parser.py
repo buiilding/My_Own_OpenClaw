@@ -55,26 +55,22 @@ async def test_parse_response_requires_metadata_for_computer_use_tools():
 
 
 @pytest.mark.asyncio
-async def test_parse_response_accepts_computer_use_metadata_wrapper():
+@pytest.mark.parametrize(
+    "response",
+    [
+        (
+            '{"metadata":{"description":"screen","explanation":"click","expectation":"dialog"},'
+            '"action":{"functionCall":{"name":"mouse_control","args":{"action":"click","x":1,"y":2}}}}'
+        ),
+        (
+            '{"action":{"functionCall":{"name":"mouse_control","args":{"action":"click","x":1,"y":2}}},'
+            '"metadata":{"description":"screen","explanation":"click","expectation":"dialog"}}'
+        ),
+    ],
+    ids=["metadata-first", "action-first"],
+)
+async def test_parse_response_accepts_computer_use_metadata_wrapper(response):
     parser = _make_parser([DummyTool("mouse_control", ToolDomain.COMPUTER)])
-    response = (
-        '{"metadata":{"description":"screen","explanation":"click","expectation":"dialog"},'
-        '"action":{"functionCall":{"name":"mouse_control","args":{"action":"click","x":1,"y":2}}}}'
-    )
-    parsed = await parser.parse_response(response)
-    assert len(parsed.tool_calls) == 1
-    tool_call: ParsedToolCall = parsed.tool_calls[0]
-    assert tool_call.metadata["description"] == "screen"
-    assert tool_call.parameters["action"] == "click"
-
-
-@pytest.mark.asyncio
-async def test_parse_response_accepts_metadata_wrapper_any_order():
-    parser = _make_parser([DummyTool("mouse_control", ToolDomain.COMPUTER)])
-    response = (
-        '{"action":{"functionCall":{"name":"mouse_control","args":{"action":"click","x":1,"y":2}}},'
-        '"metadata":{"description":"screen","explanation":"click","expectation":"dialog"}}'
-    )
     parsed = await parser.parse_response(response)
     assert len(parsed.tool_calls) == 1
     tool_call: ParsedToolCall = parsed.tool_calls[0]
