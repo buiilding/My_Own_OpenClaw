@@ -523,6 +523,25 @@ read_when:
   - `pytest tests/backend/test_formatters.py tests/backend/test_outgoing_schema_contract.py tests/backend/test_response_formatter.py`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
+## Phase 24
+
+- `jscpd` duplication cleanup (core exception + validation helpers):
+  - extract shared metadata merge helper for repeated exception constructor patterns in:
+    - `backend/src/core/infrastructure/exceptions.py`
+  - extract shared Pydantic error-detail mapping helper in:
+    - `backend/src/core/validation/validators.py`
+  - preserve exception metadata semantics and validation error payloads.
+
+### Phase 24 Execution Slice (Current Loop)
+
+- Backend dedupe:
+  - centralize conditional exception metadata merge behavior used by LLM/memory/trust-boundary exception classes.
+  - centralize repeated `PydanticValidationError` field-path/message extraction.
+  - keep exception error codes, attributes, and logger behavior unchanged.
+- Verification checks:
+  - `pytest tests/backend/test_exceptions.py tests/backend/test_validation_utils.py tests/backend/test_api_errors.py`
+  - `cd frontend && npm run audit:jscpd` (expect clone reduction)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):
