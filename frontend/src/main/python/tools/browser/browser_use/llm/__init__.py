@@ -7,6 +7,7 @@ For easier transition we have
 from typing import TYPE_CHECKING
 
 # Lightweight imports that are commonly used
+from browser_use._lazy_import import import_lazy
 from browser_use.llm.base import BaseChatModel
 from browser_use.llm.messages import (
 	AssistantMessage,
@@ -104,14 +105,7 @@ def __getattr__(name: str):
 	"""Lazy import mechanism for heavy chat model imports and model instances."""
 	if name in _LAZY_IMPORTS:
 		module_path, attr_name = _LAZY_IMPORTS[name]
-		try:
-			from importlib import import_module
-
-			module = import_module(module_path)
-			attr = getattr(module, attr_name)
-			return attr
-		except ImportError as e:
-			raise ImportError(f'Failed to import {name} from {module_path}: {e}') from e
+		return import_lazy(module_path=module_path, attr_name=attr_name, symbol_name=name)
 
 	# Check cache first for model instances
 	if name in _model_cache:

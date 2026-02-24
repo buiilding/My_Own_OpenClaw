@@ -2,6 +2,7 @@ import os
 from typing import TYPE_CHECKING
 
 from browser_use.logging_config import setup_logging
+from browser_use._lazy_import import import_lazy
 
 # Only set up logging if not in MCP mode or if explicitly requested
 if os.environ.get('BROWSER_USE_SETUP_LOGGING', 'true').lower() != 'false':
@@ -111,20 +112,10 @@ def __getattr__(name: str):
 	"""Lazy import mechanism - only import modules when they're actually accessed."""
 	if name in _LAZY_IMPORTS:
 		module_path, attr_name = _LAZY_IMPORTS[name]
-		try:
-			from importlib import import_module
-
-			module = import_module(module_path)
-			if attr_name is None:
-				# For modules like 'models', return the module itself
-				attr = module
-			else:
-				attr = getattr(module, attr_name)
-			# Cache the imported attribute in the module's globals
-			globals()[name] = attr
-			return attr
-		except ImportError as e:
-			raise ImportError(f'Failed to import {name} from {module_path}: {e}') from e
+		attr = import_lazy(module_path=module_path, attr_name=attr_name, symbol_name=name)
+		# Cache the imported attribute in the module's globals
+		globals()[name] = attr
+		return attr
 
 	raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
