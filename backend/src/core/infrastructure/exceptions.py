@@ -91,6 +91,52 @@ class BaseAppError(Exception):
         return "".join(parts)
 
 
+def _init_scoped_context_error(
+    error: BaseAppError,
+    *,
+    scope_name: str,
+    scope_value: Optional[str],
+    message: str,
+    default_error_code: str,
+    error_code: Optional[str],
+    metadata: Optional[Dict[str, Any]],
+    cause: Optional[Exception],
+) -> None:
+    """Initialize a scoped error and mirror scope value to attribute + metadata."""
+    BaseAppError.__init__(
+        error,
+        message=message,
+        error_code=error_code or default_error_code,
+        metadata=_merge_metadata_if(metadata, bool(scope_value), **{scope_name: scope_value}),
+        cause=cause,
+    )
+    setattr(error, scope_name, scope_value)
+
+
+def _init_optional_scoped_context_error(
+    error: Any,
+    *,
+    init_method: Any,
+    scope_name: str,
+    scope_value: Optional[str],
+    message: str,
+    metadata: Optional[Dict[str, Any]],
+    cause: Optional[Exception],
+    field_name: str,
+    field_value: Any,
+    default_error_code: str,
+) -> None:
+    """Initialize scoped error and merge one optional metadata field."""
+    init_method(
+        error,
+        message=message,
+        metadata=_metadata_with_optional_field(metadata, field_name, field_value),
+        cause=cause,
+        error_code=default_error_code,
+        **{scope_name: scope_value},
+    )
+
+
 # ============================================================================
 # Configuration Errors
 # ============================================================================
@@ -131,13 +177,16 @@ class LLMError(BaseAppError):
         cause: Optional[Exception] = None,
         error_code: Optional[str] = None,
     ):
-        super().__init__(
+        _init_scoped_context_error(
+            self,
+            scope_name="model",
+            scope_value=model,
             message=message,
-            error_code=error_code or self.default_error_code,
-            metadata=_merge_metadata_if(metadata, bool(model), model=model),
+            default_error_code=self.default_error_code,
+            error_code=error_code,
+            metadata=metadata,
             cause=cause,
         )
-        self.model = model
 
     def _init_optional_field(
         self,
@@ -149,13 +198,17 @@ class LLMError(BaseAppError):
         field_value: Any,
     ) -> None:
         """Initialize an LLM-derived error that adds one optional metadata field."""
-        LLMError.__init__(
+        _init_optional_scoped_context_error(
             self,
+            init_method=LLMError.__init__,
+            scope_name="model",
+            scope_value=model,
             message=message,
-            model=model,
-            metadata=_metadata_with_optional_field(metadata, field_name, field_value),
+            metadata=metadata,
             cause=cause,
-            error_code=self.default_error_code,
+            field_name=field_name,
+            field_value=field_value,
+            default_error_code=self.default_error_code,
         )
 
 
@@ -312,13 +365,16 @@ class MemoryError(BaseAppError):
         cause: Optional[Exception] = None,
         error_code: Optional[str] = None,
     ):
-        super().__init__(
+        _init_scoped_context_error(
+            self,
+            scope_name="user_id",
+            scope_value=user_id,
             message=message,
-            error_code=error_code or self.default_error_code,
-            metadata=_merge_metadata_if(metadata, bool(user_id), user_id=user_id),
+            default_error_code=self.default_error_code,
+            error_code=error_code,
+            metadata=metadata,
             cause=cause,
         )
-        self.user_id = user_id
 
     def _init_optional_field(
         self,
@@ -330,13 +386,17 @@ class MemoryError(BaseAppError):
         field_value: Any,
     ) -> None:
         """Initialize a memory-derived error that adds one optional metadata field."""
-        MemoryError.__init__(
+        _init_optional_scoped_context_error(
             self,
+            init_method=MemoryError.__init__,
+            scope_name="user_id",
+            scope_value=user_id,
             message=message,
-            user_id=user_id,
-            metadata=_metadata_with_optional_field(metadata, field_name, field_value),
+            metadata=metadata,
             cause=cause,
-            error_code=self.default_error_code,
+            field_name=field_name,
+            field_value=field_value,
+            default_error_code=self.default_error_code,
         )
 
 
