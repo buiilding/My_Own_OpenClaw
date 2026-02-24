@@ -11,6 +11,8 @@ title: "Frontend Contracts Docs Hub"
 ## Deep Pages
 
 - [Events Contracts Docs Hub](events/README.md)
+- [Frontend Backend Event Schema Docs Hub](events/schema/README.md)
+- [Backend Event Payload Field Contract and Consumer Ownership Reference](events/schema/backend_event_payload_field_contract_and_consumer_ownership_reference.md)
 - [Settings and Model ACK Event Routing Reference](events/settings_and_model_ack_event_routing_reference.md)
 - [Events Tool Runtime Docs Hub](events/tool_runtime/README.md)
 - [Tool-Call and Tool-Output Recovery/Skip-Execution Contract Reference](events/tool_runtime/tool_call_and_tool_output_recovery_skip_execution_contract_reference.md)
