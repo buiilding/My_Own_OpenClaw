@@ -771,22 +771,13 @@ class SessionManager:
 		# Use event-driven approach instead of polling for better performance
 		ready_event = asyncio.Event()
 
+		def count_ready_sessions() -> int:
+			return self._count_ready_target_sessions(target_ids_to_wait_for)
+
 		async def check_all_ready():
 			"""Check if all sessions are ready and signal completion."""
 			while True:
-				ready_count = 0
-				for tid in target_ids_to_wait_for:
-					session = self._get_session_for_target(tid)
-					if session:
-						target = self._targets.get(tid)
-						target_type = target.target_type if target else 'unknown'
-						# For pages, verify monitoring is enabled
-						if target_type in ('page', 'tab'):
-							if hasattr(session, '_lifecycle_events') and session._lifecycle_events is not None:
-								ready_count += 1
-						else:
-							# Non-page targets don't need monitoring
-							ready_count += 1
+				ready_count = count_ready_sessions()
 
 				if ready_count == len(target_ids_to_wait_for):
 					ready_event.set()
@@ -804,19 +795,7 @@ class SessionManager:
 			await asyncio.wait_for(ready_event.wait(), timeout=2.0)
 		except TimeoutError:
 			# Timeout - count what's ready
-			ready_count = 0
-			for tid in target_ids_to_wait_for:
-				session = self._get_session_for_target(tid)
-				if session:
-					target = self._targets.get(tid)
-					target_type = target.target_type if target else 'unknown'
-					# For pages, verify monitoring is enabled
-					if target_type in ('page', 'tab'):
-						if hasattr(session, '_lifecycle_events') and session._lifecycle_events is not None:
-							ready_count += 1
-					else:
-						# Non-page targets don't need monitoring
-						ready_count += 1
+			ready_count = count_ready_sessions()
 			self.logger.warning(
 				f'[SessionManager] Initialization timeout after 2.0s: {ready_count}/{len(target_ids_to_wait_for)} sessions ready'
 			)
@@ -826,6 +805,28 @@ class SessionManager:
 				await check_task
 			except asyncio.CancelledError:
 				pass
+
+	def _count_ready_target_sessions(self, target_ids: list[TargetID]) -> int:
+		"""Count targets with an attached session ready for use."""
+		ready_count = 0
+		for target_id in target_ids:
+			session = self._get_session_for_target(target_id)
+			if not session:
+				continue
+
+			target = self._targets.get(target_id)
+			target_type = target.target_type if target else 'unknown'
+
+			# Page/tab targets are ready only after lifecycle monitoring is enabled.
+			if target_type in ('page', 'tab'):
+				if hasattr(session, '_lifecycle_events') and session._lifecycle_events is not None:
+					ready_count += 1
+				continue
+
+			# Non-page targets do not depend on lifecycle event tracking.
+			ready_count += 1
+
+		return ready_count
 
 	async def _enable_page_monitoring(self, cdp_session: 'CDPSession') -> None:
 		"""Enable lifecycle events and network monitoring for a page target.
