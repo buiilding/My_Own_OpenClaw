@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(sidecar-memory): add `WINDIE_ENABLE_SEMANTIC_SUMMARIZER` env toggle so Electron-side local backend can disable periodic semantic summarization in dev while keeping episodic memory writes intact
 - refactor(frontend-chat-stream): remove `modelContextRef` sync `useEffect` in `frontend/src/renderer/features/chat/hooks/useChatStream.ts` and assign model context during render; verify with ChatStreamThinkingStatus state/metadata/transcript suites
 - refactor(frontend-tool-runner): remove `modelContextRef` sync `useEffect` in `frontend/src/renderer/features/chat/hooks/useToolRunner.ts` and assign latest model context during render to reduce effect churn; verify with `ToolRunnerHook.events` + `ToolRunnerHook.callbacks` suites
 - refactor(frontend-main-overlays): extract shared `createOverlayBrowserWindow` + `enableContentProtectionSafely` helpers in `frontend/src/main/index.cjs` and reuse them across chat/response/context overlay windows (plus main-window content protection), removing repeated BrowserWindow option blocks; frontend `jscpd` no longer reports the duplicate overlay window clone

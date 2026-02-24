@@ -89,6 +89,28 @@ class DummyMemoryStorePendingFails(DummyMemoryStore):
         raise RuntimeError("pending-fail")
 
 
+class DummyMemoryStoreInit(DummyMemoryStore):
+    def __init__(self):
+        super().__init__()
+        self.initialized = False
+
+    async def initialize(self):
+        self.initialized = True
+
+
+class DummySummarizerInit:
+    def __init__(self, memory_store):
+        self.memory_store = memory_store
+        self.started = False
+        self.stopped = False
+
+    async def start(self):
+        self.started = True
+
+    async def stop(self):
+        self.stopped = True
+
+
 @pytest.mark.asyncio
 async def test_handle_execute_tool_success():
     backend = LocalBackend()
@@ -135,6 +157,7 @@ async def test_handle_get_status_reports_tools():
     assert status["running"] is True
     assert status["tool_count"] == 2
     assert "read_file" in status["registered_tools"]
+    assert status["semantic_summarizer_enabled"] is True
 
 
 @pytest.mark.asyncio
@@ -149,6 +172,55 @@ async def test_handle_get_status_without_store_or_registry():
     assert status["memory_store_initialized"] is False
     assert status["tool_registry_initialized"] is False
     assert status["memory_store_status"] == "not_initialized"
+
+
+@pytest.mark.asyncio
+async def test_initialize_starts_memory_summarizer_when_enabled(monkeypatch):
+    monkeypatch.setenv(local_backend_module.ENV_ENABLE_SEMANTIC_SUMMARIZER, "1")
+
+    fake_store = DummyMemoryStoreInit()
+    created_summarizers = []
+
+    class _DummySummarizer(DummySummarizerInit):
+        def __init__(self, memory_store):
+            super().__init__(memory_store)
+            created_summarizers.append(self)
+
+    monkeypatch.setattr(local_backend_module, "LocalMemoryStore", lambda: fake_store)
+    monkeypatch.setattr(local_backend_module, "MemorySummarizer", _DummySummarizer)
+
+    backend = LocalBackend()
+    await backend.initialize()
+    await backend.shutdown()
+
+    assert fake_store.initialized is True
+    assert len(created_summarizers) == 1
+    assert created_summarizers[0].started is True
+    assert backend._summarizer is created_summarizers[0]
+
+
+@pytest.mark.asyncio
+async def test_initialize_skips_memory_summarizer_when_disabled(monkeypatch):
+    monkeypatch.setenv(local_backend_module.ENV_ENABLE_SEMANTIC_SUMMARIZER, "0")
+
+    fake_store = DummyMemoryStoreInit()
+    created = {"count": 0}
+
+    class _DummySummarizer:
+        def __init__(self, *_args, **_kwargs):
+            created["count"] += 1
+
+    monkeypatch.setattr(local_backend_module, "LocalMemoryStore", lambda: fake_store)
+    monkeypatch.setattr(local_backend_module, "MemorySummarizer", _DummySummarizer)
+
+    backend = LocalBackend()
+    await backend.initialize()
+    await backend.shutdown()
+
+    assert backend._semantic_summarizer_enabled is False
+    assert fake_store.initialized is True
+    assert created["count"] == 0
+    assert backend._summarizer is None
 
 
 @pytest.mark.asyncio

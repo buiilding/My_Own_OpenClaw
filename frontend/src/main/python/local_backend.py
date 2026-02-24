@@ -9,6 +9,7 @@ via JSON-RPC 2.0 protocol over stdin/stdout.
 
 import asyncio
 import logging
+import os
 import sys
 from functools import wraps
 from pathlib import Path
@@ -42,6 +43,20 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 _active_backend: Optional["LocalBackend"] = None
+ENV_ENABLE_SEMANTIC_SUMMARIZER = "WINDIE_ENABLE_SEMANTIC_SUMMARIZER"
+
+
+def _env_flag_enabled(name: str, default: bool = True) -> bool:
+    """Parse permissive boolean env flags (1/0, true/false, on/off, yes/no)."""
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    normalized = raw.strip().lower()
+    if normalized in {"0", "false", "off", "no"}:
+        return False
+    if normalized in {"1", "true", "on", "yes"}:
+        return True
+    return default
 
 
 def requires_memory_store(
@@ -69,6 +84,10 @@ class LocalBackend:
         self.protocol = JSONRPCProtocol()
         self.memory_store: LocalMemoryStore = None
         self._summarizer: Optional[MemorySummarizer] = None
+        self._semantic_summarizer_enabled = _env_flag_enabled(
+            ENV_ENABLE_SEMANTIC_SUMMARIZER,
+            default=True,
+        )
         self.running = False
         self._shutdown_requested = False
         # Initialize tool registry once (reused for all tool executions)
@@ -174,12 +193,18 @@ class LocalBackend:
             await self.memory_store.initialize()
             logger.info("Memory store initialized")
 
-            try:
-                self._summarizer = MemorySummarizer(self.memory_store)
-                await self._summarizer.start()
-                logger.info("Memory summarizer started")
-            except Exception as e:
-                logger.error(f"Failed to start memory summarizer: {e}", exc_info=True)
+            if self._semantic_summarizer_enabled:
+                try:
+                    self._summarizer = MemorySummarizer(self.memory_store)
+                    await self._summarizer.start()
+                    logger.info("Memory summarizer started")
+                except Exception as e:
+                    logger.error(f"Failed to start memory summarizer: {e}", exc_info=True)
+            else:
+                logger.info(
+                    "Memory summarizer disabled via %s",
+                    ENV_ENABLE_SEMANTIC_SUMMARIZER,
+                )
             
             # Note: Wake-word detection is kept as separate subprocess for now
             # due to binary protocol requirements. Can be integrated later.
@@ -202,6 +227,7 @@ class LocalBackend:
                 "running": self.running,
                 "memory_store_initialized": self.memory_store is not None,
                 "tool_registry_initialized": hasattr(self, 'tool_registry') and self.tool_registry is not None,
+                "semantic_summarizer_enabled": self._semantic_summarizer_enabled,
             }
             
             if self.tool_registry:
