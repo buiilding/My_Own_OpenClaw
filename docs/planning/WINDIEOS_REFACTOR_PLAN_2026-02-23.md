@@ -1841,3 +1841,14 @@ read_when:
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run audit:jscpd` (pass)
   - `cd frontend && npm run test:ci` (pass; 91 suites, 607 tests)
+
+## Phase 51 Outcome (2026-02-24)
+
+- Wakeword bridge test-noise cleanup shipped:
+  - added suite-level console log/warn/error silencing in:
+    - `tests/frontend/WakewordBridge.test.cjs`
+  - removed wakeword subprocess log spam from full frontend CI test runs while preserving behavior assertions.
+- Verification:
+  - `cd frontend && npm run test:ci -- tests/frontend/WakewordBridge.test.cjs` (pass; 6 tests)
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci` (pass; 91 suites, 607 tests)
