@@ -46,10 +46,10 @@ class KimiCodingProvider(OnlineLLMProvider):
         **completion_kwargs: Any,
     ) -> AsyncGenerator[StreamingEvent, None]:
         """Internal streaming implementation. Exceptions bubble up to base class."""
-        params = self._build_stream_completion_params(
+        params = self._build_stream_request_kwargs(
             model=model,
             messages=messages,
-            **completion_kwargs,
+            completion_kwargs=completion_kwargs,
         )
         stream = await litellm.acompletion(**params)
         full_text_parts: List[str] = []
