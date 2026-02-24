@@ -53,6 +53,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Agent System**](architecture/AGENT_SYSTEM.md) - Agent orchestrator and execution flow
 - [**Tool System**](architecture/TOOL_SYSTEM.md) - Tool execution architecture and development
 - [**Backend Tools Docs Hub**](backend/tools/README.md) - Backend schema bridge, policy filtering, and wait/ingress runtime docs for frontend-executed tools
+- [**Backend Tool Security Policy + Executor**](backend/tools/TOOL_SECURITY_POLICY_AND_EXECUTOR_REFERENCE.md) - Active vs planned tool-security boundary: ToolPolicy filtering, fail-closed permission checks, audit-log hardening, and sandbox executor registry behavior
 - [**Backend Tool Result Ingress Reference**](backend/tools/TOOL_RESULT_INGRESS_AND_STORAGE_REFERENCE.md) - End-to-end `tool-result`/`tool-bundle-result` flow across API handler, session routing, storage, and futures
 - [**Backend Query Execution Pipeline**](backend/runtime/QUERY_EXECUTION_AND_STREAM_PIPELINE_REFERENCE.md) - Query handler to stream pipeline internals, completion backfill rules, and cancellation/task-tracking behavior
 - [**Backend Token Count Event + Usage Diagnostics**](backend/runtime/TOKEN_COUNT_EVENT_AND_USAGE_DIAGNOSTICS_REFERENCE.md) - Token-count event lifecycle from LLM stream processor through websocket formatter, provider usage-precedence rules, and fallback/cache semantics
