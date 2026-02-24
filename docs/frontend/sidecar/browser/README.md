@@ -12,6 +12,9 @@ title: "Frontend Sidecar Browser Docs Hub"
 
 - [Browser Runtime Provider, Vendoring, and Native Handler Bridge Reference](browser_runtime_provider_vendoring_and_native_handler_bridge_reference.md)
 - [Browser Adapter Action Routing and Compatibility Semantics Reference](browser_adapter_action_routing_and_compatibility_semantics_reference.md)
+- [Browser Contracts Docs Hub](contracts/README.md)
+- [Schema Registry and Action Validation Boundary Reference](contracts/schema_registry_and_action_validation_boundary_reference.md)
+- [OpenClaw Compatibility Action and Field Surface Reference](contracts/openclaw_compat_action_and_field_surface_reference.md)
 - [Browser Chrome Docs Hub](chrome/README.md)
 - [Chrome Detection, Launcher, and CDP Session Reference](chrome/chrome_detection_launcher_and_cdp_session_reference.md)
 - [Browser Controller Lifecycle, Snapshot, and Action Runtime Reference](chrome/browser_controller_lifecycle_snapshot_and_action_runtime_reference.md)
