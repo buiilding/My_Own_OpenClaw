@@ -20,6 +20,7 @@ from tools.browser.schemas import (
     BrowserSwitchTabArgs,
     BrowserEvaluateArgs,
     BrowserCloseArgs,
+    OPENCLAW_COMPAT_ACTIONS,
     get_browser_schema,
     validate_browser_args,
 )
@@ -450,6 +451,11 @@ class TestSchemaRegistry:
         assert get_browser_schema("errors") is None
         assert get_browser_schema("requests") is None
         assert get_browser_schema("set_offline") is None
+
+    def test_get_browser_schema_includes_all_openclaw_compat_actions(self):
+        """Test generated registry entries for all OpenClaw-compatible actions."""
+        for action in OPENCLAW_COMPAT_ACTIONS:
+            assert get_browser_schema(action) is not None
 
     def test_get_browser_schema_extract(self):
         """Test getting extract schema."""
