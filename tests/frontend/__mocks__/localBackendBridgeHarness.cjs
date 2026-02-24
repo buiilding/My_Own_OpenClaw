@@ -157,19 +157,15 @@ function initBridgeWithProcesses(processes) {
 }
 
 function markReady() {
-  stdoutHandler(
-    Buffer.from(
-      `${JSON.stringify({
-        jsonrpc: '2.0',
-        id: '__readiness_check_1__',
-        result: { status: 'ok' },
-      })}\n`,
-    ),
-  );
+  emitReadiness(stdoutHandler);
 }
 
 function markProcessReady(process) {
-  process._stdoutHandler?.(
+  emitReadiness(process._stdoutHandler);
+}
+
+function emitReadiness(handler) {
+  handler?.(
     Buffer.from(
       `${JSON.stringify({
         jsonrpc: '2.0',

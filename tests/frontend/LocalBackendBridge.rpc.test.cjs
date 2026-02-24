@@ -10,22 +10,32 @@ const {
 describe('local_backend_bridge RPC handlers', () => {
   registerBridgeSuiteLifecycleHooks();
 
+  function emitRpcMessage(stdoutHandler, payload) {
+    stdoutHandler()(Buffer.from(`${JSON.stringify({
+      jsonrpc: '2.0',
+      id: 'req-1',
+      ...payload,
+    })}\n`));
+  }
+
+  function emitRpcResult(stdoutHandler, result) {
+    emitRpcMessage(stdoutHandler, { result });
+  }
+
+  function emitRpcError(stdoutHandler, message) {
+    emitRpcMessage(stdoutHandler, { error: { message } });
+  }
+
   test('execute-tool handler returns success for valid response', async () => {
     const { handlers, stdoutHandler } = initBridge();
     markReady();
-
-    const response = {
-      jsonrpc: '2.0',
-      id: 'req-1',
-      result: { success: true, data: { value: 1 } },
-    };
 
     const promise = handlers['execute-tool'](null, {
       toolName: 'read_file',
       args: { file_path: '/tmp/a' },
     });
 
-    stdoutHandler()(Buffer.from(`${JSON.stringify(response)}\n`));
+    emitRpcResult(stdoutHandler, { success: true, data: { value: 1 } });
 
     const result = await promise;
     expect(result).toEqual({ success: true, data: { value: 1 } });
@@ -94,18 +104,12 @@ describe('local_backend_bridge RPC handlers', () => {
     const { handlers, stdoutHandler } = initBridge();
     markReady();
 
-    const response = {
-      jsonrpc: '2.0',
-      id: 'req-1',
-      error: { message: 'bad' },
-    };
-
     const promise = handlers['execute-tool'](null, {
       toolName: 'read_file',
       args: { file_path: '/tmp/a' },
     });
 
-    stdoutHandler()(Buffer.from(`${JSON.stringify(response)}\n`));
+    emitRpcError(stdoutHandler, 'bad');
 
     const result = await promise;
     expect(result).toEqual({ success: false, error: 'bad' });
@@ -115,14 +119,8 @@ describe('local_backend_bridge RPC handlers', () => {
     const { handlers, stdoutHandler } = initBridge();
     markReady();
 
-    const response = {
-      jsonrpc: '2.0',
-      id: 'req-1',
-      result: { success: false, error: 'fail' },
-    };
-
     const promise = handlers['get-system-state'](null, { fields: ['active_window'] });
-    stdoutHandler()(Buffer.from(`${JSON.stringify(response)}\n`));
+    emitRpcResult(stdoutHandler, { success: false, error: 'fail' });
 
     const result = await promise;
     expect(result).toBeNull();
@@ -153,12 +151,7 @@ describe('local_backend_bridge RPC handlers', () => {
       }),
     );
 
-    const response = {
-      jsonrpc: '2.0',
-      id: 'req-1',
-      error: { message: 'nope' },
-    };
-    stdoutHandler()(Buffer.from(`${JSON.stringify(response)}\n`));
+    emitRpcError(stdoutHandler, 'nope');
 
     const result = await promise;
     expect(result).toEqual({ success: false, error: 'nope' });
@@ -189,11 +182,7 @@ describe('local_backend_bridge RPC handlers', () => {
       }),
     );
 
-    stdoutHandler()(Buffer.from(`${JSON.stringify({
-      jsonrpc: '2.0',
-      id: 'req-1',
-      result: { success: true, data: { memories: [] } },
-    })}\n`));
+    emitRpcResult(stdoutHandler, { success: true, data: { memories: [] } });
 
     const result = await promise;
     expect(result).toEqual({ success: true, data: { memories: [] } });
@@ -221,15 +210,7 @@ describe('local_backend_bridge RPC handlers', () => {
       }),
     );
 
-    stdoutHandler()(
-      Buffer.from(
-        `${JSON.stringify({
-          jsonrpc: '2.0',
-          id: 'req-1',
-          result: { success: true, data: { items: [] } },
-        })}\n`,
-      ),
-    );
+    emitRpcResult(stdoutHandler, { success: true, data: { items: [] } });
 
     await expect(promise).resolves.toEqual({ success: true, data: { items: [] } });
   });
@@ -248,15 +229,7 @@ describe('local_backend_bridge RPC handlers', () => {
       }),
     );
 
-    stdoutHandler()(
-      Buffer.from(
-        `${JSON.stringify({
-          jsonrpc: '2.0',
-          id: 'req-1',
-          result: { success: true, data: { items: [] } },
-        })}\n`,
-      ),
-    );
+    emitRpcResult(stdoutHandler, { success: true, data: { items: [] } });
 
     await expect(promise).resolves.toEqual({ success: true, data: { items: [] } });
   });
@@ -281,15 +254,7 @@ describe('local_backend_bridge RPC handlers', () => {
       }),
     );
 
-    stdoutHandler()(
-      Buffer.from(
-        `${JSON.stringify({
-          jsonrpc: '2.0',
-          id: 'req-1',
-          result: { success: true, data: { memories: [] } },
-        })}\n`,
-      ),
-    );
+    emitRpcResult(stdoutHandler, { success: true, data: { memories: [] } });
 
     await expect(promise).resolves.toEqual({ success: true, data: { memories: [] } });
   });
@@ -317,15 +282,7 @@ describe('local_backend_bridge RPC handlers', () => {
       }),
     );
 
-    stdoutHandler()(
-      Buffer.from(
-        `${JSON.stringify({
-          jsonrpc: '2.0',
-          id: 'req-1',
-          result: { success: true, data: { messages: [] } },
-        })}\n`,
-      ),
-    );
+    emitRpcResult(stdoutHandler, { success: true, data: { messages: [] } });
 
     await expect(promise).resolves.toEqual({ success: true, data: { messages: [] } });
   });
@@ -352,15 +309,7 @@ describe('local_backend_bridge RPC handlers', () => {
       }),
     );
 
-    stdoutHandler()(
-      Buffer.from(
-        `${JSON.stringify({
-          jsonrpc: '2.0',
-          id: 'req-1',
-          result: { success: true, data: { deleted_count: 3 } },
-        })}\n`,
-      ),
-    );
+    emitRpcResult(stdoutHandler, { success: true, data: { deleted_count: 3 } });
 
     await expect(promise).resolves.toEqual({ success: true, data: { deleted_count: 3 } });
   });
@@ -385,15 +334,7 @@ describe('local_backend_bridge RPC handlers', () => {
       }),
     );
 
-    stdoutHandler()(
-      Buffer.from(
-        `${JSON.stringify({
-          jsonrpc: '2.0',
-          id: 'req-1',
-          result: { success: true, data: { deleted: true } },
-        })}\n`,
-      ),
-    );
+    emitRpcResult(stdoutHandler, { success: true, data: { deleted: true } });
 
     await expect(promise).resolves.toEqual({ success: true, data: { deleted: true } });
   });
@@ -421,15 +362,7 @@ describe('local_backend_bridge RPC handlers', () => {
       }),
     );
 
-    stdoutHandler()(
-      Buffer.from(
-        `${JSON.stringify({
-          jsonrpc: '2.0',
-          id: 'req-1',
-          error: { message: 'store failed' },
-        })}\n`,
-      ),
-    );
+    emitRpcError(stdoutHandler, 'store failed');
 
     await expect(promise).resolves.toEqual({ success: false, error: 'store failed' });
   });
@@ -460,15 +393,7 @@ describe('local_backend_bridge RPC handlers', () => {
       }),
     );
 
-    stdoutHandler()(
-      Buffer.from(
-        `${JSON.stringify({
-          jsonrpc: '2.0',
-          id: 'req-1',
-          result: { success: true, data: { stored: true } },
-        })}\n`,
-      ),
-    );
+    emitRpcResult(stdoutHandler, { success: true, data: { stored: true } });
 
     await expect(promise).resolves.toEqual({ success: true, data: { stored: true } });
   });
