@@ -176,3 +176,5 @@ If settings revert unexpectedly:
 - `docs/frontend/renderer/providers/README.md`
 - `docs/frontend/renderer/providers/entrypoint_view_routing_and_provider_stack_reference.md`
 - `docs/frontend/renderer/providers/app_provider_coordinator_and_save_status_runtime_reference.md`
+- `docs/frontend/renderer/settings/README.md`
+- `docs/frontend/renderer/settings/settings_section_display_selection_and_config_toggle_reference.md`
