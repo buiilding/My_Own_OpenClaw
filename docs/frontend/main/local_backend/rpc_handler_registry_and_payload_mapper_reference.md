@@ -1,0 +1,156 @@
+---
+summary: "Deep reference for local-backend bridge handler registration, channel-to-method mapping, payload normalization rules, and test-backed IPC/JSON-RPC contract invariants."
+read_when:
+  - When adding/removing local-backend `ipcMain.handle` channels or changing `COMPILED_RPC_HANDLER_DEFINITIONS`.
+  - When debugging renderer invoke payload keys that do not map to sidecar JSON-RPC params.
+title: "Local-Backend RPC Handler Registry and Payload-Mapper Reference"
+---
+
+# Local-Backend RPC Handler Registry and Payload-Mapper Reference
+
+## Canonical Modules
+
+- `frontend/src/main/local_backend_bridge.cjs`
+- `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
+- `frontend/src/main/local_backend_bridge_windows.cjs`
+- `tests/frontend/LocalBackendBridge.rpc.test.cjs`
+
+## Handler Registration Topology
+
+`initializeLocalBackendBridge(getWindows)` registers:
+
+Direct handlers:
+
+- `execute-tool`
+- `get-system-state`
+- `search-memory`
+
+Mapped handlers via `registerMappedRpcHandlers(registerRpcHandler, COMPILED_RPC_HANDLER_DEFINITIONS)`:
+
+- `list-conversations`
+- `get-conversation`
+- `list-semantic-memories`
+- `delete-conversation`
+- `delete-semantic-memory`
+- `store-memory`
+- `store-transcript`
+
+`registerRpcHandler` contract:
+
+- each channel maps to one JSON-RPC method with mapped params
+- every mapped path uses `sendRequestOrError(...)` for canonical error envelope fallback
+
+## Direct Handler Semantics
+
+### `execute-tool`
+
+Input payload:
+
+- `{ toolName, args }`
+
+Dispatch:
+
+- JSON-RPC method: `execute_tool`
+- params:
+  - `tool_name = toolName`
+  - `args = args`
+
+Timeout tiers:
+
+- `browser` -> 120s
+- default -> 30s
+
+Special wrapper:
+
+- `screenshot` on Linux runs inside `withHiddenWindowForScreenshot(...)`
+
+Response normalization:
+
+- backend `result.success === false` -> `{ success:false, error:result.error }`
+- backend success -> `{ success:true, data:result.data || result }`
+- thrown bridge errors -> `{ success:false, error:getErrorMessage(error) }`
+
+### `get-system-state`
+
+Input payload:
+
+- optional `{ fields }`
+
+Dispatch:
+
+- JSON-RPC method: `get_system_state`
+- params only includes `fields` key when provided
+
+Return normalization:
+
+- sidecar `{ success:false }` or thrown request error -> `null`
+- otherwise `result.data || result`
+
+### `search-memory`
+
+Input payload:
+
+- object with `query`, `user_id`, `limit`, `memory_type`, optional exclusion key
+
+Dispatch:
+
+- JSON-RPC method: `search_memory`
+- params built by `mapSearchMemoryPayload(...)`
+
+Exclusion key fallback:
+
+- accepts either `excludeConversationId` or `exclude_conversation_id`
+- both map to `exclude_conversation_id`
+
+## Payload Mapper Runtime Contract
+
+`createPayloadMapper(fieldMap)` compile step supports three mapping types:
+
+1. direct string source key
+2. fallback source-key array (first defined key wins)
+3. function mapper `(payload) => value`
+
+`getPayloadObject(payload)` hardening:
+
+- non-object payload becomes `{}` instead of throwing
+
+Guarantee:
+
+- mapped object includes every target key declared in field map (values may be `undefined` or `null`)
+
+## Compiled Channel-to-Method Mapping Details
+
+`COMPILED_RPC_HANDLER_DEFINITIONS` map highlights:
+
+- `list-conversations` -> `list_conversations` with `{ userId, limit, recordKind } -> { user_id, limit, record_kind }`
+- `get-conversation` -> `get_conversation` with `conversation_id = conversationId ?? null`
+- `list-semantic-memories` -> `list_semantic_memories` with `{ userId, limit } -> { user_id, limit }`
+- `delete-conversation` -> `delete_conversation` with null-safe `conversation_id`
+- `delete-semantic-memory` -> `delete_semantic_memory` with `{ memoryId } -> { memory_id }`
+- `store-memory` -> `store_memory` with camelCase-to-snake_case memory write fields
+- `store-transcript` -> `store_transcript` mapping transcript metadata (`conversation_ref`, `message_type`, `tool_name`, `correlation_id`, `message_index`, `model_id`, `model_provider`)
+
+## Test-Backed Invariants
+
+From `tests/frontend/LocalBackendBridge.rpc.test.cjs`:
+
+- mapped channels send expected JSON-RPC method names and param keys
+- non-object payloads do not crash mapper paths (`list-conversations` sends `{}`)
+- `search-memory` accepts both camelCase and snake_case exclusion keys
+- `get-conversation` emits explicit `conversation_id: null` when `conversationId` absent
+- `store-transcript` errors normalize to `{ success:false, error }`
+- `WINDIE_BACKEND_HTTP_URL` env and `NODE_OPTIONS --no-deprecation` propagation are validated at spawn
+- deprecation stderr lines are filtered while normal stderr lines remain logged
+
+## Drift and Regression Hotspots
+
+1. channel constants drift between preload allowlist and `ipcMain.handle` registration
+2. renamed payload keys in renderer invoke calls not mirrored in mapper field map
+3. method name drift (`delete_semantic_memory`, `store_transcript`, etc.) breaking sidecar routing silently
+4. wrapper-specific behavior drift (`screenshot` Linux hide/restore path, browser timeout tier)
+
+## Related Pages
+
+- [Frontend Main Local-Backend Docs Hub](README.md)
+- [Local-Backend Process Lifecycle, Readiness, and Request-Correlation Reference](process_lifecycle_readiness_and_request_correlation_reference.md)
+- [Main-Process IPC Handler Ownership and RPC Mapper Reference](../../contracts/ipc/main_process_ipc_handler_ownership_and_rpc_mapper_reference.md)
