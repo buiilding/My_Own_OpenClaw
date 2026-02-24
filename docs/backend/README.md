@@ -34,6 +34,7 @@ Covers:
 - [API and Transport](api/API_AND_TRANSPORT.md)
 - [HTTP and WebSocket Endpoint Reference](api/HTTP_AND_WS_ENDPOINT_REFERENCE.md)
 - [WebSocket Message Contracts](contracts/WEBSOCKET_MESSAGE_CONTRACTS.md)
+- [Message Schema and Formatter Reference](contracts/MESSAGE_SCHEMA_AND_FORMATTER_REFERENCE.md)
 - [Handler Behavior Matrix](api/HANDLER_BEHAVIOR_MATRIX.md)
 
 ### Runtime and Tools
