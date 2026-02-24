@@ -2414,3 +2414,24 @@ read_when:
     - `./scripts/test-backend` (pass; 966 tests)
   - sidecar tests:
     - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+
+## Phase 83 Outcome (2026-02-24)
+
+- IPC bridge test duplication cleanup shipped:
+  - added shared IPC mock harness:
+    - `tests/frontend/ipcBridge.testUtils.ts`
+    - exports: `installMockIpc`, `clearMockIpc`
+  - reused harness in:
+    - `tests/frontend/IpcBridge.test.ts`
+    - `tests/frontend/IpcBridgeValidation.test.ts`
+  - removed repeated `window.ipc` fixture/reset boilerplate.
+- Verification:
+  - `cd frontend && npx jest ../tests/frontend/IpcBridge.test.ts ../tests/frontend/IpcBridgeValidation.test.ts --runInBand` (pass; 8 tests)
+  - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
+  - `cd frontend && npm run audit:knip` (pass)
+  - `cd frontend && npm run audit:jscpd` (pass)
+  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - jscpd snapshot deltas:
+    - clones: `135 -> 134`
+    - duplicated lines: `2225 -> 2218`
+    - duplicated tokens: `19470 -> 19383`

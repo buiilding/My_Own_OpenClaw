@@ -1,17 +1,13 @@
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS, SEND_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
+import { clearMockIpc, installMockIpc } from './ipcBridge.testUtils';
 
 describe('IpcBridge', () => {
   beforeEach(() => {
-    (window as any).ipc = {
-      send: jest.fn(),
-      invoke: jest.fn().mockResolvedValue('ok'),
-      on: jest.fn().mockReturnValue(() => undefined),
-      once: jest.fn(),
-    };
+    installMockIpc();
   });
 
   afterEach(() => {
-    delete (window as any).ipc;
+    clearMockIpc();
   });
 
   test('send forwards to window.ipc', () => {
@@ -43,14 +39,14 @@ describe('IpcBridge', () => {
   });
 
   test('throws when window.ipc is missing', async () => {
-    delete (window as any).ipc;
+    clearMockIpc();
     await expect(IpcBridge.invoke(INVOKE_CHANNELS.EXECUTE_TOOL, {})).rejects.toThrow(
       'window.ipc is not available'
     );
   });
 
   test('send throws when window.ipc is missing', () => {
-    delete (window as any).ipc;
+    clearMockIpc();
     expect(() => IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {})).toThrow(
       'window.ipc is not available',
     );
