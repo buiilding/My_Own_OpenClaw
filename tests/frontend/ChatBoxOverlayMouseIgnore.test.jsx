@@ -1,22 +1,15 @@
 import React from 'react';
-import { waitFor } from '@testing-library/react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 
 import ChatBox from '../../frontend/src/renderer/features/chat/components/ChatBox';
 
-const mockInvoke = jest.fn((channel) => {
-  if (channel === 'get-system-state') {
-    return Promise.resolve({});
-  }
-  return Promise.resolve({ success: true });
-});
+const mockInvoke = jest.fn(() => Promise.resolve({ success: true }));
 const mockSend = jest.fn();
 const mockListeners = new Map();
 const mockSendMessage = jest.fn();
 const mockUseChatMessageSender = jest.fn(() => ({
   sendMessage: mockSendMessage,
 }));
-const GET_SYSTEM_STATE = 'get-system-state';
 
 const setWindowScreenPosition = (x, y) => {
   Object.defineProperty(window, 'screenX', {
@@ -31,46 +24,9 @@ const setWindowScreenPosition = (x, y) => {
   });
 };
 
-const mockSystemStateResponse = (valueOrFactory) => {
-  mockInvoke.mockImplementation((channel) => {
-    if (channel === GET_SYSTEM_STATE) {
-      return typeof valueOrFactory === 'function'
-        ? valueOrFactory()
-        : Promise.resolve(valueOrFactory);
-    }
-    return Promise.resolve({ success: true });
-  });
-};
-
-const renderAndGetContextIndicator = () => {
-  const { container } = render(<ChatBox />);
-  const contextIndicator = container.querySelector('.chatbox-context-indicator');
-  expect(contextIndicator).toBeTruthy();
-  return contextIndicator;
-};
-
 const expectInvokeCall = (predicate) => {
   const sawCall = mockInvoke.mock.calls.some(predicate);
   expect(sawCall).toBe(true);
-};
-
-const expectActiveAppIndicator = async ({
-  ariaLabel,
-  visibleText,
-  contextIndicator,
-  stateClass,
-}) => {
-  await waitFor(() => {
-    expect(screen.getByLabelText(ariaLabel)).toBeInTheDocument();
-  });
-
-  if (stateClass && contextIndicator) {
-    expect(contextIndicator.classList.contains(stateClass)).toBe(true);
-  }
-
-  if (visibleText) {
-    expect(screen.getByText(visibleText)).toBeInTheDocument();
-  }
 };
 
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
@@ -91,11 +47,9 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     SET_OVERLAY_IGNORE_MOUSE: 'set-overlay-ignore-mouse',
     SET_CHATBOX_SIZE: 'set-chatbox-size',
     SHOW_MAIN_WINDOW: 'show-main-window',
-    GET_SYSTEM_STATE: 'get-system-state',
   },
   ON_CHANNELS: {
     CHATBOX_FOCUS: 'chatbox-focus',
-    RESPONSE_OVERLAY_VISIBILITY: 'response-overlay-visibility',
   },
 }));
 
@@ -124,7 +78,6 @@ jest.mock('../../frontend/src/renderer/features/chat/hooks/useChatMessageSender'
 describe('ChatBox overlay mouse ignore', () => {
   beforeEach(() => {
     mockInvoke.mockClear();
-    mockSystemStateResponse({});
     mockSend.mockClear();
     mockListeners.clear();
     mockUseChatMessageSender.mockClear();
@@ -142,7 +95,6 @@ describe('ChatBox overlay mouse ignore', () => {
 
     const { container } = render(<ChatBox />);
 
-    // default: interactive (not click-through)
     const sawInteractive = mockInvoke.mock.calls.some(
       ([channel, payload]) => channel === 'set-overlay-ignore-mouse' && payload?.ignore === false,
     );
@@ -243,70 +195,9 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(input).toHaveValue('');
   });
 
-  test('shows ambient active app indicator from system-state polling', async () => {
-    mockSystemStateResponse({ active_window: 'main.py - Visual Studio Code' });
-
-    render(<ChatBox />);
-
-    await expectActiveAppIndicator({
-      ariaLabel: 'Active app: VS Code',
-      visibleText: 'VS Code',
-    });
-  });
-
-  test('hides active app indicator while response overlay is visible', async () => {
-    mockSystemStateResponse({ active_window: 'main.py - Visual Studio Code' });
-    render(<ChatBox />);
-
-    await expectActiveAppIndicator({
-      ariaLabel: 'Active app: VS Code',
-      visibleText: 'VS Code',
-    });
-
-    const onResponseOverlayVisibility = mockListeners.get('response-overlay-visibility');
-    expect(onResponseOverlayVisibility).toBeTruthy();
-
-    act(() => {
-      onResponseOverlayVisibility({ visible: true });
-    });
-
-    expect(screen.queryByLabelText('Active app: VS Code')).not.toBeInTheDocument();
-  });
-
-  test('shows offline context state when active-window polling fails', async () => {
-    mockSystemStateResponse(() => Promise.reject(new Error('system unavailable')));
-    const contextIndicator = renderAndGetContextIndicator();
-
-    await expectActiveAppIndicator({
-      ariaLabel: 'Active app: No active app (offline)',
-      contextIndicator,
-      stateClass: 'is-offline',
-    });
-  });
-
-  test('falls back to user-message metadata active-window context when polling fails', async () => {
-    mockChatState.messages = [
-      {
-        id: 'user-1',
-        sender: 'user',
-        text: 'open email',
-        fullUserMessage: {
-          content: 'open email',
-          metadata: {
-            active_window: 'Inbox - Gmail - Google Chrome',
-          },
-        },
-      },
-    ];
-
-    mockSystemStateResponse(() => Promise.reject(new Error('system unavailable')));
-    const contextIndicator = renderAndGetContextIndicator();
-
-    await expectActiveAppIndicator({
-      ariaLabel: 'Active app: Chrome (stale)',
-      visibleText: 'Chrome',
-      contextIndicator,
-      stateClass: 'is-stale',
-    });
+  test('does not render active app label inside chatbox pill surface', () => {
+    const { container } = render(<ChatBox />);
+    expect(container.querySelector('.chatbox-context-indicator')).toBeNull();
+    expect(screen.queryByLabelText(/Active app:/i)).not.toBeInTheDocument();
   });
 });

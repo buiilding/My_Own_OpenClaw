@@ -4,59 +4,11 @@ import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { getRoundedFrameSize } from '../utils/overlayFrameSize';
 import { subscribeResponseOverlayPhase } from '../utils/overlayPhaseListener';
-import { resolveActiveWindowContext } from '../utils/activeWindowContext';
 
 const CLICK_THROUGH_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
 const OVERLAY_ACTIVE_PHASES = new Set(['awaiting-first-chunk', 'streaming']);
 const OVERLAY_TERMINAL_PHASES = new Set(['idle', 'complete', 'error']);
 const LOOP_ACTIVE_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
-const ACTIVE_WINDOW_POLL_INTERVAL_MS = 5000;
-const CONTEXT_STATUS = Object.freeze({
-  FRESH: 'fresh',
-  STALE: 'stale',
-  OFFLINE: 'offline',
-});
-
-function setStatusIfChanged(setStatus, nextStatus) {
-  setStatus((previousStatus) => (previousStatus === nextStatus ? previousStatus : nextStatus));
-}
-
-function buildContextAriaLabel(context, status) {
-  if (status === CONTEXT_STATUS.FRESH) {
-    return `Active app: ${context.label}`;
-  }
-  return `Active app: ${context.label} (${status})`;
-}
-
-function extractMetadataActiveWindow(message) {
-  const metadata = message?.fullUserMessage?.metadata;
-  if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) {
-    return null;
-  }
-  const activeWindow = metadata.active_window;
-  if (typeof activeWindow !== 'string') {
-    return null;
-  }
-  const trimmed = activeWindow.trim();
-  return trimmed || null;
-}
-
-function selectLatestMetadataActiveWindow(messages) {
-  if (!Array.isArray(messages) || messages.length === 0) {
-    return null;
-  }
-  for (let index = messages.length - 1; index >= 0; index -= 1) {
-    const message = messages[index];
-    if (message?.sender !== 'user') {
-      continue;
-    }
-    const activeWindow = extractMetadataActiveWindow(message);
-    if (activeWindow) {
-      return activeWindow;
-    }
-  }
-  return null;
-}
 
 function isDragBlockedTarget(target) {
   if (!(target instanceof Element)) {
@@ -88,19 +40,11 @@ function SendIcon() {
 function ChatBox() {
   const isSending = useChatStore((state) => state.isSending);
   const streamPhase = useChatStore((state) => state.streamTracking.phase);
-  const metadataActiveWindow = useChatStore((state) => selectLatestMetadataActiveWindow(state.messages));
   const { sendMessage } = useChatMessageSender(undefined, {
     senderSurface: 'overlay-chatbox',
   });
   const [inputValue, setInputValue] = useState('');
   const [overlayPhase, setOverlayPhase] = useState('idle');
-  const [isResponseOverlayVisible, setIsResponseOverlayVisible] = useState(false);
-  const [activeWindowContext, setActiveWindowContext] = useState(
-    () => resolveActiveWindowContext(null),
-  );
-  const [activeWindowStatus, setActiveWindowStatus] = useState(CONTEXT_STATUS.FRESH);
-  const hasSuccessfulContextRef = useRef(false);
-  const metadataActiveWindowRef = useRef(metadataActiveWindow);
   const ignoreMouseRef = useRef(undefined);
   const shellRef = useRef(null);
   const inputRef = useRef(null);
@@ -186,51 +130,6 @@ function ChatBox() {
   }, []);
 
   useEffect(() => {
-    metadataActiveWindowRef.current = metadataActiveWindow;
-  }, [metadataActiveWindow]);
-
-  useEffect(() => {
-    let cancelled = false;
-    let intervalId = null;
-
-    const refreshActiveWindow = async () => {
-      try {
-        const state = await IpcBridge.invoke(INVOKE_CHANNELS.GET_SYSTEM_STATE, {
-          fields: ['active_window'],
-        });
-        if (cancelled) {
-          return;
-        }
-        hasSuccessfulContextRef.current = true;
-        setActiveWindowContext(resolveActiveWindowContext(state?.active_window));
-        setStatusIfChanged(setActiveWindowStatus, CONTEXT_STATUS.FRESH);
-      } catch (_error) {
-        if (!cancelled) {
-          const fallbackWindow = metadataActiveWindowRef.current;
-          const hasFallbackWindow = typeof fallbackWindow === 'string' && fallbackWindow.trim().length > 0;
-          setActiveWindowContext(resolveActiveWindowContext(hasFallbackWindow ? fallbackWindow : null));
-          const nextStatus = hasSuccessfulContextRef.current || hasFallbackWindow
-            ? CONTEXT_STATUS.STALE
-            : CONTEXT_STATUS.OFFLINE;
-          setStatusIfChanged(setActiveWindowStatus, nextStatus);
-        }
-      }
-    };
-
-    void refreshActiveWindow();
-    intervalId = window.setInterval(() => {
-      void refreshActiveWindow();
-    }, ACTIVE_WINDOW_POLL_INTERVAL_MS);
-
-    return () => {
-      cancelled = true;
-      if (intervalId !== null) {
-        window.clearInterval(intervalId);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.CHATBOX_FOCUS, () => {
       setOverlayIgnore(false);
       inputRef.current?.focus();
@@ -239,16 +138,6 @@ function ChatBox() {
       removeListener?.();
     };
   }, [setOverlayIgnore]);
-
-  useEffect(() => {
-    const removeListener = IpcBridge.on(ON_CHANNELS.RESPONSE_OVERLAY_VISIBILITY, (payload) => {
-      const visible = payload?.visible === true;
-      setIsResponseOverlayVisible((previous) => (previous === visible ? previous : visible));
-    });
-    return () => {
-      removeListener?.();
-    };
-  }, []);
 
   const handleSend = useCallback(async () => {
     const trimmed = inputValue.trim();
@@ -337,7 +226,6 @@ function ChatBox() {
     event.preventDefault();
   }, []);
   const isLoopActive = LOOP_ACTIVE_PHASES.has(streamPhase) || LOOP_ACTIVE_PHASES.has(overlayPhase);
-  const showContextIndicator = !isResponseOverlayVisible;
 
   return (
     <div className={`chatbox-shell-wrap${isLoopActive ? ' loop-active' : ''}`}>
@@ -352,15 +240,6 @@ function ChatBox() {
           >
             <SettingsIcon />
           </button>
-          {showContextIndicator ? (
-            <div
-              className={`chatbox-context-indicator is-${activeWindowStatus}`}
-              aria-label={buildContextAriaLabel(activeWindowContext, activeWindowStatus)}
-              title={activeWindowContext.fullLabel}
-            >
-              <span className="chatbox-context-label">{activeWindowContext.label}</span>
-            </div>
-          ) : null}
           <div className="chatbox-input-wrap">
             <input
               ref={inputRef}
