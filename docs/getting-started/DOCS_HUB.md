@@ -65,6 +65,7 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 - [Frontend Backend Event Consumer Matrix](../frontend/contracts/BACKEND_EVENT_CONSUMER_MATRIX_REFERENCE.md)
 - [Frontend Overlay + Wakeword Control Channel Reference](../frontend/contracts/OVERLAY_AND_WAKEWORD_CONTROL_CHANNEL_REFERENCE.md)
 - [Frontend Chat Stream + Tool Execution Reference](../frontend/renderer/CHAT_STREAM_AND_TOOL_EXECUTION_REFERENCE.md)
+- [Frontend Transcript Session + Rehydrate Reference](../frontend/renderer/TRANSCRIPT_SESSION_AND_REHYDRATE_REFERENCE.md)
 - [Frontend Voice Capture + Wakeword Controller Reference](../frontend/renderer/VOICE_CAPTURE_AND_WAKEWORD_CONTROLLER_REFERENCE.md)
 - [Frontend Runtime Paths and Endpoints](../frontend/main/RUNTIME_PATHS_AND_ENDPOINTS.md)
 - [Frontend Query Payload + Relay Reference](../frontend/main/QUERY_PAYLOAD_AND_RELAY_REFERENCE.md)
