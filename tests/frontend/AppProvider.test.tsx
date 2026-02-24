@@ -28,6 +28,19 @@ jest.mock('../../frontend/src/renderer/app/providers/AppStatusContext', () => ({
 import { AppProvider } from '../../frontend/src/renderer/app/providers/AppProvider';
 
 describe('AppProvider', () => {
+  const renderProvider = (child: React.ReactNode = <div>child</div>) => render(
+    <AppProvider>
+      {child}
+    </AppProvider>,
+  );
+
+  const createTabKeydown = (shiftKey: boolean) => new KeyboardEvent('keydown', {
+    key: 'Tab',
+    shiftKey,
+    cancelable: true,
+    bubbles: true,
+  });
+
   beforeEach(() => {
     mockConfigContext = {
       config: { interaction_mode: 'chat' },
@@ -40,11 +53,7 @@ describe('AppProvider', () => {
   });
 
   test('registers save-status callback with status provider', () => {
-    render(
-      <AppProvider>
-        <div>child</div>
-      </AppProvider>,
-    );
+    renderProvider();
 
     expect(mockConfigContext.registerSaveStatusCallback).toHaveBeenCalledWith(
       mockStatusContext.setSaving,
@@ -52,18 +61,9 @@ describe('AppProvider', () => {
   });
 
   test('shift+tab toggles interaction mode', () => {
-    const { rerender } = render(
-      <AppProvider>
-        <div>child</div>
-      </AppProvider>,
-    );
+    const { rerender } = renderProvider();
 
-    const event = new KeyboardEvent('keydown', {
-      key: 'Tab',
-      shiftKey: true,
-      cancelable: true,
-      bubbles: true,
-    });
+    const event = createTabKeydown(true);
     window.dispatchEvent(event);
 
     expect(event.defaultPrevented).toBe(true);
@@ -82,12 +82,7 @@ describe('AppProvider', () => {
       </AppProvider>,
     );
 
-    const secondEvent = new KeyboardEvent('keydown', {
-      key: 'Tab',
-      shiftKey: true,
-      cancelable: true,
-      bubbles: true,
-    });
+    const secondEvent = createTabKeydown(true);
     window.dispatchEvent(secondEvent);
 
     expect(mockConfigContext.updateConfig).toHaveBeenLastCalledWith({
@@ -99,11 +94,7 @@ describe('AppProvider', () => {
     const addListenerSpy = jest.spyOn(window, 'addEventListener');
     const removeListenerSpy = jest.spyOn(window, 'removeEventListener');
 
-    const { rerender, unmount } = render(
-      <AppProvider>
-        <div>child</div>
-      </AppProvider>,
-    );
+    const { rerender, unmount } = renderProvider();
 
     mockConfigContext = {
       ...mockConfigContext,
@@ -125,18 +116,9 @@ describe('AppProvider', () => {
   });
 
   test('ignores keydown events that do not match shift+tab shortcut', () => {
-    render(
-      <AppProvider>
-        <div>child</div>
-      </AppProvider>,
-    );
+    renderProvider();
 
-    const event = new KeyboardEvent('keydown', {
-      key: 'Tab',
-      shiftKey: false,
-      cancelable: true,
-      bubbles: true,
-    });
+    const event = createTabKeydown(false);
     window.dispatchEvent(event);
 
     expect(event.defaultPrevented).toBe(false);
@@ -149,18 +131,9 @@ describe('AppProvider', () => {
       updateConfig: null as any,
     };
 
-    render(
-      <AppProvider>
-        <div>child</div>
-      </AppProvider>,
-    );
+    renderProvider();
 
-    const event = new KeyboardEvent('keydown', {
-      key: 'Tab',
-      shiftKey: true,
-      cancelable: true,
-      bubbles: true,
-    });
+    const event = createTabKeydown(true);
 
     expect(() => window.dispatchEvent(event)).not.toThrow();
     expect(event.defaultPrevented).toBe(false);
@@ -173,11 +146,7 @@ describe('AppProvider', () => {
     };
 
     expect(() => {
-      render(
-        <AppProvider>
-          <div>child</div>
-        </AppProvider>,
-      );
+      renderProvider();
     }).not.toThrow();
   });
 
@@ -187,18 +156,9 @@ describe('AppProvider', () => {
       config: null as any,
     };
 
-    render(
-      <AppProvider>
-        <div>child</div>
-      </AppProvider>,
-    );
+    renderProvider();
 
-    const event = new KeyboardEvent('keydown', {
-      key: 'Tab',
-      shiftKey: true,
-      cancelable: true,
-      bubbles: true,
-    });
+    const event = createTabKeydown(true);
     window.dispatchEvent(event);
 
     expect(mockConfigContext.updateConfig).toHaveBeenCalledWith({
@@ -207,21 +167,12 @@ describe('AppProvider', () => {
   });
 
   test('ignores shift+tab shortcut when typing inside editable elements', () => {
-    render(
-      <AppProvider>
-        <input aria-label="editable" />
-      </AppProvider>,
-    );
+    renderProvider(<input aria-label="editable" />);
 
     const input = document.querySelector('input');
     expect(input).toBeTruthy();
 
-    const event = new KeyboardEvent('keydown', {
-      key: 'Tab',
-      shiftKey: true,
-      cancelable: true,
-      bubbles: true,
-    });
+    const event = createTabKeydown(true);
     input?.dispatchEvent(event);
 
     expect(event.defaultPrevented).toBe(false);

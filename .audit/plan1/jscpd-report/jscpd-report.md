@@ -1,7 +1,7 @@
 
 # Copy/paste detection report
 
-> Duplications detection: Found 131 exact clones with 2197(1.89%) duplicated lines in 799 (8 formats) files.
+> Duplications detection: Found 129 exact clones with 2168(1.87%) duplicated lines in 799 (8 formats) files.
 
 | Format     | Files analyzed | Total lines | Total tokens | Clones found | Duplicated lines | Duplicated tokens |
 | ---------- | -------------- | ----------- | ------------ | ------------ | ---------------- | ----------------- |
@@ -12,5 +12,5 @@
 | json       | 3              | 77          | 365          | 0            | 0 (0%)           | 0 (0%)            |
 | css        | 12             | 2465        | 16296        | 0            | 0 (0%)           | 0 (0%)            |
 | markdown   | 9              | 2024        | 14920        | 0            | 0 (0%)           | 0 (0%)            |
-| tsx        | 11             | 2128        | 17733        | 4            | 51 (2.4%)        | 357 (2.01%)       |
-| **Total:** | **799**        | **115962**  | **850475**   | **131**      | **2197 (1.89%)** | **19154 (2.25%)** |
+| tsx        | 11             | 2079        | 17456        | 2            | 22 (1.06%)       | 174 (1%)          |
+| **Total:** | **799**        | **115913**  | **850198**   | **129**      | **2168 (1.87%)** | **18971 (2.23%)** |

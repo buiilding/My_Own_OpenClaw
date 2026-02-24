@@ -2503,3 +2503,21 @@ read_when:
     - `./scripts/test-backend` (pass; 966 tests)
   - sidecar tests:
     - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+
+## Phase 88 Outcome (2026-02-24)
+
+- App provider test duplication cleanup shipped:
+  - added helpers in `tests/frontend/AppProvider.test.tsx`:
+    - `renderProvider`
+    - `createTabKeydown`
+  - replaced repeated `AppProvider` render wrappers and repeated `KeyboardEvent` construction blocks across toggle/fallback/ignore tests.
+- Verification:
+  - `cd frontend && npx jest ../tests/frontend/AppProvider.test.tsx --runInBand` (pass; 8 tests)
+  - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
+  - `cd frontend && npm run audit:knip` (pass)
+  - `cd frontend && npm run audit:jscpd` (pass)
+  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - jscpd snapshot deltas:
+    - clones: `131 -> 129`
+    - duplicated lines: `2197 -> 2168`
+    - duplicated tokens: `19154 -> 18971`

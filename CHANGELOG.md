@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-app-provider-tests): dedupe repeated provider render + shift-tab keyboard fixture setup in `tests/frontend/AppProvider.test.tsx` via `renderProvider` and `createTabKeydown`; jscpd improved from clones `131 -> 129` and duplicated lines `2197 -> 2168`
 - docs(refactor-plan): add phase-87 full-gate snapshot after ipc-query + local-rpc dedupe wave (frontend audits/tests + backend + sidecar)
 - refactor(frontend-local-backend-rpc-tests): extract `expectLastRequestWith` in `tests/frontend/LocalBackendBridge.rpc.test.cjs` to dedupe repeated request-shape assertions for conversation/memory RPC handlers; jscpd improved from duplicated lines `2199 -> 2197` and duplicated tokens `19162 -> 19154`
 - refactor(frontend-ipc-query-tests): dedupe repeated query-test boilerplate in `tests/frontend/IpcMainBridge.query.test.cjs` via shared helpers (`getLatestLocalUserMessage`, `expectQueryContentWithEmptyMemories`, `emitSettingsUpdatedAck`); jscpd improved from clones `134 -> 131` and duplicated lines `2218 -> 2199`
