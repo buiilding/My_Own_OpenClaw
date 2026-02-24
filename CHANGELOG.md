@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): add phase-139 full-gate snapshot after backend LLM-provider API-key validation/helper dedupe (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)
 - refactor(backend-llm-providers): add shared `_require_api_key` helper on `LLMProvider`, remove duplicated passthrough `__init__` methods in OpenAI/Mistral/Gemini/Anthropic providers, and switch API-key validations across online providers to the shared helper; jscpd improved from clones `62 -> 59` and duplicated lines `1274 -> 1247`
 - docs(refactor-plan): add phase-138 full-gate snapshot after shared simulation run-helper extraction (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)
 - refactor(simulation-entrypoints): add shared `run_simulation_app` launch helper in `backend/src/simulation/app_factory.py` and reuse it in `backend/src/simulation/main.py` + `backend/src/simulation/browser.py` for common simulation uvicorn reload wiring; jscpd totals held at clones `62` and duplicated lines `1274`
