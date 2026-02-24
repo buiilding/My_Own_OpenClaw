@@ -27,6 +27,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Frontend Functionality Map**](frontend/README.md) - Detailed module-level renderer, electron-main, and sidecar runtime maps
 - [**Frontend Landing Runtime + Content Reference**](frontend/landing/landing_page_runtime_and_content_reference.md) - Standalone landing entrypoint wiring, section/anchor contracts, static content sources, and CSS token/animation behavior
 - [**Backend Functionality Map**](backend/README.md) - Detailed module-level backend runtime and API maps
+- [**Backend Simulation Runtime Reference**](backend/simulation/simulation_backend_and_mock_llm_runtime_reference.md) - Simulation entrypoints, DI LLM-factory override lifecycle, native tool-call adapter behavior, and deterministic mock-sequence invariants
 - [**Backend Event Bus + Cache Infrastructure**](backend/core/event_bus_and_cache_infrastructure_reference.md) - Core event dispatch internals (weakref handlers, MRO cache, error recovery) and cache semantics (TTL/LRU/negative caching/stampede guards)
 - [**Backend Container DI Lifecycle**](backend/bootstrap/container_di_and_init_lifecycle_reference.md) - Container composition, startup phase sequencing, lazy runtime binders, and config-update propagation
 - [**Backend Config Runtime Policy**](backend/config/config_fields_and_runtime_policy.md) - Exact config fields, runtime normalization, and frontend patch boundaries

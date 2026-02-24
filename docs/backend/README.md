@@ -21,6 +21,7 @@ Covers:
 - Tool lifecycle (prepare, send, wait, process)
 - LLM provider/model/prompt/parser stack
 - Runtime services (OCR, vision, embeddings, artifacts)
+- Simulation runtime and mock LLM entrypoints
 
 ## Deep Pages
 
@@ -75,6 +76,11 @@ Covers:
 - [TTS and Wakeword Audio Runtime Reference](services/tts_and_wakeword_audio_runtime_reference.md)
 - [OCR and Vision Coordinate Runtime Reference](services/ocr_and_vision_coordinate_runtime_reference.md)
 
+### Simulation
+
+- [Simulation Docs Hub](simulation/README.md)
+- [Simulation Backend and Mock LLM Runtime Reference](simulation/simulation_backend_and_mock_llm_runtime_reference.md)
+
 ## Backend Layout (Code)
 
 Primary folders under `backend/src`:
@@ -86,6 +92,7 @@ Primary folders under `backend/src`:
 - `tools/`: backend-visible tool schema registry and orchestration bridge
 - `services/`: OCR, vision, artifacts, token counting
 - `embeddings/`: sentence-transformer embedding provider
+- `simulation/`: mock LLM entrypoints, simulation lifespan wiring, legacy payload adapters
 
 ## End-to-End Query Path (Condensed)
 
