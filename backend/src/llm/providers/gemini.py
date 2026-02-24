@@ -1,73 +1,20 @@
 import logging
-from typing import Any, AsyncGenerator, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
-from backend.src.core.events.streaming_events import StreamingEvent
-from backend.src.core.types.schemas import (
-    LLMMessage,
-    NormalizedLLMResponse,
-)
+from backend.src.core.types.schemas import LLMMessage
 from backend.src.llm.models.models_config import ONLINE_THINKING_MODELS
-from backend.src.llm.providers.base import LLMProvider
+from backend.src.llm.providers.online import OnlineLLMProvider
 
 logger = logging.getLogger(__name__)
 
 
-class GeminiProvider(LLMProvider):
+class GeminiProvider(OnlineLLMProvider):
     """Provider for Google Gemini models."""
 
-    def _validate_dependencies(self) -> None:
-        """Gemini requires an API key."""
-        self._require_api_key("GeminiProvider")
-
-    async def get_completion(
-        self,
-        model: str,
-        messages: List[LLMMessage],
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Any] = None,
-        parallel_tool_calls: Optional[bool] = None,
-        prompt_cache_key: Optional[str] = None,
-    ) -> NormalizedLLMResponse:
-        return await self._get_completion_with_standard_params(
-            provider_label="Gemini",
-            model=model,
-            messages=messages,
-            tools=tools,
-            tool_choice=tool_choice,
-            parallel_tool_calls=parallel_tool_calls,
-            prompt_cache_key=prompt_cache_key,
-            invalid_response_message="Invalid response structure from Gemini",
-        )
-
-    async def _stream_internal(
-        self,
-        model: str,
-        messages: List[LLMMessage],
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Any] = None,
-        parallel_tool_calls: Optional[bool] = None,
-        prompt_cache_key: Optional[str] = None,
-    ) -> AsyncGenerator[StreamingEvent, None]:
-        """
-        Internal streaming implementation. Exceptions bubble up to base class.
-        Base class handles ServiceUnavailableError as APIError.
-        """
-        params = self._build_standard_completion_params(
-            model,
-            messages,
-            tools=tools,
-            tool_choice=tool_choice,
-            parallel_tool_calls=parallel_tool_calls,
-            prompt_cache_key=prompt_cache_key,
-            include_stream=True,
-        )
-        async for event in self._stream_thinking_and_text_events(params):
-            yield event
-
-    async def list_models(self) -> List[Dict[str, str]]:
-        """Lists available Gemini models."""
-        # Return empty list as online models are handled by static config
-        return []
+    provider_label = "Gemini"
+    model_prefix = "gemini"
+    stream_includes_thinking = True
+    invalid_response_message = "Invalid response structure from Gemini"
 
     def _build_request_params(
         self,
@@ -94,8 +41,3 @@ class GeminiProvider(LLMProvider):
             # Prefer low-effort reasoning for Gemini thinking models
             params["reasoning_effort"] = "low"
         return params
-
-    def _get_full_model_string(self, model_id: str) -> str:
-        if model_id.startswith("gemini/"):
-            return model_id
-        return f"gemini/{model_id}"

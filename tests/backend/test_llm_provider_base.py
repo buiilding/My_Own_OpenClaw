@@ -5,6 +5,7 @@ from types import SimpleNamespace
 import litellm
 
 from backend.src.llm.providers.base import LLMProvider
+from backend.src.llm.providers.online import OnlineLLMProvider
 from backend.src.core.infrastructure.exceptions import LLMAPIError, LLMError, LLMRateLimitError
 from backend.src.core.events.streaming_events import (
     ChunkEvent,
@@ -928,3 +929,91 @@ class TestStandardCompletionHelper:
                 model="model",
                 params={"model": "mock/model", "messages": []},
             )
+
+
+class TestOnlineLLMProvider:
+    class _MockOnlineProvider(OnlineLLMProvider):
+        provider_label = "MockOnline"
+        model_prefix = "mock"
+
+    def test_requires_api_key(self):
+        with pytest.raises(ValueError, match="requires an 'api_key'"):
+            self._MockOnlineProvider()
+
+    def test_get_full_model_string_uses_optional_prefix(self):
+        provider = self._MockOnlineProvider(api_key="test-key")
+
+        assert provider._get_full_model_string("model") == "mock/model"
+        assert provider._get_full_model_string("mock/model") == "mock/model"
+        provider.model_prefix = None
+        assert provider._get_full_model_string("model") == "model"
+
+    @pytest.mark.asyncio
+    async def test_get_completion_delegates_with_provider_defaults(self, monkeypatch):
+        provider = self._MockOnlineProvider(api_key="test-key")
+        messages = [{"role": "user", "content": "hello"}]
+        get_completion_mock = AsyncMock(return_value={"content": "ok"})
+        monkeypatch.setattr(provider, "_get_completion_with_standard_params", get_completion_mock)
+
+        result = await provider.get_completion("model", messages, prompt_cache_key="cache-key")
+
+        get_completion_mock.assert_awaited_once_with(
+            provider_label="MockOnline",
+            model="model",
+            messages=messages,
+            tools=None,
+            tool_choice=None,
+            parallel_tool_calls=None,
+            prompt_cache_key="cache-key",
+            invalid_response_message=None,
+        )
+        assert result == {"content": "ok"}
+
+    @pytest.mark.asyncio
+    async def test_stream_internal_uses_text_stream_by_default(self, monkeypatch):
+        provider = self._MockOnlineProvider(api_key="test-key")
+        calls = {"text": 0, "thinking": 0}
+
+        async def fake_text_stream(_params):
+            calls["text"] += 1
+            yield ChunkEvent(content="text")
+
+        async def fake_thinking_stream(_params):
+            calls["thinking"] += 1
+            yield ChunkEvent(content="thinking")
+
+        monkeypatch.setattr(provider, "_build_standard_completion_params", MagicMock(return_value={}))
+        monkeypatch.setattr(provider, "_stream_text_content_events", fake_text_stream)
+        monkeypatch.setattr(provider, "_stream_thinking_and_text_events", fake_thinking_stream)
+
+        events = []
+        async for event in provider._stream_internal("model", []):
+            events.append(event)
+
+        assert calls == {"text": 1, "thinking": 0}
+        assert [event.content for event in events] == ["text"]
+
+    @pytest.mark.asyncio
+    async def test_stream_internal_uses_thinking_stream_when_enabled(self, monkeypatch):
+        provider = self._MockOnlineProvider(api_key="test-key")
+        provider.stream_includes_thinking = True
+        calls = {"text": 0, "thinking": 0}
+
+        async def fake_text_stream(_params):
+            calls["text"] += 1
+            yield ChunkEvent(content="text")
+
+        async def fake_thinking_stream(_params):
+            calls["thinking"] += 1
+            yield ChunkEvent(content="thinking")
+
+        monkeypatch.setattr(provider, "_build_standard_completion_params", MagicMock(return_value={}))
+        monkeypatch.setattr(provider, "_stream_text_content_events", fake_text_stream)
+        monkeypatch.setattr(provider, "_stream_thinking_and_text_events", fake_thinking_stream)
+
+        events = []
+        async for event in provider._stream_internal("model", []):
+            events.append(event)
+
+        assert calls == {"text": 0, "thinking": 1}
+        assert [event.content for event in events] == ["thinking"]
