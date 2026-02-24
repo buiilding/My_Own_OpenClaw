@@ -245,6 +245,17 @@ function sendWakewordToggle(enabled) {
   mainWindow.webContents.send('wakeword-toggle', { enabled: Boolean(enabled) });
 }
 
+function broadcastResponseOverlayVisibility(visible = responseOverlayVisible) {
+  const payload = { visible: Boolean(visible) };
+  const rendererWindows = [mainWindow, chatWindow, responseWindow];
+  for (const win of rendererWindows) {
+    if (!win || win.isDestroyed() || !win.webContents) {
+      continue;
+    }
+    win.webContents.send('response-overlay-visibility', payload);
+  }
+}
+
 function showChatWindow({ focus = true } = {}) {
   if (!chatWindow || chatWindow.isDestroyed()) {
     return { success: false, reason: 'Chat window not available' };
@@ -264,6 +275,10 @@ function showChatWindow({ focus = true } = {}) {
     }
     showResponseWindowInactive();
   }
+  const responseIsVisible = Boolean(
+    responseWindow && !responseWindow.isDestroyed() && responseWindow.isVisible(),
+  );
+  broadcastResponseOverlayVisibility(responseIsVisible);
   if (focus) {
     capturePreviousExternalFocusedWindow();
     chatWindow.focus();
@@ -283,6 +298,7 @@ function hideChatWindow() {
   if (responseWindow && !responseWindow.isDestroyed() && responseWindow.isVisible()) {
     responseWindow.hide();
   }
+  broadcastResponseOverlayVisibility(false);
   sendWakewordToggle(true);
   return { success: true };
 }
@@ -315,11 +331,13 @@ function handleResponseOverlayPhaseChange(event = {}) {
     if (responseWindow && !responseWindow.isDestroyed() && responseWindow.isVisible()) {
       responseWindow.hide();
     }
+    broadcastResponseOverlayVisibility(false);
     return;
   }
 
   if (isResponseOverlayStreamingPhase()) {
     responseOverlayVisible = true;
+    broadcastResponseOverlayVisibility(true);
     if (!responseWindow || responseWindow.isDestroyed()) {
       return;
     }
@@ -491,6 +509,7 @@ function createResponseWindow() {
       event.preventDefault();
       responseOverlayVisible = false;
       responseWindow.hide();
+      broadcastResponseOverlayVisibility(false);
     }
     return false;
   });
@@ -498,6 +517,7 @@ function createResponseWindow() {
   responseWindow.on('closed', () => {
     responseWindow = null;
     responseOverlayVisible = false;
+    broadcastResponseOverlayVisibility(false);
   });
 
   return responseWindow;
@@ -683,6 +703,7 @@ function initializeOverlayHandlers() {
       if (responseWindow.isVisible()) {
         responseWindow.hide();
       }
+      broadcastResponseOverlayVisibility(false);
       return { success: true, visible: false };
     }
 
@@ -700,6 +721,7 @@ function initializeOverlayHandlers() {
         }
         ensureResponseWindowOnTop();
       }
+      broadcastResponseOverlayVisibility(true);
       return {
         success: true,
         visible: true,

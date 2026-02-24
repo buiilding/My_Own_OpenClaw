@@ -94,6 +94,7 @@ function ChatBox() {
   });
   const [inputValue, setInputValue] = useState('');
   const [overlayPhase, setOverlayPhase] = useState('idle');
+  const [isResponseOverlayVisible, setIsResponseOverlayVisible] = useState(false);
   const [activeWindowContext, setActiveWindowContext] = useState(
     () => resolveActiveWindowContext(null),
   );
@@ -239,6 +240,16 @@ function ChatBox() {
     };
   }, [setOverlayIgnore]);
 
+  useEffect(() => {
+    const removeListener = IpcBridge.on(ON_CHANNELS.RESPONSE_OVERLAY_VISIBILITY, (payload) => {
+      const visible = payload?.visible === true;
+      setIsResponseOverlayVisible((previous) => (previous === visible ? previous : visible));
+    });
+    return () => {
+      removeListener?.();
+    };
+  }, []);
+
   const handleSend = useCallback(async () => {
     const trimmed = inputValue.trim();
     if (!trimmed || isSending) {
@@ -326,6 +337,7 @@ function ChatBox() {
     event.preventDefault();
   }, []);
   const isLoopActive = LOOP_ACTIVE_PHASES.has(streamPhase) || LOOP_ACTIVE_PHASES.has(overlayPhase);
+  const showContextIndicator = !isResponseOverlayVisible;
 
   return (
     <div className={`chatbox-shell-wrap${isLoopActive ? ' loop-active' : ''}`}>
@@ -340,13 +352,15 @@ function ChatBox() {
           >
             <SettingsIcon />
           </button>
-          <div
-            className={`chatbox-context-indicator is-${activeWindowStatus}`}
-            aria-label={buildContextAriaLabel(activeWindowContext, activeWindowStatus)}
-            title={activeWindowContext.fullLabel}
-          >
-            <span className="chatbox-context-label">{activeWindowContext.label}</span>
-          </div>
+          {showContextIndicator ? (
+            <div
+              className={`chatbox-context-indicator is-${activeWindowStatus}`}
+              aria-label={buildContextAriaLabel(activeWindowContext, activeWindowStatus)}
+              title={activeWindowContext.fullLabel}
+            >
+              <span className="chatbox-context-label">{activeWindowContext.label}</span>
+            </div>
+          ) : null}
           <div className="chatbox-input-wrap">
             <input
               ref={inputRef}
