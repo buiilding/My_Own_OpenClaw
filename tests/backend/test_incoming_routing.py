@@ -13,6 +13,22 @@ from backend.src.core.container.incoming_routing import (
 )
 
 
+def _make_handler_instances(*, drop_keys: tuple[str, ...] = ()) -> dict[str, object]:
+    handlers = {
+        "query_handler": object(),
+        "stop_query_handler": object(),
+        "rehydrate_conversation_handler": object(),
+        "tool_result_handler": object(),
+        "wakeword_handler": object(),
+        "list_models_handler": object(),
+        "load_settings_handler": object(),
+        "update_settings_handler": object(),
+    }
+    for key in drop_keys:
+        handlers.pop(key, None)
+    return handlers
+
+
 def test_incoming_routes_match_incoming_schema_types() -> None:
     route_types = {route.message_type for route in INCOMING_ROUTES}
     assert route_types == get_incoming_message_types()
@@ -43,18 +59,7 @@ def test_build_handler_bindings_supports_shared_handler_keys() -> None:
 
 
 def test_build_handler_bindings_preserves_route_order() -> None:
-    handlers = {
-        "query_handler": object(),
-        "stop_query_handler": object(),
-        "rehydrate_conversation_handler": object(),
-        "tool_result_handler": object(),
-        "wakeword_handler": object(),
-        "list_models_handler": object(),
-        "load_settings_handler": object(),
-        "update_settings_handler": object(),
-    }
-
-    bindings = build_handler_bindings(handlers)
+    bindings = build_handler_bindings(_make_handler_instances())
 
     assert [message_type for message_type, _ in bindings] == [
         route.message_type for route in INCOMING_ROUTES
@@ -64,15 +69,7 @@ def test_build_handler_bindings_preserves_route_order() -> None:
 def test_build_handler_bindings_raises_for_missing_handler_keys() -> None:
     with pytest.raises(ValueError, match="Missing handler instances"):
         build_handler_bindings(
-            {
-                "query_handler": object(),
-                "stop_query_handler": object(),
-                "rehydrate_conversation_handler": object(),
-                "tool_result_handler": object(),
-                "wakeword_handler": object(),
-                "list_models_handler": object(),
-                "load_settings_handler": object(),
-            }
+            _make_handler_instances(drop_keys=("update_settings_handler",))
         )
 
 
