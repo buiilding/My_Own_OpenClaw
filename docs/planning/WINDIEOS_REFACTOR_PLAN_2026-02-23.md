@@ -395,6 +395,25 @@ read_when:
   - `cd frontend && npm run audit:knip`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
+## Phase 18
+
+- `jscpd` duplication cleanup (transcript immediate-store paths):
+  - extract shared internal helpers for session-info resolution and immediate store-or-queue retry flow.
+  - apply to `recordUserMessage`, `recordAssistantMessage`, and `recordToolMessage` in:
+    - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+  - keep transcript payload shape, queueing behavior, and warning semantics unchanged.
+
+### Phase 18 Execution Slice (Current Loop)
+
+- Frontend dedupe:
+  - refactor `TranscriptWriter.ts` repeated resolve/store/catch queue blocks to shared internal helpers.
+- Verification checks:
+  - `cd frontend && npm run lint`
+  - `cd frontend && npm run test:ci -- tests/frontend/TranscriptWriter.test.ts tests/frontend/TranscriptStorage.test.ts tests/frontend/TranscriptSessionState.test.ts`
+  - `cd frontend && npm run test:ci`
+  - `cd frontend && npm run audit:knip`
+  - `cd frontend && npm run audit:jscpd` (expect clone reduction)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):
