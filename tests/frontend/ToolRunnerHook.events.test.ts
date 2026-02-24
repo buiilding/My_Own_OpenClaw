@@ -66,6 +66,44 @@ describe('useToolRunner event handling', () => {
     );
   });
 
+  test('delays mouse click tool-call execution until ghost preview sync window completes', async () => {
+    jest.useFakeTimers();
+    try {
+      renderToolRunner(true);
+
+      await emitBackendEventAsync({
+        type: 'tool-call',
+        id: 'event-click-delay',
+        payload: {
+          tool_name: 'mouse_control',
+          parameters: { action: 'click', x: 64, y: 48 },
+          request_id: 'req-click-delay',
+        },
+      });
+
+      expect(mockExecuteTool).not.toHaveBeenCalled();
+
+      await act(async () => {
+        jest.advanceTimersByTime(1899);
+        await Promise.resolve();
+      });
+      expect(mockExecuteTool).not.toHaveBeenCalled();
+
+      await act(async () => {
+        jest.advanceTimersByTime(1);
+        await Promise.resolve();
+      });
+
+      expect(mockExecuteTool).toHaveBeenCalledWith(
+        'mouse_control',
+        { action: 'click', x: 64, y: 48 },
+        { correlationId: 'req-click-delay', skipAutoCapture: false },
+      );
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   test('ignores tool-call events for a completed active turn', async () => {
     setStreamTracking({
       activeTurnRef: 'turn-1',
@@ -98,6 +136,57 @@ describe('useToolRunner event handling', () => {
         },
       },
     );
+  });
+
+  test('cancels delayed click tool-call if turn becomes stale before execution', async () => {
+    jest.useFakeTimers();
+    try {
+      setStreamTracking({
+        activeTurnRef: 'turn-1',
+        phase: 'streaming',
+      });
+
+      renderToolRunner(true);
+
+      await emitBackendEventAsync({
+        type: 'tool-call',
+        id: 'event-click-stale',
+        turn_ref: 'turn-1',
+        payload: {
+          tool_name: 'mouse_control',
+          parameters: { action: 'click', x: 10, y: 20 },
+          request_id: 'req-click-stale',
+        },
+      });
+
+      await act(async () => {
+        setStreamTracking({
+          activeTurnRef: 'turn-1',
+          phase: 'complete',
+        });
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(1900);
+        await Promise.resolve();
+      });
+
+      expect(mockExecuteTool).not.toHaveBeenCalled();
+      expect(IpcBridge.send).toHaveBeenCalledWith(
+        SEND_CHANNELS.TO_BACKEND,
+        {
+          type: 'tool-result',
+          payload: {
+            request_id: 'req-click-stale',
+            success: false,
+            data: null,
+            error: 'frontend_stale_turn_cancelled',
+          },
+        },
+      );
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   test('dispatches tool-bundle events with mapped tools', async () => {

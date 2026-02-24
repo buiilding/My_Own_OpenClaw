@@ -21,6 +21,8 @@ import {
 } from '../utils/toolRunnerMessages';
 
 const TERMINAL_STREAM_PHASES = new Set(['idle', 'complete', 'error']);
+const MOUSE_CLICK_ACTIONS = new Set(['click', 'double_click', 'right_click']);
+const TOOL_GHOST_CLICK_SYNC_DELAY_MS = 1900;
 
 function shouldSkipToolExecution(
   metadata: Record<string, unknown> | undefined,
@@ -58,6 +60,26 @@ function resolveToolRequestIdForCancellation(
     return payload.correlation_id;
   }
   return null;
+}
+
+function shouldDelayForToolGhostClickSync(
+  toolName: string,
+  parameters: Record<string, unknown>,
+): boolean {
+  if (toolName !== 'mouse_control') {
+    return false;
+  }
+  const rawAction = parameters.action;
+  if (typeof rawAction !== 'string') {
+    return false;
+  }
+  return MOUSE_CLICK_ACTIONS.has(rawAction.trim().toLowerCase());
+}
+
+async function waitForToolGhostClickSync(): Promise<void> {
+  await new Promise<void>((resolve) => {
+    window.setTimeout(resolve, TOOL_GHOST_CLICK_SYNC_DELAY_MS);
+  });
 }
 
 /**
@@ -99,6 +121,21 @@ export function useToolRunner(enabled = true) {
       return true;
     }
     return trackedExecutionTurnsRef.current.has(correlationId);
+  }, []);
+
+  const sendStaleToolCancellation = useCallback((requestId: string | null | undefined) => {
+    if (!requestId) {
+      return;
+    }
+    IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
+      type: 'tool-result',
+      payload: {
+        request_id: requestId,
+        success: false,
+        data: null,
+        error: 'frontend_stale_turn_cancelled',
+      },
+    });
   }, []);
 
   useEffect(() => {
@@ -238,17 +275,7 @@ export function useToolRunner(enabled = true) {
   const handleToolCall = useCallback((event: ToolCallEvent) => {
     if (shouldIgnoreToolEventForTurn(event.turn_ref)) {
       const requestId = resolveToolRequestIdForCancellation(event.payload);
-      if (requestId) {
-        IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
-          type: 'tool-result',
-          payload: {
-            request_id: requestId,
-            success: false,
-            data: null,
-            error: 'frontend_stale_turn_cancelled',
-          },
-        });
-      }
+      sendStaleToolCancellation(requestId);
       return;
     }
     const toolName = event.payload?.tool_name;
@@ -262,22 +289,41 @@ export function useToolRunner(enabled = true) {
 
     const correlationId = resolveToolCallCorrelationId(event.payload, event.id);
 
-    if (toolServiceRef.current) {
-      const turnRef = event.turn_ref ?? useChatStore.getState().streamTracking.activeTurnRef ?? null;
-      trackExecution(correlationId, turnRef);
-      toolServiceRef.current.executeTool(
-        toolName,
-        parameters,
-        {
-          correlationId,
-          skipAutoCapture: false
+    const turnRef = event.turn_ref ?? useChatStore.getState().streamTracking.activeTurnRef ?? null;
+    const cancellationRequestId = resolveToolRequestIdForCancellation(event.payload) || correlationId;
+
+    const executeToolCall = async () => {
+      if (shouldDelayForToolGhostClickSync(toolName, parameters)) {
+        await waitForToolGhostClickSync();
+        if (shouldIgnoreToolEventForTurn(turnRef)) {
+          sendStaleToolCancellation(cancellationRequestId);
+          return;
         }
-      ).catch(err => {
+      }
+
+      const toolService = toolServiceRef.current;
+      if (!toolService) {
+        return;
+      }
+
+      trackExecution(correlationId, turnRef);
+      try {
+        await toolService.executeTool(
+          toolName,
+          parameters,
+          {
+            correlationId,
+            skipAutoCapture: false
+          }
+        );
+      } catch (err) {
         untrackExecution(correlationId);
         console.error('[useToolRunner] Failed to execute tool:', err);
-      });
-    }
-  }, [trackExecution, untrackExecution]);
+      }
+    };
+
+    void executeToolCall();
+  }, [sendStaleToolCancellation, trackExecution, untrackExecution]);
 
   useEffect(() => {
     if (!enabled) {
