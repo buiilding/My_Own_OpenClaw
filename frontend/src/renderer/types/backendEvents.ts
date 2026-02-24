@@ -44,7 +44,13 @@ export type ToolCallEvent = BackendEventBase<'tool-call', {
   parameters?: Record<string, unknown>;
   correlation_id?: string;
   request_id?: string;
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, unknown> & {
+    model_facing_tool_call?: {
+      id?: string;
+      name?: string;
+      arguments?: Record<string, unknown>;
+    };
+  };
 }>;
 export type ToolOutputEvent = BackendEventBase<'tool-output', {
   tool_name?: string;
@@ -59,7 +65,17 @@ export type ToolOutputEvent = BackendEventBase<'tool-output', {
 }>;
 export type ToolBundleEvent = BackendEventBase<'tool-bundle', {
   bundle_id?: string;
-  tools?: Array<{ name?: string; args?: Record<string, unknown> }>;
+  tools?: Array<{
+    name?: string;
+    args?: Record<string, unknown>;
+    metadata?: Record<string, unknown> & {
+      model_facing_tool_call?: {
+        id?: string;
+        name?: string;
+        arguments?: Record<string, unknown>;
+      };
+    };
+  }>;
 }>;
 export type LocalUserMessageEvent = BackendEventBase<'local-user-message', {
   text?: string;

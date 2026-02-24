@@ -3,12 +3,28 @@ const MAX_THINKING_STATUS_LENGTH = 5000;
 type ToolCallPayloadLike = {
   tool_name?: string;
   parameters?: Record<string, unknown>;
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, unknown> & {
+    model_facing_tool_call?: {
+      id?: string;
+      name?: string;
+      arguments?: Record<string, unknown>;
+    };
+  };
 };
 
 type ToolBundlePayloadLike = {
   bundle_id?: string;
-  tools?: Array<{ name?: string; args?: Record<string, unknown> }>;
+  tools?: Array<{
+    name?: string;
+    args?: Record<string, unknown>;
+    metadata?: Record<string, unknown> & {
+      model_facing_tool_call?: {
+        id?: string;
+        name?: string;
+        arguments?: Record<string, unknown>;
+      };
+    };
+  }>;
 };
 
 type ToolOutputPayloadLike = {
@@ -24,22 +40,39 @@ export function buildThinkingStatus(currentStatus: string | null, chunk?: string
 }
 
 export function formatToolCallPayload(payload?: ToolCallPayloadLike): string {
+  const modelFacing = resolveModelFacingToolCall(payload);
   return JSON.stringify(
-    {
-      name: payload?.tool_name,
-      args: payload?.parameters,
-      metadata: payload?.metadata,
-    },
+    modelFacing,
     null,
     2,
   );
 }
 
 export function formatToolBundlePayload(payload?: ToolBundlePayloadLike): string {
+  const tools = (payload?.tools || []).map((tool) => {
+    const modelFacing = tool?.metadata?.model_facing_tool_call;
+    if (modelFacing && typeof modelFacing === 'object') {
+      return {
+        id: typeof modelFacing.id === 'string' ? modelFacing.id : undefined,
+        name: typeof modelFacing.name === 'string' ? modelFacing.name : tool?.name,
+        arguments: (
+          modelFacing.arguments
+          && typeof modelFacing.arguments === 'object'
+          && !Array.isArray(modelFacing.arguments)
+        )
+          ? modelFacing.arguments
+          : (tool?.args || {}),
+      };
+    }
+    return {
+      name: tool?.name,
+      arguments: tool?.args || {},
+    };
+  });
   return JSON.stringify(
     {
       bundle_id: payload?.bundle_id,
-      tools: payload?.tools || [],
+      tools,
     },
     null,
     2,
@@ -47,8 +80,37 @@ export function formatToolBundlePayload(payload?: ToolBundlePayloadLike): string
 }
 
 export function formatToolOutputText(payload?: ToolOutputPayloadLike): string {
+  if (typeof payload?.output === 'string' && payload.output.length > 0) {
+    return payload.output;
+  }
   if (payload?.error) {
     return `Error: ${payload.error}`;
   }
-  return payload?.output || 'No output';
+  return 'No output';
+}
+
+export function resolveModelFacingToolCall(payload?: ToolCallPayloadLike): {
+  id?: string;
+  name?: string;
+  arguments: Record<string, unknown>;
+} {
+  const modelFacing = payload?.metadata?.model_facing_tool_call;
+  const modelArguments = modelFacing?.arguments;
+  const fallbackParameters = payload?.parameters;
+
+  return {
+    id: typeof modelFacing?.id === 'string' ? modelFacing.id : undefined,
+    name: (
+      typeof modelFacing?.name === 'string'
+        ? modelFacing.name
+        : payload?.tool_name
+    ),
+    arguments: (
+      modelArguments
+      && typeof modelArguments === 'object'
+      && !Array.isArray(modelArguments)
+    )
+      ? modelArguments
+      : (fallbackParameters || {}),
+  };
 }

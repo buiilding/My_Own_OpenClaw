@@ -25,6 +25,14 @@ export interface ChatMessage {
   success?: boolean;
   correlationId?: string;
   timestamp?: string;
+  modelFacingToolCall?: {
+    id?: string;
+    name?: string;
+    arguments?: Record<string, unknown>;
+  } | null;
+  modelFacingToolOutput?: string | null;
+  toolCallDetails?: Record<string, unknown> | null;
+  toolOutputDetails?: Record<string, unknown> | null;
   systemPrompt?: {
     content: string;
     toolSchemas?: any;

@@ -132,3 +132,56 @@ async def test_send_tools_does_not_dispatch_bundle_when_preparation_fails():
     assert "Identical instances found" in (bundle_result.error or "")
     assert isinstance(bundle_result.data, dict)
     assert bundle_result.data.get("status") == "failure"
+
+
+@pytest.mark.asyncio
+async def test_send_tools_includes_model_facing_tool_call_metadata():
+    request_id = "req-789"
+    parsed_call = ParsedToolCall(
+        tool_name="mouse_control",
+        parameters={
+            "action": "click",
+            "find_coordinates_by": "ocr",
+            "ocr_text": "Settings",
+        },
+        metadata={
+            "request_id": request_id,
+            "tool_call_id": "tool_llm_1",
+        },
+    )
+    resolved_call = ResolvedToolCall.from_parsed_call(parsed_call)
+    resolved_call.parameters = {
+        "action": "click",
+        "x": 122,
+        "y": 418,
+    }
+
+    sender = ToolSender(
+        preparer=_DummyPreparer(
+            PreparationResult(
+                resolved_calls=[resolved_call],
+                errors=[],
+                bundle_id=None,
+            )
+        ),
+        synthetic_result_factory=_DummySyntheticResultFactory(),
+    )
+    session = _DummySession()
+
+    emitted = []
+    async for event in sender.send_tools([parsed_call], session):
+        emitted.append(event)
+
+    assert len(emitted) == 1
+    assert isinstance(emitted[0], ToolCallEvent)
+    assert emitted[0].parameters == {"action": "click", "x": 122, "y": 418}
+    assert emitted[0].metadata is not None
+    assert emitted[0].metadata["model_facing_tool_call"] == {
+        "id": "tool_llm_1",
+        "name": "mouse_control",
+        "arguments": {
+            "action": "click",
+            "find_coordinates_by": "ocr",
+            "ocr_text": "Settings",
+        },
+    }

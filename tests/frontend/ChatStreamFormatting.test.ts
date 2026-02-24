@@ -24,7 +24,33 @@ describe('chatStreamFormatting utils', () => {
       formatToolCallPayload({ tool_name: 'read_file', parameters: { file_path: '/tmp/a' } }),
     ).toBe(
       JSON.stringify(
-        { name: 'read_file', args: { file_path: '/tmp/a' }, metadata: undefined },
+        { name: 'read_file', arguments: { file_path: '/tmp/a' } },
+        null,
+        2,
+      ),
+    );
+  });
+
+  test('formats tool call payload from model-facing metadata when available', () => {
+    expect(
+      formatToolCallPayload({
+        tool_name: 'mouse_control',
+        parameters: { x: 120, y: 320 },
+        metadata: {
+          model_facing_tool_call: {
+            id: 'tool_123',
+            name: 'mouse_control',
+            arguments: { action: 'click', find_coordinates_by: 'ocr', ocr_text: 'Settings' },
+          },
+        },
+      }),
+    ).toBe(
+      JSON.stringify(
+        {
+          id: 'tool_123',
+          name: 'mouse_control',
+          arguments: { action: 'click', find_coordinates_by: 'ocr', ocr_text: 'Settings' },
+        },
         null,
         2,
       ),
@@ -32,7 +58,9 @@ describe('chatStreamFormatting utils', () => {
   });
 
   test('formats undefined tool call payload as empty object', () => {
-    expect(formatToolCallPayload(undefined)).toBe('{}');
+    expect(formatToolCallPayload(undefined)).toBe(
+      JSON.stringify({ arguments: {} }, null, 2),
+    );
   });
 
   test('formats bundle payload with default empty tools list', () => {
@@ -51,7 +79,7 @@ describe('chatStreamFormatting utils', () => {
       JSON.stringify(
         {
           bundle_id: 'bundle-2',
-          tools: [{ name: 'read_file', args: { file_path: '/tmp/a' } }],
+          tools: [{ name: 'read_file', arguments: { file_path: '/tmp/a' } }],
         },
         null,
         2,
@@ -60,8 +88,9 @@ describe('chatStreamFormatting utils', () => {
   });
 
   test('formats tool output error and success payloads', () => {
-    expect(formatToolOutputText({ error: 'boom', output: 'ignored' })).toBe('Error: boom');
+    expect(formatToolOutputText({ error: 'boom', output: 'model-facing output' })).toBe('model-facing output');
     expect(formatToolOutputText({ output: 'all good' })).toBe('all good');
+    expect(formatToolOutputText({ error: 'boom' })).toBe('Error: boom');
     expect(formatToolOutputText({})).toBe('No output');
   });
 });

@@ -1,9 +1,7 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
-import TransparencySection from './TransparencySection';
 import { toSanitizedMarkdownHtml } from '../../../infrastructure/markdown';
 import { isUserMessageWithScreenshot, resolveMessageScreenshotSrc } from '../utils/messageScreenshots';
-import { buildToolExecutionMetadata } from '../utils/messageToolMetadata';
 
 function MarkdownMessage({ text }) {
   const html = useMemo(() => toSanitizedMarkdownHtml(text ?? ''), [text]);
@@ -20,11 +18,39 @@ MarkdownMessage.propTypes = {
 };
 
 function ToolOutputMessage({ message }) {
+  const [showDetails, setShowDetails] = useState(false);
   const screenshotSrc = resolveMessageScreenshotSrc(message);
+  const modelFacingOutput = (
+    typeof message.modelFacingToolOutput === 'string'
+      ? message.modelFacingToolOutput
+      : message.text
+  );
+  const detailsPayload = (
+    message.toolOutputDetails
+    && typeof message.toolOutputDetails === 'object'
+    && !Array.isArray(message.toolOutputDetails)
+  )
+    ? message.toolOutputDetails
+    : {
+      tool_name: message.toolName || null,
+      execution_time: message.executionTime ?? null,
+      success: message.success ?? null,
+      metadata: message.toolMetadata || null,
+    };
+
   return (
     <div className="tool-output-container">
-      <div className="tool-output-header">📤 Tool Output</div>
-      <pre className="tool-output-content">{message.text}</pre>
+      <div className="tool-card-header-row">
+        <div className="tool-output-header">📤 Tool Output</div>
+        <button
+          type="button"
+          className="tool-details-btn"
+          onClick={() => setShowDetails((previous) => !previous)}
+        >
+          Details
+        </button>
+      </div>
+      <pre className="tool-output-content">{modelFacingOutput}</pre>
       {screenshotSrc && (
         <div className="tool-screenshot-container">
           <div className="tool-screenshot-header">📸 Screenshot After Action</div>
@@ -36,13 +62,17 @@ function ToolOutputMessage({ message }) {
           />
         </div>
       )}
-      {message.toolMetadata && (
-        <TransparencySection
-          title="Execution Details"
-          content={message.text}
-          metadata={buildToolExecutionMetadata(message)}
-          type="text"
-        />
+      {showDetails && (
+        <div className="tool-details-panel">
+          <div className="tool-details-block">
+            <div className="tool-details-label">Model-Facing Tool Output</div>
+            <pre className="tool-details-content">{modelFacingOutput}</pre>
+          </div>
+          <div className="tool-details-block">
+            <div className="tool-details-label">Tool Output Details</div>
+            <pre className="tool-details-content">{JSON.stringify(detailsPayload, null, 2)}</pre>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -54,6 +84,8 @@ ToolOutputMessage.propTypes = {
     screenshot: PropTypes.string,
     screenshotUrl: PropTypes.string,
     screenshotContentType: PropTypes.string,
+    modelFacingToolOutput: PropTypes.string,
+    toolOutputDetails: PropTypes.object,
     toolMetadata: PropTypes.object,
     toolName: PropTypes.string,
     executionTime: PropTypes.number,
@@ -62,10 +94,50 @@ ToolOutputMessage.propTypes = {
 };
 
 function ToolCallMessage({ message }) {
+  const [showDetails, setShowDetails] = useState(false);
+  const modelFacingCall = (
+    message.modelFacingToolCall
+    && typeof message.modelFacingToolCall === 'object'
+    && !Array.isArray(message.modelFacingToolCall)
+  )
+    ? message.modelFacingToolCall
+    : null;
+  const modelFacingText = modelFacingCall
+    ? JSON.stringify(modelFacingCall, null, 2)
+    : message.text;
+  const detailsPayload = (
+    message.toolCallDetails
+    && typeof message.toolCallDetails === 'object'
+    && !Array.isArray(message.toolCallDetails)
+  )
+    ? message.toolCallDetails
+    : { raw_message_text: message.text };
+
   return (
     <div className="tool-call-container">
-      <div className="tool-call-header">🔧 Tool Call</div>
-      <pre className="tool-call-content">{message.text}</pre>
+      <div className="tool-card-header-row">
+        <div className="tool-call-header">🔧 Tool Call</div>
+        <button
+          type="button"
+          className="tool-details-btn"
+          onClick={() => setShowDetails((previous) => !previous)}
+        >
+          Details
+        </button>
+      </div>
+      <pre className="tool-call-content">{modelFacingText}</pre>
+      {showDetails && (
+        <div className="tool-details-panel">
+          <div className="tool-details-block">
+            <div className="tool-details-label">Model-Facing Tool Call</div>
+            <pre className="tool-details-content">{modelFacingText}</pre>
+          </div>
+          <div className="tool-details-block">
+            <div className="tool-details-label">Tool Call Details</div>
+            <pre className="tool-details-content">{JSON.stringify(detailsPayload, null, 2)}</pre>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -73,6 +145,8 @@ function ToolCallMessage({ message }) {
 ToolCallMessage.propTypes = {
   message: PropTypes.shape({
     text: PropTypes.string.isRequired,
+    modelFacingToolCall: PropTypes.object,
+    toolCallDetails: PropTypes.object,
   }).isRequired,
 };
 
@@ -148,6 +222,10 @@ MessageContent.propTypes = {
     screenshot: PropTypes.string,
     screenshotUrl: PropTypes.string,
     screenshotContentType: PropTypes.string,
+    modelFacingToolCall: PropTypes.object,
+    modelFacingToolOutput: PropTypes.string,
+    toolCallDetails: PropTypes.object,
+    toolOutputDetails: PropTypes.object,
     toolMetadata: PropTypes.object,
     toolName: PropTypes.string,
     executionTime: PropTypes.number,
