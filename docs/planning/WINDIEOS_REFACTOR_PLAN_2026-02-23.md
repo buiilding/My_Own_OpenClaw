@@ -1749,3 +1749,15 @@ read_when:
     - `./scripts/test-backend` (pass; 966 tests)
   - sidecar tests:
     - `./scripts/test-sidecar` (pass; 462 tests)
+
+## Phase 45 Outcome (2026-02-24)
+
+- Split-suite lifecycle-hook dedupe shipped:
+  - extracted repeated suite hooks into shared harness helper:
+    - `tests/frontend/__mocks__/ipcMainBridgeHarness.cjs` (`registerBridgeSuiteLifecycleHooks`)
+  - replaced duplicated `beforeEach/afterEach/afterAll` blocks in:
+    - `tests/frontend/IpcMainBridge.lifecycle.test.cjs`
+    - `tests/frontend/IpcMainBridge.query.test.cjs`
+  - behavior unchanged; helper keeps env reset/log silencing/mock restore wiring centralized.
+- Verification:
+  - `cd frontend && npm test -- tests/frontend/IpcMainBridge.lifecycle.test.cjs tests/frontend/IpcMainBridge.query.test.cjs` (pass; 27 tests)

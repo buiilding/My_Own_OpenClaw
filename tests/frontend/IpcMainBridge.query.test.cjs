@@ -3,24 +3,11 @@
 const {
   initIpc,
   primeQueryContext,
-  resetBackendEnv,
-  restoreBackendEnv,
-  silenceBridgeLogs,
+  registerBridgeSuiteLifecycleHooks,
 } = require('./__mocks__/ipcMainBridgeHarness.cjs');
 
 describe('ipc.cjs bridge query handling', () => {
-  beforeEach(() => {
-    resetBackendEnv();
-    silenceBridgeLogs();
-  });
-
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
-  afterAll(() => {
-    restoreBackendEnv();
-  });
+  registerBridgeSuiteLifecycleHooks();
 
   test('runs overlay pre-capture hook for chatbox-origin query sends', async () => {
     const onBeforeOverlayQueryCapture = jest.fn().mockResolvedValue(undefined);

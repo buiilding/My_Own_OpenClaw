@@ -3,24 +3,11 @@
 const {
   initIpc,
   primeQueryContext,
-  resetBackendEnv,
-  restoreBackendEnv,
-  silenceBridgeLogs,
+  registerBridgeSuiteLifecycleHooks,
 } = require('./__mocks__/ipcMainBridgeHarness.cjs');
 
 describe('ipc.cjs bridge lifecycle/config', () => {
-  beforeEach(() => {
-    resetBackendEnv();
-    silenceBridgeLogs();
-  });
-
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
-  afterAll(() => {
-    restoreBackendEnv();
-  });
+  registerBridgeSuiteLifecycleHooks();
 
   test('sends handshake on websocket open with sanitized user_id', () => {
     const { ws } = initIpc();

@@ -96,6 +96,21 @@ function silenceBridgeLogs() {
   jest.spyOn(console, 'error').mockImplementation(() => {});
 }
 
+function registerBridgeSuiteLifecycleHooks() {
+  beforeEach(() => {
+    resetBackendEnv();
+    silenceBridgeLogs();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  afterAll(() => {
+    restoreBackendEnv();
+  });
+}
+
 function primeQueryContext(backendBridge, options = {}) {
   if (options.systemStateError) {
     backendBridge.getSystemState.mockRejectedValue(options.systemStateError);
@@ -146,6 +161,7 @@ function initIpc(options = {}) {
 module.exports = {
   initIpc,
   primeQueryContext,
+  registerBridgeSuiteLifecycleHooks,
   resetBackendEnv,
   restoreBackendEnv,
   silenceBridgeLogs,
