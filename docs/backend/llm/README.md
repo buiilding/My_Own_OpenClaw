@@ -10,9 +10,9 @@ title: "Backend LLM Docs Hub"
 
 ## Deep Pages
 
-- [LLM Models and Parsing](LLM_MODELS_AND_PARSING.md)
-- [Provider Factory and Runtime Selection Reference](PROVIDER_FACTORY_AND_RUNTIME_SELECTION_REFERENCE.md)
-- [Parser Trust Boundary and Native Tool-Call Reference](PARSER_TRUST_BOUNDARY_AND_NATIVE_TOOL_CALL_REFERENCE.md)
+- [LLM Models and Parsing](llm_models_and_parsing.md)
+- [Provider Factory and Runtime Selection Reference](provider_factory_and_runtime_selection_reference.md)
+- [Parser Trust Boundary and Native Tool-Call Reference](parser_trust_boundary_and_native_tool_call_reference.md)
 
 ## Code Scope
 

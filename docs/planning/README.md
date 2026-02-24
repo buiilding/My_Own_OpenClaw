@@ -11,29 +11,29 @@ Single entrypoint for future work. Use this page first.
 
 ## Canonical Roadmap
 
-- Company future framing: `WINDIEOS_COMPANY_FUTURE_OVERVIEW.md`
-- Product roadmap and sequencing: `FUTURE_PLAN.md`
-- Deployment and hosting rollout: `../operations/DEPLOYMENT.md`
+- Company future framing: `windieos_company_future_overview.md`
+- Product roadmap and sequencing: `future_plan.md`
+- Deployment and hosting rollout: `../operations/deployment.md`
 - Plan tiers and limits:
-  - `PLAN_MATRIX.md`
-  - `BILLING_AND_USAGE.md`
-  - `USAGE_LIMITS.md`
-  - `SECURITY_AND_COMPLIANCE.md`
-  - `DATABASE_SCHEMA.md`
+  - `plan_matrix.md`
+  - `billing_and_usage.md`
+  - `usage_limits.md`
+  - `security_and_compliance.md`
+  - `database_schema.md`
 
 ## Initiative Plans (Execution Tracks)
 
-- `OS_LAYER_UX_EVOLUTION_PLAN.md`
-- `WINDIEOS_INSTALL_PERMISSION_ONBOARDING_PLAN.md`
-- `WINDIEOS_MOBILE_APP_PLAN.md`
-- `WINDIEOS_SELF_EDIT_CONFIG_PLAN.md`
-- `WINDIEOS_AGENT_TO_AGENT_COMMUNICATION_PLAN.md`
-- `WINDIEOS_VM_MULTI_AGENT_PLAN.md`
-- `WINDIEOS_REFACTOR_PLAN_2026-02-23.md`
+- `os_layer_ux_evolution_plan.md`
+- `windieos_install_permission_onboarding_plan.md`
+- `windieos_mobile_app_plan.md`
+- `windieos_self_edit_config_plan.md`
+- `windieos_agent_to_agent_communication_plan.md`
+- `windieos_vm_multi_agent_plan.md`
+- `windieos_refactor_plan_2026-02-23.md`
 
 ## Scope Rules
 
-- Put cross-product strategy in `docs/planning/FUTURE_PLAN.md`.
+- Put cross-product strategy in `docs/planning/future_plan.md`.
 - Put implementation-track plans in `docs/planning/*.md`.
 - In feature docs (`architecture/*`, `getting-started/*`, root `README.md`), keep only short summaries and link back here.
 - When a plan ships, move behavior docs to the relevant stable area and remove/trim the planning item.

@@ -10,10 +10,10 @@ title: "Backend Runtime Docs Hub"
 
 ## Deep Pages
 
-- [Agent and Tool Runtime](AGENT_AND_TOOL_RUNTIME.md)
-- [Session State and Lifecycle](SESSION_STATE_AND_LIFECYCLE.md)
-- [Query Execution and Stream Pipeline Reference](QUERY_EXECUTION_AND_STREAM_PIPELINE_REFERENCE.md)
-- [Token Count Event and Usage Diagnostics Reference](TOKEN_COUNT_EVENT_AND_USAGE_DIAGNOSTICS_REFERENCE.md)
+- [Agent and Tool Runtime](agent_and_tool_runtime.md)
+- [Session State and Lifecycle](session_state_and_lifecycle.md)
+- [Query Execution and Stream Pipeline Reference](query_execution_and_stream_pipeline_reference.md)
+- [Token Count Event and Usage Diagnostics Reference](token_count_event_and_usage_diagnostics_reference.md)
 
 ## Code Scope
 

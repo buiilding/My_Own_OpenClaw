@@ -10,10 +10,10 @@ title: "Backend Tools Docs Hub"
 
 ## Deep Pages
 
-- [Frontend Tool Bridge and Policy](FRONTEND_TOOL_BRIDGE_AND_POLICY.md)
-- [Tool Security Policy and Executor Reference](TOOL_SECURITY_POLICY_AND_EXECUTOR_REFERENCE.md)
-- [Tool Result Ingress and Storage Reference](TOOL_RESULT_INGRESS_AND_STORAGE_REFERENCE.md)
-- [Tool Preparation and Coordinate Resolution Reference](TOOL_PREPARATION_AND_COORDINATE_RESOLUTION_REFERENCE.md)
+- [Frontend Tool Bridge and Policy](frontend_tool_bridge_and_policy.md)
+- [Tool Security Policy and Executor Reference](tool_security_policy_and_executor_reference.md)
+- [Tool Result Ingress and Storage Reference](tool_result_ingress_and_storage_reference.md)
+- [Tool Preparation and Coordinate Resolution Reference](tool_preparation_and_coordinate_resolution_reference.md)
 
 ## Code Scope
 

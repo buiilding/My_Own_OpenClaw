@@ -10,8 +10,8 @@ title: "Backend Bootstrap Docs Hub"
 
 ## Deep Pages
 
-- [Bootstrap and Config](BOOTSTRAP_AND_CONFIG.md)
-- [Container DI and Initialization Lifecycle Reference](CONTAINER_DI_AND_INIT_LIFECYCLE_REFERENCE.md)
+- [Bootstrap and Config](bootstrap_and_config.md)
+- [Container DI and Initialization Lifecycle Reference](container_di_and_init_lifecycle_reference.md)
 
 ## Code Scope
 
