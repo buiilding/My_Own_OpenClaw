@@ -2076,3 +2076,24 @@ read_when:
     - `./scripts/test-backend` (pass; 966 tests)
   - sidecar tests:
     - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+
+## Phase 65 Outcome (2026-02-24)
+
+- Wakeword hook test-suite duplication cleanup shipped:
+  - extracted shared helpers in `tests/frontend/WakewordDetectionHook.test.ts`:
+    - `getChannelHandler`
+    - `getSendCallCount`
+    - `withMockedMediaDevices`
+    - `renderEnabledHookAndEmitReady`
+  - reduced repeated channel listener assertions, disable-send counting, media device mocking/restoration, and ready-status setup flows while preserving existing wakeword hook coverage.
+- Verification:
+  - `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/WakewordDetectionHook.test.ts --watch=false` (pass; 6 tests)
+  - `cd frontend && npm run lint -- --quiet` (pass)
+  - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
+  - `cd frontend && npm run audit:knip` (pass)
+  - `cd frontend && npm run audit:jscpd` (pass)
+  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - jscpd snapshot deltas:
+    - clones: `159 -> 157`
+    - duplicated lines: `2464 -> 2442`
+    - duplicated tokens: `21842 -> 21612`
