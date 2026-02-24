@@ -1,18 +1,14 @@
 """Formatter for tool output events."""
-import logging
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict
 
 from backend.src.api.contracts.message_types import OutgoingMessageType
-from backend.src.api.processing.formatters.base import EventFormatter
-from backend.src.core.events import AgentStreamingEvent
-
-logger = logging.getLogger(__name__)
+from backend.src.api.processing.formatters.base import EventFormatter, EventInput, FormattedEvent
 
 
 class ToolOutputEventFormatter(EventFormatter):
     """Formatter for tool output events."""
 
-    def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
+    def format(self, event: EventInput, msg_id: str) -> FormattedEvent:
         event_dict = self._get_event_dict(event)
         
         # Validate required fields
@@ -30,10 +26,7 @@ class ToolOutputEventFormatter(EventFormatter):
             if output is None:
                 missing_fields.append("output")
             
-            logger.warning(
-                f"ToolOutputEvent missing required fields: {missing_fields}. "
-                f"Skipping format (msg_id={msg_id})"
-            )
+            self._log_missing_fields("ToolOutputEvent", missing_fields, msg_id)
             return None
         
         return {
