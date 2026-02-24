@@ -1,12 +1,15 @@
 import { renderHook } from '@testing-library/react';
 import { IpcBridge, ON_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import { useChatStream } from '../../frontend/src/renderer/features/chat/hooks/useChatStream';
-import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
   recordAssistantMessage,
   recordToolMessage,
   updateTranscriptSession,
 } from '../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter';
+import {
+  createAssistantSeedMessage,
+  resetChatStoreForTests,
+} from './chatStoreTestUtils';
 
 let mockConfig = {
   selected_model_id: 'test-model',
@@ -41,33 +44,7 @@ export function resetChatStreamTestState() {
   mockActiveConversationRef = null;
   mockUseAppConfigContext.mockReturnValue({ config: mockConfig });
 
-  useChatStore.setState({
-    messages: [
-      {
-        id: 'init',
-        text: 'Hello!',
-        sender: 'assistant',
-      },
-    ],
-    isSending: false,
-    thinkingStatus: null,
-    tokenCounts: null,
-    streamTracking: {
-      activeTurnRef: null,
-      phase: 'idle',
-      startedAt: null,
-      firstChunkAt: null,
-      completedAt: null,
-      lastEventAt: null,
-      lastEventType: null,
-      eventCount: 0,
-      chunkCount: 0,
-      toolCallCount: 0,
-      toolOutputCount: 0,
-      lastChunkSize: 0,
-      lastError: null,
-    },
-  });
+  resetChatStoreForTests(createAssistantSeedMessage());
 }
 
 export function setMockConfig(config: { selected_model_id: string; model_provider: string }) {

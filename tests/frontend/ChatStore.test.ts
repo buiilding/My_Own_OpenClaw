@@ -1,34 +1,17 @@
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  createAssistantSeedMessage,
+  resetChatStoreForTests,
+} from './chatStoreTestUtils';
 
 describe('chatStore', () => {
   beforeEach(() => {
-    useChatStore.setState({
-      messages: [
-        {
-          id: 'init-message',
-          text: 'Hello! How can I help you today?',
-          sender: 'assistant',
-        },
-      ],
-      isSending: false,
-      thinkingStatus: null,
-      tokenCounts: null,
-      streamTracking: {
-        activeTurnRef: null,
-        phase: 'idle',
-        startedAt: null,
-        firstChunkAt: null,
-        completedAt: null,
-        lastEventAt: null,
-        lastEventType: null,
-        eventCount: 0,
-        chunkCount: 0,
-        toolCallCount: 0,
-        toolOutputCount: 0,
-        lastChunkSize: 0,
-        lastError: null,
-      },
-    });
+    resetChatStoreForTests(
+      createAssistantSeedMessage({
+        id: 'init-message',
+        text: 'Hello! How can I help you today?',
+      }),
+    );
   });
 
   test('addMessage appends to message list', () => {
