@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-chatbox-context-offset): shift floating active-window label slightly higher above the pill for cleaner top alignment
 - fix(frontend-chatbox-pill-shape): add extra bottom safety padding in measured chatbox frame so the input pill keeps full rounded lower edge (no bottom crop)
 - fix(frontend-chatbox-context-plain-text): render floating active-window label as plain text (no black chip background) on far-left top edge of pill; add bottom safety padding to prevent pill border crop
 - fix(frontend-chatbox-context-headroom): add top headroom and lift floating active-window label above pill edge so it renders outside (not inside) the chat pill
