@@ -12,6 +12,7 @@ title: "Backend API Processing Docs Hub"
 
 - [Formatter Dispatch and Schema Alignment Reference](formatter_dispatch_and_schema_alignment_reference.md)
 - [Stream Pipeline, Completion, and TTS Concurrency Reference](stream_pipeline_completion_and_tts_concurrency_reference.md)
+- [Query Execution Runtime-State and Completion Resolver Reference](query_execution_runtime_state_and_completion_resolver_reference.md)
 
 ## Code Scope
 
