@@ -607,6 +607,16 @@ class LLMProvider(ABC):
             normalized_key = prompt_cache_key.strip()
             if normalized_key:
                 params["prompt_cache_key"] = normalized_key
+        return self._apply_provider_request_params(params, model=model)
+
+    def _apply_provider_request_params(
+        self,
+        params: Dict[str, Any],
+        *,
+        model: str,
+    ) -> Dict[str, Any]:
+        """Provider hook for adding provider-specific LiteLLM request params."""
+        _ = model
         return params
 
     @staticmethod

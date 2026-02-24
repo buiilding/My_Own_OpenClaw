@@ -1,7 +1,6 @@
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
-from backend.src.core.types.schemas import LLMMessage
 from backend.src.llm.models.models_config import ONLINE_THINKING_MODELS
 from backend.src.llm.providers.online import OnlineLLMProvider
 
@@ -16,23 +15,12 @@ class GeminiProvider(OnlineLLMProvider):
     stream_includes_thinking = True
     invalid_response_message = "Invalid response structure from Gemini"
 
-    def _build_request_params(
+    def _apply_provider_request_params(
         self,
+        params: Dict[str, Any],
+        *,
         model: str,
-        messages: List[LLMMessage],
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Any] = None,
-        parallel_tool_calls: Optional[bool] = None,
-        prompt_cache_key: Optional[str] = None,
-    ) -> dict:
-        params = super()._build_request_params(
-            model,
-            messages,
-            tools=tools,
-            tool_choice=tool_choice,
-            parallel_tool_calls=parallel_tool_calls,
-            prompt_cache_key=prompt_cache_key,
-        )
+    ) -> Dict[str, Any]:
         provider_name = "gemini"
         if (
             provider_name in ONLINE_THINKING_MODELS
