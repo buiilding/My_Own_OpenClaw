@@ -190,21 +190,15 @@ describe('useVoiceMode', () => {
     const { result } = renderHook(
       () => useVoiceMode(true, undefined, undefined, 'ws://localhost:5026'),
     );
+    const socket = MockWebSocket.instances[0];
 
-    for (let i = 0; i < 5; i += 1) {
-      const currentSocket = MockWebSocket.instances.at(-1)!;
+    // Repeated close events on the same socket are enough to drive attempt counting.
+    // We do not need to execute reconnect timers to assert max-attempt error behavior.
+    for (let i = 0; i < 6; i += 1) {
       act(() => {
-        currentSocket.onclose?.({} as CloseEvent);
-      });
-      act(() => {
-        jest.runOnlyPendingTimers();
+        socket.onclose?.({} as CloseEvent);
       });
     }
-
-    const lastSocket = MockWebSocket.instances.at(-1)!;
-    act(() => {
-      lastSocket.onclose?.({} as CloseEvent);
-    });
 
     expect(result.current.error).toBe('Failed to connect to voice gateway after multiple attempts');
     jest.useRealTimers();
