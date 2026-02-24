@@ -12,6 +12,8 @@ title: "Backend LLM Provider Docs Hub"
 
 - [Base Request, Stream, and Normalization Reference](base_request_stream_and_normalization_reference.md)
 - [Provider-Specific Overrides and Local Runtime Reference](provider_specific_overrides_and_local_runtime_reference.md)
+- [Backend Kimi Provider Docs Hub](kimi/README.md)
+- [Stream Tool-Call Aggregation and Fail-Closed Argument Parsing Reference](kimi/stream_tool_call_aggregation_and_fail_closed_argument_parsing_reference.md)
 
 ## Code Scope
 
