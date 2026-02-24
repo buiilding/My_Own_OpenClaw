@@ -27,6 +27,7 @@ Includes the last 300 commits on `main`.
 - feat(chatbox-context): add active-app icon/category mapping (browser/code/terminal/mail/chat/design/docs + fallback initials) with improved window-title parsing for the chat pill context badge
 - fix(chatbox-context): improve app-name fidelity in context badge (Edge/Firefox/Safari/VS Code/Cursor/Windsurf labels instead of generic browser/code buckets)
 - feat(chatbox-context): add context freshness states on the active-app badge (`fresh`, `stale`, `offline`) with status-dot coloring and accessibility labels
+- feat(chatbox-context): fallback active-app badge context to latest `user-message-full.metadata.active_window` when live system-state polling fails, surfacing that fallback as `stale`
 - feat(chatbox-tool-preview): render `target_rect` tool-call grounding as a boxed ghost highlight (with normalized rectangle sizing) in the overlay tool-action preview while preserving point-only fallback behavior
 - docs(planning): mark `docs/planning/OS_LAYER_UX_EVOLUTION_PLAN.md` snapshot progress for ambient context freshness status and rectangle-level ghost target grounding
 - fix(chatbox-response): redesign the response pane above the chat pill to a single black panel with brighter text, smooth height animation, auto-stick scrolling, and a top opaque overflow indicator when previous streamed text is above the viewport

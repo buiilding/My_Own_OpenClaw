@@ -28,6 +28,36 @@ function buildContextAriaLabel(context, status) {
   return `Active app: ${context.label} (${status})`;
 }
 
+function extractMetadataActiveWindow(message) {
+  const metadata = message?.fullUserMessage?.metadata;
+  if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) {
+    return null;
+  }
+  const activeWindow = metadata.active_window;
+  if (typeof activeWindow !== 'string') {
+    return null;
+  }
+  const trimmed = activeWindow.trim();
+  return trimmed || null;
+}
+
+function selectLatestMetadataActiveWindow(messages) {
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return null;
+  }
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index];
+    if (message?.sender !== 'user') {
+      continue;
+    }
+    const activeWindow = extractMetadataActiveWindow(message);
+    if (activeWindow) {
+      return activeWindow;
+    }
+  }
+  return null;
+}
+
 function isDragBlockedTarget(target) {
   if (!(target instanceof Element)) {
     return false;
@@ -58,6 +88,7 @@ function SendIcon() {
 function ChatBox() {
   const isSending = useChatStore((state) => state.isSending);
   const streamPhase = useChatStore((state) => state.streamTracking.phase);
+  const metadataActiveWindow = useChatStore((state) => selectLatestMetadataActiveWindow(state.messages));
   const { sendMessage } = useChatMessageSender(undefined, {
     senderSurface: 'overlay-chatbox',
   });
@@ -68,6 +99,7 @@ function ChatBox() {
   );
   const [activeWindowStatus, setActiveWindowStatus] = useState(CONTEXT_STATUS.FRESH);
   const hasSuccessfulContextRef = useRef(false);
+  const metadataActiveWindowRef = useRef(metadataActiveWindow);
   const ignoreMouseRef = useRef(undefined);
   const shellRef = useRef(null);
   const inputRef = useRef(null);
@@ -153,6 +185,10 @@ function ChatBox() {
   }, []);
 
   useEffect(() => {
+    metadataActiveWindowRef.current = metadataActiveWindow;
+  }, [metadataActiveWindow]);
+
+  useEffect(() => {
     let cancelled = false;
     let intervalId = null;
 
@@ -169,11 +205,13 @@ function ChatBox() {
         setStatusIfChanged(setActiveWindowStatus, CONTEXT_STATUS.FRESH);
       } catch (_error) {
         if (!cancelled) {
-          setActiveWindowContext(resolveActiveWindowContext(null));
-          setStatusIfChanged(
-            setActiveWindowStatus,
-            hasSuccessfulContextRef.current ? CONTEXT_STATUS.STALE : CONTEXT_STATUS.OFFLINE,
-          );
+          const fallbackWindow = metadataActiveWindowRef.current;
+          const hasFallbackWindow = typeof fallbackWindow === 'string' && fallbackWindow.trim().length > 0;
+          setActiveWindowContext(resolveActiveWindowContext(hasFallbackWindow ? fallbackWindow : null));
+          const nextStatus = hasSuccessfulContextRef.current || hasFallbackWindow
+            ? CONTEXT_STATUS.STALE
+            : CONTEXT_STATUS.OFFLINE;
+          setStatusIfChanged(setActiveWindowStatus, nextStatus);
         }
       }
     };
