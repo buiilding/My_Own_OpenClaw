@@ -12,6 +12,9 @@ title: "Frontend Renderer Chat Docs Hub"
 
 - [Message Send Surface Policy and Screenshot Capture Reference](message_send_surface_policy_and_screenshot_capture_reference.md)
 - [Chat Store State and New Session Rotation Reference](chat_store_state_and_new_session_rotation_reference.md)
+- [Renderer Chat Stream Docs Hub](stream/README.md)
+- [Conversation Gate and Active-Turn Filtering Reference](stream/conversation_gate_and_active_turn_filtering_reference.md)
+- [Tracking, Formatting, and Message-Update Utility Reference](stream/tracking_formatting_and_message_update_utility_reference.md)
 
 ## Related Pages
 
@@ -26,6 +29,11 @@ title: "Frontend Renderer Chat Docs Hub"
 - `frontend/src/renderer/features/chat/utils/chatMessageSenderUtils.ts`
 - `frontend/src/renderer/features/chat/policies/messageSendUiPolicy.ts`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
+- `frontend/src/renderer/features/chat/utils/chatStreamConversationGate.ts`
+- `frontend/src/renderer/features/chat/utils/chatStreamTracking.ts`
+- `frontend/src/renderer/features/chat/utils/chatStreamFormatting.ts`
+- `frontend/src/renderer/features/chat/utils/chatStreamMessageUpdates.ts`
+- `frontend/src/renderer/features/chat/utils/chatStreamEventUtils.ts`
 - `frontend/src/renderer/features/chat/utils/newChatSession.ts`
 - `frontend/src/renderer/features/chat/utils/conversationRef.ts`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
@@ -34,3 +42,5 @@ title: "Frontend Renderer Chat Docs Hub"
 - `tests/frontend/ChatMessageSender.test.tsx`
 - `tests/frontend/ChatStore.test.ts`
 - `tests/frontend/MessageSendUiPolicy.test.ts`
+- `tests/frontend/ChatStreamConversationGate.test.ts`
+- `tests/frontend/ChatStreamTracking.test.ts`
