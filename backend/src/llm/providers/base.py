@@ -20,6 +20,7 @@ from backend.src.core.infrastructure.exceptions import (
     LLMRateLimitError,
 )
 from backend.src.core.types.schemas import LLMMessage, NormalizedLLMResponse
+from backend.src.llm.request_kwargs import apply_prompt_cache_key
 
 logger = logging.getLogger(__name__)
 THINKING_TAG_PATTERN = re.compile(r"<thinking>(.*?)</thinking>", re.DOTALL)
@@ -603,10 +604,7 @@ class LLMProvider(ABC):
             params["tool_choice"] = tool_choice
         if parallel_tool_calls is not None:
             params["parallel_tool_calls"] = parallel_tool_calls
-        if isinstance(prompt_cache_key, str):
-            normalized_key = prompt_cache_key.strip()
-            if normalized_key:
-                params["prompt_cache_key"] = normalized_key
+        apply_prompt_cache_key(params, prompt_cache_key)
         return self._apply_provider_request_params(params, model=model)
 
     def _apply_provider_request_params(
