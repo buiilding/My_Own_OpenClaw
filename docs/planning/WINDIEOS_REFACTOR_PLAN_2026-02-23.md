@@ -814,3 +814,24 @@ read_when:
   - `cd frontend && npm run test:ci` (pass; 82 suites)
   - `cd frontend && npm run audit:knip` (pass; no findings)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
+
+## Phase 18 Outcome (2026-02-23)
+
+- Transcript immediate-store dedupe shipped:
+  - added shared session/store helpers in:
+    - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+  - rewired repeated immediate store-retry flow in:
+    - `recordUserMessage`
+    - `recordAssistantMessage`
+    - `recordToolMessage`
+  - preserved existing queue-on-missing-session and queue-on-store-failure behavior.
+- jscpd delta after Phase 18 slice:
+  - clones: `214 -> 212`
+  - duplicated lines: `3225 -> 3203`
+  - duplicated tokens: `28350 -> 28138`
+- Verification:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/TranscriptWriter.test.ts tests/frontend/TranscriptStorage.test.ts tests/frontend/TranscriptSessionState.test.ts` (pass)
+  - `cd frontend && npm run test:ci` (pass; 82 suites)
+  - `cd frontend && npm run audit:knip` (pass; no findings)
+  - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
