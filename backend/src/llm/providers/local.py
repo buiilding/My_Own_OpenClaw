@@ -2,16 +2,11 @@ import asyncio
 import logging
 import weakref
 from abc import abstractmethod
-from typing import Any, AsyncGenerator, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import httpx
 
-from backend.src.core.events.streaming_events import StreamingEvent
-from backend.src.core.types.schemas import (
-    LLMMessage,
-    NormalizedLLMResponse,
-)
-from backend.src.llm.providers.base import LLMProvider
+from backend.src.llm.providers.online import OnlineLLMProvider
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +16,7 @@ logger = logging.getLogger(__name__)
 LOCAL_PROVIDER_PLACEHOLDER_API_KEY = "placeholder"
 
 
-class LocalLLMProvider(LLMProvider):
+class LocalLLMProvider(OnlineLLMProvider):
     """Base provider for local LLMs like Ollama and LMStudio."""
 
     def __init__(self, api_key: Optional[str] = None, base_url: Optional[str] = None, timeout: float = 60.0):
@@ -128,50 +123,6 @@ class LocalLLMProvider(LLMProvider):
             except Exception as e:
                 logger.debug(f"Error running HTTP client cleanup: {e}")
 
-    async def get_completion(
-        self,
-        model: str,
-        messages: List[LLMMessage],
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Any] = None,
-        parallel_tool_calls: Optional[bool] = None,
-        prompt_cache_key: Optional[str] = None,
-    ) -> NormalizedLLMResponse:
-        return await self._get_completion_with_standard_params(
-            provider_label=self._provider_name(),
-            model=model,
-            messages=messages,
-            tools=tools,
-            tool_choice=tool_choice,
-            parallel_tool_calls=parallel_tool_calls,
-            prompt_cache_key=prompt_cache_key,
-        )
-
-    async def _stream_internal(
-        self,
-        model: str,
-        messages: List[LLMMessage],
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Any] = None,
-        parallel_tool_calls: Optional[bool] = None,
-        prompt_cache_key: Optional[str] = None,
-    ) -> AsyncGenerator[StreamingEvent, None]:
-        """
-        Internal streaming implementation for local providers.
-        Exceptions bubble up to base class for uniform error handling.
-        """
-        params = self._build_standard_completion_params(
-            model,
-            messages,
-            tools=tools,
-            tool_choice=tool_choice,
-            parallel_tool_calls=parallel_tool_calls,
-            prompt_cache_key=prompt_cache_key,
-            include_stream=True,
-        )
-        async for event in self._stream_text_content_events(params):
-            yield event
-
     @staticmethod
     def _normalize_listed_models(
         raw_models: object,
@@ -254,6 +205,9 @@ class LocalLLMProvider(LLMProvider):
     def _provider_name(self) -> str:
         """Return the provider name for error messages."""
         pass
+
+    def _provider_label_for_request(self) -> str:
+        return self._provider_name()
 
 
 class OllamaProvider(LocalLLMProvider):

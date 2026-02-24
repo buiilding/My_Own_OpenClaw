@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(backend-llm-providers): make `LocalLLMProvider` inherit shared `OnlineLLMProvider`, reusing common completion/stream paths via dynamic provider-label resolution hook while preserving local-specific request-param/list-model behavior; jscpd improved from clones `42 -> 40` and duplicated lines `959 -> 932`
 - docs(refactor-plan): add phase-143 full-gate snapshot after shared provider request-param hook migration (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)
 - refactor(backend-llm-providers): add shared `LLMProvider._apply_provider_request_params` hook and migrate Gemini/Anthropic/Local/Kimi provider request-param customization to that hook instead of duplicated `_build_request_params` overrides; add regression coverage in `tests/backend/test_llm_provider_base.py`; jscpd improved from clones `47 -> 42` and duplicated lines `1027 -> 959`
 - docs(refactor-plan): add phase-142 full-gate snapshot after Kimi provider migration to shared online-provider base (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)

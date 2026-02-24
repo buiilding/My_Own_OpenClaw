@@ -27,7 +27,7 @@ class OnlineLLMProvider(LLMProvider):
         prompt_cache_key: Optional[str] = None,
     ) -> NormalizedLLMResponse:
         return await self._get_completion_with_standard_params(
-            provider_label=self.provider_label,
+            provider_label=self._provider_label_for_request(),
             model=model,
             messages=messages,
             tools=tools,
@@ -79,3 +79,7 @@ class OnlineLLMProvider(LLMProvider):
         if model_id.startswith(namespaced_model):
             return model_id
         return f"{namespaced_model}{model_id}"
+
+    def _provider_label_for_request(self) -> str:
+        """Resolve provider label used in standardized provider error messages."""
+        return self.provider_label or self.__class__.__name__
