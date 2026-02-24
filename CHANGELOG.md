@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-transcript-tests): split oversized `tests/frontend/TranscriptWriter.test.ts` into focused `TranscriptWriter.session|userAssistant|tool` suites with shared `TranscriptWriter.testUtils.ts`, preserving all 20 transcript-writer assertions while keeping each file <500 LOC
 - docs(planning): add Phase 49 full-gate revalidation snapshot after harness/test-suite splits (frontend `test:ci` + backend + sidecar)
 - refactor(frontend-test-harnesses): extract shared backend-env/log lifecycle hooks into `tests/frontend/__mocks__/bridgeSuiteLifecycle.cjs` and reuse it from IPC and local-backend harnesses to reduce duplicated setup logic
 - refactor(frontend-local-backend-tests): split oversized `tests/frontend/LocalBackendBridge.test.cjs` into focused `LocalBackendBridge.rpc.test.cjs` and `LocalBackendBridge.lifecycle.test.cjs` suites, with shared `tests/frontend/__mocks__/localBackendBridgeHarness.cjs` setup and preserved 22 assertions
