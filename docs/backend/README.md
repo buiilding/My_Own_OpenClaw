@@ -27,6 +27,7 @@ Covers:
 ### Bootstrap
 
 - [Bootstrap and Config](bootstrap/BOOTSTRAP_AND_CONFIG.md)
+- [Config Fields and Runtime Policy](config/CONFIG_FIELDS_AND_RUNTIME_POLICY.md)
 
 ### API and Contracts
 
@@ -37,6 +38,7 @@ Covers:
 ### Runtime and Tools
 
 - [Agent and Tool Runtime](runtime/AGENT_AND_TOOL_RUNTIME.md)
+- [Session State and Lifecycle](runtime/SESSION_STATE_AND_LIFECYCLE.md)
 - [Frontend Tool Bridge and Policy](tools/FRONTEND_TOOL_BRIDGE_AND_POLICY.md)
 
 ### LLM and Services
