@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 17 execution slice for voice-hook audio-capture teardown dedupe (`useVoiceMode` + `useWakewordDetection`) and `lint:audit` deprecation/react-compiler validation
 - refactor(frontend-landing): extract shared landing `SectionIntro` and `ProviderStackIcon` components, migrate `WhySection`/`PrivacySection` intro markup to shared rendering, and dedupe repeated provider-stack SVG usage in `WhySection`, `PrivacySection`, and `CTAFooter` while keeping landing regression coverage green
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 16 execution slice for landing shared section-intro extraction in `WhySection` and `PrivacySection`
 - refactor(frontend-landing): dedupe repeated `PrivacySection` highlight-item markup by switching to mapped highlight data while preserving visible copy/icon output, with landing-page regression coverage kept green
