@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-stdout-json-tests): extract shared stdout buffer harness helper in `tests/sidecar/test_stdout_json.py` to dedupe repeated monkeypatched `sys.stdout` setup; jscpd improved from clones `107 -> 105` and duplicated lines `1867 -> 1829`
 - docs(refactor-plan): add phase-111 full-gate snapshot after sidecar remote-client test util dedupe wave (frontend audits/tests + backend + sidecar)
 - refactor(sidecar-remote-client-tests): add shared `tests/sidecar/remote_client_test_utils.py` (`aiohttp` fallback stubs, frontend-python path bootstrap, shared response/session doubles) and reuse it in remote embedding/semantic client suites; jscpd improved from clones `110 -> 107` and duplicated lines `1926 -> 1867`
 - docs(refactor-plan): add phase-110 full-gate snapshot after parser-test fixture dedupe wave (frontend audits/tests + backend + sidecar)
