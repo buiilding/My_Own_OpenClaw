@@ -189,6 +189,9 @@ If transcript rows missing:
 
 ## Related References
 
+- [Renderer Overlay Docs Hub](overlays/README.md)
+- [Chatbox Overlay Input, Drag, and Click-Through Reference](overlays/chatbox_overlay_input_drag_and_clickthrough_reference.md)
+- [Response Overlay Phase and Tool-Ghost Runtime Reference](overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md)
 - [Renderer Infrastructure Docs Hub](infrastructure/README.md)
 - [Tool Execution Service and Hook Runtime Reference](infrastructure/tool_execution_service_and_hook_runtime_reference.md)
 - [Capture, Artifact Upload, and Payload Normalization Reference](infrastructure/capture_artifact_upload_and_payload_normalization_reference.md)

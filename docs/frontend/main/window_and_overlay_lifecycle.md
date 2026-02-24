@@ -140,6 +140,11 @@ Handlers in `index.cjs`:
 - reports frame size via `SET_RESPONSEBOX_SIZE`
 - supports awaiting-first-chunk view, tool-call ghost preview, final/error markdown pane
 
+For renderer-only deep dives:
+
+- `docs/frontend/renderer/overlays/chatbox_overlay_input_drag_and_clickthrough_reference.md`
+- `docs/frontend/renderer/overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md`
+
 ## Linux Screenshot Guard
 
 `local_backend_bridge_windows.cjs:withHiddenWindowForScreenshot(...)`:
