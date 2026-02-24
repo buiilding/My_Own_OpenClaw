@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(backend-parser-validation-tests): add shared validator-construction helper (`_make_validator_for_registry`) in `tests/backend/test_parser_validation.py` and reuse it across registry/metadata/cache tests to remove repeated setup blocks; jscpd improved from clones `101 -> 99` and duplicated lines `1766 -> 1746`
 - docs(refactor-plan): add phase-119 full-gate snapshot after backend coordinate-scaling test helper dedupe wave (frontend audits/tests + backend + sidecar)
 - refactor(backend-coordinate-scaling-tests): extract shared coordinate-resolution test helpers in `tests/backend/test_coordinate_scaling.py` (`_create_session_and_manager`, `_patch_coordinate_resolution`, `_resolve_with_stubs`) to dedupe repeated setup/monkeypatch scaffolding; jscpd improved from clones `105 -> 101` and duplicated lines `1829 -> 1766`
 - docs(refactor-plan): add phase-118 full-gate snapshot after full sidecar bootstrap-helper adoption wave (frontend audits/tests + backend + sidecar)

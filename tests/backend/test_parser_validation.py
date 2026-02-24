@@ -57,16 +57,24 @@ class CountingRegistry(DummyRegistry):
 
 
 def _make_validator(tool_names, interaction_mode="agent"):
+    return _make_validator_for_registry(
+        DummyRegistry(tool_names),
+        interaction_mode=interaction_mode,
+    )
+
+
+def _make_validator_for_registry(tool_registry, interaction_mode="agent", limits=None):
+    resolved_limits = limits or SecurityLimits()
     config = AppConfig(
         interaction_mode=interaction_mode,
-        security_limits=SecurityLimits(),
+        security_limits=resolved_limits,
     )
     metrics = DummyMetrics()
     validator = ToolCallValidator(
         config=config,
-        tool_registry=DummyRegistry(tool_names),
+        tool_registry=tool_registry,
         metrics=metrics,
-        limits=config.security_limits,
+        limits=resolved_limits,
     )
     return validator, metrics
 
@@ -181,42 +189,21 @@ def test_validate_tool_call_accepts_enabled_mouse_ocr_method(
 
 
 def test_validate_tool_call_handles_non_iterable_registry_tool_names():
-    config = AppConfig(interaction_mode="agent", security_limits=SecurityLimits())
-    metrics = DummyMetrics()
-    validator = ToolCallValidator(
-        config=config,
-        tool_registry=BrokenRegistry(123),
-        metrics=metrics,
-        limits=config.security_limits,
-    )
+    validator, _metrics = _make_validator_for_registry(BrokenRegistry(123))
 
     with pytest.raises(ParseValidationError, match="not in whitelist"):
         validator.validate_tool_call("read_file", {})
 
 
 def test_validate_tool_call_handles_string_registry_tool_names():
-    config = AppConfig(interaction_mode="agent", security_limits=SecurityLimits())
-    metrics = DummyMetrics()
-    validator = ToolCallValidator(
-        config=config,
-        tool_registry=BrokenRegistry("read_file"),
-        metrics=metrics,
-        limits=config.security_limits,
-    )
+    validator, _metrics = _make_validator_for_registry(BrokenRegistry("read_file"))
 
     with pytest.raises(ParseValidationError, match="Valid tools \\(0\\):"):
         validator.validate_tool_call("read_file", {})
 
 
 def test_validate_metadata_rejects_whitespace_only_fields_for_computer_tools():
-    config = AppConfig(interaction_mode="agent", security_limits=SecurityLimits())
-    metrics = DummyMetrics()
-    validator = ToolCallValidator(
-        config=config,
-        tool_registry=ComputerRegistry(["mouse_control"]),
-        metrics=metrics,
-        limits=config.security_limits,
-    )
+    validator, _metrics = _make_validator_for_registry(ComputerRegistry(["mouse_control"]))
 
     with pytest.raises(ParseValidationError, match="missing required metadata field"):
         validator.validate_metadata(
@@ -230,14 +217,7 @@ def test_validate_metadata_rejects_whitespace_only_fields_for_computer_tools():
 
 
 def test_validate_metadata_accepts_trimmed_nonempty_strings_for_computer_tools():
-    config = AppConfig(interaction_mode="agent", security_limits=SecurityLimits())
-    metrics = DummyMetrics()
-    validator = ToolCallValidator(
-        config=config,
-        tool_registry=ComputerRegistry(["mouse_control"]),
-        metrics=metrics,
-        limits=config.security_limits,
-    )
+    validator, _metrics = _make_validator_for_registry(ComputerRegistry(["mouse_control"]))
 
     validator.validate_metadata(
         "mouse_control",
@@ -263,14 +243,7 @@ def test_get_valid_tool_names_returns_sorted_output():
 
 def test_validate_tool_call_uses_compact_json_size_for_nested_params():
     limits = SecurityLimits(max_parameter_value_size=13)
-    config = AppConfig(interaction_mode="agent", security_limits=limits)
-    metrics = DummyMetrics()
-    validator = ToolCallValidator(
-        config=config,
-        tool_registry=DummyRegistry(["read_file"]),
-        metrics=metrics,
-        limits=limits,
-    )
+    validator, _metrics = _make_validator_for_registry(DummyRegistry(["read_file"]), limits=limits)
 
     # Compact JSON length is 13: {"a":1,"b":2}
     validator.validate_tool_call("read_file", {"payload": {"a": 1, "b": 2}})
@@ -296,15 +269,8 @@ def test_validate_tool_call_whitelist_error_truncates_sorted_tool_display():
 
 
 def test_validate_tool_call_reuses_valid_tool_cache_across_calls():
-    config = AppConfig(interaction_mode="agent", security_limits=SecurityLimits())
-    metrics = DummyMetrics()
     registry = CountingRegistry(["read_file"])
-    validator = ToolCallValidator(
-        config=config,
-        tool_registry=registry,
-        metrics=metrics,
-        limits=config.security_limits,
-    )
+    validator, _metrics = _make_validator_for_registry(registry)
 
     validator.validate_tool_call("read_file", {"file_path": "/tmp/a"})
     validator.validate_tool_call("read_file", {"file_path": "/tmp/b"})
@@ -313,15 +279,8 @@ def test_validate_tool_call_reuses_valid_tool_cache_across_calls():
 
 
 def test_validate_tool_call_invalidates_cache_when_dev_selection_changes():
-    config = AppConfig(interaction_mode="agent", security_limits=SecurityLimits())
-    metrics = DummyMetrics()
     registry = CountingRegistry(["read_file"])
-    validator = ToolCallValidator(
-        config=config,
-        tool_registry=registry,
-        metrics=metrics,
-        limits=config.security_limits,
-    )
+    validator, _metrics = _make_validator_for_registry(registry)
     validator._dev_tool_selection = None
 
     validator.validate_tool_call("read_file", {"file_path": "/tmp/a"})
