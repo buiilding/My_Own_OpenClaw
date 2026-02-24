@@ -21,6 +21,13 @@ async def _collect_preparation(preparer, tool_calls):
     return [], result
 
 
+def _assert_single_result_with_coordinate_method(events, result, expected_method: str) -> None:
+    assert events == []
+    assert result is not None
+    assert result.resolved_calls
+    assert result.resolved_calls[0].metadata["coordinate_method"] == expected_method
+
+
 @pytest.mark.asyncio
 async def test_prepare_single_tool_assigns_request_id():
     preparer = ToolPreparer(object(), object(), object())
@@ -71,11 +78,7 @@ async def test_prepare_mouse_control_uses_coordinate_resolution(monkeypatch):
     )
 
     events, result = await _collect_preparation(preparer, [tool_call])
-
-    assert events == []
-    assert result is not None
-    assert result.resolved_calls
-    assert result.resolved_calls[0].metadata["coordinate_method"] == "ocr"
+    _assert_single_result_with_coordinate_method(events, result, "ocr")
 
 
 @pytest.mark.asyncio
@@ -88,11 +91,7 @@ async def test_prepare_mouse_control_manual_sets_coordinate_method_metadata():
     )
 
     events, result = await _collect_preparation(preparer, [tool_call])
-
-    assert events == []
-    assert result is not None
-    assert result.resolved_calls
-    assert result.resolved_calls[0].metadata["coordinate_method"] == "manual"
+    _assert_single_result_with_coordinate_method(events, result, "manual")
 
 
 def test_tool_call_needs_coordinate_resolution_requires_mouse_control_and_supported_method():
