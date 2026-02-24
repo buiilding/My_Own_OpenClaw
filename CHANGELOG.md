@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): add phase-103 full-gate snapshot after backend websocket-connection logger-helper dedupe wave (frontend audits/tests + backend + sidecar)
 - docs(refactor-plan): add phase-102 full-gate snapshot after voice-hook shared audio-capture refs dedupe wave (frontend audits/tests + backend + sidecar)
 - refactor(backend-websocket-tests): extract shared logger monkeypatch helper in `tests/backend/test_websocket_connection.py` to dedupe repeated warning/error capture scaffolding in handshake failure tests; jscpd improved from clones `119 -> 118` and duplicated lines `2044 -> 2029`
 - docs(refactor-plan): add phase-101 full-gate snapshot after frontend test mock-wiring tightening wave (frontend audits/tests + backend + sidecar)
