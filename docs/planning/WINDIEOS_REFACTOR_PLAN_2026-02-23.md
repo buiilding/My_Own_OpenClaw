@@ -1948,3 +1948,23 @@ read_when:
     - `./scripts/test-backend` (pass; 966 tests)
   - sidecar tests:
     - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+
+## Phase 58 Outcome (2026-02-24)
+
+- Chat message sender test duplication cleanup shipped:
+  - extracted shared helpers in:
+    - `tests/frontend/ChatMessageSender.test.tsx`
+      - `renderSender`
+      - `sendText`
+      - `expectSingleSendQueryCall`
+      - `expectNoShowChatboxCall`
+  - reduced repeated hook setup + send/assert boilerplate without changing test coverage (`17` assertions preserved).
+- Verification:
+  - `cd frontend && npm run test:ci -- tests/frontend/ChatMessageSender.test.tsx` (pass; 17 tests)
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run audit:jscpd` (pass)
+  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - jscpd snapshot deltas:
+    - clones: `170 -> 163`
+    - duplicated lines: `2588 -> 2510`
+    - duplicated tokens: `22889 -> 22274`

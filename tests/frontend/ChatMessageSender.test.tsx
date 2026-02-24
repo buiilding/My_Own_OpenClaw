@@ -58,6 +58,44 @@ const mockSetActiveConversationRef = setActiveConversationRef as jest.MockedFunc
 const mockGetTranscriptSessionInfo = getTranscriptSessionInfo as jest.MockedFunction<typeof getTranscriptSessionInfo>;
 
 describe('useChatMessageSender', () => {
+  function renderSender(
+    options?: Parameters<typeof useChatMessageSender>[1],
+    stopPlayback?: () => void,
+  ) {
+    return renderHook(() => useChatMessageSender(stopPlayback, options));
+  }
+
+  async function sendText(
+    sender: ReturnType<typeof renderSender>['result'],
+    text: string,
+  ) {
+    await act(async () => {
+      await sender.current.sendMessage(text);
+    });
+  }
+
+  function expectSingleSendQueryCall(
+    text: string,
+    conversationRef: string,
+    screenshotRef: string | null = null,
+    screenshotUrl: string | null = null,
+  ) {
+    expect(mockSendQuery).toHaveBeenCalledTimes(1);
+    expect(mockSendQuery).toHaveBeenCalledWith(
+      text,
+      conversationRef,
+      screenshotRef,
+      screenshotUrl,
+    );
+  }
+
+  function expectNoShowChatboxCall() {
+    expect((window as any).ipc.invoke).not.toHaveBeenCalledWith(
+      INVOKE_CHANNELS.SHOW_CHATBOX,
+      expect.anything(),
+    );
+  }
+
   beforeEach(() => {
     jest.spyOn(console, 'warn').mockImplementation(() => {});
     jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -98,43 +136,21 @@ describe('useChatMessageSender', () => {
   });
 
   test('does not return to chatbox from main-window sends', async () => {
-    const { result } = renderHook(() =>
-      useChatMessageSender(undefined, { senderSurface: 'main-window' }),
-    );
-
-    await act(async () => {
-      await result.current.sendMessage('hello');
-    });
-
-    expect((window as any).ipc.invoke).not.toHaveBeenCalledWith(
-      INVOKE_CHANNELS.SHOW_CHATBOX,
-      expect.anything(),
-    );
+    const { result } = renderSender({ senderSurface: 'main-window' });
+    await sendText(result, 'hello');
+    expectNoShowChatboxCall();
   });
 
   test('uses default options when omitted', async () => {
-    const { result } = renderHook(() => useChatMessageSender());
-
-    await act(async () => {
-      await result.current.sendMessage('hello');
-    });
-
-    expect((window as any).ipc.invoke).not.toHaveBeenCalledWith(
-      INVOKE_CHANNELS.SHOW_CHATBOX,
-      expect.anything(),
-    );
-    expect(mockSendQuery.mock.calls.length).toBe(1);
-    expect(mockSendQuery.mock.calls[0]).toEqual(['hello', 'conv_msg-1', null, null]);
+    const { result } = renderSender();
+    await sendText(result, 'hello');
+    expectNoShowChatboxCall();
+    expectSingleSendQueryCall('hello', 'conv_msg-1');
   });
 
   test('overlay-chatbox surface never switches windows by default', async () => {
-    const { result } = renderHook(() =>
-      useChatMessageSender(undefined, { senderSurface: 'overlay-chatbox' }),
-    );
-
-    await act(async () => {
-      await result.current.sendMessage('hello');
-    });
+    const { result } = renderSender({ senderSurface: 'overlay-chatbox' });
+    await sendText(result, 'hello');
 
     expect((window as any).ipc.invoke).not.toHaveBeenCalledWith(
       INVOKE_CHANNELS.SHOW_CHATBOX,
@@ -145,19 +161,14 @@ describe('useChatMessageSender', () => {
   test('continues send flow when overlay return-to-chatbox invoke fails', async () => {
     (window as any).ipc.invoke = jest.fn().mockRejectedValue(new Error('show-failed'));
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
-    const { result } = renderHook(() =>
-      useChatMessageSender(undefined, {
-        senderSurface: 'overlay-chatbox',
-        returnToChatboxPolicy: 'always',
-      }),
-    );
-
-    await act(async () => {
-      await result.current.sendMessage('hello');
+    const { result } = renderSender({
+      senderSurface: 'overlay-chatbox',
+      returnToChatboxPolicy: 'always',
     });
 
-    expect(mockSendQuery.mock.calls.length).toBe(1);
-    expect(mockSendQuery.mock.calls[0]).toEqual(['hello', 'conv_msg-1', null, null]);
+    await sendText(result, 'hello');
+
+    expectSingleSendQueryCall('hello', 'conv_msg-1');
     expect(warnSpy).toHaveBeenCalledWith(
       '[useChatMessageSender] Failed to show chatbox:',
       expect.any(Error),
@@ -167,13 +178,8 @@ describe('useChatMessageSender', () => {
 
   test('does not return to chatbox when screenshots are disabled even if requested', async () => {
     mockFrontendConfig = { include_query_screenshot: false };
-    const { result } = renderHook(() =>
-      useChatMessageSender(undefined, { senderSurface: 'main-window' }),
-    );
-
-    await act(async () => {
-      await result.current.sendMessage('hello');
-    });
+    const { result } = renderSender({ senderSurface: 'main-window' });
+    await sendText(result, 'hello');
 
     expect((window as any).ipc.invoke).not.toHaveBeenCalledWith(
       INVOKE_CHANNELS.SHOW_CHATBOX,
@@ -183,17 +189,11 @@ describe('useChatMessageSender', () => {
 
   test('ignores explicit always return policy for main-window sends', async () => {
     mockFrontendConfig = { include_query_screenshot: false };
-    const { result } = renderHook(() =>
-      useChatMessageSender(undefined, {
-        senderSurface: 'main-window',
-        returnToChatboxPolicy: 'always',
-      }),
-    );
-
-    await act(async () => {
-      await result.current.sendMessage('hello');
+    const { result } = renderSender({
+      senderSurface: 'main-window',
+      returnToChatboxPolicy: 'always',
     });
-
+    await sendText(result, 'hello');
     expect((window as any).ipc.invoke).not.toHaveBeenCalledWith(
       INVOKE_CHANNELS.SHOW_CHATBOX,
       expect.anything(),
@@ -201,16 +201,11 @@ describe('useChatMessageSender', () => {
   });
 
   test('overlay surface honors explicit always return policy', async () => {
-    const { result } = renderHook(() =>
-      useChatMessageSender(undefined, {
-        senderSurface: 'overlay-chatbox',
-        returnToChatboxPolicy: 'always',
-      }),
-    );
-
-    await act(async () => {
-      await result.current.sendMessage('hello');
+    const { result } = renderSender({
+      senderSurface: 'overlay-chatbox',
+      returnToChatboxPolicy: 'always',
     });
+    await sendText(result, 'hello');
 
     expect((window as any).ipc.invoke).toHaveBeenCalledWith(
       INVOKE_CHANNELS.SHOW_CHATBOX,
@@ -219,13 +214,8 @@ describe('useChatMessageSender', () => {
   });
 
   test('marks first user message capture path on first send', async () => {
-    const { result } = renderHook(() =>
-      useChatMessageSender(undefined, { returnToChatboxPolicy: 'never' }),
-    );
-
-    await act(async () => {
-      await result.current.sendMessage('hello');
-    });
+    const { result } = renderSender({ returnToChatboxPolicy: 'never' });
+    await sendText(result, 'hello');
 
     expect(mockExtractOSstate).toHaveBeenCalledWith(
       true,
@@ -249,13 +239,8 @@ describe('useChatMessageSender', () => {
       tokenCounts: null,
     });
 
-    const { result } = renderHook(() =>
-      useChatMessageSender(undefined, { returnToChatboxPolicy: 'never' }),
-    );
-
-    await act(async () => {
-      await result.current.sendMessage('second');
-    });
+    const { result } = renderSender({ returnToChatboxPolicy: 'never' });
+    await sendText(result, 'second');
 
     expect(mockExtractOSstate).toHaveBeenCalledWith(
       true,
@@ -267,42 +252,27 @@ describe('useChatMessageSender', () => {
 
   test('skips screenshot capture when include_query_screenshot is disabled', async () => {
     mockFrontendConfig = { include_query_screenshot: false };
-    const { result } = renderHook(() =>
-      useChatMessageSender(undefined, { returnToChatboxPolicy: 'never' }),
-    );
-
-    await act(async () => {
-      await result.current.sendMessage('no image');
-    });
+    const { result } = renderSender({ returnToChatboxPolicy: 'never' });
+    await sendText(result, 'no image');
 
     expect(mockExtractOSstate).not.toHaveBeenCalled();
     expect(mockUploadArtifactBase64).not.toHaveBeenCalled();
-    expect(mockSendQuery).toHaveBeenCalledWith('no image', 'conv_msg-1', null, null);
+    expectSingleSendQueryCall('no image', 'conv_msg-1');
   });
 
   test('skips screenshot capture for main-window sends', async () => {
-    const { result } = renderHook(() =>
-      useChatMessageSender(undefined, { senderSurface: 'main-window' }),
-    );
-
-    await act(async () => {
-      await result.current.sendMessage('dashboard text');
-    });
+    const { result } = renderSender({ senderSurface: 'main-window' });
+    await sendText(result, 'dashboard text');
 
     expect(mockExtractOSstate).not.toHaveBeenCalled();
     expect(mockUploadArtifactBase64).not.toHaveBeenCalled();
-    expect(mockSendQuery).toHaveBeenCalledWith('dashboard text', 'conv_msg-1', null, null);
+    expectSingleSendQueryCall('dashboard text', 'conv_msg-1');
   });
 
   test('calls stopPlayback when provided', async () => {
     const stopPlayback = jest.fn();
-    const { result } = renderHook(() =>
-      useChatMessageSender(stopPlayback, { returnToChatboxPolicy: 'never' }),
-    );
-
-    await act(async () => {
-      await result.current.sendMessage('hello');
-    });
+    const { result } = renderSender({ returnToChatboxPolicy: 'never' }, stopPlayback);
+    await sendText(result, 'hello');
 
     expect(stopPlayback).toHaveBeenCalledTimes(1);
   });
@@ -311,17 +281,11 @@ describe('useChatMessageSender', () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     mockExtractOSstate.mockRejectedValue(new Error('capture-failed'));
 
-    const { result } = renderHook(() =>
-      useChatMessageSender(undefined, { returnToChatboxPolicy: 'never' }),
-    );
-
-    await act(async () => {
-      await result.current.sendMessage('hello');
-    });
+    const { result } = renderSender({ returnToChatboxPolicy: 'never' });
+    await sendText(result, 'hello');
 
     expect(mockUploadArtifactBase64).not.toHaveBeenCalled();
-    expect(mockSendQuery.mock.calls.length).toBe(1);
-    expect(mockSendQuery.mock.calls[0]).toEqual(['hello', 'conv_msg-1', null, null]);
+    expectSingleSendQueryCall('hello', 'conv_msg-1');
     expect(errorSpy).toHaveBeenCalledWith(
       '[useChatMessageSender] Failed to extract OS state:',
       expect.any(Error),
@@ -337,13 +301,8 @@ describe('useChatMessageSender', () => {
     });
     mockUploadArtifactBase64.mockRejectedValue(new Error('upload failed'));
 
-    const { result } = renderHook(() =>
-      useChatMessageSender(undefined, { returnToChatboxPolicy: 'never' }),
-    );
-
-    await act(async () => {
-      await result.current.sendMessage('hello');
-    });
+    const { result } = renderSender({ returnToChatboxPolicy: 'never' });
+    await sendText(result, 'hello');
 
     expect(mockUploadArtifactBase64).toHaveBeenCalled();
     expect(mockUploadArtifactBase64).toHaveBeenCalledWith(
@@ -351,8 +310,7 @@ describe('useChatMessageSender', () => {
       'image/png',
       'user-message.png',
     );
-    expect(mockSendQuery.mock.calls.length).toBe(1);
-    expect(mockSendQuery.mock.calls[0]).toEqual(['hello', 'conv_msg-1', null, null]);
+    expectSingleSendQueryCall('hello', 'conv_msg-1');
   });
 
   test('sends uploaded screenshot refs to backend and updates message attachment', async () => {
@@ -366,21 +324,15 @@ describe('useChatMessageSender', () => {
       url: '/api/artifacts/artifact-1',
     } as any);
 
-    const { result } = renderHook(() =>
-      useChatMessageSender(undefined, { returnToChatboxPolicy: 'never' }),
-    );
+    const { result } = renderSender({ returnToChatboxPolicy: 'never' });
+    await sendText(result, 'hello');
 
-    await act(async () => {
-      await result.current.sendMessage('hello');
-    });
-
-    expect(mockSendQuery.mock.calls.length).toBe(1);
-    expect(mockSendQuery.mock.calls[0]).toEqual([
+    expectSingleSendQueryCall(
       'hello',
       'conv_msg-1',
       'artifact-1',
       '/api/artifacts/artifact-1',
-    ]);
+    );
     expect(useChatStore.getState().messages[0]).toEqual(
       expect.objectContaining({
         screenshotRef: 'artifact-1',
@@ -400,9 +352,7 @@ describe('useChatMessageSender', () => {
   test('resets sending state and appends error message when send fails', async () => {
     mockSendQuery.mockRejectedValue(new Error('send failed'));
 
-    const { result } = renderHook(() =>
-      useChatMessageSender(undefined, { returnToChatboxPolicy: 'never' }),
-    );
+    const { result } = renderSender({ returnToChatboxPolicy: 'never' });
 
     let thrownError: Error | null = null;
     await act(async () => {
@@ -428,16 +378,11 @@ describe('useChatMessageSender', () => {
 
   test('reuses existing conversation ref without generating a new one', async () => {
     mockActiveConversationRef = 'conv_existing';
-    const { result } = renderHook(() =>
-      useChatMessageSender(undefined, { returnToChatboxPolicy: 'never' }),
-    );
-
-    await act(async () => {
-      await result.current.sendMessage('hello again');
-    });
+    const { result } = renderSender({ returnToChatboxPolicy: 'never' });
+    await sendText(result, 'hello again');
 
     expect(mockSetActiveConversationRef).not.toHaveBeenCalled();
-    expect(mockSendQuery.mock.calls.length).toBe(1);
+    expect(mockSendQuery).toHaveBeenCalledTimes(1);
     expect(mockSendQuery.mock.calls[0][1]).toBe('conv_existing');
     expect(mockRecordUserMessage.mock.calls[0][1]).toEqual(
       expect.objectContaining({
