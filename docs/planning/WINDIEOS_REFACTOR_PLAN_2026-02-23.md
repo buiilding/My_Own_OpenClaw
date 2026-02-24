@@ -2470,3 +2470,20 @@ read_when:
     - clones: `134 -> 131`
     - duplicated lines: `2218 -> 2199`
     - duplicated tokens: `19383 -> 19162`
+
+## Phase 86 Outcome (2026-02-24)
+
+- Local backend RPC test assertion duplication cleanup shipped:
+  - added shared helper in `tests/frontend/LocalBackendBridge.rpc.test.cjs`:
+    - `expectLastRequestWith(method, params)`
+  - reused helper across list/get/delete conversation + semantic memory handler tests to remove repeated `getLastWrittenRequest` + `expect.objectContaining` boilerplate.
+- Verification:
+  - `cd frontend && npx jest ../tests/frontend/LocalBackendBridge.rpc.test.cjs --runInBand` (pass; 16 tests)
+  - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
+  - `cd frontend && npm run audit:knip` (pass)
+  - `cd frontend && npm run audit:jscpd` (pass)
+  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - jscpd snapshot deltas:
+    - clones: `131 -> 131`
+    - duplicated lines: `2199 -> 2197`
+    - duplicated tokens: `19162 -> 19154`

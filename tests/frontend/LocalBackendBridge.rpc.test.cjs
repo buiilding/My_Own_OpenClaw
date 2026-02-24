@@ -26,6 +26,16 @@ describe('local_backend_bridge RPC handlers', () => {
     emitRpcMessage(stdoutHandler, { error: { message } });
   }
 
+  function expectLastRequestWith(method, params) {
+    const request = getLastWrittenRequest();
+    expect(request).toEqual(
+      expect.objectContaining({
+        method,
+        params,
+      }),
+    );
+  }
+
   test('execute-tool handler returns success for valid response', async () => {
     const { handlers, stdoutHandler } = initBridge();
     markReady();
@@ -198,17 +208,11 @@ describe('local_backend_bridge RPC handlers', () => {
       recordKind: 'transcript',
     });
 
-    const request = getLastWrittenRequest();
-    expect(request).toEqual(
-      expect.objectContaining({
-        method: 'list_conversations',
-        params: {
-          user_id: 'u-1',
-          limit: 7,
-          record_kind: 'transcript',
-        },
-      }),
-    );
+    expectLastRequestWith('list_conversations', {
+      user_id: 'u-1',
+      limit: 7,
+      record_kind: 'transcript',
+    });
 
     emitRpcResult(stdoutHandler, { success: true, data: { items: [] } });
 
@@ -221,13 +225,7 @@ describe('local_backend_bridge RPC handlers', () => {
 
     const promise = handlers['list-conversations'](null, 'invalid-payload');
 
-    const request = getLastWrittenRequest();
-    expect(request).toEqual(
-      expect.objectContaining({
-        method: 'list_conversations',
-        params: {},
-      }),
-    );
+    expectLastRequestWith('list_conversations', {});
 
     emitRpcResult(stdoutHandler, { success: true, data: { items: [] } });
 
@@ -243,16 +241,10 @@ describe('local_backend_bridge RPC handlers', () => {
       limit: 12,
     });
 
-    const request = getLastWrittenRequest();
-    expect(request).toEqual(
-      expect.objectContaining({
-        method: 'list_semantic_memories',
-        params: {
-          user_id: 'u-1',
-          limit: 12,
-        },
-      }),
-    );
+    expectLastRequestWith('list_semantic_memories', {
+      user_id: 'u-1',
+      limit: 12,
+    });
 
     emitRpcResult(stdoutHandler, { success: true, data: { memories: [] } });
 
@@ -269,18 +261,12 @@ describe('local_backend_bridge RPC handlers', () => {
       recordKind: 'transcript',
     });
 
-    const request = getLastWrittenRequest();
-    expect(request).toEqual(
-      expect.objectContaining({
-        method: 'get_conversation',
-        params: {
-          user_id: 'u-1',
-          conversation_id: null,
-          limit: 4,
-          record_kind: 'transcript',
-        },
-      }),
-    );
+    expectLastRequestWith('get_conversation', {
+      user_id: 'u-1',
+      conversation_id: null,
+      limit: 4,
+      record_kind: 'transcript',
+    });
 
     emitRpcResult(stdoutHandler, { success: true, data: { messages: [] } });
 
@@ -297,17 +283,11 @@ describe('local_backend_bridge RPC handlers', () => {
       recordKind: 'transcript',
     });
 
-    const request = getLastWrittenRequest();
-    expect(request).toEqual(
-      expect.objectContaining({
-        method: 'delete_conversation',
-        params: {
-          user_id: 'u-1',
-          conversation_id: 'c-1',
-          record_kind: 'transcript',
-        },
-      }),
-    );
+    expectLastRequestWith('delete_conversation', {
+      user_id: 'u-1',
+      conversation_id: 'c-1',
+      record_kind: 'transcript',
+    });
 
     emitRpcResult(stdoutHandler, { success: true, data: { deleted_count: 3 } });
 
@@ -323,16 +303,10 @@ describe('local_backend_bridge RPC handlers', () => {
       memoryId: 'm-1',
     });
 
-    const request = getLastWrittenRequest();
-    expect(request).toEqual(
-      expect.objectContaining({
-        method: 'delete_semantic_memory',
-        params: {
-          user_id: 'u-1',
-          memory_id: 'm-1',
-        },
-      }),
-    );
+    expectLastRequestWith('delete_semantic_memory', {
+      user_id: 'u-1',
+      memory_id: 'm-1',
+    });
 
     emitRpcResult(stdoutHandler, { success: true, data: { deleted: true } });
 
