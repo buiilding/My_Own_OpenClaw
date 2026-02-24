@@ -102,6 +102,10 @@ Platform-specific abstractions:
 - `core/platform/macos.py`
 - `core/platform/linux.py`
 
+Deep reference:
+
+- [System-State Collection and Platform Adapter Reference](system_state/system_state_collection_and_platform_adapter_reference.md)
+
 ## Wakeword Service Boundary
 
 Wakeword runtime remains a dedicated subprocess due binary audio framing and streaming constraints.

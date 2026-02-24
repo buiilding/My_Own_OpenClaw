@@ -11,6 +11,8 @@ title: "Frontend Sidecar Docs Hub"
 ## Deep Pages
 
 - [Python Sidecar and Memory](python_sidecar_and_memory.md)
+- [Sidecar System-State Docs Hub](system_state/README.md)
+- [System-State Collection and Platform Adapter Reference](system_state/system_state_collection_and_platform_adapter_reference.md)
 - [Sidecar Tool Catalog and Execution Model](tool_catalog_and_execution_model.md)
 - [Memory Pipeline and Summarization](memory_pipeline_and_summarization.md)
 - [Browser Automation Stack](browser_automation_stack.md)
