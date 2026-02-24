@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-chatbox-context-positioning): lower separate active-window label a bit more by removing extra gap above the chat pill
 - fix(frontend-chatbox-context-positioning): lower separate active-window label window closer to the chat pill for better vertical alignment
 - fix(frontend-chatbox-boundary-shape): remove root/body default margins and enforce rounded clip-path on chat pill so the visible boundary follows the pill curve (no rectangular transparent corner gutters)
 - fix(frontend-chatbox-context-window): split active-window label into a dedicated transparent `chatbox-context-label` overlay window so chat pill keeps an exact rounded boundary while label remains separate, copyable text above the pill
