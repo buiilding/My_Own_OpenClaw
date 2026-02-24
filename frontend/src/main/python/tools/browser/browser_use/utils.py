@@ -348,6 +348,18 @@ class SignalHandler:
 			setattr(self.loop, 'waiting_for_input', False)
 
 
+def _resolve_execution_logger(args: tuple[Any, ...], kwargs: dict[str, Any]) -> logging.Logger:
+	"""Resolve logger target for timing decorators."""
+	self_has_logger = bool(args and getattr(args[0], 'logger', None))
+	if self_has_logger:
+		return getattr(args[0], 'logger')
+	if 'agent' in kwargs:
+		return getattr(kwargs['agent'], 'logger')
+	if 'browser_session' in kwargs:
+		return getattr(kwargs['browser_session'], 'logger')
+	return logging.getLogger(__name__)
+
+
 def time_execution_sync(additional_text: str = '') -> Callable[[Callable[P, R]], Callable[P, R]]:
 	def decorator(func: Callable[P, R]) -> Callable[P, R]:
 		@wraps(func)
@@ -357,15 +369,7 @@ def time_execution_sync(additional_text: str = '') -> Callable[[Callable[P, R]],
 			execution_time = time.time() - start_time
 			# Only log if execution takes more than 0.25 seconds
 			if execution_time > 0.25:
-				self_has_logger = args and getattr(args[0], 'logger', None)
-				if self_has_logger:
-					logger = getattr(args[0], 'logger')
-				elif 'agent' in kwargs:
-					logger = getattr(kwargs['agent'], 'logger')
-				elif 'browser_session' in kwargs:
-					logger = getattr(kwargs['browser_session'], 'logger')
-				else:
-					logger = logging.getLogger(__name__)
+				logger = _resolve_execution_logger(args=args, kwargs=kwargs)
 				logger.debug(f'⏳ {additional_text.strip("-")}() took {execution_time:.2f}s')
 			return result
 
@@ -386,15 +390,7 @@ def time_execution_async(
 			# Only log if execution takes more than 0.25 seconds to avoid spamming the logs
 			# you can lower this threshold locally when you're doing dev work to performance optimize stuff
 			if execution_time > 0.25:
-				self_has_logger = args and getattr(args[0], 'logger', None)
-				if self_has_logger:
-					logger = getattr(args[0], 'logger')
-				elif 'agent' in kwargs:
-					logger = getattr(kwargs['agent'], 'logger')
-				elif 'browser_session' in kwargs:
-					logger = getattr(kwargs['browser_session'], 'logger')
-				else:
-					logger = logging.getLogger(__name__)
+				logger = _resolve_execution_logger(args=args, kwargs=kwargs)
 				logger.debug(f'⏳ {additional_text.strip("-")}() took {execution_time:.2f}s')
 			return result
 
