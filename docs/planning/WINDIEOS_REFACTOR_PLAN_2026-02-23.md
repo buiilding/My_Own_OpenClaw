@@ -1809,3 +1809,13 @@ read_when:
   - `cd frontend && npm run lint:audit` (pass)
   - `cd frontend && npm run audit:jscpd` (pass)
   - `cd frontend && npm run test:ci` (pass; 89 suites, 607 tests)
+
+## Phase 49 Outcome (2026-02-24)
+
+- Full-gate revalidation after test-suite and harness restructuring:
+  - frontend:
+    - `cd frontend && npm run test:ci` (pass; 89 suites, 607 tests)
+  - backend:
+    - `./scripts/test-backend` (pass; 966 tests)
+  - sidecar:
+    - `./scripts/test-sidecar` (pass; 462 tests; 3 known swig deprecation warnings)
