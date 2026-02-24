@@ -50,6 +50,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Backend Non-Query Handler Flows**](backend/api/NON_QUERY_HANDLER_AND_CONTROL_FLOW_REFERENCE.md) - Settings/model handlers, stop-query cancellation semantics, wakeword activation responses, and transcript rehydrate normalization path
 - [**Backend Provider Factory Runtime**](backend/llm/PROVIDER_FACTORY_AND_RUNTIME_SELECTION_REFERENCE.md) - Provider-factory cache keys, provider availability gates, client normalization, and model-service catalog/discovery rules
 - [**Backend Artifact + Screenshot Flow**](backend/services/ARTIFACT_SCREENSHOT_AND_SYSTEM_STATE_FLOW_REFERENCE.md) - Artifact upload/load rules and screenshot/system-state propagation across query, tool-result, OCR refresh, and rehydrate flows
+- [**Backend TTS + Wakeword Audio Runtime**](backend/services/TTS_AND_WAKEWORD_AUDIO_RUNTIME_REFERENCE.md) - Query-time speech pipeline and wakeword greeting flow: runtime config gates, TTS filtering/queueing internals, chunk streaming, and cleanup semantics
 - [**Browser Control**](browser/BROWSER_CONTROL.md) - Browser automation architecture and tool behavior
 - [**Sidecar Browser Automation Stack**](frontend/sidecar/BROWSER_AUTOMATION_STACK.md) - Renderer->main->sidecar browser runtime and CDP orchestration details
 - [**Sidecar JSON-RPC Reference**](frontend/sidecar/LOCAL_BACKEND_JSONRPC_REFERENCE.md) - Main-process bridge method map and local backend JSON-RPC contract details
