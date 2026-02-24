@@ -6,7 +6,7 @@ describe('useSettingsManagement', () => {
   test('handleModelsListed forwards payload to setAvailableModels', () => {
     const setAvailableModels = jest.fn();
 
-    const { result } = renderHook(() => useSettingsManagement(jest.fn(), setAvailableModels));
+    const { result } = renderHook(() => useSettingsManagement(setAvailableModels));
 
     act(() => {
       result.current.handleModelsListed({
@@ -25,7 +25,7 @@ describe('useSettingsManagement', () => {
 
   test('returns memoized handlers when dependencies stay the same', () => {
     const setAvailableModels = jest.fn();
-    const { result, rerender } = renderHook(() => useSettingsManagement(jest.fn(), setAvailableModels));
+    const { result, rerender } = renderHook(() => useSettingsManagement(setAvailableModels));
 
     const firstHandlers = result.current;
     rerender();
@@ -38,7 +38,7 @@ describe('useSettingsManagement', () => {
     const firstSetter = jest.fn();
     const secondSetter = jest.fn();
     const { result, rerender } = renderHook(
-      ({ setter }) => useSettingsManagement(jest.fn(), setter),
+      ({ setter }) => useSettingsManagement(setter),
       { initialProps: { setter: firstSetter } },
     );
 
