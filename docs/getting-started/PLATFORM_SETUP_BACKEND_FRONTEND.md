@@ -1,3 +1,10 @@
+---
+summary: "Backend + Frontend Environment Setup"
+read_when:
+  - When setting up backend and frontend local environments across Windows, Ubuntu, or macOS.
+  - When validating CUDA/Torch/ONNX Runtime compatibility for OCR workloads.
+---
+
 # WindieOS Backend + Frontend Environment Setup (Windows, Ubuntu, macOS)
 
 This guide sets up:
