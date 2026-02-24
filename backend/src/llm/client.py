@@ -156,6 +156,40 @@ class LiteLLMClient(LLMClient):
             raise LLMAPIError(f"LLM provider error: {exc}", model=model) from exc
 
     @staticmethod
+    def _normalize_tool_call_entry(
+        tool_call: Any,
+        *,
+        index: int,
+        model: str,
+    ) -> Dict[str, Any]:
+        """Normalize one tool call object into canonical id/name/arguments fields."""
+        if not isinstance(tool_call, dict):
+            raise LLMAPIError(
+                f"Invalid tool call at index {index}: expected dict",
+                model=model,
+            )
+        tool_id = tool_call.get("id")
+        tool_name = tool_call.get("name")
+        arguments = tool_call.get("arguments", {})
+
+        if not isinstance(tool_id, str) or not tool_id:
+            raise LLMAPIError(
+                f"Invalid tool call id at index {index}: expected non-empty str",
+                model=model,
+            )
+        if not isinstance(tool_name, str) or not tool_name:
+            raise LLMAPIError(
+                f"Invalid tool call name at index {index}: expected non-empty str",
+                model=model,
+            )
+        if not isinstance(arguments, dict):
+            raise LLMAPIError(
+                f"Invalid tool call arguments at index {index}: expected dict",
+                model=model,
+            )
+        return {"id": tool_id, "name": tool_name, "arguments": arguments}
+
+    @staticmethod
     def _normalize_tool_calls(
         tool_calls: Any,
         *,
@@ -171,33 +205,12 @@ class LiteLLMClient(LLMClient):
 
             normalized_tool_calls = []
             for index, tool_call in enumerate(tool_calls):
-                if not isinstance(tool_call, dict):
-                    raise LLMAPIError(
-                        f"Invalid tool call at index {index}: expected dict",
-                        model=model,
-                    )
-                tool_id = tool_call.get("id")
-                tool_name = tool_call.get("name")
-                arguments = tool_call.get("arguments", {})
-
-                if not isinstance(tool_id, str) or not tool_id:
-                    raise LLMAPIError(
-                        f"Invalid tool call id at index {index}: expected non-empty str",
-                        model=model,
-                    )
-                if not isinstance(tool_name, str) or not tool_name:
-                    raise LLMAPIError(
-                        f"Invalid tool call name at index {index}: expected non-empty str",
-                        model=model,
-                    )
-                if not isinstance(arguments, dict):
-                    raise LLMAPIError(
-                        f"Invalid tool call arguments at index {index}: expected dict",
-                        model=model,
-                    )
-
                 normalized_tool_calls.append(
-                    {"id": tool_id, "name": tool_name, "arguments": arguments}
+                    LiteLLMClient._normalize_tool_call_entry(
+                        tool_call,
+                        index=index,
+                        model=model,
+                    )
                 )
             return normalized_tool_calls
         return None

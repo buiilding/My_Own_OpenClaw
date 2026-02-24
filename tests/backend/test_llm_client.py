@@ -488,6 +488,17 @@ async def test_get_completion_response_rejects_non_list_tool_calls(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_get_completion_response_rejects_non_dict_tool_call_entry(monkeypatch):
+    cfg = AppConfig()
+    client = LiteLLMClient(cfg)
+    provider = DummyProvider(response={"content": "", "tool_calls": [123]})
+    monkeypatch.setattr("backend.src.llm.client.get_provider", lambda *_: provider)
+
+    with pytest.raises(LLMAPIError, match="Invalid tool call at index 0"):
+        await client.get_completion_response("model", [])
+
+
+@pytest.mark.asyncio
 async def test_get_completion_response_rejects_non_string_finish_reason(monkeypatch):
     cfg = AppConfig()
     client = LiteLLMClient(cfg)
