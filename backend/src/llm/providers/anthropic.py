@@ -1,9 +1,7 @@
 import logging
 from typing import Any, AsyncGenerator, Dict, List, Optional
 
-import litellm
-
-from backend.src.core.events.streaming_events import ChunkEvent, StreamingEvent, ThinkingEvent
+from backend.src.core.events.streaming_events import StreamingEvent
 from backend.src.core.types.schemas import (
     LLMMessage,
     NormalizedLLMResponse,
@@ -75,18 +73,8 @@ class AnthropicProvider(LLMProvider):
             prompt_cache_key=prompt_cache_key,
         )
         self._enable_stream_with_usage(params)
-        stream = await litellm.acompletion(**params)
-        async for chunk in stream:
-            self._record_stream_usage_from_chunk(chunk)
-            delta = self._extract_stream_delta(chunk)
-            if not delta:
-                continue
-            thinking_content = self._extract_thinking_content(delta)
-            if thinking_content:
-                yield ThinkingEvent(content=thinking_content)
-            content = self._extract_delta_content(delta)
-            if content:
-                yield ChunkEvent(content=content)
+        async for event in self._stream_thinking_and_text_events(params):
+            yield event
 
     async def list_models(self) -> List[Dict[str, str]]:
         """Lists available Anthropic models."""

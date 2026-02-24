@@ -817,6 +817,25 @@ read_when:
   - `pytest tests/backend/test_llm_provider_base.py tests/backend/test_local_llm_providers.py tests/backend/test_llm_client.py`
   - `cd frontend && npm run audit:jscpd` (track clone/duplicate delta; annotate global file-set churn when present)
 
+## Phase 39
+
+- `jscpd` duplication cleanup (provider thinking-stream loop):
+  - extract shared thinking+text stream helper in:
+    - `backend/src/llm/providers/base.py`
+  - reuse for provider streaming paths with thinking deltas:
+    - `AnthropicProvider._stream_internal`
+    - `GeminiProvider._stream_internal`
+  - preserve usage capture, thinking-event emission, and assistant chunk emission semantics.
+
+### Phase 39 Execution Slice (Current Loop)
+
+- Backend dedupe:
+  - remove duplicated thinking-aware stream iteration blocks in Anthropic/Gemini providers.
+  - keep provider-specific request params and model-specific thinking options unchanged.
+- Verification checks:
+  - `pytest tests/backend/test_llm_provider_base.py tests/backend/test_local_llm_providers.py tests/backend/test_llm_client.py`
+  - `cd frontend && npm run audit:jscpd` (track clone/duplicate delta; annotate file-set churn when present)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):
@@ -1616,3 +1635,21 @@ read_when:
 - Verification:
   - `pytest tests/backend/test_llm_provider_base.py tests/backend/test_local_llm_providers.py tests/backend/test_llm_client.py` (pass; 101 tests)
   - `cd frontend && npm run audit:jscpd` (pass; clone/duplicate reduction confirmed)
+
+## Phase 39 Outcome (2026-02-24)
+
+- Provider thinking-stream loop dedupe shipped:
+  - added shared thinking+text stream event helper in:
+    - `backend/src/llm/providers/base.py` (`_stream_thinking_and_text_events`)
+  - rewired duplicate thinking-stream iteration blocks in:
+    - `backend/src/llm/providers/anthropic.py`
+    - `backend/src/llm/providers/gemini.py`
+  - preserved stream usage capture and thinking/chunk event semantics.
+- jscpd delta after Phase 39 slice:
+  - clones: `187 -> 188`
+  - duplicated lines: `2854 -> 2850`
+  - duplicated tokens: `25335 -> 25317`
+  - note: run included broader repository churn (`775` files analyzed).
+- Verification:
+  - `pytest tests/backend/test_llm_provider_base.py tests/backend/test_local_llm_providers.py tests/backend/test_llm_client.py` (pass; 101 tests)
+  - `cd frontend && npm run audit:jscpd` (pass; duplicated lines/tokens reduction confirmed)
