@@ -14,7 +14,7 @@ describe('tokenCounts utils', () => {
     });
 
     expect(items).toEqual([
-      { key: 'conversation_tokens', label: 'Conversation Total', className: '', value: '40' },
+      { key: 'conversation_tokens', label: 'Conversation Total', className: '', value: '30' },
       { key: 'cache_status', label: 'Cache', className: '', value: 'Unknown' },
     ]);
   });
@@ -52,18 +52,24 @@ describe('tokenCounts utils', () => {
     );
   });
 
-  test('formats conversation token values and falls back to total tokens', () => {
+  test('formats total token values and falls back to conversation tokens', () => {
     const withConversation = buildTokenCountItems({
       total_tokens: 300,
       conversation_tokens: 120,
     });
-    expect(withConversation[0].value).toBe('120');
+    expect(withConversation[0].value).toBe('300');
 
     const withoutConversation = buildTokenCountItems({
       total_tokens: 300,
       conversation_tokens: undefined,
     });
     expect(withoutConversation[0].value).toBe('300');
+
+    const withoutTotal = buildTokenCountItems({
+      total_tokens: undefined,
+      conversation_tokens: 120,
+    });
+    expect(withoutTotal[0].value).toBe('120');
   });
 
   test('defaults missing token counts to zero text', () => {
