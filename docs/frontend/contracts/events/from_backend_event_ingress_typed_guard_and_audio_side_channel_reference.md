@@ -152,6 +152,8 @@ If audio drops but text stream works:
 ## Related Pages
 
 - [Frontend Contracts Events Docs Hub](README.md)
+- [Frontend Backend Event Schema Docs Hub](schema/README.md)
+- [Backend Event Payload Field Contract and Consumer Ownership Reference](schema/backend_event_payload_field_contract_and_consumer_ownership_reference.md)
 - [Settings and Model ACK Event Routing Reference](settings_and_model_ack_event_routing_reference.md)
 - [Backend Event Consumer Matrix Reference](../backend_event_consumer_matrix_reference.md)
 - [Schema Generation and Event Guard Reference](../schema_generation_and_event_guard_reference.md)
