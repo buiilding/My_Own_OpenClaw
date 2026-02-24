@@ -8,6 +8,7 @@ Includes the last 300 commits on `main`.
 
 ### Added
 - docs(todo): mark completed UI click-through and thinking-UI tasks in TODO checklist
+- refactor(backend-safe-websocket): replace repeated queue message-type string literals with module constants (`_WS_MSG_JSON`, `_WS_MSG_TEXT`, `_WS_MSG_CLOSE`) to reduce typo risk and keep sender-loop/send-call paths aligned
 - refactor(backend-llm-client): split normalized response parsing into focused `_normalize_tool_calls` and `_normalize_finish_reason` helpers and add regression coverage for invalid tool-calls/finish-reason payload types in `tests/backend/test_llm_client.py`
 - refactor(backend-safe-websocket): extract shared `_enqueue_and_await` helper and reuse it for both non-close sends and queued close serialization to remove duplicate future/await boilerplate
 - refactor(frontend-app-config-provider): extract shared `applyBackendConnectionSnapshot` callback for IPC status + initial client snapshot paths to dedupe transcript/user-id/backend-url sync logic

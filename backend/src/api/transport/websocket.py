@@ -16,6 +16,9 @@ logger = logging.getLogger(__name__)
 _QUEUE_PUT_TIMEOUT_SECONDS = 0.1
 _DEFAULT_SEND_QUEUE_MAX_SIZE = 256
 _SENDER_STOPPED_MESSAGE = "WebSocket sender stopped"
+_WS_MSG_JSON = "json"
+_WS_MSG_TEXT = "text"
+_WS_MSG_CLOSE = "close"
 
 
 class SafeWebSocket:
@@ -135,11 +138,11 @@ class SafeWebSocket:
 
                 try:
                     should_stop = False
-                    if msg_type == "json":
+                    if msg_type == _WS_MSG_JSON:
                         await self._websocket.send_json(data, mode=mode)
-                    elif msg_type == "text":
+                    elif msg_type == _WS_MSG_TEXT:
                         await self._websocket.send_text(data)
-                    elif msg_type == "close":
+                    elif msg_type == _WS_MSG_CLOSE:
                         await self._websocket.close(code=data, reason=mode)
                         should_stop = True
                     else:
@@ -183,7 +186,7 @@ class SafeWebSocket:
             RuntimeError: If connection error occurs
             ConnectionError: If connection error occurs
         """
-        await self._send_message(msg_type="json", data=data, mode=mode)
+        await self._send_message(msg_type=_WS_MSG_JSON, data=data, mode=mode)
 
     async def send_text(self, data: str) -> None:
         """
@@ -196,7 +199,7 @@ class SafeWebSocket:
             RuntimeError: If connection error occurs
             ConnectionError: If connection error occurs
         """
-        await self._send_message(msg_type="text", data=data)
+        await self._send_message(msg_type=_WS_MSG_TEXT, data=data)
 
     async def _send_message(
         self,
