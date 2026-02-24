@@ -1,28 +1,19 @@
 """Formatter for thinking events."""
-import logging
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict
 
 from backend.src.api.contracts.message_types import OutgoingMessageType
-from backend.src.api.processing.formatters.base import EventFormatter
-from backend.src.core.events import AgentStreamingEvent
-
-logger = logging.getLogger(__name__)
+from backend.src.api.processing.formatters.base import EventFormatter, EventInput, FormattedEvent
 
 
 class ThinkingEventFormatter(EventFormatter):
     """Formatter for thinking events."""
 
-    def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
+    def format(self, event: EventInput, msg_id: str) -> FormattedEvent:
         event_dict = self._get_event_dict(event)
-        content = event_dict.get("content")
-        
+        content = self._get_required_field(event_dict, "content", "ThinkingEvent", msg_id)
         if content is None:
-            logger.warning(
-                f"ThinkingEvent missing required field 'content'. "
-                f"Skipping format (msg_id={msg_id})"
-            )
             return None
-        
+
         return {
             "type": OutgoingMessageType.LLM_THOUGHT,
             "id": msg_id,

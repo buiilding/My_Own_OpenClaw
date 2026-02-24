@@ -1028,3 +1028,23 @@ read_when:
   - `cd frontend && npm run test:ci` (pass; 82 suites)
   - `cd frontend && npm run audit:knip` (pass; no findings)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
+
+## Phase 23 Outcome (2026-02-24)
+
+- API formatter dedupe shipped:
+  - added shared formatter helpers in:
+    - `backend/src/api/processing/formatters/base.py`
+  - rewired required-field checks and missing-field warning logs in:
+    - `backend/src/api/processing/formatters/chunk.py`
+    - `backend/src/api/processing/formatters/thinking.py`
+    - `backend/src/api/processing/formatters/assistant_message.py`
+    - `backend/src/api/processing/formatters/tool_call.py`
+    - `backend/src/api/processing/formatters/tool_output.py`
+  - preserved outgoing payload shapes and invalid-event skip behavior.
+- jscpd delta after Phase 23 slice:
+  - clones: `208 -> 200`
+  - duplicated lines: `3172 -> 3105`
+  - duplicated tokens: `27753 -> 27067`
+- Verification:
+  - `pytest tests/backend/test_formatters.py tests/backend/test_outgoing_schema_contract.py tests/backend/test_response_formatter.py` (pass; 37 tests)
+  - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
