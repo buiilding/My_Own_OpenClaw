@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(llm-providers): dedupe thinking-stream chunk loop via shared `LLMProvider._stream_thinking_and_text_events` reused by Anthropic/Gemini providers while preserving usage capture and thinking/chunk event emission
+- docs(planning): record Phase 39 provider thinking-stream loop dedupe outcome/verification in `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md`
 - refactor(llm-providers): dedupe text-stream chunk loop via shared `LLMProvider._stream_text_content_events` reused by OpenAI/Mistral/Local/OpenRouter providers while preserving stream usage and chunk emission behavior
 - docs(planning): record Phase 38 provider text-stream loop dedupe outcome/verification in `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md`
 - refactor(llm-providers): dedupe provider stream request flag wiring via shared `LLMProvider._enable_stream_with_usage` reused by Anthropic/Gemini/Kimi/Local/Mistral/OpenAI/OpenRouter stream paths while preserving provider-specific params
@@ -20,6 +22,7 @@ Includes the last 300 commits on `main`.
 - feat(chatbox-tool-preview): ground fake cursor preview with tool-call coordinate metadata (`coordinate_contract.normalized_coordinates` + display size) so tool ghost movement reflects actual target region when available
 - feat(chatbox-tool-preview): add optional `target_rect` support for ghost preview so ring/ripple scale adapts to target region size when rectangle metadata is provided
 - refactor(chatbox-styles): split response-overlay ghost/thinking/typing styles into `frontend/src/renderer/styles/ChatBoxResponseOverlay.css` to keep `ChatBox.css` smaller and easier to maintain
+- fix(thinking-display): replace legacy expandable reasoning card with transparent scrolling reasoning stream (no pill chrome) and top overflow affordance for seamless chat presentation
 - fix(chatbox-response): redesign the response pane above the chat pill to a single black panel with brighter text, smooth height animation, auto-stick scrolling, and a top opaque overflow indicator when previous streamed text is above the viewport
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 36 execution slice for OpenRouter completion/stream request-param assembly dedupe in `backend/src/llm/providers/openrouter.py`
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 35 execution slice for scoped exception constructor dedupe in `backend/src/core/infrastructure/exceptions.py` (`LLMError`, `MemoryError`)

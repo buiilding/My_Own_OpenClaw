@@ -1,42 +1,69 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import '../../../styles/ThinkingDisplay.css';
 
-/**
- * A component to display the agent's current thinking status.
- * Shows accumulated thinking tokens from Gemini models in a collapsible format.
- *
- * @param {object} props - The component's props.
- * @param {string} props.status - The accumulated thinking tokens to display.
- */
-function ThinkingDisplay({ status }) {
-  const [isExpanded, setIsExpanded] = useState(false);
+const THINKING_BOTTOM_STICK_THRESHOLD = 12;
 
-  if (!status) {
+function ThinkingDisplay({ status }) {
+  const [hasOverflowAbove, setHasOverflowAbove] = useState(false);
+  const containerRef = useRef(null);
+  const shouldStickToBottomRef = useRef(true);
+  const normalizedStatus = useMemo(
+    () => (typeof status === 'string' ? status.trim() : ''),
+    [status],
+  );
+
+  const syncScrollState = useCallback(() => {
+    const containerEl = containerRef.current;
+    if (!containerEl) {
+      setHasOverflowAbove(false);
+      shouldStickToBottomRef.current = true;
+      return;
+    }
+
+    setHasOverflowAbove(containerEl.scrollTop > 2);
+    const distanceFromBottom = (
+      containerEl.scrollHeight - containerEl.clientHeight - containerEl.scrollTop
+    );
+    shouldStickToBottomRef.current = distanceFromBottom <= THINKING_BOTTOM_STICK_THRESHOLD;
+  }, []);
+
+  const handleScroll = useCallback(() => {
+    syncScrollState();
+  }, [syncScrollState]);
+
+  useEffect(() => {
+    if (!normalizedStatus) {
+      setHasOverflowAbove(false);
+      shouldStickToBottomRef.current = true;
+      return;
+    }
+
+    const containerEl = containerRef.current;
+    if (!containerEl) {
+      return;
+    }
+
+    if (shouldStickToBottomRef.current) {
+      containerEl.scrollTop = containerEl.scrollHeight;
+    }
+    syncScrollState();
+  }, [normalizedStatus, syncScrollState]);
+
+  if (!normalizedStatus) {
     return null;
   }
 
-  // Check if this looks like thinking tokens (more than just a simple status message)
-  const isThinkingTokens = status.length > 50 || status.includes('\n') || status.includes('thinking');
-
   return (
-    <div className="thinking-display" role="status" aria-live="polite">
-      <div className="thinking-header" onClick={() => setIsExpanded(!isExpanded)}>
-      <div className="thinking-spinner"></div>
-        <span className="thinking-label">
-          {isThinkingTokens ? '🧠 Model Reasoning' : 'Thinking...'}
-        </span>
-        {isThinkingTokens && (
-          <span className="thinking-toggle">{isExpanded ? '▼' : '▶'}</span>
-        )}
-      </div>
-      {isThinkingTokens ? (
-        <div className={`thinking-content ${isExpanded ? 'expanded' : 'collapsed'}`}>
-          <pre className="thinking-text">{status}</pre>
-        </div>
-      ) : (
-      <p className="thinking-text">{status}</p>
-      )}
+    <div
+      className={`thinking-display-stream${hasOverflowAbove ? ' has-overflow-above' : ''}`}
+      role="status"
+      aria-live="polite"
+      aria-label="Assistant reasoning stream"
+      ref={containerRef}
+      onScroll={handleScroll}
+    >
+      <pre className="thinking-display-text">{normalizedStatus}</pre>
     </div>
   );
 }
