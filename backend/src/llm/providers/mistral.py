@@ -14,18 +14,9 @@ logger = logging.getLogger(__name__)
 class MistralProvider(LLMProvider):
     """Provider for Mistral AI models."""
 
-    def __init__(
-        self,
-        api_key: Optional[str] = None,
-        base_url: Optional[str] = None,
-        timeout: float = 60.0,
-    ):
-        super().__init__(api_key=api_key, base_url=base_url, timeout=timeout)
-
     def _validate_dependencies(self) -> None:
         """Mistral requires an API key."""
-        if not self.api_key:
-            raise ValueError("MistralProvider requires an 'api_key'.")
+        self._require_api_key("MistralProvider")
 
     async def get_completion(
         self,

@@ -67,6 +67,13 @@ class LLMProvider(ABC):
         """
         pass
 
+    def _require_api_key(self, provider_class_name: Optional[str] = None) -> None:
+        """Raise a consistent missing-api-key error for providers that require it."""
+        if self.api_key:
+            return
+        provider_name = provider_class_name or self.__class__.__name__
+        raise ValueError(f"{provider_name} requires an 'api_key'.")
+
     @abstractmethod
     async def get_completion(
         self,

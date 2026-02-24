@@ -30,8 +30,7 @@ class KimiCodingProvider(LLMProvider):
 
     def _validate_dependencies(self) -> None:
         """Kimi Coding requires an API key."""
-        if not self.api_key:
-            raise ValueError("KimiCodingProvider requires an 'api_key'.")
+        self._require_api_key("KimiCodingProvider")
 
     def supports_streaming_tool_turns(self, model: str) -> bool:
         """
