@@ -49,14 +49,14 @@ export function findLatestToolCallAfterUser(messages, lastUserIndex) {
   return null;
 }
 
-export function buildToolGhostTrackStyle(toolGhostPreview, toolGhostStartRatio) {
-  if (!toolGhostPreview.hasTarget) {
+export function buildToolGhostTrackStyle(toolGhostPreview, toolGhostStartRatio, effectiveTargetRatio) {
+  if (!effectiveTargetRatio) {
     return null;
   }
   const startXOffset = Math.round((toolGhostStartRatio.xRatio - 0.5) * TOOL_GHOST_OFFSET_X_SPAN);
   const startYOffset = Math.round((toolGhostStartRatio.yRatio - 0.5) * TOOL_GHOST_OFFSET_Y_SPAN);
-  const endXOffset = Math.round((toolGhostPreview.xRatio - 0.5) * TOOL_GHOST_OFFSET_X_SPAN);
-  const endYOffset = Math.round((toolGhostPreview.yRatio - 0.5) * TOOL_GHOST_OFFSET_Y_SPAN);
+  const endXOffset = Math.round((effectiveTargetRatio.xRatio - 0.5) * TOOL_GHOST_OFFSET_X_SPAN);
+  const endYOffset = Math.round((effectiveTargetRatio.yRatio - 0.5) * TOOL_GHOST_OFFSET_Y_SPAN);
   const style = {
     '--ghost-start-offset-x': `${startXOffset}px`,
     '--ghost-start-offset-y': `${startYOffset}px`,

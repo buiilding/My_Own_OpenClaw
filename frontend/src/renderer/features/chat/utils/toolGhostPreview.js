@@ -9,6 +9,8 @@ const DEFAULT_GHOST_PREVIEW = Object.freeze({
   targetScale: 1,
   targetDisplayWidth: null,
   targetDisplayHeight: null,
+  rawTargetX: null,
+  rawTargetY: null,
 });
 const TOOL_LABEL_MAX_LENGTH = 120;
 const MOUSE_CLICK_ACTIONS = new Set(['click', 'double_click', 'right_click']);
@@ -156,12 +158,6 @@ function resolveToolTargetPoint(entry) {
       && typeof entry.metadata.coordinate_contract === 'object'
       && !Array.isArray(entry.metadata.coordinate_contract)
   ) ? entry.metadata.coordinate_contract : null;
-  const size = parseSizeTuple(coordinateContract?.target_display_size)
-    || parseSizeTuple(coordinateContract?.source_image_size);
-  if (!size) {
-    return null;
-  }
-
   const explicitRect = parseRect(entry?.metadata?.target_rect) || parseRect(entry?.args?.target_rect);
   const contractRect = parseRect(coordinateContract?.target_rect);
   const rect = explicitRect || contractRect;
@@ -184,6 +180,21 @@ function resolveToolTargetPoint(entry) {
     return null;
   }
 
+  const size = parseSizeTuple(coordinateContract?.target_display_size)
+    || parseSizeTuple(coordinateContract?.source_image_size);
+  if (!size) {
+    return {
+      hasResolvedTarget: false,
+      rawTargetX: x,
+      rawTargetY: y,
+      targetScale: 1,
+      hasRect: false,
+      rectRatios: null,
+      targetDisplayWidth: null,
+      targetDisplayHeight: null,
+    };
+  }
+
   let targetScale = 1;
   let rectRatios = null;
   if (rect) {
@@ -202,8 +213,11 @@ function resolveToolTargetPoint(entry) {
   }
 
   return {
+    hasResolvedTarget: true,
     xRatio: clamp(x / size.width, 0, 1),
     yRatio: clamp(y / size.height, 0, 1),
+    rawTargetX: x,
+    rawTargetY: y,
     targetScale,
     hasRect: Boolean(rect),
     rectRatios,
@@ -248,19 +262,23 @@ export function buildToolGhostPreviewFromMessageText(messageText) {
       targetScale: DEFAULT_GHOST_PREVIEW.targetScale,
       targetDisplayWidth: null,
       targetDisplayHeight: null,
+      rawTargetX: null,
+      rawTargetY: null,
     };
   }
 
   return {
     label,
-    hasTarget: true,
-    hasRect: selected.targetPoint.hasRect,
+    hasTarget: selected.targetPoint.hasResolvedTarget === true,
+    hasRect: selected.targetPoint.hasResolvedTarget === true && selected.targetPoint.hasRect,
     isMouseClick,
-    xRatio: selected.targetPoint.xRatio,
-    yRatio: selected.targetPoint.yRatio,
+    xRatio: selected.targetPoint.xRatio ?? DEFAULT_GHOST_PREVIEW.xRatio,
+    yRatio: selected.targetPoint.yRatio ?? DEFAULT_GHOST_PREVIEW.yRatio,
     targetScale: selected.targetPoint.targetScale,
     targetDisplayWidth: selected.targetPoint.targetDisplayWidth,
     targetDisplayHeight: selected.targetPoint.targetDisplayHeight,
+    rawTargetX: selected.targetPoint.rawTargetX ?? null,
+    rawTargetY: selected.targetPoint.rawTargetY ?? null,
     rectLeftRatio: selected.targetPoint.rectRatios?.leftRatio,
     rectTopRatio: selected.targetPoint.rectRatios?.topRatio,
     rectWidthRatio: selected.targetPoint.rectRatios?.widthRatio,
