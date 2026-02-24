@@ -2209,3 +2209,22 @@ read_when:
     - `./scripts/test-backend` (pass; 966 tests)
   - sidecar tests:
     - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+
+## Phase 72 Outcome (2026-02-24)
+
+- Transcript session test-suite duplication cleanup shipped:
+  - extracted shared recorder and payload-assertion usage in `tests/frontend/TranscriptWriter.session.test.ts`:
+    - local helper: `createSessionUpdateRecorder`
+    - reused shared test helpers: `createStoreTranscriptPayload`, `expectStoreTranscriptCall`
+  - reduced repeated session-update event handler setup and inline store payload boilerplate while preserving all lifecycle assertions.
+- Verification:
+  - `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/TranscriptWriter.session.test.ts --watch=false` (pass; 6 tests)
+  - `cd frontend && npm run lint -- --quiet` (pass)
+  - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
+  - `cd frontend && npm run audit:knip` (pass)
+  - `cd frontend && npm run audit:jscpd` (pass)
+  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - jscpd snapshot deltas:
+    - clones: `146 -> 145`
+    - duplicated lines: `2312 -> 2306`
+    - duplicated tokens: `20565 -> 20434`
