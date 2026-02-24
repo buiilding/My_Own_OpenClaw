@@ -57,6 +57,7 @@ Covers:
 - [LLM Docs Hub](llm/README.md)
 - [Services Docs Hub](services/README.md)
 - [LLM Models and Parsing](llm/LLM_MODELS_AND_PARSING.md)
+- [Provider Factory and Runtime Selection Reference](llm/PROVIDER_FACTORY_AND_RUNTIME_SELECTION_REFERENCE.md)
 - [Services and Storage](services/SERVICES_AND_STORAGE.md)
 
 ## Backend Layout (Code)

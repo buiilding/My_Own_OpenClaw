@@ -11,6 +11,7 @@ title: "Backend LLM Docs Hub"
 ## Deep Pages
 
 - [LLM Models and Parsing](LLM_MODELS_AND_PARSING.md)
+- [Provider Factory and Runtime Selection Reference](PROVIDER_FACTORY_AND_RUNTIME_SELECTION_REFERENCE.md)
 
 ## Code Scope
 

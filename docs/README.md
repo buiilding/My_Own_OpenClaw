@@ -44,6 +44,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Backend Tools Docs Hub**](backend/tools/README.md) - Backend schema bridge, policy filtering, and wait/ingress runtime docs for frontend-executed tools
 - [**Backend Tool Result Ingress Reference**](backend/tools/TOOL_RESULT_INGRESS_AND_STORAGE_REFERENCE.md) - End-to-end `tool-result`/`tool-bundle-result` flow across API handler, session routing, storage, and futures
 - [**Backend Query Execution Pipeline**](backend/runtime/QUERY_EXECUTION_AND_STREAM_PIPELINE_REFERENCE.md) - Query handler to stream pipeline internals, completion backfill rules, and cancellation/task-tracking behavior
+- [**Backend Provider Factory Runtime**](backend/llm/PROVIDER_FACTORY_AND_RUNTIME_SELECTION_REFERENCE.md) - Provider-factory cache keys, provider availability gates, client normalization, and model-service catalog/discovery rules
 - [**Browser Control**](browser/BROWSER_CONTROL.md) - Browser automation architecture and tool behavior
 - [**Sidecar Browser Automation Stack**](frontend/sidecar/BROWSER_AUTOMATION_STACK.md) - Renderer->main->sidecar browser runtime and CDP orchestration details
 - [**Sidecar JSON-RPC Reference**](frontend/sidecar/LOCAL_BACKEND_JSONRPC_REFERENCE.md) - Main-process bridge method map and local backend JSON-RPC contract details
