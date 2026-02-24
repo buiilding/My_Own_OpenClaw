@@ -154,21 +154,63 @@ body {
 }
 
 .chatbox-response-pill {
-  border-radius: 24px;
+  border-radius: 18px;
   position: relative;
   padding: 14px 16px 12px;
-  max-height: 640px;
+  height: 92px;
   overflow-y: auto;
   scrollbar-gutter: stable;
   word-break: break-word;
   margin-bottom: 0;
-  transition: max-height 150ms ease-out;
+  overscroll-behavior: contain;
+  background: rgba(5, 5, 5, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 30px 64px -22px rgba(0, 0, 0, 0.82),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition:
+    height 240ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 140ms ease;
+  will-change: height;
+}
+
+.chatbox-response-pill::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 20px;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 2;
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.16) 0,
+    rgba(6, 6, 6, 0.96) 1px,
+    rgba(6, 6, 6, 0.9) 42%,
+    rgba(6, 6, 6, 0) 100%
+  );
+  transition: opacity 140ms ease;
+}
+
+.chatbox-response-pill.has-overflow-above::before {
+  opacity: 1;
+}
+
+.chatbox-response-body {
+  position: relative;
+  z-index: 1;
 }
 
 .chatbox-response-text {
-  color: rgba(243, 247, 252, 0.96);
-  font-size: 13px;
-  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.98);
+  font-size: 13.5px;
+  line-height: 1.5;
   padding-right: 22px;
 }
 
@@ -246,6 +288,7 @@ body {
   position: absolute;
   top: 8px;
   right: 8px;
+  z-index: 3;
   width: 24px;
   height: 24px;
   border-radius: 999px;
