@@ -29,6 +29,7 @@ Covers:
 - [Bootstrap Docs Hub](bootstrap/README.md)
 - [Bootstrap and Config](bootstrap/BOOTSTRAP_AND_CONFIG.md)
 - [Container DI and Initialization Lifecycle Reference](bootstrap/CONTAINER_DI_AND_INIT_LIFECYCLE_REFERENCE.md)
+- [Config Docs Hub](config/README.md)
 - [Config Fields and Runtime Policy](config/CONFIG_FIELDS_AND_RUNTIME_POLICY.md)
 
 ### API and Contracts
@@ -53,6 +54,8 @@ Covers:
 
 ### LLM and Services
 
+- [LLM Docs Hub](llm/README.md)
+- [Services Docs Hub](services/README.md)
 - [LLM Models and Parsing](llm/LLM_MODELS_AND_PARSING.md)
 - [Services and Storage](services/SERVICES_AND_STORAGE.md)
 
