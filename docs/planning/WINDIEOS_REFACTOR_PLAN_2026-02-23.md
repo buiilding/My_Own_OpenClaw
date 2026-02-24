@@ -2554,3 +2554,20 @@ read_when:
     - clones: `129 -> 128`
     - duplicated lines: `2168 -> 2147`
     - duplicated tokens: `18971 -> 18798`
+
+## Phase 91 Outcome (2026-02-24)
+
+- App status provider test duplication cleanup shipped:
+  - added helper in `tests/frontend/AppStatusProvider.test.tsx`:
+    - `expectStatusAfterAdvance(result, delayMs, expectedStatus)`
+  - replaced repeated `jest.advanceTimersByTime` + `saveStatus` assertions in timeout/error-reset tests.
+- Verification:
+  - `cd frontend && npx jest ../tests/frontend/AppStatusProvider.test.tsx --runInBand` (pass; 6 tests)
+  - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
+  - `cd frontend && npm run audit:knip` (pass)
+  - `cd frontend && npm run audit:jscpd` (pass)
+  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - jscpd snapshot deltas:
+    - clones: `128 -> 127`
+    - duplicated lines: `2147 -> 2138`
+    - duplicated tokens: `18798 -> 18728`

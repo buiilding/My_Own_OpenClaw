@@ -44,6 +44,17 @@ describe('AppStatusProvider', () => {
     });
   }
 
+  function expectStatusAfterAdvance(
+    result: { current: { saveStatus: string } },
+    delayMs: number,
+    expectedStatus: string,
+  ): void {
+    act(() => {
+      jest.advanceTimersByTime(delayMs);
+    });
+    expect(result.current.saveStatus).toBe(expectedStatus);
+  }
+
   test('setSaving transitions to error then idle when backend does not reply', () => {
     const { result } = renderHook(() => useAppStatusContext(), { wrapper });
 
@@ -54,15 +65,8 @@ describe('AppStatusProvider', () => {
     });
     expect(result.current.saveStatus).toBe('saving');
 
-    act(() => {
-      jest.advanceTimersByTime(10000);
-    });
-    expect(result.current.saveStatus).toBe('error');
-
-    act(() => {
-      jest.advanceTimersByTime(3000);
-    });
-    expect(result.current.saveStatus).toBe('idle');
+    expectStatusAfterAdvance(result, 10000, 'error');
+    expectStatusAfterAdvance(result, 3000, 'idle');
   });
 
   test('settings-updated clears pending save timeout and resets to idle', () => {
@@ -77,10 +81,7 @@ describe('AppStatusProvider', () => {
     emitBackendEvent({ type: 'settings-updated' });
     expect(result.current.saveStatus).toBe('success');
 
-    act(() => {
-      jest.advanceTimersByTime(5001);
-    });
-    expect(result.current.saveStatus).toBe('idle');
+    expectStatusAfterAdvance(result, 5001, 'idle');
   });
 
   test('matching backend error sets error then resets to idle', () => {
@@ -92,10 +93,7 @@ describe('AppStatusProvider', () => {
     });
     expect(result.current.saveStatus).toBe('error');
 
-    act(() => {
-      jest.advanceTimersByTime(3000);
-    });
-    expect(result.current.saveStatus).toBe('idle');
+    expectStatusAfterAdvance(result, 3000, 'idle');
   });
 
   test('ignores backend errors that are not settings-update errors', () => {
