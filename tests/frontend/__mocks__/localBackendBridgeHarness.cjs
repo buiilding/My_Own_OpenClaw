@@ -36,6 +36,38 @@ let processHandlers;
 let pythonProcess;
 let bridge;
 
+function resetHarnessState() {
+  jest.resetModules();
+  handlers = {};
+  stdoutHandler = null;
+  stderrHandler = null;
+  processHandlers = {};
+}
+
+function createMainWindow() {
+  return {
+    webContents: {
+      send: jest.fn(),
+    },
+  };
+}
+
+function initializeBridgeHarness(configureSpawn) {
+  resetHarnessState();
+  spawn = require('child_process').spawn;
+  ipcMain = require('electron').ipcMain;
+  configureSpawn(spawn);
+  ipcMain.handle.mockImplementation((channel, handler) => {
+    handlers[channel] = handler;
+  });
+
+  bridge = require(path.join(__dirname, '../../../frontend/src/main/local_backend_bridge.cjs'));
+
+  const mainWindow = createMainWindow();
+  bridge.initializeLocalBackendBridge(mainWindow);
+  return { mainWindow, bridge, handlers, spawn };
+}
+
 function createMockPythonProcess() {
   const procHandlers = {};
   const process = {
@@ -59,16 +91,6 @@ function createMockPythonProcess() {
 }
 
 function initBridge() {
-  jest.resetModules();
-  handlers = {};
-  stdoutHandler = null;
-  stderrHandler = null;
-  processHandlers = {};
-
-  spawn = require('child_process').spawn;
-  ipcMain = require('electron').ipcMain;
-  uuid = require('uuid');
-
   pythonProcess = {
     stdin: { write: jest.fn() },
     stdout: {
@@ -91,20 +113,10 @@ function initBridge() {
     kill: jest.fn(),
   };
 
-  spawn.mockReturnValue(pythonProcess);
-  ipcMain.handle.mockImplementation((channel, handler) => {
-    handlers[channel] = handler;
+  const { mainWindow } = initializeBridgeHarness((spawnMock) => {
+    spawnMock.mockReturnValue(pythonProcess);
   });
-
-  bridge = require(path.join(__dirname, '../../../frontend/src/main/local_backend_bridge.cjs'));
-
-  const mainWindow = {
-    webContents: {
-      send: jest.fn(),
-    },
-  };
-
-  bridge.initializeLocalBackendBridge(mainWindow);
+  uuid = require('uuid');
 
   return {
     mainWindow,
@@ -120,33 +132,12 @@ function initBridge() {
 }
 
 function initBridgeWithProcesses(processes) {
-  jest.resetModules();
-  handlers = {};
-  stdoutHandler = null;
-  stderrHandler = null;
-  processHandlers = {};
-
-  spawn = require('child_process').spawn;
-  ipcMain = require('electron').ipcMain;
-
-  spawn.mockReset();
-  processes.forEach((proc) => {
-    spawn.mockImplementationOnce(() => proc);
+  const { mainWindow } = initializeBridgeHarness((spawnMock) => {
+    spawnMock.mockReset();
+    processes.forEach((proc) => {
+      spawnMock.mockImplementationOnce(() => proc);
+    });
   });
-
-  ipcMain.handle.mockImplementation((channel, handler) => {
-    handlers[channel] = handler;
-  });
-
-  bridge = require(path.join(__dirname, '../../../frontend/src/main/local_backend_bridge.cjs'));
-
-  const mainWindow = {
-    webContents: {
-      send: jest.fn(),
-    },
-  };
-
-  bridge.initializeLocalBackendBridge(mainWindow);
 
   return {
     mainWindow,
