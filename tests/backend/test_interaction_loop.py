@@ -7,6 +7,7 @@ import pytest
 from backend.src.agent.execution.interaction_loop import InteractionLoop
 from backend.src.core.events.streaming_events import (
     AssistantMessageFullEvent,
+    ErrorEvent,
     FullResponseEvent,
     StreamingCompleteEvent,
 )
@@ -60,7 +61,11 @@ class _FakeLLMHandler:
 
 
 class _FakeToolExecutor:
+    def __init__(self):
+        self.execute_called = False
+
     async def execute(self, parsed_response, session):
+        self.execute_called = True
         if False:
             yield None
 
@@ -125,3 +130,40 @@ async def test_interaction_loop_emits_fallback_when_final_response_empty_after_t
     assert completion_events[0].final_response == assistant_full_events[0].content
 
     assert session.history.assistant_messages[-1][0] == assistant_full_events[0].content
+
+
+class _ErrorOnlyLLMHandler:
+    async def get_response(
+        self,
+        prompt,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+    ):
+        _ = (prompt, tools, tool_choice, parallel_tool_calls)
+        yield ErrorEvent(content="Unexpected system error: streamed tool arguments invalid")
+        yield FullResponseEvent(content="")
+
+    def get_last_response_payload(self):
+        return {"content": ""}
+
+
+@pytest.mark.asyncio
+async def test_interaction_loop_stops_after_stream_error_event_without_executing_tools():
+    stored_messages = []
+    session = _FakeSession(stored_messages)
+    tool_executor = _FakeToolExecutor()
+    loop = InteractionLoop(
+        session=session,
+        prompt_coordinator=_FakePromptCoordinator(),
+        llm_handler=_ErrorOnlyLLMHandler(),
+        tool_executor=tool_executor,
+        event_presenter=_FakeEventPresenter(),
+    )
+
+    events = [event async for event in loop.run_loop()]
+
+    assert any(isinstance(event, ErrorEvent) for event in events)
+    assert not any(isinstance(event, StreamingCompleteEvent) for event in events)
+    assert tool_executor.execute_called is False
+    assert session.history.assistant_messages[-1][0].startswith("[System Error:")

@@ -15,6 +15,7 @@ from backend.src.agent.execution.policies import (
 from backend.src.core.types.enums import MessageType
 from backend.src.core.events.streaming_events import (
     AgentStreamingEvent,
+    ErrorEvent,
     FullResponseEvent,
 )
 from backend.src.core.infrastructure.exceptions import (
@@ -94,6 +95,7 @@ class InteractionLoop:
 
             # Step 2: Get LLM response (delegated to LLMInteractionHandler)
             llm_response_text = ""
+            llm_error_event_content = None
             try:
                 async for event in self.llm_handler.get_response(
                     prompt,
@@ -105,6 +107,8 @@ class InteractionLoop:
                     # Track full response
                     if isinstance(event, FullResponseEvent):
                         llm_response_text = event.content
+                    elif isinstance(event, ErrorEvent):
+                        llm_error_event_content = event.content
 
             except LLMRateLimitError:
                 error_msg = "Rate limit exceeded. Please wait."
@@ -116,6 +120,16 @@ class InteractionLoop:
                 error_msg = f"LLM error: {str(e)}"
                 async for event in self._emit_error_and_record(error_msg):
                     yield event
+                return
+
+            if llm_error_event_content:
+                logger.warning(
+                    "Aborting interaction loop turn after LLM stream error event: %s",
+                    llm_error_event_content,
+                )
+                self.session.history.add_assistant_message(
+                    f"[System Error: {llm_error_event_content}]"
+                )
                 return
 
             normalized_response = self.llm_handler.get_last_response_payload() or {

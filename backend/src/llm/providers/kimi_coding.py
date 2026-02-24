@@ -5,11 +5,13 @@ from typing import Any, AsyncGenerator, Dict, List, Optional
 import litellm
 
 from backend.src.core.events.streaming_events import ChunkEvent, StreamingEvent, ThinkingEvent
+from backend.src.core.infrastructure.exceptions import LLMAPIError
 from backend.src.core.types.schemas import LLMMessage, NormalizedLLMResponse
 from backend.src.llm.providers.base import LLMProvider
 from backend.src.llm.providers.online import OnlineLLMProvider
 
 logger = logging.getLogger(__name__)
+_TOOL_ARGUMENTS_PREVIEW_CHARS = 512
 
 
 class KimiCodingProvider(OnlineLLMProvider):
@@ -211,12 +213,21 @@ class KimiCodingProvider(OnlineLLMProvider):
                         model=model,
                         invalid_response_message="Invalid response from Kimi Coding stream",
                     )
-                except Exception:
+                except LLMAPIError as exc:
+                    arguments_preview = self._preview_tool_arguments(raw_arguments)
                     logger.warning(
-                        "Failed to parse streamed tool-call arguments for id=%s; defaulting to empty object",
+                        "Failed to parse streamed tool-call arguments for id=%s; aborting tool turn. preview=%r",
                         tool_call_id,
+                        arguments_preview,
                     )
-                    arguments = {}
+                    raise LLMAPIError(
+                        (
+                            "Invalid response from Kimi Coding stream: failed to parse streamed "
+                            f"tool-call arguments for id={tool_call_id} name={name.strip()}. "
+                            f"Raw arguments preview: {arguments_preview!r}"
+                        ),
+                        model=model,
+                    ) from exc
 
             normalized_tool_calls.append(
                 {
@@ -226,3 +237,10 @@ class KimiCodingProvider(OnlineLLMProvider):
                 }
             )
         return normalized_tool_calls
+
+    @staticmethod
+    def _preview_tool_arguments(raw_arguments: str) -> str:
+        payload = raw_arguments.strip()
+        if len(payload) <= _TOOL_ARGUMENTS_PREVIEW_CHARS:
+            return payload
+        return f"{payload[:_TOOL_ARGUMENTS_PREVIEW_CHARS]}...[truncated]"

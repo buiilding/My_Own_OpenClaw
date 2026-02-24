@@ -7,6 +7,10 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(backend-kimi-streaming): fail closed when streamed Kimi tool-call arguments cannot be parsed; remove silent `{}` fallback and surface parse failure via stream error event payload
+- fix(backend-interaction-loop): stop the current turn after LLM stream `ErrorEvent` so malformed tool-call streams do not continue into empty-argument tool execution attempts
+- test(backend-kimi-streaming): add regression coverage for invalid streamed Kimi tool-call JSON to ensure parser failures emit `ErrorEvent` and do not materialize normalized tool calls
+- docs(architecture-llm): document fail-closed streamed tool-turn behavior for invalid tool-call argument JSON
 - feat(frontend-scripts): add `npm run electron:no-summarizer` helper to launch Electron with `WINDIE_ENABLE_SEMANTIC_SUMMARIZER=0`
 - feat(sidecar-memory): add `WINDIE_ENABLE_SEMANTIC_SUMMARIZER` env toggle so Electron-side local backend can disable periodic semantic summarization in dev while keeping episodic memory writes intact
 - refactor(frontend-chat-stream): remove `modelContextRef` sync `useEffect` in `frontend/src/renderer/features/chat/hooks/useChatStream.ts` and assign model context during render; verify with ChatStreamThinkingStatus state/metadata/transcript suites
