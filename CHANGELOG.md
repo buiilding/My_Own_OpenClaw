@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-har-watchdog): extract shared `_normalize_headers` in `har_recording_watchdog.py` and reuse request/response header normalization paths; add regression coverage in `tests/sidecar/test_har_recording_watchdog_headers.py`; jscpd improved to clones `37`, duplicated lines `775`
 - refactor(sidecar-browser-use-llm): remove redundant `ainvoke` overload stubs in `ChatOpenAI`/`ChatGoogle`/`ChatMistral`, extract shared `ChatGoogle._parse_json_text_response`, and extend helper regression coverage in `tests/sidecar/test_browser_use_llm_chat_helpers.py`; jscpd improved to clones `38`, duplicated lines `782`
 - docs(refactor-plan): add phase-147 full-gate snapshot after sidecar Browser-Use LLM helper/message dedupe wave (frontend lint:audit+knip+jscpd+tests, backend tests, sidecar tests)
 - refactor(sidecar-browser-use-messages): extract shared `_extract_text_content` for `UserMessage`/`SystemMessage` text parsing and add regression coverage in `tests/sidecar/test_browser_use_llm_messages.py`; add `tests/sidecar/browser_use_test_utils.py` to centralize repo-local `browser_use` path bootstrap for sidecar tests

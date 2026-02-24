@@ -141,6 +141,21 @@ def _generate_har_filename(content: bytes, mime_type: str | None) -> str:
 	return f'{content_hash}.{extension}'
 
 
+def _normalize_headers(headers_raw: object) -> dict[str, str]:
+	"""Normalize CDP headers payload into a lowercase string dictionary."""
+	if headers_raw is None:
+		return {}
+	if isinstance(headers_raw, dict):
+		return {k.lower(): str(v) for k, v in headers_raw.items()}
+	if isinstance(headers_raw, list):
+		return {h.get('name', '').lower(): str(h.get('value') or '') for h in headers_raw if isinstance(h, dict)}
+	try:
+		headers_dict = dict(headers_raw) if hasattr(headers_raw, '__iter__') else {}
+		return {k.lower(): str(v) for k, v in headers_dict.items()}
+	except Exception:
+		return {}
+
+
 class HarRecordingWatchdog(BaseWatchdog):
 	"""Collects HTTPS requests/responses and writes a HAR 1.2 file on stop."""
 
@@ -225,21 +240,7 @@ class HarRecordingWatchdog(BaseWatchdog):
 
 			# Convert headers to plain dict, handling various formats
 			headers_raw = req.get('headers') if isinstance(req, dict) else getattr(req, 'headers', None)
-			if headers_raw is None:
-				entry.request_headers = {}
-			elif isinstance(headers_raw, dict):
-				entry.request_headers = {k.lower(): str(v) for k, v in headers_raw.items()}
-			elif isinstance(headers_raw, list):
-				entry.request_headers = {
-					h.get('name', '').lower(): str(h.get('value') or '') for h in headers_raw if isinstance(h, dict)
-				}
-			else:
-				# Handle Headers type or other formats - convert to dict
-				try:
-					headers_dict = dict(headers_raw) if hasattr(headers_raw, '__iter__') else {}
-					entry.request_headers = {k.lower(): str(v) for k, v in headers_dict.items()}
-				except Exception:
-					entry.request_headers = {}
+			entry.request_headers = _normalize_headers(headers_raw)
 
 			entry.frame_id = params.get('frameId') if hasattr(params, 'get') else getattr(params, 'frameId', None)
 			entry.document_url = (
@@ -311,21 +312,7 @@ class HarRecordingWatchdog(BaseWatchdog):
 						pass
 
 			# Convert headers to plain dict, handling various formats
-			if headers_raw is None:
-				entry.response_headers = {}
-			elif isinstance(headers_raw, dict):
-				entry.response_headers = {k.lower(): str(v) for k, v in headers_raw.items()}
-			elif isinstance(headers_raw, list):
-				entry.response_headers = {
-					h.get('name', '').lower(): str(h.get('value') or '') for h in headers_raw if isinstance(h, dict)
-				}
-			else:
-				# Handle Headers type or other formats - convert to dict
-				try:
-					headers_dict = dict(headers_raw) if hasattr(headers_raw, '__iter__') else {}
-					entry.response_headers = {k.lower(): str(v) for k, v in headers_dict.items()}
-				except Exception:
-					entry.response_headers = {}
+			entry.response_headers = _normalize_headers(headers_raw)
 
 			entry.mime_type = response.get('mimeType') if isinstance(response, dict) else getattr(response, 'mimeType', None)
 			entry.ts_response = params.get('timestamp') if hasattr(params, 'get') else getattr(params, 'timestamp', None)
