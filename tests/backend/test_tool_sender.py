@@ -44,6 +44,24 @@ class _DummySession:
         return self.result_storage
 
 
+def _build_sender(result: PreparationResult) -> ToolSender:
+    return ToolSender(
+        preparer=_DummyPreparer(result),
+        synthetic_result_factory=_DummySyntheticResultFactory(),
+    )
+
+
+async def _collect_emitted_events(
+    sender: ToolSender,
+    tool_calls: list[ParsedToolCall],
+    session: _DummySession,
+):
+    emitted = []
+    async for event in sender.send_tools(tool_calls, session):
+        emitted.append(event)
+    return emitted
+
+
 @pytest.mark.asyncio
 async def test_send_tools_marks_failed_coordinate_resolution_as_non_executable():
     request_id = "req-123"
@@ -58,21 +76,15 @@ async def test_send_tools_marks_failed_coordinate_resolution_as_non_executable()
         },
     )
 
-    sender = ToolSender(
-        preparer=_DummyPreparer(
-            PreparationResult(
-                resolved_calls=[],
-                errors=[(failed_call, "OCR could not find target text")],
-                bundle_id=None,
-            )
-        ),
-        synthetic_result_factory=_DummySyntheticResultFactory(),
+    sender = _build_sender(
+        PreparationResult(
+            resolved_calls=[],
+            errors=[(failed_call, "OCR could not find target text")],
+            bundle_id=None,
+        )
     )
     session = _DummySession()
-
-    emitted = []
-    async for event in sender.send_tools([failed_call], session):
-        emitted.append(event)
+    emitted = await _collect_emitted_events(sender, [failed_call], session)
 
     assert len(emitted) == 2
     assert isinstance(emitted[0], ToolCallEvent)
@@ -103,26 +115,20 @@ async def test_send_tools_does_not_dispatch_bundle_when_preparation_fails():
     )
     resolved_first_call = ResolvedToolCall.from_parsed_call(first_call)
 
-    sender = ToolSender(
-        preparer=_DummyPreparer(
-            PreparationResult(
-                resolved_calls=[resolved_first_call],
-                errors=[
-                    (
-                        failed_call,
-                        "Identical instances found for OCR text 'Add to cart': Add to cart (150, 210).",
-                    )
-                ],
-                bundle_id=bundle_id,
-            )
-        ),
-        synthetic_result_factory=_DummySyntheticResultFactory(),
+    sender = _build_sender(
+        PreparationResult(
+            resolved_calls=[resolved_first_call],
+            errors=[
+                (
+                    failed_call,
+                    "Identical instances found for OCR text 'Add to cart': Add to cart (150, 210).",
+                )
+            ],
+            bundle_id=bundle_id,
+        )
     )
     session = _DummySession()
-
-    emitted = []
-    async for event in sender.send_tools([first_call, failed_call], session):
-        emitted.append(event)
+    emitted = await _collect_emitted_events(sender, [first_call, failed_call], session)
 
     assert all(not isinstance(event, ToolBundleEvent) for event in emitted)
     assert all(not isinstance(event, ToolCallEvent) for event in emitted)
@@ -156,21 +162,15 @@ async def test_send_tools_includes_model_facing_tool_call_metadata():
         "y": 418,
     }
 
-    sender = ToolSender(
-        preparer=_DummyPreparer(
-            PreparationResult(
-                resolved_calls=[resolved_call],
-                errors=[],
-                bundle_id=None,
-            )
-        ),
-        synthetic_result_factory=_DummySyntheticResultFactory(),
+    sender = _build_sender(
+        PreparationResult(
+            resolved_calls=[resolved_call],
+            errors=[],
+            bundle_id=None,
+        )
     )
     session = _DummySession()
-
-    emitted = []
-    async for event in sender.send_tools([parsed_call], session):
-        emitted.append(event)
+    emitted = await _collect_emitted_events(sender, [parsed_call], session)
 
     assert len(emitted) == 1
     assert isinstance(emitted[0], ToolCallEvent)
@@ -184,4 +184,36 @@ async def test_send_tools_includes_model_facing_tool_call_metadata():
             "find_coordinates_by": "ocr",
             "ocr_text": "Settings",
         },
+    }
+
+
+@pytest.mark.asyncio
+async def test_send_tools_bundle_includes_model_facing_tool_call_metadata() -> None:
+    parsed_call = ParsedToolCall(
+        tool_name="read_file",
+        parameters={"file_path": "/tmp/a.txt"},
+        metadata={
+            "bundle_id": "bundle-1",
+            "tool_call_id": "tool_llm_bundle_1",
+        },
+    )
+    resolved_call = ResolvedToolCall.from_parsed_call(parsed_call)
+
+    sender = _build_sender(
+        PreparationResult(
+            resolved_calls=[resolved_call],
+            errors=[],
+            bundle_id="bundle-1",
+        )
+    )
+    session = _DummySession()
+    emitted = await _collect_emitted_events(sender, [parsed_call], session)
+
+    assert len(emitted) == 1
+    assert isinstance(emitted[0], ToolBundleEvent)
+    assert len(emitted[0].tools) == 1
+    assert emitted[0].tools[0]["metadata"]["model_facing_tool_call"] == {
+        "id": "tool_llm_bundle_1",
+        "name": "read_file",
+        "arguments": {"file_path": "/tmp/a.txt"},
     }

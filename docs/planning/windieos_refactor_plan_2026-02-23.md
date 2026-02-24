@@ -3536,3 +3536,51 @@ read_when:
     - `./scripts/test-backend` (pass; 983 tests)
   - sidecar tests:
     - `./scripts/test-sidecar` (pass; 498 tests, 4 skipped, 3 known swig deprecation warnings)
+
+## Phase 152 Outcome (2026-02-24)
+
+- Refactor slice: stream-hook file split + dead-code trim + sender metadata dedupe.
+  - `useChatStream.ts` reduced to `<500` LOC by extracting:
+    - `chatStreamTracking.ts` (`applyTrackingEvent`)
+    - `chatStreamConversationGate.ts` (conversation-filter helpers)
+  - removed dead frontend utility + test:
+    - `frontend/src/renderer/features/chat/utils/messageToolMetadata.js`
+    - `tests/frontend/MessageToolMetadata.test.js`
+  - backend dedupe:
+    - `ToolSender` now uses shared `_build_tool_event_metadata(...)` for single-call + bundle paths.
+  - API route consolidation check:
+    - verified current route surface remains `artifacts`, `embeddings`, and `semantic`; memory health routes already share `memory.health` helper path, so no new consolidation required in this slice.
+  - added regression coverage:
+    - `tests/frontend/ChatStreamTracking.test.ts`
+    - `tests/frontend/ChatStreamConversationGate.test.ts`
+    - `tests/backend/test_tool_sender.py` (bundle metadata parity assertion)
+  - slow-test cleanup:
+    - moved conversation-gate edge cases from `ChatStreamThinkingStatus.transcript.test.tsx` into pure helper tests to keep the hook-integration suite focused on wiring behavior.
+- Full-gate revalidation:
+  - frontend lint audits:
+    - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
+  - dead-code audit:
+    - `cd frontend && npm run audit:knip` (pass)
+  - duplication audit:
+    - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `29`, duplicated lines `553`, duplicated tokens `5375`)
+  - frontend tests:
+    - `cd frontend && npm run test:ci` (pass; 94 suites, 616 tests)
+  - backend tests:
+    - `./scripts/test-backend` (pass; 1010 tests)
+  - sidecar tests:
+    - `./scripts/test-sidecar` (pass; 500 tests, 4 skipped, 3 known swig deprecation warnings)
+
+## Phase 153 Outcome (2026-02-24)
+
+- Follow-up refactor slice: modern React + duplicate-test cleanup.
+  - removed ref-mirroring `useEffect` in `AppProvider` (`AppContextCoordinator`) by assigning `configRef` and `updateConfigRef` during render.
+  - reduced duplication in `tests/backend/test_kimi_coding_provider.py` with shared stream patch/event collection helpers.
+- Audit deltas:
+  - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `28`, duplicated lines `535`, duplicated tokens `5247`)
+  - `cd frontend && npm run audit:knip` (pass)
+  - `cd frontend && npm run lint:audit` (pass)
+- Full-gate validation:
+  - `./scripts/test` (pass)
+    - backend: `1010 passed`
+    - sidecar: `500 passed, 4 skipped`
+    - frontend: `94 suites`, `616 tests`

@@ -142,19 +142,7 @@ class ToolSender:
             # Bundle: send single ToolBundleEvent
             tools = []
             for resolved_call in preparation_result.resolved_calls:
-                tool_metadata = (
-                    dict(resolved_call.metadata)
-                    if isinstance(resolved_call.metadata, dict)
-                    else {}
-                )
-                tool_metadata.setdefault(
-                    "model_facing_tool_call",
-                    self._build_model_facing_tool_call(
-                        tool_name=resolved_call.original_call.tool_name,
-                        parameters=resolved_call.original_call.parameters,
-                        metadata=resolved_call.original_call.metadata,
-                    ),
-                )
+                tool_metadata = self._build_tool_event_metadata(resolved_call)
                 tool_dict = {
                     "name": resolved_call.tool_name,
                     "args": resolved_call.parameters,
@@ -175,19 +163,7 @@ class ToolSender:
                 request_id = execution_ref.request_id if execution_ref else None
                 
                 if request_id:
-                    tool_metadata = (
-                        dict(resolved_call.metadata)
-                        if isinstance(resolved_call.metadata, dict)
-                        else {}
-                    )
-                    tool_metadata.setdefault(
-                        "model_facing_tool_call",
-                        self._build_model_facing_tool_call(
-                            tool_name=resolved_call.original_call.tool_name,
-                            parameters=resolved_call.original_call.parameters,
-                            metadata=resolved_call.original_call.metadata,
-                        ),
-                    )
+                    tool_metadata = self._build_tool_event_metadata(resolved_call)
                     yield ToolCallEvent(
                         tool_name=resolved_call.tool_name,
                         parameters=resolved_call.parameters,
@@ -195,6 +171,27 @@ class ToolSender:
                         metadata=tool_metadata,
                     )
                     logger.debug(f"Sent tool call event: {resolved_call.tool_name} (request_id={request_id[:15]})")
+
+    def _build_tool_event_metadata(self, resolved_call: Any) -> Dict[str, Any]:
+        """
+        Merge resolved metadata with model-facing tool-call details.
+
+        Keeping this centralized prevents drift between single-call and bundle payloads.
+        """
+        tool_metadata = (
+            dict(resolved_call.metadata)
+            if isinstance(resolved_call.metadata, dict)
+            else {}
+        )
+        tool_metadata.setdefault(
+            "model_facing_tool_call",
+            self._build_model_facing_tool_call(
+                tool_name=resolved_call.original_call.tool_name,
+                parameters=resolved_call.original_call.parameters,
+                metadata=resolved_call.original_call.metadata,
+            ),
+        )
+        return tool_metadata
 
     @staticmethod
     def _build_model_facing_tool_call(

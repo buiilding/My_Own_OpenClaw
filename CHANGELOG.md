@@ -7,6 +7,11 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-chat-stream): split `useChatStream` tracking/conversation guard logic into `chatStreamTracking.ts` and `chatStreamConversationGate.ts`, remove dead `messageToolMetadata` utility/test, and trim duplicate transcript integration cases now covered by focused helper tests
+- refactor(backend-tool-sender): centralize ToolCall/ToolBundle metadata shaping in `_build_tool_event_metadata` and add bundle metadata parity regression coverage in `tests/backend/test_tool_sender.py`
+- refactor(test-kimi-stream): add shared stream patch/chunk helper scaffolding in `tests/backend/test_kimi_coding_provider.py` and remove duplicated tool-stream test setup blocks
+- refactor(frontend-app-provider): remove unnecessary `useEffect` ref-mirror in `AppContextCoordinator` (`AppProvider.jsx`) by assigning refs during render
+- docs(refactor-plan): add phase-152/153 audit + full-gate outcomes; jscpd improved to clones `28`, duplicated lines `535`, duplicated tokens `5247`
 - chore(prompts): add `prompts/update-docs.txt` with reusable docs-update instruction template
 - chore(repo-maintenance): checkpoint pending workspace updates across docs guidance, chatbox UI files, docs tooling scripts, and `.audit/plan1` refactor artifacts; remove obsolete `BUG.md`, `REFACTOR.md`, and `prompts/refactor_plan_delegate_subagent.txt`
 - feat(frontend-tool-runner): defer click-like `mouse_control` actions (`click`, `double_click`, `right_click`) by full ghost-click timeline (`3200ms`: hold current cursor `1000ms` + move `1200ms` + hold target `1000ms`) so response-overlay click animation completes before real click; re-check turn staleness after delay and cancel stale clicks, with regression coverage in `tests/frontend/ToolRunnerHook.events.test.ts`

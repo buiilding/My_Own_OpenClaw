@@ -60,13 +60,14 @@ frontend/src/renderer/
 │   │       ├── backendAudioEvents.js    # backendAudioEvents - Validates/extracts audio-chunk payloads for playback
 │   │       ├── chatMessageSenderUtils.ts # chatMessageSenderUtils - User-message creation, first-message detection, and screenshot artifact mapping helpers
 │   │       ├── chatSelectors.js         # chatSelectors - Shared Zustand selectors for ChatInterface/ChatBox
+│   │       ├── chatStreamConversationGate.ts # chatStreamConversationGate - Active-conversation filtering helpers for backend stream events
 │   │       ├── chatStreamEventUtils.ts  # chatStreamEventUtils - Screenshot attachment, error filtering/text, and correlation-id event helpers
 │   │       ├── chatStreamFormatting.ts  # chatStreamFormatting - Thought/tool message formatting helpers
 │   │       ├── chatStreamMessageUpdates.ts # chatStreamMessageUpdates - Message selection and streaming/system/full-message update shaping helpers
+│   │       ├── chatStreamTracking.ts    # chatStreamTracking - Stream phase/counter transition helpers
 │   │       ├── messageInput.js          # messageInput - Input normalization helper before send dispatch
 │   │       ├── messageListClasses.js    # messageListClasses - Message row class-name builder (sender/type/streaming/screenshot flags)
 │   │       ├── messageScreenshots.js    # messageScreenshots - Screenshot presence predicates and screenshot-src resolution helpers
-│   │       ├── messageToolMetadata.js   # messageToolMetadata - Tool-output execution-detail metadata formatting helpers
 │   │       ├── messageTransparency.js   # messageTransparency - Descriptor builder for transparency sections
 │   │       ├── tokenCounts.js           # tokenCounts - Table-driven token count formatting/mapping helpers
 │   │       ├── toolRunnerMessages.ts    # toolRunnerMessages - Tool result/bundle message builders and tool-call/bundle mapping helpers

@@ -185,7 +185,7 @@ App
 **MessageContent.jsx**
 - Renders user/assistant/tool/error message bodies
 - Uses shared screenshot utilities for screenshot-presence checks and screenshot URL/data-URL resolution
-- Uses shared tool-metadata utility helpers for execution-details panel formatting
+- Normalizes tool detail payloads inline so tool-call/tool-output details stay close to rendering logic
 
 **MessageTransparencySections.jsx**
 - Builds transparency section configs via shared chat utility helpers, then maps to `TransparencySection` rendering
