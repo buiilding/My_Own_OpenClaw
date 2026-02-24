@@ -12,6 +12,14 @@ from backend.src.tools.browser.schema_types import (
     BrowserSnapshotFormat,
     BrowserWaitState,
 )
+from backend.src.tools.browser.snapshot_scope_fields import (
+    SnapshotCompactField,
+    SnapshotDepthField,
+    SnapshotFrameField,
+    SnapshotInteractiveField,
+    SnapshotRefsField,
+    SnapshotSelectorField,
+)
 from backend.src.tools.browser.shared_compat_fields import BrowserSharedCompatFields
 
 
@@ -72,27 +80,12 @@ class BrowserControlArgs(BrowserSharedCompatFields):
         description="Optional character offset into snapshot text for paginated reads.",
         ge=0,
     )
-    refs: Optional[Literal["role", "aria"]] = Field(
-        None, description="Reference mode for role snapshots."
-    )
-    interactive: Optional[bool] = Field(
-        None, description="Only include interactive roles in role snapshot output."
-    )
-    compact: Optional[bool] = Field(
-        None, description="Prune structural noise from role snapshot output."
-    )
-    depth: Optional[int] = Field(
-        None,
-        description="Maximum role snapshot depth (0=root only).",
-        ge=0,
-        le=20,
-    )
-    selector: Optional[str] = Field(
-        None, description="Optional CSS selector scope for role snapshots."
-    )
-    frame: Optional[str] = Field(
-        None, description="Optional iframe selector scope for role snapshots."
-    )
+    refs: SnapshotRefsField
+    interactive: SnapshotInteractiveField
+    compact: SnapshotCompactField
+    depth: SnapshotDepthField
+    selector: SnapshotSelectorField
+    frame: SnapshotFrameField
     snapshotFormat: Optional[BrowserSnapshotFormat] = Field(
         None, description="Snapshot format alias."
     )

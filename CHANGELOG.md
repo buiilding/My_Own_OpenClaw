@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(backend-browser-schemas): extract shared snapshot-scope field aliases (`refs`, `interactive`, `compact`, `depth`, `selector`, `frame`) into `backend/src/tools/browser/snapshot_scope_fields.py` and reuse them in `BrowserControlArgs` + `BrowserSnapshotArgs`; add regression coverage in `tests/backend/test_browser_remote_tool.py`
 - refactor(backend-llm-provider): add shared `apply_prompt_cache_key` helper in `backend/src/llm/request_kwargs.py`, reuse it in `build_tool_transport_kwargs` and `LLMProvider._build_request_params`, and add `tests/backend/test_llm_request_kwargs.py` to lock prompt-cache normalization behavior
 - refactor(backend-llm-client): add shared `_build_request_kwargs` helper in `backend/src/llm/client.py` and reuse it across completion + stream paths so transport-kwargs wiring is single-sourced at the client layer
 - refactor(backend-vision-internvl): extract `_run_generate_fallback_with_chat_error` in `backend/src/services/vision/providers/internvl.py` to centralize duplicated CUDA chat->generate fallback error handling; add regression coverage in `tests/backend/test_vision_provider_loader.py` for helper success and wrapped dual-failure behavior
