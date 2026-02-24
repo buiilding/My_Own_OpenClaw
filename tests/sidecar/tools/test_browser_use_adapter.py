@@ -1172,9 +1172,15 @@ class TestBrowserUseCompatibilityAdapter:
                 return fake_filesystem_module
             raise ImportError(name)
 
-        with mock.patch(
-            "tools.browser.browser_tool.import_module",
-            side_effect=_import_module,
+        with (
+            mock.patch(
+                "tools.browser.browser_tool.import_module",
+                side_effect=_import_module,
+            ),
+            mock.patch(
+                "tools.browser.browser_runtime.asyncio.sleep",
+                new=mock.AsyncMock(),
+            ),
         ):
             handlers = get_native_runtime_handlers()
             assert "wait_seconds" in handlers
