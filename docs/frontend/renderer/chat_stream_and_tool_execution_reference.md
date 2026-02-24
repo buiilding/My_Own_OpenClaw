@@ -186,3 +186,9 @@ If transcript rows missing:
 1. verify `enableTranscript` flag in `ChatProvider`
 2. verify event conversation/user IDs are present
 3. inspect per-event transcript write sites in `useChatStream` and `useToolRunner`
+
+## Related References
+
+- [Renderer Infrastructure Docs Hub](infrastructure/README.md)
+- [Tool Execution Service and Hook Runtime Reference](infrastructure/tool_execution_service_and_hook_runtime_reference.md)
+- [Capture, Artifact Upload, and Payload Normalization Reference](infrastructure/capture_artifact_upload_and_payload_normalization_reference.md)

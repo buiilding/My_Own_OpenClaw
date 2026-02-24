@@ -36,12 +36,15 @@ This hub documents WindieOS frontend implementation details across Electron main
 ### Renderer
 
 - [Renderer Docs Hub](renderer/README.md)
+- [Renderer Infrastructure Docs Hub](renderer/infrastructure/README.md)
 - [Renderer Runtime](renderer/renderer_runtime.md)
 - [Feature Module Matrix](renderer/feature_module_matrix.md)
 - [Dashboard Memory Management and Resume Reference](renderer/dashboard_memory_management_and_resume_reference.md)
 - [Chat Stream and Tool Execution Reference](renderer/chat_stream_and_tool_execution_reference.md)
 - [Transcript Session and Rehydrate Reference](renderer/transcript_session_and_rehydrate_reference.md)
 - [Voice Capture and Wakeword Controller Reference](renderer/voice_capture_and_wakeword_controller_reference.md)
+- [Tool Execution Service and Hook Runtime Reference](renderer/infrastructure/tool_execution_service_and_hook_runtime_reference.md)
+- [Capture, Artifact Upload, and Payload Normalization Reference](renderer/infrastructure/capture_artifact_upload_and_payload_normalization_reference.md)
 
 ### Runtime
 
