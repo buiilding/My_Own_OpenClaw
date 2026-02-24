@@ -3088,3 +3088,19 @@ read_when:
     - `./scripts/test-backend` (pass; 966 tests)
   - sidecar tests:
     - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
+
+## Phase 124 Outcome (2026-02-24)
+
+- Full-gate revalidation after vision-provider-loader fallback-call helper dedupe (Phase 124 code slice):
+  - frontend lint audits:
+    - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
+  - dead-code audit:
+    - `cd frontend && npm run audit:knip` (pass)
+  - duplication audit:
+    - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `89`, duplicated lines `1624`, duplicated tokens `14768`)
+  - frontend tests:
+    - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - backend tests:
+    - `./scripts/test-backend` (pass; 966 tests)
+  - sidecar tests:
+    - `./scripts/test-sidecar` (pass; 462 tests, 3 known swig deprecation warnings)
