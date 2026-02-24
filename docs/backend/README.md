@@ -43,6 +43,7 @@ Covers:
 ### API and Contracts
 
 - [API Docs Hub](api/README.md)
+- [API Processing Docs Hub](api/processing/README.md)
 - [API Transport Docs Hub](api/transport/README.md)
 - [Contracts Docs Hub](contracts/README.md)
 - [API and Transport](api/api_and_transport.md)
@@ -53,6 +54,8 @@ Covers:
 - [WebSocket Connection and Task Lifecycle Reference](api/websocket_connection_and_task_lifecycle_reference.md)
 - [Handler Registry and Error Envelope Reference](api/handler_registry_and_error_envelope_reference.md)
 - [Non-Query Handler and Control Flow Reference](api/non_query_handler_and_control_flow_reference.md)
+- [Formatter Dispatch and Schema Alignment Reference](api/processing/formatter_dispatch_and_schema_alignment_reference.md)
+- [Stream Pipeline, Completion, and TTS Concurrency Reference](api/processing/stream_pipeline_completion_and_tts_concurrency_reference.md)
 - [WebSocket Message Contracts](contracts/websocket_message_contracts.md)
 - [Message Schema and Formatter Reference](contracts/message_schema_and_formatter_reference.md)
 - [Handler Behavior Matrix](api/handler_behavior_matrix.md)

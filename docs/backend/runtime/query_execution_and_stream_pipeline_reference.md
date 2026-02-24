@@ -20,6 +20,12 @@ title: "Query Execution and Stream Pipeline Reference"
 - `backend/src/agent/execution/interaction_loop.py`
 - `backend/src/agent/session/manager.py`
 
+Related deep dives:
+
+- [API Processing Docs Hub](../api/processing/README.md)
+- [Formatter Dispatch and Schema Alignment Reference](../api/processing/formatter_dispatch_and_schema_alignment_reference.md)
+- [Stream Pipeline, Completion, and TTS Concurrency Reference](../api/processing/stream_pipeline_completion_and_tts_concurrency_reference.md)
+
 ## WebSocket Query Entry
 
 `QueryMessageHandler.handle_typed(...)` responsibilities:

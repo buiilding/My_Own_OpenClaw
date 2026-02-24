@@ -11,6 +11,7 @@ title: "Backend API Docs Hub"
 ## Deep Pages
 
 - [API and Transport](api_and_transport.md)
+- [API Processing Docs Hub](processing/README.md)
 - [API Transport Docs Hub](transport/README.md)
 - [HTTP and WebSocket Endpoint Reference](http_and_ws_endpoint_reference.md)
 - [App Assembly and Container Dependency Reference](app_assembly_and_container_dependency_reference.md)
@@ -19,10 +20,13 @@ title: "Backend API Docs Hub"
 - [Handler Registry and Error Envelope Reference](handler_registry_and_error_envelope_reference.md)
 - [Handler Behavior Matrix](handler_behavior_matrix.md)
 - [Non-Query Handler and Control Flow Reference](non_query_handler_and_control_flow_reference.md)
+- [Formatter Dispatch and Schema Alignment Reference](processing/formatter_dispatch_and_schema_alignment_reference.md)
+- [Stream Pipeline, Completion, and TTS Concurrency Reference](processing/stream_pipeline_completion_and_tts_concurrency_reference.md)
 - [Safe WebSocket and Transport Envelope Reference](transport/safe_websocket_and_transport_envelope_reference.md)
 
 ## Code Scope
 
 - `backend/src/api/routes/*`
 - `backend/src/api/handlers/*`
+- `backend/src/api/processing/*`
 - `backend/src/api/transport/*`
