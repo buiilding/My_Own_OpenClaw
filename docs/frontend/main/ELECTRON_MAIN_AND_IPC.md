@@ -75,6 +75,7 @@ Safety behavior:
 
 - Rejects all pending requests on sidecar exit.
 - Marks sidecar unavailable and notifies renderer.
+- For detailed handler/mapper/window-hide internals, see [Local Backend Bridge Handler and Window Guard Reference](LOCAL_BACKEND_BRIDGE_HANDLER_AND_WINDOW_GUARD_REFERENCE.md).
 
 ## Wakeword Bridge
 
