@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { buildGatewayAudioMessage, float32ToPcm16 } from '../utils/audioEncoding';
 import { cleanupAudioCaptureNodes, takeAudioContext } from '../utils/audioCaptureCleanup';
-import { useAudioCaptureRefs } from './useAudioCaptureRefs';
 
 const MAX_RECONNECT_ATTEMPTS = 5;
 const RECONNECT_DELAY_BASE_MS = 1000;
@@ -33,7 +32,10 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
   const [clientId, setClientId] = useState<string | null>(null);
 
   const websocketRef = useRef<WebSocket | null>(null);
-  const { mediaStreamRef, audioContextRef, sourceNodeRef, scriptNodeRef } = useAudioCaptureRefs();
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const sourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const scriptNodeRef = useRef<ScriptProcessorNode | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttemptsRef = useRef(0);
   const isRecordingRef = useRef(false);
