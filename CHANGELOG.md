@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(planning): add Phase 57 full-gate revalidation snapshot after local-backend RPC fixture dedupe (`lint:audit`, `knip`, `frontend test:ci`, `test-backend`, `test-sidecar`)
 - refactor(frontend-local-backend-tests): dedupe JSON-RPC response fixture boilerplate in `tests/frontend/LocalBackendBridge.rpc.test.cjs` via shared `emitRpcMessage|emitRpcResult|emitRpcError` helpers and small readiness helper reuse in `tests/frontend/__mocks__/localBackendBridgeHarness.cjs`, reducing jscpd totals from clones `173 -> 170` and duplicated lines `2629 -> 2588`
 - refactor(frontend-app-config-tests): split oversized `tests/frontend/AppConfigProvider.test.tsx` into focused `AppConfigProvider.models.test.tsx` and `AppConfigProvider.storageAndIpc.test.tsx` suites with shared `AppConfigProvider.testUtils.tsx`, preserving all 25 assertions while keeping files <500 LOC
 - refactor(frontend-local-backend): split `frontend/src/main/local_backend_bridge.cjs` into focused bridge helper modules (`local_backend_bridge_utils.cjs`, `local_backend_bridge_rpc_mappers.cjs`, `local_backend_bridge_windows.cjs`) and reduce main bridge file size to 447 LOC while preserving IPC behavior
