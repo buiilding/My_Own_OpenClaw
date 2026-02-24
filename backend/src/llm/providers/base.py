@@ -8,7 +8,12 @@ import json
 import litellm
 from litellm import exceptions as litellm_exceptions
 
-from backend.src.core.events.streaming_events import ChunkEvent, ErrorEvent, StreamingEvent
+from backend.src.core.events.streaming_events import (
+    ChunkEvent,
+    ErrorEvent,
+    StreamingEvent,
+    ThinkingEvent,
+)
 from backend.src.core.infrastructure.exceptions import (
     LLMAPIError,
     LLMError,
@@ -561,6 +566,24 @@ class LLMProvider(ABC):
         async for chunk in stream:
             self._record_stream_usage_from_chunk(chunk)
             delta = self._extract_stream_delta(chunk)
+            content = self._extract_delta_content(delta)
+            if content:
+                yield ChunkEvent(content=content)
+
+    async def _stream_thinking_and_text_events(
+        self,
+        params: Dict[str, Any],
+    ) -> AsyncGenerator[StreamingEvent, None]:
+        """Stream request and yield thinking + text events when provider returns thinking deltas."""
+        stream = await litellm.acompletion(**params)
+        async for chunk in stream:
+            self._record_stream_usage_from_chunk(chunk)
+            delta = self._extract_stream_delta(chunk)
+            if not delta:
+                continue
+            thinking_content = self._extract_thinking_content(delta)
+            if thinking_content:
+                yield ThinkingEvent(content=thinking_content)
             content = self._extract_delta_content(delta)
             if content:
                 yield ChunkEvent(content=content)
