@@ -1,0 +1,24 @@
+---
+summary: "Frontend contracts events docs sub-hub for `from-backend` ingress typing boundaries, audio side-channel parsing, and synthetic renderer-facing query events."
+read_when:
+  - When changing renderer `from-backend` listeners or backend-event type guards.
+  - When changing main-process local query event synthesis (`local-user-message`, send-failure `error`).
+title: "Frontend Contracts Events Docs Hub"
+---
+
+# Frontend Contracts Events Docs Hub
+
+## Deep Pages
+
+- [From-Backend Event Ingress, Typed Guard, and Audio Side-Channel Reference](from_backend_event_ingress_typed_guard_and_audio_side_channel_reference.md)
+- [Local User Message and Query Send-Failure Synthesis Reference](local_user_message_and_query_send_failure_synthesis_reference.md)
+
+## Code Scope
+
+- `frontend/src/main/ipc.cjs`
+- `frontend/src/main/ipc_query_events.cjs`
+- `frontend/src/renderer/types/backendEvents.ts`
+- `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
+- `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
+- `frontend/src/renderer/features/chat/utils/backendAudioEvents.js`
+

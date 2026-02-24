@@ -10,6 +10,7 @@ title: "Frontend Contracts Docs Hub"
 
 ## Deep Pages
 
+- [Events Contracts Docs Hub](events/README.md)
 - [IPC Channels and Event Contracts](ipc_channels_and_event_contracts.md)
 - [IPC Channel and Handler Reference](ipc_channel_and_handler_reference.md)
 - [Schema Generation and Event Guard Reference](schema_generation_and_event_guard_reference.md)
