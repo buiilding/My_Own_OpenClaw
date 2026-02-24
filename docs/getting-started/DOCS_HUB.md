@@ -53,6 +53,7 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 - [Backend Tool Preparation + Coordinate Resolution Reference](../backend/tools/TOOL_PREPARATION_AND_COORDINATE_RESOLUTION_REFERENCE.md)
 - [Backend Config Runtime Policy](../backend/config/CONFIG_FIELDS_AND_RUNTIME_POLICY.md)
 - [Backend Endpoint Reference](../backend/api/HTTP_AND_WS_ENDPOINT_REFERENCE.md)
+- [Backend WebSocket Connection + Task Lifecycle Reference](../backend/api/WEBSOCKET_CONNECTION_AND_TASK_LIFECYCLE_REFERENCE.md)
 - [Frontend Functionality Map](../frontend/README.md)
 - [Frontend Main Docs Hub](../frontend/main/README.md)
 - [Frontend Renderer Docs Hub](../frontend/renderer/README.md)
