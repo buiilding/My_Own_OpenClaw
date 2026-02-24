@@ -10,6 +10,7 @@ from backend.src.core.types.enums import (
     MouseAction,
     ScrollDirection as ScrollDirectionEnum,
 )
+from backend.src.tools.schema_fields import post_action_wait_field
 
 # --- Mouse Tool Schemas ---
 
@@ -62,10 +63,7 @@ class MouseControlArgs(BaseModel):
     scroll_amount: Optional[int] = Field(None, description="Amount to scroll (positive for down/right, negative for up/left, required for scroll action)")
     scroll_direction: Optional[ScrollDirectionEnum] = Field(ScrollDirectionEnum.VERTICAL, description="Direction of scrolling (required for scroll action)")
     duration: float = Field(0.5, description="Duration for drag operations")
-    wait: float = Field(
-        0.0,
-        description="Delay in seconds before automatic post-action screenshot capture."
-    )
+    wait: float = post_action_wait_field()
 
     @model_validator(mode='after')
     def validate_conditional_fields(self):
@@ -113,10 +111,7 @@ class KeyboardControlArgs(BaseModel):
         None,
         description="Ordered key list for action='hotkey' (for example: ['ctrl', 'l']).",
     )
-    wait: float = Field(
-        0.0,
-        description="Delay in seconds before automatic post-action screenshot capture."
-    )
+    wait: float = post_action_wait_field()
 
 
 # --- Screenshot Tool Schemas ---
@@ -147,10 +142,7 @@ class ScrollControlArgs(BaseModel):
         None,
         description="Direction for scroll action: vertical 'up'|'down', or horizontal 'left'|'right'. Required when action is 'scroll'.",
     )
-    wait: float = Field(
-        0.0,
-        description="Delay in seconds before automatic post-action screenshot capture."
-    )
+    wait: float = post_action_wait_field()
 
     @model_validator(mode='after')
     def validate_direction(self):
@@ -171,10 +163,7 @@ class SwitchTabArgs(BaseModel):
             "Exact window or tab title to focus, matching get_open_windows output exactly."
         ),
     )
-    wait: float = Field(
-        0.0,
-        description="Delay in seconds before automatic post-action screenshot capture."
-    )
+    wait: float = post_action_wait_field()
 
 
 # --- Wait Tool Schemas ---

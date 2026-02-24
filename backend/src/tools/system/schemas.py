@@ -4,6 +4,8 @@ Pydantic schemas for system tools.
 from typing import Optional
 from pydantic import BaseModel, Field, ConfigDict
 
+from backend.src.tools.schema_fields import explanation_field
+
 # --- Shell Tool Schemas ---
 
 class RunShellCommandArgs(BaseModel):
@@ -47,10 +49,7 @@ class RunShellCommandArgs(BaseModel):
         None,
         description="(OPTIONAL) Request a pseudo-terminal (best-effort).",
     )
-    explanation: str = Field(
-        ...,
-        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
-    )
+    explanation: str = explanation_field()
     wait: Optional[float] = Field(
         None,
         description=(
@@ -98,16 +97,10 @@ class GetOpenWindowsArgs(BaseModel):
         default="",
         description="Optional text to filter window titles by (case-insensitive)."
     )
-    explanation: str = Field(
-        ...,
-        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
-    )
+    explanation: str = explanation_field()
 
 class GetSystemStatsArgs(BaseModel):
     """Arguments for checking system stats."""
     model_config = ConfigDict(extra='forbid')
     
-    explanation: str = Field(
-        ...,
-        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
-    )
+    explanation: str = explanation_field()
