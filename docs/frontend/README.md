@@ -76,6 +76,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Sidecar Filesystem Read and Replace Runtime Reference](sidecar/tools/filesystem_read_replace_runtime_reference.md)
 - [Memory Pipeline and Summarization](sidecar/memory_pipeline_and_summarization.md)
 - [Sidecar Summarizer Watermark and Conversation Batch Reference](sidecar/memory/summarizer_watermark_and_conversation_batch_reference.md)
+- [Sidecar Transcript Storage, Semantic Candidate, and Watermark Reference](sidecar/memory/transcript_storage_semantic_candidate_and_watermark_reference.md)
 - [Browser Automation Stack](sidecar/browser_automation_stack.md)
 - [Browser Action Compatibility and Runtime Reference](sidecar/browser_action_compatibility_and_runtime_reference.md)
 - [Local Backend JSON-RPC Reference](sidecar/local_backend_jsonrpc_reference.md)

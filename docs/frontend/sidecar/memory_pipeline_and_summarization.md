@@ -12,6 +12,7 @@ Deep split references:
 
 - [Sidecar Memory Docs Hub](memory/README.md)
 - [Summarizer Watermark and Conversation Batch Reference](memory/summarizer_watermark_and_conversation_batch_reference.md)
+- [Transcript Storage, Semantic Candidate, and Watermark Reference](memory/transcript_storage_semantic_candidate_and_watermark_reference.md)
 
 ## Memory Storage Core
 

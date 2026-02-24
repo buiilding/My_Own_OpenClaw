@@ -181,3 +181,8 @@ Main process emits local backend status events:
 - `local-backend-status { ready, error? }`
 
 (Used primarily for diagnostics and startup observability in main process.)
+
+## Related Pages
+
+- [Memory IPC and RPC Mapping Reference](../contracts/memory_ipc_and_rpc_mapping_reference.md)
+- [Transcript Storage, Semantic Candidate, and Watermark Reference](memory/transcript_storage_semantic_candidate_and_watermark_reference.md)

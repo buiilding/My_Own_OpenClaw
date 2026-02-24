@@ -180,3 +180,9 @@ If search results include active conversation unexpectedly:
 1. verify exclusion key name (`excludeConversationId` or `exclude_conversation_id`)
 2. verify mapped output contains `exclude_conversation_id`
 3. verify sidecar `exclude_conversation_results` received matching conversation id
+
+## Related Pages
+
+- [Local Backend JSON-RPC Reference](../sidecar/local_backend_jsonrpc_reference.md)
+- [Transcript Storage, Semantic Candidate, and Watermark Reference](../sidecar/memory/transcript_storage_semantic_candidate_and_watermark_reference.md)
+- [Transcript Session and Rehydrate Reference](../renderer/transcript_session_and_rehydrate_reference.md)
