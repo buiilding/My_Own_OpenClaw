@@ -23,6 +23,25 @@ class _FixedDatetime:
         return _FixedNow("2026-02-16T10:11:12")
 
 
+def _patch_system_state_collectors(
+    monkeypatch,
+    *,
+    active_window,
+    mouse_position,
+    clipboard_preview,
+    screen_resolution,
+    windows,
+    stats,
+):
+    monkeypatch.setattr(system_state_module, "_get_active_window", active_window)
+    monkeypatch.setattr(system_state_module, "_get_mouse_position", mouse_position)
+    monkeypatch.setattr(system_state_module, "_get_clipboard_preview", clipboard_preview)
+    monkeypatch.setattr(system_state_module, "get_screen_resolution", screen_resolution)
+    monkeypatch.setattr(system_state_module, "_get_all_open_windows", windows)
+    monkeypatch.setattr(system_state_module, "_get_system_stats", stats)
+    monkeypatch.setattr(system_state_module, "datetime", _FixedDatetime)
+
+
 @pytest.mark.asyncio
 async def test_get_system_state_none_fields_collects_all(monkeypatch):
     calls = []
@@ -51,13 +70,15 @@ async def test_get_system_state_none_fields_collects_all(monkeypatch):
         calls.append("stats")
         return {"cpu_percent": 23.5}
 
-    monkeypatch.setattr(system_state_module, "_get_active_window", active_window)
-    monkeypatch.setattr(system_state_module, "_get_mouse_position", mouse_position)
-    monkeypatch.setattr(system_state_module, "_get_clipboard_preview", clipboard_preview)
-    monkeypatch.setattr(system_state_module, "get_screen_resolution", screen_resolution)
-    monkeypatch.setattr(system_state_module, "_get_all_open_windows", windows)
-    monkeypatch.setattr(system_state_module, "_get_system_stats", stats)
-    monkeypatch.setattr(system_state_module, "datetime", _FixedDatetime)
+    _patch_system_state_collectors(
+        monkeypatch,
+        active_window=active_window,
+        mouse_position=mouse_position,
+        clipboard_preview=clipboard_preview,
+        screen_resolution=screen_resolution,
+        windows=windows,
+        stats=stats,
+    )
 
     result = await system_state_module.get_system_state()
 
@@ -100,13 +121,15 @@ async def test_get_system_state_applies_field_fallback_defaults(monkeypatch):
     async def stats():
         return "not-a-dict"
 
-    monkeypatch.setattr(system_state_module, "_get_active_window", active_window)
-    monkeypatch.setattr(system_state_module, "_get_mouse_position", mouse_position)
-    monkeypatch.setattr(system_state_module, "_get_clipboard_preview", clipboard_preview)
-    monkeypatch.setattr(system_state_module, "get_screen_resolution", screen_resolution)
-    monkeypatch.setattr(system_state_module, "_get_all_open_windows", windows)
-    monkeypatch.setattr(system_state_module, "_get_system_stats", stats)
-    monkeypatch.setattr(system_state_module, "datetime", _FixedDatetime)
+    _patch_system_state_collectors(
+        monkeypatch,
+        active_window=active_window,
+        mouse_position=mouse_position,
+        clipboard_preview=clipboard_preview,
+        screen_resolution=screen_resolution,
+        windows=windows,
+        stats=stats,
+    )
 
     result = await system_state_module.get_system_state(
         [
