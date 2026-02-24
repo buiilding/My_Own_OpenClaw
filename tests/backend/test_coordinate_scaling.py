@@ -56,25 +56,17 @@ class _StubSession:
         self._system_state = dict(system_state)
 
 
-@pytest.mark.asyncio
-async def test_resolve_tool_with_coordinates_scales_to_screen_resolution(monkeypatch):
-    # Screenshot is physical pixels, but frontend mouse coords are logical pixels.
-    screenshot_w, screenshot_h = 3840, 2160
-    screen_w, screen_h = 1920, 1080
-
+def _create_session_and_manager(
+    screenshot_w: int, screenshot_h: int, screen_resolution: str | None = None
+):
     screenshot_b64 = base64.b64encode(_fake_jpeg_bytes(screenshot_w, screenshot_h)).decode("ascii")
-    session = _StubSession(screenshot_b64, {"screen_resolution": f"{screen_w}x{screen_h}"})
-    screenshot_manager = _StubScreenshotManager()
+    system_state = {"screen_resolution": screen_resolution} if screen_resolution is not None else {}
+    return _StubSession(screenshot_b64, system_state), _StubScreenshotManager()
 
-    tool_call = ParsedToolCall(
-        tool_name="mouse_control",
-        parameters={"find_coordinates_by": CoordinateFindingMethod.OCR, "ocr_text": "Submit"},
-        raw_call="{}",
-    )
-    resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
 
+def _patch_coordinate_resolution(monkeypatch, x: int, y: int, os_name: str):
     async def _fake_resolve_coordinates(*_args, **_kwargs):
-        return 1000, 1000
+        return x, y
 
     monkeypatch.setattr(
         "backend.src.agent.tools.preparation.helpers.preparation_helper.resolve_coordinates",
@@ -82,9 +74,11 @@ async def test_resolve_tool_with_coordinates_scales_to_screen_resolution(monkeyp
     )
     monkeypatch.setattr(
         "backend.src.agent.tools.preparation.helpers.preparation_helper.platform.system",
-        lambda: "Windows",
+        lambda: os_name,
     )
 
+
+async def _resolve_with_stubs(tool_call, resolved_call, session, screenshot_manager, context_id: str):
     await resolve_tool_with_coordinates(
         tool_call=tool_call,
         resolved_call=resolved_call,
@@ -94,8 +88,29 @@ async def test_resolve_tool_with_coordinates_scales_to_screen_resolution(monkeyp
         coordinate_resolver=object(),
         vision_service=None,
         vision_service_provider=lambda _s: None,
-        context_id="bundle-id",
+        context_id=context_id,
     )
+
+
+@pytest.mark.asyncio
+async def test_resolve_tool_with_coordinates_scales_to_screen_resolution(monkeypatch):
+    # Screenshot is physical pixels, but frontend mouse coords are logical pixels.
+    screenshot_w, screenshot_h = 3840, 2160
+    screen_w, screen_h = 1920, 1080
+
+    session, screenshot_manager = _create_session_and_manager(
+        screenshot_w, screenshot_h, f"{screen_w}x{screen_h}"
+    )
+
+    tool_call = ParsedToolCall(
+        tool_name="mouse_control",
+        parameters={"find_coordinates_by": CoordinateFindingMethod.OCR, "ocr_text": "Submit"},
+        raw_call="{}",
+    )
+    resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
+
+    _patch_coordinate_resolution(monkeypatch, 1000, 1000, "Windows")
+    await _resolve_with_stubs(tool_call, resolved_call, session, screenshot_manager, "bundle-id")
 
     assert resolved_call.parameters["x"] == 500
     assert resolved_call.parameters["y"] == 500
@@ -114,9 +129,7 @@ async def test_resolve_tool_with_coordinates_scales_to_screen_resolution(monkeyp
 @pytest.mark.asyncio
 async def test_resolve_tool_with_coordinates_keeps_contract_when_target_missing(monkeypatch):
     screenshot_w, screenshot_h = 3840, 2160
-    screenshot_b64 = base64.b64encode(_fake_jpeg_bytes(screenshot_w, screenshot_h)).decode("ascii")
-    session = _StubSession(screenshot_b64, {})
-    screenshot_manager = _StubScreenshotManager()
+    session, screenshot_manager = _create_session_and_manager(screenshot_w, screenshot_h)
 
     tool_call = ParsedToolCall(
         tool_name="mouse_control",
@@ -125,29 +138,8 @@ async def test_resolve_tool_with_coordinates_keeps_contract_when_target_missing(
     )
     resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
 
-    async def _fake_resolve_coordinates(*_args, **_kwargs):
-        return 1000, 600
-
-    monkeypatch.setattr(
-        "backend.src.agent.tools.preparation.helpers.preparation_helper.resolve_coordinates",
-        _fake_resolve_coordinates,
-    )
-    monkeypatch.setattr(
-        "backend.src.agent.tools.preparation.helpers.preparation_helper.platform.system",
-        lambda: "Windows",
-    )
-
-    await resolve_tool_with_coordinates(
-        tool_call=tool_call,
-        resolved_call=resolved_call,
-        session=session,
-        screenshot_manager=screenshot_manager,
-        ocr_coordinator=object(),
-        coordinate_resolver=object(),
-        vision_service=None,
-        vision_service_provider=lambda _s: None,
-        context_id="single-id",
-    )
+    _patch_coordinate_resolution(monkeypatch, 1000, 600, "Windows")
+    await _resolve_with_stubs(tool_call, resolved_call, session, screenshot_manager, "single-id")
 
     assert resolved_call.parameters["x"] == 1000
     assert resolved_call.parameters["y"] == 600
@@ -161,9 +153,7 @@ async def test_resolve_tool_with_coordinates_keeps_contract_when_target_missing(
 @pytest.mark.asyncio
 async def test_resolve_tool_with_coordinates_uses_latest_system_resolution_each_time(monkeypatch):
     screenshot_w, screenshot_h = 3840, 2160
-    screenshot_b64 = base64.b64encode(_fake_jpeg_bytes(screenshot_w, screenshot_h)).decode("ascii")
-    session = _StubSession(screenshot_b64, {"screen_resolution": "1920x1080"})
-    screenshot_manager = _StubScreenshotManager()
+    session, screenshot_manager = _create_session_and_manager(screenshot_w, screenshot_h, "1920x1080")
 
     tool_call = ParsedToolCall(
         tool_name="mouse_control",
@@ -171,44 +161,14 @@ async def test_resolve_tool_with_coordinates_uses_latest_system_resolution_each_
         raw_call="{}",
     )
 
-    async def _fake_resolve_coordinates(*_args, **_kwargs):
-        return 1000, 1000
-
-    monkeypatch.setattr(
-        "backend.src.agent.tools.preparation.helpers.preparation_helper.resolve_coordinates",
-        _fake_resolve_coordinates,
-    )
-    monkeypatch.setattr(
-        "backend.src.agent.tools.preparation.helpers.preparation_helper.platform.system",
-        lambda: "Windows",
-    )
+    _patch_coordinate_resolution(monkeypatch, 1000, 1000, "Windows")
 
     first = ResolvedToolCall.from_parsed_call(tool_call)
-    await resolve_tool_with_coordinates(
-        tool_call=tool_call,
-        resolved_call=first,
-        session=session,
-        screenshot_manager=screenshot_manager,
-        ocr_coordinator=object(),
-        coordinate_resolver=object(),
-        vision_service=None,
-        vision_service_provider=lambda _s: None,
-        context_id="first",
-    )
+    await _resolve_with_stubs(tool_call, first, session, screenshot_manager, "first")
 
     session.set_current_system_state({"screen_resolution": "2560x1440"})
     second = ResolvedToolCall.from_parsed_call(tool_call)
-    await resolve_tool_with_coordinates(
-        tool_call=tool_call,
-        resolved_call=second,
-        session=session,
-        screenshot_manager=screenshot_manager,
-        ocr_coordinator=object(),
-        coordinate_resolver=object(),
-        vision_service=None,
-        vision_service_provider=lambda _s: None,
-        context_id="second",
-    )
+    await _resolve_with_stubs(tool_call, second, session, screenshot_manager, "second")
 
     assert first.parameters["x"] == 500
     assert first.parameters["y"] == 500
@@ -231,9 +191,9 @@ async def test_resolve_tool_with_coordinates_disables_scaling_on_linux(monkeypat
     screenshot_w, screenshot_h = 3840, 2160
     screen_w, screen_h = 1920, 1080
 
-    screenshot_b64 = base64.b64encode(_fake_jpeg_bytes(screenshot_w, screenshot_h)).decode("ascii")
-    session = _StubSession(screenshot_b64, {"screen_resolution": f"{screen_w}x{screen_h}"})
-    screenshot_manager = _StubScreenshotManager()
+    session, screenshot_manager = _create_session_and_manager(
+        screenshot_w, screenshot_h, f"{screen_w}x{screen_h}"
+    )
 
     tool_call = ParsedToolCall(
         tool_name="mouse_control",
@@ -242,29 +202,8 @@ async def test_resolve_tool_with_coordinates_disables_scaling_on_linux(monkeypat
     )
     resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
 
-    async def _fake_resolve_coordinates(*_args, **_kwargs):
-        return 1000, 1000
-
-    monkeypatch.setattr(
-        "backend.src.agent.tools.preparation.helpers.preparation_helper.resolve_coordinates",
-        _fake_resolve_coordinates,
-    )
-    monkeypatch.setattr(
-        "backend.src.agent.tools.preparation.helpers.preparation_helper.platform.system",
-        lambda: "Linux",
-    )
-
-    await resolve_tool_with_coordinates(
-        tool_call=tool_call,
-        resolved_call=resolved_call,
-        session=session,
-        screenshot_manager=screenshot_manager,
-        ocr_coordinator=object(),
-        coordinate_resolver=object(),
-        vision_service=None,
-        vision_service_provider=lambda _s: None,
-        context_id="linux-id",
-    )
+    _patch_coordinate_resolution(monkeypatch, 1000, 1000, "Linux")
+    await _resolve_with_stubs(tool_call, resolved_call, session, screenshot_manager, "linux-id")
 
     assert resolved_call.parameters["x"] == 1000
     assert resolved_call.parameters["y"] == 1000
@@ -278,9 +217,7 @@ async def test_resolve_tool_with_coordinates_disables_scaling_on_linux(monkeypat
 @pytest.mark.asyncio
 async def test_resolve_tool_with_coordinates_preserves_prediction_description(monkeypatch):
     screenshot_w, screenshot_h = 1920, 1080
-    screenshot_b64 = base64.b64encode(_fake_jpeg_bytes(screenshot_w, screenshot_h)).decode("ascii")
-    session = _StubSession(screenshot_b64, {"screen_resolution": "1920x1080"})
-    screenshot_manager = _StubScreenshotManager()
+    session, screenshot_manager = _create_session_and_manager(screenshot_w, screenshot_h, "1920x1080")
 
     tool_call = ParsedToolCall(
         tool_name="mouse_control",
@@ -292,29 +229,8 @@ async def test_resolve_tool_with_coordinates_preserves_prediction_description(mo
     )
     resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
 
-    async def _fake_resolve_coordinates(*_args, **_kwargs):
-        return 743, 873
-
-    monkeypatch.setattr(
-        "backend.src.agent.tools.preparation.helpers.preparation_helper.resolve_coordinates",
-        _fake_resolve_coordinates,
-    )
-    monkeypatch.setattr(
-        "backend.src.agent.tools.preparation.helpers.preparation_helper.platform.system",
-        lambda: "Windows",
-    )
-
-    await resolve_tool_with_coordinates(
-        tool_call=tool_call,
-        resolved_call=resolved_call,
-        session=session,
-        screenshot_manager=screenshot_manager,
-        ocr_coordinator=object(),
-        coordinate_resolver=object(),
-        vision_service=None,
-        vision_service_provider=lambda _s: None,
-        context_id="prediction-id",
-    )
+    _patch_coordinate_resolution(monkeypatch, 743, 873, "Windows")
+    await _resolve_with_stubs(tool_call, resolved_call, session, screenshot_manager, "prediction-id")
 
     assert resolved_call.parameters["x"] == 743
     assert resolved_call.parameters["y"] == 873
