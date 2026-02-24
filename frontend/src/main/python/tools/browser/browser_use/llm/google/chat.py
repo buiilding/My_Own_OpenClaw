@@ -187,6 +187,16 @@ class ChatGoogle(BaseChatModel):
 
 		return usage
 
+	@staticmethod
+	def _strip_markdown_code_fence(text: str) -> str:
+		"""Strip optional markdown code-fence wrappers around JSON text."""
+		stripped = text.strip()
+		if stripped.startswith('```json') and stripped.endswith('```'):
+			return stripped[7:-3].strip()
+		if stripped.startswith('```') and stripped.endswith('```'):
+			return stripped[3:-3].strip()
+		return stripped
+
 	@overload
 	async def ainvoke(
 		self, messages: list[BaseMessage], output_format: None = None, **kwargs: Any
@@ -350,13 +360,7 @@ class ChatGoogle(BaseChatModel):
 							if response.text:
 								try:
 									# Handle JSON wrapped in markdown code blocks (common Gemini behavior)
-									text = response.text.strip()
-									if text.startswith('```json') and text.endswith('```'):
-										text = text[7:-3].strip()
-										self.logger.debug('🔧 Stripped ```json``` wrapper from response')
-									elif text.startswith('```') and text.endswith('```'):
-										text = text[3:-3].strip()
-										self.logger.debug('🔧 Stripped ``` wrapper from response')
+									text = self._strip_markdown_code_fence(response.text)
 
 									# Parse the JSON text and validate with the Pydantic model
 									parsed_data = json.loads(text)
@@ -431,13 +435,7 @@ class ChatGoogle(BaseChatModel):
 						if response.text:
 							try:
 								# Try to find JSON in the response
-								text = response.text.strip()
-
-								# Common patterns: JSON wrapped in markdown code blocks
-								if text.startswith('```json') and text.endswith('```'):
-									text = text[7:-3].strip()
-								elif text.startswith('```') and text.endswith('```'):
-									text = text[3:-3].strip()
+								text = self._strip_markdown_code_fence(response.text)
 
 								# Parse and validate
 								parsed_data = json.loads(text)

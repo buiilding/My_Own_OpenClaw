@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-browser-use-llm): dedupe repeated choice-validation and markdown-code-fence JSON normalization in `ChatOpenAI`/`ChatGoogle` helpers; add regression coverage in `tests/sidecar/test_browser_use_llm_chat_helpers.py`
 - refactor(backend-llm-streaming): extract shared `LLMProvider._extract_stream_finish_reason` and reuse it in `KimiCodingProvider` to remove duplicate finish-reason parsing from stream chunks; add regression coverage in `tests/backend/test_llm_provider_base.py`
 - docs(refactor-plan): add phase-146 full-gate snapshot after backend Kimi stream-helper dedupe + browser-schema literal alias refactors (frontend lint:audit+knip+jscpd+tests, backend tests, sidecar tests)
 - refactor(backend-browser-schemas): add shared browser `Literal` type aliases (`BrowserAction`, navigation/snapshot/button/scroll/wait enums) in `backend/src/tools/browser/schemas.py` and reuse them across schema models to reduce repeated action/enum declarations without behavior changes

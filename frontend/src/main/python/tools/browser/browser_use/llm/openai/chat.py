@@ -141,6 +141,24 @@ class ChatOpenAI(BaseChatModel):
 
 		return usage
 
+	def _get_first_choice_or_raise(self, response: ChatCompletion) -> Any:
+		"""Return first choice or raise provider error with proxy hint."""
+		choice = response.choices[0] if response.choices else None
+		if choice is None:
+			base_url = str(self.base_url) if self.base_url is not None else None
+			hint = f' (base_url={base_url})' if base_url is not None else ''
+			raise ModelProviderError(
+				message=(
+					'Invalid OpenAI chat completion response: missing or empty `choices`.'
+					' If you are using a proxy via `base_url`, ensure it implements the OpenAI'
+					' `/v1/chat/completions` schema and returns `choices` as a non-empty list.'
+					f'{hint}'
+				),
+				status_code=502,
+				model=self.name,
+			)
+		return choice
+
 	@overload
 	async def ainvoke(
 		self, messages: list[BaseMessage], output_format: None = None, **kwargs: Any
@@ -199,20 +217,7 @@ class ChatOpenAI(BaseChatModel):
 					**model_params,
 				)
 
-				choice = response.choices[0] if response.choices else None
-				if choice is None:
-					base_url = str(self.base_url) if self.base_url is not None else None
-					hint = f' (base_url={base_url})' if base_url is not None else ''
-					raise ModelProviderError(
-						message=(
-							'Invalid OpenAI chat completion response: missing or empty `choices`.'
-							' If you are using a proxy via `base_url`, ensure it implements the OpenAI'
-							' `/v1/chat/completions` schema and returns `choices` as a non-empty list.'
-							f'{hint}'
-						),
-						status_code=502,
-						model=self.name,
-					)
+				choice = self._get_first_choice_or_raise(response)
 
 				usage = self._get_usage(response)
 				return ChatInvokeCompletion(
@@ -257,20 +262,7 @@ class ChatOpenAI(BaseChatModel):
 						**model_params,
 					)
 
-				choice = response.choices[0] if response.choices else None
-				if choice is None:
-					base_url = str(self.base_url) if self.base_url is not None else None
-					hint = f' (base_url={base_url})' if base_url is not None else ''
-					raise ModelProviderError(
-						message=(
-							'Invalid OpenAI chat completion response: missing or empty `choices`.'
-							' If you are using a proxy via `base_url`, ensure it implements the OpenAI'
-							' `/v1/chat/completions` schema and returns `choices` as a non-empty list.'
-							f'{hint}'
-						),
-						status_code=502,
-						model=self.name,
-					)
+				choice = self._get_first_choice_or_raise(response)
 
 				if choice.message.content is None:
 					raise ModelProviderError(
