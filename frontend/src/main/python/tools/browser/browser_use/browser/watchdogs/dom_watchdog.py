@@ -23,6 +23,25 @@ if TYPE_CHECKING:
 	from browser_use.browser.views import BrowserStateSummary, NetworkRequest, PageInfo, PaginationButton
 
 
+def _build_fallback_page_info(viewport: dict[str, int] | None = None) -> 'PageInfo':
+	"""Create default page info when CDP page metrics are unavailable."""
+	from browser_use.browser.views import PageInfo
+
+	resolved_viewport = viewport or {'width': 1280, 'height': 720}
+	return PageInfo(
+		viewport_width=resolved_viewport['width'],
+		viewport_height=resolved_viewport['height'],
+		page_width=resolved_viewport['width'],
+		page_height=resolved_viewport['height'],
+		scroll_x=0,
+		scroll_y=0,
+		pixels_above=0,
+		pixels_below=0,
+		pixels_left=0,
+		pixels_right=0,
+	)
+
+
 class DOMWatchdog(BaseWatchdog):
 	"""Handles DOM tree building, serialization, and element access via CDP.
 
@@ -317,20 +336,7 @@ class DOMWatchdog(BaseWatchdog):
 					page_info = await self._get_page_info()
 				except Exception as e:
 					self.logger.debug(f'Failed to get page info from CDP for empty page: {e}, using fallback')
-					# Use default viewport dimensions
-					viewport = self.browser_session.browser_profile.viewport or {'width': 1280, 'height': 720}
-					page_info = PageInfo(
-						viewport_width=viewport['width'],
-						viewport_height=viewport['height'],
-						page_width=viewport['width'],
-						page_height=viewport['height'],
-						scroll_x=0,
-						scroll_y=0,
-						pixels_above=0,
-						pixels_below=0,
-						pixels_left=0,
-						pixels_right=0,
-					)
+					page_info = _build_fallback_page_info(self.browser_session.browser_profile.viewport)
 
 				return BrowserStateSummary(
 					dom_state=content,
@@ -437,20 +443,7 @@ class DOMWatchdog(BaseWatchdog):
 				self.logger.debug(
 					f'🔍 DOMWatchdog.on_BrowserStateRequestEvent: Failed to get page info from CDP: {e}, using fallback'
 				)
-				# Fallback to default viewport dimensions
-				viewport = self.browser_session.browser_profile.viewport or {'width': 1280, 'height': 720}
-				page_info = PageInfo(
-					viewport_width=viewport['width'],
-					viewport_height=viewport['height'],
-					page_width=viewport['width'],
-					page_height=viewport['height'],
-					scroll_x=0,
-					scroll_y=0,
-					pixels_above=0,
-					pixels_below=0,
-					pixels_left=0,
-					pixels_right=0,
-				)
+				page_info = _build_fallback_page_info(self.browser_session.browser_profile.viewport)
 
 			# Check for PDF viewer
 			is_pdf_viewer = page_url.endswith('.pdf') or '/pdf/' in page_url
