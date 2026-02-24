@@ -43,8 +43,10 @@ Covers:
 
 ### Runtime and Tools
 
+- [Runtime Docs Hub](runtime/README.md)
 - [Agent and Tool Runtime](runtime/AGENT_AND_TOOL_RUNTIME.md)
 - [Session State and Lifecycle](runtime/SESSION_STATE_AND_LIFECYCLE.md)
+- [Query Execution and Stream Pipeline Reference](runtime/QUERY_EXECUTION_AND_STREAM_PIPELINE_REFERENCE.md)
 - [Tools Docs Hub](tools/README.md)
 - [Frontend Tool Bridge and Policy](tools/FRONTEND_TOOL_BRIDGE_AND_POLICY.md)
 - [Tool Result Ingress and Storage Reference](tools/TOOL_RESULT_INGRESS_AND_STORAGE_REFERENCE.md)
