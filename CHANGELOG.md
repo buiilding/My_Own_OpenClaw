@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-chatbox-response-style): align response-pane background with chat input pill tone/transparency (less black, same translucent look, stronger blur)
 - fix(frontend-chatbox-context-visibility): hide active-window label while response overlay pane is visible; show it again when only the input pill remains (wired via new `response-overlay-visibility` IPC event)
 - fix(frontend-chatbox-context): move active-window text out of input flow into a floating left pill label and remove context status-dot/icon abbreviations so only window text is shown
 - fix(frontend-token-count): make chat token display prefer backend `total_tokens` (provider-reported request total) and only fallback to `conversation_tokens`; add frontend regression coverage in `tests/frontend/TokenCounts.test.js`
