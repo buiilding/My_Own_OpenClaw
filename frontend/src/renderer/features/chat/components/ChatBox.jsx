@@ -4,33 +4,13 @@ import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { getRoundedFrameSize } from '../utils/overlayFrameSize';
 import { subscribeResponseOverlayPhase } from '../utils/overlayPhaseListener';
+import { resolveActiveWindowContext } from '../utils/activeWindowContext';
 
 const CLICK_THROUGH_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
 const OVERLAY_ACTIVE_PHASES = new Set(['awaiting-first-chunk', 'streaming']);
 const OVERLAY_TERMINAL_PHASES = new Set(['idle', 'complete', 'error']);
 const LOOP_ACTIVE_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
 const ACTIVE_WINDOW_POLL_INTERVAL_MS = 5000;
-
-function resolveActiveWindowLabel(activeWindowValue) {
-  if (typeof activeWindowValue !== 'string') {
-    return 'No active app';
-  }
-  const trimmed = activeWindowValue.trim();
-  if (!trimmed) {
-    return 'No active app';
-  }
-
-  const segments = trimmed
-    .split(/\s[-|]\s/)
-    .map((segment) => segment.trim())
-    .filter(Boolean);
-  const candidate = segments.length > 1 ? segments[segments.length - 1] : segments[0];
-  if (!candidate) {
-    return 'No active app';
-  }
-
-  return candidate.length > 26 ? `${candidate.slice(0, 25)}…` : candidate;
-}
 
 function isDragBlockedTarget(target) {
   if (!(target instanceof Element)) {
@@ -67,7 +47,9 @@ function ChatBox() {
   });
   const [inputValue, setInputValue] = useState('');
   const [overlayPhase, setOverlayPhase] = useState('idle');
-  const [activeWindowLabel, setActiveWindowLabel] = useState('No active app');
+  const [activeWindowContext, setActiveWindowContext] = useState(
+    () => resolveActiveWindowContext(null),
+  );
   const ignoreMouseRef = useRef(undefined);
   const shellRef = useRef(null);
   const inputRef = useRef(null);
@@ -164,10 +146,10 @@ function ChatBox() {
         if (cancelled) {
           return;
         }
-        setActiveWindowLabel(resolveActiveWindowLabel(state?.active_window));
+        setActiveWindowContext(resolveActiveWindowContext(state?.active_window));
       } catch (_error) {
         if (!cancelled) {
-          setActiveWindowLabel('No active app');
+          setActiveWindowContext(resolveActiveWindowContext(null));
         }
       }
     };
@@ -296,8 +278,15 @@ function ChatBox() {
           >
             <SettingsIcon />
           </button>
-          <div className="chatbox-context-indicator" aria-label={`Active app: ${activeWindowLabel}`}>
-            {activeWindowLabel}
+          <div
+            className="chatbox-context-indicator"
+            aria-label={`Active app: ${activeWindowContext.label}`}
+            title={activeWindowContext.fullLabel}
+          >
+            <span className="chatbox-context-icon" aria-hidden="true">
+              {activeWindowContext.icon}
+            </span>
+            <span className="chatbox-context-label">{activeWindowContext.label}</span>
           </div>
           <div className="chatbox-input-wrap">
             <input

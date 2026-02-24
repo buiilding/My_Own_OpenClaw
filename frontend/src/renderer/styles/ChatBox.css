@@ -163,11 +163,11 @@ body {
 .chatbox-context-indicator {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 6px;
   min-width: 0;
-  max-width: 132px;
+  max-width: 148px;
   height: 24px;
-  padding: 0 9px;
+  padding: 0 8px 0 6px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.06);
@@ -176,6 +176,27 @@ body {
   line-height: 1;
   letter-spacing: 0.01em;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chatbox-context-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.chatbox-context-label {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
 }

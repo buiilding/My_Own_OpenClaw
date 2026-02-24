@@ -24,6 +24,7 @@ Includes the last 300 commits on `main`.
 - refactor(chatbox-styles): split response-overlay ghost/thinking/typing styles into `frontend/src/renderer/styles/ChatBoxResponseOverlay.css` to keep `ChatBox.css` smaller and easier to maintain
 - fix(thinking-display): replace legacy expandable reasoning card with transparent scrolling reasoning stream (no pill chrome) and top overflow affordance for seamless chat presentation
 - feat(chatbox-context): add ambient active-app badge on the chat pill (polling `get-system-state` for `active_window`) to surface current OS context while using the overlay
+- feat(chatbox-context): add active-app icon/category mapping (browser/code/terminal/mail/chat/design/docs + fallback initials) with improved window-title parsing for the chat pill context badge
 - fix(chatbox-response): redesign the response pane above the chat pill to a single black panel with brighter text, smooth height animation, auto-stick scrolling, and a top opaque overflow indicator when previous streamed text is above the viewport
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 36 execution slice for OpenRouter completion/stream request-param assembly dedupe in `backend/src/llm/providers/openrouter.py`
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 35 execution slice for scoped exception constructor dedupe in `backend/src/core/infrastructure/exceptions.py` (`LLMError`, `MemoryError`)
