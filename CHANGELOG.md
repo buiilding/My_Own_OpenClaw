@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(backend-browser-schemas): add shared `BrowserSharedCompatFields` base model in `backend/src/tools/browser/shared_compat_fields.py` and reuse it from `BrowserControlArgs` + `BrowserOpenClawCompatArgs` to centralize duplicated dialog/storage/network/emulation compatibility fields
 - refactor(test-websocket-message-handler): simplify large-payload executor offload test in `tests/backend/test_websocket_message_handler.py` by replacing local fake-loop class with a compact async `run_in_executor` stub; backend test jscpd (`min-lines=4`, `min-tokens=40`) now reports no clones
 - refactor(test-config-subscriptions): add `_run_threads` helper in `tests/backend/test_config_subscriptions.py` and reuse it in concurrent-subscribe test to remove duplicate thread start/join scaffolding
 - refactor(test-websocket-message-handler): merge duplicated query/tool-bundle screenshot URL rejection tests into one parameterized `test_parse_and_validate_message_rejects_screenshot_url_field` case table in `tests/backend/test_websocket_message_handler.py`
