@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-tool-runner-tests): reuse shared `resetChatStoreForTests` in `tests/frontend/ToolRunnerHook.testUtils.ts` and remove local `STREAM_TRACKING_BASE` literal by deriving stream tracking from live store state; jscpd improved from clones `124 -> 123` and duplicated lines `2088 -> 2072`
 - docs(refactor-plan): add phase-97 full-gate snapshot after chat-store test helper dedupe wave (frontend audits/tests + backend + sidecar)
 - refactor(frontend-chat-store-tests): add shared `resetChatStoreForTests` helper in `tests/frontend/chatStoreTestUtils.ts` and reuse it in `ChatStore` + `ChatStreamThinkingStatus` suites to remove duplicated seed-state/stream-tracking literals; jscpd improved from clones `126 -> 124` and duplicated lines `2125 -> 2088`
 - docs(refactor-plan): add phase-96 full-gate snapshot after tool-execution service test dedupe wave (frontend audits/tests + backend + sidecar)

@@ -12,10 +12,12 @@ export function createAssistantSeedMessage(overrides: Partial<ChatMessage> = {})
   };
 }
 
-export function resetChatStoreForTests(initialMessage: ChatMessage = createAssistantSeedMessage()) {
+export function resetChatStoreForTests(
+  initialMessage: ChatMessage | null = createAssistantSeedMessage(),
+) {
   useChatStore.getState().clearMessages();
   useChatStore.setState({
-    messages: [initialMessage],
+    messages: initialMessage ? [initialMessage] : [],
     isSending: false,
     thinkingStatus: null,
     tokenCounts: null,

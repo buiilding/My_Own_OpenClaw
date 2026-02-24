@@ -4,6 +4,7 @@ import { IpcBridge, ON_CHANNELS, SEND_CHANNELS } from '../../frontend/src/render
 import { useToolRunner } from '../../frontend/src/renderer/features/chat/hooks/useToolRunner';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { recordToolMessage } from '../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter';
+import { resetChatStoreForTests } from './chatStoreTestUtils';
 
 export const mockExecuteTool = jest.fn().mockResolvedValue(undefined);
 export const mockExecuteToolBundle = jest.fn().mockResolvedValue(undefined);
@@ -35,25 +36,9 @@ jest.mock('../../frontend/src/renderer/infrastructure/services/ToolExecutionServ
 let backendHandler: ((data: unknown) => void) | null = null;
 let removeListener: jest.Mock;
 
-const STREAM_TRACKING_BASE = {
-  activeTurnRef: null,
-  phase: 'idle',
-  startedAt: null,
-  firstChunkAt: null,
-  completedAt: null,
-  lastEventAt: null,
-  lastEventType: null,
-  eventCount: 0,
-  chunkCount: 0,
-  toolCallCount: 0,
-  toolOutputCount: 0,
-  lastChunkSize: 0,
-  lastError: null,
-};
-
 export function createStreamTracking(overrides: Record<string, unknown> = {}) {
   return {
-    ...STREAM_TRACKING_BASE,
+    ...useChatStore.getState().streamTracking,
     ...overrides,
   };
 }
@@ -116,13 +101,7 @@ export function resetToolRunnerTestState() {
   mockExecuteToolBundle.mockResolvedValue(undefined);
   removeListener = jest.fn();
 
-  useChatStore.setState({
-    messages: [],
-    isSending: false,
-    thinkingStatus: null,
-    tokenCounts: null,
-    streamTracking: createStreamTracking(),
-  });
+  resetChatStoreForTests(null);
 
   (global as any).crypto = {
     randomUUID: jest.fn(() => 'generated-id'),
