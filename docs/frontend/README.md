@@ -82,6 +82,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 
 - [Sidecar Docs Hub](sidecar/README.md)
 - [Sidecar Core Docs Hub](sidecar/core/README.md)
+- [Sidecar Services Docs Hub](sidecar/services/README.md)
 - [Sidecar System-State Docs Hub](sidecar/system_state/README.md)
 - [Sidecar Tools Docs Hub](sidecar/tools/README.md)
 - [Sidecar Tool Registry Docs Hub](sidecar/tools/registry/README.md)
@@ -118,6 +119,8 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Wakeword Bridge and Audio Framing Reference](sidecar/wakeword_bridge_and_audio_framing_reference.md)
 - [JSON-RPC Protocol, Stdout Framing, and Shutdown Signal Runtime Reference](sidecar/core/json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md)
 - [Backend URL Resolution, Remote Memory Clients, and Thread-Pool Runtime Reference](sidecar/core/backend_url_resolution_remote_memory_clients_and_thread_pool_runtime_reference.md)
+- [Memory Service JSON Protocol and Store Lifecycle Reference](sidecar/services/memory_service_json_protocol_and_store_lifecycle_reference.md)
+- [Wakeword Service Model Bootstrap and Binary Framing Reference](sidecar/services/wakeword_service_model_bootstrap_and_binary_framing_reference.md)
 
 ### Contracts
 

@@ -137,3 +137,9 @@ If audio chunks appear ignored:
 1. verify bridge has `isPythonReady=true`
 2. verify renderer chunk conversion produces non-empty Int16 payloads
 3. verify chunk payload type is one of string/Buffer/ArrayBuffer
+
+## Related Pages
+
+- [Sidecar Services Docs Hub](services/README.md)
+- [Wakeword Service Model Bootstrap and Binary Framing Reference](services/wakeword_service_model_bootstrap_and_binary_framing_reference.md)
+- [Frontend Renderer Wakeword Detection IPC Capture and Cooldown Reference](../renderer/voice/wakeword_detection_ipc_capture_and_cooldown_reference.md)
