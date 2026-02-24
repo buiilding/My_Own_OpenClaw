@@ -313,6 +313,49 @@ body {
   border-color: rgba(100, 180, 255, 0.54);
 }
 
+.chatbox-thinking-stream {
+  align-self: stretch;
+  max-height: 132px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin: 0 0 4px;
+  padding: 8px 10px 6px;
+  position: relative;
+  background: transparent;
+}
+
+.chatbox-thinking-stream::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 18px;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.25) 0,
+    rgba(12, 12, 12, 0.58) 1px,
+    rgba(12, 12, 12, 0) 100%
+  );
+  transition: opacity 140ms ease;
+}
+
+.chatbox-thinking-stream.has-overflow-above::before {
+  opacity: 1;
+}
+
+.chatbox-thinking-stream-text {
+  margin: 0;
+  white-space: pre-wrap;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.62);
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
+}
+
 .chatbox-typing-indicator {
   align-self: flex-start;
   display: inline-flex;

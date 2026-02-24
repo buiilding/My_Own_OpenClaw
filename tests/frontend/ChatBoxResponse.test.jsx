@@ -42,7 +42,7 @@ describe('ChatBoxResponse', () => {
     setChatState([]);
   });
 
-  test('shows tool-call response immediately when tool-call arrives before llm-text', async () => {
+  test('does not render tool-call response pane before llm text', async () => {
     setChatState([
       { id: 'user-1', text: 'run command', sender: 'user' },
       { id: 'tool-1', text: 'tool-call payload', sender: 'assistant', type: 'tool-call' },
@@ -51,9 +51,9 @@ describe('ChatBoxResponse', () => {
     render(<ChatBoxResponse />);
 
     await waitFor(() => {
-      expect(screen.getByText('tool-call payload')).toBeInTheDocument();
+      expect(screen.queryByText('tool-call payload')).not.toBeInTheDocument();
     });
-    expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
   });
 
   test('shows awaiting indicator when no assistant response exists yet', async () => {
@@ -176,5 +176,22 @@ describe('ChatBoxResponse', () => {
     await waitFor(() => {
       expect(responsePane.classList.contains('has-overflow-above')).toBe(true);
     });
+  });
+
+  test('renders thinking text as transparent stream while awaiting reply', async () => {
+    setChatState([
+      { id: 'user-1', text: 'think', sender: 'user' },
+    ]);
+    useChatStore.setState({
+      thinkingStatus: 'step 1\nstep 2',
+    });
+
+    render(<ChatBoxResponse />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Assistant reasoning stream')).toBeInTheDocument();
+    });
+    expect(screen.getByText(/step 1/)).toBeInTheDocument();
+    expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
   });
 });
