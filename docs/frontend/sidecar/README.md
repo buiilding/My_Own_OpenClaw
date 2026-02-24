@@ -54,6 +54,8 @@ title: "Frontend Sidecar Docs Hub"
 - [Backend URL Resolution, Remote Memory Clients, and Thread-Pool Runtime Reference](core/backend_url_resolution_remote_memory_clients_and_thread_pool_runtime_reference.md)
 - [Memory Service JSON Protocol and Store Lifecycle Reference](services/memory_service_json_protocol_and_store_lifecycle_reference.md)
 - [Wakeword Service Model Bootstrap and Binary Framing Reference](services/wakeword_service_model_bootstrap_and_binary_framing_reference.md)
+- [Sidecar Service Protocol Docs Hub](services/protocols/README.md)
+- [Memory JSONL and Wakeword Binary Frame Contract Reference](services/protocols/memory_jsonl_and_wakeword_binary_frame_contract_reference.md)
 
 ## Code Scope
 

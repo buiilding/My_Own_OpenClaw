@@ -151,6 +151,8 @@ Signal routing:
 ## Related Pages
 
 - [Frontend Sidecar Services Docs Hub](README.md)
+- [Sidecar Service Protocol Docs Hub](protocols/README.md)
+- [Memory JSONL and Wakeword Binary Frame Contract Reference](protocols/memory_jsonl_and_wakeword_binary_frame_contract_reference.md)
 - [Wakeword Service Model Bootstrap and Binary Framing Reference](wakeword_service_model_bootstrap_and_binary_framing_reference.md)
 - [Memory Pipeline and Summarization](../memory_pipeline_and_summarization.md)
 - [Frontend Sidecar Memory Storage Docs Hub](../memory/storage/README.md)

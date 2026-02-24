@@ -123,5 +123,7 @@ Risk:
 ## Related Pages
 
 - [Frontend Sidecar Services Docs Hub](README.md)
+- [Sidecar Service Protocol Docs Hub](protocols/README.md)
+- [Memory JSONL and Wakeword Binary Frame Contract Reference](protocols/memory_jsonl_and_wakeword_binary_frame_contract_reference.md)
 - [Memory Service JSON Protocol and Store Lifecycle Reference](memory_service_json_protocol_and_store_lifecycle_reference.md)
 - [Wakeword Bridge and Audio Framing Reference](../wakeword_bridge_and_audio_framing_reference.md)
