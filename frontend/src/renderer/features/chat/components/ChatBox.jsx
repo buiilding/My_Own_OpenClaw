@@ -11,6 +11,22 @@ const OVERLAY_ACTIVE_PHASES = new Set(['awaiting-first-chunk', 'streaming']);
 const OVERLAY_TERMINAL_PHASES = new Set(['idle', 'complete', 'error']);
 const LOOP_ACTIVE_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
 const ACTIVE_WINDOW_POLL_INTERVAL_MS = 5000;
+const CONTEXT_STATUS = Object.freeze({
+  FRESH: 'fresh',
+  STALE: 'stale',
+  OFFLINE: 'offline',
+});
+
+function setStatusIfChanged(setStatus, nextStatus) {
+  setStatus((previousStatus) => (previousStatus === nextStatus ? previousStatus : nextStatus));
+}
+
+function buildContextAriaLabel(context, status) {
+  if (status === CONTEXT_STATUS.FRESH) {
+    return `Active app: ${context.label}`;
+  }
+  return `Active app: ${context.label} (${status})`;
+}
 
 function isDragBlockedTarget(target) {
   if (!(target instanceof Element)) {
@@ -50,6 +66,8 @@ function ChatBox() {
   const [activeWindowContext, setActiveWindowContext] = useState(
     () => resolveActiveWindowContext(null),
   );
+  const [activeWindowStatus, setActiveWindowStatus] = useState(CONTEXT_STATUS.FRESH);
+  const hasSuccessfulContextRef = useRef(false);
   const ignoreMouseRef = useRef(undefined);
   const shellRef = useRef(null);
   const inputRef = useRef(null);
@@ -146,10 +164,16 @@ function ChatBox() {
         if (cancelled) {
           return;
         }
+        hasSuccessfulContextRef.current = true;
         setActiveWindowContext(resolveActiveWindowContext(state?.active_window));
+        setStatusIfChanged(setActiveWindowStatus, CONTEXT_STATUS.FRESH);
       } catch (_error) {
         if (!cancelled) {
           setActiveWindowContext(resolveActiveWindowContext(null));
+          setStatusIfChanged(
+            setActiveWindowStatus,
+            hasSuccessfulContextRef.current ? CONTEXT_STATUS.STALE : CONTEXT_STATUS.OFFLINE,
+          );
         }
       }
     };
@@ -279,10 +303,14 @@ function ChatBox() {
             <SettingsIcon />
           </button>
           <div
-            className="chatbox-context-indicator"
-            aria-label={`Active app: ${activeWindowContext.label}`}
+            className={`chatbox-context-indicator is-${activeWindowStatus}`}
+            aria-label={buildContextAriaLabel(activeWindowContext, activeWindowStatus)}
             title={activeWindowContext.fullLabel}
           >
+            <span
+              className={`chatbox-context-status-dot is-${activeWindowStatus}`}
+              aria-hidden="true"
+            />
             <span className="chatbox-context-icon" aria-hidden="true">
               {activeWindowContext.icon}
             </span>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { waitFor } from '@testing-library/react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 
 import ChatBox from '../../frontend/src/renderer/features/chat/components/ChatBox';
@@ -213,5 +214,23 @@ describe('ChatBox overlay mouse ignore', () => {
 
     expect(await screen.findByLabelText('Active app: VS Code')).toBeInTheDocument();
     expect(screen.getByText('ED')).toBeInTheDocument();
+  });
+
+  test('shows offline context state when active-window polling fails', async () => {
+    mockInvoke.mockImplementation((channel) => {
+      if (channel === 'get-system-state') {
+        return Promise.reject(new Error('system unavailable'));
+      }
+      return Promise.resolve({ success: true });
+    });
+
+    const { container } = render(<ChatBox />);
+    const contextIndicator = container.querySelector('.chatbox-context-indicator');
+    expect(contextIndicator).toBeTruthy();
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Active app: No active app (offline)')).toBeInTheDocument();
+    });
+    expect(contextIndicator.classList.contains('is-offline')).toBe(true);
   });
 });
