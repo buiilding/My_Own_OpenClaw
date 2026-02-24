@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(backend-model-service-tests): consolidate three local-model normalization tests into one parameterized `test_get_local_models_normalizes_ids_provider_and_display_name` case table in `tests/backend/test_model_service.py`; jscpd improved from clones `89 -> 88` and duplicated lines `1624 -> 1602`
 - docs(refactor-plan): add phase-124 full-gate snapshot after vision-provider-loader helper dedupe (frontend audits/tests + backend + sidecar)
 - refactor(backend-vision-provider-loader-tests): extract `_load_model_with_defaults` helper in `tests/backend/test_vision_provider_loader.py` to reuse repeated fallback-loader invocation scaffolding across CUDA/direct/CPU-fallback failure-path tests; jscpd improved from clones `91 -> 89` and duplicated lines `1654 -> 1624`
 - docs(refactor-plan): add phase-123 full-gate snapshot after parser-validation mouse-method setup helper dedupe (frontend audits/tests + backend + sidecar)
