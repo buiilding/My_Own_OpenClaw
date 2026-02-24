@@ -1,89 +1,43 @@
-.thinking-display {
-  display: flex;
-  flex-direction: column;
-  padding: 10px 12px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
+.thinking-display-stream {
+  position: relative;
+  width: min(92%, 820px);
   margin: 0 auto 10px auto;
-  max-width: 90%;
-  box-shadow: var(--shadow-soft);
-  animation: fadeUp 0.3s ease-out;
-}
-
-.thinking-header {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  user-select: none;
-  gap: 8px;
-}
-
-.thinking-label {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--text-muted);
-  flex: 1;
-}
-
-.thinking-toggle {
-  font-size: 0.7rem;
-  color: var(--text-soft);
-  margin-left: auto;
-}
-
-.thinking-content {
-  margin-top: 8px;
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.3s ease-out;
-}
-
-.thinking-content.expanded {
-  max-height: 460px;
+  padding: 8px 10px 6px;
+  max-height: 138px;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  background: transparent;
 }
 
-.thinking-content.collapsed {
-  max-height: 0;
+.thinking-display-stream::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 18px;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.24) 0,
+    rgba(11, 11, 11, 0.55) 1px,
+    rgba(11, 11, 11, 0) 100%
+  );
+  transition: opacity 140ms ease;
 }
 
-.thinking-text {
+.thinking-display-stream.has-overflow-above::before {
+  opacity: 1;
+}
+
+.thinking-display-text {
   margin: 0;
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  font-family: var(--font-mono);
   white-space: pre-wrap;
   word-wrap: break-word;
-  line-height: 1.6;
-  background: var(--surface-ink);
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-}
-
-.thinking-spinner {
-  width: 14px;
-  height: 14px;
-  border: 2px solid rgba(47, 143, 122, 0.2);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  flex-shrink: 0;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .thinking-spinner {
-    animation: none;
-  }
-
-  .thinking-display {
-    animation: none;
-  }
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1.58;
+  color: rgba(255, 255, 255, 0.6);
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.08);
 }
