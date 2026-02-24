@@ -354,51 +354,20 @@ class AgentSession:
     
     async def process_frontend_tool_result(
         self,
-        request_id: str,
-        success: bool,
-        result_data: Optional[Dict[str, Any]],
-        error: Optional[str],
+        **tool_result_payload: Any,
     ) -> None:
-        """
-        Process a tool result from the frontend.
-        
-        Delegates to ToolResultHandler to reduce god object complexity.
-        
-        Args:
-            request_id: Request ID for the tool result
-            success: Whether tool execution succeeded
-            result_data: Tool result data (may contain bundled flag)
-            error: Error message if execution failed
-        """
+        """Forward tool-result payload to ToolResultHandler."""
         await self.tool_result_handler.process_frontend_tool_result(
-            request_id, success, result_data, error
+            **tool_result_payload
         )
     
     async def process_frontend_tool_bundle_result(
         self,
-        bundle_id: str,
-        status: str,
-        step_results: List[Dict[str, Any]],
-        screenshot: Optional[str],
-        screenshot_ref: Optional[str],
-        system_state: Optional[Dict[str, Any]],
-        error: Optional[str]
+        **bundle_result_payload: Any,
     ) -> None:
-        """
-        Process an atomic tool-bundle-result from the frontend.
-        
-        Delegates to ToolResultHandler for processing.
-        
-        Args:
-            bundle_id: Bundle ID for the bundle result
-            status: Bundle status ("success", "partial_failure", "failure")
-            step_results: List of step results with tool, status, output
-            screenshot: Optional screenshot captured after bundle execution
-            system_state: Optional system state captured after bundle execution
-            error: Optional error message if bundle failed
-        """
+        """Forward tool-bundle-result payload to ToolResultHandler."""
         await self.tool_result_handler.process_frontend_tool_bundle_result(
-            bundle_id, status, step_results, screenshot, screenshot_ref, system_state, error
+            **bundle_result_payload
         )
     
     async def cleanup(self) -> None:
