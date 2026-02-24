@@ -6,6 +6,8 @@ read_when:
 
 # Frontend Architecture
 
+See also: [Frontend Functionality Map](../frontend/README.md) for implementation-level module docs.
+
 ## Overview
 
 The frontend is built using Electron with React, providing a desktop application with a modern UI. It uses a three-process architecture: Main Process (Node.js), Renderer Process (React), and Python Sidecar (tool execution).

@@ -1,0 +1,36 @@
+---
+summary: "Frontend documentation hub covering Electron main process, renderer runtime, tool execution services, and Python sidecar behavior."
+read_when:
+  - When changing frontend architecture across main/renderer/sidecar boundaries.
+  - When tracing query/tool message flow from UI to backend and back.
+title: "Frontend Functionality Map"
+---
+
+# Frontend Functionality Map
+
+This hub documents WindieOS frontend implementation details across Electron main process, React renderer, and Python sidecar runtime.
+
+## Deep Pages
+
+- [Electron Main and IPC](ELECTRON_MAIN_AND_IPC.md)
+- [Renderer Runtime](RENDERER_RUNTIME.md)
+- [Tool Execution and Streaming](TOOL_EXECUTION_AND_STREAMING.md)
+- [Python Sidecar and Memory](PYTHON_SIDECAR_AND_MEMORY.md)
+
+## Frontend Code Layout
+
+- `frontend/src/main`: Electron main process, backend/ws bridge, wakeword bridge, query payload enrichment
+- `frontend/src/preload.js`: sandbox-safe IPC exposure to renderer
+- `frontend/src/renderer`: React app, contexts, feature modules, infrastructure services
+- `frontend/src/main/python`: local backend sidecar, memory service, wakeword subprocess, tool implementations
+- `frontend/src/landing`: landing-page frontend variant
+
+## End-to-End Runtime Path (Condensed)
+
+1. Renderer sends query via typed IPC bridge.
+2. Main process gates initial settings sync, enriches query with system context + memory search.
+3. Main process forwards query over backend WebSocket.
+4. Backend streams events back; main relays to renderer.
+5. Renderer stream hook updates chat state and transcript.
+6. Tool events trigger `ToolExecutionService`, which executes tools via local sidecar bridge.
+7. Tool results (single or bundle) are posted back to backend for next loop iteration.
