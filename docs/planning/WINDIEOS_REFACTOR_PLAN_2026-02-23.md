@@ -346,6 +346,27 @@ read_when:
   - `cd frontend && npm run audit:knip`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
+## Phase 16
+
+- `jscpd` duplication cleanup (landing section intros):
+  - extract shared badge/heading/description JSX used by landing sections.
+  - start with `WhySection` and `PrivacySection` to reduce duplicate section-intro markup.
+  - keep visual copy, heading line breaks, and section-level layout classes unchanged.
+
+### Phase 16 Execution Slice (Current Loop)
+
+- Frontend dedupe:
+  - add shared landing section-intro component under `frontend/src/landing/components/`.
+  - migrate intro markup in:
+    - `frontend/src/landing/components/WhySection.jsx`
+    - `frontend/src/landing/components/PrivacySection.jsx`
+- Success checks:
+  - `cd frontend && npm run lint`
+  - `cd frontend && npm run test:ci -- tests/frontend/landing/LandingPage.test.jsx`
+  - `cd frontend && npm run test:ci`
+  - `cd frontend && npm run audit:knip`
+  - `cd frontend && npm run audit:jscpd` (expect clone reduction)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):
