@@ -37,7 +37,28 @@ function setChatState(messages) {
   });
 }
 
+function buildClickToolCallText() {
+  return JSON.stringify({
+    name: 'mouse_control',
+    arguments: { action: 'click', explanation: 'Clicking Chrome icon' },
+    metadata: {
+      coordinate_contract: {
+        target_display_size: [1000, 1000],
+        normalized_coordinates: { x: 800, y: 750 },
+      },
+    },
+  });
+}
+
 describe('ChatBoxResponse', () => {
+  function emitOverlayPhase(phase) {
+    const onPhase = mockListeners.get('response-overlay-phase');
+    expect(onPhase).toEqual(expect.any(Function));
+    act(() => {
+      onPhase({ phase });
+    });
+  }
+
   async function renderToolCallGhost({ userText, toolText }) {
     setChatState([
       { id: 'user-1', text: userText, sender: 'user' },
@@ -50,12 +71,7 @@ describe('ChatBoxResponse', () => {
     ]);
 
     const renderResult = render(<ChatBoxResponse />);
-    const onPhase = mockListeners.get('response-overlay-phase');
-    expect(onPhase).toEqual(expect.any(Function));
-
-    act(() => {
-      onPhase({ phase: 'tool-call' });
-    });
+    emitOverlayPhase('tool-call');
 
     await waitFor(() => {
       expect(screen.getByLabelText('Assistant tool action preview')).toBeInTheDocument();
@@ -112,16 +128,7 @@ describe('ChatBoxResponse', () => {
 
     const { container } = await renderToolCallGhost({
       userText: 'run command',
-      toolText: JSON.stringify({
-        name: 'mouse_control',
-        arguments: { action: 'click', explanation: 'Clicking Chrome icon' },
-        metadata: {
-          coordinate_contract: {
-            target_display_size: [1000, 1000],
-            normalized_coordinates: { x: 800, y: 750 },
-          },
-        },
-      }),
+      toolText: buildClickToolCallText(),
     });
 
     const ghostTrack = container.querySelector('.chatbox-tool-ghost-track');
@@ -143,27 +150,14 @@ describe('ChatBoxResponse', () => {
         { id: 'user-1', text: 'run command', sender: 'user' },
         {
           id: 'tool-1',
-          text: JSON.stringify({
-            name: 'mouse_control',
-            arguments: { action: 'click', explanation: 'Clicking Chrome icon' },
-            metadata: {
-              coordinate_contract: {
-                target_display_size: [1000, 1000],
-                normalized_coordinates: { x: 800, y: 750 },
-              },
-            },
-          }),
+          text: buildClickToolCallText(),
           sender: 'assistant',
           type: 'tool-call',
         },
       ]);
 
       render(<ChatBoxResponse />);
-      const onPhase = mockListeners.get('response-overlay-phase');
-      expect(onPhase).toEqual(expect.any(Function));
-      act(() => {
-        onPhase({ phase: 'tool-call' });
-      });
+      emitOverlayPhase('tool-call');
       await act(async () => {
         await Promise.resolve();
       });
