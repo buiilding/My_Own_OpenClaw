@@ -180,13 +180,13 @@ def observe(
 
 def observe_debug(
 	name: str | None = None,
-	ignore_input: bool = False,
-	ignore_output: bool = False,
-	metadata: dict[str, Any] | None = None,
-	span_type: Literal['DEFAULT', 'LLM', 'TOOL'] = 'DEFAULT',
 	**kwargs: Any,
 ) -> Callable[[F], F]:
 	"""Debug-only observe wrapper; traces only when debug mode is enabled."""
+	ignore_input = bool(kwargs.pop('ignore_input', False))
+	ignore_output = bool(kwargs.pop('ignore_output', False))
+	metadata = cast(dict[str, Any] | None, kwargs.pop('metadata', None))
+	span_type = cast(Literal['DEFAULT', 'LLM', 'TOOL'], kwargs.pop('span_type', 'DEFAULT'))
 	return _observe_with_tags(
 		name=name,
 		ignore_input=ignore_input,
