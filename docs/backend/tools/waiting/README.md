@@ -12,6 +12,8 @@ title: "Backend Tools Waiting Docs Hub"
 
 - [Tool Result Receiver and Router Shared Route-Mode Reference](tool_result_receiver_and_router_shared_route_mode_reference.md)
 - [Tool Result Storage Future Lifecycle and Cleanup Reference](tool_result_storage_future_lifecycle_and_cleanup_reference.md)
+- [Backend Waiting Router Docs Hub](router/README.md)
+- [Artifact Ref Validation and Shared Route-Result Semantics Reference](router/artifact_ref_validation_and_shared_route_result_semantics_reference.md)
 
 ## Related Pages
 

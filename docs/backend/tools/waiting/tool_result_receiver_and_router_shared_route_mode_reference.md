@@ -124,5 +124,7 @@ Bundle misses log warning; individual misses default to debug-level behavior.
 ## Related Pages
 
 - [Backend Tools Waiting Docs Hub](README.md)
+- [Backend Waiting Router Docs Hub](router/README.md)
+- [Artifact Ref Validation and Shared Route-Result Semantics Reference](router/artifact_ref_validation_and_shared_route_result_semantics_reference.md)
 - [Tool Result Storage Future Lifecycle and Cleanup Reference](tool_result_storage_future_lifecycle_and_cleanup_reference.md)
 - [Tool Result Ingress and Storage Reference](../tool_result_ingress_and_storage_reference.md)
