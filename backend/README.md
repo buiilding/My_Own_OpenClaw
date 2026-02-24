@@ -69,10 +69,10 @@ There is no YAML config file. Primary config models live in:
 
 ## Related Docs
 
-- `docs/BACKEND_ARCHITECTURE.md`
-- `docs/API_REFERENCE.md`
-- `docs/TOOL_SYSTEM.md`
-- `docs/LLM_INTEGRATION.md`
-- `docs/CONFIGURATION.md`
-- `docs/DEVELOPER_GUIDE.md`
+- `docs/backend_architecture.md`
+- `docs/api_reference.md`
+- `docs/tool_system.md`
+- `docs/llm_integration.md`
+- `docs/configuration.md`
+- `docs/developer_guide.md`
 

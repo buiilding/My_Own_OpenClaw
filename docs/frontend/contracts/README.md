@@ -10,12 +10,12 @@ title: "Frontend Contracts Docs Hub"
 
 ## Deep Pages
 
-- [IPC Channels and Event Contracts](IPC_CHANNELS_AND_EVENT_CONTRACTS.md)
-- [IPC Channel and Handler Reference](IPC_CHANNEL_AND_HANDLER_REFERENCE.md)
-- [Schema Generation and Event Guard Reference](SCHEMA_GENERATION_AND_EVENT_GUARD_REFERENCE.md)
-- [Memory IPC and RPC Mapping Reference](MEMORY_IPC_AND_RPC_MAPPING_REFERENCE.md)
-- [Backend Event Consumer Matrix Reference](BACKEND_EVENT_CONSUMER_MATRIX_REFERENCE.md)
-- [Overlay and Wakeword Control Channel Reference](OVERLAY_AND_WAKEWORD_CONTROL_CHANNEL_REFERENCE.md)
+- [IPC Channels and Event Contracts](ipc_channels_and_event_contracts.md)
+- [IPC Channel and Handler Reference](ipc_channel_and_handler_reference.md)
+- [Schema Generation and Event Guard Reference](schema_generation_and_event_guard_reference.md)
+- [Memory IPC and RPC Mapping Reference](memory_ipc_and_rpc_mapping_reference.md)
+- [Backend Event Consumer Matrix Reference](backend_event_consumer_matrix_reference.md)
+- [Overlay and Wakeword Control Channel Reference](overlay_and_wakeword_control_channel_reference.md)
 
 ## Code Scope
 

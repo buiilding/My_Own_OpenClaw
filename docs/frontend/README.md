@@ -15,57 +15,57 @@ This hub documents WindieOS frontend implementation details across Electron main
 ### Landing
 
 - [Landing Docs Hub](landing/README.md)
-- [Landing Page Runtime and Content Reference](landing/LANDING_PAGE_RUNTIME_AND_CONTENT_REFERENCE.md)
+- [Landing Page Runtime and Content Reference](landing/landing_page_runtime_and_content_reference.md)
 
 ### Main Process
 
 - [Main Docs Hub](main/README.md)
-- [Electron Main and IPC](main/ELECTRON_MAIN_AND_IPC.md)
-- [Window and Overlay Lifecycle](main/WINDOW_AND_OVERLAY_LIFECYCLE.md)
-- [Runtime Paths and Endpoints](main/RUNTIME_PATHS_AND_ENDPOINTS.md)
-- [Query Payload and Relay Reference](main/QUERY_PAYLOAD_AND_RELAY_REFERENCE.md)
-- [WebSocket Handshake and Settings Sync Reference](main/WEBSOCKET_HANDSHAKE_AND_SETTINGS_SYNC_REFERENCE.md)
-- [Local Backend Bridge Handler and Window Guard Reference](main/LOCAL_BACKEND_BRIDGE_HANDLER_AND_WINDOW_GUARD_REFERENCE.md)
+- [Electron Main and IPC](main/electron_main_and_ipc.md)
+- [Window and Overlay Lifecycle](main/window_and_overlay_lifecycle.md)
+- [Runtime Paths and Endpoints](main/runtime_paths_and_endpoints.md)
+- [Query Payload and Relay Reference](main/query_payload_and_relay_reference.md)
+- [WebSocket Handshake and Settings Sync Reference](main/websocket_handshake_and_settings_sync_reference.md)
+- [Local Backend Bridge Handler and Window Guard Reference](main/local_backend_bridge_handler_and_window_guard_reference.md)
 
 ### Renderer
 
 - [Renderer Docs Hub](renderer/README.md)
-- [Renderer Runtime](renderer/RENDERER_RUNTIME.md)
-- [Feature Module Matrix](renderer/FEATURE_MODULE_MATRIX.md)
-- [Dashboard Memory Management and Resume Reference](renderer/DASHBOARD_MEMORY_MANAGEMENT_AND_RESUME_REFERENCE.md)
-- [Chat Stream and Tool Execution Reference](renderer/CHAT_STREAM_AND_TOOL_EXECUTION_REFERENCE.md)
-- [Transcript Session and Rehydrate Reference](renderer/TRANSCRIPT_SESSION_AND_REHYDRATE_REFERENCE.md)
-- [Voice Capture and Wakeword Controller Reference](renderer/VOICE_CAPTURE_AND_WAKEWORD_CONTROLLER_REFERENCE.md)
+- [Renderer Runtime](renderer/renderer_runtime.md)
+- [Feature Module Matrix](renderer/feature_module_matrix.md)
+- [Dashboard Memory Management and Resume Reference](renderer/dashboard_memory_management_and_resume_reference.md)
+- [Chat Stream and Tool Execution Reference](renderer/chat_stream_and_tool_execution_reference.md)
+- [Transcript Session and Rehydrate Reference](renderer/transcript_session_and_rehydrate_reference.md)
+- [Voice Capture and Wakeword Controller Reference](renderer/voice_capture_and_wakeword_controller_reference.md)
 
 ### Runtime
 
 - [Runtime Docs Hub](runtime/README.md)
-- [Tool Execution and Streaming](runtime/TOOL_EXECUTION_AND_STREAMING.md)
-- [Stream Event State Machine](runtime/STREAM_EVENT_STATE_MACHINE.md)
-- [Config Sync and Settings Lifecycle Reference](runtime/CONFIG_SYNC_AND_SETTINGS_LIFECYCLE_REFERENCE.md)
-- [Audio Chunk Playback and Stop Semantics Reference](runtime/AUDIO_CHUNK_PLAYBACK_AND_STOP_SEMANTICS_REFERENCE.md)
+- [Tool Execution and Streaming](runtime/tool_execution_and_streaming.md)
+- [Stream Event State Machine](runtime/stream_event_state_machine.md)
+- [Config Sync and Settings Lifecycle Reference](runtime/config_sync_and_settings_lifecycle_reference.md)
+- [Audio Chunk Playback and Stop Semantics Reference](runtime/audio_chunk_playback_and_stop_semantics_reference.md)
 
 ### Sidecar
 
 - [Sidecar Docs Hub](sidecar/README.md)
-- [Python Sidecar and Memory](sidecar/PYTHON_SIDECAR_AND_MEMORY.md)
-- [Sidecar Tool Catalog and Execution Model](sidecar/TOOL_CATALOG_AND_EXECUTION_MODEL.md)
-- [Memory Pipeline and Summarization](sidecar/MEMORY_PIPELINE_AND_SUMMARIZATION.md)
-- [Browser Automation Stack](sidecar/BROWSER_AUTOMATION_STACK.md)
-- [Browser Action Compatibility and Runtime Reference](sidecar/BROWSER_ACTION_COMPATIBILITY_AND_RUNTIME_REFERENCE.md)
-- [Local Backend JSON-RPC Reference](sidecar/LOCAL_BACKEND_JSONRPC_REFERENCE.md)
-- [Local Backend Process Lifecycle Reference](sidecar/LOCAL_BACKEND_PROCESS_LIFECYCLE_REFERENCE.md)
-- [Wakeword Bridge and Audio Framing Reference](sidecar/WAKEWORD_BRIDGE_AND_AUDIO_FRAMING_REFERENCE.md)
+- [Python Sidecar and Memory](sidecar/python_sidecar_and_memory.md)
+- [Sidecar Tool Catalog and Execution Model](sidecar/tool_catalog_and_execution_model.md)
+- [Memory Pipeline and Summarization](sidecar/memory_pipeline_and_summarization.md)
+- [Browser Automation Stack](sidecar/browser_automation_stack.md)
+- [Browser Action Compatibility and Runtime Reference](sidecar/browser_action_compatibility_and_runtime_reference.md)
+- [Local Backend JSON-RPC Reference](sidecar/local_backend_jsonrpc_reference.md)
+- [Local Backend Process Lifecycle Reference](sidecar/local_backend_process_lifecycle_reference.md)
+- [Wakeword Bridge and Audio Framing Reference](sidecar/wakeword_bridge_and_audio_framing_reference.md)
 
 ### Contracts
 
 - [Contracts Docs Hub](contracts/README.md)
-- [IPC Channels and Event Contracts](contracts/IPC_CHANNELS_AND_EVENT_CONTRACTS.md)
-- [IPC Channel and Handler Reference](contracts/IPC_CHANNEL_AND_HANDLER_REFERENCE.md)
-- [Schema Generation and Event Guard Reference](contracts/SCHEMA_GENERATION_AND_EVENT_GUARD_REFERENCE.md)
-- [Memory IPC and RPC Mapping Reference](contracts/MEMORY_IPC_AND_RPC_MAPPING_REFERENCE.md)
-- [Backend Event Consumer Matrix Reference](contracts/BACKEND_EVENT_CONSUMER_MATRIX_REFERENCE.md)
-- [Overlay and Wakeword Control Channel Reference](contracts/OVERLAY_AND_WAKEWORD_CONTROL_CHANNEL_REFERENCE.md)
+- [IPC Channels and Event Contracts](contracts/ipc_channels_and_event_contracts.md)
+- [IPC Channel and Handler Reference](contracts/ipc_channel_and_handler_reference.md)
+- [Schema Generation and Event Guard Reference](contracts/schema_generation_and_event_guard_reference.md)
+- [Memory IPC and RPC Mapping Reference](contracts/memory_ipc_and_rpc_mapping_reference.md)
+- [Backend Event Consumer Matrix Reference](contracts/backend_event_consumer_matrix_reference.md)
+- [Overlay and Wakeword Control Channel Reference](contracts/overlay_and_wakeword_control_channel_reference.md)
 
 ## Frontend Code Layout
 

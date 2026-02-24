@@ -10,14 +10,14 @@ title: "Frontend Sidecar Docs Hub"
 
 ## Deep Pages
 
-- [Python Sidecar and Memory](PYTHON_SIDECAR_AND_MEMORY.md)
-- [Sidecar Tool Catalog and Execution Model](TOOL_CATALOG_AND_EXECUTION_MODEL.md)
-- [Memory Pipeline and Summarization](MEMORY_PIPELINE_AND_SUMMARIZATION.md)
-- [Browser Automation Stack](BROWSER_AUTOMATION_STACK.md)
-- [Browser Action Compatibility and Runtime Reference](BROWSER_ACTION_COMPATIBILITY_AND_RUNTIME_REFERENCE.md)
-- [Local Backend JSON-RPC Reference](LOCAL_BACKEND_JSONRPC_REFERENCE.md)
-- [Local Backend Process Lifecycle Reference](LOCAL_BACKEND_PROCESS_LIFECYCLE_REFERENCE.md)
-- [Wakeword Bridge and Audio Framing Reference](WAKEWORD_BRIDGE_AND_AUDIO_FRAMING_REFERENCE.md)
+- [Python Sidecar and Memory](python_sidecar_and_memory.md)
+- [Sidecar Tool Catalog and Execution Model](tool_catalog_and_execution_model.md)
+- [Memory Pipeline and Summarization](memory_pipeline_and_summarization.md)
+- [Browser Automation Stack](browser_automation_stack.md)
+- [Browser Action Compatibility and Runtime Reference](browser_action_compatibility_and_runtime_reference.md)
+- [Local Backend JSON-RPC Reference](local_backend_jsonrpc_reference.md)
+- [Local Backend Process Lifecycle Reference](local_backend_process_lifecycle_reference.md)
+- [Wakeword Bridge and Audio Framing Reference](wakeword_bridge_and_audio_framing_reference.md)
 
 ## Code Scope
 

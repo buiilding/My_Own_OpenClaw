@@ -10,7 +10,7 @@ title: "Frontend Landing Docs Hub"
 
 ## Deep Pages
 
-- [Landing Page Runtime and Content Reference](LANDING_PAGE_RUNTIME_AND_CONTENT_REFERENCE.md)
+- [Landing Page Runtime and Content Reference](landing_page_runtime_and_content_reference.md)
 
 ## Code Scope
 

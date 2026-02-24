@@ -10,10 +10,10 @@ title: "Frontend Runtime Docs Hub"
 
 ## Deep Pages
 
-- [Tool Execution and Streaming](TOOL_EXECUTION_AND_STREAMING.md)
-- [Stream Event State Machine](STREAM_EVENT_STATE_MACHINE.md)
-- [Config Sync and Settings Lifecycle Reference](CONFIG_SYNC_AND_SETTINGS_LIFECYCLE_REFERENCE.md)
-- [Audio Chunk Playback and Stop Semantics Reference](AUDIO_CHUNK_PLAYBACK_AND_STOP_SEMANTICS_REFERENCE.md)
+- [Tool Execution and Streaming](tool_execution_and_streaming.md)
+- [Stream Event State Machine](stream_event_state_machine.md)
+- [Config Sync and Settings Lifecycle Reference](config_sync_and_settings_lifecycle_reference.md)
+- [Audio Chunk Playback and Stop Semantics Reference](audio_chunk_playback_and_stop_semantics_reference.md)
 
 ## Code Scope
 

@@ -10,7 +10,7 @@ title: "Backend Core Infrastructure Docs Hub"
 
 ## Deep Pages
 
-- [Event Bus and Cache Infrastructure Reference](EVENT_BUS_AND_CACHE_INFRASTRUCTURE_REFERENCE.md)
+- [Event Bus and Cache Infrastructure Reference](event_bus_and_cache_infrastructure_reference.md)
 
 ## Code Scope
 

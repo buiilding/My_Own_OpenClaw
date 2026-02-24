@@ -10,8 +10,8 @@ title: "Backend Contracts Docs Hub"
 
 ## Deep Pages
 
-- [WebSocket Message Contracts](WEBSOCKET_MESSAGE_CONTRACTS.md)
-- [Message Schema and Formatter Reference](MESSAGE_SCHEMA_AND_FORMATTER_REFERENCE.md)
+- [WebSocket Message Contracts](websocket_message_contracts.md)
+- [Message Schema and Formatter Reference](message_schema_and_formatter_reference.md)
 
 ## Code Scope
 

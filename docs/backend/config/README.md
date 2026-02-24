@@ -10,7 +10,7 @@ title: "Backend Config Docs Hub"
 
 ## Deep Pages
 
-- [Config Fields and Runtime Policy](CONFIG_FIELDS_AND_RUNTIME_POLICY.md)
+- [Config Fields and Runtime Policy](config_fields_and_runtime_policy.md)
 
 ## Code Scope
 

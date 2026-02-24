@@ -10,11 +10,11 @@ title: "Backend Services Docs Hub"
 
 ## Deep Pages
 
-- [Services and Storage](SERVICES_AND_STORAGE.md)
-- [Embedding and Semantic Memory Runtime Reference](EMBEDDING_AND_SEMANTIC_MEMORY_RUNTIME_REFERENCE.md)
-- [Artifact, Screenshot, and System-State Flow Reference](ARTIFACT_SCREENSHOT_AND_SYSTEM_STATE_FLOW_REFERENCE.md)
-- [TTS and Wakeword Audio Runtime Reference](TTS_AND_WAKEWORD_AUDIO_RUNTIME_REFERENCE.md)
-- [OCR and Vision Coordinate Runtime Reference](OCR_AND_VISION_COORDINATE_RUNTIME_REFERENCE.md)
+- [Services and Storage](services_and_storage.md)
+- [Embedding and Semantic Memory Runtime Reference](embedding_and_semantic_memory_runtime_reference.md)
+- [Artifact, Screenshot, and System-State Flow Reference](artifact_screenshot_and_system_state_flow_reference.md)
+- [TTS and Wakeword Audio Runtime Reference](tts_and_wakeword_audio_runtime_reference.md)
+- [OCR and Vision Coordinate Runtime Reference](ocr_and_vision_coordinate_runtime_reference.md)
 
 ## Code Scope
 

@@ -260,14 +260,14 @@ If you want to contribute, check out:
 
 ### Project Documentation
 - **[Documentation Index](docs/README.md)** - Full documentation index
-- **[Quick Start](docs/QUICK_START.md)** - Get running quickly
-- **[Installation](docs/INSTALLATION.md)** - Detailed setup instructions
-- **[Architecture](docs/ARCHITECTURE.md)** - System architecture overview
-- **[Backend Architecture](docs/BACKEND_ARCHITECTURE.md)** - Backend responsibilities and implementation
-- **[Frontend Architecture](docs/FRONTEND_ARCHITECTURE.md)** - Frontend responsibilities and implementation
-- **[Python Sidecar](docs/PYTHON_SIDECAR.md)** - Local tool execution + memory service
-- **[Tool System](docs/TOOL_SYSTEM.md)** - Tool execution architecture and flow
-- **[API Reference](docs/API_REFERENCE.md)** - WebSocket and REST payloads
+- **[Quick Start](docs/quick_start.md)** - Get running quickly
+- **[Installation](docs/installation.md)** - Detailed setup instructions
+- **[Architecture](docs/architecture.md)** - System architecture overview
+- **[Backend Architecture](docs/backend_architecture.md)** - Backend responsibilities and implementation
+- **[Frontend Architecture](docs/frontend_architecture.md)** - Frontend responsibilities and implementation
+- **[Python Sidecar](docs/python_sidecar.md)** - Local tool execution + memory service
+- **[Tool System](docs/tool_system.md)** - Tool execution architecture and flow
+- **[API Reference](docs/api_reference.md)** - WebSocket and REST payloads
 
 ---
 
@@ -324,7 +324,7 @@ This is a great time to get involved as a founding contributor. Whether you're e
 ### How to Contribute
 
 1. **Check Current Work**: Look at open Issues in your repository
-2. **Read Guidelines**: Review [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md)
+2. **Read Guidelines**: Review [docs/contributing.md](docs/contributing.md)
 3. **Pick an Issue**: Comment on an issue to claim it (or create a new one)
 4. **Make Your Contribution**: Fork, branch, code, test, submit PR
 5. **Collaborate**: Respond to feedback and iterate
@@ -487,6 +487,6 @@ If this vision excites you, please star the repository! It helps others discover
 
 **🚀 Building the future of personal computing, one commit at a time**
 
-Use repository `Discussions` · [Contribute](docs/CONTRIBUTING.md)
+Use repository `Discussions` · [Contribute](docs/contributing.md)
 
 </div>

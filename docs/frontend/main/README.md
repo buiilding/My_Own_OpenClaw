@@ -10,12 +10,12 @@ title: "Frontend Main Docs Hub"
 
 ## Deep Pages
 
-- [Electron Main and IPC](ELECTRON_MAIN_AND_IPC.md)
-- [Window and Overlay Lifecycle](WINDOW_AND_OVERLAY_LIFECYCLE.md)
-- [Runtime Paths and Endpoints](RUNTIME_PATHS_AND_ENDPOINTS.md)
-- [Query Payload and Relay Reference](QUERY_PAYLOAD_AND_RELAY_REFERENCE.md)
-- [WebSocket Handshake and Settings Sync Reference](WEBSOCKET_HANDSHAKE_AND_SETTINGS_SYNC_REFERENCE.md)
-- [Local Backend Bridge Handler and Window Guard Reference](LOCAL_BACKEND_BRIDGE_HANDLER_AND_WINDOW_GUARD_REFERENCE.md)
+- [Electron Main and IPC](electron_main_and_ipc.md)
+- [Window and Overlay Lifecycle](window_and_overlay_lifecycle.md)
+- [Runtime Paths and Endpoints](runtime_paths_and_endpoints.md)
+- [Query Payload and Relay Reference](query_payload_and_relay_reference.md)
+- [WebSocket Handshake and Settings Sync Reference](websocket_handshake_and_settings_sync_reference.md)
+- [Local Backend Bridge Handler and Window Guard Reference](local_backend_bridge_handler_and_window_guard_reference.md)
 
 ## Code Scope
 
