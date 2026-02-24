@@ -174,3 +174,9 @@ If TTS reads tool JSON/code:
 1. inspect suppression state transitions in `TTSProcessor`
 2. confirm tool boundary events (`ToolCallEvent` / `ToolOutputEvent`) are emitted
 3. inspect chunk patterns where markers appear mid-chunk
+
+## Related TTS Deep Dives
+
+- [API Processing TTS Docs Hub](tts/README.md)
+- [TTS Manager Audio Stream and Cleanup Reference](tts/tts_manager_audio_stream_and_cleanup_reference.md)
+- [TTS Processor Suppression State-Machine Reference](tts/tts_processor_suppression_state_machine_reference.md)

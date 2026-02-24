@@ -44,6 +44,7 @@ Covers:
 
 - [API Docs Hub](api/README.md)
 - [API Processing Docs Hub](api/processing/README.md)
+- [API Processing TTS Docs Hub](api/processing/tts/README.md)
 - [API Transport Docs Hub](api/transport/README.md)
 - [Contracts Docs Hub](contracts/README.md)
 - [API and Transport](api/api_and_transport.md)
@@ -57,6 +58,8 @@ Covers:
 - [Formatter Dispatch and Schema Alignment Reference](api/processing/formatter_dispatch_and_schema_alignment_reference.md)
 - [Stream Pipeline, Completion, and TTS Concurrency Reference](api/processing/stream_pipeline_completion_and_tts_concurrency_reference.md)
 - [Query Execution Runtime-State and Completion Resolver Reference](api/processing/query_execution_runtime_state_and_completion_resolver_reference.md)
+- [TTS Manager Audio Stream and Cleanup Reference](api/processing/tts/tts_manager_audio_stream_and_cleanup_reference.md)
+- [TTS Processor Suppression State-Machine Reference](api/processing/tts/tts_processor_suppression_state_machine_reference.md)
 - [WebSocket Message Contracts](contracts/websocket_message_contracts.md)
 - [Message Schema and Formatter Reference](contracts/message_schema_and_formatter_reference.md)
 - [Handler Behavior Matrix](api/handler_behavior_matrix.md)
