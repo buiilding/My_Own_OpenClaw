@@ -155,6 +155,8 @@ Handler-side errors call `send_error_response(...)` from `api/infrastructure/err
 ## Related Pages
 
 - [Backend API Handlers Docs Hub](README.md)
+- [Backend API Services Docs Hub](../services/README.md)
+- [Query Execution Service Stream Context and Completion Fallback Reference](../services/query_execution_service_stream_context_and_completion_fallback_reference.md)
 - [Non-Query Handler Dispatch and Payload Normalization Reference](non_query_handler_dispatch_and_payload_normalization_reference.md)
 - [Handler Behavior Matrix](../handler_behavior_matrix.md)
 - [Stop-Query and Control Flow Reference](../non_query_handler_and_control_flow_reference.md)
