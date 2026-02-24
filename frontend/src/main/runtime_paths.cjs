@@ -66,8 +66,31 @@ function getBundledPythonExecutableCandidates() {
   ]);
 }
 
+function resolvePythonExecutablePath() {
+  const explicitPythonPath = process.env.WINDIE_PYTHON_PATH;
+  if (explicitPythonPath && fs.existsSync(explicitPythonPath)) {
+    return explicitPythonPath;
+  }
+
+  const bundledPython = firstExistingPath(getBundledPythonExecutableCandidates());
+  if (bundledPython) {
+    return bundledPython;
+  }
+
+  const condaPrefix = process.env.CONDA_PREFIX;
+  if (condaPrefix) {
+    const condaPython = process.platform === 'win32'
+      ? path.join(condaPrefix, 'python.exe')
+      : path.join(condaPrefix, 'bin', 'python3');
+    if (fs.existsSync(condaPython)) {
+      return condaPython;
+    }
+  }
+
+  return process.platform === 'win32' ? 'py' : 'python3';
+}
+
 module.exports = {
-  firstExistingPath,
-  getBundledPythonExecutableCandidates,
+  resolvePythonExecutablePath,
   resolvePythonScriptPath,
 };

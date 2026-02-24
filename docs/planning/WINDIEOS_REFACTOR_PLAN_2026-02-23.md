@@ -857,3 +857,27 @@ read_when:
   - `cd frontend && npm run test:ci` (pass; 82 suites)
   - `cd frontend && npm run audit:knip` (pass; no findings)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
+
+## Phase 19 Outcome (2026-02-23)
+
+- Electron main-process Python path dedupe shipped:
+  - added shared Python executable resolver in:
+    - `frontend/src/main/runtime_paths.cjs`
+  - rewired duplicate path-resolution logic in:
+    - `frontend/src/main/local_backend_bridge.cjs`
+    - `frontend/src/main/wakeword_bridge.cjs`
+  - preserved local-backend Python-path caching behavior.
+- `knip` dead-export cleanup shipped:
+  - internalized now-unused runtime-path helper exports:
+    - `firstExistingPath`
+    - `getBundledPythonExecutableCandidates`
+- jscpd delta after Phase 19 slice:
+  - clones: `212 -> 211`
+  - duplicated lines: `3203 -> 3192`
+  - duplicated tokens: `28138 -> 28043`
+- Verification:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/LocalBackendBridge.test.cjs tests/frontend/WakewordBridge.test.cjs` (pass)
+  - `cd frontend && npm run test:ci` (pass; 82 suites)
+  - `cd frontend && npm run audit:knip` (pass; no findings)
+  - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
