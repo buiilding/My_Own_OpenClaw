@@ -186,3 +186,9 @@ If send path deadlocks/fails under load:
 1. inspect SafeWebSocket sender-loop error logs
 2. inspect queue backpressure/retry behavior
 3. verify no direct raw `WebSocket.send_*` calls bypass `SafeWebSocket`
+
+## Related Pages
+
+- [Backend API WebSocket Docs Hub](websocket/README.md)
+- [WebSocket Message Parse, Validation Guard, and Task-Scheduling Reference](websocket/websocket_message_parse_validation_guard_and_task_scheduling_reference.md)
+- [Safe WebSocket and Transport Envelope Reference](transport/safe_websocket_and_transport_envelope_reference.md)
