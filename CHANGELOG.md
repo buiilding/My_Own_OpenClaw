@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(planning): add Codex-aligned conversation-history compaction implementation plan with multi-provider strategy architecture and phased execution map in `docs/planning/windieos_conversation_history_compaction_plan_2026-02-24.md`
 - fix(backend-kimi-streaming): fail closed when streamed Kimi tool-call arguments cannot be parsed; remove silent `{}` fallback and surface parse failure via stream error event payload
 - fix(backend-interaction-loop): stop the current turn after LLM stream `ErrorEvent` so malformed tool-call streams do not continue into empty-argument tool execution attempts
 - test(backend-kimi-streaming): add regression coverage for invalid streamed Kimi tool-call JSON to ensure parser failures emit `ErrorEvent` and do not materialize normalized tool calls

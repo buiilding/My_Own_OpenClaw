@@ -30,6 +30,7 @@ Single entrypoint for future work. Use this page first.
 - `windieos_agent_to_agent_communication_plan.md`
 - `windieos_vm_multi_agent_plan.md`
 - `windieos_refactor_plan_2026-02-23.md`
+- `windieos_conversation_history_compaction_plan_2026-02-24.md`
 
 ## Scope Rules
 
