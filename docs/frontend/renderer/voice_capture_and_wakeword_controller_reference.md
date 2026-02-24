@@ -153,7 +153,10 @@ Chunk-size normalization:
 ## Cross-Doc References
 
 - Renderer voice deep-dive hub: `docs/frontend/renderer/voice/README.md`
+- Renderer voice utils hub: `docs/frontend/renderer/voice/utils/README.md`
 - Voice gateway/transcription-region internals: `docs/frontend/renderer/voice/voice_mode_gateway_connection_and_transcription_region_reference.md`
 - Wakeword IPC/cooldown internals: `docs/frontend/renderer/voice/wakeword_detection_ipc_capture_and_cooldown_reference.md`
+- Audio encoding/chunk/cleanup utility internals: `docs/frontend/renderer/voice/utils/audio_encoding_chunk_normalization_and_capture_cleanup_reference.md`
+- Transcription-region state-machine internals: `docs/frontend/renderer/voice/utils/transcription_region_state_machine_and_input_edit_reconciliation_reference.md`
 - Wakeword bridge internals: `docs/frontend/sidecar/wakeword_bridge_and_audio_framing_reference.md`
 - Main-process query relay impacts after wakeword activation: `docs/frontend/main/query_payload_and_relay_reference.md`

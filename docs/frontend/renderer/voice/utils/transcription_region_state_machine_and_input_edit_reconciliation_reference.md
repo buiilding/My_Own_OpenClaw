@@ -1,0 +1,106 @@
+---
+summary: "Deep reference for transcription-region edit reconciliation: append-vs-replace state machine, input-change/paste offset updates, and MessageInput auto-send/reset coupling."
+read_when:
+  - When changing `useTranscription` text replacement behavior or cursor/selection handling.
+  - When debugging duplicated transcript fragments, unexpected region invalidation, or pasted-text offset regressions.
+title: "Transcription Region State Machine and Input Edit Reconciliation Reference"
+---
+
+# Transcription Region State Machine and Input Edit Reconciliation Reference
+
+## Canonical Modules
+
+- `frontend/src/renderer/features/chat/hooks/useTranscription.ts`
+- `frontend/src/renderer/features/chat/utils/transcriptionRegions.ts`
+- `frontend/src/renderer/features/chat/components/MessageInput.jsx`
+- `frontend/src/renderer/features/voice/hooks/useVoiceMode.ts`
+
+## Core Model: One Active Region
+
+`TranscriptionRegion` fields:
+
+- `start`
+- `end`
+- `active`
+
+`createEmptyTranscriptionRegion()` represents inactive mode (`active=false`, `start=end=0`).
+
+Runtime invariant:
+
+- only one active transcription replacement region is tracked at a time
+
+## Transcript Update State Machine
+
+`useTranscription.updateTranscription(text)` behavior:
+
+1. ignore empty text
+2. if region inactive -> append text to end (`appendTranscriptionText`) and activate new range
+3. if region active -> replace only prior region (`replaceTranscriptionText`) and update bounds
+
+Effect:
+
+- streaming partial transcripts evolve in-place instead of append-duplicating on every chunk
+
+## User Typing Reconciliation (`handleInputChange`)
+
+On every manual input change:
+
+1. compute `diff = newValue.length - oldValue.length`
+2. apply `updateRegionAfterInputChange(...)` rules:
+- cursor before region start: shift start/end by `diff`
+- cursor after region end: keep region unchanged
+- cursor inside region: invalidate region (reset empty)
+- missing cursor (`null`): invalidate region
+
+This preserves replacement targeting only when edit happened outside the live transcript segment.
+
+## Paste Reconciliation (`handlePaste`)
+
+`handlePaste` path:
+
+1. builds next value from selection range (`buildValueAfterPaste`)
+2. adjusts region with `updateRegionAfterPaste(...)`:
+- paste before region -> shift start/end by pasted length
+- paste after region -> region unchanged
+- paste inside region -> invalidate region
+- missing cursor -> invalidate region
+3. sets caret asynchronously to pasted-text end (`setTimeout(... setSelectionRange ...)`)
+4. prevents default browser paste
+
+## Mutable Value and Region Refs
+
+`useTranscription` keeps:
+
+- React state `inputValue` for rendering
+- `inputValueRef` for stable immediate reads (`getInputValue`)
+- `transcriptionRegionRef` for replacement boundaries
+
+This allows utterance-end callback in `MessageInput` to submit the latest value without waiting for state batching.
+
+## MessageInput Coupling
+
+`MessageInput` wires:
+
+- `useVoiceMode(..., onTranscriptionUpdate, onUtteranceEnd)`
+- `onTranscriptionUpdate` -> `updateTranscription(text)`
+- `onUtteranceEnd` -> submit `getInputValue()`
+
+After successful send:
+
+- `setInputValue('')`
+- `resetTranscription()` (region cleared)
+
+This prevents the next utterance from replacing stale region bounds from previous message.
+
+## Drift Hotspots
+
+1. removing active-region replacement causes duplicated transcript text across realtime updates.
+2. failing to invalidate region when editing/pasting inside region causes unexpected overwrite of user-modified text.
+3. dropping `getInputValue()` ref usage can submit stale text on utterance-end events.
+4. skipping region reset after send can apply next utterance to wrong span in emptied/reused input.
+
+## Related Pages
+
+- [Frontend Renderer Voice Utils Docs Hub](README.md)
+- [Voice Mode Gateway Connection and Transcription Region Reference](../voice_mode_gateway_connection_and_transcription_region_reference.md)
+- [Frontend Chat Stream and Tool Execution Reference](../../chat_stream_and_tool_execution_reference.md)

@@ -131,6 +131,8 @@ Audio context close errors are suppressed when message indicates already-closed 
 ## Related Pages
 
 - [Frontend Renderer Voice Docs Hub](README.md)
+- [Frontend Renderer Voice Utils Docs Hub](utils/README.md)
 - [Voice Mode Gateway Connection and Transcription Region Reference](voice_mode_gateway_connection_and_transcription_region_reference.md)
+- [Audio Encoding, Chunk Normalization, and Capture Cleanup Reference](utils/audio_encoding_chunk_normalization_and_capture_cleanup_reference.md)
 - [Frontend Overlay and Wakeword Control Channel Reference](../../contracts/overlay_and_wakeword_control_channel_reference.md)
 - [Frontend Sidecar Wakeword Bridge and Audio Framing Reference](../../sidecar/wakeword_bridge_and_audio_framing_reference.md)

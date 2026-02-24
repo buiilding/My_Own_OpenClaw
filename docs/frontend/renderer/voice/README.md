@@ -12,6 +12,9 @@ title: "Frontend Renderer Voice Docs Hub"
 
 - [Voice Mode Gateway Connection and Transcription Region Reference](voice_mode_gateway_connection_and_transcription_region_reference.md)
 - [Wakeword Detection IPC Capture and Cooldown Reference](wakeword_detection_ipc_capture_and_cooldown_reference.md)
+- [Voice Utils Docs Hub](utils/README.md)
+- [Audio Encoding, Chunk Normalization, and Capture Cleanup Reference](utils/audio_encoding_chunk_normalization_and_capture_cleanup_reference.md)
+- [Transcription Region State Machine and Input Edit Reconciliation Reference](utils/transcription_region_state_machine_and_input_edit_reconciliation_reference.md)
 
 ## Related Pages
 
@@ -19,6 +22,7 @@ title: "Frontend Renderer Voice Docs Hub"
 - [Voice Capture and Wakeword Controller Reference](../voice_capture_and_wakeword_controller_reference.md)
 - [Frontend Overlay and Wakeword Control Channel Reference](../../contracts/overlay_and_wakeword_control_channel_reference.md)
 - [Frontend Sidecar Wakeword Bridge and Audio Framing Reference](../../sidecar/wakeword_bridge_and_audio_framing_reference.md)
+- [Frontend Chat Stream and Tool Execution Reference](../chat_stream_and_tool_execution_reference.md)
 
 ## Code Scope
 
@@ -31,4 +35,5 @@ title: "Frontend Renderer Voice Docs Hub"
 - `frontend/src/renderer/features/voice/utils/audioEncoding.ts`
 - `frontend/src/renderer/features/voice/utils/audioCaptureCleanup.ts`
 - `frontend/src/renderer/features/voice/utils/wakewordEventUtils.ts`
+- `frontend/src/renderer/features/chat/utils/transcriptionRegions.ts`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
