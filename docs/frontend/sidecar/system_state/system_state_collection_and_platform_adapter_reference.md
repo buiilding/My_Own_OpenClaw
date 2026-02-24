@@ -174,3 +174,9 @@ Platform bootstrap:
 2. changing default values (`Unknown`, `<error>`, `[]`) can alter prompt XML and downstream model behavior.
 3. platform dependency loss (`xdotool`, `pyautogui`, `pyperclip`, `pywin32`, `AppKit`) silently degrades capture quality unless logs are monitored.
 4. Linux fuzzy matching thresholds in window switching are safety-sensitive; loosened thresholds risk wrong-window activation.
+
+## Related Pages
+
+- [Sidecar System-State Docs Hub](README.md)
+- [Sidecar System-State Platform Docs Hub](platform/README.md)
+- [System-State Probe Layer and Window-Manager Adapter Boundary Reference](platform/system_state_probe_layer_and_window_manager_adapter_boundary_reference.md)

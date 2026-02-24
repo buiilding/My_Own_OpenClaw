@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-sidecar-system-state): add platform subhub detailing probe-layer vs window-manager adapter boundaries and OS-specific activation/matching semantics
 - docs(backend-api-processing-formatters): add formatter registry subhub with response formatter lazy-spec lifecycle, typed/dict dispatch precedence, and context-envelope attachment reference
 - test(ghost-visual-harness): add visual ghost cursor test page (`/?view=tool-ghost-visual-test`) plus `frontend` script `npm run test:ghost-visual` for manual on-screen verification of hold/move/hide timeline; add regression test `tests/frontend/ToolGhostVisualTestApp.test.jsx`
 - test(chatbox-ghost-motion): add dedicated renderer test `tests/frontend/ChatBoxResponseGhostMotion.test.js` validating start/end ghost cursor offsets differ and motion duration matches full click timeline; tighten `ChatBoxResponse.test.jsx` to assert real travel (start offsets != end offsets)
