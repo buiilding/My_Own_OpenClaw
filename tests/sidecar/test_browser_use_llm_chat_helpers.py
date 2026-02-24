@@ -1,24 +1,10 @@
-import sys
-from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 
-from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
+from tests.sidecar.browser_use_test_utils import ensure_local_browser_use_path
 
-ensure_frontend_python_path()
-browser_use_python_root = (
-    Path(__file__).resolve().parents[2]
-    / "frontend"
-    / "src"
-    / "main"
-    / "python"
-    / "tools"
-    / "browser"
-)
-browser_use_python_root_str = str(browser_use_python_root)
-if browser_use_python_root_str not in sys.path:
-    sys.path.insert(0, browser_use_python_root_str)
+ensure_local_browser_use_path()
 
 from browser_use.llm.exceptions import ModelProviderError
 from browser_use.llm.google.chat import ChatGoogle
