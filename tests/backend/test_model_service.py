@@ -222,18 +222,53 @@ async def test_get_local_models_accepts_iterable_provider_payloads(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_get_local_models_trims_provider_and_model_identifiers(monkeypatch):
-    factory = {
-        "ollama": MalformedModelsProvider(
-            [
-                {
-                    "id": "  spaced-model  ",
-                    "provider": "  ollama  ",
-                    "display_name": "ollama/spaced-model",
-                }
-            ]
-        )
-    }
+@pytest.mark.parametrize(
+    ("raw_model", "expected_model"),
+    [
+        (
+            {
+                "id": "  spaced-model  ",
+                "provider": "  ollama  ",
+                "display_name": "ollama/spaced-model",
+            },
+            {
+                "id": "spaced-model",
+                "provider": "ollama",
+                "display_name": "ollama/spaced-model",
+            },
+        ),
+        (
+            {
+                "id": "valid-model",
+                "provider": "ollama",
+                "display_name": "  ollama/valid-model  ",
+            },
+            {
+                "id": "valid-model",
+                "provider": "ollama",
+                "display_name": "ollama/valid-model",
+            },
+        ),
+        (
+            {
+                "id": "valid-model",
+                "provider": "ollama",
+                "display_name": "   ",
+            },
+            {
+                "id": "valid-model",
+                "provider": "ollama",
+                "display_name": "ollama/valid-model",
+            },
+        ),
+    ],
+)
+async def test_get_local_models_normalizes_ids_provider_and_display_name(
+    monkeypatch,
+    raw_model,
+    expected_model,
+):
+    factory = {"ollama": MalformedModelsProvider([raw_model])}
     monkeypatch.setattr(
         "backend.src.llm.providers.create_provider_factory",
         lambda _cfg: factory,
@@ -242,73 +277,7 @@ async def test_get_local_models_trims_provider_and_model_identifiers(monkeypatch
     service = ModelService(AppConfig())
     models = await service.get_local_models()
 
-    assert models == [
-        {
-            "id": "spaced-model",
-            "provider": "ollama",
-            "display_name": "ollama/spaced-model",
-        }
-    ]
-
-
-@pytest.mark.asyncio
-async def test_get_local_models_trims_nonempty_display_name(monkeypatch):
-    factory = {
-        "ollama": MalformedModelsProvider(
-            [
-                {
-                    "id": "valid-model",
-                    "provider": "ollama",
-                    "display_name": "  ollama/valid-model  ",
-                }
-            ]
-        )
-    }
-    monkeypatch.setattr(
-        "backend.src.llm.providers.create_provider_factory",
-        lambda _cfg: factory,
-    )
-
-    service = ModelService(AppConfig())
-    models = await service.get_local_models()
-
-    assert models == [
-        {
-            "id": "valid-model",
-            "provider": "ollama",
-            "display_name": "ollama/valid-model",
-        }
-    ]
-
-
-@pytest.mark.asyncio
-async def test_get_local_models_sets_default_display_name_when_missing(monkeypatch):
-    factory = {
-        "ollama": MalformedModelsProvider(
-            [
-                {
-                    "id": "valid-model",
-                    "provider": "ollama",
-                    "display_name": "   ",
-                }
-            ]
-        )
-    }
-    monkeypatch.setattr(
-        "backend.src.llm.providers.create_provider_factory",
-        lambda _cfg: factory,
-    )
-
-    service = ModelService(AppConfig())
-    models = await service.get_local_models()
-
-    assert models == [
-        {
-            "id": "valid-model",
-            "provider": "ollama",
-            "display_name": "ollama/valid-model",
-        }
-    ]
+    assert models == [expected_model]
 
 
 def test_get_online_models_returns_defensive_copy():
