@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(backend-safe-websocket): simplify `_sender_loop` success path by consolidating one future-resolution point across `json`/`text`/`close` queue message types while preserving unknown-type and connection-failure handling
 - refactor(backend-parser-validation): guard whitelist membership checks behind `str` tool-name validation so unhashable tool-name payloads return `ParseValidationError` instead of raising `TypeError`; add regression coverage in `tests/backend/test_parser_validation.py`
 - refactor(frontend-app-config-provider): remove `handlersRef`/`configRef` sync `useEffect` hooks and assign both refs during render so backend-event routing always reads the latest handlers/config without extra effect churn
 - refactor(frontend-wakeword): hoist wakeword cooldown constant to module scope and reuse one formatted confidence string in detection logs to reduce per-render/per-event duplicate work
