@@ -14,6 +14,21 @@ class FakeProvider:
         self.kwargs = kwargs
 
 
+def _patch_factory_provider_classes(monkeypatch):
+    providers_module._create_cached_provider_factory.cache_clear()
+    for provider_class in (
+        "OpenAIProvider",
+        "GeminiProvider",
+        "AnthropicProvider",
+        "OpenRouterProvider",
+        "MistralProvider",
+        "KimiCodingProvider",
+        "OllamaProvider",
+        "LMStudioProvider",
+    ):
+        monkeypatch.setattr(providers_module, provider_class, FakeProvider)
+
+
 def test_normalize_base_url_strips_whitespace_and_trailing_slash():
     normalized = providers_module._normalize_base_url(
         "  http://localhost:11434/v1/  ",
@@ -58,15 +73,7 @@ def test_canonicalize_provider_urls_normalizes_values():
 
 
 def test_create_provider_factory_cache_key_ignores_url_trailing_slash(monkeypatch):
-    providers_module._create_cached_provider_factory.cache_clear()
-    monkeypatch.setattr(providers_module, "OpenAIProvider", FakeProvider)
-    monkeypatch.setattr(providers_module, "GeminiProvider", FakeProvider)
-    monkeypatch.setattr(providers_module, "AnthropicProvider", FakeProvider)
-    monkeypatch.setattr(providers_module, "OpenRouterProvider", FakeProvider)
-    monkeypatch.setattr(providers_module, "MistralProvider", FakeProvider)
-    monkeypatch.setattr(providers_module, "KimiCodingProvider", FakeProvider)
-    monkeypatch.setattr(providers_module, "OllamaProvider", FakeProvider)
-    monkeypatch.setattr(providers_module, "LMStudioProvider", FakeProvider)
+    _patch_factory_provider_classes(monkeypatch)
 
     cfg_with_slash = AppConfig(
         api_key="k",
@@ -98,15 +105,7 @@ def test_create_provider_factory_cache_key_ignores_url_trailing_slash(monkeypatc
 
 
 def test_create_provider_factory_cache_key_normalizes_kimi_v1_suffix(monkeypatch):
-    providers_module._create_cached_provider_factory.cache_clear()
-    monkeypatch.setattr(providers_module, "OpenAIProvider", FakeProvider)
-    monkeypatch.setattr(providers_module, "GeminiProvider", FakeProvider)
-    monkeypatch.setattr(providers_module, "AnthropicProvider", FakeProvider)
-    monkeypatch.setattr(providers_module, "OpenRouterProvider", FakeProvider)
-    monkeypatch.setattr(providers_module, "MistralProvider", FakeProvider)
-    monkeypatch.setattr(providers_module, "KimiCodingProvider", FakeProvider)
-    monkeypatch.setattr(providers_module, "OllamaProvider", FakeProvider)
-    monkeypatch.setattr(providers_module, "LMStudioProvider", FakeProvider)
+    _patch_factory_provider_classes(monkeypatch)
 
     cfg_with_v1 = AppConfig(
         api_key="k",
