@@ -76,6 +76,8 @@ type StreamTrackingOptions = {
   resetForTurn?: boolean;
 };
 
+const TERMINAL_STREAM_PHASES = new Set<StreamPhase>(['idle', 'complete', 'error']);
+
 function createTrackingForNewTurn(
   eventType: BackendEventType,
   now: string,
@@ -121,7 +123,19 @@ function shouldIgnoreEventForActiveConversation(event: BackendEvent): boolean {
   if (!eventConversationRef) {
     return false;
   }
-  return eventConversationRef !== activeConversationRef;
+  if (eventConversationRef === activeConversationRef) {
+    return false;
+  }
+  if (event.type === 'local-user-message') {
+    return false;
+  }
+
+  const { streamTracking } = useChatStore.getState();
+  const hasActiveTurn = typeof streamTracking.activeTurnRef === 'string' && streamTracking.activeTurnRef.length > 0;
+  if (!hasActiveTurn) {
+    return false;
+  }
+  return !TERMINAL_STREAM_PHASES.has(streamTracking.phase);
 }
 
 /**

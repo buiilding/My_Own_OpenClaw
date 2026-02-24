@@ -201,6 +201,13 @@ describe('useChatStream transcript + event filtering', () => {
   test('ignores stale events when conversation_ref does not match active conversation', () => {
     setMockActiveConversationRef('conv-active');
     const { emitBackendEvent } = registerBackendListener();
+    useChatStore.setState({
+      streamTracking: {
+        ...useChatStore.getState().streamTracking,
+        activeTurnRef: 'turn-active',
+        phase: 'streaming',
+      },
+    });
     const beforeState = useChatStore.getState();
 
     act(() => {
@@ -213,6 +220,71 @@ describe('useChatStream transcript + event filtering', () => {
 
     expect(useChatStore.getState()).toEqual(beforeState);
     expect(transcriptSpies.updateTranscriptSession).not.toHaveBeenCalled();
+  });
+
+  test('accepts mismatched conversation_ref when no active turn is in progress', () => {
+    setMockActiveConversationRef('conv-active');
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      emitBackendEvent({
+        type: 'token-count',
+        conversation_ref: 'conv-new',
+        user_id: 'user-1',
+        payload: {
+          prompt_tokens: 7,
+          visible_output_tokens: 3,
+          output_tokens_total: 3,
+          total_tokens: 10,
+          conversation_tokens: 10,
+          usage_source: 'provider',
+        },
+      });
+    });
+
+    expect(useChatStore.getState().tokenCounts).toEqual(
+      expect.objectContaining({
+        prompt_tokens: 7,
+        visible_output_tokens: 3,
+      }),
+    );
+    expect(transcriptSpies.updateTranscriptSession).toHaveBeenCalledWith('conv-new', 'user-1');
+  });
+
+  test('accepts mismatched conversation_ref after stream tracking is terminal', () => {
+    setMockActiveConversationRef('conv-active');
+    const { emitBackendEvent } = registerBackendListener();
+    useChatStore.setState({
+      streamTracking: {
+        ...useChatStore.getState().streamTracking,
+        activeTurnRef: 'turn-finished',
+        phase: 'complete',
+      },
+    });
+
+    act(() => {
+      emitBackendEvent({
+        type: 'token-count',
+        conversation_ref: 'conv-finished',
+        user_id: 'user-2',
+        payload: {
+          prompt_tokens: 4,
+          visible_output_tokens: 2,
+          output_tokens_total: 2,
+          total_tokens: 6,
+          conversation_tokens: 6,
+          usage_source: 'provider',
+        },
+      });
+    });
+
+    expect(useChatStore.getState().tokenCounts).toEqual(
+      expect.objectContaining({
+        prompt_tokens: 4,
+        visible_output_tokens: 2,
+      }),
+    );
+    expect(transcriptSpies.updateTranscriptSession).toHaveBeenCalledWith('conv-finished', 'user-2');
   });
 
   test('still processes events that omit conversation_ref for compatibility', () => {
