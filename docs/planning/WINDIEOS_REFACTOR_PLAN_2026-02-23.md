@@ -902,3 +902,23 @@ read_when:
   - `cd frontend && npm run test:ci` (pass; 82 suites)
   - `cd frontend && npm run audit:knip` (pass; no findings)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
+
+## Phase 20 Outcome (2026-02-23)
+
+- Chat hook selector dedupe shipped:
+  - added shared chat action selector hook:
+    - `frontend/src/renderer/features/chat/hooks/useChatCommonActions.ts`
+  - rewired selector blocks in:
+    - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
+    - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
+  - preserved existing message-send and stream handling behavior.
+- jscpd delta after Phase 20 slice:
+  - clones: `211 -> 210`
+  - duplicated lines: `3192 -> 3187`
+  - duplicated tokens: `28043 -> 27952`
+- Verification:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/ChatMessageSender.test.tsx tests/frontend/ChatStreamThinkingStatus.test.tsx` (pass)
+  - `cd frontend && npm run test:ci` (pass; 82 suites)
+  - `cd frontend && npm run audit:knip` (pass; no findings)
+  - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
