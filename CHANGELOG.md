@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): add phase-137 full-gate snapshot after shared backend coordinate-method normalization helper extraction (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)
 - refactor(backend-coordinate-methods): add shared `normalize_coordinate_method` utility in `backend/src/core/utils/coordinate_methods.py` and reuse it in `backend/src/tools/tool_policy.py` + `backend/src/agent/tools/preparation/helpers/preparation_helper.py` to centralize coordinate-method normalization behavior; jscpd totals held at clones `62` and duplicated lines `1274`
 - docs(refactor-plan): add phase-136 full-gate snapshot after backend parser-validation duplicate dead-method removal (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)
 - refactor(backend-parser-validation): remove unused duplicated `_normalize_coordinate_method` from `backend/src/llm/parser_validation.py`; jscpd improved from clones `63 -> 62` and duplicated lines `1284 -> 1274`
