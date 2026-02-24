@@ -35,6 +35,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Frontend Config Sync Lifecycle**](frontend/runtime/CONFIG_SYNC_AND_SETTINGS_LIFECYCLE_REFERENCE.md) - AppConfig/AppStatus provider ownership, local+disk persistence layering, and main-process `update-settings` ACK gating
 - [**Frontend IPC Channel Reference**](frontend/contracts/IPC_CHANNEL_AND_HANDLER_REFERENCE.md) - Exact send/invoke/on channel ownership and handler map
 - [**Frontend Backend Event Consumer Matrix**](frontend/contracts/BACKEND_EVENT_CONSUMER_MATRIX_REFERENCE.md) - Which renderer modules consume each `from-backend` event type (typed stream, tool runner, config/save status, audio chunks) and drift hotspots
+- [**Frontend Voice Capture + Wakeword Controller**](frontend/renderer/VOICE_CAPTURE_AND_WAKEWORD_CONTROLLER_REFERENCE.md) - Renderer voice transcription and wakeword lifecycle: config gates, mic capture/encoding paths, IPC event flow, and retrigger guardrails
 - [**System Architecture**](architecture/ARCHITECTURE.md) - High-level system design and components
 - [**Backend Architecture**](architecture/BACKEND_ARCHITECTURE.md) - Backend system design and patterns
 - [**Frontend Architecture**](architecture/FRONTEND_ARCHITECTURE.md) - Frontend system design and patterns
