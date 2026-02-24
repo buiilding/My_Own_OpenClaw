@@ -17,6 +17,13 @@ class MockSubscriber:
         self.on_config_changed = AsyncMock()
 
 
+def _run_threads(threads) -> None:
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+
 class TestConfigSubscriptionManager:
     """Tests for ConfigSubscriptionManager class."""
 
@@ -181,11 +188,7 @@ class TestConfigSubscriptionManager:
             threading.Thread(target=add_subscriber, args=(i,))
             for i in range(10)
         ]
-        
-        for t in threads:
-            t.start()
-        for t in threads:
-            t.join()
+        _run_threads(threads)
         
         assert len(errors) == 0
         assert len(manager._subscribers) == 10

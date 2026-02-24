@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(test-config-subscriptions): add `_run_threads` helper in `tests/backend/test_config_subscriptions.py` and reuse it in concurrent-subscribe test to remove duplicate thread start/join scaffolding
 - refactor(test-websocket-message-handler): merge duplicated query/tool-bundle screenshot URL rejection tests into one parameterized `test_parse_and_validate_message_rejects_screenshot_url_field` case table in `tests/backend/test_websocket_message_handler.py`
 - refactor(test-llm-client): add `make_stream_payload` helper in `tests/backend/test_llm_client.py` and reuse it across stream payload/deep-copy tests to remove duplicate nested tool-call payload literals
 - refactor(test-single-tool-execution): add `_store_pending_result` helper in `tests/backend/test_single_tool_execution.py` and reuse it across pending-result execution tests to remove duplicate pending-storage setup blocks
