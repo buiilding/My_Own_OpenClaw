@@ -620,8 +620,13 @@ class TestEventBusRuntime:
         assert calls == []
 
     @pytest.mark.asyncio
-    async def test_error_recovery_continues_to_next_handler_when_enabled(self):
-        bus = EventBus(enable_error_recovery=True)
+    @pytest.mark.parametrize(
+        ("enable_error_recovery", "expected_calls"),
+        [(True, ["good"]), (False, [])],
+        ids=["recovery-enabled", "recovery-disabled"],
+    )
+    async def test_error_recovery_behavior(self, enable_error_recovery, expected_calls):
+        bus = EventBus(enable_error_recovery=enable_error_recovery)
         calls = []
 
         def bad_handler(event):
@@ -635,25 +640,7 @@ class TestEventBusRuntime:
 
         await bus.publish(ChildEvent())
 
-        assert calls == ["good"]
-
-    @pytest.mark.asyncio
-    async def test_error_recovery_stops_on_first_error_when_disabled(self):
-        bus = EventBus(enable_error_recovery=False)
-        calls = []
-
-        def bad_handler(event):
-            raise RuntimeError("boom")
-
-        def good_handler(event):
-            calls.append("good")
-
-        bus.subscribe(ChildEvent, bad_handler, priority=10)
-        bus.subscribe(ChildEvent, good_handler, priority=20)
-
-        await bus.publish(ChildEvent())
-
-        assert calls == []
+        assert calls == expected_calls
 
     @pytest.mark.asyncio
     async def test_publish_ignores_dead_weak_method_handlers(self):
