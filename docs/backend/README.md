@@ -80,10 +80,13 @@ Covers:
 ### LLM and Services
 
 - [LLM Docs Hub](llm/README.md)
+- [LLM Provider Docs Hub](llm/providers/README.md)
 - [Services Docs Hub](services/README.md)
 - [LLM Models and Parsing](llm/llm_models_and_parsing.md)
 - [Provider Factory and Runtime Selection Reference](llm/provider_factory_and_runtime_selection_reference.md)
 - [Parser Trust Boundary and Native Tool-Call Reference](llm/parser_trust_boundary_and_native_tool_call_reference.md)
+- [Base Request, Stream, and Normalization Reference](llm/providers/base_request_stream_and_normalization_reference.md)
+- [Provider-Specific Overrides and Local Runtime Reference](llm/providers/provider_specific_overrides_and_local_runtime_reference.md)
 - [Services and Storage](services/services_and_storage.md)
 - [Embedding and Semantic Memory Runtime Reference](services/embedding_and_semantic_memory_runtime_reference.md)
 - [Artifact, Screenshot, and System-State Flow Reference](services/artifact_screenshot_and_system_state_flow_reference.md)
