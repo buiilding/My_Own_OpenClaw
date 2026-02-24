@@ -15,6 +15,7 @@ from backend.src.core.events.streaming_events import ErrorEvent, StreamingEvent
 from backend.src.core.infrastructure.exceptions import LLMAPIError
 from backend.src.core.types.schemas import LLMMessage, NormalizedLLMResponse
 from backend.src.llm.providers import get_provider
+from backend.src.llm.request_kwargs import build_tool_transport_kwargs
 
 if TYPE_CHECKING:
     from backend.src.llm.providers.base import LLMProvider
@@ -290,25 +291,6 @@ class LiteLLMClient(LLMClient):
         normalized = LiteLLMClient._normalize_response_payload(response, model)
         return normalized["content"]
 
-    @staticmethod
-    def _build_provider_request_kwargs(
-        tools: Optional[List[Dict[str, Any]]],
-        tool_choice: Optional[Any],
-        parallel_tool_calls: Optional[bool],
-        prompt_cache_key: Optional[str],
-    ) -> Dict[str, Any]:
-        """Build shared provider kwargs for completion and streaming requests."""
-        request_kwargs = {
-            "tools": tools,
-            "tool_choice": tool_choice,
-            "parallel_tool_calls": parallel_tool_calls,
-        }
-        if isinstance(prompt_cache_key, str):
-            normalized_key = prompt_cache_key.strip()
-            if normalized_key:
-                request_kwargs["prompt_cache_key"] = normalized_key
-        return request_kwargs
-
     def _reset_stream_tracking_state(self, provider: "LLMProvider") -> None:
         """Reset cached stream diagnostics/payload before a new provider call."""
         provider.clear_last_stream_usage()
@@ -346,7 +328,7 @@ class LiteLLMClient(LLMClient):
         self._reset_stream_tracking_state(provider)
 
         try:
-            request_kwargs = self._build_provider_request_kwargs(
+            request_kwargs = build_tool_transport_kwargs(
                 tools=tools,
                 tool_choice=tool_choice,
                 parallel_tool_calls=parallel_tool_calls,
@@ -421,7 +403,7 @@ class LiteLLMClient(LLMClient):
 
         self._reset_stream_tracking_state(provider)
         try:
-            request_kwargs = self._build_provider_request_kwargs(
+            request_kwargs = build_tool_transport_kwargs(
                 tools=tools,
                 tool_choice=tool_choice,
                 parallel_tool_calls=parallel_tool_calls,
