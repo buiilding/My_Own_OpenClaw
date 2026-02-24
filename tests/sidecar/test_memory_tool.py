@@ -1,10 +1,7 @@
-import sys
-from pathlib import Path
-
 import pytest
+from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 
-frontend_python_dir = Path(__file__).resolve().parents[2] / "frontend" / "src" / "main" / "python"
-sys.path.insert(0, str(frontend_python_dir))
+ensure_frontend_python_path()
 
 from tools.memory import memory_tool  # noqa: E402
 from tools.memory.memory_tool import MemoryTool  # noqa: E402
