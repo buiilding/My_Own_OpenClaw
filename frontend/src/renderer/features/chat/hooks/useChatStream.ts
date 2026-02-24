@@ -59,6 +59,7 @@ import {
   findStreamingCompleteAssistantMessage,
   resolveStreamingResponseAction,
 } from '../utils/chatStreamMessageUpdates';
+import { useChatCommonActions } from './useChatCommonActions';
 
 type TranscriptModelContext = {
   modelId: string | null;
@@ -127,10 +128,7 @@ function shouldIgnoreEventForActiveConversation(event: BackendEvent): boolean {
  * Handles LLM thoughts, streaming chunks, and completion states.
  */
 export function useChatStream(enableTranscript: boolean = true) {
-  const addMessage = useChatStore((state) => state.addMessage);
-  const updateMessage = useChatStore((state) => state.updateMessage);
-  const setIsSending = useChatStore((state) => state.setIsSending);
-  const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
+  const { addMessage, updateMessage, setIsSending, setThinkingStatus } = useChatCommonActions();
   const setTokenCounts = useChatStore((state) => state.setTokenCounts);
   const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
   const { config } = useAppConfigContext();

@@ -28,6 +28,7 @@ import {
   type ReturnToChatboxPolicy,
 } from '../policies/messageSendUiPolicy';
 import { createConversationRef } from '../utils/conversationRef';
+import { useChatCommonActions } from './useChatCommonActions';
 
 type ChatMessageSenderOptions = {
   senderSurface?: ChatSendSurface;
@@ -42,10 +43,7 @@ export function useChatMessageSender(
   stopPlayback?: () => void,
   options: ChatMessageSenderOptions = {},
 ) {
-  const addMessage = useChatStore((state) => state.addMessage);
-  const updateMessage = useChatStore((state) => state.updateMessage);
-  const setIsSending = useChatStore((state) => state.setIsSending);
-  const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
+  const { addMessage, updateMessage, setIsSending, setThinkingStatus } = useChatCommonActions();
   const { config } = useAppConfigContext();
   const { senderSurface = 'overlay-chatbox', returnToChatboxPolicy } = options;
   const includeQueryScreenshot = config?.include_query_screenshot ?? true;
