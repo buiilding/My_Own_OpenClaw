@@ -47,14 +47,13 @@ class KimiCodingProvider(OnlineLLMProvider):
         prompt_cache_key: Optional[str] = None,
     ) -> AsyncGenerator[StreamingEvent, None]:
         """Internal streaming implementation. Exceptions bubble up to base class."""
-        params = self._build_standard_completion_params(
-            model,
-            messages,
+        params = self._build_stream_completion_params(
+            model=model,
+            messages=messages,
             tools=tools,
             tool_choice=tool_choice,
             parallel_tool_calls=parallel_tool_calls,
             prompt_cache_key=prompt_cache_key,
-            include_stream=True,
         )
         stream = await litellm.acompletion(**params)
         full_text_parts: List[str] = []
@@ -138,15 +137,7 @@ class KimiCodingProvider(OnlineLLMProvider):
                 index = LLMProvider._get_value(raw_tool_call, "index")
                 if not isinstance(index, int):
                     index = call_index
-                state = tool_call_deltas.setdefault(
-                    index,
-                    {
-                        "id": None,
-                        "name": None,
-                        "arguments_chunks": [],
-                        "arguments_obj": None,
-                    },
-                )
+                state = self._get_or_init_tool_call_state(tool_call_deltas, index)
                 call_id = LLMProvider._get_value(raw_tool_call, "id")
                 if isinstance(call_id, str) and call_id.strip():
                     state["id"] = call_id
@@ -181,15 +172,7 @@ class KimiCodingProvider(OnlineLLMProvider):
                 index = LLMProvider._get_value(block, "index")
                 if not isinstance(index, int):
                     index = block_index
-                state = tool_call_deltas.setdefault(
-                    index,
-                    {
-                        "id": None,
-                        "name": None,
-                        "arguments_chunks": [],
-                        "arguments_obj": None,
-                    },
-                )
+                state = self._get_or_init_tool_call_state(tool_call_deltas, index)
                 call_id = LLMProvider._get_value(block, "id") or LLMProvider._get_value(block, "tool_use_id")
                 if isinstance(call_id, str) and call_id.strip():
                     state["id"] = call_id
@@ -203,6 +186,22 @@ class KimiCodingProvider(OnlineLLMProvider):
                     state["arguments_obj"] = copy.deepcopy(raw_input)
                 elif isinstance(raw_input, str) and raw_input:
                     state["arguments_chunks"].append(raw_input)
+
+    @staticmethod
+    def _get_or_init_tool_call_state(
+        tool_call_deltas: Dict[int, Dict[str, Any]],
+        index: int,
+    ) -> Dict[str, Any]:
+        """Return mutable tool-call delta state entry for the provided index."""
+        return tool_call_deltas.setdefault(
+            index,
+            {
+                "id": None,
+                "name": None,
+                "arguments_chunks": [],
+                "arguments_obj": None,
+            },
+        )
 
     def _finalize_stream_tool_calls(
         self,
