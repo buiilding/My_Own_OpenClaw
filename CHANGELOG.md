@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): add phase-77 full-gate snapshot after tool-bundle-runner dedupe wave (frontend audits/tests + backend + sidecar)
 - refactor(frontend-tool-bundle-runner-tests): dedupe repeated default/single-step bundle fixtures and read-file step assertions in `tests/frontend/ToolExecutionBundleRunner.test.ts` via shared helpers (`runReadFileBundle`, `runDefaultTwoStepBundle`, `expectSingleStepResult`); jscpd improved from clones `142 -> 139` and duplicated lines `2279 -> 2251`
 - docs(refactor-plan): add phase-75 full-gate snapshot after semantic/tool-execution test dedupe wave (frontend audits/tests + backend + sidecar)
 - refactor(frontend-tool-execution-tests): dedupe repeated default bundle fixture and result-envelope assertions in `tests/frontend/ToolExecutionService.test.ts` via shared helpers (`createDefaultToolBundleSteps`, `executeDefaultToolBundle`, `expectBundleResultEnvelope`); jscpd improved from clones `144 -> 142` and duplicated lines `2296 -> 2279`
