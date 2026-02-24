@@ -9,9 +9,8 @@ from __future__ import annotations
 
 from backend.src.core.bootstrap.entrypoint import (
     initialize_entrypoint_logger,
-    run_uvicorn_app,
 )
-from backend.src.simulation.app_factory import create_simulation_app
+from backend.src.simulation.app_factory import create_simulation_app, run_simulation_app
 from backend.src.simulation.mock_llm_browser_client import get_mock_llm_browser_client
 
 logger = initialize_entrypoint_logger(__name__)
@@ -27,11 +26,7 @@ app = create_simulation_app(
 
 
 def run() -> None:
-    run_uvicorn_app(
-        "backend.src.simulation.browser:app",
-        reload=True,
-        reload_dirs=["backend/src"],
-    )
+    run_simulation_app("backend.src.simulation.browser:app")
 
 
 if __name__ == "__main__":

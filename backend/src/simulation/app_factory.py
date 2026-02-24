@@ -9,6 +9,7 @@ from typing import Any
 from fastapi import FastAPI
 
 from backend.src.api.app_assembly import create_api_app
+from backend.src.core.bootstrap.entrypoint import run_uvicorn_app
 from backend.src.simulation.lifespan_factory import build_simulation_lifespan
 
 
@@ -32,4 +33,13 @@ def create_simulation_app(
     return create_api_app(
         title=title,
         lifespan=lifespan,
+    )
+
+
+def run_simulation_app(module_app_path: str) -> None:
+    """Run a simulation app with shared reload settings."""
+    run_uvicorn_app(
+        module_app_path,
+        reload=True,
+        reload_dirs=["backend/src"],
     )
