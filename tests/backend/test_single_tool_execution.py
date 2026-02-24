@@ -33,6 +33,12 @@ def _parsed_tool_call(tool_name: str, parameters: dict | None = None, request_id
     )
 
 
+def _assert_pending_result_consumed(session: DummySession, request_id: str) -> None:
+    storage = session.get_result_storage()
+    assert storage.get_pending_result(request_id) is None
+    assert storage.get_result_future(request_id) is None
+
+
 @pytest.mark.asyncio
 async def test_execute_single_tool_missing_request_id_returns_placeholder():
     session = DummySession()
@@ -69,8 +75,7 @@ async def test_execute_single_tool_uses_pending_result():
     result_obj = await execute_single_tool(tool_call, session)
 
     assert result_obj.result is pending_result
-    assert session.get_result_storage().get_pending_result("req-1") is None
-    assert session.get_result_storage().get_result_future("req-1") is None
+    _assert_pending_result_consumed(session, "req-1")
 
 
 @pytest.mark.asyncio
@@ -96,5 +101,6 @@ async def test_execute_single_tool_resolved_call_without_to_parsed_call():
     result_obj = await execute_single_tool(tool_call, session)
 
     assert result_obj.result is pending_result
+    _assert_pending_result_consumed(session, "req-1")
     assert result_obj.tool_call.parameters == {"x": 100, "y": 200}
     assert result_obj.tool_call.metadata == resolved_call.metadata
