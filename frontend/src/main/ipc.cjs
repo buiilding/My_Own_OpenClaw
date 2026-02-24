@@ -12,6 +12,11 @@ const os = require('os');
 const { getSystemState, searchMemory } = require('./local_backend_bridge.cjs');
 const { resolveBackendEndpoints } = require('./backend_endpoints.cjs');
 const { buildQueryPayloadContent } = require('./query_payload_builder.cjs');
+const {
+  resolveConversationRef: resolveConversationRefFromPayload,
+  buildLocalUserMessage,
+  buildQuerySendFailure,
+} = require('./ipc_query_events.cjs');
 
 const BACKEND_ENDPOINTS = resolveBackendEndpoints();
 const BACKEND_URL = BACKEND_ENDPOINTS.wsUrl;
@@ -508,59 +513,26 @@ function normalizeBackendPayload(type, payload) {
   return normalized;
 }
 
-function resolveConversationRef(payload) {
-  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
-    return currentConversationRef || null;
-  }
-  return payload.conversation_ref || currentConversationRef || null;
-}
-
-function buildQueryContextFields({
-  queryMessageId,
-  conversationRef,
-  includeClientUserFallback = false,
-}) {
-  const serverUserId = currentServerUserId || null;
-  const resolvedUserId = includeClientUserFallback
-    ? (serverUserId || currentUserId || null)
-    : serverUserId;
-
-  return {
-    turn_ref: queryMessageId || null,
-    session_id: currentSessionId || null,
-    user_id: resolvedUserId,
-    conversation_ref: conversationRef,
-  };
-}
-
 function broadcastLocalUserMessage({
   sourceWebContents,
   payload,
   queryMessageId,
   conversationRef,
 }) {
-  if (!payload?.text) {
+  const localUserMessage = buildLocalUserMessage({
+    payload,
+    queryMessageId,
+    conversationRef,
+    currentSessionId,
+    currentServerUserId,
+    currentUserId,
+  });
+
+  if (!localUserMessage) {
     return;
   }
 
-  const queryContext = buildQueryContextFields({
-    queryMessageId,
-    conversationRef,
-  });
-
-  broadcastToRenderers('from-backend', {
-    type: 'local-user-message',
-    ...queryContext,
-    payload: {
-      text: payload.text,
-      screenshot_ref: payload.screenshot_ref || null,
-      screenshot_url: payload.screenshot_url || null,
-      timestamp: new Date().toISOString(),
-      session_id: queryContext.session_id,
-      user_id: queryContext.user_id,
-      conversation_ref: queryContext.conversation_ref,
-    },
-  }, sourceWebContents);
+  broadcastToRenderers('from-backend', localUserMessage, sourceWebContents);
 }
 
 function broadcastQuerySendFailure({
@@ -568,20 +540,15 @@ function broadcastQuerySendFailure({
   conversationRef,
 }) {
   setResponseOverlayPhase('idle', 'query-send-failed');
-  const queryContext = buildQueryContextFields({
+  const queryFailure = buildQuerySendFailure({
     queryMessageId,
     conversationRef,
-    includeClientUserFallback: true,
+    currentSessionId,
+    currentServerUserId,
+    currentUserId,
   });
 
-  broadcastToRenderers('from-backend', {
-    type: 'error',
-    id: queryMessageId,
-    ...queryContext,
-    payload: {
-      message: 'Unable to send query: backend connection is unavailable.',
-    },
-  });
+  broadcastToRenderers('from-backend', queryFailure);
 }
 
 /**
@@ -659,7 +626,7 @@ function initializeIpc(win, options = {}) {
       await runBeforeOverlayQueryCapture(event.sender);
       queryMessageId = uuidv4();
       setResponseOverlayPhase('awaiting-first-chunk', 'query');
-      const conversationRef = resolveConversationRef(payload);
+      const conversationRef = resolveConversationRefFromPayload(payload, currentConversationRef);
       if (!payload.conversation_ref && conversationRef) {
         payload.conversation_ref = conversationRef;
       }
@@ -700,7 +667,7 @@ function initializeIpc(win, options = {}) {
     if (!messageId && type === 'query') {
       broadcastQuerySendFailure({
         queryMessageId,
-        conversationRef: resolveConversationRef(payload),
+        conversationRef: resolveConversationRefFromPayload(payload, currentConversationRef),
       });
     } else if (type === 'query' && queryUsedInitialContext) {
       isFirstQuery = false;

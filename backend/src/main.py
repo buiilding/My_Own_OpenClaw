@@ -9,12 +9,9 @@ import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 
+from backend.src.api.app_assembly import create_api_app
 from backend.src.api.deps import set_container
-from backend.src.api.routes import websocket
-from backend.src.api.routes import artifacts
-from backend.src.api.routes.memory import embeddings, semantic
 from backend.src.core.bootstrap.coordinator import InitializationCoordinator
 from backend.src.core.logging_setup import configure_logging
 
@@ -39,22 +36,10 @@ async def lifespan(app: FastAPI):
         logger.info("Shutdown complete.")
 
 
-app = FastAPI(title="Desktop Assistant", lifespan=lifespan)
-
-# CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+app = create_api_app(
+    title="Desktop Assistant",
+    lifespan=lifespan,
 )
-
-# Routes
-app.include_router(websocket.router)
-app.include_router(artifacts.router)
-app.include_router(embeddings.router)
-app.include_router(semantic.router)
 
 if __name__ == "__main__":
     import uvicorn

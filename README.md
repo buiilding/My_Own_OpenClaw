@@ -82,7 +82,7 @@ We have a **working AI assistant** with computer control, LLM integration, and t
 - [x] Screenshot integration for visual context
 - [x] Responsive design (single theme in current UI)
 
-See our [Development Roadmap](#-development-roadmap) section below for the complete development timeline.
+For future planning and roadmap docs, use the [Planning Hub](docs/planning/README.md).
 
 ---
 
@@ -125,6 +125,8 @@ See our [Development Roadmap](#-development-roadmap) section below for the compl
 - **User Rules**: Customizable rules and preferences that guide agent behavior and decision-making
 - **External MCPs**: Integration with Model Context Protocol (MCP) servers for extended capabilities and external tool integration
 - **Virtual Employees**: Spawn multiple operating system instances with multiple agents working in parallel, creating a team of virtual employees that can handle complex, distributed tasks simultaneously
+
+Canonical future-roadmap docs live in `docs/planning/README.md`.
 
 ---
 

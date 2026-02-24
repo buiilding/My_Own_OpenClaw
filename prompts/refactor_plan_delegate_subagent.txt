@@ -1,0 +1,9 @@
+I want you to create a refactor plan for Windieos. use jscpdfor code duplication, knip for
+  dead code, running eslint’s react-compilerand deprecation plugins, checking if we introduced
+  api routes that can be consolidated, maintaining my docs, breaking apart files that grew too
+  large, adding tests and code comments for tricky parts, updating dependencies, tool
+  upgrades, file restructuring, finding and rewriting slow tests, mentioning modern react
+  patterns and rewriting code (e.g. you might not need useEffect). Of course, you can find
+  other refactoring approaches and other optimization techniques, but create a refactoring
+  plan, and then give that plan to a sub-agent for it to implement. And then after the sub-agent is
+  finished implementing that plan, review what the sub-agent changed and see if there are any errors, bug, inconsistencies, oversighters.
