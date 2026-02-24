@@ -7,6 +7,18 @@ ensure_local_browser_use_path()
 import browser_use.observability as observability
 
 
+def _install_resolve_capture(monkeypatch):
+	captured: dict[str, object] = {}
+
+	def _fake_resolve(*, decorator_kwargs, enable_trace):
+		captured['decorator_kwargs'] = decorator_kwargs
+		captured['enable_trace'] = enable_trace
+		return observability._create_no_op_decorator(**decorator_kwargs)
+
+	monkeypatch.setattr(observability, '_resolve_observe_decorator', _fake_resolve)
+	return captured
+
+
 def test_build_observe_kwargs_includes_tags_and_extras():
 	kwargs = observability._build_observe_kwargs(
 		name='test-span',
@@ -39,14 +51,7 @@ def test_observe_uses_noop_when_lmnr_disabled(monkeypatch):
 
 
 def test_observe_with_tags_builds_and_forwards_kwargs(monkeypatch):
-	captured: dict[str, object] = {}
-
-	def _fake_resolve(*, decorator_kwargs, enable_trace):
-		captured['decorator_kwargs'] = decorator_kwargs
-		captured['enable_trace'] = enable_trace
-		return observability._create_no_op_decorator(**decorator_kwargs)
-
-	monkeypatch.setattr(observability, '_resolve_observe_decorator', _fake_resolve)
+	captured = _install_resolve_capture(monkeypatch)
 
 	decorator = observability._observe_with_tags(
 		name='custom-span',
@@ -80,3 +85,26 @@ async def test_observe_debug_uses_noop_when_lmnr_disabled(monkeypatch):
 		return value + 2
 
 	assert await _async_fn(3) == 5
+
+
+def test_observe_debug_accepts_core_kwargs(monkeypatch):
+	captured = _install_resolve_capture(monkeypatch)
+	monkeypatch.setattr(observability, '_is_debug_mode', lambda: True)
+
+	@observability.observe_debug(
+		name='debug-span',
+		ignore_input=True,
+		ignore_output=False,
+		metadata={'m': 1},
+		span_type='TOOL',
+		custom=9,
+	)
+	def _fn(value: int) -> int:
+		return value
+
+	assert _fn(4) == 4
+	assert captured['enable_trace'] is True
+	assert captured['decorator_kwargs']['name'] == 'debug-span'
+	assert captured['decorator_kwargs']['ignore_input'] is True
+	assert captured['decorator_kwargs']['span_type'] == 'TOOL'
+	assert captured['decorator_kwargs']['custom'] == 9
