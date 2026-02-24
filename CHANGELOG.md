@@ -8,6 +8,9 @@ Includes the last 300 commits on `main`.
 
 ### Added
 - fix(frontend-voice-hooks): resolve React Compiler immutability errors by replacing shared audio-ref object hook with direct `useRef` declarations in `useVoiceMode` and `useWakewordDetection`, and remove now-unused `useAudioCaptureRefs` hook
+- refactor(frontend-ipc-tests): split oversized `IpcMainBridge` suite into lifecycle/query suites with shared harness (`tests/frontend/IpcMainBridge.lifecycle.test.cjs`, `tests/frontend/IpcMainBridge.query.test.cjs`, `tests/frontend/__mocks__/ipcMainBridgeHarness.cjs`) while preserving 27 IPC bridge assertions
+- build(frontend-deps): bump `@types/react` to `^18.3.28` and refresh lockfile; keep `eslint-plugin-react-refresh` pinned to `0.4.26` because `0.5.x` requires ESLint 9/10
+- docs(planning): add Phase 40 outcome snapshot to `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with jscpd/knip/lint audit deltas, API-route consolidation review, and full verification commands/results
 - refactor(llm-providers): dedupe thinking-stream chunk loop via shared `LLMProvider._stream_thinking_and_text_events` reused by Anthropic/Gemini providers while preserving usage capture and thinking/chunk event emission
 - docs(planning): record Phase 39 provider thinking-stream loop dedupe outcome/verification in `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md`
 - refactor(llm-providers): dedupe text-stream chunk loop via shared `LLMProvider._stream_text_content_events` reused by OpenAI/Mistral/Local/OpenRouter providers while preserving stream usage and chunk emission behavior
