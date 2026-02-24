@@ -1,23 +1,14 @@
 import { render, screen, waitFor } from '@testing-library/react';
 
-const mockInvoke = jest.fn();
-
-jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
-  IpcBridge: {
-    invoke: (...args) => mockInvoke(...args),
-  },
-  INVOKE_CHANNELS: {
-    LIST_SEMANTIC_MEMORIES: 'list-semantic-memories',
-  },
-}));
-
-jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
-  getTranscriptSessionInfo: () => ({ conversationRef: null, userId: 'peter-bui' }),
-}));
+const {
+  mockInvoke,
+  resetSemanticMemoryHarness,
+  SEMANTIC_MEMORY_USER_ID,
+} = require('./__mocks__/semanticMemorySectionHarness.cjs');
 
 describe('SemanticMemorySection', () => {
   beforeEach(() => {
-    mockInvoke.mockReset();
+    resetSemanticMemoryHarness();
   });
 
   test('loads and renders semantic memories from IPC', async () => {
@@ -43,7 +34,7 @@ describe('SemanticMemorySection', () => {
 
     await waitFor(() => {
       expect(mockInvoke).toHaveBeenCalledWith('list-semantic-memories', {
-        userId: 'peter-bui',
+        userId: SEMANTIC_MEMORY_USER_ID,
         limit: 200,
       });
     });

@@ -2228,3 +2228,24 @@ read_when:
     - clones: `146 -> 145`
     - duplicated lines: `2312 -> 2306`
     - duplicated tokens: `20565 -> 20434`
+
+## Phase 73 Outcome (2026-02-24)
+
+- Semantic memory test-suite harness extraction shipped:
+  - added shared mock harness:
+    - `tests/frontend/__mocks__/semanticMemorySectionHarness.cjs`
+  - rewired:
+    - `tests/frontend/SemanticMemorySection.test.jsx`
+    - `tests/frontend/SemanticMemorySectionDelete.test.jsx`
+  - removed duplicate IPC/transcript mock setup and reused shared reset/user-id constants.
+- Verification:
+  - `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/SemanticMemorySection.test.jsx ../tests/frontend/SemanticMemorySectionDelete.test.jsx --watch=false` (pass; 2 tests)
+  - `cd frontend && npm run lint -- --quiet` (pass)
+  - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
+  - `cd frontend && npm run audit:knip` (pass)
+  - `cd frontend && npm run audit:jscpd` (pass)
+  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - jscpd snapshot deltas:
+    - clones: `145 -> 144`
+    - duplicated lines: `2306 -> 2296`
+    - duplicated tokens: `20434 -> 20347`
