@@ -49,6 +49,58 @@ class MockProvider(LLMProvider):
         return f"mock/{model_id}"
 
 
+def _messages_with_single_tool_call(
+    *,
+    tool_call_id: str = "call_1",
+    tool_response_id: str = "call_1",
+    tool_response_content: str = "total 0",
+):
+    return [
+        {"role": "user", "content": "List files"},
+        {
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": tool_call_id,
+                    "name": "run_shell_command",
+                    "arguments": {"command": "ls -la"},
+                }
+            ],
+        },
+        {
+            "role": "tool",
+            "tool_call_id": tool_response_id,
+            "content": tool_response_content,
+        },
+    ]
+
+
+async def _collect_stream_events(provider):
+    events = []
+    async for event in provider.get_completion_stream("model", []):
+        events.append(event)
+    return events
+
+
+def _provider_with_stream_error(error_factory):
+    class ErrorProvider(MockProvider):
+        async def _stream_internal(
+            self,
+            model,
+            messages,
+            tools=None,
+            tool_choice=None,
+            parallel_tool_calls=None,
+            prompt_cache_key=None,
+        ):
+            # Keep as async generator shape while raising immediately.
+            raise error_factory()
+            yield ChunkEvent(content="")  # pragma: no cover
+
+    return ErrorProvider()
+
+
 class TestLLMProvider:
     """Tests for LLMProvider base class."""
 
@@ -205,25 +257,7 @@ class TestBuildRequestParams:
             provider._build_request_params("gpt-4", messages, tools=tools)
 
     def test_build_normalizes_assistant_tool_calls_to_openai_shape(self, provider):
-        messages = [
-            {"role": "user", "content": "List files"},
-            {
-                "role": "assistant",
-                "content": "",
-                "tool_calls": [
-                    {
-                        "id": "call_1",
-                        "name": "run_shell_command",
-                        "arguments": {"command": "ls -la"},
-                    }
-                ],
-            },
-            {
-                "role": "tool",
-                "tool_call_id": "call_1",
-                "content": "total 0",
-            },
-        ]
+        messages = _messages_with_single_tool_call()
 
         params = provider._build_request_params("gpt-4", messages)
         assistant_tool_calls = params["messages"][1]["tool_calls"]
@@ -240,25 +274,10 @@ class TestBuildRequestParams:
         assert params["messages"][2]["tool_call_id"] == "call_1"
 
     def test_build_drops_orphan_tool_messages_without_matching_tool_call_id(self, provider):
-        messages = [
-            {"role": "user", "content": "List files"},
-            {
-                "role": "assistant",
-                "content": "",
-                "tool_calls": [
-                    {
-                        "id": "call_1",
-                        "name": "run_shell_command",
-                        "arguments": {"command": "ls -la"},
-                    }
-                ],
-            },
-            {
-                "role": "tool",
-                "tool_call_id": "missing_call",
-                "content": "orphan",
-            },
-        ]
+        messages = _messages_with_single_tool_call(
+            tool_response_id="missing_call",
+            tool_response_content="orphan",
+        )
 
         params = provider._build_request_params("gpt-4", messages)
         assert len(params["messages"]) == 2
@@ -717,103 +736,44 @@ class TestGetCompletionStream:
 
     @pytest.mark.asyncio
     async def test_stream_yields_events(self, provider):
-        events = []
-        async for event in provider.get_completion_stream("model", []):
-            events.append(event)
+        events = await _collect_stream_events(provider)
         
         assert len(events) == 2
         assert isinstance(events[0], ChunkEvent)
         assert isinstance(events[1], StreamingCompleteEvent)
 
     @pytest.mark.asyncio
-    async def test_stream_handles_rate_limit_error(self):
-        """Test that rate limit errors are converted to ErrorEvent."""
-        import litellm
-        
-        class ErrorProvider(MockProvider):
-            async def _stream_internal(
-                self,
-                model,
-                messages,
-                tools=None,
-                tool_choice=None,
-                parallel_tool_calls=None,
-                prompt_cache_key=None,
-            ):
-                # Must raise immediately before any yield
-                raise litellm.RateLimitError(
+    @pytest.mark.parametrize(
+        ("error_factory", "expected_message"),
+        [
+            (
+                lambda: litellm.RateLimitError(
                     message="Rate limit exceeded",
                     llm_provider="test",
-                    model="model"
-                )
-                # Add dummy yield to make this an async generator
-                yield ChunkEvent(content="")  # pragma: no cover
-        
-        provider = ErrorProvider()
-        events = []
-        async for event in provider.get_completion_stream("model", []):
-            events.append(event)
-        
-        assert len(events) == 1
-        assert isinstance(events[0], ErrorEvent)
-        assert "Rate limit" in events[0].content
-
-    @pytest.mark.asyncio
-    async def test_stream_handles_api_error(self):
-        """Test that API errors are converted to ErrorEvent."""
-        import litellm
-        
-        class ErrorProvider(MockProvider):
-            async def _stream_internal(
-                self,
-                model,
-                messages,
-                tools=None,
-                tool_choice=None,
-                parallel_tool_calls=None,
-                prompt_cache_key=None,
-            ):
-                raise litellm.APIError(
+                    model="model",
+                ),
+                "Rate limit",
+            ),
+            (
+                lambda: litellm.APIError(
                     message="API error",
                     llm_provider="test",
                     model="model",
-                    status_code=500
-                )
-                yield ChunkEvent(content="")  # pragma: no cover
-        
-        provider = ErrorProvider()
-        events = []
-        async for event in provider.get_completion_stream("model", []):
-            events.append(event)
-        
-        assert len(events) == 1
-        assert isinstance(events[0], ErrorEvent)
-        assert "API error" in events[0].content
+                    status_code=500,
+                ),
+                "API error",
+            ),
+            (lambda: ValueError("Generic error"), "Unexpected system error"),
+        ],
+        ids=["rate_limit", "api_error", "generic_error"],
+    )
+    async def test_stream_maps_errors_to_error_event(self, error_factory, expected_message):
+        provider = _provider_with_stream_error(error_factory)
+        events = await _collect_stream_events(provider)
 
-    @pytest.mark.asyncio
-    async def test_stream_handles_generic_error(self):
-        """Test that generic errors are converted to ErrorEvent."""
-        class ErrorProvider(MockProvider):
-            async def _stream_internal(
-                self,
-                model,
-                messages,
-                tools=None,
-                tool_choice=None,
-                parallel_tool_calls=None,
-                prompt_cache_key=None,
-            ):
-                raise ValueError("Generic error")
-                yield ChunkEvent(content="")  # pragma: no cover
-        
-        provider = ErrorProvider()
-        events = []
-        async for event in provider.get_completion_stream("model", []):
-            events.append(event)
-        
         assert len(events) == 1
         assert isinstance(events[0], ErrorEvent)
-        assert "Unexpected system error" in events[0].content
+        assert expected_message in events[0].content
 
 
 class TestStandardCompletionHelper:
