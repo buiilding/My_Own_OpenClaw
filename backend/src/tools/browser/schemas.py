@@ -9,6 +9,53 @@ from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
+BrowserNavigationState = Literal["load", "domcontentloaded", "networkidle", "commit"]
+BrowserSnapshotFormat = Literal["ai", "aria"]
+BrowserMouseButton = Literal["left", "right", "middle"]
+BrowserScrollDirection = Literal["up", "down", "left", "right"]
+BrowserWaitState = Literal["load", "domcontentloaded", "networkidle"]
+BrowserCoreAction = Literal[
+    "connect",
+    "navigate",
+    "snapshot",
+    "extract",
+    "click",
+    "type",
+    "press",
+    "scroll",
+    "screenshot",
+    "wait",
+    "get_tabs",
+    "switch_tab",
+    "evaluate",
+    "close",
+]
+BrowserOpenClawAction = Literal[
+    "status",
+    "profiles",
+    "open",
+    "done",
+    "search",
+    "go_back",
+    "search_page",
+    "find_elements",
+    "find_text",
+    "input",
+    "send_keys",
+    "switch",
+    "close_tab",
+    "dropdown_options",
+    "select_dropdown",
+    "upload_file",
+    "write_file",
+    "replace_file",
+    "read_file",
+    "read_long_content",
+    "act",
+]
+BrowserAction = BrowserCoreAction | BrowserOpenClawAction
+
+
 class BrowserConnectArgs(BaseModel):
     """Arguments for browser connect action."""
 
@@ -40,7 +87,7 @@ class BrowserNavigateArgs(BaseModel):
     action: Literal["navigate"] = Field(..., description="Navigate to URL")
     url: str = Field(..., description="URL to navigate to")
     new_tab: bool = Field(False, description="Open URL in a new tab")
-    wait_until: Literal["load", "domcontentloaded", "networkidle", "commit"] = Field(
+    wait_until: BrowserNavigationState = Field(
         "load", description="When to consider navigation complete"
     )
 
@@ -51,11 +98,11 @@ class BrowserSnapshotArgs(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     action: Literal["snapshot"] = Field(..., description="Get page snapshot")
-    format: Literal["ai", "aria"] = Field(
+    format: BrowserSnapshotFormat = Field(
         "ai",
         description="Snapshot format: 'ai' (interactive + contextual snapshot) or 'aria' (accessibility tree)",
     )
-    wait_until: Literal["load", "domcontentloaded", "networkidle", "commit"] = Field(
+    wait_until: BrowserNavigationState = Field(
         "load", description="Wait for this load state before capturing snapshot"
     )
     mode: Optional[Literal["efficient"]] = Field(
@@ -135,7 +182,7 @@ class BrowserExtractArgs(BaseModel):
         le=120000,
         description="Maximum number of characters in the final extracted result.",
     )
-    wait_until: Literal["load", "domcontentloaded", "networkidle", "commit"] = Field(
+    wait_until: BrowserNavigationState = Field(
         "load", description="Wait for this load state before extracting page content."
     )
     selector: Optional[str] = Field(
@@ -171,7 +218,7 @@ class BrowserClickArgs(BaseModel):
         description="Browser Use coordinate click Y position (requires coordinate_x).",
     )
     double_click: bool = Field(False, description="Perform double click")
-    button: Literal["left", "right", "middle"] = Field(
+    button: BrowserMouseButton = Field(
         "left", description="Mouse button"
     )
 
@@ -220,7 +267,7 @@ class BrowserScrollArgs(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     action: Literal["scroll"] = Field(..., description="Scroll page")
-    direction: Literal["up", "down", "left", "right"] = Field(
+    direction: BrowserScrollDirection = Field(
         "down", description="Scroll direction"
     )
     amount: int = Field(500, description="Scroll amount in pixels", ge=100, le=5000)
@@ -262,7 +309,7 @@ class BrowserWaitArgs(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     action: Literal["wait"] = Field(..., description="Wait for page state or time")
-    state: Literal["load", "domcontentloaded", "networkidle"] = Field(
+    state: BrowserWaitState = Field(
         "networkidle", description="Load state to wait for"
     )
     seconds: Optional[float] = Field(
@@ -329,29 +376,9 @@ class BrowserOpenClawCompatArgs(BaseModel):
 
     model_config = ConfigDict(extra="ignore")
 
-    action: Literal[
-        "status",
-        "profiles",
-        "open",
-        "done",
-        "search",
-        "go_back",
-        "search_page",
-        "find_elements",
-        "find_text",
-        "input",
-        "send_keys",
-        "switch",
-        "close_tab",
-        "dropdown_options",
-        "select_dropdown",
-        "upload_file",
-        "write_file",
-        "replace_file",
-        "read_file",
-        "read_long_content",
-        "act",
-    ] = Field(..., description="OpenClaw-compatible browser action")
+    action: BrowserOpenClawAction = Field(
+        ..., description="OpenClaw-compatible browser action"
+    )
     mode: Optional[Literal["user_chrome", "managed", "efficient"]] = Field(
         None, description="Connect/snapshot mode for compatible actions."
     )
@@ -387,7 +414,7 @@ class BrowserOpenClawCompatArgs(BaseModel):
     index: Optional[int] = Field(None, description="Browser Use element index", ge=0)
     tab_id: Optional[str] = Field(None, description="Browser Use tab id")
     new_tab: Optional[bool] = Field(None, description="Open navigate URL in new tab")
-    snapshotFormat: Optional[Literal["ai", "aria"]] = Field(
+    snapshotFormat: Optional[BrowserSnapshotFormat] = Field(
         None, description="Snapshot format alias."
     )
     input_ref: Optional[str] = Field(None, description="Input ref for upload")
@@ -501,43 +528,7 @@ class BrowserControlArgs(BaseModel):
 
     model_config = ConfigDict(extra="ignore")
 
-    action: Literal[
-        "connect",
-        "navigate",
-        "snapshot",
-        "extract",
-        "click",
-        "type",
-        "press",
-        "scroll",
-        "screenshot",
-        "wait",
-        "get_tabs",
-        "switch_tab",
-        "evaluate",
-        "close",
-        "status",
-        "profiles",
-        "open",
-        "done",
-        "search",
-        "go_back",
-        "search_page",
-        "find_elements",
-        "find_text",
-        "input",
-        "send_keys",
-        "switch",
-        "close_tab",
-        "dropdown_options",
-        "select_dropdown",
-        "upload_file",
-        "write_file",
-        "replace_file",
-        "read_file",
-        "read_long_content",
-        "act",
-    ] = Field(..., description="Browser action to perform")
+    action: BrowserAction = Field(..., description="Browser action to perform")
 
     # Connection args
     mode: Literal[
@@ -564,12 +555,12 @@ class BrowserControlArgs(BaseModel):
 
     # Navigation args
     url: Optional[str] = Field(None, description="URL for navigate action")
-    wait_until: Literal["load", "domcontentloaded", "networkidle", "commit"] = Field(
+    wait_until: BrowserNavigationState = Field(
         "load", description="Navigation wait condition"
     )
 
     # Snapshot args
-    format: Literal["ai", "aria"] = Field(
+    format: BrowserSnapshotFormat = Field(
         "ai",
         description="Snapshot format: 'ai' (interactive + contextual snapshot) or 'aria' (accessibility tree)",
     )
@@ -605,7 +596,7 @@ class BrowserControlArgs(BaseModel):
     frame: Optional[str] = Field(
         None, description="Optional iframe selector scope for role snapshots."
     )
-    snapshotFormat: Optional[Literal["ai", "aria"]] = Field(
+    snapshotFormat: Optional[BrowserSnapshotFormat] = Field(
         None, description="Snapshot format alias."
     )
     query: Optional[str] = Field(
@@ -682,12 +673,12 @@ class BrowserControlArgs(BaseModel):
         None,
         description="Browser Use coordinate click Y position (requires coordinate_x).",
     )
-    button: Literal["left", "right", "middle"] = Field(
+    button: BrowserMouseButton = Field(
         "left", description="Mouse button"
     )
 
     # Scroll args
-    direction: Literal["up", "down", "left", "right"] = Field(
+    direction: BrowserScrollDirection = Field(
         "down", description="Scroll direction"
     )
     amount: int = Field(500, description="Scroll amount", ge=100, le=5000)
@@ -710,7 +701,7 @@ class BrowserControlArgs(BaseModel):
     )
 
     # Wait args
-    state: Literal["load", "domcontentloaded", "networkidle"] = Field(
+    state: BrowserWaitState = Field(
         "networkidle", description="Wait state"
     )
     seconds: Optional[float] = Field(None, description="Wait seconds", ge=0, le=60)
