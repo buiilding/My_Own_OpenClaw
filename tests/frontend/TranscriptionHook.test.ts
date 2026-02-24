@@ -3,41 +3,47 @@ import { act, renderHook } from '@testing-library/react';
 import { useTranscription } from '../../frontend/src/renderer/features/chat/hooks/useTranscription';
 
 describe('useTranscription', () => {
+  const updateTranscription = (
+    result: ReturnType<typeof renderHook<typeof useTranscription>>['result'],
+    text: string,
+  ) => {
+    act(() => {
+      result.current.updateTranscription(text);
+    });
+  };
+
+  const changeInput = (
+    result: ReturnType<typeof renderHook<typeof useTranscription>>['result'],
+    value: string,
+    selectionStart: number | null,
+  ) => {
+    act(() => {
+      result.current.handleInputChange({
+        target: { value, selectionStart },
+      } as any);
+    });
+  };
+
   test('replaces prior transcription chunk instead of appending', () => {
     const { result } = renderHook(() => useTranscription(''));
 
-    act(() => {
-      result.current.updateTranscription('hello');
-    });
+    updateTranscription(result, 'hello');
     expect(result.current.inputValue).toBe('hello');
 
-    act(() => {
-      result.current.updateTranscription('world');
-    });
+    updateTranscription(result, 'world');
     expect(result.current.inputValue).toBe('world');
   });
 
   test('invalidates transcription region when user edits inside it', () => {
     const { result } = renderHook(() => useTranscription(''));
 
-    act(() => {
-      result.current.updateTranscription('hello');
-    });
+    updateTranscription(result, 'hello');
     expect(result.current.inputValue).toBe('hello');
 
-    act(() => {
-      result.current.handleInputChange({
-        target: {
-          value: 'heXllo',
-          selectionStart: 3,
-        },
-      } as any);
-    });
+    changeInput(result, 'heXllo', 3);
     expect(result.current.inputValue).toBe('heXllo');
 
-    act(() => {
-      result.current.updateTranscription('world');
-    });
+    updateTranscription(result, 'world');
     expect(result.current.inputValue).toBe('heXlloworld');
   });
 
@@ -75,23 +81,12 @@ describe('useTranscription', () => {
   test('invalidates transcription region when input change cursor is null', () => {
     const { result } = renderHook(() => useTranscription(''));
 
-    act(() => {
-      result.current.updateTranscription('hello');
-    });
+    updateTranscription(result, 'hello');
     expect(result.current.inputValue).toBe('hello');
 
-    act(() => {
-      result.current.handleInputChange({
-        target: {
-          value: 'hello!',
-          selectionStart: null,
-        },
-      } as any);
-    });
+    changeInput(result, 'hello!', null);
 
-    act(() => {
-      result.current.updateTranscription('world');
-    });
+    updateTranscription(result, 'world');
     expect(result.current.inputValue).toBe('hello!world');
   });
 
@@ -99,9 +94,7 @@ describe('useTranscription', () => {
     jest.useFakeTimers();
     const { result } = renderHook(() => useTranscription(''));
 
-    act(() => {
-      result.current.updateTranscription('abc');
-    });
+    updateTranscription(result, 'abc');
     expect(result.current.inputValue).toBe('abc');
 
     act(() => {
@@ -117,9 +110,7 @@ describe('useTranscription', () => {
     });
     expect(result.current.inputValue).toBe('Xabc');
 
-    act(() => {
-      result.current.updateTranscription('Y');
-    });
+    updateTranscription(result, 'Y');
     expect(result.current.inputValue).toBe('XabcY');
 
     act(() => {
