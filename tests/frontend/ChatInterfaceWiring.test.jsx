@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 
 import ChatInterface from '../../frontend/src/renderer/features/chat/components/ChatInterface';
+const { selectMockStoreState: mockSelectStoreState } = require('./storeSelectorTestUtils.cjs');
 
 const mockUseChatMessageSender = jest.fn(() => ({
   sendMessage: jest.fn(),
@@ -43,8 +44,7 @@ jest.mock('../../frontend/src/renderer/features/chat/hooks/useChatMessageSender'
 }));
 
 jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
-  useChatStore: (selector) =>
-    require('./storeSelectorTestUtils.cjs').selectMockStoreState(selector, mockChatState),
+  useChatStore: (selector) => mockSelectStoreState(selector, mockChatState),
 }));
 
 jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
