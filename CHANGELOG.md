@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(backend-vision-internvl): extract `_run_generate_fallback_with_chat_error` in `backend/src/services/vision/providers/internvl.py` to centralize duplicated CUDA chat->generate fallback error handling; add regression coverage in `tests/backend/test_vision_provider_loader.py` for helper success and wrapped dual-failure behavior
 - refactor(backend-tool-declarations): optimize `ToolRegistry.get_function_declarations_filtered` with set-based name lookup and tighten `SchemaRegistry.get_declarations` to append only dict schemas, preserving behavior while reducing repeated linear membership checks
 - refactor(backend-tool-registry): extract schema parameter parsing into `_extract_schema_parameters` in `backend/src/tools/registry.py` and simplify `get_tool_capabilities` control flow while preserving compatibility fallback to empty parameter maps for malformed function-schema payloads
 - refactor(backend-schema-registry): split `SchemaRegistry.get_schema` cache/read-generate/write flow into `_get_cached_schema` and `_generate_and_cache_schema` helpers in `backend/src/tools/schema_registry.py` to centralize canonical-shape enforcement and simplify main control flow
