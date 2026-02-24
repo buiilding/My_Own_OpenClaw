@@ -209,9 +209,17 @@ class LocalLLMProvider(OnlineLLMProvider):
     def _provider_label_for_request(self) -> str:
         return self._provider_name()
 
+    def _require_base_url(self, provider_class_name: str) -> None:
+        """Raise consistent errors for local providers that require a base_url."""
+        if self.base_url:
+            return
+        raise ValueError(f"{provider_class_name} requires a valid 'base_url'.")
+
 
 class OllamaProvider(LocalLLMProvider):
     """Provider for Ollama models."""
+
+    model_prefix = "ollama"
 
     def __init__(self, base_url: str, timeout: float = 60.0):
         """
@@ -226,13 +234,7 @@ class OllamaProvider(LocalLLMProvider):
 
     def _validate_dependencies(self) -> None:
         """Validate that base_url is provided."""
-        if not self.base_url:
-            raise ValueError("OllamaProvider requires a valid 'base_url'.")
-
-    def _get_full_model_string(self, model_id: str) -> str:
-        if model_id.startswith("ollama/"):
-            return model_id
-        return f"ollama/{model_id}"
+        self._require_base_url("OllamaProvider")
 
     def _provider_name(self) -> str:
         return "Ollama"
@@ -284,6 +286,8 @@ class OllamaProvider(LocalLLMProvider):
 class LMStudioProvider(LocalLLMProvider):
     """Provider for LMStudio models."""
 
+    model_prefix = "lmstudio"
+
     def __init__(self, base_url: str, timeout: float = 60.0):
         """
         Initialize LMStudio provider.
@@ -297,13 +301,7 @@ class LMStudioProvider(LocalLLMProvider):
 
     def _validate_dependencies(self) -> None:
         """Validate that base_url is provided."""
-        if not self.base_url:
-            raise ValueError("LMStudioProvider requires a valid 'base_url'.")
-
-    def _get_full_model_string(self, model_id: str) -> str:
-        if model_id.startswith("lmstudio/"):
-            return model_id
-        return f"lmstudio/{model_id}"
+        self._require_base_url("LMStudioProvider")
 
     def _provider_name(self) -> str:
         return "LMStudio"

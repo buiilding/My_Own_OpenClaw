@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(backend-local-providers): add shared `_require_base_url` helper in `LocalLLMProvider` and reuse `OnlineLLMProvider` model-prefix behavior in `OllamaProvider`/`LMStudioProvider` to remove duplicate base-url and model-string normalization logic; add regression coverage in `tests/backend/test_local_llm_providers.py`; jscpd totals held at clones `40`, duplicated lines `932`
 - docs(refactor-plan): add phase-144 full-gate snapshot after Local-provider inheritance migration to shared online-provider base (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)
 - refactor(backend-llm-providers): make `LocalLLMProvider` inherit shared `OnlineLLMProvider`, reusing common completion/stream paths via dynamic provider-label resolution hook while preserving local-specific request-param/list-model behavior; jscpd improved from clones `42 -> 40` and duplicated lines `959 -> 932`
 - docs(refactor-plan): add phase-143 full-gate snapshot after shared provider request-param hook migration (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)
