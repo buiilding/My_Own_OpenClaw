@@ -21,6 +21,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Installation Guide**](getting-started/INSTALLATION.md) - Detailed installation instructions
 
 ### Architecture & Design
+- [**Backend Functionality Map**](backend/README.md) - Detailed module-level backend runtime and API maps
 - [**System Architecture**](architecture/ARCHITECTURE.md) - High-level system design and components
 - [**Backend Architecture**](architecture/BACKEND_ARCHITECTURE.md) - Backend system design and patterns
 - [**Frontend Architecture**](architecture/FRONTEND_ARCHITECTURE.md) - Frontend system design and patterns
