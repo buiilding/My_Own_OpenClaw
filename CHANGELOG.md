@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-chatbox-context): move active-window text out of input flow into a floating left pill label and remove context status-dot/icon abbreviations so only window text is shown
 - fix(frontend-token-count): make chat token display prefer backend `total_tokens` (provider-reported request total) and only fallback to `conversation_tokens`; add frontend regression coverage in `tests/frontend/TokenCounts.test.js`
 - refactor(backend-embeddings-route): remove unused FastAPI `Depends` import from `backend/src/api/routes/memory/embeddings.py` to trim dead code in the memory route surface
 - refactor(frontend-wakeword): remove callback-ref sync `useEffect` in `frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts` and sync the mutable callback ref during render to avoid redundant effect work
