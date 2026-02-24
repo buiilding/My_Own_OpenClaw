@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(api-schema): turn `backend/src/api/schema.py` into a compatibility facade that re-exports from `backend.src.api.schemas.__all__`, removing duplicate schema export lists while preserving backward-compatible imports
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 26 execution slice for API schema re-export dedupe in `backend/src/api/schema.py`
 - refactor(core-exceptions): dedupe LLM/memory/trust-boundary constructor specialization in `core/infrastructure/exceptions.py` using shared optional-field metadata and trust-boundary base initialization helpers while preserving existing error-code/metadata behavior
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 25 execution slice for exception constructor specialization dedupe in `core/infrastructure/exceptions.py`
