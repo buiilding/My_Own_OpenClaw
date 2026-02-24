@@ -107,3 +107,30 @@ async def test_kimi_stream_emits_thinking_and_captures_stream_tool_calls(monkeyp
             "arguments": {"path": "/tmp/demo.txt"},
         }
     ]
+
+
+@pytest.mark.asyncio
+async def test_kimi_stream_sets_stream_options_and_custom_provider(monkeypatch):
+    provider = KimiCodingProvider(api_key="test-key")
+    captured_kwargs = {}
+
+    async def fake_stream():
+        yield {"choices": [{"delta": {"content": "ok"}}]}
+
+    async def fake_acompletion(**kwargs):
+        captured_kwargs.update(kwargs)
+        return fake_stream()
+
+    monkeypatch.setattr("backend.src.llm.providers.kimi_coding.litellm.acompletion", fake_acompletion)
+
+    events = []
+    async for event in provider.get_completion_stream(
+        model="k2p5",
+        messages=[{"role": "user", "content": "ping"}],
+    ):
+        events.append(event)
+
+    assert any(isinstance(event, ChunkEvent) and event.content == "ok" for event in events)
+    assert captured_kwargs["stream"] is True
+    assert captured_kwargs["stream_options"] == {"include_usage": True}
+    assert captured_kwargs["custom_llm_provider"] == "anthropic"

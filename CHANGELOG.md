@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(backend-kimi-streaming): extract shared `OnlineLLMProvider._build_stream_completion_params` and reuse it in `KimiCodingProvider` to standardize stream request setup; dedupe Kimi tool-call delta state initialization; add regression coverage in `tests/backend/test_llm_provider_base.py` and `tests/backend/test_kimi_coding_provider.py`
 - docs(refactor-plan): add phase-145 full-gate snapshot after local-provider base-url/model-prefix dedupe (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)
 - refactor(backend-local-providers): add shared `_require_base_url` helper in `LocalLLMProvider` and reuse `OnlineLLMProvider` model-prefix behavior in `OllamaProvider`/`LMStudioProvider` to remove duplicate base-url and model-string normalization logic; add regression coverage in `tests/backend/test_local_llm_providers.py`; jscpd totals held at clones `40`, duplicated lines `932`
 - docs(refactor-plan): add phase-144 full-gate snapshot after Local-provider inheritance migration to shared online-provider base (frontend lint+knip+jscpd+tests, backend tests, sidecar tests)

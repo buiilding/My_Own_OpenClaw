@@ -1029,3 +1029,28 @@ class TestOnlineLLMProvider:
 
         assert calls == {"text": 0, "thinking": 1}
         assert [event.content for event in events] == ["thinking"]
+
+    def test_build_stream_completion_params_enables_stream_mode(self, monkeypatch):
+        provider = self._MockOnlineProvider(api_key="test-key")
+        build_params_mock = MagicMock(return_value={"ok": True})
+        monkeypatch.setattr(provider, "_build_standard_completion_params", build_params_mock)
+
+        result = provider._build_stream_completion_params(
+            model="model",
+            messages=[],
+            tools=[{"type": "function", "function": {"name": "noop"}}],
+            tool_choice="auto",
+            parallel_tool_calls=True,
+            prompt_cache_key="cache-key",
+        )
+
+        build_params_mock.assert_called_once_with(
+            "model",
+            [],
+            tools=[{"type": "function", "function": {"name": "noop"}}],
+            tool_choice="auto",
+            parallel_tool_calls=True,
+            prompt_cache_key="cache-key",
+            include_stream=True,
+        )
+        assert result == {"ok": True}
