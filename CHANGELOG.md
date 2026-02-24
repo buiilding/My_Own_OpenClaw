@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(backend-parser-validation-tests): add shared `_configure_mouse_coordinate_methods` helper in `tests/backend/test_parser_validation.py` to dedupe repeated tool-selection TOML setup across mouse-coordinate validation tests; jscpd improved from clones `93 -> 91` and duplicated lines `1680 -> 1654`
 - docs(refactor-plan): add phase-122 full-gate snapshot after backend validator utility + sidecar remote-client lifecycle helper dedupe waves (frontend audits/tests + backend + sidecar)
 - refactor(sidecar-remote-client-tests): add shared `assert_client_initialize_reuses_session_and_close_resets` helper in `tests/sidecar/remote_client_test_utils.py` and reuse it in embedding/semantic client suites to remove duplicated session lifecycle assertions; jscpd improved from clones `94 -> 93` and duplicated lines `1693 -> 1680`
 - refactor(backend-validator-test-utils): extract shared tool-validator test scaffolding into `tests/backend/tool_validator_test_utils.py` and reuse it in `test_parser_validation.py` + `test_dev_tool_selection.py` to remove duplicated `DummyMetrics`/`DummyRegistry` + validator wiring; jscpd improved from clones `95 -> 94` and duplicated lines `1712 -> 1693`
