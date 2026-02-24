@@ -151,7 +151,7 @@ read_when:
   - de-export transcript session storage key constant (`TRANSCRIPT_SESSION_STORAGE_KEY`) and update tests to use explicit fixture key value.
 - Success checks:
   - `cd frontend && npm run lint`
-  - `cd frontend && npm run test:ci -- tests/frontend/TranscriptStorage.test.ts tests/frontend/TranscriptWriter.test.ts tests/frontend/ToolExecutionService.test.ts`
+  - `cd frontend && npm run test:ci -- tests/frontend/TranscriptStorage.test.ts tests/frontend/TranscriptWriter.session.test.ts tests/frontend/TranscriptWriter.userAssistant.test.ts tests/frontend/TranscriptWriter.tool.test.ts tests/frontend/ToolExecutionService.test.ts`
   - `cd frontend && npm run audit:knip` (expect remaining `unused exported types` section to clear)
 
 ## Phase 7
@@ -409,7 +409,7 @@ read_when:
   - refactor `TranscriptWriter.ts` repeated resolve/store/catch queue blocks to shared internal helpers.
 - Verification checks:
   - `cd frontend && npm run lint`
-  - `cd frontend && npm run test:ci -- tests/frontend/TranscriptWriter.test.ts tests/frontend/TranscriptStorage.test.ts tests/frontend/TranscriptSessionState.test.ts`
+  - `cd frontend && npm run test:ci -- tests/frontend/TranscriptWriter.session.test.ts tests/frontend/TranscriptWriter.userAssistant.test.ts tests/frontend/TranscriptWriter.tool.test.ts tests/frontend/TranscriptStorage.test.ts tests/frontend/TranscriptSessionState.test.ts`
   - `cd frontend && npm run test:ci`
   - `cd frontend && npm run audit:knip`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
@@ -980,7 +980,7 @@ read_when:
   - unused exported types: `17 -> 0`
 - Verification:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/TranscriptStorage.test.ts tests/frontend/TranscriptWriter.test.ts tests/frontend/ToolExecutionService.test.ts` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/TranscriptStorage.test.ts tests/frontend/TranscriptWriter.session.test.ts tests/frontend/TranscriptWriter.userAssistant.test.ts tests/frontend/TranscriptWriter.tool.test.ts tests/frontend/ToolExecutionService.test.ts` (pass)
   - `cd frontend && npm run test:ci` (pass)
   - `cd frontend && npm run audit:knip` (remaining command non-zero from residual unused exports only)
 
@@ -1253,7 +1253,7 @@ read_when:
   - duplicated tokens: `28350 -> 28138`
 - Verification:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/TranscriptWriter.test.ts tests/frontend/TranscriptStorage.test.ts tests/frontend/TranscriptSessionState.test.ts` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/TranscriptWriter.session.test.ts tests/frontend/TranscriptWriter.userAssistant.test.ts tests/frontend/TranscriptWriter.tool.test.ts tests/frontend/TranscriptStorage.test.ts tests/frontend/TranscriptSessionState.test.ts` (pass)
   - `cd frontend && npm run test:ci` (pass; 82 suites)
   - `cd frontend && npm run audit:knip` (pass; no findings)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
@@ -1819,3 +1819,25 @@ read_when:
     - `./scripts/test-backend` (pass; 966 tests)
   - sidecar:
     - `./scripts/test-sidecar` (pass; 462 tests; 3 known swig deprecation warnings)
+
+## Phase 50 Outcome (2026-02-24)
+
+- Oversized transcript writer suite split shipped:
+  - replaced `tests/frontend/TranscriptWriter.test.ts` (`624` LOC) with focused suites:
+    - `tests/frontend/TranscriptWriter.session.test.ts` (`120` LOC)
+    - `tests/frontend/TranscriptWriter.userAssistant.test.ts` (`299` LOC)
+    - `tests/frontend/TranscriptWriter.tool.test.ts` (`204` LOC)
+  - extracted shared setup/mocking utilities into:
+    - `tests/frontend/TranscriptWriter.testUtils.ts`
+  - preserved complete transcript writer behavior coverage (`20` assertions) while reducing per-file complexity.
+- jscpd delta after transcript-suite split:
+  - clones: `179 -> 178`
+  - duplicated lines: `2682 -> 2667`
+  - duplicated tokens: `23709 -> 23619`
+- Verification:
+  - `cd frontend && npm run test:ci -- tests/frontend/TranscriptWriter.session.test.ts tests/frontend/TranscriptWriter.userAssistant.test.ts tests/frontend/TranscriptWriter.tool.test.ts` (pass; 20 tests)
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run lint:audit` (pass)
+  - `cd frontend && npm run audit:knip` (pass)
+  - `cd frontend && npm run audit:jscpd` (pass)
+  - `cd frontend && npm run test:ci` (pass; 91 suites, 607 tests)
