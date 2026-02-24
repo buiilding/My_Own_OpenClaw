@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-chatbox-context-positioning): nudge separate active-window label slightly higher (2px) for final alignment tuning
 - fix(frontend-chatbox-context-positioning): push active-window label lower by moving the separate label window down into slight overlap with pill top and adding in-window top offset for text
 - fix(frontend-chatbox-context-positioning): lower separate active-window label a bit more by removing extra gap above the chat pill
 - fix(frontend-chatbox-context-positioning): lower separate active-window label window closer to the chat pill for better vertical alignment
