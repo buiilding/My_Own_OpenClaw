@@ -4,30 +4,10 @@ from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-BrowserSnapshotFormat = Literal["ai", "aria"]
-BrowserOpenClawAction = Literal[
-    "status",
-    "profiles",
-    "open",
-    "done",
-    "search",
-    "go_back",
-    "search_page",
-    "find_elements",
-    "find_text",
-    "input",
-    "send_keys",
-    "switch",
-    "close_tab",
-    "dropdown_options",
-    "select_dropdown",
-    "upload_file",
-    "write_file",
-    "replace_file",
-    "read_file",
-    "read_long_content",
-    "act",
-]
+from backend.src.tools.browser.schema_types import (
+    BrowserOpenClawAction,
+    BrowserSnapshotFormat,
+)
 
 
 class BrowserOpenClawCompatArgs(BaseModel):
