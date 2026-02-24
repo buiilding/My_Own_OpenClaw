@@ -1653,3 +1653,37 @@ read_when:
 - Verification:
   - `pytest tests/backend/test_llm_provider_base.py tests/backend/test_local_llm_providers.py tests/backend/test_llm_client.py` (pass; 101 tests)
   - `cd frontend && npm run audit:jscpd` (pass; duplicated lines/tokens reduction confirmed)
+
+## Phase 40 Outcome (2026-02-24)
+
+- React compiler + frontend voice hook hard-error cleanup shipped:
+  - removed `useAudioCaptureRefs` shared object hook usage from:
+    - `frontend/src/renderer/features/voice/hooks/useVoiceMode.ts`
+    - `frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts`
+  - replaced with direct `useRef` declarations per hook to satisfy `react-compiler` immutability constraints.
+  - deleted now-unused hook:
+    - `frontend/src/renderer/features/voice/hooks/useAudioCaptureRefs.ts`
+- Oversized frontend IPC test split shipped:
+  - split `tests/frontend/IpcMainBridge.test.cjs` (`752` LOC) into:
+    - `tests/frontend/IpcMainBridge.lifecycle.test.cjs` (`179` LOC)
+    - `tests/frontend/IpcMainBridge.query.test.cjs` (`436` LOC)
+  - extracted shared setup/mocks into:
+    - `tests/frontend/__mocks__/ipcMainBridgeHarness.cjs`
+  - preserved full suite coverage (same `27` IPC bridge tests passing).
+- Dependency/tooling refresh (safe, non-breaking) shipped:
+  - bumped `@types/react` to `^18.3.28` in `frontend/package.json` and lockfile.
+  - attempted `eslint-plugin-react-refresh@0.5.2`, but intentionally kept `0.4.26` due peer requirement (`eslint ^9 || ^10`) conflicting with current `eslint 8.57.1` stack.
+- API route consolidation check:
+  - reviewed current route surface under `backend/src/api/routes`.
+  - no new low-risk consolidation target identified in this slice; memory route health checks already centralized via `backend/src/api/routes/memory/health.py`.
+- Audit delta snapshot:
+  - jscpd totals: clones `190 -> 181`, duplicated lines `2883 -> 2765`, duplicated tokens `25624 -> 24597`.
+  - knip: pass (`0` findings).
+  - lint audit: react-compiler pass; deprecation warnings unchanged (ScriptProcessorNode/onaudioprocess in voice capture path).
+- Verification:
+  - `cd frontend && npm run lint:audit` (pass; warnings only)
+  - `cd frontend && npm run audit:knip` (pass)
+  - `cd frontend && npm run audit:jscpd` (pass; clone/duplicate reduction confirmed)
+  - `cd frontend && npm run test:ci` (pass; 86 suites, 607 tests)
+  - `./scripts/test-backend` (pass; 966 tests)
+  - `./scripts/test-sidecar` (pass; 462 tests)
