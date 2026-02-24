@@ -6,6 +6,80 @@ from backend.src.core.events.streaming_events import ChunkEvent, ErrorEvent, Thi
 from backend.src.llm.providers.kimi_coding import KimiCodingProvider
 
 
+async def _collect_stream_events(provider: KimiCodingProvider, **kwargs):
+    events = []
+    async for event in provider.get_completion_stream(**kwargs):
+        events.append(event)
+    return events
+
+
+def _patch_stream_completion(monkeypatch, fake_stream_factory):
+    async def fake_acompletion(**_kwargs):
+        return fake_stream_factory()
+
+    monkeypatch.setattr(
+        "backend.src.llm.providers.kimi_coding.litellm.acompletion",
+        fake_acompletion,
+    )
+
+
+async def _collect_stream_events_for_tool(
+    provider: KimiCodingProvider,
+    monkeypatch,
+    *,
+    fake_stream_factory,
+    tool_name: str,
+):
+    _patch_stream_completion(monkeypatch, fake_stream_factory)
+    return await _collect_stream_events(
+        provider,
+        model="k2p5",
+        messages=[{"role": "user", "content": "hi"}],
+        tools=[
+            {
+                "type": "function",
+                "function": {
+                    "name": tool_name,
+                    "parameters": {"type": "object"},
+                },
+            }
+        ],
+    )
+
+
+def _build_stream_chunk(
+    *,
+    tool_name: str | None = None,
+    tool_arguments: str | None = None,
+    tool_call_id: str | None = None,
+    content: str | None = None,
+    reasoning_content: str | None = None,
+    finish_reason: str | None = None,
+) -> dict:
+    delta: dict = {}
+    if reasoning_content is not None:
+        delta["reasoning_content"] = reasoning_content
+    if content is not None:
+        delta["content"] = content
+    if tool_name is not None or tool_arguments is not None:
+        function_payload = {}
+        if tool_name is not None:
+            function_payload["name"] = tool_name
+        if tool_arguments is not None:
+            function_payload["arguments"] = tool_arguments
+        tool_call_payload = {
+            "index": 0,
+            "function": function_payload,
+        }
+        if tool_call_id is not None:
+            tool_call_payload["id"] = tool_call_id
+        delta["tool_calls"] = [tool_call_payload]
+    choice = {"delta": delta}
+    if finish_reason is not None:
+        choice["finish_reason"] = finish_reason
+    return {"choices": [choice]}
+
+
 def test_kimi_provider_supports_streaming_tool_turns():
     provider = KimiCodingProvider(api_key="test-key")
     assert provider.supports_streaming_tool_turns("k2p5") is True
@@ -42,55 +116,25 @@ async def test_kimi_stream_emits_thinking_and_captures_stream_tool_calls(monkeyp
     provider = KimiCodingProvider(api_key="test-key")
 
     async def fake_stream():
-        yield {
-            "choices": [
-                {
-                    "delta": {
-                        "reasoning_content": "step-1",
-                        "content": "Hello ",
-                        "tool_calls": [
-                            {
-                                "index": 0,
-                                "id": "call_1",
-                                "function": {
-                                    "name": "read_file",
-                                    "arguments": "{\"path\":\"/tmp",
-                                },
-                            }
-                        ],
-                    }
-                }
-            ]
-        }
-        yield {
-            "choices": [
-                {
-                    "delta": {
-                        "content": "world",
-                        "tool_calls": [
-                            {
-                                "index": 0,
-                                "function": {"arguments": "/demo.txt\"}"},
-                            }
-                        ],
-                    },
-                    "finish_reason": "tool_calls",
-                }
-            ]
-        }
+        yield _build_stream_chunk(
+            reasoning_content="step-1",
+            content="Hello ",
+            tool_name="read_file",
+            tool_arguments="{\"path\":\"/tmp",
+            tool_call_id="call_1",
+        )
+        yield _build_stream_chunk(
+            content="world",
+            tool_arguments="/demo.txt\"}",
+            finish_reason="tool_calls",
+        )
 
-    async def fake_acompletion(**_kwargs):
-        return fake_stream()
-
-    monkeypatch.setattr("backend.src.llm.providers.kimi_coding.litellm.acompletion", fake_acompletion)
-
-    events = []
-    async for event in provider.get_completion_stream(
-        model="k2p5",
-        messages=[{"role": "user", "content": "hi"}],
-        tools=[{"type": "function", "function": {"name": "read_file", "parameters": {"type": "object"}}}],
-    ):
-        events.append(event)
+    events = await _collect_stream_events_for_tool(
+        provider,
+        monkeypatch,
+        fake_stream_factory=fake_stream,
+        tool_name="read_file",
+    )
 
     assert any(isinstance(event, ThinkingEvent) and event.content == "step-1" for event in events)
     chunk_text = "".join(event.content for event in events if isinstance(event, ChunkEvent))
@@ -123,13 +167,12 @@ async def test_kimi_stream_sets_stream_options_and_custom_provider(monkeypatch):
 
     monkeypatch.setattr("backend.src.llm.providers.kimi_coding.litellm.acompletion", fake_acompletion)
 
-    events = []
-    async for event in provider.get_completion_stream(
+    events = await _collect_stream_events(
+        provider,
         model="k2p5",
         messages=[{"role": "user", "content": "ping"}],
         prompt_cache_key="cache-key",
-    ):
-        events.append(event)
+    )
 
     assert any(isinstance(event, ChunkEvent) and event.content == "ok" for event in events)
     assert captured_kwargs["stream"] is True
@@ -143,38 +186,19 @@ async def test_kimi_stream_emits_error_event_when_tool_arguments_json_is_invalid
     provider = KimiCodingProvider(api_key="test-key")
 
     async def fake_stream():
-        yield {
-            "choices": [
-                {
-                    "delta": {
-                        "tool_calls": [
-                            {
-                                "index": 0,
-                                "id": "call_bad",
-                                "function": {
-                                    "name": "replace",
-                                    "arguments": "{\"file_path\":\"/tmp/a\",\"new_string\":\"unterminated",
-                                },
-                            }
-                        ],
-                    },
-                    "finish_reason": "tool_calls",
-                }
-            ]
-        }
+        yield _build_stream_chunk(
+            tool_name="replace",
+            tool_arguments="{\"file_path\":\"/tmp/a\",\"new_string\":\"unterminated",
+            tool_call_id="call_bad",
+            finish_reason="tool_calls",
+        )
 
-    async def fake_acompletion(**_kwargs):
-        return fake_stream()
-
-    monkeypatch.setattr("backend.src.llm.providers.kimi_coding.litellm.acompletion", fake_acompletion)
-
-    events = []
-    async for event in provider.get_completion_stream(
-        model="k2p5",
-        messages=[{"role": "user", "content": "hi"}],
-        tools=[{"type": "function", "function": {"name": "replace", "parameters": {"type": "object"}}}],
-    ):
-        events.append(event)
+    events = await _collect_stream_events_for_tool(
+        provider,
+        monkeypatch,
+        fake_stream_factory=fake_stream,
+        tool_name="replace",
+    )
 
     assert any(isinstance(event, ErrorEvent) for event in events)
     error_messages = [

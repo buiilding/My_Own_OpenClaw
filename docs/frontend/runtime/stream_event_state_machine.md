@@ -13,6 +13,8 @@ title: "Stream Event State Machine"
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/types/backendEvents.ts`
+- `frontend/src/renderer/features/chat/utils/chatStreamConversationGate.ts`
+- `frontend/src/renderer/features/chat/utils/chatStreamTracking.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamMessageUpdates.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamEventUtils.ts`
 
@@ -61,6 +63,7 @@ This prevents cross-conversation leakage when multiple threads are loaded locall
 - tool events increment dedicated counters and phase.
 - terminal error stores `lastError` and `completedAt`.
 - completion sets `phase=complete` and fills `completedAt`.
+- transition math is centralized in `applyTrackingEvent(...)` to keep hook handlers thin and deterministic.
 
 ## Event-to-UI State Transitions
 

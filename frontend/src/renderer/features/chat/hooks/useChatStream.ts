@@ -9,8 +9,6 @@ import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import {
   useChatStore,
   type ChatMessage,
-  type StreamPhase,
-  type StreamTracking,
 } from '../stores/chatStore';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import {
@@ -60,83 +58,20 @@ import {
   findStreamingCompleteAssistantMessage,
   resolveStreamingResponseAction,
 } from '../utils/chatStreamMessageUpdates';
+import {
+  applyTrackingEvent,
+  type StreamTrackingOptions,
+} from '../utils/chatStreamTracking';
+import {
+  resolveEventConversationRef,
+  shouldIgnoreEventForActiveConversation,
+} from '../utils/chatStreamConversationGate';
 import { useChatCommonActions } from './useChatCommonActions';
 
 type TranscriptModelContext = {
   modelId: string | null;
   modelProvider: string | null;
 };
-
-type StreamTrackingOptions = {
-  phase?: StreamPhase;
-  chunkSize?: number;
-  toolCall?: boolean;
-  toolOutput?: boolean;
-  errorText?: string | null;
-  resetForTurn?: boolean;
-};
-
-const TERMINAL_STREAM_PHASES = new Set<StreamPhase>(['idle', 'complete', 'error']);
-
-function createTrackingForNewTurn(
-  eventType: BackendEventType,
-  now: string,
-  turnRef: string | null,
-): StreamTracking {
-  return {
-    activeTurnRef: turnRef,
-    phase: 'awaiting-first-chunk',
-    startedAt: now,
-    firstChunkAt: null,
-    completedAt: null,
-    lastEventAt: now,
-    lastEventType: eventType,
-    eventCount: 1,
-    chunkCount: 0,
-    toolCallCount: 0,
-    toolOutputCount: 0,
-    lastChunkSize: 0,
-    lastError: null,
-  };
-}
-
-function resolveEventConversationRef(event: BackendEvent): string | null {
-  if (typeof event.conversation_ref === 'string' && event.conversation_ref.length > 0) {
-    return event.conversation_ref;
-  }
-  if (event.type !== 'local-user-message') {
-    return null;
-  }
-  const payloadConversationRef = event.payload?.conversation_ref;
-  if (typeof payloadConversationRef !== 'string' || payloadConversationRef.length === 0) {
-    return null;
-  }
-  return payloadConversationRef;
-}
-
-function shouldIgnoreEventForActiveConversation(event: BackendEvent): boolean {
-  const activeConversationRef = getActiveConversationRef();
-  if (!activeConversationRef) {
-    return false;
-  }
-  const eventConversationRef = resolveEventConversationRef(event);
-  if (!eventConversationRef) {
-    return false;
-  }
-  if (eventConversationRef === activeConversationRef) {
-    return false;
-  }
-  if (event.type === 'local-user-message') {
-    return false;
-  }
-
-  const { streamTracking } = useChatStore.getState();
-  const hasActiveTurn = typeof streamTracking.activeTurnRef === 'string' && streamTracking.activeTurnRef.length > 0;
-  if (!hasActiveTurn) {
-    return false;
-  }
-  return !TERMINAL_STREAM_PHASES.has(streamTracking.phase);
-}
 
 /**
  * Custom hook for managing streaming message responses.
@@ -162,63 +97,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     options: StreamTrackingOptions = {},
   ) => {
     const now = new Date().toISOString();
-    updateStreamTracking((current) => {
-      const resolvedTurnRef = turnRef ?? current.activeTurnRef;
-      const base = options.resetForTurn
-        ? createTrackingForNewTurn(eventType, now, resolvedTurnRef ?? null)
-        : {
-          ...current,
-          activeTurnRef: resolvedTurnRef ?? current.activeTurnRef,
-          lastEventAt: now,
-          lastEventType: eventType,
-          eventCount: current.eventCount + 1,
-        };
-
-      const next: StreamTracking = {
-        ...base,
-      };
-
-      if (options.phase) {
-        next.phase = options.phase;
-      }
-
-      if (eventType === 'streaming-response') {
-        next.chunkCount += 1;
-        next.lastChunkSize = options.chunkSize ?? 0;
-        if (!next.firstChunkAt) {
-          next.firstChunkAt = now;
-        }
-        if (!options.phase) {
-          next.phase = 'streaming';
-        }
-      }
-
-      if (options.toolCall) {
-        next.toolCallCount += 1;
-        if (!options.phase) {
-          next.phase = 'tool-call';
-        }
-      }
-
-      if (options.toolOutput) {
-        next.toolOutputCount += 1;
-        if (!options.phase) {
-          next.phase = 'tool-output';
-        }
-      }
-
-      if (options.errorText !== undefined) {
-        next.lastError = options.errorText;
-        next.phase = options.phase ?? 'error';
-        next.completedAt = now;
-      }
-
-      if (next.phase === 'complete' && !next.completedAt) {
-        next.completedAt = now;
-      }
-
-      return next;
-    });
+    updateStreamTracking((current) => applyTrackingEvent(current, eventType, turnRef, now, options));
   }, [updateStreamTracking]);
 
   const updateLastMessageBySender = useCallback((
@@ -590,7 +469,8 @@ export function useChatStream(enableTranscript: boolean = true) {
       if (!isBackendEvent(data)) {
         return;
       }
-      if (shouldIgnoreEventForActiveConversation(data)) {
+      const { streamTracking } = useChatStore.getState();
+      if (shouldIgnoreEventForActiveConversation(data, getActiveConversationRef(), streamTracking)) {
         return;
       }
       if (enableTranscript) {

@@ -1,36 +1,14 @@
+import type {
+  ToolBundleEvent,
+  ToolCallEvent,
+  ToolOutputEvent,
+} from '../../../types/backendEvents';
+
 const MAX_THINKING_STATUS_LENGTH = 5000;
 
-type ToolCallPayloadLike = {
-  tool_name?: string;
-  parameters?: Record<string, unknown>;
-  metadata?: Record<string, unknown> & {
-    model_facing_tool_call?: {
-      id?: string;
-      name?: string;
-      arguments?: Record<string, unknown>;
-    };
-  };
-};
-
-type ToolBundlePayloadLike = {
-  bundle_id?: string;
-  tools?: Array<{
-    name?: string;
-    args?: Record<string, unknown>;
-    metadata?: Record<string, unknown> & {
-      model_facing_tool_call?: {
-        id?: string;
-        name?: string;
-        arguments?: Record<string, unknown>;
-      };
-    };
-  }>;
-};
-
-type ToolOutputPayloadLike = {
-  error?: string | null;
-  output?: string;
-};
+type ToolCallPayloadLike = ToolCallEvent['payload'];
+type ToolBundlePayloadLike = ToolBundleEvent['payload'];
+type ToolOutputPayloadLike = ToolOutputEvent['payload'];
 
 export function buildThinkingStatus(currentStatus: string | null, chunk?: string): string {
   const updated = (currentStatus || '') + (chunk || '');

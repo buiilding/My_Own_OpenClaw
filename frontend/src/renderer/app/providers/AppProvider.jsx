@@ -26,11 +26,8 @@ function AppContextCoordinator({ children }) {
   const registerSaveStatusCallback = configContext?.registerSaveStatusCallback;
   const configRef = useRef(configContext?.config || {});
   const updateConfigRef = useRef(configContext?.updateConfig);
-
-  useEffect(() => {
-    configRef.current = configContext?.config || {};
-    updateConfigRef.current = configContext?.updateConfig;
-  }, [configContext?.config, configContext?.updateConfig]);
+  configRef.current = configContext?.config || {};
+  updateConfigRef.current = configContext?.updateConfig;
 
   useEffect(() => {
     if (registerSaveStatusCallback) {
