@@ -84,6 +84,35 @@ def _create_no_op_decorator(
 	return decorator
 
 
+def _build_observe_kwargs(
+	*,
+	name: str | None,
+	ignore_input: bool,
+	ignore_output: bool,
+	metadata: dict[str, Any] | None,
+	span_type: Literal['DEFAULT', 'LLM', 'TOOL'],
+	tags: list[str],
+	extra_kwargs: dict[str, Any],
+) -> dict[str, Any]:
+	"""Build kwargs payload for lmnr observe/no-op decorators."""
+	return {
+		'name': name,
+		'ignore_input': ignore_input,
+		'ignore_output': ignore_output,
+		'metadata': metadata,
+		'span_type': span_type,
+		'tags': tags,  # important: tags need to be created on laminar first
+		**extra_kwargs,
+	}
+
+
+def _resolve_observe_decorator(*, decorator_kwargs: dict[str, Any], enable_trace: bool) -> Callable[[F], F]:
+	"""Resolve to lmnr decorator when enabled and available, else no-op."""
+	if enable_trace and _LMNR_AVAILABLE and _lmnr_observe:
+		return cast(Callable[[F], F], _lmnr_observe(**decorator_kwargs))
+	return _create_no_op_decorator(**decorator_kwargs)
+
+
 def observe(
 	name: str | None = None,
 	ignore_input: bool = False,
@@ -113,22 +142,16 @@ def observe(
 	    def my_function(param1, param2):
 	        return param1 + param2
 	"""
-	kwargs = {
-		'name': name,
-		'ignore_input': ignore_input,
-		'ignore_output': ignore_output,
-		'metadata': metadata,
-		'span_type': span_type,
-		'tags': ['observe', 'observe_debug'],  # important: tags need to be created on laminar first
-		**kwargs,
-	}
-
-	if _LMNR_AVAILABLE and _lmnr_observe:
-		# Use the real lmnr observe decorator
-		return cast(Callable[[F], F], _lmnr_observe(**kwargs))
-	else:
-		# Use no-op decorator
-		return _create_no_op_decorator(**kwargs)
+	decorator_kwargs = _build_observe_kwargs(
+		name=name,
+		ignore_input=ignore_input,
+		ignore_output=ignore_output,
+		metadata=metadata,
+		span_type=span_type,
+		tags=['observe', 'observe_debug'],
+		extra_kwargs=kwargs,
+	)
+	return _resolve_observe_decorator(decorator_kwargs=decorator_kwargs, enable_trace=True)
 
 
 def observe_debug(
@@ -165,22 +188,16 @@ def observe_debug(
 	    def debug_function(param1, param2):
 	        return param1 + param2
 	"""
-	kwargs = {
-		'name': name,
-		'ignore_input': ignore_input,
-		'ignore_output': ignore_output,
-		'metadata': metadata,
-		'span_type': span_type,
-		'tags': ['observe_debug'],  # important: tags need to be created on laminar first
-		**kwargs,
-	}
-
-	if _LMNR_AVAILABLE and _lmnr_observe and _is_debug_mode():
-		# Use the real lmnr observe decorator only in debug mode
-		return cast(Callable[[F], F], _lmnr_observe(**kwargs))
-	else:
-		# Use no-op decorator (either not in debug mode or lmnr not available)
-		return _create_no_op_decorator(**kwargs)
+	decorator_kwargs = _build_observe_kwargs(
+		name=name,
+		ignore_input=ignore_input,
+		ignore_output=ignore_output,
+		metadata=metadata,
+		span_type=span_type,
+		tags=['observe_debug'],
+		extra_kwargs=kwargs,
+	)
+	return _resolve_observe_decorator(decorator_kwargs=decorator_kwargs, enable_trace=_is_debug_mode())
 
 
 # Convenience functions for checking availability and debug status
