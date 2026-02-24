@@ -38,6 +38,37 @@ def test_observe_uses_noop_when_lmnr_disabled(monkeypatch):
 	assert _sync_fn(2) == 3
 
 
+def test_observe_with_tags_builds_and_forwards_kwargs(monkeypatch):
+	captured: dict[str, object] = {}
+
+	def _fake_resolve(*, decorator_kwargs, enable_trace):
+		captured['decorator_kwargs'] = decorator_kwargs
+		captured['enable_trace'] = enable_trace
+		return observability._create_no_op_decorator(**decorator_kwargs)
+
+	monkeypatch.setattr(observability, '_resolve_observe_decorator', _fake_resolve)
+
+	decorator = observability._observe_with_tags(
+		name='custom-span',
+		ignore_input=True,
+		ignore_output=True,
+		metadata={'source': 'test'},
+		span_type='DEFAULT',
+		tags=['observe_debug'],
+		enable_trace=False,
+		extra_kwargs={'custom': 7},
+	)
+
+	@decorator
+	def _fn(value: int) -> int:
+		return value + 1
+
+	assert _fn(2) == 3
+	assert captured['enable_trace'] is False
+	assert captured['decorator_kwargs']['tags'] == ['observe_debug']
+	assert captured['decorator_kwargs']['custom'] == 7
+
+
 @pytest.mark.asyncio
 async def test_observe_debug_uses_noop_when_lmnr_disabled(monkeypatch):
 	monkeypatch.setattr(observability, '_LMNR_AVAILABLE', False)

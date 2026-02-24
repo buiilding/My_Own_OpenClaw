@@ -113,6 +113,30 @@ def _resolve_observe_decorator(*, decorator_kwargs: dict[str, Any], enable_trace
 	return _create_no_op_decorator(**decorator_kwargs)
 
 
+def _observe_with_tags(
+	*,
+	name: str | None,
+	ignore_input: bool,
+	ignore_output: bool,
+	metadata: dict[str, Any] | None,
+	span_type: Literal['DEFAULT', 'LLM', 'TOOL'],
+	tags: list[str],
+	enable_trace: bool,
+	extra_kwargs: dict[str, Any],
+) -> Callable[[F], F]:
+	"""Build and resolve observe decorator for a tag set."""
+	decorator_kwargs = _build_observe_kwargs(
+		name=name,
+		ignore_input=ignore_input,
+		ignore_output=ignore_output,
+		metadata=metadata,
+		span_type=span_type,
+		tags=tags,
+		extra_kwargs=extra_kwargs,
+	)
+	return _resolve_observe_decorator(decorator_kwargs=decorator_kwargs, enable_trace=enable_trace)
+
+
 def observe(
 	name: str | None = None,
 	ignore_input: bool = False,
@@ -142,16 +166,16 @@ def observe(
 	    def my_function(param1, param2):
 	        return param1 + param2
 	"""
-	decorator_kwargs = _build_observe_kwargs(
+	return _observe_with_tags(
 		name=name,
 		ignore_input=ignore_input,
 		ignore_output=ignore_output,
 		metadata=metadata,
 		span_type=span_type,
 		tags=['observe', 'observe_debug'],
+		enable_trace=True,
 		extra_kwargs=kwargs,
 	)
-	return _resolve_observe_decorator(decorator_kwargs=decorator_kwargs, enable_trace=True)
 
 
 def observe_debug(
@@ -162,42 +186,17 @@ def observe_debug(
 	span_type: Literal['DEFAULT', 'LLM', 'TOOL'] = 'DEFAULT',
 	**kwargs: Any,
 ) -> Callable[[F], F]:
-	"""
-	Debug-only observability decorator that only traces when in debug mode.
-
-	This decorator will use lmnr's observe decorator if both lmnr is installed
-	AND we're in debug mode, otherwise it will be a no-op.
-
-	Debug mode is determined by:
-	- DEBUG environment variable set to 1/true/yes/on
-	- BROWSER_USE_DEBUG environment variable set to 1/true/yes/on
-	- Root logging level set to DEBUG or lower
-
-	Args:
-	    name: Name of the span/trace
-	    ignore_input: Whether to ignore function input parameters in tracing
-	    ignore_output: Whether to ignore function output in tracing
-	    metadata: Additional metadata to attach to the span
-	    **kwargs: Additional parameters passed to lmnr observe
-
-	Returns:
-	    Decorated function that may be traced only in debug mode
-
-	Example:
-	    @observe_debug(ignore_input=True, ignore_output=True,name="debug_function", metadata={"debug": True})
-	    def debug_function(param1, param2):
-	        return param1 + param2
-	"""
-	decorator_kwargs = _build_observe_kwargs(
+	"""Debug-only observe wrapper; traces only when debug mode is enabled."""
+	return _observe_with_tags(
 		name=name,
 		ignore_input=ignore_input,
 		ignore_output=ignore_output,
 		metadata=metadata,
 		span_type=span_type,
 		tags=['observe_debug'],
+		enable_trace=_is_debug_mode(),
 		extra_kwargs=kwargs,
 	)
-	return _resolve_observe_decorator(decorator_kwargs=decorator_kwargs, enable_trace=_is_debug_mode())
 
 
 # Convenience functions for checking availability and debug status
