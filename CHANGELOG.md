@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 34 execution slice for `exceptions.py` LLM optional-field constructor dedupe (`LLMAPIError`, `LLMRateLimitError`)
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 33 execution slice for `LiteLLMClient` provider request-kwargs dedupe in `backend/src/llm/client.py`
 - refactor(llm-client): dedupe `LiteLLMClient` provider request-kwargs assembly in `backend/src/llm/client.py` via shared helper reused by completion + streaming paths while preserving prompt-cache key normalization and error semantics
 - refactor(tool-schemas): add shared `backend/src/tools/schema_fields.py` helpers for explanation and post-action wait fields, and reuse them across system/filesystem/computer schema modules while preserving existing argument contracts
