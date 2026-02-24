@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 22 execution slice for `SettingsPanel.css` shared item-state selector dedupe (`.model-item`, `.memory-item`)
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 21 execution slice for shared voice audio-capture ref hook dedupe (`useVoiceMode`, `useWakewordDetection`)
 - refactor(frontend-voice-hooks): extract shared `useAudioCaptureRefs` hook for voice audio-capture refs and reuse it in `useVoiceMode` + `useWakewordDetection`, preserving existing capture lifecycle behavior
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 20 execution slice for shared chat hook store-selector dedupe (`useChatMessageSender`, `useChatStream`)
