@@ -57,6 +57,7 @@ Covers:
 - [Agent and Tool Runtime](runtime/agent_and_tool_runtime.md)
 - [Session State and Lifecycle](runtime/session_state_and_lifecycle.md)
 - [Query Execution and Stream Pipeline Reference](runtime/query_execution_and_stream_pipeline_reference.md)
+- [Conversation History and Prompt Context Runtime Reference](runtime/conversation_history_and_prompt_context_runtime_reference.md)
 - [Token Count Event and Usage Diagnostics Reference](runtime/token_count_event_and_usage_diagnostics_reference.md)
 - [Tools Docs Hub](tools/README.md)
 - [Frontend Tool Bridge and Policy](tools/frontend_tool_bridge_and_policy.md)
