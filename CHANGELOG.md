@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(llm-stream-processor): centralize shared completion request-kwargs construction in `backend/src/agent/llm/llm_stream_processor.py` and reuse it across stream/non-stream completion paths while preserving prompt-cache and tool-turn behavior
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 29 execution slice for `LLMStreamProcessor` completion request-kwargs dedupe in `backend/src/agent/llm/llm_stream_processor.py`
 - refactor(remote-tools): dedupe remote-tool package export imports by re-exporting class symbols from `backend/src/tools/remote_tools/registry.py` in `backend/src/tools/remote_tools/__init__.py` while preserving the existing public API
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 28 execution slice for remote-tool export dedupe in `backend/src/tools/remote_tools/__init__.py`

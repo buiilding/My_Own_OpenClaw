@@ -240,18 +240,14 @@ class LLMStreamProcessor:
         prompt_cache_key: Optional[str],
     ) -> AsyncGenerator[AgentStreamingEvent, None]:
         """Stream completion using native tool-calling transport params."""
-        request_kwargs: Dict[str, Any] = {
-            "model": model_id,
-            "messages": prompt,
-            "tools": tools,
-            "tool_choice": tool_choice,
-            "parallel_tool_calls": parallel_tool_calls,
-        }
-        if isinstance(prompt_cache_key, str):
-            normalized_cache_key = prompt_cache_key.strip()
-            if normalized_cache_key:
-                request_kwargs["prompt_cache_key"] = normalized_cache_key
-
+        request_kwargs = self._build_completion_request_kwargs(
+            model_id=model_id,
+            prompt=prompt,
+            tools=tools,
+            tool_choice=tool_choice,
+            parallel_tool_calls=parallel_tool_calls,
+            prompt_cache_key=prompt_cache_key,
+        )
         async for event in self.llm_client.get_completion_stream(
             **request_kwargs,
         ):
@@ -267,6 +263,26 @@ class LLMStreamProcessor:
         prompt_cache_key: Optional[str],
     ) -> NormalizedLLMResponse:
         """Completion call using native tool-calling transport params."""
+        request_kwargs = self._build_completion_request_kwargs(
+            model_id=model_id,
+            prompt=prompt,
+            tools=tools,
+            tool_choice=tool_choice,
+            parallel_tool_calls=parallel_tool_calls,
+            prompt_cache_key=prompt_cache_key,
+        )
+        return await self.llm_client.get_completion_response(**request_kwargs)
+
+    @staticmethod
+    def _build_completion_request_kwargs(
+        model_id: str,
+        prompt: List[LLMMessage],
+        tools: Optional[List[Dict[str, Any]]],
+        tool_choice: Optional[Any],
+        parallel_tool_calls: Optional[bool],
+        prompt_cache_key: Optional[str],
+    ) -> Dict[str, Any]:
+        """Build shared completion transport kwargs for stream and non-stream calls."""
         request_kwargs: Dict[str, Any] = {
             "model": model_id,
             "messages": prompt,
@@ -278,7 +294,7 @@ class LLMStreamProcessor:
             normalized_cache_key = prompt_cache_key.strip()
             if normalized_cache_key:
                 request_kwargs["prompt_cache_key"] = normalized_cache_key
-        return await self.llm_client.get_completion_response(**request_kwargs)
+        return request_kwargs
 
     def _log_prompt_cache_hint(self, prompt: List[LLMMessage], model_id: str) -> int:
         """

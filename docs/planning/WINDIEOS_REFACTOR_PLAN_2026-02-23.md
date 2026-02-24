@@ -1252,3 +1252,20 @@ read_when:
 - Verification:
   - `pytest tests/backend/test_remote_tools.py tests/backend/test_browser_remote_tool.py tests/backend/test_remote_tool_contract.py` (pass; 27 tests)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
+
+## Phase 29 Outcome (2026-02-24)
+
+- LLM completion request-kwargs dedupe shipped:
+  - added shared request-kwargs builder in:
+    - `backend/src/agent/llm/llm_stream_processor.py` (`_build_completion_request_kwargs`)
+  - rewired duplicated completion transport setup in:
+    - `_iter_completion_stream`
+    - `_get_completion_response`
+  - preserved prompt-cache key trimming and tool-turn stream/non-stream behavior.
+- jscpd delta after Phase 29 slice:
+  - clones: `194 -> 194`
+  - duplicated lines: `3000 -> 2995`
+  - duplicated tokens: `26419 -> 26397`
+- Verification:
+  - `pytest tests/backend/test_llm_stream_processor.py tests/backend/test_llm_client.py tests/backend/test_local_llm_providers.py` (pass; 42 tests)
+  - `cd frontend && npm run audit:jscpd` (pass; duplicate-lines/tokens reduction confirmed)
