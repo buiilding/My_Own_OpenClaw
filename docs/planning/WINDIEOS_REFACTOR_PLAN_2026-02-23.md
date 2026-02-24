@@ -656,6 +656,25 @@ read_when:
   - `pytest tests/backend/test_api_handlers.py tests/backend/test_websocket_message_handler.py tests/backend/test_tool_result_handler.py`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
+## Phase 31
+
+- `jscpd` duplication cleanup (LLM stream/non-stream request path signatures):
+  - remove duplicated completion-call signatures in:
+    - `backend/src/agent/llm/llm_stream_processor.py`
+  - build native completion kwargs once in `get_response` and reuse for:
+    - non-stream completion call
+    - stream iteration call
+  - preserve tool-turn branching and prompt cache key behavior.
+
+### Phase 31 Execution Slice (Current Loop)
+
+- Backend dedupe:
+  - remove redundant `_get_completion_response(...)` wrapper.
+  - keep event emission order and payload capture semantics unchanged.
+- Verification checks:
+  - `pytest tests/backend/test_llm_stream_processor.py tests/backend/test_llm_client.py tests/backend/test_local_llm_providers.py`
+  - `cd frontend && npm run audit:jscpd` (expect clone reduction)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):
