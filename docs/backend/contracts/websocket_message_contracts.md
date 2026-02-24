@@ -95,3 +95,9 @@ When adding a new incoming message type:
 2. Add route entry to `INCOMING_ROUTES`.
 3. Register handler in API container wiring.
 4. Add formatter/renderer-side handling if it emits new outgoing events.
+
+## Related Pages
+
+- `docs/backend/contracts/message_types/README.md`
+- `docs/backend/contracts/message_types/message_type_constants_schema_subset_and_handler_ack_reference.md`
+- `docs/backend/contracts/message_schema_and_formatter_reference.md`

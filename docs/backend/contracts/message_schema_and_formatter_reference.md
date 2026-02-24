@@ -178,6 +178,8 @@ Key types emitted to renderer:
 
 ## Related Formatter Deep Dives
 
+- `docs/backend/contracts/message_types/README.md`
+- `docs/backend/contracts/message_types/message_type_constants_schema_subset_and_handler_ack_reference.md`
 - `docs/backend/contracts/events/README.md`
 - `docs/backend/contracts/events/streaming_event_to_formatter_and_outgoing_contract_alignment_reference.md`
 - `docs/backend/api/processing/formatters/README.md`
