@@ -8,6 +8,7 @@ Includes the last 300 commits on `main`.
 
 ### Added
 - docs(todo): mark completed UI click-through and thinking-UI tasks in TODO checklist
+- refactor(backend-safe-websocket): extract `_mark_sender_error` helper and reuse it for unknown message types and sender-loop exception branches to dedupe terminal-error bookkeeping
 - refactor(backend-llm-client): extract `_normalize_tool_call_entry` so tool-call field validation lives in one path and extend `tests/backend/test_llm_client.py` coverage for non-dict tool-call entries
 - refactor(frontend-wakeword): extract `requestWakewordEnable`/`requestWakewordDisable` callbacks in `useWakewordDetection` and reuse them across mount, detection, enable, and disable flows to remove repeated IPC send boilerplate
 - refactor(frontend-voice-mode): extract shared `shutdownVoiceMode` callback in `useVoiceMode` and reuse it for disable + unmount cleanup paths to remove repeated stop/disconnect calls

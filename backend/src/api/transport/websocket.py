@@ -94,6 +94,16 @@ class SafeWebSocket:
                 break
             self._set_future_exception(future, exc)
 
+    def _mark_sender_error(
+        self,
+        *,
+        future: Optional[asyncio.Future],
+        exc: Exception,
+    ) -> None:
+        """Store terminal sender error and fail the current queued message future."""
+        self._set_future_exception(future, exc)
+        self._sender_error = exc
+
     async def _enqueue(
         self,
         item: tuple[str, Any, Optional[str], Optional[asyncio.Future]],
@@ -149,8 +159,10 @@ class SafeWebSocket:
                         unknown_type_error = RuntimeError(
                             f"Unknown websocket queue message type: {msg_type}"
                         )
-                        self._set_future_exception(future, unknown_type_error)
-                        self._sender_error = unknown_type_error
+                        self._mark_sender_error(
+                            future=future,
+                            exc=unknown_type_error,
+                        )
                         break
 
                     self._set_future_result(future, None)
@@ -159,13 +171,11 @@ class SafeWebSocket:
 
                 except (WebSocketDisconnect, RuntimeError, ConnectionError) as e:
                     logger.debug("Send failed (connection closed): %s", e)
-                    self._set_future_exception(future, e)
-                    self._sender_error = e
+                    self._mark_sender_error(future=future, exc=e)
                     break
                 except Exception as e:
                     logger.error("Error in sender loop: %s", e, exc_info=True)
-                    self._set_future_exception(future, e)
-                    self._sender_error = e
+                    self._mark_sender_error(future=future, exc=e)
                     break
 
         finally:
