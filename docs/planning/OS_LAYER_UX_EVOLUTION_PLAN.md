@@ -40,12 +40,14 @@ Completed in code:
    - Backend `tool-output` events now return overlay to `awaiting-first-chunk` so typing/thinking resumes cleanly before next assistant chunk.
 5. Ambient loop signal:
    - Chat pill now displays ambient glow while loop-active phases run (`awaiting-first-chunk`, `streaming`, `tool-call`, `tool-output`).
+6. Ambient context indicator (initial):
+   - Chat pill now shows a low-frequency-polled active-app badge from `get-system-state.active_window`.
 
 Still in progress:
 
 1. Ghost preview rectangle-level grounding (`target_rect` box rendering) is not yet wired.
 2. Mission dock / trust dial / approval threshold surfaces are not started.
-3. Ambient active-window indicator is not started.
+3. Ambient active-window icon mapping + richer context semantics are not started.
 
 ## Codebase Reality (Current Baseline)
 
