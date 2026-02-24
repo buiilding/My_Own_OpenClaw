@@ -214,10 +214,8 @@
   padding-right: 4px;
 }
 
-.model-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.model-item,
+.memory-item {
   text-align: left;
   padding: 10px 12px;
   border-radius: 12px;
@@ -228,12 +226,20 @@
   transition: border 0.2s ease, background 0.2s ease, transform 0.2s ease;
 }
 
-.model-item:hover {
+.model-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.model-item:hover,
+.memory-item:hover {
   border-color: rgba(142, 151, 165, 0.45);
   transform: translateY(-1px);
 }
 
-.model-item.active {
+.model-item.active,
+.memory-item.active {
   border-color: rgba(142, 151, 165, 0.7);
   background: rgba(142, 151, 165, 0.12);
   color: rgba(236, 236, 236, 1);
@@ -403,28 +409,6 @@
   gap: 8px;
   overflow-y: auto;
   padding-right: 4px;
-}
-
-.memory-item {
-  text-align: left;
-  padding: 10px 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(27, 27, 27, 0.55);
-  color: rgba(236, 236, 236, 0.85);
-  cursor: pointer;
-  transition: border 0.2s ease, background 0.2s ease, transform 0.2s ease;
-}
-
-.memory-item:hover {
-  border-color: rgba(142, 151, 165, 0.45);
-  transform: translateY(-1px);
-}
-
-.memory-item.active {
-  border-color: rgba(142, 151, 165, 0.7);
-  background: rgba(142, 151, 165, 0.12);
-  color: rgba(236, 236, 236, 1);
 }
 
 .memory-item-title {
