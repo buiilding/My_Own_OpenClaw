@@ -4,15 +4,17 @@ import { IpcBridge, ON_CHANNELS, SEND_CHANNELS } from '../../frontend/src/render
 import { useToolRunner } from '../../frontend/src/renderer/features/chat/hooks/useToolRunner';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { recordToolMessage } from '../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter';
+import {
+  createDefaultTestAppConfig,
+  setMockAppConfigContextValue,
+  type TestAppConfig,
+} from './appConfigTestUtils';
 import { resetChatStoreForTests } from './chatStoreTestUtils';
 
 export const mockExecuteTool = jest.fn().mockResolvedValue(undefined);
 export const mockExecuteToolBundle = jest.fn().mockResolvedValue(undefined);
 let mockCapturedServiceCallbacks: any = null;
-let mockConfig = {
-  selected_model_id: 'test-model',
-  model_provider: 'test-provider',
-};
+let mockConfig: TestAppConfig = createDefaultTestAppConfig();
 const mockUseAppConfigContext = jest.fn(() => ({ config: mockConfig }));
 
 jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
@@ -49,9 +51,9 @@ export function setStreamTracking(overrides: Record<string, unknown>) {
   });
 }
 
-export function setMockConfig(nextConfig: { selected_model_id: string; model_provider: string }) {
+export function setMockConfig(nextConfig: TestAppConfig) {
   mockConfig = nextConfig;
-  mockUseAppConfigContext.mockReturnValue({ config: mockConfig });
+  setMockAppConfigContextValue(mockUseAppConfigContext, mockConfig);
 }
 
 export function getCapturedServiceCallbacks() {
@@ -93,10 +95,7 @@ export function resetToolRunnerTestState() {
   jest.clearAllMocks();
   mockCapturedServiceCallbacks = null;
   backendHandler = null;
-  setMockConfig({
-    selected_model_id: 'test-model',
-    model_provider: 'test-provider',
-  });
+  setMockConfig(createDefaultTestAppConfig());
   mockExecuteTool.mockResolvedValue(undefined);
   mockExecuteToolBundle.mockResolvedValue(undefined);
   removeListener = jest.fn();

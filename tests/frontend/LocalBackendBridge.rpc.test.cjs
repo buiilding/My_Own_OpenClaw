@@ -26,6 +26,11 @@ describe('local_backend_bridge RPC handlers', () => {
     emitRpcMessage(stdoutHandler, { error: { message } });
   }
 
+  async function expectResolvedSuccess(stdoutHandler, promise, data) {
+    emitRpcResult(stdoutHandler, { success: true, data });
+    await expect(promise).resolves.toEqual({ success: true, data });
+  }
+
   function expectLastRequestWith(method, params) {
     const request = getLastWrittenRequest();
     expect(request).toEqual(
@@ -214,9 +219,7 @@ describe('local_backend_bridge RPC handlers', () => {
       record_kind: 'transcript',
     });
 
-    emitRpcResult(stdoutHandler, { success: true, data: { items: [] } });
-
-    await expect(promise).resolves.toEqual({ success: true, data: { items: [] } });
+    await expectResolvedSuccess(stdoutHandler, promise, { items: [] });
   });
 
   test('list-conversations handler safely handles non-object payloads', async () => {
@@ -227,9 +230,7 @@ describe('local_backend_bridge RPC handlers', () => {
 
     expectLastRequestWith('list_conversations', {});
 
-    emitRpcResult(stdoutHandler, { success: true, data: { items: [] } });
-
-    await expect(promise).resolves.toEqual({ success: true, data: { items: [] } });
+    await expectResolvedSuccess(stdoutHandler, promise, { items: [] });
   });
 
   test('list-semantic-memories handler maps payload keys to backend params', async () => {
@@ -246,9 +247,7 @@ describe('local_backend_bridge RPC handlers', () => {
       limit: 12,
     });
 
-    emitRpcResult(stdoutHandler, { success: true, data: { memories: [] } });
-
-    await expect(promise).resolves.toEqual({ success: true, data: { memories: [] } });
+    await expectResolvedSuccess(stdoutHandler, promise, { memories: [] });
   });
 
   test('get-conversation handler maps missing conversationId to null', async () => {
@@ -268,9 +267,7 @@ describe('local_backend_bridge RPC handlers', () => {
       record_kind: 'transcript',
     });
 
-    emitRpcResult(stdoutHandler, { success: true, data: { messages: [] } });
-
-    await expect(promise).resolves.toEqual({ success: true, data: { messages: [] } });
+    await expectResolvedSuccess(stdoutHandler, promise, { messages: [] });
   });
 
   test('delete-conversation handler maps payload keys to backend params', async () => {
@@ -289,9 +286,7 @@ describe('local_backend_bridge RPC handlers', () => {
       record_kind: 'transcript',
     });
 
-    emitRpcResult(stdoutHandler, { success: true, data: { deleted_count: 3 } });
-
-    await expect(promise).resolves.toEqual({ success: true, data: { deleted_count: 3 } });
+    await expectResolvedSuccess(stdoutHandler, promise, { deleted_count: 3 });
   });
 
   test('delete-semantic-memory handler maps payload keys to backend params', async () => {
@@ -308,9 +303,7 @@ describe('local_backend_bridge RPC handlers', () => {
       memory_id: 'm-1',
     });
 
-    emitRpcResult(stdoutHandler, { success: true, data: { deleted: true } });
-
-    await expect(promise).resolves.toEqual({ success: true, data: { deleted: true } });
+    await expectResolvedSuccess(stdoutHandler, promise, { deleted: true });
   });
 
   test('store-transcript handler returns standardized error payload', async () => {
@@ -367,8 +360,6 @@ describe('local_backend_bridge RPC handlers', () => {
       }),
     );
 
-    emitRpcResult(stdoutHandler, { success: true, data: { stored: true } });
-
-    await expect(promise).resolves.toEqual({ success: true, data: { stored: true } });
+    await expectResolvedSuccess(stdoutHandler, promise, { stored: true });
   });
 });
