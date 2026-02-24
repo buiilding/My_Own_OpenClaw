@@ -46,6 +46,7 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 - [Backend Query Execution Pipeline Reference](../backend/runtime/QUERY_EXECUTION_AND_STREAM_PIPELINE_REFERENCE.md)
 - [Backend Non-Query Handler Control Flow Reference](../backend/api/NON_QUERY_HANDLER_AND_CONTROL_FLOW_REFERENCE.md)
 - [Backend Provider Factory + Runtime Selection Reference](../backend/llm/PROVIDER_FACTORY_AND_RUNTIME_SELECTION_REFERENCE.md)
+- [Backend Parser Trust Boundary + Native Tool-Call Reference](../backend/llm/PARSER_TRUST_BOUNDARY_AND_NATIVE_TOOL_CALL_REFERENCE.md)
 - [Backend Artifact/Screenshot/System-State Flow Reference](../backend/services/ARTIFACT_SCREENSHOT_AND_SYSTEM_STATE_FLOW_REFERENCE.md)
 - [Backend Embedding + Semantic Memory Runtime Reference](../backend/services/EMBEDDING_AND_SEMANTIC_MEMORY_RUNTIME_REFERENCE.md)
 - [Backend TTS + Wakeword Audio Runtime Reference](../backend/services/TTS_AND_WAKEWORD_AUDIO_RUNTIME_REFERENCE.md)

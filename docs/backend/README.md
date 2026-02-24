@@ -62,6 +62,7 @@ Covers:
 - [Services Docs Hub](services/README.md)
 - [LLM Models and Parsing](llm/LLM_MODELS_AND_PARSING.md)
 - [Provider Factory and Runtime Selection Reference](llm/PROVIDER_FACTORY_AND_RUNTIME_SELECTION_REFERENCE.md)
+- [Parser Trust Boundary and Native Tool-Call Reference](llm/PARSER_TRUST_BOUNDARY_AND_NATIVE_TOOL_CALL_REFERENCE.md)
 - [Services and Storage](services/SERVICES_AND_STORAGE.md)
 - [Embedding and Semantic Memory Runtime Reference](services/EMBEDDING_AND_SEMANTIC_MEMORY_RUNTIME_REFERENCE.md)
 - [Artifact, Screenshot, and System-State Flow Reference](services/ARTIFACT_SCREENSHOT_AND_SYSTEM_STATE_FLOW_REFERENCE.md)

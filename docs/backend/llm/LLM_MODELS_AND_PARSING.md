@@ -94,7 +94,8 @@ Behavior:
 Outputs:
 
 - `ParsedResponse` with text content + validated `ParsedToolCall[]`
-- used directly by interaction loop for tool branching
+- currently exercised by parser-focused tests and trust-boundary enforcement paths
+- live interaction loop primarily consumes provider-native normalized `tool_calls` (see parser trust-boundary reference)
 
 ## Token Counting
 
