@@ -6,7 +6,7 @@ import pytest
 from unittest import mock
 
 from backend.src.tools.browser import RemoteBrowserTool
-from backend.src.tools.browser.schemas import BrowserControlArgs
+from backend.src.tools.browser.schemas import BrowserControlArgs, BrowserSnapshotArgs
 from backend.src.tools.browser.openclaw_compat_schema import BrowserOpenClawCompatArgs
 from backend.src.tools.remote import REMOTE_TOOLS, get_remote_tool
 
@@ -153,6 +153,24 @@ class TestBrowserControlArgs:
         assert args.direction == "down"
         assert args.amount == 500
 
+    def test_snapshot_scope_fields_accept_shared_values(self):
+        """Test snapshot scope fields remain accepted on unified schema."""
+        args = BrowserControlArgs(
+            action="snapshot",
+            refs="role",
+            interactive=True,
+            compact=True,
+            depth=2,
+            selector="#main",
+            frame="iframe#app",
+        )
+        assert args.refs == "role"
+        assert args.interactive is True
+        assert args.compact is True
+        assert args.depth == 2
+        assert args.selector == "#main"
+        assert args.frame == "iframe#app"
+
     def test_scroll_action_with_fractional_pages(self):
         """Test Browser Use fractional scroll pages."""
         args = BrowserControlArgs(action="scroll", pages=0.5)
@@ -162,3 +180,24 @@ class TestBrowserControlArgs:
         """Test OpenClaw-specific schema model remains available after split."""
         args = BrowserOpenClawCompatArgs(action="status")
         assert args.action == "status"
+
+
+class TestBrowserSnapshotArgs:
+    """Test action-specific snapshot schema."""
+
+    def test_snapshot_scope_fields_accept_shared_values(self):
+        args = BrowserSnapshotArgs(
+            action="snapshot",
+            refs="aria",
+            interactive=False,
+            compact=False,
+            depth=1,
+            selector=".content",
+            frame="iframe[data-id='1']",
+        )
+        assert args.refs == "aria"
+        assert args.interactive is False
+        assert args.compact is False
+        assert args.depth == 1
+        assert args.selector == ".content"
+        assert args.frame == "iframe[data-id='1']"

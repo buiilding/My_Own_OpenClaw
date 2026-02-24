@@ -17,6 +17,14 @@ from backend.src.tools.browser.schema_types import (
     BrowserSnapshotFormat,
     BrowserWaitState,
 )
+from backend.src.tools.browser.snapshot_scope_fields import (
+    SnapshotCompactField,
+    SnapshotDepthField,
+    SnapshotFrameField,
+    SnapshotInteractiveField,
+    SnapshotRefsField,
+    SnapshotSelectorField,
+)
 
 
 class BrowserConnectArgs(BaseModel):
@@ -89,27 +97,12 @@ class BrowserSnapshotArgs(BaseModel):
         ge=1,
         le=120000,
     )
-    refs: Optional[Literal["role", "aria"]] = Field(
-        None, description="Reference mode for role snapshots."
-    )
-    interactive: Optional[bool] = Field(
-        None, description="Only include interactive roles in role snapshot output."
-    )
-    compact: Optional[bool] = Field(
-        None, description="Prune structural noise from role snapshot output."
-    )
-    depth: Optional[int] = Field(
-        None,
-        description="Maximum role snapshot depth (0=root only).",
-        ge=0,
-        le=20,
-    )
-    selector: Optional[str] = Field(
-        None, description="Optional CSS selector scope for role snapshots."
-    )
-    frame: Optional[str] = Field(
-        None, description="Optional iframe selector scope for role snapshots."
-    )
+    refs: SnapshotRefsField
+    interactive: SnapshotInteractiveField
+    compact: SnapshotCompactField
+    depth: SnapshotDepthField
+    selector: SnapshotSelectorField
+    frame: SnapshotFrameField
 
 
 class BrowserExtractArgs(BaseModel):
