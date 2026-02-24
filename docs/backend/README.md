@@ -31,6 +31,8 @@ Covers:
 - [Container DI and Initialization Lifecycle Reference](bootstrap/CONTAINER_DI_AND_INIT_LIFECYCLE_REFERENCE.md)
 - [Config Docs Hub](config/README.md)
 - [Config Fields and Runtime Policy](config/CONFIG_FIELDS_AND_RUNTIME_POLICY.md)
+- [Core Infrastructure Docs Hub](core/README.md)
+- [Event Bus and Cache Infrastructure Reference](core/EVENT_BUS_AND_CACHE_INFRASTRUCTURE_REFERENCE.md)
 
 ### API and Contracts
 

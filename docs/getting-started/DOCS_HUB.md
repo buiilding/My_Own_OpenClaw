@@ -33,6 +33,7 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 
 - [Backend Functionality Map](../backend/README.md)
 - [Backend Bootstrap Docs Hub](../backend/bootstrap/README.md)
+- [Backend Core Infrastructure Docs Hub](../backend/core/README.md)
 - [Backend API Docs Hub](../backend/api/README.md)
 - [Backend Contracts Docs Hub](../backend/contracts/README.md)
 - [Backend Runtime Docs Hub](../backend/runtime/README.md)
@@ -41,6 +42,7 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 - [Backend LLM Docs Hub](../backend/llm/README.md)
 - [Backend Services Docs Hub](../backend/services/README.md)
 - [Backend Container DI and Init Lifecycle](../backend/bootstrap/CONTAINER_DI_AND_INIT_LIFECYCLE_REFERENCE.md)
+- [Backend Event Bus + Cache Infrastructure Reference](../backend/core/EVENT_BUS_AND_CACHE_INFRASTRUCTURE_REFERENCE.md)
 - [Backend WebSocket Contracts](../backend/contracts/WEBSOCKET_MESSAGE_CONTRACTS.md)
 - [Backend Message Schema + Formatter Reference](../backend/contracts/MESSAGE_SCHEMA_AND_FORMATTER_REFERENCE.md)
 - [Backend Query Execution Pipeline Reference](../backend/runtime/QUERY_EXECUTION_AND_STREAM_PIPELINE_REFERENCE.md)
