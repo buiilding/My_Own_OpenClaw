@@ -91,7 +91,11 @@ Behavior:
 Memory deep references:
 
 - [Sidecar Memory Docs Hub](memory/README.md)
+- [Sidecar Memory Storage Docs Hub](memory/storage/README.md)
 - [Summarizer Watermark and Conversation Batch Reference](memory/summarizer_watermark_and_conversation_batch_reference.md)
+- [Local Memory Store Embedding, Search, and Memory-Type Routing Reference](memory/storage/local_memory_store_embedding_search_and_memory_type_routing_reference.md)
+- [Conversation Transcript Window Queries and FAISS Artifact Cleanup Reference](memory/storage/conversation_transcript_window_queries_and_faiss_artifact_cleanup_reference.md)
+- [SQLite Schema Migration, FAISS Index I/O, and Watermark State Reference](memory/storage/sqlite_schema_migration_faiss_index_and_watermark_state_reference.md)
 
 ## System State and Platform Adapters
 
