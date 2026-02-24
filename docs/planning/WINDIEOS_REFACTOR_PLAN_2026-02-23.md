@@ -436,6 +436,27 @@ read_when:
   - `cd frontend && npm run audit:knip`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
+## Phase 20
+
+- `jscpd` duplication cleanup (chat hook store selector blocks):
+  - extract shared chat-store selector helper for common message-send/stream actions.
+  - reuse helper in:
+    - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
+    - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
+  - preserve message send/stream behavior and hook contracts.
+
+### Phase 20 Execution Slice (Current Loop)
+
+- Frontend dedupe:
+  - centralize shared chat action selectors (`addMessage`, `updateMessage`, `setIsSending`, `setThinkingStatus`) in a dedicated hook helper.
+  - update sender/stream hooks to consume the shared selector helper.
+- Verification checks:
+  - `cd frontend && npm run lint`
+  - `cd frontend && npm run test:ci -- tests/frontend/ChatMessageSender.test.tsx tests/frontend/ChatStreamThinkingStatus.test.tsx`
+  - `cd frontend && npm run test:ci`
+  - `cd frontend && npm run audit:knip`
+  - `cd frontend && npm run audit:jscpd` (expect clone reduction)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):
