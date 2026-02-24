@@ -8,6 +8,27 @@ Includes the last 300 commits on `main`.
 
 ### Added
 - feat(frontend-tool-runner): defer click-like `mouse_control` actions (`click`, `double_click`, `right_click`) by 1900ms so response-overlay ghost click animation finishes before real sidecar execution; re-check turn staleness after delay and cancel stale clicks, with regression coverage in `tests/frontend/ToolRunnerHook.events.test.ts` and runtime docs updates
+- docs(sidecar-memory-storage): add local store and persistence references (`d7b9e821`)
+- docs(frontend-renderer-voice-utils): add utility-level voice references (`5d998397`)
+- docs(backend-tools-processing): add transform and synthetic failure references (`a6bfab4b`)
+- docs(frontend-sidecar-services): add memory and wakeword service references (`279830ab`)
+- docs(frontend-sidecar-core): add protocol shutdown and remote client references (`9fd84ac9`)
+- docs(backend-tools-preparation): add screenshot and resolved-call references (`ac63e09b`)
+- docs(backend-agent-llm): add prompt context and stream processor references (`13b69317`)
+- docs(frontend-renderer-voice): add gateway and wakeword deep references (`37121b77`)
+- docs(backend-tools-execution): add sender and orchestrator references (`1c3336cf`)
+- docs(backend-tools-waiting): add receiver router and storage references (`26dc187d`)
+- docs(backend-api-services): add service-layer runtime references (`6b04e8a3`)
+- docs(frontend-renderer-settings): add settings section display references (`9433c60f`)
+- docs(backend-agent-history): add commit and staging runtime references (`774f8ad4`)
+- docs(frontend-renderer-chat): add send policy and session rotation references (`5ce7697b`)
+- docs(backend-api-handlers): add query and non-query runtime references (`0a8afbf1`)
+- docs(frontend-contracts-events): add tool runtime recovery contract references (`3a724b22`)
+- docs(backend-agent-recovery): add malformed tool-call recovery references (`59a55e6a`)
+- docs(frontend-sidecar-browser-contracts): add schema validation references (`2c777a74`)
+- docs(backend-browser-schema): add schema layering and parity references (`4803db9c`)
+- docs(frontend-sidecar-browser-chrome): add chrome runtime deep references (`c5f666ce`)
+- docs(frontend-sidecar-browser-use): add vendored runtime internals reference (`30d120bb`)
 - docs(planning): add Codex-aligned conversation-history compaction implementation plan with multi-provider strategy architecture and phased execution map in `docs/planning/windieos_conversation_history_compaction_plan_2026-02-24.md`
 - fix(backend-kimi-streaming): fail closed when streamed Kimi tool-call arguments cannot be parsed; remove silent `{}` fallback and surface parse failure via stream error event payload
 - fix(backend-interaction-loop): treat malformed LLM tool-call format errors as recoverable synthetic tool outputs (history + frontend ToolCall/ToolOutput events) and continue loop for self-correction, while still aborting on non-recoverable stream errors
