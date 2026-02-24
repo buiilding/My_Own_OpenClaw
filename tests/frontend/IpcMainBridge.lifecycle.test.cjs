@@ -9,9 +9,35 @@ const {
 describe('ipc.cjs bridge lifecycle/config', () => {
   registerBridgeSuiteLifecycleHooks();
 
+  function setupOpenedIpc(options = {}) {
+    const bridge = initIpc(options);
+    bridge.ws.triggerOpen();
+    return bridge;
+  }
+
+  function emitBackendMessage(ws, payload) {
+    ws.handlers.message(JSON.stringify(payload));
+  }
+
+  async function expectClientEndpoints(handlers, backendWsUrl, backendHttpUrl) {
+    const clientInfo = await handlers['get-client-user-id']();
+    expect(clientInfo).toEqual(expect.objectContaining({
+      backendWsUrl,
+      backendHttpUrl,
+    }));
+  }
+
+  async function invokeLoadFrontendConfig(handlers) {
+    return handlers['load-frontend-config']();
+  }
+
+  function mockFrontendConfigFile(fs, content) {
+    fs.existsSync.mockReturnValue(true);
+    fs.promises.readFile.mockResolvedValue(content);
+  }
+
   test('sends handshake on websocket open with sanitized user_id', () => {
-    const { ws } = initIpc();
-    ws.triggerOpen();
+    const { ws } = setupOpenedIpc();
 
     expect(ws.sent).toHaveLength(1);
     const handshake = JSON.parse(ws.sent[0]);
@@ -21,10 +47,8 @@ describe('ipc.cjs bridge lifecycle/config', () => {
 
   test('switches response overlay phase to tool-call when backend emits tool-call', () => {
     const onResponseOverlayPhaseChange = jest.fn();
-    const { ws } = initIpc({ onResponseOverlayPhaseChange });
-    ws.triggerOpen();
-
-    ws.handlers.message(JSON.stringify({ type: 'tool-call', payload: {} }));
+    const { ws } = setupOpenedIpc({ onResponseOverlayPhaseChange });
+    emitBackendMessage(ws, { type: 'tool-call', payload: {} });
 
     expect(onResponseOverlayPhaseChange).toHaveBeenCalledWith({
       phase: 'tool-call',
@@ -34,11 +58,9 @@ describe('ipc.cjs bridge lifecycle/config', () => {
 
   test('switches response overlay phase back to awaiting-first-chunk after tool-output', () => {
     const onResponseOverlayPhaseChange = jest.fn();
-    const { ws } = initIpc({ onResponseOverlayPhaseChange });
-    ws.triggerOpen();
-
-    ws.handlers.message(JSON.stringify({ type: 'tool-call', payload: {} }));
-    ws.handlers.message(JSON.stringify({ type: 'tool-output', payload: {} }));
+    const { ws } = setupOpenedIpc({ onResponseOverlayPhaseChange });
+    emitBackendMessage(ws, { type: 'tool-call', payload: {} });
+    emitBackendMessage(ws, { type: 'tool-output', payload: {} });
 
     expect(onResponseOverlayPhaseChange).toHaveBeenNthCalledWith(1, {
       phase: 'tool-call',
@@ -51,8 +73,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
   });
 
   test('ignores malformed to-backend event payloads without crashing', async () => {
-    const { handlers, ws } = initIpc();
-    ws.triggerOpen();
+    const { handlers, ws } = setupOpenedIpc();
 
     await handlers['to-backend']({ sender: null });
 
@@ -62,8 +83,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
   });
 
   test('handles query events with missing payload object without throwing', async () => {
-    const { handlers, ws, backendBridge } = initIpc();
-    ws.triggerOpen();
+    const { handlers, ws, backendBridge } = setupOpenedIpc();
     primeQueryContext(backendBridge);
 
     await handlers['to-backend']({ sender: null }, { type: 'query' });
@@ -82,11 +102,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(ws.url).toBe('ws://10.0.0.42:9001/ws');
     expect(ws.options).toEqual(expect.objectContaining({ origin: 'http://10.0.0.42:9001' }));
 
-    const clientInfo = await handlers['get-client-user-id']();
-    expect(clientInfo).toEqual(expect.objectContaining({
-      backendWsUrl: 'ws://10.0.0.42:9001/ws',
-      backendHttpUrl: 'http://10.0.0.42:9001',
-    }));
+    await expectClientEndpoints(handlers, 'ws://10.0.0.42:9001/ws', 'http://10.0.0.42:9001');
   });
 
   test('derives websocket URL from BACKEND_HTTP_URL when explicit ws url is absent', async () => {
@@ -96,45 +112,38 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(ws.url).toBe('wss://windie.example.com/ws');
     expect(ws.options).toEqual(expect.objectContaining({ origin: 'https://windie.example.com' }));
 
-    const clientInfo = await handlers['get-client-user-id']();
-    expect(clientInfo).toEqual(expect.objectContaining({
-      backendWsUrl: 'wss://windie.example.com/ws',
-      backendHttpUrl: 'https://windie.example.com',
-    }));
+    await expectClientEndpoints(handlers, 'wss://windie.example.com/ws', 'https://windie.example.com');
   });
 
   test('load-frontend-config returns null when file missing', async () => {
     const { handlers } = initIpc();
-    const result = await handlers['load-frontend-config']();
+    const result = await invokeLoadFrontendConfig(handlers);
     expect(result).toBeNull();
   });
 
   test('load-frontend-config returns parsed config when file exists', async () => {
     const { handlers, fs } = initIpc();
-    fs.existsSync.mockReturnValue(true);
-    fs.promises.readFile.mockResolvedValue('{"model_mode":"offline"}');
+    mockFrontendConfigFile(fs, '{"model_mode":"offline"}');
 
-    const result = await handlers['load-frontend-config']();
+    const result = await invokeLoadFrontendConfig(handlers);
 
     expect(result).toEqual({ model_mode: 'offline' });
   });
 
   test('load-frontend-config returns null for invalid JSON', async () => {
     const { handlers, fs } = initIpc();
-    fs.existsSync.mockReturnValue(true);
-    fs.promises.readFile.mockResolvedValue('{bad json');
+    mockFrontendConfigFile(fs, '{bad json');
 
-    const result = await handlers['load-frontend-config']();
+    const result = await invokeLoadFrontendConfig(handlers);
 
     expect(result).toBeNull();
   });
 
   test('load-frontend-config returns null for non-object payload', async () => {
     const { handlers, fs } = initIpc();
-    fs.existsSync.mockReturnValue(true);
-    fs.promises.readFile.mockResolvedValue('[]');
+    mockFrontendConfigFile(fs, '[]');
 
-    const result = await handlers['load-frontend-config']();
+    const result = await invokeLoadFrontendConfig(handlers);
 
     expect(result).toBeNull();
   });
