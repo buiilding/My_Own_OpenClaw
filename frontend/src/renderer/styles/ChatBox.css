@@ -176,7 +176,7 @@ body {
 
 .chatbox-floating-context {
   position: fixed;
-  top: 0;
+  top: 5px;
   left: 0;
   min-width: 0;
   max-width: 260px;
