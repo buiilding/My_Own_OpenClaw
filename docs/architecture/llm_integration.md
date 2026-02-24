@@ -184,7 +184,7 @@ Notes:
 - `tool_calls` is structured and validated before it leaves the client layer.
 - `get_completion()` remains backward-compatible and returns only `content`.
 - Runtime behavior: when tool schemas are present for a turn, backend uses non-stream `get_completion_response()` by default, but allows provider/model opt-in for safe stream tool turns. Current opt-in is `kimi-coding`, which streams `ThinkingEvent`/`ChunkEvent` while still finalizing structured `tool_calls` from the stream payload.
-- Safety behavior for streamed tool turns: if streamed tool-call arguments cannot be parsed into valid JSON object arguments, backend now fails closed (emits an error event and aborts the turn) instead of silently replacing arguments with `{}`.
+- Safety behavior for streamed tool turns: if streamed tool-call arguments cannot be parsed into valid JSON object arguments, backend emits an error plus synthetic tool output (history + frontend event) and keeps the interaction loop running so the model can self-correct. Backend still aborts turn for non-recoverable/system errors.
 - Token usage behavior: backend now captures provider usage for both streaming and non-stream turns and emits `token-count` with split fields (`visible_output_tokens`, `thinking_tokens`, `output_tokens_total`) plus `usage_source` (`provider` or `estimated`). For providers exposing cache diagnostics, it also emits `cached_tokens`, `cache_hit`, and `cache_status`.
 - Kimi cache steering: for `kimi-coding`, backend sets a stable `prompt_cache_key` (prefers `conversation_ref`, falls back to `session_id`) to improve automatic context cache hit rates.
 

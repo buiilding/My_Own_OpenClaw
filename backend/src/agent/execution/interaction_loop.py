@@ -6,7 +6,9 @@ Only responsible for loop control, sequencing, and termination decisions.
 All content, I/O, and presentation is delegated to specialized components.
 """
 import logging
+import re
 from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, List
+from uuid import uuid4
 
 from backend.src.agent.execution.policies import (
     IterationPolicy,
@@ -17,6 +19,8 @@ from backend.src.core.events.streaming_events import (
     AgentStreamingEvent,
     ErrorEvent,
     FullResponseEvent,
+    ToolCallEvent,
+    ToolOutputEvent,
 )
 from backend.src.core.infrastructure.exceptions import (
     LLMRateLimitError,
@@ -32,6 +36,23 @@ if TYPE_CHECKING:
     from backend.src.agent.tools.orchestrator import ToolOrchestrator
 
 logger = logging.getLogger(__name__)
+_LLM_TOOL_ERROR_ID_PATTERN = re.compile(
+    r"(?:\bid\b|\btool_call_id\b)\s*[:=]\s*['\"]?([A-Za-z0-9_.:/-]+)",
+    re.IGNORECASE,
+)
+_LLM_TOOL_ERROR_NAME_PATTERN = re.compile(
+    r"(?:\bname\b|\btool_name\b)\s*[:=]\s*['\"]?([A-Za-z0-9_.:/-]+)",
+    re.IGNORECASE,
+)
+_RECOVERABLE_TOOL_CALL_ERROR_MARKERS = (
+    "failed to parse streamed tool-call arguments",
+    "failed to parse streamed tool call arguments",
+    "invalid tool call arguments",
+    "invalid tool-call arguments",
+    "invalid tool call at index",
+    "invalid tool_calls type",
+)
+_TOOL_OUTPUT_ERROR_PREVIEW_CHARS = 600
 
 
 class InteractionLoop:
@@ -123,6 +144,17 @@ class InteractionLoop:
                 return
 
             if llm_error_event_content:
+                if self._is_recoverable_llm_tool_call_error(llm_error_event_content):
+                    logger.info(
+                        "Recoverable LLM tool-call format error detected; "
+                        "emitting synthetic tool output and continuing turn: %s",
+                        llm_error_event_content,
+                    )
+                    async for event in self._emit_recoverable_tool_call_error(
+                        llm_error_event_content
+                    ):
+                        yield event
+                    continue
                 logger.warning(
                     "Aborting interaction loop turn after LLM stream error event: %s",
                     llm_error_event_content,
@@ -259,6 +291,51 @@ class InteractionLoop:
             yield event
         self.session.history.add_assistant_message(f"[System Error: {error_msg}]")
 
+    async def _emit_recoverable_tool_call_error(
+        self,
+        error_msg: str,
+    ) -> AsyncGenerator[AgentStreamingEvent, None]:
+        """
+        Convert malformed LLM tool-call payloads into synthetic tool output.
+
+        This keeps the interaction loop alive and gives the model explicit,
+        tool-shaped feedback so it can retry with corrected arguments.
+        """
+        tool_name = self._extract_tool_name_from_error(error_msg)
+        tool_call_id = self._extract_tool_call_id_from_error(error_msg)
+        if not tool_call_id:
+            tool_call_id = f"llm_tool_call_error_{uuid4().hex[:12]}"
+
+        tool_output_message = self._build_recoverable_tool_output_message(
+            tool_name=tool_name,
+            error_msg=error_msg,
+        )
+        metadata = {
+            "request_id": tool_call_id,
+            "llm_tool_call_validation_failed": True,
+            "skip_frontend_execution": True,
+        }
+
+        # Maintain ToolCallEvent -> ToolOutputEvent protocol ordering for frontend state.
+        yield ToolCallEvent(
+            tool_name=tool_name,
+            parameters={},
+            request_id=tool_call_id,
+            metadata=metadata,
+        )
+        yield ToolOutputEvent(
+            tool_name=tool_name,
+            success=False,
+            output=tool_output_message,
+            error=error_msg,
+            execution_time=0.0,
+            metadata=metadata,
+        )
+
+        # Feed the synthetic tool output back into history for the next LLM turn.
+        self.session.history.stage_tool_call_ids([tool_call_id])
+        self.session.history.add_tool_output(tool_output_message)
+
     def _to_parsed_response(
         self, normalized_response: NormalizedLLMResponse
     ) -> ParsedResponse:
@@ -372,3 +449,57 @@ class InteractionLoop:
                 content = f"{content[:597]}..."
             return content
         return ""
+
+    @staticmethod
+    def _is_recoverable_llm_tool_call_error(error_msg: str) -> bool:
+        """
+        Return True for model-generated tool-call format errors.
+
+        These are recoverable by feeding synthetic tool output back to the model.
+        """
+        normalized = error_msg.lower()
+        has_tool_context = "tool" in normalized
+        has_format_context = (
+            "argument" in normalized
+            or "tool_call" in normalized
+            or "tool-call" in normalized
+            or "tool_calls" in normalized
+        )
+        if not has_tool_context or not has_format_context:
+            return False
+        return any(
+            marker in normalized for marker in _RECOVERABLE_TOOL_CALL_ERROR_MARKERS
+        )
+
+    @staticmethod
+    def _extract_tool_name_from_error(error_msg: str) -> str:
+        """Best-effort extraction of tool name from provider error text."""
+        match = _LLM_TOOL_ERROR_NAME_PATTERN.search(error_msg)
+        if match:
+            candidate = (match.group(1) or "").strip().strip(".,;:()[]{}")
+            if candidate:
+                return candidate
+        return "invalid_tool_call"
+
+    @staticmethod
+    def _extract_tool_call_id_from_error(error_msg: str) -> str:
+        """Best-effort extraction of tool call id from provider error text."""
+        match = _LLM_TOOL_ERROR_ID_PATTERN.search(error_msg)
+        if match:
+            return (match.group(1) or "").strip().strip(".,;:()[]{}")
+        return ""
+
+    @staticmethod
+    def _build_recoverable_tool_output_message(tool_name: str, error_msg: str) -> str:
+        """Format synthetic tool output in standard tool-output message style."""
+        compact_error = " ".join(error_msg.split())
+        if len(compact_error) > _TOOL_OUTPUT_ERROR_PREVIEW_CHARS:
+            compact_error = (
+                f"{compact_error[:_TOOL_OUTPUT_ERROR_PREVIEW_CHARS]}...[truncated]"
+            )
+        return (
+            f"{tool_name} output:\n"
+            "error: malformed tool-call arguments from model. "
+            f"{compact_error}\n"
+            "status: failed"
+        )
