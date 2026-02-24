@@ -546,6 +546,13 @@ class LLMProvider(ABC):
         return params
 
     @staticmethod
+    def _enable_stream_with_usage(params: Dict[str, Any]) -> Dict[str, Any]:
+        """Enable stream mode with usage payloads on provider request params."""
+        params["stream"] = True
+        params["stream_options"] = {"include_usage": True}
+        return params
+
+    @staticmethod
     def _normalize_messages_for_provider(
         messages: List[LLMMessage],
         *,

@@ -74,8 +74,7 @@ class AnthropicProvider(LLMProvider):
             parallel_tool_calls=parallel_tool_calls,
             prompt_cache_key=prompt_cache_key,
         )
-        params["stream"] = True
-        params["stream_options"] = {"include_usage": True}
+        self._enable_stream_with_usage(params)
         stream = await litellm.acompletion(**params)
         async for chunk in stream:
             self._record_stream_usage_from_chunk(chunk)

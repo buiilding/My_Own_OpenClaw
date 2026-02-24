@@ -772,6 +772,30 @@ read_when:
   - `pytest tests/backend/test_llm_provider_base.py tests/backend/test_local_llm_providers.py tests/backend/test_llm_client.py`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
+## Phase 37
+
+- `jscpd` duplication cleanup (provider stream flags):
+  - extract shared stream+usage param helper in:
+    - `backend/src/llm/providers/base.py`
+  - reuse across provider stream paths:
+    - `AnthropicProvider._stream_internal`
+    - `GeminiProvider._stream_internal`
+    - `KimiCodingProvider._stream_internal`
+    - `LocalLLMProvider._stream_internal`
+    - `MistralProvider._stream_internal`
+    - `OpenAIProvider._stream_internal`
+    - `OpenRouterProvider._build_completion_params`
+  - preserve existing stream usage reporting (`include_usage`) and provider-specific params (e.g., `custom_llm_provider`).
+
+### Phase 37 Execution Slice (Current Loop)
+
+- Backend dedupe:
+  - remove duplicated stream flag and usage-option assignments (`stream`, `stream_options`) in provider streaming paths.
+  - keep stream event parsing, provider-specific request params, and error semantics unchanged.
+- Verification checks:
+  - `pytest tests/backend/test_llm_provider_base.py tests/backend/test_local_llm_providers.py tests/backend/test_llm_client.py`
+  - `cd frontend && npm run audit:jscpd` (track duplicate-volume delta; note repository-wide churn can shift global totals)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):
@@ -1528,3 +1552,26 @@ read_when:
 - Verification:
   - `pytest tests/backend/test_llm_provider_base.py tests/backend/test_local_llm_providers.py tests/backend/test_llm_client.py` (pass; 101 tests)
   - `cd frontend && npm run audit:jscpd` (pass; duplicated lines/tokens reduction confirmed)
+
+## Phase 37 Outcome (2026-02-24)
+
+- Provider stream-flag dedupe shipped:
+  - added shared stream+usage request helper in:
+    - `backend/src/llm/providers/base.py` (`_enable_stream_with_usage`)
+  - rewired duplicated stream-flag setup in:
+    - `backend/src/llm/providers/anthropic.py`
+    - `backend/src/llm/providers/gemini.py`
+    - `backend/src/llm/providers/kimi_coding.py`
+    - `backend/src/llm/providers/local.py`
+    - `backend/src/llm/providers/mistral.py`
+    - `backend/src/llm/providers/openai.py`
+    - `backend/src/llm/providers/openrouter.py`
+  - preserved provider-specific request params and stream usage semantics.
+- jscpd delta after Phase 37 slice:
+  - clones: `189 -> 190`
+  - duplicated lines: `2906 -> 2909`
+  - duplicated tokens: `25746 -> 25763`
+  - note: this run included wider repository churn (`773` files analyzed) while backend stream-flag duplication block was removed.
+- Verification:
+  - `pytest tests/backend/test_llm_provider_base.py tests/backend/test_local_llm_providers.py tests/backend/test_llm_client.py` (pass; 101 tests)
+  - `cd frontend && npm run audit:jscpd` (completed; global totals drifted upward during broader repo changes)

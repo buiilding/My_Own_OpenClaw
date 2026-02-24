@@ -83,8 +83,7 @@ class KimiCodingProvider(LLMProvider):
             prompt_cache_key=prompt_cache_key,
         )
         params["custom_llm_provider"] = "anthropic"
-        params["stream"] = True
-        params["stream_options"] = {"include_usage": True}
+        self._enable_stream_with_usage(params)
         stream = await litellm.acompletion(**params)
         full_text_parts: List[str] = []
         tool_call_deltas: Dict[int, Dict[str, Any]] = {}
