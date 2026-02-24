@@ -2117,3 +2117,22 @@ read_when:
     - clones: `157 -> 152`
     - duplicated lines: `2442 -> 2377`
     - duplicated tokens: `21612 -> 21162`
+
+## Phase 67 Outcome (2026-02-24)
+
+- Transcription hook test duplication cleanup shipped:
+  - extracted shared action helpers in `tests/frontend/TranscriptionHook.test.ts`:
+    - `updateTranscription`
+    - `changeInput`
+  - removed repeated inline hook action blocks while preserving all transcription region replacement/invalidation assertions.
+- Verification:
+  - `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/TranscriptionHook.test.ts --watch=false` (pass; 5 tests)
+  - `cd frontend && npm run lint -- --quiet` (pass)
+  - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
+  - `cd frontend && npm run audit:knip` (pass)
+  - `cd frontend && npm run audit:jscpd` (pass)
+  - `cd frontend && npm run test:ci` (pass; 92 suites, 607 tests)
+  - jscpd snapshot deltas:
+    - clones: `152 -> 150`
+    - duplicated lines: `2377 -> 2357`
+    - duplicated tokens: `21162 -> 20962`
