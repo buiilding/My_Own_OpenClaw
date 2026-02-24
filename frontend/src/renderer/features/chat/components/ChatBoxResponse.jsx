@@ -6,6 +6,7 @@ import { toSanitizedMarkdownHtml } from '../../../infrastructure/markdown';
 import { selectChatBoxState } from '../utils/chatSelectors';
 import { getRoundedFrameSize } from '../utils/overlayFrameSize';
 import { subscribeResponseOverlayPhase } from '../utils/overlayPhaseListener';
+import { buildToolGhostPreviewFromMessageText } from '../utils/toolGhostPreview';
 
 const RESPONSE_TYPES = new Set(['llm-text', 'error']);
 const FIRST_CHUNK_TYPES = new Set(['llm-text', 'error']);
@@ -14,7 +15,6 @@ const RESPONSE_MAX_HEIGHT = 460;
 const RESPONSE_CHROME_HEIGHT = 28;
 const RESPONSE_BOTTOM_STICK_THRESHOLD = 20;
 const THINKING_BOTTOM_STICK_THRESHOLD = 12;
-const TOOL_LABEL_MAX_LENGTH = 120;
 
 function renderResponseContent(response, markdownHtml) {
   if (!response) {
@@ -77,37 +77,6 @@ function findLatestToolCallAfterUser(messages, lastUserIndex) {
     return message;
   }
   return null;
-}
-
-function resolveToolGhostLabel(message) {
-  if (!message?.text) {
-    return 'Running tool action';
-  }
-
-  try {
-    const parsed = JSON.parse(message.text);
-    const toolName = typeof parsed?.name === 'string' ? parsed.name : null;
-    const explanation = typeof parsed?.args?.explanation === 'string'
-      ? parsed.args.explanation
-      : null;
-    const waitSeconds = typeof parsed?.args?.wait_seconds === 'number'
-      ? parsed.args.wait_seconds
-      : null;
-
-    if (explanation && explanation.trim().length > 0) {
-      return explanation.trim().slice(0, TOOL_LABEL_MAX_LENGTH);
-    }
-    if (toolName && waitSeconds !== null) {
-      return `${toolName} (wait ${waitSeconds}s)`;
-    }
-    if (toolName) {
-      return `Running ${toolName}`;
-    }
-  } catch (_) {
-    // Tool-call message is formatted text fallback.
-  }
-
-  return 'Running tool action';
 }
 
 function ChatBoxResponse() {
@@ -174,10 +143,21 @@ function ChatBoxResponse() {
   ) && !showResponse && overlayPhase !== 'tool-call';
   const showToolGhost = !showResponse && overlayPhase === 'tool-call' && Boolean(activeToolCall);
   const isVisible = showResponse || showAwaitingReply || showToolGhost;
-  const toolGhostLabel = useMemo(
-    () => resolveToolGhostLabel(activeToolCall),
+  const toolGhostPreview = useMemo(
+    () => buildToolGhostPreviewFromMessageText(activeToolCall?.text ?? ''),
     [activeToolCall],
   );
+  const toolGhostTrackStyle = useMemo(() => {
+    if (!toolGhostPreview.hasTarget) {
+      return null;
+    }
+    const xOffset = Math.round((toolGhostPreview.xRatio - 0.5) * 52);
+    const yOffset = Math.round((toolGhostPreview.yRatio - 0.5) * 34);
+    return {
+      '--ghost-offset-x': `${xOffset}px`,
+      '--ghost-offset-y': `${yOffset}px`,
+    };
+  }, [toolGhostPreview]);
   const responseMarkdownHtml = useMemo(() => {
     if (!activeResponse || activeResponse.type === 'tool-call' || activeResponse.type === 'error') {
       return '';
@@ -429,7 +409,7 @@ function ChatBoxResponse() {
     setClosedResponseId(activeResponse.id);
   }, [activeResponse, responseIsCloseable]);
 
-  if (!isVisible && !showToolGhost) {
+  if (!isVisible) {
     return null;
   }
 
@@ -482,13 +462,16 @@ function ChatBoxResponse() {
 
         {showToolGhost ? (
           <div className="chatbox-tool-ghost" aria-label="Assistant tool action preview">
-            <div className="chatbox-tool-ghost-track">
+            <div
+              className={`chatbox-tool-ghost-track${toolGhostPreview.hasTarget ? ' is-targeted' : ''}`}
+              style={toolGhostTrackStyle || undefined}
+            >
               <div className="chatbox-tool-ghost-cursor-wrap" aria-hidden="true">
                 <div className="chatbox-tool-ghost-ring" />
                 <div className="chatbox-tool-ghost-ripple" />
                 <div className="chatbox-tool-ghost-cursor" />
               </div>
-              <div className="chatbox-tool-ghost-label">{toolGhostLabel}</div>
+              <div className="chatbox-tool-ghost-label">{toolGhostPreview.label}</div>
             </div>
           </div>
         ) : null}
