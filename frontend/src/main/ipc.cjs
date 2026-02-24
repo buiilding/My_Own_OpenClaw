@@ -3,14 +3,16 @@
  * renderer process, and the Python backend.
  */
 
-const { ipcMain, app } = require('electron');
-const fs = require('fs');
-const path = require('path');
+const { ipcMain } = require('electron');
 const WebSocket = require('ws');
 const { v4: uuidv4 } = require('uuid');
 const os = require('os');
 const { getSystemState, searchMemory } = require('./local_backend_bridge.cjs');
 const { resolveBackendEndpoints } = require('./backend_endpoints.cjs');
+const {
+  loadFrontendConfigFromDisk,
+  saveFrontendConfigToDisk,
+} = require('./ipc_frontend_config.cjs');
 const { buildQueryPayloadContent } = require('./query_payload_builder.cjs');
 const {
   resolveConversationRef: resolveConversationRefFromPayload,
@@ -49,54 +51,23 @@ const RESPONSE_OVERLAY_PHASES = new Set([
   'error',
 ]);
 
-const FRONTEND_CONFIG_FILENAME = 'frontend-config.json';
-
-function getFrontendConfigPath() {
-  return path.join(app.getPath('userData'), FRONTEND_CONFIG_FILENAME);
-}
-
-async function loadFrontendConfigFromDisk() {
-  try {
-    const filePath = getFrontendConfigPath();
-    if (!fs.existsSync(filePath)) {
-      return null;
-    }
-    const raw = await fs.promises.readFile(filePath, 'utf-8');
-    const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-      log('Frontend config on disk is invalid; ignoring');
-      return null;
-    }
-    return parsed;
-  } catch (error) {
-    log(`Failed to load frontend config from disk: ${error.message}`);
-    return null;
-  }
-}
-
-async function saveFrontendConfigToDisk(config) {
-  try {
-    if (!config || typeof config !== 'object' || Array.isArray(config)) {
-      return { success: false, error: 'Invalid config payload' };
-    }
-    latestFrontendConfig = { ...config };
-    const filePath = getFrontendConfigPath();
-    await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
-    const tempPath = `${filePath}.tmp`;
-    await fs.promises.writeFile(tempPath, JSON.stringify(config, null, 2), 'utf-8');
-    await fs.promises.rename(tempPath, filePath);
-    return { success: true };
-  } catch (error) {
-    log(`Failed to save frontend config to disk: ${error.message}`);
-    return { success: false, error: error.message };
-  }
-}
-
 function log(message) {
   // Only log in development - production logging adds overhead
   if (process.env.NODE_ENV !== 'production') {
     console.log(`[IPC Bridge] ${message}`);
   }
+}
+
+async function loadCachedFrontendConfigFromDisk() {
+  return loadFrontendConfigFromDisk(log);
+}
+
+async function persistFrontendConfigToDisk(config) {
+  const result = await saveFrontendConfigToDisk(config, log);
+  if (result?.success && config && typeof config === 'object' && !Array.isArray(config)) {
+    latestFrontendConfig = { ...config };
+  }
+  return result;
 }
 
 function clearPendingSettingsSyncs() {
@@ -195,7 +166,7 @@ async function ensureInitialSettingsSync() {
   }
 
   if (!isValidConfigPayload(latestFrontendConfig)) {
-    latestFrontendConfig = await loadFrontendConfigFromDisk();
+    latestFrontendConfig = await loadCachedFrontendConfigFromDisk();
   }
 
   if (isValidConfigPayload(latestFrontendConfig)) {
@@ -576,7 +547,7 @@ function initializeIpc(win, options = {}) {
   connect();
 
   ipcMain.handle('load-frontend-config', async () => {
-    return await loadFrontendConfigFromDisk();
+    return await loadCachedFrontendConfigFromDisk();
   });
 
   ipcMain.handle('get-client-user-id', async () => {
@@ -593,7 +564,7 @@ function initializeIpc(win, options = {}) {
   });
 
   ipcMain.handle('save-frontend-config', async (event, config) => {
-    return await saveFrontendConfigToDisk(config);
+    return await persistFrontendConfigToDisk(config);
   });
 
   ipcMain.on('to-backend', async (event, message = {}) => {
