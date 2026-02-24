@@ -11,6 +11,8 @@ title: "Backend API Transport Docs Hub"
 ## Deep Pages
 
 - [Safe WebSocket and Transport Envelope Reference](safe_websocket_and_transport_envelope_reference.md)
+- [Transport Sender Docs Hub](sender/README.md)
+- [SafeWebSocket Queue Lifecycle and Close Serialization Reference](sender/safe_websocket_queue_lifecycle_and_close_serialization_reference.md)
 
 ## Code Scope
 

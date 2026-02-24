@@ -148,3 +148,9 @@ Used by:
 2. Removing pending-future drain on sender failure leaves awaiters hanging indefinitely.
 3. Altering context-field attachment truthiness rules can break frontend turn/session correlation.
 4. Bypassing `WebSocketSender` protocol and writing to raw websocket reintroduces concurrent-send race conditions.
+
+## Related Pages
+
+- [Backend API Transport Docs Hub](README.md)
+- [Backend API Transport Sender Docs Hub](sender/README.md)
+- [SafeWebSocket Queue Lifecycle and Close Serialization Reference](sender/safe_websocket_queue_lifecycle_and_close_serialization_reference.md)
