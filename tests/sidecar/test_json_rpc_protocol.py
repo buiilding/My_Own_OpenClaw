@@ -1,11 +1,8 @@
-import sys
-from pathlib import Path
-
 import pytest
 
+from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 
-frontend_python_dir = Path(__file__).resolve().parents[2] / "frontend" / "src" / "main" / "python"
-sys.path.insert(0, str(frontend_python_dir))
+ensure_frontend_python_path()
 
 import core.ipc_protocol as ipc_protocol_module  # noqa: E402
 from core.ipc_protocol import JSONRPCError, JSONRPCProtocol  # noqa: E402
