@@ -6,8 +6,15 @@ const DEFAULT_CONTEXT = Object.freeze({
 const MAX_CONTEXT_LABEL_LENGTH = 26;
 
 const APP_RULES = [
-  { match: /\b(chrome|chromium|edge|firefox|safari|browser)\b/i, label: 'Chrome', icon: 'WB' },
-  { match: /\b(visual studio code|vscode|cursor|windsurf|sublime|notepad\+\+|intellij|pycharm|webstorm)\b/i, label: 'Code', icon: 'ED' },
+  { match: /\b(microsoft edge|edge)\b/i, label: 'Edge', icon: 'WB' },
+  { match: /\b(chrome|chromium)\b/i, label: 'Chrome', icon: 'WB' },
+  { match: /\b(firefox)\b/i, label: 'Firefox', icon: 'WB' },
+  { match: /\b(safari)\b/i, label: 'Safari', icon: 'WB' },
+  { match: /\b(browser)\b/i, label: 'Browser', icon: 'WB' },
+  { match: /\b(visual studio code|vscode)\b/i, label: 'VS Code', icon: 'ED' },
+  { match: /\b(cursor)\b/i, label: 'Cursor', icon: 'ED' },
+  { match: /\b(windsurf)\b/i, label: 'Windsurf', icon: 'ED' },
+  { match: /\b(sublime|notepad\+\+|intellij|pycharm|webstorm)\b/i, label: 'Code', icon: 'ED' },
   { match: /\b(terminal|iterm|powershell|cmd|command prompt|gnome-terminal|alacritty|kitty)\b/i, label: 'Terminal', icon: 'SH' },
   { match: /\b(outlook|gmail|mail|thunderbird)\b/i, label: 'Mail', icon: 'ML' },
   { match: /\b(slack|discord|teams|telegram)\b/i, label: 'Chat', icon: 'CM' },
@@ -67,4 +74,3 @@ export function resolveActiveWindowContext(activeWindowValue) {
 
   return resolveFallbackContext(trimmedValue);
 }
-

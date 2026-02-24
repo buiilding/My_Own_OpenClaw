@@ -211,7 +211,7 @@ describe('ChatBox overlay mouse ignore', () => {
 
     render(<ChatBox />);
 
-    expect(await screen.findByLabelText('Active app: Code')).toBeInTheDocument();
+    expect(await screen.findByLabelText('Active app: VS Code')).toBeInTheDocument();
     expect(screen.getByText('ED')).toBeInTheDocument();
   });
 });
