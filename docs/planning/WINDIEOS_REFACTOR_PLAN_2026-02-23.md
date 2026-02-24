@@ -452,7 +452,7 @@ read_when:
   - update sender/stream hooks to consume the shared selector helper.
 - Verification checks:
   - `cd frontend && npm run lint`
-  - `cd frontend && npm run test:ci -- tests/frontend/ChatMessageSender.test.tsx tests/frontend/ChatStreamThinkingStatus.test.tsx`
+  - `cd frontend && npm run test:ci -- tests/frontend/ChatMessageSender.test.tsx tests/frontend/ChatStreamThinkingStatus.state.test.tsx tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx tests/frontend/ChatStreamThinkingStatus.metadata.test.tsx`
   - `cd frontend && npm run test:ci`
   - `cd frontend && npm run audit:knip`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
@@ -1297,7 +1297,7 @@ read_when:
   - duplicated tokens: `28043 -> 27952`
 - Verification:
   - `cd frontend && npm run lint` (pass)
-  - `cd frontend && npm run test:ci -- tests/frontend/ChatMessageSender.test.tsx tests/frontend/ChatStreamThinkingStatus.test.tsx` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/ChatMessageSender.test.tsx tests/frontend/ChatStreamThinkingStatus.state.test.tsx tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx tests/frontend/ChatStreamThinkingStatus.metadata.test.tsx` (pass)
   - `cd frontend && npm run test:ci` (pass; 82 suites)
   - `cd frontend && npm run audit:knip` (pass; no findings)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
@@ -1761,3 +1761,18 @@ read_when:
   - behavior unchanged; helper keeps env reset/log silencing/mock restore wiring centralized.
 - Verification:
   - `cd frontend && npm test -- tests/frontend/IpcMainBridge.lifecycle.test.cjs tests/frontend/IpcMainBridge.query.test.cjs` (pass; 27 tests)
+
+## Phase 46 Outcome (2026-02-24)
+
+- Oversized chat-stream suite split shipped:
+  - replaced `tests/frontend/ChatStreamThinkingStatus.test.tsx` (`843` LOC) with focused suites:
+    - `tests/frontend/ChatStreamThinkingStatus.state.test.tsx` (`367` LOC)
+    - `tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx` (`257` LOC)
+    - `tests/frontend/ChatStreamThinkingStatus.metadata.test.tsx` (`140` LOC)
+  - extracted shared mock/setup harness:
+    - `tests/frontend/ChatStreamThinkingStatus.testUtils.ts`
+  - preserved full behavior coverage (`30` chat-stream assertions) while reducing per-file complexity and duplicated setup.
+- Verification:
+  - `cd frontend && npm test -- tests/frontend/ChatStreamThinkingStatus.state.test.tsx tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx tests/frontend/ChatStreamThinkingStatus.metadata.test.tsx` (pass; 30 tests)
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci` (pass; 88 suites, 607 tests)
