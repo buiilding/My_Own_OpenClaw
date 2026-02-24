@@ -195,6 +195,14 @@ class TestBrowserControllerActions:
             mock_locator.select_option = mock.AsyncMock(return_value=select_option_return_value)
         self.controller._page.locator.return_value = mock_locator
         return mock_locator
+
+    def _setup_typing_locator(self):
+        mock_locator = mock.MagicMock()
+        mock_locator.fill = mock.AsyncMock()
+        mock_locator.type = mock.AsyncMock()
+        mock_locator.press = mock.AsyncMock()
+        self.controller._page.locator.return_value = mock_locator
+        return mock_locator
     
     @pytest.mark.asyncio
     async def test_navigate(self):
@@ -437,11 +445,7 @@ class TestBrowserControllerActions:
     @pytest.mark.asyncio
     async def test_type_text(self):
         """Test typing text."""
-        mock_locator = mock.MagicMock()
-        mock_locator.fill = mock.AsyncMock()
-        mock_locator.type = mock.AsyncMock()
-        mock_locator.press = mock.AsyncMock()
-        self.controller._page.locator.return_value = mock_locator
+        mock_locator = self._setup_typing_locator()
         
         result = await self.controller.type_text("1", "Hello World")
         
@@ -451,11 +455,7 @@ class TestBrowserControllerActions:
     @pytest.mark.asyncio
     async def test_type_text_with_submit(self):
         """Test typing text with submit."""
-        mock_locator = mock.MagicMock()
-        mock_locator.fill = mock.AsyncMock()
-        mock_locator.type = mock.AsyncMock()
-        mock_locator.press = mock.AsyncMock()
-        self.controller._page.locator.return_value = mock_locator
+        mock_locator = self._setup_typing_locator()
         
         result = await self.controller.type_text("1", "Hello", submit=True)
         
