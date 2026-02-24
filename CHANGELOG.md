@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-chatbox-context-underglow): add subtle text underglow halo and lift floating active-window label slightly higher for clearer separation above the pill
 - fix(frontend-chatbox-context-font): increase floating active-window label font size for better readability
 - fix(frontend-chatbox-context-offset): shift floating active-window label slightly higher above the pill for cleaner top alignment
 - fix(frontend-chatbox-pill-shape): add extra bottom safety padding in measured chatbox frame so the input pill keeps full rounded lower edge (no bottom crop)
