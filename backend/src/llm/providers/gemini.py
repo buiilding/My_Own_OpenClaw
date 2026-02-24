@@ -15,18 +15,9 @@ logger = logging.getLogger(__name__)
 class GeminiProvider(LLMProvider):
     """Provider for Google Gemini models."""
 
-    def __init__(
-        self,
-        api_key: Optional[str] = None,
-        base_url: Optional[str] = None,
-        timeout: float = 60.0,
-    ):
-        super().__init__(api_key=api_key, base_url=base_url, timeout=timeout)
-
     def _validate_dependencies(self) -> None:
         """Gemini requires an API key."""
-        if not self.api_key:
-            raise ValueError("GeminiProvider requires an 'api_key'.")
+        self._require_api_key("GeminiProvider")
 
     async def get_completion(
         self,

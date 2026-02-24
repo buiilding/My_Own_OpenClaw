@@ -14,18 +14,9 @@ logger = logging.getLogger(__name__)
 class OpenAIProvider(LLMProvider):
     """Provider for OpenAI models."""
 
-    def __init__(
-        self,
-        api_key: Optional[str] = None,
-        base_url: Optional[str] = None,
-        timeout: float = 60.0,
-    ):
-        super().__init__(api_key=api_key, base_url=base_url, timeout=timeout)
-
     def _validate_dependencies(self) -> None:
         """OpenAI requires an API key."""
-        if not self.api_key:
-            raise ValueError("OpenAIProvider requires an 'api_key'.")
+        self._require_api_key("OpenAIProvider")
 
     async def get_completion(
         self,

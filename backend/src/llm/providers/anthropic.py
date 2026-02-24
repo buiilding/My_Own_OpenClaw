@@ -18,18 +18,9 @@ DEFAULT_THINKING_TOKEN_BUDGET = 16384
 class AnthropicProvider(LLMProvider):
     """Provider for Anthropic models."""
 
-    def __init__(
-        self,
-        api_key: Optional[str] = None,
-        base_url: Optional[str] = None,
-        timeout: float = 60.0,
-    ):
-        super().__init__(api_key=api_key, base_url=base_url, timeout=timeout)
-
     def _validate_dependencies(self) -> None:
         """Anthropic requires an API key."""
-        if not self.api_key:
-            raise ValueError("AnthropicProvider requires an 'api_key'.")
+        self._require_api_key("AnthropicProvider")
 
     async def get_completion(
         self,

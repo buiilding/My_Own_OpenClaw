@@ -27,8 +27,7 @@ class OpenRouterProvider(LLMProvider):
 
     def _validate_dependencies(self) -> None:
         """OpenRouter requires an API key."""
-        if not self.api_key:
-            raise ValueError("OpenRouterProvider requires an 'api_key'.")
+        self._require_api_key("OpenRouterProvider")
 
     def _build_completion_params(
         self,
