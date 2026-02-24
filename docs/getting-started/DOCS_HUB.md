@@ -58,6 +58,7 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 - [Frontend Sidecar Docs Hub](../frontend/sidecar/README.md)
 - [Frontend IPC/Event Contracts](../frontend/contracts/IPC_CHANNELS_AND_EVENT_CONTRACTS.md)
 - [Frontend IPC Channel Handler Reference](../frontend/contracts/IPC_CHANNEL_AND_HANDLER_REFERENCE.md)
+- [Frontend Backend Event Consumer Matrix](../frontend/contracts/BACKEND_EVENT_CONSUMER_MATRIX_REFERENCE.md)
 - [Frontend Chat Stream + Tool Execution Reference](../frontend/renderer/CHAT_STREAM_AND_TOOL_EXECUTION_REFERENCE.md)
 - [Frontend Runtime Paths and Endpoints](../frontend/main/RUNTIME_PATHS_AND_ENDPOINTS.md)
 - [Frontend Query Payload + Relay Reference](../frontend/main/QUERY_PAYLOAD_AND_RELAY_REFERENCE.md)
