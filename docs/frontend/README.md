@@ -27,6 +27,11 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [WebSocket Handshake and Settings Sync Reference](main/websocket_handshake_and_settings_sync_reference.md)
 - [Local Backend Bridge Handler and Window Guard Reference](main/local_backend_bridge_handler_and_window_guard_reference.md)
 
+### Preload Boundary
+
+- [Preload Docs Hub](preload/README.md)
+- [Preload Channel Allowlist and Renderer Bridge Reference](preload/preload_channel_allowlist_and_renderer_bridge_reference.md)
+
 ### Renderer
 
 - [Renderer Docs Hub](renderer/README.md)
