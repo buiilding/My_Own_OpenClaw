@@ -69,6 +69,7 @@ describe('ChatBox overlay mouse ignore', () => {
     mockSend.mockClear();
     mockUseChatMessageSender.mockClear();
     mockSendMessage.mockClear();
+    mockChatState.messages = [];
     mockChatState.streamTracking.phase = 'idle';
   });
 
@@ -232,5 +233,38 @@ describe('ChatBox overlay mouse ignore', () => {
       expect(screen.getByLabelText('Active app: No active app (offline)')).toBeInTheDocument();
     });
     expect(contextIndicator.classList.contains('is-offline')).toBe(true);
+  });
+
+  test('falls back to user-message metadata active-window context when polling fails', async () => {
+    mockChatState.messages = [
+      {
+        id: 'user-1',
+        sender: 'user',
+        text: 'open email',
+        fullUserMessage: {
+          content: 'open email',
+          metadata: {
+            active_window: 'Inbox - Gmail - Google Chrome',
+          },
+        },
+      },
+    ];
+
+    mockInvoke.mockImplementation((channel) => {
+      if (channel === 'get-system-state') {
+        return Promise.reject(new Error('system unavailable'));
+      }
+      return Promise.resolve({ success: true });
+    });
+
+    const { container } = render(<ChatBox />);
+    const contextIndicator = container.querySelector('.chatbox-context-indicator');
+    expect(contextIndicator).toBeTruthy();
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Active app: Chrome (stale)')).toBeInTheDocument();
+    });
+    expect(contextIndicator.classList.contains('is-stale')).toBe(true);
+    expect(screen.getByText('WB')).toBeInTheDocument();
   });
 });
