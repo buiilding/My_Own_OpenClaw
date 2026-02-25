@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- chore(audit): refresh `.audit/plan1/jscpd-report/jscpd-report.md` snapshot after main-process handler extraction wave (totals now: `857` files, `28` clones, `535` duplicated lines)
 - docs(refactor-plan): record Phase 174 full-gate validation snapshot after visibility/overlay-registration dedupe wave (`./scripts/test`: backend `1012`, sidecar `500/4 skipped`, frontend `104 suites`/`668 tests`)
 - docs(refactor-plan): record Phase 173 overlay renderer-window registration dedupe and direct coverage in `docs/planning/windieos_refactor_plan_2026-02-23.md`
 - test(frontend-main-overlay): add `tests/frontend/OverlayRendererRegistration.test.cjs` coverage for shared overlay renderer-window registration helper
