@@ -3674,3 +3674,15 @@ read_when:
   - `cd frontend && npm run test:ci -- tests/frontend/ToolRunnerHook.events.test.ts tests/frontend/ToolRunnerHook.turnGuards.test.ts tests/frontend/ToolRunnerHook.callbacks.test.ts` (pass)
   - `cd frontend && npm run lint` (pass)
   - `cd frontend && npm run audit:jscpd` (pass; snapshot totals unchanged at clones `29`, duplicated lines `550`, duplicated tokens `5347`)
+
+## Phase 159 Outcome (2026-02-25)
+
+- Refactor slice: provider-layer adoption of shared latest-ref helper.
+  - migrated:
+    - `frontend/src/renderer/app/providers/AppProvider.jsx`
+    - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
+  - removed repeated manual `ref.current = ...` patterns in provider render paths, reusing `useLatestRef`.
+  - added explicit stable-ref dependencies in callbacks/effects to satisfy strict hooks lint rules.
+- Validation:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/AppProvider.test.tsx tests/frontend/AppConfigProvider.models.test.tsx tests/frontend/AppConfigProvider.storageAndIpc.test.tsx tests/frontend/AppConfigContext.test.tsx` (pass)
