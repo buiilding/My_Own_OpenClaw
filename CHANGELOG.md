@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-inventory-protocols): add `docs/frontend/inventory/protocols` subhub with IPC + local-backend JSON-RPC protocol surface matrix (preload allowlists, handler ownership, method mappings, readiness/timeout semantics)
 - docs(backend-inventory-protocols): add `docs/backend/inventory/protocols` subhub with websocket protocol surface matrix (handshake, incoming/outgoing schema bindings, route-handler map, formatter alignment, envelope context fields)
 - docs(frontend-inventory-domains): add `docs/frontend/inventory/domains` subhub with frontend domain ownership matrix and cross-process change-path playbook references; wire links from frontend/global docs hubs
 - refactor(frontend-dashboard): replace temporary sidebar token glyphs with clone-parity `lucide-react` icons in `ChatGptDashboardShell`
