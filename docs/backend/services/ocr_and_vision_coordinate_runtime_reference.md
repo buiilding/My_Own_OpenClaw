@@ -34,6 +34,7 @@ The OCR/vision coordinate pipeline covers:
 - `backend/src/core/container/initializer.py`
 - `backend/src/tools/tool_policy.py`
 - `backend/src/services/ocr/ocr_service.py`
+- `backend/src/services/ocr/runtime_config.py`
 - `backend/src/agent/tools/preparation/screenshot/state.py`
 - `backend/src/agent/tools/preparation/screenshot/manager.py`
 - `backend/src/agent/tools/preparation/ocr/coordinator.py`
