@@ -16,6 +16,7 @@ title: "Frontend Sidecar Browser Use LLM Docs Hub"
 ## Related Pages
 
 - [Frontend Sidecar Browser Use Runtime Docs Hub](../README.md)
+- [Frontend Sidecar Browser Use Browser Docs Hub](../browser/README.md)
 - [Browser Use Tools Runtime Action Dispatch, Extraction, and CodeAgent Variant Contract Reference](../tools/runtime_action_dispatch_extraction_and_codeagent_variant_contract_reference.md)
 - [Frontend Sidecar Browser Use Tools Docs Hub](../tools/README.md)
 

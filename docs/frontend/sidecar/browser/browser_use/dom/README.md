@@ -17,6 +17,7 @@ title: "Frontend Sidecar Browser Use DOM Docs Hub"
 ## Related Pages
 
 - [Frontend Sidecar Browser Use Runtime Docs Hub](../README.md)
+- [Frontend Sidecar Browser Use Browser Docs Hub](../browser/README.md)
 - [Browser Use Config, Logging, Observability, and Lazy Import Runtime Reference](../config_logging_observability_and_lazy_import_runtime_reference.md)
 - [Frontend Sidecar Browser Chrome Docs Hub](../../chrome/README.md)
 - [Enhanced CDP DOM Snapshot Pipeline Runtime Reference](../../chrome/enhanced_cdp_dom_snapshot_pipeline_runtime_reference.md)
