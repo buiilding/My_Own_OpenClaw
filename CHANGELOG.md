@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): record Phase 171 full-gate validation snapshot after overlay/main-window/display handler extraction wave (`./scripts/test`: backend `1012`, sidecar `500/4 skipped`, frontend `102 suites`/`661 tests`)
+- docs(frontend-sidecar-browser-use-llm): add `frontend/sidecar/browser/browser_use/llm` subhub with deep references for base chat protocol/message/content contracts, strict schema optimizer + model-alias factory behavior, and OpenAI/Google/Mistral provider adapter + serializer runtime details; wire links across browser/sidecar/frontend/global docs hubs
 - docs(refactor-plan): record Phase 170 display-query handler extraction and direct coverage in `docs/planning/windieos_refactor_plan_2026-02-23.md`
 - test(frontend-main-window): add `tests/frontend/DisplayQueryHandler.test.cjs` coverage for display payload mapping and primary-display flag behavior
 - refactor(frontend-main-window): extract `get-displays` IPC mapping logic from `frontend/src/main/index.cjs` into `frontend/src/main/display_query_handler.cjs`
