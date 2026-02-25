@@ -230,3 +230,9 @@ If semantic details show no facts:
 1. inspect semantic memory `content` format (expected `SUMMARY:`/`FACTS:` style)
 2. verify parser fallback path output in `parseSemanticContent`
 3. verify source memory rows are semantic records, not transcript records
+
+## Related Pages
+
+- [Renderer Dashboard Docs Hub](dashboard/README.md)
+- [Dashboard Section Router and Placeholder Panel Contract Reference](dashboard/dashboard_section_router_and_placeholder_panel_contract_reference.md)
+- [Models Section Selection Reconciliation and Dashboard Storage Contract Reference](dashboard/models_section_selection_reconciliation_and_dashboard_storage_contract_reference.md)
