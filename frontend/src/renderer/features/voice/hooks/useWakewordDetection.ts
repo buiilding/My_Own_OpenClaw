@@ -13,6 +13,7 @@ import {
   resolveConfidence,
 } from '../utils/wakewordEventUtils';
 import { useAudioCaptureRefs } from './useAudioCaptureRefs';
+import { useLatestRef } from '../../../infrastructure/hooks/useLatestRef';
 
 const WAKEWORD_COOLDOWN_MS = 2000;
 
@@ -57,10 +58,7 @@ export function useWakewordDetection(
   const isCapturingRef = useRef(false);
   const captureGenerationRef = useRef(0);
   const lastDetectionRef = useRef(0);
-  
-  // Use ref to store callback so effect doesn't re-run when callback changes
-  const onWakewordDetectedRef = useRef(onWakewordDetected);
-  onWakewordDetectedRef.current = onWakewordDetected;
+  const onWakewordDetectedRef = useLatestRef(onWakewordDetected);
 
   useEffect(() => {
     const warningMessage = getChunkSizeWarning(rawChunkSize, chunkSize);
@@ -270,7 +268,7 @@ export function useWakewordDetection(
       unsubscribe?.();
       statusUnsubscribe?.();
     };
-  }, [requestWakewordDisable, requestWakewordEnable, threshold]);
+  }, [onWakewordDetectedRef, requestWakewordDisable, requestWakewordEnable, threshold]);
 
   // Start/stop audio capture based on enabled state
   useEffect(() => {

@@ -6,6 +6,7 @@ import {
   type LegacyAudioProcessorNode,
 } from '../utils/audioCaptureCleanup';
 import { useAudioCaptureRefs } from './useAudioCaptureRefs';
+import { useLatestRef } from '../../../infrastructure/hooks/useLatestRef';
 
 const MAX_RECONNECT_ATTEMPTS = 5;
 const RECONNECT_DELAY_BASE_MS = 1000;
@@ -50,14 +51,9 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttemptsRef = useRef(0);
   const isRecordingRef = useRef(false);
-  const enabledRef = useRef(enabled);
-  const onTranscriptionUpdateRef = useRef(onTranscriptionUpdate);
-  const onUtteranceEndRef = useRef(onUtteranceEnd);
-
-  // Keep mutable refs synced without effect churn.
-  enabledRef.current = enabled;
-  onTranscriptionUpdateRef.current = onTranscriptionUpdate;
-  onUtteranceEndRef.current = onUtteranceEnd;
+  const enabledRef = useLatestRef(enabled);
+  const onTranscriptionUpdateRef = useLatestRef(onTranscriptionUpdate);
+  const onUtteranceEndRef = useLatestRef(onUtteranceEnd);
 
   const clearReconnectTimeout = useCallback(() => {
     if (reconnectTimeoutRef.current) {
@@ -179,7 +175,14 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
       console.error('[VoiceMode] Error creating WebSocket:', err);
       markConnectionError('Failed to connect to voice gateway');
     }
-  }, [clearReconnectTimeout, gatewayUrl, markConnectionError]);
+  }, [
+    clearReconnectTimeout,
+    enabledRef,
+    gatewayUrl,
+    markConnectionError,
+    onTranscriptionUpdateRef,
+    onUtteranceEndRef,
+  ]);
 
   // Start audio capture
   const startAudioCapture = useCallback(async () => {
