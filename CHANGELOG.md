@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): record Phase 165 full-gate validation snapshot after overlay handler extraction wave (`./scripts/test`: backend `1012`, sidecar `500/4 skipped`, frontend `98 suites`/`638 tests`)
 - docs(backend-entrypoint-logging-simulation): add subhubs for bootstrap entrypoints, core logging profiles, simulation launch paths, and agent-tools `short_id` helper contracts; wire links across backend/global docs hubs
 - docs(refactor-plan): record Phase 164 chatbox-move handler extraction + direct helper regression tests in `docs/planning/windieos_refactor_plan_2026-02-23.md`
 - test(frontend-main-overlay): add `tests/frontend/OverlayChatboxHandler.test.cjs` coverage for extracted chatbox move/resize handlers (clamps, no-op, unavailable, failure warning)
