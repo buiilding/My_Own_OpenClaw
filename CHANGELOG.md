@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): record Phase 166 response-overlay handler regression coverage in `docs/planning/windieos_refactor_plan_2026-02-23.md`
+- test(frontend-main-overlay): add `tests/frontend/OverlayResponseboxHandler.test.cjs` direct coverage for extracted responsebox resize/fullscreen handler paths
 - docs(frontend-landing-sections): add `frontend/landing/sections` subhub and deep reference for Hero/How/Available/Roadmap contracts (anchors, content arrays, status semantics); wire links from landing/frontend/global docs hubs
 - docs(refactor-plan): record Phase 165 full-gate validation snapshot after overlay handler extraction wave (`./scripts/test`: backend `1012`, sidecar `500/4 skipped`, frontend `98 suites`/`638 tests`)
 - docs(backend-entrypoint-logging-simulation): add subhubs for bootstrap entrypoints, core logging profiles, simulation launch paths, and agent-tools `short_id` helper contracts; wire links across backend/global docs hubs
