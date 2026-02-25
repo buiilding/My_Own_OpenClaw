@@ -53,7 +53,7 @@ Notable behavior:
 - `set-overlay-ignore-mouse`
 - `set-chatbox-size`
 - `set-responsebox-size`
-- `show-main-window`
+- `show-main-window` (optional target payload `{ open: 'chat' | 'memory' | 'models' | 'settings' }`)
 - `show-chatbox`
 - `hide-chatbox`
 - `get-displays`
@@ -69,6 +69,7 @@ Notable behavior:
 
 - overlay handlers guard for missing/destroyed windows and return structured success/reason payloads
 - chat/response/context windows are repositioned together after move/resize operations
+- `show-main-window` normalizes optional open-target payload and emits `main-window-open-target` to renderer on accepted target
 
 ### `local_backend_bridge.cjs`
 

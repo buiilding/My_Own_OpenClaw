@@ -58,7 +58,7 @@ Shared names in preload + `INVOKE_CHANNELS`:
 - `set-overlay-ignore-mouse`
 - `set-chatbox-size`
 - `set-responsebox-size`
-- `show-main-window`
+- `show-main-window` (optional payload `{ open: 'chat' | 'memory' | 'models' | 'settings' }`)
 - `show-chatbox`
 - `hide-chatbox`
 - `get-displays`
@@ -83,6 +83,7 @@ Shared names in preload + `ON_CHANNELS`:
 - `wakeword-status`
 - `wakeword-toggle`
 - `chatbox-focus`
+- `main-window-open-target`
 - `response-overlay-phase`
 - `response-overlay-visibility`
 

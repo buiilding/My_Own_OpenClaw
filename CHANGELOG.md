@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-ipc-contracts): align deep IPC parity/ownership references with targeted `show-main-window {open}` payload and `main-window-open-target` renderer event
 - refactor(frontend-dashboard): remove legacy section-router shell (`MainLayout`, `DashboardContent`, procedural/usage placeholders) after ChatGPT-style dashboard migration
 - test(frontend-dashboard): drop obsolete `MainLayout` test suite after legacy shell removal
 - docs(frontend-architecture): update renderer architecture, provider stack, style contracts, and folder topology docs to reflect `ChatGptDashboardShell` conversation-first modal design
