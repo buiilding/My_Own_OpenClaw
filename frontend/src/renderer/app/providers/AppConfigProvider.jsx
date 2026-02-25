@@ -8,6 +8,7 @@ import { AppConfigContext } from './AppConfigContext';
 import { updateTranscriptSession } from '../../infrastructure/transcript/TranscriptWriter';
 import { extractTranscriptUserId, routeConfigBackendEvent } from './appConfigEvents';
 import { setBackendHttpUrl } from '../../infrastructure/services/ArtifactUploader';
+import { useLatestRef } from '../../infrastructure/hooks/useLatestRef';
 import {
   applyConfigIfChanged,
   mergeFrontendProviderConfig,
@@ -49,24 +50,22 @@ export function AppConfigProvider({ children }) {
 
   const settingsHandlers = useSettingsManagement(setAvailableModels);
 
-  const handlersRef = useRef(settingsHandlers);
-  const configRef = useRef(config);
+  const handlersRef = useLatestRef(settingsHandlers);
+  const configRef = useLatestRef(config);
   const saveStatusCallbackRef = useRef(null);
-  handlersRef.current = settingsHandlers;
-  configRef.current = config;
 
   const syncCurrentConfigToBackend = useCallback(() => {
     const currentConfig = configRef.current;
     if (currentConfig && typeof currentConfig === 'object') {
       ApiClient.updateSettings(currentConfig);
     }
-  }, []);
+  }, [configRef]);
 
   const buildMergedFrontendConfig = useCallback((incomingConfig) => {
     return sanitizeFrontendProviderConfig(
       mergeFrontendProviderConfig(configRef.current, filterFrontendConfig(incomingConfig)),
     );
-  }, []);
+  }, [configRef]);
 
   const registerSaveStatusCallback = useCallback((callback) => {
     saveStatusCallbackRef.current = typeof callback === 'function' ? callback : null;
@@ -74,7 +73,7 @@ export function AppConfigProvider({ children }) {
 
   const onBackendEvent = useCallback((data) => {
     routeConfigBackendEvent(data, handlersRef);
-  }, []);
+  }, [handlersRef]);
 
   const applyBackendConnectionSnapshot = useCallback((data) => {
     const userId = extractTranscriptUserId(data);
@@ -141,7 +140,7 @@ export function AppConfigProvider({ children }) {
     return () => {
       isMounted = false;
     };
-  }, [buildMergedFrontendConfig]);
+  }, [buildMergedFrontendConfig, configRef]);
 
   useEffect(() => {
     const handleStorage = (event) => {
@@ -165,7 +164,7 @@ export function AppConfigProvider({ children }) {
     return () => {
       window.removeEventListener('storage', handleStorage);
     };
-  }, [buildMergedFrontendConfig]);
+  }, [buildMergedFrontendConfig, configRef]);
 
   const updateConfig = useCallback((newConfig) => {
     const filteredConfig = buildMergedFrontendConfig(newConfig);
@@ -186,7 +185,7 @@ export function AppConfigProvider({ children }) {
       console.warn('[Settings Update] Failed to save config to disk:', error?.message || error);
     });
     ApiClient.updateSettings(filteredConfig);
-  }, [buildMergedFrontendConfig]);
+  }, [buildMergedFrontendConfig, configRef]);
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.WAKEWORD_TOGGLE, (data) => {

@@ -1,8 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { AppConfigProvider } from './AppConfigProvider';
 import { AppStatusProvider } from './AppStatusProvider';
 import { useAppConfigContext } from './AppConfigContext';
 import { useAppStatusContext } from './AppStatusContext';
+import { useLatestRef } from '../../infrastructure/hooks/useLatestRef';
 
 const EDITABLE_SELECTOR = 'input, textarea, select, [contenteditable=""], [contenteditable="true"], [role="textbox"]';
 
@@ -24,10 +25,8 @@ function AppContextCoordinator({ children }) {
   const configContext = useAppConfigContext();
   const statusContext = useAppStatusContext();
   const registerSaveStatusCallback = configContext?.registerSaveStatusCallback;
-  const configRef = useRef(configContext?.config || {});
-  const updateConfigRef = useRef(configContext?.updateConfig);
-  configRef.current = configContext?.config || {};
-  updateConfigRef.current = configContext?.updateConfig;
+  const configRef = useLatestRef(configContext?.config || {});
+  const updateConfigRef = useLatestRef(configContext?.updateConfig);
 
   useEffect(() => {
     if (registerSaveStatusCallback) {
@@ -67,7 +66,7 @@ function AppContextCoordinator({ children }) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [configRef, updateConfigRef]);
 
   return <>{children}</>;
 }
