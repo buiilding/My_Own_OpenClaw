@@ -8,6 +8,7 @@ Includes the last 300 commits on `main`.
 
 ### Added
 - refactor(sidecar-browser-schema): remove `act` from sidecar OpenClaw compatibility action registry so schema lookup/validation now treats `act` as unknown; keep legacy `request` field as descriptive compatibility carryover only
+- refactor(backend-browser-schema): exclude removed alias `act` from backend OpenClaw compatibility action typing (`BrowserOpenClawAction`) and add regression coverage that `BrowserOpenClawCompatArgs(action="act")` fails validation
 - refactor(browser-contract): split compatibility aliases into active-legacy (`open`,`type`,`press`,`switch_tab`) vs removed (`act`) buckets in shared sidecar/backend contract modules; `BrowserControlArgs.is_legacy` now excludes removed aliases while `preferred_action` still guides `act` callers to canonical actions
 - refactor(sidecar-browser-adapter): remove adapter `act` envelope dispatch implementation; direct adapter calls now return explicit removed-alias migration error with legacy deprecation metadata
 - refactor(browser-contract): update legacy `act` preferred-action guidance to "canonical actions directly" across sidecar/backend action-contract maps and backend shared compatibility field descriptions

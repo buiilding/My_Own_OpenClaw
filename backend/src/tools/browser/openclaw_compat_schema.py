@@ -12,7 +12,10 @@ from backend.src.tools.browser.shared_compat_fields import BrowserSharedCompatFi
 
 
 class BrowserOpenClawCompatArgs(BrowserSharedCompatFields):
-    """OpenClaw-compatible browser actions and payload fields."""
+    """OpenClaw-compatible browser actions and payload fields.
+
+    Removed aliases such as ``act`` are intentionally excluded.
+    """
 
     model_config = ConfigDict(extra="ignore")
 

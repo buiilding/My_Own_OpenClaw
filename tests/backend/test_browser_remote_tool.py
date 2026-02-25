@@ -2,8 +2,10 @@
 Tests for backend browser remote tool.
 """
 
-import pytest
 from unittest import mock
+
+import pytest
+from pydantic import ValidationError
 
 from backend.src.tools.browser import RemoteBrowserTool
 from backend.src.tools.browser.schemas import (
@@ -447,6 +449,10 @@ class TestOpenClawCompatArgs:
         assert args.append is True
         assert args.trailing_newline is True
         assert args.target == "sandbox"
+
+    def test_removed_act_alias_is_not_valid_openclaw_action(self):
+        with pytest.raises(ValidationError, match="action"):
+            BrowserOpenClawCompatArgs(action="act")
 
 
 class TestBrowserScreenshotArgs:
