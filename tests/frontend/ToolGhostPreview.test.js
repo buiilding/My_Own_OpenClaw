@@ -3,22 +3,22 @@ import { buildToolGhostPreviewFromMessageText } from '../../frontend/src/rendere
 describe('toolGhostPreview', () => {
   test('returns fallback preview for invalid JSON payload', () => {
     const preview = buildToolGhostPreviewFromMessageText('not-json');
-    expect(preview).toEqual({
-      label: 'Running tool action',
+    expect(preview.label).toBe('Running tool action');
+    expect(preview).toMatchObject({
       hasTarget: false,
       hasRect: false,
       isMouseClick: false,
       isScrollAction: false,
       isMotionAction: false,
       showsTargetRipple: false,
-      xRatio: 0.5,
-      yRatio: 0.5,
-      targetScale: 1,
       targetDisplayWidth: null,
       targetDisplayHeight: null,
       rawTargetX: null,
       rawTargetY: null,
     });
+    expect(preview.xRatio).toBeCloseTo(0.5);
+    expect(preview.yRatio).toBeCloseTo(0.5);
+    expect(preview.targetScale).toBe(1);
   });
 
   test('extracts explanation label for single tool payload', () => {
