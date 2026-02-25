@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-renderer-chat-response-overlay-presentation): add `renderer/chat/presentation/response_overlay` subhub with `ToolGhostCursor` markup/a11y contract and `useAutoResizedResponseHeight` resizeobserver/clamp lifecycle reference; wire links from chat/presentation/renderer hubs and refresh tool-ghost docs code-scope test paths
 - refactor(test-tool-ghost-preview): replace full-object fallback equality assertion with behavior-focused checks in `ToolGhostPreview.test.js`, removing the remaining frontend javascript jscpd clone (`28` total clones in latest audit)
 - refactor(frontend-voice-hooks): migrate `useVoiceMode` and `useWakewordDetection` callback/state ref mirroring to shared `useLatestRef` helper and keep hooks dependency arrays explicit for lint-safe stability
 - refactor(frontend-providers): migrate `AppProvider` and `AppConfigProvider` latest-value ref mirroring to shared `useLatestRef` helper and keep hook dependency arrays explicit for lint-safe stable callbacks/effects
