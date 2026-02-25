@@ -6,6 +6,10 @@ const { initializeLocalBackendBridge, stopLocalBackend } = require('./local_back
 const { handleGetDisplays } = require('./display_query_handler.cjs');
 const { registerOverlayRendererWindows } = require('./overlay_renderer_registration.cjs');
 const {
+  handleResponseOverlayPhaseEvent,
+  isStreamingResponseOverlayPhase,
+} = require('./response_overlay_phase_handler.cjs');
+const {
   handleHideChatbox,
   handleShowChatbox,
   handleShowMainWindow,
@@ -197,12 +201,7 @@ function enableContentProtectionSafely(targetWindow, windowLabel) {
 }
 
 function isResponseOverlayStreamingPhase() {
-  return (
-    responseOverlayPhase === RESPONSE_OVERLAY_PHASE.AWAITING_FIRST_CHUNK
-    || responseOverlayPhase === RESPONSE_OVERLAY_PHASE.STREAMING
-    || responseOverlayPhase === RESPONSE_OVERLAY_PHASE.TOOL_CALL
-    || responseOverlayPhase === RESPONSE_OVERLAY_PHASE.TOOL_OUTPUT
-  );
+  return isStreamingResponseOverlayPhase(responseOverlayPhase, RESPONSE_OVERLAY_PHASE);
 }
 
 function ensureResponseOverlayFallbackBounds() {
@@ -478,44 +477,21 @@ function showMainWindow({ focus = true } = {}) {
 }
 
 function handleResponseOverlayPhaseChange(event = {}) {
-  if (ENABLE_OS_TOOL_GHOST_DEBUG) {
-    return;
-  }
-  const nextPhase = event?.phase;
-  if (!Object.values(RESPONSE_OVERLAY_PHASE).includes(nextPhase)) {
-    return;
-  }
-  responseOverlayPhase = nextPhase;
-
-  if (nextPhase === RESPONSE_OVERLAY_PHASE.IDLE) {
-    setResponseOverlayVisibilityState(false);
-    if (responseWindow && !responseWindow.isDestroyed() && responseWindow.isVisible()) {
-      responseWindow.hide();
-    }
-    return;
-  }
-
-  if (isResponseOverlayStreamingPhase()) {
-    setResponseOverlayVisibilityState(true);
-    if (!responseWindow || responseWindow.isDestroyed()) {
-      return;
-    }
-    ensureResponseOverlayFallbackBounds();
-    showResponseWindowWhenChatVisible();
-    return;
-  }
-
-  if (
-    responseOverlayVisible
-    && responseWindow
-    && !responseWindow.isDestroyed()
-    && chatWindow
-    && !chatWindow.isDestroyed()
-    && chatWindow.isVisible()
-  ) {
-    showResponseWindowInactive();
-  }
-  syncContextLabelWindowVisibility();
+  handleResponseOverlayPhaseEvent(event, {
+    ENABLE_OS_TOOL_GHOST_DEBUG,
+    RESPONSE_OVERLAY_PHASE,
+    setResponseOverlayPhase: (nextPhase) => {
+      responseOverlayPhase = nextPhase;
+    },
+    getResponseOverlayVisible: () => responseOverlayVisible,
+    setResponseOverlayVisibilityState,
+    responseWindow,
+    chatWindow,
+    ensureResponseOverlayFallbackBounds,
+    showResponseWindowWhenChatVisible,
+    showResponseWindowInactive,
+    syncContextLabelWindowVisibility,
+  });
 }
 
 function createWindow() {
