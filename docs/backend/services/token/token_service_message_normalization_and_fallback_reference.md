@@ -160,5 +160,7 @@ Thread-safety guarantee (test-backed):
 ## Related Pages
 
 - [Backend Services Token Docs Hub](README.md)
+- [Token Calculation Docs Hub](calculation/README.md)
+- [Token Counter Invocation, Fallback Estimation, and Tool-Call Normalization Reference](calculation/token_counter_invocation_fallback_estimation_and_tool_call_normalization_reference.md)
 - [Token Count Event and Usage Diagnostics Reference](../../runtime/token_count_event_and_usage_diagnostics_reference.md)
 - [Services and Storage](../services_and_storage.md)
