@@ -145,3 +145,10 @@ If runtime system-state looks outdated:
 1. verify `system_state_internal` is included in query/tool-result payloads
 2. inspect router/query service state merge path
 3. confirm session `set_current_system_state(...)` accepted dict payload shape
+
+## Related Pages
+
+- [Backend Services Docs Hub](README.md)
+- [Artifact Service Docs Hub](artifacts/README.md)
+- [Artifact Store Upload Streaming, ID Validation, and Base64 Lookup Contract Reference](artifacts/artifact_store_upload_streaming_id_validation_and_base64_lookup_contract_reference.md)
+- [Artifact HTTP Route Error Mapping and URL Construction Reference](artifacts/artifact_http_route_error_mapping_and_url_construction_reference.md)

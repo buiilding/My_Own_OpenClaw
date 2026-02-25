@@ -11,8 +11,11 @@ title: "Backend Services Docs Hub"
 ## Deep Pages
 
 - [Services and Storage](services_and_storage.md)
+- [Artifact Service Docs Hub](artifacts/README.md)
 - [Embedding and Semantic Memory Runtime Reference](embedding_and_semantic_memory_runtime_reference.md)
 - [Artifact, Screenshot, and System-State Flow Reference](artifact_screenshot_and_system_state_flow_reference.md)
+- [Artifact Store Upload Streaming, ID Validation, and Base64 Lookup Contract Reference](artifacts/artifact_store_upload_streaming_id_validation_and_base64_lookup_contract_reference.md)
+- [Artifact HTTP Route Error Mapping and URL Construction Reference](artifacts/artifact_http_route_error_mapping_and_url_construction_reference.md)
 - [Token Docs Hub](token/README.md)
 - [Token Service Message Normalization and Fallback Reference](token/token_service_message_normalization_and_fallback_reference.md)
 - [Token Calculation Docs Hub](token/calculation/README.md)
