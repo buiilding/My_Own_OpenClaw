@@ -1177,11 +1177,14 @@ class BrowserUseCompatibilityAdapter:
         warnings = list(result.warnings)
         if deprecation_message not in warnings:
             warnings.append(deprecation_message)
+        data = dict(result.data)
+        data["legacy_action"] = action
+        data["preferred_action"] = preferred_action
         return AdapterActionResult(
             success=result.success,
             action=result.action,
             decision=result.decision,
-            data=dict(result.data),
+            data=data,
             error=result.error,
             error_code=result.error_code,
             warnings=warnings,

@@ -8,6 +8,7 @@ Includes the last 300 commits on `main`.
 
 ### Added
 - feat(frontend-devtools): add `npm run mock-memory-data` + `npm run electron:mock-memory-data` to seed deterministic local mock transcript conversations, episodic memories, and semantic memories for dashboard demos
+- feat(browser-legacy-observability): add structured alias metadata (`legacy_action`, `preferred_action`) alongside deprecation warnings in successful browser tool results for machine-readable migration analytics
 - test(browser-rollout): add precedence/allowance regression coverage proving strict mode overrides legacy-allow flag and canonical actions still run when legacy aliases are disabled
 - refactor(sidecar-browser-adapter): remove obsolete adapter-only `status()`/`get_tabs()` wrappers after canonical-first dispatch so canonical actions always flow through runtime action execution path
 - feat(browser-legacy-observability): include adapter legacy-alias `warnings`/`deprecation` metadata in successful sidecar browser tool payloads so frontend/backend can track remaining compatibility usage
