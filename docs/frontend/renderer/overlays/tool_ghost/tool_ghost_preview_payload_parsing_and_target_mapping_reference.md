@@ -47,10 +47,12 @@ Unsupported/invalid JSON yields default preview (no target, generic label).
 `resolveToolLabel(entry)` precedence:
 
 1. `args.explanation` (trimmed, max 120 chars)
-2. for `mouse_control`: `"Mouse action"`
-3. for tools with numeric `wait_seconds`: `<tool> (wait Ns)`
-4. generic named form: `"Running <tool>"`
-5. fallback: `"Running tool action"`
+2. `metadata.explanation` (trimmed, max 120 chars)
+3. for `scroll_control`: `"Scroll action"`
+4. for `mouse_control`: `"Mouse action"`
+5. for tools with numeric `wait_seconds`: `<tool> (wait Ns)`
+6. generic named form: `"Running <tool>"`
+7. fallback: `"Running tool action"`
 
 ## Click Action Detection
 
@@ -63,6 +65,13 @@ Unsupported/invalid JSON yields default preview (no target, generic label).
 - `right_click`
 
 This gates click-specific animation/hide timing behavior.
+
+`isScrollAction(entry)` is true when:
+
+- tool name is `scroll_control` (or `scroll`)
+- or `mouse_control` action is one of `scroll`, `scroll_up`, `scroll_down`
+
+Scroll actions are treated as motion actions and show target ripple.
 
 ## Target Coordinate Resolution
 
@@ -104,13 +113,20 @@ Timing constant:
 
 `useToolRunner` defers real click execution by the same duration to keep visual ghost and actual click synchronized.
 
+Fullscreen ghost frame mode:
+
+- motion actions (click/scroll) request fullscreen response overlay bounds via `set-responsebox-size` with `full_screen=true`.
+- this lets the ghost cursor appear at any screen coordinate while keeping the overlay transparent/click-through.
+
 ## CSS Variable Bridge
 
 When target exists, component injects custom properties used by overlay CSS:
 
 - `--ghost-start-offset-x/y`
 - `--ghost-end-offset-x/y`
-- `--ghost-offset-x/y`
+- `--ghost-start-left/top`
+- `--ghost-end-left/top`
+- `--ghost-ripple-left/top`
 - `--ghost-target-scale`
 - optional rect vars:
 - `--ghost-rect-left/top/width/height`

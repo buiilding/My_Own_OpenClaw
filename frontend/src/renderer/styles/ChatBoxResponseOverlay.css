@@ -42,138 +42,145 @@
 }
 
 .chatbox-tool-ghost {
-  align-self: flex-start;
-  display: inline-flex;
-  margin-bottom: 4px;
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 12;
 }
 
 .chatbox-tool-ghost-track {
-  --ghost-offset-x: 0px;
-  --ghost-offset-y: 0px;
-  --ghost-start-offset-x: 0px;
-  --ghost-start-offset-y: 0px;
-  --ghost-end-offset-x: 0px;
-  --ghost-end-offset-y: 0px;
+  --ghost-start-left: 50%;
+  --ghost-start-top: 50%;
+  --ghost-end-left: 50%;
+  --ghost-end-top: 50%;
+  --ghost-ripple-left: 50%;
+  --ghost-ripple-top: 50%;
   --ghost-target-scale: 1;
-  --ghost-motion-duration: 550ms;
+  --ghost-motion-duration: 500ms;
   --ghost-rect-left: 44%;
   --ghost-rect-top: 36%;
   --ghost-rect-width: 18%;
   --ghost-rect-height: 18%;
-  display: inline-flex;
-  align-items: flex-end;
-  gap: 10px;
-  animation: chatboxToolGhostTrack 2.1s ease-in-out infinite;
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
 }
 
-.chatbox-tool-ghost-track.is-targeted {
-  animation: none;
+.chatbox-tool-ghost-track.is-targeted:not(.is-moving):not(.is-click-animating) .chatbox-tool-ghost-cursor-wrap {
+  left: var(--ghost-end-left);
+  top: var(--ghost-end-top);
 }
 
 .chatbox-tool-ghost-cursor-wrap {
-  width: 76px;
-  height: 76px;
-  position: relative;
-  transform: translate(var(--ghost-end-offset-x), var(--ghost-end-offset-y));
-  transition: transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  position: absolute;
+  left: var(--ghost-start-left);
+  top: var(--ghost-start-top);
+  width: 24px;
+  height: 24px;
+  transform: translate(-50%, -50%);
 }
 
-.chatbox-tool-ghost-track.is-click-animating {
-  animation: none;
+.chatbox-tool-ghost-track.is-moving .chatbox-tool-ghost-cursor-wrap {
+  animation: chatboxToolGhostMove var(--ghost-motion-duration) ease-out 1 forwards;
 }
 
 .chatbox-tool-ghost-track.is-click-animating .chatbox-tool-ghost-cursor-wrap {
-  transform: translate(var(--ghost-start-offset-x), var(--ghost-start-offset-y));
-  transition: none;
-  animation: chatboxToolGhostMove var(--ghost-motion-duration) linear 1 forwards;
-}
-
-.chatbox-tool-ghost-track.is-click-animating .chatbox-tool-ghost-ring {
-  animation: none;
-}
-
-.chatbox-tool-ghost-track.is-click-animating .chatbox-tool-ghost-ripple {
-  animation: none;
-}
-
-.chatbox-tool-ghost-track.is-click-animating .chatbox-tool-ghost-cursor {
-  animation: none;
+  animation: chatboxToolGhostClickTimeline var(--ghost-motion-duration) linear 1 forwards;
 }
 
 .chatbox-tool-ghost-target-rect {
   position: absolute;
   left: var(--ghost-rect-left);
   top: var(--ghost-rect-top);
-  width: max(14px, var(--ghost-rect-width));
-  height: max(14px, var(--ghost-rect-height));
-  border-radius: 7px;
-  border: 1px solid rgba(117, 213, 255, 0.88);
-  background: rgba(80, 188, 255, 0.12);
+  width: max(16px, var(--ghost-rect-width));
+  height: max(16px, var(--ghost-rect-height));
+  border-radius: 8px;
+  border: 1px solid rgba(152, 222, 255, 0.92);
+  background: rgba(112, 208, 255, 0.14);
   box-shadow:
-    0 0 0 1px rgba(142, 226, 255, 0.32) inset,
-    0 0 18px rgba(81, 181, 255, 0.3);
+    0 0 0 1px rgba(180, 235, 255, 0.24) inset,
+    0 0 24px rgba(88, 170, 255, 0.3);
   transform-origin: center;
-  animation: chatboxToolGhostRect 1.9s ease-in-out infinite;
+  animation: chatboxToolGhostRect 820ms ease-out 1 forwards;
+}
+
+.chatbox-tool-ghost-target-ripple {
+  position: absolute;
+  left: var(--ghost-ripple-left);
+  top: var(--ghost-ripple-top);
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(176, 231, 255, 0.9);
+  background: rgba(144, 220, 255, 0.16);
+  transform: translate(-50%, -50%) scale(0.45);
+  opacity: 0;
+}
+
+.chatbox-tool-ghost-track.is-targeted .chatbox-tool-ghost-target-ripple {
+  animation: chatboxToolGhostTargetRipple 760ms ease-out 1 forwards;
+}
+
+.chatbox-tool-ghost-track.is-click-animating .chatbox-tool-ghost-target-ripple.is-click-timeline {
+  animation: chatboxToolGhostTargetRippleClick var(--ghost-motion-duration) linear 1 forwards;
 }
 
 .chatbox-tool-ghost-ring {
   position: absolute;
-  inset: 12px;
+  left: 50%;
+  top: 50%;
+  width: 70px;
+  height: 70px;
+  transform: translate(-50%, -50%);
   border-radius: 999px;
-  border: 1px solid rgba(132, 205, 255, 0.66);
+  border: 1px solid rgba(154, 214, 255, 0.3);
+  background: radial-gradient(
+    circle at center,
+    rgba(72, 128, 180, 0.08) 0,
+    rgba(72, 128, 180, 0) 72%
+  );
   box-shadow:
-    0 0 32px rgba(72, 172, 255, 0.22),
-    inset 0 0 12px rgba(84, 182, 255, 0.22);
-  animation: chatboxToolGhostPulse 1.9s ease-in-out infinite;
-}
-
-.chatbox-tool-ghost-ripple {
-  position: absolute;
-  left: 23px;
-  top: 22px;
-  width: 30px;
-  height: 30px;
-  border-radius: 999px;
-  border: 1px solid rgba(161, 221, 255, 0.74);
-  background: rgba(127, 199, 255, 0.1);
-  animation: chatboxToolGhostRipple 1.9s ease-in-out infinite;
+    0 0 20px rgba(109, 177, 255, 0.14),
+    inset 0 0 20px rgba(109, 177, 255, 0.08);
+  animation: chatboxToolGhostRingPulse 1.8s ease-in-out infinite;
 }
 
 .chatbox-tool-ghost-cursor {
-  position: absolute;
-  left: 27px;
-  top: 10px;
-  width: 19px;
-  height: 28px;
-  border-radius: 2px 2px 10px 2px;
-  background: rgba(255, 255, 255, 0.95);
-  clip-path: polygon(0 0, 0 100%, 37% 70%, 58% 100%, 75% 92%, 54% 62%, 100% 62%);
+  position: relative;
+  width: 25px;
+  height: 25px;
+  color: rgba(255, 255, 255, 0.98);
   box-shadow:
-    0 6px 16px rgba(0, 0, 0, 0.5),
-    0 0 10px rgba(255, 255, 255, 0.32);
-  transform: rotate(-14deg) translateY(0);
-  animation: chatboxToolGhostCursor 1.9s ease-in-out infinite;
+    0 0 18px rgba(255, 255, 255, 0.26),
+    0 8px 18px rgba(0, 0, 0, 0.4);
+}
+
+.chatbox-tool-ghost-cursor svg {
+  width: 25px;
+  height: 25px;
+  display: block;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.44));
 }
 
 .chatbox-tool-ghost-track.has-rect .chatbox-tool-ghost-ring {
   opacity: 0.72;
 }
 
-.chatbox-tool-ghost-track.has-rect .chatbox-tool-ghost-ripple {
-  opacity: 0.68;
-}
-
 .chatbox-tool-ghost-label {
+  position: absolute;
+  left: var(--ghost-end-left);
+  top: calc(var(--ghost-end-top) + 32px);
+  transform: translateX(-22%);
   width: fit-content;
-  max-width: 300px;
-  padding: 8px 11px;
-  border-radius: 10px;
-  background: rgba(14, 18, 24, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  color: rgba(255, 255, 255, 0.9);
+  max-width: 320px;
+  padding: 7px 11px;
+  border-radius: 6px;
+  background: rgba(241, 241, 241, 0.96);
+  border: 1px solid rgba(246, 246, 246, 0.95);
+  color: rgba(22, 22, 22, 0.96);
   font-size: 12px;
-  line-height: 1.4;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.44);
+  line-height: 1.35;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.42);
 }
 
 .chatbox-typing-indicator {
@@ -216,69 +223,79 @@
   }
 }
 
-@keyframes chatboxToolGhostPulse {
-  0%,
-  100% {
-    transform: scale(calc(var(--ghost-target-scale) * 0.9));
-    opacity: 0.42;
-  }
-  50% {
-    transform: scale(var(--ghost-target-scale));
-    opacity: 0.92;
-  }
-}
-
-@keyframes chatboxToolGhostCursor {
-  0%,
-  100% {
-    transform: translateY(0) rotate(-14deg);
-  }
-  50% {
-    transform: translateY(-3px) rotate(-14deg);
-  }
-}
-
-@keyframes chatboxToolGhostRipple {
-  0%,
-  100% {
-    transform: scale(calc(var(--ghost-target-scale) * 0.68));
-    opacity: 0.78;
-  }
-  50% {
-    transform: scale(calc(var(--ghost-target-scale) * 1.08));
-    opacity: 0.18;
-  }
-}
-
 @keyframes chatboxToolGhostRect {
-  0%,
-  100% {
-    transform: scale(0.96);
-    opacity: 0.66;
+  0% {
+    transform: scale(0.92);
+    opacity: 0.2;
   }
-  50% {
-    transform: scale(1.04);
-    opacity: 0.96;
+  100% {
+    transform: scale(1);
+    opacity: 0.9;
   }
 }
 
-@keyframes chatboxToolGhostTrack {
-  0%,
-  100% {
-    transform: translateX(0);
+@keyframes chatboxToolGhostRingPulse {
+  0% {
+    transform: translate(-50%, -50%) scale(0.94);
+    opacity: 0.16;
   }
   50% {
-    transform: translateX(6px);
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.28;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.06);
+    opacity: 0.12;
+  }
+}
+
+@keyframes chatboxToolGhostTargetRipple {
+  0% {
+    transform: translate(-50%, -50%) scale(0.42);
+    opacity: 0.72;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(calc(var(--ghost-target-scale) * 1.95));
+    opacity: 0;
   }
 }
 
 @keyframes chatboxToolGhostMove {
+  0% {
+    left: var(--ghost-start-left);
+    top: var(--ghost-start-top);
+  }
+  100% {
+    left: var(--ghost-end-left);
+    top: var(--ghost-end-top);
+  }
+}
+
+@keyframes chatboxToolGhostClickTimeline {
   0%,
   31.25% {
-    transform: translate(var(--ghost-start-offset-x), var(--ghost-start-offset-y));
+    left: var(--ghost-start-left);
+    top: var(--ghost-start-top);
   }
   68.75%,
   100% {
-    transform: translate(var(--ghost-end-offset-x), var(--ghost-end-offset-y));
+    left: var(--ghost-end-left);
+    top: var(--ghost-end-top);
+  }
+}
+
+@keyframes chatboxToolGhostTargetRippleClick {
+  0%,
+  68.74% {
+    transform: translate(-50%, -50%) scale(0.46);
+    opacity: 0;
+  }
+  68.75% {
+    transform: translate(-50%, -50%) scale(0.46);
+    opacity: 0.74;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(calc(var(--ghost-target-scale) * 2.1));
+    opacity: 0;
   }
 }

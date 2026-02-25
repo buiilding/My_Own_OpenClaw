@@ -126,7 +126,9 @@ Handlers in `index.cjs`:
 
 - `set-overlay-ignore-mouse`: toggles click-through for chat and response overlays
 - `set-chatbox-size`: bounded resize (`width <= 900`, `height <= 7500`), repositions response overlay
-- `set-responsebox-size`: bounded resize (`width <= 900`, `height <= 750`), show/hide + re-anchor
+- `set-responsebox-size`:
+  - default mode: bounded resize (`width <= 900`, `height <= 750`), show/hide + re-anchor above chat
+  - fullscreen ghost mode (`full_screen=true`): expands response overlay to the active display bounds for anywhere-on-screen ghost cursor rendering
 - `move-chatbox-to`: direct chat overlay drag positioning
 - `show-main-window`, `show-chatbox`, `hide-chatbox`
 - `get-displays`: returns display id/label/bounds/scaleFactor

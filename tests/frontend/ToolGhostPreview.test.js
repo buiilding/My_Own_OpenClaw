@@ -8,6 +8,9 @@ describe('toolGhostPreview', () => {
       hasTarget: false,
       hasRect: false,
       isMouseClick: false,
+      isScrollAction: false,
+      isMotionAction: false,
+      showsTargetRipple: false,
       xRatio: 0.5,
       yRatio: 0.5,
       targetScale: 1,
@@ -36,6 +39,23 @@ describe('toolGhostPreview', () => {
 
     expect(preview.label).toBe('Clicking submit button');
     expect(preview.isMouseClick).toBe(true);
+  });
+
+  test('extracts explanation label for scroll tool payloads', () => {
+    const preview = buildToolGhostPreviewFromMessageText(JSON.stringify({
+      name: 'scroll_control',
+      arguments: { explanation: 'Scroll down to pricing table', x: 480, y: 320 },
+      metadata: {
+        coordinate_contract: {
+          target_display_size: [1200, 800],
+        },
+      },
+    }));
+
+    expect(preview.label).toBe('Scroll down to pricing table');
+    expect(preview.isScrollAction).toBe(true);
+    expect(preview.isMotionAction).toBe(true);
+    expect(preview.showsTargetRipple).toBe(true);
   });
 
   test('derives target ratios from coordinate contract metadata', () => {

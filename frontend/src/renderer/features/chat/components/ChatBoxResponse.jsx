@@ -13,6 +13,7 @@ import {
   findLastUserIndex,
   findLatestMessageAfterUser,
   findLatestToolCallAfterUser,
+  hasToolGhostMotion,
 } from './chatBoxResponseUtils';
 
 const RESPONSE_TYPES = new Set(['llm-text', 'error']);
@@ -55,7 +56,7 @@ function ChatBoxResponse() {
   const shouldStickToBottomRef = useRef(true);
   const shouldStickThinkingToBottomRef = useRef(true);
   const lastUserMessageIdRef = useRef(null);
-  const lastFrameRef = useRef({ width: 0, height: 0, visible: null });
+  const lastFrameRef = useRef({ width: 0, height: 0, visible: null, fullScreenGhost: false });
 
   const lastUserIndex = useMemo(
     () => findLastUserIndex(messages),
@@ -112,6 +113,7 @@ function ChatBoxResponse() {
     toolGhostResolvedTargetRatio,
     toolGhostReady,
     toolGhostHidden,
+    toolGhostViewportSize,
   } = useToolGhostLifecycle({
     shouldShowToolGhostBase,
     toolGhostPreview,
@@ -121,12 +123,26 @@ function ChatBoxResponse() {
     !toolGhostPreview.isMouseClick || (toolGhostReady && !toolGhostHidden)
   );
   const isVisible = showResponse || showAwaitingReply || showToolGhost;
-  const effectiveTargetRatio = toolGhostResolvedTargetRatio || (
-    toolGhostPreview.hasTarget
-      ? { xRatio: toolGhostPreview.xRatio, yRatio: toolGhostPreview.yRatio }
-      : null
+  const shouldUseFullscreenGhostFrame = showToolGhost && toolGhostPreview.isMotionAction;
+  const shouldRenderResponseShell = showResponse || showAwaitingReply;
+  const effectiveTargetRatio = useMemo(
+    () => toolGhostResolvedTargetRatio || (
+      toolGhostPreview.hasTarget
+        ? { xRatio: toolGhostPreview.xRatio, yRatio: toolGhostPreview.yRatio }
+        : null
+    ),
+    [
+      toolGhostResolvedTargetRatio,
+      toolGhostPreview.hasTarget,
+      toolGhostPreview.xRatio,
+      toolGhostPreview.yRatio,
+    ],
   );
   const hasEffectiveTarget = Boolean(effectiveTargetRatio);
+  const hasToolGhostMotionPath = useMemo(
+    () => hasToolGhostMotion(toolGhostStartRatio, effectiveTargetRatio),
+    [toolGhostStartRatio, effectiveTargetRatio],
+  );
   const toolGhostTrackStyle = useMemo(() => {
     return buildToolGhostTrackStyle(toolGhostPreview, toolGhostStartRatio, effectiveTargetRatio);
   }, [toolGhostPreview, toolGhostStartRatio, effectiveTargetRatio]);
@@ -141,12 +157,17 @@ function ChatBoxResponse() {
     [thinkingStatus],
   );
 
-  const reportOverlaySize = useCallback(async (visible) => {
+  const reportOverlaySize = useCallback(async ({
+    visible,
+    fullScreenGhost = false,
+    viewportWidth = null,
+    viewportHeight = null,
+  }) => {
     if (!visible) {
       if (lastFrameRef.current.visible === false) {
         return;
       }
-      lastFrameRef.current = { width: 0, height: 0, visible: false };
+      lastFrameRef.current = { width: 0, height: 0, visible: false, fullScreenGhost: false };
       try {
         await IpcBridge.invoke(INVOKE_CHANNELS.SET_RESPONSEBOX_SIZE, {
           visible: false,
@@ -159,6 +180,32 @@ function ChatBoxResponse() {
       return;
     }
 
+    if (fullScreenGhost) {
+      const width = Number.isFinite(viewportWidth) ? Math.max(1, Math.round(viewportWidth)) : 0;
+      const height = Number.isFinite(viewportHeight) ? Math.max(1, Math.round(viewportHeight)) : 0;
+      const unchanged = (
+        lastFrameRef.current.visible === true
+        && lastFrameRef.current.fullScreenGhost === true
+        && lastFrameRef.current.width === width
+        && lastFrameRef.current.height === height
+      );
+      if (unchanged) {
+        return;
+      }
+      lastFrameRef.current = { width, height, visible: true, fullScreenGhost: true };
+      try {
+        await IpcBridge.invoke(INVOKE_CHANNELS.SET_RESPONSEBOX_SIZE, {
+          visible: true,
+          width,
+          height,
+          full_screen: true,
+        });
+      } catch (error) {
+        console.warn('[ChatBoxResponse] Failed to enter fullscreen ghost overlay mode:', error);
+      }
+      return;
+    }
+
     const nextFrame = getRoundedFrameSize(shellRef.current);
     if (!nextFrame) {
       return;
@@ -166,13 +213,14 @@ function ChatBoxResponse() {
     const { width, height } = nextFrame;
     const unchanged = (
       lastFrameRef.current.visible === true
+      && lastFrameRef.current.fullScreenGhost === false
       && lastFrameRef.current.width === width
       && lastFrameRef.current.height === height
     );
     if (unchanged) {
       return;
     }
-    lastFrameRef.current = { width, height, visible: true };
+    lastFrameRef.current = { width, height, visible: true, fullScreenGhost: false };
 
     try {
       await IpcBridge.invoke(INVOKE_CHANNELS.SET_RESPONSEBOX_SIZE, {
@@ -343,15 +391,20 @@ function ChatBoxResponse() {
     let observer = null;
 
     if (!isVisible) {
-      void reportOverlaySize(false);
+      void reportOverlaySize({ visible: false });
       return () => {};
     }
 
     const updateSize = () => {
-      void reportOverlaySize(true);
+      void reportOverlaySize({
+        visible: true,
+        fullScreenGhost: shouldUseFullscreenGhostFrame,
+        viewportWidth: toolGhostViewportSize.width,
+        viewportHeight: toolGhostViewportSize.height,
+      });
     };
 
-    if (typeof ResizeObserver !== 'undefined' && shellRef.current) {
+    if (!shouldUseFullscreenGhostFrame && typeof ResizeObserver !== 'undefined' && shellRef.current) {
       observer = new ResizeObserver(() => {
         window.requestAnimationFrame(updateSize);
       });
@@ -366,11 +419,17 @@ function ChatBoxResponse() {
         observer.disconnect();
       }
     };
-  }, [isVisible, reportOverlaySize]);
+  }, [
+    isVisible,
+    reportOverlaySize,
+    shouldUseFullscreenGhostFrame,
+    toolGhostViewportSize.width,
+    toolGhostViewportSize.height,
+  ]);
 
   useEffect(() => {
     return () => {
-      void reportOverlaySize(false);
+      void reportOverlaySize({ visible: false });
     };
   }, [reportOverlaySize]);
 
@@ -386,72 +445,87 @@ function ChatBoxResponse() {
   }
 
   return (
-    <div className={`chatbox-shell-wrap${showResponse ? ' has-response-pill' : ''}`}>
-      <div className="chatbox-shell" ref={shellRef}>
-        {showResponse ? (
-          <div
-            className={`chatbox-response-pill${hasOverflowAbove ? ' has-overflow-above' : ''}`}
-            ref={responsePillRef}
-            style={{ height: `${responseHeight}px` }}
-            onScroll={handleResponseScroll}
-          >
-            <button
-              type="button"
-              className="chatbox-response-close"
-              onClick={handleCloseResponse}
-              disabled={!responseIsCloseable}
-              aria-label={responseIsCloseable ? 'Close response' : 'Response still streaming'}
-            >
-              ×
-            </button>
-            <div className="chatbox-response-body" ref={responseBodyRef}>
-              {renderResponseContent(activeResponse, responseMarkdownHtml)}
-            </div>
-          </div>
-        ) : null}
-
-        {showAwaitingReply ? (
-          <>
-            {thinkingText ? (
+    <>
+      {shouldRenderResponseShell ? (
+        <div className={`chatbox-shell-wrap${showResponse ? ' has-response-pill' : ''}`}>
+          <div className="chatbox-shell" ref={shellRef}>
+            {showResponse ? (
               <div
-                className={`chatbox-thinking-stream${hasThinkingOverflowAbove ? ' has-overflow-above' : ''}`}
-                ref={thinkingTextRef}
-                onScroll={handleThinkingScroll}
-                role="status"
-                aria-live="polite"
-                aria-label="Assistant reasoning stream"
+                className={`chatbox-response-pill${hasOverflowAbove ? ' has-overflow-above' : ''}`}
+                ref={responsePillRef}
+                style={{ height: `${responseHeight}px` }}
+                onScroll={handleResponseScroll}
               >
-                <pre className="chatbox-thinking-stream-text">{thinkingText}</pre>
+                <button
+                  type="button"
+                  className="chatbox-response-close"
+                  onClick={handleCloseResponse}
+                  disabled={!responseIsCloseable}
+                  aria-label={responseIsCloseable ? 'Close response' : 'Response still streaming'}
+                >
+                  ×
+                </button>
+                <div className="chatbox-response-body" ref={responseBodyRef}>
+                  {renderResponseContent(activeResponse, responseMarkdownHtml)}
+                </div>
               </div>
             ) : null}
-            <div className="chatbox-typing-indicator" aria-label="Assistant is awaiting reply">
-              <span />
-              <span />
-              <span />
-            </div>
-          </>
-        ) : null}
 
-        {showToolGhost ? (
-          <div className="chatbox-tool-ghost" aria-label="Assistant tool action preview">
-            <div
-              className={`chatbox-tool-ghost-track${hasEffectiveTarget ? ' is-targeted' : ''}${toolGhostPreview.hasRect ? ' has-rect' : ''}${toolGhostPreview.isMouseClick ? ' is-click-animating' : ''}`}
-              style={toolGhostTrackStyle || undefined}
-            >
-              <div className="chatbox-tool-ghost-cursor-wrap" aria-hidden="true">
-                {toolGhostPreview.hasRect ? (
-                  <div className="chatbox-tool-ghost-target-rect" />
+            {showAwaitingReply ? (
+              <>
+                {thinkingText ? (
+                  <div
+                    className={`chatbox-thinking-stream${hasThinkingOverflowAbove ? ' has-overflow-above' : ''}`}
+                    ref={thinkingTextRef}
+                    onScroll={handleThinkingScroll}
+                    role="status"
+                    aria-live="polite"
+                    aria-label="Assistant reasoning stream"
+                  >
+                    <pre className="chatbox-thinking-stream-text">{thinkingText}</pre>
+                  </div>
                 ) : null}
-                <div className="chatbox-tool-ghost-ring" />
-                <div className="chatbox-tool-ghost-ripple" />
-                <div className="chatbox-tool-ghost-cursor" />
-              </div>
-              <div className="chatbox-tool-ghost-label">{toolGhostPreview.label}</div>
-            </div>
+                <div className="chatbox-typing-indicator" aria-label="Assistant is awaiting reply">
+                  <span />
+                  <span />
+                  <span />
+                </div>
+              </>
+            ) : null}
           </div>
-        ) : null}
-      </div>
-    </div>
+        </div>
+      ) : null}
+
+      {showToolGhost ? (
+        <div className="chatbox-tool-ghost" aria-label="Assistant tool action preview">
+          <div
+            className={`chatbox-tool-ghost-track${hasEffectiveTarget ? ' is-targeted' : ''}${toolGhostPreview.hasRect ? ' has-rect' : ''}${toolGhostPreview.isMouseClick ? ' is-click-animating' : ''}${toolGhostPreview.isMotionAction && hasToolGhostMotionPath ? ' is-moving' : ''}`}
+            style={toolGhostTrackStyle || undefined}
+          >
+            {toolGhostPreview.hasRect ? (
+              <div className="chatbox-tool-ghost-target-rect" />
+            ) : null}
+            {hasEffectiveTarget && toolGhostPreview.showsTargetRipple ? (
+              <div className={`chatbox-tool-ghost-target-ripple${toolGhostPreview.isMouseClick ? ' is-click-timeline' : ''}`} />
+            ) : null}
+            <div className="chatbox-tool-ghost-cursor-wrap" aria-hidden="true">
+              <div className="chatbox-tool-ghost-ring" />
+              <div className="chatbox-tool-ghost-cursor">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    d="M4.2 3.6 9.4 18.4 12.2 12.8l5.8 2.8 1.2-2.5-5.8-2.8 5.3-2.7z"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+            </div>
+            <div className="chatbox-tool-ghost-label">{toolGhostPreview.label}</div>
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }
 

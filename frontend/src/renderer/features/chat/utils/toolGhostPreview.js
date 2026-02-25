@@ -4,6 +4,9 @@ const DEFAULT_GHOST_PREVIEW = Object.freeze({
   hasTarget: false,
   hasRect: false,
   isMouseClick: false,
+  isScrollAction: false,
+  isMotionAction: false,
+  showsTargetRipple: false,
   xRatio: 0.5,
   yRatio: 0.5,
   targetScale: 1,
@@ -14,6 +17,7 @@ const DEFAULT_GHOST_PREVIEW = Object.freeze({
 });
 const TOOL_LABEL_MAX_LENGTH = 120;
 const MOUSE_CLICK_ACTIONS = new Set(['click', 'double_click', 'right_click']);
+const MOUSE_SCROLL_ACTIONS = new Set(['scroll', 'scroll_up', 'scroll_down']);
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
@@ -73,19 +77,23 @@ function normalizeToolEntry(rawEntry) {
   }
 
   const name = typeof rawEntry.name === 'string' ? rawEntry.name.trim() : '';
-  const argsCandidate = (
-    rawEntry.args
-    && typeof rawEntry.args === 'object'
-    && !Array.isArray(rawEntry.args)
-  )
-    ? rawEntry.args
-    : (
-      rawEntry.arguments
-      && typeof rawEntry.arguments === 'object'
-      && !Array.isArray(rawEntry.arguments)
-    )
-      ? rawEntry.arguments
-      : {};
+  const parseArgs = (value) => {
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      return value;
+    }
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          return parsed;
+        }
+      } catch (_error) {
+        // Ignore parse failure and continue with fallback args.
+      }
+    }
+    return null;
+  };
+  const argsCandidate = parseArgs(rawEntry.args) || parseArgs(rawEntry.arguments) || {};
   const args = argsCandidate;
   const metadata = (
     rawEntry.metadata && typeof rawEntry.metadata === 'object' && !Array.isArray(rawEntry.metadata)
@@ -119,11 +127,16 @@ function extractToolEntries(parsedPayload) {
 }
 
 function resolveToolLabel(entry) {
-  const explanation = typeof entry?.args?.explanation === 'string'
-    ? entry.args.explanation.trim()
-    : '';
+  const explanation = [
+    entry?.args?.explanation,
+    entry?.metadata?.explanation,
+  ].find((value) => typeof value === 'string' && value.trim().length > 0)?.trim() || '';
   if (explanation) {
     return explanation.slice(0, TOOL_LABEL_MAX_LENGTH);
+  }
+
+  if (isScrollAction(entry)) {
+    return 'Scroll action';
   }
 
   if (entry?.name === 'mouse_control') {
@@ -150,6 +163,25 @@ function isMouseClickAction(entry) {
     ? entry.args.action.trim().toLowerCase()
     : '';
   return MOUSE_CLICK_ACTIONS.has(action);
+}
+
+function isScrollAction(entry) {
+  const normalizedName = typeof entry?.name === 'string'
+    ? entry.name.trim().toLowerCase()
+    : '';
+  if (!normalizedName) {
+    return false;
+  }
+  if (normalizedName === 'scroll_control' || normalizedName === 'scroll') {
+    return true;
+  }
+  if (normalizedName !== 'mouse_control') {
+    return false;
+  }
+  const action = typeof entry?.args?.action === 'string'
+    ? entry.args.action.trim().toLowerCase()
+    : '';
+  return MOUSE_SCROLL_ACTIONS.has(action);
 }
 
 function resolveToolTargetPoint(entry) {
@@ -250,6 +282,9 @@ export function buildToolGhostPreviewFromMessageText(messageText) {
   const selected = scored.find((item) => item.targetPoint) || scored[0];
   const label = resolveToolLabel(selected.entry);
   const isMouseClick = isMouseClickAction(selected.entry);
+  const isScrollActionValue = isScrollAction(selected.entry);
+  const isMotionAction = isMouseClick || isScrollActionValue;
+  const showsTargetRipple = isMouseClick || isScrollActionValue;
 
   if (!selected.targetPoint) {
     return {
@@ -257,6 +292,9 @@ export function buildToolGhostPreviewFromMessageText(messageText) {
       hasTarget: false,
       hasRect: false,
       isMouseClick,
+      isScrollAction: isScrollActionValue,
+      isMotionAction,
+      showsTargetRipple,
       xRatio: DEFAULT_GHOST_PREVIEW.xRatio,
       yRatio: DEFAULT_GHOST_PREVIEW.yRatio,
       targetScale: DEFAULT_GHOST_PREVIEW.targetScale,
@@ -272,6 +310,9 @@ export function buildToolGhostPreviewFromMessageText(messageText) {
     hasTarget: selected.targetPoint.hasResolvedTarget === true,
     hasRect: selected.targetPoint.hasResolvedTarget === true && selected.targetPoint.hasRect,
     isMouseClick,
+    isScrollAction: isScrollActionValue,
+    isMotionAction,
+    showsTargetRipple,
     xRatio: selected.targetPoint.xRatio ?? DEFAULT_GHOST_PREVIEW.xRatio,
     yRatio: selected.targetPoint.yRatio ?? DEFAULT_GHOST_PREVIEW.yRatio,
     targetScale: selected.targetPoint.targetScale,

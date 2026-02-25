@@ -1,7 +1,15 @@
 import { TOOL_GHOST_CLICK_SYNC_DELAY_MS } from '../constants/toolGhostRuntime';
 
-const TOOL_GHOST_OFFSET_X_SPAN = 52;
-const TOOL_GHOST_OFFSET_Y_SPAN = 34;
+const TOOL_GHOST_MOVE_DURATION_MS = 500;
+const RATIO_EPSILON = 0.001;
+
+function clampRatio(value) {
+  return Math.min(1, Math.max(0, value));
+}
+
+function toCssPercent(value) {
+  return `${clampRatio(value) * 100}%`;
+}
 
 export function findLastUserIndex(messages) {
   for (let i = messages.length - 1; i >= 0; i -= 1) {
@@ -50,22 +58,20 @@ export function findLatestToolCallAfterUser(messages, lastUserIndex) {
 }
 
 export function buildToolGhostTrackStyle(toolGhostPreview, toolGhostStartRatio, effectiveTargetRatio) {
-  if (!effectiveTargetRatio) {
-    return null;
-  }
-  const startXOffset = Math.round((toolGhostStartRatio.xRatio - 0.5) * TOOL_GHOST_OFFSET_X_SPAN);
-  const startYOffset = Math.round((toolGhostStartRatio.yRatio - 0.5) * TOOL_GHOST_OFFSET_Y_SPAN);
-  const endXOffset = Math.round((effectiveTargetRatio.xRatio - 0.5) * TOOL_GHOST_OFFSET_X_SPAN);
-  const endYOffset = Math.round((effectiveTargetRatio.yRatio - 0.5) * TOOL_GHOST_OFFSET_Y_SPAN);
+  const startRatio = toolGhostStartRatio || { xRatio: 0.5, yRatio: 0.5 };
+  const targetRatio = effectiveTargetRatio || startRatio;
+  const motionDuration = toolGhostPreview.isMouseClick
+    ? TOOL_GHOST_CLICK_SYNC_DELAY_MS
+    : TOOL_GHOST_MOVE_DURATION_MS;
   const style = {
-    '--ghost-start-offset-x': `${startXOffset}px`,
-    '--ghost-start-offset-y': `${startYOffset}px`,
-    '--ghost-end-offset-x': `${endXOffset}px`,
-    '--ghost-end-offset-y': `${endYOffset}px`,
-    '--ghost-offset-x': `${endXOffset}px`,
-    '--ghost-offset-y': `${endYOffset}px`,
+    '--ghost-start-left': toCssPercent(startRatio.xRatio),
+    '--ghost-start-top': toCssPercent(startRatio.yRatio),
+    '--ghost-end-left': toCssPercent(targetRatio.xRatio),
+    '--ghost-end-top': toCssPercent(targetRatio.yRatio),
+    '--ghost-ripple-left': toCssPercent(targetRatio.xRatio),
+    '--ghost-ripple-top': toCssPercent(targetRatio.yRatio),
     '--ghost-target-scale': `${toolGhostPreview.targetScale}`,
-    '--ghost-motion-duration': `${TOOL_GHOST_CLICK_SYNC_DELAY_MS}ms`,
+    '--ghost-motion-duration': `${motionDuration}ms`,
   };
   if (
     toolGhostPreview.hasRect
@@ -80,4 +86,15 @@ export function buildToolGhostTrackStyle(toolGhostPreview, toolGhostStartRatio, 
     style['--ghost-rect-height'] = `${toolGhostPreview.rectHeightRatio * 100}%`;
   }
   return style;
+}
+
+export function hasToolGhostMotion(toolGhostStartRatio, effectiveTargetRatio) {
+  if (!effectiveTargetRatio) {
+    return false;
+  }
+  const startRatio = toolGhostStartRatio || { xRatio: 0.5, yRatio: 0.5 };
+  return (
+    Math.abs((startRatio.xRatio || 0.5) - (effectiveTargetRatio.xRatio || 0.5)) > RATIO_EPSILON
+    || Math.abs((startRatio.yRatio || 0.5) - (effectiveTargetRatio.yRatio || 0.5)) > RATIO_EPSILON
+  );
 }

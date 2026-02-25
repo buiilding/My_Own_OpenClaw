@@ -132,6 +132,9 @@ Execution sync behavior:
   - moves to model target coordinate over `1200ms`
   - holds at target `1000ms`
   - hides, then real click is dispatched immediately.
+- click and scroll motion actions render in a fullscreen response overlay frame so the ghost cursor can animate to any on-screen coordinate.
+- target ripple is rendered at target coordinates (not cursor start), with click actions using the full click-sync timeline.
+- click/scroll ghost caption text uses the tool `explanation` argument when present.
 
 ## Overlay Frame Size IPC
 
