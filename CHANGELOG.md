@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(test-tool-runner-events): collapse three duplicated click-delay tool-call tests into one table-driven helper path in `tests/frontend/ToolRunnerHook.events.test.ts` while preserving ghost-sync timing assertions
 - refactor(frontend-chatbox-response): extract shared `ToolGhostCursor` component and `useAutoResizedResponseHeight` hook, reusing ghost cursor markup across debug/overlay UIs and reducing `ChatBoxResponse.jsx` from `538` to `479` LOC
 - fix(frontend-react-compiler): remove disabled-hooks lint suppression in `ToolGhostDebugApp.jsx` by switching timer lifecycle to stable `useCallback` orchestration so `npm run lint:audit:react` stays clean
 - refactor(frontend-main-overlay): centralize response-overlay visibility/show logic in `frontend/src/main/index.cjs` via `setResponseOverlayVisibilityState` + `showResponseWindowWhenChatVisible` helpers, removing duplicate fullscreen/resize branches
