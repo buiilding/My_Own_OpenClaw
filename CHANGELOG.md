@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-dashboard): handle `main-window-open-target` payload `{ target: 'chat' }` in `ChatGptDashboardShell` by closing open memory/models/settings modals so chat-only routing is explicit and deterministic
 - docs(frontend-ipc-contracts): align deep IPC parity/ownership references with targeted `show-main-window {open}` payload and `main-window-open-target` renderer event
 - refactor(frontend-dashboard): remove legacy section-router shell (`MainLayout`, `DashboardContent`, procedural/usage placeholders) after ChatGPT-style dashboard migration
 - test(frontend-dashboard): drop obsolete `MainLayout` test suite after legacy shell removal

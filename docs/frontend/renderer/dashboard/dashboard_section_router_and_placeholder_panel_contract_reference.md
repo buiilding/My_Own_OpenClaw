@@ -45,12 +45,14 @@ Memory modal includes local tab routing:
 
 Main process may emit `main-window-open-target` with payload:
 
+- `{ target: 'chat' }`
 - `{ target: 'settings' }`
 - `{ target: 'models' }`
 - `{ target: 'memory' }`
 
 Renderer behavior:
 
+- chat target closes any open dashboard modal panel
 - settings target opens settings modal
 - models target opens models modal
 - memory target opens memory modal (episodic tab default)

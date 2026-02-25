@@ -86,4 +86,24 @@ describe('ChatGptDashboardShell', () => {
 
     expect(screen.getByTestId('models-section-stub')).toBeInTheDocument();
   });
+
+  test('chat target closes an open modal', () => {
+    render(
+      <ChatGptDashboardShell
+        config={{}}
+        availableModels={{ local: [], online: [] }}
+        onConfigChange={jest.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Models' }));
+    expect(screen.getByTestId('models-section-stub')).toBeInTheDocument();
+
+    act(() => {
+      const listener = mockListeners.get('main-window-open-target');
+      listener?.({ target: 'chat' });
+    });
+
+    expect(screen.queryByTestId('models-section-stub')).not.toBeInTheDocument();
+  });
 });
