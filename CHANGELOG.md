@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-browser-runtime): migrate sidecar browser tool internals and sidecar browser tests to `BrowserRuntimeAdapter`/`get_browser_adapter` naming while keeping backward-compatible aliases exported
 - docs(frontend-dashboard): reorganize renderer dashboard docs into `dashboard/shell` + `dashboard/sections` subfolders, add `UsageSection` placeholder/modal runtime contract coverage, and refresh dashboard doc-hub links
 - docs(frontend-dashboard): remove legacy flat dashboard doc files after shell/sections split so dashboard references resolve through the new subfolder hubs only
 - docs(backend-settings-contracts): refresh websocket/message-schema/bootstrap validation references so frontend `update-settings` field lists include `wakeword_stt_enabled` across backend protocol docs

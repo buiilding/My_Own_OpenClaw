@@ -9,8 +9,8 @@ from unittest import mock
 
 import pytest
 
-from tools.browser.browser_tool import BrowserUseCompatibilityAdapter
-from tools.browser.browser_tool import get_browser_use_adapter
+from tools.browser.browser_tool import BrowserRuntimeAdapter
+from tools.browser.browser_tool import get_browser_adapter
 from tools.browser.browser_tool import (
     ControllerBackedRuntimeProvider,
     get_browser_runtime_provider,
@@ -175,9 +175,9 @@ def _build_fake_browser_use_import_module(
     return mock.Mock(side_effect=_import_module), tools_state
 
 
-class TestBrowserUseCompatibilityAdapter:
+class TestBrowserRuntimeAdapter:
     @staticmethod
-    def _make_adapter(controller: SimpleNamespace) -> BrowserUseCompatibilityAdapter:
+    def _make_adapter(controller: SimpleNamespace) -> BrowserRuntimeAdapter:
         async def _execute_browser_use_action(
             *,
             action: str,
@@ -194,7 +194,7 @@ class TestBrowserUseCompatibilityAdapter:
         runtime.execute_browser_use_action = mock.AsyncMock(
             side_effect=_execute_browser_use_action
         )
-        return BrowserUseCompatibilityAdapter(
+        return BrowserRuntimeAdapter(
             controller,
             runtime_provider=runtime,
         )
@@ -271,7 +271,7 @@ class TestBrowserUseCompatibilityAdapter:
                 "next_offset": 4800,
             }
         )
-        adapter = BrowserUseCompatibilityAdapter(controller, runtime_provider=runtime)
+        adapter = BrowserRuntimeAdapter(controller, runtime_provider=runtime)
 
         result = await adapter.execute(
             "snapshot",
@@ -300,7 +300,7 @@ class TestBrowserUseCompatibilityAdapter:
         controller = make_controller()
         runtime = ControllerBackedRuntimeProvider(controller)
         runtime.execute_browser_use_action = mock.AsyncMock()
-        adapter = BrowserUseCompatibilityAdapter(controller, runtime_provider=runtime)
+        adapter = BrowserRuntimeAdapter(controller, runtime_provider=runtime)
 
         result = await adapter.execute(
             "snapshot",
@@ -359,7 +359,7 @@ class TestBrowserUseCompatibilityAdapter:
             is_connected=True,
             execute_browser_use_action=mock.AsyncMock(),
         )
-        adapter = BrowserUseCompatibilityAdapter(controller, runtime_provider=runtime)
+        adapter = BrowserRuntimeAdapter(controller, runtime_provider=runtime)
 
         result = await adapter.execute(
             "act",
@@ -400,7 +400,7 @@ class TestBrowserUseCompatibilityAdapter:
                 }
             ),
         )
-        adapter = BrowserUseCompatibilityAdapter(controller, runtime_provider=runtime)
+        adapter = BrowserRuntimeAdapter(controller, runtime_provider=runtime)
 
         result = await adapter.execute(
             "click",
@@ -435,7 +435,7 @@ class TestBrowserUseCompatibilityAdapter:
                 }
             ),
         )
-        adapter = BrowserUseCompatibilityAdapter(controller, runtime_provider=runtime)
+        adapter = BrowserRuntimeAdapter(controller, runtime_provider=runtime)
 
         result = await adapter.execute(
             "search",
@@ -460,7 +460,7 @@ class TestBrowserUseCompatibilityAdapter:
             is_connected=False,
             execute_browser_use_action=mock.AsyncMock(),
         )
-        adapter = BrowserUseCompatibilityAdapter(controller, runtime_provider=runtime)
+        adapter = BrowserRuntimeAdapter(controller, runtime_provider=runtime)
 
         result = await adapter.execute(
             "find_text",
@@ -493,7 +493,7 @@ class TestBrowserUseCompatibilityAdapter:
                 }
             ),
         )
-        adapter = BrowserUseCompatibilityAdapter(controller, runtime_provider=runtime)
+        adapter = BrowserRuntimeAdapter(controller, runtime_provider=runtime)
 
         result = await adapter.execute(
             "extract",
@@ -666,7 +666,7 @@ class TestBrowserUseCompatibilityAdapter:
             side_effect=_execute_browser_use_action
         )
 
-        adapter = BrowserUseCompatibilityAdapter(controller, runtime_provider=runtime)
+        adapter = BrowserRuntimeAdapter(controller, runtime_provider=runtime)
 
         status_result = await adapter.execute("status", {"action": "status"})
         assert status_result.success is True
@@ -1000,7 +1000,7 @@ class TestBrowserUseCompatibilityAdapter:
         assert result["status"] == 200
         controller.navigate.assert_awaited_once_with("https://example.com", "load")
 
-    def test_get_browser_use_adapter_caches_for_weakrefable_controller(self):
+    def test_get_browser_adapter_caches_for_weakrefable_controller(self):
         class _Controller:
             is_connected = False
 
@@ -1011,8 +1011,8 @@ class TestBrowserUseCompatibilityAdapter:
             "tools.browser.browser_tool.get_browser_runtime_provider",
             return_value=fake_runtime,
         ) as runtime_factory:
-            adapter_one = get_browser_use_adapter(controller)
-            adapter_two = get_browser_use_adapter(controller)
+            adapter_one = get_browser_adapter(controller)
+            adapter_two = get_browser_adapter(controller)
 
         assert adapter_one is adapter_two
         assert adapter_one._runtime is fake_runtime

@@ -89,7 +89,7 @@ class TestExecuteBrowserControl:
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get_controller, mock.patch(
-            "tools.browser.browser_tool.get_browser_use_adapter"
+            "tools.browser.browser_tool.get_browser_adapter"
         ) as mock_get_adapter, mock.patch.dict(
             "os.environ",
             {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "0"},
@@ -135,7 +135,7 @@ class TestPhase2AdapterRouting:
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get_controller, mock.patch(
-            "tools.browser.browser_tool.get_browser_use_adapter"
+            "tools.browser.browser_tool.get_browser_adapter"
         ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
@@ -173,7 +173,7 @@ class TestPhase2AdapterRouting:
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get_controller, mock.patch(
-            "tools.browser.browser_tool.get_browser_use_adapter"
+            "tools.browser.browser_tool.get_browser_adapter"
         ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
@@ -201,7 +201,7 @@ class TestPhase2AdapterRouting:
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get_controller, mock.patch(
-            "tools.browser.browser_tool.get_browser_use_adapter"
+            "tools.browser.browser_tool.get_browser_adapter"
         ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
@@ -320,7 +320,7 @@ class TestCompatibilityActions:
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get, mock.patch(
-            "tools.browser.browser_tool.get_browser_use_adapter"
+            "tools.browser.browser_tool.get_browser_adapter"
         ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
@@ -549,7 +549,7 @@ class TestNavigateAction:
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get, mock.patch(
-            "tools.browser.browser_tool.get_browser_use_adapter"
+            "tools.browser.browser_tool.get_browser_adapter"
         ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
@@ -605,7 +605,7 @@ class TestNavigateAction:
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get, mock.patch(
-            "tools.browser.browser_tool.get_browser_use_adapter"
+            "tools.browser.browser_tool.get_browser_adapter"
         ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
@@ -638,7 +638,7 @@ class TestSnapshotAction:
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get_controller, mock.patch(
-            "tools.browser.browser_tool.get_browser_use_adapter"
+            "tools.browser.browser_tool.get_browser_adapter"
         ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
@@ -686,7 +686,7 @@ class TestSnapshotAction:
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get_controller, mock.patch(
-            "tools.browser.browser_tool.get_browser_use_adapter"
+            "tools.browser.browser_tool.get_browser_adapter"
         ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
@@ -717,7 +717,7 @@ class TestSnapshotAction:
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get_controller, mock.patch(
-            "tools.browser.browser_tool.get_browser_use_adapter"
+            "tools.browser.browser_tool.get_browser_adapter"
         ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = False
@@ -747,7 +747,7 @@ class TestExtractAction:
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get, mock.patch(
-            "tools.browser.browser_tool.get_browser_use_adapter"
+            "tools.browser.browser_tool.get_browser_adapter"
         ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
@@ -859,7 +859,7 @@ class TestExtractAction:
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get, mock.patch(
-            "tools.browser.browser_tool.get_browser_use_adapter"
+            "tools.browser.browser_tool.get_browser_adapter"
         ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
@@ -894,7 +894,7 @@ class TestClickAction:
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get, mock.patch(
-            "tools.browser.browser_tool.get_browser_use_adapter"
+            "tools.browser.browser_tool.get_browser_adapter"
         ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
@@ -928,7 +928,7 @@ class TestClickAction:
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get, mock.patch(
-            "tools.browser.browser_tool.get_browser_use_adapter"
+            "tools.browser.browser_tool.get_browser_adapter"
         ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
@@ -995,7 +995,7 @@ class TestPostActionSnapshots:
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get, mock.patch(
-            "tools.browser.browser_tool.get_browser_use_adapter"
+            "tools.browser.browser_tool.get_browser_adapter"
         ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
@@ -1027,7 +1027,7 @@ class TestPostActionSnapshots:
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get, mock.patch(
-            "tools.browser.browser_tool.get_browser_use_adapter"
+            "tools.browser.browser_tool.get_browser_adapter"
         ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
@@ -1059,7 +1059,7 @@ class TestPostActionSnapshots:
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get, mock.patch(
-            "tools.browser.browser_tool.get_browser_use_adapter"
+            "tools.browser.browser_tool.get_browser_adapter"
         ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
@@ -1094,7 +1094,7 @@ class TestPostActionSnapshots:
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get, mock.patch(
-            "tools.browser.browser_tool.get_browser_use_adapter"
+            "tools.browser.browser_tool.get_browser_adapter"
         ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
@@ -1129,7 +1129,7 @@ class TestPostActionSnapshots:
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get, mock.patch(
-            "tools.browser.browser_tool.get_browser_use_adapter"
+            "tools.browser.browser_tool.get_browser_adapter"
         ) as mock_get_adapter, mock.patch.dict(
             "os.environ",
             {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1"},
@@ -1156,7 +1156,7 @@ class TestTypeAction:
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get, mock.patch(
-            "tools.browser.browser_tool.get_browser_use_adapter"
+            "tools.browser.browser_tool.get_browser_adapter"
         ) as mock_get_adapter, mock.patch.dict(
             "os.environ",
             {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1"},
@@ -1185,7 +1185,7 @@ class TestScreenshotAction:
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get, mock.patch(
-            "tools.browser.browser_tool.get_browser_use_adapter"
+            "tools.browser.browser_tool.get_browser_adapter"
         ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
@@ -1263,7 +1263,7 @@ class TestGetTabsAction:
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get, mock.patch(
-            "tools.browser.browser_tool.get_browser_use_adapter"
+            "tools.browser.browser_tool.get_browser_adapter"
         ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
