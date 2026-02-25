@@ -58,7 +58,7 @@ title: "WindieOS Browser Use Hard-Merge Plan (2026-02-25)"
    - Split public schema into canonical model + legacy compatibility layer.
    - Keep legacy aliases parseable but mark deprecated in descriptions/tests.
    - Add strict-mode option for canonical-only execution in tests/CI.
-   - Status: in progress (2026-02-25)
+   - Status: completed (2026-02-25)
      - backend action types split into canonical vs legacy aliases
      - strict mode env wired: `WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1`
 
@@ -66,7 +66,7 @@ title: "WindieOS Browser Use Hard-Merge Plan (2026-02-25)"
    - Remove alias transforms from adapter hot path.
    - Route canonical actions directly to Browser Use-native handlers.
    - Keep a thin legacy shim only for controlled fallback.
-   - Status: in progress (2026-02-25)
+   - Status: completed (2026-02-25)
      - canonical actions now dispatch directly through runtime action bridge
      - legacy alias wrappers retained as thin compatibility shim
      - legacy `act` envelope narrowed to adapter-internal handling only during Phase 3 (later removed in Phase 4)
@@ -77,7 +77,7 @@ title: "WindieOS Browser Use Hard-Merge Plan (2026-02-25)"
    - Disable legacy aliases by default (feature flag first).
    - Remove `act` envelope compatibility path.
    - Delete dead alias code + tests after rollout window.
-   - Status: in progress (2026-02-25)
+   - Status: completed (2026-02-25)
      - legacy aliases now disabled by default in backend + sidecar runtime gates
      - rollout flag updated: `WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1` temporarily re-enables legacy aliases without requiring strict mode
      - blocked legacy alias attempts now emit warning logs in sidecar + backend paths for rollout observability
