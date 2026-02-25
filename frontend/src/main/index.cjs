@@ -5,6 +5,11 @@ const { initializeWakewordBridge } = require('./wakeword_bridge.cjs');
 const { initializeLocalBackendBridge, stopLocalBackend } = require('./local_backend_bridge.cjs');
 const { handleGetDisplays } = require('./display_query_handler.cjs');
 const {
+  handleHideChatbox,
+  handleShowChatbox,
+  handleShowMainWindow,
+} = require('./overlay_visibility_handler.cjs');
+const {
   handleWindowClose,
   handleWindowMinimize,
   handleWindowToggleMaximize,
@@ -823,20 +828,15 @@ function initializeOverlayHandlers() {
   });
 
   ipcMain.handle('show-main-window', async () => {
-    try {
-      return showMainWindow({ focus: true });
-    } catch (error) {
-      return { success: false, reason: `Failed to show main window: ${error.message}` };
-    }
+    return handleShowMainWindow({ showMainWindow });
   });
 
   ipcMain.handle('show-chatbox', async (event, options = {}) => {
-    const focus = options?.focus !== false;
-    return showChatWindow({ focus });
+    return handleShowChatbox(options, { showChatWindow });
   });
 
   ipcMain.handle('hide-chatbox', async () => {
-    return hideChatWindow();
+    return handleHideChatbox({ hideChatWindow });
   });
 
   ipcMain.handle('get-displays', async () => {
