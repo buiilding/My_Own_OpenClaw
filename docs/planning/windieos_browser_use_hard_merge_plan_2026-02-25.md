@@ -87,6 +87,7 @@ title: "WindieOS Browser Use Hard-Merge Plan (2026-02-25)"
      - sidecar schema registry no longer advertises `act` as a valid compatibility action (`validate_browser_args("act", ...)` now rejects)
      - backend OpenClaw compatibility schema now excludes removed aliases (`BrowserOpenClawCompatArgs(action="act")` validation rejects)
      - historical `act` envelope `request` field removed from backend + sidecar OpenClaw compatibility models
+     - backend OpenClaw action typing now matches sidecar OpenClaw subset (legacy aliases like `type`/`press`/`switch_tab` are no longer accepted by `BrowserOpenClawCompatArgs`)
 
 ## Safety Gates
 
