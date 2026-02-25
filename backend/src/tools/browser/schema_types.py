@@ -55,7 +55,28 @@ BrowserAction = BrowserCanonicalAction | BrowserLegacyCompatAction | BrowserRemo
 
 # Backward-compatible aliases for older imports.
 BrowserCoreAction = BrowserCanonicalAction
-BrowserOpenClawAction = BrowserCanonicalAction | BrowserLegacyCompatAction
+BrowserOpenClawAction = Literal[
+    "status",
+    "profiles",
+    "open",
+    "done",
+    "search",
+    "go_back",
+    "search_page",
+    "find_elements",
+    "find_text",
+    "input",
+    "send_keys",
+    "switch",
+    "close_tab",
+    "dropdown_options",
+    "select_dropdown",
+    "upload_file",
+    "write_file",
+    "replace_file",
+    "read_file",
+    "read_long_content",
+]
 
 BROWSER_CANONICAL_ACTIONS = cast(
     tuple[str, ...],

@@ -457,6 +457,10 @@ class TestOpenClawCompatArgs:
         with pytest.raises(ValidationError, match="action"):
             BrowserOpenClawCompatArgs(action="act")
 
+    def test_legacy_type_alias_is_not_valid_openclaw_action(self):
+        with pytest.raises(ValidationError, match="action"):
+            BrowserOpenClawCompatArgs(action="type")
+
 
 class TestBrowserScreenshotArgs:
     """Browser screenshot schema checks."""
