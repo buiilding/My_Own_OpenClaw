@@ -22,6 +22,7 @@ const mockInvoke = jest.fn(async (channel) => {
 const mockSendRehydrateConversation = jest.fn(async () => undefined);
 const mockSetActiveConversationRef = jest.fn();
 const mockUpdateTranscriptSession = jest.fn();
+let mockSessionInfo = { conversationRef: null, userId: null };
 
 jest.mock('../../frontend/src/renderer/features/chat/components/ChatInterface', () => () => (
   <div data-testid="chat-interface-stub">ChatInterfaceStub</div>
@@ -50,6 +51,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
 }));
 
 jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
+  getTranscriptSessionInfo: () => mockSessionInfo,
   setActiveConversationRef: (...args) => mockSetActiveConversationRef(...args),
   updateTranscriptSession: (...args) => mockUpdateTranscriptSession(...args),
 }));
@@ -94,6 +96,7 @@ describe('ChatGptDashboardShell', () => {
     mockSendRehydrateConversation.mockClear();
     mockSetActiveConversationRef.mockClear();
     mockUpdateTranscriptSession.mockClear();
+    mockSessionInfo = { conversationRef: null, userId: null };
   });
 
   test('renders chat interface as primary main content', async () => {
@@ -177,5 +180,35 @@ describe('ChatGptDashboardShell', () => {
     expect(mockSendRehydrateConversation).toHaveBeenCalledWith('conv-history-1', []);
     expect(mockSetActiveConversationRef).toHaveBeenCalledWith('conv-history-1');
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-history-1', 'default_user');
+  });
+
+  test('highlights active conversation row in sidebar history', async () => {
+    const nowIso = new Date().toISOString();
+    mockSessionInfo = { conversationRef: 'conv-history-1', userId: 'default_user' };
+    mockInvoke.mockImplementation(async (channel) => {
+      if (channel === 'list-conversations') {
+        return {
+          success: true,
+          data: {
+            conversations: [
+              {
+                conversation_id: 'conv-history-1',
+                record_kind: 'transcript',
+                last_timestamp: nowIso,
+              },
+            ],
+          },
+        };
+      }
+      if (channel === 'get-conversation') {
+        return { success: true, data: { memories: [] } };
+      }
+      return { success: true, data: {} };
+    });
+
+    await renderDashboardShell();
+
+    const activeConversationButton = await screen.findByRole('button', { name: 'Conversation 1' });
+    expect(activeConversationButton).toHaveClass('active');
   });
 });
