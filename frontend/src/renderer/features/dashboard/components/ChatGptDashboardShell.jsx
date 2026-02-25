@@ -12,7 +12,6 @@ import {
   Compass,
   PanelLeft,
   PanelLeftClose,
-  User,
 } from 'lucide-react';
 import ChatInterface from '../../chat/components/ChatInterface';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
@@ -83,6 +82,31 @@ SidebarItem.propTypes = {
   onClick: PropTypes.func,
   isActive: PropTypes.bool,
   collapsed: PropTypes.bool,
+};
+
+function SidebarUserButton({ collapsed = false, onClick }) {
+  return (
+    <button
+      type="button"
+      className={`cg-user-button${collapsed ? ' collapsed' : ''}`}
+      onClick={onClick}
+      aria-label="Open settings"
+      title={collapsed ? 'Settings' : undefined}
+    >
+      <span className="cg-user-avatar" aria-hidden="true">q</span>
+      {!collapsed ? (
+        <span className="cg-user-meta">
+          <span className="cg-user-name">q p</span>
+          <span className="cg-user-plan">Pro</span>
+        </span>
+      ) : null}
+    </button>
+  );
+}
+
+SidebarUserButton.propTypes = {
+  collapsed: PropTypes.bool,
+  onClick: PropTypes.func.isRequired,
 };
 
 function DashboardModal({ isOpen, onClose, children, className = '' }) {
@@ -272,12 +296,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
           </div>
 
           <div className="cg-sidebar-footer">
-            <SidebarItem
-              label="Settings"
-              icon={User}
-              onClick={openSettings}
-              isActive={settingsOpen}
-            />
+            <SidebarUserButton onClick={openSettings} />
           </div>
         </aside>
       ) : (
@@ -351,13 +370,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
           </div>
 
           <div className="cg-sidebar-footer">
-            <SidebarItem
-              label="Settings"
-              icon={User}
-              onClick={openSettings}
-              isActive={settingsOpen}
-              collapsed
-            />
+            <SidebarUserButton collapsed onClick={openSettings} />
           </div>
         </aside>
       )}
