@@ -112,7 +112,7 @@ class TestExecuteBrowserControl:
             },
             clear=False,
         ):
-            result = await execute_browser({"action": "press", "key": "Enter"})
+            result = await execute_browser({"action": "type", "ref": "1", "text": "hello"})
 
         assert result.success is False
         assert (
@@ -131,17 +131,17 @@ class TestExecuteBrowserControl:
             clear=False,
         ):
             caplog.set_level("WARNING", logger="tools.browser.browser_tool")
-            result = await execute_browser({"action": "press", "key": "Enter"})
+            result = await execute_browser({"action": "type", "ref": "1", "text": "hello"})
 
         assert result.success is False
         assert (
-            "Legacy browser action 'press' blocked by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1; "
-            "prefer canonical action 'send_keys'"
+            "Legacy browser action 'type' blocked by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1; "
+            "prefer canonical action 'input'"
         ) in caplog.text
         record = next(
             rec
             for rec in caplog.records
-            if "Legacy browser action 'press' blocked by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1"
+            if "Legacy browser action 'type' blocked by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1"
             in rec.getMessage()
         )
         assert getattr(record, "legacy_action_gate", None) == "WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1"
@@ -471,6 +471,26 @@ class TestCompatibilityActions:
             assert (
                 "Legacy browser action 'open' blocked by legacy_alias_removed; "
                 "prefer canonical action 'navigate'"
+            ) in caplog.text
+            mock_get.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_press_alias_removed(self, caplog):
+        with mock.patch(
+            "tools.browser.browser_tool.get_browser_controller"
+        ) as mock_get, mock.patch.dict(
+            "os.environ",
+            {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1"},
+            clear=False,
+        ):
+            caplog.set_level("WARNING", logger="tools.browser.browser_tool")
+            result = await execute_browser({"action": "press", "key": "Enter"})
+
+            assert result.success is False
+            assert "Legacy browser action 'press' has been removed." in (result.error or "")
+            assert (
+                "Legacy browser action 'press' blocked by legacy_alias_removed; "
+                "prefer canonical action 'send_keys'"
             ) in caplog.text
             mock_get.assert_not_called()
 

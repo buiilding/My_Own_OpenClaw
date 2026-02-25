@@ -752,11 +752,10 @@ class TestBrowserUseCompatibilityAdapter:
             "press",
             {"action": "press", "key": "Enter"},
         )
-        assert press_result.success is True
-        assert press_result.data["browser_use_action"] == "send_keys"
-        runtime.execute_browser_use_action.assert_awaited_with(
-            action="send_keys",
-            params={"keys": "Enter"},
+        assert press_result.success is False
+        assert press_result.error_code == "INVALID_ARGUMENT"
+        assert "Legacy browser action 'press' has been removed." in (
+            press_result.error or ""
         )
         runtime.press_key.assert_not_awaited()
 
