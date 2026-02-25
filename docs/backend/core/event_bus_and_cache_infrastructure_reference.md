@@ -193,3 +193,9 @@ If cache behavior looks wrong:
 3. confirm key generation consistency (tool name/text hashing)
 4. check whether call path uses `get/set` directly vs compute helper path
 
+## Related Pages
+
+- [Backend Core Infrastructure Docs Hub](README.md)
+- [Backend Core Cache Docs Hub](cache/README.md)
+- [Cache Store TTL, LRU, Negative-Cache, and Sync/Async Waiter Contract Reference](cache/cache_store_ttl_lru_negative_cache_and_sync_async_waiter_contract_reference.md)
+- [Cache Manager Namespace Keying, Cache Entry Dataclass, and Facade Export Contract Reference](cache/cache_manager_namespace_keying_cache_entry_dataclass_and_facade_export_contract_reference.md)
