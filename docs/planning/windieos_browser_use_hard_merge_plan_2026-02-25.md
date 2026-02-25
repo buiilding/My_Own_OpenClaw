@@ -67,6 +67,7 @@ title: "WindieOS Browser Use Hard-Merge Plan (2026-02-25)"
    - Status: in progress (2026-02-25)
      - canonical actions now dispatch directly through runtime action bridge
      - legacy alias wrappers retained as thin compatibility shim
+     - legacy `act` envelope now routes via generic execute path with minimal pre-processing only
 
 4. Phase 4: Legacy retirement
    - Disable legacy aliases by default (feature flag first).

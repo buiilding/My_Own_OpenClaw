@@ -86,6 +86,7 @@ BROWSER_USE_ACTIONS_REQUIRING_CONNECTION = frozenset(
     }
 )
 ACT_EXECUTE_FORWARD_ACTIONS = frozenset({"navigate", "extract", "scroll", "screenshot"})
+ACT_EXECUTE_COMPAT_ACTIONS = frozenset({"click", "type", "press", "wait", "evaluate"})
 SNAPSHOT_COMPATIBILITY_FIELDS = (
     "format",
     "snapshotFormat",
@@ -1051,47 +1052,27 @@ class BrowserUseCompatibilityAdapter:
         merged: dict[str, Any] = dict(args)
         merged.update(request)
 
-        if kind == "click":
-            click_result = await self.execute("click", {"action": "click", **merged})
-            return self._retag_action(click_result, "click")
-
-        if kind == "type":
-            type_args = {"action": "type", **merged}
-            type_result = await self.type_text(type_args)
-            return self._retag_action(type_result, "type")
-
-        if kind == "press":
-            press_args = {"action": "press", "key": merged.get("key"), **merged}
-            press_result = await self.press(press_args)
-            return self._retag_action(press_result, "press")
-
-        if kind in ACT_EXECUTE_FORWARD_ACTIONS:
-            forward_result = await self.execute(kind, {"action": kind, **merged})
-            return self._retag_action(forward_result, kind)
-
         if kind == "wait":
             time_ms = merged.get("timeMs")
-            wait_args = {"action": "wait", **merged}
             if isinstance(time_ms, (int, float)):
-                wait_args["seconds"] = max(0.0, float(time_ms) / 1000.0)
-            wait_result = await self.execute("wait", wait_args)
-            return self._retag_action(wait_result, "wait")
+                merged["seconds"] = max(0.0, float(time_ms) / 1000.0)
 
         if kind == "evaluate":
             fn = merged.get("fn")
-            evaluate_args = {"action": "evaluate", **merged}
             if isinstance(fn, str) and fn:
-                evaluate_args["script"] = fn
-            evaluate_result = await self.execute("evaluate", evaluate_args)
-            return self._retag_action(evaluate_result, "evaluate")
+                merged["script"] = fn
 
-        if kind in BROWSER_USE_DIRECT_ACTIONS:
-            browser_use_result = await self.execute_browser_use_action(kind, merged)
-            return self._retag_action(browser_use_result, kind)
+        if kind in ACT_EXECUTE_COMPAT_ACTIONS:
+            compat_result = await self.execute(kind, {"action": kind, **merged})
+            return self._retag_action(compat_result, kind)
+
+        if kind in ACT_EXECUTE_FORWARD_ACTIONS or kind in BROWSER_USE_DIRECT_ACTIONS:
+            forward_result = await self.execute(kind, {"action": kind, **merged})
+            return self._retag_action(forward_result, kind)
 
         if kind == "close":
             if self._extract_tab_id(merged):
-                close_tab_result = await self.execute_browser_use_action("close", merged)
+                close_tab_result = await self.execute("close", {"action": "close", **merged})
                 return self._retag_action(close_tab_result, "close")
             close_result = await self.close()
             return self._retag_action(close_result, "close")
