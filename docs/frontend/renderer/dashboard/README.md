@@ -1,8 +1,8 @@
 ---
-summary: "Renderer dashboard docs sub-hub for ChatGPT-style shell layout, sidebar/search/profile runtime, modal panel routing, and model/settings persistence semantics."
+summary: "Renderer dashboard docs sub-hub for shell routing/search/sidebar behavior, section-level panels, and dashboard-specific persistence contracts."
 read_when:
-  - When changing `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx` modal routing behavior.
-  - When modifying model selection/search/fallback logic or dashboard local-storage helpers under `features/dashboard/utils`.
+  - When changing `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx` panel routing behavior.
+  - When modifying dashboard sidebar/search UX or section components under `features/dashboard/components/sections`.
 title: "Renderer Dashboard Docs Hub"
 ---
 
@@ -10,9 +10,8 @@ title: "Renderer Dashboard Docs Hub"
 
 ## Deep Pages
 
-- [Dashboard Section Router and Placeholder Panel Contract Reference](dashboard_section_router_and_placeholder_panel_contract_reference.md)
-- [Dashboard Sidebar, Search, and Profile Menu Runtime Reference](sidebar_search_profile_menu_and_recent_conversation_resume_reference.md)
-- [Models Section Selection Reconciliation and Dashboard Storage Contract Reference](models_section_selection_reconciliation_and_dashboard_storage_contract_reference.md)
+- [Dashboard Shell Docs Hub](shell/README.md)
+- [Dashboard Sections Docs Hub](sections/README.md)
 
 ## Related Pages
 
@@ -30,6 +29,7 @@ title: "Renderer Dashboard Docs Hub"
 - `frontend/src/renderer/features/dashboard/components/sections/ModelsSection.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/SettingsSection.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/MemorySection.jsx`
+- `frontend/src/renderer/features/dashboard/components/sections/UsageSection.jsx`
 - `frontend/src/renderer/features/dashboard/utils/modelSelectionUtils.js`
 - `frontend/src/renderer/features/dashboard/utils/storage.js`
 - `tests/frontend/ModelSelectionUtils.test.js`

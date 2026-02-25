@@ -160,6 +160,6 @@ Search result render extras:
 ## Related Pages
 
 - [Renderer Dashboard Docs Hub](dashboard/README.md)
-- [Dashboard Shell Modal Routing Contract Reference](dashboard/dashboard_section_router_and_placeholder_panel_contract_reference.md)
-- [Dashboard Sidebar, Search, and Profile Menu Runtime Reference](dashboard/sidebar_search_profile_menu_and_recent_conversation_resume_reference.md)
+- [Dashboard Shell Modal Routing Contract Reference](dashboard/shell/dashboard_section_router_and_placeholder_panel_contract_reference.md)
+- [Dashboard Sidebar, Search, and Profile Menu Runtime Reference](dashboard/shell/sidebar_search_profile_menu_and_recent_conversation_resume_reference.md)
 - [Memory IPC and RPC Mapping Reference](../contracts/memory_ipc_and_rpc_mapping_reference.md)
