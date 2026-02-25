@@ -151,7 +151,6 @@ Unmount cleanup forces hide payload.
 ## Related Tests
 
 - `tests/frontend/ChatBoxResponse.test.jsx`
-- `tests/frontend/ToolGhostDebugApp.test.jsx`
 - `tests/frontend/OverlayPhaseListener.test.js`
 - `tests/frontend/OverlayFrameSize.test.js`
 
