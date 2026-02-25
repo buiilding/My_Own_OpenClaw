@@ -25,6 +25,7 @@ title: "Browser Action Compatibility and Runtime Reference"
 - Browser actions are routed through adapter/runtime path only when `action` is in `PHASE2_ADAPTER_ROUTED_ACTIONS`.
 - Sidecar runtime enforces vendored Browser Use import path; non-vendored `browser_use*` modules are purged from `sys.modules`.
 - Runtime selection accepts only `WINDIE_BROWSER_USE_RUNTIME in {"browser_use","browser_use_native"}`. Unset defaults to `browser_use_native`.
+- Optional strict action mode: `WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1` rejects legacy aliases (`open`, `type`, `press`, `switch_tab`, `act`) and requires canonical action names.
 - `connect` always targets WindieOS dedicated localhost CDP browser endpoint; external hosts are rejected.
 
 ## End-to-End Action Path

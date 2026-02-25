@@ -7,6 +7,13 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-browser-adapter): thin `BrowserUseCompatibilityAdapter.execute` hot path so canonical actions dispatch directly to runtime bridge, while legacy aliases (`open`/`type`/`press`/`switch_tab`/`act`) remain in a dedicated compatibility shim with deprecation annotations
+- refactor(browser-contract): split backend browser action typing into canonical + legacy alias layers (`BrowserCanonicalAction`, `BrowserLegacyCompatAction`) while keeping unified `BrowserControlArgs` compatibility, with helper accessors for legacy detection/preferred canonical action
+- feat(browser-strict-mode): add optional canonical-only enforcement via `WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1` in backend remote browser tool and sidecar browser tool (legacy aliases rejected with guidance), plus regression tests
+- refactor(sidecar-browser): introduce centralized browser action contract (`browser_action_contract.py`) with canonical action allowlist + legacy alias map, route `browser_tool` allowlist through it, and add adapter-level legacy alias deprecation annotations (`open`/`type`/`press`/`switch_tab`/`act`) for migration observability
+- docs(planning-browser): add `windieos_browser_use_hard_merge_plan_2026-02-25.md` with staged canonical-contract migration and adapter-retirement sequencing
+- feat(frontend-theme): align dashboard + profile/settings + memory/models + search-chats windows with always-on-top chat/response pill palette via shared `--ui-*` design tokens in `theme.css` (single "Active theme mapping" block for quick rollback)
+- feat(frontend-chat-input): support `Ctrl+V` image paste preview in dashboard composer with removable thumbnail, then upload/send clipboard image as query screenshot attachment when message is submitted
 - fix(frontend-dashboard): remove sidebar-only clone extras from WindieOS navigation (`Images`, `Apps`, `Deep research`, `Projects`, and `GPTs` entries including `Canva`/`Explore GPTs`) so the left rail focuses on core chat + memory/models + history
 - feat(frontend-search-ui): implement full transcript-aware `Search chats` (debounced backend lookup, snippet + role result rows, grouped recency sections) so users can find chats by remembered message content, not only titles
 - feat(sidecar-memory-search): add `search-conversations` IPC/JSON-RPC route to `search_conversations` with lexical transcript search (FTS5 + LIKE fallback), semantic transcript merge, and conversation-level ranking payloads

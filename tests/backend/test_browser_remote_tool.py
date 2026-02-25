@@ -58,6 +58,23 @@ class TestRemoteBrowserTool:
         assert result.tool_name == "browser"
         assert result.args["action"] == "connect"
 
+    @pytest.mark.asyncio
+    async def test_execute_remote_rejects_legacy_actions_in_strict_mode(self, monkeypatch):
+        """Strict canonical mode should reject legacy browser action aliases."""
+        monkeypatch.setenv("WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY", "1")
+        tool = RemoteBrowserTool()
+
+        mock_ctx = mock.Mock()
+        mock_ctx.session = mock.Mock()
+        mock_ctx.session.metadata = {"request_id": "strict-legacy"}
+
+        args = BrowserControlArgs(action="type", ref="1", text="hello")
+        with pytest.raises(
+            ValueError,
+            match="Legacy browser actions are disabled by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1",
+        ):
+            await tool.execute_remote(args, mock_ctx)
+
 
 class TestBrowserToolRegistry:
     """Test browser tool in registry."""
@@ -135,6 +152,11 @@ class TestBrowserControlArgs:
         assert args.ref == "3"
         assert args.text == "Hello"
         assert args.submit is True
+
+    def test_legacy_action_helper_reports_preferred_action(self):
+        args = BrowserControlArgs(action="press", key="Enter")
+        assert args.is_legacy is True
+        assert args.preferred_action == "send_keys"
 
     def test_press_action_key_field(self):
         """Test press action key field remains available."""

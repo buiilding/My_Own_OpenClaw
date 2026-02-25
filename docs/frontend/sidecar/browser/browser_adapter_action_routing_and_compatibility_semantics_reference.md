@@ -12,6 +12,7 @@ title: "Browser Adapter Action Routing and Compatibility Semantics Reference"
 
 - `frontend/src/main/python/tools/browser/browser_tool.py`
 - `frontend/src/main/python/tools/browser/browser_adapter.py`
+- `frontend/src/main/python/tools/browser/browser_action_contract.py`
 - `frontend/src/main/python/tools/browser/schemas.py`
 - `frontend/src/main/python/tools/browser/openclaw_compat_schema.py`
 - `tests/sidecar/tools/test_browser_use_adapter.py`
@@ -42,12 +43,19 @@ Unhandled action behavior:
 
 `BrowserUseCompatibilityAdapter.execute(...)` order:
 
-1. mapped handlers with args (`connect`, `open`, `type`, `press`, `switch_tab`, `act`)
-2. mapped handlers without args (`status`, `profiles`, `get_tabs`)
-3. Browser Use passthrough family (`BROWSER_USE_PASSTHROUGH_ACTIONS` + direct actions)
-4. `close` split behavior:
+1. explicit compat handlers:
+   - `connect`
+   - `profiles`
+   - legacy aliases (`open`, `type`, `press`, `switch_tab`, `act`)
+2. canonical actions dispatch directly through `execute_browser_use_action(...)`
+3. `close` split behavior inside canonical dispatch:
    - with tab identity -> Browser Use `close` action
    - without tab identity -> runtime session close
+
+Legacy alias annotation:
+
+- compatibility aliases (`open`, `type`, `press`, `switch_tab`, `act`) are annotated with adapter `deprecation` + warning text
+- routing behavior is unchanged; this is observability for migration
 
 Unknown action returns:
 

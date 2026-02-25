@@ -40,6 +40,21 @@ class TestExecuteBrowserControl:
         assert "Unhandled" in result.error
 
     @pytest.mark.asyncio
+    async def test_strict_canonical_mode_rejects_legacy_alias(self):
+        with mock.patch.dict(
+            "os.environ",
+            {"WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY": "1"},
+            clear=False,
+        ):
+            result = await execute_browser({"action": "open", "url": "https://example.com"})
+
+        assert result.success is False
+        assert (
+            "Legacy browser actions are disabled by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1."
+            in result.error
+        )
+
+    @pytest.mark.asyncio
     async def test_validation_error(self):
         """Test validation error handling."""
         with mock.patch(
