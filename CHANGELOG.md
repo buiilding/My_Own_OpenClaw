@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-voice-hooks): migrate `useVoiceMode` and `useWakewordDetection` callback/state ref mirroring to shared `useLatestRef` helper and keep hooks dependency arrays explicit for lint-safe stability
 - refactor(frontend-providers): migrate `AppProvider` and `AppConfigProvider` latest-value ref mirroring to shared `useLatestRef` helper and keep hook dependency arrays explicit for lint-safe stable callbacks/effects
 - refactor(test-tool-runner-turn-guards): split stale-turn cancellation scenarios from `ToolRunnerHook.events.test.ts` into focused `ToolRunnerHook.turnGuards.test.ts`, reducing events suite size (`460` -> `311` LOC) while preserving coverage
 - refactor(frontend-hooks): add reusable `useLatestRef` hook (`frontend/src/renderer/infrastructure/hooks/useLatestRef.ts`) and migrate chat stream/tool runner model-context ref mirroring to shared helper; add regression test `tests/frontend/useLatestRef.test.ts`

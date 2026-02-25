@@ -3686,3 +3686,15 @@ read_when:
 - Validation:
   - `cd frontend && npm run lint` (pass)
   - `cd frontend && npm run test:ci -- tests/frontend/AppProvider.test.tsx tests/frontend/AppConfigProvider.models.test.tsx tests/frontend/AppConfigProvider.storageAndIpc.test.tsx tests/frontend/AppConfigContext.test.tsx` (pass)
+
+## Phase 160 Outcome (2026-02-25)
+
+- Refactor slice: voice-hook adoption of shared latest-ref helper.
+  - migrated:
+    - `frontend/src/renderer/features/voice/hooks/useVoiceMode.ts`
+    - `frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts`
+  - replaced manual callback/state ref mirroring (`ref.current = ...`) with shared `useLatestRef`.
+  - added explicit ref dependencies to hook dependency arrays to satisfy strict lint rule configuration.
+- Validation:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/VoiceModeHook.test.ts tests/frontend/WakewordDetectionHook.test.ts tests/frontend/useLatestRef.test.ts` (pass)
