@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-renderer-styles): add `frontend/renderer/styles` subhub with deep references for global theme/accessibility/main-layout visual contracts, chat/thinking/token style-state coupling, and voice-status banner states; wire links across renderer/frontend/global docs hubs
 - docs(refactor-plan): record Phase 175 response-overlay phase-handler extraction and direct coverage in `docs/planning/windieos_refactor_plan_2026-02-23.md`
 - test(frontend-main-overlay): add `tests/frontend/ResponseOverlayPhaseHandler.test.cjs` coverage for extracted response-overlay phase transition helper
 - refactor(frontend-main-overlay): extract `handleResponseOverlayPhaseChange` control flow from `frontend/src/main/index.cjs` into `frontend/src/main/response_overlay_phase_handler.cjs`
