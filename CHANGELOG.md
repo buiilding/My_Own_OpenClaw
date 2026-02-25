@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(sidecar-browser-runtime): fix remaining runtime-reference constant naming (`BROWSER_ROUTED_ACTIONS` replacing stale `PHASE2_ADAPTER_ROUTED_ACTIONS`)
 - test(sidecar-browser-runtime): remove redundant legacy-env patching from removed-alias browser tool tests and rename routing suite from phase-specific to generic adapter-routing coverage
 - docs(backend-browser-contracts): align backend parity/runtime references with removed-alias-only gating (`type/open/switch_tab/press/act`) and remove stale strict/allow legacy-gate wording
 - docs(sidecar-browser-runtime): align browser automation stack + adapter routing references with Phase 4 naming and behavior (`BROWSER_ROUTED_ACTIONS`, `BrowserRuntimeAdapter`, removed alias handling for `type/open/press/switch_tab/act`) and refresh hard-merge plan status notes
