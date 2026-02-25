@@ -266,7 +266,7 @@ MemoryItem.propTypes = {
   onEditedDetailChange: PropTypes.func.isRequired,
 };
 
-function MemorySection() {
+function MemorySection({ onClose = () => {} }) {
   const sessionInfo = useTranscriptSessionInfo();
   const [activeType, setActiveType] = useState('episodic');
   const [searchQuery, setSearchQuery] = useState('');
@@ -431,6 +431,16 @@ function MemorySection() {
 
   return (
     <div className="clone-memory-panel">
+      <div className="clone-panel-close-row">
+        <button
+          type="button"
+          className="clone-panel-close"
+          onClick={onClose}
+          aria-label="Close memory"
+        >
+          <X size={18} />
+        </button>
+      </div>
       <div className="clone-panel-header">
         <h1>Memory</h1>
         <p>WindieOS builds understanding from every interaction</p>
@@ -568,5 +578,9 @@ function MemorySection() {
     </div>
   );
 }
+
+MemorySection.propTypes = {
+  onClose: PropTypes.func,
+};
 
 export default MemorySection;

@@ -4,7 +4,7 @@ import {
   PenSquare,
   Search,
   Brain,
-  Sparkles,
+  BarChart3,
   Cpu,
   PanelLeft,
   PanelLeftClose,
@@ -21,6 +21,7 @@ const PRIMARY_NAV_ITEMS = Object.freeze([
 
 const PRODUCT_NAV_ITEMS = Object.freeze([
   { id: 'memory', label: 'Memory', icon: Brain },
+  { id: 'usage', label: 'Usage', icon: BarChart3 },
   { id: 'models', label: 'Models', icon: Cpu },
 ]);
 
@@ -155,15 +156,6 @@ function SidebarUserMenu({ collapsed = false, onOpenSettings }) {
           <button
             type="button"
             className="cg-user-menu-item"
-            onClick={() => handleOpenSettings('personalization')}
-            role="menuitem"
-          >
-            <Sparkles size={16} />
-            <span>Personalization</span>
-          </button>
-          <button
-            type="button"
-            className="cg-user-menu-item"
             onClick={() => handleOpenSettings('general')}
             role="menuitem"
             data-testid="sidebar-user-menu-settings"
@@ -200,10 +192,12 @@ function DashboardSidebar({
   onStartNewChat,
   onOpenSearch,
   onOpenMemory,
+  onOpenUsage,
   onOpenModels,
   onOpenSettings,
   searchOpen,
   memoryOpen,
+  usageOpen,
   modelsOpen,
   isLoadingRecentConversations,
   recentConversationsError,
@@ -258,8 +252,8 @@ function DashboardSidebar({
                 key={item.id}
                 label={item.label}
                 icon={item.icon}
-                onClick={item.id === 'memory' ? onOpenMemory : onOpenModels}
-                isActive={item.id === 'memory' ? memoryOpen : modelsOpen}
+                onClick={item.id === 'memory' ? onOpenMemory : item.id === 'usage' ? onOpenUsage : onOpenModels}
+                isActive={item.id === 'memory' ? memoryOpen : item.id === 'usage' ? usageOpen : modelsOpen}
                 collapsed
               />
             ))}
@@ -313,8 +307,8 @@ function DashboardSidebar({
               key={item.id}
               label={item.label}
               icon={item.icon}
-              onClick={item.id === 'memory' ? onOpenMemory : onOpenModels}
-              isActive={item.id === 'memory' ? memoryOpen : modelsOpen}
+              onClick={item.id === 'memory' ? onOpenMemory : item.id === 'usage' ? onOpenUsage : onOpenModels}
+              isActive={item.id === 'memory' ? memoryOpen : item.id === 'usage' ? usageOpen : modelsOpen}
             />
           ))}
         </nav>
@@ -388,10 +382,12 @@ DashboardSidebar.propTypes = {
   onStartNewChat: PropTypes.func.isRequired,
   onOpenSearch: PropTypes.func.isRequired,
   onOpenMemory: PropTypes.func.isRequired,
+  onOpenUsage: PropTypes.func.isRequired,
   onOpenModels: PropTypes.func.isRequired,
   onOpenSettings: PropTypes.func.isRequired,
   searchOpen: PropTypes.bool.isRequired,
   memoryOpen: PropTypes.bool.isRequired,
+  usageOpen: PropTypes.bool.isRequired,
   modelsOpen: PropTypes.bool.isRequired,
   isLoadingRecentConversations: PropTypes.bool.isRequired,
   recentConversationsError: PropTypes.string.isRequired,

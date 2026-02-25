@@ -46,6 +46,10 @@ jest.mock('../../frontend/src/renderer/features/dashboard/components/sections/Me
   <div data-testid="memory-section-stub">MemorySectionStub</div>
 ));
 
+jest.mock('../../frontend/src/renderer/features/dashboard/components/sections/UsageSection', () => () => (
+  <div data-testid="usage-section-stub">UsageSectionStub</div>
+));
+
 jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
   ApiClient: {
     sendRehydrateConversation: (...args) => mockSendRehydrateConversation(...args),
@@ -127,12 +131,21 @@ describe('ChatGptDashboardShell', () => {
     expect(screen.getByTestId('models-section-stub')).toBeInTheDocument();
   });
 
+  test('sidebar usage button opens usage modal', async () => {
+    await renderDashboardShell();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Usage' }));
+
+    expect(screen.getByTestId('usage-section-stub')).toBeInTheDocument();
+  });
+
   test('profile click opens menu first, then settings from menu item', async () => {
     await renderDashboardShell();
 
     fireEvent.click(screen.getByTestId('sidebar-user-menu-trigger'));
 
     expect(screen.queryByTestId('settings-section-stub')).not.toBeInTheDocument();
+    expect(screen.queryByText('Personalization')).not.toBeInTheDocument();
     expect(screen.getByTestId('sidebar-user-menu-settings')).toBeInTheDocument();
 
     fireEvent.click(screen.getByTestId('sidebar-user-menu-settings'));
