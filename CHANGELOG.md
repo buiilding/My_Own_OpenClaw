@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(planning-browser): update hard-merge plan Phase 4 status to capture blocked-legacy warning-log observability across sidecar/backend rollout gates
 - test(sidecar-browser-runtime): add direct unit coverage for `browser_runtime_extraction.py` provider normalization, runtime/env target resolution, OpenAI-compatible default base URL mapping, and unsupported-provider errors
 - feat(browser-rollout-observability): emit warning logs for blocked legacy browser aliases (default-disabled and strict-mode gates) in both sidecar and backend remote tool paths, with regression tests
 - refactor(sidecar-browser-use): prune vendored `browser_use` lazy export/type-stub surface to WindieOS-supported providers (`ChatOpenAI`/`ChatGoogle`/`ChatMistral`), fix checkbox click-description state emission indentation in Browser Use tool utils, and harden parity tests to source backend browser action literals from typed `BrowserAction` instead of regex-parsing schema files

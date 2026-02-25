@@ -76,6 +76,7 @@ title: "WindieOS Browser Use Hard-Merge Plan (2026-02-25)"
    - Status: in progress (2026-02-25)
      - legacy aliases now disabled by default in backend + sidecar runtime gates
      - rollout flag updated: `WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1` temporarily re-enables legacy aliases without requiring strict mode
+     - blocked legacy alias attempts now emit warning logs in sidecar + backend paths for rollout observability
 
 ## Safety Gates
 
