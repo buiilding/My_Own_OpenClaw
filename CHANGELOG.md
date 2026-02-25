@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): record Phase 162 main-process overlay handler extraction and validation snapshot in `docs/planning/windieos_refactor_plan_2026-02-23.md`
+- refactor(frontend-main-overlay): extract `set-responsebox-size` IPC handler from `frontend/src/main/index.cjs` into `frontend/src/main/overlay_responsebox_handler.cjs`, isolating fullscreen-bounds and visibility/show control flow
 - docs(frontend-renderer-chat-response-overlay-presentation): add `renderer/chat/presentation/response_overlay` subhub with `ToolGhostCursor` markup/a11y contract and `useAutoResizedResponseHeight` resizeobserver/clamp lifecycle reference; wire links from chat/presentation/renderer hubs and refresh tool-ghost docs code-scope test paths
 - refactor(test-tool-ghost-preview): replace full-object fallback equality assertion with behavior-focused checks in `ToolGhostPreview.test.js`, removing the remaining frontend javascript jscpd clone (`28` total clones in latest audit)
 - refactor(frontend-voice-hooks): migrate `useVoiceMode` and `useWakewordDetection` callback/state ref mirroring to shared `useLatestRef` helper and keep hooks dependency arrays explicit for lint-safe stability
