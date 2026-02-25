@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-renderer-transcript): add queue subhub documenting pending queue FIFO/drain mechanics and category-ordered requeue behavior in flush pipeline
 - docs(backend-llm-local-provider): add http-client subhub for shared AsyncClient lock/finalizer lifecycle and provider-factory cache coupling semantics
 - docs(backend-api-websocket): add websocket subhub for object-root parse policy, size/schema guard flow, timeout-close semantics, and task-limit scheduling contracts
 - docs(frontend-main-local-backend): add windows subhub for resolver input-shape normalization and Linux screenshot hide/restore orchestration contracts
