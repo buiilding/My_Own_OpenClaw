@@ -74,7 +74,8 @@ title: "WindieOS Browser Use Hard-Merge Plan (2026-02-25)"
    - Remove `act` envelope compatibility path.
    - Delete dead alias code + tests after rollout window.
    - Status: in progress (2026-02-25)
-     - rollout flag added: `WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=0` disables legacy aliases without requiring strict mode
+     - legacy aliases now disabled by default in backend + sidecar runtime gates
+     - rollout flag updated: `WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1` temporarily re-enables legacy aliases without requiring strict mode
 
 ## Safety Gates
 

@@ -65,7 +65,18 @@ class TestExecuteBrowserControl:
 
         assert result.success is False
         assert (
-            "Legacy browser actions are disabled by WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=0."
+            "Legacy browser actions are disabled by WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1."
+            in result.error
+        )
+
+    @pytest.mark.asyncio
+    async def test_legacy_aliases_disabled_by_default(self):
+        with mock.patch.dict("os.environ", {}, clear=False):
+            result = await execute_browser({"action": "open", "url": "https://example.com"})
+
+        assert result.success is False
+        assert (
+            "Legacy browser actions are disabled by WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1."
             in result.error
         )
 
@@ -121,7 +132,11 @@ class TestExecuteBrowserControl:
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get_controller, mock.patch(
             "tools.browser.browser_tool.get_browser_use_adapter"
-        ) as mock_get_adapter:
+        ) as mock_get_adapter, mock.patch.dict(
+            "os.environ",
+            {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1"},
+            clear=False,
+        ):
             caplog.set_level("WARNING", logger="tools.browser.browser_tool")
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
@@ -202,7 +217,11 @@ class TestPhase2AdapterRouting:
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get_controller, mock.patch(
             "tools.browser.browser_tool.get_browser_use_adapter"
-        ) as mock_get_adapter:
+        ) as mock_get_adapter, mock.patch.dict(
+            "os.environ",
+            {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1"},
+            clear=False,
+        ):
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
             mock_get_controller.return_value = mock_controller
@@ -382,7 +401,11 @@ class TestCompatibilityActions:
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get, mock.patch(
             "tools.browser.browser_tool.get_browser_use_adapter"
-        ) as mock_get_adapter:
+        ) as mock_get_adapter, mock.patch.dict(
+            "os.environ",
+            {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1"},
+            clear=False,
+        ):
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
             mock_get.return_value = mock_controller
@@ -413,7 +436,11 @@ class TestCompatibilityActions:
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get, mock.patch(
             "tools.browser.browser_tool.get_browser_use_adapter"
-        ) as mock_get_adapter:
+        ) as mock_get_adapter, mock.patch.dict(
+            "os.environ",
+            {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1"},
+            clear=False,
+        ):
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
             mock_get.return_value = mock_controller
@@ -447,7 +474,11 @@ class TestCompatibilityActions:
     async def test_act_hover(self):
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get:
+        ) as mock_get, mock.patch.dict(
+            "os.environ",
+            {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1"},
+            clear=False,
+        ):
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
             mock_get.return_value = mock_controller
@@ -1149,7 +1180,11 @@ class TestPostActionSnapshots:
         """act(close) should not request an automatic snapshot."""
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get:
+        ) as mock_get, mock.patch.dict(
+            "os.environ",
+            {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1"},
+            clear=False,
+        ):
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
             mock_controller.close = mock.AsyncMock()
@@ -1179,7 +1214,11 @@ class TestTypeAction:
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get, mock.patch(
             "tools.browser.browser_tool.get_browser_use_adapter"
-        ) as mock_get_adapter:
+        ) as mock_get_adapter, mock.patch.dict(
+            "os.environ",
+            {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1"},
+            clear=False,
+        ):
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
             mock_get.return_value = mock_controller
@@ -1339,7 +1378,11 @@ class TestSwitchTabAction:
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get, mock.patch(
             "tools.browser.browser_tool.get_browser_use_adapter"
-        ) as mock_get_adapter:
+        ) as mock_get_adapter, mock.patch.dict(
+            "os.environ",
+            {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1"},
+            clear=False,
+        ):
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
             mock_get.return_value = mock_controller
