@@ -585,13 +585,20 @@
 
 .message-input-container {
   width: 100%;
+  max-width: 48rem;
+  margin: 0 auto;
   padding: 8px 16px 16px;
   box-sizing: border-box;
 }
 
 .message-input-centered {
+  width: 100%;
   max-width: 800px;
   padding: 0;
+}
+
+.message-input-centered .message-input-form {
+  min-height: 100px;
 }
 
 .message-input-form {
