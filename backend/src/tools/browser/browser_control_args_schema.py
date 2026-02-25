@@ -7,7 +7,6 @@ from pydantic import ConfigDict, Field
 from backend.src.tools.browser.schema_types import (
     BrowserAction,
     BROWSER_COMPAT_ACTION_PREFERRED,
-    BROWSER_LEGACY_COMPAT_ACTIONS,
     BrowserCanonicalAction,
     BrowserMouseButton,
     BrowserNavigationState,
@@ -207,22 +206,12 @@ class BrowserControlArgs(_BrowserControlArgsBase):
     """
     Unified browser control arguments accepted at the backend boundary.
 
-    Keeps legacy aliases parseable while migration to canonical-only actions is in progress.
+    Keeps removed aliases parseable for explicit migration errors and guidance.
     """
 
     action: BrowserAction = Field(..., description="Browser action to perform")
 
-    @classmethod
-    def is_legacy_action(cls, action: str) -> bool:
-        """Return True when action is a legacy compatibility alias."""
-        return action in BROWSER_LEGACY_COMPAT_ACTIONS
-
-    @property
-    def is_legacy(self) -> bool:
-        """True when this payload uses a legacy compatibility alias."""
-        return self.is_legacy_action(self.action)
-
     @property
     def preferred_action(self) -> str | None:
-        """Canonical action recommendation for legacy aliases."""
+        """Canonical action recommendation for removed aliases."""
         return BROWSER_COMPAT_ACTION_PREFERRED.get(self.action)
