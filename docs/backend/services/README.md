@@ -22,6 +22,9 @@ title: "Backend Services Docs Hub"
 - [OCR and Vision Coordinate Runtime Overview](ocr_and_vision_coordinate_runtime_reference.md)
 - [OCR Service and Screenshot State-Machine Reference](screen_grounding/ocr_service_and_screenshot_state_machine_reference.md)
 - [Vision Provider Runtime and Coordinate-Scaling Reference](screen_grounding/vision_provider_runtime_and_coordinate_scaling_reference.md)
+- [Screen-Grounding Vision Docs Hub](screen_grounding/vision/README.md)
+- [Provider Loader Device-Map, Direct, CPU Fallback, and Dtype Contract Reference](screen_grounding/vision/provider_loader_device_map_direct_cpu_fallback_and_dtype_contract_reference.md)
+- [InternVL Chat/Generate Fallback and Runtime Flash-Attention Disable Reference](screen_grounding/vision/internvl_chat_generate_fallback_and_runtime_flash_attention_disable_reference.md)
 
 ## Code Scope
 
