@@ -3911,3 +3911,24 @@ read_when:
 - Validation:
   - `cd frontend && npm run lint` (pass)
   - `cd frontend && npm run test:ci -- tests/frontend/ResponseOverlayPhaseHandler.test.cjs tests/frontend/OverlayRendererRegistration.test.cjs tests/frontend/OverlayVisibilityHandler.test.cjs tests/frontend/DisplayQueryHandler.test.cjs tests/frontend/OverlayMouseHandler.test.cjs tests/frontend/MainWindowControlsHandler.test.cjs tests/frontend/OverlayResponseboxHandler.test.cjs tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs` (pass)
+
+## Phase 176 Outcome (2026-02-25)
+
+- Refactor slice: extract external window-focus snapshot/restore logic from `index.cjs`.
+  - added:
+    - `frontend/src/main/external_focus_tracker.cjs`:
+      - `createExternalFocusTracker(...)`
+      - `isAppWindowTitle(...)`
+  - updated:
+    - `frontend/src/main/index.cjs` now uses shared tracker instance for:
+      - query pre-capture focus restore path
+      - chatbox-focus external window snapshot path
+    - removed local external-focus id/title state and duplicated title/window-manager guard logic from `index.cjs`.
+  - added tests:
+    - `tests/frontend/ExternalFocusTracker.test.cjs`
+    - covers marker matching, non-win32 no-op, app-title ignore, restore-by-id, restore-by-title fallback, and restore error warning path.
+  - impact:
+    - reduced stateful window-manager logic in `index.cjs` and locked focus-tracker behavior with direct unit coverage.
+- Validation:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/ExternalFocusTracker.test.cjs tests/frontend/ResponseOverlayPhaseHandler.test.cjs tests/frontend/OverlayRendererRegistration.test.cjs tests/frontend/OverlayVisibilityHandler.test.cjs tests/frontend/DisplayQueryHandler.test.cjs tests/frontend/OverlayMouseHandler.test.cjs tests/frontend/MainWindowControlsHandler.test.cjs tests/frontend/OverlayResponseboxHandler.test.cjs tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs tests/frontend/IpcMainBridge.query.test.cjs` (pass)
