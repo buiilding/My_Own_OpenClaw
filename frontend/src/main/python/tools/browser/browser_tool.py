@@ -22,7 +22,7 @@ BrowserUseNativeRuntimeProvider = _runtime.BrowserUseNativeRuntimeProvider
 
 logger = logging.getLogger(__name__)
 
-PHASE2_ADAPTER_ROUTED_ACTIONS = BROWSER_ALL_ACTIONS
+BROWSER_ROUTED_ACTIONS = BROWSER_ALL_ACTIONS
 
 
 def _log_legacy_action_warning(
@@ -144,12 +144,12 @@ def _adapter_result_to_tool_result(result: AdapterActionResult) -> ToolResult:
     return ToolResult.error_result("Action failed")
 
 
-async def _run_phase2_adapter_action(args: Dict[str, Any]) -> ToolResult:
+async def _run_browser_action(args: Dict[str, Any]) -> ToolResult:
     action = args.get("action")
     if not isinstance(action, str) or not action:
         return ToolResult.error_result("Missing required 'action' parameter")
 
-    if action not in PHASE2_ADAPTER_ROUTED_ACTIONS:
+    if action not in BROWSER_ROUTED_ACTIONS:
         return ToolResult.error_result(f"Unhandled action: {action}")
 
     if action in REMOVED_BROWSER_ACTION_ALIASES:
@@ -182,9 +182,9 @@ async def execute_browser(raw_args: Dict[str, Any]) -> ToolResult:
         return ToolResult.error_result("Missing required 'action' parameter")
 
     try:
-        if action not in PHASE2_ADAPTER_ROUTED_ACTIONS:
+        if action not in BROWSER_ROUTED_ACTIONS:
             return ToolResult.error_result(f"Unhandled action: {action}")
-        return await _run_phase2_adapter_action(raw_args)
+        return await _run_browser_action(raw_args)
     except Exception as exc:
         logger.exception("Browser action '%s' failed", action)
         return ToolResult.error_result(f"Action failed: {str(exc)}")
