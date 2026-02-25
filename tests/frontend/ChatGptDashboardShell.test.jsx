@@ -17,6 +17,12 @@ const mockInvoke = jest.fn(async (channel) => {
       data: { memories: [] },
     };
   }
+  if (channel === 'search-conversations') {
+    return {
+      success: true,
+      data: { conversations: [] },
+    };
+  }
   return { success: true, data: {} };
 });
 const mockSendRehydrateConversation = jest.fn(async () => undefined);
@@ -65,6 +71,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   INVOKE_CHANNELS: {
     LIST_CONVERSATIONS: 'list-conversations',
     GET_CONVERSATION: 'get-conversation',
+    SEARCH_CONVERSATIONS: 'search-conversations',
   },
   ON_CHANNELS: {
     MAIN_WINDOW_OPEN_TARGET: 'main-window-open-target',
@@ -274,6 +281,23 @@ describe('ChatGptDashboardShell', () => {
           },
         };
       }
+      if (channel === 'search-conversations') {
+        return {
+          success: true,
+          data: {
+            conversations: [
+              {
+                conversation_id: 'conv-history-2',
+                record_kind: 'transcript',
+                last_timestamp: nowIso,
+                title: 'Vietnamese-speaking lawyer leads',
+                snippet: 'You: Looking for Vietnamese-speaking lawyer lead in California.',
+                matched_role: 'user',
+              },
+            ],
+          },
+        };
+      }
       if (channel === 'get-conversation') {
         return { success: true, data: { memories: [] } };
       }
@@ -289,10 +313,20 @@ describe('ChatGptDashboardShell', () => {
     expect(within(dialog).getByRole('button', { name: 'New chat' })).toBeInTheDocument();
 
     fireEvent.change(input, { target: { value: 'lawyer' } });
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith(
+        'search-conversations',
+        expect.objectContaining({
+          query: 'lawyer',
+          userId: 'default_user',
+        }),
+      );
+    });
     expect(within(dialog).queryByText('Moon Landing Technology Explained')).not.toBeInTheDocument();
     expect(within(dialog).getByText('Vietnamese-speaking lawyer leads')).toBeInTheDocument();
+    expect(within(dialog).getByText(/You: Looking for Vietnamese-speaking lawyer lead/i)).toBeInTheDocument();
 
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Vietnamese-speaking lawyer leads' }));
+    fireEvent.click(within(dialog).getByText('Vietnamese-speaking lawyer leads').closest('button'));
 
     await waitFor(() => {
       expect(mockInvoke).toHaveBeenCalledWith(

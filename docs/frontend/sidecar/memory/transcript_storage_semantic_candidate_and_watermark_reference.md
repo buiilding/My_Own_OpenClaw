@@ -96,6 +96,7 @@ Conversation query/delete APIs are transcript-scoped:
 
 - `list_conversations(...)` ignores non-transcript kinds and returns transcript windows only
 - `list_conversations(...)` includes `title` and `title_source`; titles are generated heuristically from the first user/assistant turn pair
+- `search_conversations(...)` searches transcript message content (lexical + semantic) and returns ranked conversation-level matches with snippets
 - `get_episodic_memories_by_conversation(...)` applies `record_kind='transcript'`
 - `delete_conversation(...)` applies `record_kind='transcript'`, cleans vector-ID maps for deleted rows, and removes any persisted row in `conversation_titles`
 

@@ -282,6 +282,70 @@ async def init_episodic_schema(db_path: str) -> None:
         """
         )
 
+        # Transcript full-text search index (best effort).
+        # Some SQLite builds may omit FTS5 support; keep startup resilient.
+        try:
+            await cursor.execute(
+                """
+                CREATE VIRTUAL TABLE IF NOT EXISTS transcript_fts
+                USING fts5(
+                    content,
+                    content='memories',
+                    content_rowid='rowid'
+                )
+            """
+            )
+            await cursor.execute(
+                """
+                CREATE TRIGGER IF NOT EXISTS transcript_fts_insert
+                AFTER INSERT ON memories
+                WHEN NEW.record_kind = 'transcript'
+                  AND NEW.content IS NOT NULL
+                  AND NEW.content != ''
+                BEGIN
+                    INSERT INTO transcript_fts(rowid, content)
+                    VALUES (NEW.rowid, NEW.content);
+                END
+            """
+            )
+            await cursor.execute(
+                """
+                CREATE TRIGGER IF NOT EXISTS transcript_fts_delete
+                AFTER DELETE ON memories
+                WHEN OLD.record_kind = 'transcript'
+                  AND OLD.content IS NOT NULL
+                  AND OLD.content != ''
+                BEGIN
+                    INSERT INTO transcript_fts(transcript_fts, rowid, content)
+                    VALUES ('delete', OLD.rowid, OLD.content);
+                END
+            """
+            )
+            await cursor.execute(
+                """
+                CREATE TRIGGER IF NOT EXISTS transcript_fts_update
+                AFTER UPDATE ON memories
+                WHEN (
+                    OLD.record_kind = 'transcript'
+                    OR NEW.record_kind = 'transcript'
+                )
+                BEGIN
+                    INSERT INTO transcript_fts(transcript_fts, rowid, content)
+                    VALUES ('delete', OLD.rowid, OLD.content);
+                    INSERT INTO transcript_fts(rowid, content)
+                    SELECT NEW.rowid, NEW.content
+                    WHERE NEW.record_kind = 'transcript'
+                      AND NEW.content IS NOT NULL
+                      AND NEW.content != '';
+                END
+            """
+            )
+        except Exception as exc:
+            logger.warning(
+                "Transcript FTS index is unavailable; falling back to LIKE search: %s",
+                exc,
+            )
+
         await conn.commit()
 
 

@@ -35,6 +35,17 @@ class DummyMemoryStore:
         self.added.append((content, user_id, metadata, conversation_id, kwargs))
         return "memory-1"
 
+    async def search_conversations(self, user_id, query, limit=40):
+        return [
+            {
+                "conversation_id": "conv-1",
+                "title": "Ubuntu mic settings fix",
+                "snippet": "Assistant: Open sound settings and select the right input device.",
+                "matched_role": "assistant",
+                "last_timestamp": "2026-02-25T00:00:00+00:00",
+            }
+        ]
+
     async def increment_pending_count(self):
         self.pending_count += 1
 
@@ -61,9 +72,14 @@ class DummyMemoryStoreCapturing(DummyMemoryStore):
         super().__init__()
         self.results = results
         self.search_calls = []
+        self.search_conversation_calls = []
 
     async def search(self, query, user_id, filters, limit):
         self.search_calls.append((query, user_id, filters, limit))
+        return self.results
+
+    async def search_conversations(self, user_id, query, limit=40):
+        self.search_conversation_calls.append((user_id, query, limit))
         return self.results
 
 
@@ -263,6 +279,32 @@ async def test_handle_search_memory_groups_results():
     assert result["success"] is True
     assert result["data"]["memories"]["semantic"] == ["fact"]
     assert result["data"]["memories"]["episodic"] == ["event"]
+
+
+@pytest.mark.asyncio
+async def test_handle_search_conversations_returns_matches():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStoreCapturing(
+        [
+            {
+                "conversation_id": "conv-2",
+                "title": "Legal research thread",
+                "snippet": "You: Need a Vietnamese-speaking lawyer lead in CA.",
+                "matched_role": "user",
+                "last_timestamp": "2026-02-25T00:00:00+00:00",
+            }
+        ]
+    )
+
+    result = await backend._handle_search_conversations(
+        query="vietnamese lawyer",
+        user_id="user-1",
+        limit=25,
+    )
+    assert result["success"] is True
+    assert result["data"]["count"] == 1
+    assert result["data"]["conversations"][0]["conversation_id"] == "conv-2"
+    assert backend.memory_store.search_conversation_calls == [("user-1", "vietnamese lawyer", 25)]
 
 
 @pytest.mark.asyncio

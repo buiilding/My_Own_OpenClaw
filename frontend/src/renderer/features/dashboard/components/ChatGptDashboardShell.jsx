@@ -60,6 +60,10 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
   const [modelsOpen, setModelsOpen] = useState(false);
   const [memoryOpen, setMemoryOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchedConversations, setSearchedConversations] = useState([]);
+  const [isSearchingConversations, setIsSearchingConversations] = useState(false);
+  const [searchConversationsError, setSearchConversationsError] = useState('');
   const [recentConversations, setRecentConversations] = useState([]);
   const [isLoadingRecentConversations, setIsLoadingRecentConversations] = useState(false);
   const [recentConversationsError, setRecentConversationsError] = useState('');
@@ -112,6 +116,10 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
 
   const handleOpenSearch = useCallback(() => {
     closeAllPanels();
+    setSearchQuery('');
+    setSearchedConversations([]);
+    setSearchConversationsError('');
+    setIsSearchingConversations(false);
     setSearchOpen(true);
   }, [closeAllPanels]);
 
@@ -241,6 +249,116 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
     return groups;
   }, [recentConversations]);
 
+  const searchedConversationGroups = useMemo(() => {
+    const groups = {
+      today: [],
+      yesterday: [],
+      previous7Days: [],
+      older: [],
+    };
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    searchedConversations.forEach((conversation, index) => {
+      const timestampValue = Date.parse(conversation?.last_timestamp || '');
+      const conversationDate = Number.isNaN(timestampValue)
+        ? new Date(0)
+        : new Date(timestampValue);
+      const resolvedTitle = typeof conversation?.title === 'string'
+        ? conversation.title.trim()
+        : '';
+      const item = {
+        key: conversation?.conversation_id || `search-conversation-${index}`,
+        title: resolvedTitle || 'New chat',
+        snippet: typeof conversation?.snippet === 'string' ? conversation.snippet.trim() : '',
+        matchedRole: typeof conversation?.matched_role === 'string'
+          ? (
+            conversation.matched_role === 'user'
+              ? 'You'
+              : conversation.matched_role === 'assistant'
+                ? 'Assistant'
+                : conversation.matched_role
+          )
+          : '',
+        conversation,
+      };
+
+      if (conversationDate >= today) {
+        groups.today.push(item);
+        return;
+      }
+      if (conversationDate >= yesterday) {
+        groups.yesterday.push(item);
+        return;
+      }
+      if (conversationDate >= sevenDaysAgo) {
+        groups.previous7Days.push(item);
+        return;
+      }
+      groups.older.push(item);
+    });
+
+    return groups;
+  }, [searchedConversations]);
+
+  useEffect(() => {
+    if (!searchOpen) {
+      return undefined;
+    }
+
+    const normalizedQuery = searchQuery.trim();
+    if (normalizedQuery.length < 2) {
+      setIsSearchingConversations(false);
+      setSearchConversationsError('');
+      setSearchedConversations([]);
+      return undefined;
+    }
+
+    let isCancelled = false;
+    const timer = window.setTimeout(async () => {
+      setIsSearchingConversations(true);
+      setSearchConversationsError('');
+      try {
+        const result = await IpcBridge.invoke(INVOKE_CHANNELS.SEARCH_CONVERSATIONS, {
+          userId: resolvedUserId,
+          query: normalizedQuery,
+          limit: 60,
+        });
+        if (isCancelled) {
+          return;
+        }
+        if (!result || result.success === false) {
+          throw new Error(result?.error || 'Failed to search chats');
+        }
+
+        const list = Array.isArray(result?.data?.conversations)
+          ? result.data.conversations
+          : [];
+        setSearchedConversations(list);
+      } catch (error) {
+        if (isCancelled) {
+          return;
+        }
+        setSearchedConversations([]);
+        setSearchConversationsError(error?.message || 'Failed to search chats');
+      } finally {
+        if (!isCancelled) {
+          setIsSearchingConversations(false);
+        }
+      }
+    }, 180);
+
+    return () => {
+      isCancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [searchOpen, searchQuery, resolvedUserId]);
+
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.MAIN_WINDOW_OPEN_TARGET, (payload) => {
       const target = typeof payload?.target === 'string' ? payload.target : '';
@@ -295,7 +413,12 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
         onClose={() => setSearchOpen(false)}
         onStartNewChat={handleStartNewChat}
         onOpenConversation={handleOpenConversation}
+        query={searchQuery}
+        onQueryChange={setSearchQuery}
+        isSearching={isSearchingConversations}
+        searchError={searchConversationsError}
         recentConversationGroups={recentConversationGroups}
+        searchConversationGroups={searchedConversationGroups}
         activeConversationRef={sessionInfo.conversationRef || null}
       />
 

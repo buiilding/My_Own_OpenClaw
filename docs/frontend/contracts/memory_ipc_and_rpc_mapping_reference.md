@@ -25,6 +25,7 @@ title: "Memory IPC and RPC Mapping Reference"
 Memory-related `invoke` channels exposed to renderer:
 
 - `store-transcript`
+- `search-conversations`
 - `list-conversations`
 - `list-episodic-memories`
 - `get-conversation`
@@ -53,6 +54,7 @@ Mapping helper behavior:
 
 ### Conversation and semantic list/delete
 
+- `search-conversations` -> `search_conversations`
 - `list-conversations` -> `list_conversations`
 - `list-episodic-memories` -> `list_episodic_memories`
 - `get-conversation` -> `get_conversation`
@@ -66,6 +68,12 @@ Renderer camelCase to sidecar snake_case conversions:
 - `conversationId` -> `conversation_id`
 - `recordKind` -> `record_kind`
 - `memoryId` -> `memory_id`
+
+`search-conversations` field mapping:
+
+- `query`
+- `userId` -> `user_id`
+- `limit`
 
 ### Transcript and memory write methods
 
@@ -122,6 +130,12 @@ Decorator `@requires_memory_store` gates most memory handlers:
 - includes `is_resumable` when `conversation_id` starts with `conv_`
 - includes `title` and `title_source` (`heuristic` for auto-generated titles)
 - title generation is best-effort and only starts after both first user and first assistant transcript rows exist for a conversation
+
+### `search_conversations`
+
+- transcript-only query surface (searches user/assistant transcript message content, not just titles)
+- ranking blends lexical hits (FTS with LIKE fallback), semantic vector hits, and recency
+- returns conversation summaries plus match metadata (`snippet`, `matched_role`, lexical/semantic hit counts, score)
 
 ### `list_episodic_memories`
 

@@ -71,6 +71,15 @@ const mapSearchMemoryPayload = createPayloadMapper({
 
 const COMPILED_RPC_HANDLER_DEFINITIONS = [
   {
+    channel: 'search-conversations',
+    method: 'search_conversations',
+    mapParams: createPayloadMapper({
+      query: 'query',
+      user_id: 'userId',
+      limit: 'limit',
+    }),
+  },
+  {
     channel: 'list-conversations',
     method: 'list_conversations',
     mapParams: createPayloadMapper({

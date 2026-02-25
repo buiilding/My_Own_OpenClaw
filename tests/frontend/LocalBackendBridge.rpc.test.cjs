@@ -222,6 +222,25 @@ describe('local_backend_bridge RPC handlers', () => {
     await expectResolvedSuccess(stdoutHandler, promise, { items: [] });
   });
 
+  test('search-conversations handler maps payload keys to backend params', async () => {
+    const { handlers, stdoutHandler } = initBridge();
+    markReady();
+
+    const promise = handlers['search-conversations'](null, {
+      userId: 'u-1',
+      query: 'ubuntu mic',
+      limit: 9,
+    });
+
+    expectLastRequestWith('search_conversations', {
+      user_id: 'u-1',
+      query: 'ubuntu mic',
+      limit: 9,
+    });
+
+    await expectResolvedSuccess(stdoutHandler, promise, { conversations: [] });
+  });
+
   test('list-conversations handler safely handles non-object payloads', async () => {
     const { handlers, stdoutHandler } = initBridge();
     markReady();

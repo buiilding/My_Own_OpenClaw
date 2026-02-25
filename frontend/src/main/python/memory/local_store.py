@@ -8,6 +8,7 @@ instead of local embedding providers.
 import asyncio
 import json
 import logging
+import re
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -1243,6 +1244,100 @@ class LocalMemoryStore:
             await conn.commit()
             return results
 
+    async def search_conversations(
+        self,
+        user_id: str,
+        query: str,
+        limit: int = 40,
+        lexical_limit: int = 120,
+        semantic_limit: int = 40,
+    ) -> List[Dict[str, Any]]:
+        """
+        Search transcript conversations by message content.
+
+        Ranking combines lexical transcript matches (FTS5/LIKE fallback),
+        semantic transcript matches (vector search), and recency.
+        """
+        normalized_query = (query or "").strip()
+        if len(normalized_query) < 2:
+            return []
+
+        lexical_hits: List[Dict[str, Any]] = []
+        async with aiosqlite.connect(self.episodic_db_path) as conn:
+            conn.row_factory = aiosqlite.Row
+            cursor = await conn.cursor()
+            lexical_hits = await self._search_transcript_hits_lexical(
+                cursor=cursor,
+                user_id=user_id,
+                query=normalized_query,
+                limit=max(1, lexical_limit),
+            )
+
+        semantic_hits = await self._search_transcript_hits_semantic(
+            user_id=user_id,
+            query=normalized_query,
+            limit=max(1, semantic_limit),
+        )
+
+        grouped_hits = self._group_conversation_search_hits(lexical_hits, semantic_hits)
+        if not grouped_hits:
+            return []
+
+        conversation_ids = list(grouped_hits.keys())
+        summaries: Dict[str, Dict[str, Any]] = {}
+        async with aiosqlite.connect(self.episodic_db_path) as conn:
+            conn.row_factory = aiosqlite.Row
+            cursor = await conn.cursor()
+            summaries = await self._fetch_conversation_summaries(
+                cursor=cursor,
+                user_id=user_id,
+                conversation_ids=conversation_ids,
+            )
+            await conn.commit()
+
+        scored_rows: List[Dict[str, Any]] = []
+        now_ts = datetime.now(timezone.utc).timestamp()
+        for conversation_id, hit_info in grouped_hits.items():
+            summary = summaries.get(conversation_id)
+            if not summary:
+                continue
+
+            best_hit = self._pick_best_conversation_hit(hit_info)
+            lexical_best = float(hit_info.get("lexical_best", 0.0))
+            semantic_best = float(hit_info.get("semantic_best", 0.0))
+            match_count = int(hit_info.get("match_count", 0))
+
+            last_ts = self._safe_timestamp_to_epoch_seconds(summary.get("last_timestamp"))
+            age_days = max(0.0, (now_ts - last_ts) / 86400.0) if last_ts > 0 else 3650.0
+            recency_boost = 1.0 / (1.0 + (age_days / 14.0))
+            final_score = (
+                (lexical_best * 0.56)
+                + (semantic_best * 0.32)
+                + (min(match_count, 8) * 0.03)
+                + (recency_boost * 0.12)
+            )
+
+            scored_rows.append({
+                **summary,
+                "score": float(final_score),
+                "match_count": match_count,
+                "lexical_match_count": int(hit_info.get("lexical_match_count", 0)),
+                "semantic_match_count": int(hit_info.get("semantic_match_count", 0)),
+                "match_source": best_hit.get("source"),
+                "matched_role": best_hit.get("role"),
+                "matched_at": best_hit.get("timestamp"),
+                "snippet": best_hit.get("snippet"),
+            })
+
+        scored_rows.sort(
+            key=lambda row: (
+                float(row.get("score", 0.0)),
+                self._safe_timestamp_to_epoch_seconds(row.get("last_timestamp")),
+            ),
+            reverse=True,
+        )
+        return scored_rows[: max(1, limit)]
+
     async def _maybe_generate_conversation_title(
         self,
         user_id: str,
@@ -1387,6 +1482,401 @@ class LocalMemoryStore:
             return normalized_title, "heuristic"
 
         return current_title or None, existing_title_source or None
+
+    async def _search_transcript_hits_lexical(
+        self,
+        cursor,
+        user_id: str,
+        query: str,
+        limit: int,
+    ) -> List[Dict[str, Any]]:
+        fts_query = self._build_fts_query(query)
+        if not fts_query:
+            return []
+
+        try:
+            await cursor.execute(
+                """
+                SELECT
+                    m.id AS memory_id,
+                    m.conversation_id AS conversation_id,
+                    m.role AS role,
+                    m.content AS content,
+                    m.timestamp AS timestamp,
+                    bm25(transcript_fts) AS lexical_rank
+                FROM transcript_fts
+                JOIN memories m ON m.rowid = transcript_fts.rowid
+                WHERE transcript_fts MATCH ?
+                  AND m.user_id = ?
+                  AND m.record_kind = 'transcript'
+                  AND m.conversation_id IS NOT NULL
+                ORDER BY lexical_rank ASC, m.timestamp DESC
+                LIMIT ?
+            """,
+                (fts_query, user_id, limit),
+            )
+            rows = await cursor.fetchall()
+            hits: List[Dict[str, Any]] = []
+            for index, row in enumerate(rows):
+                position_score = max(0.0, 1.0 - (index / max(1, limit)))
+                lexical_rank = row["lexical_rank"]
+                rank_factor = 1.0 / (1.0 + abs(float(lexical_rank or 0.0)))
+                score = (position_score * 0.72) + (rank_factor * 0.28)
+                hits.append(self._build_conversation_hit(
+                    memory_id=row["memory_id"],
+                    conversation_id=row["conversation_id"],
+                    role=row["role"],
+                    content=row["content"],
+                    timestamp=row["timestamp"],
+                    source="lexical",
+                    score=score,
+                    query=query,
+                ))
+            return hits
+        except Exception as exc:
+            logger.warning(
+                "Transcript FTS query failed; falling back to LIKE search: %s",
+                exc,
+            )
+            return await self._search_transcript_hits_like(cursor, user_id, query, limit)
+
+    async def _search_transcript_hits_like(
+        self,
+        cursor,
+        user_id: str,
+        query: str,
+        limit: int,
+    ) -> List[Dict[str, Any]]:
+        like_terms = self._extract_query_terms(query)
+        if not like_terms:
+            return []
+        where_clause = " OR ".join(["LOWER(content) LIKE ?"] * len(like_terms))
+        params = tuple(f"%{term.lower()}%" for term in like_terms)
+        await cursor.execute(
+            f"""
+            SELECT
+                id AS memory_id,
+                conversation_id,
+                role,
+                content,
+                timestamp
+            FROM memories
+            WHERE user_id = ?
+              AND record_kind = 'transcript'
+              AND conversation_id IS NOT NULL
+              AND ({where_clause})
+            ORDER BY timestamp DESC
+            LIMIT ?
+        """,
+            (user_id, *params, limit),
+        )
+        rows = await cursor.fetchall()
+        hits: List[Dict[str, Any]] = []
+        for index, row in enumerate(rows):
+            score = max(0.0, 1.0 - (index / max(1, limit)))
+            hits.append(self._build_conversation_hit(
+                memory_id=row["memory_id"],
+                conversation_id=row["conversation_id"],
+                role=row["role"],
+                content=row["content"],
+                timestamp=row["timestamp"],
+                source="lexical",
+                score=score,
+                query=query,
+            ))
+        return hits
+
+    async def _search_transcript_hits_semantic(
+        self,
+        user_id: str,
+        query: str,
+        limit: int,
+    ) -> List[Dict[str, Any]]:
+        try:
+            semantic_rows = await self.search(
+                query=query,
+                user_id=user_id,
+                filters={"type": "episodic"},
+                limit=limit,
+            )
+        except Exception as exc:
+            logger.warning("Semantic transcript search failed: %s", exc)
+            return []
+
+        hits: List[Dict[str, Any]] = []
+        for index, row in enumerate(semantic_rows):
+            metadata = row.get("metadata") or {}
+            record_kind = (metadata.get("record_kind") or "").strip().lower()
+            if record_kind != "transcript":
+                continue
+
+            conversation_id = row.get("conversation_id") or metadata.get("conversation_id")
+            if not conversation_id:
+                continue
+
+            raw_score = float(row.get("score") or 0.0)
+            semantic_score = max(0.0, min(1.0, (raw_score + 1.0) / 2.0))
+            rank_bonus = max(0.0, 1.0 - (index / max(1, limit)))
+            score = (semantic_score * 0.74) + (rank_bonus * 0.26)
+
+            hits.append(self._build_conversation_hit(
+                memory_id=row.get("id"),
+                conversation_id=conversation_id,
+                role=metadata.get("role"),
+                content=row.get("text"),
+                timestamp=row.get("timestamp"),
+                source="semantic",
+                score=score,
+                query=query,
+            ))
+
+        return hits
+
+    async def _fetch_conversation_summaries(
+        self,
+        cursor,
+        user_id: str,
+        conversation_ids: List[str],
+    ) -> Dict[str, Dict[str, Any]]:
+        normalized_ids = [
+            conversation_id
+            for conversation_id in conversation_ids
+            if isinstance(conversation_id, str) and conversation_id
+        ]
+        if not normalized_ids:
+            return {}
+
+        placeholders = ",".join(["?"] * len(normalized_ids))
+        await cursor.execute(
+            f"""
+            SELECT conversation_id,
+                   MIN(timestamp) AS first_timestamp,
+                   MAX(timestamp) AS last_timestamp,
+                   COUNT(*) AS entry_count,
+                   (
+                     SELECT title FROM conversation_titles ct
+                     WHERE ct.user_id = ? AND ct.conversation_id = memories.conversation_id
+                     LIMIT 1
+                   ) AS title,
+                   (
+                     SELECT source FROM conversation_titles ct
+                     WHERE ct.user_id = ? AND ct.conversation_id = memories.conversation_id
+                     LIMIT 1
+                   ) AS title_source,
+                   (
+                     SELECT is_locked FROM conversation_titles ct
+                     WHERE ct.user_id = ? AND ct.conversation_id = memories.conversation_id
+                     LIMIT 1
+                   ) AS title_locked,
+                   (
+                     SELECT model_id FROM memories m2
+                     WHERE m2.user_id = ? AND m2.conversation_id = memories.conversation_id
+                       AND m2.record_kind = 'transcript'
+                       AND m2.model_id IS NOT NULL AND m2.model_id != ''
+                     ORDER BY m2.timestamp DESC, m2.message_index DESC
+                     LIMIT 1
+                   ) AS model_id,
+                   (
+                     SELECT model_provider FROM memories m2
+                     WHERE m2.user_id = ? AND m2.conversation_id = memories.conversation_id
+                       AND m2.record_kind = 'transcript'
+                       AND m2.model_provider IS NOT NULL AND m2.model_provider != ''
+                     ORDER BY m2.timestamp DESC, m2.message_index DESC
+                     LIMIT 1
+                   ) AS model_provider
+            FROM memories
+            WHERE user_id = ?
+              AND record_kind = 'transcript'
+              AND conversation_id IN ({placeholders})
+            GROUP BY conversation_id
+        """,
+            (
+                user_id,
+                user_id,
+                user_id,
+                user_id,
+                user_id,
+                user_id,
+                *normalized_ids,
+            ),
+        )
+        rows = await cursor.fetchall()
+        summaries: Dict[str, Dict[str, Any]] = {}
+        for row in rows:
+            conversation_id = row["conversation_id"]
+            title, title_source = await self._ensure_conversation_title(
+                cursor=cursor,
+                user_id=user_id,
+                conversation_id=conversation_id,
+                existing_title=row["title"],
+                existing_title_source=row["title_source"],
+                existing_title_locked=row["title_locked"],
+            )
+            summaries[conversation_id] = {
+                "conversation_id": conversation_id,
+                "first_timestamp": row["first_timestamp"],
+                "last_timestamp": row["last_timestamp"],
+                "entry_count": row["entry_count"],
+                "model_id": row["model_id"],
+                "model_provider": row["model_provider"],
+                "title": title or "New chat",
+                "title_source": title_source or "heuristic",
+                "is_resumable": bool(
+                    isinstance(conversation_id, str)
+                    and conversation_id.startswith("conv_")
+                ),
+            }
+        return summaries
+
+    @staticmethod
+    def _extract_query_terms(query: str) -> List[str]:
+        terms = re.findall(r"[A-Za-z0-9_]+", (query or "").lower())
+        deduped: List[str] = []
+        seen = set()
+        for term in terms:
+            normalized = term.strip()
+            if len(normalized) < 2 or normalized in seen:
+                continue
+            seen.add(normalized)
+            deduped.append(normalized)
+            if len(deduped) >= 8:
+                break
+        return deduped
+
+    def _build_fts_query(self, query: str) -> str:
+        terms = self._extract_query_terms(query)
+        if not terms:
+            return ""
+        return " ".join(f"{term}*" for term in terms)
+
+    def _build_content_snippet(self, content: Optional[str], query: str) -> str:
+        text = " ".join((content or "").split())
+        if not text:
+            return ""
+        max_chars = 160
+        if len(text) <= max_chars:
+            return text
+
+        lower_text = text.lower()
+        terms = self._extract_query_terms(query)
+        hit_index = 0
+        for term in terms:
+            pos = lower_text.find(term)
+            if pos >= 0:
+                hit_index = pos
+                break
+
+        window = 130
+        start = max(0, hit_index - 45)
+        end = min(len(text), start + window)
+        start = max(0, end - window)
+        snippet = text[start:end].strip()
+        if start > 0:
+            snippet = f"…{snippet}"
+        if end < len(text):
+            snippet = f"{snippet}…"
+        return snippet
+
+    def _build_conversation_hit(
+        self,
+        memory_id: Optional[str],
+        conversation_id: Optional[str],
+        role: Optional[str],
+        content: Optional[str],
+        timestamp: Optional[str],
+        source: str,
+        score: float,
+        query: str,
+    ) -> Dict[str, Any]:
+        normalized_role = (role or "").strip().lower() or "assistant"
+        snippet = self._build_content_snippet(content, query)
+        return {
+            "memory_id": memory_id,
+            "conversation_id": conversation_id,
+            "role": normalized_role,
+            "content": content or "",
+            "timestamp": timestamp,
+            "source": source,
+            "score": float(score),
+            "snippet": snippet,
+        }
+
+    def _group_conversation_search_hits(
+        self,
+        lexical_hits: List[Dict[str, Any]],
+        semantic_hits: List[Dict[str, Any]],
+    ) -> Dict[str, Dict[str, Any]]:
+        grouped: Dict[str, Dict[str, Any]] = {}
+
+        def append_hit(hit: Dict[str, Any]) -> None:
+            conversation_id = hit.get("conversation_id")
+            if not conversation_id:
+                return
+            bucket = grouped.setdefault(conversation_id, {
+                "hits": [],
+                "match_ids": set(),
+                "lexical_match_count": 0,
+                "semantic_match_count": 0,
+                "lexical_best": 0.0,
+                "semantic_best": 0.0,
+            })
+            memory_id = hit.get("memory_id")
+            if memory_id and memory_id in bucket["match_ids"]:
+                return
+
+            bucket["hits"].append(hit)
+            if memory_id:
+                bucket["match_ids"].add(memory_id)
+
+            source = hit.get("source")
+            score = float(hit.get("score", 0.0))
+            if source == "lexical":
+                bucket["lexical_match_count"] += 1
+                bucket["lexical_best"] = max(bucket["lexical_best"], score)
+            elif source == "semantic":
+                bucket["semantic_match_count"] += 1
+                bucket["semantic_best"] = max(bucket["semantic_best"], score)
+
+        for hit in lexical_hits:
+            append_hit(hit)
+        for hit in semantic_hits:
+            append_hit(hit)
+
+        for payload in grouped.values():
+            payload["match_count"] = len(payload["match_ids"])
+            payload.pop("match_ids", None)
+        return grouped
+
+    @staticmethod
+    def _pick_best_conversation_hit(hit_info: Dict[str, Any]) -> Dict[str, Any]:
+        hits = hit_info.get("hits") or []
+        if not hits:
+            return {
+                "source": "lexical",
+                "role": "assistant",
+                "timestamp": None,
+                "snippet": "",
+                "score": 0.0,
+            }
+        lexical_hits = [hit for hit in hits if hit.get("source") == "lexical"]
+        if lexical_hits:
+            return max(lexical_hits, key=lambda hit: float(hit.get("score", 0.0)))
+        return max(hits, key=lambda hit: float(hit.get("score", 0.0)))
+
+    @staticmethod
+    def _safe_timestamp_to_epoch_seconds(timestamp: Optional[str]) -> float:
+        if not isinstance(timestamp, str) or not timestamp.strip():
+            return 0.0
+        text = timestamp.strip()
+        try:
+            if text.endswith("Z"):
+                text = text.replace("Z", "+00:00")
+            parsed = datetime.fromisoformat(text)
+            if parsed.tzinfo is None:
+                parsed = parsed.replace(tzinfo=timezone.utc)
+            return parsed.timestamp()
+        except Exception:
+            return 0.0
 
     async def list_semantic_memories(
         self, user_id: str, limit: int = 200
