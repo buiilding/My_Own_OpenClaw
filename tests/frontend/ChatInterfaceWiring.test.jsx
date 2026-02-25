@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 
 import ChatInterface from '../../frontend/src/renderer/features/chat/components/ChatInterface';
 const { selectMockStoreState: mockSelectStoreState } = require('./storeSelectorTestUtils.cjs');
@@ -7,7 +7,6 @@ const { selectMockStoreState: mockSelectStoreState } = require('./storeSelectorT
 const mockUseChatMessageSender = jest.fn(() => ({
   sendMessage: jest.fn(),
 }));
-const mockInvoke = jest.fn().mockResolvedValue({ success: true });
 let mockConfig = {
   interaction_mode: 'chat',
   voice_mode_enabled: false,
@@ -70,12 +69,6 @@ jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWrite
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   IpcBridge: {
     on: () => () => {},
-    invoke: (...args) => mockInvoke(...args),
-  },
-  INVOKE_CHANNELS: {
-    WINDOW_MINIMIZE: 'window-minimize',
-    WINDOW_TOGGLE_MAXIMIZE: 'window-toggle-maximize',
-    WINDOW_CLOSE: 'window-close',
   },
   ON_CHANNELS: {
     FROM_BACKEND: 'from-backend',
@@ -94,10 +87,6 @@ jest.mock('../../frontend/src/renderer/features/chat/components/MessageInput', (
   mockMessageInput(props),
 );
 
-jest.mock('../../frontend/src/renderer/features/chat/components/TokenCountDisplay', () => () => (
-  <div data-testid="token-count" />
-));
-
 describe('ChatInterface wiring', () => {
   beforeEach(() => {
     mockConfig = {
@@ -106,7 +95,6 @@ describe('ChatInterface wiring', () => {
     };
     mockMessageInput.mockClear();
     mockUseChatMessageSender.mockClear();
-    mockInvoke.mockClear();
     mockPlayerService.cleanup.mockClear();
     mockPlayerService.enqueueAudio.mockClear();
     mockPlayerService.stopPlayback.mockClear();
@@ -129,21 +117,11 @@ describe('ChatInterface wiring', () => {
     );
   });
 
-  test('window controls invoke matching IPC channels', () => {
+  test('shows clone-style utility controls in header', () => {
     render(<ChatInterface />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Minimize window' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Toggle maximize window' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Close window' }));
-
-    const invokedChannels = mockInvoke.mock.calls.map(([channel]) => channel);
-    expect(invokedChannels).toEqual(
-      expect.arrayContaining([
-        'window-minimize',
-        'window-toggle-maximize',
-        'window-close',
-      ]),
-    );
+    expect(screen.getByRole('button', { name: 'Share' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'More options' })).toBeInTheDocument();
   });
 
   test('shows model selector and passes enabled voice mode to input', () => {
@@ -159,6 +137,7 @@ describe('ChatInterface wiring', () => {
     const lastInputProps = mockMessageInput.mock.calls.at(-1)?.[0];
     expect(lastInputProps.voiceModeEnabled).toBe(true);
     expect(lastInputProps.isSending).toBe(false);
+    expect(lastInputProps.isCentered).toBe(true);
     expect(typeof lastInputProps.onSendMessage).toBe('function');
     expect(typeof lastInputProps.onStopResponse).toBe('function');
   });
@@ -171,6 +150,13 @@ describe('ChatInterface wiring', () => {
     expect(screen.getByRole('button', { name: 'Model selector' })).toHaveTextContent('ChatGPT 5.2 Thinking');
     const lastInputProps = mockMessageInput.mock.calls.at(-1)?.[0];
     expect(lastInputProps.voiceModeEnabled).toBe(false);
+    expect(lastInputProps.isCentered).toBe(true);
+  });
+
+  test('renders welcome empty state when there are no messages', () => {
+    render(<ChatInterface />);
+    expect(screen.getByTestId('chat-empty-state')).toBeInTheDocument();
+    expect(screen.getByText('Good to see you, peter.')).toBeInTheDocument();
   });
 
   test('stop response handler sends stop-query while stream is active', () => {
