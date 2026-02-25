@@ -11,11 +11,16 @@ title: "Frontend Sidecar Browser Use Runtime Docs Hub"
 ## Deep Pages
 
 - [Browser Use Config, Logging, Observability, and Lazy Import Runtime Reference](config_logging_observability_and_lazy_import_runtime_reference.md)
+- [Browser Use DOM Docs Hub](dom/README.md)
+- [DOM Tree Construction, Visibility, Iframe Traversal, and Pagination Detection Contract Reference](dom/dom_tree_construction_visibility_iframe_traversal_and_pagination_detection_contract_reference.md)
+- [DOM Data Models, Hashing, Scrollability, and Interaction Identity Contract Reference](dom/dom_data_models_hashing_scrollability_and_interaction_identity_contract_reference.md)
+- [DOM Serializer, Snapshot, Clickability, and Markdown Pipeline Runtime Reference](dom/dom_serializer_snapshot_clickability_and_markdown_pipeline_runtime_reference.md)
 
 ## Related Pages
 
 - [Browser Runtime Provider, Vendoring, and Native Handler Bridge Reference](../browser_runtime_provider_vendoring_and_native_handler_bridge_reference.md)
 - [Browser Adapter Action Routing and Compatibility Semantics Reference](../browser_adapter_action_routing_and_compatibility_semantics_reference.md)
+- [Frontend Sidecar Browser Chrome Docs Hub](../chrome/README.md)
 
 ## Code Scope
 
@@ -25,3 +30,4 @@ title: "Frontend Sidecar Browser Use Runtime Docs Hub"
 - `frontend/src/main/python/tools/browser/browser_use/logging_config.py`
 - `frontend/src/main/python/tools/browser/browser_use/observability.py`
 - `frontend/src/main/python/tools/browser/browser_use/utils.py`
+- `frontend/src/main/python/tools/browser/browser_use/dom/*`

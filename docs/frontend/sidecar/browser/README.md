@@ -22,7 +22,11 @@ title: "Frontend Sidecar Browser Docs Hub"
 - [Browser Controller Lifecycle, Snapshot, and Action Runtime Reference](chrome/browser_controller_lifecycle_snapshot_and_action_runtime_reference.md)
 - [Enhanced CDP DOM Snapshot Pipeline Runtime Reference](chrome/enhanced_cdp_dom_snapshot_pipeline_runtime_reference.md)
 - [Browser Use Runtime Docs Hub](browser_use/README.md)
+- [Browser Use DOM Docs Hub](browser_use/dom/README.md)
 - [Browser Use Config, Logging, Observability, and Lazy Import Runtime Reference](browser_use/config_logging_observability_and_lazy_import_runtime_reference.md)
+- [DOM Tree Construction, Visibility, Iframe Traversal, and Pagination Detection Contract Reference](browser_use/dom/dom_tree_construction_visibility_iframe_traversal_and_pagination_detection_contract_reference.md)
+- [DOM Data Models, Hashing, Scrollability, and Interaction Identity Contract Reference](browser_use/dom/dom_data_models_hashing_scrollability_and_interaction_identity_contract_reference.md)
+- [DOM Serializer, Snapshot, Clickability, and Markdown Pipeline Runtime Reference](browser_use/dom/dom_serializer_snapshot_clickability_and_markdown_pipeline_runtime_reference.md)
 
 ## Related Pages
 
