@@ -112,6 +112,7 @@ title: "WindieOS Browser Use Hard-Merge Plan (2026-02-25)"
      - sidecar browser tool now resolves controller import lazily, allowing adapter/parity suites to import `browser_tool` without a Playwright install
      - sidecar browser safety gate now runs green without Playwright in this environment (`test_browser_tool`, `test_browser_use_adapter`, `test_browser_use_tool_parity`, `test_browser_schemas` all passing)
      - vendored Browser Use registry wrapper control flow fixed (`for/else` mis-branch) so runtime actions like `navigate` correctly receive `browser_session` instead of failing with missing-parameter errors
+     - Browser Use `screenshot` runtime dispatch now receives filesystem context, fixing `Action screenshot requires file_system but none provided` failures
 
 ## Safety Gates
 
