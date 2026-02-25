@@ -20,6 +20,8 @@ title: "Backend Agent Docs Hub"
 - [Tool-Call-ID Staging and Tool-Output History Row Contract Reference](history/tool_call_id_staging_and_tool_output_history_row_contract_reference.md)
 - [Recovery Docs Hub](recovery/README.md)
 - [Tool-Call Error Recovery and Synthetic Tool-Output Replay Reference](recovery/tool_call_error_recovery_and_synthetic_tool_output_replay_reference.md)
+- [Agent Tools Shared-Utility Docs Hub](tools/shared/README.md)
+- [Request-ID Shortener Utility and Logging Contract Reference](tools/shared/request_id_shortener_utility_and_logging_contract_reference.md)
 
 ## Code Scope
 

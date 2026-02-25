@@ -12,6 +12,7 @@ title: "Simulation Backend and Mock LLM Runtime Reference"
 
 - `backend/src/simulation/app_factory.py`
 - `backend/src/simulation/lifespan_factory.py`
+- `backend/src/simulation/__main__.py`
 - `backend/src/simulation/main.py`
 - `backend/src/simulation/browser.py`
 - `backend/src/simulation/computer.py`
@@ -58,6 +59,7 @@ What is replaced:
 ### Package runner
 
 - `python -m backend.src.simulation` maps to `backend.src.simulation.main:app`.
+- launcher is implemented in `backend/src/simulation/__main__.py` with direct `uvicorn.run(...)` and no explicit reload args.
 
 ## App Factory Contract
 
@@ -198,3 +200,8 @@ If final completion text appears to vanish:
 1. check `_pending_final_response` path in `BaseSimulationLLMClient`
 2. verify caller requests another completion turn after tool turn completion
 
+## Related Pages
+
+- [Backend Simulation Docs Hub](README.md)
+- [Backend Simulation Entrypoints Docs Hub](entrypoints/README.md)
+- [Package Runner and Module Alias Uvicorn Bootstrap Contract Reference](entrypoints/package_runner_and_module_alias_uvicorn_bootstrap_contract_reference.md)

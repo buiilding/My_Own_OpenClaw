@@ -31,6 +31,8 @@ Covers:
 - [Bootstrap Docs Hub](bootstrap/README.md)
 - [Bootstrap and Config](bootstrap/bootstrap_and_config.md)
 - [Container DI and Initialization Lifecycle Reference](bootstrap/container_di_and_init_lifecycle_reference.md)
+- [Bootstrap Entrypoints Docs Hub](bootstrap/entrypoints/README.md)
+- [Shared Entrypoint Logger and Uvicorn Runner Contract Reference](bootstrap/entrypoints/shared_entrypoint_logger_and_uvicorn_runner_contract_reference.md)
 - [Config Docs Hub](config/README.md)
 - [Config Fields and Runtime Policy](config/config_fields_and_runtime_policy.md)
 - [Core Infrastructure Docs Hub](core/README.md)
@@ -48,6 +50,8 @@ Covers:
 - [Core Interfaces Docs Hub](core/interfaces/README.md)
 - [Embedding Provider Async Contract and Container Wiring Reference](core/interfaces/embedding_provider_async_contract_and_container_wiring_reference.md)
 - [Vision Service Protocol Boundary and Session Hierarchy Access Contract Reference](core/interfaces/vision_service_protocol_boundary_and_session_hierarchy_access_contract_reference.md)
+- [Core Logging Docs Hub](core/logging/README.md)
+- [Log Profile Noise Filter and Env-Level Resolution Contract Reference](core/logging/log_profile_noise_filter_and_env_level_resolution_contract_reference.md)
 
 ### API and Contracts
 
@@ -111,6 +115,7 @@ Covers:
 - [Agent History Docs Hub](agent/history/README.md)
 - [Agent LLM Docs Hub](agent/llm/README.md)
 - [Agent Recovery Docs Hub](agent/recovery/README.md)
+- [Agent Tools Shared-Utility Docs Hub](agent/tools/shared/README.md)
 - [Agent and Tool Runtime](runtime/agent_and_tool_runtime.md)
 - [Session State and Lifecycle](runtime/session_state_and_lifecycle.md)
 - [Session Runtime and Config Rewire Reference](agent/session_runtime_and_config_rewire_reference.md)
@@ -120,6 +125,7 @@ Covers:
 - [History Committer and Result-Processor Boundary Reference](agent/history/history_committer_and_result_processor_boundary_reference.md)
 - [Tool-Call-ID Staging and Tool-Output History Row Contract Reference](agent/history/tool_call_id_staging_and_tool_output_history_row_contract_reference.md)
 - [Tool-Call Error Recovery and Synthetic Tool-Output Replay Reference](agent/recovery/tool_call_error_recovery_and_synthetic_tool_output_replay_reference.md)
+- [Request-ID Shortener Utility and Logging Contract Reference](agent/tools/shared/request_id_shortener_utility_and_logging_contract_reference.md)
 - [Query Execution and Stream Pipeline Reference](runtime/query_execution_and_stream_pipeline_reference.md)
 - [Conversation History and Prompt Context Runtime Reference](runtime/conversation_history_and_prompt_context_runtime_reference.md)
 - [Token Count Event and Usage Diagnostics Reference](runtime/token_count_event_and_usage_diagnostics_reference.md)
@@ -198,6 +204,8 @@ Covers:
 
 - [Simulation Docs Hub](simulation/README.md)
 - [Simulation Backend and Mock LLM Runtime Reference](simulation/simulation_backend_and_mock_llm_runtime_reference.md)
+- [Simulation Entrypoints Docs Hub](simulation/entrypoints/README.md)
+- [Package Runner and Module Alias Uvicorn Bootstrap Contract Reference](simulation/entrypoints/package_runner_and_module_alias_uvicorn_bootstrap_contract_reference.md)
 
 ## Backend Layout (Code)
 
