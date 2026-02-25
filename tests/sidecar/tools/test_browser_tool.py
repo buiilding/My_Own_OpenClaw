@@ -127,8 +127,8 @@ class TestExecuteBrowserControl:
         assert "ref" in result.error.lower()
 
 
-class TestPhase2AdapterRouting:
-    """Validate Phase 2 browser adapter routing behavior."""
+class TestBrowserAdapterRouting:
+    """Validate browser adapter routing behavior."""
 
     @pytest.mark.asyncio
     async def test_routed_action_uses_adapter(self):
@@ -352,11 +352,7 @@ class TestCompatibilityActions:
     async def test_open_alias_removed(self, caplog):
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get, mock.patch.dict(
-            "os.environ",
-            {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1"},
-            clear=False,
-        ):
+        ) as mock_get:
             caplog.set_level("WARNING", logger="tools.browser.browser_tool")
             result = await execute_browser({"action": "open", "url": "https://example.com"})
 
@@ -372,11 +368,7 @@ class TestCompatibilityActions:
     async def test_press_alias_removed(self, caplog):
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get, mock.patch.dict(
-            "os.environ",
-            {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1"},
-            clear=False,
-        ):
+        ) as mock_get:
             caplog.set_level("WARNING", logger="tools.browser.browser_tool")
             result = await execute_browser({"action": "press", "key": "Enter"})
 
@@ -392,11 +384,7 @@ class TestCompatibilityActions:
     async def test_type_alias_removed(self, caplog):
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get, mock.patch.dict(
-            "os.environ",
-            {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1"},
-            clear=False,
-        ):
+        ) as mock_get:
             caplog.set_level("WARNING", logger="tools.browser.browser_tool")
             result = await execute_browser({"action": "type", "ref": "1", "text": "hello"})
 
@@ -412,11 +400,7 @@ class TestCompatibilityActions:
     async def test_act_alias_removed(self, caplog):
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get, mock.patch.dict(
-            "os.environ",
-            {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1"},
-            clear=False,
-        ):
+        ) as mock_get:
             caplog.set_level("WARNING", logger="tools.browser.browser_tool")
             result = await execute_browser(
                 {"action": "act", "request": {"kind": "hover", "ref": "e1"}}
@@ -1303,11 +1287,7 @@ class TestSwitchTabAction:
     async def test_switch_tab_alias_removed(self, caplog):
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get, mock.patch.dict(
-            "os.environ",
-            {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1"},
-            clear=False,
-        ):
+        ) as mock_get:
             caplog.set_level("WARNING", logger="tools.browser.browser_tool")
             result = await execute_browser(
                 {
