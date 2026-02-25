@@ -23,6 +23,7 @@ export const INVOKE_CHANNELS = {
   GET_SYSTEM_STATE: 'get-system-state',
   STORE_MEMORY: 'store-memory',
   SEARCH_MEMORY: 'search-memory',
+  SEARCH_CONVERSATIONS: 'search-conversations',
   LIST_CONVERSATIONS: 'list-conversations',
   LIST_EPISODIC_MEMORIES: 'list-episodic-memories',
   GET_CONVERSATION: 'get-conversation',

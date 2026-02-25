@@ -7,6 +7,9 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(frontend-search-ui): implement full transcript-aware `Search chats` (debounced backend lookup, snippet + role result rows, grouped recency sections) so users can find chats by remembered message content, not only titles
+- feat(sidecar-memory-search): add `search-conversations` IPC/JSON-RPC route to `search_conversations` with lexical transcript search (FTS5 + LIKE fallback), semantic transcript merge, and conversation-level ranking payloads
+- test(frontend-sidecar-search): add regression coverage for `search-conversations` mapper wiring, sidecar handler behavior, and local-store lexical/semantic conversation search flows
 - docs(frontend-inventory): refresh frontend functionality/module-index inventories with current `frontend/src` counts (`287` files), dashboard search/rehydrate flows, sidecar conversation-title ownership, Browser Use cluster mapping, and main-process overlay/module coverage updates
 - docs(backend-inventory): refresh backend functionality/module-index inventories with current `backend/src` counts (`307` files), API infrastructure/services ownership, execution recovery bridge coverage, container runtime helper modules, and OCR/vision/runtime helper boundaries
 - feat(frontend-search-ui): add clone-style `Search chats` popup modal (sidebar trigger, search input, grouped results, new-chat action, conversation open/close flow) to match ChatGPT website behavior

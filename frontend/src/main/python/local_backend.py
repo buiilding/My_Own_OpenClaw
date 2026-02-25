@@ -106,6 +106,7 @@ class LocalBackend:
         # Memory methods
         self.protocol.register_method("search_memory", self._handle_search_memory)
         self.protocol.register_method("store_memory", self._handle_store_memory)
+        self.protocol.register_method("search_conversations", self._handle_search_conversations)
         self.protocol.register_method("list_conversations", self._handle_list_conversations)
         self.protocol.register_method("list_episodic_memories", self._handle_list_episodic_memories)
         self.protocol.register_method("get_conversation", self._handle_get_conversation)
@@ -313,6 +314,36 @@ class LocalBackend:
             }
         except Exception as e:
             logger.error(f"Memory search failed: {e}", exc_info=True)
+            return {
+                "success": False,
+                "error": str(e)
+            }
+
+    @requires_memory_store
+    async def _handle_search_conversations(
+        self,
+        query: str,
+        user_id: str = "default_user",
+        limit: int = 40,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """Search transcript conversations by message content."""
+        try:
+            conversations = await self.memory_store.search_conversations(
+                user_id=user_id,
+                query=query,
+                limit=limit,
+            )
+            return {
+                "success": True,
+                "data": {
+                    "query": query,
+                    "conversations": conversations,
+                    "count": len(conversations),
+                }
+            }
+        except Exception as e:
+            logger.error(f"Conversation search failed: {e}", exc_info=True)
             return {
                 "success": False,
                 "error": str(e)

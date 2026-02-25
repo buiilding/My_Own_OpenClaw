@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { Circle, PenSquare, X } from 'lucide-react';
 
@@ -16,10 +16,14 @@ function SearchChatsModal({
   onClose,
   onStartNewChat,
   onOpenConversation,
+  query,
+  onQueryChange,
+  isSearching,
+  searchError,
   recentConversationGroups,
+  searchConversationGroups,
   activeConversationRef,
 }) {
-  const [query, setQuery] = useState('');
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -27,7 +31,6 @@ function SearchChatsModal({
       return undefined;
     }
 
-    setQuery('');
     const timer = window.setTimeout(() => {
       inputRef.current?.focus();
     }, 20);
@@ -45,29 +48,10 @@ function SearchChatsModal({
     };
   }, [isOpen, onClose]);
 
-  const filteredGroups = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
-    if (!normalized) {
-      return recentConversationGroups;
-    }
-
-    return GROUP_ORDER.reduce((acc, key) => {
-      const source = recentConversationGroups[key] || [];
-      const filtered = source.filter((item) => (
-        typeof item?.title === 'string'
-        && item.title.toLowerCase().includes(normalized)
-      ));
-      acc[key] = filtered;
-      return acc;
-    }, {
-      today: [],
-      yesterday: [],
-      previous7Days: [],
-      older: [],
-    });
-  }, [query, recentConversationGroups]);
-
-  const hasResults = GROUP_ORDER.some((key) => (filteredGroups[key]?.length || 0) > 0);
+  const normalizedQuery = query.trim();
+  const useSearchResults = normalizedQuery.length >= 2;
+  const activeGroups = useSearchResults ? searchConversationGroups : recentConversationGroups;
+  const hasResults = GROUP_ORDER.some((key) => (activeGroups[key]?.length || 0) > 0);
 
   if (!isOpen) {
     return null;
@@ -95,7 +79,7 @@ function SearchChatsModal({
             ref={inputRef}
             className="cg-search-input"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => onQueryChange(event.target.value)}
             placeholder="Search chats..."
             aria-label="Search chats input"
           />
@@ -122,9 +106,13 @@ function SearchChatsModal({
             <span>New chat</span>
           </button>
 
-          {hasResults ? (
+          {useSearchResults && isSearching ? (
+            <div className="cg-search-empty">Searching chats...</div>
+          ) : useSearchResults && searchError ? (
+            <div className="cg-search-empty">{searchError}</div>
+          ) : hasResults ? (
             GROUP_ORDER.map((groupKey) => {
-              const rows = filteredGroups[groupKey] || [];
+              const rows = activeGroups[groupKey] || [];
               if (rows.length === 0) {
                 return null;
               }
@@ -134,18 +122,37 @@ function SearchChatsModal({
                   <p className="cg-search-group-label">{GROUP_LABELS[groupKey]}</p>
                   <div className="cg-search-group-items">
                     {rows.map((item) => (
-                      <button
-                        key={`${groupKey}-${item.key}`}
-                        type="button"
-                        className={`cg-search-chat-item${item.key === activeConversationRef ? ' active' : ''}`}
-                        onClick={() => {
-                          onClose();
-                          onOpenConversation(item.conversation);
-                        }}
-                      >
-                        <Circle size={12} strokeWidth={1.8} />
-                        <span>{item.title}</span>
-                      </button>
+                      (() => {
+                        const snippetText = typeof item.snippet === 'string' ? item.snippet : '';
+                        const prefix = item.matchedRole ? `${item.matchedRole}: ` : '';
+                        const shouldPrefix = Boolean(
+                          prefix
+                          && snippetText
+                          && !snippetText.toLowerCase().startsWith(prefix.toLowerCase()),
+                        );
+                        return (
+                          <button
+                            key={`${groupKey}-${item.key}`}
+                            type="button"
+                            className={`cg-search-chat-item${item.key === activeConversationRef ? ' active' : ''}`}
+                            onClick={() => {
+                              onClose();
+                              onOpenConversation(item.conversation || item);
+                            }}
+                          >
+                            <Circle size={12} strokeWidth={1.8} className="cg-search-chat-icon" />
+                            <span className="cg-search-chat-content">
+                              <span className="cg-search-chat-title">{item.title}</span>
+                              {snippetText ? (
+                                <span className="cg-search-chat-snippet">
+                                  {shouldPrefix ? prefix : ''}
+                                  {snippetText}
+                                </span>
+                              ) : null}
+                            </span>
+                          </button>
+                        );
+                      })()
                     ))}
                   </div>
                 </div>
@@ -153,7 +160,7 @@ function SearchChatsModal({
             })
           ) : (
             <div className="cg-search-empty">
-              {query.trim() ? 'No matching chats found.' : 'No chats yet.'}
+              {useSearchResults ? 'No matching chats found.' : 'No chats yet.'}
             </div>
           )}
         </div>
@@ -167,7 +174,17 @@ SearchChatsModal.propTypes = {
   onClose: PropTypes.func.isRequired,
   onStartNewChat: PropTypes.func.isRequired,
   onOpenConversation: PropTypes.func.isRequired,
+  query: PropTypes.string.isRequired,
+  onQueryChange: PropTypes.func.isRequired,
+  isSearching: PropTypes.bool.isRequired,
+  searchError: PropTypes.string.isRequired,
   recentConversationGroups: PropTypes.shape({
+    today: PropTypes.array.isRequired,
+    yesterday: PropTypes.array.isRequired,
+    previous7Days: PropTypes.array.isRequired,
+    older: PropTypes.array.isRequired,
+  }).isRequired,
+  searchConversationGroups: PropTypes.shape({
     today: PropTypes.array.isRequired,
     yesterday: PropTypes.array.isRequired,
     previous7Days: PropTypes.array.isRequired,

@@ -27,6 +27,7 @@ contextBridge.exposeInMainWorld('ipc', {
       'get-system-state',
       'store-memory',
       'search-memory',
+      'search-conversations',
       'list-conversations',
       'list-episodic-memories',
       'get-conversation',
