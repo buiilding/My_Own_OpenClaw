@@ -132,15 +132,15 @@ describe('ChatBox overlay mouse ignore', () => {
     });
   });
 
-  test('settings button invokes show-main-window', () => {
+  test('settings button opens main window without forcing settings target', () => {
     render(<ChatBox />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Open settings' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Open dashboard' }));
 
     expectInvokeCall(
       ([channel, payload]) =>
         channel === 'show-main-window'
-        && payload?.open === 'settings',
+        && payload === undefined,
     );
   });
 

@@ -155,7 +155,7 @@ function ChatBox() {
 
   const handleOpenSettings = useCallback(async () => {
     try {
-      await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_MAIN_WINDOW, { open: 'settings' });
+      await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_MAIN_WINDOW);
     } catch (error) {
       console.warn('[ChatBox] Failed to show main window:', error);
     }
@@ -235,8 +235,8 @@ function ChatBox() {
             type="button"
             className="chatbox-icon chatbox-settings"
             onClick={handleOpenSettings}
-            aria-label="Open settings"
-            title="Open settings"
+            aria-label="Open dashboard"
+            title="Open dashboard"
           >
             <SettingsIcon />
           </button>
