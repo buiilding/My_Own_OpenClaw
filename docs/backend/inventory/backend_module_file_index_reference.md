@@ -25,7 +25,9 @@ Based on current source tree under `backend/src`:
 | `simulation` | 12 |
 | `sdk` | 6 |
 | `embeddings` | 2 |
-| **Total** | **305** |
+| **Total** | **307** |
+
+Count includes package `__init__.py` modules.
 
 ## API Layer Index
 
@@ -36,6 +38,8 @@ Based on current source tree under `backend/src`:
 - `backend/src/api/routes/websocket/{__init__,connection,message_handler,json_parse,task_manager}.py`
 - `backend/src/api/routes/memory/{embeddings,semantic,semantic_service,semantic_parser,health}.py`
 - `backend/src/api/routes/artifacts.py`
+- Infrastructure:
+- `backend/src/api/infrastructure/{handler,registry,errors}.py`
 - Handlers:
 - `backend/src/api/handlers/{query,tool_result,settings,stop_query,rehydrate,wakeword}.py`
 - Services:
@@ -73,7 +77,7 @@ Based on current source tree under `backend/src`:
 - Bootstrap:
 - `backend/src/core/bootstrap/{coordinator,entrypoint,handler_initializer}.py`
 - Container graph:
-- `backend/src/core/container/{application,facade,core_container,tool_container,memory_container,api_container,initializer,config_updater,session_factory,incoming_routing}.py`
+- `backend/src/core/container/{application,facade,core_container,tool_container,memory_container,api_container,initializer,config_updater,session_factory,incoming_routing,api_runtime,session_runtime,factories}.py`
 - Config:
 - `backend/src/core/config/{models,app_config,loader,runtime,manager,service,subscriptions}.py`
 - Infrastructure:
@@ -88,6 +92,8 @@ Based on current source tree under `backend/src`:
 - `backend/src/core/security/{policy,executor}.py`
 - `backend/src/core/validation/validators.py`
 - `backend/src/core/observability/trust_boundary_metrics.py`
+- `backend/src/core/logging_setup.py`
+- `backend/src/core/utils/coordinate_methods.py`
 
 ## LLM + Tools + Services Index
 
@@ -110,6 +116,7 @@ Backend tool surface:
 - `backend/src/tools/bundle_execution.py`
 - `backend/src/tools/remote_tools/*.py`
 - `backend/src/tools/{computer,filesystem,system,browser}/schemas*.py`
+- `backend/src/tools/browser/{shared_compat_fields,snapshot_scope_fields}.py`
 
 Services domain:
 
@@ -129,7 +136,7 @@ SDK:
 
 Simulation:
 
-- `backend/src/simulation/{main,app_factory,lifespan_factory,mock_llm_client,mock_llm_browser_client,base_mock_llm_client,native_tool_adapter,browser,computer,coordinate_resolver}.py`
+- `backend/src/simulation/{__main__,main,app_factory,lifespan_factory,mock_llm_client,mock_llm_browser_client,base_mock_llm_client,native_tool_adapter,browser,computer,coordinate_resolver}.py`
 
 Embeddings:
 
