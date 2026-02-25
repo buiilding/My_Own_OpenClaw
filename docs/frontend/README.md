@@ -12,7 +12,10 @@ This hub documents WindieOS frontend implementation details across Electron main
 
 ## Full Inventory
 
-- [Frontend Full Functionality Inventory Reference](frontend_full_functionality_inventory_reference.md)
+- [Frontend Inventory Docs Hub](inventory/README.md)
+- [Frontend Full Functionality Inventory Reference](inventory/frontend_full_functionality_inventory_reference.md)
+- [Frontend Runtime Surface Matrix Reference](inventory/frontend_runtime_surface_matrix_reference.md)
+- [Frontend Module File Index Reference](inventory/frontend_module_file_index_reference.md)
 
 ## Deep Pages
 

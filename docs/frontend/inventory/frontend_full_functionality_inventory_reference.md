@@ -374,8 +374,8 @@ Memory path:
 
 ## Related Docs
 
-- [Frontend Functionality Map](README.md)
-- [Frontend Main Docs Hub](main/README.md)
-- [Frontend Renderer Docs Hub](renderer/README.md)
-- [Frontend Sidecar Docs Hub](sidecar/README.md)
-- [Frontend Contracts Docs Hub](contracts/README.md)
+- [Frontend Functionality Map](../README.md)
+- [Frontend Main Docs Hub](../main/README.md)
+- [Frontend Renderer Docs Hub](../renderer/README.md)
+- [Frontend Sidecar Docs Hub](../sidecar/README.md)
+- [Frontend Contracts Docs Hub](../contracts/README.md)
