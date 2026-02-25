@@ -27,6 +27,9 @@ title: "Backend API Processing Docs Hub"
 - [Formatter Signal Docs Hub](formatters/signals/README.md)
 - [Chunk and Thinking Formatter Required-Content and Skip Contract Reference](formatters/signals/chunk_and_thinking_formatter_required_content_and_skip_contract_reference.md)
 - [Token Count and Tool Schemas Formatter Schema-Alignment and Strict-Validation Reference](formatters/signals/token_count_and_tool_schemas_formatter_schema_alignment_and_strict_validation_reference.md)
+- [Formatter Action Docs Hub](formatters/actions/README.md)
+- [Tool Call and Tool Output Formatter Validation and Metadata-Passthrough Reference](formatters/actions/tool_call_and_tool_output_formatter_validation_and_metadata_passthrough_reference.md)
+- [Tool Bundle Formatter Typed/Dict Parity and Default-Payload Contract Reference](formatters/actions/tool_bundle_formatter_typed_dict_parity_and_default_payload_contract_reference.md)
 - [TTS Manager Audio Stream and Cleanup Reference](tts/tts_manager_audio_stream_and_cleanup_reference.md)
 - [TTS Processor Suppression State-Machine Reference](tts/tts_processor_suppression_state_machine_reference.md)
 
