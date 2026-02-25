@@ -28,6 +28,7 @@ title: "Browser Action Compatibility and Runtime Reference"
 - Optional strict action mode: `WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1` rejects legacy aliases (`open`, `type`, `press`, `switch_tab`, `act`) and requires canonical action names.
 - Optional rollout flag: `WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=0` also rejects legacy aliases (default allows them).
 - Precedence: strict mode wins when both flags are set (`WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1` overrides `WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1`).
+- Observability: when legacy aliases are still allowed, sidecar logs a warning with legacy and preferred canonical action names.
 - `connect` always targets WindieOS dedicated localhost CDP browser endpoint; external hosts are rejected.
 
 ## End-to-End Action Path

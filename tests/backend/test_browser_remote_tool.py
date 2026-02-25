@@ -122,6 +122,21 @@ class TestRemoteBrowserTool:
         assert result.is_remote is True
         assert result.args["action"] == "navigate"
 
+    @pytest.mark.asyncio
+    async def test_execute_remote_logs_warning_for_allowed_legacy_action(self, caplog):
+        tool = RemoteBrowserTool()
+        caplog.set_level("WARNING", logger="backend.src.tools.remote_tools.browser")
+
+        mock_ctx = mock.Mock()
+        mock_ctx.session = mock.Mock()
+        mock_ctx.session.metadata = {"request_id": "legacy-log"}
+
+        args = BrowserControlArgs(action="open", url="https://example.com")
+        result = await tool.execute_remote(args, mock_ctx)
+
+        assert result.is_remote is True
+        assert "Legacy browser action 'open' invoked; prefer 'navigate'" in caplog.text
+
 
 class TestBrowserToolRegistry:
     """Test browser tool in registry."""

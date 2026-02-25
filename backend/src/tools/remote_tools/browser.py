@@ -5,6 +5,7 @@ Remote browser-domain tool stubs.
 from __future__ import annotations
 
 import os
+import logging
 from typing import Any
 
 from backend.src.sdk.context import ToolContext
@@ -12,6 +13,8 @@ from backend.src.sdk.tool import Tool
 from backend.src.tools.browser.schemas import BrowserControlArgs
 from backend.src.tools.categorization import ToolDomain
 from backend.src.tools.remote_tools.base import RemoteToolBase, RemoteToolResult
+
+logger = logging.getLogger(__name__)
 
 
 class RemoteBrowserTool(RemoteToolBase, Tool[BrowserControlArgs]):
@@ -73,6 +76,13 @@ Compatibility validation notes:
             raise ValueError(
                 "Legacy browser actions are disabled by "
                 f"{gate}.{preferred_text}"
+            )
+        if args.is_legacy:
+            preferred = args.preferred_action or "canonical action"
+            logger.warning(
+                "Legacy browser action '%s' invoked; prefer '%s'",
+                args.action,
+                preferred,
             )
         request_id = self._get_request_id(ctx)
         return RemoteToolResult(

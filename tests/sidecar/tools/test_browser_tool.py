@@ -116,6 +116,31 @@ class TestExecuteBrowserControl:
         assert result.data["action"] == "navigate"
 
     @pytest.mark.asyncio
+    async def test_legacy_alias_logs_warning_when_allowed(self, caplog):
+        with mock.patch(
+            "tools.browser.browser_tool.get_browser_controller"
+        ) as mock_get_controller, mock.patch(
+            "tools.browser.browser_tool.get_browser_use_adapter"
+        ) as mock_get_adapter:
+            caplog.set_level("WARNING", logger="tools.browser.browser_tool")
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_get_controller.return_value = mock_controller
+            mock_adapter = mock.AsyncMock()
+            mock_adapter.execute.return_value = AdapterActionResult(
+                success=True,
+                action="open",
+                decision="compat",
+                data={"action": "open", "browser_use_action": "navigate"},
+            )
+            mock_get_adapter.return_value = mock_adapter
+
+            result = await execute_browser({"action": "open", "url": "https://example.com"})
+
+        assert result.success is True
+        assert "Legacy browser action 'open' invoked; prefer canonical action 'navigate'" in caplog.text
+
+    @pytest.mark.asyncio
     async def test_validation_error(self):
         """Test validation error handling."""
         with mock.patch(
