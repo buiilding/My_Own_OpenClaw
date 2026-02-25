@@ -10,7 +10,6 @@ from weakref import WeakKeyDictionary
 
 from tools.browser.chrome_launcher import DEFAULT_WINDIE_CDP_URL
 from tools.browser.browser_action_contract import BROWSER_CANONICAL_ACTIONS
-from tools.browser.browser_action_contract import BROWSER_COMPAT_ACTION_ALIASES
 from tools.browser.browser_action_contract import REMOVED_BROWSER_ACTION_ALIASES
 from tools.browser.browser_runtime import ControllerRuntimeLike
 from tools.browser.browser_runtime import BrowserRuntimeProvider
@@ -964,7 +963,7 @@ class BrowserUseCompatibilityAdapter:
         action: str,
         result: AdapterActionResult,
     ) -> AdapterActionResult:
-        preferred_action = BROWSER_COMPAT_ACTION_ALIASES.get(action)
+        preferred_action = REMOVED_BROWSER_ACTION_ALIASES.get(action)
         if preferred_action is None:
             return result
 
