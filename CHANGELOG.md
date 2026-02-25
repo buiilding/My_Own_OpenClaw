@@ -7,6 +7,9 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): record Phase 181 interaction-loop execution helper extraction (`tool_call_bridge.py`), backend verification, and refreshed jscpd outcomes in `docs/planning/windieos_refactor_plan_2026-02-23.md`
+- docs(backend-agent-execution): update interaction-loop/module-index/parser references for extracted `backend/src/agent/execution/tool_call_bridge.py` ownership and bridge responsibilities
+- refactor(backend-interaction-loop): extract native tool-call bridge + recoverable tool-call error parsing helpers from `interaction_loop.py` into `backend/src/agent/execution/tool_call_bridge.py`, reducing loop module size below 500 LOC while preserving behavior
 - docs(backend-protocol-observability): add `docs/backend/inventory/protocols/observability` subhub with protocol correlation/logging/token telemetry reference and protocol-hub wiring
 - docs(frontend-protocol-compatibility): add `docs/frontend/inventory/protocols/compatibility` subhub with endpoint/key/storage/event fallback normalization reference and protocol-hub wiring
 - docs(backend-protocol-compatibility): add `docs/backend/inventory/protocols/compatibility` subhub with schema import stability + typed/dict stream normalization compatibility reference and protocol-hub wiring

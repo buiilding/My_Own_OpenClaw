@@ -54,7 +54,7 @@ Based on current source tree under `backend/src`:
 - Session lifecycle:
 - `backend/src/agent/session/{session,manager,state,runtime_state,initializer,config_runtime,lifecycle}.py`
 - Loop + execution:
-- `backend/src/agent/execution/{executor,interaction_loop,policies}.py`
+- `backend/src/agent/execution/{executor,interaction_loop,tool_call_bridge,policies}.py`
 - Agent LLM bridge:
 - `backend/src/agent/llm/{conversation_context,llm_stream_processor,event_presenter,token_counting}.py`
 - History:
@@ -76,6 +76,7 @@ Based on current source tree under `backend/src`:
 - `backend/src/core/config/{models,app_config,loader,runtime,manager,service,subscriptions}.py`
 - Infrastructure:
 - `backend/src/core/infrastructure/{bus,event_bus_registry,cache,cache_store,cache_manager,cache_entry,exceptions}.py`
+- `backend/src/core/infrastructure/error_types/*.py`
 - Events/types/messages:
 - `backend/src/core/events/*.py`
 - `backend/src/core/types/*.py`
