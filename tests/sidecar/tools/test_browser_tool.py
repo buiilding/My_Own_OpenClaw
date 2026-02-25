@@ -70,6 +70,52 @@ class TestExecuteBrowserControl:
         )
 
     @pytest.mark.asyncio
+    async def test_strict_mode_takes_precedence_over_legacy_allow_flag(self):
+        with mock.patch.dict(
+            "os.environ",
+            {
+                "WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY": "1",
+                "WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1",
+            },
+            clear=False,
+        ):
+            result = await execute_browser({"action": "open", "url": "https://example.com"})
+
+        assert result.success is False
+        assert (
+            "Legacy browser actions are disabled by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1."
+            in result.error
+        )
+
+    @pytest.mark.asyncio
+    async def test_legacy_disable_flag_still_allows_canonical_actions(self):
+        with mock.patch(
+            "tools.browser.browser_tool.get_browser_controller"
+        ) as mock_get_controller, mock.patch(
+            "tools.browser.browser_tool.get_browser_use_adapter"
+        ) as mock_get_adapter, mock.patch.dict(
+            "os.environ",
+            {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "0"},
+            clear=False,
+        ):
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_get_controller.return_value = mock_controller
+            mock_adapter = mock.AsyncMock()
+            mock_adapter.execute.return_value = AdapterActionResult(
+                success=True,
+                action="navigate",
+                decision="port",
+                data={"action": "navigate", "url": "https://example.com"},
+            )
+            mock_get_adapter.return_value = mock_adapter
+
+            result = await execute_browser({"action": "navigate", "url": "https://example.com"})
+
+        assert result.success is True
+        assert result.data["action"] == "navigate"
+
+    @pytest.mark.asyncio
     async def test_validation_error(self):
         """Test validation error handling."""
         with mock.patch(

@@ -27,6 +27,7 @@ title: "Browser Action Compatibility and Runtime Reference"
 - Runtime selection accepts only `WINDIE_BROWSER_USE_RUNTIME in {"browser_use","browser_use_native"}`. Unset defaults to `browser_use_native`.
 - Optional strict action mode: `WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1` rejects legacy aliases (`open`, `type`, `press`, `switch_tab`, `act`) and requires canonical action names.
 - Optional rollout flag: `WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=0` also rejects legacy aliases (default allows them).
+- Precedence: strict mode wins when both flags are set (`WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1` overrides `WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1`).
 - `connect` always targets WindieOS dedicated localhost CDP browser endpoint; external hosts are rejected.
 
 ## End-to-End Action Path

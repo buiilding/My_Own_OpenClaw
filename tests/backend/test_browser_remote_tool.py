@@ -91,6 +91,37 @@ class TestRemoteBrowserTool:
         ):
             await tool.execute_remote(args, mock_ctx)
 
+    @pytest.mark.asyncio
+    async def test_execute_remote_strict_mode_overrides_legacy_allow_flag(self, monkeypatch):
+        monkeypatch.setenv("WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY", "1")
+        monkeypatch.setenv("WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS", "1")
+        tool = RemoteBrowserTool()
+
+        mock_ctx = mock.Mock()
+        mock_ctx.session = mock.Mock()
+        mock_ctx.session.metadata = {"request_id": "strict-precedence"}
+
+        args = BrowserControlArgs(action="open", url="https://example.com")
+        with pytest.raises(
+            ValueError,
+            match="Legacy browser actions are disabled by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1",
+        ):
+            await tool.execute_remote(args, mock_ctx)
+
+    @pytest.mark.asyncio
+    async def test_execute_remote_legacy_disable_still_allows_canonical_actions(self, monkeypatch):
+        monkeypatch.setenv("WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS", "0")
+        tool = RemoteBrowserTool()
+
+        mock_ctx = mock.Mock()
+        mock_ctx.session = mock.Mock()
+        mock_ctx.session.metadata = {"request_id": "canonical-ok"}
+
+        args = BrowserControlArgs(action="navigate", url="https://example.com")
+        result = await tool.execute_remote(args, mock_ctx)
+        assert result.is_remote is True
+        assert result.args["action"] == "navigate"
+
 
 class TestBrowserToolRegistry:
     """Test browser tool in registry."""
