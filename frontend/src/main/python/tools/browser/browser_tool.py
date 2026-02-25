@@ -69,6 +69,14 @@ def _legacy_actions_allowed() -> bool:
     return raw not in {"0", "false", "no", "off"}
 
 
+def _legacy_action_block_gate() -> str | None:
+    if _canonical_only_actions_enabled():
+        return f"{ENV_CANONICAL_ONLY_ACTIONS}=1"
+    if not _legacy_actions_allowed():
+        return f"{ENV_ALLOW_LEGACY_ACTIONS}=1"
+    return None
+
+
 def _ensure_vendored_browser_use_on_path():
     return _runtime._ensure_vendored_browser_use_on_path()
 
@@ -158,22 +166,18 @@ async def _run_phase2_adapter_action(args: Dict[str, Any]) -> ToolResult:
     if action not in PHASE2_ADAPTER_ROUTED_ACTIONS:
         return ToolResult.error_result(f"Unhandled action: {action}")
 
-    if action in LEGACY_BROWSER_ACTION_ALIASES and (
-        _canonical_only_actions_enabled() or not _legacy_actions_allowed()
-    ):
-        preferred = LEGACY_BROWSER_ACTION_ALIASES[action]
-        if _canonical_only_actions_enabled():
-            gate = f"{ENV_CANONICAL_ONLY_ACTIONS}=1"
-        else:
-            gate = f"{ENV_ALLOW_LEGACY_ACTIONS}=1"
-        _log_legacy_action_warning(action, preferred, blocked=True, gate=gate)
-        return ToolResult.error_result(
-            "Legacy browser actions are disabled by "
-            f"{gate}. Use '{preferred}' instead."
-        )
     if action in LEGACY_BROWSER_ACTION_ALIASES:
-        preferred = LEGACY_BROWSER_ACTION_ALIASES[action]
-        _log_legacy_action_warning(action, preferred, blocked=False)
+        gate = _legacy_action_block_gate()
+        if gate is None:
+            preferred = LEGACY_BROWSER_ACTION_ALIASES[action]
+            _log_legacy_action_warning(action, preferred, blocked=False)
+        else:
+            preferred = LEGACY_BROWSER_ACTION_ALIASES[action]
+            _log_legacy_action_warning(action, preferred, blocked=True, gate=gate)
+            return ToolResult.error_result(
+                "Legacy browser actions are disabled by "
+                f"{gate}. Use '{preferred}' instead."
+            )
 
     controller = get_browser_controller()
     adapter = get_browser_use_adapter(controller)
