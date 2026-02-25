@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(backend-services-token-calculation): add token-calculation subhub and deep reference for LiteLLM counter invocation path, assistant tool-call canonicalization rules, fallback text-part heuristics, and singleton/thread-safety test contracts
 - docs(frontend-sidecar-tools-filesystem): add filesystem subhub splitting read-file window/binary/truncation contracts from replace-engine match-mode, patch-chunk, and atomic-write semantics
 - docs(frontend-contracts-ipc): add renderer IPC bridge subhub for dev-only channel validation, preload dependency guard, and listener cleanup contracts
 - docs(frontend-renderer-transcript): add queue subhub documenting pending queue FIFO/drain mechanics and category-ordered requeue behavior in flush pipeline

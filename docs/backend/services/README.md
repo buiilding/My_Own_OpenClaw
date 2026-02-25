@@ -15,6 +15,8 @@ title: "Backend Services Docs Hub"
 - [Artifact, Screenshot, and System-State Flow Reference](artifact_screenshot_and_system_state_flow_reference.md)
 - [Token Docs Hub](token/README.md)
 - [Token Service Message Normalization and Fallback Reference](token/token_service_message_normalization_and_fallback_reference.md)
+- [Token Calculation Docs Hub](token/calculation/README.md)
+- [Token Counter Invocation, Fallback Estimation, and Tool-Call Normalization Reference](token/calculation/token_counter_invocation_fallback_estimation_and_tool_call_normalization_reference.md)
 - [TTS and Wakeword Audio Runtime Reference](tts_and_wakeword_audio_runtime_reference.md)
 - [Screen-Grounding Docs Hub](screen_grounding/README.md)
 - [OCR and Vision Coordinate Runtime Overview](ocr_and_vision_coordinate_runtime_reference.md)

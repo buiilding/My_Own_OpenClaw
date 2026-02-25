@@ -11,6 +11,8 @@ title: "Backend Services Token Docs Hub"
 ## Deep Pages
 
 - [Token Service Message Normalization and Fallback Reference](token_service_message_normalization_and_fallback_reference.md)
+- [Token Calculation Docs Hub](calculation/README.md)
+- [Token Counter Invocation, Fallback Estimation, and Tool-Call Normalization Reference](calculation/token_counter_invocation_fallback_estimation_and_tool_call_normalization_reference.md)
 
 ## Code Scope
 
