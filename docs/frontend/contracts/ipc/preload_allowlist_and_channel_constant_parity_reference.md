@@ -132,4 +132,6 @@ If `send` appears ignored:
 
 - [Frontend Contracts IPC Docs Hub](README.md)
 - [Main-Process IPC Handler Ownership and RPC Mapper Reference](main_process_ipc_handler_ownership_and_rpc_mapper_reference.md)
+- [IPC Bridge Docs Hub](bridge/README.md)
+- [Renderer IPC Bridge Runtime Validation and Window IPC Guard Reference](bridge/renderer_ipc_bridge_runtime_validation_and_window_ipc_guard_reference.md)
 - [IPC Channel and Handler Reference](../ipc_channel_and_handler_reference.md)

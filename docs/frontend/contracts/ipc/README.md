@@ -12,6 +12,8 @@ title: "Frontend Contracts IPC Docs Hub"
 
 - [Preload Allowlist and Channel-Constant Parity Reference](preload_allowlist_and_channel_constant_parity_reference.md)
 - [Main-Process IPC Handler Ownership and RPC Mapper Reference](main_process_ipc_handler_ownership_and_rpc_mapper_reference.md)
+- [IPC Bridge Docs Hub](bridge/README.md)
+- [Renderer IPC Bridge Runtime Validation and Window IPC Guard Reference](bridge/renderer_ipc_bridge_runtime_validation_and_window_ipc_guard_reference.md)
 
 ## Code Scope
 
@@ -23,4 +25,3 @@ title: "Frontend Contracts IPC Docs Hub"
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
-
