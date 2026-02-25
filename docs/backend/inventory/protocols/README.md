@@ -14,6 +14,7 @@ title: "Backend Inventory Protocols Hub"
 - [Backend Protocol Lifecycle Hub](lifecycle/README.md)
 - [Backend Protocol Errors Hub](errors/README.md)
 - [Backend Protocol Validation Hub](validation/README.md)
+- [Backend Protocol Testing Hub](testing/README.md)
 
 ## Related Pages
 
