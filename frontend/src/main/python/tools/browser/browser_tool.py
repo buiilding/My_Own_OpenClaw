@@ -181,7 +181,7 @@ async def _run_phase2_adapter_action(args: Dict[str, Any]) -> ToolResult:
             action,
             preferred=preferred,
             blocked=True,
-            gate="legacy_act_removed",
+            gate="legacy_alias_removed",
         )
         return ToolResult.error_result(
             f"Legacy browser action '{action}' has been removed. "

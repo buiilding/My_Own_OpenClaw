@@ -16,12 +16,11 @@ from backend.src.tools.categorization import ToolDomain
 from backend.src.tools.remote_tools.base import RemoteToolBase, RemoteToolResult
 
 logger = logging.getLogger(__name__)
-REMOVED_LEGACY_ACT_ERROR = (
-    "Legacy browser action 'act' has been removed. "
-    "Use canonical browser actions directly "
-    "(for example: click, input, send_keys, wait, evaluate, navigate, extract, "
-    "scroll, screenshot, switch, close)."
-)
+
+
+def _removed_legacy_alias_error(action: str, preferred: str | None) -> str:
+    preferred_text = preferred or "canonical browser actions directly"
+    return f"Legacy browser action '{action}' has been removed. Use {preferred_text}."
 
 
 class RemoteBrowserTool(RemoteToolBase, Tool[BrowserControlArgs]):
@@ -124,9 +123,11 @@ Compatibility validation notes:
                 args.action,
                 preferred=args.preferred_action,
                 blocked=True,
-                gate="legacy_act_removed",
+                gate="legacy_alias_removed",
             )
-            raise ValueError(REMOVED_LEGACY_ACT_ERROR)
+            raise ValueError(
+                _removed_legacy_alias_error(args.action, args.preferred_action)
+            )
 
         gate = self._legacy_action_block_gate() if args.is_legacy else None
         if gate is not None:
