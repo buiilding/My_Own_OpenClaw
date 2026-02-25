@@ -74,6 +74,19 @@ Compatibility validation notes:
                 gate = f"{self.strict_canonical_actions_env}=1"
             else:
                 gate = f"{self.allow_legacy_actions_env}=1"
+            if preferred:
+                logger.warning(
+                    "Legacy browser action '%s' blocked by %s; prefer '%s'",
+                    args.action,
+                    gate,
+                    preferred,
+                )
+            else:
+                logger.warning(
+                    "Legacy browser action '%s' blocked by %s",
+                    args.action,
+                    gate,
+                )
             raise ValueError(
                 "Legacy browser actions are disabled by "
                 f"{gate}.{preferred_text}"
