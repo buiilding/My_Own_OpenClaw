@@ -12,7 +12,6 @@ from tools.browser.browser_action_contract import BROWSER_ALL_ACTIONS
 from tools.browser.browser_action_contract import REMOVED_BROWSER_ACTION_ALIASES
 from tools.browser import browser_adapter as _adapter
 from tools.browser import browser_runtime as _runtime
-from tools.browser.controller import get_browser_controller
 from tools.result import ToolResult
 
 AdapterActionResult = _adapter.AdapterActionResult
@@ -65,6 +64,13 @@ def _log_legacy_action_warning(
 
 def _ensure_vendored_browser_use_on_path():
     return _runtime._ensure_vendored_browser_use_on_path()
+
+
+def get_browser_controller():
+    """Lazily resolve BrowserController factory to avoid import-time playwright dependency."""
+    from tools.browser.controller import get_browser_controller as _get_browser_controller
+
+    return _get_browser_controller()
 
 
 def create_browser_use_native_runtime_provider(controller):

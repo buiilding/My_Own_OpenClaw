@@ -108,6 +108,7 @@ title: "WindieOS Browser Use Hard-Merge Plan (2026-02-25)"
      - sidecar adapter no longer keeps dead legacy-dispatch paths; removed aliases fail directly via removed-alias boundary checks
      - sidecar browser tool path no longer uses `phase2` naming (`BROWSER_ROUTED_ACTIONS` / `_run_browser_action`) and now exposes neutral runtime adapter names (`BrowserRuntimeAdapter`, `get_browser_adapter`)
      - compatibility naming aliases (`BrowserUseCompatibilityAdapter`, `get_browser_use_adapter`) are now removed from sidecar browser adapter/tool export surfaces
+     - sidecar browser tool now resolves controller import lazily, allowing adapter/parity suites to import `browser_tool` without a Playwright install
 
 ## Safety Gates
 

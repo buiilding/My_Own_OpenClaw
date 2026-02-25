@@ -40,6 +40,7 @@ Main-process timeout behavior:
 
 - validates `args` object and `action`
 - rejects actions outside `BROWSER_ROUTED_ACTIONS`
+- resolves `get_browser_controller` lazily at execution time (avoids import-time Playwright dependency for adapter/parity-only test modules)
 - converts adapter result to canonical `ToolResult`
 
 ### Layer 2: runtime adapter

@@ -23,6 +23,7 @@ title: "Browser Action Compatibility and Runtime Reference"
 
 - Browser tool entrypoint accepts only object args and requires `action`.
 - Browser actions route through adapter/runtime only when action is in `BROWSER_ROUTED_ACTIONS`.
+- Browser controller factory is resolved lazily via `browser_tool.get_browser_controller()` (module import no longer requires Playwright unless controller execution is requested).
 - Runtime selection accepts only `WINDIE_BROWSER_USE_RUNTIME in {"browser_use","browser_use_native"}`; unset defaults to `browser_use_native`.
 - Removed aliases (always blocked): `type`, `open`, `switch_tab`, `press`, `act`.
 - Structured warning fields: `legacy_action`, `preferred_action`, `legacy_action_blocked`, `legacy_action_gate`.
