@@ -78,6 +78,10 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.MAIN_WINDOW_OPEN_TARGET, (payload) => {
       const target = typeof payload?.target === 'string' ? payload.target : '';
+      if (target === 'chat') {
+        closeAllPanels();
+        return;
+      }
       if (target === 'settings') {
         openSettings();
         return;
@@ -93,7 +97,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
     return () => {
       removeListener?.();
     };
-  }, [openMemory, openModels, openSettings]);
+  }, [closeAllPanels, openMemory, openModels, openSettings]);
 
   return (
     <div className="cg-dashboard-shell">
