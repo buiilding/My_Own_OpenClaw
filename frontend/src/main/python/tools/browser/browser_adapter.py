@@ -221,9 +221,6 @@ class BrowserUseCompatibilityAdapter:
             warnings=warnings,
         )
 
-    async def status(self) -> AdapterActionResult:
-        return await self.execute_browser_use_action("status", {"action": "status"})
-
     async def profiles(self) -> AdapterActionResult:
         return AdapterActionResult(
             success=True,
@@ -352,15 +349,6 @@ class BrowserUseCompatibilityAdapter:
             decision=press_result.decision,
             data=payload,
             warnings=list(press_result.warnings),
-        )
-
-
-
-
-    async def get_tabs(self) -> AdapterActionResult:
-        return await self.execute_browser_use_action(
-            "get_tabs",
-            {"action": "get_tabs"},
         )
 
     async def switch_tab(self, args: Mapping[str, Any]) -> AdapterActionResult:

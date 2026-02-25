@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(frontend-devtools): add `npm run mock-memory-data` + `npm run electron:mock-memory-data` to seed deterministic local mock transcript conversations, episodic memories, and semantic memories for dashboard demos
+- refactor(sidecar-browser-adapter): remove obsolete adapter-only `status()`/`get_tabs()` wrappers after canonical-first dispatch so canonical actions always flow through runtime action execution path
 - feat(browser-legacy-observability): include adapter legacy-alias `warnings`/`deprecation` metadata in successful sidecar browser tool payloads so frontend/backend can track remaining compatibility usage
 - feat(browser-rollout): add `WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS` rollout flag (default allow) so legacy alias actions can be disabled independently of strict canonical mode in backend and sidecar gates
 - refactor(sidecar-browser-adapter): simplify legacy `act` envelope handling to a thin shim that delegates kinds through generic `execute` (canonical runtime path), keeping only `timeMs`/`fn` normalization and close split behavior
