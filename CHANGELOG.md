@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-chat-tools): remove response-overlay ghost cursor preview/timeline and execute click-like tool calls immediately (no synthetic delay/animation before tool dispatch).
 - feat(frontend-security): add Linux `Agent Full Sudo Access` settings flow with OS-auth enable (`pkexec`), non-interactive disable (`sudo -n`), and sidecar `sudo_auth_mode` routing so `run_shell_command` honors passwordless-sudo state.
 - feat(frontend-wakeword): wire wakeword activation to open/focus chat input and optional post-wakeword STT handoff into the composer when `wakeword_stt_enabled` is on.
 - feat(frontend-dashboard): add Usage modal/section in sidebar navigation, standardize left-side close buttons for dashboard panels, remove duplicate right settings close button, and remove profile-menu Personalization entry.

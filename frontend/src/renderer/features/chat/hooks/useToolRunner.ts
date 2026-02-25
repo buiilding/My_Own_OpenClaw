@@ -11,7 +11,6 @@ import { useChatStore } from '../stores/chatStore';
 import { recordToolMessage } from '../../../infrastructure/transcript/TranscriptWriter';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { type ToolBundleEvent, type ToolCallEvent, isBackendEvent } from '../../../types/backendEvents';
-import { TOOL_GHOST_CLICK_SYNC_DELAY_MS } from '../constants/toolGhostRuntime';
 import { useLatestRef } from '../../../infrastructure/hooks/useLatestRef';
 import {
   buildBundleOutputMessage,
@@ -23,8 +22,6 @@ import {
 } from '../utils/toolRunnerMessages';
 
 const TERMINAL_STREAM_PHASES = new Set(['idle', 'complete', 'error']);
-const MOUSE_CLICK_ACTIONS = new Set(['click', 'double_click', 'right_click']);
-const CLICK_TOOL_NAMES = new Set(['click', 'double_click', 'right_click']);
 
 function shouldSkipToolExecution(
   metadata: Record<string, unknown> | undefined,
@@ -62,26 +59,6 @@ function resolveToolRequestIdForCancellation(
     return payload.correlation_id;
   }
   return null;
-}
-
-function shouldDelayForToolGhostClickSync(
-  toolName: string,
-  parameters: Record<string, unknown>,
-): boolean {
-  if (CLICK_TOOL_NAMES.has(toolName.trim().toLowerCase())) {
-    return true;
-  }
-  const rawAction = parameters.action;
-  if (typeof rawAction !== 'string') {
-    return false;
-  }
-  return MOUSE_CLICK_ACTIONS.has(rawAction.trim().toLowerCase());
-}
-
-async function waitForToolGhostClickSync(): Promise<void> {
-  await new Promise<void>((resolve) => {
-    window.setTimeout(resolve, TOOL_GHOST_CLICK_SYNC_DELAY_MS);
-  });
 }
 
 /**
@@ -289,17 +266,7 @@ export function useToolRunner(enabled = true) {
     const correlationId = resolveToolCallCorrelationId(event.payload, event.id);
 
     const turnRef = event.turn_ref ?? useChatStore.getState().streamTracking.activeTurnRef ?? null;
-    const cancellationRequestId = resolveToolRequestIdForCancellation(event.payload) || correlationId;
-
     const executeToolCall = async () => {
-      if (shouldDelayForToolGhostClickSync(toolName, parameters)) {
-        await waitForToolGhostClickSync();
-        if (shouldIgnoreToolEventForTurn(turnRef)) {
-          sendStaleToolCancellation(cancellationRequestId);
-          return;
-        }
-      }
-
       const toolService = toolServiceRef.current;
       if (!toolService) {
         return;

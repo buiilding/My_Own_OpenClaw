@@ -1,6 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
-
-import { TOOL_GHOST_CLICK_SYNC_DELAY_MS } from '../../frontend/src/renderer/features/chat/constants/toolGhostRuntime';
+import { act } from '@testing-library/react';
 
 const mockInvoke = jest.fn().mockResolvedValue({ success: true });
 const mockListeners = new Map();
@@ -37,50 +35,12 @@ export function setChatState(messages) {
   });
 }
 
-export function buildClickToolCallText() {
-  return JSON.stringify({
-    name: 'mouse_control',
-    arguments: { action: 'click', explanation: 'Clicking Chrome icon' },
-    metadata: {
-      coordinate_contract: {
-        target_display_size: [1000, 1000],
-        normalized_coordinates: { x: 800, y: 750 },
-      },
-    },
-  });
-}
-
-export function parsePercentValue(rawValue) {
-  return Number.parseFloat((rawValue || '').replace('%', ''));
-}
-
 export function emitOverlayPhase(phase) {
   const onPhase = mockListeners.get('response-overlay-phase');
   expect(onPhase).toEqual(expect.any(Function));
   act(() => {
     onPhase({ phase });
   });
-}
-
-export async function renderToolCallGhost({ userText, toolText }) {
-  setChatState([
-    { id: 'user-1', text: userText, sender: 'user' },
-    {
-      id: 'tool-1',
-      text: toolText,
-      sender: 'assistant',
-      type: 'tool-call',
-    },
-  ]);
-
-  const renderResult = render(<ChatBoxResponse />);
-  emitOverlayPhase('tool-call');
-
-  await waitFor(() => {
-    expect(screen.getByLabelText('Assistant tool action preview')).toBeInTheDocument();
-  });
-
-  return renderResult;
 }
 
 export function resetChatBoxResponseTestState() {
@@ -100,7 +60,6 @@ export function resetChatBoxResponseTestState() {
 
 export {
   ChatBoxResponse,
-  TOOL_GHOST_CLICK_SYNC_DELAY_MS,
   mockInvoke,
   useChatStore,
 };

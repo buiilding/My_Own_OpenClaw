@@ -11,43 +11,6 @@ import {
   resetToolRunnerTestState,
   restoreToolRunnerMocks,
 } from './ToolRunnerHook.testUtils';
-import { TOOL_GHOST_CLICK_SYNC_DELAY_MS } from '../../frontend/src/renderer/features/chat/constants/toolGhostRuntime';
-
-async function assertDelayedClickToolCall({
-  eventId,
-  requestId,
-  toolName,
-  parameters,
-}) {
-  await emitBackendEventAsync({
-    type: 'tool-call',
-    id: eventId,
-    payload: {
-      tool_name: toolName,
-      parameters,
-      request_id: requestId,
-    },
-  });
-
-  expect(mockExecuteTool).not.toHaveBeenCalled();
-
-  await act(async () => {
-    jest.advanceTimersByTime(TOOL_GHOST_CLICK_SYNC_DELAY_MS - 1);
-    await Promise.resolve();
-  });
-  expect(mockExecuteTool).not.toHaveBeenCalled();
-
-  await act(async () => {
-    jest.advanceTimersByTime(1);
-    await Promise.resolve();
-  });
-
-  expect(mockExecuteTool).toHaveBeenCalledWith(
-    toolName,
-    parameters,
-    { correlationId: requestId, skipAutoCapture: false },
-  );
-}
 
 describe('useToolRunner event handling', () => {
   beforeEach(() => {
@@ -123,24 +86,29 @@ describe('useToolRunner event handling', () => {
       toolName: 'browser',
       parameters: { action: 'click', ref: '3' },
     },
-  ])('delays $caseName execution until ghost preview sync window completes', async ({
+  ])('dispatches $caseName without ghost-sync delay', async ({
     eventId,
     requestId,
     toolName,
     parameters,
   }) => {
-    jest.useFakeTimers();
-    try {
-      renderToolRunner(true);
-      await assertDelayedClickToolCall({
-        eventId,
-        requestId,
-        toolName,
+    renderToolRunner(true);
+
+    await emitBackendEventAsync({
+      type: 'tool-call',
+      id: eventId,
+      payload: {
+        tool_name: toolName,
         parameters,
-      });
-    } finally {
-      jest.useRealTimers();
-    }
+        request_id: requestId,
+      },
+    });
+
+    expect(mockExecuteTool).toHaveBeenCalledWith(
+      toolName,
+      parameters,
+      { correlationId: requestId, skipAutoCapture: false },
+    );
   });
 
 

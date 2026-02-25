@@ -6,15 +6,10 @@ import { toSanitizedMarkdownHtml } from '../../../infrastructure/markdown';
 import { selectChatBoxState } from '../utils/chatSelectors';
 import { getRoundedFrameSize } from '../utils/overlayFrameSize';
 import { subscribeResponseOverlayPhase } from '../utils/overlayPhaseListener';
-import { buildToolGhostPreviewFromMessageText } from '../utils/toolGhostPreview';
-import { useToolGhostLifecycle } from './useToolGhostLifecycle';
 import { useAutoResizedResponseHeight } from '../hooks/useAutoResizedResponseHeight';
-import ToolGhostCursor from './ToolGhostCursor';
 import {
-  buildToolGhostTrackStyle,
   findLastUserIndex,
   findLatestMessageAfterUser,
-  findLatestToolCallAfterUser,
 } from './chatBoxResponseUtils';
 
 const RESPONSE_TYPES = new Set(['llm-text', 'error']);
@@ -79,11 +74,6 @@ function ChatBoxResponse() {
     () => findLatestMessageAfterUser(messages, lastUserIndex, FIRST_CHUNK_TYPES),
     [messages, lastUserIndex],
   );
-  const activeToolCall = useMemo(
-    () => findLatestToolCallAfterUser(messages, lastUserIndex),
-    [messages, lastUserIndex],
-  );
-
   const responseIsCloseable = useMemo(() => {
     if (!activeResponse) {
       return false;
@@ -101,47 +91,9 @@ function ChatBoxResponse() {
   );
 
   const showAwaitingReply = (
-    awaitingFirstChunk || overlayPhase === 'awaiting-first-chunk'
-  ) && !showResponse && overlayPhase !== 'tool-call';
-  const toolGhostPreview = useMemo(
-    () => buildToolGhostPreviewFromMessageText(activeToolCall?.text ?? ''),
-    [activeToolCall],
-  );
-  const shouldShowToolGhostBase = !showResponse && overlayPhase === 'tool-call' && Boolean(activeToolCall);
-  const {
-    toolGhostStartRatio,
-    toolGhostResolvedTargetRatio,
-    toolGhostReady,
-    toolGhostHidden,
-    toolGhostViewportSize,
-  } = useToolGhostLifecycle({
-    shouldShowToolGhostBase,
-    toolGhostPreview,
-    activeToolCallId: activeToolCall?.id,
-  });
-  const showToolGhost = shouldShowToolGhostBase && (
-    !toolGhostPreview.isMouseClick || (toolGhostReady && !toolGhostHidden)
-  );
-  const isVisible = showResponse || showAwaitingReply || showToolGhost;
-  const shouldUseFullscreenGhostFrame = showToolGhost && toolGhostPreview.isMotionAction;
-  const shouldRenderResponseShell = showResponse || showAwaitingReply;
-  const effectiveTargetRatio = useMemo(
-    () => toolGhostResolvedTargetRatio || (
-      toolGhostPreview.hasTarget
-        ? { xRatio: toolGhostPreview.xRatio, yRatio: toolGhostPreview.yRatio }
-        : null
-    ),
-    [
-      toolGhostResolvedTargetRatio,
-      toolGhostPreview.hasTarget,
-      toolGhostPreview.xRatio,
-      toolGhostPreview.yRatio,
-    ],
-  );
-  const hasEffectiveTarget = Boolean(effectiveTargetRatio);
-  const toolGhostTrackStyle = useMemo(() => {
-    return buildToolGhostTrackStyle(toolGhostPreview, toolGhostStartRatio, effectiveTargetRatio);
-  }, [toolGhostPreview, toolGhostStartRatio, effectiveTargetRatio]);
+    awaitingFirstChunk || overlayPhase === 'awaiting-first-chunk' || overlayPhase === 'tool-call'
+  ) && !showResponse;
+  const isVisible = showResponse || showAwaitingReply;
   const responseMarkdownHtml = useMemo(() => {
     if (!activeResponse || activeResponse.type === 'tool-call' || activeResponse.type === 'error') {
       return '';
@@ -163,9 +115,6 @@ function ChatBoxResponse() {
 
   const reportOverlaySize = useCallback(async ({
     visible,
-    fullScreenGhost = false,
-    viewportWidth = null,
-    viewportHeight = null,
   }) => {
     if (!visible) {
       if (lastFrameRef.current.visible === false) {
@@ -180,32 +129,6 @@ function ChatBoxResponse() {
         });
       } catch (error) {
         console.warn('[ChatBoxResponse] Failed to hide response overlay:', error);
-      }
-      return;
-    }
-
-    if (fullScreenGhost) {
-      const width = Number.isFinite(viewportWidth) ? Math.max(1, Math.round(viewportWidth)) : 0;
-      const height = Number.isFinite(viewportHeight) ? Math.max(1, Math.round(viewportHeight)) : 0;
-      const unchanged = (
-        lastFrameRef.current.visible === true
-        && lastFrameRef.current.fullScreenGhost === true
-        && lastFrameRef.current.width === width
-        && lastFrameRef.current.height === height
-      );
-      if (unchanged) {
-        return;
-      }
-      lastFrameRef.current = { width, height, visible: true, fullScreenGhost: true };
-      try {
-        await IpcBridge.invoke(INVOKE_CHANNELS.SET_RESPONSEBOX_SIZE, {
-          visible: true,
-          width,
-          height,
-          full_screen: true,
-        });
-      } catch (error) {
-        console.warn('[ChatBoxResponse] Failed to enter fullscreen ghost overlay mode:', error);
       }
       return;
     }
@@ -357,13 +280,10 @@ function ChatBoxResponse() {
     const updateSize = () => {
       void reportOverlaySize({
         visible: true,
-        fullScreenGhost: shouldUseFullscreenGhostFrame,
-        viewportWidth: toolGhostViewportSize.width,
-        viewportHeight: toolGhostViewportSize.height,
       });
     };
 
-    if (!shouldUseFullscreenGhostFrame && typeof ResizeObserver !== 'undefined' && shellRef.current) {
+    if (typeof ResizeObserver !== 'undefined' && shellRef.current) {
       observer = new ResizeObserver(() => {
         window.requestAnimationFrame(updateSize);
       });
@@ -381,9 +301,6 @@ function ChatBoxResponse() {
   }, [
     isVisible,
     reportOverlaySize,
-    shouldUseFullscreenGhostFrame,
-    toolGhostViewportSize.width,
-    toolGhostViewportSize.height,
   ]);
 
   useEffect(() => {
@@ -404,75 +321,53 @@ function ChatBoxResponse() {
   }
 
   return (
-    <>
-      {shouldRenderResponseShell ? (
-        <div className={`chatbox-shell-wrap${showResponse ? ' has-response-pill' : ''}`}>
-          <div className="chatbox-shell" ref={shellRef}>
-            {showResponse ? (
+    <div className={`chatbox-shell-wrap${showResponse ? ' has-response-pill' : ''}`}>
+      <div className="chatbox-shell" ref={shellRef}>
+        {showResponse ? (
+          <div
+            className={`chatbox-response-pill${hasOverflowAbove ? ' has-overflow-above' : ''}`}
+            ref={responsePillRef}
+            style={{ height: `${responseHeight}px` }}
+            onScroll={handleResponseScroll}
+          >
+            <button
+              type="button"
+              className="chatbox-response-close"
+              onClick={handleCloseResponse}
+              disabled={!responseIsCloseable}
+              aria-label={responseIsCloseable ? 'Close response' : 'Response still streaming'}
+            >
+              ×
+            </button>
+            <div className="chatbox-response-body" ref={responseBodyRef}>
+              {renderResponseContent(activeResponse, responseMarkdownHtml)}
+            </div>
+          </div>
+        ) : null}
+
+        {showAwaitingReply ? (
+          <>
+            {thinkingText ? (
               <div
-                className={`chatbox-response-pill${hasOverflowAbove ? ' has-overflow-above' : ''}`}
-                ref={responsePillRef}
-                style={{ height: `${responseHeight}px` }}
-                onScroll={handleResponseScroll}
+                className={`chatbox-thinking-stream${hasThinkingOverflowAbove ? ' has-overflow-above' : ''}`}
+                ref={thinkingTextRef}
+                onScroll={handleThinkingScroll}
+                role="status"
+                aria-live="polite"
+                aria-label="Assistant reasoning stream"
               >
-                <button
-                  type="button"
-                  className="chatbox-response-close"
-                  onClick={handleCloseResponse}
-                  disabled={!responseIsCloseable}
-                  aria-label={responseIsCloseable ? 'Close response' : 'Response still streaming'}
-                >
-                  ×
-                </button>
-                <div className="chatbox-response-body" ref={responseBodyRef}>
-                  {renderResponseContent(activeResponse, responseMarkdownHtml)}
-                </div>
+                <pre className="chatbox-thinking-stream-text">{thinkingText}</pre>
               </div>
             ) : null}
-
-            {showAwaitingReply ? (
-              <>
-                {thinkingText ? (
-                  <div
-                    className={`chatbox-thinking-stream${hasThinkingOverflowAbove ? ' has-overflow-above' : ''}`}
-                    ref={thinkingTextRef}
-                    onScroll={handleThinkingScroll}
-                    role="status"
-                    aria-live="polite"
-                    aria-label="Assistant reasoning stream"
-                  >
-                    <pre className="chatbox-thinking-stream-text">{thinkingText}</pre>
-                  </div>
-                ) : null}
-                <div className="chatbox-typing-indicator" aria-label="Assistant is awaiting reply">
-                  <span />
-                  <span />
-                  <span />
-                </div>
-              </>
-            ) : null}
-          </div>
-        </div>
-      ) : null}
-
-      {showToolGhost ? (
-        <div className="chatbox-tool-ghost" aria-label="Assistant tool action preview">
-          <div
-            key={activeToolCall?.id || 'tool-ghost-track'}
-            className={`chatbox-tool-ghost-track${hasEffectiveTarget ? ' is-targeted' : ''}${toolGhostPreview.hasRect ? ' has-rect' : ''}${toolGhostPreview.isMouseClick ? ' is-click-animating' : ''}${toolGhostPreview.isMotionAction ? ' is-moving' : ''}`}
-            style={toolGhostTrackStyle || undefined}
-          >
-            {toolGhostPreview.hasRect ? (
-              <div className="chatbox-tool-ghost-target-rect" />
-            ) : null}
-            {hasEffectiveTarget && toolGhostPreview.showsTargetRipple ? (
-              <div className={`chatbox-tool-ghost-target-ripple${toolGhostPreview.isMouseClick ? ' is-click-timeline' : ''}`} />
-            ) : null}
-            <ToolGhostCursor label={toolGhostPreview.label} />
-          </div>
-        </div>
-      ) : null}
-    </>
+            <div className="chatbox-typing-indicator" aria-label="Assistant is awaiting reply">
+              <span />
+              <span />
+              <span />
+            </div>
+          </>
+        ) : null}
+      </div>
+    </div>
   );
 }
 
