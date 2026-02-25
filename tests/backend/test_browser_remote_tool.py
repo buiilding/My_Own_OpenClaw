@@ -159,6 +159,40 @@ class TestRemoteBrowserTool:
         assert getattr(record, "legacy_action_gate", None) == "legacy_alias_removed"
 
     @pytest.mark.asyncio
+    async def test_execute_remote_rejects_removed_switch_tab_alias_even_when_legacy_enabled(
+        self, monkeypatch, caplog
+    ):
+        monkeypatch.setenv("WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS", "1")
+        tool = RemoteBrowserTool()
+        caplog.set_level("WARNING", logger="backend.src.tools.remote_tools.browser")
+
+        mock_ctx = mock.Mock()
+        mock_ctx.session = mock.Mock()
+        mock_ctx.session.metadata = {"request_id": "switch-tab-removed"}
+
+        args = BrowserControlArgs(action="switch_tab", target_id="abcd")
+        with pytest.raises(
+            ValueError,
+            match="Legacy browser action 'switch_tab' has been removed. Use switch.",
+        ):
+            await tool.execute_remote(args, mock_ctx)
+
+        assert (
+            "Legacy browser action 'switch_tab' blocked by legacy_alias_removed; "
+            "prefer 'switch'"
+        ) in caplog.text
+        record = next(
+            rec
+            for rec in caplog.records
+            if "Legacy browser action 'switch_tab' blocked by legacy_alias_removed"
+            in rec.getMessage()
+        )
+        assert getattr(record, "legacy_action", None) == "switch_tab"
+        assert getattr(record, "preferred_action", None) == "switch"
+        assert getattr(record, "legacy_action_blocked", None) is True
+        assert getattr(record, "legacy_action_gate", None) == "legacy_alias_removed"
+
+    @pytest.mark.asyncio
     async def test_execute_remote_logs_warning_for_blocked_legacy_action(self, caplog):
         tool = RemoteBrowserTool()
         caplog.set_level("WARNING", logger="backend.src.tools.remote_tools.browser")
@@ -387,6 +421,11 @@ class TestBrowserControlArgs:
         assert args.is_legacy is False
         assert args.preferred_action == "navigate"
 
+    def test_removed_switch_tab_alias_reports_switch_preferred_action(self):
+        args = BrowserControlArgs(action="switch_tab")
+        assert args.is_legacy is False
+        assert args.preferred_action == "switch"
+
     def test_press_action_key_field(self):
         """Test press action key field remains available."""
         args = BrowserControlArgs(action="press", key="Enter")
@@ -502,6 +541,10 @@ class TestOpenClawCompatArgs:
     def test_legacy_open_alias_is_not_valid_openclaw_action(self):
         with pytest.raises(ValidationError, match="action"):
             BrowserOpenClawCompatArgs(action="open")
+
+    def test_legacy_switch_tab_alias_is_not_valid_openclaw_action(self):
+        with pytest.raises(ValidationError, match="action"):
+            BrowserOpenClawCompatArgs(action="switch_tab")
 
 
 class TestBrowserScreenshotArgs:

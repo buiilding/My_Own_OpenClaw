@@ -40,9 +40,9 @@ title: "WindieOS Browser Use Hard-Merge Plan (2026-02-25)"
 - Legacy compatibility aliases:
   - `type -> input`
   - `press -> send_keys`
-  - `switch_tab -> switch`
 - Removed legacy aliases:
   - `open -> use navigate`
+  - `switch_tab -> use switch`
   - `act -> use canonical actions directly`
 
 ## Execution Phases
@@ -89,11 +89,13 @@ title: "WindieOS Browser Use Hard-Merge Plan (2026-02-25)"
      - sidecar schema registry no longer advertises `act` as a valid compatibility action (`validate_browser_args("act", ...)` now rejects)
      - backend OpenClaw compatibility schema now excludes removed aliases (`BrowserOpenClawCompatArgs(action="act")` validation rejects)
      - historical `act` envelope `request` field removed from backend + sidecar OpenClaw compatibility models
-     - backend OpenClaw action typing now matches sidecar OpenClaw subset (legacy aliases like `type`/`press`/`switch_tab` are no longer accepted by `BrowserOpenClawCompatArgs`)
+     - backend OpenClaw action typing now matches sidecar OpenClaw subset (compatibility aliases like `type`/`press`/`switch_tab` are no longer accepted by `BrowserOpenClawCompatArgs`)
      - OpenClaw compatibility schemas no longer advertise legacy `open`; canonical `navigate` is now the only schema-level navigation action
      - sidecar schema suite now locks backend↔sidecar action-contract parity (canonical/legacy/removed sets, preferred-action map, OpenClaw action subset) to catch drift early
      - legacy alias `open` is now retired at backend + sidecar tool boundaries (moved to removed-alias bucket; callers must use canonical `navigate`)
      - adapter-level `open -> navigate(new_tab=true)` compatibility transform removed; `BrowserUseCompatibilityAdapter.execute("open", ...)` now returns removed-alias migration error
+     - legacy alias `switch_tab` is now retired at backend + sidecar tool boundaries (moved to removed-alias bucket; callers must use canonical `switch`)
+     - adapter-level `switch_tab -> switch` compatibility transform removed; `BrowserUseCompatibilityAdapter.execute("switch_tab", ...)` now returns removed-alias migration error
 
 ## Safety Gates
 

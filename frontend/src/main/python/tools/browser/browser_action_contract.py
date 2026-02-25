@@ -43,13 +43,13 @@ LEGACY_BROWSER_ACTION_ALIASES = MappingProxyType(
     {
         "type": "input",
         "press": "send_keys",
-        "switch_tab": "switch",
     }
 )
 
 REMOVED_BROWSER_ACTION_ALIASES = MappingProxyType(
     {
         "open": "navigate",
+        "switch_tab": "switch",
         "act": "canonical actions directly",
     }
 )

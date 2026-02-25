@@ -33,7 +33,7 @@ class AdapterActionResult:
     deprecation: str | None = None
 
 MAX_SNAPSHOT_CAPTURE_CHARS = 120_000
-LEGACY_ALIAS_ACTIONS_WITH_ARGS = frozenset({"type", "press", "switch_tab"})
+LEGACY_ALIAS_ACTIONS_WITH_ARGS = frozenset({"type", "press"})
 BROWSER_USE_ACTIONS_REQUIRING_CONNECTION = frozenset(
     {
         "snapshot",
@@ -298,29 +298,6 @@ class BrowserUseCompatibilityAdapter:
                 decision=press_result.decision,
                 data=payload,
                 warnings=list(press_result.warnings),
-            )
-
-        if action == "switch_tab":
-            switch_result = await self.execute_browser_use_action(
-                "switch",
-                {
-                    **dict(args),
-                    "action": "switch",
-                },
-            )
-            switch_result = self._retag_action(switch_result, "switch_tab")
-            if not switch_result.success:
-                return switch_result
-            payload = dict(switch_result.data)
-            payload["action"] = "switch_tab"
-            payload["target_id"] = self._extract_target_id(args)
-            payload["browser_use_action"] = "switch"
-            return AdapterActionResult(
-                success=True,
-                action="switch_tab",
-                decision=switch_result.decision,
-                data=payload,
-                warnings=list(switch_result.warnings),
             )
 
         return self._invalid_argument(action, f"Unsupported legacy alias action '{action}'")

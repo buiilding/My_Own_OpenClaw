@@ -717,12 +717,10 @@ class TestBrowserUseCompatibilityAdapter:
             "switch_tab",
             {"action": "switch_tab", "target_id": "abcd"},
         )
-        assert switch_result.success is True
-        assert switch_result.data["target_id"] == "abcd"
-        assert switch_result.data["browser_use_action"] == "switch"
-        runtime.execute_browser_use_action.assert_awaited_with(
-            action="switch",
-            params={"tab_id": "abcd"},
+        assert switch_result.success is False
+        assert switch_result.error_code == "INVALID_ARGUMENT"
+        assert "Legacy browser action 'switch_tab' has been removed." in (
+            switch_result.error or ""
         )
         runtime.switch_tab.assert_not_awaited()
 
