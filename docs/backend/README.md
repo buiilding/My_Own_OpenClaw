@@ -142,6 +142,7 @@ Covers:
 - [Services Docs Hub](services/README.md)
 - [Services Token Docs Hub](services/token/README.md)
 - [Services Screen-Grounding Docs Hub](services/screen_grounding/README.md)
+- [Services Screen-Grounding Vision Docs Hub](services/screen_grounding/vision/README.md)
 - [LLM Models and Parsing](llm/llm_models_and_parsing.md)
 - [Provider Factory and Runtime Selection Reference](llm/provider_factory_and_runtime_selection_reference.md)
 - [Parser Trust Boundary and Native Tool-Call Reference](llm/parser_trust_boundary_and_native_tool_call_reference.md)
@@ -157,6 +158,8 @@ Covers:
 - [OCR and Vision Coordinate Runtime Overview](services/ocr_and_vision_coordinate_runtime_reference.md)
 - [OCR Service and Screenshot State-Machine Reference](services/screen_grounding/ocr_service_and_screenshot_state_machine_reference.md)
 - [Vision Provider Runtime and Coordinate-Scaling Reference](services/screen_grounding/vision_provider_runtime_and_coordinate_scaling_reference.md)
+- [Provider Loader Device-Map, Direct, CPU Fallback, and Dtype Contract Reference](services/screen_grounding/vision/provider_loader_device_map_direct_cpu_fallback_and_dtype_contract_reference.md)
+- [InternVL Chat/Generate Fallback and Runtime Flash-Attention Disable Reference](services/screen_grounding/vision/internvl_chat_generate_fallback_and_runtime_flash_attention_disable_reference.md)
 
 ### Simulation
 
