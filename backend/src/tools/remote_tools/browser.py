@@ -4,7 +4,6 @@ Remote browser-domain tool stubs.
 
 from __future__ import annotations
 
-import os
 import logging
 from typing import Any
 
@@ -49,32 +48,9 @@ Actions:
 Compatibility validation notes:
 - snapshot rejects compatibility fields `format`/`snapshotFormat`/`wait_until`/`state`/`mode`/`max_chars`/`refs`/`interactive`/`compact`/`depth`/`selector`/`frame`
 - extract rejects compatibility fields `mode`/`selector`/`frame`
-- screenshot rejects compatibility fields `full_page`/`ref`/`element`/`type`/`quality`
-- `WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY` and `WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS` are retained for compatibility but currently have no effect because all legacy aliases are removed"""
+- screenshot rejects compatibility fields `full_page`/`ref`/`element`/`type`/`quality`"""
     args_model = BrowserControlArgs
     category = ToolDomain.BROWSER
-    strict_canonical_actions_env = "WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY"
-    allow_legacy_actions_env = "WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS"
-
-    @classmethod
-    def _strict_canonical_actions_enabled(cls) -> bool:
-        raw = os.getenv(cls.strict_canonical_actions_env, "").strip().lower()
-        return raw in {"1", "true", "yes", "on"}
-
-    @classmethod
-    def _legacy_actions_allowed(cls) -> bool:
-        raw = os.getenv(cls.allow_legacy_actions_env, "").strip().lower()
-        if raw == "":
-            return False
-        return raw not in {"0", "false", "no", "off"}
-
-    @classmethod
-    def _legacy_action_block_gate(cls) -> str | None:
-        if cls._strict_canonical_actions_enabled():
-            return f"{cls.strict_canonical_actions_env}=1"
-        if not cls._legacy_actions_allowed():
-            return f"{cls.allow_legacy_actions_env}=1"
-        return None
 
     @staticmethod
     def _log_legacy_action_warning(
@@ -124,27 +100,6 @@ Compatibility validation notes:
             )
             raise ValueError(
                 _removed_legacy_alias_error(args.action, args.preferred_action)
-            )
-
-        gate = self._legacy_action_block_gate() if args.is_legacy else None
-        if gate is not None:
-            preferred = args.preferred_action
-            preferred_text = f" Use '{preferred}' instead." if preferred else ""
-            self._log_legacy_action_warning(
-                args.action,
-                preferred,
-                blocked=True,
-                gate=gate,
-            )
-            raise ValueError(
-                "Legacy browser actions are disabled by "
-                f"{gate}.{preferred_text}"
-            )
-        if args.is_legacy:
-            self._log_legacy_action_warning(
-                args.action,
-                args.preferred_action,
-                blocked=False,
             )
         request_id = self._get_request_id(ctx)
         return RemoteToolResult(

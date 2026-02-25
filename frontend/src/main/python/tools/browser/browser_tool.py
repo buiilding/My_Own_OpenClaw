@@ -9,7 +9,6 @@ import os
 from typing import Any, Dict
 
 from tools.browser.browser_action_contract import BROWSER_ALL_ACTIONS
-from tools.browser.browser_action_contract import LEGACY_BROWSER_ACTION_ALIASES
 from tools.browser.browser_action_contract import REMOVED_BROWSER_ACTION_ALIASES
 from tools.browser import browser_adapter as _adapter
 from tools.browser import browser_runtime as _runtime
@@ -24,8 +23,6 @@ BrowserUseNativeRuntimeProvider = _runtime.BrowserUseNativeRuntimeProvider
 logger = logging.getLogger(__name__)
 
 PHASE2_ADAPTER_ROUTED_ACTIONS = BROWSER_ALL_ACTIONS
-ENV_CANONICAL_ONLY_ACTIONS = "WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY"
-ENV_ALLOW_LEGACY_ACTIONS = "WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS"
 
 
 def _log_legacy_action_warning(
@@ -64,26 +61,6 @@ def _log_legacy_action_warning(
         preferred or "canonical action",
         extra=extra,
     )
-
-
-def _canonical_only_actions_enabled() -> bool:
-    raw = os.getenv(ENV_CANONICAL_ONLY_ACTIONS, "").strip().lower()
-    return raw in {"1", "true", "yes", "on"}
-
-
-def _legacy_actions_allowed() -> bool:
-    raw = os.getenv(ENV_ALLOW_LEGACY_ACTIONS, "").strip().lower()
-    if raw == "":
-        return False
-    return raw not in {"0", "false", "no", "off"}
-
-
-def _legacy_action_block_gate() -> str | None:
-    if _canonical_only_actions_enabled():
-        return f"{ENV_CANONICAL_ONLY_ACTIONS}=1"
-    if not _legacy_actions_allowed():
-        return f"{ENV_ALLOW_LEGACY_ACTIONS}=1"
-    return None
 
 
 def _ensure_vendored_browser_use_on_path():
@@ -187,19 +164,6 @@ async def _run_phase2_adapter_action(args: Dict[str, Any]) -> ToolResult:
             f"Legacy browser action '{action}' has been removed. "
             f"Use {preferred}."
         )
-
-    if action in LEGACY_BROWSER_ACTION_ALIASES:
-        gate = _legacy_action_block_gate()
-        if gate is None:
-            preferred = LEGACY_BROWSER_ACTION_ALIASES[action]
-            _log_legacy_action_warning(action, preferred, blocked=False)
-        else:
-            preferred = LEGACY_BROWSER_ACTION_ALIASES[action]
-            _log_legacy_action_warning(action, preferred, blocked=True, gate=gate)
-            return ToolResult.error_result(
-                "Legacy browser actions are disabled by "
-                f"{gate}. Use '{preferred}' instead."
-            )
 
     controller = get_browser_controller()
     adapter = get_browser_use_adapter(controller)
