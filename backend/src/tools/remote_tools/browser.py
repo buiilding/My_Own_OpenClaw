@@ -26,7 +26,7 @@ Workflow:
 1. Connect: browser(action="connect")
 2. Navigate: browser(action="navigate", url="https://example.com")
 3. Snapshot: browser(action="snapshot") - shows page with numbered refs like [1] button
-4. Interact: browser(action="click", ref="1") or browser(action="type", ref="2", text="hello")
+4. Interact (canonical): browser(action="click", ref="1"), browser(action="input", index=2, text="hello"), browser(action="send_keys", keys="Enter")
 5. Close: browser(action="close")
 
 Automatic `post_action_snapshot` attachment is temporarily disabled for testing.
@@ -35,7 +35,7 @@ Use explicit `browser(action="snapshot", ...)` calls when snapshot data is neede
 Actions:
 - canonical: connect, status, profiles, navigate, snapshot, extract, click, input, send_keys, scroll, screenshot, wait, get_tabs, switch, evaluate, close
 - canonical helpers: done, search, go_back, search_page, find_elements, find_text, close_tab, dropdown_options, select_dropdown, upload_file, write_file, replace_file, read_file, read_long_content
-- compatibility aliases (legacy): open->navigate(new_tab=true), type->input, press->send_keys, switch_tab->switch, act->direct action invocation
+- compatibility aliases (legacy, deprecated): open->navigate(new_tab=true), type->input, press->send_keys, switch_tab->switch, act->direct action invocation
 
 Compatibility validation notes:
 - snapshot rejects compatibility fields `format`/`snapshotFormat`/`wait_until`/`state`/`mode`/`max_chars`/`refs`/`interactive`/`compact`/`depth`/`selector`/`frame`
