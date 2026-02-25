@@ -32,7 +32,6 @@ class AdapterActionResult:
     deprecation: str | None = None
 
 MAX_SNAPSHOT_CAPTURE_CHARS = 120_000
-LEGACY_ALIAS_ACTIONS_WITH_ARGS = frozenset()
 BROWSER_USE_ACTIONS_REQUIRING_CONNECTION = frozenset(
     {
         "snapshot",
@@ -115,10 +114,6 @@ class BrowserUseCompatibilityAdapter:
                 action,
                 f"Legacy browser action '{action}' has been removed. Use {preferred}.",
             )
-            return self._annotate_legacy_action(action, result)
-
-        if action in LEGACY_ALIAS_ACTIONS_WITH_ARGS:
-            result = await self._execute_legacy_alias(action, args)
             return self._annotate_legacy_action(action, result)
 
         if action in BROWSER_CANONICAL_ACTIONS:
@@ -212,13 +207,6 @@ class BrowserUseCompatibilityAdapter:
                 "default_profile": "windie_chrome",
             },
         )
-    async def _execute_legacy_alias(
-        self,
-        action: str,
-        args: Mapping[str, Any],
-    ) -> AdapterActionResult:
-        return self._invalid_argument(action, f"Unsupported legacy alias action '{action}'")
-
     async def execute_browser_use_action(
         self,
         action: str,
