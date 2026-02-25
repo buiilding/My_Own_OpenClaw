@@ -38,11 +38,12 @@ title: "WindieOS Browser Use Hard-Merge Plan (2026-02-25)"
   - `connect`, `status`, `profiles`, `navigate`, `snapshot`, `extract`, `click`, `input`, `send_keys`, `scroll`, `screenshot`, `wait`, `get_tabs`, `switch`, `evaluate`, `close`
   - `done`, `search`, `go_back`, `search_page`, `find_elements`, `find_text`, `close_tab`, `dropdown_options`, `select_dropdown`, `upload_file`, `write_file`, `replace_file`, `read_file`, `read_long_content`
 - Legacy compatibility aliases:
-  - `open -> navigate(new_tab=true)`
   - `type -> input`
   - `press -> send_keys`
   - `switch_tab -> switch`
-  - `act -> removed at tool boundary (historically direct action invocation)`
+- Removed legacy aliases:
+  - `open -> use navigate`
+  - `act -> use canonical actions directly`
 
 ## Execution Phases
 
