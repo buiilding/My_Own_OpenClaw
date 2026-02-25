@@ -7,7 +7,7 @@ from unittest import mock
 
 import pytest
 
-from tools.browser.browser_tool import BrowserUseCompatibilityAdapter
+from tools.browser.browser_tool import BrowserRuntimeAdapter
 
 
 def _make_adapter(*, connected: bool = True, runtime_result: dict | None = None):
@@ -20,7 +20,7 @@ def _make_adapter(*, connected: bool = True, runtime_result: dict | None = None)
         ),
     )
     controller = SimpleNamespace()
-    return BrowserUseCompatibilityAdapter(controller, runtime_provider=runtime), runtime
+    return BrowserRuntimeAdapter(controller, runtime_provider=runtime), runtime
 
 
 @pytest.mark.asyncio

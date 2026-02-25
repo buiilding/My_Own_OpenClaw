@@ -174,7 +174,7 @@ async def _run_browser_action(args: Dict[str, Any]) -> ToolResult:
         )
 
     controller = get_browser_controller()
-    adapter = get_browser_use_adapter(controller)
+    adapter = get_browser_adapter(controller)
     adapter_result = await adapter.execute(action, args)
     return _adapter_result_to_tool_result(adapter_result)
 

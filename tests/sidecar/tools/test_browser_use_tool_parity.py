@@ -13,7 +13,7 @@ import pytest
 
 from backend.src.tools.browser.schema_types import BrowserAction
 from tools.browser.schemas import BROWSER_SCHEMAS
-from tools.browser.browser_tool import BrowserUseCompatibilityAdapter
+from tools.browser.browser_tool import BrowserRuntimeAdapter
 from tools.browser.browser_tool import (
     get_native_runtime_handlers,
 )
@@ -177,7 +177,7 @@ async def test_adapter_dispatch_covers_all_browser_use_actions() -> None:
         close=mock.AsyncMock(),
     )
     controller = SimpleNamespace(is_connected=True)
-    adapter = BrowserUseCompatibilityAdapter(controller, runtime_provider=runtime)
+    adapter = BrowserRuntimeAdapter(controller, runtime_provider=runtime)
 
     for action in sorted(browser_use_actions):
         args = {"action": action, **action_args[action]}
