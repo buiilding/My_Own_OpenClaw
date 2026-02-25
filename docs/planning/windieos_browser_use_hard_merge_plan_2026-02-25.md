@@ -85,6 +85,7 @@ title: "WindieOS Browser Use Hard-Merge Plan (2026-02-25)"
      - adapter-level `act` envelope dispatch path removed (direct adapter `execute("act", ...)` now returns migration error + legacy metadata)
      - contract layer now distinguishes active legacy aliases from removed aliases (`act` no longer counted as active legacy for `is_legacy` gating)
      - sidecar schema registry no longer advertises `act` as a valid compatibility action (`validate_browser_args("act", ...)` now rejects)
+     - backend OpenClaw compatibility schema now excludes removed aliases (`BrowserOpenClawCompatArgs(action="act")` validation rejects)
 
 ## Safety Gates
 
