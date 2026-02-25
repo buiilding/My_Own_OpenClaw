@@ -33,7 +33,7 @@ class AdapterActionResult:
     deprecation: str | None = None
 
 MAX_SNAPSHOT_CAPTURE_CHARS = 120_000
-LEGACY_ALIAS_ACTIONS_WITH_ARGS = frozenset({"open", "type", "press", "switch_tab"})
+LEGACY_ALIAS_ACTIONS_WITH_ARGS = frozenset({"type", "press", "switch_tab"})
 BROWSER_USE_ACTIONS_REQUIRING_CONNECTION = frozenset(
     {
         "snapshot",
@@ -110,16 +110,16 @@ class BrowserUseCompatibilityAdapter:
             result = await self.profiles()
             return self._annotate_legacy_action(action, result)
 
-        if action in LEGACY_ALIAS_ACTIONS_WITH_ARGS:
-            result = await self._execute_legacy_alias(action, args)
-            return self._annotate_legacy_action(action, result)
-
         if action in REMOVED_BROWSER_ACTION_ALIASES:
             preferred = REMOVED_BROWSER_ACTION_ALIASES[action]
             result = self._invalid_argument(
                 action,
                 f"Legacy browser action '{action}' has been removed. Use {preferred}.",
             )
+            return self._annotate_legacy_action(action, result)
+
+        if action in LEGACY_ALIAS_ACTIONS_WITH_ARGS:
+            result = await self._execute_legacy_alias(action, args)
             return self._annotate_legacy_action(action, result)
 
         if action in BROWSER_CANONICAL_ACTIONS:
@@ -218,35 +218,6 @@ class BrowserUseCompatibilityAdapter:
         action: str,
         args: Mapping[str, Any],
     ) -> AdapterActionResult:
-        if action == "open":
-            if not self._runtime.is_connected:
-                return self._not_connected("open")
-            url = self._extract_url(args) or "about:blank"
-            open_result = await self.execute_browser_use_action(
-                "navigate",
-                {
-                    **dict(args),
-                    "action": "navigate",
-                    "url": url,
-                    "new_tab": True,
-                },
-            )
-            open_result = self._retag_action(open_result, "open")
-            if not open_result.success:
-                return open_result
-            payload = dict(open_result.data)
-            payload["action"] = "open"
-            payload["url"] = url
-            payload["browser_use_action"] = "navigate"
-            payload["new_tab"] = True
-            return AdapterActionResult(
-                success=True,
-                action="open",
-                decision=open_result.decision,
-                data=payload,
-                warnings=list(open_result.warnings),
-            )
-
         if action == "type":
             if not self._runtime.is_connected:
                 return self._not_connected("type")
