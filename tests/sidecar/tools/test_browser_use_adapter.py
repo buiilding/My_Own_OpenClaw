@@ -740,11 +740,10 @@ class TestBrowserUseCompatibilityAdapter:
             "type",
             {"action": "type", "ref": "3", "text": "Hello"},
         )
-        assert type_result.success is True
-        assert type_result.data["browser_use_action"] == "input"
-        runtime.execute_browser_use_action.assert_awaited_with(
-            action="input",
-            params={"index": 3, "text": "Hello"},
+        assert type_result.success is False
+        assert type_result.error_code == "INVALID_ARGUMENT"
+        assert "Legacy browser action 'type' has been removed." in (
+            type_result.error or ""
         )
         runtime.type_text.assert_not_awaited()
 

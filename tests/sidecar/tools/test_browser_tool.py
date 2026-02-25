@@ -40,115 +40,52 @@ class TestExecuteBrowserControl:
         assert "Unhandled" in result.error
 
     @pytest.mark.asyncio
-    async def test_strict_canonical_mode_rejects_legacy_alias(self):
+    async def test_removed_type_alias_rejected_by_default(self):
+        with mock.patch.dict("os.environ", {}, clear=False):
+            result = await execute_browser({"action": "type", "ref": "1", "text": "hello"})
+
+        assert result.success is False
+        assert "Legacy browser action 'type' has been removed. Use input." in (result.error or "")
+
+    @pytest.mark.asyncio
+    async def test_removed_type_alias_rejected_when_legacy_enabled(self):
+        with mock.patch.dict(
+            "os.environ",
+            {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1"},
+            clear=False,
+        ):
+            result = await execute_browser({"action": "type", "ref": "1", "text": "hello"})
+
+        assert result.success is False
+        assert "Legacy browser action 'type' has been removed. Use input." in (result.error or "")
+
+    @pytest.mark.asyncio
+    async def test_removed_type_alias_logs_removed_gate(self, caplog):
         with mock.patch.dict(
             "os.environ",
             {"WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY": "1"},
             clear=False,
         ):
-            result = await execute_browser({"action": "type", "ref": "1", "text": "hello"})
-
-        assert result.success is False
-        assert (
-            "Legacy browser actions are disabled by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1."
-            in result.error
-        )
-
-    @pytest.mark.asyncio
-    async def test_legacy_action_flag_can_disable_aliases(self):
-        with mock.patch.dict(
-            "os.environ",
-            {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "0"},
-            clear=False,
-        ):
-            result = await execute_browser({"action": "type", "ref": "1", "text": "hello"})
-
-        assert result.success is False
-        assert (
-            "Legacy browser actions are disabled by WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1."
-            in result.error
-        )
-
-    @pytest.mark.asyncio
-    async def test_legacy_aliases_disabled_by_default(self):
-        with mock.patch.dict("os.environ", {}, clear=False):
-            result = await execute_browser({"action": "type", "ref": "1", "text": "hello"})
-
-        assert result.success is False
-        assert (
-            "Legacy browser actions are disabled by WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1."
-            in result.error
-        )
-
-    @pytest.mark.asyncio
-    async def test_legacy_alias_block_logs_warning_by_default(self, caplog):
-        with mock.patch.dict("os.environ", {}, clear=False):
             caplog.set_level("WARNING", logger="tools.browser.browser_tool")
             result = await execute_browser({"action": "type", "ref": "1", "text": "hello"})
 
         assert result.success is False
         assert (
-            "Legacy browser action 'type' blocked by WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1; "
+            "Legacy browser action 'type' blocked by legacy_alias_removed; "
             "prefer canonical action 'input'"
         ) in caplog.text
         record = next(
             rec
             for rec in caplog.records
-            if "Legacy browser action 'type' blocked by WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1"
-            in rec.getMessage()
+            if "Legacy browser action 'type' blocked by legacy_alias_removed" in rec.getMessage()
         )
         assert getattr(record, "legacy_action", None) == "type"
         assert getattr(record, "preferred_action", None) == "input"
         assert getattr(record, "legacy_action_blocked", None) is True
-        assert getattr(record, "legacy_action_gate", None) == "WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1"
+        assert getattr(record, "legacy_action_gate", None) == "legacy_alias_removed"
 
     @pytest.mark.asyncio
-    async def test_strict_mode_takes_precedence_over_legacy_allow_flag(self):
-        with mock.patch.dict(
-            "os.environ",
-            {
-                "WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY": "1",
-                "WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1",
-            },
-            clear=False,
-        ):
-            result = await execute_browser({"action": "type", "ref": "1", "text": "hello"})
-
-        assert result.success is False
-        assert (
-            "Legacy browser actions are disabled by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1."
-            in result.error
-        )
-
-    @pytest.mark.asyncio
-    async def test_strict_mode_block_logs_canonical_gate(self, caplog):
-        with mock.patch.dict(
-            "os.environ",
-            {
-                "WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY": "1",
-                "WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1",
-            },
-            clear=False,
-        ):
-            caplog.set_level("WARNING", logger="tools.browser.browser_tool")
-            result = await execute_browser({"action": "type", "ref": "1", "text": "hello"})
-
-        assert result.success is False
-        assert (
-            "Legacy browser action 'type' blocked by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1; "
-            "prefer canonical action 'input'"
-        ) in caplog.text
-        record = next(
-            rec
-            for rec in caplog.records
-            if "Legacy browser action 'type' blocked by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1"
-            in rec.getMessage()
-        )
-        assert getattr(record, "legacy_action_gate", None) == "WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1"
-        assert getattr(record, "legacy_action_blocked", None) is True
-
-    @pytest.mark.asyncio
-    async def test_legacy_disable_flag_still_allows_canonical_actions(self):
+    async def test_compat_flags_still_allow_canonical_actions(self):
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get_controller, mock.patch(
@@ -174,45 +111,6 @@ class TestExecuteBrowserControl:
 
         assert result.success is True
         assert result.data["action"] == "navigate"
-
-    @pytest.mark.asyncio
-    async def test_legacy_alias_logs_warning_when_allowed(self, caplog):
-        with mock.patch(
-            "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get_controller, mock.patch(
-            "tools.browser.browser_tool.get_browser_use_adapter"
-        ) as mock_get_adapter, mock.patch.dict(
-            "os.environ",
-            {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1"},
-            clear=False,
-        ):
-            caplog.set_level("WARNING", logger="tools.browser.browser_tool")
-            mock_controller = mock.AsyncMock()
-            mock_controller.is_connected = True
-            mock_get_controller.return_value = mock_controller
-            mock_adapter = mock.AsyncMock()
-            mock_adapter.execute.return_value = AdapterActionResult(
-                success=True,
-                action="type",
-                decision="compat",
-                data={"action": "type", "browser_use_action": "input"},
-            )
-            mock_get_adapter.return_value = mock_adapter
-
-            result = await execute_browser({"action": "type", "ref": "1", "text": "hello"})
-
-        assert result.success is True
-        assert "Legacy browser action 'type' invoked; prefer canonical action 'input'" in caplog.text
-        record = next(
-            rec
-            for rec in caplog.records
-            if "Legacy browser action 'type' invoked; prefer canonical action 'input'"
-            in rec.getMessage()
-        )
-        assert getattr(record, "legacy_action", None) == "type"
-        assert getattr(record, "preferred_action", None) == "input"
-        assert getattr(record, "legacy_action_blocked", None) is False
-        assert getattr(record, "legacy_action_gate", None) is None
 
     @pytest.mark.asyncio
     async def test_validation_error(self):
@@ -276,11 +174,7 @@ class TestPhase2AdapterRouting:
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get_controller, mock.patch(
             "tools.browser.browser_tool.get_browser_use_adapter"
-        ) as mock_get_adapter, mock.patch.dict(
-            "os.environ",
-            {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1"},
-            clear=False,
-        ):
+        ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
             mock_get_controller.return_value = mock_controller
@@ -288,7 +182,7 @@ class TestPhase2AdapterRouting:
             mock_adapter = mock.AsyncMock()
             mock_adapter.execute.return_value = AdapterActionResult(
                 success=False,
-                action="type",
+                action="navigate",
                 decision="port",
                 error="Input target not found",
                 error_code="ELEMENT_NOT_FOUND",
@@ -296,7 +190,7 @@ class TestPhase2AdapterRouting:
             mock_get_adapter.return_value = mock_adapter
 
             result = await execute_browser(
-                {"action": "type", "ref": "missing", "text": "hello"}
+                {"action": "navigate", "url": "https://example.com"}
             )
 
             assert result.success is False
@@ -495,44 +389,24 @@ class TestCompatibilityActions:
             mock_get.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_success_payload_includes_legacy_deprecation_metadata(self):
+    async def test_type_alias_removed(self, caplog):
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get, mock.patch(
-            "tools.browser.browser_tool.get_browser_use_adapter"
-        ) as mock_get_adapter, mock.patch.dict(
+        ) as mock_get, mock.patch.dict(
             "os.environ",
             {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1"},
             clear=False,
         ):
-            mock_controller = mock.AsyncMock()
-            mock_controller.is_connected = True
-            mock_get.return_value = mock_controller
-            mock_adapter = mock.AsyncMock()
-            mock_adapter.execute.return_value = AdapterActionResult(
-                success=True,
-                action="type",
-                decision="compat",
-                data={
-                    "action": "type",
-                    "browser_use_action": "input",
-                    "legacy_action": "type",
-                    "preferred_action": "input",
-                },
-                warnings=["'type' is a legacy compatibility alias; prefer 'input'"],
-                deprecation="'type' is a legacy compatibility alias; prefer 'input'",
-            )
-            mock_get_adapter.return_value = mock_adapter
-
+            caplog.set_level("WARNING", logger="tools.browser.browser_tool")
             result = await execute_browser({"action": "type", "ref": "1", "text": "hello"})
 
-            assert result.success is True
-            assert result.data["deprecation"] == "'type' is a legacy compatibility alias; prefer 'input'"
-            assert result.data["warnings"] == [
-                "'type' is a legacy compatibility alias; prefer 'input'"
-            ]
-            assert result.data["legacy_action"] == "type"
-            assert result.data["preferred_action"] == "input"
+            assert result.success is False
+            assert "Legacy browser action 'type' has been removed." in (result.error or "")
+            assert (
+                "Legacy browser action 'type' blocked by legacy_alias_removed; "
+                "prefer canonical action 'input'"
+            ) in caplog.text
+            mock_get.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_act_alias_removed(self, caplog):
@@ -1275,11 +1149,10 @@ class TestPostActionSnapshots:
 
 
 class TestTypeAction:
-    """Test type action."""
+    """Test removed type alias behavior."""
 
     @pytest.mark.asyncio
-    async def test_type_success(self):
-        """Test successful type."""
+    async def test_type_alias_removed_even_when_legacy_enabled(self):
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get, mock.patch(
@@ -1289,22 +1162,6 @@ class TestTypeAction:
             {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1"},
             clear=False,
         ):
-            mock_controller = mock.AsyncMock()
-            mock_controller.is_connected = True
-            mock_get.return_value = mock_controller
-            mock_adapter = mock.AsyncMock()
-            mock_adapter.execute.return_value = AdapterActionResult(
-                success=True,
-                action="type",
-                decision="port",
-                data={
-                    "action": "type",
-                    "browser_use_action": "input",
-                    "text": "Hello World",
-                },
-            )
-            mock_get_adapter.return_value = mock_adapter
-
             result = await execute_browser(
                 {
                     "action": "type",
@@ -1313,9 +1170,10 @@ class TestTypeAction:
                 }
             )
 
-            assert result.success is True
-            assert result.data["text"] == "Hello World"
-            assert result.data["browser_use_action"] == "input"
+            assert result.success is False
+            assert "Legacy browser action 'type' has been removed." in (result.error or "")
+            mock_get.assert_not_called()
+            mock_get_adapter.assert_not_called()
 
 
 class TestScreenshotAction:

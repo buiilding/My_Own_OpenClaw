@@ -46,6 +46,7 @@ BrowserLegacyCompatAction = Literal[
     "type",
 ]
 BrowserRemovedCompatAction = Literal[
+    "type",
     "open",
     "switch_tab",
     "press",
@@ -86,14 +87,7 @@ BROWSER_CANONICAL_ACTIONS = cast(
     ),
 )
 
-BROWSER_LEGACY_COMPAT_ACTIONS = cast(
-    tuple[str, ...],
-    tuple(
-        action
-        for action in get_args(BrowserLegacyCompatAction)
-        if isinstance(action, str)
-    ),
-)
+BROWSER_LEGACY_COMPAT_ACTIONS = cast(tuple[str, ...], tuple())
 
 BROWSER_REMOVED_COMPAT_ACTIONS = cast(
     tuple[str, ...],
@@ -105,13 +99,12 @@ BROWSER_REMOVED_COMPAT_ACTIONS = cast(
 )
 
 BROWSER_LEGACY_ACTION_PREFERRED = MappingProxyType(
-    {
-        "type": "input",
-    }
+    {}
 )
 
 BROWSER_REMOVED_ACTION_PREFERRED = MappingProxyType(
     {
+        "type": "input",
         "open": "navigate",
         "switch_tab": "switch",
         "press": "send_keys",

@@ -463,6 +463,7 @@ class TestSchemaRegistry:
         """Test getting compat schema for OpenClaw action names."""
         schema = get_browser_schema("status")
         assert schema is not None
+        assert get_browser_schema("type") is None
         assert get_browser_schema("open") is None
         assert get_browser_schema("press") is None
         assert get_browser_schema("switch_tab") is None
@@ -505,6 +506,16 @@ class TestSchemaRegistry:
         assert is_valid is False
         assert error is not None
         assert "Unknown browser action: act" == error
+
+    def test_validate_browser_args_type_removed(self):
+        """Removed type alias should fail schema validation."""
+        is_valid, error = validate_browser_args(
+            "type",
+            {"ref": "3", "text": "Hello"},
+        )
+        assert is_valid is False
+        assert error is not None
+        assert "Unknown browser action: type" == error
 
     def test_validate_browser_args_switch_tab_removed(self):
         """Removed switch_tab alias should fail schema validation."""
