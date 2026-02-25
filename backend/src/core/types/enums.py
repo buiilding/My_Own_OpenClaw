@@ -19,6 +19,7 @@ class MessageType(str, Enum):
     USER_QUERY = "user_query"
     TOOL_OUTPUT = "tool_output"
     ASSISTANT_RESPONSE = "assistant_response"
+    CONTEXT_COMPACTION = "context_compaction"
 
 
 class StreamingEventType(str, Enum):
@@ -35,6 +36,9 @@ class StreamingEventType(str, Enum):
     ASSISTANT_MESSAGE_FULL = "assistant_message_full"
     FULL_RESPONSE = "full_response"
     TOKEN_COUNT = "token_count"
+    CONTEXT_COMPACTION_STARTED = "context_compaction_started"
+    CONTEXT_COMPACTION_COMPLETED = "context_compaction_completed"
+    CONTEXT_COMPACTION_FAILED = "context_compaction_failed"
     CONTENT = "content"  # Used internally by LLM client
     MEMORY_STORE = "memory-store"
     TOOL_BUNDLE = "tool-bundle"

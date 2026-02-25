@@ -234,3 +234,48 @@ class AssistantMessageFullPayload(BaseModel):
 class AssistantMessageFullMessage(BaseMessage):
     type: Literal["assistant-message-full"]
     payload: AssistantMessageFullPayload
+
+
+class ContextCompactionStartedPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    reason: str
+    strategy: str
+    before_tokens: int
+    projected_tokens: int
+
+
+class ContextCompactionStartedMessage(BaseMessage):
+    type: Literal["context-compaction-started"]
+    payload: ContextCompactionStartedPayload
+
+
+class ContextCompactionCompletedPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    reason: str
+    strategy: str
+    before_tokens: int
+    after_tokens: int
+    removed_messages: int
+    summary_preview: Optional[str] = None
+    skipped_reason: Optional[str] = None
+
+
+class ContextCompactionCompletedMessage(BaseMessage):
+    type: Literal["context-compaction-completed"]
+    payload: ContextCompactionCompletedPayload
+
+
+class ContextCompactionFailedPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    reason: str
+    strategy: str
+    error: str
+    before_tokens: Optional[int] = None
+
+
+class ContextCompactionFailedMessage(BaseMessage):
+    type: Literal["context-compaction-failed"]
+    payload: ContextCompactionFailedPayload

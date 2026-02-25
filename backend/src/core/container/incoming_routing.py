@@ -31,6 +31,7 @@ INCOMING_ROUTES: tuple[IncomingRoute, ...] = (
     IncomingRoute(message_type="tool-result", handler_key="tool_result_handler"),
     IncomingRoute(message_type="tool-bundle-result", handler_key="tool_result_handler"),
     IncomingRoute(message_type="wakeword-detected", handler_key="wakeword_handler"),
+    IncomingRoute(message_type="compact-history", handler_key="compact_history_handler"),
     IncomingRoute(message_type="list-models", handler_key="list_models_handler"),
     IncomingRoute(message_type="load-settings", handler_key="load_settings_handler"),
     IncomingRoute(message_type="update-settings", handler_key="update_settings_handler"),

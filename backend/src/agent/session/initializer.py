@@ -2,6 +2,7 @@
 from typing import Any, Optional
 
 from backend.src.agent.execution.executor import AgentExecutor
+from backend.src.agent.compaction import CompactionEngine
 from backend.src.agent.session.runtime_state import SessionRuntimeState
 from backend.src.agent.session.state import ConversationHistory
 from backend.src.agent.tools.waiting import ToolResultHandler
@@ -59,6 +60,11 @@ def init_executor(session, ocr_service) -> None:
         ocr_service=ocr_service,
         event_bus=session.event_bus,
     )
+
+
+def init_compaction_engine(session) -> None:
+    """Initialize per-session history compaction engine."""
+    session.compaction_engine = CompactionEngine(session)
 
 
 def subscribe_events(session) -> None:

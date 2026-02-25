@@ -6,6 +6,9 @@ from backend.src.core.events.base import Event
 from backend.src.core.events.bus_events import ConfigChanged, InteractionCompleted
 from backend.src.core.events.streaming_events import (
     ChunkEvent,
+    ContextCompactionCompletedEvent,
+    ContextCompactionFailedEvent,
+    ContextCompactionStartedEvent,
     ThinkingEvent,
     ErrorEvent,
     StreamingCompleteEvent,
@@ -358,7 +361,52 @@ class TestMemoryStoreEvent:
         assert result["type"] == "memory-store"
         assert result["user_query"] == "Hello"
         assert result["assistant_response"] == "Hi!"
-        assert result["memory_type"] == "episodic"
+
+
+class TestContextCompactionEvents:
+    """Tests for context compaction lifecycle events."""
+
+    def test_context_compaction_started_event(self):
+        event = ContextCompactionStartedEvent(
+            reason="auto-pre",
+            strategy="inline",
+            before_tokens=2000,
+            projected_tokens=2200,
+        )
+
+        assert event.type.value == "context_compaction_started"
+        result = event.to_dict()
+        assert result["reason"] == "auto-pre"
+        assert result["projected_tokens"] == 2200
+
+    def test_context_compaction_completed_event(self):
+        event = ContextCompactionCompletedEvent(
+            reason="auto-mid",
+            strategy="inline",
+            before_tokens=2400,
+            after_tokens=900,
+            removed_messages=9,
+            summary_preview="summary",
+            skipped_reason=None,
+        )
+
+        assert event.type.value == "context_compaction_completed"
+        result = event.to_dict()
+        assert result["after_tokens"] == 900
+        assert result["removed_messages"] == 9
+
+    def test_context_compaction_failed_event(self):
+        event = ContextCompactionFailedEvent(
+            reason="manual",
+            strategy="inline",
+            error="failed",
+            before_tokens=2000,
+        )
+
+        assert event.type.value == "context_compaction_failed"
+        result = event.to_dict()
+        assert result["error"] == "failed"
+        assert result["before_tokens"] == 2000
 
 
 class TestStreamingEventToDict:

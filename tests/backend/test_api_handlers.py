@@ -1269,3 +1269,34 @@ async def test_rehydrate_handler_rebuilds_tool_linkage_for_resumed_transcript():
     assert second_call["id"] == "call_replace_1"
     assert second_call["name"] == "replace"
     assert entries[4]["tool_call_id"] == "call_replace_1"
+
+
+@pytest.mark.asyncio
+async def test_rehydrate_handler_normalizes_context_compaction_message_type():
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    handler = RehydrateConversationHandler(session_manager)
+
+    message = RehydrateConversationMessage(
+        id="msg_rehydrate_context_compaction",
+        type="rehydrate-conversation",
+        user_id="user_1",
+        payload={
+            "conversation_ref": "conv_resume_context_compaction",
+            "messages": [
+                {
+                    "role": "assistant",
+                    "content": "summary",
+                    "message_type": "context_compaction",
+                    "timestamp": "2026-02-12T10:00:01Z",
+                }
+            ],
+            "rehydrate_mode": "replace",
+        },
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert not websocket.sent
+    entries = session_manager.session.rehydrate_calls[0]["entries"]
+    assert entries[0]["message_type"] == "context-compaction"

@@ -14,6 +14,15 @@ from backend.src.api.processing.formatters.system_prompt import SystemPromptEven
 from backend.src.api.processing.formatters.tool_schemas import ToolSchemasEventFormatter
 from backend.src.api.processing.formatters.user_message import UserMessageFullEventFormatter
 from backend.src.api.processing.formatters.assistant_message import AssistantMessageFullEventFormatter
+from backend.src.api.processing.formatters.context_compaction_completed import (
+    ContextCompactionCompletedEventFormatter,
+)
+from backend.src.api.processing.formatters.context_compaction_failed import (
+    ContextCompactionFailedEventFormatter,
+)
+from backend.src.api.processing.formatters.context_compaction_started import (
+    ContextCompactionStartedEventFormatter,
+)
 from backend.src.api.processing.formatters.token_count import TokenCountEventFormatter
 from backend.src.api.processing.formatters.memory_store import MemoryStoreEventFormatter
 from backend.src.api.processing.formatters.tool_bundle import ToolBundleEventFormatter
@@ -30,6 +39,9 @@ __all__ = [
     "ToolSchemasEventFormatter",
     "UserMessageFullEventFormatter",
     "AssistantMessageFullEventFormatter",
+    "ContextCompactionCompletedEventFormatter",
+    "ContextCompactionFailedEventFormatter",
+    "ContextCompactionStartedEventFormatter",
     "TokenCountEventFormatter",
     "MemoryStoreEventFormatter",
     "ToolBundleEventFormatter",

@@ -116,6 +116,20 @@ class SessionManager(ConfigSubscriber):
             return None
         return cancelled_entries[-1]
 
+    def has_active_query_task(self, user_id: str) -> bool:
+        """Return True when at least one active query task is still running."""
+        user_tasks = self._active_query_tasks.get(user_id)
+        if not user_tasks:
+            return False
+        for task in list(user_tasks.keys()):
+            if task.done():
+                user_tasks.pop(task, None)
+                continue
+            return True
+        if not user_tasks:
+            self._active_query_tasks.pop(user_id, None)
+        return False
+
     async def _get_user_lock(self, user_id: str) -> asyncio.Lock:
         """
         Get or create a lock for a specific user.

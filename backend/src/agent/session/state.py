@@ -321,7 +321,7 @@ class ConversationHistory:
 
     def replace_with_entries(self, entries: List[Dict[str, Any]]) -> None:
         """Replace conversation history with provided stored entries."""
-        self.clear()
+        stored_messages: List[StoredMessage] = []
         for entry in entries:
             message_type = self._normalize_message_type(
                 role=entry.get("role"),
@@ -346,7 +346,15 @@ class ConversationHistory:
                 tool_name=entry.get("name"),
                 tool_calls=entry.get("tool_calls"),
             )
-            self._append_message(stored_msg)
+            stored_messages.append(stored_msg)
+        self.replace_with_stored_messages(stored_messages)
+
+    def replace_with_stored_messages(self, messages: List[StoredMessage]) -> None:
+        """Replace conversation history with pre-built stored messages atomically."""
+        self.clear()
+        for message in messages:
+            self._append_message(message)
+        self._prune_if_needed()
         self._invalidate_token_cache()
 
     def _prune_if_needed(self) -> None:
@@ -368,6 +376,8 @@ class ConversationHistory:
         normalized = str(message_type or "").strip().lower().replace("-", "_")
         if normalized in {"tool", "tool_output", "tool_call"}:
             return MessageType.TOOL_OUTPUT
+        if normalized in {"context_compaction", "compaction", "context_summary"}:
+            return MessageType.CONTEXT_COMPACTION
         if normalized in {"assistant", "assistant_response", "llm_text", "error"}:
             return MessageType.ASSISTANT_RESPONSE
         if normalized in {"user", "user_query", "query"}:

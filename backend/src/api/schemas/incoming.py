@@ -132,6 +132,19 @@ class WakewordDetectedMessage(BaseMessage):
     payload: WakewordDetectedPayload = Field(default_factory=WakewordDetectedPayload)
 
 
+class CompactHistoryPayload(BaseModel):
+    """Payload for `compact-history` messages."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    force: bool = True
+
+
+class CompactHistoryMessage(BaseMessage):
+    type: Literal["compact-history"]
+    payload: CompactHistoryPayload = Field(default_factory=CompactHistoryPayload)
+
+
 class ToolResultSystemState(BaseModel):
     """Model-facing system state attached to each tool-result payload."""
 
@@ -209,6 +222,7 @@ IncomingMessage = Annotated[
         ListModelsMessage,
         UpdateSettingsMessage,
         WakewordDetectedMessage,
+        CompactHistoryMessage,
         ToolResultMessage,
         ToolBundleResultMessage,
     ],

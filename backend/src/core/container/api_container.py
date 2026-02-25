@@ -11,6 +11,7 @@ from dependency_injector import containers, providers
 
 from backend.src.agent.session.manager import SessionManager
 from backend.src.api.infrastructure.registry import MessageHandlerRegistry
+from backend.src.api.handlers.compact_history import CompactHistoryHandler
 from backend.src.api.handlers.query import QueryMessageHandler
 from backend.src.api.handlers.stop_query import StopQueryHandler
 from backend.src.api.handlers.rehydrate import RehydrateConversationHandler
@@ -90,6 +91,11 @@ class ApiContainer(containers.DeclarativeContainer):
         wakeword_service=wakeword_service,
     )
 
+    compact_history_handler = providers.Singleton(
+        CompactHistoryHandler,
+        session_manager=session_manager,
+    )
+
     list_models_handler = providers.Singleton(
         ListModelsHandler,
         model_service=model_service,
@@ -107,14 +113,15 @@ class ApiContainer(containers.DeclarativeContainer):
 
     # Handler Registry (registers all handlers)
     handler_registry = providers.Singleton(
-        lambda qh, sqh, rch, trh, wh, lmh, lsh, ush: _create_handler_registry(
-            qh, sqh, rch, trh, wh, lmh, lsh, ush
+        lambda qh, sqh, rch, trh, wh, chh, lmh, lsh, ush: _create_handler_registry(
+            qh, sqh, rch, trh, wh, chh, lmh, lsh, ush
         ),
         qh=query_handler,
         sqh=stop_query_handler,
         rch=rehydrate_conversation_handler,
         trh=tool_result_handler,
         wh=wakeword_handler,
+        chh=compact_history_handler,
         lmh=list_models_handler,
         lsh=load_settings_handler,
         ush=update_settings_handler,
@@ -127,6 +134,7 @@ def _create_handler_registry(
     rehydrate_conversation_handler: RehydrateConversationHandler,
     tool_result_handler: ToolResultHandler,
     wakeword_handler: WakewordHandler,
+    compact_history_handler: CompactHistoryHandler,
     list_models_handler: ListModelsHandler,
     load_settings_handler: LoadSettingsHandler,
     update_settings_handler: UpdateSettingsHandler,
@@ -152,6 +160,7 @@ def _create_handler_registry(
             "rehydrate_conversation_handler": rehydrate_conversation_handler,
             "tool_result_handler": tool_result_handler,
             "wakeword_handler": wakeword_handler,
+            "compact_history_handler": compact_history_handler,
             "list_models_handler": list_models_handler,
             "load_settings_handler": load_settings_handler,
             "update_settings_handler": update_settings_handler,

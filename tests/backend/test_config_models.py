@@ -204,6 +204,16 @@ class TestAppConfig:
         assert config.max_history_length == 1000
         assert config.max_agent_iterations == 1000
         assert config.interaction_mode == "chat"
+        assert config.history_compaction_enabled is False
+        assert config.history_compaction_manual_enabled is True
+        assert config.history_compaction_openai_remote_enabled is False
+        assert config.history_compaction_trigger_tokens == 120000
+        assert config.history_compaction_target_tokens == 60000
+        assert config.history_compaction_keep_recent_user_messages == 6
+        assert config.history_compaction_summary_max_tokens == 1200
+        assert config.history_compaction_strategy == "auto"
+        assert config.history_compaction_prompt is None
+        assert config.history_compaction_cooldown_turns == 1
         assert config.voice_mode_enabled is False
         assert config.agent_full_sudo_enabled is False
         assert config.include_query_screenshot is True

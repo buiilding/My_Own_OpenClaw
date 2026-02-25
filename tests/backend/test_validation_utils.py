@@ -83,6 +83,9 @@ def test_validate_settings_update_filters_unknown_and_validates_types():
         "llm_timeout": 1.5,
         "memory_enabled": True,
         "model_provider": "openai",
+        "history_compaction_enabled": True,
+        "history_compaction_trigger_tokens": 99999,
+        "history_compaction_strategy": "inline",
         "unknown_field": "drop-me",
     }
     validated = validate_settings_update(payload)
@@ -90,6 +93,9 @@ def test_validate_settings_update_filters_unknown_and_validates_types():
     assert validated["max_history_length"] == 25
     assert validated["llm_timeout"] == 1.5
     assert validated["memory_enabled"] is True
+    assert validated["history_compaction_enabled"] is True
+    assert validated["history_compaction_trigger_tokens"] == 99999
+    assert validated["history_compaction_strategy"] == "inline"
 
 
 def test_validate_settings_update_rejects_bad_types():
@@ -97,6 +103,8 @@ def test_validate_settings_update_rejects_bad_types():
         validate_settings_update({"max_history_length": "nope"})
     with pytest.raises(ValidationError):
         validate_settings_update({"model_provider": 123})
+    with pytest.raises(ValidationError):
+        validate_settings_update({"history_compaction_enabled": "yes"})
 
 
 def test_validate_frontend_config_allows_subset_and_validates_values():

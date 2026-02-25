@@ -19,6 +19,9 @@ from backend.src.agent.llm import (
     EventPresenter,
     LLMStreamProcessor,
 )
+from backend.src.agent.compaction import (
+    CompactionEngine,
+)
 
 # Tool orchestration and lifecycle
 from backend.src.agent.tools import (
@@ -51,6 +54,7 @@ __all__ = [
     "ConversationContext",
     "EventPresenter",
     "LLMStreamProcessor",
+    "CompactionEngine",
     # Tools
     "CoordinateResolver",
     "OcrCoordinateResolver",

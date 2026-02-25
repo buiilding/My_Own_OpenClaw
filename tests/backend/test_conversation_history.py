@@ -1,5 +1,7 @@
 import backend.src.services.token_service as token_service
 from backend.src.agent.session.state import ConversationHistory
+from backend.src.core.messages.structures import StoredMessage
+from backend.src.core.types.enums import MessageRole, MessageType
 from backend.src.llm.providers.base import LLMProvider
 
 
@@ -205,3 +207,44 @@ def test_replace_with_entries_preserves_assistant_tool_call_rows():
     assert len(normalized) == 2
     assert normalized[0]["role"] == "assistant"
     assert normalized[1]["role"] == "tool"
+
+
+def test_replace_with_stored_messages_replaces_history_atomically():
+    history = ConversationHistory(max_length=10)
+    history.add_user_message("old user")
+    history.add_assistant_message("old assistant")
+
+    replacement = [
+        StoredMessage(
+            role=MessageRole.ASSISTANT,
+            content="compacted summary",
+            message_type=MessageType.CONTEXT_COMPACTION,
+        ),
+        StoredMessage(
+            role=MessageRole.USER,
+            content="latest user",
+            message_type=MessageType.USER_QUERY,
+        ),
+    ]
+
+    history.replace_with_stored_messages(replacement)
+    stored = history.get_stored_messages()
+    assert len(stored) == 2
+    assert stored[0].message_type == MessageType.CONTEXT_COMPACTION
+    assert stored[1].content == "latest user"
+
+
+def test_replace_with_entries_normalizes_context_compaction_message_type():
+    history = ConversationHistory(max_length=10)
+    history.replace_with_entries(
+        [
+            {
+                "role": "assistant",
+                "content": "summary",
+                "message_type": "context-compaction",
+            }
+        ]
+    )
+
+    stored = history.get_stored_messages()
+    assert stored[0].message_type == MessageType.CONTEXT_COMPACTION
