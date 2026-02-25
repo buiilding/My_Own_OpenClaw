@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(sidecar-browser-runtime): make `tests/sidecar/tools/test_browser_tool.py` runnable without Playwright by replacing module-level `importorskip` with lazy controller-reset fallback; sidecar browser safety suites now pass in this environment
 - test(sidecar-browser-runtime): remove stale legacy-env wrappers from browser-tool removed-alias tests and rename canonical-action routing test names to reflect removed-alias-only behavior
 - test(backend-browser-runtime): remove obsolete legacy-env scaffolding from removed-alias remote-tool tests while keeping explicit coverage that removed aliases stay blocked even when flags are set
 - refactor(sidecar-browser-runtime): lazy-load browser controller import in `browser_tool` so adapter/parity suites run without Playwright installed; update alias-removal contract tests and browser runtime docs/plan notes accordingly
