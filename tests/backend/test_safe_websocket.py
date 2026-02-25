@@ -47,16 +47,16 @@ def test_safe_websocket_rejects_non_positive_queue_size() -> None:
 
 @pytest.mark.asyncio
 async def test_safe_websocket_applies_backpressure_with_bounded_queue() -> None:
-    raw = FakeRawWebSocket(send_delay=0.25)
+    raw = FakeRawWebSocket(send_delay=0.08)
     safe = SafeWebSocket(raw, max_queue_size=1)
 
     task1 = asyncio.create_task(safe.send_json({"index": 1}))
-    await asyncio.sleep(0.01)
+    await asyncio.sleep(0.005)
     task2 = asyncio.create_task(safe.send_json({"index": 2}))
-    await asyncio.sleep(0.01)
+    await asyncio.sleep(0.005)
     task3 = asyncio.create_task(safe.send_json({"index": 3}))
 
-    await asyncio.sleep(0.05)
+    await asyncio.sleep(0.02)
     assert not task3.done()
 
     await asyncio.gather(task1, task2, task3)
@@ -162,9 +162,13 @@ async def test_safe_websocket_unknown_queue_message_type_sets_sender_error() -> 
 
     await safe._enqueue(("unknown", {"bad": True}, None, future))
 
-    with pytest.raises(RuntimeError, match="Unknown websocket queue message type: unknown"):
+    with pytest.raises(
+        RuntimeError, match="Unknown websocket queue message type: unknown"
+    ):
         await future
     await safe._close_event.wait()
 
-    with pytest.raises(RuntimeError, match="Unknown websocket queue message type: unknown"):
+    with pytest.raises(
+        RuntimeError, match="Unknown websocket queue message type: unknown"
+    ):
         await safe.send_text("after-error")

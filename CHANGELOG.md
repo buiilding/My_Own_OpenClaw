@@ -7,6 +7,12 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(backend-inventory-domains): add `docs/backend/inventory/domains` subhub with domain ownership matrix and backend change-path playbook references; wire links from backend/global docs hubs
+- docs(refactor-plan): record Phase 179 backend-only provider utility extraction, route consolidation audit, and backend duration/test outcomes in `docs/planning/windieos_refactor_plan_2026-02-23.md`
+- docs(backend-llm-provider-base): update provider base reference to include extracted helper modules (`error_mapping.py`, `usage_diagnostics.py`) and new utility test coverage
+- test(backend-llm-provider): add `tests/backend/test_llm_provider_utils.py` coverage for extracted provider error/status and usage-diagnostics helper modules
+- refactor(backend-llm-provider): extract shared provider error/status parsing and usage diagnostics logic from `backend/src/llm/providers/base.py` into `backend/src/llm/providers/error_mapping.py` and `backend/src/llm/providers/usage_diagnostics.py` while preserving `LLMProvider` helper method compatibility wrappers
+- perf(test-backend-websocket): reduce wall-clock delay in `test_safe_websocket_applies_backpressure_with_bounded_queue` while preserving backpressure semantics
 - feat(frontend-dashboard): restyle `ChatGptDashboardShell` to match `chatgpt-website-clone` layout language (ChatGPT dark frame, grouped left sidebar, collapsed sidebar state, clone-style modal surfaces) while preserving WindieOS memory/models/settings modal routing and chat-primary dashboard behavior
 - fix(frontend-dashboard): handle `main-window-open-target` payload `{ target: 'chat' }` in `ChatGptDashboardShell` by closing open memory/models/settings modals so chat-only routing is explicit and deterministic
 - docs(frontend-ipc-contracts): align deep IPC parity/ownership references with targeted `show-main-window {open}` payload and `main-window-open-target` renderer event
