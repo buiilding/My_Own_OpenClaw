@@ -12,6 +12,22 @@ read_when:
 - Goal: reduce duplication, dead-code drift, and route inconsistency without behavior regressions.
 - Strategy: phased slices with measurable baselines and verification gates.
 
+## Backend-Only Execution Log (2026-02-25)
+
+- Refactor slice: split `backend/src/llm/providers/base.py` into focused helper modules while preserving provider API compatibility.
+  - extracted `message_normalization.py` for assistant/tool message + canonical tool-schema normalization.
+  - extracted `response_parsing.py` for stream/completion parsing and tool-call argument normalization.
+  - moved backward-compat helper methods to `base_payload_compat_mixin.py`.
+  - result: `base.py` reduced from `1205` LOC to `495` LOC (under file-size target).
+- Test coverage updates:
+  - expanded `tests/backend/test_llm_provider_utils.py` for extracted message/parser helper behavior.
+- Verification:
+  - `./scripts/python-in-env backend python -m pytest tests/backend/test_llm_provider_utils.py tests/backend/test_llm_provider_base.py tests/backend/test_llm_client.py tests/backend/test_conversation_history.py -q`
+  - `./scripts/python-in-env backend python -m pytest tests/backend --durations=20 -q`
+- Audit refresh:
+  - backend `jscpd` rerun on `backend/src` + `tests/backend`; report updated at `.audit/plan1/jscpd-backend/jscpd-report.md`.
+  - `backend/src/api/routes` clone audit unchanged (`0` clones; no route consolidation needed).
+
 ## Baseline Metrics (Snapshot: 2026-02-23)
 
 ### jscpd duplication

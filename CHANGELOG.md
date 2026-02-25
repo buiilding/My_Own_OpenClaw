@@ -7,6 +7,10 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): record backend-only provider payload-splitting slice (helper extraction + file-size reduction + backend verification/jscpd refresh) in `docs/planning/windieos_refactor_plan_2026-02-23.md`
+- docs(backend-llm-provider-base): update provider base reference for `base_payload_compat_mixin.py`, `message_normalization.py`, and `response_parsing.py` ownership boundaries
+- refactor(backend-llm-provider): split provider message/response normalization logic from `backend/src/llm/providers/base.py` into `message_normalization.py` and `response_parsing.py`; move compatibility wrappers into `base_payload_compat_mixin.py` and reduce base module size below 500 LOC
+- test(backend-llm-provider): extend `tests/backend/test_llm_provider_utils.py` with direct coverage for extracted message normalization and completion/argument parser helpers
 - docs(frontend-inventory-protocols): add `docs/frontend/inventory/protocols` subhub with IPC + local-backend JSON-RPC protocol surface matrix (preload allowlists, handler ownership, method mappings, readiness/timeout semantics)
 - docs(backend-inventory-protocols): add `docs/backend/inventory/protocols` subhub with websocket protocol surface matrix (handshake, incoming/outgoing schema bindings, route-handler map, formatter alignment, envelope context fields)
 - docs(frontend-inventory-domains): add `docs/frontend/inventory/domains` subhub with frontend domain ownership matrix and cross-process change-path playbook references; wire links from frontend/global docs hubs

@@ -12,8 +12,11 @@ title: "Base Request, Stream, and Normalization Reference"
 
 - `backend/src/llm/client.py`
 - `backend/src/llm/providers/base.py`
+- `backend/src/llm/providers/base_payload_compat_mixin.py`
 - `backend/src/llm/providers/online.py`
 - `backend/src/llm/providers/error_mapping.py`
+- `backend/src/llm/providers/message_normalization.py`
+- `backend/src/llm/providers/response_parsing.py`
 - `backend/src/llm/providers/usage_diagnostics.py`
 - `tests/backend/test_llm_provider_base.py`
 - `tests/backend/test_llm_client.py`
@@ -32,7 +35,10 @@ For backend query turns, provider execution is split across two layers:
 Provider utility helpers now centralize shared logic:
 
 - `error_mapping.py`: exception-chain walking, HTTP status extraction, API error message formatting.
+- `message_normalization.py`: assistant/tool message normalization and canonical LiteLLM tool-schema validation.
+- `response_parsing.py`: stream delta extraction, completion payload parsing, and tool-call argument normalization.
 - `usage_diagnostics.py`: usage payload normalization/collection and stream cache diagnostics derivation.
+- `base_payload_compat_mixin.py`: compatibility wrapper surface preserving historical `LLMProvider` helper methods while delegating to extracted modules.
 
 ## Request Param Validation and Construction (`LLMProvider._build_request_params`)
 
@@ -66,6 +72,10 @@ Provider-specific request mutation happens only via `_apply_provider_request_par
 - orphan tool messages (no matching assistant `tool_calls` id) are dropped.
 
 Primary reason: Anthropic-compatible endpoints can reject orphan/invalid tool message chains.
+
+Implementation note:
+
+- `LLMProvider` now delegates message and tool-schema normalization wrappers to `message_normalization.py` via `ProviderPayloadCompatMixin`.
 
 ## Tool Schema Normalization Boundary
 
@@ -143,6 +153,10 @@ Tool-call argument normalization supports:
 - pydantic-like objects (`model_dump` / `dict`),
 - JSON string decoding into object,
 - rejects non-object decoded JSON and unsupported types.
+
+Implementation note:
+
+- completion/stream parsing wrappers delegate to `response_parsing.py` through `ProviderPayloadCompatMixin`; this keeps parser behavior reusable and testable outside the provider base runtime class.
 
 ## Usage Capture and Cache Diagnostics
 

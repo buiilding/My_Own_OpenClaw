@@ -2,9 +2,20 @@
 
 from types import SimpleNamespace
 
+import pytest
+
+from backend.src.core.infrastructure.exceptions import LLMAPIError
 from backend.src.llm.providers.error_mapping import (
     build_api_error_message,
     extract_status_code,
+)
+from backend.src.llm.providers.message_normalization import (
+    normalize_messages_for_provider,
+    normalize_tools_for_litellm,
+)
+from backend.src.llm.providers.response_parsing import (
+    extract_completion_response,
+    normalize_tool_arguments,
 )
 from backend.src.llm.providers.usage_diagnostics import (
     build_stream_cache_diagnostics,
@@ -74,3 +85,80 @@ def test_build_stream_cache_diagnostics_returns_unknown_hit_and_miss():
     )
     assert miss["status"] == "miss"
     assert miss["cache_hit"] is False
+
+
+def test_normalize_messages_for_provider_converts_internal_tool_calls_and_drops_orphans():
+    messages = [
+        {"role": "user", "content": "List files"},
+        {
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [{"id": "call_1", "name": "read_file", "arguments": {"path": "/tmp/demo.txt"}}],
+        },
+        {"role": "tool", "tool_call_id": "call_1", "content": "ok"},
+        {"role": "tool", "tool_call_id": "missing", "content": "orphan"},
+    ]
+
+    normalized = normalize_messages_for_provider(messages, model="m")
+    assert len(normalized) == 3
+    assert normalized[1]["tool_calls"][0]["type"] == "function"
+    assert normalized[1]["tool_calls"][0]["function"]["arguments"] == "{\"path\":\"/tmp/demo.txt\"}"
+    assert normalized[-1]["tool_call_id"] == "call_1"
+
+
+def test_normalize_tools_for_litellm_rejects_legacy_shape():
+    with pytest.raises(LLMAPIError, match="field 'type' must be 'function'"):
+        normalize_tools_for_litellm(
+            [{"name": "read_file", "parameters": {"type": "object"}}],
+            model="m",
+        )
+
+
+def test_extract_completion_response_parses_and_dedupes_openai_and_tool_use_blocks():
+    response = SimpleNamespace(
+        choices=[
+            SimpleNamespace(
+                finish_reason="tool_calls",
+                message=SimpleNamespace(
+                    content=[
+                        {"type": "text", "text": "Running"},
+                        {
+                            "type": "tool_use",
+                            "id": "call_1",
+                            "name": "read_file",
+                            "input": {"path": "/tmp/demo.txt"},
+                        },
+                    ],
+                    tool_calls=[
+                        SimpleNamespace(
+                            id="call_1",
+                            function=SimpleNamespace(
+                                name="read_file",
+                                arguments='{"path":"/tmp/demo.txt"}',
+                            ),
+                        )
+                    ],
+                ),
+            )
+        ]
+    )
+
+    normalized = extract_completion_response(
+        response,
+        model="m",
+        invalid_response_message="Invalid response",
+    )
+    assert normalized["content"] == "Running"
+    assert normalized["finish_reason"] == "tool_calls"
+    assert normalized["tool_calls"] == [
+        {"id": "call_1", "name": "read_file", "arguments": {"path": "/tmp/demo.txt"}}
+    ]
+
+
+def test_normalize_tool_arguments_rejects_non_object_json():
+    with pytest.raises(LLMAPIError, match="must decode to object"):
+        normalize_tool_arguments(
+            "[1,2,3]",
+            model="m",
+            invalid_response_message="Invalid response",
+        )
