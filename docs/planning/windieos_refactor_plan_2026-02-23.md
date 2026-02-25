@@ -3698,3 +3698,13 @@ read_when:
 - Validation:
   - `cd frontend && npm run lint` (pass)
   - `cd frontend && npm run test:ci -- tests/frontend/VoiceModeHook.test.ts tests/frontend/WakewordDetectionHook.test.ts tests/frontend/useLatestRef.test.ts` (pass)
+
+## Phase 161 Outcome (2026-02-25)
+
+- Refactor slice: remove remaining frontend javascript clone from `jscpd`.
+  - updated `tests/frontend/ToolGhostPreview.test.js` fallback test to assert behavior/shape instead of duplicating full preview object literal.
+  - removed the last frontend javascript clone reported between test and `toolGhostPreview.js`.
+- Validation:
+  - `cd frontend && npm run test:ci -- tests/frontend/ToolGhostPreview.test.js` (pass)
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `28`, duplicated lines `535`, duplicated tokens `5248`; javascript clone bucket now `0`)
