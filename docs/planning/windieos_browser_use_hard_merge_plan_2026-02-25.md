@@ -69,6 +69,7 @@ title: "WindieOS Browser Use Hard-Merge Plan (2026-02-25)"
      - legacy alias wrappers retained as thin compatibility shim
      - legacy `act` envelope now routes via generic execute path with minimal pre-processing only
      - obsolete direct adapter alias wrappers removed; legacy aliases now exclusively flow through `execute(...)`
+     - runtime-provider lookup now calls native factory directly (self-import indirection removed)
 
 4. Phase 4: Legacy retirement
    - Disable legacy aliases by default (feature flag first).

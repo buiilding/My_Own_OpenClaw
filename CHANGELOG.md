@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-browser-runtime): simplify `get_browser_runtime_provider` by removing self-import indirection and invoking `create_browser_use_native_runtime_provider` directly; keep runtime-factory failure coverage aligned with the direct factory seam
 - test(browser-rollout-observability): add strict-mode legacy-block log coverage in sidecar/backend suites to lock canonical-gate precedence telemetry (`legacy_action_gate=WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1`)
 - refactor(sidecar-browser-adapter): remove obsolete direct legacy-wrapper methods (`open`, `type_text`, `press`, `switch_tab`) from `BrowserUseCompatibilityAdapter`; legacy aliases remain supported through canonical `execute(...)` dispatch
 - feat(browser-rollout-observability): add structured legacy-alias warning log fields (`legacy_action`, `preferred_action`, `legacy_action_blocked`, `legacy_action_gate`) in backend + sidecar paths and lock them with regression assertions
