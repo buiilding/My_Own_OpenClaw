@@ -88,6 +88,7 @@ title: "WindieOS Browser Use Hard-Merge Plan (2026-02-25)"
      - backend OpenClaw compatibility schema now excludes removed aliases (`BrowserOpenClawCompatArgs(action="act")` validation rejects)
      - historical `act` envelope `request` field removed from backend + sidecar OpenClaw compatibility models
      - backend OpenClaw action typing now matches sidecar OpenClaw subset (legacy aliases like `type`/`press`/`switch_tab` are no longer accepted by `BrowserOpenClawCompatArgs`)
+     - OpenClaw compatibility schemas no longer advertise legacy `open`; canonical `navigate` is now the only schema-level navigation action
 
 ## Safety Gates
 

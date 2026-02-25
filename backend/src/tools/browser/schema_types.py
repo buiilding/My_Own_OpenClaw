@@ -58,7 +58,6 @@ BrowserCoreAction = BrowserCanonicalAction
 BrowserOpenClawAction = Literal[
     "status",
     "profiles",
-    "open",
     "done",
     "search",
     "go_back",
