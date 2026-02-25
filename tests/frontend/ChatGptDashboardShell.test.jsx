@@ -4,10 +4,24 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import ChatGptDashboardShell from '../../frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell';
 
 const mockListeners = new Map();
-const mockInvoke = jest.fn(async () => ({
-  success: true,
-  data: { conversations: [] },
-}));
+const mockInvoke = jest.fn(async (channel) => {
+  if (channel === 'list-conversations') {
+    return {
+      success: true,
+      data: { conversations: [] },
+    };
+  }
+  if (channel === 'get-conversation') {
+    return {
+      success: true,
+      data: { memories: [] },
+    };
+  }
+  return { success: true, data: {} };
+});
+const mockSendRehydrateConversation = jest.fn(async () => undefined);
+const mockSetActiveConversationRef = jest.fn();
+const mockUpdateTranscriptSession = jest.fn();
 
 jest.mock('../../frontend/src/renderer/features/chat/components/ChatInterface', () => () => (
   <div data-testid="chat-interface-stub">ChatInterfaceStub</div>
@@ -29,6 +43,17 @@ jest.mock('../../frontend/src/renderer/features/dashboard/components/sections/Se
   <div data-testid="semantic-memory-stub">SemanticMemoryStub</div>
 ));
 
+jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
+  ApiClient: {
+    sendRehydrateConversation: (...args) => mockSendRehydrateConversation(...args),
+  },
+}));
+
+jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
+  setActiveConversationRef: (...args) => mockSetActiveConversationRef(...args),
+  updateTranscriptSession: (...args) => mockUpdateTranscriptSession(...args),
+}));
+
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   IpcBridge: {
     invoke: (...args) => mockInvoke(...args),
@@ -41,6 +66,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
   INVOKE_CHANNELS: {
     LIST_CONVERSATIONS: 'list-conversations',
+    GET_CONVERSATION: 'get-conversation',
   },
   ON_CHANNELS: {
     MAIN_WINDOW_OPEN_TARGET: 'main-window-open-target',
@@ -65,6 +91,9 @@ describe('ChatGptDashboardShell', () => {
   beforeEach(() => {
     mockListeners.clear();
     mockInvoke.mockClear();
+    mockSendRehydrateConversation.mockClear();
+    mockSetActiveConversationRef.mockClear();
+    mockUpdateTranscriptSession.mockClear();
   });
 
   test('renders chat interface as primary main content', async () => {
@@ -104,5 +133,49 @@ describe('ChatGptDashboardShell', () => {
     });
 
     expect(screen.queryByTestId('models-section-stub')).not.toBeInTheDocument();
+  });
+
+  test('opens recent conversation from sidebar history list', async () => {
+    const nowIso = new Date().toISOString();
+    mockInvoke.mockImplementation(async (channel) => {
+      if (channel === 'list-conversations') {
+        return {
+          success: true,
+          data: {
+            conversations: [
+              {
+                conversation_id: 'conv-history-1',
+                record_kind: 'transcript',
+                last_timestamp: nowIso,
+              },
+            ],
+          },
+        };
+      }
+      if (channel === 'get-conversation') {
+        return { success: true, data: { memories: [] } };
+      }
+      return { success: true, data: {} };
+    });
+
+    await renderDashboardShell();
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Conversation 1' }));
+
+    await waitFor(() => {
+      const getConversationCall = mockInvoke.mock.calls.find(
+        ([channel]) => channel === 'get-conversation',
+      );
+      expect(getConversationCall).toBeDefined();
+      expect(getConversationCall?.[1]).toEqual(
+        expect.objectContaining({
+          conversationId: 'conv-history-1',
+        }),
+      );
+    });
+
+    expect(mockSendRehydrateConversation).toHaveBeenCalledWith('conv-history-1', []);
+    expect(mockSetActiveConversationRef).toHaveBeenCalledWith('conv-history-1');
+    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-history-1', 'default_user');
   });
 });

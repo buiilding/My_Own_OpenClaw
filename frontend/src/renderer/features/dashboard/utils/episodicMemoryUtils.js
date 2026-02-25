@@ -167,3 +167,25 @@ export function parseMemoriesToMessages(memories) {
     });
   });
 }
+
+export function toRehydrateMessagePayload(memory) {
+  const metadata = memory?.metadata || {};
+  const role = memory?.role || metadata?.role || 'assistant';
+  const messageType = memory?.message_type || metadata?.message_type || null;
+  const rawScreenshot = memory?.screenshot || metadata?.screenshot || null;
+  const screenshotInline = looksLikeInlineImageData(rawScreenshot);
+  const screenshotRef = memory?.screenshot_ref
+    || metadata?.screenshot_ref
+    || (!screenshotInline && typeof rawScreenshot === 'string' ? rawScreenshot : null);
+
+  return {
+    role,
+    content: memory?.content || '',
+    message_type: messageType,
+    tool_name: memory?.tool_name || metadata?.tool_name || null,
+    correlation_id: memory?.correlation_id || metadata?.correlation_id || null,
+    timestamp: memory?.timestamp || null,
+    screenshot_ref: screenshotRef,
+    screenshot: screenshotInline ? rawScreenshot : null,
+  };
+}
