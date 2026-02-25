@@ -1,0 +1,24 @@
+---
+summary: "Frontend inventory docs hub for exhaustive functionality, runtime path matrices, and module/file ownership indexes across main, preload, renderer, sidecar, and landing."
+read_when:
+  - When you need complete frontend runtime coverage in one place.
+  - When deciding exact ownership for a frontend/main/sidecar change.
+title: "Frontend Inventory Docs Hub"
+---
+
+# Frontend Inventory Docs Hub
+
+## Deep Pages
+
+- [Frontend Full Functionality Inventory Reference](frontend_full_functionality_inventory_reference.md)
+- [Frontend Runtime Surface Matrix Reference](frontend_runtime_surface_matrix_reference.md)
+- [Frontend Module File Index Reference](frontend_module_file_index_reference.md)
+
+## Related Pages
+
+- [Frontend Functionality Map](../README.md)
+- [Frontend Main Docs Hub](../main/README.md)
+- [Frontend Preload Docs Hub](../preload/README.md)
+- [Frontend Renderer Docs Hub](../renderer/README.md)
+- [Frontend Sidecar Docs Hub](../sidecar/README.md)
+- [Frontend Contracts Docs Hub](../contracts/README.md)

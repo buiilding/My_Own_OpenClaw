@@ -32,7 +32,8 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 ## Deep Technical Maps
 
 - [Backend Functionality Map](../backend/README.md)
-- [Backend Full Functionality Inventory Reference](../backend/backend_full_functionality_inventory_reference.md)
+- [Backend Inventory Docs Hub](../backend/inventory/README.md)
+- [Backend Full Functionality Inventory Reference](../backend/inventory/backend_full_functionality_inventory_reference.md)
 - [Backend Bootstrap Docs Hub](../backend/bootstrap/README.md)
 - [Backend Bootstrap Entrypoints Docs Hub](../backend/bootstrap/entrypoints/README.md)
 - [Backend Core Infrastructure Docs Hub](../backend/core/README.md)
@@ -158,7 +159,8 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 - [Backend API/Core Folder Topology and Data-Flow Source Map Reference](../backend/source_maps/api_core_folder_topology_and_data_flow_source_map_reference.md)
 - [Backend Package `__init__` Exports and Public Import Surface Reference](../backend/source_maps/backend_package_init_exports_and_public_import_surface_reference.md)
 - [Frontend Functionality Map](../frontend/README.md)
-- [Frontend Full Functionality Inventory Reference](../frontend/frontend_full_functionality_inventory_reference.md)
+- [Frontend Inventory Docs Hub](../frontend/inventory/README.md)
+- [Frontend Full Functionality Inventory Reference](../frontend/inventory/frontend_full_functionality_inventory_reference.md)
 - [Frontend Landing Docs Hub](../frontend/landing/README.md)
 - [Frontend Landing Sections Docs Hub](../frontend/landing/sections/README.md)
 - [Frontend Main Docs Hub](../frontend/main/README.md)
