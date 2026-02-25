@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-renderer-voice-components): add `renderer/voice/components` subhub with VoiceStatus error/recording/connection indicator render contract reference
 - docs(backend-core-cache): add `core/cache` subhub with cache-store ttl/lru/negative-cache sync-async waiter contracts and cache-manager keying/cache-entry/facade export references
 - docs(backend-core-messages): add `core/messages` subhub with stored-message llm serialization/tool-call normalization and content-converter first-image parsing plus type-alias export references
 - docs(backend-api-processing-formatters-actions): add `processing/formatters/actions` subhub with tool-call/tool-output validation and metadata passthrough contracts plus tool-bundle typed/dict parity and default-payload references

@@ -12,6 +12,8 @@ title: "Frontend Renderer Voice Docs Hub"
 
 - [Voice Mode Gateway Connection and Transcription Region Reference](voice_mode_gateway_connection_and_transcription_region_reference.md)
 - [Wakeword Detection IPC Capture and Cooldown Reference](wakeword_detection_ipc_capture_and_cooldown_reference.md)
+- [Renderer Voice Components Docs Hub](components/README.md)
+- [Voice Status Error, Recording, and Connection Indicator Contract Reference](components/voice_status_error_recording_and_connection_indicator_contract_reference.md)
 - [Voice Utils Docs Hub](utils/README.md)
 - [Audio Encoding, Chunk Normalization, and Capture Cleanup Reference](utils/audio_encoding_chunk_normalization_and_capture_cleanup_reference.md)
 - [Transcription Region State Machine and Input Edit Reconciliation Reference](utils/transcription_region_state_machine_and_input_edit_reconciliation_reference.md)
@@ -28,6 +30,7 @@ title: "Frontend Renderer Voice Docs Hub"
 
 - `frontend/src/renderer/app/WakewordController.jsx`
 - `frontend/src/renderer/features/chat/components/MessageInput.jsx`
+- `frontend/src/renderer/features/voice/components/VoiceStatus.jsx`
 - `frontend/src/renderer/features/chat/hooks/useTranscription.ts`
 - `frontend/src/renderer/features/voice/hooks/useVoiceMode.ts`
 - `frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts`
@@ -37,3 +40,4 @@ title: "Frontend Renderer Voice Docs Hub"
 - `frontend/src/renderer/features/voice/utils/wakewordEventUtils.ts`
 - `frontend/src/renderer/features/chat/utils/transcriptionRegions.ts`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
+- `tests/frontend/MessageInput.test.jsx`
