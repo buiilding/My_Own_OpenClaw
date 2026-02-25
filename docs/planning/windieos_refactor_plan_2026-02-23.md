@@ -3883,3 +3883,12 @@ read_when:
 - Validation:
   - `cd frontend && npm run lint` (pass)
   - `cd frontend && npm run test:ci -- tests/frontend/OverlayRendererRegistration.test.cjs tests/frontend/OverlayVisibilityHandler.test.cjs tests/frontend/DisplayQueryHandler.test.cjs tests/frontend/OverlayMouseHandler.test.cjs tests/frontend/MainWindowControlsHandler.test.cjs tests/frontend/OverlayResponseboxHandler.test.cjs tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs` (pass)
+
+## Phase 174 Outcome (2026-02-25)
+
+- Full-gate revalidation after visibility/overlay-registration dedupe wave:
+  - full gate:
+    - `./scripts/test` (pass)
+      - backend: `1012 passed`
+      - sidecar: `500 passed`, `4 skipped` (`3` known swig deprecation warnings)
+      - frontend: `104 suites`, `668 tests` passed
