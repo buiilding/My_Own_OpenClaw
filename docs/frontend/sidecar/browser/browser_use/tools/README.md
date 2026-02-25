@@ -17,6 +17,7 @@ title: "Frontend Sidecar Browser Use Tools Docs Hub"
 ## Related Pages
 
 - [Frontend Sidecar Browser Use Runtime Docs Hub](../README.md)
+- [Frontend Sidecar Browser Use Browser Docs Hub](../browser/README.md)
 - [Frontend Sidecar Browser Use DOM Docs Hub](../dom/README.md)
 - [Frontend Sidecar Browser Docs Hub](../../README.md)
 - [Frontend Sidecar Tools Docs Hub](../../../tools/README.md)

@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-sidecar-browser-use-browser): add `frontend/sidecar/browser/browser_use/browser` and `frontend/sidecar/browser/browser_use/browser/watchdogs` subhubs with deep references for BrowserSession/session-manager/event-bus/CDP lifecycle orchestration, BrowserProfile launch/defaults extension pipeline, demo/video helpers, and specialized watchdog runtime contracts; wire links across browser_use/browser/sidecar/frontend/global docs hubs
 - chore(audit): refresh `.audit/plan1/jscpd-report/jscpd-report.md` snapshot after main-process handler extraction wave (totals now: `857` files, `28` clones, `535` duplicated lines)
 - docs(refactor-plan): record Phase 174 full-gate validation snapshot after visibility/overlay-registration dedupe wave (`./scripts/test`: backend `1012`, sidecar `500/4 skipped`, frontend `104 suites`/`668 tests`)
 - docs(refactor-plan): record Phase 173 overlay renderer-window registration dedupe and direct coverage in `docs/planning/windieos_refactor_plan_2026-02-23.md`
