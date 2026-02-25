@@ -3,6 +3,7 @@ const path = require('path');
 const { initializeIpc, registerRendererWindow } = require('./ipc.cjs');
 const { initializeWakewordBridge } = require('./wakeword_bridge.cjs');
 const { initializeLocalBackendBridge, stopLocalBackend } = require('./local_backend_bridge.cjs');
+const { handleSetChatboxSize } = require('./overlay_chatbox_handler.cjs');
 const { handleSetResponseboxSize } = require('./overlay_responsebox_handler.cjs');
 let windowManager = null;
 try {
@@ -796,27 +797,14 @@ function initializeOverlayHandlers() {
     }
   });
 
-  ipcMain.handle('set-chatbox-size', async (event, { width, height } = {}) => {
-    if (!chatWindow || chatWindow.isDestroyed()) {
-      return { success: false, reason: 'Chat window not available' };
-    }
-    const nextWidth = Math.max(1, Math.min(900, Math.round(Number(width) || 0)));
-    const nextHeight = Math.max(1, Math.min(7500, Math.round(Number(height) || 0)));
-    try {
-      const [curWidth, curHeight] = chatWindow.getSize();
-      if (curWidth === nextWidth && curHeight === nextHeight) {
-        return { success: true, resized: false };
-      }
-      // Apply size+position atomically to keep the chat input pill anchored.
-      const bounds = getChatWindowBounds(nextWidth, nextHeight);
-      chatWindow.setBounds(bounds, false);
-      positionResponseWindow();
-      positionContextLabelWindow();
-      syncContextLabelWindowVisibility();
-      return { success: true, resized: true, width: nextWidth, height: nextHeight };
-    } catch (error) {
-      return { success: false, reason: `Failed to resize chatbox: ${error.message}` };
-    }
+  ipcMain.handle('set-chatbox-size', async (event, args = {}) => {
+    return handleSetChatboxSize(args, {
+      chatWindow,
+      getChatWindowBounds,
+      positionResponseWindow,
+      positionContextLabelWindow,
+      syncContextLabelWindowVisibility,
+    });
   });
 
   ipcMain.on('move-chatbox-to', (event, { x, y } = {}) => {
