@@ -1,0 +1,114 @@
+"""Tests for query event extraction helper functions."""
+
+from backend.src.api.services.query_event_extraction import (
+    extract_assistant_full_text,
+    extract_event_type,
+    extract_non_empty_chunk_text,
+    extract_streaming_complete_text,
+    resolve_completion_text,
+)
+
+
+def test_extract_event_type_supports_dict_and_typed_value_enum():
+    class _TypeObj:
+        value = "streaming-complete"
+
+    class _Event:
+        type = _TypeObj()
+
+    assert extract_event_type({"type": "chunk"}) == "chunk"
+    assert extract_event_type(_Event()) == "streaming-complete"
+    assert extract_event_type({"type": 123}) is None
+
+
+def test_extract_non_empty_chunk_text_accepts_payload_text_fallback():
+    assert (
+        extract_non_empty_chunk_text(
+            {"type": "content", "payload": {"text": "payload chunk"}},
+            event_type="content",
+        )
+        == "payload chunk"
+    )
+    assert (
+        extract_non_empty_chunk_text(
+            {"type": "chunk", "content": "   "},
+            event_type="chunk",
+        )
+        == ""
+    )
+
+
+def test_extract_assistant_full_text_prefers_top_level_then_payload():
+    assert (
+        extract_assistant_full_text(
+            {"type": "assistant_message_full", "content": "  top level  "},
+            event_type="assistant_message_full",
+        )
+        == "top level"
+    )
+    assert (
+        extract_assistant_full_text(
+            {"type": "assistant_message_full", "payload": {"content": "  payload full  "}},
+            event_type="assistant_message_full",
+        )
+        == "payload full"
+    )
+
+
+def test_extract_streaming_complete_text_supports_payload_and_top_level():
+    assert (
+        extract_streaming_complete_text(
+            {"type": "streaming-complete", "payload": {"final_response": "  payload done  "}},
+            event_type="streaming-complete",
+        )
+        == "payload done"
+    )
+    assert (
+        extract_streaming_complete_text(
+            {"type": "streaming-complete", "final_response": "  top level done  "},
+            event_type="streaming-complete",
+        )
+        == "top level done"
+    )
+
+
+def test_resolve_completion_text_precedence_chain():
+    from_event = resolve_completion_text(
+        event={"type": "streaming-complete", "final_response": "done"},
+        event_type="streaming-complete",
+        text_chunks=["chunk-a", "chunk-b"],
+        assistant_full_text="assistant full",
+        saw_text_chunk=True,
+        empty_fallback="fallback",
+    )
+    assert from_event == "done"
+
+    from_chunks = resolve_completion_text(
+        event=None,
+        event_type=None,
+        text_chunks=["chunk-a", "chunk-b"],
+        assistant_full_text="assistant full",
+        saw_text_chunk=True,
+        empty_fallback="fallback",
+    )
+    assert from_chunks == "chunk-achunk-b"
+
+    from_assistant = resolve_completion_text(
+        event=None,
+        event_type=None,
+        text_chunks=[],
+        assistant_full_text="assistant full",
+        saw_text_chunk=False,
+        empty_fallback="fallback",
+    )
+    assert from_assistant == "assistant full"
+
+    fallback = resolve_completion_text(
+        event=None,
+        event_type=None,
+        text_chunks=[],
+        assistant_full_text="",
+        saw_text_chunk=False,
+        empty_fallback="fallback",
+    )
+    assert fallback == "fallback"

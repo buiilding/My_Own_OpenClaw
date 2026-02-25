@@ -11,13 +11,15 @@ title: "Query Execution Helper Contracts and Compatibility Event Extraction Refe
 ## Canonical Modules
 
 - `backend/src/api/services/query_execution.py`
+- `backend/src/api/services/query_event_extraction.py`
 - `backend/src/api/processing/pipeline.py`
 - `backend/src/core/events/streaming_events.py`
 - `tests/backend/test_stream_pipeline.py`
+- `tests/backend/test_query_event_extraction.py`
 
 ## Helper Surface in Query Execution
 
-`QueryExecutionService.execute(...)` relies on internal helpers to keep stream-loop logic compatible across event shapes:
+`QueryExecutionService.execute(...)` relies on helper functions in `query_event_extraction.py` (and compatibility wrappers in `QueryExecutionService`) to keep stream-loop logic compatible across event shapes:
 
 - `_extract_event_type`
 - `_extract_dict_payload`
@@ -116,9 +118,11 @@ This prevents tail-audio truncation when completion events were synthesized late
 
 ## Test Coverage Status
 
-Current explicit tests cover `StreamPipeline` concurrency/error isolation (`tests/backend/test_stream_pipeline.py`).
+Current explicit tests cover:
 
-There is no dedicated `QueryExecutionService` helper-level unit suite yet in repo. This is a residual risk for helper regressions in dict-event compatibility and completion fallback ordering.
+- `StreamPipeline` concurrency/error isolation (`tests/backend/test_stream_pipeline.py`)
+- query event helper extraction/completion precedence contracts (`tests/backend/test_query_event_extraction.py`)
+- compatibility wrappers through API handler tests (`tests/backend/test_api_handlers.py`)
 
 ## Drift Hotspots
 

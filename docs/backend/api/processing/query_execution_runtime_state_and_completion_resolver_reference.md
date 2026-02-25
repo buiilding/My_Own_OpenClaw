@@ -11,6 +11,7 @@ title: "Query Execution Runtime-State and Completion Resolver Reference"
 ## Canonical Modules
 
 - `backend/src/api/services/query_execution.py`
+- `backend/src/api/services/query_event_extraction.py`
 - `backend/src/api/schema.py`
 - `backend/src/services/artifacts.py`
 - `backend/src/api/transport/envelope.py`
@@ -67,7 +68,7 @@ Every pipeline event uses this same context object via `_process_pipeline_event(
 
 ## Event-Type Extraction Compatibility Helpers
 
-`_extract_event_type(event)` supports:
+`query_event_extraction.py` helpers support:
 
 - dict events with string `type`
 - typed events where `event.type` is string
@@ -75,12 +76,12 @@ Every pipeline event uses this same context object via `_process_pipeline_event(
 
 Dict payload helpers:
 
-- `_extract_dict_payload(...)` returns object payload only
-- `_extract_dict_string_field(...)` supports top-level key fallback to payload key
+- `extract_dict_payload(...)` returns object payload only
+- `extract_dict_string_field(...)` supports top-level key fallback to payload key
 
 Chunk extraction compatibility:
 
-- `_TEXT_CHUNK_EVENT_TYPES = {"chunk", "content", "streaming-response"}`
+- `TEXT_CHUNK_EVENT_TYPES = {"chunk", "content", "streaming-response"}`
 - permits legacy and normalized stream event aliases
 
 ## Completion Resolver Precedence
@@ -135,7 +136,7 @@ If streamed events lack context fields:
 
 If completion text is empty despite chunk output:
 
-1. verify chunk event type is in `_TEXT_CHUNK_EVENT_TYPES`
+1. verify chunk event type is in `TEXT_CHUNK_EVENT_TYPES`
 2. verify chunk payload text is non-whitespace
 3. verify `saw_text_chunk` flag transitions before completion handling
 

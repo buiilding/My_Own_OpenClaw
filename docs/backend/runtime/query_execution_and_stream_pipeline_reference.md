@@ -12,6 +12,7 @@ title: "Query Execution and Stream Pipeline Reference"
 
 - `backend/src/api/handlers/query.py`
 - `backend/src/api/services/query_execution.py`
+- `backend/src/api/services/query_event_extraction.py`
 - `backend/src/api/processing/pipeline.py`
 - `backend/src/api/processing/formatter.py`
 - `backend/src/api/processing/tts/manager.py`

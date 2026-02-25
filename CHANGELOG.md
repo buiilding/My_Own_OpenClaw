@@ -7,6 +7,9 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): record Phase 184 query-event extraction helper split (`query_event_extraction.py`), backend verification, and refreshed jscpd outcomes in `docs/planning/windieos_refactor_plan_2026-02-23.md`
+- docs(backend-query-runtime): update query-execution/runtime/completion references for extracted `backend/src/api/services/query_event_extraction.py` helper ownership and compatibility contracts
+- refactor(backend-query-execution): extract query event-type/chunk/final-response/completion-resolution helpers from `query_execution.py` into `backend/src/api/services/query_event_extraction.py`; preserve `QueryExecutionService` compatibility wrappers and reduce service module size
 - docs(refactor-plan): record Phase 183 LLM stream-processor helper extraction (`stream_processor_helpers.py`), backend verification, and refreshed jscpd outcomes in `docs/planning/windieos_refactor_plan_2026-02-23.md`
 - docs(backend-agent-llm): update LLM stream processor/runtime/module-index references for extracted `backend/src/agent/llm/stream_processor_helpers.py` ownership and helper contracts
 - refactor(backend-llm-stream): extract stream-event aggregation, prompt continuity fingerprinting, prompt-cache-key resolution, and API-error message helpers from `llm_stream_processor.py` into `backend/src/agent/llm/stream_processor_helpers.py`; reduce stream processor module size and preserve compatibility wrappers

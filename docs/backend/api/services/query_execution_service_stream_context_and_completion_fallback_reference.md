@@ -11,6 +11,7 @@ title: "Query Execution Service Stream Context and Completion Fallback Reference
 ## Canonical Modules
 
 - `backend/src/api/services/query_execution.py`
+- `backend/src/api/services/query_event_extraction.py`
 - `backend/src/api/services/tts_session.py`
 - `backend/src/api/handlers/query.py`
 - `backend/src/api/processing/pipeline.py`
@@ -90,6 +91,9 @@ Execution tracks:
 - `last_assistant_full_text`
 
 ### Event extraction helpers
+
+Helper parsing/completion logic is single-sourced in `query_event_extraction.py`.
+`QueryExecutionService` keeps compatibility wrapper methods.
 
 - `_extract_event_type` supports both dict and dataclass-like events
 - `_extract_non_empty_chunk_text` only accepts `chunk/content/streaming-response`

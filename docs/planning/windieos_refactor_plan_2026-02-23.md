@@ -4188,3 +4188,43 @@ read_when:
   - `./scripts/python-in-env backend python -m pytest tests/backend --durations=20 -q` (pass)
   - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
   - `npx jscpd --gitignore --min-lines 8 --reporters console,markdown --output .audit/plan1/jscpd-backend backend/src tests/backend` (0 clones)
+
+## Phase 184 Outcome (2026-02-25)
+
+- Refactor slice (backend-only): extract query event extraction/completion resolution helpers from `QueryExecutionService`.
+  - added:
+    - `backend/src/api/services/query_event_extraction.py`
+      - event shape extraction helpers:
+        - `extract_event_type(...)`
+        - `extract_dict_payload(...)`
+        - `extract_dict_string_field(...)`
+        - `extract_chunk_text(...)`
+      - text extraction/completion helpers:
+        - `extract_non_empty_chunk_text(...)`
+        - `extract_assistant_full_text(...)`
+        - `extract_streaming_complete_text(...)`
+        - `resolve_completion_text(...)`
+      - compatibility constant:
+        - `TEXT_CHUNK_EVENT_TYPES`
+    - `tests/backend/test_query_event_extraction.py` direct helper-level coverage.
+  - updated:
+    - `backend/src/api/services/query_execution.py`
+      - delegates event parsing/completion text helper logic to `query_event_extraction.py`
+      - preserves `QueryExecutionService` helper methods as compatibility wrappers used by existing API-handler tests
+      - reduced from `432` LOC to `394` LOC
+    - docs:
+      - `docs/backend/runtime/query_execution_and_stream_pipeline_reference.md`
+      - `docs/backend/runtime/README.md`
+      - `docs/backend/api/processing/query_execution_runtime_state_and_completion_resolver_reference.md`
+      - `docs/backend/api/services/query_execution_service_stream_context_and_completion_fallback_reference.md`
+      - `docs/backend/api/processing/completion/query_execution_helper_contracts_and_compatibility_event_extraction_reference.md`
+      - `docs/backend/inventory/backend_module_file_index_reference.md`
+  - route consolidation check:
+    - `jscpd` on `backend/src/api/routes` found `0` clones; no route merge needed in this slice.
+  - audit outcome:
+    - backend `jscpd` (`backend/src` + `tests/backend`) remained at `0` clones after extraction.
+- Validation:
+  - `./scripts/python-in-env backend python -m pytest tests/backend/test_api_handlers.py tests/backend/test_query_event_extraction.py -q` (pass)
+  - `./scripts/python-in-env backend python -m pytest tests/backend --durations=20 -q` (pass)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console,markdown --output .audit/plan1/jscpd-backend backend/src tests/backend` (0 clones)

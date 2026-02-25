@@ -23,7 +23,9 @@ title: "Backend API Services Docs Hub"
 ## Code Scope
 
 - `backend/src/api/services/query_execution.py`
+- `backend/src/api/services/query_event_extraction.py`
 - `backend/src/api/services/rehydrate_execution.py`
 - `backend/src/api/services/wakeword_execution.py`
 - `backend/src/api/services/tts_session.py`
 - `tests/backend/test_api_handlers.py`
+- `tests/backend/test_query_event_extraction.py`
