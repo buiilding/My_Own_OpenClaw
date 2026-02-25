@@ -15,6 +15,13 @@ from backend.src.tools.categorization import ToolDomain
 from backend.src.tools.remote_tools.base import RemoteToolBase, RemoteToolResult
 
 logger = logging.getLogger(__name__)
+REMOVED_LEGACY_ACTIONS = frozenset({"act"})
+REMOVED_LEGACY_ACT_ERROR = (
+    "Legacy browser action 'act' has been removed. "
+    "Use canonical browser actions directly "
+    "(for example: click, input, send_keys, wait, evaluate, navigate, extract, "
+    "scroll, screenshot, switch, close)."
+)
 
 
 class RemoteBrowserTool(RemoteToolBase, Tool[BrowserControlArgs]):
@@ -38,7 +45,8 @@ Use explicit `browser(action="snapshot", ...)` calls when snapshot data is neede
 Actions:
 - canonical: connect, status, profiles, navigate, snapshot, extract, click, input, send_keys, scroll, screenshot, wait, get_tabs, switch, evaluate, close
 - canonical helpers: done, search, go_back, search_page, find_elements, find_text, close_tab, dropdown_options, select_dropdown, upload_file, write_file, replace_file, read_file, read_long_content
-- compatibility aliases (legacy, deprecated): open->navigate(new_tab=true), type->input, press->send_keys, switch_tab->switch, act->direct action invocation
+- compatibility aliases (legacy, deprecated): open->navigate(new_tab=true), type->input, press->send_keys, switch_tab->switch
+- removed legacy alias: `act` is no longer supported; use canonical actions directly
 
 Compatibility validation notes:
 - snapshot rejects compatibility fields `format`/`snapshotFormat`/`wait_until`/`state`/`mode`/`max_chars`/`refs`/`interactive`/`compact`/`depth`/`selector`/`frame`
@@ -111,6 +119,15 @@ Compatibility validation notes:
         )
 
     async def execute_remote(self, args: BrowserControlArgs, ctx: ToolContext) -> Any:
+        if args.action in REMOVED_LEGACY_ACTIONS:
+            self._log_legacy_action_warning(
+                args.action,
+                preferred=None,
+                blocked=True,
+                gate="legacy_act_removed",
+            )
+            raise ValueError(REMOVED_LEGACY_ACT_ERROR)
+
         gate = self._legacy_action_block_gate() if args.is_legacy else None
         if gate is not None:
             preferred = args.preferred_action

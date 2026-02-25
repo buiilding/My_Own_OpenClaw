@@ -25,9 +25,10 @@ title: "Browser Action Compatibility and Runtime Reference"
 - Browser actions are routed through adapter/runtime path only when `action` is in `PHASE2_ADAPTER_ROUTED_ACTIONS`.
 - Sidecar runtime enforces vendored Browser Use import path; non-vendored `browser_use*` modules are purged from `sys.modules`.
 - Runtime selection accepts only `WINDIE_BROWSER_USE_RUNTIME in {"browser_use","browser_use_native"}`. Unset defaults to `browser_use_native`.
-- Optional strict action mode: `WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1` rejects legacy aliases (`open`, `type`, `press`, `switch_tab`, `act`) and requires canonical action names.
+- Optional strict action mode: `WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1` rejects legacy aliases (`open`, `type`, `press`, `switch_tab`) and requires canonical action names.
 - Legacy aliases are disabled by default.
 - Optional rollout flag: `WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1` temporarily re-enables legacy aliases during migration.
+- Removed alias: `act` is permanently disabled at the browser tool boundary and returns an explicit migration error even when legacy aliases are enabled.
 - Precedence: strict mode wins when both flags are set (`WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1` still rejects legacy aliases even when `WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1`).
 - Observability: sidecar logs warning events for both allowed legacy alias usage and blocked legacy alias usage.
 - Structured warning fields: `legacy_action`, `preferred_action`, `legacy_action_blocked` (`true`/`false`), and `legacy_action_gate` (for blocked events).
@@ -48,7 +49,7 @@ title: "Browser Action Compatibility and Runtime Reference"
 
 Actions with custom adapter handlers:
 
-- with args: `connect`, `open`, `type`, `press`, `switch_tab`, `act`
+- with args: `connect`, `open`, `type`, `press`, `switch_tab`
 - no args: `status`, `profiles`, `get_tabs`
 
 Canonical-action recommendation:
@@ -120,14 +121,11 @@ If controller disconnects or mode becomes ambiguous, bridge drops/restarts sessi
 - Adapter accepts `tab_id`, `target_id`, `targetId`.
 - Runtime-facing tab IDs are truncated to the last 4 chars in extraction helpers, matching controller/tab serialization behavior.
 
-## `act` wrapper behavior
+## Removed `act` alias
 
-`act.request.kind` fan-out:
-
-- `click`, `type`, `press`, `wait`, `evaluate` -> mapped to adapter-native handlers
-- `navigate`, `extract`, `scroll`, `screenshot` -> forwarded through `execute`
-- Browser Use direct kinds (`done`, `search`, etc.) -> direct runtime action bridge
-- Unsupported kinds return `ACTION_UNSUPPORTED`.
+- `act` is no longer accepted by `browser_tool.execute_browser`.
+- Requests fail early with a migration error instructing canonical action usage.
+- Compatibility rollout env flags do not re-enable `act`.
 
 ## Native Runtime Handler Model
 
@@ -178,7 +176,7 @@ Unsupported provider mapping yields explicit runtime error with provider name.
 
 - `INVALID_ARGUMENT`: payload validation/compat mismatch
 - `BROWSER_NOT_CONNECTED`: action requires connected browser session
-- `ACTION_UNSUPPORTED`: unknown action or unsupported `act.kind`
+- `ACTION_UNSUPPORTED`: unknown action
 - `BROWSER_RUNTIME_ERROR`: runtime execution failure / unavailable runtime
 
 `browser_tool` converts adapter result to `ToolResult`:

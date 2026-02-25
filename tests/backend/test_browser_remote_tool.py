@@ -91,6 +91,36 @@ class TestRemoteBrowserTool:
             await tool.execute_remote(args, mock_ctx)
 
     @pytest.mark.asyncio
+    async def test_execute_remote_rejects_removed_act_alias_even_when_legacy_enabled(
+        self, monkeypatch, caplog
+    ):
+        monkeypatch.setenv("WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS", "1")
+        tool = RemoteBrowserTool()
+        caplog.set_level("WARNING", logger="backend.src.tools.remote_tools.browser")
+
+        mock_ctx = mock.Mock()
+        mock_ctx.session = mock.Mock()
+        mock_ctx.session.metadata = {"request_id": "act-removed"}
+
+        args = BrowserControlArgs(action="act")
+        with pytest.raises(
+            ValueError,
+            match="Legacy browser action 'act' has been removed",
+        ):
+            await tool.execute_remote(args, mock_ctx)
+
+        assert "Legacy browser action 'act' blocked by legacy_act_removed" in caplog.text
+        record = next(
+            rec
+            for rec in caplog.records
+            if "Legacy browser action 'act' blocked by legacy_act_removed" in rec.getMessage()
+        )
+        assert getattr(record, "legacy_action", None) == "act"
+        assert getattr(record, "preferred_action", None) is None
+        assert getattr(record, "legacy_action_blocked", None) is True
+        assert getattr(record, "legacy_action_gate", None) == "legacy_act_removed"
+
+    @pytest.mark.asyncio
     async def test_execute_remote_logs_warning_for_blocked_legacy_action(self, caplog):
         tool = RemoteBrowserTool()
         caplog.set_level("WARNING", logger="backend.src.tools.remote_tools.browser")
