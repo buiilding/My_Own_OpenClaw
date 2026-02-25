@@ -14,14 +14,14 @@ This page is a code-grounded, end-to-end inventory of backend functionality in `
 
 Source inventory used for this reference:
 
-- Python files in `backend/src`: `287`
+- Python files in `backend/src`: `307`
 - Domain split:
-- `agent`: `60`
-- `api`: `67`
-- `core`: `69`
+- `agent`: `62`
+- `api`: `68`
+- `core`: `77`
 - `tools`: `31`
-- `llm`: `24`
-- `services`: `14`
+- `llm`: `31`
+- `services`: `16`
 - `simulation`: `12`
 - `sdk`: `6`
 - `embeddings`: `2`
@@ -34,12 +34,14 @@ Primary backend entry and app assembly:
 - `backend/src/api/app_assembly.py`
 - `backend/src/core/bootstrap/coordinator.py`
 - `backend/src/core/bootstrap/entrypoint.py`
+- `backend/src/core/logging_setup.py`
 
 Functional behavior:
 
 - FastAPI app creation with shared router registration and default CORS policy.
 - Lifespan startup initializes DI container and session runtime through `InitializationCoordinator`.
 - Lifespan shutdown clears app-scoped container reference and ends runtime cleanly.
+- Shared entrypoint/logging bootstrap is reused by runtime and simulation launchers.
 
 ## API Functionality Inventory
 
@@ -76,6 +78,12 @@ Message handlers:
 - `backend/src/api/handlers/rehydrate.py`
 - `backend/src/api/handlers/wakeword.py`
 
+Handler infrastructure:
+
+- `backend/src/api/infrastructure/handler.py`
+- `backend/src/api/infrastructure/registry.py`
+- `backend/src/api/infrastructure/errors.py`
+
 Handler functionality:
 
 - Query orchestration with active-task registration and stream lifecycle.
@@ -84,6 +92,21 @@ Handler functionality:
 - Settings load/update and model listing.
 - Transcript rehydrate path for renderer resume.
 - Wakeword detected event path and greeting/TTS flow.
+
+API service layer:
+
+- `backend/src/api/services/query_execution.py`
+- `backend/src/api/services/query_event_extraction.py`
+- `backend/src/api/services/rehydrate_execution.py`
+- `backend/src/api/services/wakeword_execution.py`
+- `backend/src/api/services/tts_session.py`
+
+Service functionality:
+
+- Query event extraction helpers for chunk/full-response/terminal completion compatibility.
+- Rehydrate execution helper for transcript history reconstruction.
+- Wakeword execution helper with greeting/TTS coordination.
+- TTS session lifecycle helpers shared by query and wakeword entrypoints.
 
 Stream processing and formatting:
 
@@ -154,12 +177,14 @@ Execution loop:
 - `backend/src/agent/execution/executor.py`
 - `backend/src/agent/execution/interaction_loop.py`
 - `backend/src/agent/execution/policies.py`
+- `backend/src/agent/execution/tool_call_bridge.py`
 
 Execution functionality:
 
 - Iterative prompt->LLM->parse->tools loop orchestration.
 - Parse-recovery and tool-turn policy controls.
 - Empty-final-response fallback handling.
+- Recoverable malformed native tool-call conversion into synthetic tool output.
 
 Agent LLM adapters:
 
@@ -167,6 +192,7 @@ Agent LLM adapters:
 - `backend/src/agent/llm/llm_stream_processor.py`
 - `backend/src/agent/llm/event_presenter.py`
 - `backend/src/agent/llm/token_counting.py`
+- `backend/src/agent/llm/stream_processor_helpers.py`
 
 Agent LLM functionality:
 
@@ -174,6 +200,7 @@ Agent LLM functionality:
 - LLM streaming aggregation and event emission.
 - Prompt-transparency event path (`system-prompt`, `user-message-full`, `tool-schemas`).
 - Token usage + cache diagnostic tracking.
+- Stream helper extraction for parsing/provider cache diagnostics and fallback text handling.
 
 History and tool-output commit:
 
@@ -183,6 +210,17 @@ History functionality:
 
 - Post-tool result commit boundaries into conversation history.
 - Bundle-aware commit behavior and staged tool-call linkage handling.
+
+Recovery behavior (owned by execution bridge + loop):
+
+- `backend/src/agent/execution/tool_call_bridge.py`
+- `backend/src/agent/execution/interaction_loop.py`
+
+Recovery functionality:
+
+- Classified recoverable tool-call parse errors.
+- Synthetic `ToolCallEvent`/`ToolOutputEvent` replay shape for frontend parity.
+- Tool-call-id extraction and fallback generation for malformed provider payloads.
 
 ## Agent Tool Lifecycle Functionality Inventory
 
@@ -256,6 +294,7 @@ Core bootstrap + DI:
 
 - `backend/src/core/bootstrap/*.py`
 - `backend/src/core/container/*.py`
+- `backend/src/core/logging_setup.py`
 
 Core bootstrap/container functionality:
 
@@ -264,6 +303,7 @@ Core bootstrap/container functionality:
 - App/session/runtime dependency resolution.
 - Config update propagation to live services.
 - Incoming message route-table ownership for handler registry.
+- API/session runtime adapters (`api_runtime.py`, `session_runtime.py`) and factory wiring (`factories.py`).
 
 Core configuration:
 
@@ -302,6 +342,7 @@ Functionality:
 - Stored-message conversions for LLM payload construction.
 - Enum and typed schema definitions used across domains.
 - Input validation and frontend patch-allowlist enforcement.
+- Shared coordinate method normalization for OCR/vision-dependent tool preparation.
 
 Core security and observability:
 
@@ -338,6 +379,7 @@ Functionality:
 Modules:
 
 - `backend/src/llm/client.py`
+- `backend/src/llm/client_response_normalization.py`
 - `backend/src/llm/providers/*.py`
 - `backend/src/llm/models/*.py`
 - `backend/src/llm/prompts/*.py`
@@ -355,6 +397,7 @@ Functionality:
 - System prompt loading and prompt constructor behavior.
 - Tool-call extraction and validation trust boundaries.
 - Provider-specific request kwargs (prompt cache keys, transport options).
+- Split provider helpers for stream-event pipeline, response parsing, message normalization, error mapping, and usage diagnostics.
 
 ## Backend Tool Schema + Remote Tool Functionality Inventory
 
@@ -385,6 +428,7 @@ Functionality:
 - Single and bundle orchestration helper paths for tool waits/results.
 - Canonical schema models for computer/filesystem/system/browser domains.
 - Browser compatibility schema fields aligned with frontend sidecar browser runtime.
+- Browser shared compatibility-field ownership (`shared_compat_fields.py`, `snapshot_scope_fields.py`) for schema parity.
 
 ## Runtime Services Functionality Inventory
 
@@ -394,6 +438,7 @@ Modules:
 - `backend/src/services/token_service.py`
 - `backend/src/services/ocr/ocr_service.py`
 - `backend/src/services/ocr/helpers.py`
+- `backend/src/services/ocr/runtime_config.py`
 - `backend/src/services/vision/vision_service.py`
 - `backend/src/services/vision/coordinates.py`
 - `backend/src/services/vision/utils.py`
@@ -404,7 +449,9 @@ Functionality:
 - Artifact upload/storage and lookup by artifact id.
 - Token counting with message normalization fallback paths.
 - OCR task execution + helper normalization.
+- OCR runtime threshold/thread/device heuristics.
 - Vision provider inference and coordinate scaling.
+- InternVL runtime helper split for prompt assembly, dtype/runtime fallback, and error diagnostics.
 
 ## SDK, Embeddings, and Simulation Functionality Inventory
 
