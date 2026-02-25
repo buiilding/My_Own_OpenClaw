@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(backend-protocol-observability): add `docs/backend/inventory/protocols/observability` subhub with protocol correlation/logging/token telemetry reference and protocol-hub wiring
 - docs(frontend-protocol-compatibility): add `docs/frontend/inventory/protocols/compatibility` subhub with endpoint/key/storage/event fallback normalization reference and protocol-hub wiring
 - docs(backend-protocol-compatibility): add `docs/backend/inventory/protocols/compatibility` subhub with schema import stability + typed/dict stream normalization compatibility reference and protocol-hub wiring
 - docs(refactor-plan): record Phase 180 backend exception-hierarchy module split (`error_types/*`), compatibility-facade preservation, and refreshed backend audit/test outcomes in `docs/planning/windieos_refactor_plan_2026-02-23.md`
