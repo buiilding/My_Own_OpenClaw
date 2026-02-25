@@ -1,8 +1,8 @@
 ---
-summary: "Deep backend browser-tool reference for unified BrowserControlArgs schema design, action-specific validator models, OpenClaw compatibility fields, and RemoteBrowserTool payload emission semantics."
+summary: "Deep backend browser-tool reference for BrowserControlArgs action categories, OpenClaw compatibility-field surfaces, and RemoteBrowserTool runtime gating semantics."
 read_when:
-  - When changing backend browser action field names, compatibility aliases, or literal action sets.
-  - When debugging cases where backend schema accepts fields that sidecar adapter later rejects at runtime.
+  - When changing backend browser action literal sets, compatibility alias policy, or remote browser tool runtime gates.
+  - When debugging backend-accepted browser payloads that are rejected as removed/disabled aliases before sidecar execution.
 title: "Browser Remote Schema Surface and Compatibility Contract Reference"
 ---
 
@@ -34,96 +34,100 @@ Purpose of lazy export:
 - mouse buttons (`left`, `right`, `middle`)
 - scroll directions (`up`, `down`, `left`, `right`)
 - wait states (`load`, `domcontentloaded`, `networkidle`)
-- action union:
-  - core actions (`connect`, `navigate`, `snapshot`, `extract`, `click`, `type`, `press`, `scroll`, `screenshot`, `wait`, `get_tabs`, `switch_tab`, `evaluate`, `close`)
-  - OpenClaw-compatible actions (`status`, `profiles`, `open`, `done`, `search`, `go_back`, `search_page`, `find_elements`, `find_text`, `input`, `send_keys`, `switch`, `close_tab`, `dropdown_options`, `select_dropdown`, `upload_file`, `write_file`, `replace_file`, `read_file`, `read_long_content`, `act`)
+
+Action categories:
+
+- canonical actions: `connect`, `status`, `profiles`, `navigate`, `snapshot`, `extract`, `click`, `input`, `send_keys`, `scroll`, `screenshot`, `wait`, `get_tabs`, `switch`, `evaluate`, `done`, `search`, `go_back`, `search_page`, `find_elements`, `find_text`, `close_tab`, `dropdown_options`, `select_dropdown`, `upload_file`, `write_file`, `replace_file`, `read_file`, `read_long_content`, `close`
+- legacy compatibility aliases (still parseable): `type`
+- removed aliases (still parseable for migration errors): `open`, `switch_tab`, `press`, `act`
+
+`BrowserOpenClawAction` intentionally excludes removed aliases.
 
 ## Unified Schema Exposed to Tool Calling
 
-`BrowserControlArgs` (`browser_control_args_schema.py`) is the main LLM-facing schema.
+`BrowserControlArgs` (`browser_control_args_schema.py`) is the LLM-facing backend schema.
 
 Design characteristics:
 
 - single unified model with `action: BrowserAction`
 - `model_config.extra = "ignore"`
-- broad field superset across multiple action families
-- includes many compatibility aliases (`targetId`, `targetUrl`, `snapshotFormat`, `inputRef`, etc.)
+- broad field superset across canonical and compatibility action families
+- includes compatibility aliases (`targetId`, `targetUrl`, `snapshotFormat`, `inputRef`, etc.)
 
 Compatibility field layers:
 
-- inherits from `BrowserSharedCompatFields` (dialog/network/storage/emulation aliases)
-- reuses `BrowserScreenshotImageFields` for shared screenshot image options (`element`, `type`, `quality`)
+- inherits `BrowserSharedCompatFields` (dialog/network/storage/emulation alias groups)
+- inherits `BrowserScreenshotImageFields` (`element`, `type`, `quality`)
 - reuses snapshot scope aliases from `snapshot_scope_fields.py` (`refs`, `interactive`, `compact`, `depth`, `selector`, `frame`)
 
 Important boundary:
 
-- unified model intentionally accepts many optional fields
-- it does not enforce strict action-specific required-field validation at this layer
+- unified model intentionally accepts broad payloads
+- action-specific strictness is enforced later in sidecar adapter/runtime boundaries
 
 ## Action-Specific Validator Models
 
-`schemas.py` contains per-action models that express stricter validation behavior.
+`schemas.py` contains stricter per-action models.
 
 Examples:
 
 - `BrowserClickArgs` requires either `ref/index` or coordinate pair
 - `BrowserEvaluateArgs` requires `script` or `code`
-- `BrowserSnapshotArgs` has snapshot paging bounds and mode/format parameters
-
-Backend test coverage validates these models remain usable (`BrowserSnapshotArgs` scope fields and `BrowserOpenClawCompatArgs` availability).
+- `BrowserSnapshotArgs` validates paging and snapshot mode/format bounds
 
 ## OpenClaw Compatibility Model
 
-`BrowserOpenClawCompatArgs` in `openclaw_compat_schema.py` defines compatibility payload fields with `extra="ignore"`.
+`BrowserOpenClawCompatArgs` in `openclaw_compat_schema.py` keeps compatibility action and field vocabulary with `extra="ignore"`.
 
-It exists to preserve compatibility action/field vocabulary and aliases while backend primarily exposes `BrowserControlArgs` on `RemoteBrowserTool`.
+It exists for compatibility modeling and tests while `RemoteBrowserTool` accepts unified `BrowserControlArgs`.
 
-## RemoteBrowserTool Emission Semantics
+## RemoteBrowserTool Runtime Semantics
 
 `RemoteBrowserTool` (`remote_tools/browser.py`) traits:
 
 - `name = "browser"`
 - `args_model = BrowserControlArgs`
 - `category = ToolDomain.BROWSER`
-- long description documents supported action semantics and runtime notes
+- description includes canonical actions, legacy alias policy, and migration guidance
 
 `execute_remote(...)` behavior:
 
-- request id from `RemoteToolBase._get_request_id(ctx)`
-- returns `RemoteToolResult` with:
-  - `tool_name = "browser"`
-  - `args = args.model_dump(exclude_defaults=True, exclude_none=True)`
-
-Key difference from most other remote tools:
-
-- browser tool drops default/None fields before sending payload to frontend, reducing envelope size and ambiguity
+1. removed aliases (`open`, `switch_tab`, `press`, `act`) are rejected immediately with migration errors
+2. legacy alias `type` is gated by envs:
+- strict canonical gate: `WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1`
+- allow-legacy gate: `WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1` (legacy disabled by default)
+3. legacy usage/block paths emit structured warning metadata:
+- `legacy_action`
+- `preferred_action`
+- `legacy_action_blocked`
+- `legacy_action_gate`
+4. accepted payloads return `RemoteToolResult` with:
+- `tool_name = "browser"`
+- `args = args.model_dump(exclude_defaults=True, exclude_none=True)`
 
 ## Backend vs Runtime Enforcement Boundary
 
-Backend schema acceptance is intentionally wider than sidecar runtime acceptance.
+Backend schema acceptance is broader than sidecar runtime acceptance.
 
 Implication:
 
-- payload can be valid under backend model but still rejected by sidecar adapter/runtime normalization
-
-Examples noted in runtime docs include compatibility fields explicitly rejected for certain actions.
+- payload can parse under backend model but still fail at sidecar adapter/runtime boundaries
 
 Cross-layer debugging rule:
 
-1. validate backend schema parse success (`BrowserControlArgs`)
-2. validate sidecar adapter/runtime action normalization rules
-3. verify final action payload emitted over `tool-call` event
+1. validate backend parse (`BrowserControlArgs`)
+2. inspect backend runtime alias-gate decision (removed alias or legacy gate)
+3. inspect sidecar adapter/runtime normalization if request was forwarded
 
 ## Test-Backed Contracts
 
 `tests/backend/test_browser_remote_tool.py` covers:
 
-- browser tool registration in `REMOTE_TOOLS`
-- `get_remote_tool("browser")` lookup behavior
-- basic remote result emission semantics
-- unified schema field defaults and accepted aliases
-- action examples (`connect`, `navigate`, `search`, `extract`, `click`, `type`, `press`, `screenshot`, `scroll`)
-- snapshot scope field acceptance on unified and action-specific models
+- browser tool registration and lookup behavior
+- remote payload emission semantics
+- unified schema defaults/aliases
+- canonical + compatibility action parsing coverage
+- removed/legacy alias policy behavior
 - OpenClaw compatibility model availability
 
 ## Related Docs

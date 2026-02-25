@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for BrowserUseCompatibilityAdapter action family routing, parameter normalization/rejection rules, connection gates, and ToolResult-facing error semantics."
+summary: "Deep reference for BrowserUseCompatibilityAdapter dispatch order, canonical/legacy/removed alias behavior, parameter normalization/rejection rules, and tool-facing error semantics."
 read_when:
   - When changing browser action payload contracts in `browser_adapter.py` or `browser_tool.py`.
-  - When debugging why compatibility payload fields pass schema validation but are rejected by adapter normalization.
+  - When debugging why schema-valid compatibility payloads are rejected by adapter normalization or alias policy gates.
 title: "Browser Adapter Action Routing and Compatibility Semantics Reference"
 ---
 
@@ -19,45 +19,29 @@ title: "Browser Adapter Action Routing and Compatibility Semantics Reference"
 - `tests/sidecar/tools/test_browser_tool.py`
 - `tests/sidecar/tools/test_browser_use_tool_parity.py`
 
-## Entrypoint and Action Allowlist Boundary
+## Entrypoint Boundary (`browser_tool.py`)
 
-`execute_browser(raw_args)` in `browser_tool.py`:
+`execute_browser(raw_args)`:
 
-1. requires dict payload
-2. requires `action`
-3. gates action against `PHASE2_ADAPTER_ROUTED_ACTIONS`
-4. obtains controller + compatibility adapter
-5. runs `adapter.execute(action, args)`
-6. maps adapter result to `ToolResult`
-
-ToolResult mapping:
-
-- adapter success -> `ToolResult.success_result(data)`
-- adapter failure/deprecation -> `ToolResult.error_result(message)`
-
-Unhandled action behavior:
-
-- returns explicit `"Unhandled action: <action>"`
+1. requires dict payload and `action`
+2. gates action against `PHASE2_ADAPTER_ROUTED_ACTIONS`
+3. blocks removed aliases (`open`, `switch_tab`, `press`, `act`) with migration errors
+4. applies legacy alias env gate for `type`
+5. invokes adapter for forwarded actions
 
 ## Adapter Dispatch Topology
 
 `BrowserUseCompatibilityAdapter.execute(...)` order:
 
-1. explicit compat handlers:
-   - `connect`
-   - `profiles`
-   - legacy aliases (`open`, `type`, `press`, `switch_tab`, `act`)
-2. canonical actions dispatch directly through `execute_browser_use_action(...)`
-3. `close` split behavior inside canonical dispatch:
-   - with tab identity -> Browser Use `close` action
-   - without tab identity -> runtime session close
+1. explicit handlers: `connect`, `profiles`
+2. removed alias guard (`open`, `switch_tab`, `press`, `act`) -> `INVALID_ARGUMENT`
+3. legacy alias handler: `type`
+4. canonical actions -> `execute_browser_use_action(...)`
+5. canonical `close` split:
+- with tab identity -> runtime action path
+- without tab identity -> runtime session close
 
-Legacy alias annotation:
-
-- compatibility aliases (`open`, `type`, `press`, `switch_tab`, `act`) are annotated with adapter `deprecation` + warning text
-- routing behavior is unchanged; this is observability for migration
-
-Unknown action returns:
+Unknown action:
 
 - `success=False`
 - `error_code="ACTION_UNSUPPORTED"`
@@ -67,139 +51,90 @@ Unknown action returns:
 Actions in `BROWSER_USE_ACTIONS_REQUIRING_CONNECTION` fail fast when disconnected:
 
 - `error_code="BROWSER_NOT_CONNECTED"`
-- error message instructs running `connect` first
-
-Test-backed behavior:
-
-- disconnected snapshot/find_text paths reject before runtime action execution
+- message instructs `connect` first
 
 ## Parameter Normalization and Rejection Rules
 
 Core normalizers:
 
-- `_extract_url` supports `url`, `target_url`, `targetUrl`
-- `_extract_index` supports integer `index` or numeric string `ref`
-- `_extract_tab_id` supports `tab_id` / `target_id` / `targetId` and truncates to trailing 4 chars
-- `_extract_coordinate` accepts int/float (bool rejected)
+- `_extract_url`: `url`, `target_url`, `targetUrl`
+- `_extract_index`: integer `index` or numeric `ref`
+- `_extract_tab_id`: `tab_id` / `target_id` / `targetId` -> trailing 4 chars
+- `_extract_coordinate`: int/float accepted, bool rejected
 
-### Compatibility field rejection (intentional strictness)
-
-Adapter rejects legacy compatibility fields for Browser Use strict mode:
+Compatibility-field rejections:
 
 - `snapshot` rejects: `format`, `snapshotFormat`, `wait_until`, `state`, `mode`, `max_chars`, `refs`, `interactive`, `compact`, `depth`, `selector`, `frame`
 - `extract` rejects: `mode`, `selector`, `frame`
 - `wait` rejects: `state`
 - `screenshot` rejects: `full_page`, `ref`, `element`, `type`, `quality`
 
-These rejections return:
-
-- `error_code="INVALID_ARGUMENT"`
-
-Important drift note:
-
-- `tools/browser/schemas.py` still exposes many compatibility fields for shared schema parity, but adapter may intentionally reject them at runtime.
+Rejected payloads return `INVALID_ARGUMENT`.
 
 ## Action Family Routing Details
 
-`open`:
-
-- maps to Browser Use `navigate` with `new_tab=True`
-- always tags result as `action="open"` and includes `browser_use_action="navigate"`
-
 `type`:
 
-- maps to Browser Use `input` (`index` resolved from `ref`)
-- optional `submit=true` triggers additional `send_keys` Enter call
-
-`press`:
-
-- maps to Browser Use `send_keys`
-
-`switch_tab`:
-
-- maps to Browser Use `switch`
+- requires `ref` + `text`
+- maps to runtime `input`
+- optional `submit=true` emits additional runtime `send_keys` Enter call
+- result is retagged back to `action="type"`
 
 `click`:
 
-- accepts either index/ref or coordinate pair
-- rejects half-specified coordinate payloads
+- supports index/ref or coordinates
+- rejects partial coordinate payloads
 
 `wait`:
 
-- maps numeric seconds to rounded int for Browser Use wait
-- empty payload allowed (runtime-dependent default wait behavior)
+- uses `seconds` param for runtime wait
+- empty payload allowed (runtime default behavior)
 
 `close`:
 
-- tab-aware close -> Browser Use action path
-- otherwise closes runtime session directly
-
-## `act` Wrapper Fan-Out
-
-`act.request.kind` dispatch:
-
-- compat kinds (`click`, `type`, `press`, `wait`, `evaluate`) normalize payload then route through generic `execute`
-  - `wait` converts `timeMs` -> `seconds`
-  - `evaluate` maps `fn` -> `script`
-- forward kinds (`navigate`, `extract`, `scroll`, `screenshot`) route via generic `execute`
-- Browser Use direct kinds route via generic `execute` (canonical runtime path)
-- `close` picks tab-close vs full-close path
-
-Unsupported kinds return:
-
-- `error_code="ACTION_UNSUPPORTED"`
-
-Test-backed behavior:
-
-- unsupported `hover` kind errors
-- forward/direct kind sets are exercised through adapter regression tests
+- with tab id: runtime close-tab path
+- without tab id: full runtime close
 
 ## Error Code Surface
 
 Canonical adapter error codes:
 
-- `INVALID_ARGUMENT`: malformed or disallowed payload
-- `BROWSER_NOT_CONNECTED`: connection-required action without active connection
-- `ACTION_UNSUPPORTED`: unknown action or unsupported `act.kind`
-- `BROWSER_RUNTIME_ERROR`: runtime execution failure or runtime-level invalid parameters
+- `INVALID_ARGUMENT`
+- `BROWSER_NOT_CONNECTED`
+- `ACTION_UNSUPPORTED`
+- `BROWSER_RUNTIME_ERROR`
 
-Runtime-error mapping path:
+Runtime exception mapping:
 
-- runtime exception text containing `"invalid parameters"` maps to `INVALID_ARGUMENT`
-- all other runtime exceptions map to `BROWSER_RUNTIME_ERROR`
+- messages containing `invalid parameters` -> `INVALID_ARGUMENT`
+- all others -> `BROWSER_RUNTIME_ERROR`
 
 ## Adapter Instance Caching
 
-`get_browser_use_adapter(controller, ...)` caching behavior:
+`get_browser_use_adapter(controller, ...)`:
 
-- weak-key cache for weakrefable controller instances
-- non-weakrefable controller test doubles bypass caching
+- weak-key cache for weakrefable controllers
+- non-weakrefable test doubles bypass cache
 - explicit runtime-provider injection bypasses cache/factory
-
-Test-backed behavior:
-
-- same controller returns same adapter instance under cache path
-- runtime factory invoked only once for cached controller
 
 ## Debug Sequence
 
-If payload validates in schema but fails at runtime:
+If schema passes but adapter fails:
 
-1. inspect adapter compatibility-field rejection rules
-2. inspect `_build_browser_use_action_params(...)` output for normalized params
-3. inspect action connection requirements and controller connected state
+1. inspect alias category and gate decision (removed/legacy/canonical)
+2. inspect `_build_browser_use_action_params(...)` output
+3. verify connection-required action preconditions
 
-If action reaches runtime but still fails:
+If runtime call fails:
 
-1. inspect runtime action name (`browser_use_action` field)
-2. inspect returned adapter `error_code`
-3. inspect whether action was retagged (for `open`, `switch_tab`, `type`, `press`)
+1. inspect `browser_use_action` value
+2. inspect adapter `error_code`
+3. confirm action retagging only applies to `type`
 
-If tab switch/close targets wrong tab:
+If tab targeting is wrong:
 
-1. inspect `_extract_tab_id(...)` 4-char truncation behavior
-2. inspect incoming `tab_id/target_id/targetId` source field
-3. verify runtime tabs payload target IDs use same suffix format
+1. inspect `_extract_tab_id(...)` suffix normalization
+2. verify incoming tab identity field source
 
 ## Related Pages
 

@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for sidecar BrowserOpenClawCompatArgs action literals, field alias families, and compatibility-only payload semantics consumed by adapter/runtime layers."
+summary: "Deep reference for sidecar BrowserOpenClawCompatArgs action literals, compatibility field families, and schema-vs-runtime enforcement boundaries."
 read_when:
   - When changing OpenClaw compatibility action names or payload aliases (`targetId`, `targetUrl`, `inputRef`, etc.).
-  - When debugging compatibility action payload shape issues for `act`, tab aliases, storage/emulation fields, or Browser Use file operations.
+  - When debugging compatibility payload shape issues across schema acceptance and adapter/runtime execution behavior.
 title: "OpenClaw Compatibility Action and Field Surface Reference"
 ---
 
@@ -19,9 +19,13 @@ title: "OpenClaw Compatibility Action and Field Surface Reference"
 
 `BrowserOpenClawCompatArgs.action` supports:
 
-- `status`, `profiles`, `open`, `done`, `search`, `go_back`, `search_page`, `find_elements`, `find_text`, `input`, `send_keys`, `switch`, `close_tab`, `dropdown_options`, `select_dropdown`, `upload_file`, `write_file`, `replace_file`, `read_file`, `read_long_content`, `act`
+- `status`, `profiles`, `done`, `search`, `go_back`, `search_page`, `find_elements`, `find_text`, `input`, `send_keys`, `switch`, `close_tab`, `dropdown_options`, `select_dropdown`, `upload_file`, `write_file`, `replace_file`, `read_file`, `read_long_content`
 
-`OPENCLAW_COMPAT_ACTIONS` is derived dynamically from that annotation (`typing.get_args(...)`) and then reused in schema registry wiring.
+`OPENCLAW_COMPAT_ACTIONS` is derived from that annotation (`typing.get_args(...)`) and reused in schema-registry wiring.
+
+Scope note:
+
+- removed aliases (`open`, `switch_tab`, `press`, `act`) are intentionally excluded from this compatibility action set.
 
 ## Field Families
 
@@ -35,7 +39,7 @@ title: "OpenClaw Compatibility Action and Field Surface Reference"
 
 - `query`, `pattern`, `regex`, `case_sensitive`, `context_chars`, `css_scope`, `max_results`, `attributes`, `include_text`
 
-### Snapshot/extract compat fields
+### Snapshot/extract compatibility fields
 
 - `snapshotFormat`
 - `mode` compatibility values (`user_chrome`, `managed`, `efficient`, `focused`, `full_text`, `structured`)
@@ -43,7 +47,6 @@ title: "OpenClaw Compatibility Action and Field Surface Reference"
 ### Interaction payloads
 
 - `index`, `text`, `keys`, `code`, `down`, `pages`
-- nested envelope: `request` for `act`
 
 ### File-operation payloads
 
@@ -56,41 +59,39 @@ title: "OpenClaw Compatibility Action and Field Surface Reference"
 
 ### Legacy passthrough placeholders
 
-Fields retained as compatibility placeholders but unused by Windie runtime semantics:
+Retained compatibility placeholders:
 
 - `profile`, `node`, `target` (`sandbox|host|node`)
 
 ## Schema Behavior
 
 - `model_config.extra = "ignore"`
-- all compatibility fields are optional except `action`
-- unknown fields are dropped at parse boundary
+- all fields optional except `action`
+- unknown fields dropped at parse boundary
 
-This design enables broad inbound compatibility while deferring strict behavior enforcement to adapter/runtime logic.
+This keeps inbound compatibility broad while runtime enforcement remains adapter-driven.
 
 ## Adapter/Runtime Interaction Boundary
 
-Compatibility fields are not uniformly accepted at runtime.
+Schema acceptance is not execution guarantee.
 
-Examples from adapter contracts/tests:
+Examples:
 
-- some compatibility-style fields are explicitly rejected for certain actions (for example snapshot/extract compatibility knobs)
-- action payload normalization can map aliases and still reject semantically incompatible combinations
+- adapter explicitly rejects selected compatibility fields for snapshot/extract/screenshot/wait paths
+- alias policy blocks removed aliases before runtime execution
 
-So schema acceptance means "shape is known", not "action will execute".
-
-## Drift and Maintenance Risks
+## Drift Risks and Maintenance Rules
 
 Common drift source:
 
-- updating compatibility action list in schema without updating adapter dispatch, runtime handler map, or parity tests
+- updating compatibility action/fields without updating adapter/runtime policy and parity tests
 
 Recommended discipline:
 
-1. change compatibility literals/aliases in schema
-2. update adapter normalization and handler wiring
-3. run parity/adapter schema tests
-4. update docs with action/field delta
+1. update schema literals/fields
+2. update browser tool + adapter routing/policy
+3. run schema/adapter/parity tests
+4. update docs in same change
 
 ## Related Pages
 
