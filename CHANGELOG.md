@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-dashboard): add clone-style dashboard modal entry animation (overlay fade + panel slide/scale) so memory/models/settings windows open smoothly instead of popping
 - fix(frontend-models-ui): smooth and slow clone-style model-card detail expansion in the models window by animating mounted details content (height/opacity/translate) instead of instant hover mount/unmount
 - fix(frontend-dashboard): make modal panel wrapper fill full height so clone-style memory/models panels no longer leave a lower empty gray block
 - feat(frontend-dashboard): migrate memory and models modals to clone-style panel designs, add unified `MemorySection` tabs (`episodic`/`semantic`/`procedural`), and move episodic panel data to non-transcript memory records while keeping conversations in sidebar `Your chats`
