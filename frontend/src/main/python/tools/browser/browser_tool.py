@@ -148,6 +148,13 @@ async def _run_phase2_adapter_action(args: Dict[str, Any]) -> ToolResult:
             "Legacy browser actions are disabled by "
             f"{gate}. Use '{preferred}' instead."
         )
+    if action in LEGACY_BROWSER_ACTION_ALIASES:
+        preferred = LEGACY_BROWSER_ACTION_ALIASES[action]
+        logger.warning(
+            "Legacy browser action '%s' invoked; prefer canonical action '%s'",
+            action,
+            preferred,
+        )
 
     controller = get_browser_controller()
     adapter = get_browser_use_adapter(controller)
