@@ -4,6 +4,7 @@ import pytest
 
 import backend.src.agent.session.initializer as initializer
 from backend.src.agent.session.initializer import (
+    init_compaction_engine,
     init_event_bus,
     init_executor,
     init_identity,
@@ -158,6 +159,22 @@ def test_init_executor_passes_expected_dependencies(monkeypatch):
     assert captured["tool_orchestrator"] is session.tool_orchestrator
     assert captured["prompt_constructor"] is session.prompt_builder
     assert captured["event_bus"] is session.event_bus
+
+
+def test_init_compaction_engine_wires_session(monkeypatch):
+    captured = {}
+
+    class DummyCompactionEngine:
+        def __init__(self, session):
+            captured["session"] = session
+
+    monkeypatch.setattr(initializer, "CompactionEngine", DummyCompactionEngine)
+    session = SimpleNamespace()
+
+    init_compaction_engine(session)
+
+    assert isinstance(session.compaction_engine, DummyCompactionEngine)
+    assert captured["session"] is session
 
 
 def test_subscribe_events_registers_interaction_completed_handler():

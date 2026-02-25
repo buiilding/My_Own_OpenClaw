@@ -152,6 +152,7 @@ Canonical map (`core/container/incoming_routing.py`):
 - `list-models` -> `list_models_handler`
 - `load-settings` -> `load_settings_handler`
 - `update-settings` -> `update_settings_handler`
+- `compact-history` -> `compact_history_handler`
 
 The route table is validated against incoming schema literals at startup.
 
@@ -162,6 +163,9 @@ The route table is validated against incoming schema literals at startup.
 - `update-settings`: only frontend-owned patch keys are applied to per-session config
   (`model_mode`, `model_provider`, `selected_model_id`, `interaction_mode`,
   `voice_mode_enabled`, `speech_mode_enabled`, `wakeword_stt_enabled`, `include_query_screenshot`).
+- `compact-history`: runs manual conversation-history compaction when no active query is running,
+  emits `context-compaction-started` (if a run starts) and `context-compaction-completed`
+  (applied or skipped with `skipped_reason`).
 - `tool-result`/`tool-bundle-result`: silently drop stale results when session no longer exists.
 
 ## Disconnect and Cleanup Semantics

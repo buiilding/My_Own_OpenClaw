@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, Optional, List, Cal
 
 from backend.src.agent.session.config_runtime import SessionConfigRuntime
 from backend.src.agent.session.initializer import (
+    init_compaction_engine,
     init_event_bus,
     init_executor,
     init_identity,
@@ -95,6 +96,7 @@ class AgentSession:
 
         init_tooling(self, tool_registry, tool_orchestrator)
         init_prompt_and_history(self, metrics_service)
+        init_compaction_engine(self)
         init_identity(self, user_id, session_id)
         init_event_bus(self, event_bus)
         self.ocr_service = ocr_service
@@ -318,6 +320,21 @@ class AgentSession:
         async with self._lock:
             self.runtime.active_conversation_ref = conversation_ref
             self.history.replace_with_entries(entries)
+
+    async def run_history_compaction(
+        self,
+        *,
+        reason: str,
+        force: bool = False,
+    ):
+        """Evaluate and execute history compaction under session lock."""
+        async with self._lock:
+            decision = self.compaction_engine.evaluate(reason=reason, force=force)
+            result = await self.compaction_engine.compact(
+                reason=reason,
+                decision=decision,
+            )
+            return decision, result
 
     async def process_query(
         self, 

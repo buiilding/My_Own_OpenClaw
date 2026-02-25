@@ -67,6 +67,7 @@ class RehydrateExecutionService:
         pending_tool_call_id: Optional[str],
     ) -> tuple[List[Dict[str, Any]], Optional[str]]:
         normalized_message_type = self._normalize_message_type(entry.message_type)
+        stored_message_type = self._normalize_stored_message_type(entry.message_type)
         normalized_tool_name = self._normalize_optional_string(entry.tool_name)
         correlation_id = self._normalize_optional_string(entry.correlation_id)
         explicit_tool_call_id = self._normalize_optional_string(entry.tool_call_id)
@@ -86,7 +87,7 @@ class RehydrateExecutionService:
                         call_id=call_id,
                         call_name=call_name,
                         call_arguments=call_arguments,
-                        message_type=entry.message_type,
+                        message_type=stored_message_type,
                         timestamp=entry.timestamp,
                         image_data=image_data,
                     )
@@ -124,7 +125,7 @@ class RehydrateExecutionService:
                 {
                     "role": "tool",
                     "content": entry.content,
-                    "message_type": entry.message_type,
+                    "message_type": stored_message_type,
                     "tool_name": normalized_tool_name,
                     "correlation_id": correlation_id,
                     "timestamp": entry.timestamp,
@@ -137,7 +138,7 @@ class RehydrateExecutionService:
         hydrated_entry: Dict[str, Any] = {
             "role": entry.role,
             "content": entry.content,
-            "message_type": entry.message_type,
+            "message_type": stored_message_type,
             "tool_name": normalized_tool_name,
             "correlation_id": correlation_id,
             "timestamp": entry.timestamp,
@@ -157,6 +158,13 @@ class RehydrateExecutionService:
         if not isinstance(message_type, str):
             return ""
         return message_type.strip().lower().replace("_", "-")
+
+    @classmethod
+    def _normalize_stored_message_type(cls, message_type: Optional[str]) -> Optional[str]:
+        normalized = cls._normalize_message_type(message_type)
+        if normalized in {"context-compaction", "context-summary"}:
+            return "context-compaction"
+        return message_type
 
     @staticmethod
     def _normalize_optional_string(value: Optional[str]) -> Optional[str]:

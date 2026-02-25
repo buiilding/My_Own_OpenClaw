@@ -26,6 +26,15 @@ def get_formatter_specs() -> tuple[FormatterSpec, ...]:
     from backend.src.api.processing.formatters.complete import (
         StreamingCompleteEventFormatter,
     )
+    from backend.src.api.processing.formatters.context_compaction_completed import (
+        ContextCompactionCompletedEventFormatter,
+    )
+    from backend.src.api.processing.formatters.context_compaction_failed import (
+        ContextCompactionFailedEventFormatter,
+    )
+    from backend.src.api.processing.formatters.context_compaction_started import (
+        ContextCompactionStartedEventFormatter,
+    )
     from backend.src.api.processing.formatters.error import ErrorEventFormatter
     from backend.src.api.processing.formatters.memory_store import (
         MemoryStoreEventFormatter,
@@ -47,6 +56,9 @@ def get_formatter_specs() -> tuple[FormatterSpec, ...]:
     from backend.src.core.events import (
         AssistantMessageFullEvent,
         ChunkEvent,
+        ContextCompactionCompletedEvent,
+        ContextCompactionFailedEvent,
+        ContextCompactionStartedEvent,
         ErrorEvent,
         MemoryStoreEvent,
         StreamingCompleteEvent,
@@ -128,6 +140,24 @@ def get_formatter_specs() -> tuple[FormatterSpec, ...]:
             OutgoingMessageType.TOKEN_COUNT,
         ),
         (
+            ContextCompactionStartedEvent,
+            StreamingEventType.CONTEXT_COMPACTION_STARTED.value,
+            ContextCompactionStartedEventFormatter,
+            OutgoingMessageType.CONTEXT_COMPACTION_STARTED,
+        ),
+        (
+            ContextCompactionCompletedEvent,
+            StreamingEventType.CONTEXT_COMPACTION_COMPLETED.value,
+            ContextCompactionCompletedEventFormatter,
+            OutgoingMessageType.CONTEXT_COMPACTION_COMPLETED,
+        ),
+        (
+            ContextCompactionFailedEvent,
+            StreamingEventType.CONTEXT_COMPACTION_FAILED.value,
+            ContextCompactionFailedEventFormatter,
+            OutgoingMessageType.CONTEXT_COMPACTION_FAILED,
+        ),
+        (
             MemoryStoreEvent,
             StreamingEventType.MEMORY_STORE.value,
             MemoryStoreEventFormatter,
@@ -140,4 +170,3 @@ def get_formatter_specs() -> tuple[FormatterSpec, ...]:
             OutgoingMessageType.TOOL_BUNDLE,
         ),
     )
-

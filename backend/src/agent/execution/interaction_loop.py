@@ -25,6 +25,9 @@ from backend.src.agent.execution.policies import (
 from backend.src.core.types.enums import MessageType
 from backend.src.core.events.streaming_events import (
     AgentStreamingEvent,
+    ContextCompactionCompletedEvent,
+    ContextCompactionFailedEvent,
+    ContextCompactionStartedEvent,
     ErrorEvent,
     FullResponseEvent,
     ToolCallEvent,
@@ -92,6 +95,47 @@ class InteractionLoop:
 
         while iteration_policy.should_continue(iteration):
             iteration = iteration_policy.begin_next_iteration(iteration)
+
+            compaction_engine = getattr(self.session, "compaction_engine", None)
+            if iteration > 1 and compaction_engine is not None:
+                mid_compaction_decision = compaction_engine.evaluate(
+                    reason="auto-mid"
+                )
+                if mid_compaction_decision.should_compact:
+                    yield ContextCompactionStartedEvent(
+                        reason="auto-mid",
+                        strategy=mid_compaction_decision.strategy_name,
+                        before_tokens=mid_compaction_decision.before_tokens,
+                        projected_tokens=mid_compaction_decision.projected_tokens,
+                    )
+                    try:
+                        mid_compaction_result = await compaction_engine.compact(
+                            reason="auto-mid",
+                            decision=mid_compaction_decision,
+                        )
+                        yield ContextCompactionCompletedEvent(
+                            reason="auto-mid",
+                            strategy=mid_compaction_result.strategy_name,
+                            before_tokens=mid_compaction_result.before_tokens,
+                            after_tokens=mid_compaction_result.after_tokens,
+                            removed_messages=mid_compaction_result.removed_messages,
+                            summary_preview=self._summary_preview(
+                                mid_compaction_result.summary_text
+                            ),
+                            skipped_reason=mid_compaction_result.skip_reason,
+                        )
+                    except Exception as exc:
+                        logger.error(
+                            "[Compaction] Mid-loop compaction failed: %s",
+                            exc,
+                            exc_info=True,
+                        )
+                        yield ContextCompactionFailedEvent(
+                            reason="auto-mid",
+                            strategy=mid_compaction_decision.strategy_name,
+                            error=str(exc),
+                            before_tokens=mid_compaction_decision.before_tokens,
+                        )
 
             # Step 1: Get prompt (delegated to PromptCoordinator)
             prompt, tool_schemas, prompt_metadata = self.prompt_coordinator.get_prompt(
@@ -397,3 +441,13 @@ class InteractionLoop:
     def _build_recoverable_tool_output_message(tool_name: str, error_msg: str) -> str:
         """Format synthetic tool output in standard tool-output message style."""
         return build_recoverable_tool_output_message(tool_name, error_msg)
+
+    @staticmethod
+    def _summary_preview(summary_text: str) -> str:
+        """Return a short compaction summary preview for event payloads."""
+        preview = (summary_text or "").strip()
+        if not preview:
+            return ""
+        if len(preview) > 180:
+            return f"{preview[:177]}..."
+        return preview

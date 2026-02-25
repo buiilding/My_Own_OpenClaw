@@ -288,6 +288,25 @@ def validate_settings_update(settings: Dict[str, Any]) -> Dict[str, Any]:
                 validate_field(value, key, str, required=False)
         elif key == "voice_mode_enabled":
             validate_field(value, key, bool, required=False)
+        elif key in (
+            "history_compaction_enabled",
+            "history_compaction_manual_enabled",
+            "history_compaction_openai_remote_enabled",
+        ):
+            validate_field(value, key, bool, required=False)
+        elif key in (
+            "history_compaction_trigger_tokens",
+            "history_compaction_target_tokens",
+            "history_compaction_keep_recent_user_messages",
+            "history_compaction_summary_max_tokens",
+            "history_compaction_cooldown_turns",
+        ):
+            validate_field(value, key, int, required=False)
+        elif key == "history_compaction_strategy":
+            validate_field(value, key, str, required=False)
+        elif key == "history_compaction_prompt":
+            if value is not None:
+                validate_field(value, key, str, required=False)
 
         validated[key] = value
 

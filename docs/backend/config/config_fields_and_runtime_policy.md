@@ -67,6 +67,21 @@ Provider defaults in `LLMProviders`:
 - `chat`: allowlist is `{"read_file", "replace", "run_shell_command", "process", "screenshot"}`.
 - `agent`: no allowlist (`None`) so full policy surface is available.
 
+### Conversation History Compaction
+
+| Field | Type | Default | Notes |
+| --- | --- | --- | --- |
+| `history_compaction_enabled` | `bool` | `false` | Enables auto compaction gates in pre-query and mid-loop execution paths. |
+| `history_compaction_manual_enabled` | `bool` | `true` | Enables manual `compact-history` WebSocket command. |
+| `history_compaction_openai_remote_enabled` | `bool` | `false` | Phase-gate for OpenAI remote compaction strategy path (currently inline fallback). |
+| `history_compaction_trigger_tokens` | `int` | `120000` | Threshold to trigger compaction evaluation. |
+| `history_compaction_target_tokens` | `int` | `60000` | Target budget used by compaction planning logic. |
+| `history_compaction_keep_recent_user_messages` | `int` | `6` | Keeps tail history anchored on the most recent N user messages. |
+| `history_compaction_summary_max_tokens` | `int` | `1200` | Max tokens for generated summary content. |
+| `history_compaction_strategy` | `"auto" \| "inline" \| "openai-remote"` | `"auto"` | Strategy selector; current rollout resolves to inline strategy. |
+| `history_compaction_prompt` | `str \| None` | `None` | Optional custom compaction prompt override. |
+| `history_compaction_cooldown_turns` | `int` | `1` | Prevents repeated compaction on adjacent user turns. |
+
 ### Voice, Wakeword, and TTS
 
 | Field | Type | Default | Notes |

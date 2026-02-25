@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(backend-compaction): add Codex-style conversation history compaction pipeline (auto pre/mid-turn gates, manual `compact-history` API, lifecycle events, typed config fields, and transcript rehydrate normalization) with backend regression coverage.
 - fix(frontend-chat-ui): nudge assistant action icon row slightly further left to align with assistant message text baseline.
 - fix(frontend-chat-ui): stack assistant message action icons on a separate row under assistant text, left-aligned with message content.
 - fix(frontend-chat-ui): restyle user chat bubbles as white rounded pills for clearer user/assistant visual separation in dashboard chat.

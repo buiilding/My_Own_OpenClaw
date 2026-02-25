@@ -3,9 +3,21 @@
 import pytest
 
 from backend.src.api.processing.formatters.memory_store import MemoryStoreEventFormatter
+from backend.src.api.processing.formatters.context_compaction_completed import (
+    ContextCompactionCompletedEventFormatter,
+)
+from backend.src.api.processing.formatters.context_compaction_failed import (
+    ContextCompactionFailedEventFormatter,
+)
+from backend.src.api.processing.formatters.context_compaction_started import (
+    ContextCompactionStartedEventFormatter,
+)
 from backend.src.api.processing.formatters.token_count import TokenCountEventFormatter
 from backend.src.api.processing.formatters.tool_schemas import ToolSchemasEventFormatter
 from backend.src.api.schema import (
+    ContextCompactionCompletedMessage,
+    ContextCompactionFailedMessage,
+    ContextCompactionStartedMessage,
     MemoryStoreMessage,
     TokenCountMessage,
     ToolSchemasMessage,
@@ -99,3 +111,73 @@ def test_memory_store_formatter_output_matches_schema() -> None:
         }
     )
     assert parsed.payload.user_id == "user_1"
+
+
+def test_context_compaction_started_formatter_output_matches_schema() -> None:
+    formatter = ContextCompactionStartedEventFormatter()
+    payload = formatter.format(
+        {
+            "reason": "auto-pre",
+            "strategy": "inline",
+            "before_tokens": 2200,
+            "projected_tokens": 2300,
+        },
+        "msg_4",
+    )
+
+    assert payload is not None
+    parsed = ContextCompactionStartedMessage.model_validate(
+        {
+            **payload,
+            "user_id": "user_1",
+        }
+    )
+    assert parsed.payload.reason == "auto-pre"
+
+
+def test_context_compaction_completed_formatter_output_matches_schema() -> None:
+    formatter = ContextCompactionCompletedEventFormatter()
+    payload = formatter.format(
+        {
+            "reason": "auto-mid",
+            "strategy": "inline",
+            "before_tokens": 2400,
+            "after_tokens": 900,
+            "removed_messages": 10,
+            "summary_preview": "short summary",
+            "skipped_reason": None,
+        },
+        "msg_5",
+    )
+
+    assert payload is not None
+    parsed = ContextCompactionCompletedMessage.model_validate(
+        {
+            **payload,
+            "user_id": "user_1",
+        }
+    )
+    assert parsed.payload.after_tokens == 900
+    assert parsed.payload.removed_messages == 10
+
+
+def test_context_compaction_failed_formatter_output_matches_schema() -> None:
+    formatter = ContextCompactionFailedEventFormatter()
+    payload = formatter.format(
+        {
+            "reason": "manual",
+            "strategy": "inline",
+            "error": "compaction failed",
+            "before_tokens": 2000,
+        },
+        "msg_6",
+    )
+
+    assert payload is not None
+    parsed = ContextCompactionFailedMessage.model_validate(
+        {
+            **payload,
+            "user_id": "user_1",
+        }
+    )
+    assert parsed.payload.error == "compaction failed"

@@ -19,6 +19,7 @@ class IncomingMessageType:
     LIST_MODELS: Final[str] = "list-models"
     UPDATE_SETTINGS: Final[str] = "update-settings"
     WAKEWORD_DETECTED: Final[str] = "wakeword-detected"
+    COMPACT_HISTORY: Final[str] = "compact-history"
     TOOL_RESULT: Final[str] = "tool-result"
     TOOL_BUNDLE_RESULT: Final[str] = "tool-bundle-result"
 
@@ -31,6 +32,7 @@ INCOMING_MESSAGE_TYPES: Final[tuple[str, ...]] = (
     IncomingMessageType.LIST_MODELS,
     IncomingMessageType.UPDATE_SETTINGS,
     IncomingMessageType.WAKEWORD_DETECTED,
+    IncomingMessageType.COMPACT_HISTORY,
     IncomingMessageType.TOOL_RESULT,
     IncomingMessageType.TOOL_BUNDLE_RESULT,
 )
@@ -55,6 +57,9 @@ class OutgoingMessageType:
     MEMORY_STORE: Final[str] = "memory-store"
     USER_MESSAGE_FULL: Final[str] = "user-message-full"
     ASSISTANT_MESSAGE_FULL: Final[str] = "assistant-message-full"
+    CONTEXT_COMPACTION_STARTED: Final[str] = "context-compaction-started"
+    CONTEXT_COMPACTION_COMPLETED: Final[str] = "context-compaction-completed"
+    CONTEXT_COMPACTION_FAILED: Final[str] = "context-compaction-failed"
     SETTINGS_LOADED: Final[str] = "settings-loaded"
     SETTINGS_UPDATED: Final[str] = "settings-updated"
     MODELS_LISTED: Final[str] = "models-listed"
@@ -77,4 +82,7 @@ OUTGOING_SCHEMA_MESSAGE_TYPES: Final[tuple[str, ...]] = (
     OutgoingMessageType.MEMORY_STORE,
     OutgoingMessageType.USER_MESSAGE_FULL,
     OutgoingMessageType.ASSISTANT_MESSAGE_FULL,
+    OutgoingMessageType.CONTEXT_COMPACTION_STARTED,
+    OutgoingMessageType.CONTEXT_COMPACTION_COMPLETED,
+    OutgoingMessageType.CONTEXT_COMPACTION_FAILED,
 )

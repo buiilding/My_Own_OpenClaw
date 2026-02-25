@@ -32,6 +32,9 @@ from backend.src.agent.tools.sending import ToolSender
 from backend.src.core.infrastructure.bus import EventBus
 from backend.src.core.events import (
     AgentStreamingEvent,
+    ContextCompactionCompletedEvent,
+    ContextCompactionFailedEvent,
+    ContextCompactionStartedEvent,
     InteractionCompleted,
     MemoryStoreEvent,
     StreamingCompleteEvent,
@@ -159,14 +162,59 @@ class AgentExecutor:
             is_first_message=is_first_message,
         )
 
-        # 2. Add user message to history (backend appends for continual interaction)
+        # 2. Pre-sampling auto-compaction check (before user message append).
+        compaction_engine = getattr(self.session, "compaction_engine", None)
+        pre_compaction_decision = None
+        if compaction_engine is not None:
+            pre_compaction_decision = compaction_engine.evaluate(
+                reason="auto-pre",
+                pending_user_content=final_content,
+            )
+        if pre_compaction_decision and pre_compaction_decision.should_compact:
+            yield ContextCompactionStartedEvent(
+                reason="auto-pre",
+                strategy=pre_compaction_decision.strategy_name,
+                before_tokens=pre_compaction_decision.before_tokens,
+                projected_tokens=pre_compaction_decision.projected_tokens,
+            )
+            try:
+                pre_compaction_result = await compaction_engine.compact(
+                    reason="auto-pre",
+                    decision=pre_compaction_decision,
+                )
+                summary_preview = self._build_summary_preview(
+                    pre_compaction_result.summary_text
+                )
+                yield ContextCompactionCompletedEvent(
+                    reason="auto-pre",
+                    strategy=pre_compaction_result.strategy_name,
+                    before_tokens=pre_compaction_result.before_tokens,
+                    after_tokens=pre_compaction_result.after_tokens,
+                    removed_messages=pre_compaction_result.removed_messages,
+                    summary_preview=summary_preview,
+                    skipped_reason=pre_compaction_result.skip_reason,
+                )
+            except Exception as exc:
+                logger.error(
+                    "[Compaction] Pre-query compaction failed: %s",
+                    exc,
+                    exc_info=True,
+                )
+                yield ContextCompactionFailedEvent(
+                    reason="auto-pre",
+                    strategy=pre_compaction_decision.strategy_name,
+                    error=str(exc),
+                    before_tokens=pre_compaction_decision.before_tokens,
+                )
+
+        # 3. Add user message to history (backend appends for continual interaction)
         self.session.history.add_user_message(
             content=final_content,
             user_query_raw=query,
             image_data=screenshot  # History still uses image_data internally
         )
 
-        # 3. Process user message screenshot if present (store as current, trigger OCR)
+        # 4. Process user message screenshot if present (store as current, trigger OCR)
         if screenshot:
             # Use a synthetic request_id for user messages (not from tool execution)
             user_request_id = f"user_msg_{self.session.session_id[:8]}"
@@ -223,6 +271,16 @@ class AgentExecutor:
                         f"Error during finalization after interaction loop: {e}",
                         exc_info=True
                     )
+
+    @staticmethod
+    def _build_summary_preview(summary_text: str) -> Optional[str]:
+        """Return a short summary preview suitable for websocket payloads."""
+        preview = (summary_text or "").strip()
+        if not preview:
+            return None
+        if len(preview) > 180:
+            return f"{preview[:177]}..."
+        return preview
 
     def _is_first_user_message(self) -> bool:
         """

@@ -164,6 +164,48 @@ class TokenCountEvent(StreamingEvent):
 
 
 @dataclass
+class ContextCompactionStartedEvent(StreamingEvent):
+    """Event emitted when history compaction starts."""
+
+    reason: str
+    strategy: str
+    before_tokens: int
+    projected_tokens: int
+
+    def __post_init__(self):
+        self.type = StreamingEventType.CONTEXT_COMPACTION_STARTED
+
+
+@dataclass
+class ContextCompactionCompletedEvent(StreamingEvent):
+    """Event emitted when history compaction completes."""
+
+    reason: str
+    strategy: str
+    before_tokens: int
+    after_tokens: int
+    removed_messages: int
+    summary_preview: Optional[str] = None
+    skipped_reason: Optional[str] = None
+
+    def __post_init__(self):
+        self.type = StreamingEventType.CONTEXT_COMPACTION_COMPLETED
+
+
+@dataclass
+class ContextCompactionFailedEvent(StreamingEvent):
+    """Event emitted when history compaction fails."""
+
+    reason: str
+    strategy: str
+    error: str
+    before_tokens: Optional[int] = None
+
+    def __post_init__(self):
+        self.type = StreamingEventType.CONTEXT_COMPACTION_FAILED
+
+
+@dataclass
 class MemoryStoreEvent(StreamingEvent):
     """Event emitted to trigger frontend memory storage after interaction completes."""
     user_query: str
@@ -199,6 +241,10 @@ AgentStreamingEvent = Union[
     UserMessageFullEvent,
     AssistantMessageFullEvent,
     FullResponseEvent,
+    TokenCountEvent,
+    ContextCompactionStartedEvent,
+    ContextCompactionCompletedEvent,
+    ContextCompactionFailedEvent,
     MemoryStoreEvent,
     ToolBundleEvent,
 ]

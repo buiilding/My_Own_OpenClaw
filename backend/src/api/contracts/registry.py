@@ -22,6 +22,7 @@ from backend.src.api.schemas.common import BaseMessage
 from backend.src.api.schemas.incoming import (
     ListModelsMessage,
     LoadSettingsMessage,
+    CompactHistoryMessage,
     QueryMessage,
     StopQueryMessage,
     RehydrateConversationMessage,
@@ -33,6 +34,9 @@ from backend.src.api.schemas.incoming import (
 from backend.src.api.schemas.outgoing import (
     AssistantMessageFullMessage,
     AudioChunkMessage,
+    ContextCompactionCompletedMessage,
+    ContextCompactionFailedMessage,
+    ContextCompactionStartedMessage,
     ErrorResponse,
     LlmThought,
     MemoryStoreMessage,
@@ -69,6 +73,7 @@ INCOMING_CONTRACTS: tuple[MessageContract, ...] = (
     MessageContract(IncomingMessageType.LIST_MODELS, ListModelsMessage),
     MessageContract(IncomingMessageType.UPDATE_SETTINGS, UpdateSettingsMessage),
     MessageContract(IncomingMessageType.WAKEWORD_DETECTED, WakewordDetectedMessage),
+    MessageContract(IncomingMessageType.COMPACT_HISTORY, CompactHistoryMessage),
     MessageContract(IncomingMessageType.TOOL_RESULT, ToolResultMessage),
     MessageContract(IncomingMessageType.TOOL_BUNDLE_RESULT, ToolBundleResultMessage),
 )
@@ -91,6 +96,18 @@ OUTGOING_SCHEMA_CONTRACTS: tuple[MessageContract, ...] = (
     MessageContract(OutgoingMessageType.USER_MESSAGE_FULL, UserMessageFullMessage),
     MessageContract(
         OutgoingMessageType.ASSISTANT_MESSAGE_FULL, AssistantMessageFullMessage
+    ),
+    MessageContract(
+        OutgoingMessageType.CONTEXT_COMPACTION_STARTED,
+        ContextCompactionStartedMessage,
+    ),
+    MessageContract(
+        OutgoingMessageType.CONTEXT_COMPACTION_COMPLETED,
+        ContextCompactionCompletedMessage,
+    ),
+    MessageContract(
+        OutgoingMessageType.CONTEXT_COMPACTION_FAILED,
+        ContextCompactionFailedMessage,
     ),
 )
 

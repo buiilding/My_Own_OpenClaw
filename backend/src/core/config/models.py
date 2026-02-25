@@ -188,6 +188,16 @@ class AppConfig(BaseModel):
     max_history_length: int = 1000  # Maximum conversation history messages
     max_agent_iterations: int = 1000  # Maximum tool execution iterations per query (high limit to effectively remove constraint)
     interaction_mode: Literal["chat", "agent"] = "chat"
+    history_compaction_enabled: bool = False
+    history_compaction_manual_enabled: bool = True
+    history_compaction_openai_remote_enabled: bool = False
+    history_compaction_trigger_tokens: int = Field(default=120000, ge=2048)
+    history_compaction_target_tokens: int = Field(default=60000, ge=1024)
+    history_compaction_keep_recent_user_messages: int = Field(default=6, ge=1)
+    history_compaction_summary_max_tokens: int = Field(default=1200, ge=128)
+    history_compaction_strategy: Literal["auto", "inline", "openai-remote"] = "auto"
+    history_compaction_prompt: Optional[str] = None
+    history_compaction_cooldown_turns: int = Field(default=1, ge=0)
 
     # Tool Execution Settings
     # This section is largely redundant as tools execute on the frontend

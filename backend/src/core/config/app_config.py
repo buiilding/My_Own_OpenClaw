@@ -31,6 +31,16 @@ APP_CONFIG = AppConfig(
     max_history_length=1000,
     max_agent_iterations=1000,
     interaction_mode="chat",
+    history_compaction_enabled=False,
+    history_compaction_manual_enabled=True,
+    history_compaction_openai_remote_enabled=False,
+    history_compaction_trigger_tokens=120000,
+    history_compaction_target_tokens=60000,
+    history_compaction_keep_recent_user_messages=6,
+    history_compaction_summary_max_tokens=1200,
+    history_compaction_strategy="auto",
+    history_compaction_prompt=None,
+    history_compaction_cooldown_turns=1,
     
     # Vision Model Settings (UI grounding / Venus)
     vision_model_name="OpenGVLab/InternVL3_5-4B",
