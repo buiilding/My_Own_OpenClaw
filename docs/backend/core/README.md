@@ -24,6 +24,8 @@ title: "Backend Core Infrastructure Docs Hub"
 - [Core Interfaces Docs Hub](interfaces/README.md)
 - [Embedding Provider Async Contract and Container Wiring Reference](interfaces/embedding_provider_async_contract_and_container_wiring_reference.md)
 - [Vision Service Protocol Boundary and Session Hierarchy Access Contract Reference](interfaces/vision_service_protocol_boundary_and_session_hierarchy_access_contract_reference.md)
+- [Core Logging Docs Hub](logging/README.md)
+- [Log Profile Noise Filter and Env-Level Resolution Contract Reference](logging/log_profile_noise_filter_and_env_level_resolution_contract_reference.md)
 
 ## Code Scope
 
@@ -34,6 +36,7 @@ title: "Backend Core Infrastructure Docs Hub"
 - `backend/src/core/messages/*`
 - `backend/src/core/infrastructure/cache*`
 - `backend/src/core/interfaces/*`
+- `backend/src/core/logging_setup.py`
 - `backend/src/core/types/aliases.py`
 - `backend/src/core/config/service.py`
 - `backend/src/core/config/subscriptions.py`

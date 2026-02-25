@@ -12,8 +12,11 @@ title: "Backend Bootstrap Docs Hub"
 
 - [Bootstrap and Config](bootstrap_and_config.md)
 - [Container DI and Initialization Lifecycle Reference](container_di_and_init_lifecycle_reference.md)
+- [Backend Bootstrap Entrypoints Docs Hub](entrypoints/README.md)
+- [Shared Entrypoint Logger and Uvicorn Runner Contract Reference](entrypoints/shared_entrypoint_logger_and_uvicorn_runner_contract_reference.md)
 
 ## Code Scope
 
 - `backend/src/core/bootstrap/*`
+- `backend/src/main.py`
 - `backend/src/core/container/*`
