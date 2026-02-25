@@ -79,7 +79,7 @@ BROWSER_LEGACY_ACTION_PREFERRED = MappingProxyType(
         "type": "input",
         "press": "send_keys",
         "switch_tab": "switch",
-        "act": "direct action invocation",
+        "act": "canonical actions directly",
     }
 )
 

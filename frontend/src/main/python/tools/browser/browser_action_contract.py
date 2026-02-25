@@ -45,11 +45,10 @@ LEGACY_BROWSER_ACTION_ALIASES = MappingProxyType(
         "type": "input",
         "press": "send_keys",
         "switch_tab": "switch",
-        "act": "direct action invocation",
+        "act": "canonical actions directly",
     }
 )
 
 BROWSER_ALL_ACTIONS = frozenset(
     BROWSER_CANONICAL_ACTIONS.union(LEGACY_BROWSER_ACTION_ALIASES.keys())
 )
-

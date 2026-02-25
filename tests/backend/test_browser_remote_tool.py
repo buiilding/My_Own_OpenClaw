@@ -339,6 +339,11 @@ class TestBrowserControlArgs:
         assert args.is_legacy is True
         assert args.preferred_action == "send_keys"
 
+    def test_removed_act_alias_reports_canonical_preferred_action(self):
+        args = BrowserControlArgs(action="act")
+        assert args.is_legacy is True
+        assert args.preferred_action == "canonical actions directly"
+
     def test_press_action_key_field(self):
         """Test press action key field remains available."""
         args = BrowserControlArgs(action="press", key="Enter")
