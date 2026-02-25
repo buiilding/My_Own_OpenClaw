@@ -14,8 +14,8 @@ This index maps frontend functionality to file ownership.
 
 | Surface | Files |
 | --- | ---: |
-| Main process (`frontend/src/main`, `.cjs`/`.js`) | 22 |
-| Sidecar Python (`frontend/src/main/python`, `.py`) | 135 |
+| Main process (`frontend/src/main`, `.cjs`/`.js`) | 23 |
+| Sidecar Python (`frontend/src/main/python`, `.py`) | 136 |
 | Renderer runtime (`frontend/src/renderer`, TS/JS) | 114 |
 | Landing (`frontend/src/landing`, `.jsx`/`.css`) | 13 |
 | Preload bridge (`frontend/src/preload.js`) | 1 |
@@ -36,6 +36,7 @@ Overlay/window control helpers:
 - `frontend/src/main/overlay_mouse_handler.cjs`
 - `frontend/src/main/overlay_chatbox_handler.cjs`
 - `frontend/src/main/overlay_responsebox_handler.cjs`
+- `frontend/src/main/overlay_bounds.cjs`
 - `frontend/src/main/overlay_renderer_registration.cjs`
 - `frontend/src/main/response_overlay_phase_handler.cjs`
 - `frontend/src/main/main_window_controls_handler.cjs`
@@ -62,7 +63,7 @@ App + providers:
 
 Shared components:
 
-- `frontend/src/renderer/components/{MainLayout,ErrorBoundary}.jsx`
+- `frontend/src/renderer/components/ErrorBoundary.jsx`
 
 Feature slices:
 
@@ -113,7 +114,7 @@ Core infrastructure:
 
 Memory subsystem:
 
-- `frontend/src/main/python/memory/{local_store,sqlite_store,faiss_index,summarizer,operations,watermark_state}.py`
+- `frontend/src/main/python/memory/{local_store,sqlite_store,faiss_index,summarizer,operations,watermark_state,conversation_titles}.py`
 
 Tool runtime:
 
@@ -126,6 +127,13 @@ Tool runtime:
 - `frontend/src/main/python/tools/browser/{controller,browser_tool,browser_runtime,browser_adapter,enhanced_cdp_pipeline,chrome_detection,chrome_launcher,schemas,role_snapshot,ref_registry,openclaw_compat_schema}.py`
 - Browser Use vendored stack:
 - `frontend/src/main/python/tools/browser/browser_use/**`
+
+Browser Use ownership clusters:
+
+- `actor/*`, `agent/*`, `browser/*`, `browser/watchdogs/*`
+- `dom/*`, `dom/serializer/*`
+- `tools/*`, `tools/registry/*`, `tools/extraction/*`
+- `llm/*`, `tokens/*`, `filesystem/*`
 
 ## Landing + Preload Index
 
