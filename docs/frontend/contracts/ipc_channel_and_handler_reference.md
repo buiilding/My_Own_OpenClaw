@@ -153,3 +153,5 @@ Keep these in sync whenever adding a channel:
 - `docs/frontend/contracts/ipc/README.md`
 - `docs/frontend/contracts/ipc/preload_allowlist_and_channel_constant_parity_reference.md`
 - `docs/frontend/contracts/ipc/main_process_ipc_handler_ownership_and_rpc_mapper_reference.md`
+- `docs/frontend/contracts/ipc/bridge/README.md`
+- `docs/frontend/contracts/ipc/bridge/renderer_ipc_bridge_runtime_validation_and_window_ipc_guard_reference.md`
