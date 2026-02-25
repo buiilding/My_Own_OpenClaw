@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(frontend-search-ui): add clone-style `Search chats` popup modal (sidebar trigger, search input, grouped results, new-chat action, conversation open/close flow) to match ChatGPT website behavior
+- test(frontend-dashboard): add `Search chats` modal coverage in `ChatGptDashboardShell.test.jsx` (open, filter, select conversation)
 - feat(frontend-chat-history): generate and persist transcript conversation titles (`conversation_titles`) from first user/assistant turn pair, return `title`/`title_source` in `list_conversations`, and render sidebar/memory conversation labels from stored titles instead of numbered placeholders
 - test(sidecar-memory): add regression coverage for conversation title generation timing (requires first user+assistant rows) and title-row cleanup on transcript conversation deletion
 - docs(frontend-memory-contracts): document `list_conversations` title fields plus title generation/deletion semantics in memory IPC and sidecar transcript-storage references

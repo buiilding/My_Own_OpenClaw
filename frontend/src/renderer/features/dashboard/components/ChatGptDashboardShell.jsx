@@ -18,6 +18,7 @@ import {
 import DashboardSidebar from './DashboardSidebar';
 import { useTranscriptSessionInfo } from '../hooks/useTranscriptSessionInfo';
 import MemorySection from './sections/MemorySection';
+import SearchChatsModal from './SearchChatsModal';
 
 function DashboardModal({ isOpen, onClose, children, className = '' }) {
   if (!isOpen) {
@@ -58,6 +59,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
   const [settingsInitialTab, setSettingsInitialTab] = useState('general');
   const [modelsOpen, setModelsOpen] = useState(false);
   const [memoryOpen, setMemoryOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [recentConversations, setRecentConversations] = useState([]);
   const [isLoadingRecentConversations, setIsLoadingRecentConversations] = useState(false);
   const [recentConversationsError, setRecentConversationsError] = useState('');
@@ -72,6 +74,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
     setSettingsOpen(false);
     setModelsOpen(false);
     setMemoryOpen(false);
+    setSearchOpen(false);
   }, []);
 
   const openSettings = useCallback((tab = 'general') => {
@@ -106,6 +109,11 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
   const handleMemorySurface = useCallback(() => {
     openMemory();
   }, [openMemory]);
+
+  const handleOpenSearch = useCallback(() => {
+    closeAllPanels();
+    setSearchOpen(true);
+  }, [closeAllPanels]);
 
   const loadRecentConversations = useCallback(async () => {
     setIsLoadingRecentConversations(true);
@@ -264,10 +272,11 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
         sidebarOpen={sidebarOpen}
         onToggleSidebar={handleSidebarToggle}
         onStartNewChat={handleStartNewChat}
-        onChatSurface={handleChatSurface}
+        onOpenSearch={handleOpenSearch}
         onOpenMemory={handleMemorySurface}
         onOpenModels={openModels}
         onOpenSettings={openSettings}
+        searchOpen={searchOpen}
         memoryOpen={memoryOpen}
         modelsOpen={modelsOpen}
         isLoadingRecentConversations={isLoadingRecentConversations}
@@ -280,6 +289,15 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
       <main className={`cg-main-content${sidebarOpen ? '' : ' cg-main-content-collapsed'}`.trim()}>
         <ChatInterface sidebarOpen={sidebarOpen} />
       </main>
+
+      <SearchChatsModal
+        isOpen={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        onStartNewChat={handleStartNewChat}
+        onOpenConversation={handleOpenConversation}
+        recentConversationGroups={recentConversationGroups}
+        activeConversationRef={sessionInfo.conversationRef || null}
+      />
 
       <DashboardModal isOpen={memoryOpen} onClose={() => setMemoryOpen(false)}>
         <div className="cg-panel-wrapper">
