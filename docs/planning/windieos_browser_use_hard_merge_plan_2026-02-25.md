@@ -67,7 +67,7 @@ title: "WindieOS Browser Use Hard-Merge Plan (2026-02-25)"
    - Status: in progress (2026-02-25)
      - canonical actions now dispatch directly through runtime action bridge
      - legacy alias wrappers retained as thin compatibility shim
-     - legacy `act` envelope remains only inside adapter internals (not exposed at browser tool boundary)
+     - legacy `act` envelope narrowed to adapter-internal handling only during Phase 3 (later removed in Phase 4)
      - obsolete direct adapter alias wrappers removed; legacy aliases now exclusively flow through `execute(...)`
      - runtime-provider lookup now calls native factory directly (self-import indirection removed)
 
