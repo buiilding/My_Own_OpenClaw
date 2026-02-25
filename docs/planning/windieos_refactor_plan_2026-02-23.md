@@ -3843,3 +3843,25 @@ read_when:
       - backend: `1012 passed`
       - sidecar: `500 passed`, `4 skipped` (`3` known swig deprecation warnings)
       - frontend: `102 suites`, `661 tests` passed
+
+## Phase 172 Outcome (2026-02-25)
+
+- Refactor slice: extract window/chat visibility IPC handlers from `index.cjs`.
+  - added:
+    - `frontend/src/main/overlay_visibility_handler.cjs`:
+      - `handleShowMainWindow(...)`
+      - `handleShowChatbox(...)`
+      - `handleHideChatbox(...)`
+  - updated:
+    - `frontend/src/main/index.cjs` now delegates:
+      - `show-main-window`
+      - `show-chatbox`
+      - `hide-chatbox`
+  - added tests:
+    - `tests/frontend/OverlayVisibilityHandler.test.cjs`
+    - covers main-window error wrapping, default chatbox focus behavior, explicit focus false path, and hide delegation.
+  - impact:
+    - further reduced main-process IPC branch logic in `index.cjs` and locked visibility behavior with direct unit coverage.
+- Validation:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/OverlayVisibilityHandler.test.cjs tests/frontend/DisplayQueryHandler.test.cjs tests/frontend/OverlayMouseHandler.test.cjs tests/frontend/MainWindowControlsHandler.test.cjs tests/frontend/OverlayResponseboxHandler.test.cjs tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs` (pass)
