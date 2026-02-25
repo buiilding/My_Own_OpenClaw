@@ -1,16 +1,15 @@
 import React from 'react';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import ToolGhostDebugApp from '../../frontend/src/renderer/app/ToolGhostDebugApp';
 import { TOOL_GHOST_CLICK_SYNC_DELAY_MS } from '../../frontend/src/renderer/features/chat/constants/toolGhostRuntime';
 
 describe('ToolGhostDebugApp', () => {
-  test('shows ghost animation and hides after timeline when loop disabled', () => {
+  test('shows only ghost animation and hides after one timeline', () => {
     jest.useFakeTimers();
     try {
       render(<ToolGhostDebugApp />);
 
-      fireEvent.click(screen.getByRole('button', { name: 'Loop: on' }));
-      expect(screen.getByRole('button', { name: 'Loop: off' })).toBeInTheDocument();
+      expect(screen.queryByRole('button')).not.toBeInTheDocument();
       expect(screen.getByLabelText('Ghost cursor debug animation')).toBeInTheDocument();
 
       act(() => {
