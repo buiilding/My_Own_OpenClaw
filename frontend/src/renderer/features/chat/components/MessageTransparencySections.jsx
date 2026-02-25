@@ -2,7 +2,18 @@ import PropTypes from 'prop-types';
 import TransparencySection from './TransparencySection';
 import { buildTransparencySectionConfigs } from '../utils/messageTransparency';
 
+function isTransparencyUiEnabled() {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+  return new URLSearchParams(window.location.search).get('dev_ui') === '1';
+}
+
 export default function MessageTransparencySections({ message }) {
+  if (!isTransparencyUiEnabled()) {
+    return null;
+  }
+
   const sections = buildTransparencySectionConfigs(message);
 
   if (sections.length === 0) {

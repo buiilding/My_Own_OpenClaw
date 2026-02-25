@@ -71,6 +71,7 @@ const RESPONSE_OVERLAY_PHASE = Object.freeze({
 });
 const APP_WINDOW_TITLE_MARKERS = ['desktop assistant', 'windieos'];
 const ENABLE_OS_TOOL_GHOST_DEBUG = process.env.WINDIE_DEBUG_GHOST_OVERLAY === '1';
+const ENABLE_DEV_TRANSPARENCY_UI = process.env.WINDIE_DEV_UI === '1';
 const RESPONSE_WINDOW_DEBUG_VIEW = 'tool-ghost-debug';
 const externalFocusTracker = createExternalFocusTracker({
   getPlatform: () => process.platform,
@@ -91,22 +92,30 @@ async function prepareOverlayQueryCaptureFocus() {
 }
 
 function loadRendererView(targetWindow, view) {
+  const query = {};
+  if (view) {
+    query.view = view;
+  }
+  if (ENABLE_DEV_TRANSPARENCY_UI) {
+    query.dev_ui = '1';
+  }
+
   if (app.isPackaged) {
     const rendererEntryFile = path.join(__dirname, '../../dist/index.html');
-    if (view) {
-      targetWindow.loadFile(rendererEntryFile, { query: { view } });
-      return;
-    }
-    targetWindow.loadFile(rendererEntryFile);
+    targetWindow.loadFile(
+      rendererEntryFile,
+      Object.keys(query).length > 0 ? { query } : undefined,
+    );
     return;
   }
 
   const devUrl = 'http://localhost:5173';
-  if (view) {
-    targetWindow.loadURL(`${devUrl}?view=${encodeURIComponent(view)}`);
-    return;
+  const queryString = new URLSearchParams(query).toString();
+  if (queryString) {
+    targetWindow.loadURL(`${devUrl}?${queryString}`);
+  } else {
+    targetWindow.loadURL(devUrl);
   }
-  targetWindow.loadURL(devUrl);
 }
 
 function createOverlayBrowserWindow({ width, height, show }) {
