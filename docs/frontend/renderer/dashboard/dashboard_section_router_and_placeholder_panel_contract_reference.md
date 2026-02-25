@@ -25,6 +25,7 @@ The main dashboard surface is conversation-only:
 - `ChatInterface` is always mounted in the main content area.
 - memory/models/settings no longer replace the main route.
 - auxiliary panels open as modals over the conversation surface.
+- shell visuals follow the `chatgpt-website-clone` language: `#212121` main frame, `#171717` grouped left sidebar, and collapsed-sidebar toggle mode.
 
 ## Modal Routing Contract
 
@@ -35,6 +36,11 @@ The main dashboard surface is conversation-only:
 - `settingsOpen`
 
 Opening one panel closes the others (`closeAllPanels`) to avoid stacked overlays.
+
+Modal visual contract:
+
+- overlay and panel styling match the clone dark dialog treatment (`#2F2F2F` panel, dim backdrop).
+- shell does not inject an extra modal-header close icon; close behavior is backdrop/escape or section-level controls.
 
 Memory modal includes local tab routing:
 
