@@ -1,0 +1,138 @@
+---
+summary: "Deep backend compatibility reference for stable schema import re-exports, typed-vs-dict streaming event support, payload field fallbacks, and incoming union extraction tolerance."
+read_when:
+  - When refactoring backend API schema modules or import paths used across websocket handlers/tests.
+  - When changing query streaming event extraction, formatter dispatch, or incoming message-type extraction behavior.
+title: "Backend Protocol Backward Compatibility and Normalization Reference"
+---
+
+# Backend Protocol Backward Compatibility and Normalization Reference
+
+## Scope and Sources
+
+Primary runtime sources:
+
+- `backend/src/api/schema.py`
+- `backend/src/api/processing/formatter.py`
+- `backend/src/api/services/query_execution.py`
+- `backend/src/core/container/incoming_routing.py`
+
+Primary test sources:
+
+- `tests/backend/test_response_formatter.py`
+- `tests/backend/test_api_handlers.py`
+- `tests/backend/test_incoming_routing.py`
+
+## Compatibility Contract Matrix
+
+| Compatibility Surface | Runtime Owner | Guarantee | Key Tests |
+|---|---|---|---|
+| stable schema import path | `api/schema.py` | old imports from `backend.src.api.schema` continue to work via re-export shim | import-dependent suites (broad coverage) |
+| typed + dict event formatter path | `ResponseFormatter.format(...)` | accepts both typed events and legacy dict events | `test_response_formatter_formats_dict_event_via_backward_compat_path` |
+| dict payload fallback extraction | `QueryExecutionService` extraction helpers | supports top-level and payload-embedded fields (`content`, `final_response`) | `test_query_execution_extract_*` cases in `test_api_handlers.py` |
+| incoming union shape tolerance | `get_incoming_message_types()` | works with `Annotated[Union[...]]` and plain `Union[...]` | `test_get_incoming_message_types_supports_non_annotated_union` |
+
+## Stable Schema Re-Export Contract
+
+`backend/src/api/schema.py` is an explicit compatibility layer:
+
+- re-exports names from `backend.src.api.schemas`
+- preserves old import sites while code migrates to modular schema paths
+- keeps `__all__` aligned with canonical schema package export list
+
+Impact:
+
+- handlers/tests importing `backend.src.api.schema` remain source-compatible
+- schema package internal reorganization does not force immediate cross-repo import rewrites
+
+## Formatter Compatibility: Typed and Legacy Dict Events
+
+`ResponseFormatter` dispatch order:
+
+1. typed event class lookup (`_typed_formatters`)
+2. dict event fallback lookup by `event["type"]` (`_formatters`)
+
+Compatibility value:
+
+- newer strongly-typed event objects and legacy dict producers can coexist
+- callers do not need simultaneous migration
+
+Locked by `tests/backend/test_response_formatter.py`:
+
+- typed formatting + context attach
+- dict fallback formatting for legacy shape
+- unknown type safely returns `None`
+- duplicate registration guardrails prevent ambiguous fallback routing
+
+## Query Stream Payload Normalization/Fallback Rules
+
+`QueryExecutionService` extraction helpers preserve multiple historical event shapes.
+
+### Event type normalization
+
+- `_extract_event_type(...)` accepts:
+  - dict `{"type": "..."}`
+  - object `event.type` string
+  - enum-like `event.type.value`
+
+### Chunk text normalization
+
+- `_extract_chunk_text(...)` for dict events:
+  - prefers top-level `content`
+  - falls back to `payload.text`
+
+### Assistant full-text fallback
+
+- `_extract_assistant_full_text(...)` accepts:
+  - top-level `content`
+  - `payload.content`
+
+### Streaming-complete text fallback
+
+- `_extract_streaming_complete_text(...)` accepts:
+  - top-level `final_response`
+  - `payload.final_response`
+
+### Completion resolution hierarchy
+
+`_resolve_completion_text(...)` order:
+
+1. explicit streaming-complete text
+2. accumulated streamed chunks
+3. assistant full-text payload
+4. fixed empty-final-response fallback message
+
+Locked by tests in `tests/backend/test_api_handlers.py`:
+
+- `test_query_execution_extract_non_empty_chunk_text_respects_precomputed_event_type`
+- `test_query_execution_extract_assistant_full_text_uses_payload_fallback`
+- `test_query_execution_extract_streaming_complete_text_uses_payload_or_top_level`
+
+## Incoming Route Type Extraction Tolerance
+
+`get_incoming_message_types()` tolerates both union wrappers:
+
+- `Annotated[Union[...], ...]`
+- `Union[...]`
+
+but enforces one invariant:
+
+- every message model `type` field must be `Literal[...]`
+
+This lets schema annotation style evolve without breaking route-table validation.
+
+Locked by `tests/backend/test_incoming_routing.py`.
+
+## Drift Checks
+
+When changing compatibility code, keep aligned:
+
+- `api/schema.py` re-export behavior and `__all__` passthrough
+- formatter dict fallback path for legacy stream emitters
+- query extraction helper fallback order (`top-level` vs `payload`)
+- incoming route extraction support for non-annotated unions
+
+## Related Pages
+
+- [Backend Protocol Validation Hub](../validation/README.md)
+- [Backend Protocol Testing Hub](../testing/README.md)
