@@ -10,9 +10,8 @@ from pydantic import BaseModel, Field, field_validator
 
 from backend.src.api.deps import ContainerDep, SessionManagerDep
 from backend.src.api.routes.memory.health import (
+    dependency_health_check,
     healthy_payload,
-    safe_health_check,
-    unhealthy_payload,
 )
 from backend.src.api.routes.memory.semantic_parser import (
     extract_fallback_facts,
@@ -101,14 +100,13 @@ async def summarize_conversations(
 @router.get("/health")
 async def health_check(container: ContainerDep) -> Dict[str, Any]:
     """Health check for semantic summarization service."""
-    async def check() -> Dict[str, Any]:
-        llm_client = container.llm_client
-        if not llm_client:
-            return unhealthy_payload("LLM client not available")
-        return healthy_payload(message="Semantic summarization service ready")
-
-    return await safe_health_check(
-        check,
+    return await dependency_health_check(
+        dependency=None,
+        get_dependency=lambda: container.llm_client,
+        missing_message="LLM client not available",
+        on_healthy=lambda _client: healthy_payload(
+            message="Semantic summarization service ready"
+        ),
         logger=logger,
         error_log_prefix="Semantic health check failed",
     )

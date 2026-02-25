@@ -3584,3 +3584,35 @@ read_when:
     - backend: `1010 passed`
     - sidecar: `500 passed, 4 skipped`
     - frontend: `94 suites`, `616 tests`
+
+## Phase 154 Outcome (2026-02-25)
+
+- Refactor slice: duplication + health-route consolidation + modern React cleanup.
+  - extracted shared ghost cursor UI into:
+    - `frontend/src/renderer/features/chat/components/ToolGhostCursor.jsx`
+  - split response height resize logic from `ChatBoxResponse` into:
+    - `frontend/src/renderer/features/chat/hooks/useAutoResizedResponseHeight.js`
+  - reduced `ChatBoxResponse.jsx` below file-size guideline:
+    - `538` LOC -> `479` LOC
+  - removed React compiler blocker in `ToolGhostDebugApp` by replacing disabled-hooks lint suppression with stable `useCallback` timer orchestration.
+  - consolidated repeated response-overlay show/state logic in `frontend/src/main/index.cjs` with:
+    - `showResponseWindowWhenChatVisible(...)`
+    - `setResponseOverlayVisibilityState(...)`
+  - consolidated memory-route dependency checks in:
+    - `backend/src/api/routes/memory/health.py` (`dependency_health_check`)
+    - route callers: `embeddings.py`, `semantic.py`
+  - added regression coverage for new backend helper:
+    - `tests/backend/test_memory_routes.py`
+  - updated memory route docs and helper contracts to match new dependency-health wrapper behavior.
+- Audit deltas:
+  - `cd frontend && npm run lint:audit` (pass; react-compiler + deprecation clean)
+  - `cd frontend && npm run audit:knip` (pass)
+  - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `33`, duplicated lines `600`, duplicated tokens `5747`)
+  - notable frontend dedupe impact:
+    - javascript duplicates reduced (`30 -> 15` lines)
+    - jsx duplicates reduced (`19 -> 14` lines)
+- Full-gate validation:
+  - `./scripts/test` (pass)
+    - backend: `1012 passed`
+    - sidecar: `500 passed, 4 skipped`
+    - frontend: `94 suites`, `629 tests`

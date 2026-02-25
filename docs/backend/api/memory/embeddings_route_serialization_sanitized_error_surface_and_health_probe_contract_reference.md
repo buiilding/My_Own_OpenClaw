@@ -65,11 +65,17 @@ Exception handling:
   - `model_name`
   - computed `dimension`
 
-Wrapped via `safe_health_check(...)`:
+Wrapped via `dependency_health_check(...)`:
 
 - unexpected exceptions return canonical unhealthy payload instead of raising.
 
 ## Shared Health Helper Semantics
+
+`dependency_health_check(...)`:
+
+- returns unhealthy payload immediately when embedder dependency is missing
+- runs route-specific `on_healthy` probe callback (sync/async)
+- routes unexpected exceptions through `safe_health_check(...)`
 
 `safe_health_check(check_fn, ...)`:
 
@@ -83,6 +89,7 @@ Wrapped via `safe_health_check(...)`:
 - embeddings success route returns serialized list and expected dimension/model name
 - embeddings route returns 503 when embedder missing
 - embeddings health returns unhealthy when probe call fails
+- `dependency_health_check` handles missing dependencies + healthy probes
 - `safe_health_check` returns check payload on success and canonical unhealthy payload on exception
 
 ## Drift Hotspots

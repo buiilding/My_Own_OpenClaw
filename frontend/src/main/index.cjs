@@ -331,6 +331,13 @@ function showResponseWindowInactive() {
   ensureResponseWindowOnTop();
 }
 
+function showResponseWindowWhenChatVisible() {
+  if (!chatWindow || chatWindow.isDestroyed() || !chatWindow.isVisible()) {
+    return;
+  }
+  showResponseWindowInactive();
+}
+
 function showContextLabelWindowInactive() {
   if (!contextLabelWindow || contextLabelWindow.isDestroyed()) {
     return;
@@ -380,6 +387,12 @@ function broadcastResponseOverlayVisibility(visible = responseOverlayVisible) {
     }
     win.webContents.send('response-overlay-visibility', payload);
   }
+}
+
+function setResponseOverlayVisibilityState(visible) {
+  responseOverlayVisible = Boolean(visible);
+  broadcastResponseOverlayVisibility(responseOverlayVisible);
+  syncContextLabelWindowVisibility();
 }
 
 function showChatWindow({ focus = true } = {}) {
@@ -460,26 +473,20 @@ function handleResponseOverlayPhaseChange(event = {}) {
   responseOverlayPhase = nextPhase;
 
   if (nextPhase === RESPONSE_OVERLAY_PHASE.IDLE) {
-    responseOverlayVisible = false;
+    setResponseOverlayVisibilityState(false);
     if (responseWindow && !responseWindow.isDestroyed() && responseWindow.isVisible()) {
       responseWindow.hide();
     }
-    broadcastResponseOverlayVisibility(false);
-    syncContextLabelWindowVisibility();
     return;
   }
 
   if (isResponseOverlayStreamingPhase()) {
-    responseOverlayVisible = true;
-    broadcastResponseOverlayVisibility(true);
+    setResponseOverlayVisibilityState(true);
     if (!responseWindow || responseWindow.isDestroyed()) {
       return;
     }
     ensureResponseOverlayFallbackBounds();
-    if (chatWindow && !chatWindow.isDestroyed() && chatWindow.isVisible()) {
-      showResponseWindowInactive();
-    }
-    syncContextLabelWindowVisibility();
+    showResponseWindowWhenChatVisible();
     return;
   }
 
@@ -843,12 +850,10 @@ function initializeOverlayHandlers() {
 
     const shouldShow = Boolean(visible);
     if (!shouldShow) {
-      responseOverlayVisible = false;
+      setResponseOverlayVisibilityState(false);
       if (responseWindow.isVisible()) {
         responseWindow.hide();
       }
-      broadcastResponseOverlayVisibility(false);
-      syncContextLabelWindowVisibility();
       return { success: true, visible: false };
     }
 
@@ -870,17 +875,8 @@ function initializeOverlayHandlers() {
           height: Math.max(1, Math.round(bounds.height)),
         };
         responseWindow.setBounds(nextBounds, false);
-        responseOverlayVisible = true;
-        if (chatWindow && !chatWindow.isDestroyed() && chatWindow.isVisible()) {
-          if (typeof responseWindow.showInactive === 'function') {
-            responseWindow.showInactive();
-          } else {
-            responseWindow.show();
-          }
-          ensureResponseWindowOnTop();
-        }
-        broadcastResponseOverlayVisibility(true);
-        syncContextLabelWindowVisibility();
+        setResponseOverlayVisibilityState(true);
+        showResponseWindowWhenChatVisible();
         return {
           success: true,
           visible: true,
@@ -898,17 +894,8 @@ function initializeOverlayHandlers() {
     try {
       const bounds = getResponseWindowBounds(nextWidth, nextHeight);
       responseWindow.setBounds(bounds, false);
-      responseOverlayVisible = true;
-      if (chatWindow && !chatWindow.isDestroyed() && chatWindow.isVisible()) {
-        if (typeof responseWindow.showInactive === 'function') {
-          responseWindow.showInactive();
-        } else {
-          responseWindow.show();
-        }
-        ensureResponseWindowOnTop();
-      }
-      broadcastResponseOverlayVisibility(true);
-      syncContextLabelWindowVisibility();
+      setResponseOverlayVisibilityState(true);
+      showResponseWindowWhenChatVisible();
       return {
         success: true,
         visible: true,

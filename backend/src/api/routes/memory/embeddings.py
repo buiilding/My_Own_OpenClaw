@@ -13,9 +13,8 @@ from pydantic import BaseModel, Field
 
 from backend.src.api.deps import ContainerDep
 from backend.src.api.routes.memory.health import (
+    dependency_health_check,
     healthy_payload,
-    safe_health_check,
-    unhealthy_payload,
 )
 
 router = APIRouter(prefix="/api/embeddings", tags=["embeddings"])
@@ -122,22 +121,20 @@ async def health_check(
     Returns:
         Health status information
     """
-    async def check() -> Dict[str, Any]:
-        embedding_provider = container.embedder
-        if not embedding_provider:
-            return unhealthy_payload("Embedding provider not available")
-
-        # Try a simple embedding to verify functionality
+    async def _healthy_payload_for_provider(embedding_provider) -> Dict[str, Any]:
+        # Run a real probe call so health reflects runtime embedder readiness.
         test_embedding = await embedding_provider.embed_text("test")
         dimension = len(_embedding_to_list(test_embedding))
-
         return healthy_payload(
             model_name=getattr(embedding_provider, 'model_name', 'unknown'),
             dimension=dimension,
         )
 
-    return await safe_health_check(
-        check,
+    return await dependency_health_check(
+        dependency=None,
+        get_dependency=lambda: container.embedder,
+        missing_message="Embedding provider not available",
+        on_healthy=_healthy_payload_for_provider,
         logger=logger,
         error_log_prefix="Embeddings health check failed",
     )

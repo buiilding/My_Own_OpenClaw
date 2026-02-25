@@ -223,6 +223,44 @@ async def test_safe_health_check_returns_unhealthy_on_exception() -> None:
 
 
 @pytest.mark.asyncio
+async def test_dependency_health_check_returns_unhealthy_when_dependency_missing() -> None:
+    result = await health_routes.dependency_health_check(
+        dependency=None,
+        missing_message="Dependency missing",
+        on_healthy=lambda _dep: health_routes.healthy_payload(message="ok"),
+        logger=semantic_routes.logger,
+        error_log_prefix="test",
+    )
+
+    assert result == {"status": "unhealthy", "message": "Dependency missing"}
+
+
+@pytest.mark.asyncio
+async def test_dependency_health_check_supports_sync_and_async_callbacks() -> None:
+    sync_result = await health_routes.dependency_health_check(
+        dependency=object(),
+        missing_message="Dependency missing",
+        on_healthy=lambda _dep: health_routes.healthy_payload(message="sync-ok"),
+        logger=semantic_routes.logger,
+        error_log_prefix="test",
+    )
+
+    async def async_on_healthy(_dep):
+        return health_routes.healthy_payload(message="async-ok")
+
+    async_result = await health_routes.dependency_health_check(
+        dependency=object(),
+        missing_message="Dependency missing",
+        on_healthy=async_on_healthy,
+        logger=semantic_routes.logger,
+        error_log_prefix="test",
+    )
+
+    assert sync_result == {"status": "healthy", "message": "sync-ok"}
+    assert async_result == {"status": "healthy", "message": "async-ok"}
+
+
+@pytest.mark.asyncio
 async def test_semantic_health_check_unhealthy_on_exception() -> None:
     class RaisingContainer:
         @property

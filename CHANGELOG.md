@@ -7,6 +7,11 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-chatbox-response): extract shared `ToolGhostCursor` component and `useAutoResizedResponseHeight` hook, reusing ghost cursor markup across debug/overlay UIs and reducing `ChatBoxResponse.jsx` from `538` to `479` LOC
+- fix(frontend-react-compiler): remove disabled-hooks lint suppression in `ToolGhostDebugApp.jsx` by switching timer lifecycle to stable `useCallback` orchestration so `npm run lint:audit:react` stays clean
+- refactor(frontend-main-overlay): centralize response-overlay visibility/show logic in `frontend/src/main/index.cjs` via `setResponseOverlayVisibilityState` + `showResponseWindowWhenChatVisible` helpers, removing duplicate fullscreen/resize branches
+- refactor(backend-memory-health): add shared `dependency_health_check` helper for memory route health endpoints, migrate semantic/embeddings routes to dependency-aware wrapper, and add regression coverage in `tests/backend/test_memory_routes.py`
+- docs(refactor-plan): record Phase 154 refactor outcomes and refreshed audit/test metrics in `docs/planning/windieos_refactor_plan_2026-02-23.md`
 - docs(backend-core-interfaces): add `core/interfaces` subhub with embedding-provider async/di wiring contracts and vision-service protocol + session hierarchy access helper references
 - docs(frontend-renderer-voice-components): add `renderer/voice/components` subhub with VoiceStatus error/recording/connection indicator render contract reference
 - docs(backend-core-cache): add `core/cache` subhub with cache-store ttl/lru/negative-cache sync-async waiter contracts and cache-manager keying/cache-entry/facade export references
