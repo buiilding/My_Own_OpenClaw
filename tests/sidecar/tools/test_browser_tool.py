@@ -55,6 +55,21 @@ class TestExecuteBrowserControl:
         )
 
     @pytest.mark.asyncio
+    async def test_legacy_action_flag_can_disable_aliases(self):
+        with mock.patch.dict(
+            "os.environ",
+            {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "0"},
+            clear=False,
+        ):
+            result = await execute_browser({"action": "open", "url": "https://example.com"})
+
+        assert result.success is False
+        assert (
+            "Legacy browser actions are disabled by WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=0."
+            in result.error
+        )
+
+    @pytest.mark.asyncio
     async def test_validation_error(self):
         """Test validation error handling."""
         with mock.patch(

@@ -41,23 +41,38 @@ Compatibility validation notes:
 - snapshot rejects compatibility fields `format`/`snapshotFormat`/`wait_until`/`state`/`mode`/`max_chars`/`refs`/`interactive`/`compact`/`depth`/`selector`/`frame`
 - extract rejects compatibility fields `mode`/`selector`/`frame`
 - screenshot rejects compatibility fields `full_page`/`ref`/`element`/`type`/`quality`
-- set `WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1` to reject legacy alias actions at runtime"""
+- set `WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1` to reject legacy alias actions at runtime
+- set `WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=0` to disable legacy alias actions at runtime (rollout flag)"""
     args_model = BrowserControlArgs
     category = ToolDomain.BROWSER
     strict_canonical_actions_env = "WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY"
+    allow_legacy_actions_env = "WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS"
 
     @classmethod
     def _strict_canonical_actions_enabled(cls) -> bool:
         raw = os.getenv(cls.strict_canonical_actions_env, "").strip().lower()
         return raw in {"1", "true", "yes", "on"}
 
+    @classmethod
+    def _legacy_actions_allowed(cls) -> bool:
+        raw = os.getenv(cls.allow_legacy_actions_env, "").strip().lower()
+        if raw == "":
+            return True
+        return raw not in {"0", "false", "no", "off"}
+
     async def execute_remote(self, args: BrowserControlArgs, ctx: ToolContext) -> Any:
-        if self._strict_canonical_actions_enabled() and args.is_legacy:
+        if args.is_legacy and (
+            self._strict_canonical_actions_enabled() or not self._legacy_actions_allowed()
+        ):
             preferred = args.preferred_action
             preferred_text = f" Use '{preferred}' instead." if preferred else ""
+            if self._strict_canonical_actions_enabled():
+                gate = f"{self.strict_canonical_actions_env}=1"
+            else:
+                gate = f"{self.allow_legacy_actions_env}=0"
             raise ValueError(
                 "Legacy browser actions are disabled by "
-                f"{self.strict_canonical_actions_env}=1.{preferred_text}"
+                f"{gate}.{preferred_text}"
             )
         request_id = self._get_request_id(ctx)
         return RemoteToolResult(
