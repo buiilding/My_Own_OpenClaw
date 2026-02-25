@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(sidecar-browser-runtime): clean runtime-factory tests by removing duplicate `find_spec` patching and add direct assertion that `get_browser_runtime_provider` calls `create_browser_use_native_runtime_provider(controller)` exactly once
 - refactor(sidecar-browser-runtime): simplify `get_browser_runtime_provider` by removing self-import indirection and invoking `create_browser_use_native_runtime_provider` directly; keep runtime-factory failure coverage aligned with the direct factory seam
 - test(browser-rollout-observability): add strict-mode legacy-block log coverage in sidecar/backend suites to lock canonical-gate precedence telemetry (`legacy_action_gate=WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1`)
 - refactor(sidecar-browser-adapter): remove obsolete direct legacy-wrapper methods (`open`, `type_text`, `press`, `switch_tab`) from `BrowserUseCompatibilityAdapter`; legacy aliases remain supported through canonical `execute(...)` dispatch
