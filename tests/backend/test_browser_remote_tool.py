@@ -313,27 +313,22 @@ class TestBrowserControlArgs:
 
     def test_removed_type_alias_reports_input_preferred_action(self):
         args = BrowserControlArgs(action="type", ref="1", text="Hello")
-        assert args.is_legacy is False
         assert args.preferred_action == "input"
 
     def test_removed_act_alias_reports_canonical_preferred_action(self):
         args = BrowserControlArgs(action="act")
-        assert args.is_legacy is False
         assert args.preferred_action == "canonical actions directly"
 
     def test_removed_open_alias_reports_navigate_preferred_action(self):
         args = BrowserControlArgs(action="open")
-        assert args.is_legacy is False
         assert args.preferred_action == "navigate"
 
     def test_removed_switch_tab_alias_reports_switch_preferred_action(self):
         args = BrowserControlArgs(action="switch_tab")
-        assert args.is_legacy is False
         assert args.preferred_action == "switch"
 
     def test_removed_press_alias_reports_send_keys_preferred_action(self):
         args = BrowserControlArgs(action="press", key="Enter")
-        assert args.is_legacy is False
         assert args.preferred_action == "send_keys"
 
     def test_press_action_key_field(self):
