@@ -7,6 +7,9 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): record Phase 164 chatbox-move handler extraction + direct helper regression tests in `docs/planning/windieos_refactor_plan_2026-02-23.md`
+- test(frontend-main-overlay): add `tests/frontend/OverlayChatboxHandler.test.cjs` coverage for extracted chatbox move/resize handlers (clamps, no-op, unavailable, failure warning)
+- refactor(frontend-main-overlay): extract `move-chatbox-to` event branch from `frontend/src/main/index.cjs` into `frontend/src/main/overlay_chatbox_handler.cjs` with injected relayout + logger dependencies
 - docs(refactor-plan): record Phase 163 chatbox-resize IPC handler extraction and validation snapshot in `docs/planning/windieos_refactor_plan_2026-02-23.md`
 - refactor(frontend-main-overlay): extract `set-chatbox-size` IPC handler from `frontend/src/main/index.cjs` into `frontend/src/main/overlay_chatbox_handler.cjs` with injected chat-window relayout dependencies
 - docs(backend-tools-contracts): add `backend/tools/contracts` subhub with tool-domain/category enum contract, shared schema field factory contract, and typed tool-result dataclass/helper construction references; wire links from backend/tool docs hubs

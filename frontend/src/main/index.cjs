@@ -3,7 +3,7 @@ const path = require('path');
 const { initializeIpc, registerRendererWindow } = require('./ipc.cjs');
 const { initializeWakewordBridge } = require('./wakeword_bridge.cjs');
 const { initializeLocalBackendBridge, stopLocalBackend } = require('./local_backend_bridge.cjs');
-const { handleSetChatboxSize } = require('./overlay_chatbox_handler.cjs');
+const { handleMoveChatboxTo, handleSetChatboxSize } = require('./overlay_chatbox_handler.cjs');
 const { handleSetResponseboxSize } = require('./overlay_responsebox_handler.cjs');
 let windowManager = null;
 try {
@@ -808,23 +808,13 @@ function initializeOverlayHandlers() {
   });
 
   ipcMain.on('move-chatbox-to', (event, { x, y } = {}) => {
-    if (!chatWindow || chatWindow.isDestroyed()) {
-      return;
-    }
-    const nextX = Math.round(Number(x));
-    const nextY = Math.round(Number(y));
-    if (!Number.isFinite(nextX) || !Number.isFinite(nextY)) {
-      return;
-    }
-
-    try {
-      chatWindow.setPosition(nextX, nextY, false);
-      positionResponseWindow();
-      positionContextLabelWindow();
-      syncContextLabelWindowVisibility();
-    } catch (error) {
-      console.warn('[Main] Failed to move chatbox:', error?.message || error);
-    }
+    handleMoveChatboxTo({ x, y }, {
+      chatWindow,
+      positionResponseWindow,
+      positionContextLabelWindow,
+      syncContextLabelWindowVisibility,
+      warn: console.warn,
+    });
   });
 
   ipcMain.handle('set-responsebox-size', async (event, args = {}) => {

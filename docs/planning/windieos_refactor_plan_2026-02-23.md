@@ -3734,3 +3734,20 @@ read_when:
 - Validation:
   - `cd frontend && npm run lint` (pass)
   - `cd frontend && npm run test:ci -- tests/frontend/IpcMainBridge.query.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx tests/frontend/ChatBoxResponse.toolGhost.test.jsx` (pass)
+
+## Phase 164 Outcome (2026-02-25)
+
+- Refactor slice: split chatbox-move IPC handler and add direct handler regression tests.
+  - updated:
+    - `frontend/src/main/overlay_chatbox_handler.cjs`: added `handleMoveChatboxTo(...)` and kept chatbox-size handler co-located.
+    - `frontend/src/main/index.cjs`: delegates `move-chatbox-to` event branch to extracted helper with explicit dependency injection (`chatWindow`, relayout callbacks, warning logger).
+  - added tests:
+    - `tests/frontend/OverlayChatboxHandler.test.cjs` covers:
+      - resize success/no-op/unavailable/error paths
+      - size clamp bounds
+      - move success/invalid coordinate/failure-warning paths
+  - impact:
+    - reduced inline main-process event-branch complexity and locked move/resize helper behavior with direct unit coverage.
+- Validation:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/IpcMainBridge.query.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx tests/frontend/ChatBoxResponse.toolGhost.test.jsx` (pass)
