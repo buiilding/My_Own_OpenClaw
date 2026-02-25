@@ -24,6 +24,7 @@
     "preview": "vite preview",
     "electron": "bash -lc 'if [ -z \"${DISPLAY:-}\" ] && command -v xvfb-run >/dev/null 2>&1; then ELECTRON_DISABLE_SANDBOX=1 xvfb-run -a electron .; else ELECTRON_DISABLE_SANDBOX=1 electron .; fi'",
     "electron:no-summarizer": "WINDIE_ENABLE_SEMANTIC_SUMMARIZER=0 npm run electron",
+    "electron:ghost-overlay": "WINDIE_DEBUG_GHOST_OVERLAY=1 npm run electron",
     "test": "NODE_OPTIONS=--no-deprecation jest --config jest.config.cjs",
     "test:ci": "NODE_OPTIONS=--no-deprecation jest --config jest.config.cjs --runInBand",
     "test:ghost-screen": "bash ../scripts/test-ghost-screen-click",
