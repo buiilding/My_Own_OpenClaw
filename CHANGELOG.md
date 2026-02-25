@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(backend-tools-template-and-package-exports): add tools-template subhub for SDK scaffold/manifest contracts and a tools-package lazy export/import reference for `backend/src/tools/__init__.py`; wire links across backend/global docs hubs
 - docs(refactor-plan): record Phase 166 response-overlay handler regression coverage in `docs/planning/windieos_refactor_plan_2026-02-23.md`
 - test(frontend-main-overlay): add `tests/frontend/OverlayResponseboxHandler.test.cjs` direct coverage for extracted responsebox resize/fullscreen handler paths
 - docs(frontend-landing-sections): add `frontend/landing/sections` subhub and deep reference for Hero/How/Available/Roadmap contracts (anchors, content arrays, status semantics); wire links from landing/frontend/global docs hubs

@@ -13,6 +13,11 @@ title: "Backend SDK Docs Hub"
 - [Tool Context and Schema Contract Reference](tool_context_and_schema_contract_reference.md)
 - [Sub-Agent Session Helper Runtime Reference](subagent_session_helper_runtime_reference.md)
 
+## Related Pages
+
+- [Backend Tools Templates Docs Hub](../tools/templates/README.md)
+- [SDK Tool Template Scaffold, Manifest, and Capability Contract Reference](../tools/templates/sdk_tool_template_scaffold_manifest_and_capability_contract_reference.md)
+
 ## Code Scope
 
 - `backend/src/sdk/context.py`
