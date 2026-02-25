@@ -415,6 +415,42 @@
   opacity: 0.8;
 }
 
+.assistant-message-actions {
+  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.assistant-action-btn {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ui-text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+
+.assistant-action-btn:hover:not(:disabled) {
+  background: var(--ui-hover-strong-bg);
+  color: var(--ui-text-primary);
+}
+
+.assistant-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.assistant-action-btn.is-active {
+  color: var(--ui-text-primary);
+  background: var(--ui-hover-strong-bg);
+}
+
 .error-message-container {
   background: rgba(248, 113, 113, 0.12);
   border: 1px solid rgba(248, 113, 113, 0.42);

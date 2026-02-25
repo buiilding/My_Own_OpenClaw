@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import ThinkingDisplay from './ThinkingDisplay';
 import MessageContent from './MessageContent';
 import MessageTransparencySections from './MessageTransparencySections';
+import AssistantMessageActions from './AssistantMessageActions';
 import { buildMessageClassName } from '../utils/messageListClasses';
 import '../../../styles/ThinkingDisplay.css';
 
@@ -12,17 +13,44 @@ const messageShapePropType = PropTypes.shape({
   sender: PropTypes.oneOf(['user', 'assistant']).isRequired,
   isComplete: PropTypes.bool,
   type: PropTypes.string,
+  feedback: PropTypes.oneOf(['like', 'dislike', null]),
   screenshot: PropTypes.string,
   screenshotRef: PropTypes.string,
   screenshotUrl: PropTypes.string,
 });
 
-const MessageItem = memo(function MessageItem({ message }) {
+function shouldRenderAssistantActions(message, enableAssistantActions) {
+  if (!enableAssistantActions) {
+    return false;
+  }
+  if (message.sender !== 'assistant') {
+    return false;
+  }
+  return message.type !== 'tool-call' && message.type !== 'tool-output';
+}
+
+const MessageItem = memo(function MessageItem({
+  message,
+  enableAssistantActions,
+  disableAssistantActions,
+  onAssistantFeedbackChange,
+  onAssistantTryAgain,
+}) {
   const messageClass = buildMessageClassName(message);
 
   return (
     <div className={messageClass}>
       <MessageContent message={message} />
+      {shouldRenderAssistantActions(message, enableAssistantActions) ? (
+        <AssistantMessageActions
+          messageId={message.id}
+          messageText={message.text}
+          feedback={message.feedback ?? null}
+          disabled={disableAssistantActions}
+          onFeedbackChange={onAssistantFeedbackChange}
+          onTryAgain={onAssistantTryAgain}
+        />
+      ) : null}
       <MessageTransparencySections message={message} />
     </div>
   );
@@ -30,13 +58,39 @@ const MessageItem = memo(function MessageItem({ message }) {
 
 MessageItem.propTypes = {
   message: messageShapePropType.isRequired,
+  enableAssistantActions: PropTypes.bool,
+  disableAssistantActions: PropTypes.bool,
+  onAssistantFeedbackChange: PropTypes.func,
+  onAssistantTryAgain: PropTypes.func,
 };
 
-function MessageList({ messages, thinkingStatus }) {
+function MessageList({
+  messages,
+  thinkingStatus,
+  enableAssistantActions = false,
+  disableAssistantActions = false,
+  onAssistantFeedbackChange,
+  onAssistantTryAgain,
+}) {
   const messagesEndRef = useRef(null);
   const renderedMessages = useMemo(
-    () => messages.map((msg) => <MessageItem key={msg.id} message={msg} />),
-    [messages]
+    () => messages.map((msg) => (
+      <MessageItem
+        key={msg.id}
+        message={msg}
+        enableAssistantActions={enableAssistantActions}
+        disableAssistantActions={disableAssistantActions}
+        onAssistantFeedbackChange={onAssistantFeedbackChange}
+        onAssistantTryAgain={onAssistantTryAgain}
+      />
+    )),
+    [
+      messages,
+      enableAssistantActions,
+      disableAssistantActions,
+      onAssistantFeedbackChange,
+      onAssistantTryAgain,
+    ]
   );
 
   const scrollToBottom = () => {
@@ -59,6 +113,10 @@ function MessageList({ messages, thinkingStatus }) {
 MessageList.propTypes = {
   messages: PropTypes.arrayOf(messageShapePropType).isRequired,
   thinkingStatus: PropTypes.string,
+  enableAssistantActions: PropTypes.bool,
+  disableAssistantActions: PropTypes.bool,
+  onAssistantFeedbackChange: PropTypes.func,
+  onAssistantTryAgain: PropTypes.func,
 };
 
 export default MessageList;
