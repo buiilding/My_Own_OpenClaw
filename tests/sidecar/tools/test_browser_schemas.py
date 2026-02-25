@@ -2,9 +2,23 @@
 Tests for browser tool schemas.
 """
 
+from typing import get_args
+
 import pytest
 from pydantic import ValidationError
 
+from backend.src.tools.browser.schema_types import (
+    BROWSER_CANONICAL_ACTIONS as BACKEND_CANONICAL_ACTIONS,
+    BROWSER_COMPAT_ACTION_PREFERRED as BACKEND_COMPAT_ACTION_PREFERRED,
+    BROWSER_LEGACY_COMPAT_ACTIONS as BACKEND_LEGACY_COMPAT_ACTIONS,
+    BROWSER_REMOVED_COMPAT_ACTIONS as BACKEND_REMOVED_COMPAT_ACTIONS,
+    BrowserOpenClawAction,
+)
+from tools.browser.browser_action_contract import (
+    BROWSER_CANONICAL_ACTIONS as SIDECAR_CANONICAL_ACTIONS,
+    LEGACY_BROWSER_ACTION_ALIASES,
+    REMOVED_BROWSER_ACTION_ALIASES,
+)
 from tools.browser.openclaw_compat_schema import BrowserOpenClawCompatArgs
 from tools.browser.schemas import (
     BrowserConnectArgs,
@@ -501,3 +515,27 @@ class TestSchemaRegistry:
         is_valid, error = validate_browser_args("unknown", {})
         assert is_valid is False
         assert "Unknown" in error
+
+
+class TestBackendSidecarContractParity:
+    """Keep backend and sidecar browser action contracts aligned."""
+
+    def test_canonical_action_sets_match(self):
+        assert set(BACKEND_CANONICAL_ACTIONS) == set(SIDECAR_CANONICAL_ACTIONS)
+
+    def test_legacy_alias_sets_match(self):
+        assert set(BACKEND_LEGACY_COMPAT_ACTIONS) == set(LEGACY_BROWSER_ACTION_ALIASES.keys())
+
+    def test_removed_alias_sets_match(self):
+        assert set(BACKEND_REMOVED_COMPAT_ACTIONS) == set(REMOVED_BROWSER_ACTION_ALIASES.keys())
+
+    def test_compat_preferred_map_matches_sidecar_alias_maps(self):
+        assert dict(BACKEND_COMPAT_ACTION_PREFERRED) == {
+            **dict(LEGACY_BROWSER_ACTION_ALIASES),
+            **dict(REMOVED_BROWSER_ACTION_ALIASES),
+        }
+
+    def test_openclaw_action_set_matches_backend_literal(self):
+        assert set(OPENCLAW_COMPAT_ACTIONS) == {
+            action for action in get_args(BrowserOpenClawAction) if isinstance(action, str)
+        }

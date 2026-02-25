@@ -89,6 +89,7 @@ title: "WindieOS Browser Use Hard-Merge Plan (2026-02-25)"
      - historical `act` envelope `request` field removed from backend + sidecar OpenClaw compatibility models
      - backend OpenClaw action typing now matches sidecar OpenClaw subset (legacy aliases like `type`/`press`/`switch_tab` are no longer accepted by `BrowserOpenClawCompatArgs`)
      - OpenClaw compatibility schemas no longer advertise legacy `open`; canonical `navigate` is now the only schema-level navigation action
+     - sidecar schema suite now locks backend↔sidecar action-contract parity (canonical/legacy/removed sets, preferred-action map, OpenClaw action subset) to catch drift early
 
 ## Safety Gates
 
