@@ -139,3 +139,7 @@ All helper send paths (`send_success_response`, formatter pipeline with context)
 - `validate_registry_alignment()` fails startup/tests if contract registries diverge from constant lists.
 - Incoming parser returns structured `error` messages for malformed JSON, invalid root type, oversized payload, or schema validation issues.
 - Unexpected handler exceptions are sanitized through `sanitize_error_message(...)` before client delivery.
+
+## Related Deep Dive
+
+- [Backend Protocol Lifecycle Hub](lifecycle/README.md)

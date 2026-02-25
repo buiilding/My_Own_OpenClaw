@@ -11,6 +11,7 @@ title: "Backend Inventory Protocols Hub"
 ## Deep Pages
 
 - [Backend WebSocket Protocol Surface Matrix Reference](backend_websocket_protocol_surface_matrix_reference.md)
+- [Backend Protocol Lifecycle Hub](lifecycle/README.md)
 
 ## Related Pages
 
