@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(backend-api-processing-formatters-messages): add `processing/formatters/messages` subhub with assistant/user/system/complete formatter payload contracts and error/memory-store guard/schema-mapping references
 - docs(frontend-renderer-chat-presentation): add `renderer/chat/presentation` subhub with shared action-selector/input send-guard contract and thinking overflow/message-class/token-count formatting references
 - docs(backend-api-memory): add `api/memory` subhub plus semantic summarization config/prompt/parser-fallback contract and embeddings serialization/sanitized-error/health-probe reference pages
 - docs(backend-api-websocket-connection): add `api/websocket/connection` subhub with handshake parse/validation/policy-close contract and task-manager concurrency-rejection/cancellation-cleanup reference
