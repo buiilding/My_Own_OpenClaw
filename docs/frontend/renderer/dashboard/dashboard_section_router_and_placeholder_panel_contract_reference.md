@@ -26,6 +26,7 @@ The main dashboard surface is conversation-only:
 - memory/models/settings no longer replace the main route.
 - auxiliary panels open as modals over the conversation surface.
 - shell visuals follow the `chatgpt-website-clone` language: `#212121` main frame, `#171717` grouped left sidebar, and collapsed-sidebar toggle mode.
+- shell navigation uses the same lucide icon set semantics as the clone (`new chat`, `search`, `memory`, `models`, etc.) rather than custom dashboard glyphs.
 
 ## Modal Routing Contract
 

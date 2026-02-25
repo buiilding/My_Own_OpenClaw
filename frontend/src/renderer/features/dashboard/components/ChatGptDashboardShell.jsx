@@ -1,5 +1,19 @@
 import { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
+import {
+  PenSquare,
+  Search,
+  Brain,
+  Image,
+  LayoutGrid,
+  Sparkles,
+  Cpu,
+  FolderOpen,
+  Compass,
+  PanelLeft,
+  PanelLeftClose,
+  User,
+} from 'lucide-react';
 import ChatInterface from '../../chat/components/ChatInterface';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import EpisodicMemorySection from './sections/EpisodicMemorySection';
@@ -13,17 +27,17 @@ const MEMORY_TABS = Object.freeze({
 });
 
 const PRIMARY_NAV_ITEMS = Object.freeze([
-  { id: 'new-chat', label: 'New chat', token: 'NC' },
-  { id: 'search', label: 'Search chats', token: 'SC' },
+  { id: 'new-chat', label: 'New chat', icon: PenSquare },
+  { id: 'search', label: 'Search chats', icon: Search },
 ]);
 
 const PRODUCT_NAV_ITEMS = Object.freeze([
-  { id: 'memory', label: 'Memory', token: 'ME' },
-  { id: 'images', label: 'Images', token: 'IM' },
-  { id: 'apps', label: 'Apps', token: 'AP' },
-  { id: 'deep-research', label: 'Deep research', token: 'DR' },
-  { id: 'models', label: 'Models', token: 'MO' },
-  { id: 'projects', label: 'Projects', token: 'PR' },
+  { id: 'memory', label: 'Memory', icon: Brain },
+  { id: 'images', label: 'Images', icon: Image },
+  { id: 'apps', label: 'Apps', icon: LayoutGrid },
+  { id: 'deep-research', label: 'Deep research', icon: Sparkles },
+  { id: 'models', label: 'Models', icon: Cpu },
+  { id: 'projects', label: 'Projects', icon: FolderOpen },
 ]);
 
 function ChatGptLogo({ size = 14 }) {
@@ -42,7 +56,7 @@ ChatGptLogo.propTypes = {
 
 function SidebarItem({
   label,
-  token,
+  icon: Icon,
   onClick = undefined,
   isActive = false,
   collapsed = false,
@@ -54,9 +68,10 @@ function SidebarItem({
       onClick={onClick}
       aria-label={label}
       title={collapsed ? label : undefined}
-      disabled={!onClick}
     >
-      <span className="cg-nav-item-token" aria-hidden="true">{token}</span>
+      <span className="cg-nav-item-icon" aria-hidden="true">
+        <Icon size={18} />
+      </span>
       {!collapsed ? <span className="cg-nav-item-label">{label}</span> : null}
     </button>
   );
@@ -64,7 +79,7 @@ function SidebarItem({
 
 SidebarItem.propTypes = {
   label: PropTypes.string.isRequired,
-  token: PropTypes.string.isRequired,
+  icon: PropTypes.elementType.isRequired,
   onClick: PropTypes.func,
   isActive: PropTypes.bool,
   collapsed: PropTypes.bool,
@@ -190,7 +205,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
             aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
             title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
           >
-            {sidebarOpen ? '<' : '>'}
+            {sidebarOpen ? <PanelLeftClose size={18} /> : <PanelLeft size={18} />}
           </button>
         </div>
 
@@ -200,7 +215,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
               <SidebarItem
                 key={item.id}
                 label={item.label}
-                token={item.token}
+                icon={item.icon}
                 onClick={handleChatSurface}
                 collapsed={!sidebarOpen}
               />
@@ -216,7 +231,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
                   <SidebarItem
                     key={item.id}
                     label={item.label}
-                    token={item.token}
+                    icon={item.icon}
                     onClick={handleMemorySurface}
                     isActive={memoryOpen}
                     collapsed={!sidebarOpen}
@@ -228,7 +243,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
                   <SidebarItem
                     key={item.id}
                     label={item.label}
-                    token={item.token}
+                    icon={item.icon}
                     onClick={openModels}
                     isActive={modelsOpen}
                     collapsed={!sidebarOpen}
@@ -239,7 +254,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
                 <SidebarItem
                   key={item.id}
                   label={item.label}
-                  token={item.token}
+                  icon={item.icon}
                   collapsed={!sidebarOpen}
                 />
               );
@@ -254,7 +269,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
                 <span className="cg-gpt-dot" aria-hidden="true">C</span>
                 <span>Canva</span>
               </button>
-              <SidebarItem label="Explore GPTs" token="EX" collapsed={false} />
+              <SidebarItem label="Explore GPTs" icon={Compass} collapsed={false} />
               <div className="cg-sidebar-divider" />
               <div className="cg-sidebar-section-label">Your chats</div>
               <button type="button" className="cg-chat-card">
@@ -267,7 +282,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
         <div className="cg-sidebar-footer">
           <SidebarItem
             label="Settings"
-            token="ST"
+            icon={User}
             onClick={openSettings}
             isActive={settingsOpen}
             collapsed={!sidebarOpen}
@@ -283,7 +298,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
           aria-label="Open sidebar"
           title="Open sidebar"
         >
-          Menu
+          <PanelLeft size={18} />
         </button>
       ) : null}
 
