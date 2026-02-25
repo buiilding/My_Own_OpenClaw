@@ -171,6 +171,8 @@ Payload defaults:
 ## Related Pages
 
 - [Frontend Renderer Transcript Docs Hub](README.md)
+- [Transcript Queue Docs Hub](queue/README.md)
+- [Pending Transcript Queue FIFO and Requeue Contract Reference](queue/pending_transcript_queue_fifo_and_requeue_contract_reference.md)
 - [Transcript Session and Rehydrate Reference](../transcript_session_and_rehydrate_reference.md)
 - [Memory IPC and RPC Mapping Reference](../../contracts/memory_ipc_and_rpc_mapping_reference.md)
 - [Transcript Storage, Semantic Candidate, and Watermark Reference](../../sidecar/memory/transcript_storage_semantic_candidate_and_watermark_reference.md)
