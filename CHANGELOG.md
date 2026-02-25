@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-browser-adapter): remove adapter `act` envelope dispatch implementation; direct adapter calls now return explicit removed-alias migration error with legacy deprecation metadata
 - refactor(browser-contract): update legacy `act` preferred-action guidance to "canonical actions directly" across sidecar/backend action-contract maps and backend shared compatibility field descriptions
 - feat(browser-rollout): remove legacy `act` alias from backend/sidecar browser-tool boundary (always rejected with migration guidance), regardless of `WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS`; add regression coverage for removed-alias logging/metadata
 - refactor(browser-rollout): centralize legacy-action gate resolution (`strict` vs `allow` precedence) in dedicated helper functions for backend and sidecar browser tool paths to keep block/warn behavior in sync
