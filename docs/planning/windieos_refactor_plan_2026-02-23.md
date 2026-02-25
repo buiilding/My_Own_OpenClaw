@@ -3802,3 +3802,19 @@ read_when:
       - backend: `1012 passed`
       - sidecar: `500 passed`, `4 skipped` (`3` known swig deprecation warnings)
       - frontend: `100 suites`, `654 tests` passed
+
+## Phase 169 Outcome (2026-02-25)
+
+- Refactor slice: extract overlay mouse-ignore IPC handler from `index.cjs`.
+  - added:
+    - `frontend/src/main/overlay_mouse_handler.cjs` (`handleSetOverlayIgnoreMouse`)
+  - updated:
+    - `frontend/src/main/index.cjs` now delegates `set-overlay-ignore-mouse` to extracted helper with injected overlay windows.
+  - added tests:
+    - `tests/frontend/OverlayMouseHandler.test.cjs`
+    - covers unavailable-window, ignore on/off, destroyed-window skip, and error paths.
+  - impact:
+    - reduced inline overlay IPC branch complexity and isolated mouse-ignore behavior behind direct unit coverage.
+- Validation:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/OverlayMouseHandler.test.cjs tests/frontend/OverlayResponseboxHandler.test.cjs tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/MainWindowControlsHandler.test.cjs tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx` (pass)

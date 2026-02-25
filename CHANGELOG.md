@@ -7,6 +7,9 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): record Phase 169 overlay mouse-ignore handler extraction and direct coverage in `docs/planning/windieos_refactor_plan_2026-02-23.md`
+- test(frontend-main-overlay): add `tests/frontend/OverlayMouseHandler.test.cjs` coverage for extracted overlay mouse-ignore handler paths
+- refactor(frontend-main-overlay): extract `set-overlay-ignore-mouse` IPC handler logic from `frontend/src/main/index.cjs` into `frontend/src/main/overlay_mouse_handler.cjs`
 - docs(frontend-sidecar-browser-use-tools): add `frontend/sidecar/browser/browser_use/tools` subhub with deep references for action input/structured extraction schema contracts, registry signature normalization and sensitive placeholder/domain-filter behavior, plus runtime action dispatch/extraction/evaluate and CodeAgent variant boundaries; wire links across browser/sidecar/frontend/global docs hubs
 - docs(frontend-sidecar-browser-use-dom): add `frontend/sidecar/browser/browser_use/dom` subhub with deep references for DOM-service tree construction/iframe visibility and pagination detection, enhanced DOM model hashing+scroll contracts, and serializer/snapshot/markdown chunking pipelines; wire links across browser/sidecar/frontend/global docs hubs
 - docs(simulation-ocr-and-sidecar-contracts): add simulation/contracts, screen_grounding/ocr helper docs, sidecar tools base-contract docs, and browser role-snapshot contracts with hub-link wiring across backend/frontend/global docs maps
