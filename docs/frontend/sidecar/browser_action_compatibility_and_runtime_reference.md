@@ -29,7 +29,8 @@ title: "Browser Action Compatibility and Runtime Reference"
 - Legacy aliases are disabled by default.
 - Optional rollout flag: `WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1` temporarily re-enables legacy aliases during migration.
 - Precedence: strict mode wins when both flags are set (`WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1` still rejects legacy aliases even when `WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1`).
-- Observability: sidecar logs warning events for both allowed legacy alias usage and blocked legacy alias usage (including gate source and preferred canonical action).
+- Observability: sidecar logs warning events for both allowed legacy alias usage and blocked legacy alias usage.
+- Structured warning fields: `legacy_action`, `preferred_action`, `legacy_action_blocked` (`true`/`false`), and `legacy_action_gate` (for blocked events).
 - `connect` always targets WindieOS dedicated localhost CDP browser endpoint; external hosts are rejected.
 
 ## End-to-End Action Path

@@ -64,6 +64,44 @@ Compatibility validation notes:
             return False
         return raw not in {"0", "false", "no", "off"}
 
+    @staticmethod
+    def _log_legacy_action_warning(
+        action: str,
+        preferred: str | None,
+        *,
+        blocked: bool,
+        gate: str | None = None,
+    ) -> None:
+        extra = {
+            "legacy_action": action,
+            "preferred_action": preferred,
+            "legacy_action_blocked": blocked,
+            "legacy_action_gate": gate,
+        }
+        if blocked and gate:
+            if preferred:
+                logger.warning(
+                    "Legacy browser action '%s' blocked by %s; prefer '%s'",
+                    action,
+                    gate,
+                    preferred,
+                    extra=extra,
+                )
+            else:
+                logger.warning(
+                    "Legacy browser action '%s' blocked by %s",
+                    action,
+                    gate,
+                    extra=extra,
+                )
+            return
+        logger.warning(
+            "Legacy browser action '%s' invoked; prefer '%s'",
+            action,
+            preferred or "canonical action",
+            extra=extra,
+        )
+
     async def execute_remote(self, args: BrowserControlArgs, ctx: ToolContext) -> Any:
         if args.is_legacy and (
             self._strict_canonical_actions_enabled() or not self._legacy_actions_allowed()
@@ -74,29 +112,21 @@ Compatibility validation notes:
                 gate = f"{self.strict_canonical_actions_env}=1"
             else:
                 gate = f"{self.allow_legacy_actions_env}=1"
-            if preferred:
-                logger.warning(
-                    "Legacy browser action '%s' blocked by %s; prefer '%s'",
-                    args.action,
-                    gate,
-                    preferred,
-                )
-            else:
-                logger.warning(
-                    "Legacy browser action '%s' blocked by %s",
-                    args.action,
-                    gate,
-                )
+            self._log_legacy_action_warning(
+                args.action,
+                preferred,
+                blocked=True,
+                gate=gate,
+            )
             raise ValueError(
                 "Legacy browser actions are disabled by "
                 f"{gate}.{preferred_text}"
             )
         if args.is_legacy:
-            preferred = args.preferred_action or "canonical action"
-            logger.warning(
-                "Legacy browser action '%s' invoked; prefer '%s'",
+            self._log_legacy_action_warning(
                 args.action,
-                preferred,
+                args.preferred_action,
+                blocked=False,
             )
         request_id = self._get_request_id(ctx)
         return RemoteToolResult(

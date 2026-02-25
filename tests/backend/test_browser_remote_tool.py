@@ -110,6 +110,16 @@ class TestRemoteBrowserTool:
             "Legacy browser action 'open' blocked by WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1; "
             "prefer 'navigate'"
         ) in caplog.text
+        record = next(
+            rec
+            for rec in caplog.records
+            if "Legacy browser action 'open' blocked by WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1"
+            in rec.getMessage()
+        )
+        assert getattr(record, "legacy_action", None) == "open"
+        assert getattr(record, "preferred_action", None) == "navigate"
+        assert getattr(record, "legacy_action_blocked", None) is True
+        assert getattr(record, "legacy_action_gate", None) == "WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1"
 
     @pytest.mark.asyncio
     async def test_execute_remote_strict_mode_overrides_legacy_allow_flag(self, monkeypatch):
@@ -161,6 +171,15 @@ class TestRemoteBrowserTool:
 
             assert result.is_remote is True
             assert "Legacy browser action 'open' invoked; prefer 'navigate'" in caplog.text
+            record = next(
+                rec
+                for rec in caplog.records
+                if "Legacy browser action 'open' invoked; prefer 'navigate'" in rec.getMessage()
+            )
+            assert getattr(record, "legacy_action", None) == "open"
+            assert getattr(record, "preferred_action", None) == "navigate"
+            assert getattr(record, "legacy_action_blocked", None) is False
+            assert getattr(record, "legacy_action_gate", None) is None
 
     @pytest.mark.asyncio
     async def test_execute_remote_legacy_allow_flag_enables_aliases(self, monkeypatch):
