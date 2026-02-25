@@ -108,11 +108,11 @@
   position: absolute;
   left: var(--ghost-ripple-left);
   top: var(--ghost-ripple-top);
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  border: 1px solid rgba(176, 231, 255, 0.9);
-  background: rgba(144, 220, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.06);
   transform: translate(-50%, -50%) scale(0.45);
   opacity: 0;
 }
@@ -129,37 +129,29 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 70px;
-  height: 70px;
+  width: 76px;
+  height: 76px;
   transform: translate(-50%, -50%);
   border-radius: 999px;
-  border: 1px solid rgba(154, 214, 255, 0.3);
-  background: radial-gradient(
-    circle at center,
-    rgba(72, 128, 180, 0.08) 0,
-    rgba(72, 128, 180, 0) 72%
-  );
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
   box-shadow:
-    0 0 20px rgba(109, 177, 255, 0.14),
-    inset 0 0 20px rgba(109, 177, 255, 0.08);
-  animation: chatboxToolGhostRingPulse 1.8s ease-in-out infinite;
+    0 10px 18px rgba(0, 0, 0, 0.22),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.03);
 }
 
 .chatbox-tool-ghost-cursor {
   position: relative;
-  width: 25px;
-  height: 25px;
-  color: rgba(255, 255, 255, 0.98);
-  box-shadow:
-    0 0 18px rgba(255, 255, 255, 0.26),
-    0 8px 18px rgba(0, 0, 0, 0.4);
+  width: 24px;
+  height: 24px;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 .chatbox-tool-ghost-cursor svg {
-  width: 25px;
-  height: 25px;
+  width: 24px;
+  height: 24px;
   display: block;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.44));
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.56));
 }
 
 .chatbox-tool-ghost-track.has-rect .chatbox-tool-ghost-ring {
@@ -168,19 +160,22 @@
 
 .chatbox-tool-ghost-label {
   position: absolute;
-  left: var(--ghost-end-left);
-  top: calc(var(--ghost-end-top) + 32px);
-  transform: translateX(-22%);
+  left: 8px;
+  top: 30px;
   width: fit-content;
   max-width: 320px;
-  padding: 7px 11px;
-  border-radius: 6px;
-  background: rgba(241, 241, 241, 0.96);
-  border: 1px solid rgba(246, 246, 246, 0.95);
-  color: rgba(22, 22, 22, 0.96);
+  padding: 6px 10px;
+  border-radius: 5px;
+  background: rgba(245, 245, 245, 0.98);
+  border: 1px solid rgba(222, 222, 222, 0.95);
+  color: rgba(24, 24, 24, 0.96);
   font-size: 12px;
   line-height: 1.35;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.42);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.34);
+  white-space: nowrap;
+  max-width: min(320px, calc(100vw - 24px));
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .chatbox-typing-indicator {
@@ -234,28 +229,13 @@
   }
 }
 
-@keyframes chatboxToolGhostRingPulse {
-  0% {
-    transform: translate(-50%, -50%) scale(0.94);
-    opacity: 0.16;
-  }
-  50% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0.28;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(1.06);
-    opacity: 0.12;
-  }
-}
-
 @keyframes chatboxToolGhostTargetRipple {
   0% {
     transform: translate(-50%, -50%) scale(0.42);
-    opacity: 0.72;
+    opacity: 0.5;
   }
   100% {
-    transform: translate(-50%, -50%) scale(calc(var(--ghost-target-scale) * 1.95));
+    transform: translate(-50%, -50%) scale(calc(var(--ghost-target-scale) * 1.65));
     opacity: 0;
   }
 }
@@ -273,11 +253,11 @@
 
 @keyframes chatboxToolGhostClickTimeline {
   0%,
-  31.25% {
+  1% {
     left: var(--ghost-start-left);
     top: var(--ghost-start-top);
   }
-  68.75%,
+  37.5%,
   100% {
     left: var(--ghost-end-left);
     top: var(--ghost-end-top);
@@ -286,16 +266,16 @@
 
 @keyframes chatboxToolGhostTargetRippleClick {
   0%,
-  68.74% {
+  37.49% {
     transform: translate(-50%, -50%) scale(0.46);
     opacity: 0;
   }
-  68.75% {
+  37.5% {
     transform: translate(-50%, -50%) scale(0.46);
-    opacity: 0.74;
+    opacity: 0.5;
   }
   100% {
-    transform: translate(-50%, -50%) scale(calc(var(--ghost-target-scale) * 2.1));
+    transform: translate(-50%, -50%) scale(calc(var(--ghost-target-scale) * 1.7));
     opacity: 0;
   }
 }

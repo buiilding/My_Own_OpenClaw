@@ -41,6 +41,22 @@ describe('toolGhostPreview', () => {
     expect(preview.isMouseClick).toBe(true);
   });
 
+  test('treats direct click tool names as click-like ghost actions', () => {
+    const preview = buildToolGhostPreviewFromMessageText(JSON.stringify({
+      name: 'click',
+      arguments: { explanation: 'Clicking Chrome icon', x: 640, y: 360 },
+      metadata: {
+        coordinate_contract: {
+          target_display_size: [1280, 720],
+        },
+      },
+    }));
+
+    expect(preview.isMouseClick).toBe(true);
+    expect(preview.isMotionAction).toBe(true);
+    expect(preview.showsTargetRipple).toBe(true);
+  });
+
   test('extracts explanation label for scroll tool payloads', () => {
     const preview = buildToolGhostPreviewFromMessageText(JSON.stringify({
       name: 'scroll_control',

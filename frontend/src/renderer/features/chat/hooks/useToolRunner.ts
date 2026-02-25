@@ -23,6 +23,7 @@ import {
 
 const TERMINAL_STREAM_PHASES = new Set(['idle', 'complete', 'error']);
 const MOUSE_CLICK_ACTIONS = new Set(['click', 'double_click', 'right_click']);
+const CLICK_TOOL_NAMES = new Set(['click', 'double_click', 'right_click']);
 
 function shouldSkipToolExecution(
   metadata: Record<string, unknown> | undefined,
@@ -66,6 +67,9 @@ function shouldDelayForToolGhostClickSync(
   toolName: string,
   parameters: Record<string, unknown>,
 ): boolean {
+  if (CLICK_TOOL_NAMES.has(toolName)) {
+    return true;
+  }
   if (toolName !== 'mouse_control') {
     return false;
   }

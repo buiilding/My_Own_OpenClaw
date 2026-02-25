@@ -13,7 +13,6 @@ import {
   findLastUserIndex,
   findLatestMessageAfterUser,
   findLatestToolCallAfterUser,
-  hasToolGhostMotion,
 } from './chatBoxResponseUtils';
 
 const RESPONSE_TYPES = new Set(['llm-text', 'error']);
@@ -139,10 +138,6 @@ function ChatBoxResponse() {
     ],
   );
   const hasEffectiveTarget = Boolean(effectiveTargetRatio);
-  const hasToolGhostMotionPath = useMemo(
-    () => hasToolGhostMotion(toolGhostStartRatio, effectiveTargetRatio),
-    [toolGhostStartRatio, effectiveTargetRatio],
-  );
   const toolGhostTrackStyle = useMemo(() => {
     return buildToolGhostTrackStyle(toolGhostPreview, toolGhostStartRatio, effectiveTargetRatio);
   }, [toolGhostPreview, toolGhostStartRatio, effectiveTargetRatio]);
@@ -499,7 +494,8 @@ function ChatBoxResponse() {
       {showToolGhost ? (
         <div className="chatbox-tool-ghost" aria-label="Assistant tool action preview">
           <div
-            className={`chatbox-tool-ghost-track${hasEffectiveTarget ? ' is-targeted' : ''}${toolGhostPreview.hasRect ? ' has-rect' : ''}${toolGhostPreview.isMouseClick ? ' is-click-animating' : ''}${toolGhostPreview.isMotionAction && hasToolGhostMotionPath ? ' is-moving' : ''}`}
+            key={activeToolCall?.id || 'tool-ghost-track'}
+            className={`chatbox-tool-ghost-track${hasEffectiveTarget ? ' is-targeted' : ''}${toolGhostPreview.hasRect ? ' has-rect' : ''}${toolGhostPreview.isMouseClick ? ' is-click-animating' : ''}${toolGhostPreview.isMotionAction ? ' is-moving' : ''}`}
             style={toolGhostTrackStyle || undefined}
           >
             {toolGhostPreview.hasRect ? (
@@ -512,16 +508,26 @@ function ChatBoxResponse() {
               <div className="chatbox-tool-ghost-ring" />
               <div className="chatbox-tool-ghost-cursor">
                 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <path
-                    d="M4.2 3.6 9.4 18.4 12.2 12.8l5.8 2.8 1.2-2.5-5.8-2.8 5.3-2.7z"
+                  <polyline
+                    points="4 4 20 12 13 13 12 20 4 4"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <line
+                    x1="9"
+                    y1="9"
+                    x2="13"
+                    y2="13"
                     stroke="currentColor"
                     strokeWidth="1.8"
                     strokeLinejoin="round"
                   />
                 </svg>
               </div>
+              <div className="chatbox-tool-ghost-label">{toolGhostPreview.label}</div>
             </div>
-            <div className="chatbox-tool-ghost-label">{toolGhostPreview.label}</div>
           </div>
         </div>
       ) : null}
