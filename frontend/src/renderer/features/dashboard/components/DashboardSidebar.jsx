@@ -206,10 +206,11 @@ function DashboardSidebar({
   sidebarOpen,
   onToggleSidebar,
   onStartNewChat,
-  onChatSurface,
+  onOpenSearch,
   onOpenMemory,
   onOpenModels,
   onOpenSettings,
+  searchOpen,
   memoryOpen,
   modelsOpen,
   isLoadingRecentConversations,
@@ -250,7 +251,8 @@ function DashboardSidebar({
                 key={item.id}
                 label={item.label}
                 icon={item.icon}
-                onClick={item.id === 'new-chat' ? onStartNewChat : onChatSurface}
+                onClick={item.id === 'new-chat' ? onStartNewChat : onOpenSearch}
+                isActive={item.id === 'search' && searchOpen}
                 collapsed
               />
             ))}
@@ -329,7 +331,8 @@ function DashboardSidebar({
               key={item.id}
               label={item.label}
               icon={item.icon}
-              onClick={item.id === 'new-chat' ? onStartNewChat : onChatSurface}
+              onClick={item.id === 'new-chat' ? onStartNewChat : onOpenSearch}
+              isActive={item.id === 'search' && searchOpen}
             />
           ))}
         </nav>
@@ -444,10 +447,11 @@ DashboardSidebar.propTypes = {
   sidebarOpen: PropTypes.bool.isRequired,
   onToggleSidebar: PropTypes.func.isRequired,
   onStartNewChat: PropTypes.func.isRequired,
-  onChatSurface: PropTypes.func.isRequired,
+  onOpenSearch: PropTypes.func.isRequired,
   onOpenMemory: PropTypes.func.isRequired,
   onOpenModels: PropTypes.func.isRequired,
   onOpenSettings: PropTypes.func.isRequired,
+  searchOpen: PropTypes.bool.isRequired,
   memoryOpen: PropTypes.bool.isRequired,
   modelsOpen: PropTypes.bool.isRequired,
   isLoadingRecentConversations: PropTypes.bool.isRequired,

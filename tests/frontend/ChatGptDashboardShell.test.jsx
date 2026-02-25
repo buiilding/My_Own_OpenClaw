@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 
 import ChatGptDashboardShell from '../../frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell';
 
@@ -246,6 +246,58 @@ describe('ChatGptDashboardShell', () => {
       expect(mockInvoke).toHaveBeenCalledWith(
         'list-conversations',
         expect.objectContaining({ userId: 'peter-bui' }),
+      );
+    });
+  });
+
+  test('search chats opens modal, filters list, and opens selected conversation', async () => {
+    const nowIso = new Date().toISOString();
+    mockInvoke.mockImplementation(async (channel) => {
+      if (channel === 'list-conversations') {
+        return {
+          success: true,
+          data: {
+            conversations: [
+              {
+                conversation_id: 'conv-history-1',
+                record_kind: 'transcript',
+                last_timestamp: nowIso,
+                title: 'Moon Landing Technology Explained',
+              },
+              {
+                conversation_id: 'conv-history-2',
+                record_kind: 'transcript',
+                last_timestamp: nowIso,
+                title: 'Vietnamese-speaking lawyer leads',
+              },
+            ],
+          },
+        };
+      }
+      if (channel === 'get-conversation') {
+        return { success: true, data: { memories: [] } };
+      }
+      return { success: true, data: {} };
+    });
+
+    await renderDashboardShell();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Search chats' }));
+
+    const dialog = screen.getByRole('dialog', { name: 'Search chats' });
+    const input = within(dialog).getByLabelText('Search chats input');
+    expect(within(dialog).getByRole('button', { name: 'New chat' })).toBeInTheDocument();
+
+    fireEvent.change(input, { target: { value: 'lawyer' } });
+    expect(within(dialog).queryByText('Moon Landing Technology Explained')).not.toBeInTheDocument();
+    expect(within(dialog).getByText('Vietnamese-speaking lawyer leads')).toBeInTheDocument();
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Vietnamese-speaking lawyer leads' }));
+
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith(
+        'get-conversation',
+        expect.objectContaining({ conversationId: 'conv-history-2' }),
       );
     });
   });
