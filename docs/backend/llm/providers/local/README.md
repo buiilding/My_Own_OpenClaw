@@ -11,6 +11,8 @@ title: "Backend Local Provider Docs Hub"
 ## Deep Pages
 
 - [Model Listing, Connection Pooling, and Placeholder Key Reference](model_listing_connection_pooling_and_placeholder_key_reference.md)
+- [Local Provider HTTP Client Docs Hub](http_client/README.md)
+- [Shared Async Client Lifecycle and Finalizer Cleanup Runtime Reference](http_client/shared_async_client_lifecycle_and_finalizer_cleanup_runtime_reference.md)
 
 ## Related Pages
 
@@ -23,3 +25,4 @@ title: "Backend Local Provider Docs Hub"
 - `backend/src/llm/providers/local.py`
 - `backend/src/llm/providers/__init__.py`
 - `tests/backend/test_local_llm_providers.py`
+- `tests/backend/test_provider_factory_helpers.py`
