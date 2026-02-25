@@ -7,6 +7,18 @@
   color: var(--ui-text-primary);
 }
 
+.cg-dashboard-shell.cg-dashboard-shell-opening {
+  animation: cg-dashboard-shell-enter 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.cg-dashboard-shell.cg-dashboard-shell-opening .cg-sidebar {
+  animation: cg-dashboard-sidebar-enter 380ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.cg-dashboard-shell.cg-dashboard-shell-opening .cg-main-content {
+  animation: cg-dashboard-main-enter 440ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 .cg-sidebar {
   width: 260px;
   min-width: 260px;
@@ -703,6 +715,39 @@
   }
 }
 
+@keyframes cg-dashboard-shell-enter {
+  from {
+    opacity: 0;
+    filter: blur(1px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+@keyframes cg-dashboard-sidebar-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes cg-dashboard-main-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @keyframes cg-modal-enter {
   from {
     opacity: 0;
@@ -726,6 +771,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .cg-dashboard-shell.cg-dashboard-shell-opening,
+  .cg-dashboard-shell.cg-dashboard-shell-opening .cg-sidebar,
+  .cg-dashboard-shell.cg-dashboard-shell-opening .cg-main-content,
   .cg-modal-overlay,
   .cg-modal {
     animation: none;

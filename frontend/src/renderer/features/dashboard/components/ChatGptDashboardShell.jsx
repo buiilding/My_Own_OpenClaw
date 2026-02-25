@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import ChatInterface from '../../chat/components/ChatInterface';
 import { useChatStore } from '../../chat/stores/chatStore';
@@ -54,8 +54,11 @@ DashboardModal.propTypes = {
   className: PropTypes.string,
 };
 
+const DASHBOARD_OPEN_ANIMATION_MS = 420;
+
 function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [dashboardOpening, setDashboardOpening] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsInitialTab, setSettingsInitialTab] = useState('general');
   const [modelsOpen, setModelsOpen] = useState(false);
@@ -69,12 +72,22 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
   const [recentConversations, setRecentConversations] = useState([]);
   const [isLoadingRecentConversations, setIsLoadingRecentConversations] = useState(false);
   const [recentConversationsError, setRecentConversationsError] = useState('');
+  const wasHiddenRef = useRef(false);
   const sessionInfo = useTranscriptSessionInfo();
   const resolvedUserId = sessionInfo.userId || DEFAULT_USER_ID;
 
   const setChatMessages = useChatStore((state) => state.setMessages);
   const setChatIsSending = useChatStore((state) => state.setIsSending);
   const setChatThinkingStatus = useChatStore((state) => state.setThinkingStatus);
+
+  const triggerDashboardOpenAnimation = useCallback(() => {
+    setDashboardOpening(false);
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        setDashboardOpening(true);
+      });
+    });
+  }, []);
 
   const closeAllPanels = useCallback(() => {
     setSettingsOpen(false);
@@ -209,6 +222,36 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
   useEffect(() => {
     loadRecentConversations();
   }, [loadRecentConversations]);
+
+  useEffect(() => {
+    if (!dashboardOpening) {
+      return undefined;
+    }
+    const timer = window.setTimeout(() => {
+      setDashboardOpening(false);
+    }, DASHBOARD_OPEN_ANIMATION_MS);
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [dashboardOpening]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        wasHiddenRef.current = true;
+        return;
+      }
+      if (document.visibilityState === 'visible' && wasHiddenRef.current) {
+        wasHiddenRef.current = false;
+        triggerDashboardOpenAnimation();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [triggerDashboardOpenAnimation]);
 
   const recentConversationGroups = useMemo(() => {
     const groups = {
@@ -393,7 +436,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
   }, [handleChatSurface, openMemory, openModels, openSettings]);
 
   return (
-    <div className="cg-dashboard-shell">
+    <div className={`cg-dashboard-shell${dashboardOpening ? ' cg-dashboard-shell-opening' : ''}`}>
       <DashboardSidebar
         sidebarOpen={sidebarOpen}
         onToggleSidebar={handleSidebarToggle}
