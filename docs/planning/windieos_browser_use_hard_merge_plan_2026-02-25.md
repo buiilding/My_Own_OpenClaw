@@ -80,6 +80,7 @@ title: "WindieOS Browser Use Hard-Merge Plan (2026-02-25)"
      - rollout flag updated: `WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1` temporarily re-enables legacy aliases without requiring strict mode
      - blocked legacy alias attempts now emit warning logs in sidecar + backend paths for rollout observability
      - warning logs now expose structured alias fields (`legacy_action`, `preferred_action`, `legacy_action_blocked`, `legacy_action_gate`)
+     - removed-alias gate labeling is now generic (`legacy_alias_removed`) so additional retired aliases do not require special-case telemetry paths
      - strict/allow gate precedence now resolves through shared helper logic in both backend and sidecar paths
      - legacy alias `act` is now always rejected with canonical-action migration guidance (independent of rollout flags)
      - adapter-level `act` envelope dispatch path removed (direct adapter `execute("act", ...)` now returns migration error + legacy metadata)

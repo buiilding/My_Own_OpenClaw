@@ -112,18 +112,18 @@ class TestRemoteBrowserTool:
             await tool.execute_remote(args, mock_ctx)
 
         assert (
-            "Legacy browser action 'act' blocked by legacy_act_removed; "
+            "Legacy browser action 'act' blocked by legacy_alias_removed; "
             "prefer 'canonical actions directly'"
         ) in caplog.text
         record = next(
             rec
             for rec in caplog.records
-            if "Legacy browser action 'act' blocked by legacy_act_removed" in rec.getMessage()
+            if "Legacy browser action 'act' blocked by legacy_alias_removed" in rec.getMessage()
         )
         assert getattr(record, "legacy_action", None) == "act"
         assert getattr(record, "preferred_action", None) == "canonical actions directly"
         assert getattr(record, "legacy_action_blocked", None) is True
-        assert getattr(record, "legacy_action_gate", None) == "legacy_act_removed"
+        assert getattr(record, "legacy_action_gate", None) == "legacy_alias_removed"
 
     @pytest.mark.asyncio
     async def test_execute_remote_logs_warning_for_blocked_legacy_action(self, caplog):
