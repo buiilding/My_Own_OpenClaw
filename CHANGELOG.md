@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): record Phase 168 full-gate validation snapshot after main-window/overlay handler extraction wave (`./scripts/test`: backend `1012`, sidecar `500/4 skipped`, frontend `100 suites`/`654 tests`)
 - docs(refactor-plan): record Phase 167 main-window control handler extraction and coverage in `docs/planning/windieos_refactor_plan_2026-02-23.md`
 - test(frontend-main-window): add `tests/frontend/MainWindowControlsHandler.test.cjs` coverage for minimize/maximize-toggle/close handler paths
 - refactor(frontend-main-window): extract `window-minimize`, `window-toggle-maximize`, and `window-close` IPC handler logic from `frontend/src/main/index.cjs` into `frontend/src/main/main_window_controls_handler.cjs`

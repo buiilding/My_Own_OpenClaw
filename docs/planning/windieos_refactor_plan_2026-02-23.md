@@ -3793,3 +3793,12 @@ read_when:
 - Validation:
   - `cd frontend && npm run lint` (pass)
   - `cd frontend && npm run test:ci -- tests/frontend/MainWindowControlsHandler.test.cjs tests/frontend/OverlayResponseboxHandler.test.cjs tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs tests/frontend/IpcMainBridge.query.test.cjs` (pass)
+
+## Phase 168 Outcome (2026-02-25)
+
+- Full-gate revalidation after overlay + main-window handler extraction/test coverage wave:
+  - full gate:
+    - `./scripts/test` (pass)
+      - backend: `1012 passed`
+      - sidecar: `500 passed`, `4 skipped` (`3` known swig deprecation warnings)
+      - frontend: `100 suites`, `654 tests` passed
