@@ -17,6 +17,7 @@ title: "Backend Tools Processing Docs Hub"
 ## Related Pages
 
 - [Backend Tools Docs Hub](../README.md)
+- [Backend Tools Contracts Docs Hub](../contracts/README.md)
 - [Backend Agent History Committer and Result-Processor Boundary Reference](../../agent/history/history_committer_and_result_processor_boundary_reference.md)
 - [Backend Tools Execution Docs Hub](../execution/README.md)
 - [Backend Tools Waiting Docs Hub](../waiting/README.md)
