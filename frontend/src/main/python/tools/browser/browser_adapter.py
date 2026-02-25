@@ -53,13 +53,7 @@ BROWSER_USE_DIRECT_ACTIONS = frozenset(
         "read_long_content",
     }
 )
-LEGACY_ADAPTER_ACTIONS_WITH_ARGS = {
-    "open": "open",
-    "type": "type_text",
-    "press": "press",
-    "switch_tab": "switch_tab",
-    "act": "act",
-}
+LEGACY_ALIAS_ACTIONS_WITH_ARGS = frozenset({"open", "type", "press", "switch_tab"})
 BROWSER_USE_ACTIONS_REQUIRING_CONNECTION = frozenset(
     {
         "snapshot",
@@ -138,9 +132,12 @@ class BrowserUseCompatibilityAdapter:
             result = await self.profiles()
             return self._annotate_legacy_action(action, result)
 
-        legacy_handler = LEGACY_ADAPTER_ACTIONS_WITH_ARGS.get(action)
-        if legacy_handler:
-            result = await getattr(self, legacy_handler)(args)
+        if action in LEGACY_ALIAS_ACTIONS_WITH_ARGS:
+            result = await self._execute_legacy_alias(action, args)
+            return self._annotate_legacy_action(action, result)
+
+        if action == "act":
+            result = await self.act(args)
             return self._annotate_legacy_action(action, result)
 
         if action in BROWSER_CANONICAL_ACTIONS:
@@ -239,140 +236,158 @@ class BrowserUseCompatibilityAdapter:
 
 
     async def open(self, args: Mapping[str, Any]) -> AdapterActionResult:
-        if not self._runtime.is_connected:
-            return self._not_connected("open")
-
-        url = self._extract_url(args) or "about:blank"
-        open_result = await self.execute_browser_use_action(
-            "navigate",
-            {
-                **dict(args),
-                "action": "navigate",
-                "url": url,
-                "new_tab": True,
-            },
-        )
-        open_result = self._retag_action(open_result, "open")
-        if not open_result.success:
-            return open_result
-        payload = dict(open_result.data)
-        payload["action"] = "open"
-        payload["url"] = url
-        payload["browser_use_action"] = "navigate"
-        payload["new_tab"] = True
-        return AdapterActionResult(
-            success=True,
-            action="open",
-            decision=open_result.decision,
-            data=payload,
-            warnings=list(open_result.warnings),
-        )
+        return await self._execute_legacy_alias("open", args)
 
 
     async def type_text(self, args: Mapping[str, Any]) -> AdapterActionResult:
-        if not self._runtime.is_connected:
-            return self._not_connected("type")
+        return await self._execute_legacy_alias("type", args)
 
-        ref = self._value_as_str(args.get("ref"))
-        text = args.get("text")
-        if not ref:
-            return self._invalid_argument("type", "Missing required 'ref' parameter")
-        if not isinstance(text, str):
-            return self._invalid_argument(
-                "type",
-                "Missing required 'text' parameter",
+    async def press(self, args: Mapping[str, Any]) -> AdapterActionResult:
+        return await self._execute_legacy_alias("press", args)
+
+    async def switch_tab(self, args: Mapping[str, Any]) -> AdapterActionResult:
+        return await self._execute_legacy_alias("switch_tab", args)
+
+    async def _execute_legacy_alias(
+        self,
+        action: str,
+        args: Mapping[str, Any],
+    ) -> AdapterActionResult:
+        if action == "open":
+            if not self._runtime.is_connected:
+                return self._not_connected("open")
+            url = self._extract_url(args) or "about:blank"
+            open_result = await self.execute_browser_use_action(
+                "navigate",
+                {
+                    **dict(args),
+                    "action": "navigate",
+                    "url": url,
+                    "new_tab": True,
+                },
+            )
+            open_result = self._retag_action(open_result, "open")
+            if not open_result.success:
+                return open_result
+            payload = dict(open_result.data)
+            payload["action"] = "open"
+            payload["url"] = url
+            payload["browser_use_action"] = "navigate"
+            payload["new_tab"] = True
+            return AdapterActionResult(
+                success=True,
+                action="open",
+                decision=open_result.decision,
+                data=payload,
+                warnings=list(open_result.warnings),
             )
 
-        type_result = await self.execute_browser_use_action(
-            "input",
-            {
-                **dict(args),
-                "action": "input",
-                "ref": ref,
-                "text": text,
-            },
-        )
-        type_result = self._retag_action(type_result, "type")
-        if not type_result.success:
-            return type_result
+        if action == "type":
+            if not self._runtime.is_connected:
+                return self._not_connected("type")
 
-        submit = bool(args.get("submit", False))
-        if submit:
-            submit_result = await self.execute_browser_use_action(
+            ref = self._value_as_str(args.get("ref"))
+            text = args.get("text")
+            if not ref:
+                return self._invalid_argument("type", "Missing required 'ref' parameter")
+            if not isinstance(text, str):
+                return self._invalid_argument(
+                    "type",
+                    "Missing required 'text' parameter",
+                )
+
+            type_result = await self.execute_browser_use_action(
+                "input",
+                {
+                    **dict(args),
+                    "action": "input",
+                    "ref": ref,
+                    "text": text,
+                },
+            )
+            type_result = self._retag_action(type_result, "type")
+            if not type_result.success:
+                return type_result
+
+            submit = bool(args.get("submit", False))
+            if submit:
+                submit_result = await self.execute_browser_use_action(
+                    "send_keys",
+                    {
+                        "action": "send_keys",
+                        "keys": "Enter",
+                    },
+                )
+                if not submit_result.success:
+                    return self._retag_action(submit_result, "type")
+
+            payload = dict(type_result.data)
+            payload["action"] = "type"
+            payload["ref"] = ref
+            payload["text"] = text
+            payload["submit"] = submit
+
+            return AdapterActionResult(
+                success=True,
+                action="type",
+                decision=type_result.decision,
+                data=payload,
+                warnings=list(type_result.warnings),
+            )
+
+        if action == "press":
+            if not self._runtime.is_connected:
+                return self._not_connected("press")
+
+            key = self._value_as_str(args.get("key"))
+            if not key:
+                return self._invalid_argument("press", "Missing required 'key' parameter")
+
+            press_result = await self.execute_browser_use_action(
                 "send_keys",
                 {
                     "action": "send_keys",
-                    "keys": "Enter",
+                    "keys": key,
                 },
             )
-            if not submit_result.success:
-                return self._retag_action(submit_result, "type")
+            press_result = self._retag_action(press_result, "press")
+            if not press_result.success:
+                return press_result
+            payload = dict(press_result.data)
+            payload["action"] = "press"
+            payload["key"] = key
+            return AdapterActionResult(
+                success=True,
+                action="press",
+                decision=press_result.decision,
+                data=payload,
+                warnings=list(press_result.warnings),
+            )
 
-        payload = dict(type_result.data)
-        payload["action"] = "type"
-        payload["ref"] = ref
-        payload["text"] = text
-        payload["submit"] = submit
+        if action == "switch_tab":
+            switch_result = await self.execute_browser_use_action(
+                "switch",
+                {
+                    **dict(args),
+                    "action": "switch",
+                },
+            )
+            switch_result = self._retag_action(switch_result, "switch_tab")
+            if not switch_result.success:
+                return switch_result
+            payload = dict(switch_result.data)
+            payload["action"] = "switch_tab"
+            payload["target_id"] = self._extract_target_id(args)
+            payload["browser_use_action"] = "switch"
+            return AdapterActionResult(
+                success=True,
+                action="switch_tab",
+                decision=switch_result.decision,
+                data=payload,
+                warnings=list(switch_result.warnings),
+            )
 
-        return AdapterActionResult(
-            success=True,
-            action="type",
-            decision=type_result.decision,
-            data=payload,
-            warnings=list(type_result.warnings),
-        )
-
-    async def press(self, args: Mapping[str, Any]) -> AdapterActionResult:
-        if not self._runtime.is_connected:
-            return self._not_connected("press")
-
-        key = self._value_as_str(args.get("key"))
-        if not key:
-            return self._invalid_argument("press", "Missing required 'key' parameter")
-
-        press_result = await self.execute_browser_use_action(
-            "send_keys",
-            {
-                "action": "send_keys",
-                "keys": key,
-            },
-        )
-        press_result = self._retag_action(press_result, "press")
-        if not press_result.success:
-            return press_result
-        payload = dict(press_result.data)
-        payload["action"] = "press"
-        payload["key"] = key
-        return AdapterActionResult(
-            success=True,
-            action="press",
-            decision=press_result.decision,
-            data=payload,
-            warnings=list(press_result.warnings),
-        )
-
-    async def switch_tab(self, args: Mapping[str, Any]) -> AdapterActionResult:
-        switch_result = await self.execute_browser_use_action(
-            "switch",
-            {
-                **dict(args),
-                "action": "switch",
-            },
-        )
-        switch_result = self._retag_action(switch_result, "switch_tab")
-        if not switch_result.success:
-            return switch_result
-        payload = dict(switch_result.data)
-        payload["action"] = "switch_tab"
-        payload["target_id"] = self._extract_target_id(args)
-        payload["browser_use_action"] = "switch"
-        return AdapterActionResult(
-            success=True,
-            action="switch_tab",
-            decision=switch_result.decision,
-            data=payload,
-            warnings=list(switch_result.warnings),
-        )
+        return self._invalid_argument(action, f"Unsupported legacy alias action '{action}'")
 
 
     async def execute_browser_use_action(
