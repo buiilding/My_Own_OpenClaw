@@ -1,6 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
-import { ArrowUp, ChevronDown, Mic, Plus, Sparkles, Square, X } from 'lucide-react';
+import {
+  ArrowUp,
+  ChevronDown,
+  Globe,
+  Image,
+  Mic,
+  MoreHorizontal,
+  Plus,
+  ShoppingBag,
+  Sparkles,
+  Square,
+  X,
+} from 'lucide-react';
 import { useTranscription } from '../hooks/useTranscription';
 import { buildOutgoingMessage } from '../utils/messageInput';
 import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
@@ -14,7 +26,12 @@ function MessageInput({
   isCentered = false,
 }) {
   const textareaRef = useRef(null);
+  const plusMenuRef = useRef(null);
+  const thinkingMenuRef = useRef(null);
   const [thinkingVisible, setThinkingVisible] = useState(true);
+  const [plusMenuOpen, setPlusMenuOpen] = useState(false);
+  const [thinkingMenuOpen, setThinkingMenuOpen] = useState(false);
+  const [thinkingMode, setThinkingMode] = useState('Thinking');
   const {
     inputValue,
     setInputValue,
@@ -57,6 +74,23 @@ function MessageInput({
     textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
   }, [inputValue]);
 
+  useEffect(() => {
+    const handlePointerDown = (event) => {
+      const target = event.target;
+      if (plusMenuRef.current && !plusMenuRef.current.contains(target)) {
+        setPlusMenuOpen(false);
+      }
+      if (thinkingMenuRef.current && !thinkingMenuRef.current.contains(target)) {
+        setThinkingMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('mousedown', handlePointerDown);
+    return () => {
+      window.removeEventListener('mousedown', handlePointerDown);
+    };
+  }, []);
+
   const { isConnected, isRecording, error } = useVoiceMode(
     voiceModeEnabled,
     (text) => {
@@ -98,12 +132,51 @@ function MessageInput({
 
           <div className="message-input-bottom-row">
             <div className="message-input-left-actions">
-              <button type="button" className="message-icon-btn" aria-label="Add attachment" data-testid="plus-btn">
-                <Plus size={18} />
-              </button>
+              <div className="message-action-dropdown" ref={plusMenuRef}>
+                <button
+                  type="button"
+                  className="message-icon-btn"
+                  aria-label="Add attachment"
+                  data-testid="plus-btn"
+                  aria-expanded={plusMenuOpen}
+                  onClick={() => {
+                    setPlusMenuOpen((current) => !current);
+                  }}
+                >
+                  <Plus size={18} />
+                </button>
+                {plusMenuOpen ? (
+                  <div className="message-dropdown-menu" role="menu">
+                    <button type="button" className="message-dropdown-item" role="menuitem">
+                      <Image size={16} />
+                      <span>Add photos & files</span>
+                    </button>
+                    <button type="button" className="message-dropdown-item" role="menuitem">
+                      <Sparkles size={16} />
+                      <span>Create image</span>
+                    </button>
+                    <button type="button" className="message-dropdown-item" role="menuitem">
+                      <Sparkles size={16} />
+                      <span>Deep research</span>
+                    </button>
+                    <button type="button" className="message-dropdown-item" role="menuitem">
+                      <ShoppingBag size={16} />
+                      <span>Shopping research</span>
+                    </button>
+                    <button type="button" className="message-dropdown-item" role="menuitem">
+                      <Globe size={16} />
+                      <span>Web search</span>
+                    </button>
+                    <button type="button" className="message-dropdown-item" role="menuitem">
+                      <MoreHorizontal size={16} />
+                      <span>More</span>
+                    </button>
+                  </div>
+                ) : null}
+              </div>
 
               {thinkingVisible ? (
-                <div className="message-thinking-pill-wrap">
+                <div className="message-thinking-pill-wrap" ref={thinkingMenuRef}>
                   <button
                     type="button"
                     className="message-close-thinking"
@@ -112,11 +185,38 @@ function MessageInput({
                   >
                     <X size={14} />
                   </button>
-                  <button type="button" className="message-thinking-pill" data-testid="thinking-mode-btn" aria-label="Thinking mode">
+                  <button
+                    type="button"
+                    className="message-thinking-pill"
+                    data-testid="thinking-mode-btn"
+                    aria-label="Thinking mode"
+                    aria-expanded={thinkingMenuOpen}
+                    onClick={() => {
+                      setThinkingMenuOpen((current) => !current);
+                    }}
+                  >
                     <Sparkles size={15} />
-                    <span>Thinking</span>
+                    <span>{thinkingMode}</span>
                     <ChevronDown size={14} />
                   </button>
+                  {thinkingMenuOpen ? (
+                    <div className="message-dropdown-menu message-thinking-menu" role="menu">
+                      {['Thinking', 'Search', 'Reason'].map((mode) => (
+                        <button
+                          key={mode}
+                          type="button"
+                          className="message-dropdown-item"
+                          role="menuitem"
+                          onClick={() => {
+                            setThinkingMode(mode);
+                            setThinkingMenuOpen(false);
+                          }}
+                        >
+                          {mode}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
             </div>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { ChevronDown, Sparkles, Users } from 'lucide-react';
 import MessageList from './MessageList';
@@ -15,8 +15,19 @@ import { startNewChatSession } from '../utils/newChatSession';
 import '../../../styles/ChatInterface.css';
 
 const ACTIVE_STREAM_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
+const DEFAULT_MODEL_OPTIONS = ['ChatGPT 5.2 Thinking', 'ChatGPT 4o', 'ChatGPT 4o mini'];
 
-function ChatInterface() {
+function ChatGptLogo({ size = 14 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function ChatInterface({ sidebarOpen = true }) {
   const { messages, isSending, thinkingStatus, streamPhase } = useChatStore(
     useShallow(selectChatInterfaceState),
   );
@@ -48,9 +59,38 @@ function ChatInterface() {
 
   const voiceModeEnabled = config?.voice_mode_enabled === true;
   const canStop = ACTIVE_STREAM_PHASES.has(streamPhase);
-  const modelLabel = useMemo(() => {
-    return config?.selected_model_id || 'ChatGPT 5.2 Thinking';
-  }, [config?.selected_model_id]);
+  const configuredModelId = config?.selected_model_id || '';
+  const modelOptions = useMemo(() => {
+    if (!configuredModelId) {
+      return DEFAULT_MODEL_OPTIONS;
+    }
+    if (DEFAULT_MODEL_OPTIONS.includes(configuredModelId)) {
+      return DEFAULT_MODEL_OPTIONS;
+    }
+    return [configuredModelId, ...DEFAULT_MODEL_OPTIONS];
+  }, [configuredModelId]);
+  const [modelLabel, setModelLabel] = useState(() => modelOptions[0]);
+  const [modelMenuOpen, setModelMenuOpen] = useState(false);
+  const modelMenuRef = useRef(null);
+
+  useEffect(() => {
+    setModelLabel(modelOptions[0]);
+  }, [modelOptions]);
+
+  useEffect(() => {
+    const handlePointerDown = (event) => {
+      if (!modelMenuRef.current) {
+        return;
+      }
+      if (!modelMenuRef.current.contains(event.target)) {
+        setModelMenuOpen(false);
+      }
+    };
+    window.addEventListener('mousedown', handlePointerDown);
+    return () => {
+      window.removeEventListener('mousedown', handlePointerDown);
+    };
+  }, []);
 
   const stopPlayback = useCallback(() => {
     audioPlayerRef.current?.stopPlayback();
@@ -114,10 +154,46 @@ function ChatInterface() {
     <div className="chat-container">
       <header className="chat-header">
         <div className="chat-title-block">
-          <button type="button" className="chat-model-selector" aria-label="Model selector">
-            <span>{modelLabel}</span>
-            <ChevronDown size={14} />
-          </button>
+          <div className="chat-model-row">
+            {!sidebarOpen ? (
+              <div className="chat-header-brand-dot" aria-hidden="true">
+                <ChatGptLogo size={14} />
+              </div>
+            ) : null}
+            <div className="chat-model-dropdown" ref={modelMenuRef}>
+              <button
+                type="button"
+                className="chat-model-selector"
+                aria-label="Model selector"
+                aria-expanded={modelMenuOpen}
+                onClick={() => {
+                  setModelMenuOpen((current) => !current);
+                }}
+              >
+                <span>{modelLabel}</span>
+                <ChevronDown size={14} />
+              </button>
+              {modelMenuOpen ? (
+                <div className="chat-model-menu" role="menu">
+                  {modelOptions.map((option) => (
+                    <button
+                      key={option}
+                      type="button"
+                      className="chat-model-menu-item"
+                      role="menuitem"
+                      onClick={() => {
+                        setModelLabel(option);
+                        setModelMenuOpen(false);
+                      }}
+                    >
+                      <Sparkles size={16} />
+                      <span>{option}</span>
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
         </div>
         <div className="chat-meta">
           <div className="chat-utility-controls">

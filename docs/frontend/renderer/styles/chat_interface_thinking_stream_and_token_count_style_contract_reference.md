@@ -24,6 +24,8 @@ Header composition:
 - `.chat-container` is full-height with no interior padding; shell spacing is handled by dashboard chrome
 - `.chat-header` is draggable (`-webkit-app-region: drag`) with clone-style compact top bar spacing and bottom divider
 - `.chat-title-block` exposes a clone-style model selector button (`.chat-model-selector`)
+- `.chat-model-dropdown` renders clone-style model option menu with `.chat-model-menu` / `.chat-model-menu-item` surface styling
+- when sidebar is collapsed, `ChatInterface` receives `sidebarOpen={false}` and renders `.chat-header-brand-dot` before the selector to match clone header behavior
 - `.chat-meta` stays `no-drag` so top-right utility controls remain clickable
 
 Utility controls:
@@ -80,6 +82,7 @@ Input row:
 - `MessageInput` mirrors clone composer structure:
   - top text row (`.message-input-top-row` + multiline `.message-input`)
   - bottom action row (`.message-input-bottom-row`) with left utility controls and right send/stop controls
+- composer utility controls now include clone-style dropdown menus (`.message-dropdown-menu`) for the plus action list and thinking-mode selection
 - send control uses `.message-send-btn`; while sending it switches to `.message-stop-btn`
 - empty conversation state renders centered composer variant via `.message-input-centered`
 - non-empty state renders bottom composer with footer disclaimer (`.message-input-disclaimer`)

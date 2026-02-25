@@ -25,6 +25,23 @@
   -webkit-app-region: no-drag;
 }
 
+.chat-model-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chat-header-brand-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #000000;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .chat-meta {
   display: flex;
   align-items: center;
@@ -32,15 +49,19 @@
   -webkit-app-region: no-drag;
 }
 
+.chat-model-dropdown {
+  position: relative;
+}
+
 .chat-model-selector {
   border: none;
   background: transparent;
   color: #ececec;
-  padding: 6px 8px;
+  padding: 6px 10px;
   border-radius: 8px;
   font-size: 16px;
   font-weight: 500;
-  cursor: default;
+  cursor: pointer;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -52,6 +73,38 @@
 
 .chat-model-selector svg {
   color: #8e8e8e;
+}
+
+.chat-model-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 220px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #2f2f2f;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+  padding: 6px;
+  z-index: 40;
+}
+
+.chat-model-menu-item {
+  width: 100%;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #ececec;
+  text-align: left;
+  padding: 9px 10px;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.chat-model-menu-item:hover {
+  background: #424242;
 }
 
 .chat-window-controls {
@@ -640,6 +693,47 @@
 .message-thinking-pill:hover {
   background: #424242;
   color: #ececec;
+}
+
+.message-action-dropdown {
+  position: relative;
+}
+
+.message-dropdown-menu {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  min-width: 210px;
+  background: #2f2f2f;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.4);
+  padding: 6px;
+  z-index: 60;
+}
+
+.message-dropdown-item {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: #ececec;
+  border-radius: 8px;
+  padding: 8px 10px;
+  text-align: left;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.message-dropdown-item:hover {
+  background: #424242;
+}
+
+.message-thinking-menu {
+  left: 24px;
+  min-width: 150px;
 }
 
 .message-send-btn {
