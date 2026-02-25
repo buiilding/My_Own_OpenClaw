@@ -159,6 +159,7 @@ Unmount cleanup forces hide payload.
 
 - debug view route: `/?view=tool-ghost-debug`
 - launcher: `cd frontend && npm run test:ghost-overlay`
+- OS overlay launcher: `cd frontend && npm run electron:ghost-overlay`
 - behavior:
   - overlay-only ghost animation (no real cursor move, no click)
   - hard-coded top-to-bottom travel with same production timeline (`1000ms` hold, `1200ms` move, `1000ms` hold)

@@ -42,6 +42,8 @@ const RESPONSE_OVERLAY_PHASE = Object.freeze({
   ERROR: 'error',
 });
 const APP_WINDOW_TITLE_MARKERS = ['desktop assistant', 'windieos'];
+const ENABLE_OS_TOOL_GHOST_DEBUG = process.env.WINDIE_DEBUG_GHOST_OVERLAY === '1';
+const RESPONSE_WINDOW_DEBUG_VIEW = 'tool-ghost-debug';
 
 function isAppWindowTitle(title) {
   const normalized = String(title || '').trim().toLowerCase();
@@ -448,6 +450,9 @@ function showMainWindow({ focus = true } = {}) {
 }
 
 function handleResponseOverlayPhaseChange(event = {}) {
+  if (ENABLE_OS_TOOL_GHOST_DEBUG) {
+    return;
+  }
   const nextPhase = event?.phase;
   if (!Object.values(RESPONSE_OVERLAY_PHASE).includes(nextPhase)) {
     return;
@@ -571,13 +576,26 @@ function createChatWindow() {
 }
 
 function createResponseWindow() {
-  responseWindow = createOverlayBrowserWindow({ width: 520, height: 1, show: false });
+  responseWindow = createOverlayBrowserWindow({
+    width: 520,
+    height: ENABLE_OS_TOOL_GHOST_DEBUG ? 620 : 1,
+    show: ENABLE_OS_TOOL_GHOST_DEBUG,
+  });
   enableContentProtectionSafely(responseWindow, 'response overlay');
 
   responseWindow.setAlwaysOnTop(true, 'floating');
   responseWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
 
-  loadRendererView(responseWindow, 'chatbox-response');
+  loadRendererView(
+    responseWindow,
+    ENABLE_OS_TOOL_GHOST_DEBUG ? RESPONSE_WINDOW_DEBUG_VIEW : 'chatbox-response',
+  );
+
+  if (ENABLE_OS_TOOL_GHOST_DEBUG) {
+    responseOverlayVisible = true;
+    positionResponseWindow();
+    showResponseWindowInactive();
+  }
 
   responseWindow.on('close', (event) => {
     if (!app.isQuitting) {
