@@ -3721,3 +3721,16 @@ read_when:
 - Validation:
   - `cd frontend && npm run lint` (pass)
   - `cd frontend && npm run test:ci -- tests/frontend/IpcMainBridge.query.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx tests/frontend/ChatBoxResponse.toolGhost.test.jsx` (pass)
+
+## Phase 163 Outcome (2026-02-25)
+
+- Refactor slice: split chatbox-resize IPC handler into dedicated main-process module.
+  - added:
+    - `frontend/src/main/overlay_chatbox_handler.cjs` (`handleSetChatboxSize`)
+  - updated:
+    - `frontend/src/main/index.cjs` now delegates `set-chatbox-size` to the extracted handler via dependency injection (`chatWindow`, bounds resolver, overlay/context relayout helpers).
+  - impact:
+    - reduced main-process IPC branch size in `index.cjs`, making resize path easier to test and maintain.
+- Validation:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/IpcMainBridge.query.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx tests/frontend/ChatBoxResponse.toolGhost.test.jsx` (pass)
