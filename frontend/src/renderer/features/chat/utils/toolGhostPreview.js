@@ -18,6 +18,8 @@ const DEFAULT_GHOST_PREVIEW = Object.freeze({
 const TOOL_LABEL_MAX_LENGTH = 120;
 const MOUSE_CLICK_ACTIONS = new Set(['click', 'double_click', 'right_click']);
 const MOUSE_SCROLL_ACTIONS = new Set(['scroll', 'scroll_up', 'scroll_down']);
+const CLICK_TOOL_NAMES = new Set(['click', 'double_click', 'right_click']);
+const SCROLL_TOOL_NAMES = new Set(['scroll', 'scroll_up', 'scroll_down', 'scroll_control']);
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
@@ -156,7 +158,13 @@ function resolveToolLabel(entry) {
 }
 
 function isMouseClickAction(entry) {
-  if (entry?.name !== 'mouse_control') {
+  const normalizedName = typeof entry?.name === 'string'
+    ? entry.name.trim().toLowerCase()
+    : '';
+  if (CLICK_TOOL_NAMES.has(normalizedName)) {
+    return true;
+  }
+  if (normalizedName !== 'mouse_control') {
     return false;
   }
   const action = typeof entry?.args?.action === 'string'
@@ -172,7 +180,7 @@ function isScrollAction(entry) {
   if (!normalizedName) {
     return false;
   }
-  if (normalizedName === 'scroll_control' || normalizedName === 'scroll') {
+  if (SCROLL_TOOL_NAMES.has(normalizedName)) {
     return true;
   }
   if (normalizedName !== 'mouse_control') {

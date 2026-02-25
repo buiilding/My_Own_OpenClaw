@@ -1,7 +1,6 @@
 import { TOOL_GHOST_CLICK_SYNC_DELAY_MS } from '../constants/toolGhostRuntime';
 
 const TOOL_GHOST_MOVE_DURATION_MS = 500;
-const RATIO_EPSILON = 0.001;
 
 function clampRatio(value) {
   return Math.min(1, Math.max(0, value));
@@ -86,15 +85,4 @@ export function buildToolGhostTrackStyle(toolGhostPreview, toolGhostStartRatio, 
     style['--ghost-rect-height'] = `${toolGhostPreview.rectHeightRatio * 100}%`;
   }
   return style;
-}
-
-export function hasToolGhostMotion(toolGhostStartRatio, effectiveTargetRatio) {
-  if (!effectiveTargetRatio) {
-    return false;
-  }
-  const startRatio = toolGhostStartRatio || { xRatio: 0.5, yRatio: 0.5 };
-  return (
-    Math.abs((startRatio.xRatio || 0.5) - (effectiveTargetRatio.xRatio || 0.5)) > RATIO_EPSILON
-    || Math.abs((startRatio.yRatio || 0.5) - (effectiveTargetRatio.yRatio || 0.5)) > RATIO_EPSILON
-  );
 }
