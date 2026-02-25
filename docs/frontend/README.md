@@ -16,6 +16,8 @@ This hub documents WindieOS frontend implementation details across Electron main
 
 - [Landing Docs Hub](landing/README.md)
 - [Landing Page Runtime and Content Reference](landing/landing_page_runtime_and_content_reference.md)
+- [Landing Sections Docs Hub](landing/sections/README.md)
+- [Hero, How, Available, and Roadmap Section Content Contract Reference](landing/sections/hero_how_available_and_roadmap_section_content_contract_reference.md)
 
 ### Main Process
 

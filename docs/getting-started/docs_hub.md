@@ -153,6 +153,7 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 - [Backend Rehydrate and Wakeword Execution Service and TTS Session Reference](../backend/api/services/rehydrate_and_wakeword_execution_service_and_tts_session_reference.md)
 - [Frontend Functionality Map](../frontend/README.md)
 - [Frontend Landing Docs Hub](../frontend/landing/README.md)
+- [Frontend Landing Sections Docs Hub](../frontend/landing/sections/README.md)
 - [Frontend Main Docs Hub](../frontend/main/README.md)
 - [Frontend Main Local-Backend Docs Hub](../frontend/main/local_backend/README.md)
 - [Frontend Main Overlay Focus Docs Hub](../frontend/main/overlays/README.md)

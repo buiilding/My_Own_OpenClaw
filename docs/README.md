@@ -27,6 +27,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 ### Architecture & Design
 - [**Frontend Functionality Map**](frontend/README.md) - Detailed module-level renderer, electron-main, and sidecar runtime maps
 - [**Frontend Landing Runtime + Content Reference**](frontend/landing/landing_page_runtime_and_content_reference.md) - Standalone landing entrypoint wiring, section/anchor contracts, static content sources, and CSS token/animation behavior
+- [**Frontend Landing Section Content Contracts**](frontend/landing/sections/hero_how_available_and_roadmap_section_content_contract_reference.md) - Hero/How/Available/Roadmap source arrays, CTA anchor semantics, and status-label behavior for public capability messaging
 - [**Backend Functionality Map**](backend/README.md) - Detailed module-level backend runtime and API maps
 - [**Backend Simulation Runtime Reference**](backend/simulation/simulation_backend_and_mock_llm_runtime_reference.md) - Simulation entrypoints, DI LLM-factory override lifecycle, native tool-call adapter behavior, and deterministic mock-sequence invariants
 - [**Backend Simulation Entrypoint Launch Contracts**](backend/simulation/entrypoints/package_runner_and_module_alias_uvicorn_bootstrap_contract_reference.md) - `python -m` package runner vs module alias uvicorn bootstrap behavior (reload/access-log differences)
