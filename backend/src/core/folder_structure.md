@@ -18,7 +18,16 @@ backend/src/core/
 │   ├── cache_entry.py                 # CacheEntry
 │   ├── cache_store.py                 # Cache - TTL + LRU in-memory cache
 │   ├── cache_manager.py               # CacheManager - shared caches
-│   └── exceptions.py                  # Exception hierarchy - BaseAppError and domain-specific exceptions (LLM, Tool, Memory, etc.)
+│   ├── exceptions.py                  # Backward-compatible exception export facade (re-exports from error_types/)
+│   └── error_types/                   # Domain exception modules
+│       ├── __init__.py                # Public exception exports (stable surface)
+│       ├── base.py                    # BaseAppError + shared metadata/init helpers
+│       ├── configuration.py           # ConfigurationError
+│       ├── llm.py                     # LLMError, LLMAPIError, LLMRateLimitError
+│       ├── tooling.py                 # ToolExecutionError, ToolValidationError, ToolNotFoundError
+│       ├── memory.py                  # MemoryError, MemoryStoreError, EmbeddingError
+│       ├── session.py                 # SessionError
+│       └── trust_boundary.py          # InputSizeLimitError, ParseTimeoutError, ParseValidationError
 │
 ├── events/                            # Event system for decoupled communication
 │   ├── __init__.py                    # Re-exports all event types

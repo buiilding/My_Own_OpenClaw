@@ -7,6 +7,10 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(backend-protocol-compatibility): add `docs/backend/inventory/protocols/compatibility` subhub with schema import stability + typed/dict stream normalization compatibility reference and protocol-hub wiring
+- docs(refactor-plan): record Phase 180 backend exception-hierarchy module split (`error_types/*`), compatibility-facade preservation, and refreshed backend audit/test outcomes in `docs/planning/windieos_refactor_plan_2026-02-23.md`
+- docs(backend-trust-boundary): update backend trust-boundary/observability references for `core/infrastructure/error_types/trust_boundary.py` while retaining `exceptions.py` compatibility import path
+- refactor(backend-exceptions): split `backend/src/core/infrastructure/exceptions.py` into domain modules under `backend/src/core/infrastructure/error_types/` and keep `exceptions.py` as a backward-compatible facade
 - docs(frontend-protocol-state): add `docs/frontend/inventory/protocols/state` subhub with ws-bridge conversation/session propagation and renderer transcript-state gating reference
 - docs(backend-protocol-state): add `docs/backend/inventory/protocols/state` subhub with handshake/query/stop-query identity + context-field propagation reference and protocol-hub wiring
 - docs(frontend-protocol-testing): add `docs/frontend/inventory/protocols/testing` subhub with IPC/query/local-backend/wakeword protocol test-coverage runtime reference and wire link from frontend protocol hub

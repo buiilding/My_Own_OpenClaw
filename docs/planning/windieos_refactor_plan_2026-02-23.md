@@ -4033,3 +4033,45 @@ read_when:
   - `./scripts/python-in-env backend python -m pytest tests/backend --durations=20 -q` (pass)
   - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
   - `npx jscpd --gitignore --min-lines 8 --reporters console,markdown --output .audit/plan1/jscpd-backend backend/src tests/backend` (pass)
+
+## Phase 180 Outcome (2026-02-25)
+
+- Refactor slice (backend-only): split oversized exception hierarchy into domain modules with import-path compatibility preserved.
+  - added:
+    - `backend/src/core/infrastructure/error_types/base.py`
+      - shared metadata/init helpers:
+        - `_merge_metadata_if(...)`
+        - `_metadata_with_optional_field(...)`
+        - `_merge_trust_boundary_metadata(...)`
+        - `_init_scoped_context_error(...)`
+        - `_init_optional_scoped_context_error(...)`
+      - `BaseAppError`
+    - `backend/src/core/infrastructure/error_types/configuration.py` (`ConfigurationError`)
+    - `backend/src/core/infrastructure/error_types/llm.py` (`LLMError`, `LLMAPIError`, `LLMRateLimitError`)
+    - `backend/src/core/infrastructure/error_types/tooling.py` (`ToolExecutionError`, `ToolValidationError`, `ToolNotFoundError`)
+    - `backend/src/core/infrastructure/error_types/memory.py` (`MemoryError`, `MemoryStoreError`, `EmbeddingError`)
+    - `backend/src/core/infrastructure/error_types/session.py` (`SessionError`)
+    - `backend/src/core/infrastructure/error_types/trust_boundary.py` (`InputSizeLimitError`, `ParseTimeoutError`, `ParseValidationError`)
+  - updated:
+    - `backend/src/core/infrastructure/exceptions.py` now acts as a thin compatibility facade:
+      - preserves legacy imports from `backend.src.core.infrastructure.exceptions`
+      - re-exports public symbols from `error_types.__all__`
+      - keeps private legacy helper/internal class imports available for compatibility (`_merge_metadata_if`, `_LLMOptionalFieldError`, `_TrustBoundaryError`, etc.)
+    - doc references aligned to new ownership:
+      - `backend/src/core/folder_structure.md`
+      - `docs/backend/core/observability/README.md`
+      - `docs/backend/core/observability/trust_boundary_metrics_and_enforcement_reference.md`
+      - `docs/backend/llm/parser_trust_boundary_and_native_tool_call_reference.md`
+  - size/structure outcome:
+    - `backend/src/core/infrastructure/exceptions.py` reduced from `577` LOC to `35` LOC.
+    - all new exception modules remain well under the 500 LOC guideline.
+  - route consolidation check:
+    - `jscpd` on `backend/src/api/routes` found `0` clones; no route merge needed in this slice.
+  - audit outcome:
+    - backend `jscpd` (`backend/src` + `tests/backend`) returned to `0` clones after facade export dedupe.
+- Validation:
+  - `./scripts/python-in-env backend python -m pytest tests/backend/test_exceptions.py -q` (pass)
+  - `./scripts/python-in-env backend python -m pytest tests/backend/test_response_parser_limits.py tests/backend/test_response_parser.py tests/backend/test_parser_validation.py tests/backend/test_api_errors.py -q` (pass)
+  - `./scripts/python-in-env backend python -m pytest tests/backend --durations=20 -q` (pass)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console,markdown --output .audit/plan1/jscpd-backend backend/src tests/backend` (0 clones)

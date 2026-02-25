@@ -16,6 +16,7 @@ title: "Backend Core Observability Docs Hub"
 
 - `backend/src/core/observability/trust_boundary_metrics.py`
 - `backend/src/core/infrastructure/exceptions.py`
+- `backend/src/core/infrastructure/error_types/trust_boundary.py`
 - `backend/src/core/container/core_container.py`
 - `backend/src/core/container/session_runtime.py`
 - `backend/src/llm/parser.py`
