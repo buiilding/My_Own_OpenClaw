@@ -1023,9 +1023,6 @@ class TestBrowserUseCompatibilityAdapter:
         with mock.patch.dict("os.environ", {}, clear=True), mock.patch(
             "tools.browser.browser_tool.find_spec",
             return_value=object(),
-        ), mock.patch(
-            "tools.browser.browser_tool.find_spec",
-            return_value=object(),
         ):
             runtime = get_browser_runtime_provider(controller)
 
@@ -1042,9 +1039,6 @@ class TestBrowserUseCompatibilityAdapter:
                 "WINDIE_BROWSER_USE_RUNTIME": "browser_use",
             },
             clear=False,
-        ), mock.patch(
-            "tools.browser.browser_tool.find_spec",
-            return_value=object(),
         ), mock.patch(
             "tools.browser.browser_tool.find_spec",
             return_value=object(),
@@ -1096,15 +1090,34 @@ class TestBrowserUseCompatibilityAdapter:
         ), mock.patch(
             "tools.browser.browser_tool.find_spec",
             return_value=object(),
-        ), mock.patch(
-            "tools.browser.browser_tool.find_spec",
-            return_value=object(),
         ):
             runtime = get_browser_runtime_provider(controller)
 
         assert runtime.__class__.__name__ == "BrowserUseNativeRuntimeProvider"
         assert "wait_seconds" in runtime._native_handlers
         assert "search" in runtime._native_handlers
+
+    def test_runtime_factory_uses_direct_native_provider_factory_call(
+        self,
+        make_controller,
+    ):
+        controller = make_controller()
+        fake_runtime = object()
+        with mock.patch.dict(
+            "os.environ",
+            {"WINDIE_BROWSER_USE_RUNTIME": "browser_use_native"},
+            clear=False,
+        ), mock.patch(
+            "tools.browser.browser_tool.find_spec",
+            return_value=object(),
+        ), mock.patch(
+            "tools.browser.browser_tool.create_browser_use_native_runtime_provider",
+            return_value=fake_runtime,
+        ) as mock_factory:
+            runtime = get_browser_runtime_provider(controller)
+
+        assert runtime is fake_runtime
+        mock_factory.assert_called_once_with(controller)
 
     @pytest.mark.asyncio
     async def test_native_provider_executes_browser_use_action_handler(
