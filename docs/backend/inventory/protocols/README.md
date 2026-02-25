@@ -13,6 +13,7 @@ title: "Backend Inventory Protocols Hub"
 - [Backend WebSocket Protocol Surface Matrix Reference](backend_websocket_protocol_surface_matrix_reference.md)
 - [Backend Protocol Lifecycle Hub](lifecycle/README.md)
 - [Backend Protocol State Hub](state/README.md)
+- [Backend Protocol Compatibility Hub](compatibility/README.md)
 - [Backend Protocol Errors Hub](errors/README.md)
 - [Backend Protocol Validation Hub](validation/README.md)
 - [Backend Protocol Testing Hub](testing/README.md)
