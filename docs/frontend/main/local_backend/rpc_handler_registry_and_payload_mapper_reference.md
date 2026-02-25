@@ -27,7 +27,9 @@ Direct handlers:
 
 Mapped handlers via `registerMappedRpcHandlers(registerRpcHandler, COMPILED_RPC_HANDLER_DEFINITIONS)`:
 
+- `search-conversations`
 - `list-conversations`
+- `list-episodic-memories`
 - `get-conversation`
 - `list-semantic-memories`
 - `delete-conversation`
@@ -122,7 +124,9 @@ Guarantee:
 
 `COMPILED_RPC_HANDLER_DEFINITIONS` map highlights:
 
+- `search-conversations` -> `search_conversations` with `{ query, userId, limit } -> { query, user_id, limit }`
 - `list-conversations` -> `list_conversations` with `{ userId, limit, recordKind } -> { user_id, limit, record_kind }`
+- `list-episodic-memories` -> `list_episodic_memories` with `{ userId, limit } -> { user_id, limit }`
 - `get-conversation` -> `get_conversation` with `conversation_id = conversationId ?? null`
 - `list-semantic-memories` -> `list_semantic_memories` with `{ userId, limit } -> { user_id, limit }`
 - `delete-conversation` -> `delete_conversation` with null-safe `conversation_id`

@@ -80,7 +80,7 @@ Behavior:
 - `set-overlay-ignore-mouse` -> click-through toggle for overlay windows
 - `set-chatbox-size` -> bounded chat window resize + response reposition
 - `set-responsebox-size` -> bounded response overlay resize/show/hide
-- `show-main-window` -> shows main window; optional payload `{ open: 'chat' | 'memory' | 'models' | 'settings' }` emits `main-window-open-target` to renderer when accepted
+- `show-main-window` -> shows main window; optional payload `{ open?: 'chat' | 'memory' | 'models' | 'settings', maximize?: boolean }` emits `main-window-open-target` when accepted
 - `show-chatbox`
 - `hide-chatbox`
 - `get-displays`
@@ -93,8 +93,10 @@ Behavior:
 - `execute-tool`
 - `get-system-state`
 - `search-memory`
+- `search-conversations`
 - mapped JSON-RPC channels:
 - `list-conversations`
+- `list-episodic-memories`
 - `get-conversation`
 - `list-semantic-memories`
 - `delete-conversation`

@@ -233,6 +233,7 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 - [Frontend Tool-Call and Tool-Output Recovery/Skip-Execution Contract Reference](../frontend/contracts/events/tool_runtime/tool_call_and_tool_output_recovery_skip_execution_contract_reference.md)
 - [Frontend Overlay + Wakeword Control Channel Reference](../frontend/contracts/overlay_and_wakeword_control_channel_reference.md)
 - [Frontend Dashboard Memory Management + Resume Reference](../frontend/renderer/dashboard_memory_management_and_resume_reference.md)
+- [Frontend Dashboard Sidebar, Search, and Profile Menu Runtime Reference](../frontend/renderer/dashboard/sidebar_search_profile_menu_and_recent_conversation_resume_reference.md)
 - [Frontend Chat Stream + Tool Execution Reference](../frontend/renderer/chat_stream_and_tool_execution_reference.md)
 - [Frontend Message Send Surface Policy and Screenshot Capture Reference](../frontend/renderer/chat/message_send_surface_policy_and_screenshot_capture_reference.md)
 - [Frontend Chat Store State and New Session Rotation Reference](../frontend/renderer/chat/chat_store_state_and_new_session_rotation_reference.md)

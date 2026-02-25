@@ -34,10 +34,10 @@ Key examples:
 - `execute-tool`
 - `upload-artifact`
 - `get-system-state`
-- `search-memory`, `store-memory`, list/get/delete memory records
+- `search-memory`, `search-conversations`, `store-memory`, list/get/delete memory records
 - config load/save
 - window management and display queries
-- `show-main-window` supports optional `{ open: 'chat' | 'memory' | 'models' | 'settings' }`
+- `show-main-window` supports optional `{ open?: 'chat' | 'memory' | 'models' | 'settings', maximize?: boolean }`
 
 ### `on` channels
 

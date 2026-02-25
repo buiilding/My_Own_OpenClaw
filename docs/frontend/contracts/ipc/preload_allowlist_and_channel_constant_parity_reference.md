@@ -48,7 +48,9 @@ Shared names in preload + `INVOKE_CHANNELS`:
 - `get-system-state`
 - `store-memory`
 - `search-memory`
+- `search-conversations`
 - `list-conversations`
+- `list-episodic-memories`
 - `get-conversation`
 - `list-semantic-memories`
 - `delete-conversation`
@@ -58,7 +60,7 @@ Shared names in preload + `INVOKE_CHANNELS`:
 - `set-overlay-ignore-mouse`
 - `set-chatbox-size`
 - `set-responsebox-size`
-- `show-main-window` (optional payload `{ open: 'chat' | 'memory' | 'models' | 'settings' }`)
+- `show-main-window` (optional payload `{ open?: 'chat' | 'memory' | 'models' | 'settings', maximize?: boolean }`)
 - `show-chatbox`
 - `hide-chatbox`
 - `get-displays`

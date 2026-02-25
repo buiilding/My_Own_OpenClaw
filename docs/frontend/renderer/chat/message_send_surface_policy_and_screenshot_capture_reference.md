@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for chat send-path runtime: surface-aware return-to-chatbox policy, screenshot capture/upload gating, optimistic message insertion, transcript write ordering, and query-send failure behavior."
+summary: "Deep reference for chat send-path runtime: sender-surface UI policy, clipboard-image payload normalization, screenshot capture/upload fallback chain, optimistic message updates, and send-failure behavior."
 read_when:
-  - When changing `useChatMessageSender`, message send policy resolution, or screenshot artifact attachment fields.
-  - When debugging why screenshot capture, chatbox focus transitions, or send-failure messages differ by sender surface.
+  - When changing `useChatMessageSender`, screenshot/clipboard attachment behavior, or sender-surface return-to-chatbox policy.
+  - When debugging missing screenshot refs, send failures, or mismatch between optimistic user rows and backend query payloads.
 title: "Message Send Surface Policy and Screenshot Capture Reference"
 ---
 
@@ -13,127 +13,157 @@ title: "Message Send Surface Policy and Screenshot Capture Reference"
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/utils/chatMessageSenderUtils.ts`
 - `frontend/src/renderer/features/chat/policies/messageSendUiPolicy.ts`
-- `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
-- `frontend/src/renderer/features/chat/components/ChatBox.jsx`
-- `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+- `frontend/src/renderer/features/chat/components/MessageInput.jsx`
+- `frontend/src/renderer/features/chat/utils/messageInput.js`
+- `frontend/src/renderer/features/chat/stores/chatStore.ts`
+- `frontend/src/renderer/infrastructure/services/SystemCapture.ts`
+- `frontend/src/renderer/infrastructure/services/ArtifactUploader.ts`
+- `frontend/src/renderer/infrastructure/services/ArtifactImageUtils.ts`
 - `tests/frontend/ChatMessageSender.test.tsx`
-- `tests/frontend/ChatMessageSenderUtils.test.ts`
-- `tests/frontend/MessageSendUiPolicy.test.ts`
+- `tests/frontend/MessageInput.test.jsx`
 
 ## Sender Surface Ownership
 
-`useChatMessageSender` is used by two caller surfaces:
+`useChatMessageSender` accepts:
 
-- `ChatInterface` -> `senderSurface: 'main-window'`
-- `ChatBox` -> `senderSurface: 'overlay-chatbox'`
+- `senderSurface`: `main-window` or `overlay-chatbox`
+- optional `returnToChatboxPolicy`
 
-The hook derives two independent gates:
+Surface consequences:
 
-- screenshot gate: `shouldCaptureQueryScreenshot = senderSurface !== 'main-window' && include_query_screenshot`
-- overlay return gate: `shouldReturnToChatboxOnSend` from policy resolver, but hard-forced to `false` when `senderSurface === 'main-window'`
+- `main-window` hard-disables return-to-chatbox behavior.
+- screenshot capture gate is `senderSurface !== "main-window" && include_query_screenshot`.
+- overlay sender may call `show-chatbox { focus:false }` when policy resolves true.
 
-So main-window sends never execute `show-chatbox`, even with explicit `returnToChatboxPolicy: 'always'`.
+## Outgoing Payload Contract
 
-## Return-to-Chatbox Policy Matrix
+`sendMessage(payload)` accepts:
 
-`resolveMessageSendUiBehavior(...)` inputs:
+- plain string
+- object `{ text, clipboardImage? }`
 
-- `senderSurface`
-- `includeQueryScreenshot` (already surface-filtered by hook)
-- optional `returnToChatboxPolicy` override
+Normalized shape:
 
-Default policy per surface:
+- `text`: required
+- `clipboardImage`: accepted only if `base64` non-empty string
 
-- main window -> `auto`
-- overlay chatbox -> `never`
+Invalid object payloads are ignored (no send side effect).
 
-Resolution:
+`clipboardImage` metadata fields:
 
-- `always` -> true
-- `never` -> false
-- `auto` -> mirrors `includeQueryScreenshot`
+- `base64`
+- optional `contentType`
+- optional `filename`
 
-Main-window override in hook then disables return regardless.
+## MessageInput -> Sender Coupling
 
-## Send Pipeline Order (`sendMessage`)
+`MessageInput` supports pasted-image path:
 
-1. optional `stopPlayback()` callback
-2. resolve conversation ref:
-- reuse `getActiveConversationRef()` when present
-- else create `conv_${uuid}` and persist via `setActiveConversationRef(...)`
-3. append optimistic user message immediately (`screenshot: null`)
-4. set store state: `isSending=true`, `thinkingStatus=null`
-5. optional `show-chatbox` invoke (overlay-only behavior)
-6. optional screenshot capture via `extractOSstate(true, false, 0, isFirstUserMessage)`
-7. optional artifact upload via `uploadArtifactBase64(...)`
-8. update optimistic message with `screenshotRef/screenshotUrl`
-9. record transcript user row (`recordUserMessage`) with timestamp + conversationRef + screenshotRef
-10. send backend query (`ApiClient.sendQuery(text, conversationRef, screenshotRef, screenshotUrl)`)
+1. intercept paste
+2. detect clipboard `image/*` item
+3. read file as data URL
+4. parse to `{ base64, contentType, filename, previewUrl }`
+5. pass as `clipboardImage` with trimmed text on submit
 
-## First-Message Capture Flag
+When no pasted image exists:
 
-Capture call uses `isFirstUserMessage = !hasUserMessages(useChatStore.getState().messages)`.
+- sends plain trimmed string.
 
-Because optimistic user message is appended before capture starts, this flag is computed before insertion. This preserves first-turn behavior even with immediate UI updates.
+When pasted image exists:
 
-## Attachment Normalization
+- sends object payload so sender can skip screenshot capture and upload clipboard image directly.
 
-`chatMessageSenderUtils` helpers enforce stable shapes:
+## Send Pipeline Order
 
-- pending user message always starts with `screenshot: null`
-- artifact content type normalized through `ArtifactImageUtils`
-- upload filename always `user-message.<ext>`
-- absent upload result maps to `{ screenshotRef: null, screenshotUrl: null }`
+`sendMessage(...)` flow:
 
-## Failure Handling Semantics
+1. normalize payload.
+2. optional `stopPlayback()`.
+3. resolve/create conversation ref.
+4. append optimistic user message to store.
+5. set `isSending=true`, clear thinking status.
+6. optional overlay return-to-chatbox invoke.
+7. resolve screenshot source:
+  - clipboard image base64 first
+  - else OS screenshot capture path (if enabled for surface/config)
+8. upload artifact when screenshot exists.
+9. update optimistic message with `screenshotRef/screenshotUrl`.
+10. write transcript user row (`recordUserMessage`) with conversation ref + screenshot ref.
+11. send backend query (`ApiClient.sendQuery`).
 
-Non-fatal failures:
+## Screenshot Source and Fallback Chain
 
-- `show-chatbox` invoke failure -> warn, continue
-- screenshot capture failure -> error log, continue without screenshot
-- artifact upload failure -> warn, continue send with null screenshot fields
+Priority order:
 
-Fatal send failure (`ApiClient.sendQuery` throws):
+1. clipboard image payload from `MessageInput`
+2. `extractOSstate(...)` capture path
+3. no screenshot
 
-- sets `isSending=false`
-- appends synthetic assistant error row (`type='error'`, fixed text)
-- rethrows error to caller
+Clipboard path specifics:
 
-## Transcript Ordering Contract
+- `screenshot` field in optimistic message stores raw base64 string.
+- `screenshotContentType` in optimistic message stores normalized MIME type.
+- upload filename prefers clipboard-provided filename.
 
-`recordUserMessage(...)` is called before `sendQuery(...)`, so transcript can already contain the user message when transport fails. The failure then appears as assistant-side error message in UI.
+Capture path specifics:
 
-Session/user identity for transcript write comes from `getTranscriptSessionInfo()` + explicit conversation ref.
+- capture call: `extractOSstate(true, false, 0, isFirstUserMessage)`
+- `isFirstUserMessage` derived before insertion from existing chat store.
+
+## Optimistic Message Contract
+
+Optimistic user row includes:
+
+- `text`
+- `timestamp`
+- optional `screenshot` (base64 for clipboard path)
+- optional `screenshotContentType`
+- later patched `screenshotRef` and `screenshotUrl` after upload
+
+Final backend query payload only sends screenshot ref/url, not raw screenshot bytes.
+
+## Failure and Recovery Semantics
+
+Non-fatal failures (send still continues):
+
+- `show-chatbox` invoke failure
+- screenshot capture failure
+- artifact upload failure
+
+Fatal failure:
+
+- `ApiClient.sendQuery` throw
+- sender sets `isSending=false`
+- appends assistant error message (`Failed to send message. Please try again.`)
+- error rethrown
 
 ## Test-Backed Invariants
 
-`tests/frontend/ChatMessageSender.test.tsx` validates:
+`ChatMessageSender.test.tsx` verifies:
 
-- default sender behavior when options are omitted
-- main-window path never issues `show-chatbox`
-- overlay `always` policy does issue `show-chatbox`
-- main-window ignores explicit `always` policy
-- first-send capture uses `is_first_user_message=true`
-- existing-user path uses `is_first_user_message=false`
-- screenshot capture disabled when config flag false or surface is main-window
-- capture/upload failures do not block query send
-- upload success updates store message attachment and backend payload refs
-- send failure resets `isSending` and appends assistant error message
-- existing conversation ref is reused without generating a new one
+- sender-surface policy behavior (main-window vs overlay)
+- first-message capture flag behavior
+- screenshot skip for main-window sends
+- continued send on capture/upload failures
+- upload refs included in query payload and store row
+- clipboard payload flow (base64 + content type + filename) bypasses OS capture
 
-`tests/frontend/MessageSendUiPolicy.test.ts` validates default policy and full resolver matrix.
+`MessageInput.test.jsx` verifies:
 
-`tests/frontend/ChatMessageSenderUtils.test.ts` validates attachment/meta helper normalization.
+- trimmed send text
+- whitespace/no-send guards
+- voice utterance-end submit path
+- pasted image preview lifecycle + payload shape + remove action
 
 ## Drift Hotspots
 
-1. changing main-window hard override can reintroduce unwanted window-focus toggles.
-2. changing optimistic update order can break first-message capture semantics.
-3. removing screenshot field null defaults can break message rendering assumptions.
-4. reordering transcript-write and backend-send steps changes failure observability.
+1. Changing payload union type without updating `MessageInput` + tests can silently drop clipboard images.
+2. Reordering optimistic write versus capture/upload steps can break first-message capture semantics.
+3. Removing `screenshotContentType` from chat store without updating renderer consumers breaks attachment rendering assumptions.
+4. Changing upload filename/content-type normalization can desync artifact extension/type behavior.
 
 ## Related Pages
 
 - [Frontend Renderer Chat Docs Hub](README.md)
 - [Chat Store State and New Session Rotation Reference](chat_store_state_and_new_session_rotation_reference.md)
-- [Chat Stream and Tool Execution Reference](../chat_stream_and_tool_execution_reference.md)
+- [Chat Common Actions Selector Boundary and Message-Input Send Guard Reference](presentation/chat_common_actions_selector_boundary_and_message_input_send_guard_reference.md)
