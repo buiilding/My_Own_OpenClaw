@@ -22,7 +22,7 @@ title: "Browser Action Compatibility and Runtime Reference"
 ## Runtime Invariants
 
 - Browser tool entrypoint accepts only object args and requires `action`.
-- Browser actions route through adapter/runtime only when action is in `PHASE2_ADAPTER_ROUTED_ACTIONS`.
+- Browser actions route through adapter/runtime only when action is in `BROWSER_ROUTED_ACTIONS`.
 - Runtime selection accepts only `WINDIE_BROWSER_USE_RUNTIME in {"browser_use","browser_use_native"}`; unset defaults to `browser_use_native`.
 - Removed aliases (always blocked): `type`, `open`, `switch_tab`, `press`, `act`.
 - Structured warning fields: `legacy_action`, `preferred_action`, `legacy_action_blocked`, `legacy_action_gate`.
