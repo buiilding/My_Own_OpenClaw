@@ -32,28 +32,12 @@ class AdapterActionResult:
     deprecation: str | None = None
 
 MAX_SNAPSHOT_CAPTURE_CHARS = 120_000
-BROWSER_USE_DIRECT_ACTIONS = frozenset(
-    {
-        "done",
-        "search",
-        "go_back",
-        "search_page",
-        "find_elements",
-        "find_text",
-        "input",
-        "send_keys",
-        "switch",
-        "close_tab",
-        "dropdown_options",
-        "select_dropdown",
-        "upload_file",
-        "write_file",
-        "replace_file",
-        "read_file",
-        "read_long_content",
-    }
-)
 LEGACY_ALIAS_ACTIONS_WITH_ARGS = frozenset({"open", "type", "press", "switch_tab"})
+REMOVED_LEGACY_ALIAS_ACTIONS = frozenset({"act"})
+REMOVED_LEGACY_ACT_ERROR = (
+    "Legacy browser action 'act' has been removed. "
+    "Use canonical browser actions directly."
+)
 BROWSER_USE_ACTIONS_REQUIRING_CONNECTION = frozenset(
     {
         "snapshot",
@@ -79,8 +63,6 @@ BROWSER_USE_ACTIONS_REQUIRING_CONNECTION = frozenset(
         "get_tabs",
     }
 )
-ACT_EXECUTE_FORWARD_ACTIONS = frozenset({"navigate", "extract", "scroll", "screenshot"})
-ACT_EXECUTE_COMPAT_ACTIONS = frozenset({"click", "type", "press", "wait", "evaluate"})
 SNAPSHOT_COMPATIBILITY_FIELDS = (
     "format",
     "snapshotFormat",
@@ -136,8 +118,8 @@ class BrowserUseCompatibilityAdapter:
             result = await self._execute_legacy_alias(action, args)
             return self._annotate_legacy_action(action, result)
 
-        if action == "act":
-            result = await self.act(args)
+        if action in REMOVED_LEGACY_ALIAS_ACTIONS:
+            result = self._invalid_argument(action, REMOVED_LEGACY_ACT_ERROR)
             return self._annotate_legacy_action(action, result)
 
         if action in BROWSER_CANONICAL_ACTIONS:
@@ -1023,54 +1005,6 @@ class BrowserUseCompatibilityAdapter:
             if isinstance(first, str) and first.strip():
                 return first.strip()
         return None
-
-
-    async def act(self, args: Mapping[str, Any]) -> AdapterActionResult:
-        request = args.get("request")
-        if not isinstance(request, dict):
-            return self._invalid_argument("act", "act requires a 'request' object")
-
-        kind_value = request.get("kind")
-        if not isinstance(kind_value, str) or not kind_value.strip():
-            return self._invalid_argument("act", "act.request.kind is required")
-
-        kind = kind_value.strip().lower()
-        merged: dict[str, Any] = dict(args)
-        merged.update(request)
-
-        if kind == "wait":
-            time_ms = merged.get("timeMs")
-            if isinstance(time_ms, (int, float)):
-                merged["seconds"] = max(0.0, float(time_ms) / 1000.0)
-
-        if kind == "evaluate":
-            fn = merged.get("fn")
-            if isinstance(fn, str) and fn:
-                merged["script"] = fn
-
-        if kind in ACT_EXECUTE_COMPAT_ACTIONS:
-            compat_result = await self.execute(kind, {"action": kind, **merged})
-            return self._retag_action(compat_result, kind)
-
-        if kind in ACT_EXECUTE_FORWARD_ACTIONS or kind in BROWSER_USE_DIRECT_ACTIONS:
-            forward_result = await self.execute(kind, {"action": kind, **merged})
-            return self._retag_action(forward_result, kind)
-
-        if kind == "close":
-            if self._extract_tab_id(merged):
-                close_tab_result = await self.execute("close", {"action": "close", **merged})
-                return self._retag_action(close_tab_result, "close")
-            close_result = await self.close()
-            return self._retag_action(close_result, "close")
-
-        return AdapterActionResult(
-            success=False,
-            action="act",
-            decision="compat",
-            error=f"Unsupported act kind: {kind}",
-            error_code="ACTION_UNSUPPORTED",
-        )
-
     async def close(self) -> AdapterActionResult:
         await self._runtime.close()
         return AdapterActionResult(

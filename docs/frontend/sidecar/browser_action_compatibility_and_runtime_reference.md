@@ -124,6 +124,7 @@ If controller disconnects or mode becomes ambiguous, bridge drops/restarts sessi
 ## Removed `act` alias
 
 - `act` is no longer accepted by `browser_tool.execute_browser`.
+- `BrowserUseCompatibilityAdapter.execute("act", ...)` also returns a removed-alias migration error.
 - Requests fail early with a migration error instructing canonical action usage.
 - Compatibility rollout env flags do not re-enable `act`.
 

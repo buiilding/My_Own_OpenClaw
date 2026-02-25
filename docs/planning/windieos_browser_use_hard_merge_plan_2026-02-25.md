@@ -82,6 +82,7 @@ title: "WindieOS Browser Use Hard-Merge Plan (2026-02-25)"
      - warning logs now expose structured alias fields (`legacy_action`, `preferred_action`, `legacy_action_blocked`, `legacy_action_gate`)
      - strict/allow gate precedence now resolves through shared helper logic in both backend and sidecar paths
      - legacy alias `act` is now always rejected with canonical-action migration guidance (independent of rollout flags)
+     - adapter-level `act` envelope dispatch path removed (direct adapter `execute("act", ...)` now returns migration error + legacy metadata)
 
 ## Safety Gates
 
