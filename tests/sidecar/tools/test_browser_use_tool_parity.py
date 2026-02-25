@@ -6,10 +6,12 @@ from functools import lru_cache
 from pathlib import Path
 import re
 from types import SimpleNamespace
+from typing import Any, get_args, get_origin
 from unittest import mock
 
 import pytest
 
+from backend.src.tools.browser.schema_types import BrowserAction
 from tools.browser.schemas import BROWSER_SCHEMAS
 from tools.browser.browser_tool import BrowserUseCompatibilityAdapter
 from tools.browser.browser_tool import (
@@ -38,17 +40,27 @@ def _browser_use_actions() -> set[str]:
 
 @lru_cache(maxsize=1)
 def _backend_browser_actions() -> set[str]:
-    root = Path(__file__).resolve().parents[3]
-    schema_path = root / "backend" / "src" / "tools" / "browser" / "schemas.py"
-    text = schema_path.read_text(encoding="utf-8")
-    match = re.search(
-        r"class\s+BrowserControlArgs\(BaseModel\):.*?action:\s*Literal\[(.*?)\]\s*=\s*Field",
-        text,
-        re.S,
-    )
-    if not match:
-        pytest.fail("Unable to parse backend BrowserControlArgs action literal")
-    return set(re.findall(r'"([a-z_]+)"', match.group(1)))
+    return _literal_string_values(BrowserAction)
+
+
+def _literal_string_values(type_hint: Any) -> set[str]:
+    origin = get_origin(type_hint)
+    args = get_args(type_hint)
+
+    if origin is None:
+        return set()
+
+    if origin is str:
+        # Python 3.11+ may represent Literal[...] as `str` origin.
+        return {value for value in args if isinstance(value, str)}
+
+    values: set[str] = set()
+    for arg in args:
+        if isinstance(arg, str):
+            values.add(arg)
+            continue
+        values.update(_literal_string_values(arg))
+    return values
 
 
 def _minimal_action_args() -> dict[str, dict[str, object]]:

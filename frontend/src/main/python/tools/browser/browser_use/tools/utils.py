@@ -26,14 +26,14 @@ def get_click_description(node: EnhancedDOMTreeNode) -> str:
 		input_type = node.attributes['type']
 		parts.append(f'type={input_type}')
 
-			# For checkboxes, include checked state
-			if input_type == 'checkbox':
-				is_checked = _resolve_checked_state(
-					node,
-					node.attributes.get('checked', 'false').lower() in ['true', 'checked', ''],
-				)
-				state = 'checked' if is_checked else 'unchecked'
-				parts.append(f'checkbox-state={state}')
+		# For checkboxes, include checked state
+		if input_type == 'checkbox':
+			is_checked = _resolve_checked_state(
+				node,
+				node.attributes.get('checked', 'false').lower() in ['true', 'checked', ''],
+			)
+			state = 'checked' if is_checked else 'unchecked'
+			parts.append(f'checkbox-state={state}')
 
 	# Add role if present
 	if node.attributes.get('role'):
@@ -41,11 +41,11 @@ def get_click_description(node: EnhancedDOMTreeNode) -> str:
 		parts.append(f'role={role}')
 
 		# For role=checkbox, include state
-			if role == 'checkbox':
-				aria_checked = node.attributes.get('aria-checked', 'false').lower()
-				is_checked = _resolve_checked_state(node, aria_checked in ['true', 'checked'])
-				state = 'checked' if is_checked else 'unchecked'
-				parts.append(f'checkbox-state={state}')
+		if role == 'checkbox':
+			aria_checked = node.attributes.get('aria-checked', 'false').lower()
+			is_checked = _resolve_checked_state(node, aria_checked in ['true', 'checked'])
+			state = 'checked' if is_checked else 'unchecked'
+			parts.append(f'checkbox-state={state}')
 
 	# For labels/spans/divs, check if related to a hidden checkbox
 	if node.tag_name in ['label', 'span', 'div'] and 'type=' not in ' '.join(parts):

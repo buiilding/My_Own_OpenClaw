@@ -28,21 +28,9 @@ from browser_use.llm.messages import (
 # Type stubs for lazy imports
 if TYPE_CHECKING:
 	from browser_use.llm._type_stubs import (
-		ChatAnthropic,
-		ChatAnthropicBedrock,
-		ChatAWSBedrock,
-		ChatAzureOpenAI,
-		ChatBrowserUse,
-		ChatCerebras,
-		ChatDeepSeek,
 		ChatGoogle,
-		ChatGroq,
 		ChatMistral,
-		ChatOCIRaw,
-		ChatOllama,
 		ChatOpenAI,
-		ChatOpenRouter,
-		ChatVercel,
 	)
 
 	# Type stubs for model instances - enables IDE autocomplete
@@ -60,17 +48,10 @@ if TYPE_CHECKING:
 	openai_gpt_5_mini: ChatOpenAI
 	openai_gpt_5_nano: ChatOpenAI
 
-	azure_gpt_4o: ChatAzureOpenAI
-	azure_gpt_4o_mini: ChatAzureOpenAI
-	azure_gpt_4_1_mini: ChatAzureOpenAI
-	azure_o1: ChatAzureOpenAI
-	azure_o1_mini: ChatAzureOpenAI
-	azure_o1_pro: ChatAzureOpenAI
-	azure_o3: ChatAzureOpenAI
-	azure_o3_mini: ChatAzureOpenAI
-	azure_o3_pro: ChatAzureOpenAI
-	azure_gpt_5: ChatAzureOpenAI
-	azure_gpt_5_mini: ChatAzureOpenAI
+	openrouter_openai_gpt_4o_mini: ChatOpenAI
+	ollama_qwen3_32b: ChatOpenAI
+	lmstudio_gpt_oss_20b: ChatOpenAI
+	kimi_coding_kimi_k2_turbo_preview: ChatOpenAI
 
 	google_gemini_2_0_flash: ChatGoogle
 	google_gemini_2_0_pro: ChatGoogle
@@ -78,25 +59,19 @@ if TYPE_CHECKING:
 	google_gemini_2_5_flash: ChatGoogle
 	google_gemini_2_5_flash_lite: ChatGoogle
 
+	mistral_large: ChatMistral
+	mistral_medium: ChatMistral
+	mistral_small: ChatMistral
+	codestral: ChatMistral
+	pixtral_large: ChatMistral
+
 # Models are imported on-demand via __getattr__
 
 # Lazy imports mapping for heavy chat models
 _LAZY_IMPORTS = {
-	'ChatAnthropic': ('browser_use.llm.anthropic.chat', 'ChatAnthropic'),
-	'ChatAnthropicBedrock': ('browser_use.llm.aws.chat_anthropic', 'ChatAnthropicBedrock'),
-	'ChatAWSBedrock': ('browser_use.llm.aws.chat_bedrock', 'ChatAWSBedrock'),
-	'ChatAzureOpenAI': ('browser_use.llm.azure.chat', 'ChatAzureOpenAI'),
-	'ChatBrowserUse': ('browser_use.llm.browser_use.chat', 'ChatBrowserUse'),
-	'ChatCerebras': ('browser_use.llm.cerebras.chat', 'ChatCerebras'),
-	'ChatDeepSeek': ('browser_use.llm.deepseek.chat', 'ChatDeepSeek'),
 	'ChatGoogle': ('browser_use.llm.google.chat', 'ChatGoogle'),
-	'ChatGroq': ('browser_use.llm.groq.chat', 'ChatGroq'),
 	'ChatMistral': ('browser_use.llm.mistral.chat', 'ChatMistral'),
-	'ChatOCIRaw': ('browser_use.llm.oci_raw.chat', 'ChatOCIRaw'),
-	'ChatOllama': ('browser_use.llm.ollama.chat', 'ChatOllama'),
 	'ChatOpenAI': ('browser_use.llm.openai.chat', 'ChatOpenAI'),
-	'ChatOpenRouter': ('browser_use.llm.openrouter.chat', 'ChatOpenRouter'),
-	'ChatVercel': ('browser_use.llm.vercel.chat', 'ChatVercel'),
 }
 
 # Cache for model instances - only created when accessed
@@ -143,18 +118,6 @@ __all__ = [
 	# Chat models
 	'BaseChatModel',
 	'ChatOpenAI',
-	'ChatBrowserUse',
-	'ChatDeepSeek',
 	'ChatGoogle',
-	'ChatAnthropic',
-	'ChatAnthropicBedrock',
-	'ChatAWSBedrock',
-	'ChatGroq',
 	'ChatMistral',
-	'ChatAzureOpenAI',
-	'ChatOCIRaw',
-	'ChatOllama',
-	'ChatOpenRouter',
-	'ChatVercel',
-	'ChatCerebras',
 ]

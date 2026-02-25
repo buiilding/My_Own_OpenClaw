@@ -46,67 +46,38 @@ base_subprocess.BaseSubprocessTransport.__del__ = _patched_del
 
 # Type stubs for lazy imports - fixes linter warnings
 if TYPE_CHECKING:
-	from browser_use.agent.prompts import SystemPrompt
-	from browser_use.agent.service import Agent
-
-	# from browser_use.agent.service import Agent
 	from browser_use.agent.views import ActionModel, ActionResult, AgentHistoryList
 	from browser_use.browser import BrowserProfile, BrowserSession
 	from browser_use.browser import BrowserSession as Browser
-	from browser_use.code_use.service import CodeAgent
 	from browser_use.dom.service import DomService
 	from browser_use.llm import models
 	from browser_use.llm._type_stubs import (
-		ChatAnthropic,
-		ChatAzureOpenAI,
-		ChatBrowserUse,
 		ChatGoogle,
-		ChatGroq,
 		ChatMistral,
-		ChatOCIRaw,
-		ChatOllama,
 		ChatOpenAI,
-		ChatVercel,
 	)
-	from browser_use.sandbox import sandbox
 	from browser_use.tools.service import Controller, Tools
 
-	# Lazy imports mapping - only import when actually accessed
+# Lazy imports mapping - only import when actually accessed
 _LAZY_IMPORTS = {
-	# Agent service (heavy due to dependencies)
-	# 'Agent': ('browser_use.agent.service', 'Agent'),
-	# Code-use agent (Jupyter notebook-like execution)
-	'CodeAgent': ('browser_use.code_use.service', 'CodeAgent'),
-	'Agent': ('browser_use.agent.service', 'Agent'),
-	# System prompt (moderate weight due to agent.views imports)
-	'SystemPrompt': ('browser_use.agent.prompts', 'SystemPrompt'),
-	# Agent views (very heavy - over 1 second!)
+	# Agent views
 	'ActionModel': ('browser_use.agent.views', 'ActionModel'),
 	'ActionResult': ('browser_use.agent.views', 'ActionResult'),
 	'AgentHistoryList': ('browser_use.agent.views', 'AgentHistoryList'),
 	'BrowserSession': ('browser_use.browser', 'BrowserSession'),
 	'Browser': ('browser_use.browser', 'BrowserSession'),  # Alias for BrowserSession
 	'BrowserProfile': ('browser_use.browser', 'BrowserProfile'),
-	# Tools (moderate weight)
+	# Tools
 	'Tools': ('browser_use.tools.service', 'Tools'),
 	'Controller': ('browser_use.tools.service', 'Controller'),  # alias
-	# DOM service (moderate weight)
+	# DOM service
 	'DomService': ('browser_use.dom.service', 'DomService'),
-	# Chat models (very heavy imports)
+	# Chat models available in vendored runtime
 	'ChatOpenAI': ('browser_use.llm.openai.chat', 'ChatOpenAI'),
 	'ChatGoogle': ('browser_use.llm.google.chat', 'ChatGoogle'),
-	'ChatAnthropic': ('browser_use.llm.anthropic.chat', 'ChatAnthropic'),
-	'ChatBrowserUse': ('browser_use.llm.browser_use.chat', 'ChatBrowserUse'),
-	'ChatGroq': ('browser_use.llm.groq.chat', 'ChatGroq'),
 	'ChatMistral': ('browser_use.llm.mistral.chat', 'ChatMistral'),
-	'ChatAzureOpenAI': ('browser_use.llm.azure.chat', 'ChatAzureOpenAI'),
-	'ChatOCIRaw': ('browser_use.llm.oci_raw.chat', 'ChatOCIRaw'),
-	'ChatOllama': ('browser_use.llm.ollama.chat', 'ChatOllama'),
-	'ChatVercel': ('browser_use.llm.vercel.chat', 'ChatVercel'),
 	# LLM models module
 	'models': ('browser_use.llm.models', None),
-	# Sandbox execution
-	'sandbox': ('browser_use.sandbox', 'sandbox'),
 }
 
 
@@ -121,33 +92,20 @@ def __getattr__(name: str):
 
 
 __all__ = [
-	'Agent',
-	'CodeAgent',
-	# 'CodeAgent',
 	'BrowserSession',
 	'Browser',  # Alias for BrowserSession
 	'BrowserProfile',
 	'Controller',
 	'DomService',
-	'SystemPrompt',
 	'ActionResult',
 	'ActionModel',
 	'AgentHistoryList',
 	# Chat models
 	'ChatOpenAI',
 	'ChatGoogle',
-	'ChatAnthropic',
-	'ChatBrowserUse',
-	'ChatGroq',
 	'ChatMistral',
-	'ChatAzureOpenAI',
-	'ChatOCIRaw',
-	'ChatOllama',
-	'ChatVercel',
 	'Tools',
 	'Controller',
 	# LLM models module
 	'models',
-	# Sandbox execution
-	'sandbox',
 ]
