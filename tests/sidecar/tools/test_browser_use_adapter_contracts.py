@@ -99,7 +99,7 @@ async def test_open_payload_contract() -> None:
         }
     )
 
-    result = await adapter.open({"action": "open", "url": "https://example.com/new"})
+    result = await adapter.execute("open", {"action": "open", "url": "https://example.com/new"})
 
     assert result.success is True
     assert result.action == "open"
@@ -112,6 +112,8 @@ async def test_open_payload_contract() -> None:
         "title": "New Tab",
         "browser_use_action": "navigate",
         "new_tab": True,
+        "legacy_action": "open",
+        "preferred_action": "navigate",
     }
     runtime.execute_browser_use_action.assert_awaited_once_with(
         action="navigate",
