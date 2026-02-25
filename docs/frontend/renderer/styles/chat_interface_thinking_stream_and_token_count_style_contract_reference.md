@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for chat visual contracts: message/tool/transparency card styling, input and window-control affordances, thinking-stream overflow gradient behavior, and token-count badge states."
+summary: "Deep reference for chat visual contracts: clone-style header/composer presentation, message/tool/transparency card styling, and thinking-stream overflow behavior."
 read_when:
   - When changing chat message presentation classes or input/header control styling.
-  - When debugging thinking-stream overflow indicators or token-count cache-hit visual states.
+  - When debugging thinking-stream overflow indicators or clone-style composer/header regressions.
 title: "Chat Interface, Thinking Stream, and Token Count Style Contract Reference"
 ---
 
@@ -24,16 +24,13 @@ Header composition:
 - `.chat-container` is full-height with no interior padding; shell spacing is handled by dashboard chrome
 - `.chat-header` is draggable (`-webkit-app-region: drag`) with clone-style compact top bar spacing and bottom divider
 - `.chat-title-block` exposes a clone-style model selector button (`.chat-model-selector`)
-- `.chat-meta` stays `no-drag` so token count + window controls remain clickable
+- `.chat-meta` stays `no-drag` so top-right utility controls remain clickable
 
-Window controls:
+Utility controls:
 
-- `ChatInterface.jsx` uses dedicated class variants:
-  - `.chat-window-control-minimize`
-  - `.chat-window-control-maximize`
-  - `.chat-window-control-close`
-- each variant defines persistent color-coding and hover/focus behavior
-- focus-visible ring uses accent-toned box shadow for keyboard accessibility
+- `ChatInterface.jsx` uses clone-style utility icon controls:
+  - `.chat-top-icon-btn` (`Share`, `More options`)
+- hover behavior mirrors clone dark-hover affordances (`#2F2F2F` background with brightened icon color)
 
 Action placement:
 
@@ -104,17 +101,9 @@ Visual behavior:
 - thinking text uses mono font, low-contrast tone, and subtle glow to keep it secondary to main assistant output
 - max height and internal scroll preserve overall chat layout stability
 
-## Token Count Badge Contract (`TokenCountDisplay.css` + component)
+## Token Count Note
 
-Layout behavior:
-
-- `.token-count-display` wraps item badges in mono, pill-style container
-- responsive rule at `max-width: 720px` expands to full width and spaces items evenly
-
-State variant:
-
-- `buildTokenCountItems(...)` may add `token-count-cache-hit` class
-- `.token-count-item.token-count-cache-hit .token-value` recolors value with accent token
+`TokenCountDisplay` styling remains defined in `TokenCountDisplay.css` for compatibility, but clone-parity main-window chat header no longer renders token badges.
 
 ## Responsive and Motion Guarantees
 

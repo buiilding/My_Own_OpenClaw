@@ -1,15 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Sparkles, Users } from 'lucide-react';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
-import TokenCountDisplay from './TokenCountDisplay';
 import { useChatStore } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { ApiClient } from '../../../infrastructure/api/client';
 import { PlayerService } from '../../../infrastructure/audio/PlayerService';
-import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { extractAudioChunkPayload } from '../utils/backendAudioEvents';
 import { selectChatInterfaceState } from '../utils/chatSelectors';
 import { startNewChatSession } from '../utils/newChatSession';
@@ -18,7 +17,7 @@ import '../../../styles/ChatInterface.css';
 const ACTIVE_STREAM_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
 
 function ChatInterface() {
-  const { messages, isSending, thinkingStatus, tokenCounts, streamPhase } = useChatStore(
+  const { messages, isSending, thinkingStatus, streamPhase } = useChatStore(
     useShallow(selectChatInterfaceState),
   );
   const clearMessages = useChatStore((state) => state.clearMessages);
@@ -55,24 +54,6 @@ function ChatInterface() {
 
   const stopPlayback = useCallback(() => {
     audioPlayerRef.current?.stopPlayback();
-  }, []);
-
-  const handleWindowMinimize = useCallback(() => {
-    IpcBridge.invoke(INVOKE_CHANNELS.WINDOW_MINIMIZE).catch((error) => {
-      console.warn('[ChatInterface] Failed to minimize window:', error);
-    });
-  }, []);
-
-  const handleWindowToggleMaximize = useCallback(() => {
-    IpcBridge.invoke(INVOKE_CHANNELS.WINDOW_TOGGLE_MAXIMIZE).catch((error) => {
-      console.warn('[ChatInterface] Failed to toggle maximize:', error);
-    });
-  }, []);
-
-  const handleWindowClose = useCallback(() => {
-    IpcBridge.invoke(INVOKE_CHANNELS.WINDOW_CLOSE).catch((error) => {
-      console.warn('[ChatInterface] Failed to close window:', error);
-    });
   }, []);
 
   const handleStopQuery = useCallback(() => {
@@ -139,34 +120,22 @@ function ChatInterface() {
           </button>
         </div>
         <div className="chat-meta">
-          <TokenCountDisplay tokenCounts={tokenCounts} />
-          <div className="chat-window-controls">
+          <div className="chat-utility-controls">
             <button
               type="button"
-              className="chat-window-control-btn chat-window-control-minimize"
-              onClick={handleWindowMinimize}
-              aria-label="Minimize window"
-              title="Minimize"
+              className="chat-top-icon-btn"
+              aria-label="Share"
+              title="Share"
             >
-              <span className="chat-window-control-icon">-</span>
+              <Users size={18} />
             </button>
             <button
               type="button"
-              className="chat-window-control-btn chat-window-control-maximize"
-              onClick={handleWindowToggleMaximize}
-              aria-label="Toggle maximize window"
-              title="Maximize / Restore"
+              className="chat-top-icon-btn"
+              aria-label="More options"
+              title="More options"
             >
-              <span className="chat-window-control-icon chat-window-control-square">□</span>
-            </button>
-            <button
-              type="button"
-              className="chat-window-control-btn chat-window-control-close"
-              onClick={handleWindowClose}
-              aria-label="Close window"
-              title="Close"
-            >
-              <span className="chat-window-control-icon">×</span>
+              <Sparkles size={18} />
             </button>
           </div>
         </div>

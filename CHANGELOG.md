@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-chat-ui): align ChatInterface top bar with clone semantics (model selector left, utility icons right) and remove remaining in-header custom window-control affordances from main dashboard chat surface
 - feat(frontend-chat-ui): migrate clone-style empty-state chat experience into main dashboard (`Good to see you` welcome text + centered composer pill), move stop action into composer, and remove duplicate header new-chat control (sidebar `New chat` now drives reset via `windie:new-chat` event)
 - fix(frontend-wakeword): lazily start Python wakeword service only on `wakeword-enable` and suppress disabled-state wakeword service errors in `useWakewordDetection` to avoid repeated disabled-mode exit-code log noise
 - docs(refactor-plan): record Phase 187 OCR runtime-config helper extraction (`runtime_config.py`), OCR service delegation updates, backend verification, and refreshed jscpd outcomes in `docs/planning/windieos_refactor_plan_2026-02-23.md`
