@@ -464,6 +464,7 @@ class TestSchemaRegistry:
         schema = get_browser_schema("status")
         assert schema is not None
         assert get_browser_schema("open") is None
+        assert get_browser_schema("press") is None
         assert get_browser_schema("switch_tab") is None
         assert get_browser_schema("act") is None
         assert get_browser_schema("errors") is None
@@ -514,6 +515,16 @@ class TestSchemaRegistry:
         assert is_valid is False
         assert error is not None
         assert "Unknown browser action: switch_tab" == error
+
+    def test_validate_browser_args_press_removed(self):
+        """Removed press alias should fail schema validation."""
+        is_valid, error = validate_browser_args(
+            "press",
+            {"key": "Enter"},
+        )
+        assert is_valid is False
+        assert error is not None
+        assert "Unknown browser action: press" == error
 
     def test_validate_browser_args_invalid(self):
         """Test validating invalid args."""

@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-browser-contracts): refresh sidecar browser action/runtime references so alias policy matches implementation (`type` legacy-only; `open`/`switch_tab`/`press`/`act` removed and always blocked)
+- docs(backend-browser-contracts): refresh backend browser schema/runtime references for canonical/legacy/removed action categories and RemoteBrowserTool gate behavior
 - refactor(sidecar-browser-schema): remove `act` from sidecar OpenClaw compatibility action registry so schema lookup/validation now treats `act` as unknown
 - refactor(browser-schema-cleanup): remove historical `act` envelope `request` field from backend + sidecar OpenClaw compatibility models; add regression checks that compat model fields no longer expose `request`
 - refactor(backend-openclaw-contract): narrow `BrowserOpenClawAction` to the sidecar OpenClaw compatibility subset and reject legacy aliases (`type`/`press`/`switch_tab`) with regression coverage
@@ -17,6 +19,8 @@ Includes the last 300 commits on `main`.
 - feat(browser-rollout): retire legacy `open` alias at backend + sidecar browser-tool boundaries (moved from legacy to removed-alias contract bucket); remove adapter `open -> navigate(new_tab=true)` transform and add regression coverage for removed-alias errors/log telemetry
 - feat(browser-rollout): retire legacy `switch_tab` alias at backend + sidecar browser-tool boundaries (moved from legacy to removed-alias contract bucket); remove adapter `switch_tab -> switch` transform and add regression coverage for removed-alias errors/log telemetry
 - docs(planning-browser): update hard-merge contract snapshot so active legacy aliases are now `type`/`press` and removed aliases are `open`/`switch_tab`/`act`
+- feat(browser-rollout): retire legacy `press` alias at backend + sidecar browser-tool boundaries (moved from legacy to removed-alias contract bucket); remove adapter `press -> send_keys` transform and add regression coverage for removed-alias errors/log telemetry
+- docs(planning-browser): update hard-merge contract snapshot so active legacy aliases are now `type` and removed aliases are `open`/`switch_tab`/`press`/`act`
 - refactor(backend-browser-schema): exclude removed alias `act` from backend OpenClaw compatibility action typing (`BrowserOpenClawAction`) and add regression coverage that `BrowserOpenClawCompatArgs(action="act")` fails validation
 - refactor(browser-contract): split compatibility aliases into active-legacy (`open`,`type`,`press`,`switch_tab`) vs removed (`act`) buckets in shared sidecar/backend contract modules; `BrowserControlArgs.is_legacy` now excludes removed aliases while `preferred_action` still guides `act` callers to canonical actions
 - refactor(sidecar-browser-adapter): remove adapter `act` envelope dispatch implementation; direct adapter calls now return explicit removed-alias migration error with legacy deprecation metadata

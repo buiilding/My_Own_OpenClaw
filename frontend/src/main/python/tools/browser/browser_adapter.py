@@ -33,7 +33,7 @@ class AdapterActionResult:
     deprecation: str | None = None
 
 MAX_SNAPSHOT_CAPTURE_CHARS = 120_000
-LEGACY_ALIAS_ACTIONS_WITH_ARGS = frozenset({"type", "press"})
+LEGACY_ALIAS_ACTIONS_WITH_ARGS = frozenset({"type"})
 BROWSER_USE_ACTIONS_REQUIRING_CONNECTION = frozenset(
     {
         "snapshot",
@@ -269,35 +269,6 @@ class BrowserUseCompatibilityAdapter:
                 decision=type_result.decision,
                 data=payload,
                 warnings=list(type_result.warnings),
-            )
-
-        if action == "press":
-            if not self._runtime.is_connected:
-                return self._not_connected("press")
-
-            key = self._value_as_str(args.get("key"))
-            if not key:
-                return self._invalid_argument("press", "Missing required 'key' parameter")
-
-            press_result = await self.execute_browser_use_action(
-                "send_keys",
-                {
-                    "action": "send_keys",
-                    "keys": key,
-                },
-            )
-            press_result = self._retag_action(press_result, "press")
-            if not press_result.success:
-                return press_result
-            payload = dict(press_result.data)
-            payload["action"] = "press"
-            payload["key"] = key
-            return AdapterActionResult(
-                success=True,
-                action="press",
-                decision=press_result.decision,
-                data=payload,
-                warnings=list(press_result.warnings),
             )
 
         return self._invalid_argument(action, f"Unsupported legacy alias action '{action}'")

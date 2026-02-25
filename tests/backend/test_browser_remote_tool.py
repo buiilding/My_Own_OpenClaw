@@ -193,6 +193,39 @@ class TestRemoteBrowserTool:
         assert getattr(record, "legacy_action_gate", None) == "legacy_alias_removed"
 
     @pytest.mark.asyncio
+    async def test_execute_remote_rejects_removed_press_alias_even_when_legacy_enabled(
+        self, monkeypatch, caplog
+    ):
+        monkeypatch.setenv("WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS", "1")
+        tool = RemoteBrowserTool()
+        caplog.set_level("WARNING", logger="backend.src.tools.remote_tools.browser")
+
+        mock_ctx = mock.Mock()
+        mock_ctx.session = mock.Mock()
+        mock_ctx.session.metadata = {"request_id": "press-removed"}
+
+        args = BrowserControlArgs(action="press", key="Enter")
+        with pytest.raises(
+            ValueError,
+            match="Legacy browser action 'press' has been removed. Use send_keys.",
+        ):
+            await tool.execute_remote(args, mock_ctx)
+
+        assert (
+            "Legacy browser action 'press' blocked by legacy_alias_removed; "
+            "prefer 'send_keys'"
+        ) in caplog.text
+        record = next(
+            rec
+            for rec in caplog.records
+            if "Legacy browser action 'press' blocked by legacy_alias_removed" in rec.getMessage()
+        )
+        assert getattr(record, "legacy_action", None) == "press"
+        assert getattr(record, "preferred_action", None) == "send_keys"
+        assert getattr(record, "legacy_action_blocked", None) is True
+        assert getattr(record, "legacy_action_gate", None) == "legacy_alias_removed"
+
+    @pytest.mark.asyncio
     async def test_execute_remote_logs_warning_for_blocked_legacy_action(self, caplog):
         tool = RemoteBrowserTool()
         caplog.set_level("WARNING", logger="backend.src.tools.remote_tools.browser")
@@ -233,7 +266,7 @@ class TestRemoteBrowserTool:
         mock_ctx.session = mock.Mock()
         mock_ctx.session.metadata = {"request_id": "strict-precedence"}
 
-        args = BrowserControlArgs(action="press", key="Enter")
+        args = BrowserControlArgs(action="type", ref="1", text="hello")
         with pytest.raises(
             ValueError,
             match="Legacy browser actions are disabled by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1",
@@ -251,7 +284,7 @@ class TestRemoteBrowserTool:
         mock_ctx.session = mock.Mock()
         mock_ctx.session.metadata = {"request_id": "strict-log"}
 
-        args = BrowserControlArgs(action="press", key="Enter")
+        args = BrowserControlArgs(action="type", ref="1", text="hello")
         with pytest.raises(
             ValueError,
             match="Legacy browser actions are disabled by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1",
@@ -259,13 +292,13 @@ class TestRemoteBrowserTool:
             await tool.execute_remote(args, mock_ctx)
 
         assert (
-            "Legacy browser action 'press' blocked by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1; "
-            "prefer 'send_keys'"
+            "Legacy browser action 'type' blocked by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1; "
+            "prefer 'input'"
         ) in caplog.text
         record = next(
             rec
             for rec in caplog.records
-            if "Legacy browser action 'press' blocked by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1"
+            if "Legacy browser action 'type' blocked by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1"
             in rec.getMessage()
         )
         assert getattr(record, "legacy_action_gate", None) == "WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1"
@@ -407,9 +440,9 @@ class TestBrowserControlArgs:
         assert args.submit is True
 
     def test_legacy_action_helper_reports_preferred_action(self):
-        args = BrowserControlArgs(action="press", key="Enter")
+        args = BrowserControlArgs(action="type", ref="1", text="Hello")
         assert args.is_legacy is True
-        assert args.preferred_action == "send_keys"
+        assert args.preferred_action == "input"
 
     def test_removed_act_alias_reports_canonical_preferred_action(self):
         args = BrowserControlArgs(action="act")
@@ -426,8 +459,13 @@ class TestBrowserControlArgs:
         assert args.is_legacy is False
         assert args.preferred_action == "switch"
 
+    def test_removed_press_alias_reports_send_keys_preferred_action(self):
+        args = BrowserControlArgs(action="press", key="Enter")
+        assert args.is_legacy is False
+        assert args.preferred_action == "send_keys"
+
     def test_press_action_key_field(self):
-        """Test press action key field remains available."""
+        """Test removed press alias key field remains available for migration errors."""
         args = BrowserControlArgs(action="press", key="Enter")
         assert args.action == "press"
         assert args.key == "Enter"

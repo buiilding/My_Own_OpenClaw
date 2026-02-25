@@ -44,8 +44,8 @@ Use explicit `browser(action="snapshot", ...)` calls when snapshot data is neede
 Actions:
 - canonical: connect, status, profiles, navigate, snapshot, extract, click, input, send_keys, scroll, screenshot, wait, get_tabs, switch, evaluate, close
 - canonical helpers: done, search, go_back, search_page, find_elements, find_text, close_tab, dropdown_options, select_dropdown, upload_file, write_file, replace_file, read_file, read_long_content
-- compatibility aliases (legacy, deprecated): type->input, press->send_keys
-- removed legacy aliases: `open` (use `navigate`), `switch_tab` (use `switch`), and `act` (use canonical actions directly)
+- compatibility aliases (legacy, deprecated): type->input
+- removed legacy aliases: `open` (use `navigate`), `switch_tab` (use `switch`), `press` (use `send_keys`), and `act` (use canonical actions directly)
 
 Compatibility validation notes:
 - snapshot rejects compatibility fields `format`/`snapshotFormat`/`wait_until`/`state`/`mode`/`max_chars`/`refs`/`interactive`/`compact`/`depth`/`selector`/`frame`
