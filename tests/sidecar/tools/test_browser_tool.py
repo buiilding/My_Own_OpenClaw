@@ -41,8 +41,7 @@ class TestExecuteBrowserControl:
 
     @pytest.mark.asyncio
     async def test_removed_type_alias_rejected_by_default(self):
-        with mock.patch.dict("os.environ", {}, clear=False):
-            result = await execute_browser({"action": "type", "ref": "1", "text": "hello"})
+        result = await execute_browser({"action": "type", "ref": "1", "text": "hello"})
 
         assert result.success is False
         assert "Legacy browser action 'type' has been removed. Use input." in (result.error or "")
@@ -85,16 +84,12 @@ class TestExecuteBrowserControl:
         assert getattr(record, "legacy_action_gate", None) == "legacy_alias_removed"
 
     @pytest.mark.asyncio
-    async def test_compat_flags_still_allow_canonical_actions(self):
+    async def test_canonical_actions_still_allow_adapter_execution(self):
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get_controller, mock.patch(
             "tools.browser.browser_tool.get_browser_adapter"
-        ) as mock_get_adapter, mock.patch.dict(
-            "os.environ",
-            {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "0"},
-            clear=False,
-        ):
+        ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
             mock_get_controller.return_value = mock_controller
@@ -1109,16 +1104,12 @@ class TestPostActionSnapshots:
             mock_controller.get_page_snapshot.assert_not_awaited()
 
     @pytest.mark.asyncio
-    async def test_act_alias_removed_even_when_legacy_enabled(self):
+    async def test_act_alias_removed(self):
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get, mock.patch(
             "tools.browser.browser_tool.get_browser_adapter"
-        ) as mock_get_adapter, mock.patch.dict(
-            "os.environ",
-            {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1"},
-            clear=False,
-        ):
+        ) as mock_get_adapter:
             result = await execute_browser(
                 {
                     "action": "act",
@@ -1136,16 +1127,12 @@ class TestTypeAction:
     """Test removed type alias behavior."""
 
     @pytest.mark.asyncio
-    async def test_type_alias_removed_even_when_legacy_enabled(self):
+    async def test_type_alias_removed(self):
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get, mock.patch(
             "tools.browser.browser_tool.get_browser_adapter"
-        ) as mock_get_adapter, mock.patch.dict(
-            "os.environ",
-            {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1"},
-            clear=False,
-        ):
+        ) as mock_get_adapter:
             result = await execute_browser(
                 {
                     "action": "type",
