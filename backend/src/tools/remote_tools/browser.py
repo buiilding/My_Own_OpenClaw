@@ -44,16 +44,13 @@ Use explicit `browser(action="snapshot", ...)` calls when snapshot data is neede
 Actions:
 - canonical: connect, status, profiles, navigate, snapshot, extract, click, input, send_keys, scroll, screenshot, wait, get_tabs, switch, evaluate, close
 - canonical helpers: done, search, go_back, search_page, find_elements, find_text, close_tab, dropdown_options, select_dropdown, upload_file, write_file, replace_file, read_file, read_long_content
-- compatibility aliases (legacy, deprecated): type->input
-- removed legacy aliases: `open` (use `navigate`), `switch_tab` (use `switch`), `press` (use `send_keys`), and `act` (use canonical actions directly)
+- removed legacy aliases: `type` (use `input`), `open` (use `navigate`), `switch_tab` (use `switch`), `press` (use `send_keys`), and `act` (use canonical actions directly)
 
 Compatibility validation notes:
 - snapshot rejects compatibility fields `format`/`snapshotFormat`/`wait_until`/`state`/`mode`/`max_chars`/`refs`/`interactive`/`compact`/`depth`/`selector`/`frame`
 - extract rejects compatibility fields `mode`/`selector`/`frame`
 - screenshot rejects compatibility fields `full_page`/`ref`/`element`/`type`/`quality`
-- set `WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1` to reject legacy alias actions at runtime
-- legacy aliases are disabled by default
-- set `WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1` to temporarily re-enable legacy alias actions during migration"""
+- `WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY` and `WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS` are retained for compatibility but currently have no effect because all legacy aliases are removed"""
     args_model = BrowserControlArgs
     category = ToolDomain.BROWSER
     strict_canonical_actions_env = "WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY"

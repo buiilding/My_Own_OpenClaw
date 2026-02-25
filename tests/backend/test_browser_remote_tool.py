@@ -61,36 +61,29 @@ class TestRemoteBrowserTool:
         assert result.args["action"] == "connect"
 
     @pytest.mark.asyncio
-    async def test_execute_remote_rejects_legacy_actions_in_strict_mode(self, monkeypatch):
-        """Strict canonical mode should reject legacy browser action aliases."""
+    async def test_execute_remote_rejects_removed_type_alias_even_with_legacy_flags(
+        self, monkeypatch, caplog
+    ):
         monkeypatch.setenv("WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY", "1")
+        monkeypatch.setenv("WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS", "1")
         tool = RemoteBrowserTool()
+        caplog.set_level("WARNING", logger="backend.src.tools.remote_tools.browser")
 
         mock_ctx = mock.Mock()
         mock_ctx.session = mock.Mock()
-        mock_ctx.session.metadata = {"request_id": "strict-legacy"}
+        mock_ctx.session.metadata = {"request_id": "type-removed"}
 
         args = BrowserControlArgs(action="type", ref="1", text="hello")
         with pytest.raises(
             ValueError,
-            match="Legacy browser actions are disabled by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1",
+            match="Legacy browser action 'type' has been removed. Use input.",
         ):
             await tool.execute_remote(args, mock_ctx)
 
-    @pytest.mark.asyncio
-    async def test_execute_remote_rejects_legacy_actions_when_legacy_disabled(self, monkeypatch):
-        tool = RemoteBrowserTool()
-
-        mock_ctx = mock.Mock()
-        mock_ctx.session = mock.Mock()
-        mock_ctx.session.metadata = {"request_id": "legacy-disabled"}
-
-        args = BrowserControlArgs(action="type", ref="1", text="hello")
-        with pytest.raises(
-            ValueError,
-            match="Legacy browser actions are disabled by WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1",
-        ):
-            await tool.execute_remote(args, mock_ctx)
+        assert (
+            "Legacy browser action 'type' blocked by legacy_alias_removed; "
+            "prefer 'input'"
+        ) in caplog.text
 
     @pytest.mark.asyncio
     async def test_execute_remote_rejects_removed_act_alias_even_when_legacy_enabled(
@@ -226,86 +219,8 @@ class TestRemoteBrowserTool:
         assert getattr(record, "legacy_action_gate", None) == "legacy_alias_removed"
 
     @pytest.mark.asyncio
-    async def test_execute_remote_logs_warning_for_blocked_legacy_action(self, caplog):
-        tool = RemoteBrowserTool()
-        caplog.set_level("WARNING", logger="backend.src.tools.remote_tools.browser")
-
-        mock_ctx = mock.Mock()
-        mock_ctx.session = mock.Mock()
-        mock_ctx.session.metadata = {"request_id": "legacy-blocked"}
-
-        args = BrowserControlArgs(action="type", ref="1", text="hello")
-        with pytest.raises(
-            ValueError,
-            match="Legacy browser actions are disabled by WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1",
-        ):
-            await tool.execute_remote(args, mock_ctx)
-
-        assert (
-            "Legacy browser action 'type' blocked by WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1; "
-            "prefer 'input'"
-        ) in caplog.text
-        record = next(
-            rec
-            for rec in caplog.records
-            if "Legacy browser action 'type' blocked by WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1"
-            in rec.getMessage()
-        )
-        assert getattr(record, "legacy_action", None) == "type"
-        assert getattr(record, "preferred_action", None) == "input"
-        assert getattr(record, "legacy_action_blocked", None) is True
-        assert getattr(record, "legacy_action_gate", None) == "WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1"
-
-    @pytest.mark.asyncio
-    async def test_execute_remote_strict_mode_overrides_legacy_allow_flag(self, monkeypatch):
+    async def test_execute_remote_compat_flags_still_allow_canonical_actions(self, monkeypatch):
         monkeypatch.setenv("WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY", "1")
-        monkeypatch.setenv("WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS", "1")
-        tool = RemoteBrowserTool()
-
-        mock_ctx = mock.Mock()
-        mock_ctx.session = mock.Mock()
-        mock_ctx.session.metadata = {"request_id": "strict-precedence"}
-
-        args = BrowserControlArgs(action="type", ref="1", text="hello")
-        with pytest.raises(
-            ValueError,
-            match="Legacy browser actions are disabled by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1",
-        ):
-            await tool.execute_remote(args, mock_ctx)
-
-    @pytest.mark.asyncio
-    async def test_execute_remote_strict_mode_logs_canonical_gate(self, monkeypatch, caplog):
-        monkeypatch.setenv("WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY", "1")
-        monkeypatch.setenv("WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS", "1")
-        tool = RemoteBrowserTool()
-        caplog.set_level("WARNING", logger="backend.src.tools.remote_tools.browser")
-
-        mock_ctx = mock.Mock()
-        mock_ctx.session = mock.Mock()
-        mock_ctx.session.metadata = {"request_id": "strict-log"}
-
-        args = BrowserControlArgs(action="type", ref="1", text="hello")
-        with pytest.raises(
-            ValueError,
-            match="Legacy browser actions are disabled by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1",
-        ):
-            await tool.execute_remote(args, mock_ctx)
-
-        assert (
-            "Legacy browser action 'type' blocked by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1; "
-            "prefer 'input'"
-        ) in caplog.text
-        record = next(
-            rec
-            for rec in caplog.records
-            if "Legacy browser action 'type' blocked by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1"
-            in rec.getMessage()
-        )
-        assert getattr(record, "legacy_action_gate", None) == "WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1"
-        assert getattr(record, "legacy_action_blocked", None) is True
-
-    @pytest.mark.asyncio
-    async def test_execute_remote_legacy_disable_still_allows_canonical_actions(self, monkeypatch):
         monkeypatch.setenv("WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS", "0")
         tool = RemoteBrowserTool()
 
@@ -317,49 +232,6 @@ class TestRemoteBrowserTool:
         result = await tool.execute_remote(args, mock_ctx)
         assert result.is_remote is True
         assert result.args["action"] == "navigate"
-
-    @pytest.mark.asyncio
-    async def test_execute_remote_logs_warning_for_allowed_legacy_action(self, caplog):
-        with mock.patch.dict(
-            "os.environ",
-            {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1"},
-            clear=False,
-        ):
-            tool = RemoteBrowserTool()
-            caplog.set_level("WARNING", logger="backend.src.tools.remote_tools.browser")
-
-            mock_ctx = mock.Mock()
-            mock_ctx.session = mock.Mock()
-            mock_ctx.session.metadata = {"request_id": "legacy-log"}
-
-            args = BrowserControlArgs(action="type", ref="1", text="hello")
-            result = await tool.execute_remote(args, mock_ctx)
-
-            assert result.is_remote is True
-            assert "Legacy browser action 'type' invoked; prefer 'input'" in caplog.text
-            record = next(
-                rec
-                for rec in caplog.records
-                if "Legacy browser action 'type' invoked; prefer 'input'" in rec.getMessage()
-            )
-            assert getattr(record, "legacy_action", None) == "type"
-            assert getattr(record, "preferred_action", None) == "input"
-            assert getattr(record, "legacy_action_blocked", None) is False
-            assert getattr(record, "legacy_action_gate", None) is None
-
-    @pytest.mark.asyncio
-    async def test_execute_remote_legacy_allow_flag_enables_aliases(self, monkeypatch):
-        monkeypatch.setenv("WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS", "1")
-        tool = RemoteBrowserTool()
-
-        mock_ctx = mock.Mock()
-        mock_ctx.session = mock.Mock()
-        mock_ctx.session.metadata = {"request_id": "legacy-enabled"}
-
-        args = BrowserControlArgs(action="type", ref="1", text="hello")
-        result = await tool.execute_remote(args, mock_ctx)
-        assert result.is_remote is True
-        assert result.args["action"] == "type"
 
 
 class TestBrowserToolRegistry:
@@ -427,7 +299,7 @@ class TestBrowserControlArgs:
         assert args.coordinate_y == 250
 
     def test_type_action(self):
-        """Test type action args."""
+        """Test removed type alias fields remain available for migration errors."""
         args = BrowserControlArgs(
             action="type",
             ref="3",
@@ -439,9 +311,9 @@ class TestBrowserControlArgs:
         assert args.text == "Hello"
         assert args.submit is True
 
-    def test_legacy_action_helper_reports_preferred_action(self):
+    def test_removed_type_alias_reports_input_preferred_action(self):
         args = BrowserControlArgs(action="type", ref="1", text="Hello")
-        assert args.is_legacy is True
+        assert args.is_legacy is False
         assert args.preferred_action == "input"
 
     def test_removed_act_alias_reports_canonical_preferred_action(self):
@@ -572,7 +444,7 @@ class TestOpenClawCompatArgs:
         with pytest.raises(ValidationError, match="action"):
             BrowserOpenClawCompatArgs(action="act")
 
-    def test_legacy_type_alias_is_not_valid_openclaw_action(self):
+    def test_removed_type_alias_is_not_valid_openclaw_action(self):
         with pytest.raises(ValidationError, match="action"):
             BrowserOpenClawCompatArgs(action="type")
 

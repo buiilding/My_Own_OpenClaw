@@ -33,7 +33,7 @@ class AdapterActionResult:
     deprecation: str | None = None
 
 MAX_SNAPSHOT_CAPTURE_CHARS = 120_000
-LEGACY_ALIAS_ACTIONS_WITH_ARGS = frozenset({"type"})
+LEGACY_ALIAS_ACTIONS_WITH_ARGS = frozenset()
 BROWSER_USE_ACTIONS_REQUIRING_CONNECTION = frozenset(
     {
         "snapshot",
@@ -218,61 +218,7 @@ class BrowserUseCompatibilityAdapter:
         action: str,
         args: Mapping[str, Any],
     ) -> AdapterActionResult:
-        if action == "type":
-            if not self._runtime.is_connected:
-                return self._not_connected("type")
-
-            ref = self._value_as_str(args.get("ref"))
-            text = args.get("text")
-            if not ref:
-                return self._invalid_argument("type", "Missing required 'ref' parameter")
-            if not isinstance(text, str):
-                return self._invalid_argument(
-                    "type",
-                    "Missing required 'text' parameter",
-                )
-
-            type_result = await self.execute_browser_use_action(
-                "input",
-                {
-                    **dict(args),
-                    "action": "input",
-                    "ref": ref,
-                    "text": text,
-                },
-            )
-            type_result = self._retag_action(type_result, "type")
-            if not type_result.success:
-                return type_result
-
-            submit = bool(args.get("submit", False))
-            if submit:
-                submit_result = await self.execute_browser_use_action(
-                    "send_keys",
-                    {
-                        "action": "send_keys",
-                        "keys": "Enter",
-                    },
-                )
-                if not submit_result.success:
-                    return self._retag_action(submit_result, "type")
-
-            payload = dict(type_result.data)
-            payload["action"] = "type"
-            payload["ref"] = ref
-            payload["text"] = text
-            payload["submit"] = submit
-
-            return AdapterActionResult(
-                success=True,
-                action="type",
-                decision=type_result.decision,
-                data=payload,
-                warnings=list(type_result.warnings),
-            )
-
         return self._invalid_argument(action, f"Unsupported legacy alias action '{action}'")
-
 
     async def execute_browser_use_action(
         self,

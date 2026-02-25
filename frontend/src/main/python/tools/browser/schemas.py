@@ -350,7 +350,6 @@ BrowserControlArgs = (
     | BrowserSnapshotArgs
     | BrowserExtractArgs
     | BrowserClickArgs
-    | BrowserTypeArgs
     | BrowserScrollArgs
     | BrowserScreenshotArgs
     | BrowserWaitArgs
@@ -368,7 +367,6 @@ BROWSER_SCHEMAS = {
     "snapshot": BrowserSnapshotArgs,
     "extract": BrowserExtractArgs,
     "click": BrowserClickArgs,
-    "type": BrowserTypeArgs,
     "scroll": BrowserScrollArgs,
     "screenshot": BrowserScreenshotArgs,
     "wait": BrowserWaitArgs,

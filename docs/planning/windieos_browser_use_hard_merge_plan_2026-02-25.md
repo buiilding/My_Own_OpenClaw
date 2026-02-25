@@ -38,8 +38,9 @@ title: "WindieOS Browser Use Hard-Merge Plan (2026-02-25)"
   - `connect`, `status`, `profiles`, `navigate`, `snapshot`, `extract`, `click`, `input`, `send_keys`, `scroll`, `screenshot`, `wait`, `get_tabs`, `switch`, `evaluate`, `close`
   - `done`, `search`, `go_back`, `search_page`, `find_elements`, `find_text`, `close_tab`, `dropdown_options`, `select_dropdown`, `upload_file`, `write_file`, `replace_file`, `read_file`, `read_long_content`
 - Legacy compatibility aliases:
-  - `type -> input`
+  - none (all compatibility aliases are now retired at the tool boundary)
 - Removed legacy aliases:
+  - `type -> use input`
   - `open -> use navigate`
   - `switch_tab -> use switch`
   - `press -> use send_keys`
@@ -98,6 +99,8 @@ title: "WindieOS Browser Use Hard-Merge Plan (2026-02-25)"
      - adapter-level `switch_tab -> switch` compatibility transform removed; `BrowserUseCompatibilityAdapter.execute("switch_tab", ...)` now returns removed-alias migration error
      - legacy alias `press` is now retired at backend + sidecar tool boundaries (moved to removed-alias bucket; callers must use canonical `send_keys`)
      - adapter-level `press -> send_keys` compatibility transform removed; `BrowserUseCompatibilityAdapter.execute("press", ...)` now returns removed-alias migration error
+     - legacy alias `type` is now retired at backend + sidecar tool boundaries (moved to removed-alias bucket; callers must use canonical `input`)
+     - adapter-level `type -> input` compatibility transform removed; `BrowserUseCompatibilityAdapter.execute("type", ...)` now returns removed-alias migration error
 
 ## Safety Gates
 
