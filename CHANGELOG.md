@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(test-chatbox-response): split oversized `tests/frontend/ChatBoxResponse.test.jsx` into focused `ChatBoxResponse.toolGhost` and `ChatBoxResponse.state` suites with shared `ChatBoxResponse.testUtils.jsx`, preserving all assertions while reducing file complexity
 - refactor(test-tool-runner-events): collapse three duplicated click-delay tool-call tests into one table-driven helper path in `tests/frontend/ToolRunnerHook.events.test.ts` while preserving ghost-sync timing assertions
 - refactor(frontend-chatbox-response): extract shared `ToolGhostCursor` component and `useAutoResizedResponseHeight` hook, reusing ghost cursor markup across debug/overlay UIs and reducing `ChatBoxResponse.jsx` from `538` to `479` LOC
 - fix(frontend-react-compiler): remove disabled-hooks lint suppression in `ToolGhostDebugApp.jsx` by switching timer lifecycle to stable `useCallback` orchestration so `npm run lint:audit:react` stays clean
