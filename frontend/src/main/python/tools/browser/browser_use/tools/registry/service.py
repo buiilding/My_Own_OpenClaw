@@ -237,14 +237,14 @@ class Registry(Generic[Context]):
 					else:
 						# Special param is required but not provided
 						self._raise_missing_special_parameter(func.__name__, param.name)
-			else:
-				# This is an action parameter
-				if param.name in params_dict:
-					call_args.append(params_dict[param.name])
-				elif param.default != Parameter.empty:
-					call_args.append(param.default)
 				else:
-					raise ValueError(f"{func.__name__}() missing required parameter '{param.name}'")
+					# This is an action parameter
+					if param.name in params_dict:
+						call_args.append(params_dict[param.name])
+					elif param.default != Parameter.empty:
+						call_args.append(param.default)
+					else:
+						raise ValueError(f"{func.__name__}() missing required parameter '{param.name}'")
 
 			# Call original function with positional args
 			if iscoroutinefunction(func):

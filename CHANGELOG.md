@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(sidecar-browser-runtime): repair vendored Browser Use registry normalized-wrapper argument routing (`for/else` control-flow bug) that could fail actions like `navigate` with missing `browser_session`; add regression coverage in `test_browser_use_registry_service.py`
 - feat(backend-compaction): add Codex-style conversation history compaction pipeline (auto pre/mid-turn gates, manual `compact-history` API, lifecycle events, typed config fields, and transcript rehydrate normalization) with backend regression coverage.
 - fix(frontend-chat-ui): nudge assistant action icon row slightly further left to align with assistant message text baseline.
 - fix(frontend-chat-ui): stack assistant message action icons on a separate row under assistant text, left-aligned with message content.

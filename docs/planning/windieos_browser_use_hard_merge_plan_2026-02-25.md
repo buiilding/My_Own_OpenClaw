@@ -111,6 +111,7 @@ title: "WindieOS Browser Use Hard-Merge Plan (2026-02-25)"
      - compatibility naming aliases (`BrowserUseCompatibilityAdapter`, `get_browser_use_adapter`) are now removed from sidecar browser adapter/tool export surfaces
      - sidecar browser tool now resolves controller import lazily, allowing adapter/parity suites to import `browser_tool` without a Playwright install
      - sidecar browser safety gate now runs green without Playwright in this environment (`test_browser_tool`, `test_browser_use_adapter`, `test_browser_use_tool_parity`, `test_browser_schemas` all passing)
+     - vendored Browser Use registry wrapper control flow fixed (`for/else` mis-branch) so runtime actions like `navigate` correctly receive `browser_session` instead of failing with missing-parameter errors
 
 ## Safety Gates
 
