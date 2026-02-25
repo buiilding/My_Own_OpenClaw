@@ -97,6 +97,17 @@ Missing session behavior:
 - applies updates through `session_manager.update_session_config(user_id, updates)`
 - returns `settings-updated` with `updated_keys`
 
+Frontend-owned field set:
+
+- `model_mode`
+- `model_provider`
+- `selected_model_id`
+- `interaction_mode`
+- `voice_mode_enabled`
+- `speech_mode_enabled`
+- `wakeword_stt_enabled`
+- `include_query_screenshot`
+
 ### `ListModelsHandler`
 
 - delegates to `ModelService.get_all_models()`

@@ -81,7 +81,7 @@ Payload: empty object model.
 Payload keys (schema-level optional):
 
 - `model_mode`, `model_provider`, `selected_model_id`, `interaction_mode`
-- `voice_mode_enabled`, `speech_mode_enabled`, `include_query_screenshot`
+- `voice_mode_enabled`, `speech_mode_enabled`, `wakeword_stt_enabled`, `include_query_screenshot`
 
 Schema forbids extras; handler-level validation further restricts to frontend-owned patch policy.
 

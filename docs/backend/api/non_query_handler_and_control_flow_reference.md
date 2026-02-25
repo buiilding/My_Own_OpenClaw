@@ -66,6 +66,7 @@ Validation scope (`FrontendConfigPatch`):
 - `interaction_mode`
 - `voice_mode_enabled`
 - `speech_mode_enabled`
+- `wakeword_stt_enabled`
 - `include_query_screenshot`
 
 ## Stop Query Control Path

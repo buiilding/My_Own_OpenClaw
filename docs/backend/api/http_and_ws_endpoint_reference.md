@@ -159,7 +159,9 @@ The route table is validated against incoming schema literals at startup.
 
 - `query`: registers active task by turn_ref, executes stream pipeline, clears task in `finally`.
 - `stop-query`: cancels active query task and always emits `streaming-complete`.
-- `update-settings`: only frontend-owned patch keys are applied to per-session config.
+- `update-settings`: only frontend-owned patch keys are applied to per-session config
+  (`model_mode`, `model_provider`, `selected_model_id`, `interaction_mode`,
+  `voice_mode_enabled`, `speech_mode_enabled`, `wakeword_stt_enabled`, `include_query_screenshot`).
 - `tool-result`/`tool-bundle-result`: silently drop stale results when session no longer exists.
 
 ## Disconnect and Cleanup Semantics
