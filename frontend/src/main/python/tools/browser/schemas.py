@@ -356,7 +356,6 @@ BrowserControlArgs = (
     | BrowserScreenshotArgs
     | BrowserWaitArgs
     | BrowserGetTabsArgs
-    | BrowserSwitchTabArgs
     | BrowserEvaluateArgs
     | BrowserCloseArgs
     | BrowserOpenClawCompatArgs
@@ -376,7 +375,6 @@ BROWSER_SCHEMAS = {
     "screenshot": BrowserScreenshotArgs,
     "wait": BrowserWaitArgs,
     "get_tabs": BrowserGetTabsArgs,
-    "switch_tab": BrowserSwitchTabArgs,
     "evaluate": BrowserEvaluateArgs,
     "close": BrowserCloseArgs,
     **{action: BrowserOpenClawCompatArgs for action in OPENCLAW_COMPAT_ACTIONS},

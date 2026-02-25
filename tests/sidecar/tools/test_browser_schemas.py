@@ -464,6 +464,7 @@ class TestSchemaRegistry:
         schema = get_browser_schema("status")
         assert schema is not None
         assert get_browser_schema("open") is None
+        assert get_browser_schema("switch_tab") is None
         assert get_browser_schema("act") is None
         assert get_browser_schema("errors") is None
         assert get_browser_schema("requests") is None
@@ -503,6 +504,16 @@ class TestSchemaRegistry:
         assert is_valid is False
         assert error is not None
         assert "Unknown browser action: act" == error
+
+    def test_validate_browser_args_switch_tab_removed(self):
+        """Removed switch_tab alias should fail schema validation."""
+        is_valid, error = validate_browser_args(
+            "switch_tab",
+            {"target_id": "id2"},
+        )
+        assert is_valid is False
+        assert error is not None
+        assert "Unknown browser action: switch_tab" == error
 
     def test_validate_browser_args_invalid(self):
         """Test validating invalid args."""

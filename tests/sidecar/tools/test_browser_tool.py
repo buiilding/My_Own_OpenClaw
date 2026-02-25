@@ -288,19 +288,19 @@ class TestPhase2AdapterRouting:
             mock_adapter = mock.AsyncMock()
             mock_adapter.execute.return_value = AdapterActionResult(
                 success=False,
-                action="switch_tab",
+                action="type",
                 decision="port",
-                error="Tab not found: missing",
-                error_code="TAB_NOT_FOUND",
+                error="Input target not found",
+                error_code="ELEMENT_NOT_FOUND",
             )
             mock_get_adapter.return_value = mock_adapter
 
             result = await execute_browser(
-                {"action": "switch_tab", "target_id": "missing"}
+                {"action": "type", "ref": "missing", "text": "hello"}
             )
 
             assert result.success is False
-            assert result.error == "Tab not found: missing"
+            assert result.error == "Input target not found"
 
     @pytest.mark.asyncio
     async def test_profiles_action_uses_adapter(self):
@@ -1422,35 +1422,15 @@ class TestSwitchTabAction:
     """Test switch_tab action."""
 
     @pytest.mark.asyncio
-    async def test_switch_tab_success_returns_status_title_and_url(self):
-        """Successful switch_tab should report URL/title from get_status."""
+    async def test_switch_tab_alias_removed(self, caplog):
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get, mock.patch(
-            "tools.browser.browser_tool.get_browser_use_adapter"
-        ) as mock_get_adapter, mock.patch.dict(
+        ) as mock_get, mock.patch.dict(
             "os.environ",
             {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1"},
             clear=False,
         ):
-            mock_controller = mock.AsyncMock()
-            mock_controller.is_connected = True
-            mock_get.return_value = mock_controller
-            mock_adapter = mock.AsyncMock()
-            mock_adapter.execute.return_value = AdapterActionResult(
-                success=True,
-                action="switch_tab",
-                decision="port",
-                data={
-                    "action": "switch_tab",
-                    "target_id": "id2",
-                    "url": "https://example.com/switched",
-                    "title": "Switched Tab",
-                    "browser_use_action": "switch",
-                },
-            )
-            mock_get_adapter.return_value = mock_adapter
-
+            caplog.set_level("WARNING", logger="tools.browser.browser_tool")
             result = await execute_browser(
                 {
                     "action": "switch_tab",
@@ -1458,11 +1438,13 @@ class TestSwitchTabAction:
                 }
             )
 
-            assert result.success is True
-            assert result.data["action"] == "switch_tab"
-            assert result.data["target_id"] == "id2"
-            assert result.data["url"] == "https://example.com/switched"
-            assert result.data["title"] == "Switched Tab"
+            assert result.success is False
+            assert "Legacy browser action 'switch_tab' has been removed." in (result.error or "")
+            assert (
+                "Legacy browser action 'switch_tab' blocked by legacy_alias_removed; "
+                "prefer canonical action 'switch'"
+            ) in caplog.text
+            mock_get.assert_not_called()
 
 
 class TestCloseAction:
