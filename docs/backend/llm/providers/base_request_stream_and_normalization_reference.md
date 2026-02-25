@@ -13,6 +13,7 @@ title: "Base Request, Stream, and Normalization Reference"
 - `backend/src/llm/client.py`
 - `backend/src/llm/providers/base.py`
 - `backend/src/llm/providers/base_payload_compat_mixin.py`
+- `backend/src/llm/providers/stream_event_pipeline.py`
 - `backend/src/llm/providers/online.py`
 - `backend/src/llm/providers/error_mapping.py`
 - `backend/src/llm/providers/message_normalization.py`
@@ -39,6 +40,7 @@ Provider utility helpers now centralize shared logic:
 - `response_parsing.py`: stream delta extraction, completion payload parsing, and tool-call argument normalization.
 - `usage_diagnostics.py`: usage payload normalization/collection and stream cache diagnostics derivation.
 - `base_payload_compat_mixin.py`: compatibility wrapper surface preserving historical `LLMProvider` helper methods while delegating to extracted modules.
+- `stream_event_pipeline.py`: stream-mode request flagging and shared text/thinking event emission loops.
 
 ## Request Param Validation and Construction (`LLMProvider._build_request_params`)
 
@@ -128,6 +130,10 @@ Shared stream helpers:
 - `_enable_stream_with_usage(...)` sets `stream=true` + `stream_options.include_usage=true`.
 - `_stream_text_content_events(...)` yields `ChunkEvent` from text deltas.
 - `_stream_thinking_and_text_events(...)` yields `ThinkingEvent` + `ChunkEvent`.
+
+Implementation note:
+
+- `LLMProvider` stream wrappers now delegate concrete loop logic to `stream_event_pipeline.py` while preserving compatibility method names in `base.py`.
 
 ## Delta and Completion Payload Extraction
 

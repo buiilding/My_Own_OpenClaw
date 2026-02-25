@@ -20,12 +20,12 @@ Based on current source tree under `backend/src`:
 | `api` | 68 |
 | `core` | 77 |
 | `tools` | 31 |
-| `llm` | 29 |
+| `llm` | 30 |
 | `services` | 15 |
 | `simulation` | 12 |
 | `sdk` | 6 |
 | `embeddings` | 2 |
-| **Total** | **304** |
+| **Total** | **303** |
 
 ## API Layer Index
 
