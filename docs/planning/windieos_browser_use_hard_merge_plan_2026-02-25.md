@@ -102,6 +102,7 @@ title: "WindieOS Browser Use Hard-Merge Plan (2026-02-25)"
      - legacy alias `type` is now retired at backend + sidecar tool boundaries (moved to removed-alias bucket; callers must use canonical `input`)
      - adapter-level `type -> input` compatibility transform removed; `BrowserUseCompatibilityAdapter.execute("type", ...)` now returns removed-alias migration error
      - legacy alias runtime gates (`WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY` / `WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS`) removed from backend + sidecar browser tool boundaries now that no active legacy aliases remain
+     - backend browser-control schema no longer keeps a dedicated legacy-only action subtype; action typing is now canonical + removed aliases only
 
 ## Safety Gates
 

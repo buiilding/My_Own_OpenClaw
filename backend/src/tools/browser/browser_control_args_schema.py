@@ -9,7 +9,6 @@ from backend.src.tools.browser.schema_types import (
     BROWSER_COMPAT_ACTION_PREFERRED,
     BROWSER_LEGACY_COMPAT_ACTIONS,
     BrowserCanonicalAction,
-    BrowserLegacyCompatAction,
     BrowserMouseButton,
     BrowserNavigationState,
     BrowserScrollDirection,
@@ -36,7 +35,6 @@ class _BrowserControlArgsBase(BrowserSharedCompatFields, BrowserScreenshotImageF
 
     Action typing is layered by subclasses:
     - BrowserCanonicalControlArgs (canonical actions only)
-    - BrowserLegacyCompatControlArgs (legacy aliases only)
     - BrowserControlArgs (combined compatibility surface)
     """
 
@@ -202,17 +200,6 @@ class BrowserCanonicalControlArgs(_BrowserControlArgsBase):
     action: BrowserCanonicalAction = Field(
         ...,
         description="Canonical browser action to perform.",
-    )
-
-
-class BrowserLegacyCompatControlArgs(_BrowserControlArgsBase):
-    """Legacy compatibility alias schema (deprecated)."""
-
-    action: BrowserLegacyCompatAction = Field(
-        ...,
-        description=(
-            "Legacy compatibility action alias. Deprecated; prefer canonical action names."
-        ),
     )
 
 
