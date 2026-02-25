@@ -109,6 +109,7 @@ title: "WindieOS Browser Use Hard-Merge Plan (2026-02-25)"
      - sidecar browser tool path no longer uses `phase2` naming (`BROWSER_ROUTED_ACTIONS` / `_run_browser_action`) and now exposes neutral runtime adapter names (`BrowserRuntimeAdapter`, `get_browser_adapter`)
      - compatibility naming aliases (`BrowserUseCompatibilityAdapter`, `get_browser_use_adapter`) are now removed from sidecar browser adapter/tool export surfaces
      - sidecar browser tool now resolves controller import lazily, allowing adapter/parity suites to import `browser_tool` without a Playwright install
+     - sidecar browser safety gate now runs green without Playwright in this environment (`test_browser_tool`, `test_browser_use_adapter`, `test_browser_use_tool_parity`, `test_browser_schemas` all passing)
 
 ## Safety Gates
 

@@ -4,20 +4,22 @@ Tests for browser tool implementation.
 
 import pytest
 
-# Skip all tests if playwright is not installed
-pytest.importorskip("playwright")
-
 from unittest import mock
 
 from tools.browser.browser_tool import execute_browser
-from tools.browser.controller import reset_browser_controller
 from tools.browser.browser_tool import AdapterActionResult
+
+try:
+    from tools.browser.controller import reset_browser_controller
+except ModuleNotFoundError:
+    reset_browser_controller = None
 
 
 @pytest.fixture(autouse=True)
 def reset_controller():
     """Reset controller before each test."""
-    reset_browser_controller()
+    if reset_browser_controller is not None:
+        reset_browser_controller()
 
 
 class TestExecuteBrowserControl:
