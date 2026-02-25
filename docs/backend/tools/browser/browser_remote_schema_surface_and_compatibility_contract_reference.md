@@ -1,8 +1,8 @@
 ---
-summary: "Deep backend browser-tool reference for BrowserControlArgs action categories, OpenClaw compatibility-field surfaces, and RemoteBrowserTool runtime gating semantics."
+summary: "Deep backend browser-tool reference for BrowserControlArgs action categories, OpenClaw compatibility-field surfaces, and removed-alias runtime semantics."
 read_when:
   - When changing backend browser action literal sets, compatibility alias policy, or remote browser tool runtime gates.
-  - When debugging backend-accepted browser payloads that are rejected as removed/disabled aliases before sidecar execution.
+  - When debugging backend-accepted browser payloads that are rejected as removed aliases before sidecar execution.
 title: "Browser Remote Schema Surface and Compatibility Contract Reference"
 ---
 
@@ -38,8 +38,7 @@ Purpose of lazy export:
 Action categories:
 
 - canonical actions: `connect`, `status`, `profiles`, `navigate`, `snapshot`, `extract`, `click`, `input`, `send_keys`, `scroll`, `screenshot`, `wait`, `get_tabs`, `switch`, `evaluate`, `done`, `search`, `go_back`, `search_page`, `find_elements`, `find_text`, `close_tab`, `dropdown_options`, `select_dropdown`, `upload_file`, `write_file`, `replace_file`, `read_file`, `read_long_content`, `close`
-- legacy compatibility aliases (still parseable): `type`
-- removed aliases (still parseable for migration errors): `open`, `switch_tab`, `press`, `act`
+- removed aliases (still parseable for migration errors): `type`, `open`, `switch_tab`, `press`, `act`
 
 `BrowserOpenClawAction` intentionally excludes removed aliases.
 
@@ -92,16 +91,13 @@ It exists for compatibility modeling and tests while `RemoteBrowserTool` accepts
 
 `execute_remote(...)` behavior:
 
-1. removed aliases (`open`, `switch_tab`, `press`, `act`) are rejected immediately with migration errors
-2. legacy alias `type` is gated by envs:
-- strict canonical gate: `WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1`
-- allow-legacy gate: `WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1` (legacy disabled by default)
-3. legacy usage/block paths emit structured warning metadata:
+1. removed aliases (`type`, `open`, `switch_tab`, `press`, `act`) are rejected immediately with migration errors
+2. removed-alias blocks emit structured warning metadata:
 - `legacy_action`
 - `preferred_action`
 - `legacy_action_blocked`
 - `legacy_action_gate`
-4. accepted payloads return `RemoteToolResult` with:
+3. accepted payloads return `RemoteToolResult` with:
 - `tool_name = "browser"`
 - `args = args.model_dump(exclude_defaults=True, exclude_none=True)`
 
@@ -116,7 +112,7 @@ Implication:
 Cross-layer debugging rule:
 
 1. validate backend parse (`BrowserControlArgs`)
-2. inspect backend runtime alias-gate decision (removed alias or legacy gate)
+2. inspect backend runtime alias-gate decision (removed alias)
 3. inspect sidecar adapter/runtime normalization if request was forwarded
 
 ## Test-Backed Contracts
