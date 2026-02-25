@@ -11,11 +11,11 @@ from typing import Any
 from backend.src.sdk.context import ToolContext
 from backend.src.sdk.tool import Tool
 from backend.src.tools.browser.schemas import BrowserControlArgs
+from backend.src.tools.browser.schema_types import BROWSER_REMOVED_COMPAT_ACTIONS
 from backend.src.tools.categorization import ToolDomain
 from backend.src.tools.remote_tools.base import RemoteToolBase, RemoteToolResult
 
 logger = logging.getLogger(__name__)
-REMOVED_LEGACY_ACTIONS = frozenset({"act"})
 REMOVED_LEGACY_ACT_ERROR = (
     "Legacy browser action 'act' has been removed. "
     "Use canonical browser actions directly "
@@ -119,10 +119,10 @@ Compatibility validation notes:
         )
 
     async def execute_remote(self, args: BrowserControlArgs, ctx: ToolContext) -> Any:
-        if args.action in REMOVED_LEGACY_ACTIONS:
+        if args.action in BROWSER_REMOVED_COMPAT_ACTIONS:
             self._log_legacy_action_warning(
                 args.action,
-                preferred=None,
+                preferred=args.preferred_action,
                 blocked=True,
                 gate="legacy_act_removed",
             )

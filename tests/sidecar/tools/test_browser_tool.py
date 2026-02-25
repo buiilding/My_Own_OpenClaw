@@ -544,14 +544,17 @@ class TestCompatibilityActions:
             )
             assert result.success is False
             assert "Legacy browser action 'act' has been removed." in (result.error or "")
-            assert "Legacy browser action 'act' blocked by legacy_act_removed" in caplog.text
+            assert (
+                "Legacy browser action 'act' blocked by legacy_act_removed; "
+                "prefer canonical action 'canonical actions directly'"
+            ) in caplog.text
             record = next(
                 rec
                 for rec in caplog.records
                 if "Legacy browser action 'act' blocked by legacy_act_removed" in rec.getMessage()
             )
             assert getattr(record, "legacy_action", None) == "act"
-            assert getattr(record, "preferred_action", None) is None
+            assert getattr(record, "preferred_action", None) == "canonical actions directly"
             assert getattr(record, "legacy_action_blocked", None) is True
             assert getattr(record, "legacy_action_gate", None) == "legacy_act_removed"
             mock_get.assert_not_called()

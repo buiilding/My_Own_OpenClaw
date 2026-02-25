@@ -109,14 +109,17 @@ class TestRemoteBrowserTool:
         ):
             await tool.execute_remote(args, mock_ctx)
 
-        assert "Legacy browser action 'act' blocked by legacy_act_removed" in caplog.text
+        assert (
+            "Legacy browser action 'act' blocked by legacy_act_removed; "
+            "prefer 'canonical actions directly'"
+        ) in caplog.text
         record = next(
             rec
             for rec in caplog.records
             if "Legacy browser action 'act' blocked by legacy_act_removed" in rec.getMessage()
         )
         assert getattr(record, "legacy_action", None) == "act"
-        assert getattr(record, "preferred_action", None) is None
+        assert getattr(record, "preferred_action", None) == "canonical actions directly"
         assert getattr(record, "legacy_action_blocked", None) is True
         assert getattr(record, "legacy_action_gate", None) == "legacy_act_removed"
 
@@ -341,7 +344,7 @@ class TestBrowserControlArgs:
 
     def test_removed_act_alias_reports_canonical_preferred_action(self):
         args = BrowserControlArgs(action="act")
-        assert args.is_legacy is True
+        assert args.is_legacy is False
         assert args.preferred_action == "canonical actions directly"
 
     def test_press_action_key_field(self):

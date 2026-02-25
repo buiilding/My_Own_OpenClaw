@@ -10,6 +10,7 @@ from typing import Any, Dict
 
 from tools.browser.browser_action_contract import BROWSER_ALL_ACTIONS
 from tools.browser.browser_action_contract import LEGACY_BROWSER_ACTION_ALIASES
+from tools.browser.browser_action_contract import REMOVED_BROWSER_ACTION_ALIASES
 from tools.browser import browser_adapter as _adapter
 from tools.browser import browser_runtime as _runtime
 from tools.browser.controller import get_browser_controller
@@ -25,13 +26,6 @@ logger = logging.getLogger(__name__)
 PHASE2_ADAPTER_ROUTED_ACTIONS = BROWSER_ALL_ACTIONS
 ENV_CANONICAL_ONLY_ACTIONS = "WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY"
 ENV_ALLOW_LEGACY_ACTIONS = "WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS"
-REMOVED_LEGACY_ACTIONS = frozenset({"act"})
-REMOVED_LEGACY_ACT_ERROR = (
-    "Legacy browser action 'act' has been removed. "
-    "Use canonical browser actions directly "
-    "(for example: click, input, send_keys, wait, evaluate, navigate, extract, "
-    "scroll, screenshot, switch, close)."
-)
 
 
 def _log_legacy_action_warning(
@@ -181,14 +175,18 @@ async def _run_phase2_adapter_action(args: Dict[str, Any]) -> ToolResult:
     if action not in PHASE2_ADAPTER_ROUTED_ACTIONS:
         return ToolResult.error_result(f"Unhandled action: {action}")
 
-    if action in REMOVED_LEGACY_ACTIONS:
+    if action in REMOVED_BROWSER_ACTION_ALIASES:
+        preferred = REMOVED_BROWSER_ACTION_ALIASES[action]
         _log_legacy_action_warning(
             action,
-            preferred=None,
+            preferred=preferred,
             blocked=True,
             gate="legacy_act_removed",
         )
-        return ToolResult.error_result(REMOVED_LEGACY_ACT_ERROR)
+        return ToolResult.error_result(
+            f"Legacy browser action '{action}' has been removed. "
+            f"Use {preferred}."
+        )
 
     if action in LEGACY_BROWSER_ACTION_ALIASES:
         gate = _legacy_action_block_gate()
