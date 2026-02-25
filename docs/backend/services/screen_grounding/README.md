@@ -11,6 +11,8 @@ title: "Backend Services Screen-Grounding Docs Hub"
 ## Deep Pages
 
 - [OCR Service and Screenshot State-Machine Reference](ocr_service_and_screenshot_state_machine_reference.md)
+- [Screen-Grounding OCR Helpers Docs Hub](ocr/README.md)
+- [CUDA Error Detection, Screenshot Decode, and OCR Field Normalization Helper Contract Reference](ocr/cuda_error_detection_screenshot_decode_and_ocr_field_normalization_helper_contract_reference.md)
 - [Vision Provider Runtime and Coordinate-Scaling Reference](vision_provider_runtime_and_coordinate_scaling_reference.md)
 - [Screen-Grounding Vision Docs Hub](vision/README.md)
 - [Provider Loader Device-Map, Direct, CPU Fallback, and Dtype Contract Reference](vision/provider_loader_device_map_direct_cpu_fallback_and_dtype_contract_reference.md)
@@ -27,6 +29,7 @@ title: "Backend Services Screen-Grounding Docs Hub"
 - `backend/src/core/container/initializer.py`
 - `backend/src/tools/tool_policy.py`
 - `backend/src/services/ocr/ocr_service.py`
+- `backend/src/services/ocr/helpers.py`
 - `backend/src/agent/tools/preparation/screenshot/state.py`
 - `backend/src/agent/tools/preparation/screenshot/manager.py`
 - `backend/src/agent/tools/preparation/ocr/coordinator.py`

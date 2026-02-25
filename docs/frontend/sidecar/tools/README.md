@@ -14,6 +14,7 @@ title: "Frontend Sidecar Tools Docs Hub"
 - [Computer Tools Docs Hub](computer/README.md)
 - [System Tools Docs Hub](system/README.md)
 - [Filesystem Tools Docs Hub](filesystem/README.md)
+- [Tools Contracts Docs Hub](contracts/README.md)
 - [Shell and Process Session Runtime Reference](shell_and_process_session_runtime_reference.md)
 - [Filesystem Read and Replace Runtime Reference](filesystem_read_replace_runtime_reference.md)
 - [Tool Registry Exposed Schema and Result Normalization Reference](registry/tool_registry_exposed_schema_and_result_normalization_reference.md)
@@ -21,12 +22,14 @@ title: "Frontend Sidecar Tools Docs Hub"
 - [Wait, Window, and Stats Runtime Reference](system/wait_window_stats_runtime_reference.md)
 - [Read-File Window Pagination, Binary Guard, and Truncation Contract Reference](filesystem/read_file_window_pagination_binary_guard_and_truncation_contract_reference.md)
 - [Replace Engine Match Modes, Patch Chunks, and Atomic Write Contract Reference](filesystem/replace_engine_match_modes_patch_chunks_and_atomic_write_contract_reference.md)
+- [Frontend Tool Base Interface and Simple Tool Result Contract Reference](contracts/frontend_tool_base_interface_and_simple_tool_result_contract_reference.md)
 
 ## Code Scope
 
 - `frontend/src/main/python/tools/registry.py`
 - `frontend/src/main/python/tools/result.py`
 - `frontend/src/main/python/tools/schemas.py`
+- `frontend/src/main/python/tools/base.py`
 - `frontend/src/main/python/tools/computer/*`
 - `frontend/src/main/python/tools/system/wait_tool.py`
 - `frontend/src/main/python/tools/system/window_tool.py`

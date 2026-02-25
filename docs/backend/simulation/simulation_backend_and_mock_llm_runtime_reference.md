@@ -16,6 +16,7 @@ title: "Simulation Backend and Mock LLM Runtime Reference"
 - `backend/src/simulation/main.py`
 - `backend/src/simulation/browser.py`
 - `backend/src/simulation/computer.py`
+- `backend/src/simulation/coordinate_resolver.py`
 - `backend/src/simulation/base_mock_llm_client.py`
 - `backend/src/simulation/native_tool_adapter.py`
 - `backend/src/simulation/mock_llm_client.py`
@@ -205,3 +206,5 @@ If final completion text appears to vanish:
 - [Backend Simulation Docs Hub](README.md)
 - [Backend Simulation Entrypoints Docs Hub](entrypoints/README.md)
 - [Package Runner and Module Alias Uvicorn Bootstrap Contract Reference](entrypoints/package_runner_and_module_alias_uvicorn_bootstrap_contract_reference.md)
+- [Backend Simulation Contracts Docs Hub](contracts/README.md)
+- [Coordinate Resolver Re-Export and Production Parity Contract Reference](contracts/coordinate_resolver_reexport_and_production_parity_contract_reference.md)
