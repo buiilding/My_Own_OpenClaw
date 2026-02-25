@@ -227,6 +227,42 @@
   text-overflow: ellipsis;
 }
 
+.cg-chat-list-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-right: 4px;
+}
+
+.cg-chat-item {
+  width: 100%;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #b4b4b4;
+  text-align: left;
+  padding: 7px 10px;
+  cursor: pointer;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cg-chat-item:hover {
+  background: #2f2f2f;
+  color: #ececec;
+}
+
+.cg-chat-list-state {
+  padding: 7px 10px;
+  font-size: 12px;
+  color: #8e8e8e;
+}
+
 .cg-sidebar-footer {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding: 8px;

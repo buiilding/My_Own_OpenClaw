@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   PenSquare,
@@ -14,11 +14,12 @@ import {
   PanelLeftClose,
 } from 'lucide-react';
 import ChatInterface from '../../chat/components/ChatInterface';
-import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import EpisodicMemorySection from './sections/EpisodicMemorySection';
 import SemanticMemorySection from './sections/SemanticMemorySection';
 import ModelsSection from './sections/ModelsSection';
 import SettingsSection from './sections/SettingsSection';
+import { DEFAULT_USER_ID } from '../utils/episodicMemoryUtils';
 
 const MEMORY_TABS = Object.freeze({
   EPISODIC: 'episodic',
@@ -148,6 +149,9 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
   const [modelsOpen, setModelsOpen] = useState(false);
   const [memoryOpen, setMemoryOpen] = useState(false);
   const [memoryTab, setMemoryTab] = useState(MEMORY_TABS.EPISODIC);
+  const [recentConversations, setRecentConversations] = useState([]);
+  const [isLoadingRecentConversations, setIsLoadingRecentConversations] = useState(false);
+  const [recentConversationsError, setRecentConversationsError] = useState('');
 
   const closeAllPanels = useCallback(() => {
     setSettingsOpen(false);
@@ -187,6 +191,82 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
   const handleMemorySurface = useCallback(() => {
     openMemory(MEMORY_TABS.EPISODIC);
   }, [openMemory]);
+
+  const loadRecentConversations = useCallback(async () => {
+    setIsLoadingRecentConversations(true);
+    setRecentConversationsError('');
+
+    try {
+      const result = await IpcBridge.invoke(INVOKE_CHANNELS.LIST_CONVERSATIONS, {
+        userId: DEFAULT_USER_ID,
+        limit: 200,
+        recordKind: 'transcript',
+      });
+      if (!result || result.success === false) {
+        throw new Error(result?.error || 'Failed to load recent chats');
+      }
+
+      const list = (result?.data?.conversations ?? [])
+        .filter((conversation) => Boolean(conversation?.conversation_id))
+        .sort((a, b) => {
+          const aTime = Date.parse(a?.last_timestamp || '') || 0;
+          const bTime = Date.parse(b?.last_timestamp || '') || 0;
+          return bTime - aTime;
+        });
+      setRecentConversations(list);
+    } catch (error) {
+      setRecentConversationsError(error?.message || 'Failed to load recent chats');
+      setRecentConversations([]);
+    } finally {
+      setIsLoadingRecentConversations(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadRecentConversations();
+  }, [loadRecentConversations]);
+
+  const recentConversationGroups = useMemo(() => {
+    const groups = {
+      today: [],
+      yesterday: [],
+      previous7Days: [],
+      older: [],
+    };
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    recentConversations.forEach((conversation, index) => {
+      const timestampValue = Date.parse(conversation?.last_timestamp || '');
+      const conversationDate = Number.isNaN(timestampValue)
+        ? new Date(0)
+        : new Date(timestampValue);
+      const title = `Conversation ${index + 1}`;
+      const item = {
+        key: conversation?.conversation_id || `conversation-${index}`,
+        title,
+      };
+      if (conversationDate >= today) {
+        groups.today.push(item);
+        return;
+      }
+      if (conversationDate >= yesterday) {
+        groups.yesterday.push(item);
+        return;
+      }
+      if (conversationDate >= sevenDaysAgo) {
+        groups.previous7Days.push(item);
+        return;
+      }
+      groups.older.push(item);
+    });
+
+    return groups;
+  }, [recentConversations]);
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.MAIN_WINDOW_OPEN_TARGET, (payload) => {
@@ -290,9 +370,39 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
             <SidebarItem label="Explore GPTs" icon={Compass} collapsed={false} />
             <div className="cg-sidebar-divider" />
             <div className="cg-sidebar-section-label">Your chats</div>
-            <button type="button" className="cg-chat-card">
-              Current conversation
-            </button>
+            <div className="cg-chat-list-scroll">
+              <button type="button" className="cg-chat-card">
+                Current conversation
+              </button>
+              {isLoadingRecentConversations ? (
+                <div className="cg-chat-list-state">Loading chats...</div>
+              ) : recentConversationsError ? (
+                <div className="cg-chat-list-state">Unable to load chats.</div>
+              ) : (
+                <>
+                  {recentConversationGroups.today.map((conversation) => (
+                    <button key={`today-${conversation.key}`} type="button" className="cg-chat-item" onClick={handleChatSurface}>
+                      {conversation.title}
+                    </button>
+                  ))}
+                  {recentConversationGroups.yesterday.map((conversation) => (
+                    <button key={`yesterday-${conversation.key}`} type="button" className="cg-chat-item" onClick={handleChatSurface}>
+                      {conversation.title}
+                    </button>
+                  ))}
+                  {recentConversationGroups.previous7Days.map((conversation) => (
+                    <button key={`week-${conversation.key}`} type="button" className="cg-chat-item" onClick={handleChatSurface}>
+                      {conversation.title}
+                    </button>
+                  ))}
+                  {recentConversationGroups.older.map((conversation) => (
+                    <button key={`older-${conversation.key}`} type="button" className="cg-chat-item" onClick={handleChatSurface}>
+                      {conversation.title}
+                    </button>
+                  ))}
+                </>
+              )}
+            </div>
           </div>
 
           <div className="cg-sidebar-footer">
