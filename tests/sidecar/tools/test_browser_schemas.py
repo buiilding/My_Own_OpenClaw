@@ -446,8 +446,9 @@ class TestSchemaRegistry:
 
     def test_get_browser_schema_compat_action(self):
         """Test getting compat schema for OpenClaw action names."""
-        schema = get_browser_schema("act")
+        schema = get_browser_schema("open")
         assert schema is not None
+        assert get_browser_schema("act") is None
         assert get_browser_schema("errors") is None
         assert get_browser_schema("requests") is None
         assert get_browser_schema("set_offline") is None
@@ -473,14 +474,15 @@ class TestSchemaRegistry:
         assert is_valid is True
         assert error is None
 
-    def test_validate_browser_args_act_valid(self):
-        """Test validating compat act arguments."""
+    def test_validate_browser_args_act_removed(self):
+        """Removed act alias should fail schema validation."""
         is_valid, error = validate_browser_args(
             "act",
             {"request": {"kind": "click", "ref": "1"}},
         )
-        assert is_valid is True
-        assert error is None
+        assert is_valid is False
+        assert error is not None
+        assert "Unknown browser action: act" == error
 
     def test_validate_browser_args_invalid(self):
         """Test validating invalid args."""
