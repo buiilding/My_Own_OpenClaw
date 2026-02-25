@@ -155,7 +155,7 @@ function ChatBox() {
 
   const handleOpenSettings = useCallback(async () => {
     try {
-      await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_MAIN_WINDOW);
+      await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_MAIN_WINDOW, { open: 'settings' });
     } catch (error) {
       console.warn('[ChatBox] Failed to show main window:', error);
     }

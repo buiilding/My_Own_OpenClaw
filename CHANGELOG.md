@@ -7,6 +7,10 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(frontend-dashboard): replace main-window dashboard with ChatGPT-style conversation shell (`ChatGptDashboardShell`) where chat stays primary and memory/models/settings open as modals
+- feat(frontend-main-ipc): extend `show-main-window` with optional `{ open }` target routing and emit `main-window-open-target` so overlay settings button can open the main window directly to settings
+- test(frontend-dashboard): add `ChatGptDashboardShell` modal-routing coverage and update chatbox settings-button invoke assertions for targeted main-window opening
+- docs(frontend-dashboard-ipc): update dashboard, IPC contract, and window lifecycle references for conversation-first shell + `main-window-open-target` event flow
 - docs(refactor-plan): record Phase 178 overlay-bounds extraction, settings display-selection effect removal, dead-export cleanup, and refreshed audit/tool-upgrade outcomes in `docs/planning/windieos_refactor_plan_2026-02-23.md`
 - docs(frontend-main-overlay): update external-focus drift hotspot wording now that title-matcher helper is internal-only in `external_focus_tracker.cjs`
 - docs(frontend-settings): refresh SettingsSection display-selection docs for fetch-path normalization/persistence semantics and stale-id fallback regression coverage

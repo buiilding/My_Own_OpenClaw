@@ -1,79 +1,74 @@
 ---
-summary: "Deep reference for dashboard section routing contracts: section-id to component mapping, pass-through prop ownership, and procedural/usage placeholder panel behavior."
+summary: "Deep reference for the ChatGPT-style dashboard shell: conversation-first main surface, modal panel routing for memory/models/settings, and main-process open-target event handling."
 read_when:
-  - When changing `DashboardContent` switch routing or adding/removing dashboard sections.
-  - When replacing procedural or usage placeholder panels with real runtime-backed surfaces.
-title: "Dashboard Section Router and Placeholder Panel Contract Reference"
+  - When changing `ChatGptDashboardShell` navigation, modal behavior, or open-target IPC handling.
+  - When changing which dashboard sections render in modals versus the main conversation surface.
+title: "Dashboard Shell Modal Routing Contract Reference"
 ---
 
-# Dashboard Section Router and Placeholder Panel Contract Reference
+# Dashboard Shell Modal Routing Contract Reference
 
 ## Canonical Modules
 
-- `frontend/src/renderer/features/dashboard/components/DashboardContent.jsx`
+- `frontend/src/renderer/app/App.jsx`
+- `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
+- `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/EpisodicMemorySection.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/SemanticMemorySection.jsx`
-- `frontend/src/renderer/features/dashboard/components/sections/ProceduralSection.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/ModelsSection.jsx`
-- `frontend/src/renderer/features/dashboard/components/sections/UsageSection.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/SettingsSection.jsx`
 
-## Section Router Contract (`DashboardContent`)
+## Main Surface Contract
 
-`DashboardContent(sectionId, config, availableModels, onConfigChange, onSelectSection)` is a pure switch-router.
+The main dashboard surface is conversation-only:
 
-Section map:
+- `ChatInterface` is always mounted in the main content area.
+- memory/models/settings no longer replace the main route.
+- auxiliary panels open as modals over the conversation surface.
 
-- `episodic` -> `EpisodicMemorySection` (receives `onSelectSection`)
+## Modal Routing Contract
+
+`ChatGptDashboardShell` owns three modal booleans:
+
+- `memoryOpen`
+- `modelsOpen`
+- `settingsOpen`
+
+Opening one panel closes the others (`closeAllPanels`) to avoid stacked overlays.
+
+Memory modal includes local tab routing:
+
+- `episodic` -> `EpisodicMemorySection`
 - `semantic` -> `SemanticMemorySection`
-- `procedural` -> `ProceduralSection`
-- `models` -> `ModelsSection` (receives `config`, `availableModels`, `onConfigChange`)
-- `usage` -> `UsageSection`
-- `settings` -> `SettingsSection` (receives `config`, `onConfigChange`)
-- default -> generic "Select an area from the left." panel
 
-No side effects are performed in the router itself.
+## External Open-Target Contract
 
-## Prop Ownership Boundaries
+Main process may emit `main-window-open-target` with payload:
 
-- Memory-only navigation callback is scoped to episodic section.
-- Config mutation callbacks are scoped to models/settings sections.
-- Procedural/usage panels are static and consume no provider/store hooks.
+- `{ target: 'settings' }`
+- `{ target: 'models' }`
+- `{ target: 'memory' }`
 
-This boundary keeps high-churn chat runtime state out of dashboard section router logic.
+Renderer behavior:
 
-## Placeholder Panel Contract
+- settings target opens settings modal
+- models target opens models modal
+- memory target opens memory modal (episodic tab default)
 
-`ProceduralSection` and `UsageSection` are currently static informational placeholders.
+## Ownership Boundaries
 
-`ProceduralSection` guarantees:
-
-- heading: `Procedural Memory`
-- fixed guidance that `SKILLS.md` is not detected
-
-`UsageSection` guarantees:
-
-- heading: `Usage`
-- static cards for weekly/session limits marked not configured
-
-Both reuse `SettingsPanel.css` structural classes for layout consistency with settings/models panels.
-
-## Expected Evolution Pattern
-
-When replacing placeholders with live data:
-
-1. keep section IDs stable (`procedural`, `usage`) to preserve sidebar routing
-2. maintain pass-through ownership in `DashboardContent` (inject dependencies via props, not global singletons)
-3. document added IPC/API side effects under this subhub and contracts docs
+- config mutation remains in existing section components (`ModelsSection`, `SettingsSection`) via `onConfigChange`.
+- chat runtime state remains in `ChatInterface`/chat store; modal shell does not mutate chat stream state directly.
+- memory resume flow remains implemented in `EpisodicMemorySection`.
 
 ## Drift Hotspots
 
-1. Renaming section IDs without matching sidebar caller updates breaks view selection silently.
-2. Adding side effects inside `DashboardContent` can couple render path to network/storage behavior.
-3. Replacing placeholder sections without preserving panel class structure can regress dashboard layout consistency.
+1. Adding a new open target without updating both preload allowlist and renderer channel constants.
+2. Routing a panel into main content instead of modal can violate conversation-first dashboard contract.
+3. Opening multiple modals at once without close-all behavior causes stacked overlay regressions.
 
 ## Related Pages
 
 - [Renderer Dashboard Docs Hub](README.md)
-- [Dashboard Memory Management and Resume Reference](../dashboard_memory_management_and_resume_reference.md)
 - [Settings Section Display Selection and Config Toggle Reference](../settings/settings_section_display_selection_and_config_toggle_reference.md)
+- [Window and Overlay Lifecycle](../../main/window_and_overlay_lifecycle.md)

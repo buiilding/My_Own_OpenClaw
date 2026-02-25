@@ -51,6 +51,8 @@ let overlayHandlersInitialized = false;
 let responseOverlayVisible = false;
 let responseOverlayPhase = 'idle';
 const WAKEWORD_HOTKEY = 'Super+Alt+W';
+const MAIN_WINDOW_OPEN_TARGET_CHANNEL = 'main-window-open-target';
+const MAIN_WINDOW_OPEN_TARGETS = new Set(['chat', 'memory', 'models', 'settings']);
 const CONTEXT_LABEL_WIDTH = 280;
 const CONTEXT_LABEL_HEIGHT = 26;
 const CONTEXT_LABEL_OFFSET_X = 14;
@@ -408,6 +410,29 @@ function showMainWindow({ focus = true } = {}) {
   return { success: true };
 }
 
+function normalizeMainWindowOpenTarget(options = {}) {
+  if (!options || typeof options !== 'object') {
+    return null;
+  }
+  const openTarget = typeof options.open === 'string' ? options.open.trim().toLowerCase() : '';
+  if (!MAIN_WINDOW_OPEN_TARGETS.has(openTarget)) {
+    return null;
+  }
+  return openTarget;
+}
+
+function emitMainWindowOpenTarget(target) {
+  if (!target || !mainWindow || mainWindow.isDestroyed()) {
+    return;
+  }
+  if (!mainWindow.webContents || mainWindow.webContents.isDestroyed()) {
+    return;
+  }
+  mainWindow.webContents.send(MAIN_WINDOW_OPEN_TARGET_CHANNEL, {
+    target,
+  });
+}
+
 function handleResponseOverlayPhaseChange(event = {}) {
   handleResponseOverlayPhaseEvent(event, {
     ENABLE_OS_TOOL_GHOST_DEBUG,
@@ -726,8 +751,13 @@ function initializeOverlayHandlers() {
     });
   });
 
-  ipcMain.handle('show-main-window', async () => {
-    return handleShowMainWindow({ showMainWindow });
+  ipcMain.handle('show-main-window', async (event, options = {}) => {
+    const result = handleShowMainWindow({ showMainWindow });
+    const target = normalizeMainWindowOpenTarget(options);
+    if (result?.success && target) {
+      emitMainWindowOpenTarget(target);
+    }
+    return result;
   });
 
   ipcMain.handle('show-chatbox', async (event, options = {}) => {

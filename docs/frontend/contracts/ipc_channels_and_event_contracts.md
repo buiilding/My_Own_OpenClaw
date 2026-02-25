@@ -37,6 +37,7 @@ Key examples:
 - `search-memory`, `store-memory`, list/get/delete memory records
 - config load/save
 - window management and display queries
+- `show-main-window` supports optional `{ open: 'chat' | 'memory' | 'models' | 'settings' }`
 
 ### `on` channels
 
@@ -47,6 +48,7 @@ Inbound event streams:
 - `wakeword-status`
 - `wakeword-detected`
 - `wakeword-toggle`
+- `main-window-open-target`
 - `response-overlay-phase`
 
 ## Backend Event Contract in Renderer
