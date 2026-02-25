@@ -3941,3 +3941,31 @@ read_when:
       - backend: `1012 passed`
       - sidecar: `500 passed`, `4 skipped` (`3` known swig deprecation warnings)
       - frontend: `106 suites`, `683 tests` passed
+
+## Phase 178 Outcome (2026-02-25)
+
+- Refactor slice: continue main-process extraction, dead-code cleanup, and settings-react-pattern simplification.
+  - added:
+    - `frontend/src/main/overlay_bounds.cjs`:
+      - `getChatWindowBounds(...)`
+      - `getResponseWindowBounds(...)`
+      - `getContextLabelWindowBounds(...)`
+    - `tests/frontend/OverlayBounds.test.cjs` direct coverage for fallback and anchored bounds contracts.
+  - updated:
+    - `frontend/src/main/index.cjs` now delegates overlay bounds math to `overlay_bounds.cjs`, reducing `index.cjs` responsibilities.
+    - `frontend/src/main/external_focus_tracker.cjs` no longer exports internal helper `isAppWindowTitle(...)` (knip dead-export cleanup).
+    - `tests/frontend/ExternalFocusTracker.test.cjs` now validates case-insensitive app-title ignore behavior via public tracker API only.
+    - `frontend/src/renderer/features/dashboard/components/sections/SettingsSection.jsx` removes derived-state display normalization effect by normalizing+persistent selection in display-fetch success path.
+    - `tests/frontend/SettingsSection.test.jsx` adds stale display-id fallback regression and reduces duplicated render setup.
+  - quality/audit outcomes:
+    - `knip`: no unused exports after dead-export cleanup.
+    - `jscpd`: javascript clones reduced to `0`; total clones `28` (remaining python clones are backend/sidecar schema parity).
+    - `lint:audit` (react-compiler + deprecation): pass with no new findings.
+  - tool-upgrade check:
+    - `eslint-plugin-react-refresh` latest `0.5.2` was evaluated but blocked by peer requirement (`eslint ^9 || ^10`) while repo is on eslint `8.57.1`; skipped forced install to avoid destabilizing lint stack.
+- Validation:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run lint:audit` (pass)
+  - `cd frontend && npm run test:ci` (pass, `107` suites / `688` tests)
+  - `cd frontend && npm run audit:knip` (pass)
+  - `cd frontend && npm run audit:jscpd` (pass; `28` total clones, javascript `0`)

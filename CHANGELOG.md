@@ -7,6 +7,15 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): record Phase 178 overlay-bounds extraction, settings display-selection effect removal, dead-export cleanup, and refreshed audit/tool-upgrade outcomes in `docs/planning/windieos_refactor_plan_2026-02-23.md`
+- docs(frontend-main-overlay): update external-focus drift hotspot wording now that title-matcher helper is internal-only in `external_focus_tracker.cjs`
+- docs(frontend-settings): refresh SettingsSection display-selection docs for fetch-path normalization/persistence semantics and stale-id fallback regression coverage
+- docs(frontend-inventory): add `frontend/src/main/overlay_bounds.cjs` to main-process inventory and refresh main module count
+- test(frontend-main-overlay): add `tests/frontend/OverlayBounds.test.cjs` coverage for chat/response/context-label bounds resolution (fallback + anchored paths)
+- refactor(frontend-main-overlay): extract overlay bounds math from `frontend/src/main/index.cjs` into `frontend/src/main/overlay_bounds.cjs` and delegate callers through shared helper
+- refactor(frontend-main-overlay): remove dead `isAppWindowTitle` export from `frontend/src/main/external_focus_tracker.cjs`; keep behavior tested via public tracker API in `tests/frontend/ExternalFocusTracker.test.cjs`
+- refactor(frontend-settings): remove derived display-normalization `useEffect` in `SettingsSection` by normalizing+persisting selected display in display-fetch success path; add stale-display-id regression coverage in `tests/frontend/SettingsSection.test.jsx`
+- chore(frontend-tooling): attempted upgrade to `eslint-plugin-react-refresh@0.5.2` blocked by peer requirement `eslint ^9 || ^10`; kept eslint 8 stack unchanged to avoid forced/unstable resolution
 - docs(frontend-inventory): add `docs/frontend/frontend_full_functionality_inventory_reference.md`, an exhaustive `frontend/src` functionality inventory covering Electron main/preload/renderer/sidecar/landing domains with code ownership and end-to-end runtime paths; wire links in frontend and global docs hubs
 - docs(backend-inventory): add `docs/backend/backend_full_functionality_inventory_reference.md`, an exhaustive `backend/src` functionality inventory covering API/agent/core/llm/tools/services/sdk/simulation/embeddings domains with code ownership and end-to-end runtime flow; wire links in backend and global docs hubs
 - docs(source-maps-backend-sidecar): add `backend/source_maps` and `frontend/sidecar/source_maps` subhubs with deep references for source-owned folder topology maps (`backend/src/{api,core}/folder_structure.md`, `frontend/src/main/python/folder_structure.md`) and package `__init__` export-surface compatibility contracts; wire links across backend/sidecar/frontend/global docs hubs

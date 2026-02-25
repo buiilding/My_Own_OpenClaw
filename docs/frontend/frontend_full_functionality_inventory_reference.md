@@ -14,7 +14,7 @@ This page is a code-grounded, end-to-end inventory of frontend functionality in 
 
 Source inventory used for this reference:
 
-- Main process (`.cjs`/`.js` in `frontend/src/main`): `22`
+- Main process (`.cjs`/`.js` in `frontend/src/main`): `23`
 - Sidecar Python (`.py` in `frontend/src/main/python`): `135`
 - Renderer TS/JS (`frontend/src/renderer`): `114`
 - Landing (`.jsx`/`.css` in `frontend/src/landing`): `13`
@@ -49,6 +49,7 @@ Overlay and focus handlers:
 - `frontend/src/main/overlay_mouse_handler.cjs`
 - `frontend/src/main/overlay_chatbox_handler.cjs`
 - `frontend/src/main/overlay_responsebox_handler.cjs`
+- `frontend/src/main/overlay_bounds.cjs`
 - `frontend/src/main/overlay_renderer_registration.cjs`
 - `frontend/src/main/response_overlay_phase_handler.cjs`
 - `frontend/src/main/external_focus_tracker.cjs`

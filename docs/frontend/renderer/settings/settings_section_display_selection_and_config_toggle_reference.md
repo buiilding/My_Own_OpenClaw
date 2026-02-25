@@ -22,7 +22,7 @@ title: "Settings Section Display Selection and Config Toggle Reference"
 
 ## SettingsSection Ownership Boundary
 
-`SettingsSection` owns renderer-facing controls but not persistence side effects directly.
+`SettingsSection` owns renderer-facing controls and display-selection persistence side effects.
 
 Control families:
 
@@ -64,7 +64,8 @@ Selection normalization:
 
 - `resolveDisplaySelection(displays, selectedDisplayId)` keeps existing id when valid
 - if invalid/missing, falls back to primary display (`isPrimary`) else first display
-- effect updates `selectedDisplayId` when fallback applied
+- display-fetch success path updates `selectedDisplayId` when fallback applied
+- normalized selected display is persisted immediately after display-list refresh
 
 UI options:
 
@@ -120,6 +121,7 @@ This keeps model-catalog event ingestion decoupled from settings control renderi
 - wakeword toggle delegates to context setter
 - voice/speech/screenshot toggles emit exact payload keys
 - wakeword suppression helper text visibility
+- stale stored display id falls back to primary display and persists normalized id
 
 `tests/frontend/SettingsDisplayUtils.test.js` validates:
 
