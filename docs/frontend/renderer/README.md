@@ -1,5 +1,5 @@
 ---
-summary: "Frontend renderer docs sub-hub for provider ownership, feature modules, stream lifecycle, chat/tool runtime behavior, and transcript infrastructure contracts."
+summary: "Frontend renderer docs sub-hub for provider ownership, feature modules, stream lifecycle, chat/tool runtime behavior, transcript infrastructure contracts, and global style-system boundaries."
 read_when:
   - When changing renderer state providers, chat hooks, or event-to-message rendering logic.
   - When debugging stream tracking, transcript writes, or stale-turn tool output handling.
@@ -20,6 +20,7 @@ title: "Frontend Renderer Docs Hub"
 - [Renderer Infrastructure Docs Hub](infrastructure/README.md)
 - [Renderer Infrastructure Audio Docs Hub](infrastructure/audio/README.md)
 - [Renderer Transcript Docs Hub](transcript/README.md)
+- [Renderer Styles Docs Hub](styles/README.md)
 - [Feature Module Matrix](feature_module_matrix.md)
 - [Renderer Dashboard Docs Hub](dashboard/README.md)
 - [Dashboard Memory Management and Resume Reference](dashboard_memory_management_and_resume_reference.md)
@@ -70,9 +71,13 @@ title: "Frontend Renderer Docs Hub"
 - [Tool Execution Service and Hook Runtime Reference](infrastructure/tool_execution_service_and_hook_runtime_reference.md)
 - [Capture, Artifact Upload, and Payload Normalization Reference](infrastructure/capture_artifact_upload_and_payload_normalization_reference.md)
 - [Player Service Queue, Generation, and Error-Recovery Reference](infrastructure/audio/player_service_queue_generation_and_error_recovery_reference.md)
+- [Global Theme, Accessibility Utility, and Main Layout Visual Contract Reference](styles/global_theme_accessibility_utility_and_main_layout_visual_contract_reference.md)
+- [Chat Interface, Thinking Stream, and Token Count Style Contract Reference](styles/chat_interface_thinking_stream_and_token_count_style_contract_reference.md)
+- [Voice Status Visual State Style Contract Reference](styles/voice_status_visual_state_style_contract_reference.md)
 
 ## Code Scope
 
 - `frontend/src/renderer/app/providers/*`
 - `frontend/src/renderer/features/*`
 - `frontend/src/renderer/infrastructure/*`
+- `frontend/src/renderer/styles/*`

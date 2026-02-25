@@ -55,6 +55,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Renderer Infrastructure Docs Hub](renderer/infrastructure/README.md)
 - [Renderer Infrastructure Audio Docs Hub](renderer/infrastructure/audio/README.md)
 - [Renderer Transcript Docs Hub](renderer/transcript/README.md)
+- [Renderer Styles Docs Hub](renderer/styles/README.md)
 - [Renderer Transcript Contracts Docs Hub](renderer/transcript/contracts/README.md)
 - [Renderer Runtime](renderer/renderer_runtime.md)
 - [Feature Module Matrix](renderer/feature_module_matrix.md)
@@ -96,6 +97,9 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Tool Execution Service and Hook Runtime Reference](renderer/infrastructure/tool_execution_service_and_hook_runtime_reference.md)
 - [Capture, Artifact Upload, and Payload Normalization Reference](renderer/infrastructure/capture_artifact_upload_and_payload_normalization_reference.md)
 - [Player Service Queue, Generation, and Error-Recovery Reference](renderer/infrastructure/audio/player_service_queue_generation_and_error_recovery_reference.md)
+- [Global Theme, Accessibility Utility, and Main Layout Visual Contract Reference](renderer/styles/global_theme_accessibility_utility_and_main_layout_visual_contract_reference.md)
+- [Chat Interface, Thinking Stream, and Token Count Style Contract Reference](renderer/styles/chat_interface_thinking_stream_and_token_count_style_contract_reference.md)
+- [Voice Status Visual State Style Contract Reference](renderer/styles/voice_status_visual_state_style_contract_reference.md)
 
 ### Runtime
 
