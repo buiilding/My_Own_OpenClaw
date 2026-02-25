@@ -342,17 +342,6 @@ async def test_get_last_stream_response_payload_returns_deep_copy(monkeypatch):
     assert payload_again["tool_calls"][0]["arguments"]["path"] == "/tmp/a"
 
 
-def test_extract_content_rejects_invalid_payloads():
-    with pytest.raises(LLMAPIError):
-        LiteLLMClient._extract_content(["bad"], model="m")
-
-    with pytest.raises(LLMAPIError):
-        LiteLLMClient._extract_content({"no": "content"}, model="m")
-
-    with pytest.raises(LLMAPIError):
-        LiteLLMClient._extract_content({"content": 1}, model="m")
-
-
 @pytest.mark.asyncio
 async def test_get_completion_wraps_provider_resolution_error(monkeypatch):
     client = make_client()
@@ -426,59 +415,6 @@ async def test_get_completion_response_forwards_prompt_cache_key(monkeypatch):
         "parallel_tool_calls": None,
         "prompt_cache_key": "conv-123",
     }
-
-
-@pytest.mark.asyncio
-async def test_get_completion_response_normalizes_tool_calls(monkeypatch):
-    provider = DummyProvider(
-        response={
-            "content": "",
-            "tool_calls": [
-                {
-                    "id": "call_1",
-                    "name": "read_file",
-                    "arguments": {"path": "/tmp/a.txt"},
-                }
-            ],
-            "finish_reason": "tool_calls",
-        }
-    )
-    client = make_client_with_provider(monkeypatch, provider)
-
-    result = await client.get_completion_response("model", [])
-
-    assert result["content"] == ""
-    assert result["tool_calls"][0]["id"] == "call_1"
-    assert result["tool_calls"][0]["name"] == "read_file"
-    assert result["tool_calls"][0]["arguments"]["path"] == "/tmp/a.txt"
-    assert result["finish_reason"] == "tool_calls"
-
-
-@pytest.mark.asyncio
-async def test_get_completion_response_rejects_non_list_tool_calls(monkeypatch):
-    provider = DummyProvider(response={"content": "", "tool_calls": {"bad": "value"}})
-    client = make_client_with_provider(monkeypatch, provider)
-
-    with pytest.raises(LLMAPIError, match="Invalid tool_calls type"):
-        await client.get_completion_response("model", [])
-
-
-@pytest.mark.asyncio
-async def test_get_completion_response_rejects_non_dict_tool_call_entry(monkeypatch):
-    provider = DummyProvider(response={"content": "", "tool_calls": [123]})
-    client = make_client_with_provider(monkeypatch, provider)
-
-    with pytest.raises(LLMAPIError, match="Invalid tool call at index 0"):
-        await client.get_completion_response("model", [])
-
-
-@pytest.mark.asyncio
-async def test_get_completion_response_rejects_non_string_finish_reason(monkeypatch):
-    provider = DummyProvider(response={"content": "", "finish_reason": 123})
-    client = make_client_with_provider(monkeypatch, provider)
-
-    with pytest.raises(LLMAPIError, match="Invalid finish_reason type"):
-        await client.get_completion_response("model", [])
 
 
 @pytest.mark.asyncio

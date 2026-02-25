@@ -20,12 +20,12 @@ Based on current source tree under `backend/src`:
 | `api` | 68 |
 | `core` | 77 |
 | `tools` | 31 |
-| `llm` | 30 |
+| `llm` | 31 |
 | `services` | 15 |
 | `simulation` | 12 |
 | `sdk` | 6 |
 | `embeddings` | 2 |
-| **Total** | **303** |
+| **Total** | **304** |
 
 ## API Layer Index
 
@@ -97,7 +97,7 @@ LLM domain:
 - `backend/src/llm/providers/*.py`
 - `backend/src/llm/models/{model_service,models_config}.py`
 - `backend/src/llm/prompts/{prompt_constructor,prompts,prompt_metadata}.py`
-- `backend/src/llm/{parser,parser_extraction,parser_validation,parser_types,request_kwargs}.py`
+- `backend/src/llm/{parser,parser_extraction,parser_validation,parser_types,request_kwargs,client_response_normalization}.py`
 
 Backend tool surface:
 
