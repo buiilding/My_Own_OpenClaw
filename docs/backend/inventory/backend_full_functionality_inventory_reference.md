@@ -452,9 +452,9 @@ Functionality:
 
 ## Related Docs
 
-- [Backend Functionality Map](README.md)
-- [Backend Source Maps Docs Hub](source_maps/README.md)
-- [Backend API Docs Hub](api/README.md)
-- [Backend Agent Docs Hub](agent/README.md)
-- [Backend LLM Docs Hub](llm/README.md)
-- [Backend Services Docs Hub](services/README.md)
+- [Backend Functionality Map](../README.md)
+- [Backend Source Maps Docs Hub](../source_maps/README.md)
+- [Backend API Docs Hub](../api/README.md)
+- [Backend Agent Docs Hub](../agent/README.md)
+- [Backend LLM Docs Hub](../llm/README.md)
+- [Backend Services Docs Hub](../services/README.md)
