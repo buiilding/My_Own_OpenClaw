@@ -11,6 +11,7 @@ title: "Parser Trust Boundary and Native Tool-Call Reference"
 ## Canonical Modules
 
 - `backend/src/agent/execution/interaction_loop.py`
+- `backend/src/agent/execution/tool_call_bridge.py`
 - `backend/src/agent/llm/llm_stream_processor.py`
 - `backend/src/llm/client.py`
 - `backend/src/llm/parser.py`
@@ -160,7 +161,7 @@ Each includes boundary metadata (`boundary_name="response_parser"` plus optional
 `InteractionLoop._to_parsed_response(...)` currently:
 
 - reads normalized payload from `LLMStreamProcessor.get_last_response_payload()`
-- maps each provider tool call to `ParsedToolCall`
+- maps each provider tool call to `ParsedToolCall` via `tool_call_bridge.to_parsed_response(...)`
 - persists `tool_call_id` under `ParsedToolCall.metadata`
 - defaults unknown/malformed names to `unknown_tool`
 

@@ -4075,3 +4075,38 @@ read_when:
   - `./scripts/python-in-env backend python -m pytest tests/backend --durations=20 -q` (pass)
   - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
   - `npx jscpd --gitignore --min-lines 8 --reporters console,markdown --output .audit/plan1/jscpd-backend backend/src tests/backend` (0 clones)
+
+## Phase 181 Outcome (2026-02-25)
+
+- Refactor slice (backend-only): split `InteractionLoop` tool-call bridge/error-parsing helpers into a dedicated execution module.
+  - added:
+    - `backend/src/agent/execution/tool_call_bridge.py`
+      - native tool-call bridge helpers:
+        - `to_parsed_response(...)`
+        - `to_parsed_tool_call(...)`
+        - `to_history_tool_calls(...)`
+        - `extract_tool_call_ids(...)`
+      - recoverable tool-call error helpers:
+        - `is_recoverable_llm_tool_call_error(...)`
+        - `extract_tool_name_from_error(...)`
+        - `extract_tool_call_id_from_error(...)`
+        - `build_recoverable_tool_output_message(...)`
+    - `tests/backend/test_interaction_tool_call_bridge.py` direct coverage for helper normalization + error parsing behavior.
+  - updated:
+    - `backend/src/agent/execution/interaction_loop.py`
+      - delegates parsed-response/history mapping + recoverable tool-call error extraction/formatting to `tool_call_bridge.py`
+      - preserves existing `InteractionLoop` private method surface as compatibility wrappers
+      - reduced from `505` LOC to `399` LOC (below 500 LOC guideline)
+    - docs:
+      - `docs/backend/agent/interaction_loop_and_tool_turn_orchestration_reference.md`
+      - `docs/backend/inventory/backend_module_file_index_reference.md`
+      - `docs/backend/llm/parser_trust_boundary_and_native_tool_call_reference.md`
+  - route consolidation check:
+    - `jscpd` on `backend/src/api/routes` found `0` clones; no route merge needed in this slice.
+  - audit outcome:
+    - backend `jscpd` (`backend/src` + `tests/backend`) remained at `0` clones after extraction.
+- Validation:
+  - `./scripts/python-in-env backend python -m pytest tests/backend/test_interaction_loop.py tests/backend/test_interaction_tool_call_bridge.py -q` (pass)
+  - `./scripts/python-in-env backend python -m pytest tests/backend --durations=20 -q` (pass)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console,markdown --output .audit/plan1/jscpd-backend backend/src tests/backend` (0 clones)

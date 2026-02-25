@@ -12,6 +12,7 @@ title: "Interaction Loop and Tool-Turn Orchestration Reference"
 
 - `backend/src/agent/execution/executor.py`
 - `backend/src/agent/execution/interaction_loop.py`
+- `backend/src/agent/execution/tool_call_bridge.py`
 - `backend/src/agent/execution/policies.py`
 - `backend/src/agent/llm/conversation_context.py`
 - `backend/src/agent/llm/llm_stream_processor.py`
@@ -65,6 +66,7 @@ Main loop in `InteractionLoop.run_loop()`:
 2. prompt metadata events on first iteration only
 3. LLM response retrieval (stream or native tool-turn completion path)
 4. parsed response conversion (`NormalizedLLMResponse` -> `ParsedResponse`)
+  - conversion + history tool-call shaping + recoverable tool-call error parsing delegate to `tool_call_bridge.py`
 5. branch:
   - no tool calls: finalize assistant response
   - tool calls: execute tool-turn path and continue
