@@ -48,6 +48,12 @@ Actions with custom adapter handlers:
 - with args: `connect`, `open`, `type`, `press`, `switch_tab`, `act`
 - no args: `status`, `profiles`, `get_tabs`
 
+Canonical-action recommendation:
+
+- Prefer canonical actions directly in model/tool prompts:
+  - `navigate`, `input`, `send_keys`, `switch`
+- Keep legacy aliases only for backward compatibility and migration windows.
+
 Adapter behavior includes compatibility transforms:
 
 - `open` -> runtime `navigate` with `new_tab=true`
