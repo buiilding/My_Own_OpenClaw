@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-protocol-state): add `docs/frontend/inventory/protocols/state` subhub with ws-bridge conversation/session propagation and renderer transcript-state gating reference
 - docs(backend-protocol-state): add `docs/backend/inventory/protocols/state` subhub with handshake/query/stop-query identity + context-field propagation reference and protocol-hub wiring
 - docs(frontend-protocol-testing): add `docs/frontend/inventory/protocols/testing` subhub with IPC/query/local-backend/wakeword protocol test-coverage runtime reference and wire link from frontend protocol hub
 - docs(backend-protocol-testing): add `docs/backend/inventory/protocols/testing` subhub with websocket/transport/route-table protocol test-coverage runtime reference and wire link from backend protocol hub
