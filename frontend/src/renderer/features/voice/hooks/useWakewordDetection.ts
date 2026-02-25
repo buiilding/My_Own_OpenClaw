@@ -206,7 +206,7 @@ export function useWakewordDetection(
     sourceNodeRef,
   ]);
 
-  // Handle wakeword detection from main process
+  // Handle wakeword detection/status from main process
   useEffect(() => {
     const unsubscribe = IpcBridge.on(ON_CHANNELS.WAKEWORD_DETECTED, (data: any) => {
       const now = Date.now();
@@ -254,46 +254,48 @@ export function useWakewordDetection(
         return status.ready;
       });
       if (status.error) {
-        console.error('[Wakeword] Service error:', status.error);
-        setError(status.error);
+        if (enabled) {
+          console.error('[Wakeword] Service error:', status.error);
+          setError(status.error);
+        } else {
+          setError(null);
+        }
       } else {
         setError(null);
       }
     });
 
-    // Enable wakeword detection in main process (this will trigger status response)
-    requestWakewordEnable();
-
     return () => {
       unsubscribe?.();
       statusUnsubscribe?.();
     };
-  }, [onWakewordDetectedRef, requestWakewordDisable, requestWakewordEnable, threshold]);
+  }, [enabled, onWakewordDetectedRef, requestWakewordDisable, threshold]);
 
   // Start/stop audio capture based on enabled state
   useEffect(() => {
-    if (enabled && isReady) {
-      // Only start if not already capturing
-      if (!isCapturingRef.current) {
+    if (enabled) {
+      // Ensure main process service is started when wakeword is enabled.
+      requestWakewordEnable();
+      if (isReady && !isCapturingRef.current) {
         console.log('[Wakeword] Starting audio capture...');
-        // Reset cooldown when re-enabling to prevent old buffered chunks from triggering
         lastDetectionRef.current = Date.now();
-        // Send enable signal to main process to clear buffers
-        requestWakewordEnable();
         void startAudioCapture();
       }
     } else {
-      // Only stop if currently capturing or if disabled
-      if (isCapturingRef.current || !enabled) {
-        if (!enabled) {
+      const hasCaptureResources = Boolean(
+        isCapturingRef.current
+        || scriptNodeRef.current
+        || sourceNodeRef.current
+        || mediaStreamRef.current
+        || audioContextRef.current
+      );
+
+      if (isCapturingRef.current || isReady || hasCaptureResources) {
+        if (isCapturingRef.current || hasCaptureResources) {
           console.log('[Wakeword] Disabled, stopping audio capture');
-          // Reset cooldown when disabled to prevent immediate re-triggering when re-enabled
-          lastDetectionRef.current = Date.now();
-          // Send disable signal to main process to clear buffers
-          requestWakewordDisable();
-        } else if (!isReady) {
-          console.log('[Wakeword] Service not ready, stopping audio capture');
         }
+        lastDetectionRef.current = Date.now();
+        requestWakewordDisable();
         void stopAudioCapture();
       }
     }
@@ -301,7 +303,18 @@ export function useWakewordDetection(
     return () => {
       void stopAudioCapture();
     };
-  }, [enabled, isReady, requestWakewordDisable, requestWakewordEnable, startAudioCapture, stopAudioCapture]);
+  }, [
+    audioContextRef,
+    enabled,
+    isReady,
+    mediaStreamRef,
+    requestWakewordDisable,
+    requestWakewordEnable,
+    scriptNodeRef,
+    sourceNodeRef,
+    startAudioCapture,
+    stopAudioCapture,
+  ]);
 
   return {
     isReady,

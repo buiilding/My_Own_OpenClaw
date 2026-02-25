@@ -265,8 +265,7 @@ function stopWakewordService() {
  */
 function initializeWakewordBridge(mainWindow, onWakewordDetected) {
   wakewordDetectedCallback = onWakewordDetected;
-  // Start service when bridge is initialized
-  startWakewordService(mainWindow, onWakewordDetected);
+  // Service is started lazily on explicit wakeword-enable.
 
   let receivedChunkCount = 0;
   // Handle audio chunks from renderer

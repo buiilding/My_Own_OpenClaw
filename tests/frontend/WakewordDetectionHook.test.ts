@@ -67,7 +67,7 @@ describe('useWakewordDetection', () => {
     jest.restoreAllMocks();
   });
 
-  test('registers listeners and sends wakeword enable signal on mount', () => {
+  test('registers listeners without enabling wakeword when disabled', () => {
     renderHook(() => useWakewordDetection(false));
 
     expect(IpcBridge.on).toHaveBeenCalledWith(
@@ -78,6 +78,11 @@ describe('useWakewordDetection', () => {
       ON_CHANNELS.WAKEWORD_STATUS,
       expect.any(Function),
     );
+    expect(IpcBridge.send).not.toHaveBeenCalledWith(SEND_CHANNELS.WAKEWORD_ENABLE);
+  });
+
+  test('sends wakeword enable signal on mount when enabled', () => {
+    renderHook(() => useWakewordDetection(true));
     expect(IpcBridge.send).toHaveBeenCalledWith(SEND_CHANNELS.WAKEWORD_ENABLE);
   });
 

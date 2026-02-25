@@ -85,7 +85,7 @@ Module:
 
 Responsibilities:
 
-- Spawns `wakeword_service.py` subprocess.
+- Lazily spawns `wakeword_service.py` subprocess on `wakeword-enable`.
 - Streams binary audio chunks to Python service.
 - Parses framed binary wakeword detection responses.
 - Supports wakeword enable/disable state and buffer flushing.
