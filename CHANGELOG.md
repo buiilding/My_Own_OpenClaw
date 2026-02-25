@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-dashboard): resolve `Your chats` using transcript session `userId` (fallback `default_user`) and reload conversation list when session user updates, so local transcript conversations appear and resume correctly
 - fix(frontend-dashboard): add clone-style dashboard modal entry animation (overlay fade + panel slide/scale) so memory/models/settings windows open smoothly instead of popping
 - fix(frontend-models-ui): smooth and slow clone-style model-card detail expansion in the models window by animating mounted details content (height/opacity/translate) instead of instant hover mount/unmount
 - fix(frontend-dashboard): make modal panel wrapper fill full height so clone-style memory/models panels no longer leave a lower empty gray block

@@ -207,4 +207,31 @@ describe('ChatGptDashboardShell', () => {
     const activeConversationButton = await screen.findByRole('button', { name: 'Conversation 1' });
     expect(activeConversationButton).toHaveClass('active');
   });
+
+  test('reloads recent chats when transcript session user id becomes available', async () => {
+    mockSessionInfo = { conversationRef: null, userId: null };
+
+    await renderDashboardShell();
+
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith(
+        'list-conversations',
+        expect.objectContaining({ userId: 'default_user' }),
+      );
+    });
+
+    mockInvoke.mockClear();
+    mockSessionInfo = { conversationRef: null, userId: 'peter-bui' };
+
+    act(() => {
+      window.dispatchEvent(new CustomEvent('transcript-session-update'));
+    });
+
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith(
+        'list-conversations',
+        expect.objectContaining({ userId: 'peter-bui' }),
+      );
+    });
+  });
 });
