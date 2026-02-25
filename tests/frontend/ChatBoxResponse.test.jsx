@@ -217,6 +217,33 @@ describe('ChatBoxResponse', () => {
     });
   });
 
+  test('maps browser click target from coordinate_x/coordinate_y payload fields', async () => {
+    const { container } = await renderToolCallGhost({
+      userText: 'click text',
+      toolText: JSON.stringify({
+        name: 'browser',
+        arguments: {
+          action: 'click',
+          explanation: 'Clicking some text',
+          coordinate_x: 960,
+          coordinate_y: 540,
+        },
+        metadata: {
+          coordinate_contract: {
+            target_display_size: [1920, 1080],
+          },
+        },
+      }),
+    });
+
+    const ghostTrack = container.querySelector('.chatbox-tool-ghost-track');
+    expect(ghostTrack).toBeTruthy();
+    expect(ghostTrack.classList.contains('is-targeted')).toBe(true);
+    expect(ghostTrack.classList.contains('is-click-animating')).toBe(true);
+    expect(ghostTrack.style.getPropertyValue('--ghost-end-left')).toBe('50%');
+    expect(ghostTrack.style.getPropertyValue('--ghost-end-top')).toBe('50%');
+  });
+
   test('hides click ghost immediately after full click animation timeline', async () => {
     jest.useFakeTimers();
     try {
