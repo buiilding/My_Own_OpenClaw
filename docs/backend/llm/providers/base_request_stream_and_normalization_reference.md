@@ -13,8 +13,11 @@ title: "Base Request, Stream, and Normalization Reference"
 - `backend/src/llm/client.py`
 - `backend/src/llm/providers/base.py`
 - `backend/src/llm/providers/online.py`
+- `backend/src/llm/providers/error_mapping.py`
+- `backend/src/llm/providers/usage_diagnostics.py`
 - `tests/backend/test_llm_provider_base.py`
 - `tests/backend/test_llm_client.py`
+- `tests/backend/test_llm_provider_utils.py`
 
 ## Call Path and Ownership
 
@@ -26,6 +29,10 @@ For backend query turns, provider execution is split across two layers:
 4. `LiteLLMClient` validates normalized payload again before returning to runtime loop.
 
 `LiteLLMClient` is the caller-facing contract boundary; `LLMProvider` is the transport and payload normalization boundary.
+Provider utility helpers now centralize shared logic:
+
+- `error_mapping.py`: exception-chain walking, HTTP status extraction, API error message formatting.
+- `usage_diagnostics.py`: usage payload normalization/collection and stream cache diagnostics derivation.
 
 ## Request Param Validation and Construction (`LLMProvider._build_request_params`)
 
@@ -87,6 +94,10 @@ Status extraction walks exception cause/context chain and tries:
 - regex parse from error text (`status/error code NNN`, `server error NNN`).
 
 HTTP 520 has special message text (`upstream service temporarily unavailable`).
+
+Implementation note:
+
+- `LLMProvider` delegates this behavior to `error_mapping.extract_status_code(...)` and `error_mapping.build_api_error_message(...)` to keep error semantics shared and testable outside the large provider base module.
 
 ## Stream Contract and Event Emission
 
@@ -156,6 +167,10 @@ Accepted usage locations include:
 
 It extracts across provider variants (OpenAI, Anthropic, Gemini-style naming), with integer/string-number coercion.
 
+Implementation note:
+
+- `LLMProvider` now delegates usage normalization/collection and diagnostics shaping to `usage_diagnostics.py`, preserving existing output contract while reducing base-module responsibility.
+
 ## `LiteLLMClient` Cross-Checks
 
 After provider returns, `LiteLLMClient` revalidates payload:
@@ -186,6 +201,11 @@ It also snapshots provider diagnostics/payload for downstream stream processor a
 - native tool-call preservation and parameter forwarding,
 - defensive-copy behavior for captured stream payloads,
 - capability check delegation via `supports_streaming_tool_turns`.
+
+`tests/backend/test_llm_provider_utils.py` validates:
+
+- extracted error/status helpers (`extract_status_code`, `build_api_error_message`),
+- extracted usage helpers (`normalize_usage_payload`, `collect_usage_payload`, `extract_usage_int`, `build_stream_cache_diagnostics`).
 
 ## Drift Hotspots
 

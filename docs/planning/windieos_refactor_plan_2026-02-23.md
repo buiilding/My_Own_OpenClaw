@@ -3969,3 +3969,33 @@ read_when:
   - `cd frontend && npm run test:ci` (pass, `107` suites / `688` tests)
   - `cd frontend && npm run audit:knip` (pass)
   - `cd frontend && npm run audit:jscpd` (pass; `28` total clones, javascript `0`)
+
+## Phase 179 Outcome (2026-02-25)
+
+- Refactor slice (backend-only): extract provider utility concerns from oversized LLM provider base.
+  - added:
+    - `backend/src/llm/providers/error_mapping.py`
+      - `iter_exception_chain(...)`
+      - `extract_status_code(...)`
+      - `build_api_error_message(...)`
+    - `backend/src/llm/providers/usage_diagnostics.py`
+      - usage payload normalization/collection helpers
+      - stream cache diagnostics builder + token-path extraction helpers
+    - `tests/backend/test_llm_provider_utils.py` direct coverage for extracted helper modules.
+  - updated:
+    - `backend/src/llm/providers/base.py` now delegates:
+      - exception/status mapping to `error_mapping.py`
+      - usage normalization + diagnostics shaping to `usage_diagnostics.py`
+    - maintained public `LLMProvider` helper method contracts (`_extract_status_code`, `_build_api_error_message`, `_normalize_usage_payload`, `_extract_usage_int`) as thin wrappers for compatibility.
+  - performance/test refactor:
+    - rewrote `tests/backend/test_safe_websocket.py::test_safe_websocket_applies_backpressure_with_bounded_queue` wait timings to preserve semantics with lower wall-clock runtime.
+  - route consolidation check:
+    - `jscpd` on `backend/src/api/routes` found `0` clones; no safe consolidation needed in this slice.
+  - audit outcomes:
+    - backend `jscpd` remains `10` clones (`0.23%` duplicated lines), with remaining hotspots in browser schema compatibility and provider/client overlap.
+    - frontend `knip` and `lint:audit` re-run for requested audit completeness (no actionable findings in this backend-focused slice).
+- Validation:
+  - `./scripts/python-in-env backend python -m pytest tests/backend/test_llm_provider_base.py tests/backend/test_llm_client.py tests/backend/test_llm_provider_utils.py tests/backend/test_safe_websocket.py -q` (pass)
+  - `./scripts/python-in-env backend python -m pytest tests/backend --durations=20 -q` (pass)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console,markdown --output .audit/plan1/jscpd-backend backend/src tests/backend` (pass)
