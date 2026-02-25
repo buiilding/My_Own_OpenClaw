@@ -162,3 +162,7 @@ When changing this lifecycle, keep synchronized:
 - ACK/control message type assumptions (`settings-updated`, error id correlation).
 - Overlay phase literals used by `ipc.cjs` and `response_overlay_phase_handler.cjs`.
 - Synthetic `local-user-message` / send-failure error envelopes consumed by renderer stream hooks.
+
+## Related Deep Dives
+
+- [Frontend Protocol Errors Hub](../errors/README.md)
