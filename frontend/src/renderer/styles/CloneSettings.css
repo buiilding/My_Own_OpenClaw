@@ -1,0 +1,244 @@
+.clone-settings-panel {
+  display: flex;
+  height: 100%;
+  background: #2f2f2f;
+  color: #ececec;
+}
+
+.clone-settings-sidebar {
+  width: 228px;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 14px 10px 12px;
+}
+
+.clone-settings-close {
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #b4b4b4;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clone-settings-close:hover {
+  background: #424242;
+  color: #ececec;
+}
+
+.clone-settings-close-left {
+  width: 28px;
+  height: 28px;
+  margin-bottom: 10px;
+}
+
+.clone-settings-tab-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.clone-settings-tab {
+  width: 100%;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #b4b4b4;
+  cursor: pointer;
+  text-align: left;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
+.clone-settings-tab:hover {
+  background: #424242;
+  color: #ececec;
+}
+
+.clone-settings-tab.active {
+  background: #424242;
+  color: #ececec;
+}
+
+.clone-settings-content-wrap {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  display: flex;
+}
+
+.clone-settings-close-right {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 24px;
+  height: 24px;
+  z-index: 2;
+}
+
+.clone-settings-content {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  padding: 20px 16px 20px 18px;
+}
+
+.clone-settings-general h2,
+.clone-settings-placeholder h2 {
+  margin: 0 0 16px;
+  font-size: 31px;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #ececec;
+}
+
+.clone-settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+}
+
+.clone-settings-row > span,
+.clone-settings-row-rich span {
+  font-size: 15px;
+  color: #ececec;
+}
+
+.clone-settings-row-rich {
+  align-items: flex-start;
+}
+
+.clone-settings-row-rich > div {
+  min-width: 0;
+}
+
+.clone-settings-row-rich p {
+  margin: 4px 0 0;
+  max-width: 390px;
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: #8e8e8e;
+}
+
+.clone-settings-select-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #ececec;
+  flex-shrink: 0;
+}
+
+.clone-settings-select {
+  border: 0;
+  background: transparent;
+  color: #ececec;
+  font-size: 14px;
+  line-height: 1.2;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  padding-right: 2px;
+}
+
+.clone-settings-select option {
+  color: #ececec;
+  background: #2f2f2f;
+}
+
+.clone-settings-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  border: 1px solid #676767;
+  background: #000000;
+}
+
+.clone-settings-voice-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.clone-settings-play-button {
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #b4b4b4;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  font-size: 13px;
+}
+
+.clone-settings-play-button:hover {
+  background: #424242;
+  color: #ececec;
+}
+
+.clone-settings-toggle {
+  position: relative;
+  width: 34px;
+  height: 20px;
+  border-radius: 999px;
+  background: #3c3c3c;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.clone-settings-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.clone-settings-toggle-thumb {
+  width: 14px;
+  height: 14px;
+  margin-left: 3px;
+  border-radius: 999px;
+  background: #c8c8c8;
+  transition: transform 0.2s ease;
+}
+
+.clone-settings-toggle.checked {
+  background: #6d6d6d;
+}
+
+.clone-settings-toggle.checked .clone-settings-toggle-thumb {
+  transform: translateX(14px);
+  background: #ffffff;
+}
+
+.clone-settings-placeholder p {
+  margin: 0;
+  font-size: 13px;
+  color: #8e8e8e;
+}
+
+@media (max-width: 860px) {
+  .clone-settings-sidebar {
+    width: 190px;
+  }
+
+  .clone-settings-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .clone-settings-voice-wrap {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

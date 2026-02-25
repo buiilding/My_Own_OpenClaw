@@ -120,6 +120,19 @@ describe('ChatGptDashboardShell', () => {
     expect(screen.getByTestId('models-section-stub')).toBeInTheDocument();
   });
 
+  test('profile click opens menu first, then settings from menu item', async () => {
+    await renderDashboardShell();
+
+    fireEvent.click(screen.getByTestId('sidebar-user-menu-trigger'));
+
+    expect(screen.queryByTestId('settings-section-stub')).not.toBeInTheDocument();
+    expect(screen.getByTestId('sidebar-user-menu-settings')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId('sidebar-user-menu-settings'));
+
+    expect(screen.getByTestId('settings-section-stub')).toBeInTheDocument();
+  });
+
   test('chat target closes an open modal', async () => {
     await renderDashboardShell();
 

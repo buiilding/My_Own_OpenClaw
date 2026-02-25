@@ -55,6 +55,7 @@ DashboardModal.propTypes = {
 function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsInitialTab, setSettingsInitialTab] = useState('general');
   const [modelsOpen, setModelsOpen] = useState(false);
   const [memoryOpen, setMemoryOpen] = useState(false);
   const [recentConversations, setRecentConversations] = useState([]);
@@ -73,8 +74,9 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
     setMemoryOpen(false);
   }, []);
 
-  const openSettings = useCallback(() => {
+  const openSettings = useCallback((tab = 'general') => {
     closeAllPanels();
+    setSettingsInitialTab(tab);
     setSettingsOpen(true);
   }, [closeAllPanels]);
 
@@ -288,9 +290,18 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
         </div>
       </DashboardModal>
 
-      <DashboardModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)}>
+      <DashboardModal
+        isOpen={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        className="cg-modal-settings"
+      >
         <div className="cg-panel-wrapper">
-          <SettingsSection config={config} onConfigChange={onConfigChange} />
+          <SettingsSection
+            config={config}
+            onConfigChange={onConfigChange}
+            initialTab={settingsInitialTab}
+            onClose={() => setSettingsOpen(false)}
+          />
         </div>
       </DashboardModal>
     </div>
