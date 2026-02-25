@@ -3634,3 +3634,13 @@ read_when:
   - `cd frontend && npm run test:ci -- --json --outputFile ../.audit/plan1/jest-report.json` (pass; `95` suites, `629` tests)
 - Slow-test check:
   - top suite remains tool-ghost behavior (`ChatBoxResponse.toolGhost.test.jsx`, ~`941ms`), now isolated from non-ghost state assertions for targeted follow-up optimization.
+
+## Phase 156 Outcome (2026-02-25)
+
+- Refactor slice: remove remaining intra-suite duplication in tool-ghost tests.
+  - added shared assertion helper in `tests/frontend/ChatBoxResponse.toolGhost.test.jsx`:
+    - `expectTargetedGhostPosition(...)`
+  - replaced repeated target-position assertions across click/browser/coordinate-contract tests.
+- Audit delta:
+  - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `29`, duplicated lines `550`, duplicated tokens `5347`)
+  - jsx clone section reduced to `0` clones in latest snapshot.

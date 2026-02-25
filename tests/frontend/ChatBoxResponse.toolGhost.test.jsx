@@ -13,6 +13,18 @@ import {
   setChatState,
 } from './ChatBoxResponse.testUtils';
 
+function expectTargetedGhostPosition(ghostTrack, { centered }) {
+  expect(ghostTrack).toBeTruthy();
+  expect(ghostTrack.classList.contains('is-targeted')).toBe(true);
+  if (centered) {
+    expect(ghostTrack.style.getPropertyValue('--ghost-end-left')).toBe('50%');
+    expect(ghostTrack.style.getPropertyValue('--ghost-end-top')).toBe('50%');
+    return;
+  }
+  expect(ghostTrack.style.getPropertyValue('--ghost-end-left')).not.toBe('50%');
+  expect(ghostTrack.style.getPropertyValue('--ghost-end-top')).not.toBe('50%');
+}
+
 describe('ChatBoxResponse tool ghost behavior', () => {
   beforeEach(() => {
     resetChatBoxResponseTestState();
@@ -128,11 +140,8 @@ describe('ChatBoxResponse tool ghost behavior', () => {
     });
 
     const ghostTrack = container.querySelector('.chatbox-tool-ghost-track');
-    expect(ghostTrack).toBeTruthy();
     await waitFor(() => {
-      expect(ghostTrack.classList.contains('is-targeted')).toBe(true);
-      expect(ghostTrack.style.getPropertyValue('--ghost-end-left')).not.toBe('50%');
-      expect(ghostTrack.style.getPropertyValue('--ghost-end-top')).not.toBe('50%');
+      expectTargetedGhostPosition(ghostTrack, { centered: false });
     });
   });
 
@@ -156,11 +165,8 @@ describe('ChatBoxResponse tool ghost behavior', () => {
     });
 
     const ghostTrack = container.querySelector('.chatbox-tool-ghost-track');
-    expect(ghostTrack).toBeTruthy();
-    expect(ghostTrack.classList.contains('is-targeted')).toBe(true);
+    expectTargetedGhostPosition(ghostTrack, { centered: true });
     expect(ghostTrack.classList.contains('is-click-animating')).toBe(true);
-    expect(ghostTrack.style.getPropertyValue('--ghost-end-left')).toBe('50%');
-    expect(ghostTrack.style.getPropertyValue('--ghost-end-top')).toBe('50%');
   });
 
   test('hides click ghost immediately after full click animation timeline', async () => {
@@ -214,10 +220,7 @@ describe('ChatBoxResponse tool ghost behavior', () => {
     });
 
     const ghostTrack = container.querySelector('.chatbox-tool-ghost-track');
-    expect(ghostTrack).toBeTruthy();
-    expect(ghostTrack.classList.contains('is-targeted')).toBe(true);
-    expect(ghostTrack.style.getPropertyValue('--ghost-end-left')).not.toBe('50%');
-    expect(ghostTrack.style.getPropertyValue('--ghost-end-top')).not.toBe('50%');
+    expectTargetedGhostPosition(ghostTrack, { centered: false });
   });
 
   test('renders a target rectangle when target_rect metadata is present', async () => {
