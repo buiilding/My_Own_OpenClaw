@@ -17,6 +17,9 @@ title: "Frontend Renderer Chat Docs Hub"
 - [Tracking, Formatting, and Message-Update Utility Reference](stream/tracking_formatting_and_message_update_utility_reference.md)
 - [Renderer Chat Payload Docs Hub](payloads/README.md)
 - [Tool Call/Output and Transparency Section Rendering Reference](payloads/tool_call_output_and_transparency_section_rendering_reference.md)
+- [Renderer Chat Presentation Docs Hub](presentation/README.md)
+- [Chat Common Actions Selector Boundary and Message-Input Send Guard Reference](presentation/chat_common_actions_selector_boundary_and_message_input_send_guard_reference.md)
+- [Thinking Display Overflow, Message List Class Assembly, and Token Count Formatting Reference](presentation/thinking_display_overflow_message_list_class_assembly_and_token_count_formatting_reference.md)
 
 ## Related Pages
 
@@ -39,6 +42,14 @@ title: "Frontend Renderer Chat Docs Hub"
 - `frontend/src/renderer/features/chat/utils/messageTransparency.js`
 - `frontend/src/renderer/features/chat/utils/newChatSession.ts`
 - `frontend/src/renderer/features/chat/utils/conversationRef.ts`
+- `frontend/src/renderer/features/chat/hooks/useChatCommonActions.ts`
+- `frontend/src/renderer/features/chat/components/MessageInput.jsx`
+- `frontend/src/renderer/features/chat/components/MessageList.jsx`
+- `frontend/src/renderer/features/chat/components/ThinkingDisplay.jsx`
+- `frontend/src/renderer/features/chat/components/TokenCountDisplay.jsx`
+- `frontend/src/renderer/features/chat/utils/messageInput.js`
+- `frontend/src/renderer/features/chat/utils/messageListClasses.js`
+- `frontend/src/renderer/features/chat/utils/tokenCounts.js`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
 - `frontend/src/renderer/features/chat/components/MessageContent.jsx`
@@ -50,5 +61,11 @@ title: "Frontend Renderer Chat Docs Hub"
 - `tests/frontend/MessageSendUiPolicy.test.ts`
 - `tests/frontend/ChatStreamConversationGate.test.ts`
 - `tests/frontend/ChatStreamTracking.test.ts`
+- `tests/frontend/MessageInput.test.jsx`
+- `tests/frontend/MessageInputUtils.test.js`
+- `tests/frontend/MessageListThinkingDisplay.test.jsx`
+- `tests/frontend/MessageListClasses.test.js`
+- `tests/frontend/ThinkingDisplay.test.jsx`
+- `tests/frontend/TokenCounts.test.js`
 - `tests/frontend/MessageContent.test.jsx`
 - `tests/frontend/MessageTransparency.test.js`
