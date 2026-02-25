@@ -14,6 +14,7 @@ title: "Backend Inventory Docs Hub"
 - [Backend Runtime Flow Matrix Reference](backend_runtime_flow_matrix_reference.md)
 - [Backend Module File Index Reference](backend_module_file_index_reference.md)
 - [Backend Cross-Layer Contract Touchpoints Reference](backend_cross_layer_contract_touchpoints_reference.md)
+- [Backend Inventory Domains Hub](domains/README.md)
 
 ## Related Pages
 

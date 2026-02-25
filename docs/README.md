@@ -33,6 +33,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Frontend Landing Section Content Contracts**](frontend/landing/sections/hero_how_available_and_roadmap_section_content_contract_reference.md) - Hero/How/Available/Roadmap source arrays, CTA anchor semantics, and status-label behavior for public capability messaging
 - [**Backend Functionality Map**](backend/README.md) - Detailed module-level backend runtime and API maps
 - [**Backend Inventory Docs Hub**](backend/inventory/README.md) - Subfolder inventory hub for exhaustive backend runtime coverage, flow matrices, and file ownership indexes
+- [**Backend Inventory Domains Hub**](backend/inventory/domains/README.md) - Domain ownership matrix + change-path playbooks for API/agent/core/tools/llm/services scope decisions
 - [**Backend Full Functionality Inventory Reference**](backend/inventory/backend_full_functionality_inventory_reference.md) - Exhaustive backend feature inventory by runtime domain, module ownership, and end-to-end query/tool path
 - [**Backend Cross-Layer Contract Touchpoints**](backend/inventory/backend_cross_layer_contract_touchpoints_reference.md) - Backend-owned contract map for websocket schemas, formatter outputs, tool-result envelopes, and sidecar/browser parity seams
 - [**Backend Source Maps Hub**](backend/source_maps/README.md) - Sub-hub for source-owned folder topology maps and package `__init__` export surfaces
