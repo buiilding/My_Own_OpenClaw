@@ -11,6 +11,7 @@ title: "Frontend Inventory Protocols Hub"
 ## Deep Pages
 
 - [Frontend IPC and Local-Backend Protocol Surface Matrix Reference](frontend_ipc_and_local_backend_protocol_surface_matrix_reference.md)
+- [Frontend Protocol Lifecycle Hub](lifecycle/README.md)
 
 ## Related Pages
 
