@@ -10,6 +10,7 @@ import {
 } from '../../../infrastructure/transcript/TranscriptWriter';
 import ModelsSection from './sections/ModelsSection';
 import SettingsSection from './sections/SettingsSection';
+import UsageSection from './sections/UsageSection';
 import {
   DEFAULT_USER_ID,
   parseMemoriesToMessages,
@@ -59,6 +60,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
   const [settingsInitialTab, setSettingsInitialTab] = useState('general');
   const [modelsOpen, setModelsOpen] = useState(false);
   const [memoryOpen, setMemoryOpen] = useState(false);
+  const [usageOpen, setUsageOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchedConversations, setSearchedConversations] = useState([]);
@@ -78,6 +80,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
     setSettingsOpen(false);
     setModelsOpen(false);
     setMemoryOpen(false);
+    setUsageOpen(false);
     setSearchOpen(false);
   }, []);
 
@@ -95,6 +98,11 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
   const openMemory = useCallback(() => {
     closeAllPanels();
     setMemoryOpen(true);
+  }, [closeAllPanels]);
+
+  const openUsage = useCallback(() => {
+    closeAllPanels();
+    setUsageOpen(true);
   }, [closeAllPanels]);
 
   const handleSidebarToggle = useCallback(() => {
@@ -392,10 +400,12 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
         onStartNewChat={handleStartNewChat}
         onOpenSearch={handleOpenSearch}
         onOpenMemory={handleMemorySurface}
+        onOpenUsage={openUsage}
         onOpenModels={openModels}
         onOpenSettings={openSettings}
         searchOpen={searchOpen}
         memoryOpen={memoryOpen}
+        usageOpen={usageOpen}
         modelsOpen={modelsOpen}
         isLoadingRecentConversations={isLoadingRecentConversations}
         recentConversationsError={recentConversationsError}
@@ -424,13 +434,24 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
 
       <DashboardModal isOpen={memoryOpen} onClose={() => setMemoryOpen(false)}>
         <div className="cg-panel-wrapper">
-          <MemorySection />
+          <MemorySection onClose={() => setMemoryOpen(false)} />
         </div>
       </DashboardModal>
 
       <DashboardModal isOpen={modelsOpen} onClose={() => setModelsOpen(false)}>
         <div className="cg-panel-wrapper">
-          <ModelsSection config={config} availableModels={availableModels} onConfigChange={onConfigChange} />
+          <ModelsSection
+            config={config}
+            availableModels={availableModels}
+            onConfigChange={onConfigChange}
+            onClose={() => setModelsOpen(false)}
+          />
+        </div>
+      </DashboardModal>
+
+      <DashboardModal isOpen={usageOpen} onClose={() => setUsageOpen(false)}>
+        <div className="cg-panel-wrapper">
+          <UsageSection onClose={() => setUsageOpen(false)} />
         </div>
       </DashboardModal>
 

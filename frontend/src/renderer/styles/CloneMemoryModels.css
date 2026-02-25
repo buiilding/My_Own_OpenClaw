@@ -4,25 +4,47 @@
   flex-direction: column;
   height: 100%;
   overflow: hidden;
-  background: #212121;
+  background: var(--ui-shell-bg);
+}
+
+.clone-panel-close-row {
+  padding: 12px 0 0 12px;
+}
+
+.clone-panel-close {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ui-text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clone-panel-close:hover {
+  background: var(--ui-hover-strong-bg);
+  color: var(--ui-text-primary);
 }
 
 .clone-panel-header {
   padding: 20px 32px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid var(--ui-border-subtle);
 }
 
 .clone-panel-header h1 {
   margin: 0;
   font-size: 15px;
   font-weight: 600;
-  color: #ececec;
+  color: var(--ui-text-primary);
 }
 
 .clone-panel-header p {
   margin: 2px 0 0;
   font-size: 11.5px;
-  color: #4a4a4a;
+  color: var(--ui-text-dim);
 }
 
 .clone-panel-body {
@@ -40,9 +62,9 @@
 }
 
 .clone-memory-type-btn {
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.02);
-  color: #555;
+  border: 1px solid var(--ui-border-subtle);
+  background: color-mix(in srgb, var(--ui-panel-bg) 65%, transparent);
+  color: var(--ui-text-dim);
   border-radius: 12px;
   padding: 8px 14px;
   display: inline-flex;
@@ -53,14 +75,14 @@
 }
 
 .clone-memory-type-btn:hover {
-  background: rgba(255, 255, 255, 0.04);
-  color: #888;
+  background: color-mix(in srgb, var(--ui-panel-bg) 82%, transparent);
+  color: var(--ui-text-muted);
 }
 
 .clone-memory-type-btn.active {
-  background: rgba(142, 151, 165, 0.08);
-  border-color: rgba(142, 151, 165, 0.2);
-  color: #ececec;
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 42%, transparent);
+  color: var(--ui-text-primary);
 }
 
 .clone-memory-type-btn span {
@@ -78,13 +100,13 @@
   justify-content: center;
   font-size: 10px;
   font-weight: 600;
-  background: rgba(255, 255, 255, 0.04);
-  color: #444;
+  background: color-mix(in srgb, var(--ui-panel-bg) 78%, transparent);
+  color: var(--ui-text-dim);
 }
 
 .clone-memory-type-btn.active .clone-memory-type-count {
-  background: rgba(142, 151, 165, 0.15);
-  color: #8e97a5;
+  background: color-mix(in srgb, var(--accent) 28%, transparent);
+  color: var(--accent);
 }
 
 .clone-memory-toolbar {
@@ -98,7 +120,7 @@
 .clone-memory-toolbar p {
   margin: 0;
   font-size: 11.5px;
-  color: #555;
+  color: var(--ui-text-dim);
 }
 
 .clone-memory-toolbar-actions {
@@ -116,23 +138,23 @@
 .clone-memory-search svg {
   position: absolute;
   left: 10px;
-  color: #3a3a3a;
+  color: var(--ui-text-dim);
 }
 
 .clone-memory-search input {
   width: 190px;
   height: 31px;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: #202020;
-  color: #d4d4d4;
+  border: 1px solid var(--ui-border-soft);
+  background: var(--ui-panel-raised-bg);
+  color: var(--ui-text-secondary);
   padding: 6px 30px 6px 30px;
   font-size: 11.5px;
   outline: none;
 }
 
 .clone-memory-search input:focus {
-  border-color: rgba(142, 151, 165, 0.4);
+  border-color: color-mix(in srgb, var(--accent) 52%, transparent);
 }
 
 .clone-memory-search button {
@@ -140,7 +162,7 @@
   right: 8px;
   border: 0;
   background: transparent;
-  color: #555;
+  color: var(--ui-text-dim);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -148,9 +170,9 @@
 }
 
 .clone-memory-add-btn {
-  border: 1px solid rgba(142, 151, 165, 0.15);
-  background: rgba(142, 151, 165, 0.1);
-  color: #8e97a5;
+  border: 1px solid color-mix(in srgb, var(--accent) 42%, transparent);
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  color: var(--accent);
   border-radius: 8px;
   padding: 7px 12px;
   display: inline-flex;
@@ -163,13 +185,13 @@
 }
 
 .clone-memory-add-btn:hover {
-  background: rgba(142, 151, 165, 0.15);
+  background: color-mix(in srgb, var(--accent) 28%, transparent);
 }
 
 .clone-memory-add-box {
   margin-bottom: 12px;
-  border: 1px solid rgba(142, 151, 165, 0.2);
-  background: rgba(142, 151, 165, 0.04);
+  border: 1px solid color-mix(in srgb, var(--accent) 44%, transparent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
   border-radius: 12px;
   padding: 16px;
   display: flex;
@@ -182,9 +204,9 @@
 .clone-memory-editor-textarea {
   width: 100%;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: #202020;
-  color: #d4d4d4;
+  border: 1px solid var(--ui-border-soft);
+  background: var(--ui-panel-raised-bg);
+  color: var(--ui-text-secondary);
   padding: 8px 12px;
   font-size: 12px;
   outline: none;
@@ -193,7 +215,7 @@
 .clone-memory-add-box input:focus,
 .clone-memory-add-box textarea:focus,
 .clone-memory-editor-textarea:focus {
-  border-color: rgba(142, 151, 165, 0.4);
+  border-color: color-mix(in srgb, var(--accent) 52%, transparent);
 }
 
 .clone-memory-add-actions,
@@ -206,9 +228,9 @@
 .clone-memory-add-actions button,
 .clone-memory-editor-btn {
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.04);
-  color: #6b6b6b;
+  border: 1px solid var(--ui-border-subtle);
+  background: color-mix(in srgb, var(--ui-panel-bg) 75%, transparent);
+  color: var(--ui-text-dim);
   padding: 6px 12px;
   font-size: 11px;
   cursor: pointer;
@@ -216,9 +238,9 @@
 
 .clone-memory-add-actions button.primary,
 .clone-memory-editor-btn.save {
-  border-color: rgba(142, 151, 165, 0.2);
-  background: rgba(142, 151, 165, 0.15);
-  color: #8e97a5;
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  background: color-mix(in srgb, var(--accent) 24%, transparent);
+  color: var(--accent);
   font-weight: 500;
   display: inline-flex;
   align-items: center;
@@ -237,14 +259,14 @@
 
 .clone-memory-item {
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--ui-border-subtle);
+  background: color-mix(in srgb, var(--ui-panel-bg) 65%, transparent);
   transition: all 0.2s ease;
 }
 
 .clone-memory-item:hover {
-  border-color: rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--ui-border-soft);
+  background: color-mix(in srgb, var(--ui-panel-bg) 82%, transparent);
 }
 
 .clone-memory-item-header {
@@ -259,7 +281,7 @@
   margin-top: 1px;
   border: 0;
   background: transparent;
-  color: #555;
+  color: var(--ui-text-dim);
   padding: 0;
   display: inline-flex;
   cursor: pointer;
@@ -280,7 +302,7 @@
   margin: 0;
   font-size: 12.5px;
   font-weight: 500;
-  color: #d4d4d4;
+  color: var(--ui-text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -293,11 +315,11 @@
   gap: 8px;
   flex-wrap: wrap;
   font-size: 10.5px;
-  color: #4a4a4a;
+  color: var(--ui-text-dim);
 }
 
 .clone-memory-separator {
-  color: #3a3a3a;
+  color: var(--ui-text-dim);
 }
 
 .clone-memory-confidence {
@@ -308,13 +330,13 @@
 }
 
 .clone-memory-confidence.high {
-  background: rgba(16, 185, 129, 0.1);
-  color: rgba(52, 211, 153, 0.85);
+  background: color-mix(in srgb, var(--success) 22%, transparent);
+  color: var(--success);
 }
 
 .clone-memory-confidence.medium {
-  background: rgba(245, 158, 11, 0.1);
-  color: rgba(251, 191, 36, 0.85);
+  background: color-mix(in srgb, var(--warning) 22%, transparent);
+  color: var(--warning);
 }
 
 .clone-memory-item-actions {
@@ -335,7 +357,7 @@
   border: 0;
   border-radius: 8px;
   background: transparent;
-  color: #4a4a4a;
+  color: var(--ui-text-dim);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -343,13 +365,13 @@
 }
 
 .clone-memory-action-btn:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: #888;
+  background: color-mix(in srgb, var(--ui-panel-bg) 86%, transparent);
+  color: var(--ui-text-muted);
 }
 
 .clone-memory-action-btn.delete:hover {
-  background: rgba(239, 68, 68, 0.12);
-  color: rgba(248, 113, 113, 0.9);
+  background: color-mix(in srgb, var(--danger) 22%, transparent);
+  color: var(--danger);
 }
 
 .clone-memory-item-body {
@@ -360,7 +382,7 @@
   margin: 0;
   font-size: 12px;
   line-height: 1.5;
-  color: #777;
+  color: var(--ui-text-muted);
   white-space: pre-wrap;
 }
 
@@ -368,32 +390,32 @@
   flex: 1;
   min-height: 160px;
   border-radius: 12px;
-  border: 1px dashed rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed var(--ui-border-soft);
+  background: color-mix(in srgb, var(--ui-panel-bg) 65%, transparent);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  color: #555;
+  color: var(--ui-text-dim);
   padding: 18px;
 }
 
 .clone-empty-state.error {
-  color: rgba(248, 113, 113, 0.9);
+  color: var(--danger);
 }
 
 .clone-empty-state .icon-wrap {
   width: 48px;
   height: 48px;
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--ui-border-subtle);
+  background: color-mix(in srgb, var(--ui-panel-bg) 80%, transparent);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 10px;
-  color: #3a3a3a;
+  color: var(--ui-text-dim);
 }
 
 .clone-empty-state .title {
@@ -405,7 +427,7 @@
 .clone-empty-state .subtitle {
   margin: 4px 0 0;
   font-size: 11px;
-  color: #3a3a3a;
+  color: var(--ui-text-dim);
 }
 
 .clone-model-body {
@@ -427,9 +449,9 @@
   margin-bottom: 10px;
   padding: 10px 12px;
   border-radius: 10px;
-  border: 1px solid rgba(245, 178, 78, 0.25);
-  background: rgba(245, 178, 78, 0.12);
-  color: rgba(245, 178, 78, 0.9);
+  border: 1px solid color-mix(in srgb, var(--warning) 45%, transparent);
+  background: color-mix(in srgb, var(--warning) 20%, transparent);
+  color: var(--warning);
   font-size: 12px;
 }
 
@@ -443,21 +465,21 @@
   width: 100%;
   text-align: left;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--ui-border-subtle);
+  background: color-mix(in srgb, var(--ui-panel-bg) 65%, transparent);
   padding: 16px;
   cursor: pointer;
   transition: background-color 0.28s ease, border-color 0.28s ease;
 }
 
 .clone-model-card.hovered {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--ui-panel-bg) 82%, transparent);
+  border-color: var(--ui-border-soft);
 }
 
 .clone-model-card.selected {
-  background: rgba(142, 151, 165, 0.08);
-  border-color: rgba(142, 151, 165, 0.2);
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
 }
 
 .clone-model-card-head {
@@ -478,8 +500,8 @@
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.05);
-  color: #4a4a4a;
+  background: color-mix(in srgb, var(--ui-panel-bg) 82%, transparent);
+  color: var(--ui-text-dim);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -487,8 +509,8 @@
 }
 
 .clone-model-icon-wrap.selected {
-  background: rgba(142, 151, 165, 0.2);
-  color: #8e97a5;
+  background: color-mix(in srgb, var(--accent) 28%, transparent);
+  color: var(--accent);
 }
 
 .clone-model-title-wrap {
@@ -505,7 +527,7 @@
   margin: 0;
   font-size: 13.5px;
   font-weight: 600;
-  color: #ececec;
+  color: var(--ui-text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -514,7 +536,7 @@
 .clone-model-title-wrap p {
   margin: 2px 0 0;
   font-size: 11.5px;
-  color: #555;
+  color: var(--ui-text-dim);
 }
 
 .clone-model-badge {
@@ -527,9 +549,9 @@
 }
 
 .clone-model-badge.recommended {
-  background: rgba(142, 151, 165, 0.15);
-  border: 1px solid rgba(142, 151, 165, 0.2);
-  color: #8e97a5;
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  color: var(--accent);
 }
 
 .clone-model-state-wrap {
@@ -543,21 +565,21 @@
   width: 20px;
   height: 20px;
   border-radius: 999px;
-  background: rgba(142, 151, 165, 0.2);
-  border: 1px solid rgba(142, 151, 165, 0.3);
-  color: #8e97a5;
+  background: color-mix(in srgb, var(--accent) 26%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 52%, transparent);
+  color: var(--accent);
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
 .clone-model-chevron {
-  color: #2a2a2a;
+  color: var(--ui-text-dim);
   transition: color 0.25s ease, transform 0.25s ease;
 }
 
 .clone-model-chevron.hovered {
-  color: #6b6b6b;
+  color: var(--ui-text-muted);
   transform: translateX(2px);
 }
 
@@ -588,14 +610,14 @@
 .clone-model-details-content {
   margin-top: 14px;
   padding-top: 14px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--ui-border-subtle);
 }
 
 .clone-model-description {
   margin: 0 0 12px;
   font-size: 12px;
   line-height: 1.45;
-  color: #888;
+  color: var(--ui-text-muted);
 }
 
 .clone-model-metrics-row {
@@ -609,13 +631,13 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #555;
+  color: var(--ui-text-dim);
 }
 
 .clone-model-metric span {
   display: block;
   font-size: 10px;
-  color: #444;
+  color: var(--ui-text-dim);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -623,7 +645,7 @@
 .clone-model-metric strong {
   display: block;
   font-size: 11.5px;
-  color: #b9b9b9;
+  color: var(--ui-text-secondary);
   font-weight: 500;
 }
 
@@ -636,9 +658,9 @@
 .clone-model-strengths span {
   border-radius: 6px;
   padding: 2px 8px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.04);
-  color: #6b6b6b;
+  border: 1px solid var(--ui-border-subtle);
+  background: color-mix(in srgb, var(--ui-panel-bg) 84%, transparent);
+  color: var(--ui-text-dim);
   font-size: 10.5px;
   font-weight: 500;
 }

@@ -89,6 +89,25 @@ describe('MemorySection', () => {
     expect(screen.getByText('No memories found')).toBeInTheDocument();
   });
 
+  test('left close button calls onClose', async () => {
+    mockInvoke.mockImplementation(async (channel) => {
+      if (channel === 'list-episodic-memories' || channel === 'list-semantic-memories') {
+        return { success: true, data: { memories: [] } };
+      }
+      return { success: true, data: {} };
+    });
+
+    const { default: MemorySection } = await import(
+      '../../frontend/src/renderer/features/dashboard/components/sections/MemorySection'
+    );
+
+    const onClose = jest.fn();
+    render(<MemorySection onClose={onClose} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close memory' }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
   test('semantic delete routes through delete-semantic-memory', async () => {
     mockInvoke.mockImplementation(async (channel) => {
       if (channel === 'list-episodic-memories') {

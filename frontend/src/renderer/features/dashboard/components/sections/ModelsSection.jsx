@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
-import { Check, ChevronRight, Clock, DollarSign, Zap } from 'lucide-react';
+import { Check, ChevronRight, Clock, DollarSign, X, Zap } from 'lucide-react';
 import {
   buildModelConfigUpdate,
   evaluateModelSelection,
@@ -152,7 +152,7 @@ ModelCard.propTypes = {
   onHover: PropTypes.func.isRequired,
 };
 
-function ModelsSection({ config, availableModels, onConfigChange }) {
+function ModelsSection({ config, availableModels, onConfigChange, onClose = () => {} }) {
   const [modelResetWarning, setModelResetWarning] = useState('');
   const [hoveredModel, setHoveredModel] = useState(null);
   const warningTimeoutRef = useRef(null);
@@ -232,6 +232,16 @@ function ModelsSection({ config, availableModels, onConfigChange }) {
 
   return (
     <div className="clone-model-panel">
+      <div className="clone-panel-close-row">
+        <button
+          type="button"
+          className="clone-panel-close"
+          onClick={onClose}
+          aria-label="Close models"
+        >
+          <X size={18} />
+        </button>
+      </div>
       <div className="clone-panel-header">
         <h1>Models</h1>
         <p>Select and configure your default model. Hover for details.</p>
@@ -298,6 +308,7 @@ ModelsSection.propTypes = {
     ),
   }),
   onConfigChange: PropTypes.func.isRequired,
+  onClose: PropTypes.func,
 };
 
 export default ModelsSection;
