@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(backend-services-artifacts): add `services/artifacts` subhub with artifact store upload/id validation/base64 lookup contract and artifact HTTP route URL/error-mapping reference pages
 - docs(backend-screen-grounding-vision): add `screen_grounding/vision` subhub with provider loader fallback/dtype contract and InternVL chat/generate fallback + runtime flash-attention disable references
 - docs(backend-services-token-calculation): add token-calculation subhub and deep reference for LiteLLM counter invocation path, assistant tool-call canonicalization rules, fallback text-part heuristics, and singleton/thread-safety test contracts
 - docs(frontend-sidecar-tools-filesystem): add filesystem subhub splitting read-file window/binary/truncation contracts from replace-engine match-mode, patch-chunk, and atomic-write semantics
@@ -19,7 +20,7 @@ Includes the last 300 commits on `main`.
 - docs(frontend-sidecar-system-state): add platform subhub detailing probe-layer vs window-manager adapter boundaries and OS-specific activation/matching semantics
 - docs(backend-api-processing-formatters): add formatter registry subhub with response formatter lazy-spec lifecycle, typed/dict dispatch precedence, and context-envelope attachment reference
 - fix(chatbox-ghost-click): map raw `mouse_control` click coordinates with live `screen_resolution` when `coordinate_contract.target_display_size` is absent so fake cursor still animates from current cursor to target before real click dispatch
-- feat(chatbox-ghost-cursor-parity): rework response-overlay tool ghost to concept-style fullscreen cursor motion (click/scroll), target-coordinate ripple, and explanation-driven caption text for click/scroll tool calls; add renderer/main docs updates and regression coverage in `tests/frontend/ChatBoxResponse.test.jsx` + `tests/frontend/ToolGhostPreview.test.js`
+- feat(chatbox-ghost-cursor-parity): rework response-overlay tool ghost to concept-style fullscreen cursor motion (click/scroll), target-coordinate ripple, and explanation-driven caption text for click/scroll tool calls; introduce `set-responsebox-size` `full_screen` mode for motion ghost overlays; add renderer/main docs updates and regression coverage in `tests/frontend/ChatBoxResponse.test.jsx` + `tests/frontend/ToolGhostPreview.test.js`
 - refactor(frontend-chat-stream): split `useChatStream` tracking/conversation guard logic into `chatStreamTracking.ts` and `chatStreamConversationGate.ts`, remove dead `messageToolMetadata` utility/test, and trim duplicate transcript integration cases now covered by focused helper tests
 - refactor(test-chatbox-response): extract shared tool-call phase/payload helpers in `tests/frontend/ChatBoxResponse.test.jsx` to remove duplicate ghost setup blocks; jscpd clone count returns to `28`
 - refactor(frontend-tool-ghost-runtime): remove unused exported click-phase constants from `toolGhostRuntime.ts` and tighten `ChatBoxResponse` fallback error handler to satisfy `lint:audit` + `audit:knip` with no findings
