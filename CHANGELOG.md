@@ -7,6 +7,9 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): record Phase 167 main-window control handler extraction and coverage in `docs/planning/windieos_refactor_plan_2026-02-23.md`
+- test(frontend-main-window): add `tests/frontend/MainWindowControlsHandler.test.cjs` coverage for minimize/maximize-toggle/close handler paths
+- refactor(frontend-main-window): extract `window-minimize`, `window-toggle-maximize`, and `window-close` IPC handler logic from `frontend/src/main/index.cjs` into `frontend/src/main/main_window_controls_handler.cjs`
 - docs(backend-tools-template-and-package-exports): add tools-template subhub for SDK scaffold/manifest contracts and a tools-package lazy export/import reference for `backend/src/tools/__init__.py`; wire links across backend/global docs hubs
 - docs(refactor-plan): record Phase 166 response-overlay handler regression coverage in `docs/planning/windieos_refactor_plan_2026-02-23.md`
 - test(frontend-main-overlay): add `tests/frontend/OverlayResponseboxHandler.test.cjs` direct coverage for extracted responsebox resize/fullscreen handler paths

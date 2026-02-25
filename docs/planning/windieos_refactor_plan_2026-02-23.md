@@ -3774,3 +3774,22 @@ read_when:
 - Validation:
   - `cd frontend && npm run lint` (pass)
   - `cd frontend && npm run test:ci -- tests/frontend/OverlayResponseboxHandler.test.cjs tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/IpcMainBridge.query.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs` (pass)
+
+## Phase 167 Outcome (2026-02-25)
+
+- Refactor slice: split main-window control IPC handlers from `index.cjs`.
+  - added:
+    - `frontend/src/main/main_window_controls_handler.cjs`:
+      - `handleWindowMinimize(...)`
+      - `handleWindowToggleMaximize(...)`
+      - `handleWindowClose(...)`
+  - updated:
+    - `frontend/src/main/index.cjs` now delegates `window-minimize`, `window-toggle-maximize`, and `window-close` IPC handlers to extracted module with injected `mainWindow`.
+  - added tests:
+    - `tests/frontend/MainWindowControlsHandler.test.cjs`
+    - covers available/unavailable flows and both maximize-toggle directions.
+  - impact:
+    - reduced `index.cjs` size and isolated window-control availability/toggle behavior for direct unit coverage.
+- Validation:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/MainWindowControlsHandler.test.cjs tests/frontend/OverlayResponseboxHandler.test.cjs tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs tests/frontend/IpcMainBridge.query.test.cjs` (pass)
