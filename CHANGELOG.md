@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-renderer-overlays-tool-ghost-lifecycle): add `tool_ghost/lifecycle` subhub documenting lifecycle state sampling, click hide-timer semantics, and CSS variable/keyframe contracts
 - docs(backend-services-artifacts): add `services/artifacts` subhub with artifact store upload/id validation/base64 lookup contract and artifact HTTP route URL/error-mapping reference pages
 - docs(backend-screen-grounding-vision): add `screen_grounding/vision` subhub with provider loader fallback/dtype contract and InternVL chat/generate fallback + runtime flash-attention disable references
 - docs(backend-services-token-calculation): add token-calculation subhub and deep reference for LiteLLM counter invocation path, assistant tool-call canonicalization rules, fallback text-part heuristics, and singleton/thread-safety test contracts

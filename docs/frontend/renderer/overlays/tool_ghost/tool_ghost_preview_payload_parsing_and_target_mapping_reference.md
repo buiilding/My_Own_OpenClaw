@@ -154,5 +154,8 @@ These variables drive both cursor movement and optional target rectangle renderi
 ## Related Pages
 
 - [Renderer Overlay Tool Ghost Docs Hub](README.md)
+- [Renderer Tool-Ghost Lifecycle Docs Hub](lifecycle/README.md)
+- [Tool Ghost Lifecycle System-State Sampling, Target Resolution, and Click Hide-Timer Reference](lifecycle/tool_ghost_lifecycle_system_state_sampling_target_resolution_and_click_hide_timer_reference.md)
+- [Tool Ghost Track Style Variable and CSS Animation Contract Reference](lifecycle/tool_ghost_track_style_variable_and_css_animation_contract_reference.md)
 - [Response Overlay Phase and Tool-Ghost Runtime Reference](../response_overlay_phase_and_tool_ghost_runtime_reference.md)
 - [Chat Stream and Tool Execution Reference](../../chat_stream_and_tool_execution_reference.md)

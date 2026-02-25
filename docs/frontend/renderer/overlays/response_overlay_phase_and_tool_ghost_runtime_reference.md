@@ -170,6 +170,9 @@ Unmount cleanup forces hide payload.
 
 - [Renderer Overlay Tool Ghost Docs Hub](tool_ghost/README.md)
 - [Tool Ghost Preview Payload Parsing and Target Mapping Reference](tool_ghost/tool_ghost_preview_payload_parsing_and_target_mapping_reference.md)
+- [Renderer Tool-Ghost Lifecycle Docs Hub](tool_ghost/lifecycle/README.md)
+- [Tool Ghost Lifecycle System-State Sampling, Target Resolution, and Click Hide-Timer Reference](tool_ghost/lifecycle/tool_ghost_lifecycle_system_state_sampling_target_resolution_and_click_hide_timer_reference.md)
+- [Tool Ghost Track Style Variable and CSS Animation Contract Reference](tool_ghost/lifecycle/tool_ghost_track_style_variable_and_css_animation_contract_reference.md)
 - [Frontend Renderer Overlay Docs Hub](README.md)
 
 ## Debug Checklist
