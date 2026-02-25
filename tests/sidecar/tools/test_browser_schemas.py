@@ -10,7 +10,6 @@ from pydantic import ValidationError
 from backend.src.tools.browser.schema_types import (
     BROWSER_CANONICAL_ACTIONS as BACKEND_CANONICAL_ACTIONS,
     BROWSER_COMPAT_ACTION_PREFERRED as BACKEND_COMPAT_ACTION_PREFERRED,
-    BROWSER_LEGACY_COMPAT_ACTIONS as BACKEND_LEGACY_COMPAT_ACTIONS,
     BROWSER_REMOVED_COMPAT_ACTIONS as BACKEND_REMOVED_COMPAT_ACTIONS,
     BrowserOpenClawAction,
 )
@@ -554,9 +553,6 @@ class TestBackendSidecarContractParity:
 
     def test_canonical_action_sets_match(self):
         assert set(BACKEND_CANONICAL_ACTIONS) == set(SIDECAR_CANONICAL_ACTIONS)
-
-    def test_legacy_alias_sets_match(self):
-        assert set(BACKEND_LEGACY_COMPAT_ACTIONS) == set()
 
     def test_removed_alias_sets_match(self):
         assert set(BACKEND_REMOVED_COMPAT_ACTIONS) == set(REMOVED_BROWSER_ACTION_ALIASES.keys())
