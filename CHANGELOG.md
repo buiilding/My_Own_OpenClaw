@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-chat-ui): stack assistant message action icons on a separate row under assistant text, left-aligned with message content.
 - fix(frontend-chat-ui): restyle user chat bubbles as white rounded pills for clearer user/assistant visual separation in dashboard chat.
 - feat(frontend-chat-ui): add assistant message action controls (`copy`, `like/dislike`, `try again`) and wire retry to rewind the current assistant/tool loop from transcript+UI history before re-querying from the triggering user message.
 - fix(frontend-chat-ui): align dashboard chat message lanes to composer pill bounds so assistant content starts at the pill’s left edge and user bubbles end at the pill’s right edge across desktop/mobile gutters.
