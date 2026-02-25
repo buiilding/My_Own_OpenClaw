@@ -3644,3 +3644,18 @@ read_when:
 - Audit delta:
   - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `29`, duplicated lines `550`, duplicated tokens `5347`)
   - jsx clone section reduced to `0` clones in latest snapshot.
+
+## Phase 157 Outcome (2026-02-25)
+
+- Refactor slice: modern React ref-mirroring helper extraction.
+  - added shared renderer hook:
+    - `frontend/src/renderer/infrastructure/hooks/useLatestRef.ts`
+  - migrated chat hooks to shared helper:
+    - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
+    - `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
+  - removed per-file manual latest-value ref initialization boilerplate for transcript model context.
+  - added focused regression coverage:
+    - `tests/frontend/useLatestRef.test.ts`
+- Validation:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/useLatestRef.test.ts tests/frontend/ToolRunnerHook.events.test.ts tests/frontend/ToolRunnerHook.callbacks.test.ts tests/frontend/ChatStreamThinkingStatus.state.test.tsx tests/frontend/ChatStreamThinkingStatus.metadata.test.tsx` (pass)
