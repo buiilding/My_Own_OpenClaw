@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for backend-sidecar browser schema parity checks, action-coverage guarantees, and validation-boundary split across canonical, legacy, and removed aliases."
+summary: "Deep reference for backend-sidecar browser schema parity checks, action-coverage guarantees, and validation-boundary split across canonical actions and removed aliases."
 read_when:
   - When adding/removing browser actions and verifying backend schema, sidecar schema, adapter dispatch, and runtime handler coverage stay aligned.
-  - When investigating payloads that parse in backend but fail in backend runtime alias gates or sidecar runtime enforcement.
+  - When investigating payloads that parse in backend but fail in backend removed-alias gates or sidecar runtime enforcement.
 title: "Backend-Sidecar Browser Schema Parity and Validation Boundary Reference"
 ---
 
@@ -27,21 +27,20 @@ title: "Backend-Sidecar Browser Schema Parity and Validation Boundary Reference"
 
 Backend browser parse boundary is broad:
 
-- `BrowserControlArgs` accepts canonical + compatibility action families
+- `BrowserControlArgs` accepts canonical + removed alias action families
 - unknown extras are ignored
 - removed aliases remain parseable for explicit migration errors
 
 Backend runtime gate in `RemoteBrowserTool`:
 
-- removed aliases (`open`, `switch_tab`, `press`, `act`) are blocked immediately
-- legacy alias `type` is controlled by strict/allow env gates
+- removed aliases (`type`, `open`, `switch_tab`, `press`, `act`) are blocked immediately
 
 ### Sidecar boundary
 
 Sidecar enforcement is action-aware and runtime-focused:
 
 - action schema routing (`BROWSER_SCHEMAS`) validates sidecar action models
-- `browser_tool` applies removed/legacy alias policy gates
+- `browser_tool` applies removed-alias policy gates
 - adapter/runtime normalize and validate action-specific params
 
 Result:
@@ -82,8 +81,8 @@ Symptoms:
 
 Symptoms:
 
-- alias documented as legacy but implemented as removed (or inverse)
-- strict/allow env behavior differs between backend and sidecar
+- alias documented as canonical but implemented as removed (or inverse)
+- backend and sidecar removed-alias sets diverge
 
 ### Pattern 3: Backend acceptance vs sidecar rejection
 
@@ -99,7 +98,7 @@ Backend transport strips defaults/`None`; sidecar receives sparse payload and ma
 ## Debug Procedure
 
 1. capture backend serialized payload (`RemoteToolResult.args`)
-2. verify backend gate decision (removed alias block vs legacy gate vs pass-through)
+2. verify backend gate decision (removed alias block vs pass-through)
 3. verify sidecar schema/action registry coverage
 4. inspect adapter param normalization path
 5. inspect runtime handler dispatch and error code
@@ -108,7 +107,7 @@ Backend transport strips defaults/`None`; sidecar receives sparse payload and ma
 
 - update backend action literals and alias maps
 - update backend runtime gate docs/tests (`RemoteBrowserTool`)
-- update sidecar schema/action mappings and alias gates
+- update sidecar schema/action mappings and removed-alias gates
 - update adapter dispatch/normalization
 - run parity + adapter + backend schema tests
 - update backend + frontend browser docs in same change

@@ -1,7 +1,7 @@
 ---
 summary: "Deep backend browser-tool reference for BrowserControlArgs action categories, OpenClaw compatibility-field surfaces, and removed-alias runtime semantics."
 read_when:
-  - When changing backend browser action literal sets, compatibility alias policy, or remote browser tool runtime gates.
+  - When changing backend browser action literal sets, removed-alias policy, or remote browser tool runtime gates.
   - When debugging backend-accepted browser payloads that are rejected as removed aliases before sidecar execution.
 title: "Browser Remote Schema Surface and Compatibility Contract Reference"
 ---
@@ -87,7 +87,7 @@ It exists for compatibility modeling and tests while `RemoteBrowserTool` accepts
 - `name = "browser"`
 - `args_model = BrowserControlArgs`
 - `category = ToolDomain.BROWSER`
-- description includes canonical actions, legacy alias policy, and migration guidance
+- description includes canonical actions, removed-alias policy, and migration guidance
 
 `execute_remote(...)` behavior:
 
@@ -123,7 +123,7 @@ Cross-layer debugging rule:
 - remote payload emission semantics
 - unified schema defaults/aliases
 - canonical + compatibility action parsing coverage
-- removed/legacy alias policy behavior
+- removed-alias policy behavior
 - OpenClaw compatibility model availability
 
 ## Related Docs
