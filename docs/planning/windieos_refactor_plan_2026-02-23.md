@@ -3932,3 +3932,12 @@ read_when:
 - Validation:
   - `cd frontend && npm run lint` (pass)
   - `cd frontend && npm run test:ci -- tests/frontend/ExternalFocusTracker.test.cjs tests/frontend/ResponseOverlayPhaseHandler.test.cjs tests/frontend/OverlayRendererRegistration.test.cjs tests/frontend/OverlayVisibilityHandler.test.cjs tests/frontend/DisplayQueryHandler.test.cjs tests/frontend/OverlayMouseHandler.test.cjs tests/frontend/MainWindowControlsHandler.test.cjs tests/frontend/OverlayResponseboxHandler.test.cjs tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs tests/frontend/IpcMainBridge.query.test.cjs` (pass)
+
+## Phase 177 Outcome (2026-02-25)
+
+- Full-gate revalidation after response-phase and external-focus tracker extractions:
+  - full gate:
+    - `./scripts/test` (pass)
+      - backend: `1012 passed`
+      - sidecar: `500 passed`, `4 skipped` (`3` known swig deprecation warnings)
+      - frontend: `106 suites`, `683 tests` passed
