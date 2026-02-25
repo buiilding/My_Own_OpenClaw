@@ -80,7 +80,7 @@ Behavior:
 - `set-overlay-ignore-mouse` -> click-through toggle for overlay windows
 - `set-chatbox-size` -> bounded chat window resize + response reposition
 - `set-responsebox-size` -> bounded response overlay resize/show/hide
-- `show-main-window`
+- `show-main-window` -> shows main window; optional payload `{ open: 'chat' | 'memory' | 'models' | 'settings' }` emits `main-window-open-target` to renderer when accepted
 - `show-chatbox`
 - `hide-chatbox`
 - `get-displays`
@@ -116,6 +116,7 @@ Behavior:
 - `wakeword-status`
 - `wakeword-toggle`
 - `chatbox-focus`
+- `main-window-open-target`
 - `log` (diagnostic)
 
 ## `to-backend` Query Relay Lifecycle (main process)

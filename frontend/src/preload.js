@@ -62,6 +62,7 @@ contextBridge.exposeInMainWorld('ipc', {
       'wakeword-status',
       'wakeword-toggle',
       'chatbox-focus',
+      'main-window-open-target',
       'response-overlay-phase',
       'response-overlay-visibility',
     ];
@@ -84,6 +85,7 @@ contextBridge.exposeInMainWorld('ipc', {
       'wakeword-status',
       'wakeword-toggle',
       'chatbox-focus',
+      'main-window-open-target',
       'response-overlay-phase',
       'response-overlay-visibility',
     ];

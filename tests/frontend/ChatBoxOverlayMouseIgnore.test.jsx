@@ -138,7 +138,9 @@ describe('ChatBox overlay mouse ignore', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Open settings' }));
 
     expectInvokeCall(
-      ([channel]) => channel === 'show-main-window',
+      ([channel, payload]) =>
+        channel === 'show-main-window'
+        && payload?.open === 'settings',
     );
   });
 

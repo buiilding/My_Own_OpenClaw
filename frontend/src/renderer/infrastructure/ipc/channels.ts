@@ -55,6 +55,7 @@ export const ON_CHANNELS = {
   WAKEWORD_STATUS: 'wakeword-status',
   WAKEWORD_TOGGLE: 'wakeword-toggle',
   CHATBOX_FOCUS: 'chatbox-focus',
+  MAIN_WINDOW_OPEN_TARGET: 'main-window-open-target',
   RESPONSE_OVERLAY_PHASE: 'response-overlay-phase',
   RESPONSE_OVERLAY_VISIBILITY: 'response-overlay-visibility',
 } as const;

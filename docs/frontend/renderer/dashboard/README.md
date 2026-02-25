@@ -1,7 +1,7 @@
 ---
-summary: "Renderer dashboard docs sub-hub for section routing, placeholder panel contracts, model selection normalization, and dashboard local-storage persistence semantics."
+summary: "Renderer dashboard docs sub-hub for ChatGPT-style shell layout, modal panel routing, and model/settings persistence semantics."
 read_when:
-  - When changing `frontend/src/renderer/features/dashboard/components/DashboardContent.jsx` or dashboard section rendering behavior.
+  - When changing `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx` modal routing behavior.
   - When modifying model selection/search/fallback logic or dashboard local-storage helpers under `features/dashboard/utils`.
 title: "Renderer Dashboard Docs Hub"
 ---
@@ -22,11 +22,13 @@ title: "Renderer Dashboard Docs Hub"
 
 ## Code Scope
 
-- `frontend/src/renderer/features/dashboard/components/DashboardContent.jsx`
+- `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/ModelsSection.jsx`
-- `frontend/src/renderer/features/dashboard/components/sections/ProceduralSection.jsx`
-- `frontend/src/renderer/features/dashboard/components/sections/UsageSection.jsx`
+- `frontend/src/renderer/features/dashboard/components/sections/SettingsSection.jsx`
+- `frontend/src/renderer/features/dashboard/components/sections/EpisodicMemorySection.jsx`
+- `frontend/src/renderer/features/dashboard/components/sections/SemanticMemorySection.jsx`
 - `frontend/src/renderer/features/dashboard/utils/modelSelectionUtils.js`
 - `frontend/src/renderer/features/dashboard/utils/storage.js`
 - `tests/frontend/ModelSelectionUtils.test.js`
 - `tests/frontend/DashboardStorageUtils.test.js`
+- `tests/frontend/ChatGptDashboardShell.test.jsx`
