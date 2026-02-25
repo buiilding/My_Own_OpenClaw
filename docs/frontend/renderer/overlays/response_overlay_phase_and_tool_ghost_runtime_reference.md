@@ -18,6 +18,7 @@ title: "Response Overlay Phase and Tool-Ghost Runtime Reference"
 - `frontend/src/renderer/features/chat/utils/overlayPhaseListener.js`
 - `frontend/src/renderer/features/chat/utils/overlayFrameSize.js`
 - `frontend/src/renderer/features/chat/utils/toolGhostPreview.js`
+- `frontend/src/renderer/app/ToolGhostDebugApp.jsx`
 - `frontend/src/renderer/infrastructure/markdown.ts`
 
 ## Input State and Message Selection
@@ -150,8 +151,17 @@ Unmount cleanup forces hide payload.
 ## Related Tests
 
 - `tests/frontend/ChatBoxResponse.test.jsx`
+- `tests/frontend/ToolGhostDebugApp.test.jsx`
 - `tests/frontend/OverlayPhaseListener.test.js`
 - `tests/frontend/OverlayFrameSize.test.js`
+
+## Manual Ghost Harness
+
+- debug view route: `/?view=tool-ghost-debug`
+- launcher: `cd frontend && npm run test:ghost-overlay`
+- behavior:
+  - overlay-only ghost animation (no real cursor move, no click)
+  - hard-coded top-to-bottom travel with same production timeline (`1000ms` hold, `1200ms` move, `1000ms` hold)
 
 ## Related Pages
 
