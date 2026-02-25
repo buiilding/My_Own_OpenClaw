@@ -50,14 +50,13 @@ Primary components:
 
 ### Dashboard (`features/dashboard`)
 
-Sections include:
+Primary modal surfaces include:
 
-- Episodic memory
-- Semantic memory
-- Procedural placeholder
-- Models
-- Usage placeholder
-- Settings
+- Clone-style Memory panel (`MemorySection`) with tabs for episodic/semantic/procedural
+- Models panel (`ModelsSection`)
+- Settings panel (`SettingsSection`)
+
+Chat history ownership remains in the sidebar `Your chats` list, while the Memory panel surfaces memory records.
 
 Utility modules provide selection formatting, memory formatting, and persisted section-state helpers.
 

@@ -107,6 +107,7 @@ class LocalBackend:
         self.protocol.register_method("search_memory", self._handle_search_memory)
         self.protocol.register_method("store_memory", self._handle_store_memory)
         self.protocol.register_method("list_conversations", self._handle_list_conversations)
+        self.protocol.register_method("list_episodic_memories", self._handle_list_episodic_memories)
         self.protocol.register_method("get_conversation", self._handle_get_conversation)
         self.protocol.register_method("list_semantic_memories", self._handle_list_semantic_memories)
         self.protocol.register_method("delete_conversation", self._handle_delete_conversation)
@@ -337,6 +338,30 @@ class LocalBackend:
             }
         except Exception as e:
             logger.error(f"Conversation listing failed: {e}", exc_info=True)
+            return {
+                "success": False,
+                "error": str(e)
+            }
+
+    @requires_memory_store
+    async def _handle_list_episodic_memories(
+        self,
+        user_id: str = "default_user",
+        limit: int = 200,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """List episodic memory entries excluding transcript conversation rows."""
+        try:
+            memories = await self.memory_store.list_episodic_memories(user_id, limit)
+            return {
+                "success": True,
+                "data": {
+                    "memories": memories,
+                    "count": len(memories),
+                }
+            }
+        except Exception as e:
+            logger.error(f"Episodic memory listing failed: {e}", exc_info=True)
             return {
                 "success": False,
                 "error": str(e)

@@ -1,21 +1,158 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
-import { loadLocalValue, saveLocalValue } from '../../utils/storage';
+import { Check, ChevronRight, Clock, DollarSign, Zap } from 'lucide-react';
 import {
   buildModelConfigUpdate,
   evaluateModelSelection,
-  filterModelsBySearch,
   getCurrentModels,
   getFallbackModelSelection,
 } from '../../utils/modelSelectionUtils';
-import '../../../../styles/SettingsPanel.css';
 
-const API_KEY_STORAGE_KEY = 'desktop-assistant-api-key';
+function buildModelDescription(model) {
+  const provider = (model?.provider || '').toLowerCase();
+  if (provider.includes('openai')) {
+    return 'Flagship multimodal model. Fast, accurate, cost-effective.';
+  }
+  if (provider.includes('anthropic')) {
+    return 'Advanced reasoning with strong instruction following.';
+  }
+  if (provider.includes('google')) {
+    return 'Powerful model with native multimodal understanding.';
+  }
+  if (provider.includes('ollama') || provider.includes('local')) {
+    return 'Local model runtime for private on-device workflows.';
+  }
+  return 'General-purpose model suitable for chat, coding and reasoning tasks.';
+}
+
+function buildModelStrengths(model) {
+  const provider = (model?.provider || '').toLowerCase();
+  if (provider.includes('openai')) {
+    return ['Reasoning', 'Code', 'Vision', 'Multilingual'];
+  }
+  if (provider.includes('anthropic')) {
+    return ['Analysis', 'Writing', 'Safety', 'Long Context'];
+  }
+  if (provider.includes('google')) {
+    return ['Multimodal', 'Search', 'Code', 'Efficiency'];
+  }
+  if (provider.includes('ollama') || provider.includes('local')) {
+    return ['Private', 'Offline', 'Low Latency', 'Customization'];
+  }
+  return ['Reasoning', 'General', 'Productivity', 'Flexible'];
+}
+
+function toModelCard(model, isRecommended) {
+  const contextHint = model?.context_window || model?.contextWindow || model?.context || 'Context unknown';
+  return {
+    id: model?.id || 'unknown-model',
+    provider: model?.provider || 'unknown',
+    description: buildModelDescription(model),
+    context: typeof contextHint === 'number' ? `${contextHint} tokens` : String(contextHint),
+    inputPrice: model?.input_price || model?.inputPrice || 'N/A',
+    outputPrice: model?.output_price || model?.outputPrice || 'N/A',
+    latency: model?.latency || '~1.5s',
+    strengths: buildModelStrengths(model),
+    badge: isRecommended ? 'Recommended' : null,
+  };
+}
+
+function ModelCard({ model, isSelected, isHovered, onSelect, onHover }) {
+  return (
+    <button
+      type="button"
+      className={`clone-model-card${isSelected ? ' selected' : ''}${isHovered ? ' hovered' : ''}`}
+      onMouseEnter={() => onHover(model.id)}
+      onMouseLeave={() => onHover(null)}
+      onClick={() => onSelect(model)}
+    >
+      <div className="clone-model-card-head">
+        <div className="clone-model-id-wrap">
+          <div className={`clone-model-icon-wrap${isSelected ? ' selected' : ''}`}>
+            <Zap size={16} />
+          </div>
+          <div className="clone-model-title-wrap">
+            <div className="clone-model-title-row">
+              <h3>{model.id}</h3>
+              {model.badge ? (
+                <span className={`clone-model-badge${model.badge === 'Recommended' ? ' recommended' : ''}`}>
+                  {model.badge}
+                </span>
+              ) : null}
+            </div>
+            <p>{model.provider} · {model.context}</p>
+          </div>
+        </div>
+
+        <div className="clone-model-state-wrap">
+          {isSelected ? (
+            <div className="clone-model-selected-dot">
+              <Check size={12} />
+            </div>
+          ) : null}
+          <ChevronRight size={16} className={`clone-model-chevron${isHovered ? ' hovered' : ''}`} />
+        </div>
+      </div>
+
+      {isHovered ? (
+        <div className="clone-model-details">
+          <p className="clone-model-description">{model.description}</p>
+          <div className="clone-model-metrics-row">
+            <div className="clone-model-metric">
+              <DollarSign size={14} />
+              <div>
+                <span>Input</span>
+                <strong>{model.inputPrice}</strong>
+              </div>
+            </div>
+            <div className="clone-model-metric">
+              <DollarSign size={14} />
+              <div>
+                <span>Output</span>
+                <strong>{model.outputPrice}</strong>
+              </div>
+            </div>
+            <div className="clone-model-metric">
+              <Clock size={14} />
+              <div>
+                <span>Latency</span>
+                <strong>{model.latency}</strong>
+              </div>
+            </div>
+          </div>
+
+          <div className="clone-model-strengths">
+            {model.strengths.map((strength) => (
+              <span key={`${model.id}-${strength}`}>{strength}</span>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </button>
+  );
+}
+
+ModelCard.propTypes = {
+  model: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    provider: PropTypes.string.isRequired,
+    description: PropTypes.string.isRequired,
+    context: PropTypes.string.isRequired,
+    inputPrice: PropTypes.string.isRequired,
+    outputPrice: PropTypes.string.isRequired,
+    latency: PropTypes.string.isRequired,
+    strengths: PropTypes.arrayOf(PropTypes.string).isRequired,
+    badge: PropTypes.string,
+  }).isRequired,
+  isSelected: PropTypes.bool.isRequired,
+  isHovered: PropTypes.bool.isRequired,
+  onSelect: PropTypes.func.isRequired,
+  onHover: PropTypes.func.isRequired,
+};
 
 function ModelsSection({ config, availableModels, onConfigChange }) {
   const [modelResetWarning, setModelResetWarning] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [apiKey, setApiKey] = useState(() => loadLocalValue(API_KEY_STORAGE_KEY, ''));
+  const [hoveredModel, setHoveredModel] = useState(null);
   const warningTimeoutRef = useRef(null);
 
   const modelMode = config?.model_mode || 'online';
@@ -29,28 +166,20 @@ function ModelsSection({ config, availableModels, onConfigChange }) {
     [availableModels, modelMode],
   );
 
-  const filteredModels = useMemo(() => {
-    return filterModelsBySearch(currentModels, searchTerm);
-  }, [currentModels, searchTerm]);
+  const modelCards = useMemo(() => {
+    return currentModels.map((model, index) => toModelCard(model, index === 0));
+  }, [currentModels]);
 
-  const applyModelSelection = useCallback((selectedModel, modeOverride = modelMode) => {
+  const applyModelSelection = useCallback((selectedModel) => {
     onConfigChange(
       buildModelConfigUpdate({
-        modelMode: modeOverride,
+        modelMode,
         selectedModel,
         speechModeEnabled,
         interactionMode,
       }),
     );
   }, [interactionMode, modelMode, onConfigChange, speechModeEnabled]);
-
-  const handleModelModeChange = useCallback((newMode) => {
-    applyModelSelection(null, newMode);
-  }, [applyModelSelection]);
-
-  const handleModelSelect = useCallback((model) => {
-    applyModelSelection(model);
-  }, [applyModelSelection]);
 
   useEffect(() => {
     if (!config) {
@@ -70,9 +199,8 @@ function ModelsSection({ config, availableModels, onConfigChange }) {
     });
 
     if (selectionState.status === 'missing') {
-      console.warn(selectionState.warning);
       setModelResetWarning(selectionState.warning);
-      handleModelSelect(getFallbackModelSelection(currentModels));
+      applyModelSelection(getFallbackModelSelection(currentModels));
       if (warningTimeoutRef.current) {
         clearTimeout(warningTimeoutRef.current);
       }
@@ -81,117 +209,66 @@ function ModelsSection({ config, availableModels, onConfigChange }) {
     }
 
     if (selectionState.status === 'provider-mismatch') {
-      handleModelSelect(selectionState.model);
+      applyModelSelection(selectionState.model);
     }
-  }, [selectedModelId, currentModels, selectedProvider, availableModels, config, handleModelSelect]);
+  }, [
+    applyModelSelection,
+    availableModels,
+    config,
+    currentModels,
+    selectedModelId,
+    selectedProvider,
+  ]);
 
-  useEffect(() => () => {
-    if (warningTimeoutRef.current) {
-      clearTimeout(warningTimeoutRef.current);
-    }
+  useEffect(() => {
+    return () => {
+      if (warningTimeoutRef.current) {
+        clearTimeout(warningTimeoutRef.current);
+      }
+    };
   }, []);
 
   return (
-    <div className="settings-panel">
-      <div className="settings-header">
-        <div>
-          <h2>Models</h2>
-          <p>Select a model and manage provider access.</p>
-        </div>
+    <div className="clone-model-panel">
+      <div className="clone-panel-header">
+        <h1>Models</h1>
+        <p>Select and configure your default model. Hover for details.</p>
       </div>
 
-      {modelResetWarning && (
-        <div className="model-reset-warning">
-          ⚠️ {modelResetWarning}
-        </div>
-      )}
+      <div className="clone-panel-body clone-model-body">
+        {modelResetWarning ? (
+          <div className="clone-panel-warning">{modelResetWarning}</div>
+        ) : null}
 
-      <section className="settings-section">
-        <h3>Model Mode</h3>
-        <div className="mode-toggle">
-          <label className="radio-label">
-            <input
-              type="radio"
-              name="model-mode"
-              value="online"
-              checked={modelMode === 'online'}
-              onChange={(e) => handleModelModeChange(e.target.value)}
-            />
-            <span>Online (Cloud)</span>
-          </label>
-          <label className="radio-label">
-            <input
-              type="radio"
-              name="model-mode"
-              value="local"
-              checked={modelMode === 'local'}
-              onChange={(e) => handleModelModeChange(e.target.value)}
-            />
-            <span>Local</span>
-          </label>
-        </div>
-      </section>
-
-      <section className="settings-section">
-        <h3>{modelMode === 'local' ? 'Local Models' : 'Online Models'}</h3>
-        <div className="settings-field">
-          <label htmlFor="model-search">Search</label>
-          <input
-            id="model-search"
-            type="text"
-            value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder="Search model ids"
-          />
-        </div>
-        {currentModels.length === 0 ? (
-          <div className="no-models-message">
-            {modelMode === 'local'
-              ? 'No local models found. Make sure Ollama or LM Studio is running.'
-              : 'Loading available models...'}
-          </div>
+        {modelCards.length === 0 ? (
+          <div className="clone-empty-state">No models available for the current mode.</div>
         ) : (
-          <div className="models-list">
-            {filteredModels.length === 0 ? (
-              <div className="no-models-message">No models match that search.</div>
-            ) : (
-              filteredModels.map((model) => {
-                const isActive = model.id === selectedModelId && model.provider === selectedProvider;
-                return (
-                  <button
-                    type="button"
-                    key={`${model.id}-${model.provider}`}
-                    className={`model-item ${isActive ? 'active' : ''}`}
-                    onClick={() => handleModelSelect(model)}
-                  >
-                    <div className="model-item-title">{model.id}</div>
-                    <div className="model-item-subtitle">{model.provider}</div>
-                  </button>
-                );
-              })
-            )}
+          <div className="clone-model-list">
+            {modelCards.map((model) => {
+              const isSelected = model.id === selectedModelId && model.provider === selectedProvider;
+              const isHovered = hoveredModel === model.id;
+              const sourceModel = currentModels.find((candidate) => candidate.id === model.id && candidate.provider === model.provider)
+                || currentModels.find((candidate) => candidate.id === model.id)
+                || null;
+
+              return (
+                <ModelCard
+                  key={`${model.provider}-${model.id}`}
+                  model={model}
+                  isSelected={isSelected}
+                  isHovered={isHovered}
+                  onHover={setHoveredModel}
+                  onSelect={() => {
+                    if (sourceModel) {
+                      applyModelSelection(sourceModel);
+                    }
+                  }}
+                />
+              );
+            })}
           </div>
         )}
-      </section>
-
-      <section className="settings-section">
-        <h3>API Key</h3>
-        <div className="settings-field">
-          <label htmlFor="api-key">Provider Key</label>
-          <input
-            id="api-key"
-            type="password"
-            value={apiKey}
-            onChange={(event) => {
-              const nextValue = event.target.value;
-              setApiKey(nextValue);
-              saveLocalValue(API_KEY_STORAGE_KEY, nextValue);
-            }}
-            placeholder="Paste your provider key"
-          />
-          <p className="settings-help">Stored locally on this device.</p>
-        </div>
-      </section>
+      </div>
     </div>
   );
 }
@@ -209,13 +286,13 @@ ModelsSection.propTypes = {
       PropTypes.shape({
         id: PropTypes.string.isRequired,
         provider: PropTypes.string.isRequired,
-      })
+      }),
     ),
     online: PropTypes.arrayOf(
       PropTypes.shape({
         id: PropTypes.string.isRequired,
         provider: PropTypes.string.isRequired,
-      })
+      }),
     ),
   }),
   onConfigChange: PropTypes.func.isRequired,

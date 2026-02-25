@@ -7,6 +7,7 @@ import WakewordController from './WakewordController';
 import '../styles/theme.css';
 import '../styles/ChatInterface.css';
 import '../styles/ChatGptDashboardShell.css';
+import '../styles/CloneMemoryModels.css';
 import '../styles/accessibility.css';
 
 /**

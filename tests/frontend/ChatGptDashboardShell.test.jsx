@@ -36,12 +36,8 @@ jest.mock('../../frontend/src/renderer/features/dashboard/components/sections/Mo
   <div data-testid="models-section-stub">ModelsSectionStub</div>
 ));
 
-jest.mock('../../frontend/src/renderer/features/dashboard/components/sections/EpisodicMemorySection', () => () => (
-  <div data-testid="episodic-memory-stub">EpisodicMemoryStub</div>
-));
-
-jest.mock('../../frontend/src/renderer/features/dashboard/components/sections/SemanticMemorySection', () => () => (
-  <div data-testid="semantic-memory-stub">SemanticMemoryStub</div>
+jest.mock('../../frontend/src/renderer/features/dashboard/components/sections/MemorySection', () => () => (
+  <div data-testid="memory-section-stub">MemorySectionStub</div>
 ));
 
 jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({

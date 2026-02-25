@@ -65,6 +65,7 @@ Registered methods:
 - `search_memory`
 - `store_memory`
 - `list_conversations`
+- `list_episodic_memories`
 - `get_conversation`
 - `list_semantic_memories`
 - `delete_conversation`
@@ -96,6 +97,7 @@ Special behavior:
 From `local_backend_bridge_rpc_mappers.cjs`:
 
 - `list-conversations` -> `list_conversations`
+- `list-episodic-memories` -> `list_episodic_memories`
 - `get-conversation` -> `get_conversation`
 - `list-semantic-memories` -> `list_semantic_memories`
 - `delete-conversation` -> `delete_conversation`
