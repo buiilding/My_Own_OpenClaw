@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-models-ui): anchor models-window scrollbar to the panel right edge by making the scroll container full-width and constraining only inner models content width
 - fix(frontend-models-ui): restore scrolling in clone-style models window by making the models body an explicit vertical scroll container (`flex: 1`, `min-height: 0`, `overflow-y: auto`) so long model lists are reachable
 - fix(frontend-dashboard): match clone profile/settings UX by opening a user-menu dropdown from sidebar avatar (instead of auto-opening settings), porting clone-style settings layout/tabs/general controls, and resizing settings modal to clone proportions
 - fix(frontend-dashboard): resolve `Your chats` using transcript session `userId` (fallback `default_user`) and reload conversation list when session user updates, so local transcript conversations appear and resume correctly
