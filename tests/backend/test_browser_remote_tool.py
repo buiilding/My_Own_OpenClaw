@@ -75,6 +75,22 @@ class TestRemoteBrowserTool:
         ):
             await tool.execute_remote(args, mock_ctx)
 
+    @pytest.mark.asyncio
+    async def test_execute_remote_rejects_legacy_actions_when_legacy_disabled(self, monkeypatch):
+        monkeypatch.setenv("WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS", "0")
+        tool = RemoteBrowserTool()
+
+        mock_ctx = mock.Mock()
+        mock_ctx.session = mock.Mock()
+        mock_ctx.session.metadata = {"request_id": "legacy-disabled"}
+
+        args = BrowserControlArgs(action="open", url="https://example.com")
+        with pytest.raises(
+            ValueError,
+            match="Legacy browser actions are disabled by WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=0",
+        ):
+            await tool.execute_remote(args, mock_ctx)
+
 
 class TestBrowserToolRegistry:
     """Test browser tool in registry."""
