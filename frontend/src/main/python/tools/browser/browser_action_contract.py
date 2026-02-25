@@ -1,4 +1,4 @@
-"""Canonical and legacy browser action contract for WindieOS sidecar."""
+"""Canonical and removed-alias browser action contract for WindieOS sidecar."""
 
 from __future__ import annotations
 
@@ -39,10 +39,6 @@ BROWSER_CANONICAL_ACTIONS = frozenset(
     }
 )
 
-LEGACY_BROWSER_ACTION_ALIASES = MappingProxyType(
-    {}
-)
-
 REMOVED_BROWSER_ACTION_ALIASES = MappingProxyType(
     {
         "type": "input",
@@ -53,10 +49,6 @@ REMOVED_BROWSER_ACTION_ALIASES = MappingProxyType(
     }
 )
 
-BROWSER_COMPAT_ACTION_ALIASES = MappingProxyType(
-    {**LEGACY_BROWSER_ACTION_ALIASES, **REMOVED_BROWSER_ACTION_ALIASES}
-)
-
 BROWSER_ALL_ACTIONS = frozenset(
-    BROWSER_CANONICAL_ACTIONS.union(BROWSER_COMPAT_ACTION_ALIASES.keys())
+    BROWSER_CANONICAL_ACTIONS.union(REMOVED_BROWSER_ACTION_ALIASES.keys())
 )
