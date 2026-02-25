@@ -59,13 +59,13 @@ All surfaces mount `AppProvider`, which means:
 2. `AppProvider`
 3. `ChatProvider` (full chat hooks)
 4. `WakewordController`
-5. `AppContent` (`MainLayout` with section routing)
+5. `AppContent` (`ChatGptDashboardShell`)
 
 `AppContent` behavior:
 
-- `chat` section renders `ChatInterface`
-- non-chat sections lazy-load `DashboardContent`
-- config/model context passed into dashboard for settings/model pages
+- always renders conversation-first shell with `ChatInterface` as primary content
+- opens memory/models/settings as modal panels over chat
+- config/model context is passed into settings/models sections inside modals
 
 ## Overlay App Stacks
 

@@ -1,9 +1,9 @@
 ---
-summary: "Deep reference for renderer-wide visual primitives: typography/color token variables, motion/global reset behavior, screen-reader utility class semantics, and main shell/sidebar responsive layout contracts."
+summary: "Deep reference for renderer-wide visual primitives: typography/color token variables, motion/global reset behavior, screen-reader utility class semantics, and ChatGPT-style dashboard shell layout contracts."
 read_when:
   - When changing global style tokens, font imports, background gradients, or reduced-motion behavior.
-  - When modifying main layout shell/sidebar markup or responsive breakpoints in `MainLayout`.
-title: "Global Theme, Accessibility Utility, and Main Layout Visual Contract Reference"
+  - When modifying dashboard shell/sidebar/modal markup or responsive breakpoints in `ChatGptDashboardShell`.
+title: "Global Theme, Accessibility Utility, and Dashboard Shell Visual Contract Reference"
 ---
 
 # Global Theme, Accessibility Utility, and Main Layout Visual Contract Reference
@@ -12,9 +12,9 @@ This page documents:
 
 - `frontend/src/renderer/styles/theme.css`
 - `frontend/src/renderer/styles/accessibility.css`
-- `frontend/src/renderer/styles/MainLayout.css`
+- `frontend/src/renderer/styles/ChatGptDashboardShell.css`
 - `frontend/src/renderer/app/App.jsx`
-- `frontend/src/renderer/components/MainLayout.jsx`
+- `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
 
 ## Global Theme Token Contract (`theme.css`)
 
@@ -58,42 +58,35 @@ Motion baseline:
 - uses clip/size/overflow pattern for screen-reader-only labels
 - consumed by renderer surfaces where visible labels are replaced by iconography or condensed UI
 
-## Main Shell Layout Contract (`MainLayout.css` + `MainLayout.jsx`)
+## Dashboard Shell Layout Contract (`ChatGptDashboardShell.css` + `ChatGptDashboardShell.jsx`)
 
 Structure coupling:
 
-- `MainLayout.jsx` emits fixed class surface:
-  - `.main-layout`
-  - `.ambient-backdrop`
-  - `.sidebar`, `.sidebar-header`, `.sidebar-nav`
-  - `.brand-mark`, `.brand-text`, `.nav-label`
-  - `.main-content`
+- `ChatGptDashboardShell.jsx` emits fixed class surface:
+  - `.cg-dashboard-shell`
+  - `.cg-sidebar`, `.cg-sidebar-brand`, `.cg-sidebar-nav`
+  - `.cg-nav-item`, `.cg-main-content`
+  - `.cg-modal-overlay`, `.cg-modal`, `.cg-modal-header`, `.cg-modal-body`
 
 Desktop layout behavior:
 
-- two-column CSS grid (`256px` sidebar + flexible main)
-- sidebar has blurred, high-opacity panel styling with drag region on `.sidebar-header`
-- main surface uses gradient overlay and independent overflow handling
+- split pane layout (`256px` left shell + flexible chat content)
+- sidebar uses translucent backdrop styling; navigation buttons track active/selected modal state
+- modal overlays center memory/models/settings panels over persistent chat content
 
 Sidebar navigation state contract:
 
-- active nav item requires `.active` class on `<li>`
-- hover/active styles rely on border/background transitions
-- button remains transparent; container element owns selected-state visual framing
+- active/selected nav buttons use `.active`/`.selected` class names
+- hover/active styles rely on border/background transitions on `.cg-nav-item`
 
 Responsive behavior:
 
-- `@media (max-width: 1100px)` collapses to stacked layout (`sidebar` then `main`)
-- nav list shifts to horizontal scroll strip on medium widths
-- `@media (max-width: 720px)` allows wrapped nav items and reduced sidebar gap
-
-Drag-region expectation:
-
-- `.sidebar-header` sets `-webkit-app-region: drag`, so nested interactive controls in that region must explicitly opt out if added later
+- `@media (max-width: 980px)` collapses the sidebar footprint and reduces label density
+- main chat/content padding reduces to preserve usable viewport space
 
 ## Import/Load Contract (`App.jsx`)
 
-`App.jsx` imports `theme.css`, `ChatInterface.css`, `MainLayout.css`, and `accessibility.css` at root.
+`App.jsx` imports `theme.css`, `ChatInterface.css`, `ChatGptDashboardShell.css`, and `accessibility.css` at root.
 
 Implication:
 

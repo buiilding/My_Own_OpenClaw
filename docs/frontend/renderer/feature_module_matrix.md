@@ -51,21 +51,19 @@ Path:
 
 Primary responsibilities:
 
-- section-based settings/memory/model views
+- conversation-first dashboard shell with modal settings/memory/model views
 - memory management UI for episodic and semantic stores
 - model selection and frontend settings controls
 
-Section router:
+Shell:
 
-- `components/DashboardContent.jsx`
+- `components/ChatGptDashboardShell.jsx`
 
 Sections:
 
 - episodic
 - semantic
-- procedural
 - models
-- usage
 - settings
 
 ## Settings Module

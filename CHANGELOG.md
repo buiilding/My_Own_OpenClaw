@@ -7,6 +7,9 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-dashboard): remove legacy section-router shell (`MainLayout`, `DashboardContent`, procedural/usage placeholders) after ChatGPT-style dashboard migration
+- test(frontend-dashboard): drop obsolete `MainLayout` test suite after legacy shell removal
+- docs(frontend-architecture): update renderer architecture, provider stack, style contracts, and folder topology docs to reflect `ChatGptDashboardShell` conversation-first modal design
 - feat(frontend-dashboard): replace main-window dashboard with ChatGPT-style conversation shell (`ChatGptDashboardShell`) where chat stays primary and memory/models/settings open as modals
 - feat(frontend-main-ipc): extend `show-main-window` with optional `{ open }` target routing and emit `main-window-open-target` so overlay settings button can open the main window directly to settings
 - test(frontend-dashboard): add `ChatGptDashboardShell` modal-routing coverage and update chatbox settings-button invoke assertions for targeted main-window opening
