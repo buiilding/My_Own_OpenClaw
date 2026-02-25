@@ -60,7 +60,7 @@ Runtime flow for each frame after handshake:
 | `rehydrate-conversation` | `RehydrateConversationMessage` | `conversation_ref`, `messages[]`, `rehydrate_mode="replace"` | `rehydrate_conversation_handler` |
 | `load-settings` | `LoadSettingsMessage` | Optional `client_version` | `load_settings_handler` |
 | `list-models` | `ListModelsMessage` | Empty payload object | `list_models_handler` |
-| `update-settings` | `UpdateSettingsMessage` | Optional frontend-owned config fields (`model_mode`, `model_provider`, `selected_model_id`, `interaction_mode`, `voice_mode_enabled`, `speech_mode_enabled`, `include_query_screenshot`) | `update_settings_handler` |
+| `update-settings` | `UpdateSettingsMessage` | Optional frontend-owned config fields (`model_mode`, `model_provider`, `selected_model_id`, `interaction_mode`, `voice_mode_enabled`, `speech_mode_enabled`, `wakeword_stt_enabled`, `include_query_screenshot`) | `update_settings_handler` |
 | `wakeword-detected` | `WakewordDetectedMessage` | Empty payload object | `wakeword_handler` |
 | `tool-result` | `ToolResultMessage` | `request_id`, `success`, optional `data`, optional `error` | `tool_result_handler` |
 | `tool-bundle-result` | `ToolBundleResultMessage` | `bundle_id`, `status`, `step_results[]`, optional `screenshot`, `screenshot_ref`, `system_state`, `error` | `tool_result_handler` |

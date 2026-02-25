@@ -134,6 +134,15 @@ Purpose:
 - input must be dict
 - unknown keys logged and ignored
 - allowed keys validated through typed `FrontendConfigPatch`
+- allowed keys are:
+  - `model_mode`
+  - `model_provider`
+  - `selected_model_id`
+  - `interaction_mode`
+  - `voice_mode_enabled`
+  - `speech_mode_enabled`
+  - `wakeword_stt_enabled`
+  - `include_query_screenshot`
 - output only includes explicitly-set keys (`exclude_unset=True`)
 
 Role in protocol surface:

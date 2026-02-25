@@ -9,6 +9,7 @@ Includes the last 300 commits on `main`.
 ### Added
 - docs(frontend-dashboard): reorganize renderer dashboard docs into `dashboard/shell` + `dashboard/sections` subfolders, add `UsageSection` placeholder/modal runtime contract coverage, and refresh dashboard doc-hub links
 - docs(frontend-dashboard): remove legacy flat dashboard doc files after shell/sections split so dashboard references resolve through the new subfolder hubs only
+- docs(backend-settings-contracts): refresh websocket/message-schema/bootstrap validation references so frontend `update-settings` field lists include `wakeword_stt_enabled` across backend protocol docs
 - docs(settings-config): reorganize renderer settings docs into `settings/sections` + `settings/config` subfolders, replace stale display-selection contracts with current clone-tab + wakeword/runtime config ownership details, and refresh backend config/frontend-patch docs for `wakeword_stt_enabled`
 - docs(frontend-runtime-docs): refresh dashboard/sidebar/search/message-input/message-send/memory references plus IPC contract docs for `show-main-window { maximize }`, `search-conversations`, and `list-episodic-memories`
 - docs(frontend-browser-contracts): refresh sidecar browser action/runtime references so alias policy matches implementation (`type` legacy-only; `open`/`switch_tab`/`press`/`act` removed and always blocked)
