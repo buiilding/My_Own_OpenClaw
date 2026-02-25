@@ -397,7 +397,12 @@ class TestCompatibilityActions:
                 success=True,
                 action="open",
                 decision="compat",
-                data={"action": "open", "browser_use_action": "navigate"},
+                data={
+                    "action": "open",
+                    "browser_use_action": "navigate",
+                    "legacy_action": "open",
+                    "preferred_action": "navigate",
+                },
                 warnings=["'open' is a legacy compatibility alias; prefer 'navigate'"],
                 deprecation="'open' is a legacy compatibility alias; prefer 'navigate'",
             )
@@ -410,6 +415,8 @@ class TestCompatibilityActions:
             assert result.data["warnings"] == [
                 "'open' is a legacy compatibility alias; prefer 'navigate'"
             ]
+            assert result.data["legacy_action"] == "open"
+            assert result.data["preferred_action"] == "navigate"
 
     @pytest.mark.asyncio
     async def test_act_hover(self):

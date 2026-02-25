@@ -138,6 +138,8 @@ async def test_legacy_open_alias_deprecation_contract() -> None:
     assert result.warnings == [
         "'open' is a legacy compatibility alias; prefer 'navigate'"
     ]
+    assert result.data["legacy_action"] == "open"
+    assert result.data["preferred_action"] == "navigate"
 
 
 @pytest.mark.asyncio
