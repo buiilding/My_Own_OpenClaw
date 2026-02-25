@@ -2,7 +2,7 @@
 summary: "Backend screen-grounding vision docs sub-hub for provider loader fallback contracts and InternVL runtime chat/generate recovery behavior."
 read_when:
   - When changing `backend/src/services/vision/providers/base.py` loader fallback sequencing or device resolution rules.
-  - When changing InternVL runtime fallback behavior in `backend/src/services/vision/providers/internvl.py`.
+  - When changing InternVL runtime fallback behavior in `backend/src/services/vision/providers/internvl.py` or `internvl_runtime_helpers.py`.
 title: "Backend Screen-Grounding Vision Docs Hub"
 ---
 
@@ -23,4 +23,5 @@ title: "Backend Screen-Grounding Vision Docs Hub"
 
 - `backend/src/services/vision/providers/base.py`
 - `backend/src/services/vision/providers/internvl.py`
+- `backend/src/services/vision/providers/internvl_runtime_helpers.py`
 - `tests/backend/test_vision_provider_loader.py`

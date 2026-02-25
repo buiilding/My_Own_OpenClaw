@@ -1,14 +1,7 @@
-"""
-InternVL Vision Model Provider.
-
-Provides InternVL model for vision-language tasks like UI grounding.
-Based on CoAct-1's implementation, adapted for desktop assistant.
-"""
+"""InternVL vision model provider."""
 import asyncio
 import base64
-import hashlib
 import logging
-import traceback
 from io import BytesIO
 from typing import Any, Optional, Tuple
 
@@ -24,17 +17,26 @@ from backend.src.services.vision.providers.base import (
     load_model_with_fallbacks,
     resolve_model_device,
 )
+from backend.src.services.vision.providers.internvl_runtime_helpers import (
+    build_grounding_prompt,
+    build_instruction_log_metadata as _build_instruction_log_metadata,
+    disable_flash_attention_runtime,
+    is_cuda_kernel_image_error as _is_cuda_kernel_image_error,
+    is_meta_tensor_loading_error as _is_meta_tensor_loading_error,
+    log_failure_context,
+    prepare_question,
+    resolve_model_dtype,
+    run_chat_generation,
+    run_chat_with_fallbacks,
+    run_generate_fallback,
+    run_generate_fallback_with_chat_error,
+)
 
 logger = logging.getLogger(__name__)
 
 # Image normalization constants.
 INTERNVL_MEAN = (0.485, 0.456, 0.406)
 INTERNVL_STD = (0.229, 0.224, 0.225)
-GROUNDING_PROMPT_TEMPLATE = (
-    "Please provide the bounding box coordinate of the UI element this user "
-    "instruction describes: <ref>{instruction}</ref>. "
-    "Answer in the format of [[x1, y1, x2, y2]]"
-)
 
 # Import InternVL-specific dependencies
 if VISION_MODELS_AVAILABLE:
@@ -50,37 +52,6 @@ else:
     InterpolationMode = None
     AutoModel = None
     AutoTokenizer = None
-
-
-def _build_instruction_log_metadata(
-    instruction: str, preview_length: int = 50
-) -> Tuple[str, str]:
-    """Return a bounded instruction preview and short stable hash for safe logs."""
-    preview = instruction[:preview_length] if len(instruction) > preview_length else instruction
-    instruction_hash = hashlib.sha256(instruction.encode()).hexdigest()[:8]
-    return preview, instruction_hash
-
-
-def build_grounding_prompt(instruction: str) -> str:
-    """Build the shared grounding prompt used by vision providers."""
-    return GROUNDING_PROMPT_TEMPLATE.format(instruction=instruction)
-
-
-def _is_meta_tensor_loading_error(error: Exception) -> bool:
-    """Return True for meta-tensor construction failures during model load."""
-    message = str(error).lower()
-    return "meta tensor" in message or "tensor.item() cannot be called on meta tensors" in message
-
-
-def _is_cuda_kernel_image_error(error: Exception) -> bool:
-    """Return True when CUDA kernel binary is incompatible with the active GPU."""
-    message = str(error).lower()
-    return (
-        "no kernel image is available for execution on the device" in message
-        or "cudaerrornokernelimagefordevice" in message
-    )
-
-
 class InternVLModel(BaseVisionModel):
     """
     Generic Hugging Face vision-language model handler for InternVL models.
@@ -299,18 +270,19 @@ class InternVLModel(BaseVisionModel):
 
     def _resolve_model_dtype(self):
         """Resolve inference dtype from loader metadata or model parameters."""
-        if self._model_dtype is not None:
-            return self._model_dtype
-
-        try:
-            return next(self.model.parameters()).dtype
-        except (StopIteration, AttributeError):
-            logger.warning("Could not determine model dtype, defaulting to bfloat16")
-            return torch.bfloat16
+        return resolve_model_dtype(
+            cached_dtype=self._model_dtype,
+            model=getattr(self, "model", None),
+            torch_module=torch,
+            logger_instance=logger,
+        )
 
     def _prepare_question(self, instruction: str) -> str:
         """Build the InternVL chat question from the shared grounding prompt."""
-        return f"<image>\n{build_grounding_prompt(instruction)}"
+        return prepare_question(
+            instruction,
+            build_grounding_prompt_fn=build_grounding_prompt,
+        )
 
     def _run_chat_generation(
         self,
@@ -320,51 +292,29 @@ class InternVLModel(BaseVisionModel):
         num_patches_list,
         generation_config,
     ) -> str:
-        if len(num_patches_list) > 1:
-            response = self.model.chat(
-                self.tokenizer,
-                pixel_values,
-                question,
-                generation_config,
-                num_patches_list=num_patches_list,
-            )
-        else:
-            response = self.model.chat(
-                self.tokenizer, pixel_values, question, generation_config
-            )
-        logger.info(f"Chat response received: {repr(response)}")
-        return response or ""
+        return run_chat_generation(
+            model=self.model,
+            tokenizer=self.tokenizer,
+            pixel_values=pixel_values,
+            question=question,
+            num_patches_list=num_patches_list,
+            generation_config=generation_config,
+            logger_instance=logger,
+        )
 
     def _run_generate_fallback(
         self, *, pixel_values, question: str, num_patches_list, model_device: Any
     ) -> str:
-        messages = [{"role": "user", "content": question}]
-        inputs = self.tokenizer.apply_chat_template(
-            messages,
-            add_generation_prompt=True,
-            tokenize=True,
-            return_tensors="pt",
-            return_dict=True,
-        ).to(model_device)
-
-        inputs["pixel_values"] = pixel_values
-        if num_patches_list:
-            inputs["num_patches"] = torch.tensor(num_patches_list).to(model_device)
-
-        with torch.no_grad():
-            generation_output = self.model.generate(
-                **inputs,
-                max_new_tokens=256,
-                do_sample=False,
-                temperature=0.0,
-                use_cache=True,
-            )
-
-        output_text = self.tokenizer.decode(
-            generation_output[0], skip_special_tokens=True
-        ).strip()
-        logger.info(f"Generate fallback on CUDA succeeded: {repr(output_text)}")
-        return output_text
+        return run_generate_fallback(
+            model=self.model,
+            tokenizer=self.tokenizer,
+            torch_module=torch,
+            pixel_values=pixel_values,
+            question=question,
+            num_patches_list=num_patches_list,
+            model_device=model_device,
+            logger_instance=logger,
+        )
 
     def _run_generate_fallback_with_chat_error(
         self,
@@ -376,20 +326,15 @@ class InternVLModel(BaseVisionModel):
         chat_error: Exception,
     ) -> str:
         """Run generate fallback and convert dual-failure into one wrapped RuntimeError."""
-        try:
-            return self._run_generate_fallback(
-                pixel_values=pixel_values,
-                question=question,
-                num_patches_list=num_patches_list,
-                model_device=model_device,
-            )
-        except Exception as generate_error:
-            logger.error(
-                f"Both CUDA methods failed: chat={chat_error}, generate={generate_error}"
-            )
-            raise RuntimeError(
-                f"Vision model inference failed on CUDA: {generate_error}"
-            ) from chat_error
+        return run_generate_fallback_with_chat_error(
+            run_generate_fallback_fn=self._run_generate_fallback,
+            pixel_values=pixel_values,
+            question=question,
+            num_patches_list=num_patches_list,
+            model_device=model_device,
+            chat_error=chat_error,
+            logger_instance=logger,
+        )
 
     def _run_chat_with_fallbacks(
         self,
@@ -401,47 +346,18 @@ class InternVLModel(BaseVisionModel):
         model_device: Any,
     ) -> str:
         """Run chat generation with runtime flash-attn/CUDA fallback handling."""
-        try:
-            return self._run_chat_generation(
-                pixel_values=pixel_values,
-                question=question,
-                num_patches_list=num_patches_list,
-                generation_config=generation_config,
-            )
-        except Exception as chat_error:
-            if _is_cuda_kernel_image_error(chat_error) and self._disable_flash_attention_runtime():
-                logger.warning(
-                    "Detected CUDA kernel-image mismatch in flash-attn path; retrying chat with flash-attn disabled"
-                )
-                try:
-                    return self._run_chat_generation(
-                        pixel_values=pixel_values,
-                        question=question,
-                        num_patches_list=num_patches_list,
-                        generation_config=generation_config,
-                    )
-                except Exception as retry_chat_error:
-                    logger.error(
-                        f"Chat retry with flash-attn disabled failed: {retry_chat_error}, trying generate fallback on CUDA"
-                    )
-                    return self._run_generate_fallback_with_chat_error(
-                        pixel_values=pixel_values,
-                        question=question,
-                        num_patches_list=num_patches_list,
-                        model_device=model_device,
-                        chat_error=retry_chat_error,
-                    )
-
-            logger.error(
-                f"Chat method failed: {chat_error}, trying generate fallback on CUDA"
-            )
-            return self._run_generate_fallback_with_chat_error(
-                pixel_values=pixel_values,
-                question=question,
-                num_patches_list=num_patches_list,
-                model_device=model_device,
-                chat_error=chat_error,
-            )
+        return run_chat_with_fallbacks(
+            run_chat_generation_fn=self._run_chat_generation,
+            disable_flash_attention_runtime_fn=self._disable_flash_attention_runtime,
+            run_generate_fallback_with_chat_error_fn=self._run_generate_fallback_with_chat_error,
+            is_cuda_kernel_image_error_fn=_is_cuda_kernel_image_error,
+            pixel_values=pixel_values,
+            question=question,
+            num_patches_list=num_patches_list,
+            generation_config=generation_config,
+            model_device=model_device,
+            logger_instance=logger,
+        )
 
     def _disable_flash_attention_runtime(self) -> bool:
         """
@@ -450,26 +366,10 @@ class InternVLModel(BaseVisionModel):
         This handles environments where flash-attn imports but the packaged CUDA
         kernels do not support the active GPU architecture.
         """
-        disabled_count = 0
-
-        config = getattr(self.model, "config", None)
-        vision_config = getattr(config, "vision_config", None) if config else None
-        for cfg in (config, vision_config):
-            if cfg is not None and getattr(cfg, "use_flash_attn", False):
-                setattr(cfg, "use_flash_attn", False)
-                disabled_count += 1
-
-        for module in self.model.modules():
-            if getattr(module, "use_flash_attn", False):
-                setattr(module, "use_flash_attn", False)
-                disabled_count += 1
-
-        if disabled_count:
-            logger.warning(
-                "Disabled flash-attention runtime flags on %d InternVL module/config entries; retrying inference",
-                disabled_count,
-            )
-        return disabled_count > 0
+        return disable_flash_attention_runtime(
+            model=self.model,
+            logger_instance=logger,
+        )
 
     def _log_failure_context(
         self,
@@ -480,30 +380,17 @@ class InternVLModel(BaseVisionModel):
         height: Optional[int],
         model_device: Optional[Any],
     ) -> None:
-        logger.error(
-            f"[Timing] Vision model prediction failed after {elapsed_seconds:.3f}s: {error}"
+        log_failure_context(
+            error=error,
+            elapsed_seconds=elapsed_seconds,
+            width=width,
+            height=height,
+            model_device=model_device,
+            model=self.model,
+            torch_module=torch,
+            resolve_model_device_fn=resolve_model_device,
+            logger_instance=logger,
         )
-        logger.error(f"InternVL prediction failed: {error}")
-        logger.error(f"Full traceback: {traceback.format_exc()}")
-        if width is None or height is None:
-            logger.error("Image size not available")
-        else:
-            logger.error(f"Image size: {width}x{height}")
-        logger.error(f"Model device: {model_device or resolve_model_device(self.model)}")
-        try:
-            logger.error(f"CUDA available: {torch.cuda.is_available()}")
-            if torch.cuda.is_available():
-                logger.error(
-                    f"CUDA memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f}GB"
-                )
-                logger.error(
-                    f"CUDA allocated: {torch.cuda.memory_allocated() / 1024**3:.1f}GB"
-                )
-                logger.error(
-                    f"CUDA reserved: {torch.cuda.memory_reserved() / 1024**3:.1f}GB"
-                )
-        except (RuntimeError, AttributeError) as cuda_error:
-            logger.error(f"CUDA info error: {cuda_error}")
 
     def _predict_sync(
         self, image_b64: str, instruction: str
