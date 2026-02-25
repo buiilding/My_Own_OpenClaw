@@ -8,6 +8,7 @@ const {
   handleWindowMinimize,
   handleWindowToggleMaximize,
 } = require('./main_window_controls_handler.cjs');
+const { handleSetOverlayIgnoreMouse } = require('./overlay_mouse_handler.cjs');
 const { handleMoveChatboxTo, handleSetChatboxSize } = require('./overlay_chatbox_handler.cjs');
 const { handleSetResponseboxSize } = require('./overlay_responsebox_handler.cjs');
 let windowManager = null;
@@ -782,24 +783,11 @@ function initializeOverlayHandlers() {
   }
   overlayHandlersInitialized = true;
   ipcMain.handle('set-overlay-ignore-mouse', async (event, { ignore } = {}) => {
-    const targetWindows = [chatWindow, responseWindow, contextLabelWindow].filter(
-      (win) => win && !win.isDestroyed(),
-    );
-    if (targetWindows.length === 0) {
-      return { success: false, reason: 'Overlay windows not available' };
-    }
-    try {
-      targetWindows.forEach((win) => {
-        if (ignore) {
-          win.setIgnoreMouseEvents(true, { forward: true });
-        } else {
-          win.setIgnoreMouseEvents(false);
-        }
-      });
-      return { success: true };
-    } catch (error) {
-      return { success: false, reason: `Failed to update ignore state: ${error.message}` };
-    }
+    return handleSetOverlayIgnoreMouse({ ignore }, {
+      chatWindow,
+      responseWindow,
+      contextLabelWindow,
+    });
   });
 
   ipcMain.handle('set-chatbox-size', async (event, args = {}) => {
