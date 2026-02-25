@@ -61,6 +61,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
   const [isLoadingRecentConversations, setIsLoadingRecentConversations] = useState(false);
   const [recentConversationsError, setRecentConversationsError] = useState('');
   const sessionInfo = useTranscriptSessionInfo();
+  const resolvedUserId = sessionInfo.userId || DEFAULT_USER_ID;
 
   const setChatMessages = useChatStore((state) => state.setMessages);
   const setChatIsSending = useChatStore((state) => state.setIsSending);
@@ -110,7 +111,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
 
     try {
       const result = await IpcBridge.invoke(INVOKE_CHANNELS.LIST_CONVERSATIONS, {
-        userId: DEFAULT_USER_ID,
+        userId: resolvedUserId,
         limit: 200,
         recordKind: 'transcript',
       });
@@ -132,7 +133,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
     } finally {
       setIsLoadingRecentConversations(false);
     }
-  }, []);
+  }, [resolvedUserId]);
 
   const handleOpenConversation = useCallback(async (conversation) => {
     const conversationRef = conversation?.conversation_id;
@@ -145,7 +146,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
 
     try {
       const result = await IpcBridge.invoke(INVOKE_CHANNELS.GET_CONVERSATION, {
-        userId: DEFAULT_USER_ID,
+        userId: resolvedUserId,
         conversationId: conversationRef,
         limit: 1000,
         recordKind: conversation?.record_kind || 'transcript',
@@ -164,7 +165,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
       );
 
       setActiveConversationRef(conversationRef);
-      updateTranscriptSession(conversationRef, DEFAULT_USER_ID);
+      updateTranscriptSession(conversationRef, resolvedUserId);
       setChatMessages(parsedMessages);
       setChatIsSending(false);
       setChatThinkingStatus(null);
@@ -173,6 +174,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
     }
   }, [
     closeAllPanels,
+    resolvedUserId,
     setChatIsSending,
     setChatMessages,
     setChatThinkingStatus,
