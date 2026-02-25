@@ -1,5 +1,7 @@
 from typing import Any, AsyncGenerator, Dict, List, Optional
 
+import litellm
+
 from backend.src.core.events.streaming_events import StreamingEvent
 from backend.src.core.types.schemas import LLMMessage, NormalizedLLMResponse
 from backend.src.llm.providers.base import LLMProvider
@@ -12,6 +14,12 @@ class OnlineLLMProvider(LLMProvider):
     model_prefix: Optional[str] = None
     stream_includes_thinking: bool = False
     invalid_response_message: Optional[str] = None
+    _REQUEST_OPTION_KEYS = (
+        "tools",
+        "tool_choice",
+        "parallel_tool_calls",
+        "prompt_cache_key",
+    )
 
     def _validate_dependencies(self) -> None:
         """Online providers require an API key."""
@@ -21,20 +29,15 @@ class OnlineLLMProvider(LLMProvider):
         self,
         model: str,
         messages: List[LLMMessage],
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Any] = None,
-        parallel_tool_calls: Optional[bool] = None,
-        prompt_cache_key: Optional[str] = None,
+        **request_kwargs: Any,
     ) -> NormalizedLLMResponse:
+        options = self._extract_request_options(request_kwargs)
         return await self._get_completion_with_standard_params(
             provider_label=self._provider_label_for_request(),
             model=model,
             messages=messages,
-            tools=tools,
-            tool_choice=tool_choice,
-            parallel_tool_calls=parallel_tool_calls,
-            prompt_cache_key=prompt_cache_key,
             invalid_response_message=self.invalid_response_message,
+            **options,
         )
 
     def _build_stream_completion_params(
@@ -66,17 +69,40 @@ class OnlineLLMProvider(LLMProvider):
             **completion_kwargs,
         )
 
+    @classmethod
+    def _extract_request_options(
+        cls,
+        request_kwargs: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Extract provider request options supported by base completion helpers."""
+        return {key: request_kwargs.get(key) for key in cls._REQUEST_OPTION_KEYS}
+
+    async def _open_stream(
+        self,
+        *,
+        model: str,
+        messages: List[LLMMessage],
+        completion_kwargs: Dict[str, Any],
+    ) -> Any:
+        """Open a provider stream with normalized request options."""
+        params = self._build_stream_request_kwargs(
+            model=model,
+            messages=messages,
+            completion_kwargs=self._extract_request_options(completion_kwargs),
+        )
+        return await litellm.acompletion(**params)
+
     async def _stream_internal(
         self,
         model: str,
         messages: List[LLMMessage],
-        **completion_kwargs: Any,
+        **request_kwargs: Any,
     ) -> AsyncGenerator[StreamingEvent, None]:
         """Internal streaming implementation. Exceptions bubble up to base class."""
         params = self._build_stream_request_kwargs(
             model=model,
             messages=messages,
-            completion_kwargs=completion_kwargs,
+            completion_kwargs=self._extract_request_options(request_kwargs),
         )
         stream_handler = (
             self._stream_thinking_and_text_events

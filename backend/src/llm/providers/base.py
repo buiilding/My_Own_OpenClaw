@@ -162,21 +162,18 @@ class LLMProvider(ProviderPayloadCompatMixin, ABC):
         self,
         model: str,
         messages: List[LLMMessage],
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Any] = None,
-        parallel_tool_calls: Optional[bool] = None,
-        prompt_cache_key: Optional[str] = None,
         *,
         include_stream: bool = False,
+        **request_kwargs: Any,
     ) -> Dict[str, Any]:
         """Build normalized completion params used by stream and non-stream calls."""
         params = self._build_request_params(
             model,
             messages,
-            tools=tools,
-            tool_choice=tool_choice,
-            parallel_tool_calls=parallel_tool_calls,
-            prompt_cache_key=prompt_cache_key,
+            tools=request_kwargs.get("tools"),
+            tool_choice=request_kwargs.get("tool_choice"),
+            parallel_tool_calls=request_kwargs.get("parallel_tool_calls"),
+            prompt_cache_key=request_kwargs.get("prompt_cache_key"),
         )
         if include_stream:
             self._enable_stream_with_usage(params)
@@ -188,20 +185,17 @@ class LLMProvider(ProviderPayloadCompatMixin, ABC):
         provider_label: str,
         model: str,
         messages: List[LLMMessage],
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Any] = None,
-        parallel_tool_calls: Optional[bool] = None,
-        prompt_cache_key: Optional[str] = None,
         invalid_response_message: Optional[str] = None,
+        **request_kwargs: Any,
     ) -> NormalizedLLMResponse:
         """Build params then execute completion with standard error mapping."""
         params = self._build_standard_completion_params(
             model,
             messages,
-            tools=tools,
-            tool_choice=tool_choice,
-            parallel_tool_calls=parallel_tool_calls,
-            prompt_cache_key=prompt_cache_key,
+            tools=request_kwargs.get("tools"),
+            tool_choice=request_kwargs.get("tool_choice"),
+            parallel_tool_calls=request_kwargs.get("parallel_tool_calls"),
+            prompt_cache_key=request_kwargs.get("prompt_cache_key"),
         )
         return await self._get_completion_with_standard_errors(
             provider_label=provider_label,
@@ -214,10 +208,7 @@ class LLMProvider(ProviderPayloadCompatMixin, ABC):
         self,
         model: str,
         messages: List[LLMMessage],
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Any] = None,
-        parallel_tool_calls: Optional[bool] = None,
-        prompt_cache_key: Optional[str] = None,
+        **request_kwargs: Any,
     ) -> AsyncGenerator[StreamingEvent, None]:
         """
         Public streaming method with uniform error handling.
@@ -233,10 +224,7 @@ class LLMProvider(ProviderPayloadCompatMixin, ABC):
             async for event in self._stream_internal(
                 model,
                 messages,
-                tools=tools,
-                tool_choice=tool_choice,
-                parallel_tool_calls=parallel_tool_calls,
-                prompt_cache_key=prompt_cache_key,
+                **request_kwargs,
             ):
                 yield event
         except litellm_exceptions.RateLimitError as e:
@@ -357,10 +345,7 @@ class LLMProvider(ProviderPayloadCompatMixin, ABC):
         self,
         model: str,
         messages: List[LLMMessage],
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Any] = None,
-        parallel_tool_calls: Optional[bool] = None,
-        prompt_cache_key: Optional[str] = None,
+        **request_kwargs: Any,
     ) -> AsyncGenerator[StreamingEvent, None]:
         """
         Internal streaming implementation.
@@ -368,6 +353,7 @@ class LLMProvider(ProviderPayloadCompatMixin, ABC):
         DO NOT catch exceptions here; let them bubble up to get_completion_stream.
         Subclasses should only implement the streaming logic, not error handling.
         """
+        _ = request_kwargs
         pass
 
     @abstractmethod

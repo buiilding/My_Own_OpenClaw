@@ -59,6 +59,10 @@ Optional param behavior:
 - `tool_choice`, `parallel_tool_calls`: forwarded when not `None`.
 - `prompt_cache_key`: stripped; empty string dropped.
 
+Implementation note:
+
+- completion/stream plumbing now accepts request options via `**request_kwargs` internally and normalizes through shared option extraction before request construction. External provider/client call semantics remain unchanged.
+
 Provider-specific request mutation happens only via `_apply_provider_request_params(...)` hook.
 
 ## Message Normalization Boundary
