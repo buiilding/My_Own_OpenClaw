@@ -16,7 +16,7 @@ Request path for browser actions:
 2. Electron main `local_backend_bridge.cjs` handles `execute-tool` and sends JSON-RPC `execute_tool`.
 3. Python sidecar `local_backend.py` routes to `ToolRegistry.execute_tool("browser", args)`.
 4. `tools/browser/browser_tool.py:execute_browser(...)` validates action and delegates to adapter.
-5. `BrowserUseCompatibilityAdapter.execute(...)` maps action to runtime/provider operation.
+5. `BrowserRuntimeAdapter.execute(...)` maps action to runtime/provider operation.
 6. Runtime provider talks to `BrowserController` / Browser Use runtime and returns normalized action result.
 
 Main-process timeout behavior:
@@ -39,22 +39,21 @@ Main-process timeout behavior:
 `browser_tool.py`:
 
 - validates `args` object and `action`
-- rejects actions outside `PHASE2_ADAPTER_ROUTED_ACTIONS`
+- rejects actions outside `BROWSER_ROUTED_ACTIONS`
 - converts adapter result to canonical `ToolResult`
 
-### Layer 2: compatibility adapter
+### Layer 2: runtime adapter
 
 `browser_adapter.py`:
 
-- maps compatibility actions (`connect`, `open`, `type`, `press`, `switch_tab`, `act`, etc.)
-- passes browser-use-native actions through `execute_browser_use_action(...)`
+- handles runtime surface actions (`connect`, `profiles`, canonical Browser Use actions)
+- blocks removed aliases (`open`, `switch_tab`, `press`, `type`, `act`) with migration guidance
+- passes canonical Browser Use actions through `execute_browser_use_action(...)`
 - enforces connection preconditions for action families that require active session
 - returns normalized `AdapterActionResult` with `success`, `error_code`, warnings, and payload
 
 Important adapter constants:
 
-- `BROWSER_USE_PASSTHROUGH_ACTIONS`
-- `BROWSER_USE_DIRECT_ACTIONS`
 - `BROWSER_USE_ACTIONS_REQUIRING_CONNECTION`
 
 ## Runtime Provider Selection

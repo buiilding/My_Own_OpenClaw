@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for BrowserUseCompatibilityAdapter dispatch order, canonical/legacy/removed alias behavior, parameter normalization/rejection rules, and tool-facing error semantics."
+summary: "Deep reference for BrowserRuntimeAdapter dispatch order, canonical/removed alias behavior, parameter normalization/rejection rules, and tool-facing error semantics."
 read_when:
   - When changing browser action payload contracts in `browser_adapter.py` or `browser_tool.py`.
   - When debugging why schema-valid compatibility payloads are rejected by adapter normalization or alias policy gates.
@@ -24,20 +24,18 @@ title: "Browser Adapter Action Routing and Compatibility Semantics Reference"
 `execute_browser(raw_args)`:
 
 1. requires dict payload and `action`
-2. gates action against `PHASE2_ADAPTER_ROUTED_ACTIONS`
-3. blocks removed aliases (`open`, `switch_tab`, `press`, `act`) with migration errors
-4. applies legacy alias env gate for `type`
-5. invokes adapter for forwarded actions
+2. gates action against `BROWSER_ROUTED_ACTIONS`
+3. blocks removed aliases (`open`, `switch_tab`, `press`, `type`, `act`) with migration errors
+4. invokes adapter for forwarded actions
 
 ## Adapter Dispatch Topology
 
-`BrowserUseCompatibilityAdapter.execute(...)` order:
+`BrowserRuntimeAdapter.execute(...)` order:
 
 1. explicit handlers: `connect`, `profiles`
-2. removed alias guard (`open`, `switch_tab`, `press`, `act`) -> `INVALID_ARGUMENT`
-3. legacy alias handler: `type`
-4. canonical actions -> `execute_browser_use_action(...)`
-5. canonical `close` split:
+2. removed alias guard (`open`, `switch_tab`, `press`, `type`, `act`) -> `INVALID_ARGUMENT`
+3. canonical actions -> `execute_browser_use_action(...)`
+4. canonical `close` split:
 - with tab identity -> runtime action path
 - without tab identity -> runtime session close
 
@@ -75,10 +73,7 @@ Rejected payloads return `INVALID_ARGUMENT`.
 
 `type`:
 
-- requires `ref` + `text`
-- maps to runtime `input`
-- optional `submit=true` emits additional runtime `send_keys` Enter call
-- result is retagged back to `action="type"`
+- removed alias; adapter returns migration error (`use input`)
 
 `click`:
 
@@ -111,7 +106,7 @@ Runtime exception mapping:
 
 ## Adapter Instance Caching
 
-`get_browser_use_adapter(controller, ...)`:
+`get_browser_adapter(controller, ...)`:
 
 - weak-key cache for weakrefable controllers
 - non-weakrefable test doubles bypass cache
@@ -129,7 +124,7 @@ If runtime call fails:
 
 1. inspect `browser_use_action` value
 2. inspect adapter `error_code`
-3. confirm action retagging only applies to `type`
+3. confirm runtime payload action tagging for canonical actions
 
 If tab targeting is wrong:
 
