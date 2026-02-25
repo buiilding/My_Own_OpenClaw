@@ -72,6 +72,7 @@ Provider defaults in `LLMProviders`:
 | Field | Type | Default | Notes |
 | --- | --- | --- | --- |
 | `voice_mode_enabled` | `bool` | `false` | Frontend runtime voice mode toggle. |
+| `wakeword_stt_enabled` | `bool` | `false` | Enables post-wakeword speech-to-text handoff in frontend query entry flow. |
 | `include_query_screenshot` | `bool` | `true` | Controls screenshot attachment behavior for queries. |
 | `wakeword_enabled` | `bool` | `true` | Wakeword runtime toggle. |
 | `wakeword_phrase` | `str` | `"hey jarvis"` | Trigger phrase. |
@@ -138,6 +139,7 @@ Allowed patch keys only:
 - `interaction_mode`
 - `voice_mode_enabled`
 - `speech_mode_enabled`
+- `wakeword_stt_enabled`
 - `include_query_screenshot`
 
 Behavior:

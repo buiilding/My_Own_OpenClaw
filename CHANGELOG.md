@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(settings-config): reorganize renderer settings docs into `settings/sections` + `settings/config` subfolders, replace stale display-selection contracts with current clone-tab + wakeword/runtime config ownership details, and refresh backend config/frontend-patch docs for `wakeword_stt_enabled`
 - docs(frontend-runtime-docs): refresh dashboard/sidebar/search/message-input/message-send/memory references plus IPC contract docs for `show-main-window { maximize }`, `search-conversations`, and `list-episodic-memories`
 - docs(frontend-browser-contracts): refresh sidecar browser action/runtime references so alias policy matches implementation (`type` legacy-only; `open`/`switch_tab`/`press`/`act` removed and always blocked)
 - docs(backend-browser-contracts): refresh backend browser schema/runtime references for canonical/legacy/removed action categories and RemoteBrowserTool gate behavior
@@ -22,6 +23,8 @@ Includes the last 300 commits on `main`.
 - docs(planning-browser): update hard-merge contract snapshot so active legacy aliases are now `type`/`press` and removed aliases are `open`/`switch_tab`/`act`
 - feat(browser-rollout): retire legacy `press` alias at backend + sidecar browser-tool boundaries (moved from legacy to removed-alias contract bucket); remove adapter `press -> send_keys` transform and add regression coverage for removed-alias errors/log telemetry
 - docs(planning-browser): update hard-merge contract snapshot so active legacy aliases are now `type` and removed aliases are `open`/`switch_tab`/`press`/`act`
+- feat(browser-rollout): retire legacy `type` alias at backend + sidecar browser-tool boundaries (moved from legacy to removed-alias contract bucket); remove adapter `type -> input` transform and add regression coverage for removed-alias errors/log telemetry
+- docs(planning-browser): update hard-merge contract snapshot so active legacy aliases are now empty and removed aliases are `type`/`open`/`switch_tab`/`press`/`act`
 - refactor(backend-browser-schema): exclude removed alias `act` from backend OpenClaw compatibility action typing (`BrowserOpenClawAction`) and add regression coverage that `BrowserOpenClawCompatArgs(action="act")` fails validation
 - refactor(browser-contract): split compatibility aliases into active-legacy (`open`,`type`,`press`,`switch_tab`) vs removed (`act`) buckets in shared sidecar/backend contract modules; `BrowserControlArgs.is_legacy` now excludes removed aliases while `preferred_action` still guides `act` callers to canonical actions
 - refactor(sidecar-browser-adapter): remove adapter `act` envelope dispatch implementation; direct adapter calls now return explicit removed-alias migration error with legacy deprecation metadata
