@@ -173,7 +173,7 @@ Unsupported provider mapping yields explicit runtime error with provider name.
 
 `browser_tool` converts adapter result to `ToolResult`:
 
-- success -> `ToolResult.success_result(data)`
+- success -> `ToolResult.success_result(data)` and includes `warnings` / `deprecation` fields when adapter reports legacy alias usage
 - error/deprecation -> `ToolResult.error_result(message)`
 
 ## Contract Drift Note
