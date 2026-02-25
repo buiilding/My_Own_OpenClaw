@@ -30,8 +30,7 @@ frontend/src/renderer/
 │       └── configComparison.ts          # configComparison - Shallow config change detection helpers
 │
 ├── components/                           # Shared UI components
-│   ├── ErrorBoundary.jsx                # ErrorBoundary - Catches React errors and displays fallback UI
-│   └── MainLayout.jsx                   # MainLayout - Two-column layout (section selector + content)
+│   └── ErrorBoundary.jsx                # ErrorBoundary - Catches React errors and displays fallback UI
 │
 ├── features/                             # Feature modules (organized by domain)
 │   │
@@ -78,13 +77,12 @@ frontend/src/renderer/
 │   │
 │   ├── dashboard/                        # Dashboard feature module
 │   │   └── components/                  # Dashboard UI components
-│   │       ├── DashboardContent.jsx     # DashboardContent - Section-specific content panels
+│   │       ├── ChatGptDashboardShell.jsx # ChatGptDashboardShell - Conversation-first shell + memory/models/settings modals
 │   │       └── sections/                # Dashboard section components
 │   │           ├── EpisodicMemorySection.jsx # EpisodicMemorySection - Episodic memory list/actions panel
+│   │           ├── SemanticMemorySection.jsx # SemanticMemorySection - Semantic memory list/actions panel
 │   │           ├── ModelsSection.jsx    # ModelsSection - Model list + API key input
-│   │           ├── ProceduralSection.jsx # ProceduralSection - Skills placeholder
-│   │           ├── SettingsSection.jsx  # SettingsSection - Wakeword/TTS/screen/permissions
-│   │           └── UsageSection.jsx     # UsageSection - Usage placeholder
+│   │           └── SettingsSection.jsx  # SettingsSection - Wakeword/TTS/screen/permissions
 │   │
 │   │   └── utils/                       # Dashboard helpers
 │   │       ├── episodicMemoryUtils.js   # episodicMemoryUtils - Conversation key, parsing, formatting, and message mapping helpers
@@ -146,8 +144,8 @@ frontend/src/renderer/
 │   ├── accessibility.css                # Accessibility utilities (visually-hidden class)
 │   ├── ChatBox.css                      # Chat box overlay styles
 │   ├── ChatInterface.css               # Chat interface styles (messages, tool outputs, transparency sections)
+│   ├── ChatGptDashboardShell.css        # ChatGPT-style dashboard shell + modal panel styles
 │   ├── ErrorBoundary.css                # ErrorBoundary fallback UI styling
-│   ├── MainLayout.css                   # Main layout styles (two-column grid)
 │   ├── SettingsPanel.css                # Dashboard section styles (cards, toggles, model list)
 │   ├── ThinkingDisplay.css              # Thinking display styles (collapsible reasoning tokens)
 │   ├── TokenCountDisplay.css            # Token count display styles
@@ -179,7 +177,7 @@ frontend/src/renderer/
        ├─> ErrorBoundary (error handling)
        ├─> AppProvider (config and status contexts)
        ├─> ChatProvider (chat hooks setup)
-       └─> AppContent (MainLayout with ChatInterface or DashboardContent)
+       └─> AppContent (ChatGptDashboardShell with persistent ChatInterface + modal panels)
            ↓
 3. CONTEXT INITIALIZATION
    ├─> app/providers/AppConfigContext.jsx
@@ -342,7 +340,7 @@ frontend/src/renderer/
 
 ```
 1. SETTINGS CHANGE
-   └─> features/dashboard/components/DashboardContent.jsx
+   └─> features/dashboard/components/ChatGptDashboardShell.jsx
        └─> User changes model/speech settings
            └─> onConfigChange(newConfig)
                ↓
@@ -437,7 +435,7 @@ frontend/src/renderer/
 
 18. **Error Boundaries**: React error boundaries prevent full app crashes
 
-19. **Lazy Loading**: DashboardContent lazy-loaded for faster initial render
+19. **Conversation-First Shell**: Chat remains mounted while memory/models/settings open in modal panels
 
 ---
 
@@ -452,18 +450,19 @@ App
 │       │       └── ChatProvider
 │       │           ├── WakewordController
 │       │           └── AppContent
-│       │               └── MainLayout
-│       │                   ├── Sidebar (section selector)
-│       │                   └── Content
-│       │                       ├── ChatInterface
-│       │                       │   ├── MessageList
-│       │                       │   │   ├── Message (user/assistant)
-│       │                       │   │   ├── TransparencySection (system prompt, tool schemas, full messages)
-│       │                       │   │   └── ThinkingDisplay
-│       │                       │   ├── MessageInput
-│       │                       │   │   └── VoiceStatus
-│       │                       │   └── TokenCountDisplay
-│       │                       └── DashboardContent (lazy-loaded sections)
+│       │               └── ChatGptDashboardShell
+│       │                   ├── Sidebar
+│       │                   ├── ChatInterface
+│       │                   │   ├── MessageList
+│       │                   │   │   ├── Message (user/assistant)
+│       │                   │   │   ├── TransparencySection (system prompt, tool schemas, full messages)
+│       │                   │   │   └── ThinkingDisplay
+│       │                   │   ├── MessageInput
+│       │                   │   │   └── VoiceStatus
+│       │                   │   └── TokenCountDisplay
+│       │                   ├── MemoryModal
+│       │                   ├── ModelsModal
+│       │                   └── SettingsModal
 ```
 
 ---
@@ -583,7 +582,7 @@ Tools that automatically capture screenshots and system state:
 ## Performance Optimizations
 
 1. **Split Contexts**: Config and status contexts separated to minimize re-renders
-2. **Lazy Loading**: DashboardContent loaded on demand
+2. **Conversation-First Shell**: Chat interface stays mounted while modals handle dashboard panels
 3. **Memoization**: Callbacks memoized with `useCallback`
 4. **Zustand Selectors**: Components subscribe only to needed store slices
 5. **Channel Validation**: Only in development (preload.js validates in production)

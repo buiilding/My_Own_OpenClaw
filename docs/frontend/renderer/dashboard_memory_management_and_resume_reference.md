@@ -11,8 +11,7 @@ title: "Dashboard Memory Management and Resume Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/app/App.jsx`
-- `frontend/src/renderer/components/MainLayout.jsx`
-- `frontend/src/renderer/features/dashboard/components/DashboardContent.jsx`
+- `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/EpisodicMemorySection.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/SemanticMemorySection.jsx`
 - `frontend/src/renderer/features/dashboard/components/shared/MemoryContextMenu.jsx`
@@ -26,23 +25,11 @@ title: "Dashboard Memory Management and Resume Reference"
 
 ## Section Routing Model
 
-Top-level renderer app uses a sidebar section map:
+Top-level renderer app uses a conversation-first dashboard shell:
 
-- `chat`
-- `episodic`
-- `semantic`
-- `procedural`
-- `models`
-- `usage`
-- `settings`
-
-Routing behavior:
-
-- `AppContent` keeps `activeSection` in local state
-- non-chat sections lazy-load `DashboardContent`
-- `DashboardContent` switches by `sectionId` and mounts memory sections
-
-Episodic section receives `onSelectSection` callback so it can programmatically return to `chat` after successful resume.
+- `ChatInterface` remains mounted in main content
+- memory opens in a dedicated modal with `episodic`/`semantic` tabs
+- episodic section receives `onSelectSection('chat')` callback to close memory modal after successful resume
 
 ## Shared Session Identity Dependency
 

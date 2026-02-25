@@ -108,7 +108,6 @@ frontend/
 │   │   │       └── ChatProvider.jsx  # Chat provider
 │   │   ├── components/    # Shared React components
 │   │   │   ├── ErrorBoundary.jsx
-│   │   │   └── MainLayout.jsx
 │   │   ├── features/      # Feature-based modules
 │   │   │   ├── chat/      # Chat feature
 │   │   │   │   ├── components/  # Chat components
@@ -147,8 +146,7 @@ App
 ├── ErrorBoundary
 └── AppProvider (AppConfigProvider + AppStatusProvider)
     └── ChatProvider
-        └── MainLayout
-            ├── Sidebar
+        └── ChatGptDashboardShell
             ├── ChatInterface
             │   ├── MessageList
             │   │   ├── ThinkingDisplay
@@ -156,7 +154,9 @@ App
             │   ├── MessageInput
             │   │   └── VoiceStatus
             │   └── TransparencySection
-            └── DashboardContent (lazy loaded)
+            ├── Memory Modal
+            ├── Models Modal
+            └── Settings Modal
 ```
 
 #### Key Components
@@ -199,10 +199,11 @@ App
 **TokenCountDisplay.jsx**
 - Displays token usage counters in a table-driven render path backed by shared token-count formatting helpers
 
-**DashboardContent.jsx**
-- Lazy-loaded dashboard section router
-- Renders section panels (`EpisodicMemorySection`, `SemanticMemorySection`, `ProceduralSection`, `ModelsSection`, `UsageSection`, `SettingsSection`)
-- Keeps dashboard concerns separate from chat runtime components
+**ChatGptDashboardShell.jsx**
+- Main dashboard shell for the main window
+- Keeps conversation (`ChatInterface`) as persistent primary content
+- Opens memory/models/settings in isolated modals
+- Listens for `main-window-open-target` IPC events to open targeted panels (e.g. settings from chat pill)
 
 **EpisodicMemorySection.jsx**
 - Transcript conversation browsing and replay panel in the dashboard memory section
@@ -503,7 +504,7 @@ UI Update
 
 - **Split Contexts**: AppConfigContext and AppStatusContext separated to prevent re-renders
 - **Zustand Store**: Direct subscriptions to store slices, no context propagation overhead
-- **Lazy Loading**: DashboardContent loaded lazily to improve initial render time
+- **Conversation-First Shell**: Chat view remains mounted while dashboard panels open as modal overlays
 - **Stable IPC Listeners**: IPC callbacks use refs to maintain stable identity
 
 ## Infrastructure Layer

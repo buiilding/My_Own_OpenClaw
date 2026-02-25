@@ -112,7 +112,8 @@ Root composition and providers:
 - `frontend/src/renderer/app/main.jsx`
 - `frontend/src/renderer/app/App.jsx`
 - `frontend/src/renderer/app/providers/*.jsx`
-- `frontend/src/renderer/components/{MainLayout.jsx,ErrorBoundary.jsx}`
+- `frontend/src/renderer/components/ErrorBoundary.jsx`
+- `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
 
 Provider/runtime functionality:
 
@@ -120,7 +121,7 @@ Provider/runtime functionality:
 - AppStatus save-state ownership.
 - Chat provider ownership of stream and tool-runner hooks.
 - Wakeword controller and app-level composition.
-- View routing across main chat and dashboard sections.
+- View routing across main/overlay surfaces plus dashboard modal targets.
 
 ### Renderer Chat Feature Inventory
 

@@ -10,7 +10,7 @@ title: "Frontend Renderer Styles Docs Hub"
 
 ## Deep Pages
 
-- [Global Theme, Accessibility Utility, and Main Layout Visual Contract Reference](global_theme_accessibility_utility_and_main_layout_visual_contract_reference.md)
+- [Global Theme, Accessibility Utility, and Dashboard Shell Visual Contract Reference](global_theme_accessibility_utility_and_main_layout_visual_contract_reference.md)
 - [Chat Interface, Thinking Stream, and Token Count Style Contract Reference](chat_interface_thinking_stream_and_token_count_style_contract_reference.md)
 - [Voice Status Visual State Style Contract Reference](voice_status_visual_state_style_contract_reference.md)
 
@@ -24,13 +24,13 @@ title: "Frontend Renderer Styles Docs Hub"
 
 - `frontend/src/renderer/styles/theme.css`
 - `frontend/src/renderer/styles/accessibility.css`
-- `frontend/src/renderer/styles/MainLayout.css`
+- `frontend/src/renderer/styles/ChatGptDashboardShell.css`
 - `frontend/src/renderer/styles/ChatInterface.css`
 - `frontend/src/renderer/styles/ThinkingDisplay.css`
 - `frontend/src/renderer/styles/TokenCountDisplay.css`
 - `frontend/src/renderer/styles/VoiceStatus.css`
 - `frontend/src/renderer/app/App.jsx`
-- `frontend/src/renderer/components/MainLayout.jsx`
+- `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/features/chat/components/ThinkingDisplay.jsx`
 - `frontend/src/renderer/features/chat/components/TokenCountDisplay.jsx`
