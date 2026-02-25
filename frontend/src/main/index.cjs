@@ -3,6 +3,11 @@ const path = require('path');
 const { initializeIpc, registerRendererWindow } = require('./ipc.cjs');
 const { initializeWakewordBridge } = require('./wakeword_bridge.cjs');
 const { initializeLocalBackendBridge, stopLocalBackend } = require('./local_backend_bridge.cjs');
+const {
+  handleWindowClose,
+  handleWindowMinimize,
+  handleWindowToggleMaximize,
+} = require('./main_window_controls_handler.cjs');
 const { handleMoveChatboxTo, handleSetChatboxSize } = require('./overlay_chatbox_handler.cjs');
 const { handleSetResponseboxSize } = require('./overlay_responsebox_handler.cjs');
 let windowManager = null;
@@ -858,30 +863,14 @@ function initializeOverlayHandlers() {
   });
 
   ipcMain.handle('window-minimize', async () => {
-    if (!mainWindow || mainWindow.isDestroyed()) {
-      return { success: false, reason: 'Main window not available' };
-    }
-    mainWindow.minimize();
-    return { success: true };
+    return handleWindowMinimize({ mainWindow });
   });
 
   ipcMain.handle('window-toggle-maximize', async () => {
-    if (!mainWindow || mainWindow.isDestroyed()) {
-      return { success: false, reason: 'Main window not available', isMaximized: false };
-    }
-    if (mainWindow.isMaximized()) {
-      mainWindow.unmaximize();
-    } else {
-      mainWindow.maximize();
-    }
-    return { success: true, isMaximized: mainWindow.isMaximized() };
+    return handleWindowToggleMaximize({ mainWindow });
   });
 
   ipcMain.handle('window-close', async () => {
-    if (!mainWindow || mainWindow.isDestroyed()) {
-      return { success: false, reason: 'Main window not available' };
-    }
-    mainWindow.close();
-    return { success: true };
+    return handleWindowClose({ mainWindow });
   });
 }
