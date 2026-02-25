@@ -1,5 +1,5 @@
 ---
-summary: "Frontend sidecar browser docs sub-hub for Browser Use vendoring/runtime-provider selection, native handler bridge semantics, and compatibility-adapter action normalization contracts."
+summary: "Frontend sidecar browser docs sub-hub for Browser Use vendoring/runtime-provider selection, native handler bridge semantics, compatibility-adapter action normalization, and Browser Use actor/agent/token/filesystem internals."
 read_when:
   - When changing sidecar browser runtime selection, vendored Browser Use import policy, or native handler loading.
   - When debugging browser action failures across adapter routing, action parameter normalization, or connection-gated execution.
@@ -27,6 +27,10 @@ title: "Frontend Sidecar Browser Docs Hub"
 - [Browser Use DOM Docs Hub](browser_use/dom/README.md)
 - [Browser Use Tools Docs Hub](browser_use/tools/README.md)
 - [Browser Use LLM Docs Hub](browser_use/llm/README.md)
+- [Browser Use Actor Docs Hub](browser_use/actor/README.md)
+- [Browser Use Agent Docs Hub](browser_use/agent/README.md)
+- [Browser Use Tokens Docs Hub](browser_use/tokens/README.md)
+- [Browser Use Filesystem Docs Hub](browser_use/filesystem/README.md)
 - [Browser Session, Session Manager, Event Bus, and CDP Lifecycle Orchestration Reference](browser_use/browser/session_manager_event_bus_and_cdp_lifecycle_orchestration_reference.md)
 - [Browser Profile Runtime Defaults, Launch Args, Demo Overlay, and Video Recording Reference](browser_use/browser/profile_runtime_defaults_launch_args_demo_overlay_and_video_recording_reference.md)
 - [Browser Watchdog Base and Specialized Watchdogs Runtime Reference](browser_use/browser/watchdogs/watchdog_base_and_specialized_watchdogs_runtime_reference.md)
@@ -39,6 +43,11 @@ title: "Frontend Sidecar Browser Docs Hub"
 - [Browser Use Tools Runtime Action Dispatch, Extraction, and CodeAgent Variant Contract Reference](browser_use/tools/runtime_action_dispatch_extraction_and_codeagent_variant_contract_reference.md)
 - [Browser Use LLM Base Protocol, Message Types, Schema Optimization, and Model Alias Factory Contract Reference](browser_use/llm/base_protocol_message_types_schema_optimization_and_model_alias_factory_contract_reference.md)
 - [Browser Use LLM Provider Adapters and Serializer Runtime Reference](browser_use/llm/provider_adapters_and_serializer_runtime_reference.md)
+- [Actor Page, Element, Mouse, and Key Mapping Runtime Reference](browser_use/actor/page_element_mouse_and_key_mapping_runtime_reference.md)
+- [Agent State, Output Schema, Action Results, History, and Error Handling Contract Reference](browser_use/agent/agent_state_output_history_and_error_handling_contract_reference.md)
+- [Agent Message History and Compaction State Contract Reference](browser_use/agent/message_history_and_compaction_state_contract_reference.md)
+- [Token Usage, Pricing, and Aggregate Cost Summary Contract Reference](browser_use/tokens/token_usage_pricing_and_aggregate_cost_summary_contract_reference.md)
+- [Browser Use File System Runtime, File Type Adapters, and State Persistence Contract Reference](browser_use/filesystem/file_system_runtime_file_type_adapters_and_state_persistence_contract_reference.md)
 
 ## Related Pages
 
