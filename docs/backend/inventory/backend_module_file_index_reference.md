@@ -16,16 +16,16 @@ Based on current source tree under `backend/src`:
 
 | Domain | Python files |
 | --- | ---: |
-| `agent` | 60 |
-| `api` | 67 |
-| `core` | 69 |
+| `agent` | 62 |
+| `api` | 68 |
+| `core` | 77 |
 | `tools` | 31 |
-| `llm` | 24 |
-| `services` | 14 |
+| `llm` | 29 |
+| `services` | 15 |
 | `simulation` | 12 |
 | `sdk` | 6 |
 | `embeddings` | 2 |
-| **Total** | **287** |
+| **Total** | **304** |
 
 ## API Layer Index
 
@@ -38,6 +38,8 @@ Based on current source tree under `backend/src`:
 - `backend/src/api/routes/artifacts.py`
 - Handlers:
 - `backend/src/api/handlers/{query,tool_result,settings,stop_query,rehydrate,wakeword}.py`
+- Services:
+- `backend/src/api/services/{query_execution,query_event_extraction,rehydrate_execution,wakeword_execution,tts_session}.py`
 - Processing:
 - `backend/src/api/processing/pipeline.py`
 - `backend/src/api/processing/formatter.py`

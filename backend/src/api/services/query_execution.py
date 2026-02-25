@@ -11,6 +11,16 @@ from backend.src.api.processing.pipeline import StreamPipeline
 from backend.src.api.processing.tts.manager import TTSManager
 from backend.src.api.processing.tts.processor import TTSProcessor
 from backend.src.api.schema import QueryMessage
+from backend.src.api.services.query_event_extraction import (
+    extract_assistant_full_text,
+    extract_chunk_text,
+    extract_dict_payload,
+    extract_dict_string_field,
+    extract_event_type,
+    extract_non_empty_chunk_text,
+    extract_streaming_complete_text,
+    resolve_completion_text,
+)
 from backend.src.api.services.tts_session import TTSSession
 from backend.src.api.transport.protocol import WebSocketSender
 from backend.src.api.transport.sender import WebSocketTransportSender
@@ -25,7 +35,6 @@ logger = logging.getLogger(__name__)
 EMPTY_FINAL_RESPONSE_FALLBACK = (
     "I completed the requested action(s), but the model returned an empty final response."
 )
-_TEXT_CHUNK_EVENT_TYPES = frozenset({"chunk", "content", "streaming-response"})
 
 
 class QueryExecutionService:
@@ -299,22 +308,11 @@ class QueryExecutionService:
 
     @staticmethod
     def _extract_event_type(event: Any) -> Optional[str]:
-        if isinstance(event, dict):
-            value = event.get("type")
-            return str(value) if isinstance(value, str) else None
-
-        event_type = getattr(event, "type", None)
-        if isinstance(event_type, str):
-            return event_type
-        value = getattr(event_type, "value", None)
-        return str(value) if isinstance(value, str) else None
+        return extract_event_type(event)
 
     @staticmethod
     def _extract_dict_payload(event: Any) -> Optional[dict[str, Any]]:
-        if not isinstance(event, dict):
-            return None
-        payload = event.get("payload")
-        return payload if isinstance(payload, dict) else None
+        return extract_dict_payload(event)
 
     @classmethod
     def _extract_dict_string_field(
@@ -324,20 +322,12 @@ class QueryExecutionService:
         top_level_key: str,
         payload_key: Optional[str] = None,
     ) -> Optional[str]:
-        if not isinstance(event, dict):
-            return None
-
-        top_level_value = event.get(top_level_key)
-        if isinstance(top_level_value, str):
-            return top_level_value
-
-        payload = cls._extract_dict_payload(event)
-        resolved_payload_key = payload_key or top_level_key
-        if not payload:
-            return None
-
-        payload_value = payload.get(resolved_payload_key)
-        return payload_value if isinstance(payload_value, str) else None
+        _ = cls  # compatibility wrapper
+        return extract_dict_string_field(
+            event,
+            top_level_key=top_level_key,
+            payload_key=payload_key,
+        )
 
     @classmethod
     def _extract_non_empty_chunk_text(
@@ -346,26 +336,16 @@ class QueryExecutionService:
         *,
         event_type: Optional[str] = None,
     ) -> str:
-        resolved_event_type = event_type or cls._extract_event_type(event)
-        if resolved_event_type not in _TEXT_CHUNK_EVENT_TYPES:
-            return ""
-
-        content = cls._extract_chunk_text(event)
-        if not isinstance(content, str):
-            return ""
-        return content if content.strip() else ""
+        _ = cls  # compatibility wrapper
+        return extract_non_empty_chunk_text(
+            event,
+            event_type=event_type,
+        )
 
     @classmethod
     def _extract_chunk_text(cls, event: Any) -> Optional[str]:
-        if isinstance(event, dict):
-            return cls._extract_dict_string_field(
-                event,
-                top_level_key="content",
-                payload_key="text",
-            )
-
-        content = getattr(event, "content", None)
-        return content if isinstance(content, str) else None
+        _ = cls  # compatibility wrapper
+        return extract_chunk_text(event)
 
     @classmethod
     def _extract_assistant_full_text(
@@ -374,14 +354,11 @@ class QueryExecutionService:
         *,
         event_type: Optional[str] = None,
     ) -> str:
-        resolved_event_type = event_type or cls._extract_event_type(event)
-        if resolved_event_type != "assistant_message_full":
-            return ""
-        if isinstance(event, dict):
-            content = cls._extract_dict_string_field(event, top_level_key="content")
-            return content.strip() if isinstance(content, str) else ""
-        content = getattr(event, "content", None)
-        return content.strip() if isinstance(content, str) else ""
+        _ = cls  # compatibility wrapper
+        return extract_assistant_full_text(
+            event,
+            event_type=event_type,
+        )
 
     @classmethod
     def _extract_streaming_complete_text(
@@ -390,22 +367,11 @@ class QueryExecutionService:
         *,
         event_type: Optional[str] = None,
     ) -> str:
-        if not event:
-            return ""
-        resolved_event_type = event_type or cls._extract_event_type(event)
-        if resolved_event_type != "streaming-complete":
-            return ""
-        if isinstance(event, dict):
-            final_response = cls._extract_dict_string_field(
-                event,
-                top_level_key="final_response",
-                payload_key="final_response",
-            )
-            if isinstance(final_response, str):
-                return final_response.strip()
-            return ""
-        final_response = getattr(event, "final_response", None)
-        return final_response.strip() if isinstance(final_response, str) else ""
+        _ = cls  # compatibility wrapper
+        return extract_streaming_complete_text(
+            event,
+            event_type=event_type,
+        )
 
     @classmethod
     def _resolve_completion_text(
@@ -417,16 +383,12 @@ class QueryExecutionService:
         assistant_full_text: str,
         saw_text_chunk: bool,
     ) -> str:
-        event_completion_text = cls._extract_streaming_complete_text(
-            event,
+        _ = cls  # compatibility wrapper
+        return resolve_completion_text(
+            event=event,
             event_type=event_type,
+            text_chunks=text_chunks,
+            assistant_full_text=assistant_full_text,
+            saw_text_chunk=saw_text_chunk,
+            empty_fallback=EMPTY_FINAL_RESPONSE_FALLBACK,
         )
-        if event_completion_text:
-            return event_completion_text
-        if saw_text_chunk:
-            combined = "".join(text_chunks).strip()
-            if combined:
-                return combined
-        if assistant_full_text:
-            return assistant_full_text
-        return EMPTY_FINAL_RESPONSE_FALLBACK
