@@ -108,15 +108,7 @@ def get_browser_runtime_provider(controller):
         raise RuntimeError("Vendored Browser Use runtime is unavailable.")
 
     try:
-        runtime_module = import_module("tools.browser.browser_tool")
-        factory = getattr(
-            runtime_module,
-            "create_browser_use_native_runtime_provider",
-            None,
-        )
-        if not callable(factory):
-            raise RuntimeError("Browser Use native runtime factory is not configured.")
-        native_provider = factory(controller)
+        native_provider = create_browser_use_native_runtime_provider(controller)
         if native_provider is None:
             raise RuntimeError("Browser Use native runtime provider is unavailable.")
         return native_provider

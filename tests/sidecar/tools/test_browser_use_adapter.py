@@ -989,10 +989,6 @@ class TestBrowserUseCompatibilityAdapter:
         make_controller,
     ):
         controller = make_controller()
-        fake_runtime_module = ModuleType("tools.browser.browser_tool")
-        fake_runtime_module.create_browser_use_native_runtime_provider = mock.Mock(
-            return_value=None
-        )
         with mock.patch.dict(
             "os.environ",
             {"WINDIE_BROWSER_USE_RUNTIME": "browser_use_native"},
@@ -1001,8 +997,8 @@ class TestBrowserUseCompatibilityAdapter:
             "tools.browser.browser_tool.find_spec",
             return_value=object(),
         ), mock.patch(
-            "tools.browser.browser_tool.import_module",
-            return_value=fake_runtime_module,
+            "tools.browser.browser_tool.create_browser_use_native_runtime_provider",
+            return_value=None,
         ):
             with pytest.raises(RuntimeError, match="provider is unavailable"):
                 get_browser_runtime_provider(controller)
@@ -1082,7 +1078,7 @@ class TestBrowserUseCompatibilityAdapter:
             "tools.browser.browser_tool.find_spec",
             return_value=object(),
         ), mock.patch(
-            "tools.browser.browser_tool.import_module",
+            "tools.browser.browser_tool.create_browser_use_native_runtime_provider",
             side_effect=ImportError("simulated import failure"),
         ):
             with pytest.raises(RuntimeError, match="native provider load failed"):
