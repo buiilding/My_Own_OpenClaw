@@ -10,7 +10,8 @@ from weakref import WeakKeyDictionary
 
 from tools.browser.chrome_launcher import DEFAULT_WINDIE_CDP_URL
 from tools.browser.browser_action_contract import BROWSER_CANONICAL_ACTIONS
-from tools.browser.browser_action_contract import LEGACY_BROWSER_ACTION_ALIASES
+from tools.browser.browser_action_contract import BROWSER_COMPAT_ACTION_ALIASES
+from tools.browser.browser_action_contract import REMOVED_BROWSER_ACTION_ALIASES
 from tools.browser.browser_runtime import ControllerRuntimeLike
 from tools.browser.browser_runtime import BrowserRuntimeProvider
 from tools.browser.browser_runtime import get_browser_runtime_provider
@@ -33,11 +34,6 @@ class AdapterActionResult:
 
 MAX_SNAPSHOT_CAPTURE_CHARS = 120_000
 LEGACY_ALIAS_ACTIONS_WITH_ARGS = frozenset({"open", "type", "press", "switch_tab"})
-REMOVED_LEGACY_ALIAS_ACTIONS = frozenset({"act"})
-REMOVED_LEGACY_ACT_ERROR = (
-    "Legacy browser action 'act' has been removed. "
-    "Use canonical browser actions directly."
-)
 BROWSER_USE_ACTIONS_REQUIRING_CONNECTION = frozenset(
     {
         "snapshot",
@@ -118,8 +114,12 @@ class BrowserUseCompatibilityAdapter:
             result = await self._execute_legacy_alias(action, args)
             return self._annotate_legacy_action(action, result)
 
-        if action in REMOVED_LEGACY_ALIAS_ACTIONS:
-            result = self._invalid_argument(action, REMOVED_LEGACY_ACT_ERROR)
+        if action in REMOVED_BROWSER_ACTION_ALIASES:
+            preferred = REMOVED_BROWSER_ACTION_ALIASES[action]
+            result = self._invalid_argument(
+                action,
+                f"Legacy browser action '{action}' has been removed. Use {preferred}.",
+            )
             return self._annotate_legacy_action(action, result)
 
         if action in BROWSER_CANONICAL_ACTIONS:
@@ -1099,7 +1099,7 @@ class BrowserUseCompatibilityAdapter:
         action: str,
         result: AdapterActionResult,
     ) -> AdapterActionResult:
-        preferred_action = LEGACY_BROWSER_ACTION_ALIASES.get(action)
+        preferred_action = BROWSER_COMPAT_ACTION_ALIASES.get(action)
         if preferred_action is None:
             return result
 

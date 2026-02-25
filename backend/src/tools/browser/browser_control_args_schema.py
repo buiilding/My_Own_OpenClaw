@@ -6,7 +6,7 @@ from pydantic import ConfigDict, Field
 
 from backend.src.tools.browser.schema_types import (
     BrowserAction,
-    BROWSER_LEGACY_ACTION_PREFERRED,
+    BROWSER_COMPAT_ACTION_PREFERRED,
     BROWSER_LEGACY_COMPAT_ACTIONS,
     BrowserCanonicalAction,
     BrowserLegacyCompatAction,
@@ -238,4 +238,4 @@ class BrowserControlArgs(_BrowserControlArgsBase):
     @property
     def preferred_action(self) -> str | None:
         """Canonical action recommendation for legacy aliases."""
-        return BROWSER_LEGACY_ACTION_PREFERRED.get(self.action)
+        return BROWSER_COMPAT_ACTION_PREFERRED.get(self.action)
