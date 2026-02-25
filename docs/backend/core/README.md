@@ -21,6 +21,9 @@ title: "Backend Core Infrastructure Docs Hub"
 - [Core Cache Docs Hub](cache/README.md)
 - [Cache Store TTL, LRU, Negative-Cache, and Sync/Async Waiter Contract Reference](cache/cache_store_ttl_lru_negative_cache_and_sync_async_waiter_contract_reference.md)
 - [Cache Manager Namespace Keying, Cache Entry Dataclass, and Facade Export Contract Reference](cache/cache_manager_namespace_keying_cache_entry_dataclass_and_facade_export_contract_reference.md)
+- [Core Interfaces Docs Hub](interfaces/README.md)
+- [Embedding Provider Async Contract and Container Wiring Reference](interfaces/embedding_provider_async_contract_and_container_wiring_reference.md)
+- [Vision Service Protocol Boundary and Session Hierarchy Access Contract Reference](interfaces/vision_service_protocol_boundary_and_session_hierarchy_access_contract_reference.md)
 
 ## Code Scope
 
@@ -30,6 +33,7 @@ title: "Backend Core Infrastructure Docs Hub"
 - `backend/src/core/validation/*`
 - `backend/src/core/messages/*`
 - `backend/src/core/infrastructure/cache*`
+- `backend/src/core/interfaces/*`
 - `backend/src/core/types/aliases.py`
 - `backend/src/core/config/service.py`
 - `backend/src/core/config/subscriptions.py`

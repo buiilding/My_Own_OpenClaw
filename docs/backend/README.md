@@ -45,6 +45,9 @@ Covers:
 - [Core Cache Docs Hub](core/cache/README.md)
 - [Cache Store TTL, LRU, Negative-Cache, and Sync/Async Waiter Contract Reference](core/cache/cache_store_ttl_lru_negative_cache_and_sync_async_waiter_contract_reference.md)
 - [Cache Manager Namespace Keying, Cache Entry Dataclass, and Facade Export Contract Reference](core/cache/cache_manager_namespace_keying_cache_entry_dataclass_and_facade_export_contract_reference.md)
+- [Core Interfaces Docs Hub](core/interfaces/README.md)
+- [Embedding Provider Async Contract and Container Wiring Reference](core/interfaces/embedding_provider_async_contract_and_container_wiring_reference.md)
+- [Vision Service Protocol Boundary and Session Hierarchy Access Contract Reference](core/interfaces/vision_service_protocol_boundary_and_session_hierarchy_access_contract_reference.md)
 
 ### API and Contracts
 

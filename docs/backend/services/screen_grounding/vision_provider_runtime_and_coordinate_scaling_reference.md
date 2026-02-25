@@ -176,5 +176,6 @@ If InternVL fails only on certain GPUs:
 - [Screen-Grounding Vision Docs Hub](vision/README.md)
 - [Provider Loader Device-Map, Direct, CPU Fallback, and Dtype Contract Reference](vision/provider_loader_device_map_direct_cpu_fallback_and_dtype_contract_reference.md)
 - [InternVL Chat/Generate Fallback and Runtime Flash-Attention Disable Reference](vision/internvl_chat_generate_fallback_and_runtime_flash_attention_disable_reference.md)
+- [Vision Service Protocol Boundary and Session Hierarchy Access Contract Reference](../../core/interfaces/vision_service_protocol_boundary_and_session_hierarchy_access_contract_reference.md)
 - [OCR Service and Screenshot State-Machine Reference](ocr_service_and_screenshot_state_machine_reference.md)
 - [Tool Preparation and Coordinate Resolution Reference](../../tools/tool_preparation_and_coordinate_resolution_reference.md)
