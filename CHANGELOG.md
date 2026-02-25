@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(source-maps-backend-sidecar): add `backend/source_maps` and `frontend/sidecar/source_maps` subhubs with deep references for source-owned folder topology maps (`backend/src/{api,core}/folder_structure.md`, `frontend/src/main/python/folder_structure.md`) and package `__init__` export-surface compatibility contracts; wire links across backend/sidecar/frontend/global docs hubs
 - docs(refactor-plan): record Phase 177 full-gate validation snapshot after response-phase/external-focus extraction wave (`./scripts/test`: backend `1012`, sidecar `500/4 skipped`, frontend `106 suites`/`683 tests`)
 - docs(refactor-plan): record Phase 176 external-focus tracker extraction and direct coverage in `docs/planning/windieos_refactor_plan_2026-02-23.md`
 - test(frontend-main-overlay): add `tests/frontend/ExternalFocusTracker.test.cjs` coverage for extracted external focus snapshot/restore tracker behavior
