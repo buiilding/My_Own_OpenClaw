@@ -21,12 +21,13 @@ Bridge entrypoint:
 
 - `initializeWakewordBridge(mainWindow, onWakewordDetected)`
 
-Startup path:
+Startup path (lazy):
 
-1. resolve Python executable and `wakeword_service.py` script path
-2. spawn subprocess with stdio pipes
-3. parse readiness/error status messages from stderr JSON lines
-4. parse detection payload stream from stdout (length-prefixed JSON frames)
+1. bridge registers IPC handlers during `initializeWakewordBridge(...)`
+2. renderer sends `wakeword-enable` when wakeword is actually enabled
+3. bridge resolves Python executable + `wakeword_service.py` and spawns subprocess
+4. bridge parses readiness/error status messages from stderr JSON lines
+5. bridge parses detection payload stream from stdout (length-prefixed JSON frames)
 
 Ready state signal:
 
@@ -108,6 +109,7 @@ Renderer hook guardrails (`useWakewordDetection`):
 - 2s cooldown window between accepted detections
 - immediate `wakeword-disable` send after accepted detection to avoid buffered retriggers
 - threshold check (`confidence >= threshold`) before callback invocation
+- while wakeword is disabled, hook ignores bridge status errors to avoid disabled-mode noise
 
 ## Renderer Voice Stack Interaction
 

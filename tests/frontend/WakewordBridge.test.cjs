@@ -114,8 +114,15 @@ describe('wakeword_bridge', () => {
     stdoutHandler(buffer);
   };
 
+  const enableAndReady = () => {
+    handlers['wakeword-enable']();
+    expect(createdProcesses.length).toBeGreaterThan(0);
+    createdProcesses[createdProcesses.length - 1]._stderrDataHandler(Buffer.from('{"status":"ready"}\n'));
+  };
+
   test('fires wakeword callback and forwards detection', () => {
     const { mainWindow, onWakewordDetected } = initBridge();
+    enableAndReady();
 
     emitDetection({
       detected: true,
@@ -137,6 +144,7 @@ describe('wakeword_bridge', () => {
 
   test('ignores detection when wakeword disabled', () => {
     const { mainWindow, onWakewordDetected } = initBridge();
+    enableAndReady();
 
     handlers['wakeword-disable']();
 
@@ -148,17 +156,22 @@ describe('wakeword_bridge', () => {
     });
 
     expect(onWakewordDetected).not.toHaveBeenCalled();
-    expect(mainWindow.webContents.send).not.toHaveBeenCalled();
+    expect(mainWindow.webContents.send).not.toHaveBeenCalledWith(
+      'wakeword-detected',
+      expect.anything(),
+    );
   });
 
   test('preserves wakeword callback after process restart', () => {
     const { mainWindow, onWakewordDetected, createdProcesses } = initBridge();
 
+    enableAndReady();
     expect(createdProcesses).toHaveLength(1);
     createdProcesses[0]._handlers.exit(0, null);
 
     handlers['wakeword-enable']();
     expect(createdProcesses).toHaveLength(2);
+    createdProcesses[1]._stderrDataHandler(Buffer.from('{"status":"ready"}\n'));
 
     emitDetection({
       detected: true,
@@ -179,6 +192,7 @@ describe('wakeword_bridge', () => {
 
   test('clears stale partial result buffer across process restart', () => {
     const { mainWindow, onWakewordDetected, createdProcesses } = initBridge();
+    enableAndReady();
 
     // Inject incomplete frame bytes so old process leaves parser state behind.
     const partialHeader = Buffer.alloc(4);
@@ -208,6 +222,7 @@ describe('wakeword_bridge', () => {
 
   test('ignores stale exit from old process after beforeExit/enable restart', () => {
     const { createdProcesses, beforeExitHandler } = initBridge();
+    enableAndReady();
 
     expect(typeof beforeExitHandler).toBe('function');
     beforeExitHandler();
@@ -227,6 +242,7 @@ describe('wakeword_bridge', () => {
 
   test('clears stale partial stderr buffer across beforeExit/enable restart', () => {
     const { mainWindow, createdProcesses, beforeExitHandler } = initBridge();
+    enableAndReady();
 
     createdProcesses[0]._stderrDataHandler(Buffer.from('{"status":"rea'));
 
