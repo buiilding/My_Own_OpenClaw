@@ -56,6 +56,54 @@ describe('local_backend_bridge RPC handlers', () => {
     expect(result).toEqual({ success: true, data: { value: 1 } });
   });
 
+  test('execute-tool injects native sudo auth mode when full sudo access is enabled', async () => {
+    const { handlers, stdoutHandler } = initBridge({
+      frontendConfig: { agent_full_sudo_enabled: true },
+    });
+    markReady();
+
+    const promise = handlers['execute-tool'](null, {
+      toolName: 'run_shell_command',
+      args: { command: 'sudo apt update', run_in_background: false },
+    });
+
+    expectLastRequestWith('execute_tool', {
+      tool_name: 'run_shell_command',
+      args: {
+        command: 'sudo apt update',
+        run_in_background: false,
+        sudo_auth_mode: 'native',
+      },
+    });
+
+    emitRpcResult(stdoutHandler, { success: true, data: { value: 1 } });
+    await expect(promise).resolves.toEqual({ success: true, data: { value: 1 } });
+  });
+
+  test('execute-tool injects os_prompt sudo auth mode when full sudo access is disabled', async () => {
+    const { handlers, stdoutHandler } = initBridge({
+      frontendConfig: { agent_full_sudo_enabled: false },
+    });
+    markReady();
+
+    const promise = handlers['execute-tool'](null, {
+      toolName: 'run_shell_command',
+      args: { command: 'sudo apt update', run_in_background: false },
+    });
+
+    expectLastRequestWith('execute_tool', {
+      tool_name: 'run_shell_command',
+      args: {
+        command: 'sudo apt update',
+        run_in_background: false,
+        sudo_auth_mode: 'os_prompt',
+      },
+    });
+
+    emitRpcResult(stdoutHandler, { success: true, data: { value: 1 } });
+    await expect(promise).resolves.toEqual({ success: true, data: { value: 1 } });
+  });
+
   test('passes resolved backend http URL to Python sidecar env', () => {
     process.env.BACKEND_HOST = '192.168.1.55';
     process.env.BACKEND_PORT = '8811';

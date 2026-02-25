@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { ChevronDown, Sparkles, Users } from 'lucide-react';
+import { ChevronDown, Sparkles, Volume2 } from 'lucide-react';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import { useChatStore } from '../stores/chatStore';
@@ -36,7 +36,7 @@ function ChatInterface({ sidebarOpen = true }) {
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setTokenCounts = useChatStore((state) => state.setTokenCounts);
   const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
-  const { config } = useAppConfigContext();
+  const { config, updateConfig } = useAppConfigContext();
 
   const audioPlayerRef = useRef(null);
 
@@ -58,6 +58,7 @@ function ChatInterface({ sidebarOpen = true }) {
   }, []);
 
   const voiceModeEnabled = config?.voice_mode_enabled === true;
+  const speechModeEnabled = config?.speech_mode_enabled === true;
   const canStop = ACTIVE_STREAM_PHASES.has(streamPhase);
   const configuredModelId = config?.selected_model_id || '';
   const modelOptions = useMemo(() => {
@@ -136,6 +137,15 @@ function ChatInterface({ sidebarOpen = true }) {
     stopPlayback,
   ]);
 
+  const handleToggleSpeechMode = useCallback(() => {
+    if (typeof updateConfig !== 'function') {
+      return;
+    }
+    updateConfig({
+      speech_mode_enabled: !speechModeEnabled,
+    });
+  }, [speechModeEnabled, updateConfig]);
+
   useEffect(() => {
     const handleDashboardNewChat = () => {
       handleNewChat();
@@ -199,19 +209,12 @@ function ChatInterface({ sidebarOpen = true }) {
           <div className="chat-utility-controls">
             <button
               type="button"
-              className="chat-top-icon-btn"
-              aria-label="Share"
-              title="Share"
+              className={`chat-top-icon-btn${speechModeEnabled ? ' is-enabled' : ''}`}
+              aria-label="Toggle text-to-speech"
+              title={speechModeEnabled ? 'Disable text-to-speech' : 'Enable text-to-speech'}
+              onClick={handleToggleSpeechMode}
             >
-              <Users size={18} />
-            </button>
-            <button
-              type="button"
-              className="chat-top-icon-btn"
-              aria-label="More options"
-              title="More options"
-            >
-              <Sparkles size={18} />
+              <Volume2 size={18} />
             </button>
           </div>
         </div>

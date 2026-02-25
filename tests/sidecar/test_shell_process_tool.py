@@ -10,6 +10,7 @@ ensure_frontend_python_path()
 
 from tools.system.shell_tool import run_shell_command  # noqa: E402
 from tools.system.process_tool import process_shell_command  # noqa: E402
+from tools.system import shell_tool  # noqa: E402
 from tools.system import shell_process_registry as registry  # noqa: E402
 
 
@@ -160,6 +161,83 @@ async def test_run_shell_command_rejects_invalid_max_output_tokens():
 
     assert result["success"] is False
     assert "max_output_tokens must be an integer" in result["error"]
+
+
+def test_rewrite_sudo_command_for_os_prompt_uses_pkexec(monkeypatch):
+    monkeypatch.setattr(shell_tool, "IS_LINUX", True)
+    monkeypatch.setattr(shell_tool.shutil, "which", lambda _name: "/usr/bin/pkexec")
+
+    rewritten, routed, error = shell_tool._rewrite_sudo_command_for_os_prompt(
+        "sudo apt purge -y cursor"
+    )
+
+    assert error is None
+    assert routed is True
+    assert rewritten.startswith("pkexec ")
+    assert "bash -lc" in rewritten
+    assert "apt purge -y cursor" in rewritten
+
+
+def test_rewrite_sudo_command_for_os_prompt_rejects_missing_pkexec(monkeypatch):
+    monkeypatch.setattr(shell_tool, "IS_LINUX", True)
+    monkeypatch.setattr(shell_tool.shutil, "which", lambda _name: None)
+
+    rewritten, routed, error = shell_tool._rewrite_sudo_command_for_os_prompt(
+        "sudo apt purge -y cursor"
+    )
+
+    assert rewritten == "sudo apt purge -y cursor"
+    assert routed is False
+    assert "pkexec not found" in (error or "")
+
+
+def test_rewrite_sudo_command_for_os_prompt_bypasses_pkexec_for_native_mode(monkeypatch):
+    monkeypatch.setattr(shell_tool, "IS_LINUX", True)
+    monkeypatch.setattr(shell_tool.shutil, "which", lambda _name: None)
+
+    rewritten, routed, error = shell_tool._rewrite_sudo_command_for_os_prompt(
+        "sudo apt purge -y cursor",
+        route_via_os_prompt=False,
+    )
+
+    assert rewritten == "sudo apt purge -y cursor"
+    assert routed is False
+    assert error is None
+
+
+def test_resolve_sudo_auth_mode_accepts_native_aliases():
+    assert shell_tool._resolve_sudo_auth_mode("native") == "native"
+    assert shell_tool._resolve_sudo_auth_mode("direct") == "native"
+    assert shell_tool._resolve_sudo_auth_mode("sudo") == "native"
+    assert shell_tool._resolve_sudo_auth_mode("something-else") == "os_prompt"
+
+
+def test_normalize_sudo_auth_result_rewrites_canceled_prompt_error():
+    result = {
+        "output": "",
+        "error": "Error executing command as another user: Not authorized",
+        "exit_code": 126,
+        "execution_time": 0.25,
+        "timed_out": False,
+    }
+
+    normalized = shell_tool._normalize_sudo_auth_result(result)
+    assert normalized["exit_code"] == 126
+    assert "canceled or denied" in (normalized["error"] or "").lower()
+
+
+def test_normalize_sudo_auth_result_rewrites_request_dismissed_error():
+    result = {
+        "output": "",
+        "error": "Error executing command as another user: Request dismissed",
+        "exit_code": 1,
+        "execution_time": 0.10,
+        "timed_out": False,
+    }
+
+    normalized = shell_tool._normalize_sudo_auth_result(result)
+    assert normalized["exit_code"] == 1
+    assert "canceled or denied" in (normalized["error"] or "").lower()
 
 
 @pytest.mark.asyncio

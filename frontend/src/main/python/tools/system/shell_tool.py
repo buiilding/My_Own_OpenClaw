@@ -6,6 +6,8 @@ import asyncio
 import logging
 import os
 import platform
+import shlex
+import shutil
 import time
 try:
     import pty
@@ -27,9 +29,55 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_SHELL_TIMEOUT = 120.0
 IS_WINDOWS = platform.system() == "Windows"
+IS_LINUX = platform.system() == "Linux"
 DEFAULT_MAX_OUTPUT_TOKENS = 10_000
 APPROX_BYTES_PER_TOKEN = 4
 _USE_SESSION_EXIT_CODE = object()
+_SUDO_AUTH_FAILURE_EXIT_CODES = {126, 127}
+_SUDO_AUTH_MODE_OS_PROMPT = "os_prompt"
+_SUDO_AUTH_MODE_NATIVE = "native"
+_SUDO_AUTH_DENIED_MARKERS = (
+    "not authorized",
+    "authentication failure",
+    "authentication dialog was dismissed",
+    "request dismissed",
+    "authorization failed",
+    "user cancelled",
+    "user canceled",
+    "cancelled by user",
+    "canceled by user",
+)
+_SUDO_IGNORED_FLAGS = {
+    "-A",
+    "--askpass",
+    "-b",
+    "--background",
+    "-E",
+    "--preserve-env",
+    "-H",
+    "--set-home",
+    "-k",
+    "--reset-timestamp",
+    "-K",
+    "--remove-timestamp",
+    "-n",
+    "--non-interactive",
+    "-S",
+    "--stdin",
+    "-v",
+    "--validate",
+}
+_SUDO_IGNORED_FLAGS_WITH_VALUE = {
+    "-h",
+    "--host",
+    "-p",
+    "--prompt",
+    "-r",
+    "--role",
+    "-t",
+    "--type",
+    "-C",
+}
 
 
 def _approx_token_count(text: str) -> int:
@@ -112,8 +160,23 @@ async def run_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
         if pty_requested and (IS_WINDOWS or pty is None):
             warnings.append("PTY requested but not supported in this sidecar; running without PTY.")
 
+        sudo_auth_mode = _resolve_sudo_auth_mode(args.get("sudo_auth_mode"))
+        route_sudo_via_os_prompt = sudo_auth_mode != _SUDO_AUTH_MODE_NATIVE
+        exec_command, sudo_auth_routed, sudo_error = _rewrite_sudo_command_for_os_prompt(
+            command,
+            route_via_os_prompt=route_sudo_via_os_prompt,
+        )
+        if sudo_error:
+            return {"success": False, "error": sudo_error}
+
         env = _build_env(env_overrides)
-        session, wait_task = await _start_shell_session(command, working_dir, env, pty_requested)
+        session, wait_task = await _start_shell_session(
+            display_command=command,
+            execution_command=exec_command,
+            working_dir=working_dir,
+            env=env,
+            pty_requested=pty_requested,
+        )
 
         if run_in_background:
             mark_backgrounded(session)
@@ -128,6 +191,8 @@ async def run_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
                 mark_backgrounded(session)
                 return _build_background_response(session, warnings)
             result = _build_result_from_session(session, timed_out=False)
+            if sudo_auth_routed:
+                result = _normalize_sudo_auth_result(result)
             return _build_foreground_response(
                 command,
                 working_dir,
@@ -161,6 +226,8 @@ async def run_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
                 exit_code_override=None,
                 error_override="Command timed out and was terminated",
             )
+        if sudo_auth_routed:
+            result = _normalize_sudo_auth_result(result)
         return _build_foreground_response(
             command,
             working_dir,
@@ -174,12 +241,13 @@ async def run_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
 
 
 async def _start_shell_session(
-    command: str,
+    display_command: str,
+    execution_command: str,
     working_dir: Path,
     env: Dict[str, str],
     pty_requested: bool,
 ) -> Tuple[ProcessSession, asyncio.Task]:
-    shell_cmd, shell_args = _resolve_shell_command(command)
+    shell_cmd, shell_args = _resolve_shell_command(execution_command)
     use_pty = False
     master_fd = None
     stdin = asyncio.subprocess.PIPE
@@ -215,7 +283,7 @@ async def _start_shell_session(
             pass
     session = ProcessSession(
         id=create_session_id(),
-        command=command,
+        command=display_command,
         cwd=str(working_dir),
         process=process,
         started_at=time.time(),
@@ -236,6 +304,113 @@ async def _start_shell_session(
     session.read_tasks = read_tasks
     session.wait_task = wait_task
     return session, wait_task
+
+
+def _resolve_sudo_auth_mode(raw_value: Any) -> str:
+    if isinstance(raw_value, str):
+        normalized = raw_value.strip().lower().replace("-", "_")
+        if normalized in {"native", "direct", "sudo"}:
+            return _SUDO_AUTH_MODE_NATIVE
+        if normalized in {"os_prompt", "prompt", "pkexec"}:
+            return _SUDO_AUTH_MODE_OS_PROMPT
+    return _SUDO_AUTH_MODE_OS_PROMPT
+
+
+def _rewrite_sudo_command_for_os_prompt(
+    command: str,
+    route_via_os_prompt: bool = True,
+) -> Tuple[str, bool, Optional[str]]:
+    """
+    Rewrite leading sudo commands to pkexec so auth is handled by OS prompt.
+
+    Returns:
+      (execution_command, sudo_auth_routed, error_message)
+    """
+    stripped = command.strip()
+    if not route_via_os_prompt:
+        return command, False, None
+
+    if not IS_LINUX or not stripped.startswith("sudo"):
+        return command, False, None
+
+    if shutil.which("pkexec") is None:
+        return (
+            command,
+            False,
+            "Cannot run sudo command: OS authentication prompt is unavailable (pkexec not found).",
+        )
+
+    try:
+        tokens = shlex.split(command, posix=True)
+    except ValueError as exc:
+        return command, False, f"Cannot parse sudo command: {exc}"
+
+    if not tokens or tokens[0] != "sudo":
+        return command, False, None
+
+    target_user = None
+    index = 1
+    while index < len(tokens):
+        token = tokens[index]
+        if token == "--":
+            index += 1
+            break
+        if token in ("-u", "--user"):
+            if index + 1 >= len(tokens):
+                return command, False, "Invalid sudo command: missing user after -u/--user."
+            target_user = tokens[index + 1]
+            index += 2
+            continue
+        if token.startswith("-u") and len(token) > 2:
+            target_user = token[2:]
+            index += 1
+            continue
+        if token in _SUDO_IGNORED_FLAGS:
+            index += 1
+            continue
+        if token in _SUDO_IGNORED_FLAGS_WITH_VALUE:
+            if index + 1 >= len(tokens):
+                return command, False, f"Invalid sudo command: missing value for {token}."
+            index += 2
+            continue
+        if token.startswith("-"):
+            return (
+                command,
+                False,
+                f"Unsupported sudo option for OS prompt flow: {token}",
+            )
+        break
+
+    if index >= len(tokens):
+        return command, False, "Invalid sudo command: missing command to execute."
+
+    inner_command = shlex.join(tokens[index:])
+    pkexec_tokens = ["pkexec"]
+    if target_user and target_user != "root":
+        pkexec_tokens.extend(["--user", target_user])
+    pkexec_tokens.extend(["bash", "-lc", inner_command])
+    return shlex.join(pkexec_tokens), True, None
+
+
+def _normalize_sudo_auth_result(result: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Normalize pkexec auth cancellation/denial into a stable tool-visible error.
+    """
+    exit_code = result.get("exit_code")
+    error_text = (result.get("error") or "").strip()
+    lower_error = error_text.lower()
+    has_denied_marker = bool(
+        lower_error and any(marker in lower_error for marker in _SUDO_AUTH_DENIED_MARKERS)
+    )
+
+    if not has_denied_marker and exit_code not in _SUDO_AUTH_FAILURE_EXIT_CODES:
+        return result
+
+    if lower_error and not has_denied_marker:
+        return result
+
+    result["error"] = "User canceled or denied the OS authentication prompt for this sudo command."
+    return result
 
 
 async def _read_stream(

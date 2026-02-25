@@ -43,8 +43,17 @@ Execution transport:
 
 - Windows: `powershell.exe -NoProfile -NonInteractive -Command ...`
 - non-Windows: `bash -c ...`
+- Linux sudo path:
+  - when `sudo_auth_mode=os_prompt` (default), leading `sudo ...` is rewritten to `pkexec bash -lc ...` so elevation uses the OS authentication dialog instead of sidecar terminal password prompts
+  - when `sudo_auth_mode=native`, command stays `sudo ...` unchanged (used when agent passwordless sudo is enabled)
 - optional PTY path uses `pty.openpty()` and a single read loop
 - non-PTY path reads stdout/stderr concurrently via `_read_stream`
+
+Sudo auth outcomes on Linux:
+
+- if `pkexec` is unavailable, `run_shell_command` fails fast with an explicit error
+- if user cancels/denies the OS auth prompt, tool output reports a normalized error:
+  - `User canceled or denied the OS authentication prompt for this sudo command.`
 
 Foreground vs background:
 

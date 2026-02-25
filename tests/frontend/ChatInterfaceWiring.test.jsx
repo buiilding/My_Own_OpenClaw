@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 
 import ChatInterface from '../../frontend/src/renderer/features/chat/components/ChatInterface';
 const { selectMockStoreState: mockSelectStoreState } = require('./storeSelectorTestUtils.cjs');
@@ -10,7 +10,9 @@ const mockUseChatMessageSender = jest.fn(() => ({
 let mockConfig = {
   interaction_mode: 'chat',
   voice_mode_enabled: false,
+  speech_mode_enabled: false,
 };
+const mockUpdateConfig = jest.fn();
 const mockMessageInput = jest.fn(() => <div data-testid="message-input" />);
 
 const mockPlayerService = {
@@ -49,6 +51,7 @@ jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
 jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
   useAppConfigContext: () => ({
     config: mockConfig,
+    updateConfig: (...args) => mockUpdateConfig(...args),
   }),
 }));
 
@@ -92,6 +95,7 @@ describe('ChatInterface wiring', () => {
     mockConfig = {
       interaction_mode: 'chat',
       voice_mode_enabled: false,
+      speech_mode_enabled: false,
     };
     mockMessageInput.mockClear();
     mockUseChatMessageSender.mockClear();
@@ -105,6 +109,7 @@ describe('ChatInterface wiring', () => {
     mockSetTokenCounts.mockClear();
     mockUpdateStreamTracking.mockClear();
     mockSetActiveConversationRef.mockClear();
+    mockUpdateConfig.mockClear();
     mockChatState.streamTracking.phase = 'idle';
   });
 
@@ -117,17 +122,24 @@ describe('ChatInterface wiring', () => {
     );
   });
 
-  test('shows clone-style utility controls in header', () => {
+  test('shows text-to-speech toggle in header', () => {
     render(<ChatInterface />);
 
-    expect(screen.getByRole('button', { name: 'Share' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'More options' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Toggle text-to-speech' })).toBeInTheDocument();
+  });
+
+  test('text-to-speech toggle updates speech_mode_enabled', () => {
+    render(<ChatInterface />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle text-to-speech' }));
+    expect(mockUpdateConfig).toHaveBeenCalledWith({ speech_mode_enabled: true });
   });
 
   test('shows model selector and passes enabled voice mode to input', () => {
     mockConfig = {
       interaction_mode: 'agent',
       voice_mode_enabled: true,
+      speech_mode_enabled: false,
       selected_model_id: 'gpt-test-model',
     };
 

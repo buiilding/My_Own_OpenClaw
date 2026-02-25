@@ -32,6 +32,8 @@ class FrontendConfigPatch(BaseModel):
     interaction_mode: Optional[Literal["chat", "agent"]] = None
     voice_mode_enabled: Optional[bool] = None
     speech_mode_enabled: Optional[bool] = None
+    wakeword_stt_enabled: Optional[bool] = None
+    agent_full_sudo_enabled: Optional[bool] = None
     include_query_screenshot: Optional[bool] = None
 
 

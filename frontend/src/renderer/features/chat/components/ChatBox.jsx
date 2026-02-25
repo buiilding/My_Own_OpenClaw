@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
+import { useTranscription } from '../hooks/useTranscription';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { getRoundedFrameSize } from '../utils/overlayFrameSize';
 import { subscribeResponseOverlayPhase } from '../utils/overlayPhaseListener';
+import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
+import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 
 const CLICK_THROUGH_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
 const OVERLAY_ACTIVE_PHASES = new Set(['awaiting-first-chunk', 'streaming']);
@@ -37,14 +40,25 @@ function SendIcon() {
   );
 }
 
+function SoundIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M11 5L6 9H3v6h3l5 4V5z" />
+      <path d="M15.5 8.5a5 5 0 0 1 0 7" />
+      <path d="M18.5 6a8.5 8.5 0 0 1 0 12" />
+    </svg>
+  );
+}
+
 function ChatBox() {
+  const { config, updateConfig } = useAppConfigContext();
   const isSending = useChatStore((state) => state.isSending);
   const streamPhase = useChatStore((state) => state.streamTracking.phase);
   const { sendMessage } = useChatMessageSender(undefined, {
     senderSurface: 'overlay-chatbox',
   });
-  const [inputValue, setInputValue] = useState('');
   const [overlayPhase, setOverlayPhase] = useState('idle');
+  const [wakewordSttSessionActive, setWakewordSttSessionActive] = useState(false);
   const ignoreMouseRef = useRef(undefined);
   const shellRef = useRef(null);
   const inputRef = useRef(null);
@@ -58,6 +72,16 @@ function ChatBox() {
     lastTargetX: null,
     lastTargetY: null,
   });
+  const wakewordSttEnabled = config?.wakeword_stt_enabled === true;
+  const speechModeEnabled = config?.speech_mode_enabled === true;
+  const {
+    inputValue,
+    setInputValue,
+    getInputValue,
+    updateTranscription,
+    resetTranscription,
+    handleInputChange,
+  } = useTranscription();
 
   const setOverlayIgnore = useCallback(async (ignore) => {
     if (ignoreMouseRef.current === ignore) {
@@ -139,14 +163,52 @@ function ChatBox() {
     };
   }, [setOverlayIgnore]);
 
+  useEffect(() => {
+    const removeListener = IpcBridge.on(ON_CHANNELS.WAKEWORD_STT_TRIGGER, () => {
+      if (!wakewordSttEnabled) {
+        setWakewordSttSessionActive(false);
+        return;
+      }
+      resetTranscription();
+      setInputValue('');
+      setWakewordSttSessionActive(true);
+      setOverlayIgnore(false);
+      inputRef.current?.focus();
+    });
+    return () => {
+      removeListener?.();
+    };
+  }, [resetTranscription, setInputValue, setOverlayIgnore, wakewordSttEnabled]);
+
+  useEffect(() => {
+    if (!wakewordSttEnabled && wakewordSttSessionActive) {
+      setWakewordSttSessionActive(false);
+    }
+  }, [wakewordSttEnabled, wakewordSttSessionActive]);
+
+  useVoiceMode(
+    wakewordSttEnabled && wakewordSttSessionActive,
+    (text, isFinal) => {
+      updateTranscription(text);
+      if (isFinal) {
+        setWakewordSttSessionActive(false);
+      }
+    },
+    () => {
+      setWakewordSttSessionActive(false);
+    },
+  );
+
   const handleSend = useCallback(async () => {
-    const trimmed = inputValue.trim();
+    const trimmed = getInputValue().trim();
     if (!trimmed || isSending) {
       return;
     }
+    setWakewordSttSessionActive(false);
+    resetTranscription();
     setInputValue('');
     await sendMessage(trimmed);
-  }, [inputValue, isSending, sendMessage]);
+  }, [getInputValue, isSending, resetTranscription, sendMessage, setInputValue]);
 
   const handleSubmit = useCallback((event) => {
     event.preventDefault();
@@ -155,11 +217,20 @@ function ChatBox() {
 
   const handleOpenSettings = useCallback(async () => {
     try {
-      await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_MAIN_WINDOW);
+      await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_MAIN_WINDOW, { maximize: true });
     } catch (error) {
       console.warn('[ChatBox] Failed to show main window:', error);
     }
   }, []);
+
+  const handleToggleSpeechMode = useCallback(() => {
+    if (typeof updateConfig !== 'function') {
+      return;
+    }
+    updateConfig({
+      speech_mode_enabled: !speechModeEnabled,
+    });
+  }, [speechModeEnabled, updateConfig]);
 
   const handleDragMove = useCallback((event) => {
     const dragState = dragStateRef.current;
@@ -245,12 +316,21 @@ function ChatBox() {
               ref={inputRef}
               type="text"
               value={inputValue}
-              onChange={(event) => setInputValue(event.target.value)}
+              onChange={handleInputChange}
               placeholder="Ask me anything..."
               className="chatbox-input"
               disabled={isSending}
             />
           </div>
+          <button
+            type="button"
+            className={`chatbox-icon chatbox-tts${speechModeEnabled ? ' is-enabled' : ''}`}
+            aria-label="Toggle text-to-speech"
+            title={speechModeEnabled ? 'Disable text-to-speech' : 'Enable text-to-speech'}
+            onClick={handleToggleSpeechMode}
+          >
+            <SoundIcon />
+          </button>
           <button
             type="submit"
             className="chatbox-icon chatbox-send"

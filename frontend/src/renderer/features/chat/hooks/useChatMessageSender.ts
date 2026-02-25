@@ -29,11 +29,48 @@ import {
 } from '../policies/messageSendUiPolicy';
 import { createConversationRef } from '../utils/conversationRef';
 import { useChatCommonActions } from './useChatCommonActions';
+import { normalizeArtifactImageContentType } from '../../../infrastructure/services/ArtifactImageUtils';
 
 type ChatMessageSenderOptions = {
   senderSurface?: ChatSendSurface;
   returnToChatboxPolicy?: ReturnToChatboxPolicy;
 };
+
+type ClipboardImagePayload = {
+  base64: string;
+  contentType?: string | null;
+  filename?: string | null;
+};
+
+type OutgoingUserMessagePayload = string | {
+  text: string;
+  clipboardImage?: ClipboardImagePayload | null;
+};
+
+function normalizeOutgoingPayload(payload: OutgoingUserMessagePayload): {
+  text: string;
+  clipboardImage: ClipboardImagePayload | null;
+} | null {
+  if (typeof payload === 'string') {
+    return { text: payload, clipboardImage: null };
+  }
+
+  if (!payload || typeof payload !== 'object' || typeof payload.text !== 'string') {
+    return null;
+  }
+
+  const clipboardImage = payload.clipboardImage;
+  const hasClipboardImage = Boolean(
+    clipboardImage
+    && typeof clipboardImage.base64 === 'string'
+    && clipboardImage.base64.length > 0,
+  );
+
+  return {
+    text: payload.text,
+    clipboardImage: hasClipboardImage ? clipboardImage : null,
+  };
+}
 
 /**
  * Custom hook for sending chat messages.
@@ -77,7 +114,15 @@ export function useChatMessageSender(
     return generatedRef;
   }, []);
 
-  const sendMessage = useCallback(async (text: string) => {
+  const sendMessage = useCallback(async (payload: OutgoingUserMessagePayload) => {
+    const normalizedPayload = normalizeOutgoingPayload(payload);
+    if (!normalizedPayload) {
+      return;
+    }
+
+    const text = normalizedPayload.text;
+    const clipboardImage = normalizedPayload.clipboardImage;
+
     // Stop audio playback if provided
     if (stopPlayback) {
       stopPlayback();
@@ -86,11 +131,16 @@ export function useChatMessageSender(
     const hadUserMessages = hasUserMessages(useChatStore.getState().messages);
     const conversationRef = ensureConversationRef();
     
-    // Create user message immediately (without screenshot) for instant UI display
+    // Create user message immediately for instant UI display
     const userMessageId = crypto.randomUUID();
     const messageTimestamp = new Date().toISOString();
+    const userMessageScreenshotContentType = clipboardImage
+      ? normalizeArtifactImageContentType(clipboardImage.contentType)
+      : null;
     const userMessage: ChatMessage = {
       ...buildPendingUserMessage(userMessageId, text),
+      screenshot: clipboardImage?.base64 || null,
+      screenshotContentType: userMessageScreenshotContentType,
       timestamp: messageTimestamp,
     };
     
@@ -107,9 +157,10 @@ export function useChatMessageSender(
       }
     }
     
-    let screenshot: string | null = null;
-    let screenshotContentType: string | null = null;
-    if (shouldCaptureQueryScreenshot) {
+    let screenshot: string | null = clipboardImage?.base64 || null;
+    let screenshotContentType: string | null = userMessageScreenshotContentType;
+    const screenshotFilename: string | null = clipboardImage?.filename || null;
+    if (!screenshot && shouldCaptureQueryScreenshot) {
       // Extract OS state (screenshot and system state).
       const isFirstUserMessage = !hadUserMessages;
       try {
@@ -135,7 +186,7 @@ export function useChatMessageSender(
         uploaded = await uploadArtifactBase64(
           screenshot,
           artifactUploadMeta.contentType,
-          artifactUploadMeta.filename,
+          screenshotFilename || artifactUploadMeta.filename,
         );
       } catch (error) {
         console.warn('[useChatMessageSender] Failed to upload screenshot artifact:', error);

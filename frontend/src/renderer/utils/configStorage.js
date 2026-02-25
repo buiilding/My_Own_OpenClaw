@@ -17,6 +17,8 @@ const DEFAULT_FRONTEND_CONFIG = {
   interaction_mode: 'chat',
   voice_mode_enabled: false,
   speech_mode_enabled: false,
+  wakeword_stt_enabled: false,
+  agent_full_sudo_enabled: false,
   include_query_screenshot: true,
 };
 

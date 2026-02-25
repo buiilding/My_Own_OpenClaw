@@ -205,6 +205,7 @@ class TestAppConfig:
         assert config.max_agent_iterations == 1000
         assert config.interaction_mode == "chat"
         assert config.voice_mode_enabled is False
+        assert config.agent_full_sudo_enabled is False
         assert config.include_query_screenshot is True
         assert config.wakeword_enabled is True
         assert config.wakeword_phrase == "hey jarvis"
