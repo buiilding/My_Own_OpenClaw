@@ -35,6 +35,7 @@ Covers:
 - [Backend Runtime Flow Matrix Reference](inventory/backend_runtime_flow_matrix_reference.md)
 - [Backend Module File Index Reference](inventory/backend_module_file_index_reference.md)
 - [Backend Cross-Layer Contract Touchpoints Reference](inventory/backend_cross_layer_contract_touchpoints_reference.md)
+- [Backend Inventory Domains Hub](inventory/domains/README.md)
 - [Container DI and Initialization Lifecycle Reference](bootstrap/container_di_and_init_lifecycle_reference.md)
 - [Bootstrap Entrypoints Docs Hub](bootstrap/entrypoints/README.md)
 - [Shared Entrypoint Logger and Uvicorn Runner Contract Reference](bootstrap/entrypoints/shared_entrypoint_logger_and_uvicorn_runner_contract_reference.md)

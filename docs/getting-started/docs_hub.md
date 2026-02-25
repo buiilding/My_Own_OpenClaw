@@ -33,6 +33,7 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 
 - [Backend Functionality Map](../backend/README.md)
 - [Backend Inventory Docs Hub](../backend/inventory/README.md)
+- [Backend Inventory Domains Hub](../backend/inventory/domains/README.md)
 - [Backend Full Functionality Inventory Reference](../backend/inventory/backend_full_functionality_inventory_reference.md)
 - [Backend Cross-Layer Contract Touchpoints Reference](../backend/inventory/backend_cross_layer_contract_touchpoints_reference.md)
 - [Backend Bootstrap Docs Hub](../backend/bootstrap/README.md)
