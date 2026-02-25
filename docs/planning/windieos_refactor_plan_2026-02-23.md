@@ -3708,3 +3708,16 @@ read_when:
   - `cd frontend && npm run test:ci -- tests/frontend/ToolGhostPreview.test.js` (pass)
   - `cd frontend && npm run lint` (pass)
   - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `28`, duplicated lines `535`, duplicated tokens `5248`; javascript clone bucket now `0`)
+
+## Phase 162 Outcome (2026-02-25)
+
+- Refactor slice: split response-overlay IPC resize handler into dedicated main-process module.
+  - added:
+    - `frontend/src/main/overlay_responsebox_handler.cjs` (`handleSetResponseboxSize`, fullscreen-bounds resolution)
+  - updated:
+    - `frontend/src/main/index.cjs` now wires `set-responsebox-size` through the extracted handler with explicit dependency injection (`responseWindow`, `chatWindow`, `screen`, bounds/visibility helpers).
+  - impact:
+    - reduced `index.cjs` inline IPC branch size and isolated tricky fullscreen/visibility control flow for targeted maintenance.
+- Validation:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/IpcMainBridge.query.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx tests/frontend/ChatBoxResponse.toolGhost.test.jsx` (pass)
