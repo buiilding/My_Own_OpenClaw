@@ -4,6 +4,7 @@ import App from './App';
 import ChatBoxApp from './ChatBoxApp';
 import ChatBoxResponseApp from './ChatBoxResponseApp';
 import ChatBoxContextLabelApp from './ChatBoxContextLabelApp';
+import ToolGhostDebugApp from './ToolGhostDebugApp';
 
 // This is the standard entry point for a React application.
 // StrictMode causes double rendering in development - disable in production for performance
@@ -16,6 +17,8 @@ const RootComponent = view === 'chatbox'
     ? ChatBoxResponseApp
     : view === 'chatbox-context-label'
       ? ChatBoxContextLabelApp
+      : view === 'tool-ghost-debug'
+        ? ToolGhostDebugApp
     : App;
 
 if (isDev) {
