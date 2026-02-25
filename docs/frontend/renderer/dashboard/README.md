@@ -18,7 +18,8 @@ title: "Renderer Dashboard Docs Hub"
 
 - [Frontend Renderer Docs Hub](../README.md)
 - [Dashboard Memory Management and Resume Reference](../dashboard_memory_management_and_resume_reference.md)
-- [Settings Section Display Selection and Config Toggle Reference](../settings/settings_section_display_selection_and_config_toggle_reference.md)
+- [Settings Section Clone Tabs and Wakeword Toggle Runtime Reference](../settings/sections/settings_section_clone_tabs_and_wakeword_toggle_runtime_reference.md)
+- [Frontend Config Filter, Storage, and Provider Merge Runtime Reference](../settings/config/frontend_config_filter_storage_and_provider_merge_runtime_reference.md)
 - [App Provider Coordinator and Save-Status Runtime Reference](../providers/app_provider_coordinator_and_save_status_runtime_reference.md)
 
 ## Code Scope
@@ -28,8 +29,6 @@ title: "Renderer Dashboard Docs Hub"
 - `frontend/src/renderer/features/dashboard/components/SearchChatsModal.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/ModelsSection.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/SettingsSection.jsx`
-- `frontend/src/renderer/features/dashboard/components/sections/EpisodicMemorySection.jsx`
-- `frontend/src/renderer/features/dashboard/components/sections/SemanticMemorySection.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/MemorySection.jsx`
 - `frontend/src/renderer/features/dashboard/utils/modelSelectionUtils.js`
 - `frontend/src/renderer/features/dashboard/utils/storage.js`

@@ -1,0 +1,31 @@
+---
+summary: "Renderer settings config docs sub-hub for frontend config-field filtering, localStorage defaults/versioning, and AppConfigProvider merge/apply guards."
+read_when:
+  - When changing frontend-owned config field allowlist or local config defaults.
+  - When debugging config persistence drift between localStorage, disk config load, and backend update-settings sync.
+title: "Renderer Settings Config Docs Hub"
+---
+
+# Renderer Settings Config Docs Hub
+
+## Deep Pages
+
+- [Frontend Config Filter, Storage, and Provider Merge Runtime Reference](frontend_config_filter_storage_and_provider_merge_runtime_reference.md)
+
+## Related Pages
+
+- [Frontend Renderer Settings Docs Hub](../README.md)
+- [Config Sync and Settings Lifecycle Reference](../../../runtime/config_sync_and_settings_lifecycle_reference.md)
+- [Input Validation and Frontend Patch Guard Reference](../../../../backend/core/validation/input_validation_and_frontend_patch_guard_reference.md)
+
+## Code Scope
+
+- `frontend/src/renderer/utils/configFilter.js`
+- `frontend/src/renderer/utils/configStorage.js`
+- `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
+- `frontend/src/renderer/app/providers/appConfigPersistence.js`
+- `frontend/src/renderer/app/providers/appConfigEvents.js`
+- `tests/frontend/configFilter.test.js`
+- `tests/frontend/configStorage.test.js`
+- `tests/frontend/AppConfigProvider.models.test.tsx`
+- `tests/frontend/AppConfigProvider.storageAndIpc.test.tsx`

@@ -75,6 +75,7 @@ Allowed fields (derived from model fields):
 - `interaction_mode`
 - `voice_mode_enabled`
 - `speech_mode_enabled`
+- `wakeword_stt_enabled`
 - `include_query_screenshot`
 
 `validate_frontend_config(settings)` behavior:
