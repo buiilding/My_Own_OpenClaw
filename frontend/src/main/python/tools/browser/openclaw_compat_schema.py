@@ -13,7 +13,6 @@ class BrowserOpenClawCompatArgs(BaseModel):
     action: Literal[
         "status",
         "profiles",
-        "open",
         "done",
         "search",
         "go_back",

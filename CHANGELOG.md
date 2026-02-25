@@ -9,7 +9,8 @@ Includes the last 300 commits on `main`.
 ### Added
 - refactor(sidecar-browser-schema): remove `act` from sidecar OpenClaw compatibility action registry so schema lookup/validation now treats `act` as unknown
 - refactor(browser-schema-cleanup): remove historical `act` envelope `request` field from backend + sidecar OpenClaw compatibility models; add regression checks that compat model fields no longer expose `request`
-- refactor(backend-openclaw-contract): narrow `BrowserOpenClawAction` to the sidecar OpenClaw compatibility subset (for example keep `open` but reject legacy aliases like `type`/`press`/`switch_tab`) with regression coverage
+- refactor(backend-openclaw-contract): narrow `BrowserOpenClawAction` to the sidecar OpenClaw compatibility subset and reject legacy aliases (`type`/`press`/`switch_tab`) with regression coverage
+- refactor(openclaw-schema): remove legacy `open` from backend + sidecar OpenClaw compatibility action schemas so canonical `navigate` is the schema-level navigation action
 - refactor(backend-browser-schema): exclude removed alias `act` from backend OpenClaw compatibility action typing (`BrowserOpenClawAction`) and add regression coverage that `BrowserOpenClawCompatArgs(action="act")` fails validation
 - refactor(browser-contract): split compatibility aliases into active-legacy (`open`,`type`,`press`,`switch_tab`) vs removed (`act`) buckets in shared sidecar/backend contract modules; `BrowserControlArgs.is_legacy` now excludes removed aliases while `preferred_action` still guides `act` callers to canonical actions
 - refactor(sidecar-browser-adapter): remove adapter `act` envelope dispatch implementation; direct adapter calls now return explicit removed-alias migration error with legacy deprecation metadata
