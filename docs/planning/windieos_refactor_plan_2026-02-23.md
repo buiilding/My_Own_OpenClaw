@@ -3818,3 +3818,19 @@ read_when:
 - Validation:
   - `cd frontend && npm run lint` (pass)
   - `cd frontend && npm run test:ci -- tests/frontend/OverlayMouseHandler.test.cjs tests/frontend/OverlayResponseboxHandler.test.cjs tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/MainWindowControlsHandler.test.cjs tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx` (pass)
+
+## Phase 170 Outcome (2026-02-25)
+
+- Refactor slice: extract display-query IPC mapping handler from `index.cjs`.
+  - added:
+    - `frontend/src/main/display_query_handler.cjs` (`handleGetDisplays`)
+  - updated:
+    - `frontend/src/main/index.cjs` now delegates `get-displays` to extracted helper with injected `screen`.
+  - added tests:
+    - `tests/frontend/DisplayQueryHandler.test.cjs`
+    - covers display-label mapping, primary-display flag selection, and empty-display list path.
+  - impact:
+    - reduced main-process IPC mapping boilerplate in `index.cjs` and locked display payload shape with direct unit coverage.
+- Validation:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/DisplayQueryHandler.test.cjs tests/frontend/OverlayMouseHandler.test.cjs tests/frontend/MainWindowControlsHandler.test.cjs tests/frontend/OverlayResponseboxHandler.test.cjs tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs` (pass)

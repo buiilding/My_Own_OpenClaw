@@ -3,6 +3,7 @@ const path = require('path');
 const { initializeIpc, registerRendererWindow } = require('./ipc.cjs');
 const { initializeWakewordBridge } = require('./wakeword_bridge.cjs');
 const { initializeLocalBackendBridge, stopLocalBackend } = require('./local_backend_bridge.cjs');
+const { handleGetDisplays } = require('./display_query_handler.cjs');
 const {
   handleWindowClose,
   handleWindowMinimize,
@@ -839,15 +840,7 @@ function initializeOverlayHandlers() {
   });
 
   ipcMain.handle('get-displays', async () => {
-    const displays = screen.getAllDisplays();
-    const primaryId = screen.getPrimaryDisplay().id;
-    return displays.map((display, index) => ({
-      id: display.id,
-      label: `Display ${index + 1} (${display.size.width}x${display.size.height})`,
-      isPrimary: display.id === primaryId,
-      bounds: display.bounds,
-      scaleFactor: display.scaleFactor,
-    }));
+    return handleGetDisplays({ screen });
   });
 
   ipcMain.handle('window-minimize', async () => {

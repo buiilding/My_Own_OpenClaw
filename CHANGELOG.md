@@ -7,6 +7,9 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): record Phase 170 display-query handler extraction and direct coverage in `docs/planning/windieos_refactor_plan_2026-02-23.md`
+- test(frontend-main-window): add `tests/frontend/DisplayQueryHandler.test.cjs` coverage for display payload mapping and primary-display flag behavior
+- refactor(frontend-main-window): extract `get-displays` IPC mapping logic from `frontend/src/main/index.cjs` into `frontend/src/main/display_query_handler.cjs`
 - docs(refactor-plan): record Phase 169 overlay mouse-ignore handler extraction and direct coverage in `docs/planning/windieos_refactor_plan_2026-02-23.md`
 - test(frontend-main-overlay): add `tests/frontend/OverlayMouseHandler.test.cjs` coverage for extracted overlay mouse-ignore handler paths
 - refactor(frontend-main-overlay): extract `set-overlay-ignore-mouse` IPC handler logic from `frontend/src/main/index.cjs` into `frontend/src/main/overlay_mouse_handler.cjs`
