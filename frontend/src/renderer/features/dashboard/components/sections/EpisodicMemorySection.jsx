@@ -195,9 +195,18 @@ function EpisodicMemorySection({ onSelectSection }) {
     ? '1 conversation'
     : `${conversations.length} conversations`;
 
-  const conversationTitle = activeConversationIndex >= 0
-    ? `Conversation ${activeConversationIndex + 1}`
-    : 'Conversation';
+  const conversationTitle = (() => {
+    const resolvedTitle = typeof activeConversation?.title === 'string'
+      ? activeConversation.title.trim()
+      : '';
+    if (resolvedTitle) {
+      return resolvedTitle;
+    }
+    if (activeConversationIndex >= 0) {
+      return `Conversation ${activeConversationIndex + 1}`;
+    }
+    return 'Conversation';
+  })();
 
   const conversationSubtitle = activeConversation
     ? `Last updated ${formatTimestamp(activeConversation.last_timestamp)}`
@@ -277,9 +286,14 @@ function EpisodicMemorySection({ onSelectSection }) {
             <div className="memory-list-grid">
               {sortedConversations.map((conversation, index) => {
                 const key = buildConversationKey(conversation);
-                const displayTitle = conversation.conversation_id
-                  ? `Conversation ${index + 1}`
-                  : 'Unassigned Conversation';
+                const resolvedTitle = typeof conversation?.title === 'string'
+                  ? conversation.title.trim()
+                  : '';
+                const displayTitle = resolvedTitle || (
+                  conversation.conversation_id
+                    ? `Conversation ${index + 1}`
+                    : 'Unassigned Conversation'
+                );
                 const modelLabel = formatModelLabel(conversation);
 
                 return (

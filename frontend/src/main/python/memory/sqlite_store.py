@@ -39,6 +39,21 @@ async def init_episodic_schema(db_path: str) -> None:
         """
         )
 
+        await cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS conversation_titles (
+                user_id TEXT NOT NULL,
+                conversation_id TEXT NOT NULL,
+                title TEXT NOT NULL,
+                source TEXT NOT NULL DEFAULT 'heuristic',
+                is_locked INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY (user_id, conversation_id)
+            )
+        """
+        )
+
         # Add is_semanticized column if it doesn't exist (migration)
         try:
             await cursor.execute("SELECT is_semanticized FROM memories LIMIT 1")
@@ -257,6 +272,13 @@ async def init_episodic_schema(db_path: str) -> None:
             """
             CREATE INDEX IF NOT EXISTS idx_conversation_message_index
             ON memories(conversation_id, message_index)
+        """
+        )
+
+        await cursor.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_conversation_titles_updated_at
+            ON conversation_titles(updated_at)
         """
         )
 

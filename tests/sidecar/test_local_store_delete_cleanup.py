@@ -83,6 +83,20 @@ def _create_episodic_memories_table(db_path: Path) -> None:
             )
             """
         )
+        conn.execute(
+            """
+            CREATE TABLE conversation_titles (
+                user_id TEXT NOT NULL,
+                conversation_id TEXT NOT NULL,
+                title TEXT NOT NULL,
+                source TEXT NOT NULL DEFAULT 'heuristic',
+                is_locked INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY (user_id, conversation_id)
+            )
+            """
+        )
         conn.commit()
 
 

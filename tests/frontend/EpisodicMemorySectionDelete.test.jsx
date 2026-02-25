@@ -15,6 +15,7 @@ const buildConversation = (overrides = {}) => ({
   record_kind: 'transcript',
   model_id: 'gpt-4o-mini',
   model_provider: 'openai',
+  title: 'Roadmap milestones',
   ...overrides,
 });
 
@@ -95,9 +96,9 @@ describe('EpisodicMemorySection delete', () => {
 
     render(<EpisodicMemorySection />);
 
-    await screen.findByText('Conversation 1');
+    await screen.findByText('Roadmap milestones');
 
-    fireEvent.contextMenu(screen.getByText('Conversation 1').closest('button'));
+    fireEvent.contextMenu(screen.getByText('Roadmap milestones').closest('button'));
 
     await screen.findByRole('menu');
     fireEvent.click(screen.getByText('Delete'));
@@ -148,8 +149,8 @@ describe('EpisodicMemorySection delete', () => {
     const onSelectSection = jest.fn();
     render(<EpisodicMemorySection onSelectSection={onSelectSection} />);
 
-    await screen.findByText('Conversation 1');
-    fireEvent.click(screen.getByText('Conversation 1'));
+    await screen.findByText('Roadmap milestones');
+    fireEvent.click(screen.getByText('Roadmap milestones'));
 
     const continueButton = await screen.findByRole('button', { name: 'Continue conversation' });
     expect(continueButton).toBeEnabled();
@@ -177,12 +178,14 @@ describe('EpisodicMemorySection delete', () => {
             conversation_id: 'conv_active',
             last_timestamp: '2026-02-02T21:10:00Z',
             entry_count: 4,
+            title: 'Current active thread',
           }),
           buildConversation({
             conversation_id: 'conv_old',
             first_timestamp: '2026-02-02T20:00:00Z',
             last_timestamp: '2026-02-02T20:10:00Z',
             entry_count: 3,
+            title: 'Older browser debugging thread',
           }),
         ],
       }),
@@ -196,9 +199,9 @@ describe('EpisodicMemorySection delete', () => {
     render(<EpisodicMemorySection />);
 
     await screen.findByText('1 conversation');
-    expect(screen.queryByText('Conversation 2')).not.toBeInTheDocument();
+    expect(screen.queryByText('Current active thread')).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByText('Conversation 1'));
+    fireEvent.click(screen.getByText('Older browser debugging thread'));
     await waitFor(() => {
       expect(mockInvoke).toHaveBeenCalledWith('get-conversation', {
         userId: 'peter-bui',
