@@ -8,14 +8,53 @@ import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { ApiClient } from '../../../infrastructure/api/client';
 import { PlayerService } from '../../../infrastructure/audio/PlayerService';
-import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { extractAudioChunkPayload } from '../utils/backendAudioEvents';
 import { selectChatInterfaceState } from '../utils/chatSelectors';
 import { startNewChatSession } from '../utils/newChatSession';
+import {
+  getActiveConversationRef,
+  getTranscriptSessionInfo,
+  setActiveConversationRef,
+  updateTranscriptSession,
+} from '../../../infrastructure/transcript/TranscriptWriter';
+import { createConversationRef } from '../utils/conversationRef';
 import '../../../styles/ChatInterface.css';
 
 const ACTIVE_STREAM_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
 const DEFAULT_MODEL_OPTIONS = ['ChatGPT 5.2 Thinking', 'ChatGPT 4o', 'ChatGPT 4o mini'];
+const TOOL_MESSAGE_TYPES = new Set(['tool-call', 'tool-output']);
+
+function resolveTranscriptRole(message) {
+  if (message.sender === 'user') {
+    return 'user';
+  }
+  if (message.type && TOOL_MESSAGE_TYPES.has(message.type)) {
+    return 'tool';
+  }
+  return 'assistant';
+}
+
+function resolveTranscriptMessageType(message) {
+  if (message.sender === 'user') {
+    return 'user';
+  }
+  return message.type || 'llm-text';
+}
+
+function toRehydratePayload(message) {
+  const role = resolveTranscriptRole(message);
+  return {
+    role,
+    content: message.text || '',
+    message_type: resolveTranscriptMessageType(message),
+    tool_name: role === 'tool' ? (message.toolName || null) : null,
+    correlation_id: role === 'tool' ? (message.correlationId || null) : null,
+    timestamp: message.timestamp || null,
+    screenshot_ref: typeof message.screenshotRef === 'string' ? message.screenshotRef : null,
+    screenshot: null,
+  };
+}
 
 function ChatGptLogo({ size = 14 }) {
   return (
@@ -32,6 +71,8 @@ function ChatInterface({ sidebarOpen = true }) {
     useShallow(selectChatInterfaceState),
   );
   const clearMessages = useChatStore((state) => state.clearMessages);
+  const setMessages = useChatStore((state) => state.setMessages);
+  const updateMessage = useChatStore((state) => state.updateMessage);
   const setIsSending = useChatStore((state) => state.setIsSending);
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setTokenCounts = useChatStore((state) => state.setTokenCounts);
@@ -146,6 +187,82 @@ function ChatInterface({ sidebarOpen = true }) {
     });
   }, [speechModeEnabled, updateConfig]);
 
+  const handleAssistantFeedbackChange = useCallback((messageId, feedback) => {
+    updateMessage(messageId, { feedback });
+  }, [updateMessage]);
+
+  const handleTryAgainFromAssistant = useCallback(async (assistantMessageId) => {
+    const assistantIndex = messages.findIndex(
+      (message) => message.id === assistantMessageId && message.sender === 'assistant',
+    );
+    if (assistantIndex < 0) {
+      return;
+    }
+
+    let userIndex = -1;
+    for (let index = assistantIndex; index >= 0; index -= 1) {
+      if (messages[index]?.sender === 'user') {
+        userIndex = index;
+        break;
+      }
+    }
+    if (userIndex < 0) {
+      return;
+    }
+
+    const retryUserMessage = messages[userIndex];
+    const preservedMessages = messages.slice(0, userIndex + 1);
+    const preservedPayloads = preservedMessages.map(toRehydratePayload);
+    const sessionInfo = getTranscriptSessionInfo();
+
+    let conversationRef = getActiveConversationRef() || sessionInfo.conversationRef;
+    if (!conversationRef) {
+      conversationRef = createConversationRef();
+      setActiveConversationRef(conversationRef);
+    }
+    updateTranscriptSession(conversationRef, sessionInfo.userId || undefined);
+
+    setMessages(preservedMessages);
+    setThinkingStatus(null);
+    setIsSending(true);
+
+    try {
+      const userId = sessionInfo.userId;
+      if (userId) {
+        await IpcBridge.invoke(INVOKE_CHANNELS.DELETE_CONVERSATION, {
+          userId,
+          conversationId: conversationRef,
+          recordKind: 'transcript',
+        });
+
+        for (const message of preservedMessages) {
+          await IpcBridge.invoke(INVOKE_CHANNELS.STORE_TRANSCRIPT, {
+            content: message.text,
+            userId,
+            conversationRef,
+            role: resolveTranscriptRole(message),
+            messageType: resolveTranscriptMessageType(message),
+            toolName: message.toolName || null,
+            correlationId: message.correlationId || null,
+            screenshot: message.screenshotRef || null,
+            timestamp: message.timestamp || null,
+          });
+        }
+      }
+
+      await ApiClient.sendRehydrateConversation(conversationRef, preservedPayloads);
+      await ApiClient.sendQuery(
+        retryUserMessage.text,
+        conversationRef,
+        retryUserMessage.screenshotRef || null,
+        retryUserMessage.screenshotUrl || null,
+      );
+    } catch (error) {
+      console.error('[ChatInterface] Failed to retry assistant message:', error);
+      setIsSending(false);
+    }
+  }, [messages, setIsSending, setMessages, setThinkingStatus]);
+
   useEffect(() => {
     const handleDashboardNewChat = () => {
       handleNewChat();
@@ -233,7 +350,14 @@ function ChatInterface({ sidebarOpen = true }) {
         </div>
       ) : (
         <>
-          <MessageList messages={messages} thinkingStatus={thinkingStatus} />
+          <MessageList
+            messages={messages}
+            thinkingStatus={thinkingStatus}
+            enableAssistantActions
+            disableAssistantActions={isSending || canStop}
+            onAssistantFeedbackChange={handleAssistantFeedbackChange}
+            onAssistantTryAgain={handleTryAgainFromAssistant}
+          />
           <MessageInput
             onSendMessage={sendMessage}
             isSending={isSending}

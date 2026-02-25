@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(frontend-chat-ui): add assistant message action controls (`copy`, `like/dislike`, `try again`) and wire retry to rewind the current assistant/tool loop from transcript+UI history before re-querying from the triggering user message.
 - fix(frontend-chat-ui): align dashboard chat message lanes to composer pill bounds so assistant content starts at the pill’s left edge and user bubbles end at the pill’s right edge across desktop/mobile gutters.
 - feat(frontend-chat): gate transparency debug accordions (`System Prompt`, `Tool Schemas`, `Full Message`) behind `electron:dev` via renderer `dev_ui=1` query flag; default `electron` now hides them for end users.
 - feat(frontend-dashboard): add smooth dashboard shell open animation (fade + sidebar/main stagger) when main window returns from hidden, including reduced-motion fallback and visibility-change regression coverage.

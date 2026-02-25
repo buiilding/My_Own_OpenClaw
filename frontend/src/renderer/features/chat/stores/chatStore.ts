@@ -46,6 +46,7 @@ export interface ChatMessage {
   fullAssistantMessage?: {
     content: string;
   };
+  feedback?: 'like' | 'dislike' | null;
 }
 
 /**
