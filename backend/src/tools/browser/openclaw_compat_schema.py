@@ -77,36 +77,6 @@ class BrowserOpenClawCompatArgs(BrowserSharedCompatFields):
     )
     quality: Optional[int] = Field(None, description="JPEG quality", ge=1, le=100)
     file_name: Optional[str] = Field(None, description="Filename for file actions")
-    content: Optional[str] = Field(None, description="Content for write_file")
-    append: Optional[bool] = Field(None, description="Append mode for write_file")
-    trailing_newline: Optional[bool] = Field(
-        None, description="Append trailing newline for write_file"
-    )
-    leading_newline: Optional[bool] = Field(
-        None, description="Append leading newline for write_file"
-    )
-    old_str: Optional[str] = Field(None, description="Target string for replace_file")
-    new_str: Optional[str] = Field(
-        None, description="Replacement string for replace_file"
-    )
-    path: Optional[str] = Field(None, description="File path for upload_file")
-    goal: Optional[str] = Field(None, description="Goal for read_long_content")
-    source: Optional[str] = Field(None, description="Source for read_long_content")
-    context: Optional[str] = Field(None, description="Context for read_long_content")
-    keys: Optional[str] = Field(None, description="Keyboard sequence for send_keys")
     pages: Optional[float] = Field(None, description="Browser Use page count", gt=0)
     down: Optional[bool] = Field(None, description="Browser Use scroll direction flag")
     code: Optional[str] = Field(None, description="Browser Use evaluate code")
-    success: Optional[bool] = Field(None, description="Success flag for done action")
-    files_to_display: Optional[List[str]] = Field(
-        None, description="Optional attachment paths for done action"
-    )
-    profile: Optional[str] = Field(
-        None, description="Compatibility field (unused in WindieOS)"
-    )
-    node: Optional[str] = Field(
-        None, description="Compatibility field (unused in WindieOS)"
-    )
-    target: Optional[Literal["sandbox", "host", "node"]] = Field(
-        None, description="Compatibility field (unused in WindieOS)"
-    )

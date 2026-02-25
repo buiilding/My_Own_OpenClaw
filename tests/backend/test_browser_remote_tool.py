@@ -6,7 +6,11 @@ import pytest
 from unittest import mock
 
 from backend.src.tools.browser import RemoteBrowserTool
-from backend.src.tools.browser.schemas import BrowserControlArgs, BrowserSnapshotArgs
+from backend.src.tools.browser.schemas import (
+    BrowserControlArgs,
+    BrowserScreenshotArgs,
+    BrowserSnapshotArgs,
+)
 from backend.src.tools.browser.openclaw_compat_schema import BrowserOpenClawCompatArgs
 from backend.src.tools.remote import REMOTE_TOOLS, get_remote_tool
 
@@ -181,6 +185,22 @@ class TestBrowserControlArgs:
         args = BrowserOpenClawCompatArgs(action="status")
         assert args.action == "status"
 
+    def test_shared_file_and_target_compat_fields_remain_available(self):
+        """Shared compatibility fields should remain on BrowserControlArgs."""
+        args = BrowserControlArgs(
+            action="status",
+            append=True,
+            trailing_newline=False,
+            old_str="a",
+            new_str="b",
+            target="host",
+        )
+        assert args.append is True
+        assert args.trailing_newline is False
+        assert args.old_str == "a"
+        assert args.new_str == "b"
+        assert args.target == "host"
+
 
 class TestBrowserSnapshotArgs:
     """Test action-specific snapshot schema."""
@@ -201,3 +221,29 @@ class TestBrowserSnapshotArgs:
         assert args.depth == 1
         assert args.selector == ".content"
         assert args.frame == "iframe[data-id='1']"
+
+
+class TestOpenClawCompatArgs:
+    """OpenClaw schema compatibility checks."""
+
+    def test_shared_file_and_target_compat_fields_remain_available(self):
+        args = BrowserOpenClawCompatArgs(
+            action="status",
+            append=True,
+            trailing_newline=True,
+            target="sandbox",
+        )
+        assert args.append is True
+        assert args.trailing_newline is True
+        assert args.target == "sandbox"
+
+
+class TestBrowserScreenshotArgs:
+    """Browser screenshot schema checks."""
+
+    def test_screenshot_schema_keeps_shared_image_defaults(self):
+        args = BrowserScreenshotArgs(action="screenshot")
+        assert args.action == "screenshot"
+        assert args.element is None
+        assert args.type == "png"
+        assert args.quality is None

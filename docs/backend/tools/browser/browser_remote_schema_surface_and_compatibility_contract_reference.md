@@ -52,6 +52,7 @@ Design characteristics:
 Compatibility field layers:
 
 - inherits from `BrowserSharedCompatFields` (dialog/network/storage/emulation aliases)
+- reuses `BrowserScreenshotImageFields` for shared screenshot image options (`element`, `type`, `quality`)
 - reuses snapshot scope aliases from `snapshot_scope_fields.py` (`refs`, `interactive`, `compact`, `depth`, `selector`, `frame`)
 
 Important boundary:

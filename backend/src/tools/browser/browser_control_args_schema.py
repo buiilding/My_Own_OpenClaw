@@ -20,10 +20,13 @@ from backend.src.tools.browser.snapshot_scope_fields import (
     SnapshotRefsField,
     SnapshotSelectorField,
 )
-from backend.src.tools.browser.shared_compat_fields import BrowserSharedCompatFields
+from backend.src.tools.browser.shared_compat_fields import (
+    BrowserScreenshotImageFields,
+    BrowserSharedCompatFields,
+)
 
 
-class BrowserControlArgs(BrowserSharedCompatFields):
+class BrowserControlArgs(BrowserSharedCompatFields, BrowserScreenshotImageFields):
     """
     Unified browser control arguments.
 
@@ -129,24 +132,6 @@ class BrowserControlArgs(BrowserSharedCompatFields):
         None, description="Filename for file or screenshot actions"
     )
     content: Optional[str] = Field(None, description="Content for write_file action")
-    append: Optional[bool] = Field(None, description="Append mode for write_file")
-    trailing_newline: Optional[bool] = Field(
-        None, description="Append trailing newline for write_file"
-    )
-    leading_newline: Optional[bool] = Field(
-        None, description="Append leading newline for write_file"
-    )
-    old_str: Optional[str] = Field(None, description="Old string for replace_file")
-    new_str: Optional[str] = Field(None, description="New string for replace_file")
-    path: Optional[str] = Field(None, description="File path for upload_file")
-    goal: Optional[str] = Field(None, description="Goal for read_long_content")
-    source: Optional[str] = Field(None, description="Source for read_long_content")
-    context: Optional[str] = Field(None, description="Context for read_long_content")
-    keys: Optional[str] = Field(None, description="Key sequence for send_keys")
-    success: Optional[bool] = Field(None, description="Success flag for done action")
-    files_to_display: Optional[List[str]] = Field(
-        None, description="Optional attachment paths for done action"
-    )
 
     # Element interaction args
     ref: Optional[str] = Field(None, description="Element reference from snapshot")
@@ -177,16 +162,6 @@ class BrowserControlArgs(BrowserSharedCompatFields):
 
     # Screenshot args
     full_page: bool = Field(False, description="Full page screenshot")
-    element: Optional[str] = Field(
-        None, description="Optional CSS selector to screenshot"
-    )
-    type: Literal["png", "jpeg"] = Field("png", description="Screenshot image type")
-    quality: Optional[int] = Field(
-        None,
-        description="JPEG quality (1-100)",
-        ge=1,
-        le=100,
-    )
 
     # Wait args
     state: BrowserWaitState = Field("networkidle", description="Wait state")
@@ -200,15 +175,6 @@ class BrowserControlArgs(BrowserSharedCompatFields):
     )
     new_tab: Optional[bool] = Field(None, description="Open navigate URL in new tab")
     targetUrl: Optional[str] = Field(None, description="Open/navigate URL (camelCase)")
-    profile: Optional[str] = Field(
-        None, description="Compatibility field (unused in WindieOS)"
-    )
-    node: Optional[str] = Field(
-        None, description="Compatibility field (unused in WindieOS)"
-    )
-    target: Optional[Literal["sandbox", "host", "node"]] = Field(
-        None, description="Compatibility field (unused in WindieOS)"
-    )
     input_ref: Optional[str] = Field(None, description="Input ref for upload action")
     inputRef: Optional[str] = Field(
         None, description="Input ref for upload action (camelCase)"
