@@ -89,52 +89,26 @@ async def test_screenshot_compat_error_message_contract() -> None:
 
 @pytest.mark.asyncio
 async def test_open_payload_contract() -> None:
-    adapter, runtime = _make_adapter(
-        runtime_result={
-            "success": True,
-            "action": "navigate",
-            "native_source": "browser_use.tools",
-            "url": "https://example.com/new",
-            "title": "New Tab",
-        }
-    )
+    adapter, runtime = _make_adapter()
 
     result = await adapter.execute("open", {"action": "open", "url": "https://example.com/new"})
 
-    assert result.success is True
+    assert result.success is False
     assert result.action == "open"
-    assert result.error is None
-    assert result.data == {
-        "success": True,
-        "action": "open",
-        "native_source": "browser_use.tools",
-        "url": "https://example.com/new",
-        "title": "New Tab",
-        "browser_use_action": "navigate",
-        "new_tab": True,
-        "legacy_action": "open",
-        "preferred_action": "navigate",
-    }
-    runtime.execute_browser_use_action.assert_awaited_once_with(
-        action="navigate",
-        params={"url": "https://example.com/new", "new_tab": True},
-    )
+    assert result.error == "Legacy browser action 'open' has been removed. Use navigate."
+    assert result.error_code == "INVALID_ARGUMENT"
+    assert result.data["legacy_action"] == "open"
+    assert result.data["preferred_action"] == "navigate"
+    runtime.execute_browser_use_action.assert_not_awaited()
 
 
 @pytest.mark.asyncio
 async def test_legacy_open_alias_deprecation_contract() -> None:
-    adapter, _runtime = _make_adapter(
-        runtime_result={
-            "success": True,
-            "action": "navigate",
-            "native_source": "browser_use.tools",
-            "url": "https://example.com/new",
-        }
-    )
+    adapter, runtime = _make_adapter()
 
     result = await adapter.execute("open", {"action": "open", "url": "https://example.com/new"})
 
-    assert result.success is True
+    assert result.success is False
     assert result.action == "open"
     assert result.deprecation == "'open' is a legacy compatibility alias; prefer 'navigate'"
     assert result.warnings == [
@@ -142,6 +116,7 @@ async def test_legacy_open_alias_deprecation_contract() -> None:
     ]
     assert result.data["legacy_action"] == "open"
     assert result.data["preferred_action"] == "navigate"
+    runtime.execute_browser_use_action.assert_not_awaited()
 
 
 @pytest.mark.asyncio
