@@ -15,6 +15,42 @@ import {
 } from './ToolRunnerHook.testUtils';
 import { TOOL_GHOST_CLICK_SYNC_DELAY_MS } from '../../frontend/src/renderer/features/chat/constants/toolGhostRuntime';
 
+async function assertDelayedClickToolCall({
+  eventId,
+  requestId,
+  toolName,
+  parameters,
+}) {
+  await emitBackendEventAsync({
+    type: 'tool-call',
+    id: eventId,
+    payload: {
+      tool_name: toolName,
+      parameters,
+      request_id: requestId,
+    },
+  });
+
+  expect(mockExecuteTool).not.toHaveBeenCalled();
+
+  await act(async () => {
+    jest.advanceTimersByTime(TOOL_GHOST_CLICK_SYNC_DELAY_MS - 1);
+    await Promise.resolve();
+  });
+  expect(mockExecuteTool).not.toHaveBeenCalled();
+
+  await act(async () => {
+    jest.advanceTimersByTime(1);
+    await Promise.resolve();
+  });
+
+  expect(mockExecuteTool).toHaveBeenCalledWith(
+    toolName,
+    parameters,
+    { correlationId: requestId, skipAutoCapture: false },
+  );
+}
+
 describe('useToolRunner event handling', () => {
   beforeEach(() => {
     resetToolRunnerTestState();
@@ -67,115 +103,43 @@ describe('useToolRunner event handling', () => {
     );
   });
 
-  test('delays mouse click tool-call execution until ghost preview sync window completes', async () => {
+  test.each([
+    {
+      caseName: 'mouse click tool-call',
+      eventId: 'event-click-delay',
+      requestId: 'req-click-delay',
+      toolName: 'mouse_control',
+      parameters: { action: 'click', x: 64, y: 48 },
+    },
+    {
+      caseName: 'direct click tool-call',
+      eventId: 'event-click-tool-delay',
+      requestId: 'req-click-tool-delay',
+      toolName: 'click',
+      parameters: { x: 88, y: 44 },
+    },
+    {
+      caseName: 'browser action click tool-call',
+      eventId: 'event-browser-click-delay',
+      requestId: 'req-browser-click-delay',
+      toolName: 'browser',
+      parameters: { action: 'click', ref: '3' },
+    },
+  ])('delays $caseName execution until ghost preview sync window completes', async ({
+    eventId,
+    requestId,
+    toolName,
+    parameters,
+  }) => {
     jest.useFakeTimers();
     try {
       renderToolRunner(true);
-
-      await emitBackendEventAsync({
-        type: 'tool-call',
-        id: 'event-click-delay',
-        payload: {
-          tool_name: 'mouse_control',
-          parameters: { action: 'click', x: 64, y: 48 },
-          request_id: 'req-click-delay',
-        },
+      await assertDelayedClickToolCall({
+        eventId,
+        requestId,
+        toolName,
+        parameters,
       });
-
-      expect(mockExecuteTool).not.toHaveBeenCalled();
-
-      await act(async () => {
-        jest.advanceTimersByTime(TOOL_GHOST_CLICK_SYNC_DELAY_MS - 1);
-        await Promise.resolve();
-      });
-      expect(mockExecuteTool).not.toHaveBeenCalled();
-
-      await act(async () => {
-        jest.advanceTimersByTime(1);
-        await Promise.resolve();
-      });
-
-      expect(mockExecuteTool).toHaveBeenCalledWith(
-        'mouse_control',
-        { action: 'click', x: 64, y: 48 },
-        { correlationId: 'req-click-delay', skipAutoCapture: false },
-      );
-    } finally {
-      jest.useRealTimers();
-    }
-  });
-
-  test('delays direct click tool-call execution until ghost preview sync window completes', async () => {
-    jest.useFakeTimers();
-    try {
-      renderToolRunner(true);
-
-      await emitBackendEventAsync({
-        type: 'tool-call',
-        id: 'event-click-tool-delay',
-        payload: {
-          tool_name: 'click',
-          parameters: { x: 88, y: 44 },
-          request_id: 'req-click-tool-delay',
-        },
-      });
-
-      expect(mockExecuteTool).not.toHaveBeenCalled();
-
-      await act(async () => {
-        jest.advanceTimersByTime(TOOL_GHOST_CLICK_SYNC_DELAY_MS - 1);
-        await Promise.resolve();
-      });
-      expect(mockExecuteTool).not.toHaveBeenCalled();
-
-      await act(async () => {
-        jest.advanceTimersByTime(1);
-        await Promise.resolve();
-      });
-
-      expect(mockExecuteTool).toHaveBeenCalledWith(
-        'click',
-        { x: 88, y: 44 },
-        { correlationId: 'req-click-tool-delay', skipAutoCapture: false },
-      );
-    } finally {
-      jest.useRealTimers();
-    }
-  });
-
-  test('delays browser action click tool-call execution until ghost preview sync window completes', async () => {
-    jest.useFakeTimers();
-    try {
-      renderToolRunner(true);
-
-      await emitBackendEventAsync({
-        type: 'tool-call',
-        id: 'event-browser-click-delay',
-        payload: {
-          tool_name: 'browser',
-          parameters: { action: 'click', ref: '3' },
-          request_id: 'req-browser-click-delay',
-        },
-      });
-
-      expect(mockExecuteTool).not.toHaveBeenCalled();
-
-      await act(async () => {
-        jest.advanceTimersByTime(TOOL_GHOST_CLICK_SYNC_DELAY_MS - 1);
-        await Promise.resolve();
-      });
-      expect(mockExecuteTool).not.toHaveBeenCalled();
-
-      await act(async () => {
-        jest.advanceTimersByTime(1);
-        await Promise.resolve();
-      });
-
-      expect(mockExecuteTool).toHaveBeenCalledWith(
-        'browser',
-        { action: 'click', ref: '3' },
-        { correlationId: 'req-browser-click-delay', skipAutoCapture: false },
-      );
     } finally {
       jest.useRealTimers();
     }
