@@ -5,6 +5,7 @@ Tests for browser tool schemas.
 import pytest
 from pydantic import ValidationError
 
+from tools.browser.openclaw_compat_schema import BrowserOpenClawCompatArgs
 from tools.browser.schemas import (
     BrowserConnectArgs,
     BrowserNavigateArgs,
@@ -457,6 +458,10 @@ class TestSchemaRegistry:
         """Test generated registry entries for all OpenClaw-compatible actions."""
         for action in OPENCLAW_COMPAT_ACTIONS:
             assert get_browser_schema(action) is not None
+
+    def test_openclaw_compat_schema_drops_removed_act_request_field(self):
+        """Historical act envelope field should not remain in OpenClaw schema."""
+        assert "request" not in BrowserOpenClawCompatArgs.model_fields
 
     def test_get_browser_schema_extract(self):
         """Test getting extract schema."""

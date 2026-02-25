@@ -439,6 +439,9 @@ class TestBrowserSnapshotArgs:
 class TestOpenClawCompatArgs:
     """OpenClaw schema compatibility checks."""
 
+    def test_act_request_field_removed_from_openclaw_schema(self):
+        assert "request" not in BrowserOpenClawCompatArgs.model_fields
+
     def test_shared_file_and_target_compat_fields_remain_available(self):
         args = BrowserOpenClawCompatArgs(
             action="status",
