@@ -27,6 +27,7 @@ Single entrypoint for future work. Use this page first.
 - `windieos_install_permission_onboarding_plan.md`
 - `windieos_mobile_app_plan.md`
 - `windieos_self_edit_config_plan.md`
+- `windieos_cli_os_control_plan.md`
 - `windieos_agent_to_agent_communication_plan.md`
 - `windieos_vm_multi_agent_plan.md`
 - `windieos_refactor_plan_2026-02-23.md`
