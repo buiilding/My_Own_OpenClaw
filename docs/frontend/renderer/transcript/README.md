@@ -13,6 +13,8 @@ title: "Frontend Renderer Transcript Docs Hub"
 - [Transcript Writer Queue Flush and Session Event Reference](transcript_writer_queue_flush_and_session_event_reference.md)
 - [Transcript Queue Docs Hub](queue/README.md)
 - [Pending Transcript Queue FIFO and Requeue Contract Reference](queue/pending_transcript_queue_fifo_and_requeue_contract_reference.md)
+- [Transcript Contracts Docs Hub](contracts/README.md)
+- [Transcript Entry and Pending Message Type Contract Reference](contracts/transcript_entry_and_pending_message_type_contract_reference.md)
 
 ## Code Scope
 
@@ -22,6 +24,7 @@ title: "Frontend Renderer Transcript Docs Hub"
 - `frontend/src/renderer/infrastructure/transcript/pendingUserQueue.ts`
 - `frontend/src/renderer/infrastructure/transcript/pendingAssistantQueue.ts`
 - `frontend/src/renderer/infrastructure/transcript/pendingToolQueue.ts`
+- `frontend/src/renderer/infrastructure/transcript/types.ts`
 - `tests/frontend/TranscriptPendingQueue.test.ts`
 - `tests/frontend/TranscriptWriter.session.test.ts`
 - `tests/frontend/TranscriptWriter.userAssistant.test.ts`

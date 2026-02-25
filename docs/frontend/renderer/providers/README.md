@@ -15,6 +15,8 @@ title: "Frontend Renderer Provider Docs Hub"
 - [Renderer Provider Contexts Docs Hub](contexts/README.md)
 - [App Config and Status Context Hook Guard and Re-Export Boundary Reference](contexts/app_config_and_status_context_hook_guard_and_reexport_boundary_reference.md)
 - [Chat Provider Bootstrap Flag and Empty-Context Contract Reference](contexts/chat_provider_bootstrap_flag_and_empty_context_contract_reference.md)
+- [Renderer Provider Components Docs Hub](components/README.md)
+- [Error Boundary Fallback and Component-Tree Crash Isolation Contract Reference](components/error_boundary_fallback_and_component_tree_crash_isolation_contract_reference.md)
 - [Renderer Provider Shortcut Docs Hub](shortcuts/README.md)
 - [Shift+Tab Mode Toggle and Editable Target Guard Reference](shortcuts/shift_tab_mode_toggle_and_editable_target_guard_reference.md)
 
@@ -25,6 +27,7 @@ title: "Frontend Renderer Provider Docs Hub"
 - `frontend/src/renderer/app/ChatBoxApp.jsx`
 - `frontend/src/renderer/app/ChatBoxResponseApp.jsx`
 - `frontend/src/renderer/app/ChatBoxContextLabelApp.jsx`
+- `frontend/src/renderer/components/ErrorBoundary.jsx`
 - `frontend/src/renderer/app/providers/*`
 - `frontend/src/renderer/app/providers/AppContextHooks.js`
 - `frontend/src/renderer/app/providers/ChatContext.jsx`

@@ -16,6 +16,7 @@ title: "Transcript Writer Queue Flush and Session Event Reference"
 - `frontend/src/renderer/infrastructure/transcript/pendingUserQueue.ts`
 - `frontend/src/renderer/infrastructure/transcript/pendingAssistantQueue.ts`
 - `frontend/src/renderer/infrastructure/transcript/pendingToolQueue.ts`
+- `frontend/src/renderer/infrastructure/transcript/types.ts`
 - `frontend/src/renderer/features/dashboard/hooks/useTranscriptSessionInfo.js`
 - `tests/frontend/TranscriptWriter.session.test.ts`
 - `tests/frontend/TranscriptWriter.userAssistant.test.ts`
