@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-browser-adapter): remove obsolete direct legacy-wrapper methods (`open`, `type_text`, `press`, `switch_tab`) from `BrowserUseCompatibilityAdapter`; legacy aliases remain supported through canonical `execute(...)` dispatch
 - feat(browser-rollout-observability): add structured legacy-alias warning log fields (`legacy_action`, `preferred_action`, `legacy_action_blocked`, `legacy_action_gate`) in backend + sidecar paths and lock them with regression assertions
 - docs(planning-browser): update hard-merge plan Phase 4 status to capture blocked-legacy warning-log observability across sidecar/backend rollout gates
 - test(sidecar-browser-runtime): add direct unit coverage for `browser_runtime_extraction.py` provider normalization, runtime/env target resolution, OpenAI-compatible default base URL mapping, and unsupported-provider errors

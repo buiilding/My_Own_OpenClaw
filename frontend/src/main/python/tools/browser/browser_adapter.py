@@ -231,23 +231,6 @@ class BrowserUseCompatibilityAdapter:
                 "default_profile": "windie_chrome",
             },
         )
-
-
-
-
-    async def open(self, args: Mapping[str, Any]) -> AdapterActionResult:
-        return await self._execute_legacy_alias("open", args)
-
-
-    async def type_text(self, args: Mapping[str, Any]) -> AdapterActionResult:
-        return await self._execute_legacy_alias("type", args)
-
-    async def press(self, args: Mapping[str, Any]) -> AdapterActionResult:
-        return await self._execute_legacy_alias("press", args)
-
-    async def switch_tab(self, args: Mapping[str, Any]) -> AdapterActionResult:
-        return await self._execute_legacy_alias("switch_tab", args)
-
     async def _execute_legacy_alias(
         self,
         action: str,
