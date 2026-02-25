@@ -3616,3 +3616,21 @@ read_when:
     - backend: `1012 passed`
     - sidecar: `500 passed, 4 skipped`
     - frontend: `94 suites`, `629 tests`
+
+## Phase 155 Outcome (2026-02-25)
+
+- Refactor slice: frontend test restructuring + duplicate test logic cleanup.
+  - replaced monolithic test file:
+    - removed `tests/frontend/ChatBoxResponse.test.jsx`
+  - split into focused suites:
+    - `tests/frontend/ChatBoxResponse.toolGhost.test.jsx`
+    - `tests/frontend/ChatBoxResponse.state.test.jsx`
+  - extracted shared test setup/mocks/helpers:
+    - `tests/frontend/ChatBoxResponse.testUtils.jsx`
+  - kept all original assertions (`16` total) while reducing per-file complexity and improving editability.
+- Audit deltas:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run audit:jscpd` (pass; snapshot totals: clones `31`, duplicated lines `564`, duplicated tokens `5485`)
+  - `cd frontend && npm run test:ci -- --json --outputFile ../.audit/plan1/jest-report.json` (pass; `95` suites, `629` tests)
+- Slow-test check:
+  - top suite remains tool-ghost behavior (`ChatBoxResponse.toolGhost.test.jsx`, ~`941ms`), now isolated from non-ghost state assertions for targeted follow-up optimization.
