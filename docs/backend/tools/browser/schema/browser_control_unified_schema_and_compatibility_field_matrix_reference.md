@@ -2,7 +2,7 @@
 summary: "Deep reference for backend BrowserControlArgs schema layering: canonical/legacy/removed action categories, shared compatibility-field mixins, and action-family field groups."
 read_when:
   - When adding/removing browser actions or changing browser compatibility alias semantics in backend schemas.
-  - When debugging why BrowserControlArgs accepts broad payloads while runtime blocks removed aliases or disabled legacy aliases.
+  - When debugging why BrowserControlArgs accepts broad payloads while runtime blocks removed aliases.
 title: "Browser Control Unified Schema and Compatibility Field Matrix Reference"
 ---
 
@@ -30,13 +30,12 @@ Reusable literals define browser vocabulary and field enums:
 Action categories:
 
 - `BrowserCanonicalAction`: canonical runtime actions
-- `BrowserLegacyCompatAction`: currently `type`
-- `BrowserRemovedCompatAction`: `open`, `switch_tab`, `press`, `act`
-- `BrowserAction`: union of canonical + legacy + removed
+- `BrowserRemovedCompatAction`: `type`, `open`, `switch_tab`, `press`, `act`
+- `BrowserAction`: union of canonical + removed
 
 Compatibility preference maps:
 
-- `BROWSER_LEGACY_ACTION_PREFERRED`: `type -> input`
+- `BROWSER_LEGACY_ACTION_PREFERRED`: empty (no active legacy aliases)
 - `BROWSER_REMOVED_ACTION_PREFERRED`: removed alias migration targets
 - `BROWSER_COMPAT_ACTION_PREFERRED`: merged map used by runtime/tool warnings
 
@@ -83,7 +82,7 @@ Key characteristics:
 - `model_config.extra = "ignore"`
 - broad optional field superset spanning connect/snapshot/extract/input/tab/file/emulation compatibility fields
 - includes helper signals:
-- `is_legacy` is true only for aliases in `BROWSER_LEGACY_COMPAT_ACTIONS` (currently `type`)
+- `is_legacy` remains for compatibility and is always false while `BROWSER_LEGACY_COMPAT_ACTIONS` is empty
 - `preferred_action` returns migration guidance from `BROWSER_COMPAT_ACTION_PREFERRED`
 
 Semantic boundary:

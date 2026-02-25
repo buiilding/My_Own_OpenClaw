@@ -1,5 +1,5 @@
 ---
-summary: "Detailed browser tool action reference: canonical/legacy/removed alias policy, adapter/runtime routing, and error/timeout semantics across renderer-main-sidecar."
+summary: "Detailed browser tool action reference: canonical vs removed alias policy, adapter/runtime routing, and error/timeout semantics across renderer-main-sidecar."
 read_when:
   - When changing browser action payload fields, action names, alias policy, or adapter normalization logic.
   - When debugging browser action failures caused by runtime selection, connection state, removed-alias blocks, or timeout boundaries.
@@ -24,12 +24,7 @@ title: "Browser Action Compatibility and Runtime Reference"
 - Browser tool entrypoint accepts only object args and requires `action`.
 - Browser actions route through adapter/runtime only when action is in `PHASE2_ADAPTER_ROUTED_ACTIONS`.
 - Runtime selection accepts only `WINDIE_BROWSER_USE_RUNTIME in {"browser_use","browser_use_native"}`; unset defaults to `browser_use_native`.
-- Optional strict mode: `WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1` blocks legacy aliases.
-- Legacy aliases are disabled by default.
-- Optional rollout flag: `WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1` temporarily enables legacy aliases.
-- Current legacy alias set: `type -> input`.
-- Removed aliases (always blocked): `open`, `switch_tab`, `press`, `act`.
-- Precedence: strict mode still blocks legacy aliases even when allow flag is enabled.
+- Removed aliases (always blocked): `type`, `open`, `switch_tab`, `press`, `act`.
 - Structured warning fields: `legacy_action`, `preferred_action`, `legacy_action_blocked`, `legacy_action_gate`.
 - `connect` always targets WindieOS dedicated localhost CDP endpoint.
 
@@ -39,7 +34,7 @@ title: "Browser Action Compatibility and Runtime Reference"
 2. Electron main forwards JSON-RPC `execute_tool`.
 3. Browser tool has extended timeout (`120000ms`; non-browser tools `30000ms`).
 4. Sidecar `LocalBackend._handle_execute_tool` calls `ToolRegistry.execute_tool("browser", args)`.
-5. `browser_tool.execute_browser` applies removed/legacy alias gates, then invokes adapter.
+5. `browser_tool.execute_browser` applies removed-alias gate, then invokes adapter.
 6. Adapter normalizes and dispatches to runtime provider handlers.
 
 ## Action Families and Routing
@@ -47,11 +42,7 @@ title: "Browser Action Compatibility and Runtime Reference"
 ### Adapter-owned compatibility actions
 
 - explicit compat handlers: `connect`, `profiles`
-- legacy alias with args: `type`
-
-Legacy transform:
-
-- `type` -> runtime `input` (+ optional Enter via `send_keys` when `submit=true`)
+- removed aliases return migration errors directly
 
 ### Canonical runtime passthrough actions
 
@@ -110,11 +101,11 @@ Bound:
 - accepts `tab_id`, `target_id`, `targetId`
 - runtime-facing tab IDs are normalized to trailing 4 chars
 
-## Removed Aliases (`open`, `switch_tab`, `press`, `act`)
+## Removed Aliases (`type`, `open`, `switch_tab`, `press`, `act`)
 
 - blocked at browser tool boundary with migration error
 - also blocked in adapter for direct adapter-call paths
-- never re-enabled by legacy env flags
+- no runtime env flags re-enable removed aliases
 
 ## Native Runtime Handler Model
 
@@ -149,12 +140,12 @@ Core native handler map includes:
 
 - adapter success -> `ToolResult.success_result(data)`
 - adapter error -> `ToolResult.error_result(message)`
-- removed/legacy gate failures are returned as `ToolResult.error_result(...)` before adapter execution
+- removed-alias gate failures are returned as `ToolResult.error_result(...)` before adapter execution
 
 ## Debug Checklist
 
-1. verify action category (canonical vs legacy vs removed)
-2. inspect browser tool alias gate decision
+1. verify action category (canonical vs removed alias)
+2. inspect browser tool removed-alias gate decision
 3. inspect adapter normalization path (`_build_browser_use_action_params`)
 4. verify connection state for connection-required actions
 5. inspect runtime error code + `browser_use_action`
