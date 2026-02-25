@@ -28,6 +28,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Frontend Functionality Map**](frontend/README.md) - Detailed module-level renderer, electron-main, and sidecar runtime maps
 - [**Frontend Inventory Docs Hub**](frontend/inventory/README.md) - Subfolder inventory hub for exhaustive frontend runtime coverage, matrix views, and file ownership indexes
 - [**Frontend Inventory Domains Hub**](frontend/inventory/domains/README.md) - Domain ownership matrix + change-path playbooks for main/preload/renderer/sidecar/landing scope decisions
+- [**Frontend Inventory Protocols Hub**](frontend/inventory/protocols/README.md) - IPC + local-backend JSON-RPC matrix for renderer/main/sidecar protocol boundaries and ownership
 - [**Frontend Full Functionality Inventory Reference**](frontend/inventory/frontend_full_functionality_inventory_reference.md) - Exhaustive frontend feature inventory across main/preload/renderer/sidecar/landing ownership boundaries and runtime flows
 - [**Frontend IPC + Sidecar Contract Touchpoints**](frontend/inventory/frontend_ipc_and_sidecar_contract_touchpoints_reference.md) - Frontend-owned boundary map for renderer/main IPC, sidecar JSON-RPC methods, and backend stream/tool payload integration points
 - [**Frontend Landing Runtime + Content Reference**](frontend/landing/landing_page_runtime_and_content_reference.md) - Standalone landing entrypoint wiring, section/anchor contracts, static content sources, and CSS token/animation behavior
@@ -35,6 +36,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Backend Functionality Map**](backend/README.md) - Detailed module-level backend runtime and API maps
 - [**Backend Inventory Docs Hub**](backend/inventory/README.md) - Subfolder inventory hub for exhaustive backend runtime coverage, flow matrices, and file ownership indexes
 - [**Backend Inventory Domains Hub**](backend/inventory/domains/README.md) - Domain ownership matrix + change-path playbooks for API/agent/core/tools/llm/services scope decisions
+- [**Backend Inventory Protocols Hub**](backend/inventory/protocols/README.md) - WebSocket handshake/incoming/outgoing/formatter matrix for backend protocol ownership and drift detection
 - [**Backend Full Functionality Inventory Reference**](backend/inventory/backend_full_functionality_inventory_reference.md) - Exhaustive backend feature inventory by runtime domain, module ownership, and end-to-end query/tool path
 - [**Backend Cross-Layer Contract Touchpoints**](backend/inventory/backend_cross_layer_contract_touchpoints_reference.md) - Backend-owned contract map for websocket schemas, formatter outputs, tool-result envelopes, and sidecar/browser parity seams
 - [**Backend Source Maps Hub**](backend/source_maps/README.md) - Sub-hub for source-owned folder topology maps and package `__init__` export surfaces

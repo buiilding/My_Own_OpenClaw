@@ -15,6 +15,7 @@ title: "Frontend Inventory Docs Hub"
 - [Frontend Module File Index Reference](frontend_module_file_index_reference.md)
 - [Frontend IPC and Sidecar Contract Touchpoints Reference](frontend_ipc_and_sidecar_contract_touchpoints_reference.md)
 - [Frontend Inventory Domains Hub](domains/README.md)
+- [Frontend Inventory Protocols Hub](protocols/README.md)
 
 ## Related Pages
 
