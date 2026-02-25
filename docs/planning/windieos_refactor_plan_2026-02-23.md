@@ -4149,3 +4149,42 @@ read_when:
   - `./scripts/python-in-env backend python -m pytest tests/backend --durations=20 -q` (pass)
   - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
   - `npx jscpd --gitignore --min-lines 8 --reporters console,markdown --output .audit/plan1/jscpd-backend backend/src tests/backend` (0 clones)
+
+## Phase 183 Outcome (2026-02-25)
+
+- Refactor slice (backend-only): extract LLM stream-processing helper logic from `LLMStreamProcessor`.
+  - added:
+    - `backend/src/agent/llm/stream_processor_helpers.py`
+      - stream event + payload helpers:
+        - `apply_stream_event(...)`
+        - `normalize_stream_response_payload(...)`
+      - prompt continuity/cache helpers:
+        - `compact_for_fingerprint(...)`
+        - `fingerprint_message(...)`
+        - `fingerprint_prompt(...)`
+        - `common_prefix_length(...)`
+        - `PromptContinuity`
+        - `derive_prompt_continuity(...)`
+        - `resolve_prompt_cache_key_for_provider(...)`
+      - error-message helper:
+        - `build_llm_api_error_message(...)`
+    - `tests/backend/test_llm_stream_processor_helpers.py` direct coverage for helper contracts.
+  - updated:
+    - `backend/src/agent/llm/llm_stream_processor.py`
+      - delegates stream event aggregation, payload normalization, continuity derivation, and prompt-cache-key resolution to helper module
+      - preserves existing private helper method surface via compatibility wrappers where applicable
+      - reduced from `471` LOC to `396` LOC
+    - docs:
+      - `docs/backend/agent/llm/README.md`
+      - `docs/backend/agent/llm/llm_stream_processor_token_count_and_cache_diagnostics_reference.md`
+      - `docs/backend/runtime/token_count_event_and_usage_diagnostics_reference.md`
+      - `docs/backend/inventory/backend_module_file_index_reference.md`
+  - route consolidation check:
+    - `jscpd` on `backend/src/api/routes` found `0` clones; no route merge needed in this slice.
+  - audit outcome:
+    - backend `jscpd` (`backend/src` + `tests/backend`) remained at `0` clones after extraction.
+- Validation:
+  - `./scripts/python-in-env backend python -m pytest tests/backend/test_llm_stream_processor.py tests/backend/test_llm_stream_processor_helpers.py -q` (pass)
+  - `./scripts/python-in-env backend python -m pytest tests/backend --durations=20 -q` (pass)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console,markdown --output .audit/plan1/jscpd-backend backend/src tests/backend` (0 clones)

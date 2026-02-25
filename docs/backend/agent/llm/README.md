@@ -25,7 +25,9 @@ title: "Backend Agent LLM Docs Hub"
 - `backend/src/agent/llm/conversation_context.py`
 - `backend/src/agent/llm/event_presenter.py`
 - `backend/src/agent/llm/llm_stream_processor.py`
+- `backend/src/agent/llm/stream_processor_helpers.py`
 - `backend/src/agent/llm/token_counting.py`
 - `backend/src/agent/execution/interaction_loop.py`
 - `tests/backend/test_llm_stream_processor.py`
+- `tests/backend/test_llm_stream_processor_helpers.py`
 - `tests/backend/test_interaction_loop.py`

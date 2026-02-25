@@ -56,7 +56,7 @@ Based on current source tree under `backend/src`:
 - Loop + execution:
 - `backend/src/agent/execution/{executor,interaction_loop,tool_call_bridge,policies}.py`
 - Agent LLM bridge:
-- `backend/src/agent/llm/{conversation_context,llm_stream_processor,event_presenter,token_counting}.py`
+- `backend/src/agent/llm/{conversation_context,llm_stream_processor,stream_processor_helpers,event_presenter,token_counting}.py`
 - History:
 - `backend/src/agent/history/history_committer.py`
 - Tool lifecycle:

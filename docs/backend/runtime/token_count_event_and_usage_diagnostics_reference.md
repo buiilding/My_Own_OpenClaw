@@ -11,6 +11,7 @@ title: "Token Count Event and Usage Diagnostics Reference"
 ## Canonical Modules
 
 - `backend/src/agent/llm/llm_stream_processor.py`
+- `backend/src/agent/llm/stream_processor_helpers.py`
 - `backend/src/agent/llm/token_counting.py`
 - `backend/src/services/token_service.py`
 - `backend/src/llm/providers/base.py`

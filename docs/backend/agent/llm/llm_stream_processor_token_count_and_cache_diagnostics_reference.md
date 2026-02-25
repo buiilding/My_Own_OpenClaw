@@ -11,10 +11,12 @@ title: "LLM Stream Processor Token Count and Cache Diagnostics Reference"
 ## Canonical Modules
 
 - `backend/src/agent/llm/llm_stream_processor.py`
+- `backend/src/agent/llm/stream_processor_helpers.py`
 - `backend/src/agent/llm/token_counting.py`
 - `backend/src/llm/request_kwargs.py`
 - `backend/src/services/token_service.py`
 - `tests/backend/test_llm_stream_processor.py`
+- `tests/backend/test_llm_stream_processor_helpers.py`
 
 ## Core Event Lifecycle
 
@@ -69,6 +71,10 @@ Both stream and non-stream paths use this shared contract.
 
 `get_last_response_payload()` returns copy to protect internal mutation.
 
+Implementation note:
+
+- stream event aggregation (`Chunk/Thinking/Error/FullResponse`) and payload normalization are delegated to `stream_processor_helpers.py`.
+
 ## Prompt Continuity and Cache Diagnostics
 
 Two diagnostics channels are logged each turn:
@@ -85,6 +91,10 @@ Fingerprint behavior:
 - role + compacted content hash per message
 - long strings compacted to head/tail with length marker before hashing
 - list/dict content recursively compacted for stable comparison
+
+Implementation note:
+
+- continuity classification (`cold_start`/`append_only`/`history_shortened`/`prefix_mutated`) is computed in shared helper logic, with `LLMStreamProcessor` retaining logging responsibility.
 
 ## Prompt Cache Key Steering (Provider-Specific)
 
@@ -129,6 +139,13 @@ Output totals:
 - Kimi tool turns choose non-stream path when streaming tool turns unsupported
 - Kimi tool turns remain stream path when provider supports streaming tool turns
 - Kimi prompt cache key prefers active conversation ref over session id
+
+`tests/backend/test_llm_stream_processor_helpers.py` validates:
+
+- stream-event aggregation contract and unsupported-event rejection
+- stream payload normalization fallback behavior
+- prompt-cache key resolution precedence and provider gating
+- fingerprint compaction and continuity-status classification
 
 ## Drift Hotspots
 
