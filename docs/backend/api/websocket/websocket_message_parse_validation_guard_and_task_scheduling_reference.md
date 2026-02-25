@@ -154,3 +154,11 @@ When touching websocket ingress:
 3. preserve user-id injection from connection context before schema validate
 4. preserve task-limit rejection + coroutine-close behavior
 5. re-run websocket route/parse/task-manager test suites
+
+## Related Pages
+
+- [Backend API WebSocket Docs Hub](README.md)
+- [WebSocket Connection Docs Hub](connection/README.md)
+- [Handshake Parse, Validation, and Policy-Close Contract Reference](connection/handshake_parse_validation_and_policy_close_contract_reference.md)
+- [Task Manager Concurrency Limit, Rejected-Coroutine Close, and Cleanup Contract Reference](connection/task_manager_concurrency_limit_rejected_coroutine_close_and_cleanup_contract_reference.md)
+- [WebSocket Connection and Task Lifecycle Reference](../websocket_connection_and_task_lifecycle_reference.md)
