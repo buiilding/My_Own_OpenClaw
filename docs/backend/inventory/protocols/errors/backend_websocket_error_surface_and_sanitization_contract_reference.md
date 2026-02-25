@@ -127,3 +127,8 @@ When changing error behavior, keep aligned:
 - Sanitization rules vs diagnostics needs (do not leak stack/internal paths).
 - Parse-stage returned message strings (frontend may assert exact substrings in tests).
 - Handshake close policy (`1008`) in connection handler.
+
+## Related Deep Dives
+
+- [Backend Protocol Lifecycle Hub](../lifecycle/README.md)
+- [Backend Protocol Validation Hub](../validation/README.md)
