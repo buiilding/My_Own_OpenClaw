@@ -91,6 +91,16 @@ class TestExecuteBrowserControl:
             "Legacy browser action 'open' blocked by WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1; "
             "prefer canonical action 'navigate'"
         ) in caplog.text
+        record = next(
+            rec
+            for rec in caplog.records
+            if "Legacy browser action 'open' blocked by WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1"
+            in rec.getMessage()
+        )
+        assert getattr(record, "legacy_action", None) == "open"
+        assert getattr(record, "preferred_action", None) == "navigate"
+        assert getattr(record, "legacy_action_blocked", None) is True
+        assert getattr(record, "legacy_action_gate", None) == "WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1"
 
     @pytest.mark.asyncio
     async def test_strict_mode_takes_precedence_over_legacy_allow_flag(self):
@@ -166,6 +176,16 @@ class TestExecuteBrowserControl:
 
         assert result.success is True
         assert "Legacy browser action 'open' invoked; prefer canonical action 'navigate'" in caplog.text
+        record = next(
+            rec
+            for rec in caplog.records
+            if "Legacy browser action 'open' invoked; prefer canonical action 'navigate'"
+            in rec.getMessage()
+        )
+        assert getattr(record, "legacy_action", None) == "open"
+        assert getattr(record, "preferred_action", None) == "navigate"
+        assert getattr(record, "legacy_action_blocked", None) is False
+        assert getattr(record, "legacy_action_gate", None) is None
 
     @pytest.mark.asyncio
     async def test_validation_error(self):

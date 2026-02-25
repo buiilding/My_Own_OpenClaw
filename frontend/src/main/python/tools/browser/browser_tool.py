@@ -27,6 +27,36 @@ ENV_CANONICAL_ONLY_ACTIONS = "WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY"
 ENV_ALLOW_LEGACY_ACTIONS = "WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS"
 
 
+def _log_legacy_action_warning(
+    action: str,
+    preferred: str,
+    *,
+    blocked: bool,
+    gate: str | None = None,
+) -> None:
+    extra = {
+        "legacy_action": action,
+        "preferred_action": preferred,
+        "legacy_action_blocked": blocked,
+        "legacy_action_gate": gate,
+    }
+    if blocked and gate:
+        logger.warning(
+            "Legacy browser action '%s' blocked by %s; prefer canonical action '%s'",
+            action,
+            gate,
+            preferred,
+            extra=extra,
+        )
+        return
+    logger.warning(
+        "Legacy browser action '%s' invoked; prefer canonical action '%s'",
+        action,
+        preferred,
+        extra=extra,
+    )
+
+
 def _canonical_only_actions_enabled() -> bool:
     raw = os.getenv(ENV_CANONICAL_ONLY_ACTIONS, "").strip().lower()
     return raw in {"1", "true", "yes", "on"}
@@ -144,23 +174,14 @@ async def _run_phase2_adapter_action(args: Dict[str, Any]) -> ToolResult:
             gate = f"{ENV_CANONICAL_ONLY_ACTIONS}=1"
         else:
             gate = f"{ENV_ALLOW_LEGACY_ACTIONS}=1"
-        logger.warning(
-            "Legacy browser action '%s' blocked by %s; prefer canonical action '%s'",
-            action,
-            gate,
-            preferred,
-        )
+        _log_legacy_action_warning(action, preferred, blocked=True, gate=gate)
         return ToolResult.error_result(
             "Legacy browser actions are disabled by "
             f"{gate}. Use '{preferred}' instead."
         )
     if action in LEGACY_BROWSER_ACTION_ALIASES:
         preferred = LEGACY_BROWSER_ACTION_ALIASES[action]
-        logger.warning(
-            "Legacy browser action '%s' invoked; prefer canonical action '%s'",
-            action,
-            preferred,
-        )
+        _log_legacy_action_warning(action, preferred, blocked=False)
 
     controller = get_browser_controller()
     adapter = get_browser_use_adapter(controller)
