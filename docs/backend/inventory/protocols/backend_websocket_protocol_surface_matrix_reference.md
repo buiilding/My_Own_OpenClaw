@@ -143,3 +143,5 @@ All helper send paths (`send_success_response`, formatter pipeline with context)
 ## Related Deep Dive
 
 - [Backend Protocol Lifecycle Hub](lifecycle/README.md)
+- [Backend Protocol Errors Hub](errors/README.md)
+- [Backend Protocol Validation Hub](validation/README.md)
