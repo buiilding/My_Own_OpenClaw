@@ -4,7 +4,7 @@
  * Manages LLM thoughts, streaming chunks, and completion states.
  */
 
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import {
   useChatStore,
@@ -67,6 +67,7 @@ import {
   shouldIgnoreEventForActiveConversation,
 } from '../utils/chatStreamConversationGate';
 import { useChatCommonActions } from './useChatCommonActions';
+import { useLatestRef } from '../../../infrastructure/hooks/useLatestRef';
 
 type TranscriptModelContext = {
   modelId: string | null;
@@ -82,14 +83,10 @@ export function useChatStream(enableTranscript: boolean = true) {
   const setTokenCounts = useChatStore((state) => state.setTokenCounts);
   const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
   const { config } = useAppConfigContext();
-  const modelContextRef = useRef<TranscriptModelContext>({
-    modelId: null,
-    modelProvider: null,
-  });
-  modelContextRef.current = {
+  const modelContextRef = useLatestRef<TranscriptModelContext>({
     modelId: config?.selected_model_id || null,
     modelProvider: config?.model_provider || null,
-  };
+  });
 
   const recordTrackingEvent = useCallback((
     eventType: BackendEventType,
@@ -227,7 +224,7 @@ export function useChatStream(enableTranscript: boolean = true) {
         modelProvider: modelContext.modelProvider,
       });
     }
-  }, [addMessage, enableTranscript, setThinkingStatus, recordTrackingEvent]);
+  }, [addMessage, enableTranscript, modelContextRef, setThinkingStatus, recordTrackingEvent]);
 
   const handleToolOutput = useCallback((event: ToolOutputEvent) => {
     setThinkingStatus(null);
@@ -273,7 +270,7 @@ export function useChatStream(enableTranscript: boolean = true) {
         modelProvider: modelContext.modelProvider,
       });
     }
-  }, [addMessage, enableTranscript, setThinkingStatus, recordTrackingEvent]);
+  }, [addMessage, enableTranscript, modelContextRef, setThinkingStatus, recordTrackingEvent]);
 
   const handleToolBundle = useCallback((event: ToolBundleEvent) => {
     setThinkingStatus(null);
@@ -307,7 +304,7 @@ export function useChatStream(enableTranscript: boolean = true) {
         modelProvider: modelContext.modelProvider,
       });
     }
-  }, [addMessage, enableTranscript, setThinkingStatus, recordTrackingEvent]);
+  }, [addMessage, enableTranscript, modelContextRef, setThinkingStatus, recordTrackingEvent]);
 
   const handleSystemPrompt = useCallback((event: SystemPromptEvent) => {
     updateLastMessageBySender('user', {
@@ -391,6 +388,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     setIsSending,
     setThinkingStatus,
     updateMessage,
+    modelContextRef,
     recordTrackingEvent,
   ]);
 
@@ -427,7 +425,7 @@ export function useChatStream(enableTranscript: boolean = true) {
         modelProvider: modelContext.modelProvider,
       });
     }
-  }, [addMessage, enableTranscript, setIsSending, setThinkingStatus, recordTrackingEvent]);
+  }, [addMessage, enableTranscript, modelContextRef, setIsSending, setThinkingStatus, recordTrackingEvent]);
 
   const handlers = useMemo<Record<BackendEventType, (event: BackendEvent) => void>>(() => ({
     'llm-thought': event => handleLlmThought(event as LlmThoughtEvent),

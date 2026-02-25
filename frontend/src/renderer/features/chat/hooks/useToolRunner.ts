@@ -12,6 +12,7 @@ import { recordToolMessage } from '../../../infrastructure/transcript/Transcript
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { type ToolBundleEvent, type ToolCallEvent, isBackendEvent } from '../../../types/backendEvents';
 import { TOOL_GHOST_CLICK_SYNC_DELAY_MS } from '../constants/toolGhostRuntime';
+import { useLatestRef } from '../../../infrastructure/hooks/useLatestRef';
 import {
   buildBundleOutputMessage,
   buildToolOutputMessage,
@@ -94,14 +95,10 @@ export function useToolRunner(enabled = true) {
 
   const toolServiceRef = useRef<ToolExecutionService | null>(null);
   const trackedExecutionTurnsRef = useRef<Map<string, string | null>>(new Map());
-  const modelContextRef = useRef<TranscriptModelContext>({
-    modelId: null,
-    modelProvider: null,
-  });
-  modelContextRef.current = {
+  const modelContextRef = useLatestRef<TranscriptModelContext>({
     modelId: config?.selected_model_id || null,
     modelProvider: config?.model_provider || null,
-  };
+  });
 
   const trackExecution = useCallback((correlationId: string | null | undefined, turnRef: string | null) => {
     if (!correlationId) {
@@ -236,6 +233,7 @@ export function useToolRunner(enabled = true) {
   }, [
     addMessage,
     enabled,
+    modelContextRef,
     shouldAcceptExecutionResult,
     untrackExecution,
   ]);

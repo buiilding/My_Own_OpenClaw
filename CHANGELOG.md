@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-hooks): add reusable `useLatestRef` hook (`frontend/src/renderer/infrastructure/hooks/useLatestRef.ts`) and migrate chat stream/tool runner model-context ref mirroring to shared helper; add regression test `tests/frontend/useLatestRef.test.ts`
 - refactor(test-chatbox-ghost): add shared `expectTargetedGhostPosition` assertion helper in `ChatBoxResponse.toolGhost.test.jsx` and remove duplicated coordinate-target assertion blocks; `jscpd` snapshot improves to `29` clones
 - refactor(test-chatbox-response): split oversized `tests/frontend/ChatBoxResponse.test.jsx` into focused `ChatBoxResponse.toolGhost` and `ChatBoxResponse.state` suites with shared `ChatBoxResponse.testUtils.jsx`, preserving all assertions while reducing file complexity
 - refactor(test-tool-runner-events): collapse three duplicated click-delay tool-call tests into one table-driven helper path in `tests/frontend/ToolRunnerHook.events.test.ts` while preserving ghost-sync timing assertions
