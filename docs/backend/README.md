@@ -52,6 +52,9 @@ Covers:
 - [Vision Service Protocol Boundary and Session Hierarchy Access Contract Reference](core/interfaces/vision_service_protocol_boundary_and_session_hierarchy_access_contract_reference.md)
 - [Core Logging Docs Hub](core/logging/README.md)
 - [Log Profile Noise Filter and Env-Level Resolution Contract Reference](core/logging/log_profile_noise_filter_and_env_level_resolution_contract_reference.md)
+- [Source Maps Docs Hub](source_maps/README.md)
+- [API/Core Folder Topology and Data-Flow Source Map Reference](source_maps/api_core_folder_topology_and_data_flow_source_map_reference.md)
+- [Package `__init__` Exports and Public Import Surface Reference](source_maps/backend_package_init_exports_and_public_import_surface_reference.md)
 
 ### API and Contracts
 
