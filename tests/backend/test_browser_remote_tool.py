@@ -91,6 +91,27 @@ class TestRemoteBrowserTool:
             await tool.execute_remote(args, mock_ctx)
 
     @pytest.mark.asyncio
+    async def test_execute_remote_logs_warning_for_blocked_legacy_action(self, caplog):
+        tool = RemoteBrowserTool()
+        caplog.set_level("WARNING", logger="backend.src.tools.remote_tools.browser")
+
+        mock_ctx = mock.Mock()
+        mock_ctx.session = mock.Mock()
+        mock_ctx.session.metadata = {"request_id": "legacy-blocked"}
+
+        args = BrowserControlArgs(action="open", url="https://example.com")
+        with pytest.raises(
+            ValueError,
+            match="Legacy browser actions are disabled by WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1",
+        ):
+            await tool.execute_remote(args, mock_ctx)
+
+        assert (
+            "Legacy browser action 'open' blocked by WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1; "
+            "prefer 'navigate'"
+        ) in caplog.text
+
+    @pytest.mark.asyncio
     async def test_execute_remote_strict_mode_overrides_legacy_allow_flag(self, monkeypatch):
         monkeypatch.setenv("WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY", "1")
         monkeypatch.setenv("WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS", "1")

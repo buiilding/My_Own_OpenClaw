@@ -81,6 +81,18 @@ class TestExecuteBrowserControl:
         )
 
     @pytest.mark.asyncio
+    async def test_legacy_alias_block_logs_warning_by_default(self, caplog):
+        with mock.patch.dict("os.environ", {}, clear=False):
+            caplog.set_level("WARNING", logger="tools.browser.browser_tool")
+            result = await execute_browser({"action": "open", "url": "https://example.com"})
+
+        assert result.success is False
+        assert (
+            "Legacy browser action 'open' blocked by WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1; "
+            "prefer canonical action 'navigate'"
+        ) in caplog.text
+
+    @pytest.mark.asyncio
     async def test_strict_mode_takes_precedence_over_legacy_allow_flag(self):
         with mock.patch.dict(
             "os.environ",

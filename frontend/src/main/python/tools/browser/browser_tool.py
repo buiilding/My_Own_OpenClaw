@@ -144,6 +144,12 @@ async def _run_phase2_adapter_action(args: Dict[str, Any]) -> ToolResult:
             gate = f"{ENV_CANONICAL_ONLY_ACTIONS}=1"
         else:
             gate = f"{ENV_ALLOW_LEGACY_ACTIONS}=1"
+        logger.warning(
+            "Legacy browser action '%s' blocked by %s; prefer canonical action '%s'",
+            action,
+            gate,
+            preferred,
+        )
         return ToolResult.error_result(
             "Legacy browser actions are disabled by "
             f"{gate}. Use '{preferred}' instead."
