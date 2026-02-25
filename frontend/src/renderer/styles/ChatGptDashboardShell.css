@@ -89,6 +89,9 @@
 .cg-sidebar-toggle {
   min-width: 28px;
   height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .cg-sidebar-toggle:hover,
@@ -102,7 +105,12 @@
   top: 10px;
   left: 64px;
   z-index: 30;
-  padding: 8px 10px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: #2f2f2f;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -155,25 +163,21 @@
   color: #ececec;
 }
 
-.cg-nav-item:disabled {
-  cursor: default;
-  opacity: 0.72;
-}
-
 .cg-nav-item.active {
   background: #2f2f2f;
   color: #ececec;
 }
 
-.cg-nav-item-token {
+.cg-nav-item-icon {
   width: 18px;
   min-width: 18px;
-  font-size: 10px;
-  letter-spacing: 0.05em;
-  opacity: 0.9;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.95;
 }
 
-.cg-nav-item.collapsed .cg-nav-item-token {
+.cg-nav-item.collapsed .cg-nav-item-icon {
   width: auto;
   min-width: 0;
 }
