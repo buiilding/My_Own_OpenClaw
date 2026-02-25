@@ -84,8 +84,6 @@ BROWSER_CANONICAL_ACTIONS = cast(
     ),
 )
 
-BROWSER_LEGACY_COMPAT_ACTIONS = cast(tuple[str, ...], tuple())
-
 BROWSER_REMOVED_COMPAT_ACTIONS = cast(
     tuple[str, ...],
     tuple(
@@ -93,10 +91,6 @@ BROWSER_REMOVED_COMPAT_ACTIONS = cast(
         for action in get_args(BrowserRemovedCompatAction)
         if isinstance(action, str)
     ),
-)
-
-BROWSER_LEGACY_ACTION_PREFERRED = MappingProxyType(
-    {}
 )
 
 BROWSER_REMOVED_ACTION_PREFERRED = MappingProxyType(
@@ -109,11 +103,9 @@ BROWSER_REMOVED_ACTION_PREFERRED = MappingProxyType(
     }
 )
 
-BROWSER_COMPAT_ACTION_PREFERRED = MappingProxyType(
-    {**BROWSER_LEGACY_ACTION_PREFERRED, **BROWSER_REMOVED_ACTION_PREFERRED}
-)
+BROWSER_COMPAT_ACTION_PREFERRED = MappingProxyType(dict(BROWSER_REMOVED_ACTION_PREFERRED))
 
 BROWSER_ALL_ACTIONS = cast(
     tuple[str, ...],
-    tuple((*BROWSER_CANONICAL_ACTIONS, *BROWSER_LEGACY_COMPAT_ACTIONS, *BROWSER_REMOVED_COMPAT_ACTIONS)),
+    tuple((*BROWSER_CANONICAL_ACTIONS, *BROWSER_REMOVED_COMPAT_ACTIONS)),
 )
