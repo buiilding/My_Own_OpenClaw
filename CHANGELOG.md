@@ -7,6 +7,9 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): record Phase 175 response-overlay phase-handler extraction and direct coverage in `docs/planning/windieos_refactor_plan_2026-02-23.md`
+- test(frontend-main-overlay): add `tests/frontend/ResponseOverlayPhaseHandler.test.cjs` coverage for extracted response-overlay phase transition helper
+- refactor(frontend-main-overlay): extract `handleResponseOverlayPhaseChange` control flow from `frontend/src/main/index.cjs` into `frontend/src/main/response_overlay_phase_handler.cjs`
 - docs(frontend-sidecar-browser-use-actor-agent-tokens-filesystem): add `frontend/sidecar/browser/browser_use/{actor,agent,tokens,filesystem}` subhubs with deep references for actor page/element/mouse/key runtime internals, agent state/output/history and message-manager compaction contracts, token usage/pricing summaries, and filesystem typed adapter/persistence behavior; wire links across browser_use/browser/sidecar/frontend/global docs hubs
 - docs(frontend-sidecar-browser-use-browser): add `frontend/sidecar/browser/browser_use/browser` and `frontend/sidecar/browser/browser_use/browser/watchdogs` subhubs with deep references for BrowserSession/session-manager/event-bus/CDP lifecycle orchestration, BrowserProfile launch/defaults extension pipeline, demo/video helpers, and specialized watchdog runtime contracts; wire links across browser_use/browser/sidecar/frontend/global docs hubs
 - chore(audit): refresh `.audit/plan1/jscpd-report/jscpd-report.md` snapshot after main-process handler extraction wave (totals now: `857` files, `28` clones, `535` duplicated lines)

@@ -3892,3 +3892,22 @@ read_when:
       - backend: `1012 passed`
       - sidecar: `500 passed`, `4 skipped` (`3` known swig deprecation warnings)
       - frontend: `104 suites`, `668 tests` passed
+
+## Phase 175 Outcome (2026-02-25)
+
+- Refactor slice: extract response-overlay phase transition logic from `index.cjs`.
+  - added:
+    - `frontend/src/main/response_overlay_phase_handler.cjs`:
+      - `isStreamingResponseOverlayPhase(...)`
+      - `handleResponseOverlayPhaseEvent(...)`
+  - updated:
+    - `frontend/src/main/index.cjs` now delegates `handleResponseOverlayPhaseChange(...)` to extracted helper with explicit state/dependency injection.
+    - `isResponseOverlayStreamingPhase()` now uses shared `isStreamingResponseOverlayPhase(...)`.
+  - added tests:
+    - `tests/frontend/ResponseOverlayPhaseHandler.test.cjs`
+    - covers debug bypass, invalid phase ignore, idle hide path, streaming visibility/fallback path, unavailable-window streaming path, and terminal completion/error visibility-sync behavior.
+  - impact:
+    - removed a high-branch control-flow block from `index.cjs` and locked overlay phase behavior with direct unit coverage.
+- Validation:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/ResponseOverlayPhaseHandler.test.cjs tests/frontend/OverlayRendererRegistration.test.cjs tests/frontend/OverlayVisibilityHandler.test.cjs tests/frontend/DisplayQueryHandler.test.cjs tests/frontend/OverlayMouseHandler.test.cjs tests/frontend/MainWindowControlsHandler.test.cjs tests/frontend/OverlayResponseboxHandler.test.cjs tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs` (pass)
