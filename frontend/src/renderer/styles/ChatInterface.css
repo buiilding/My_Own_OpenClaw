@@ -401,6 +401,8 @@
   align-self: stretch;
   max-width: 100%;
   width: 100%;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .message-assistant .message-content {
@@ -417,7 +419,7 @@
 }
 
 .assistant-message-actions {
-  margin-top: 10px;
+  margin-top: 8px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
