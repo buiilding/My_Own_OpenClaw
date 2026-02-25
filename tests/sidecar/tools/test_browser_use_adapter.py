@@ -1111,6 +1111,35 @@ class TestBrowserRuntimeAdapter:
         )
 
     @pytest.mark.asyncio
+    async def test_native_handler_screenshot_receives_filesystem_context(self):
+        execute_action = mock.AsyncMock(
+            return_value=SimpleNamespace(extracted_content="Screenshot captured")
+        )
+        import_module_mock, _ = _build_fake_browser_use_import_module(
+            execute_action=execute_action
+        )
+
+        controller = SimpleNamespace(is_connected=True, _mode="managed", _cdp_url=None)
+
+        with mock.patch(
+            "tools.browser.browser_tool.import_module",
+            new=import_module_mock,
+        ):
+            handlers = get_native_runtime_handlers(controller=controller)
+            result = await handlers["screenshot"](file_name="screen.png")
+
+        assert result["success"] is True
+        assert result["native_source"] == "browser_use.tools"
+        execute_action.assert_awaited_once_with(
+            "screenshot",
+            {"file_name": "screen.png"},
+            browser_session=mock.ANY,
+            file_system=mock.ANY,
+            available_file_paths=[],
+            page_extraction_llm=None,
+        )
+
+    @pytest.mark.asyncio
     async def test_native_handler_extract_uses_configured_browser_use_llm_and_filesystem(
         self,
     ):

@@ -455,7 +455,7 @@ _BROWSER_REQUIRED_ACTIONS = frozenset(
     }
 )
 _FILESYSTEM_REQUIRED_ACTIONS = frozenset(
-    {"done", "write_file", "replace_file", "read_file", "extract"}
+    {"done", "write_file", "replace_file", "read_file", "extract", "screenshot"}
 )
 _BROWSER_USE_ACTIONS = (
     "done",
