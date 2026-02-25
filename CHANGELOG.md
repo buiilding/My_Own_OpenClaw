@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-dashboard): remove sidebar-only clone extras from WindieOS navigation (`Images`, `Apps`, `Deep research`, `Projects`, and `GPTs` entries including `Canva`/`Explore GPTs`) so the left rail focuses on core chat + memory/models + history
 - feat(frontend-search-ui): implement full transcript-aware `Search chats` (debounced backend lookup, snippet + role result rows, grouped recency sections) so users can find chats by remembered message content, not only titles
 - feat(sidecar-memory-search): add `search-conversations` IPC/JSON-RPC route to `search_conversations` with lexical transcript search (FTS5 + LIKE fallback), semantic transcript merge, and conversation-level ranking payloads
 - test(frontend-sidecar-search): add regression coverage for `search-conversations` mapper wiring, sidecar handler behavior, and local-store lexical/semantic conversation search flows

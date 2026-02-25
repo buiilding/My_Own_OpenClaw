@@ -4,12 +4,8 @@ import {
   PenSquare,
   Search,
   Brain,
-  Image,
-  LayoutGrid,
   Sparkles,
   Cpu,
-  FolderOpen,
-  Compass,
   PanelLeft,
   PanelLeftClose,
   Settings,
@@ -25,11 +21,7 @@ const PRIMARY_NAV_ITEMS = Object.freeze([
 
 const PRODUCT_NAV_ITEMS = Object.freeze([
   { id: 'memory', label: 'Memory', icon: Brain },
-  { id: 'images', label: 'Images', icon: Image },
-  { id: 'apps', label: 'Apps', icon: LayoutGrid },
-  { id: 'deep-research', label: 'Deep research', icon: Sparkles },
   { id: 'models', label: 'Models', icon: Cpu },
-  { id: 'projects', label: 'Projects', icon: FolderOpen },
 ]);
 
 function ChatGptLogo({ size = 14 }) {
@@ -261,40 +253,16 @@ function DashboardSidebar({
           <div className="cg-sidebar-divider" />
 
           <nav className="cg-sidebar-nav">
-            {PRODUCT_NAV_ITEMS.map((item) => {
-              if (item.id === 'memory') {
-                return (
-                  <SidebarItem
-                    key={item.id}
-                    label={item.label}
-                    icon={item.icon}
-                    onClick={onOpenMemory}
-                    isActive={memoryOpen}
-                    collapsed
-                  />
-                );
-              }
-              if (item.id === 'models') {
-                return (
-                  <SidebarItem
-                    key={item.id}
-                    label={item.label}
-                    icon={item.icon}
-                    onClick={onOpenModels}
-                    isActive={modelsOpen}
-                    collapsed
-                  />
-                );
-              }
-              return (
-                <SidebarItem
-                  key={item.id}
-                  label={item.label}
-                  icon={item.icon}
-                  collapsed
-                />
-              );
-            })}
+            {PRODUCT_NAV_ITEMS.map((item) => (
+              <SidebarItem
+                key={item.id}
+                label={item.label}
+                icon={item.icon}
+                onClick={item.id === 'memory' ? onOpenMemory : onOpenModels}
+                isActive={item.id === 'memory' ? memoryOpen : modelsOpen}
+                collapsed
+              />
+            ))}
           </nav>
         </div>
 
@@ -340,46 +308,17 @@ function DashboardSidebar({
         <div className="cg-sidebar-divider" />
 
         <nav className="cg-sidebar-nav">
-          {PRODUCT_NAV_ITEMS.map((item) => {
-            if (item.id === 'memory') {
-              return (
-                <SidebarItem
-                  key={item.id}
-                  label={item.label}
-                  icon={item.icon}
-                  onClick={onOpenMemory}
-                  isActive={memoryOpen}
-                />
-              );
-            }
-            if (item.id === 'models') {
-              return (
-                <SidebarItem
-                  key={item.id}
-                  label={item.label}
-                  icon={item.icon}
-                  onClick={onOpenModels}
-                  isActive={modelsOpen}
-                />
-              );
-            }
-            return (
-              <SidebarItem
-                key={item.id}
-                label={item.label}
-                icon={item.icon}
-              />
-            );
-          })}
+          {PRODUCT_NAV_ITEMS.map((item) => (
+            <SidebarItem
+              key={item.id}
+              label={item.label}
+              icon={item.icon}
+              onClick={item.id === 'memory' ? onOpenMemory : onOpenModels}
+              isActive={item.id === 'memory' ? memoryOpen : modelsOpen}
+            />
+          ))}
         </nav>
 
-        <div className="cg-sidebar-divider" />
-        <div className="cg-sidebar-section-label">GPTs</div>
-        <button type="button" className="cg-gpt-card">
-          <span className="cg-gpt-dot" aria-hidden="true">C</span>
-          <span>Canva</span>
-        </button>
-        <SidebarItem label="Explore GPTs" icon={Compass} collapsed={false} />
         <div className="cg-sidebar-divider" />
         <div className="cg-sidebar-section-label">Your chats</div>
         <div className="cg-chat-list-scroll">
