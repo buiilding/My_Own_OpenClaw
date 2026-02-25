@@ -3,19 +3,27 @@ LLM Stream Processor.
 
 Handles LLM streaming, text aggregation, and token counting.
 """
-import hashlib
-import json
 import logging
 import time
 from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, List, Optional
 
+from backend.src.agent.llm.stream_processor_helpers import (
+    apply_stream_event,
+    build_llm_api_error_message,
+    common_prefix_length,
+    compact_for_fingerprint,
+    derive_prompt_continuity,
+    fingerprint_message,
+    fingerprint_prompt,
+    normalize_stream_response_payload,
+    resolve_prompt_cache_key_for_provider,
+)
 from backend.src.agent.llm.token_counting import TokenCounts, count_tokens
 from backend.src.core.events.streaming_events import (
     AgentStreamingEvent,
     ChunkEvent,
     ErrorEvent,
     FullResponseEvent,
-    ThinkingEvent,
     TokenCountEvent,
 )
 from backend.src.core.infrastructure.exceptions import LLMAPIError, LLMRateLimitError
@@ -121,21 +129,9 @@ class LLMStreamProcessor:
                             first_token_latency,
                         )
 
-                    if isinstance(event, ChunkEvent):
-                        full_text += event.content
-                        yield event
-                    elif isinstance(event, ThinkingEvent):
-                        yield event
-                    elif isinstance(event, ErrorEvent):
-                        yield event
-                    elif isinstance(event, FullResponseEvent):
-                        # LLM client may emit full response directly (e.g., mock client).
-                        full_text = event.content
-                    else:
-                        raise TypeError(
-                            "Unsupported stream event type from LLM client: "
-                            f"{type(event).__name__}"
-                        )
+                    full_text, event_to_emit = apply_stream_event(event, full_text)
+                    if event_to_emit is not None:
+                        yield event_to_emit
 
                 stream_payload_getter = getattr(
                     self.llm_client,
@@ -147,13 +143,10 @@ class LLMStreamProcessor:
                     if callable(stream_payload_getter)
                     else None
                 )
-                if isinstance(stream_payload, dict):
-                    normalized_stream_payload = dict(stream_payload)
-                    if not isinstance(normalized_stream_payload.get("content"), str):
-                        normalized_stream_payload["content"] = full_text
-                    self._last_response_payload = normalized_stream_payload
-                else:
-                    self._last_response_payload = {"content": full_text}
+                self._last_response_payload = normalize_stream_response_payload(
+                    stream_payload,
+                    full_text,
+                )
                 self._log_provider_cache_diagnostics(model_id, turn)
 
             yield FullResponseEvent(content=full_text)
@@ -275,33 +268,10 @@ class LLMStreamProcessor:
         previous_fingerprints = self._last_prompt_fingerprints
         self._last_prompt_fingerprints = current_fingerprints
 
-        if previous_fingerprints is None:
-            status = "cold_start"
-            common_prefix_messages = 0
-            first_changed_message = None
-            previous_count = 0
-        else:
-            previous_count = len(previous_fingerprints)
-            common_prefix_messages = self._common_prefix_length(
-                previous_fingerprints, current_fingerprints
-            )
-            if (
-                common_prefix_messages == len(previous_fingerprints)
-                and len(current_fingerprints) >= len(previous_fingerprints)
-            ):
-                status = "append_only"
-            elif (
-                common_prefix_messages == len(current_fingerprints)
-                and len(current_fingerprints) < len(previous_fingerprints)
-            ):
-                status = "history_shortened"
-            else:
-                status = "prefix_mutated"
-            first_changed_message = (
-                common_prefix_messages + 1
-                if common_prefix_messages < max(previous_count, len(current_fingerprints))
-                else None
-            )
+        continuity = derive_prompt_continuity(
+            previous_fingerprints,
+            current_fingerprints,
+        )
 
         logger.info(
             "[Cache Hint] session=%s turn=%s model=%s status=%s "
@@ -310,11 +280,15 @@ class LLMStreamProcessor:
             self.session.session_id,
             turn,
             model_id,
-            status,
-            previous_count,
-            len(current_fingerprints),
-            common_prefix_messages,
-            first_changed_message if first_changed_message is not None else "none",
+            continuity.status,
+            continuity.previous_count,
+            continuity.current_count,
+            continuity.common_prefix_messages,
+            (
+                continuity.first_changed_message
+                if continuity.first_changed_message is not None
+                else "none"
+            ),
         )
         return turn
 
@@ -351,64 +325,28 @@ class LLMStreamProcessor:
     @staticmethod
     def _build_llm_api_error_message(error: LLMAPIError) -> str:
         """Return a concise user-facing error for known API failure classes."""
-        if error.status_code == 520:
-            return "Kimi Coding is temporarily unavailable (HTTP 520). Please retry shortly."
-        if error.status_code is not None:
-            return f"LLM API error (HTTP {error.status_code}). Please retry."
-        return f"LLM API error: {error.message}"
+        return build_llm_api_error_message(error)
 
     @staticmethod
     def _common_prefix_length(first: List[str], second: List[str]) -> int:
         """Return number of leading messages that are identical."""
-        matched = 0
-        for left, right in zip(first, second):
-            if left != right:
-                break
-            matched += 1
-        return matched
+        return common_prefix_length(first, second)
 
     def _fingerprint_prompt(self, prompt: List[LLMMessage]) -> List[str]:
         """Generate stable message fingerprints for continuity comparison."""
-        return [self._fingerprint_message(message) for message in prompt]
+        return fingerprint_prompt(prompt)
 
     @staticmethod
     def _fingerprint_message(message: LLMMessage) -> str:
         """Generate a short hash for one prompt message."""
-        role = str(message.get("role", ""))
-        compact_content = LLMStreamProcessor._compact_for_fingerprint(
-            message.get("content", "")
-        )
-        encoded = json.dumps(
-            {"role": role, "content": compact_content},
-            sort_keys=True,
-            ensure_ascii=False,
-            separators=(",", ":"),
-        )
-        return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+        return fingerprint_message(message)
 
     @staticmethod
     def _compact_for_fingerprint(value: Any) -> Any:
         """
         Compact potentially huge content (for example base64 images) before hashing.
         """
-        if isinstance(value, str):
-            max_chars = 2048
-            if len(value) <= max_chars:
-                return value
-            head = value[:1024]
-            tail = value[-1024:]
-            return f"{head}<len={len(value)}>{tail}"
-
-        if isinstance(value, list):
-            return [LLMStreamProcessor._compact_for_fingerprint(item) for item in value]
-
-        if isinstance(value, dict):
-            return {
-                str(key): LLMStreamProcessor._compact_for_fingerprint(value[key])
-                for key in sorted(value.keys(), key=str)
-            }
-
-        return value
+        return compact_for_fingerprint(value)
 
     async def _count_tokens(
         self, prompt: List[LLMMessage], full_text: str
@@ -449,23 +387,9 @@ class LLMStreamProcessor:
 
         Uses active conversation identity when available and falls back to session id.
         """
-        provider_name = str(getattr(self.session.cfg, "model_provider", "") or "").strip().lower()
-        normalized_provider_name = provider_name.replace("_", "-")
-        if normalized_provider_name in ("kimi-code", "kimi-coding"):
-            normalized_provider_name = "kimi-coding"
-        if normalized_provider_name != "kimi-coding":
-            return None
-
         runtime = getattr(self.session, "runtime", None)
-        active_conversation_ref = getattr(runtime, "active_conversation_ref", None)
-        if isinstance(active_conversation_ref, str):
-            normalized_ref = active_conversation_ref.strip()
-            if normalized_ref:
-                return normalized_ref
-
-        session_id = getattr(self.session, "session_id", None)
-        if isinstance(session_id, str):
-            normalized_session_id = session_id.strip()
-            if normalized_session_id:
-                return normalized_session_id
-        return None
+        return resolve_prompt_cache_key_for_provider(
+            provider_name=getattr(self.session.cfg, "model_provider", ""),
+            active_conversation_ref=getattr(runtime, "active_conversation_ref", None),
+            session_id=getattr(self.session, "session_id", None),
+        )
