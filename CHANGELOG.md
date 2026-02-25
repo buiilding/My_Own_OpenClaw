@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-runtime-docs): refresh dashboard/sidebar/search/message-input/message-send/memory references plus IPC contract docs for `show-main-window { maximize }`, `search-conversations`, and `list-episodic-memories`
 - docs(frontend-browser-contracts): refresh sidecar browser action/runtime references so alias policy matches implementation (`type` legacy-only; `open`/`switch_tab`/`press`/`act` removed and always blocked)
 - docs(backend-browser-contracts): refresh backend browser schema/runtime references for canonical/legacy/removed action categories and RemoteBrowserTool gate behavior
 - refactor(sidecar-browser-schema): remove `act` from sidecar OpenClaw compatibility action registry so schema lookup/validation now treats `act` as unknown
