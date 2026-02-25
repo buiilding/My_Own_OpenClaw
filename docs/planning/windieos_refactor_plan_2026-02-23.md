@@ -3659,3 +3659,18 @@ read_when:
 - Validation:
   - `cd frontend && npm run lint` (pass)
   - `cd frontend && npm run test:ci -- tests/frontend/useLatestRef.test.ts tests/frontend/ToolRunnerHook.events.test.ts tests/frontend/ToolRunnerHook.callbacks.test.ts tests/frontend/ChatStreamThinkingStatus.state.test.tsx tests/frontend/ChatStreamThinkingStatus.metadata.test.tsx` (pass)
+
+## Phase 158 Outcome (2026-02-25)
+
+- Refactor slice: split tool-runner stale-turn tests into focused suite.
+  - moved stale-turn guard cases out of:
+    - `tests/frontend/ToolRunnerHook.events.test.ts`
+  - into:
+    - `tests/frontend/ToolRunnerHook.turnGuards.test.ts`
+  - file-size/maintenance impact:
+    - `ToolRunnerHook.events.test.ts` reduced `460` -> `311` LOC.
+    - stale-turn guard behaviors now isolated in one dedicated suite (`172` LOC).
+- Validation:
+  - `cd frontend && npm run test:ci -- tests/frontend/ToolRunnerHook.events.test.ts tests/frontend/ToolRunnerHook.turnGuards.test.ts tests/frontend/ToolRunnerHook.callbacks.test.ts` (pass)
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run audit:jscpd` (pass; snapshot totals unchanged at clones `29`, duplicated lines `550`, duplicated tokens `5347`)
