@@ -161,3 +161,7 @@ Registered callable surface:
 - Preload allowlists and renderer constants should remain in strict parity.
 - IPC handler registration is split across `ipc.cjs`, `index.cjs`, `local_backend_bridge.cjs`, and `wakeword_bridge.cjs`; ownership drift often appears when adding channels without updating all four surfaces.
 - JSON-RPC channel maps are centralized in `local_backend_bridge_rpc_mappers.cjs`; direct ad-hoc mapping in other files should be avoided.
+
+## Related Deep Dive
+
+- [Frontend Protocol Lifecycle Hub](lifecycle/README.md)
