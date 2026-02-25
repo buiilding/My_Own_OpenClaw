@@ -7,10 +7,8 @@ import litellm
 from litellm import exceptions as litellm_exceptions
 
 from backend.src.core.events.streaming_events import (
-    ChunkEvent,
     ErrorEvent,
     StreamingEvent,
-    ThinkingEvent,
 )
 from backend.src.core.infrastructure.exceptions import (
     LLMAPIError,
@@ -25,6 +23,11 @@ from backend.src.llm.providers.error_mapping import (
     build_api_error_message,
     extract_status_code,
     iter_exception_chain,
+)
+from backend.src.llm.providers.stream_event_pipeline import (
+    enable_stream_with_usage,
+    stream_text_content_events,
+    stream_thinking_and_text_events,
 )
 from backend.src.llm.providers.usage_diagnostics import (
     build_stream_cache_diagnostics,
@@ -428,40 +431,34 @@ class LLMProvider(ProviderPayloadCompatMixin, ABC):
     @staticmethod
     def _enable_stream_with_usage(params: Dict[str, Any]) -> Dict[str, Any]:
         """Enable stream mode with usage payloads on provider request params."""
-        params["stream"] = True
-        params["stream_options"] = {"include_usage": True}
-        return params
+        return enable_stream_with_usage(params)
 
     async def _stream_text_content_events(
         self,
         params: Dict[str, Any],
     ) -> AsyncGenerator[StreamingEvent, None]:
         """Stream request and yield text chunk events for providers without thinking deltas."""
-        stream = await litellm.acompletion(**params)
-        async for chunk in stream:
-            self._record_stream_usage_from_chunk(chunk)
-            delta = self._extract_stream_delta(chunk)
-            content = self._extract_delta_content(delta)
-            if content:
-                yield ChunkEvent(content=content)
+        async for event in stream_text_content_events(
+            params=params,
+            record_stream_usage_from_chunk=self._record_stream_usage_from_chunk,
+            extract_stream_delta=self._extract_stream_delta,
+            extract_delta_content=self._extract_delta_content,
+        ):
+            yield event
 
     async def _stream_thinking_and_text_events(
         self,
         params: Dict[str, Any],
     ) -> AsyncGenerator[StreamingEvent, None]:
         """Stream request and yield thinking + text events when provider returns thinking deltas."""
-        stream = await litellm.acompletion(**params)
-        async for chunk in stream:
-            self._record_stream_usage_from_chunk(chunk)
-            delta = self._extract_stream_delta(chunk)
-            if not delta:
-                continue
-            thinking_content = self._extract_thinking_content(delta)
-            if thinking_content:
-                yield ThinkingEvent(content=thinking_content)
-            content = self._extract_delta_content(delta)
-            if content:
-                yield ChunkEvent(content=content)
+        async for event in stream_thinking_and_text_events(
+            params=params,
+            record_stream_usage_from_chunk=self._record_stream_usage_from_chunk,
+            extract_stream_delta=self._extract_stream_delta,
+            extract_thinking_content=self._extract_thinking_content,
+            extract_delta_content=self._extract_delta_content,
+        ):
+            yield event
 
     @abstractmethod
     def _get_full_model_string(self, model_id: str) -> str:

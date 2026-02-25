@@ -23,6 +23,7 @@ title: "Backend LLM Provider Docs Hub"
 
 - `backend/src/llm/client.py`
 - `backend/src/llm/providers/base.py`
+- `backend/src/llm/providers/stream_event_pipeline.py`
 - `backend/src/llm/providers/online.py`
 - `backend/src/llm/providers/local.py`
 - `backend/src/llm/providers/kimi_coding.py`
@@ -32,6 +33,7 @@ title: "Backend LLM Provider Docs Hub"
 - `backend/src/llm/providers/openai.py`
 - `backend/src/llm/providers/mistral.py`
 - `tests/backend/test_llm_provider_base.py`
+- `tests/backend/test_llm_provider_stream_event_pipeline.py`
 - `tests/backend/test_llm_client.py`
 - `tests/backend/test_local_llm_providers.py`
 - `tests/backend/test_kimi_coding_provider.py`

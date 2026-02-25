@@ -4228,3 +4228,34 @@ read_when:
   - `./scripts/python-in-env backend python -m pytest tests/backend --durations=20 -q` (pass)
   - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
   - `npx jscpd --gitignore --min-lines 8 --reporters console,markdown --output .audit/plan1/jscpd-backend backend/src tests/backend` (0 clones)
+
+## Phase 185 Outcome (2026-02-25)
+
+- Refactor slice (backend-only): extract base provider stream-mode plumbing/event loops from `LLMProvider`.
+  - added:
+    - `backend/src/llm/providers/stream_event_pipeline.py`
+      - stream-mode helper:
+        - `enable_stream_with_usage(...)`
+      - shared stream emission helpers:
+        - `stream_text_content_events(...)`
+        - `stream_thinking_and_text_events(...)`
+    - `tests/backend/test_llm_provider_stream_event_pipeline.py` direct helper-level coverage.
+  - updated:
+    - `backend/src/llm/providers/base.py`
+      - delegates `_enable_stream_with_usage(...)`, `_stream_text_content_events(...)`, and `_stream_thinking_and_text_events(...)` to `stream_event_pipeline.py`
+      - preserves `LLMProvider` compatibility wrapper methods/signatures for existing provider/runtime call paths
+      - reduced from `481` LOC to `478` LOC
+    - docs:
+      - `docs/backend/llm/providers/base_request_stream_and_normalization_reference.md`
+      - `docs/backend/llm/providers/README.md`
+      - `docs/backend/inventory/backend_module_file_index_reference.md`
+  - route consolidation check:
+    - `jscpd` on `backend/src/api/routes` found `0` clones; no route merge needed in this slice.
+  - audit outcome:
+    - backend `jscpd` (`backend/src` + `tests/backend`) remained at `0` clones after extraction.
+- Validation:
+  - `python -m py_compile backend/src/llm/providers/base.py backend/src/llm/providers/stream_event_pipeline.py tests/backend/test_llm_provider_stream_event_pipeline.py` (pass)
+  - `./scripts/python-in-env backend python -m pytest tests/backend/test_llm_provider_base.py tests/backend/test_llm_provider_stream_event_pipeline.py tests/backend/test_llm_provider_utils.py -q` (pass)
+  - `./scripts/python-in-env backend python -m pytest tests/backend --durations=20 -q` (pass)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console,markdown --output .audit/plan1/jscpd-backend backend/src tests/backend` (0 clones)
