@@ -27,6 +27,7 @@ title: "Backend LLM Docs Hub"
 ## Code Scope
 
 - `backend/src/llm/client.py`
+- `backend/src/llm/client_response_normalization.py`
 - `backend/src/llm/models/*`
 - `backend/src/llm/prompts/*`
 - `backend/src/llm/parser*`

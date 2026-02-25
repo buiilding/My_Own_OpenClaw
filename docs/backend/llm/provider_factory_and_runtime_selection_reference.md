@@ -11,6 +11,7 @@ title: "Provider Factory and Runtime Selection Reference"
 ## Canonical Modules
 
 - `backend/src/llm/client.py`
+- `backend/src/llm/client_response_normalization.py`
 - `backend/src/llm/providers/__init__.py`
 - `backend/src/llm/providers/base.py`
 - `backend/src/llm/models/model_service.py`
@@ -69,6 +70,10 @@ If requested provider name is absent in factory map:
 - required: `content` (string; empty string allowed)
 - optional: `tool_calls` list with strict per-item fields (`id`, `name`, `arguments`)
 - optional: `finish_reason`
+
+Implementation note:
+
+- response schema/type validation helpers are centralized in `client_response_normalization.py`; `LiteLLMClient` keeps compatibility wrapper methods that delegate to this module.
 
 Error semantics:
 

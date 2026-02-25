@@ -14,6 +14,13 @@ from backend.src.core.config import AppConfig
 from backend.src.core.events.streaming_events import ErrorEvent, StreamingEvent
 from backend.src.core.infrastructure.exceptions import LLMAPIError
 from backend.src.core.types.schemas import LLMMessage, NormalizedLLMResponse
+from backend.src.llm.client_response_normalization import (
+    normalize_content,
+    normalize_finish_reason,
+    normalize_response_payload,
+    normalize_tool_call_entry,
+    normalize_tool_calls,
+)
 from backend.src.llm.providers import get_provider
 from backend.src.llm.request_kwargs import build_tool_transport_kwargs
 
@@ -151,21 +158,7 @@ class LiteLLMClient(LLMClient):
         model: str,
     ) -> str:
         """Normalize required content field from provider response payload."""
-        if "content" not in response:
-            raise LLMAPIError(
-                f"Invalid response structure from provider: missing 'content' key. Keys: {list(response.keys())}",
-                model=model,
-            )
-
-        content = response["content"]
-        if content is None:
-            content = ""
-        if not isinstance(content, str):
-            raise LLMAPIError(
-                f"Invalid content type from provider: expected str, got {type(content).__name__}",
-                model=model,
-            )
-        return content
+        return normalize_content(response, model=model)
 
     @staticmethod
     def _normalize_tool_call_entry(
@@ -175,31 +168,7 @@ class LiteLLMClient(LLMClient):
         model: str,
     ) -> Dict[str, Any]:
         """Normalize one tool call object into canonical id/name/arguments fields."""
-        if not isinstance(tool_call, dict):
-            raise LLMAPIError(
-                f"Invalid tool call at index {index}: expected dict",
-                model=model,
-            )
-        tool_id = tool_call.get("id")
-        tool_name = tool_call.get("name")
-        arguments = tool_call.get("arguments", {})
-
-        if not isinstance(tool_id, str) or not tool_id:
-            raise LLMAPIError(
-                f"Invalid tool call id at index {index}: expected non-empty str",
-                model=model,
-            )
-        if not isinstance(tool_name, str) or not tool_name:
-            raise LLMAPIError(
-                f"Invalid tool call name at index {index}: expected non-empty str",
-                model=model,
-            )
-        if not isinstance(arguments, dict):
-            raise LLMAPIError(
-                f"Invalid tool call arguments at index {index}: expected dict",
-                model=model,
-            )
-        return {"id": tool_id, "name": tool_name, "arguments": arguments}
+        return normalize_tool_call_entry(tool_call, index=index, model=model)
 
     @staticmethod
     def _normalize_tool_calls(
@@ -208,24 +177,7 @@ class LiteLLMClient(LLMClient):
         model: str,
     ) -> Optional[List[Dict[str, Any]]]:
         """Normalize provider tool calls into canonical [{id,name,arguments}] form."""
-        if tool_calls is not None:
-            if not isinstance(tool_calls, list):
-                raise LLMAPIError(
-                    "Invalid tool_calls type from provider: expected list",
-                    model=model,
-                )
-
-            normalized_tool_calls = []
-            for index, tool_call in enumerate(tool_calls):
-                normalized_tool_calls.append(
-                    LiteLLMClient._normalize_tool_call_entry(
-                        tool_call,
-                        index=index,
-                        model=model,
-                    )
-                )
-            return normalized_tool_calls
-        return None
+        return normalize_tool_calls(tool_calls, model=model)
 
     @staticmethod
     def _normalize_finish_reason(
@@ -234,44 +186,14 @@ class LiteLLMClient(LLMClient):
         model: str,
     ) -> Optional[str]:
         """Normalize finish reason type from provider response."""
-        if finish_reason is None:
-            return None
-        if not isinstance(finish_reason, str):
-            raise LLMAPIError(
-                "Invalid finish_reason type from provider: expected str or None",
-                model=model,
-            )
-        return finish_reason
+        return normalize_finish_reason(finish_reason, model=model)
 
     @staticmethod
     def _normalize_response_payload(
         response: Any, model: str
     ) -> NormalizedLLMResponse:
         """Validate provider response against the canonical normalized contract."""
-        if not isinstance(response, dict):
-            raise LLMAPIError(
-                f"Invalid response type from provider: expected dict, got {type(response).__name__}",
-                model=model,
-            )
-
-        normalized: NormalizedLLMResponse = {
-            "content": LiteLLMClient._normalize_content(response, model=model)
-        }
-
-        normalized_tool_calls = LiteLLMClient._normalize_tool_calls(
-            response.get("tool_calls"),
-            model=model,
-        )
-        if normalized_tool_calls is not None:
-            normalized["tool_calls"] = normalized_tool_calls
-
-        if "finish_reason" in response:
-            normalized["finish_reason"] = LiteLLMClient._normalize_finish_reason(
-                response["finish_reason"],
-                model=model,
-            )
-
-        return normalized
+        return normalize_response_payload(response, model=model)
 
     @staticmethod
     def _extract_content(response: Any, model: str) -> str:

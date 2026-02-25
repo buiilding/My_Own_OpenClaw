@@ -4259,3 +4259,38 @@ read_when:
   - `./scripts/python-in-env backend python -m pytest tests/backend --durations=20 -q` (pass)
   - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
   - `npx jscpd --gitignore --min-lines 8 --reporters console,markdown --output .audit/plan1/jscpd-backend backend/src tests/backend` (0 clones)
+
+## Phase 186 Outcome (2026-02-25)
+
+- Refactor slice (backend-only): extract `LiteLLMClient` response-normalization helpers into a dedicated module and split oversized client tests.
+  - added:
+    - `backend/src/llm/client_response_normalization.py`
+      - response-normalization helpers:
+        - `normalize_content(...)`
+        - `normalize_tool_call_entry(...)`
+        - `normalize_tool_calls(...)`
+        - `normalize_finish_reason(...)`
+        - `normalize_response_payload(...)`
+    - `tests/backend/test_llm_client_response_normalization.py` direct helper-level coverage.
+  - updated:
+    - `backend/src/llm/client.py`
+      - delegates `_normalize_content(...)`, `_normalize_tool_call_entry(...)`, `_normalize_tool_calls(...)`, `_normalize_finish_reason(...)`, and `_normalize_response_payload(...)` to `client_response_normalization.py`
+      - preserves existing compatibility wrapper methods/signatures in `LiteLLMClient`
+      - reduced from `458` LOC to `380` LOC
+    - `tests/backend/test_llm_client.py`
+      - moved normalization-specific assertions to helper-focused suite
+      - reduced from `563` LOC to `499` LOC (below file-size guideline)
+    - docs:
+      - `docs/backend/llm/README.md`
+      - `docs/backend/llm/provider_factory_and_runtime_selection_reference.md`
+      - `docs/backend/inventory/backend_module_file_index_reference.md`
+  - route consolidation check:
+    - `jscpd` on `backend/src/api/routes` found `0` clones; no route merge needed in this slice.
+  - audit outcome:
+    - backend `jscpd` (`backend/src` + `tests/backend`) remained at `0` clones after extraction.
+- Validation:
+  - `python -m py_compile backend/src/llm/client.py backend/src/llm/client_response_normalization.py tests/backend/test_llm_client.py tests/backend/test_llm_client_response_normalization.py` (pass)
+  - `./scripts/python-in-env backend python -m pytest tests/backend/test_llm_client.py tests/backend/test_llm_client_response_normalization.py -q` (pass)
+  - `./scripts/python-in-env backend python -m pytest tests/backend --durations=20 -q` (pass)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console,markdown --output .audit/plan1/jscpd-backend backend/src tests/backend` (0 clones)

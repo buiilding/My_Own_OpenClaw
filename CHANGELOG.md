@@ -7,6 +7,9 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): record Phase 186 LiteLLM client response-normalization extraction (`client_response_normalization.py`), `test_llm_client.py` split, backend verification, and refreshed jscpd outcomes in `docs/planning/windieos_refactor_plan_2026-02-23.md`
+- docs(backend-llm-client): update LLM docs hub, provider-factory runtime reference, and backend module index for extracted `backend/src/llm/client_response_normalization.py` ownership and wrapper delegation contracts
+- refactor(backend-llm-client): extract provider-response normalization helpers from `backend/src/llm/client.py` into `backend/src/llm/client_response_normalization.py`, preserve LiteLLMClient compatibility wrappers, and split normalization tests into `tests/backend/test_llm_client_response_normalization.py` with `test_llm_client.py` reduced below 500 LOC
 - docs(refactor-plan): record Phase 185 LLM provider stream-event pipeline extraction (`stream_event_pipeline.py`), backend verification, and refreshed jscpd outcomes in `docs/planning/windieos_refactor_plan_2026-02-23.md`
 - docs(backend-llm-providers): update base provider docs hub and base request/stream reference for extracted `backend/src/llm/providers/stream_event_pipeline.py` ownership and compatibility wrapper delegation
 - refactor(backend-llm-provider-base): extract stream usage-flag + text/thinking stream event loops from `backend/src/llm/providers/base.py` into `backend/src/llm/providers/stream_event_pipeline.py` and preserve base-provider wrapper method compatibility
