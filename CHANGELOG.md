@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-inventory): refresh frontend functionality/module-index inventories with current `frontend/src` counts (`287` files), dashboard search/rehydrate flows, sidecar conversation-title ownership, Browser Use cluster mapping, and main-process overlay/module coverage updates
 - docs(backend-inventory): refresh backend functionality/module-index inventories with current `backend/src` counts (`307` files), API infrastructure/services ownership, execution recovery bridge coverage, container runtime helper modules, and OCR/vision/runtime helper boundaries
 - feat(frontend-search-ui): add clone-style `Search chats` popup modal (sidebar trigger, search input, grouped results, new-chat action, conversation open/close flow) to match ChatGPT website behavior
 - test(frontend-dashboard): add `Search chats` modal coverage in `ChatGptDashboardShell.test.jsx` (open, filter, select conversation)

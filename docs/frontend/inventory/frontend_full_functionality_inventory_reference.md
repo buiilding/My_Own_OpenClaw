@@ -15,10 +15,11 @@ This page is a code-grounded, end-to-end inventory of frontend functionality in 
 Source inventory used for this reference:
 
 - Main process (`.cjs`/`.js` in `frontend/src/main`): `23`
-- Sidecar Python (`.py` in `frontend/src/main/python`): `135`
+- Sidecar Python (`.py` in `frontend/src/main/python`): `136`
 - Renderer TS/JS (`frontend/src/renderer`): `114`
 - Landing (`.jsx`/`.css` in `frontend/src/landing`): `13`
 - Preload bridge (`frontend/src/preload.js`): `1`
+- Total covered files: `287`
 
 ## Electron Main Process Functionality Inventory
 
@@ -42,6 +43,7 @@ Main process functionality:
 - Query payload enrichment with memory/system context XML.
 - Artifact upload path to backend HTTP endpoint.
 - User/session/conversation reference propagation through IPC events.
+- Initial settings synchronization gate before first query send.
 
 Overlay and focus handlers:
 
@@ -77,6 +79,7 @@ Bridge functionality:
 - Readiness checks and request correlation.
 - JSON-RPC request mapping for tool, memory, transcript, and system-state methods.
 - Window resolver mapping for overlay-safe screenshot paths.
+- Canonical RPC mapper registration for conversation/transcript/memory CRUD methods.
 
 Wakeword bridge:
 
@@ -122,6 +125,7 @@ Provider/runtime functionality:
 - Chat provider ownership of stream and tool-runner hooks.
 - Wakeword controller and app-level composition.
 - View routing across main/overlay surfaces plus dashboard modal targets.
+- Renderer event ingress for targeted open actions (`chat`, `settings`, `models`, `memory`).
 
 ### Renderer Chat Feature Inventory
 
@@ -156,9 +160,10 @@ Primary modules:
 
 Dashboard functionality:
 
-- Section routing for episodic/semantic/procedural/models/usage/settings.
-- Episodic memory browsing and parse/format helpers.
-- Semantic memory view actions.
+- Conversation-first dashboard shell with sidebar/open-state persistence.
+- Search chats modal and grouped recent conversation recall.
+- Transcript conversation resume + backend rehydrate handoff.
+- Episodic and semantic memory browsing/actions.
 - Model filtering and selection reconciliation.
 - Display selection and settings payload shaping.
 - Memory context menu keyboard/selection handling.
@@ -171,7 +176,7 @@ Settings modules:
 
 Settings functionality:
 
-- Backend model list event intake and view-layer handoff.
+- Settings display + config toggle orchestration with backend sync-aware hook handoff.
 
 Voice modules:
 
@@ -270,6 +275,7 @@ Memory functionality:
 - SQLite + FAISS index storage and recovery paths.
 - Transcript-to-memory operations and metadata helpers.
 - Semantic summarization watermark/cadence handling.
+- Conversation-title generation/storage for transcript session browsing.
 
 Tool registry and domain tools:
 
@@ -334,6 +340,15 @@ Functionality:
 - Browser action compatibility adapter for OpenClaw-style payloads.
 - Browser Use vendored runtime provider, action bridge, watchdogs, DOM serializers, LLM adapters, token tracking, and agent state/history models.
 
+Browser Use vendored stack (detailed ownership):
+
+- Actor action helpers: pointer/keyboard/page primitives (`actor/*`).
+- Browser session lifecycle + watchdog orchestration (`browser/*`, `browser/watchdogs/*`).
+- DOM extraction and serializer pipeline (`dom/*`, `dom/serializer/*`).
+- Tool registry, extraction, and invocation services (`tools/*`).
+- LLM provider adapters and message serialization (`llm/*`).
+- Token accounting and lightweight filesystem adapters (`tokens/*`, `filesystem/*`).
+
 ## Landing Surface Functionality Inventory
 
 Modules:
@@ -371,6 +386,12 @@ Memory path:
 1. Transcript/session writes in renderer transcript infrastructure.
 2. Main process to sidecar memory RPC.
 3. Sidecar local memory store + optional summarizer and backend embedding/semantic APIs.
+
+Search/rehydrate path:
+
+1. Sidebar/search modal calls `list-conversations` via IPC bridge.
+2. Renderer opens one conversation with `get-conversation`.
+3. Renderer emits `rehydrate` to backend and synchronizes transcript session state locally.
 
 ## Related Docs
 
