@@ -390,10 +390,11 @@
 }
 
 .message-user .message-content {
-  background: rgba(124, 134, 150, 0.22);
-  border-color: rgba(142, 151, 165, 0.45);
-  color: #eff3f8;
-  border-bottom-right-radius: 10px;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  color: #0f172a;
+  border-radius: 999px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
 }
 
 .message-assistant {
