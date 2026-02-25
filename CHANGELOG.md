@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-browser-adapter): simplify legacy `act` envelope handling to a thin shim that delegates kinds through generic `execute` (canonical runtime path), keeping only `timeMs`/`fn` normalization and close split behavior
 - refactor(sidecar-browser-adapter): thin `BrowserUseCompatibilityAdapter.execute` hot path so canonical actions dispatch directly to runtime bridge, while legacy aliases (`open`/`type`/`press`/`switch_tab`/`act`) remain in a dedicated compatibility shim with deprecation annotations
 - refactor(browser-contract): split backend browser action typing into canonical + legacy alias layers (`BrowserCanonicalAction`, `BrowserLegacyCompatAction`) while keeping unified `BrowserControlArgs` compatibility, with helper accessors for legacy detection/preferred canonical action
 - feat(browser-strict-mode): add optional canonical-only enforcement via `WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1` in backend remote browser tool and sidecar browser tool (legacy aliases rejected with guidance), plus regression tests

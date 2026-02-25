@@ -138,13 +138,11 @@ Important drift note:
 
 `act.request.kind` dispatch:
 
-- `click` -> adapter `click`
-- `type` -> adapter `type`
-- `press` -> adapter `press`
-- `wait` -> adapter `wait` (`timeMs` converted to seconds)
-- `evaluate` -> adapter `evaluate`
-- forward-execute kinds (`navigate`, `extract`, `scroll`, `screenshot`) route via generic `execute`
-- Browser Use direct kinds route via `execute_browser_use_action`
+- compat kinds (`click`, `type`, `press`, `wait`, `evaluate`) normalize payload then route through generic `execute`
+  - `wait` converts `timeMs` -> `seconds`
+  - `evaluate` maps `fn` -> `script`
+- forward kinds (`navigate`, `extract`, `scroll`, `screenshot`) route via generic `execute`
+- Browser Use direct kinds route via generic `execute` (canonical runtime path)
 - `close` picks tab-close vs full-close path
 
 Unsupported kinds return:
