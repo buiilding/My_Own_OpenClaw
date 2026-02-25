@@ -6,12 +6,12 @@ import '../styles/ChatBoxResponseOverlay.css';
 const LOOP_GAP_MS = 700;
 
 const TRACK_STYLE = Object.freeze({
-  '--ghost-start-offset-x': '0px',
-  '--ghost-start-offset-y': '-240px',
-  '--ghost-end-offset-x': '0px',
-  '--ghost-end-offset-y': '240px',
-  '--ghost-offset-x': '0px',
-  '--ghost-offset-y': '240px',
+  '--ghost-start-left': '50%',
+  '--ghost-start-top': '22%',
+  '--ghost-end-left': '50%',
+  '--ghost-end-top': '76%',
+  '--ghost-ripple-left': '50%',
+  '--ghost-ripple-top': '76%',
   '--ghost-target-scale': '1',
   '--ghost-motion-duration': `${TOOL_GHOST_CLICK_SYNC_DELAY_MS}ms`,
 });
@@ -54,33 +54,30 @@ function ToolGhostDebugApp() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return (
-    <div style={{
-      minHeight: '100vh',
-      margin: 0,
-      background: 'transparent',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      pointerEvents: 'none',
-    }}
-    >
-      {isVisible ? (
-        <div className="chatbox-tool-ghost" aria-label="Ghost cursor debug animation" key={runToken}>
-          <div
-            className="chatbox-tool-ghost-track is-targeted is-click-animating"
-            style={TRACK_STYLE}
-          >
-            <div className="chatbox-tool-ghost-cursor-wrap" aria-hidden="true">
-              <div className="chatbox-tool-ghost-ring" />
-              <div className="chatbox-tool-ghost-ripple" />
-              <div className="chatbox-tool-ghost-cursor" />
-            </div>
+  return isVisible ? (
+    <div className="chatbox-tool-ghost" aria-label="Ghost cursor debug animation" key={runToken}>
+      <div
+        className="chatbox-tool-ghost-track is-targeted is-click-animating is-moving"
+        style={TRACK_STYLE}
+      >
+        <div className="chatbox-tool-ghost-target-ripple is-click-timeline" />
+        <div className="chatbox-tool-ghost-cursor-wrap" aria-hidden="true">
+          <div className="chatbox-tool-ghost-ring" />
+          <div className="chatbox-tool-ghost-cursor">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M4.2 3.6 9.4 18.4 12.2 12.8l5.8 2.8 1.2-2.5-5.8-2.8 5.3-2.7z"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinejoin="round"
+              />
+            </svg>
           </div>
         </div>
-      ) : null}
+        <div className="chatbox-tool-ghost-label">Ghost cursor debug animation</div>
+      </div>
     </div>
-  );
+  ) : null;
 }
 
 export default ToolGhostDebugApp;

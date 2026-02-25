@@ -47,13 +47,15 @@ export function useToolGhostLifecycle({
   const [toolGhostResolvedTargetRatio, setToolGhostResolvedTargetRatio] = useState(null);
   const [toolGhostReady, setToolGhostReady] = useState(true);
   const [toolGhostHidden, setToolGhostHidden] = useState(false);
+  const [toolGhostViewportSize, setToolGhostViewportSize] = useState({ width: null, height: null });
 
   useEffect(() => {
-    if (!shouldShowToolGhostBase || !toolGhostPreview.isMouseClick) {
+    if (!shouldShowToolGhostBase || !toolGhostPreview.isMotionAction) {
       setToolGhostHidden(false);
       setToolGhostReady(true);
       setToolGhostStartRatio({ xRatio: 0.5, yRatio: 0.5 });
       setToolGhostResolvedTargetRatio(null);
+      setToolGhostViewportSize({ width: null, height: null });
       return undefined;
     }
 
@@ -63,14 +65,25 @@ export function useToolGhostLifecycle({
     setToolGhostReady(false);
     setToolGhostStartRatio({ xRatio: 0.5, yRatio: 0.5 });
     setToolGhostResolvedTargetRatio(null);
+    setToolGhostViewportSize({
+      width: Number.isFinite(toolGhostPreview.targetDisplayWidth)
+        ? toolGhostPreview.targetDisplayWidth
+        : null,
+      height: Number.isFinite(toolGhostPreview.targetDisplayHeight)
+        ? toolGhostPreview.targetDisplayHeight
+        : null,
+    });
 
-    const beginGhostLifecycle = (nextStartRatio, nextTargetRatio) => {
+    const beginGhostLifecycle = (nextStartRatio, nextTargetRatio, hideAfterSyncDelay) => {
       if (cancelled) {
         return;
       }
       setToolGhostStartRatio(nextStartRatio);
       setToolGhostResolvedTargetRatio(nextTargetRatio);
       setToolGhostReady(true);
+      if (!hideAfterSyncDelay) {
+        return;
+      }
       hideTimer = window.setTimeout(() => {
         if (cancelled) {
           return;
@@ -95,6 +108,10 @@ export function useToolGhostLifecycle({
       )
         ? toolGhostPreview.targetDisplayHeight
         : parsedScreen?.height ?? null;
+      setToolGhostViewportSize({
+        width: targetDisplayWidth,
+        height: targetDisplayHeight,
+      });
 
       const parsedMouse = parseMousePosition(systemState?.mouse_position);
       const startRatio = (
@@ -126,12 +143,12 @@ export function useToolGhostLifecycle({
         };
       }
 
-      beginGhostLifecycle(startRatio, targetRatio);
+      beginGhostLifecycle(startRatio, targetRatio, toolGhostPreview.isMouseClick);
     }).catch(() => {
       const fallbackTargetRatio = toolGhostPreview.hasTarget
         ? { xRatio: toolGhostPreview.xRatio, yRatio: toolGhostPreview.yRatio }
         : null;
-      beginGhostLifecycle({ xRatio: 0.5, yRatio: 0.5 }, fallbackTargetRatio);
+      beginGhostLifecycle({ xRatio: 0.5, yRatio: 0.5 }, fallbackTargetRatio, toolGhostPreview.isMouseClick);
     });
 
     return () => {
@@ -142,6 +159,7 @@ export function useToolGhostLifecycle({
     };
   }, [
     shouldShowToolGhostBase,
+    toolGhostPreview.isMotionAction,
     toolGhostPreview.isMouseClick,
     toolGhostPreview.hasTarget,
     toolGhostPreview.xRatio,
@@ -158,5 +176,6 @@ export function useToolGhostLifecycle({
     toolGhostResolvedTargetRatio,
     toolGhostReady,
     toolGhostHidden,
+    toolGhostViewportSize,
   };
 }

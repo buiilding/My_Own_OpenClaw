@@ -50,8 +50,8 @@ function buildClickToolCallText() {
   });
 }
 
-function parsePxValue(rawValue) {
-  return Number.parseInt((rawValue || '').replace('px', ''), 10);
+function parsePercentValue(rawValue) {
+  return Number.parseFloat((rawValue || '').replace('%', ''));
 }
 
 describe('ChatBoxResponse', () => {
@@ -125,6 +125,34 @@ describe('ChatBoxResponse', () => {
     expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
   });
 
+  test('renders target ripple at target coordinate for click-like ghost actions', async () => {
+    const { container } = await renderToolCallGhost({
+      userText: 'run command',
+      toolText: buildClickToolCallText(),
+    });
+
+    const ghostRipple = container.querySelector('.chatbox-tool-ghost-target-ripple');
+    expect(ghostRipple).toBeTruthy();
+    expect(ghostRipple.classList.contains('is-click-timeline')).toBe(true);
+  });
+
+  test('uses scroll tool explanation as ghost label text', async () => {
+    await renderToolCallGhost({
+      userText: 'scroll page',
+      toolText: JSON.stringify({
+        name: 'scroll_control',
+        args: { explanation: 'Scrolling down to next section', x: 640, y: 420 },
+        metadata: {
+          coordinate_contract: {
+            target_display_size: [1280, 720],
+          },
+        },
+      }),
+    });
+
+    expect(screen.getByText('Scrolling down to next section')).toBeInTheDocument();
+  });
+
   test('uses current mouse position as click-ghost animation start point', async () => {
     mockInvoke.mockImplementation((channel) => {
       if (channel === 'get-system-state') {
@@ -146,10 +174,10 @@ describe('ChatBoxResponse', () => {
     expect(ghostTrack.classList.contains('is-click-animating')).toBe(true);
 
     await waitFor(() => {
-      const startX = parsePxValue(ghostTrack.style.getPropertyValue('--ghost-start-offset-x'));
-      const startY = parsePxValue(ghostTrack.style.getPropertyValue('--ghost-start-offset-y'));
-      const endX = parsePxValue(ghostTrack.style.getPropertyValue('--ghost-end-offset-x'));
-      const endY = parsePxValue(ghostTrack.style.getPropertyValue('--ghost-end-offset-y'));
+      const startX = parsePercentValue(ghostTrack.style.getPropertyValue('--ghost-start-left'));
+      const startY = parsePercentValue(ghostTrack.style.getPropertyValue('--ghost-start-top'));
+      const endX = parsePercentValue(ghostTrack.style.getPropertyValue('--ghost-end-left'));
+      const endY = parsePercentValue(ghostTrack.style.getPropertyValue('--ghost-end-top'));
       expect(startX).not.toBe(endX);
       expect(startY).not.toBe(endY);
     });
@@ -184,8 +212,8 @@ describe('ChatBoxResponse', () => {
     expect(ghostTrack).toBeTruthy();
     await waitFor(() => {
       expect(ghostTrack.classList.contains('is-targeted')).toBe(true);
-      expect(ghostTrack.style.getPropertyValue('--ghost-end-offset-x')).not.toBe('0px');
-      expect(ghostTrack.style.getPropertyValue('--ghost-end-offset-y')).not.toBe('0px');
+      expect(ghostTrack.style.getPropertyValue('--ghost-end-left')).not.toBe('50%');
+      expect(ghostTrack.style.getPropertyValue('--ghost-end-top')).not.toBe('50%');
     });
   });
 
@@ -242,8 +270,8 @@ describe('ChatBoxResponse', () => {
     const ghostTrack = container.querySelector('.chatbox-tool-ghost-track');
     expect(ghostTrack).toBeTruthy();
     expect(ghostTrack.classList.contains('is-targeted')).toBe(true);
-    expect(ghostTrack.style.getPropertyValue('--ghost-offset-x')).not.toBe('0px');
-    expect(ghostTrack.style.getPropertyValue('--ghost-offset-y')).not.toBe('0px');
+    expect(ghostTrack.style.getPropertyValue('--ghost-end-left')).not.toBe('50%');
+    expect(ghostTrack.style.getPropertyValue('--ghost-end-top')).not.toBe('50%');
   });
 
   test('renders a target rectangle when target_rect metadata is present', async () => {

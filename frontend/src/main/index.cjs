@@ -831,7 +831,12 @@ function initializeOverlayHandlers() {
     }
   });
 
-  ipcMain.handle('set-responsebox-size', async (event, { width, height, visible } = {}) => {
+  ipcMain.handle('set-responsebox-size', async (event, {
+    width,
+    height,
+    visible,
+    full_screen: fullScreen = false,
+  } = {}) => {
     if (!responseWindow || responseWindow.isDestroyed()) {
       return { success: false, reason: 'Response window not available' };
     }
@@ -845,6 +850,47 @@ function initializeOverlayHandlers() {
       broadcastResponseOverlayVisibility(false);
       syncContextLabelWindowVisibility();
       return { success: true, visible: false };
+    }
+
+    if (fullScreen === true) {
+      try {
+        const fallbackDisplay = screen.getPrimaryDisplay();
+        const targetDisplay = (
+          chatWindow
+          && !chatWindow.isDestroyed()
+          && typeof screen.getDisplayMatching === 'function'
+        )
+          ? screen.getDisplayMatching(chatWindow.getBounds()) || fallbackDisplay
+          : fallbackDisplay;
+        const bounds = targetDisplay?.bounds || fallbackDisplay.bounds;
+        const nextBounds = {
+          x: Math.round(bounds.x),
+          y: Math.round(bounds.y),
+          width: Math.max(1, Math.round(bounds.width)),
+          height: Math.max(1, Math.round(bounds.height)),
+        };
+        responseWindow.setBounds(nextBounds, false);
+        responseOverlayVisible = true;
+        if (chatWindow && !chatWindow.isDestroyed() && chatWindow.isVisible()) {
+          if (typeof responseWindow.showInactive === 'function') {
+            responseWindow.showInactive();
+          } else {
+            responseWindow.show();
+          }
+          ensureResponseWindowOnTop();
+        }
+        broadcastResponseOverlayVisibility(true);
+        syncContextLabelWindowVisibility();
+        return {
+          success: true,
+          visible: true,
+          fullScreen: true,
+          width: nextBounds.width,
+          height: nextBounds.height,
+        };
+      } catch (error) {
+        return { success: false, reason: `Failed to enter fullscreen ghost overlay: ${error.message}` };
+      }
     }
 
     const nextWidth = Math.max(1, Math.min(900, Math.round(Number(width) || 0)));
