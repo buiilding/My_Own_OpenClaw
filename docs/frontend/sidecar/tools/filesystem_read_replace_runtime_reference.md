@@ -154,3 +154,10 @@ Patch chunk mode:
 2. Adjusting truncation limits/messages in `read_file` can break downstream prompt behavior that depends on offset hints.
 3. Altering patch-chunk ordering/search cursor semantics can create hard-to-debug multi-hunk misapplies.
 4. Replacing atomic write path with direct write increases partial-write risk on process interruption.
+
+## Related Pages
+
+- [Frontend Sidecar Tools Docs Hub](README.md)
+- [Filesystem Tools Docs Hub](filesystem/README.md)
+- [Read-File Window Pagination, Binary Guard, and Truncation Contract Reference](filesystem/read_file_window_pagination_binary_guard_and_truncation_contract_reference.md)
+- [Replace Engine Match Modes, Patch Chunks, and Atomic Write Contract Reference](filesystem/replace_engine_match_modes_patch_chunks_and_atomic_write_contract_reference.md)

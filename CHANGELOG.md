@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-sidecar-tools-filesystem): add filesystem subhub splitting read-file window/binary/truncation contracts from replace-engine match-mode, patch-chunk, and atomic-write semantics
 - docs(frontend-contracts-ipc): add renderer IPC bridge subhub for dev-only channel validation, preload dependency guard, and listener cleanup contracts
 - docs(frontend-renderer-transcript): add queue subhub documenting pending queue FIFO/drain mechanics and category-ordered requeue behavior in flush pipeline
 - docs(backend-llm-local-provider): add http-client subhub for shared AsyncClient lock/finalizer lifecycle and provider-factory cache coupling semantics
