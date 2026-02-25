@@ -14,6 +14,7 @@ title: "Frontend Inventory Protocols Hub"
 - [Frontend Protocol Lifecycle Hub](lifecycle/README.md)
 - [Frontend Protocol Errors Hub](errors/README.md)
 - [Frontend Protocol Validation Hub](validation/README.md)
+- [Frontend Protocol Testing Hub](testing/README.md)
 
 ## Related Pages
 
