@@ -3865,3 +3865,21 @@ read_when:
 - Validation:
   - `cd frontend && npm run lint` (pass)
   - `cd frontend && npm run test:ci -- tests/frontend/OverlayVisibilityHandler.test.cjs tests/frontend/DisplayQueryHandler.test.cjs tests/frontend/OverlayMouseHandler.test.cjs tests/frontend/MainWindowControlsHandler.test.cjs tests/frontend/OverlayResponseboxHandler.test.cjs tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs` (pass)
+
+## Phase 173 Outcome (2026-02-25)
+
+- Refactor slice: dedupe repeated overlay renderer-window registration blocks in main-process startup/activate flows.
+  - added:
+    - `frontend/src/main/overlay_renderer_registration.cjs` (`registerOverlayRendererWindows`)
+  - updated:
+    - `frontend/src/main/index.cjs` now uses shared helper in:
+      - initial `app.whenReady()` overlay registration
+      - `app.on('activate')` overlay registration path
+  - added tests:
+    - `tests/frontend/OverlayRendererRegistration.test.cjs`
+    - covers in-order registration and null/undefined skip behavior.
+  - impact:
+    - removed duplicate registration branches and centralized overlay renderer-window registration behavior.
+- Validation:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/OverlayRendererRegistration.test.cjs tests/frontend/OverlayVisibilityHandler.test.cjs tests/frontend/DisplayQueryHandler.test.cjs tests/frontend/OverlayMouseHandler.test.cjs tests/frontend/MainWindowControlsHandler.test.cjs tests/frontend/OverlayResponseboxHandler.test.cjs tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs` (pass)

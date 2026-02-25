@@ -4,6 +4,7 @@ const { initializeIpc, registerRendererWindow } = require('./ipc.cjs');
 const { initializeWakewordBridge } = require('./wakeword_bridge.cjs');
 const { initializeLocalBackendBridge, stopLocalBackend } = require('./local_backend_bridge.cjs');
 const { handleGetDisplays } = require('./display_query_handler.cjs');
+const { registerOverlayRendererWindows } = require('./overlay_renderer_registration.cjs');
 const {
   handleHideChatbox,
   handleShowChatbox,
@@ -708,15 +709,10 @@ app.whenReady().then(() => {
   createTray();
   sendWakewordToggle(false);
 
-  if (chatWindow) {
-    registerRendererWindow(chatWindow);
-  }
-  if (responseWindow) {
-    registerRendererWindow(responseWindow);
-  }
-  if (contextLabelWindow) {
-    registerRendererWindow(contextLabelWindow);
-  }
+  registerOverlayRendererWindows(
+    [chatWindow, responseWindow, contextLabelWindow],
+    { registerRendererWindow },
+  );
   syncContextLabelWindowVisibility();
 
   screen.on('display-metrics-changed', () => {
@@ -746,15 +742,10 @@ app.whenReady().then(() => {
       const chatOverlay = createChatWindow();
       const responseOverlay = createResponseWindow();
       const contextLabelOverlay = createContextLabelWindow();
-      if (chatOverlay) {
-        registerRendererWindow(chatOverlay);
-      }
-      if (responseOverlay) {
-        registerRendererWindow(responseOverlay);
-      }
-      if (contextLabelOverlay) {
-        registerRendererWindow(contextLabelOverlay);
-      }
+      registerOverlayRendererWindows(
+        [chatOverlay, responseOverlay, contextLabelOverlay],
+        { registerRendererWindow },
+      );
       syncContextLabelWindowVisibility();
     } else {
       showMainWindow({ focus: true });
