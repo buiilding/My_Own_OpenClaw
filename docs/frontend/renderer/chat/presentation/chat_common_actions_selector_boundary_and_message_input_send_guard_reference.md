@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for renderer chat shared action selectors and message-input send guards: store selector boundary, voice/transcription submit handoff, and whitespace/isSending normalization semantics."
+summary: "Deep reference for renderer chat shared action selectors and message-input send guards: store selector boundary, voice/transcription submit handoff, whitespace/isSending normalization, and clipboard-image payload shaping."
 read_when:
   - When changing `useChatCommonActions` or re-wiring chat hooks that mutate `chatStore` state.
   - When debugging dropped message sends, duplicate submit attempts, or voice utterance-end auto-send behavior.
@@ -42,12 +42,19 @@ Expected outcome:
 
 ## Input Normalization Contract (`messageInput.js`)
 
-`buildOutgoingMessage(inputValue, isSending)` behavior:
+`buildOutgoingMessage(inputValue, isSending, clipboardImage?)` behavior:
 
 1. if `isSending === true`, returns `null` (hard submit block)
 2. otherwise trims text
 3. returns `null` for blank/whitespace-only text
-4. returns trimmed string for non-empty text
+4. when no valid clipboard image is present, returns trimmed string
+5. when valid clipboard image is present, returns object:
+ - `{ text: "<trimmed>", clipboardImage: { base64, ... } }`
+
+Clipboard image validity gate:
+
+- payload must be object
+- `base64` must be non-empty string
 
 `MessageInput.submitMessageValue(...)` only calls `onSendMessage` when `buildOutgoingMessage(...)` returns non-null.
 
@@ -75,18 +82,20 @@ This limits unnecessary updates when stream/send logic repeats identical flags.
   - whitespace/blank inputs rejected
   - trim-on-send behavior
   - `isSending` hard block
+  - clipboard image payload shape selection
 - `tests/frontend/MessageInput.test.jsx`
   - form submit uses trimmed text
   - whitespace submit blocked
   - `isSending` disables submit path/button
   - voice utterance-end auto-send path uses latest transcription value
+  - pasted image preview/send/remove behavior
 - `tests/frontend/ChatStore.test.ts`
   - `setIsSending` and `setThinkingStatus` no-op when unchanged
 
 ## Drift Hotspots
 
 1. Adding logic to `useChatCommonActions` can silently fork mutation paths between sender and stream hooks.
-2. Bypassing `buildOutgoingMessage` in new input surfaces can reintroduce whitespace sends or duplicate send attempts.
+2. Bypassing `buildOutgoingMessage` in new input surfaces can reintroduce whitespace sends, duplicate send attempts, or clipboard payload shape drift.
 3. Diverging voice utterance-end send path from form submit path can create inconsistent trim/block behavior.
 
 ## Related Pages

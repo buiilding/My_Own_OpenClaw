@@ -15,7 +15,8 @@ title: "Chat Store State and New Session Rotation Reference"
 - `frontend/src/renderer/features/chat/utils/conversationRef.ts`
 - `frontend/src/renderer/features/chat/utils/chatSelectors.js`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
-- `frontend/src/renderer/features/dashboard/components/sections/EpisodicMemorySection.jsx`
+- `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
+- `frontend/src/renderer/features/dashboard/components/DashboardSidebar.jsx`
 - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
 - `tests/frontend/ChatStore.test.ts`
 
@@ -28,6 +29,13 @@ Primary state slices:
 - `thinkingStatus`
 - `tokenCounts`
 - `streamTracking`
+
+Message attachment fields used by current send/runtime paths include:
+
+- `screenshot`
+- `screenshotContentType`
+- `screenshotRef`
+- `screenshotUrl`
 
 `streamTracking` fields capture turn identity, phase, counters, and timestamps:
 
@@ -86,14 +94,14 @@ So new-chat resets local store regardless, while active backend loop receives st
 
 ## Resume Conversation Call-Site (Dashboard)
 
-`EpisodicMemorySection.continueConversation` flow:
+`ChatGptDashboardShell.handleOpenConversation(...)` flow:
 
 1. send `rehydrate-conversation`
 2. call `setActiveConversationRef(conversationRef)`
 3. call `updateTranscriptSession(conversationRef, sessionInfo.userId || null)`
 4. replace chat store messages with resumed transcript projection
 5. clear sending/thinking flags
-6. route UI back to chat section
+6. close dashboard overlays and keep chat surface active
 
 This path intentionally does not call `startNewChatSession`; it restores an existing conversation ref.
 

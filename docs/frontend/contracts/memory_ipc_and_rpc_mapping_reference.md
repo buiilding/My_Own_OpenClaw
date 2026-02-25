@@ -38,7 +38,7 @@ Memory-related `invoke` channels exposed to renderer:
 Current primary renderer call sites:
 
 - `TranscriptWriter` -> `store-transcript`
-- `DashboardSidebar` -> list/get transcript conversations
+- `ChatGptDashboardShell` + `DashboardSidebar` + `SearchChatsModal` -> search/list/get transcript conversations
 - `MemorySection` -> list episodic memory entries + list/delete semantic memory
 
 ## Main-Process Mapping Layer

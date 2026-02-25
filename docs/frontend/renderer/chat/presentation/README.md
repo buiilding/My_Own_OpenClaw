@@ -1,5 +1,5 @@
 ---
-summary: "Renderer chat presentation docs sub-hub for shared chat action selectors, input send guards, thinking stream overflow behavior, message list class assembly, and token-count display formatting contracts."
+summary: "Renderer chat presentation docs sub-hub for shared chat action selectors, MessageInput send/clipboard/voice behavior, thinking stream overflow behavior, message list class assembly, and token-count formatting contracts."
 read_when:
   - When changing `frontend/src/renderer/features/chat/components/MessageInput.jsx`, `MessageList.jsx`, `ThinkingDisplay.jsx`, or `TokenCountDisplay.jsx`.
   - When modifying `useChatCommonActions` selector wiring or chat presentation utility helpers under `frontend/src/renderer/features/chat/utils/*`.
@@ -11,6 +11,7 @@ title: "Renderer Chat Presentation Docs Hub"
 ## Deep Pages
 
 - [Chat Common Actions Selector Boundary and Message-Input Send Guard Reference](chat_common_actions_selector_boundary_and_message_input_send_guard_reference.md)
+- [MessageInput Clipboard Image and Voice Submit Reference](message_input_clipboard_image_and_voice_submit_reference.md)
 - [Thinking Display Overflow, Message List Class Assembly, and Token Count Formatting Reference](thinking_display_overflow_message_list_class_assembly_and_token_count_formatting_reference.md)
 - [Renderer Chat Response-Overlay Presentation Docs Hub](response_overlay/README.md)
 - [Auto-Resized Response Height ResizeObserver and Clamp Contract Reference](response_overlay/auto_resized_response_height_resizeobserver_and_clamp_contract_reference.md)

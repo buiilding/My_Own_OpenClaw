@@ -53,7 +53,7 @@ Notable behavior:
 - `set-overlay-ignore-mouse`
 - `set-chatbox-size`
 - `set-responsebox-size`
-- `show-main-window` (optional target payload `{ open: 'chat' | 'memory' | 'models' | 'settings' }`)
+- `show-main-window` (optional payload `{ open?: 'chat' | 'memory' | 'models' | 'settings', maximize?: boolean }`)
 - `show-chatbox`
 - `hide-chatbox`
 - `get-displays`
@@ -70,6 +70,7 @@ Notable behavior:
 - overlay handlers guard for missing/destroyed windows and return structured success/reason payloads
 - chat/response/context windows are repositioned together after move/resize operations
 - `show-main-window` normalizes optional open-target payload and emits `main-window-open-target` to renderer on accepted target
+- `show-main-window { maximize:true }` restores/minimizes state and maximizes before focusing dashboard window
 
 ### `local_backend_bridge.cjs`
 
@@ -81,7 +82,9 @@ Direct `ipcMain.handle`:
 
 Mapped `ipcMain.handle` registrations via `registerMappedRpcHandlers(...)`:
 
+- `search-conversations`
 - `list-conversations`
+- `list-episodic-memories`
 - `get-conversation`
 - `list-semantic-memories`
 - `delete-conversation`

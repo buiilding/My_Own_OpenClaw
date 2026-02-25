@@ -52,6 +52,11 @@ Send sequence in chatbox component:
 3. clear input optimistically
 4. call async `sendMessage(trimmed)`
 
+Dashboard handoff affordance:
+
+- chatbox settings icon invokes `show-main-window` with `{ maximize: true }`.
+- this requests expanded dashboard view before focus handoff.
+
 ## Click-Through Control Model
 
 State inputs:

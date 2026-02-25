@@ -40,7 +40,9 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `execute-tool` | `main/local_backend_bridge.cjs` | Proxies to JSON-RPC `execute_tool` |
 | `get-system-state` | `main/local_backend_bridge.cjs` | Proxies to `get_system_state` |
 | `search-memory` | `main/local_backend_bridge.cjs` | Proxies to `search_memory` |
+| `search-conversations` | `main/local_backend_bridge.cjs` | Proxies to `search_conversations` |
 | `list-conversations` | `main/local_backend_bridge.cjs` | Proxies to `list_conversations` |
+| `list-episodic-memories` | `main/local_backend_bridge.cjs` | Proxies to `list_episodic_memories` |
 | `get-conversation` | `main/local_backend_bridge.cjs` | Proxies to `get_conversation` |
 | `list-semantic-memories` | `main/local_backend_bridge.cjs` | Proxies to `list_semantic_memories` |
 | `delete-conversation` | `main/local_backend_bridge.cjs` | Proxies to `delete_conversation` |
@@ -54,7 +56,7 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `set-overlay-ignore-mouse` | `main/index.cjs` | Toggle overlay click-through |
 | `set-chatbox-size` | `main/index.cjs` | Resize chatbox overlay |
 | `set-responsebox-size` | `main/index.cjs` | Resize response overlay |
-| `show-main-window` | `main/index.cjs` | Show dashboard window; optional `{ open }` target routing |
+| `show-main-window` | `main/index.cjs` | Show dashboard window; optional `{ open, maximize }` payload |
 | `show-chatbox` | `main/index.cjs` | Show chatbox overlay |
 | `hide-chatbox` | `main/index.cjs` | Hide chatbox overlay |
 | `get-displays` | `main/index.cjs` | Return display inventory |
@@ -120,7 +122,9 @@ Transport:
 | `execute-tool` | `execute_tool` | `{ toolName, args } -> { tool_name, args }`; screenshot tool uses Linux hide/show guard |
 | `get-system-state` | `get_system_state` | Optional `{ fields }` passthrough |
 | `search-memory` | `search_memory` | Maps `excludeConversationId` fallback to `exclude_conversation_id` |
+| `search-conversations` | `search_conversations` | `userId -> user_id` with query/limit passthrough |
 | `list-conversations` | `list_conversations` | `userId -> user_id`, `recordKind -> record_kind` |
+| `list-episodic-memories` | `list_episodic_memories` | `userId -> user_id` |
 | `get-conversation` | `get_conversation` | `conversationId -> conversation_id` (`null` when missing), `recordKind -> record_kind` |
 | `list-semantic-memories` | `list_semantic_memories` | `userId -> user_id` |
 | `delete-conversation` | `delete_conversation` | `conversationId -> conversation_id`, `recordKind -> record_kind` |
@@ -135,7 +139,7 @@ Transport:
 Registered callable surface:
 
 - Tool/system: `execute_tool`, `get_system_state`
-- Memory/transcript: `search_memory`, `store_memory`, `store_transcript`, `list_conversations`, `get_conversation`, `list_semantic_memories`, `delete_conversation`, `delete_semantic_memory`
+- Memory/transcript: `search_memory`, `search_conversations`, `store_memory`, `store_transcript`, `list_conversations`, `list_episodic_memories`, `get_conversation`, `list_semantic_memories`, `delete_conversation`, `delete_semantic_memory`
 - Health/diagnostics: `ping`, `get_status`
 
 ### JSON-RPC Validation Semantics (`core/ipc_protocol.py`)

@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for the ChatGPT-style dashboard shell: conversation-first main surface, modal panel routing for memory/models/settings, and main-process open-target event handling."
+summary: "Deep reference for ChatGptDashboardShell runtime: conversation-first layout, modal/panel exclusivity, recent/search conversation grouping, and rehydrate/open-target routing contracts."
 read_when:
-  - When changing `ChatGptDashboardShell` navigation, modal behavior, or open-target IPC handling.
-  - When changing which dashboard sections render in modals versus the main conversation surface.
+  - When changing `ChatGptDashboardShell` state ownership, modal open/close rules, or dashboard sidebar/search flows.
+  - When debugging conversation resume failures, stale active conversation highlighting, or `main-window-open-target` routing drift.
 title: "Dashboard Shell Modal Routing Contract Reference"
 ---
 
@@ -10,81 +10,142 @@ title: "Dashboard Shell Modal Routing Contract Reference"
 
 ## Canonical Modules
 
-- `frontend/src/renderer/app/App.jsx`
 - `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
+- `frontend/src/renderer/features/dashboard/components/DashboardSidebar.jsx`
+- `frontend/src/renderer/features/dashboard/components/SearchChatsModal.jsx`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
-- `frontend/src/renderer/features/dashboard/components/sections/EpisodicMemorySection.jsx`
-- `frontend/src/renderer/features/dashboard/components/sections/SemanticMemorySection.jsx`
-- `frontend/src/renderer/features/dashboard/components/sections/ModelsSection.jsx`
-- `frontend/src/renderer/features/dashboard/components/sections/SettingsSection.jsx`
+- `frontend/src/renderer/features/dashboard/utils/episodicMemoryUtils.js`
+- `frontend/src/renderer/infrastructure/ipc/channels.ts`
+- `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+- `frontend/src/renderer/infrastructure/api/client.ts`
+- `tests/frontend/ChatGptDashboardShell.test.jsx`
 
-## Main Surface Contract
+## Primary Surface Contract
 
-The main dashboard surface is conversation-only:
+Dashboard runtime is conversation-first:
 
-- `ChatInterface` is always mounted in the main content area.
-- memory/models/settings no longer replace the main route.
-- auxiliary panels open as modals over the conversation surface.
-- shell visuals follow the `chatgpt-website-clone` language: `#212121` main frame, `#171717` grouped left sidebar, and collapsed-sidebar toggle mode.
-- shell navigation uses the same lucide icon set semantics as the clone (`new chat`, `search`, `memory`, `models`, etc.) rather than custom dashboard glyphs.
-- sidebar `New chat` dispatches a renderer event (`windie:new-chat`) consumed by `ChatInterface` to reset conversation state, so the main-header duplicate new-chat button is not required.
-- expanded sidebar header mirrors clone layout (logo dot + collapse control only, no extra product text block).
-- collapsed sidebar renders clone-like inline expand control inside the rail (no separate floating open button), and passes `sidebarOpen` into `ChatInterface` so the chat header can render the clone logo dot when collapsed.
-- collapsed sidebar logo treatment mirrors clone icon-only mark (no white badge background), distinct from the expanded sidebar logo dot.
-- sidebar footer now mirrors clone profile treatment (avatar/name/plan in expanded mode, avatar-only in collapsed mode) while still routing to WindieOS settings panel on click.
-- sidebar `Your chats` section now renders clone-style recent chat rows sourced from stored transcript conversation metadata (`list-conversations`) plus a pinned `Current conversation` row.
-- clicking a recent chat row now restores that conversation into the primary chat surface by loading transcript memories (`get-conversation`), rehydrating backend context, and syncing renderer chat store/session refs.
+- `ChatInterface` is always mounted in the primary content region.
+- settings/models/memory/search are overlays driven by shell-owned state.
+- shell state owns panel visibility; child sections own their internal data/edit state.
 
-## Modal Routing Contract
+Panel state keys in shell:
 
-`ChatGptDashboardShell` owns three modal booleans:
-
-- `memoryOpen`
+- `settingsOpen`, `settingsInitialTab`
 - `modelsOpen`
-- `settingsOpen`
+- `memoryOpen`
+- `searchOpen`
 
-Opening one panel closes the others (`closeAllPanels`) to avoid stacked overlays.
+Global exclusivity guard:
 
-Modal visual contract:
+- `closeAllPanels()` closes all panel booleans.
+- every open helper (`openSettings/openModels/openMemory/handleOpenSearch`) calls `closeAllPanels()` first.
+- expected invariant: max one panel open at a time.
 
-- overlay and panel styling match the clone dark dialog treatment (`#2F2F2F` panel, dim backdrop).
-- shell does not inject an extra modal-header close icon; close behavior is backdrop/escape or section-level controls.
+## Sidebar and Search Surface Contract
 
-Memory modal includes local tab routing:
+Sidebar navigation actions:
 
-- `episodic` -> `EpisodicMemorySection`
-- `semantic` -> `SemanticMemorySection`
+- `New chat` dispatches `window` event `windie:new-chat`.
+- `Search chats` opens modal and resets search runtime state.
+- `Memory` opens memory modal.
+- `Models` opens models modal.
+- profile menu routes `Personalization`/`Settings` through `openSettings(tab)`.
 
-## External Open-Target Contract
+Collapsed rail behavior:
 
-Main process may emit `main-window-open-target` with payload:
+- same action ids as expanded sidebar.
+- active-state styling still tied to `searchOpen/memoryOpen/modelsOpen`.
+- profile menu remains available in collapsed mode.
 
-- `{ target: 'chat' }`
-- `{ target: 'settings' }`
-- `{ target: 'models' }`
-- `{ target: 'memory' }`
+Recent chat list behavior:
 
-Renderer behavior:
+- source channel: `LIST_CONVERSATIONS` with `recordKind: "transcript"`.
+- load path runs on mount and when session user id changes.
+- list is filtered to rows with `conversation_id`.
+- sort order is descending by `last_timestamp`.
 
-- chat target closes any open dashboard modal panel
-- settings target opens settings modal
-- models target opens models modal
-- memory target opens memory modal (episodic tab default)
+Grouping buckets for both recent and search result displays:
 
-## Ownership Boundaries
+- `today`
+- `yesterday`
+- `previous7Days`
+- `older`
 
-- config mutation remains in existing section components (`ModelsSection`, `SettingsSection`) via `onConfigChange`.
-- chat runtime state remains in `ChatInterface`/chat store; modal shell does not mutate chat stream state directly.
-- memory resume flow remains implemented in `EpisodicMemorySection`.
+## Search Chats Runtime Contract
+
+Search modal state owned by shell:
+
+- `searchQuery`
+- `searchedConversations`
+- `isSearchingConversations`
+- `searchConversationsError`
+
+Query policy:
+
+- trim query.
+- if length `< 2`: skip RPC search and clear search result list.
+- if length `>= 2`: run debounced search (`180ms`) via `SEARCH_CONVERSATIONS`.
+- cancellation guard prevents stale async state writes on rapid query changes/unmount.
+
+Search RPC payload:
+
+- `userId`
+- `query`
+- `limit: 60`
+
+Result payload expectations:
+
+- each row may include `conversation_id`, `title`, `snippet`, `matched_role`, `last_timestamp`.
+- UI normalizes `matched_role` labels (`user -> You`, `assistant -> Assistant`).
+- snippet line prefixes role only when snippet does not already start with that prefix.
+
+Search modal behavior:
+
+- focuses input after open (`setTimeout` focus handoff).
+- `Escape` closes modal.
+- overlay click-outside closes modal.
+- `New chat` button closes modal then dispatches new-chat action.
+
+## Conversation Resume/Rehydrate Flow
+
+Shell `handleOpenConversation(conversation)` lifecycle:
+
+1. resolve `conversation_ref` from selected row.
+2. close all open panels.
+3. call `GET_CONVERSATION` (`limit: 1000`, `recordKind` from row fallback to `transcript`).
+4. map memories into renderer rows via `parseMemoriesToMessages`.
+5. send backend rehydrate request: `ApiClient.sendRehydrateConversation(conversationRef, memories.map(toRehydrateMessagePayload))`.
+6. sync transcript runtime: `setActiveConversationRef(conversationRef)` and `updateTranscriptSession(conversationRef, resolvedUserId)`.
+7. replace chat store message list and clear sending/thinking flags.
+
+Failure behavior:
+
+- errors are captured into `recentConversationsError`.
+- existing chat state is not force-reset on failure.
+
+## Main-Process Open Target Contract
+
+Shell listens on `ON_CHANNELS.MAIN_WINDOW_OPEN_TARGET`.
+
+Accepted targets:
+
+- `chat` -> close panels only.
+- `settings` -> open settings modal.
+- `models` -> open models modal.
+- `memory` -> open memory modal.
+
+Unrecognized targets are ignored.
 
 ## Drift Hotspots
 
-1. Adding a new open target without updating both preload allowlist and renderer channel constants.
-2. Routing a panel into main content instead of modal can violate conversation-first dashboard contract.
-3. Opening multiple modals at once without close-all behavior causes stacked overlay regressions.
+1. Adding panel booleans without extending `closeAllPanels` breaks modal exclusivity.
+2. Changing search debounce/query-length threshold without tests can regress network chatter and stale list behavior.
+3. Changing conversation grouping logic in one path (recent/search) but not the other causes UI ordering drift.
+4. Skipping `updateTranscriptSession` after rehydrate causes transcript write routing to stale conversation ids.
 
 ## Related Pages
 
 - [Renderer Dashboard Docs Hub](README.md)
-- [Settings Section Display Selection and Config Toggle Reference](../settings/settings_section_display_selection_and_config_toggle_reference.md)
-- [Window and Overlay Lifecycle](../../main/window_and_overlay_lifecycle.md)
+- [Dashboard Memory Management and Resume Reference](../dashboard_memory_management_and_resume_reference.md)
+- [Models Section Selection Reconciliation and Dashboard Storage Contract Reference](models_section_selection_reconciliation_and_dashboard_storage_contract_reference.md)
+- [Memory IPC and RPC Mapping Reference](../../contracts/memory_ipc_and_rpc_mapping_reference.md)
