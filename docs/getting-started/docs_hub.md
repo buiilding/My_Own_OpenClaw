@@ -32,6 +32,7 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 ## Deep Technical Maps
 
 - [Backend Functionality Map](../backend/README.md)
+- [Backend Full Functionality Inventory Reference](../backend/backend_full_functionality_inventory_reference.md)
 - [Backend Bootstrap Docs Hub](../backend/bootstrap/README.md)
 - [Backend Bootstrap Entrypoints Docs Hub](../backend/bootstrap/entrypoints/README.md)
 - [Backend Core Infrastructure Docs Hub](../backend/core/README.md)
