@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(backend-api-processing-formatters-actions): add `processing/formatters/actions` subhub with tool-call/tool-output validation and metadata passthrough contracts plus tool-bundle typed/dict parity and default-payload references
 - docs(backend-api-processing-formatters-signals): add `processing/formatters/signals` subhub with chunk/thinking required-content skip contracts and token-count/tool-schemas schema-alignment plus strict-validation references
 - docs(frontend-renderer-providers-contexts): add `renderer/providers/contexts` subhub with app config/status hook-guard and AppContextHooks re-export boundary reference plus ChatProvider empty-context/flag contracts
 - docs(frontend-renderer-dashboard): add `renderer/dashboard` subhub with section-router/placeholder contracts plus model-selection reconciliation and dashboard-storage behavior references
