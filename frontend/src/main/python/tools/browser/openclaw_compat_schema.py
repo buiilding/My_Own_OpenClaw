@@ -31,7 +31,6 @@ class BrowserOpenClawCompatArgs(BaseModel):
         "replace_file",
         "read_file",
         "read_long_content",
-        "act",
     ] = Field(..., description="OpenClaw-compatible browser action")
     mode: Optional[
         Literal[
@@ -108,7 +107,11 @@ class BrowserOpenClawCompatArgs(BaseModel):
         None, description="Prompt text for dialog.accept() (snake_case)"
     )
     request: Optional[Dict[str, Any]] = Field(
-        None, description="Nested action payload for act."
+        None,
+        description=(
+            "Legacy compatibility field for historical act envelope payloads "
+            "(act alias removed at browser tool boundary)."
+        ),
     )
     text: Optional[str] = Field(
         None, description="Text payload for done/input/find_text/select_dropdown actions"
