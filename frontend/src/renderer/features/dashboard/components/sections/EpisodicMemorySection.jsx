@@ -17,42 +17,11 @@ import {
   formatModelLabel,
   formatTimestamp,
   parseMemoriesToMessages,
+  toRehydrateMessagePayload,
   toTimestampValue,
 } from '../../utils/episodicMemoryUtils';
 import '../../../../styles/SettingsPanel.css';
 import '../../../../styles/ChatInterface.css';
-
-function looksLikeInlineImageData(value) {
-  if (!value || typeof value !== 'string') {
-    return false;
-  }
-  if (value.startsWith('data:image/')) {
-    return true;
-  }
-  return /^[A-Za-z0-9+/]+={0,2}$/.test(value) && value.length >= 128;
-}
-
-function toRehydrateMessage(memory) {
-  const metadata = memory?.metadata || {};
-  const role = memory?.role || metadata?.role || 'assistant';
-  const messageType = memory?.message_type || metadata?.message_type || null;
-  const rawScreenshot = memory?.screenshot || metadata?.screenshot || null;
-  const screenshotInline = looksLikeInlineImageData(rawScreenshot);
-  const screenshotRef = memory?.screenshot_ref
-    || metadata?.screenshot_ref
-    || (!screenshotInline && typeof rawScreenshot === 'string' ? rawScreenshot : null);
-
-  return {
-    role,
-    content: memory?.content || '',
-    message_type: messageType,
-    tool_name: memory?.tool_name || metadata?.tool_name || null,
-    correlation_id: memory?.correlation_id || metadata?.correlation_id || null,
-    timestamp: memory?.timestamp || null,
-    screenshot_ref: screenshotRef,
-    screenshot: screenshotInline ? rawScreenshot : null,
-  };
-}
 
 function EpisodicMemorySection({ onSelectSection }) {
   const [conversations, setConversations] = useState([]);
@@ -256,7 +225,7 @@ function EpisodicMemorySection({ onSelectSection }) {
     try {
       await ApiClient.sendRehydrateConversation(
         conversationRef,
-        rawConversationMemories.map(toRehydrateMessage),
+        rawConversationMemories.map(toRehydrateMessagePayload),
       );
       setActiveConversationRef(conversationRef);
       updateTranscriptSession(conversationRef, sessionInfo.userId || null);

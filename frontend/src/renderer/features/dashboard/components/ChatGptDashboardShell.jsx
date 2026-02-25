@@ -1,114 +1,28 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
-import {
-  PenSquare,
-  Search,
-  Brain,
-  Image,
-  LayoutGrid,
-  Sparkles,
-  Cpu,
-  FolderOpen,
-  Compass,
-  PanelLeft,
-  PanelLeftClose,
-} from 'lucide-react';
 import ChatInterface from '../../chat/components/ChatInterface';
+import { useChatStore } from '../../chat/stores/chatStore';
+import { ApiClient } from '../../../infrastructure/api/client';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import {
+  setActiveConversationRef,
+  updateTranscriptSession,
+} from '../../../infrastructure/transcript/TranscriptWriter';
 import EpisodicMemorySection from './sections/EpisodicMemorySection';
 import SemanticMemorySection from './sections/SemanticMemorySection';
 import ModelsSection from './sections/ModelsSection';
 import SettingsSection from './sections/SettingsSection';
-import { DEFAULT_USER_ID } from '../utils/episodicMemoryUtils';
+import {
+  DEFAULT_USER_ID,
+  parseMemoriesToMessages,
+  toRehydrateMessagePayload,
+} from '../utils/episodicMemoryUtils';
+import DashboardSidebar from './DashboardSidebar';
 
 const MEMORY_TABS = Object.freeze({
   EPISODIC: 'episodic',
   SEMANTIC: 'semantic',
 });
-
-const PRIMARY_NAV_ITEMS = Object.freeze([
-  { id: 'new-chat', label: 'New chat', icon: PenSquare },
-  { id: 'search', label: 'Search chats', icon: Search },
-]);
-
-const PRODUCT_NAV_ITEMS = Object.freeze([
-  { id: 'memory', label: 'Memory', icon: Brain },
-  { id: 'images', label: 'Images', icon: Image },
-  { id: 'apps', label: 'Apps', icon: LayoutGrid },
-  { id: 'deep-research', label: 'Deep research', icon: Sparkles },
-  { id: 'models', label: 'Models', icon: Cpu },
-  { id: 'projects', label: 'Projects', icon: FolderOpen },
-]);
-
-function ChatGptLogo({ size = 14 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-ChatGptLogo.propTypes = {
-  size: PropTypes.number,
-};
-
-function SidebarItem({
-  label,
-  icon: Icon,
-  onClick = undefined,
-  isActive = false,
-  collapsed = false,
-}) {
-  return (
-    <button
-      type="button"
-      className={`cg-nav-item${isActive ? ' active' : ''}${collapsed ? ' collapsed' : ''}`.trim()}
-      onClick={onClick}
-      aria-label={label}
-      title={collapsed ? label : undefined}
-    >
-      <span className="cg-nav-item-icon" aria-hidden="true">
-        <Icon size={18} />
-      </span>
-      {!collapsed ? <span className="cg-nav-item-label">{label}</span> : null}
-    </button>
-  );
-}
-
-SidebarItem.propTypes = {
-  label: PropTypes.string.isRequired,
-  icon: PropTypes.elementType.isRequired,
-  onClick: PropTypes.func,
-  isActive: PropTypes.bool,
-  collapsed: PropTypes.bool,
-};
-
-function SidebarUserButton({ collapsed = false, onClick }) {
-  return (
-    <button
-      type="button"
-      className={`cg-user-button${collapsed ? ' collapsed' : ''}`}
-      onClick={onClick}
-      aria-label="Open settings"
-      title={collapsed ? 'Settings' : undefined}
-    >
-      <span className="cg-user-avatar" aria-hidden="true">q</span>
-      {!collapsed ? (
-        <span className="cg-user-meta">
-          <span className="cg-user-name">q p</span>
-          <span className="cg-user-plan">Pro</span>
-        </span>
-      ) : null}
-    </button>
-  );
-}
-
-SidebarUserButton.propTypes = {
-  collapsed: PropTypes.bool,
-  onClick: PropTypes.func.isRequired,
-};
 
 function DashboardModal({ isOpen, onClose, children, className = '' }) {
   if (!isOpen) {
@@ -152,6 +66,10 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
   const [recentConversations, setRecentConversations] = useState([]);
   const [isLoadingRecentConversations, setIsLoadingRecentConversations] = useState(false);
   const [recentConversationsError, setRecentConversationsError] = useState('');
+
+  const setChatMessages = useChatStore((state) => state.setMessages);
+  const setChatIsSending = useChatStore((state) => state.setIsSending);
+  const setChatThinkingStatus = useChatStore((state) => state.setThinkingStatus);
 
   const closeAllPanels = useCallback(() => {
     setSettingsOpen(false);
@@ -222,6 +140,50 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
     }
   }, []);
 
+  const handleOpenConversation = useCallback(async (conversation) => {
+    const conversationRef = conversation?.conversation_id;
+    if (!conversationRef) {
+      return;
+    }
+
+    closeAllPanels();
+    setRecentConversationsError('');
+
+    try {
+      const result = await IpcBridge.invoke(INVOKE_CHANNELS.GET_CONVERSATION, {
+        userId: DEFAULT_USER_ID,
+        conversationId: conversationRef,
+        limit: 1000,
+        recordKind: conversation?.record_kind || 'transcript',
+      });
+
+      if (!result || result.success === false) {
+        throw new Error(result?.error || 'Failed to load conversation');
+      }
+
+      const memories = result?.data?.memories ?? [];
+      const parsedMessages = parseMemoriesToMessages(memories);
+
+      await ApiClient.sendRehydrateConversation(
+        conversationRef,
+        memories.map(toRehydrateMessagePayload),
+      );
+
+      setActiveConversationRef(conversationRef);
+      updateTranscriptSession(conversationRef, DEFAULT_USER_ID);
+      setChatMessages(parsedMessages);
+      setChatIsSending(false);
+      setChatThinkingStatus(null);
+    } catch (error) {
+      setRecentConversationsError(error?.message || 'Failed to open conversation');
+    }
+  }, [
+    closeAllPanels,
+    setChatIsSending,
+    setChatMessages,
+    setChatThinkingStatus,
+  ]);
+
   useEffect(() => {
     loadRecentConversations();
   }, [loadRecentConversations]);
@@ -233,6 +195,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
       previous7Days: [],
       older: [],
     };
+
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const yesterday = new Date(today);
@@ -245,11 +208,12 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
       const conversationDate = Number.isNaN(timestampValue)
         ? new Date(0)
         : new Date(timestampValue);
-      const title = `Conversation ${index + 1}`;
       const item = {
         key: conversation?.conversation_id || `conversation-${index}`,
-        title,
+        title: `Conversation ${index + 1}`,
+        conversation,
       };
+
       if (conversationDate >= today) {
         groups.today.push(item);
         return;
@@ -287,6 +251,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
         openMemory(MEMORY_TABS.EPISODIC);
       }
     });
+
     return () => {
       removeListener?.();
     };
@@ -294,196 +259,21 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
 
   return (
     <div className="cg-dashboard-shell">
-      {sidebarOpen ? (
-        <aside className="cg-sidebar">
-          <div className="cg-sidebar-header">
-            <div className="cg-sidebar-brand">
-              <div className="cg-brand-dot">
-                <ChatGptLogo size={14} />
-              </div>
-            </div>
-            <button
-              type="button"
-              className="cg-sidebar-toggle"
-              onClick={handleSidebarToggle}
-              aria-label="Collapse sidebar"
-              title="Collapse sidebar"
-            >
-              <PanelLeftClose size={18} />
-            </button>
-          </div>
-
-          <div className="cg-sidebar-content">
-            <nav className="cg-sidebar-nav">
-              {PRIMARY_NAV_ITEMS.map((item) => (
-                <SidebarItem
-                  key={item.id}
-                  label={item.label}
-                  icon={item.icon}
-                  onClick={item.id === 'new-chat' ? handleStartNewChat : handleChatSurface}
-                />
-              ))}
-            </nav>
-
-            <div className="cg-sidebar-divider" />
-
-            <nav className="cg-sidebar-nav">
-              {PRODUCT_NAV_ITEMS.map((item) => {
-                if (item.id === 'memory') {
-                  return (
-                    <SidebarItem
-                      key={item.id}
-                      label={item.label}
-                      icon={item.icon}
-                      onClick={handleMemorySurface}
-                      isActive={memoryOpen}
-                    />
-                  );
-                }
-                if (item.id === 'models') {
-                  return (
-                    <SidebarItem
-                      key={item.id}
-                      label={item.label}
-                      icon={item.icon}
-                      onClick={openModels}
-                      isActive={modelsOpen}
-                    />
-                  );
-                }
-                return (
-                  <SidebarItem
-                    key={item.id}
-                    label={item.label}
-                    icon={item.icon}
-                  />
-                );
-              })}
-            </nav>
-
-            <div className="cg-sidebar-divider" />
-            <div className="cg-sidebar-section-label">GPTs</div>
-            <button type="button" className="cg-gpt-card">
-              <span className="cg-gpt-dot" aria-hidden="true">C</span>
-              <span>Canva</span>
-            </button>
-            <SidebarItem label="Explore GPTs" icon={Compass} collapsed={false} />
-            <div className="cg-sidebar-divider" />
-            <div className="cg-sidebar-section-label">Your chats</div>
-            <div className="cg-chat-list-scroll">
-              <button type="button" className="cg-chat-card">
-                Current conversation
-              </button>
-              {isLoadingRecentConversations ? (
-                <div className="cg-chat-list-state">Loading chats...</div>
-              ) : recentConversationsError ? (
-                <div className="cg-chat-list-state">Unable to load chats.</div>
-              ) : (
-                <>
-                  {recentConversationGroups.today.map((conversation) => (
-                    <button key={`today-${conversation.key}`} type="button" className="cg-chat-item" onClick={handleChatSurface}>
-                      {conversation.title}
-                    </button>
-                  ))}
-                  {recentConversationGroups.yesterday.map((conversation) => (
-                    <button key={`yesterday-${conversation.key}`} type="button" className="cg-chat-item" onClick={handleChatSurface}>
-                      {conversation.title}
-                    </button>
-                  ))}
-                  {recentConversationGroups.previous7Days.map((conversation) => (
-                    <button key={`week-${conversation.key}`} type="button" className="cg-chat-item" onClick={handleChatSurface}>
-                      {conversation.title}
-                    </button>
-                  ))}
-                  {recentConversationGroups.older.map((conversation) => (
-                    <button key={`older-${conversation.key}`} type="button" className="cg-chat-item" onClick={handleChatSurface}>
-                      {conversation.title}
-                    </button>
-                  ))}
-                </>
-              )}
-            </div>
-          </div>
-
-          <div className="cg-sidebar-footer">
-            <SidebarUserButton onClick={openSettings} />
-          </div>
-        </aside>
-      ) : (
-        <aside className="cg-sidebar collapsed">
-          <div className="cg-sidebar-header">
-            <div className="cg-brand-mark" aria-hidden="true">
-              <ChatGptLogo size={14} />
-            </div>
-            <button
-              type="button"
-              className="cg-sidebar-toggle"
-              onClick={handleSidebarToggle}
-              aria-label="Expand sidebar"
-              title="Expand sidebar"
-            >
-              <PanelLeft size={18} />
-            </button>
-          </div>
-
-          <div className="cg-sidebar-content">
-            <nav className="cg-sidebar-nav">
-              {PRIMARY_NAV_ITEMS.map((item) => (
-                <SidebarItem
-                  key={item.id}
-                  label={item.label}
-                  icon={item.icon}
-                  onClick={item.id === 'new-chat' ? handleStartNewChat : handleChatSurface}
-                  collapsed
-                />
-              ))}
-            </nav>
-
-            <div className="cg-sidebar-divider" />
-
-            <nav className="cg-sidebar-nav">
-              {PRODUCT_NAV_ITEMS.map((item) => {
-                if (item.id === 'memory') {
-                  return (
-                    <SidebarItem
-                      key={item.id}
-                      label={item.label}
-                      icon={item.icon}
-                      onClick={handleMemorySurface}
-                      isActive={memoryOpen}
-                      collapsed
-                    />
-                  );
-                }
-                if (item.id === 'models') {
-                  return (
-                    <SidebarItem
-                      key={item.id}
-                      label={item.label}
-                      icon={item.icon}
-                      onClick={openModels}
-                      isActive={modelsOpen}
-                      collapsed
-                    />
-                  );
-                }
-                return (
-                  <SidebarItem
-                    key={item.id}
-                    label={item.label}
-                    icon={item.icon}
-                    collapsed
-                  />
-                );
-              })}
-            </nav>
-          </div>
-
-          <div className="cg-sidebar-footer">
-            <SidebarUserButton collapsed onClick={openSettings} />
-          </div>
-        </aside>
-      )}
+      <DashboardSidebar
+        sidebarOpen={sidebarOpen}
+        onToggleSidebar={handleSidebarToggle}
+        onStartNewChat={handleStartNewChat}
+        onChatSurface={handleChatSurface}
+        onOpenMemory={handleMemorySurface}
+        onOpenModels={openModels}
+        onOpenSettings={openSettings}
+        memoryOpen={memoryOpen}
+        modelsOpen={modelsOpen}
+        isLoadingRecentConversations={isLoadingRecentConversations}
+        recentConversationsError={recentConversationsError}
+        recentConversationGroups={recentConversationGroups}
+        onOpenConversation={handleOpenConversation}
+      />
 
       <main className={`cg-main-content${sidebarOpen ? '' : ' cg-main-content-collapsed'}`.trim()}>
         <ChatInterface sidebarOpen={sidebarOpen} />

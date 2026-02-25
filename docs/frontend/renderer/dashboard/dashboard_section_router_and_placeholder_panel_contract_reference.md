@@ -33,6 +33,7 @@ The main dashboard surface is conversation-only:
 - collapsed sidebar logo treatment mirrors clone icon-only mark (no white badge background), distinct from the expanded sidebar logo dot.
 - sidebar footer now mirrors clone profile treatment (avatar/name/plan in expanded mode, avatar-only in collapsed mode) while still routing to WindieOS settings panel on click.
 - sidebar `Your chats` section now renders clone-style recent chat rows sourced from stored transcript conversation metadata (`list-conversations`) plus a pinned `Current conversation` row.
+- clicking a recent chat row now restores that conversation into the primary chat surface by loading transcript memories (`get-conversation`), rehydrating backend context, and syncing renderer chat store/session refs.
 
 ## Modal Routing Contract
 
