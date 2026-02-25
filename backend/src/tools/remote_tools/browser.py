@@ -64,6 +64,14 @@ Compatibility validation notes:
             return False
         return raw not in {"0", "false", "no", "off"}
 
+    @classmethod
+    def _legacy_action_block_gate(cls) -> str | None:
+        if cls._strict_canonical_actions_enabled():
+            return f"{cls.strict_canonical_actions_env}=1"
+        if not cls._legacy_actions_allowed():
+            return f"{cls.allow_legacy_actions_env}=1"
+        return None
+
     @staticmethod
     def _log_legacy_action_warning(
         action: str,
@@ -103,15 +111,10 @@ Compatibility validation notes:
         )
 
     async def execute_remote(self, args: BrowserControlArgs, ctx: ToolContext) -> Any:
-        if args.is_legacy and (
-            self._strict_canonical_actions_enabled() or not self._legacy_actions_allowed()
-        ):
+        gate = self._legacy_action_block_gate() if args.is_legacy else None
+        if gate is not None:
             preferred = args.preferred_action
             preferred_text = f" Use '{preferred}' instead." if preferred else ""
-            if self._strict_canonical_actions_enabled():
-                gate = f"{self.strict_canonical_actions_env}=1"
-            else:
-                gate = f"{self.allow_legacy_actions_env}=1"
             self._log_legacy_action_warning(
                 args.action,
                 preferred,
