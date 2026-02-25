@@ -74,6 +74,15 @@ describe('useChatMessageSender', () => {
     });
   }
 
+  async function sendPayload(
+    sender: ReturnType<typeof renderSender>['result'],
+    payload: any,
+  ) {
+    await act(async () => {
+      await sender.current.sendMessage(payload);
+    });
+  }
+
   function expectSingleSendQueryCall(
     text: string,
     conversationRef: string,
@@ -345,6 +354,45 @@ describe('useChatMessageSender', () => {
       expect.objectContaining({
         conversationRef: 'conv_msg-1',
         screenshotRef: 'artifact-1',
+      }),
+    );
+  });
+
+  test('uploads pasted clipboard image and sends its artifact ref', async () => {
+    mockUploadArtifactBase64.mockResolvedValue({
+      artifactId: 'artifact-clipboard-1',
+      url: '/api/artifacts/artifact-clipboard-1',
+    } as any);
+
+    const { result } = renderSender({ senderSurface: 'main-window' });
+
+    await sendPayload(result, {
+      text: 'Please inspect this image',
+      clipboardImage: {
+        base64: 'clipboard-image-base64',
+        contentType: 'image/png',
+        filename: 'clipboard-image.png',
+      },
+    });
+
+    expect(mockExtractOSstate).not.toHaveBeenCalled();
+    expect(mockUploadArtifactBase64).toHaveBeenCalledWith(
+      'clipboard-image-base64',
+      'image/png',
+      'clipboard-image.png',
+    );
+    expectSingleSendQueryCall(
+      'Please inspect this image',
+      'conv_msg-1',
+      'artifact-clipboard-1',
+      '/api/artifacts/artifact-clipboard-1',
+    );
+    expect(useChatStore.getState().messages[0]).toEqual(
+      expect.objectContaining({
+        text: 'Please inspect this image',
+        screenshot: 'clipboard-image-base64',
+        screenshotRef: 'artifact-clipboard-1',
+        screenshotUrl: '/api/artifacts/artifact-clipboard-1',
       }),
     );
   });

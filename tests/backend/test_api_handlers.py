@@ -1032,7 +1032,12 @@ async def test_update_settings_handler_updates_session():
         id="msg_9",
         type="update-settings",
         user_id="user_1",
-        payload={"model_provider": "openai", "selected_model_id": "gpt-5.1"},
+        payload={
+            "model_provider": "openai",
+            "selected_model_id": "gpt-5.1",
+            "wakeword_stt_enabled": True,
+            "agent_full_sudo_enabled": True,
+        },
     )
 
     await handler.handle(message, websocket, "user_1")
@@ -1041,6 +1046,8 @@ async def test_update_settings_handler_updates_session():
     assert websocket.sent[0]["type"] == "settings-updated"
     assert "updated_keys" in websocket.sent[0]["payload"]
     assert session_manager.session.updated_configs
+    assert session_manager.session.cfg.wakeword_stt_enabled is True
+    assert session_manager.session.cfg.agent_full_sudo_enabled is True
 
 
 @pytest.mark.asyncio
@@ -1082,12 +1089,14 @@ async def test_load_settings_handler_returns_frontend_config():
     assert websocket.sent
     assert websocket.sent[0]["type"] == "settings-loaded"
     assert websocket.sent[0]["payload"]["config"] == {
+        "agent_full_sudo_enabled": False,
         "include_query_screenshot": True,
         "interaction_mode": "chat",
         "model_mode": "online",
         "model_provider": "openai",
         "selected_model_id": "gpt-5.1",
         "speech_mode_enabled": False,
+        "wakeword_stt_enabled": False,
         "voice_mode_enabled": False,
     }
 

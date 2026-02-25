@@ -33,6 +33,66 @@
   --radius-lg: 18px;
   --radius-md: 12px;
   --radius-sm: 8px;
+
+  /* Legacy dashboard palette (pre overlay-alignment). */
+  --legacy-dashboard-shell-bg: #212121;
+  --legacy-dashboard-sidebar-bg: #171717;
+  --legacy-dashboard-panel-bg: #2f2f2f;
+  --legacy-dashboard-hover-bg: #2f2f2f;
+  --legacy-dashboard-hover-strong-bg: #424242;
+  --legacy-dashboard-text-primary: #ececec;
+  --legacy-dashboard-text-secondary: #b4b4b4;
+  --legacy-dashboard-text-muted: #8e8e8e;
+  --legacy-dashboard-text-dim: #676767;
+  --legacy-dashboard-scrim: rgba(0, 0, 0, 0.62);
+
+  /* Always-on-top pill palette source. */
+  --pill-surface-bg: rgba(10, 10, 10, 0.9);
+  --pill-surface-raised-bg: rgba(12, 12, 12, 0.92);
+  --pill-border: rgba(38, 38, 38, 1);
+  --pill-border-soft: rgba(255, 255, 255, 0.12);
+  --pill-border-subtle: rgba(255, 255, 255, 0.08);
+  --pill-text-primary: rgba(250, 250, 250, 1);
+  --pill-text-muted: rgba(163, 163, 163, 1);
+  --pill-hover-bg: rgba(38, 38, 38, 1);
+  --pill-hover-strong-bg: rgba(56, 56, 56, 1);
+  --pill-scrim: rgba(0, 0, 0, 0.68);
+  --pill-shadow: 0 24px 60px rgba(0, 0, 0, 0.56);
+  --pill-shadow-strong:
+    0 30px 64px -22px rgba(0, 0, 0, 0.82),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --pill-backdrop-blur: 24px;
+
+  /* Active theme mapping. To revert quickly, point these back to --legacy-* tokens below. */
+  --ui-shell-bg: #171717;
+  --ui-sidebar-bg: #111111;
+  --ui-panel-bg: var(--pill-surface-bg);
+  --ui-panel-raised-bg: var(--pill-surface-raised-bg);
+  --ui-hover-bg: var(--pill-hover-bg);
+  --ui-hover-strong-bg: var(--pill-hover-strong-bg);
+  --ui-text-primary: var(--pill-text-primary);
+  --ui-text-secondary: rgba(233, 233, 233, 0.88);
+  --ui-text-muted: var(--pill-text-muted);
+  --ui-text-dim: rgba(126, 126, 126, 1);
+  --ui-border: var(--pill-border);
+  --ui-border-soft: var(--pill-border-soft);
+  --ui-border-subtle: var(--pill-border-subtle);
+  --ui-scrim: var(--pill-scrim);
+  --ui-shadow: var(--pill-shadow);
+  --ui-shadow-strong: var(--pill-shadow-strong);
+  --ui-backdrop-blur: var(--pill-backdrop-blur);
+  --ui-send-bg: rgba(250, 250, 250, 1);
+  --ui-send-bg-hover: rgba(250, 250, 250, 0.9);
+  --ui-send-bg-disabled: rgba(171, 171, 171, 1);
+  --ui-send-text: rgba(23, 23, 23, 1);
+  --ui-neutral-white: #ffffff;
+  --ui-neutral-black: #000000;
+  --ui-brand-dot-bg: var(--ui-neutral-white);
+  --ui-brand-dot-fg: var(--ui-neutral-black);
+  --ui-gpt-dot-bg: #00c4cc;
+  --ui-on-accent: var(--ui-neutral-white);
+  --ui-settings-swatch-bg: var(--ui-neutral-black);
+  --ui-toggle-thumb-on: var(--ui-neutral-white);
 }
 
 *,

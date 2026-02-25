@@ -547,7 +547,11 @@ function initializeIpc(win, options = {}) {
   connect();
 
   ipcMain.handle('load-frontend-config', async () => {
-    return await loadCachedFrontendConfigFromDisk();
+    const config = await loadCachedFrontendConfigFromDisk();
+    if (isValidConfigPayload(config)) {
+      latestFrontendConfig = { ...config };
+    }
+    return config;
   });
 
   ipcMain.handle('get-client-user-id', async () => {
@@ -656,7 +660,15 @@ function registerRendererWindow(win) {
   trackRendererWindow(win);
 }
 
+function getLatestFrontendConfig() {
+  if (!isValidConfigPayload(latestFrontendConfig)) {
+    return null;
+  }
+  return { ...latestFrontendConfig };
+}
+
 module.exports = {
+  getLatestFrontendConfig,
   initializeIpc,
   registerRendererWindow,
   sendMessageToBackend,

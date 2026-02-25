@@ -6,6 +6,8 @@ import MessageInput from '../../frontend/src/renderer/features/chat/components/M
 let mockVoiceState;
 let lastOnTranscriptionUpdate;
 let lastOnUtteranceEnd;
+const FILE_READER_DATA_URL = 'data:image/png;base64,ZmFrZS1iYXNlNjQ=';
+const FILE_READER_BASE64 = 'ZmFrZS1iYXNlNjQ=';
 
 jest.mock('../../frontend/src/renderer/features/voice/hooks/useVoiceMode', () => ({
   useVoiceMode: (_enabled, onTranscriptionUpdate, onUtteranceEnd) => {
@@ -16,6 +18,8 @@ jest.mock('../../frontend/src/renderer/features/voice/hooks/useVoiceMode', () =>
 }));
 
 describe('MessageInput', () => {
+  const originalFileReader = global.FileReader;
+
   beforeEach(() => {
     mockVoiceState = {
       isConnected: false,
@@ -25,7 +29,40 @@ describe('MessageInput', () => {
     };
     lastOnTranscriptionUpdate = undefined;
     lastOnUtteranceEnd = undefined;
+    global.FileReader = class MockFileReader {
+      constructor() {
+        this.result = null;
+        this.error = null;
+        this.onload = null;
+        this.onerror = null;
+      }
+
+      readAsDataURL() {
+        this.result = FILE_READER_DATA_URL;
+        if (typeof this.onload === 'function') {
+          this.onload();
+        }
+      }
+    };
   });
+
+  afterEach(() => {
+    global.FileReader = originalFileReader;
+  });
+
+  function buildImagePasteEvent() {
+    return {
+      clipboardData: {
+        getData: jest.fn(() => ''),
+        items: [
+          {
+            type: 'image/png',
+            getAsFile: () => new Blob(['image'], { type: 'image/png' }),
+          },
+        ],
+      },
+    };
+  }
 
   test('submits trimmed message text', () => {
     const onSendMessage = jest.fn();
@@ -88,5 +125,49 @@ describe('MessageInput', () => {
 
     expect(onSendMessage).toHaveBeenCalledWith('hello from voice');
     expect(input.value).toBe('');
+  });
+
+  test('shows pasted image preview and sends it with the typed message', async () => {
+    const onSendMessage = jest.fn();
+    render(<MessageInput onSendMessage={onSendMessage} isSending={false} />);
+
+    const input = screen.getByLabelText('Type your message');
+
+    await act(async () => {
+      fireEvent.paste(input, buildImagePasteEvent());
+    });
+
+    expect(screen.getByAltText('Pasted image preview')).toBeInTheDocument();
+
+    fireEvent.change(input, { target: { value: '  analyze this  ', selectionStart: 14 } });
+    fireEvent.submit(input.closest('form'));
+
+    expect(onSendMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: 'analyze this',
+        clipboardImage: expect.objectContaining({
+          base64: FILE_READER_BASE64,
+          contentType: 'image/png',
+          filename: 'clipboard-image.png',
+        }),
+      }),
+    );
+    expect(screen.queryByAltText('Pasted image preview')).not.toBeInTheDocument();
+  });
+
+  test('allows removing pasted image preview before sending', async () => {
+    render(<MessageInput onSendMessage={jest.fn()} isSending={false} />);
+
+    const input = screen.getByLabelText('Type your message');
+
+    await act(async () => {
+      fireEvent.paste(input, buildImagePasteEvent());
+    });
+
+    expect(screen.getByAltText('Pasted image preview')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Remove pasted image' }));
+
+    expect(screen.queryByAltText('Pasted image preview')).not.toBeInTheDocument();
   });
 });

@@ -1,9 +1,11 @@
 const { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, screen, globalShortcut } = require('electron');
 const path = require('path');
-const { initializeIpc, registerRendererWindow } = require('./ipc.cjs');
+const os = require('os');
+const { getLatestFrontendConfig, initializeIpc, registerRendererWindow } = require('./ipc.cjs');
 const { initializeWakewordBridge } = require('./wakeword_bridge.cjs');
 const { initializeLocalBackendBridge, stopLocalBackend } = require('./local_backend_bridge.cjs');
 const { createExternalFocusTracker } = require('./external_focus_tracker.cjs');
+const { handleSetAgentSudoAccess } = require('./agent_sudo_access_handler.cjs');
 const {
   getChatWindowBounds: getOverlayChatWindowBounds,
   getResponseWindowBounds: getOverlayResponseWindowBounds,
@@ -51,6 +53,7 @@ let overlayHandlersInitialized = false;
 let responseOverlayVisible = false;
 let responseOverlayPhase = 'idle';
 const WAKEWORD_HOTKEY = 'Super+Alt+W';
+const WAKEWORD_STT_TRIGGER_CHANNEL = 'wakeword-stt-trigger';
 const MAIN_WINDOW_OPEN_TARGET_CHANNEL = 'main-window-open-target';
 const MAIN_WINDOW_OPEN_TARGETS = new Set(['chat', 'memory', 'models', 'settings']);
 const CONTEXT_LABEL_WIDTH = 280;
@@ -326,6 +329,22 @@ function sendWakewordToggle(enabled) {
   mainWindow.webContents.send('wakeword-toggle', { enabled: Boolean(enabled) });
 }
 
+function syncWakewordToggleForChatVisibility() {
+  const isChatVisible = Boolean(
+    chatWindow
+      && !chatWindow.isDestroyed()
+      && chatWindow.isVisible(),
+  );
+  sendWakewordToggle(!isChatVisible);
+}
+
+function emitWakewordSttTrigger() {
+  if (!chatWindow || chatWindow.isDestroyed() || !chatWindow.webContents) {
+    return;
+  }
+  chatWindow.webContents.send(WAKEWORD_STT_TRIGGER_CHANNEL, { source: 'wakeword' });
+}
+
 function broadcastResponseOverlayVisibility(visible = responseOverlayVisible) {
   const payload = { visible: Boolean(visible) };
   const rendererWindows = [mainWindow, chatWindow, responseWindow, contextLabelWindow];
@@ -372,7 +391,7 @@ function showChatWindow({ focus = true } = {}) {
     chatWindow.focus();
     chatWindow.webContents.send('chatbox-focus');
   }
-  sendWakewordToggle(false);
+  syncWakewordToggleForChatVisibility();
   return { success: true };
 }
 
@@ -390,11 +409,11 @@ function hideChatWindow() {
     contextLabelWindow.hide();
   }
   broadcastResponseOverlayVisibility(false);
-  sendWakewordToggle(true);
+  syncWakewordToggleForChatVisibility();
   return { success: true };
 }
 
-function showMainWindow({ focus = true } = {}) {
+function showMainWindow({ focus = true, maximize = false } = {}) {
   if (!mainWindow || mainWindow.isDestroyed()) {
     return { success: false, reason: 'Main window not available' };
   }
@@ -403,6 +422,14 @@ function showMainWindow({ focus = true } = {}) {
   }
   if (!mainWindow.isVisible()) {
     mainWindow.show();
+  }
+  if (maximize) {
+    if (mainWindow.isMinimized()) {
+      mainWindow.restore();
+    }
+    if (!mainWindow.isMaximized()) {
+      mainWindow.maximize();
+    }
   }
   if (focus) {
     mainWindow.focus();
@@ -476,13 +503,20 @@ function createWindow() {
     onResponseOverlayPhaseChange: handleResponseOverlayPhaseChange,
     onBeforeOverlayQueryCapture: prepareOverlayQueryCaptureFocus,
   });
-  initializeWakewordBridge(mainWindow, () => showChatWindow({ focus: true }));
+  initializeWakewordBridge(mainWindow, () => {
+    const result = showChatWindow({ focus: true });
+    if (result?.success) {
+      emitWakewordSttTrigger();
+    }
+  });
   initializeLocalBackendBridge(() => ({
     mainWindow,
     chatWindow,
     responseWindow,
     contextLabelWindow,
-  }));
+  }), {
+    getFrontendConfig: getLatestFrontendConfig,
+  });
   initializeOverlayHandlers();
 
   if (process.platform !== 'darwin') {
@@ -525,6 +559,14 @@ function createChatWindow() {
 
   chatWindow.on('closed', () => {
     chatWindow = null;
+  });
+
+  chatWindow.on('show', () => {
+    syncWakewordToggleForChatVisibility();
+  });
+
+  chatWindow.on('hide', () => {
+    syncWakewordToggleForChatVisibility();
   });
 
   return chatWindow;
@@ -640,7 +682,7 @@ app.whenReady().then(() => {
   createResponseWindow();
   createContextLabelWindow();
   createTray();
-  sendWakewordToggle(false);
+  syncWakewordToggleForChatVisibility();
 
   registerOverlayRendererWindows(
     [chatWindow, responseWindow, contextLabelWindow],
@@ -752,7 +794,7 @@ function initializeOverlayHandlers() {
   });
 
   ipcMain.handle('show-main-window', async (event, options = {}) => {
-    const result = handleShowMainWindow({ showMainWindow });
+    const result = handleShowMainWindow(options, { showMainWindow });
     const target = normalizeMainWindowOpenTarget(options);
     if (result?.success && target) {
       emitMainWindowOpenTarget(target);
@@ -782,5 +824,12 @@ function initializeOverlayHandlers() {
 
   ipcMain.handle('window-close', async () => {
     return handleWindowClose({ mainWindow });
+  });
+
+  ipcMain.handle('set-agent-sudo-access', async (event, options = {}) => {
+    return await handleSetAgentSudoAccess(options, {
+      platform: process.platform,
+      username: os.userInfo()?.username,
+    });
   });
 }

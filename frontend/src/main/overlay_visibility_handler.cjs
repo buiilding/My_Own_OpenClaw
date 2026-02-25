@@ -1,7 +1,8 @@
-function handleShowMainWindow(deps = {}) {
+function handleShowMainWindow(options = {}, deps = {}) {
   const { showMainWindow } = deps;
   try {
-    return showMainWindow({ focus: true });
+    const maximize = options?.maximize === true;
+    return showMainWindow({ focus: true, maximize });
   } catch (error) {
     return { success: false, reason: `Failed to show main window: ${error.message}` };
   }

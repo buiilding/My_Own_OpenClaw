@@ -7,13 +7,22 @@ const {
 } = require('../../frontend/src/main/overlay_visibility_handler.cjs');
 
 describe('overlay_visibility_handler', () => {
-  test('show-main-window uses focus true and returns result', () => {
+  test('show-main-window uses focus true by default and returns result', () => {
     const showMainWindow = jest.fn().mockReturnValue({ success: true });
 
-    const result = handleShowMainWindow({ showMainWindow });
+    const result = handleShowMainWindow(undefined, { showMainWindow });
 
     expect(result).toEqual({ success: true });
-    expect(showMainWindow).toHaveBeenCalledWith({ focus: true });
+    expect(showMainWindow).toHaveBeenCalledWith({ focus: true, maximize: false });
+  });
+
+  test('show-main-window passes maximize true when requested', () => {
+    const showMainWindow = jest.fn().mockReturnValue({ success: true });
+
+    const result = handleShowMainWindow({ maximize: true }, { showMainWindow });
+
+    expect(result).toEqual({ success: true });
+    expect(showMainWindow).toHaveBeenCalledWith({ focus: true, maximize: true });
   });
 
   test('show-main-window returns formatted error result on exception', () => {
@@ -21,7 +30,7 @@ describe('overlay_visibility_handler', () => {
       throw new Error('explode');
     });
 
-    const result = handleShowMainWindow({ showMainWindow });
+    const result = handleShowMainWindow(undefined, { showMainWindow });
 
     expect(result).toEqual({
       success: false,

@@ -14,6 +14,8 @@ import {
   ChevronDown,
   Play,
 } from 'lucide-react';
+import { useAppConfigContext } from '../../../../app/providers/AppContextHooks';
+import { IpcBridge, INVOKE_CHANNELS } from '../../../../infrastructure/ipc/bridge';
 import '../../../../styles/CloneSettings.css';
 
 const SETTINGS_TABS = Object.freeze([
@@ -50,13 +52,20 @@ SelectDropdown.propTypes = {
   showSwatch: PropTypes.bool,
 };
 
-function CloneToggle({ checked, onChange }) {
+function CloneToggle({
+  checked,
+  onChange,
+  ariaLabel,
+  disabled = false,
+}) {
   return (
     <label className={`clone-settings-toggle${checked ? ' checked' : ''}`.trim()}>
       <input
         type="checkbox"
         checked={checked}
         onChange={(event) => onChange(event.target.checked)}
+        aria-label={ariaLabel}
+        disabled={disabled}
       />
       <span className="clone-settings-toggle-thumb" />
     </label>
@@ -66,22 +75,69 @@ function CloneToggle({ checked, onChange }) {
 CloneToggle.propTypes = {
   checked: PropTypes.bool.isRequired,
   onChange: PropTypes.func.isRequired,
+  ariaLabel: PropTypes.string,
+  disabled: PropTypes.bool,
 };
 
 function GeneralTab({ config, onConfigChange }) {
+  const {
+    wakewordEnabled,
+    wakewordSuppressed,
+    setWakewordEnabled,
+  } = useAppConfigContext();
   const [appearance, setAppearance] = useState('System');
   const [accentColor, setAccentColor] = useState('Black');
   const [language, setLanguage] = useState('Auto-detect');
   const [spokenLanguage, setSpokenLanguage] = useState('English');
   const [voice, setVoice] = useState('Spruce');
   const [separateVoice, setSeparateVoice] = useState(false);
+  const [sudoAccessPending, setSudoAccessPending] = useState(false);
   const showAdditionalModels = config?.show_additional_models ?? true;
+  const wakewordSttEnabled = config?.wakeword_stt_enabled ?? false;
+  const agentFullSudoEnabled = config?.agent_full_sudo_enabled ?? false;
 
   const handleShowAdditionalModelsChange = (enabled) => {
     onConfigChange({
       ...(config || {}),
       show_additional_models: enabled,
     });
+  };
+
+  const handleWakewordSttEnabledChange = (enabled) => {
+    onConfigChange({
+      wakeword_stt_enabled: enabled,
+    });
+  };
+
+  const handleAgentSudoAccessChange = async (enabled) => {
+    if (sudoAccessPending) {
+      return;
+    }
+    if (enabled) {
+      const confirmed = window.confirm(
+        'Warning: This action will enable the agent to have sudo access without password prompts. Continue?',
+      );
+      if (!confirmed) {
+        return;
+      }
+    }
+
+    setSudoAccessPending(true);
+    try {
+      const result = await IpcBridge.invoke(INVOKE_CHANNELS.SET_AGENT_SUDO_ACCESS, { enabled });
+      if (!result?.success) {
+        const reason = result?.reason || 'Failed to update sudo access setting.';
+        window.alert(reason);
+        return;
+      }
+      onConfigChange({
+        agent_full_sudo_enabled: enabled,
+      });
+    } catch (error) {
+      window.alert(error?.message || 'Failed to open OS authentication prompt.');
+    } finally {
+      setSudoAccessPending(false);
+    }
   };
 
   return (
@@ -153,7 +209,52 @@ function GeneralTab({ config, onConfigChange }) {
             Keep ChatGPT Voice in a separate full screen, without real time transcripts and visuals.
           </p>
         </div>
-        <CloneToggle checked={separateVoice} onChange={setSeparateVoice} />
+        <CloneToggle checked={separateVoice} onChange={setSeparateVoice} ariaLabel="Separate Voice" />
+      </div>
+
+      <div className="clone-settings-row clone-settings-row-rich">
+        <div>
+          <span>Wakeword Listening (Hey Jarvis)</span>
+          <p>Allow wakeword detection when the chat pill is hidden.</p>
+          {wakewordEnabled && wakewordSuppressed ? (
+            <p>Listening is paused while the chatbox is visible.</p>
+          ) : null}
+        </div>
+        <CloneToggle
+          checked={wakewordEnabled}
+          onChange={setWakewordEnabled}
+          ariaLabel="Wakeword Listening (Hey Jarvis)"
+        />
+      </div>
+
+      <div className="clone-settings-row clone-settings-row-rich">
+        <div>
+          <span>Speech-To-Text After &quot;Hey Jarvis&quot;</span>
+          <p>After wakeword, open chat pill and transcribe speech into the input field.</p>
+        </div>
+        <CloneToggle
+          checked={wakewordSttEnabled}
+          onChange={handleWakewordSttEnabledChange}
+          ariaLabel={'Speech-To-Text After "Hey Jarvis"'}
+        />
+      </div>
+
+      <div className="clone-settings-row clone-settings-row-rich">
+        <div>
+          <span>Agent Full Sudo Access (No Password Prompt)</span>
+          <p>This action will enable the agent to have sudo access.</p>
+          {sudoAccessPending ? (
+            <p>Waiting for OS authentication prompt...</p>
+          ) : null}
+        </div>
+        <CloneToggle
+          checked={agentFullSudoEnabled}
+          onChange={(enabled) => {
+            void handleAgentSudoAccessChange(enabled);
+          }}
+          ariaLabel="Agent Full Sudo Access"
+          disabled={sudoAccessPending}
+        />
       </div>
 
       <div className="clone-settings-row">
@@ -161,6 +262,7 @@ function GeneralTab({ config, onConfigChange }) {
         <CloneToggle
           checked={showAdditionalModels}
           onChange={handleShowAdditionalModelsChange}
+          ariaLabel="Show additional models"
         />
       </div>
     </div>
@@ -170,6 +272,8 @@ function GeneralTab({ config, onConfigChange }) {
 GeneralTab.propTypes = {
   config: PropTypes.shape({
     show_additional_models: PropTypes.bool,
+    wakeword_stt_enabled: PropTypes.bool,
+    agent_full_sudo_enabled: PropTypes.bool,
   }),
   onConfigChange: PropTypes.func.isRequired,
 };
@@ -232,14 +336,6 @@ function SettingsSection({ config, onConfigChange, initialTab = 'general', onClo
       </aside>
 
       <section className="clone-settings-content-wrap">
-        <button
-          type="button"
-          className="clone-settings-close clone-settings-close-right"
-          onClick={onClose}
-          aria-label="Close settings"
-        >
-          <X size={16} />
-        </button>
         <div className="clone-settings-content">
           {renderTabContent()}
         </div>
@@ -251,6 +347,7 @@ function SettingsSection({ config, onConfigChange, initialTab = 'general', onClo
 SettingsSection.propTypes = {
   config: PropTypes.shape({
     show_additional_models: PropTypes.bool,
+    agent_full_sudo_enabled: PropTypes.bool,
   }),
   onConfigChange: PropTypes.func.isRequired,
   initialTab: PropTypes.string,

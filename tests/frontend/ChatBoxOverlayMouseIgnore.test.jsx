@@ -10,6 +10,13 @@ const mockSendMessage = jest.fn();
 const mockUseChatMessageSender = jest.fn(() => ({
   sendMessage: mockSendMessage,
 }));
+const mockUseVoiceMode = jest.fn(() => ({
+  isConnected: false,
+  isRecording: false,
+  error: null,
+  clientId: null,
+}));
+const mockUpdateConfig = jest.fn();
 
 const setWindowScreenPosition = (x, y) => {
   Object.defineProperty(window, 'screenX', {
@@ -50,6 +57,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
   ON_CHANNELS: {
     CHATBOX_FOCUS: 'chatbox-focus',
+    WAKEWORD_STT_TRIGGER: 'wakeword-stt-trigger',
   },
 }));
 
@@ -67,8 +75,17 @@ jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
 
 jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
   useAppConfigContext: () => ({
-    config: { interaction_mode: 'chat' },
+    config: {
+      interaction_mode: 'chat',
+      wakeword_stt_enabled: false,
+      speech_mode_enabled: false,
+    },
+    updateConfig: (...args) => mockUpdateConfig(...args),
   }),
+}));
+
+jest.mock('../../frontend/src/renderer/features/voice/hooks/useVoiceMode', () => ({
+  useVoiceMode: (...args) => mockUseVoiceMode(...args),
 }));
 
 jest.mock('../../frontend/src/renderer/features/chat/hooks/useChatMessageSender', () => ({
@@ -81,6 +98,8 @@ describe('ChatBox overlay mouse ignore', () => {
     mockSend.mockClear();
     mockListeners.clear();
     mockUseChatMessageSender.mockClear();
+    mockUseVoiceMode.mockClear();
+    mockUpdateConfig.mockClear();
     mockSendMessage.mockClear();
     mockChatState.messages = [];
     mockChatState.streamTracking.phase = 'idle';
@@ -132,7 +151,7 @@ describe('ChatBox overlay mouse ignore', () => {
     });
   });
 
-  test('settings button opens main window without forcing settings target', () => {
+  test('settings button opens and maximizes the dashboard window', () => {
     render(<ChatBox />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Open dashboard' }));
@@ -140,7 +159,7 @@ describe('ChatBox overlay mouse ignore', () => {
     expectInvokeCall(
       ([channel, payload]) =>
         channel === 'show-main-window'
-        && payload === undefined,
+        && payload?.maximize === true,
     );
   });
 
@@ -195,6 +214,27 @@ describe('ChatBox overlay mouse ignore', () => {
 
     expect(mockSendMessage).toHaveBeenCalledWith('hello world');
     expect(input).toHaveValue('');
+  });
+
+  test('does not start wakeword STT voice mode when setting is disabled', () => {
+    render(<ChatBox />);
+
+    const wakewordSttHandler = mockListeners.get('wakeword-stt-trigger');
+    expect(wakewordSttHandler).toEqual(expect.any(Function));
+
+    act(() => {
+      wakewordSttHandler();
+    });
+
+    const enabledArgs = mockUseVoiceMode.mock.calls.map((args) => args[0]);
+    expect(enabledArgs[enabledArgs.length - 1]).toBe(false);
+  });
+
+  test('text-to-speech button toggles speech mode config', () => {
+    render(<ChatBox />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle text-to-speech' }));
+    expect(mockUpdateConfig).toHaveBeenCalledWith({ speech_mode_enabled: true });
   });
 
   test('does not render active app label inside chatbox pill surface', () => {

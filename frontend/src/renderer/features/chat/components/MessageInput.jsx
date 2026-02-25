@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   ArrowUp,
@@ -17,6 +17,42 @@ import { useTranscription } from '../hooks/useTranscription';
 import { buildOutgoingMessage } from '../utils/messageInput';
 import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
 import VoiceStatus from '../../voice/components/VoiceStatus';
+import {
+  normalizeArtifactImageContentType,
+  resolveArtifactImageExtension,
+} from '../../../infrastructure/services/ArtifactImageUtils';
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result);
+        return;
+      }
+      reject(new Error('Failed to load pasted image data.'));
+    };
+    reader.onerror = () => {
+      reject(reader.error || new Error('Failed to read pasted image.'));
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function parseDataUrlImage(dataUrl, fallbackContentType = null) {
+  const match = /^data:([^;]+);base64,(.+)$/i.exec(dataUrl);
+  if (!match) {
+    return null;
+  }
+  const contentType = normalizeArtifactImageContentType(match[1] || fallbackContentType);
+  const extension = resolveArtifactImageExtension(contentType);
+  return {
+    base64: match[2],
+    contentType,
+    filename: `clipboard-image.${extension}`,
+    previewUrl: dataUrl,
+  };
+}
 
 function MessageInput({
   onSendMessage,
@@ -32,6 +68,7 @@ function MessageInput({
   const [plusMenuOpen, setPlusMenuOpen] = useState(false);
   const [thinkingMenuOpen, setThinkingMenuOpen] = useState(false);
   const [thinkingMode, setThinkingMode] = useState('Thinking');
+  const [clipboardImage, setClipboardImage] = useState(null);
   const {
     inputValue,
     setInputValue,
@@ -43,11 +80,12 @@ function MessageInput({
   } = useTranscription();
 
   const submitMessageValue = (nextInputValue) => {
-    const outgoingMessage = buildOutgoingMessage(nextInputValue, isSending);
+    const outgoingMessage = buildOutgoingMessage(nextInputValue, isSending, clipboardImage);
     if (outgoingMessage) {
       onSendMessage(outgoingMessage);
       setInputValue('');
       resetTranscription();
+      setClipboardImage(null);
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
       }
@@ -65,6 +103,31 @@ function MessageInput({
       submitMessageValue(inputValue);
     }
   };
+
+  const handleComposerPaste = useCallback(async (event) => {
+    const clipboardItems = Array.from(event.clipboardData?.items || []);
+    const imageItem = clipboardItems.find((item) => item.type?.startsWith('image/'));
+    if (!imageItem) {
+      handlePaste(event);
+      return;
+    }
+
+    const imageFile = imageItem.getAsFile();
+    if (!imageFile) {
+      return;
+    }
+
+    event.preventDefault();
+    try {
+      const dataUrl = await readFileAsDataUrl(imageFile);
+      const parsed = parseDataUrlImage(dataUrl, imageItem.type || imageFile.type || null);
+      if (parsed) {
+        setClipboardImage(parsed);
+      }
+    } catch (error) {
+      console.warn('[MessageInput] Failed to parse pasted image:', error);
+    }
+  }, [handlePaste]);
 
   useEffect(() => {
     if (!textareaRef.current) {
@@ -112,6 +175,26 @@ function MessageInput({
       ) : null}
       <div className={`message-input-container${isCentered ? ' message-input-centered' : ''}`}>
         <form onSubmit={handleSubmit} className="message-input-form" data-testid="composer-container">
+          {clipboardImage ? (
+            <div className="message-image-preview-row">
+              <div className="message-image-preview-card">
+                <img
+                  src={clipboardImage.previewUrl}
+                  alt="Pasted image preview"
+                  className="message-image-preview-thumb"
+                />
+                <button
+                  type="button"
+                  className="message-image-preview-remove"
+                  aria-label="Remove pasted image"
+                  onClick={() => setClipboardImage(null)}
+                >
+                  <X size={13} />
+                </button>
+              </div>
+            </div>
+          ) : null}
+
           <div className="message-input-top-row">
             <label htmlFor="chat-input" className="visually-hidden">Type your message</label>
             <textarea
@@ -119,7 +202,7 @@ function MessageInput({
               id="chat-input"
               value={inputValue}
               onChange={handleInputChange}
-              onPaste={handlePaste}
+              onPaste={handleComposerPaste}
               onKeyDown={handleKeyDown}
               placeholder="Ask anything"
               disabled={isSending}

@@ -37,6 +37,8 @@ APP_CONFIG = AppConfig(
     
     # Voice Mode Settings
     voice_mode_enabled=False,
+    wakeword_stt_enabled=False,
+    agent_full_sudo_enabled=False,
     
     # Wakeword Settings
     wakeword_enabled=True,

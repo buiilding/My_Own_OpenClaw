@@ -198,6 +198,8 @@ class AppConfig(BaseModel):
     
     # Voice Mode Settings
     voice_mode_enabled: bool = False
+    wakeword_stt_enabled: bool = False
+    agent_full_sudo_enabled: bool = False
     include_query_screenshot: bool = True
 
     # Wakeword Settings

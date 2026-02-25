@@ -52,7 +52,7 @@ function createMainWindow() {
   };
 }
 
-function initializeBridgeHarness(configureSpawn) {
+function initializeBridgeHarness(configureSpawn, options = {}) {
   resetHarnessState();
   spawn = require('child_process').spawn;
   ipcMain = require('electron').ipcMain;
@@ -64,7 +64,9 @@ function initializeBridgeHarness(configureSpawn) {
   bridge = require(path.join(__dirname, '../../../frontend/src/main/local_backend_bridge.cjs'));
 
   const mainWindow = createMainWindow();
-  bridge.initializeLocalBackendBridge(mainWindow);
+  bridge.initializeLocalBackendBridge(mainWindow, {
+    getFrontendConfig: () => options.frontendConfig || null,
+  });
   return { mainWindow, bridge, handlers, spawn };
 }
 
@@ -90,7 +92,7 @@ function createMockPythonProcess() {
   return process;
 }
 
-function initBridge() {
+function initBridge(options = {}) {
   pythonProcess = {
     stdin: { write: jest.fn() },
     stdout: {
@@ -115,7 +117,7 @@ function initBridge() {
 
   const { mainWindow } = initializeBridgeHarness((spawnMock) => {
     spawnMock.mockReturnValue(pythonProcess);
-  });
+  }, options);
   uuid = require('uuid');
 
   return {
@@ -131,13 +133,13 @@ function initBridge() {
   };
 }
 
-function initBridgeWithProcesses(processes) {
+function initBridgeWithProcesses(processes, options = {}) {
   const { mainWindow } = initializeBridgeHarness((spawnMock) => {
     spawnMock.mockReset();
     processes.forEach((proc) => {
       spawnMock.mockImplementationOnce(() => proc);
     });
-  });
+  }, options);
 
   return {
     mainWindow,
