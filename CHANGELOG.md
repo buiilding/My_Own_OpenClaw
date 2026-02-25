@@ -7,6 +7,9 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(frontend-security): add Linux `Agent Full Sudo Access` settings flow with OS-auth enable (`pkexec`), non-interactive disable (`sudo -n`), and sidecar `sudo_auth_mode` routing so `run_shell_command` honors passwordless-sudo state.
+- feat(frontend-wakeword): wire wakeword activation to open/focus chat input and optional post-wakeword STT handoff into the composer when `wakeword_stt_enabled` is on.
+- feat(frontend-dashboard): add Usage modal/section in sidebar navigation, standardize left-side close buttons for dashboard panels, remove duplicate right settings close button, and remove profile-menu Personalization entry.
 - docs(planning-browser): mark browser-use hard-merge Phase 1 completed to align plan status tracking with completed Phase 2/3/4 rollout closure
 - docs(planning-browser): mark browser-use hard-merge Phases 2/3/4 as completed after removed-alias retirement, compatibility-alias export removal, and green sidecar/browser safety-gate verification
 - test(sidecar-browser-runtime): make `tests/sidecar/tools/test_browser_tool.py` runnable without Playwright by replacing module-level `importorskip` with lazy controller-reset fallback; sidecar browser safety suites now pass in this environment
