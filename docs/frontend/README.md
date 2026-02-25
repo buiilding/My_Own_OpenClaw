@@ -17,6 +17,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Frontend Runtime Surface Matrix Reference](inventory/frontend_runtime_surface_matrix_reference.md)
 - [Frontend Module File Index Reference](inventory/frontend_module_file_index_reference.md)
 - [Frontend IPC and Sidecar Contract Touchpoints Reference](inventory/frontend_ipc_and_sidecar_contract_touchpoints_reference.md)
+- [Frontend Inventory Domains Hub](inventory/domains/README.md)
 
 ## Deep Pages
 
