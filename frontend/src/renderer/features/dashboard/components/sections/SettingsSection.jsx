@@ -63,8 +63,19 @@ function SettingsSection({ config, onConfigChange }) {
     IpcBridge.invoke(INVOKE_CHANNELS.GET_DISPLAYS)
       .then((result) => {
         if (!mounted) return;
-        setDisplays(Array.isArray(result) ? result : []);
+        const nextDisplays = Array.isArray(result) ? result : [];
+        setDisplays(nextDisplays);
         setDisplayError('');
+        setSelectedDisplayId((currentDisplayId) => {
+          const { selectedDisplay, nextSelectedDisplayId } = resolveDisplaySelection(
+            nextDisplays,
+            currentDisplayId,
+          );
+          if (selectedDisplay) {
+            persistDisplaySelection(selectedDisplay);
+          }
+          return nextSelectedDisplayId;
+        });
       })
       .catch((error) => {
         if (!mounted) return;
@@ -75,17 +86,6 @@ function SettingsSection({ config, onConfigChange }) {
       mounted = false;
     };
   }, []);
-
-  useEffect(() => {
-    const { selectedDisplay, nextSelectedDisplayId } = resolveDisplaySelection(displays, selectedDisplayId);
-    if (!selectedDisplay) {
-      return;
-    }
-    if (nextSelectedDisplayId !== selectedDisplayId) {
-      setSelectedDisplayId(nextSelectedDisplayId);
-    }
-    persistDisplaySelection(selectedDisplay);
-  }, [displays, selectedDisplayId]);
 
   const displayOptions = useMemo(() => toDisplayOptions(displays), [displays]);
 

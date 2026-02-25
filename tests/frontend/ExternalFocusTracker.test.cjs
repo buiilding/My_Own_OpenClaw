@@ -2,73 +2,63 @@
 
 const {
   createExternalFocusTracker,
-  isAppWindowTitle,
 } = require('../../frontend/src/main/external_focus_tracker.cjs');
 
 describe('external_focus_tracker', () => {
-  test('isAppWindowTitle matches marker case-insensitively', () => {
-    expect(isAppWindowTitle('WindieOS Overlay', ['windieos'])).toBe(true);
-    expect(isAppWindowTitle('Desktop Assistant', ['desktop assistant'])).toBe(true);
-    expect(isAppWindowTitle('Visual Studio Code', ['windieos'])).toBe(false);
-  });
+  function createTracker({
+    activeWindow = null,
+    windows = [],
+    markers = ['windieos'],
+    warn = jest.fn(),
+  } = {}) {
+    return createExternalFocusTracker({
+      getPlatform: () => 'win32',
+      windowManager: {
+        getActiveWindow: jest.fn().mockReturnValue(activeWindow),
+        getWindows: jest.fn().mockReturnValue(windows),
+      },
+      appWindowTitleMarkers: markers,
+      warn,
+    });
+  }
 
   test('capture no-ops when no active window is available', () => {
     const warn = jest.fn();
-    const tracker = createExternalFocusTracker({
-      getPlatform: () => 'win32',
-      windowManager: {
-        getActiveWindow: jest.fn().mockReturnValue(null),
-        getWindows: jest.fn().mockReturnValue([]),
-      },
-      appWindowTitleMarkers: ['windieos'],
-      warn,
-    });
+    const tracker = createTracker({ warn });
 
     tracker.capturePreviousExternalFocusedWindow();
     expect(tracker.restorePreviousExternalFocusedWindow()).toBe(false);
     expect(warn).not.toHaveBeenCalled();
   });
 
-  test('capture ignores app-owned titles', () => {
-    const tracker = createExternalFocusTracker({
-      getPlatform: () => 'win32',
-      windowManager: {
-        getActiveWindow: jest.fn().mockReturnValue({
-          id: 1,
-          getTitle: jest.fn().mockReturnValue('WindieOS'),
-        }),
-        getWindows: jest.fn().mockReturnValue([
-          {
-            id: 1,
-            getTitle: jest.fn().mockReturnValue('WindieOS'),
-            bringToTop: jest.fn(),
-          },
-        ]),
+  test('capture ignores app-owned titles case-insensitively', () => {
+    const tracker = createTracker({
+      activeWindow: {
+        id: 1,
+        getTitle: jest.fn().mockReturnValue('WindieOS Overlay'),
       },
-      appWindowTitleMarkers: ['windieos'],
-      warn: jest.fn(),
+      windows: [
+        {
+          id: 1,
+          getTitle: jest.fn().mockReturnValue('WindieOS Overlay'),
+          bringToTop: jest.fn(),
+        },
+      ],
+      markers: ['desktop assistant', 'windieos'],
     });
 
     tracker.capturePreviousExternalFocusedWindow();
-
     expect(tracker.restorePreviousExternalFocusedWindow()).toBe(false);
   });
 
   test('restore brings window to top by captured id', () => {
     const bringToTop = jest.fn();
-    const tracker = createExternalFocusTracker({
-      getPlatform: () => 'win32',
-      windowManager: {
-        getActiveWindow: jest.fn().mockReturnValue({
-          id: 77,
-          getTitle: jest.fn().mockReturnValue('Code'),
-        }),
-        getWindows: jest.fn().mockReturnValue([
-          { id: 77, bringToTop },
-        ]),
+    const tracker = createTracker({
+      activeWindow: {
+        id: 77,
+        getTitle: jest.fn().mockReturnValue('Code'),
       },
-      appWindowTitleMarkers: ['windieos'],
-      warn: jest.fn(),
+      windows: [{ id: 77, bringToTop }],
     });
 
     tracker.capturePreviousExternalFocusedWindow();
@@ -78,19 +68,14 @@ describe('external_focus_tracker', () => {
 
   test('restore falls back to title when id not found', () => {
     const bringToTop = jest.fn();
-    const tracker = createExternalFocusTracker({
-      getPlatform: () => 'win32',
-      windowManager: {
-        getActiveWindow: jest.fn().mockReturnValue({
-          id: 88,
-          getTitle: jest.fn().mockReturnValue('Visual Studio Code'),
-        }),
-        getWindows: jest.fn().mockReturnValue([
-          { id: 12, getTitle: jest.fn().mockReturnValue('Visual Studio Code'), bringToTop },
-        ]),
+    const tracker = createTracker({
+      activeWindow: {
+        id: 88,
+        getTitle: jest.fn().mockReturnValue('Visual Studio Code'),
       },
-      appWindowTitleMarkers: ['windieos'],
-      warn: jest.fn(),
+      windows: [
+        { id: 12, getTitle: jest.fn().mockReturnValue('Visual Studio Code'), bringToTop },
+      ],
     });
 
     tracker.capturePreviousExternalFocusedWindow();

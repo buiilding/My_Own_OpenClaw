@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import SettingsSection from '../../frontend/src/renderer/features/dashboard/components/sections/SettingsSection';
 
@@ -24,8 +24,28 @@ jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
 }));
 
 describe('SettingsSection', () => {
+  const defaultConfig = {
+    voice_mode_enabled: false,
+    speech_mode_enabled: false,
+    include_query_screenshot: true,
+  };
+
+  function renderSettingsSection(overrides = {}) {
+    const {
+      config = defaultConfig,
+      onConfigChange = jest.fn(),
+    } = overrides;
+    return render(
+      <SettingsSection
+        config={config}
+        onConfigChange={onConfigChange}
+      />,
+    );
+  }
+
   beforeEach(() => {
     mockInvoke.mockClear();
+    localStorage.clear();
     mockAppConfigContext = {
       wakewordEnabled: true,
       wakewordSuppressed: false,
@@ -34,12 +54,7 @@ describe('SettingsSection', () => {
   });
 
   test('wakeword toggle uses app-config wakeword setter', () => {
-    render(
-      <SettingsSection
-        config={{ voice_mode_enabled: false, speech_mode_enabled: false, include_query_screenshot: true }}
-        onConfigChange={jest.fn()}
-      />,
-    );
+    renderSettingsSection();
 
     fireEvent.click(screen.getByLabelText('Wakeword Listening (Hey Jarvis)'));
     expect(mockAppConfigContext.setWakewordEnabled).toHaveBeenCalledWith(false);
@@ -47,12 +62,7 @@ describe('SettingsSection', () => {
 
   test('audio and screenshot toggles emit config updates', () => {
     const onConfigChange = jest.fn();
-    render(
-      <SettingsSection
-        config={{ voice_mode_enabled: false, speech_mode_enabled: false, include_query_screenshot: true }}
-        onConfigChange={onConfigChange}
-      />,
-    );
+    renderSettingsSection({ onConfigChange });
 
     fireEvent.click(screen.getByLabelText('Voice Mode (Nova Gateway)'));
     fireEvent.click(screen.getByLabelText('Speech Replies (TTS)'));
@@ -70,13 +80,22 @@ describe('SettingsSection', () => {
       setWakewordEnabled: jest.fn(),
     };
 
-    render(
-      <SettingsSection
-        config={{ voice_mode_enabled: false, speech_mode_enabled: false, include_query_screenshot: true }}
-        onConfigChange={jest.fn()}
-      />,
-    );
+    renderSettingsSection();
 
     expect(screen.getByText('Listening is paused while the chatbox is visible.')).toBeInTheDocument();
+  });
+
+  test('falls back to primary display when stored display id is stale', async () => {
+    localStorage.setItem('desktop-assistant-display-id', '999');
+    mockInvoke.mockResolvedValueOnce([
+      { id: 1, label: 'Main Monitor', isPrimary: true, bounds: { x: 0, y: 0, width: 1920, height: 1080 } },
+      { id: 2, label: 'Side Monitor', isPrimary: false, bounds: { x: 1920, y: 0, width: 1920, height: 1080 } },
+    ]);
+
+    renderSettingsSection();
+
+    const displaySelect = await screen.findByLabelText('Active Display');
+    await waitFor(() => expect(displaySelect).toHaveValue('1'));
+    expect(localStorage.getItem('desktop-assistant-display-id')).toBe('1');
   });
 });

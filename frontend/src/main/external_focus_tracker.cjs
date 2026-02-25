@@ -78,5 +78,4 @@ function createExternalFocusTracker({
 
 module.exports = {
   createExternalFocusTracker,
-  isAppWindowTitle,
 };

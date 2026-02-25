@@ -4,6 +4,11 @@ const { initializeIpc, registerRendererWindow } = require('./ipc.cjs');
 const { initializeWakewordBridge } = require('./wakeword_bridge.cjs');
 const { initializeLocalBackendBridge, stopLocalBackend } = require('./local_backend_bridge.cjs');
 const { createExternalFocusTracker } = require('./external_focus_tracker.cjs');
+const {
+  getChatWindowBounds: getOverlayChatWindowBounds,
+  getResponseWindowBounds: getOverlayResponseWindowBounds,
+  getContextLabelWindowBounds: getOverlayContextLabelWindowBounds,
+} = require('./overlay_bounds.cjs');
 const { handleGetDisplays } = require('./display_query_handler.cjs');
 const { registerOverlayRendererWindows } = require('./overlay_renderer_registration.cjs');
 const {
@@ -172,48 +177,33 @@ function positionChatWindow() {
 }
 
 function getChatWindowBounds(width, height) {
-  const display = screen.getPrimaryDisplay();
-  const { workArea } = display;
-  const marginBottom = 24;
-  const x = Math.round(workArea.x + (workArea.width - width) / 2);
-  const y = Math.round(workArea.y + workArea.height - height - marginBottom);
-  return { x, y, width, height };
+  return getOverlayChatWindowBounds({ screen, width, height });
 }
 
 function getResponseWindowBounds(width, height) {
-  const fallback = getChatWindowBounds(width, height);
-  if (!chatWindow || chatWindow.isDestroyed()) {
-    return fallback;
-  }
-
-  const chatBounds = chatWindow.getBounds();
-  const gap = 10;
-  return {
-    x: Math.round(chatBounds.x + (chatBounds.width - width) / 2),
-    y: Math.round(chatBounds.y - gap - height),
+  const chatBounds = chatWindow && !chatWindow.isDestroyed()
+    ? chatWindow.getBounds()
+    : null;
+  return getOverlayResponseWindowBounds({
+    screen,
     width,
     height,
-  };
+    chatBounds,
+  });
 }
 
 function getContextLabelWindowBounds() {
-  if (!chatWindow || chatWindow.isDestroyed()) {
-    const fallback = getChatWindowBounds(CONTEXT_LABEL_WIDTH, CONTEXT_LABEL_HEIGHT);
-    return {
-      x: fallback.x,
-      y: fallback.y - CONTEXT_LABEL_HEIGHT - CONTEXT_LABEL_GAP_ABOVE_CHATBOX,
-      width: CONTEXT_LABEL_WIDTH,
-      height: CONTEXT_LABEL_HEIGHT,
-    };
-  }
-
-  const chatBounds = chatWindow.getBounds();
-  return {
-    x: chatBounds.x + CONTEXT_LABEL_OFFSET_X,
-    y: chatBounds.y - CONTEXT_LABEL_HEIGHT - CONTEXT_LABEL_GAP_ABOVE_CHATBOX,
-    width: CONTEXT_LABEL_WIDTH,
-    height: CONTEXT_LABEL_HEIGHT,
-  };
+  const chatBounds = chatWindow && !chatWindow.isDestroyed()
+    ? chatWindow.getBounds()
+    : null;
+  return getOverlayContextLabelWindowBounds({
+    screen,
+    chatBounds,
+    labelWidth: CONTEXT_LABEL_WIDTH,
+    labelHeight: CONTEXT_LABEL_HEIGHT,
+    offsetX: CONTEXT_LABEL_OFFSET_X,
+    gapAbove: CONTEXT_LABEL_GAP_ABOVE_CHATBOX,
+  });
 }
 
 function positionResponseWindow() {

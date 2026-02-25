@@ -79,7 +79,7 @@ Coupled behavior:
 
 ## Drift Hotspots
 
-1. changing app title markers without keeping `isAppWindowTitle` up to date
+1. changing app title markers without keeping the internal title-match helper logic aligned
 2. removing settle delay and causing intermittent self-capture
 3. snapshotting only id without title fallback (window id can be stale)
 4. calling restore before windows are blurred
