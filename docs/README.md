@@ -27,6 +27,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 ### Architecture & Design
 - [**Frontend Functionality Map**](frontend/README.md) - Detailed module-level renderer, electron-main, and sidecar runtime maps
 - [**Frontend Inventory Docs Hub**](frontend/inventory/README.md) - Subfolder inventory hub for exhaustive frontend runtime coverage, matrix views, and file ownership indexes
+- [**Frontend Inventory Domains Hub**](frontend/inventory/domains/README.md) - Domain ownership matrix + change-path playbooks for main/preload/renderer/sidecar/landing scope decisions
 - [**Frontend Full Functionality Inventory Reference**](frontend/inventory/frontend_full_functionality_inventory_reference.md) - Exhaustive frontend feature inventory across main/preload/renderer/sidecar/landing ownership boundaries and runtime flows
 - [**Frontend IPC + Sidecar Contract Touchpoints**](frontend/inventory/frontend_ipc_and_sidecar_contract_touchpoints_reference.md) - Frontend-owned boundary map for renderer/main IPC, sidecar JSON-RPC methods, and backend stream/tool payload integration points
 - [**Frontend Landing Runtime + Content Reference**](frontend/landing/landing_page_runtime_and_content_reference.md) - Standalone landing entrypoint wiring, section/anchor contracts, static content sources, and CSS token/animation behavior

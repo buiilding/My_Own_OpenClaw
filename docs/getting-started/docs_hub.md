@@ -162,6 +162,7 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 - [Backend Package `__init__` Exports and Public Import Surface Reference](../backend/source_maps/backend_package_init_exports_and_public_import_surface_reference.md)
 - [Frontend Functionality Map](../frontend/README.md)
 - [Frontend Inventory Docs Hub](../frontend/inventory/README.md)
+- [Frontend Inventory Domains Hub](../frontend/inventory/domains/README.md)
 - [Frontend Full Functionality Inventory Reference](../frontend/inventory/frontend_full_functionality_inventory_reference.md)
 - [Frontend IPC and Sidecar Contract Touchpoints Reference](../frontend/inventory/frontend_ipc_and_sidecar_contract_touchpoints_reference.md)
 - [Frontend Landing Docs Hub](../frontend/landing/README.md)
