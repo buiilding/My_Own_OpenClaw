@@ -42,9 +42,6 @@ BrowserCanonicalAction = Literal[
     "read_long_content",
     "close",
 ]
-BrowserLegacyCompatAction = Literal[
-    "type",
-]
 BrowserRemovedCompatAction = Literal[
     "type",
     "open",
@@ -52,7 +49,7 @@ BrowserRemovedCompatAction = Literal[
     "press",
     "act",
 ]
-BrowserAction = BrowserCanonicalAction | BrowserLegacyCompatAction | BrowserRemovedCompatAction
+BrowserAction = BrowserCanonicalAction | BrowserRemovedCompatAction
 
 # Backward-compatible aliases for older imports.
 BrowserCoreAction = BrowserCanonicalAction
