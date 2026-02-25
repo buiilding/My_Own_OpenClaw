@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-dashboard): make modal panel wrapper fill full height so clone-style memory/models panels no longer leave a lower empty gray block
 - feat(frontend-dashboard): migrate memory and models modals to clone-style panel designs, add unified `MemorySection` tabs (`episodic`/`semantic`/`procedural`), and move episodic panel data to non-transcript memory records while keeping conversations in sidebar `Your chats`
 - feat(frontend-memory-ipc): add `list-episodic-memories` IPC/JSON-RPC flow (`channels.ts`, preload allowlist, bridge mapper, local backend handler, local store query) for episodic memory listing without transcript conversation rows
 - fix(frontend-chatbox): stop forcing settings target from chat-pill gear button; opening main window now leaves dashboard on default chat surface
