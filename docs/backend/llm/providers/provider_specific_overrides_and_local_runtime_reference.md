@@ -171,6 +171,8 @@ Detailed local-provider runtime behavior:
 
 - [Backend Local Provider Docs Hub](local/README.md)
 - [Model Listing, Connection Pooling, and Placeholder Key Reference](local/model_listing_connection_pooling_and_placeholder_key_reference.md)
+- [Local Provider HTTP Client Docs Hub](local/http_client/README.md)
+- [Shared Async Client Lifecycle and Finalizer Cleanup Runtime Reference](local/http_client/shared_async_client_lifecycle_and_finalizer_cleanup_runtime_reference.md)
 
 ## Provider Factory and Alias Normalization
 

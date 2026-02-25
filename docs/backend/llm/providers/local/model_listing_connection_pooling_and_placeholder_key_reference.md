@@ -105,5 +105,7 @@ Canonicalized URL values are used in factory cache keys, so equivalent trailing-
 ## Related Pages
 
 - [Backend Local Provider Docs Hub](README.md)
+- [Local Provider HTTP Client Docs Hub](http_client/README.md)
+- [Shared Async Client Lifecycle and Finalizer Cleanup Runtime Reference](http_client/shared_async_client_lifecycle_and_finalizer_cleanup_runtime_reference.md)
 - [Provider-Specific Overrides and Local Runtime Reference](../provider_specific_overrides_and_local_runtime_reference.md)
 - [Provider Factory and Runtime Selection Reference](../../provider_factory_and_runtime_selection_reference.md)
