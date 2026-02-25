@@ -12,6 +12,8 @@ title: "Trust-Boundary Metrics and Enforcement Reference"
 
 - `backend/src/core/observability/trust_boundary_metrics.py`
 - `backend/src/core/infrastructure/exceptions.py`
+- `backend/src/core/infrastructure/error_types/base.py`
+- `backend/src/core/infrastructure/error_types/trust_boundary.py`
 - `backend/src/core/container/core_container.py`
 - `backend/src/core/container/session_runtime.py`
 - `backend/src/core/container/session_factory.py`
@@ -128,7 +130,7 @@ Operational implication:
 
 ## Exception and Metadata Conventions
 
-Trust-boundary exceptions inherit `_TrustBoundaryError` in `exceptions.py`:
+Trust-boundary exceptions inherit `_TrustBoundaryError` in `error_types/trust_boundary.py` (re-exported via `exceptions.py`):
 
 - `InputSizeLimitError`
 - `ParseTimeoutError`

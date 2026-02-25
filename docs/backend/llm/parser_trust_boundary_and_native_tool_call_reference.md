@@ -19,6 +19,7 @@ title: "Parser Trust Boundary and Native Tool-Call Reference"
 - `backend/src/llm/parser_types.py`
 - `backend/src/core/config/models.py`
 - `backend/src/core/infrastructure/exceptions.py`
+- `backend/src/core/infrastructure/error_types/trust_boundary.py`
 - `backend/src/core/observability/trust_boundary_metrics.py`
 
 ## Current Runtime Path vs Parser Module Path
