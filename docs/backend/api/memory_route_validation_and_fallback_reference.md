@@ -164,3 +164,10 @@ If health route reports unhealthy unexpectedly:
 1. confirm dependency presence (`container.embedder` or `container.llm_client`)
 2. check server logs for `safe_health_check` wrapped exceptions
 3. verify route registration is active in `API_ROUTERS`
+
+## Related Pages
+
+- [Backend API Docs Hub](README.md)
+- [Backend API Memory Docs Hub](memory/README.md)
+- [Semantic Summarization Service Config Resolution, Prompt Assembly, and Parser-Fallback Contract Reference](memory/semantic_summarization_service_config_resolution_prompt_assembly_and_parser_fallback_contract_reference.md)
+- [Embeddings Route Serialization, Sanitized Error Surface, and Health-Probe Contract Reference](memory/embeddings_route_serialization_sanitized_error_surface_and_health_probe_contract_reference.md)
