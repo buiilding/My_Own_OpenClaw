@@ -10,6 +10,10 @@ title: "Frontend Functionality Map"
 
 This hub documents WindieOS frontend implementation details across Electron main process, React renderer, and Python sidecar runtime.
 
+## Full Inventory
+
+- [Frontend Full Functionality Inventory Reference](frontend_full_functionality_inventory_reference.md)
+
 ## Deep Pages
 
 ### Landing

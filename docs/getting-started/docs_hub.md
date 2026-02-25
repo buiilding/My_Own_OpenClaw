@@ -158,6 +158,7 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 - [Backend API/Core Folder Topology and Data-Flow Source Map Reference](../backend/source_maps/api_core_folder_topology_and_data_flow_source_map_reference.md)
 - [Backend Package `__init__` Exports and Public Import Surface Reference](../backend/source_maps/backend_package_init_exports_and_public_import_surface_reference.md)
 - [Frontend Functionality Map](../frontend/README.md)
+- [Frontend Full Functionality Inventory Reference](../frontend/frontend_full_functionality_inventory_reference.md)
 - [Frontend Landing Docs Hub](../frontend/landing/README.md)
 - [Frontend Landing Sections Docs Hub](../frontend/landing/sections/README.md)
 - [Frontend Main Docs Hub](../frontend/main/README.md)
