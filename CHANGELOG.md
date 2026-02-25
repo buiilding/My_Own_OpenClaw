@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(backend-inventory): add `docs/backend/backend_full_functionality_inventory_reference.md`, an exhaustive `backend/src` functionality inventory covering API/agent/core/llm/tools/services/sdk/simulation/embeddings domains with code ownership and end-to-end runtime flow; wire links in backend and global docs hubs
 - docs(source-maps-backend-sidecar): add `backend/source_maps` and `frontend/sidecar/source_maps` subhubs with deep references for source-owned folder topology maps (`backend/src/{api,core}/folder_structure.md`, `frontend/src/main/python/folder_structure.md`) and package `__init__` export-surface compatibility contracts; wire links across backend/sidecar/frontend/global docs hubs
 - docs(refactor-plan): record Phase 177 full-gate validation snapshot after response-phase/external-focus extraction wave (`./scripts/test`: backend `1012`, sidecar `500/4 skipped`, frontend `106 suites`/`683 tests`)
 - docs(refactor-plan): record Phase 176 external-focus tracker extraction and direct coverage in `docs/planning/windieos_refactor_plan_2026-02-23.md`

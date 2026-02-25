@@ -30,6 +30,7 @@ Covers:
 
 - [Bootstrap Docs Hub](bootstrap/README.md)
 - [Bootstrap and Config](bootstrap/bootstrap_and_config.md)
+- [Backend Full Functionality Inventory Reference](backend_full_functionality_inventory_reference.md)
 - [Container DI and Initialization Lifecycle Reference](bootstrap/container_di_and_init_lifecycle_reference.md)
 - [Bootstrap Entrypoints Docs Hub](bootstrap/entrypoints/README.md)
 - [Shared Entrypoint Logger and Uvicorn Runner Contract Reference](bootstrap/entrypoints/shared_entrypoint_logger_and_uvicorn_runner_contract_reference.md)
