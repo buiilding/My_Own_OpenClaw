@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 
 import ChatInterface from '../../frontend/src/renderer/features/chat/components/ChatInterface';
 const { selectMockStoreState: mockSelectStoreState } = require('./storeSelectorTestUtils.cjs');
@@ -146,58 +146,63 @@ describe('ChatInterface wiring', () => {
     );
   });
 
-  test('shows agent mode badge and passes enabled voice mode to input', () => {
+  test('shows model selector and passes enabled voice mode to input', () => {
     mockConfig = {
       interaction_mode: 'agent',
       voice_mode_enabled: true,
+      selected_model_id: 'gpt-test-model',
     };
 
     render(<ChatInterface />);
 
-    expect(screen.getByText('Mode: Agent')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Model selector' })).toHaveTextContent('gpt-test-model');
     const lastInputProps = mockMessageInput.mock.calls.at(-1)?.[0];
     expect(lastInputProps.voiceModeEnabled).toBe(true);
     expect(lastInputProps.isSending).toBe(false);
     expect(typeof lastInputProps.onSendMessage).toBe('function');
+    expect(typeof lastInputProps.onStopResponse).toBe('function');
   });
 
-  test('falls back to chat mode label and disabled voice mode when config is missing', () => {
+  test('falls back to default model label and disabled voice mode when config is missing', () => {
     mockConfig = null;
 
     render(<ChatInterface />);
 
-    expect(screen.getByText('Mode: Chat')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Model selector' })).toHaveTextContent('ChatGPT 5.2 Thinking');
     const lastInputProps = mockMessageInput.mock.calls.at(-1)?.[0];
     expect(lastInputProps.voiceModeEnabled).toBe(false);
   });
 
-  test('stop button sends stop-query while stream is active', () => {
+  test('stop response handler sends stop-query while stream is active', () => {
     mockChatState.streamTracking.phase = 'streaming';
 
     render(<ChatInterface />);
 
-    const stopButton = screen.getByRole('button', { name: 'Stop response' });
-    expect(stopButton.disabled).toBe(false);
-
-    fireEvent.click(stopButton);
+    const lastInputProps = mockMessageInput.mock.calls.at(-1)?.[0];
+    expect(typeof lastInputProps.onStopResponse).toBe('function');
+    lastInputProps.onStopResponse();
     expect(mockStopQuery).toHaveBeenCalledTimes(1);
     expect(mockSetIsSending).toHaveBeenCalledWith(false);
     expect(mockSetThinkingStatus).toHaveBeenCalledWith(null);
     expect(mockUpdateStreamTracking).toHaveBeenCalledTimes(1);
   });
 
-  test('stop button is disabled when no active stream is running', () => {
+  test('stop response handler is a no-op when no active stream is running', () => {
     mockChatState.streamTracking.phase = 'idle';
 
     render(<ChatInterface />);
 
-    expect(screen.getByRole('button', { name: 'Stop response' }).disabled).toBe(true);
+    const lastInputProps = mockMessageInput.mock.calls.at(-1)?.[0];
+    lastInputProps.onStopResponse();
+    expect(mockStopQuery).not.toHaveBeenCalled();
   });
 
-  test('new chat button clears local conversation state', () => {
+  test('dashboard new-chat event clears local conversation state', () => {
     render(<ChatInterface />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'New chat' }));
+    act(() => {
+      window.dispatchEvent(new Event('windie:new-chat'));
+    });
 
     expect(mockClearMessages).toHaveBeenCalledTimes(1);
     expect(mockSetIsSending).toHaveBeenCalledWith(false);

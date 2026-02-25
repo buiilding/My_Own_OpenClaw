@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/react/shallow';
+import { ChevronDown } from 'lucide-react';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import TokenCountDisplay from './TokenCountDisplay';
@@ -16,10 +17,6 @@ import '../../../styles/ChatInterface.css';
 
 const ACTIVE_STREAM_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
 
-/**
- * A clean and simple chat interface component.
- * Orchestrates the chat interaction using store and hooks.
- */
 function ChatInterface() {
   const { messages, isSending, thinkingStatus, tokenCounts, streamPhase } = useChatStore(
     useShallow(selectChatInterfaceState),
@@ -29,13 +26,10 @@ function ChatInterface() {
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setTokenCounts = useChatStore((state) => state.setTokenCounts);
   const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
-  // Use AppConfigContext directly for better performance
-  // This avoids re-renders when saveStatus changes in AppStatusContext
   const { config } = useAppConfigContext();
-  
-  // Audio player service
+
   const audioPlayerRef = useRef(null);
-  
+
   useEffect(() => {
     audioPlayerRef.current = new PlayerService();
     return () => {
@@ -43,7 +37,6 @@ function ChatInterface() {
     };
   }, []);
 
-  // Audio chunk handler
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, (data) => {
       const audioChunk = extractAudioChunkPayload(data);
@@ -54,10 +47,11 @@ function ChatInterface() {
     return removeListener;
   }, []);
 
-  const interactionMode = config?.interaction_mode || 'chat';
   const voiceModeEnabled = config?.voice_mode_enabled === true;
-  const interactionModeLabel = interactionMode === 'agent' ? 'Agent' : 'Chat';
   const canStop = ACTIVE_STREAM_PHASES.has(streamPhase);
+  const modelLabel = useMemo(() => {
+    return config?.selected_model_id || 'ChatGPT 5.2 Thinking';
+  }, [config?.selected_model_id]);
 
   const stopPlayback = useCallback(() => {
     audioPlayerRef.current?.stopPlayback();
@@ -121,6 +115,16 @@ function ChatInterface() {
     stopPlayback,
   ]);
 
+  useEffect(() => {
+    const handleDashboardNewChat = () => {
+      handleNewChat();
+    };
+    window.addEventListener('windie:new-chat', handleDashboardNewChat);
+    return () => {
+      window.removeEventListener('windie:new-chat', handleDashboardNewChat);
+    };
+  }, [handleNewChat]);
+
   const { sendMessage } = useChatMessageSender(stopPlayback, {
     senderSurface: 'main-window',
   });
@@ -129,9 +133,13 @@ function ChatInterface() {
     <div className="chat-container">
       <header className="chat-header">
         <div className="chat-title-block">
-          <div className="chat-title">Conversation</div>
+          <button type="button" className="chat-model-selector" aria-label="Model selector">
+            <span>{modelLabel}</span>
+            <ChevronDown size={14} />
+          </button>
         </div>
         <div className="chat-meta">
+          <TokenCountDisplay tokenCounts={tokenCounts} />
           <div className="chat-window-controls">
             <button
               type="button"
@@ -161,39 +169,31 @@ function ChatInterface() {
               <span className="chat-window-control-icon">×</span>
             </button>
           </div>
-          <div className="chat-meta-lower">
-            <div className={`chat-mode-badge chat-mode-${interactionMode}`}>
-              Mode: {interactionModeLabel}
-            </div>
-            <button
-              type="button"
-              className="chat-new-chat-button"
-              onClick={handleNewChat}
-              aria-label="New chat"
-              title="New chat"
-            >
-              New Chat
-            </button>
-            <button
-              type="button"
-              className="chat-stop-button"
-              onClick={handleStopQuery}
-              disabled={!canStop}
-              aria-label="Stop response"
-              title="Stop response"
-            >
-              Stop
-            </button>
-            <TokenCountDisplay tokenCounts={tokenCounts} />
-          </div>
         </div>
       </header>
-      <MessageList messages={messages} thinkingStatus={thinkingStatus} />
-      <MessageInput 
-        onSendMessage={sendMessage} 
-        isSending={isSending}
-        voiceModeEnabled={voiceModeEnabled}
-      />
+
+      {messages.length === 0 ? (
+        <div className="chat-empty-state" data-testid="chat-empty-state">
+          <h1 className="chat-empty-title">Good to see you, peter.</h1>
+          <MessageInput
+            onSendMessage={sendMessage}
+            isSending={isSending}
+            voiceModeEnabled={voiceModeEnabled}
+            onStopResponse={handleStopQuery}
+            isCentered
+          />
+        </div>
+      ) : (
+        <>
+          <MessageList messages={messages} thinkingStatus={thinkingStatus} />
+          <MessageInput
+            onSendMessage={sendMessage}
+            isSending={isSending}
+            voiceModeEnabled={voiceModeEnabled}
+            onStopResponse={handleStopQuery}
+          />
+        </>
+      )}
     </div>
   );
 }
