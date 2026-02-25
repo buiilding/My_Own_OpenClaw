@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-sidecar-browser-use-tools): add `frontend/sidecar/browser/browser_use/tools` subhub with deep references for action input/structured extraction schema contracts, registry signature normalization and sensitive placeholder/domain-filter behavior, plus runtime action dispatch/extraction/evaluate and CodeAgent variant boundaries; wire links across browser/sidecar/frontend/global docs hubs
 - docs(frontend-sidecar-browser-use-dom): add `frontend/sidecar/browser/browser_use/dom` subhub with deep references for DOM-service tree construction/iframe visibility and pagination detection, enhanced DOM model hashing+scroll contracts, and serializer/snapshot/markdown chunking pipelines; wire links across browser/sidecar/frontend/global docs hubs
 - docs(simulation-ocr-and-sidecar-contracts): add simulation/contracts, screen_grounding/ocr helper docs, sidecar tools base-contract docs, and browser role-snapshot contracts with hub-link wiring across backend/frontend/global docs maps
 - docs(frontend-main-provider-transcript-contracts): add subhubs for main shell-test harness docs, renderer ErrorBoundary component contracts, and transcript `types.ts` contracts; wire links across frontend/global docs indexes
