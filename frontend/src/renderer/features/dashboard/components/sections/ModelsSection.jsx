@@ -94,40 +94,42 @@ function ModelCard({ model, isSelected, isHovered, onSelect, onHover }) {
         </div>
       </div>
 
-      {isHovered ? (
-        <div className="clone-model-details">
-          <p className="clone-model-description">{model.description}</p>
-          <div className="clone-model-metrics-row">
-            <div className="clone-model-metric">
-              <DollarSign size={14} />
-              <div>
-                <span>Input</span>
-                <strong>{model.inputPrice}</strong>
+      <div className={`clone-model-details${isHovered ? ' expanded' : ''}`} aria-hidden={!isHovered}>
+        <div className="clone-model-details-inner">
+          <div className="clone-model-details-content">
+            <p className="clone-model-description">{model.description}</p>
+            <div className="clone-model-metrics-row">
+              <div className="clone-model-metric">
+                <DollarSign size={14} />
+                <div>
+                  <span>Input</span>
+                  <strong>{model.inputPrice}</strong>
+                </div>
+              </div>
+              <div className="clone-model-metric">
+                <DollarSign size={14} />
+                <div>
+                  <span>Output</span>
+                  <strong>{model.outputPrice}</strong>
+                </div>
+              </div>
+              <div className="clone-model-metric">
+                <Clock size={14} />
+                <div>
+                  <span>Latency</span>
+                  <strong>{model.latency}</strong>
+                </div>
               </div>
             </div>
-            <div className="clone-model-metric">
-              <DollarSign size={14} />
-              <div>
-                <span>Output</span>
-                <strong>{model.outputPrice}</strong>
-              </div>
-            </div>
-            <div className="clone-model-metric">
-              <Clock size={14} />
-              <div>
-                <span>Latency</span>
-                <strong>{model.latency}</strong>
-              </div>
-            </div>
-          </div>
 
-          <div className="clone-model-strengths">
-            {model.strengths.map((strength) => (
-              <span key={`${model.id}-${strength}`}>{strength}</span>
-            ))}
+            <div className="clone-model-strengths">
+              {model.strengths.map((strength) => (
+                <span key={`${model.id}-${strength}`}>{strength}</span>
+              ))}
+            </div>
           </div>
         </div>
-      ) : null}
+      </div>
     </button>
   );
 }
