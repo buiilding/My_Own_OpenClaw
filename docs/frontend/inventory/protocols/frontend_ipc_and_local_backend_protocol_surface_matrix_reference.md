@@ -165,3 +165,4 @@ Registered callable surface:
 ## Related Deep Dive
 
 - [Frontend Protocol Lifecycle Hub](lifecycle/README.md)
+- [Frontend Protocol Errors Hub](errors/README.md)
