@@ -363,8 +363,8 @@
 }
 
 .cg-modal {
-  width: min(1040px, calc(100vw - 40px));
-  max-height: calc(100vh - 40px);
+  width: min(1024px, calc(100vw - 40px));
+  height: min(80vh, calc(100vh - 40px));
   border-radius: 16px;
   background: #2f2f2f;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -374,11 +374,8 @@
   flex-direction: column;
 }
 
-.cg-modal.cg-modal-wide {
-  width: min(1280px, calc(100vw - 40px));
-}
-
 .cg-modal-body {
+  flex: 1;
   min-height: 0;
   overflow: auto;
 }

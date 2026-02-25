@@ -250,6 +250,23 @@ describe('local_backend_bridge RPC handlers', () => {
     await expectResolvedSuccess(stdoutHandler, promise, { memories: [] });
   });
 
+  test('list-episodic-memories handler maps payload keys to backend params', async () => {
+    const { handlers, stdoutHandler } = initBridge();
+    markReady();
+
+    const promise = handlers['list-episodic-memories'](null, {
+      userId: 'u-episodic',
+      limit: 25,
+    });
+
+    expectLastRequestWith('list_episodic_memories', {
+      user_id: 'u-episodic',
+      limit: 25,
+    });
+
+    await expectResolvedSuccess(stdoutHandler, promise, { memories: [] });
+  });
+
   test('get-conversation handler maps missing conversationId to null', async () => {
     const { handlers, stdoutHandler } = initBridge();
     markReady();

@@ -1264,6 +1264,44 @@ class LocalMemoryStore:
 
             return results
 
+    async def list_episodic_memories(
+        self, user_id: str, limit: int = 200
+    ) -> List[Dict[str, Any]]:
+        """
+        List episodic memory entries for a user excluding transcript conversation rows.
+
+        This powers the memory panel's episodic tab, while transcript conversations stay
+        in the sidebar "Your chats" surface.
+        """
+        async with aiosqlite.connect(self.episodic_db_path) as conn:
+            conn.row_factory = aiosqlite.Row
+            cursor = await conn.cursor()
+            await cursor.execute(
+                """
+                SELECT id, content, timestamp, metadata, conversation_id, record_kind
+                FROM memories
+                WHERE user_id = ? AND COALESCE(record_kind, '') != 'transcript'
+                ORDER BY timestamp DESC
+                LIMIT ?
+            """,
+                (user_id, limit),
+            )
+            rows = await cursor.fetchall()
+
+            results = []
+            for row in rows:
+                parsed_metadata = self._parse_raw_metadata(row["metadata"])
+                results.append({
+                    "id": row["id"],
+                    "content": row["content"],
+                    "timestamp": row["timestamp"],
+                    "metadata": parsed_metadata,
+                    "conversation_id": row["conversation_id"],
+                    "record_kind": row["record_kind"] or parsed_metadata.get("record_kind"),
+                })
+
+            return results
+
     async def delete_semantic_memory(self, user_id: str, memory_id: str) -> bool:
         """
         Delete a semantic memory entry by ID for a given user.

@@ -13,8 +13,7 @@ title: "Memory IPC and RPC Mapping Reference"
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/renderer/infrastructure/ipc/bridge.ts`
 - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
-- `frontend/src/renderer/features/dashboard/components/sections/EpisodicMemorySection.jsx`
-- `frontend/src/renderer/features/dashboard/components/sections/SemanticMemorySection.jsx`
+- `frontend/src/renderer/features/dashboard/components/sections/MemorySection.jsx`
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/python/local_backend.py`
@@ -27,6 +26,7 @@ Memory-related `invoke` channels exposed to renderer:
 
 - `store-transcript`
 - `list-conversations`
+- `list-episodic-memories`
 - `get-conversation`
 - `delete-conversation`
 - `list-semantic-memories`
@@ -37,8 +37,8 @@ Memory-related `invoke` channels exposed to renderer:
 Current primary renderer call sites:
 
 - `TranscriptWriter` -> `store-transcript`
-- `EpisodicMemorySection` -> list/get/delete conversation
-- `SemanticMemorySection` -> list/delete semantic memory
+- `DashboardSidebar` -> list/get transcript conversations
+- `MemorySection` -> list episodic memory entries + list/delete semantic memory
 
 ## Main-Process Mapping Layer
 
@@ -54,6 +54,7 @@ Mapping helper behavior:
 ### Conversation and semantic list/delete
 
 - `list-conversations` -> `list_conversations`
+- `list-episodic-memories` -> `list_episodic_memories`
 - `get-conversation` -> `get_conversation`
 - `delete-conversation` -> `delete_conversation`
 - `list-semantic-memories` -> `list_semantic_memories`
@@ -119,6 +120,12 @@ Decorator `@requires_memory_store` gates most memory handlers:
 - transcript-only behavior (non-transcript `record_kind` ignored/normalized)
 - newest-first by last timestamp
 - includes `is_resumable` when `conversation_id` starts with `conv_`
+
+### `list_episodic_memories`
+
+- returns episodic memory entries while excluding transcript conversation rows
+- keeps chat history ownership in sidebar `Your chats`
+- returns newest-first by timestamp
 
 ### `get_conversation`
 

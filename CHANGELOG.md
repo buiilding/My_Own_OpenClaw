@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(frontend-dashboard): migrate memory and models modals to clone-style panel designs, add unified `MemorySection` tabs (`episodic`/`semantic`/`procedural`), and move episodic panel data to non-transcript memory records while keeping conversations in sidebar `Your chats`
+- feat(frontend-memory-ipc): add `list-episodic-memories` IPC/JSON-RPC flow (`channels.ts`, preload allowlist, bridge mapper, local backend handler, local store query) for episodic memory listing without transcript conversation rows
 - fix(frontend-chatbox): stop forcing settings target from chat-pill gear button; opening main window now leaves dashboard on default chat surface
 - fix(frontend-dashboard): remove static `Current conversation` sidebar row, wire active conversation highlighting to transcript session state, and add regression coverage for active history-row styling in `ChatGptDashboardShell.test.jsx`
 - feat(frontend-chat-ui): tighten `chatgpt-website-clone` parity by matching sidebar rail behavior (logo-only expanded header + inline collapsed expand control), adding clone-style model/composer dropdown menus, and rendering the chat-header logo dot when sidebar is collapsed

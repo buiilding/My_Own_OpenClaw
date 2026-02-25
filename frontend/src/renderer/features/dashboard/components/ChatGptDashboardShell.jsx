@@ -8,8 +8,6 @@ import {
   setActiveConversationRef,
   updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
-import EpisodicMemorySection from './sections/EpisodicMemorySection';
-import SemanticMemorySection from './sections/SemanticMemorySection';
 import ModelsSection from './sections/ModelsSection';
 import SettingsSection from './sections/SettingsSection';
 import {
@@ -19,11 +17,7 @@ import {
 } from '../utils/episodicMemoryUtils';
 import DashboardSidebar from './DashboardSidebar';
 import { useTranscriptSessionInfo } from '../hooks/useTranscriptSessionInfo';
-
-const MEMORY_TABS = Object.freeze({
-  EPISODIC: 'episodic',
-  SEMANTIC: 'semantic',
-});
+import MemorySection from './sections/MemorySection';
 
 function DashboardModal({ isOpen, onClose, children, className = '' }) {
   if (!isOpen) {
@@ -63,7 +57,6 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [modelsOpen, setModelsOpen] = useState(false);
   const [memoryOpen, setMemoryOpen] = useState(false);
-  const [memoryTab, setMemoryTab] = useState(MEMORY_TABS.EPISODIC);
   const [recentConversations, setRecentConversations] = useState([]);
   const [isLoadingRecentConversations, setIsLoadingRecentConversations] = useState(false);
   const [recentConversationsError, setRecentConversationsError] = useState('');
@@ -89,9 +82,8 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
     setModelsOpen(true);
   }, [closeAllPanels]);
 
-  const openMemory = useCallback((tab = MEMORY_TABS.EPISODIC) => {
+  const openMemory = useCallback(() => {
     closeAllPanels();
-    setMemoryTab(tab);
     setMemoryOpen(true);
   }, [closeAllPanels]);
 
@@ -109,7 +101,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
   }, [closeAllPanels]);
 
   const handleMemorySurface = useCallback(() => {
-    openMemory(MEMORY_TABS.EPISODIC);
+    openMemory();
   }, [openMemory]);
 
   const loadRecentConversations = useCallback(async () => {
@@ -250,7 +242,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
         return;
       }
       if (target === 'memory') {
-        openMemory(MEMORY_TABS.EPISODIC);
+        openMemory();
       }
     });
 
@@ -282,35 +274,9 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
         <ChatInterface sidebarOpen={sidebarOpen} />
       </main>
 
-      <DashboardModal isOpen={memoryOpen} onClose={() => setMemoryOpen(false)} className="cg-modal-wide">
+      <DashboardModal isOpen={memoryOpen} onClose={() => setMemoryOpen(false)}>
         <div className="cg-panel-wrapper">
-          <div className="cg-memory-tabs">
-            <button
-              type="button"
-              className={`cg-memory-tab${memoryTab === MEMORY_TABS.EPISODIC ? ' active' : ''}`}
-              onClick={() => setMemoryTab(MEMORY_TABS.EPISODIC)}
-            >
-              Episodic
-            </button>
-            <button
-              type="button"
-              className={`cg-memory-tab${memoryTab === MEMORY_TABS.SEMANTIC ? ' active' : ''}`}
-              onClick={() => setMemoryTab(MEMORY_TABS.SEMANTIC)}
-            >
-              Semantic
-            </button>
-          </div>
-          {memoryTab === MEMORY_TABS.EPISODIC ? (
-            <EpisodicMemorySection
-              onSelectSection={(sectionId) => {
-                if (sectionId === 'chat') {
-                  setMemoryOpen(false);
-                }
-              }}
-            />
-          ) : (
-            <SemanticMemorySection />
-          )}
+          <MemorySection />
         </div>
       </DashboardModal>
 

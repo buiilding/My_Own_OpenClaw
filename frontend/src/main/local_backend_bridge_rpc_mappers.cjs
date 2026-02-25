@@ -80,6 +80,14 @@ const COMPILED_RPC_HANDLER_DEFINITIONS = [
     }),
   },
   {
+    channel: 'list-episodic-memories',
+    method: 'list_episodic_memories',
+    mapParams: createPayloadMapper({
+      user_id: 'userId',
+      limit: 'limit',
+    }),
+  },
+  {
     channel: 'get-conversation',
     method: 'get_conversation',
     mapParams: createPayloadMapper({

@@ -13,6 +13,7 @@ This page documents:
 - `frontend/src/renderer/styles/theme.css`
 - `frontend/src/renderer/styles/accessibility.css`
 - `frontend/src/renderer/styles/ChatGptDashboardShell.css`
+- `frontend/src/renderer/styles/CloneMemoryModels.css`
 - `frontend/src/renderer/app/App.jsx`
 - `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
 
@@ -87,6 +88,11 @@ Responsive behavior:
 ## Import/Load Contract (`App.jsx`)
 
 `App.jsx` imports `theme.css`, `ChatInterface.css`, `ChatGptDashboardShell.css`, and `accessibility.css` at root.
+
+It also imports `CloneMemoryModels.css`, which owns clone-style modal panel visuals for:
+
+- `MemorySection` (episodic/semantic/procedural tabs and memory cards)
+- `ModelsSection` (hover-expanding model cards)
 
 Implication:
 
