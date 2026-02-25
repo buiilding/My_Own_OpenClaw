@@ -94,15 +94,20 @@ title: "WindieOS Browser Use Hard-Merge Plan (2026-02-25)"
      - OpenClaw compatibility schemas no longer advertise legacy `open`; canonical `navigate` is now the only schema-level navigation action
      - sidecar schema suite now locks backend↔sidecar action-contract parity (canonical/legacy/removed sets, preferred-action map, OpenClaw action subset) to catch drift early
      - legacy alias `open` is now retired at backend + sidecar tool boundaries (moved to removed-alias bucket; callers must use canonical `navigate`)
-     - adapter-level `open -> navigate(new_tab=true)` compatibility transform removed; `BrowserUseCompatibilityAdapter.execute("open", ...)` now returns removed-alias migration error
+     - adapter-level `open -> navigate(new_tab=true)` compatibility transform removed; `BrowserRuntimeAdapter.execute("open", ...)` now returns removed-alias migration error
      - legacy alias `switch_tab` is now retired at backend + sidecar tool boundaries (moved to removed-alias bucket; callers must use canonical `switch`)
-     - adapter-level `switch_tab -> switch` compatibility transform removed; `BrowserUseCompatibilityAdapter.execute("switch_tab", ...)` now returns removed-alias migration error
+     - adapter-level `switch_tab -> switch` compatibility transform removed; `BrowserRuntimeAdapter.execute("switch_tab", ...)` now returns removed-alias migration error
      - legacy alias `press` is now retired at backend + sidecar tool boundaries (moved to removed-alias bucket; callers must use canonical `send_keys`)
-     - adapter-level `press -> send_keys` compatibility transform removed; `BrowserUseCompatibilityAdapter.execute("press", ...)` now returns removed-alias migration error
+     - adapter-level `press -> send_keys` compatibility transform removed; `BrowserRuntimeAdapter.execute("press", ...)` now returns removed-alias migration error
      - legacy alias `type` is now retired at backend + sidecar tool boundaries (moved to removed-alias bucket; callers must use canonical `input`)
-     - adapter-level `type -> input` compatibility transform removed; `BrowserUseCompatibilityAdapter.execute("type", ...)` now returns removed-alias migration error
+     - adapter-level `type -> input` compatibility transform removed; `BrowserRuntimeAdapter.execute("type", ...)` now returns removed-alias migration error
      - legacy alias runtime gates (`WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY` / `WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS`) removed from backend + sidecar browser tool boundaries now that no active legacy aliases remain
      - backend browser-control schema no longer keeps a dedicated legacy-only action subtype; action typing is now canonical + removed aliases only
+     - backend schema contract constants no longer keep empty legacy action/preferred maps; shared action sets now compose canonical + removed aliases only
+     - sidecar contract map no longer keeps an empty legacy-alias dictionary; all compatibility alias guidance now derives from removed-alias map only
+     - sidecar adapter no longer keeps dead legacy-dispatch paths; removed aliases fail directly via removed-alias boundary checks
+     - sidecar browser tool path no longer uses `phase2` naming (`BROWSER_ROUTED_ACTIONS` / `_run_browser_action`) and now exposes neutral runtime adapter names (`BrowserRuntimeAdapter`, `get_browser_adapter`) with compatibility aliases retained
+     - sidecar internal tests and browser tool call sites now use neutral adapter names (`BrowserRuntimeAdapter`, `get_browser_adapter`) while compatibility aliases remain exported for backward compatibility
 
 ## Safety Gates
 

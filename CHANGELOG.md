@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(sidecar-browser-runtime): align browser automation stack + adapter routing references with Phase 4 naming and behavior (`BROWSER_ROUTED_ACTIONS`, `BrowserRuntimeAdapter`, removed alias handling for `type/open/press/switch_tab/act`) and refresh hard-merge plan status notes
 - refactor(sidecar-browser-runtime): migrate sidecar browser tool internals and sidecar browser tests to `BrowserRuntimeAdapter`/`get_browser_adapter` naming while keeping backward-compatible aliases exported
 - docs(frontend-dashboard): reorganize renderer dashboard docs into `dashboard/shell` + `dashboard/sections` subfolders, add `UsageSection` placeholder/modal runtime contract coverage, and refresh dashboard doc-hub links
 - docs(frontend-dashboard): remove legacy flat dashboard doc files after shell/sections split so dashboard references resolve through the new subfolder hubs only
