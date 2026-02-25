@@ -95,8 +95,9 @@ Transcript write invariants in `LocalMemoryStore.add(...)`:
 Conversation query/delete APIs are transcript-scoped:
 
 - `list_conversations(...)` ignores non-transcript kinds and returns transcript windows only
+- `list_conversations(...)` includes `title` and `title_source`; titles are generated heuristically from the first user/assistant turn pair
 - `get_episodic_memories_by_conversation(...)` applies `record_kind='transcript'`
-- `delete_conversation(...)` applies `record_kind='transcript'` and cleans vector-ID maps for deleted rows
+- `delete_conversation(...)` applies `record_kind='transcript'`, cleans vector-ID maps for deleted rows, and removes any persisted row in `conversation_titles`
 
 ## Message Ordering Contract
 

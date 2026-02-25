@@ -206,9 +206,12 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
       const conversationDate = Number.isNaN(timestampValue)
         ? new Date(0)
         : new Date(timestampValue);
+      const resolvedTitle = typeof conversation?.title === 'string'
+        ? conversation.title.trim()
+        : '';
       const item = {
         key: conversation?.conversation_id || `conversation-${index}`,
-        title: `Conversation ${index + 1}`,
+        title: resolvedTitle || 'New chat',
         conversation,
       };
 

@@ -159,6 +159,7 @@ describe('ChatGptDashboardShell', () => {
                 conversation_id: 'conv-history-1',
                 record_kind: 'transcript',
                 last_timestamp: nowIso,
+                title: 'Fix Ubuntu mic settings',
               },
             ],
           },
@@ -172,7 +173,7 @@ describe('ChatGptDashboardShell', () => {
 
     await renderDashboardShell();
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Conversation 1' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Fix Ubuntu mic settings' }));
 
     await waitFor(() => {
       const getConversationCall = mockInvoke.mock.calls.find(
@@ -204,6 +205,7 @@ describe('ChatGptDashboardShell', () => {
                 conversation_id: 'conv-history-1',
                 record_kind: 'transcript',
                 last_timestamp: nowIso,
+                title: 'Build memory migration plan',
               },
             ],
           },
@@ -217,7 +219,7 @@ describe('ChatGptDashboardShell', () => {
 
     await renderDashboardShell();
 
-    const activeConversationButton = await screen.findByRole('button', { name: 'Conversation 1' });
+    const activeConversationButton = await screen.findByRole('button', { name: 'Build memory migration plan' });
     expect(activeConversationButton).toHaveClass('active');
   });
 

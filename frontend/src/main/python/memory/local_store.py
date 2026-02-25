@@ -30,6 +30,7 @@ from memory.faiss_index import (
     read_index_safe_async,
     save_indices_async,
 )
+from memory.conversation_titles import derive_conversation_title
 from memory.sqlite_store import (
     init_episodic_schema,
     init_semantic_schema,
@@ -623,6 +624,12 @@ class LocalMemoryStore:
         if not skip_embedding:
             await self._save_faiss_indices()
 
+        if memory_type == "episodic" and record_kind == "transcript" and conversation_id:
+            await self._maybe_generate_conversation_title(
+                user_id=user_id,
+                conversation_id=conversation_id,
+            )
+
         logger.debug(f"Stored {memory_type} memory {memory_id} for user {user_id}")
         return memory_id
 
@@ -1209,6 +1216,14 @@ class LocalMemoryStore:
             results = []
             for row in rows:
                 conversation_id = row["conversation_id"]
+                title, title_source = await self._ensure_conversation_title(
+                    cursor=cursor,
+                    user_id=user_id,
+                    conversation_id=conversation_id,
+                    existing_title=row["title"],
+                    existing_title_source=row["title_source"],
+                    existing_title_locked=row["title_locked"],
+                )
                 results.append({
                     "conversation_id": conversation_id,
                     "first_timestamp": row["first_timestamp"],
@@ -1217,13 +1232,161 @@ class LocalMemoryStore:
                     "record_kind": row["record_kind"],
                     "model_id": row["model_id"],
                     "model_provider": row["model_provider"],
+                    "title": title,
+                    "title_source": title_source,
                     "is_resumable": bool(
                         isinstance(conversation_id, str)
                         and conversation_id.startswith("conv_")
                     ),
                 })
 
+            await conn.commit()
             return results
+
+    async def _maybe_generate_conversation_title(
+        self,
+        user_id: str,
+        conversation_id: str,
+    ) -> None:
+        """
+        Best-effort title generation after transcript writes.
+        """
+        if not conversation_id:
+            return
+        try:
+            async with aiosqlite.connect(self.episodic_db_path) as conn:
+                conn.row_factory = aiosqlite.Row
+                cursor = await conn.cursor()
+                await self._ensure_conversation_title(
+                    cursor=cursor,
+                    user_id=user_id,
+                    conversation_id=conversation_id,
+                    existing_title=None,
+                    existing_title_source=None,
+                    existing_title_locked=None,
+                )
+                await conn.commit()
+        except Exception as exc:
+            logger.warning(
+                "Failed to generate conversation title (user_id=%s conversation_id=%s): %s",
+                user_id,
+                conversation_id,
+                exc,
+            )
+
+    async def _ensure_conversation_title(
+        self,
+        cursor,
+        user_id: str,
+        conversation_id: Optional[str],
+        existing_title: Optional[str],
+        existing_title_source: Optional[str],
+        existing_title_locked: Optional[int],
+    ) -> Tuple[Optional[str], Optional[str]]:
+        if not conversation_id:
+            return None, None
+
+        current_title = (existing_title or "").strip()
+        if current_title:
+            return current_title, existing_title_source or "heuristic"
+
+        is_locked = bool(existing_title_locked)
+        if existing_title_locked is None:
+            await cursor.execute(
+                """
+                SELECT title, source, is_locked
+                FROM conversation_titles
+                WHERE user_id = ? AND conversation_id = ?
+            """,
+                (user_id, conversation_id),
+            )
+            row = await cursor.fetchone()
+            if row:
+                current_title = (row["title"] or "").strip()
+                existing_title_source = row["source"] or existing_title_source
+                is_locked = bool(row["is_locked"])
+                if current_title:
+                    return current_title, existing_title_source or "heuristic"
+
+        if is_locked:
+            return current_title or None, existing_title_source or None
+
+        await cursor.execute(
+            """
+            SELECT content
+            FROM memories
+            WHERE user_id = ? AND conversation_id = ?
+              AND record_kind = 'transcript'
+              AND role = 'user'
+              AND content IS NOT NULL
+              AND content != ''
+            ORDER BY message_index ASC, timestamp ASC
+            LIMIT 1
+        """,
+            (user_id, conversation_id),
+        )
+        first_user_row = await cursor.fetchone()
+
+        await cursor.execute(
+            """
+            SELECT content
+            FROM memories
+            WHERE user_id = ? AND conversation_id = ?
+              AND record_kind = 'transcript'
+              AND role = 'assistant'
+              AND content IS NOT NULL
+              AND content != ''
+            ORDER BY message_index ASC, timestamp ASC
+            LIMIT 1
+        """,
+            (user_id, conversation_id),
+        )
+        first_assistant_row = await cursor.fetchone()
+
+        if not first_user_row or not first_assistant_row:
+            return current_title or None, existing_title_source or None
+
+        generated_title = derive_conversation_title(
+            first_user_row["content"],
+            first_assistant_row["content"],
+        )
+        normalized_title = (generated_title or "").strip()
+        if not normalized_title:
+            return current_title or None, existing_title_source or None
+
+        now_iso = datetime.now(timezone.utc).isoformat()
+        if existing_title_locked is None:
+            await cursor.execute(
+                """
+                INSERT INTO conversation_titles (
+                    user_id,
+                    conversation_id,
+                    title,
+                    source,
+                    is_locked,
+                    created_at,
+                    updated_at
+                )
+                VALUES (?, ?, ?, ?, 0, ?, ?)
+                ON CONFLICT(user_id, conversation_id)
+                DO UPDATE SET
+                    title = excluded.title,
+                    source = excluded.source,
+                    updated_at = excluded.updated_at
+                WHERE conversation_titles.is_locked = 0
+            """,
+                (
+                    user_id,
+                    conversation_id,
+                    normalized_title,
+                    "heuristic",
+                    now_iso,
+                    now_iso,
+                ),
+            )
+            return normalized_title, "heuristic"
+
+        return current_title or None, existing_title_source or None
 
     async def list_semantic_memories(
         self, user_id: str, limit: int = 200
@@ -1410,6 +1573,14 @@ class LocalMemoryStore:
             )
 
             deleted_count = cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
+            if conversation_id is not None:
+                await cursor.execute(
+                    """
+                    DELETE FROM conversation_titles
+                    WHERE user_id = ? AND conversation_id = ?
+                """,
+                    (user_id, conversation_id),
+                )
             await conn.commit()
 
         for vector_id in vector_ids:
@@ -1506,6 +1677,21 @@ class LocalMemoryStore:
                    COUNT(*) as entry_count,
                    record_kind,
                    (
+                     SELECT title FROM conversation_titles ct
+                     WHERE ct.user_id = ? AND ct.conversation_id = memories.conversation_id
+                     LIMIT 1
+                   ) as title,
+                   (
+                     SELECT source FROM conversation_titles ct
+                     WHERE ct.user_id = ? AND ct.conversation_id = memories.conversation_id
+                     LIMIT 1
+                   ) as title_source,
+                   (
+                     SELECT is_locked FROM conversation_titles ct
+                     WHERE ct.user_id = ? AND ct.conversation_id = memories.conversation_id
+                     LIMIT 1
+                   ) as title_locked,
+                   (
                      SELECT model_id FROM memories m2
                      WHERE m2.user_id = ? AND m2.conversation_id = memories.conversation_id
                        AND m2.record_kind = 'transcript'
@@ -1527,7 +1713,7 @@ class LocalMemoryStore:
             ORDER BY last_timestamp DESC
             LIMIT ?
         """,
-            (user_id, user_id, user_id, limit),
+            (user_id, user_id, user_id, user_id, user_id, user_id, limit),
         )
         return await cursor.fetchall()
 
