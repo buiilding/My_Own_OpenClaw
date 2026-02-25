@@ -337,6 +337,35 @@ class TestCompatibilityActions:
             assert result.data["browser_use_action"] == "navigate"
 
     @pytest.mark.asyncio
+    async def test_success_payload_includes_legacy_deprecation_metadata(self):
+        with mock.patch(
+            "tools.browser.browser_tool.get_browser_controller"
+        ) as mock_get, mock.patch(
+            "tools.browser.browser_tool.get_browser_use_adapter"
+        ) as mock_get_adapter:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_get.return_value = mock_controller
+            mock_adapter = mock.AsyncMock()
+            mock_adapter.execute.return_value = AdapterActionResult(
+                success=True,
+                action="open",
+                decision="compat",
+                data={"action": "open", "browser_use_action": "navigate"},
+                warnings=["'open' is a legacy compatibility alias; prefer 'navigate'"],
+                deprecation="'open' is a legacy compatibility alias; prefer 'navigate'",
+            )
+            mock_get_adapter.return_value = mock_adapter
+
+            result = await execute_browser({"action": "open", "url": "https://example.com"})
+
+            assert result.success is True
+            assert result.data["deprecation"] == "'open' is a legacy compatibility alias; prefer 'navigate'"
+            assert result.data["warnings"] == [
+                "'open' is a legacy compatibility alias; prefer 'navigate'"
+            ]
+
+    @pytest.mark.asyncio
     async def test_act_hover(self):
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"

@@ -112,7 +112,12 @@ def get_browser_use_adapter(
 
 def _adapter_result_to_tool_result(result: AdapterActionResult) -> ToolResult:
     if result.success:
-        return ToolResult.success_result(result.data)
+        payload = dict(result.data)
+        if result.warnings:
+            payload["warnings"] = list(result.warnings)
+        if result.deprecation:
+            payload["deprecation"] = result.deprecation
+        return ToolResult.success_result(payload)
 
     if result.error:
         return ToolResult.error_result(result.error)
