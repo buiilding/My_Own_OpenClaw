@@ -21,9 +21,10 @@ This page documents:
 
 Header composition:
 
-- `.chat-container` establishes vertical flex column with fixed inner padding
-- `.chat-header` is draggable (`-webkit-app-region: drag`) and split into title/meta zones
-- `.chat-meta` sets `no-drag` area so buttons remain clickable
+- `.chat-container` is full-height with no interior padding; shell spacing is handled by dashboard chrome
+- `.chat-header` is draggable (`-webkit-app-region: drag`) with clone-style compact top bar spacing and bottom divider
+- `.chat-title-block` exposes a clone-style model selector button (`.chat-model-selector`)
+- `.chat-meta` stays `no-drag` so token count + window controls remain clickable
 
 Window controls:
 
@@ -34,11 +35,11 @@ Window controls:
 - each variant defines persistent color-coding and hover/focus behavior
 - focus-visible ring uses accent-toned box shadow for keyboard accessibility
 
-Mode and action badges:
+Action placement:
 
-- `.chat-mode-badge` base + `.chat-mode-agent` variant
-- `.chat-new-chat-button` and `.chat-stop-button` expose separate danger/neutral action tones
-- stop button includes disabled state opacity/cursor contract
+- legacy header action chips (`new chat` / `stop`) are replaced by composer-level actions
+- stop action now lives in `MessageInput` as `.message-stop-btn`
+- new chat action is triggered from dashboard sidebar (`windie:new-chat` event), not header
 
 ## Message Stream and Bubble Contract
 
@@ -79,9 +80,17 @@ Transparency sections:
 
 Input row:
 
-- `.message-input-form` is pill-shaped with focus-within accent ring
-- `.message-input` is borderless transparent input that inherits theme tokens
-- `.send-button` uses accent token, hover lift, and disabled lockout visuals
+- `MessageInput` mirrors clone composer structure:
+  - top text row (`.message-input-top-row` + multiline `.message-input`)
+  - bottom action row (`.message-input-bottom-row`) with left utility controls and right send/stop controls
+- send control uses `.message-send-btn`; while sending it switches to `.message-stop-btn`
+- empty conversation state renders centered composer variant via `.message-input-centered`
+- non-empty state renders bottom composer with footer disclaimer (`.message-input-disclaimer`)
+
+Empty state:
+
+- `.chat-empty-state` renders clone-parity welcome layout
+- `.chat-empty-title` displays the greeting above centered composer
 
 ## Thinking Stream Overflow Contract (`ThinkingDisplay.css` + component)
 
@@ -111,8 +120,8 @@ State variant:
 
 `ChatInterface.css` breakpoints:
 
-- `max-width: 920px` reduces outer padding and allows full-width messages
-- `max-width: 720px` stacks header/meta alignment for narrow views
+- `max-width: 920px` reduces empty-state headline size and allows full-width messages
+- `max-width: 720px` compacts header spacing and centered composer sizing for narrow widths
 
 Reduced motion:
 

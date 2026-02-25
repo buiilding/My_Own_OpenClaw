@@ -54,7 +54,7 @@ export function useTranscription(initialValue: string = '') {
     });
   }, [setInputValue]);
 
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const newValue = e.target.value;
     const cursorPosition = e.target.selectionStart;
     
@@ -69,11 +69,11 @@ export function useTranscription(initialValue: string = '') {
     });
   }, [setInputValue]);
 
-  const handlePaste = useCallback((e: React.ClipboardEvent<HTMLInputElement>) => {
+  const handlePaste = useCallback((e: React.ClipboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const pastedText = e.clipboardData.getData('text');
     if (!pastedText) return;
 
-    const input = e.target as HTMLInputElement;
+    const input = e.target as HTMLInputElement | HTMLTextAreaElement;
     const cursorPosition = input.selectionStart;
     
     setInputValue((currentValue) => {

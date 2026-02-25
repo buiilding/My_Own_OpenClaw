@@ -155,6 +155,11 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
     closeAllPanels();
   }, [closeAllPanels]);
 
+  const handleStartNewChat = useCallback(() => {
+    closeAllPanels();
+    window.dispatchEvent(new Event('windie:new-chat'));
+  }, [closeAllPanels]);
+
   const handleMemorySurface = useCallback(() => {
     openMemory(MEMORY_TABS.EPISODIC);
   }, [openMemory]);
@@ -216,7 +221,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
                 key={item.id}
                 label={item.label}
                 icon={item.icon}
-                onClick={handleChatSurface}
+                onClick={item.id === 'new-chat' ? handleStartNewChat : handleChatSurface}
                 collapsed={!sidebarOpen}
               />
             ))}

@@ -27,6 +27,7 @@ The main dashboard surface is conversation-only:
 - auxiliary panels open as modals over the conversation surface.
 - shell visuals follow the `chatgpt-website-clone` language: `#212121` main frame, `#171717` grouped left sidebar, and collapsed-sidebar toggle mode.
 - shell navigation uses the same lucide icon set semantics as the clone (`new chat`, `search`, `memory`, `models`, etc.) rather than custom dashboard glyphs.
+- sidebar `New chat` dispatches a renderer event (`windie:new-chat`) consumed by `ChatInterface` to reset conversation state, so the main-header duplicate new-chat button is not required.
 
 ## Modal Routing Contract
 

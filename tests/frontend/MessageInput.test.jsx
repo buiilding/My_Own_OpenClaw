@@ -61,7 +61,12 @@ describe('MessageInput', () => {
     fireEvent.submit(input.closest('form'));
 
     expect(onSendMessage).not.toHaveBeenCalled();
-    expect(screen.getByRole('button', { name: '...' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Stop response' })).toBeInTheDocument();
+  });
+
+  test('send button is disabled for empty input', () => {
+    render(<MessageInput onSendMessage={jest.fn()} isSending={false} />);
+    expect(screen.getByRole('button', { name: 'Send message' })).toBeDisabled();
   });
 
   test('auto-sends latest transcription when utterance ends in voice mode', () => {
