@@ -23,7 +23,11 @@ class BrowserSharedCompatFields(BaseModel):
         None, description="Prompt text for dialog.accept() (snake_case)"
     )
     request: Optional[Dict[str, Any]] = Field(
-        None, description="Nested action payload for act."
+        None,
+        description=(
+            "Legacy compatibility field for historical act envelope payloads "
+            "(act alias is removed at browser tool boundary)."
+        ),
     )
 
     cookies: Optional[List[Dict[str, Any]]] = Field(
