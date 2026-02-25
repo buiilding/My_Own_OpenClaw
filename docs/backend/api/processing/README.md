@@ -21,6 +21,9 @@ title: "Backend API Processing Docs Hub"
 - [Query Execution Helper Contracts and Compatibility Event Extraction Reference](completion/query_execution_helper_contracts_and_compatibility_event_extraction_reference.md)
 - [Base Formatter Guard Utilities and Skip Semantics Reference](formatters/base_formatter_guard_utilities_and_skip_semantics_reference.md)
 - [Formatter Validation and Contract-Test Matrix Reference](formatters/formatter_validation_and_contract_test_matrix_reference.md)
+- [Formatter Message Docs Hub](formatters/messages/README.md)
+- [Assistant/User/System/Complete Formatter Payload Contract Reference](formatters/messages/assistant_user_system_and_complete_formatter_payload_contract_reference.md)
+- [Error and Memory-Store Formatter Guard and Schema-Mapping Reference](formatters/messages/error_and_memory_store_formatter_guard_and_schema_mapping_reference.md)
 - [TTS Manager Audio Stream and Cleanup Reference](tts/tts_manager_audio_stream_and_cleanup_reference.md)
 - [TTS Processor Suppression State-Machine Reference](tts/tts_processor_suppression_state_machine_reference.md)
 

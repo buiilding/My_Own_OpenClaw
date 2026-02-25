@@ -12,6 +12,9 @@ title: "Backend API Processing Formatters Docs Hub"
 
 - [Base Formatter Guard Utilities and Skip Semantics Reference](base_formatter_guard_utilities_and_skip_semantics_reference.md)
 - [Formatter Validation and Contract-Test Matrix Reference](formatter_validation_and_contract_test_matrix_reference.md)
+- [Formatter Message Docs Hub](messages/README.md)
+- [Assistant/User/System/Complete Formatter Payload Contract Reference](messages/assistant_user_system_and_complete_formatter_payload_contract_reference.md)
+- [Error and Memory-Store Formatter Guard and Schema-Mapping Reference](messages/error_and_memory_store_formatter_guard_and_schema_mapping_reference.md)
 - [Formatter Registry Docs Hub](registry/README.md)
 - [Response Formatter Registry Lifecycle, Lazy Specs, and Context Attachment Reference](registry/response_formatter_registry_lifecycle_lazy_specs_and_context_attachment_reference.md)
 

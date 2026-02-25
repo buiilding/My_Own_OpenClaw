@@ -108,3 +108,10 @@ When changing strict/skip behavior:
 1. decide `return None` vs `raise ValueError` explicitly
 2. adjust tests to reflect new failure mode
 3. ensure query pipeline can tolerate raised exceptions if strict path is chosen
+
+## Related Pages
+
+- [Backend API Processing Formatters Docs Hub](README.md)
+- [Formatter Message Docs Hub](messages/README.md)
+- [Assistant/User/System/Complete Formatter Payload Contract Reference](messages/assistant_user_system_and_complete_formatter_payload_contract_reference.md)
+- [Error and Memory-Store Formatter Guard and Schema-Mapping Reference](messages/error_and_memory_store_formatter_guard_and_schema_mapping_reference.md)
