@@ -15,6 +15,9 @@ title: "Backend Core Infrastructure Docs Hub"
 - [Trust-Boundary Metrics and Enforcement Reference](observability/trust_boundary_metrics_and_enforcement_reference.md)
 - [Core Validation Docs Hub](validation/README.md)
 - [Input Validation and Frontend Patch Guard Reference](validation/input_validation_and_frontend_patch_guard_reference.md)
+- [Core Messages Docs Hub](messages/README.md)
+- [Stored Message LLM Serialization, Tool-Call Normalization, and Multimodal Image Contract Reference](messages/stored_message_llm_serialization_tool_call_normalization_and_multimodal_image_contract_reference.md)
+- [Content Converter Parsing, First-Image Selection, and Type-Alias Export Contract Reference](messages/content_converter_parsing_first_image_selection_and_type_alias_export_contract_reference.md)
 
 ## Code Scope
 
@@ -22,6 +25,8 @@ title: "Backend Core Infrastructure Docs Hub"
 - `backend/src/core/events/*`
 - `backend/src/core/observability/*`
 - `backend/src/core/validation/*`
+- `backend/src/core/messages/*`
+- `backend/src/core/types/aliases.py`
 - `backend/src/core/config/service.py`
 - `backend/src/core/config/subscriptions.py`
 - `backend/src/tools/schema_registry.py`
