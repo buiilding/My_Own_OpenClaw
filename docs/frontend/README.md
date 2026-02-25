@@ -41,10 +41,12 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [WebSocket Handshake and Settings Sync Reference](main/websocket_handshake_and_settings_sync_reference.md)
 - [Main Local-Backend Docs Hub](main/local_backend/README.md)
 - [Main Testing Docs Hub](main/testing/README.md)
+- [Main Testing Data-Seed Docs Hub](main/testing/data_seed/README.md)
 - [Local Backend Bridge Overview and Window Guard Index](main/local_backend_bridge_handler_and_window_guard_reference.md)
 - [Local-Backend Process Lifecycle, Readiness, and Request-Correlation Reference](main/local_backend/process_lifecycle_readiness_and_request_correlation_reference.md)
 - [Local-Backend RPC Handler Registry and Payload-Mapper Reference](main/local_backend/rpc_handler_registry_and_payload_mapper_reference.md)
 - [Shell Tool Chrome Command Test Harness Runtime Reference](main/testing/shell_tool_chrome_command_test_harness_runtime_reference.md)
+- [Mock Memory Seed Script and NPM Entrypoints Reference](main/testing/data_seed/mock_memory_seed_script_and_npm_entrypoints_reference.md)
 - [External Focus Snapshot, Restore, and Query-Capture Reference](main/overlays/external_focus_snapshot_restore_and_query_capture_reference.md)
 - [Linux Screenshot Window Hide and Restore Guard Reference](main/overlays/linux_screenshot_window_hide_and_restore_guard_reference.md)
 

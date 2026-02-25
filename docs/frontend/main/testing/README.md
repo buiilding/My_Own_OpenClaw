@@ -1,8 +1,8 @@
 ---
-summary: "Frontend main testing docs sub-hub for shell-tool integration harness behavior and platform-specific Chrome command probe flow."
+summary: "Frontend main testing docs sub-hub for shell-tool harness behavior and deterministic mock-memory data seeding entrypoints for dashboard demos."
 read_when:
   - When changing `frontend/src/main/test_shell.cjs` behavior or the shell-tool contract used by this local test harness.
-  - When debugging platform-specific Chrome launch command failures in manual Electron-main tooling tests.
+  - When changing `frontend/src/main/python/dev_seed_mock_memory.py` or frontend npm scripts that seed demo memory data.
 title: "Frontend Main Testing Docs Hub"
 ---
 
@@ -11,6 +11,8 @@ title: "Frontend Main Testing Docs Hub"
 ## Deep Pages
 
 - [Shell Tool Chrome Command Test Harness Runtime Reference](shell_tool_chrome_command_test_harness_runtime_reference.md)
+- [Frontend Main Testing Data-Seed Docs Hub](data_seed/README.md)
+- [Mock Memory Seed Script and NPM Entrypoints Reference](data_seed/mock_memory_seed_script_and_npm_entrypoints_reference.md)
 
 ## Related Pages
 
@@ -21,3 +23,5 @@ title: "Frontend Main Testing Docs Hub"
 
 - `frontend/src/main/test_shell.cjs`
 - `frontend/src/main/tools/system/shell.cjs`
+- `frontend/src/main/python/dev_seed_mock_memory.py`
+- `frontend/package.json` (`mock-memory-data`, `electron:mock-memory-data`)
