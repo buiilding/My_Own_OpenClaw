@@ -171,6 +171,8 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 - [Frontend Landing Sections Docs Hub](../frontend/landing/sections/README.md)
 - [Frontend Main Docs Hub](../frontend/main/README.md)
 - [Frontend Main Testing Docs Hub](../frontend/main/testing/README.md)
+- [Frontend Main Testing Data-Seed Docs Hub](../frontend/main/testing/data_seed/README.md)
+- [Frontend Mock Memory Seed Script and NPM Entrypoints Reference](../frontend/main/testing/data_seed/mock_memory_seed_script_and_npm_entrypoints_reference.md)
 - [Frontend Main Local-Backend Docs Hub](../frontend/main/local_backend/README.md)
 - [Frontend Main Overlay Focus Docs Hub](../frontend/main/overlays/README.md)
 - [Frontend Renderer Docs Hub](../frontend/renderer/README.md)
