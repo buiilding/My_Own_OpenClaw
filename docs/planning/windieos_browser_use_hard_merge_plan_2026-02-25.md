@@ -106,8 +106,8 @@ title: "WindieOS Browser Use Hard-Merge Plan (2026-02-25)"
      - backend schema contract constants no longer keep empty legacy action/preferred maps; shared action sets now compose canonical + removed aliases only
      - sidecar contract map no longer keeps an empty legacy-alias dictionary; all compatibility alias guidance now derives from removed-alias map only
      - sidecar adapter no longer keeps dead legacy-dispatch paths; removed aliases fail directly via removed-alias boundary checks
-     - sidecar browser tool path no longer uses `phase2` naming (`BROWSER_ROUTED_ACTIONS` / `_run_browser_action`) and now exposes neutral runtime adapter names (`BrowserRuntimeAdapter`, `get_browser_adapter`) with compatibility aliases retained
-     - sidecar internal tests and browser tool call sites now use neutral adapter names (`BrowserRuntimeAdapter`, `get_browser_adapter`) while compatibility aliases remain exported for backward compatibility
+     - sidecar browser tool path no longer uses `phase2` naming (`BROWSER_ROUTED_ACTIONS` / `_run_browser_action`) and now exposes neutral runtime adapter names (`BrowserRuntimeAdapter`, `get_browser_adapter`)
+     - compatibility naming aliases (`BrowserUseCompatibilityAdapter`, `get_browser_use_adapter`) are now removed from sidecar browser adapter/tool export surfaces
 
 ## Safety Gates
 

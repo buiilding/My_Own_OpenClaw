@@ -1029,19 +1029,3 @@ def get_browser_adapter(
     except TypeError:
         return adapter
     return adapter
-
-
-# Backward-compatible aliases while tests and call sites migrate.
-BrowserUseCompatibilityAdapter = BrowserRuntimeAdapter
-
-
-def get_browser_use_adapter(
-    controller: BrowserControllerLike,
-    runtime_provider: BrowserRuntimeProvider | None = None,
-    runtime_provider_factory: Callable[[BrowserControllerLike], BrowserRuntimeProvider] = get_browser_runtime_provider,
-) -> BrowserRuntimeAdapter:
-    return get_browser_adapter(
-        controller,
-        runtime_provider=runtime_provider,
-        runtime_provider_factory=runtime_provider_factory,
-    )

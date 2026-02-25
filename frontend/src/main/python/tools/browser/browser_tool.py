@@ -17,7 +17,6 @@ from tools.result import ToolResult
 
 AdapterActionResult = _adapter.AdapterActionResult
 BrowserRuntimeAdapter = _adapter.BrowserRuntimeAdapter
-BrowserUseCompatibilityAdapter = _adapter.BrowserUseCompatibilityAdapter
 ControllerBackedRuntimeProvider = _runtime.ControllerBackedRuntimeProvider
 BrowserUseNativeRuntimeProvider = _runtime.BrowserUseNativeRuntimeProvider
 
@@ -125,14 +124,6 @@ def get_browser_adapter(
         runtime_provider=runtime_provider,
         runtime_provider_factory=get_browser_runtime_provider,
     )
-
-
-def get_browser_use_adapter(
-    controller,
-    runtime_provider=None,
-):
-    return get_browser_adapter(controller, runtime_provider=runtime_provider)
-
 
 def _adapter_result_to_tool_result(result: AdapterActionResult) -> ToolResult:
     if result.success:
