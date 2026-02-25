@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for backend-sidecar browser schema parity checks, action-coverage guarantees, and the validation-boundary split between backend acceptance and sidecar runtime enforcement."
+summary: "Deep reference for backend-sidecar browser schema parity checks, action-coverage guarantees, and validation-boundary split across canonical, legacy, and removed aliases."
 read_when:
-  - When adding new browser actions and verifying backend schema, sidecar schema, runtime handler, and adapter coverage stay aligned.
-  - When investigating payloads that parse in backend but fail in sidecar compatibility adapter/runtime layers.
+  - When adding/removing browser actions and verifying backend schema, sidecar schema, adapter dispatch, and runtime handler coverage stay aligned.
+  - When investigating payloads that parse in backend but fail in backend runtime alias gates or sidecar runtime enforcement.
 title: "Backend-Sidecar Browser Schema Parity and Validation Boundary Reference"
 ---
 
@@ -25,98 +25,93 @@ title: "Backend-Sidecar Browser Schema Parity and Validation Boundary Reference"
 
 ### Backend boundary
 
-Backend browser tool parse boundary is intentionally wide:
+Backend browser parse boundary is broad:
 
-- `BrowserControlArgs` accepts large compatibility field superset
+- `BrowserControlArgs` accepts canonical + compatibility action families
 - unknown extras are ignored
-- remote payload emits only explicit/non-default fields
+- removed aliases remain parseable for explicit migration errors
+
+Backend runtime gate in `RemoteBrowserTool`:
+
+- removed aliases (`open`, `switch_tab`, `press`, `act`) are blocked immediately
+- legacy alias `type` is controlled by strict/allow env gates
 
 ### Sidecar boundary
 
-Sidecar enforcement is stricter and action-aware:
+Sidecar enforcement is action-aware and runtime-focused:
 
-- action schema routing (`BROWSER_SCHEMAS`) validates action-specific requirements
-- adapter can reject compatibility fields for selected actions (for example snapshot/extract/screenshot compatibility modes)
-- runtime provider enforces action availability and connection preconditions
+- action schema routing (`BROWSER_SCHEMAS`) validates sidecar action models
+- `browser_tool` applies removed/legacy alias policy gates
+- adapter/runtime normalize and validate action-specific params
 
 Result:
 
-- backend parse success does not guarantee sidecar execution success
-- debugging must inspect both boundaries
+- backend parse success does not guarantee end-to-end execution success
 
 ## Parity Axes That Must Stay Aligned
 
-When introducing or changing browser actions, verify all four layers:
+When changing browser actions, verify four layers:
 
-1. backend action literals (`backend/src/tools/browser/schema_types.py`)
-2. sidecar schema registry keys (`frontend/src/main/python/tools/browser/schemas.py`, `BROWSER_SCHEMAS`)
-3. adapter/runtime dispatch support (`BrowserUseCompatibilityAdapter`, native handler registry)
-4. Browser Use runtime action registry coverage
+1. backend action literals and alias categories (`schema_types.py`)
+2. sidecar schema registry keys (`schemas.py`, `BROWSER_SCHEMAS`)
+3. sidecar tool/adapter alias-gate policy (`browser_tool.py`, `browser_adapter.py`)
+4. Browser Use runtime handler coverage
 
 ## Existing Parity Guards
 
 `tests/sidecar/tools/test_browser_use_tool_parity.py` enforces:
 
-- Browser Use import origin resolves to vendored runtime only
-- `browser-use` pip dependency absent from sidecar requirements
-- sidecar `BROWSER_SCHEMAS` covers every Browser Use registry action
-- backend `BrowserControlArgs` action literal covers every Browser Use registry action
-- native runtime handler registry covers every Browser Use action
-- compatibility adapter dispatch executes every Browser Use action with minimal args
+- vendored Browser Use import origin
+- `browser-use` pip dependency absence in sidecar requirements
+- sidecar `BROWSER_SCHEMAS` covers Browser Use runtime registry actions
+- backend `BrowserControlArgs` action literals cover Browser Use actions
+- native runtime handler registry covers Browser Use actions
 
-`tests/backend/test_browser_remote_tool.py` additionally confirms backend tool registration and baseline schema availability.
+`tests/backend/test_browser_remote_tool.py` additionally checks backend schema/tool registration and alias policy behavior.
 
 ## Typical Drift Failure Patterns
 
-### Pattern 1: New action added only in one layer
+### Pattern 1: Action added only in one layer
 
 Symptoms:
 
-- backend accepts action but adapter returns unsupported
-- adapter supports action but backend literal parse fails before transport
+- backend accepts action but sidecar rejects as unsupported
+- sidecar supports action but backend literal parse fails upstream
 
-Fix path:
-
-- update backend literals + sidecar schemas + adapter/runtime registry + parity tests together
-
-### Pattern 2: Field alias accepted but semantically rejected
+### Pattern 2: Alias category drift
 
 Symptoms:
 
-- payload parses in backend/unified model
-- sidecar returns `INVALID_ARGUMENT` for compatibility field on specific actions
+- alias documented as legacy but implemented as removed (or inverse)
+- strict/allow env behavior differs between backend and sidecar
 
-Fix path:
+### Pattern 3: Backend acceptance vs sidecar rejection
 
-- align docs and action-specific normalization rules
-- keep intentional rejection behavior explicit in adapter docs/tests
+Symptoms:
 
-### Pattern 3: Default stripping changes runtime behavior
+- payload parses in backend model
+- sidecar returns `INVALID_ARGUMENT` after normalization/compat rejection
 
-Because backend uses `model_dump(exclude_defaults=True, exclude_none=True)`, sidecar may receive missing fields and apply different defaults.
+### Pattern 4: Default stripping side effects
 
-Fix path:
-
-- inspect backend serialized args payload
-- verify sidecar default assumptions and adapter normalization paths
+Backend transport strips defaults/`None`; sidecar receives sparse payload and may apply different defaults.
 
 ## Debug Procedure
 
-1. capture backend serialized browser args payload (`RemoteToolResult.args`)
-2. validate expected action exists in sidecar `BROWSER_SCHEMAS`
-3. check adapter branch for action family:
-   - pass-through vs direct vs compatibility rewrite
-4. inspect runtime provider/handler lookup for action
-5. confirm parity tests include the action and minimal argument case
+1. capture backend serialized payload (`RemoteToolResult.args`)
+2. verify backend gate decision (removed alias block vs legacy gate vs pass-through)
+3. verify sidecar schema/action registry coverage
+4. inspect adapter param normalization path
+5. inspect runtime handler dispatch and error code
 
-## Change Checklist for Browser Action Additions
+## Change Checklist
 
-- add/update backend action literal and fields
-- add/update sidecar schema entry and validation model
-- add/update adapter dispatch mapping and normalization
-- add/update native runtime handler map
-- extend parity tests and backend schema tests
-- update docs in both backend and frontend browser sections
+- update backend action literals and alias maps
+- update backend runtime gate docs/tests (`RemoteBrowserTool`)
+- update sidecar schema/action mappings and alias gates
+- update adapter dispatch/normalization
+- run parity + adapter + backend schema tests
+- update backend + frontend browser docs in same change
 
 ## Related Pages
 

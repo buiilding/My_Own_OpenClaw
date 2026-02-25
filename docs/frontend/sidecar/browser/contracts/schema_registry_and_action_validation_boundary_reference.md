@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for sidecar browser schema registry behavior: action-to-model mapping, union coverage, validation entrypoints, and backend-vs-sidecar boundary semantics."
+summary: "Deep reference for sidecar browser schema registry behavior: action-model mapping, validation helpers, and boundary split between schema validation, alias policy gates, and adapter/runtime enforcement."
 read_when:
-  - When adding/removing browser actions in sidecar schema models or changing action validation rules.
-  - When debugging schema parse errors from `validate_browser_args` or mismatches with adapter/runtime dispatch behavior.
+  - When adding/removing browser actions in sidecar schemas or changing sidecar action validation rules.
+  - When debugging schema parse errors vs runtime alias-policy rejections in browser tool execution.
 title: "Schema Registry and Action Validation Boundary Reference"
 ---
 
@@ -17,98 +17,93 @@ title: "Schema Registry and Action Validation Boundary Reference"
 
 ## Schema Model Topology
 
-`schemas.py` defines per-action Pydantic models, then exposes:
+`schemas.py` defines per-action Pydantic models and exposes:
 
-- `BrowserControlArgs` union type
-- `BROWSER_SCHEMAS` dictionary for runtime action lookup
+- `BrowserControlArgs` union
+- `BROWSER_SCHEMAS` registry
 - `get_browser_schema(action)` helper
 - `validate_browser_args(action, args)` helper
 
 Model policy:
 
-- each action model uses `model_config.extra = "ignore"`
-- strict requirements are implemented with field bounds and model validators
+- each model uses `model_config.extra = "ignore"`
+- required fields and model validators enforce action-level constraints
 
 ## Action Registry Contract (`BROWSER_SCHEMAS`)
 
-Registry includes core actions:
+Registry includes explicit entries for:
 
-- `connect`, `navigate`, `snapshot`, `extract`, `click`, `type`, `press`, `scroll`, `screenshot`, `wait`, `get_tabs`, `switch_tab`, `evaluate`, `close`
+- `connect`, `navigate`, `snapshot`, `extract`, `click`, `type`, `scroll`, `screenshot`, `wait`, `get_tabs`, `evaluate`, `close`
 
-Compatibility actions are injected automatically:
+Compatibility actions are injected from `OPENCLAW_COMPAT_ACTIONS` and map to `BrowserOpenClawCompatArgs`.
 
-- each action in `OPENCLAW_COMPAT_ACTIONS` maps to `BrowserOpenClawCompatArgs`
+Important scope note:
 
-Implication:
-
-- compatibility action expansion is centralized in openclaw schema definition
-- registry coverage changes when compatibility action literal list changes
+- removed aliases (`open`, `switch_tab`, `press`, `act`) are not in sidecar schema action sets and are rejected by browser-tool alias policy.
 
 ## Validation Entry Point Behavior
 
 `validate_browser_args(action, args)` flow:
 
-1. resolve model from `BROWSER_SCHEMAS`
-2. inject `action` into supplied `args`
+1. resolve schema from `BROWSER_SCHEMAS`
+2. inject `action` into args
 3. instantiate model
 4. return `(True, None)` on success
-5. return `(False, error_message)` on unknown action or validation error
+5. return `(False, message)` on unknown action or validation error
 
-No exception is propagated by helper; callers get normalized tuple response.
-
-## Important Action-Level Validators
+## Important Validators
 
 `BrowserConnectArgs`:
 
-- `cdp_url` must be localhost/127.0.0.1 when connect mode targets user chrome
+- `cdp_url` must resolve to localhost/127.0.0.1 in user-chrome mode
 
 `BrowserClickArgs`:
 
-- requires either `ref`/`index` or both `coordinate_x` + `coordinate_y`
-- single coordinate without pair is rejected
+- requires `ref/index` or both coordinates
+- rejects single-coordinate payloads
 
 `BrowserEvaluateArgs`:
 
-- requires one of `script` or `code`
+- requires `script` or `code`
 
-Additional strict bounds:
+Additional bounds:
 
-- snapshot `max_chars`/pagination limits
-- extract `query` length and mode bounds
-- scroll `amount`/`pages` bounds
-- type/evaluate text-length bounds
+- snapshot paging limits
+- extract query/mode bounds
+- scroll amount/pages bounds
+- type/evaluate length bounds
 
 ## Runtime Boundary with `browser_tool.py`
 
-`browser_tool.execute_browser(...)` does not directly call `validate_browser_args`; instead it:
+`browser_tool.execute_browser(...)` does not rely solely on `validate_browser_args`.
 
-- enforces known action membership (`PHASE2_ADAPTER_ROUTED_ACTIONS`)
-- routes action to compatibility adapter/runtime provider
+Runtime boundary layers:
 
-Therefore sidecar validation boundary has two layers:
+1. action allowlist + alias policy gates in `browser_tool.py`
+2. adapter normalization/rejection rules in `browser_adapter.py`
+3. runtime provider execution constraints
 
-1. schema-level constraints (when explicitly validated in callers/tests)
-2. adapter/runtime normalization and execution constraints
+So schema acceptance means only "known shape", not guaranteed execution.
 
 ## Backend vs Sidecar Validation Split
 
-Backend `BrowserControlArgs` is broad and transport-oriented; sidecar action models are stricter for execution semantics.
+- backend `BrowserControlArgs` is broad and transport-oriented
+- sidecar schemas + tool/adapter policy are execution gates
 
 Practical rule:
 
-- backend acceptance does not imply sidecar action acceptance
-- sidecar schema + adapter rules remain final gate before browser execution
+- backend acceptance does not imply sidecar acceptance
 
 ## Test-Backed Coverage
 
 `tests/sidecar/tools/test_browser_schemas.py` verifies:
 
-- connect localhost-only restriction
-- snapshot/extract/click/scroll/evaluate bound/validator behavior
-- OpenClaw compatibility actions remain wired
-- schema helper lookups and validations remain functional
+- localhost connect restriction
+- snapshot/extract/click/scroll/evaluate constraints
+- compatibility actions remain wired
+- schema helper lookup/validation behavior
 
-`tests/sidecar/tools/test_browser_use_tool_parity.py` adds action parity checks against Browser Use registry.
+`tests/sidecar/tools/test_browser_use_tool_parity.py` adds Browser Use parity assertions.
 
 ## Related Pages
 
