@@ -14,6 +14,7 @@ title: "OCR Service and Screenshot State-Machine Reference"
 - `backend/src/tools/tool_policy.py`
 - `backend/src/services/ocr/ocr_service.py`
 - `backend/src/services/ocr/helpers.py`
+- `backend/src/services/ocr/runtime_config.py`
 - `backend/src/agent/tools/preparation/screenshot/state.py`
 - `backend/src/agent/tools/preparation/screenshot/manager.py`
 - `backend/src/agent/tools/preparation/ocr/coordinator.py`
@@ -21,6 +22,7 @@ title: "OCR Service and Screenshot State-Machine Reference"
 - `tests/backend/test_screenshot_manager.py`
 - `tests/backend/test_screenshot_state.py`
 - `tests/backend/test_ocr_service.py`
+- `tests/backend/test_ocr_runtime_config.py`
 
 ## Startup Gating and Service Enablement
 
@@ -150,8 +152,14 @@ Normalization details:
 
 Thread/batch parameter selection:
 
-- GPU-aware thresholds sorted via `_normalized_batch_thresholds(...)`
-- CPU thread counts derive from `os.cpu_count()` + OCR config min/max bounds
+- runtime config helper ownership:
+  - `normalized_batch_thresholds(...)`
+  - `resolve_batch_sizes(...)`
+  - `resolve_thread_counts(...)`
+  - `build_ocr_params_payload(...)`
+  - `detect_gpu_memory_gb(...)`
+  - `detect_cpu_cores(...)`
+- `OcrService._build_ocr_params(...)` keeps compatibility wrapper behavior and logging while delegating threshold/thread/payload assembly to `runtime_config.py`
 
 Test-backed behavior:
 

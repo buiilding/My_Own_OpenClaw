@@ -13,6 +13,14 @@ from backend.src.services.ocr.helpers import (
     is_cuda_error,
     normalize_ocr_field,
 )
+from backend.src.services.ocr.runtime_config import (
+    build_ocr_params_payload,
+    detect_cpu_cores,
+    detect_gpu_memory_gb,
+    normalized_batch_thresholds,
+    resolve_batch_sizes,
+    resolve_thread_counts,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -60,14 +68,7 @@ class OcrService:
         Returns:
             GPU memory in GB, or None if detection fails
         """
-        try:
-            import torch
-            if torch.cuda.is_available():
-                gpu_memory_gb = torch.cuda.get_device_properties(0).total_memory / (1024 ** 3)
-                return gpu_memory_gb
-        except (ImportError, Exception):
-            pass
-        return None
+        return detect_gpu_memory_gb()
 
     def _detect_cpu_cores(self) -> int:
         """
@@ -76,15 +77,7 @@ class OcrService:
         Returns:
             Number of physical CPU cores, or 4 as fallback
         """
-        try:
-            import os
-            if hasattr(os, "cpu_count"):
-                cores = os.cpu_count()
-                if cores:
-                    return max(4, cores - 1)
-        except Exception:
-            pass
-        return 4
+        return detect_cpu_cores()
 
     def _build_ocr_params(self, use_cuda: bool) -> Dict[str, Any]:
         """
@@ -101,50 +94,20 @@ class OcrService:
         gpu_memory_gb = self._detect_gpu_memory() if use_cuda else None
         cpu_cores = self._detect_cpu_cores()
         sorted_thresholds = self._normalized_batch_thresholds(config.batch_size_thresholds)
-
-        rec_batch_num = 6
-        cls_batch_num = 4
-        if use_cuda and gpu_memory_gb:
-            for min_gpu, rec_batch, cls_batch in sorted_thresholds:
-                if gpu_memory_gb >= min_gpu:
-                    rec_batch_num = rec_batch
-                    cls_batch_num = cls_batch
-                    break
-        else:
-            if sorted_thresholds:
-                _, rec_batch_num, cls_batch_num = sorted_thresholds[-1]
-
-        if config.use_cpu_cores_for_threads:
-            intra_op_threads = cpu_cores
-            inter_op_threads = min(
-                config.inter_op_threads_max,
-                max(config.inter_op_threads_min, cpu_cores // 2)
-            )
-        else:
-            intra_op_threads = cpu_cores
-            inter_op_threads = min(4, max(2, cpu_cores // 2))
-
-        ocr_params = {
-            "Global.use_det": config.use_detection,
-            "Global.use_cls": config.use_classification,
-            "Global.use_rec": config.use_recognition,
-            "Global.text_score": config.text_score_threshold,
-            "Global.max_side_len": config.max_side_len,
-            "Global.min_side_len": config.min_side_len,
-            "EngineConfig.onnxruntime.use_cuda": use_cuda,
-            "EngineConfig.onnxruntime.intra_op_num_threads": intra_op_threads,
-            "EngineConfig.onnxruntime.inter_op_num_threads": inter_op_threads,
-            "Det.limit_side_len": config.det_limit_side_len,
-            "Det.limit_type": config.det_limit_type,
-            "Det.thresh": config.det_thresh,
-            "Det.box_thresh": config.det_box_thresh,
-            "Det.max_candidates": config.det_max_candidates,
-            "Det.unclip_ratio": config.det_unclip_ratio,
-            "Det.score_mode": config.det_score_mode,
-            "Cls.cls_batch_num": cls_batch_num,
-            "Cls.cls_thresh": config.cls_thresh,
-            "Rec.rec_batch_num": rec_batch_num,
-        }
+        rec_batch_num, cls_batch_num = resolve_batch_sizes(
+            use_cuda=use_cuda,
+            gpu_memory_gb=gpu_memory_gb,
+            sorted_thresholds=sorted_thresholds,
+        )
+        intra_op_threads, inter_op_threads = resolve_thread_counts(config, cpu_cores)
+        ocr_params = build_ocr_params_payload(
+            config=config,
+            use_cuda=use_cuda,
+            intra_op_threads=intra_op_threads,
+            inter_op_threads=inter_op_threads,
+            rec_batch_num=rec_batch_num,
+            cls_batch_num=cls_batch_num,
+        )
 
         if use_cuda and gpu_memory_gb:
             logger.info(
@@ -164,22 +127,7 @@ class OcrService:
         thresholds: List[List[float | int]],
     ) -> List[tuple[float, int, int]]:
         """Normalize and sort batch-size thresholds by descending VRAM requirement."""
-        normalized: List[tuple[float, int, int]] = []
-        for row in thresholds:
-            if not isinstance(row, (list, tuple)) or len(row) != 3:
-                continue
-            try:
-                min_gpu = float(row[0])
-                rec_batch = int(row[1])
-                cls_batch = int(row[2])
-            except (TypeError, ValueError):
-                continue
-            normalized.append((min_gpu, rec_batch, cls_batch))
-
-        if not normalized:
-            normalized = [(0.0, 6, 4)]
-
-        return sorted(normalized, key=lambda item: item[0], reverse=True)
+        return normalized_batch_thresholds(thresholds)
 
     def _create_engine(self, use_cuda: bool) -> None:
         ocr_params = self._build_ocr_params(use_cuda=use_cuda)
@@ -359,9 +307,7 @@ class OcrService:
     def _retry_ocr_with_cpu(self, image_bytes: bytes) -> Any:
         """Reload OCR engine in CPU mode and retry OCR execution once."""
         try:
-            ocr_params = self._build_ocr_params(use_cuda=False)
-            self._ocr_engine = RapidOCR(params=ocr_params)
-            self.use_cuda = False
+            self._create_engine(use_cuda=False)
             logger.warning(
                 "OCR engine reloaded with CPU (CUDA memory exhausted) - retrying analysis"
             )

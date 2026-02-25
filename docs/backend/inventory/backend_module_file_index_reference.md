@@ -21,11 +21,11 @@ Based on current source tree under `backend/src`:
 | `core` | 77 |
 | `tools` | 31 |
 | `llm` | 31 |
-| `services` | 15 |
+| `services` | 16 |
 | `simulation` | 12 |
 | `sdk` | 6 |
 | `embeddings` | 2 |
-| **Total** | **304** |
+| **Total** | **305** |
 
 ## API Layer Index
 
@@ -115,7 +115,7 @@ Services domain:
 
 - `backend/src/services/token_service.py`
 - `backend/src/services/artifacts/store.py`
-- `backend/src/services/ocr/{ocr_service,helpers}.py`
+- `backend/src/services/ocr/{ocr_service,helpers,runtime_config}.py`
 - `backend/src/services/vision/{vision_service,utils,coordinates}.py`
 - `backend/src/services/vision/providers/{base,internvl,internvl_runtime_helpers,ui_venus}.py`
 

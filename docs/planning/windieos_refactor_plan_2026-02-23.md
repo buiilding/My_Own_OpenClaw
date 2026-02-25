@@ -4294,3 +4294,43 @@ read_when:
   - `./scripts/python-in-env backend python -m pytest tests/backend --durations=20 -q` (pass)
   - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
   - `npx jscpd --gitignore --min-lines 8 --reporters console,markdown --output .audit/plan1/jscpd-backend backend/src tests/backend` (0 clones)
+
+## Phase 187 Outcome (2026-02-25)
+
+- Refactor slice (backend-only): extract OCR runtime parameter/hardware helper logic from `OcrService`.
+  - added:
+    - `backend/src/services/ocr/runtime_config.py`
+      - hardware/runtime helpers:
+        - `detect_gpu_memory_gb(...)`
+        - `detect_cpu_cores(...)`
+      - OCR runtime config helpers:
+        - `normalized_batch_thresholds(...)`
+        - `resolve_batch_sizes(...)`
+        - `resolve_thread_counts(...)`
+        - `build_ocr_params_payload(...)`
+    - `tests/backend/test_ocr_runtime_config.py` direct helper-level coverage.
+  - updated:
+    - `backend/src/services/ocr/ocr_service.py`
+      - delegates GPU/CPU probe logic, threshold normalization, batch/thread selection, and OCR params payload assembly to `runtime_config.py`
+      - keeps `OcrService` compatibility wrapper methods (`_detect_gpu_memory`, `_detect_cpu_cores`, `_normalized_batch_thresholds`, `_build_ocr_params`)
+      - `_retry_ocr_with_cpu(...)` now reuses `_create_engine(use_cuda=False)` for single-path engine reload behavior
+      - reduced from `471` LOC to `417` LOC
+    - `tests/backend/test_ocr_service.py`
+      - moved threshold normalization assertions to helper-focused suite
+    - docs:
+      - `docs/backend/services/screen_grounding/ocr/runtime_config_threshold_and_thread_resolution_reference.md`
+      - `docs/backend/services/screen_grounding/ocr/README.md`
+      - `docs/backend/services/screen_grounding/README.md`
+      - `docs/backend/services/screen_grounding/ocr_service_and_screenshot_state_machine_reference.md`
+      - `docs/backend/services/ocr_and_vision_coordinate_runtime_reference.md`
+      - `docs/backend/inventory/backend_module_file_index_reference.md`
+  - route consolidation check:
+    - `jscpd` on `backend/src/api/routes` found `0` clones; no route merge needed in this slice.
+  - audit outcome:
+    - backend `jscpd` (`backend/src` + `tests/backend`) remained at `0` clones after extraction.
+- Validation:
+  - `python -m py_compile backend/src/services/ocr/ocr_service.py backend/src/services/ocr/runtime_config.py tests/backend/test_ocr_service.py tests/backend/test_ocr_runtime_config.py` (pass)
+  - `./scripts/python-in-env backend python -m pytest tests/backend/test_ocr_service.py tests/backend/test_ocr_runtime_config.py -q` (pass)
+  - `./scripts/python-in-env backend python -m pytest tests/backend --durations=20 -q` (pass)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console,markdown --output .audit/plan1/jscpd-backend backend/src tests/backend` (0 clones)

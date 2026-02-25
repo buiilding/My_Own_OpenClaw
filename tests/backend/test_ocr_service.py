@@ -120,25 +120,6 @@ def test_build_ocr_params_uses_sorted_thresholds_when_config_unsorted(monkeypatc
     assert params_cpu["Cls.cls_batch_num"] == 3
 
 
-def test_normalized_batch_thresholds_ignores_malformed_rows():
-    thresholds = OcrService._normalized_batch_thresholds(
-        [
-            [16.0, 24, 10],
-            ["bad", 12, 6],  # invalid min-gpu
-            [8.0, "bad", 6],  # invalid rec batch
-            [0.0, 5, 3],
-        ]
-    )
-
-    assert thresholds == [(16.0, 24, 10), (0.0, 5, 3)]
-
-
-def test_normalized_batch_thresholds_falls_back_when_all_invalid():
-    thresholds = OcrService._normalized_batch_thresholds([["bad", "bad", "bad"]])
-
-    assert thresholds == [(0.0, 6, 4)]
-
-
 def test_ensure_engine_initialized_sync_short_circuits_when_engine_exists():
     service = OcrService()
     service._ocr_engine = object()

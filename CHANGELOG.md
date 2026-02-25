@@ -7,6 +7,9 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): record Phase 187 OCR runtime-config helper extraction (`runtime_config.py`), OCR service delegation updates, backend verification, and refreshed jscpd outcomes in `docs/planning/windieos_refactor_plan_2026-02-23.md`
+- docs(backend-screen-grounding): add OCR runtime-config deep reference and update OCR/screen-grounding runtime docs for extracted `backend/src/services/ocr/runtime_config.py` helper ownership
+- refactor(backend-ocr-service): extract OCR runtime hardware-threshold/thread/param helpers from `backend/src/services/ocr/ocr_service.py` into `backend/src/services/ocr/runtime_config.py`, keep `OcrService` compatibility wrappers, and add helper-level coverage in `tests/backend/test_ocr_runtime_config.py`
 - docs(refactor-plan): record Phase 186 LiteLLM client response-normalization extraction (`client_response_normalization.py`), `test_llm_client.py` split, backend verification, and refreshed jscpd outcomes in `docs/planning/windieos_refactor_plan_2026-02-23.md`
 - docs(backend-llm-client): update LLM docs hub, provider-factory runtime reference, and backend module index for extracted `backend/src/llm/client_response_normalization.py` ownership and wrapper delegation contracts
 - refactor(backend-llm-client): extract provider-response normalization helpers from `backend/src/llm/client.py` into `backend/src/llm/client_response_normalization.py`, preserve LiteLLMClient compatibility wrappers, and split normalization tests into `tests/backend/test_llm_client_response_normalization.py` with `test_llm_client.py` reduced below 500 LOC
