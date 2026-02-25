@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-protocol-validation): add `docs/frontend/inventory/protocols/validation` subhub with IPC channel/payload validation-boundary reference and wire links from protocol/lifecycle/error hubs
 - docs(backend-protocol-validation): add `docs/backend/inventory/protocols/validation` subhub with websocket envelope/route/registry validation-boundary reference and wire links from protocol/error hubs
 - docs(frontend-protocol-errors): add `docs/frontend/inventory/protocols/errors` subhub with IPC/ws-bridge/local-backend error-recovery contract reference and wire links from protocol/lifecycle hubs
 - docs(refactor-plan): record backend browser-schema dedupe slice and updated backend `jscpd` delta (`14` -> `11` clones) in `docs/planning/windieos_refactor_plan_2026-02-23.md`
