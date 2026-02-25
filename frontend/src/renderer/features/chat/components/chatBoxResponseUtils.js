@@ -1,15 +1,3 @@
-import { TOOL_GHOST_CLICK_SYNC_DELAY_MS } from '../constants/toolGhostRuntime';
-
-const TOOL_GHOST_MOVE_DURATION_MS = 500;
-
-function clampRatio(value) {
-  return Math.min(1, Math.max(0, value));
-}
-
-function toCssPercent(value) {
-  return `${clampRatio(value) * 100}%`;
-}
-
 export function findLastUserIndex(messages) {
   for (let i = messages.length - 1; i >= 0; i -= 1) {
     if (messages[i].sender === 'user') {
@@ -54,35 +42,4 @@ export function findLatestToolCallAfterUser(messages, lastUserIndex) {
     return message;
   }
   return null;
-}
-
-export function buildToolGhostTrackStyle(toolGhostPreview, toolGhostStartRatio, effectiveTargetRatio) {
-  const startRatio = toolGhostStartRatio || { xRatio: 0.5, yRatio: 0.5 };
-  const targetRatio = effectiveTargetRatio || startRatio;
-  const motionDuration = toolGhostPreview.isMouseClick
-    ? TOOL_GHOST_CLICK_SYNC_DELAY_MS
-    : TOOL_GHOST_MOVE_DURATION_MS;
-  const style = {
-    '--ghost-start-left': toCssPercent(startRatio.xRatio),
-    '--ghost-start-top': toCssPercent(startRatio.yRatio),
-    '--ghost-end-left': toCssPercent(targetRatio.xRatio),
-    '--ghost-end-top': toCssPercent(targetRatio.yRatio),
-    '--ghost-ripple-left': toCssPercent(targetRatio.xRatio),
-    '--ghost-ripple-top': toCssPercent(targetRatio.yRatio),
-    '--ghost-target-scale': `${toolGhostPreview.targetScale}`,
-    '--ghost-motion-duration': `${motionDuration}ms`,
-  };
-  if (
-    toolGhostPreview.hasRect
-    && Number.isFinite(toolGhostPreview.rectLeftRatio)
-    && Number.isFinite(toolGhostPreview.rectTopRatio)
-    && Number.isFinite(toolGhostPreview.rectWidthRatio)
-    && Number.isFinite(toolGhostPreview.rectHeightRatio)
-  ) {
-    style['--ghost-rect-left'] = `${toolGhostPreview.rectLeftRatio * 100}%`;
-    style['--ghost-rect-top'] = `${toolGhostPreview.rectTopRatio * 100}%`;
-    style['--ghost-rect-width'] = `${toolGhostPreview.rectWidthRatio * 100}%`;
-    style['--ghost-rect-height'] = `${toolGhostPreview.rectHeightRatio * 100}%`;
-  }
-  return style;
 }
