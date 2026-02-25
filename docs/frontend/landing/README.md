@@ -11,11 +11,16 @@ title: "Frontend Landing Docs Hub"
 ## Deep Pages
 
 - [Landing Page Runtime and Content Reference](landing_page_runtime_and_content_reference.md)
+- [Frontend Landing Sections Docs Hub](sections/README.md)
+- [Hero, How, Available, and Roadmap Section Content Contract Reference](sections/hero_how_available_and_roadmap_section_content_contract_reference.md)
 
 ## Code Scope
 
 - `frontend/landing.html`
 - `frontend/src/landing/*`
 - `frontend/src/landing/components/*`
+- `frontend/src/landing/components/HeroSection.jsx`
+- `frontend/src/landing/components/HowItWorksSection.jsx`
+- `frontend/src/landing/components/AvailableTodaySection.jsx`
+- `frontend/src/landing/components/RoadmapSection.jsx`
 - `frontend/src/landing/styles/*`
-

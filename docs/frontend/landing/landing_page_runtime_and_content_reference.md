@@ -14,6 +14,10 @@ title: "Landing Page Runtime and Content Reference"
 - `frontend/src/landing/main.jsx`
 - `frontend/src/landing/LandingPage.jsx`
 - `frontend/src/landing/components/*.jsx`
+- `frontend/src/landing/components/HeroSection.jsx`
+- `frontend/src/landing/components/HowItWorksSection.jsx`
+- `frontend/src/landing/components/AvailableTodaySection.jsx`
+- `frontend/src/landing/components/RoadmapSection.jsx`
 - `frontend/src/landing/styles/LandingPage.css`
 - `frontend/src/landing/styles/variables.css`
 - `frontend/vite.config.js`
@@ -146,3 +150,8 @@ If landing layout breaks on mobile:
 2. verify `.step-row` reorder and `.cta-actions` stacking behavior
 3. check footer columns collapse rules
 
+## Related Pages
+
+- [Frontend Landing Docs Hub](README.md)
+- [Frontend Landing Sections Docs Hub](sections/README.md)
+- [Hero, How, Available, and Roadmap Section Content Contract Reference](sections/hero_how_available_and_roadmap_section_content_contract_reference.md)
