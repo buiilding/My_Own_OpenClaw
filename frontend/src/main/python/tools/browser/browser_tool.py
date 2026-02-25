@@ -8,6 +8,8 @@ import logging
 import os
 from typing import Any, Dict
 
+from tools.browser.browser_action_contract import BROWSER_ALL_ACTIONS
+from tools.browser.browser_action_contract import LEGACY_BROWSER_ACTION_ALIASES
 from tools.browser import browser_adapter as _adapter
 from tools.browser import browser_runtime as _runtime
 from tools.browser.controller import get_browser_controller
@@ -20,45 +22,13 @@ BrowserUseNativeRuntimeProvider = _runtime.BrowserUseNativeRuntimeProvider
 
 logger = logging.getLogger(__name__)
 
-PHASE2_ADAPTER_ROUTED_ACTIONS = frozenset(
-    {
-        "connect",
-        "status",
-        "profiles",
-        "navigate",
-        "open",
-        "click",
-        "type",
-        "press",
-        "scroll",
-        "screenshot",
-        "wait",
-        "get_tabs",
-        "switch_tab",
-        "evaluate",
-        "done",
-        "search",
-        "go_back",
-        "search_page",
-        "find_elements",
-        "find_text",
-        "input",
-        "send_keys",
-        "switch",
-        "close_tab",
-        "dropdown_options",
-        "select_dropdown",
-        "upload_file",
-        "write_file",
-        "replace_file",
-        "read_file",
-        "read_long_content",
-        "snapshot",
-        "extract",
-        "act",
-        "close",
-    }
-)
+PHASE2_ADAPTER_ROUTED_ACTIONS = BROWSER_ALL_ACTIONS
+ENV_CANONICAL_ONLY_ACTIONS = "WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY"
+
+
+def _canonical_only_actions_enabled() -> bool:
+    raw = os.getenv(ENV_CANONICAL_ONLY_ACTIONS, "").strip().lower()
+    return raw in {"1", "true", "yes", "on"}
 
 
 def _ensure_vendored_browser_use_on_path():
@@ -152,6 +122,13 @@ async def _run_phase2_adapter_action(args: Dict[str, Any]) -> ToolResult:
 
     if action not in PHASE2_ADAPTER_ROUTED_ACTIONS:
         return ToolResult.error_result(f"Unhandled action: {action}")
+
+    if _canonical_only_actions_enabled() and action in LEGACY_BROWSER_ACTION_ALIASES:
+        preferred = LEGACY_BROWSER_ACTION_ALIASES[action]
+        return ToolResult.error_result(
+            "Legacy browser actions are disabled by "
+            f"{ENV_CANONICAL_ONLY_ACTIONS}=1. Use '{preferred}' instead."
+        )
 
     controller = get_browser_controller()
     adapter = get_browser_use_adapter(controller)

@@ -9,6 +9,8 @@ from typing import Mapping
 from weakref import WeakKeyDictionary
 
 from tools.browser.chrome_launcher import DEFAULT_WINDIE_CDP_URL
+from tools.browser.browser_action_contract import BROWSER_CANONICAL_ACTIONS
+from tools.browser.browser_action_contract import LEGACY_BROWSER_ACTION_ALIASES
 from tools.browser.browser_runtime import ControllerRuntimeLike
 from tools.browser.browser_runtime import BrowserRuntimeProvider
 from tools.browser.browser_runtime import get_browser_runtime_provider
@@ -51,30 +53,12 @@ BROWSER_USE_DIRECT_ACTIONS = frozenset(
         "read_long_content",
     }
 )
-BROWSER_USE_PASSTHROUGH_ACTIONS = frozenset(
-    {
-        "navigate",
-        "snapshot",
-        "extract",
-        "click",
-        "scroll",
-        "screenshot",
-        "wait",
-        "evaluate",
-    }
-).union(BROWSER_USE_DIRECT_ACTIONS)
-ADAPTER_ACTIONS_WITH_ARGS = {
-    "connect": "connect",
+LEGACY_ADAPTER_ACTIONS_WITH_ARGS = {
     "open": "open",
     "type": "type_text",
     "press": "press",
     "switch_tab": "switch_tab",
     "act": "act",
-}
-ADAPTER_ACTIONS_NO_ARGS = {
-    "status": "status",
-    "profiles": "profiles",
-    "get_tabs": "get_tabs",
 }
 BROWSER_USE_ACTIONS_REQUIRING_CONNECTION = frozenset(
     {
@@ -102,6 +86,22 @@ BROWSER_USE_ACTIONS_REQUIRING_CONNECTION = frozenset(
     }
 )
 ACT_EXECUTE_FORWARD_ACTIONS = frozenset({"navigate", "extract", "scroll", "screenshot"})
+SNAPSHOT_COMPATIBILITY_FIELDS = (
+    "format",
+    "snapshotFormat",
+    "wait_until",
+    "state",
+    "mode",
+    "max_chars",
+    "refs",
+    "interactive",
+    "compact",
+    "depth",
+    "selector",
+    "frame",
+)
+EXTRACT_COMPATIBILITY_FIELDS = ("mode", "selector", "frame")
+SCREENSHOT_COMPATIBILITY_FIELDS = ("full_page", "ref", "element", "type", "quality")
 _ADAPTER_CACHE_BY_CONTROLLER: "WeakKeyDictionary[Any, BrowserUseCompatibilityAdapter]" = (
     WeakKeyDictionary()
 )
@@ -129,20 +129,25 @@ class BrowserUseCompatibilityAdapter:
         action: str,
         args: Mapping[str, Any],
     ) -> AdapterActionResult:
-        handler_with_args = ADAPTER_ACTIONS_WITH_ARGS.get(action)
-        if handler_with_args:
-            return await getattr(self, handler_with_args)(args)
+        if action == "connect":
+            result = await self.connect(args)
+            return self._annotate_legacy_action(action, result)
 
-        handler_no_args = ADAPTER_ACTIONS_NO_ARGS.get(action)
-        if handler_no_args:
-            return await getattr(self, handler_no_args)()
+        if action == "profiles":
+            result = await self.profiles()
+            return self._annotate_legacy_action(action, result)
 
-        if action in BROWSER_USE_PASSTHROUGH_ACTIONS:
-            return await self.execute_browser_use_action(action, args)
-        if action == "close":
-            if self._extract_tab_id(args):
-                return await self.execute_browser_use_action("close", args)
-            return await self.close()
+        legacy_handler = LEGACY_ADAPTER_ACTIONS_WITH_ARGS.get(action)
+        if legacy_handler:
+            result = await getattr(self, legacy_handler)(args)
+            return self._annotate_legacy_action(action, result)
+
+        if action in BROWSER_CANONICAL_ACTIONS:
+            if action == "close" and not self._extract_tab_id(args):
+                result = await self.close()
+            else:
+                result = await self.execute_browser_use_action(action, args)
+            return self._annotate_legacy_action(action, result)
 
         return AdapterActionResult(
             success=False,
@@ -462,475 +467,575 @@ class BrowserUseCompatibilityAdapter:
         action: str,
         args: Mapping[str, Any],
     ) -> dict[str, Any] | AdapterActionResult:
-        if action == "done":
-            text = self._value_as_str(args.get("text"))
-            if not text:
-                return self._invalid_argument("done", "done requires non-empty 'text'")
-            params: dict[str, Any] = {"text": text}
-            if isinstance(args.get("success"), bool):
-                params["success"] = bool(args.get("success"))
-            files_to_display = args.get("files_to_display")
-            if isinstance(files_to_display, list):
-                params["files_to_display"] = [
-                    str(path).strip()
-                    for path in files_to_display
-                    if isinstance(path, str) and path.strip()
-                ]
-            return params
-
-        if action == "status":
-            return {}
-
-        if action == "get_tabs":
-            return {}
-
-        if action == "navigate":
-            url = self._extract_url(args)
-            if not url:
-                return self._invalid_argument(
-                    "navigate",
-                    "navigate requires non-empty 'url'",
-                )
-            params = {"url": url}
-            if isinstance(args.get("new_tab"), bool):
-                params["new_tab"] = bool(args.get("new_tab"))
-            return params
-
-        if action == "snapshot":
-            compatibility_fields = (
-                "format",
-                "snapshotFormat",
-                "wait_until",
-                "state",
-                "mode",
-                "max_chars",
-                "refs",
-                "interactive",
-                "compact",
-                "depth",
-                "selector",
-                "frame",
+        builders: dict[
+            str,
+            Callable[[Mapping[str, Any]], dict[str, Any] | AdapterActionResult],
+        ] = {
+            "done": self._build_params_done,
+            "status": self._build_params_empty,
+            "get_tabs": self._build_params_empty,
+            "navigate": self._build_params_navigate,
+            "snapshot": self._build_params_snapshot,
+            "search": self._build_params_search,
+            "go_back": self._build_params_go_back,
+            "search_page": self._build_params_search_page,
+            "find_elements": self._build_params_find_elements,
+            "find_text": self._build_params_find_text,
+            "extract": self._build_params_extract,
+            "click": self._build_params_click,
+            "input": self._build_params_input,
+            "send_keys": self._build_params_send_keys,
+            "wait": self._build_params_wait,
+            "scroll": self._build_params_scroll,
+            "screenshot": self._build_params_screenshot,
+            "evaluate": self._build_params_evaluate,
+            "switch": lambda action_args: self._require_tab_id("switch", action_args),
+            "close": lambda action_args: self._require_tab_id("close", action_args),
+            "close_tab": lambda action_args: self._require_tab_id(
+                "close_tab",
+                action_args,
+            ),
+            "dropdown_options": self._build_params_dropdown_options,
+            "select_dropdown": self._build_params_select_dropdown,
+            "upload_file": self._build_params_upload_file,
+            "write_file": self._build_params_write_file,
+            "replace_file": self._build_params_replace_file,
+            "read_file": self._build_params_read_file,
+            "read_long_content": self._build_params_read_long_content,
+        }
+        builder = builders.get(action)
+        if builder is None:
+            return self._invalid_argument(
+                action,
+                f"Unsupported Browser Use action '{action}'",
             )
-            for field in compatibility_fields:
-                if field in args:
-                    return self._invalid_argument(
-                        "snapshot",
-                        (
-                            f"snapshot no longer supports compatibility '{field}'; "
-                            "use Browser Use snapshot semantics"
-                        ),
-                    )
+        return builder(args)
 
-            offset = args.get("offset")
-            if offset is None:
-                resolved_offset = 0
-            elif isinstance(offset, int) and offset >= 0:
-                resolved_offset = offset
-            else:
-                return self._invalid_argument(
-                    "snapshot",
-                    "snapshot offset must be a non-negative integer",
-                )
+    def _build_params_done(
+        self,
+        args: Mapping[str, Any],
+    ) -> dict[str, Any] | AdapterActionResult:
+        text = self._value_as_str(args.get("text"))
+        if not text:
+            return self._invalid_argument("done", "done requires non-empty 'text'")
+        params: dict[str, Any] = {"text": text}
+        if isinstance(args.get("success"), bool):
+            params["success"] = bool(args.get("success"))
+        files_to_display = args.get("files_to_display")
+        if isinstance(files_to_display, list):
+            params["files_to_display"] = [
+                str(path).strip()
+                for path in files_to_display
+                if isinstance(path, str) and path.strip()
+            ]
+        return params
 
-            limit = args.get("limit")
-            if limit is None:
-                resolved_limit = 4000
-            elif isinstance(limit, int) and limit > 0:
-                resolved_limit = limit
-            else:
-                return self._invalid_argument(
-                    "snapshot",
-                    "snapshot limit must be a positive integer",
-                )
+    @staticmethod
+    def _build_params_empty(
+        _args: Mapping[str, Any],
+    ) -> dict[str, Any]:
+        return {}
 
-            if resolved_offset + resolved_limit > MAX_SNAPSHOT_CAPTURE_CHARS:
-                return self._invalid_argument(
-                    "snapshot",
-                    "offset + limit exceeds maximum snapshot window (120000)",
-                )
-
-            include_screenshot = bool(args.get("include_screenshot", False))
-            return {
-                "offset": resolved_offset,
-                "limit": resolved_limit,
-                "include_screenshot": include_screenshot,
-            }
-
-        if action == "search":
-            query = self._value_as_str(args.get("query"))
-            if not query:
-                return self._invalid_argument("search", "search requires non-empty 'query'")
-            params: dict[str, Any] = {"query": query}
-            engine = self._value_as_str(args.get("engine"))
-            if engine:
-                params["engine"] = engine
-            return params
-
-        if action == "go_back":
-            description = self._value_as_str(args.get("description"))
-            return {"description": description} if description else {}
-
-        if action == "search_page":
-            pattern = self._value_as_str(args.get("pattern")) or self._value_as_str(
-                args.get("query")
+    def _build_params_navigate(
+        self,
+        args: Mapping[str, Any],
+    ) -> dict[str, Any] | AdapterActionResult:
+        url = self._extract_url(args)
+        if not url:
+            return self._invalid_argument(
+                "navigate",
+                "navigate requires non-empty 'url'",
             )
-            if not pattern:
-                return self._invalid_argument(
-                    "search_page",
-                    "search_page requires non-empty 'pattern'",
-                )
-            params = {"pattern": pattern}
-            if isinstance(args.get("regex"), bool):
-                params["regex"] = bool(args.get("regex"))
-            if isinstance(args.get("case_sensitive"), bool):
-                params["case_sensitive"] = bool(args.get("case_sensitive"))
-            context_chars = args.get("context_chars")
-            if isinstance(context_chars, int) and context_chars >= 0:
-                params["context_chars"] = context_chars
-            css_scope = self._value_as_str(args.get("css_scope"))
-            if css_scope:
-                params["css_scope"] = css_scope
-            max_results = args.get("max_results")
-            if isinstance(max_results, int) and max_results > 0:
-                params["max_results"] = max_results
-            return params
+        params: dict[str, Any] = {"url": url}
+        if isinstance(args.get("new_tab"), bool):
+            params["new_tab"] = bool(args.get("new_tab"))
+        return params
 
-        if action == "find_elements":
-            selector = self._value_as_str(args.get("selector"))
-            if not selector:
-                return self._invalid_argument(
-                    "find_elements",
-                    "find_elements requires non-empty 'selector'",
-                )
-            params = {"selector": selector}
-            attributes = args.get("attributes")
-            if isinstance(attributes, list):
-                params["attributes"] = [
-                    str(attribute).strip()
-                    for attribute in attributes
-                    if isinstance(attribute, str) and attribute.strip()
-                ]
-            max_results = args.get("max_results")
-            if isinstance(max_results, int) and max_results > 0:
-                params["max_results"] = max_results
-            if isinstance(args.get("include_text"), bool):
-                params["include_text"] = bool(args.get("include_text"))
-            return params
-
-        if action == "find_text":
-            text = self._value_as_str(args.get("text")) or self._value_as_str(
-                args.get("pattern")
-            )
-            if not text:
-                return self._invalid_argument(
-                    "find_text",
-                    "find_text requires non-empty 'text'",
-                )
-            return {"text": text}
-
-        if action == "extract":
-            if "mode" in args:
-                return self._invalid_argument(
-                    "extract",
-                    "extract no longer supports compatibility 'mode'; use Browser Use extract semantics",
-                )
-            if "selector" in args:
-                return self._invalid_argument(
-                    "extract",
-                    "extract no longer supports compatibility 'selector'; use Browser Use extract semantics",
-                )
-            if "frame" in args:
-                return self._invalid_argument(
-                    "extract",
-                    "extract no longer supports compatibility 'frame'; use Browser Use extract semantics",
-                )
-            query = self._value_as_str(args.get("query"))
-            if not query:
-                return self._invalid_argument(
-                    "extract",
-                    "extract requires non-empty 'query'",
-                )
-            params = {"query": query}
-            if isinstance(args.get("extract_links"), bool):
-                params["extract_links"] = bool(args.get("extract_links"))
-            start_from_char = args.get("start_from_char")
-            if isinstance(start_from_char, int) and start_from_char >= 0:
-                params["start_from_char"] = start_from_char
-            output_schema = args.get("output_schema")
-            if isinstance(output_schema, dict):
-                params["output_schema"] = output_schema
-            return params
-
-        if action == "click":
-            index = self._extract_index(args)
-            if index is None:
-                coordinate_x = self._extract_coordinate(args.get("coordinate_x"))
-                coordinate_y = self._extract_coordinate(args.get("coordinate_y"))
-                has_coordinate_x = coordinate_x is not None
-                has_coordinate_y = coordinate_y is not None
-                if has_coordinate_x != has_coordinate_y:
-                    return self._invalid_argument(
-                        "click",
-                        "click requires both 'coordinate_x' and 'coordinate_y' when using coordinate click",
-                    )
-                if has_coordinate_x and has_coordinate_y:
-                    return {
-                        "coordinate_x": coordinate_x,
-                        "coordinate_y": coordinate_y,
-                    }
-                return self._invalid_argument(
-                    "click",
-                    "click requires integer 'index', numeric 'ref', or coordinate pair 'coordinate_x'/'coordinate_y'",
-                )
-            return {"index": index}
-
-        if action == "input":
-            index = self._extract_index(args)
-            if index is None:
-                return self._invalid_argument(
-                    "input",
-                    "input requires integer 'index' or numeric 'ref'",
-                )
-            text = args.get("text")
-            if not isinstance(text, str):
-                return self._invalid_argument("input", "input requires string 'text'")
-            params = {
-                "index": index,
-                "text": text,
-            }
-            if isinstance(args.get("clear"), bool):
-                params["clear"] = bool(args.get("clear"))
-            elif isinstance(args.get("clear_first"), bool):
-                params["clear"] = bool(args.get("clear_first"))
-            return params
-
-        if action == "send_keys":
-            keys = self._value_as_str(args.get("keys")) or self._value_as_str(
-                args.get("key")
-            )
-            if not keys:
-                return self._invalid_argument(
-                    "send_keys",
-                    "send_keys requires non-empty 'keys'",
-                )
-            return {"keys": keys}
-
-        if action == "wait":
-            if "state" in args:
-                return self._invalid_argument(
-                    "wait",
-                    "wait no longer supports compatibility 'state'; provide Browser Use 'seconds'",
-                )
-            seconds = args.get("seconds")
-            if isinstance(seconds, (int, float)):
-                return {"seconds": max(0, int(round(float(seconds))))}
-            return {}
-
-        if action == "scroll":
-            params: dict[str, Any] = {}
-            index = self._extract_index(args)
-            if index is not None:
-                params["index"] = index
-            pages = args.get("pages")
-            if (
-                isinstance(pages, (int, float))
-                and not isinstance(pages, bool)
-                and float(pages) > 0
-            ):
-                params["pages"] = float(pages)
-            amount = args.get("amount")
-            if (
-                "pages" not in params
-                and isinstance(amount, (int, float))
-                and not isinstance(amount, bool)
-            ):
-                params["pages"] = max(0.1, abs(float(amount)) / 500.0)
-            direction = self._value_as_str(args.get("direction"))
-            if direction:
-                params["down"] = direction.lower() not in {"up", "left"}
-            elif isinstance(args.get("down"), bool):
-                params["down"] = bool(args.get("down"))
-            return params
-
-        if action == "screenshot":
-            if "full_page" in args:
-                return self._invalid_argument(
-                    "screenshot",
-                    "screenshot no longer supports compatibility 'full_page'; only Browser Use screenshot parameters are supported",
-                )
-            if "ref" in args:
-                return self._invalid_argument(
-                    "screenshot",
-                    "screenshot no longer supports compatibility 'ref'; only Browser Use screenshot parameters are supported",
-                )
-            if "element" in args:
-                return self._invalid_argument(
-                    "screenshot",
-                    "screenshot no longer supports compatibility 'element'; only Browser Use screenshot parameters are supported",
-                )
-            if "type" in args:
-                return self._invalid_argument(
-                    "screenshot",
-                    "screenshot no longer supports compatibility 'type'; only Browser Use screenshot parameters are supported",
-                )
-            if "quality" in args:
-                return self._invalid_argument(
-                    "screenshot",
-                    "screenshot no longer supports compatibility 'quality'; only Browser Use screenshot parameters are supported",
-                )
-            file_name = self._value_as_str(args.get("file_name"))
-            return {"file_name": file_name} if file_name else {}
-
-        if action == "evaluate":
-            code = self._value_as_str(args.get("code")) or self._value_as_str(
-                args.get("script")
-            )
-            if not code:
-                return self._invalid_argument(
-                    "evaluate",
-                    "evaluate requires non-empty 'code' or 'script'",
-                )
-            return {"code": code}
-
-        if action == "switch":
-            tab_id = self._extract_tab_id(args)
-            if not tab_id:
-                return self._invalid_argument(
-                    "switch",
-                    "switch requires non-empty 'tab_id' or 'target_id'",
-                )
-            return {"tab_id": tab_id}
-
-        if action == "close":
-            tab_id = self._extract_tab_id(args)
-            if not tab_id:
-                return self._invalid_argument(
-                    "close",
-                    "close requires non-empty 'tab_id' or 'target_id'",
-                )
-            return {"tab_id": tab_id}
-
-        if action == "close_tab":
-            tab_id = self._extract_tab_id(args)
-            if not tab_id:
-                return self._invalid_argument(
-                    "close_tab",
-                    "close_tab requires non-empty 'tab_id' or 'target_id'",
-                )
-            return {"tab_id": tab_id}
-
-        if action == "dropdown_options":
-            index = self._extract_index(args)
-            if index is None:
-                return self._invalid_argument(
-                    "dropdown_options",
-                    "dropdown_options requires integer 'index' or numeric 'ref'",
-                )
-            return {"index": index}
-
-        if action == "select_dropdown":
-            index = self._extract_index(args)
-            if index is None:
-                return self._invalid_argument(
-                    "select_dropdown",
-                    "select_dropdown requires integer 'index' or numeric 'ref'",
-                )
-            text = self._value_as_str(args.get("text"))
-            if not text:
-                return self._invalid_argument(
-                    "select_dropdown",
-                    "select_dropdown requires non-empty 'text'",
-                )
-            return {"index": index, "text": text}
-
-        if action == "upload_file":
-            index = self._extract_index(args)
-            if index is None:
-                return self._invalid_argument(
-                    "upload_file",
-                    "upload_file requires integer 'index' or numeric 'ref'",
-                )
-            path = self._value_as_str(args.get("path"))
-            if not path:
-                paths = args.get("paths")
-                if isinstance(paths, list) and paths:
-                    first = paths[0]
-                    if isinstance(first, str) and first.strip():
-                        path = first.strip()
-            if not path:
-                return self._invalid_argument(
-                    "upload_file",
-                    "upload_file requires non-empty 'path' (or first entry in 'paths')",
-                )
-            return {"index": index, "path": path}
-
-        if action == "write_file":
-            file_name = self._value_as_str(args.get("file_name"))
-            content = args.get("content")
-            if not file_name:
-                return self._invalid_argument(
-                    "write_file",
-                    "write_file requires non-empty 'file_name'",
-                )
-            if not isinstance(content, str):
-                return self._invalid_argument(
-                    "write_file",
-                    "write_file requires string 'content'",
-                )
-            params = {"file_name": file_name, "content": content}
-            for key in ("append", "trailing_newline", "leading_newline"):
-                value = args.get(key)
-                if isinstance(value, bool):
-                    params[key] = value
-            return params
-
-        if action == "replace_file":
-            file_name = self._value_as_str(args.get("file_name"))
-            old_str = args.get("old_str")
-            new_str = args.get("new_str")
-            if not file_name:
-                return self._invalid_argument(
-                    "replace_file",
-                    "replace_file requires non-empty 'file_name'",
-                )
-            if not isinstance(old_str, str) or not isinstance(new_str, str):
-                return self._invalid_argument(
-                    "replace_file",
-                    "replace_file requires string 'old_str' and 'new_str'",
-                )
-            return {"file_name": file_name, "old_str": old_str, "new_str": new_str}
-
-        if action == "read_file":
-            file_name = self._value_as_str(args.get("file_name"))
-            if not file_name:
-                return self._invalid_argument(
-                    "read_file",
-                    "read_file requires non-empty 'file_name'",
-                )
-            return {"file_name": file_name}
-
-        if action == "read_long_content":
-            goal = self._value_as_str(args.get("goal")) or self._value_as_str(
-                args.get("query")
-            )
-            if not goal:
-                return self._invalid_argument(
-                    "read_long_content",
-                    "read_long_content requires non-empty 'goal'",
-                )
-            params = {"goal": goal}
-            source = self._value_as_str(args.get("source"))
-            if source:
-                params["source"] = source
-            context = self._value_as_str(args.get("context"))
-            if context:
-                params["context"] = context
-            return params
-
-        return self._invalid_argument(
-            action,
-            f"Unsupported Browser Use action '{action}'",
+    def _build_params_snapshot(
+        self,
+        args: Mapping[str, Any],
+    ) -> dict[str, Any] | AdapterActionResult:
+        unsupported = self._reject_compatibility_fields(
+            action="snapshot",
+            args=args,
+            fields=SNAPSHOT_COMPATIBILITY_FIELDS,
+            message_suffix="use Browser Use snapshot semantics",
         )
+        if unsupported is not None:
+            return unsupported
+
+        offset = args.get("offset")
+        if offset is None:
+            resolved_offset = 0
+        elif isinstance(offset, int) and offset >= 0:
+            resolved_offset = offset
+        else:
+            return self._invalid_argument(
+                "snapshot",
+                "snapshot offset must be a non-negative integer",
+            )
+
+        limit = args.get("limit")
+        if limit is None:
+            resolved_limit = 4000
+        elif isinstance(limit, int) and limit > 0:
+            resolved_limit = limit
+        else:
+            return self._invalid_argument(
+                "snapshot",
+                "snapshot limit must be a positive integer",
+            )
+
+        if resolved_offset + resolved_limit > MAX_SNAPSHOT_CAPTURE_CHARS:
+            return self._invalid_argument(
+                "snapshot",
+                "offset + limit exceeds maximum snapshot window (120000)",
+            )
+
+        include_screenshot = bool(args.get("include_screenshot", False))
+        return {
+            "offset": resolved_offset,
+            "limit": resolved_limit,
+            "include_screenshot": include_screenshot,
+        }
+
+    def _build_params_search(
+        self,
+        args: Mapping[str, Any],
+    ) -> dict[str, Any] | AdapterActionResult:
+        query = self._value_as_str(args.get("query"))
+        if not query:
+            return self._invalid_argument("search", "search requires non-empty 'query'")
+        params: dict[str, Any] = {"query": query}
+        engine = self._value_as_str(args.get("engine"))
+        if engine:
+            params["engine"] = engine
+        return params
+
+    def _build_params_go_back(
+        self,
+        args: Mapping[str, Any],
+    ) -> dict[str, Any]:
+        description = self._value_as_str(args.get("description"))
+        return {"description": description} if description else {}
+
+    def _build_params_search_page(
+        self,
+        args: Mapping[str, Any],
+    ) -> dict[str, Any] | AdapterActionResult:
+        pattern = self._first_nonempty_str(args, "pattern", "query")
+        if not pattern:
+            return self._invalid_argument(
+                "search_page",
+                "search_page requires non-empty 'pattern'",
+            )
+        params: dict[str, Any] = {"pattern": pattern}
+        if isinstance(args.get("regex"), bool):
+            params["regex"] = bool(args.get("regex"))
+        if isinstance(args.get("case_sensitive"), bool):
+            params["case_sensitive"] = bool(args.get("case_sensitive"))
+        context_chars = args.get("context_chars")
+        if isinstance(context_chars, int) and context_chars >= 0:
+            params["context_chars"] = context_chars
+        css_scope = self._value_as_str(args.get("css_scope"))
+        if css_scope:
+            params["css_scope"] = css_scope
+        max_results = args.get("max_results")
+        if isinstance(max_results, int) and max_results > 0:
+            params["max_results"] = max_results
+        return params
+
+    def _build_params_find_elements(
+        self,
+        args: Mapping[str, Any],
+    ) -> dict[str, Any] | AdapterActionResult:
+        selector = self._value_as_str(args.get("selector"))
+        if not selector:
+            return self._invalid_argument(
+                "find_elements",
+                "find_elements requires non-empty 'selector'",
+            )
+        params: dict[str, Any] = {"selector": selector}
+        attributes = args.get("attributes")
+        if isinstance(attributes, list):
+            params["attributes"] = [
+                str(attribute).strip()
+                for attribute in attributes
+                if isinstance(attribute, str) and attribute.strip()
+            ]
+        max_results = args.get("max_results")
+        if isinstance(max_results, int) and max_results > 0:
+            params["max_results"] = max_results
+        if isinstance(args.get("include_text"), bool):
+            params["include_text"] = bool(args.get("include_text"))
+        return params
+
+    def _build_params_find_text(
+        self,
+        args: Mapping[str, Any],
+    ) -> dict[str, Any] | AdapterActionResult:
+        text = self._first_nonempty_str(args, "text", "pattern")
+        if not text:
+            return self._invalid_argument(
+                "find_text",
+                "find_text requires non-empty 'text'",
+            )
+        return {"text": text}
+
+    def _build_params_extract(
+        self,
+        args: Mapping[str, Any],
+    ) -> dict[str, Any] | AdapterActionResult:
+        unsupported = self._reject_compatibility_fields(
+            action="extract",
+            args=args,
+            fields=EXTRACT_COMPATIBILITY_FIELDS,
+            message_suffix="use Browser Use extract semantics",
+        )
+        if unsupported is not None:
+            return unsupported
+        query = self._value_as_str(args.get("query"))
+        if not query:
+            return self._invalid_argument(
+                "extract",
+                "extract requires non-empty 'query'",
+            )
+        params: dict[str, Any] = {"query": query}
+        if isinstance(args.get("extract_links"), bool):
+            params["extract_links"] = bool(args.get("extract_links"))
+        start_from_char = args.get("start_from_char")
+        if isinstance(start_from_char, int) and start_from_char >= 0:
+            params["start_from_char"] = start_from_char
+        output_schema = args.get("output_schema")
+        if isinstance(output_schema, dict):
+            params["output_schema"] = output_schema
+        return params
+
+    def _build_params_click(
+        self,
+        args: Mapping[str, Any],
+    ) -> dict[str, Any] | AdapterActionResult:
+        index = self._extract_index(args)
+        if index is not None:
+            return {"index": index}
+
+        coordinate_x = self._extract_coordinate(args.get("coordinate_x"))
+        coordinate_y = self._extract_coordinate(args.get("coordinate_y"))
+        has_coordinate_x = coordinate_x is not None
+        has_coordinate_y = coordinate_y is not None
+        if has_coordinate_x != has_coordinate_y:
+            return self._invalid_argument(
+                "click",
+                "click requires both 'coordinate_x' and 'coordinate_y' when using coordinate click",
+            )
+        if has_coordinate_x and has_coordinate_y:
+            return {
+                "coordinate_x": coordinate_x,
+                "coordinate_y": coordinate_y,
+            }
+        return self._invalid_argument(
+            "click",
+            "click requires integer 'index', numeric 'ref', or coordinate pair 'coordinate_x'/'coordinate_y'",
+        )
+
+    def _build_params_input(
+        self,
+        args: Mapping[str, Any],
+    ) -> dict[str, Any] | AdapterActionResult:
+        index_or_error = self._require_index(
+            action="input",
+            args=args,
+            error_message="input requires integer 'index' or numeric 'ref'",
+        )
+        if isinstance(index_or_error, AdapterActionResult):
+            return index_or_error
+        text = args.get("text")
+        if not isinstance(text, str):
+            return self._invalid_argument("input", "input requires string 'text'")
+        params: dict[str, Any] = {
+            "index": index_or_error,
+            "text": text,
+        }
+        if isinstance(args.get("clear"), bool):
+            params["clear"] = bool(args.get("clear"))
+        elif isinstance(args.get("clear_first"), bool):
+            params["clear"] = bool(args.get("clear_first"))
+        return params
+
+    def _build_params_send_keys(
+        self,
+        args: Mapping[str, Any],
+    ) -> dict[str, Any] | AdapterActionResult:
+        keys = self._first_nonempty_str(args, "keys", "key")
+        if not keys:
+            return self._invalid_argument(
+                "send_keys",
+                "send_keys requires non-empty 'keys'",
+            )
+        return {"keys": keys}
+
+    def _build_params_wait(
+        self,
+        args: Mapping[str, Any],
+    ) -> dict[str, Any] | AdapterActionResult:
+        unsupported = self._reject_compatibility_fields(
+            action="wait",
+            args=args,
+            fields=("state",),
+            message_suffix="provide Browser Use 'seconds'",
+        )
+        if unsupported is not None:
+            return unsupported
+        seconds = args.get("seconds")
+        if isinstance(seconds, (int, float)):
+            return {"seconds": max(0, int(round(float(seconds))))}
+        return {}
+
+    def _build_params_scroll(
+        self,
+        args: Mapping[str, Any],
+    ) -> dict[str, Any]:
+        params: dict[str, Any] = {}
+        index = self._extract_index(args)
+        if index is not None:
+            params["index"] = index
+        pages = args.get("pages")
+        if (
+            isinstance(pages, (int, float))
+            and not isinstance(pages, bool)
+            and float(pages) > 0
+        ):
+            params["pages"] = float(pages)
+        amount = args.get("amount")
+        if (
+            "pages" not in params
+            and isinstance(amount, (int, float))
+            and not isinstance(amount, bool)
+        ):
+            params["pages"] = max(0.1, abs(float(amount)) / 500.0)
+        direction = self._value_as_str(args.get("direction"))
+        if direction:
+            params["down"] = direction.lower() not in {"up", "left"}
+        elif isinstance(args.get("down"), bool):
+            params["down"] = bool(args.get("down"))
+        return params
+
+    def _build_params_screenshot(
+        self,
+        args: Mapping[str, Any],
+    ) -> dict[str, Any] | AdapterActionResult:
+        unsupported = self._reject_compatibility_fields(
+            action="screenshot",
+            args=args,
+            fields=SCREENSHOT_COMPATIBILITY_FIELDS,
+            message_suffix="only Browser Use screenshot parameters are supported",
+        )
+        if unsupported is not None:
+            return unsupported
+        file_name = self._value_as_str(args.get("file_name"))
+        return {"file_name": file_name} if file_name else {}
+
+    def _build_params_evaluate(
+        self,
+        args: Mapping[str, Any],
+    ) -> dict[str, Any] | AdapterActionResult:
+        code = self._first_nonempty_str(args, "code", "script")
+        if not code:
+            return self._invalid_argument(
+                "evaluate",
+                "evaluate requires non-empty 'code' or 'script'",
+            )
+        return {"code": code}
+
+    def _build_params_dropdown_options(
+        self,
+        args: Mapping[str, Any],
+    ) -> dict[str, Any] | AdapterActionResult:
+        index_or_error = self._require_index(
+            action="dropdown_options",
+            args=args,
+            error_message="dropdown_options requires integer 'index' or numeric 'ref'",
+        )
+        if isinstance(index_or_error, AdapterActionResult):
+            return index_or_error
+        return {"index": index_or_error}
+
+    def _build_params_select_dropdown(
+        self,
+        args: Mapping[str, Any],
+    ) -> dict[str, Any] | AdapterActionResult:
+        index_or_error = self._require_index(
+            action="select_dropdown",
+            args=args,
+            error_message="select_dropdown requires integer 'index' or numeric 'ref'",
+        )
+        if isinstance(index_or_error, AdapterActionResult):
+            return index_or_error
+        text = self._value_as_str(args.get("text"))
+        if not text:
+            return self._invalid_argument(
+                "select_dropdown",
+                "select_dropdown requires non-empty 'text'",
+            )
+        return {"index": index_or_error, "text": text}
+
+    def _build_params_upload_file(
+        self,
+        args: Mapping[str, Any],
+    ) -> dict[str, Any] | AdapterActionResult:
+        index_or_error = self._require_index(
+            action="upload_file",
+            args=args,
+            error_message="upload_file requires integer 'index' or numeric 'ref'",
+        )
+        if isinstance(index_or_error, AdapterActionResult):
+            return index_or_error
+        path = self._extract_upload_path(args)
+        if not path:
+            return self._invalid_argument(
+                "upload_file",
+                "upload_file requires non-empty 'path' (or first entry in 'paths')",
+            )
+        return {"index": index_or_error, "path": path}
+
+    def _build_params_write_file(
+        self,
+        args: Mapping[str, Any],
+    ) -> dict[str, Any] | AdapterActionResult:
+        file_name = self._value_as_str(args.get("file_name"))
+        content = args.get("content")
+        if not file_name:
+            return self._invalid_argument(
+                "write_file",
+                "write_file requires non-empty 'file_name'",
+            )
+        if not isinstance(content, str):
+            return self._invalid_argument(
+                "write_file",
+                "write_file requires string 'content'",
+            )
+        params: dict[str, Any] = {"file_name": file_name, "content": content}
+        for key in ("append", "trailing_newline", "leading_newline"):
+            value = args.get(key)
+            if isinstance(value, bool):
+                params[key] = value
+        return params
+
+    def _build_params_replace_file(
+        self,
+        args: Mapping[str, Any],
+    ) -> dict[str, Any] | AdapterActionResult:
+        file_name = self._value_as_str(args.get("file_name"))
+        old_str = args.get("old_str")
+        new_str = args.get("new_str")
+        if not file_name:
+            return self._invalid_argument(
+                "replace_file",
+                "replace_file requires non-empty 'file_name'",
+            )
+        if not isinstance(old_str, str) or not isinstance(new_str, str):
+            return self._invalid_argument(
+                "replace_file",
+                "replace_file requires string 'old_str' and 'new_str'",
+            )
+        return {"file_name": file_name, "old_str": old_str, "new_str": new_str}
+
+    def _build_params_read_file(
+        self,
+        args: Mapping[str, Any],
+    ) -> dict[str, Any] | AdapterActionResult:
+        file_name = self._value_as_str(args.get("file_name"))
+        if not file_name:
+            return self._invalid_argument(
+                "read_file",
+                "read_file requires non-empty 'file_name'",
+            )
+        return {"file_name": file_name}
+
+    def _build_params_read_long_content(
+        self,
+        args: Mapping[str, Any],
+    ) -> dict[str, Any] | AdapterActionResult:
+        goal = self._first_nonempty_str(args, "goal", "query")
+        if not goal:
+            return self._invalid_argument(
+                "read_long_content",
+                "read_long_content requires non-empty 'goal'",
+            )
+        params: dict[str, Any] = {"goal": goal}
+        source = self._value_as_str(args.get("source"))
+        if source:
+            params["source"] = source
+        context = self._value_as_str(args.get("context"))
+        if context:
+            params["context"] = context
+        return params
+
+    def _reject_compatibility_fields(
+        self,
+        *,
+        action: str,
+        args: Mapping[str, Any],
+        fields: tuple[str, ...],
+        message_suffix: str,
+    ) -> AdapterActionResult | None:
+        for field in fields:
+            if field in args:
+                return self._invalid_argument(
+                    action,
+                    (
+                        f"{action} no longer supports compatibility '{field}'; "
+                        f"{message_suffix}"
+                    ),
+                )
+        return None
+
+    def _require_tab_id(
+        self,
+        action: str,
+        args: Mapping[str, Any],
+    ) -> dict[str, Any] | AdapterActionResult:
+        tab_id = self._extract_tab_id(args)
+        if not tab_id:
+            return self._invalid_argument(
+                action,
+                f"{action} requires non-empty 'tab_id' or 'target_id'",
+            )
+        return {"tab_id": tab_id}
+
+    def _require_index(
+        self,
+        *,
+        action: str,
+        args: Mapping[str, Any],
+        error_message: str,
+    ) -> int | AdapterActionResult:
+        index = self._extract_index(args)
+        if index is None:
+            return self._invalid_argument(action, error_message)
+        return index
+
+    def _first_nonempty_str(
+        self,
+        args: Mapping[str, Any],
+        *keys: str,
+    ) -> str | None:
+        for key in keys:
+            value = self._value_as_str(args.get(key))
+            if value:
+                return value
+        return None
+
+    def _extract_upload_path(self, args: Mapping[str, Any]) -> str | None:
+        direct_path = self._value_as_str(args.get("path"))
+        if direct_path:
+            return direct_path
+        paths = args.get("paths")
+        if isinstance(paths, list) and paths:
+            first = paths[0]
+            if isinstance(first, str) and first.strip():
+                return first.strip()
+        return None
 
 
     async def act(self, args: Mapping[str, Any]) -> AdapterActionResult:
@@ -1086,6 +1191,32 @@ class BrowserUseCompatibilityAdapter:
             error_code=result.error_code,
             warnings=list(result.warnings),
             deprecation=result.deprecation,
+        )
+
+    @staticmethod
+    def _annotate_legacy_action(
+        action: str,
+        result: AdapterActionResult,
+    ) -> AdapterActionResult:
+        preferred_action = LEGACY_BROWSER_ACTION_ALIASES.get(action)
+        if preferred_action is None:
+            return result
+
+        deprecation_message = (
+            f"'{action}' is a legacy compatibility alias; prefer '{preferred_action}'"
+        )
+        warnings = list(result.warnings)
+        if deprecation_message not in warnings:
+            warnings.append(deprecation_message)
+        return AdapterActionResult(
+            success=result.success,
+            action=result.action,
+            decision=result.decision,
+            data=dict(result.data),
+            error=result.error,
+            error_code=result.error_code,
+            warnings=warnings,
+            deprecation=result.deprecation or deprecation_message,
         )
 
     @staticmethod

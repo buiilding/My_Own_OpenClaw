@@ -6,6 +6,10 @@ from pydantic import ConfigDict, Field
 
 from backend.src.tools.browser.schema_types import (
     BrowserAction,
+    BROWSER_LEGACY_ACTION_PREFERRED,
+    BROWSER_LEGACY_COMPAT_ACTIONS,
+    BrowserCanonicalAction,
+    BrowserLegacyCompatAction,
     BrowserMouseButton,
     BrowserNavigationState,
     BrowserScrollDirection,
@@ -26,17 +30,17 @@ from backend.src.tools.browser.shared_compat_fields import (
 )
 
 
-class BrowserControlArgs(BrowserSharedCompatFields, BrowserScreenshotImageFields):
+class _BrowserControlArgsBase(BrowserSharedCompatFields, BrowserScreenshotImageFields):
     """
-    Unified browser control arguments.
+    Shared browser control arguments.
 
-    This is the main schema exposed to the LLM. The action field
-    determines which specific action is performed.
+    Action typing is layered by subclasses:
+    - BrowserCanonicalControlArgs (canonical actions only)
+    - BrowserLegacyCompatControlArgs (legacy aliases only)
+    - BrowserControlArgs (combined compatibility surface)
     """
 
     model_config = ConfigDict(extra="ignore")
-
-    action: BrowserAction = Field(..., description="Browser action to perform")
 
     # Connection args
     mode: Literal[
@@ -190,3 +194,48 @@ class BrowserControlArgs(BrowserSharedCompatFields, BrowserScreenshotImageFields
     script: Optional[str] = Field(
         None, description="JavaScript to evaluate", max_length=5000
     )
+
+
+class BrowserCanonicalControlArgs(_BrowserControlArgsBase):
+    """Canonical browser control action schema."""
+
+    action: BrowserCanonicalAction = Field(
+        ...,
+        description="Canonical browser action to perform.",
+    )
+
+
+class BrowserLegacyCompatControlArgs(_BrowserControlArgsBase):
+    """Legacy compatibility alias schema (deprecated)."""
+
+    action: BrowserLegacyCompatAction = Field(
+        ...,
+        description=(
+            "Legacy compatibility action alias. Deprecated; prefer canonical action names."
+        ),
+    )
+
+
+class BrowserControlArgs(_BrowserControlArgsBase):
+    """
+    Unified browser control arguments accepted at the backend boundary.
+
+    Keeps legacy aliases parseable while migration to canonical-only actions is in progress.
+    """
+
+    action: BrowserAction = Field(..., description="Browser action to perform")
+
+    @classmethod
+    def is_legacy_action(cls, action: str) -> bool:
+        """Return True when action is a legacy compatibility alias."""
+        return action in BROWSER_LEGACY_COMPAT_ACTIONS
+
+    @property
+    def is_legacy(self) -> bool:
+        """True when this payload uses a legacy compatibility alias."""
+        return self.is_legacy_action(self.action)
+
+    @property
+    def preferred_action(self) -> str | None:
+        """Canonical action recommendation for legacy aliases."""
+        return BROWSER_LEGACY_ACTION_PREFERRED.get(self.action)

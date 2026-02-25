@@ -4,6 +4,7 @@ Remote browser-domain tool stubs.
 
 from __future__ import annotations
 
+import os
 from typing import Any
 
 from backend.src.sdk.context import ToolContext
@@ -32,36 +33,32 @@ Automatic `post_action_snapshot` attachment is temporarily disabled for testing.
 Use explicit `browser(action="snapshot", ...)` calls when snapshot data is needed.
 
 Actions:
-- connect: Initialize/attach WindieOS dedicated browser instance
-- status: Session status summary
-- profiles: Lists WindieOS profile equivalents
-- navigate: Go to URL (requires url)
-- open: Open a new tab and navigate
-- search/go_back: Browser Use search helper and back navigation helper
-- done: Browser Use completion action (`text`, optional `success`, optional `files_to_display`)
-- snapshot: Browser Use state snapshot (`offset`, `limit`, optional `include_screenshot`); compatibility `format`/`snapshotFormat`/`wait_until`/`state`/`mode`/`max_chars`/`refs`/`interactive`/`compact`/`depth`/`selector`/`frame` fields are rejected
-- extract: Browser Use extract semantics (`query`, optional `extract_links`, optional `start_from_char`, optional `output_schema`); compatibility `mode`/`selector`/`frame` fields are rejected
-- search_page/find_elements/find_text: Browser Use discovery helpers for text pattern and selector discovery
-- click: Click element using Browser Use semantics (numeric `index`/numeric `ref`, or `coordinate_x`+`coordinate_y`)
-- type: Type text (requires ref, text)
-- input/send_keys: Browser Use input and key-sequence aliases
-- switch/close_tab: Browser Use tab switch/close helpers (uses `tab_id` or `target_id` suffix)
-- dropdown_options/select_dropdown: Browser Use dropdown inspection and selection helpers
-- upload_file: Browser Use upload helper (`index` + `path`)
-- write_file/replace_file/read_file/read_long_content: Browser Use file-system tools
-- press: Press key like Enter/Escape (requires key)
-- scroll: Scroll page (direction: up/down/left/right, Browser Use `pages` supports fractional values)
-- screenshot: Browser Use screenshot semantics (`file_name` optional); compatibility `full_page`/`ref`/`element`/`type`/`quality` fields are rejected
-- act: WindieOS action envelope (`request.kind`) mapped to Browser Use actions
-- wait: Browser Use timed wait (`seconds`)
-- get_tabs: List open tabs
-- switch_tab: Switch to tab (requires target_id)
-- evaluate: Run JavaScript (requires script)
-- close: Close browser connection"""
+- canonical: connect, status, profiles, navigate, snapshot, extract, click, input, send_keys, scroll, screenshot, wait, get_tabs, switch, evaluate, close
+- canonical helpers: done, search, go_back, search_page, find_elements, find_text, close_tab, dropdown_options, select_dropdown, upload_file, write_file, replace_file, read_file, read_long_content
+- compatibility aliases (legacy): open->navigate(new_tab=true), type->input, press->send_keys, switch_tab->switch, act->direct action invocation
+
+Compatibility validation notes:
+- snapshot rejects compatibility fields `format`/`snapshotFormat`/`wait_until`/`state`/`mode`/`max_chars`/`refs`/`interactive`/`compact`/`depth`/`selector`/`frame`
+- extract rejects compatibility fields `mode`/`selector`/`frame`
+- screenshot rejects compatibility fields `full_page`/`ref`/`element`/`type`/`quality`
+- set `WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1` to reject legacy alias actions at runtime"""
     args_model = BrowserControlArgs
     category = ToolDomain.BROWSER
+    strict_canonical_actions_env = "WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY"
+
+    @classmethod
+    def _strict_canonical_actions_enabled(cls) -> bool:
+        raw = os.getenv(cls.strict_canonical_actions_env, "").strip().lower()
+        return raw in {"1", "true", "yes", "on"}
 
     async def execute_remote(self, args: BrowserControlArgs, ctx: ToolContext) -> Any:
+        if self._strict_canonical_actions_enabled() and args.is_legacy:
+            preferred = args.preferred_action
+            preferred_text = f" Use '{preferred}' instead." if preferred else ""
+            raise ValueError(
+                "Legacy browser actions are disabled by "
+                f"{self.strict_canonical_actions_env}=1.{preferred_text}"
+            )
         request_id = self._get_request_id(ctx)
         return RemoteToolResult(
             tool_name=self.name,
