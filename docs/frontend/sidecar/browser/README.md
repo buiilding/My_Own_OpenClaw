@@ -23,10 +23,14 @@ title: "Frontend Sidecar Browser Docs Hub"
 - [Enhanced CDP DOM Snapshot Pipeline Runtime Reference](chrome/enhanced_cdp_dom_snapshot_pipeline_runtime_reference.md)
 - [Browser Use Runtime Docs Hub](browser_use/README.md)
 - [Browser Use DOM Docs Hub](browser_use/dom/README.md)
+- [Browser Use Tools Docs Hub](browser_use/tools/README.md)
 - [Browser Use Config, Logging, Observability, and Lazy Import Runtime Reference](browser_use/config_logging_observability_and_lazy_import_runtime_reference.md)
 - [DOM Tree Construction, Visibility, Iframe Traversal, and Pagination Detection Contract Reference](browser_use/dom/dom_tree_construction_visibility_iframe_traversal_and_pagination_detection_contract_reference.md)
 - [DOM Data Models, Hashing, Scrollability, and Interaction Identity Contract Reference](browser_use/dom/dom_data_models_hashing_scrollability_and_interaction_identity_contract_reference.md)
 - [DOM Serializer, Snapshot, Clickability, and Markdown Pipeline Runtime Reference](browser_use/dom/dom_serializer_snapshot_clickability_and_markdown_pipeline_runtime_reference.md)
+- [Browser Use Tools Action Model Surface and Input Schema Contract Reference](browser_use/tools/action_model_surface_and_input_schema_contract_reference.md)
+- [Browser Use Tools Registry Signature Normalization, Sensitive Placeholder, and Domain Filter Contract Reference](browser_use/tools/registry_signature_normalization_sensitive_placeholder_and_domain_filter_contract_reference.md)
+- [Browser Use Tools Runtime Action Dispatch, Extraction, and CodeAgent Variant Contract Reference](browser_use/tools/runtime_action_dispatch_extraction_and_codeagent_variant_contract_reference.md)
 
 ## Related Pages
 
