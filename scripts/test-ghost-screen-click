@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-set -euo pipefail
-
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
-
-"$REPO_ROOT/scripts/python-in-env" frontend python "$REPO_ROOT/scripts/test-ghost-screen-click.py" "$@"

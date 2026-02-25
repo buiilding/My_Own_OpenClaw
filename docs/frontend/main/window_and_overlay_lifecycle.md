@@ -50,7 +50,7 @@ OS debug mode for ghost animation:
   - `responseWindow` loads `view=tool-ghost-debug` instead of `chatbox-response`
   - response overlay starts visible (`520x620`) and remains phase-independent
   - phase callback from backend (`handleResponseOverlayPhaseChange`) is ignored to prevent auto-hide during debug
-- launcher: `cd frontend && npm run electron:ghost-overlay`
+- launcher: `cd frontend && npm run test:ghost-cursor`
 
 Global app policy:
 
