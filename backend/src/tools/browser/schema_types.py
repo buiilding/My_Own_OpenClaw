@@ -43,12 +43,12 @@ BrowserCanonicalAction = Literal[
     "close",
 ]
 BrowserLegacyCompatAction = Literal[
-    "open",
     "type",
     "press",
     "switch_tab",
 ]
 BrowserRemovedCompatAction = Literal[
+    "open",
     "act",
 ]
 BrowserAction = BrowserCanonicalAction | BrowserLegacyCompatAction | BrowserRemovedCompatAction
@@ -106,7 +106,6 @@ BROWSER_REMOVED_COMPAT_ACTIONS = cast(
 
 BROWSER_LEGACY_ACTION_PREFERRED = MappingProxyType(
     {
-        "open": "navigate",
         "type": "input",
         "press": "send_keys",
         "switch_tab": "switch",
@@ -115,6 +114,7 @@ BROWSER_LEGACY_ACTION_PREFERRED = MappingProxyType(
 
 BROWSER_REMOVED_ACTION_PREFERRED = MappingProxyType(
     {
+        "open": "navigate",
         "act": "canonical actions directly",
     }
 )

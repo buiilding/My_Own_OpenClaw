@@ -41,7 +41,6 @@ BROWSER_CANONICAL_ACTIONS = frozenset(
 
 LEGACY_BROWSER_ACTION_ALIASES = MappingProxyType(
     {
-        "open": "navigate",
         "type": "input",
         "press": "send_keys",
         "switch_tab": "switch",
@@ -50,6 +49,7 @@ LEGACY_BROWSER_ACTION_ALIASES = MappingProxyType(
 
 REMOVED_BROWSER_ACTION_ALIASES = MappingProxyType(
     {
+        "open": "navigate",
         "act": "canonical actions directly",
     }
 )

@@ -697,13 +697,9 @@ class TestBrowserUseCompatibilityAdapter:
             "open",
             {"action": "open", "url": "https://runtime.example/new"},
         )
-        assert open_result.success is True
-        assert open_result.data["browser_use_action"] == "navigate"
-        assert open_result.data["new_tab"] is True
-        runtime.execute_browser_use_action.assert_awaited_with(
-            action="navigate",
-            params={"url": "https://runtime.example/new", "new_tab": True},
-        )
+        assert open_result.success is False
+        assert open_result.error_code == "INVALID_ARGUMENT"
+        assert "Legacy browser action 'open' has been removed." in (open_result.error or "")
         runtime.open_tab.assert_not_awaited()
 
         tabs_result = await adapter.execute("get_tabs", {"action": "get_tabs"})

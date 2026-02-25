@@ -85,7 +85,7 @@ class TestRemoteBrowserTool:
         mock_ctx.session = mock.Mock()
         mock_ctx.session.metadata = {"request_id": "legacy-disabled"}
 
-        args = BrowserControlArgs(action="open", url="https://example.com")
+        args = BrowserControlArgs(action="type", ref="1", text="hello")
         with pytest.raises(
             ValueError,
             match="Legacy browser actions are disabled by WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1",
@@ -126,6 +126,39 @@ class TestRemoteBrowserTool:
         assert getattr(record, "legacy_action_gate", None) == "legacy_alias_removed"
 
     @pytest.mark.asyncio
+    async def test_execute_remote_rejects_removed_open_alias_even_when_legacy_enabled(
+        self, monkeypatch, caplog
+    ):
+        monkeypatch.setenv("WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS", "1")
+        tool = RemoteBrowserTool()
+        caplog.set_level("WARNING", logger="backend.src.tools.remote_tools.browser")
+
+        mock_ctx = mock.Mock()
+        mock_ctx.session = mock.Mock()
+        mock_ctx.session.metadata = {"request_id": "open-removed"}
+
+        args = BrowserControlArgs(action="open", url="https://example.com")
+        with pytest.raises(
+            ValueError,
+            match="Legacy browser action 'open' has been removed. Use navigate.",
+        ):
+            await tool.execute_remote(args, mock_ctx)
+
+        assert (
+            "Legacy browser action 'open' blocked by legacy_alias_removed; "
+            "prefer 'navigate'"
+        ) in caplog.text
+        record = next(
+            rec
+            for rec in caplog.records
+            if "Legacy browser action 'open' blocked by legacy_alias_removed" in rec.getMessage()
+        )
+        assert getattr(record, "legacy_action", None) == "open"
+        assert getattr(record, "preferred_action", None) == "navigate"
+        assert getattr(record, "legacy_action_blocked", None) is True
+        assert getattr(record, "legacy_action_gate", None) == "legacy_alias_removed"
+
+    @pytest.mark.asyncio
     async def test_execute_remote_logs_warning_for_blocked_legacy_action(self, caplog):
         tool = RemoteBrowserTool()
         caplog.set_level("WARNING", logger="backend.src.tools.remote_tools.browser")
@@ -134,7 +167,7 @@ class TestRemoteBrowserTool:
         mock_ctx.session = mock.Mock()
         mock_ctx.session.metadata = {"request_id": "legacy-blocked"}
 
-        args = BrowserControlArgs(action="open", url="https://example.com")
+        args = BrowserControlArgs(action="type", ref="1", text="hello")
         with pytest.raises(
             ValueError,
             match="Legacy browser actions are disabled by WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1",
@@ -142,17 +175,17 @@ class TestRemoteBrowserTool:
             await tool.execute_remote(args, mock_ctx)
 
         assert (
-            "Legacy browser action 'open' blocked by WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1; "
-            "prefer 'navigate'"
+            "Legacy browser action 'type' blocked by WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1; "
+            "prefer 'input'"
         ) in caplog.text
         record = next(
             rec
             for rec in caplog.records
-            if "Legacy browser action 'open' blocked by WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1"
+            if "Legacy browser action 'type' blocked by WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1"
             in rec.getMessage()
         )
-        assert getattr(record, "legacy_action", None) == "open"
-        assert getattr(record, "preferred_action", None) == "navigate"
+        assert getattr(record, "legacy_action", None) == "type"
+        assert getattr(record, "preferred_action", None) == "input"
         assert getattr(record, "legacy_action_blocked", None) is True
         assert getattr(record, "legacy_action_gate", None) == "WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1"
 
@@ -166,7 +199,7 @@ class TestRemoteBrowserTool:
         mock_ctx.session = mock.Mock()
         mock_ctx.session.metadata = {"request_id": "strict-precedence"}
 
-        args = BrowserControlArgs(action="open", url="https://example.com")
+        args = BrowserControlArgs(action="press", key="Enter")
         with pytest.raises(
             ValueError,
             match="Legacy browser actions are disabled by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1",
@@ -184,7 +217,7 @@ class TestRemoteBrowserTool:
         mock_ctx.session = mock.Mock()
         mock_ctx.session.metadata = {"request_id": "strict-log"}
 
-        args = BrowserControlArgs(action="open", url="https://example.com")
+        args = BrowserControlArgs(action="press", key="Enter")
         with pytest.raises(
             ValueError,
             match="Legacy browser actions are disabled by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1",
@@ -192,13 +225,13 @@ class TestRemoteBrowserTool:
             await tool.execute_remote(args, mock_ctx)
 
         assert (
-            "Legacy browser action 'open' blocked by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1; "
-            "prefer 'navigate'"
+            "Legacy browser action 'press' blocked by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1; "
+            "prefer 'send_keys'"
         ) in caplog.text
         record = next(
             rec
             for rec in caplog.records
-            if "Legacy browser action 'open' blocked by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1"
+            if "Legacy browser action 'press' blocked by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1"
             in rec.getMessage()
         )
         assert getattr(record, "legacy_action_gate", None) == "WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1"
@@ -232,18 +265,18 @@ class TestRemoteBrowserTool:
             mock_ctx.session = mock.Mock()
             mock_ctx.session.metadata = {"request_id": "legacy-log"}
 
-            args = BrowserControlArgs(action="open", url="https://example.com")
+            args = BrowserControlArgs(action="type", ref="1", text="hello")
             result = await tool.execute_remote(args, mock_ctx)
 
             assert result.is_remote is True
-            assert "Legacy browser action 'open' invoked; prefer 'navigate'" in caplog.text
+            assert "Legacy browser action 'type' invoked; prefer 'input'" in caplog.text
             record = next(
                 rec
                 for rec in caplog.records
-                if "Legacy browser action 'open' invoked; prefer 'navigate'" in rec.getMessage()
+                if "Legacy browser action 'type' invoked; prefer 'input'" in rec.getMessage()
             )
-            assert getattr(record, "legacy_action", None) == "open"
-            assert getattr(record, "preferred_action", None) == "navigate"
+            assert getattr(record, "legacy_action", None) == "type"
+            assert getattr(record, "preferred_action", None) == "input"
             assert getattr(record, "legacy_action_blocked", None) is False
             assert getattr(record, "legacy_action_gate", None) is None
 
@@ -256,10 +289,10 @@ class TestRemoteBrowserTool:
         mock_ctx.session = mock.Mock()
         mock_ctx.session.metadata = {"request_id": "legacy-enabled"}
 
-        args = BrowserControlArgs(action="open", url="https://example.com")
+        args = BrowserControlArgs(action="type", ref="1", text="hello")
         result = await tool.execute_remote(args, mock_ctx)
         assert result.is_remote is True
-        assert result.args["action"] == "open"
+        assert result.args["action"] == "type"
 
 
 class TestBrowserToolRegistry:
@@ -348,6 +381,11 @@ class TestBrowserControlArgs:
         args = BrowserControlArgs(action="act")
         assert args.is_legacy is False
         assert args.preferred_action == "canonical actions directly"
+
+    def test_removed_open_alias_reports_navigate_preferred_action(self):
+        args = BrowserControlArgs(action="open")
+        assert args.is_legacy is False
+        assert args.preferred_action == "navigate"
 
     def test_press_action_key_field(self):
         """Test press action key field remains available."""

@@ -46,7 +46,7 @@ class TestExecuteBrowserControl:
             {"WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY": "1"},
             clear=False,
         ):
-            result = await execute_browser({"action": "open", "url": "https://example.com"})
+            result = await execute_browser({"action": "type", "ref": "1", "text": "hello"})
 
         assert result.success is False
         assert (
@@ -61,7 +61,7 @@ class TestExecuteBrowserControl:
             {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "0"},
             clear=False,
         ):
-            result = await execute_browser({"action": "open", "url": "https://example.com"})
+            result = await execute_browser({"action": "type", "ref": "1", "text": "hello"})
 
         assert result.success is False
         assert (
@@ -72,7 +72,7 @@ class TestExecuteBrowserControl:
     @pytest.mark.asyncio
     async def test_legacy_aliases_disabled_by_default(self):
         with mock.patch.dict("os.environ", {}, clear=False):
-            result = await execute_browser({"action": "open", "url": "https://example.com"})
+            result = await execute_browser({"action": "type", "ref": "1", "text": "hello"})
 
         assert result.success is False
         assert (
@@ -84,21 +84,21 @@ class TestExecuteBrowserControl:
     async def test_legacy_alias_block_logs_warning_by_default(self, caplog):
         with mock.patch.dict("os.environ", {}, clear=False):
             caplog.set_level("WARNING", logger="tools.browser.browser_tool")
-            result = await execute_browser({"action": "open", "url": "https://example.com"})
+            result = await execute_browser({"action": "type", "ref": "1", "text": "hello"})
 
         assert result.success is False
         assert (
-            "Legacy browser action 'open' blocked by WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1; "
-            "prefer canonical action 'navigate'"
+            "Legacy browser action 'type' blocked by WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1; "
+            "prefer canonical action 'input'"
         ) in caplog.text
         record = next(
             rec
             for rec in caplog.records
-            if "Legacy browser action 'open' blocked by WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1"
+            if "Legacy browser action 'type' blocked by WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1"
             in rec.getMessage()
         )
-        assert getattr(record, "legacy_action", None) == "open"
-        assert getattr(record, "preferred_action", None) == "navigate"
+        assert getattr(record, "legacy_action", None) == "type"
+        assert getattr(record, "preferred_action", None) == "input"
         assert getattr(record, "legacy_action_blocked", None) is True
         assert getattr(record, "legacy_action_gate", None) == "WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1"
 
@@ -112,7 +112,7 @@ class TestExecuteBrowserControl:
             },
             clear=False,
         ):
-            result = await execute_browser({"action": "open", "url": "https://example.com"})
+            result = await execute_browser({"action": "press", "key": "Enter"})
 
         assert result.success is False
         assert (
@@ -131,17 +131,17 @@ class TestExecuteBrowserControl:
             clear=False,
         ):
             caplog.set_level("WARNING", logger="tools.browser.browser_tool")
-            result = await execute_browser({"action": "open", "url": "https://example.com"})
+            result = await execute_browser({"action": "press", "key": "Enter"})
 
         assert result.success is False
         assert (
-            "Legacy browser action 'open' blocked by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1; "
-            "prefer canonical action 'navigate'"
+            "Legacy browser action 'press' blocked by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1; "
+            "prefer canonical action 'send_keys'"
         ) in caplog.text
         record = next(
             rec
             for rec in caplog.records
-            if "Legacy browser action 'open' blocked by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1"
+            if "Legacy browser action 'press' blocked by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1"
             in rec.getMessage()
         )
         assert getattr(record, "legacy_action_gate", None) == "WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1"
@@ -193,24 +193,24 @@ class TestExecuteBrowserControl:
             mock_adapter = mock.AsyncMock()
             mock_adapter.execute.return_value = AdapterActionResult(
                 success=True,
-                action="open",
+                action="type",
                 decision="compat",
-                data={"action": "open", "browser_use_action": "navigate"},
+                data={"action": "type", "browser_use_action": "input"},
             )
             mock_get_adapter.return_value = mock_adapter
 
-            result = await execute_browser({"action": "open", "url": "https://example.com"})
+            result = await execute_browser({"action": "type", "ref": "1", "text": "hello"})
 
         assert result.success is True
-        assert "Legacy browser action 'open' invoked; prefer canonical action 'navigate'" in caplog.text
+        assert "Legacy browser action 'type' invoked; prefer canonical action 'input'" in caplog.text
         record = next(
             rec
             for rec in caplog.records
-            if "Legacy browser action 'open' invoked; prefer canonical action 'navigate'"
+            if "Legacy browser action 'type' invoked; prefer canonical action 'input'"
             in rec.getMessage()
         )
-        assert getattr(record, "legacy_action", None) == "open"
-        assert getattr(record, "preferred_action", None) == "navigate"
+        assert getattr(record, "legacy_action", None) == "type"
+        assert getattr(record, "preferred_action", None) == "input"
         assert getattr(record, "legacy_action_blocked", None) is False
         assert getattr(record, "legacy_action_gate", None) is None
 
@@ -455,39 +455,24 @@ class TestCompatibilityActions:
             assert result.data["connected"] is True
 
     @pytest.mark.asyncio
-    async def test_open_action(self):
+    async def test_open_alias_removed(self, caplog):
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get, mock.patch(
-            "tools.browser.browser_tool.get_browser_use_adapter"
-        ) as mock_get_adapter, mock.patch.dict(
+        ) as mock_get, mock.patch.dict(
             "os.environ",
             {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1"},
             clear=False,
         ):
-            mock_controller = mock.AsyncMock()
-            mock_controller.is_connected = True
-            mock_get.return_value = mock_controller
-            mock_adapter = mock.AsyncMock()
-            mock_adapter.execute.return_value = AdapterActionResult(
-                success=True,
-                action="open",
-                decision="port",
-                data={
-                    "action": "open",
-                    "browser_use_action": "navigate",
-                    "new_tab": True,
-                    "url": "https://example.com",
-                },
-            )
-            mock_get_adapter.return_value = mock_adapter
+            caplog.set_level("WARNING", logger="tools.browser.browser_tool")
+            result = await execute_browser({"action": "open", "url": "https://example.com"})
 
-            result = await execute_browser(
-                {"action": "open", "targetUrl": "https://example.com"}
-            )
-            assert result.success is True
-            assert result.data["action"] == "open"
-            assert result.data["browser_use_action"] == "navigate"
+            assert result.success is False
+            assert "Legacy browser action 'open' has been removed." in (result.error or "")
+            assert (
+                "Legacy browser action 'open' blocked by legacy_alias_removed; "
+                "prefer canonical action 'navigate'"
+            ) in caplog.text
+            mock_get.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_success_payload_includes_legacy_deprecation_metadata(self):
@@ -506,28 +491,28 @@ class TestCompatibilityActions:
             mock_adapter = mock.AsyncMock()
             mock_adapter.execute.return_value = AdapterActionResult(
                 success=True,
-                action="open",
+                action="type",
                 decision="compat",
                 data={
-                    "action": "open",
-                    "browser_use_action": "navigate",
-                    "legacy_action": "open",
-                    "preferred_action": "navigate",
+                    "action": "type",
+                    "browser_use_action": "input",
+                    "legacy_action": "type",
+                    "preferred_action": "input",
                 },
-                warnings=["'open' is a legacy compatibility alias; prefer 'navigate'"],
-                deprecation="'open' is a legacy compatibility alias; prefer 'navigate'",
+                warnings=["'type' is a legacy compatibility alias; prefer 'input'"],
+                deprecation="'type' is a legacy compatibility alias; prefer 'input'",
             )
             mock_get_adapter.return_value = mock_adapter
 
-            result = await execute_browser({"action": "open", "url": "https://example.com"})
+            result = await execute_browser({"action": "type", "ref": "1", "text": "hello"})
 
             assert result.success is True
-            assert result.data["deprecation"] == "'open' is a legacy compatibility alias; prefer 'navigate'"
+            assert result.data["deprecation"] == "'type' is a legacy compatibility alias; prefer 'input'"
             assert result.data["warnings"] == [
-                "'open' is a legacy compatibility alias; prefer 'navigate'"
+                "'type' is a legacy compatibility alias; prefer 'input'"
             ]
-            assert result.data["legacy_action"] == "open"
-            assert result.data["preferred_action"] == "navigate"
+            assert result.data["legacy_action"] == "type"
+            assert result.data["preferred_action"] == "input"
 
     @pytest.mark.asyncio
     async def test_act_alias_removed(self, caplog):

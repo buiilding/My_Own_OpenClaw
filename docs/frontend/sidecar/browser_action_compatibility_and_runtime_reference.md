@@ -25,10 +25,10 @@ title: "Browser Action Compatibility and Runtime Reference"
 - Browser actions are routed through adapter/runtime path only when `action` is in `PHASE2_ADAPTER_ROUTED_ACTIONS`.
 - Sidecar runtime enforces vendored Browser Use import path; non-vendored `browser_use*` modules are purged from `sys.modules`.
 - Runtime selection accepts only `WINDIE_BROWSER_USE_RUNTIME in {"browser_use","browser_use_native"}`. Unset defaults to `browser_use_native`.
-- Optional strict action mode: `WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1` rejects legacy aliases (`open`, `type`, `press`, `switch_tab`) and requires canonical action names.
+- Optional strict action mode: `WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1` rejects legacy aliases (`type`, `press`, `switch_tab`) and requires canonical action names.
 - Legacy aliases are disabled by default.
 - Optional rollout flag: `WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1` temporarily re-enables legacy aliases during migration.
-- Removed alias: `act` is permanently disabled at the browser tool boundary and returns an explicit migration error even when legacy aliases are enabled.
+- Removed aliases: `open` and `act` are permanently disabled at the browser tool boundary and return explicit migration errors even when legacy aliases are enabled.
 - Precedence: strict mode wins when both flags are set (`WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1` still rejects legacy aliases even when `WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1`).
 - Observability: sidecar logs warning events for both allowed legacy alias usage and blocked legacy alias usage.
 - Structured warning fields: `legacy_action`, `preferred_action`, `legacy_action_blocked` (`true`/`false`), and `legacy_action_gate` (for blocked events).
@@ -49,7 +49,7 @@ title: "Browser Action Compatibility and Runtime Reference"
 
 Actions with custom adapter handlers:
 
-- with args: `connect`, `open`, `type`, `press`, `switch_tab`
+- with args: `connect`, `type`, `press`, `switch_tab`
 - no args: `status`, `profiles`, `get_tabs`
 
 Canonical-action recommendation:
@@ -60,7 +60,6 @@ Canonical-action recommendation:
 
 Adapter behavior includes compatibility transforms:
 
-- `open` -> runtime `navigate` with `new_tab=true`
 - `type` -> runtime `input` (+ optional `send_keys` Enter when `submit=true`)
 - `press` -> runtime `send_keys`
 - `switch_tab` -> runtime `switch`
@@ -121,12 +120,12 @@ If controller disconnects or mode becomes ambiguous, bridge drops/restarts sessi
 - Adapter accepts `tab_id`, `target_id`, `targetId`.
 - Runtime-facing tab IDs are truncated to the last 4 chars in extraction helpers, matching controller/tab serialization behavior.
 
-## Removed `act` alias
+## Removed aliases (`open`, `act`)
 
-- `act` is no longer accepted by `browser_tool.execute_browser`.
-- `BrowserUseCompatibilityAdapter.execute("act", ...)` also returns a removed-alias migration error.
+- `open` and `act` are no longer accepted by `browser_tool.execute_browser`.
+- `BrowserUseCompatibilityAdapter.execute("open", ...)` and `execute("act", ...)` return removed-alias migration errors.
 - Requests fail early with a migration error instructing canonical action usage.
-- Compatibility rollout env flags do not re-enable `act`.
+- Compatibility rollout env flags do not re-enable removed aliases.
 
 ## Native Runtime Handler Model
 
