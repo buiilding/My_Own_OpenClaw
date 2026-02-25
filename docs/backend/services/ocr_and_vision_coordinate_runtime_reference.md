@@ -41,6 +41,7 @@ The OCR/vision coordinate pipeline covers:
 - `backend/src/services/vision/vision_service.py`
 - `backend/src/services/vision/providers/base.py`
 - `backend/src/services/vision/providers/internvl.py`
+- `backend/src/services/vision/providers/internvl_runtime_helpers.py`
 - `backend/src/services/vision/providers/ui_venus.py`
 - `backend/src/services/vision/coordinates.py`
 - `backend/src/services/vision/utils.py`

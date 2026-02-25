@@ -2,6 +2,7 @@
 summary: "Deep reference for InternVL runtime prediction path: chat-first generation, CUDA kernel-image retry with flash-attn disable, generate fallback wrapping, and failure diagnostics."
 read_when:
   - When changing `_run_chat_with_fallbacks`, `_disable_flash_attention_runtime`, or `_run_generate_fallback_with_chat_error` in `internvl.py`.
+  - When changing fallback/helper orchestration in `internvl_runtime_helpers.py`.
   - When debugging InternVL failures tied to CUDA kernel-image mismatch, flash-attn runtime flags, or dual chat/generate fallback failures.
 title: "InternVL Chat/Generate Fallback and Runtime Flash-Attention Disable Reference"
 ---
@@ -11,6 +12,7 @@ title: "InternVL Chat/Generate Fallback and Runtime Flash-Attention Disable Refe
 ## Canonical Modules
 
 - `backend/src/services/vision/providers/internvl.py`
+- `backend/src/services/vision/providers/internvl_runtime_helpers.py`
 - `backend/src/services/vision/providers/base.py`
 - `backend/src/services/vision/coordinates.py`
 - `tests/backend/test_vision_provider_loader.py`
@@ -52,6 +54,11 @@ Failure path:
      - retry failure falls to generate fallback using retry error
 3. all other chat failures:
    - directly call `_run_generate_fallback_with_chat_error(...)`
+
+Implementation note:
+
+- `internvl.py` keeps class methods as compatibility wrappers.
+- runtime orchestration logic is single-sourced in `internvl_runtime_helpers.py`.
 
 Helper error classifiers:
 

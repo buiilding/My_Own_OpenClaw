@@ -7,6 +7,9 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): record Phase 182 InternVL runtime-helper extraction (`internvl_runtime_helpers.py`), backend verification, and refreshed jscpd outcomes in `docs/planning/windieos_refactor_plan_2026-02-23.md`
+- docs(backend-vision-runtime): update vision runtime/module-index references for extracted `backend/src/services/vision/providers/internvl_runtime_helpers.py` ownership boundary
+- refactor(backend-vision-internvl): extract InternVL runtime prompt/dtype/chat-fallback/failure-diagnostics helpers into `backend/src/services/vision/providers/internvl_runtime_helpers.py`, keeping `internvl.py` compatibility wrappers and reducing file size below 500 LOC
 - docs(refactor-plan): record Phase 181 interaction-loop execution helper extraction (`tool_call_bridge.py`), backend verification, and refreshed jscpd outcomes in `docs/planning/windieos_refactor_plan_2026-02-23.md`
 - docs(backend-agent-execution): update interaction-loop/module-index/parser references for extracted `backend/src/agent/execution/tool_call_bridge.py` ownership and bridge responsibilities
 - refactor(backend-interaction-loop): extract native tool-call bridge + recoverable tool-call error parsing helpers from `interaction_loop.py` into `backend/src/agent/execution/tool_call_bridge.py`, reducing loop module size below 500 LOC while preserving behavior

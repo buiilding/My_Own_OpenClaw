@@ -115,7 +115,7 @@ Services domain:
 - `backend/src/services/artifacts/store.py`
 - `backend/src/services/ocr/{ocr_service,helpers}.py`
 - `backend/src/services/vision/{vision_service,utils,coordinates}.py`
-- `backend/src/services/vision/providers/{base,internvl,ui_venus}.py`
+- `backend/src/services/vision/providers/{base,internvl,internvl_runtime_helpers,ui_venus}.py`
 
 ## SDK + Simulation + Embeddings Index
 

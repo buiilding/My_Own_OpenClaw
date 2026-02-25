@@ -4110,3 +4110,42 @@ read_when:
   - `./scripts/python-in-env backend python -m pytest tests/backend --durations=20 -q` (pass)
   - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
   - `npx jscpd --gitignore --min-lines 8 --reporters console,markdown --output .audit/plan1/jscpd-backend backend/src tests/backend` (0 clones)
+
+## Phase 182 Outcome (2026-02-25)
+
+- Refactor slice (backend-only): extract InternVL runtime helper logic from oversized provider module.
+  - added:
+    - `backend/src/services/vision/providers/internvl_runtime_helpers.py`
+      - prompt/log/error helpers:
+        - `build_instruction_log_metadata(...)`
+        - `build_grounding_prompt(...)`
+        - `is_meta_tensor_loading_error(...)`
+        - `is_cuda_kernel_image_error(...)`
+      - runtime inference/fallback helpers:
+        - `resolve_model_dtype(...)`
+        - `prepare_question(...)`
+        - `run_chat_generation(...)`
+        - `run_generate_fallback(...)`
+        - `run_generate_fallback_with_chat_error(...)`
+        - `disable_flash_attention_runtime(...)`
+        - `run_chat_with_fallbacks(...)`
+        - `log_failure_context(...)`
+  - updated:
+    - `backend/src/services/vision/providers/internvl.py`
+      - now delegates helper logic to `internvl_runtime_helpers.py`
+      - keeps class methods (`_run_chat_with_fallbacks`, `_run_generate_fallback_with_chat_error`, `_disable_flash_attention_runtime`, etc.) as compatibility wrappers so existing monkeypatch/test seams remain stable
+      - reduced from `610` LOC to `497` LOC (below 500 LOC guideline)
+    - docs:
+      - `docs/backend/inventory/backend_module_file_index_reference.md`
+      - `docs/backend/services/ocr_and_vision_coordinate_runtime_reference.md`
+      - `docs/backend/services/screen_grounding/vision/README.md`
+      - `docs/backend/services/screen_grounding/vision/internvl_chat_generate_fallback_and_runtime_flash_attention_disable_reference.md`
+  - route consolidation check:
+    - `jscpd` on `backend/src/api/routes` found `0` clones; no route merge needed in this slice.
+  - audit outcome:
+    - backend `jscpd` (`backend/src` + `tests/backend`) remained at `0` clones after extraction.
+- Validation:
+  - `./scripts/python-in-env backend python -m pytest tests/backend/test_vision_provider_loader.py tests/backend/test_vision_service.py -q` (pass)
+  - `./scripts/python-in-env backend python -m pytest tests/backend --durations=20 -q` (pass)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console,markdown --output .audit/plan1/jscpd-backend backend/src tests/backend` (0 clones)
