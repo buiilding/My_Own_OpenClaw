@@ -257,6 +257,11 @@
   color: #ececec;
 }
 
+.cg-chat-item.active {
+  background: #2f2f2f;
+  color: #ececec;
+}
+
 .cg-chat-list-state {
   padding: 7px 10px;
   font-size: 12px;

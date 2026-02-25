@@ -111,7 +111,15 @@ function DashboardSidebar({
   recentConversationsError,
   recentConversationGroups,
   onOpenConversation,
+  activeConversationRef,
 }) {
+  const hasRecentConversations = (
+    recentConversationGroups.today.length > 0
+    || recentConversationGroups.yesterday.length > 0
+    || recentConversationGroups.previous7Days.length > 0
+    || recentConversationGroups.older.length > 0
+  );
+
   if (!sidebarOpen) {
     return (
       <aside className="cg-sidebar collapsed">
@@ -267,20 +275,17 @@ function DashboardSidebar({
         <div className="cg-sidebar-divider" />
         <div className="cg-sidebar-section-label">Your chats</div>
         <div className="cg-chat-list-scroll">
-          <button type="button" className="cg-chat-card" onClick={onChatSurface}>
-            Current conversation
-          </button>
           {isLoadingRecentConversations ? (
             <div className="cg-chat-list-state">Loading chats...</div>
           ) : recentConversationsError ? (
             <div className="cg-chat-list-state">Unable to load chats.</div>
-          ) : (
+          ) : hasRecentConversations ? (
             <>
               {recentConversationGroups.today.map((conversation) => (
                 <button
                   key={`today-${conversation.key}`}
                   type="button"
-                  className="cg-chat-item"
+                  className={`cg-chat-item${conversation.key === activeConversationRef ? ' active' : ''}`}
                   onClick={() => onOpenConversation(conversation.conversation)}
                 >
                   {conversation.title}
@@ -290,7 +295,7 @@ function DashboardSidebar({
                 <button
                   key={`yesterday-${conversation.key}`}
                   type="button"
-                  className="cg-chat-item"
+                  className={`cg-chat-item${conversation.key === activeConversationRef ? ' active' : ''}`}
                   onClick={() => onOpenConversation(conversation.conversation)}
                 >
                   {conversation.title}
@@ -300,7 +305,7 @@ function DashboardSidebar({
                 <button
                   key={`week-${conversation.key}`}
                   type="button"
-                  className="cg-chat-item"
+                  className={`cg-chat-item${conversation.key === activeConversationRef ? ' active' : ''}`}
                   onClick={() => onOpenConversation(conversation.conversation)}
                 >
                   {conversation.title}
@@ -310,13 +315,15 @@ function DashboardSidebar({
                 <button
                   key={`older-${conversation.key}`}
                   type="button"
-                  className="cg-chat-item"
+                  className={`cg-chat-item${conversation.key === activeConversationRef ? ' active' : ''}`}
                   onClick={() => onOpenConversation(conversation.conversation)}
                 >
                   {conversation.title}
                 </button>
               ))}
             </>
+          ) : (
+            <div className="cg-chat-list-state">No chats yet.</div>
           )}
         </div>
       </div>
@@ -347,6 +354,7 @@ DashboardSidebar.propTypes = {
     older: PropTypes.array.isRequired,
   }).isRequired,
   onOpenConversation: PropTypes.func.isRequired,
+  activeConversationRef: PropTypes.string,
 };
 
 export default DashboardSidebar;

@@ -18,6 +18,7 @@ import {
   toRehydrateMessagePayload,
 } from '../utils/episodicMemoryUtils';
 import DashboardSidebar from './DashboardSidebar';
+import { useTranscriptSessionInfo } from '../hooks/useTranscriptSessionInfo';
 
 const MEMORY_TABS = Object.freeze({
   EPISODIC: 'episodic',
@@ -66,6 +67,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
   const [recentConversations, setRecentConversations] = useState([]);
   const [isLoadingRecentConversations, setIsLoadingRecentConversations] = useState(false);
   const [recentConversationsError, setRecentConversationsError] = useState('');
+  const sessionInfo = useTranscriptSessionInfo();
 
   const setChatMessages = useChatStore((state) => state.setMessages);
   const setChatIsSending = useChatStore((state) => state.setIsSending);
@@ -273,6 +275,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
         recentConversationsError={recentConversationsError}
         recentConversationGroups={recentConversationGroups}
         onOpenConversation={handleOpenConversation}
+        activeConversationRef={sessionInfo.conversationRef || null}
       />
 
       <main className={`cg-main-content${sidebarOpen ? '' : ' cg-main-content-collapsed'}`.trim()}>

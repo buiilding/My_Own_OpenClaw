@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-dashboard): remove static `Current conversation` sidebar row, wire active conversation highlighting to transcript session state, and add regression coverage for active history-row styling in `ChatGptDashboardShell.test.jsx`
 - feat(frontend-chat-ui): tighten `chatgpt-website-clone` parity by matching sidebar rail behavior (logo-only expanded header + inline collapsed expand control), adding clone-style model/composer dropdown menus, and rendering the chat-header logo dot when sidebar is collapsed
 - refactor(frontend-chat-ui): refine clone parity details by removing sidebar edge chrome, matching collapsed rail logo treatment, and constraining bottom composer width/min-height to clone `max-w-3xl` / centered-pill sizing behavior
 - refactor(frontend-chat-ui): replace sidebar footer settings row with clone-style profile footer card (expanded avatar/name/plan + collapsed avatar-only) while preserving settings-modal routing on click
