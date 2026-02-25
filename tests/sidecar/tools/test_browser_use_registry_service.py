@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 import pytest
 
 from tools.browser.browser_tool import _ensure_vendored_browser_use_on_path
@@ -43,3 +45,28 @@ async def test_normalized_wrapper_uses_same_missing_special_parameter_error_for_
         match=r"Action requires_session requires browser_session but none provided\.",
     ):
         await action.function(params=action.param_model())
+
+
+@pytest.mark.asyncio
+async def test_execute_action_routes_action_and_special_parameters_together() -> None:
+    registry = _registry_cls()()
+
+    @registry.action("navigate with session")
+    async def navigate(url: str, browser_session):
+        return {"url": url, "browser_session": browser_session}
+
+    async def _get_current_page_url():
+        return "https://console.cloud.google.com"
+
+    marker = SimpleNamespace(
+        cdp_client=object(),
+        get_current_page_url=_get_current_page_url,
+    )
+    result = await registry.execute_action(
+        "navigate",
+        params={"url": "https://console.cloud.google.com"},
+        browser_session=marker,
+    )
+
+    assert result["url"] == "https://console.cloud.google.com"
+    assert result["browser_session"] is marker
