@@ -125,3 +125,7 @@ When changing lifecycle code, keep these aligned:
 - Message-size/parse/schema error surfaces expected by frontend error handling.
 - Task-limit cap and cancel timeout semantics versus frontend retry/stop behavior.
 - `streaming-complete` stop-query guarantee.
+
+## Related Deep Dives
+
+- [Backend Protocol Errors Hub](../errors/README.md)
