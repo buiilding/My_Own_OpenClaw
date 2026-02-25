@@ -226,6 +226,21 @@ describe('ChatInterface wiring', () => {
     expect(mockUpdateStreamTracking).toHaveBeenCalledTimes(1);
   });
 
+  test('keeps composer in stop state during tool loop even when isSending is false', () => {
+    mockChatState.streamTracking.phase = 'tool-call';
+    mockChatState.isSending = false;
+    mockChatState.messages = [
+      { id: 'user-1', sender: 'user', text: 'build a dashboard' },
+      { id: 'assistant-1', sender: 'assistant', text: '{"tool":"run_shell_command"}', type: 'tool-call' },
+    ];
+
+    render(<ChatInterface />);
+
+    const lastInputProps = mockMessageInput.mock.calls.at(-1)?.[0];
+    expect(lastInputProps.isSending).toBe(true);
+    expect(typeof lastInputProps.onStopResponse).toBe('function');
+  });
+
   test('stop response handler is a no-op when no active stream is running', () => {
     mockChatState.streamTracking.phase = 'idle';
 

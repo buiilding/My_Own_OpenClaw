@@ -101,6 +101,7 @@ function ChatInterface({ sidebarOpen = true }) {
   const voiceModeEnabled = config?.voice_mode_enabled === true;
   const speechModeEnabled = config?.speech_mode_enabled === true;
   const canStop = ACTIVE_STREAM_PHASES.has(streamPhase);
+  const composerBusy = isSending || canStop;
   const configuredModelId = config?.selected_model_id || '';
   const modelOptions = useMemo(() => {
     if (!configuredModelId) {
@@ -342,7 +343,7 @@ function ChatInterface({ sidebarOpen = true }) {
           <h1 className="chat-empty-title">Good to see you, peter.</h1>
           <MessageInput
             onSendMessage={sendMessage}
-            isSending={isSending}
+            isSending={composerBusy}
             voiceModeEnabled={voiceModeEnabled}
             onStopResponse={handleStopQuery}
             isCentered
@@ -360,7 +361,7 @@ function ChatInterface({ sidebarOpen = true }) {
           />
           <MessageInput
             onSendMessage={sendMessage}
-            isSending={isSending}
+            isSending={composerBusy}
             voiceModeEnabled={voiceModeEnabled}
             onStopResponse={handleStopQuery}
           />
