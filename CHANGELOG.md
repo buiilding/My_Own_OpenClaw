@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-browser-use): prune vendored `browser_use` lazy export/type-stub surface to WindieOS-supported providers (`ChatOpenAI`/`ChatGoogle`/`ChatMistral`), fix checkbox click-description state emission indentation in Browser Use tool utils, and harden parity tests to source backend browser action literals from typed `BrowserAction` instead of regex-parsing schema files
 - refactor(sidecar-browser-runtime): extract WindieOS extraction-target/LLM construction logic from `browser_runtime.py` into `browser_runtime_extraction.py` so runtime bridge code stays focused on action dispatch/session concerns while preserving provider mapping behavior
 - feat(frontend-devtools): add `npm run mock-memory-data` + `npm run electron:mock-memory-data` to seed deterministic local mock transcript conversations, episodic memories, and semantic memories for dashboard demos
 - refactor(sidecar-browser-adapter): centralize legacy alias execution (`open`/`type`/`press`/`switch_tab`) behind one internal dispatch path to reduce duplicate compatibility logic while preserving payload contracts
