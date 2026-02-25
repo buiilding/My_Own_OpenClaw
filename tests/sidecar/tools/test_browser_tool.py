@@ -121,6 +121,33 @@ class TestExecuteBrowserControl:
         )
 
     @pytest.mark.asyncio
+    async def test_strict_mode_block_logs_canonical_gate(self, caplog):
+        with mock.patch.dict(
+            "os.environ",
+            {
+                "WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY": "1",
+                "WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1",
+            },
+            clear=False,
+        ):
+            caplog.set_level("WARNING", logger="tools.browser.browser_tool")
+            result = await execute_browser({"action": "open", "url": "https://example.com"})
+
+        assert result.success is False
+        assert (
+            "Legacy browser action 'open' blocked by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1; "
+            "prefer canonical action 'navigate'"
+        ) in caplog.text
+        record = next(
+            rec
+            for rec in caplog.records
+            if "Legacy browser action 'open' blocked by WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1"
+            in rec.getMessage()
+        )
+        assert getattr(record, "legacy_action_gate", None) == "WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1"
+        assert getattr(record, "legacy_action_blocked", None) is True
+
+    @pytest.mark.asyncio
     async def test_legacy_disable_flag_still_allows_canonical_actions(self):
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
