@@ -409,11 +409,18 @@
 }
 
 .clone-model-body {
-  max-width: 760px;
+  width: 100%;
+  max-width: none;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding-right: 4px;
+}
+
+.clone-model-body > .clone-panel-warning,
+.clone-model-body > .clone-empty-state,
+.clone-model-body > .clone-model-list {
+  width: 100%;
+  max-width: 760px;
 }
 
 .clone-panel-warning {
