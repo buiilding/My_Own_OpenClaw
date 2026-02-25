@@ -12,6 +12,9 @@ title: "Frontend Renderer Provider Docs Hub"
 
 - [Entrypoint View Routing and Provider Stack Reference](entrypoint_view_routing_and_provider_stack_reference.md)
 - [App Provider Coordinator and Save-Status Runtime Reference](app_provider_coordinator_and_save_status_runtime_reference.md)
+- [Renderer Provider Contexts Docs Hub](contexts/README.md)
+- [App Config and Status Context Hook Guard and Re-Export Boundary Reference](contexts/app_config_and_status_context_hook_guard_and_reexport_boundary_reference.md)
+- [Chat Provider Bootstrap Flag and Empty-Context Contract Reference](contexts/chat_provider_bootstrap_flag_and_empty_context_contract_reference.md)
 - [Renderer Provider Shortcut Docs Hub](shortcuts/README.md)
 - [Shift+Tab Mode Toggle and Editable Target Guard Reference](shortcuts/shift_tab_mode_toggle_and_editable_target_guard_reference.md)
 
@@ -23,6 +26,11 @@ title: "Frontend Renderer Provider Docs Hub"
 - `frontend/src/renderer/app/ChatBoxResponseApp.jsx`
 - `frontend/src/renderer/app/ChatBoxContextLabelApp.jsx`
 - `frontend/src/renderer/app/providers/*`
+- `frontend/src/renderer/app/providers/AppContextHooks.js`
+- `frontend/src/renderer/app/providers/ChatContext.jsx`
+- `frontend/src/renderer/app/providers/ChatProvider.jsx`
 - `tests/frontend/AppProvider.test.tsx`
 - `tests/frontend/AppConfigProvider.*.test.tsx`
 - `tests/frontend/AppStatusProvider.test.tsx`
+- `tests/frontend/AppConfigContext.test.tsx`
+- `tests/frontend/AppStatusContext.test.tsx`

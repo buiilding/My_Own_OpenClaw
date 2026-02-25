@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-renderer-providers-contexts): add `renderer/providers/contexts` subhub with app config/status hook-guard and AppContextHooks re-export boundary reference plus ChatProvider empty-context/flag contracts
 - docs(frontend-renderer-dashboard): add `renderer/dashboard` subhub with section-router/placeholder contracts plus model-selection reconciliation and dashboard-storage behavior references
 - docs(backend-api-processing-formatters-messages): add `processing/formatters/messages` subhub with assistant/user/system/complete formatter payload contracts and error/memory-store guard/schema-mapping references
 - docs(frontend-renderer-chat-presentation): add `renderer/chat/presentation` subhub with shared action-selector/input send-guard contract and thinking overflow/message-class/token-count formatting references
