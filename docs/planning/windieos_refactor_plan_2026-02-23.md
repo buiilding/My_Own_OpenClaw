@@ -27,6 +27,15 @@ read_when:
 - Audit refresh:
   - backend `jscpd` rerun on `backend/src` + `tests/backend`; report updated at `.audit/plan1/jscpd-backend/jscpd-report.md`.
   - `backend/src/api/routes` clone audit unchanged (`0` clones; no route consolidation needed).
+- Refactor slice: deduplicate backend browser schema compatibility fields.
+  - extracted shared screenshot image-field mixin (`BrowserScreenshotImageFields`) in `backend/src/tools/browser/shared_compat_fields.py`.
+  - moved shared file/text compatibility and no-op compatibility fields (`profile/node/target`) into `BrowserSharedCompatFields`.
+  - reduced duplicate field declarations in `browser_control_args_schema.py` and `openclaw_compat_schema.py`.
+  - updated `BrowserScreenshotArgs` to reuse shared screenshot image fields.
+- Regression coverage updates:
+  - expanded `tests/backend/test_browser_remote_tool.py` for shared compatibility fields and screenshot defaults.
+- Audit delta:
+  - backend `jscpd` clones reduced from `14` to `11` after browser-schema dedupe.
 
 ## Baseline Metrics (Snapshot: 2026-02-23)
 

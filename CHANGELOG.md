@@ -7,6 +7,10 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): record backend browser-schema dedupe slice and updated backend `jscpd` delta (`14` -> `11` clones) in `docs/planning/windieos_refactor_plan_2026-02-23.md`
+- docs(backend-browser-schema): update browser schema references for shared screenshot-image mixin and expanded shared compatibility-field ownership in `shared_compat_fields.py`
+- refactor(backend-browser-schema): centralize duplicated browser compatibility fields in `BrowserSharedCompatFields`, add `BrowserScreenshotImageFields`, and reuse them from `BrowserControlArgs`, `BrowserOpenClawCompatArgs`, and `BrowserScreenshotArgs`
+- test(backend-browser-schema): extend `tests/backend/test_browser_remote_tool.py` coverage for shared compatibility field presence and screenshot shared-image defaults
 - docs(backend-protocol-errors): add `docs/backend/inventory/protocols/errors` subhub with websocket error-surface + sanitization contract reference and wire links from protocol/lifecycle hubs
 - docs(frontend-protocol-lifecycle): add `docs/frontend/inventory/protocols/lifecycle` subhub with main ws-bridge/query-gate/overlay-phase lifecycle contract reference and protocol-hub wiring
 - docs(backend-protocol-lifecycle): add `docs/backend/inventory/protocols/lifecycle` subhub with websocket receive-loop/handshake/task-cancellation lifecycle contracts and protocol-hub wiring

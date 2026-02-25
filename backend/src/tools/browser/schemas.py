@@ -25,6 +25,7 @@ from backend.src.tools.browser.snapshot_scope_fields import (
     SnapshotRefsField,
     SnapshotSelectorField,
 )
+from backend.src.tools.browser.shared_compat_fields import BrowserScreenshotImageFields
 
 
 class BrowserConnectArgs(BaseModel):
@@ -234,7 +235,7 @@ class BrowserScrollArgs(BaseModel):
     index: Optional[int] = Field(None, description="Optional Browser Use element index", ge=0)
 
 
-class BrowserScreenshotArgs(BaseModel):
+class BrowserScreenshotArgs(BrowserScreenshotImageFields):
     """Arguments for browser screenshot action."""
 
     model_config = ConfigDict(extra="ignore")
@@ -243,16 +244,6 @@ class BrowserScreenshotArgs(BaseModel):
     full_page: bool = Field(False, description="Capture full page height")
     ref: Optional[str] = Field(
         None, description="Optional element reference to screenshot"
-    )
-    element: Optional[str] = Field(
-        None, description="Optional CSS selector to screenshot"
-    )
-    type: Literal["png", "jpeg"] = Field("png", description="Screenshot image type")
-    quality: Optional[int] = Field(
-        None,
-        description="JPEG quality (1-100)",
-        ge=1,
-        le=100,
     )
     file_name: Optional[str] = Field(
         None, description="Browser Use screenshot filename"

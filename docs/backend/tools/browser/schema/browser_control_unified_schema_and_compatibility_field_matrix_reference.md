@@ -61,9 +61,16 @@ Families include:
 - dialog/wait alias pairings (`timeoutMs` + `timeout_ms`, `promptText` + `prompt_text`)
 - storage/network/trace fields (`cookies`, `kind`, `values`, `contains`, `filter`, `snapshots`, `screenshots`, `sources`)
 - emulation fields (`offline`/`enabled`, headers, geolocation, media/color/timezone/locale/device)
+- file/text mutation compatibility fields (`append`, `trailing_newline`, `old_str`, `new_str`, `path`, `goal`, `source`, `context`, `keys`, `success`, `files_to_display`)
+- compatibility no-op routing fields (`profile`, `node`, `target`)
 - nested action envelope field (`request`) for `act`
 
 All are optional. Model behavior intentionally tolerates sparse action-specific payloads.
+
+`BrowserScreenshotImageFields` now centralizes shared screenshot image options (`element`, `type`, `quality`) reused by:
+
+- `BrowserControlArgs`
+- `BrowserScreenshotArgs`
 
 ## Layer 4: Unified LLM-Facing Schema (`BrowserControlArgs`)
 
@@ -75,6 +82,7 @@ Key design characteristics:
 - `model_config.extra = "ignore"`
 - broad optional field superset spanning connect/snapshot/extract/input/tab/file/emulation/compat aliases
 - inherits `BrowserSharedCompatFields`
+- inherits `BrowserScreenshotImageFields`
 - reuses snapshot scope alias types from `snapshot_scope_fields.py`
 
 Important semantic boundary:

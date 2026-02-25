@@ -55,3 +55,52 @@ class BrowserSharedCompatFields(BaseModel):
     timezone: Optional[str] = Field(None, description="Timezone id")
     locale: Optional[str] = Field(None, description="Locale id")
     device: Optional[str] = Field(None, description="Device preset name")
+
+    # Shared file/text mutation compatibility fields.
+    content: Optional[str] = Field(None, description="Content for write_file")
+    append: Optional[bool] = Field(None, description="Append mode for write_file")
+    trailing_newline: Optional[bool] = Field(
+        None, description="Append trailing newline for write_file"
+    )
+    leading_newline: Optional[bool] = Field(
+        None, description="Append leading newline for write_file"
+    )
+    old_str: Optional[str] = Field(None, description="Target string for replace_file")
+    new_str: Optional[str] = Field(
+        None, description="Replacement string for replace_file"
+    )
+    path: Optional[str] = Field(None, description="File path for upload_file")
+    goal: Optional[str] = Field(None, description="Goal for read_long_content")
+    source: Optional[str] = Field(None, description="Source for read_long_content")
+    context: Optional[str] = Field(None, description="Context for read_long_content")
+    keys: Optional[str] = Field(None, description="Keyboard sequence for send_keys")
+    success: Optional[bool] = Field(None, description="Success flag for done action")
+    files_to_display: Optional[List[str]] = Field(
+        None, description="Optional attachment paths for done action"
+    )
+
+    # Shared no-op compatibility fields.
+    profile: Optional[str] = Field(
+        None, description="Compatibility field (unused in WindieOS)"
+    )
+    node: Optional[str] = Field(
+        None, description="Compatibility field (unused in WindieOS)"
+    )
+    target: Optional[Literal["sandbox", "host", "node"]] = Field(
+        None, description="Compatibility field (unused in WindieOS)"
+    )
+
+
+class BrowserScreenshotImageFields(BaseModel):
+    """Shared screenshot image options for browser schemas."""
+
+    element: Optional[str] = Field(
+        None, description="Optional CSS selector to screenshot"
+    )
+    type: Literal["png", "jpeg"] = Field("png", description="Screenshot image type")
+    quality: Optional[int] = Field(
+        None,
+        description="JPEG quality (1-100)",
+        ge=1,
+        le=100,
+    )
