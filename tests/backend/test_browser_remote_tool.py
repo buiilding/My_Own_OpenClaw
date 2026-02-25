@@ -86,10 +86,7 @@ class TestRemoteBrowserTool:
         ) in caplog.text
 
     @pytest.mark.asyncio
-    async def test_execute_remote_rejects_removed_act_alias_even_when_legacy_enabled(
-        self, monkeypatch, caplog
-    ):
-        monkeypatch.setenv("WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS", "1")
+    async def test_execute_remote_rejects_removed_act_alias(self, caplog):
         tool = RemoteBrowserTool()
         caplog.set_level("WARNING", logger="backend.src.tools.remote_tools.browser")
 
@@ -119,10 +116,7 @@ class TestRemoteBrowserTool:
         assert getattr(record, "legacy_action_gate", None) == "legacy_alias_removed"
 
     @pytest.mark.asyncio
-    async def test_execute_remote_rejects_removed_open_alias_even_when_legacy_enabled(
-        self, monkeypatch, caplog
-    ):
-        monkeypatch.setenv("WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS", "1")
+    async def test_execute_remote_rejects_removed_open_alias(self, caplog):
         tool = RemoteBrowserTool()
         caplog.set_level("WARNING", logger="backend.src.tools.remote_tools.browser")
 
@@ -152,10 +146,7 @@ class TestRemoteBrowserTool:
         assert getattr(record, "legacy_action_gate", None) == "legacy_alias_removed"
 
     @pytest.mark.asyncio
-    async def test_execute_remote_rejects_removed_switch_tab_alias_even_when_legacy_enabled(
-        self, monkeypatch, caplog
-    ):
-        monkeypatch.setenv("WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS", "1")
+    async def test_execute_remote_rejects_removed_switch_tab_alias(self, caplog):
         tool = RemoteBrowserTool()
         caplog.set_level("WARNING", logger="backend.src.tools.remote_tools.browser")
 
@@ -186,10 +177,7 @@ class TestRemoteBrowserTool:
         assert getattr(record, "legacy_action_gate", None) == "legacy_alias_removed"
 
     @pytest.mark.asyncio
-    async def test_execute_remote_rejects_removed_press_alias_even_when_legacy_enabled(
-        self, monkeypatch, caplog
-    ):
-        monkeypatch.setenv("WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS", "1")
+    async def test_execute_remote_rejects_removed_press_alias(self, caplog):
         tool = RemoteBrowserTool()
         caplog.set_level("WARNING", logger="backend.src.tools.remote_tools.browser")
 
@@ -219,9 +207,7 @@ class TestRemoteBrowserTool:
         assert getattr(record, "legacy_action_gate", None) == "legacy_alias_removed"
 
     @pytest.mark.asyncio
-    async def test_execute_remote_compat_flags_still_allow_canonical_actions(self, monkeypatch):
-        monkeypatch.setenv("WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY", "1")
-        monkeypatch.setenv("WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS", "0")
+    async def test_execute_remote_allows_canonical_actions(self):
         tool = RemoteBrowserTool()
 
         mock_ctx = mock.Mock()
