@@ -11,6 +11,9 @@ title: "Backend API WebSocket Docs Hub"
 ## Deep Pages
 
 - [WebSocket Message Parse, Validation Guard, and Task-Scheduling Reference](websocket_message_parse_validation_guard_and_task_scheduling_reference.md)
+- [WebSocket Connection Docs Hub](connection/README.md)
+- [Handshake Parse, Validation, and Policy-Close Contract Reference](connection/handshake_parse_validation_and_policy_close_contract_reference.md)
+- [Task Manager Concurrency Limit, Rejected-Coroutine Close, and Cleanup Contract Reference](connection/task_manager_concurrency_limit_rejected_coroutine_close_and_cleanup_contract_reference.md)
 
 ## Related Pages
 

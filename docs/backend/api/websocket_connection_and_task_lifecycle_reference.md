@@ -190,5 +190,8 @@ If send path deadlocks/fails under load:
 ## Related Pages
 
 - [Backend API WebSocket Docs Hub](websocket/README.md)
+- [API WebSocket Connection Docs Hub](websocket/connection/README.md)
 - [WebSocket Message Parse, Validation Guard, and Task-Scheduling Reference](websocket/websocket_message_parse_validation_guard_and_task_scheduling_reference.md)
+- [Handshake Parse, Validation, and Policy-Close Contract Reference](websocket/connection/handshake_parse_validation_and_policy_close_contract_reference.md)
+- [Task Manager Concurrency Limit, Rejected-Coroutine Close, and Cleanup Contract Reference](websocket/connection/task_manager_concurrency_limit_rejected_coroutine_close_and_cleanup_contract_reference.md)
 - [Safe WebSocket and Transport Envelope Reference](transport/safe_websocket_and_transport_envelope_reference.md)
