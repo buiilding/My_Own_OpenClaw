@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 from typing import Any, Awaitable, Callable, Dict
 
 
@@ -34,3 +35,36 @@ async def safe_health_check(
     except Exception as error:  # pragma: no cover - route tests cover behavior
         logger.error("%s: %s", error_log_prefix, error, exc_info=True)
         return unhealthy_payload(fallback_message)
+
+
+async def dependency_health_check(
+    *,
+    dependency: Any,
+    get_dependency: Callable[[], Any] | None = None,
+    missing_message: str,
+    on_healthy: Callable[[Any], Awaitable[Dict[str, Any]] | Dict[str, Any]],
+    logger,
+    error_log_prefix: str,
+    fallback_message: str = "Health check failed",
+) -> Dict[str, Any]:
+    """Run a dependency-aware health check with shared missing/error handling."""
+
+    async def check() -> Dict[str, Any]:
+        resolved_dependency = (
+            get_dependency()
+            if get_dependency is not None
+            else dependency
+        )
+        if not resolved_dependency:
+            return unhealthy_payload(missing_message)
+        healthy_result = on_healthy(resolved_dependency)
+        if inspect.isawaitable(healthy_result):
+            return await healthy_result
+        return healthy_result
+
+    return await safe_health_check(
+        check,
+        logger=logger,
+        error_log_prefix=error_log_prefix,
+        fallback_message=fallback_message,
+    )

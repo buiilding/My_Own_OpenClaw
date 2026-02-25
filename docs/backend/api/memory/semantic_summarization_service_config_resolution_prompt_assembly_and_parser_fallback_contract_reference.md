@@ -103,7 +103,7 @@ Unexpected failures are sanitized to:
 `GET /api/semantic/health`:
 
 - returns unhealthy when `container.llm_client` missing
-- wraps check through `safe_health_check(...)` to avoid thrown 500s on unexpected exceptions
+- wraps check through `dependency_health_check(...)` (which delegates to `safe_health_check(...)`) to avoid thrown 500s on unexpected exceptions
 
 ## Test-Backed Matrix
 

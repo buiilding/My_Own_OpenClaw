@@ -8,6 +8,8 @@ import { getRoundedFrameSize } from '../utils/overlayFrameSize';
 import { subscribeResponseOverlayPhase } from '../utils/overlayPhaseListener';
 import { buildToolGhostPreviewFromMessageText } from '../utils/toolGhostPreview';
 import { useToolGhostLifecycle } from './useToolGhostLifecycle';
+import { useAutoResizedResponseHeight } from '../hooks/useAutoResizedResponseHeight';
+import ToolGhostCursor from './ToolGhostCursor';
 import {
   buildToolGhostTrackStyle,
   findLastUserIndex,
@@ -45,7 +47,6 @@ function ChatBoxResponse() {
   const [closedResponseId, setClosedResponseId] = useState(null);
   const [awaitingFirstChunk, setAwaitingFirstChunk] = useState(false);
   const [overlayPhase, setOverlayPhase] = useState('idle');
-  const [responseHeight, setResponseHeight] = useState(RESPONSE_MIN_HEIGHT);
   const [hasOverflowAbove, setHasOverflowAbove] = useState(false);
   const [hasThinkingOverflowAbove, setHasThinkingOverflowAbove] = useState(false);
   const shellRef = useRef(null);
@@ -151,6 +152,14 @@ function ChatBoxResponse() {
     () => (typeof thinkingStatus === 'string' ? thinkingStatus.trim() : ''),
     [thinkingStatus],
   );
+  const responseHeight = useAutoResizedResponseHeight({
+    activeResponseId: activeResponse?.id,
+    bodyRef: responseBodyRef,
+    enabled: showResponse,
+    minHeight: RESPONSE_MIN_HEIGHT,
+    maxHeight: RESPONSE_MAX_HEIGHT,
+    chromeHeight: RESPONSE_CHROME_HEIGHT,
+  });
 
   const reportOverlaySize = useCallback(async ({
     visible,
@@ -299,55 +308,10 @@ function ChatBoxResponse() {
 
   useEffect(() => {
     if (!showResponse) {
-      setResponseHeight(RESPONSE_MIN_HEIGHT);
       setHasOverflowAbove(false);
       shouldStickToBottomRef.current = true;
-      return;
     }
-
-    const bodyEl = responseBodyRef.current;
-    if (!bodyEl) {
-      return;
-    }
-
-    let animationFrameId = null;
-    let resizeObserver = null;
-
-    const recalcHeight = () => {
-      const measuredHeight = bodyEl.scrollHeight + RESPONSE_CHROME_HEIGHT;
-      const nextHeight = Math.max(
-        RESPONSE_MIN_HEIGHT,
-        Math.min(RESPONSE_MAX_HEIGHT, measuredHeight),
-      );
-      setResponseHeight((prevHeight) => (prevHeight === nextHeight ? prevHeight : nextHeight));
-    };
-
-    const scheduleRecalc = () => {
-      if (animationFrameId !== null) {
-        window.cancelAnimationFrame(animationFrameId);
-      }
-      animationFrameId = window.requestAnimationFrame(() => {
-        animationFrameId = null;
-        recalcHeight();
-      });
-    };
-
-    scheduleRecalc();
-
-    if (typeof ResizeObserver !== 'undefined') {
-      resizeObserver = new ResizeObserver(scheduleRecalc);
-      resizeObserver.observe(bodyEl);
-    }
-
-    return () => {
-      if (resizeObserver) {
-        resizeObserver.disconnect();
-      }
-      if (animationFrameId !== null) {
-        window.cancelAnimationFrame(animationFrameId);
-      }
-    };
-  }, [showResponse, activeResponse?.id]);
+  }, [showResponse]);
 
   useEffect(() => {
     if (!showResponse) {
@@ -504,30 +468,7 @@ function ChatBoxResponse() {
             {hasEffectiveTarget && toolGhostPreview.showsTargetRipple ? (
               <div className={`chatbox-tool-ghost-target-ripple${toolGhostPreview.isMouseClick ? ' is-click-timeline' : ''}`} />
             ) : null}
-            <div className="chatbox-tool-ghost-cursor-wrap" aria-hidden="true">
-              <div className="chatbox-tool-ghost-ring" />
-              <div className="chatbox-tool-ghost-cursor">
-                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <polyline
-                    points="4 4 20 12 13 13 12 20 4 4"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <line
-                    x1="9"
-                    y1="9"
-                    x2="13"
-                    y2="13"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-              <div className="chatbox-tool-ghost-label">{toolGhostPreview.label}</div>
-            </div>
+            <ToolGhostCursor label={toolGhostPreview.label} />
           </div>
         </div>
       ) : null}

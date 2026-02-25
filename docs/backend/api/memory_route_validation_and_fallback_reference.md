@@ -63,7 +63,7 @@ Health behavior:
 - returns `{"status":"unhealthy","message":"Embedding provider not available"}` when embedder missing
 - probes real embedder call using `embed_text("test")`
 - returns `healthy` payload with `model_name` and measured embedding `dimension`
-- unexpected exceptions are normalized by `safe_health_check(...)` to unhealthy payload (no thrown 500)
+- unexpected exceptions are normalized by `dependency_health_check(...)` (built on `safe_health_check(...)`) to unhealthy payload (no thrown 500)
 
 ## `/api/semantic/summarize` Contract
 
@@ -134,11 +134,17 @@ Health behavior:
 
 - validates `container.llm_client` availability
 - returns `healthy` with readiness message when client exists
-- wraps unexpected errors via `safe_health_check(...)` to canonical unhealthy payload
+- wraps unexpected errors via `dependency_health_check(...)` to canonical unhealthy payload
 
 ## Shared Health Helper Contract
 
-`safe_health_check(check_fn, ...)` guarantees:
+`dependency_health_check(...)` guarantees:
+
+- missing dependency path: returns canonical unhealthy payload with route-specific message
+- healthy dependency path: executes route-provided `on_healthy` callback (sync or async)
+- exception path: delegates to `safe_health_check(...)` for canonical logged fallback
+
+`safe_health_check(check_fn, ...)` remains the lower-level primitive that:
 
 - success path: returns `check_fn()` payload untouched
 - failure path: logs prefixed error and returns:
@@ -162,7 +168,7 @@ If semantic summarize returns `500`:
 If health route reports unhealthy unexpectedly:
 
 1. confirm dependency presence (`container.embedder` or `container.llm_client`)
-2. check server logs for `safe_health_check` wrapped exceptions
+2. check server logs for `dependency_health_check` / `safe_health_check` wrapped exceptions
 3. verify route registration is active in `API_ROUTERS`
 
 ## Related Pages

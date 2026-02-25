@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { TOOL_GHOST_CLICK_SYNC_DELAY_MS } from '../features/chat/constants/toolGhostRuntime';
+import ToolGhostCursor from '../features/chat/components/ToolGhostCursor';
 import '../styles/theme.css';
 import '../styles/ChatBoxResponseOverlay.css';
 
@@ -22,7 +23,7 @@ function ToolGhostDebugApp() {
   const hideTimerRef = useRef(null);
   const loopTimerRef = useRef(null);
 
-  const clearTimers = () => {
+  const clearTimers = useCallback(() => {
     if (hideTimerRef.current) {
       window.clearTimeout(hideTimerRef.current);
       hideTimerRef.current = null;
@@ -31,9 +32,9 @@ function ToolGhostDebugApp() {
       window.clearTimeout(loopTimerRef.current);
       loopTimerRef.current = null;
     }
-  };
+  }, []);
 
-  const runAnimationOnce = () => {
+  const runAnimationOnce = useCallback(() => {
     clearTimers();
     setRunToken((value) => value + 1);
     setIsVisible(true);
@@ -44,15 +45,14 @@ function ToolGhostDebugApp() {
         runAnimationOnce();
       }, LOOP_GAP_MS);
     }, TOOL_GHOST_CLICK_SYNC_DELAY_MS);
-  };
+  }, [clearTimers]);
 
   useEffect(() => {
     runAnimationOnce();
     return () => {
       clearTimers();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [clearTimers, runAnimationOnce]);
 
   return isVisible ? (
     <div className="chatbox-tool-ghost" aria-label="Ghost cursor debug animation" key={runToken}>
@@ -61,30 +61,7 @@ function ToolGhostDebugApp() {
         style={TRACK_STYLE}
       >
         <div className="chatbox-tool-ghost-target-ripple is-click-timeline" />
-        <div className="chatbox-tool-ghost-cursor-wrap" aria-hidden="true">
-          <div className="chatbox-tool-ghost-ring" />
-          <div className="chatbox-tool-ghost-cursor">
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <polyline
-                points="4 4 20 12 13 13 12 20 4 4"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <line
-                x1="9"
-                y1="9"
-                x2="13"
-                y2="13"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
-          <div className="chatbox-tool-ghost-label">Clicking Chrome icon</div>
-        </div>
+        <ToolGhostCursor label="Clicking Chrome icon" />
       </div>
     </div>
   ) : null;
