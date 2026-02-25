@@ -15,6 +15,7 @@ title: "Entrypoint View Routing and Provider Stack Reference"
 - `frontend/src/renderer/app/ChatBoxApp.jsx`
 - `frontend/src/renderer/app/ChatBoxResponseApp.jsx`
 - `frontend/src/renderer/app/ChatBoxContextLabelApp.jsx`
+- `frontend/src/renderer/components/ErrorBoundary.jsx`
 - `frontend/src/renderer/app/WakewordController.jsx`
 - `frontend/src/renderer/app/providers/AppProvider.jsx`
 - `frontend/src/renderer/app/providers/ChatProvider.jsx`
