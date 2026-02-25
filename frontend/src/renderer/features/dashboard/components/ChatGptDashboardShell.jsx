@@ -190,125 +190,180 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
 
   return (
     <div className="cg-dashboard-shell">
-      <aside className={`cg-sidebar${sidebarOpen ? '' : ' collapsed'}`.trim()}>
-        <div className="cg-sidebar-header">
-          <div className="cg-sidebar-brand">
-            <div className="cg-brand-dot">
-              <ChatGptLogo size={14} />
-            </div>
-            {sidebarOpen ? (
-              <div className="cg-brand-text">
-                <h1>ChatGPT</h1>
-                <p>WindieOS</p>
+      {sidebarOpen ? (
+        <aside className="cg-sidebar">
+          <div className="cg-sidebar-header">
+            <div className="cg-sidebar-brand">
+              <div className="cg-brand-dot">
+                <ChatGptLogo size={14} />
               </div>
-            ) : null}
+            </div>
+            <button
+              type="button"
+              className="cg-sidebar-toggle"
+              onClick={handleSidebarToggle}
+              aria-label="Collapse sidebar"
+              title="Collapse sidebar"
+            >
+              <PanelLeftClose size={18} />
+            </button>
           </div>
-          <button
-            type="button"
-            className="cg-sidebar-toggle"
-            onClick={handleSidebarToggle}
-            aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-            title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-          >
-            {sidebarOpen ? <PanelLeftClose size={18} /> : <PanelLeft size={18} />}
-          </button>
-        </div>
 
-        <div className="cg-sidebar-content">
-          <nav className="cg-sidebar-nav">
-            {PRIMARY_NAV_ITEMS.map((item) => (
-              <SidebarItem
-                key={item.id}
-                label={item.label}
-                icon={item.icon}
-                onClick={item.id === 'new-chat' ? handleStartNewChat : handleChatSurface}
-                collapsed={!sidebarOpen}
-              />
-            ))}
-          </nav>
-
-          <div className="cg-sidebar-divider" />
-
-          <nav className="cg-sidebar-nav">
-            {PRODUCT_NAV_ITEMS.map((item) => {
-              if (item.id === 'memory') {
-                return (
-                  <SidebarItem
-                    key={item.id}
-                    label={item.label}
-                    icon={item.icon}
-                    onClick={handleMemorySurface}
-                    isActive={memoryOpen}
-                    collapsed={!sidebarOpen}
-                  />
-                );
-              }
-              if (item.id === 'models') {
-                return (
-                  <SidebarItem
-                    key={item.id}
-                    label={item.label}
-                    icon={item.icon}
-                    onClick={openModels}
-                    isActive={modelsOpen}
-                    collapsed={!sidebarOpen}
-                  />
-                );
-              }
-              return (
+          <div className="cg-sidebar-content">
+            <nav className="cg-sidebar-nav">
+              {PRIMARY_NAV_ITEMS.map((item) => (
                 <SidebarItem
                   key={item.id}
                   label={item.label}
                   icon={item.icon}
-                  collapsed={!sidebarOpen}
+                  onClick={item.id === 'new-chat' ? handleStartNewChat : handleChatSurface}
                 />
-              );
-            })}
-          </nav>
+              ))}
+            </nav>
 
-          {sidebarOpen ? (
-            <>
-              <div className="cg-sidebar-divider" />
-              <div className="cg-sidebar-section-label">GPTs</div>
-              <button type="button" className="cg-gpt-card">
-                <span className="cg-gpt-dot" aria-hidden="true">C</span>
-                <span>Canva</span>
-              </button>
-              <SidebarItem label="Explore GPTs" icon={Compass} collapsed={false} />
-              <div className="cg-sidebar-divider" />
-              <div className="cg-sidebar-section-label">Your chats</div>
-              <button type="button" className="cg-chat-card">
-                Current conversation
-              </button>
-            </>
-          ) : null}
-        </div>
+            <div className="cg-sidebar-divider" />
 
-        <div className="cg-sidebar-footer">
-          <SidebarItem
-            label="Settings"
-            icon={User}
-            onClick={openSettings}
-            isActive={settingsOpen}
-            collapsed={!sidebarOpen}
-          />
-        </div>
-      </aside>
+            <nav className="cg-sidebar-nav">
+              {PRODUCT_NAV_ITEMS.map((item) => {
+                if (item.id === 'memory') {
+                  return (
+                    <SidebarItem
+                      key={item.id}
+                      label={item.label}
+                      icon={item.icon}
+                      onClick={handleMemorySurface}
+                      isActive={memoryOpen}
+                    />
+                  );
+                }
+                if (item.id === 'models') {
+                  return (
+                    <SidebarItem
+                      key={item.id}
+                      label={item.label}
+                      icon={item.icon}
+                      onClick={openModels}
+                      isActive={modelsOpen}
+                    />
+                  );
+                }
+                return (
+                  <SidebarItem
+                    key={item.id}
+                    label={item.label}
+                    icon={item.icon}
+                  />
+                );
+              })}
+            </nav>
 
-      {!sidebarOpen ? (
-        <button
-          type="button"
-          className="cg-sidebar-open"
-          onClick={handleSidebarToggle}
-          aria-label="Open sidebar"
-          title="Open sidebar"
-        >
-          <PanelLeft size={18} />
-        </button>
-      ) : null}
+            <div className="cg-sidebar-divider" />
+            <div className="cg-sidebar-section-label">GPTs</div>
+            <button type="button" className="cg-gpt-card">
+              <span className="cg-gpt-dot" aria-hidden="true">C</span>
+              <span>Canva</span>
+            </button>
+            <SidebarItem label="Explore GPTs" icon={Compass} collapsed={false} />
+            <div className="cg-sidebar-divider" />
+            <div className="cg-sidebar-section-label">Your chats</div>
+            <button type="button" className="cg-chat-card">
+              Current conversation
+            </button>
+          </div>
+
+          <div className="cg-sidebar-footer">
+            <SidebarItem
+              label="Settings"
+              icon={User}
+              onClick={openSettings}
+              isActive={settingsOpen}
+            />
+          </div>
+        </aside>
+      ) : (
+        <aside className="cg-sidebar collapsed">
+          <div className="cg-sidebar-header">
+            <div className="cg-brand-dot">
+              <ChatGptLogo size={14} />
+            </div>
+            <button
+              type="button"
+              className="cg-sidebar-toggle"
+              onClick={handleSidebarToggle}
+              aria-label="Expand sidebar"
+              title="Expand sidebar"
+            >
+              <PanelLeft size={18} />
+            </button>
+          </div>
+
+          <div className="cg-sidebar-content">
+            <nav className="cg-sidebar-nav">
+              {PRIMARY_NAV_ITEMS.map((item) => (
+                <SidebarItem
+                  key={item.id}
+                  label={item.label}
+                  icon={item.icon}
+                  onClick={item.id === 'new-chat' ? handleStartNewChat : handleChatSurface}
+                  collapsed
+                />
+              ))}
+            </nav>
+
+            <div className="cg-sidebar-divider" />
+
+            <nav className="cg-sidebar-nav">
+              {PRODUCT_NAV_ITEMS.map((item) => {
+                if (item.id === 'memory') {
+                  return (
+                    <SidebarItem
+                      key={item.id}
+                      label={item.label}
+                      icon={item.icon}
+                      onClick={handleMemorySurface}
+                      isActive={memoryOpen}
+                      collapsed
+                    />
+                  );
+                }
+                if (item.id === 'models') {
+                  return (
+                    <SidebarItem
+                      key={item.id}
+                      label={item.label}
+                      icon={item.icon}
+                      onClick={openModels}
+                      isActive={modelsOpen}
+                      collapsed
+                    />
+                  );
+                }
+                return (
+                  <SidebarItem
+                    key={item.id}
+                    label={item.label}
+                    icon={item.icon}
+                    collapsed
+                  />
+                );
+              })}
+            </nav>
+          </div>
+
+          <div className="cg-sidebar-footer">
+            <SidebarItem
+              label="Settings"
+              icon={User}
+              onClick={openSettings}
+              isActive={settingsOpen}
+              collapsed
+            />
+          </div>
+        </aside>
+      )}
 
       <main className={`cg-main-content${sidebarOpen ? '' : ' cg-main-content-collapsed'}`.trim()}>
-        <ChatInterface />
+        <ChatInterface sidebarOpen={sidebarOpen} />
       </main>
 
       <DashboardModal isOpen={memoryOpen} onClose={() => setMemoryOpen(false)} className="cg-modal-wide">
