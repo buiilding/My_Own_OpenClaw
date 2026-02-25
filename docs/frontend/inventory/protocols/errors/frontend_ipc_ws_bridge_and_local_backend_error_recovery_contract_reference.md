@@ -154,3 +154,8 @@ When changing error semantics, keep aligned:
 - query send failure envelope consumed by renderer stream/error handlers.
 - settings ACK timeout constant and expected UX fallback behavior.
 - local-backend/wakeword status payload keys (`ready`, `error`) and channel names.
+
+## Related Deep Dives
+
+- [Frontend Protocol Lifecycle Hub](../lifecycle/README.md)
+- [Frontend Protocol Validation Hub](../validation/README.md)

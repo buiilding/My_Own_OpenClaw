@@ -166,3 +166,4 @@ When changing this lifecycle, keep synchronized:
 ## Related Deep Dives
 
 - [Frontend Protocol Errors Hub](../errors/README.md)
+- [Frontend Protocol Validation Hub](../validation/README.md)
