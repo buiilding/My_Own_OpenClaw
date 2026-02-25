@@ -1,0 +1,36 @@
+---
+summary: "Frontend protocol state sub-hub for main-process websocket bridge state, conversation-ref fallback handling, and renderer transcript-session synchronization."
+read_when:
+  - When changing `frontend/src/main/ipc.cjs` state fields that track connection/session/user/conversation identity.
+  - When changing renderer-side event gating or transcript session update behavior driven by backend context fields.
+title: "Frontend Protocol State Hub"
+---
+
+# Frontend Protocol State Hub
+
+## Deep Pages
+
+- [Frontend Protocol Session and Conversation-State Propagation Reference](frontend_protocol_session_and_conversation_state_propagation_reference.md)
+
+## Related Pages
+
+- [Frontend Inventory Protocols Hub](../README.md)
+- [Frontend Protocol Lifecycle Hub](../lifecycle/README.md)
+- [Frontend Protocol Validation Hub](../validation/README.md)
+- [Frontend Protocol Testing Hub](../testing/README.md)
+
+## Code Scope
+
+- `frontend/src/main/ipc.cjs`
+- `frontend/src/main/ipc_query_events.cjs`
+- `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
+- `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
+- `frontend/src/renderer/features/chat/utils/chatStreamConversationGate.ts`
+- `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+- `frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts`
+- `tests/frontend/IpcMainBridge.query.test.cjs`
+- `tests/frontend/IpcMainBridge.lifecycle.test.cjs`
+- `tests/frontend/AppConfigProvider.storageAndIpc.test.tsx`
+- `tests/frontend/ChatStreamConversationGate.test.ts`
+- `tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx`
+- `tests/frontend/TranscriptWriter.session.test.ts`
