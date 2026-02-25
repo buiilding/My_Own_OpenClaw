@@ -76,3 +76,4 @@ This matrix maps runtime responsibilities to exact modules in `backend/src`.
 - [Backend Inventory Docs Hub](README.md)
 - [Backend Full Functionality Inventory Reference](backend_full_functionality_inventory_reference.md)
 - [Backend Module File Index Reference](backend_module_file_index_reference.md)
+- [Backend Cross-Layer Contract Touchpoints Reference](backend_cross_layer_contract_touchpoints_reference.md)

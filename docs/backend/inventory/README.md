@@ -13,6 +13,7 @@ title: "Backend Inventory Docs Hub"
 - [Backend Full Functionality Inventory Reference](backend_full_functionality_inventory_reference.md)
 - [Backend Runtime Flow Matrix Reference](backend_runtime_flow_matrix_reference.md)
 - [Backend Module File Index Reference](backend_module_file_index_reference.md)
+- [Backend Cross-Layer Contract Touchpoints Reference](backend_cross_layer_contract_touchpoints_reference.md)
 
 ## Related Pages
 
