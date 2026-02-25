@@ -1,4 +1,4 @@
-"""Browser Use compatibility adapter for WindieOS browser tool."""
+"""Browser runtime adapter for WindieOS browser tool."""
 
 from __future__ import annotations
 
@@ -73,7 +73,7 @@ SNAPSHOT_COMPATIBILITY_FIELDS = (
 )
 EXTRACT_COMPATIBILITY_FIELDS = ("mode", "selector", "frame")
 SCREENSHOT_COMPATIBILITY_FIELDS = ("full_page", "ref", "element", "type", "quality")
-_ADAPTER_CACHE_BY_CONTROLLER: "WeakKeyDictionary[Any, BrowserUseCompatibilityAdapter]" = (
+_ADAPTER_CACHE_BY_CONTROLLER: "WeakKeyDictionary[Any, BrowserRuntimeAdapter]" = (
     WeakKeyDictionary()
 )
 
@@ -81,8 +81,8 @@ _ADAPTER_CACHE_BY_CONTROLLER: "WeakKeyDictionary[Any, BrowserUseCompatibilityAda
 BrowserControllerLike = ControllerRuntimeLike
 
 
-class BrowserUseCompatibilityAdapter:
-    """Compatibility adapter for Phase 2 routing.
+class BrowserRuntimeAdapter:
+    """Browser runtime adapter.
 
     This adapter intentionally keeps existing payload contracts stable while
     moving browser action execution behind an adapter seam.
@@ -891,7 +891,7 @@ class BrowserUseCompatibilityAdapter:
         if isinstance(raw_tab_id, str) and raw_tab_id.strip():
             tab_id = raw_tab_id.strip()
             return tab_id[-4:] if len(tab_id) > 4 else tab_id
-        target_id = BrowserUseCompatibilityAdapter._extract_target_id(args)
+        target_id = BrowserRuntimeAdapter._extract_target_id(args)
         if target_id:
             return target_id[-4:] if len(target_id) > 4 else target_id
         return None
@@ -996,14 +996,14 @@ class BrowserUseCompatibilityAdapter:
         )
 
 
-def get_browser_use_adapter(
+def get_browser_adapter(
     controller: BrowserControllerLike,
     runtime_provider: BrowserRuntimeProvider | None = None,
     runtime_provider_factory: Callable[[BrowserControllerLike], BrowserRuntimeProvider] = get_browser_runtime_provider,
-) -> BrowserUseCompatibilityAdapter:
+) -> BrowserRuntimeAdapter:
     """Factory seam for adapter injection in tests and runtime caching."""
     if runtime_provider is not None:
-        return BrowserUseCompatibilityAdapter(
+        return BrowserRuntimeAdapter(
             controller,
             runtime_provider=runtime_provider,
         )
@@ -1015,12 +1015,12 @@ def get_browser_use_adapter(
     except TypeError:
         # Some test doubles (for example SimpleNamespace) are not weak-referenceable.
         # Skip caching for those objects.
-        return BrowserUseCompatibilityAdapter(
+        return BrowserRuntimeAdapter(
             controller,
             runtime_provider=runtime_provider_factory(controller),
         )
 
-    adapter = BrowserUseCompatibilityAdapter(
+    adapter = BrowserRuntimeAdapter(
         controller,
         runtime_provider=runtime_provider_factory(controller),
     )
@@ -1029,3 +1029,19 @@ def get_browser_use_adapter(
     except TypeError:
         return adapter
     return adapter
+
+
+# Backward-compatible aliases while tests and call sites migrate.
+BrowserUseCompatibilityAdapter = BrowserRuntimeAdapter
+
+
+def get_browser_use_adapter(
+    controller: BrowserControllerLike,
+    runtime_provider: BrowserRuntimeProvider | None = None,
+    runtime_provider_factory: Callable[[BrowserControllerLike], BrowserRuntimeProvider] = get_browser_runtime_provider,
+) -> BrowserRuntimeAdapter:
+    return get_browser_adapter(
+        controller,
+        runtime_provider=runtime_provider,
+        runtime_provider_factory=runtime_provider_factory,
+    )
