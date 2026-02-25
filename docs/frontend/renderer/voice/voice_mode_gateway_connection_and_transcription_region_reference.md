@@ -126,6 +126,8 @@ Effect:
 ## Related Pages
 
 - [Frontend Renderer Voice Docs Hub](README.md)
+- [Renderer Voice Components Docs Hub](components/README.md)
+- [Voice Status Error, Recording, and Connection Indicator Contract Reference](components/voice_status_error_recording_and_connection_indicator_contract_reference.md)
 - [Frontend Renderer Voice Utils Docs Hub](utils/README.md)
 - [Wakeword Detection IPC Capture and Cooldown Reference](wakeword_detection_ipc_capture_and_cooldown_reference.md)
 - [Audio Encoding, Chunk Normalization, and Capture Cleanup Reference](utils/audio_encoding_chunk_normalization_and_capture_cleanup_reference.md)

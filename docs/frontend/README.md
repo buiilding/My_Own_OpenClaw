@@ -69,6 +69,8 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Voice Capture and Wakeword Controller Reference](renderer/voice_capture_and_wakeword_controller_reference.md)
 - [Voice Mode Gateway Connection and Transcription Region Reference](renderer/voice/voice_mode_gateway_connection_and_transcription_region_reference.md)
 - [Wakeword Detection IPC Capture and Cooldown Reference](renderer/voice/wakeword_detection_ipc_capture_and_cooldown_reference.md)
+- [Renderer Voice Components Docs Hub](renderer/voice/components/README.md)
+- [Voice Status Error, Recording, and Connection Indicator Contract Reference](renderer/voice/components/voice_status_error_recording_and_connection_indicator_contract_reference.md)
 - [Audio Encoding, Chunk Normalization, and Capture Cleanup Reference](renderer/voice/utils/audio_encoding_chunk_normalization_and_capture_cleanup_reference.md)
 - [Transcription Region State Machine and Input Edit Reconciliation Reference](renderer/voice/utils/transcription_region_state_machine_and_input_edit_reconciliation_reference.md)
 - [Entrypoint View Routing and Provider Stack Reference](renderer/providers/entrypoint_view_routing_and_provider_stack_reference.md)
