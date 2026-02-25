@@ -199,6 +199,8 @@ Covers:
 - [TTS and Wakeword Audio Runtime Reference](services/tts_and_wakeword_audio_runtime_reference.md)
 - [OCR and Vision Coordinate Runtime Overview](services/ocr_and_vision_coordinate_runtime_reference.md)
 - [OCR Service and Screenshot State-Machine Reference](services/screen_grounding/ocr_service_and_screenshot_state_machine_reference.md)
+- [Screen-Grounding OCR Helpers Docs Hub](services/screen_grounding/ocr/README.md)
+- [CUDA Error Detection, Screenshot Decode, and OCR Field Normalization Helper Contract Reference](services/screen_grounding/ocr/cuda_error_detection_screenshot_decode_and_ocr_field_normalization_helper_contract_reference.md)
 - [Vision Provider Runtime and Coordinate-Scaling Reference](services/screen_grounding/vision_provider_runtime_and_coordinate_scaling_reference.md)
 - [Provider Loader Device-Map, Direct, CPU Fallback, and Dtype Contract Reference](services/screen_grounding/vision/provider_loader_device_map_direct_cpu_fallback_and_dtype_contract_reference.md)
 - [InternVL Chat/Generate Fallback and Runtime Flash-Attention Disable Reference](services/screen_grounding/vision/internvl_chat_generate_fallback_and_runtime_flash_attention_disable_reference.md)
@@ -209,6 +211,8 @@ Covers:
 - [Simulation Backend and Mock LLM Runtime Reference](simulation/simulation_backend_and_mock_llm_runtime_reference.md)
 - [Simulation Entrypoints Docs Hub](simulation/entrypoints/README.md)
 - [Package Runner and Module Alias Uvicorn Bootstrap Contract Reference](simulation/entrypoints/package_runner_and_module_alias_uvicorn_bootstrap_contract_reference.md)
+- [Simulation Contracts Docs Hub](simulation/contracts/README.md)
+- [Coordinate Resolver Re-Export and Production Parity Contract Reference](simulation/contracts/coordinate_resolver_reexport_and_production_parity_contract_reference.md)
 
 ## Backend Layout (Code)
 

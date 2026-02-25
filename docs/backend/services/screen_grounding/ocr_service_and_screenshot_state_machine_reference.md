@@ -13,6 +13,7 @@ title: "OCR Service and Screenshot State-Machine Reference"
 - `backend/src/core/container/initializer.py`
 - `backend/src/tools/tool_policy.py`
 - `backend/src/services/ocr/ocr_service.py`
+- `backend/src/services/ocr/helpers.py`
 - `backend/src/agent/tools/preparation/screenshot/state.py`
 - `backend/src/agent/tools/preparation/screenshot/manager.py`
 - `backend/src/agent/tools/preparation/ocr/coordinator.py`
@@ -182,5 +183,7 @@ If OCR waits block too long:
 ## Related Pages
 
 - [Backend Services Screen-Grounding Docs Hub](README.md)
+- [Screen-Grounding OCR Helpers Docs Hub](ocr/README.md)
+- [CUDA Error Detection, Screenshot Decode, and OCR Field Normalization Helper Contract Reference](ocr/cuda_error_detection_screenshot_decode_and_ocr_field_normalization_helper_contract_reference.md)
 - [Vision Provider Runtime and Coordinate-Scaling Reference](vision_provider_runtime_and_coordinate_scaling_reference.md)
 - [Tool Preparation and Coordinate Resolution Reference](../../tools/tool_preparation_and_coordinate_resolution_reference.md)

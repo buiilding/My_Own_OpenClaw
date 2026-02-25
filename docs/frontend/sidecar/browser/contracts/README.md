@@ -12,6 +12,8 @@ title: "Frontend Sidecar Browser Contracts Docs Hub"
 
 - [Schema Registry and Action Validation Boundary Reference](schema_registry_and_action_validation_boundary_reference.md)
 - [OpenClaw Compatibility Action and Field Surface Reference](openclaw_compat_action_and_field_surface_reference.md)
+- [Browser Role-Snapshot Docs Hub](role_snapshot/README.md)
+- [ARIA Snapshot Ref Generation and Compaction Contract Reference](role_snapshot/aria_snapshot_ref_generation_and_compaction_contract_reference.md)
 
 ## Related Pages
 
@@ -23,6 +25,7 @@ title: "Frontend Sidecar Browser Contracts Docs Hub"
 
 - `frontend/src/main/python/tools/browser/schemas.py`
 - `frontend/src/main/python/tools/browser/openclaw_compat_schema.py`
+- `frontend/src/main/python/tools/browser/role_snapshot.py`
 - `frontend/src/main/python/tools/browser/browser_tool.py`
 - `tests/sidecar/tools/test_browser_schemas.py`
 - `tests/sidecar/tools/test_browser_use_tool_parity.py`

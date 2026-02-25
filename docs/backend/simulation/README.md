@@ -13,6 +13,8 @@ title: "Backend Simulation Docs Hub"
 - [Simulation Backend and Mock LLM Runtime Reference](simulation_backend_and_mock_llm_runtime_reference.md)
 - [Backend Simulation Entrypoints Docs Hub](entrypoints/README.md)
 - [Package Runner and Module Alias Uvicorn Bootstrap Contract Reference](entrypoints/package_runner_and_module_alias_uvicorn_bootstrap_contract_reference.md)
+- [Backend Simulation Contracts Docs Hub](contracts/README.md)
+- [Coordinate Resolver Re-Export and Production Parity Contract Reference](contracts/coordinate_resolver_reexport_and_production_parity_contract_reference.md)
 
 ## Code Scope
 
