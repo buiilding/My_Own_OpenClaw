@@ -2,7 +2,7 @@ import copy
 import logging
 from typing import Any, AsyncGenerator, Dict, List, Optional
 
-import litellm
+import litellm  # compatibility import for existing monkeypatch paths in tests
 
 from backend.src.core.events.streaming_events import ChunkEvent, StreamingEvent, ThinkingEvent
 from backend.src.core.infrastructure.exceptions import LLMAPIError
@@ -43,15 +43,14 @@ class KimiCodingProvider(OnlineLLMProvider):
         self,
         model: str,
         messages: List[LLMMessage],
-        **completion_kwargs: Any,
+        **request_kwargs: Any,
     ) -> AsyncGenerator[StreamingEvent, None]:
         """Internal streaming implementation. Exceptions bubble up to base class."""
-        params = self._build_stream_request_kwargs(
+        stream = await self._open_stream(
             model=model,
             messages=messages,
-            completion_kwargs=completion_kwargs,
+            completion_kwargs=request_kwargs,
         )
-        stream = await litellm.acompletion(**params)
         full_text_parts: List[str] = []
         tool_call_deltas: Dict[int, Dict[str, Any]] = {}
         finish_reason: Optional[str] = None

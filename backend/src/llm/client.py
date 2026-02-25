@@ -36,10 +36,7 @@ class LLMClient(ABC):
         self,
         model: str,
         messages: List[LLMMessage],
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Any] = None,
-        parallel_tool_calls: Optional[bool] = None,
-        prompt_cache_key: Optional[str] = None,
+        **request_kwargs: Any,
     ) -> str:
         """
         Gets a completion from the LLM based on a list of messages.
@@ -49,10 +46,7 @@ class LLMClient(ABC):
         self,
         model: str,
         messages: List[LLMMessage],
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Any] = None,
-        parallel_tool_calls: Optional[bool] = None,
-        prompt_cache_key: Optional[str] = None,
+        **request_kwargs: Any,
     ) -> NormalizedLLMResponse:
         """
         Gets a normalized completion payload.
@@ -62,10 +56,7 @@ class LLMClient(ABC):
         content = await self.get_completion(
             model=model,
             messages=messages,
-            tools=tools,
-            tool_choice=tool_choice,
-            parallel_tool_calls=parallel_tool_calls,
-            prompt_cache_key=prompt_cache_key,
+            **request_kwargs,
         )
         return {"content": content}
 
@@ -74,10 +65,7 @@ class LLMClient(ABC):
         self,
         model: str,
         messages: List[LLMMessage],
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Any] = None,
-        parallel_tool_calls: Optional[bool] = None,
-        prompt_cache_key: Optional[str] = None,
+        **request_kwargs: Any,
     ) -> AsyncGenerator[StreamingEvent, None]:
         """
         Gets a streaming completion from the LLM, yielding StreamingEvent objects.
@@ -328,14 +316,23 @@ class LiteLLMClient(LLMClient):
             response_payload = provider.get_last_stream_response_payload()
         self._last_stream_response_payload = response_payload
 
+    def _build_request_kwargs_from_options(
+        self,
+        request_kwargs: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Build provider transport kwargs from caller-supplied request options."""
+        return self._build_request_kwargs(
+            tools=request_kwargs.get("tools"),
+            tool_choice=request_kwargs.get("tool_choice"),
+            parallel_tool_calls=request_kwargs.get("parallel_tool_calls"),
+            prompt_cache_key=request_kwargs.get("prompt_cache_key"),
+        )
+
     async def get_completion_response(
         self,
         model: str,
         messages: List[LLMMessage],
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Any] = None,
-        parallel_tool_calls: Optional[bool] = None,
-        prompt_cache_key: Optional[str] = None,
+        **request_kwargs: Any,
     ) -> NormalizedLLMResponse:
         """
         Delegates completion to provider and validates canonical response payload.
@@ -344,16 +341,13 @@ class LiteLLMClient(LLMClient):
         self._reset_stream_tracking_state(provider)
 
         try:
-            request_kwargs = self._build_request_kwargs(
-                tools=tools,
-                tool_choice=tool_choice,
-                parallel_tool_calls=parallel_tool_calls,
-                prompt_cache_key=prompt_cache_key,
+            transport_kwargs = self._build_request_kwargs_from_options(
+                request_kwargs,
             )
             response = await provider.get_completion(
                 model,
                 messages,
-                **request_kwargs,
+                **transport_kwargs,
             )
         except LLMAPIError:
             raise
@@ -372,10 +366,7 @@ class LiteLLMClient(LLMClient):
         self,
         model: str,
         messages: List[LLMMessage],
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Any] = None,
-        parallel_tool_calls: Optional[bool] = None,
-        prompt_cache_key: Optional[str] = None,
+        **request_kwargs: Any,
     ) -> str:
         """
         Delegates getting a completion to the appropriate provider.
@@ -388,10 +379,7 @@ class LiteLLMClient(LLMClient):
         response = await self.get_completion_response(
             model=model,
             messages=messages,
-            tools=tools,
-            tool_choice=tool_choice,
-            parallel_tool_calls=parallel_tool_calls,
-            prompt_cache_key=prompt_cache_key,
+            **request_kwargs,
         )
         return response["content"]
 
@@ -399,10 +387,7 @@ class LiteLLMClient(LLMClient):
         self,
         model: str,
         messages: List[LLMMessage],
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Any] = None,
-        parallel_tool_calls: Optional[bool] = None,
-        prompt_cache_key: Optional[str] = None,
+        **request_kwargs: Any,
     ) -> AsyncGenerator[StreamingEvent, None]:
         """
         Delegates getting a streaming completion to the appropriate provider.
@@ -419,17 +404,14 @@ class LiteLLMClient(LLMClient):
 
         self._reset_stream_tracking_state(provider)
         try:
-            request_kwargs = self._build_request_kwargs(
-                tools=tools,
-                tool_choice=tool_choice,
-                parallel_tool_calls=parallel_tool_calls,
-                prompt_cache_key=prompt_cache_key,
+            transport_kwargs = self._build_request_kwargs_from_options(
+                request_kwargs,
             )
             # Provider's get_completion_stream handles its own exceptions and yields ErrorEvent
             async for event in provider.get_completion_stream(
                 model,
                 messages,
-                **request_kwargs,
+                **transport_kwargs,
             ):
                 yield event
         except Exception as exc:

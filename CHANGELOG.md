@@ -7,6 +7,9 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(refactor-plan): record LLM provider/client request-kwargs refactor slice and backend `jscpd` finalization to zero clones in `docs/planning/windieos_refactor_plan_2026-02-23.md`
+- refactor(backend-llm-client): normalize completion/stream option handling to `**request_kwargs` with shared transport-option extraction helper, reducing duplicate signature scaffolding while preserving request semantics
+- refactor(backend-llm-provider): normalize online/base provider completion/stream request option handling to `**request_kwargs`, add shared online stream-open helper reused by `KimiCodingProvider`, and remove remaining backend jscpd duplication hotspots
 - docs(frontend-protocol-validation): add `docs/frontend/inventory/protocols/validation` subhub with IPC channel/payload validation-boundary reference and wire links from protocol/lifecycle/error hubs
 - docs(backend-protocol-validation): add `docs/backend/inventory/protocols/validation` subhub with websocket envelope/route/registry validation-boundary reference and wire links from protocol/error hubs
 - docs(frontend-protocol-errors): add `docs/frontend/inventory/protocols/errors` subhub with IPC/ws-bridge/local-backend error-recovery contract reference and wire links from protocol/lifecycle hubs

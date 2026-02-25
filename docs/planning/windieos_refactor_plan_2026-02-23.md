@@ -36,6 +36,15 @@ read_when:
   - expanded `tests/backend/test_browser_remote_tool.py` for shared compatibility fields and screenshot defaults.
 - Audit delta:
   - backend `jscpd` clones reduced from `14` to `11` after browser-schema dedupe.
+- Refactor slice: reduce remaining LLM provider/client signature duplication.
+  - normalized provider/client request option handling to `**request_kwargs` for shared completion/stream plumbing.
+  - added `OnlineLLMProvider` request-option extraction and shared stream-open helper reused by `KimiCodingProvider`.
+  - updated `LLMProvider` helper signatures (`_build_standard_completion_params`, `_get_completion_with_standard_params`, `get_completion_stream`, `_stream_internal`) to use request option maps while preserving external call semantics.
+- Verification:
+  - `./scripts/python-in-env backend python -m pytest tests/backend/test_llm_provider_base.py tests/backend/test_llm_client.py tests/backend/test_kimi_coding_provider.py -q`
+  - `./scripts/python-in-env backend python -m pytest tests/backend --durations=20 -q`
+- Audit delta:
+  - backend `jscpd` reduced from `11` clones to `0` clones (`0` duplicated lines/tokens) for `backend/src` + `tests/backend`.
 
 ## Baseline Metrics (Snapshot: 2026-02-23)
 
