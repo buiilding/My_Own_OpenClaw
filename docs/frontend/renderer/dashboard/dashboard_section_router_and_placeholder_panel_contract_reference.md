@@ -30,6 +30,7 @@ The main dashboard surface is conversation-only:
 - sidebar `New chat` dispatches a renderer event (`windie:new-chat`) consumed by `ChatInterface` to reset conversation state, so the main-header duplicate new-chat button is not required.
 - expanded sidebar header mirrors clone layout (logo dot + collapse control only, no extra product text block).
 - collapsed sidebar renders clone-like inline expand control inside the rail (no separate floating open button), and passes `sidebarOpen` into `ChatInterface` so the chat header can render the clone logo dot when collapsed.
+- collapsed sidebar logo treatment mirrors clone icon-only mark (no white badge background), distinct from the expanded sidebar logo dot.
 
 ## Modal Routing Contract
 

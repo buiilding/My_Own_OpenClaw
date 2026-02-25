@@ -283,7 +283,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
       ) : (
         <aside className="cg-sidebar collapsed">
           <div className="cg-sidebar-header">
-            <div className="cg-brand-dot">
+            <div className="cg-brand-mark" aria-hidden="true">
               <ChatGptLogo size={14} />
             </div>
             <button

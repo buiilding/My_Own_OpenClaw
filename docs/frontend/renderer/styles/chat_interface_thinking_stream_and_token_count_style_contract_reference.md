@@ -83,6 +83,7 @@ Input row:
   - top text row (`.message-input-top-row` + multiline `.message-input`)
   - bottom action row (`.message-input-bottom-row`) with left utility controls and right send/stop controls
 - composer utility controls now include clone-style dropdown menus (`.message-dropdown-menu`) for the plus action list and thinking-mode selection
+- non-empty composer width is constrained to clone-like `max-w-3xl` behavior, while centered empty-state composer uses the wider clone-style `800px` treatment with minimum pill height parity.
 - send control uses `.message-send-btn`; while sending it switches to `.message-stop-btn`
 - empty conversation state renders centered composer variant via `.message-input-centered`
 - non-empty state renders bottom composer with footer disclaimer (`.message-input-disclaimer`)
