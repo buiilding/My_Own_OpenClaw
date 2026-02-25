@@ -62,6 +62,7 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 - [Backend Tools Preparation Docs Hub](../backend/tools/preparation/README.md)
 - [Backend Tools Waiting Docs Hub](../backend/tools/waiting/README.md)
 - [Backend Tools Processing Docs Hub](../backend/tools/processing/README.md)
+- [Backend Tools Contracts Docs Hub](../backend/tools/contracts/README.md)
 - [Backend Tools Security Docs Hub](../backend/tools/security/README.md)
 - [Backend Config Docs Hub](../backend/config/README.md)
 - [Backend LLM Docs Hub](../backend/llm/README.md)

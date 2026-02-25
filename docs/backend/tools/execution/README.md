@@ -18,6 +18,7 @@ title: "Backend Tools Execution Docs Hub"
 ## Related Pages
 
 - [Backend Tools Docs Hub](../README.md)
+- [Backend Tools Contracts Docs Hub](../contracts/README.md)
 - [Tool Preparation and Coordinate Resolution Reference](../tool_preparation_and_coordinate_resolution_reference.md)
 - [Tool Result Ingress and Storage Reference](../tool_result_ingress_and_storage_reference.md)
 - [Backend Tools Waiting Docs Hub](../waiting/README.md)
@@ -30,6 +31,8 @@ title: "Backend Tools Execution Docs Hub"
 - `backend/src/tools/orchestrator.py`
 - `backend/src/tools/single_tool_execution.py`
 - `backend/src/tools/bundle_execution.py`
+- `backend/src/tools/result_types.py`
+- `backend/src/tools/result_helpers.py`
 - `tests/backend/test_tool_sender.py`
 - `tests/backend/test_tool_result_orchestrator.py`
 - `tests/backend/test_bundle_detection.py`
