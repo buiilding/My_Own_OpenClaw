@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(browser-rollout): remove legacy `act` alias from backend/sidecar browser-tool boundary (always rejected with migration guidance), regardless of `WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS`; add regression coverage for removed-alias logging/metadata
 - refactor(browser-rollout): centralize legacy-action gate resolution (`strict` vs `allow` precedence) in dedicated helper functions for backend and sidecar browser tool paths to keep block/warn behavior in sync
 - test(sidecar-browser-runtime): clean runtime-factory tests by removing duplicate `find_spec` patching and add direct assertion that `get_browser_runtime_provider` calls `create_browser_use_native_runtime_provider(controller)` exactly once
 - refactor(sidecar-browser-runtime): simplify `get_browser_runtime_provider` by removing self-import indirection and invoking `create_browser_use_native_runtime_provider` directly; keep runtime-factory failure coverage aligned with the direct factory seam

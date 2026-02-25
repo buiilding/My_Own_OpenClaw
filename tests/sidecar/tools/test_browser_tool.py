@@ -530,7 +530,7 @@ class TestCompatibilityActions:
             assert result.data["preferred_action"] == "navigate"
 
     @pytest.mark.asyncio
-    async def test_act_hover(self):
+    async def test_act_alias_removed(self, caplog):
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get, mock.patch.dict(
@@ -538,15 +538,23 @@ class TestCompatibilityActions:
             {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1"},
             clear=False,
         ):
-            mock_controller = mock.AsyncMock()
-            mock_controller.is_connected = True
-            mock_get.return_value = mock_controller
-
+            caplog.set_level("WARNING", logger="tools.browser.browser_tool")
             result = await execute_browser(
                 {"action": "act", "request": {"kind": "hover", "ref": "e1"}}
             )
             assert result.success is False
-            assert "Unsupported act kind" in (result.error or "")
+            assert "Legacy browser action 'act' has been removed." in (result.error or "")
+            assert "Legacy browser action 'act' blocked by legacy_act_removed" in caplog.text
+            record = next(
+                rec
+                for rec in caplog.records
+                if "Legacy browser action 'act' blocked by legacy_act_removed" in rec.getMessage()
+            )
+            assert getattr(record, "legacy_action", None) == "act"
+            assert getattr(record, "preferred_action", None) is None
+            assert getattr(record, "legacy_action_blocked", None) is True
+            assert getattr(record, "legacy_action_gate", None) == "legacy_act_removed"
+            mock_get.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_console_action(self):
@@ -1235,21 +1243,16 @@ class TestPostActionSnapshots:
             mock_controller.get_page_snapshot.assert_not_awaited()
 
     @pytest.mark.asyncio
-    async def test_act_close_does_not_add_post_action_snapshot(self):
-        """act(close) should not request an automatic snapshot."""
+    async def test_act_alias_removed_even_when_legacy_enabled(self):
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get, mock.patch.dict(
+        ) as mock_get, mock.patch(
+            "tools.browser.browser_tool.get_browser_use_adapter"
+        ) as mock_get_adapter, mock.patch.dict(
             "os.environ",
             {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1"},
             clear=False,
         ):
-            mock_controller = mock.AsyncMock()
-            mock_controller.is_connected = True
-            mock_controller.close = mock.AsyncMock()
-            mock_controller.get_page_snapshot = mock.AsyncMock()
-            mock_get.return_value = mock_controller
-
             result = await execute_browser(
                 {
                     "action": "act",
@@ -1257,10 +1260,10 @@ class TestPostActionSnapshots:
                 }
             )
 
-            assert result.success is True
-            assert result.data["action"] == "close"
-            assert "post_action_snapshot" not in result.data
-            mock_controller.get_page_snapshot.assert_not_awaited()
+            assert result.success is False
+            assert "Legacy browser action 'act' has been removed." in (result.error or "")
+            mock_get.assert_not_called()
+            mock_get_adapter.assert_not_called()
 
 
 class TestTypeAction:

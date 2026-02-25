@@ -25,11 +25,18 @@ logger = logging.getLogger(__name__)
 PHASE2_ADAPTER_ROUTED_ACTIONS = BROWSER_ALL_ACTIONS
 ENV_CANONICAL_ONLY_ACTIONS = "WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY"
 ENV_ALLOW_LEGACY_ACTIONS = "WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS"
+REMOVED_LEGACY_ACTIONS = frozenset({"act"})
+REMOVED_LEGACY_ACT_ERROR = (
+    "Legacy browser action 'act' has been removed. "
+    "Use canonical browser actions directly "
+    "(for example: click, input, send_keys, wait, evaluate, navigate, extract, "
+    "scroll, screenshot, switch, close)."
+)
 
 
 def _log_legacy_action_warning(
     action: str,
-    preferred: str,
+    preferred: str | None,
     *,
     blocked: bool,
     gate: str | None = None,
@@ -41,18 +48,26 @@ def _log_legacy_action_warning(
         "legacy_action_gate": gate,
     }
     if blocked and gate:
-        logger.warning(
-            "Legacy browser action '%s' blocked by %s; prefer canonical action '%s'",
-            action,
-            gate,
-            preferred,
-            extra=extra,
-        )
+        if preferred:
+            logger.warning(
+                "Legacy browser action '%s' blocked by %s; prefer canonical action '%s'",
+                action,
+                gate,
+                preferred,
+                extra=extra,
+            )
+        else:
+            logger.warning(
+                "Legacy browser action '%s' blocked by %s",
+                action,
+                gate,
+                extra=extra,
+            )
         return
     logger.warning(
         "Legacy browser action '%s' invoked; prefer canonical action '%s'",
         action,
-        preferred,
+        preferred or "canonical action",
         extra=extra,
     )
 
@@ -165,6 +180,15 @@ async def _run_phase2_adapter_action(args: Dict[str, Any]) -> ToolResult:
 
     if action not in PHASE2_ADAPTER_ROUTED_ACTIONS:
         return ToolResult.error_result(f"Unhandled action: {action}")
+
+    if action in REMOVED_LEGACY_ACTIONS:
+        _log_legacy_action_warning(
+            action,
+            preferred=None,
+            blocked=True,
+            gate="legacy_act_removed",
+        )
+        return ToolResult.error_result(REMOVED_LEGACY_ACT_ERROR)
 
     if action in LEGACY_BROWSER_ACTION_ALIASES:
         gate = _legacy_action_block_gate()

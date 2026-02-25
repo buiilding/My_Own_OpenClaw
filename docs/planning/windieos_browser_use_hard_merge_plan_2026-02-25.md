@@ -42,7 +42,7 @@ title: "WindieOS Browser Use Hard-Merge Plan (2026-02-25)"
   - `type -> input`
   - `press -> send_keys`
   - `switch_tab -> switch`
-  - `act -> direct action invocation`
+  - `act -> removed at tool boundary (historically direct action invocation)`
 
 ## Execution Phases
 
@@ -67,7 +67,7 @@ title: "WindieOS Browser Use Hard-Merge Plan (2026-02-25)"
    - Status: in progress (2026-02-25)
      - canonical actions now dispatch directly through runtime action bridge
      - legacy alias wrappers retained as thin compatibility shim
-     - legacy `act` envelope now routes via generic execute path with minimal pre-processing only
+     - legacy `act` envelope remains only inside adapter internals (not exposed at browser tool boundary)
      - obsolete direct adapter alias wrappers removed; legacy aliases now exclusively flow through `execute(...)`
      - runtime-provider lookup now calls native factory directly (self-import indirection removed)
 
@@ -81,6 +81,7 @@ title: "WindieOS Browser Use Hard-Merge Plan (2026-02-25)"
      - blocked legacy alias attempts now emit warning logs in sidecar + backend paths for rollout observability
      - warning logs now expose structured alias fields (`legacy_action`, `preferred_action`, `legacy_action_blocked`, `legacy_action_gate`)
      - strict/allow gate precedence now resolves through shared helper logic in both backend and sidecar paths
+     - legacy alias `act` is now always rejected with canonical-action migration guidance (independent of rollout flags)
 
 ## Safety Gates
 
