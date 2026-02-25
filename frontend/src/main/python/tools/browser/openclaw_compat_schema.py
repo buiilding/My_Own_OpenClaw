@@ -106,13 +106,6 @@ class BrowserOpenClawCompatArgs(BaseModel):
     prompt_text: Optional[str] = Field(
         None, description="Prompt text for dialog.accept() (snake_case)"
     )
-    request: Optional[Dict[str, Any]] = Field(
-        None,
-        description=(
-            "Legacy compatibility field for historical act envelope payloads "
-            "(act alias removed at browser tool boundary)."
-        ),
-    )
     text: Optional[str] = Field(
         None, description="Text payload for done/input/find_text/select_dropdown actions"
     )
