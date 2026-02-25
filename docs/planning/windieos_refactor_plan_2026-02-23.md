@@ -3760,3 +3760,17 @@ read_when:
       - backend: `1012 passed`
       - sidecar: `500 passed`, `4 skipped` (`3` known swig deprecation warnings)
       - frontend: `98 suites`, `638 tests` passed
+
+## Phase 166 Outcome (2026-02-25)
+
+- Refactor hardening slice: add direct regression coverage for extracted response-overlay handler.
+  - added tests:
+    - `tests/frontend/OverlayResponseboxHandler.test.cjs`
+  - coverage includes:
+    - `visible=false` hide/no-hide paths
+    - fullscreen display-selection behavior (matching display, chat unavailable fallback, missing `getDisplayMatching` fallback)
+    - width/height clamp behavior in non-fullscreen mode
+    - unavailable-window and fullscreen/resize failure message paths
+- Validation:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/OverlayResponseboxHandler.test.cjs tests/frontend/OverlayChatboxHandler.test.cjs tests/frontend/IpcMainBridge.query.test.cjs tests/frontend/IpcMainBridge.lifecycle.test.cjs` (pass)
