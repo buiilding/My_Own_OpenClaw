@@ -77,7 +77,6 @@ class TestRemoteBrowserTool:
 
     @pytest.mark.asyncio
     async def test_execute_remote_rejects_legacy_actions_when_legacy_disabled(self, monkeypatch):
-        monkeypatch.setenv("WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS", "0")
         tool = RemoteBrowserTool()
 
         mock_ctx = mock.Mock()
@@ -87,7 +86,7 @@ class TestRemoteBrowserTool:
         args = BrowserControlArgs(action="open", url="https://example.com")
         with pytest.raises(
             ValueError,
-            match="Legacy browser actions are disabled by WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=0",
+            match="Legacy browser actions are disabled by WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1",
         ):
             await tool.execute_remote(args, mock_ctx)
 
@@ -124,18 +123,37 @@ class TestRemoteBrowserTool:
 
     @pytest.mark.asyncio
     async def test_execute_remote_logs_warning_for_allowed_legacy_action(self, caplog):
+        with mock.patch.dict(
+            "os.environ",
+            {"WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS": "1"},
+            clear=False,
+        ):
+            tool = RemoteBrowserTool()
+            caplog.set_level("WARNING", logger="backend.src.tools.remote_tools.browser")
+
+            mock_ctx = mock.Mock()
+            mock_ctx.session = mock.Mock()
+            mock_ctx.session.metadata = {"request_id": "legacy-log"}
+
+            args = BrowserControlArgs(action="open", url="https://example.com")
+            result = await tool.execute_remote(args, mock_ctx)
+
+            assert result.is_remote is True
+            assert "Legacy browser action 'open' invoked; prefer 'navigate'" in caplog.text
+
+    @pytest.mark.asyncio
+    async def test_execute_remote_legacy_allow_flag_enables_aliases(self, monkeypatch):
+        monkeypatch.setenv("WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS", "1")
         tool = RemoteBrowserTool()
-        caplog.set_level("WARNING", logger="backend.src.tools.remote_tools.browser")
 
         mock_ctx = mock.Mock()
         mock_ctx.session = mock.Mock()
-        mock_ctx.session.metadata = {"request_id": "legacy-log"}
+        mock_ctx.session.metadata = {"request_id": "legacy-enabled"}
 
         args = BrowserControlArgs(action="open", url="https://example.com")
         result = await tool.execute_remote(args, mock_ctx)
-
         assert result.is_remote is True
-        assert "Legacy browser action 'open' invoked; prefer 'navigate'" in caplog.text
+        assert result.args["action"] == "open"
 
 
 class TestBrowserToolRegistry:

@@ -35,7 +35,7 @@ def _canonical_only_actions_enabled() -> bool:
 def _legacy_actions_allowed() -> bool:
     raw = os.getenv(ENV_ALLOW_LEGACY_ACTIONS, "").strip().lower()
     if raw == "":
-        return True
+        return False
     return raw not in {"0", "false", "no", "off"}
 
 
@@ -143,7 +143,7 @@ async def _run_phase2_adapter_action(args: Dict[str, Any]) -> ToolResult:
         if _canonical_only_actions_enabled():
             gate = f"{ENV_CANONICAL_ONLY_ACTIONS}=1"
         else:
-            gate = f"{ENV_ALLOW_LEGACY_ACTIONS}=0"
+            gate = f"{ENV_ALLOW_LEGACY_ACTIONS}=1"
         return ToolResult.error_result(
             "Legacy browser actions are disabled by "
             f"{gate}. Use '{preferred}' instead."

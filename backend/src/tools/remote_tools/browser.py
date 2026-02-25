@@ -45,7 +45,8 @@ Compatibility validation notes:
 - extract rejects compatibility fields `mode`/`selector`/`frame`
 - screenshot rejects compatibility fields `full_page`/`ref`/`element`/`type`/`quality`
 - set `WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY=1` to reject legacy alias actions at runtime
-- set `WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=0` to disable legacy alias actions at runtime (rollout flag)"""
+- legacy aliases are disabled by default
+- set `WINDIE_BROWSER_ALLOW_LEGACY_ACTIONS=1` to temporarily re-enable legacy alias actions during migration"""
     args_model = BrowserControlArgs
     category = ToolDomain.BROWSER
     strict_canonical_actions_env = "WINDIE_BROWSER_CANONICAL_ACTIONS_ONLY"
@@ -60,7 +61,7 @@ Compatibility validation notes:
     def _legacy_actions_allowed(cls) -> bool:
         raw = os.getenv(cls.allow_legacy_actions_env, "").strip().lower()
         if raw == "":
-            return True
+            return False
         return raw not in {"0", "false", "no", "off"}
 
     async def execute_remote(self, args: BrowserControlArgs, ctx: ToolContext) -> Any:
@@ -72,7 +73,7 @@ Compatibility validation notes:
             if self._strict_canonical_actions_enabled():
                 gate = f"{self.strict_canonical_actions_env}=1"
             else:
-                gate = f"{self.allow_legacy_actions_env}=0"
+                gate = f"{self.allow_legacy_actions_env}=1"
             raise ValueError(
                 "Legacy browser actions are disabled by "
                 f"{gate}.{preferred_text}"
