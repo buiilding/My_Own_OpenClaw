@@ -53,6 +53,7 @@ title: "WindieOS Browser Use Hard-Merge Plan (2026-02-25)"
    - Keep behavior identical; annotate legacy alias usage.
    - Update remote tool docs/prompts to prefer canonical actions.
    - Add contract tests for alias-deprecation signaling.
+   - Status: completed (2026-02-25)
 
 2. Phase 2: Schema migration
    - Split public schema into canonical model + legacy compatibility layer.

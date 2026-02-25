@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(planning-browser): mark browser-use hard-merge Phase 1 completed to align plan status tracking with completed Phase 2/3/4 rollout closure
 - docs(planning-browser): mark browser-use hard-merge Phases 2/3/4 as completed after removed-alias retirement, compatibility-alias export removal, and green sidecar/browser safety-gate verification
 - test(sidecar-browser-runtime): make `tests/sidecar/tools/test_browser_tool.py` runnable without Playwright by replacing module-level `importorskip` with lazy controller-reset fallback; sidecar browser safety suites now pass in this environment
 - test(sidecar-browser-runtime): remove stale legacy-env wrappers from browser-tool removed-alias tests and rename canonical-action routing test names to reflect removed-alias-only behavior
