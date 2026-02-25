@@ -73,6 +73,24 @@ function parseRect(value) {
   return null;
 }
 
+function readPointFromValue(value) {
+  if (Array.isArray(value) && value.length >= 2) {
+    const x = toFiniteNumber(value[0]);
+    const y = toFiniteNumber(value[1]);
+    if (x !== null && y !== null) {
+      return { x, y };
+    }
+  }
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    const x = toFiniteNumber(value.x);
+    const y = toFiniteNumber(value.y);
+    if (x !== null && y !== null) {
+      return { x, y };
+    }
+  }
+  return null;
+}
+
 function normalizeToolEntry(rawEntry) {
   if (!rawEntry || typeof rawEntry !== 'object') {
     return null;
@@ -161,16 +179,13 @@ function isMouseClickAction(entry) {
   const normalizedName = typeof entry?.name === 'string'
     ? entry.name.trim().toLowerCase()
     : '';
-  if (CLICK_TOOL_NAMES.has(normalizedName)) {
-    return true;
-  }
-  if (normalizedName !== 'mouse_control') {
-    return false;
-  }
   const action = typeof entry?.args?.action === 'string'
     ? entry.args.action.trim().toLowerCase()
     : '';
-  return MOUSE_CLICK_ACTIONS.has(action);
+  if (MOUSE_CLICK_ACTIONS.has(action)) {
+    return true;
+  }
+  return CLICK_TOOL_NAMES.has(normalizedName);
 }
 
 function isScrollAction(entry) {
@@ -182,9 +197,6 @@ function isScrollAction(entry) {
   }
   if (SCROLL_TOOL_NAMES.has(normalizedName)) {
     return true;
-  }
-  if (normalizedName !== 'mouse_control') {
-    return false;
   }
   const action = typeof entry?.args?.action === 'string'
     ? entry.args.action.trim().toLowerCase()
@@ -207,8 +219,28 @@ function resolveToolTargetPoint(entry) {
       && typeof coordinateContract.normalized_coordinates === 'object'
       && !Array.isArray(coordinateContract.normalized_coordinates)
   ) ? coordinateContract.normalized_coordinates : null;
-  const pointX = toFiniteNumber(normalizedCoordinates?.x) ?? toFiniteNumber(entry?.args?.x);
-  const pointY = toFiniteNumber(normalizedCoordinates?.y) ?? toFiniteNumber(entry?.args?.y);
+  const normalizedPoint = readPointFromValue(normalizedCoordinates);
+  const coordinatesPoint = readPointFromValue(entry?.args?.coordinates);
+  const targetPointValue = readPointFromValue(entry?.args?.target);
+  const positionPoint = readPointFromValue(entry?.args?.position);
+  const pointX = (
+    toFiniteNumber(normalizedPoint?.x)
+    ?? toFiniteNumber(entry?.args?.x)
+    ?? toFiniteNumber(entry?.args?.coordinate_x)
+    ?? toFiniteNumber(entry?.args?.coordinateX)
+    ?? toFiniteNumber(coordinatesPoint?.x)
+    ?? toFiniteNumber(targetPointValue?.x)
+    ?? toFiniteNumber(positionPoint?.x)
+  );
+  const pointY = (
+    toFiniteNumber(normalizedPoint?.y)
+    ?? toFiniteNumber(entry?.args?.y)
+    ?? toFiniteNumber(entry?.args?.coordinate_y)
+    ?? toFiniteNumber(entry?.args?.coordinateY)
+    ?? toFiniteNumber(coordinatesPoint?.y)
+    ?? toFiniteNumber(targetPointValue?.y)
+    ?? toFiniteNumber(positionPoint?.y)
+  );
 
   let x = pointX;
   let y = pointY;

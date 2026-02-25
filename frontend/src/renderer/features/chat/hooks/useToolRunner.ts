@@ -67,11 +67,8 @@ function shouldDelayForToolGhostClickSync(
   toolName: string,
   parameters: Record<string, unknown>,
 ): boolean {
-  if (CLICK_TOOL_NAMES.has(toolName)) {
+  if (CLICK_TOOL_NAMES.has(toolName.trim().toLowerCase())) {
     return true;
-  }
-  if (toolName !== 'mouse_control') {
-    return false;
   }
   const rawAction = parameters.action;
   if (typeof rawAction !== 'string') {

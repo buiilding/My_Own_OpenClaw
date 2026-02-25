@@ -143,6 +143,44 @@ describe('useToolRunner event handling', () => {
     }
   });
 
+  test('delays browser action click tool-call execution until ghost preview sync window completes', async () => {
+    jest.useFakeTimers();
+    try {
+      renderToolRunner(true);
+
+      await emitBackendEventAsync({
+        type: 'tool-call',
+        id: 'event-browser-click-delay',
+        payload: {
+          tool_name: 'browser',
+          parameters: { action: 'click', ref: '3' },
+          request_id: 'req-browser-click-delay',
+        },
+      });
+
+      expect(mockExecuteTool).not.toHaveBeenCalled();
+
+      await act(async () => {
+        jest.advanceTimersByTime(TOOL_GHOST_CLICK_SYNC_DELAY_MS - 1);
+        await Promise.resolve();
+      });
+      expect(mockExecuteTool).not.toHaveBeenCalled();
+
+      await act(async () => {
+        jest.advanceTimersByTime(1);
+        await Promise.resolve();
+      });
+
+      expect(mockExecuteTool).toHaveBeenCalledWith(
+        'browser',
+        { action: 'click', ref: '3' },
+        { correlationId: 'req-browser-click-delay', skipAutoCapture: false },
+      );
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   test('ignores tool-call events for a completed active turn', async () => {
     setStreamTracking({
       activeTurnRef: 'turn-1',

@@ -57,6 +57,28 @@ describe('toolGhostPreview', () => {
     expect(preview.showsTargetRipple).toBe(true);
   });
 
+  test('treats browser action click with coordinate_x/y as click-like targeted motion', () => {
+    const preview = buildToolGhostPreviewFromMessageText(JSON.stringify({
+      name: 'browser',
+      arguments: {
+        action: 'click',
+        explanation: 'Clicking some text',
+        coordinate_x: 320,
+        coordinate_y: 240,
+      },
+      metadata: {
+        coordinate_contract: {
+          target_display_size: [640, 480],
+        },
+      },
+    }));
+
+    expect(preview.isMouseClick).toBe(true);
+    expect(preview.hasTarget).toBe(true);
+    expect(preview.xRatio).toBeCloseTo(0.5);
+    expect(preview.yRatio).toBeCloseTo(0.5);
+  });
+
   test('extracts explanation label for scroll tool payloads', () => {
     const preview = buildToolGhostPreviewFromMessageText(JSON.stringify({
       name: 'scroll_control',
