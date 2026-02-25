@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-chat-ui): align dashboard chat message lanes to composer pill bounds so assistant content starts at the pill’s left edge and user bubbles end at the pill’s right edge across desktop/mobile gutters.
 - feat(frontend-chat): gate transparency debug accordions (`System Prompt`, `Tool Schemas`, `Full Message`) behind `electron:dev` via renderer `dev_ui=1` query flag; default `electron` now hides them for end users.
 - feat(frontend-dashboard): add smooth dashboard shell open animation (fade + sidebar/main stagger) when main window returns from hidden, including reduced-motion fallback and visibility-change regression coverage.
 - fix(frontend-chat-tools): remove response-overlay ghost cursor preview/timeline and execute click-like tool calls immediately (no synthetic delay/animation before tool dispatch).
