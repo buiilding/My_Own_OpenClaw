@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable, List, Tuple
+import re
+from typing import Any, Callable, List, Optional, Tuple
 
 from fastapi import HTTPException
 
@@ -12,6 +13,8 @@ from backend.src.core.types.schemas import LLMMessage
 logger = logging.getLogger(__name__)
 
 FALLBACK_SUMMARY_LENGTH = 500
+FALLBACK_TITLE = "New chat"
+TITLE_MAX_CHARS = 72
 
 
 class SemanticSummarizationService:
@@ -79,6 +82,60 @@ class SemanticSummarizationService:
                 detail="Summarization failed: An internal error occurred",
             ) from e
 
+    async def generate_title(
+        self,
+        *,
+        user_message: str,
+        assistant_message: str,
+        user_id: str,
+        container: Any,
+        session_manager: Any,
+        model_id_override: Optional[str] = None,
+        model_provider_override: Optional[str] = None,
+    ) -> str:
+        """Generate a concise conversation title using the active/overridden model."""
+        try:
+            merged_config = self._resolve_effective_config(
+                user_id=user_id,
+                session_manager=session_manager,
+                container=container,
+            )
+
+            if model_provider_override:
+                merged_config = merged_config.model_copy(
+                    update={"model_provider": model_provider_override}
+                )
+            if model_id_override:
+                merged_config = merged_config.model_copy(
+                    update={"selected_model_id": model_id_override}
+                )
+
+            if merged_config.model_mode != "local" and not merged_config.api_key:
+                merged_config = self._load_api_key_for_provider(merged_config)
+
+            llm_client = self._get_llm_client(merged_config)
+            if not llm_client:
+                raise HTTPException(status_code=503, detail="LLM service not available")
+
+            prompt = self._build_title_prompt(user_message, assistant_message)
+            messages: List[LLMMessage] = [{"role": "user", "content": prompt}]
+            response_text = await llm_client.get_completion(
+                merged_config.selected_model_id,
+                messages,
+            )
+            parsed_title = self._parse_title_response(response_text)
+            if parsed_title:
+                return parsed_title
+            return FALLBACK_TITLE
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error("Failed to generate conversation title: %s", e, exc_info=True)
+            raise HTTPException(
+                status_code=500,
+                detail="Title generation failed: An internal error occurred",
+            ) from e
+
     def _resolve_effective_config(self, *, user_id: str, session_manager: Any, container: Any):
         session = session_manager.get_session(user_id)
         if session:
@@ -127,3 +184,49 @@ FACTS:
 - [fact 2]
 - [fact 3]
 """
+
+    @staticmethod
+    def _build_title_prompt(user_message: str, assistant_message: str) -> str:
+        safe_user = (user_message or "").strip()[:4000]
+        safe_assistant = (assistant_message or "").strip()[:4000]
+        return f"""Generate a concise chat title based on this first exchange.
+
+Requirements:
+- 3 to 8 words
+- plain text only
+- no quotes
+- no punctuation at the end
+- reflect the core intent/topic
+
+User message:
+{safe_user}
+
+Assistant response:
+{safe_assistant}
+
+Return only the title text."""
+
+    @staticmethod
+    def _parse_title_response(response_text: str) -> str:
+        if not isinstance(response_text, str):
+            return ""
+        text = response_text.strip()
+        if not text:
+            return ""
+
+        first_line = next(
+            (line.strip() for line in text.splitlines() if line.strip()),
+            "",
+        )
+        if not first_line:
+            return ""
+
+        first_line = re.sub(r"^(title\s*:\s*)", "", first_line, flags=re.IGNORECASE)
+        first_line = first_line.strip().strip("`").strip().strip("\"'")
+        first_line = re.sub(r"\s+", " ", first_line).strip()
+        if not first_line:
+            return ""
+
+        if len(first_line) > TITLE_MAX_CHARS:
+            first_line = first_line[:TITLE_MAX_CHARS].rstrip()
+        return first_line

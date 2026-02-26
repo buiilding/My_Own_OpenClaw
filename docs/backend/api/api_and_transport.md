@@ -49,6 +49,7 @@ Implementation:
 ### Semantic Summarization
 
 - `POST /api/semantic/summarize`: summarize conversation text list into summary/facts
+- `POST /api/semantic/title`: generate a concise conversation title from first user/assistant turn
 - `GET /api/semantic/health`: llm-client health for semantic service
 
 Implementation:

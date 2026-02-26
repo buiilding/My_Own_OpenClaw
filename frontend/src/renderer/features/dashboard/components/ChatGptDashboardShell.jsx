@@ -74,6 +74,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
   const [isLoadingRecentConversations, setIsLoadingRecentConversations] = useState(false);
   const [recentConversationsError, setRecentConversationsError] = useState('');
   const wasHiddenRef = useRef(false);
+  const pendingTitlePollTimersRef = useRef(new Map());
   const sessionInfo = useTranscriptSessionInfo();
   const resolvedUserId = sessionInfo.userId || DEFAULT_USER_ID;
 
@@ -171,13 +172,50 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
         const knownIds = new Set(list.map((conversation) => conversation?.conversation_id));
         return current.filter((conversationRef) => knownIds.has(conversationRef));
       });
+      return list;
     } catch (error) {
       setRecentConversationsError(error?.message || 'Failed to load recent chats');
       setRecentConversations([]);
+      return [];
     } finally {
       setIsLoadingRecentConversations(false);
     }
   }, [resolvedUserId]);
+
+  const clearPendingTitlePoll = useCallback((conversationRef) => {
+    const timerId = pendingTitlePollTimersRef.current.get(conversationRef);
+    if (timerId) {
+      window.clearTimeout(timerId);
+      pendingTitlePollTimersRef.current.delete(conversationRef);
+    }
+  }, []);
+
+  const scheduleTitleVisibilityPoll = useCallback((conversationRef) => {
+    if (!conversationRef) {
+      return;
+    }
+    clearPendingTitlePoll(conversationRef);
+
+    let attempts = 0;
+    const maxAttempts = 40;
+    const delayMs = 1250;
+
+    const poll = async () => {
+      attempts += 1;
+      const list = await loadRecentConversations();
+      const isVisible = list.some((conversation) => conversation?.conversation_id === conversationRef);
+      if (isVisible || attempts >= maxAttempts) {
+        clearPendingTitlePoll(conversationRef);
+        return;
+      }
+      const nextTimer = window.setTimeout(() => {
+        void poll();
+      }, delayMs);
+      pendingTitlePollTimersRef.current.set(conversationRef, nextTimer);
+    };
+
+    void poll();
+  }, [clearPendingTitlePoll, loadRecentConversations]);
 
   const handleOpenConversation = useCallback(async (conversation) => {
     const conversationRef = conversation?.conversation_id;
@@ -315,17 +353,33 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
       const detail = event?.detail;
       const role = typeof detail?.role === 'string' ? detail.role : '';
       const messageType = typeof detail?.messageType === 'string' ? detail.messageType : '';
+      const conversationRef = typeof detail?.conversationRef === 'string'
+        ? detail.conversationRef
+        : '';
       if (role !== 'assistant' || messageType !== 'llm-text') {
         return;
       }
-      void loadRecentConversations();
+      if (!conversationRef) {
+        void loadRecentConversations();
+        return;
+      }
+      scheduleTitleVisibilityPoll(conversationRef);
     };
 
     window.addEventListener('transcript-entry-stored', handleTranscriptEntryStored);
     return () => {
       window.removeEventListener('transcript-entry-stored', handleTranscriptEntryStored);
     };
-  }, [loadRecentConversations]);
+  }, [loadRecentConversations, scheduleTitleVisibilityPoll]);
+
+  useEffect(() => {
+    return () => {
+      for (const timerId of pendingTitlePollTimersRef.current.values()) {
+        window.clearTimeout(timerId);
+      }
+      pendingTitlePollTimersRef.current.clear();
+    };
+  }, []);
 
   useEffect(() => {
     if (!dashboardOpening) {

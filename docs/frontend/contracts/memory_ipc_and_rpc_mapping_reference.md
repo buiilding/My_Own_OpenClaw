@@ -128,8 +128,9 @@ Decorator `@requires_memory_store` gates most memory handlers:
 - transcript-only behavior (non-transcript `record_kind` ignored/normalized)
 - newest-first by last timestamp
 - includes `is_resumable` when `conversation_id` starts with `conv_`
-- includes `title` and `title_source` (`heuristic` for auto-generated titles)
-- title generation is best-effort and only starts after both first user and first assistant transcript rows exist for a conversation
+- includes `title` and `title_source` (`model` for model-generated titles)
+- title generation is best-effort, asynchronous, and only starts after both first user and first assistant `llm-text` transcript rows exist for a conversation
+- untitled conversations are not returned until generation completes
 
 ### `search_conversations`
 

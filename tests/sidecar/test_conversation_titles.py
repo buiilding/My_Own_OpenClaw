@@ -1,3 +1,4 @@
+import asyncio
 import sqlite3
 from pathlib import Path
 
@@ -7,7 +8,6 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 
 ensure_frontend_python_path()
 
-from memory.conversation_titles import derive_conversation_title  # noqa: E402
 from memory.local_store import LocalMemoryStore  # noqa: E402
 from memory.sqlite_store import init_episodic_schema  # noqa: E402
 
@@ -21,10 +21,24 @@ class _DummyEmbedder:
         raise AssertionError("title tests should skip embedding")
 
 
+class _DummyTitleClient:
+    def __init__(self, generated_title: str = "Linux mic troubleshooting", delay_seconds: float = 0.0):
+        self.generated_title = generated_title
+        self.delay_seconds = delay_seconds
+        self.calls = []
+
+    async def generate_title(self, **kwargs):
+        self.calls.append(kwargs)
+        if self.delay_seconds > 0:
+            await asyncio.sleep(self.delay_seconds)
+        return self.generated_title
+
+
 def _build_store(tmp_path: Path) -> LocalMemoryStore:
     store = LocalMemoryStore.__new__(LocalMemoryStore)
 
     store.embedder = _DummyEmbedder()
+    store.title_client = _DummyTitleClient()
     store.episodic_db_path = tmp_path / "episodic.db"
     store.semantic_db_path = tmp_path / "semantic.db"
     store.episodic_index_path = tmp_path / "episodic.faiss.index"
@@ -39,13 +53,25 @@ def _build_store(tmp_path: Path) -> LocalMemoryStore:
     store.semantic_memory_id_to_vector_id = {}
     store.semantic_next_vector_id = 0
     store.semantic_index = None
+    store._title_generation_tasks = {}
+    store._title_generation_semaphore = asyncio.Semaphore(2)
 
     return store
+
+
+async def _wait_for_title_tasks(store: LocalMemoryStore) -> None:
+    tasks = [task for task in store._title_generation_tasks.values() if task and not task.done()]
+    if tasks:
+        await asyncio.gather(*tasks)
 
 
 @pytest.mark.asyncio
 async def test_title_generation_requires_user_and_assistant_rows(tmp_path: Path):
     store = _build_store(tmp_path)
+    store.title_client = _DummyTitleClient(
+        generated_title="Ubuntu mic timeout troubleshooting",
+        delay_seconds=0.03,
+    )
     await init_episodic_schema(store.episodic_db_path)
 
     conversation_id = "conv_abc123"
@@ -110,17 +136,23 @@ async def test_title_generation_requires_user_and_assistant_rows(tmp_path: Path)
         timestamp="2026-02-25T00:00:02+00:00",
     )
 
+    conversations_while_pending = await store.list_conversations("user-1")
+    assert conversations_while_pending == []
+
+    await _wait_for_title_tasks(store)
+
     conversations = await store.list_conversations("user-1")
     assert len(conversations) == 1
     assert conversations[0]["conversation_id"] == conversation_id
-    assert conversations[0]["title"] == derive_conversation_title(user_text, assistant_text)
-    assert conversations[0]["title_source"] == "heuristic"
+    assert conversations[0]["title"] == "Ubuntu mic timeout troubleshooting"
+    assert conversations[0]["title_source"] == "model"
     assert conversations[0]["is_resumable"] is True
 
 
 @pytest.mark.asyncio
 async def test_delete_conversation_removes_conversation_title_row(tmp_path: Path):
     store = _build_store(tmp_path)
+    store.title_client = _DummyTitleClient(generated_title="API migration plan")
     await init_episodic_schema(store.episodic_db_path)
 
     conversation_id = "conv_delete_me"
@@ -148,6 +180,7 @@ async def test_delete_conversation_removes_conversation_title_row(tmp_path: Path
         skip_embedding=True,
         timestamp="2026-02-25T00:01:01+00:00",
     )
+    await _wait_for_title_tasks(store)
 
     conversations_before_delete = await store.list_conversations("user-1")
     assert len(conversations_before_delete) == 1

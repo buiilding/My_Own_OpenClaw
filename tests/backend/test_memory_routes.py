@@ -186,6 +186,64 @@ async def test_summarize_conversations_does_not_use_other_active_session(monkeyp
 
 
 @pytest.mark.asyncio
+async def test_generate_conversation_title_uses_session_config_and_model_override(monkeypatch) -> None:
+    session_cfg = _local_ollama_config("session-model")
+    container_cfg = _local_ollama_config("container-model")
+    fake_client = FakeLLMClient('Title:   "Good to Meet You"')
+
+    _patch_semantic_client(monkeypatch, fake_client)
+
+    container = SimpleNamespace(config=container_cfg, llm_client=object())
+    session = SimpleNamespace(cfg=session_cfg)
+    session_manager = FakeSessionManager(session=session)
+    request = semantic_routes.GenerateTitleRequest(
+        user_id="user_123",
+        user_message="good to meet you",
+        assistant_message="Good to meet you too! I can help with your desktop tasks.",
+        model_id="k2p5",
+        model_provider="kimi-coding",
+    )
+
+    response = await semantic_routes.generate_conversation_title(
+        request,
+        container,
+        session_manager,
+    )
+
+    assert response.success is True
+    assert response.title == "Good to Meet You"
+    assert fake_client.calls
+    assert fake_client.calls[0][0] == "k2p5"
+
+
+@pytest.mark.asyncio
+async def test_generate_conversation_title_uses_container_config_when_session_missing(monkeypatch) -> None:
+    container_cfg = _local_ollama_config("container-model")
+    fake_client = FakeLLMClient("Mission Planning")
+
+    _patch_semantic_client(monkeypatch, fake_client)
+
+    container = SimpleNamespace(config=container_cfg, llm_client=object())
+    session_manager = FakeSessionManager(session=None)
+    request = semantic_routes.GenerateTitleRequest(
+        user_id="user_456",
+        user_message="plan moon mission",
+        assistant_message="Let's break it down into launch, transit, and landing phases.",
+    )
+
+    response = await semantic_routes.generate_conversation_title(
+        request,
+        container,
+        session_manager,
+    )
+
+    assert response.success is True
+    assert response.title == "Mission Planning"
+    assert fake_client.calls
+    assert fake_client.calls[0][0] == "container-model"
+
+
+@pytest.mark.asyncio
 async def test_semantic_health_check_reports_status() -> None:
     healthy = await semantic_routes.health_check(SimpleNamespace(llm_client=object()))
     unhealthy = await semantic_routes.health_check(SimpleNamespace(llm_client=None))
@@ -278,4 +336,13 @@ def test_summarize_request_rejects_default_user() -> None:
         semantic_routes.SummarizeRequest(
             conversations=["conversation text"],
             user_id="default_user",
+        )
+
+
+def test_generate_title_request_rejects_default_user() -> None:
+    with pytest.raises(ValidationError):
+        semantic_routes.GenerateTitleRequest(
+            user_id="default_user",
+            user_message="hi",
+            assistant_message="hello",
         )

@@ -95,6 +95,26 @@ Behavior:
 - parses/fallback-extracts semantic facts
 - returns `summary`, `facts[]`, `success=true`
 
+### `POST /api/semantic/title`
+
+Owner: `backend/src/api/routes/memory/semantic.py:generate_conversation_title`
+
+Request model (`GenerateTitleRequest`):
+
+- `user_id`: non-empty and cannot be `default_user`
+- `user_message`: 1..32768 chars
+- `assistant_message`: 1..32768 chars
+- `model_id`: optional model override
+- `model_provider`: optional provider override
+
+Behavior:
+
+- builds `SemanticSummarizationService`
+- resolves config from matching session or container defaults
+- applies optional override model/provider
+- generates one short title string
+- returns `title`, `success=true`
+
 ### `GET /api/semantic/health`
 
 Owner: `backend/src/api/routes/memory/semantic.py:health_check`
