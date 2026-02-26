@@ -35,6 +35,8 @@ describe('toolRunnerMessages', () => {
       screenshotUrl: 'https://example.com/shot.png',
       toolMetadata: { rows: 2 },
       toolName: 'read_file',
+      sourceChannel: 'renderer-tool-runner',
+      sourceEventType: 'tool-runner-result',
       executionTime: 1.23,
       success: true,
       correlationId: 'corr-1',

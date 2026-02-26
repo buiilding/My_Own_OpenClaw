@@ -32,6 +32,7 @@ const mockSetMessages = jest.fn();
 const mockUpdateMessage = jest.fn();
 const mockSetIsSending = jest.fn();
 const mockSetThinkingStatus = jest.fn();
+const mockSetThinkingSourceEventType = jest.fn();
 const mockSetTokenCounts = jest.fn();
 const mockUpdateStreamTracking = jest.fn();
 const mockSetActiveConversationRef = jest.fn();
@@ -54,6 +55,7 @@ const mockChatState = {
   updateMessage: (...args) => mockUpdateMessage(...args),
   setIsSending: (...args) => mockSetIsSending(...args),
   setThinkingStatus: (...args) => mockSetThinkingStatus(...args),
+  setThinkingSourceEventType: (...args) => mockSetThinkingSourceEventType(...args),
   setTokenCounts: (...args) => mockSetTokenCounts(...args),
   updateStreamTracking: (...args) => mockUpdateStreamTracking(...args),
 };
@@ -143,6 +145,7 @@ describe('ChatInterface wiring', () => {
     mockUpdateMessage.mockClear();
     mockSetIsSending.mockClear();
     mockSetThinkingStatus.mockClear();
+    mockSetThinkingSourceEventType.mockClear();
     mockSetTokenCounts.mockClear();
     mockUpdateStreamTracking.mockClear();
     mockSetActiveConversationRef.mockClear();
