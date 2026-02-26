@@ -8,6 +8,13 @@ title: "Frontend IPC and Local-Backend Protocol Surface Matrix Reference"
 
 # Frontend IPC and Local-Backend Protocol Surface Matrix Reference
 
+## Coverage Snapshot (2026-02-26)
+
+- Renderer `send` channels: `5`
+- Renderer `invoke` channels: `32`
+- Renderer `on/once` channels: `11`
+- Compiled JSON-RPC mapper definitions: `8` (`COMPILED_RPC_HANDLER_DEFINITIONS`)
+
 ## Scope and Sources
 
 This page maps protocol surfaces across renderer, Electron main, and Python local backend:
@@ -172,6 +179,26 @@ Registered callable surface:
 - Preload allowlists and renderer constants should remain in strict parity.
 - IPC handler registration is split across `ipc.cjs`, `index.cjs`, `local_backend_bridge.cjs`, and `wakeword_bridge.cjs`; ownership drift often appears when adding channels without updating all four surfaces.
 - JSON-RPC channel maps are centralized in `local_backend_bridge_rpc_mappers.cjs`; direct ad-hoc mapping in other files should be avoided.
+
+## Recompute Surface Commands
+
+Use these commands to refresh protocol counts:
+
+- IPC channel counts:
+  - `python - <<'PY'`
+  - `import re, pathlib`
+  - `text=pathlib.Path('frontend/src/renderer/infrastructure/ipc/channels.ts').read_text()`
+  - `for name in ['SEND_CHANNELS','INVOKE_CHANNELS','ON_CHANNELS']:`
+  - `    block=re.search(rf'{name}\\s*=\\s*\\{{(.*?)\\}}\\s*as const;', text, re.S).group(1)`
+  - `    count=len([line for line in block.splitlines() if ':' in line])`
+  - `    print(name.lower(), count)`
+  - `PY`
+- JSON-RPC mapper definition count:
+  - `python - <<'PY'`
+  - `import pathlib,re`
+  - `text=pathlib.Path('frontend/src/main/local_backend_bridge_rpc_mappers.cjs').read_text()`
+  - `print('compiled_rpc_handler_definitions', len(re.findall(r\"\\{\\s*channel:\", text)))`
+  - `PY`
 
 ## Related Deep Dive
 
