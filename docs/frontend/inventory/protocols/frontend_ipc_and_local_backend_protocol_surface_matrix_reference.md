@@ -53,6 +53,12 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `load-frontend-config` | `main/ipc.cjs` | Reads frontend config from disk |
 | `save-frontend-config` | `main/ipc.cjs` | Persists frontend config to disk |
 | `get-client-user-id` | `main/ipc.cjs` | Returns connection/user snapshot |
+| `set-agent-sudo-access` | `main/index.cjs` | Linux-only sudo access toggle via privileged command runner |
+| `list-permissions` | `main/index.cjs` | Returns permission manifest + status bundle |
+| `check-permissions` | `main/index.cjs` | Batch permission probe result list |
+| `check-permission` | `main/index.cjs` | Single permission probe shortcut |
+| `run-permission-probe` | `main/index.cjs` | Explicit probe execution for one permission |
+| `request-permission` | `main/index.cjs` | OS request/open-settings path per permission |
 | `set-overlay-ignore-mouse` | `main/index.cjs` | Toggle overlay click-through |
 | `set-chatbox-size` | `main/index.cjs` | Resize chatbox overlay |
 | `set-responsebox-size` | `main/index.cjs` | Resize response overlay |
@@ -73,6 +79,7 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `wakeword-detected` | `main/wakeword_bridge.cjs` | Wakeword detection event (`model`, `confidence`, `score`) |
 | `wakeword-status` | `main/wakeword_bridge.cjs` | Wakeword subprocess readiness/error |
 | `wakeword-toggle` | `main/index.cjs` | UI wakeword enabled/disabled signal |
+| `wakeword-stt-trigger` | `main/index.cjs` | Tells renderer to start post-wakeword STT capture flow |
 | `chatbox-focus` | `main/index.cjs` | Request focus behavior in chatbox view |
 | `main-window-open-target` | `main/index.cjs` | Dashboard route target (`chat`, `memory`, `models`, `settings`) |
 | `response-overlay-phase` | `main/ipc.cjs` | Stream/loop phase state (`idle`, `awaiting-first-chunk`, `streaming`, `tool-call`, `tool-output`, `complete`, `error`) |
