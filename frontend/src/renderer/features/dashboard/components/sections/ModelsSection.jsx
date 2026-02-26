@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
-import { Check, ChevronRight, Clock, DollarSign, X, Zap } from 'lucide-react';
+import {
+  ArrowLeft,
+  Check,
+  ChevronRight,
+  Clock,
+  DollarSign,
+  Layers,
+  X,
+  Zap,
+} from 'lucide-react';
 import {
   buildModelConfigUpdate,
   evaluateModelSelection,
@@ -56,6 +65,86 @@ function toModelCard(model, isRecommended) {
     badge: isRecommended ? 'Recommended' : null,
   };
 }
+
+function normalizeProviderLabel(provider) {
+  const value = provider === undefined || provider === null ? '' : String(provider).trim();
+  return value || 'Unknown provider';
+}
+
+function toProviderCards(models, selectedModelId, selectedProvider) {
+  const groups = new Map();
+
+  models.forEach((model) => {
+    const provider = normalizeProviderLabel(model?.provider);
+    const currentGroup = groups.get(provider);
+    if (currentGroup) {
+      currentGroup.models.push(model);
+      return;
+    }
+    groups.set(provider, {
+      provider,
+      models: [model],
+    });
+  });
+
+  return Array.from(groups.values())
+    .map((group) => ({
+      provider: group.provider,
+      count: group.models.length,
+      hasSelectedModel: group.models.some((model) => (
+        String(model?.id || '') === String(selectedModelId || '')
+        && normalizeProviderLabel(model?.provider) === normalizeProviderLabel(selectedProvider)
+      )),
+    }))
+    .sort((left, right) => {
+      if (left.hasSelectedModel && !right.hasSelectedModel) {
+        return -1;
+      }
+      if (!left.hasSelectedModel && right.hasSelectedModel) {
+        return 1;
+      }
+      return left.provider.localeCompare(right.provider);
+    });
+}
+
+function ProviderCard({ provider, count, isSelected, onSelect }) {
+  return (
+    <button
+      type="button"
+      className={`clone-model-provider-card${isSelected ? ' selected' : ''}`}
+      onClick={() => onSelect(provider)}
+      aria-label={`Show ${provider} models`}
+    >
+      <div className="clone-model-provider-card-head">
+        <div className="clone-model-provider-id-wrap">
+          <div className={`clone-model-provider-icon-wrap${isSelected ? ' selected' : ''}`}>
+            <Layers size={16} />
+          </div>
+          <div className="clone-model-provider-title-wrap">
+            <h3>{provider}</h3>
+            <p>{count} model{count === 1 ? '' : 's'} available</p>
+          </div>
+        </div>
+
+        <div className="clone-model-provider-state-wrap">
+          {isSelected ? (
+            <div className="clone-model-selected-dot">
+              <Check size={12} />
+            </div>
+          ) : null}
+          <ChevronRight size={16} className="clone-model-chevron hovered" />
+        </div>
+      </div>
+    </button>
+  );
+}
+
+ProviderCard.propTypes = {
+  provider: PropTypes.string.isRequired,
+  count: PropTypes.number.isRequired,
+  isSelected: PropTypes.bool.isRequired,
+  onSelect: PropTypes.func.isRequired,
+};
 
 function ModelCard({ model, isSelected, isHovered, onSelect, onHover }) {
   return (
@@ -155,6 +244,7 @@ ModelCard.propTypes = {
 function ModelsSection({ config, availableModels, onConfigChange, onClose = () => {} }) {
   const [modelResetWarning, setModelResetWarning] = useState('');
   const [hoveredModel, setHoveredModel] = useState(null);
+  const [activeProviderView, setActiveProviderView] = useState(null);
   const warningTimeoutRef = useRef(null);
 
   const modelMode = config?.model_mode || 'online';
@@ -169,8 +259,16 @@ function ModelsSection({ config, availableModels, onConfigChange, onClose = () =
   );
 
   const modelCards = useMemo(() => {
-    return currentModels.map((model, index) => toModelCard(model, index === 0));
-  }, [currentModels]);
+    const scopedModels = activeProviderView
+      ? currentModels.filter((model) => normalizeProviderLabel(model?.provider) === activeProviderView)
+      : currentModels;
+    return scopedModels.map((model, index) => toModelCard(model, index === 0));
+  }, [activeProviderView, currentModels]);
+
+  const providerCards = useMemo(
+    () => toProviderCards(currentModels, selectedModelId, selectedProvider),
+    [currentModels, selectedModelId, selectedProvider],
+  );
 
   const applyModelSelection = useCallback((selectedModel) => {
     onConfigChange(
@@ -223,6 +321,19 @@ function ModelsSection({ config, availableModels, onConfigChange, onClose = () =
   ]);
 
   useEffect(() => {
+    if (!activeProviderView) {
+      return;
+    }
+    const providerStillAvailable = providerCards.some(
+      (providerCard) => providerCard.provider === activeProviderView,
+    );
+    if (!providerStillAvailable) {
+      setActiveProviderView(null);
+      setHoveredModel(null);
+    }
+  }, [activeProviderView, providerCards]);
+
+  useEffect(() => {
     return () => {
       if (warningTimeoutRef.current) {
         clearTimeout(warningTimeoutRef.current);
@@ -244,7 +355,11 @@ function ModelsSection({ config, availableModels, onConfigChange, onClose = () =
       </div>
       <div className="clone-panel-header">
         <h1>Models</h1>
-        <p>Select and configure your default model. Hover for details.</p>
+        <p>
+          {activeProviderView
+            ? `Select a model from ${activeProviderView}.`
+            : 'Select a provider first, then choose a model.'}
+        </p>
       </div>
 
       <div className="clone-panel-body clone-model-body">
@@ -252,13 +367,48 @@ function ModelsSection({ config, availableModels, onConfigChange, onClose = () =
           <div className="clone-panel-warning">{modelResetWarning}</div>
         ) : null}
 
-        {modelCards.length === 0 ? (
+        {providerCards.length === 0 ? (
           <div className="clone-empty-state">No models available for the current mode.</div>
+        ) : !activeProviderView ? (
+          <div className="clone-model-provider-list">
+            {providerCards.map((providerCard) => (
+              <ProviderCard
+                key={providerCard.provider}
+                provider={providerCard.provider}
+                count={providerCard.count}
+                isSelected={providerCard.hasSelectedModel}
+                onSelect={(provider) => {
+                  setActiveProviderView(provider);
+                  setHoveredModel(null);
+                }}
+              />
+            ))}
+          </div>
+        ) : modelCards.length === 0 ? (
+          <div className="clone-empty-state">No models available for this provider.</div>
         ) : (
+          <>
+            <div className="clone-model-provider-toolbar">
+              <button
+                type="button"
+                className="clone-model-provider-back"
+                onClick={() => {
+                  setActiveProviderView(null);
+                  setHoveredModel(null);
+                }}
+                aria-label="Back to providers"
+              >
+                <ArrowLeft size={14} />
+                <span>Providers</span>
+              </button>
+              <p className="clone-model-provider-meta">{activeProviderView}</p>
+            </div>
+
           <div className="clone-model-list">
             {modelCards.map((model) => {
               const isSelected = model.id === selectedModelId && model.provider === selectedProvider;
-              const isHovered = hoveredModel === model.id;
+              const modelHoverKey = `${model.provider}-${model.id}`;
+              const isHovered = hoveredModel === modelHoverKey;
               const sourceModel = currentModels.find((candidate) => candidate.id === model.id && candidate.provider === model.provider)
                 || currentModels.find((candidate) => candidate.id === model.id)
                 || null;
@@ -269,7 +419,13 @@ function ModelsSection({ config, availableModels, onConfigChange, onClose = () =
                   model={model}
                   isSelected={isSelected}
                   isHovered={isHovered}
-                  onHover={setHoveredModel}
+                  onHover={(nextModelId) => {
+                    if (!nextModelId) {
+                      setHoveredModel(null);
+                      return;
+                    }
+                    setHoveredModel(`${model.provider}-${nextModelId}`);
+                  }}
                   onSelect={() => {
                     if (sourceModel) {
                       applyModelSelection(sourceModel);
@@ -279,6 +435,7 @@ function ModelsSection({ config, availableModels, onConfigChange, onClose = () =
               );
             })}
           </div>
+          </>
         )}
       </div>
     </div>
