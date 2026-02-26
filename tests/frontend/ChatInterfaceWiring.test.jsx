@@ -12,6 +12,10 @@ let mockConfig = {
   voice_mode_enabled: false,
   speech_mode_enabled: false,
 };
+let mockAvailableModels = {
+  local: [],
+  online: [],
+};
 const mockUpdateConfig = jest.fn();
 const mockMessageInput = jest.fn(() => <div data-testid="message-input" />);
 
@@ -65,6 +69,7 @@ jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
 jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
   useAppConfigContext: () => ({
     config: mockConfig,
+    availableModels: mockAvailableModels,
     updateConfig: (...args) => mockUpdateConfig(...args),
   }),
 }));
@@ -120,6 +125,10 @@ describe('ChatInterface wiring', () => {
       interaction_mode: 'chat',
       voice_mode_enabled: false,
       speech_mode_enabled: false,
+    };
+    mockAvailableModels = {
+      local: [],
+      online: [],
     };
     mockMessageInput.mockClear();
     mockUseChatMessageSender.mockClear();
@@ -179,9 +188,17 @@ describe('ChatInterface wiring', () => {
   test('shows model selector and passes enabled voice mode to input', () => {
     mockConfig = {
       interaction_mode: 'agent',
+      model_mode: 'online',
+      model_provider: 'openai',
       voice_mode_enabled: true,
       speech_mode_enabled: false,
       selected_model_id: 'gpt-test-model',
+    };
+    mockAvailableModels = {
+      local: [],
+      online: [
+        { id: 'gpt-test-model', provider: 'openai' },
+      ],
     };
 
     render(<ChatInterface />);
@@ -197,13 +214,67 @@ describe('ChatInterface wiring', () => {
 
   test('falls back to default model label and disabled voice mode when config is missing', () => {
     mockConfig = null;
+    mockAvailableModels = { local: [], online: [] };
 
     render(<ChatInterface />);
 
-    expect(screen.getByRole('button', { name: 'Model selector' })).toHaveTextContent('ChatGPT 5.2 Thinking');
+    expect(screen.getByRole('button', { name: 'Model selector' })).toHaveTextContent('No models available');
     const lastInputProps = mockMessageInput.mock.calls.at(-1)?.[0];
     expect(lastInputProps.voiceModeEnabled).toBe(false);
     expect(lastInputProps.isCentered).toBe(true);
+  });
+
+  test('model selector lists only models for selected provider', () => {
+    mockConfig = {
+      interaction_mode: 'chat',
+      model_mode: 'online',
+      model_provider: 'gemini',
+      selected_model_id: 'gemini-3-pro-preview',
+      voice_mode_enabled: false,
+      speech_mode_enabled: false,
+    };
+    mockAvailableModels = {
+      local: [],
+      online: [
+        { id: 'gemini-3-pro-preview', provider: 'gemini' },
+        { id: 'gemini-2.5-flash', provider: 'gemini' },
+        { id: 'gpt-5.1', provider: 'openai' },
+      ],
+    };
+
+    render(<ChatInterface />);
+    fireEvent.click(screen.getByRole('button', { name: 'Model selector' }));
+
+    expect(screen.getByRole('menuitem', { name: 'gemini-3-pro-preview' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'gemini-2.5-flash' })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'gpt-5.1' })).not.toBeInTheDocument();
+  });
+
+  test('selecting a model updates config with model id and provider', () => {
+    mockConfig = {
+      interaction_mode: 'chat',
+      model_mode: 'online',
+      model_provider: 'gemini',
+      selected_model_id: 'gemini-3-pro-preview',
+      voice_mode_enabled: false,
+      speech_mode_enabled: false,
+    };
+    mockAvailableModels = {
+      local: [],
+      online: [
+        { id: 'gemini-3-pro-preview', provider: 'gemini' },
+        { id: 'gemini-2.5-flash', provider: 'gemini' },
+      ],
+    };
+
+    render(<ChatInterface />);
+    fireEvent.click(screen.getByRole('button', { name: 'Model selector' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'gemini-2.5-flash' }));
+
+    expect(mockUpdateConfig).toHaveBeenCalledWith({
+      selected_model_id: 'gemini-2.5-flash',
+      model_provider: 'gemini',
+    });
   });
 
   test('renders welcome empty state when there are no messages', () => {

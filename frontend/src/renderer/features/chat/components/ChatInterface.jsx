@@ -22,8 +22,13 @@ import { createConversationRef } from '../utils/conversationRef';
 import '../../../styles/ChatInterface.css';
 
 const ACTIVE_STREAM_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
-const DEFAULT_MODEL_OPTIONS = ['ChatGPT 5.2 Thinking', 'ChatGPT 4o', 'ChatGPT 4o mini'];
 const TOOL_MESSAGE_TYPES = new Set(['tool-call', 'tool-output']);
+
+function normalizeProvider(provider) {
+  return provider === undefined || provider === null
+    ? ''
+    : String(provider).trim().toLowerCase();
+}
 
 function resolveTranscriptRole(message) {
   if (message.sender === 'user') {
@@ -77,7 +82,7 @@ function ChatInterface({ sidebarOpen = true, focusComposerToken = 0 }) {
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setTokenCounts = useChatStore((state) => state.setTokenCounts);
   const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
-  const { config, updateConfig } = useAppConfigContext();
+  const { config, updateConfig, availableModels } = useAppConfigContext();
 
   const audioPlayerRef = useRef(null);
 
@@ -102,23 +107,56 @@ function ChatInterface({ sidebarOpen = true, focusComposerToken = 0 }) {
   const speechModeEnabled = config?.speech_mode_enabled === true;
   const canStop = ACTIVE_STREAM_PHASES.has(streamPhase);
   const composerBusy = isSending || canStop;
+  const modelMode = config?.model_mode || 'online';
+  const configuredProvider = config?.model_provider || '';
   const configuredModelId = config?.selected_model_id || '';
+  const availableModelPool = useMemo(() => {
+    const localModels = Array.isArray(availableModels?.local) ? availableModels.local : [];
+    const onlineModels = Array.isArray(availableModels?.online) ? availableModels.online : [];
+    return modelMode === 'local' ? localModels : onlineModels;
+  }, [availableModels, modelMode]);
   const modelOptions = useMemo(() => {
-    if (!configuredModelId) {
-      return DEFAULT_MODEL_OPTIONS;
+    const normalizedSelectedProvider = normalizeProvider(configuredProvider);
+    const seenModelIds = new Set();
+    const options = [];
+
+    availableModelPool.forEach((model) => {
+      const modelId = String(model?.id || '').trim();
+      if (!modelId || seenModelIds.has(modelId)) {
+        return;
+      }
+      if (
+        normalizedSelectedProvider
+        && normalizeProvider(model?.provider) !== normalizedSelectedProvider
+      ) {
+        return;
+      }
+      seenModelIds.add(modelId);
+      options.push({
+        id: modelId,
+        provider: String(model?.provider || configuredProvider || '').trim(),
+      });
+    });
+
+    if (configuredModelId && !seenModelIds.has(configuredModelId)) {
+      options.unshift({
+        id: configuredModelId,
+        provider: String(configuredProvider || '').trim(),
+      });
+      return options;
     }
-    if (DEFAULT_MODEL_OPTIONS.includes(configuredModelId)) {
-      return DEFAULT_MODEL_OPTIONS;
+
+    const selectedIndex = options.findIndex((option) => option.id === configuredModelId);
+    if (selectedIndex > 0) {
+      const [selectedOption] = options.splice(selectedIndex, 1);
+      options.unshift(selectedOption);
     }
-    return [configuredModelId, ...DEFAULT_MODEL_OPTIONS];
-  }, [configuredModelId]);
-  const [modelLabel, setModelLabel] = useState(() => modelOptions[0]);
+
+    return options;
+  }, [availableModelPool, configuredModelId, configuredProvider]);
+  const modelLabel = configuredModelId || modelOptions[0]?.id || 'No models available';
   const [modelMenuOpen, setModelMenuOpen] = useState(false);
   const modelMenuRef = useRef(null);
-
-  useEffect(() => {
-    setModelLabel(modelOptions[0]);
-  }, [modelOptions]);
 
   useEffect(() => {
     const handlePointerDown = (event) => {
@@ -187,6 +225,17 @@ function ChatInterface({ sidebarOpen = true, focusComposerToken = 0 }) {
       speech_mode_enabled: !speechModeEnabled,
     });
   }, [speechModeEnabled, updateConfig]);
+
+  const handleModelSelect = useCallback((option) => {
+    setModelMenuOpen(false);
+    if (!option || typeof updateConfig !== 'function') {
+      return;
+    }
+    updateConfig({
+      selected_model_id: option.id,
+      model_provider: option.provider || configuredProvider,
+    });
+  }, [configuredProvider, updateConfig]);
 
   const handleAssistantFeedbackChange = useCallback((messageId, feedback) => {
     updateMessage(messageId, { feedback });
@@ -387,21 +436,27 @@ function ChatInterface({ sidebarOpen = true, focusComposerToken = 0 }) {
               </button>
               {modelMenuOpen ? (
                 <div className="chat-model-menu" role="menu">
-                  {modelOptions.map((option) => (
-                    <button
-                      key={option}
-                      type="button"
-                      className="chat-model-menu-item"
-                      role="menuitem"
-                      onClick={() => {
-                        setModelLabel(option);
-                        setModelMenuOpen(false);
-                      }}
-                    >
+                  {modelOptions.length > 0 ? (
+                    modelOptions.map((option) => (
+                      <button
+                        key={`${option.provider || 'unknown'}:${option.id}`}
+                        type="button"
+                        className="chat-model-menu-item"
+                        role="menuitem"
+                        onClick={() => {
+                          handleModelSelect(option);
+                        }}
+                      >
+                        <Sparkles size={16} />
+                        <span>{option.id}</span>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="chat-model-menu-item" aria-disabled="true">
                       <Sparkles size={16} />
-                      <span>{option}</span>
-                    </button>
-                  ))}
+                      <span>No models available</span>
+                    </div>
+                  )}
                 </div>
               ) : null}
             </div>
