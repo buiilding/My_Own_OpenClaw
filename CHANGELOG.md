@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(backend-formatter-specs): add contract checks for formatter-spec tuple shape, cache semantics, and expected stream/outgoing type coverage.
+- refactor(backend-session-state): split `ConversationHistory` message-construction and message-type normalization helpers into `backend/src/agent/session/message_builders.py`, reducing `state.py` below 500 LOC while preserving behavior.
 - test(backend-image-dimensions): add parser edge-case coverage for invalid PNG/JPEG payloads (short/non-IHDR PNG headers, invalid JPEG segment lengths, and SOS-before-SOF streams).
 - test(backend-model-config): add invariant coverage for online/thinking model catalogs and schema-field helpers (subset/uniqueness/default-field semantics).
 - refactor(frontend-styles): dedupe `CloneMemoryModels.css` icon style blocks for provider/model cards via shared selectors; preserves visuals while reducing clone noise.
