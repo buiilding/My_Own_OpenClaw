@@ -97,6 +97,9 @@ Handler map (`BackendEventType` -> behavior):
 - `local-user-message`: adds user row, resets `streamTracking` for turn
 - `llm-thought`: accumulates thinking text
 - `streaming-response`: append/create assistant `llm-text` row and increment chunk tracking
+- `context-compaction-started`: sets thinking text to `Compacting conversation history...` while backend compaction runs
+- `context-compaction-completed`: clears compaction thinking text so normal stream status can resume
+- `context-compaction-failed`: clears compaction thinking text on failed compaction attempts
 - `tool-call`: append assistant tool-call row and transcript tool-call row
 - `tool-output`: append assistant tool-output row with screenshot/tool metadata and transcript tool-output row
 - `tool-bundle`: append bundle call row

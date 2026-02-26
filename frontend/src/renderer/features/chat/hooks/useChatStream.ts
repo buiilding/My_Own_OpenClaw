@@ -23,6 +23,9 @@ import {
   type LlmThoughtEvent,
   type StreamingCompleteEvent,
   type StreamingResponseEvent,
+  type ContextCompactionStartedEvent,
+  type ContextCompactionCompletedEvent,
+  type ContextCompactionFailedEvent,
   type ToolCallEvent,
   type ToolOutputEvent,
   type ToolBundleEvent,
@@ -73,6 +76,8 @@ type TranscriptModelContext = {
   modelId: string | null;
   modelProvider: string | null;
 };
+
+const COMPACTION_THINKING_STATUS = 'Compacting conversation history...';
 
 /**
  * Custom hook for managing streaming message responses.
@@ -187,6 +192,25 @@ export function useChatStream(enableTranscript: boolean = true) {
     setIsSending,
     recordTrackingEvent,
   ]);
+
+  const handleContextCompactionStarted = useCallback((event: ContextCompactionStartedEvent) => {
+    setThinkingStatus(COMPACTION_THINKING_STATUS);
+    recordTrackingEvent('context-compaction-started', event.turn_ref);
+  }, [setThinkingStatus, recordTrackingEvent]);
+
+  const handleContextCompactionCompleted = useCallback((event: ContextCompactionCompletedEvent) => {
+    if (useChatStore.getState().thinkingStatus === COMPACTION_THINKING_STATUS) {
+      setThinkingStatus(null);
+    }
+    recordTrackingEvent('context-compaction-completed', event.turn_ref);
+  }, [setThinkingStatus, recordTrackingEvent]);
+
+  const handleContextCompactionFailed = useCallback((event: ContextCompactionFailedEvent) => {
+    if (useChatStore.getState().thinkingStatus === COMPACTION_THINKING_STATUS) {
+      setThinkingStatus(null);
+    }
+    recordTrackingEvent('context-compaction-failed', event.turn_ref);
+  }, [setThinkingStatus, recordTrackingEvent]);
 
   const handleToolCall = useCallback((event: ToolCallEvent) => {
     setThinkingStatus(null);
@@ -431,6 +455,9 @@ export function useChatStream(enableTranscript: boolean = true) {
     'llm-thought': event => handleLlmThought(event as LlmThoughtEvent),
     'streaming-response': event => handleStreamingResponse(event as StreamingResponseEvent),
     'streaming-complete': event => handleStreamingComplete(event as StreamingCompleteEvent),
+    'context-compaction-started': event => handleContextCompactionStarted(event as ContextCompactionStartedEvent),
+    'context-compaction-completed': event => handleContextCompactionCompleted(event as ContextCompactionCompletedEvent),
+    'context-compaction-failed': event => handleContextCompactionFailed(event as ContextCompactionFailedEvent),
     'tool-call': event => handleToolCall(event as ToolCallEvent),
     'tool-output': event => handleToolOutput(event as ToolOutputEvent),
     'tool-bundle': event => handleToolBundle(event as ToolBundleEvent),
@@ -450,6 +477,9 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleLlmThought,
     handleStreamingResponse,
     handleStreamingComplete,
+    handleContextCompactionStarted,
+    handleContextCompactionCompleted,
+    handleContextCompactionFailed,
     handleToolCall,
     handleToolOutput,
     handleToolBundle,
