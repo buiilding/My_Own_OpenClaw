@@ -247,6 +247,21 @@ async def test_wait_tool_validates_seconds_and_formats_status():
 
 
 @pytest.mark.asyncio
+async def test_wait_tool_formats_zero_and_integer_one_second_consistently():
+    zero_result = await wait_tool.wait({"seconds": 0})
+    assert zero_result["success"] is True
+    assert zero_result["data"]["seconds_waited"] == 0.0
+    assert zero_result["data"]["status"] == "Waited for 0.0 seconds"
+    assert zero_result["data"]["llm_content"] == "status: Waited for 0.0 seconds"
+    assert zero_result["data"]["return_display"] == "Waited for 0.0 seconds"
+
+    one_result = await wait_tool.wait({"seconds": 1})
+    assert one_result["success"] is True
+    assert one_result["data"]["seconds_waited"] == 1.0
+    assert one_result["data"]["status"] == "Waited for 1 second"
+
+
+@pytest.mark.asyncio
 async def test_wait_tool_exception_path_returns_failure():
     class BrokenArgs:
         def get(self, *_args, **_kwargs):
