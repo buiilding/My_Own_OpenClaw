@@ -80,6 +80,28 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     );
   });
 
+  test('loads provider_api_keys from storage on startup', () => {
+    mockLoadConfigFromStorage.mockReturnValue({
+      voice_mode_enabled: false,
+      provider_api_keys: {
+        openai: { enabled: true, api_key: 'sk-local-openai' },
+      },
+    });
+
+    const { result } = renderAppConfigContext();
+
+    expect(result.current.config).toEqual(
+      expect.objectContaining({
+        provider_api_keys: expect.objectContaining({
+          openai: expect.objectContaining({
+            enabled: true,
+            api_key: 'sk-local-openai',
+          }),
+        }),
+      }),
+    );
+  });
+
   test('ignores unrelated localStorage events', () => {
     const { result } = renderAppConfigContext();
 
@@ -269,5 +291,47 @@ describe('AppConfigProvider storage + IPC status handling', () => {
       'disk-save-failed',
     );
     warnSpy.mockRestore();
+  });
+
+  test('persists provider_api_keys updates to local storage and disk', async () => {
+    const { result } = renderAppConfigContext();
+
+    act(() => {
+      result.current.updateConfig({
+        provider_api_keys: {
+          openai: { enabled: true, api_key: 'sk-persist-openai' },
+          google: { enabled: true, api_key: 'google-persist' },
+        },
+      });
+    });
+    await flushAsyncEffects();
+
+    expect(mockSaveConfigToStorage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        provider_api_keys: expect.objectContaining({
+          openai: expect.objectContaining({
+            enabled: true,
+            api_key: 'sk-persist-openai',
+          }),
+          google: expect.objectContaining({
+            enabled: true,
+            api_key: 'google-persist',
+          }),
+        }),
+      }),
+      expect.any(Number),
+    );
+
+    expect(IpcBridge.invoke).toHaveBeenCalledWith(
+      INVOKE_CHANNELS.SAVE_FRONTEND_CONFIG,
+      expect.objectContaining({
+        provider_api_keys: expect.objectContaining({
+          openai: expect.objectContaining({
+            enabled: true,
+            api_key: 'sk-persist-openai',
+          }),
+        }),
+      }),
+    );
   });
 });
