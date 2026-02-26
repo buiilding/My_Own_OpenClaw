@@ -3,7 +3,10 @@ from types import SimpleNamespace
 import pytest
 
 from backend.src.api.schema import QueryMessage
-from backend.src.api.services.query_execution import QueryExecutionService
+from backend.src.api.services.query_execution import (
+    EMPTY_FINAL_RESPONSE_FALLBACK,
+    QueryExecutionService,
+)
 from backend.src.core.events.streaming_events import ChunkEvent, StreamingCompleteEvent
 
 
@@ -186,6 +189,35 @@ def test_finalize_pending_tool_calls_on_cancel_handles_success_and_failures():
         msg_id="turn-3",
         conversation_ref="conv-3",
     )
+
+
+def test_query_execution_extract_wrapper_methods_passthrough():
+    service_cls = QueryExecutionService
+
+    assert service_cls._extract_event_type({"type": "chunk"}) == "chunk"
+    assert service_cls._extract_dict_payload({"payload": {"x": 1}}) == {"x": 1}
+    assert (
+        service_cls._extract_dict_string_field(
+            {"payload": {"text": "hello"}},
+            top_level_key="content",
+            payload_key="text",
+        )
+        == "hello"
+    )
+    assert service_cls._extract_chunk_text({"content": "chunk"}) == "chunk"
+
+
+def test_query_execution_resolve_completion_text_wrapper_uses_empty_fallback():
+    service_cls = QueryExecutionService
+
+    fallback = service_cls._resolve_completion_text(
+        event=None,
+        event_type=None,
+        text_chunks=[],
+        assistant_full_text="",
+        saw_text_chunk=False,
+    )
+    assert fallback == EMPTY_FINAL_RESPONSE_FALLBACK
 
 
 @pytest.mark.asyncio
