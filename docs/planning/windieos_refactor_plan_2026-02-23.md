@@ -139,6 +139,16 @@ read_when:
   - verification:
     - `cd frontend && npm run test:ci -- tests/frontend/MemorySection.test.jsx tests/frontend/SettingsSection.test.jsx`
     - `cd frontend && npm run lint`
+- Backend browser warning-log dedupe:
+  - rewrote legacy-alias warning log assembly in:
+    - `backend/src/tools/remote_tools/browser.py`
+  - behavior:
+    - preserves existing warning message text/metadata fields for removed legacy aliases.
+  - verification:
+    - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -q`
+    - `cd frontend && npm run audit:jscpd`
+  - audit note:
+    - clone count stayed `22`, but duplicated python lines/tokens reduced (`412/4078` -> `410/4066`) after warning-log refactor.
 
 - Dashboard shell split:
   - extracted conversation/search orchestration from `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx` into:
