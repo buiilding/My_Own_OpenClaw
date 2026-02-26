@@ -11,11 +11,18 @@ title: "Shell Tool Chrome Command Test Harness Runtime Reference"
 ## Canonical Modules
 
 - `frontend/src/main/test_shell.cjs`
-- `frontend/src/main/tools/system/shell.cjs`
+- `frontend/src/main/python/tools/system/shell_tool.py`
+- `frontend/src/main/python/tools/system/process_tool.py`
 
 ## Purpose and Scope
 
-`test_shell.cjs` is a manual Node test runner for shell-tool behavior.
+`test_shell.cjs` is a manual Node smoke harness for shell command behavior.
+
+Current state:
+
+- the script still imports legacy module path `./tools/system/shell.cjs`
+- that file no longer exists in current frontend tree
+- running the harness as-is fails until import is migrated to live sidecar runtime path(s)
 
 It exercises:
 
@@ -75,9 +82,10 @@ Note: failures can be expected when Chrome is not installed; script logs that ex
 
 ## Drift Hotspots
 
-1. Command strings can rot as platform launcher conventions change.
-2. Hardcoded Chrome assumptions produce false negatives on systems with Chromium-only installs.
-3. Depending on this script for CI would create host-environment instability (GUI/browser dependency).
+1. Legacy import path drift: `./tools/system/shell.cjs` has been removed from frontend main.
+2. Command strings can rot as platform launcher conventions change.
+3. Hardcoded Chrome assumptions produce false negatives on systems with Chromium-only installs.
+4. Depending on this script for CI would create host-environment instability (GUI/browser dependency).
 
 ## Related Pages
 
