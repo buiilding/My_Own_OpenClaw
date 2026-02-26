@@ -270,6 +270,76 @@ def test_extract_tool_call_details_reads_arguments_alias_field():
     assert arguments == {"path": "/tmp/a.txt"}
 
 
+def test_extract_tool_call_details_falls_back_for_invalid_payload_shapes():
+    service = RehydrateExecutionService(_FakeSessionManager())
+
+    tool_name, arguments = service._extract_tool_call_details(
+        content='["not", "a", "dict"]',
+        fallback_tool_name="fallback_tool",
+    )
+    assert tool_name == "fallback_tool"
+    assert arguments == {}
+
+    tool_name, arguments = service._extract_tool_call_details(
+        content="not-json",
+        fallback_tool_name=None,
+    )
+    assert tool_name == "unknown_tool"
+    assert arguments == {}
+
+
+def test_normalize_tool_calls_falls_back_for_missing_name_and_bad_json_arguments():
+    normalized = RehydrateExecutionService._normalize_tool_calls(
+        [
+            {
+                "id": "call-1",
+                "type": "function",
+                "function": {
+                    "name": "  ",
+                    "arguments": "{bad-json",
+                },
+            }
+        ]
+    )
+
+    assert normalized == [{"id": "call-1", "name": "unknown_tool_0", "arguments": {}}]
+
+
+def test_normalize_rehydrated_tool_call_entry_uses_explicit_tool_call_id():
+    service = RehydrateExecutionService(_FakeSessionManager())
+    known_tool_call_ids = set()
+    entry = SimpleNamespace(
+        role="tool",
+        content='{"name":"read_file","args":{"path":"/tmp/a.txt"}}',
+        message_type="tool-call",
+        tool_name=None,
+        correlation_id="corr-1",
+        tool_call_id="call-explicit",
+        timestamp="2026-02-26T00:00:00Z",
+        tool_calls=None,
+    )
+
+    entries, pending = service._normalize_rehydrated_entry(
+        entry=entry,
+        index=2,
+        image_data=None,
+        known_tool_call_ids=known_tool_call_ids,
+        pending_tool_call_id=None,
+    )
+
+    assert len(entries) == 1
+    call_entry = entries[0]
+    assert call_entry["role"] == "assistant"
+    assert call_entry["correlation_id"] == "call-explicit"
+    assert call_entry["tool_calls"][0] == {
+        "id": "call-explicit",
+        "name": "read_file",
+        "arguments": {"path": "/tmp/a.txt"},
+    }
+    assert pending == "call-explicit"
+    assert known_tool_call_ids == {"call-explicit"}
+
+
 def test_normalize_stored_message_type_collapses_context_summary_variants():
     assert RehydrateExecutionService._normalize_stored_message_type("context_summary") == "context-compaction"
     assert RehydrateExecutionService._normalize_stored_message_type("context-compaction") == "context-compaction"
