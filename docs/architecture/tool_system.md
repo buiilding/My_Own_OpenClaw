@@ -210,7 +210,7 @@ class MyRemoteTool(Tool[MyRemoteToolArgs], RemoteToolBase):
         return self._build_remote_result(args, ctx)
 ```
 
-**Frontend Implementation** (`frontend/src/main/python/tools/my_tool.py`):
+**Frontend Implementation** (`frontend/src/main/python/tools/<domain>/<tool>_tool.py`, registered via `frontend/src/main/python/tools/registry.py`):
 
 ```python
 from typing import Any, Dict

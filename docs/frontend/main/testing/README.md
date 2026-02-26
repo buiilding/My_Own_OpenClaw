@@ -1,7 +1,7 @@
 ---
 summary: "Frontend main testing docs sub-hub for shell-tool harness behavior and deterministic mock-memory data seeding entrypoints for dashboard demos."
 read_when:
-  - When changing `frontend/src/main/test_shell.cjs` behavior or the shell-tool contract used by this local test harness.
+  - When changing `frontend/src/main/test_shell.cjs` behavior or sidecar shell/process tool contracts used by local shell harness work.
   - When changing `frontend/src/main/python/dev_seed_mock_memory.py` or frontend npm scripts that seed demo memory data.
 title: "Frontend Main Testing Docs Hub"
 ---
@@ -22,6 +22,7 @@ title: "Frontend Main Testing Docs Hub"
 ## Code Scope
 
 - `frontend/src/main/test_shell.cjs`
-- `frontend/src/main/tools/system/shell.cjs`
+- `frontend/src/main/python/tools/system/shell_tool.py`
+- `frontend/src/main/python/tools/system/process_tool.py`
 - `frontend/src/main/python/dev_seed_mock_memory.py`
 - `frontend/package.json` (`mock-memory-data`, `electron:mock-memory-data`)

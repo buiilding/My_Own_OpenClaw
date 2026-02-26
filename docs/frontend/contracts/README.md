@@ -29,6 +29,6 @@ title: "Frontend Contracts Docs Hub"
 ## Code Scope
 
 - `frontend/src/main/ipc.cjs`
-- `frontend/src/main/channels.cjs`
+- `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/preload.js`
 - `frontend/src/renderer/infrastructure/ipc/*`

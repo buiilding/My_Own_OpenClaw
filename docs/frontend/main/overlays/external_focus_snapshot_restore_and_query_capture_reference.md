@@ -12,7 +12,8 @@ title: "External Focus Snapshot, Restore, and Query-Capture Reference"
 
 - `frontend/src/main/index.cjs`
 - `frontend/src/main/ipc.cjs`
-- `frontend/src/main/query_payload.cjs`
+- `frontend/src/main/external_focus_tracker.cjs`
+- `frontend/src/main/query_payload_builder.cjs`
 
 ## Platform Scope
 
@@ -25,7 +26,7 @@ Non-Windows behavior:
 
 ## Snapshot Contract
 
-`capturePreviousExternalFocusedWindow()`:
+`capturePreviousExternalFocusedWindow()` (from `createExternalFocusTracker(...)`):
 
 1. reads active native window via `node-window-manager`
 2. ignores empty titles
@@ -42,7 +43,7 @@ Called from:
 
 ## Restore Contract
 
-`restorePreviousExternalFocusedWindow()`:
+`restorePreviousExternalFocusedWindow()` (from `createExternalFocusTracker(...)`):
 
 1. enumerates windows from `windowManager.getWindows()`
 2. tries id match first
