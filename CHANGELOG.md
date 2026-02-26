@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-response-overlay): update response-overlay presentation docs for current runtime (debug-only `ToolGhostCursor` usage, no production ghost preview in `ChatBoxResponse`, and refreshed test references).
 - docs(frontend-main): align frontend main/contracts/testing docs with current module topology (typed IPC channels file, external focus tracker + query payload builder wiring, retired context-label active-window renderer path, and sidecar shell/process tool references for harness docs).
 - docs(frontend-overlays): rewrite overlay/tool-ghost/transcript frontend docs to current runtime (response-phase focus, debug-only ghost harness scope, and dashboard-shell rehydrate flow replacing retired episodic section paths).
 - docs(frontend-renderer): refresh chat/presentation/runtime/style/dashboard docs hubs and deep references to current module set (remove retired token-display/storage refs, document stream token-state ownership, and update section/helper/test mappings).
