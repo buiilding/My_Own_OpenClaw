@@ -189,6 +189,16 @@ read_when:
     - `cd frontend && npm run audit:jscpd`
   - audit delta:
     - frontend+backend `jscpd` clone count reduced from `19` to `14`.
+- Backend browser screenshot-field clone cleanup:
+  - normalized screenshot field metadata wording/structure in:
+    - `backend/src/tools/browser/shared_compat_fields.py` (`BrowserScreenshotImageFields`)
+  - behavior:
+    - preserved field defaults and bounds (`type` default `png`, `quality` 1-100) while removing another cross-runtime clone signature.
+  - verification:
+    - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -q`
+    - `cd frontend && npm run audit:jscpd`
+  - audit delta:
+    - frontend+backend `jscpd` clone count reduced from `14` to `13`.
 
 - Dashboard shell split:
   - extracted conversation/search orchestration from `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx` into:
