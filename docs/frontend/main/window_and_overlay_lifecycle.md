@@ -23,7 +23,7 @@ Window set:
 - `mainWindow`: dashboard/settings surface (`frame: false`, hidden on start)
 - `chatWindow`: bottom-center overlay input pill (`transparent`, `alwaysOnTop`)
 - `responseWindow`: response overlay above chat pill (`transparent`, `alwaysOnTop`)
-- `contextLabelWindow`: active-app context label above chat pill (`transparent`, `alwaysOnTop`)
+- `contextLabelWindow`: dormant context-label shell window hooks remain in main process, but window is not currently instantiated in startup flow
 
 For deeper context-label runtime details, see [Context Label Overlay and Active-Window Runtime Reference](context_label_overlay_and_active_window_runtime_reference.md).
 
@@ -149,14 +149,13 @@ Handlers in `index.cjs`:
 - sets overlay click-through (`SET_OVERLAY_IGNORE_MOUSE`) by stream/overlay phases
 - listens for `chatbox-focus` to force input focus
 - sends `MOVE_CHATBOX_TO` while dragging
-- polls `GET_SYSTEM_STATE(active_window)` for context badge freshness
 
 ### Response overlay (`ChatBoxResponse.jsx`)
 
 - listens to `response-overlay-phase`
 - computes visibility from phase + stream content state
 - reports frame size via `SET_RESPONSEBOX_SIZE`
-- supports awaiting-first-chunk view, tool-call ghost preview, final/error markdown pane
+- supports awaiting-first-chunk view and final/error markdown pane
 
 For renderer-only deep dives:
 
