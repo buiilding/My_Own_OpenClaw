@@ -16,8 +16,8 @@ Based on current source tree under `backend/src`:
 
 | Domain | Python files |
 | --- | ---: |
-| `agent` | 62 |
-| `api` | 68 |
+| `agent` | 69 |
+| `api` | 72 |
 | `core` | 77 |
 | `tools` | 31 |
 | `llm` | 31 |
@@ -25,7 +25,7 @@ Based on current source tree under `backend/src`:
 | `simulation` | 12 |
 | `sdk` | 6 |
 | `embeddings` | 2 |
-| **Total** | **307** |
+| **Total** | **318** |
 
 Count includes package `__init__.py` modules.
 
@@ -41,7 +41,7 @@ Count includes package `__init__.py` modules.
 - Infrastructure:
 - `backend/src/api/infrastructure/{handler,registry,errors}.py`
 - Handlers:
-- `backend/src/api/handlers/{query,tool_result,settings,stop_query,rehydrate,wakeword}.py`
+- `backend/src/api/handlers/{query,tool_result,settings,stop_query,rehydrate,wakeword,compact_history}.py`
 - Services:
 - `backend/src/api/services/{query_execution,query_event_extraction,rehydrate_execution,wakeword_execution,tts_session}.py`
 - Processing:
@@ -57,6 +57,9 @@ Count includes package `__init__.py` modules.
 
 ## Agent Layer Index
 
+- Compaction:
+- `backend/src/agent/compaction/{engine,models,prompt}.py`
+- `backend/src/agent/compaction/strategies/{base,inline_summary}.py`
 - Session lifecycle:
 - `backend/src/agent/session/{session,manager,state,runtime_state,initializer,config_runtime,lifecycle}.py`
 - Loop + execution:
@@ -147,6 +150,7 @@ Embeddings:
 Useful local queries for backend navigation:
 
 - All API handlers: `rg --files backend/src/api/handlers`
+- Compaction path: `rg --files backend/src/agent/compaction`
 - Agent tool waiting/processing code: `rg --files backend/src/agent/tools/waiting backend/src/agent/tools/processing`
 - LLM parser + validation stack: `rg --files backend/src/llm | rg 'parser|provider|prompt'`
 - Tool schemas: `rg -n "class .*Args\(BaseModel\)" backend/src/tools backend/src/api/schemas`
