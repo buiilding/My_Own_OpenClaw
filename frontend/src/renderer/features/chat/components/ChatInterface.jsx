@@ -113,16 +113,49 @@ function ChatInterface({ sidebarOpen = true, focusComposerToken = 0 }) {
 
     return options;
   }, [availableModelPool, configuredModelId, configuredProvider]);
+  const providerOptions = useMemo(() => {
+    const seenProviders = new Set();
+    const options = [];
+
+    availableModelPool.forEach((model) => {
+      const provider = String(model?.provider || '').trim();
+      if (!provider || seenProviders.has(provider)) {
+        return;
+      }
+      seenProviders.add(provider);
+      options.push(provider);
+    });
+
+    options.sort((left, right) => left.localeCompare(right));
+
+    if (
+      configuredProvider
+      && !options.some((provider) => normalizeProvider(provider) === normalizeProvider(configuredProvider))
+    ) {
+      options.unshift(configuredProvider);
+    }
+
+    return options;
+  }, [availableModelPool, configuredProvider]);
+  const providerLabel = configuredProvider || providerOptions[0] || 'No providers available';
   const modelLabel = configuredModelId || modelOptions[0]?.id || 'No models available';
+  const [providerMenuOpen, setProviderMenuOpen] = useState(false);
   const [modelMenuOpen, setModelMenuOpen] = useState(false);
+  const providerMenuRef = useRef(null);
   const modelMenuRef = useRef(null);
 
   useEffect(() => {
     const handlePointerDown = (event) => {
-      if (!modelMenuRef.current) {
-        return;
+      if (
+        providerMenuRef.current
+        && !providerMenuRef.current.contains(event.target)
+      ) {
+        setProviderMenuOpen(false);
       }
-      if (!modelMenuRef.current.contains(event.target)) {
+      if (
+        modelMenuRef.current
+        && !modelMenuRef.current.contains(event.target)
+      ) {
         setModelMenuOpen(false);
       }
     };
@@ -184,6 +217,36 @@ function ChatInterface({ sidebarOpen = true, focusComposerToken = 0 }) {
       speech_mode_enabled: !speechModeEnabled,
     });
   }, [speechModeEnabled, updateConfig]);
+
+  const handleProviderSelect = useCallback((provider) => {
+    setProviderMenuOpen(false);
+    if (!provider || typeof updateConfig !== 'function') {
+      return;
+    }
+
+    const selectedProvider = String(provider).trim();
+    if (!selectedProvider) {
+      return;
+    }
+
+    const normalizedSelectedProvider = normalizeProvider(selectedProvider);
+    const providerModels = availableModelPool.filter(
+      (model) => normalizeProvider(model?.provider) === normalizedSelectedProvider,
+    );
+
+    let nextModelId = configuredModelId;
+    const currentModelInProvider = providerModels.some(
+      (model) => String(model?.id || '').trim() === configuredModelId,
+    );
+    if (!currentModelInProvider) {
+      nextModelId = String(providerModels[0]?.id || '').trim();
+    }
+
+    updateConfig({
+      model_provider: selectedProvider,
+      selected_model_id: nextModelId,
+    });
+  }, [availableModelPool, configuredModelId, updateConfig]);
 
   const handleModelSelect = useCallback((option) => {
     setModelMenuOpen(false);
@@ -380,6 +443,44 @@ function ChatInterface({ sidebarOpen = true, focusComposerToken = 0 }) {
                 <ChatGptLogo size={14} />
               </div>
             ) : null}
+            <div className="chat-provider-dropdown" ref={providerMenuRef}>
+              <button
+                type="button"
+                className="chat-provider-selector"
+                aria-label="Provider selector"
+                aria-expanded={providerMenuOpen}
+                onClick={() => {
+                  setProviderMenuOpen((current) => !current);
+                  setModelMenuOpen(false);
+                }}
+              >
+                <span>{providerLabel}</span>
+                <ChevronDown size={14} />
+              </button>
+              {providerMenuOpen ? (
+                <div className="chat-provider-menu" role="menu">
+                  {providerOptions.length > 0 ? (
+                    providerOptions.map((provider) => (
+                      <button
+                        key={provider}
+                        type="button"
+                        className="chat-provider-menu-item"
+                        role="menuitem"
+                        onClick={() => {
+                          handleProviderSelect(provider);
+                        }}
+                      >
+                        <span>{provider}</span>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="chat-provider-menu-item" aria-disabled="true">
+                      <span>No providers available</span>
+                    </div>
+                  )}
+                </div>
+              ) : null}
+            </div>
             <div className="chat-model-dropdown" ref={modelMenuRef}>
               <button
                 type="button"
@@ -388,6 +489,7 @@ function ChatInterface({ sidebarOpen = true, focusComposerToken = 0 }) {
                 aria-expanded={modelMenuOpen}
                 onClick={() => {
                   setModelMenuOpen((current) => !current);
+                  setProviderMenuOpen(false);
                 }}
               >
                 <span>{modelLabel}</span>

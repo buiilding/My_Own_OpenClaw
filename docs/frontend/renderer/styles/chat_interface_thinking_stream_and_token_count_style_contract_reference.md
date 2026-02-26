@@ -22,9 +22,16 @@ Header composition:
 
 - `.chat-container` is full-height; dashboard shell controls outer spacing.
 - `.chat-header` is draggable with compact top-bar spacing and divider.
+- `.chat-provider-selector` / `.chat-provider-menu*` classes own provider dropdown visuals.
 - `.chat-model-selector` and `.chat-model-menu*` classes own model dropdown visuals.
 - collapsed sidebar mode renders `.chat-header-brand-dot` before selector.
 - `.chat-meta` remains non-draggable for interactive controls.
+
+Selector behavior contract:
+
+- Provider selector is rendered left of the model selector.
+- Model options are filtered by selected provider.
+- Changing provider can auto-switch selected model when the current model is not available under the new provider.
 
 Control placement:
 

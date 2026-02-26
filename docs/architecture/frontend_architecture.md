@@ -151,7 +151,7 @@ Primary modules:
 - `features/chat/hooks/useToolRunner.ts`:
   - Executes incoming tool calls/bundles, stale-turn cancellation responses.
 - `features/chat/components/ChatInterface.jsx`:
-  - Model selector, stop/new-chat actions, speech toggle, retry/edit message flows.
+  - Provider + model selectors, stop/new-chat actions, speech toggle, retry/edit message flows.
 - `features/chat/components/MessageList.jsx`:
   - Message rendering + inline user-message editor.
 
