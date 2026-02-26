@@ -192,6 +192,79 @@ function ChatInterface({ sidebarOpen = true }) {
     updateMessage(messageId, { feedback });
   }, [updateMessage]);
 
+  const handleEditFromUser = useCallback(async (userMessageId) => {
+    const userIndex = messages.findIndex(
+      (message) => message.id === userMessageId && message.sender === 'user',
+    );
+    if (userIndex < 0) {
+      return;
+    }
+
+    const editUserMessage = messages[userIndex];
+    const preservedMessages = messages.slice(0, userIndex);
+    const preservedPayloads = preservedMessages.map(toRehydratePayload);
+    const sessionInfo = getTranscriptSessionInfo();
+
+    let conversationRef = getActiveConversationRef() || sessionInfo.conversationRef;
+    if (!conversationRef) {
+      conversationRef = createConversationRef();
+      setActiveConversationRef(conversationRef);
+    }
+    updateTranscriptSession(conversationRef, sessionInfo.userId || undefined);
+
+    setMessages([...preservedMessages, editUserMessage]);
+    setThinkingStatus(null);
+    setIsSending(true);
+
+    try {
+      const userId = sessionInfo.userId;
+      if (userId) {
+        await IpcBridge.invoke(INVOKE_CHANNELS.DELETE_CONVERSATION, {
+          userId,
+          conversationId: conversationRef,
+          recordKind: 'transcript',
+        });
+
+        for (const message of preservedMessages) {
+          await IpcBridge.invoke(INVOKE_CHANNELS.STORE_TRANSCRIPT, {
+            content: message.text,
+            userId,
+            conversationRef,
+            role: resolveTranscriptRole(message),
+            messageType: resolveTranscriptMessageType(message),
+            toolName: message.toolName || null,
+            correlationId: message.correlationId || null,
+            screenshot: message.screenshotRef || null,
+            timestamp: message.timestamp || null,
+          });
+        }
+
+        await IpcBridge.invoke(INVOKE_CHANNELS.STORE_TRANSCRIPT, {
+          content: editUserMessage.text,
+          userId,
+          conversationRef,
+          role: 'user',
+          messageType: 'user',
+          toolName: null,
+          correlationId: null,
+          screenshot: editUserMessage.screenshotRef || null,
+          timestamp: editUserMessage.timestamp || null,
+        });
+      }
+
+      await ApiClient.sendRehydrateConversation(conversationRef, preservedPayloads);
+      await ApiClient.sendQuery(
+        editUserMessage.text,
+        conversationRef,
+        editUserMessage.screenshotRef || null,
+        editUserMessage.screenshotUrl || null,
+      );
+    } catch (error) {
+      console.error('[ChatInterface] Failed to edit user message:', error);
+      setIsSending(false);
+    }
+  }, [messages, setIsSending, setMessages, setThinkingStatus]);
+
   const handleTryAgainFromAssistant = useCallback(async (assistantMessageId) => {
     const assistantIndex = messages.findIndex(
       (message) => message.id === assistantMessageId && message.sender === 'assistant',
@@ -355,9 +428,11 @@ function ChatInterface({ sidebarOpen = true }) {
             messages={messages}
             thinkingStatus={thinkingStatus}
             enableAssistantActions
+            enableUserActions
             disableAssistantActions={isSending || canStop}
             onAssistantFeedbackChange={handleAssistantFeedbackChange}
             onAssistantTryAgain={handleTryAgainFromAssistant}
+            onUserEdit={handleEditFromUser}
           />
           <MessageInput
             onSendMessage={sendMessage}
