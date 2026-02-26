@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(backend-tts-session): add lifecycle coverage for TTS session enter/exit, active-task cancellation, cleanup forwarding, and wait-for-audio behavior.
+- docs(frontend-protocol-validation): expand frontend validation boundary docs with channel/mapper coverage snapshot (`5/32/11` IPC channels, `9` mapper definitions), add explicit validation control-path index (allowlist, dev guards, payload normalization, user-id/query sanitization, mapper compatibility), and refresh frontend protocol matrix mapper count.
 - test(sidecar-scroll-tool): extend runtime coverage with missing-direction validation and pyautogui import-failure handling.
 - perf(frontend-tests): speed up `ChatGptDashboardShell.test.jsx` by replacing repeated bootstrap `waitFor` polling with deterministic microtask flushes and advancing debounced search timers via fake timers; runtime report delta moved from `1084ms` to `843ms`.
 - docs(backend-protocol-testing): expand backend protocol testing reference with coverage snapshot (`7` files / `52` tests), control-path test index (timeout cleanup, parser/validation gate, route parity, sender queue safety, schema compatibility, envelope context semantics, compact-history control flow), and updated backend testing hub scope wording.
