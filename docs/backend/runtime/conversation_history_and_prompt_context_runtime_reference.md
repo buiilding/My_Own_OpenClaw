@@ -74,12 +74,12 @@ This makes later iterations cheap and preserves identical tool schema surface ac
 History consumption semantics in `ConversationHistory.add_tool_output(...)`:
 
 - when staged ids exist, history writes one or more canonical `role=tool` rows with `tool_call_id`
-- if staged ids exist and screenshot is present, history appends one screenshot-context multimodal `TOOL_OUTPUT` row (`role=user`, `content="[tool screenshot context]"`) for screenshot continuity
+- if staged ids exist and screenshot is present, history attaches screenshot `image_data` directly to the first canonical `role=tool` row (multimodal `content=[text,image_url]` in LLM view)
 - if no staged ids exist, history writes a single legacy `TOOL_OUTPUT` row (`role=user`) with text (and optional screenshot)
 - for bundles, `consume_all_on_next_output=True` consumes all staged ids on next output
 - for non-bundles, one staged id consumed per output event
 
-This preserves strict provider tool-message linkage while keeping screenshot continuity without duplicated tool-output text rows.
+This preserves strict provider tool-message linkage while keeping screenshot continuity without duplicated tool-output text rows or companion screenshot rows.
 
 ## Rehydrate Normalization Rules
 

@@ -137,29 +137,23 @@ def test_tool_output_with_staged_tool_call_id_preserves_image_context_without_te
     history.add_tool_output("tool output", image_data="img-1")
 
     stored = history.get_stored_messages()
-    assert len(stored) == 2
+    assert len(stored) == 1
     assert stored[0].role == MessageRole.TOOL
     assert stored[0].content == "tool output"
     assert stored[0].tool_call_id == "call_1"
-    assert stored[0].image_data is None
-    assert stored[1].role == MessageRole.USER
-    assert stored[1].content == "[tool screenshot context]"
-    assert stored[1].image_data == "img-1"
+    assert stored[0].image_data == "img-1"
 
     llm_messages = history.get_history()
-    assert len(llm_messages) == 2
+    assert len(llm_messages) == 1
     assert llm_messages[0]["role"] == "tool"
-    assert llm_messages[0]["content"] == "tool output"
-    assert llm_messages[1]["role"] == "user"
-    assert isinstance(llm_messages[1]["content"], list)
-    assert llm_messages[1]["content"][0]["type"] == "text"
-    assert llm_messages[1]["content"][0]["text"] == "[tool screenshot context]"
-    assert llm_messages[1]["content"][1]["image_url"]["url"].startswith(
+    assert isinstance(llm_messages[0]["content"], list)
+    assert llm_messages[0]["content"][0]["type"] == "text"
+    assert llm_messages[0]["content"][0]["text"] == "tool output"
+    assert llm_messages[0]["content"][1]["image_url"]["url"].startswith(
         "data:image/png;base64,"
     )
 
-    text_rows = [msg for msg in llm_messages if msg.get("content") == "tool output"]
-    assert len(text_rows) == 1
+    assert llm_messages[0]["tool_call_id"] == "call_1"
 
 
 def test_add_tool_output_with_staged_tool_and_image_updates_cached_token_count_per_row(
@@ -190,9 +184,9 @@ def test_add_tool_output_with_staged_tool_and_image_updates_cached_token_count_p
     history.stage_tool_call_ids(["call_1"])
     history.add_tool_output("tool output", image_data="img-1")
 
-    assert history.get_token_count("model-a") == 14
+    assert history.get_token_count("model-a") == 12
     assert service.count_tokens_calls == 1
-    assert service.count_message_tokens_calls == 2
+    assert service.count_message_tokens_calls == 1
 
 
 def test_prune_invalidates_token_cache(monkeypatch):

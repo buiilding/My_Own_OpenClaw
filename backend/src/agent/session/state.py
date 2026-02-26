@@ -103,17 +103,13 @@ class ConversationHistory:
         tool_call_ids = self._consume_tool_call_ids_for_next_output()
         stored_messages: List[StoredMessage] = []
         if tool_call_ids:
-            for tool_call_id in tool_call_ids:
+            for index, tool_call_id in enumerate(tool_call_ids):
                 stored_messages.append(
                     self._build_tool_result_message(
                         message=message,
                         tool_call_id=tool_call_id,
+                        image_data=image_data if index == 0 else None,
                     )
-                )
-            if image_data:
-                # Preserve screenshot context without duplicating tool-output text rows.
-                stored_messages.append(
-                    self._build_tool_screenshot_context_message(image_data)
                 )
         else:
             # Fallback path when no tool_call_id linkage exists.
@@ -439,28 +435,14 @@ class ConversationHistory:
         self,
         message: str,
         tool_call_id: str,
+        image_data: Optional[str] = None,
     ) -> StoredMessage:
         return StoredMessage(
             role=MessageRole.TOOL,
             content=message,
             message_type=MessageType.TOOL_OUTPUT,
-            image_data=None,
-            tool_call_id=tool_call_id,
-        )
-
-    def _build_tool_screenshot_context_message(self, image_data: str) -> StoredMessage:
-        """
-        Build an image-only context row for tool screenshots.
-
-        This preserves screenshot continuity without duplicating tool output text when
-        canonical role=tool rows already carry the textual tool result.
-        """
-        return StoredMessage(
-            role=MessageRole.USER,
-            # Some providers reject empty text blocks inside multimodal user messages.
-            content="[tool screenshot context]",
-            message_type=MessageType.TOOL_OUTPUT,
             image_data=image_data,
+            tool_call_id=tool_call_id,
         )
 
     def _build_assistant_message(

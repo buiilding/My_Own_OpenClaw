@@ -62,9 +62,22 @@ class StoredMessage:
             return assistant_message
 
         if self.role == MessageRole.TOOL:
+            if self.image_data:
+                if not self.image_data.startswith("data:image/"):
+                    image_url = f"data:image/png;base64,{self.image_data}"
+                else:
+                    image_url = self.image_data
+
+                tool_content: Union[str, MultimodalContent] = [
+                    {"type": ContentType.TEXT.value, "text": self.content},
+                    {"type": ContentType.IMAGE_URL.value, "image_url": {"url": image_url}},
+                ]
+            else:
+                tool_content = self.content
+
             tool_message: Dict[str, Any] = {
                 "role": self.role.value,
-                "content": self.content,
+                "content": tool_content,
                 "tool_call_id": self.tool_call_id or "unknown_tool_call",
             }
             if self.tool_name:

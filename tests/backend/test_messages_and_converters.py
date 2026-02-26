@@ -107,6 +107,28 @@ def test_stored_message_tool_role_defaults_and_name_passthrough():
     }
 
 
+def test_stored_message_tool_role_supports_multimodal_content_with_image():
+    message = StoredMessage(
+        role=MessageRole.TOOL,
+        content="tool output with screenshot",
+        message_type=MessageType.TOOL_OUTPUT,
+        tool_call_id="call_1",
+        image_data="img123",
+    )
+
+    llm_message = message.to_llm_message()
+
+    assert llm_message["role"] == "tool"
+    assert llm_message["tool_call_id"] == "call_1"
+    assert isinstance(llm_message["content"], list)
+    assert llm_message["content"][0]["type"] == "text"
+    assert llm_message["content"][0]["text"] == "tool output with screenshot"
+    assert llm_message["content"][1]["type"] == "image_url"
+    assert llm_message["content"][1]["image_url"]["url"].startswith(
+        "data:image/png;base64,"
+    )
+
+
 def test_content_to_message_content_uses_first_image_and_ignores_invalid_parts():
     content = [
         {"type": "text", "text": "first"},
