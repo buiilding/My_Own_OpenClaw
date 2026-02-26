@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(backend-browser-char-window): add shared snapshot/extract char-window field factories in `browser/schemas.py` and reuse for `max_chars`/`offset`/`limit`; combined jscpd audit dropped from `5` to `4` clones.
 - refactor(backend-browser-schema-fields): add shared required/optional string field factories in `browser/schemas.py` and reuse them for `type.text` plus `evaluate.script`/`evaluate.code`; combined jscpd audit dropped from `7` to `5` clones.
 - refactor(backend-browser-connect-schema): add shared `_ignored_compat_field(...)` helper and reuse it for `BrowserConnectArgs.mode`/`cdp_url` compatibility fields in `browser/schemas.py`; combined jscpd audit dropped from `8` to `7` clones.
 - refactor(backend-browser-schemas): extract shared click/evaluate validator helpers in `browser/schemas.py` and add regression coverage for required click target/evaluate payload validation paths; combined jscpd audit dropped from `9` to `8` clones.
