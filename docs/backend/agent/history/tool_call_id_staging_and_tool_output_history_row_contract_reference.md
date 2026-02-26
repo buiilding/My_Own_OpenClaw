@@ -37,7 +37,7 @@ title: "Tool-Call-ID Staging and Tool-Output History Row Contract Reference"
 `add_tool_output(message, image_data)` writes:
 
 1. when staged ids exist: one or more canonical `role='tool'` rows with `tool_call_id`
-2. when staged ids exist and screenshot is present: one image-only `role='user'` `TOOL_OUTPUT` row (`content=""`) to preserve multimodal screenshot context
+2. when staged ids exist and screenshot is present: one screenshot-context `role='user'` `TOOL_OUTPUT` row (`content="[tool screenshot context]"`) to preserve multimodal screenshot context
 3. when no staged ids exist: one legacy `role='user'` `TOOL_OUTPUT` row with text (and screenshot, if present)
 
 Reason:

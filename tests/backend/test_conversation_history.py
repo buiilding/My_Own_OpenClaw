@@ -143,7 +143,7 @@ def test_tool_output_with_staged_tool_call_id_preserves_image_context_without_te
     assert stored[0].tool_call_id == "call_1"
     assert stored[0].image_data is None
     assert stored[1].role == MessageRole.USER
-    assert stored[1].content == ""
+    assert stored[1].content == "[tool screenshot context]"
     assert stored[1].image_data == "img-1"
 
     llm_messages = history.get_history()
@@ -152,6 +152,8 @@ def test_tool_output_with_staged_tool_call_id_preserves_image_context_without_te
     assert llm_messages[0]["content"] == "tool output"
     assert llm_messages[1]["role"] == "user"
     assert isinstance(llm_messages[1]["content"], list)
+    assert llm_messages[1]["content"][0]["type"] == "text"
+    assert llm_messages[1]["content"][0]["text"] == "[tool screenshot context]"
     assert llm_messages[1]["content"][1]["image_url"]["url"].startswith(
         "data:image/png;base64,"
     )
