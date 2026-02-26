@@ -259,3 +259,14 @@ def test_get_all_online_models_deduplicates_provider_model_pairs():
 
     assert len(ids) == len(set(ids))
     assert any(m.get("supports_thinking") for m in models)
+
+
+def test_get_online_models_includes_openrouter_qwen3_vl_235b_a22b_thinking():
+    service = ModelService(AppConfig())
+    models = service.get_online_models()
+
+    assert any(
+        model.get("provider") == "openrouter"
+        and model.get("id") == "qwen/qwen3-vl-235b-a22b-thinking"
+        for model in models
+    )
