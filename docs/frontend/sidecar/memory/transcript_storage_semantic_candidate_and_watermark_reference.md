@@ -95,7 +95,8 @@ Transcript write invariants in `LocalMemoryStore.add(...)`:
 Conversation query/delete APIs are transcript-scoped:
 
 - `list_conversations(...)` ignores non-transcript kinds and returns transcript windows only
-- `list_conversations(...)` includes `title` and `title_source`; titles are generated heuristically from the first user/assistant turn pair
+- `list_conversations(...)` includes `title` and `title_source`; titles are generated asynchronously via backend LLM title API using the active model/provider
+- untitled transcript windows are hidden from `list_conversations(...)` until title generation finishes
 - `search_conversations(...)` searches transcript message content (lexical + semantic) and returns ranked conversation-level matches with snippets
 - `get_episodic_memories_by_conversation(...)` applies `record_kind='transcript'`
 - `delete_conversation(...)` applies `record_kind='transcript'`, cleans vector-ID maps for deleted rows, and removes any persisted row in `conversation_titles`

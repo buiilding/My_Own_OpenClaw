@@ -26,12 +26,12 @@ except ImportError:
     faiss = None
 
 from core.remote_embedding_client import RemoteEmbeddingClient
+from core.remote_title_client import RemoteTitleClient
 from memory.faiss_index import (
     read_index_safe,
     read_index_safe_async,
     save_indices_async,
 )
-from memory.conversation_titles import derive_conversation_title
 from memory.sqlite_store import (
     init_episodic_schema,
     init_semantic_schema,
@@ -40,6 +40,17 @@ from memory.sqlite_store import (
 from memory.watermark_state import WatermarkStateStore
 
 logger = logging.getLogger(__name__)
+
+
+class _NoopTitleClient:
+    async def initialize(self) -> None:
+        return None
+
+    async def close(self) -> None:
+        return None
+
+    async def generate_title(self, **_kwargs) -> str:
+        return ""
 
 
 @dataclass(frozen=True)
@@ -132,6 +143,9 @@ class LocalMemoryStore:
 
         self.memory_dir = memory_dir
         self.embedder = RemoteEmbeddingClient()
+        self.title_client = RemoteTitleClient()
+        self._title_generation_tasks: Dict[Tuple[str, str], asyncio.Task[Any]] = {}
+        self._title_generation_semaphore = asyncio.Semaphore(2)
 
         # Watermark state file for tracking semanticization progress
         self.watermark_state_path = memory_dir / "watermark_state.json"
@@ -179,6 +193,7 @@ class LocalMemoryStore:
 
         # Initialize the remote embedding client
         await self.embedder.initialize()
+        await self.title_client.initialize()
 
         # Create database schemas and load vector mappings
         await self._init_databases()
@@ -204,6 +219,8 @@ class LocalMemoryStore:
 
     async def close(self) -> None:
         """Close the embedding client and save indices."""
+        await self._cancel_title_generation_tasks()
+        await self.title_client.close()
         await self.embedder.close()
         await self._save_faiss_indices()
 
@@ -1245,7 +1262,7 @@ class LocalMemoryStore:
                     "model_id": row["model_id"],
                     "model_provider": row["model_provider"],
                     "title": title.strip(),
-                    "title_source": title_source or "heuristic",
+                    "title_source": title_source or "model",
                     "is_resumable": bool(
                         isinstance(conversation_id, str)
                         and conversation_id.startswith("conv_")
@@ -1357,25 +1374,80 @@ class LocalMemoryStore:
         preferred_model_provider: Optional[str] = None,
     ) -> None:
         """
-        Best-effort title generation after transcript writes.
+        Non-blocking title generation trigger after assistant transcript writes.
         """
         if not conversation_id:
             return
+        self._ensure_title_generation_runtime_state()
+        task_key = (user_id, conversation_id)
+        existing_task = self._title_generation_tasks.get(task_key)
+        if existing_task and not existing_task.done():
+            return
+
+        task = asyncio.create_task(
+            self._run_conversation_title_generation(
+                user_id=user_id,
+                conversation_id=conversation_id,
+                preferred_model_id=preferred_model_id,
+                preferred_model_provider=preferred_model_provider,
+            ),
+            name=f"title-gen:{user_id}:{conversation_id}",
+        )
+        self._title_generation_tasks[task_key] = task
+
+        def _cleanup(done_task: asyncio.Task[Any]) -> None:
+            current = self._title_generation_tasks.get(task_key)
+            if current is done_task:
+                self._title_generation_tasks.pop(task_key, None)
+
+        task.add_done_callback(_cleanup)
+
+    def _ensure_title_generation_runtime_state(self) -> None:
+        if not hasattr(self, "title_client") or self.title_client is None:
+            # Test harnesses that instantiate via __new__ can omit title wiring.
+            self.title_client = _NoopTitleClient()
+        if not hasattr(self, "_title_generation_tasks") or self._title_generation_tasks is None:
+            self._title_generation_tasks = {}
+        if (
+            not hasattr(self, "_title_generation_semaphore")
+            or self._title_generation_semaphore is None
+        ):
+            self._title_generation_semaphore = asyncio.Semaphore(2)
+
+    async def _cancel_title_generation_tasks(self) -> None:
+        self._ensure_title_generation_runtime_state()
+        pending_tasks = [
+            task
+            for task in self._title_generation_tasks.values()
+            if task and not task.done()
+        ]
+        if not pending_tasks:
+            self._title_generation_tasks.clear()
+            return
+        for task in pending_tasks:
+            task.cancel()
+        await asyncio.gather(*pending_tasks, return_exceptions=True)
+        self._title_generation_tasks.clear()
+
+    async def _run_conversation_title_generation(
+        self,
+        *,
+        user_id: str,
+        conversation_id: str,
+        preferred_model_id: Optional[str],
+        preferred_model_provider: Optional[str],
+    ) -> None:
+        self._ensure_title_generation_runtime_state()
         try:
-            async with aiosqlite.connect(self.episodic_db_path) as conn:
-                conn.row_factory = aiosqlite.Row
-                cursor = await conn.cursor()
-                await self._ensure_conversation_title(
-                    cursor=cursor,
+            async with self._title_generation_semaphore:
+                await self._generate_conversation_title_and_persist(
                     user_id=user_id,
                     conversation_id=conversation_id,
-                    existing_title=None,
-                    existing_title_source=None,
-                    existing_title_locked=None,
                     preferred_model_id=preferred_model_id,
                     preferred_model_provider=preferred_model_provider,
                 )
-                await conn.commit()
+        except asyncio.CancelledError:
+            raise
         except Exception as exc:
             logger.warning(
                 "Failed to generate conversation title (user_id=%s conversation_id=%s): %s",
@@ -1384,45 +1456,124 @@ class LocalMemoryStore:
                 exc,
             )
 
-    async def _ensure_conversation_title(
+    async def _generate_conversation_title_and_persist(
         self,
-        cursor,
+        *,
         user_id: str,
-        conversation_id: Optional[str],
-        existing_title: Optional[str],
-        existing_title_source: Optional[str],
-        existing_title_locked: Optional[int],
-        preferred_model_id: Optional[str] = None,
-        preferred_model_provider: Optional[str] = None,
-    ) -> Tuple[Optional[str], Optional[str]]:
-        if not conversation_id:
-            return None, None
+        conversation_id: str,
+        preferred_model_id: Optional[str],
+        preferred_model_provider: Optional[str],
+    ) -> None:
+        async with aiosqlite.connect(self.episodic_db_path) as conn:
+            conn.row_factory = aiosqlite.Row
+            cursor = await conn.cursor()
 
-        current_title = (existing_title or "").strip()
-        if current_title:
-            return current_title, existing_title_source or "heuristic"
+            current_title, _, is_locked = await self._lookup_conversation_title_state(
+                cursor=cursor,
+                user_id=user_id,
+                conversation_id=conversation_id,
+            )
+            if current_title or is_locked:
+                return
 
-        is_locked = bool(existing_title_locked)
-        if existing_title_locked is None:
+            first_user_content, first_assistant_content, assistant_model_id, assistant_model_provider = (
+                await self._fetch_title_generation_inputs(
+                    cursor=cursor,
+                    user_id=user_id,
+                    conversation_id=conversation_id,
+                    preferred_model_id=preferred_model_id,
+                    preferred_model_provider=preferred_model_provider,
+                )
+            )
+            if not first_user_content or not first_assistant_content:
+                return
+
+            selected_model_id = (
+                preferred_model_id.strip()
+                if isinstance(preferred_model_id, str) and preferred_model_id.strip()
+                else assistant_model_id
+            )
+            selected_model_provider = (
+                preferred_model_provider.strip()
+                if isinstance(preferred_model_provider, str) and preferred_model_provider.strip()
+                else assistant_model_provider
+            )
+
+            generated_title = await self.title_client.generate_title(
+                user_id=user_id,
+                user_message=first_user_content,
+                assistant_message=first_assistant_content,
+                model_id=selected_model_id,
+                model_provider=selected_model_provider,
+            )
+            normalized_title = self._normalize_generated_title(generated_title)
+            if not normalized_title:
+                return
+
+            now_iso = datetime.now(timezone.utc).isoformat()
             await cursor.execute(
                 """
-                SELECT title, source, is_locked
-                FROM conversation_titles
-                WHERE user_id = ? AND conversation_id = ?
+                INSERT INTO conversation_titles (
+                    user_id,
+                    conversation_id,
+                    title,
+                    source,
+                    is_locked,
+                    created_at,
+                    updated_at
+                )
+                VALUES (?, ?, ?, ?, 0, ?, ?)
+                ON CONFLICT(user_id, conversation_id)
+                DO UPDATE SET
+                    title = excluded.title,
+                    source = excluded.source,
+                    updated_at = excluded.updated_at
+                WHERE conversation_titles.is_locked = 0
             """,
-                (user_id, conversation_id),
+                (
+                    user_id,
+                    conversation_id,
+                    normalized_title,
+                    "model",
+                    now_iso,
+                    now_iso,
+                ),
             )
-            row = await cursor.fetchone()
-            if row:
-                current_title = (row["title"] or "").strip()
-                existing_title_source = row["source"] or existing_title_source
-                is_locked = bool(row["is_locked"])
-                if current_title:
-                    return current_title, existing_title_source or "heuristic"
+            await conn.commit()
 
-        if is_locked:
-            return current_title or None, existing_title_source or None
+    async def _lookup_conversation_title_state(
+        self,
+        *,
+        cursor,
+        user_id: str,
+        conversation_id: str,
+    ) -> Tuple[Optional[str], Optional[str], bool]:
+        await cursor.execute(
+            """
+            SELECT title, source, is_locked
+            FROM conversation_titles
+            WHERE user_id = ? AND conversation_id = ?
+        """,
+            (user_id, conversation_id),
+        )
+        row = await cursor.fetchone()
+        if not row:
+            return None, None, False
 
+        title = (row["title"] or "").strip() or None
+        source = (row["source"] or "").strip() or None
+        is_locked = bool(row["is_locked"])
+        return title, source, is_locked
+
+    async def _fetch_title_generation_inputs(
+        self,
+        *,
+        cursor,
+        user_id: str,
+        conversation_id: str,
+        preferred_model_id: Optional[str],
+        preferred_model_provider: Optional[str],
+    ) -> Tuple[Optional[str], Optional[str], Optional[str], Optional[str]]:
         await cursor.execute(
             """
             SELECT content
@@ -1454,7 +1605,7 @@ class LocalMemoryStore:
         if normalized_model_id and normalized_model_provider:
             await cursor.execute(
                 """
-                SELECT content
+                SELECT content, model_id, model_provider
                 FROM memories
                 WHERE user_id = ? AND conversation_id = ?
                   AND record_kind = 'transcript'
@@ -1479,7 +1630,7 @@ class LocalMemoryStore:
         if not first_assistant_row:
             await cursor.execute(
                 """
-                SELECT content
+                SELECT content, model_id, model_provider
                 FROM memories
                 WHERE user_id = ? AND conversation_id = ?
                   AND record_kind = 'transcript'
@@ -1494,50 +1645,56 @@ class LocalMemoryStore:
             )
             first_assistant_row = await cursor.fetchone()
 
-        if not first_user_row or not first_assistant_row:
-            return current_title or None, existing_title_source or None
-
-        generated_title = derive_conversation_title(
-            first_user_row["content"],
-            first_assistant_row["content"],
+        return (
+            first_user_row["content"] if first_user_row else None,
+            first_assistant_row["content"] if first_assistant_row else None,
+            (first_assistant_row["model_id"] or "").strip() if first_assistant_row else None,
+            (first_assistant_row["model_provider"] or "").strip() if first_assistant_row else None,
         )
-        normalized_title = (generated_title or "").strip()
-        if not normalized_title:
-            return current_title or None, existing_title_source or None
 
-        now_iso = datetime.now(timezone.utc).isoformat()
-        if existing_title_locked is None:
-            await cursor.execute(
-                """
-                INSERT INTO conversation_titles (
-                    user_id,
-                    conversation_id,
-                    title,
-                    source,
-                    is_locked,
-                    created_at,
-                    updated_at
-                )
-                VALUES (?, ?, ?, ?, 0, ?, ?)
-                ON CONFLICT(user_id, conversation_id)
-                DO UPDATE SET
-                    title = excluded.title,
-                    source = excluded.source,
-                    updated_at = excluded.updated_at
-                WHERE conversation_titles.is_locked = 0
-            """,
-                (
-                    user_id,
-                    conversation_id,
-                    normalized_title,
-                    "heuristic",
-                    now_iso,
-                    now_iso,
-                ),
-            )
-            return normalized_title, "heuristic"
+    @staticmethod
+    def _normalize_generated_title(raw_title: Optional[str]) -> str:
+        if not isinstance(raw_title, str):
+            return ""
+        title = raw_title.strip()
+        if not title:
+            return ""
+        first_line = next((line.strip() for line in title.splitlines() if line.strip()), "")
+        if not first_line:
+            return ""
+        first_line = re.sub(r"^(title\s*:\s*)", "", first_line, flags=re.IGNORECASE)
+        first_line = first_line.strip().strip("`").strip().strip("\"'")
+        first_line = re.sub(r"\s+", " ", first_line).strip()
+        if len(first_line) > 72:
+            first_line = first_line[:72].rstrip()
+        return first_line
 
-        return current_title or None, existing_title_source or None
+    async def _ensure_conversation_title(
+        self,
+        cursor,
+        user_id: str,
+        conversation_id: Optional[str],
+        existing_title: Optional[str],
+        existing_title_source: Optional[str],
+        existing_title_locked: Optional[int],
+    ) -> Tuple[Optional[str], Optional[str]]:
+        if not conversation_id:
+            return None, None
+
+        current_title = (existing_title or "").strip()
+        if current_title:
+            return current_title, existing_title_source or "model"
+
+        title, source, is_locked = await self._lookup_conversation_title_state(
+            cursor=cursor,
+            user_id=user_id,
+            conversation_id=conversation_id,
+        )
+        if title:
+            return title, source or "model"
+        if is_locked:
+            return None, source
+        return None, None
 
     async def _search_transcript_hits_lexical(
         self,
@@ -1768,6 +1925,7 @@ class LocalMemoryStore:
                 existing_title_source=row["title_source"],
                 existing_title_locked=row["title_locked"],
             )
+            normalized_title = title.strip() if isinstance(title, str) and title.strip() else "New chat"
             summaries[conversation_id] = {
                 "conversation_id": conversation_id,
                 "first_timestamp": row["first_timestamp"],
@@ -1775,8 +1933,8 @@ class LocalMemoryStore:
                 "entry_count": row["entry_count"],
                 "model_id": row["model_id"],
                 "model_provider": row["model_provider"],
-                "title": title or "New chat",
-                "title_source": title_source or "heuristic",
+                "title": normalized_title,
+                "title_source": title_source or ("model" if normalized_title != "New chat" else "pending"),
                 "is_resumable": bool(
                     isinstance(conversation_id, str)
                     and conversation_id.startswith("conv_")

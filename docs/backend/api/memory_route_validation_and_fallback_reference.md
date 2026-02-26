@@ -87,6 +87,23 @@ Response model:
 - `facts: list[str]`
 - `success: bool` (route currently returns `true` on success)
 
+## `/api/semantic/title` Contract
+
+Route: `POST /api/semantic/title`
+
+Request model `GenerateTitleRequest`:
+
+- `user_id`: required, validated through shared `validate_user_id(...)`
+- `user_message`: required, `1..32768` chars
+- `assistant_message`: required, `1..32768` chars
+- `model_id`: optional override
+- `model_provider`: optional override
+
+Response model:
+
+- `title: str`
+- `success: bool` (route currently returns `true` on success)
+
 ## Semantic Config Resolution and API-Key Loading
 
 `SemanticSummarizationService.summarize(...)` config path:
@@ -95,6 +112,9 @@ Response model:
 2. otherwise use global `container.config`
 3. for non-local model mode with missing key, call `load_api_key_for_provider(...)`
 4. instantiate LLM client from resolved config and request completion with `selected_model_id`
+
+`SemanticSummarizationService.generate_title(...)` follows the same path, with optional
+`model_provider`/`model_id` overrides applied before client creation.
 
 ## Semantic Prompt/Parsing Pipeline
 

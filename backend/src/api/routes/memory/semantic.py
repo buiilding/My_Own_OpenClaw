@@ -67,6 +67,51 @@ class SummarizeResponse(BaseModel):
     success: bool
 
 
+class GenerateTitleRequest(BaseModel):
+    """Request model for conversation title generation."""
+
+    user_id: str = Field(
+        ..., min_length=1, description="User ID (required, cannot be default_user)"
+    )
+    user_message: str = Field(
+        ...,
+        min_length=1,
+        max_length=32768,
+        description="First user message text",
+    )
+    assistant_message: str = Field(
+        ...,
+        min_length=1,
+        max_length=32768,
+        description="First assistant message text",
+    )
+    model_id: str | None = Field(
+        default=None,
+        max_length=256,
+        description="Optional model override for title generation",
+    )
+    model_provider: str | None = Field(
+        default=None,
+        max_length=128,
+        description="Optional provider override for title generation",
+    )
+
+    @field_validator("user_id")
+    @classmethod
+    def validate_title_user_id_field(cls, v: str) -> str:
+        try:
+            return validate_user_id(v)
+        except ValidationError as e:
+            raise ValueError(e.message) from e
+
+
+class GenerateTitleResponse(BaseModel):
+    """Response model for title generation."""
+
+    title: str
+    success: bool
+
+
 @router.post("/summarize", response_model=SummarizeResponse)
 async def summarize_conversations(
     request: SummarizeRequest,
@@ -95,6 +140,31 @@ async def summarize_conversations(
     )
 
     return SummarizeResponse(summary=summary, facts=facts, success=True)
+
+
+@router.post("/title", response_model=GenerateTitleResponse)
+async def generate_conversation_title(
+    request: GenerateTitleRequest,
+    container: ContainerDep,
+    session_manager: SessionManagerDep,
+) -> GenerateTitleResponse:
+    """Generate a conversation title using the active user model."""
+    service = SemanticSummarizationService(
+        get_llm_client_fn=get_llm_client,
+        load_api_key_fn=load_api_key_for_provider,
+        parse_response_fn=parse_summarization_response,
+        fallback_facts_fn=extract_fallback_facts,
+    )
+    title = await service.generate_title(
+        user_message=request.user_message,
+        assistant_message=request.assistant_message,
+        user_id=request.user_id,
+        container=container,
+        session_manager=session_manager,
+        model_id_override=request.model_id,
+        model_provider_override=request.model_provider,
+    )
+    return GenerateTitleResponse(title=title, success=True)
 
 
 @router.get("/health")
