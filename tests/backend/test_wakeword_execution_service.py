@@ -147,3 +147,67 @@ async def test_execute_swallows_wait_for_audio_timeout(monkeypatch):
         ("flush",),
         ("wait_until_finished", 10.0),
     ]
+
+
+@pytest.mark.asyncio
+async def test_execute_swallows_non_timeout_audio_completion_errors(monkeypatch):
+    sent = []
+    speech = _FakeSpeechService()
+
+    async def _fake_send_success_response(websocket, msg_id, response_type, payload, context=None):
+        sent.append((response_type, payload))
+
+    monkeypatch.setattr(wakeword_module, "send_success_response", _fake_send_success_response)
+    monkeypatch.setattr(
+        wakeword_module,
+        "TTSSession",
+        _make_tts_session_class(service=speech, wait_error=RuntimeError("stream closed")),
+    )
+
+    service = WakewordExecutionService(tts_manager=object(), wakeword_service=_build_wakeword_service("Hello"))
+    await service.execute(_build_message(), websocket=object(), user_id="user-4")
+
+    assert len(sent) == 2
+    assert sent[1][1] == {"text": "Hello"}
+    assert speech.calls == [
+        ("process_text", "Hello"),
+        ("flush",),
+        ("wait_until_finished", 10.0),
+    ]
+
+
+@pytest.mark.asyncio
+async def test_execute_uses_selected_greeting_for_activation_payload(monkeypatch):
+    sent = []
+    captured = {}
+    speech = _FakeSpeechService()
+
+    async def _fake_send_success_response(websocket, msg_id, response_type, payload, context=None):
+        sent.append((response_type, payload))
+
+    def _build_payload(selected):
+        captured["selected"] = selected
+        return {"activated": True, "selected": selected}
+
+    wakeword_service = SimpleNamespace(
+        config=SimpleNamespace(tts_enabled=True),
+        select_greeting=lambda: "Wake up",
+        get_activation_payload=_build_payload,
+    )
+
+    monkeypatch.setattr(wakeword_module, "send_success_response", _fake_send_success_response)
+    monkeypatch.setattr(
+        wakeword_module,
+        "TTSSession",
+        _make_tts_session_class(service=speech),
+    )
+
+    service = WakewordExecutionService(tts_manager=object(), wakeword_service=wakeword_service)
+    await service.execute(_build_message(), websocket=object(), user_id="user-5")
+
+    assert captured["selected"] == "Wake up"
+    assert sent[0] == (
+        OutgoingMessageType.WAKEWORD_ACTIVATED,
+        {"activated": True, "selected": "Wake up"},
+    )
+    assert sent[1] == (OutgoingMessageType.WAKEWORD_GREETING, {"text": "Wake up"})
