@@ -11,6 +11,9 @@ title: "Query Payload and Relay Reference"
 ## Canonical Modules
 
 - `frontend/src/main/ipc.cjs`
+- `frontend/src/main/ipc_runtime_helpers.cjs`
+- `frontend/src/main/ipc_query_broadcast.cjs`
+- `frontend/src/main/ipc_renderer_windows.cjs`
 - `frontend/src/main/query_payload_builder.cjs`
 - `frontend/src/main/ipc_query_events.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
@@ -73,6 +76,7 @@ Main broadcasts synthetic `local-user-message` to renderer via `from-backend` ch
 - includes `turn_ref` (query message id)
 - includes screenshot refs/urls when present
 - includes session/user/conversation context fields
+- uses `broadcastLocalUserMessage` in `ipc_query_broadcast.cjs` with shape builder from `ipc_query_events.cjs`
 
 ### 4) Context-enriched payload assembly
 
@@ -166,3 +170,5 @@ If renderer shows user message but backend never streams:
 1. confirm local synthetic `local-user-message` occurred (optimistic path)
 2. verify websocket send returned message id
 3. inspect synthetic `buildQuerySendFailure` error event path for failed send
+
+For module ownership details of query/local synthetic event broadcasters and renderer-window fan-out, see [IPC Helper Module Split and Runtime Boundary Reference](ipc_helper_module_split_and_runtime_boundary_reference.md).

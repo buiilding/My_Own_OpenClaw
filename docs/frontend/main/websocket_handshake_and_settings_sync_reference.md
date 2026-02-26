@@ -11,6 +11,9 @@ title: "WebSocket Handshake and Settings Sync Reference"
 ## Canonical Modules
 
 - `frontend/src/main/ipc.cjs`
+- `frontend/src/main/ipc_runtime_helpers.cjs`
+- `frontend/src/main/ipc_renderer_windows.cjs`
+- `frontend/src/main/ipc_query_broadcast.cjs`
 - `frontend/src/main/ipc_query_events.cjs`
 - `frontend/src/main/ipc_frontend_config.cjs`
 - `frontend/src/main/backend_endpoints.cjs`
@@ -70,6 +73,7 @@ Inbound backend messages update these fields opportunistically before renderer f
 All backend messages are broadcast via:
 
 - `broadcastToRenderers('from-backend', data)`
+- implementation owner: `ipc_renderer_windows.cjs`
 
 Window-aware behavior:
 
@@ -140,6 +144,8 @@ Before successful backend query send, main emits synthetic:
 
 Built via `buildLocalUserMessage(...)` and broadcast to other renderer windows (excluding sender when provided).
 
+Broadcast plumbing is delegated to `ipc_query_broadcast.cjs`.
+
 ## Debug Checklist
 
 If first query uses stale settings:
@@ -159,3 +165,5 @@ If user/session context is inconsistent across windows:
 1. inspect inbound event updates to `currentSessionId/currentServerUserId/currentConversationRef`
 2. verify synthetic event builders used expected context at emission time
 3. verify renderer windows were registered with `registerRendererWindow`
+
+For helper-module split ownership details, see [IPC Helper Module Split and Runtime Boundary Reference](ipc_helper_module_split_and_runtime_boundary_reference.md).
