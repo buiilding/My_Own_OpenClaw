@@ -192,7 +192,14 @@ function ChatInterface({ sidebarOpen = true }) {
     updateMessage(messageId, { feedback });
   }, [updateMessage]);
 
-  const handleEditFromUser = useCallback(async (userMessageId) => {
+  const handleEditFromUser = useCallback(async (userMessageId, editedText) => {
+    const normalizedEditedText = typeof editedText === 'string'
+      ? editedText.trim()
+      : '';
+    if (!normalizedEditedText) {
+      return;
+    }
+
     const userIndex = messages.findIndex(
       (message) => message.id === userMessageId && message.sender === 'user',
     );
@@ -200,8 +207,12 @@ function ChatInterface({ sidebarOpen = true }) {
       return;
     }
 
-    const editUserMessage = messages[userIndex];
+    const editUserMessage = {
+      ...messages[userIndex],
+      text: normalizedEditedText,
+    };
     const preservedMessages = messages.slice(0, userIndex);
+    const trimmedConversation = [...preservedMessages, editUserMessage];
     const preservedPayloads = preservedMessages.map(toRehydratePayload);
     const sessionInfo = getTranscriptSessionInfo();
 
@@ -212,7 +223,7 @@ function ChatInterface({ sidebarOpen = true }) {
     }
     updateTranscriptSession(conversationRef, sessionInfo.userId || undefined);
 
-    setMessages([...preservedMessages, editUserMessage]);
+    setMessages(trimmedConversation);
     setThinkingStatus(null);
     setIsSending(true);
 
@@ -254,7 +265,7 @@ function ChatInterface({ sidebarOpen = true }) {
 
       await ApiClient.sendRehydrateConversation(conversationRef, preservedPayloads);
       await ApiClient.sendQuery(
-        editUserMessage.text,
+        normalizedEditedText,
         conversationRef,
         editUserMessage.screenshotRef || null,
         editUserMessage.screenshotUrl || null,

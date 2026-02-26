@@ -402,6 +402,64 @@
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
 }
 
+.user-message-editor {
+  width: min(540px, calc(100vw - 72px));
+  border-radius: 18px;
+  border: 1px solid var(--ui-border-soft);
+  background: rgba(62, 64, 70, 0.95);
+  padding: 12px 14px 10px;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.24);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.user-message-editor-input {
+  width: 100%;
+  min-height: 72px;
+  resize: vertical;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ui-text-primary);
+  font-size: 15px;
+  line-height: 1.5;
+  font-family: inherit;
+  padding: 0;
+}
+
+.user-message-editor-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.user-message-editor-btn {
+  height: 30px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(18, 20, 24, 0.9);
+  color: var(--ui-text-primary);
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.user-message-editor-btn:hover {
+  background: rgba(34, 37, 43, 0.96);
+}
+
+.user-message-editor-btn.primary {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.user-message-editor-btn.primary:hover {
+  background: #ffffff;
+}
+
 .message-assistant {
   align-self: stretch;
   min-width: 0;

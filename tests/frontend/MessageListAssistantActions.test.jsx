@@ -1,5 +1,11 @@
 import React from 'react';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react';
 
 import MessageList from '../../frontend/src/renderer/features/chat/components/MessageList';
 
@@ -108,5 +114,53 @@ describe('MessageList assistant actions', () => {
     expect(container.querySelector('svg.lucide-copy')).toBeTruthy();
 
     jest.useRealTimers();
+  });
+
+  test('user edit opens inline composer and sends updated text', () => {
+    const onUserEdit = jest.fn();
+
+    render(
+      <MessageList
+        messages={[
+          { id: 'user-1', text: 'old text', sender: 'user', type: 'user' },
+        ]}
+        thinkingStatus={null}
+        enableUserActions
+        onUserEdit={onUserEdit}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit and resend' }));
+
+    const editor = screen.getByRole('group', { name: 'Edit user message' });
+    const textarea = within(editor).getByDisplayValue('old text');
+    fireEvent.change(textarea, { target: { value: 'new edited text' } });
+    fireEvent.click(within(editor).getByRole('button', { name: 'Send' }));
+
+    expect(onUserEdit).toHaveBeenCalledWith('user-1', 'new edited text');
+    expect(screen.queryByRole('group', { name: 'Edit user message' })).not.toBeInTheDocument();
+  });
+
+  test('user edit cancel closes inline composer without sending', () => {
+    const onUserEdit = jest.fn();
+
+    render(
+      <MessageList
+        messages={[
+          { id: 'user-1', text: 'old text', sender: 'user', type: 'user' },
+        ]}
+        thinkingStatus={null}
+        enableUserActions
+        onUserEdit={onUserEdit}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit and resend' }));
+
+    const editor = screen.getByRole('group', { name: 'Edit user message' });
+    fireEvent.click(within(editor).getByRole('button', { name: 'Cancel' }));
+
+    expect(onUserEdit).not.toHaveBeenCalled();
+    expect(screen.queryByRole('group', { name: 'Edit user message' })).not.toBeInTheDocument();
   });
 });
