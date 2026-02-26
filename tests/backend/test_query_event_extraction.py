@@ -2,8 +2,11 @@
 
 from backend.src.api.services.query_event_extraction import (
     extract_assistant_full_text,
+    extract_dict_payload,
+    extract_dict_string_field,
     extract_event_type,
     extract_non_empty_chunk_text,
+    extract_chunk_text,
     extract_streaming_complete_text,
     resolve_completion_text,
 )
@@ -36,6 +39,45 @@ def test_extract_non_empty_chunk_text_accepts_payload_text_fallback():
         )
         == ""
     )
+
+
+def test_extract_dict_payload_and_string_field_helpers():
+    event = {"payload": {"text": "payload text", "content": "payload content"}}
+    assert extract_dict_payload(event) == event["payload"]
+    assert extract_dict_payload({"payload": "not-a-dict"}) is None
+    assert extract_dict_payload("not-a-dict") is None
+
+    assert (
+        extract_dict_string_field(
+            {"content": "top-level", "payload": {"content": "payload"}},
+            top_level_key="content",
+        )
+        == "top-level"
+    )
+    assert (
+        extract_dict_string_field(
+            {"payload": {"text": "payload-only"}},
+            top_level_key="content",
+            payload_key="text",
+        )
+        == "payload-only"
+    )
+    assert (
+        extract_dict_string_field(
+            {"payload": {"text": 123}},
+            top_level_key="content",
+            payload_key="text",
+        )
+        is None
+    )
+
+
+def test_extract_chunk_text_supports_typed_event_content():
+    class _Event:
+        content = "typed-chunk"
+
+    assert extract_chunk_text(_Event()) == "typed-chunk"
+    assert extract_non_empty_chunk_text(_Event(), event_type="assistant_message_full") == ""
 
 
 def test_extract_assistant_full_text_prefers_top_level_then_payload():
