@@ -4668,3 +4668,32 @@ read_when:
   - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -q` (pass)
   - `cd frontend && npm run audit:jscpd` (3 clones)
   - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
+
+## Phase 194 Outcome (2026-02-26)
+
+- Refactor slice (backend browser extract/screenshot field declarations): centralize repeated extract + screenshot field signatures.
+  - updated:
+    - `backend/src/tools/browser/schemas.py`
+      - added extract helpers:
+        - `_extract_action_field(...)`
+        - `_extract_query_field(...)`
+        - `_extract_mode_field(...)`
+        - `_extract_links_field(...)`
+        - `_extract_start_char_field(...)`
+        - `_extract_wait_until_field(...)`
+        - `_extract_selector_field(...)`
+        - `_extract_frame_field(...)`
+        - `_extract_output_schema_field(...)`
+      - added screenshot helpers:
+        - `_screenshot_action_field(...)`
+        - `_full_page_screenshot_field(...)`
+      - rewired `BrowserExtractArgs` and `BrowserScreenshotArgs` to helper-backed declarations.
+      - preserved defaults, constraints, and field descriptions.
+  - route consolidation check:
+    - `jscpd` on `backend/src/api/routes` found `0` clones; no route merge needed in this slice.
+  - audit outcome:
+    - combined `backend/src` + `frontend/src` `jscpd` clone count dropped from `3` to `1`.
+- Validation:
+  - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -q` (pass)
+  - `cd frontend && npm run audit:jscpd` (1 clone)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
