@@ -4644,3 +4644,27 @@ read_when:
   - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -q` (pass)
   - `cd frontend && npm run audit:jscpd` (4 clones)
   - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
+
+## Phase 193 Outcome (2026-02-26)
+
+- Refactor slice (backend browser click/screenshot field declarations): dedupe repeated optional ref/coordinate/index/file field signatures.
+  - updated:
+    - `backend/src/tools/browser/schemas.py`
+      - added shared helpers:
+        - `_optional_ref_field(...)`
+        - `_optional_file_name_field(...)`
+        - `_optional_non_negative_int_field(...)`
+        - `_optional_coordinate_field(...)`
+      - rewired:
+        - `BrowserClickArgs.ref`, `BrowserClickArgs.index`, `BrowserClickArgs.coordinate_x`, `BrowserClickArgs.coordinate_y`
+        - `BrowserScrollArgs.index`
+        - `BrowserScreenshotArgs.ref`, `BrowserScreenshotArgs.file_name`
+      - preserved required validation behavior and field bounds.
+  - route consolidation check:
+    - `jscpd` on `backend/src/api/routes` found `0` clones; no route merge needed in this slice.
+  - audit outcome:
+    - combined `backend/src` + `frontend/src` `jscpd` clone count dropped from `4` to `3`.
+- Validation:
+  - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -q` (pass)
+  - `cd frontend && npm run audit:jscpd` (3 clones)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
