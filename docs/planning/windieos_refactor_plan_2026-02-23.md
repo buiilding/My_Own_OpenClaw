@@ -117,6 +117,18 @@ read_when:
     - `cd frontend && npm run lint`
   - audit delta:
     - frontend+backend `jscpd` total clones reduced from `23` to `22`.
+- Frontend slow-test optimization:
+  - reduced async polling overhead and debounce wait time in:
+    - `tests/frontend/ChatGptDashboardShell.test.jsx`
+  - changes:
+    - replaced repeated `waitFor` bootstrap polling with deterministic microtask flush helper.
+    - used fake timers in `search chats` test to advance the 180ms debounced search path directly.
+  - verification:
+    - `cd frontend && npm run test:ci -- tests/frontend/ChatGptDashboardShell.test.jsx`
+    - `cd frontend && npm run lint`
+    - `cd frontend && npm run test:ci`
+  - runtime delta:
+    - `ChatGptDashboardShell.test.jsx` duration improved from `1084ms` to `843ms` in `.audit/plan1/jest-report.json` (~22.2% faster).
 
 - Dashboard shell split:
   - extracted conversation/search orchestration from `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx` into:
