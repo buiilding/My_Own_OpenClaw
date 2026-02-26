@@ -30,6 +30,8 @@ Single entrypoint for future work. Use this page first.
 - `windieos_cli_os_control_plan.md`
 - `windieos_agent_to_agent_communication_plan.md`
 - `windieos_vm_multi_agent_plan.md`
+- `windieos_frontend_sidecar_packaging_plan_2026-02-25.md`
+- `windieos_browser_use_hard_merge_plan_2026-02-25.md`
 - `windieos_refactor_plan_2026-02-23.md`
 - `windieos_conversation_history_compaction_plan_2026-02-24.md`
 
