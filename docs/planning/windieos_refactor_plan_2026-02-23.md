@@ -4581,3 +4581,20 @@ read_when:
   - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -q` (pass)
   - `cd frontend && npm run audit:jscpd` (8 clones)
   - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
+
+## Phase 190 Outcome (2026-02-26)
+
+- Refactor slice (backend browser connect schema): dedupe repeated compatibility field declarations.
+  - updated:
+    - `backend/src/tools/browser/schemas.py`
+      - added shared `_ignored_compat_field(...)` helper for ignored compatibility payload fields
+      - rewired `BrowserConnectArgs.mode` and `BrowserConnectArgs.cdp_url` to helper-backed declarations
+      - preserved default values and compatibility-field semantics.
+  - route consolidation check:
+    - `jscpd` on `backend/src/api/routes` found `0` clones; no route merge needed in this slice.
+  - audit outcome:
+    - combined `backend/src` + `frontend/src` `jscpd` clone count dropped from `8` to `7`.
+- Validation:
+  - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -q` (pass)
+  - `cd frontend && npm run audit:jscpd` (7 clones)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
