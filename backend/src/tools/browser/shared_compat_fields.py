@@ -81,12 +81,15 @@ class BrowserScreenshotImageFields(BaseModel):
     """Shared screenshot image options for browser schemas."""
 
     element: Optional[str] = Field(
-        None, description="Optional CSS selector to screenshot"
+        None, description="Optional CSS selector target for screenshot capture"
     )
-    type: Literal["png", "jpeg"] = Field("png", description="Screenshot image type")
+    type: Literal["png", "jpeg"] = Field(
+        default="png",
+        description="Screenshot output image format",
+    )
     quality: Optional[int] = Field(
         None,
-        description="JPEG quality (1-100)",
+        description="JPEG quality percentage (1-100)",
         ge=1,
         le=100,
     )
