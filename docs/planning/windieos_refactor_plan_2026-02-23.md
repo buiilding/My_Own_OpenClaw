@@ -159,6 +159,16 @@ read_when:
     - `cd frontend && npm run audit:jscpd`
   - audit delta:
     - frontend+backend `jscpd` clone count reduced from `22` to `21`.
+- Backend system-schema clone hotspot dedupe:
+  - added shared optional process-field factory and rewired process action option fields in:
+    - `backend/src/tools/system/schemas.py`
+  - behavior:
+    - preserves `ProcessShellCommandArgs` field defaults and descriptions while reducing repeated field-construction boilerplate.
+  - verification:
+    - `./scripts/python-in-env backend python - <<'PY' ... ProcessShellCommandArgs(action='list') ... PY`
+    - `cd frontend && npm run audit:jscpd`
+  - audit delta:
+    - frontend+backend `jscpd` clone count reduced from `21` to `20`.
 
 - Dashboard shell split:
   - extracted conversation/search orchestration from `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx` into:

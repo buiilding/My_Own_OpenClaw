@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(backend-system-schemas): dedupe optional process-argument field definitions in `ProcessShellCommandArgs` via a shared field factory; combined jscpd audit dropped by one clone (`21` -> `20`).
 - refactor(backend-browser): dedupe legacy-alias warning assembly in `RemoteBrowserTool` via shared message helper while preserving warning text/metadata contracts; combined jscpd audit dropped by one clone (`22` -> `21`).
 - test(backend-wakeword-service): add unit coverage for wakeword activation/greeting send path, optional TTS execution, and timeout-tolerant audio completion waits.
 - test(backend-rehydrate-service): add direct unit coverage for artifact screenshot resolution priorities/failures and tool-call/tool-output normalization helpers used by transcript rehydrate flow.
