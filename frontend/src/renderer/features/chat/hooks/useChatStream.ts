@@ -54,10 +54,7 @@ import {
 import {
   buildAssistantMessageFullUpdate,
   buildSystemPromptUpdate,
-  findLastAssistantLlmTextMessageId,
   buildUserMessageFullUpdate,
-  findFirstMessageIdBySender,
-  findLastMessageIdBySender,
   findStreamingCompleteAssistantMessage,
   resolveStreamingResponseAction,
 } from '../utils/chatStreamMessageUpdates';
@@ -70,14 +67,59 @@ import {
   shouldIgnoreEventForActiveConversation,
 } from '../utils/chatStreamConversationGate';
 import { useChatCommonActions } from './useChatCommonActions';
+import { useStreamMessageUpdaters } from './useStreamMessageUpdaters';
 import { useLatestRef } from '../../../infrastructure/hooks/useLatestRef';
 
 type TranscriptModelContext = {
   modelId: string | null;
   modelProvider: string | null;
+  supportsThinking: boolean;
+  supportsThinkingTextStream: boolean;
 };
 
 const COMPACTION_THINKING_STATUS = 'Compacting conversation history...';
+const GENERIC_THINKING_STATUS = 'Thinking...';
+
+type ModelCapabilityDescriptor = {
+  id?: string;
+  provider?: string;
+  supports_thinking?: boolean;
+  supports_thinking_text_stream?: boolean;
+};
+
+function resolveThinkingCapabilities(
+  modelId: string | null | undefined,
+  modelProvider: string | null | undefined,
+  availableModels: { local?: unknown[]; online?: unknown[] } | null | undefined,
+): { supportsThinking: boolean; supportsThinkingTextStream: boolean } {
+  const normalizedModelId = typeof modelId === 'string' ? modelId : '';
+  const normalizedProvider = typeof modelProvider === 'string' ? modelProvider : '';
+  const localModels = Array.isArray(availableModels?.local) ? availableModels.local : [];
+  const onlineModels = Array.isArray(availableModels?.online) ? availableModels.online : [];
+  const allModels = [...localModels, ...onlineModels] as ModelCapabilityDescriptor[];
+  const selectedModel = allModels.find(
+    (model) => model?.id === normalizedModelId && model?.provider === normalizedProvider,
+  ) || allModels.find((model) => model?.id === normalizedModelId);
+
+  const inferredGeminiThinkingModel = (
+    normalizedProvider === 'gemini'
+    && normalizedModelId.toLowerCase().startsWith('gemini-')
+  );
+  const supportsThinking = typeof selectedModel?.supports_thinking === 'boolean'
+    ? selectedModel.supports_thinking
+    : inferredGeminiThinkingModel;
+
+  const supportsThinkingTextStream = (
+    typeof selectedModel?.supports_thinking_text_stream === 'boolean'
+      ? selectedModel.supports_thinking_text_stream
+      : normalizedProvider !== 'gemini'
+  );
+
+  return {
+    supportsThinking,
+    supportsThinkingTextStream: supportsThinking ? supportsThinkingTextStream : false,
+  };
+}
 
 /**
  * Custom hook for managing streaming message responses.
@@ -87,10 +129,17 @@ export function useChatStream(enableTranscript: boolean = true) {
   const { addMessage, updateMessage, setIsSending, setThinkingStatus } = useChatCommonActions();
   const setTokenCounts = useChatStore((state) => state.setTokenCounts);
   const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
-  const { config } = useAppConfigContext();
+  const { config, availableModels } = useAppConfigContext();
+  const modelCapabilities = useMemo(() => resolveThinkingCapabilities(
+    config?.selected_model_id || null,
+    config?.model_provider || null,
+    availableModels,
+  ), [availableModels, config?.model_provider, config?.selected_model_id]);
   const modelContextRef = useLatestRef<TranscriptModelContext>({
     modelId: config?.selected_model_id || null,
     modelProvider: config?.model_provider || null,
+    supportsThinking: modelCapabilities.supportsThinking,
+    supportsThinkingTextStream: modelCapabilities.supportsThinkingTextStream,
   });
 
   const recordTrackingEvent = useCallback((
@@ -102,47 +151,11 @@ export function useChatStream(enableTranscript: boolean = true) {
     updateStreamTracking((current) => applyTrackingEvent(current, eventType, turnRef, now, options));
   }, [updateStreamTracking]);
 
-  const updateLastMessageBySender = useCallback((
-    sender: ChatMessage['sender'],
-    updates: Partial<ChatMessage>,
-    turnRef?: string,
-  ) => {
-    const scopedMessageId = findLastMessageIdBySender(
-      useChatStore.getState().messages,
-      sender,
-      turnRef,
-    );
-    const fallbackMessageId = turnRef
-      ? findLastMessageIdBySender(
-        useChatStore.getState().messages,
-        sender,
-      )
-      : null;
-    const messageId = scopedMessageId || fallbackMessageId;
-    if (messageId) {
-      updateMessage(messageId, updates);
-    }
-  }, [updateMessage]);
-
-  const updateFirstMessageBySender = useCallback((sender: ChatMessage['sender'], updates: Partial<ChatMessage>) => {
-    const messageId = findFirstMessageIdBySender(useChatStore.getState().messages, sender);
-    if (messageId) {
-      updateMessage(messageId, updates);
-    }
-  }, [updateMessage]);
-
-  const updateLastAssistantLlmTextMessage = useCallback((
-    updates: Partial<ChatMessage>,
-    turnRef?: string,
-  ) => {
-    const messageId = findLastAssistantLlmTextMessageId(
-      useChatStore.getState().messages,
-      turnRef,
-    );
-    if (messageId) {
-      updateMessage(messageId, updates);
-    }
-  }, [updateMessage]);
+  const {
+    updateLastMessageBySender,
+    updateFirstMessageBySender,
+    updateLastAssistantLlmTextMessage,
+  } = useStreamMessageUpdaters(updateMessage);
 
   const handleLlmThought = useCallback((event: LlmThoughtEvent) => {
     const currentStatus = useChatStore.getState().thinkingStatus;
@@ -153,7 +166,8 @@ export function useChatStream(enableTranscript: boolean = true) {
         : typeof payload?.content === 'string'
           ? payload.content
           : undefined;
-    setThinkingStatus(buildThinkingStatus(currentStatus, thoughtChunk));
+    const nextBaseStatus = currentStatus === GENERIC_THINKING_STATUS ? null : currentStatus;
+    setThinkingStatus(buildThinkingStatus(nextBaseStatus, thoughtChunk));
     recordTrackingEvent('llm-thought', event.turn_ref);
   }, [setThinkingStatus, recordTrackingEvent]);
 
@@ -391,12 +405,18 @@ export function useChatStream(enableTranscript: boolean = true) {
       turnRef: event.turn_ref,
     };
     addMessage(newMessage);
+    const modelContext = modelContextRef.current;
+    if (modelContext.supportsThinking && !modelContext.supportsThinkingTextStream) {
+      setThinkingStatus(GENERIC_THINKING_STATUS);
+    } else {
+      setThinkingStatus(null);
+    }
 
     recordTrackingEvent('local-user-message', event.turn_ref, {
       phase: 'awaiting-first-chunk',
       resetForTurn: true,
     });
-  }, [addMessage, recordTrackingEvent]);
+  }, [addMessage, modelContextRef, recordTrackingEvent, setThinkingStatus]);
 
   const handleStreamingComplete = useCallback((event: StreamingCompleteEvent) => {
     setIsSending(false);

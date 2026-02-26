@@ -261,6 +261,23 @@ def test_get_all_online_models_deduplicates_provider_model_pairs():
     assert any(m.get("supports_thinking") for m in models)
 
 
+def test_get_all_online_models_marks_gemini_3_1_as_no_thinking_text_stream():
+    service = ModelService(AppConfig())
+    models = service.get_all_online_models()
+
+    gemini_3_1 = next(
+        (
+            model for model in models
+            if model.get("provider") == "gemini"
+            and model.get("id") == "gemini-3.1-pro-preview"
+        ),
+        None,
+    )
+    assert gemini_3_1 is not None
+    assert gemini_3_1.get("supports_thinking") is True
+    assert gemini_3_1.get("supports_thinking_text_stream") is False
+
+
 def test_get_online_models_includes_openrouter_qwen3_vl_235b_a22b_thinking():
     service = ModelService(AppConfig())
     models = service.get_online_models()
