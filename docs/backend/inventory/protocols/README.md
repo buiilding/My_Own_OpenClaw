@@ -22,6 +22,8 @@ title: "Backend Inventory Protocols Hub"
 ## Related Pages
 
 - [Backend Inventory Docs Hub](../README.md)
+- [Backend Functionality Capability Catalog Reference](../backend_functionality_capability_catalog_reference.md)
+- [Backend Capability to File Matrix Reference](../backend_capability_to_file_matrix_reference.md)
 - [Backend Cross-Layer Contract Touchpoints Reference](../backend_cross_layer_contract_touchpoints_reference.md)
 - [Backend Contracts Docs Hub](../../contracts/README.md)
 - [Backend API Docs Hub](../../api/README.md)
