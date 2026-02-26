@@ -5,32 +5,20 @@ Client for calling the backend semantic summarization API from the frontend memo
 """
 
 import aiohttp
-import logging
 from typing import List, Optional, Tuple
 
-from core.backend_config import get_backend_http_url
-
-logger = logging.getLogger(__name__)
+from core.remote_api_client_base import RemoteApiClientBase
 
 
-class RemoteSemanticClient:
+class RemoteSemanticClient(RemoteApiClientBase):
     """
     Client for remote semantic summarization via backend API.
     """
 
+    _aiohttp = aiohttp
+
     def __init__(self, backend_url: Optional[str] = None, timeout_seconds: int = 60):
-        self.backend_url = (backend_url or get_backend_http_url()).rstrip("/")
-        self.timeout_seconds = timeout_seconds
-        self._session: Optional[aiohttp.ClientSession] = None
-
-    async def initialize(self) -> None:
-        if self._session is None:
-            self._session = aiohttp.ClientSession()
-
-    async def close(self) -> None:
-        if self._session:
-            await self._session.close()
-            self._session = None
+        super().__init__(backend_url=backend_url, timeout_seconds=timeout_seconds)
 
     async def summarize(self, conversations: List[str], user_id: str) -> Tuple[str, List[str]]:
         """
@@ -47,28 +35,13 @@ class RemoteSemanticClient:
             "user_id": user_id,
         }
 
-        try:
-            async with self._session.post(
-                f"{self.backend_url}/api/semantic/summarize",
-                json=payload,
-                timeout=aiohttp.ClientTimeout(total=self.timeout_seconds),
-            ) as response:
-                if response.status != 200:
-                    error_text = await response.text()
-                    raise Exception(f"Semantic API returned {response.status}: {error_text}")
-
-                data = await response.json()
-                if not data.get("success"):
-                    raise Exception("Semantic API returned success=false")
-
-                summary = data.get("summary", "") or ""
-                facts = data.get("facts", []) or []
-
-                return summary, facts
-
-        except aiohttp.ClientError as e:
-            logger.error(f"Network error calling semantic API: {e}")
-            raise Exception(f"Failed to connect to semantic service: {e}")
-        except Exception as e:
-            logger.error(f"Error requesting semantic summary: {e}")
-            raise
+        data = await self._post_success_json(
+            path="/api/semantic/summarize",
+            payload=payload,
+            api_label="Semantic",
+            network_service_label="semantic",
+            request_error_label="semantic summary",
+        )
+        summary = data.get("summary", "") or ""
+        facts = data.get("facts", []) or []
+        return summary, facts
