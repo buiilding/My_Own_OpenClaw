@@ -155,6 +155,13 @@ def test_resolve_screenshot_returns_none_when_artifact_load_fails():
     assert service._resolve_screenshot(message, _ArtifactStore) is None
 
 
+def test_resolve_screenshot_returns_none_when_no_inline_or_ref():
+    service = _build_service()
+    message = _build_message(screenshot=None, screenshot_ref=None)
+
+    assert service._resolve_screenshot(message, artifact_store_cls=object) is None
+
+
 def test_finalize_pending_tool_calls_on_cancel_handles_success_and_failures():
     class _HistoryOk:
         def __init__(self):
@@ -247,6 +254,35 @@ async def test_emit_completion_events_emits_backfill_chunk_then_terminal_event()
     assert observed[1][0].final_response == "final text"
     assert observed[0][3] is stream_context
     assert observed[1][3] is stream_context
+
+
+@pytest.mark.asyncio
+async def test_process_pipeline_event_forwards_event_and_context():
+    observed = {}
+
+    class _Pipeline:
+        async def process(self, event, tts_service, msg_id, context):
+            observed["event"] = event
+            observed["tts_service"] = tts_service
+            observed["msg_id"] = msg_id
+            observed["context"] = context
+
+    event = ChunkEvent(content="hi")
+    context = {"turn_ref": "turn-1"}
+    await QueryExecutionService._process_pipeline_event(
+        pipeline=_Pipeline(),
+        event=event,
+        tts_service="tts",
+        msg_id="turn-1",
+        stream_context=context,
+    )
+
+    assert observed == {
+        "event": event,
+        "tts_service": "tts",
+        "msg_id": "turn-1",
+        "context": context,
+    }
 
 
 @pytest.mark.asyncio
