@@ -254,6 +254,34 @@ body {
   will-change: height;
 }
 
+.chatbox-response-pill,
+.chatbox-response-pill * {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.24) transparent;
+}
+
+.chatbox-response-pill::-webkit-scrollbar,
+.chatbox-response-pill *::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.chatbox-response-pill::-webkit-scrollbar-track,
+.chatbox-response-pill *::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chatbox-response-pill::-webkit-scrollbar-thumb,
+.chatbox-response-pill *::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+}
+
+.chatbox-response-pill::-webkit-scrollbar-thumb:hover,
+.chatbox-response-pill *::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.34);
+}
+
 .chatbox-response-pill::before {
   content: '';
   position: absolute;
