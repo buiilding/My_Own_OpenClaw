@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-config): harden `provider_api_keys` persistence via deep-merge config handling and regression coverage for startup load + save-to-localStorage/save-to-disk so API keys survive app restarts.
 - fix(frontend-models-ui): simplify provider rows to show only model counts (remove the word `available`).
 - fix(frontend-models-ui): align Models-panel API Keys row width with provider cards and add smooth API-keys expand animation on open.
 - fix(frontend-chat-ui): change dashboard user-message bubble from full capsule to rounded-square styling (`20px` radius + adjusted padding) for cleaner multiline readability.

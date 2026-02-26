@@ -98,4 +98,41 @@ describe('appConfigPersistence', () => {
       voice_mode_enabled: true,
     });
   });
+
+  test('mergeFrontendProviderConfig deep-merges provider_api_keys entries', () => {
+    expect(
+      mergeFrontendProviderConfig(
+        {
+          provider_api_keys: {
+            openai: { enabled: true, api_key: 'sk-base' },
+            anthropic: { enabled: true, api_key: 'anth-base' },
+          },
+        },
+        {
+          provider_api_keys: {
+            openai: { api_key: 'sk-updated' },
+          },
+        },
+      ),
+    ).toEqual({
+      provider_api_keys: {
+        openai: { enabled: true, api_key: 'sk-updated' },
+        anthropic: { enabled: true, api_key: 'anth-base' },
+      },
+    });
+  });
+
+  test('sanitizeFrontendProviderConfig strips undefined provider_api_keys fields', () => {
+    expect(
+      sanitizeFrontendProviderConfig({
+        provider_api_keys: {
+          openai: { enabled: true, api_key: undefined },
+        },
+      }),
+    ).toEqual({
+      provider_api_keys: {
+        openai: { enabled: true },
+      },
+    });
+  });
 });
