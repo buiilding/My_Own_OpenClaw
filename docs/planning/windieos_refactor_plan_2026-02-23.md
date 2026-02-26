@@ -179,6 +179,16 @@ read_when:
     - `cd frontend && npm run audit:jscpd`
   - audit delta:
     - frontend+backend `jscpd` clone count reduced from `20` to `19`.
+- Backend browser shared-compat field dedupe:
+  - introduced `_compat_field(...)` and rewired repeated compatibility field declarations in:
+    - `backend/src/tools/browser/shared_compat_fields.py`
+  - behavior:
+    - preserved default values, descriptions, and validation constraints while reducing repeated `Field(None, ...)` signatures.
+  - verification:
+    - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py tests/backend/test_remote_tools.py -q`
+    - `cd frontend && npm run audit:jscpd`
+  - audit delta:
+    - frontend+backend `jscpd` clone count reduced from `19` to `14`.
 
 - Dashboard shell split:
   - extracted conversation/search orchestration from `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx` into:
