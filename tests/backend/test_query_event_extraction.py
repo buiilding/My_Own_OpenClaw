@@ -24,6 +24,20 @@ def test_extract_event_type_supports_dict_and_typed_value_enum():
     assert extract_event_type({"type": 123}) is None
 
 
+def test_extract_event_type_supports_typed_string_and_missing_value():
+    class _DirectTypeEvent:
+        type = "assistant_message_full"
+
+    class _NoValueType:
+        pass
+
+    class _MissingValueEvent:
+        type = _NoValueType()
+
+    assert extract_event_type(_DirectTypeEvent()) == "assistant_message_full"
+    assert extract_event_type(_MissingValueEvent()) is None
+
+
 def test_extract_non_empty_chunk_text_accepts_payload_text_fallback():
     assert (
         extract_non_empty_chunk_text(
@@ -112,6 +126,19 @@ def test_extract_streaming_complete_text_supports_payload_and_top_level():
         )
         == "top level done"
     )
+
+
+def test_extract_streaming_complete_text_supports_typed_events():
+    class _StreamingCompleteEvent:
+        type = "streaming-complete"
+        final_response = "  typed done  "
+
+    class _NonStreamingEvent:
+        type = "chunk"
+        final_response = "ignored"
+
+    assert extract_streaming_complete_text(_StreamingCompleteEvent()) == "typed done"
+    assert extract_streaming_complete_text(_NonStreamingEvent()) == ""
 
 
 def test_resolve_completion_text_precedence_chain():
