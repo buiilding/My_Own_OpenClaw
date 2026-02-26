@@ -35,6 +35,7 @@ class FrontendConfigPatch(BaseModel):
     wakeword_stt_enabled: Optional[bool] = None
     agent_full_sudo_enabled: Optional[bool] = None
     include_query_screenshot: Optional[bool] = None
+    provider_api_keys: Optional[dict] = None
 
 
 class ValidationError(Exception):

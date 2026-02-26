@@ -15,6 +15,14 @@ const DEFAULT_FRONTEND_CONFIG = {
   wakeword_stt_enabled: false,
   agent_full_sudo_enabled: false,
   include_query_screenshot: true,
+  provider_api_keys: {
+    openai: { enabled: false, api_key: '' },
+    anthropic: { enabled: false, api_key: '' },
+    google: { enabled: false, api_key: '' },
+    openrouter: { enabled: false, api_key: '' },
+    mistral: { enabled: false, api_key: '' },
+    kimi_coding: { enabled: false, api_key: '' },
+  },
 };
 
 describe('configStorage', () => {
@@ -53,6 +61,23 @@ describe('configStorage', () => {
       ...DEFAULT_FRONTEND_CONFIG,
       speech_mode_enabled: true,
       voice_mode_enabled: true,
+    });
+  });
+
+  test('loadConfigFromStorage normalizes provider_api_keys with defaults', () => {
+    localStorage.setItem(
+      CONFIG_KEY,
+      JSON.stringify({
+        provider_api_keys: {
+          openai: { enabled: true, api_key: 'sk-openai' },
+        },
+      }),
+    );
+
+    const result = loadConfigFromStorage();
+    expect(result.provider_api_keys).toEqual({
+      ...DEFAULT_FRONTEND_CONFIG.provider_api_keys,
+      openai: { enabled: true, api_key: 'sk-openai' },
     });
   });
 

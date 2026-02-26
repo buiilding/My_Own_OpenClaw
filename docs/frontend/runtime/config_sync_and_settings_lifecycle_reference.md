@@ -31,7 +31,9 @@ Frontend-managed settings are filtered through `filterFrontendConfig(...)`:
 - `voice_mode_enabled`
 - `speech_mode_enabled`
 - `wakeword_stt_enabled`
+- `agent_full_sudo_enabled`
 - `include_query_screenshot`
+- `provider_api_keys`
 
 All outbound config updates use this boundary before backend sync.
 

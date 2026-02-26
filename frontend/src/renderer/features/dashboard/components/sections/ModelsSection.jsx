@@ -16,6 +16,7 @@ import {
   getCurrentModels,
   getFallbackModelSelection,
 } from '../../utils/modelSelectionUtils';
+import ApiKeysSection, { normalizeProviderApiKeys } from './ApiKeysSection';
 
 function buildModelDescription(model) {
   const provider = (model?.provider || '').toLowerCase();
@@ -250,6 +251,7 @@ function ModelsSection({ config, availableModels, onConfigChange, onClose = () =
   const modelMode = config?.model_mode || 'online';
   const selectedModelId = config?.selected_model_id || '';
   const selectedProvider = config?.model_provider || '';
+  const providerApiKeys = normalizeProviderApiKeys(config?.provider_api_keys);
   const speechModeEnabled = config?.speech_mode_enabled ?? false;
   const interactionMode = config?.interaction_mode || 'chat';
 
@@ -280,6 +282,12 @@ function ModelsSection({ config, availableModels, onConfigChange, onClose = () =
       }),
     );
   }, [interactionMode, modelMode, onConfigChange, speechModeEnabled]);
+
+  const handleProviderApiKeysChange = useCallback((nextProviderApiKeys) => {
+    onConfigChange({
+      provider_api_keys: normalizeProviderApiKeys(nextProviderApiKeys),
+    });
+  }, [onConfigChange]);
 
   useEffect(() => {
     if (!config) {
@@ -437,6 +445,11 @@ function ModelsSection({ config, availableModels, onConfigChange, onClose = () =
           </div>
           </>
         )}
+
+        <ApiKeysSection
+          providerApiKeys={providerApiKeys}
+          onProviderApiKeysChange={handleProviderApiKeysChange}
+        />
       </div>
     </div>
   );
@@ -449,6 +462,32 @@ ModelsSection.propTypes = {
     model_provider: PropTypes.string,
     interaction_mode: PropTypes.string,
     speech_mode_enabled: PropTypes.bool,
+    provider_api_keys: PropTypes.shape({
+      openai: PropTypes.shape({
+        enabled: PropTypes.bool,
+        api_key: PropTypes.string,
+      }),
+      anthropic: PropTypes.shape({
+        enabled: PropTypes.bool,
+        api_key: PropTypes.string,
+      }),
+      kimi_coding: PropTypes.shape({
+        enabled: PropTypes.bool,
+        api_key: PropTypes.string,
+      }),
+      google: PropTypes.shape({
+        enabled: PropTypes.bool,
+        api_key: PropTypes.string,
+      }),
+      openrouter: PropTypes.shape({
+        enabled: PropTypes.bool,
+        api_key: PropTypes.string,
+      }),
+      mistral: PropTypes.shape({
+        enabled: PropTypes.bool,
+        api_key: PropTypes.string,
+      }),
+    }),
   }),
   availableModels: PropTypes.shape({
     local: PropTypes.arrayOf(

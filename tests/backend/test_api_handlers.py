@@ -1037,6 +1037,9 @@ async def test_update_settings_handler_updates_session():
             "selected_model_id": "gpt-5.1",
             "wakeword_stt_enabled": True,
             "agent_full_sudo_enabled": True,
+            "provider_api_keys": {
+                "openai": {"enabled": True, "api_key": "sk-openai"},
+            },
         },
     )
 
@@ -1048,6 +1051,8 @@ async def test_update_settings_handler_updates_session():
     assert session_manager.session.updated_configs
     assert session_manager.session.cfg.wakeword_stt_enabled is True
     assert session_manager.session.cfg.agent_full_sudo_enabled is True
+    assert session_manager.session.cfg.provider_api_keys.openai.enabled is True
+    assert session_manager.session.cfg.provider_api_keys.openai.api_key == "sk-openai"
 
 
 @pytest.mark.asyncio
@@ -1094,6 +1099,14 @@ async def test_load_settings_handler_returns_frontend_config():
         "interaction_mode": "chat",
         "model_mode": "online",
         "model_provider": "openai",
+        "provider_api_keys": {
+            "anthropic": {"api_key": "", "enabled": False},
+            "google": {"api_key": "", "enabled": False},
+            "kimi_coding": {"api_key": "", "enabled": False},
+            "mistral": {"api_key": "", "enabled": False},
+            "openai": {"api_key": "", "enabled": False},
+            "openrouter": {"api_key": "", "enabled": False},
+        },
         "selected_model_id": "gpt-5.1",
         "speech_mode_enabled": False,
         "wakeword_stt_enabled": False,
