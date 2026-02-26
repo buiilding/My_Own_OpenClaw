@@ -189,6 +189,32 @@ def test_add_tool_output_with_staged_tool_and_image_updates_cached_token_count_p
     assert service.count_message_tokens_calls == 1
 
 
+def test_finalize_pending_tool_calls_as_cancelled_adds_tool_rows_and_clears_staging():
+    history = ConversationHistory(max_length=10)
+
+    history.stage_tool_call_ids(["call_1", "call_2"], consume_all_on_next_output=True)
+    reconciled = history.finalize_pending_tool_calls_as_cancelled(
+        message="Cancelled by user",
+    )
+
+    assert reconciled == 2
+
+    stored = history.get_stored_messages()
+    assert len(stored) == 2
+    assert stored[0].role == MessageRole.TOOL
+    assert stored[0].tool_call_id == "call_1"
+    assert stored[0].content == "Cancelled by user"
+    assert stored[1].role == MessageRole.TOOL
+    assert stored[1].tool_call_id == "call_2"
+    assert stored[1].content == "Cancelled by user"
+
+    # Staging must be cleared: next tool output should not link to previous tool_call ids.
+    history.add_tool_output("next tool output")
+    final_stored = history.get_stored_messages()
+    assert final_stored[-1].role == MessageRole.USER
+    assert final_stored[-1].tool_call_id is None
+
+
 def test_prune_invalidates_token_cache(monkeypatch):
     history = ConversationHistory(max_length=1)
     history.add_user_message("alpha")

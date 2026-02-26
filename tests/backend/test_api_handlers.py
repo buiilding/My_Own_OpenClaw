@@ -156,11 +156,12 @@ class DummyAssistantFullThenCompleteAgent:
 
 
 class DummyBlockingAgent:
-    def __init__(self, started_event: asyncio.Event):
+    def __init__(self, started_event: asyncio.Event, history=None):
         self.cfg = AppConfig()
         self.user_id = "user_1"
         self.session_id = "session_1"
         self._started_event = started_event
+        self.history = history
 
     async def process_query(
         self,
@@ -179,6 +180,16 @@ class DummyBlockingAgent:
                 "message_content": message_content,
                 "conversation_ref": conversation_ref,
             }
+
+
+class DummyPendingToolCallHistory:
+    def __init__(self, reconciled_count: int = 0):
+        self.reconciled_count = reconciled_count
+        self.calls = 0
+
+    def finalize_pending_tool_calls_as_cancelled(self) -> int:
+        self.calls += 1
+        return self.reconciled_count
 
 
 class DummySessionManager:
@@ -445,11 +456,13 @@ async def test_query_handler_logs_when_active_query_is_cancelled(caplog):
     websocket = FakeWebSocket()
     session_manager = DummySessionManager()
     started_event = asyncio.Event()
-    session_manager.session = DummyBlockingAgent(started_event)
+    pending_history = DummyPendingToolCallHistory(reconciled_count=2)
+    session_manager.session = DummyBlockingAgent(started_event, history=pending_history)
     handler = QueryMessageHandler(
         session_manager, DummyTTSManager(), ResponseFormatter()
     )
     caplog.set_level(logging.INFO, logger="backend.src.api.handlers.query")
+    caplog.set_level(logging.INFO, logger="backend.src.api.services.query_execution")
 
     message = QueryMessage(
         id="msg_cancelled_1",
@@ -472,6 +485,13 @@ async def test_query_handler_logs_when_active_query_is_cancelled(caplog):
 
     assert any(
         "[Query Cancelled] Active query task cancelled" in record.message
+        and "turn_ref=msg_cancelled_1" in record.message
+        and "conversation_ref=conv_cancelled_1" in record.message
+        for record in caplog.records
+    )
+    assert pending_history.calls == 1
+    assert any(
+        "[Query Cancelled] Reconciled 2 pending tool call(s)" in record.message
         and "turn_ref=msg_cancelled_1" in record.message
         and "conversation_ref=conv_cancelled_1" in record.message
         for record in caplog.records

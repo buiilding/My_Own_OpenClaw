@@ -199,6 +199,43 @@ class ConversationHistory:
             bool(consume_all_on_next_output) and bool(self._pending_tool_call_ids)
         )
 
+    def finalize_pending_tool_calls_as_cancelled(
+        self,
+        message: str = "Tool execution cancelled by user before completion.",
+    ) -> int:
+        """
+        Reconcile staged tool_call_ids after cancellation.
+
+        When a query is cancelled mid-tool loop, assistant tool_call rows may already
+        be in history while the matching role=tool outputs are still pending. This
+        method emits synthetic role=tool outputs for every staged tool_call_id so the
+        next LLM request has a valid assistant->tool_calls->tool_output sequence.
+
+        Args:
+            message: Synthetic tool output content to record for each pending tool call.
+
+        Returns:
+            Number of synthetic tool output rows written.
+        """
+        if not self._pending_tool_call_ids:
+            return 0
+
+        pending_tool_call_ids = list(self._pending_tool_call_ids)
+        self._pending_tool_call_ids = []
+        self._consume_all_tool_call_ids_on_next_output = False
+
+        for tool_call_id in pending_tool_call_ids:
+            self._append_message(
+                self._build_tool_result_message(
+                    message=message,
+                    tool_call_id=tool_call_id,
+                )
+            )
+
+        self._invalidate_token_cache()
+        self._prune_if_needed()
+        return len(pending_tool_call_ids)
+
     def get_history(self) -> List[LLMMessage]:
         """
         Get the current conversation history in LLM format.
