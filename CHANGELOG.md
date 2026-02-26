@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(backend-image-dimensions): add parser edge-case coverage for invalid PNG/JPEG payloads (short/non-IHDR PNG headers, invalid JPEG segment lengths, and SOS-before-SOF streams).
 - test(backend-model-config): add invariant coverage for online/thinking model catalogs and schema-field helpers (subset/uniqueness/default-field semantics).
 - refactor(frontend-styles): dedupe `CloneMemoryModels.css` icon style blocks for provider/model cards via shared selectors; preserves visuals while reducing clone noise.
 - refactor(backend-formatters): simplify formatter spec registration imports by routing through `backend.src.api.processing.formatters` module aliases instead of per-formatter class imports; preserves dispatch mapping and reduces duplication.
