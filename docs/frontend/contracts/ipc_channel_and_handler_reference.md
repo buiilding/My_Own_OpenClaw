@@ -15,6 +15,10 @@ title: "IPC Channel and Handler Reference"
 - Typed bridge wrapper: `frontend/src/renderer/infrastructure/ipc/bridge.ts`
 - Main-process handlers:
 - `frontend/src/main/ipc.cjs`
+- `frontend/src/main/ipc_runtime_helpers.cjs`
+- `frontend/src/main/ipc_renderer_windows.cjs`
+- `frontend/src/main/ipc_query_broadcast.cjs`
+- `frontend/src/main/ipc_query_events.cjs`
 - `frontend/src/main/index.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
@@ -141,7 +145,7 @@ These channels are implemented in `index.cjs` and delegated to `permission_servi
 
 ## `to-backend` Query Relay Lifecycle (main process)
 
-Owner: `ipc.cjs`.
+Owner: `ipc.cjs` (with helper-module delegation to `ipc_runtime_helpers.cjs`, `ipc_query_broadcast.cjs`, and `ipc_query_events.cjs`).
 
 1. validates message envelope and type.
 2. for first query after connect, enforces one-time settings sync gate (`update-settings` ACK/timeout handling).
@@ -158,7 +162,7 @@ Owner: `ipc.cjs`.
 - for `query` and `tool-bundle-result`, strips `screenshot_url`.
 - backend message envelope always includes `{id,type,payload,user_id,timestamp}`.
 
-Incoming websocket messages are rebroadcast to all tracked renderer windows, excluding optional source sender where applicable.
+Incoming websocket messages are normalized by `processBackendMessageData` (`ipc_runtime_helpers.cjs`) and rebroadcast to all tracked renderer windows via `ipc_renderer_windows.cjs`, excluding optional source sender where applicable.
 
 ## Drift Hotspots
 

@@ -21,6 +21,10 @@ title: "Frontend Contracts IPC Docs Hub"
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/renderer/infrastructure/ipc/bridge.ts`
 - `frontend/src/main/ipc.cjs`
+- `frontend/src/main/ipc_runtime_helpers.cjs`
+- `frontend/src/main/ipc_renderer_windows.cjs`
+- `frontend/src/main/ipc_query_broadcast.cjs`
+- `frontend/src/main/ipc_query_events.cjs`
 - `frontend/src/main/index.cjs`
 - `frontend/src/main/permission_service.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`

@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for main-process IPC handler ownership across `ipc.cjs`, `index.cjs`, permission/wakeword handlers, local-backend bridge, and mapped sidecar RPC channels."
+summary: "Deep reference for main-process IPC handler ownership across `ipc.cjs` + IPC helper modules, `index.cjs`, permission/wakeword handlers, local-backend bridge, and mapped sidecar RPC channels."
 read_when:
   - When adding/removing `ipcMain.on/handle` registrations, including permission onboarding channels.
   - When debugging renderer invoke/send calls that do not reach expected main/sidecar behavior.
@@ -11,6 +11,10 @@ title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 ## Canonical Modules
 
 - `frontend/src/main/ipc.cjs`
+- `frontend/src/main/ipc_runtime_helpers.cjs`
+- `frontend/src/main/ipc_renderer_windows.cjs`
+- `frontend/src/main/ipc_query_broadcast.cjs`
+- `frontend/src/main/ipc_query_events.cjs`
 - `frontend/src/main/index.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
@@ -22,7 +26,8 @@ title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 
 Main-process handler registration is split by responsibility:
 
-- transport/backend relay and config persistence: `ipc.cjs`
+- transport/backend relay orchestration and config persistence: `ipc.cjs`
+- relay helper ownership for message processing/fan-out/synthetic query events: `ipc_runtime_helpers.cjs`, `ipc_renderer_windows.cjs`, `ipc_query_broadcast.cjs`, `ipc_query_events.cjs`
 - window/overlay runtime control: `index.cjs`
 - Python sidecar tool + memory bridge: `local_backend_bridge.cjs`
 - wakeword audio process bridge: `wakeword_bridge.cjs`
@@ -46,6 +51,10 @@ Notable behavior:
 
 - `to-backend` query path performs initial settings sync gate, local optimistic user event synthesis, payload enrichment, and websocket send
 - `save/load-frontend-config` call atomic file helpers in `ipc_frontend_config.cjs`
+- helper-module split:
+  - inbound backend message normalization/state/phase fan-out: `ipc_runtime_helpers.cjs`
+  - renderer-window registration and broadcast fan-out: `ipc_renderer_windows.cjs`
+  - synthetic local user/failure query event broadcast: `ipc_query_broadcast.cjs` with envelope builders from `ipc_query_events.cjs`
 
 ### `index.cjs`
 
