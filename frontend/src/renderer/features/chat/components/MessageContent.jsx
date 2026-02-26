@@ -161,10 +161,8 @@ function UserMessage({ message }) {
   const screenshotSrc = resolveMessageScreenshotSrc(message);
   return (
     <div className="user-message-container">
-      <MarkdownMessage text={message.text} />
       {screenshotSrc && (
         <div className="user-screenshot-container">
-          <div className="user-screenshot-header">📸 Screenshot</div>
           <img
             src={screenshotSrc}
             alt="User message screenshot"
@@ -173,6 +171,7 @@ function UserMessage({ message }) {
           />
         </div>
       )}
+      <MarkdownMessage text={message.text} />
     </div>
   );
 }
