@@ -4620,3 +4620,27 @@ read_when:
   - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -q` (pass)
   - `cd frontend && npm run audit:jscpd` (5 clones)
   - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
+
+## Phase 192 Outcome (2026-02-26)
+
+- Refactor slice (backend browser char-window schema fields): dedupe repeated bounded char-window field declarations.
+  - updated:
+    - `backend/src/tools/browser/schemas.py`
+      - added shared helpers:
+        - `_optional_char_limit_field(...)`
+        - `_optional_char_offset_field(...)`
+        - `_optional_char_page_size_field(...)`
+      - rewired:
+        - `BrowserSnapshotArgs.max_chars`
+        - `BrowserSnapshotArgs.offset`
+        - `BrowserSnapshotArgs.limit`
+        - `BrowserExtractArgs.max_chars`
+      - preserved existing bounds/defaults and descriptions.
+  - route consolidation check:
+    - `jscpd` on `backend/src/api/routes` found `0` clones; no route merge needed in this slice.
+  - audit outcome:
+    - combined `backend/src` + `frontend/src` `jscpd` clone count dropped from `5` to `4`.
+- Validation:
+  - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -q` (pass)
+  - `cd frontend && npm run audit:jscpd` (4 clones)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)

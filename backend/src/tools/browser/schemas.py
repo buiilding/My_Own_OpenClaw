@@ -63,6 +63,18 @@ def _optional_string_field(description: str, *, max_length: int):
     return Field(None, description=description, max_length=max_length)
 
 
+def _optional_char_limit_field(description: str):
+    return Field(None, description=description, ge=100, le=120000)
+
+
+def _optional_char_offset_field(description: str):
+    return Field(None, description=description, ge=0)
+
+
+def _optional_char_page_size_field(description: str):
+    return Field(None, description=description, ge=1, le=120000)
+
+
 class BrowserArgsModel(BaseModel):
     """Shared backend browser schema base."""
 
@@ -110,22 +122,14 @@ class BrowserSnapshotArgs(BrowserArgsModel):
         None,
         description="Optional snapshot mode. 'efficient' enables interactive+compact+depth defaults (also used by default for ai snapshots when mode is omitted).",
     )
-    max_chars: Optional[int] = Field(
-        None,
-        description="Optional max characters in snapshot (defaults to 12,000 for ai; 4,000 in efficient mode; aria snapshots are capped at 4,000)",
-        ge=100,
-        le=120000,
+    max_chars: Optional[int] = _optional_char_limit_field(
+        "Optional max characters in snapshot (defaults to 12,000 for ai; 4,000 in efficient mode; aria snapshots are capped at 4,000)"
     )
-    offset: Optional[int] = Field(
-        None,
-        description="Optional character offset into snapshot text for paginated reads.",
-        ge=0,
+    offset: Optional[int] = _optional_char_offset_field(
+        "Optional character offset into snapshot text for paginated reads."
     )
-    limit: Optional[int] = Field(
-        None,
-        description="Optional character page size for snapshot text. aria pages are capped at 4,000 characters.",
-        ge=1,
-        le=120000,
+    limit: Optional[int] = _optional_char_page_size_field(
+        "Optional character page size for snapshot text. aria pages are capped at 4,000 characters."
     )
     refs: SnapshotRefsField
     interactive: SnapshotInteractiveField
@@ -160,11 +164,8 @@ class BrowserExtractArgs(BrowserArgsModel):
         ge=0,
         description="Character offset into extracted page content for long pages.",
     )
-    max_chars: Optional[int] = Field(
-        None,
-        ge=100,
-        le=120000,
-        description="Maximum number of characters in the final extracted result.",
+    max_chars: Optional[int] = _optional_char_limit_field(
+        "Maximum number of characters in the final extracted result."
     )
     wait_until: BrowserNavigationState = Field(
         "load", description="Wait for this load state before extracting page content."
