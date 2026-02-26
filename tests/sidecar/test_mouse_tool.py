@@ -123,3 +123,25 @@ async def test_execute_mouse_control_rejects_unknown_action(monkeypatch):
 
     assert result.success is False
     assert "Unknown mouse action" in (result.error or "")
+
+
+@pytest.mark.asyncio
+async def test_execute_mouse_control_scroll_requires_amount(monkeypatch):
+    fake_pyautogui, calls = _fake_pyautogui(with_hscroll=True)
+    monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
+
+    result = await mouse_tool.execute_mouse_control({"action": "scroll"})
+
+    assert result.success is False
+    assert "scroll_amount required for scroll action" in (result.error or "")
+    assert calls == []
+
+
+@pytest.mark.asyncio
+async def test_execute_mouse_control_import_error_returns_failure(monkeypatch):
+    monkeypatch.delitem(sys.modules, "pyautogui", raising=False)
+
+    result = await mouse_tool.execute_mouse_control({"action": "click", "x": 1, "y": 2})
+
+    assert result.success is False
+    assert result.error == "pyautogui library not available"
