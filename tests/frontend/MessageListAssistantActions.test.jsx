@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 
 import MessageList from '../../frontend/src/renderer/features/chat/components/MessageList';
 
@@ -62,5 +62,51 @@ describe('MessageList assistant actions', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
     expect(onAssistantTryAgain).toHaveBeenCalledWith('assistant-1');
+  });
+
+  test('copy action swaps to check icon for 4 seconds then reverts', async () => {
+    jest.useFakeTimers();
+    const writeText = jest.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    });
+
+    const { container } = render(
+      <MessageList
+        messages={[
+          { id: 'assistant-1', text: 'copy me', sender: 'assistant', type: 'llm-text' },
+        ]}
+        thinkingStatus={null}
+        enableAssistantActions
+      />,
+    );
+
+    const copyButton = screen.getByRole('button', { name: 'Copy assistant message' });
+    expect(copyButton).toHaveAttribute('title', 'Copy');
+    expect(container.querySelector('svg.lucide-copy')).toBeTruthy();
+
+    await act(async () => {
+      fireEvent.click(copyButton);
+      await Promise.resolve();
+    });
+
+    expect(writeText).toHaveBeenCalledWith('copy me');
+    expect(copyButton).toHaveAttribute('title', 'Copied');
+    expect(container.querySelector('svg.lucide-check')).toBeTruthy();
+
+    act(() => {
+      jest.advanceTimersByTime(3999);
+    });
+    expect(copyButton).toHaveAttribute('title', 'Copied');
+    expect(container.querySelector('svg.lucide-check')).toBeTruthy();
+
+    act(() => {
+      jest.advanceTimersByTime(1);
+    });
+    expect(copyButton).toHaveAttribute('title', 'Copy');
+    expect(container.querySelector('svg.lucide-copy')).toBeTruthy();
+
+    jest.useRealTimers();
   });
 });
