@@ -4539,3 +4539,21 @@ read_when:
   - `./scripts/python-in-env backend python -m pytest tests/backend --durations=20 -q` (pass)
   - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
   - `npx jscpd --gitignore --min-lines 8 --reporters console,markdown --output .audit/plan1/jscpd-backend backend/src tests/backend` (0 clones)
+
+## Phase 188 Outcome (2026-02-26)
+
+- Refactor slice (backend browser compat schema): dedupe OpenClaw compatibility field declarations.
+  - updated:
+    - `backend/src/tools/browser/openclaw_compat_schema.py`
+      - added shared `_openclaw_field(...)` helper for optional compatibility fields
+      - rewired repeated `Field(None, description=...)` declarations to helper calls
+      - preserved default `None` behavior and all existing validation bounds (`ge`/`gt`/`le`) on constrained fields
+  - route consolidation check:
+    - `jscpd` on `backend/src/api/routes` found `0` clones; no route merge needed in this slice.
+  - audit outcome:
+    - combined `backend/src` + `frontend/src` `jscpd` clone count dropped from `12` to `9`
+    - remaining clones are shared schema blocks between backend and frontend sidecar browser schema files.
+- Validation:
+  - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -q` (pass)
+  - `cd frontend && npm run audit:jscpd` (9 clones)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
