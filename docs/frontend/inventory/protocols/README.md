@@ -22,6 +22,8 @@ title: "Frontend Inventory Protocols Hub"
 ## Related Pages
 
 - [Frontend Inventory Docs Hub](../README.md)
+- [Frontend Functionality Capability Catalog Reference](../frontend_functionality_capability_catalog_reference.md)
+- [Frontend Capability to File Matrix Reference](../frontend_capability_to_file_matrix_reference.md)
 - [Frontend IPC and Sidecar Contract Touchpoints Reference](../frontend_ipc_and_sidecar_contract_touchpoints_reference.md)
 - [Frontend Contracts Docs Hub](../../contracts/README.md)
 - [Frontend Main Docs Hub](../../main/README.md)
