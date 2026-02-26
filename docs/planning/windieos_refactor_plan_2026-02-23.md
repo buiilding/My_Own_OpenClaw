@@ -76,6 +76,16 @@ read_when:
     - `tests/frontend/AgentSudoAccessHandler.test.cjs`
   - audit delta:
     - frontend+backend `jscpd` total clones reduced from `27` to `25`.
+- Sidecar remote-client dedupe:
+  - added shared base:
+    - `frontend/src/main/python/core/remote_api_client_base.py`
+  - rewired:
+    - `frontend/src/main/python/core/remote_semantic_client.py`
+    - `frontend/src/main/python/core/remote_title_client.py`
+  - verification:
+    - `./scripts/python-in-env sidecar python -m pytest tests/sidecar/test_remote_semantic_client.py tests/sidecar/test_remote_title_client.py -q`
+  - note:
+    - jscpd clone count unchanged (`25`), but duplicated python lines/tokens reduced in latest report.
 
 - Dashboard shell split:
   - extracted conversation/search orchestration from `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx` into:
