@@ -69,7 +69,7 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `set-overlay-ignore-mouse` | `main/index.cjs` | Toggle overlay click-through |
 | `set-chatbox-size` | `main/index.cjs` | Resize chatbox overlay |
 | `set-responsebox-size` | `main/index.cjs` | Resize response overlay |
-| `show-main-window` | `main/index.cjs` | Show dashboard window; optional `{ open, maximize }` payload |
+| `show-main-window` | `main/index.cjs` | Show dashboard window; optional `{ open, maximize }`; `open` target must normalize to `chat|memory|models|settings` before emit |
 | `show-chatbox` | `main/index.cjs` | Show chatbox overlay |
 | `hide-chatbox` | `main/index.cjs` | Hide chatbox overlay |
 | `get-displays` | `main/index.cjs` | Return display inventory |
@@ -97,6 +97,17 @@ Notes:
 
 - `local-backend-status` is emitted by `local_backend_bridge.cjs` but is not in preload allowlists, so renderer code using `window.ipc` cannot subscribe to it directly.
 - Renderer typed constants in `channels.ts` mirror preload allowlists; drift here creates runtime rejection in preload.
+
+## Control-Path Contract Index (Main -> Renderer)
+
+| Channel | Emission gate/condition | Deep contract |
+|---|---|---|
+| `ipc-status` | websocket open/close + explicit client snapshot fan-out | [Frontend Protocol Session and Conversation-State Propagation Reference](state/frontend_protocol_session_and_conversation_state_propagation_reference.md) |
+| `from-backend` | every parsed backend event + synthetic local query/send-failure events | [Frontend Main WS Bridge, Query Gate, and Overlay Phase Lifecycle Reference](lifecycle/frontend_main_ws_bridge_query_gate_and_overlay_phase_lifecycle_reference.md) |
+| `wakeword-stt-trigger` | wakeword callback only after `showChatWindow({focus:true})` success | [Frontend Main WS Bridge, Query Gate, and Overlay Phase Lifecycle Reference](lifecycle/frontend_main_ws_bridge_query_gate_and_overlay_phase_lifecycle_reference.md) |
+| `main-window-open-target` | `show-main-window` invoke succeeds and target normalizes to allowed set | [Frontend Main WS Bridge, Query Gate, and Overlay Phase Lifecycle Reference](lifecycle/frontend_main_ws_bridge_query_gate_and_overlay_phase_lifecycle_reference.md) |
+| `response-overlay-phase` | websocket/query/control events trigger phase transitions in `ipc.cjs` | [Frontend Main WS Bridge, Query Gate, and Overlay Phase Lifecycle Reference](lifecycle/frontend_main_ws_bridge_query_gate_and_overlay_phase_lifecycle_reference.md) |
+| `response-overlay-visibility` | main-process visibility state toggled via overlay phase/window close handlers | [Frontend Main WS Bridge, Query Gate, and Overlay Phase Lifecycle Reference](lifecycle/frontend_main_ws_bridge_query_gate_and_overlay_phase_lifecycle_reference.md) |
 
 ## Main -> Backend WebSocket Envelope Rules
 
@@ -133,7 +144,7 @@ Transport:
 
 | IPC channel | JSON-RPC method | Param mapping notes |
 |---|---|---|
-| `execute-tool` | `execute_tool` | `{ toolName, args } -> { tool_name, args }`; screenshot tool uses Linux hide/show guard |
+| `execute-tool` | `execute_tool` | `{ toolName, args } -> { tool_name, args }`; screenshot tool uses Linux hide/show guard; `run_shell_command` receives derived `sudo_auth_mode` from frontend config state |
 | `get-system-state` | `get_system_state` | Optional `{ fields }` passthrough |
 | `search-memory` | `search_memory` | Maps `excludeConversationId` fallback to `exclude_conversation_id` |
 | `search-conversations` | `search_conversations` | `userId -> user_id` with query/limit passthrough |
