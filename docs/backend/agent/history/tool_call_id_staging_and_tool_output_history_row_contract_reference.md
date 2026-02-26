@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for `ConversationHistory` tool-output write semantics: staged tool_call_id consumption modes, canonical tool-row strategy with image context continuity, token-cache incremental updates, and rehydrate/linkage normalization behavior."
+summary: "Deep reference for `ConversationHistory` tool-output write semantics: staged tool_call_id consumption modes, canonical multimodal tool-row strategy, token-cache incremental updates, and rehydrate/linkage normalization behavior."
 read_when:
   - When changing `ConversationHistory.add_tool_output` or `stage_tool_call_ids` behavior.
   - When debugging tool-call/tool-output linkage issues in provider-normalized history or token-count drift after tool turns.
@@ -37,13 +37,13 @@ title: "Tool-Call-ID Staging and Tool-Output History Row Contract Reference"
 `add_tool_output(message, image_data)` writes:
 
 1. when staged ids exist: one or more canonical `role='tool'` rows with `tool_call_id`
-2. when staged ids exist and screenshot is present: one screenshot-context `role='user'` `TOOL_OUTPUT` row (`content="[tool screenshot context]"`) to preserve multimodal screenshot context
+2. when staged ids exist and screenshot is present: attach `image_data` directly to the first canonical `role='tool'` row (multimodal `content=[text,image_url]` in LLM view)
 3. when no staged ids exist: one legacy `role='user'` `TOOL_OUTPUT` row with text (and screenshot, if present)
 
 Reason:
 
 - provider-facing tool-call linkage needs explicit `tool_call_id` rows
-- screenshot continuity still needs a multimodal-capable row for providers that require text-only `role='tool'` content
+- screenshot continuity stays on canonical linked tool rows
 - duplicate tool-output text rows are avoided on linked tool turns
 
 ## Token Cache Behavior on Tool Output
@@ -85,7 +85,7 @@ This allows restored history to survive provider normalization without dropping 
 
 ## Drift Hotspots
 
-1. changing image-only screenshot companion row behavior can break screenshot continuity for linked tool turns.
+1. changing tool-row multimodal conversion can break screenshot continuity for linked tool turns.
 2. changing staged-id consumption mode can mismatch tool-call/tool-output ordering for bundled turns.
 3. mutating tool-output token cache logic can reintroduce O(N) counting per tool event.
 4. weakening rehydrate normalization can orphan tool rows from assistant tool-call records.

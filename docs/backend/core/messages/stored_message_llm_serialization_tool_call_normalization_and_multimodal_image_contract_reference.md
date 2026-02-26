@@ -25,6 +25,7 @@ title: "Stored Message LLM Serialization, Tool-Call Normalization, and Multimoda
 
 2. tool role:
 - returns `role`, `content`, `tool_call_id`
+- when `image_data` exists, emits multimodal `content=[text,image_url]` on the `role="tool"` row
 - fallback `tool_call_id="unknown_tool_call"` when missing
 - includes `name` when `tool_name` present
 
@@ -67,6 +68,7 @@ Design intent: avoid lossy parse-back from rendered XML/text when preserving use
 - image prefix add/preserve behavior
 - assistant tool-call normalization including skipped invalid entries
 - tool role fallback `unknown_tool_call` behavior
+- tool role multimodal serialization when screenshot `image_data` is present
 
 Additional usage coverage:
 

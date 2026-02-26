@@ -71,7 +71,7 @@ class ToolLLMMessage(TypedDict):
     """Tool result message for follow-up turns after tool execution."""
 
     role: Literal["tool"]
-    content: str
+    content: Union[str, MultimodalContent]
     tool_call_id: str
     name: NotRequired[str]
 
