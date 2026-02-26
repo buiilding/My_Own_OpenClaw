@@ -10,6 +10,11 @@ title: "Backend Runtime Flow Matrix Reference"
 
 This matrix maps runtime responsibilities to exact modules in `backend/src`.
 
+## Coverage Snapshot (2026-02-26)
+
+- Total backend python files: `318`
+- Domain counts: `agent=69`, `api=72`, `core=77`, `tools=31`, `llm=31`, `services=16`, `simulation=12`, `sdk=6`, `embeddings=2`
+
 ## Core Runtime Flows
 
 | Runtime flow | Entry module | Core orchestrators | Completion/exit modules |
@@ -69,11 +74,14 @@ This matrix maps runtime responsibilities to exact modules in `backend/src`.
 - `backend/src/api/contracts/formatter_specs.py` and `backend/src/api/processing/formatters/*.py`
 - `backend/src/tools/*/schemas.py` and sidecar tool schemas under `frontend/src/main/python/tools/schemas.py`
 - `backend/src/llm/parser.py` and `backend/src/llm/parser_validation.py`
-- `backend/src/agent/tools/waiting/storage/result_storage.py` and `backend/src/tools/{single_tool_execution,bundle_execution}.py`
+- `backend/src/agent/tools/waiting/{handler,receiver,router}.py` and `backend/src/tools/{single_tool_execution,bundle_execution,orchestrator}.py`
+- `backend/src/agent/compaction/engine.py` and `backend/src/api/handlers/compact_history.py`
 
 ## Related Docs
 
 - [Backend Inventory Docs Hub](README.md)
 - [Backend Full Functionality Inventory Reference](backend_full_functionality_inventory_reference.md)
+- [Backend Functionality Capability Catalog Reference](backend_functionality_capability_catalog_reference.md)
+- [Backend Capability to File Matrix Reference](backend_capability_to_file_matrix_reference.md)
 - [Backend Module File Index Reference](backend_module_file_index_reference.md)
 - [Backend Cross-Layer Contract Touchpoints Reference](backend_cross_layer_contract_touchpoints_reference.md)
