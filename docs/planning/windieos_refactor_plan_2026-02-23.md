@@ -243,7 +243,7 @@ read_when:
 ### Phase 9 Execution Slice (Current Loop)
 
 - Dead module removal:
-  - delete `frontend/src/renderer/features/chat/utils/chatBoxPresentation.js`.
+  - delete legacy `chatBoxPresentation.js` helper module in chat utils.
   - delete `tests/frontend/ChatBoxPresentation.test.js` (dead-module-only test).
   - update docs references (folder structure) for removed module.
 - Logger helper export pruning:
@@ -1069,7 +1069,7 @@ read_when:
 ## Phase 9 Outcome (2026-02-23)
 
 - Dead module cleanup shipped:
-  - removed unused `frontend/src/renderer/features/chat/utils/chatBoxPresentation.js`.
+  - removed unused legacy `chatBoxPresentation.js` helper module in chat utils.
   - removed module-specific test `tests/frontend/ChatBoxPresentation.test.js`.
   - removed stale folder-structure reference for `chatBoxPresentation.js`.
 - Logger export cleanup shipped:
@@ -3578,7 +3578,7 @@ read_when:
     - `chatStreamTracking.ts` (`applyTrackingEvent`)
     - `chatStreamConversationGate.ts` (conversation-filter helpers)
   - removed dead frontend utility + test:
-    - `frontend/src/renderer/features/chat/utils/messageToolMetadata.js`
+    - legacy chat utils helper `messageToolMetadata.js`
     - `tests/frontend/MessageToolMetadata.test.js`
   - backend dedupe:
     - `ToolSender` now uses shared `_build_tool_event_metadata(...)` for single-call + bundle paths.
