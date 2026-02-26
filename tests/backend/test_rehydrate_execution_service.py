@@ -47,6 +47,15 @@ class _FailingArtifactStore:
         raise RuntimeError("artifact store unavailable")
 
 
+class _LoadFailArtifactStore:
+    @classmethod
+    def from_config(cls, _config):
+        return cls()
+
+    def load_base64(self, _artifact_id):
+        raise RuntimeError("missing artifact")
+
+
 def _build_message(messages):
     return RehydrateConversationMessage(
         id="msg_rehydrate_test",
@@ -126,6 +135,27 @@ async def test_execute_raises_when_artifact_store_unavailable_for_screenshot_ref
         await service.execute(message, "user-1", artifact_store_cls=_FailingArtifactStore)
 
 
+@pytest.mark.asyncio
+async def test_execute_continues_when_artifact_ref_load_fails():
+    manager = _FakeSessionManager()
+    service = RehydrateExecutionService(manager)
+    message = _build_message(
+        [
+            {
+                "role": "assistant",
+                "content": "with image ref",
+                "message_type": "assistant",
+                "screenshot_ref": "shot-missing",
+            }
+        ]
+    )
+
+    await service.execute(message, "user-1", artifact_store_cls=_LoadFailArtifactStore)
+
+    _, entries = manager.session.calls[0]
+    assert entries[0]["image_data"] is None
+
+
 def test_normalize_rehydrated_tool_output_injects_synthetic_tool_call_entry():
     service = RehydrateExecutionService(_FakeSessionManager())
     known_tool_call_ids = set()
@@ -180,6 +210,64 @@ def test_normalize_tool_calls_parses_function_payload_and_skips_invalid_entries(
         {"id": "call-1", "name": "read_file", "arguments": {"path": "/tmp/a.txt"}},
         {"id": "call-2", "name": "replace", "arguments": {"path": "/tmp/b.txt"}},
     ]
+
+
+def test_normalize_rehydrated_entry_reuses_pending_tool_call_id_for_tool_output():
+    service = RehydrateExecutionService(_FakeSessionManager())
+    known_tool_call_ids = set()
+
+    assistant_entry = SimpleNamespace(
+        role="assistant",
+        content="",
+        message_type="assistant-message",
+        tool_name=None,
+        correlation_id=None,
+        tool_call_id=None,
+        timestamp="2026-02-26T00:00:00Z",
+        tool_calls=[{"id": "call-1", "name": "read_file", "arguments": {"path": "/tmp/a.txt"}}],
+    )
+    entries, pending = service._normalize_rehydrated_entry(
+        entry=assistant_entry,
+        index=0,
+        image_data=None,
+        known_tool_call_ids=known_tool_call_ids,
+        pending_tool_call_id=None,
+    )
+    assert entries[0]["tool_calls"][0]["id"] == "call-1"
+    assert pending == "call-1"
+
+    tool_output_entry = SimpleNamespace(
+        role="tool",
+        content="done",
+        message_type="tool-output",
+        tool_name="read_file",
+        correlation_id=None,
+        tool_call_id=None,
+        timestamp="2026-02-26T00:00:01Z",
+        tool_calls=None,
+    )
+    entries, pending = service._normalize_rehydrated_entry(
+        entry=tool_output_entry,
+        index=1,
+        image_data=None,
+        known_tool_call_ids=known_tool_call_ids,
+        pending_tool_call_id=pending,
+    )
+    assert len(entries) == 1
+    assert entries[0]["role"] == "tool"
+    assert entries[0]["tool_call_id"] == "call-1"
+    assert pending is None
+
+
+def test_extract_tool_call_details_reads_arguments_alias_field():
+    service = RehydrateExecutionService(_FakeSessionManager())
+    tool_name, arguments = service._extract_tool_call_details(
+        content='{"name":"replace","arguments":{"path":"/tmp/a.txt"}}',
+        fallback_tool_name="fallback_tool",
+    )
+
+    assert tool_name == "replace"
+    assert arguments == {"path": "/tmp/a.txt"}
 
 
 def test_normalize_stored_message_type_collapses_context_summary_variants():
