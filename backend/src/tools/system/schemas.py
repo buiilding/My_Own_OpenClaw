@@ -6,6 +6,11 @@ from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.tools.schema_fields import explanation_field
 
+
+def _optional_process_field(description: str):
+    return Field(None, description=description)
+
+
 # --- Shell Tool Schemas ---
 
 class RunShellCommandArgs(BaseModel):
@@ -76,15 +81,15 @@ class ProcessShellCommandArgs(BaseModel):
             "Session id returned by run_shell_command (required for actions other than list/clear)."
         ),
     )
-    data: Optional[str] = Field(None, description="Data to write for write action")
-    keys: Optional[list[str]] = Field(None, description="Key tokens for send-keys action")
-    hex: Optional[list[str]] = Field(None, description="Hex bytes for send-keys action")
-    literal: Optional[str] = Field(None, description="Literal text for send-keys action")
-    text: Optional[str] = Field(None, description="Text for paste action")
-    bracketed: Optional[bool] = Field(None, description="Wrap paste in bracketed mode")
-    eof: Optional[bool] = Field(None, description="Close stdin after write action")
-    offset: Optional[int] = Field(None, description="Log line offset")
-    limit: Optional[int] = Field(None, description="Log line limit")
+    data: Optional[str] = _optional_process_field("Data to write for write action")
+    keys: Optional[list[str]] = _optional_process_field("Key tokens for send-keys action")
+    hex: Optional[list[str]] = _optional_process_field("Hex bytes for send-keys action")
+    literal: Optional[str] = _optional_process_field("Literal text for send-keys action")
+    text: Optional[str] = _optional_process_field("Text for paste action")
+    bracketed: Optional[bool] = _optional_process_field("Wrap paste in bracketed mode")
+    eof: Optional[bool] = _optional_process_field("Close stdin after write action")
+    offset: Optional[int] = _optional_process_field("Log line offset")
+    limit: Optional[int] = _optional_process_field("Log line limit")
 
 
 # --- System Info Schemas ---
