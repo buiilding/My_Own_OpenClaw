@@ -26,6 +26,7 @@ Core runtime:
 
 - `frontend/src/main/index.cjs`
 - `frontend/src/main/main_window_runtime.cjs`
+- `frontend/src/main/main_process_lifecycle_runtime.cjs`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/backend_endpoints.cjs`
 - `frontend/src/main/query_payload_builder.cjs`
@@ -34,6 +35,7 @@ Core runtime:
 Overlay/window control helpers:
 
 - `frontend/src/main/overlay_visibility_handler.cjs`
+- `frontend/src/main/overlay_ipc_runtime.cjs`
 - `frontend/src/main/overlay_mouse_handler.cjs`
 - `frontend/src/main/overlay_chatbox_handler.cjs`
 - `frontend/src/main/overlay_responsebox_handler.cjs`
@@ -43,6 +45,7 @@ Overlay/window control helpers:
 - `frontend/src/main/main_window_controls_handler.cjs`
 - `frontend/src/main/display_query_handler.cjs`
 - `frontend/src/main/external_focus_tracker.cjs`
+- `frontend/src/main/window_visibility_runtime.cjs`
 
 Bridge/support modules:
 

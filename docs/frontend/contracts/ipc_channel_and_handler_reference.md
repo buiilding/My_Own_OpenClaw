@@ -20,6 +20,9 @@ title: "IPC Channel and Handler Reference"
 - `frontend/src/main/ipc_query_broadcast.cjs`
 - `frontend/src/main/ipc_query_events.cjs`
 - `frontend/src/main/index.cjs`
+- `frontend/src/main/overlay_ipc_runtime.cjs`
+- `frontend/src/main/window_visibility_runtime.cjs`
+- `frontend/src/main/main_process_lifecycle_runtime.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
 
@@ -46,7 +49,7 @@ Behavior:
 
 ### `move-chatbox-to`
 
-Owner: `index.cjs`
+Owner: `overlay_ipc_runtime.cjs` (registered via `index.cjs`)
 
 Behavior:
 
@@ -79,7 +82,7 @@ Behavior:
 - `get-client-user-id` -> returns websocket user/session endpoint metadata
 - `upload-artifact` -> multipart upload to backend HTTP `/api/artifacts/`
 
-## Window/overlay channels (`index.cjs`)
+## Window/overlay channels (`overlay_ipc_runtime.cjs`, wired by `index.cjs`)
 
 - `set-overlay-ignore-mouse` -> click-through toggle for overlay windows
 - `set-chatbox-size` -> bounded chat window resize + response reposition
@@ -141,7 +144,7 @@ Permission onboarding and settings data-controls use invoke-only channels:
 - `run-permission-probe`: explicit one-permission probe rerun
 - `request-permission`: best-effort OS request flow + post-request probe
 
-These channels are implemented in `index.cjs` and delegated to `permission_service.cjs`.
+These channels are registered in `overlay_ipc_runtime.cjs` and delegated to `permission_service.cjs`.
 
 ## `to-backend` Query Relay Lifecycle (main process)
 
