@@ -14,8 +14,8 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 
 | Surface | Primary entry modules | Core orchestrators | Exit/response paths |
 | --- | --- | --- | --- |
-| Electron app runtime | `frontend/src/main/index.cjs` | Window/tray setup, overlay handlers, bridge initializers | Renderer windows + process shutdown |
-| Main process backend bridge | `frontend/src/main/ipc.cjs` | WebSocket session, settings ACK gate, relay fan-out | IPC events to renderer |
+| Electron app runtime | `frontend/src/main/index.cjs`, `frontend/src/main/main_window_runtime.cjs` | Window/tray setup, overlay handlers, bridge initializers | Renderer windows + process shutdown |
+| Main process backend bridge | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc_runtime_helpers.cjs`, `frontend/src/main/ipc_renderer_windows.cjs`, `frontend/src/main/ipc_query_broadcast.cjs` | WebSocket session, settings ACK gate, relay fan-out | IPC events to renderer |
 | Main process sidecar bridge | `frontend/src/main/local_backend_bridge.cjs` | Python subprocess lifecycle, JSON-RPC correlation | Tool/system/memory responses |
 | Main process wakeword bridge | `frontend/src/main/wakeword_bridge.cjs` | Wakeword subprocess lifecycle + binary framing | Wakeword events to renderer/main IPC |
 | Preload trust boundary | `frontend/src/preload.js` | Allowlisted IPC exposure only | `window.ipc` bridge methods |
