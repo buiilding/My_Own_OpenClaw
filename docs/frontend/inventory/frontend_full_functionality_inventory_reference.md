@@ -1,402 +1,324 @@
 ---
-summary: "Exhaustive frontend functionality inventory across Electron main, preload, renderer, sidecar Python runtime, and landing application surfaces."
+summary: "Current exhaustive frontend functionality inventory across Electron main, preload bridge, renderer runtime, and Python sidecar services."
 read_when:
-  - When auditing frontend feature coverage or onboarding across all frontend runtime surfaces.
-  - When adding/changing frontend behavior and deciding ownership between main/renderer/sidecar layers.
+  - When auditing frontend behavior ownership across main/renderer/sidecar.
+  - When updating frontend features and validating cross-process contracts.
 title: "Frontend Full Functionality Inventory Reference"
 ---
 
 # Frontend Full Functionality Inventory Reference
 
-This page is a code-grounded, end-to-end inventory of frontend functionality in `frontend/src`.
+This is the canonical current-state functionality inventory for `frontend/src`.
 
-## Coverage Snapshot
+## Coverage Snapshot (2026-02-26)
 
-Source inventory used for this reference:
+Source counts used in this inventory:
 
-- Main process (`.cjs`/`.js` in `frontend/src/main`): `23`
-- Sidecar Python (`.py` in `frontend/src/main/python`): `136`
-- Renderer TS/JS (`frontend/src/renderer`): `114`
-- Landing (`.jsx`/`.css` in `frontend/src/landing`): `13`
+- Main process (`frontend/src/main`, `.cjs|.js`): `24`
+- Sidecar runtime (`frontend/src/main/python`, `.py`): `140`
+- Renderer runtime (`frontend/src/renderer`, `.ts|.tsx|.js|.jsx`): `117`
+- Landing (`frontend/src/landing`, `.jsx|.css`): `13`
 - Preload bridge (`frontend/src/preload.js`): `1`
-- Total covered files: `287`
+- Total covered frontend files: `295`
 
-## Electron Main Process Functionality Inventory
+## 1) Electron Main Process Inventory
 
-Primary runtime modules:
+### 1.1 App + Window Runtime
+
+Primary files:
 
 - `frontend/src/main/index.cjs`
-- `frontend/src/main/ipc.cjs`
-- `frontend/src/main/backend_endpoints.cjs`
-- `frontend/src/main/query_payload_builder.cjs`
-- `frontend/src/main/ipc_query_events.cjs`
-- `frontend/src/main/ipc_frontend_config.cjs`
-- `frontend/src/main/runtime_paths.cjs`
-
-Main process functionality:
-
-- App boot and window/tray lifecycle.
-- Multi-window overlay orchestration (main, chatbox, response overlay, context label).
-- Response overlay phase state machine.
-- Backend WebSocket connection lifecycle and reconnect behavior.
-- Handshake, message relay, settings-sync ACK gating, and renderer fan-out.
-- Query payload enrichment with memory/system context XML.
-- Artifact upload path to backend HTTP endpoint.
-- User/session/conversation reference propagation through IPC events.
-- Initial settings synchronization gate before first query send.
-
-Overlay and focus handlers:
-
+- `frontend/src/main/overlay_bounds.cjs`
 - `frontend/src/main/overlay_visibility_handler.cjs`
 - `frontend/src/main/overlay_mouse_handler.cjs`
 - `frontend/src/main/overlay_chatbox_handler.cjs`
 - `frontend/src/main/overlay_responsebox_handler.cjs`
-- `frontend/src/main/overlay_bounds.cjs`
 - `frontend/src/main/overlay_renderer_registration.cjs`
 - `frontend/src/main/response_overlay_phase_handler.cjs`
 - `frontend/src/main/external_focus_tracker.cjs`
 - `frontend/src/main/main_window_controls_handler.cjs`
 - `frontend/src/main/display_query_handler.cjs`
 
-Handler functionality:
+Functionality:
 
-- Overlay show/hide and click-through state.
-- Chatbox and response overlay bounds updates.
-- Response phase transitions (`idle`, `awaiting-first-chunk`, `streaming`, `tool-call`, `tool-output`, `complete`, `error`).
-- External window focus snapshot/restore around overlay query capture.
-- Main window control commands and display enumeration.
+- Boots Electron app and creates main/dashboard + overlay windows.
+- Manages response overlay phase transitions and overlay visibility.
+- Maintains overlay z-order and click-through behavior.
+- Handles overlay repositioning on display/window changes.
+- Tracks external focused window before overlay query capture and restores focus.
+- Applies Linux-specific screenshot hide/restore guard for overlays.
+- Registers global wakeword hotkey and open-target window routing.
 
-Local sidecar bridge in main process:
+### 1.2 Backend WebSocket + IPC Orchestration
+
+Primary files:
+
+- `frontend/src/main/ipc.cjs`
+- `frontend/src/main/backend_endpoints.cjs`
+- `frontend/src/main/query_payload_builder.cjs`
+- `frontend/src/main/ipc_query_events.cjs`
+- `frontend/src/main/ipc_frontend_config.cjs`
+
+Functionality:
+
+- Opens backend websocket (`/ws`) and sends handshake with validated user id.
+- Tracks backend session/user/conversation identifiers from stream envelopes.
+- Broadcasts backend events to all renderer windows (`from-backend`).
+- Maintains settings-sync ACK lifecycle with timeout protection.
+- Gates first query behind initial settings sync attempt.
+- Builds query payload content with system-context XML + memory sections.
+- Emits synthetic `local-user-message` and fallback error envelopes for failed sends.
+- Persists/loads frontend config to disk and keeps in-memory config snapshot.
+
+### 1.3 Local Sidecar Bridge (Main <-> Python)
+
+Primary files:
 
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/local_backend_bridge_utils.cjs`
 - `frontend/src/main/local_backend_bridge_windows.cjs`
+- `frontend/src/main/runtime_paths.cjs`
 
-Bridge functionality:
+Functionality:
 
-- Spawn/monitor local Python sidecar process.
-- Readiness checks and request correlation.
-- JSON-RPC request mapping for tool, memory, transcript, and system-state methods.
-- Window resolver mapping for overlay-safe screenshot paths.
-- Canonical RPC mapper registration for conversation/transcript/memory CRUD methods.
+- Starts/stops sidecar process and verifies readiness with ping retries.
+- Correlates JSON-RPC request/response ids and enforces request timeouts.
+- Registers mapped IPC handlers for memory/transcript/system APIs.
+- Executes tool calls and normalizes tool args (`run_shell_command` sudo mode injection).
+- Applies Linux screenshot execution window hiding/restoration.
 
-Wakeword bridge:
+### 1.4 Wakeword + Privilege Bridges
+
+Primary files:
 
 - `frontend/src/main/wakeword_bridge.cjs`
+- `frontend/src/main/agent_sudo_access_handler.cjs`
 
-Wakeword functionality:
+Functionality:
 
-- Wakeword subprocess lifecycle.
-- Binary frame parsing of detection results.
-- Audio chunk relay from renderer to wakeword process.
-- Wakeword detection callbacks to chat surfaces.
+- Wakeword bridge:
+  - Starts python wakeword service lazily on enable.
+  - Streams length-prefixed audio frames to subprocess.
+  - Parses length-prefixed detection results and relays `wakeword-detected`.
+  - Flushes stale buffers when disabled.
+- Agent sudo bridge (Linux-only):
+  - Enables passwordless sudo via `pkexec` + sudoers file write/validate.
+  - Disables via non-interactive `sudo -n` path.
+  - Normalizes cancellation/auth failure reasons for renderer UX.
 
-Support/runtime utilities:
+## 2) Preload Boundary Inventory
 
-- `frontend/src/main/test_shell.cjs` manual shell tool harness.
-
-## Preload Boundary Functionality Inventory
-
-Module:
+Primary file:
 
 - `frontend/src/preload.js`
 
 Functionality:
 
-- Security boundary between renderer and Electron main.
-- Allowlisted IPC surface exposure (`send`, `invoke`, `on`, `once`, listener cleanup helpers).
-- Channel safety for renderer-runtime calls.
+- Exposes allowlisted `send`/`invoke`/`on`/`once` IPC APIs to renderer.
+- Enforces channel-level safety across context-isolated boundary.
+- Prevents direct Node/electron API exposure to renderer runtime.
 
-## Renderer Application Functionality Inventory
+## 3) Renderer Runtime Inventory
 
-Root composition and providers:
+### 3.1 App + Provider Composition
 
-- `frontend/src/renderer/app/main.jsx`
+Primary files:
+
 - `frontend/src/renderer/app/App.jsx`
-- `frontend/src/renderer/app/providers/*.jsx`
-- `frontend/src/renderer/components/ErrorBoundary.jsx`
-- `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
+- `frontend/src/renderer/app/main.jsx`
+- `frontend/src/renderer/app/WakewordController.jsx`
+- `frontend/src/renderer/app/providers/*`
 
-Provider/runtime functionality:
+Functionality:
 
-- AppConfig ownership and backend sync updates.
-- AppStatus save-state ownership.
-- Chat provider ownership of stream and tool-runner hooks.
-- Wakeword controller and app-level composition.
-- View routing across main/overlay surfaces plus dashboard modal targets.
-- Renderer event ingress for targeted open actions (`chat`, `settings`, `models`, `memory`).
+- Mounts provider stack (`AppConfigProvider` + `AppStatusProvider` + `ChatProvider`).
+- Loads/syncs frontend config with disk/localStorage/backend update-settings.
+- Maintains wakeword preference/suppression state.
+- Coordinates save-state callback from config updates into status context.
+- Boots chat stream + tool runner hooks at app scope.
 
-### Renderer Chat Feature Inventory
+### 3.2 Chat Feature Runtime
 
-Primary modules:
+Primary files:
 
 - Components: `frontend/src/renderer/features/chat/components/*`
 - Hooks: `frontend/src/renderer/features/chat/hooks/*`
 - Store: `frontend/src/renderer/features/chat/stores/chatStore.ts`
-- Policies/constants: `frontend/src/renderer/features/chat/policies/*`, `constants/*`
-- Helpers: `frontend/src/renderer/features/chat/utils/*`
-
-Chat functionality:
-
-- Message send workflow with overlay-aware capture policy.
-- Streaming backend event ingestion and per-event UI updates.
-- Thinking/status stream rendering.
-- Tool-call/tool-output/bundle message presentation.
-- Screenshot attachment and artifact URL handling.
-- Conversation gating by active `conversation_ref`.
-- Stream tracking and turn lifecycle transitions.
-- Chatbox/response overlay rendering, including tool-ghost preview/lifecycle.
-- Transcription region editing/reconciliation for voice typing.
-
-### Renderer Dashboard Feature Inventory
-
-Primary modules:
-
-- `frontend/src/renderer/features/dashboard/components/*`
-- `frontend/src/renderer/features/dashboard/components/sections/*`
-- `frontend/src/renderer/features/dashboard/hooks/*`
-- `frontend/src/renderer/features/dashboard/utils/*`
-
-Dashboard functionality:
-
-- Conversation-first dashboard shell with sidebar/open-state persistence.
-- Search chats modal and grouped recent conversation recall.
-- Transcript conversation resume + backend rehydrate handoff.
-- Episodic and semantic memory browsing/actions.
-- Model filtering and selection reconciliation.
-- Display selection and settings payload shaping.
-- Memory context menu keyboard/selection handling.
-
-### Renderer Settings + Voice Inventory
-
-Settings modules:
-
-- `frontend/src/renderer/features/settings/hooks/useSettingsManagement.ts`
-
-Settings functionality:
-
-- Settings display + config toggle orchestration with backend sync-aware hook handoff.
-
-Voice modules:
-
-- `frontend/src/renderer/features/voice/hooks/*`
-- `frontend/src/renderer/features/voice/components/VoiceStatus.jsx`
-- `frontend/src/renderer/features/voice/utils/*`
-
-Voice functionality:
-
-- Voice gateway websocket connect/reconnect and capture lifecycle.
-- Wakeword capture + cooldown management via IPC bridge.
-- PCM encoding and gateway packet framing.
-- Capture cleanup and audio context teardown safety.
-
-### Renderer Infrastructure Inventory
-
-API + IPC modules:
-
-- `frontend/src/renderer/infrastructure/api/client.ts`
-- `frontend/src/renderer/infrastructure/ipc/{bridge.ts,channels.ts}`
+- Helpers/policies/constants: `frontend/src/renderer/features/chat/{utils,policies,constants}/*`
 
 Functionality:
 
-- Typed client wrappers for query/stop/settings/model/wakeword actions.
-- Typed channel constants and defensive bridge wrappers.
+- Send pipeline:
+  - Message send, optional screenshot attachment, stream-phase gating.
+- Stream pipeline (`useChatStream`):
+  - Handles `llm-thought`, `streaming-response`, `streaming-complete`.
+  - Handles `tool-call`, `tool-output`, `tool-bundle` render and transcript writes.
+  - Handles `context-compaction-*`, `system-prompt`, `assistant-message-full`, `error`.
+- Tool execution (`useToolRunner`):
+  - Executes incoming tool calls/bundles through `ToolExecutionService`.
+  - Cancels stale-turn tool events with synthetic failure response payloads.
+- Conversation actions:
+  - New chat reset.
+  - Assistant retry from selected assistant message.
+  - Inline user-message edit and resend from edited point.
+- UI composition:
+  - `ChatInterface` header model selector + speech toggle.
+  - `MessageList` with inline user edit composer.
+  - `MessageTransparencySections` for debug transparency blocks.
+  - Chatbox/response overlay companion surfaces.
 
-Tool/capture runtime modules:
+### 3.3 Dashboard Runtime
 
-- `frontend/src/renderer/infrastructure/services/*`
+Primary files:
+
+- Shell: `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
+- Sidebar/search: `DashboardSidebar.jsx`, `SearchChatsModal.jsx`
+- Sections:
+  - `MemorySection.jsx`, `MemoryItem.jsx`, `memorySectionData.js`
+  - `ModelsSection.jsx`, `modelCardData.js`, `modelCards.jsx`, `providerApiKeys.js`, `ApiKeysSection.jsx`
+  - `SettingsSection.jsx`, `UsageSection.jsx`
+- Utilities/hooks:
+  - `utils/episodicMemoryUtils.js`, `utils/modelSelectionUtils.js`
+  - `hooks/useTranscriptSessionInfo.js`
 
 Functionality:
 
-- Tool execution orchestration for single and bundled calls.
-- Capture policy, screenshot/system-state capture, and payload normalization.
-- Artifact upload helper and image format utilities.
-- Tool execution timing/logging and correlation diagnostics.
+- Sidebar navigation and panel modal orchestration.
+- Recent chat list fetch/grouping (today/yesterday/last-7-days/older).
+- Transcript search modal and conversation open/rehydrate path.
+- Conversation row actions: rename, pin/unpin, delete.
+- Memory panel:
+  - Unified episodic/semantic/procedural tabs.
+  - Episodic/semantic list RPC fetch.
+  - Semantic delete RPC path.
+  - Local edit/add/search/expand UX state.
+- Models panel:
+  - Provider-first model selector.
+  - Missing-model fallback reconciliation.
+  - Provider API-key enable/input controls.
 
-Audio + transcript modules:
+### 3.4 Voice Runtime
 
-- `frontend/src/renderer/infrastructure/audio/PlayerService.ts`
-- `frontend/src/renderer/infrastructure/transcript/*`
+Primary files:
+
+- Hooks: `frontend/src/renderer/features/voice/hooks/*`
+- Components/utils: `frontend/src/renderer/features/voice/components/*`, `utils/*`
 
 Functionality:
 
-- Streaming audio chunk queue/decoding/playback lifecycle.
-- Transcript session state persistence and queued write behavior.
-- Pending user/tool/assistant queue coordination.
+- Wakeword detection hook:
+  - Captures mic audio via ScriptProcessor.
+  - Encodes float PCM -> int16 and pushes IPC chunks.
+  - Applies confidence threshold and cooldown suppression.
+- Voice mode hook:
+  - Connects to Nova voice gateway websocket.
+  - Streams audio frames and receives realtime transcription.
+  - Triggers utterance-end callbacks and reconnect backoff policy.
+- `WakewordController`:
+  - Sends backend `wakeword-detected` event.
+  - Opens chatbox on detection.
 
-Shared renderer contracts and utilities:
+### 3.5 Renderer Infrastructure Runtime
 
-- `frontend/src/renderer/types/backendEvents.ts`
-- `frontend/src/renderer/utils/{configFilter.js,configStorage.js,displaySelection.ts}`
-- `frontend/src/renderer/infrastructure/markdown.ts`
+Primary files:
+
+- API client: `frontend/src/renderer/infrastructure/api/client.ts`
+- IPC bridge/channels: `frontend/src/renderer/infrastructure/ipc/*`
+- Transcript writer/session/queues: `frontend/src/renderer/infrastructure/transcript/*`
+- Tool execution stack: `frontend/src/renderer/infrastructure/services/*`
+- Audio playback: `frontend/src/renderer/infrastructure/audio/PlayerService.ts`
 
 Functionality:
 
-- Backend event type guards and payload contracts.
-- Frontend config persistence/filtering.
-- Display bounds persistence and retrieval.
-- Markdown sanitization/caching helpers.
+- Typed API event emitters for backend command types.
+- Typed IPC wrappers with dev-mode channel guards.
+- Transcript session state persistence and queued write retry.
+- Tool execution bundling, payload normalization, capture orchestration.
+- Streaming TTS audio queue/decode/playback lifecycle.
 
-## Sidecar Python Runtime Functionality Inventory
+## 4) Python Sidecar Runtime Inventory
 
-Primary sidecar entrypoints:
+### 4.1 Entrypoints
+
+Primary files:
 
 - `frontend/src/main/python/local_backend.py`
 - `frontend/src/main/python/memory_service.py`
 - `frontend/src/main/python/wakeword_service.py`
 
-Entrypoint functionality:
+Functionality:
 
-- JSON-RPC local backend for tool, memory, transcript, and system-state operations.
-- Memory-only service protocol for focused memory operations.
-- Wakeword binary protocol service and model bootstrap.
+- Local backend JSON-RPC protocol host for tools/system/memory/transcript APIs.
+- Memory service specialization for memory-only flows.
+- Wakeword inference subprocess with binary frame protocol.
 
-Core sidecar infrastructure:
+### 4.2 Tool Runtime
 
-- `frontend/src/main/python/core/*.py`
-
-Core functionality:
-
-- JSON-RPC protocol and method registration.
-- Remote backend clients for embeddings/semantic summarize.
-- Runtime shutdown signals and stdout JSON framing.
-- Cross-platform system-state collection.
-- Platform window manager abstractions (`windows`, `macos`, `linux`).
-- Shared thread-pool lifecycle for blocking work.
-
-Memory runtime:
-
-- `frontend/src/main/python/memory/*.py`
-
-Memory functionality:
-
-- Local store for episodic + semantic records.
-- SQLite + FAISS index storage and recovery paths.
-- Transcript-to-memory operations and metadata helpers.
-- Semantic summarization watermark/cadence handling.
-- Conversation-title generation/storage for transcript session browsing.
-
-Tool registry and domain tools:
+Primary files:
 
 - `frontend/src/main/python/tools/registry.py`
-- `frontend/src/main/python/tools/schemas.py`
-- `frontend/src/main/python/tools/result.py`
-- `frontend/src/main/python/tools/base.py`
-
-Registry functionality:
-
-- Tool registration and argument validation.
-- Unified result envelope for sidecar tool execution.
-
-Computer tools:
-
-- `frontend/src/main/python/tools/computer/*.py`
+- `frontend/src/main/python/tools/{computer,filesystem,system,browser,memory}/*`
 
 Functionality:
 
-- Mouse, keyboard, screenshot, and scroll execution.
-- OS scroll calibration helpers.
+- Registers exposed sidecar tools expected by backend schemas.
+- Executes mouse/keyboard/scroll/screenshot/system/window/stats/shell/process tools.
+- Executes filesystem read/replace tooling with validation + atomic update behavior.
+- Executes browser runtime actions via browser stack adapters/contracts.
+- Normalizes result envelopes to `{success,data,error}` style.
 
-Filesystem tools:
+### 4.3 Memory Runtime
 
-- `frontend/src/main/python/tools/filesystem/*.py`
+Primary files:
 
-Functionality:
-
-- Safe text-file read with binary detection and windowed pagination.
-- Replace engine with strict/lenient matching, patch chunk application, and atomic writes.
-- `.gitignore`-aware path filtering helpers.
-
-System/process tools:
-
-- `frontend/src/main/python/tools/system/*.py`
+- `frontend/src/main/python/memory/local_store.py`
+- `frontend/src/main/python/memory/{operations,summarizer,sqlite_store,faiss_index,watermark_state,conversation_titles}.py`
 
 Functionality:
 
-- Shell command execution (foreground/background/PTY-aware modes).
-- Background process registry and lifecycle actions (`poll`, `write`, `log`, `kill`, `list`).
-- Window switching and open window enumeration by platform manager.
-- Runtime wait/stat tools.
+- SQLite + FAISS storage for episodic/semantic memory.
+- Embedding/title backend API client usage for vector/title generation.
+- Transcript persistence/search/list/get/delete operations.
+- Summarizer watermark and semantic candidate handling.
+- Conversation title generation lifecycle.
 
-Memory tool:
+### 4.4 Core Runtime
 
-- `frontend/src/main/python/tools/memory/memory_tool.py`
+Primary files:
 
-Functionality:
-
-- Add/search memory through local memory store.
-
-Browser tool runtime:
-
-- `frontend/src/main/python/tools/browser/*`
-- `frontend/src/main/python/tools/browser/browser_use/*`
+- `frontend/src/main/python/core/{ipc_protocol,system_state,system_metrics,runtime_shutdown,stdout_json,thread_pool}.py`
+- `frontend/src/main/python/core/platform/*`
 
 Functionality:
 
-- Chrome detection and launch with CDP readiness checks.
-- Browser controller snapshot and action runtime.
-- Enhanced CDP DOM/AX snapshot pipeline and ref mapping.
-- Browser action compatibility adapter for OpenClaw-style payloads.
-- Browser Use vendored runtime provider, action bridge, watchdogs, DOM serializers, LLM adapters, token tracking, and agent state/history models.
+- JSON-RPC request parsing/dispatch.
+- Graceful signal/shutdown flow.
+- OS-specific system-state probes.
+- Runtime thread/worker helpers and JSON stdout helpers.
 
-Browser Use vendored stack (detailed ownership):
+## 5) Landing Surface Inventory
 
-- Actor action helpers: pointer/keyboard/page primitives (`actor/*`).
-- Browser session lifecycle + watchdog orchestration (`browser/*`, `browser/watchdogs/*`).
-- DOM extraction and serializer pipeline (`dom/*`, `dom/serializer/*`).
-- Tool registry, extraction, and invocation services (`tools/*`).
-- LLM provider adapters and message serialization (`llm/*`).
-- Token accounting and lightweight filesystem adapters (`tokens/*`, `filesystem/*`).
+Primary files:
 
-## Landing Surface Functionality Inventory
-
-Modules:
-
-- `frontend/src/landing/main.jsx`
-- `frontend/src/landing/LandingPage.jsx`
+- `frontend/src/landing/main.jsx`, `LandingPage.jsx`
 - `frontend/src/landing/components/*`
-- `frontend/src/landing/components/icons/*`
 - `frontend/src/landing/styles/*`
 
 Functionality:
 
-- Standalone landing page entry and section composition.
-- Product capability/roadmap/privacy/CTA sections.
-- Shared style variable system and section styling.
+- Standalone marketing/onboarding presentation.
+- Sectioned product narrative components (hero/how/privacy/roadmap/etc).
+- CSS token + section style composition.
 
-## End-to-End Runtime Paths (Code Ownership)
+## 6) Current Refactor Delta Notes (Important)
 
-Primary query path:
+Canonical current frontend now differs from older deep-doc slices:
 
-1. Renderer send path: `renderer/features/chat/hooks/useChatMessageSender.ts` -> `renderer/infrastructure/api/client.ts`.
-2. Main IPC bridge path: `main/ipc.cjs` -> backend websocket relay.
-3. Stream return path: `main/ipc.cjs` -> `renderer/features/chat/hooks/useChatStream.ts`.
-4. Tool-call execution path: `renderer/features/chat/hooks/useToolRunner.ts` -> `renderer/infrastructure/services/ToolExecutionService.ts` -> `main/local_backend_bridge.cjs` -> `main/python/local_backend.py`.
-5. Tool-result return path: sidecar response -> `main/local_backend_bridge.cjs` -> renderer callbacks -> `main/ipc.cjs` -> backend `tool-result` message.
+- Old token display component path (`TokenCountDisplay`) is no longer an active render surface.
+- Memory dashboard is unified under `MemorySection` + section-local data helpers.
+- Old split memory section components and context-menu hotkey helper paths are retired.
+- Old response overlay ghost lifecycle helper/util file paths were replaced by current runtime wiring.
+- Chat stream update helpers moved into `useStreamMessageUpdaters.ts` and related modern utils.
 
-Voice/wakeword path:
-
-1. Renderer wakeword capture hooks.
-2. Main wakeword bridge process management and binary framing.
-3. Detection event relay to renderer + backend wakeword notification via IPC/API client.
-
-Memory path:
-
-1. Transcript/session writes in renderer transcript infrastructure.
-2. Main process to sidecar memory RPC.
-3. Sidecar local memory store + optional summarizer and backend embedding/semantic APIs.
-
-Search/rehydrate path:
-
-1. Sidebar/search modal calls `list-conversations` via IPC bridge.
-2. Renderer opens one conversation with `get-conversation`.
-3. Renderer emits `rehydrate` to backend and synchronizes transcript session state locally.
-
-## Related Docs
-
-- [Frontend Functionality Map](../README.md)
-- [Frontend Main Docs Hub](../main/README.md)
-- [Frontend Renderer Docs Hub](../renderer/README.md)
-- [Frontend Sidecar Docs Hub](../sidecar/README.md)
-- [Frontend Contracts Docs Hub](../contracts/README.md)
+When deep references disagree with this page, treat this inventory as source of truth and update the deep pages.
