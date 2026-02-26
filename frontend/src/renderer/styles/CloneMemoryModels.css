@@ -470,7 +470,8 @@
 .clone-model-api-keys {
   margin-top: 16px;
   width: 100%;
-  max-width: 760px;
+  max-width: none;
+  align-self: stretch;
   border: 1px solid var(--ui-border-subtle);
   border-radius: 12px;
   background: color-mix(in srgb, var(--ui-panel-bg) 62%, transparent);
@@ -500,6 +501,18 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  animation: clone-model-api-expand 220ms ease;
+}
+
+@keyframes clone-model-api-expand {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scaleY(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
 }
 
 .clone-model-api-provider-row {
