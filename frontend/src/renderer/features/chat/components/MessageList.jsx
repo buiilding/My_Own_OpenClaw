@@ -12,6 +12,7 @@ import MessageContent from './MessageContent';
 import MessageTransparencySections from './MessageTransparencySections';
 import AssistantMessageActions from './AssistantMessageActions';
 import UserMessageActions from './UserMessageActions';
+import MessageSourceBadge from './MessageSourceBadge';
 import { buildMessageClassName } from '../utils/messageListClasses';
 import '../../../styles/ThinkingDisplay.css';
 
@@ -25,6 +26,8 @@ const messageShapePropType = PropTypes.shape({
   screenshot: PropTypes.string,
   screenshotRef: PropTypes.string,
   screenshotUrl: PropTypes.string,
+  sourceEventType: PropTypes.string,
+  sourceChannel: PropTypes.string,
 });
 
 function shouldRenderAssistantActions(message, enableAssistantActions) {
@@ -121,6 +124,7 @@ const MessageItem = memo(function MessageItem({
       ) : (
         <MessageContent message={message} />
       )}
+      <MessageSourceBadge message={message} />
       {shouldRenderAssistantActions(message, enableAssistantActions) ? (
         <AssistantMessageActions
           messageId={message.id}
@@ -161,6 +165,7 @@ MessageItem.propTypes = {
 function MessageList({
   messages,
   thinkingStatus,
+  thinkingSourceEventType = null,
   enableAssistantActions = false,
   enableUserActions = false,
   disableAssistantActions = false,
@@ -250,7 +255,7 @@ function MessageList({
   return (
     <div className="message-list">
       {renderedMessages}
-      <ThinkingDisplay status={thinkingStatus} />
+      <ThinkingDisplay status={thinkingStatus} sourceEventType={thinkingSourceEventType} />
       <div ref={messagesEndRef} data-testid="message-list-end" />
     </div>
   );
@@ -259,6 +264,7 @@ function MessageList({
 MessageList.propTypes = {
   messages: PropTypes.arrayOf(messageShapePropType).isRequired,
   thinkingStatus: PropTypes.string,
+  thinkingSourceEventType: PropTypes.string,
   enableAssistantActions: PropTypes.bool,
   enableUserActions: PropTypes.bool,
   disableAssistantActions: PropTypes.bool,

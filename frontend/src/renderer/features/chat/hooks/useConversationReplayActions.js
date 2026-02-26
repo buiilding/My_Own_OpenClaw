@@ -72,6 +72,7 @@ export function useConversationReplayActions({
   messages,
   setMessages,
   setThinkingStatus,
+  setThinkingSourceEventType,
   setIsSending,
 }) {
   const handleEditFromUser = useCallback(async (userMessageId, editedText) => {
@@ -102,6 +103,9 @@ export function useConversationReplayActions({
 
     setMessages(trimmedConversation);
     setThinkingStatus(null);
+    if (typeof setThinkingSourceEventType === 'function') {
+      setThinkingSourceEventType(null);
+    }
     setIsSending(true);
 
     try {
@@ -118,7 +122,7 @@ export function useConversationReplayActions({
       console.error('[ChatInterface] Failed to edit user message:', error);
       setIsSending(false);
     }
-  }, [messages, setIsSending, setMessages, setThinkingStatus]);
+  }, [messages, setIsSending, setMessages, setThinkingSourceEventType, setThinkingStatus]);
 
   const handleTryAgainFromAssistant = useCallback(async (assistantMessageId) => {
     const assistantIndex = messages.findIndex(
@@ -148,6 +152,9 @@ export function useConversationReplayActions({
 
     setMessages(preservedMessages);
     setThinkingStatus(null);
+    if (typeof setThinkingSourceEventType === 'function') {
+      setThinkingSourceEventType(null);
+    }
     setIsSending(true);
 
     try {
@@ -164,7 +171,7 @@ export function useConversationReplayActions({
       console.error('[ChatInterface] Failed to retry assistant message:', error);
       setIsSending(false);
     }
-  }, [messages, setIsSending, setMessages, setThinkingStatus]);
+  }, [messages, setIsSending, setMessages, setThinkingSourceEventType, setThinkingStatus]);
 
   return {
     handleEditFromUser,

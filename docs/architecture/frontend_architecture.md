@@ -148,6 +148,7 @@ Primary modules:
 - `features/chat/hooks/useChatStream.ts`:
   - Stream event routing (`llm-thought`, `streaming-response`, `tool-call`, `tool-output`, `streaming-complete`, etc.).
   - Conversation gating, turn tracking, token-count handling.
+  - Dev transparency source tagging: in `electron:dev` (`dev_ui=1`), message/thinking/response surfaces show source badges mapped to stream/event origin (`streaming-response`, `tool-call`, `tool-output`, `llm-thought`, etc.).
 - `features/chat/hooks/useToolRunner.ts`:
   - Executes incoming tool calls/bundles, stale-turn cancellation responses.
 - `features/chat/components/ChatInterface.jsx`:

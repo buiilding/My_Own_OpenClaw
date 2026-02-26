@@ -5,11 +5,13 @@ export function useChatCommonActions() {
   const updateMessage = useChatStore((state) => state.updateMessage);
   const setIsSending = useChatStore((state) => state.setIsSending);
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
+  const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);
 
   return {
     addMessage,
     updateMessage,
     setIsSending,
     setThinkingStatus,
+    setThinkingSourceEventType,
   };
 }

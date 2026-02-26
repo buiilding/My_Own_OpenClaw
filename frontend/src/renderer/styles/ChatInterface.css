@@ -544,6 +544,29 @@
   opacity: 0.8;
 }
 
+.message-source-badge {
+  margin-top: 6px;
+  font-size: 10px;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ui-text-dim);
+  border: 1px solid var(--ui-border-soft);
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  font-family: var(--font-mono);
+  width: fit-content;
+}
+
+.message-user .message-source-badge {
+  align-self: flex-end;
+}
+
+.message-assistant .message-source-badge {
+  align-self: flex-start;
+}
+
 .assistant-message-actions {
   margin-top: 8px;
   margin-left: -4px;
@@ -1170,6 +1193,22 @@
 
 .transparency-content-json {
   color: #d6dce6;
+}
+
+.thinking-source-badge {
+  margin: 0 0 6px 0;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--ui-border-soft);
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 10px;
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ui-text-dim);
+  background: rgba(255, 255, 255, 0.02);
+  font-family: var(--font-mono);
 }
 
 @keyframes messageIn {

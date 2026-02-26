@@ -3,6 +3,7 @@ export function selectChatInterfaceState(state) {
     messages: state.messages,
     isSending: state.isSending,
     thinkingStatus: state.thinkingStatus,
+    thinkingSourceEventType: state.thinkingSourceEventType,
     tokenCounts: state.tokenCounts,
     streamPhase: state.streamTracking?.phase ?? 'idle',
   };
@@ -13,5 +14,6 @@ export function selectChatBoxState(state) {
     messages: state.messages,
     isSending: state.isSending,
     thinkingStatus: state.thinkingStatus,
+    thinkingSourceEventType: state.thinkingSourceEventType,
   };
 }

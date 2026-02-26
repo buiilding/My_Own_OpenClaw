@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
+import { isDevUiEnabled } from '../utils/devUiFlag';
+import { resolveSourceTag } from '../utils/sourceTags';
 import '../../../styles/ThinkingDisplay.css';
 
 const THINKING_BOTTOM_STICK_THRESHOLD = 12;
 
-function ThinkingDisplay({ status }) {
+function ThinkingDisplay({ status, sourceEventType = null }) {
   const [hasOverflowAbove, setHasOverflowAbove] = useState(false);
   const containerRef = useRef(null);
   const shouldStickToBottomRef = useRef(true);
@@ -54,6 +56,10 @@ function ThinkingDisplay({ status }) {
     return null;
   }
 
+  const sourceTag = isDevUiEnabled()
+    ? resolveSourceTag(sourceEventType || 'llm-thought', 'from-backend')
+    : null;
+
   return (
     <div
       className={`thinking-display-stream${hasOverflowAbove ? ' has-overflow-above' : ''}`}
@@ -63,6 +69,11 @@ function ThinkingDisplay({ status }) {
       ref={containerRef}
       onScroll={handleScroll}
     >
+      {sourceTag ? (
+        <div className="thinking-source-badge" title={`source_event=${sourceEventType || 'llm-thought'}`}>
+          {sourceTag}
+        </div>
+      ) : null}
       <pre className="thinking-display-text">{normalizedStatus}</pre>
     </div>
   );
@@ -70,6 +81,7 @@ function ThinkingDisplay({ status }) {
 
 ThinkingDisplay.propTypes = {
   status: PropTypes.string,
+  sourceEventType: PropTypes.string,
 };
 
 export default ThinkingDisplay;
