@@ -229,14 +229,14 @@ describe('ChatInterface wiring', () => {
       interaction_mode: 'chat',
       model_mode: 'online',
       model_provider: 'gemini',
-      selected_model_id: 'gemini-3-pro-preview',
+      selected_model_id: 'gemini-3.1-pro-preview',
       voice_mode_enabled: false,
       speech_mode_enabled: false,
     };
     mockAvailableModels = {
       local: [],
       online: [
-        { id: 'gemini-3-pro-preview', provider: 'gemini' },
+        { id: 'gemini-3.1-pro-preview', provider: 'gemini' },
         { id: 'gemini-2.5-flash', provider: 'gemini' },
         { id: 'gpt-5.1', provider: 'openai' },
       ],
@@ -245,7 +245,7 @@ describe('ChatInterface wiring', () => {
     render(<ChatInterface />);
     fireEvent.click(screen.getByRole('button', { name: 'Model selector' }));
 
-    expect(screen.getByRole('menuitem', { name: 'gemini-3-pro-preview' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'gemini-3.1-pro-preview' })).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: 'gemini-2.5-flash' })).toBeInTheDocument();
     expect(screen.queryByRole('menuitem', { name: 'gpt-5.1' })).not.toBeInTheDocument();
   });
@@ -255,14 +255,14 @@ describe('ChatInterface wiring', () => {
       interaction_mode: 'chat',
       model_mode: 'online',
       model_provider: 'gemini',
-      selected_model_id: 'gemini-3-pro-preview',
+      selected_model_id: 'gemini-3.1-pro-preview',
       voice_mode_enabled: false,
       speech_mode_enabled: false,
     };
     mockAvailableModels = {
       local: [],
       online: [
-        { id: 'gemini-3-pro-preview', provider: 'gemini' },
+        { id: 'gemini-3.1-pro-preview', provider: 'gemini' },
         { id: 'gemini-2.5-flash', provider: 'gemini' },
       ],
     };

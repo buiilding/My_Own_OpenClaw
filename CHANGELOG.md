@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(gemini-models): replace `gemini-3-pro-preview` with `gemini-3.1-pro-preview` in WindieOS model catalog/tests/docs, and update sidecar Gemini 3.x Pro thinking-mode detection so `gemini-3.1-pro-preview` is handled correctly.
 - fix(frontend-config): harden `provider_api_keys` persistence via deep-merge config handling and regression coverage for startup load + save-to-localStorage/save-to-disk so API keys survive app restarts.
 - fix(frontend-models-ui): simplify provider rows to show only model counts (remove the word `available`).
 - fix(frontend-models-ui): align Models-panel API Keys row width with provider cards and add smooth API-keys expand animation on open.

@@ -31,7 +31,7 @@ ONLINE_MODELS: Dict[str, List[str]] = {
         "claude-3-haiku-20240307",
     ],
     "gemini": [
-        "gemini-3-pro-preview",
+        "gemini-3.1-pro-preview",
         "gemini-3-flash-preview",
         "gemini-2.5-pro",
         "gemini-2.5-flash",
