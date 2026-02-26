@@ -11,6 +11,7 @@ Includes the last 300 commits on `main`.
 - docs(frontend-chat-stream-payloads): add stream updater selector + transcript payload contract deep docs and wire renderer/chat hubs to current `useStreamMessageUpdaters` and `transcriptMessagePayload` runtime ownership.
 - docs(frontend-main-ipc): add IPC helper-module split deep reference and refresh main hub/relay/handshake docs for current `ipc_runtime_helpers` + `ipc_renderer_windows` + `ipc_query_broadcast` delegation boundaries.
 - docs(frontend-contracts-ipc): refresh IPC contract ownership docs and code-scope hubs for helper-module split (`ipc_runtime_helpers`, `ipc_renderer_windows`, `ipc_query_broadcast`, `ipc_query_events`) under main-process relay contracts.
+- docs(frontend-main-window-runtime): add dedicated main-window runtime factory/bootstrap reference and align main/frontend hubs plus lifecycle docs with `main_window_runtime.cjs` delegated ownership.
 - docs(frontend-dashboard-shell): add conversation-hook/group-bucket runtime reference and align dashboard shell/sidebar docs to current `useDashboardConversations` + `conversationGroups` ownership boundaries.
 - docs(frontend-planning): clean stale frontend file-path literals in planning docs so frontend path audits now resolve against current tree while preserving historical refactor notes.
 - docs(frontend-overlay-system-state): align overlay lifecycle and sidecar system-state docs with current frontend runtime (dormant context-label window flow, no active context-label polling consumer, and current query/system-state code scope).
