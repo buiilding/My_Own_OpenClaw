@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-dashboard-sidebar): show conversation kebab actions on hover/focus (or while menu is open) instead of always showing them for the active chat row.
 - feat(frontend-dashboard-sidebar): add per-conversation three-dots menu in `Your chats` with `Rename`, `Pin chat`, and `Delete` actions only (share/archive/group-chat removed), plus local pin ordering and delete wiring to `delete-conversation`.
 - fix(frontend-chat-controls): keep composer in stop state for the full active loop (`streaming`/`tool-call`/`tool-output`) by deriving input busy state from `isSending || canStop`, so the stop button does not flip back to send mid-turn.
 - fix(sidecar-browser-runtime): provide Browser Use filesystem context for `screenshot` action dispatch so screenshots no longer fail with `Action screenshot requires file_system but none provided`; add native-handler regression coverage.
