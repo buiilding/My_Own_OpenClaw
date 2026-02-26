@@ -8,6 +8,13 @@ title: "Frontend IPC Channel and Payload Validation Boundary Reference"
 
 # Frontend IPC Channel and Payload Validation Boundary Reference
 
+## Coverage Snapshot (2026-02-26)
+
+- Renderer `send` channels: `5`
+- Renderer `invoke` channels: `32`
+- Renderer `on/once` channels: `11`
+- Compiled local-backend mapper definitions: `9` (`COMPILED_RPC_HANDLER_DEFINITIONS`)
+
 ## Scope and Sources
 
 Validation boundary sources:
@@ -128,6 +135,17 @@ High-risk drift points to monitor:
 - user-id sanitization assumptions diverging from backend validation rules.
 - mapper key fallback paths lost during refactors, breaking backward-compatible payload shapes.
 
+## Validation Control-Path Index
+
+| Validation control path | Runtime owner | Safety contract |
+|---|---|---|
+| preload channel allowlist gate | `frontend/src/preload.js` | unallowlisted channels never cross renderer->main boundary |
+| renderer development-time channel assertions | `frontend/src/renderer/infrastructure/ipc/bridge.ts` | fail-fast on typos/drift in dev while production defers to preload policy |
+| outbound websocket payload normalization | `frontend/src/main/ipc.cjs` | strips unsupported fields (`screenshot_url`) before backend schema enforcement |
+| handshake user-id sanitization | `frontend/src/main/ipc_runtime_helpers.cjs` (`generateUserId`) | avoids backend handshake rejects from invalid/unsafe user-id values |
+| query XML/context sanitization fallback | `frontend/src/main/query_payload_builder.cjs` | escapes XML-sensitive content and guarantees structured fallback blocks |
+| local-backend mapper compatibility transforms | `frontend/src/main/local_backend_bridge_rpc_mappers.cjs` | camelCase/snake_case fallback compatibility and safe default object coercion |
+
 ## Recompute Validation Surface Commands
 
 Use these commands to refresh validation-surface counts:
@@ -150,4 +168,6 @@ Use these commands to refresh validation-surface counts:
 ## Related Deep Dives
 
 - [Frontend Protocol Lifecycle Hub](../lifecycle/README.md)
+- [Frontend Protocol State Hub](../state/README.md)
 - [Frontend Protocol Errors Hub](../errors/README.md)
+- [Frontend Protocol Testing Hub](../testing/README.md)

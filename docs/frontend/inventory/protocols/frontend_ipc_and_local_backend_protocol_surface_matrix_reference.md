@@ -13,7 +13,7 @@ title: "Frontend IPC and Local-Backend Protocol Surface Matrix Reference"
 - Renderer `send` channels: `5`
 - Renderer `invoke` channels: `32`
 - Renderer `on/once` channels: `11`
-- Compiled JSON-RPC mapper definitions: `8` (`COMPILED_RPC_HANDLER_DEFINITIONS`)
+- Compiled JSON-RPC mapper definitions: `9` (`COMPILED_RPC_HANDLER_DEFINITIONS`)
 
 ## Scope and Sources
 

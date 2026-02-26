@@ -1,8 +1,8 @@
 ---
-summary: "Frontend protocol validation sub-hub for preload channel allowlist enforcement, typed IPC bridge checks, outbound payload normalization, and RPC mapper field translation safeguards."
+summary: "Frontend protocol validation sub-hub for preload channel allowlist enforcement, typed IPC bridge checks, outbound websocket payload normalization, user-id/query sanitization, and RPC mapper compatibility safeguards."
 read_when:
   - When adding/removing IPC channels or changing renderer/main channel constants.
-  - When changing query payload normalization, user-id generation, or local-backend RPC param mapping behavior.
+  - When changing query payload normalization, user-id generation, XML escaping fallback behavior, or local-backend RPC param mapping behavior.
 title: "Frontend Protocol Validation Hub"
 ---
 
