@@ -11,6 +11,7 @@ title: "Frontend Inventory Docs Hub"
 ## Deep Pages
 
 - [Frontend Full Functionality Inventory Reference](frontend_full_functionality_inventory_reference.md)
+- [Frontend Functionality Capability Catalog Reference](frontend_functionality_capability_catalog_reference.md)
 - [Frontend Runtime Surface Matrix Reference](frontend_runtime_surface_matrix_reference.md)
 - [Frontend Module File Index Reference](frontend_module_file_index_reference.md)
 - [Frontend IPC and Sidecar Contract Touchpoints Reference](frontend_ipc_and_sidecar_contract_touchpoints_reference.md)
