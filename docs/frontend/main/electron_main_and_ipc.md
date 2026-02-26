@@ -90,12 +90,35 @@ Responsibilities:
 - Parses framed binary wakeword detection responses.
 - Supports wakeword enable/disable state and buffer flushing.
 
+## Permission Runtime
+
+Main modules:
+
+- `frontend/src/main/permission_service.cjs`
+- `frontend/src/main/index.cjs`
+- `frontend/src/shared/permissions/permission_manifest.json`
+
+Responsibilities:
+
+- Loads permission manifest metadata and cloned permission definitions.
+- Runs per-permission probes for onboarding/data-controls status surfaces.
+- Handles permission request flows (notably macOS privacy-pane deep links and microphone access request).
+- Exposes renderer invoke handlers:
+  - `list-permissions`
+  - `check-permissions`
+  - `check-permission`
+  - `run-permission-probe`
+  - `request-permission`
+
 ## IPC Channel Taxonomy
 
 From renderer usage perspective:
 
 - send channels: backend messaging, overlay window control, wakeword chunk/control
 - invoke channels: tool execution, artifact upload, memory CRUD/search, config load/save, window/display APIs
+- invoke channels also include permission/status request channels and sudo access toggle:
+  - `set-agent-sudo-access`
+  - `list-permissions`, `check-permissions`, `check-permission`, `run-permission-probe`, `request-permission`
 - on channels: backend stream events, connection status, wakeword events, overlay phase updates
 
 Canonical constants are in renderer infra (`frontend/src/renderer/infrastructure/ipc/channels.ts`) and must stay aligned with main-process handlers.

@@ -2,7 +2,7 @@
 summary: "Deep reference for renderer root entrypoint routing by `view` param, per-view app wrappers, and provider/hook enablement differences across main chat vs overlay windows."
 read_when:
   - When changing renderer app selection logic in `main.jsx`.
-  - When debugging why a window surface has/does not have transcript/tool-runner behavior.
+  - When debugging why a window surface has/does not have transcript/tool-runner behavior or why main app is stuck in permission onboarding gate.
 title: "Entrypoint View Routing and Provider Stack Reference"
 ---
 
@@ -15,6 +15,8 @@ title: "Entrypoint View Routing and Provider Stack Reference"
 - `frontend/src/renderer/app/ChatBoxApp.jsx`
 - `frontend/src/renderer/app/ChatBoxResponseApp.jsx`
 - `frontend/src/renderer/app/ChatBoxContextLabelApp.jsx`
+- `frontend/src/renderer/features/permissions/components/PermissionOnboardingWizard.jsx`
+- `frontend/src/renderer/features/permissions/stores/permissionStore.js`
 - `frontend/src/renderer/components/ErrorBoundary.jsx`
 - `frontend/src/renderer/app/WakewordController.jsx`
 - `frontend/src/renderer/app/providers/AppProvider.jsx`
@@ -63,9 +65,11 @@ All surfaces mount `AppProvider`, which means:
 
 `AppContent` behavior:
 
-- always renders conversation-first shell with `ChatInterface` as primary content
-- opens memory/models/settings as modal panels over chat
-- config/model context is passed into settings/models sections inside modals
+- bootstraps permission store before normal shell mount
+- renders onboarding-loading card while permission profile is loading
+- renders `PermissionOnboardingWizard` when required permission gate is not satisfied
+- renders conversation-first shell only after permission gate clears
+- within shell, opens memory/models/settings as modal panels over chat
 
 ## Overlay App Stacks
 

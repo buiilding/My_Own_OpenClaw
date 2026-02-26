@@ -1,7 +1,7 @@
 ---
-summary: "Deep reference for main-process IPC handler ownership across `ipc.cjs`, `index.cjs`, local-backend bridge, wakeword bridge, and mapped sidecar RPC channels."
+summary: "Deep reference for main-process IPC handler ownership across `ipc.cjs`, `index.cjs`, permission/wakeword handlers, local-backend bridge, and mapped sidecar RPC channels."
 read_when:
-  - When adding/removing `ipcMain.on/handle` registrations.
+  - When adding/removing `ipcMain.on/handle` registrations, including permission onboarding channels.
   - When debugging renderer invoke/send calls that do not reach expected main/sidecar behavior.
 title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 ---
@@ -16,6 +16,7 @@ title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
 - `frontend/src/main/ipc_frontend_config.cjs`
+- `frontend/src/main/permission_service.cjs`
 
 ## Registration Topology
 
@@ -60,6 +61,12 @@ Notable behavior:
 - `window-minimize`
 - `window-toggle-maximize`
 - `window-close`
+- `set-agent-sudo-access`
+- `list-permissions`
+- `check-permissions`
+- `check-permission`
+- `run-permission-probe`
+- `request-permission`
 
 `ipcMain.on`:
 
@@ -71,6 +78,7 @@ Notable behavior:
 - chat/response/context windows are repositioned together after move/resize operations
 - `show-main-window` normalizes optional open-target payload and emits `main-window-open-target` to renderer on accepted target
 - `show-main-window { maximize:true }` restores/minimizes state and maximizes before focusing dashboard window
+- permission handlers delegate to `permission_service.cjs` using shared deps (`platform`, `shell`, `systemPreferences`)
 
 ### `local_backend_bridge.cjs`
 

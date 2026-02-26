@@ -27,10 +27,12 @@ title: "Frontend Main Docs Hub"
 - [Linux Screenshot Window Hide and Restore Guard Reference](overlays/linux_screenshot_window_hide_and_restore_guard_reference.md)
 - [Shell Tool Chrome Command Test Harness Runtime Reference](testing/shell_tool_chrome_command_test_harness_runtime_reference.md)
 - [Mock Memory Seed Script and NPM Entrypoints Reference](testing/data_seed/mock_memory_seed_script_and_npm_entrypoints_reference.md)
+- [Permission Manifest, Probe, and IPC Request Contract Reference](permission_manifest_probe_and_request_ipc_reference.md)
 
 ## Code Scope
 
 - `frontend/src/main/*.cjs`
+- `frontend/src/shared/permissions/permission_manifest.json`
 - `frontend/src/main/test_shell.cjs`
 - `frontend/src/main/python/dev_seed_mock_memory.py`
 - `frontend/src/preload.js`

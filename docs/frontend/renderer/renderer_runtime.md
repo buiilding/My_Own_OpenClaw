@@ -1,5 +1,5 @@
 ---
-summary: "React renderer architecture including provider boundaries, chat/dashboard/voice feature runtime, and transcript/config synchronization behavior."
+summary: "React renderer architecture including provider boundaries, chat/dashboard/permissions/voice runtime, and transcript/config synchronization behavior."
 read_when:
   - When changing renderer state boundaries, hooks, or message rendering behavior.
   - When debugging config sync, transcript persistence, or dashboard interactions.
@@ -72,6 +72,19 @@ Current dashboard behavior:
 - memory section is unified (episodic/semantic/procedural)
 - models section is provider-first and includes provider API key controls
 
+### Permissions (`features/permissions`)
+
+Primary runtime:
+
+- `PermissionOnboardingWizard`
+- `PermissionControlCenter`
+- `usePermissionStore`
+
+Current behavior:
+
+- app startup gate blocks dashboard/chat shell until required-now permissions + planned-system-access consent are satisfied
+- data-controls settings tab renders live permission status/probe/request surface
+
 ### Voice (`features/voice`)
 
 Primary hooks/components:
@@ -110,12 +123,14 @@ Typical keys:
 - voice/speech mode flags
 - query screenshot inclusion
 - provider API keys
+- agent sudo access policy flag (`agent_full_sudo_enabled`)
 
 Backend remains source of truth for non-frontend runtime fields.
 
 ## Related Docs
 
 - [Frontend Renderer Docs Hub](README.md)
+- [Renderer Permissions Docs Hub](permissions/README.md)
 - [Frontend Renderer Provider Docs Hub](providers/README.md)
 - [Frontend Renderer Chat Docs Hub](chat/README.md)
 - [Frontend Renderer Dashboard Docs Hub](dashboard/README.md)

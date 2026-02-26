@@ -66,6 +66,12 @@ Shared names in preload + `INVOKE_CHANNELS`:
 - `get-displays`
 - `load-frontend-config`
 - `save-frontend-config`
+- `set-agent-sudo-access`
+- `list-permissions`
+- `check-permissions`
+- `check-permission`
+- `run-permission-probe`
+- `request-permission`
 - `window-minimize`
 - `window-toggle-maximize`
 - `window-close`

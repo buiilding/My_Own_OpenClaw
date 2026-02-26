@@ -53,7 +53,9 @@ Allowed channels:
 - `get-system-state`
 - `store-memory`
 - `search-memory`
+- `search-conversations`
 - `list-conversations`
+- `list-episodic-memories`
 - `get-conversation`
 - `list-semantic-memories`
 - `delete-conversation`
@@ -69,6 +71,12 @@ Allowed channels:
 - `get-displays`
 - `load-frontend-config`
 - `save-frontend-config`
+- `set-agent-sudo-access`
+- `list-permissions`
+- `check-permissions`
+- `check-permission`
+- `run-permission-probe`
+- `request-permission`
 - `window-minimize`
 - `window-toggle-maximize`
 - `window-close`
@@ -88,6 +96,7 @@ Allowed channels:
 - `wakeword-status`
 - `wakeword-toggle`
 - `chatbox-focus`
+- `main-window-open-target`
 - `response-overlay-phase`
 - `response-overlay-visibility`
 
@@ -139,6 +148,7 @@ Current high-value mappings:
 - `invoke('save-frontend-config')` -> `ipcMain.handle('save-frontend-config', ...)`
 - `invoke('get-client-user-id')` -> `ipcMain.handle('get-client-user-id', ...)`
 - `invoke('upload-artifact')` -> `ipcMain.handle('upload-artifact', ...)`
+- `invoke('list-permissions'|'check-permissions'|'run-permission-probe'|'request-permission')` -> `ipcMain.handle(...)` in `index.cjs` backed by `permission_service.cjs`
 - `on('from-backend')` -> main bridge broadcasts backend events to renderer windows
 - `on('ipc-status')` -> main bridge broadcasts connection-state payload
 
