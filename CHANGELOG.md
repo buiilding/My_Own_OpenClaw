@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(backend-browser-schemas): extract shared `BrowserArgsModel` base in `browser/schemas.py` to dedupe repeated `ConfigDict(extra=\"ignore\")` declarations across action arg models; combined jscpd audit dropped by one clone (`13` -> `12`).
 - refactor(backend-browser-schemas): adjust `BrowserScreenshotImageFields` metadata wording/field declaration style while preserving defaults/constraints; combined jscpd audit dropped by one clone (`14` -> `13`).
 - refactor(backend-browser-schemas): introduce shared `_compat_field(...)` helper in `shared_compat_fields.py` to dedupe repeated compatibility field declarations while preserving schema defaults/constraints; combined jscpd audit dropped from `19` to `14` clones.
 - refactor(backend-computer-schemas): rewrite `ScrollControlArgs` field declarations to reduce clone-prone schema signatures while preserving validation behavior; combined jscpd audit dropped by one clone (`20` -> `19`).

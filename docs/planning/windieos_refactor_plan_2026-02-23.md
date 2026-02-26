@@ -199,6 +199,16 @@ read_when:
     - `cd frontend && npm run audit:jscpd`
   - audit delta:
     - frontend+backend `jscpd` clone count reduced from `14` to `13`.
+- Backend browser schema-base extraction:
+  - added shared schema base model and rewired browser action args classes in:
+    - `backend/src/tools/browser/schemas.py`
+  - behavior:
+    - preserved `extra="ignore"` behavior while reducing repeated class-level config boilerplate.
+  - verification:
+    - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -q`
+    - `cd frontend && npm run audit:jscpd`
+  - audit delta:
+    - frontend+backend `jscpd` clone count reduced from `13` to `12`.
 
 - Dashboard shell split:
   - extracted conversation/search orchestration from `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx` into:
