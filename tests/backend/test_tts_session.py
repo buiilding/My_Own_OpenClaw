@@ -144,3 +144,18 @@ async def test_wait_for_audio_completion_awaits_active_task(monkeypatch):
     await session.wait_for_audio_completion(timeout=2.5)
 
     assert observed == {"task": active_task, "timeout": 2.5}
+
+
+@pytest.mark.asyncio
+async def test_wait_for_audio_completion_propagates_wait_errors(monkeypatch):
+    session = TTSSession(_FakeTTSManager(), AppConfig(), object(), "msg-6")
+    active_task = _DummyTask(done=False)
+    session.audio_task = active_task
+
+    async def _fake_wait_for(_task, timeout):  # noqa: ARG001
+        raise TimeoutError("timed out")
+
+    monkeypatch.setattr("backend.src.api.services.tts_session.asyncio.wait_for", _fake_wait_for)
+
+    with pytest.raises(TimeoutError, match="timed out"):
+        await session.wait_for_audio_completion(timeout=0.01)
