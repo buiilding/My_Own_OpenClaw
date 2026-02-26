@@ -4598,3 +4598,25 @@ read_when:
   - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -q` (pass)
   - `cd frontend && npm run audit:jscpd` (7 clones)
   - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
+
+## Phase 191 Outcome (2026-02-26)
+
+- Refactor slice (backend browser schema fields): centralize repeated string field declarations.
+  - updated:
+    - `backend/src/tools/browser/schemas.py`
+      - added shared field factories:
+        - `_required_string_field(...)`
+        - `_optional_string_field(...)`
+      - rewired:
+        - `BrowserTypeArgs.text`
+        - `BrowserEvaluateArgs.script`
+        - `BrowserEvaluateArgs.code`
+      - preserved field constraints and defaults (`max_length`, required vs optional).
+  - route consolidation check:
+    - `jscpd` on `backend/src/api/routes` found `0` clones; no route merge needed in this slice.
+  - audit outcome:
+    - combined `backend/src` + `frontend/src` `jscpd` clone count dropped from `7` to `5`.
+- Validation:
+  - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -q` (pass)
+  - `cd frontend && npm run audit:jscpd` (5 clones)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
