@@ -60,8 +60,10 @@ function MessageInput({
   voiceModeEnabled = false,
   onStopResponse = undefined,
   isCentered = false,
+  focusRequestToken = 0,
 }) {
   const textareaRef = useRef(null);
+  const lastHandledFocusRequestRef = useRef(focusRequestToken);
   const plusMenuRef = useRef(null);
   const thinkingMenuRef = useRef(null);
   const [thinkingVisible, setThinkingVisible] = useState(true);
@@ -153,6 +155,19 @@ function MessageInput({
       window.removeEventListener('mousedown', handlePointerDown);
     };
   }, []);
+
+  useEffect(() => {
+    if (focusRequestToken === lastHandledFocusRequestRef.current) {
+      return;
+    }
+    lastHandledFocusRequestRef.current = focusRequestToken;
+    if (!textareaRef.current || isSending) {
+      return;
+    }
+    textareaRef.current.focus();
+    const textLength = textareaRef.current.value.length;
+    textareaRef.current.setSelectionRange(textLength, textLength);
+  }, [focusRequestToken, isSending]);
 
   const { isConnected, isRecording, error } = useVoiceMode(
     voiceModeEnabled,
@@ -347,6 +362,7 @@ MessageInput.propTypes = {
   voiceModeEnabled: PropTypes.bool,
   onStopResponse: PropTypes.func,
   isCentered: PropTypes.bool,
+  focusRequestToken: PropTypes.number,
 };
 
 export default MessageInput;

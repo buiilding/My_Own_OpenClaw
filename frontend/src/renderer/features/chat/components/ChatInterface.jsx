@@ -66,7 +66,7 @@ function ChatGptLogo({ size = 14 }) {
   );
 }
 
-function ChatInterface({ sidebarOpen = true }) {
+function ChatInterface({ sidebarOpen = true, focusComposerToken = 0 }) {
   const { messages, isSending, thinkingStatus, streamPhase } = useChatStore(
     useShallow(selectChatInterfaceState),
   );
@@ -431,6 +431,7 @@ function ChatInterface({ sidebarOpen = true }) {
             voiceModeEnabled={voiceModeEnabled}
             onStopResponse={handleStopQuery}
             isCentered
+            focusRequestToken={focusComposerToken}
           />
         </div>
       ) : (
@@ -450,6 +451,7 @@ function ChatInterface({ sidebarOpen = true }) {
             isSending={composerBusy}
             voiceModeEnabled={voiceModeEnabled}
             onStopResponse={handleStopQuery}
+            focusRequestToken={focusComposerToken}
           />
         </>
       )}

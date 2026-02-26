@@ -170,4 +170,28 @@ describe('MessageInput', () => {
 
     expect(screen.queryByAltText('Pasted image preview')).not.toBeInTheDocument();
   });
+
+  test('focuses textarea when focus request token changes', () => {
+    const { rerender } = render(
+      <MessageInput
+        onSendMessage={jest.fn()}
+        isSending={false}
+        focusRequestToken={0}
+      />,
+    );
+
+    const input = screen.getByLabelText('Type your message');
+    input.blur();
+    expect(document.activeElement).not.toBe(input);
+
+    rerender(
+      <MessageInput
+        onSendMessage={jest.fn()}
+        isSending={false}
+        focusRequestToken={1}
+      />,
+    );
+
+    expect(document.activeElement).toBe(input);
+  });
 });

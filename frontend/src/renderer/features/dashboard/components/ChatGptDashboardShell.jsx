@@ -73,6 +73,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
   const [pinnedConversationRefs, setPinnedConversationRefs] = useState([]);
   const [isLoadingRecentConversations, setIsLoadingRecentConversations] = useState(false);
   const [recentConversationsError, setRecentConversationsError] = useState('');
+  const [composerFocusToken, setComposerFocusToken] = useState(0);
   const wasHiddenRef = useRef(false);
   const pendingTitlePollTimersRef = useRef(new Map());
   const sessionInfo = useTranscriptSessionInfo();
@@ -124,9 +125,16 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
     setSidebarOpen((current) => !current);
   }, []);
 
-  const handleChatSurface = useCallback(() => {
+  const requestComposerFocus = useCallback(() => {
+    setComposerFocusToken((current) => current + 1);
+  }, []);
+
+  const handleChatSurface = useCallback(({ focusComposer = false } = {}) => {
     closeAllPanels();
-  }, [closeAllPanels]);
+    if (focusComposer) {
+      requestComposerFocus();
+    }
+  }, [closeAllPanels, requestComposerFocus]);
 
   const handleStartNewChat = useCallback(() => {
     closeAllPanels();
@@ -574,7 +582,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
     const removeListener = IpcBridge.on(ON_CHANNELS.MAIN_WINDOW_OPEN_TARGET, (payload) => {
       const target = typeof payload?.target === 'string' ? payload.target : '';
       if (target === 'chat') {
-        handleChatSurface();
+        handleChatSurface({ focusComposer: true });
         return;
       }
       if (target === 'settings') {
@@ -621,7 +629,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
       />
 
       <main className={`cg-main-content${sidebarOpen ? '' : ' cg-main-content-collapsed'}`.trim()}>
-        <ChatInterface sidebarOpen={sidebarOpen} />
+        <ChatInterface sidebarOpen={sidebarOpen} focusComposerToken={composerFocusToken} />
       </main>
 
       <SearchChatsModal
