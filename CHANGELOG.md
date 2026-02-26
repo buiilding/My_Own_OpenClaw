@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(backend-compaction-threshold): when `history_compaction_trigger_tokens` is unset, derive auto-compaction trigger from active-model context window (`max_input_tokens * 0.90`) using LiteLLM metadata, with fallback threshold and regression coverage.
 - feat(backend-history-defaults): disable count-based message pruning by default (`max_history_length=null`) and enable automatic conversation compaction by default (`history_compaction_enabled=true`), including validation/docs/test updates.
 - fix(frontend-dashboard-sidebar): show conversation kebab actions on hover/focus (or while menu is open) instead of always showing them for the active chat row.
 - feat(frontend-dashboard-sidebar): add per-conversation three-dots menu in `Your chats` with `Rename`, `Pin chat`, and `Delete` actions only (share/archive/group-chat removed), plus local pin ordering and delete wiring to `delete-conversation`.

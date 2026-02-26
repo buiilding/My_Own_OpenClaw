@@ -233,6 +233,34 @@ class TokenService:
         """
         return TokenService.count_tokens([message], model)
 
+    @staticmethod
+    def get_model_max_input_tokens(model: str) -> Optional[int]:
+        """
+        Resolve model max input context tokens from LiteLLM model metadata.
+
+        Args:
+            model: Canonical model identifier (for example `openai/gpt-5.1`)
+
+        Returns:
+            Maximum input context length if available, otherwise None.
+        """
+        if not isinstance(model, str) or not model.strip():
+            return None
+        try:
+            info = litellm.get_model_info(model=model)
+        except Exception:
+            return None
+
+        max_input_tokens = None
+        if isinstance(info, dict):
+            max_input_tokens = info.get("max_input_tokens")
+        else:
+            max_input_tokens = getattr(info, "max_input_tokens", None)
+
+        if isinstance(max_input_tokens, int) and max_input_tokens > 0:
+            return max_input_tokens
+        return None
+
 
 # Global instance
 _token_service: Optional[TokenService] = None

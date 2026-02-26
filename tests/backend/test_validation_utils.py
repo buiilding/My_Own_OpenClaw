@@ -104,6 +104,12 @@ def test_validate_settings_update_allows_null_max_history_length():
     assert validated["max_history_length"] is None
 
 
+def test_validate_settings_update_allows_null_compaction_trigger_tokens():
+    validated = validate_settings_update({"history_compaction_trigger_tokens": None})
+    assert "history_compaction_trigger_tokens" in validated
+    assert validated["history_compaction_trigger_tokens"] is None
+
+
 def test_validate_settings_update_rejects_bad_types():
     with pytest.raises(ValidationError):
         validate_settings_update({"max_history_length": "nope"})

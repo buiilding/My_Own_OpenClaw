@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 
 import backend.src.services.token_service as token_service_module
+import backend.src.agent.compaction.engine as compaction_engine_module
 from backend.src.agent.compaction.engine import CompactionEngine
 from backend.src.agent.session.state import ConversationHistory
 from backend.src.core.config.models import AppConfig
@@ -133,3 +134,83 @@ async def test_compaction_engine_respects_cooldown(monkeypatch):
     second_decision = engine.evaluate(reason="auto-mid")
     assert second_decision.should_compact is False
     assert second_decision.skip_reason == "cooldown"
+
+
+@pytest.mark.asyncio
+async def test_compaction_engine_uses_model_context_window_for_auto_trigger(monkeypatch):
+    class _DynamicThresholdTokenService:
+        def count_tokens(self, messages, model):
+            _ = model
+            return len(messages) * 100
+
+        def count_message_tokens(self, message, model):
+            _ = (message, model)
+            return 0
+
+        def get_model_max_input_tokens(self, model):
+            _ = model
+            return 5000
+
+    monkeypatch.setattr(
+        token_service_module,
+        "get_token_service",
+        lambda: _DynamicThresholdTokenService(),
+    )
+    monkeypatch.setattr(
+        compaction_engine_module,
+        "get_token_service",
+        lambda: _DynamicThresholdTokenService(),
+    )
+    history = ConversationHistory(max_length=500)
+    for _ in range(12):
+        _seed_history(history)
+    cfg = AppConfig(
+        history_compaction_enabled=True,
+        history_compaction_trigger_tokens=None,
+    )
+    session = _FakeSession(cfg=cfg, history=history)
+    engine = CompactionEngine(session)
+
+    decision = engine.evaluate(reason="auto-pre")
+    # 12 seed loops = 48 messages => ~4800 tokens, over 90% of 5000 (4500).
+    assert decision.should_compact is True
+
+
+@pytest.mark.asyncio
+async def test_compaction_engine_skips_when_dynamic_threshold_not_reached(monkeypatch):
+    class _DynamicThresholdTokenService:
+        def count_tokens(self, messages, model):
+            _ = model
+            return len(messages) * 100
+
+        def count_message_tokens(self, message, model):
+            _ = (message, model)
+            return 0
+
+        def get_model_max_input_tokens(self, model):
+            _ = model
+            return 10000
+
+    monkeypatch.setattr(
+        token_service_module,
+        "get_token_service",
+        lambda: _DynamicThresholdTokenService(),
+    )
+    monkeypatch.setattr(
+        compaction_engine_module,
+        "get_token_service",
+        lambda: _DynamicThresholdTokenService(),
+    )
+    history = ConversationHistory(max_length=500)
+    for _ in range(12):
+        _seed_history(history)
+    cfg = AppConfig(
+        history_compaction_enabled=True,
+        history_compaction_trigger_tokens=None,
+    )
+    session = _FakeSession(cfg=cfg, history=history)
+    engine = CompactionEngine(session)
+
+    decision = engine.evaluate(reason="auto-pre")
+    assert decision.should_compact is False
+    assert decision.skip_reason == "below-threshold"
