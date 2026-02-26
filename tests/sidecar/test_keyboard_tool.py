@@ -102,3 +102,32 @@ async def test_execute_keyboard_control_rejects_unknown_action(monkeypatch):
 
     assert result["success"] is False
     assert "Unknown keyboard action" in result["error"]
+
+
+@pytest.mark.asyncio
+async def test_execute_keyboard_control_rejects_missing_or_too_long_text(monkeypatch):
+    fake_pyautogui, calls = _fake_pyautogui()
+    monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
+
+    missing = await keyboard_tool.execute_keyboard_control({"action": "type"})
+    too_long = await keyboard_tool.execute_keyboard_control(
+        {"action": "type", "text": "x" * 10001}
+    )
+
+    assert missing["success"] is False
+    assert "text parameter required" in missing["error"]
+    assert too_long["success"] is False
+    assert "Text too long" in too_long["error"]
+    assert calls == []
+
+
+@pytest.mark.asyncio
+async def test_execute_keyboard_control_import_error_returns_failure(monkeypatch):
+    monkeypatch.delitem(sys.modules, "pyautogui", raising=False)
+
+    result = await keyboard_tool.execute_keyboard_control(
+        {"action": "press", "key": "enter"}
+    )
+
+    assert result["success"] is False
+    assert result["error"] == "pyautogui library not available"
