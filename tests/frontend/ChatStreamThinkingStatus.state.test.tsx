@@ -49,6 +49,48 @@ describe('useChatStream state + stream handling', () => {
     expect(useChatStore.getState().thinkingStatus).toContain('reasoning step');
   });
 
+  test('shows compacting status while context compaction is running', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.setState({ thinkingStatus: null });
+      emitBackendEvent({
+        type: 'context-compaction-started',
+        payload: { reason: 'auto-pre', strategy: 'inline' },
+      });
+    });
+
+    expect(useChatStore.getState().thinkingStatus).toBe('Compacting conversation history...');
+  });
+
+  test('clears compacting status when context compaction completes', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.setState({ thinkingStatus: 'Compacting conversation history...' });
+      emitBackendEvent({
+        type: 'context-compaction-completed',
+        payload: { reason: 'auto-pre', strategy: 'inline' },
+      });
+    });
+
+    expect(useChatStore.getState().thinkingStatus).toBeNull();
+  });
+
+  test('clears compacting status when context compaction fails', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.setState({ thinkingStatus: 'Compacting conversation history...' });
+      emitBackendEvent({
+        type: 'context-compaction-failed',
+        payload: { reason: 'auto-pre', strategy: 'inline', error: 'boom' },
+      });
+    });
+
+    expect(useChatStore.getState().thinkingStatus).toBeNull();
+  });
+
   test('clears thinking status on tool call', () => {
     const { emitBackendEvent } = registerBackendListener();
 

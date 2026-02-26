@@ -4,6 +4,9 @@ export type BackendEventType =
   | 'llm-thought'
   | 'streaming-response'
   | 'streaming-complete'
+  | 'context-compaction-started'
+  | 'context-compaction-completed'
+  | 'context-compaction-failed'
   | 'tool-call'
   | 'tool-output'
   | 'tool-bundle'
@@ -39,6 +42,27 @@ export type ToolSchema = {
 export type LlmThoughtEvent = BackendEventBase<'llm-thought', { status?: string }>;
 export type StreamingResponseEvent = BackendEventBase<'streaming-response', { text?: string }>;
 export type StreamingCompleteEvent = BackendEventBase<'streaming-complete'>;
+export type ContextCompactionStartedEvent = BackendEventBase<'context-compaction-started', {
+  reason?: string;
+  strategy?: string;
+  before_tokens?: number;
+  projected_tokens?: number;
+}>;
+export type ContextCompactionCompletedEvent = BackendEventBase<'context-compaction-completed', {
+  reason?: string;
+  strategy?: string;
+  before_tokens?: number;
+  after_tokens?: number;
+  removed_messages?: number;
+  summary_preview?: string | null;
+  skipped_reason?: string | null;
+}>;
+export type ContextCompactionFailedEvent = BackendEventBase<'context-compaction-failed', {
+  reason?: string;
+  strategy?: string;
+  error?: string;
+  before_tokens?: number | null;
+}>;
 export type ToolCallEvent = BackendEventBase<'tool-call', {
   tool_name?: string;
   parameters?: Record<string, unknown>;
@@ -111,6 +135,9 @@ export type BackendEvent =
   | LlmThoughtEvent
   | StreamingResponseEvent
   | StreamingCompleteEvent
+  | ContextCompactionStartedEvent
+  | ContextCompactionCompletedEvent
+  | ContextCompactionFailedEvent
   | ToolCallEvent
   | ToolOutputEvent
   | ToolBundleEvent
@@ -126,6 +153,9 @@ const BACKEND_EVENT_TYPES = new Set<BackendEventType>([
   'llm-thought',
   'streaming-response',
   'streaming-complete',
+  'context-compaction-started',
+  'context-compaction-completed',
+  'context-compaction-failed',
   'tool-call',
   'tool-output',
   'tool-bundle',
