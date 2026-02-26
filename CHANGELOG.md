@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-chat-ui): copy action now switches to a check icon for 4 seconds after successful clipboard write, then reverts to the copy icon.
 - fix(frontend-chat-ui): keep horizontal overflow for long tool call/output payloads scoped to each tool block (internal x-scrollbars) and prevent global chat/dashboard horizontal scrollbar leakage.
 - fix(memory-titles): enforce short concise generated chat titles (2-6 words, capped length) with backend parsing and sidecar normalization safeguards.
 - feat(conversation-titles): generate transcript conversation titles asynchronously via active-model LLM (`/api/semantic/title`) using current session model/provider (or transcript model overrides), keep `Your chats` hidden until title write completes, and poll sidebar refresh from renderer until the titled conversation appears.
