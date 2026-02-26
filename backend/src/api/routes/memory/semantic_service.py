@@ -14,7 +14,8 @@ logger = logging.getLogger(__name__)
 
 FALLBACK_SUMMARY_LENGTH = 500
 FALLBACK_TITLE = "New chat"
-TITLE_MAX_CHARS = 72
+TITLE_MAX_CHARS = 48
+TITLE_MAX_WORDS = 6
 
 
 class SemanticSummarizationService:
@@ -192,7 +193,7 @@ FACTS:
         return f"""Generate a concise chat title based on this first exchange.
 
 Requirements:
-- 3 to 8 words
+- 2 to 6 words
 - plain text only
 - no quotes
 - no punctuation at the end
@@ -226,6 +227,10 @@ Return only the title text."""
         first_line = re.sub(r"\s+", " ", first_line).strip()
         if not first_line:
             return ""
+
+        words = first_line.split()
+        if words:
+            first_line = " ".join(words[:TITLE_MAX_WORDS]).strip()
 
         if len(first_line) > TITLE_MAX_CHARS:
             first_line = first_line[:TITLE_MAX_CHARS].rstrip()

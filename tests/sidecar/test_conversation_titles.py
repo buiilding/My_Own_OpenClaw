@@ -213,3 +213,43 @@ async def test_delete_conversation_removes_conversation_title_row(tmp_path: Path
 
     assert remaining_transcript_rows == 0
     assert remaining_title_rows == 0
+
+
+@pytest.mark.asyncio
+async def test_title_generation_normalizes_to_short_concise_title(tmp_path: Path):
+    store = _build_store(tmp_path)
+    store.title_client = _DummyTitleClient(
+        generated_title="Title: A very long title with too many words and trailing punctuation.",
+    )
+    await init_episodic_schema(store.episodic_db_path)
+
+    conversation_id = "conv_trim_title"
+
+    await store.add(
+        text="help with migration plan",
+        user_id="user-1",
+        metadata={"type": "episodic"},
+        conversation_id=conversation_id,
+        record_kind="transcript",
+        role="user",
+        message_index=1,
+        skip_embedding=True,
+        timestamp="2026-02-25T00:02:00+00:00",
+    )
+    await store.add(
+        text="Let's break this into phases and rollback plans.",
+        user_id="user-1",
+        metadata={"type": "episodic"},
+        conversation_id=conversation_id,
+        record_kind="transcript",
+        role="assistant",
+        message_index=2,
+        message_type="llm-text",
+        skip_embedding=True,
+        timestamp="2026-02-25T00:02:01+00:00",
+    )
+    await _wait_for_title_tasks(store)
+
+    conversations = await store.list_conversations("user-1")
+    assert len(conversations) == 1
+    assert conversations[0]["title"] == "A very long title with too"
