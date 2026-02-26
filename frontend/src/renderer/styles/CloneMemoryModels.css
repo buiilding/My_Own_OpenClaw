@@ -467,6 +467,132 @@
   gap: 8px;
 }
 
+.clone-model-api-keys {
+  margin-top: 16px;
+  width: 100%;
+  max-width: 760px;
+  border: 1px solid var(--ui-border-subtle);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--ui-panel-bg) 62%, transparent);
+}
+
+.clone-model-api-keys-toggle {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--ui-text-secondary);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.clone-model-api-keys-toggle:hover {
+  color: var(--ui-text-primary);
+}
+
+.clone-model-api-keys-content {
+  border-top: 1px solid var(--ui-border-subtle);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.clone-model-api-provider-row {
+  border: 1px solid var(--ui-border-subtle);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--ui-panel-bg) 78%, transparent);
+  padding: 10px;
+}
+
+.clone-model-api-provider-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.clone-model-api-provider-title-wrap {
+  min-width: 0;
+}
+
+.clone-model-api-provider-title-wrap h3 {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ui-text-primary);
+}
+
+.clone-model-api-provider-title-wrap p {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: var(--ui-text-dim);
+}
+
+.clone-model-api-input {
+  margin-top: 10px;
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid var(--ui-border-subtle);
+  background: color-mix(in srgb, var(--ui-panel-bg) 86%, transparent);
+  color: var(--ui-text-primary);
+  font-size: 12px;
+  padding: 10px 11px;
+}
+
+.clone-model-api-input::placeholder {
+  color: var(--ui-text-dim);
+}
+
+.clone-model-api-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.clone-model-api-toggle {
+  position: relative;
+  width: 34px;
+  height: 20px;
+  border-radius: 999px;
+  border: 1px solid var(--ui-border-soft);
+  background: color-mix(in srgb, var(--ui-panel-bg) 80%, transparent);
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.clone-model-api-toggle input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.clone-model-api-toggle-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--ui-text-dim);
+  margin-left: 3px;
+  transition: transform 0.18s ease, background-color 0.18s ease;
+}
+
+.clone-model-api-toggle.checked {
+  border-color: color-mix(in srgb, var(--accent) 52%, transparent);
+  background: color-mix(in srgb, var(--accent) 26%, transparent);
+}
+
+.clone-model-api-toggle.checked .clone-model-api-toggle-thumb {
+  transform: translateX(14px);
+  background: var(--accent);
+}
+
 .clone-model-provider-toolbar {
   display: flex;
   align-items: center;

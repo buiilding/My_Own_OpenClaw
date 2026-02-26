@@ -10,6 +10,15 @@
 const CONFIG_STORAGE_KEY = 'desktop-assistant-config';
 const CONFIG_VERSION_KEY = 'desktop-assistant-config-version';
 
+const DEFAULT_PROVIDER_API_KEYS = {
+  openai: { enabled: false, api_key: '' },
+  anthropic: { enabled: false, api_key: '' },
+  google: { enabled: false, api_key: '' },
+  openrouter: { enabled: false, api_key: '' },
+  mistral: { enabled: false, api_key: '' },
+  kimi_coding: { enabled: false, api_key: '' },
+};
+
 const DEFAULT_FRONTEND_CONFIG = {
   model_mode: 'online',
   model_provider: 'openai',
@@ -20,10 +29,37 @@ const DEFAULT_FRONTEND_CONFIG = {
   wakeword_stt_enabled: false,
   agent_full_sudo_enabled: false,
   include_query_screenshot: true,
+  provider_api_keys: DEFAULT_PROVIDER_API_KEYS,
 };
 
+function normalizeProviderApiKeys(overrides = null) {
+  const source = (
+    overrides
+    && typeof overrides === 'object'
+    && !Array.isArray(overrides)
+  ) ? overrides : {};
+
+  const normalized = {};
+  for (const [provider, defaultEntry] of Object.entries(DEFAULT_PROVIDER_API_KEYS)) {
+    const candidate = (
+      source[provider]
+      && typeof source[provider] === 'object'
+      && !Array.isArray(source[provider])
+    ) ? source[provider] : {};
+    normalized[provider] = {
+      enabled: candidate.enabled === true,
+      api_key: typeof candidate.api_key === 'string' ? candidate.api_key : defaultEntry.api_key,
+    };
+  }
+  return normalized;
+}
+
 function buildFrontendConfig(overrides = {}) {
-  return { ...DEFAULT_FRONTEND_CONFIG, ...overrides };
+  return {
+    ...DEFAULT_FRONTEND_CONFIG,
+    ...overrides,
+    provider_api_keys: normalizeProviderApiKeys(overrides.provider_api_keys),
+  };
 }
 
 function clearStoredConfigUnsafe() {

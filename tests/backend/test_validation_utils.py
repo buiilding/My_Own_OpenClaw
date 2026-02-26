@@ -132,6 +132,9 @@ def test_validate_frontend_config_allows_subset_and_validates_values():
         "wakeword_stt_enabled": True,
         "agent_full_sudo_enabled": True,
         "include_query_screenshot": True,
+        "provider_api_keys": {
+            "openai": {"enabled": True, "api_key": "sk-openai"},
+        },
         "not_allowed": "ignored",
     }
     validated = validate_frontend_config(payload)
@@ -140,6 +143,7 @@ def test_validate_frontend_config_allows_subset_and_validates_values():
     assert validated["wakeword_stt_enabled"] is True
     assert validated["agent_full_sudo_enabled"] is True
     assert validated["include_query_screenshot"] is True
+    assert validated["provider_api_keys"]["openai"]["enabled"] is True
 
     with pytest.raises(ValidationError):
         validate_frontend_config({"model_mode": "invalid"})

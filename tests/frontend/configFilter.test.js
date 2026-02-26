@@ -13,6 +13,9 @@ describe('configFilter', () => {
       wakeword_stt_enabled: true,
       agent_full_sudo_enabled: true,
       include_query_screenshot: false,
+      provider_api_keys: {
+        openai: { enabled: true, api_key: 'sk-test' },
+      },
       extra: 'ignore',
     });
 
@@ -25,6 +28,9 @@ describe('configFilter', () => {
       wakeword_stt_enabled: true,
       agent_full_sudo_enabled: true,
       include_query_screenshot: false,
+      provider_api_keys: {
+        openai: { enabled: true, api_key: 'sk-test' },
+      },
     });
   });
 

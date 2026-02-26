@@ -41,6 +41,42 @@ def test_load_api_key_from_env(monkeypatch):
     assert result.api_key == "test-key"
 
 
+def test_load_api_key_uses_user_override_when_enabled(monkeypatch):
+    monkeypatch.setenv("OPENAI_API_KEY", "env-openai-key")
+    cfg = AppConfig(
+        model_provider="openai",
+        provider_api_keys={
+            "openai": {"enabled": True, "api_key": "sk-user-openai"},
+        },
+    )
+    result = load_api_key_for_provider(cfg)
+    assert result.api_key == "sk-user-openai"
+
+
+def test_load_api_key_falls_back_to_env_when_user_override_disabled(monkeypatch):
+    monkeypatch.setenv("OPENAI_API_KEY", "env-openai-key")
+    cfg = AppConfig(
+        model_provider="openai",
+        provider_api_keys={
+            "openai": {"enabled": False, "api_key": "sk-user-openai"},
+        },
+    )
+    result = load_api_key_for_provider(cfg)
+    assert result.api_key == "env-openai-key"
+
+
+def test_load_api_key_google_override_applies_to_gemini_provider(monkeypatch):
+    monkeypatch.setenv("GOOGLE_API_KEY", "env-google-key")
+    cfg = AppConfig(
+        model_provider="gemini",
+        provider_api_keys={
+            "google": {"enabled": True, "api_key": "sk-user-google"},
+        },
+    )
+    result = load_api_key_for_provider(cfg)
+    assert result.api_key == "sk-user-google"
+
+
 def test_load_api_key_kimi_fallback(monkeypatch):
     monkeypatch.delenv("KIMI_API_KEY", raising=False)
     monkeypatch.setenv("KIMICODE_API_KEY", "fallback-key")

@@ -92,6 +92,35 @@ class LLMProviders(BaseModel):
         return getattr(self, normalized)
 
 
+class ProviderApiKeyOverride(BaseModel):
+    """Frontend-managed API key override for a single online provider."""
+
+    enabled: bool = False
+    api_key: str = ""
+
+
+class ProviderApiKeys(BaseModel):
+    """Frontend-managed API key overrides by provider."""
+
+    openai: ProviderApiKeyOverride = Field(default_factory=ProviderApiKeyOverride)
+    anthropic: ProviderApiKeyOverride = Field(default_factory=ProviderApiKeyOverride)
+    google: ProviderApiKeyOverride = Field(default_factory=ProviderApiKeyOverride)
+    openrouter: ProviderApiKeyOverride = Field(default_factory=ProviderApiKeyOverride)
+    mistral: ProviderApiKeyOverride = Field(default_factory=ProviderApiKeyOverride)
+    kimi_coding: ProviderApiKeyOverride = Field(default_factory=ProviderApiKeyOverride)
+
+    def get_provider_override(self, provider_name: str) -> Optional[ProviderApiKeyOverride]:
+        """Resolve provider override config with provider alias normalization."""
+        normalized = provider_name.lower().replace("-", "_")
+        if normalized == "kimi_code":
+            normalized = "kimi_coding"
+        if normalized == "gemini":
+            normalized = "google"
+        if not hasattr(self, normalized):
+            return None
+        return getattr(self, normalized)
+
+
 class Preferences(BaseModel):
     """User-specific preferences."""
 
@@ -214,6 +243,7 @@ class AppConfig(BaseModel):
     wakeword_stt_enabled: bool = False
     agent_full_sudo_enabled: bool = False
     include_query_screenshot: bool = True
+    provider_api_keys: ProviderApiKeys = Field(default_factory=ProviderApiKeys)
 
     # Wakeword Settings
     wakeword_enabled: bool = True

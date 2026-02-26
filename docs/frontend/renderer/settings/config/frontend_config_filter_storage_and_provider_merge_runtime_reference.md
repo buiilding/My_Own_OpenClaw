@@ -31,7 +31,9 @@ title: "Frontend Config Filter, Storage, and Provider Merge Runtime Reference"
 - `voice_mode_enabled`
 - `speech_mode_enabled`
 - `wakeword_stt_enabled`
+- `agent_full_sudo_enabled`
 - `include_query_screenshot`
+- `provider_api_keys`
 
 `filterFrontendConfig(config)` behavior:
 
@@ -55,7 +57,11 @@ Default config surface:
 - `voice_mode_enabled: false`
 - `speech_mode_enabled: false`
 - `wakeword_stt_enabled: false`
+- `agent_full_sudo_enabled: false`
 - `include_query_screenshot: true`
+- `provider_api_keys`:
+  - `openai`, `anthropic`, `google`, `openrouter`, `mistral`, `kimi_coding`
+  - each entry stores `{ enabled: boolean, api_key: string }`
 
 Load semantics (`loadConfigFromStorage`):
 

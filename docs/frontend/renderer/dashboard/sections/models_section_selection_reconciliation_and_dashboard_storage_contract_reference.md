@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for dashboard model selection and API-key storage behavior: mode-scoped model lists, id/provider reconciliation, deterministic fallback, warning timeout lifecycle, and local-storage failure handling."
+summary: "Deep reference for dashboard model selection and API-key settings behavior: mode-scoped model lists, id/provider reconciliation, deterministic fallback, warning timeout lifecycle, and provider-key override config wiring."
 read_when:
   - When changing `ModelsSection` selection/reset behavior or model search filtering semantics.
   - When modifying dashboard storage helpers or API-key persistence key/value lifecycle.
@@ -11,18 +11,21 @@ title: "Models Section Selection Reconciliation and Dashboard Storage Contract R
 ## Canonical Modules
 
 - `frontend/src/renderer/features/dashboard/components/sections/ModelsSection.jsx`
+- `frontend/src/renderer/features/dashboard/components/sections/ApiKeysSection.jsx`
 - `frontend/src/renderer/features/dashboard/utils/modelSelectionUtils.js`
-- `frontend/src/renderer/features/dashboard/utils/storage.js`
+- `frontend/src/renderer/utils/configStorage.js`
 - `tests/frontend/ModelSelectionUtils.test.js`
-- `tests/frontend/DashboardStorageUtils.test.js`
+- `tests/frontend/ModelsSection.test.jsx`
+- `tests/frontend/configStorage.test.js`
 
 ## ModelsSection Runtime Contract
 
-State owned locally:
+State owned locally (`ModelsSection` + `ApiKeysSection`):
 
 - `modelResetWarning`
 - `searchTerm`
-- `apiKey` (seeded from `loadLocalValue('desktop-assistant-api-key')`)
+- `activeProviderView`
+- `expanded` (API Keys collapse/expand state)
 
 Derived inputs from config:
 
@@ -82,22 +85,20 @@ Canonical provider behavior:
 - warning banner auto-clears after `5000ms`
 - timeout is cleared on unmount
 
-## API-Key Storage Contract
+## API-Key Settings Contract
 
-Storage key:
+Frontend config field:
 
-- `desktop-assistant-api-key`
+- `provider_api_keys`
+- nested provider entries: `openai`, `anthropic`, `google`, `openrouter`, `mistral`, `kimi_coding`
+- entry shape: `{ enabled: boolean, api_key: string }`
 
-`saveLocalValue` behavior:
+Behavior:
 
-- truthy value -> `localStorage.setItem`
-- falsy value (`''`, `null`, etc.) -> `localStorage.removeItem`
-- storage errors are swallowed and logged with `[Dashboard]` prefix
-
-`loadLocalValue` behavior:
-
-- returns stored value when available
-- returns provided fallback when key missing or storage read fails
+- API key inputs are rendered as masked password fields.
+- Per-provider toggle controls whether runtime should use user input key (`enabled=true`) or backend/default key source (`enabled=false`).
+- Section is collapsed by default and user-expandable from `API Keys` row.
+- `ModelsSection` forwards API key changes through `onConfigChange({ provider_api_keys: ... })`; persistence/sync handled by `AppConfigProvider`.
 
 ## Test-Backed Matrix
 
@@ -109,11 +110,10 @@ Storage key:
 - selection statuses (`empty`, `missing`, `provider-mismatch`, `valid`)
 - deterministic canonical-provider fallback for duplicate model ids
 
-`tests/frontend/DashboardStorageUtils.test.js` verifies:
+`tests/frontend/ModelsSection.test.jsx` verifies:
 
-- storage read fallback path
-- truthy write and falsy remove semantics
-- read/write/remove exception swallowing
+- collapsible `API Keys` section render/expand behavior
+- provider toggle/input updates to `provider_api_keys` payload
 
 Coverage note:
 

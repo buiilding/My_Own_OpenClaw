@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(models-api-keys): add collapsible `API Keys` section in the Models window (OpenAI, Anthropic, Kimi Code, Google, OpenRouter, Mistral) with masked inputs and per-provider enable toggles, wired through frontend config sync and backend provider key override loading.
 - fix(frontend-chat-models): replace hardcoded chat header model dropdown items with live models from `availableModels`, filtered to the active provider/mode and wired to update `selected_model_id` + `model_provider` on selection.
 - fix(frontend-chatbox): auto-focus the chat-pill input when the pill opens/regains focus (window focus + visibility hooks), so users can type immediately without an extra click.
 - fix(frontend-dashboard): when opening the main dashboard from the chat-pill settings button, route to the chat surface and auto-focus the dashboard composer input (with regression coverage for the IPC payload and focus-token behavior).

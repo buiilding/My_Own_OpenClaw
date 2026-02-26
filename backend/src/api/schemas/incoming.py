@@ -97,6 +97,28 @@ class ListModelsMessage(BaseMessage):
     payload: ListModelsPayload = Field(default_factory=ListModelsPayload)
 
 
+class ProviderApiKeyEntry(BaseModel):
+    """One provider API key override entry in frontend settings payload."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: Optional[bool] = None
+    api_key: Optional[str] = None
+
+
+class ProviderApiKeysPayload(BaseModel):
+    """Frontend-provided per-provider API key overrides."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    openai: Optional[ProviderApiKeyEntry] = None
+    anthropic: Optional[ProviderApiKeyEntry] = None
+    google: Optional[ProviderApiKeyEntry] = None
+    openrouter: Optional[ProviderApiKeyEntry] = None
+    mistral: Optional[ProviderApiKeyEntry] = None
+    kimi_coding: Optional[ProviderApiKeyEntry] = None
+
+
 class UpdateSettingsPayload(BaseModel):
     """Frontend-owned config update payload."""
 
@@ -114,6 +136,7 @@ class UpdateSettingsPayload(BaseModel):
     wakeword_stt_enabled: Optional[bool] = None
     agent_full_sudo_enabled: Optional[bool] = None
     include_query_screenshot: Optional[bool] = None
+    provider_api_keys: Optional[ProviderApiKeysPayload] = None
 
 
 class UpdateSettingsMessage(BaseMessage):
