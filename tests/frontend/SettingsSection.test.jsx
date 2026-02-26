@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import SettingsSection from '../../frontend/src/renderer/features/dashboard/components/sections/SettingsSection';
 
@@ -98,14 +98,17 @@ describe('SettingsSection', () => {
     const onConfigChange = jest.fn();
     renderSettingsSection({ onConfigChange });
 
-    fireEvent.click(screen.getByLabelText('Agent Full Sudo Access'));
+    const sudoToggle = screen.getByLabelText('Agent Full Sudo Access');
+    fireEvent.click(sudoToggle);
 
     expect(window.confirm).toHaveBeenCalledWith(
       'Warning: This action will enable the agent to have sudo access without password prompts. Continue?',
     );
-    expect(mockInvoke).toHaveBeenCalledWith('set-agent-sudo-access', { enabled: true });
-    await Promise.resolve();
-    expect(onConfigChange).toHaveBeenCalledWith({ agent_full_sudo_enabled: true });
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith('set-agent-sudo-access', { enabled: true });
+      expect(onConfigChange).toHaveBeenCalledWith({ agent_full_sudo_enabled: true });
+      expect(sudoToggle).not.toBeDisabled();
+    });
   });
 
   test('agent full sudo toggle does not invoke when user cancels warning', () => {
@@ -127,12 +130,14 @@ describe('SettingsSection', () => {
     const onConfigChange = jest.fn();
     renderSettingsSection({ onConfigChange });
 
-    fireEvent.click(screen.getByLabelText('Agent Full Sudo Access'));
-    await Promise.resolve();
-
-    expect(window.alert).toHaveBeenCalledWith(
-      'User canceled or denied OS authentication while trying to enable passwordless sudo access.',
-    );
-    expect(onConfigChange).not.toHaveBeenCalledWith({ agent_full_sudo_enabled: true });
+    const sudoToggle = screen.getByLabelText('Agent Full Sudo Access');
+    fireEvent.click(sudoToggle);
+    await waitFor(() => {
+      expect(window.alert).toHaveBeenCalledWith(
+        'User canceled or denied OS authentication while trying to enable passwordless sudo access.',
+      );
+      expect(onConfigChange).not.toHaveBeenCalledWith({ agent_full_sudo_enabled: true });
+      expect(sudoToggle).not.toBeDisabled();
+    });
   });
 });

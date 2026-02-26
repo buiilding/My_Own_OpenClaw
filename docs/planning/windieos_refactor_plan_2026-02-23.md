@@ -129,6 +129,16 @@ read_when:
     - `cd frontend && npm run test:ci`
   - runtime delta:
     - `ChatGptDashboardShell.test.jsx` duration improved from `1084ms` to `843ms` in `.audit/plan1/jest-report.json` (~22.2% faster).
+- Frontend async-test warning cleanup:
+  - removed `act(...)` warnings caused by unresolved async state updates in:
+    - `tests/frontend/MemorySection.test.jsx`
+    - `tests/frontend/SettingsSection.test.jsx`
+  - changes:
+    - awaited initial memory load completion in close-button test before ending assertions.
+    - replaced `await Promise.resolve()` timing assumptions with `waitFor(...)` assertions that observe completion of sudo pending-state reset.
+  - verification:
+    - `cd frontend && npm run test:ci -- tests/frontend/MemorySection.test.jsx tests/frontend/SettingsSection.test.jsx`
+    - `cd frontend && npm run lint`
 
 - Dashboard shell split:
   - extracted conversation/search orchestration from `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx` into:

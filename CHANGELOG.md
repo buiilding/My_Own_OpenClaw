@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(frontend-dashboard): remove async `act(...)` warning noise in `MemorySection.test.jsx` and `SettingsSection.test.jsx` by awaiting real async completion paths (initial memory load + sudo-toggle pending reset) with `findBy`/`waitFor`.
 - test(backend-tts-session): add lifecycle coverage for TTS session enter/exit, active-task cancellation, cleanup forwarding, and wait-for-audio behavior.
 - docs(frontend-protocol-validation): expand frontend validation boundary docs with channel/mapper coverage snapshot (`5/32/11` IPC channels, `9` mapper definitions), add explicit validation control-path index (allowlist, dev guards, payload normalization, user-id/query sanitization, mapper compatibility), and refresh frontend protocol matrix mapper count.
 - test(sidecar-scroll-tool): extend runtime coverage with missing-direction validation and pyautogui import-failure handling.
