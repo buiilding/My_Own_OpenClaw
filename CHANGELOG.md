@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(memory-titles): enforce short concise generated chat titles (2-6 words, capped length) with backend parsing and sidecar normalization safeguards.
 - feat(conversation-titles): generate transcript conversation titles asynchronously via active-model LLM (`/api/semantic/title`) using current session model/provider (or transcript model overrides), keep `Your chats` hidden until title write completes, and poll sidebar refresh from renderer until the titled conversation appears.
 - fix(frontend-chat-history): extend async title-visibility polling window so delayed model-title generations still surface in `Your chats` once complete.
 - fix(frontend-chat-history): refresh `Your chats` immediately after successful assistant transcript persistence (`transcript-entry-stored`), so newly titled conversations appear right after the first completed turn.

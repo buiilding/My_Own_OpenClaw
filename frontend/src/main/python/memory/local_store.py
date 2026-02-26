@@ -53,6 +53,10 @@ class _NoopTitleClient:
         return ""
 
 
+TITLE_NORMALIZED_MAX_WORDS = 6
+TITLE_NORMALIZED_MAX_CHARS = 48
+
+
 @dataclass(frozen=True)
 class _MemoryAttrNames:
     db_path: str
@@ -1665,8 +1669,11 @@ class LocalMemoryStore:
         first_line = re.sub(r"^(title\s*:\s*)", "", first_line, flags=re.IGNORECASE)
         first_line = first_line.strip().strip("`").strip().strip("\"'")
         first_line = re.sub(r"\s+", " ", first_line).strip()
-        if len(first_line) > 72:
-            first_line = first_line[:72].rstrip()
+        words = first_line.split()
+        if words:
+            first_line = " ".join(words[:TITLE_NORMALIZED_MAX_WORDS]).strip()
+        if len(first_line) > TITLE_NORMALIZED_MAX_CHARS:
+            first_line = first_line[:TITLE_NORMALIZED_MAX_CHARS].rstrip()
         return first_line
 
     async def _ensure_conversation_title(

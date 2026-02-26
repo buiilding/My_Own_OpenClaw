@@ -244,6 +244,33 @@ async def test_generate_conversation_title_uses_container_config_when_session_mi
 
 
 @pytest.mark.asyncio
+async def test_generate_conversation_title_trims_to_short_concise_shape(monkeypatch) -> None:
+    container_cfg = _local_ollama_config("container-model")
+    fake_client = FakeLLMClient(
+        "Title: Extremely long descriptive title with too many words and extra detail"
+    )
+
+    _patch_semantic_client(monkeypatch, fake_client)
+
+    container = SimpleNamespace(config=container_cfg, llm_client=object())
+    session_manager = FakeSessionManager(session=None)
+    request = semantic_routes.GenerateTitleRequest(
+        user_id="user_789",
+        user_message="help me plan migration",
+        assistant_message="Let's draft phases and risk mitigation steps.",
+    )
+
+    response = await semantic_routes.generate_conversation_title(
+        request,
+        container,
+        session_manager,
+    )
+
+    assert response.success is True
+    assert response.title == "Extremely long descriptive title with too"
+
+
+@pytest.mark.asyncio
 async def test_semantic_health_check_reports_status() -> None:
     healthy = await semantic_routes.health_check(SimpleNamespace(llm_client=object()))
     unhealthy = await semantic_routes.health_check(SimpleNamespace(llm_client=None))
