@@ -1,8 +1,8 @@
 ---
-summary: "Frontend protocol compatibility sub-hub for endpoint/env fallbacks, IPC payload key normalization, legacy transcript session storage support, and tolerant renderer event handling."
+summary: "Frontend protocol compatibility sub-hub for endpoint/env fallbacks, IPC payload key normalization, legacy transcript session storage support, and tolerant renderer stream/conversation event handling."
 read_when:
   - When changing main-process endpoint resolution or IPC-to-local-backend parameter mapping behavior.
-  - When changing renderer transcript session persistence format or stream event compatibility guards.
+  - When changing renderer transcript session persistence format, thought payload fallback handling, or conversation-gate compatibility guards.
 title: "Frontend Protocol Compatibility Hub"
 ---
 

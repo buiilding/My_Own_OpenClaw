@@ -1,8 +1,8 @@
 ---
-summary: "Backend protocol compatibility sub-hub for legacy schema import stability, dict-event formatting support, and stream payload normalization fallbacks."
+summary: "Backend protocol compatibility sub-hub for legacy schema import stability, typed/dict formatter coexistence, stream payload normalization fallbacks, and incoming-union extraction tolerance."
 read_when:
   - When changing backend websocket event shape handling across typed and dict payload producers.
-  - When changing schema import paths or route-table type extraction behavior that must preserve compatibility.
+  - When changing schema import paths, query extraction fallback fields, or route-table type extraction behavior that must preserve compatibility.
 title: "Backend Protocol Compatibility Hub"
 ---
 

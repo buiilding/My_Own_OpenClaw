@@ -8,6 +8,11 @@ title: "Backend Protocol Backward Compatibility and Normalization Reference"
 
 # Backend Protocol Backward Compatibility and Normalization Reference
 
+## Coverage Snapshot (2026-02-26)
+
+- Compatibility-focused test files: `3`
+- Total test cases across listed files: `44`
+
 ## Scope and Sources
 
 Primary runtime sources:
@@ -132,7 +137,19 @@ When changing compatibility code, keep aligned:
 - query extraction helper fallback order (`top-level` vs `payload`)
 - incoming route extraction support for non-annotated unions
 
+## Compatibility Control-Path Index
+
+| Compatibility control path | Runtime owner | Compatibility guarantee |
+|---|---|---|
+| schema import shim re-export path | `backend/src/api/schema.py` | legacy import sites stay stable while canonical schemas live under `backend/src/api/schemas/*` |
+| typed-event to dict-event formatter fallback | `backend/src/api/processing/formatter.py` | mixed event producers remain supported through dual dispatch path |
+| dict payload extraction fallback hierarchy | `backend/src/api/services/query_execution.py` | top-level and nested payload fields (`content`, `final_response`) remain backward-compatible |
+| incoming union wrapper tolerance | `backend/src/core/container/incoming_routing.py` | route type extraction works for `Annotated[Union]` and plain `Union` declarations |
+
 ## Related Pages
 
+- [Backend Protocol Lifecycle Hub](../lifecycle/README.md)
+- [Backend Protocol State Hub](../state/README.md)
+- [Backend Protocol Errors Hub](../errors/README.md)
 - [Backend Protocol Validation Hub](../validation/README.md)
 - [Backend Protocol Testing Hub](../testing/README.md)

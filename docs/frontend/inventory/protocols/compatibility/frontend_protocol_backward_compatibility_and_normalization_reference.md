@@ -8,6 +8,11 @@ title: "Frontend Protocol Backward Compatibility and Normalization Reference"
 
 # Frontend Protocol Backward Compatibility and Normalization Reference
 
+## Coverage Snapshot (2026-02-26)
+
+- Compatibility-focused test files: `6`
+- Total test cases across listed files: `79`
+
 ## Scope and Sources
 
 Primary runtime sources:
@@ -134,7 +139,20 @@ When changing compatibility behavior, keep aligned:
 - transcript storage legacy field fallback (`sessionId` -> `conversationRef`)
 - renderer conversation gate behavior for missing conversation refs
 
+## Compatibility Control-Path Index
+
+| Compatibility control path | Runtime owner | Compatibility guarantee |
+|---|---|---|
+| backend endpoint derivation fallback | `frontend/src/main/backend_endpoints.cjs` | explicit ws/http URLs or host/port fallback normalize into stable ws/http endpoint pair |
+| mixed-case RPC key normalization | `frontend/src/main/local_backend_bridge_rpc_mappers.cjs` | camelCase/snake_case payload variants map to canonical snake_case sidecar args |
+| legacy transcript session id fallback | `frontend/src/renderer/infrastructure/transcript/sessionInfoStorage.ts` | old `sessionId` storage key remains readable as conversation identity |
+| stream thought payload fallback | `frontend/src/renderer/features/chat/hooks/useChatStream.ts` | `payload.status` and fallback `payload.content` both interpreted for thought status |
+| missing conversation ref event tolerance | `frontend/src/renderer/features/chat/utils/chatStreamConversationGate.ts` | compatibility path allows events lacking `conversation_ref` without hard drop |
+
 ## Related Pages
 
+- [Frontend Protocol Lifecycle Hub](../lifecycle/README.md)
+- [Frontend Protocol State Hub](../state/README.md)
+- [Frontend Protocol Errors Hub](../errors/README.md)
 - [Frontend Protocol Validation Hub](../validation/README.md)
 - [Frontend Protocol Testing Hub](../testing/README.md)
