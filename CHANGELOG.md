@@ -8,6 +8,7 @@ Includes the last 300 commits on `main`.
 
 ### Added
 - fix(backend-gemini-streaming): upgrade backend LiteLLM pin to `1.80.15` and harden thinking extraction for Gemini-style stream deltas (`reasoningContent`, `thinking_content`, structured `content` blocks, and `<think>...</think>` tags) with regression tests.
+- docs(frontend-overlay-system-state): align overlay lifecycle and sidecar system-state docs with current frontend runtime (dormant context-label window flow, no active context-label polling consumer, and current query/system-state code scope).
 - docs(frontend-dashboard-sections): add dedicated MemorySection runtime reference and refresh ModelsSection docs to current provider-first architecture (helper-module card mapping, selection reconciliation, and provider API-key normalization contracts).
 - docs(frontend-permissions): add main/renderer permission onboarding docs (manifest/probe/request IPC contract, renderer onboarding gate/store persistence model, settings data-controls integration) and align preload/contracts/settings/provider runtime references with permission channels.
 - docs(frontend-response-overlay): update response-overlay presentation docs for current runtime (debug-only `ToolGhostCursor` usage, no production ghost preview in `ChatBoxResponse`, and refreshed test references).
