@@ -10,12 +10,21 @@ title: "Frontend Runtime Surface Matrix Reference"
 
 This matrix maps runtime behavior to exact modules in `frontend/src`.
 
+## Coverage Snapshot (2026-02-26)
+
+- Main process files: `34`
+- Sidecar python files: `140`
+- Renderer files: `127`
+- Landing files: `13`
+- Preload files: `1`
+- Total covered frontend files: `315`
+
 ## Runtime Surface Ownership
 
 | Surface | Primary entry modules | Core orchestrators | Exit/response paths |
 | --- | --- | --- | --- |
 | Electron app runtime | `frontend/src/main/index.cjs`, `frontend/src/main/main_window_runtime.cjs`, `frontend/src/main/main_process_lifecycle_runtime.cjs` | Window/tray setup, lifecycle listeners, bridge initializers | Renderer windows + process shutdown |
-| Main overlay/window runtime | `frontend/src/main/overlay_ipc_runtime.cjs`, `frontend/src/main/window_visibility_runtime.cjs` | Overlay IPC registration, chat/main visibility transitions | Overlay + main window state transitions |
+| Main overlay/window runtime | `frontend/src/main/overlay_ipc_runtime.cjs`, `frontend/src/main/window_visibility_runtime.cjs`, `frontend/src/main/overlay_signal_runtime.cjs`, `frontend/src/main/overlay_window_helpers_runtime.cjs` | Overlay IPC registration, chat/main visibility transitions, overlay side-channel signals, positioning/top-most helpers | Overlay + main window state transitions |
 | Main process backend bridge | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc_runtime_helpers.cjs`, `frontend/src/main/ipc_renderer_windows.cjs`, `frontend/src/main/ipc_query_broadcast.cjs` | WebSocket session, settings ACK gate, relay fan-out | IPC events to renderer |
 | Main process sidecar bridge | `frontend/src/main/local_backend_bridge.cjs` | Python subprocess lifecycle, JSON-RPC correlation | Tool/system/memory responses |
 | Main process wakeword bridge | `frontend/src/main/wakeword_bridge.cjs` | Wakeword subprocess lifecycle + binary framing | Wakeword events to renderer/main IPC |
@@ -84,5 +93,7 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 
 - [Frontend Inventory Docs Hub](README.md)
 - [Frontend Full Functionality Inventory Reference](frontend_full_functionality_inventory_reference.md)
+- [Frontend Functionality Capability Catalog Reference](frontend_functionality_capability_catalog_reference.md)
+- [Frontend Capability to File Matrix Reference](frontend_capability_to_file_matrix_reference.md)
 - [Frontend Module File Index Reference](frontend_module_file_index_reference.md)
 - [Frontend IPC and Sidecar Contract Touchpoints Reference](frontend_ipc_and_sidecar_contract_touchpoints_reference.md)
