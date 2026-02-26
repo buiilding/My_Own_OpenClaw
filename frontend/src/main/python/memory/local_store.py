@@ -636,6 +636,8 @@ class LocalMemoryStore:
             await self._maybe_generate_conversation_title(
                 user_id=user_id,
                 conversation_id=conversation_id,
+                preferred_model_id=model_id,
+                preferred_model_provider=model_provider,
             )
 
         logger.debug(f"Stored {memory_type} memory {memory_id} for user {user_id}")
@@ -1351,6 +1353,8 @@ class LocalMemoryStore:
         self,
         user_id: str,
         conversation_id: str,
+        preferred_model_id: Optional[str] = None,
+        preferred_model_provider: Optional[str] = None,
     ) -> None:
         """
         Best-effort title generation after transcript writes.
@@ -1368,6 +1372,8 @@ class LocalMemoryStore:
                     existing_title=None,
                     existing_title_source=None,
                     existing_title_locked=None,
+                    preferred_model_id=preferred_model_id,
+                    preferred_model_provider=preferred_model_provider,
                 )
                 await conn.commit()
         except Exception as exc:
@@ -1386,6 +1392,8 @@ class LocalMemoryStore:
         existing_title: Optional[str],
         existing_title_source: Optional[str],
         existing_title_locked: Optional[int],
+        preferred_model_id: Optional[str] = None,
+        preferred_model_provider: Optional[str] = None,
     ) -> Tuple[Optional[str], Optional[str]]:
         if not conversation_id:
             return None, None
@@ -1431,22 +1439,60 @@ class LocalMemoryStore:
         )
         first_user_row = await cursor.fetchone()
 
-        await cursor.execute(
-            """
-            SELECT content
-            FROM memories
-            WHERE user_id = ? AND conversation_id = ?
-              AND record_kind = 'transcript'
-              AND role = 'assistant'
-              AND LOWER(REPLACE(COALESCE(message_type, ''), '_', '-')) = 'llm-text'
-              AND content IS NOT NULL
-              AND content != ''
-            ORDER BY message_index ASC, timestamp ASC
-            LIMIT 1
-        """,
-            (user_id, conversation_id),
+        normalized_model_id = (
+            preferred_model_id.strip()
+            if isinstance(preferred_model_id, str) and preferred_model_id.strip()
+            else None
         )
-        first_assistant_row = await cursor.fetchone()
+        normalized_model_provider = (
+            preferred_model_provider.strip()
+            if isinstance(preferred_model_provider, str) and preferred_model_provider.strip()
+            else None
+        )
+
+        first_assistant_row = None
+        if normalized_model_id and normalized_model_provider:
+            await cursor.execute(
+                """
+                SELECT content
+                FROM memories
+                WHERE user_id = ? AND conversation_id = ?
+                  AND record_kind = 'transcript'
+                  AND role = 'assistant'
+                  AND LOWER(REPLACE(COALESCE(message_type, ''), '_', '-')) = 'llm-text'
+                  AND model_id = ?
+                  AND model_provider = ?
+                  AND content IS NOT NULL
+                  AND content != ''
+                ORDER BY message_index ASC, timestamp ASC
+                LIMIT 1
+            """,
+                (
+                    user_id,
+                    conversation_id,
+                    normalized_model_id,
+                    normalized_model_provider,
+                ),
+            )
+            first_assistant_row = await cursor.fetchone()
+
+        if not first_assistant_row:
+            await cursor.execute(
+                """
+                SELECT content
+                FROM memories
+                WHERE user_id = ? AND conversation_id = ?
+                  AND record_kind = 'transcript'
+                  AND role = 'assistant'
+                  AND LOWER(REPLACE(COALESCE(message_type, ''), '_', '-')) = 'llm-text'
+                  AND content IS NOT NULL
+                  AND content != ''
+                ORDER BY message_index ASC, timestamp ASC
+                LIMIT 1
+            """,
+                (user_id, conversation_id),
+            )
+            first_assistant_row = await cursor.fetchone()
 
         if not first_user_row or not first_assistant_row:
             return current_title or None, existing_title_source or None

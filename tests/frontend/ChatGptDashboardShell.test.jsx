@@ -349,6 +349,56 @@ describe('ChatGptDashboardShell', () => {
     });
   });
 
+  test('reloads recent chats after assistant llm transcript entry is stored', async () => {
+    const nowIso = new Date().toISOString();
+    let listCallCount = 0;
+    mockInvoke.mockImplementation(async (channel) => {
+      if (channel === 'list-conversations') {
+        listCallCount += 1;
+        if (listCallCount === 1) {
+          return {
+            success: true,
+            data: { conversations: [] },
+          };
+        }
+        return {
+          success: true,
+          data: {
+            conversations: [
+              {
+                conversation_id: 'conv-title-1',
+                record_kind: 'transcript',
+                last_timestamp: nowIso,
+                title: 'How are you',
+              },
+            ],
+          },
+        };
+      }
+      return { success: true, data: {} };
+    });
+
+    await renderDashboardShell();
+    expect(screen.getByText('No chats yet.')).toBeInTheDocument();
+
+    act(() => {
+      window.dispatchEvent(new CustomEvent('transcript-entry-stored', {
+        detail: {
+          role: 'assistant',
+          messageType: 'llm-text',
+        },
+      }));
+    });
+
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith(
+        'list-conversations',
+        expect.objectContaining({ userId: 'default_user' }),
+      );
+      expect(screen.getByRole('button', { name: 'How are you' })).toBeInTheDocument();
+    });
+  });
+
   test('plays dashboard open animation on mount and when window becomes visible again', async () => {
     jest.useFakeTimers();
     let visibilityState = 'visible';
