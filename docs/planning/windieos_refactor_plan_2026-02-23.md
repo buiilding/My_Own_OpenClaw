@@ -169,6 +169,16 @@ read_when:
     - `cd frontend && npm run audit:jscpd`
   - audit delta:
     - frontend+backend `jscpd` clone count reduced from `21` to `20`.
+- Backend computer-schema clone hotspot dedupe:
+  - rewired scroll-control field declarations in:
+    - `backend/src/tools/computer/schemas.py`
+  - behavior:
+    - preserved `ScrollControlArgs` validation/shape while replacing clone-prone inline field signatures with clearer multiline schema metadata.
+  - verification:
+    - `./scripts/python-in-env backend python -m pytest tests/backend/test_remote_tools.py -q`
+    - `cd frontend && npm run audit:jscpd`
+  - audit delta:
+    - frontend+backend `jscpd` clone count reduced from `20` to `19`.
 
 - Dashboard shell split:
   - extracted conversation/search orchestration from `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx` into:
