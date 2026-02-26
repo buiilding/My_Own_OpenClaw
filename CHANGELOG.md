@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-styles): dedupe `CloneMemoryModels.css` icon style blocks for provider/model cards via shared selectors; preserves visuals while reducing clone noise.
 - refactor(backend-formatters): simplify formatter spec registration imports by routing through `backend.src.api.processing.formatters` module aliases instead of per-formatter class imports; preserves dispatch mapping and reduces duplication.
 - refactor(sidecar-remote-clients): extract shared backend HTTP session/request/error handling into `RemoteApiClientBase`; rewire semantic/title clients to use the shared path without changing payload/exception contracts.
 - refactor(frontend-main-sudo-auth): dedupe `agent_sudo_access_handler` process execution by introducing a shared command-output runner for `pkexec`/`sudo -n` flows; preserve error/cancel semantics and add startup-error regression coverage.

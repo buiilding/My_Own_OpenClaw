@@ -93,6 +93,13 @@ read_when:
     - `./scripts/python-in-env backend python -m pytest tests/backend/test_api_contract_registry.py tests/backend/test_response_formatter.py tests/backend/test_outgoing_schema_contract.py -q`
   - audit delta:
     - frontend+backend `jscpd` total clones reduced from `25` to `24`.
+- Frontend style dedupe:
+  - merged duplicated provider/model icon style declarations in:
+    - `frontend/src/renderer/styles/CloneMemoryModels.css`
+  - verification:
+    - `cd frontend && npm run lint`
+  - audit delta:
+    - frontend+backend `jscpd` total clones reduced from `24` to `23`.
 
 - Dashboard shell split:
   - extracted conversation/search orchestration from `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx` into:
