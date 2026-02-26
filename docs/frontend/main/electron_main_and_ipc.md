@@ -13,6 +13,7 @@ title: "Electron Main and IPC"
 Primary entrypoint:
 
 - `frontend/src/main/index.cjs`
+- `frontend/src/main/main_window_runtime.cjs`
 
 Responsibilities:
 
@@ -20,6 +21,9 @@ Responsibilities:
 - Maintains overlay response phases (`idle`, `awaiting-first-chunk`, `streaming`, tool phases).
 - Tracks and restores external focused window (notably on Windows) for overlay UX.
 - Registers tray/shortcuts and always-on-top behavior for overlay windows.
+- Delegates BrowserWindow factory/bootstrap helpers to `main_window_runtime.cjs`.
+
+See [Main Window Runtime Factory and Overlay Bootstrap Reference](main_window_runtime_factory_and_overlay_bootstrap_reference.md) for extracted helper boundaries.
 
 ## Preload Boundary
 

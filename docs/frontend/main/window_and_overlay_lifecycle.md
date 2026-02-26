@@ -13,6 +13,7 @@ title: "Window and Overlay Lifecycle"
 Primary modules:
 
 - `frontend/src/main/index.cjs`
+- `frontend/src/main/main_window_runtime.cjs`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/local_backend_bridge_windows.cjs`
 - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
@@ -31,11 +32,13 @@ For deeper context-label runtime details, see [Context Label Overlay and Active-
 
 App-ready path (`app.whenReady()`):
 
-1. `createWindow()` creates `mainWindow`, wires IPC, wakeword bridge, local backend bridge.
-2. `createChatWindow()` creates overlay input surface (`view=chatbox`).
-3. `createResponseWindow()` creates overlay response surface (`view=chatbox-response`).
+1. `createWindow()` delegates to `createMainWindowRuntime(...)` to create `mainWindow` and wire IPC/wakeword/local-backend/overlay handlers.
+2. `createChatWindow()` delegates to `createChatWindowRuntime(...)` for overlay input surface (`view=chatbox`).
+3. `createResponseWindow()` delegates to `createResponseWindowRuntime(...)` for response surface (`view=chatbox-response` or debug view).
 4. tray and global hotkey (`Super+Alt+W`) are initialized.
 5. chat/response windows are registered in IPC broadcaster set.
+
+For extracted factory/helper ownership details, see [Main Window Runtime Factory and Overlay Bootstrap Reference](main_window_runtime_factory_and_overlay_bootstrap_reference.md).
 
 Window close policy:
 
