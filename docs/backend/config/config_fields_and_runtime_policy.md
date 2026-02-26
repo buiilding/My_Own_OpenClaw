@@ -57,7 +57,7 @@ Provider defaults in `LLMProviders`:
 | --- | --- | --- | --- |
 | `memory_enabled` | `bool` | `true` | Frontend-side memory services still consume backend config context. |
 | `embedding_model` | `str` | `all-MiniLM-L6-v2` | Used by embedding provider wiring. |
-| `max_history_length` | `int` | `1000` | Conversation history cap in session history manager. |
+| `max_history_length` | `int \| null` | `null` | Conversation history cap in session history manager. `null` disables count-based pruning. |
 | `max_agent_iterations` | `int` | `1000` | Loop upper bound for tool/LLM iterations. |
 | `interaction_mode` | `"chat" \| "agent"` | `"chat"` | Controls tool allowlist behavior (`get_tool_allowlist`). |
 | `vision_model_name` | `str \| None` | `OpenGVLab/InternVL3_5-4B` | Vision grounding model selection. |
@@ -71,7 +71,7 @@ Provider defaults in `LLMProviders`:
 
 | Field | Type | Default | Notes |
 | --- | --- | --- | --- |
-| `history_compaction_enabled` | `bool` | `false` | Enables auto compaction gates in pre-query and mid-loop execution paths. |
+| `history_compaction_enabled` | `bool` | `true` | Enables auto compaction gates in pre-query and mid-loop execution paths. |
 | `history_compaction_manual_enabled` | `bool` | `true` | Enables manual `compact-history` WebSocket command. |
 | `history_compaction_openai_remote_enabled` | `bool` | `false` | Phase-gate for OpenAI remote compaction strategy path (currently inline fallback). |
 | `history_compaction_trigger_tokens` | `int` | `120000` | Threshold to trigger compaction evaluation. |

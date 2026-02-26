@@ -98,6 +98,12 @@ def test_validate_settings_update_filters_unknown_and_validates_types():
     assert validated["history_compaction_strategy"] == "inline"
 
 
+def test_validate_settings_update_allows_null_max_history_length():
+    validated = validate_settings_update({"max_history_length": None})
+    assert "max_history_length" in validated
+    assert validated["max_history_length"] is None
+
+
 def test_validate_settings_update_rejects_bad_types():
     with pytest.raises(ValidationError):
         validate_settings_update({"max_history_length": "nope"})

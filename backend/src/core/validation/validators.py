@@ -272,7 +272,8 @@ def validate_settings_update(settings: Dict[str, Any]) -> Dict[str, Any]:
         # Type validation for common fields
         # For other fields, we rely on AppConfig validation downstream
         if key == "max_history_length":
-            validate_field(value, key, int, required=False)
+            if value is not None:
+                validate_field(value, key, int, required=False)
         elif key in ("llm_timeout", "query_timeout"):
             validate_field(value, key, (int, float), required=False)
         elif key == "memory_enabled":

@@ -28,10 +28,10 @@ APP_CONFIG = AppConfig(
     embedding_model="all-MiniLM-L6-v2",
     
     # Agent Execution Settings
-    max_history_length=1000,
+    max_history_length=None,
     max_agent_iterations=1000,
     interaction_mode="chat",
-    history_compaction_enabled=False,
+    history_compaction_enabled=True,
     history_compaction_manual_enabled=True,
     history_compaction_openai_remote_enabled=False,
     history_compaction_trigger_tokens=120000,
