@@ -121,10 +121,10 @@ function ProviderCard({ provider, count, isSelected, onSelect }) {
           <div className={`clone-model-provider-icon-wrap${isSelected ? ' selected' : ''}`}>
             <Layers size={16} />
           </div>
-          <div className="clone-model-provider-title-wrap">
-            <h3>{provider}</h3>
-            <p>{count} model{count === 1 ? '' : 's'} available</p>
-          </div>
+            <div className="clone-model-provider-title-wrap">
+              <h3>{provider}</h3>
+              <p>{count} model{count === 1 ? '' : 's'}</p>
+            </div>
         </div>
 
         <div className="clone-model-provider-state-wrap">
