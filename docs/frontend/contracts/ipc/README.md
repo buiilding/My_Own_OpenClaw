@@ -2,7 +2,7 @@
 summary: "Frontend contracts IPC docs sub-hub for preload allowlist parity, typed channel constants, and main-process handler/RPC mapper ownership."
 read_when:
   - When adding/removing IPC channel names in preload, renderer constants, or main handlers.
-  - When debugging invoke/send/on channel drift or local-backend RPC mapping mismatches.
+  - When debugging invoke/send/on channel drift, permission onboarding channel wiring, or local-backend RPC mapping mismatches.
 title: "Frontend Contracts IPC Docs Hub"
 ---
 
@@ -22,6 +22,7 @@ title: "Frontend Contracts IPC Docs Hub"
 - `frontend/src/renderer/infrastructure/ipc/bridge.ts`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/index.cjs`
+- `frontend/src/main/permission_service.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`

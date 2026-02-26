@@ -49,6 +49,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Mock Memory Seed Script and NPM Entrypoints Reference](main/testing/data_seed/mock_memory_seed_script_and_npm_entrypoints_reference.md)
 - [External Focus Snapshot, Restore, and Query-Capture Reference](main/overlays/external_focus_snapshot_restore_and_query_capture_reference.md)
 - [Linux Screenshot Window Hide and Restore Guard Reference](main/overlays/linux_screenshot_window_hide_and_restore_guard_reference.md)
+- [Permission Manifest, Probe, and IPC Request Contract Reference](main/permission_manifest_probe_and_request_ipc_reference.md)
 
 ### Preload Boundary
 
@@ -60,6 +61,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Renderer Docs Hub](renderer/README.md)
 - [Renderer Chat Docs Hub](renderer/chat/README.md)
 - [Renderer Settings Docs Hub](renderer/settings/README.md)
+- [Renderer Permissions Docs Hub](renderer/permissions/README.md)
 - [Renderer Voice Docs Hub](renderer/voice/README.md)
 - [Renderer Voice Utils Docs Hub](renderer/voice/utils/README.md)
 - [Renderer Provider Docs Hub](renderer/providers/README.md)
@@ -87,6 +89,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [MessageInput Clipboard Image and Voice Submit Reference](renderer/chat/presentation/message_input_clipboard_image_and_voice_submit_reference.md)
 - [Thinking Display Overflow, Message List Class Assembly, and Token Count Formatting Reference](renderer/chat/presentation/thinking_display_overflow_message_list_class_assembly_and_token_count_formatting_reference.md)
 - [Settings Section Clone Tabs and Wakeword Toggle Runtime Reference](renderer/settings/sections/settings_section_clone_tabs_and_wakeword_toggle_runtime_reference.md)
+- [Permission Onboarding Gate, Manifest Version, and Data-Controls Runtime Reference](renderer/permissions/permission_onboarding_gate_manifest_version_and_data_controls_runtime_reference.md)
 - [Frontend Config Filter, Storage, and Provider Merge Runtime Reference](renderer/settings/config/frontend_config_filter_storage_and_provider_merge_runtime_reference.md)
 - [Transcript Session and Rehydrate Reference](renderer/transcript_session_and_rehydrate_reference.md)
 - [Transcript Writer Queue Flush and Session Event Reference](renderer/transcript/transcript_writer_queue_flush_and_session_event_reference.md)

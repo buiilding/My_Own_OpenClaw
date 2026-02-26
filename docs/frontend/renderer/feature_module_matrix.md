@@ -1,5 +1,5 @@
 ---
-summary: "Renderer feature-module matrix for chat, dashboard, settings, and voice responsibilities with current hooks/stores/components."
+summary: "Renderer feature-module matrix for chat, dashboard, settings, permissions, and voice responsibilities with current hooks/stores/components."
 read_when:
   - When deciding where renderer functionality should live.
   - When tracing UI behavior to feature hooks, stores, and infrastructure calls.
@@ -81,6 +81,24 @@ Current role:
 Core hook:
 
 - `useSettingsManagement`
+
+## Permissions Module
+
+Path:
+
+- `features/permissions/*`
+
+Primary responsibilities:
+
+- install-time permission onboarding gate for default renderer app
+- permission manifest/status state model and gating derivation
+- permission probe/request actions shared by onboarding + settings data-controls
+
+Core store/components:
+
+- `stores/permissionStore.js`
+- `components/PermissionOnboardingWizard.jsx`
+- `components/PermissionControlCenter.jsx`
 
 ## Voice Module
 

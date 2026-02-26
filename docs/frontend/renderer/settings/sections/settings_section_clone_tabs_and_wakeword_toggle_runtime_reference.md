@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for clone-style SettingsSection runtime: tab routing, general-tab toggle payload ownership, wakeword context wiring, and local-only control state boundaries."
+summary: "Deep reference for clone-style SettingsSection runtime: tab routing, general-tab toggle payload ownership, Data-controls permission-center routing, and local-only control state boundaries."
 read_when:
   - When changing `SettingsSection.jsx` tab layout, initial-tab behavior, or close controls.
-  - When debugging wakeword/wakeword-STT/show-additional-models settings update payloads.
+  - When debugging wakeword/wakeword-STT/show-additional-models settings update payloads or Data-controls permission-center mounting.
 title: "Settings Section Clone Tabs and Wakeword Toggle Runtime Reference"
 ---
 
@@ -11,6 +11,7 @@ title: "Settings Section Clone Tabs and Wakeword Toggle Runtime Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/features/dashboard/components/sections/SettingsSection.jsx`
+- `frontend/src/renderer/features/permissions/components/PermissionControlCenter.jsx`
 - `frontend/src/renderer/app/providers/AppContextHooks.js`
 - `tests/frontend/SettingsSection.test.jsx`
 
@@ -38,7 +39,8 @@ Tab ids:
 Routing model:
 
 - only `general` renders live settings controls
-- all other tabs render placeholder content via `PlaceholderTab`
+- `data-controls` renders live `PermissionControlCenter`
+- remaining tabs render placeholder content via `PlaceholderTab`
 
 `initialTab` behavior:
 
@@ -93,6 +95,11 @@ These are UI state only in current implementation.
 
 All config persistence/sync side effects are delegated through parent `onConfigChange` -> provider pipeline.
 
+Exception:
+
+- `GeneralTab` invokes `IpcBridge.invoke('set-agent-sudo-access', { enabled })` for passwordless sudo toggle handshake before persisting `agent_full_sudo_enabled`.
+- `data-controls` tab mounts `PermissionControlCenter`, which calls permission probe/request channels through shared permission store.
+
 ## Test-Backed Invariants
 
 `tests/frontend/SettingsSection.test.jsx` verifies:
@@ -100,6 +107,7 @@ All config persistence/sync side effects are delegated through parent `onConfigC
 - wakeword listening toggle calls `setWakewordEnabled`
 - suppression helper message render condition
 - wakeword STT toggle emits exact payload `{ wakeword_stt_enabled: true }`
+- agent full sudo toggle confirm/invoke/failure handling behavior
 
 ## Drift Hotspots
 
@@ -107,6 +115,7 @@ All config persistence/sync side effects are delegated through parent `onConfigC
 2. Changing `show_additional_models` payload from merged object to partial patch can drop fields if provider merge semantics change.
 3. Replacing context-driven wakeword setter with direct patch writes can desync suppression-aware wakeword state.
 4. Adding live controls under placeholder tabs without updating tests and docs leaves hidden runtime contracts.
+5. Breaking `data-controls` route to `PermissionControlCenter` silently removes live permission recheck/request UX from settings.
 
 ## Related Pages
 

@@ -1,7 +1,7 @@
 ---
 summary: "Renderer-main IPC reference: preload allowlists, typed channel constants, Electron main handler ownership, and backend/ws relay channel behavior."
 read_when:
-  - When adding or changing Electron IPC channels.
+  - When adding or changing Electron IPC channels, including permission onboarding/data-controls channels.
   - When debugging renderer-main contract mismatches or unhandled invoke/send events.
 title: "IPC Channel and Handler Reference"
 ---
@@ -87,6 +87,12 @@ Behavior:
 - `window-minimize`
 - `window-toggle-maximize`
 - `window-close`
+- `set-agent-sudo-access`
+- `list-permissions`
+- `check-permissions`
+- `check-permission`
+- `run-permission-probe`
+- `request-permission`
 
 ## Local sidecar bridge channels (`local_backend_bridge.cjs`)
 
@@ -120,6 +126,18 @@ Behavior:
 - `chatbox-focus`
 - `main-window-open-target`
 - `log` (diagnostic)
+
+## Permission Runtime Channel Contract
+
+Permission onboarding and settings data-controls use invoke-only channels:
+
+- `list-permissions`: returns manifest snapshot + status list
+- `check-permissions`: batch status re-check
+- `check-permission`: single status check helper
+- `run-permission-probe`: explicit one-permission probe rerun
+- `request-permission`: best-effort OS request flow + post-request probe
+
+These channels are implemented in `index.cjs` and delegated to `permission_service.cjs`.
 
 ## `to-backend` Query Relay Lifecycle (main process)
 

@@ -1,5 +1,5 @@
 ---
-summary: "Renderer-main IPC contract and backend event contract used by chat stream, tool runner, and settings lifecycle."
+summary: "Renderer-main IPC contract and backend event contract used by chat stream, tool runner, settings lifecycle, and permission onboarding channels."
 read_when:
   - When adding/changing IPC channels.
   - When debugging renderer/main/backend event mismatches.
@@ -37,6 +37,9 @@ Key examples:
 - `search-memory`, `search-conversations`, `store-memory`, list/get/delete memory records
 - config load/save
 - window management and display queries
+- sudo access toggle and permission onboarding channels
+  - `set-agent-sudo-access`
+  - `list-permissions`, `check-permissions`, `check-permission`, `run-permission-probe`, `request-permission`
 - `show-main-window` supports optional `{ open?: 'chat' | 'memory' | 'models' | 'settings', maximize?: boolean }`
 
 ### `on` channels
