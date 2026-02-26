@@ -132,3 +132,30 @@ async def test_execute_scroll_control_rejects_unknown_action(monkeypatch):
 
     assert result["success"] is False
     assert "Unknown scroll action" in result["error"]
+
+
+@pytest.mark.asyncio
+async def test_execute_scroll_control_requires_direction_for_scroll_action(monkeypatch):
+    fake_pyautogui, calls = _fake_pyautogui(with_hscroll=True)
+    monkeypatch.setitem(sys.modules, "pyautogui", fake_pyautogui)
+    monkeypatch.setattr(scroll_tool, "calculate_scroll_clicks", lambda _units, _direction: 3)
+
+    result = await scroll_tool.execute_scroll_control(
+        {"action": "scroll", "x": 1, "y": 2}
+    )
+
+    assert result["success"] is False
+    assert "direction required for scroll action" in result["error"]
+    assert calls == [("moveTo", 1, 2)]
+
+
+@pytest.mark.asyncio
+async def test_execute_scroll_control_import_error_returns_failure(monkeypatch):
+    monkeypatch.delitem(sys.modules, "pyautogui", raising=False)
+
+    result = await scroll_tool.execute_scroll_control(
+        {"action": "scroll_up", "x": 1, "y": 2}
+    )
+
+    assert result["success"] is False
+    assert result["error"] == "pyautogui library not available"
