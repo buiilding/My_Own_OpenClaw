@@ -4,8 +4,8 @@ import { Check, Copy, Pencil } from 'lucide-react';
 
 function UserMessageActions({
   messageId,
-  messageText,
-  onEdit,
+  messageText = '',
+  onEdit = null,
 }) {
   const [copySuccess, setCopySuccess] = useState(false);
   const copyResetTimerRef = useRef(null);
@@ -75,11 +75,6 @@ UserMessageActions.propTypes = {
   messageId: PropTypes.string.isRequired,
   messageText: PropTypes.string,
   onEdit: PropTypes.func,
-};
-
-UserMessageActions.defaultProps = {
-  messageText: '',
-  onEdit: undefined,
 };
 
 export default UserMessageActions;

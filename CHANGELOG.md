@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-chat-ui): replace `UserMessageActions` function-component `defaultProps` with JavaScript default parameters to remove React deprecation warnings in dev builds.
 - fix(sidecar-deps): add missing `pydantic-settings` to sidecar dependency manifests so Browser Use config imports resolve in CI sidecar test runs
 - fix(sidecar-deps): add missing Browser Use runtime dependencies (`httpx`, `bubus`, `cdp-use`, `google-genai`, `openai`, `pyotp`) to sidecar dependency manifests so CI can import vendored browser-use modules during test collection
 - docs(planning-web-search): add backend-native `web_search` implementation plan for WindieOS with architecture primer, hybrid tool-routing design, Brave API integration, test strategy, rollout, and acceptance criteria
