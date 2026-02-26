@@ -65,3 +65,25 @@ def test_get_image_dimensions_returns_none_for_invalid_or_unsupported_payload(mo
 
     monkeypatch.setattr(image_dims, "decode_screenshot_payload", lambda _payload, logger: b"GIF89a")
     assert image_dims.get_image_dimensions_from_screenshot_b64("ignored") is None
+
+
+def test_parse_png_dimensions_rejects_short_or_non_ihdr_payloads():
+    assert image_dims._parse_png_dimensions(b"\x89PNG\r\n\x1a\n") is None
+
+    non_ihdr = (
+        b"\x89PNG\r\n\x1a\n"
+        + b"\x00\x00\x00\r"
+        + b"IDAT"
+        + struct.pack(">II", 10, 20)
+    )
+    assert image_dims._parse_png_dimensions(non_ihdr) is None
+
+
+def test_parse_jpeg_dimensions_rejects_invalid_or_incomplete_segments():
+    # Segment length < 2 is invalid.
+    invalid_seg_len = b"\xff\xd8" + b"\xff\xe0" + b"\x00\x01"
+    assert image_dims._parse_jpeg_dimensions(invalid_seg_len) is None
+
+    # SOS before any SOF marker means no dimensions available.
+    sos_before_sof = b"\xff\xd8" + b"\xff\xda" + b"\x00\x08" + b"abcdef"
+    assert image_dims._parse_jpeg_dimensions(sos_before_sof) is None
