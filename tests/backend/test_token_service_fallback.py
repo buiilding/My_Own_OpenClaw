@@ -132,6 +132,18 @@ def test_count_tokens_normalizes_object_message_for_litellm(monkeypatch):
     assert captured["messages"] == [{"role": "assistant", "content": "hello world"}]
 
 
+def test_count_tokens_normalizes_k2p5_model_name_for_litellm(monkeypatch):
+    captured = _patch_token_counter_capture(monkeypatch, return_value=5)
+
+    token_count = TokenService.count_tokens(
+        [MessageObj(role="assistant", content="hello world")],
+        model="k2p5",
+    )
+
+    assert token_count == 5
+    assert captured["model"] == "kimi-coding/k2p5"
+
+
 def test_count_tokens_normalizes_partial_dict_without_mutating_input(monkeypatch):
     captured = _patch_token_counter_capture(monkeypatch, return_value=3)
     original = {"content": "hello"}

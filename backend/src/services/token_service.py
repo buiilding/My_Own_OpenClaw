@@ -18,6 +18,10 @@ _MODEL_MAX_INPUT_TOKEN_OVERRIDES = {
     "kimi-coding/k2p5": 262144,
 }
 
+_MODEL_NAME_ALIASES_FOR_LITELLM = {
+    "k2p5": "kimi-coding/k2p5",
+}
+
 
 def _normalize_role(value: Any) -> str:
     """Normalize role values to non-empty stripped strings."""
@@ -25,6 +29,16 @@ def _normalize_role(value: Any) -> str:
         return "user"
     role = value.strip()
     return role or "user"
+
+
+def _normalize_model_for_litellm(model: Any) -> str:
+    """Map internal model ids to LiteLLM-preferred provider-qualified model ids."""
+    if not isinstance(model, str):
+        return "gpt-3.5-turbo"
+    model_name = model.strip()
+    if not model_name:
+        return "gpt-3.5-turbo"
+    return _MODEL_NAME_ALIASES_FOR_LITELLM.get(model_name.lower(), model_name)
 
 
 def _to_litellm_message(message: Any) -> Dict[str, Any]:
@@ -205,6 +219,7 @@ class TokenService:
             return 0
 
         try:
+            normalized_model = _normalize_model_for_litellm(model)
             # Convert messages to the format expected by litellm.
             litellm_messages = [_to_litellm_message(msg) for msg in message_list]
 
@@ -214,7 +229,7 @@ class TokenService:
             # litellm source code. If token counting becomes a bottleneck, consider
             # using tiktoken directly with explicit tokenizer caching.
             token_count = litellm.token_counter(
-                model=model,
+                model=normalized_model,
                 messages=litellm_messages,
                 use_default_image_token_count=True  # Enable image token counting
             )
@@ -251,12 +266,14 @@ class TokenService:
         """
         if not isinstance(model, str) or not model.strip():
             return None
-        normalized_model = model.strip().lower()
+        model_name = model.strip()
+        normalized_model = model_name.lower()
         override = _MODEL_MAX_INPUT_TOKEN_OVERRIDES.get(normalized_model)
         if isinstance(override, int) and override > 0:
             return override
+        normalized_litellm_model = _normalize_model_for_litellm(model_name)
         try:
-            info = litellm.get_model_info(model=model)
+            info = litellm.get_model_info(model=normalized_litellm_model)
         except Exception:
             return None
 
