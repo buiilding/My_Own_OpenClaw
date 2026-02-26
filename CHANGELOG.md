@@ -8,7 +8,7 @@ Includes the last 300 commits on `main`.
 
 ### Added
 - fix(sidecar-deps): add missing `pydantic-settings` to sidecar dependency manifests so Browser Use config imports resolve in CI sidecar test runs
-- fix(sidecar-deps): add missing Browser Use runtime dependencies (`httpx`, `bubus`, `cdp-use`, `google-genai`) to sidecar dependency manifests so CI can import vendored browser-use modules during test collection
+- fix(sidecar-deps): add missing Browser Use runtime dependencies (`httpx`, `bubus`, `cdp-use`, `google-genai`, `openai`) to sidecar dependency manifests so CI can import vendored browser-use modules during test collection
 - docs(planning-web-search): add backend-native `web_search` implementation plan for WindieOS with architecture primer, hybrid tool-routing design, Brave API integration, test strategy, rollout, and acceptance criteria
 - fix(frontend-dashboard): remove dashboard-open flash by keeping shell-enter/sidebar/main animations fully opaque (no 0-opacity frame) and setting a stable dark `BrowserWindow` background color during main-window show transitions.
 - fix(sidecar-browser-use): make vendored Browser Use dotenv loading optional across logging/observability/utils so sidecar pytest collection works in CI environments where `python-dotenv` is not installed
