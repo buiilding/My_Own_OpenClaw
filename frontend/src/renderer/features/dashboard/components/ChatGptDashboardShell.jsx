@@ -197,7 +197,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
     clearPendingTitlePoll(conversationRef);
 
     let attempts = 0;
-    const maxAttempts = 40;
+    const maxAttempts = 240;
     const delayMs = 1250;
 
     const poll = async () => {

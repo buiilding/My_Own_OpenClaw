@@ -8,6 +8,7 @@ Includes the last 300 commits on `main`.
 
 ### Added
 - feat(conversation-titles): generate transcript conversation titles asynchronously via active-model LLM (`/api/semantic/title`) using current session model/provider (or transcript model overrides), keep `Your chats` hidden until title write completes, and poll sidebar refresh from renderer until the titled conversation appears.
+- fix(frontend-chat-history): extend async title-visibility polling window so delayed model-title generations still surface in `Your chats` once complete.
 - fix(frontend-chat-history): refresh `Your chats` immediately after successful assistant transcript persistence (`transcript-entry-stored`), so newly titled conversations appear right after the first completed turn.
 - fix(sidecar-conversation-titles): make title generation model-aware by preferring the active assistant model (`model_provider` + `model_id`) from the just-completed `llm-text` turn when selecting title source text.
 - fix(backend-token-metadata): add explicit `k2p5` max-input-token override to avoid noisy LiteLLM provider-list errors during compaction token-window discovery.
