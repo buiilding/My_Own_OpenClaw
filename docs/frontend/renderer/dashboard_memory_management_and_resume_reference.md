@@ -14,6 +14,8 @@ title: "Dashboard Memory Management and Resume Reference"
 - `frontend/src/renderer/features/dashboard/components/DashboardSidebar.jsx`
 - `frontend/src/renderer/features/dashboard/components/SearchChatsModal.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/MemorySection.jsx`
+- `frontend/src/renderer/features/dashboard/components/sections/MemoryItem.jsx`
+- `frontend/src/renderer/features/dashboard/components/sections/memorySectionData.js`
 - `frontend/src/renderer/features/dashboard/hooks/useTranscriptSessionInfo.js`
 - `frontend/src/renderer/features/dashboard/utils/episodicMemoryUtils.js`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`

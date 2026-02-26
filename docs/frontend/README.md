@@ -79,6 +79,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Dashboard Sections Docs Hub](renderer/dashboard/sections/README.md)
 - [Dashboard Section Router and Placeholder Panel Contract Reference](renderer/dashboard/shell/dashboard_section_router_and_placeholder_panel_contract_reference.md)
 - [Dashboard Sidebar, Search, and Profile Menu Runtime Reference](renderer/dashboard/shell/sidebar_search_profile_menu_and_recent_conversation_resume_reference.md)
+- [Memory Section Data Normalization and Semantic Delete Contract Reference](renderer/dashboard/sections/memory_section_data_normalization_and_semantic_delete_contract_reference.md)
 - [Models Section Selection Reconciliation and Dashboard Storage Contract Reference](renderer/dashboard/sections/models_section_selection_reconciliation_and_dashboard_storage_contract_reference.md)
 - [Usage Section Placeholder Panel and Modal Contract Reference](renderer/dashboard/sections/usage_section_placeholder_panel_and_modal_contract_reference.md)
 - [Chat Stream and Tool Execution Reference](renderer/chat_stream_and_tool_execution_reference.md)
