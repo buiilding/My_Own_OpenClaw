@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-protocol-testing): expand frontend protocol testing reference with explicit coverage snapshot (`11` files / `79` tests), control-path test index (handshake/snapshot, query ACK gate, overlay phase, wakeword STT trigger, dashboard target routing, local-backend sudo-mode propagation), and updated testing hub code-scope links.
 - test(sidecar-input-tools): extend keyboard/mouse runtime suites with import-failure handling and required-argument/length guard coverage.
 - test(sidecar-replace-engine): add direct unit coverage for replacement/patch-chunk parsing defaults and constraint errors (mode propagation, invalid combinations, ambiguity handling, and occurrence-index bounds).
 - docs(backend-protocol-matrix): extend backend websocket protocol matrix with a control-path contract index (handshake bootstrap, query/cancel lifecycle, settings ACK path, wakeword activation, tool-result reintegration) and add direct lifecycle/state/testing deep-link coverage.
