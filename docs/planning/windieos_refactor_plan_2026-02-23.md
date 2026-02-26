@@ -86,6 +86,13 @@ read_when:
     - `./scripts/python-in-env sidecar python -m pytest tests/sidecar/test_remote_semantic_client.py tests/sidecar/test_remote_title_client.py -q`
   - note:
     - jscpd clone count unchanged (`25`), but duplicated python lines/tokens reduced in latest report.
+- Backend formatter-spec import dedupe:
+  - rewired `backend/src/api/contracts/formatter_specs.py` to import formatter classes via `backend.src.api.processing.formatters` module alias instead of repeating per-class import statements.
+  - preserved canonical event->formatter mapping output and lazy registration behavior.
+  - verification:
+    - `./scripts/python-in-env backend python -m pytest tests/backend/test_api_contract_registry.py tests/backend/test_response_formatter.py tests/backend/test_outgoing_schema_contract.py -q`
+  - audit delta:
+    - frontend+backend `jscpd` total clones reduced from `25` to `24`.
 
 - Dashboard shell split:
   - extracted conversation/search orchestration from `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx` into:

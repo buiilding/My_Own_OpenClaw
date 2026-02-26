@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(backend-formatters): simplify formatter spec registration imports by routing through `backend.src.api.processing.formatters` module aliases instead of per-formatter class imports; preserves dispatch mapping and reduces duplication.
+- refactor(sidecar-remote-clients): extract shared backend HTTP session/request/error handling into `RemoteApiClientBase`; rewire semantic/title clients to use the shared path without changing payload/exception contracts.
 - refactor(frontend-main-sudo-auth): dedupe `agent_sudo_access_handler` process execution by introducing a shared command-output runner for `pkexec`/`sudo -n` flows; preserve error/cancel semantics and add startup-error regression coverage.
 - test(sidecar-macos-window-manager): add mocked coverage for AppKit-availability fallback, window list extraction/filtering, active-window reporting, and case-insensitive app activation matching.
 - test(backend-logging-utils): add direct unit coverage for shared `short_id` request-id truncation helper (default/custom lengths and `"unknown"` fallback for missing IDs).
