@@ -20,6 +20,8 @@ export interface ChatMessage {
   screenshotRef?: string | null;
   screenshotUrl?: string | null;
   screenshotContentType?: string | null;
+  modelId?: string | null;
+  modelProvider?: string | null;
   toolMetadata?: Record<string, unknown> | null;
   toolName?: string;
   executionTime?: number | null;

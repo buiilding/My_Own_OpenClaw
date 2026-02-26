@@ -3,6 +3,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useChatStore } from '../stores/chatStore';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { toSanitizedMarkdownHtml } from '../../../infrastructure/markdown';
+import { resolveLlmOutputContract } from '../../../infrastructure/llmOutputContract';
 import { selectChatBoxState } from '../utils/chatSelectors';
 import { getRoundedFrameSize } from '../utils/overlayFrameSize';
 import { subscribeResponseOverlayPhase } from '../utils/overlayPhaseListener';
@@ -98,7 +99,13 @@ function ChatBoxResponse() {
     if (!activeResponse || activeResponse.type === 'tool-call' || activeResponse.type === 'error') {
       return '';
     }
-    return toSanitizedMarkdownHtml(activeResponse.text ?? '');
+    const contract = resolveLlmOutputContract(activeResponse.text ?? '', {
+      provider: activeResponse.modelProvider || null,
+      modelId: activeResponse.modelId || null,
+      enableMath: true,
+      stripAccidentalHtmlTokens: true,
+    });
+    return toSanitizedMarkdownHtml(contract.markdown, { enableMath: contract.mathEnabled });
   }, [activeResponse]);
   const thinkingText = useMemo(
     () => (typeof thinkingStatus === 'string' ? thinkingStatus.trim() : ''),
