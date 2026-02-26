@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(backend-browser): dedupe legacy-alias warning assembly in `RemoteBrowserTool` via shared message helper while preserving warning text/metadata contracts; combined jscpd audit dropped by one clone (`22` -> `21`).
 - test(backend-wakeword-service): add unit coverage for wakeword activation/greeting send path, optional TTS execution, and timeout-tolerant audio completion waits.
 - test(frontend-dashboard): remove async `act(...)` warning noise in `MemorySection.test.jsx` and `SettingsSection.test.jsx` by awaiting real async completion paths (initial memory load + sudo-toggle pending reset) with `findBy`/`waitFor`.
 - test(backend-tts-session): add lifecycle coverage for TTS session enter/exit, active-task cancellation, cleanup forwarding, and wait-for-audio behavior.

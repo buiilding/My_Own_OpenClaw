@@ -22,6 +22,20 @@ def _removed_legacy_alias_error(action: str, preferred: str | None) -> str:
     return f"Legacy browser action '{action}' has been removed. Use {preferred_text}."
 
 
+def _legacy_action_warning_message(
+    action: str,
+    preferred: str | None,
+    *,
+    blocked: bool,
+    gate: str | None = None,
+) -> str:
+    if blocked and gate:
+        preferred_text = f"; prefer '{preferred}'" if preferred else ""
+        return f"Legacy browser action '{action}' blocked by {gate}{preferred_text}"
+    preferred_text = preferred or "canonical action"
+    return f"Legacy browser action '{action}' invoked; prefer '{preferred_text}'"
+
+
 class RemoteBrowserTool(RemoteToolBase, Tool[BrowserControlArgs]):
     name = "browser"
     description = """Control a web browser for online tasks.
@@ -60,33 +74,19 @@ Compatibility validation notes:
         blocked: bool,
         gate: str | None = None,
     ) -> None:
-        extra = {
-            "legacy_action": action,
-            "preferred_action": preferred,
-            "legacy_action_blocked": blocked,
-            "legacy_action_gate": gate,
-        }
-        if blocked and gate:
-            blocked_message = f"Legacy browser action '{action}' blocked by {gate}"
-            if preferred:
-                logger.warning(
-                    "%s; prefer '%s'",
-                    blocked_message,
-                    preferred,
-                    extra=extra,
-                )
-            else:
-                logger.warning(
-                    "%s",
-                    blocked_message,
-                    extra=extra,
-                )
-            return
         logger.warning(
-            "Legacy browser action '%s' invoked; prefer '%s'",
-            action,
-            preferred or "canonical action",
-            extra=extra,
+            _legacy_action_warning_message(
+                action,
+                preferred,
+                blocked=blocked,
+                gate=gate,
+            ),
+            extra=dict(
+                legacy_action=action,
+                preferred_action=preferred,
+                legacy_action_blocked=blocked,
+                legacy_action_gate=gate,
+            ),
         )
 
     async def execute_remote(self, args: BrowserControlArgs, ctx: ToolContext) -> Any:
