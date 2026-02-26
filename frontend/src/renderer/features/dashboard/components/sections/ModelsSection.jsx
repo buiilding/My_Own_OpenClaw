@@ -227,10 +227,12 @@ function ModelsSection({ config, availableModels, onConfigChange, onClose = () =
           </>
         )}
 
-        <ApiKeysSection
-          providerApiKeys={providerApiKeys}
-          onProviderApiKeysChange={handleProviderApiKeysChange}
-        />
+        {!activeProviderView ? (
+          <ApiKeysSection
+            providerApiKeys={providerApiKeys}
+            onProviderApiKeysChange={handleProviderApiKeysChange}
+          />
+        ) : null}
       </div>
     </div>
   );
