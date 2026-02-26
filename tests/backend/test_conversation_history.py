@@ -112,6 +112,87 @@ def test_add_tool_output_updates_cached_token_count(monkeypatch):
     assert service.count_message_tokens_calls == 1
 
 
+def test_tool_output_with_staged_tool_call_id_avoids_duplicate_text_rows():
+    history = ConversationHistory(max_length=10)
+
+    history.stage_tool_call_ids(["call_1"])
+    history.add_tool_output("tool output")
+
+    stored = history.get_stored_messages()
+    assert len(stored) == 1
+    assert stored[0].role == MessageRole.TOOL
+    assert stored[0].content == "tool output"
+    assert stored[0].tool_call_id == "call_1"
+
+    llm_messages = history.get_history()
+    assert len(llm_messages) == 1
+    assert llm_messages[0]["role"] == "tool"
+    assert llm_messages[0]["content"] == "tool output"
+
+
+def test_tool_output_with_staged_tool_call_id_preserves_image_context_without_text_duplication():
+    history = ConversationHistory(max_length=10)
+
+    history.stage_tool_call_ids(["call_1"])
+    history.add_tool_output("tool output", image_data="img-1")
+
+    stored = history.get_stored_messages()
+    assert len(stored) == 2
+    assert stored[0].role == MessageRole.TOOL
+    assert stored[0].content == "tool output"
+    assert stored[0].tool_call_id == "call_1"
+    assert stored[0].image_data is None
+    assert stored[1].role == MessageRole.USER
+    assert stored[1].content == ""
+    assert stored[1].image_data == "img-1"
+
+    llm_messages = history.get_history()
+    assert len(llm_messages) == 2
+    assert llm_messages[0]["role"] == "tool"
+    assert llm_messages[0]["content"] == "tool output"
+    assert llm_messages[1]["role"] == "user"
+    assert isinstance(llm_messages[1]["content"], list)
+    assert llm_messages[1]["content"][1]["image_url"]["url"].startswith(
+        "data:image/png;base64,"
+    )
+
+    text_rows = [msg for msg in llm_messages if msg.get("content") == "tool output"]
+    assert len(text_rows) == 1
+
+
+def test_add_tool_output_with_staged_tool_and_image_updates_cached_token_count_per_row(
+    monkeypatch,
+):
+    history = ConversationHistory(max_length=10)
+    history.add_user_message("alpha")
+
+    class FakeTokenService:
+        def __init__(self) -> None:
+            self.count_tokens_calls = 0
+            self.count_message_tokens_calls = 0
+
+        def count_tokens(self, messages, model):
+            self.count_tokens_calls += 1
+            return 10
+
+        def count_message_tokens(self, message, model):
+            self.count_message_tokens_calls += 1
+            return 2
+
+    service = FakeTokenService()
+    monkeypatch.setattr(token_service, "get_token_service", lambda: service)
+
+    assert history.get_token_count("model-a") == 10
+    assert service.count_tokens_calls == 1
+
+    history.stage_tool_call_ids(["call_1"])
+    history.add_tool_output("tool output", image_data="img-1")
+
+    assert history.get_token_count("model-a") == 14
+    assert service.count_tokens_calls == 1
+    assert service.count_message_tokens_calls == 2
+
+
 def test_prune_invalidates_token_cache(monkeypatch):
     history = ConversationHistory(max_length=1)
     history.add_user_message("alpha")
