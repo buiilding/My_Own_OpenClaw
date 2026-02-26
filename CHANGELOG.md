@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(backend-logging): suppress LiteLLM provider-help stdout noise (`Provider List: https://docs.litellm.ai/docs/providers`) by setting LiteLLM runtime debug-info flags during backend logging bootstrap.
+- fix(frontend-chat-pill): remove visible `Thinking` text label from the composer thinking pill (icon-only control retained).
 - fix(backend-stop-query): reconcile pending assistant `tool_calls` on query cancellation by writing synthetic `role=tool` outputs, preventing provider errors when user stops mid-tool-loop and immediately asks a new query.
 - fix(frontend-chat-header): normalize provider/model dropdown typography and menu sizing so both selectors share the same visual size and formatting.
 - feat(frontend-chat-header): add provider dropdown next to the model dropdown in dashboard chat header; selecting provider now updates available model options inline and auto-switches to a valid model from that provider.

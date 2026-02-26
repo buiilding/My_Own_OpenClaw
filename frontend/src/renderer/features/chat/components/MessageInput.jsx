@@ -287,14 +287,14 @@ function MessageInput({
                     type="button"
                     className="message-thinking-pill"
                     data-testid="thinking-mode-btn"
-                    aria-label="Thinking mode"
+                    aria-label={`${thinkingMode} mode`}
+                    title={`${thinkingMode} mode`}
                     aria-expanded={thinkingMenuOpen}
                     onClick={() => {
                       setThinkingMenuOpen((current) => !current);
                     }}
                   >
                     <Sparkles size={15} />
-                    <span>{thinkingMode}</span>
                     <ChevronDown size={14} />
                   </button>
                   {thinkingMenuOpen ? (
