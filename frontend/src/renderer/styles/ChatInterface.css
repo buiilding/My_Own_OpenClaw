@@ -255,9 +255,11 @@
 .message-list {
   flex: 1;
   min-height: 0;
+  min-width: 0;
   width: 100%;
   margin: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 12px max(
     var(--chat-thread-inline-padding),
     calc((100% - var(--chat-thread-max-width)) / 2 + var(--chat-thread-inline-padding))
@@ -270,6 +272,7 @@
 
 .message {
   display: flex;
+  min-width: 0;
   width: fit-content;
   max-width: min(980px, 84%);
   word-wrap: break-word;
@@ -399,6 +402,7 @@
 
 .message-assistant {
   align-self: stretch;
+  min-width: 0;
   max-width: 100%;
   width: 100%;
   flex-direction: column;
@@ -475,6 +479,9 @@
 
 .tool-output-container,
 .tool-call-container {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   border-radius: 14px;
   overflow: hidden;
   font-family: var(--font-mono);
@@ -540,13 +547,18 @@
 
 .tool-output-content,
 .tool-call-content {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   padding: 12px;
   margin: 0;
   font-size: 12px;
   line-height: 1.6;
   color: var(--text-primary);
   max-height: 360px;
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: auto;
   background: transparent;
   white-space: pre-wrap;
   word-wrap: break-word;
@@ -580,6 +592,10 @@
 }
 
 .tool-details-content {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   margin: 0;
   padding: 10px;
   font-size: 11px;
@@ -588,10 +604,11 @@
   background: rgba(0, 0, 0, 0.2);
   border: 1px solid var(--border);
   border-radius: 8px;
-  white-space: pre-wrap;
-  word-wrap: break-word;
+  white-space: pre;
+  word-wrap: normal;
   max-height: 320px;
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: auto;
 }
 
 .tool-screenshot-container {
