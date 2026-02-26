@@ -83,6 +83,34 @@ async def test_tts_session_exit_cancels_active_task_and_cleans_up():
 
 
 @pytest.mark.asyncio
+async def test_tts_session_exit_does_not_cancel_completed_task():
+    service = object()
+    audio_task = _DummyTask(done=True)
+    manager = _FakeTTSManager(service=service, audio_task=audio_task)
+    session = TTSSession(manager, AppConfig(), object(), "msg-3b")
+    session.service = service
+    session.audio_task = audio_task
+
+    await session.__aexit__(None, None, None)
+
+    assert audio_task.canceled is False
+    assert manager.cleanup_calls == [(service, audio_task)]
+
+
+@pytest.mark.asyncio
+async def test_tts_session_exit_cleans_up_when_no_audio_task():
+    service = object()
+    manager = _FakeTTSManager(service=service, audio_task=None)
+    session = TTSSession(manager, AppConfig(), object(), "msg-3c")
+    session.service = service
+    session.audio_task = None
+
+    await session.__aexit__(None, None, None)
+
+    assert manager.cleanup_calls == [(service, None)]
+
+
+@pytest.mark.asyncio
 async def test_wait_for_audio_completion_noops_when_task_missing_or_done(monkeypatch):
     session = TTSSession(_FakeTTSManager(), AppConfig(), object(), "msg-4")
     called = []
