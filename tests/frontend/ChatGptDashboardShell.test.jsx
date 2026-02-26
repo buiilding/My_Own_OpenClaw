@@ -84,6 +84,13 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 }));
 
 describe('ChatGptDashboardShell', () => {
+  const flushMicrotasks = async () => {
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+  };
+
   const renderDashboardShell = async () => {
     render(
       <ChatGptDashboardShell
@@ -93,9 +100,8 @@ describe('ChatGptDashboardShell', () => {
       />,
     );
 
-    await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalled();
-    });
+    await flushMicrotasks();
+    expect(mockInvoke).toHaveBeenCalled();
   };
 
   beforeEach(() => {
@@ -457,62 +463,67 @@ describe('ChatGptDashboardShell', () => {
   });
 
   test('search chats opens modal, filters list, and opens selected conversation', async () => {
+    jest.useFakeTimers();
     const nowIso = new Date().toISOString();
-    mockInvoke.mockImplementation(async (channel) => {
-      if (channel === 'list-conversations') {
-        return {
-          success: true,
-          data: {
-            conversations: [
-              {
-                conversation_id: 'conv-history-1',
-                record_kind: 'transcript',
-                last_timestamp: nowIso,
-                title: 'Moon Landing Technology Explained',
-              },
-              {
-                conversation_id: 'conv-history-2',
-                record_kind: 'transcript',
-                last_timestamp: nowIso,
-                title: 'Vietnamese-speaking lawyer leads',
-              },
-            ],
-          },
-        };
-      }
-      if (channel === 'search-conversations') {
-        return {
-          success: true,
-          data: {
-            conversations: [
-              {
-                conversation_id: 'conv-history-2',
-                record_kind: 'transcript',
-                last_timestamp: nowIso,
-                title: 'Vietnamese-speaking lawyer leads',
-                snippet: 'You: Looking for Vietnamese-speaking lawyer lead in California.',
-                matched_role: 'user',
-              },
-            ],
-          },
-        };
-      }
-      if (channel === 'get-conversation') {
-        return { success: true, data: { memories: [] } };
-      }
-      return { success: true, data: {} };
-    });
+    try {
+      mockInvoke.mockImplementation(async (channel) => {
+        if (channel === 'list-conversations') {
+          return {
+            success: true,
+            data: {
+              conversations: [
+                {
+                  conversation_id: 'conv-history-1',
+                  record_kind: 'transcript',
+                  last_timestamp: nowIso,
+                  title: 'Moon Landing Technology Explained',
+                },
+                {
+                  conversation_id: 'conv-history-2',
+                  record_kind: 'transcript',
+                  last_timestamp: nowIso,
+                  title: 'Vietnamese-speaking lawyer leads',
+                },
+              ],
+            },
+          };
+        }
+        if (channel === 'search-conversations') {
+          return {
+            success: true,
+            data: {
+              conversations: [
+                {
+                  conversation_id: 'conv-history-2',
+                  record_kind: 'transcript',
+                  last_timestamp: nowIso,
+                  title: 'Vietnamese-speaking lawyer leads',
+                  snippet: 'You: Looking for Vietnamese-speaking lawyer lead in California.',
+                  matched_role: 'user',
+                },
+              ],
+            },
+          };
+        }
+        if (channel === 'get-conversation') {
+          return { success: true, data: { memories: [] } };
+        }
+        return { success: true, data: {} };
+      });
 
-    await renderDashboardShell();
+      await renderDashboardShell();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Search chats' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Search chats' }));
 
-    const dialog = screen.getByRole('dialog', { name: 'Search chats' });
-    const input = within(dialog).getByLabelText('Search chats input');
-    expect(within(dialog).getByRole('button', { name: 'New chat' })).toBeInTheDocument();
+      const dialog = screen.getByRole('dialog', { name: 'Search chats' });
+      const input = within(dialog).getByLabelText('Search chats input');
+      expect(within(dialog).getByRole('button', { name: 'New chat' })).toBeInTheDocument();
 
-    fireEvent.change(input, { target: { value: 'lawyer' } });
-    await waitFor(() => {
+      fireEvent.change(input, { target: { value: 'lawyer' } });
+      act(() => {
+        jest.advanceTimersByTime(200);
+      });
+      await flushMicrotasks();
       expect(mockInvoke).toHaveBeenCalledWith(
         'search-conversations',
         expect.objectContaining({
@@ -520,18 +531,18 @@ describe('ChatGptDashboardShell', () => {
           userId: 'default_user',
         }),
       );
-    });
-    expect(within(dialog).queryByText('Moon Landing Technology Explained')).not.toBeInTheDocument();
-    expect(within(dialog).getByText('Vietnamese-speaking lawyer leads')).toBeInTheDocument();
-    expect(within(dialog).getByText(/You: Looking for Vietnamese-speaking lawyer lead/i)).toBeInTheDocument();
+      expect(within(dialog).queryByText('Moon Landing Technology Explained')).not.toBeInTheDocument();
+      expect(within(dialog).getByText('Vietnamese-speaking lawyer leads')).toBeInTheDocument();
+      expect(within(dialog).getByText(/You: Looking for Vietnamese-speaking lawyer lead/i)).toBeInTheDocument();
 
-    fireEvent.click(within(dialog).getByText('Vietnamese-speaking lawyer leads').closest('button'));
-
-    await waitFor(() => {
+      fireEvent.click(within(dialog).getByText('Vietnamese-speaking lawyer leads').closest('button'));
+      await flushMicrotasks();
       expect(mockInvoke).toHaveBeenCalledWith(
         'get-conversation',
         expect.objectContaining({ conversationId: 'conv-history-2' }),
       );
-    });
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });
