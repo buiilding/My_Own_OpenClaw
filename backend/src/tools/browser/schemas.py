@@ -28,6 +28,29 @@ from backend.src.tools.browser.snapshot_scope_fields import (
 from backend.src.tools.browser.shared_compat_fields import BrowserScreenshotImageFields
 
 
+def _ensure_click_target(
+    ref: Optional[str],
+    index: Optional[int],
+    coordinate_x: Optional[int],
+    coordinate_y: Optional[int],
+) -> None:
+    has_ref_or_index = ref is not None or index is not None
+    has_coordinates = coordinate_x is not None and coordinate_y is not None
+    if not has_ref_or_index and not has_coordinates:
+        raise ValueError(
+            "click requires either 'ref'/'index' or both 'coordinate_x' and 'coordinate_y'"
+        )
+    if (coordinate_x is None) != (coordinate_y is None):
+        raise ValueError(
+            "click requires both 'coordinate_x' and 'coordinate_y' when using coordinate click"
+        )
+
+
+def _ensure_evaluate_payload(script: Optional[str], code: Optional[str]) -> None:
+    if script is None and code is None:
+        raise ValueError("evaluate requires either 'script' or 'code'")
+
+
 class BrowserArgsModel(BaseModel):
     """Shared backend browser schema base."""
 
@@ -177,18 +200,12 @@ class BrowserClickArgs(BrowserArgsModel):
 
     @model_validator(mode="after")
     def validate_ref_or_index(self):
-        has_ref_or_index = self.ref is not None or self.index is not None
-        has_coordinates = (
-            self.coordinate_x is not None and self.coordinate_y is not None
+        _ensure_click_target(
+            ref=self.ref,
+            index=self.index,
+            coordinate_x=self.coordinate_x,
+            coordinate_y=self.coordinate_y,
         )
-        if not has_ref_or_index and not has_coordinates:
-            raise ValueError(
-                "click requires either 'ref'/'index' or both 'coordinate_x' and 'coordinate_y'"
-            )
-        if (self.coordinate_x is None) != (self.coordinate_y is None):
-            raise ValueError(
-                "click requires both 'coordinate_x' and 'coordinate_y' when using coordinate click"
-            )
         return self
 
 
@@ -279,8 +296,7 @@ class BrowserEvaluateArgs(BrowserArgsModel):
 
     @model_validator(mode="after")
     def validate_script_or_code(self):
-        if self.script is None and self.code is None:
-            raise ValueError("evaluate requires either 'script' or 'code'")
+        _ensure_evaluate_payload(script=self.script, code=self.code)
         return self
 
 
