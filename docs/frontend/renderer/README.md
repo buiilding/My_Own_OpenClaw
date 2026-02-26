@@ -15,6 +15,7 @@ title: "Frontend Renderer Docs Hub"
 - [Renderer Settings Docs Hub](settings/README.md)
 - [Renderer Permissions Docs Hub](permissions/README.md)
 - [Permission Onboarding Gate, Manifest Version, and Data-Controls Runtime Reference](permissions/permission_onboarding_gate_manifest_version_and_data_controls_runtime_reference.md)
+- [Permission Status Badge, Row Rendering, and Reason Visibility Reference](permissions/permission_status_badge_row_rendering_and_reason_visibility_reference.md)
 - [Renderer Voice Docs Hub](voice/README.md)
 - [Renderer Voice Utils Docs Hub](voice/utils/README.md)
 - [Renderer Provider Docs Hub](providers/README.md)
