@@ -3,6 +3,28 @@
 - Repo: /media/peter-bui/E/Assistants/WindieOS
 - Issues/PR comments: use literal multiline strings or heredocs for real newlines; avoid "\\n" in posted text.
 
+## Project Conceptual Overview
+
+WindieOS is a desktop AI operator. Conceptually:
+
+- Chat-first assistant with execution ability, not chat-only Q&A.
+- Understands live screen/context, plans actions, executes tools, reports results.
+- Controls both browser and system-level operations (mouse/keyboard/scroll/screenshot/files/processes).
+- Keeps local memory (episodic + semantic) to improve continuity across sessions.
+- Supports voice/wakeword flow for hands-free interaction.
+
+Runtime model (what powers this):
+
+- Electron app for UX (renderer) + orchestration bridges (main process).
+- Python sidecar for local tool execution and local memory services.
+- Python FastAPI backend for agent loop, LLM orchestration, and streaming responses.
+
+User experience target:
+
+- User gives a goal in natural language.
+- WindieOS can inspect context, act on the computer, and iterate until completion.
+- Transparency is preserved via streamed reasoning/events and tool-result feedback.
+
 ## Project Structure & Module Organization
 
 - Backend (Python): `backend/src/` (agent, tools, llm, api, core, sdk, services).
