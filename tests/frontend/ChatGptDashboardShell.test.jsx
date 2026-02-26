@@ -76,6 +76,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     LIST_CONVERSATIONS: 'list-conversations',
     GET_CONVERSATION: 'get-conversation',
     SEARCH_CONVERSATIONS: 'search-conversations',
+    DELETE_CONVERSATION: 'delete-conversation',
   },
   ON_CHANNELS: {
     MAIN_WINDOW_OPEN_TARGET: 'main-window-open-target',
@@ -241,6 +242,84 @@ describe('ChatGptDashboardShell', () => {
 
     const activeConversationButton = await screen.findByRole('button', { name: 'Build memory migration plan' });
     expect(activeConversationButton).toHaveClass('active');
+  });
+
+  test('conversation kebab menu shows only rename, pin, and delete actions', async () => {
+    const nowIso = new Date().toISOString();
+    mockInvoke.mockImplementation(async (channel) => {
+      if (channel === 'list-conversations') {
+        return {
+          success: true,
+          data: {
+            conversations: [
+              {
+                conversation_id: 'conv-history-1',
+                record_kind: 'transcript',
+                last_timestamp: nowIso,
+                title: 'OpenRouter free models list',
+              },
+            ],
+          },
+        };
+      }
+      return { success: true, data: {} };
+    });
+
+    await renderDashboardShell();
+
+    fireEvent.click(await screen.findByRole('button', { name: /Conversation actions for OpenRouter free models list/i }));
+
+    expect(screen.getByRole('menuitem', { name: 'Rename' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Pin chat' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Delete' })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: /Share/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: /Archive/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: /Start a group chat/i })).not.toBeInTheDocument();
+  });
+
+  test('delete action from conversation kebab menu calls delete-conversation', async () => {
+    const nowIso = new Date().toISOString();
+    mockInvoke.mockImplementation(async (channel) => {
+      if (channel === 'list-conversations') {
+        return {
+          success: true,
+          data: {
+            conversations: [
+              {
+                conversation_id: 'conv-delete-1',
+                record_kind: 'transcript',
+                last_timestamp: nowIso,
+                title: 'Mission Today',
+              },
+            ],
+          },
+        };
+      }
+      if (channel === 'delete-conversation') {
+        return { success: true, data: {} };
+      }
+      return { success: true, data: {} };
+    });
+
+    const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
+    try {
+      await renderDashboardShell();
+
+      fireEvent.click(await screen.findByRole('button', { name: /Conversation actions for Mission Today/i }));
+      fireEvent.click(screen.getByRole('menuitem', { name: 'Delete' }));
+
+      await waitFor(() => {
+        expect(mockInvoke).toHaveBeenCalledWith(
+          'delete-conversation',
+          expect.objectContaining({
+            conversationId: 'conv-delete-1',
+            recordKind: 'transcript',
+          }),
+        );
+      });
+    } finally {
+      confirmSpy.mockRestore();
+    }
   });
 
   test('reloads recent chats when transcript session user id becomes available', async () => {

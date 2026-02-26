@@ -249,6 +249,24 @@
   padding-right: 4px;
 }
 
+.cg-chat-list-subheader {
+  padding: 8px 10px 4px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ui-text-muted);
+}
+
+.cg-chat-item-row {
+  position: relative;
+}
+
+.cg-chat-item-row.menu-open .cg-chat-item,
+.cg-chat-item-row.active .cg-chat-item {
+  background: var(--ui-hover-bg);
+  color: var(--ui-text-primary);
+}
+
 .cg-chat-item {
   width: 100%;
   border: 0;
@@ -262,6 +280,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  padding-right: 34px;
 }
 
 .cg-chat-item:hover {
@@ -272,6 +291,85 @@
 .cg-chat-item.active {
   background: var(--ui-hover-bg);
   color: var(--ui-text-primary);
+}
+
+.cg-chat-item-menu-trigger {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ui-text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  cursor: pointer;
+  transition: opacity 120ms ease, background-color 120ms ease, color 120ms ease;
+}
+
+.cg-chat-item-row:hover .cg-chat-item-menu-trigger,
+.cg-chat-item-row.active .cg-chat-item-menu-trigger,
+.cg-chat-item-row.menu-open .cg-chat-item-menu-trigger {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.cg-chat-item-menu-trigger:hover,
+.cg-chat-item-row.menu-open .cg-chat-item-menu-trigger {
+  background: var(--ui-hover-strong-bg);
+  color: var(--ui-text-primary);
+}
+
+.cg-chat-item-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 1300;
+  width: 172px;
+  border-radius: 10px;
+  border: 1px solid var(--ui-border-soft);
+  background: var(--ui-panel-bg);
+  box-shadow: var(--ui-shadow);
+  padding: 6px;
+}
+
+.cg-chat-item-menu-item {
+  width: 100%;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ui-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px;
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.cg-chat-item-menu-item:hover {
+  background: var(--ui-hover-strong-bg);
+}
+
+.cg-chat-item-menu-divider {
+  height: 1px;
+  margin: 4px 0;
+  background: var(--ui-border-subtle);
+}
+
+.cg-chat-item-menu-item.danger {
+  color: #ff6b6b;
+}
+
+.cg-chat-item-menu-item.danger:hover {
+  background: rgba(255, 107, 107, 0.12);
 }
 
 .cg-chat-list-state {

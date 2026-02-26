@@ -8,6 +8,10 @@ import {
   Cpu,
   PanelLeft,
   PanelLeftClose,
+  MoreHorizontal,
+  Pencil,
+  Pin,
+  Trash2,
   Settings,
   HelpCircle,
   LogOut,
@@ -203,13 +207,133 @@ function DashboardSidebar({
   recentConversationsError,
   recentConversationGroups,
   onOpenConversation,
+  onRenameConversation,
+  onTogglePinConversation,
+  onDeleteConversation,
   activeConversationRef,
 }) {
+  const [openConversationMenuKey, setOpenConversationMenuKey] = useState(null);
+  const conversationMenuRef = useRef(null);
   const hasRecentConversations = (
     recentConversationGroups.today.length > 0
     || recentConversationGroups.yesterday.length > 0
     || recentConversationGroups.previous7Days.length > 0
     || recentConversationGroups.older.length > 0
+  );
+  const allConversationItems = [
+    ...recentConversationGroups.today,
+    ...recentConversationGroups.yesterday,
+    ...recentConversationGroups.previous7Days,
+    ...recentConversationGroups.older,
+  ];
+  const pinnedConversations = allConversationItems.filter((conversation) => conversation.isPinned);
+  const unpinnedConversations = allConversationItems.filter((conversation) => !conversation.isPinned);
+
+  useEffect(() => {
+    if (!openConversationMenuKey) {
+      return undefined;
+    }
+
+    const handlePointerDown = (event) => {
+      if (!conversationMenuRef.current?.contains(event.target)) {
+        setOpenConversationMenuKey(null);
+      }
+    };
+
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') {
+        setOpenConversationMenuKey(null);
+      }
+    };
+
+    window.addEventListener('mousedown', handlePointerDown);
+    window.addEventListener('keydown', handleEscape);
+    return () => {
+      window.removeEventListener('mousedown', handlePointerDown);
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [openConversationMenuKey]);
+
+  const handleOpenConversationMenu = (event, conversationKey) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setOpenConversationMenuKey((current) => (current === conversationKey ? null : conversationKey));
+  };
+
+  const handleRenameClick = (event, conversation) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setOpenConversationMenuKey(null);
+    onRenameConversation(conversation);
+  };
+
+  const handlePinClick = (event, conversation) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setOpenConversationMenuKey(null);
+    onTogglePinConversation(conversation);
+  };
+
+  const handleDeleteClick = (event, conversation) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setOpenConversationMenuKey(null);
+    onDeleteConversation(conversation);
+  };
+
+  const renderConversationRow = (conversation) => (
+    <div
+      key={conversation.key}
+      className={`cg-chat-item-row${conversation.key === activeConversationRef ? ' active' : ''}${openConversationMenuKey === conversation.key ? ' menu-open' : ''}`}
+    >
+      <button
+        type="button"
+        className={`cg-chat-item${conversation.key === activeConversationRef ? ' active' : ''}`}
+        onClick={() => onOpenConversation(conversation.conversation)}
+      >
+        {conversation.title}
+      </button>
+      <button
+        type="button"
+        className="cg-chat-item-menu-trigger"
+        aria-label={`Conversation actions for ${conversation.title}`}
+        onClick={(event) => handleOpenConversationMenu(event, conversation.key)}
+      >
+        <MoreHorizontal size={15} />
+      </button>
+      {openConversationMenuKey === conversation.key ? (
+        <div className="cg-chat-item-menu" role="menu" ref={conversationMenuRef}>
+          <button
+            type="button"
+            className="cg-chat-item-menu-item"
+            role="menuitem"
+            onClick={(event) => handleRenameClick(event, conversation.conversation)}
+          >
+            <Pencil size={15} />
+            <span>Rename</span>
+          </button>
+          <button
+            type="button"
+            className="cg-chat-item-menu-item"
+            role="menuitem"
+            onClick={(event) => handlePinClick(event, conversation.conversation)}
+          >
+            <Pin size={15} />
+            <span>{conversation.isPinned ? 'Unpin chat' : 'Pin chat'}</span>
+          </button>
+          <div className="cg-chat-item-menu-divider" />
+          <button
+            type="button"
+            className="cg-chat-item-menu-item danger"
+            role="menuitem"
+            onClick={(event) => handleDeleteClick(event, conversation.conversation)}
+          >
+            <Trash2 size={15} />
+            <span>Delete</span>
+          </button>
+        </div>
+      ) : null}
+    </div>
   );
 
   if (!sidebarOpen) {
@@ -322,46 +446,14 @@ function DashboardSidebar({
             <div className="cg-chat-list-state">Unable to load chats.</div>
           ) : hasRecentConversations ? (
             <>
-              {recentConversationGroups.today.map((conversation) => (
-                <button
-                  key={`today-${conversation.key}`}
-                  type="button"
-                  className={`cg-chat-item${conversation.key === activeConversationRef ? ' active' : ''}`}
-                  onClick={() => onOpenConversation(conversation.conversation)}
-                >
-                  {conversation.title}
-                </button>
-              ))}
-              {recentConversationGroups.yesterday.map((conversation) => (
-                <button
-                  key={`yesterday-${conversation.key}`}
-                  type="button"
-                  className={`cg-chat-item${conversation.key === activeConversationRef ? ' active' : ''}`}
-                  onClick={() => onOpenConversation(conversation.conversation)}
-                >
-                  {conversation.title}
-                </button>
-              ))}
-              {recentConversationGroups.previous7Days.map((conversation) => (
-                <button
-                  key={`week-${conversation.key}`}
-                  type="button"
-                  className={`cg-chat-item${conversation.key === activeConversationRef ? ' active' : ''}`}
-                  onClick={() => onOpenConversation(conversation.conversation)}
-                >
-                  {conversation.title}
-                </button>
-              ))}
-              {recentConversationGroups.older.map((conversation) => (
-                <button
-                  key={`older-${conversation.key}`}
-                  type="button"
-                  className={`cg-chat-item${conversation.key === activeConversationRef ? ' active' : ''}`}
-                  onClick={() => onOpenConversation(conversation.conversation)}
-                >
-                  {conversation.title}
-                </button>
-              ))}
+              {pinnedConversations.length > 0 ? (
+                <div className="cg-chat-list-subheader">Pinned</div>
+              ) : null}
+              {pinnedConversations.map((conversation) => renderConversationRow(conversation))}
+              {pinnedConversations.length > 0 && unpinnedConversations.length > 0 ? (
+                <div className="cg-chat-list-subheader">Recent</div>
+              ) : null}
+              {unpinnedConversations.map((conversation) => renderConversationRow(conversation))}
             </>
           ) : (
             <div className="cg-chat-list-state">No chats yet.</div>
@@ -398,6 +490,9 @@ DashboardSidebar.propTypes = {
     older: PropTypes.array.isRequired,
   }).isRequired,
   onOpenConversation: PropTypes.func.isRequired,
+  onRenameConversation: PropTypes.func.isRequired,
+  onTogglePinConversation: PropTypes.func.isRequired,
+  onDeleteConversation: PropTypes.func.isRequired,
   activeConversationRef: PropTypes.string,
 };
 
