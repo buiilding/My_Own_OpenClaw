@@ -17,6 +17,7 @@ title: "Frontend Main Docs Hub"
 - [Runtime Paths and Endpoints](runtime_paths_and_endpoints.md)
 - [Query Payload and Relay Reference](query_payload_and_relay_reference.md)
 - [WebSocket Handshake and Settings Sync Reference](websocket_handshake_and_settings_sync_reference.md)
+- [IPC Helper Module Split and Runtime Boundary Reference](ipc_helper_module_split_and_runtime_boundary_reference.md)
 - [Main Local-Backend Docs Hub](local_backend/README.md)
 - [Main Testing Docs Hub](testing/README.md)
 - [Main Testing Data-Seed Docs Hub](testing/data_seed/README.md)

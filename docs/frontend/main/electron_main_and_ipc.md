@@ -33,9 +33,13 @@ Responsibilities:
 
 ## IPC Bridge to Backend WebSocket
 
-Main module:
+Main modules:
 
 - `frontend/src/main/ipc.cjs`
+- `frontend/src/main/ipc_runtime_helpers.cjs`
+- `frontend/src/main/ipc_renderer_windows.cjs`
+- `frontend/src/main/ipc_query_broadcast.cjs`
+- `frontend/src/main/ipc_query_events.cjs`
 
 Responsibilities:
 
@@ -44,6 +48,12 @@ Responsibilities:
 - Gates first query on settings synchronization ACK.
 - Broadcasts connection status to all renderer windows.
 - Uploads artifacts over HTTP endpoint and injects returned references.
+
+Split boundary:
+
+- `ipc.cjs` owns lifecycle orchestration and IPC handler registration.
+- helper modules own event processing, renderer-window fan-out, and synthetic query event broadcast paths.
+- See [IPC Helper Module Split and Runtime Boundary Reference](ipc_helper_module_split_and_runtime_boundary_reference.md) for per-module contract details.
 
 ## Query Payload Enrichment
 
