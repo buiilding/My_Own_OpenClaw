@@ -159,7 +159,8 @@ describe('ChatBox overlay mouse ignore', () => {
     expectInvokeCall(
       ([channel, payload]) =>
         channel === 'show-main-window'
-        && payload?.maximize === true,
+        && payload?.maximize === true
+        && payload?.open === 'chat',
     );
   });
 

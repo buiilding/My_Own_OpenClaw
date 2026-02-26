@@ -217,7 +217,10 @@ function ChatBox() {
 
   const handleOpenSettings = useCallback(async () => {
     try {
-      await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_MAIN_WINDOW, { maximize: true });
+      await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_MAIN_WINDOW, {
+        maximize: true,
+        open: 'chat',
+      });
     } catch (error) {
       console.warn('[ChatBox] Failed to show main window:', error);
     }
