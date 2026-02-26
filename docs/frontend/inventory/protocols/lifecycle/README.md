@@ -1,8 +1,8 @@
 ---
-summary: "Frontend protocol lifecycle sub-hub for main-process websocket bridge state, query settings-gate sequencing, and response-overlay phase transitions."
+summary: "Frontend protocol lifecycle sub-hub for main-process websocket bridge state, query settings-gate sequencing, wakeword trigger flow, main-window target routing, and response-overlay phase/visibility transitions."
 read_when:
   - When changing `ipc.cjs` connection/query flow state machines.
-  - When debugging settings ACK gate timing, reconnect behavior, or overlay phase drift.
+  - When debugging settings ACK gate timing, reconnect behavior, wakeword STT trigger behavior, or overlay phase drift.
 title: "Frontend Protocol Lifecycle Hub"
 ---
 
