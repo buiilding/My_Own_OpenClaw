@@ -90,6 +90,19 @@ Effect:
 - payload shape mismatch for known type -> schema validation failure
 - client gets formatted validation message list from pydantic errors
 
+Current incoming message-type literals (`10`):
+
+- `query`
+- `stop-query`
+- `rehydrate-conversation`
+- `load-settings`
+- `list-models`
+- `update-settings`
+- `wakeword-detected`
+- `compact-history`
+- `tool-result`
+- `tool-bundle-result`
+
 ### Parse offload policy
 
 `parse_json_object_payload(...)` offloads large parses to threadpool when payload bytes >= `64 * 1024`, reducing event-loop blocking risk.
@@ -142,7 +155,9 @@ Purpose:
   - `voice_mode_enabled`
   - `speech_mode_enabled`
   - `wakeword_stt_enabled`
+  - `agent_full_sudo_enabled`
   - `include_query_screenshot`
+  - `provider_api_keys`
 - output only includes explicitly-set keys (`exclude_unset=True`)
 
 Role in protocol surface:
@@ -157,3 +172,20 @@ When editing validation logic, verify:
 - incoming schema union literals stay synchronized with route table and incoming constants.
 - outgoing schema subset list and contract registry still match.
 - parse-size/error strings remain compatible with frontend error-handling expectations.
+
+## Recompute Validation Surface Commands
+
+Use this command to recompute protocol validation cardinalities:
+
+- `python - <<'PY'`
+- `from backend.src.api.contracts.message_types import INCOMING_MESSAGE_TYPES, OUTGOING_SCHEMA_MESSAGE_TYPES`
+- `from backend.src.core.validation.validators import FRONTEND_CONFIG_FIELDS`
+- `print('incoming_types', len(INCOMING_MESSAGE_TYPES), sorted(INCOMING_MESSAGE_TYPES))`
+- `print('outgoing_schema_types', len(OUTGOING_SCHEMA_MESSAGE_TYPES))`
+- `print('frontend_config_fields', len(FRONTEND_CONFIG_FIELDS), sorted(FRONTEND_CONFIG_FIELDS))`
+- `PY`
+
+## Related Pages
+
+- [Backend WebSocket Protocol Surface Matrix Reference](../backend_websocket_protocol_surface_matrix_reference.md)
+- [Backend Protocol Testing Hub](../testing/README.md)
