@@ -126,4 +126,18 @@ describe('agent_sudo_access_handler', () => {
     expect(result.canceled).toBe(false);
     expect(String(result.reason || '')).toContain('without prompt');
   });
+
+  test('disable path surfaces sudo spawn startup errors', async () => {
+    const spawnImpl = createSpawnStub({
+      error: new Error('spawn sudo EACCES'),
+    });
+    const result = await handleSetAgentSudoAccess(
+      { enabled: false },
+      { platform: 'linux', username: 'peter-bui', spawnImpl },
+    );
+
+    expect(result.success).toBe(false);
+    expect(result.canceled).toBe(false);
+    expect(String(result.reason || '')).toContain('spawn sudo EACCES');
+  });
 });
