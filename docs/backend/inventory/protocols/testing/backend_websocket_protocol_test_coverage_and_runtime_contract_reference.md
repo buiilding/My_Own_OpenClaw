@@ -8,6 +8,11 @@ title: "Backend WebSocket Protocol Test Coverage and Runtime Contract Reference"
 
 # Backend WebSocket Protocol Test Coverage and Runtime Contract Reference
 
+## Coverage Snapshot (2026-02-26)
+
+- Protocol test files in this reference: `7`
+- Total test cases across listed files: `52`
+
 ## Scope and Sources
 
 Primary runtime modules:
@@ -42,6 +47,18 @@ Primary protocol tests:
 | outgoing formatter/schema contract | event formatter modules + schema models | `test_outgoing_schema_contract.py` | formatter outputs validate against canonical websocket schema models (`tool-schemas`, `token-count`, `memory-stored`) |
 | compact-history manual protocol flow | `CompactHistoryHandler` (`api/handlers/compact_history.py`) | `test_compact_history_handler.py` | rejects while query active; emits started+completed envelopes when applied; emits completed with `skipped_reason` when not applied |
 | envelope context-field shape | `build_transport_message` / `attach_context_fields` (`envelope.py`) | `test_transport_envelope.py` | canonical `{type,id,payload}` envelope; optional context fields only when truthy; context overwrite semantics are explicit and covered |
+
+## Protocol Control-Path Test Index
+
+| Control path | Runtime owner | Primary test anchors |
+|---|---|---|
+| websocket idle timeout + cleanup lifecycle | `backend/src/api/routes/websocket/__init__.py` | `test_websocket_route.py` |
+| parse/validation gate + inbound schema enforcement | `backend/src/api/routes/websocket/message_handler.py` | `test_websocket_message_handler.py` |
+| route-table parity vs schema discriminators | `backend/src/core/container/incoming_routing.py` | `test_incoming_routing.py` |
+| transport sender queue safety + close semantics | `backend/src/api/transport/websocket.py` | `test_safe_websocket.py` |
+| outgoing formatter payload compatibility vs schema models | formatter stack + schema registry | `test_outgoing_schema_contract.py` |
+| canonical envelope context attachment semantics | `backend/src/api/transport/envelope.py` | `test_transport_envelope.py` |
+| manual compaction control protocol | `backend/src/api/handlers/compact_history.py` | `test_compact_history_handler.py` |
 
 ## WebSocket Route Lifecycle Test Contract
 
@@ -131,6 +148,7 @@ Use this command to inspect protocol-test coverage breadth quickly:
 
 - `python - <<'PY'`
 - `import pathlib`
+- `import re`
 - `roots=[`
 - `  'tests/backend/test_websocket_route.py',`
 - `  'tests/backend/test_websocket_message_handler.py',`
@@ -142,11 +160,13 @@ Use this command to inspect protocol-test coverage breadth quickly:
 - `]`
 - `for p in roots:`
 - `    text=pathlib.Path(p).read_text()`
-- `    print(p, 'tests=', text.count('\\ndef test_') + text.count('\\nasync def test_'))`
+- `    count=len(re.findall(r'^\\s*(?:async\\s+def|def)\\s+test_', text, flags=re.M))`
+- `    print(p, 'tests=', count)`
 - `PY`
 
 ## Related Pages
 
 - [Backend Protocol Lifecycle Hub](../lifecycle/README.md)
+- [Backend Protocol State Hub](../state/README.md)
 - [Backend Protocol Errors Hub](../errors/README.md)
 - [Backend Protocol Validation Hub](../validation/README.md)

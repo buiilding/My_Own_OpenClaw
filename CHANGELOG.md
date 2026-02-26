@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- perf(frontend-tests): speed up `ChatGptDashboardShell.test.jsx` by replacing repeated bootstrap `waitFor` polling with deterministic microtask flushes and advancing debounced search timers via fake timers; runtime report delta moved from `1084ms` to `843ms`.
+- docs(backend-protocol-testing): expand backend protocol testing reference with coverage snapshot (`7` files / `52` tests), control-path test index (timeout cleanup, parser/validation gate, route parity, sender queue safety, schema compatibility, envelope context semantics, compact-history control flow), and updated backend testing hub scope wording.
 - docs(frontend-protocol-testing): expand frontend protocol testing reference with explicit coverage snapshot (`11` files / `79` tests), control-path test index (handshake/snapshot, query ACK gate, overlay phase, wakeword STT trigger, dashboard target routing, local-backend sudo-mode propagation), and updated testing hub code-scope links.
 - test(sidecar-input-tools): extend keyboard/mouse runtime suites with import-failure handling and required-argument/length guard coverage.
 - test(sidecar-replace-engine): add direct unit coverage for replacement/patch-chunk parsing defaults and constraint errors (mode propagation, invalid combinations, ambiguity handling, and occurrence-index bounds).
