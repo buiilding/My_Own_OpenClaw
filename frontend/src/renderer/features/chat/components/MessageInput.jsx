@@ -334,7 +334,7 @@ function MessageInput({
         </form>
 
         {!isCentered ? (
-          <p className="message-input-disclaimer">ChatGPT can make mistakes. Check important info.</p>
+          <p className="message-input-disclaimer">WindieOS can make mistakes. Check important info.</p>
         ) : null}
       </div>
     </>
