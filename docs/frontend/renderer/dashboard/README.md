@@ -12,6 +12,8 @@ title: "Renderer Dashboard Docs Hub"
 
 - [Dashboard Shell Docs Hub](shell/README.md)
 - [Dashboard Sections Docs Hub](sections/README.md)
+- [Memory Section Data Normalization and Semantic Delete Contract Reference](sections/memory_section_data_normalization_and_semantic_delete_contract_reference.md)
+- [Models Section Selection Reconciliation and Dashboard Storage Contract Reference](sections/models_section_selection_reconciliation_and_dashboard_storage_contract_reference.md)
 
 ## Related Pages
 
