@@ -8,6 +8,11 @@ title: "Frontend IPC, WS Bridge, and Local Backend Error-Recovery Contract Refer
 
 # Frontend IPC, WS Bridge, and Local Backend Error-Recovery Contract Reference
 
+## Coverage Snapshot (2026-02-26)
+
+- Error-related protocol test files: `6`
+- Total test cases across listed files: `64`
+
 ## Scope and Sources
 
 Primary sources:
@@ -17,6 +22,15 @@ Primary sources:
 - Synthetic query failure events: `frontend/src/main/ipc_query_events.cjs`
 - Local backend bridge + utils: `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/local_backend_bridge_utils.cjs`
 - Wakeword subprocess bridge: `frontend/src/main/wakeword_bridge.cjs`
+
+Primary error-path tests:
+
+- `tests/frontend/IpcBridgeValidation.test.ts`
+- `tests/frontend/IpcMainBridge.query.test.cjs`
+- `tests/frontend/IpcMainBridge.lifecycle.test.cjs`
+- `tests/frontend/LocalBackendBridge.lifecycle.test.cjs`
+- `tests/frontend/LocalBackendBridge.rpc.test.cjs`
+- `tests/frontend/WakewordBridge.test.cjs`
 
 ## Preload IPC Validation Error Surface
 
@@ -155,7 +169,20 @@ When changing error semantics, keep aligned:
 - settings ACK timeout constant and expected UX fallback behavior.
 - local-backend/wakeword status payload keys (`ready`, `error`) and channel names.
 
+## Error Control-Path Index
+
+| Error control path | Runtime owner | Recovery/safety contract |
+|---|---|---|
+| invalid IPC channel invoke/send/listen | `frontend/src/preload.js` + renderer bridge wrapper | invalid `invoke` rejects; invalid `send/on/once` do not cross boundary |
+| websocket disconnect/error converge path | `frontend/src/main/ipc.cjs` | socket errors converge into close path; state reset + reconnect timer restoration |
+| query send unavailable fallback | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc_query_events.cjs` | failed send emits synthetic backend-style `error` event with preserved turn/session context |
+| settings ACK timeout fallback | `frontend/src/main/ipc.cjs` | unresolved ACKs auto-resolve false after `2500ms`; pending maps cleared on reconnect |
+| local-backend request/process failure handling | `frontend/src/main/local_backend_bridge.cjs` | RPC failures normalize to `{success:false,error}`; process failure rejects pending requests and broadcasts unavailable status |
+| wakeword subprocess failure/status handling | `frontend/src/main/wakeword_bridge.cjs` | startup/exit/stderr failures normalize to `wakeword-status` `{ready:false,error?}` without crashing bridge loops |
+
 ## Related Deep Dives
 
 - [Frontend Protocol Lifecycle Hub](../lifecycle/README.md)
+- [Frontend Protocol State Hub](../state/README.md)
 - [Frontend Protocol Validation Hub](../validation/README.md)
+- [Frontend Protocol Testing Hub](../testing/README.md)
