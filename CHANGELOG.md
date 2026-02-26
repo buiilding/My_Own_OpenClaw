@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(sidecar-screenshot-tool): add mocked runtime coverage for bounded/full capture paths, import-error handling, and capture-failure error surfacing.
 - docs(frontend-protocol-matrix): extend frontend IPC/local-backend protocol matrix with a main-to-renderer control-path contract index (`ipc-status`, `from-backend`, wakeword STT trigger, main-window target, overlay phase/visibility), tighten `show-main-window` target notes, and document `run_shell_command` `sudo_auth_mode` state propagation in JSON-RPC mapping notes.
 - test(sidecar-mouse-tool): add mocked runtime coverage for click/drag/scroll flows, horizontal-scroll fallback behavior, coordinate validation, and unknown-action errors.
 - docs(frontend-protocol-lifecycle-state): expand frontend lifecycle/state protocol references with wakeword STT trigger sequencing, `show-main-window` target routing, response-overlay visibility broadcast contracts, snapshot/endpoint propagation (`get-client-user-id` + `ipc-status`), dashboard conversation session transitions, and frontend-config -> sidecar `sudo_auth_mode` mapping coverage.
