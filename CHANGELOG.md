@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-chatbox): fully disable chat-pill active-window monitoring by removing context-label overlay window creation and turning `ChatBoxContextLabel` into a no-op renderer (no polling / no label output above the pill).
 - feat(frontend-rendering): add a provider-aware LLM output contract (`renderable markdown + optional math`) with Gemini-specific normalization (escaped newline cleanup, `\\(...\\)`/`\\[...\\]` math delimiter normalization, accidental wrapper-html stripping), structured-JSON to markdown conversion for JSON-mode outputs, and KaTeX-backed markdown math rendering in both dashboard messages and response pill.
 - fix(gemini-models): replace `gemini-3-pro-preview` with `gemini-3.1-pro-preview` in WindieOS model catalog/tests/docs, and update sidecar Gemini 3.x Pro thinking-mode detection so `gemini-3.1-pro-preview` is handled correctly.
 - fix(frontend-config): harden `provider_api_keys` persistence via deep-merge config handling and regression coverage for startup load + save-to-localStorage/save-to-disk so API keys survive app restarts.

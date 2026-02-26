@@ -625,35 +625,6 @@ function createResponseWindow() {
   return responseWindow;
 }
 
-function createContextLabelWindow() {
-  contextLabelWindow = createOverlayBrowserWindow({
-    width: CONTEXT_LABEL_WIDTH,
-    height: CONTEXT_LABEL_HEIGHT,
-    show: false,
-  });
-  enableContentProtectionSafely(contextLabelWindow, 'context label');
-
-  contextLabelWindow.setAlwaysOnTop(true, 'floating');
-  contextLabelWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-  positionContextLabelWindow();
-
-  loadRendererView(contextLabelWindow, 'chatbox-context-label');
-
-  contextLabelWindow.on('close', (event) => {
-    if (!app.isQuitting) {
-      event.preventDefault();
-      contextLabelWindow.hide();
-    }
-    return false;
-  });
-
-  contextLabelWindow.on('closed', () => {
-    contextLabelWindow = null;
-  });
-
-  return contextLabelWindow;
-}
-
 function createTray() {
   // Create a transparent 1x1 pixel icon to use as a placeholder.
   // TODO: Replace with a proper app icon later.
