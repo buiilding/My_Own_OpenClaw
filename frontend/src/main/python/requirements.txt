@@ -45,6 +45,7 @@ bubus>=1.5.6
 cdp-use>=1.4.4
 google-genai>=1.50.0,<2.0.0
 openai>=2.7.2,<3.0.0
+pyotp>=2.9.0
 
 # Gitignore parsing
 pathspec>=0.10.0
