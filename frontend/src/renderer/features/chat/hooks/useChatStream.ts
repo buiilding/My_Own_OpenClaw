@@ -159,6 +159,11 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const handleStreamingResponse = useCallback((event: StreamingResponseEvent) => {
     setIsSending(false);
+    const modelContext = modelContextRef.current;
+    const modelMetadata = {
+      modelId: modelContext.modelId,
+      modelProvider: modelContext.modelProvider,
+    };
 
     const action = resolveStreamingResponseAction(
       useChatStore.getState().messages,
@@ -169,6 +174,7 @@ export function useChatStream(enableTranscript: boolean = true) {
       updateMessage(action.messageId, {
         text: action.nextText,
         type: 'llm-text',
+        ...modelMetadata,
       });
     } else {
       const newMessage: ChatMessage = {
@@ -178,6 +184,7 @@ export function useChatStream(enableTranscript: boolean = true) {
         isComplete: false,
         type: 'llm-text',
         turnRef: action.turnRef,
+        ...modelMetadata,
       };
       addMessage(newMessage);
     }
@@ -190,6 +197,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     addMessage,
     updateMessage,
     setIsSending,
+    modelContextRef,
     recordTrackingEvent,
   ]);
 
@@ -216,6 +224,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     setThinkingStatus(null);
     const modelFacingToolCall = resolveModelFacingToolCall(event.payload);
     const formattedText = formatToolCallPayload(event.payload);
+    const modelContext = modelContextRef.current;
 
     const newMessage: ChatMessage = {
       id: crypto.randomUUID(),
@@ -229,6 +238,8 @@ export function useChatStream(enableTranscript: boolean = true) {
           : null
       ),
       turnRef: event.turn_ref,
+      modelId: modelContext.modelId,
+      modelProvider: modelContext.modelProvider,
     };
     addMessage(newMessage);
 
@@ -237,7 +248,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     const correlationId = event.payload?.correlation_id || event.payload?.request_id;
 
     if (enableTranscript) {
-      const modelContext = modelContextRef.current;
       recordToolMessage(formattedText, {
         messageType: 'tool-call',
         toolName: event.payload?.tool_name,
@@ -254,6 +264,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     setThinkingStatus(null);
     const outputText = formatToolOutputText(event.payload);
     const { screenshotRef, screenshotUrl } = buildScreenshotAttachment(event.payload?.screenshot_ref);
+    const modelContext = modelContextRef.current;
 
     const newMessage: ChatMessage = {
       id: crypto.randomUUID(),
@@ -274,6 +285,8 @@ export function useChatStream(enableTranscript: boolean = true) {
           : null
       ),
       turnRef: event.turn_ref,
+      modelId: modelContext.modelId,
+      modelProvider: modelContext.modelProvider,
     };
 
     addMessage(newMessage);
@@ -282,7 +295,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     const correlationId = resolveToolOutputCorrelationId(event.payload, event.id) || undefined;
 
     if (enableTranscript) {
-      const modelContext = modelContextRef.current;
       recordToolMessage(outputText, {
         messageType: 'tool-output',
         toolName: event.payload?.tool_name,
@@ -299,6 +311,7 @@ export function useChatStream(enableTranscript: boolean = true) {
   const handleToolBundle = useCallback((event: ToolBundleEvent) => {
     setThinkingStatus(null);
     const formattedText = formatToolBundlePayload(event.payload);
+    const modelContext = modelContextRef.current;
 
     const newMessage: ChatMessage = {
       id: crypto.randomUUID(),
@@ -311,13 +324,14 @@ export function useChatStream(enableTranscript: boolean = true) {
           : null
       ),
       turnRef: event.turn_ref,
+      modelId: modelContext.modelId,
+      modelProvider: modelContext.modelProvider,
     };
     addMessage(newMessage);
 
     recordTrackingEvent('tool-bundle', event.turn_ref, { phase: 'tool-call', toolCall: true });
 
     if (enableTranscript) {
-      const modelContext = modelContextRef.current;
       recordToolMessage(formattedText, {
         messageType: 'tool-call',
         toolName: 'tool-bundle',
@@ -425,12 +439,15 @@ export function useChatStream(enableTranscript: boolean = true) {
     setIsSending(false);
     setThinkingStatus('');
     const errorText = resolveErrorText(event.payload);
+    const modelContext = modelContextRef.current;
     const newMessage: ChatMessage = {
       id: crypto.randomUUID(),
       text: errorText,
       sender: 'assistant',
       type: 'error',
       turnRef: event.turn_ref,
+      modelId: modelContext.modelId,
+      modelProvider: modelContext.modelProvider,
     };
     addMessage(newMessage);
 
@@ -440,7 +457,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     });
 
     if (enableTranscript) {
-      const modelContext = modelContextRef.current;
       recordAssistantMessage(errorText, {
         messageType: 'error',
         conversationRef: event.conversation_ref,

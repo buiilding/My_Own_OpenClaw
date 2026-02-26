@@ -1,20 +1,48 @@
 import DOMPurify from 'dompurify';
-import { marked } from 'marked';
+import { Marked } from 'marked';
+import markedKatex from 'marked-katex-extension';
+import 'katex/dist/katex.min.css';
 
-marked.setOptions({
+const MARKED_OPTIONS = {
   gfm: true,
   breaks: true,
   mangle: false,
-});
+};
+
+const markedRenderer = new Marked(MARKED_OPTIONS);
+const markedRendererWithMath = new Marked(MARKED_OPTIONS);
+markedRendererWithMath.use(markedKatex({
+  throwOnError: false,
+  displayMode: false,
+  nonStandard: true,
+}));
 
 const allowedTags = [
   'a',
+  'annotation',
+  'annotation-xml',
   'b',
   'blockquote',
   'br',
   'code',
   'del',
   'em',
+  'math',
+  'mi',
+  'mn',
+  'mo',
+  'mrow',
+  'msqrt',
+  'msub',
+  'msubsup',
+  'msup',
+  'mtable',
+  'mtd',
+  'mtext',
+  'mtr',
+  'munder',
+  'munderover',
+  'mover',
   'h1',
   'h2',
   'h3',
@@ -25,6 +53,8 @@ const allowedTags = [
   'ol',
   'p',
   'pre',
+  'semantics',
+  'span',
   'strong',
   'table',
   'tbody',
@@ -35,7 +65,18 @@ const allowedTags = [
   'ul',
 ];
 
-const allowedAttrs = ['class', 'href', 'rel', 'target', 'title', 'start'];
+const allowedAttrs = [
+  'aria-hidden',
+  'class',
+  'encoding',
+  'href',
+  'rel',
+  'start',
+  'style',
+  'target',
+  'title',
+  'xmlns',
+];
 
 const MARKDOWN_CHAR_LIMIT = 140_000;
 const MARKDOWN_PARSE_LIMIT = 40_000;
@@ -105,7 +146,11 @@ function escapeHtml(value: string): string {
     .replace(/'/g, '&#39;');
 }
 
-export function toSanitizedMarkdownHtml(markdown: string): string {
+export type MarkdownRenderOptions = {
+  enableMath?: boolean;
+};
+
+export function toSanitizedMarkdownHtml(markdown: string, options: MarkdownRenderOptions = {}): string {
   const input = markdown.trim();
   if (!input) {
     return '';
@@ -113,8 +158,9 @@ export function toSanitizedMarkdownHtml(markdown: string): string {
 
   installHooks();
 
+  const cacheKey = `${options.enableMath === false ? 'plain' : 'math'}:${input}`;
   if (input.length <= MARKDOWN_CACHE_MAX_CHARS) {
-    const cached = getCachedMarkdown(input);
+    const cached = getCachedMarkdown(cacheKey);
     if (cached !== null) {
       return cached;
     }
@@ -133,19 +179,20 @@ export function toSanitizedMarkdownHtml(markdown: string): string {
       ALLOWED_ATTR: allowedAttrs,
     });
     if (input.length <= MARKDOWN_CACHE_MAX_CHARS) {
-      setCachedMarkdown(input, sanitized);
+      setCachedMarkdown(cacheKey, sanitized);
     }
     return sanitized;
   }
 
-  const rendered = marked.parse(`${truncated.text}${suffix}`) as string;
+  const parser = options.enableMath === false ? markedRenderer : markedRendererWithMath;
+  const rendered = parser.parse(`${truncated.text}${suffix}`) as string;
   const sanitized = DOMPurify.sanitize(rendered, {
     ALLOWED_TAGS: allowedTags,
     ALLOWED_ATTR: allowedAttrs,
   });
 
   if (input.length <= MARKDOWN_CACHE_MAX_CHARS) {
-    setCachedMarkdown(input, sanitized);
+    setCachedMarkdown(cacheKey, sanitized);
   }
 
   return sanitized;

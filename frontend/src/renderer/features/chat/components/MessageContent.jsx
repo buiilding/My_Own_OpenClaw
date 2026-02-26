@@ -1,10 +1,28 @@
 import { useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import { toSanitizedMarkdownHtml } from '../../../infrastructure/markdown';
+import { resolveLlmOutputContract } from '../../../infrastructure/llmOutputContract';
 import { isUserMessageWithScreenshot, resolveMessageScreenshotSrc } from '../utils/messageScreenshots';
 
-function MarkdownMessage({ text }) {
-  const html = useMemo(() => toSanitizedMarkdownHtml(text ?? ''), [text]);
+function MarkdownMessage({
+  text,
+  sender = 'assistant',
+  modelProvider = null,
+  modelId = null,
+}) {
+  const contract = useMemo(
+    () => resolveLlmOutputContract(text ?? '', {
+      provider: sender === 'assistant' ? modelProvider : null,
+      modelId: sender === 'assistant' ? modelId : null,
+      enableMath: sender === 'assistant',
+      stripAccidentalHtmlTokens: sender === 'assistant',
+    }),
+    [text, sender, modelProvider, modelId],
+  );
+  const html = useMemo(
+    () => toSanitizedMarkdownHtml(contract.markdown, { enableMath: contract.mathEnabled }),
+    [contract.markdown, contract.mathEnabled],
+  );
   return (
     <div
       className="message-content message-content-markdown"
@@ -15,6 +33,9 @@ function MarkdownMessage({ text }) {
 
 MarkdownMessage.propTypes = {
   text: PropTypes.string,
+  sender: PropTypes.oneOf(['user', 'assistant']),
+  modelProvider: PropTypes.string,
+  modelId: PropTypes.string,
 };
 
 function ToolOutputMessage({ message }) {
@@ -171,7 +192,7 @@ function UserMessage({ message }) {
           />
         </div>
       )}
-      <MarkdownMessage text={message.text} />
+      <MarkdownMessage text={message.text} sender="user" />
     </div>
   );
 }
@@ -202,7 +223,14 @@ export default function MessageContent({ message }) {
     return <UserMessage message={message} />;
   }
 
-  return <MarkdownMessage text={message.text} />;
+  return (
+    <MarkdownMessage
+      text={message.text}
+      sender={message.sender}
+      modelProvider={message.modelProvider || null}
+      modelId={message.modelId || null}
+    />
+  );
 }
 
 MessageContent.propTypes = {
@@ -221,5 +249,7 @@ MessageContent.propTypes = {
     toolName: PropTypes.string,
     executionTime: PropTypes.number,
     success: PropTypes.bool,
+    modelProvider: PropTypes.string,
+    modelId: PropTypes.string,
   }).isRequired,
 };

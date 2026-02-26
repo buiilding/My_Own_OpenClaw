@@ -71,6 +71,18 @@ function parseMemoryContent(memory) {
   const rawContent = memory.content || '';
   const role = memory.role || memory.metadata?.role;
   const messageType = memory.message_type || memory.metadata?.message_type;
+  const modelProvider = normalizeOptionalString(
+    memory?.model_provider
+      || memory?.modelProvider
+      || memory?.metadata?.model_provider
+      || memory?.metadata?.modelProvider,
+  );
+  const modelId = normalizeOptionalString(
+    memory?.model_id
+      || memory?.modelId
+      || memory?.metadata?.model_id
+      || memory?.metadata?.modelId,
+  );
   const screenshotAttachment = resolveScreenshotAttachment(memory);
 
   if (role) {
@@ -83,6 +95,8 @@ function parseMemoryContent(memory) {
       sender,
       text: rawContent || '(empty)',
       type: normalizedType,
+      modelProvider,
+      modelId,
       screenshot: shouldAttachScreenshot ? screenshotAttachment.screenshot : null,
       screenshotRef: shouldAttachScreenshot ? screenshotAttachment.screenshotRef : null,
       screenshotUrl: shouldAttachScreenshot ? screenshotAttachment.screenshotUrl : null,
@@ -104,12 +118,12 @@ function parseMemoryContent(memory) {
     const assistantText = content.slice(assistantIndex + assistantMarker.length).trim();
 
     return [
-      { sender: 'user', text: userText || '(empty)', type: 'user' },
-      { sender: 'assistant', text: assistantText || '(empty)', type: 'llm-text' },
+      { sender: 'user', text: userText || '(empty)', type: 'user', modelProvider, modelId },
+      { sender: 'assistant', text: assistantText || '(empty)', type: 'llm-text', modelProvider, modelId },
     ];
   }
 
-  return [{ sender: 'assistant', text: content, type: 'llm-text' }];
+  return [{ sender: 'assistant', text: content, type: 'llm-text', modelProvider, modelId }];
 }
 
 export function buildConversationKey(conversation) {
@@ -155,12 +169,20 @@ export function parseMemoriesToMessages(memories) {
       if (part.screenshotContentType) {
         screenshotFields.screenshotContentType = part.screenshotContentType;
       }
+      const modelFields = {};
+      if (part.modelProvider) {
+        modelFields.modelProvider = part.modelProvider;
+      }
+      if (part.modelId) {
+        modelFields.modelId = part.modelId;
+      }
 
       return {
         id: `${memory.id || index}-${partIndex}`,
         text: part.text,
         sender: part.sender,
         type: part.type,
+        ...modelFields,
         ...screenshotFields,
         isComplete: true,
       };
