@@ -100,6 +100,14 @@ read_when:
     - `cd frontend && npm run lint`
   - audit delta:
     - frontend+backend `jscpd` total clones reduced from `24` to `23`.
+- Backend session-state split:
+  - extracted message builder/normalization helpers from:
+    - `backend/src/agent/session/state.py`
+    - to `backend/src/agent/session/message_builders.py`
+  - result:
+    - `state.py` reduced from `511` LOC to `441` LOC.
+  - verification:
+    - `./scripts/python-in-env backend python -m pytest tests/backend/test_conversation_history.py tests/backend/test_api_handlers.py tests/backend/test_interaction_loop_compaction.py -q`
 
 - Dashboard shell split:
   - extracted conversation/search orchestration from `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx` into:
