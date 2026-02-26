@@ -26,6 +26,7 @@ Primary protocol tests:
 - `tests/backend/test_incoming_routing.py`
 - `tests/backend/test_outgoing_schema_contract.py`
 - `tests/backend/test_transport_envelope.py`
+- `tests/backend/test_compact_history_handler.py`
 
 ## Contract Coverage Matrix
 
@@ -39,6 +40,7 @@ Primary protocol tests:
 | send serialization and backpressure | `SafeWebSocket` (`websocket.py`) | `test_safe_websocket.py` | bounded queue applies backpressure; sender failure drains pending futures; close flushes queued messages; close idempotent; direct close fallback works without sender task |
 | route-table/schema parity | `INCOMING_ROUTES` + helpers (`incoming_routing.py`) | `test_incoming_routing.py` | route message types match `IncomingMessage` literal union; duplicate route types rejected; missing handler keys rejected; route order preserved; non-literal `type` annotations rejected |
 | outgoing formatter/schema contract | event formatter modules + schema models | `test_outgoing_schema_contract.py` | formatter outputs validate against canonical websocket schema models (`tool-schemas`, `token-count`, `memory-stored`) |
+| compact-history manual protocol flow | `CompactHistoryHandler` (`api/handlers/compact_history.py`) | `test_compact_history_handler.py` | rejects while query active; emits started+completed envelopes when applied; emits completed with `skipped_reason` when not applied |
 | envelope context-field shape | `build_transport_message` / `attach_context_fields` (`envelope.py`) | `test_transport_envelope.py` | canonical `{type,id,payload}` envelope; optional context fields only when truthy; context overwrite semantics are explicit and covered |
 
 ## WebSocket Route Lifecycle Test Contract
@@ -107,6 +109,7 @@ These tests define the transport-level guarantee that route handlers can await s
 - tool schema payload must remain canonical list format
 - token-count payload keeps usage-source + cache diagnostics fields
 - memory-store payload keeps required identity/session fields
+- context-compaction payloads (`started`, `completed`, `failed`) stay schema-compatible
 
 `tests/backend/test_transport_envelope.py` locks envelope shape:
 
@@ -121,6 +124,26 @@ Gaps worth extending if protocol behavior changes:
 - no current direct test for handshake failure classes in `connection.py` within this sub-suite
 - no direct test here for `stop-query` and `rehydrate-conversation` route execution ordering under concurrent load
 - no explicit assertion in this suite for websocket error-envelope field ordering (shape is covered, ordering is implicit)
+
+## Recompute Protocol Test Surface Commands
+
+Use this command to inspect protocol-test coverage breadth quickly:
+
+- `python - <<'PY'`
+- `import pathlib`
+- `roots=[`
+- `  'tests/backend/test_websocket_route.py',`
+- `  'tests/backend/test_websocket_message_handler.py',`
+- `  'tests/backend/test_safe_websocket.py',`
+- `  'tests/backend/test_incoming_routing.py',`
+- `  'tests/backend/test_outgoing_schema_contract.py',`
+- `  'tests/backend/test_transport_envelope.py',`
+- `  'tests/backend/test_compact_history_handler.py',`
+- `]`
+- `for p in roots:`
+- `    text=pathlib.Path(p).read_text()`
+- `    print(p, 'tests=', text.count('\\ndef test_') + text.count('\\nasync def test_'))`
+- `PY`
 
 ## Related Pages
 
