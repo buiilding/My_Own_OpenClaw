@@ -73,12 +73,13 @@ This makes later iterations cheap and preserves identical tool schema surface ac
 
 History consumption semantics in `ConversationHistory.add_tool_output(...)`:
 
-- when staged ids exist, history writes one or more `role=tool` rows with `tool_call_id`
-- then appends legacy multimodal `TOOL_OUTPUT` row (`role=user`) for screenshot continuity
+- when staged ids exist, history writes one or more canonical `role=tool` rows with `tool_call_id`
+- if staged ids exist and screenshot is present, history appends one image-only multimodal `TOOL_OUTPUT` row (`role=user`, `content=""`) for screenshot continuity
+- if no staged ids exist, history writes a single legacy `TOOL_OUTPUT` row (`role=user`) with text (and optional screenshot)
 - for bundles, `consume_all_on_next_output=True` consumes all staged ids on next output
 - for non-bundles, one staged id consumed per output event
 
-This dual-row strategy preserves both strict provider tool-message linkage and legacy screenshot continuity behavior.
+This preserves strict provider tool-message linkage while keeping screenshot continuity without duplicated tool-output text rows.
 
 ## Rehydrate Normalization Rules
 

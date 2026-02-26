@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for `ConversationHistory` tool-output write semantics: staged tool_call_id consumption modes, dual-row output strategy, token-cache incremental updates, and rehydrate/linkage normalization behavior."
+summary: "Deep reference for `ConversationHistory` tool-output write semantics: staged tool_call_id consumption modes, canonical tool-row strategy with image context continuity, token-cache incremental updates, and rehydrate/linkage normalization behavior."
 read_when:
   - When changing `ConversationHistory.add_tool_output` or `stage_tool_call_ids` behavior.
   - When debugging tool-call/tool-output linkage issues in provider-normalized history or token-count drift after tool turns.
@@ -32,17 +32,19 @@ title: "Tool-Call-ID Staging and Tool-Output History Row Contract Reference"
 - bundle path: sets `consume_all_on_next_output=is_bundle`
 - recoverable malformed tool-call path: stages synthetic single id before synthetic output write
 
-## Dual-Row Tool Output Strategy
+## Tool Output Storage Strategy
 
 `add_tool_output(message, image_data)` writes:
 
-1. zero or more `role='tool'` rows with `tool_call_id` (from staged ids)
-2. always one legacy `role='user'` `TOOL_OUTPUT` row (includes screenshot when present)
+1. when staged ids exist: one or more canonical `role='tool'` rows with `tool_call_id`
+2. when staged ids exist and screenshot is present: one image-only `role='user'` `TOOL_OUTPUT` row (`content=""`) to preserve multimodal screenshot context
+3. when no staged ids exist: one legacy `role='user'` `TOOL_OUTPUT` row with text (and screenshot, if present)
 
 Reason:
 
 - provider-facing tool-call linkage needs explicit `tool_call_id` rows
-- legacy multimodal continuity relies on user-role row carrying screenshot payload
+- screenshot continuity still needs a multimodal-capable row for providers that require text-only `role='tool'` content
+- duplicate tool-output text rows are avoided on linked tool turns
 
 ## Token Cache Behavior on Tool Output
 
@@ -83,7 +85,7 @@ This allows restored history to survive provider normalization without dropping 
 
 ## Drift Hotspots
 
-1. removing legacy user-role tool-output row breaks screenshot continuity assumptions in downstream paths.
+1. changing image-only screenshot companion row behavior can break screenshot continuity for linked tool turns.
 2. changing staged-id consumption mode can mismatch tool-call/tool-output ordering for bundled turns.
 3. mutating tool-output token cache logic can reintroduce O(N) counting per tool event.
 4. weakening rehydrate normalization can orphan tool rows from assistant tool-call records.

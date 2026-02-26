@@ -110,9 +110,14 @@ class ConversationHistory:
                         tool_call_id=tool_call_id,
                     )
                 )
-
-        # Keep legacy user-role multimodal message for screenshot continuity.
-        stored_messages.append(self._build_tool_output_message(message, image_data))
+            if image_data:
+                # Preserve screenshot context without duplicating tool-output text rows.
+                stored_messages.append(
+                    self._build_tool_screenshot_context_message(image_data)
+                )
+        else:
+            # Fallback path when no tool_call_id linkage exists.
+            stored_messages.append(self._build_tool_output_message(message, image_data))
 
         # INCREMENTAL TOKEN COUNT: If cache is valid, count new message before pruning
         # This avoids O(N) re-counting when multiple tools are called in sequence
@@ -441,6 +446,20 @@ class ConversationHistory:
             message_type=MessageType.TOOL_OUTPUT,
             image_data=None,
             tool_call_id=tool_call_id,
+        )
+
+    def _build_tool_screenshot_context_message(self, image_data: str) -> StoredMessage:
+        """
+        Build an image-only context row for tool screenshots.
+
+        This preserves screenshot continuity without duplicating tool output text when
+        canonical role=tool rows already carry the textual tool result.
+        """
+        return StoredMessage(
+            role=MessageRole.USER,
+            content="",
+            message_type=MessageType.TOOL_OUTPUT,
+            image_data=image_data,
         )
 
     def _build_assistant_message(
