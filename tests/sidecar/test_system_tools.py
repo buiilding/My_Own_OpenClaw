@@ -30,6 +30,24 @@ class FakeWindowManager:
         return self._windows
 
 
+def test_get_window_manager_creates_and_reuses_singleton(monkeypatch):
+    created = []
+
+    class _ConstructedManager(FakeWindowManager):
+        def __init__(self):
+            super().__init__()
+            created.append(self)
+
+    monkeypatch.setattr(window_tool, "_window_manager", None)
+    monkeypatch.setattr(window_tool, "WindowManager", _ConstructedManager)
+
+    first = window_tool._get_window_manager()
+    second = window_tool._get_window_manager()
+
+    assert first is second
+    assert created == [first]
+
+
 @pytest.mark.asyncio
 async def test_switch_to_window_requires_tab_name():
     result = await window_tool.switch_to_window({})
@@ -101,6 +119,18 @@ async def test_get_open_windows_handles_manager_errors(monkeypatch):
 
     assert result["success"] is False
     assert "Failed to get open windows" in result["error"]
+
+
+@pytest.mark.asyncio
+async def test_get_open_windows_returns_empty_state_message(monkeypatch):
+    manager = FakeWindowManager(windows=[{"title": " "}, {"title": ""}, {}])
+    monkeypatch.setattr(window_tool, "_window_manager", manager)
+
+    result = await window_tool.get_open_windows({})
+
+    assert result["success"] is True
+    assert result["data"]["windows"] == []
+    assert result["data"]["llm_content"] == "No open windows found."
 
 
 @pytest.mark.asyncio
