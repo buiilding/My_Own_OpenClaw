@@ -347,4 +347,27 @@ Canonical current frontend now differs from older deep-doc slices:
 - Old response overlay ghost lifecycle helper/util file paths were replaced by current runtime wiring.
 - Chat stream update helpers moved into `useStreamMessageUpdaters.ts` and related modern utils.
 
+## 7) Recompute Snapshot Commands
+
+Use these commands to refresh the counts in this page:
+
+- Frontend surface counts:
+  - `python - <<'PY'`
+  - `import glob`
+  - `main=len([p for p in glob.glob('frontend/src/main/**/*.cjs',recursive=True)+glob.glob('frontend/src/main/**/*.js',recursive=True) if '/python/' not in p])`
+  - `sidecar=len(glob.glob('frontend/src/main/python/**/*.py',recursive=True))`
+  - `renderer=len(glob.glob('frontend/src/renderer/**/*.ts',recursive=True)+glob.glob('frontend/src/renderer/**/*.tsx',recursive=True)+glob.glob('frontend/src/renderer/**/*.js',recursive=True)+glob.glob('frontend/src/renderer/**/*.jsx',recursive=True))`
+  - `landing=len(glob.glob('frontend/src/landing/**/*.jsx',recursive=True)+glob.glob('frontend/src/landing/**/*.css',recursive=True))`
+  - `preload=1 if glob.glob('frontend/src/preload.js') else 0`
+  - `print(main, sidecar, renderer, landing, preload, main+sidecar+renderer+landing+preload)`
+  - `PY`
+
+## 8) Related Docs
+
+- [Frontend Inventory Docs Hub](README.md)
+- [Frontend Functionality Capability Catalog Reference](frontend_functionality_capability_catalog_reference.md)
+- [Frontend Capability to File Matrix Reference](frontend_capability_to_file_matrix_reference.md)
+- [Frontend Runtime Surface Matrix Reference](frontend_runtime_surface_matrix_reference.md)
+- [Frontend Module File Index Reference](frontend_module_file_index_reference.md)
+
 When deep references disagree with this page, treat this inventory as source of truth and update the deep pages.

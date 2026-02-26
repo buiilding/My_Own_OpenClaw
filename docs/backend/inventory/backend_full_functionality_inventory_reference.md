@@ -322,4 +322,26 @@ High-change areas likely to require docs updates when code changes:
 - `api/processing/formatters/*` payload shape contracts consumed by renderer.
 - `core/config/models.py` frontend-owned config field changes.
 
+## 11) Recompute Snapshot Commands
+
+Use these commands to refresh the counts in this page:
+
+- Total and domain split:
+  - `python - <<'PY'`
+  - `import glob`
+  - `root='backend/src'`
+  - `files=[p for p in glob.glob(root+'/**/*.py',recursive=True)]`
+  - `print('total',len(files))`
+  - `for d in ['agent','api','core','tools','llm','services','simulation','sdk','embeddings']:`  
+  - `    print(d,len([p for p in files if p.startswith(f'{root}/{d}/')]))`
+  - `PY`
+
+## 12) Related Docs
+
+- [Backend Inventory Docs Hub](README.md)
+- [Backend Functionality Capability Catalog Reference](backend_functionality_capability_catalog_reference.md)
+- [Backend Capability to File Matrix Reference](backend_capability_to_file_matrix_reference.md)
+- [Backend Runtime Flow Matrix Reference](backend_runtime_flow_matrix_reference.md)
+- [Backend Module File Index Reference](backend_module_file_index_reference.md)
+
 When deep references disagree with this inventory, update deep pages and preserve this file as the backend canonical map.
