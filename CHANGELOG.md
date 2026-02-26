@@ -7,6 +7,9 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(backend-logging-utils): add direct unit coverage for shared `short_id` request-id truncation helper (default/custom lengths and `"unknown"` fallback for missing IDs).
+- refactor(frontend-chat): split `ChatInterface` replay/edit retry flow into `useConversationReplayActions`; extract shared conversation-group PropTypes; split `useChatStream` tool-message builders and model-thinking resolver into dedicated utilities; reduce `useChatStream.ts` to <500 LOC and clear local TS/JSX clone hotspots.
+- refactor(backend-api-handlers): add shared websocket context builder (`build_user_session_context`) and reuse it in `stop-query` + `compact-history`; add regression coverage for handler context composition.
 - test(sidecar-scroll-tool): add runtime coverage for `execute_scroll_control` action handling (`scroll`, `scroll_up`, `scroll_down`), coordinate/unknown-action validation, and left/right horizontal-scroll fallback behavior when `hscroll` is unavailable.
 - test(sidecar-scroll-config): add coverage for OS scroll multiplier resolution (Windows registry override/default fallback, unknown-OS fallback), click normalization defaults/minimums, and diagnostics custom-setting signaling.
 - test(sidecar-runtime): add regression coverage for `core.system_metrics` and `memory.watermark_state` (battery-unavailable fallback, async executor path, default/malformed watermark state handling, and pending-count persistence updates).
