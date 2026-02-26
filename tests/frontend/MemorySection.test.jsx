@@ -103,6 +103,7 @@ describe('MemorySection', () => {
 
     const onClose = jest.fn();
     render(<MemorySection onClose={onClose} />);
+    await screen.findByText('No memories found');
 
     fireEvent.click(screen.getByRole('button', { name: 'Close memory' }));
     expect(onClose).toHaveBeenCalledTimes(1);
