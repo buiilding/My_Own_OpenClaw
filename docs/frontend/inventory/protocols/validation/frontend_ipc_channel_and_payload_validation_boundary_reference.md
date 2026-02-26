@@ -33,6 +33,20 @@ Role:
 
 - enforce sandbox-safe IPC surface independent of renderer code quality.
 
+High-sensitivity allowlisted channels currently include:
+
+- invoke:
+  - `set-agent-sudo-access`
+  - `list-permissions`
+  - `check-permissions`
+  - `check-permission`
+  - `run-permission-probe`
+  - `request-permission`
+- on/once:
+  - `wakeword-stt-trigger`
+  - `response-overlay-phase`
+  - `response-overlay-visibility`
+
 ## Layer 2: Renderer typed constants + bridge checks
 
 `channels.ts` exposes literal channel constants and types (`SendChannel`, `InvokeChannel`, `OnChannel`).
@@ -113,6 +127,25 @@ High-risk drift points to monitor:
 - outbound normalization rules diverging from backend schema updates.
 - user-id sanitization assumptions diverging from backend validation rules.
 - mapper key fallback paths lost during refactors, breaking backward-compatible payload shapes.
+
+## Recompute Validation Surface Commands
+
+Use these commands to refresh validation-surface counts:
+
+- IPC channel counts from renderer constants:
+  - `python - <<'PY'`
+  - `import re, pathlib`
+  - `text=pathlib.Path('frontend/src/renderer/infrastructure/ipc/channels.ts').read_text()`
+  - `for name in ['SEND_CHANNELS','INVOKE_CHANNELS','ON_CHANNELS']:`
+  - `    block=re.search(rf'{name}\\s*=\\s*\\{{(.*?)\\}}\\s*as const;', text, re.S).group(1)`
+  - `    print(name, len([line for line in block.splitlines() if ':' in line]))`
+  - `PY`
+- JSON-RPC mapper definition count:
+  - `python - <<'PY'`
+  - `import pathlib,re`
+  - `text=pathlib.Path('frontend/src/main/local_backend_bridge_rpc_mappers.cjs').read_text()`
+  - `print('compiled_rpc_handler_definitions', len(re.findall(r\"\\{\\s*channel:\", text)))`
+  - `PY`
 
 ## Related Deep Dives
 

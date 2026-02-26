@@ -26,6 +26,9 @@ Primary protocol tests:
 - `tests/frontend/LocalBackendBridge.lifecycle.test.cjs`
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`
 - `tests/frontend/WakewordBridge.test.cjs`
+- `tests/frontend/AgentSudoAccessHandler.test.cjs`
+- `tests/frontend/PermissionService.test.cjs`
+- `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`
 
 ## Contract Coverage Matrix
 
@@ -40,6 +43,9 @@ Primary protocol tests:
 | local backend process lifecycle safety | process state/reset + readiness tokening (`local_backend_bridge.cjs`) | `LocalBackendBridge.lifecycle.test.cjs` | in-flight RPCs resolve with standardized errors on exit/error; stale readiness timers from old process generations do not clobber new process state |
 | local backend RPC shape mapping | handler registration + mapper utilities (`local_backend_bridge.cjs`) | `LocalBackendBridge.rpc.test.cjs` | IPC payload keys map to backend snake_case params; non-object payloads normalize safely; error responses use canonical `{success:false,error}` shape |
 | wakeword stream/restart robustness | wakeword subprocess + framed parser (`wakeword_bridge.cjs`) | `WakewordBridge.test.cjs` | detection callback + renderer event fire only when enabled; process restarts keep callback wiring; stale stdout/stderr partial buffers are cleared across restarts |
+| sudo access command-runner protocol | `agent_sudo_access_handler.cjs` | `AgentSudoAccessHandler.test.cjs` | Linux-only guard, pkexec/sudo command execution paths, cancel/auth-failure normalization, and non-interactive disable semantics |
+| permission probe/request protocol | `permission_service.cjs` | `PermissionService.test.cjs` | manifest/status shape, per-permission probe behavior, unknown-permission error surface, and request flow normalization |
+| wakeword STT trigger channel consumption | renderer chatbox overlay listeners | `ChatBoxOverlayMouseIgnore.test.jsx` | renderer listener wiring for `wakeword-stt-trigger` channel and overlay-focused behavior consistency |
 
 ## Renderer IPC Validation Contract
 
@@ -112,6 +118,7 @@ This reflects current intent: runtime safety in preload, fast-fail ergonomics in
   - `store-transcript`
   - `store-memory`
 - malformed/non-object IPC payloads normalize to safe empty param objects for mapped handlers
+- `execute-tool` `run_shell_command` payloads inject `sudo_auth_mode` based on `agent_full_sudo_enabled` frontend config
 
 ## Wakeword Bridge Protocol Contract
 
@@ -124,6 +131,21 @@ This reflects current intent: runtime safety in preload, fast-fail ergonomics in
 - stale process exit events after restart are ignored (generation safety)
 - stale partial stderr JSON buffer is cleared across beforeExit/enable restart path
 
+## Permission/Sudo Protocol Contract
+
+`tests/frontend/AgentSudoAccessHandler.test.cjs` validates:
+
+- Linux-only support guard behavior.
+- Enable flow writes/validates sudoers via `pkexec`.
+- Disable flow uses `sudo -n` and returns explicit remediation guidance when non-interactive disable fails.
+- Spawn errors and auth-cancel conditions map to normalized renderer-safe result payloads.
+
+`tests/frontend/PermissionService.test.cjs` validates:
+
+- Permission manifest snapshot surface (`manifest_version`, `permissions[]`, `statuses[]`).
+- Probe behavior for known permission IDs and unknown-ID error handling.
+- Permission request flow returns normalized status payload.
+
 ## Residual Risk and Suggested Additions
 
 Useful expansions if protocol surface changes:
@@ -131,6 +153,28 @@ Useful expansions if protocol surface changes:
 - direct assertion for `SETTINGS_SYNC_TIMEOUT_MS` timeout fallback path in `ipc.cjs`
 - explicit tests for `normalizeBackendPayload('tool-bundle-result')` screenshot stripping parity
 - explicit tests for wakeword error payload mapping on spawn `ENOENT` and non-zero exit codes in this suite
+
+## Recompute Protocol Test Surface Commands
+
+Use this command to inspect protocol-test breadth:
+
+- `python - <<'PY'`
+- `import pathlib`
+- `paths=[`
+- `  'tests/frontend/IpcBridgeValidation.test.ts',`
+- `  'tests/frontend/IpcMainBridge.query.test.cjs',`
+- `  'tests/frontend/QueryPayloadBuilder.test.cjs',`
+- `  'tests/frontend/LocalBackendBridge.lifecycle.test.cjs',`
+- `  'tests/frontend/LocalBackendBridge.rpc.test.cjs',`
+- `  'tests/frontend/WakewordBridge.test.cjs',`
+- `  'tests/frontend/AgentSudoAccessHandler.test.cjs',`
+- `  'tests/frontend/PermissionService.test.cjs',`
+- `  'tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx',`
+- `]`
+- `for p in paths:`
+- `    text=pathlib.Path(p).read_text()`
+- `    print(p, 'tests=', text.count('\\ntest(') + text.count('\\nit('))`
+- `PY`
 
 ## Related Pages
 
