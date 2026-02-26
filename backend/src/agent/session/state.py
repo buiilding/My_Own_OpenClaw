@@ -457,7 +457,8 @@ class ConversationHistory:
         """
         return StoredMessage(
             role=MessageRole.USER,
-            content="",
+            # Some providers reject empty text blocks inside multimodal user messages.
+            content="[tool screenshot context]",
             message_type=MessageType.TOOL_OUTPUT,
             image_data=image_data,
         )
