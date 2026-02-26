@@ -55,6 +55,14 @@ def _ignored_compat_field(default: Any, detail: str):
     return Field(default, description=f"Compatibility field (ignored). {detail}")
 
 
+def _required_string_field(description: str, *, max_length: int):
+    return Field(..., description=description, max_length=max_length)
+
+
+def _optional_string_field(description: str, *, max_length: int):
+    return Field(None, description=description, max_length=max_length)
+
+
 class BrowserArgsModel(BaseModel):
     """Shared backend browser schema base."""
 
@@ -212,7 +220,7 @@ class BrowserTypeArgs(BrowserArgsModel):
 
     action: Literal["type"] = Field(..., description="Type text")
     ref: str = Field(..., description="Element reference from snapshot")
-    text: str = Field(..., description="Text to type", max_length=10000)
+    text: str = _required_string_field("Text to type", max_length=10000)
     submit: bool = Field(False, description="Press Enter after typing")
 
 
@@ -285,12 +293,11 @@ class BrowserEvaluateArgs(BrowserArgsModel):
     """Arguments for browser evaluate action."""
 
     action: Literal["evaluate"] = Field(..., description="Evaluate JavaScript")
-    script: Optional[str] = Field(
-        None, description="JavaScript code to execute", max_length=5000
+    script: Optional[str] = _optional_string_field(
+        "JavaScript code to execute",
+        max_length=5000,
     )
-    code: Optional[str] = Field(
-        None, description="Browser Use evaluate code", max_length=5000
-    )
+    code: Optional[str] = _optional_string_field("Browser Use evaluate code", max_length=5000)
 
     @model_validator(mode="after")
     def validate_script_or_code(self):
