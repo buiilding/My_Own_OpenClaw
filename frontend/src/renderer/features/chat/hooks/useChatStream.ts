@@ -46,6 +46,11 @@ import {
   resolveModelFacingToolCall,
 } from '../utils/chatStreamFormatting';
 import {
+  buildToolBundleMessage,
+  buildToolCallMessage,
+  buildToolOutputMessage,
+} from '../utils/chatStreamToolMessages';
+import {
   buildScreenshotAttachment,
   resolveErrorText,
   resolveToolOutputCorrelationId,
@@ -66,6 +71,7 @@ import {
   resolveEventConversationRef,
   shouldIgnoreEventForActiveConversation,
 } from '../utils/chatStreamConversationGate';
+import { resolveThinkingCapabilities } from '../utils/modelThinkingCapabilities';
 import { useChatCommonActions } from './useChatCommonActions';
 import { useStreamMessageUpdaters } from './useStreamMessageUpdaters';
 import { useLatestRef } from '../../../infrastructure/hooks/useLatestRef';
@@ -79,47 +85,6 @@ type TranscriptModelContext = {
 
 const COMPACTION_THINKING_STATUS = 'Compacting conversation history...';
 const GENERIC_THINKING_STATUS = 'Thinking...';
-
-type ModelCapabilityDescriptor = {
-  id?: string;
-  provider?: string;
-  supports_thinking?: boolean;
-  supports_thinking_text_stream?: boolean;
-};
-
-function resolveThinkingCapabilities(
-  modelId: string | null | undefined,
-  modelProvider: string | null | undefined,
-  availableModels: { local?: unknown[]; online?: unknown[] } | null | undefined,
-): { supportsThinking: boolean; supportsThinkingTextStream: boolean } {
-  const normalizedModelId = typeof modelId === 'string' ? modelId : '';
-  const normalizedProvider = typeof modelProvider === 'string' ? modelProvider : '';
-  const localModels = Array.isArray(availableModels?.local) ? availableModels.local : [];
-  const onlineModels = Array.isArray(availableModels?.online) ? availableModels.online : [];
-  const allModels = [...localModels, ...onlineModels] as ModelCapabilityDescriptor[];
-  const selectedModel = allModels.find(
-    (model) => model?.id === normalizedModelId && model?.provider === normalizedProvider,
-  ) || allModels.find((model) => model?.id === normalizedModelId);
-
-  const inferredGeminiThinkingModel = (
-    normalizedProvider === 'gemini'
-    && normalizedModelId.toLowerCase().startsWith('gemini-')
-  );
-  const supportsThinking = typeof selectedModel?.supports_thinking === 'boolean'
-    ? selectedModel.supports_thinking
-    : inferredGeminiThinkingModel;
-
-  const supportsThinkingTextStream = (
-    typeof selectedModel?.supports_thinking_text_stream === 'boolean'
-      ? selectedModel.supports_thinking_text_stream
-      : normalizedProvider !== 'gemini'
-  );
-
-  return {
-    supportsThinking,
-    supportsThinkingTextStream: supportsThinking ? supportsThinkingTextStream : false,
-  };
-}
 
 /**
  * Custom hook for managing streaming message responses.
@@ -220,90 +185,80 @@ export function useChatStream(enableTranscript: boolean = true) {
     recordTrackingEvent('context-compaction-started', event.turn_ref);
   }, [setThinkingStatus, recordTrackingEvent]);
 
-  const handleContextCompactionCompleted = useCallback((event: ContextCompactionCompletedEvent) => {
+  const clearCompactionThinkingStatus = useCallback(() => {
     if (useChatStore.getState().thinkingStatus === COMPACTION_THINKING_STATUS) {
       setThinkingStatus(null);
     }
+  }, [setThinkingStatus]);
+
+  const handleContextCompactionCompleted = useCallback((event: ContextCompactionCompletedEvent) => {
+    clearCompactionThinkingStatus();
     recordTrackingEvent('context-compaction-completed', event.turn_ref);
-  }, [setThinkingStatus, recordTrackingEvent]);
+  }, [clearCompactionThinkingStatus, recordTrackingEvent]);
 
   const handleContextCompactionFailed = useCallback((event: ContextCompactionFailedEvent) => {
-    if (useChatStore.getState().thinkingStatus === COMPACTION_THINKING_STATUS) {
-      setThinkingStatus(null);
-    }
+    clearCompactionThinkingStatus();
     recordTrackingEvent('context-compaction-failed', event.turn_ref);
-  }, [setThinkingStatus, recordTrackingEvent]);
+  }, [clearCompactionThinkingStatus, recordTrackingEvent]);
+
+  const recordToolCallTranscript = useCallback((
+    text: string,
+    event: ToolCallEvent | ToolBundleEvent,
+    toolName: string,
+    correlationId: string | null | undefined,
+  ) => {
+    if (!enableTranscript) {
+      return;
+    }
+    const modelContext = modelContextRef.current;
+    recordToolMessage(text, {
+      messageType: 'tool-call',
+      toolName,
+      correlationId,
+      conversationRef: event.conversation_ref,
+      userId: event.user_id,
+      modelId: modelContext.modelId,
+      modelProvider: modelContext.modelProvider,
+    });
+  }, [enableTranscript, modelContextRef]);
 
   const handleToolCall = useCallback((event: ToolCallEvent) => {
     setThinkingStatus(null);
     const modelFacingToolCall = resolveModelFacingToolCall(event.payload);
     const formattedText = formatToolCallPayload(event.payload);
     const modelContext = modelContextRef.current;
-
-    const newMessage: ChatMessage = {
-      id: crypto.randomUUID(),
-      text: formattedText,
-      sender: 'assistant',
-      type: 'tool-call',
-      modelFacingToolCall,
-      toolCallDetails: (
-        event.payload && typeof event.payload === 'object'
-          ? { ...event.payload }
-          : null
-      ),
-      turnRef: event.turn_ref,
-      modelId: modelContext.modelId,
-      modelProvider: modelContext.modelProvider,
-    };
-    addMessage(newMessage);
+    addMessage(buildToolCallMessage(event, formattedText, modelContext, modelFacingToolCall));
 
     recordTrackingEvent('tool-call', event.turn_ref, { toolCall: true });
 
     const correlationId = event.payload?.correlation_id || event.payload?.request_id;
 
-    if (enableTranscript) {
-      recordToolMessage(formattedText, {
-        messageType: 'tool-call',
-        toolName: event.payload?.tool_name,
-        correlationId,
-        conversationRef: event.conversation_ref,
-        userId: event.user_id,
-        modelId: modelContext.modelId,
-        modelProvider: modelContext.modelProvider,
-      });
-    }
-  }, [addMessage, enableTranscript, modelContextRef, setThinkingStatus, recordTrackingEvent]);
+    recordToolCallTranscript(
+      formattedText,
+      event,
+      event.payload?.tool_name || '',
+      correlationId,
+    );
+  }, [
+    addMessage,
+    modelContextRef,
+    recordToolCallTranscript,
+    setThinkingStatus,
+    recordTrackingEvent,
+  ]);
 
   const handleToolOutput = useCallback((event: ToolOutputEvent) => {
     setThinkingStatus(null);
     const outputText = formatToolOutputText(event.payload);
     const { screenshotRef, screenshotUrl } = buildScreenshotAttachment(event.payload?.screenshot_ref);
     const modelContext = modelContextRef.current;
-
-    const newMessage: ChatMessage = {
-      id: crypto.randomUUID(),
-      text: outputText,
-      sender: 'assistant',
-      type: 'tool-output',
+    addMessage(buildToolOutputMessage(
+      event,
+      outputText,
+      modelContext,
       screenshotRef,
       screenshotUrl,
-      toolMetadata: event.payload?.metadata,
-      toolName: event.payload?.tool_name,
-      executionTime: event.payload?.execution_time,
-      success: event.payload?.success,
-      correlationId: resolveToolOutputCorrelationId(event.payload, event.id),
-      modelFacingToolOutput: outputText,
-      toolOutputDetails: (
-        event.payload && typeof event.payload === 'object'
-          ? { ...event.payload }
-          : null
-      ),
-      turnRef: event.turn_ref,
-      modelId: modelContext.modelId,
-      modelProvider: modelContext.modelProvider,
-    };
-
-    addMessage(newMessage);
+    ));
     recordTrackingEvent('tool-output', event.turn_ref, { toolOutput: true });
 
     const correlationId = resolveToolOutputCorrelationId(event.payload, event.id) || undefined;
@@ -326,37 +281,23 @@ export function useChatStream(enableTranscript: boolean = true) {
     setThinkingStatus(null);
     const formattedText = formatToolBundlePayload(event.payload);
     const modelContext = modelContextRef.current;
-
-    const newMessage: ChatMessage = {
-      id: crypto.randomUUID(),
-      text: formattedText,
-      sender: 'assistant',
-      type: 'tool-call',
-      toolCallDetails: (
-        event.payload && typeof event.payload === 'object'
-          ? { ...event.payload }
-          : null
-      ),
-      turnRef: event.turn_ref,
-      modelId: modelContext.modelId,
-      modelProvider: modelContext.modelProvider,
-    };
-    addMessage(newMessage);
+    addMessage(buildToolBundleMessage(event, formattedText, modelContext));
 
     recordTrackingEvent('tool-bundle', event.turn_ref, { phase: 'tool-call', toolCall: true });
 
-    if (enableTranscript) {
-      recordToolMessage(formattedText, {
-        messageType: 'tool-call',
-        toolName: 'tool-bundle',
-        correlationId: event.payload?.bundle_id,
-        conversationRef: event.conversation_ref,
-        userId: event.user_id,
-        modelId: modelContext.modelId,
-        modelProvider: modelContext.modelProvider,
-      });
-    }
-  }, [addMessage, enableTranscript, modelContextRef, setThinkingStatus, recordTrackingEvent]);
+    recordToolCallTranscript(
+      formattedText,
+      event,
+      'tool-bundle',
+      event.payload?.bundle_id,
+    );
+  }, [
+    addMessage,
+    modelContextRef,
+    recordToolCallTranscript,
+    setThinkingStatus,
+    recordTrackingEvent,
+  ]);
 
   const handleSystemPrompt = useCallback((event: SystemPromptEvent) => {
     updateLastMessageBySender('user', {

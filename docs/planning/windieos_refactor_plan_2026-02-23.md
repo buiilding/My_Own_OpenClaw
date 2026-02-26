@@ -48,6 +48,27 @@ read_when:
 
 ## Frontend/Main Execution Log (2026-02-26)
 
+- Chat stream + replay split:
+  - extracted replay/edit-retry transcript/query flow from `ChatInterface.jsx` into:
+    - `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js`
+  - extracted stream utility modules from `useChatStream.ts`:
+    - `frontend/src/renderer/features/chat/utils/modelThinkingCapabilities.ts`
+    - `frontend/src/renderer/features/chat/utils/chatStreamToolMessages.ts`
+  - extracted shared dashboard conversation-group PropTypes:
+    - `frontend/src/renderer/features/dashboard/components/shared/conversationGroupPropTypes.js`
+  - result:
+    - `ChatInterface.jsx` reduced to `419` LOC.
+    - `useChatStream.ts` reduced to `492` LOC (below file-size target).
+    - `jscpd` frontend+backend total clones reduced from `29` to `27` (TS/JSX clone count now `0` in latest run).
+- Backend non-query handler dedupe:
+  - added shared response-context builder:
+    - `backend/src/api/handlers/context.py` (`build_user_session_context`)
+  - rewired:
+    - `backend/src/api/handlers/stop_query.py`
+    - `backend/src/api/handlers/compact_history.py`
+  - added regression coverage:
+    - `tests/backend/test_handler_context.py`
+
 - Dashboard shell split:
   - extracted conversation/search orchestration from `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx` into:
     - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`

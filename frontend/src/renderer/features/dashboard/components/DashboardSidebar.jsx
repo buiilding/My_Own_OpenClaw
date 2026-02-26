@@ -18,6 +18,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import ChatGptLogo from '../../../components/ChatGptLogo';
+import { conversationGroupsPropType } from './shared/conversationGroupPropTypes';
 
 const PRIMARY_NAV_ITEMS = Object.freeze([
   { id: 'new-chat', label: 'New chat', icon: PenSquare },
@@ -469,12 +470,7 @@ DashboardSidebar.propTypes = {
   modelsOpen: PropTypes.bool.isRequired,
   isLoadingRecentConversations: PropTypes.bool.isRequired,
   recentConversationsError: PropTypes.string.isRequired,
-  recentConversationGroups: PropTypes.shape({
-    today: PropTypes.array.isRequired,
-    yesterday: PropTypes.array.isRequired,
-    previous7Days: PropTypes.array.isRequired,
-    older: PropTypes.array.isRequired,
-  }).isRequired,
+  recentConversationGroups: conversationGroupsPropType,
   onOpenConversation: PropTypes.func.isRequired,
   onRenameConversation: PropTypes.func.isRequired,
   onTogglePinConversation: PropTypes.func.isRequired,
