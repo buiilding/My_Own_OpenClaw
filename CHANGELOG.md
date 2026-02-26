@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(sidecar-keyboard-tool): add mocked runtime coverage for type/press/hotkey flows, dangerous-combination blocking, key mapping, and unknown-action validation.
+- refactor(frontend-tool-runner): extract shared tool-output envelope builder in `toolRunnerMessages.ts` to remove duplicated payload field wiring between single-tool and bundle-result message builders.
 - test(backend-formatter-specs): add contract checks for formatter-spec tuple shape, cache semantics, and expected stream/outgoing type coverage.
 - refactor(backend-session-state): split `ConversationHistory` message-construction and message-type normalization helpers into `backend/src/agent/session/message_builders.py`, reducing `state.py` below 500 LOC while preserving behavior.
 - test(backend-image-dimensions): add parser edge-case coverage for invalid PNG/JPEG payloads (short/non-IHDR PNG headers, invalid JPEG segment lengths, and SOS-before-SOF streams).
