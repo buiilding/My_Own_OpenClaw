@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-chatbox): auto-focus the chat-pill input when the pill opens/regains focus (window focus + visibility hooks), so users can type immediately without an extra click.
 - fix(frontend-dashboard): when opening the main dashboard from the chat-pill settings button, route to the chat surface and auto-focus the dashboard composer input (with regression coverage for the IPC payload and focus-token behavior).
 - fix(backend-tool-schema): set `mouse_control.find_coordinates_by.type = "string"` whenever dev tool-selection narrows its enum, fixing Gemini function-schema validation without changing OpenRouter/Kimi behavior.
 - feat(backend-model-catalog): add OpenRouter model `qwen/qwen3-vl-235b-a22b-thinking` to the curated online model list (with regression coverage in `test_model_service.py`).
