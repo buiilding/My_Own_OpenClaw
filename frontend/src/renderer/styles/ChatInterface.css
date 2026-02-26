@@ -392,6 +392,8 @@
   align-self: flex-end;
   flex-direction: column;
   align-items: flex-end;
+  padding: 6px 10px;
+  margin: -6px -10px;
 }
 
 .message-user .message-content {
@@ -493,14 +495,22 @@
 .user-message-actions {
   margin-top: 8px;
   margin-right: -4px;
-  display: none;
+  display: inline-flex;
   align-items: center;
   gap: 4px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(2px);
+  transition: opacity 140ms ease, transform 140ms ease;
 }
 
 .message-user:hover .user-message-actions,
 .message-user:focus-within .user-message-actions {
-  display: inline-flex;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
 }
 
 .assistant-action-btn,
