@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-chat-models): replace hardcoded chat header model dropdown items with live models from `availableModels`, filtered to the active provider/mode and wired to update `selected_model_id` + `model_provider` on selection.
 - fix(frontend-chatbox): auto-focus the chat-pill input when the pill opens/regains focus (window focus + visibility hooks), so users can type immediately without an extra click.
 - fix(frontend-dashboard): when opening the main dashboard from the chat-pill settings button, route to the chat surface and auto-focus the dashboard composer input (with regression coverage for the IPC payload and focus-token behavior).
 - fix(backend-tool-schema): set `mouse_control.find_coordinates_by.type = "string"` whenever dev tool-selection narrows its enum, fixing Gemini function-schema validation without changing OpenRouter/Kimi behavior.
