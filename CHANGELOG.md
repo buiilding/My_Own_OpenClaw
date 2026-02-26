@@ -8,6 +8,7 @@ Includes the last 300 commits on `main`.
 
 ### Added
 - fix(backend-gemini-streaming): upgrade backend LiteLLM pin to `1.80.15` and harden thinking extraction for Gemini-style stream deltas (`reasoningContent`, `thinking_content`, structured `content` blocks, and `<think>...</think>` tags) with regression tests.
+- docs(frontend-chat-stream-payloads): add stream updater selector + transcript payload contract deep docs and wire renderer/chat hubs to current `useStreamMessageUpdaters` and `transcriptMessagePayload` runtime ownership.
 - docs(frontend-dashboard-shell): add conversation-hook/group-bucket runtime reference and align dashboard shell/sidebar docs to current `useDashboardConversations` + `conversationGroups` ownership boundaries.
 - docs(frontend-planning): clean stale frontend file-path literals in planning docs so frontend path audits now resolve against current tree while preserving historical refactor notes.
 - docs(frontend-overlay-system-state): align overlay lifecycle and sidecar system-state docs with current frontend runtime (dormant context-label window flow, no active context-label polling consumer, and current query/system-state code scope).
