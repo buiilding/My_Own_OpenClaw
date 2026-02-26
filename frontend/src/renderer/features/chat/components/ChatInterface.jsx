@@ -9,23 +9,14 @@ import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { ApiClient } from '../../../infrastructure/api/client';
 import { PlayerService } from '../../../infrastructure/audio/PlayerService';
-import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { extractAudioChunkPayload } from '../utils/backendAudioEvents';
 import { selectChatInterfaceState } from '../utils/chatSelectors';
 import { startNewChatSession } from '../utils/newChatSession';
 import {
-  getActiveConversationRef,
-  getTranscriptSessionInfo,
-  setActiveConversationRef,
-  updateTranscriptSession,
-} from '../../../infrastructure/transcript/TranscriptWriter';
-import { createConversationRef } from '../utils/conversationRef';
-import {
   normalizeProvider,
-  resolveTranscriptMessageType,
-  resolveTranscriptRole,
-  toRehydratePayload,
 } from '../utils/transcriptMessagePayload';
+import { useConversationReplayActions } from '../hooks/useConversationReplayActions';
 import '../../../styles/ChatInterface.css';
 
 const ACTIVE_STREAM_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
@@ -262,162 +253,12 @@ function ChatInterface({ sidebarOpen = true, focusComposerToken = 0 }) {
   const handleAssistantFeedbackChange = useCallback((messageId, feedback) => {
     updateMessage(messageId, { feedback });
   }, [updateMessage]);
-
-  const handleEditFromUser = useCallback(async (userMessageId, editedText) => {
-    const normalizedEditedText = typeof editedText === 'string'
-      ? editedText.trim()
-      : '';
-    if (!normalizedEditedText) {
-      return;
-    }
-
-    const userIndex = messages.findIndex(
-      (message) => message.id === userMessageId && message.sender === 'user',
-    );
-    if (userIndex < 0) {
-      return;
-    }
-
-    const editUserMessage = {
-      ...messages[userIndex],
-      text: normalizedEditedText,
-    };
-    const preservedMessages = messages.slice(0, userIndex);
-    const trimmedConversation = [...preservedMessages, editUserMessage];
-    const preservedPayloads = preservedMessages.map(toRehydratePayload);
-    const sessionInfo = getTranscriptSessionInfo();
-
-    let conversationRef = getActiveConversationRef() || sessionInfo.conversationRef;
-    if (!conversationRef) {
-      conversationRef = createConversationRef();
-      setActiveConversationRef(conversationRef);
-    }
-    updateTranscriptSession(conversationRef, sessionInfo.userId || undefined);
-
-    setMessages(trimmedConversation);
-    setThinkingStatus(null);
-    setIsSending(true);
-
-    try {
-      const userId = sessionInfo.userId;
-      if (userId) {
-        await IpcBridge.invoke(INVOKE_CHANNELS.DELETE_CONVERSATION, {
-          userId,
-          conversationId: conversationRef,
-          recordKind: 'transcript',
-        });
-
-        for (const message of preservedMessages) {
-          await IpcBridge.invoke(INVOKE_CHANNELS.STORE_TRANSCRIPT, {
-            content: message.text,
-            userId,
-            conversationRef,
-            role: resolveTranscriptRole(message),
-            messageType: resolveTranscriptMessageType(message),
-            toolName: message.toolName || null,
-            correlationId: message.correlationId || null,
-            screenshot: message.screenshotRef || null,
-            timestamp: message.timestamp || null,
-          });
-        }
-
-        await IpcBridge.invoke(INVOKE_CHANNELS.STORE_TRANSCRIPT, {
-          content: editUserMessage.text,
-          userId,
-          conversationRef,
-          role: 'user',
-          messageType: 'user',
-          toolName: null,
-          correlationId: null,
-          screenshot: editUserMessage.screenshotRef || null,
-          timestamp: editUserMessage.timestamp || null,
-        });
-      }
-
-      await ApiClient.sendRehydrateConversation(conversationRef, preservedPayloads);
-      await ApiClient.sendQuery(
-        normalizedEditedText,
-        conversationRef,
-        editUserMessage.screenshotRef || null,
-        editUserMessage.screenshotUrl || null,
-      );
-    } catch (error) {
-      console.error('[ChatInterface] Failed to edit user message:', error);
-      setIsSending(false);
-    }
-  }, [messages, setIsSending, setMessages, setThinkingStatus]);
-
-  const handleTryAgainFromAssistant = useCallback(async (assistantMessageId) => {
-    const assistantIndex = messages.findIndex(
-      (message) => message.id === assistantMessageId && message.sender === 'assistant',
-    );
-    if (assistantIndex < 0) {
-      return;
-    }
-
-    let userIndex = -1;
-    for (let index = assistantIndex; index >= 0; index -= 1) {
-      if (messages[index]?.sender === 'user') {
-        userIndex = index;
-        break;
-      }
-    }
-    if (userIndex < 0) {
-      return;
-    }
-
-    const retryUserMessage = messages[userIndex];
-    const preservedMessages = messages.slice(0, userIndex + 1);
-    const preservedPayloads = preservedMessages.map(toRehydratePayload);
-    const sessionInfo = getTranscriptSessionInfo();
-
-    let conversationRef = getActiveConversationRef() || sessionInfo.conversationRef;
-    if (!conversationRef) {
-      conversationRef = createConversationRef();
-      setActiveConversationRef(conversationRef);
-    }
-    updateTranscriptSession(conversationRef, sessionInfo.userId || undefined);
-
-    setMessages(preservedMessages);
-    setThinkingStatus(null);
-    setIsSending(true);
-
-    try {
-      const userId = sessionInfo.userId;
-      if (userId) {
-        await IpcBridge.invoke(INVOKE_CHANNELS.DELETE_CONVERSATION, {
-          userId,
-          conversationId: conversationRef,
-          recordKind: 'transcript',
-        });
-
-        for (const message of preservedMessages) {
-          await IpcBridge.invoke(INVOKE_CHANNELS.STORE_TRANSCRIPT, {
-            content: message.text,
-            userId,
-            conversationRef,
-            role: resolveTranscriptRole(message),
-            messageType: resolveTranscriptMessageType(message),
-            toolName: message.toolName || null,
-            correlationId: message.correlationId || null,
-            screenshot: message.screenshotRef || null,
-            timestamp: message.timestamp || null,
-          });
-        }
-      }
-
-      await ApiClient.sendRehydrateConversation(conversationRef, preservedPayloads);
-      await ApiClient.sendQuery(
-        retryUserMessage.text,
-        conversationRef,
-        retryUserMessage.screenshotRef || null,
-        retryUserMessage.screenshotUrl || null,
-      );
-    } catch (error) {
-      console.error('[ChatInterface] Failed to retry assistant message:', error);
-      setIsSending(false);
-    }
-  }, [messages, setIsSending, setMessages, setThinkingStatus]);
+  const { handleEditFromUser, handleTryAgainFromAssistant } = useConversationReplayActions({
+    messages,
+    setMessages,
+    setThinkingStatus,
+    setIsSending,
+  });
 
   useEffect(() => {
     const handleDashboardNewChat = () => {

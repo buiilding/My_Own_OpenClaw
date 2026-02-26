@@ -6,6 +6,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from backend.src.api.contracts.message_types import OutgoingMessageType
+from backend.src.api.handlers.context import build_user_session_context
 from backend.src.api.infrastructure.errors import send_error_response, send_success_response
 from backend.src.api.infrastructure.handler import TypedMessageHandler
 from backend.src.api.schema import StopQueryMessage
@@ -33,12 +34,8 @@ class StopQueryHandler(TypedMessageHandler[StopQueryMessage]):
     ) -> None:
         try:
             canceled = self.session_manager.cancel_active_query_task(user_id)
-            context: dict[str, Any] = {"user_id": user_id}
-
             session = self.session_manager.get_session(user_id)
-            session_id = getattr(session, "session_id", None)
-            if isinstance(session_id, str) and session_id:
-                context["session_id"] = session_id
+            context = build_user_session_context(user_id=user_id, session=session)
 
             if canceled is not None:
                 turn_ref, conversation_ref = canceled

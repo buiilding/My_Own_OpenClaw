@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { Circle, PenSquare, X } from 'lucide-react';
+import { conversationGroupsPropType } from './shared/conversationGroupPropTypes';
 
 const GROUP_LABELS = Object.freeze({
   today: 'Today',
@@ -178,18 +179,8 @@ SearchChatsModal.propTypes = {
   onQueryChange: PropTypes.func.isRequired,
   isSearching: PropTypes.bool.isRequired,
   searchError: PropTypes.string.isRequired,
-  recentConversationGroups: PropTypes.shape({
-    today: PropTypes.array.isRequired,
-    yesterday: PropTypes.array.isRequired,
-    previous7Days: PropTypes.array.isRequired,
-    older: PropTypes.array.isRequired,
-  }).isRequired,
-  searchConversationGroups: PropTypes.shape({
-    today: PropTypes.array.isRequired,
-    yesterday: PropTypes.array.isRequired,
-    previous7Days: PropTypes.array.isRequired,
-    older: PropTypes.array.isRequired,
-  }).isRequired,
+  recentConversationGroups: conversationGroupsPropType,
+  searchConversationGroups: conversationGroupsPropType,
   activeConversationRef: PropTypes.string,
 };
 
