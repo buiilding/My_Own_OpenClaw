@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-response-pill): shrink response-overlay scrollbar thickness (including horizontal scroll inside long code/path blocks) so the response pill no longer shows oversized scrollbars.
 - fix(backend-token-service): normalize internal `k2p5` model id to LiteLLM-prefixed `kimi-coding/k2p5` for token counting/model-info lookups to avoid provider diagnostic noise while keeping warning paths intact.
 - fix(frontend-models-ui): hide `API Keys` section while inside provider model-detail view; show it only on the top-level provider list.
 - fix(backend-tool-history): remove duplicate linked tool-output text rows by keeping canonical `role=tool` writes and storing screenshots as an image-only companion context row (fallback legacy user-row path kept when no `tool_call_id` is staged).
