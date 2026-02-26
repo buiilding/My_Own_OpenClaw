@@ -346,4 +346,39 @@ describe('ChatInterface wiring', () => {
       null,
     );
   });
+
+  test('user edit rewinds assistant output and re-queries with edited text', async () => {
+    mockChatState.messages = [
+      { id: 'user-1', sender: 'user', text: 'old prompt', type: 'user' },
+      { id: 'assistant-1', sender: 'assistant', text: 'old response', type: 'llm-text' },
+    ];
+
+    render(<ChatInterface />);
+    const lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
+
+    await act(async () => {
+      await lastMessageListProps.onUserEdit('user-1', 'new prompt');
+    });
+
+    expect(mockSetMessages).toHaveBeenCalledWith([
+      { id: 'user-1', sender: 'user', text: 'new prompt', type: 'user' },
+    ]);
+    expect(mockSetThinkingStatus).toHaveBeenCalledWith(null);
+    expect(mockSetIsSending).toHaveBeenCalledWith(true);
+
+    expect(mockIpcInvoke).toHaveBeenCalledWith('delete-conversation', {
+      userId: 'default_user',
+      conversationId: 'conv_existing',
+      recordKind: 'transcript',
+    });
+    expect(mockIpcInvoke).toHaveBeenCalledWith('store-transcript', expect.objectContaining({
+      content: 'new prompt',
+      role: 'user',
+      messageType: 'user',
+      conversationRef: 'conv_existing',
+      userId: 'default_user',
+    }));
+    expect(mockSendRehydrateConversation).toHaveBeenCalledWith('conv_existing', []);
+    expect(mockSendQuery).toHaveBeenCalledWith('new prompt', 'conv_existing', null, null);
+  });
 });

@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(frontend-chat-ui): add inline user-message edit composer (textarea + Cancel/Send) and resend flow that immediately truncates downstream assistant/tool output, then waits for regenerated assistant response.
 - fix(frontend-chat-ui): show user message copy/edit controls only on user-bubble hover/focus (matching assistant-row visibility behavior and reducing idle icon clutter).
 - fix(frontend-chat-ui): style user message copy/edit controls to match assistant action buttons and render them on a second row beneath the user bubble.
 - fix(frontend-chat-ui): replace `UserMessageActions` function-component `defaultProps` with JavaScript default parameters to remove React deprecation warnings in dev builds.

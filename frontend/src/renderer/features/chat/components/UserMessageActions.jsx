@@ -44,7 +44,7 @@ function UserMessageActions({
     if (typeof onEdit !== 'function') {
       return;
     }
-    onEdit(messageId);
+    onEdit(messageId, messageText);
   };
 
   return (

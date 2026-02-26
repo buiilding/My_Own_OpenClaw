@@ -1,4 +1,11 @@
-import { memo, useEffect, useMemo, useRef } from 'react';
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import PropTypes from 'prop-types';
 import ThinkingDisplay from './ThinkingDisplay';
 import MessageContent from './MessageContent';
@@ -37,6 +44,54 @@ function shouldRenderUserActions(message, enableUserActions) {
   return message.sender === 'user';
 }
 
+function UserMessageEditComposer({
+  value,
+  onChange,
+  onCancel,
+  onSubmit,
+}) {
+  return (
+    <div className="user-message-editor" role="group" aria-label="Edit user message">
+      <textarea
+        className="user-message-editor-input"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            onSubmit();
+          }
+        }}
+        rows={3}
+        autoFocus
+      />
+      <div className="user-message-editor-actions">
+        <button
+          type="button"
+          className="user-message-editor-btn"
+          onClick={onCancel}
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          className="user-message-editor-btn primary"
+          onClick={onSubmit}
+        >
+          Send
+        </button>
+      </div>
+    </div>
+  );
+}
+
+UserMessageEditComposer.propTypes = {
+  value: PropTypes.string.isRequired,
+  onChange: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  onSubmit: PropTypes.func.isRequired,
+};
+
 const MessageItem = memo(function MessageItem({
   message,
   enableAssistantActions,
@@ -44,13 +99,28 @@ const MessageItem = memo(function MessageItem({
   disableAssistantActions,
   onAssistantFeedbackChange,
   onAssistantTryAgain,
-  onUserEdit,
+  isUserEditing,
+  userEditDraft,
+  onUserEditDraftChange,
+  onStartUserEdit,
+  onCancelUserEdit,
+  onSubmitUserEdit,
 }) {
   const messageClass = buildMessageClassName(message);
+  const showUserEditComposer = shouldRenderUserActions(message, enableUserActions) && isUserEditing;
 
   return (
     <div className={messageClass}>
-      <MessageContent message={message} />
+      {showUserEditComposer ? (
+        <UserMessageEditComposer
+          value={userEditDraft}
+          onChange={onUserEditDraftChange}
+          onCancel={onCancelUserEdit}
+          onSubmit={onSubmitUserEdit}
+        />
+      ) : (
+        <MessageContent message={message} />
+      )}
       {shouldRenderAssistantActions(message, enableAssistantActions) ? (
         <AssistantMessageActions
           messageId={message.id}
@@ -61,11 +131,11 @@ const MessageItem = memo(function MessageItem({
           onTryAgain={onAssistantTryAgain}
         />
       ) : null}
-      {shouldRenderUserActions(message, enableUserActions) ? (
+      {shouldRenderUserActions(message, enableUserActions) && !showUserEditComposer ? (
         <UserMessageActions
           messageId={message.id}
           messageText={message.text}
-          onEdit={onUserEdit}
+          onEdit={onStartUserEdit}
         />
       ) : null}
       <MessageTransparencySections message={message} />
@@ -80,7 +150,12 @@ MessageItem.propTypes = {
   disableAssistantActions: PropTypes.bool,
   onAssistantFeedbackChange: PropTypes.func,
   onAssistantTryAgain: PropTypes.func,
-  onUserEdit: PropTypes.func,
+  isUserEditing: PropTypes.bool,
+  userEditDraft: PropTypes.string,
+  onUserEditDraftChange: PropTypes.func,
+  onStartUserEdit: PropTypes.func,
+  onCancelUserEdit: PropTypes.func,
+  onSubmitUserEdit: PropTypes.func,
 };
 
 function MessageList({
@@ -93,7 +168,44 @@ function MessageList({
   onAssistantTryAgain,
   onUserEdit,
 }) {
+  const [editingUserMessageId, setEditingUserMessageId] = useState(null);
+  const [editingUserDraft, setEditingUserDraft] = useState('');
   const messagesEndRef = useRef(null);
+
+  const handleStartUserEdit = useCallback((messageId, messageText) => {
+    setEditingUserMessageId(messageId);
+    setEditingUserDraft(messageText || '');
+  }, []);
+
+  const handleCancelUserEdit = useCallback(() => {
+    setEditingUserMessageId(null);
+    setEditingUserDraft('');
+  }, []);
+
+  const handleSubmitUserEdit = useCallback(() => {
+    if (!editingUserMessageId || typeof onUserEdit !== 'function') {
+      return;
+    }
+    const normalizedText = editingUserDraft.trim();
+    if (!normalizedText) {
+      return;
+    }
+    onUserEdit(editingUserMessageId, normalizedText);
+    setEditingUserMessageId(null);
+    setEditingUserDraft('');
+  }, [editingUserDraft, editingUserMessageId, onUserEdit]);
+
+  useEffect(() => {
+    if (!editingUserMessageId) {
+      return;
+    }
+    const stillExists = messages.some((message) => message.id === editingUserMessageId);
+    if (!stillExists) {
+      setEditingUserMessageId(null);
+      setEditingUserDraft('');
+    }
+  }, [editingUserMessageId, messages]);
+
   const renderedMessages = useMemo(
     () => messages.map((msg) => (
       <MessageItem
@@ -104,7 +216,12 @@ function MessageList({
         disableAssistantActions={disableAssistantActions}
         onAssistantFeedbackChange={onAssistantFeedbackChange}
         onAssistantTryAgain={onAssistantTryAgain}
-        onUserEdit={onUserEdit}
+        isUserEditing={editingUserMessageId === msg.id}
+        userEditDraft={editingUserDraft}
+        onUserEditDraftChange={setEditingUserDraft}
+        onStartUserEdit={handleStartUserEdit}
+        onCancelUserEdit={handleCancelUserEdit}
+        onSubmitUserEdit={handleSubmitUserEdit}
       />
     )),
     [
@@ -114,6 +231,11 @@ function MessageList({
       disableAssistantActions,
       onAssistantFeedbackChange,
       onAssistantTryAgain,
+      editingUserMessageId,
+      editingUserDraft,
+      handleStartUserEdit,
+      handleCancelUserEdit,
+      handleSubmitUserEdit,
       onUserEdit,
     ]
   );
