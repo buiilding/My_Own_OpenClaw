@@ -1,127 +1,107 @@
 ---
-summary: "Deep reference for chat visual contracts: clone-style header/composer presentation, message/tool/transparency card styling, and thinking-stream overflow behavior."
+summary: "Deep reference for chat visual contracts: header/composer/message/tool/transparency surfaces and thinking-stream overflow behavior."
 read_when:
   - When changing chat message presentation classes or input/header control styling.
-  - When debugging thinking-stream overflow indicators or clone-style composer/header regressions.
-title: "Chat Interface, Thinking Stream, and Token Count Style Contract Reference"
+  - When debugging thinking-stream overflow indicators or chat composer/header regressions.
+title: "Chat Interface and Thinking Stream Style Contract Reference"
 ---
 
-# Chat Interface, Thinking Stream, and Token Count Style Contract Reference
+# Chat Interface and Thinking Stream Style Contract Reference
 
 This page documents:
 
 - `frontend/src/renderer/styles/ChatInterface.css`
 - `frontend/src/renderer/styles/ThinkingDisplay.css`
-- `frontend/src/renderer/styles/TokenCountDisplay.css`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
+- `frontend/src/renderer/features/chat/components/MessageList.jsx`
 - `frontend/src/renderer/features/chat/components/ThinkingDisplay.jsx`
-- `frontend/src/renderer/features/chat/components/TokenCountDisplay.jsx`
 
 ## Chat Header and Control Surface Contract (`ChatInterface.css`)
 
 Header composition:
 
-- `.chat-container` is full-height with no interior padding; shell spacing is handled by dashboard chrome
-- `.chat-header` is draggable (`-webkit-app-region: drag`) with clone-style compact top bar spacing and bottom divider
-- `.chat-title-block` exposes a clone-style model selector button (`.chat-model-selector`)
-- `.chat-model-dropdown` renders clone-style model option menu with `.chat-model-menu` / `.chat-model-menu-item` surface styling
-- when sidebar is collapsed, `ChatInterface` receives `sidebarOpen={false}` and renders `.chat-header-brand-dot` before the selector to match clone header behavior
-- `.chat-meta` stays `no-drag` so top-right utility controls remain clickable
+- `.chat-container` is full-height; dashboard shell controls outer spacing.
+- `.chat-header` is draggable with compact top-bar spacing and divider.
+- `.chat-model-selector` and `.chat-model-menu*` classes own model dropdown visuals.
+- collapsed sidebar mode renders `.chat-header-brand-dot` before selector.
+- `.chat-meta` remains non-draggable for interactive controls.
 
-Utility controls:
+Control placement:
 
-- `ChatInterface.jsx` uses clone-style utility icon controls:
-  - `.chat-top-icon-btn` (`Share`, `More options`)
-- hover behavior mirrors clone dark-hover affordances (`#2F2F2F` background with brightened icon color)
-
-Action placement:
-
-- legacy header action chips (`new chat` / `stop`) are replaced by composer-level actions
-- stop action now lives in `MessageInput` as `.message-stop-btn`
-- new chat action is triggered from dashboard sidebar (`windie:new-chat` event), not header
+- stop/new chat actions are composer/sidebar-driven, not header chips.
+- speech toggle uses `.chat-top-icon-btn` style contract.
 
 ## Message Stream and Bubble Contract
 
 Message list:
 
-- `.message-list` is the primary vertical scroller with stable scrollbar gutter
-- `.message` width rules are role/type sensitive
+- `.message-list` is primary vertical scroller with stable gutter behavior.
+- `.message` lane style is role/type-sensitive.
 
-Role-based message surface:
+Role-based surface:
 
-- `.message-user` aligns to end and uses accent-tinted bubble
-- `.message-assistant` stretches full-width with transparent shell so nested specialized blocks render naturally
+- `.message-user` right-aligned bubble lane.
+- `.message-assistant` full-width transparent lane for nested tool/transparency sections.
 
-Markdown content styling:
+Markdown surface:
 
-- `.message-content-markdown` defines spacing and styles for paragraphs/lists/code/tables/blockquote/hr
-- code and pre blocks rely on mono font token and darkened panel backgrounds
+- `.message-content-markdown` controls spacing for paragraph/list/code/table/blockquote.
 
-## Tool/Transparency Card Contract
+## Tool and Transparency Card Contract
 
 Tool cards:
 
-- `.tool-output-container` and `.tool-call-container` share mono-card base with colored left border variants
-- `.tool-card-header-row`, `.tool-details-btn`, `.tool-details-panel` define expandable metadata pattern
+- `.tool-output-container` and `.tool-call-container` share mono-card base + typed accents.
+- `.tool-details-*` classes define expandable metadata sections.
 
-Screenshot sections:
+Screenshot cards:
 
-- `.tool-screenshot-*` and `.user-screenshot-*` classes define image framing/labels
-- images use `object-fit: contain` with capped height and bordered surface
+- `.tool-screenshot-*` and `.user-screenshot-*` classes handle framing/labels.
+- media uses bounded contain behavior and bordered cards.
 
-Transparency sections:
+Transparency cards:
 
-- `.transparency-section` family defines collapsible metadata+payload cards
-- `.transparency-copy-btn` provides explicit copy-action CTA styling
-- `.transparency-content` caps payload panel height and enables internal scroll
+- `.transparency-section*` classes define collapsible debug payload cards.
+- `.transparency-content` enforces capped panel height + internal scroll.
 
 ## Input Composer Contract
 
-Input row:
+Composer structure:
 
-- `MessageInput` mirrors clone composer structure:
-  - top text row (`.message-input-top-row` + multiline `.message-input`)
-  - bottom action row (`.message-input-bottom-row`) with left utility controls and right send/stop controls
-- composer utility controls now include clone-style dropdown menus (`.message-dropdown-menu`) for the plus action list and thinking-mode selection
-- non-empty composer width is constrained to clone-like `max-w-3xl` behavior, while centered empty-state composer uses the wider clone-style `800px` treatment with minimum pill height parity.
-- send control uses `.message-send-btn`; while sending it switches to `.message-stop-btn`
-- empty conversation state renders centered composer variant via `.message-input-centered`
-- non-empty state renders bottom composer with footer disclaimer (`.message-input-disclaimer`)
-
-Empty state:
-
-- `.chat-empty-state` renders clone-parity welcome layout
-- `.chat-empty-title` displays the greeting above centered composer
+- top text row: `.message-input-top-row` + multiline `.message-input`
+- bottom action row: `.message-input-bottom-row` with utility + send/stop controls
+- dropdown menus use `.message-dropdown-menu` classes
+- non-empty width constrained to clone-like max width; empty-state composer is centered variant
 
 ## Thinking Stream Overflow Contract (`ThinkingDisplay.css` + component)
 
 Class coupling:
 
-- `ThinkingDisplay.jsx` toggles `has-overflow-above` on `.thinking-display-stream`
+- `ThinkingDisplay.jsx` toggles `has-overflow-above` on `.thinking-display-stream`.
 
 Visual behavior:
 
-- pseudo-element gradient (`::before`) only appears when overflow exists above current viewport
-- thinking text uses mono font, low-contrast tone, and subtle glow to keep it secondary to main assistant output
-- max height and internal scroll preserve overall chat layout stability
+- overflow gradient indicator only shown when content exists above viewport.
+- thinking stream stays visually secondary to assistant main content.
+- max-height + internal scroll preserves overall layout stability.
 
 ## Token Count Note
 
-`TokenCountDisplay` styling remains defined in `TokenCountDisplay.css` for compatibility, but clone-parity main-window chat header no longer renders token badges.
+Current chat styles do not include a dedicated `TokenCountDisplay.css` surface.
+Token usage remains stream telemetry in state (`chatStore.tokenCounts`) and can be surfaced by future UI consumers.
 
 ## Responsive and Motion Guarantees
 
-`ChatInterface.css` breakpoints:
+Breakpoints:
 
-- `max-width: 920px` reduces empty-state headline size and allows full-width messages
-- `max-width: 720px` compacts header spacing and centered composer sizing for narrow widths
+- narrow viewport breakpoints adjust header spacing and composer widths.
 
-Reduced motion:
+Motion:
 
-- message enter animation (`messageIn`) is disabled when `prefers-reduced-motion: reduce`
+- message enter animations disable under `prefers-reduced-motion: reduce`.
 
 ## Related Docs
 
 - [Frontend Renderer Styles Docs Hub](README.md)
 - [Renderer Chat Presentation Docs Hub](../chat/presentation/README.md)
-- [Thinking Display Overflow, Message List Class Assembly, and Token Count Formatting Reference](../chat/presentation/thinking_display_overflow_message_list_class_assembly_and_token_count_formatting_reference.md)
+- [Thinking Display Overflow, Message List Class Assembly, and Stream Token Tracking Reference](../chat/presentation/thinking_display_overflow_message_list_class_assembly_and_token_count_formatting_reference.md)

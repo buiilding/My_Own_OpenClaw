@@ -1,5 +1,5 @@
 ---
-summary: "React renderer architecture including providers, state domains, chat/dashboard/voice features, and transcript integration."
+summary: "React renderer architecture including provider boundaries, chat/dashboard/voice feature runtime, and transcript/config synchronization behavior."
 read_when:
   - When changing renderer state boundaries, hooks, or message rendering behavior.
   - When debugging config sync, transcript persistence, or dashboard interactions.
@@ -13,7 +13,7 @@ title: "Renderer Runtime"
 Entrypoints:
 
 - `frontend/src/renderer/app/main.jsx`
-- root app: `frontend/src/renderer/app/App.jsx`
+- `frontend/src/renderer/app/App.jsx`
 
 Provider layering:
 
@@ -21,11 +21,18 @@ Provider layering:
 2. `AppStatusProvider`
 3. `ChatProvider`
 
-Key provider responsibilities:
+Provider responsibilities:
 
-- `AppConfigProvider`: frontend-owned config state, model list requests, backend sync, disk/localStorage sync, wakeword preference state
-- `AppStatusProvider`: transient save status and UI state not coupled to config payloads
-- `ChatProvider`: initializes stream + tool hooks over shared chat store
+- `AppConfigProvider`:
+  - frontend-owned config state
+  - model list loading/refresh
+  - backend settings sync
+  - disk/localStorage sync
+  - wakeword enabled/suppressed state
+- `AppStatusProvider`:
+  - transient save status/UI status
+- `ChatProvider`:
+  - initializes `useChatStream` + `useToolRunner`
 
 ## Feature Domains
 
@@ -33,73 +40,82 @@ Key provider responsibilities:
 
 State:
 
-- `stores/chatStore.ts` (Zustand): messages, send state, thinking status, token counts, stream tracking
+- `stores/chatStore.ts`: messages, send state, thinking status, token-count telemetry, stream tracking
 
 Primary hooks:
 
-- `useChatMessageSender`: user message creation, optional screenshot capture path, query dispatch
-- `useChatStream`: backend event ingestion and message update orchestration
-- `useToolRunner`: tool event handling and execution service wiring
-- `useTranscription`: input/transcription integration
+- `useChatMessageSender`
+- `useChatStream`
+- `useStreamMessageUpdaters`
+- `useToolRunner`
+- `useTranscription`
 
 Primary components:
 
-- `ChatInterface`, `MessageList`, `MessageInput`, `MessageContent`
-- `ThinkingDisplay`, `TokenCountDisplay`
-- transparency sections for system prompt/tool schemas/full messages
+- `ChatInterface`
+- `MessageList`, `MessageInput`, `MessageContent`
+- `ThinkingDisplay`
+- transparency components and overlay-chatbox response components
 
 ### Dashboard (`features/dashboard`)
 
-Primary modal surfaces include:
+Primary shell + sections:
 
-- Clone-style Memory panel (`MemorySection`) with tabs for episodic/semantic/procedural
-- Models panel (`ModelsSection`)
-- Settings panel (`SettingsSection`)
+- `ChatGptDashboardShell`
+- `DashboardSidebar`
+- `SearchChatsModal`
+- sections: `MemorySection`, `ModelsSection`, `SettingsSection`, `UsageSection`
 
-Chat history ownership remains in the sidebar `Your chats` list, while the Memory panel surfaces memory records.
+Current dashboard behavior:
 
-Utility modules provide selection formatting, memory formatting, and persisted section-state helpers.
+- sidebar owns conversation browsing/open/rename/pin/delete
+- memory section is unified (episodic/semantic/procedural)
+- models section is provider-first and includes provider API key controls
 
 ### Voice (`features/voice`)
 
-Includes:
+Primary hooks/components:
 
-- `useVoiceMode` for voice gateway stream management
-- `useWakewordDetection` for local wakeword integration
-- `VoiceStatus` UI component
+- `useVoiceMode`
+- `useWakewordDetection`
+- `VoiceStatus`
+- app-level `WakewordController`
 
 ## Infrastructure Layer
 
-Primary modules:
+Core modules:
 
 - `infrastructure/api/client.ts`: typed backend command surface
-- `infrastructure/ipc/bridge.ts`: validated IPC send/invoke/on abstraction
-- `infrastructure/services/*`: tool execution, payload shaping, system capture, artifacts
-- `infrastructure/transcript/*`: transcript queues, session info, storage wrappers
+- `infrastructure/ipc/bridge.ts`: typed IPC wrapper over preload API
+- `infrastructure/services/*`: tool execution/capture/payload services
+- `infrastructure/transcript/*`: transcript queues/session storage/writer
+- `infrastructure/audio/PlayerService.ts`: streaming audio playback queue
 
 ## Transcript and Session Metadata
 
-Transcript writer module captures:
+`TranscriptWriter` runtime guarantees:
 
-- user/assistant/tool rows
-- model/provider metadata
-- correlation IDs and screenshot references
-
-Session info handling avoids lost writes during startup by queueing pending entries until session metadata is ready.
+- stores user/assistant/tool rows with message type + correlation metadata
+- queues writes if session info unavailable and retries when session resolves
+- emits local `transcript-entry-stored` event for dashboard refresh logic
 
 ## Config Ownership Boundary
 
-Frontend-managed settings are explicitly filtered and sanitized before syncing:
+Frontend-managed settings are filtered/sanitized before backend sync.
 
-- model mode/provider/model id
+Typical keys:
+
+- model mode/provider/selected model
 - interaction mode
-- voice/speech modes
+- voice/speech mode flags
 - query screenshot inclusion
+- provider API keys
 
 Backend remains source of truth for non-frontend runtime fields.
 
-## Related Provider Deep Dives
+## Related Docs
 
-- `docs/frontend/renderer/providers/README.md`
-- `docs/frontend/renderer/providers/entrypoint_view_routing_and_provider_stack_reference.md`
-- `docs/frontend/renderer/providers/app_provider_coordinator_and_save_status_runtime_reference.md`
+- [Frontend Renderer Docs Hub](README.md)
+- [Frontend Renderer Provider Docs Hub](providers/README.md)
+- [Frontend Renderer Chat Docs Hub](chat/README.md)
+- [Frontend Renderer Dashboard Docs Hub](dashboard/README.md)

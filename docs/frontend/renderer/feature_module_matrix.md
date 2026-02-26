@@ -1,8 +1,8 @@
 ---
-summary: "Renderer feature-module matrix: chat, dashboard, settings, and voice responsibilities with primary hooks/stores/components."
+summary: "Renderer feature-module matrix for chat, dashboard, settings, and voice responsibilities with current hooks/stores/components."
 read_when:
   - When deciding where renderer functionality should live.
-  - When tracing UI behavior to feature hooks or store updates.
+  - When tracing UI behavior to feature hooks, stores, and infrastructure calls.
 title: "Feature Module Matrix"
 ---
 
@@ -21,26 +21,28 @@ Path:
 Primary responsibilities:
 
 - user input/send lifecycle
-- stream event rendering and partial updates
-- tool execution triggers and output rendering
-- thinking/token/transparency displays
+- stream event ingestion and partial assistant updates
+- tool execution dispatch/result rendering
+- thinking/transparency rendering
+- stream telemetry and token-count state tracking
 
 Core hooks:
 
 - `useChatMessageSender`
 - `useChatStream`
+- `useStreamMessageUpdaters`
 - `useToolRunner`
 - `useTranscription`
 
 Core store:
 
-- `stores/chatStore.ts` (message list, stream tracking, token counts, send state)
+- `stores/chatStore.ts` (messages, stream tracking, token counts, send/thinking state)
 
 Primary components:
 
 - `ChatInterface`
 - `MessageList`, `MessageContent`, `MessageInput`
-- `ThinkingDisplay`, `TokenCountDisplay`
+- `ThinkingDisplay`
 - `ChatBox`, `ChatBoxResponse`
 
 ## Dashboard Module
@@ -51,9 +53,9 @@ Path:
 
 Primary responsibilities:
 
-- conversation-first dashboard shell with modal settings/memory/model views
-- memory management UI for episodic and semantic stores
-- model selection and frontend settings controls
+- main shell + sidebar + modal section orchestration
+- conversation history/search/open/rehydrate flows
+- memory/models/settings/usage panel UX
 
 Shell:
 
@@ -61,10 +63,10 @@ Shell:
 
 Sections:
 
-- episodic
-- semantic
-- models
-- settings
+- `MemorySection` (+ `MemoryItem` + section data helpers)
+- `ModelsSection` (+ provider/model/api-key helper components)
+- `SettingsSection`
+- `UsageSection`
 
 ## Settings Module
 
@@ -74,8 +76,7 @@ Path:
 
 Current role:
 
-- focused hook for backend-provided model list updates
-- lightweight compatibility layer for settings event wiring
+- settings management hook + backend-driven model list/event integration
 
 Core hook:
 
@@ -89,8 +90,8 @@ Path:
 
 Primary responsibilities:
 
-- wakeword detection bridge management
-- voice gateway connection and audio streaming logic
+- wakeword capture/event handling
+- voice gateway websocket + transcription flow
 - voice status UI
 
 Core hooks/components:
@@ -101,9 +102,9 @@ Core hooks/components:
 
 ## Feature-to-Infrastructure Dependencies
 
-Common dependencies used by feature modules:
+Common dependencies:
 
-- `infrastructure/ipc` for message transport
-- `infrastructure/api/client.ts` for backend command dispatch
-- `infrastructure/services/*` for tool execution and capture logic
+- `infrastructure/ipc` for renderer/main transport
+- `infrastructure/api/client.ts` for backend message dispatch
+- `infrastructure/services/*` for tool execution and capture
 - `infrastructure/transcript/*` for persisted conversation records
