@@ -28,10 +28,14 @@ from backend.src.tools.browser.snapshot_scope_fields import (
 from backend.src.tools.browser.shared_compat_fields import BrowserScreenshotImageFields
 
 
-class BrowserConnectArgs(BaseModel):
-    """Arguments for browser connect action."""
+class BrowserArgsModel(BaseModel):
+    """Shared backend browser schema base."""
 
     model_config = ConfigDict(extra="ignore")
+
+
+class BrowserConnectArgs(BrowserArgsModel):
+    """Arguments for browser connect action."""
 
     action: Literal["connect"] = Field(..., description="Connect to browser")
     mode: Literal["user_chrome", "managed"] = Field(
@@ -51,10 +55,8 @@ class BrowserConnectArgs(BaseModel):
     headless: bool = Field(False, description="Run managed browser headless (no UI)")
 
 
-class BrowserNavigateArgs(BaseModel):
+class BrowserNavigateArgs(BrowserArgsModel):
     """Arguments for browser navigate action."""
-
-    model_config = ConfigDict(extra="ignore")
 
     action: Literal["navigate"] = Field(..., description="Navigate to URL")
     url: str = Field(..., description="URL to navigate to")
@@ -64,10 +66,8 @@ class BrowserNavigateArgs(BaseModel):
     )
 
 
-class BrowserSnapshotArgs(BaseModel):
+class BrowserSnapshotArgs(BrowserArgsModel):
     """Arguments for browser snapshot action."""
-
-    model_config = ConfigDict(extra="ignore")
 
     action: Literal["snapshot"] = Field(..., description="Get page snapshot")
     format: BrowserSnapshotFormat = Field(
@@ -106,10 +106,8 @@ class BrowserSnapshotArgs(BaseModel):
     frame: SnapshotFrameField
 
 
-class BrowserExtractArgs(BaseModel):
+class BrowserExtractArgs(BrowserArgsModel):
     """Arguments for browser extract action."""
-
-    model_config = ConfigDict(extra="ignore")
 
     action: Literal["extract"] = Field(
         ..., description="Extract query-relevant page content from current DOM text"
@@ -154,10 +152,8 @@ class BrowserExtractArgs(BaseModel):
     )
 
 
-class BrowserClickArgs(BaseModel):
+class BrowserClickArgs(BrowserArgsModel):
     """Arguments for browser click action."""
-
-    model_config = ConfigDict(extra="ignore")
 
     action: Literal["click"] = Field(..., description="Click element")
     ref: Optional[str] = Field(
@@ -196,10 +192,8 @@ class BrowserClickArgs(BaseModel):
         return self
 
 
-class BrowserTypeArgs(BaseModel):
+class BrowserTypeArgs(BrowserArgsModel):
     """Arguments for browser type action."""
-
-    model_config = ConfigDict(extra="ignore")
 
     action: Literal["type"] = Field(..., description="Type text")
     ref: str = Field(..., description="Element reference from snapshot")
@@ -207,10 +201,8 @@ class BrowserTypeArgs(BaseModel):
     submit: bool = Field(False, description="Press Enter after typing")
 
 
-class BrowserPressArgs(BaseModel):
+class BrowserPressArgs(BrowserArgsModel):
     """Arguments for browser press action."""
-
-    model_config = ConfigDict(extra="ignore")
 
     action: Literal["press"] = Field(..., description="Press key")
     key: str = Field(
@@ -218,10 +210,8 @@ class BrowserPressArgs(BaseModel):
     )
 
 
-class BrowserScrollArgs(BaseModel):
+class BrowserScrollArgs(BrowserArgsModel):
     """Arguments for browser scroll action."""
-
-    model_config = ConfigDict(extra="ignore")
 
     action: Literal["scroll"] = Field(..., description="Scroll page")
     direction: BrowserScrollDirection = Field(
@@ -235,10 +225,8 @@ class BrowserScrollArgs(BaseModel):
     index: Optional[int] = Field(None, description="Optional Browser Use element index", ge=0)
 
 
-class BrowserScreenshotArgs(BrowserScreenshotImageFields):
+class BrowserScreenshotArgs(BrowserScreenshotImageFields, BrowserArgsModel):
     """Arguments for browser screenshot action."""
-
-    model_config = ConfigDict(extra="ignore")
 
     action: Literal["screenshot"] = Field(..., description="Take screenshot")
     full_page: bool = Field(False, description="Capture full page height")
@@ -250,10 +238,8 @@ class BrowserScreenshotArgs(BrowserScreenshotImageFields):
     )
 
 
-class BrowserWaitArgs(BaseModel):
+class BrowserWaitArgs(BrowserArgsModel):
     """Arguments for browser wait action."""
-
-    model_config = ConfigDict(extra="ignore")
 
     action: Literal["wait"] = Field(..., description="Wait for page state or time")
     state: BrowserWaitState = Field(
@@ -267,27 +253,21 @@ class BrowserWaitArgs(BaseModel):
     )
 
 
-class BrowserGetTabsArgs(BaseModel):
+class BrowserGetTabsArgs(BrowserArgsModel):
     """Arguments for browser get_tabs action."""
-
-    model_config = ConfigDict(extra="ignore")
 
     action: Literal["get_tabs"] = Field(..., description="Get open tabs")
 
 
-class BrowserSwitchTabArgs(BaseModel):
+class BrowserSwitchTabArgs(BrowserArgsModel):
     """Arguments for browser switch_tab action."""
-
-    model_config = ConfigDict(extra="ignore")
 
     action: Literal["switch_tab"] = Field(..., description="Switch to tab")
     target_id: str = Field(..., description="Tab target ID from get_tabs")
 
 
-class BrowserEvaluateArgs(BaseModel):
+class BrowserEvaluateArgs(BrowserArgsModel):
     """Arguments for browser evaluate action."""
-
-    model_config = ConfigDict(extra="ignore")
 
     action: Literal["evaluate"] = Field(..., description="Evaluate JavaScript")
     script: Optional[str] = Field(
@@ -304,10 +284,8 @@ class BrowserEvaluateArgs(BaseModel):
         return self
 
 
-class BrowserCloseArgs(BaseModel):
+class BrowserCloseArgs(BrowserArgsModel):
     """Arguments for browser close action."""
-
-    model_config = ConfigDict(extra="ignore")
 
     action: Literal["close"] = Field(..., description="Close browser connection")
     tab_id: Optional[str] = Field(
