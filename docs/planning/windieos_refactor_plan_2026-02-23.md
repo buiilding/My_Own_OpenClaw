@@ -108,6 +108,15 @@ read_when:
     - `state.py` reduced from `511` LOC to `441` LOC.
   - verification:
     - `./scripts/python-in-env backend python -m pytest tests/backend/test_conversation_history.py tests/backend/test_api_handlers.py tests/backend/test_interaction_loop_compaction.py -q`
+- Frontend tool-runner payload dedupe:
+  - extracted shared tool-output envelope field wiring in:
+    - `frontend/src/renderer/features/chat/utils/toolRunnerMessages.ts`
+  - preserved message payload shape for both single-tool and bundled-tool output messages.
+  - verification:
+    - `cd frontend && npm run test:ci -- tests/frontend/ToolRunnerMessages.test.ts`
+    - `cd frontend && npm run lint`
+  - audit delta:
+    - frontend+backend `jscpd` total clones reduced from `23` to `22`.
 
 - Dashboard shell split:
   - extracted conversation/search orchestration from `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx` into:
