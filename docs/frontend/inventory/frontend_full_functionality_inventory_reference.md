@@ -14,12 +14,12 @@ This is the canonical current-state functionality inventory for `frontend/src`.
 
 Source counts used in this inventory:
 
-- Main process (`frontend/src/main`, `.cjs|.js`): `24`
+- Main process (`frontend/src/main`, `.cjs|.js`): `29`
 - Sidecar runtime (`frontend/src/main/python`, `.py`): `140`
-- Renderer runtime (`frontend/src/renderer`, `.ts|.tsx|.js|.jsx`): `117`
+- Renderer runtime (`frontend/src/renderer`, `.ts|.tsx|.js|.jsx`): `125`
 - Landing (`frontend/src/landing`, `.jsx|.css`): `13`
 - Preload bridge (`frontend/src/preload.js`): `1`
-- Total covered frontend files: `295`
+- Total covered frontend files: `308`
 
 ## 1) Electron Main Process Inventory
 
@@ -28,6 +28,7 @@ Source counts used in this inventory:
 Primary files:
 
 - `frontend/src/main/index.cjs`
+- `frontend/src/main/main_window_runtime.cjs`
 - `frontend/src/main/overlay_bounds.cjs`
 - `frontend/src/main/overlay_visibility_handler.cjs`
 - `frontend/src/main/overlay_mouse_handler.cjs`
@@ -54,6 +55,9 @@ Functionality:
 Primary files:
 
 - `frontend/src/main/ipc.cjs`
+- `frontend/src/main/ipc_runtime_helpers.cjs`
+- `frontend/src/main/ipc_renderer_windows.cjs`
+- `frontend/src/main/ipc_query_broadcast.cjs`
 - `frontend/src/main/backend_endpoints.cjs`
 - `frontend/src/main/query_payload_builder.cjs`
 - `frontend/src/main/ipc_query_events.cjs`
@@ -67,7 +71,7 @@ Functionality:
 - Maintains settings-sync ACK lifecycle with timeout protection.
 - Gates first query behind initial settings sync attempt.
 - Builds query payload content with system-context XML + memory sections.
-- Emits synthetic `local-user-message` and fallback error envelopes for failed sends.
+- Emits synthetic `local-user-message` and fallback error envelopes for failed sends through split broadcaster helpers.
 - Persists/loads frontend config to disk and keeps in-memory config snapshot.
 
 ### 1.3 Local Sidecar Bridge (Main <-> Python)
@@ -88,11 +92,12 @@ Functionality:
 - Executes tool calls and normalizes tool args (`run_shell_command` sudo mode injection).
 - Applies Linux screenshot execution window hiding/restoration.
 
-### 1.4 Wakeword + Privilege Bridges
+### 1.4 Wakeword + Permission + Privilege Bridges
 
 Primary files:
 
 - `frontend/src/main/wakeword_bridge.cjs`
+- `frontend/src/main/permission_service.cjs`
 - `frontend/src/main/agent_sudo_access_handler.cjs`
 
 Functionality:
@@ -106,6 +111,10 @@ Functionality:
   - Enables passwordless sudo via `pkexec` + sudoers file write/validate.
   - Disables via non-interactive `sudo -n` path.
   - Normalizes cancellation/auth failure reasons for renderer UX.
+- Permission bridge:
+  - Loads and evaluates permission manifest entries.
+  - Runs per-permission probe/check/request handlers for onboarding/data controls.
+  - Normalizes status payloads consumed by renderer permission store.
 
 ## 2) Preload Boundary Inventory
 
@@ -129,6 +138,8 @@ Primary files:
 - `frontend/src/renderer/app/main.jsx`
 - `frontend/src/renderer/app/WakewordController.jsx`
 - `frontend/src/renderer/app/providers/*`
+- `frontend/src/renderer/features/permissions/stores/permissionStore.js`
+- `frontend/src/renderer/features/permissions/components/*`
 
 Functionality:
 
@@ -137,6 +148,7 @@ Functionality:
 - Maintains wakeword preference/suppression state.
 - Coordinates save-state callback from config updates into status context.
 - Boots chat stream + tool runner hooks at app scope.
+- Enforces install-time permission onboarding gate before dashboard/chat runtime.
 
 ### 3.2 Chat Feature Runtime
 
@@ -180,7 +192,8 @@ Primary files:
   - `SettingsSection.jsx`, `UsageSection.jsx`
 - Utilities/hooks:
   - `utils/episodicMemoryUtils.js`, `utils/modelSelectionUtils.js`
-  - `hooks/useTranscriptSessionInfo.js`
+  - `hooks/useTranscriptSessionInfo.js`, `hooks/useDashboardConversations.js`
+  - `utils/conversationGroups.js`
 
 Functionality:
 

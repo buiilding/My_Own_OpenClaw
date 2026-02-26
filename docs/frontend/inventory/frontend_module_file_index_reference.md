@@ -14,9 +14,9 @@ This index maps frontend functionality to file ownership.
 
 | Surface | Files |
 | --- | ---: |
-| Main process (`frontend/src/main`, `.cjs`/`.js`) | 23 |
-| Sidecar Python (`frontend/src/main/python`, `.py`) | 136 |
-| Renderer runtime (`frontend/src/renderer`, TS/JS) | 114 |
+| Main process (`frontend/src/main`, `.cjs`/`.js`) | 29 |
+| Sidecar Python (`frontend/src/main/python`, `.py`) | 140 |
+| Renderer runtime (`frontend/src/renderer`, TS/JS) | 125 |
 | Landing (`frontend/src/landing`, `.jsx`/`.css`) | 13 |
 | Preload bridge (`frontend/src/preload.js`) | 1 |
 
@@ -25,6 +25,7 @@ This index maps frontend functionality to file ownership.
 Core runtime:
 
 - `frontend/src/main/index.cjs`
+- `frontend/src/main/main_window_runtime.cjs`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/backend_endpoints.cjs`
 - `frontend/src/main/query_payload_builder.cjs`
@@ -50,7 +51,11 @@ Bridge/support modules:
 - `frontend/src/main/local_backend_bridge_utils.cjs`
 - `frontend/src/main/local_backend_bridge_windows.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
+- `frontend/src/main/permission_service.cjs`
 - `frontend/src/main/ipc_query_events.cjs`
+- `frontend/src/main/ipc_query_broadcast.cjs`
+- `frontend/src/main/ipc_renderer_windows.cjs`
+- `frontend/src/main/ipc_runtime_helpers.cjs`
 - `frontend/src/main/ipc_frontend_config.cjs`
 - `frontend/src/main/test_shell.cjs`
 
@@ -64,6 +69,7 @@ App + providers:
 Shared components:
 
 - `frontend/src/renderer/components/ErrorBoundary.jsx`
+- `frontend/src/renderer/components/ChatGptLogo.jsx`
 
 Feature slices:
 
@@ -84,6 +90,10 @@ Feature slices:
 - `frontend/src/renderer/features/voice/components/*`
 - `frontend/src/renderer/features/voice/hooks/*`
 - `frontend/src/renderer/features/voice/utils/*`
+- Permissions:
+- `frontend/src/renderer/features/permissions/components/*`
+- `frontend/src/renderer/features/permissions/stores/*`
+- `frontend/src/renderer/features/permissions/utils/*`
 
 Infrastructure:
 
