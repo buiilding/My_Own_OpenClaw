@@ -110,6 +110,49 @@ def test_gitignore_utils_without_pathspec(monkeypatch, tmp_path: Path):
     assert gitignore_utils.is_ignored_by_any("foo.txt", []) is False
 
 
+def test_load_gitignore_returns_compiled_spec(monkeypatch, tmp_path: Path):
+    (tmp_path / ".gitignore").write_text("*.log\n", encoding="utf-8")
+
+    class _DummyPathSpecModule:
+        class PathSpec:
+            @staticmethod
+            def from_lines(pattern_kind, lines):
+                return {
+                    "pattern_kind": pattern_kind,
+                    "lines": [line.rstrip("\n") for line in lines],
+                }
+
+    monkeypatch.setattr(gitignore_utils, "pathspec", _DummyPathSpecModule)
+
+    spec = gitignore_utils.load_gitignore(str(tmp_path))
+
+    assert spec == {"pattern_kind": "gitwildmatch", "lines": ["*.log"]}
+
+
+def test_find_gitignore_specs_walks_parent_directories(monkeypatch, tmp_path: Path):
+    parent = tmp_path / "parent"
+    child = parent / "child"
+    child.mkdir(parents=True)
+    (parent / ".gitignore").write_text("*.tmp\n", encoding="utf-8")
+    (child / ".gitignore").write_text("build/\n", encoding="utf-8")
+
+    class _DummyPathSpecModule:
+        class PathSpec:
+            @staticmethod
+            def from_lines(_pattern_kind, lines):
+                return tuple(line.rstrip("\n") for line in lines)
+
+    monkeypatch.setattr(gitignore_utils, "pathspec", _DummyPathSpecModule)
+
+    specs = gitignore_utils.find_gitignore_specs(str(child))
+    spec_map = {directory: spec for directory, spec in specs}
+
+    assert str(child.resolve()) in spec_map
+    assert str(parent.resolve()) in spec_map
+    assert spec_map[str(child.resolve())] == ("build/",)
+    assert spec_map[str(parent.resolve())] == ("*.tmp",)
+
+
 def test_is_ignored_by_any_uses_specs():
     class DummySpec:
         def __init__(self, match):
@@ -123,7 +166,21 @@ def test_is_ignored_by_any_uses_specs():
     assert gitignore_utils.is_ignored_by_any("/root/b.txt", specs) is False
 
 
-def test_is_ignored_normalizes_windows_separators():
+def test_is_ignored_by_any_skips_broken_spec_and_continues():
+    class BrokenSpec:
+        def match_file(self, _path):
+            raise RuntimeError("boom")
+
+    class MatchingSpec:
+        def match_file(self, path):
+            return path == "keep.txt"
+
+    specs = [("/root", BrokenSpec()), ("/root", MatchingSpec())]
+
+    assert gitignore_utils.is_ignored_by_any("/root/keep.txt", specs) is True
+
+
+def test_is_ignored_normalizes_windows_separators(monkeypatch):
     class DummySpec:
         def __init__(self):
             self.last_path = None
@@ -132,14 +189,16 @@ def test_is_ignored_normalizes_windows_separators():
             self.last_path = path
             return path == "folder/file.txt"
 
+    monkeypatch.setattr(gitignore_utils, "pathspec", object())
     spec = DummySpec()
     assert gitignore_utils.is_ignored("folder\\file.txt", spec) is True
     assert spec.last_path == "folder/file.txt"
 
 
-def test_is_ignored_returns_false_when_spec_raises():
+def test_is_ignored_returns_false_when_spec_raises(monkeypatch):
     class BrokenSpec:
         def match_file(self, _path):
             raise RuntimeError("boom")
 
+    monkeypatch.setattr(gitignore_utils, "pathspec", object())
     assert gitignore_utils.is_ignored("folder/file.txt", BrokenSpec()) is False
