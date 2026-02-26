@@ -191,6 +191,15 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(mockSend).not.toHaveBeenCalledWith('move-chatbox-to', expect.anything());
   });
 
+  test('auto-focuses input when chatbox window gains focus', () => {
+    render(<ChatBox />);
+    const input = screen.getByPlaceholderText('Ask me anything...');
+
+    input.blur();
+    fireEvent.focus(window);
+    expect(document.activeElement).toBe(input);
+  });
+
   test('adds ambient loop glow class while active stream phases are running', () => {
     mockChatState.streamTracking.phase = 'tool-call';
     const { container, rerender } = render(<ChatBox />);

@@ -95,12 +95,37 @@ function ChatBox() {
     }
   }, []);
 
+  const focusInput = useCallback(() => {
+    void setOverlayIgnore(false);
+    inputRef.current?.focus();
+  }, [setOverlayIgnore]);
+
   useEffect(() => {
     setOverlayIgnore(false);
     return () => {
       setOverlayIgnore(false);
     };
   }, [setOverlayIgnore]);
+
+  useEffect(() => {
+    focusInput();
+
+    const handleWindowFocus = () => {
+      focusInput();
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        focusInput();
+      }
+    };
+
+    window.addEventListener('focus', handleWindowFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      window.removeEventListener('focus', handleWindowFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [focusInput]);
 
   useEffect(() => {
     const overlayIsTerminal = OVERLAY_TERMINAL_PHASES.has(overlayPhase);
@@ -155,13 +180,12 @@ function ChatBox() {
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.CHATBOX_FOCUS, () => {
-      setOverlayIgnore(false);
-      inputRef.current?.focus();
+      focusInput();
     });
     return () => {
       removeListener?.();
     };
-  }, [setOverlayIgnore]);
+  }, [focusInput]);
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.WAKEWORD_STT_TRIGGER, () => {
@@ -172,13 +196,12 @@ function ChatBox() {
       resetTranscription();
       setInputValue('');
       setWakewordSttSessionActive(true);
-      setOverlayIgnore(false);
-      inputRef.current?.focus();
+      focusInput();
     });
     return () => {
       removeListener?.();
     };
-  }, [resetTranscription, setInputValue, setOverlayIgnore, wakewordSttEnabled]);
+  }, [focusInput, resetTranscription, setInputValue, wakewordSttEnabled]);
 
   useEffect(() => {
     if (!wakewordSttEnabled && wakewordSttSessionActive) {
