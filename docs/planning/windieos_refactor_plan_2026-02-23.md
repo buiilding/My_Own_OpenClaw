@@ -4697,3 +4697,24 @@ read_when:
   - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -q` (pass)
   - `cd frontend && npm run audit:jscpd` (1 clone)
   - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
+
+## Phase 195 Outcome (2026-02-26)
+
+- Refactor slice (backend browser scroll schema fields): dedupe remaining scroll field declaration block.
+  - updated:
+    - `backend/src/tools/browser/schemas.py`
+      - added shared helpers:
+        - `_scroll_direction_field(...)`
+        - `_scroll_amount_field(...)`
+        - `_scroll_down_flag_field(...)`
+        - `_scroll_pages_field(...)`
+      - rewired `BrowserScrollArgs.direction`, `amount`, `down`, and `pages` to helper-backed declarations.
+      - preserved defaults and numeric constraints.
+  - route consolidation check:
+    - `jscpd` on `backend/src/api/routes` found `0` clones; no route merge needed in this slice.
+  - audit outcome:
+    - combined `backend/src` + `frontend/src` `jscpd` clone count dropped from `1` to `0`.
+- Validation:
+  - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -q` (pass)
+  - `cd frontend && npm run audit:jscpd` (0 clones)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)

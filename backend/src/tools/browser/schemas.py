@@ -162,6 +162,22 @@ def _extract_output_schema_field():
     )
 
 
+def _scroll_direction_field():
+    return Field("down", description="Scroll direction")
+
+
+def _scroll_amount_field():
+    return Field(500, description="Scroll amount in pixels", ge=100, le=5000)
+
+
+def _scroll_down_flag_field():
+    return Field(None, description="Browser Use scroll direction flag")
+
+
+def _scroll_pages_field():
+    return Field(None, description="Browser Use page count", gt=0)
+
+
 class BrowserArgsModel(BaseModel):
     """Shared backend browser schema base."""
 
@@ -289,14 +305,10 @@ class BrowserScrollArgs(BrowserArgsModel):
     """Arguments for browser scroll action."""
 
     action: Literal["scroll"] = Field(..., description="Scroll page")
-    direction: BrowserScrollDirection = Field(
-        "down", description="Scroll direction"
-    )
-    amount: int = Field(500, description="Scroll amount in pixels", ge=100, le=5000)
-    down: Optional[bool] = Field(None, description="Browser Use scroll direction flag")
-    pages: Optional[float] = Field(
-        None, description="Browser Use page count", gt=0
-    )
+    direction: BrowserScrollDirection = _scroll_direction_field()
+    amount: int = _scroll_amount_field()
+    down: Optional[bool] = _scroll_down_flag_field()
+    pages: Optional[float] = _scroll_pages_field()
     index: Optional[int] = _optional_non_negative_int_field(
         "Optional Browser Use element index"
     )
