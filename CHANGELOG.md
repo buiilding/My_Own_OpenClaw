@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(sidecar-macos-window-manager): add mocked coverage for AppKit-availability fallback, window list extraction/filtering, active-window reporting, and case-insensitive app activation matching.
 - test(backend-logging-utils): add direct unit coverage for shared `short_id` request-id truncation helper (default/custom lengths and `"unknown"` fallback for missing IDs).
 - refactor(frontend-chat): split `ChatInterface` replay/edit retry flow into `useConversationReplayActions`; extract shared conversation-group PropTypes; split `useChatStream` tool-message builders and model-thinking resolver into dedicated utilities; reduce `useChatStream.ts` to <500 LOC and clear local TS/JSX clone hotspots.
 - refactor(backend-api-handlers): add shared websocket context builder (`build_user_session_context`) and reuse it in `stop-query` + `compact-history`; add regression coverage for handler context composition.
