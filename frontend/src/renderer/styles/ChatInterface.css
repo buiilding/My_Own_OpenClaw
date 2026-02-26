@@ -390,6 +390,8 @@
 
 .message-user {
   align-self: flex-end;
+  flex-direction: column;
+  align-items: flex-end;
 }
 
 .message-user .message-content {
@@ -430,7 +432,21 @@
   gap: 4px;
 }
 
-.assistant-action-btn {
+.user-message-actions {
+  margin-top: 8px;
+  margin-right: -4px;
+  display: none;
+  align-items: center;
+  gap: 4px;
+}
+
+.message-user:hover .user-message-actions,
+.message-user:focus-within .user-message-actions {
+  display: inline-flex;
+}
+
+.assistant-action-btn,
+.user-action-btn {
   width: 28px;
   height: 28px;
   border: 0;
@@ -444,17 +460,20 @@
   transition: background 0.14s ease, color 0.14s ease;
 }
 
-.assistant-action-btn:hover:not(:disabled) {
+.assistant-action-btn:hover:not(:disabled),
+.user-action-btn:hover:not(:disabled) {
   background: var(--ui-hover-strong-bg);
   color: var(--ui-text-primary);
 }
 
-.assistant-action-btn:disabled {
+.assistant-action-btn:disabled,
+.user-action-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.assistant-action-btn.is-active {
+.assistant-action-btn.is-active,
+.user-action-btn.is-active {
   color: var(--ui-text-primary);
   background: var(--ui-hover-strong-bg);
 }

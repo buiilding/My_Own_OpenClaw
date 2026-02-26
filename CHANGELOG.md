@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-chat-ui): show user message copy/edit controls only on user-bubble hover/focus (matching assistant-row visibility behavior and reducing idle icon clutter).
+- fix(frontend-chat-ui): style user message copy/edit controls to match assistant action buttons and render them on a second row beneath the user bubble.
 - fix(frontend-chat-ui): replace `UserMessageActions` function-component `defaultProps` with JavaScript default parameters to remove React deprecation warnings in dev builds.
 - fix(sidecar-deps): add missing `pydantic-settings` to sidecar dependency manifests so Browser Use config imports resolve in CI sidecar test runs
 - fix(sidecar-deps): add missing Browser Use runtime dependencies (`httpx`, `bubus`, `cdp-use`, `google-genai`, `openai`, `pyotp`) to sidecar dependency manifests so CI can import vendored browser-use modules during test collection
