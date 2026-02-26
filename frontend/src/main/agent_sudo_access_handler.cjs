@@ -59,13 +59,38 @@ function summarizeAuthError(stderr, actionLabel) {
 }
 
 async function runPkexecBash(script, deps = {}) {
+  return runCommandWithCapturedOutput({
+    command: 'pkexec',
+    args: ['bash', '-lc', script],
+    deps,
+    missingBinaryReason: 'OS authentication prompt is unavailable (pkexec not found).',
+    startFailureReason: 'Failed to start OS authentication prompt.',
+  });
+}
+
+async function runSudoNonInteractiveBash(script, deps = {}) {
+  return runCommandWithCapturedOutput({
+    command: 'sudo',
+    args: ['-n', 'bash', '-lc', script],
+    deps,
+    startFailureReason: 'Failed to start sudo command.',
+  });
+}
+
+async function runCommandWithCapturedOutput({
+  command,
+  args,
+  deps = {},
+  missingBinaryReason = null,
+  startFailureReason,
+}) {
   const spawnImpl = deps.spawnImpl || spawn;
   return await new Promise((resolve) => {
     let stdout = '';
     let stderr = '';
     let settled = false;
 
-    const child = spawnImpl('pkexec', ['bash', '-lc', script], {
+    const child = spawnImpl(command, args, {
       stdio: ['ignore', 'pipe', 'pipe'],
     });
 
@@ -81,11 +106,11 @@ async function runPkexecBash(script, deps = {}) {
         return;
       }
       settled = true;
-      if (error?.code === 'ENOENT') {
+      if (missingBinaryReason && error?.code === 'ENOENT') {
         resolve({
           success: false,
           canceled: false,
-          reason: 'OS authentication prompt is unavailable (pkexec not found).',
+          reason: missingBinaryReason,
           stdout,
           stderr,
         });
@@ -94,54 +119,7 @@ async function runPkexecBash(script, deps = {}) {
       resolve({
         success: false,
         canceled: false,
-        reason: error?.message || 'Failed to start OS authentication prompt.',
-        stdout,
-        stderr,
-      });
-    });
-
-    child.on('close', (code) => {
-      if (settled) {
-        return;
-      }
-      settled = true;
-      resolve({
-        success: code === 0,
-        exitCode: code,
-        stdout,
-        stderr,
-      });
-    });
-  });
-}
-
-async function runSudoNonInteractiveBash(script, deps = {}) {
-  const spawnImpl = deps.spawnImpl || spawn;
-  return await new Promise((resolve) => {
-    let stdout = '';
-    let stderr = '';
-    let settled = false;
-
-    const child = spawnImpl('sudo', ['-n', 'bash', '-lc', script], {
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
-
-    child.stdout?.on('data', (chunk) => {
-      stdout += String(chunk);
-    });
-    child.stderr?.on('data', (chunk) => {
-      stderr += String(chunk);
-    });
-
-    child.on('error', (error) => {
-      if (settled) {
-        return;
-      }
-      settled = true;
-      resolve({
-        success: false,
-        canceled: false,
-        reason: error?.message || 'Failed to start sudo command.',
+        reason: error?.message || startFailureReason,
         stdout,
         stderr,
       });

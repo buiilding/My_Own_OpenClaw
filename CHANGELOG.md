@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-main-sudo-auth): dedupe `agent_sudo_access_handler` process execution by introducing a shared command-output runner for `pkexec`/`sudo -n` flows; preserve error/cancel semantics and add startup-error regression coverage.
 - test(sidecar-macos-window-manager): add mocked coverage for AppKit-availability fallback, window list extraction/filtering, active-window reporting, and case-insensitive app activation matching.
 - test(backend-logging-utils): add direct unit coverage for shared `short_id` request-id truncation helper (default/custom lengths and `"unknown"` fallback for missing IDs).
 - refactor(frontend-chat): split `ChatInterface` replay/edit retry flow into `useConversationReplayActions`; extract shared conversation-group PropTypes; split `useChatStream` tool-message builders and model-thinking resolver into dedicated utilities; reduce `useChatStream.ts` to <500 LOC and clear local TS/JSX clone hotspots.

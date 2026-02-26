@@ -68,6 +68,14 @@ read_when:
     - `backend/src/api/handlers/compact_history.py`
   - added regression coverage:
     - `tests/backend/test_handler_context.py`
+- Main sudo-auth dedupe:
+  - collapsed duplicated child-process capture/error handling in:
+    - `frontend/src/main/agent_sudo_access_handler.cjs`
+  - introduced shared command runner used by both `pkexec` and `sudo -n` flows while preserving auth-cancel/disable-guidance behavior.
+  - added startup-error regression coverage:
+    - `tests/frontend/AgentSudoAccessHandler.test.cjs`
+  - audit delta:
+    - frontend+backend `jscpd` total clones reduced from `27` to `25`.
 
 - Dashboard shell split:
   - extracted conversation/search orchestration from `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx` into:
