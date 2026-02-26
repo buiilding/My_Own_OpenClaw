@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import time
+import asyncio
 from typing import TYPE_CHECKING, Any, Optional, Type
 
 from backend.src.api.processing.formatter import ResponseFormatter
@@ -78,46 +79,81 @@ class QueryExecutionService:
         text_chunks: list[str] = []
         last_assistant_full_text: str = ""
 
-        async with TTSSession(
-            self._tts_manager,
-            agent_instance.cfg,
-            websocket,
-            msg_id,
-        ) as tts_session:
-            transport = transport_sender_cls(websocket)
-            tts_processor = tts_processor_cls(self._tts_manager)
-            pipeline = pipeline_cls(tts_processor, self._response_formatter, transport)
+        try:
+            async with TTSSession(
+                self._tts_manager,
+                agent_instance.cfg,
+                websocket,
+                msg_id,
+            ) as tts_session:
+                transport = transport_sender_cls(websocket)
+                tts_processor = tts_processor_cls(self._tts_manager)
+                pipeline = pipeline_cls(tts_processor, self._response_formatter, transport)
 
-            screenshot = self._resolve_screenshot(message, artifact_store_cls)
+                screenshot = self._resolve_screenshot(message, artifact_store_cls)
 
-            async for event in agent_instance.process_query(
-                query_text,
-                image_data=screenshot,
-                message_content=message.payload.content,
-                conversation_ref=message.payload.conversation_ref,
-            ):
-                event_type = self._extract_event_type(event)
+                async for event in agent_instance.process_query(
+                    query_text,
+                    image_data=screenshot,
+                    message_content=message.payload.content,
+                    conversation_ref=message.payload.conversation_ref,
+                ):
+                    event_type = self._extract_event_type(event)
 
-                chunk_text = self._extract_non_empty_chunk_text(
-                    event,
-                    event_type=event_type,
-                )
-                if chunk_text:
-                    saw_text_chunk = True
-                    text_chunks.append(chunk_text)
-
-                assistant_full_text = self._extract_assistant_full_text(
-                    event,
-                    event_type=event_type,
-                )
-                if assistant_full_text:
-                    last_assistant_full_text = assistant_full_text
-
-                if event_type == "streaming-complete":
-                    saw_terminal_event = True
-                    completion_text = self._resolve_completion_text(
-                        event=event,
+                    chunk_text = self._extract_non_empty_chunk_text(
+                        event,
                         event_type=event_type,
+                    )
+                    if chunk_text:
+                        saw_text_chunk = True
+                        text_chunks.append(chunk_text)
+
+                    assistant_full_text = self._extract_assistant_full_text(
+                        event,
+                        event_type=event_type,
+                    )
+                    if assistant_full_text:
+                        last_assistant_full_text = assistant_full_text
+
+                    if event_type == "streaming-complete":
+                        saw_terminal_event = True
+                        completion_text = self._resolve_completion_text(
+                            event=event,
+                            event_type=event_type,
+                            text_chunks=text_chunks,
+                            assistant_full_text=last_assistant_full_text,
+                            saw_text_chunk=saw_text_chunk,
+                        )
+                        saw_text_chunk = await self._emit_completion_events(
+                            pipeline=pipeline,
+                            tts_service=tts_session.service,
+                            msg_id=msg_id,
+                            stream_context=stream_context,
+                            completion_text=completion_text,
+                            saw_text_chunk=saw_text_chunk,
+                        )
+                        continue
+
+                    if event_type == "error":
+                        saw_terminal_event = True
+
+                    await self._process_pipeline_event(
+                        pipeline=pipeline,
+                        event=event,
+                        tts_service=tts_session.service,
+                        msg_id=msg_id,
+                        stream_context=stream_context,
+                    )
+
+                if not saw_terminal_event:
+                    logger.warning(
+                        "Agent stream ended without terminal event; emitting fallback completion "
+                        "(user_id=%s, turn_ref=%s)",
+                        agent_instance.user_id,
+                        msg_id,
+                    )
+                    completion_text = self._resolve_completion_text(
+                        event=None,
                         text_chunks=text_chunks,
                         assistant_full_text=last_assistant_full_text,
                         saw_text_chunk=saw_text_chunk,
@@ -130,44 +166,17 @@ class QueryExecutionService:
                         completion_text=completion_text,
                         saw_text_chunk=saw_text_chunk,
                     )
-                    continue
 
-                if event_type == "error":
-                    saw_terminal_event = True
-
-                await self._process_pipeline_event(
-                    pipeline=pipeline,
-                    event=event,
-                    tts_service=tts_session.service,
-                    msg_id=msg_id,
-                    stream_context=stream_context,
-                )
-
-            if not saw_terminal_event:
-                logger.warning(
-                    "Agent stream ended without terminal event; emitting fallback completion "
-                    "(user_id=%s, turn_ref=%s)",
-                    agent_instance.user_id,
-                    msg_id,
-                )
-                completion_text = self._resolve_completion_text(
-                    event=None,
-                    text_chunks=text_chunks,
-                    assistant_full_text=last_assistant_full_text,
-                    saw_text_chunk=saw_text_chunk,
-                )
-                saw_text_chunk = await self._emit_completion_events(
-                    pipeline=pipeline,
-                    tts_service=tts_session.service,
-                    msg_id=msg_id,
-                    stream_context=stream_context,
-                    completion_text=completion_text,
-                    saw_text_chunk=saw_text_chunk,
-                )
-
-            if tts_session.service:
-                await pipeline.wait_for_pending_tts()
-                await tts_session.service.flush()
+                if tts_session.service:
+                    await pipeline.wait_for_pending_tts()
+                    await tts_session.service.flush()
+        except asyncio.CancelledError:
+            self._finalize_pending_tool_calls_on_cancel(
+                agent_instance=agent_instance,
+                msg_id=msg_id,
+                conversation_ref=message.payload.conversation_ref,
+            )
+            raise
 
         query_total_time = time.perf_counter() - query_start_time
         logger.info(
@@ -175,6 +184,44 @@ class QueryExecutionService:
             query_total_time,
             user_id,
         )
+
+    @staticmethod
+    def _finalize_pending_tool_calls_on_cancel(
+        *,
+        agent_instance: Any,
+        msg_id: str,
+        conversation_ref: Optional[str],
+    ) -> None:
+        """
+        Best-effort reconciliation for cancelled turns with pending tool_call ids.
+        """
+        history = getattr(agent_instance, "history", None)
+        finalize = getattr(history, "finalize_pending_tool_calls_as_cancelled", None)
+        if not callable(finalize):
+            return
+        try:
+            reconciled_count = int(finalize() or 0)
+        except Exception as exc:
+            logger.warning(
+                "[Query Cancelled] Failed to reconcile pending tool calls "
+                "(user_id=%s, session_id=%s, turn_ref=%s, conversation_ref=%s): %s",
+                getattr(agent_instance, "user_id", "unknown"),
+                getattr(agent_instance, "session_id", "unknown"),
+                msg_id,
+                conversation_ref,
+                exc,
+            )
+            return
+        if reconciled_count > 0:
+            logger.info(
+                "[Query Cancelled] Reconciled %s pending tool call(s) with synthetic "
+                "tool outputs (user_id=%s, session_id=%s, turn_ref=%s, conversation_ref=%s)",
+                reconciled_count,
+                getattr(agent_instance, "user_id", "unknown"),
+                getattr(agent_instance, "session_id", "unknown"),
+                msg_id,
+                conversation_ref,
+            )
 
     def _resolve_screenshot(
         self,

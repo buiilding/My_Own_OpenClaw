@@ -20,6 +20,8 @@ title: "Tool-Call-ID Staging and Tool-Output History Row Contract Reference"
 
 `ConversationHistory.stage_tool_call_ids(tool_call_ids, consume_all_on_next_output=False)` stores pending ids for next tool-output commit.
 
+`ConversationHistory.finalize_pending_tool_calls_as_cancelled(...)` reconciles staged ids when a turn is cancelled before tool results arrive, by writing synthetic `role='tool'` rows for each pending `tool_call_id`.
+
 `_consume_tool_call_ids_for_next_output()` behavior:
 
 - no staged ids -> `[]`
@@ -77,6 +79,7 @@ This allows restored history to survive provider normalization without dropping 
 - incremental token-cache update for tool outputs
 - cache invalidation when pruning occurs
 - rehydrate preservation of assistant tool-call row and linked tool row
+- cancellation reconciliation writes synthetic linked tool rows and clears staged ids
 
 `tests/backend/test_interaction_loop.py` covers:
 

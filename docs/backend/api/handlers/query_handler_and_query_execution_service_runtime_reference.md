@@ -48,6 +48,7 @@ Cancellation behavior:
 
 - `CancelledError` is logged with user/turn/conversation refs and re-raised
 - stop-query path depends on this task registration map to signal cancellation
+- `QueryExecutionService` performs cancellation reconciliation before re-raise: if history has staged tool-call ids, it writes synthetic `role='tool'` outputs so the next provider request does not fail assistant-tool-call sequencing validation.
 
 ## Query Payload Ingress and Runtime Seeding
 
@@ -140,6 +141,7 @@ Handler-side errors call `send_error_response(...)` from `api/infrastructure/err
 - silent agent streams emit fallback chunk + completion
 - assistant-full-only path backfills chunk before completion
 - active query cancellation is logged and task map is cleared
+- cancelled query path reconciles staged tool-call ids through history cancellation hook
 - screenshot resolution precedence: inline screenshot beats `screenshot_ref`
 - missing screenshot artifact logs warning and continues
 - runtime `system_state_internal` applies to agent runtime state before processing
