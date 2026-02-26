@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(sidecar-replace-engine): add direct unit coverage for replacement/patch-chunk parsing defaults and constraint errors (mode propagation, invalid combinations, ambiguity handling, and occurrence-index bounds).
 - docs(backend-protocol-matrix): extend backend websocket protocol matrix with a control-path contract index (handshake bootstrap, query/cancel lifecycle, settings ACK path, wakeword activation, tool-result reintegration) and add direct lifecycle/state/testing deep-link coverage.
 - test(sidecar-screenshot-tool): add mocked runtime coverage for bounded/full capture paths, import-error handling, and capture-failure error surfacing.
 - docs(frontend-protocol-matrix): extend frontend IPC/local-backend protocol matrix with a main-to-renderer control-path contract index (`ipc-status`, `from-backend`, wakeword STT trigger, main-window target, overlay phase/visibility), tighten `show-main-window` target notes, and document `run_shell_command` `sudo_auth_mode` state propagation in JSON-RPC mapping notes.
