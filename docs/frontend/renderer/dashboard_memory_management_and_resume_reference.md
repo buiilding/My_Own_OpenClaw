@@ -13,6 +13,8 @@ title: "Dashboard Memory Management and Resume Reference"
 - `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
 - `frontend/src/renderer/features/dashboard/components/DashboardSidebar.jsx`
 - `frontend/src/renderer/features/dashboard/components/SearchChatsModal.jsx`
+- `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
+- `frontend/src/renderer/features/dashboard/utils/conversationGroups.js`
 - `frontend/src/renderer/features/dashboard/components/sections/MemorySection.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/MemoryItem.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/memorySectionData.js`
@@ -42,7 +44,7 @@ IPC methods used by this surface:
 
 ### Conversation resume surface
 
-Conversation resume now lives in shell + sidebar/search, not in `MemorySection`.
+Conversation resume now lives in shell + `useDashboardConversations` (consumed by sidebar/search surfaces), not in `MemorySection`.
 
 Resume call chain:
 

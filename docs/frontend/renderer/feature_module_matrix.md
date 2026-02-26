@@ -60,6 +60,8 @@ Primary responsibilities:
 Shell:
 
 - `components/ChatGptDashboardShell.jsx`
+- `hooks/useDashboardConversations.js`
+- `utils/conversationGroups.js`
 
 Sections:
 

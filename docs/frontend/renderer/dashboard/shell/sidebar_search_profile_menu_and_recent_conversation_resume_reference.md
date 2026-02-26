@@ -13,8 +13,11 @@ title: "Dashboard Sidebar, Search, and Profile Menu Runtime Reference"
 - `frontend/src/renderer/features/dashboard/components/DashboardSidebar.jsx`
 - `frontend/src/renderer/features/dashboard/components/SearchChatsModal.jsx`
 - `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
+- `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
+- `frontend/src/renderer/features/dashboard/utils/conversationGroups.js`
 - `frontend/src/renderer/styles/ChatGptDashboardShell.css`
 - `tests/frontend/ChatGptDashboardShell.test.jsx`
+- `tests/frontend/ConversationGroups.test.js`
 
 ## Sidebar Navigation Model
 
@@ -159,7 +162,7 @@ They do not own:
 - transcript session updates
 - backend rehydrate calls
 
-All of those live in `ChatGptDashboardShell`.
+Those side effects are owned by `useDashboardConversations` (consumed by `ChatGptDashboardShell`).
 
 ## Drift Hotspots
 
@@ -172,6 +175,7 @@ All of those live in `ChatGptDashboardShell`.
 
 - [Dashboard Shell Docs Hub](README.md)
 - [Dashboard Shell Modal Routing Contract Reference](dashboard_section_router_and_placeholder_panel_contract_reference.md)
+- [Dashboard Conversation Hook Search, Polling, and Group Bucket Contract Reference](dashboard_conversation_hook_search_polling_and_group_bucket_contract_reference.md)
 - [Renderer Dashboard Docs Hub](../README.md)
 - [Dashboard Memory Management and Resume Reference](../../dashboard_memory_management_and_resume_reference.md)
 - [Usage Section Placeholder Panel and Modal Contract Reference](../sections/usage_section_placeholder_panel_and_modal_contract_reference.md)
