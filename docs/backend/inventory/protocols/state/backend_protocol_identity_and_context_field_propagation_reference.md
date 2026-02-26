@@ -17,6 +17,8 @@ Primary runtime sources:
 - `backend/src/api/services/query_execution.py`
 - `backend/src/api/handlers/query.py`
 - `backend/src/api/handlers/stop_query.py`
+- `backend/src/api/handlers/compact_history.py`
+- `backend/src/api/handlers/context.py`
 - `backend/src/api/processing/formatter.py`
 - `backend/src/api/infrastructure/errors.py`
 - `backend/src/api/transport/envelope.py`
@@ -38,6 +40,7 @@ Primary test sources:
 | `session_id` | `AgentSession.session_id` from session manager | query stream context builder / stop-query context builder | formatter output + success helper context | `test_query_handler_success`, `test_stop_query_handler_cancels_active_query_and_emits_streaming_complete` |
 | `conversation_ref` | incoming `query.payload.conversation_ref` or canceled active query metadata | query stream context builder / stop-query canceled tuple | formatter output + success helper context | `test_query_handler_success`, `test_stop_query_handler_cancels_active_query_and_emits_streaming_complete` |
 | `turn_ref` | incoming message `id` | query stream context builder / active task registry / stop-query cancellation | formatter output + success helper context | `test_query_handler_success`, `test_cancel_active_query_task_cancels_all_tasks_and_returns_last_metadata` |
+| control-message context (`user_id`, optional `session_id`, optional runtime `conversation_ref`) | shared context helper | `build_user_session_context(...)` in handlers | success/error helper context | `test_compact_history_handler_*`, stop-query handler tests |
 
 ## Identity Boundary: Handshake and Route Injection
 
@@ -121,6 +124,19 @@ Locked by:
 - `tests/backend/test_api_handlers.py::test_stop_query_handler_cancels_active_query_and_emits_streaming_complete`
 - `tests/backend/test_session_manager.py::test_cancel_active_query_task_cancels_all_tasks_and_returns_last_metadata`
 
+## Compact-History Context Semantics
+
+`CompactHistoryHandler` uses shared context helper output for control responses:
+
+- `build_user_session_context(...)` sets:
+  - required `user_id`
+  - optional `session_id`
+  - optional runtime `conversation_ref`
+- `context-compaction-started` and `context-compaction-completed` envelopes reuse the same context object for consistent identity correlation.
+- when no active query exists, compaction responses still carry stable user/session context even though no `turn_ref` is attached.
+
+This keeps control-message correlation consistent with query/stop-query response envelopes.
+
 ## Error Path State Behavior
 
 `send_error_response(...)` can include `id` correlation but does not attach context by default unless caller supplies it through message build path.
@@ -139,6 +155,7 @@ When modifying this surface, keep aligned:
 - handshake model constraints vs route user injection assumptions
 - query stream-context builder fields vs frontend event correlation expectations
 - `SessionManager` active task metadata shape vs `StopQueryHandler` context attachment
+- shared handler context helper behavior vs stop-query/compact-history envelope fields
 - `attach_context_fields(...)` truthy-only behavior vs tests and renderer fallback logic
 
 ## Related Pages

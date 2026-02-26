@@ -18,6 +18,8 @@ Lifecycle contract sources:
 - Per-connection task tracking: `backend/src/api/routes/websocket/task_manager.py`
 - Sender serialization/backpressure: `backend/src/api/transport/websocket.py`
 - Stop-query terminal behavior: `backend/src/api/handlers/stop_query.py`
+- Compact-history control behavior: `backend/src/api/handlers/compact_history.py`
+- Shared handler context helper: `backend/src/api/handlers/context.py`
 - Runtime config fields: `backend/src/core/config/models.py`
 
 ## Connection Timeline
@@ -117,6 +119,35 @@ Reason:
 
 - Frontend stream UI can always exit active/streaming phase after stop request, independent of backend task presence.
 
+## Compact-History Control Lifecycle Semantics
+
+`CompactHistoryHandler` protocol behavior:
+
+- Rejects request when `SessionManager.has_active_query_task(user_id)` is `True`.
+- Uses session context from `build_user_session_context(...)`:
+  - always `user_id`
+  - optional `session_id`
+  - optional runtime `conversation_ref`
+- Runs `session.run_history_compaction(reason="manual", force=<payload.force>)`.
+- Emits:
+  - `context-compaction-started` when decision indicates apply
+  - `context-compaction-completed` always (applied or skipped)
+- Completion payload includes `skipped_reason` when compaction was not applied.
+
+Lifecycle implication:
+
+- Manual compaction is a control-path message in the same receive loop lifecycle as query/stop-query, but it is explicitly blocked during active query execution to avoid turn-state races.
+
+## Shared Handler Context Builder Semantics
+
+`build_user_session_context(...)` centralizes handler response context fields:
+
+- `user_id` from route context (required)
+- `session_id` from `session.session_id` when present
+- `conversation_ref` from `session.runtime.active_conversation_ref` when present
+
+This helper is shared by stop-query and compact-history handlers so context propagation rules stay consistent across control messages.
+
 ## Operational Drift Checks
 
 When changing lifecycle code, keep these aligned:
@@ -125,6 +156,7 @@ When changing lifecycle code, keep these aligned:
 - Message-size/parse/schema error surfaces expected by frontend error handling.
 - Task-limit cap and cancel timeout semantics versus frontend retry/stop behavior.
 - `streaming-complete` stop-query guarantee.
+- compact-history active-query guard and started/completed emission order.
 
 ## Related Deep Dives
 
