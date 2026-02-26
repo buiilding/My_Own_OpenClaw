@@ -1,113 +1,91 @@
 ---
-summary: "Deep reference for chat presentation rendering contracts: thinking-stream auto-stick/overflow behavior, message CSS class assembly, and token-count/cache status formatting for header display."
+summary: "Deep reference for chat presentation contracts: thinking-stream overflow behavior, message-row class assembly, and token-count stream-state ownership."
 read_when:
-  - When changing `ThinkingDisplay`, `MessageList`, `TokenCountDisplay`, or chat presentation style/class utility behavior.
-  - When debugging reasoning-stream scroll affordances, message class regressions, or cache/token label output differences.
-title: "Thinking Display Overflow, Message List Class Assembly, and Token Count Formatting Reference"
+  - When changing `ThinkingDisplay`, `MessageList`, or chat presentation class utility behavior.
+  - When debugging stream token-count state updates or thinking-stream scroll affordances.
+title: "Thinking Display Overflow, Message List Class Assembly, and Stream Token Tracking Reference"
 ---
 
-# Thinking Display Overflow, Message List Class Assembly, and Token Count Formatting Reference
+# Thinking Display Overflow, Message List Class Assembly, and Stream Token Tracking Reference
 
 ## Canonical Modules
 
 - `frontend/src/renderer/features/chat/components/ThinkingDisplay.jsx`
 - `frontend/src/renderer/features/chat/components/MessageList.jsx`
-- `frontend/src/renderer/features/chat/components/TokenCountDisplay.jsx`
+- `frontend/src/renderer/features/chat/stores/chatStore.ts`
+- `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/utils/messageListClasses.js`
-- `frontend/src/renderer/features/chat/utils/tokenCounts.js`
 - `tests/frontend/ThinkingDisplay.test.jsx`
 - `tests/frontend/MessageListThinkingDisplay.test.jsx`
 - `tests/frontend/MessageListClasses.test.js`
-- `tests/frontend/TokenCounts.test.js`
+- `tests/frontend/ChatStore.test.ts`
 
 ## Thinking Stream Scroll-State Contract
 
-`ThinkingDisplay` normalizes incoming status via trimmed string semantics:
+`ThinkingDisplay` status normalization:
 
-- non-string or empty-trimmed status -> component returns `null`
-- non-empty status -> renders `role="status"` container with `aria-live="polite"`
+- non-string or empty-trimmed status -> render `null`
+- non-empty status -> render live status container (`aria-live="polite"`)
 
-Scroll behavior:
+Overflow behavior:
 
-- `THINKING_BOTTOM_STICK_THRESHOLD = 12`
-- container tracks `shouldStickToBottomRef`
-- on status updates:
-  - when near bottom (distance <= threshold), auto-scroll to latest content
-  - otherwise preserve user scroll position
-- `hasOverflowAbove` is true when `scrollTop > 2`, adding `has-overflow-above` class for top-overflow affordance styling
+- bottom-stick threshold is distance-based (`12px`)
+- while user stays near bottom, new thinking chunks auto-scroll
+- when user scrolls away, component preserves manual position
+- top overflow indicator class toggles when `scrollTop > 2`
 
 ## Message List Ordering and Auto-Scroll Contract
 
 `MessageList`:
 
-- memoizes message row rendering through `MessageItem`
-- applies message class names via `buildMessageClassName(message)`
-- renders `<ThinkingDisplay />` before end-anchor node (`data-testid="message-list-end"`)
-- scrolls anchor into view on `[messages, thinkingStatus]` changes
+- memoizes message rows through `MessageItem`
+- resolves row class names via `buildMessageClassName(message)`
+- renders `<ThinkingDisplay />` before terminal end-anchor node
+- auto-scrolls on `[messages, thinkingStatus]` updates
 
-Ordering guarantee:
+Guarantee:
 
-- end-anchor remains last child so auto-scroll includes thinking stream output appended above it
+- end-anchor stays last child so both message and thinking updates stay in auto-scroll path.
 
 ## Message CSS Class Assembly Contract
 
-`buildMessageClassName(message)` always starts with:
+`buildMessageClassName(message)` emits:
 
-- `message`
-- `message-${sender}`
+- always: `message`, `message-${sender}`
+- `message-streaming` for unfinished assistant LLM rows
+- `message-type-${type}` for typed rows (`tool-call`, `tool-output`, `error`, etc.)
+- `message-has-screenshot` when screenshot attachment fields resolve true
 
-Conditional additions:
+## Token Count Tracking Contract (State, not Dedicated UI Component)
 
-- `message-streaming` when `sender === 'assistant'` and `isComplete === false`
-- `message-type-${type}` when `type` is present
-- `message-has-screenshot` when screenshot attachment fields resolve true through `hasMessageScreenshot(...)`
+Current runtime keeps token usage in chat store/state:
 
-## Token Count Formatting Contract
+- `chatStore.ts` holds `tokenCounts` payload from backend.
+- `useChatStream` handles `token-count` events and calls `setTokenCounts`.
 
-`TokenCountDisplay` renders output from `buildTokenCountItems(tokenCounts)`.
+Important:
 
-`buildTokenCountItems` guarantees two rows:
-
-1. `Conversation Total`
-2. `Cache`
-
-Conversation total value:
-
-- prefers `total_tokens`
-- falls back to `conversation_tokens`
-- default `'0'`
-- numeric values formatted through `toLocaleString()`
-
-Cache value/status resolution:
-
-1. use explicit `cache_status` when present
-2. else derive from `cache_hit` (`true` -> `hit`, `false` -> `miss`, otherwise `unknown`)
-3. output text:
-   - `hit` -> `Hit (<cached_tokens> cached)`
-   - `miss` -> `Miss`
-   - `unknown` -> `Unknown`
-4. `hit` applies CSS class `token-count-cache-hit`
+- dedicated `TokenCountDisplay` component path is retired in current frontend runtime.
+- token count remains part of stream telemetry/state and may be surfaced by future UI consumers.
 
 ## Test-Backed Matrix
 
-- `tests/frontend/ThinkingDisplay.test.jsx`
-  - empty status renders nothing
-  - non-empty status renders reasoning stream text
-  - scrolling above bottom sets `has-overflow-above`
-- `tests/frontend/MessageListThinkingDisplay.test.jsx`
-  - confirms end-anchor remains after thinking display for inclusive auto-scroll
-- `tests/frontend/MessageListClasses.test.js`
-  - validates base/streaming/type/screenshot class composition
-- `tests/frontend/TokenCounts.test.js`
-  - validates total-token fallback ordering
-  - validates cache hit/miss/unknown text and CSS class
-  - validates formatting for zero/decimal/large values
+- `ThinkingDisplay.test.jsx`:
+  - empty status hidden
+  - non-empty status visible
+  - overflow-above class toggles correctly
+- `MessageListThinkingDisplay.test.jsx`:
+  - confirms thinking + end-anchor ordering
+- `MessageListClasses.test.js`:
+  - verifies class assembly for sender/type/screenshot/streaming state
+- `ChatStore.test.ts`:
+  - validates token-count state updates and reset behavior
 
 ## Drift Hotspots
 
-1. Changing overflow thresholds or class-name toggles can break reasoning-stream affordance CSS without obvious runtime errors.
-2. Reordering `ThinkingDisplay` and end-anchor in `MessageList` can make auto-scroll miss reasoning chunks.
-3. Altering cache status precedence (`cache_status` vs `cache_hit`) can cause misleading token-cache UI labels.
+1. changing overflow threshold/class toggles breaks subtle thinking affordances without hard runtime errors.
+2. reordering thinking display/end-anchor can regress auto-scroll during long reasoning streams.
+3. removing or renaming `token-count` event handling in `useChatStream` silently drops usage telemetry from state.
 
 ## Related Pages
 
