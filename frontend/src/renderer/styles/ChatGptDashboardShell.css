@@ -314,7 +314,7 @@
 }
 
 .cg-chat-item-row:hover .cg-chat-item-menu-trigger,
-.cg-chat-item-row.active .cg-chat-item-menu-trigger,
+.cg-chat-item-row:focus-within .cg-chat-item-menu-trigger,
 .cg-chat-item-row.menu-open .cg-chat-item-menu-trigger {
   opacity: 1;
   pointer-events: auto;
