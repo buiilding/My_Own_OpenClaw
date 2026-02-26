@@ -146,7 +146,7 @@ function escapeHtml(value: string): string {
     .replace(/'/g, '&#39;');
 }
 
-export type MarkdownRenderOptions = {
+type MarkdownRenderOptions = {
   enableMath?: boolean;
 };
 

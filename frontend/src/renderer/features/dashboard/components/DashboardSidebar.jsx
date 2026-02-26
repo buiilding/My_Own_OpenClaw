@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   PenSquare,
@@ -17,6 +17,7 @@ import {
   LogOut,
   ChevronRight,
 } from 'lucide-react';
+import ChatGptLogo from '../../../components/ChatGptLogo';
 
 const PRIMARY_NAV_ITEMS = Object.freeze([
   { id: 'new-chat', label: 'New chat', icon: PenSquare },
@@ -29,19 +30,32 @@ const PRODUCT_NAV_ITEMS = Object.freeze([
   { id: 'models', label: 'Models', icon: Cpu },
 ]);
 
-function ChatGptLogo({ size = 14 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
+function useDismissOnOutside({ isOpen, containerRef, onDismiss }) {
+  useEffect(() => {
+    if (!isOpen) {
+      return undefined;
+    }
 
-ChatGptLogo.propTypes = {
-  size: PropTypes.number,
-};
+    const handlePointerDown = (event) => {
+      if (!containerRef.current?.contains(event.target)) {
+        onDismiss();
+      }
+    };
+
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') {
+        onDismiss();
+      }
+    };
+
+    window.addEventListener('mousedown', handlePointerDown);
+    window.addEventListener('keydown', handleEscape);
+    return () => {
+      window.removeEventListener('mousedown', handlePointerDown);
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [containerRef, isOpen, onDismiss]);
+}
 
 function SidebarItem({
   label,
@@ -102,37 +116,79 @@ SidebarUserButton.propTypes = {
   isExpanded: PropTypes.bool,
 };
 
+function SidebarNavigation({
+  collapsed = false,
+  onStartNewChat,
+  onOpenSearch,
+  onOpenMemory,
+  onOpenUsage,
+  onOpenModels,
+  searchOpen,
+  memoryOpen,
+  usageOpen,
+  modelsOpen,
+}) {
+  return (
+    <>
+      <nav className="cg-sidebar-nav">
+        {PRIMARY_NAV_ITEMS.map((item) => (
+          <SidebarItem
+            key={item.id}
+            label={item.label}
+            icon={item.icon}
+            onClick={item.id === 'new-chat' ? onStartNewChat : onOpenSearch}
+            isActive={item.id === 'search' && searchOpen}
+            collapsed={collapsed}
+          />
+        ))}
+      </nav>
+
+      <div className="cg-sidebar-divider" />
+
+      <nav className="cg-sidebar-nav">
+        {PRODUCT_NAV_ITEMS.map((item) => (
+          <SidebarItem
+            key={item.id}
+            label={item.label}
+            icon={item.icon}
+            onClick={item.id === 'memory' ? onOpenMemory : item.id === 'usage' ? onOpenUsage : onOpenModels}
+            isActive={item.id === 'memory' ? memoryOpen : item.id === 'usage' ? usageOpen : modelsOpen}
+            collapsed={collapsed}
+          />
+        ))}
+      </nav>
+    </>
+  );
+}
+
+SidebarNavigation.propTypes = {
+  collapsed: PropTypes.bool,
+  onStartNewChat: PropTypes.func.isRequired,
+  onOpenSearch: PropTypes.func.isRequired,
+  onOpenMemory: PropTypes.func.isRequired,
+  onOpenUsage: PropTypes.func.isRequired,
+  onOpenModels: PropTypes.func.isRequired,
+  searchOpen: PropTypes.bool.isRequired,
+  memoryOpen: PropTypes.bool.isRequired,
+  usageOpen: PropTypes.bool.isRequired,
+  modelsOpen: PropTypes.bool.isRequired,
+};
+
 function SidebarUserMenu({ collapsed = false, onOpenSettings }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const containerRef = useRef(null);
+  const closeMenu = useCallback(() => {
+    setMenuOpen(false);
+  }, []);
 
-  useEffect(() => {
-    if (!menuOpen) {
-      return undefined;
-    }
-
-    const handlePointerDown = (event) => {
-      if (!containerRef.current?.contains(event.target)) {
-        setMenuOpen(false);
-      }
-    };
-
-    const handleEscape = (event) => {
-      if (event.key === 'Escape') {
-        setMenuOpen(false);
-      }
-    };
-
-    window.addEventListener('mousedown', handlePointerDown);
-    window.addEventListener('keydown', handleEscape);
-    return () => {
-      window.removeEventListener('mousedown', handlePointerDown);
-      window.removeEventListener('keydown', handleEscape);
-    };
-  }, [menuOpen]);
+  useDismissOnOutside({
+    isOpen: menuOpen,
+    containerRef,
+    onDismiss: closeMenu,
+  });
 
   const handleOpenSettings = (tab = 'general') => {
-    setMenuOpen(false);
+    closeMenu();
     onOpenSettings(tab);
   };
 
@@ -214,6 +270,9 @@ function DashboardSidebar({
 }) {
   const [openConversationMenuKey, setOpenConversationMenuKey] = useState(null);
   const conversationMenuRef = useRef(null);
+  const closeConversationMenu = useCallback(() => {
+    setOpenConversationMenuKey(null);
+  }, []);
   const hasRecentConversations = (
     recentConversationGroups.today.length > 0
     || recentConversationGroups.yesterday.length > 0
@@ -229,30 +288,11 @@ function DashboardSidebar({
   const pinnedConversations = allConversationItems.filter((conversation) => conversation.isPinned);
   const unpinnedConversations = allConversationItems.filter((conversation) => !conversation.isPinned);
 
-  useEffect(() => {
-    if (!openConversationMenuKey) {
-      return undefined;
-    }
-
-    const handlePointerDown = (event) => {
-      if (!conversationMenuRef.current?.contains(event.target)) {
-        setOpenConversationMenuKey(null);
-      }
-    };
-
-    const handleEscape = (event) => {
-      if (event.key === 'Escape') {
-        setOpenConversationMenuKey(null);
-      }
-    };
-
-    window.addEventListener('mousedown', handlePointerDown);
-    window.addEventListener('keydown', handleEscape);
-    return () => {
-      window.removeEventListener('mousedown', handlePointerDown);
-      window.removeEventListener('keydown', handleEscape);
-    };
-  }, [openConversationMenuKey]);
+  useDismissOnOutside({
+    isOpen: Boolean(openConversationMenuKey),
+    containerRef: conversationMenuRef,
+    onDismiss: closeConversationMenu,
+  });
 
   const handleOpenConversationMenu = (event, conversationKey) => {
     event.preventDefault();
@@ -263,21 +303,21 @@ function DashboardSidebar({
   const handleRenameClick = (event, conversation) => {
     event.preventDefault();
     event.stopPropagation();
-    setOpenConversationMenuKey(null);
+    closeConversationMenu();
     onRenameConversation(conversation);
   };
 
   const handlePinClick = (event, conversation) => {
     event.preventDefault();
     event.stopPropagation();
-    setOpenConversationMenuKey(null);
+    closeConversationMenu();
     onTogglePinConversation(conversation);
   };
 
   const handleDeleteClick = (event, conversation) => {
     event.preventDefault();
     event.stopPropagation();
-    setOpenConversationMenuKey(null);
+    closeConversationMenu();
     onDeleteConversation(conversation);
   };
 
@@ -336,133 +376,79 @@ function DashboardSidebar({
     </div>
   );
 
-  if (!sidebarOpen) {
-    return (
-      <aside className="cg-sidebar collapsed">
-        <div className="cg-sidebar-header">
+  const isCollapsed = !sidebarOpen;
+  const ToggleSidebarIcon = isCollapsed ? PanelLeft : PanelLeftClose;
+  const toggleSidebarLabel = isCollapsed ? 'Expand sidebar' : 'Collapse sidebar';
+
+  return (
+    <aside className={`cg-sidebar${isCollapsed ? ' collapsed' : ''}`.trim()}>
+      <div className="cg-sidebar-header">
+        {isCollapsed ? (
           <div className="cg-brand-mark" aria-hidden="true">
             <ChatGptLogo size={14} />
           </div>
-          <button
-            type="button"
-            className="cg-sidebar-toggle"
-            onClick={onToggleSidebar}
-            aria-label="Expand sidebar"
-            title="Expand sidebar"
-          >
-            <PanelLeft size={18} />
-          </button>
-        </div>
-
-        <div className="cg-sidebar-content">
-          <nav className="cg-sidebar-nav">
-            {PRIMARY_NAV_ITEMS.map((item) => (
-              <SidebarItem
-                key={item.id}
-                label={item.label}
-                icon={item.icon}
-                onClick={item.id === 'new-chat' ? onStartNewChat : onOpenSearch}
-                isActive={item.id === 'search' && searchOpen}
-                collapsed
-              />
-            ))}
-          </nav>
-
-          <div className="cg-sidebar-divider" />
-
-          <nav className="cg-sidebar-nav">
-            {PRODUCT_NAV_ITEMS.map((item) => (
-              <SidebarItem
-                key={item.id}
-                label={item.label}
-                icon={item.icon}
-                onClick={item.id === 'memory' ? onOpenMemory : item.id === 'usage' ? onOpenUsage : onOpenModels}
-                isActive={item.id === 'memory' ? memoryOpen : item.id === 'usage' ? usageOpen : modelsOpen}
-                collapsed
-              />
-            ))}
-          </nav>
-        </div>
-
-        <div className="cg-sidebar-footer">
-          <SidebarUserMenu collapsed onOpenSettings={onOpenSettings} />
-        </div>
-      </aside>
-    );
-  }
-
-  return (
-    <aside className="cg-sidebar">
-      <div className="cg-sidebar-header">
-        <div className="cg-sidebar-brand">
-          <div className="cg-brand-dot">
-            <ChatGptLogo size={14} />
+        ) : (
+          <div className="cg-sidebar-brand">
+            <div className="cg-brand-dot">
+              <ChatGptLogo size={14} />
+            </div>
           </div>
-        </div>
+        )}
         <button
           type="button"
           className="cg-sidebar-toggle"
           onClick={onToggleSidebar}
-          aria-label="Collapse sidebar"
-          title="Collapse sidebar"
+          aria-label={toggleSidebarLabel}
+          title={toggleSidebarLabel}
         >
-          <PanelLeftClose size={18} />
+          <ToggleSidebarIcon size={18} />
         </button>
       </div>
 
       <div className="cg-sidebar-content">
-        <nav className="cg-sidebar-nav">
-          {PRIMARY_NAV_ITEMS.map((item) => (
-            <SidebarItem
-              key={item.id}
-              label={item.label}
-              icon={item.icon}
-              onClick={item.id === 'new-chat' ? onStartNewChat : onOpenSearch}
-              isActive={item.id === 'search' && searchOpen}
-            />
-          ))}
-        </nav>
+        <SidebarNavigation
+          collapsed={isCollapsed}
+          onStartNewChat={onStartNewChat}
+          onOpenSearch={onOpenSearch}
+          onOpenMemory={onOpenMemory}
+          onOpenUsage={onOpenUsage}
+          onOpenModels={onOpenModels}
+          searchOpen={searchOpen}
+          memoryOpen={memoryOpen}
+          usageOpen={usageOpen}
+          modelsOpen={modelsOpen}
+        />
 
-        <div className="cg-sidebar-divider" />
-
-        <nav className="cg-sidebar-nav">
-          {PRODUCT_NAV_ITEMS.map((item) => (
-            <SidebarItem
-              key={item.id}
-              label={item.label}
-              icon={item.icon}
-              onClick={item.id === 'memory' ? onOpenMemory : item.id === 'usage' ? onOpenUsage : onOpenModels}
-              isActive={item.id === 'memory' ? memoryOpen : item.id === 'usage' ? usageOpen : modelsOpen}
-            />
-          ))}
-        </nav>
-
-        <div className="cg-sidebar-divider" />
-        <div className="cg-sidebar-section-label">Your chats</div>
-        <div className="cg-chat-list-scroll">
-          {isLoadingRecentConversations ? (
-            <div className="cg-chat-list-state">Loading chats...</div>
-          ) : recentConversationsError ? (
-            <div className="cg-chat-list-state">Unable to load chats.</div>
-          ) : hasRecentConversations ? (
-            <>
-              {pinnedConversations.length > 0 ? (
-                <div className="cg-chat-list-subheader">Pinned</div>
-              ) : null}
-              {pinnedConversations.map((conversation) => renderConversationRow(conversation))}
-              {pinnedConversations.length > 0 && unpinnedConversations.length > 0 ? (
-                <div className="cg-chat-list-subheader">Recent</div>
-              ) : null}
-              {unpinnedConversations.map((conversation) => renderConversationRow(conversation))}
-            </>
-          ) : (
-            <div className="cg-chat-list-state">No chats yet.</div>
-          )}
-        </div>
+        {!isCollapsed ? (
+          <>
+            <div className="cg-sidebar-divider" />
+            <div className="cg-sidebar-section-label">Your chats</div>
+            <div className="cg-chat-list-scroll">
+              {isLoadingRecentConversations ? (
+                <div className="cg-chat-list-state">Loading chats...</div>
+              ) : recentConversationsError ? (
+                <div className="cg-chat-list-state">Unable to load chats.</div>
+              ) : hasRecentConversations ? (
+                <>
+                  {pinnedConversations.length > 0 ? (
+                    <div className="cg-chat-list-subheader">Pinned</div>
+                  ) : null}
+                  {pinnedConversations.map((conversation) => renderConversationRow(conversation))}
+                  {pinnedConversations.length > 0 && unpinnedConversations.length > 0 ? (
+                    <div className="cg-chat-list-subheader">Recent</div>
+                  ) : null}
+                  {unpinnedConversations.map((conversation) => renderConversationRow(conversation))}
+                </>
+              ) : (
+                <div className="cg-chat-list-state">No chats yet.</div>
+              )}
+            </div>
+          </>
+        ) : null}
       </div>
 
       <div className="cg-sidebar-footer">
-        <SidebarUserMenu onOpenSettings={onOpenSettings} />
+        <SidebarUserMenu collapsed={isCollapsed} onOpenSettings={onOpenSettings} />
       </div>
     </aside>
   );

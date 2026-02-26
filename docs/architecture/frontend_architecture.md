@@ -24,11 +24,21 @@ WindieOS frontend is a multi-runtime desktop stack:
 ```text
 frontend/src/
 ├── main/
-│   ├── index.cjs                          # Electron app + overlay window orchestration
+│   ├── index.cjs                          # Electron main composition root (wires runtime modules)
 │   ├── ipc.cjs                            # Renderer <-> backend WS bridge and event fan-out
+│   ├── ipc_runtime_helpers.cjs            # IPC runtime helper set (user-id, payload normalization, upload, backend message processing)
+│   ├── ipc_renderer_windows.cjs           # Renderer-window tracking + broadcast helpers for IPC bridge
+│   ├── ipc_query_broadcast.cjs            # Local user-message/query-failure bridge helpers
+│   ├── main_window_runtime.cjs            # Main/chat/response/tray window constructors + renderer view loading
+│   ├── window_visibility_runtime.cjs      # Main/chat overlay visibility operations (show/hide/maximize)
+│   ├── overlay_window_helpers_runtime.cjs # Overlay bounds/position/on-top/context-label runtime helpers
+│   ├── overlay_signal_runtime.cjs         # Wakeword + overlay visibility signal fan-out helpers
+│   ├── overlay_ipc_runtime.cjs            # IPC channel registration for overlay/window/permission handlers
+│   ├── main_process_lifecycle_runtime.cjs # app.whenReady/activate/quit lifecycle wiring + shortcut registration
 │   ├── local_backend_bridge*.cjs          # Main <-> sidecar JSON-RPC bridge
 │   ├── wakeword_bridge.cjs                # Main <-> wakeword subprocess bridge
 │   ├── query_payload_builder.cjs          # System-state/memory XML augmentation for query payload
+│   ├── permission_service.cjs             # Install-time permission manifest checks + OS probe/request helpers
 │   └── python/                            # Sidecar runtime (tools/memory/system/browser)
 ├── preload.js                             # Context-isolated channel allowlist bridge
 ├── renderer/
@@ -84,16 +94,23 @@ frontend/src/
 3. Detection emits `wakeword-detected` back to renderer + `wakeword-detected` backend event.
 4. Renderer shows chatbox/focuses input; optional STT continuation uses voice-mode gateway hook.
 
+### Permission Onboarding Flow
+
+1. Renderer `App.jsx` bootstraps `usePermissionStore` before dashboard/chat surfaces mount.
+2. Store invokes `LIST_PERMISSIONS` to fetch manifest + live status probes from main process.
+3. If required-now permission state is incomplete (or manifest version changed), app stays in onboarding wizard.
+4. Wizard/request actions call `REQUEST_PERMISSION` and `RUN_PERMISSION_PROBE`; settings "Data controls" renders the same control center component.
+5. Normal dashboard unlocks only after required permissions are granted and planned-system-access disclosure consent is stored.
+
 ## Main Process Responsibilities
 
 Primary modules:
 
 - `main/index.cjs`:
-  - App boot, tray, shortcuts.
-  - Main/dashboard/chatbox/response/context-label window orchestration.
-  - Overlay bounds, click-through, focus capture restore, response-phase visibility.
-  - Linux screenshot hide/restore behavior for overlay windows.
-  - Linux sudo toggle flow (`agent_sudo_access_handler.cjs`) for passwordless sudo policy file management.
+  - Main-process composition root: assembles runtime modules and shared state references.
+  - Delegates lifecycle boot/activate/quit wiring to `main_process_lifecycle_runtime.cjs`.
+  - Delegates overlay/window/permission IPC handler registration to `overlay_ipc_runtime.cjs`.
+  - Delegates visibility and overlay positioning helpers to `window_visibility_runtime.cjs`, `overlay_window_helpers_runtime.cjs`, and `overlay_signal_runtime.cjs`.
 - `main/ipc.cjs`:
   - Single backend WebSocket client lifecycle and reconnect.
   - Handshake/user/session/conversation context propagation.
@@ -115,6 +132,7 @@ Primary modules:
 ### Provider and App Composition
 
 - `renderer/app/App.jsx`: Root provider stack and dashboard shell mounting.
+  - Boot-time permission gate: permission store bootstrap + onboarding wizard route before normal shell.
 - `renderer/app/providers/AppConfigProvider.jsx`:
   - Frontend config load/merge/save.
   - Backend settings sync, backend model-list routing.
@@ -137,12 +155,24 @@ Primary modules:
 - `features/chat/components/MessageList.jsx`:
   - Message rendering + inline user-message editor.
 
+### Permission Runtime
+
+- `features/permissions/stores/permissionStore.js`:
+  - Manifest/status fetch + probe/request actions.
+  - Required-now gate evaluation + onboarding completion persistence.
+- `features/permissions/components/PermissionOnboardingWizard.jsx`:
+  - First-run permission checklist + planned-system-access consent step.
+- `features/permissions/components/PermissionControlCenter.jsx`:
+  - Settings-tab live permission status, request/re-check actions, and full recheck.
+
 ### Dashboard Runtime
 
 - `features/dashboard/components/ChatGptDashboardShell.jsx`:
   - Sidebar + modal surface orchestration.
   - Conversation search/recent grouping/open/rename/pin/delete actions.
   - `main-window-open-target` IPC target routing (`chat|settings|models|memory`).
+- `features/dashboard/hooks/useDashboardConversations.js`:
+  - Extracted conversation runtime state: list/search fetch, open/rehydrate, rename/pin/delete handlers, transcript-entry polling.
 - `features/dashboard/components/sections/MemorySection.jsx`:
   - Unified episodic/semantic/procedural view.
   - Fetch/delete semantic memory via sidecar RPC.

@@ -143,6 +143,7 @@ frontend/src/
 - `scripts/check-loc.py --max 500`: Reports files over the LOC guideline (`--fail` to exit non-zero).
 - `scripts/committer "<msg>" <files...>`: Scoped commits using the shared `committer` helper.
 - Frontend checks auto-skip when `frontend/node_modules` is missing.
+- `cd frontend && npm run typecheck`: Runs TS gate (`tsc --noEmit -p tsconfig.eslint.json`).
 - `cd frontend && npm run lint`: Lints `js/jsx/cjs/ts/tsx`.
 - `cd frontend && npm run lint:audit`: Runs React compiler + deprecation audits.
 - `cd frontend && npm run audit:jscpd`: Runs duplication scan across backend/frontend/tests.

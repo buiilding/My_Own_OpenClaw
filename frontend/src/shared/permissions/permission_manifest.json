@@ -1,0 +1,83 @@
+{
+  "manifest_version": "1.0.0",
+  "generated_at": "2026-02-26",
+  "permissions": [
+    {
+      "permission_id": "screen_capture",
+      "label": "Screen capture",
+      "description": "Allow WindieOS to capture the current screen for screenshot context and visual grounding.",
+      "risk_level": "high",
+      "required_now": true,
+      "required_for_planned_system_access": true,
+      "os_scope": "all",
+      "validation_probe": "os_media_status_screen_or_runtime_probe",
+      "unlocks_tool_groups": ["computer_control", "screenshot"]
+    },
+    {
+      "permission_id": "input_control_accessibility",
+      "label": "Input control",
+      "description": "Allow WindieOS to automate mouse, keyboard, and scroll interactions.",
+      "risk_level": "high",
+      "required_now": true,
+      "required_for_planned_system_access": true,
+      "os_scope": "all",
+      "validation_probe": "os_accessibility_or_runtime_probe",
+      "unlocks_tool_groups": ["computer_control"]
+    },
+    {
+      "permission_id": "microphone",
+      "label": "Microphone",
+      "description": "Allow voice mode and wakeword audio capture.",
+      "risk_level": "medium",
+      "required_now": false,
+      "required_for_planned_system_access": true,
+      "os_scope": "all",
+      "validation_probe": "os_media_status_microphone",
+      "unlocks_tool_groups": ["voice"]
+    },
+    {
+      "permission_id": "filesystem_workspace_access",
+      "label": "Workspace file access",
+      "description": "Allow file read/replace operations in user-selected workspace locations.",
+      "risk_level": "high",
+      "required_now": true,
+      "required_for_planned_system_access": true,
+      "os_scope": "all",
+      "validation_probe": "runtime_filesystem_capability_probe",
+      "unlocks_tool_groups": ["filesystem"]
+    },
+    {
+      "permission_id": "shell_execution",
+      "label": "Shell execution",
+      "description": "Allow command execution and process management.",
+      "risk_level": "high",
+      "required_now": true,
+      "required_for_planned_system_access": true,
+      "os_scope": "all",
+      "validation_probe": "runtime_shell_capability_probe",
+      "unlocks_tool_groups": ["system"]
+    },
+    {
+      "permission_id": "browser_automation",
+      "label": "Browser automation",
+      "description": "Allow browser session automation for navigation and data extraction tasks.",
+      "risk_level": "high",
+      "required_now": true,
+      "required_for_planned_system_access": true,
+      "os_scope": "all",
+      "validation_probe": "runtime_browser_capability_probe",
+      "unlocks_tool_groups": ["browser"]
+    },
+    {
+      "permission_id": "planned_system_access",
+      "label": "Planned system-access scope",
+      "description": "Acknowledges future capability scope for deeper system access when that feature ships.",
+      "risk_level": "high",
+      "required_now": false,
+      "required_for_planned_system_access": true,
+      "os_scope": "all",
+      "validation_probe": "consent_only",
+      "unlocks_tool_groups": ["planned_system_access"]
+    }
+  ]
+}

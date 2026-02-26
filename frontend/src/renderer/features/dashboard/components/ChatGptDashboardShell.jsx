@@ -1,23 +1,15 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import ChatInterface from '../../chat/components/ChatInterface';
 import { useChatStore } from '../../chat/stores/chatStore';
-import { ApiClient } from '../../../infrastructure/api/client';
-import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
-import {
-  setActiveConversationRef,
-  updateTranscriptSession,
-} from '../../../infrastructure/transcript/TranscriptWriter';
+import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import ModelsSection from './sections/ModelsSection';
 import SettingsSection from './sections/SettingsSection';
 import UsageSection from './sections/UsageSection';
-import {
-  DEFAULT_USER_ID,
-  parseMemoriesToMessages,
-  toRehydrateMessagePayload,
-} from '../utils/episodicMemoryUtils';
+import { DEFAULT_USER_ID } from '../utils/episodicMemoryUtils';
 import DashboardSidebar from './DashboardSidebar';
 import { useTranscriptSessionInfo } from '../hooks/useTranscriptSessionInfo';
+import { useDashboardConversations } from '../hooks/useDashboardConversations';
 import MemorySection from './sections/MemorySection';
 import SearchChatsModal from './SearchChatsModal';
 
@@ -65,23 +57,36 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
   const [memoryOpen, setMemoryOpen] = useState(false);
   const [usageOpen, setUsageOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchedConversations, setSearchedConversations] = useState([]);
-  const [isSearchingConversations, setIsSearchingConversations] = useState(false);
-  const [searchConversationsError, setSearchConversationsError] = useState('');
-  const [recentConversations, setRecentConversations] = useState([]);
-  const [pinnedConversationRefs, setPinnedConversationRefs] = useState([]);
-  const [isLoadingRecentConversations, setIsLoadingRecentConversations] = useState(false);
-  const [recentConversationsError, setRecentConversationsError] = useState('');
   const [composerFocusToken, setComposerFocusToken] = useState(0);
   const wasHiddenRef = useRef(false);
-  const pendingTitlePollTimersRef = useRef(new Map());
   const sessionInfo = useTranscriptSessionInfo();
   const resolvedUserId = sessionInfo.userId || DEFAULT_USER_ID;
 
   const setChatMessages = useChatStore((state) => state.setMessages);
   const setChatIsSending = useChatStore((state) => state.setIsSending);
   const setChatThinkingStatus = useChatStore((state) => state.setThinkingStatus);
+  const {
+    searchQuery,
+    isSearchingConversations,
+    searchConversationsError,
+    isLoadingRecentConversations,
+    recentConversationsError,
+    handleOpenConversation,
+    handleRenameConversation,
+    handleTogglePinConversation,
+    handleDeleteConversation,
+    recentConversationGroups,
+    searchedConversationGroups,
+    setSearchQuery,
+    resetSearch,
+  } = useDashboardConversations({
+    resolvedUserId,
+    sessionConversationRef: sessionInfo.conversationRef,
+    setChatMessages,
+    setChatIsSending,
+    setChatThinkingStatus,
+    searchOpen,
+  });
 
   const triggerDashboardOpenAnimation = useCallback(() => {
     setDashboardOpening(false);
@@ -147,247 +152,14 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
 
   const handleOpenSearch = useCallback(() => {
     closeAllPanels();
-    setSearchQuery('');
-    setSearchedConversations([]);
-    setSearchConversationsError('');
-    setIsSearchingConversations(false);
+    resetSearch();
     setSearchOpen(true);
-  }, [closeAllPanels]);
+  }, [closeAllPanels, resetSearch]);
 
-  const loadRecentConversations = useCallback(async () => {
-    setIsLoadingRecentConversations(true);
-    setRecentConversationsError('');
-
-    try {
-      const result = await IpcBridge.invoke(INVOKE_CHANNELS.LIST_CONVERSATIONS, {
-        userId: resolvedUserId,
-        limit: 200,
-        recordKind: 'transcript',
-      });
-      if (!result || result.success === false) {
-        throw new Error(result?.error || 'Failed to load recent chats');
-      }
-
-      const list = (result?.data?.conversations ?? [])
-        .filter((conversation) => Boolean(conversation?.conversation_id))
-        .sort((a, b) => {
-          const aTime = Date.parse(a?.last_timestamp || '') || 0;
-          const bTime = Date.parse(b?.last_timestamp || '') || 0;
-          return bTime - aTime;
-        });
-      setRecentConversations(list);
-      setPinnedConversationRefs((current) => {
-        const knownIds = new Set(list.map((conversation) => conversation?.conversation_id));
-        return current.filter((conversationRef) => knownIds.has(conversationRef));
-      });
-      return list;
-    } catch (error) {
-      setRecentConversationsError(error?.message || 'Failed to load recent chats');
-      setRecentConversations([]);
-      return [];
-    } finally {
-      setIsLoadingRecentConversations(false);
-    }
-  }, [resolvedUserId]);
-
-  const clearPendingTitlePoll = useCallback((conversationRef) => {
-    const timerId = pendingTitlePollTimersRef.current.get(conversationRef);
-    if (timerId) {
-      window.clearTimeout(timerId);
-      pendingTitlePollTimersRef.current.delete(conversationRef);
-    }
-  }, []);
-
-  const scheduleTitleVisibilityPoll = useCallback((conversationRef) => {
-    if (!conversationRef) {
-      return;
-    }
-    clearPendingTitlePoll(conversationRef);
-
-    let attempts = 0;
-    const maxAttempts = 240;
-    const delayMs = 1250;
-
-    const poll = async () => {
-      attempts += 1;
-      const list = await loadRecentConversations();
-      const isVisible = list.some((conversation) => conversation?.conversation_id === conversationRef);
-      if (isVisible || attempts >= maxAttempts) {
-        clearPendingTitlePoll(conversationRef);
-        return;
-      }
-      const nextTimer = window.setTimeout(() => {
-        void poll();
-      }, delayMs);
-      pendingTitlePollTimersRef.current.set(conversationRef, nextTimer);
-    };
-
-    void poll();
-  }, [clearPendingTitlePoll, loadRecentConversations]);
-
-  const handleOpenConversation = useCallback(async (conversation) => {
-    const conversationRef = conversation?.conversation_id;
-    if (!conversationRef) {
-      return;
-    }
-
+  const openConversationFromDashboard = useCallback((conversation) => {
     closeAllPanels();
-    setRecentConversationsError('');
-
-    try {
-      const result = await IpcBridge.invoke(INVOKE_CHANNELS.GET_CONVERSATION, {
-        userId: resolvedUserId,
-        conversationId: conversationRef,
-        limit: 1000,
-        recordKind: conversation?.record_kind || 'transcript',
-      });
-
-      if (!result || result.success === false) {
-        throw new Error(result?.error || 'Failed to load conversation');
-      }
-
-      const memories = result?.data?.memories ?? [];
-      const parsedMessages = parseMemoriesToMessages(memories);
-
-      await ApiClient.sendRehydrateConversation(
-        conversationRef,
-        memories.map(toRehydrateMessagePayload),
-      );
-
-      setActiveConversationRef(conversationRef);
-      updateTranscriptSession(conversationRef, resolvedUserId);
-      setChatMessages(parsedMessages);
-      setChatIsSending(false);
-      setChatThinkingStatus(null);
-    } catch (error) {
-      setRecentConversationsError(error?.message || 'Failed to open conversation');
-    }
-  }, [
-    closeAllPanels,
-    resolvedUserId,
-    setChatIsSending,
-    setChatMessages,
-    setChatThinkingStatus,
-  ]);
-
-  const handleRenameConversation = useCallback((conversation) => {
-    const conversationRef = conversation?.conversation_id;
-    if (!conversationRef) {
-      return;
-    }
-    const currentTitle = typeof conversation?.title === 'string'
-      ? conversation.title.trim()
-      : '';
-    const nextTitleInput = window.prompt('Rename chat', currentTitle || 'New chat');
-    if (typeof nextTitleInput !== 'string') {
-      return;
-    }
-    const nextTitle = nextTitleInput.trim();
-    if (!nextTitle || nextTitle === currentTitle) {
-      return;
-    }
-    setRecentConversations((current) => current.map((item) => (
-      item?.conversation_id === conversationRef
-        ? { ...item, title: nextTitle }
-        : item
-    )));
-    setSearchedConversations((current) => current.map((item) => (
-      item?.conversation_id === conversationRef
-        ? { ...item, title: nextTitle }
-        : item
-    )));
-  }, []);
-
-  const handleTogglePinConversation = useCallback((conversation) => {
-    const conversationRef = conversation?.conversation_id;
-    if (!conversationRef) {
-      return;
-    }
-    setPinnedConversationRefs((current) => {
-      if (current.includes(conversationRef)) {
-        return current.filter((id) => id !== conversationRef);
-      }
-      return [conversationRef, ...current];
-    });
-  }, []);
-
-  const handleDeleteConversation = useCallback(async (conversation) => {
-    const conversationRef = conversation?.conversation_id;
-    if (!conversationRef) {
-      return;
-    }
-    const shouldDelete = window.confirm('Delete this chat? This cannot be undone.');
-    if (!shouldDelete) {
-      return;
-    }
-
-    try {
-      const result = await IpcBridge.invoke(INVOKE_CHANNELS.DELETE_CONVERSATION, {
-        userId: resolvedUserId,
-        conversationId: conversationRef,
-        recordKind: conversation?.record_kind || 'transcript',
-      });
-      if (!result || result.success === false) {
-        throw new Error(result?.error || 'Failed to delete chat');
-      }
-
-      setRecentConversations((current) => current.filter((item) => item?.conversation_id !== conversationRef));
-      setSearchedConversations((current) => current.filter((item) => item?.conversation_id !== conversationRef));
-      setPinnedConversationRefs((current) => current.filter((id) => id !== conversationRef));
-      if (sessionInfo.conversationRef === conversationRef) {
-        setActiveConversationRef(null);
-        updateTranscriptSession(null, resolvedUserId);
-        setChatMessages([]);
-        setChatIsSending(false);
-        setChatThinkingStatus(null);
-      }
-    } catch (error) {
-      setRecentConversationsError(error?.message || 'Failed to delete chat');
-    }
-  }, [
-    resolvedUserId,
-    sessionInfo.conversationRef,
-    setChatIsSending,
-    setChatMessages,
-    setChatThinkingStatus,
-  ]);
-
-  useEffect(() => {
-    loadRecentConversations();
-  }, [loadRecentConversations]);
-
-  useEffect(() => {
-    const handleTranscriptEntryStored = (event) => {
-      const detail = event?.detail;
-      const role = typeof detail?.role === 'string' ? detail.role : '';
-      const messageType = typeof detail?.messageType === 'string' ? detail.messageType : '';
-      const conversationRef = typeof detail?.conversationRef === 'string'
-        ? detail.conversationRef
-        : '';
-      if (role !== 'assistant' || messageType !== 'llm-text') {
-        return;
-      }
-      if (!conversationRef) {
-        void loadRecentConversations();
-        return;
-      }
-      scheduleTitleVisibilityPoll(conversationRef);
-    };
-
-    window.addEventListener('transcript-entry-stored', handleTranscriptEntryStored);
-    return () => {
-      window.removeEventListener('transcript-entry-stored', handleTranscriptEntryStored);
-    };
-  }, [loadRecentConversations, scheduleTitleVisibilityPoll]);
-
-  useEffect(() => {
-    return () => {
-      for (const timerId of pendingTitlePollTimersRef.current.values()) {
-        window.clearTimeout(timerId);
-      }
-      pendingTitlePollTimersRef.current.clear();
-    };
-  }, []);
+    void handleOpenConversation(conversation);
+  }, [closeAllPanels, handleOpenConversation]);
 
   useEffect(() => {
     if (!dashboardOpening) {
@@ -419,164 +191,6 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
     };
   }, [triggerDashboardOpenAnimation]);
 
-  const recentConversationGroups = useMemo(() => {
-    const groups = {
-      today: [],
-      yesterday: [],
-      previous7Days: [],
-      older: [],
-    };
-
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const sevenDaysAgo = new Date(today);
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-    recentConversations.forEach((conversation, index) => {
-      const timestampValue = Date.parse(conversation?.last_timestamp || '');
-      const conversationDate = Number.isNaN(timestampValue)
-        ? new Date(0)
-        : new Date(timestampValue);
-      const resolvedTitle = typeof conversation?.title === 'string'
-        ? conversation.title.trim()
-        : '';
-      const item = {
-        key: conversation?.conversation_id || `conversation-${index}`,
-        title: resolvedTitle || 'New chat',
-        conversation,
-        isPinned: pinnedConversationRefs.includes(conversation?.conversation_id),
-      };
-
-      if (conversationDate >= today) {
-        groups.today.push(item);
-        return;
-      }
-      if (conversationDate >= yesterday) {
-        groups.yesterday.push(item);
-        return;
-      }
-      if (conversationDate >= sevenDaysAgo) {
-        groups.previous7Days.push(item);
-        return;
-      }
-      groups.older.push(item);
-    });
-
-    return groups;
-  }, [pinnedConversationRefs, recentConversations]);
-
-  const searchedConversationGroups = useMemo(() => {
-    const groups = {
-      today: [],
-      yesterday: [],
-      previous7Days: [],
-      older: [],
-    };
-
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const sevenDaysAgo = new Date(today);
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-    searchedConversations.forEach((conversation, index) => {
-      const timestampValue = Date.parse(conversation?.last_timestamp || '');
-      const conversationDate = Number.isNaN(timestampValue)
-        ? new Date(0)
-        : new Date(timestampValue);
-      const resolvedTitle = typeof conversation?.title === 'string'
-        ? conversation.title.trim()
-        : '';
-      const item = {
-        key: conversation?.conversation_id || `search-conversation-${index}`,
-        title: resolvedTitle || 'New chat',
-        snippet: typeof conversation?.snippet === 'string' ? conversation.snippet.trim() : '',
-        matchedRole: typeof conversation?.matched_role === 'string'
-          ? (
-            conversation.matched_role === 'user'
-              ? 'You'
-              : conversation.matched_role === 'assistant'
-                ? 'Assistant'
-                : conversation.matched_role
-          )
-          : '',
-        conversation,
-        isPinned: pinnedConversationRefs.includes(conversation?.conversation_id),
-      };
-
-      if (conversationDate >= today) {
-        groups.today.push(item);
-        return;
-      }
-      if (conversationDate >= yesterday) {
-        groups.yesterday.push(item);
-        return;
-      }
-      if (conversationDate >= sevenDaysAgo) {
-        groups.previous7Days.push(item);
-        return;
-      }
-      groups.older.push(item);
-    });
-
-    return groups;
-  }, [pinnedConversationRefs, searchedConversations]);
-
-  useEffect(() => {
-    if (!searchOpen) {
-      return undefined;
-    }
-
-    const normalizedQuery = searchQuery.trim();
-    if (normalizedQuery.length < 2) {
-      setIsSearchingConversations(false);
-      setSearchConversationsError('');
-      setSearchedConversations([]);
-      return undefined;
-    }
-
-    let isCancelled = false;
-    const timer = window.setTimeout(async () => {
-      setIsSearchingConversations(true);
-      setSearchConversationsError('');
-      try {
-        const result = await IpcBridge.invoke(INVOKE_CHANNELS.SEARCH_CONVERSATIONS, {
-          userId: resolvedUserId,
-          query: normalizedQuery,
-          limit: 60,
-        });
-        if (isCancelled) {
-          return;
-        }
-        if (!result || result.success === false) {
-          throw new Error(result?.error || 'Failed to search chats');
-        }
-
-        const list = Array.isArray(result?.data?.conversations)
-          ? result.data.conversations
-          : [];
-        setSearchedConversations(list);
-      } catch (error) {
-        if (isCancelled) {
-          return;
-        }
-        setSearchedConversations([]);
-        setSearchConversationsError(error?.message || 'Failed to search chats');
-      } finally {
-        if (!isCancelled) {
-          setIsSearchingConversations(false);
-        }
-      }
-    }, 180);
-
-    return () => {
-      isCancelled = true;
-      window.clearTimeout(timer);
-    };
-  }, [searchOpen, searchQuery, resolvedUserId]);
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.MAIN_WINDOW_OPEN_TARGET, (payload) => {
@@ -621,7 +235,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
         isLoadingRecentConversations={isLoadingRecentConversations}
         recentConversationsError={recentConversationsError}
         recentConversationGroups={recentConversationGroups}
-        onOpenConversation={handleOpenConversation}
+        onOpenConversation={openConversationFromDashboard}
         onRenameConversation={handleRenameConversation}
         onTogglePinConversation={handleTogglePinConversation}
         onDeleteConversation={handleDeleteConversation}
@@ -636,7 +250,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
         isOpen={searchOpen}
         onClose={() => setSearchOpen(false)}
         onStartNewChat={handleStartNewChat}
-        onOpenConversation={handleOpenConversation}
+        onOpenConversation={openConversationFromDashboard}
         query={searchQuery}
         onQueryChange={setSearchQuery}
         isSearching={isSearchingConversations}

@@ -25,7 +25,9 @@ title: "WebSocket Handshake and Settings Sync Reference"
 
 - explicit `BACKEND_WS_URL` / `BACKEND_HTTP_URL` if valid
 - otherwise derived counterpart URL from whichever explicit URL exists
-- final fallback: `127.0.0.1:8765` (`ws://.../ws`, `http://...`)
+- final fallback:
+  - dev/source runs: `127.0.0.1:8765` (`ws://.../ws`, `http://...`)
+  - packaged runs: hosted defaults (`wss://api.windieos.com/ws`, `https://api.windieos.com`)
 
 Relay state keeps:
 

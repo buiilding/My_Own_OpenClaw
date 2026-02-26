@@ -3,6 +3,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { ChevronDown, Sparkles, Volume2 } from 'lucide-react';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
+import ChatGptLogo from '../../../components/ChatGptLogo';
 import { useChatStore } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
@@ -19,57 +20,15 @@ import {
   updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
 import { createConversationRef } from '../utils/conversationRef';
+import {
+  normalizeProvider,
+  resolveTranscriptMessageType,
+  resolveTranscriptRole,
+  toRehydratePayload,
+} from '../utils/transcriptMessagePayload';
 import '../../../styles/ChatInterface.css';
 
 const ACTIVE_STREAM_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
-const TOOL_MESSAGE_TYPES = new Set(['tool-call', 'tool-output']);
-
-function normalizeProvider(provider) {
-  return provider === undefined || provider === null
-    ? ''
-    : String(provider).trim().toLowerCase();
-}
-
-function resolveTranscriptRole(message) {
-  if (message.sender === 'user') {
-    return 'user';
-  }
-  if (message.type && TOOL_MESSAGE_TYPES.has(message.type)) {
-    return 'tool';
-  }
-  return 'assistant';
-}
-
-function resolveTranscriptMessageType(message) {
-  if (message.sender === 'user') {
-    return 'user';
-  }
-  return message.type || 'llm-text';
-}
-
-function toRehydratePayload(message) {
-  const role = resolveTranscriptRole(message);
-  return {
-    role,
-    content: message.text || '',
-    message_type: resolveTranscriptMessageType(message),
-    tool_name: role === 'tool' ? (message.toolName || null) : null,
-    correlation_id: role === 'tool' ? (message.correlationId || null) : null,
-    timestamp: message.timestamp || null,
-    screenshot_ref: typeof message.screenshotRef === 'string' ? message.screenshotRef : null,
-    screenshot: null,
-  };
-}
-
-function ChatGptLogo({ size = 14 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
 
 function ChatInterface({ sidebarOpen = true, focusComposerToken = 0 }) {
   const { messages, isSending, thinkingStatus, streamPhase } = useChatStore(

@@ -121,6 +121,21 @@ describe('local_backend_bridge RPC handlers', () => {
     );
   });
 
+  test('passes packaged hosted backend default URL to Python sidecar env', () => {
+    const { spawn } = initBridge({ isPackaged: true });
+    markReady();
+
+    expect(spawn).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(Array),
+      expect.objectContaining({
+        env: expect.objectContaining({
+          WINDIE_BACKEND_HTTP_URL: 'https://api.windieos.com',
+        }),
+      }),
+    );
+  });
+
   test('adds --no-deprecation to Node options for local backend subprocesses', () => {
     process.env.NODE_OPTIONS = '--max-old-space-size=4096';
     const { spawn } = initBridge();

@@ -1,0 +1,256 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+Bootstrap a Cloudflare Tunnel for WindieOS backend on your own machine.
+
+This script:
+1) ensures a named tunnel exists
+2) routes DNS hostname to that tunnel
+3) writes cloudflared config with ingress to local backend
+4) optionally installs/enables a user-level systemd cloudflared service
+
+Usage:
+  scripts/cloudflared/setup-windieos-tunnel [options]
+
+Options:
+  --domain DOMAIN              Base domain (default: windieos.com)
+  --hostname HOSTNAME          Full hostname (default: api.<domain>)
+  --tunnel-name NAME           Tunnel name (default: windieos-backend)
+  --backend-origin URL         Local backend origin (default: http://127.0.0.1:8765)
+  --config-path PATH           cloudflared config path (default: ~/.cloudflared/windieos-config.yml)
+  --credentials-file PATH      Explicit credentials JSON path (default: ~/.cloudflared/<tunnel-id>.json)
+  --skip-login                 Skip interactive cloudflared tunnel login
+  --no-dns-route               Skip DNS route creation/update
+  --no-user-service            Skip user-level systemd service setup
+  --dry-run                    Print actions without executing
+  -h, --help                   Show this help
+
+Examples:
+  scripts/cloudflared/setup-windieos-tunnel
+  scripts/cloudflared/setup-windieos-tunnel --hostname api.windieos.com --backend-origin http://127.0.0.1:8765
+EOF
+}
+
+DOMAIN="windieos.com"
+HOSTNAME=""
+TUNNEL_NAME="windieos-backend"
+BACKEND_ORIGIN="http://127.0.0.1:8765"
+CONFIG_PATH="${HOME}/.cloudflared/windieos-config.yml"
+CREDENTIALS_FILE=""
+SKIP_LOGIN=0
+ENABLE_DNS_ROUTE=1
+ENABLE_USER_SERVICE=1
+DRY_RUN=0
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --domain)
+      DOMAIN="${2:-}"
+      shift 2
+      ;;
+    --hostname)
+      HOSTNAME="${2:-}"
+      shift 2
+      ;;
+    --tunnel-name)
+      TUNNEL_NAME="${2:-}"
+      shift 2
+      ;;
+    --backend-origin)
+      BACKEND_ORIGIN="${2:-}"
+      shift 2
+      ;;
+    --config-path)
+      CONFIG_PATH="${2:-}"
+      shift 2
+      ;;
+    --credentials-file)
+      CREDENTIALS_FILE="${2:-}"
+      shift 2
+      ;;
+    --skip-login)
+      SKIP_LOGIN=1
+      shift
+      ;;
+    --no-dns-route)
+      ENABLE_DNS_ROUTE=0
+      shift
+      ;;
+    --no-user-service)
+      ENABLE_USER_SERVICE=0
+      shift
+      ;;
+    --dry-run)
+      DRY_RUN=1
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown argument: $1" >&2
+      usage
+      exit 1
+      ;;
+  esac
+done
+
+if [[ -z "$HOSTNAME" ]]; then
+  HOSTNAME="api.${DOMAIN}"
+fi
+
+run_cmd() {
+  if ((DRY_RUN)); then
+    printf '[dry-run] '
+    printf '%q ' "$@"
+    echo
+    return 0
+  fi
+  "$@"
+}
+
+write_file() {
+  local path="$1"
+  local content="$2"
+  if ((DRY_RUN)); then
+    echo "[dry-run] write file: $path"
+    echo "----------"
+    echo "$content"
+    echo "----------"
+    return 0
+  fi
+  mkdir -p "$(dirname "$path")"
+  printf '%s\n' "$content" > "$path"
+}
+
+require_cmd() {
+  if ! command -v "$1" >/dev/null 2>&1; then
+    echo "Missing required command: $1" >&2
+    exit 1
+  fi
+}
+
+lookup_tunnel_id() {
+  local tunnel_name="$1"
+  if ((DRY_RUN)); then
+    return 1
+  fi
+  cloudflared tunnel list --output json 2>/dev/null | python3 - "$tunnel_name" <<'PY'
+import json
+import sys
+
+needle = sys.argv[1]
+raw = sys.stdin.read().strip()
+if not raw:
+    sys.exit(1)
+rows = json.loads(raw)
+for row in rows:
+    if row.get("name") == needle:
+        print(row.get("id", ""))
+        sys.exit(0)
+sys.exit(1)
+PY
+}
+
+require_cmd cloudflared
+require_cmd python3
+
+if ((SKIP_LOGIN == 0)); then
+  if [[ ! -f "${HOME}/.cloudflared/cert.pem" ]]; then
+    echo "No Cloudflare cert found at ~/.cloudflared/cert.pem; opening cloudflared login flow..."
+    run_cmd cloudflared tunnel login
+  fi
+fi
+
+echo "Resolving tunnel id for: ${TUNNEL_NAME}"
+TUNNEL_ID="$(lookup_tunnel_id "$TUNNEL_NAME" || true)"
+
+if [[ -z "$TUNNEL_ID" ]]; then
+  echo "Tunnel not found; creating: ${TUNNEL_NAME}"
+  run_cmd cloudflared tunnel create "$TUNNEL_NAME"
+  TUNNEL_ID="$(lookup_tunnel_id "$TUNNEL_NAME" || true)"
+fi
+
+if [[ -z "$TUNNEL_ID" ]]; then
+  if ((DRY_RUN)); then
+    TUNNEL_ID="<dry-run-tunnel-id>"
+  else
+    echo "Unable to resolve tunnel id for ${TUNNEL_NAME}" >&2
+    exit 1
+  fi
+fi
+
+if [[ -z "$CREDENTIALS_FILE" ]]; then
+  CREDENTIALS_FILE="${HOME}/.cloudflared/${TUNNEL_ID}.json"
+fi
+
+if ((ENABLE_DNS_ROUTE)); then
+  echo "Routing DNS hostname ${HOSTNAME} -> tunnel ${TUNNEL_ID}"
+  run_cmd cloudflared tunnel route dns "$TUNNEL_ID" "$HOSTNAME"
+fi
+
+if ((DRY_RUN == 0)) && [[ ! -f "$CREDENTIALS_FILE" ]]; then
+  echo "Expected credentials file missing: $CREDENTIALS_FILE" >&2
+  exit 1
+fi
+
+CONFIG_CONTENT="$(cat <<EOF
+tunnel: ${TUNNEL_ID}
+credentials-file: ${CREDENTIALS_FILE}
+
+ingress:
+  - hostname: ${HOSTNAME}
+    service: ${BACKEND_ORIGIN}
+  - service: http_status:404
+EOF
+)"
+write_file "$CONFIG_PATH" "$CONFIG_CONTENT"
+
+if ((ENABLE_USER_SERVICE)); then
+  SERVICE_PATH="${HOME}/.config/systemd/user/windieos-cloudflared.service"
+  SERVICE_CONTENT="$(cat <<EOF
+[Unit]
+Description=WindieOS Cloudflare Tunnel
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=$(command -v cloudflared) --config ${CONFIG_PATH} tunnel run
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
+EOF
+)"
+  write_file "$SERVICE_PATH" "$SERVICE_CONTENT"
+
+  if command -v systemctl >/dev/null 2>&1; then
+    run_cmd systemctl --user daemon-reload
+    run_cmd systemctl --user enable --now windieos-cloudflared.service
+  else
+    echo "systemctl not found; skipping user service enable/start."
+  fi
+fi
+
+cat <<EOF
+Cloudflare tunnel bootstrap complete.
+
+Tunnel name:         ${TUNNEL_NAME}
+Tunnel id:           ${TUNNEL_ID}
+Hostname:            ${HOSTNAME}
+Backend origin:      ${BACKEND_ORIGIN}
+Config path:         ${CONFIG_PATH}
+Credentials file:    ${CREDENTIALS_FILE}
+
+Next steps:
+1) Ensure backend is running on ${BACKEND_ORIGIN}.
+2) Validate:
+   curl -fsSL ${BACKEND_ORIGIN}/api/embeddings/health
+3) Validate remote:
+   curl -fsSL https://${HOSTNAME}/api/embeddings/health
+EOF

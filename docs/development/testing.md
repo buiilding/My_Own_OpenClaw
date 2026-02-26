@@ -38,12 +38,14 @@ npm test
 
 ```bash
 cd frontend
+npm run typecheck
 npm run lint
 npm run lint:audit
 npm run audit:jscpd
 npm run audit:knip
 ```
 
+- `npm run typecheck` runs `tsc --noEmit -p tsconfig.eslint.json`.
 - `npm run lint` now scans `js/jsx/cjs/ts/tsx`.
 - `npm run lint:audit` runs a React compiler audit and a TS deprecation audit.
 

@@ -41,10 +41,16 @@ Do not reuse one OS runtime for another OS release.
 
 ## Step 1: Build Sidecar Runtime
 
-From repo root:
+From repo root (default slim profile):
 
 ```bash
 bash scripts/build-sidecar-runtime
+```
+
+Optional full profile (includes Playwright Chromium payload):
+
+```bash
+bash scripts/build-sidecar-runtime-full
 ```
 
 This creates:
@@ -62,15 +68,35 @@ npm run package:mac:bundled-python
 npm run package:linux:bundled-python
 ```
 
+Full profile variants:
+
+```bash
+npm run package:win:bundled-python:full
+npm run package:mac:bundled-python:full
+npm run package:linux:bundled-python:full
+```
+
 Use only the command for the OS you are currently building on.
 
 ## Step 3: Configure Hosted Backend Endpoint
 
-Before launching installed app, set backend URL env vars as needed:
+Packaged builds default to hosted backend:
+
+- `https://api.windieos.com`
+- `wss://api.windieos.com/ws`
+
+Before launching installed app, set backend URL env vars when you need a different backend:
 
 ```bash
 export BACKEND_HTTP_URL="https://your-api.example.com"
 export BACKEND_WS_URL="wss://your-api.example.com/ws"
+```
+
+Packaged-default override vars (used only when `BACKEND_*` is unset):
+
+```bash
+export WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL="https://your-api.example.com"
+export WINDIE_DEFAULT_PACKAGED_BACKEND_WS_URL="wss://your-api.example.com/ws"
 ```
 
 ## Optional Overrides
@@ -92,5 +118,5 @@ On a clean test machine:
 ## Known Platform Notes
 
 - Linux may require non-Python packages for some operations (for example `xdotool`).
-- Playwright browser runtime is installed during runtime build step.
+- Playwright browser runtime is installed only in full profile builds.
 - Wakeword model assets are pre-downloaded during runtime build step.

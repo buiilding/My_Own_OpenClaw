@@ -4,6 +4,7 @@
     "module": "ESNext",
     "moduleResolution": "Node",
     "jsx": "react-jsx",
+    "allowSyntheticDefaultImports": true,
     "allowJs": true,
     "checkJs": false,
     "noEmit": true,

@@ -189,7 +189,7 @@ function checkReadiness(mainWindow, attempt = 1, maxAttempts = 10) {
   }, 500);
 }
 
-function startLocalBackend(mainWindow) {
+function startLocalBackend(mainWindow, options = {}) {
   if (pythonProcess) {
     console.log('[LocalBackend] Service already running');
     return;
@@ -214,7 +214,9 @@ function startLocalBackend(mainWindow) {
     console.log(`[LocalBackend] Starting Python local backend: ${pythonPath} ${scriptPath}`);
   }
 
-  const backendEndpoints = resolveBackendEndpoints();
+  const backendEndpoints = resolveBackendEndpoints(process.env, {
+    isPackaged: options.isPackaged === true,
+  });
 
   pythonProcess = spawn(pythonPath, [scriptPath], {
     stdio: ['pipe', 'pipe', 'pipe'],
@@ -393,6 +395,7 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
   const getFrontendConfig = typeof options.getFrontendConfig === 'function'
     ? options.getFrontendConfig
     : null;
+  const isPackaged = options.isPackaged === true;
   const {
     resolveWindows,
     resolveChatWindow,
@@ -400,7 +403,7 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
   } = createWindowResolvers(getWindows);
 
   const [mainWindow] = resolveWindows();
-  startLocalBackend(mainWindow);
+  startLocalBackend(mainWindow, { isPackaged });
 
   const registerRpcHandler = (channel, method, mapParams) => {
     ipcMain.handle(channel, async (event, payload = {}) => (

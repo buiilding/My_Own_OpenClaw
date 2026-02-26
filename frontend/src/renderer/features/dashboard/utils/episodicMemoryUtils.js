@@ -1,5 +1,4 @@
 export const DEFAULT_USER_ID = 'default_user';
-const UNASSIGNED_CONVERSATION_KEY = '__unassigned_conversation__';
 
 function normalizeOptionalString(value) {
   return typeof value === 'string' && value.length > 0 ? value : null;
@@ -50,17 +49,6 @@ function resolveScreenshotAttachment(memory) {
     screenshotUrl,
     screenshotContentType,
   };
-}
-
-export function formatTimestamp(timestamp) {
-  if (!timestamp) {
-    return 'Unknown time';
-  }
-  const parsed = new Date(timestamp);
-  if (Number.isNaN(parsed.getTime())) {
-    return timestamp;
-  }
-  return parsed.toLocaleString();
 }
 
 function parseMemoryContent(memory) {
@@ -124,32 +112,6 @@ function parseMemoryContent(memory) {
   }
 
   return [{ sender: 'assistant', text: content, type: 'llm-text', modelProvider, modelId }];
-}
-
-export function buildConversationKey(conversation) {
-  const recordKind = conversation?.record_kind || 'memory';
-  const conversationId = conversation?.conversation_id ?? UNASSIGNED_CONVERSATION_KEY;
-  return `${recordKind}::${conversationId}`;
-}
-
-export function toTimestampValue(timestamp) {
-  if (!timestamp) {
-    return 0;
-  }
-  const parsed = Date.parse(timestamp);
-  return Number.isNaN(parsed) ? 0 : parsed;
-}
-
-export function formatModelLabel(conversation) {
-  if (!conversation) {
-    return 'Unknown model';
-  }
-  const modelId = conversation.model_id || conversation.modelId || '';
-  const modelProvider = conversation.model_provider || conversation.modelProvider || '';
-  if (modelId && modelProvider) {
-    return `${modelProvider}/${modelId}`;
-  }
-  return modelId || modelProvider || 'Unknown model';
 }
 
 export function parseMemoriesToMessages(memories) {

@@ -79,11 +79,11 @@ export function useWakewordDetection(
   }, []);
 
   const requestWakewordEnable = useCallback(() => {
-    IpcBridge.send(SEND_CHANNELS.WAKEWORD_ENABLE);
+    IpcBridge.send(SEND_CHANNELS.WAKEWORD_ENABLE, {});
   }, []);
 
   const requestWakewordDisable = useCallback(() => {
-    IpcBridge.send(SEND_CHANNELS.WAKEWORD_DISABLE);
+    IpcBridge.send(SEND_CHANNELS.WAKEWORD_DISABLE, {});
   }, []);
 
   const logUnexpectedAudioContextCloseError = useCallback((err: unknown) => {

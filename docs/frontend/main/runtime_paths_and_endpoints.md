@@ -24,13 +24,21 @@ Supported env vars (priority order):
 - `BACKEND_WS_URL`
 - `BACKEND_HTTP_URL`
 - fallback pair: `BACKEND_HOST` + `BACKEND_PORT`
+- packaged fallback override pair:
+  - `WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL`
+  - `WINDIE_DEFAULT_PACKAGED_BACKEND_WS_URL`
 
-Defaults when nothing is set:
+Defaults when explicit `BACKEND_*` is unset:
 
-- host: `127.0.0.1`
-- port: `8765`
-- http: `http://127.0.0.1:8765`
-- ws: `ws://127.0.0.1:8765/ws`
+- Dev/source runs:
+  - host: `127.0.0.1`
+  - port: `8765`
+  - http: `http://127.0.0.1:8765`
+  - ws: `ws://127.0.0.1:8765/ws`
+- Packaged runs:
+  - http: `https://api.windieos.com`
+  - ws: `wss://api.windieos.com/ws`
+  - or `WINDIE_DEFAULT_PACKAGED_BACKEND_*` when set
 
 Normalization rules:
 
