@@ -14,6 +14,7 @@ title: "Frontend Main Docs Hub"
 - [Main Overlay Focus Docs Hub](overlays/README.md)
 - [Window and Overlay Lifecycle](window_and_overlay_lifecycle.md)
 - [Main Window Runtime Factory and Overlay Bootstrap Reference](main_window_runtime_factory_and_overlay_bootstrap_reference.md)
+- [Main Process Lifecycle, Overlay IPC, and Window Visibility Runtime Reference](main_process_lifecycle_overlay_ipc_and_window_visibility_runtime_reference.md)
 - [Context Label Overlay and Active-Window Runtime Reference](context_label_overlay_and_active_window_runtime_reference.md)
 - [Runtime Paths and Endpoints](runtime_paths_and_endpoints.md)
 - [Query Payload and Relay Reference](query_payload_and_relay_reference.md)
