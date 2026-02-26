@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-dashboard): remove dashboard-open flash by keeping shell-enter/sidebar/main animations fully opaque (no 0-opacity frame) and setting a stable dark `BrowserWindow` background color during main-window show transitions.
 - fix(sidecar-browser-use): make vendored Browser Use dotenv loading optional across logging/observability/utils so sidecar pytest collection works in CI environments where `python-dotenv` is not installed
 - fix(frontend-chat-ui): copy action now switches to a check icon for 4 seconds after successful clipboard write, then reverts to the copy icon.
 - fix(frontend-chat-ui): keep horizontal overflow for long tool call/output payloads scoped to each tool block (internal x-scrollbars) and prevent global chat/dashboard horizontal scrollbar leakage.

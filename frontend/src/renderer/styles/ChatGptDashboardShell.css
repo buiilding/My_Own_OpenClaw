@@ -5,6 +5,7 @@
   overflow: hidden;
   background: var(--ui-shell-bg);
   color: var(--ui-text-primary);
+  transform: translateZ(0);
 }
 
 .cg-dashboard-shell.cg-dashboard-shell-opening {
@@ -812,19 +813,19 @@
 
 @keyframes cg-dashboard-shell-enter {
   from {
-    opacity: 0;
-    filter: blur(1px);
+    opacity: 1;
+    transform: scale(0.996);
   }
   to {
     opacity: 1;
-    filter: blur(0);
+    transform: scale(1);
   }
 }
 
 @keyframes cg-dashboard-sidebar-enter {
   from {
-    opacity: 0;
-    transform: translateX(-20px);
+    opacity: 1;
+    transform: translateX(-10px);
   }
   to {
     opacity: 1;
@@ -834,8 +835,8 @@
 
 @keyframes cg-dashboard-main-enter {
   from {
-    opacity: 0;
-    transform: translateY(12px) scale(0.995);
+    opacity: 1;
+    transform: translateY(8px) scale(0.998);
   }
   to {
     opacity: 1;
