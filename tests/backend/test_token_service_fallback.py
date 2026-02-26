@@ -309,3 +309,20 @@ def test_count_message_tokens_uses_count_tokens(monkeypatch):
         staticmethod(lambda _messages, model="gpt-3.5-turbo": 7),
     )
     assert TokenService.count_message_tokens({"role": "user", "content": "hi"}) == 7
+
+
+def test_get_model_max_input_tokens_from_litellm_dict_payload(monkeypatch):
+    monkeypatch.setattr(
+        litellm,
+        "get_model_info",
+        lambda model: {"max_input_tokens": 123456, "model": model},
+    )
+    assert TokenService.get_model_max_input_tokens("openai/gpt-5.1") == 123456
+
+
+def test_get_model_max_input_tokens_returns_none_on_errors(monkeypatch):
+    def _raise(*_args, **_kwargs):
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(litellm, "get_model_info", _raise)
+    assert TokenService.get_model_max_input_tokens("openai/gpt-5.1") is None

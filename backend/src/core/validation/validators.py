@@ -302,7 +302,8 @@ def validate_settings_update(settings: Dict[str, Any]) -> Dict[str, Any]:
             "history_compaction_summary_max_tokens",
             "history_compaction_cooldown_turns",
         ):
-            validate_field(value, key, int, required=False)
+            if value is not None:
+                validate_field(value, key, int, required=False)
         elif key == "history_compaction_strategy":
             validate_field(value, key, str, required=False)
         elif key == "history_compaction_prompt":

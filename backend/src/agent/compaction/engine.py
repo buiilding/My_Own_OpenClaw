@@ -22,6 +22,8 @@ if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
 
 logger = logging.getLogger(__name__)
+DEFAULT_TRIGGER_FALLBACK_TOKENS = 120000
+AUTO_TRIGGER_RATIO = 0.90
 
 
 class CompactionEngine:
@@ -48,6 +50,7 @@ class CompactionEngine:
             model=model,
             pending_user_content=pending_user_content,
         )
+        trigger_tokens = self._resolve_trigger_tokens(model=model)
         strategy_name = self._resolve_strategy_name()
         user_turn_index = self._current_user_turn_index()
 
@@ -62,7 +65,7 @@ class CompactionEngine:
                 skip_reason="disabled",
             )
 
-        if not force and projected_tokens < cfg.history_compaction_trigger_tokens:
+        if not force and projected_tokens < trigger_tokens:
             return CompactionDecision(
                 should_compact=False,
                 reason=reason,
@@ -215,6 +218,27 @@ class CompactionEngine:
         # OpenAI remote strategy is intentionally phase-gated; fallback inline for now.
         return self._inline_strategy.strategy_name
 
+    def _resolve_trigger_tokens(self, *, model: str) -> int:
+        configured_trigger = self._session.cfg.history_compaction_trigger_tokens
+        if isinstance(configured_trigger, int) and configured_trigger > 0:
+            return configured_trigger
+
+        token_service = get_token_service()
+        max_input_tokens = None
+        if hasattr(token_service, "get_model_max_input_tokens"):
+            try:
+                max_input_tokens = token_service.get_model_max_input_tokens(model)
+            except Exception:
+                logger.debug(
+                    "[Compaction] Failed to resolve model max input tokens (model=%s)",
+                    model,
+                    exc_info=True,
+                )
+
+        if isinstance(max_input_tokens, int) and max_input_tokens > 0:
+            return max(2048, int(max_input_tokens * AUTO_TRIGGER_RATIO))
+        return DEFAULT_TRIGGER_FALLBACK_TOKENS
+
     def _is_on_cooldown(self, user_turn_index: int) -> bool:
         cooldown_turns = max(0, self._session.cfg.history_compaction_cooldown_turns)
         return (
@@ -241,4 +265,3 @@ class CompactionEngine:
             {"role": "user", "content": pending_user_content},
             model,
         )
-
