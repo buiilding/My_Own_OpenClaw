@@ -14,12 +14,12 @@ This is the canonical current-state functionality inventory for `frontend/src`.
 
 Source counts used in this inventory:
 
-- Main process (`frontend/src/main`, `.cjs|.js`): `29`
+- Main process (`frontend/src/main`, `.cjs|.js`): `34`
 - Sidecar runtime (`frontend/src/main/python`, `.py`): `140`
-- Renderer runtime (`frontend/src/renderer`, `.ts|.tsx|.js|.jsx`): `125`
+- Renderer runtime (`frontend/src/renderer`, `.ts|.tsx|.js|.jsx`): `127`
 - Landing (`frontend/src/landing`, `.jsx|.css`): `13`
 - Preload bridge (`frontend/src/preload.js`): `1`
-- Total covered frontend files: `308`
+- Total covered frontend files: `315`
 
 ## 1) Electron Main Process Inventory
 
@@ -38,6 +38,8 @@ Primary files:
 - `frontend/src/main/overlay_chatbox_handler.cjs`
 - `frontend/src/main/overlay_responsebox_handler.cjs`
 - `frontend/src/main/overlay_renderer_registration.cjs`
+- `frontend/src/main/overlay_signal_runtime.cjs`
+- `frontend/src/main/overlay_window_helpers_runtime.cjs`
 - `frontend/src/main/response_overlay_phase_handler.cjs`
 - `frontend/src/main/external_focus_tracker.cjs`
 - `frontend/src/main/main_window_controls_handler.cjs`
@@ -48,6 +50,8 @@ Functionality:
 - Boots Electron app and creates main/dashboard + overlay windows.
 - Registers app lifecycle listeners (startup/activate/quit/global shortcut) through dedicated lifecycle runtime helper.
 - Manages response overlay phase transitions and overlay visibility.
+- Emits overlay visibility and wakeword-toggle side-channel events via overlay signal runtime.
+- Centralizes overlay positioning/top-most helpers in dedicated window-helper runtime module.
 - Maintains overlay z-order and click-through behavior.
 - Registers overlay/window/permission invoke handlers through dedicated overlay IPC runtime helper.
 - Handles overlay repositioning on display/window changes.
@@ -142,6 +146,7 @@ Primary files:
 
 - `frontend/src/renderer/app/App.jsx`
 - `frontend/src/renderer/app/main.jsx`
+- `frontend/src/renderer/app/{ChatBoxApp,ChatBoxResponseApp,ChatBoxContextLabelApp,ToolGhostDebugApp}.jsx`
 - `frontend/src/renderer/app/WakewordController.jsx`
 - `frontend/src/renderer/app/providers/*`
 - `frontend/src/renderer/features/permissions/stores/permissionStore.js`
@@ -149,6 +154,8 @@ Primary files:
 
 Functionality:
 
+- Entry view routing:
+  - `main.jsx` selects root by `?view=` (`App`, `chatbox`, `chatbox-response`, `chatbox-context-label`, `tool-ghost-debug`).
 - Mounts provider stack (`AppConfigProvider` + `AppStatusProvider` + `ChatProvider`).
 - Loads/syncs frontend config with disk/localStorage/backend update-settings.
 - Maintains wakeword preference/suppression state.

@@ -14,9 +14,9 @@ This index maps frontend functionality to file ownership.
 
 | Surface | Files |
 | --- | ---: |
-| Main process (`frontend/src/main`, `.cjs`/`.js`) | 29 |
+| Main process (`frontend/src/main`, `.cjs`/`.js`) | 34 |
 | Sidecar Python (`frontend/src/main/python`, `.py`) | 140 |
-| Renderer runtime (`frontend/src/renderer`, TS/JS) | 125 |
+| Renderer runtime (`frontend/src/renderer`, TS/JS) | 127 |
 | Landing (`frontend/src/landing`, `.jsx`/`.css`) | 13 |
 | Preload bridge (`frontend/src/preload.js`) | 1 |
 
@@ -41,6 +41,8 @@ Overlay/window control helpers:
 - `frontend/src/main/overlay_responsebox_handler.cjs`
 - `frontend/src/main/overlay_bounds.cjs`
 - `frontend/src/main/overlay_renderer_registration.cjs`
+- `frontend/src/main/overlay_signal_runtime.cjs`
+- `frontend/src/main/overlay_window_helpers_runtime.cjs`
 - `frontend/src/main/response_overlay_phase_handler.cjs`
 - `frontend/src/main/main_window_controls_handler.cjs`
 - `frontend/src/main/display_query_handler.cjs`
@@ -68,6 +70,7 @@ App + providers:
 
 - `frontend/src/renderer/app/*.jsx`
 - `frontend/src/renderer/app/providers/*`
+- Includes view-routed app roots: `App`, `ChatBoxApp`, `ChatBoxResponseApp`, `ChatBoxContextLabelApp`, `ToolGhostDebugApp`
 
 Shared components:
 

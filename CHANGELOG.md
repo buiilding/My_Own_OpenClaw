@@ -8,6 +8,7 @@ Includes the last 300 commits on `main`.
 
 ### Added
 - test(sidecar-runtime): add regression coverage for `core.system_metrics` and `memory.watermark_state` (battery-unavailable fallback, async executor path, default/malformed watermark state handling, and pending-count persistence updates).
+- docs(frontend-inventory): add frontend functionality capability catalog, refresh frontend inventory/module count snapshots to current runtime (`main=34`, `renderer=127`, `total=315`), and wire catalog links into frontend/docs hubs.
 - docs(backend-inventory): add backend functionality capability catalog reference and refresh backend module index counts/coverage (`318` files) including compaction and `compact_history` handler ownership.
 - test(backend-semantic-memory): add regression coverage for semantic summary parsing + title sanitization edge-cases (numbered fact lists, fallback fact extraction, markdown/noisy title responses), and harden parser/service normalization logic accordingly.
 - fix(backend-logging): suppress LiteLLM provider-help stdout noise (`Provider List: https://docs.litellm.ai/docs/providers`) by setting LiteLLM runtime debug-info flags during backend logging bootstrap.
