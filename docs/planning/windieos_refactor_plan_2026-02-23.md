@@ -4557,3 +4557,27 @@ read_when:
   - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -q` (pass)
   - `cd frontend && npm run audit:jscpd` (9 clones)
   - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
+
+## Phase 189 Outcome (2026-02-26)
+
+- Refactor slice (backend browser schema validators): centralize click/evaluate validation helpers in the backend schema module.
+  - updated:
+    - `backend/src/tools/browser/schemas.py`
+      - added shared helper functions:
+        - `_ensure_click_target(...)`
+        - `_ensure_evaluate_payload(...)`
+      - rewired `BrowserClickArgs.validate_ref_or_index(...)` and `BrowserEvaluateArgs.validate_script_or_code(...)` to delegate to helpers
+      - kept validation message text and behavior unchanged.
+    - `tests/backend/test_browser_remote_tool.py`
+      - added regression checks covering:
+        - click target required (`ref`/`index` or both coordinates)
+        - coordinate-pair requirement when one axis is supplied
+        - evaluate payload requirement (`script` or `code`)
+  - route consolidation check:
+    - `jscpd` on `backend/src/api/routes` found `0` clones; no route merge needed in this slice.
+  - audit outcome:
+    - combined `backend/src` + `frontend/src` `jscpd` clone count dropped from `9` to `8`.
+- Validation:
+  - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -q` (pass)
+  - `cd frontend && npm run audit:jscpd` (8 clones)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
