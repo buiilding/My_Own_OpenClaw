@@ -67,19 +67,18 @@ Compatibility validation notes:
             "legacy_action_gate": gate,
         }
         if blocked and gate:
+            blocked_message = f"Legacy browser action '{action}' blocked by {gate}"
             if preferred:
                 logger.warning(
-                    "Legacy browser action '%s' blocked by %s; prefer '%s'",
-                    action,
-                    gate,
+                    "%s; prefer '%s'",
+                    blocked_message,
                     preferred,
                     extra=extra,
                 )
             else:
                 logger.warning(
-                    "Legacy browser action '%s' blocked by %s",
-                    action,
-                    gate,
+                    "%s",
+                    blocked_message,
                     extra=extra,
                 )
             return
