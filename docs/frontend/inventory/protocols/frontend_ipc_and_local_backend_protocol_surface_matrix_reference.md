@@ -202,6 +202,9 @@ Use these commands to refresh protocol counts:
 
 ## Related Deep Dive
 
+- [Frontend Full Functionality Inventory Reference](../frontend_full_functionality_inventory_reference.md)
+- [Frontend Functionality Capability Catalog Reference](../frontend_functionality_capability_catalog_reference.md)
+- [Frontend Capability to File Matrix Reference](../frontend_capability_to_file_matrix_reference.md)
 - [Frontend Protocol Lifecycle Hub](lifecycle/README.md)
 - [Frontend Protocol Errors Hub](errors/README.md)
 - [Frontend Protocol Validation Hub](validation/README.md)

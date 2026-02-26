@@ -170,6 +170,9 @@ Use this to recompute protocol cardinalities:
 
 ## Related Deep Dive
 
+- [Backend Full Functionality Inventory Reference](../backend_full_functionality_inventory_reference.md)
+- [Backend Functionality Capability Catalog Reference](../backend_functionality_capability_catalog_reference.md)
+- [Backend Capability to File Matrix Reference](../backend_capability_to_file_matrix_reference.md)
 - [Backend Protocol Lifecycle Hub](lifecycle/README.md)
 - [Backend Protocol Errors Hub](errors/README.md)
 - [Backend Protocol Validation Hub](validation/README.md)
