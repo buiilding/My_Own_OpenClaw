@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-chat-ui): keep user copy/edit controls mounted but hidden (opacity/visibility) to prevent message reflow on hover, and slightly expand the user-message hover hit area.
 - fix(frontend-chat): show `Compacting conversation history...` in chat thinking UI during backend context-compaction lifecycle events (`context-compaction-started/completed/failed`).
 - fix(frontend-chat-ui): render user screenshot previews above user bubbles and shrink preview cards for a tighter post-send layout.
 - feat(frontend-chat-ui): add inline user-message edit composer (textarea + Cancel/Send) and resend flow that immediately truncates downstream assistant/tool output, then waits for regenerated assistant response.
