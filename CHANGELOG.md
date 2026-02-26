@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-chat-header): normalize provider/model dropdown typography and menu sizing so both selectors share the same visual size and formatting.
 - feat(frontend-chat-header): add provider dropdown next to the model dropdown in dashboard chat header; selecting provider now updates available model options inline and auto-switches to a valid model from that provider.
 - fix(backend-tool-history): support multimodal `role=tool` rows in WindieOS history/LLM payload conversion and attach screenshots directly to linked tool-result messages (no extra screenshot companion row when `tool_call_id` is staged).
 - fix(frontend-response-pill): shrink response-overlay scrollbar thickness (including horizontal scroll inside long code/path blocks) so the response pill no longer shows oversized scrollbars.

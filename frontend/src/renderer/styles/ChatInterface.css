@@ -65,7 +65,7 @@
   color: var(--ui-text-primary);
   padding: 6px 10px;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
   cursor: pointer;
   display: flex;
@@ -122,7 +122,7 @@
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
-  min-width: 170px;
+  min-width: 220px;
   border-radius: 12px;
   border: 1px solid var(--ui-border-soft);
   background: var(--ui-panel-bg);
@@ -159,8 +159,8 @@
   background: transparent;
   color: var(--ui-text-primary);
   text-align: left;
-  padding: 8px 10px;
-  font-size: 13px;
+  padding: 9px 10px;
+  font-size: 14px;
   display: inline-flex;
   align-items: center;
   cursor: pointer;
