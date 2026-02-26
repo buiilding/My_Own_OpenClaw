@@ -133,6 +133,11 @@ export BACKEND_WS_URL="ws://192.168.1.50:8765/ws"
 
 `BACKEND_WS_URL` and `BACKEND_HTTP_URL` override `BACKEND_HOST`/`BACKEND_PORT` when provided.
 
+Default fallback behavior:
+
+- Dev/source runs fallback to local backend `http://127.0.0.1:8765` and `ws://127.0.0.1:8765/ws`.
+- Packaged app runs fallback to hosted backend `https://api.windieos.com` and `wss://api.windieos.com/ws`.
+
 #### Configuration Locations
 
 There is no YAML config file. Configuration is split between:
@@ -228,6 +233,13 @@ packaged app:
 ```bash
 export BACKEND_HTTP_URL="https://your-api.example.com"
 export BACKEND_WS_URL="wss://your-api.example.com/ws"
+```
+
+You can also override packaged fallback defaults without setting `BACKEND_*`:
+
+```bash
+export WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL="https://your-api.example.com"
+export WINDIE_DEFAULT_PACKAGED_BACKEND_WS_URL="wss://your-api.example.com/ws"
 ```
 
 The app still starts the local Python sidecar for local tool execution.

@@ -30,6 +30,7 @@ frontend/src/renderer/
 │       └── configComparison.ts          # configComparison - Shallow config change detection helpers
 │
 ├── components/                           # Shared UI components
+│   ├── ChatGptLogo.jsx                  # ChatGptLogo - Shared Windie glyph used in chat/sidebar affordances
 │   └── ErrorBoundary.jsx                # ErrorBoundary - Catches React errors and displays fallback UI
 │
 ├── features/                             # Feature modules (organized by domain)
@@ -38,20 +39,20 @@ frontend/src/renderer/
 │   │   ├── components/                  # Chat UI components
 │   │   │   ├── ChatBox.jsx              # ChatBox - Floating quick chat overlay UI (new-chat + stop controls)
 │   │   │   ├── ChatBoxResponse.jsx      # ChatBoxResponse - Response overlay (awaiting/thinking/response/tool-ghost modes)
-│   │   │   ├── ChatInterface.jsx        # ChatInterface - Main chat orchestrator (composes MessageList, MessageInput, TokenCountDisplay; includes new-chat + stop controls)
+│   │   │   ├── ChatInterface.jsx        # ChatInterface - Main chat orchestrator (composes MessageList + MessageInput; includes new-chat + stop controls)
 │   │   │   ├── MessageContent.jsx       # MessageContent - Renders message body by type
 │   │   │   ├── MessageInput.jsx         # MessageInput - Input field with voice transcription support
 │   │   │   ├── MessageList.jsx          # MessageList - Renders messages with transparency sections
 │   │   │   ├── MessageTransparencySections.jsx # MessageTransparencySections - Renders transparency panels
 │   │   │   ├── ThinkingDisplay.jsx      # ThinkingDisplay - Displays LLM thinking/reasoning tokens (collapsible)
-│   │   │   ├── TokenCountDisplay.jsx    # TokenCountDisplay - Shows token usage statistics
 │   │   │   ├── chatBoxResponseUtils.js  # chatBoxResponseUtils - Response/tool-call selection + tool-ghost track style builders
-│   │   │   ├── useToolGhostLifecycle.js # useToolGhostLifecycle - Mouse-origin tool-ghost click animation lifecycle state
 │   │   │   └── TransparencySection.jsx  # TransparencySection - Collapsible sections for system prompts, tool schemas, full messages
 │   │   │
 │   │   ├── hooks/                       # Chat business logic hooks
 │   │   │   ├── useChatMessageSender.ts  # useChatMessageSender - Handles message sending (dashboard sends skip screenshot capture/window handoff)
 │   │   │   ├── useChatStream.ts         # useChatStream - Handles streaming events (llm-thought, streaming-response, tool-call, etc.)
+│   │   │   ├── useCopyMessageAction.js  # useCopyMessageAction - Shared clipboard copy-success state/timer logic for user/assistant message action rows
+│   │   │   ├── useStreamMessageUpdaters.ts # useStreamMessageUpdaters - Shared message update callbacks extracted from useChatStream
 │   │   │   ├── useToolRunner.ts         # useToolRunner - Connects UI to ToolExecutionService, handles tool execution events
 │   │   │   └── useTranscription.ts      # useTranscription - Manages input state and voice transcription text insertion
 │   │   │
@@ -71,28 +72,44 @@ frontend/src/renderer/
 │   │       ├── messageListClasses.js    # messageListClasses - Message row class-name builder (sender/type/streaming/screenshot flags)
 │   │       ├── messageScreenshots.js    # messageScreenshots - Screenshot presence predicates and screenshot-src resolution helpers
 │   │       ├── messageTransparency.js   # messageTransparency - Descriptor builder for transparency sections
-│   │       ├── tokenCounts.js           # tokenCounts - Table-driven token count formatting/mapping helpers
 │   │       ├── toolRunnerMessages.ts    # toolRunnerMessages - Tool result/bundle message builders and tool-call/bundle mapping helpers
+│   │       ├── transcriptMessagePayload.js # transcriptMessagePayload - Transcript payload/role mapping for rehydrate writes
 │   │       └── transcriptionRegions.ts  # transcriptionRegions - Pure cursor/boundary helper logic for transcription updates
 │   │
 │   ├── dashboard/                        # Dashboard feature module
+│   │   ├── hooks/                       # Dashboard business logic hooks
+│   │   │   ├── useDashboardConversations.js # useDashboardConversations - Recent/search conversation load/search/open/rename/pin/delete runtime
+│   │   │   └── useTranscriptSessionInfo.js # useTranscriptSessionInfo - External-store transcript session subscription
+│   │   │
 │   │   └── components/                  # Dashboard UI components
 │   │       ├── ChatGptDashboardShell.jsx # ChatGptDashboardShell - Conversation-first shell + memory/models/settings modals
 │   │       └── sections/                # Dashboard section components
-│   │           ├── EpisodicMemorySection.jsx # EpisodicMemorySection - Episodic memory list/actions panel
-│   │           ├── SemanticMemorySection.jsx # SemanticMemorySection - Semantic memory list/actions panel
+│   │           ├── MemorySection.jsx    # MemorySection - Unified episodic/semantic/procedural memory manager
+│   │           ├── MemoryItem.jsx       # MemoryItem - Expand/edit/delete UI row for individual memory entries
 │   │           ├── ModelsSection.jsx    # ModelsSection - Model list + API key input
+│   │           ├── modelCards.jsx       # modelCards - Provider/model card presentational components
+│   │           ├── modelCardData.js     # modelCardData - Provider/model card derivation helpers
+│   │           ├── memorySectionData.js # memorySectionData - Memory type metadata + normalization helpers
+│   │           ├── providerApiKeys.js   # providerApiKeys - Provider API key defaults/specs + normalization
 │   │           └── SettingsSection.jsx  # SettingsSection - Wakeword/TTS/screen/permissions
 │   │
 │   │   └── utils/                       # Dashboard helpers
-│   │       ├── episodicMemoryUtils.js   # episodicMemoryUtils - Conversation key, parsing, formatting, and message mapping helpers
-│   │       ├── modelSelectionUtils.js   # modelSelectionUtils - Model filtering, selection reconciliation, and config payload shaping helpers
-│   │       ├── settingsDisplayUtils.js  # settingsDisplayUtils - Display option/selection reconciliation and speech-toggle config payload helpers
-│   │       └── storage.js               # storage - localStorage helpers for dashboard sections
+│   │       ├── conversationGroups.js    # conversationGroups - Time-bucket grouping and search metadata normalization helpers
+│   │       ├── episodicMemoryUtils.js   # episodicMemoryUtils - Transcript-memory parsing + rehydrate payload mapping helpers
+│   │       └── modelSelectionUtils.js   # modelSelectionUtils - Selection reconciliation and config payload shaping helpers
 │   │
 │   ├── settings/                         # Settings feature module
 │   │   └── hooks/                       # Settings business logic hooks
 │   │       └── useSettingsManagement.ts # useSettingsManagement - Handles model listing events from backend
+│   │
+│   ├── permissions/                      # Permission onboarding + settings control center
+│   │   ├── components/                  # Permission UI
+│   │   │   ├── PermissionControlCenter.jsx # PermissionControlCenter - Settings "Data controls" live permission panel
+│   │   │   └── PermissionOnboardingWizard.jsx # PermissionOnboardingWizard - First-run permission checklist + disclosure
+│   │   ├── stores/                      # Permission state management
+│   │   │   └── permissionStore.js       # permissionStore (Zustand) - Manifest/statuses, probes, onboarding gate
+│   │   └── utils/                       # Permission persistence helpers
+│   │       └── permissionStorage.js     # permissionStorage - localStorage manifest/consent state load/save
 │   │
 │   └── voice/                            # Voice feature module
 │       ├── components/                  # Voice UI components
@@ -146,9 +163,9 @@ frontend/src/renderer/
 │   ├── ChatInterface.css               # Chat interface styles (messages, tool outputs, transparency sections)
 │   ├── ChatGptDashboardShell.css        # ChatGPT-style dashboard shell + modal panel styles
 │   ├── ErrorBoundary.css                # ErrorBoundary fallback UI styling
+│   ├── PermissionOnboarding.css         # Permission onboarding/control-center styles
 │   ├── SettingsPanel.css                # Dashboard section styles (cards, toggles, model list)
 │   ├── ThinkingDisplay.css              # Thinking display styles (collapsible reasoning tokens)
-│   ├── TokenCountDisplay.css            # Token count display styles
 │   ├── VoiceStatus.css                  # Voice status badge and state styles
 │   └── theme.css                        # Shared CSS variables/theme tokens
 │
@@ -177,9 +194,15 @@ frontend/src/renderer/
        ├─> ErrorBoundary (error handling)
        ├─> AppProvider (config and status contexts)
        ├─> ChatProvider (chat hooks setup)
-       └─> AppContent (ChatGptDashboardShell with persistent ChatInterface + modal panels)
+       └─> AppContent (permission bootstrap gate -> onboarding wizard or ChatGptDashboardShell)
            ↓
-3. CONTEXT INITIALIZATION
+3. PERMISSION BOOTSTRAP
+   └─> features/permissions/stores/permissionStore.js
+       ├─> invoke LIST_PERMISSIONS (main permission service snapshot + probes)
+       ├─> evaluate required-now gate + planned-system-access consent
+       └─> route to onboarding wizard if gate not satisfied
+           ↓
+4. CONTEXT INITIALIZATION
    ├─> app/providers/AppConfigContext.jsx
    │   ├─> Load config from localStorage (optimistic state)
    │   ├─> Request models list from backend
@@ -188,7 +211,7 @@ frontend/src/renderer/
    └─> app/providers/AppStatusContext.jsx
        └─> Set up save status tracking
            ↓
-4. CHAT INITIALIZATION
+5. CHAT INITIALIZATION
    └─> app/providers/ChatProvider.jsx
        ├─> useChatStream() - Set up streaming event listeners
        └─> useToolRunner() - Initialize ToolExecutionService
@@ -459,7 +482,6 @@ App
 │       │                   │   │   └── ThinkingDisplay
 │       │                   │   ├── MessageInput
 │       │                   │   │   └── VoiceStatus
-│       │                   │   └── TokenCountDisplay
 │       │                   ├── MemoryModal
 │       │                   ├── ModelsModal
 │       │                   └── SettingsModal

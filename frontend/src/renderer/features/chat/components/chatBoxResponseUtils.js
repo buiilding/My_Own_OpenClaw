@@ -26,20 +26,3 @@ export function findLatestMessageAfterUser(messages, lastUserIndex, allowedTypes
   }
   return null;
 }
-
-export function findLatestToolCallAfterUser(messages, lastUserIndex) {
-  if (lastUserIndex < 0) {
-    return null;
-  }
-  for (let i = messages.length - 1; i > lastUserIndex; i -= 1) {
-    const message = messages[i];
-    if (message.sender !== 'assistant' || message.type !== 'tool-call') {
-      continue;
-    }
-    if (!message.text) {
-      continue;
-    }
-    return message;
-  }
-  return null;
-}

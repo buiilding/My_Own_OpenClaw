@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- ops(self-hosting): add Cloudflared self-host automation (`install-cloudflared-user`, `install-backend-user-service`, `setup-windieos-tunnel`, `bootstrap-windieos-host`) and `api.windieos.com` runbook for remote packaged-client connectivity.
 - fix(frontend-gemini-thinking): add capability-aware Gemini thinking fallback (`Thinking...`) when reasoning tokens stream but thought-text deltas are unavailable, and annotate model catalog with `supports_thinking_text_stream` (Gemini 3.1 marked false) so chat stream UX remains stable without affecting other providers.
 - fix(backend-gemini-streaming): upgrade backend LiteLLM pin to `1.80.15` and harden thinking extraction for Gemini-style stream deltas (`reasoningContent`, `thinking_content`, structured `content` blocks, and `<think>...</think>` tags) with regression tests.
 - docs(frontend-chat-stream-payloads): add stream updater selector + transcript payload contract deep docs and wire renderer/chat hubs to current `useStreamMessageUpdaters` and `transcriptMessagePayload` runtime ownership.

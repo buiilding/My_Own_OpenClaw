@@ -44,7 +44,7 @@ import {
   logBundleTiming,
   logBundleFailure,
 } from './ToolExecutionLogger';
-import { runToolBundle } from './ToolExecutionBundleRunner';
+import { runToolBundle, type BundleStepResult } from './ToolExecutionBundleRunner';
 
 export {
   ToolExecutionResult,
@@ -272,7 +272,7 @@ export class ToolExecutionService {
   private _sendBundleResult(
     bundleId: string,
     status: string,
-    stepResults: Array<{ tool: string; status: string; output: string }>,
+    stepResults: BundleStepResult[],
     screenshotRef: string | null,
     systemState: SystemState | null,
     error: string | null,
@@ -317,7 +317,7 @@ export class ToolExecutionService {
     const bundleHasComputerTool = bundle.some((tool) =>
       isComputerUseTool(tool.toolName, tool.args),
     );
-    let stepResults: Array<{ tool: string; status: string; output: string }> = [];
+    let stepResults: BundleStepResult[] = [];
     logBundleStart(bundle.length, bundleId);
 
     try {

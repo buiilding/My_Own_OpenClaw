@@ -16,18 +16,6 @@ export function getCurrentModels(availableModels, modelMode) {
   return modelMode === 'local' ? localModels : onlineModels;
 }
 
-export function filterModelsBySearch(models, searchTerm) {
-  const query = searchTerm.trim().toLowerCase();
-  if (!query) {
-    return models;
-  }
-  return models.filter((model) => {
-    const id = model?.id || '';
-    const provider = model?.provider || '';
-    return id.toLowerCase().includes(query) || provider.toLowerCase().includes(query);
-  });
-}
-
 export function buildModelConfigUpdate(params) {
   const {
     modelMode,

@@ -1,27 +1,11 @@
 import {
   DEFAULT_USER_ID,
-  buildConversationKey,
-  formatModelLabel,
-  formatTimestamp,
   parseMemoriesToMessages,
-  toTimestampValue,
 } from '../../frontend/src/renderer/features/dashboard/utils/episodicMemoryUtils';
 
 describe('episodicMemoryUtils', () => {
   test('exports expected constants', () => {
     expect(DEFAULT_USER_ID).toBe('default_user');
-  });
-
-  test('formatTimestamp handles missing and invalid timestamps', () => {
-    expect(formatTimestamp()).toBe('Unknown time');
-    expect(formatTimestamp('not-a-date')).toBe('not-a-date');
-  });
-
-  test('formatTimestamp formats valid date-like strings', () => {
-    const result = formatTimestamp('2026-01-01T00:00:00.000Z');
-    expect(typeof result).toBe('string');
-    expect(result.length).toBeGreaterThan(0);
-    expect(result).not.toBe('2026-01-01T00:00:00.000Z');
   });
 
   test('parseMemoriesToMessages drops empty legacy content payloads', () => {
@@ -137,30 +121,6 @@ describe('episodicMemoryUtils', () => {
         isComplete: true,
       },
     ]);
-  });
-
-  test('buildConversationKey composes record kind and conversation id', () => {
-    expect(buildConversationKey({ record_kind: 'transcript', conversation_id: 'conv-1' })).toBe(
-      'transcript::conv-1',
-    );
-    expect(buildConversationKey({})).toBe('memory::__unassigned_conversation__');
-  });
-
-  test('toTimestampValue returns 0 for invalid values', () => {
-    expect(toTimestampValue()).toBe(0);
-    expect(toTimestampValue('invalid-time')).toBe(0);
-  });
-
-  test('toTimestampValue returns epoch millis for valid timestamps', () => {
-    expect(toTimestampValue('2026-01-01T00:00:00.000Z')).toBe(1767225600000);
-  });
-
-  test('formatModelLabel prefers provider/model pair then partials then unknown', () => {
-    expect(formatModelLabel({ model_provider: 'openai', model_id: 'gpt-5.1' })).toBe('openai/gpt-5.1');
-    expect(formatModelLabel({ model_id: 'gpt-5.1' })).toBe('gpt-5.1');
-    expect(formatModelLabel({ model_provider: 'openai' })).toBe('openai');
-    expect(formatModelLabel({})).toBe('Unknown model');
-    expect(formatModelLabel(null)).toBe('Unknown model');
   });
 
   test('parseMemoriesToMessages flattens parsed parts into chat messages', () => {

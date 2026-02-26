@@ -1,0 +1,169 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+Install a user-level systemd service that runs the WindieOS backend.
+
+Usage:
+  scripts/cloudflared/install-backend-user-service [options]
+
+Options:
+  --service-name NAME       systemd unit name without suffix (default: windieos-backend)
+  --repo-root PATH          WindieOS repo root (default: script-derived)
+  --backend-env NAME        WINDIE_BACKEND_ENV value (default: jarvis)
+  --env-file PATH           Optional EnvironmentFile path for extra vars
+  --no-enable               Only write unit file (skip enable/start)
+  --dry-run                 Print actions without executing
+  -h, --help                Show this help
+
+Examples:
+  scripts/cloudflared/install-backend-user-service
+  scripts/cloudflared/install-backend-user-service --backend-env jarvis --env-file ~/.config/windieos/backend.env
+EOF
+}
+
+SERVICE_NAME="windieos-backend"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+BACKEND_ENV_NAME="jarvis"
+EXTRA_ENV_FILE=""
+ENABLE_SERVICE=1
+DRY_RUN=0
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --service-name)
+      SERVICE_NAME="${2:-}"
+      shift 2
+      ;;
+    --repo-root)
+      REPO_ROOT="${2:-}"
+      shift 2
+      ;;
+    --backend-env)
+      BACKEND_ENV_NAME="${2:-}"
+      shift 2
+      ;;
+    --env-file)
+      EXTRA_ENV_FILE="${2:-}"
+      shift 2
+      ;;
+    --no-enable)
+      ENABLE_SERVICE=0
+      shift
+      ;;
+    --dry-run)
+      DRY_RUN=1
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown argument: $1" >&2
+      usage
+      exit 1
+      ;;
+  esac
+done
+
+run_cmd() {
+  if ((DRY_RUN)); then
+    printf '[dry-run] '
+    printf '%q ' "$@"
+    echo
+    return 0
+  fi
+  "$@"
+}
+
+write_file() {
+  local path="$1"
+  local content="$2"
+  if ((DRY_RUN)); then
+    echo "[dry-run] write file: $path"
+    echo "----------"
+    echo "$content"
+    echo "----------"
+    return 0
+  fi
+  mkdir -p "$(dirname "$path")"
+  printf '%s\n' "$content" > "$path"
+}
+
+if [[ -z "$SERVICE_NAME" ]]; then
+  echo "--service-name cannot be empty" >&2
+  exit 1
+fi
+
+if [[ ! -d "$REPO_ROOT" ]]; then
+  echo "Repo root does not exist: $REPO_ROOT" >&2
+  exit 1
+fi
+
+BACKEND_LAUNCH_SCRIPT="${REPO_ROOT}/scripts/run-backend"
+if [[ ! -x "$BACKEND_LAUNCH_SCRIPT" ]]; then
+  echo "Backend launch script missing or not executable: $BACKEND_LAUNCH_SCRIPT" >&2
+  exit 1
+fi
+
+if ! command -v systemctl >/dev/null 2>&1; then
+  echo "systemctl is required for user-service setup." >&2
+  exit 1
+fi
+
+if ((DRY_RUN == 0)) && [[ -n "$EXTRA_ENV_FILE" ]] && [[ ! -f "$EXTRA_ENV_FILE" ]]; then
+  echo "Env file not found: $EXTRA_ENV_FILE" >&2
+  exit 1
+fi
+
+SERVICE_PATH="${HOME}/.config/systemd/user/${SERVICE_NAME}.service"
+
+ENV_FILE_LINE=""
+if [[ -n "$EXTRA_ENV_FILE" ]]; then
+  ENV_FILE_LINE="EnvironmentFile=${EXTRA_ENV_FILE}"
+fi
+
+SERVICE_CONTENT="$(cat <<EOF
+[Unit]
+Description=WindieOS Backend Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=${REPO_ROOT}
+Environment=WINDIE_BACKEND_ENV=${BACKEND_ENV_NAME}
+Environment=PYTHONUNBUFFERED=1
+${ENV_FILE_LINE}
+ExecStart=${BACKEND_LAUNCH_SCRIPT}
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
+EOF
+)"
+
+write_file "$SERVICE_PATH" "$SERVICE_CONTENT"
+echo "Wrote unit: $SERVICE_PATH"
+
+if ((ENABLE_SERVICE)); then
+  run_cmd systemctl --user daemon-reload
+  run_cmd systemctl --user enable --now "${SERVICE_NAME}.service"
+else
+  echo "Skipping enable/start (--no-enable)."
+fi
+
+cat <<EOF
+Backend user-service setup complete.
+
+Service:    ${SERVICE_NAME}.service
+Repo root:  ${REPO_ROOT}
+Backend env:${BACKEND_ENV_NAME}
+
+Status commands:
+  systemctl --user status ${SERVICE_NAME}.service --no-pager
+  journalctl --user -u ${SERVICE_NAME}.service -n 100 --no-pager
+EOF

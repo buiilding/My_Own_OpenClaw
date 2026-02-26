@@ -46,6 +46,49 @@ read_when:
 - Audit delta:
   - backend `jscpd` reduced from `11` clones to `0` clones (`0` duplicated lines/tokens) for `backend/src` + `tests/backend`.
 
+## Frontend/Main Execution Log (2026-02-26)
+
+- Dashboard shell split:
+  - extracted conversation/search orchestration from `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx` into:
+    - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
+    - `frontend/src/renderer/features/dashboard/utils/conversationGroups.js`
+  - added focused grouping regression coverage:
+    - `tests/frontend/ConversationGroups.test.js`
+  - result: `ChatGptDashboardShell.jsx` reduced from `700` LOC to `313` LOC.
+- Main IPC split:
+  - extracted helper modules from `frontend/src/main/ipc.cjs`:
+    - `frontend/src/main/ipc_runtime_helpers.cjs`
+    - `frontend/src/main/ipc_renderer_windows.cjs`
+    - `frontend/src/main/ipc_query_broadcast.cjs`
+  - result: `ipc.cjs` reduced from `675` LOC to `499` LOC (under file-size target).
+- Main process index split:
+  - extracted runtime modules from `frontend/src/main/index.cjs`:
+    - `frontend/src/main/main_process_lifecycle_runtime.cjs`
+    - `frontend/src/main/overlay_ipc_runtime.cjs`
+    - `frontend/src/main/window_visibility_runtime.cjs`
+    - `frontend/src/main/overlay_signal_runtime.cjs`
+    - `frontend/src/main/overlay_window_helpers_runtime.cjs`
+  - result: `index.cjs` reduced from `887` LOC to `390` LOC (under file-size target).
+- Renderer dedupe slice:
+  - extracted shared chat copy-action hook:
+    - `frontend/src/renderer/features/chat/hooks/useCopyMessageAction.js`
+    - rewired `AssistantMessageActions.jsx` and `UserMessageActions.jsx` to consume shared hook.
+  - extracted shared provider API key PropTypes shape:
+    - `frontend/src/renderer/features/dashboard/components/sections/providerApiKeysPropTypes.js`
+    - rewired `ApiKeysSection.jsx` and `ModelsSection.jsx` to use shared shape.
+  - reduced repeated outside-click/Escape close logic in:
+    - `frontend/src/renderer/features/dashboard/components/DashboardSidebar.jsx`
+    - via shared local hook `useDismissOnOutside(...)`.
+- Verification:
+  - `cd frontend && npm run lint`
+  - `cd frontend && npm run lint:audit`
+  - `cd frontend && npm run audit:knip`
+  - `cd frontend && npm run audit:jscpd`
+  - `./scripts/test`
+  - `./bin/docs-list`
+- Audit delta:
+  - frontend+backend combined `jscpd` run reduced clones from `41` to `33`.
+
 ## Baseline Metrics (Snapshot: 2026-02-23)
 
 ### jscpd duplication

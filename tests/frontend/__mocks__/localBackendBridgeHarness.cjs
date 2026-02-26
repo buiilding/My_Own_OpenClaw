@@ -66,6 +66,7 @@ function initializeBridgeHarness(configureSpawn, options = {}) {
   const mainWindow = createMainWindow();
   bridge.initializeLocalBackendBridge(mainWindow, {
     getFrontendConfig: () => options.frontendConfig || null,
+    isPackaged: options.isPackaged === true,
   });
   return { mainWindow, bridge, handlers, spawn };
 }

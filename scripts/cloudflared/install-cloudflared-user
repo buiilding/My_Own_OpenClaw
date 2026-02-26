@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+Install cloudflared into a user-local bin directory (no sudo required).
+
+Usage:
+  scripts/cloudflared/install-cloudflared-user [--install-dir DIR] [--version VERSION]
+
+Options:
+  --install-dir DIR   Install target directory (default: $HOME/.local/bin)
+  --version VERSION   Cloudflared version tag (default: latest)
+  -h, --help          Show this help
+
+Examples:
+  scripts/cloudflared/install-cloudflared-user
+  scripts/cloudflared/install-cloudflared-user --install-dir "$HOME/bin"
+  scripts/cloudflared/install-cloudflared-user --version 2026.2.0
+EOF
+}
+
+INSTALL_DIR="${HOME}/.local/bin"
+VERSION="latest"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --install-dir)
+      INSTALL_DIR="${2:-}"
+      shift 2
+      ;;
+    --version)
+      VERSION="${2:-}"
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown argument: $1" >&2
+      usage
+      exit 1
+      ;;
+  esac
+done
+
+if ! command -v curl >/dev/null 2>&1; then
+  echo "curl is required." >&2
+  exit 1
+fi
+
+OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
+ARCH="$(uname -m)"
+
+case "$ARCH" in
+  x86_64|amd64) ASSET_ARCH="amd64" ;;
+  aarch64|arm64) ASSET_ARCH="arm64" ;;
+  *)
+    echo "Unsupported architecture: $ARCH" >&2
+    exit 1
+    ;;
+esac
+
+case "$OS" in
+  linux)
+    ASSET_NAME="cloudflared-linux-${ASSET_ARCH}"
+    ;;
+  darwin)
+    ASSET_NAME="cloudflared-darwin-${ASSET_ARCH}.tgz"
+    ;;
+  *)
+    echo "Unsupported OS: $OS" >&2
+    exit 1
+    ;;
+esac
+
+if [[ "$VERSION" == "latest" ]]; then
+  DOWNLOAD_URL="https://github.com/cloudflare/cloudflared/releases/latest/download/${ASSET_NAME}"
+else
+  DOWNLOAD_URL="https://github.com/cloudflare/cloudflared/releases/download/${VERSION}/${ASSET_NAME}"
+fi
+
+mkdir -p "$INSTALL_DIR"
+TMP_DIR="$(mktemp -d)"
+cleanup() {
+  rm -rf "$TMP_DIR"
+}
+trap cleanup EXIT
+
+TMP_FILE="${TMP_DIR}/${ASSET_NAME}"
+echo "Downloading: ${DOWNLOAD_URL}"
+curl -fsSL "$DOWNLOAD_URL" -o "$TMP_FILE"
+
+TARGET_BIN="${INSTALL_DIR}/cloudflared"
+
+if [[ "$ASSET_NAME" == *.tgz ]]; then
+  tar -xzf "$TMP_FILE" -C "$TMP_DIR"
+  mv "${TMP_DIR}/cloudflared" "$TARGET_BIN"
+else
+  mv "$TMP_FILE" "$TARGET_BIN"
+fi
+
+chmod +x "$TARGET_BIN"
+
+echo "Installed cloudflared to: ${TARGET_BIN}"
+"$TARGET_BIN" --version
+
+if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
+  cat <<EOF
+Note: ${INSTALL_DIR} is not in PATH for this shell.
+Add this to your shell profile:
+  export PATH="${INSTALL_DIR}:\$PATH"
+EOF
+fi

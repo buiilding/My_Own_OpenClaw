@@ -1,7 +1,6 @@
 import {
   buildModelConfigUpdate,
   evaluateModelSelection,
-  filterModelsBySearch,
   getCurrentModels,
   getFallbackModelSelection,
 } from '../../frontend/src/renderer/features/dashboard/utils/modelSelectionUtils';
@@ -19,15 +18,6 @@ describe('modelSelectionUtils', () => {
   test('getCurrentModels returns online models by default', () => {
     expect(getCurrentModels({ local: [], online: sampleModels }, 'online')).toEqual(sampleModels);
     expect(getCurrentModels(undefined, 'online')).toEqual([]);
-  });
-
-  test('filterModelsBySearch returns all models when query is empty', () => {
-    expect(filterModelsBySearch(sampleModels, '  ')).toEqual(sampleModels);
-  });
-
-  test('filterModelsBySearch matches id and provider case-insensitively', () => {
-    expect(filterModelsBySearch(sampleModels, 'GPT')).toEqual([{ id: 'gpt-5', provider: 'openai' }]);
-    expect(filterModelsBySearch(sampleModels, 'THROPIC')).toEqual([{ id: 'claude-sonnet', provider: 'anthropic' }]);
   });
 
   test('buildModelConfigUpdate maps selected model and app mode values', () => {

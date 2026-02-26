@@ -4,7 +4,6 @@ const { EventEmitter } = require('events');
 
 const {
   handleSetAgentSudoAccess,
-  sanitizeUsername,
 } = require('../../frontend/src/main/agent_sudo_access_handler.cjs');
 
 function createSpawnStub({ closeCode = 0, stderr = '', stdout = '', error = null } = {}) {
@@ -32,17 +31,6 @@ function createSpawnStub({ closeCode = 0, stderr = '', stdout = '', error = null
 }
 
 describe('agent_sudo_access_handler', () => {
-  test('sanitizeUsername accepts linux-safe usernames', () => {
-    expect(sanitizeUsername('peter-bui')).toBe('peter-bui');
-    expect(sanitizeUsername('root')).toBe('root');
-  });
-
-  test('sanitizeUsername rejects invalid usernames', () => {
-    expect(sanitizeUsername('')).toBeNull();
-    expect(sanitizeUsername('../bad')).toBeNull();
-    expect(sanitizeUsername('bad user')).toBeNull();
-  });
-
   test('returns unsupported on non-linux platform', async () => {
     const result = await handleSetAgentSudoAccess(
       { enabled: true },

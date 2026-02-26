@@ -8,6 +8,8 @@ function createBridgeSuiteLifecycle({
     delete process.env.BACKEND_PORT;
     delete process.env.BACKEND_HTTP_URL;
     delete process.env.BACKEND_WS_URL;
+    delete process.env.WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL;
+    delete process.env.WINDIE_DEFAULT_PACKAGED_BACKEND_WS_URL;
   }
 
   function restoreBackendEnv() {

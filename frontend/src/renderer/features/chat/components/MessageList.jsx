@@ -236,7 +236,6 @@ function MessageList({
       handleStartUserEdit,
       handleCancelUserEdit,
       handleSubmitUserEdit,
-      onUserEdit,
     ]
   );
 

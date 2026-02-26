@@ -245,7 +245,4 @@ async function handleSetAgentSudoAccess(options = {}, deps = {}) {
 
 module.exports = {
   handleSetAgentSudoAccess,
-  runPkexecBash,
-  runSudoNonInteractiveBash,
-  sanitizeUsername,
 };

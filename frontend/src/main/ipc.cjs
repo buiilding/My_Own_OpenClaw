@@ -1,8 +1,3 @@
-/**
- * IPC Bridge for communication between Electron's main process,
- * renderer process, and the Python backend.
- */
-
 const { ipcMain } = require('electron');
 const WebSocket = require('ws');
 const { v4: uuidv4 } = require('uuid');
@@ -19,28 +14,42 @@ const {
   buildLocalUserMessage,
   buildQuerySendFailure,
 } = require('./ipc_query_events.cjs');
+const {
+  generateUserId,
+  normalizeBackendPayload,
+  processBackendMessageData,
+  runBeforeOverlayQueryCapture,
+  uploadArtifact,
+} = require('./ipc_runtime_helpers.cjs');
+const {
+  trackRendererWindow: trackRendererWindowRuntime,
+  broadcastToRenderers: broadcastToRenderersRuntime,
+} = require('./ipc_renderer_windows.cjs');
+const {
+  broadcastLocalUserMessage: broadcastLocalUserMessageRuntime,
+  broadcastQuerySendFailure: broadcastQuerySendFailureRuntime,
+} = require('./ipc_query_broadcast.cjs');
 
-const BACKEND_ENDPOINTS = resolveBackendEndpoints();
-const BACKEND_URL = BACKEND_ENDPOINTS.wsUrl;
-const BACKEND_HTTP_URL = BACKEND_ENDPOINTS.httpUrl;
+let BACKEND_ENDPOINTS = resolveBackendEndpoints();
+let BACKEND_URL = BACKEND_ENDPOINTS.wsUrl;
+let BACKEND_HTTP_URL = BACKEND_ENDPOINTS.httpUrl;
 const SETTINGS_SYNC_TIMEOUT_MS = 2500;
 let ws = null;
 let rendererWindows = new Set();
 let isConnected = false;
-let reconnectInterval = 5000; // 5 seconds
-let isFirstQuery = true; // Track if this is the first user query in the session
-let currentUserId = null; // Store user_id after successful handshake
-let currentSessionId = null; // Store session_id from backend responses
-let currentServerUserId = null; // Store server-assigned user_id from backend responses
-let currentConversationRef = null; // Store active conversation_ref from backend responses
-let latestFrontendConfig = null; // Last known frontend config for session bootstrap
-let hasAttemptedInitialSettingsSync = false; // One-time per connection query gate
-let pendingSettingsSyncPromise = null; // Last outbound update-settings ACK promise
-const pendingSettingsSyncs = new Map(); // msg_id -> { resolve, timer }
+let reconnectInterval = 5000;
+let isFirstQuery = true;
+let currentUserId = null;
+let currentSessionId = null;
+let currentServerUserId = null;
+let currentConversationRef = null;
+let latestFrontendConfig = null;
+let hasAttemptedInitialSettingsSync = false;
+let pendingSettingsSyncPromise = null;
+const pendingSettingsSyncs = new Map();
 let onResponseOverlayPhaseChange = null;
 let onBeforeOverlayQueryCapture = null;
 let responseOverlayPhase = 'idle';
-
 const RESPONSE_OVERLAY_PHASES = new Set([
   'idle',
   'awaiting-first-chunk',
@@ -50,6 +59,12 @@ const RESPONSE_OVERLAY_PHASES = new Set([
   'complete',
   'error',
 ]);
+
+function refreshBackendEndpoints(options = {}) {
+  BACKEND_ENDPOINTS = resolveBackendEndpoints(process.env, options);
+  BACKEND_URL = BACKEND_ENDPOINTS.wsUrl;
+  BACKEND_HTTP_URL = BACKEND_ENDPOINTS.httpUrl;
+}
 
 function log(message) {
   // Only log in development - production logging adds overhead
@@ -174,92 +189,21 @@ async function ensureInitialSettingsSync() {
   }
 }
 
-async function uploadArtifact({ base64, contentType, filename }) {
-  if (!base64 || typeof base64 !== 'string') {
-    return { success: false, error: 'Missing artifact data' };
-  }
-
-  const resolvedContentType = contentType || 'application/octet-stream';
-  const ext = resolvedContentType === 'image/png' ? 'png' : 'jpg';
-  const safeName = filename && typeof filename === 'string' ? filename : `artifact.${ext}`;
-
-  try {
-    const buffer = Buffer.from(base64, 'base64');
-    const blob = new Blob([buffer], { type: resolvedContentType });
-    const form = new FormData();
-    form.append('file', blob, safeName);
-
-    const response = await fetch(`${BACKEND_HTTP_URL}/api/artifacts/`, {
-      method: 'POST',
-      body: form,
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      return { success: false, error: `Upload failed (${response.status}): ${errorText}` };
-    }
-
-    const data = await response.json();
-    return { success: true, data };
-  } catch (error) {
-    return { success: false, error: error.message || String(error) };
-  }
-}
-
 function trackRendererWindow(win) {
-  if (!win || (win.isDestroyed && win.isDestroyed())) {
-    return;
-  }
-  rendererWindows.add(win);
-  const webContents = win.webContents;
-  const canSubscribeToLoad = Boolean(
-    webContents
-      && typeof webContents.on === 'function'
-      && typeof webContents.removeListener === 'function',
-  );
-  const canCheckLoadingState = Boolean(
-    webContents && typeof webContents.isLoadingMainFrame === 'function',
-  );
-  const syncResponseOverlayPhase = () => {
-    if (!win || win.isDestroyed()) {
-      return;
-    }
-    if (!webContents || typeof webContents.send !== 'function') {
-      return;
-    }
-    webContents.send('response-overlay-phase', {
-      phase: responseOverlayPhase,
-      source: 'sync',
-    });
-  };
-  if (canSubscribeToLoad) {
-    webContents.on('did-finish-load', syncResponseOverlayPhase);
-  }
-  if (!canCheckLoadingState || !webContents.isLoadingMainFrame()) {
-    syncResponseOverlayPhase();
-  }
-  if (typeof win.on !== 'function') {
-    return;
-  }
-  win.on('closed', () => {
-    if (canSubscribeToLoad) {
-      webContents.removeListener('did-finish-load', syncResponseOverlayPhase);
-    }
-    rendererWindows.delete(win);
+  trackRendererWindowRuntime({
+    win,
+    rendererWindows,
+    getResponseOverlayPhase: () => responseOverlayPhase,
   });
 }
 
 function broadcastToRenderers(channel, payload, sourceWebContents = null) {
-  for (const win of rendererWindows) {
-    if (!win || win.isDestroyed()) {
-      rendererWindows.delete(win);
-      continue;
-    }
-    if (sourceWebContents && win.webContents === sourceWebContents) {
-      continue;
-    }
-    win.webContents.send(channel, payload);
-  }
+  broadcastToRenderersRuntime({
+    rendererWindows,
+    channel,
+    payload,
+    sourceWebContents,
+  });
 }
 
 function setResponseOverlayPhase(phase, source = 'ipc') {
@@ -279,64 +223,6 @@ function setResponseOverlayPhase(phase, source = 'ipc') {
     }
   }
   broadcastToRenderers('response-overlay-phase', payload);
-}
-
-function resolveRendererViewFromWebContents(webContents) {
-  if (!webContents || typeof webContents.getURL !== 'function') {
-    return null;
-  }
-  const rawUrl = webContents.getURL();
-  if (!rawUrl) {
-    return null;
-  }
-  try {
-    const parsed = new URL(rawUrl);
-    return parsed.searchParams.get('view');
-  } catch (_error) {
-    const match = rawUrl.match(/[?&]view=([^&#]+)/);
-    if (!match) {
-      return null;
-    }
-    try {
-      return decodeURIComponent(match[1]);
-    } catch (_decodeError) {
-      return match[1];
-    }
-  }
-}
-
-async function runBeforeOverlayQueryCapture(webContents) {
-  if (typeof onBeforeOverlayQueryCapture !== 'function') {
-    return;
-  }
-  if (resolveRendererViewFromWebContents(webContents) !== 'chatbox') {
-    return;
-  }
-  try {
-    await onBeforeOverlayQueryCapture({
-      senderWebContents: webContents,
-    });
-  } catch (error) {
-    log(`Overlay pre-capture hook failed: ${error.message}`);
-  }
-}
-
-/**
- * Generate a valid user_id from system username or fallback to UUID-based ID.
- * Backend rejects 'default_user', empty, or whitespace-only values.
- */
-function generateUserId() {
-  try {
-    const username = os.userInfo().username;
-    if (username && username.trim() && username !== 'default_user') {
-      // Sanitize username to match backend validation pattern (alphanumeric, underscore, hyphen)
-      return username.replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 128);
-    }
-  } catch (error) {
-    log(`Failed to get system username: ${error.message}`);
-  }
-  // Fallback: generate UUID-based user_id (backend accepts alphanumeric, underscore, hyphen)
-  return `user_${uuidv4().replace(/-/g, '_')}`;
 }
 
 function connect() {
@@ -359,7 +245,11 @@ function connect() {
     log('Successfully connected to Python backend.');
 
     // Generate valid user_id (backend rejects 'default_user', empty, or whitespace-only)
-    currentUserId = generateUserId();
+    currentUserId = generateUserId({
+      osUserInfo: () => os.userInfo(),
+      uuidGenerator: uuidv4,
+      log,
+    });
     
     // Send handshake message as required by the backend server
     const handshakeMessage = {
@@ -379,38 +269,22 @@ function connect() {
   ws.on('message', (message) => {
     try {
       const data = JSON.parse(message);
-      if (data && typeof data === 'object') {
-        if (data.session_id) {
-          currentSessionId = data.session_id;
-        }
-        if (data.user_id) {
-          currentServerUserId = data.user_id;
-        }
-        if (data.conversation_ref) {
-          currentConversationRef = data.conversation_ref;
-        }
-      }
-      // Only log errors or important message types
-      if (data.type === 'error') {
-        log(`Error from backend: ${data.payload?.message || 'Unknown error'}`);
-      }
-      if (data.type === 'settings-updated' && data.id) {
-        resolveSettingsSync(data.id, true);
-      } else if (data.type === 'error' && data.id) {
-        resolveSettingsSync(data.id, false);
-      }
-      if (data.type === 'streaming-response') {
-        setResponseOverlayPhase('streaming', 'backend');
-      } else if (data.type === 'tool-call' || data.type === 'tool-bundle') {
-        setResponseOverlayPhase('tool-call', 'backend');
-      } else if (data.type === 'tool-output') {
-        setResponseOverlayPhase('awaiting-first-chunk', 'backend');
-      } else if (data.type === 'streaming-complete') {
-        setResponseOverlayPhase('complete', 'backend');
-      } else if (data.type === 'error' && responseOverlayPhase !== 'idle') {
-        setResponseOverlayPhase('error', 'backend');
-      }
-      broadcastToRenderers('from-backend', data);
+      processBackendMessageData(data, {
+        setCurrentSessionId: (value) => {
+          currentSessionId = value;
+        },
+        setCurrentServerUserId: (value) => {
+          currentServerUserId = value;
+        },
+        setCurrentConversationRef: (value) => {
+          currentConversationRef = value;
+        },
+        resolveSettingsSync,
+        setResponseOverlayPhase,
+        getResponseOverlayPhase: () => responseOverlayPhase,
+        broadcastToRenderers,
+        log,
+      });
     } catch (error) {
       log(`Error parsing message from backend: ${error}`);
     }
@@ -436,12 +310,6 @@ function connect() {
   });
 }
 
-/**
- * Sends a structured message to the Python backend via WebSocket.
- *
- * @param {string} type - The message type (e.g., 'query').
- * @param {object} payload - The JSON object payload for the message.
- */
 function sendMessageToBackend(type, payload, messageId = null) {
   if (!isConnected || !ws || ws.readyState !== WebSocket.OPEN) {
     log('Cannot send message: WebSocket is not connected.');
@@ -473,69 +341,10 @@ function sendMessageToBackend(type, payload, messageId = null) {
   }
 }
 
-/**
- * Normalize outbound payloads to backend-supported schema fields.
- */
-function normalizeBackendPayload(type, payload) {
-  if (!payload || typeof payload !== 'object') {
-    return {};
-  }
-
-  const normalized = { ...payload };
-
-  if (type === 'query' || type === 'tool-bundle-result') {
-    delete normalized.screenshot_url;
-  }
-
-  return normalized;
-}
-
-function broadcastLocalUserMessage({
-  sourceWebContents,
-  payload,
-  queryMessageId,
-  conversationRef,
-}) {
-  const localUserMessage = buildLocalUserMessage({
-    payload,
-    queryMessageId,
-    conversationRef,
-    currentSessionId,
-    currentServerUserId,
-    currentUserId,
-  });
-
-  if (!localUserMessage) {
-    return;
-  }
-
-  broadcastToRenderers('from-backend', localUserMessage, sourceWebContents);
-}
-
-function broadcastQuerySendFailure({
-  queryMessageId,
-  conversationRef,
-}) {
-  setResponseOverlayPhase('idle', 'query-send-failed');
-  const queryFailure = buildQuerySendFailure({
-    queryMessageId,
-    conversationRef,
-    currentSessionId,
-    currentServerUserId,
-    currentUserId,
-  });
-
-  broadcastToRenderers('from-backend', queryFailure);
-}
-
-/**
- * Initializes the IPC bridge and establishes the WebSocket connection.
- * This function should be called once when the main Electron window is created.
- *
- * @param {BrowserWindow} win - The main Electron BrowserWindow instance.
- * @param {object} options - Optional lifecycle callbacks.
- */
 function initializeIpc(win, options = {}) {
+  refreshBackendEndpoints({
+    isPackaged: options.isPackaged === true,
+  });
   onResponseOverlayPhaseChange = typeof options.onResponseOverlayPhaseChange === 'function'
     ? options.onResponseOverlayPhaseChange
     : null;
@@ -564,7 +373,10 @@ function initializeIpc(win, options = {}) {
   });
 
   ipcMain.handle('upload-artifact', async (_event, payload) => {
-    return uploadArtifact(payload || {});
+    return uploadArtifact({
+      ...(payload || {}),
+      backendHttpUrl: BACKEND_HTTP_URL,
+    });
   });
 
   ipcMain.handle('save-frontend-config', async (event, config) => {
@@ -604,22 +416,37 @@ function initializeIpc(win, options = {}) {
     // Build complete user message content with system state and memories
     // System context MUST be retrieved - never skip it
     if (type === 'query') {
-      await runBeforeOverlayQueryCapture(event.sender);
+      await runBeforeOverlayQueryCapture({
+        webContents: event.sender,
+        onBeforeOverlayQueryCapture,
+        log,
+      });
       queryMessageId = uuidv4();
       setResponseOverlayPhase('awaiting-first-chunk', 'query');
       const conversationRef = resolveConversationRefFromPayload(payload, currentConversationRef);
       if (!payload.conversation_ref && conversationRef) {
         payload.conversation_ref = conversationRef;
       }
-      broadcastLocalUserMessage({
+      broadcastLocalUserMessageRuntime({
         sourceWebContents: event.sender,
         payload,
         queryMessageId,
         conversationRef,
+        currentSessionId,
+        currentServerUserId,
+        currentUserId,
+        buildLocalUserMessage,
+        broadcastToRenderers: ({ channel, payload: messagePayload, sourceWebContents }) => {
+          broadcastToRenderers(channel, messagePayload, sourceWebContents);
+        },
       });
       const contextType = isFirstQuery ? 'initial' : 'sequential';
       queryUsedInitialContext = contextType === 'initial';
-      const userId = currentUserId || generateUserId();
+      const userId = currentUserId || generateUserId({
+        osUserInfo: () => os.userInfo(),
+        uuidGenerator: uuidv4,
+        log,
+      });
       const {
         content: completeContent,
         runtimeSystemState,
@@ -646,9 +473,17 @@ function initializeIpc(win, options = {}) {
     
     const messageId = sendMessageToBackend(type, payload, queryMessageId);
     if (!messageId && type === 'query') {
-      broadcastQuerySendFailure({
+      broadcastQuerySendFailureRuntime({
         queryMessageId,
         conversationRef: resolveConversationRefFromPayload(payload, currentConversationRef),
+        currentSessionId,
+        currentServerUserId,
+        currentUserId,
+        buildQuerySendFailure,
+        setResponseOverlayPhase,
+        broadcastToRenderers: ({ channel, payload: messagePayload, sourceWebContents }) => {
+          broadcastToRenderers(channel, messagePayload, sourceWebContents);
+        },
       });
     } else if (type === 'query' && queryUsedInitialContext) {
       isFirstQuery = false;

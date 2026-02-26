@@ -1,0 +1,219 @@
+function createOverlayWindowHelpersRuntime(deps = {}) {
+  const {
+    screen,
+    getChatWindow = () => null,
+    getResponseWindow = () => null,
+    getContextLabelWindow = () => null,
+    getResponseOverlayVisible = () => false,
+    getOverlayChatWindowBounds,
+    getOverlayResponseWindowBounds,
+    getOverlayContextLabelWindowBounds,
+    contextLabelWidth,
+    contextLabelHeight,
+    contextLabelOffsetX,
+    contextLabelGapAboveChatbox,
+    warn = console.warn,
+  } = deps;
+
+  function getChatWindowBounds(width, height) {
+    return getOverlayChatWindowBounds({ screen, width, height });
+  }
+
+  function getResponseWindowBounds(width, height) {
+    const chatWindow = getChatWindow();
+    const chatBounds = chatWindow && !chatWindow.isDestroyed()
+      ? chatWindow.getBounds()
+      : null;
+    return getOverlayResponseWindowBounds({
+      screen,
+      width,
+      height,
+      chatBounds,
+    });
+  }
+
+  function getContextLabelWindowBounds() {
+    const chatWindow = getChatWindow();
+    const chatBounds = chatWindow && !chatWindow.isDestroyed()
+      ? chatWindow.getBounds()
+      : null;
+    return getOverlayContextLabelWindowBounds({
+      screen,
+      chatBounds,
+      labelWidth: contextLabelWidth,
+      labelHeight: contextLabelHeight,
+      offsetX: contextLabelOffsetX,
+      gapAbove: contextLabelGapAboveChatbox,
+    });
+  }
+
+  function positionResponseWindow() {
+    const responseWindow = getResponseWindow();
+    if (!responseWindow || responseWindow.isDestroyed() || !getResponseOverlayVisible()) {
+      return;
+    }
+    const [width, height] = responseWindow.getSize();
+    const bounds = getResponseWindowBounds(width, height);
+    responseWindow.setBounds(bounds, false);
+  }
+
+  function positionContextLabelWindow() {
+    const contextLabelWindow = getContextLabelWindow();
+    if (!contextLabelWindow || contextLabelWindow.isDestroyed()) {
+      return;
+    }
+    const bounds = getContextLabelWindowBounds();
+    contextLabelWindow.setBounds(bounds, false);
+  }
+
+  function positionChatWindow() {
+    const chatWindow = getChatWindow();
+    if (!chatWindow) {
+      return;
+    }
+    const [width, height] = chatWindow.getSize();
+    const { x, y } = getChatWindowBounds(width, height);
+    chatWindow.setPosition(x, y, false);
+    positionResponseWindow();
+    positionContextLabelWindow();
+  }
+
+  function ensureResponseOverlayFallbackBounds() {
+    const responseWindow = getResponseWindow();
+    if (!responseWindow || responseWindow.isDestroyed()) {
+      return;
+    }
+    const chatWindow = getChatWindow();
+    const defaultWidth = chatWindow && !chatWindow.isDestroyed()
+      ? chatWindow.getSize()[0]
+      : 520;
+    const [currentWidth, currentHeight] = responseWindow.getSize();
+    const width = Math.max(1, currentWidth || defaultWidth);
+    const height = Math.max(42, currentHeight || 0);
+    const bounds = getResponseWindowBounds(width, height);
+    responseWindow.setBounds(bounds, false);
+  }
+
+  function ensureChatWindowOnTop() {
+    const chatWindow = getChatWindow();
+    if (!chatWindow || chatWindow.isDestroyed()) {
+      return;
+    }
+    try {
+      chatWindow.setAlwaysOnTop(true, 'floating');
+      if (typeof chatWindow.moveTop === 'function') {
+        chatWindow.moveTop();
+      }
+    } catch (error) {
+      warn('[Main] Failed to keep chatbox on top:', error?.message || error);
+    }
+  }
+
+  function ensureResponseWindowOnTop() {
+    const responseWindow = getResponseWindow();
+    if (!responseWindow || responseWindow.isDestroyed() || !getResponseOverlayVisible()) {
+      return;
+    }
+    try {
+      responseWindow.setAlwaysOnTop(true, 'floating');
+      if (typeof responseWindow.moveTop === 'function') {
+        responseWindow.moveTop();
+      }
+    } catch (error) {
+      warn('[Main] Failed to keep response overlay on top:', error?.message || error);
+    }
+  }
+
+  function ensureContextLabelWindowOnTop() {
+    const contextLabelWindow = getContextLabelWindow();
+    if (!contextLabelWindow || contextLabelWindow.isDestroyed() || !contextLabelWindow.isVisible()) {
+      return;
+    }
+    try {
+      contextLabelWindow.setAlwaysOnTop(true, 'floating');
+      if (typeof contextLabelWindow.moveTop === 'function') {
+        contextLabelWindow.moveTop();
+      }
+    } catch (error) {
+      warn('[Main] Failed to keep context label on top:', error?.message || error);
+    }
+  }
+
+  function showResponseWindowInactive() {
+    const responseWindow = getResponseWindow();
+    if (!responseWindow || responseWindow.isDestroyed()) {
+      return;
+    }
+    if (typeof responseWindow.showInactive === 'function') {
+      responseWindow.showInactive();
+    } else {
+      responseWindow.show();
+    }
+    ensureResponseWindowOnTop();
+  }
+
+  function showResponseWindowWhenChatVisible() {
+    const chatWindow = getChatWindow();
+    if (!chatWindow || chatWindow.isDestroyed() || !chatWindow.isVisible()) {
+      return;
+    }
+    showResponseWindowInactive();
+  }
+
+  function showContextLabelWindowInactive() {
+    const contextLabelWindow = getContextLabelWindow();
+    if (!contextLabelWindow || contextLabelWindow.isDestroyed()) {
+      return;
+    }
+    positionContextLabelWindow();
+    if (typeof contextLabelWindow.showInactive === 'function') {
+      contextLabelWindow.showInactive();
+    } else {
+      contextLabelWindow.show();
+    }
+    ensureContextLabelWindowOnTop();
+  }
+
+  function syncContextLabelWindowVisibility() {
+    const contextLabelWindow = getContextLabelWindow();
+    if (!contextLabelWindow || contextLabelWindow.isDestroyed()) {
+      return;
+    }
+    const chatWindow = getChatWindow();
+    const shouldShow = Boolean(
+      chatWindow
+        && !chatWindow.isDestroyed()
+        && chatWindow.isVisible()
+        && !getResponseOverlayVisible(),
+    );
+
+    if (!shouldShow) {
+      if (contextLabelWindow.isVisible()) {
+        contextLabelWindow.hide();
+      }
+      return;
+    }
+    showContextLabelWindowInactive();
+  }
+
+  return {
+    ensureResponseOverlayFallbackBounds,
+    positionChatWindow,
+    getChatWindowBounds,
+    getResponseWindowBounds,
+    getContextLabelWindowBounds,
+    positionResponseWindow,
+    positionContextLabelWindow,
+    ensureChatWindowOnTop,
+    ensureResponseWindowOnTop,
+    ensureContextLabelWindowOnTop,
+    showResponseWindowInactive,
+    showResponseWindowWhenChatVisible,
+    showContextLabelWindowInactive,
+    syncContextLabelWindowVisibility,
+  };
+}
+
+module.exports = {
+  createOverlayWindowHelpersRuntime,
+};

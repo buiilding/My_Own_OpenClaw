@@ -2,13 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   ArrowLeft,
-  Check,
-  ChevronRight,
-  Clock,
-  DollarSign,
-  Layers,
   X,
-  Zap,
 } from 'lucide-react';
 import {
   buildModelConfigUpdate,
@@ -16,231 +10,18 @@ import {
   getCurrentModels,
   getFallbackModelSelection,
 } from '../../utils/modelSelectionUtils';
-import ApiKeysSection, { normalizeProviderApiKeys } from './ApiKeysSection';
-
-function buildModelDescription(model) {
-  const provider = (model?.provider || '').toLowerCase();
-  if (provider.includes('openai')) {
-    return 'Flagship multimodal model. Fast, accurate, cost-effective.';
-  }
-  if (provider.includes('anthropic')) {
-    return 'Advanced reasoning with strong instruction following.';
-  }
-  if (provider.includes('google')) {
-    return 'Powerful model with native multimodal understanding.';
-  }
-  if (provider.includes('ollama') || provider.includes('local')) {
-    return 'Local model runtime for private on-device workflows.';
-  }
-  return 'General-purpose model suitable for chat, coding and reasoning tasks.';
-}
-
-function buildModelStrengths(model) {
-  const provider = (model?.provider || '').toLowerCase();
-  if (provider.includes('openai')) {
-    return ['Reasoning', 'Code', 'Vision', 'Multilingual'];
-  }
-  if (provider.includes('anthropic')) {
-    return ['Analysis', 'Writing', 'Safety', 'Long Context'];
-  }
-  if (provider.includes('google')) {
-    return ['Multimodal', 'Search', 'Code', 'Efficiency'];
-  }
-  if (provider.includes('ollama') || provider.includes('local')) {
-    return ['Private', 'Offline', 'Low Latency', 'Customization'];
-  }
-  return ['Reasoning', 'General', 'Productivity', 'Flexible'];
-}
-
-function toModelCard(model, isRecommended) {
-  const contextHint = model?.context_window || model?.contextWindow || model?.context || 'Context unknown';
-  return {
-    id: model?.id || 'unknown-model',
-    provider: model?.provider || 'unknown',
-    description: buildModelDescription(model),
-    context: typeof contextHint === 'number' ? `${contextHint} tokens` : String(contextHint),
-    inputPrice: model?.input_price || model?.inputPrice || 'N/A',
-    outputPrice: model?.output_price || model?.outputPrice || 'N/A',
-    latency: model?.latency || '~1.5s',
-    strengths: buildModelStrengths(model),
-    badge: isRecommended ? 'Recommended' : null,
-  };
-}
-
-function normalizeProviderLabel(provider) {
-  const value = provider === undefined || provider === null ? '' : String(provider).trim();
-  return value || 'Unknown provider';
-}
-
-function toProviderCards(models, selectedModelId, selectedProvider) {
-  const groups = new Map();
-
-  models.forEach((model) => {
-    const provider = normalizeProviderLabel(model?.provider);
-    const currentGroup = groups.get(provider);
-    if (currentGroup) {
-      currentGroup.models.push(model);
-      return;
-    }
-    groups.set(provider, {
-      provider,
-      models: [model],
-    });
-  });
-
-  return Array.from(groups.values())
-    .map((group) => ({
-      provider: group.provider,
-      count: group.models.length,
-      hasSelectedModel: group.models.some((model) => (
-        String(model?.id || '') === String(selectedModelId || '')
-        && normalizeProviderLabel(model?.provider) === normalizeProviderLabel(selectedProvider)
-      )),
-    }))
-    .sort((left, right) => {
-      if (left.hasSelectedModel && !right.hasSelectedModel) {
-        return -1;
-      }
-      if (!left.hasSelectedModel && right.hasSelectedModel) {
-        return 1;
-      }
-      return left.provider.localeCompare(right.provider);
-    });
-}
-
-function ProviderCard({ provider, count, isSelected, onSelect }) {
-  return (
-    <button
-      type="button"
-      className={`clone-model-provider-card${isSelected ? ' selected' : ''}`}
-      onClick={() => onSelect(provider)}
-      aria-label={`Show ${provider} models`}
-    >
-      <div className="clone-model-provider-card-head">
-        <div className="clone-model-provider-id-wrap">
-          <div className={`clone-model-provider-icon-wrap${isSelected ? ' selected' : ''}`}>
-            <Layers size={16} />
-          </div>
-            <div className="clone-model-provider-title-wrap">
-              <h3>{provider}</h3>
-              <p>{count} model{count === 1 ? '' : 's'}</p>
-            </div>
-        </div>
-
-        <div className="clone-model-provider-state-wrap">
-          {isSelected ? (
-            <div className="clone-model-selected-dot">
-              <Check size={12} />
-            </div>
-          ) : null}
-          <ChevronRight size={16} className="clone-model-chevron hovered" />
-        </div>
-      </div>
-    </button>
-  );
-}
-
-ProviderCard.propTypes = {
-  provider: PropTypes.string.isRequired,
-  count: PropTypes.number.isRequired,
-  isSelected: PropTypes.bool.isRequired,
-  onSelect: PropTypes.func.isRequired,
-};
-
-function ModelCard({ model, isSelected, isHovered, onSelect, onHover }) {
-  return (
-    <button
-      type="button"
-      className={`clone-model-card${isSelected ? ' selected' : ''}${isHovered ? ' hovered' : ''}`}
-      onMouseEnter={() => onHover(model.id)}
-      onMouseLeave={() => onHover(null)}
-      onClick={() => onSelect(model)}
-    >
-      <div className="clone-model-card-head">
-        <div className="clone-model-id-wrap">
-          <div className={`clone-model-icon-wrap${isSelected ? ' selected' : ''}`}>
-            <Zap size={16} />
-          </div>
-          <div className="clone-model-title-wrap">
-            <div className="clone-model-title-row">
-              <h3>{model.id}</h3>
-              {model.badge ? (
-                <span className={`clone-model-badge${model.badge === 'Recommended' ? ' recommended' : ''}`}>
-                  {model.badge}
-                </span>
-              ) : null}
-            </div>
-            <p>{model.provider} · {model.context}</p>
-          </div>
-        </div>
-
-        <div className="clone-model-state-wrap">
-          {isSelected ? (
-            <div className="clone-model-selected-dot">
-              <Check size={12} />
-            </div>
-          ) : null}
-          <ChevronRight size={16} className={`clone-model-chevron${isHovered ? ' hovered' : ''}`} />
-        </div>
-      </div>
-
-      <div className={`clone-model-details${isHovered ? ' expanded' : ''}`} aria-hidden={!isHovered}>
-        <div className="clone-model-details-inner">
-          <div className="clone-model-details-content">
-            <p className="clone-model-description">{model.description}</p>
-            <div className="clone-model-metrics-row">
-              <div className="clone-model-metric">
-                <DollarSign size={14} />
-                <div>
-                  <span>Input</span>
-                  <strong>{model.inputPrice}</strong>
-                </div>
-              </div>
-              <div className="clone-model-metric">
-                <DollarSign size={14} />
-                <div>
-                  <span>Output</span>
-                  <strong>{model.outputPrice}</strong>
-                </div>
-              </div>
-              <div className="clone-model-metric">
-                <Clock size={14} />
-                <div>
-                  <span>Latency</span>
-                  <strong>{model.latency}</strong>
-                </div>
-              </div>
-            </div>
-
-            <div className="clone-model-strengths">
-              {model.strengths.map((strength) => (
-                <span key={`${model.id}-${strength}`}>{strength}</span>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </button>
-  );
-}
-
-ModelCard.propTypes = {
-  model: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    provider: PropTypes.string.isRequired,
-    description: PropTypes.string.isRequired,
-    context: PropTypes.string.isRequired,
-    inputPrice: PropTypes.string.isRequired,
-    outputPrice: PropTypes.string.isRequired,
-    latency: PropTypes.string.isRequired,
-    strengths: PropTypes.arrayOf(PropTypes.string).isRequired,
-    badge: PropTypes.string,
-  }).isRequired,
-  isSelected: PropTypes.bool.isRequired,
-  isHovered: PropTypes.bool.isRequired,
-  onSelect: PropTypes.func.isRequired,
-  onHover: PropTypes.func.isRequired,
-};
+import ApiKeysSection from './ApiKeysSection';
+import {
+  normalizeProviderLabel,
+  toModelCard,
+  toProviderCards,
+} from './modelCardData';
+import {
+  ModelCard,
+  ProviderCard,
+} from './modelCards';
+import { normalizeProviderApiKeys } from './providerApiKeys';
+import { providerApiKeysPropType } from './providerApiKeysPropTypes';
 
 function ModelsSection({ config, availableModels, onConfigChange, onClose = () => {} }) {
   const [modelResetWarning, setModelResetWarning] = useState('');
@@ -412,37 +193,37 @@ function ModelsSection({ config, availableModels, onConfigChange, onClose = () =
               <p className="clone-model-provider-meta">{activeProviderView}</p>
             </div>
 
-          <div className="clone-model-list">
-            {modelCards.map((model) => {
-              const isSelected = model.id === selectedModelId && model.provider === selectedProvider;
-              const modelHoverKey = `${model.provider}-${model.id}`;
-              const isHovered = hoveredModel === modelHoverKey;
-              const sourceModel = currentModels.find((candidate) => candidate.id === model.id && candidate.provider === model.provider)
-                || currentModels.find((candidate) => candidate.id === model.id)
-                || null;
+            <div className="clone-model-list">
+              {modelCards.map((model) => {
+                const isSelected = model.id === selectedModelId && model.provider === selectedProvider;
+                const modelHoverKey = `${model.provider}-${model.id}`;
+                const isHovered = hoveredModel === modelHoverKey;
+                const sourceModel = currentModels.find((candidate) => candidate.id === model.id && candidate.provider === model.provider)
+                  || currentModels.find((candidate) => candidate.id === model.id)
+                  || null;
 
-              return (
-                <ModelCard
-                  key={`${model.provider}-${model.id}`}
-                  model={model}
-                  isSelected={isSelected}
-                  isHovered={isHovered}
-                  onHover={(nextModelId) => {
-                    if (!nextModelId) {
-                      setHoveredModel(null);
-                      return;
-                    }
-                    setHoveredModel(`${model.provider}-${nextModelId}`);
-                  }}
-                  onSelect={() => {
-                    if (sourceModel) {
-                      applyModelSelection(sourceModel);
-                    }
-                  }}
-                />
-              );
-            })}
-          </div>
+                return (
+                  <ModelCard
+                    key={`${model.provider}-${model.id}`}
+                    model={model}
+                    isSelected={isSelected}
+                    isHovered={isHovered}
+                    onHover={(nextModelId) => {
+                      if (!nextModelId) {
+                        setHoveredModel(null);
+                        return;
+                      }
+                      setHoveredModel(`${model.provider}-${nextModelId}`);
+                    }}
+                    onSelect={() => {
+                      if (sourceModel) {
+                        applyModelSelection(sourceModel);
+                      }
+                    }}
+                  />
+                );
+              })}
+            </div>
           </>
         )}
 
@@ -462,32 +243,7 @@ ModelsSection.propTypes = {
     model_provider: PropTypes.string,
     interaction_mode: PropTypes.string,
     speech_mode_enabled: PropTypes.bool,
-    provider_api_keys: PropTypes.shape({
-      openai: PropTypes.shape({
-        enabled: PropTypes.bool,
-        api_key: PropTypes.string,
-      }),
-      anthropic: PropTypes.shape({
-        enabled: PropTypes.bool,
-        api_key: PropTypes.string,
-      }),
-      kimi_coding: PropTypes.shape({
-        enabled: PropTypes.bool,
-        api_key: PropTypes.string,
-      }),
-      google: PropTypes.shape({
-        enabled: PropTypes.bool,
-        api_key: PropTypes.string,
-      }),
-      openrouter: PropTypes.shape({
-        enabled: PropTypes.bool,
-        api_key: PropTypes.string,
-      }),
-      mistral: PropTypes.shape({
-        enabled: PropTypes.bool,
-        api_key: PropTypes.string,
-      }),
-    }),
+    provider_api_keys: providerApiKeysPropType,
   }),
   availableModels: PropTypes.shape({
     local: PropTypes.arrayOf(
