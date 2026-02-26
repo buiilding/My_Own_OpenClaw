@@ -7,6 +7,9 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-chat-history): refresh `Your chats` immediately after successful assistant transcript persistence (`transcript-entry-stored`), so newly titled conversations appear right after the first completed turn.
+- fix(sidecar-conversation-titles): make title generation model-aware by preferring the active assistant model (`model_provider` + `model_id`) from the just-completed `llm-text` turn when selecting title source text.
+- fix(backend-token-metadata): add explicit `k2p5` max-input-token override to avoid noisy LiteLLM provider-list errors during compaction token-window discovery.
 - fix(sidecar-conversation-titles): gate title generation to successful assistant text (`llm-text`) and hide untitled conversations from `list_conversations` so `Your chats` only shows chats after title creation.
 - fix(frontend-chatbox): disable the separate context-label overlay window so active-tab monitoring text is no longer rendered above the chat pill.
 - fix(frontend-dashboard-sidebar): remove nested `Your chats` list scrolling so the sidebar only shows a scrollbar when overall sidebar content overflows, preventing single-conversation faux scrollbars when opening chat actions.

@@ -13,6 +13,11 @@ import litellm
 
 logger = logging.getLogger(__name__)
 
+_MODEL_MAX_INPUT_TOKEN_OVERRIDES = {
+    "k2p5": 262144,
+    "kimi-coding/k2p5": 262144,
+}
+
 
 def _normalize_role(value: Any) -> str:
     """Normalize role values to non-empty stripped strings."""
@@ -246,6 +251,10 @@ class TokenService:
         """
         if not isinstance(model, str) or not model.strip():
             return None
+        normalized_model = model.strip().lower()
+        override = _MODEL_MAX_INPUT_TOKEN_OVERRIDES.get(normalized_model)
+        if isinstance(override, int) and override > 0:
+            return override
         try:
             info = litellm.get_model_info(model=model)
         except Exception:

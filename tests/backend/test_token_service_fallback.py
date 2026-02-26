@@ -320,6 +320,15 @@ def test_get_model_max_input_tokens_from_litellm_dict_payload(monkeypatch):
     assert TokenService.get_model_max_input_tokens("openai/gpt-5.1") == 123456
 
 
+def test_get_model_max_input_tokens_uses_override_before_litellm_lookup(monkeypatch):
+    def _raise(*_args, **_kwargs):
+        raise RuntimeError("should not call litellm lookup for mapped override")
+
+    monkeypatch.setattr(litellm, "get_model_info", _raise)
+    assert TokenService.get_model_max_input_tokens("k2p5") == 262144
+    assert TokenService.get_model_max_input_tokens("kimi-coding/k2p5") == 262144
+
+
 def test_get_model_max_input_tokens_returns_none_on_errors(monkeypatch):
     def _raise(*_args, **_kwargs):
         raise RuntimeError("boom")

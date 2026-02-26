@@ -147,6 +147,36 @@ describe('TranscriptWriter user + assistant writes', () => {
     }));
   });
 
+  test('recordAssistantMessage emits transcript-entry-stored event after successful write', async () => {
+    const { writer } = loadTranscriptWriter();
+    writer.updateTranscriptSession('conv-event', 'user-event');
+
+    const updates: Array<Record<string, unknown>> = [];
+    const handleStored = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      updates.push(customEvent.detail);
+    };
+    window.addEventListener('transcript-entry-stored', handleStored);
+
+    try {
+      writer.recordAssistantMessage('assistant event message', {
+        messageType: 'llm-text',
+      });
+      await flushMicrotasks();
+    } finally {
+      window.removeEventListener('transcript-entry-stored', handleStored);
+    }
+
+    expect(updates).toEqual([
+      expect.objectContaining({
+        conversationRef: 'conv-event',
+        userId: 'user-event',
+        role: 'assistant',
+        messageType: 'llm-text',
+      }),
+    ]);
+  });
+
   test('recordAssistantMessage requeues immediate writes when IPC store fails', async () => {
     const { writer, invokeMock } = loadTranscriptWriter();
     setupStoreFailureRetry(invokeMock);

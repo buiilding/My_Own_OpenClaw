@@ -311,6 +311,23 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
   }, [loadRecentConversations]);
 
   useEffect(() => {
+    const handleTranscriptEntryStored = (event) => {
+      const detail = event?.detail;
+      const role = typeof detail?.role === 'string' ? detail.role : '';
+      const messageType = typeof detail?.messageType === 'string' ? detail.messageType : '';
+      if (role !== 'assistant' || messageType !== 'llm-text') {
+        return;
+      }
+      void loadRecentConversations();
+    };
+
+    window.addEventListener('transcript-entry-stored', handleTranscriptEntryStored);
+    return () => {
+      window.removeEventListener('transcript-entry-stored', handleTranscriptEntryStored);
+    };
+  }, [loadRecentConversations]);
+
+  useEffect(() => {
     if (!dashboardOpening) {
       return undefined;
     }

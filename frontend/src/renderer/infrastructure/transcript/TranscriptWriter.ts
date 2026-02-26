@@ -189,6 +189,27 @@ const queueToolMessageForRetry = (
   });
 };
 
+const emitTranscriptEntryStoredEvent = (
+  entry: TranscriptEntry,
+  info: SessionInfo,
+) => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.dispatchEvent(new CustomEvent('transcript-entry-stored', {
+    detail: {
+      conversationRef: info.conversationRef,
+      userId: info.userId,
+      role: entry.role,
+      messageType: entry.messageType,
+      toolName: entry.toolName ?? null,
+      correlationId: entry.correlationId ?? null,
+      timestamp: entry.timestamp ?? null,
+    },
+  }));
+};
+
 type TranscriptSessionResolveOptions = {
   conversationRef?: string | null;
   sessionId?: string | null;
@@ -394,4 +415,5 @@ const storeTranscriptEntry = async (entry: TranscriptEntry) => {
     screenshot: entry.screenshotRef,
     timestamp: entry.timestamp,
   });
+  emitTranscriptEntryStoredEvent(entry, info);
 };
