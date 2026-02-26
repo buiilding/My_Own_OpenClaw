@@ -65,6 +65,7 @@ def test_filter_tool_schemas_filters_mouse_method_fields(tmp_path: Path):
     assert len(schemas) == 1
     assert schemas[0]["function"]["name"] == "mouse_control"
     args_props = schemas[0]["function"]["parameters"]["properties"]
+    assert args_props["find_coordinates_by"]["type"] == "string"
     assert args_props["find_coordinates_by"]["enum"] == ["manual"]
     assert "x" in args_props
     assert "y" in args_props

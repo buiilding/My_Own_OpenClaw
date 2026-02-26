@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(backend-tool-schema): set `mouse_control.find_coordinates_by.type = "string"` whenever dev tool-selection narrows its enum, fixing Gemini function-schema validation without changing OpenRouter/Kimi behavior.
 - feat(backend-model-catalog): add OpenRouter model `qwen/qwen3-vl-235b-a22b-thinking` to the curated online model list (with regression coverage in `test_model_service.py`).
 - feat(frontend-models): redesign Models modal as a two-step flow (provider list first, then provider-specific model list with back navigation) while keeping provider/model config updates on selection.
 - fix(frontend-chat-ui): replace footer disclaimer branding text from `ChatGPT` to `WindieOS`.
