@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(sidecar-conversation-titles): gate title generation to successful assistant text (`llm-text`) and hide untitled conversations from `list_conversations` so `Your chats` only shows chats after title creation.
 - fix(frontend-chatbox): disable the separate context-label overlay window so active-tab monitoring text is no longer rendered above the chat pill.
 - fix(frontend-dashboard-sidebar): remove nested `Your chats` list scrolling so the sidebar only shows a scrollbar when overall sidebar content overflows, preventing single-conversation faux scrollbars when opening chat actions.
 - feat(backend-compaction-threshold): when `history_compaction_trigger_tokens` is unset, derive auto-compaction trigger from active-model context window (`max_input_tokens * 0.90`) using LiteLLM metadata, with fallback threshold and regression coverage.

@@ -625,7 +625,14 @@ class LocalMemoryStore:
         if not skip_embedding:
             await self._save_faiss_indices()
 
-        if memory_type == "episodic" and record_kind == "transcript" and conversation_id:
+        normalized_message_type = (message_type or "").strip().lower().replace("_", "-")
+        if (
+            memory_type == "episodic"
+            and record_kind == "transcript"
+            and conversation_id
+            and role == "assistant"
+            and normalized_message_type == "llm-text"
+        ):
             await self._maybe_generate_conversation_title(
                 user_id=user_id,
                 conversation_id=conversation_id,
@@ -1225,6 +1232,8 @@ class LocalMemoryStore:
                     existing_title_source=row["title_source"],
                     existing_title_locked=row["title_locked"],
                 )
+                if not isinstance(title, str) or not title.strip():
+                    continue
                 results.append({
                     "conversation_id": conversation_id,
                     "first_timestamp": row["first_timestamp"],
@@ -1233,8 +1242,8 @@ class LocalMemoryStore:
                     "record_kind": row["record_kind"],
                     "model_id": row["model_id"],
                     "model_provider": row["model_provider"],
-                    "title": title,
-                    "title_source": title_source,
+                    "title": title.strip(),
+                    "title_source": title_source or "heuristic",
                     "is_resumable": bool(
                         isinstance(conversation_id, str)
                         and conversation_id.startswith("conv_")
@@ -1429,6 +1438,7 @@ class LocalMemoryStore:
             WHERE user_id = ? AND conversation_id = ?
               AND record_kind = 'transcript'
               AND role = 'assistant'
+              AND LOWER(REPLACE(COALESCE(message_type, ''), '_', '-')) = 'llm-text'
               AND content IS NOT NULL
               AND content != ''
             ORDER BY message_index ASC, timestamp ASC

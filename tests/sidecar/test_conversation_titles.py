@@ -65,10 +65,7 @@ async def test_title_generation_requires_user_and_assistant_rows(tmp_path: Path)
     )
 
     user_only_conversations = await store.list_conversations("user-1")
-    assert len(user_only_conversations) == 1
-    assert user_only_conversations[0]["conversation_id"] == conversation_id
-    assert user_only_conversations[0]["title"] is None
-    assert user_only_conversations[0]["title_source"] is None
+    assert user_only_conversations == []
 
     with sqlite3.connect(store.episodic_db_path) as conn:
         title_count_before = conn.execute(
@@ -78,16 +75,39 @@ async def test_title_generation_requires_user_and_assistant_rows(tmp_path: Path)
     assert title_count_before == 0
 
     await store.add(
-        text=assistant_text,
+        text="I hit an API timeout while generating that response.",
         user_id="user-1",
         metadata={"type": "episodic"},
         conversation_id=conversation_id,
         record_kind="transcript",
         role="assistant",
         message_index=2,
-        message_type="llm-text",
+        message_type="error",
         skip_embedding=True,
         timestamp="2026-02-25T00:00:01+00:00",
+    )
+
+    error_only_conversations = await store.list_conversations("user-1")
+    assert error_only_conversations == []
+
+    with sqlite3.connect(store.episodic_db_path) as conn:
+        title_count_after_error = conn.execute(
+            "SELECT COUNT(*) FROM conversation_titles WHERE user_id = ? AND conversation_id = ?",
+            ("user-1", conversation_id),
+        ).fetchone()[0]
+    assert title_count_after_error == 0
+
+    await store.add(
+        text=assistant_text,
+        user_id="user-1",
+        metadata={"type": "episodic"},
+        conversation_id=conversation_id,
+        record_kind="transcript",
+        role="assistant",
+        message_index=3,
+        message_type="llm-text",
+        skip_embedding=True,
+        timestamp="2026-02-25T00:00:02+00:00",
     )
 
     conversations = await store.list_conversations("user-1")
