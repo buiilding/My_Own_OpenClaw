@@ -3,6 +3,12 @@ import { render, screen } from '@testing-library/react';
 
 import MessageTransparencySections from '../../frontend/src/renderer/features/chat/components/MessageTransparencySections';
 
+const mockIsDevUiEnabled = jest.fn(() => false);
+
+jest.mock('../../frontend/src/renderer/features/chat/utils/devUiFlag', () => ({
+  isDevUiEnabled: () => mockIsDevUiEnabled(),
+}));
+
 const messageWithTransparency = {
   systemPrompt: { content: 'system content' },
   toolSchemas: [
@@ -21,11 +27,8 @@ const messageWithTransparency = {
 };
 
 describe('MessageTransparencySections mode gating', () => {
-  afterEach(() => {
-    window.history.replaceState({}, '', '/');
-  });
-
   test('hides transparency sections when dev_ui query flag is not present', () => {
+    mockIsDevUiEnabled.mockReturnValue(false);
     render(<MessageTransparencySections message={messageWithTransparency} />);
 
     expect(screen.queryByText(/System Prompt/i)).not.toBeInTheDocument();
@@ -34,7 +37,7 @@ describe('MessageTransparencySections mode gating', () => {
   });
 
   test('shows transparency sections when dev_ui query flag is enabled', () => {
-    window.history.replaceState({}, '', '/?dev_ui=1');
+    mockIsDevUiEnabled.mockReturnValue(true);
     render(<MessageTransparencySections message={messageWithTransparency} />);
 
     expect(screen.getByText(/System Prompt/i)).toBeInTheDocument();
