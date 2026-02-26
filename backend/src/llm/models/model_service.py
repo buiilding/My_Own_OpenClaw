@@ -12,7 +12,12 @@ from collections.abc import Iterable
 from typing import Any, Awaitable, Dict, List, Optional, Sequence, Tuple
 
 from backend.src.core.config import AppConfig
-from backend.src.llm.models.models_config import ONLINE_MODELS, ONLINE_THINKING_MODELS, LOCAL_VISION_MODELS
+from backend.src.llm.models.models_config import (
+    LOCAL_VISION_MODELS,
+    ONLINE_MODELS,
+    ONLINE_THINKING_MODELS,
+    THINKING_TEXT_STREAM_UNSUPPORTED_MODELS,
+)
 
 # Lazy import to avoid circular dependency
 # providers imports models.models_config, so we import providers lazily
@@ -48,6 +53,30 @@ def _copy_catalog(catalog: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return [dict(model) for model in catalog]
 
 
+def _with_thinking_stream_capabilities(catalog: Sequence[Dict[str, Any]]) -> Tuple[Dict[str, Any], ...]:
+    """
+    Add `supports_thinking_text_stream` to thinking-capable model entries.
+
+    Default is True for thinking models, with explicit per-model overrides for
+    providers/models that only return reasoning token counts.
+    """
+    unsupported_by_provider = {
+        provider: set(model_ids)
+        for provider, model_ids in THINKING_TEXT_STREAM_UNSUPPORTED_MODELS.items()
+    }
+    enriched: List[Dict[str, Any]] = []
+    for model in catalog:
+        entry = dict(model)
+        if entry.get("supports_thinking"):
+            provider = str(entry.get("provider") or "")
+            model_id = str(entry.get("id") or "")
+            entry["supports_thinking_text_stream"] = (
+                model_id not in unsupported_by_provider.get(provider, set())
+            )
+        enriched.append(entry)
+    return tuple(enriched)
+
+
 def _dedupe_models(models: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Deduplicate model entries by (provider, id), preserving first-seen order."""
     deduped: List[Dict[str, Any]] = []
@@ -62,7 +91,9 @@ def _dedupe_models(models: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
 
 _ONLINE_MODELS_CATALOG = _build_catalog(ONLINE_MODELS, supports_thinking=False)
-_THINKING_MODELS_CATALOG = _build_catalog(ONLINE_THINKING_MODELS, supports_thinking=True)
+_THINKING_MODELS_CATALOG = _with_thinking_stream_capabilities(
+    _build_catalog(ONLINE_THINKING_MODELS, supports_thinking=True)
+)
 _VISION_MODELS_CATALOG = _build_catalog(LOCAL_VISION_MODELS)
 
 # Thinking variants win if the same provider/model appears in both catalogs.

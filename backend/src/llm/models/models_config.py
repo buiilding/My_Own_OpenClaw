@@ -61,9 +61,18 @@ ONLINE_THINKING_MODELS: Dict[str, List[str]] = {
         "claude-haiku-4-5-20251001",
     ],
     "gemini": [
+        "gemini-3.1-pro-preview",
         "gemini-2.5-pro",
         "gemini-2.5-flash",
         "gemini-2.5-flash-lite",
+    ],
+}
+
+# Models that emit reasoning token usage but do not reliably stream
+# textual thought deltas through LiteLLM streaming payloads.
+THINKING_TEXT_STREAM_UNSUPPORTED_MODELS: Dict[str, List[str]] = {
+    "gemini": [
+        "gemini-3.1-pro-preview",
     ],
 }
 

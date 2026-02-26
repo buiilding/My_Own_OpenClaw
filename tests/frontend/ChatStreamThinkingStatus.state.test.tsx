@@ -1,6 +1,10 @@
 import { act } from '@testing-library/react';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
-import { registerBackendListener, resetChatStreamTestState } from './ChatStreamThinkingStatus.testUtils';
+import {
+  registerBackendListener,
+  resetChatStreamTestState,
+  setMockConfig,
+} from './ChatStreamThinkingStatus.testUtils';
 
 describe('useChatStream state + stream handling', () => {
   beforeEach(() => {
@@ -133,6 +137,44 @@ describe('useChatStream state + stream handling', () => {
     const last = messages[messages.length - 1];
     expect(last.sender).toBe('user');
     expect(last.text).toBe('hello from chatbox');
+  });
+
+  test('shows generic thinking status for gemini models without thought-text stream', () => {
+    setMockConfig({
+      selected_model_id: 'gemini-3.1-pro-preview',
+      model_provider: 'gemini',
+    });
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      emitBackendEvent({
+        type: 'local-user-message',
+        payload: { text: 'hello from chatbox', screenshot: null },
+      });
+    });
+
+    expect(useChatStore.getState().thinkingStatus).toBe('Thinking...');
+  });
+
+  test('replaces generic thinking fallback when llm-thought chunks arrive', () => {
+    setMockConfig({
+      selected_model_id: 'gemini-3.1-pro-preview',
+      model_provider: 'gemini',
+    });
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      emitBackendEvent({
+        type: 'local-user-message',
+        payload: { text: 'hello from chatbox', screenshot: null },
+      });
+      emitBackendEvent({
+        type: 'llm-thought',
+        payload: { status: 'reasoning chunk' },
+      });
+    });
+
+    expect(useChatStore.getState().thinkingStatus).toBe('reasoning chunk');
   });
 
   test('updates token counts from token-count events', () => {
