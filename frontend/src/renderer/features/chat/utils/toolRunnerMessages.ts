@@ -24,6 +24,8 @@ export function buildToolOutputMessage(result: ToolExecutionResult): ChatMessage
     text: result.formattedMessage,
     sender: 'assistant',
     type: 'tool-output',
+    sourceEventType: 'tool-runner-result',
+    sourceChannel: 'renderer-tool-runner',
     screenshotRef: result.screenshotRef || null,
     screenshotUrl: result.screenshotUrl || null,
     toolMetadata: result.result.data && typeof result.result.data === 'object'
@@ -50,6 +52,8 @@ export function buildBundleOutputMessage(result: BundleExecutionResult): ChatMes
     text: result.formattedMessage,
     sender: 'assistant',
     type: 'tool-output',
+    sourceEventType: 'tool-runner-result',
+    sourceChannel: 'renderer-tool-runner',
     screenshotRef: result.screenshotRef || null,
     screenshotUrl: result.screenshotUrl || null,
     toolMetadata: {

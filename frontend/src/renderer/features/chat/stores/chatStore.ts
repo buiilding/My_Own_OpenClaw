@@ -15,6 +15,8 @@ export interface ChatMessage {
   sender: 'user' | 'assistant';
   turnRef?: string;
   type?: 'llm-text' | 'tool-call' | 'tool-output' | 'error';
+  sourceEventType?: string | null;
+  sourceChannel?: string | null;
   isComplete?: boolean;
   screenshot?: string | null;
   screenshotRef?: string | null;
@@ -100,6 +102,7 @@ interface ChatState {
   messages: ChatMessage[];
   isSending: boolean;
   thinkingStatus: string | null;
+  thinkingSourceEventType: string | null;
   tokenCounts: TokenCounts | null;
   streamTracking: StreamTracking;
 
@@ -109,6 +112,7 @@ interface ChatState {
   setMessages: (messages: ChatMessage[]) => void;
   setIsSending: (isSending: boolean) => void;
   setThinkingStatus: (status: string | null) => void;
+  setThinkingSourceEventType: (sourceEventType: string | null) => void;
   setTokenCounts: (counts: TokenCounts | null) => void;
   updateStreamTracking: (updater: (current: StreamTracking) => StreamTracking) => void;
   clearMessages: () => void;
@@ -141,6 +145,7 @@ export const useChatStore = create<ChatState>((set) => ({
   messages: [],
   isSending: false,
   thinkingStatus: null,
+  thinkingSourceEventType: null,
   tokenCounts: null,
   streamTracking: createInitialStreamTracking(),
 
@@ -171,6 +176,11 @@ export const useChatStore = create<ChatState>((set) => ({
   setThinkingStatus: (thinkingStatus) =>
     set((state) => (state.thinkingStatus === thinkingStatus ? state : { thinkingStatus })),
 
+  setThinkingSourceEventType: (thinkingSourceEventType) =>
+    set((state) => (state.thinkingSourceEventType === thinkingSourceEventType
+      ? state
+      : { thinkingSourceEventType })),
+
   setTokenCounts: (tokenCounts) =>
     set((state) => (state.tokenCounts === tokenCounts ? state : { tokenCounts })),
 
@@ -181,6 +191,7 @@ export const useChatStore = create<ChatState>((set) => ({
 
   clearMessages: () => set({
     messages: [],
+    thinkingSourceEventType: null,
     streamTracking: createInitialStreamTracking(),
   }),
 }));

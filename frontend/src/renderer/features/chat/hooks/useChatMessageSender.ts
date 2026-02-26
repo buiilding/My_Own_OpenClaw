@@ -100,6 +100,8 @@ export function useChatMessageSender(
       text: 'Failed to send message. Please try again.',
       sender: 'assistant',
       type: 'error',
+      sourceEventType: 'renderer-compose',
+      sourceChannel: 'renderer-local',
       isComplete: true,
     });
   }, [addMessage]);
@@ -139,6 +141,8 @@ export function useChatMessageSender(
       : null;
     const userMessage: ChatMessage = {
       ...buildPendingUserMessage(userMessageId, text),
+      sourceEventType: 'renderer-compose',
+      sourceChannel: 'renderer-local',
       screenshot: clipboardImage?.base64 || null,
       screenshotContentType: userMessageScreenshotContentType,
       timestamp: messageTimestamp,

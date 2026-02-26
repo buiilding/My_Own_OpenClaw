@@ -1,16 +1,10 @@
 import PropTypes from 'prop-types';
 import TransparencySection from './TransparencySection';
 import { buildTransparencySectionConfigs } from '../utils/messageTransparency';
-
-function isTransparencyUiEnabled() {
-  if (typeof window === 'undefined') {
-    return false;
-  }
-  return new URLSearchParams(window.location.search).get('dev_ui') === '1';
-}
+import { isDevUiEnabled } from '../utils/devUiFlag';
 
 export default function MessageTransparencySections({ message }) {
-  if (!isTransparencyUiEnabled()) {
+  if (!isDevUiEnabled()) {
     return null;
   }
 

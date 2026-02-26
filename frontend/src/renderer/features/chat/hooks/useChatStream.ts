@@ -91,7 +91,13 @@ const GENERIC_THINKING_STATUS = 'Thinking...';
  * Handles LLM thoughts, streaming chunks, and completion states.
  */
 export function useChatStream(enableTranscript: boolean = true) {
-  const { addMessage, updateMessage, setIsSending, setThinkingStatus } = useChatCommonActions();
+  const {
+    addMessage,
+    updateMessage,
+    setIsSending,
+    setThinkingStatus,
+    setThinkingSourceEventType,
+  } = useChatCommonActions();
   const setTokenCounts = useChatStore((state) => state.setTokenCounts);
   const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
   const { config, availableModels } = useAppConfigContext();
@@ -133,8 +139,9 @@ export function useChatStream(enableTranscript: boolean = true) {
           : undefined;
     const nextBaseStatus = currentStatus === GENERIC_THINKING_STATUS ? null : currentStatus;
     setThinkingStatus(buildThinkingStatus(nextBaseStatus, thoughtChunk));
+    setThinkingSourceEventType('llm-thought');
     recordTrackingEvent('llm-thought', event.turn_ref);
-  }, [setThinkingStatus, recordTrackingEvent]);
+  }, [setThinkingSourceEventType, setThinkingStatus, recordTrackingEvent]);
 
   const handleStreamingResponse = useCallback((event: StreamingResponseEvent) => {
     setIsSending(false);
@@ -153,6 +160,8 @@ export function useChatStream(enableTranscript: boolean = true) {
       updateMessage(action.messageId, {
         text: action.nextText,
         type: 'llm-text',
+        sourceEventType: 'streaming-response',
+        sourceChannel: 'from-backend',
         ...modelMetadata,
       });
     } else {
@@ -162,6 +171,8 @@ export function useChatStream(enableTranscript: boolean = true) {
         sender: 'assistant',
         isComplete: false,
         type: 'llm-text',
+        sourceEventType: 'streaming-response',
+        sourceChannel: 'from-backend',
         turnRef: action.turnRef,
         ...modelMetadata,
       };
@@ -182,14 +193,16 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const handleContextCompactionStarted = useCallback((event: ContextCompactionStartedEvent) => {
     setThinkingStatus(COMPACTION_THINKING_STATUS);
+    setThinkingSourceEventType('context-compaction-started');
     recordTrackingEvent('context-compaction-started', event.turn_ref);
-  }, [setThinkingStatus, recordTrackingEvent]);
+  }, [setThinkingSourceEventType, setThinkingStatus, recordTrackingEvent]);
 
   const clearCompactionThinkingStatus = useCallback(() => {
     if (useChatStore.getState().thinkingStatus === COMPACTION_THINKING_STATUS) {
       setThinkingStatus(null);
+      setThinkingSourceEventType(null);
     }
-  }, [setThinkingStatus]);
+  }, [setThinkingSourceEventType, setThinkingStatus]);
 
   const handleContextCompactionCompleted = useCallback((event: ContextCompactionCompletedEvent) => {
     clearCompactionThinkingStatus();
@@ -224,6 +237,7 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const handleToolCall = useCallback((event: ToolCallEvent) => {
     setThinkingStatus(null);
+    setThinkingSourceEventType(null);
     const modelFacingToolCall = resolveModelFacingToolCall(event.payload);
     const formattedText = formatToolCallPayload(event.payload);
     const modelContext = modelContextRef.current;
@@ -243,12 +257,14 @@ export function useChatStream(enableTranscript: boolean = true) {
     addMessage,
     modelContextRef,
     recordToolCallTranscript,
+    setThinkingSourceEventType,
     setThinkingStatus,
     recordTrackingEvent,
   ]);
 
   const handleToolOutput = useCallback((event: ToolOutputEvent) => {
     setThinkingStatus(null);
+    setThinkingSourceEventType(null);
     const outputText = formatToolOutputText(event.payload);
     const { screenshotRef, screenshotUrl } = buildScreenshotAttachment(event.payload?.screenshot_ref);
     const modelContext = modelContextRef.current;
@@ -275,10 +291,18 @@ export function useChatStream(enableTranscript: boolean = true) {
         modelProvider: modelContext.modelProvider,
       });
     }
-  }, [addMessage, enableTranscript, modelContextRef, setThinkingStatus, recordTrackingEvent]);
+  }, [
+    addMessage,
+    enableTranscript,
+    modelContextRef,
+    setThinkingSourceEventType,
+    setThinkingStatus,
+    recordTrackingEvent,
+  ]);
 
   const handleToolBundle = useCallback((event: ToolBundleEvent) => {
     setThinkingStatus(null);
+    setThinkingSourceEventType(null);
     const formattedText = formatToolBundlePayload(event.payload);
     const modelContext = modelContextRef.current;
     addMessage(buildToolBundleMessage(event, formattedText, modelContext));
@@ -295,6 +319,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     addMessage,
     modelContextRef,
     recordToolCallTranscript,
+    setThinkingSourceEventType,
     setThinkingStatus,
     recordTrackingEvent,
   ]);
@@ -340,6 +365,8 @@ export function useChatStream(enableTranscript: boolean = true) {
       id: crypto.randomUUID(),
       text,
       sender: 'user',
+      sourceEventType: 'local-user-message',
+      sourceChannel: 'from-backend',
       screenshotRef,
       screenshotUrl,
       timestamp: event.payload?.timestamp,
@@ -349,19 +376,28 @@ export function useChatStream(enableTranscript: boolean = true) {
     const modelContext = modelContextRef.current;
     if (modelContext.supportsThinking && !modelContext.supportsThinkingTextStream) {
       setThinkingStatus(GENERIC_THINKING_STATUS);
+      setThinkingSourceEventType('local-user-message');
     } else {
       setThinkingStatus(null);
+      setThinkingSourceEventType(null);
     }
 
     recordTrackingEvent('local-user-message', event.turn_ref, {
       phase: 'awaiting-first-chunk',
       resetForTurn: true,
     });
-  }, [addMessage, modelContextRef, recordTrackingEvent, setThinkingStatus]);
+  }, [
+    addMessage,
+    modelContextRef,
+    recordTrackingEvent,
+    setThinkingSourceEventType,
+    setThinkingStatus,
+  ]);
 
   const handleStreamingComplete = useCallback((event: StreamingCompleteEvent) => {
     setIsSending(false);
     setThinkingStatus(null);
+    setThinkingSourceEventType(null);
 
     const lastMessage = findStreamingCompleteAssistantMessage(
       useChatStore.getState().messages,
@@ -385,6 +421,7 @@ export function useChatStream(enableTranscript: boolean = true) {
   }, [
     enableTranscript,
     setIsSending,
+    setThinkingSourceEventType,
     setThinkingStatus,
     updateMessage,
     modelContextRef,
@@ -399,6 +436,7 @@ export function useChatStream(enableTranscript: boolean = true) {
   const handleError = useCallback((event: ErrorEvent) => {
     setIsSending(false);
     setThinkingStatus('');
+    setThinkingSourceEventType(null);
     const errorText = resolveErrorText(event.payload);
     const modelContext = modelContextRef.current;
     const newMessage: ChatMessage = {
@@ -406,6 +444,8 @@ export function useChatStream(enableTranscript: boolean = true) {
       text: errorText,
       sender: 'assistant',
       type: 'error',
+      sourceEventType: 'error',
+      sourceChannel: 'from-backend',
       turnRef: event.turn_ref,
       modelId: modelContext.modelId,
       modelProvider: modelContext.modelProvider,
@@ -426,7 +466,15 @@ export function useChatStream(enableTranscript: boolean = true) {
         modelProvider: modelContext.modelProvider,
       });
     }
-  }, [addMessage, enableTranscript, modelContextRef, setIsSending, setThinkingStatus, recordTrackingEvent]);
+  }, [
+    addMessage,
+    enableTranscript,
+    modelContextRef,
+    setIsSending,
+    setThinkingSourceEventType,
+    setThinkingStatus,
+    recordTrackingEvent,
+  ]);
 
   const handlers = useMemo<Record<BackendEventType, (event: BackendEvent) => void>>(() => ({
     'llm-thought': event => handleLlmThought(event as LlmThoughtEvent),

@@ -8,6 +8,8 @@ import { selectChatBoxState } from '../utils/chatSelectors';
 import { getRoundedFrameSize } from '../utils/overlayFrameSize';
 import { subscribeResponseOverlayPhase } from '../utils/overlayPhaseListener';
 import { useAutoResizedResponseHeight } from '../hooks/useAutoResizedResponseHeight';
+import { isDevUiEnabled } from '../utils/devUiFlag';
+import { resolveSourceTag } from '../utils/sourceTags';
 import {
   findLastUserIndex,
   findLatestMessageAfterUser,
@@ -39,7 +41,7 @@ function renderResponseContent(response, markdownHtml) {
 }
 
 function ChatBoxResponse() {
-  const { messages, thinkingStatus } = useChatStore(useShallow(selectChatBoxState));
+  const { messages, thinkingStatus, thinkingSourceEventType } = useChatStore(useShallow(selectChatBoxState));
   const [closedResponseId, setClosedResponseId] = useState(null);
   const [awaitingFirstChunk, setAwaitingFirstChunk] = useState(false);
   const [overlayPhase, setOverlayPhase] = useState('idle');
@@ -111,6 +113,24 @@ function ChatBoxResponse() {
     () => (typeof thinkingStatus === 'string' ? thinkingStatus.trim() : ''),
     [thinkingStatus],
   );
+  const sourceTagForResponse = useMemo(() => {
+    if (!isDevUiEnabled() || !activeResponse) {
+      return null;
+    }
+    const sourceEventType = typeof activeResponse.sourceEventType === 'string' && activeResponse.sourceEventType
+      ? activeResponse.sourceEventType
+      : 'unknown';
+    const sourceChannel = typeof activeResponse.sourceChannel === 'string' && activeResponse.sourceChannel
+      ? activeResponse.sourceChannel
+      : 'unknown';
+    return resolveSourceTag(sourceEventType, sourceChannel);
+  }, [activeResponse]);
+  const sourceTagForThinking = useMemo(() => {
+    if (!isDevUiEnabled() || !thinkingText) {
+      return null;
+    }
+    return resolveSourceTag(thinkingSourceEventType || 'llm-thought', 'from-backend');
+  }, [thinkingSourceEventType, thinkingText]);
   const responseHeight = useAutoResizedResponseHeight({
     activeResponseId: activeResponse?.id,
     bodyRef: responseBodyRef,
@@ -347,6 +367,11 @@ function ChatBoxResponse() {
               ×
             </button>
             <div className="chatbox-response-body" ref={responseBodyRef}>
+              {sourceTagForResponse ? (
+                <div className="chatbox-source-badge" title={`source_event=${activeResponse?.sourceEventType || 'unknown'}`}>
+                  {sourceTagForResponse}
+                </div>
+              ) : null}
               {renderResponseContent(activeResponse, responseMarkdownHtml)}
             </div>
           </div>
@@ -363,6 +388,11 @@ function ChatBoxResponse() {
                 aria-live="polite"
                 aria-label="Assistant reasoning stream"
               >
+                {sourceTagForThinking ? (
+                  <div className="chatbox-source-badge" title={`source_event=${thinkingSourceEventType || 'llm-thought'}`}>
+                    {sourceTagForThinking}
+                  </div>
+                ) : null}
                 <pre className="chatbox-thinking-stream-text">{thinkingText}</pre>
               </div>
             ) : null}

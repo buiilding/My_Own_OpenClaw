@@ -22,7 +22,7 @@ import '../../../styles/ChatInterface.css';
 const ACTIVE_STREAM_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
 
 function ChatInterface({ sidebarOpen = true, focusComposerToken = 0 }) {
-  const { messages, isSending, thinkingStatus, streamPhase } = useChatStore(
+  const { messages, isSending, thinkingStatus, thinkingSourceEventType, streamPhase } = useChatStore(
     useShallow(selectChatInterfaceState),
   );
   const clearMessages = useChatStore((state) => state.clearMessages);
@@ -30,6 +30,7 @@ function ChatInterface({ sidebarOpen = true, focusComposerToken = 0 }) {
   const updateMessage = useChatStore((state) => state.updateMessage);
   const setIsSending = useChatStore((state) => state.setIsSending);
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
+  const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);
   const setTokenCounts = useChatStore((state) => state.setTokenCounts);
   const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
   const { config, updateConfig, availableModels } = useAppConfigContext();
@@ -167,6 +168,7 @@ function ChatInterface({ sidebarOpen = true, focusComposerToken = 0 }) {
     const stoppedAt = new Date().toISOString();
     setIsSending(false);
     setThinkingStatus(null);
+    setThinkingSourceEventType(null);
     updateStreamTracking((current) => ({
       ...current,
       phase: 'complete',
@@ -176,7 +178,7 @@ function ChatInterface({ sidebarOpen = true, focusComposerToken = 0 }) {
     }));
     stopPlayback();
     ApiClient.stopQuery();
-  }, [canStop, setIsSending, setThinkingStatus, stopPlayback, updateStreamTracking]);
+  }, [canStop, setIsSending, setThinkingSourceEventType, setThinkingStatus, stopPlayback, updateStreamTracking]);
 
   const handleNewChat = useCallback(() => {
     startNewChatSession({
@@ -257,6 +259,7 @@ function ChatInterface({ sidebarOpen = true, focusComposerToken = 0 }) {
     messages,
     setMessages,
     setThinkingStatus,
+    setThinkingSourceEventType,
     setIsSending,
   });
 
@@ -396,6 +399,7 @@ function ChatInterface({ sidebarOpen = true, focusComposerToken = 0 }) {
           <MessageList
             messages={messages}
             thinkingStatus={thinkingStatus}
+            thinkingSourceEventType={thinkingSourceEventType}
             enableAssistantActions
             enableUserActions
             disableAssistantActions={isSending || canStop}
