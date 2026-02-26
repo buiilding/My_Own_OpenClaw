@@ -1,7 +1,7 @@
 ---
-summary: "Backend protocol observability sub-hub for websocket correlation fields, timing/error logging semantics, and token-count signal contract coverage."
+summary: "Backend protocol observability sub-hub for websocket correlation fields, handshake/parse/query logging semantics, sanitized error-path diagnostics, and token-count signal contract coverage."
 read_when:
-  - When changing websocket logging severity, transport context attachment, or streamed token-count payload fields.
+  - When changing websocket logging severity, transport context attachment, error-path logging/sanitization helpers, or streamed token-count payload fields.
   - When debugging correlation drift across `user_id`/`session_id`/`conversation_ref`/`turn_ref` in backend outbound events.
 title: "Backend Protocol Observability Hub"
 ---
