@@ -73,6 +73,17 @@ Runtime flow for each frame after handshake:
 | `tool-result` | `ToolResultMessage` | `request_id`, `success`, optional `data`, optional `error` | `tool_result_handler` |
 | `tool-bundle-result` | `ToolBundleResultMessage` | `bundle_id`, `status`, `step_results[]`, optional `screenshot`, `screenshot_ref`, `system_state`, `error` | `tool_result_handler` |
 
+## Control-Path Contract Index
+
+| Runtime control path | Incoming trigger | Primary handler key | Primary outbound/control effects | Deep contract |
+|---|---|---|---|---|
+| Handshake identity bootstrap | websocket initial frame | route bootstrap (`validate_handshake`) | establishes validated `user_id` for all subsequent schema validations + context attachment | [Backend Protocol Identity and Context-Field Propagation Reference](state/backend_protocol_identity_and_context_field_propagation_reference.md) |
+| Query loop + stream lifecycle | `query` | `query_handler` | `streaming-response`, `tool-call`, `tool-output`, `streaming-complete`, `error` | [Backend WebSocket Receive Loop and Task-Cancellation Contract Reference](lifecycle/backend_websocket_receive_loop_and_task_cancellation_contract_reference.md) |
+| Active-query cancellation | `stop-query` | `stop_query_handler` | cancel active task, emit completion/error path, keep session context stable | [Backend WebSocket Receive Loop and Task-Cancellation Contract Reference](lifecycle/backend_websocket_receive_loop_and_task_cancellation_contract_reference.md) |
+| Settings ACK control path | `update-settings` | `update_settings_handler` | emits `settings-updated` or `error` with request correlation id | [Backend Message Envelope and Contract Validation Boundary Reference](validation/backend_message_envelope_and_contract_validation_boundary_reference.md) |
+| Wakeword activation path | `wakeword-detected` | `wakeword_handler` | emits wakeword activation/greeting flow (`wakeword-activated`, `wakeword-greeting`, optional `audio-chunk`) | [Backend Protocol Identity and Context-Field Propagation Reference](state/backend_protocol_identity_and_context_field_propagation_reference.md) |
+| Tool turn result reintegration | `tool-result`, `tool-bundle-result` | `tool_result_handler` | resolves pending tool requests, injects tool output back into active loop, can advance stream lifecycle | [Backend WebSocket Protocol Test Coverage and Runtime Contract Reference](testing/backend_websocket_protocol_test_coverage_and_runtime_contract_reference.md) |
+
 ## Outgoing Message Contract Matrix
 
 ## Schema-Validated Outgoing Types
@@ -174,5 +185,7 @@ Use this to recompute protocol cardinalities:
 - [Backend Functionality Capability Catalog Reference](../backend_functionality_capability_catalog_reference.md)
 - [Backend Capability to File Matrix Reference](../backend_capability_to_file_matrix_reference.md)
 - [Backend Protocol Lifecycle Hub](lifecycle/README.md)
+- [Backend Protocol State Hub](state/README.md)
 - [Backend Protocol Errors Hub](errors/README.md)
 - [Backend Protocol Validation Hub](validation/README.md)
+- [Backend Protocol Testing Hub](testing/README.md)
