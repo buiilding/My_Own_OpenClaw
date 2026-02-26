@@ -43,6 +43,7 @@ ONLINE_MODELS: Dict[str, List[str]] = {
     ],
     "openrouter": [
         "auto",
+        "qwen/qwen3-vl-235b-a22b-thinking",
     ],
     "kimi-coding": [
         "k2p5",
