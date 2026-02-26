@@ -4,6 +4,7 @@ import ThinkingDisplay from './ThinkingDisplay';
 import MessageContent from './MessageContent';
 import MessageTransparencySections from './MessageTransparencySections';
 import AssistantMessageActions from './AssistantMessageActions';
+import UserMessageActions from './UserMessageActions';
 import { buildMessageClassName } from '../utils/messageListClasses';
 import '../../../styles/ThinkingDisplay.css';
 
@@ -29,12 +30,21 @@ function shouldRenderAssistantActions(message, enableAssistantActions) {
   return message.type !== 'tool-call' && message.type !== 'tool-output';
 }
 
+function shouldRenderUserActions(message, enableUserActions) {
+  if (!enableUserActions) {
+    return false;
+  }
+  return message.sender === 'user';
+}
+
 const MessageItem = memo(function MessageItem({
   message,
   enableAssistantActions,
+  enableUserActions,
   disableAssistantActions,
   onAssistantFeedbackChange,
   onAssistantTryAgain,
+  onUserEdit,
 }) {
   const messageClass = buildMessageClassName(message);
 
@@ -51,6 +61,13 @@ const MessageItem = memo(function MessageItem({
           onTryAgain={onAssistantTryAgain}
         />
       ) : null}
+      {shouldRenderUserActions(message, enableUserActions) ? (
+        <UserMessageActions
+          messageId={message.id}
+          messageText={message.text}
+          onEdit={onUserEdit}
+        />
+      ) : null}
       <MessageTransparencySections message={message} />
     </div>
   );
@@ -59,18 +76,22 @@ const MessageItem = memo(function MessageItem({
 MessageItem.propTypes = {
   message: messageShapePropType.isRequired,
   enableAssistantActions: PropTypes.bool,
+  enableUserActions: PropTypes.bool,
   disableAssistantActions: PropTypes.bool,
   onAssistantFeedbackChange: PropTypes.func,
   onAssistantTryAgain: PropTypes.func,
+  onUserEdit: PropTypes.func,
 };
 
 function MessageList({
   messages,
   thinkingStatus,
   enableAssistantActions = false,
+  enableUserActions = false,
   disableAssistantActions = false,
   onAssistantFeedbackChange,
   onAssistantTryAgain,
+  onUserEdit,
 }) {
   const messagesEndRef = useRef(null);
   const renderedMessages = useMemo(
@@ -79,17 +100,21 @@ function MessageList({
         key={msg.id}
         message={msg}
         enableAssistantActions={enableAssistantActions}
+        enableUserActions={enableUserActions}
         disableAssistantActions={disableAssistantActions}
         onAssistantFeedbackChange={onAssistantFeedbackChange}
         onAssistantTryAgain={onAssistantTryAgain}
+        onUserEdit={onUserEdit}
       />
     )),
     [
       messages,
       enableAssistantActions,
+      enableUserActions,
       disableAssistantActions,
       onAssistantFeedbackChange,
       onAssistantTryAgain,
+      onUserEdit,
     ]
   );
 
@@ -114,9 +139,11 @@ MessageList.propTypes = {
   messages: PropTypes.arrayOf(messageShapePropType).isRequired,
   thinkingStatus: PropTypes.string,
   enableAssistantActions: PropTypes.bool,
+  enableUserActions: PropTypes.bool,
   disableAssistantActions: PropTypes.bool,
   onAssistantFeedbackChange: PropTypes.func,
   onAssistantTryAgain: PropTypes.func,
+  onUserEdit: PropTypes.func,
 };
 
 export default MessageList;
