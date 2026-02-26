@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-overlays): rewrite overlay/tool-ghost/transcript frontend docs to current runtime (response-phase focus, debug-only ghost harness scope, and dashboard-shell rehydrate flow replacing retired episodic section paths).
 - docs(frontend-renderer): refresh chat/presentation/runtime/style/dashboard docs hubs and deep references to current module set (remove retired token-display/storage refs, document stream token-state ownership, and update section/helper/test mappings).
 - docs(backend-inventory): rewrite backend full functionality inventory to current 2026-02-26 backend runtime map (318 python files) with updated API/agent/tool/LLM/service lifecycle ownership.
 - docs(frontend-architecture): rewrite frontend architecture + full frontend inventory docs to current runtime topology (main/renderer/preload/sidecar), updated module ownership, stream/tool/query flows, and explicit 2026-02-26 frontend refactor deltas.

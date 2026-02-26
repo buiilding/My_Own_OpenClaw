@@ -1,161 +1,71 @@
 ---
-summary: "Deep reference for tool-ghost preview internals: tool payload shape normalization, coordinate-contract target resolution, label selection, and click-animation timing sync."
+summary: "Deep reference for current tool-ghost debug cursor harness: static track payload, timing constants, and looped visibility behavior."
 read_when:
-  - When changing `buildToolGhostPreviewFromMessageText` parsing rules or coordinate fallback behavior.
-  - When changing response-overlay click ghost lifecycle timing to stay aligned with deferred frontend execution.
-title: "Tool Ghost Preview Payload Parsing and Target Mapping Reference"
+  - When changing `ToolGhostDebugApp` animation timing or static track style payload.
+  - When debugging mismatch between debug ghost loop timing and `TOOL_GHOST_CLICK_SYNC_DELAY_MS`.
+title: "Tool Ghost Debug Cursor Payload and Timing Reference"
 ---
 
-# Tool Ghost Preview Payload Parsing and Target Mapping Reference
+# Tool Ghost Debug Cursor Payload and Timing Reference
 
 ## Canonical Modules
 
-- `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
-- `frontend/src/renderer/features/chat/utils/toolGhostPreview.js`
+- `frontend/src/renderer/app/ToolGhostDebugApp.jsx`
+- `frontend/src/renderer/features/chat/components/ToolGhostCursor.jsx`
 - `frontend/src/renderer/features/chat/constants/toolGhostRuntime.ts`
-- `tests/frontend/ChatBoxResponse.test.jsx`
 
-## Input Payload Contract
+## Runtime Scope
 
-`ChatBoxResponse` passes assistant `tool-call` message text into `buildToolGhostPreviewFromMessageText(...)`.
+Current page documents the debug harness only.
 
-Accepted JSON shapes:
+- no production tool-call JSON parsing in current `ChatBoxResponse` runtime.
+- no `toolGhostPreview.js` payload parser module in current frontend tree.
 
-- single call:
-- `{ "name": "...", "arguments": {...}, "metadata": {...} }`
-- bundle-like call:
-- `{ "tools": [ { "name": "...", "args": {...}, "metadata": {...} }, ... ] }`
+## Static Track Payload Contract
 
-Unsupported/invalid JSON yields default preview (no target, generic label).
+`ToolGhostDebugApp` uses fixed `TRACK_STYLE` CSS vars:
 
-## Entry Normalization Rules
-
-`normalizeToolEntry` applies:
-
-- `name`: trimmed string or empty
-- `args`: object from `args` first, then `arguments`, else empty object
-- `metadata`: object or empty object
-
-`extractToolEntries` returns:
-
-- one normalized entry for top-level single-call shape
-- normalized list for `tools[]`
-- empty list for invalid structure
-
-## Label Resolution Priority
-
-`resolveToolLabel(entry)` precedence:
-
-1. `args.explanation` (trimmed, max 120 chars)
-2. `metadata.explanation` (trimmed, max 120 chars)
-3. for `scroll_control`: `"Scroll action"`
-4. for `mouse_control`: `"Mouse action"`
-5. for tools with numeric `wait_seconds`: `<tool> (wait Ns)`
-6. generic named form: `"Running <tool>"`
-7. fallback: `"Running tool action"`
-
-## Click Action Detection
-
-`isMouseClickAction(entry)` is true only when:
-
-- `name === "mouse_control"`
-- `args.action` (case-insensitive) in:
-- `click`
-- `double_click`
-- `right_click`
-
-This gates click-specific animation/hide timing behavior.
-
-`isScrollAction(entry)` is true when:
-
-- tool name is `scroll_control` (or `scroll`)
-- or `mouse_control` action is one of `scroll`, `scroll_up`, `scroll_down`
-
-Scroll actions are treated as motion actions and show target ripple.
-
-## Target Coordinate Resolution
-
-`resolveToolTargetPoint(entry)` reads coordinate metadata in this order:
-
-1. display/source size from:
-- `metadata.coordinate_contract.target_display_size`
-- fallback `metadata.coordinate_contract.source_image_size`
-2. rectangle from:
-- `metadata.target_rect`
-- fallback `args.target_rect`
-- fallback `metadata.coordinate_contract.target_rect`
-3. point from:
-- `metadata.coordinate_contract.normalized_coordinates.{x,y}`
-- fallback `args.{x,y}`
-- fallback rectangle center
-
-If no point is resolved, preview has label-only mode with neutral center target.
-
-When target exists:
-
-- `xRatio/yRatio` are clamped to `[0,1]`
-- optional target rect ratios are computed for CSS vars
-- target scale derives from rect area ratio (`0.85..2.2` clamp)
-
-## Response Overlay Click Ghost Sync
-
-Timing constant:
-
-- `TOOL_GHOST_CLICK_SYNC_DELAY_MS = 3200` ms
-- composed from hold-start `1000`, move `1200`, hold-end `1000`
-
-`ChatBoxResponse` lifecycle for click-like ghost:
-
-1. initialize at neutral center
-2. request live mouse position via `get-system-state`
-3. map current mouse to start ratio when source display size known
-4. animate to target and hide after full 3200 ms timeline
-
-`useToolRunner` defers real click execution by the same duration to keep visual ghost and actual click synchronized.
-
-Fullscreen ghost frame mode:
-
-- motion actions (click/scroll) request fullscreen response overlay bounds via `set-responsebox-size` with `full_screen=true`.
-- this lets the ghost cursor appear at any screen coordinate while keeping the overlay transparent/click-through.
-
-## CSS Variable Bridge
-
-When target exists, component injects custom properties used by overlay CSS:
-
-- `--ghost-start-offset-x/y`
-- `--ghost-end-offset-x/y`
 - `--ghost-start-left/top`
 - `--ghost-end-left/top`
 - `--ghost-ripple-left/top`
 - `--ghost-target-scale`
-- optional rect vars:
-- `--ghost-rect-left/top/width/height`
-- motion duration:
-- `--ghost-motion-duration`
+- `--ghost-motion-duration` (derived from `TOOL_GHOST_CLICK_SYNC_DELAY_MS`)
 
-These variables drive both cursor movement and optional target rectangle rendering.
+This payload is intentionally deterministic for repeatable debug animation.
 
-## Test-Backed Invariants
+## Timing Contract
 
-`tests/frontend/ChatBoxResponse.test.jsx` verifies:
+- active animation duration: `TOOL_GHOST_CLICK_SYNC_DELAY_MS`
+- post-run gap before restart: `LOOP_GAP_MS = 700`
+- lifecycle:
+  1. show ghost
+  2. hide at sync delay
+  3. restart after loop gap
 
-- tool-call phase shows ghost and hides awaiting indicator
-- click-ghost start offsets use live mouse-position fetch
-- ghost hides exactly after `TOOL_GHOST_CLICK_SYNC_DELAY_MS`
-- coordinate contract metadata drives targeted offsets
-- target rect metadata renders rectangle and rect vars
+## Markup Class Contract
+
+Harness root:
+
+- `.chatbox-tool-ghost`
+
+Track classes:
+
+- `.chatbox-tool-ghost-track is-targeted is-click-animating is-moving`
+
+Child nodes:
+
+- `.chatbox-tool-ghost-target-ripple is-click-timeline`
+- `ToolGhostCursor` (`.chatbox-tool-ghost-cursor*` classes)
 
 ## Drift Hotspots
 
-1. changing payload parse rules without backward compatibility can silently disable ghost previews.
-2. changing click-sync duration in one layer (renderer/tool-runner) breaks visual vs real-click alignment.
-3. removing coordinate-contract fallbacks can drop target overlays for backend-generated metadata variants.
+1. Changing sync delay constant without updating debug expectations desynchronizes loop cadence.
+2. Renaming CSS variable keys in `TRACK_STYLE` without stylesheet parity breaks cursor placement.
+3. Removing `key={runToken}` remount behavior can leave stale animation states in repeated loops.
 
 ## Related Pages
 
 - [Renderer Overlay Tool Ghost Docs Hub](README.md)
-- [Renderer Tool-Ghost Lifecycle Docs Hub](lifecycle/README.md)
-- [Tool Ghost Lifecycle System-State Sampling, Target Resolution, and Click Hide-Timer Reference](lifecycle/tool_ghost_lifecycle_system_state_sampling_target_resolution_and_click_hide_timer_reference.md)
-- [Tool Ghost Track Style Variable and CSS Animation Contract Reference](lifecycle/tool_ghost_track_style_variable_and_css_animation_contract_reference.md)
-- [Response Overlay Phase and Tool-Ghost Runtime Reference](../response_overlay_phase_and_tool_ghost_runtime_reference.md)
-- [Chat Stream and Tool Execution Reference](../../chat_stream_and_tool_execution_reference.md)
+- [Tool Ghost Debug Lifecycle and Timer Reference](lifecycle/tool_ghost_lifecycle_system_state_sampling_target_resolution_and_click_hide_timer_reference.md)
+- [Tool Ghost Debug Track Style and CSS Class Contract Reference](lifecycle/tool_ghost_track_style_variable_and_css_animation_contract_reference.md)
+- [Response Overlay Phase Runtime Reference](../response_overlay_phase_and_tool_ghost_runtime_reference.md)
