@@ -222,9 +222,12 @@ Return only the title text."""
         if not first_line:
             return ""
 
+        first_line = re.sub(r"^#+\s*", "", first_line)
+        first_line = re.sub(r"^(?:[-*]\s+|\d+[.)]\s+)", "", first_line)
         first_line = re.sub(r"^(title\s*:\s*)", "", first_line, flags=re.IGNORECASE)
         first_line = first_line.strip().strip("`").strip().strip("\"'")
         first_line = re.sub(r"\s+", " ", first_line).strip()
+        first_line = re.sub(r"[.!?;:]+$", "", first_line).strip()
         if not first_line:
             return ""
 

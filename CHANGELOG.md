@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(backend-semantic-memory): add regression coverage for semantic summary parsing + title sanitization edge-cases (numbered fact lists, fallback fact extraction, markdown/noisy title responses), and harden parser/service normalization logic accordingly.
 - fix(backend-logging): suppress LiteLLM provider-help stdout noise (`Provider List: https://docs.litellm.ai/docs/providers`) by setting LiteLLM runtime debug-info flags during backend logging bootstrap.
 - fix(frontend-chat-pill): remove visible `Thinking` text label from the composer thinking pill (icon-only control retained).
 - fix(backend-stop-query): reconcile pending assistant `tool_calls` on query cancellation by writing synthetic `role=tool` outputs, preventing provider errors when user stops mid-tool-loop and immediately asks a new query.
