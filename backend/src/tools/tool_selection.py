@@ -128,6 +128,10 @@ class ToolSelection:
         ordered_methods = _ordered_mouse_methods(tuple(allowed_methods))
         method_schema = args_props.get("find_coordinates_by")
         if isinstance(method_schema, dict):
+            # Gemini requires enum fields to declare an explicit STRING type.
+            # Our cleaned schema can drop the type due to Enum $ref flattening,
+            # so enforce it at the point where we inject enum constraints.
+            method_schema["type"] = "string"
             method_schema["enum"] = ordered_methods
             default_method = method_schema.get("default")
             if default_method not in allowed_methods:

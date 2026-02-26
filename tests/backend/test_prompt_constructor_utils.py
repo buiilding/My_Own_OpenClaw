@@ -158,6 +158,7 @@ def test_format_user_message_content_filters_mouse_coordinate_methods(
     args_props = mouse_schema["function"]["parameters"]["properties"]
     method_schema = args_props["find_coordinates_by"]
 
+    assert method_schema["type"] == "string"
     assert method_schema["enum"] == ["manual"]
     assert "x" in args_props
     assert "y" in args_props
