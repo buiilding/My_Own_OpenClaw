@@ -56,6 +56,25 @@ def test_collect_system_stats_sync_handles_missing_battery_support(monkeypatch):
     assert stats["battery_charging"] is None
 
 
+def test_collect_system_stats_sync_handles_attribute_error_battery_support(monkeypatch):
+    def _raise_attribute_error():
+        raise AttributeError("battery attribute missing")
+
+    fake_psutil = SimpleNamespace(
+        cpu_percent=lambda interval=None: 9.0,
+        virtual_memory=lambda: SimpleNamespace(percent=28.0),
+        sensors_battery=_raise_attribute_error,
+    )
+    monkeypatch.setitem(sys.modules, "psutil", fake_psutil)
+
+    stats = system_metrics_module._collect_system_stats_sync()
+
+    assert stats["cpu_percent"] == 9.0
+    assert stats["memory_percent"] == 28.0
+    assert stats["battery_percent"] is None
+    assert stats["battery_charging"] is None
+
+
 @pytest.mark.asyncio
 async def test_collect_system_stats_async_returns_executor_result(monkeypatch):
     expected = {
@@ -67,6 +86,35 @@ async def test_collect_system_stats_async_returns_executor_result(monkeypatch):
     monkeypatch.setattr(system_metrics_module, "_collect_system_stats_sync", lambda: expected)
 
     assert await system_metrics_module.collect_system_stats() == expected
+
+
+@pytest.mark.asyncio
+async def test_collect_system_stats_async_uses_sync_collector_in_executor(monkeypatch):
+    expected = {
+        "cpu_percent": 13.0,
+        "memory_percent": 21.0,
+        "battery_percent": None,
+        "battery_charging": None,
+    }
+    seen = {}
+
+    def _sync_collector():
+        return expected
+
+    class _FakeLoop:
+        async def run_in_executor(self, executor, fn):
+            seen["executor"] = executor
+            seen["fn"] = fn
+            return fn()
+
+    monkeypatch.setattr(system_metrics_module, "_collect_system_stats_sync", _sync_collector)
+    monkeypatch.setattr(system_metrics_module.asyncio, "get_event_loop", lambda: _FakeLoop())
+
+    result = await system_metrics_module.collect_system_stats()
+
+    assert result == expected
+    assert seen["executor"] is None
+    assert seen["fn"] is _sync_collector
 
 
 @pytest.mark.asyncio
@@ -131,3 +179,13 @@ async def test_watermark_save_update_and_increment_persist_expected_fields(tmp_p
     assert incremented_state["last_semanticized_id"] == "mem-1"
     assert incremented_state["pending_message_count"] == 5
     datetime.fromisoformat(incremented_state["last_updated"])
+
+
+@pytest.mark.asyncio
+async def test_watermark_get_delegates_to_load(tmp_path: Path):
+    state_path = tmp_path / "watermark.json"
+    store = WatermarkStateStore(state_path)
+
+    await store.update(last_semanticized_id="mem-2", pending_message_count=1)
+
+    assert await store.get() == await store.load()
