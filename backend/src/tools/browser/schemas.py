@@ -75,6 +75,28 @@ def _optional_char_page_size_field(description: str):
     return Field(None, description=description, ge=1, le=120000)
 
 
+def _optional_ref_field(description: str):
+    return Field(None, description=description)
+
+
+def _optional_file_name_field(description: str):
+    return Field(None, description=description)
+
+
+def _optional_non_negative_int_field(description: str):
+    return Field(None, description=description, ge=0)
+
+
+def _optional_coordinate_field(axis: str, counterpart_axis: str):
+    return Field(
+        None,
+        description=(
+            f"Browser Use coordinate click {axis} position "
+            f"(requires {counterpart_axis})."
+        ),
+    )
+
+
 class BrowserArgsModel(BaseModel):
     """Shared backend browser schema base."""
 
@@ -186,20 +208,10 @@ class BrowserClickArgs(BrowserArgsModel):
     """Arguments for browser click action."""
 
     action: Literal["click"] = Field(..., description="Click element")
-    ref: Optional[str] = Field(
-        None, description="Element reference from snapshot (e.g., '5')"
-    )
-    index: Optional[int] = Field(
-        None, description="Browser Use element index", ge=0
-    )
-    coordinate_x: Optional[int] = Field(
-        None,
-        description="Browser Use coordinate click X position (requires coordinate_y).",
-    )
-    coordinate_y: Optional[int] = Field(
-        None,
-        description="Browser Use coordinate click Y position (requires coordinate_x).",
-    )
+    ref: Optional[str] = _optional_ref_field("Element reference from snapshot (e.g., '5')")
+    index: Optional[int] = _optional_non_negative_int_field("Browser Use element index")
+    coordinate_x: Optional[int] = _optional_coordinate_field("X", "coordinate_y")
+    coordinate_y: Optional[int] = _optional_coordinate_field("Y", "coordinate_x")
     double_click: bool = Field(False, description="Perform double click")
     button: BrowserMouseButton = Field(
         "left", description="Mouse button"
@@ -246,7 +258,9 @@ class BrowserScrollArgs(BrowserArgsModel):
     pages: Optional[float] = Field(
         None, description="Browser Use page count", gt=0
     )
-    index: Optional[int] = Field(None, description="Optional Browser Use element index", ge=0)
+    index: Optional[int] = _optional_non_negative_int_field(
+        "Optional Browser Use element index"
+    )
 
 
 class BrowserScreenshotArgs(BrowserScreenshotImageFields, BrowserArgsModel):
@@ -254,12 +268,8 @@ class BrowserScreenshotArgs(BrowserScreenshotImageFields, BrowserArgsModel):
 
     action: Literal["screenshot"] = Field(..., description="Take screenshot")
     full_page: bool = Field(False, description="Capture full page height")
-    ref: Optional[str] = Field(
-        None, description="Optional element reference to screenshot"
-    )
-    file_name: Optional[str] = Field(
-        None, description="Browser Use screenshot filename"
-    )
+    ref: Optional[str] = _optional_ref_field("Optional element reference to screenshot")
+    file_name: Optional[str] = _optional_file_name_field("Browser Use screenshot filename")
 
 
 class BrowserWaitArgs(BrowserArgsModel):
