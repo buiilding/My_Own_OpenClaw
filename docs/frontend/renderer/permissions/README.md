@@ -11,6 +11,7 @@ title: "Renderer Permissions Docs Hub"
 ## Deep Pages
 
 - [Permission Onboarding Gate, Manifest Version, and Data-Controls Runtime Reference](permission_onboarding_gate_manifest_version_and_data_controls_runtime_reference.md)
+- [Permission Status Badge, Row Rendering, and Reason Visibility Reference](permission_status_badge_row_rendering_and_reason_visibility_reference.md)
 
 ## Related Pages
 
@@ -23,6 +24,9 @@ title: "Renderer Permissions Docs Hub"
 - `frontend/src/renderer/app/App.jsx`
 - `frontend/src/renderer/features/permissions/components/PermissionOnboardingWizard.jsx`
 - `frontend/src/renderer/features/permissions/components/PermissionControlCenter.jsx`
+- `frontend/src/renderer/features/permissions/components/PermissionRowMain.jsx`
+- `frontend/src/renderer/features/permissions/components/PermissionStatusBadge.jsx`
 - `frontend/src/renderer/features/permissions/stores/permissionStore.js`
+- `frontend/src/renderer/features/permissions/utils/permissionStatus.js`
 - `frontend/src/renderer/features/permissions/utils/permissionStorage.js`
 - `frontend/src/renderer/styles/PermissionOnboarding.css`
