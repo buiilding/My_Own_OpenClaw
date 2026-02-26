@@ -90,7 +90,7 @@ class ControllerRuntimeLike(Protocol):
     is_connected: bool
 
     async def close(self) -> None: ...
-    async def auto_connect_to_chrome(self, *, cdp_url: str, auto_launch: bool) -> dict[str, Any]: ...
+    async def auto_connect_to_chrome(self, *, cdp_url: str, auto_launch: bool, headless: bool) -> dict[str, Any]: ...
     async def launch_managed_browser(
         self,
         *,
@@ -155,7 +155,7 @@ class BrowserRuntimeProvider(Protocol):
     def is_connected(self) -> bool: ...
 
     async def close(self) -> None: ...
-    async def connect_user_chrome(self, *, cdp_url: str, auto_launch: bool) -> dict[str, Any]: ...
+    async def connect_user_chrome(self, *, cdp_url: str, auto_launch: bool, headless: bool) -> dict[str, Any]: ...
     async def connect_managed(
         self,
         *,
@@ -235,10 +235,12 @@ class ControllerBackedRuntimeProvider:
         *,
         cdp_url: str,
         auto_launch: bool,
+        headless: bool = False,
     ) -> dict[str, Any]:
         return await self._controller.auto_connect_to_chrome(
             cdp_url=cdp_url,
             auto_launch=auto_launch,
+            headless=headless,
         )
 
     async def connect_managed(
@@ -573,6 +575,13 @@ class _BrowserUseActionBridge:
         cdp = cdp_raw.strip()
         return cdp or None
 
+    def _controller_headless(self) -> bool:
+        """Get headless setting from controller."""
+        headless_raw = getattr(self._controller, "_headless", None)
+        if isinstance(headless_raw, bool):
+            return headless_raw
+        return False
+
     async def _ensure_browser_session(self) -> Any:
         self._ensure_browser_use_modules()
 
@@ -613,7 +622,8 @@ class _BrowserUseActionBridge:
                 return self._browser_session
 
             await self._stop_browser_session()
-            session = self._browser_session_type(is_local=True, headless=False)
+            headless = self._controller_headless()
+            session = self._browser_session_type(is_local=True, headless=headless)
             await session.start()
             self._browser_session = session
             self._session_mode = "managed"
