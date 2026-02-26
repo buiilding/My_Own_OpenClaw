@@ -29,6 +29,20 @@ title: "Frontend Contracts Docs Hub"
 ## Code Scope
 
 - `frontend/src/main/ipc.cjs`
+- `frontend/src/main/ipc_runtime_helpers.cjs`
+- `frontend/src/main/ipc_renderer_windows.cjs`
+- `frontend/src/main/ipc_query_broadcast.cjs`
+- `frontend/src/main/ipc_query_events.cjs`
+- `frontend/src/main/permission_service.cjs`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/preload.js`
 - `frontend/src/renderer/infrastructure/ipc/*`
+
+## Current Contract Notes (2026-02-26)
+
+- Permission onboarding IPC channels added in `INVOKE_CHANNELS` + preload allowlist:
+  - `list-permissions`
+  - `check-permissions`
+  - `check-permission`
+  - `run-permission-probe`
+  - `request-permission`
