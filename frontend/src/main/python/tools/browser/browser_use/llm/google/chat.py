@@ -32,7 +32,7 @@ VerifiedGeminiModels = Literal[
 	'gemini-flash-latest',
 	'gemini-flash-lite-latest',
 	'gemini-2.5-pro',
-	'gemini-3-pro-preview',
+	'gemini-3.1-pro-preview',
 	'gemini-3-flash-preview',
 	'gemma-3-27b-it',
 	'gemma-3-4b',
@@ -253,29 +253,30 @@ class ChatGoogle(BaseChatModel):
 			config['seed'] = self.seed
 
 		# Configure thinking based on model version
-		# Gemini 3 Pro: uses thinking_level only
+		# Gemini 3.x Pro: uses thinking_level only
 		# Gemini 3 Flash: supports both, defaults to thinking_budget=-1
 		# Gemini 2.5: uses thinking_budget only
-		is_gemini_3_pro = 'gemini-3-pro' in self.model
-		is_gemini_3_flash = 'gemini-3-flash' in self.model
+		model_name = self.model.lower()
+		is_gemini_3_pro = model_name.startswith('gemini-3') and '-pro' in model_name
+		is_gemini_3_flash = 'gemini-3-flash' in model_name
 
 		if is_gemini_3_pro:
-			# Validate: thinking_budget should not be set for Gemini 3 Pro
+			# Validate: thinking_budget should not be set for Gemini 3.x Pro
 			if self.thinking_budget is not None:
 				self.logger.warning(
-					f'thinking_budget={self.thinking_budget} is deprecated for Gemini 3 Pro and may cause '
+					f'thinking_budget={self.thinking_budget} is deprecated for Gemini 3.x Pro and may cause '
 					f'suboptimal performance. Use thinking_level instead.'
 				)
 
 			# Validate: minimal/medium only supported on Flash, not Pro
 			if self.thinking_level in ('minimal', 'medium'):
 				self.logger.warning(
-					f'thinking_level="{self.thinking_level}" is not supported for Gemini 3 Pro. '
+					f'thinking_level="{self.thinking_level}" is not supported for Gemini 3.x Pro. '
 					f'Only "low" and "high" are valid. Falling back to "low".'
 				)
 				self.thinking_level = 'low'
 
-			# Default to 'low' for Gemini 3 Pro
+			# Default to 'low' for Gemini 3.x Pro
 			if self.thinking_level is None:
 				self.thinking_level = 'low'
 
