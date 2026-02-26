@@ -395,6 +395,7 @@ class BrowserController:
         cdp_url: str = DEFAULT_WINDIE_CDP_URL,
         auto_launch: bool = True,
         timeout: int = 30,
+        headless: bool = False,
     ) -> Dict[str, Any]:
         """
         Auto-connect to WindieOS browser instance, launching if necessary.
@@ -406,6 +407,7 @@ class BrowserController:
             cdp_url: Chrome DevTools Protocol URL
             auto_launch: Automatically launch WindieOS browser if not running
             timeout: Connection timeout in seconds
+            headless: Run browser without UI when auto-launching
 
         Returns:
             Connection info dict with 'auto_launched' flag
@@ -413,7 +415,7 @@ class BrowserController:
         Raises:
             ConnectionError: If cannot connect or launch Chrome
         """
-        logger.info("Auto-connecting to WindieOS browser at %s", cdp_url)
+        logger.info("Auto-connecting to WindieOS browser at %s (headless=%s)", cdp_url, headless)
 
         # Validate CDP URL
         parsed = urlparse(cdp_url)
@@ -431,7 +433,7 @@ class BrowserController:
                 cdp_port=port,
                 auto_launch=auto_launch,
                 restart_if_needed=False,  # Don't kill user's Chrome without asking
-                headless=False,
+                headless=headless,
             )
 
             # Now connect via Playwright
@@ -460,6 +462,7 @@ class BrowserController:
 
             self._cdp_url = actual_cdp_url
             self._mode = "user_chrome"
+            self._headless = headless
             self._reset_ref_registry(self._page)
 
             logger.info(f"Connected to Chrome: {self._page.url}")
@@ -618,6 +621,7 @@ class BrowserController:
                 self._page = await self._context.new_page()
             self._ensure_page_observers(self._page)
             self._mode = "managed"
+            self._headless = headless
             self._reset_ref_registry(self._page)
 
             logger.info(f"Managed browser launched: {self._page.url}")
