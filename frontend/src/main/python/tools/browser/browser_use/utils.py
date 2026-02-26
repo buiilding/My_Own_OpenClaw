@@ -14,7 +14,11 @@ from typing import Any, ParamSpec, TypeVar
 from urllib.parse import urlparse
 
 import httpx
-from dotenv import load_dotenv
+try:
+	from dotenv import load_dotenv
+except ImportError:
+	def load_dotenv(*args, **kwargs):  # type: ignore[no-redef]
+		return False
 
 load_dotenv()
 

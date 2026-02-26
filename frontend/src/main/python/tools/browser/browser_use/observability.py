@@ -19,7 +19,11 @@ from functools import wraps
 from typing import Any, Literal, TypeVar, cast
 
 logger = logging.getLogger(__name__)
-from dotenv import load_dotenv
+try:
+	from dotenv import load_dotenv
+except ImportError:
+	def load_dotenv(*args, **kwargs):  # type: ignore[no-redef]
+		return False
 
 load_dotenv()
 
