@@ -9,6 +9,13 @@ import copy
 import logging
 from typing import Any, Dict, List, Optional
 
+from backend.src.agent.session.message_builders import (
+    build_assistant_message,
+    build_tool_output_message,
+    build_tool_result_message,
+    build_user_message,
+    normalize_message_type,
+)
 from backend.src.core.messages.structures import StoredMessage
 from backend.src.core.types.enums import MessageRole, MessageType
 from backend.src.core.types.schemas import LLMMessage
@@ -69,7 +76,7 @@ class ConversationHistory:
             semantic_memory: Optional list of semantic memory strings (structured data)
             user_query_raw: Optional raw user query text (structured data)
         """
-        stored_msg = self._build_user_message(
+        stored_msg = build_user_message(
             content=content,
             image_data=image_data,
             episodic_memory=episodic_memory,
@@ -105,7 +112,7 @@ class ConversationHistory:
         if tool_call_ids:
             for index, tool_call_id in enumerate(tool_call_ids):
                 stored_messages.append(
-                    self._build_tool_result_message(
+                    build_tool_result_message(
                         message=message,
                         tool_call_id=tool_call_id,
                         image_data=image_data if index == 0 else None,
@@ -113,7 +120,7 @@ class ConversationHistory:
                 )
         else:
             # Fallback path when no tool_call_id linkage exists.
-            stored_messages.append(self._build_tool_output_message(message, image_data))
+            stored_messages.append(build_tool_output_message(message, image_data))
 
         # INCREMENTAL TOKEN COUNT: If cache is valid, count new message before pruning
         # This avoids O(N) re-counting when multiple tools are called in sequence
@@ -176,7 +183,7 @@ class ConversationHistory:
             message: Assistant response text
             tool_calls: Optional native tool_calls payload for assistant tool turns
         """
-        stored_msg = self._build_assistant_message(message, tool_calls=tool_calls)
+        stored_msg = build_assistant_message(message=message, tool_calls=tool_calls)
         self._append_message(stored_msg)
         # Invalidate token count cache (new message added)
         self._invalidate_token_cache()
@@ -226,7 +233,7 @@ class ConversationHistory:
 
         for tool_call_id in pending_tool_call_ids:
             self._append_message(
-                self._build_tool_result_message(
+                build_tool_result_message(
                     message=message,
                     tool_call_id=tool_call_id,
                 )
@@ -361,7 +368,7 @@ class ConversationHistory:
         """Replace conversation history with provided stored entries."""
         stored_messages: List[StoredMessage] = []
         for entry in entries:
-            message_type = self._normalize_message_type(
+            message_type = normalize_message_type(
                 role=entry.get("role"),
                 message_type=entry.get("message_type"),
             )
@@ -406,28 +413,6 @@ class ConversationHistory:
             self._invalidate_token_cache()
             logger.debug(f"Pruned conversation history to {self.max_length} messages (removed {removed_count})")
 
-    def _normalize_message_type(
-        self,
-        role: Optional[Any],
-        message_type: Optional[Any],
-    ) -> MessageType:
-        normalized = str(message_type or "").strip().lower().replace("-", "_")
-        if normalized in {"tool", "tool_output", "tool_call"}:
-            return MessageType.TOOL_OUTPUT
-        if normalized in {"context_compaction", "compaction", "context_summary"}:
-            return MessageType.CONTEXT_COMPACTION
-        if normalized in {"assistant", "assistant_response", "llm_text", "error"}:
-            return MessageType.ASSISTANT_RESPONSE
-        if normalized in {"user", "user_query", "query"}:
-            return MessageType.USER_QUERY
-
-        normalized_role = str(role or "").strip().lower()
-        if normalized_role == "assistant":
-            return MessageType.ASSISTANT_RESPONSE
-        if normalized_role == "tool":
-            return MessageType.TOOL_OUTPUT
-        return MessageType.USER_QUERY
-
     def _invalidate_token_cache(self) -> None:
         self._cached_token_count = None
         self._cached_token_count_model = None
@@ -438,61 +423,6 @@ class ConversationHistory:
         self.history.append(stored_msg)
         self._llm_history_cache.append(
             llm_msg if llm_msg is not None else stored_msg.to_llm_message()
-        )
-
-    def _build_user_message(
-        self,
-        content: str,
-        image_data: Optional[str],
-        episodic_memory: Optional[List[str]],
-        semantic_memory: Optional[List[str]],
-        user_query_raw: Optional[str],
-    ) -> StoredMessage:
-        return StoredMessage(
-            role=MessageRole.USER,
-            content=content,
-            message_type=MessageType.USER_QUERY,
-            image_data=image_data,
-            episodic_memory=episodic_memory,
-            semantic_memory=semantic_memory,
-            user_query_raw=user_query_raw,
-        )
-
-    def _build_tool_output_message(
-        self, message: str, image_data: Optional[str]
-    ) -> StoredMessage:
-        return StoredMessage(
-            role=MessageRole.USER,
-            content=message,
-            message_type=MessageType.TOOL_OUTPUT,
-            image_data=image_data,
-        )
-
-    def _build_tool_result_message(
-        self,
-        message: str,
-        tool_call_id: str,
-        image_data: Optional[str] = None,
-    ) -> StoredMessage:
-        return StoredMessage(
-            role=MessageRole.TOOL,
-            content=message,
-            message_type=MessageType.TOOL_OUTPUT,
-            image_data=image_data,
-            tool_call_id=tool_call_id,
-        )
-
-    def _build_assistant_message(
-        self,
-        message: str,
-        tool_calls: Optional[List[Dict[str, Any]]] = None,
-    ) -> StoredMessage:
-        return StoredMessage(
-            role=MessageRole.ASSISTANT,
-            content=message,
-            message_type=MessageType.ASSISTANT_RESPONSE,
-            image_data=None,
-            tool_calls=tool_calls,
         )
 
     def _consume_tool_call_ids_for_next_output(self) -> List[str]:
