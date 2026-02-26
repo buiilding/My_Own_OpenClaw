@@ -8,6 +8,13 @@ title: "Backend WebSocket Protocol Surface Matrix Reference"
 
 # Backend WebSocket Protocol Surface Matrix Reference
 
+## Coverage Snapshot (2026-02-26)
+
+- Incoming message types: `10` (`INCOMING_MESSAGE_TYPES`)
+- Schema-validated outgoing message types: `19` (`OUTGOING_SCHEMA_MESSAGE_TYPES`)
+- Incoming routes: `10` (`INCOMING_ROUTES`)
+- Formatter specs: `16` (`get_formatter_specs()`)
+
 ## Scope and Sources
 
 This page maps the live websocket protocol owned by backend runtime code:
@@ -146,6 +153,20 @@ All helper send paths (`send_success_response`, formatter pipeline with context)
 - `validate_registry_alignment()` fails startup/tests if contract registries diverge from constant lists.
 - Incoming parser returns structured `error` messages for malformed JSON, invalid root type, oversized payload, or schema validation issues.
 - Unexpected handler exceptions are sanitized through `sanitize_error_message(...)` before client delivery.
+
+## Recompute Surface Commands
+
+Use this to recompute protocol cardinalities:
+
+- `python - <<'PY'`
+- `from backend.src.api.contracts.message_types import INCOMING_MESSAGE_TYPES, OUTGOING_SCHEMA_MESSAGE_TYPES`
+- `from backend.src.core.container.incoming_routing import INCOMING_ROUTES`
+- `from backend.src.api.contracts.formatter_specs import get_formatter_specs`
+- `print('incoming_types', len(INCOMING_MESSAGE_TYPES))`
+- `print('outgoing_schema_types', len(OUTGOING_SCHEMA_MESSAGE_TYPES))`
+- `print('incoming_routes', len(INCOMING_ROUTES))`
+- `print('formatter_specs', len(get_formatter_specs()))`
+- `PY`
 
 ## Related Deep Dive
 
