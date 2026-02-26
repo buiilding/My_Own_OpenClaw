@@ -97,6 +97,71 @@ def _optional_coordinate_field(axis: str, counterpart_axis: str):
     )
 
 
+def _screenshot_action_field():
+    return Field(..., description="Take screenshot")
+
+
+def _full_page_screenshot_field():
+    return Field(False, description="Capture full page height")
+
+
+def _extract_action_field():
+    return Field(..., description="Extract query-relevant page content from current DOM text")
+
+
+def _extract_query_field():
+    return Field(
+        ...,
+        min_length=1,
+        max_length=2000,
+        description="Extraction goal/query (for example: 'list all pricing tiers and monthly cost')",
+    )
+
+
+def _extract_mode_field():
+    return Field(
+        "focused",
+        description="Extraction mode: focused (keyword filter), full_text (unfiltered text window), or structured (table/list JSON window).",
+    )
+
+
+def _extract_links_field():
+    return Field(
+        False,
+        description="Include page links in extracted source text before query filtering.",
+    )
+
+
+def _extract_start_char_field():
+    return Field(
+        0,
+        ge=0,
+        description="Character offset into extracted page content for long pages.",
+    )
+
+
+def _extract_wait_until_field():
+    return Field(
+        "load",
+        description="Wait for this load state before extracting page content.",
+    )
+
+
+def _extract_selector_field():
+    return Field(None, description="Optional CSS selector to scope extraction.")
+
+
+def _extract_frame_field():
+    return Field(None, description="Optional iframe selector scope for extraction.")
+
+
+def _extract_output_schema_field():
+    return Field(
+        None,
+        description="Optional JSON schema hint for caller-side structured parsing (not enforced by sidecar).",
+    )
+
+
 class BrowserArgsModel(BaseModel):
     """Shared backend browser schema base."""
 
@@ -164,44 +229,18 @@ class BrowserSnapshotArgs(BrowserArgsModel):
 class BrowserExtractArgs(BrowserArgsModel):
     """Arguments for browser extract action."""
 
-    action: Literal["extract"] = Field(
-        ..., description="Extract query-relevant page content from current DOM text"
-    )
-    query: str = Field(
-        ...,
-        min_length=1,
-        max_length=2000,
-        description="Extraction goal/query (for example: 'list all pricing tiers and monthly cost')",
-    )
-    mode: Literal["focused", "full_text", "structured"] = Field(
-        "focused",
-        description="Extraction mode: focused (keyword filter), full_text (unfiltered text window), or structured (table/list JSON window).",
-    )
-    extract_links: bool = Field(
-        False,
-        description="Include page links in extracted source text before query filtering.",
-    )
-    start_from_char: int = Field(
-        0,
-        ge=0,
-        description="Character offset into extracted page content for long pages.",
-    )
+    action: Literal["extract"] = _extract_action_field()
+    query: str = _extract_query_field()
+    mode: Literal["focused", "full_text", "structured"] = _extract_mode_field()
+    extract_links: bool = _extract_links_field()
+    start_from_char: int = _extract_start_char_field()
     max_chars: Optional[int] = _optional_char_limit_field(
         "Maximum number of characters in the final extracted result."
     )
-    wait_until: BrowserNavigationState = Field(
-        "load", description="Wait for this load state before extracting page content."
-    )
-    selector: Optional[str] = Field(
-        None, description="Optional CSS selector to scope extraction."
-    )
-    frame: Optional[str] = Field(
-        None, description="Optional iframe selector scope for extraction."
-    )
-    output_schema: Optional[Dict[str, Any]] = Field(
-        None,
-        description="Optional JSON schema hint for caller-side structured parsing (not enforced by sidecar).",
-    )
+    wait_until: BrowserNavigationState = _extract_wait_until_field()
+    selector: Optional[str] = _extract_selector_field()
+    frame: Optional[str] = _extract_frame_field()
+    output_schema: Optional[Dict[str, Any]] = _extract_output_schema_field()
 
 
 class BrowserClickArgs(BrowserArgsModel):
@@ -266,8 +305,8 @@ class BrowserScrollArgs(BrowserArgsModel):
 class BrowserScreenshotArgs(BrowserScreenshotImageFields, BrowserArgsModel):
     """Arguments for browser screenshot action."""
 
-    action: Literal["screenshot"] = Field(..., description="Take screenshot")
-    full_page: bool = Field(False, description="Capture full page height")
+    action: Literal["screenshot"] = _screenshot_action_field()
+    full_page: bool = _full_page_screenshot_field()
     ref: Optional[str] = _optional_ref_field("Optional element reference to screenshot")
     file_name: Optional[str] = _optional_file_name_field("Browser Use screenshot filename")
 

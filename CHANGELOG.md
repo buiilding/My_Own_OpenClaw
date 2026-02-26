@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(backend-browser-extract-schema): centralize extract/screenshot field declarations via shared helper builders in `browser/schemas.py` (extract action/query/mode/links/start/wait/scope/schema + screenshot action/full-page), reducing combined jscpd clones from `3` to `1`.
 - refactor(backend-browser-click-fields): add shared optional field builders for browser click/scroll/screenshot refs and coordinate/index payloads in `browser/schemas.py`; combined jscpd audit dropped from `4` to `3` clones.
 - refactor(backend-browser-char-window): add shared snapshot/extract char-window field factories in `browser/schemas.py` and reuse for `max_chars`/`offset`/`limit`; combined jscpd audit dropped from `5` to `4` clones.
 - refactor(backend-browser-schema-fields): add shared required/optional string field factories in `browser/schemas.py` and reuse them for `type.text` plus `evaluate.script`/`evaluate.code`; combined jscpd audit dropped from `7` to `5` clones.
