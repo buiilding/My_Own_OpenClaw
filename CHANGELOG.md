@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(sidecar-scroll-tool): add runtime coverage for `execute_scroll_control` action handling (`scroll`, `scroll_up`, `scroll_down`), coordinate/unknown-action validation, and left/right horizontal-scroll fallback behavior when `hscroll` is unavailable.
 - test(sidecar-scroll-config): add coverage for OS scroll multiplier resolution (Windows registry override/default fallback, unknown-OS fallback), click normalization defaults/minimums, and diagnostics custom-setting signaling.
 - test(sidecar-runtime): add regression coverage for `core.system_metrics` and `memory.watermark_state` (battery-unavailable fallback, async executor path, default/malformed watermark state handling, and pending-count persistence updates).
 - docs(frontend-inventory): add frontend functionality capability catalog, refresh frontend inventory/module count snapshots to current runtime (`main=34`, `renderer=127`, `total=315`), and wire catalog links into frontend/docs hubs.
