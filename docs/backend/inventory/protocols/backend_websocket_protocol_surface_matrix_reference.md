@@ -60,8 +60,9 @@ Runtime flow for each frame after handshake:
 | `rehydrate-conversation` | `RehydrateConversationMessage` | `conversation_ref`, `messages[]`, `rehydrate_mode="replace"` | `rehydrate_conversation_handler` |
 | `load-settings` | `LoadSettingsMessage` | Optional `client_version` | `load_settings_handler` |
 | `list-models` | `ListModelsMessage` | Empty payload object | `list_models_handler` |
-| `update-settings` | `UpdateSettingsMessage` | Optional frontend-owned config fields (`model_mode`, `model_provider`, `selected_model_id`, `interaction_mode`, `voice_mode_enabled`, `speech_mode_enabled`, `wakeword_stt_enabled`, `include_query_screenshot`) | `update_settings_handler` |
+| `update-settings` | `UpdateSettingsMessage` | Optional frontend-owned config fields (`model_mode`, `model_provider`, `selected_model_id`, `interaction_mode`, `voice_mode_enabled`, `speech_mode_enabled`, `wakeword_stt_enabled`, `agent_full_sudo_enabled`, `include_query_screenshot`, `provider_api_keys`) | `update_settings_handler` |
 | `wakeword-detected` | `WakewordDetectedMessage` | Empty payload object | `wakeword_handler` |
+| `compact-history` | `CompactHistoryMessage` | Optional `force` (default `true`) | `compact_history_handler` |
 | `tool-result` | `ToolResultMessage` | `request_id`, `success`, optional `data`, optional `error` | `tool_result_handler` |
 | `tool-bundle-result` | `ToolBundleResultMessage` | `bundle_id`, `status`, `step_results[]`, optional `screenshot`, `screenshot_ref`, `system_state`, `error` | `tool_result_handler` |
 
@@ -89,6 +90,9 @@ Runtime flow for each frame after handshake:
 | `memory-store` | `MemoryStoreMessage` | normalized memory persistence payload |
 | `user-message-full` | `UserMessageFullMessage` | `content`, metadata bundle |
 | `assistant-message-full` | `AssistantMessageFullMessage` | `content` |
+| `context-compaction-started` | `ContextCompactionStartedMessage` | `reason`, `strategy`, `before_tokens`, `projected_tokens` |
+| `context-compaction-completed` | `ContextCompactionCompletedMessage` | `reason`, `strategy`, `before_tokens`, `after_tokens`, `removed_messages`, optional `summary_preview`, optional `skipped_reason` |
+| `context-compaction-failed` | `ContextCompactionFailedMessage` | `reason`, `strategy`, `error`, optional `before_tokens` |
 
 ### ACK/Control Outgoing Types (Not in Schema-Validated Subset)
 
@@ -115,6 +119,9 @@ These constants are declared in `OutgoingMessageType` and emitted by settings ha
 | `user-message-full` | `UserMessageFullEventFormatter` | `user-message-full` |
 | `assistant-message-full` | `AssistantMessageFullEventFormatter` | `assistant-message-full` |
 | `token-count` | `TokenCountEventFormatter` | `token-count` |
+| `context-compaction-started` | `ContextCompactionStartedEventFormatter` | `context-compaction-started` |
+| `context-compaction-completed` | `ContextCompactionCompletedEventFormatter` | `context-compaction-completed` |
+| `context-compaction-failed` | `ContextCompactionFailedEventFormatter` | `context-compaction-failed` |
 | `memory-store` | `MemoryStoreEventFormatter` | `memory-store` |
 | `tool-bundle` | `ToolBundleEventFormatter` | `tool-bundle` |
 
