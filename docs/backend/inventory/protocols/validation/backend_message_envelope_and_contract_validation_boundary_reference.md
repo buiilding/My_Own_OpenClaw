@@ -8,6 +8,12 @@ title: "Backend Message Envelope and Contract Validation Boundary Reference"
 
 # Backend Message Envelope and Contract Validation Boundary Reference
 
+## Coverage Snapshot (2026-02-26)
+
+- Incoming message-type literals: `10`
+- Schema-validated outgoing message types: `19`
+- Allowed frontend config patch keys: `10`
+
 ## Scope and Sources
 
 Validation boundary sources:
@@ -173,6 +179,17 @@ When editing validation logic, verify:
 - outgoing schema subset list and contract registry still match.
 - parse-size/error strings remain compatible with frontend error-handling expectations.
 
+## Validation Control-Path Index
+
+| Validation control path | Runtime owner | Safety contract |
+|---|---|---|
+| handshake envelope gate | `backend/src/api/schemas/common.py`, websocket route handshake path | rejects missing/invalid handshake identity before entering normal receive loop |
+| message-size + JSON-root parse gate | `backend/src/api/routes/websocket/message_handler.py`, `backend/src/api/routes/websocket/json_parse.py` | oversized/malformed/non-object payloads fail before schema/model routing |
+| incoming discriminated-union validation | `backend/src/api/schemas/incoming.py`, `TypeAdapter(IncomingMessage)` | unknown message types and invalid payload shapes fail with structured validation errors |
+| route-table parity/startup guard | `backend/src/core/container/incoming_routing.py` | startup fails if incoming schema literals and route declarations diverge |
+| contract-registry parity guard | `backend/src/api/contracts/registry.py` | startup/tests fail when incoming/outgoing contract registries diverge from canonical type constants |
+| frontend config patch allowlist gate | `backend/src/core/validation/validators.py` | `update-settings` accepts only typed allowlisted frontend fields and drops unknown keys |
+
 ## Recompute Validation Surface Commands
 
 Use this command to recompute protocol validation cardinalities:
@@ -188,4 +205,6 @@ Use this command to recompute protocol validation cardinalities:
 ## Related Pages
 
 - [Backend WebSocket Protocol Surface Matrix Reference](../backend_websocket_protocol_surface_matrix_reference.md)
+- [Backend Protocol State Hub](../state/README.md)
+- [Backend Protocol Lifecycle Hub](../lifecycle/README.md)
 - [Backend Protocol Testing Hub](../testing/README.md)
