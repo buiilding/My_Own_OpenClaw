@@ -8,6 +8,11 @@ title: "Frontend IPC and Local-Backend Protocol Test Coverage and Runtime Contra
 
 # Frontend IPC and Local-Backend Protocol Test Coverage and Runtime Contract Reference
 
+## Coverage Snapshot (2026-02-26)
+
+- Protocol test files in this reference: `11`
+- Total test cases across listed files: `79`
+
 ## Scope and Sources
 
 Primary runtime modules:
@@ -22,6 +27,7 @@ Primary protocol tests:
 
 - `tests/frontend/IpcBridgeValidation.test.ts`
 - `tests/frontend/IpcMainBridge.query.test.cjs`
+- `tests/frontend/IpcMainBridge.lifecycle.test.cjs`
 - `tests/frontend/QueryPayloadBuilder.test.cjs`
 - `tests/frontend/LocalBackendBridge.lifecycle.test.cjs`
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`
@@ -29,6 +35,7 @@ Primary protocol tests:
 - `tests/frontend/AgentSudoAccessHandler.test.cjs`
 - `tests/frontend/PermissionService.test.cjs`
 - `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`
+- `tests/frontend/ChatGptDashboardShell.test.jsx`
 
 ## Contract Coverage Matrix
 
@@ -46,6 +53,19 @@ Primary protocol tests:
 | sudo access command-runner protocol | `agent_sudo_access_handler.cjs` | `AgentSudoAccessHandler.test.cjs` | Linux-only guard, pkexec/sudo command execution paths, cancel/auth-failure normalization, and non-interactive disable semantics |
 | permission probe/request protocol | `permission_service.cjs` | `PermissionService.test.cjs` | manifest/status shape, per-permission probe behavior, unknown-permission error surface, and request flow normalization |
 | wakeword STT trigger channel consumption | renderer chatbox overlay listeners | `ChatBoxOverlayMouseIgnore.test.jsx` | renderer listener wiring for `wakeword-stt-trigger` channel and overlay-focused behavior consistency |
+| websocket open + overlay phase lifecycle | `connect()` open/message handlers (`ipc.cjs`) | `IpcMainBridge.lifecycle.test.cjs` | handshake user-id sanitization, backend endpoint metadata exposure, and backend tool-event to response-overlay phase transitions |
+| main-window open target channel routing | dashboard IPC event listener + panel routing | `ChatGptDashboardShell.test.jsx` | `main-window-open-target` payload routes to chat/settings/models/memory surfaces with chat target panel-close behavior |
+
+## Protocol Control-Path Test Index
+
+| Control path | Main runtime owner | Primary test anchors |
+|---|---|---|
+| connection snapshot + handshake bootstrap (`get-client-user-id`, `ipc-status`) | `frontend/src/main/ipc.cjs` | `IpcMainBridge.lifecycle.test.cjs`, `AppConfigProvider.storageAndIpc.test.tsx` |
+| query send + settings ACK gate + synthetic local echo | `frontend/src/main/ipc.cjs` | `IpcMainBridge.query.test.cjs` |
+| overlay pre-capture + response-overlay phase transitions | `frontend/src/main/ipc.cjs`, `frontend/src/main/response_overlay_phase_handler.cjs` | `IpcMainBridge.query.test.cjs`, `IpcMainBridge.lifecycle.test.cjs`, `OverlayPhaseListener.test.js` |
+| wakeword detect -> STT trigger channel | `frontend/src/main/index.cjs`, `frontend/src/main/wakeword_bridge.cjs` | `WakewordBridge.test.cjs`, `ChatBoxOverlayMouseIgnore.test.jsx` |
+| show-main-window target normalization -> dashboard surface routing | `frontend/src/main/overlay_ipc_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx` | `ChatGptDashboardShell.test.jsx` |
+| local sidecar RPC mapping + sudo mode propagation | `frontend/src/main/local_backend_bridge.cjs` | `LocalBackendBridge.rpc.test.cjs`, `LocalBackendBridge.lifecycle.test.cjs` |
 
 ## Renderer IPC Validation Contract
 
@@ -163,6 +183,7 @@ Use this command to inspect protocol-test breadth:
 - `paths=[`
 - `  'tests/frontend/IpcBridgeValidation.test.ts',`
 - `  'tests/frontend/IpcMainBridge.query.test.cjs',`
+- `  'tests/frontend/IpcMainBridge.lifecycle.test.cjs',`
 - `  'tests/frontend/QueryPayloadBuilder.test.cjs',`
 - `  'tests/frontend/LocalBackendBridge.lifecycle.test.cjs',`
 - `  'tests/frontend/LocalBackendBridge.rpc.test.cjs',`
@@ -170,14 +191,18 @@ Use this command to inspect protocol-test breadth:
 - `  'tests/frontend/AgentSudoAccessHandler.test.cjs',`
 - `  'tests/frontend/PermissionService.test.cjs',`
 - `  'tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx',`
+- `  'tests/frontend/ChatGptDashboardShell.test.jsx',`
 - `]`
 - `for p in paths:`
+- `    import re`
 - `    text=pathlib.Path(p).read_text()`
-- `    print(p, 'tests=', text.count('\\ntest(') + text.count('\\nit('))`
+- `    count=len(re.findall(r'\\b(?:test|it)\\s*\\(', text))`
+- `    print(p, 'tests=', count)`
 - `PY`
 
 ## Related Pages
 
 - [Frontend Protocol Lifecycle Hub](../lifecycle/README.md)
+- [Frontend Protocol State Hub](../state/README.md)
 - [Frontend Protocol Errors Hub](../errors/README.md)
 - [Frontend Protocol Validation Hub](../validation/README.md)

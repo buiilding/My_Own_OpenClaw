@@ -1,7 +1,7 @@
 ---
-summary: "Frontend protocol testing sub-hub for renderer IPC validation, main-process query transport contracts, local-backend JSON-RPC lifecycle handling, and wakeword bridge restart safety."
+summary: "Frontend protocol testing sub-hub for renderer IPC validation, websocket bridge lifecycle/query contracts, local-backend JSON-RPC lifecycle handling, wakeword STT trigger flow, and dashboard target-routing coverage."
 read_when:
-  - When changing renderer IPC channel validation behavior, Electron main query-send orchestration, or query payload enrichment rules.
+  - When changing renderer IPC channel validation behavior, Electron main websocket/query orchestration, or query payload enrichment rules.
   - When changing local-backend bridge JSON-RPC mappings/timeouts or wakeword subprocess status/detection handling.
 title: "Frontend Protocol Testing Hub"
 ---
@@ -23,10 +23,12 @@ title: "Frontend Protocol Testing Hub"
 
 - `tests/frontend/IpcBridgeValidation.test.ts`
 - `tests/frontend/IpcMainBridge.query.test.cjs`
+- `tests/frontend/IpcMainBridge.lifecycle.test.cjs`
 - `tests/frontend/QueryPayloadBuilder.test.cjs`
 - `tests/frontend/LocalBackendBridge.lifecycle.test.cjs`
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`
 - `tests/frontend/WakewordBridge.test.cjs`
+- `tests/frontend/ChatGptDashboardShell.test.jsx`
 - `frontend/src/renderer/infrastructure/ipc/bridge.ts`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/query_payload_builder.cjs`
