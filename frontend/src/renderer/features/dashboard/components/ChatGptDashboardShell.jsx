@@ -70,6 +70,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
   const [isSearchingConversations, setIsSearchingConversations] = useState(false);
   const [searchConversationsError, setSearchConversationsError] = useState('');
   const [recentConversations, setRecentConversations] = useState([]);
+  const [pinnedConversationRefs, setPinnedConversationRefs] = useState([]);
   const [isLoadingRecentConversations, setIsLoadingRecentConversations] = useState(false);
   const [recentConversationsError, setRecentConversationsError] = useState('');
   const wasHiddenRef = useRef(false);
@@ -166,6 +167,10 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
           return bTime - aTime;
         });
       setRecentConversations(list);
+      setPinnedConversationRefs((current) => {
+        const knownIds = new Set(list.map((conversation) => conversation?.conversation_id));
+        return current.filter((conversationRef) => knownIds.has(conversationRef));
+      });
     } catch (error) {
       setRecentConversationsError(error?.message || 'Failed to load recent chats');
       setRecentConversations([]);
@@ -214,6 +219,88 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
   }, [
     closeAllPanels,
     resolvedUserId,
+    setChatIsSending,
+    setChatMessages,
+    setChatThinkingStatus,
+  ]);
+
+  const handleRenameConversation = useCallback((conversation) => {
+    const conversationRef = conversation?.conversation_id;
+    if (!conversationRef) {
+      return;
+    }
+    const currentTitle = typeof conversation?.title === 'string'
+      ? conversation.title.trim()
+      : '';
+    const nextTitleInput = window.prompt('Rename chat', currentTitle || 'New chat');
+    if (typeof nextTitleInput !== 'string') {
+      return;
+    }
+    const nextTitle = nextTitleInput.trim();
+    if (!nextTitle || nextTitle === currentTitle) {
+      return;
+    }
+    setRecentConversations((current) => current.map((item) => (
+      item?.conversation_id === conversationRef
+        ? { ...item, title: nextTitle }
+        : item
+    )));
+    setSearchedConversations((current) => current.map((item) => (
+      item?.conversation_id === conversationRef
+        ? { ...item, title: nextTitle }
+        : item
+    )));
+  }, []);
+
+  const handleTogglePinConversation = useCallback((conversation) => {
+    const conversationRef = conversation?.conversation_id;
+    if (!conversationRef) {
+      return;
+    }
+    setPinnedConversationRefs((current) => {
+      if (current.includes(conversationRef)) {
+        return current.filter((id) => id !== conversationRef);
+      }
+      return [conversationRef, ...current];
+    });
+  }, []);
+
+  const handleDeleteConversation = useCallback(async (conversation) => {
+    const conversationRef = conversation?.conversation_id;
+    if (!conversationRef) {
+      return;
+    }
+    const shouldDelete = window.confirm('Delete this chat? This cannot be undone.');
+    if (!shouldDelete) {
+      return;
+    }
+
+    try {
+      const result = await IpcBridge.invoke(INVOKE_CHANNELS.DELETE_CONVERSATION, {
+        userId: resolvedUserId,
+        conversationId: conversationRef,
+        recordKind: conversation?.record_kind || 'transcript',
+      });
+      if (!result || result.success === false) {
+        throw new Error(result?.error || 'Failed to delete chat');
+      }
+
+      setRecentConversations((current) => current.filter((item) => item?.conversation_id !== conversationRef));
+      setSearchedConversations((current) => current.filter((item) => item?.conversation_id !== conversationRef));
+      setPinnedConversationRefs((current) => current.filter((id) => id !== conversationRef));
+      if (sessionInfo.conversationRef === conversationRef) {
+        setActiveConversationRef(null);
+        updateTranscriptSession(null, resolvedUserId);
+        setChatMessages([]);
+        setChatIsSending(false);
+        setChatThinkingStatus(null);
+      }
+    } catch (error) {
+      setRecentConversationsError(error?.message || 'Failed to delete chat');
+    }
+  }, [
+    resolvedUserId,
+    sessionInfo.conversationRef,
     setChatIsSending,
     setChatMessages,
     setChatThinkingStatus,
@@ -280,6 +367,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
         key: conversation?.conversation_id || `conversation-${index}`,
         title: resolvedTitle || 'New chat',
         conversation,
+        isPinned: pinnedConversationRefs.includes(conversation?.conversation_id),
       };
 
       if (conversationDate >= today) {
@@ -298,7 +386,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
     });
 
     return groups;
-  }, [recentConversations]);
+  }, [pinnedConversationRefs, recentConversations]);
 
   const searchedConversationGroups = useMemo(() => {
     const groups = {
@@ -337,6 +425,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
           )
           : '',
         conversation,
+        isPinned: pinnedConversationRefs.includes(conversation?.conversation_id),
       };
 
       if (conversationDate >= today) {
@@ -355,7 +444,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
     });
 
     return groups;
-  }, [searchedConversations]);
+  }, [pinnedConversationRefs, searchedConversations]);
 
   useEffect(() => {
     if (!searchOpen) {
@@ -454,6 +543,9 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
         recentConversationsError={recentConversationsError}
         recentConversationGroups={recentConversationGroups}
         onOpenConversation={handleOpenConversation}
+        onRenameConversation={handleRenameConversation}
+        onTogglePinConversation={handleTogglePinConversation}
+        onDeleteConversation={handleDeleteConversation}
         activeConversationRef={sessionInfo.conversationRef || null}
       />
 
