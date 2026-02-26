@@ -149,6 +149,16 @@ read_when:
     - `cd frontend && npm run audit:jscpd`
   - audit note:
     - clone count stayed `22`, but duplicated python lines/tokens reduced (`412/4078` -> `410/4066`) after warning-log refactor.
+- Backend browser clone hotspot dedupe:
+  - extracted legacy warning message assembly helper and simplified logger call path in:
+    - `backend/src/tools/remote_tools/browser.py`
+  - behavior:
+    - preserved removed-alias warning text and structured log metadata fields consumed by tests.
+  - verification:
+    - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -q`
+    - `cd frontend && npm run audit:jscpd`
+  - audit delta:
+    - frontend+backend `jscpd` clone count reduced from `22` to `21`.
 
 - Dashboard shell split:
   - extracted conversation/search orchestration from `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx` into:
