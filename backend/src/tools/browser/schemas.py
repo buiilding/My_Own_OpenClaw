@@ -51,6 +51,10 @@ def _ensure_evaluate_payload(script: Optional[str], code: Optional[str]) -> None
         raise ValueError("evaluate requires either 'script' or 'code'")
 
 
+def _ignored_compat_field(default: Any, detail: str):
+    return Field(default, description=f"Compatibility field (ignored). {detail}")
+
+
 class BrowserArgsModel(BaseModel):
     """Shared backend browser schema base."""
 
@@ -61,19 +65,13 @@ class BrowserConnectArgs(BrowserArgsModel):
     """Arguments for browser connect action."""
 
     action: Literal["connect"] = Field(..., description="Connect to browser")
-    mode: Literal["user_chrome", "managed"] = Field(
+    mode: Literal["user_chrome", "managed"] = _ignored_compat_field(
         "user_chrome",
-        description=(
-            "Compatibility field (ignored). WindieOS connect always targets the "
-            "dedicated Windie browser instance."
-        ),
+        "WindieOS connect always targets the dedicated Windie browser instance.",
     )
-    cdp_url: Optional[str] = Field(
+    cdp_url: Optional[str] = _ignored_compat_field(
         "http://127.0.0.1:9333",
-        description=(
-            "Compatibility field (ignored). WindieOS connect uses the dedicated "
-            "Windie browser CDP endpoint."
-        ),
+        "WindieOS connect uses the dedicated Windie browser CDP endpoint.",
     )
     headless: bool = Field(False, description="Run managed browser headless (no UI)")
 
