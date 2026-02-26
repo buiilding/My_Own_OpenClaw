@@ -86,8 +86,8 @@ Initial implementation should be rule-based (phrase patterns) for high precision
 
 If no confident match: continue normal query path unchanged.
 
-Suggested file:
-- `frontend/src/renderer/features/settings/intents/configIntentResolver.ts`
+Suggested location:
+- new resolver module under renderer settings feature (`intents/configIntentResolver.ts`)
 
 ## Layer 2: Unified Config Mutation Path
 
