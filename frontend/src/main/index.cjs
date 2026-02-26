@@ -689,20 +689,17 @@ app.whenReady().then(() => {
   createWindow();
   createChatWindow();
   createResponseWindow();
-  createContextLabelWindow();
   createTray();
   syncWakewordToggleForChatVisibility();
 
   registerOverlayRendererWindows(
-    [chatWindow, responseWindow, contextLabelWindow],
+    [chatWindow, responseWindow],
     { registerRendererWindow },
   );
-  syncContextLabelWindowVisibility();
 
   screen.on('display-metrics-changed', () => {
     positionChatWindow();
     positionResponseWindow();
-    positionContextLabelWindow();
   });
 
   const registered = globalShortcut.register(WAKEWORD_HOTKEY, () => {
@@ -725,12 +722,10 @@ app.whenReady().then(() => {
       createWindow();
       const chatOverlay = createChatWindow();
       const responseOverlay = createResponseWindow();
-      const contextLabelOverlay = createContextLabelWindow();
       registerOverlayRendererWindows(
-        [chatOverlay, responseOverlay, contextLabelOverlay],
+        [chatOverlay, responseOverlay],
         { registerRendererWindow },
       );
-      syncContextLabelWindowVisibility();
     } else {
       showMainWindow({ focus: true });
     }
