@@ -16,6 +16,9 @@ title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 - `frontend/src/main/ipc_query_broadcast.cjs`
 - `frontend/src/main/ipc_query_events.cjs`
 - `frontend/src/main/index.cjs`
+- `frontend/src/main/overlay_ipc_runtime.cjs`
+- `frontend/src/main/window_visibility_runtime.cjs`
+- `frontend/src/main/main_process_lifecycle_runtime.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
@@ -28,7 +31,9 @@ Main-process handler registration is split by responsibility:
 
 - transport/backend relay orchestration and config persistence: `ipc.cjs`
 - relay helper ownership for message processing/fan-out/synthetic query events: `ipc_runtime_helpers.cjs`, `ipc_renderer_windows.cjs`, `ipc_query_broadcast.cjs`, `ipc_query_events.cjs`
-- window/overlay runtime control: `index.cjs`
+- window/overlay runtime control registration: `overlay_ipc_runtime.cjs` (wired by `index.cjs`)
+- chat/main window visibility transitions: `window_visibility_runtime.cjs` (called from `overlay_visibility_handler.cjs` + runtime hooks)
+- app lifecycle listener bootstrap: `main_process_lifecycle_runtime.cjs` (wired by `index.cjs`)
 - Python sidecar tool + memory bridge: `local_backend_bridge.cjs`
 - wakeword audio process bridge: `wakeword_bridge.cjs`
 
@@ -56,7 +61,7 @@ Notable behavior:
   - renderer-window registration and broadcast fan-out: `ipc_renderer_windows.cjs`
   - synthetic local user/failure query event broadcast: `ipc_query_broadcast.cjs` with envelope builders from `ipc_query_events.cjs`
 
-### `index.cjs`
+### `overlay_ipc_runtime.cjs` (invoked from `index.cjs`)
 
 `ipcMain.handle`:
 
@@ -88,6 +93,14 @@ Notable behavior:
 - `show-main-window` normalizes optional open-target payload and emits `main-window-open-target` to renderer on accepted target
 - `show-main-window { maximize:true }` restores/minimizes state and maximizes before focusing dashboard window
 - permission handlers delegate to `permission_service.cjs` using shared deps (`platform`, `shell`, `systemPreferences`)
+
+### `window_visibility_runtime.cjs`
+
+Visibility runtime owners:
+
+- `show-chatbox` behavior (main hide/overlay restore/focus/wakeword sync) via `showChatWindow(...)`
+- `hide-chatbox` behavior (chat/response/context hide and wakeword sync) via `hideChatWindow(...)`
+- `show-main-window` visibility/maximize/focus flow via `showMainWindow(...)`
 
 ### `local_backend_bridge.cjs`
 

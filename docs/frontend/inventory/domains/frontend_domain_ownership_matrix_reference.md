@@ -12,7 +12,8 @@ title: "Frontend Domain Ownership Matrix Reference"
 
 | Domain | Primary ownership modules | Secondary integration modules | Non-owners (avoid primary edits) |
 | --- | --- | --- | --- |
-| Electron window/runtime orchestration | `frontend/src/main/index.cjs`, `frontend/src/main/main_window_runtime.cjs`, overlay handlers | `main/response_overlay_phase_handler.cjs`, `main/external_focus_tracker.cjs` | renderer feature hooks |
+| Electron window/runtime orchestration | `frontend/src/main/index.cjs`, `frontend/src/main/main_window_runtime.cjs`, `main/main_process_lifecycle_runtime.cjs`, overlay handlers | `main/response_overlay_phase_handler.cjs`, `main/external_focus_tracker.cjs` | renderer feature hooks |
+| Main overlay/window IPC + visibility runtime | `main/overlay_ipc_runtime.cjs`, `main/window_visibility_runtime.cjs` | overlay/window handler modules + permission/visibility delegates | renderer feature hooks |
 | Main websocket relay + settings gate | `frontend/src/main/ipc.cjs`, `main/ipc_runtime_helpers.cjs`, `main/ipc_renderer_windows.cjs`, `main/ipc_query_broadcast.cjs` | `main/backend_endpoints.cjs`, `main/ipc_query_events.cjs`, `main/query_payload_builder.cjs` | sidecar tool modules |
 | Local sidecar subprocess bridge | `frontend/src/main/local_backend_bridge*.cjs` | `main/runtime_paths.cjs`, mapper/util modules | renderer store logic |
 | Preload boundary | `frontend/src/preload.js` | renderer IPC bridge wrapper | main business logic edits |
