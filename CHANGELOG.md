@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(frontend-chat-header): add provider dropdown next to the model dropdown in dashboard chat header; selecting provider now updates available model options inline and auto-switches to a valid model from that provider.
 - fix(backend-tool-history): support multimodal `role=tool` rows in WindieOS history/LLM payload conversion and attach screenshots directly to linked tool-result messages (no extra screenshot companion row when `tool_call_id` is staged).
 - fix(frontend-response-pill): shrink response-overlay scrollbar thickness (including horizontal scroll inside long code/path blocks) so the response pill no longer shows oversized scrollbars.
 - fix(backend-token-service): normalize internal `k2p5` model id to LiteLLM-prefixed `kimi-coding/k2p5` for token counting/model-info lookups to avoid provider diagnostic noise while keeping warning paths intact.
