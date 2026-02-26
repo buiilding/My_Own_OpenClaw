@@ -370,6 +370,13 @@ class TestExtractThinkingContent:
         
         assert result == "Line 1\nLine 2\nLine 3"
 
+    def test_extract_short_think_tags(self, provider):
+        delta = {"thinking": "<think>Short tag content</think>"}
+
+        result = provider._extract_thinking_content(delta)
+
+        assert result == "Short tag content"
+
     def test_extract_from_dict_text_field(self, provider):
         delta = {"reasoning_content": {"text": "Nested text"}}
         
@@ -383,6 +390,25 @@ class TestExtractThinkingContent:
         result = provider._extract_thinking_content(delta)
 
         assert result == "Nested content"
+
+    def test_extract_from_camel_case_reasoning_content(self, provider):
+        delta = {"reasoningContent": "Camel case reasoning"}
+
+        result = provider._extract_thinking_content(delta)
+
+        assert result == "Camel case reasoning"
+
+    def test_extract_from_structured_thinking_content_blocks(self, provider):
+        delta = {
+            "content": [
+                {"type": "text", "text": "normal assistant text"},
+                {"type": "thinking", "text": "reasoning block"},
+            ]
+        }
+
+        result = provider._extract_thinking_content(delta)
+
+        assert result == "reasoning block"
 
     def test_extract_from_dict_non_string_nested_value_returns_none(self, provider):
         delta = {"reasoning_content": {"text": 123}}
