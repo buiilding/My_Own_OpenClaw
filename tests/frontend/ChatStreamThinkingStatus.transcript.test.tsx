@@ -252,6 +252,36 @@ describe('useChatStream transcript + event filtering', () => {
     expect(transcriptSpies.updateTranscriptSession).not.toHaveBeenCalled();
   });
 
+  test('ignores stale memory-store events when payload session_id does not match active conversation', async () => {
+    setMockActiveConversationRef('conv-active');
+    const invokeSpy = jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({ success: true });
+    const { emitBackendEvent } = registerBackendListener();
+    useChatStore.setState({
+      streamTracking: {
+        ...useChatStore.getState().streamTracking,
+        activeTurnRef: 'turn-active',
+        phase: 'streaming',
+      },
+    });
+
+    await act(async () => {
+      emitBackendEvent({
+        type: 'memory-store',
+        payload: {
+          user_query: 'hi',
+          assistant_response: 'hello',
+          memory_type: 'episodic',
+          session_id: 'conv-stale',
+          user_id: 'user-1',
+        },
+      });
+      await Promise.resolve();
+    });
+
+    expect(invokeSpy).not.toHaveBeenCalled();
+    expect(transcriptSpies.updateTranscriptSession).not.toHaveBeenCalled();
+  });
+
   test('still processes events that omit conversation_ref for compatibility', () => {
     setMockActiveConversationRef('conv-active');
     const { emitBackendEvent } = registerBackendListener();
