@@ -104,6 +104,11 @@ Renderer camelCase to sidecar snake_case conversions:
 
 Output always sends `exclude_conversation_id` to sidecar method `search_memory`.
 
+Search payload validation at sidecar boundary:
+
+- `query` must be a non-empty string (trimmed)
+- `memory_type` must be a string when provided and must normalize to `episodic` or `semantic`
+
 ## Sidecar JSON-RPC Response Envelope
 
 Sidecar memory handlers return shape:

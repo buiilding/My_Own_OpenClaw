@@ -66,11 +66,13 @@ Input defaults:
 
 Behavior:
 
-1. require non-empty `query`
-2. build filters via `build_memory_filters(memory_type)`
-3. call `memory_store.search(query, user_id, filters, limit)`
-4. group result texts with `group_memory_texts(...)`
-5. return grouped episodic/semantic memories
+1. require non-empty string `query` (trimmed)
+2. validate/normalize optional `memory_type` (`episodic|semantic`, case-insensitive)
+3. reject non-string `memory_type`
+4. build filters via `build_memory_filters(memory_type)`
+5. call `memory_store.search(query, user_id, filters, limit)`
+6. group result texts with `group_memory_texts(...)`
+7. return grouped episodic/semantic memories
 
 Failure behavior:
 
