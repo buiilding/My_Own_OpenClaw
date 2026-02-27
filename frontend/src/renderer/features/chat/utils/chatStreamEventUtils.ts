@@ -1,6 +1,10 @@
 import { buildArtifactUrl } from '../../../infrastructure/services/ArtifactUploader';
 
 const SETTINGS_UPDATE_ERROR_TEXT = 'Failed to update settings';
+const RECOVERABLE_TOOL_PARSE_ERROR_MARKERS = [
+  'failed to parse streamed tool-call arguments',
+  'raw arguments preview:',
+];
 
 type ErrorPayload = {
   message?: unknown;
@@ -15,9 +19,15 @@ type ToolOutputPayload = {
 export function shouldIgnoreStreamError(payload: ErrorPayload | null | undefined): boolean {
   const message = payload?.message;
   const content = payload?.content;
+  const normalizedMessage = typeof message === 'string' ? message.toLowerCase() : '';
+  const normalizedContent = typeof content === 'string' ? content.toLowerCase() : '';
+  const isRecoverableToolParseError = RECOVERABLE_TOOL_PARSE_ERROR_MARKERS.every((marker) => (
+    normalizedMessage.includes(marker) || normalizedContent.includes(marker)
+  ));
   return (
     (typeof message === 'string' && message.includes(SETTINGS_UPDATE_ERROR_TEXT))
     || (typeof content === 'string' && content.includes(SETTINGS_UPDATE_ERROR_TEXT))
+    || isRecoverableToolParseError
   );
 }
 

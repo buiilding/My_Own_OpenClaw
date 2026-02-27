@@ -406,6 +406,34 @@ describe('useChatStream state + stream handling', () => {
     expect(useChatStore.getState().messages).toHaveLength(1);
   });
 
+  test('suppresses recoverable streamed tool-call parse errors in chat banner', () => {
+    const { emitBackendEvent } = registerBackendListener();
+    act(() => {
+      useChatStore.setState({
+        isSending: true,
+        thinkingStatus: 'thinking',
+        messages: [{ id: 'init', text: 'Hello!', sender: 'assistant' }],
+      });
+    });
+
+    act(() => {
+      emitBackendEvent({
+        type: 'error',
+        payload: {
+          content: (
+            'Unexpected system error: Invalid response from stream: '
+            + 'failed to parse streamed tool-call arguments for id=tool_bad name=run_shell_command. '
+            + 'Raw arguments preview: \'{"command":"cat > index.html << \\"EOF\\""}\''
+          ),
+        },
+      });
+    });
+
+    expect(useChatStore.getState().isSending).toBe(true);
+    expect(useChatStore.getState().thinkingStatus).toBe('thinking');
+    expect(useChatStore.getState().messages).toHaveLength(1);
+  });
+
   test('handles real errors even when error text is in payload content', () => {
     const { emitBackendEvent } = registerBackendListener();
     act(() => {

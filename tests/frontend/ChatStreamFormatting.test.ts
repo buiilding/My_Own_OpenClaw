@@ -57,6 +57,27 @@ describe('chatStreamFormatting utils', () => {
     );
   });
 
+  test('formats recoverable parse-failure tool call with raw preview metadata', () => {
+    const formatted = formatToolCallPayload({
+      tool_name: 'run_shell_command',
+      parameters: {},
+      metadata: {
+        llm_tool_call_validation_failed: true,
+        skip_frontend_execution: true,
+        llm_tool_call_raw_arguments_preview: '{"command":"cat > index.html << \\"EOF\\""}...[truncated]',
+        llm_tool_call_parse_error: 'failed to parse streamed tool-call arguments',
+      },
+    });
+
+    const parsed = JSON.parse(formatted);
+    expect(parsed.name).toBe('run_shell_command');
+    expect(parsed.raw_arguments_preview).toContain('cat > index.html');
+    expect(parsed.raw_arguments_preview).toContain('[truncated]');
+    expect(parsed.parse_error).toBe('failed to parse streamed tool-call arguments');
+    expect(parsed.frontend_execution_skipped).toBe(true);
+    expect(parsed.arguments).toBeUndefined();
+  });
+
   test('formats undefined tool call payload as empty object', () => {
     expect(formatToolCallPayload(undefined)).toBe(
       JSON.stringify({ arguments: {} }, null, 2),

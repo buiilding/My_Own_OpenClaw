@@ -156,7 +156,9 @@ class _ErrorOnlyLLMHandler:
             yield ErrorEvent(
                 content=(
                     "Unexpected system error: Invalid response from stream: "
-                    "failed to parse streamed tool-call arguments for id=tool_bad name=replace"
+                    "failed to parse streamed tool-call arguments for id=tool_bad name=replace. "
+                    "Raw arguments preview: '{\"command\":\"cat > index.html << \\\"EOF\\\"\\\\n"
+                    "<!DOCTYPE html>...\"...[truncated]'"
                 )
             )
             yield FullResponseEvent(content="")
@@ -185,13 +187,27 @@ async def test_interaction_loop_recovers_after_stream_tool_call_format_error():
     events = [event async for event in loop.run_loop()]
 
     assert any(isinstance(event, ErrorEvent) for event in events)
-    assert any(isinstance(event, ToolCallEvent) for event in events)
-    assert any(isinstance(event, ToolOutputEvent) for event in events)
+    tool_call_events = [event for event in events if isinstance(event, ToolCallEvent)]
+    tool_output_events = [event for event in events if isinstance(event, ToolOutputEvent)]
+    assert tool_call_events
+    assert tool_output_events
     assert any(isinstance(event, StreamingCompleteEvent) for event in events)
     assert tool_executor.execute_called is False
     assert session.history.assistant_messages[-1][0] == "Recovered and sending corrected tool call."
     assert session.history.tool_outputs
     assert "malformed tool-call arguments from model" in session.history.tool_outputs[-1][0]
+    fallback_call = tool_call_events[0]
+    assert fallback_call.metadata is not None
+    assert fallback_call.metadata["llm_tool_call_validation_failed"] is True
+    assert fallback_call.metadata["skip_frontend_execution"] is True
+    assert "index.html" in fallback_call.metadata["llm_tool_call_raw_arguments_preview"]
+    assert fallback_call.metadata["llm_tool_call_raw_arguments_preview_truncated"] is True
+    assert "failed to parse streamed tool-call arguments" in fallback_call.metadata["llm_tool_call_parse_error"]
+    assert "raw_arguments_preview" in fallback_call.parameters
+    assert "parse_error" in fallback_call.parameters
+    fallback_output = tool_output_events[0]
+    assert fallback_output.metadata is not None
+    assert fallback_output.metadata["llm_tool_call_validation_failed"] is True
 
 
 class _FatalErrorOnlyLLMHandler:
