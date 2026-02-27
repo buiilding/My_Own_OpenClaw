@@ -26,7 +26,7 @@ const CHATBOX_SIZE_MODES = Object.freeze({
 });
 const RESIZE_TRANSITION_LOCK_MS = 240;
 const RESIZE_DEBOUNCE_MS = 40;
-const WITH_PREVIEW_TOP_HEADROOM_PX = 10;
+const WITH_PREVIEW_TOP_HEADROOM_PX = 14;
 
 function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -292,7 +292,11 @@ function ChatBox() {
         return;
       }
       const activeMode = resizeSyncState.activeMode;
-      const measuredHeight = measuredFrame.height + (
+      const shellScrollHeight = Number(shellRef.current?.scrollHeight || 0);
+      const baseMeasuredHeight = Number.isFinite(shellScrollHeight) && shellScrollHeight > 0
+        ? Math.max(measuredFrame.height, Math.round(shellScrollHeight))
+        : measuredFrame.height;
+      const measuredHeight = baseMeasuredHeight + (
         activeMode === CHATBOX_SIZE_MODES.WITH_PREVIEW ? WITH_PREVIEW_TOP_HEADROOM_PX : 0
       );
       if (resizeSyncState.cachedModeHeights[activeMode] == null) {

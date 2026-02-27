@@ -21,7 +21,7 @@ const mockUseVoiceMode = jest.fn(() => ({
 const mockUpdateConfig = jest.fn();
 const mockCompactHistory = jest.fn();
 const mockIsDevUiEnabled = jest.fn(() => false);
-const WITH_PREVIEW_TOP_HEADROOM_PX = 10;
+const WITH_PREVIEW_TOP_HEADROOM_PX = 14;
 
 const setWindowScreenPosition = (x, y) => {
   Object.defineProperty(window, 'screenX', {
@@ -334,6 +334,53 @@ describe('ChatBox overlay mouse ignore', () => {
       global.ResizeObserver = originalResizeObserver;
       jest.useRealTimers();
     }
+  });
+
+  test('uses shell scrollHeight when it exceeds rounded frame height in preview mode', async () => {
+    jest.useFakeTimers();
+    const rafQueue = [];
+    global.requestAnimationFrame = (cb) => {
+      rafQueue.push(cb);
+      return rafQueue.length;
+    };
+    global.cancelAnimationFrame = jest.fn();
+    const flushResizeSync = async () => {
+      await act(async () => {
+        rafQueue.splice(0).forEach((cb) => cb());
+        jest.advanceTimersByTime(45);
+        await Promise.resolve();
+      });
+    };
+    const resizeHeights = () => mockInvoke.mock.calls
+      .filter(([channel]) => channel === 'set-chatbox-size')
+      .map(([, payload]) => payload?.height);
+    let measuredFrame = { width: 200, height: 52 };
+    mockGetRoundedFrameSize.mockImplementation(() => measuredFrame);
+
+    const { container } = render(<ChatBox />);
+    const shell = container.querySelector('.chatbox-shell');
+    expect(shell).toBeTruthy();
+
+    Object.defineProperty(shell, 'scrollHeight', {
+      value: 52,
+      configurable: true,
+    });
+    await flushResizeSync();
+    expect(resizeHeights().at(-1)).toBe(52);
+
+    Object.defineProperty(shell, 'scrollHeight', {
+      value: 120,
+      configurable: true,
+    });
+    measuredFrame = { width: 200, height: 88 };
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+      await Promise.resolve();
+    });
+    await flushResizeSync();
+
+    expect(resizeHeights().at(-1)).toBe(120 + WITH_PREVIEW_TOP_HEADROOM_PX);
+    jest.useRealTimers();
   });
 
   test('wires overlay sender surface for centralized UI send behavior', () => {
