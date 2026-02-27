@@ -32,6 +32,8 @@ async function handleSetChatboxSize(
   {
     width,
     height,
+    anchor_x: anchorX,
+    anchor_bottom: anchorBottom,
   } = {},
   deps = {},
 ) {
@@ -49,6 +51,8 @@ async function handleSetChatboxSize(
 
   const nextWidth = Math.max(1, Math.min(900, Math.round(Number(width) || 0)));
   const nextHeight = Math.max(1, Math.min(7500, Math.round(Number(height) || 0)));
+  const requestedAnchorX = Number(anchorX);
+  const requestedAnchorBottom = Number(anchorBottom);
   try {
     const anchorState = getOrCreateAnchorState(chatWindow);
     const [curWidth, curHeight] = chatWindow.getSize();
@@ -57,6 +61,12 @@ async function handleSetChatboxSize(
     }
 
     // Keep bottom fixed and preserve x across resize bursts.
+    if (Number.isFinite(requestedAnchorX)) {
+      anchorState.x = Math.round(requestedAnchorX);
+    }
+    if (Number.isFinite(requestedAnchorBottom)) {
+      anchorState.bottom = Math.round(requestedAnchorBottom);
+    }
     let fallbackBounds = null;
     const currentBounds = typeof chatWindow.getBounds === 'function'
       ? chatWindow.getBounds()

@@ -246,9 +246,13 @@ function ChatBox() {
       resizeSyncState.inFlight = true;
       lastSizeRef.current = { width: nextFrame.width, height: nextFrame.height };
       try {
+        const anchorX = Number(window.screenX);
+        const anchorBottom = Number(window.screenY) + Number(window.innerHeight || 0);
         await IpcBridge.invoke(INVOKE_CHANNELS.SET_CHATBOX_SIZE, {
           width: nextFrame.width,
           height: nextFrame.height,
+          anchor_x: Number.isFinite(anchorX) ? Math.round(anchorX) : undefined,
+          anchor_bottom: Number.isFinite(anchorBottom) ? Math.round(anchorBottom) : undefined,
         });
       } catch (error) {
         console.warn('[ChatBox] Failed to resize chatbox window:', error);
