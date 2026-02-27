@@ -3,6 +3,7 @@ summary: "Renderer transcript runtime reference: session identity state, queued 
 read_when:
   - When changing transcript write behavior, session identity wiring, or `store-transcript` payload shape.
   - When debugging missing transcript rows, stuck pending transcript queues, or resume-conversation rehydrate mismatches.
+  - When changing try-again/edit+resend replay sequencing in `useConversationReplayActions.js`.
 title: "Transcript Session and Rehydrate Reference"
 ---
 
@@ -18,6 +19,7 @@ title: "Transcript Session and Rehydrate Reference"
 - `frontend/src/renderer/infrastructure/transcript/pendingToolQueue.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
+- `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js`
 - `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
 - `frontend/src/renderer/features/chat/utils/newChatSession.ts`
 - `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
@@ -134,6 +136,16 @@ Flush behavior (`flushPendingMessages`):
 6. replace renderer chat store with parsed rows
 
 Search modal uses the same open path after `search-conversations` results.
+
+## Try-Again and Edit+Resend Replay Contract
+
+Replay rehydrate must keep prior context stable.
+
+- Keep all prior non-tool transcript rows.
+- Keep valid tool history pairs (`tool-call` + matching `tool-output`).
+- Remove only orphan tool rows (call without output, output without call).
+
+This contract prevents provider tool-call sequencing errors without losing valid tool context.
 
 ## Main/Sidecar Contract for Transcript Storage
 
