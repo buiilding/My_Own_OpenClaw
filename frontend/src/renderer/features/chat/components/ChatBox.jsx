@@ -7,6 +7,8 @@ import { getRoundedFrameSize } from '../utils/overlayFrameSize';
 import { subscribeResponseOverlayPhase } from '../utils/overlayPhaseListener';
 import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
+import { ApiClient } from '../../../infrastructure/api/client';
+import { isDevUiEnabled } from '../utils/devUiFlag';
 
 const CLICK_THROUGH_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
 const OVERLAY_ACTIVE_PHASES = new Set(['awaiting-first-chunk', 'streaming']);
@@ -50,6 +52,17 @@ function SoundIcon() {
   );
 }
 
+function CompactIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 10h11" />
+      <path d="M11 6l4 4-4 4" />
+      <path d="M20 14H9" />
+      <path d="M13 18l-4-4 4-4" />
+    </svg>
+  );
+}
+
 function ChatBox() {
   const { config, updateConfig } = useAppConfigContext();
   const isSending = useChatStore((state) => state.isSending);
@@ -74,6 +87,7 @@ function ChatBox() {
   });
   const wakewordSttEnabled = config?.wakeword_stt_enabled === true;
   const speechModeEnabled = config?.speech_mode_enabled === true;
+  const devUiEnabled = isDevUiEnabled();
   const {
     inputValue,
     setInputValue,
@@ -258,6 +272,10 @@ function ChatBox() {
     });
   }, [speechModeEnabled, updateConfig]);
 
+  const handleDevAutoCompaction = useCallback(() => {
+    ApiClient.compactHistory(true);
+  }, []);
+
   const handleDragMove = useCallback((event) => {
     const dragState = dragStateRef.current;
     if (!dragState.isDragging) {
@@ -337,6 +355,17 @@ function ChatBox() {
           >
             <SettingsIcon />
           </button>
+          {devUiEnabled ? (
+            <button
+              type="button"
+              className="chatbox-icon chatbox-dev-compact"
+              onClick={handleDevAutoCompaction}
+              aria-label="Run auto compaction"
+              title="Run auto compaction"
+            >
+              <CompactIcon />
+            </button>
+          ) : null}
           <div className="chatbox-input-wrap">
             <input
               ref={inputRef}

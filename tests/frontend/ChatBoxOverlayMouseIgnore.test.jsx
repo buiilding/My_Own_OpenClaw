@@ -17,6 +17,8 @@ const mockUseVoiceMode = jest.fn(() => ({
   clientId: null,
 }));
 const mockUpdateConfig = jest.fn();
+const mockCompactHistory = jest.fn();
+const mockIsDevUiEnabled = jest.fn(() => false);
 
 const setWindowScreenPosition = (x, y) => {
   Object.defineProperty(window, 'screenX', {
@@ -92,6 +94,16 @@ jest.mock('../../frontend/src/renderer/features/chat/hooks/useChatMessageSender'
   useChatMessageSender: (...args) => mockUseChatMessageSender(...args),
 }));
 
+jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
+  ApiClient: {
+    compactHistory: (...args) => mockCompactHistory(...args),
+  },
+}));
+
+jest.mock('../../frontend/src/renderer/features/chat/utils/devUiFlag', () => ({
+  isDevUiEnabled: () => mockIsDevUiEnabled(),
+}));
+
 describe('ChatBox overlay mouse ignore', () => {
   beforeEach(() => {
     mockInvoke.mockClear();
@@ -101,6 +113,9 @@ describe('ChatBox overlay mouse ignore', () => {
     mockUseVoiceMode.mockClear();
     mockUpdateConfig.mockClear();
     mockSendMessage.mockClear();
+    mockCompactHistory.mockClear();
+    mockIsDevUiEnabled.mockReset();
+    mockIsDevUiEnabled.mockReturnValue(false);
     mockChatState.messages = [];
     mockChatState.streamTracking.phase = 'idle';
   });
@@ -162,6 +177,19 @@ describe('ChatBox overlay mouse ignore', () => {
         && payload?.maximize === true
         && payload?.open === 'chat',
     );
+  });
+
+  test('does not render compaction control when dev UI flag is disabled', () => {
+    render(<ChatBox />);
+    expect(screen.queryByRole('button', { name: 'Run auto compaction' })).not.toBeInTheDocument();
+  });
+
+  test('renders dev compaction control and dispatches compact-history', () => {
+    mockIsDevUiEnabled.mockReturnValue(true);
+    render(<ChatBox />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Run auto compaction' }));
+    expect(mockCompactHistory).toHaveBeenCalledWith(true);
   });
 
   test('dragging pill sends absolute move-chatbox-to coordinates', () => {
