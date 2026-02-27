@@ -192,6 +192,51 @@ describe('episodicMemoryUtils', () => {
     ]);
   });
 
+  test('parseMemoriesToMessages hydrates transcript transparency metadata for UI rendering', () => {
+    const messages = parseMemoriesToMessages([
+      {
+        id: 'assistant-with-transparency',
+        role: 'assistant',
+        content: 'assistant answer',
+        metadata: {
+          transparency: {
+            systemPrompt: 'System prompt text',
+            toolSchemas: [{ type: 'function', function: { name: 'read_file', parameters: { type: 'object' } } }],
+            fullUserMessage: {
+              content: '<user_query>hello</user_query>',
+              metadata: { source: 'past-chat' },
+            },
+            fullAssistantMessage: {
+              content: '<assistant_response>hi</assistant_response>',
+            },
+          },
+        },
+      },
+    ]);
+
+    expect(messages).toEqual([
+      {
+        id: 'assistant-with-transparency-0',
+        text: 'assistant answer',
+        sender: 'assistant',
+        type: 'llm-text',
+        systemPrompt: {
+          content: 'System prompt text',
+          toolSchemas: [{ type: 'function', function: { name: 'read_file', parameters: { type: 'object' } } }],
+        },
+        toolSchemas: [{ type: 'function', function: { name: 'read_file', parameters: { type: 'object' } } }],
+        fullUserMessage: {
+          content: '<user_query>hello</user_query>',
+          metadata: { source: 'past-chat' },
+        },
+        fullAssistantMessage: {
+          content: '<assistant_response>hi</assistant_response>',
+        },
+        isComplete: true,
+      },
+    ]);
+  });
+
   test('toRehydrateMessagePayload appends saved transparency context to content', () => {
     const payload = toRehydrateMessagePayload({
       role: 'assistant',

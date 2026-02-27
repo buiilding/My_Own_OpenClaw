@@ -47,5 +47,15 @@ export function buildTransparencySectionConfigs(message) {
     });
   }
 
+  if (message.fullAssistantMessage) {
+    sections.push({
+      key: 'assistant-message-full',
+      title: 'Full Assistant Message (Complete)',
+      content: message.fullAssistantMessage.content,
+      metadata: null,
+      type: 'xml',
+    });
+  }
+
   return sections;
 }
