@@ -112,6 +112,7 @@ This is required after main-process `showChatWindow({ focus: true })`.
   - preview-expanded pill: `with-preview` on shell/pill while image attachments exist
 - compact default state centers the main control row vertically within the pill; preview-expanded state keeps controls anchored lower beneath the preview lane.
 - response/typing/context-label overlays in main process use a compact visual anchor height so their vertical position follows the visible compact pill baseline instead of the full transparent chat window height.
+- response/typing overlay uses a tighter chat-to-response vertical gap (`2px` in current non-dashboard main runtime) to keep the response pill visually near the chat pill.
 - clipboard image parsing is shared through `clipboardImageUtils.parseClipboardImageItems(...)` (also used by dashboard `MessageInput`) to keep screenshot/paste payload shape consistent across overlay and dashboard composer surfaces.
 - result: no live overlay window bounds churn while typing, startup, or adding/removing images.
 

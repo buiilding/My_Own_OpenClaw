@@ -30,6 +30,7 @@ describe('overlay_window_helpers_runtime', () => {
       expect.objectContaining({
         width: 400,
         height: 200,
+        gap: 10,
         chatBounds: expect.objectContaining({
           x: 200,
           width: 520,
@@ -72,6 +73,38 @@ describe('overlay_window_helpers_runtime', () => {
           height: 64,
           y: 732,
         }),
+      }),
+    );
+  });
+
+  test('passes configured response gap override for tighter chat/response spacing', () => {
+    const chatWindow = {
+      isDestroyed: jest.fn(() => false),
+      getBounds: jest.fn(() => ({ x: 240, y: 700, width: 520, height: 116 })),
+    };
+    const getOverlayResponseWindowBounds = jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 }));
+
+    const runtime = createOverlayWindowHelpersRuntime({
+      screen: {},
+      getChatWindow: () => chatWindow,
+      getOverlayChatWindowBounds: jest.fn(),
+      getOverlayResponseWindowBounds,
+      getOverlayContextLabelWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
+      contextLabelWidth: 280,
+      contextLabelHeight: 26,
+      contextLabelOffsetX: 14,
+      contextLabelGapAboveChatbox: -6,
+      chatVisualAnchorHeight: 64,
+      responseGap: 2,
+    });
+
+    runtime.getResponseWindowBounds(380, 140);
+
+    expect(getOverlayResponseWindowBounds).toHaveBeenCalledWith(
+      expect.objectContaining({
+        width: 380,
+        height: 140,
+        gap: 2,
       }),
     );
   });
