@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(backend-memory-query-sanitization): ensure executor stores/publishes raw user query text by extracting `<user_query>` from enriched message content (XML-unescaped) before writing `user_query_raw`, `InteractionCompleted.user_message`, and `MemoryStoreEvent.user_query`.
 - fix(frontend-memory-store-gating): treat `memory-store` events as conversation-scoped by resolving fallback session ids in stream conversation guard, preventing stale-session episodic pair writes when `conversation_ref` is absent.
 - refactor(memory-summarizer-notify): remove stale `store_memory -> increment_pending_count` coupling now that summarizer run-gate is DB interaction-row count; keep best-effort summarizer `notify_new_memory(user_id)` only, align sidecar docs/tests, and include episodic stats counting both transcript and interaction rows.
 - refactor(memory-episodic-semantic-boundary): route backend `memory-store` stream events to renderer `store-memory` IPC, persist episodic interaction rows as `record_kind='interaction'`, and switch semantic-summarizer gating/source queries from transcript rows to unsemanticized interaction rows (with sidecar/frontend regression coverage and docs refresh).
