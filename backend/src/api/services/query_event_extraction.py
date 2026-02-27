@@ -39,7 +39,7 @@ def extract_dict_string_field(
         return None
 
     top_level_value = event.get(top_level_key)
-    if isinstance(top_level_value, str):
+    if isinstance(top_level_value, str) and top_level_value.strip():
         return top_level_value
 
     payload = extract_dict_payload(event)
