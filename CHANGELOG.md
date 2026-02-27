@@ -7,11 +7,13 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-memory-store-helper): add shared `normalize_and_store_interaction_memory(...)` operation and reuse it in both `local_backend` and `memory_service` store handlers, reducing duplicated store-memory flow while preserving error/response behavior.
 - refactor(frontend-main-local-backend): extract shell-tool argument normalization into `local_backend_bridge_tool_args.cjs` and add direct unit coverage, reducing `local_backend_bridge.cjs` to sub-500 LOC without changing sidecar IPC behavior.
 - test(backend-tool-argument-normalization): add strict regressions for invalid assistant `tool_calls` shape, `model_dump` fallback to `dict()`, and unsupported argument payload type rejection.
 - refactor(frontend-overlay-ipc): remove deprecated `set-chatbox-size` IPC channel/handler from preload, typed renderer channels, and overlay runtime registration now that non-dashboard chat-pill sizing is fixed; keep drag-only chatbox IPC ownership and add regression coverage to prevent channel reintroduction.
 - docs(backend-inventory): refresh backend inventory counts (`322` Python files), add missing LLM stream-tool aggregation ownership, and tighten API schema/contract alignment details across capability and runtime matrix references.
 - docs(frontend-inventory): refresh frontend inventory counts (`35` main / `141` sidecar / `139` renderer / `329` total), add `ipc_settings_sync` and sidecar remote-client ownership, and expand provider-config/runtime boundary details.
+- docs(frontend-protocol-inventory): refresh IPC protocol matrix/validation counts (`invoke=33`, RPC mapper definitions=`10`), add missing invoke channel coverage (`delete-episodic-memory`, `prepare-overlay-tool-focus`), and wire `ipc_settings_sync` ownership across lifecycle/state/error/observability/testing protocol references.
 - test(backend-provider-utils): add parser/normalizer regressions for completion text fallback, tool-only delta suppression, blank tool_call_id drops, and OpenAI function-argument shape normalization.
 - test(backend-stream-tool-aggregation): add Gemini + Kimi stream regression coverage for Anthropic `tool_use` block parsing, synthesized fallback tool-call ids, and argument-object precedence over fragmented string chunks.
 - refactor(frontend-chat-compose): extract shared clipboard-image parser utility (`clipboardImageUtils.parseClipboardImageItems`) and reuse it across dashboard `MessageInput` and overlay `ChatBox`, reducing duplicate file-reader/data-url parsing logic and aligning attachment payload normalization.
