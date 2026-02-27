@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for sidecar core connectivity/runtime helpers: backend HTTP URL env precedence, remote embedding/semantic/title client request contracts, session lifecycle + timeout defaults, and singleton thread-pool reuse/shutdown semantics."
+summary: "Deep reference for sidecar core connectivity/runtime helpers: backend HTTP URL env precedence, remote embedding/semantic/title client request contracts, shared base-client lifecycle semantics, and singleton thread-pool reuse/shutdown behavior."
 read_when:
-  - When changing `core/backend_config.py`, `core/remote_embedding_client.py`, `core/remote_semantic_client.py`, `core/remote_title_client.py`, or `core/thread_pool.py`.
-  - When debugging backend URL drift, memory client HTTP errors, title client failures, or thread-pool reuse/shutdown behavior.
+  - When changing `core/backend_config.py`, `core/remote_api_client_base.py`, `core/remote_embedding_client.py`, `core/remote_semantic_client.py`, `core/remote_title_client.py`, or `core/thread_pool.py`.
+  - When debugging backend URL drift, memory client HTTP errors, title client failures, base-client error wrappers, or thread-pool reuse/shutdown behavior.
 title: "Backend URL Resolution, Remote Memory Clients, and Thread-Pool Runtime Reference"
 ---
 
@@ -11,6 +11,7 @@ title: "Backend URL Resolution, Remote Memory Clients, and Thread-Pool Runtime R
 ## Canonical Modules
 
 - `frontend/src/main/python/core/backend_config.py`
+- `frontend/src/main/python/core/remote_api_client_base.py`
 - `frontend/src/main/python/core/remote_embedding_client.py`
 - `frontend/src/main/python/core/remote_semantic_client.py`
 - `frontend/src/main/python/core/remote_title_client.py`
@@ -21,6 +22,7 @@ title: "Backend URL Resolution, Remote Memory Clients, and Thread-Pool Runtime R
 - `tests/sidecar/test_remote_embedding_client.py`
 - `tests/sidecar/test_remote_semantic_client.py`
 - `tests/sidecar/test_remote_title_client.py`
+- `tests/sidecar/remote_client_test_utils.py`
 - `tests/sidecar/test_thread_pool.py`
 
 ## Backend HTTP URL Resolution
@@ -115,6 +117,11 @@ All remote memory clients follow same lifecycle:
 
 This pattern avoids per-request session creation overhead while keeping explicit shutdown path.
 
+Shared-base note:
+
+- semantic/title clients route request/timeout/success/error handling through `RemoteApiClientBase._post_success_json(...)`
+- embedding client currently uses a parallel/manual path (does not inherit the base yet)
+
 ## Thread-Pool Singleton Semantics
 
 `core/thread_pool.py` provides process-global executor:
@@ -176,5 +183,6 @@ This executor is intended for sidecar-wide blocking/CPU offload reuse.
 ## Related Pages
 
 - [Frontend Sidecar Core Docs Hub](README.md)
+- [Remote API Client Base Session Lifecycle, Timeout, and Error-Wrapper Contract Reference](remote_api_client_base_session_lifecycle_timeout_and_error_wrapper_contract_reference.md)
 - [JSON-RPC Protocol, Stdout Framing, and Shutdown Signal Runtime Reference](json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md)
 - [Memory Pipeline and Summarization](../memory_pipeline_and_summarization.md)
