@@ -24,6 +24,7 @@ const CHATBOX_SIZE_MODES = Object.freeze({
   COMPACT: 'compact',
   WITH_PREVIEW: 'with-preview',
 });
+const RESIZE_TRANSITION_LOCK_MS = 240;
 
 function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -135,6 +136,7 @@ function ChatBox() {
     debounceHandle: null,
     inFlight: false,
     queuedSize: null,
+    transitionLockUntil: 0,
     activeMode: CHATBOX_SIZE_MODES.COMPACT,
     cachedModeHeights: {
       [CHATBOX_SIZE_MODES.COMPACT]: null,
@@ -260,7 +262,10 @@ function ChatBox() {
       }
     };
 
-    const measureAndQueueSize = () => {
+    const measureAndQueueSize = ({ force = false } = {}) => {
+      if (!force && Date.now() < resizeSyncState.transitionLockUntil) {
+        return;
+      }
       const measuredFrame = getRoundedFrameSize(shellRef.current);
       if (!measuredFrame) {
         return;
@@ -276,7 +281,7 @@ function ChatBox() {
       void flushSizeUpdate(nextFrame);
     };
 
-    const scheduleSizeSync = () => {
+    const scheduleSizeSync = ({ force = false } = {}) => {
       if (resizeSyncState.frameHandle) {
         cancelFrame(resizeSyncState.frameHandle);
       }
@@ -287,7 +292,7 @@ function ChatBox() {
         resizeSyncState.frameHandle = null;
         resizeSyncState.debounceHandle = window.setTimeout(() => {
           resizeSyncState.debounceHandle = null;
-          measureAndQueueSize();
+          measureAndQueueSize({ force });
         }, 40);
       });
     };
@@ -325,7 +330,9 @@ function ChatBox() {
   useEffect(() => {
     const resizeSyncState = resizeSyncRef.current;
     resizeSyncState.activeMode = activeResizeMode;
-    resizeSyncState.scheduleSizeSync?.();
+    resizeSyncState.queuedSize = null;
+    resizeSyncState.transitionLockUntil = Date.now() + RESIZE_TRANSITION_LOCK_MS;
+    resizeSyncState.scheduleSizeSync?.({ force: true });
   }, [activeResizeMode]);
 
   useEffect(() => {

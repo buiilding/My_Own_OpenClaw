@@ -25,8 +25,28 @@ async function handleSetChatboxSize(
       return { success: true, resized: false };
     }
 
-    // Apply size+position atomically to keep the chat input pill anchored.
-    const bounds = getChatWindowBounds(nextWidth, nextHeight);
+    // Keep the current horizontal position and bottom anchor to avoid visible position churn.
+    let bounds = null;
+    const currentBounds = typeof chatWindow.getBounds === 'function'
+      ? chatWindow.getBounds()
+      : null;
+    if (
+      currentBounds
+      && Number.isFinite(currentBounds.x)
+      && Number.isFinite(currentBounds.y)
+      && Number.isFinite(currentBounds.height)
+    ) {
+      const currentBottom = currentBounds.y + currentBounds.height;
+      bounds = {
+        x: Math.round(currentBounds.x),
+        y: Math.round(currentBottom - nextHeight),
+        width: nextWidth,
+        height: nextHeight,
+      };
+    } else {
+      bounds = getChatWindowBounds(nextWidth, nextHeight);
+    }
+
     chatWindow.setBounds(bounds, false);
     positionResponseWindow();
     positionContextLabelWindow();
