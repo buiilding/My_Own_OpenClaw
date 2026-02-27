@@ -8,6 +8,12 @@ const {
   loadFrontendConfigFromDisk,
   saveFrontendConfigToDisk,
 } = require('./ipc_frontend_config.cjs');
+const {
+  clearPendingSettingsSyncs,
+  isValidConfigPayload,
+  resolveSettingsSync,
+  waitForSettingsAck,
+} = require('./ipc_settings_sync.cjs');
 const { buildQueryPayloadContent } = require('./query_payload_builder.cjs');
 const {
   resolveConversationRef: resolveConversationRefFromPayload,
@@ -85,18 +91,10 @@ async function persistFrontendConfigToDisk(config) {
   return result;
 }
 
-function clearPendingSettingsSyncs() {
-  for (const { resolve, timer } of pendingSettingsSyncs.values()) {
-    clearTimeout(timer);
-    resolve(false);
-  }
-  pendingSettingsSyncs.clear();
-}
-
 function resetSettingsSyncState() {
   hasAttemptedInitialSettingsSync = false;
   pendingSettingsSyncPromise = null;
-  clearPendingSettingsSyncs();
+  clearPendingSettingsSyncs(pendingSettingsSyncs);
 }
 
 function resetBackendSessionState() {
@@ -118,31 +116,6 @@ function broadcastConnectionStatus(connected) {
   broadcastToRenderers('ipc-status', buildIpcStatusPayload(connected));
 }
 
-function resolveSettingsSync(msgId, wasSuccessful) {
-  const pending = pendingSettingsSyncs.get(msgId);
-  if (!pending) {
-    return;
-  }
-  clearTimeout(pending.timer);
-  pendingSettingsSyncs.delete(msgId);
-  pending.resolve(Boolean(wasSuccessful));
-}
-
-function waitForSettingsAck(msgId, source) {
-  return new Promise((resolve) => {
-    const timer = setTimeout(() => {
-      pendingSettingsSyncs.delete(msgId);
-      log(`Settings sync timeout (${source}) for message ${msgId}`);
-      resolve(false);
-    }, SETTINGS_SYNC_TIMEOUT_MS);
-    pendingSettingsSyncs.set(msgId, { resolve, timer });
-  });
-}
-
-function isValidConfigPayload(config) {
-  return Boolean(config) && typeof config === 'object' && !Array.isArray(config);
-}
-
 function sendSettingsUpdate(config, source = 'renderer') {
   if (!isValidConfigPayload(config)) {
     return Promise.resolve(false);
@@ -152,7 +125,13 @@ function sendSettingsUpdate(config, source = 'renderer') {
   if (!msgId) {
     return Promise.resolve(false);
   }
-  const ackPromise = waitForSettingsAck(msgId, source);
+  const ackPromise = waitForSettingsAck(
+    pendingSettingsSyncs,
+    msgId,
+    source,
+    log,
+    SETTINGS_SYNC_TIMEOUT_MS,
+  );
   pendingSettingsSyncPromise = ackPromise.finally(() => {
     if (pendingSettingsSyncPromise === ackPromise) {
       pendingSettingsSyncPromise = null;
@@ -279,7 +258,9 @@ function connect() {
         setCurrentConversationRef: (value) => {
           currentConversationRef = value;
         },
-        resolveSettingsSync,
+        resolveSettingsSync: (msgId, wasSuccessful) => {
+          resolveSettingsSync(pendingSettingsSyncs, msgId, wasSuccessful);
+        },
         setResponseOverlayPhase,
         getResponseOverlayPhase: () => responseOverlayPhase,
         broadcastToRenderers,
