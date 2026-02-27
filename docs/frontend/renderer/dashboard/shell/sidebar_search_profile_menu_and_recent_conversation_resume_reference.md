@@ -57,6 +57,13 @@ Module split ownership:
 - `DashboardSidebar` owns conversation row rendering and per-row action menu state.
 - `useDismissOnOutside` is shared by both profile menu and conversation kebab menu.
 
+Collapse/expand motion contract:
+
+- sidebar width/min-width transitions animate in both directions (expanded `260px` <-> collapsed `56px`) using CSS motion tokens in `ChatGptDashboardShell.css`
+- nav/user/header/footer controls animate positional/spacing changes with the same motion timing so collapse/expand feels continuous instead of snap-only
+- main-content surface applies a subtle counter-shift while collapsed to reinforce sidebar state change
+- reduced-motion users get static transitions disabled via `@media (prefers-reduced-motion: reduce)`
+
 ## Profile Menu Contract
 
 `SidebarUserMenu` owns local `menuOpen` state with document-level dismiss handlers:
