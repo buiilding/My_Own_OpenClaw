@@ -206,6 +206,46 @@ def test_normalize_messages_for_provider_converts_internal_tool_calls_and_drops_
     assert normalized[-1]["tool_call_id"] == "call_1"
 
 
+def test_normalize_messages_for_provider_rejects_non_dict_message_entries():
+    with pytest.raises(LLMAPIError, match="Invalid message at index 0"):
+        normalize_messages_for_provider(["not-a-message"], model="m")
+
+
+def test_normalize_messages_for_provider_returns_original_list_when_no_changes_needed():
+    messages = [{"role": "user", "content": "hello"}]
+    normalized = normalize_messages_for_provider(messages, model="m")
+    assert normalized is messages
+
+
+def test_normalize_messages_for_provider_returns_isolated_tool_calls_when_any_call_changes():
+    messages = [
+        {
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "call_1",
+                    "type": "function",
+                    "function": {"name": "read_file", "arguments": "{\"path\":\"/tmp/a\"}"},
+                },
+                {
+                    "id": "call_2",
+                    "type": "function",
+                    "function": {"name": "replace", "arguments": {"path": "/tmp/b"}},
+                },
+            ],
+        },
+        {"role": "tool", "tool_call_id": "call_1", "content": "ok"},
+        {"role": "tool", "tool_call_id": "call_2", "content": "ok"},
+    ]
+
+    normalized = normalize_messages_for_provider(messages, model="m")
+    messages[0]["tool_calls"][0]["function"]["arguments"] = "{\"path\":\"/tmp/mutated\"}"
+
+    assert normalized[0]["tool_calls"][0]["function"]["arguments"] == "{\"path\":\"/tmp/a\"}"
+    assert normalized[0]["tool_calls"][1]["function"]["arguments"] == "{\"path\":\"/tmp/b\"}"
+
+
 def test_normalize_tools_for_litellm_rejects_legacy_shape():
     with pytest.raises(LLMAPIError, match="field 'type' must be 'function'"):
         normalize_tools_for_litellm(
