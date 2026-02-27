@@ -78,6 +78,8 @@ const CONTEXT_LABEL_WIDTH = 280;
 const CONTEXT_LABEL_HEIGHT = 26;
 const CONTEXT_LABEL_OFFSET_X = 14;
 const CONTEXT_LABEL_GAP_ABOVE_CHATBOX = -6;
+const RESPONSE_OVERLAY_CHAT_GAP = 2;
+const CHATBOX_VISUAL_ANCHOR_HEIGHT = 64;
 const RESPONSE_OVERLAY_PHASE = Object.freeze({
   IDLE: 'idle',
   AWAITING_FIRST_CHUNK: 'awaiting-first-chunk',
@@ -145,6 +147,8 @@ const {
   contextLabelHeight: CONTEXT_LABEL_HEIGHT,
   contextLabelOffsetX: CONTEXT_LABEL_OFFSET_X,
   contextLabelGapAboveChatbox: CONTEXT_LABEL_GAP_ABOVE_CHATBOX,
+  responseGap: RESPONSE_OVERLAY_CHAT_GAP,
+  chatVisualAnchorHeight: CHATBOX_VISUAL_ANCHOR_HEIGHT,
   warn: console.warn,
 });
 

@@ -145,7 +145,11 @@ describe('ChatBox overlay mouse ignore', () => {
 
   test('keeps fixed-size preview lane and does not invoke chatbox resize when images change', async () => {
     const { container } = render(<ChatBox />);
+    const shellWrap = container.querySelector('.chatbox-input-shell-wrap');
+    const pill = container.querySelector('.chatbox-pill');
     const previewRow = container.querySelector('.chatbox-image-preview-row');
+    expect(shellWrap?.classList.contains('with-preview')).toBe(false);
+    expect(pill?.classList.contains('with-preview')).toBe(false);
     expect(previewRow).toBeTruthy();
     expect(previewRow.classList.contains('has-items')).toBe(false);
 
@@ -153,6 +157,8 @@ describe('ChatBox overlay mouse ignore', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
       await Promise.resolve();
     });
+    expect(shellWrap?.classList.contains('with-preview')).toBe(true);
+    expect(pill?.classList.contains('with-preview')).toBe(true);
     expect(previewRow.classList.contains('has-items')).toBe(true);
     expect(mockInvoke.mock.calls.some(([channel]) => channel === 'set-chatbox-size')).toBe(false);
 
@@ -160,7 +166,78 @@ describe('ChatBox overlay mouse ignore', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Remove screenshot 1' }));
       await Promise.resolve();
     });
+    expect(shellWrap?.classList.contains('with-preview')).toBe(false);
+    expect(pill?.classList.contains('with-preview')).toBe(false);
     expect(previewRow.classList.contains('has-items')).toBe(false);
+    expect(mockInvoke.mock.calls.some(([channel]) => channel === 'set-chatbox-size')).toBe(false);
+  });
+
+  test('keeps compact non-preview classes stable on startup without delayed flips', async () => {
+    jest.useFakeTimers();
+    const { container } = render(<ChatBox />);
+    const shellWrap = container.querySelector('.chatbox-input-shell-wrap');
+    const pill = container.querySelector('.chatbox-pill');
+    const previewRow = container.querySelector('.chatbox-image-preview-row');
+
+    expect(shellWrap?.classList.contains('with-preview')).toBe(false);
+    expect(pill?.classList.contains('with-preview')).toBe(false);
+    expect(previewRow?.classList.contains('has-items')).toBe(false);
+
+    await act(async () => {
+      await Promise.resolve();
+      jest.runOnlyPendingTimers();
+      await Promise.resolve();
+      jest.runOnlyPendingTimers();
+    });
+
+    expect(shellWrap?.classList.contains('with-preview')).toBe(false);
+    expect(pill?.classList.contains('with-preview')).toBe(false);
+    expect(previewRow?.classList.contains('has-items')).toBe(false);
+    expect(mockInvoke.mock.calls.some(([channel]) => channel === 'set-chatbox-size')).toBe(false);
+  });
+
+  test('keeps preview-expanded class until last image is removed and stays compact afterward', async () => {
+    jest.useFakeTimers();
+    const { container } = render(<ChatBox />);
+    const shellWrap = container.querySelector('.chatbox-input-shell-wrap');
+    const pill = container.querySelector('.chatbox-pill');
+    const previewRow = container.querySelector('.chatbox-image-preview-row');
+    const initialPreviewNode = previewRow;
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+      await Promise.resolve();
+    });
+
+    expect(container.querySelector('.chatbox-image-preview-row')).toBe(initialPreviewNode);
+    expect(screen.getByRole('button', { name: 'Remove screenshot 1' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Remove screenshot 2' })).toBeInTheDocument();
+    expect(shellWrap?.classList.contains('with-preview')).toBe(true);
+    expect(pill?.classList.contains('with-preview')).toBe(true);
+    expect(previewRow?.classList.contains('has-items')).toBe(true);
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Remove screenshot 1' }));
+      await Promise.resolve();
+    });
+
+    expect(shellWrap?.classList.contains('with-preview')).toBe(true);
+    expect(pill?.classList.contains('with-preview')).toBe(true);
+    expect(previewRow?.classList.contains('has-items')).toBe(true);
+    expect(screen.getAllByRole('button', { name: /Remove screenshot/i })).toHaveLength(1);
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Remove screenshot/i }));
+      await Promise.resolve();
+      jest.runOnlyPendingTimers();
+      await Promise.resolve();
+      jest.runOnlyPendingTimers();
+    });
+
+    expect(shellWrap?.classList.contains('with-preview')).toBe(false);
+    expect(pill?.classList.contains('with-preview')).toBe(false);
+    expect(previewRow?.classList.contains('has-items')).toBe(false);
     expect(mockInvoke.mock.calls.some(([channel]) => channel === 'set-chatbox-size')).toBe(false);
   });
 
