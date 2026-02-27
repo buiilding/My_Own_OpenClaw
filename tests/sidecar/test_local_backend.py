@@ -486,6 +486,21 @@ async def test_handle_store_memory_requires_query_and_response():
 
 
 @pytest.mark.asyncio
+async def test_handle_store_memory_treats_none_fields_as_missing():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+
+    result = await backend._handle_store_memory(
+        user_query=None,  # type: ignore[arg-type]
+        assistant_response="hello",
+    )
+
+    assert result["success"] is False
+    assert result["error"] == "Missing user_query or assistant_response"
+    assert backend.memory_store.added == []
+
+
+@pytest.mark.asyncio
 async def test_handle_store_memory_rejects_whitespace_only_fields():
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStore()
@@ -513,6 +528,37 @@ async def test_handle_store_memory_rejects_invalid_memory_type():
 
     assert result["success"] is False
     assert result["error"] == "Invalid memory_type: archive"
+    assert backend.memory_store.added == []
+
+
+@pytest.mark.asyncio
+async def test_handle_store_memory_rejects_non_string_query_or_response():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+
+    result = await backend._handle_store_memory(
+        user_query=123,  # type: ignore[arg-type]
+        assistant_response="hello",
+    )
+
+    assert result["success"] is False
+    assert result["error"] == "user_query and assistant_response must be strings"
+    assert backend.memory_store.added == []
+
+
+@pytest.mark.asyncio
+async def test_handle_store_memory_rejects_non_string_memory_type():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+
+    result = await backend._handle_store_memory(
+        user_query="hi",
+        assistant_response="hello",
+        memory_type=7,  # type: ignore[arg-type]
+    )
+
+    assert result["success"] is False
+    assert result["error"] == "memory_type must be a string"
     assert backend.memory_store.added == []
 
 

@@ -140,7 +140,31 @@ Behavior:
 
 - writes transcript record to local memory store as episodic `record_kind="transcript"`
 - selectively skips embedding for non-semantic-candidate rows
-- increments summarization pending count only for assistant terminal turns
+- does not mutate semantic-summarizer pending counters (run gating is DB interaction-row based)
+
+### `store_memory`
+
+Required params:
+
+- `user_query`
+- `assistant_response`
+
+Optional params:
+
+- `memory_type` (`episodic` default; allowlist: `episodic|semantic`)
+- `user_id` (`default_user` default)
+- `session_id`
+
+Validation behavior:
+
+- rejects non-string `user_query` / `assistant_response`
+- rejects non-string `memory_type` when provided
+- trims accepted string fields and rejects blank query/response payloads
+
+Behavior:
+
+- stores combined interaction text (`User: ... / Assistant: ...`)
+- persists rows as `record_kind="interaction"` (semantic summarizer source rows)
 
 ## Tool Execution Semantics (`execute_tool`)
 

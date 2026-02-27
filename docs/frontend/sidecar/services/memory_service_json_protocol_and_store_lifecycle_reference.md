@@ -85,6 +85,7 @@ Required fields:
 
 Validation detail:
 
+- `user_query` and `assistant_response` must be strings; non-string payloads fail fast
 - both fields are trimmed; whitespace-only values are rejected as missing
 
 Defaults:
@@ -95,6 +96,7 @@ Defaults:
 
 Validation detail:
 
+- `memory_type` must be a string when provided
 - `memory_type` is normalized to lowercase and must be `episodic` or `semantic`
 
 Behavior:

@@ -178,6 +178,9 @@ Decorator `@requires_memory_store` gates most memory handlers:
 - stores combined interaction text (`User: ... / Assistant: ...`)
 - attaches interaction metadata and optional session/conversation id
 - writes episodic rows with `record_kind='interaction'` for semantic-summarization source input
+- rejects non-string `user_query` / `assistant_response` payloads before normalization
+- requires `memory_type` to be a string when provided
+- trims accepted string values and rejects blank user/assistant message content
 - validates `memory_type` strictly (`episodic` or `semantic`); invalid values return an error
 
 ## Contract Edge Cases

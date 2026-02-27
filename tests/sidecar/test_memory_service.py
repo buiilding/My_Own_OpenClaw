@@ -134,6 +134,24 @@ async def test_handle_store_missing_fields():
 
 
 @pytest.mark.asyncio
+async def test_handle_store_treats_none_fields_as_missing():
+    service = MemoryService()
+    service.memory_store = DummyStore()
+
+    response = await service.handle_store(
+        "req",
+        {
+            "user_query": "Hi",
+            "assistant_response": None,  # type: ignore[dict-item]
+        },
+    )
+    assert response["success"] is False
+    assert response["id"] == "req"
+    assert response["error"] == "Missing user_query or assistant_response"
+    assert service.memory_store.add_calls == []
+
+
+@pytest.mark.asyncio
 async def test_handle_store_rejects_whitespace_only_fields():
     service = MemoryService()
     service.memory_store = DummyStore()
@@ -164,6 +182,40 @@ async def test_handle_store_rejects_invalid_memory_type():
     assert response["success"] is False
     assert response["id"] == "req"
     assert response["error"] == "Invalid memory_type: archive"
+    assert service.memory_store.add_calls == []
+
+
+@pytest.mark.asyncio
+async def test_handle_store_rejects_non_string_query_or_response():
+    service = MemoryService()
+    service.memory_store = DummyStore()
+
+    response = await service.handle_store(
+        "req",
+        {"user_query": 1, "assistant_response": "hello"},  # type: ignore[dict-item]
+    )
+    assert response["success"] is False
+    assert response["id"] == "req"
+    assert response["error"] == "user_query and assistant_response must be strings"
+    assert service.memory_store.add_calls == []
+
+
+@pytest.mark.asyncio
+async def test_handle_store_rejects_non_string_memory_type():
+    service = MemoryService()
+    service.memory_store = DummyStore()
+
+    response = await service.handle_store(
+        "req",
+        {
+            "user_query": "hi",
+            "assistant_response": "hello",
+            "memory_type": 1,  # type: ignore[dict-item]
+        },
+    )
+    assert response["success"] is False
+    assert response["id"] == "req"
+    assert response["error"] == "memory_type must be a string"
     assert service.memory_store.add_calls == []
 
 
