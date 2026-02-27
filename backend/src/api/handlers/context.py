@@ -9,11 +9,15 @@ def build_user_session_context(*, user_id: str, session: Any | None) -> dict[str
     """Build common response context fields for handler responses."""
     context: dict[str, Any] = {"user_id": user_id}
     session_id = getattr(session, "session_id", None)
-    if isinstance(session_id, str) and session_id:
-        context["session_id"] = session_id
+    if isinstance(session_id, str):
+        normalized_session_id = session_id.strip()
+        if normalized_session_id:
+            context["session_id"] = normalized_session_id
     runtime = getattr(session, "runtime", None)
     if runtime is not None:
         conversation_ref = getattr(runtime, "active_conversation_ref", None)
-        if isinstance(conversation_ref, str) and conversation_ref:
-            context["conversation_ref"] = conversation_ref
+        if isinstance(conversation_ref, str):
+            normalized_conversation_ref = conversation_ref.strip()
+            if normalized_conversation_ref:
+                context["conversation_ref"] = normalized_conversation_ref
     return context
