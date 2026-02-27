@@ -139,6 +139,7 @@ Output totals:
 - Kimi tool turns choose non-stream path when streaming tool turns unsupported
 - Kimi/Gemini tool turns remain stream path when provider supports streaming tool turns
 - Kimi prompt cache key prefers active conversation ref over session id
+- Gemini tool turns with streaming support preserve normalized payload bridge (`finish_reason=tool_calls`) while still emitting thinking chunks.
 
 `tests/backend/test_llm_stream_processor_helpers.py` validates:
 
