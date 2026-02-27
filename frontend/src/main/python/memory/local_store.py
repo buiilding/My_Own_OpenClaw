@@ -2209,6 +2209,57 @@ class LocalMemoryStore:
 
             return results
 
+    async def delete_episodic_memory(self, user_id: str, memory_id: str) -> bool:
+        """
+        Delete a non-transcript episodic memory entry by ID for a given user.
+
+        Transcript rows are intentionally excluded from this path; transcript
+        deletions should continue through conversation-level deletion.
+        """
+        if not memory_id:
+            return False
+
+        vector_id: Optional[int] = None
+        deleted = False
+
+        async with aiosqlite.connect(self.episodic_db_path) as conn:
+            cursor = await conn.cursor()
+            await cursor.execute(
+                """
+                SELECT embedding_id
+                FROM memories
+                WHERE id = ? AND user_id = ? AND COALESCE(record_kind, '') != 'transcript'
+            """,
+                (memory_id, user_id),
+            )
+            row = await cursor.fetchone()
+            if row:
+                try:
+                    vector_id = row[0] if row[0] is None else int(row[0])
+                except Exception:
+                    vector_id = None
+
+            await cursor.execute(
+                """
+                DELETE FROM memories
+                WHERE id = ? AND user_id = ? AND COALESCE(record_kind, '') != 'transcript'
+            """,
+                (memory_id, user_id),
+            )
+            deleted = cursor.rowcount > 0
+            await conn.commit()
+
+        if deleted and vector_id is not None:
+            self.episodic_vector_id_to_memory_id.pop(vector_id, None)
+            self.episodic_memory_id_to_vector_id.pop(memory_id, None)
+        elif deleted:
+            self.episodic_memory_id_to_vector_id.pop(memory_id, None)
+
+        if deleted:
+            await self._cleanup_index_artifacts_if_empty("episodic")
+            logger.debug("Deleted episodic memory %s (user_id=%s)", memory_id, user_id)
+        return bool(deleted)
+
     async def delete_semantic_memory(self, user_id: str, memory_id: str) -> bool:
         """
         Delete a semantic memory entry by ID for a given user.

@@ -32,6 +32,7 @@ contextBridge.exposeInMainWorld('ipc', {
       'list-episodic-memories',
       'get-conversation',
       'list-semantic-memories',
+      'delete-episodic-memory',
       'delete-conversation',
       'delete-semantic-memory',
       'store-transcript',

@@ -429,6 +429,23 @@ describe('local_backend_bridge RPC handlers', () => {
     await expectResolvedSuccess(stdoutHandler, promise, { deleted: true });
   });
 
+  test('delete-episodic-memory handler maps payload keys to backend params', async () => {
+    const { handlers, stdoutHandler } = initBridge();
+    markReady();
+
+    const promise = handlers['delete-episodic-memory'](null, {
+      userId: 'u-1',
+      memoryId: 'ep-1',
+    });
+
+    expectLastRequestWith('delete_episodic_memory', {
+      user_id: 'u-1',
+      memory_id: 'ep-1',
+    });
+
+    await expectResolvedSuccess(stdoutHandler, promise, { deleted: true });
+  });
+
   test('store-transcript handler returns standardized error payload', async () => {
     const { handlers, stdoutHandler } = initBridge();
     markReady();

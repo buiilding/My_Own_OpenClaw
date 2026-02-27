@@ -25,6 +25,10 @@ class DummyMemoryStore:
         self.pending_count = 0
         self.next_index = 1
         self.conversation_calls = []
+        self.deleted_semantic_calls = []
+        self.deleted_episodic_calls = []
+        self.delete_semantic_return = True
+        self.delete_episodic_return = True
 
     async def search(self, query, user_id, filters, limit):
         return [
@@ -73,6 +77,14 @@ class DummyMemoryStore:
 
     async def close(self):
         return None
+
+    async def delete_semantic_memory(self, user_id, memory_id):
+        self.deleted_semantic_calls.append((user_id, memory_id))
+        return self.delete_semantic_return
+
+    async def delete_episodic_memory(self, user_id, memory_id):
+        self.deleted_episodic_calls.append((user_id, memory_id))
+        return self.delete_episodic_return
 
 
 class DummyRegistryRaises:
@@ -625,6 +637,40 @@ async def test_handle_get_conversation_forwards_after_message_index_cursor():
             "after_message_index": 1200,
         }
     ]
+
+
+@pytest.mark.asyncio
+async def test_handle_delete_episodic_memory_routes_to_store():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+
+    result = await backend._handle_delete_episodic_memory(
+        user_id="user-1",
+        memory_id="ep-1",
+    )
+
+    assert result == {
+        "success": True,
+        "data": {
+            "memory_id": "ep-1",
+            "deleted": True,
+        },
+    }
+    assert backend.memory_store.deleted_episodic_calls == [("user-1", "ep-1")]
+
+
+@pytest.mark.asyncio
+async def test_handle_delete_episodic_memory_requires_memory_id():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+
+    result = await backend._handle_delete_episodic_memory(
+        user_id="user-1",
+        memory_id=None,
+    )
+
+    assert result["success"] is False
+    assert result["error"] == "memory_id is required"
 
 
 @pytest.mark.asyncio
