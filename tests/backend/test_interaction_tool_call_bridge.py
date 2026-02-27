@@ -96,9 +96,15 @@ def test_recoverable_error_detection_and_message_formatting():
     assert extract_tool_call_id_from_error(error_msg) == "call_bad"
     assert extract_tool_name_from_error(error_msg) == "replace"
 
-    formatted = build_recoverable_tool_output_message("replace", error_msg)
+    formatted = build_recoverable_tool_output_message(
+        "replace",
+        error_msg,
+        raw_arguments_preview='{"file_path":"/tmp/demo.txt","new_string":"..."}',
+    )
     assert formatted.startswith("replace output:")
     assert "malformed tool-call arguments from model" in formatted
+    assert "retry_guidance: retry the same tool with smaller argument payload chunks." in formatted
+    assert "target_file: /tmp/demo.txt" in formatted
     assert "status: failed" in formatted
 
 

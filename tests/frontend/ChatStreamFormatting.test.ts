@@ -78,6 +78,29 @@ describe('chatStreamFormatting utils', () => {
     expect(parsed.arguments).toBeUndefined();
   });
 
+  test('suppresses duplicate fallback argument preview fields on validation failures', () => {
+    const formatted = formatToolCallPayload({
+      tool_name: 'replace',
+      parameters: {
+        raw_arguments_preview: '{"file_path":"/tmp/a.txt","new_string":"..."}...[truncated]',
+        parse_error: 'invalid tool arguments json',
+      },
+      metadata: {
+        llm_tool_call_validation_failed: true,
+        skip_frontend_execution: true,
+        llm_tool_call_raw_arguments_preview: '{"file_path":"/tmp/a.txt","new_string":"..."}...[truncated]',
+        llm_tool_call_parse_error: 'invalid tool arguments json',
+      },
+    });
+
+    const parsed = JSON.parse(formatted);
+    expect(parsed.name).toBe('replace');
+    expect(parsed.raw_arguments_preview).toContain('/tmp/a.txt');
+    expect(parsed.parse_error).toBe('invalid tool arguments json');
+    expect(parsed.frontend_execution_skipped).toBe(true);
+    expect(parsed.arguments).toBeUndefined();
+  });
+
   test('formats undefined tool call payload as empty object', () => {
     expect(formatToolCallPayload(undefined)).toBe(
       JSON.stringify({ arguments: {} }, null, 2),

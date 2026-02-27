@@ -24,6 +24,15 @@ _RECOVERABLE_TOOL_CALL_ERROR_MARKERS = (
 )
 _TOOL_OUTPUT_ERROR_PREVIEW_CHARS = 600
 _RAW_ARGUMENTS_PREVIEW_MARKER = "Raw arguments preview:"
+_FILE_PATH_JSON_PATTERN = re.compile(
+    r'"file_path"\s*:\s*"([^"\n]+)"'
+)
+_FILE_PATH_ESCAPED_JSON_PATTERN = re.compile(
+    r'\\"file_path\\"\s*:\s*\\"([^"\n]+)\\"'
+)
+_CAT_REDIRECT_PATTERN = re.compile(
+    r"cat\s*>\s*([^\s<>'\"`]+)"
+)
 
 
 def to_parsed_response(normalized_response: NormalizedLLMResponse) -> ParsedResponse:
@@ -164,16 +173,50 @@ def extract_tool_call_parse_error_from_error(error_msg: str) -> str:
     return " ".join(summary.split()).strip()
 
 
-def build_recoverable_tool_output_message(tool_name: str, error_msg: str) -> str:
+def _extract_target_file_path(raw_arguments_preview: str | None) -> str:
+    if not isinstance(raw_arguments_preview, str) or not raw_arguments_preview.strip():
+        return ""
+    for pattern in (_FILE_PATH_JSON_PATTERN, _FILE_PATH_ESCAPED_JSON_PATTERN):
+        match = pattern.search(raw_arguments_preview)
+        if match:
+            candidate = (match.group(1) or "").strip()
+            if candidate:
+                return candidate
+    command_match = _CAT_REDIRECT_PATTERN.search(raw_arguments_preview)
+    if command_match:
+        return (command_match.group(1) or "").strip()
+    return ""
+
+
+def build_recoverable_tool_output_message(
+    tool_name: str,
+    error_msg: str,
+    raw_arguments_preview: str | None = None,
+) -> str:
     """Format synthetic tool output in standard tool-output message style."""
     compact_error = " ".join(error_msg.split())
     if len(compact_error) > _TOOL_OUTPUT_ERROR_PREVIEW_CHARS:
         compact_error = (
             f"{compact_error[:_TOOL_OUTPUT_ERROR_PREVIEW_CHARS]}...[truncated]"
         )
+    retry_lines = [
+        "retry_guidance: retry the same tool with smaller argument payload chunks.",
+    ]
+    target_file_path = _extract_target_file_path(raw_arguments_preview)
+    if target_file_path:
+        retry_lines.append(f"target_file: {target_file_path}")
+        retry_lines.append(
+            "edit_strategy: apply section-by-section edits via multiple replace/apply_patch calls."
+        )
+    else:
+        retry_lines.append(
+            "edit_strategy: split large content edits into multiple replace/write_file/apply_patch-style calls."
+        )
+    retry_text = "\n".join(retry_lines)
     return (
         f"{tool_name} output:\n"
         "error: malformed tool-call arguments from model. "
         f"{compact_error}\n"
+        f"{retry_text}\n"
         "status: failed"
     )

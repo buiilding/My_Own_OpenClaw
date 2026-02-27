@@ -59,6 +59,10 @@ Actions:
 - canonical helpers: done, search, go_back, search_page, find_elements, find_text, close_tab, dropdown_options, select_dropdown, upload_file, write_file, replace_file, read_file, read_long_content
 - removed legacy aliases: `type` (use `input`), `open` (use `navigate`), `switch_tab` (use `switch`), `press` (use `send_keys`), and `act` (use canonical actions directly)
 
+File-edit payload guidance:
+- For `write_file`/`replace_file`, avoid giant content payloads in one call.
+- Split large file edits into multiple focused calls section-by-section.
+
 Compatibility validation notes:
 - snapshot rejects compatibility fields `format`/`snapshotFormat`/`wait_until`/`state`/`mode`/`max_chars`/`refs`/`interactive`/`compact`/`depth`/`selector`/`frame`
 - extract rejects compatibility fields `mode`/`selector`/`frame`

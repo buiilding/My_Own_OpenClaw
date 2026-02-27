@@ -97,14 +97,8 @@ export function resolveModelFacingToolCall(payload?: ToolCallPayloadLike): {
   )
     ? modelArguments
     : (fallbackParameters || {});
-  const hasResolvedArguments = (
-    resolvedArguments
-    && typeof resolvedArguments === 'object'
-    && !Array.isArray(resolvedArguments)
-    && Object.keys(resolvedArguments).length > 0
-  );
 
-  if (isRecoverableParseFailure && rawArgumentsPreview) {
+  if (isRecoverableParseFailure) {
     return {
       id: typeof modelFacing?.id === 'string' ? modelFacing.id : undefined,
       name: (
@@ -112,10 +106,9 @@ export function resolveModelFacingToolCall(payload?: ToolCallPayloadLike): {
           ? modelFacing.name
           : payload?.tool_name
       ),
-      raw_arguments_preview: rawArgumentsPreview,
+      raw_arguments_preview: rawArgumentsPreview || undefined,
       parse_error: parseError || undefined,
       frontend_execution_skipped: metadata?.skip_frontend_execution === true,
-      ...(hasResolvedArguments ? { arguments: resolvedArguments } : {}),
     };
   }
 

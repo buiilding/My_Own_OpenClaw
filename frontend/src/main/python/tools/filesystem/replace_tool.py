@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 # Default encoding
 DEFAULT_ENCODING = 'utf-8'
+MAX_REPLACE_NEW_STRING_BYTES = 16 * 1024
 
 
 def _write_file_atomic(path: Path, content: str) -> None:
@@ -52,6 +53,20 @@ def _can_create_new_file_from_operation(operation: ReplaceOperation) -> bool:
         and operation.occurrence_index is None
         and not operation.require_eof
     )
+
+
+def _validate_operation_payload_sizes(operations: list[ReplaceOperation]) -> str | None:
+    """
+    Keep single replace calls reasonably small to reduce malformed streamed tool args.
+    """
+    for operation in operations:
+        payload_size = len(operation.new_string.encode(DEFAULT_ENCODING))
+        if payload_size > MAX_REPLACE_NEW_STRING_BYTES:
+            return (
+                "Payload too large for one replace call; split into multiple "
+                "replace/apply_patch calls."
+            )
+    return None
 
 
 async def replace(args: Dict[str, Any]) -> ToolResult:
@@ -84,6 +99,9 @@ async def replace(args: Dict[str, Any]) -> ToolResult:
                 return ToolResult.error_result(operations_error)
             if operations is None:
                 return ToolResult.error_result('No replacement operations provided')
+            payload_error = _validate_operation_payload_sizes(operations)
+            if payload_error is not None:
+                return ToolResult.error_result(payload_error)
 
         path = Path(file_path)
         if not path.is_absolute():

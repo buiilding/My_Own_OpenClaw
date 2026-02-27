@@ -203,11 +203,12 @@ async def test_interaction_loop_recovers_after_stream_tool_call_format_error():
     assert "index.html" in fallback_call.metadata["llm_tool_call_raw_arguments_preview"]
     assert fallback_call.metadata["llm_tool_call_raw_arguments_preview_truncated"] is True
     assert "failed to parse streamed tool-call arguments" in fallback_call.metadata["llm_tool_call_parse_error"]
-    assert "raw_arguments_preview" in fallback_call.parameters
-    assert "parse_error" in fallback_call.parameters
+    assert fallback_call.parameters == {}
     fallback_output = tool_output_events[0]
     assert fallback_output.metadata is not None
     assert fallback_output.metadata["llm_tool_call_validation_failed"] is True
+    assert "retry_guidance: retry the same tool with smaller argument payload chunks." in fallback_output.output
+    assert "target_file: index.html" in fallback_output.output
 
 
 class _FatalErrorOnlyLLMHandler:

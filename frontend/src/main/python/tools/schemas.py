@@ -292,7 +292,13 @@ class ReplaceOperationArgs(BaseModel):
     model_config = ConfigDict(extra='ignore')
 
     old_string: str = Field(..., description="The string to search for and replace")
-    new_string: str = Field(..., description="The replacement string")
+    new_string: str = Field(
+        ...,
+        description=(
+            "The replacement string. Keep payloads focused; split large edits across "
+            "multiple replace/apply_patch-style calls."
+        ),
+    )
     replace_all: bool = Field(
         False,
         description="If true, replace all occurrences in this operation",
@@ -340,7 +346,10 @@ class ReplaceArgs(BaseModel):
     )
     new_string: Optional[str] = Field(
         None,
-        description="Single-operation replacement string",
+        description=(
+            "Single-operation replacement string. Do not send giant payloads in one call; "
+            "chunk large edits across multiple calls."
+        ),
     )
     replace_all: bool = Field(
         False,
@@ -362,6 +371,7 @@ class ReplaceArgs(BaseModel):
         None,
         description=(
             "Optional apply_patch-style ordered update chunks. "
-            "Cannot be combined with old_string/new_string/replacements."
+            "Cannot be combined with old_string/new_string/replacements. "
+            "Prefer multiple focused chunks/calls over one oversized payload."
         ),
     )

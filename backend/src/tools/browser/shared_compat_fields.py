@@ -49,7 +49,9 @@ class BrowserSharedCompatFields(BaseModel):
     device: Optional[str] = _compat_field("Device preset name")
 
     # Shared file/text mutation compatibility fields.
-    content: Optional[str] = _compat_field("Content for write_file")
+    content: Optional[str] = _compat_field(
+        "Content for write_file; keep payloads small and split large edits across calls"
+    )
     append: Optional[bool] = _compat_field("Append mode for write_file")
     trailing_newline: Optional[bool] = _compat_field(
         "Append trailing newline for write_file"

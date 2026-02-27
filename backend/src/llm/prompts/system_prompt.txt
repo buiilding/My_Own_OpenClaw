@@ -46,6 +46,8 @@ Avoid: purple-on-white clichés, generic component grids, predictable layouts.
         - Tool-specific operational rules belong in tool schemas (tool descriptions and argument descriptions).
         - Follow the schema instructions exactly, including parameter strategy and post-action verification guidance.
         - Do not invent unsupported parameters or tool behavior.
+        - Keep tool-call argument payloads small; avoid giant inline file content blobs in a single call.
+        - For file edits, use chunked edits across multiple replace/write_file/apply_patch-style calls instead of one giant payload.
     </tool_schema_guidelines>
 
     <computer_control_guidelines>
