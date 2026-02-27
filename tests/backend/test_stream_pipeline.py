@@ -23,6 +23,16 @@ class DummyTransportSender:
         self.sent.append(payload)
 
 
+class FailingTransportSender(DummyTransportSender):
+    def __init__(self, exc: Exception):
+        super().__init__()
+        self.exc = exc
+
+    async def send(self, payload):
+        self.sent.append(payload)
+        raise self.exc
+
+
 class DummyTTSProcessor:
     def __init__(self, gate: asyncio.Event | None = None, error: Exception | None = None):
         self.gate = gate
@@ -86,3 +96,49 @@ async def test_process_swallows_tts_failures_and_cleans_pending_tasks(caplog):
     await pipeline.wait_for_pending_tts()
     assert len(pipeline._pending_tts_tasks) == 0
     assert "TTS processing failed, continuing stream" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_process_skips_tts_task_when_tts_service_missing() -> None:
+    formatter = DummyFormatter(response={"type": "streaming-response", "payload": {"text": "hello"}})
+    transport = DummyTransportSender()
+    tts_processor = DummyTTSProcessor()
+    pipeline = StreamPipeline(tts_processor, formatter, transport)
+
+    await pipeline.process(
+        event={"type": "streaming-response", "payload": {"text": "hello"}},
+        tts_service=None,
+        msg_id="msg_3",
+    )
+    await asyncio.sleep(0)
+
+    assert transport.sent == [{"type": "streaming-response", "payload": {"text": "hello"}}]
+    assert tts_processor.calls == []
+    assert len(pipeline._pending_tts_tasks) == 0
+
+
+@pytest.mark.asyncio
+async def test_process_transport_failure_raises_and_does_not_schedule_tts():
+    formatter = DummyFormatter(response={"type": "streaming-response", "payload": {"text": "hello"}})
+    transport = FailingTransportSender(RuntimeError("socket write failed"))
+    tts_processor = DummyTTSProcessor()
+    pipeline = StreamPipeline(tts_processor, formatter, transport)
+
+    with pytest.raises(RuntimeError, match="socket write failed"):
+        await pipeline.process(
+            event={"type": "streaming-response", "payload": {"text": "hello"}},
+            tts_service=DummyTTSService(),
+            msg_id="msg_4",
+        )
+
+    assert tts_processor.calls == []
+    assert len(pipeline._pending_tts_tasks) == 0
+
+
+@pytest.mark.asyncio
+async def test_wait_for_pending_tts_noop_when_empty() -> None:
+    pipeline = StreamPipeline(DummyTTSProcessor(), DummyFormatter(response=None), DummyTransportSender())
+
+    await pipeline.wait_for_pending_tts()
+
+    assert len(pipeline._pending_tts_tasks) == 0
