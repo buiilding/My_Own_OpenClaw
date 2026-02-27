@@ -478,6 +478,25 @@ def test_normalize_messages_for_provider_rejects_openai_function_arguments_wrong
         normalize_messages_for_provider(messages, model="m")
 
 
+def test_normalize_messages_for_provider_rejects_openai_function_missing_name():
+    messages = [
+        {
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "call_bad",
+                    "type": "function",
+                    "function": {"name": "", "arguments": "{}"},
+                }
+            ],
+        }
+    ]
+
+    with pytest.raises(LLMAPIError, match="function\\.name must be non-empty string"):
+        normalize_messages_for_provider(messages, model="m")
+
+
 def test_normalize_messages_for_provider_rejects_internal_tool_call_non_object_arguments():
     messages = [
         {
@@ -491,6 +510,24 @@ def test_normalize_messages_for_provider_rejects_internal_tool_call_non_object_a
 
     with pytest.raises(LLMAPIError, match="arguments must be object"):
         normalize_messages_for_provider(messages, model="m")
+
+
+def test_normalize_messages_for_provider_drops_tool_message_without_tool_call_id():
+    messages = [
+        {
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [
+                {"id": "call_1", "name": "read_file", "arguments": {"path": "/tmp/demo.txt"}}
+            ],
+        },
+        {"role": "tool", "content": "missing id"},
+        {"role": "tool", "tool_call_id": "call_1", "content": "ok"},
+    ]
+
+    normalized = normalize_messages_for_provider(messages, model="m")
+    assert len(normalized) == 2
+    assert normalized[-1]["tool_call_id"] == "call_1"
 
 
 def test_normalize_tool_arguments_rejects_non_object_json():
