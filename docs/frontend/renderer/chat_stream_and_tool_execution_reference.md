@@ -124,8 +124,8 @@ Handler map (`BackendEventType` -> behavior):
 - `llm-thought`: accumulates transient thinking text and writes live reasoning (`thinkingText`) onto the same-turn assistant `llm-text` message (creates placeholder assistant row before first text chunk when needed)
 - `streaming-response`: append/create assistant `llm-text` row and increment chunk tracking
 - `context-compaction-started`: sets thinking text to `Compacting conversation history...` while backend compaction runs
-- `context-compaction-completed`: clears compaction thinking text so normal stream status can resume
-- `context-compaction-failed`: clears compaction thinking text on failed compaction attempts
+- `context-compaction-completed`: replaces in-progress compaction thinking with a terminal status message (`Conversation history compacted.` or `Compaction completed (no changes needed).`) and marks source as `context-compaction-completed`
+- `context-compaction-failed`: replaces compaction thinking with terminal failure text (backend error string when available, otherwise `Conversation compaction failed.`) and marks source as `context-compaction-failed`
 - `tool-call`: append assistant tool-call row and transcript tool-call row
 - `tool-output`: append assistant tool-output row with screenshot/tool metadata and transcript tool-output row
 - `tool-bundle`: append bundle call row

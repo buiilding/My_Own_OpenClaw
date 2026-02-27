@@ -344,6 +344,32 @@
   animation: compactionTextShift 1.4s ease-in-out infinite;
 }
 
+.message-list-compaction-status.compaction-state-completed {
+  color: rgba(134, 239, 172, 0.92);
+}
+
+.message-list-compaction-status.compaction-state-failed {
+  color: rgba(252, 165, 165, 0.92);
+}
+
+.message-list-compaction-indicator.compaction-state-completed {
+  background: rgba(134, 239, 172, 0.95);
+  box-shadow: none;
+  animation: none;
+}
+
+.message-list-compaction-indicator.compaction-state-failed {
+  background: rgba(252, 165, 165, 0.95);
+  box-shadow: none;
+  animation: none;
+}
+
+.message-list-compaction-text.compaction-state-completed,
+.message-list-compaction-text.compaction-state-failed {
+  animation: none;
+  opacity: 1;
+}
+
 .message-list-awaiting-dot {
   width: 100%;
   display: inline-flex;

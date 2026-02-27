@@ -281,13 +281,35 @@ function MessageList({
   }, [messages, scrollToBottom]);
 
   const compactionStatusText = useMemo(() => {
-    if (thinkingSourceEventType !== 'context-compaction-started') {
-      return '';
-    }
     if (typeof thinkingStatus !== 'string') {
-      return '';
+      return null;
     }
-    return thinkingStatus.trim();
+    const text = thinkingStatus.trim();
+    if (!text) {
+      return null;
+    }
+    if (thinkingSourceEventType === 'context-compaction-started') {
+      return {
+        text,
+        state: 'in-progress',
+        ariaLabel: 'Conversation compaction in progress',
+      };
+    }
+    if (thinkingSourceEventType === 'context-compaction-completed') {
+      return {
+        text,
+        state: 'completed',
+        ariaLabel: 'Conversation compaction completed',
+      };
+    }
+    if (thinkingSourceEventType === 'context-compaction-failed') {
+      return {
+        text,
+        state: 'failed',
+        ariaLabel: 'Conversation compaction failed',
+      };
+    }
+    return null;
   }, [thinkingSourceEventType, thinkingStatus]);
 
   return (
@@ -309,13 +331,18 @@ function MessageList({
       ) : null}
       {compactionStatusText ? (
         <div
-          className="message-list-compaction-status"
+          className={`message-list-compaction-status compaction-state-${compactionStatusText.state}`}
           role="status"
           aria-live="polite"
-          aria-label="Conversation compaction in progress"
+          aria-label={compactionStatusText.ariaLabel}
         >
-          <span className="message-list-compaction-indicator" aria-hidden="true" />
-          <span className="message-list-compaction-text">{compactionStatusText}</span>
+          <span
+            className={`message-list-compaction-indicator compaction-state-${compactionStatusText.state}`}
+            aria-hidden="true"
+          />
+          <span className={`message-list-compaction-text compaction-state-${compactionStatusText.state}`}>
+            {compactionStatusText.text}
+          </span>
         </div>
       ) : null}
       <div ref={messagesEndRef} data-testid="message-list-end" />

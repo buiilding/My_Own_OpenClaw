@@ -60,6 +60,9 @@ import {
 import { resolveThinkingCapabilities } from '../utils/modelThinkingCapabilities';
 import {
   COMPACTION_THINKING_STATUS,
+  COMPACTION_COMPLETED_NO_CHANGES_THINKING_STATUS,
+  COMPACTION_COMPLETED_THINKING_STATUS,
+  COMPACTION_FAILED_THINKING_STATUS,
   GENERIC_THINKING_STATUS,
   normalizePersistedThinkingStatus,
 } from '../utils/chatStreamThinkingStatus';
@@ -233,22 +236,31 @@ export function useChatStream(enableTranscript: boolean = true) {
     recordTrackingEvent('context-compaction-started', event.turn_ref);
   }, [setThinkingSourceEventType, setThinkingStatus, recordTrackingEvent]);
 
-  const clearCompactionThinkingStatus = useCallback(() => {
-    if (useChatStore.getState().thinkingStatus === COMPACTION_THINKING_STATUS) {
-      setThinkingStatus(null);
-      setThinkingSourceEventType(null);
-    }
-  }, [setThinkingSourceEventType, setThinkingStatus]);
-
   const handleContextCompactionCompleted = useCallback((event: ContextCompactionCompletedEvent) => {
-    clearCompactionThinkingStatus();
+    const skippedReason = (
+      typeof event.payload?.skipped_reason === 'string'
+        ? event.payload.skipped_reason.trim()
+        : ''
+    );
+    setThinkingStatus(
+      skippedReason
+        ? COMPACTION_COMPLETED_NO_CHANGES_THINKING_STATUS
+        : COMPACTION_COMPLETED_THINKING_STATUS,
+    );
+    setThinkingSourceEventType('context-compaction-completed');
     recordTrackingEvent('context-compaction-completed', event.turn_ref);
-  }, [clearCompactionThinkingStatus, recordTrackingEvent]);
+  }, [recordTrackingEvent, setThinkingSourceEventType, setThinkingStatus]);
 
   const handleContextCompactionFailed = useCallback((event: ContextCompactionFailedEvent) => {
-    clearCompactionThinkingStatus();
+    const errorText = (
+      typeof event.payload?.error === 'string'
+        ? event.payload.error.trim()
+        : ''
+    );
+    setThinkingStatus(errorText || COMPACTION_FAILED_THINKING_STATUS);
+    setThinkingSourceEventType('context-compaction-failed');
     recordTrackingEvent('context-compaction-failed', event.turn_ref);
-  }, [clearCompactionThinkingStatus, recordTrackingEvent]);
+  }, [recordTrackingEvent, setThinkingSourceEventType, setThinkingStatus]);
 
   const {
     handleToolCall,

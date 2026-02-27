@@ -20,6 +20,8 @@ const mockUseVoiceMode = jest.fn(() => ({
 const mockUpdateConfig = jest.fn();
 const mockCompactHistory = jest.fn();
 const mockIsDevUiEnabled = jest.fn(() => false);
+const mockSetThinkingStatus = jest.fn();
+const mockSetThinkingSourceEventType = jest.fn();
 
 const setWindowScreenPosition = (x, y) => {
   Object.defineProperty(window, 'screenX', {
@@ -67,6 +69,8 @@ const mockChatState = {
   messages: [],
   isSending: false,
   thinkingStatus: null,
+  setThinkingStatus: (...args) => mockSetThinkingStatus(...args),
+  setThinkingSourceEventType: (...args) => mockSetThinkingSourceEventType(...args),
   streamTracking: { phase: 'idle' },
 };
 
@@ -118,6 +122,8 @@ describe('ChatBox overlay mouse ignore', () => {
     mockUpdateConfig.mockClear();
     mockSendMessage.mockClear();
     mockCompactHistory.mockClear();
+    mockSetThinkingStatus.mockClear();
+    mockSetThinkingSourceEventType.mockClear();
     mockIsDevUiEnabled.mockReset();
     mockIsDevUiEnabled.mockReturnValue(false);
     mockExtractOSstate.mockReset();
