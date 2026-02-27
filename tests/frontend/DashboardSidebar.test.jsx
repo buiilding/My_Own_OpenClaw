@@ -61,6 +61,20 @@ describe('DashboardSidebar collapsed header controls', () => {
     expect(screen.queryByTestId('sidebar-collapsed-expand-icon')).not.toBeInTheDocument();
   });
 
+  test('clears stale hover state after collapse-expand-collapse transitions', () => {
+    const { rerender } = render(<DashboardSidebar {...buildProps({ sidebarOpen: false })} />);
+    const collapsedExpandButton = screen.getByRole('button', { name: 'Expand sidebar' });
+
+    fireEvent.mouseEnter(collapsedExpandButton);
+    expect(screen.getByTestId('sidebar-collapsed-expand-icon')).toBeInTheDocument();
+
+    rerender(<DashboardSidebar {...buildProps({ sidebarOpen: true })} />);
+    rerender(<DashboardSidebar {...buildProps({ sidebarOpen: false })} />);
+
+    expect(screen.getByTestId('sidebar-collapsed-brand-icon')).toBeInTheDocument();
+    expect(screen.queryByTestId('sidebar-collapsed-expand-icon')).not.toBeInTheDocument();
+  });
+
   test('renders one new chat action in collapsed mode and triggers new chat from header', () => {
     const onStartNewChat = jest.fn();
     render(<DashboardSidebar {...buildProps({ onStartNewChat })} />);
