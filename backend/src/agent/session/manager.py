@@ -6,6 +6,7 @@ and cleanup.
 """
 import asyncio
 import logging
+import time
 from typing import Any, Dict, Optional
 
 from backend.src.agent.session.session import AgentSession
@@ -15,6 +16,7 @@ from backend.src.core.config.runtime import assemble_runtime_config
 from backend.src.core.config.subscriptions import ConfigSubscriber
 
 logger = logging.getLogger(__name__)
+_PENDING_STOP_GRACE_SECONDS = 5.0
 
 
 
@@ -50,6 +52,26 @@ class SessionManager(ConfigSubscriber):
         self._active_query_tasks: Dict[
             str, Dict[asyncio.Task[Any], tuple[str, Optional[str]]]
         ] = {}
+        # Pending stop-query requests keyed by user_id.
+        # Value is expiry timestamp (monotonic seconds).
+        self._pending_stop_requests: Dict[str, float] = {}
+
+    def _register_pending_stop_request(self, user_id: str) -> None:
+        """Store a short-lived stop intent for races before query registration."""
+        self._pending_stop_requests[user_id] = (
+            time.monotonic() + _PENDING_STOP_GRACE_SECONDS
+        )
+
+    def _consume_pending_stop_request(self, user_id: str) -> bool:
+        """Consume a pending stop request if still valid."""
+        expires_at = self._pending_stop_requests.get(user_id)
+        if expires_at is None:
+            return False
+        if expires_at <= time.monotonic():
+            self._pending_stop_requests.pop(user_id, None)
+            return False
+        self._pending_stop_requests.pop(user_id, None)
+        return True
 
     def register_active_query_task(
         self,
@@ -58,10 +80,20 @@ class SessionManager(ConfigSubscriber):
         *,
         turn_ref: str,
         conversation_ref: Optional[str] = None,
-    ) -> None:
+    ) -> bool:
         """Track the currently running query task for a user."""
+        if self._consume_pending_stop_request(user_id):
+            logger.info(
+                "[Stop Query] Consumed pending stop request during query registration "
+                "(user_id=%s, turn_ref=%s, conversation_ref=%s)",
+                user_id,
+                turn_ref,
+                conversation_ref,
+            )
+            return True
         user_tasks = self._active_query_tasks.setdefault(user_id, {})
         user_tasks[task] = (turn_ref, conversation_ref)
+        return False
 
     def clear_active_query_task(
         self,
@@ -98,6 +130,7 @@ class SessionManager(ConfigSubscriber):
         """
         user_tasks = self._active_query_tasks.get(user_id)
         if not user_tasks:
+            self._register_pending_stop_request(user_id)
             return None
 
         cancelled_entries: list[tuple[str, Optional[str]]] = []
@@ -113,7 +146,9 @@ class SessionManager(ConfigSubscriber):
             self._active_query_tasks.pop(user_id, None)
 
         if not cancelled_entries:
+            self._register_pending_stop_request(user_id)
             return None
+        self._pending_stop_requests.pop(user_id, None)
         return cancelled_entries[-1]
 
     def has_active_query_task(self, user_id: str) -> bool:
@@ -320,6 +355,7 @@ class SessionManager(ConfigSubscriber):
                 # Always remove from cache, even if cleanup fails
                 del self.active_sessions[user_id]
                 self.clear_active_query_task(user_id)
+                self._pending_stop_requests.pop(user_id, None)
                 
                 # Clean up lock if no longer needed
                 async with self._locks_lock:

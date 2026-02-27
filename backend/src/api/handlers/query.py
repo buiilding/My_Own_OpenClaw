@@ -84,13 +84,23 @@ class QueryMessageHandler(TypedMessageHandler[QueryMessage]):
         """
         msg_id = message.id
         current_task = asyncio.current_task()
+        stop_consumed_on_register = False
         if current_task is not None:
-            self.session_manager.register_active_query_task(
+            stop_consumed_on_register = self.session_manager.register_active_query_task(
                 user_id,
                 current_task,
                 turn_ref=msg_id,
                 conversation_ref=message.payload.conversation_ref,
             )
+        if stop_consumed_on_register:
+            logger.info(
+                "[Query Cancelled] Stop request consumed before query execution "
+                "(user_id=%s, turn_ref=%s, conversation_ref=%s)",
+                user_id,
+                msg_id,
+                message.payload.conversation_ref,
+            )
+            return
 
         try:
             logger.info("[Timing] Query received from frontend (user_id=%s)", user_id)

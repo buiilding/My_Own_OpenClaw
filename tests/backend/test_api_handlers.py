@@ -214,7 +214,18 @@ class DummySessionManager:
         *,
         turn_ref: str,
         conversation_ref: Optional[str] = None,
-    ) -> None:
+    ) -> bool:
+        if getattr(self, "consume_stop_on_register", False):
+            self.register_calls.append(
+                {
+                    "user_id": user_id,
+                    "turn_ref": turn_ref,
+                    "conversation_ref": conversation_ref,
+                    "task": task,
+                    "consumed_stop": True,
+                }
+            )
+            return True
         self.register_calls.append(
             {
                 "user_id": user_id,
@@ -224,6 +235,7 @@ class DummySessionManager:
             }
         )
         self.registered_query_tasks[user_id] = (task, turn_ref, conversation_ref)
+        return False
 
     def clear_active_query_task(self, user_id: str, task=None) -> None:
         self.clear_calls.append({"user_id": user_id, "task": task})
@@ -341,6 +353,41 @@ async def test_query_handler_success(monkeypatch):
     assert second_event.final_response == "ok"
     assert len(session_manager.register_calls) == 1
     assert len(session_manager.clear_calls) == 1
+
+
+@pytest.mark.asyncio
+async def test_query_handler_skips_execution_when_stop_consumed_on_register(monkeypatch):
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    session_manager.consume_stop_on_register = True
+    handler = QueryMessageHandler(
+        session_manager, DummyTTSManager(), ResponseFormatter()
+    )
+    execute_calls = []
+
+    async def _fake_execute(*_args, **_kwargs):
+        execute_calls.append("called")
+
+    monkeypatch.setattr(handler.execution_service, "execute", _fake_execute)
+
+    message = QueryMessage(
+        id="msg_race_stop_1",
+        type="query",
+        user_id="user_1",
+        payload={
+            "text": "hi",
+            "conversation_ref": "conv_test",
+            "content": "<user_query>hi</user_query>",
+        },
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert execute_calls == []
+    assert len(session_manager.register_calls) == 1
+    assert session_manager.register_calls[0]["consumed_stop"] is True
+    assert session_manager.clear_calls == []
+    assert websocket.sent == []
 
 
 @pytest.mark.asyncio

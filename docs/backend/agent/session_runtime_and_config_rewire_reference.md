@@ -61,6 +61,7 @@ Cancellation behavior:
 
 - cancels all live tasks for user
 - drops done tasks
+- when stop arrives before task registration, stores a short-lived pending stop request and consumes it on next `register_active_query_task(...)`
 - returns latest cancelled tuple for stop-query completion metadata
 
 Validated by:
