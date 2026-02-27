@@ -168,3 +168,28 @@ def test_response_formatter_does_not_mutate_shared_formatter_response_when_attac
     assert second["id"] == "msg-no-ctx"
     assert second["payload"]["content"] == "second"
     assert "session_id" not in second
+
+
+def test_response_formatter_preserves_prior_contextualized_result_snapshot(monkeypatch):
+    _set_specs(
+        monkeypatch,
+        (
+            (DummyEvent, "dummy", SharedResponseFormatter, "dummy-out"),
+        ),
+    )
+    formatter = ResponseFormatter()
+
+    first = formatter.format(
+        DummyEvent(content="first"),
+        "msg-first",
+        context={"session_id": "session-1"},
+    )
+    second = formatter.format(DummyEvent(content="second"), "msg-second")
+
+    assert first is not None
+    assert second is not None
+    assert first["id"] == "msg-first"
+    assert first["payload"]["content"] == "first"
+    assert first["session_id"] == "session-1"
+    assert second["id"] == "msg-second"
+    assert second["payload"]["content"] == "second"
