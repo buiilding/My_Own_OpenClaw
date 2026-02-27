@@ -258,6 +258,17 @@ def test_is_ignored_by_any_skips_broken_spec_and_continues():
     assert gitignore_utils.is_ignored_by_any("/root/keep.txt", specs) is True
 
 
+def test_is_ignored_by_any_requires_directory_boundary_for_prefix_match():
+    class MatchingSpec:
+        def match_file(self, path):
+            return path == "ed/file.txt"
+
+    specs = [("/root", MatchingSpec())]
+
+    # "/rooted/..." is not inside "/root/..."
+    assert gitignore_utils.is_ignored_by_any("/rooted/file.txt", specs) is False
+
+
 def test_is_ignored_normalizes_windows_separators(monkeypatch):
     class DummySpec:
         def __init__(self):
