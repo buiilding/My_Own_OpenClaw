@@ -68,6 +68,8 @@ User experience target:
 - New tests go into the `tests/new_*` suites unless you are extending an existing test module.
 - Prefer unit-level tests with minimal I/O; mock network and system calls.
 - If you change tool parsing/execution or IPC, add tests across backend + sidecar + frontend as needed.
+- After each non-trivial feature/fix, add tests immediately while implementation context is still active; this yields stronger tests and often catches bugs in the new code.
+- Purely visual/UI-only tweaks can skip new tests when low-signal; default is still to add tests for everything else.
 
 ### PR Workflow (Review vs Land)
 
