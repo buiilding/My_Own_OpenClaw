@@ -2,6 +2,7 @@ import pytest
 
 from backend.src.agent.tools.preparation.preparer import ToolPreparer
 from backend.src.agent.tools.preparation.helpers.preparation_helper import (
+    tool_call_has_manual_coordinates,
     tool_call_needs_coordinate_resolution,
 )
 from backend.src.core.types.enums import CoordinateFindingMethod
@@ -130,6 +131,32 @@ def test_tool_call_needs_coordinate_resolution_requires_mouse_control_and_suppor
             ParsedToolCall(
                 tool_name="read_file",
                 parameters={"find_coordinates_by": CoordinateFindingMethod.OCR},
+                raw_call="{}",
+            )
+        )
+        is False
+    )
+
+
+def test_tool_call_has_manual_coordinates_accepts_float_coordinates():
+    assert (
+        tool_call_has_manual_coordinates(
+            ParsedToolCall(
+                tool_name="mouse_control",
+                parameters={"find_coordinates_by": "manual", "x": 100.0, "y": 200.0},
+                raw_call="{}",
+            )
+        )
+        is True
+    )
+
+
+def test_tool_call_has_manual_coordinates_rejects_bool_coordinates():
+    assert (
+        tool_call_has_manual_coordinates(
+            ParsedToolCall(
+                tool_name="mouse_control",
+                parameters={"find_coordinates_by": "manual", "x": True, "y": 20},
                 raw_call="{}",
             )
         )

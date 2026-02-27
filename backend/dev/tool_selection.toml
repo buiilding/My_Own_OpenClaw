@@ -39,4 +39,5 @@ tools = [
 enabled_coordinate_methods = [
   "manual",
   "ocr",
+  "prediction",
 ]
