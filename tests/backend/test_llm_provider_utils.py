@@ -128,6 +128,15 @@ def test_normalize_usage_payload_supports_model_dump_and_collect_usage_payload()
     assert payload == {"prompt_tokens": 9}
 
 
+def test_normalize_usage_payload_returns_deep_copy_for_dict_input():
+    source = {"prompt_tokens": 10, "nested": {"cached_tokens": 2}}
+    normalized = normalize_usage_payload(source)
+    assert normalized == source
+
+    source["nested"]["cached_tokens"] = 999
+    assert normalized["nested"]["cached_tokens"] == 2
+
+
 def test_normalize_usage_payload_returns_none_for_non_mapping_like_values():
     assert normalize_usage_payload(123) is None
     assert normalize_usage_payload("usage") is None
@@ -137,6 +146,11 @@ def test_extract_usage_int_coerces_numeric_strings_and_integer_floats():
     usage = {"usage_metadata": {"prompt_token_count": "44"}, "float_value": 12.0}
     assert extract_usage_int(usage, [("usage_metadata", "prompt_token_count")]) == 44
     assert extract_usage_int(usage, [("float_value",)]) == 12
+
+
+def test_extract_usage_int_accepts_whitespace_padded_numeric_strings():
+    usage = {"usage_metadata": {"prompt_token_count": "  55  "}}
+    assert extract_usage_int(usage, [("usage_metadata", "prompt_token_count")]) == 55
 
 
 def test_extract_usage_int_ignores_bool_and_non_integral_float_values():
@@ -266,6 +280,15 @@ def test_collect_usage_payload_prefers_top_level_usage_before_model_extra():
     )
     collected = collect_usage_payload(payload)
     assert collected == {"prompt_tokens": 8}
+
+
+def test_collect_usage_payload_skips_empty_usage_and_uses_model_extra_fallback():
+    payload = SimpleNamespace(
+        usage={},
+        model_extra={"usage": {"prompt_tokens": 12}},
+    )
+    collected = collect_usage_payload(payload)
+    assert collected == {"prompt_tokens": 12}
 
 
 def test_extract_completion_response_parses_and_dedupes_openai_and_tool_use_blocks():
