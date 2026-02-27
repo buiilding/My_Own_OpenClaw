@@ -30,7 +30,7 @@ export function resolveThinkingCapabilities(
   const supportsThinkingTextStream = (
     typeof selectedModel?.supports_thinking_text_stream === 'boolean'
       ? selectedModel.supports_thinking_text_stream
-      : normalizedProvider !== 'gemini'
+      : supportsThinking
   );
 
   return {
