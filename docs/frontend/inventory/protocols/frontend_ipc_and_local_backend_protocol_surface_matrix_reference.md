@@ -8,12 +8,12 @@ title: "Frontend IPC and Local-Backend Protocol Surface Matrix Reference"
 
 # Frontend IPC and Local-Backend Protocol Surface Matrix Reference
 
-## Coverage Snapshot (2026-02-26)
+## Coverage Snapshot (2026-02-27)
 
 - Renderer `send` channels: `5`
-- Renderer `invoke` channels: `31`
+- Renderer `invoke` channels: `33`
 - Renderer `on/once` channels: `11`
-- Compiled JSON-RPC mapper definitions: `9` (`COMPILED_RPC_HANDLER_DEFINITIONS`)
+- Compiled JSON-RPC mapper definitions: `10` (`COMPILED_RPC_HANDLER_DEFINITIONS`)
 
 ## Scope and Sources
 
@@ -21,7 +21,7 @@ This page maps protocol surfaces across renderer, Electron main, and Python loca
 
 - Preload allowlist boundary: `frontend/src/preload.js`
 - Renderer channel constants + typed bridge: `frontend/src/renderer/infrastructure/ipc/channels.ts`, `frontend/src/renderer/infrastructure/ipc/bridge.ts`
-- Main WebSocket bridge and IPC handlers: `frontend/src/main/ipc.cjs`, `frontend/src/main/index.cjs`
+- Main WebSocket bridge and IPC handlers: `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc_settings_sync.cjs`, `frontend/src/main/index.cjs`
 - Wakeword IPC bridge: `frontend/src/main/wakeword_bridge.cjs`
 - Main-to-sidecar JSON-RPC bridge: `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 - Sidecar method registry and protocol parser: `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/core/ipc_protocol.py`
@@ -52,6 +52,7 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `list-episodic-memories` | `main/local_backend_bridge.cjs` | Proxies to `list_episodic_memories` |
 | `get-conversation` | `main/local_backend_bridge.cjs` | Proxies to `get_conversation` |
 | `list-semantic-memories` | `main/local_backend_bridge.cjs` | Proxies to `list_semantic_memories` |
+| `delete-episodic-memory` | `main/local_backend_bridge.cjs` | Proxies to `delete_episodic_memory` |
 | `delete-conversation` | `main/local_backend_bridge.cjs` | Proxies to `delete_conversation` |
 | `delete-semantic-memory` | `main/local_backend_bridge.cjs` | Proxies to `delete_semantic_memory` |
 | `store-memory` | `main/local_backend_bridge.cjs` | Proxies to `store_memory` |
@@ -71,6 +72,7 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `show-main-window` | `main/index.cjs` | Show dashboard window; optional `{ open, maximize }`; `open` target must normalize to `chat|memory|models|settings` before emit |
 | `show-chatbox` | `main/index.cjs` | Show chatbox overlay |
 | `hide-chatbox` | `main/index.cjs` | Hide chatbox overlay |
+| `prepare-overlay-tool-focus` | `main/index.cjs` | Pre-tool overlay hide/focus prep; returns active-window verification metadata |
 | `get-displays` | `main/index.cjs` | Return display inventory |
 | `window-minimize` | `main/index.cjs` | Minimize main window |
 | `window-toggle-maximize` | `main/index.cjs` | Toggle maximize state |
@@ -151,6 +153,7 @@ Transport:
 | `list-episodic-memories` | `list_episodic_memories` | `userId -> user_id` |
 | `get-conversation` | `get_conversation` | `conversationId -> conversation_id` (`null` when missing), `recordKind -> record_kind` |
 | `list-semantic-memories` | `list_semantic_memories` | `userId -> user_id` |
+| `delete-episodic-memory` | `delete_episodic_memory` | `memoryId -> memory_id` |
 | `delete-conversation` | `delete_conversation` | `conversationId -> conversation_id`, `recordKind -> record_kind` |
 | `delete-semantic-memory` | `delete_semantic_memory` | `memoryId -> memory_id` |
 | `store-memory` | `store_memory` | camelCase to snake_case for query/response/type/user/session keys |

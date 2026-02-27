@@ -8,12 +8,12 @@ title: "Frontend IPC Channel and Payload Validation Boundary Reference"
 
 # Frontend IPC Channel and Payload Validation Boundary Reference
 
-## Coverage Snapshot (2026-02-26)
+## Coverage Snapshot (2026-02-27)
 
 - Renderer `send` channels: `5`
-- Renderer `invoke` channels: `32`
+- Renderer `invoke` channels: `33`
 - Renderer `on/once` channels: `11`
-- Compiled local-backend mapper definitions: `9` (`COMPILED_RPC_HANDLER_DEFINITIONS`)
+- Compiled local-backend mapper definitions: `10` (`COMPILED_RPC_HANDLER_DEFINITIONS`)
 
 ## Scope and Sources
 
@@ -21,7 +21,7 @@ Validation boundary sources:
 
 - Preload IPC allowlists: `frontend/src/preload.js`
 - Renderer typed channel/bridge checks: `frontend/src/renderer/infrastructure/ipc/channels.ts`, `frontend/src/renderer/infrastructure/ipc/bridge.ts`
-- Main bridge payload normalization and user-id generation: `frontend/src/main/ipc.cjs`
+- Main bridge payload normalization and user-id generation: `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc_settings_sync.cjs`
 - Query content escaping and fallback handling: `frontend/src/main/query_payload_builder.cjs`
 - Local-backend RPC mapping utilities: `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 
@@ -79,6 +79,7 @@ Role:
 Reason:
 
 - keep outbound websocket payload aligned with backend-supported schema keys.
+- keep first-query settings ACK gate strict by requiring `settings-updated` or timeout before dispatch.
 
 ## User ID Validation/Sanitization Boundary
 

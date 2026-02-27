@@ -19,6 +19,7 @@ Primary sources:
 
 - Preload boundary: `frontend/src/preload.js`
 - Main websocket bridge/state: `frontend/src/main/ipc.cjs`
+- Settings-sync ACK timeout helpers: `frontend/src/main/ipc_settings_sync.cjs`
 - Synthetic query failure events: `frontend/src/main/ipc_query_events.cjs`
 - Local backend bridge + utils: `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/local_backend_bridge_utils.cjs`
 - Wakeword subprocess bridge: `frontend/src/main/wakeword_bridge.cjs`
