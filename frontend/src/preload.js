@@ -42,6 +42,7 @@ contextBridge.exposeInMainWorld('ipc', {
       'show-main-window',
       'show-chatbox',
       'hide-chatbox',
+      'prepare-overlay-tool-focus',
       'get-displays',
       'load-frontend-config',
       'save-frontend-config',

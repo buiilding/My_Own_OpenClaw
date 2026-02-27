@@ -43,8 +43,9 @@ Responsibilities:
 - guards against stale-turn execution using `streamTracking.activeTurnRef`
 - tracks correlation IDs to reject late/out-of-turn results
 - sends cancellation-failure payloads (`frontend_stale_turn_cancelled`) when tool events arrive for closed turns
-- before computer-use execution (`click`/`type`/`scroll`/`screenshot` paths, excluding `switch_tab`), requests `show-chatbox` so dashboard view is hidden and tool turns continue in chat-pill mode
-- applies the same chat-pill handoff rule for bundles when any bundled step matches those computer-use actions
+- before interactive computer-use execution (`click`/`type`/`scroll` paths, excluding `switch_tab`), requests `show-chatbox` and then `prepare-overlay-tool-focus` so dashboard closes and external app focus is restored before dispatch
+- for screenshot tool turns from dashboard, closes dashboard, temporarily hides chat-pill overlays for capture (avoids mirror artifacts), then restores chat-pill surface after execution
+- applies the same handoff policy to bundles when bundled steps include interactive/screenshot computer-use actions
 
 ## ToolExecutionService
 
