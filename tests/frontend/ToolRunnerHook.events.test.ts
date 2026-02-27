@@ -2,6 +2,7 @@ import { act } from '@testing-library/react';
 
 import {
   IpcBridge,
+  INVOKE_CHANNELS,
   ON_CHANNELS,
   emitBackendEventAsync,
   getRemoveListenerMock,
@@ -62,6 +63,10 @@ describe('useToolRunner event handling', () => {
       { file_path: '/tmp/a' },
       { correlationId: 'corr-1', skipAutoCapture: false },
     );
+    expect(IpcBridge.invoke).not.toHaveBeenCalledWith(
+      INVOKE_CHANNELS.SHOW_CHATBOX,
+      expect.anything(),
+    );
   });
 
   test.each([
@@ -109,6 +114,34 @@ describe('useToolRunner event handling', () => {
       parameters,
       { correlationId: requestId, skipAutoCapture: false },
     );
+    expect(IpcBridge.invoke).toHaveBeenCalledWith(
+      INVOKE_CHANNELS.SHOW_CHATBOX,
+      { focus: false },
+    );
+  });
+
+  test('does not force chat-pill handoff for switch_tab tool-call', async () => {
+    renderToolRunner(true);
+
+    await emitBackendEventAsync({
+      type: 'tool-call',
+      id: 'event-switch-tab',
+      payload: {
+        tool_name: 'switch_tab',
+        parameters: { tab_name: 'Editor' },
+        request_id: 'req-switch-tab',
+      },
+    });
+
+    expect(mockExecuteTool).toHaveBeenCalledWith(
+      'switch_tab',
+      { tab_name: 'Editor' },
+      { correlationId: 'req-switch-tab', skipAutoCapture: false },
+    );
+    expect(IpcBridge.invoke).not.toHaveBeenCalledWith(
+      INVOKE_CHANNELS.SHOW_CHATBOX,
+      expect.anything(),
+    );
   });
 
 
@@ -133,6 +166,37 @@ describe('useToolRunner event handling', () => {
         { toolName: 'write_file', args: { file_path: '/tmp/b', content: 'x' } },
       ],
       'bundle-abc',
+    );
+    expect(IpcBridge.invoke).not.toHaveBeenCalledWith(
+      INVOKE_CHANNELS.SHOW_CHATBOX,
+      expect.anything(),
+    );
+  });
+
+  test('forces chat-pill handoff before executing computer-use tool bundles', async () => {
+    renderToolRunner(true);
+
+    await emitBackendEventAsync({
+      type: 'tool-bundle',
+      payload: {
+        bundle_id: 'bundle-computer-tool',
+        tools: [
+          { name: 'read_file', args: { file_path: '/tmp/a' } },
+          { name: 'screenshot', args: {} },
+        ],
+      },
+    });
+
+    expect(IpcBridge.invoke).toHaveBeenCalledWith(
+      INVOKE_CHANNELS.SHOW_CHATBOX,
+      { focus: false },
+    );
+    expect(mockExecuteToolBundle).toHaveBeenCalledWith(
+      [
+        { toolName: 'read_file', args: { file_path: '/tmp/a' } },
+        { toolName: 'screenshot', args: {} },
+      ],
+      'bundle-computer-tool',
     );
   });
 
