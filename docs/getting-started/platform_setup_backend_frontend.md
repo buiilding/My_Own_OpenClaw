@@ -131,6 +131,22 @@ python -m pip install --upgrade pip
 pip install -r frontend/src/main/python/requirements.txt
 ```
 
+Optional repo-aligned Conda environment names:
+
+- Backend/runtime + backend tests: `conda activate jarvis`
+- Frontend app/sidecar + frontend tests: `conda activate frontend_jarvis`
+
+### 3.1 Python interpreter resolution used by Electron main
+
+`frontend/src/main/runtime_paths.cjs` resolves Python in this order:
+
+1. `WINDIE_PYTHON_PATH` when set and file exists.
+2. Bundled runtime executable (packaged app).
+3. Active Conda interpreter from `CONDA_PREFIX`.
+4. Platform fallback command (`py` on Windows, `python3` on Linux/macOS).
+
+Set `WINDIE_PYTHON_PATH` explicitly during development to avoid accidental interpreter drift.
+
 ## 4) Frontend Node setup + run
 
 ```bash
@@ -153,6 +169,25 @@ cd frontend
 $env:WINDIE_PYTHON_PATH = "C:\path\to\WindieOS\.venv-sidecar311\Scripts\python.exe"
 npm run electron:dev
 ```
+
+Optional backend endpoint overrides (Electron main -> backend):
+
+- `BACKEND_HTTP_URL` (highest priority for HTTP)
+- `BACKEND_WS_URL` (highest priority for WebSocket)
+- fallback pair: `BACKEND_HOST` + `BACKEND_PORT`
+
+PowerShell example:
+
+```powershell
+$env:BACKEND_HTTP_URL = "http://127.0.0.1:8765"
+$env:BACKEND_WS_URL = "ws://127.0.0.1:8765/ws"
+npm run electron:dev
+```
+
+Notes:
+
+- Dev fallback (no overrides): `http://127.0.0.1:8765` + `ws://127.0.0.1:8765/ws`.
+- Packaged fallback default points to `https://api.windieos.com` + `wss://api.windieos.com/ws`.
 
 For headless Linux containers/CI without a display server:
 
@@ -179,9 +214,10 @@ python -m backend.src.main
 ### Windows
 
 - Do not install Flash Attention.
-- Do not install Flash Attention.
 - If Electron fails to launch, install VC++ runtimes and ensure GPU driver is current.
 - Prefer PowerShell activation commands shown above.
+- If wakeword/sidecar startup fails, verify `WINDIE_PYTHON_PATH` points to a valid `python.exe` and that `frontend/src/main/python/requirements.txt` is installed in that environment.
+- `onnxruntime-gpu` + torch CUDA wheels must match installed NVIDIA driver capability; if OCR provider falls back to CPU, update driver and reinstall matching wheel versions.
 
 ### Ubuntu
 
