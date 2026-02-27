@@ -104,6 +104,7 @@ const COMPILED_RPC_HANDLER_DEFINITIONS = [
       conversation_id: ({ conversationId }) => conversationId ?? null,
       limit: 'limit',
       record_kind: 'recordKind',
+      after_message_index: 'afterMessageIndex',
     }),
   },
   {

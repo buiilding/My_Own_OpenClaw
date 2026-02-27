@@ -85,6 +85,7 @@ frontend/src/
 1. Renderer writes transcript rows through `INVOKE_CHANNELS.STORE_TRANSCRIPT`.
 2. `TranscriptWriter` queues failed writes and retries when session info becomes available.
 3. Dashboard sidebar/search open operations fetch transcript windows via sidecar RPC (`list-conversations`, `search-conversations`, `get-conversation`).
+   `get-conversation` resume/hydrate paths use `message_index` cursor pagination (`after_message_index`) so large local DB transcripts are fully reloaded instead of capped at one page.
 4. Resume action rehydrates backend context (`rehydrate-conversation`) and replaces in-memory renderer chat state.
 
 ### Wakeword/Voice Flow

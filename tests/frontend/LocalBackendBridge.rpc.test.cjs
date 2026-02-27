@@ -364,6 +364,30 @@ describe('local_backend_bridge RPC handlers', () => {
       conversation_id: null,
       limit: 4,
       record_kind: 'transcript',
+      after_message_index: undefined,
+    });
+
+    await expectResolvedSuccess(stdoutHandler, promise, { messages: [] });
+  });
+
+  test('get-conversation handler maps afterMessageIndex cursor', async () => {
+    const { handlers, stdoutHandler } = initBridge();
+    markReady();
+
+    const promise = handlers['get-conversation'](null, {
+      userId: 'u-1',
+      conversationId: 'conv-1',
+      limit: 100,
+      recordKind: 'transcript',
+      afterMessageIndex: 500,
+    });
+
+    expectLastRequestWith('get_conversation', {
+      user_id: 'u-1',
+      conversation_id: 'conv-1',
+      limit: 100,
+      record_kind: 'transcript',
+      after_message_index: 500,
     });
 
     await expectResolvedSuccess(stdoutHandler, promise, { messages: [] });

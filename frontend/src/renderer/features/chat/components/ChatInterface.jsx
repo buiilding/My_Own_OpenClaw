@@ -13,6 +13,12 @@ import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { extractAudioChunkPayload } from '../utils/backendAudioEvents';
 import { selectChatInterfaceState } from '../utils/chatSelectors';
 import { startNewChatSession } from '../utils/newChatSession';
+import { loadConversationTranscriptMemories } from '../../../infrastructure/transcript/conversationTranscriptLoader';
+import {
+  getActiveConversationRef,
+  getTranscriptSessionInfo,
+} from '../../../infrastructure/transcript/TranscriptWriter';
+import { toRehydrateMessagePayload } from '../../dashboard/utils/episodicMemoryUtils';
 import {
   normalizeProvider,
 } from '../utils/transcriptMessagePayload';
@@ -213,9 +219,27 @@ function ChatInterface({ sidebarOpen = true, focusComposerToken = 0 }) {
     });
   }, [speechModeEnabled, updateConfig]);
 
-  const handleRunAutoCompaction = useCallback(() => {
+  const handleRunAutoCompaction = useCallback(async () => {
     if (canStop) {
       return;
+    }
+    const sessionInfo = getTranscriptSessionInfo();
+    const conversationRef = getActiveConversationRef() || sessionInfo?.conversationRef || null;
+    const userId = sessionInfo?.userId || null;
+    if (conversationRef && userId) {
+      try {
+        const memories = await loadConversationTranscriptMemories({
+          userId,
+          conversationRef,
+          recordKind: 'transcript',
+        });
+        await ApiClient.sendRehydrateConversation(
+          conversationRef,
+          memories.map(toRehydrateMessagePayload),
+        );
+      } catch (error) {
+        console.warn('[ChatInterface] Failed to rehydrate conversation before compaction:', error);
+      }
     }
     ApiClient.compactHistory(true);
   }, [canStop]);

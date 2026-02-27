@@ -24,6 +24,7 @@ class DummyMemoryStore:
         self.added = []
         self.pending_count = 0
         self.next_index = 1
+        self.conversation_calls = []
 
     async def search(self, query, user_id, filters, limit):
         return [
@@ -53,6 +54,25 @@ class DummyMemoryStore:
         value = self.next_index
         self.next_index += 1
         return value
+
+    async def get_episodic_memories_by_conversation(
+        self,
+        user_id,
+        conversation_id,
+        limit,
+        record_kind="transcript",
+        after_message_index=None,
+    ):
+        self.conversation_calls.append(
+            {
+                "user_id": user_id,
+                "conversation_id": conversation_id,
+                "limit": limit,
+                "record_kind": record_kind,
+                "after_message_index": after_message_index,
+            }
+        )
+        return [{"id": "mem-1"}]
 
     async def close(self):
         return None
@@ -470,6 +490,33 @@ async def test_handle_list_conversations_fails_without_store():
     result = await backend._handle_list_conversations(user_id="user-1")
     assert result["success"] is False
     assert result["error"] == "Memory store not initialized"
+
+
+@pytest.mark.asyncio
+async def test_handle_get_conversation_forwards_after_message_index_cursor():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+
+    result = await backend._handle_get_conversation(
+        user_id="user-1",
+        conversation_id="conv-1",
+        limit=250,
+        record_kind="transcript",
+        after_message_index=1200,
+    )
+
+    assert result["success"] is True
+    assert result["data"]["conversation_id"] == "conv-1"
+    assert result["data"]["count"] == 1
+    assert backend.memory_store.conversation_calls == [
+        {
+            "user_id": "user-1",
+            "conversation_id": "conv-1",
+            "limit": 250,
+            "record_kind": "transcript",
+            "after_message_index": 1200,
+        }
+    ]
 
 
 @pytest.mark.asyncio
