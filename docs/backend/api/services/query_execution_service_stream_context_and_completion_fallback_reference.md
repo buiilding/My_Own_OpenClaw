@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for QueryExecutionService runtime behavior: payload ingestion, screenshot/runtime-state resolution, reusable stream context, completion-text precedence, and fallback/backfill event emission semantics."
+summary: "Deep reference for QueryExecutionService runtime behavior: payload ingestion, multi-screenshot/runtime-state resolution, reusable stream context, completion-text precedence, and fallback/backfill event emission semantics."
 read_when:
   - When changing `QueryExecutionService.execute` event-processing order or completion behavior.
-  - When debugging empty final responses, screenshot-ref fallback loads, or `system_state_internal` runtime-state seeding.
+  - When debugging empty final responses, screenshot artifact fallback loads (`screenshot_ref`/`screenshot_refs`), or `system_state_internal` runtime-state seeding.
 title: "Query Execution Service Stream Context and Completion Fallback Reference"
 ---
 
@@ -41,16 +41,24 @@ Service responsibilities:
 - `text` -> validated by `validate_query_text`
 - `conversation_ref` -> injected into immutable stream context
 - `content` -> forwarded as `message_content` to `agent_instance.process_query(...)`
-- `screenshot` / `screenshot_ref` -> screenshot resolution path
+- `screenshot` / `screenshot_ref` / `screenshot_refs[]` -> screenshot resolution path
 - `system_state_internal` -> backend-only runtime state seed
 
 ## Screenshot Resolution Semantics
 
-`_resolve_screenshot(...)` precedence:
+`_resolve_screenshots(...)` precedence:
 
-1. if inline `screenshot` exists, return it
-2. else if `screenshot_ref` exists, try `ArtifactStore.from_config(...).load_base64(...)`
-3. on artifact failure, log warning and return `None`
+1. if inline `screenshot` exists, return `[screenshot]` and skip artifact refs.
+2. else build refs list from `screenshot_refs[]`; fallback single `screenshot_ref`.
+3. try `ArtifactStore.from_config(...).load_base64(...)` for each ref.
+4. per-ref failures log warnings; successful refs continue.
+5. return `None` when no refs resolve.
+
+`execute(...)` converts resolved screenshots into `image_data` contract:
+
+- one screenshot -> `image_data` string
+- multiple screenshots -> `image_data` string list
+- none resolved -> `image_data=None`
 
 This path is non-fatal by design; query execution continues without image context when artifact lookup fails.
 
@@ -131,8 +139,9 @@ Within `async with TTSSession(...)`:
 - silent stream fallback emits synthetic chunk + completion
 - assistant-full-only path backfills chunk before completion
 - extractor helper precedence and payload/top-level fallback behavior
-- screenshot-ref load success/failure paths
-- inline screenshot precedence over screenshot_ref
+- screenshot-ref and screenshot-refs[] load success paths
+- inline screenshot precedence over artifact refs
+- missing artifact refs do not abort query execution
 - `system_state_internal` application into agent runtime state
 
 ## Drift Hotspots
