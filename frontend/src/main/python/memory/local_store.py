@@ -8,7 +8,6 @@ instead of local embedding providers.
 import asyncio
 import json
 import logging
-import re
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -33,6 +32,10 @@ from memory.conversation_search_helpers import extract_query_terms
 from memory.conversation_search_helpers import group_conversation_search_hits
 from memory.conversation_search_helpers import pick_best_conversation_hit
 from memory.conversation_search_helpers import safe_timestamp_to_epoch_seconds
+from memory.conversation_title_helpers import ensure_conversation_title
+from memory.conversation_title_helpers import fetch_title_generation_inputs
+from memory.conversation_title_helpers import lookup_conversation_title_state
+from memory.conversation_title_helpers import normalize_generated_title
 from memory.faiss_index import (
     read_index_safe,
     read_index_safe_async,
@@ -57,10 +60,6 @@ class _NoopTitleClient:
 
     async def generate_title(self, **_kwargs) -> str:
         return ""
-
-
-TITLE_NORMALIZED_MAX_WORDS = 6
-TITLE_NORMALIZED_MAX_CHARS = 48
 
 
 @dataclass(frozen=True)
@@ -1286,7 +1285,7 @@ class LocalMemoryStore:
             results = []
             for row in rows:
                 conversation_id = row["conversation_id"]
-                title, title_source = await self._ensure_conversation_title(
+                title, title_source = await ensure_conversation_title(
                     cursor=cursor,
                     user_id=user_id,
                     conversation_id=conversation_id,
@@ -1511,7 +1510,7 @@ class LocalMemoryStore:
             conn.row_factory = aiosqlite.Row
             cursor = await conn.cursor()
 
-            current_title, _, is_locked = await self._lookup_conversation_title_state(
+            current_title, _, is_locked = await lookup_conversation_title_state(
                 cursor=cursor,
                 user_id=user_id,
                 conversation_id=conversation_id,
@@ -1520,7 +1519,7 @@ class LocalMemoryStore:
                 return
 
             first_user_content, first_assistant_content, assistant_model_id, assistant_model_provider = (
-                await self._fetch_title_generation_inputs(
+                await fetch_title_generation_inputs(
                     cursor=cursor,
                     user_id=user_id,
                     conversation_id=conversation_id,
@@ -1549,7 +1548,7 @@ class LocalMemoryStore:
                 model_id=selected_model_id,
                 model_provider=selected_model_provider,
             )
-            normalized_title = self._normalize_generated_title(generated_title)
+            normalized_title = normalize_generated_title(generated_title)
             if not normalized_title:
                 return
 
@@ -1583,164 +1582,6 @@ class LocalMemoryStore:
                 ),
             )
             await conn.commit()
-
-    async def _lookup_conversation_title_state(
-        self,
-        *,
-        cursor,
-        user_id: str,
-        conversation_id: str,
-    ) -> Tuple[Optional[str], Optional[str], bool]:
-        await cursor.execute(
-            """
-            SELECT title, source, is_locked
-            FROM conversation_titles
-            WHERE user_id = ? AND conversation_id = ?
-        """,
-            (user_id, conversation_id),
-        )
-        row = await cursor.fetchone()
-        if not row:
-            return None, None, False
-
-        title = (row["title"] or "").strip() or None
-        source = (row["source"] or "").strip() or None
-        is_locked = bool(row["is_locked"])
-        return title, source, is_locked
-
-    async def _fetch_title_generation_inputs(
-        self,
-        *,
-        cursor,
-        user_id: str,
-        conversation_id: str,
-        preferred_model_id: Optional[str],
-        preferred_model_provider: Optional[str],
-    ) -> Tuple[Optional[str], Optional[str], Optional[str], Optional[str]]:
-        await cursor.execute(
-            """
-            SELECT content
-            FROM memories
-            WHERE user_id = ? AND conversation_id = ?
-              AND record_kind = 'transcript'
-              AND role = 'user'
-              AND content IS NOT NULL
-              AND content != ''
-            ORDER BY message_index ASC, timestamp ASC
-            LIMIT 1
-        """,
-            (user_id, conversation_id),
-        )
-        first_user_row = await cursor.fetchone()
-
-        normalized_model_id = (
-            preferred_model_id.strip()
-            if isinstance(preferred_model_id, str) and preferred_model_id.strip()
-            else None
-        )
-        normalized_model_provider = (
-            preferred_model_provider.strip()
-            if isinstance(preferred_model_provider, str) and preferred_model_provider.strip()
-            else None
-        )
-
-        first_assistant_row = None
-        if normalized_model_id and normalized_model_provider:
-            await cursor.execute(
-                """
-                SELECT content, model_id, model_provider
-                FROM memories
-                WHERE user_id = ? AND conversation_id = ?
-                  AND record_kind = 'transcript'
-                  AND role = 'assistant'
-                  AND LOWER(REPLACE(COALESCE(message_type, ''), '_', '-')) = 'llm-text'
-                  AND model_id = ?
-                  AND model_provider = ?
-                  AND content IS NOT NULL
-                  AND content != ''
-                ORDER BY message_index ASC, timestamp ASC
-                LIMIT 1
-            """,
-                (
-                    user_id,
-                    conversation_id,
-                    normalized_model_id,
-                    normalized_model_provider,
-                ),
-            )
-            first_assistant_row = await cursor.fetchone()
-
-        if not first_assistant_row:
-            await cursor.execute(
-                """
-                SELECT content, model_id, model_provider
-                FROM memories
-                WHERE user_id = ? AND conversation_id = ?
-                  AND record_kind = 'transcript'
-                  AND role = 'assistant'
-                  AND LOWER(REPLACE(COALESCE(message_type, ''), '_', '-')) = 'llm-text'
-                  AND content IS NOT NULL
-                  AND content != ''
-                ORDER BY message_index ASC, timestamp ASC
-                LIMIT 1
-            """,
-                (user_id, conversation_id),
-            )
-            first_assistant_row = await cursor.fetchone()
-
-        return (
-            first_user_row["content"] if first_user_row else None,
-            first_assistant_row["content"] if first_assistant_row else None,
-            (first_assistant_row["model_id"] or "").strip() if first_assistant_row else None,
-            (first_assistant_row["model_provider"] or "").strip() if first_assistant_row else None,
-        )
-
-    @staticmethod
-    def _normalize_generated_title(raw_title: Optional[str]) -> str:
-        if not isinstance(raw_title, str):
-            return ""
-        title = raw_title.strip()
-        if not title:
-            return ""
-        first_line = next((line.strip() for line in title.splitlines() if line.strip()), "")
-        if not first_line:
-            return ""
-        first_line = re.sub(r"^(title\s*:\s*)", "", first_line, flags=re.IGNORECASE)
-        first_line = first_line.strip().strip("`").strip().strip("\"'")
-        first_line = re.sub(r"\s+", " ", first_line).strip()
-        words = first_line.split()
-        if words:
-            first_line = " ".join(words[:TITLE_NORMALIZED_MAX_WORDS]).strip()
-        if len(first_line) > TITLE_NORMALIZED_MAX_CHARS:
-            first_line = first_line[:TITLE_NORMALIZED_MAX_CHARS].rstrip()
-        return first_line
-
-    async def _ensure_conversation_title(
-        self,
-        cursor,
-        user_id: str,
-        conversation_id: Optional[str],
-        existing_title: Optional[str],
-        existing_title_source: Optional[str],
-        existing_title_locked: Optional[int],
-    ) -> Tuple[Optional[str], Optional[str]]:
-        if not conversation_id:
-            return None, None
-
-        current_title = (existing_title or "").strip()
-        if current_title:
-            return current_title, existing_title_source or "model"
-
-        title, source, is_locked = await self._lookup_conversation_title_state(
-            cursor=cursor,
-            user_id=user_id,
-            conversation_id=conversation_id,
-        )
-        if title:
-            return title, source or "model"
-        if is_locked:
-            return None, source
-        return None, None
 
     async def _search_transcript_hits_lexical(
         self,
@@ -1963,7 +1804,7 @@ class LocalMemoryStore:
         summaries: Dict[str, Dict[str, Any]] = {}
         for row in rows:
             conversation_id = row["conversation_id"]
-            title, title_source = await self._ensure_conversation_title(
+            title, title_source = await ensure_conversation_title(
                 cursor=cursor,
                 user_id=user_id,
                 conversation_id=conversation_id,

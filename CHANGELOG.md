@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-memory-titles): extract conversation-title normalization/state/input helper logic from `memory/local_store.py` into `memory/conversation_title_helpers.py`, preserving title generation/listing behavior while reducing local-store size and adding focused helper regression coverage.
 - docs(frontend-landing-sections): add deep reference for `WhySection`, `PrivacySection`, `CTAFooter`, shared `SectionIntro`, and `ProviderStackIcon`; sync landing hubs/runtime docs with cross-links, static content contracts, and anchor/link drift hotspots.
 - refactor(sidecar-memory-search): extract transcript conversation-search term/snippet/grouping/timestamp helpers from `memory/local_store.py` into `memory/conversation_search_helpers.py`, reducing local-store size while preserving ranking/merge behavior; add focused helper regression coverage.
 - docs(frontend-chat-actions): add message-action/source-badge dev-ui reference covering assistant/user action gating, shared copy timer behavior, and source-tag label resolution contracts.
