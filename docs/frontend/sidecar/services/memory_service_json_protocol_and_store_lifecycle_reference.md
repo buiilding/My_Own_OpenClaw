@@ -85,6 +85,7 @@ Required fields:
 
 Validation detail:
 
+- uses shared `memory.operations.normalize_store_memory_payload(...)` so `memory_service.py` and `local_backend.py` enforce the same contract
 - `user_query` and `assistant_response` must be strings; non-string payloads fail fast
 - both fields are trimmed; whitespace-only values are rejected as missing
 

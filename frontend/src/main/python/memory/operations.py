@@ -4,7 +4,7 @@ Shared memory request/response helpers for sidecar services.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 
 def build_memory_filters(memory_type: Optional[str]) -> Dict[str, str]:
@@ -46,6 +46,44 @@ def group_memory_texts(results: Iterable[Dict[str, Any]]) -> Dict[str, List[str]
 def format_interaction_memory(user_query: str, assistant_response: str) -> str:
     """Store user/assistant exchanges in the canonical memory text format."""
     return f"User: {user_query}\nAssistant: {assistant_response}"
+
+
+def normalize_store_memory_payload(
+    user_query: Any,
+    assistant_response: Any,
+    memory_type: Any,
+) -> Tuple[Optional[Dict[str, str]], Optional[str]]:
+    """
+    Validate and normalize store-memory payload fields.
+
+    Returns:
+        ({user_query, assistant_response, memory_type}, None) on success
+        (None, "<error message>") on validation failure
+    """
+    if user_query is None or assistant_response is None:
+        return None, "Missing user_query or assistant_response"
+
+    if not isinstance(user_query, str) or not isinstance(assistant_response, str):
+        return None, "user_query and assistant_response must be strings"
+
+    if memory_type is not None and not isinstance(memory_type, str):
+        return None, "memory_type must be a string"
+
+    normalized_query = user_query.strip()
+    normalized_response = assistant_response.strip()
+    normalized_memory_type = (memory_type or "episodic").strip().lower()
+
+    if not normalized_query or not normalized_response:
+        return None, "Missing user_query or assistant_response"
+
+    if normalized_memory_type not in {"episodic", "semantic"}:
+        return None, f"Invalid memory_type: {normalized_memory_type}"
+
+    return {
+        "user_query": normalized_query,
+        "assistant_response": normalized_response,
+        "memory_type": normalized_memory_type,
+    }, None
 
 
 def build_interaction_metadata(
