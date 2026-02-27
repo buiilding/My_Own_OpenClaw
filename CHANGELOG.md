@@ -15,7 +15,7 @@ Includes the last 300 commits on `main`.
 - fix(frontend-dashboard-collapsed-hover-reset): clear collapsed brand-toggle hover state on sidebar mode transitions so collapse->expand->collapse never renders stale expand icon unless currently hovered; add dedicated regression coverage.
 - fix(ci-backend-deps): relax backend `openai` pin to `>=2.8.0,<3.0.0` so `litellm==1.81.16` resolves cleanly in GitHub Actions dependency installation.
 - fix(ci-sidecar-tests): make computer-tool import-error tests deterministic by stubbing `sys.modules` entries to `None` (`pyautogui` / `PIL`) instead of relying on environment-specific module availability.
-- test(frontend-main-window-runtime): update `prepareOverlayQueryCaptureFocus` contract assertions to include `canVerifyExternalFocus` in `MainWindowRuntime` expectations.
+- test(frontend-main-window-runtime): update `prepareOverlayQueryCaptureFocus` contract assertions to include `canVerifyExternalFocus` and mock `electron` in `MainWindowRuntime.test.cjs` so CI passes when Electron binary download is skipped.
 - test(sidecar-memory-watermark): align `get_unprocessed_memories_after_id` coverage with interaction-only semanticization source rows (`record_kind='interaction'`).
 - docs(backend-protocol-testing): fix websocket schema-model naming typo (`memory-stored` -> `memory-store`) in backend protocol test coverage reference.
 - fix(sidecar-memory-type-validation): enforce `memory_type` allowlist (`episodic|semantic`) in both `local_backend.store_memory` and standalone `memory_service.store`; invalid values now fail fast.
