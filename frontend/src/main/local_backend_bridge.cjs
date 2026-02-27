@@ -8,6 +8,7 @@ const {
   mapSearchMemoryPayload,
   registerMappedRpcHandlers,
 } = require('./local_backend_bridge_rpc_mappers.cjs');
+const { resolveToolArgs } = require('./local_backend_bridge_tool_args.cjs');
 const {
   createWindowResolvers,
   withHiddenWindowForScreenshot,
@@ -31,44 +32,6 @@ let readinessCheckCallback = null;
 let readinessCheckToken = 0;
 
 let cachedPythonPath = null;
-
-function resolveRunShellCommandArgs(args, getFrontendConfig) {
-  const nextArgs = (
-    args
-    && typeof args === 'object'
-    && !Array.isArray(args)
-  ) ? { ...args } : {};
-
-  let agentHasFullSudoAccess = false;
-  if (typeof getFrontendConfig === 'function') {
-    try {
-      const config = getFrontendConfig();
-      agentHasFullSudoAccess = Boolean(
-        config
-        && typeof config === 'object'
-        && !Array.isArray(config)
-        && config.agent_full_sudo_enabled === true,
-      );
-    } catch (error) {
-      console.warn(
-        `[LocalBackend] Failed to read frontend config for sudo auth mode: ${getErrorMessage(error)}`,
-      );
-    }
-  }
-
-  nextArgs.sudo_auth_mode = agentHasFullSudoAccess ? 'native' : 'os_prompt';
-  return nextArgs;
-}
-
-function resolveToolArgs(toolName, args, getFrontendConfig) {
-  if (toolName === 'run_shell_command') {
-    return resolveRunShellCommandArgs(args, getFrontendConfig);
-  }
-  if (args && typeof args === 'object' && !Array.isArray(args)) {
-    return { ...args };
-  }
-  return {};
-}
 
 function getReadinessRetryDelay(attempt) {
   return Math.min(50 * Math.pow(2, attempt - 1), 1000);
