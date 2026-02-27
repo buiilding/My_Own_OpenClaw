@@ -119,3 +119,30 @@ def test_build_transport_message_deep_copies_nested_payload_objects() -> None:
 
     assert message["payload"]["usage"]["input_tokens"] == 10
     assert message["payload"]["chunks"][0]["text"] == "hello"
+
+
+def test_build_transport_message_preserves_none_message_id() -> None:
+    message = build_transport_message(
+        "streaming-complete",
+        None,
+        {"final_response": "done"},
+    )
+
+    assert message["id"] is None
+    assert message["type"] == "streaming-complete"
+
+
+def test_attach_context_fields_ignores_falsey_non_string_values() -> None:
+    base = {"type": "ok", "id": "m4", "payload": {}}
+
+    result = attach_context_fields(
+        base,
+        {
+            "session_id": 0,
+            "user_id": False,
+            "conversation_ref": [],
+            "turn_ref": "",
+        },
+    )
+
+    assert result == {"type": "ok", "id": "m4", "payload": {}}
