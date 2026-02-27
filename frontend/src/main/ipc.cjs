@@ -14,6 +14,7 @@ const {
   resolveSettingsSync,
   waitForSettingsAck,
 } = require('./ipc_settings_sync.cjs');
+const { persistMemoryStoreEvent } = require('./ipc_memory_store_persistence.cjs');
 const { buildQueryPayloadContent } = require('./query_payload_builder.cjs');
 const {
   resolveConversationRef: resolveConversationRefFromPayload,
@@ -264,19 +265,7 @@ function connect() {
         setResponseOverlayPhase,
         getResponseOverlayPhase: () => responseOverlayPhase,
         onMemoryStoreEvent: (eventData) => {
-          void storeMemory({
-            user_query: eventData?.payload?.user_query,
-            assistant_response: eventData?.payload?.assistant_response,
-            memory_type: eventData?.payload?.memory_type || 'episodic',
-            user_id: eventData?.payload?.user_id || eventData?.user_id,
-            session_id: (
-              eventData?.payload?.session_id
-              || eventData?.session_id
-              || eventData?.conversation_ref
-            ),
-          }).catch((error) => {
-            log(`Main-process memory-store persistence failed: ${error.message}`);
-          });
+          persistMemoryStoreEvent(eventData, { storeMemory, log });
         },
         broadcastToRenderers,
         log,

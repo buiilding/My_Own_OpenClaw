@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-main-ipc): extract memory-store event payload mapping/persistence into `ipc_memory_store_persistence.cjs`, add focused unit coverage, and keep `ipc.cjs` below the large-file threshold.
 - refactor(sidecar-memory-store-helper): add shared `normalize_and_store_interaction_memory(...)` operation and reuse it in both `local_backend` and `memory_service` store handlers, reducing duplicated store-memory flow while preserving error/response behavior.
 - refactor(frontend-main-local-backend): extract shell-tool argument normalization into `local_backend_bridge_tool_args.cjs` and add direct unit coverage, reducing `local_backend_bridge.cjs` to sub-500 LOC without changing sidecar IPC behavior.
 - test(backend-tool-argument-normalization): add strict regressions for invalid assistant `tool_calls` shape, `model_dump` fallback to `dict()`, and unsupported argument payload type rejection.
