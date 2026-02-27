@@ -187,5 +187,6 @@ This executor is intended for sidecar-wide blocking/CPU offload reuse.
 - [Remote API Client Base Session Lifecycle, Timeout, and Error-Wrapper Contract Reference](remote_api_client_base_session_lifecycle_timeout_and_error_wrapper_contract_reference.md)
 - [Remote Embedding Client Health-Probe, Dimension, and Error-Surface Contract Reference](remote_embedding_client_health_probe_dimension_and_error_surface_contract_reference.md)
 - [Remote Semantic Client Summarize Payload, Timeout, and Error-Surface Contract Reference](remote_semantic_client_summarize_payload_timeout_and_error_surface_contract_reference.md)
+- [Remote Title Client Generation Payload, Model-Override, Timeout, and Error-Surface Contract Reference](remote_title_client_generation_payload_model_override_timeout_and_error_surface_contract_reference.md)
 - [JSON-RPC Protocol, Stdout Framing, and Shutdown Signal Runtime Reference](json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md)
 - [Memory Pipeline and Summarization](../memory_pipeline_and_summarization.md)
