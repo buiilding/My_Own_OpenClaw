@@ -126,6 +126,12 @@ function ChatBox() {
   const shellRef = useRef(null);
   const inputRef = useRef(null);
   const lastSizeRef = useRef({ width: 0, height: 0 });
+  const resizeSyncRef = useRef({
+    frameHandle: null,
+    debounceHandle: null,
+    inFlight: false,
+    queuedSize: null,
+  });
   const dragStateRef = useRef({
     isDragging: false,
     startClientX: 0,
@@ -203,38 +209,85 @@ function ChatBox() {
     if (!shellRef.current) {
       return () => {};
     }
+    const resizeSyncState = resizeSyncRef.current;
 
-    const updateSize = async () => {
+    const flushSizeUpdate = async (nextFrame) => {
+      const widthDelta = Math.abs((lastSizeRef.current.width || 0) - nextFrame.width);
+      const heightDelta = Math.abs((lastSizeRef.current.height || 0) - nextFrame.height);
+      if (widthDelta <= 1 && heightDelta <= 1) {
+        return;
+      }
+      if (resizeSyncState.inFlight) {
+        resizeSyncState.queuedSize = nextFrame;
+        return;
+      }
+
+      resizeSyncState.inFlight = true;
+      lastSizeRef.current = { width: nextFrame.width, height: nextFrame.height };
+      try {
+        await IpcBridge.invoke(INVOKE_CHANNELS.SET_CHATBOX_SIZE, {
+          width: nextFrame.width,
+          height: nextFrame.height,
+        });
+      } catch (error) {
+        console.warn('[ChatBox] Failed to resize chatbox window:', error);
+      } finally {
+        resizeSyncState.inFlight = false;
+        if (resizeSyncState.queuedSize) {
+          const queuedSize = resizeSyncState.queuedSize;
+          resizeSyncState.queuedSize = null;
+          void flushSizeUpdate(queuedSize);
+        }
+      }
+    };
+
+    const measureAndQueueSize = () => {
       const nextFrame = getRoundedFrameSize(shellRef.current);
       if (!nextFrame) {
         return;
       }
-      const { width, height } = nextFrame;
+      void flushSizeUpdate(nextFrame);
+    };
 
-      if (lastSizeRef.current.width === width && lastSizeRef.current.height === height) {
-        return;
+    const scheduleSizeSync = () => {
+      if (resizeSyncState.frameHandle) {
+        window.cancelAnimationFrame(resizeSyncState.frameHandle);
       }
-      lastSizeRef.current = { width, height };
-      try {
-        await IpcBridge.invoke(INVOKE_CHANNELS.SET_CHATBOX_SIZE, { width, height });
-      } catch (error) {
-        console.warn('[ChatBox] Failed to resize chatbox window:', error);
+      if (resizeSyncState.debounceHandle) {
+        window.clearTimeout(resizeSyncState.debounceHandle);
       }
+      resizeSyncState.frameHandle = window.requestAnimationFrame(() => {
+        resizeSyncState.frameHandle = null;
+        resizeSyncState.debounceHandle = window.setTimeout(() => {
+          resizeSyncState.debounceHandle = null;
+          measureAndQueueSize();
+        }, 40);
+      });
     };
 
     if (typeof ResizeObserver === 'undefined') {
-      window.requestAnimationFrame(updateSize);
+      scheduleSizeSync();
       return () => {};
     }
 
     const observer = new ResizeObserver(() => {
-      window.requestAnimationFrame(updateSize);
+      scheduleSizeSync();
     });
     observer.observe(shellRef.current);
-    window.requestAnimationFrame(updateSize);
+    scheduleSizeSync();
 
     return () => {
       observer.disconnect();
+      if (resizeSyncState.frameHandle) {
+        window.cancelAnimationFrame(resizeSyncState.frameHandle);
+        resizeSyncState.frameHandle = null;
+      }
+      if (resizeSyncState.debounceHandle) {
+        window.clearTimeout(resizeSyncState.debounceHandle);
+        resizeSyncState.debounceHandle = null;
+      }
+      resizeSyncState.queuedSize = null;
+      resizeSyncState.inFlight = false;
     };
   }, []);
 
