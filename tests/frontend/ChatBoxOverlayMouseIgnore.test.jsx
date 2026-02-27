@@ -229,6 +229,55 @@ describe('ChatBox overlay mouse ignore', () => {
     jest.useRealTimers();
   });
 
+  test('updates with-preview cached height when re-entering preview mode with a taller measured frame', async () => {
+    jest.useFakeTimers();
+    const rafQueue = [];
+    global.requestAnimationFrame = (cb) => {
+      rafQueue.push(cb);
+      return rafQueue.length;
+    };
+    global.cancelAnimationFrame = jest.fn();
+    const flushResizeSync = async () => {
+      await act(async () => {
+        rafQueue.splice(0).forEach((cb) => cb());
+        jest.advanceTimersByTime(45);
+        await Promise.resolve();
+      });
+    };
+    const resizeHeights = () => mockInvoke.mock.calls
+      .filter(([channel]) => channel === 'set-chatbox-size')
+      .map(([, payload]) => payload?.height);
+    let measuredFrame = { width: 200, height: 52 };
+    mockGetRoundedFrameSize.mockImplementation(() => measuredFrame);
+
+    render(<ChatBox />);
+    await flushResizeSync();
+    expect(resizeHeights().at(-1)).toBe(52);
+
+    measuredFrame = { width: 200, height: 104 };
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+      await Promise.resolve();
+    });
+    await flushResizeSync();
+    expect(resizeHeights().at(-1)).toBe(104);
+
+    measuredFrame = { width: 200, height: 132 };
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Remove screenshot 1' }));
+      await Promise.resolve();
+    });
+    await flushResizeSync();
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+      await Promise.resolve();
+    });
+    await flushResizeSync();
+    expect(resizeHeights().at(-1)).toBe(132);
+    jest.useRealTimers();
+  });
+
   test('wires overlay sender surface for centralized UI send behavior', () => {
     render(<ChatBox />);
 

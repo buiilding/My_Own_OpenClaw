@@ -278,6 +278,12 @@ function ChatBox() {
       const activeMode = resizeSyncState.activeMode;
       if (resizeSyncState.cachedModeHeights[activeMode] == null) {
         resizeSyncState.cachedModeHeights[activeMode] = measuredFrame.height;
+      } else if (
+        activeMode === CHATBOX_SIZE_MODES.WITH_PREVIEW
+        && measuredFrame.height > resizeSyncState.cachedModeHeights[activeMode]
+      ) {
+        // Preview rows can settle after first measurement; allow upward cache correction.
+        resizeSyncState.cachedModeHeights[activeMode] = measuredFrame.height;
       }
       const nextFrame = {
         width: measuredFrame.width,
