@@ -116,7 +116,9 @@ describe('overlay_chatbox_handler', () => {
   test('preserves bottom anchor even when getBounds reports top-anchored growth', async () => {
     const getBounds = jest.fn()
       .mockReturnValueOnce({ x: 40, y: 320, width: 320, height: 120 })
-      .mockReturnValueOnce({ x: 40, y: 320, width: 501, height: 300 });
+      .mockReturnValueOnce({ x: 40, y: 140, width: 501, height: 300 })
+      .mockReturnValueOnce({ x: 40, y: 320, width: 501, height: 300 })
+      .mockReturnValueOnce({ x: 40, y: 80, width: 501, height: 360 });
     const deps = createDeps({
       chatWindow: {
         isDestroyed: jest.fn().mockReturnValue(false),
@@ -142,6 +144,42 @@ describe('overlay_chatbox_handler', () => {
     expect(deps.chatWindow.setBounds).toHaveBeenNthCalledWith(2, {
       x: 40,
       y: 80,
+      width: 501,
+      height: 360,
+    }, false);
+  });
+
+  test('tracks applied bounds when window manager adjusts requested resize', async () => {
+    const getBounds = jest.fn()
+      .mockReturnValueOnce({ x: 40, y: 320, width: 320, height: 120 })
+      .mockReturnValueOnce({ x: 41, y: 150, width: 501, height: 300 })
+      .mockReturnValueOnce({ x: 41, y: 150, width: 501, height: 300 })
+      .mockReturnValueOnce({ x: 41, y: 90, width: 501, height: 360 });
+    const deps = createDeps({
+      chatWindow: {
+        isDestroyed: jest.fn().mockReturnValue(false),
+        getSize: jest.fn()
+          .mockReturnValueOnce([320, 120])
+          .mockReturnValueOnce([501, 300]),
+        getBounds,
+        setBounds: jest.fn(),
+      },
+    });
+
+    const first = await handleSetChatboxSize({ width: 501, height: 300 }, deps);
+    const second = await handleSetChatboxSize({ width: 501, height: 360 }, deps);
+
+    expect(first).toEqual({ success: true, resized: true, width: 501, height: 300 });
+    expect(second).toEqual({ success: true, resized: true, width: 501, height: 360 });
+    expect(deps.chatWindow.setBounds).toHaveBeenNthCalledWith(1, {
+      x: 40,
+      y: 140,
+      width: 501,
+      height: 300,
+    }, false);
+    expect(deps.chatWindow.setBounds).toHaveBeenNthCalledWith(2, {
+      x: 41,
+      y: 90,
       width: 501,
       height: 360,
     }, false);
