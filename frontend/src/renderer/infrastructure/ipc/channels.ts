@@ -38,6 +38,7 @@ export const INVOKE_CHANNELS = {
   SHOW_MAIN_WINDOW: 'show-main-window',
   SHOW_CHATBOX: 'show-chatbox',
   HIDE_CHATBOX: 'hide-chatbox',
+  PREPARE_OVERLAY_TOOL_FOCUS: 'prepare-overlay-tool-focus',
   GET_DISPLAYS: 'get-displays',
   LOAD_FRONTEND_CONFIG: 'load-frontend-config',
   SAVE_FRONTEND_CONFIG: 'save-frontend-config',

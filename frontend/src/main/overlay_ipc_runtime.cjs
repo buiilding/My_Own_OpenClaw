@@ -47,6 +47,7 @@ function initializeOverlayHandlersRuntime(deps = {}) {
     showMainWindow,
     showChatWindow,
     hideChatWindow,
+    prepareOverlayToolFocus,
     normalizeMainWindowOpenTarget,
     emitMainWindowOpenTarget,
     warn = console.warn,
@@ -129,6 +130,22 @@ function initializeOverlayHandlersRuntime(deps = {}) {
 
   ipcMain.handle('hide-chatbox', async () => {
     return handleHideChatbox({ hideChatWindow });
+  });
+
+  ipcMain.handle('prepare-overlay-tool-focus', async (_event, options = {}) => {
+    if (typeof prepareOverlayToolFocus !== 'function') {
+      return { success: false, reason: 'Overlay focus preparation unavailable' };
+    }
+    const waitMs = typeof options?.waitMs === 'number' ? options.waitMs : 180;
+    try {
+      const data = await prepareOverlayToolFocus({ waitMs });
+      return { success: true, data: data || null };
+    } catch (error) {
+      return {
+        success: false,
+        reason: `Failed to prepare overlay tool focus: ${error.message}`,
+      };
+    }
   });
 
   ipcMain.handle('get-displays', async () => {

@@ -22,17 +22,24 @@ import {
 } from '../utils/toolRunnerMessages';
 
 const TERMINAL_STREAM_PHASES = new Set(['idle', 'complete', 'error']);
-const CHAT_PILL_HANDOFF_TOOL_NAMES = new Set([
+const INTERACTIVE_COMPUTER_TOOL_NAMES = new Set([
   'mouse_control',
   'keyboard_control',
   'scroll_control',
-  'screenshot',
   'click',
   'type',
   'scroll',
 ]);
-const CHAT_PILL_HANDOFF_BROWSER_ACTIONS = new Set(['click', 'type', 'scroll', 'screenshot']);
-const CHAT_PILL_HANDOFF_EXCLUDED_TOOL_NAMES = new Set(['switch_tab']);
+const SCREENSHOT_TOOL_NAMES = new Set(['screenshot']);
+const INTERACTIVE_BROWSER_ACTIONS = new Set(['click', 'type', 'scroll']);
+const SCREENSHOT_BROWSER_ACTIONS = new Set(['screenshot']);
+const EXCLUDED_COMPUTER_ACTION_NAMES = new Set(['switch_tab']);
+const TOOL_FOCUS_PREPARE_WAIT_MS = 180;
+
+type ToolSurfaceMode = 'none' | 'interactive' | 'screenshot';
+type ToolSurfacePreparation = {
+  restoreChatPillAfterExecution: boolean;
+};
 
 function shouldSkipToolExecution(
   metadata: Record<string, unknown> | undefined,
@@ -79,39 +86,91 @@ function normalizeActionName(value: unknown): string {
   return value.trim().toLowerCase();
 }
 
-function shouldHandoffToChatPillForTool(
+function resolveToolSurfaceMode(
   toolName: string,
   args: Record<string, unknown> | undefined,
-): boolean {
+): ToolSurfaceMode {
   const normalizedToolName = normalizeActionName(toolName);
-  if (!normalizedToolName || CHAT_PILL_HANDOFF_EXCLUDED_TOOL_NAMES.has(normalizedToolName)) {
-    return false;
+  if (!normalizedToolName || EXCLUDED_COMPUTER_ACTION_NAMES.has(normalizedToolName)) {
+    return 'none';
   }
-  if (CHAT_PILL_HANDOFF_TOOL_NAMES.has(normalizedToolName)) {
-    return true;
+  if (SCREENSHOT_TOOL_NAMES.has(normalizedToolName)) {
+    return 'screenshot';
+  }
+  if (INTERACTIVE_COMPUTER_TOOL_NAMES.has(normalizedToolName)) {
+    return 'interactive';
   }
   if (normalizedToolName !== 'browser') {
-    return false;
+    return 'none';
   }
   const normalizedAction = normalizeActionName(args?.action);
-  if (!normalizedAction || CHAT_PILL_HANDOFF_EXCLUDED_TOOL_NAMES.has(normalizedAction)) {
-    return false;
+  if (!normalizedAction || EXCLUDED_COMPUTER_ACTION_NAMES.has(normalizedAction)) {
+    return 'none';
   }
-  return CHAT_PILL_HANDOFF_BROWSER_ACTIONS.has(normalizedAction);
+  if (SCREENSHOT_BROWSER_ACTIONS.has(normalizedAction)) {
+    return 'screenshot';
+  }
+  if (INTERACTIVE_BROWSER_ACTIONS.has(normalizedAction)) {
+    return 'interactive';
+  }
+  return 'none';
 }
 
-async function ensureChatPillExecutionSurface(
-  toolName: string,
-  args: Record<string, unknown> | undefined,
-): Promise<void> {
-  if (!shouldHandoffToChatPillForTool(toolName, args)) {
+function resolveBundleSurfaceMode(
+  tools: Array<{ toolName: string; args: Record<string, unknown> }>,
+): ToolSurfaceMode {
+  let hasScreenshot = false;
+  for (const tool of tools) {
+    const mode = resolveToolSurfaceMode(tool.toolName, tool.args);
+    if (mode === 'interactive') {
+      return 'interactive';
+    }
+    if (mode === 'screenshot') {
+      hasScreenshot = true;
+    }
+  }
+  return hasScreenshot ? 'screenshot' : 'none';
+}
+
+async function prepareToolExecutionSurface(
+  mode: ToolSurfaceMode,
+): Promise<ToolSurfacePreparation> {
+  if (mode === 'none') {
+    return { restoreChatPillAfterExecution: false };
+  }
+  try {
+    await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false });
+    if (mode === 'interactive') {
+      await IpcBridge.invoke(INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
+        waitMs: TOOL_FOCUS_PREPARE_WAIT_MS,
+      });
+      return { restoreChatPillAfterExecution: false };
+    }
+    await IpcBridge.invoke(INVOKE_CHANNELS.HIDE_CHATBOX);
+    return { restoreChatPillAfterExecution: true };
+  } catch (error) {
+    console.warn('[useToolRunner] Failed to prepare tool execution surface:', error);
+    return { restoreChatPillAfterExecution: false };
+  }
+}
+
+async function restoreToolExecutionSurface(preparation: ToolSurfacePreparation): Promise<void> {
+  if (!preparation.restoreChatPillAfterExecution) {
     return;
   }
   try {
     await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false });
   } catch (error) {
-    console.warn('[useToolRunner] Failed to switch to chat pill before computer-use tool:', error);
+    console.warn('[useToolRunner] Failed to restore chat pill after screenshot tool:', error);
   }
+}
+
+async function ensureToolExecutionSurface(
+  toolName: string,
+  args: Record<string, unknown> | undefined,
+): Promise<ToolSurfacePreparation> {
+  const mode = resolveToolSurfaceMode(toolName, args);
+  return prepareToolExecutionSurface(mode);
 }
 
 /**
@@ -296,11 +355,12 @@ export function useToolRunner(enabled = true) {
       const turnRef = event.turn_ref ?? useChatStore.getState().streamTracking.activeTurnRef ?? null;
       trackExecution(bundleId, turnRef);
       const executeBundle = async () => {
-        const matchingTool = tools.find((tool) => shouldHandoffToChatPillForTool(tool.toolName, tool.args));
-        if (matchingTool) {
-          await ensureChatPillExecutionSurface(matchingTool.toolName, matchingTool.args);
+        const preparation = await prepareToolExecutionSurface(resolveBundleSurfaceMode(tools));
+        try {
+          await toolService.executeToolBundle(tools, bundleId);
+        } finally {
+          await restoreToolExecutionSurface(preparation);
         }
-        await toolService.executeToolBundle(tools, bundleId);
       };
       executeBundle().catch(err => {
         untrackExecution(bundleId);
@@ -334,8 +394,8 @@ export function useToolRunner(enabled = true) {
       }
 
       trackExecution(correlationId, turnRef);
+      const preparation = await ensureToolExecutionSurface(toolName, parameters);
       try {
-        await ensureChatPillExecutionSurface(toolName, parameters);
         await toolService.executeTool(
           toolName,
           parameters,
@@ -347,6 +407,8 @@ export function useToolRunner(enabled = true) {
       } catch (err) {
         untrackExecution(correlationId);
         console.error('[useToolRunner] Failed to execute tool:', err);
+      } finally {
+        await restoreToolExecutionSurface(preparation);
       }
     };
 

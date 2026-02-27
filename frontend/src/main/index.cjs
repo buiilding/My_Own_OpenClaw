@@ -98,11 +98,13 @@ const externalFocusTracker = createExternalFocusTracker({
   warn: (...args) => console.warn(...args),
 });
 
-async function prepareOverlayQueryCaptureFocus() {
-  await prepareOverlayQueryCaptureFocusRuntime({
+async function prepareOverlayQueryCaptureFocus(options = {}) {
+  const waitMs = typeof options?.waitMs === 'number' ? options.waitMs : 120;
+  return await prepareOverlayQueryCaptureFocusRuntime({
     chatWindow,
     mainWindow,
     externalFocusTracker,
+    waitMs,
   });
 }
 
@@ -383,6 +385,7 @@ function initializeOverlayHandlers() {
     showMainWindow,
     showChatWindow,
     hideChatWindow,
+    prepareOverlayToolFocus: prepareOverlayQueryCaptureFocus,
     normalizeMainWindowOpenTarget,
     emitMainWindowOpenTarget,
     warn: console.warn,

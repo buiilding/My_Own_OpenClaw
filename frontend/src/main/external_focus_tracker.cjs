@@ -70,8 +70,39 @@ function createExternalFocusTracker({
     }
   }
 
+  function isPreviousExternalFocusedWindowActive() {
+    if (
+      getPlatform() !== 'win32'
+      || !windowManager
+      || typeof windowManager.getActiveWindow !== 'function'
+    ) {
+      return false;
+    }
+    if (typeof lastExternalFocusedWindowId !== 'number' && !lastExternalFocusedWindowTitle) {
+      return false;
+    }
+    try {
+      const activeWindow = windowManager.getActiveWindow();
+      if (!activeWindow) {
+        return false;
+      }
+
+      if (typeof lastExternalFocusedWindowId === 'number' && activeWindow.id === lastExternalFocusedWindowId) {
+        return true;
+      }
+
+      if (lastExternalFocusedWindowTitle && typeof activeWindow.getTitle === 'function') {
+        return activeWindow.getTitle() === lastExternalFocusedWindowTitle;
+      }
+    } catch (error) {
+      warn('[Main] Failed to verify external focused window:', error?.message || error);
+    }
+    return false;
+  }
+
   return {
     capturePreviousExternalFocusedWindow,
+    isPreviousExternalFocusedWindowActive,
     restorePreviousExternalFocusedWindow,
   };
 }

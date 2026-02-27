@@ -12,8 +12,28 @@ async function prepareOverlayQueryCaptureFocus({
   if (mainWindow && !mainWindow.isDestroyed() && typeof mainWindow.blur === 'function') {
     mainWindow.blur();
   }
-  externalFocusTracker.restorePreviousExternalFocusedWindow();
-  await new Promise((resolve) => setTimeout(resolve, waitMs));
+  const restoredExternalFocus = externalFocusTracker.restorePreviousExternalFocusedWindow();
+  const canVerifyExternalFocus = typeof externalFocusTracker.isPreviousExternalFocusedWindowActive === 'function';
+  const shouldWaitForVerification = restoredExternalFocus && canVerifyExternalFocus;
+  let externalFocusActive = false;
+
+  if (shouldWaitForVerification) {
+    const waitDeadline = Date.now() + Math.max(0, waitMs);
+    while (Date.now() <= waitDeadline) {
+      if (externalFocusTracker.isPreviousExternalFocusedWindowActive()) {
+        externalFocusActive = true;
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
+  } else if (waitMs > 0) {
+    await new Promise((resolve) => setTimeout(resolve, waitMs));
+  }
+
+  return {
+    restoredExternalFocus,
+    externalFocusActive,
+  };
 }
 
 function loadRendererView({

@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(frontend-overlay-focus): add computer-use surface prep split for interactive vs screenshot tool turns, including `prepare-overlay-tool-focus` IPC handoff and external-window focus verification before interactive dispatch.
+- test(backend-llm-stream): add Gemini tool-turn stream regression in `LLMStreamProcessor` to ensure tool-enabled Gemini turns stay on streaming path when provider advertises `supports_streaming_tool_turns`, including thinking-chunk emission + normalized tool-call payload bridge.
 - test(backend-gemini-stream): add fail-closed regression coverage for invalid streamed Gemini tool-call arguments (emits stream error event and keeps stream payload unset).
 - fix(frontend-thinking-capability): align default thinking-text stream inference with backend model metadata so Gemini thinking models no longer fall back to generic `Thinking...` unless explicitly marked `supports_thinking_text_stream=false`.
 - build(deps): bump backend LiteLLM pin from `1.80.15` to `1.81.16` (`requirements.txt` + `requirements_mac.txt`) to align Gemini thinking/tool-stream behavior with latest provider adapter fixes.
