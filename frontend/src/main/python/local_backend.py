@@ -27,6 +27,7 @@ from core.runtime_shutdown import (
 )
 from memory.local_store import LocalMemoryStore
 from memory.operations import (
+    build_store_memory_response_data,
     build_memory_filters,
     exclude_conversation_results,
     group_memory_texts,
@@ -631,11 +632,10 @@ class LocalBackend:
             
             return {
                 "success": True,
-                "data": {
-                    "memory_id": memory_id,
-                    "memory_type": memory_type,
-                    "message": f"Stored {memory_type} memory"
-                }
+                "data": build_store_memory_response_data(
+                    memory_id=memory_id,
+                    memory_type=memory_type,
+                ),
             }
         except Exception as e:
             logger.error(f"Memory store failed: {e}", exc_info=True)

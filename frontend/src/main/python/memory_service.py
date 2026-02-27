@@ -19,6 +19,7 @@ sys.path.insert(0, str(frontend_python_dir))
 
 from memory.local_store import LocalMemoryStore
 from memory.operations import (
+    build_store_memory_response_data,
     build_memory_filters,
     group_memory_texts,
     normalize_search_memory_payload,
@@ -200,11 +201,10 @@ class MemoryService:
             return {
                 "id": request_id,
                 "success": True,
-                "data": {
-                    "memory_id": memory_id,
-                    "memory_type": memory_type,
-                    "message": f"Stored {memory_type} memory"
-                }
+                "data": build_store_memory_response_data(
+                    memory_id=memory_id,
+                    memory_type=memory_type,
+                ),
             }
         except Exception as e:
             logger.error(f"Memory store failed: {e}", exc_info=True)

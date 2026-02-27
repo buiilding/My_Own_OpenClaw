@@ -141,3 +141,15 @@ async def store_interaction_memory(
         conversation_id=session_id,
         record_kind="interaction",
     )
+
+
+def build_store_memory_response_data(
+    memory_id: str,
+    memory_type: str,
+) -> Dict[str, str]:
+    """Build common success payload for store-memory handlers."""
+    return {
+        "memory_id": memory_id,
+        "memory_type": memory_type,
+        "message": f"Stored {memory_type} memory",
+    }

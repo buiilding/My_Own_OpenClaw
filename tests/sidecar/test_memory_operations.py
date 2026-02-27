@@ -4,6 +4,7 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 ensure_frontend_python_path()
 
 from memory.operations import (  # noqa: E402
+    build_store_memory_response_data,
     build_interaction_metadata,
     format_interaction_memory,
     normalize_search_memory_payload,
@@ -106,6 +107,17 @@ def test_normalize_search_memory_payload_allows_no_type_filter():
     assert normalized is not None
     assert normalized["query"] == "hello"
     assert normalized["memory_type"] is None
+
+
+def test_build_store_memory_response_data():
+    assert build_store_memory_response_data(
+        memory_id="memory-1",
+        memory_type="episodic",
+    ) == {
+        "memory_id": "memory-1",
+        "memory_type": "episodic",
+        "message": "Stored episodic memory",
+    }
 
 
 class _DummyStore:
