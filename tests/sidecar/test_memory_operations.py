@@ -4,8 +4,11 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 ensure_frontend_python_path()
 
 from memory.operations import (  # noqa: E402
+    build_interaction_metadata,
+    format_interaction_memory,
     normalize_search_memory_payload,
     normalize_store_memory_payload,
+    store_interaction_memory,
 )
 
 
@@ -103,3 +106,37 @@ def test_normalize_search_memory_payload_allows_no_type_filter():
     assert normalized is not None
     assert normalized["query"] == "hello"
     assert normalized["memory_type"] is None
+
+
+class _DummyStore:
+    def __init__(self):
+        self.calls = []
+
+    async def add(self, content, user_id, metadata, conversation_id=None, **kwargs):
+        self.calls.append((content, user_id, metadata, conversation_id, kwargs))
+        return "mem-42"
+
+
+@pytest.mark.asyncio
+async def test_store_interaction_memory_formats_and_persists_entry():
+    store = _DummyStore()
+
+    memory_id = await store_interaction_memory(
+        store,
+        user_query="hi",
+        assistant_response="hello",
+        memory_type="episodic",
+        user_id="user-1",
+        session_id="session-1",
+    )
+
+    assert memory_id == "mem-42"
+    assert store.calls == [
+        (
+            format_interaction_memory("hi", "hello"),
+            "user-1",
+            build_interaction_metadata("episodic", "session-1"),
+            "session-1",
+            {"record_kind": "interaction"},
+        )
+    ]
