@@ -14,34 +14,122 @@ import {
   toRehydratePayload,
 } from '../utils/transcriptMessagePayload';
 
-const REPLAY_EXCLUDED_MESSAGE_TYPES = new Set([
-  'tool-call',
-  'tool-output',
-  'tool-bundle',
-  'tool-result',
-]);
+const TOOL_CALL_MESSAGE_TYPES = new Set(['tool-call', 'tool-bundle']);
+const TOOL_OUTPUT_MESSAGE_TYPES = new Set(['tool-output', 'tool-result']);
 
-function shouldIncludeReplayContextMessage(message) {
+function normalizeMessageType(message) {
   if (!message || typeof message !== 'object') {
-    return false;
+    return '';
   }
-  if (message.sender === 'user') {
-    return true;
-  }
-  if (message.sender !== 'assistant') {
-    return false;
-  }
-  const messageType = typeof message.type === 'string'
+  return typeof message.type === 'string'
     ? message.type.trim().toLowerCase()
     : '';
-  return !REPLAY_EXCLUDED_MESSAGE_TYPES.has(messageType);
+}
+
+function normalizeCorrelationId(value) {
+  if (typeof value !== 'string') {
+    return null;
+  }
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : null;
+}
+
+function pickCorrelationIdFromPayload(payload) {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    return null;
+  }
+  return (
+    normalizeCorrelationId(payload.correlation_id)
+    || normalizeCorrelationId(payload.request_id)
+    || normalizeCorrelationId(payload.bundle_id)
+    || normalizeCorrelationId(payload.id)
+    || null
+  );
+}
+
+function resolveToolMessageCorrelationId(message) {
+  if (!message || typeof message !== 'object') {
+    return null;
+  }
+  return (
+    normalizeCorrelationId(message.correlationId)
+    || pickCorrelationIdFromPayload(message.toolCallDetails)
+    || pickCorrelationIdFromPayload(message.toolOutputDetails)
+    || normalizeCorrelationId(message?.modelFacingToolCall?.id)
+    || null
+  );
+}
+
+function isToolCallMessage(message) {
+  return TOOL_CALL_MESSAGE_TYPES.has(normalizeMessageType(message));
+}
+
+function isToolOutputMessage(message) {
+  return TOOL_OUTPUT_MESSAGE_TYPES.has(normalizeMessageType(message));
+}
+
+function findMatchingPendingToolCallIndex(pendingCalls, outputCorrelationId) {
+  if (!Array.isArray(pendingCalls) || pendingCalls.length === 0) {
+    return -1;
+  }
+
+  if (outputCorrelationId) {
+    const sameIdIndex = pendingCalls.findIndex((entry) => entry.correlationId === outputCorrelationId);
+    if (sameIdIndex >= 0) {
+      return sameIdIndex;
+    }
+    const idlessIndex = pendingCalls.findIndex((entry) => !entry.correlationId);
+    if (idlessIndex >= 0) {
+      return idlessIndex;
+    }
+    return -1;
+  }
+
+  const idlessIndex = pendingCalls.findIndex((entry) => !entry.correlationId);
+  if (idlessIndex >= 0) {
+    return idlessIndex;
+  }
+  return 0;
 }
 
 function buildReplayContextMessages(messages) {
   if (!Array.isArray(messages) || messages.length === 0) {
     return [];
   }
-  return messages.filter(shouldIncludeReplayContextMessage);
+
+  const pendingToolCalls = [];
+  const keepToolMessageIndexes = new Set();
+
+  messages.forEach((message, index) => {
+    if (isToolCallMessage(message)) {
+      pendingToolCalls.push({
+        index,
+        correlationId: resolveToolMessageCorrelationId(message),
+      });
+      return;
+    }
+    if (!isToolOutputMessage(message)) {
+      return;
+    }
+    const outputCorrelationId = resolveToolMessageCorrelationId(message);
+    const pendingIndex = findMatchingPendingToolCallIndex(
+      pendingToolCalls,
+      outputCorrelationId,
+    );
+    if (pendingIndex < 0) {
+      return;
+    }
+    const [matchedCall] = pendingToolCalls.splice(pendingIndex, 1);
+    keepToolMessageIndexes.add(matchedCall.index);
+    keepToolMessageIndexes.add(index);
+  });
+
+  return messages.filter((message, index) => {
+    if (!isToolCallMessage(message) && !isToolOutputMessage(message)) {
+      return true;
+    }
+    return keepToolMessageIndexes.has(index);
+  });
 }
 
 async function replayTranscriptMessages(messages, userId, conversationRef) {
