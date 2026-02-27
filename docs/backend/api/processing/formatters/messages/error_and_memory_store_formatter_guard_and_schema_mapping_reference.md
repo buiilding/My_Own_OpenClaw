@@ -79,7 +79,10 @@ Guard behavior in formatter is stricter than dataclass defaults (`MemoryStoreEve
 
 Coverage note:
 
-- contract tests include blank `user_query`/`assistant_response` rejection assertions for `MemoryStoreEventFormatter`.
+- contract tests include explicit rejection assertions for:
+  - `user_id` missing
+  - `user_id="default_user"`
+  - blank `user_query`/`assistant_response`
 
 ## Drift Hotspots
 
