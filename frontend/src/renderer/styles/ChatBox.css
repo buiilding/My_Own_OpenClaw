@@ -21,8 +21,8 @@ body {
 }
 
 .chatbox-input-shell-wrap {
-  --chatbox-fixed-shell-height: 70px;
-  --chatbox-fixed-pill-height: 62px;
+  --chatbox-fixed-shell-height: 64px;
+  --chatbox-fixed-pill-height: 56px;
   --chatbox-fixed-pill-padding: 8px 12px 8px;
   --chatbox-preview-track-height: 46px;
   position: fixed;
