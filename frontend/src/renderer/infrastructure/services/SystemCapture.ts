@@ -100,11 +100,11 @@ export async function extractOSstate(
       await new Promise((resolve) => setTimeout(resolve, waitMilliseconds));
     }
 
-    if (enable_screenshot || enable_system_state) {
-      await prepareExternalFocusForCapture();
-    }
     if (enable_screenshot) {
       screenshotVisibilityPrepared = await prepareScreenshotCaptureVisibility();
+    }
+    if (enable_screenshot || enable_system_state) {
+      await prepareExternalFocusForCapture();
     }
 
     // For first user message, extract full system state with 0 wait

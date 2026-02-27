@@ -66,8 +66,10 @@ function ChatBox() {
   });
   const wakewordSttEnabled = config?.wakeword_stt_enabled === true;
   const speechModeEnabled = config?.speech_mode_enabled === true;
+  const isLoopPhaseActive = LOOP_ACTIVE_PHASES.has(streamPhase) || LOOP_ACTIVE_PHASES.has(overlayPhase);
+  const stopOnlyModeActive = isSending || isLoopPhaseActive;
   const canStop = ACTIVE_STREAM_PHASES.has(streamPhase);
-  const composerBusy = isSending || canStop;
+  const composerBusy = stopOnlyModeActive || canStop;
   const devUiEnabled = isDevUiEnabled();
   const {
     inputValue,
@@ -91,9 +93,13 @@ function ChatBox() {
   }, []);
 
   const focusInput = useCallback(() => {
+    if (stopOnlyModeActive) {
+      inputRef.current?.blur();
+      return;
+    }
     void setOverlayIgnore(false);
     inputRef.current?.focus();
-  }, [setOverlayIgnore]);
+  }, [setOverlayIgnore, stopOnlyModeActive]);
 
   useEffect(() => {
     setOverlayIgnore(false);
@@ -157,6 +163,13 @@ function ChatBox() {
     }
   }, [wakewordSttEnabled, wakewordSttSessionActive]);
 
+  useEffect(() => {
+    if (!stopOnlyModeActive) {
+      return;
+    }
+    inputRef.current?.blur();
+  }, [stopOnlyModeActive]);
+
   useVoiceMode(
     wakewordSttEnabled && wakewordSttSessionActive,
     (text, isFinal) => {
@@ -206,6 +219,9 @@ function ChatBox() {
   }, [handleSend]);
 
   const handleOpenSettings = useCallback(async () => {
+    if (stopOnlyModeActive) {
+      return;
+    }
     try {
       await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_MAIN_WINDOW, {
         maximize: true,
@@ -214,9 +230,12 @@ function ChatBox() {
     } catch (error) {
       console.warn('[ChatBox] Failed to show main window:', error);
     }
-  }, []);
+  }, [stopOnlyModeActive]);
 
   const handleComposerPaste = useCallback(async (event) => {
+    if (stopOnlyModeActive) {
+      return;
+    }
     try {
       const parsedImages = await parseClipboardImageItems(event.clipboardData?.items || []);
       if (parsedImages.length === 0) {
@@ -227,10 +246,10 @@ function ChatBox() {
     } catch (error) {
       console.warn('[ChatBox] Failed to parse pasted image:', error);
     }
-  }, []);
+  }, [stopOnlyModeActive]);
 
   const handleCaptureScreenshot = useCallback(async () => {
-    if (composerBusy || isCapturingScreenshot) {
+    if (stopOnlyModeActive || composerBusy || isCapturingScreenshot) {
       return;
     }
     setIsCapturingScreenshot(true);
@@ -257,22 +276,28 @@ function ChatBox() {
     } finally {
       setIsCapturingScreenshot(false);
     }
-  }, [composerBusy, focusInput, isCapturingScreenshot]);
+  }, [composerBusy, focusInput, isCapturingScreenshot, stopOnlyModeActive]);
 
   const handleToggleSpeechMode = useCallback(() => {
+    if (stopOnlyModeActive) {
+      return;
+    }
     if (typeof updateConfig !== 'function') {
       return;
     }
     updateConfig({
       speech_mode_enabled: !speechModeEnabled,
     });
-  }, [speechModeEnabled, updateConfig]);
+  }, [speechModeEnabled, stopOnlyModeActive, updateConfig]);
 
   const handleDevAutoCompaction = useCallback(() => {
+    if (stopOnlyModeActive) {
+      return;
+    }
     setThinkingStatus(COMPACTION_THINKING_STATUS);
     setThinkingSourceEventType('context-compaction-started');
     ApiClient.compactHistory(true);
-  }, [setThinkingSourceEventType, setThinkingStatus]);
+  }, [setThinkingSourceEventType, setThinkingStatus, stopOnlyModeActive]);
 
   const handleDragMove = useCallback((event) => {
     const dragState = dragStateRef.current;
@@ -321,7 +346,7 @@ function ChatBox() {
   }, [handleDragMove, stopDragging]);
 
   const handlePillMouseDown = useCallback((event) => {
-    if (event.button !== 0 || isDragBlockedTarget(event.target)) {
+    if (stopOnlyModeActive || event.button !== 0 || isDragBlockedTarget(event.target)) {
       return;
     }
     const screenX = Math.round(Number(event.screenX) || 0);
@@ -337,8 +362,8 @@ function ChatBox() {
     dragStateRef.current.lastTargetX = windowScreenX;
     dragStateRef.current.lastTargetY = windowScreenY;
     event.preventDefault();
-  }, []);
-  const isLoopActive = LOOP_ACTIVE_PHASES.has(streamPhase) || LOOP_ACTIVE_PHASES.has(overlayPhase);
+  }, [stopOnlyModeActive]);
+  const isLoopActive = isLoopPhaseActive;
   const hasImagePreview = clipboardImages.length > 0;
 
   return (
@@ -364,6 +389,7 @@ function ChatBox() {
               onClick={handleOpenSettings}
               aria-label="Open dashboard"
               title="Open dashboard"
+              disabled={stopOnlyModeActive}
             >
               <SettingsIcon />
             </button>
@@ -374,6 +400,7 @@ function ChatBox() {
                 onClick={handleDevAutoCompaction}
                 aria-label="Run auto compaction"
                 title="Run auto compaction"
+                disabled={stopOnlyModeActive}
               >
                 <CompactIcon />
               </button>
@@ -387,7 +414,7 @@ function ChatBox() {
                 onPaste={handleComposerPaste}
                 placeholder="Ask me anything..."
                 className="chatbox-input"
-                disabled={composerBusy}
+                disabled={stopOnlyModeActive || composerBusy}
               />
             </div>
             <button
@@ -396,7 +423,7 @@ function ChatBox() {
               aria-label="Take screenshot"
               title="Take screenshot"
               onClick={handleCaptureScreenshot}
-              disabled={composerBusy || isCapturingScreenshot}
+              disabled={stopOnlyModeActive || composerBusy || isCapturingScreenshot}
             >
               <ScreenshotIcon />
             </button>
@@ -406,6 +433,7 @@ function ChatBox() {
               aria-label="Toggle text-to-speech"
               title={speechModeEnabled ? 'Disable text-to-speech' : 'Enable text-to-speech'}
               onClick={handleToggleSpeechMode}
+              disabled={stopOnlyModeActive}
             >
               <SoundIcon />
             </button>

@@ -1,9 +1,55 @@
 const { nativeImage } = require('electron');
 const CHATBOX_OVERLAY_FIXED_WIDTH = 520;
 const CHATBOX_OVERLAY_FIXED_HEIGHT = 116;
+const OVERLAY_FOCUS_DEMOTION_SETTLE_MS = 50;
+
+function getOverlayRestoreList({ responseWindow, chatWindow }) {
+  return [responseWindow, chatWindow]
+    .filter((win) => win && !win.isDestroyed())
+    .map((win) => ({ win, wasVisible: win.isVisible() }));
+}
+
+async function demoteOverlayFocusWithoutStealing({
+  responseWindow,
+  chatWindow,
+}) {
+  const restoreList = getOverlayRestoreList({ responseWindow, chatWindow });
+  if (restoreList.length === 0) {
+    return false;
+  }
+  for (const { win, wasVisible } of restoreList) {
+    if (wasVisible) {
+      win.hide();
+    }
+  }
+  await new Promise((resolve) => setTimeout(resolve, OVERLAY_FOCUS_DEMOTION_SETTLE_MS));
+  for (const { win, wasVisible } of restoreList) {
+    if (!wasVisible || win.isDestroyed()) {
+      continue;
+    }
+    if (typeof win.showInactive === 'function') {
+      win.showInactive();
+    } else {
+      win.show();
+      if (typeof win.blur === 'function') {
+        win.blur();
+      }
+    }
+    try {
+      win.setAlwaysOnTop(true, 'floating');
+      if (typeof win.moveTop === 'function') {
+        win.moveTop();
+      }
+    } catch (_error) {
+      // No-op: best effort only.
+    }
+  }
+  return true;
+}
 
 async function prepareOverlayQueryCaptureFocus({
   chatWindow,
+  responseWindow,
   mainWindow,
   externalFocusTracker,
   waitMs = 120,
@@ -21,6 +67,9 @@ async function prepareOverlayQueryCaptureFocus({
   );
   const restoredExternalFocus = canTrackExternalFocus
     ? externalFocusTracker.restorePreviousExternalFocusedWindow()
+    : false;
+  const demotedOverlayFocus = !restoredExternalFocus
+    ? await demoteOverlayFocusWithoutStealing({ responseWindow, chatWindow })
     : false;
   const canVerifyExternalFocus = (
     canTrackExternalFocus
@@ -44,6 +93,7 @@ async function prepareOverlayQueryCaptureFocus({
 
   return {
     restoredExternalFocus,
+    demotedOverlayFocus,
     externalFocusActive,
     canVerifyExternalFocus,
   };

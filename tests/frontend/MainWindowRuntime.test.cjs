@@ -43,6 +43,7 @@ describe('main_window_runtime prepareOverlayQueryCaptureFocus', () => {
     expect(externalFocusTracker.isPreviousExternalFocusedWindowActive).toHaveBeenCalledTimes(1);
     expect(result).toEqual({
       restoredExternalFocus: true,
+      demotedOverlayFocus: false,
       externalFocusActive: true,
       canVerifyExternalFocus: true,
     });
@@ -63,6 +64,7 @@ describe('main_window_runtime prepareOverlayQueryCaptureFocus', () => {
     expect(externalFocusTracker.isPreviousExternalFocusedWindowActive).toHaveBeenCalledTimes(1);
     expect(result).toEqual({
       restoredExternalFocus: true,
+      demotedOverlayFocus: false,
       externalFocusActive: false,
       canVerifyExternalFocus: true,
     });
@@ -84,6 +86,7 @@ describe('main_window_runtime prepareOverlayQueryCaptureFocus', () => {
     expect(externalFocusTracker.isPreviousExternalFocusedWindowActive).not.toHaveBeenCalled();
     expect(result).toEqual({
       restoredExternalFocus: false,
+      demotedOverlayFocus: false,
       externalFocusActive: false,
       canVerifyExternalFocus: true,
     });
@@ -105,9 +108,57 @@ describe('main_window_runtime prepareOverlayQueryCaptureFocus', () => {
     expect(externalFocusTracker.isPreviousExternalFocusedWindowActive).not.toHaveBeenCalled();
     expect(result).toEqual({
       restoredExternalFocus: false,
+      demotedOverlayFocus: false,
       externalFocusActive: false,
       canVerifyExternalFocus: false,
     });
+  });
+
+  test('demotes overlay focus without stealing focus when restore is unavailable', async () => {
+    jest.useFakeTimers();
+    try {
+      const responseWindow = {
+        isDestroyed: jest.fn().mockReturnValue(false),
+        isVisible: jest.fn().mockReturnValue(true),
+        hide: jest.fn(),
+        showInactive: jest.fn(),
+        setAlwaysOnTop: jest.fn(),
+        moveTop: jest.fn(),
+      };
+      const chatWindow = {
+        isDestroyed: jest.fn().mockReturnValue(false),
+        isVisible: jest.fn().mockReturnValue(true),
+        hide: jest.fn(),
+        showInactive: jest.fn(),
+        setAlwaysOnTop: jest.fn(),
+        moveTop: jest.fn(),
+      };
+      const externalFocusTracker = {
+        canTrackExternalFocus: jest.fn().mockReturnValue(false),
+      };
+
+      const pending = prepareOverlayQueryCaptureFocus({
+        responseWindow,
+        chatWindow,
+        externalFocusTracker,
+        waitMs: 0,
+      });
+      jest.advanceTimersByTime(55);
+      const result = await pending;
+
+      expect(responseWindow.hide).toHaveBeenCalledTimes(1);
+      expect(chatWindow.hide).toHaveBeenCalledTimes(1);
+      expect(responseWindow.showInactive).toHaveBeenCalledTimes(1);
+      expect(chatWindow.showInactive).toHaveBeenCalledTimes(1);
+      expect(result).toEqual({
+        restoredExternalFocus: false,
+        demotedOverlayFocus: true,
+        externalFocusActive: false,
+        canVerifyExternalFocus: false,
+      });
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });
 

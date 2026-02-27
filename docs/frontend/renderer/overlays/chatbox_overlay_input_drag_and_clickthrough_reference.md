@@ -59,6 +59,10 @@ Right-side action button parity with dashboard composer:
 - send button (`ArrowUp`) is shown when composer is idle
 - stop button (`Square`) replaces send while query is active (`isSending || active stream phase`)
 - stop click sends backend `stop-query` and updates stream tracking to `complete`
+- during active loop phases, chat pill runs in stop-only mode:
+  - input, settings, screenshot, TTS, and dev compaction actions are disabled
+  - drag motion is disabled
+  - input auto-focus is suppressed until loop exits
 
 Dashboard handoff affordance:
 
