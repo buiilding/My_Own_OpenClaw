@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from contextlib import suppress
+from types import SimpleNamespace
 from typing import Any, Dict, List, Optional
 
 import pytest
@@ -1185,6 +1186,65 @@ async def test_load_settings_handler_returns_frontend_config():
         "wakeword_stt_enabled": False,
         "voice_mode_enabled": False,
     }
+
+
+@pytest.mark.asyncio
+async def test_load_settings_handler_uses_global_config_when_session_missing():
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    session_manager.config = AppConfig(
+        model_provider="openrouter",
+        selected_model_id="openrouter/qwen/qwen3-32b",
+    )
+    handler = LoadSettingsHandler(session_manager)
+
+    message = LoadSettingsMessage(
+        id="msg_11_global_config",
+        type="load-settings",
+        user_id="user_1",
+        payload={},
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert websocket.sent
+    assert websocket.sent[0]["type"] == "settings-loaded"
+    assert websocket.sent[0]["payload"]["config"]["model_provider"] == "openrouter"
+    assert (
+        websocket.sent[0]["payload"]["config"]["selected_model_id"]
+        == "openrouter/qwen/qwen3-32b"
+    )
+
+
+@pytest.mark.asyncio
+async def test_load_settings_handler_sends_error_when_config_serialization_fails():
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+
+    class _BrokenDump:
+        def model_dump(self):
+            raise RuntimeError("model dump failed")
+
+    session_manager.session_instance = SimpleNamespace(
+        cfg=SimpleNamespace(
+            model_provider="openai",
+            provider_api_keys=_BrokenDump(),
+        )
+    )
+    handler = LoadSettingsHandler(session_manager)
+
+    message = LoadSettingsMessage(
+        id="msg_11_serialize_fail",
+        type="load-settings",
+        user_id="user_1",
+        payload={},
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert websocket.sent
+    assert websocket.sent[0]["type"] == "error"
+    assert websocket.sent[0]["payload"]["message"] == "An internal error occurred"
 
 
 @pytest.mark.asyncio
