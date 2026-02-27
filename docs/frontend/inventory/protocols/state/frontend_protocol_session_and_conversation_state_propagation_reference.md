@@ -8,6 +8,11 @@ title: "Frontend Protocol Session and Conversation-State Propagation Reference"
 
 # Frontend Protocol Session and Conversation-State Propagation Reference
 
+## Coverage Snapshot (2026-02-26)
+
+- State-focused protocol test files: `8`
+- Total test cases across listed files: `101`
+
 ## Scope and Sources
 
 Primary runtime sources:
@@ -227,8 +232,20 @@ When changing this surface, keep aligned:
 - dashboard conversation open/delete session updates vs active-row session snapshots
 - `agent_full_sudo_enabled` config propagation to sidecar `sudo_auth_mode` arg rewrite
 
+## State Control-Path Index
+
+| State control path | Runtime owner | State contract |
+|---|---|---|
+| handshake identity caching and snapshot fan-out | `frontend/src/main/ipc.cjs` | stable client identity/session endpoint snapshot exposed via `get-client-user-id` and `ipc-status` |
+| backend context-field cache updates | `frontend/src/main/ipc.cjs` | inbound `session_id`/`user_id`/`conversation_ref` cache fields track latest backend correlation context |
+| conversation_ref fallback for query/local echo | `frontend/src/main/ipc_query_events.cjs`, `frontend/src/main/ipc.cjs` | query payload and synthetic local-user-message share same resolved conversation reference |
+| dashboard conversation open/delete session transitions | `useDashboardConversations`, transcript writer | active conversation + transcript session identity stay in sync during rehydrate/delete flows |
+| renderer stale-event gating | `chatStreamConversationGate.ts` + `useChatStream.ts` | active conversation mismatch rules prevent cross-conversation stream pollution while preserving compatibility events |
+| frontend config to sidecar sudo-mode propagation | `frontend/src/main/local_backend_bridge.cjs` | `agent_full_sudo_enabled` deterministically maps to `sudo_auth_mode` in sidecar RPC args |
+
 ## Related Pages
 
 - [Frontend Protocol Lifecycle Hub](../lifecycle/README.md)
 - [Frontend Protocol Errors Hub](../errors/README.md)
+- [Frontend Protocol Validation Hub](../validation/README.md)
 - [Frontend Protocol Testing Hub](../testing/README.md)
