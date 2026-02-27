@@ -14,6 +14,36 @@ import {
   toRehydratePayload,
 } from '../utils/transcriptMessagePayload';
 
+const REPLAY_EXCLUDED_MESSAGE_TYPES = new Set([
+  'tool-call',
+  'tool-output',
+  'tool-bundle',
+  'tool-result',
+]);
+
+function shouldIncludeReplayContextMessage(message) {
+  if (!message || typeof message !== 'object') {
+    return false;
+  }
+  if (message.sender === 'user') {
+    return true;
+  }
+  if (message.sender !== 'assistant') {
+    return false;
+  }
+  const messageType = typeof message.type === 'string'
+    ? message.type.trim().toLowerCase()
+    : '';
+  return !REPLAY_EXCLUDED_MESSAGE_TYPES.has(messageType);
+}
+
+function buildReplayContextMessages(messages) {
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return [];
+  }
+  return messages.filter(shouldIncludeReplayContextMessage);
+}
+
 async function replayTranscriptMessages(messages, userId, conversationRef) {
   if (!userId) {
     return;
@@ -95,13 +125,14 @@ export function useConversationReplayActions({
       text: normalizedEditedText,
     };
     const preservedMessages = messages.slice(0, userIndex);
-    const trimmedConversation = [...preservedMessages, editUserMessage];
-    const preservedPayloads = preservedMessages.map(toRehydratePayload);
+    const replayContextMessages = buildReplayContextMessages(preservedMessages);
+    const replayConversation = [...replayContextMessages, editUserMessage];
+    const preservedPayloads = replayContextMessages.map(toRehydratePayload);
     const sessionInfo = getTranscriptSessionInfo();
     const conversationRef = ensureConversationRef(sessionInfo.conversationRef);
     updateTranscriptSession(conversationRef, sessionInfo.userId || undefined);
 
-    setMessages(trimmedConversation);
+    setMessages(replayConversation);
     setThinkingStatus(null);
     if (typeof setThinkingSourceEventType === 'function') {
       setThinkingSourceEventType(null);
@@ -112,7 +143,7 @@ export function useConversationReplayActions({
       await runReplayQueryFlow({
         conversationRef,
         userId: sessionInfo.userId,
-        transcriptMessages: trimmedConversation,
+        transcriptMessages: replayConversation,
         rehydratePayloads: preservedPayloads,
         queryText: normalizedEditedText,
         screenshotRef: editUserMessage.screenshotRef || null,
@@ -145,12 +176,15 @@ export function useConversationReplayActions({
 
     const retryUserMessage = messages[userIndex];
     const preservedMessages = messages.slice(0, userIndex + 1);
-    const preservedPayloads = preservedMessages.map(toRehydratePayload);
+    const replayContextMessages = buildReplayContextMessages(preservedMessages);
+    const preservedPayloads = replayContextMessages
+      .slice(0, -1)
+      .map(toRehydratePayload);
     const sessionInfo = getTranscriptSessionInfo();
     const conversationRef = ensureConversationRef(sessionInfo.conversationRef);
     updateTranscriptSession(conversationRef, sessionInfo.userId || undefined);
 
-    setMessages(preservedMessages);
+    setMessages(replayContextMessages);
     setThinkingStatus(null);
     if (typeof setThinkingSourceEventType === 'function') {
       setThinkingSourceEventType(null);
@@ -161,7 +195,7 @@ export function useConversationReplayActions({
       await runReplayQueryFlow({
         conversationRef,
         userId: sessionInfo.userId,
-        transcriptMessages: preservedMessages,
+        transcriptMessages: replayContextMessages,
         rehydratePayloads: preservedPayloads,
         queryText: retryUserMessage.text,
         screenshotRef: retryUserMessage.screenshotRef || null,

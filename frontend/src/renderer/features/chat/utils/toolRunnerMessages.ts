@@ -109,12 +109,16 @@ export function buildTranscriptMetadata(
   };
 }
 
-export function mapBundleTools(tools: BundleToolInput[] | null | undefined) {
+export function mapBundleTools(
+  tools: BundleToolInput[] | null | undefined,
+): Array<{ toolName: string; args: Record<string, unknown> }> {
   return (tools || [])
     .filter((tool) => typeof tool?.name === 'string' && tool.name.length > 0)
     .map((tool) => ({
       toolName: tool.name as string,
-      args: tool.args && typeof tool.args === 'object' ? tool.args : {},
+      args: tool.args && typeof tool.args === 'object'
+        ? (tool.args as Record<string, unknown>)
+        : {},
     }));
 }
 

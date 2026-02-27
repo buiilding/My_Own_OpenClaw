@@ -7,8 +7,13 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(frontend-dev-compaction): add `electron:dev` chat-pill auto-compaction trigger button (`compact-history`) and render the same awaiting/thinking compaction overlay elements during compaction-start events for parity with production compaction UX.
+- fix(backend-openrouter-thinking-stream): mark `qwen/qwen3-vl-235b-a22b-thinking` as thinking-capable, enable OpenRouter thinking-stream event parsing, and add `reasoning_details` extraction support so Qwen/OpenRouter reasoning chunks emit `llm-thought` tokens in realtime.
 - fix(frontend-thinking-dropdown): stream and persist `llm-thought` into assistant message metadata, render `Show thinking` above assistant text, and remove the transient bottom-of-thread thinking strip that disappeared on completion.
 - fix(frontend-chat-pill-focus): refresh external-focus snapshot on chat-pill blur so overlay query pre-capture restores the real underlying app window (not the chat-pill window) before system-state collection.
+- fix(frontend-tool-surface): enforce minimal chat-pill safe execution surface for interactive computer-control tools by temporarily hiding WindieOS overlays, verifying external-window focus when available, and fail-closing with explicit tool-result errors instead of executing on WindieOS UI.
+- fix(frontend-replay): harden edit/try-again replay flow to rebuild context from user/assistant conversational turns only (exclude tool-call/tool-output rows) before rehydrate/query resend, eliminating orphan `tool_call_id` payload failures after stop+retry/edit edge cases.
+- fix(frontend-main-focus-runtime): include `canVerifyExternalFocus` in pre-tool focus-preparation runtime metadata so renderer can apply platform-aware external-focus safety checks.
 - test(backend-payload-serialization): extend regression coverage for `normalize_tool_arguments` fallback path when `model_dump()` does not accept `warnings` kwargs (TypeError compatibility path).
 - fix(backend-pydantic-warnings): suppress noisy Pydantic serializer warnings on LiteLLM payload normalization by using `model_dump(warnings=False)` (with fallback compatibility path) in tool-argument and usage payload normalization helpers, with regression coverage.
 - feat(frontend-overlay-focus): add computer-use surface prep split for interactive vs screenshot tool turns, including `prepare-overlay-tool-focus` IPC handoff and external-window focus verification before interactive dispatch.

@@ -39,6 +39,8 @@ const TOOL_FOCUS_PREPARE_WAIT_MS = 180;
 type ToolSurfaceMode = 'none' | 'interactive' | 'screenshot';
 type ToolSurfacePreparation = {
   restoreChatPillAfterExecution: boolean;
+  canExecute: boolean;
+  failureReason: string | null;
 };
 
 function shouldSkipToolExecution(
@@ -136,21 +138,59 @@ async function prepareToolExecutionSurface(
   mode: ToolSurfaceMode,
 ): Promise<ToolSurfacePreparation> {
   if (mode === 'none') {
-    return { restoreChatPillAfterExecution: false };
+    return {
+      restoreChatPillAfterExecution: false,
+      canExecute: true,
+      failureReason: null,
+    };
   }
+  let restoreChatPillAfterExecution = false;
   try {
-    await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false });
     if (mode === 'interactive') {
-      await IpcBridge.invoke(INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
+      await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false });
+      await IpcBridge.invoke(INVOKE_CHANNELS.HIDE_CHATBOX);
+      restoreChatPillAfterExecution = true;
+      const focusPreparation = await IpcBridge.invoke(INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
         waitMs: TOOL_FOCUS_PREPARE_WAIT_MS,
       });
-      return { restoreChatPillAfterExecution: false };
+      const canVerifyExternalFocus = focusPreparation?.data?.canVerifyExternalFocus === true;
+      const externalFocusActive = focusPreparation?.data?.externalFocusActive === true;
+      if (focusPreparation?.success === false) {
+        return {
+          restoreChatPillAfterExecution,
+          canExecute: false,
+          failureReason: typeof focusPreparation?.reason === 'string'
+            ? focusPreparation.reason
+            : 'overlay_focus_prepare_failed',
+        };
+      }
+      if (canVerifyExternalFocus && !externalFocusActive) {
+        return {
+          restoreChatPillAfterExecution,
+          canExecute: false,
+          failureReason: 'external_window_focus_not_verified',
+        };
+      }
+      return {
+        restoreChatPillAfterExecution,
+        canExecute: true,
+        failureReason: null,
+      };
     }
+    await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false });
     await IpcBridge.invoke(INVOKE_CHANNELS.HIDE_CHATBOX);
-    return { restoreChatPillAfterExecution: true };
+    return {
+      restoreChatPillAfterExecution: true,
+      canExecute: true,
+      failureReason: null,
+    };
   } catch (error) {
     console.warn('[useToolRunner] Failed to prepare tool execution surface:', error);
-    return { restoreChatPillAfterExecution: false };
+    return {
+      restoreChatPillAfterExecution,
+      canExecute: false,
+      failureReason: 'overlay_surface_prepare_exception',
+    };
   }
 }
 
@@ -161,7 +201,7 @@ async function restoreToolExecutionSurface(preparation: ToolSurfacePreparation):
   try {
     await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false });
   } catch (error) {
-    console.warn('[useToolRunner] Failed to restore chat pill after screenshot tool:', error);
+    console.warn('[useToolRunner] Failed to restore chat pill after tool execution:', error);
   }
 }
 
@@ -221,6 +261,42 @@ export function useToolRunner(enabled = true) {
         success: false,
         data: null,
         error: 'frontend_stale_turn_cancelled',
+      },
+    });
+  }, []);
+
+  const sendToolSurfaceFailure = useCallback((
+    requestId: string | null | undefined,
+    reason: string | null,
+  ) => {
+    if (!requestId) {
+      return;
+    }
+    IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
+      type: 'tool-result',
+      payload: {
+        request_id: requestId,
+        success: false,
+        data: null,
+        error: `frontend_execution_surface_unavailable${reason ? `: ${reason}` : ''}`,
+      },
+    });
+  }, []);
+
+  const sendBundleSurfaceFailure = useCallback((
+    bundleId: string,
+    reason: string | null,
+  ) => {
+    if (!bundleId) {
+      return;
+    }
+    IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
+      type: 'tool-bundle-result',
+      payload: {
+        bundle_id: bundleId,
+        status: 'failure',
+        step_results: [],
+        error: `frontend_execution_surface_unavailable${reason ? `: ${reason}` : ''}`,
       },
     });
   }, []);
@@ -356,6 +432,12 @@ export function useToolRunner(enabled = true) {
       trackExecution(bundleId, turnRef);
       const executeBundle = async () => {
         const preparation = await prepareToolExecutionSurface(resolveBundleSurfaceMode(tools));
+        if (!preparation.canExecute) {
+          sendBundleSurfaceFailure(bundleId, preparation.failureReason);
+          untrackExecution(bundleId);
+          await restoreToolExecutionSurface(preparation);
+          return;
+        }
         try {
           await toolService.executeToolBundle(tools, bundleId);
         } finally {
@@ -367,7 +449,7 @@ export function useToolRunner(enabled = true) {
         console.error('[useToolRunner] Failed to execute bundle:', err);
       });
     }
-  }, [trackExecution, untrackExecution]);
+  }, [sendBundleSurfaceFailure, trackExecution, untrackExecution]);
 
   const handleToolCall = useCallback((event: ToolCallEvent) => {
     if (shouldIgnoreToolEventForTurn(event.turn_ref)) {
@@ -395,6 +477,12 @@ export function useToolRunner(enabled = true) {
 
       trackExecution(correlationId, turnRef);
       const preparation = await ensureToolExecutionSurface(toolName, parameters);
+      if (!preparation.canExecute) {
+        sendToolSurfaceFailure(correlationId, preparation.failureReason);
+        untrackExecution(correlationId);
+        await restoreToolExecutionSurface(preparation);
+        return;
+      }
       try {
         await toolService.executeTool(
           toolName,
@@ -413,7 +501,7 @@ export function useToolRunner(enabled = true) {
     };
 
     void executeToolCall();
-  }, [sendStaleToolCancellation, trackExecution, untrackExecution]);
+  }, [sendStaleToolCancellation, sendToolSurfaceFailure, trackExecution, untrackExecution]);
 
   useEffect(() => {
     if (!enabled) {

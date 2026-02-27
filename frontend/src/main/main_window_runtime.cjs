@@ -33,6 +33,7 @@ async function prepareOverlayQueryCaptureFocus({
   return {
     restoredExternalFocus,
     externalFocusActive,
+    canVerifyExternalFocus,
   };
 }
 
