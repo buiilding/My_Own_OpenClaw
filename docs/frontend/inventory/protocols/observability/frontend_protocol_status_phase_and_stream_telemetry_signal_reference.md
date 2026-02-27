@@ -8,7 +8,7 @@ title: "Frontend Protocol Status, Phase, and Stream-Telemetry Signal Reference"
 
 # Frontend Protocol Status, Phase, and Stream-Telemetry Signal Reference
 
-## Coverage Snapshot (2026-02-26)
+## Coverage Snapshot (2026-02-27)
 
 - Observability-focused protocol test files: `4`
 - Total test cases across listed files: `56`

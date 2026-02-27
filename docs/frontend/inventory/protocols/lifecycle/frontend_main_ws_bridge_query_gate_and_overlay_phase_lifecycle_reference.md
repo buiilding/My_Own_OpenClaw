@@ -8,7 +8,7 @@ title: "Frontend Main WS Bridge, Query Gate, and Overlay Phase Lifecycle Referen
 
 # Frontend Main WS Bridge, Query Gate, and Overlay Phase Lifecycle Reference
 
-## Coverage Snapshot (2026-02-26)
+## Coverage Snapshot (2026-02-27)
 
 - Lifecycle-focused protocol test files: `4`
 - Total test cases across listed files: `54`

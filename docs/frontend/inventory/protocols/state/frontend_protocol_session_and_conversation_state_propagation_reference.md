@@ -8,7 +8,7 @@ title: "Frontend Protocol Session and Conversation-State Propagation Reference"
 
 # Frontend Protocol Session and Conversation-State Propagation Reference
 
-## Coverage Snapshot (2026-02-26)
+## Coverage Snapshot (2026-02-27)
 
 - State-focused protocol test files: `8`
 - Total test cases across listed files: `101`

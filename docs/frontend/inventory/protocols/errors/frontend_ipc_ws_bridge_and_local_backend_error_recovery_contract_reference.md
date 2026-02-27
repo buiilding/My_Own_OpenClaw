@@ -8,7 +8,7 @@ title: "Frontend IPC, WS Bridge, and Local Backend Error-Recovery Contract Refer
 
 # Frontend IPC, WS Bridge, and Local Backend Error-Recovery Contract Reference
 
-## Coverage Snapshot (2026-02-26)
+## Coverage Snapshot (2026-02-27)
 
 - Error-related protocol test files: `6`
 - Total test cases across listed files: `64`
