@@ -27,7 +27,12 @@ mac:
     - target: zip
 
 linux:
+  category: Utility
+  maintainer: WindieOS <support@windieos.com>
   target:
     - target: AppImage
     - target: deb
     - target: rpm
+
+rpm:
+  compression: xz
