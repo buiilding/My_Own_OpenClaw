@@ -141,6 +141,17 @@ def test_normalize_tool_call_entry_copies_argument_payload():
     assert normalized["arguments"]["path"] == "/tmp/demo.txt"
 
 
+def test_normalize_tool_call_entry_trims_tool_id_and_name():
+    normalized = normalize_tool_call_entry(
+        {"id": "  call_1  ", "name": "  read_file  ", "arguments": {}},
+        index=0,
+        model="model",
+    )
+
+    assert normalized["id"] == "call_1"
+    assert normalized["name"] == "read_file"
+
+
 def test_normalize_finish_reason_accepts_string_or_none_only():
     assert normalize_finish_reason(None, model="model") is None
     assert normalize_finish_reason("stop", model="model") == "stop"
