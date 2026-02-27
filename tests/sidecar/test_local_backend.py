@@ -501,6 +501,22 @@ async def test_handle_store_memory_rejects_whitespace_only_fields():
 
 
 @pytest.mark.asyncio
+async def test_handle_store_memory_rejects_invalid_memory_type():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+
+    result = await backend._handle_store_memory(
+        user_query="hi",
+        assistant_response="hello",
+        memory_type="archive",
+    )
+
+    assert result["success"] is False
+    assert result["error"] == "Invalid memory_type: archive"
+    assert backend.memory_store.added == []
+
+
+@pytest.mark.asyncio
 async def test_handle_list_conversations_fails_without_store():
     backend = LocalBackend()
     backend.memory_store = None

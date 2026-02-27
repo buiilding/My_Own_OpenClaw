@@ -93,6 +93,10 @@ Defaults:
 - `user_id = "default_user"`
 - optional `session_id`
 
+Validation detail:
+
+- `memory_type` is normalized to lowercase and must be `episodic` or `semantic`
+
 Behavior:
 
 1. format content with `format_interaction_memory(user_query, assistant_response)`

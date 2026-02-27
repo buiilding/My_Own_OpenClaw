@@ -589,10 +589,16 @@ class LocalBackend:
         """Store memory."""
         user_query = (user_query or "").strip()
         assistant_response = (assistant_response or "").strip()
+        memory_type = (memory_type or "episodic").strip().lower()
         if not user_query or not assistant_response:
             return {
                 "success": False,
                 "error": "Missing user_query or assistant_response"
+            }
+        if memory_type not in {"episodic", "semantic"}:
+            return {
+                "success": False,
+                "error": f"Invalid memory_type: {memory_type}"
             }
         try:
             memory_content = format_interaction_memory(user_query, assistant_response)
