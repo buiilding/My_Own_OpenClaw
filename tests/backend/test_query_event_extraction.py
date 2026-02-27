@@ -126,6 +126,17 @@ def test_extract_assistant_full_text_prefers_top_level_then_payload():
         )
         == "payload full"
     )
+    assert (
+        extract_assistant_full_text(
+            {
+                "type": "assistant_message_full",
+                "content": "   ",
+                "payload": {"content": " payload fallback "},
+            },
+            event_type="assistant_message_full",
+        )
+        == "payload fallback"
+    )
 
 
 def test_extract_streaming_complete_text_supports_payload_and_top_level():
@@ -209,3 +220,16 @@ def test_resolve_completion_text_precedence_chain():
         empty_fallback="fallback",
     )
     assert fallback == "fallback"
+
+
+def test_resolve_completion_text_uses_assistant_when_seen_chunks_are_empty() -> None:
+    resolved = resolve_completion_text(
+        event=None,
+        event_type=None,
+        text_chunks=["   ", "\n"],
+        assistant_full_text="assistant full",
+        saw_text_chunk=True,
+        empty_fallback="fallback",
+    )
+
+    assert resolved == "assistant full"
