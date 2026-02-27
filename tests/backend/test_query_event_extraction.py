@@ -22,6 +22,7 @@ def test_extract_event_type_supports_dict_and_typed_value_enum():
     assert extract_event_type({"type": "chunk"}) == "chunk"
     assert extract_event_type(_Event()) == "streaming-complete"
     assert extract_event_type({"type": 123}) is None
+    assert extract_event_type({"type": "   "}) is None
 
 
 def test_extract_event_type_supports_typed_string_and_missing_value():
@@ -34,8 +35,12 @@ def test_extract_event_type_supports_typed_string_and_missing_value():
     class _MissingValueEvent:
         type = _NoValueType()
 
+    class _BlankTypeEvent:
+        type = "   "
+
     assert extract_event_type(_DirectTypeEvent()) == "assistant_message_full"
     assert extract_event_type(_MissingValueEvent()) is None
+    assert extract_event_type(_BlankTypeEvent()) is None
 
 
 def test_extract_non_empty_chunk_text_accepts_payload_text_fallback():
