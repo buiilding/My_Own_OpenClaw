@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(backend-state): refresh protocol-state docs for handler context helper trimming/drop rules and include dedicated `test_handler_context.py` coverage in state propagation references.
 - docs(frontend-event-guards): sync frontend contract references with current `BackendEventType` union by adding `context-compaction-*` and `memory-store` coverage across schema/IPC/consumer ingress docs.
 - docs(frontend-events): update backend-event/local-user docs for current typed union surface (`context-compaction-*`, `memory-store`) and multi-image optimistic payload contract (`screenshot_refs` + `screenshot_ref` fallback).
 - fix(backend-query-events): treat blank top-level event text fields as absent and fall back to payload-backed content in query event extraction helpers; add regressions for chunk/assistant/streaming-complete payload fallback behavior.
