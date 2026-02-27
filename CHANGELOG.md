@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(setup): expand backend/frontend Windows setup guide with interpreter resolution order (`WINDIE_PYTHON_PATH` -> bundled runtime -> `CONDA_PREFIX` -> platform fallback), backend endpoint override env vars, packaged-vs-dev endpoint defaults, and additional sidecar/OCR troubleshooting notes.
 - refactor(frontend-chat-stream): extract tool-event handlers into `useChatStreamToolHandlers` and move thinking-status/type helpers into dedicated utility modules, reducing `useChatStream.ts` below the large-file threshold with added status-helper regression coverage.
 - fix(backend-transport): deep-copy websocket envelope payloads in `build_transport_message(...)` so caller-side mutation cannot rewrite emitted transport events; add nested aliasing regressions in `test_transport_envelope.py`.
 - fix(backend-transport): deep-copy outbound payloads in `WebSocketTransportSender.send(...)` to isolate transport writes from caller mutation timing; add sender aliasing regression coverage.
