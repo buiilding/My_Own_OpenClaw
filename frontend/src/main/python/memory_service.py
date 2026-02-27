@@ -162,7 +162,7 @@ class MemoryService:
         """Handle memory store request."""
         user_query = (payload.get("user_query") or "").strip()
         assistant_response = (payload.get("assistant_response") or "").strip()
-        memory_type = payload.get("memory_type", "episodic")
+        memory_type = (payload.get("memory_type") or "episodic").strip().lower()
         user_id = payload.get("user_id", "default_user")
         session_id = payload.get("session_id")
 
@@ -171,6 +171,12 @@ class MemoryService:
                 "id": request_id,
                 "success": False,
                 "error": "Missing user_query or assistant_response"
+            }
+        if memory_type not in {"episodic", "semantic"}:
+            return {
+                "id": request_id,
+                "success": False,
+                "error": f"Invalid memory_type: {memory_type}",
             }
 
         try:

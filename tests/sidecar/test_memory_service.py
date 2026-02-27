@@ -149,6 +149,25 @@ async def test_handle_store_rejects_whitespace_only_fields():
 
 
 @pytest.mark.asyncio
+async def test_handle_store_rejects_invalid_memory_type():
+    service = MemoryService()
+    service.memory_store = DummyStore()
+
+    response = await service.handle_store(
+        "req",
+        {
+            "user_query": "hi",
+            "assistant_response": "hello",
+            "memory_type": "archive",
+        },
+    )
+    assert response["success"] is False
+    assert response["id"] == "req"
+    assert response["error"] == "Invalid memory_type: archive"
+    assert service.memory_store.add_calls == []
+
+
+@pytest.mark.asyncio
 async def test_handle_store_error():
     service = MemoryService()
     service.memory_store = DummyStoreRaises(RuntimeError("fail"))
