@@ -18,6 +18,7 @@ title: "Frontend Protocol Status, Phase, and Stream-Telemetry Signal Reference"
 Primary runtime sources:
 
 - `frontend/src/main/ipc.cjs`
+- `frontend/src/main/ipc_settings_sync.cjs`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamTracking.ts`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`

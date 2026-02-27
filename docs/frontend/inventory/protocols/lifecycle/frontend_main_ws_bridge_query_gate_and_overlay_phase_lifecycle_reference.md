@@ -18,6 +18,7 @@ title: "Frontend Main WS Bridge, Query Gate, and Overlay Phase Lifecycle Referen
 Lifecycle contract sources:
 
 - Main websocket bridge/state machine: `frontend/src/main/ipc.cjs`
+- Settings-sync ACK gate helpers: `frontend/src/main/ipc_settings_sync.cjs`
 - Query payload enrichment: `frontend/src/main/query_payload_builder.cjs`
 - Synthetic local query events: `frontend/src/main/ipc_query_events.cjs`
 - Overlay phase -> window visibility behavior: `frontend/src/main/response_overlay_phase_handler.cjs`, `frontend/src/main/index.cjs`
