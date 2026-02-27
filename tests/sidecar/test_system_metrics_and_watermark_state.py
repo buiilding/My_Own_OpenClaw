@@ -160,7 +160,7 @@ async def test_watermark_load_returns_defaults_on_invalid_json(tmp_path: Path):
 
 
 @pytest.mark.asyncio
-async def test_watermark_save_update_and_increment_persist_expected_fields(tmp_path: Path):
+async def test_watermark_save_update_persist_expected_fields(tmp_path: Path):
     state_path = tmp_path / "watermark.json"
     store = WatermarkStateStore(state_path)
 
@@ -171,14 +171,6 @@ async def test_watermark_save_update_and_increment_persist_expected_fields(tmp_p
     assert updated_state["pending_message_count"] == 4
     assert isinstance(updated_state["last_updated"], str)
     datetime.fromisoformat(updated_state["last_updated"])
-
-    next_count = await store.increment_pending_count()
-    incremented_state = json.loads(state_path.read_text(encoding="utf-8"))
-
-    assert next_count == 5
-    assert incremented_state["last_semanticized_id"] == "mem-1"
-    assert incremented_state["pending_message_count"] == 5
-    datetime.fromisoformat(incremented_state["last_updated"])
 
 
 @pytest.mark.asyncio

@@ -113,7 +113,6 @@ Helper methods:
 
 - `get()`
 - `update(last_semanticized_id, pending_message_count)`
-- `increment_pending_count()` returns new count
 
 ## Integration Touchpoints
 

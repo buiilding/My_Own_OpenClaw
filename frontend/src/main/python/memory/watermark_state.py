@@ -82,9 +82,3 @@ class WatermarkStateStore:
             "pending_message_count": pending_message_count,
         }
         await self.save(state)
-
-    async def increment_pending_count(self) -> int:
-        state = await self.load()
-        state["pending_message_count"] = state.get("pending_message_count", 0) + 1
-        await self.save(state)
-        return state["pending_message_count"]
