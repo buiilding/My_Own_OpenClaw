@@ -230,6 +230,7 @@ function createChatWindow({
   positionChatWindow,
   hideChatWindow,
   syncWakewordToggleForChatVisibility,
+  externalFocusTracker,
   setChatWindow,
   enableContentProtectionSafely,
 }) {
@@ -273,6 +274,15 @@ function createChatWindow({
 
   chatWindow.on('hide', () => {
     syncWakewordToggleForChatVisibility();
+  });
+
+  chatWindow.on('blur', () => {
+    if (typeof externalFocusTracker?.capturePreviousExternalFocusedWindow !== 'function') {
+      return;
+    }
+    setTimeout(() => {
+      externalFocusTracker.capturePreviousExternalFocusedWindow();
+    }, 30);
   });
 
   return chatWindow;
