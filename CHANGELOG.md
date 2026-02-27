@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- build(deps): bump backend LiteLLM pin from `1.80.15` to `1.81.16` (`requirements.txt` + `requirements_mac.txt`) to align Gemini thinking/tool-stream behavior with latest provider adapter fixes.
 - fix(backend-gemini-thinking-stream): enable Gemini streaming tool-turn support with chunk-wise tool-call aggregation and normalized stream payload capture, so `gemini-3.1-pro-preview` can stream `llm-thought` deltas during agent/tool loops without breaking tool execution continuity.
 - fix(model-capabilities): remove Gemini 3.1 from `supports_thinking_text_stream=false` overrides and update frontend/backend tests so generic `Thinking...` fallback is only used when a model is explicitly marked as non-streaming for thought text.
 - refactor(backend-browser-scroll-schema): extract shared scroll field builders (`direction`, `amount`, `down`, `pages`) in `browser/schemas.py`; combined jscpd audit dropped from `1` to `0` clones.
