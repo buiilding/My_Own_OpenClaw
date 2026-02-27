@@ -2,254 +2,18 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   PenSquare,
-  Search,
-  Brain,
-  BarChart3,
-  Cpu,
   PanelLeft,
   PanelLeftClose,
   MoreHorizontal,
   Pencil,
   Pin,
   Trash2,
-  Settings,
-  HelpCircle,
-  LogOut,
-  ChevronRight,
 } from 'lucide-react';
 import ChatGptLogo from '../../../components/ChatGptLogo';
 import { conversationGroupsPropType } from './shared/conversationGroupPropTypes';
-
-const PRIMARY_NAV_ITEMS = Object.freeze([
-  { id: 'new-chat', label: 'New chat', icon: PenSquare },
-  { id: 'search', label: 'Search chats', icon: Search },
-]);
-
-const PRODUCT_NAV_ITEMS = Object.freeze([
-  { id: 'memory', label: 'Memory', icon: Brain },
-  { id: 'usage', label: 'Usage', icon: BarChart3 },
-  { id: 'models', label: 'Models', icon: Cpu },
-]);
-
-function useDismissOnOutside({ isOpen, containerRef, onDismiss }) {
-  useEffect(() => {
-    if (!isOpen) {
-      return undefined;
-    }
-
-    const handlePointerDown = (event) => {
-      if (!containerRef.current?.contains(event.target)) {
-        onDismiss();
-      }
-    };
-
-    const handleEscape = (event) => {
-      if (event.key === 'Escape') {
-        onDismiss();
-      }
-    };
-
-    window.addEventListener('mousedown', handlePointerDown);
-    window.addEventListener('keydown', handleEscape);
-    return () => {
-      window.removeEventListener('mousedown', handlePointerDown);
-      window.removeEventListener('keydown', handleEscape);
-    };
-  }, [containerRef, isOpen, onDismiss]);
-}
-
-function SidebarItem({
-  label,
-  icon: Icon,
-  onClick = undefined,
-  isActive = false,
-  collapsed = false,
-}) {
-  return (
-    <button
-      type="button"
-      className={`cg-nav-item${isActive ? ' active' : ''}${collapsed ? ' collapsed' : ''}`.trim()}
-      onClick={onClick}
-      aria-label={label}
-      title={collapsed ? label : undefined}
-    >
-      <span className="cg-nav-item-icon" aria-hidden="true">
-        <Icon size={18} />
-      </span>
-      {!collapsed ? <span className="cg-nav-item-label">{label}</span> : null}
-    </button>
-  );
-}
-
-SidebarItem.propTypes = {
-  label: PropTypes.string.isRequired,
-  icon: PropTypes.elementType.isRequired,
-  onClick: PropTypes.func,
-  isActive: PropTypes.bool,
-  collapsed: PropTypes.bool,
-};
-
-function SidebarUserButton({ collapsed = false, onClick, isExpanded = false }) {
-  return (
-    <button
-      type="button"
-      className={`cg-user-button${collapsed ? ' collapsed' : ''}`}
-      onClick={onClick}
-      aria-label="Open profile menu"
-      aria-expanded={isExpanded}
-      title={collapsed ? 'Profile menu' : undefined}
-      data-testid="sidebar-user-menu-trigger"
-    >
-      <span className="cg-user-avatar" aria-hidden="true">q</span>
-      {!collapsed ? (
-        <span className="cg-user-meta">
-          <span className="cg-user-name">q p</span>
-          <span className="cg-user-plan">Pro</span>
-        </span>
-      ) : null}
-    </button>
-  );
-}
-
-SidebarUserButton.propTypes = {
-  collapsed: PropTypes.bool,
-  onClick: PropTypes.func.isRequired,
-  isExpanded: PropTypes.bool,
-};
-
-function SidebarNavigation({
-  collapsed = false,
-  onStartNewChat,
-  onOpenSearch,
-  onOpenMemory,
-  onOpenUsage,
-  onOpenModels,
-  searchOpen,
-  memoryOpen,
-  usageOpen,
-  modelsOpen,
-}) {
-  const primaryNavItems = collapsed
-    ? PRIMARY_NAV_ITEMS.filter((item) => item.id !== 'new-chat')
-    : PRIMARY_NAV_ITEMS;
-
-  return (
-    <>
-      <nav className="cg-sidebar-nav">
-        {primaryNavItems.map((item) => (
-          <SidebarItem
-            key={item.id}
-            label={item.label}
-            icon={item.icon}
-            onClick={item.id === 'new-chat' ? onStartNewChat : onOpenSearch}
-            isActive={item.id === 'search' && searchOpen}
-            collapsed={collapsed}
-          />
-        ))}
-      </nav>
-
-      <div className="cg-sidebar-divider" />
-
-      <nav className="cg-sidebar-nav">
-        {PRODUCT_NAV_ITEMS.map((item) => (
-          <SidebarItem
-            key={item.id}
-            label={item.label}
-            icon={item.icon}
-            onClick={item.id === 'memory' ? onOpenMemory : item.id === 'usage' ? onOpenUsage : onOpenModels}
-            isActive={item.id === 'memory' ? memoryOpen : item.id === 'usage' ? usageOpen : modelsOpen}
-            collapsed={collapsed}
-          />
-        ))}
-      </nav>
-    </>
-  );
-}
-
-SidebarNavigation.propTypes = {
-  collapsed: PropTypes.bool,
-  onStartNewChat: PropTypes.func.isRequired,
-  onOpenSearch: PropTypes.func.isRequired,
-  onOpenMemory: PropTypes.func.isRequired,
-  onOpenUsage: PropTypes.func.isRequired,
-  onOpenModels: PropTypes.func.isRequired,
-  searchOpen: PropTypes.bool.isRequired,
-  memoryOpen: PropTypes.bool.isRequired,
-  usageOpen: PropTypes.bool.isRequired,
-  modelsOpen: PropTypes.bool.isRequired,
-};
-
-function SidebarUserMenu({ collapsed = false, onOpenSettings }) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const containerRef = useRef(null);
-  const closeMenu = useCallback(() => {
-    setMenuOpen(false);
-  }, []);
-
-  useDismissOnOutside({
-    isOpen: menuOpen,
-    containerRef,
-    onDismiss: closeMenu,
-  });
-
-  const handleOpenSettings = (tab = 'general') => {
-    closeMenu();
-    onOpenSettings(tab);
-  };
-
-  return (
-    <div ref={containerRef} className={`cg-user-menu-wrap${collapsed ? ' collapsed' : ''}`}>
-      <SidebarUserButton
-        collapsed={collapsed}
-        onClick={() => setMenuOpen((current) => !current)}
-        isExpanded={menuOpen}
-      />
-      {menuOpen ? (
-        <div
-          className={`cg-user-menu${collapsed ? ' collapsed' : ''}`}
-          role="menu"
-          aria-label="Profile menu"
-        >
-          <div className="cg-user-menu-header">
-            <span className="cg-user-avatar" aria-hidden="true">q</span>
-            <div className="cg-user-menu-meta">
-              <p>q p</p>
-              <span>@peterbuics</span>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            className="cg-user-menu-item"
-            onClick={() => handleOpenSettings('general')}
-            role="menuitem"
-            data-testid="sidebar-user-menu-settings"
-          >
-            <Settings size={16} />
-            <span>Settings</span>
-          </button>
-          <button type="button" className="cg-user-menu-item" role="menuitem">
-            <HelpCircle size={16} />
-            <span>Help</span>
-            <ChevronRight size={14} className="cg-user-menu-chevron" />
-          </button>
-
-          <div className="cg-user-menu-divider" />
-
-          <button type="button" className="cg-user-menu-item" role="menuitem">
-            <LogOut size={16} />
-            <span>Log out</span>
-          </button>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-SidebarUserMenu.propTypes = {
-  collapsed: PropTypes.bool,
-  onOpenSettings: PropTypes.func.isRequired,
-};
+import DashboardSidebarNavigation from './sidebar/DashboardSidebarNavigation';
+import DashboardSidebarUserMenu from './sidebar/DashboardSidebarUserMenu';
+import { useDismissOnOutside } from './sidebar/useDismissOnOutside';
 
 function DashboardSidebar({
   sidebarOpen,
@@ -446,7 +210,7 @@ function DashboardSidebar({
       </div>
 
       <div className="cg-sidebar-content">
-        <SidebarNavigation
+        <DashboardSidebarNavigation
           collapsed={isCollapsed}
           onStartNewChat={onStartNewChat}
           onOpenSearch={onOpenSearch}
@@ -488,7 +252,7 @@ function DashboardSidebar({
       </div>
 
       <div className="cg-sidebar-footer">
-        <SidebarUserMenu collapsed={isCollapsed} onOpenSettings={onOpenSettings} />
+        <DashboardSidebarUserMenu collapsed={isCollapsed} onOpenSettings={onOpenSettings} />
       </div>
     </aside>
   );
