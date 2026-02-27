@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(memory-title-runtime): add sidecar conversation-title runtime/helper deep reference (trigger gating, task concurrency, lock/upsert semantics, remote title API boundary) and sync frontend memory + backend semantic docs with `/api/semantic/title` validation/parser/fallback contracts.
 - refactor(sidecar-memory-titles): extract conversation-title normalization/state/input helper logic from `memory/local_store.py` into `memory/conversation_title_helpers.py`, preserving title generation/listing behavior while reducing local-store size and adding focused helper regression coverage.
 - docs(frontend-landing-sections): add deep reference for `WhySection`, `PrivacySection`, `CTAFooter`, shared `SectionIntro`, and `ProviderStackIcon`; sync landing hubs/runtime docs with cross-links, static content contracts, and anchor/link drift hotspots.
 - refactor(sidecar-memory-search): extract transcript conversation-search term/snippet/grouping/timestamp helpers from `memory/local_store.py` into `memory/conversation_search_helpers.py`, reducing local-store size while preserving ranking/merge behavior; add focused helper regression coverage.

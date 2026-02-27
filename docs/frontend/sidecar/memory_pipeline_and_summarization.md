@@ -1,5 +1,5 @@
 ---
-summary: "Detailed sidecar memory pipeline: local store internals, remote embedding/semantic APIs, and periodic summarization workflow."
+summary: "Detailed sidecar memory pipeline: local store internals, transcript title generation, remote embedding/semantic/title APIs, and periodic summarization workflow."
 read_when:
   - When changing memory retrieval quality, summarization cadence, or memory persistence behavior.
   - When debugging missing semantic memories or vector-index drift.
@@ -15,6 +15,7 @@ Deep split references:
 - [Summarizer Watermark and Conversation Batch Reference](memory/summarizer_watermark_and_conversation_batch_reference.md)
 - [Transcript Storage, Semantic Candidate, and Watermark Reference](memory/transcript_storage_semantic_candidate_and_watermark_reference.md)
 - [Local Memory Store Embedding, Search, and Memory-Type Routing Reference](memory/storage/local_memory_store_embedding_search_and_memory_type_routing_reference.md)
+- [Conversation Title Generation Runtime and Helper Contract Reference](memory/storage/conversation_title_generation_runtime_and_helper_contract_reference.md)
 - [Conversation Transcript Window Queries and FAISS Artifact Cleanup Reference](memory/storage/conversation_transcript_window_queries_and_faiss_artifact_cleanup_reference.md)
 - [SQLite Schema Migration, FAISS Index I/O, and Watermark State Reference](memory/storage/sqlite_schema_migration_faiss_index_and_watermark_state_reference.md)
 
@@ -57,6 +58,18 @@ Behavior:
 
 - calls backend `POST /api/semantic/summarize`
 - receives `(summary, facts)` result for semantic memory write path
+
+## Conversation Title Dependency
+
+Client:
+
+- `core/remote_title_client.py`
+
+Behavior:
+
+- called by `LocalMemoryStore` async title-generation tasks after first assistant `llm-text` transcript rows
+- calls backend `POST /api/semantic/title`
+- returns concise conversation title text (or empty string on blank title response)
 
 ## Periodic Summarizer
 

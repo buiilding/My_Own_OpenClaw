@@ -12,7 +12,9 @@ title: "Local Memory Store Embedding, Search, and Memory-Type Routing Reference"
 
 - `frontend/src/main/python/memory/local_store.py`
 - `frontend/src/main/python/memory/conversation_search_helpers.py`
+- `frontend/src/main/python/memory/conversation_title_helpers.py`
 - `frontend/src/main/python/core/remote_embedding_client.py`
+- `frontend/src/main/python/core/remote_title_client.py`
 - `frontend/src/main/python/memory/faiss_index.py`
 - `frontend/src/main/python/memory/sqlite_store.py`
 - `tests/sidecar/test_local_store_delete_cleanup.py`
@@ -106,6 +108,16 @@ For episodic rows, embedding eligibility uses `_should_embed_episodic_entry(...)
 
 This avoids indexing low-signal tool chatter while preserving useful conversational turns.
 
+## Conversation-Title Boundary
+
+Transcript title generation is a parallel contract (not part of semantic vector search):
+
+- triggered only by assistant transcript rows with normalized `message_type = llm-text`
+- executed through async background tasks with bounded concurrency
+- resolved/persisted through `conversation_title_helpers` + `RemoteTitleClient`
+
+See dedicated title contract reference for trigger/lock/upsert/task details.
+
 ## Search Execution Model
 
 `search(query, user_id, filters, limit)`:
@@ -149,5 +161,6 @@ Test coverage confirms sparse/legacy embedding IDs are rewritten deterministical
 ## Related Pages
 
 - [Frontend Sidecar Memory Storage Docs Hub](README.md)
+- [Conversation Title Generation Runtime and Helper Contract Reference](conversation_title_generation_runtime_and_helper_contract_reference.md)
 - [Conversation Transcript Window Queries and FAISS Artifact Cleanup Reference](conversation_transcript_window_queries_and_faiss_artifact_cleanup_reference.md)
 - [SQLite Schema Migration, FAISS Index I/O, and Watermark State Reference](sqlite_schema_migration_faiss_index_and_watermark_state_reference.md)
