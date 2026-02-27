@@ -169,6 +169,32 @@ def test_load_gitignore_returns_compiled_spec(monkeypatch, tmp_path: Path):
     assert spec == {"pattern_kind": "gitwildmatch", "lines": ["*.log"]}
 
 
+def test_load_gitignore_returns_none_when_file_missing(monkeypatch, tmp_path: Path):
+    class _DummyPathSpecModule:
+        class PathSpec:
+            @staticmethod
+            def from_lines(_pattern_kind, _lines):
+                raise AssertionError("from_lines should not be called without .gitignore")
+
+    monkeypatch.setattr(gitignore_utils, "pathspec", _DummyPathSpecModule)
+
+    assert gitignore_utils.load_gitignore(str(tmp_path)) is None
+
+
+def test_load_gitignore_returns_none_when_pathspec_raises(monkeypatch, tmp_path: Path):
+    (tmp_path / ".gitignore").write_text("*.log\n", encoding="utf-8")
+
+    class _BrokenPathSpecModule:
+        class PathSpec:
+            @staticmethod
+            def from_lines(_pattern_kind, _lines):
+                raise RuntimeError("boom")
+
+    monkeypatch.setattr(gitignore_utils, "pathspec", _BrokenPathSpecModule)
+
+    assert gitignore_utils.load_gitignore(str(tmp_path)) is None
+
+
 def test_find_gitignore_specs_walks_parent_directories(monkeypatch, tmp_path: Path):
     parent = tmp_path / "parent"
     child = parent / "child"
@@ -191,6 +217,18 @@ def test_find_gitignore_specs_walks_parent_directories(monkeypatch, tmp_path: Pa
     assert str(parent.resolve()) in spec_map
     assert spec_map[str(child.resolve())] == ("build/",)
     assert spec_map[str(parent.resolve())] == ("*.tmp",)
+
+
+def test_find_gitignore_specs_returns_empty_list_when_resolution_fails(monkeypatch):
+    monkeypatch.setattr(gitignore_utils, "pathspec", object())
+
+    class _BrokenPath:
+        def resolve(self):
+            raise RuntimeError("boom")
+
+    monkeypatch.setattr(gitignore_utils, "Path", lambda _path: _BrokenPath())
+
+    assert gitignore_utils.find_gitignore_specs("/tmp/does-not-matter") == []
 
 
 def test_is_ignored_by_any_uses_specs():
