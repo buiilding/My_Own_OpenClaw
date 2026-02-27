@@ -36,6 +36,7 @@ export const INVOKE_CHANNELS = {
   SET_OVERLAY_IGNORE_MOUSE: 'set-overlay-ignore-mouse',
   SET_RESPONSEBOX_SIZE: 'set-responsebox-size',
   SHOW_MAIN_WINDOW: 'show-main-window',
+  GET_MAIN_WINDOW_VISIBILITY: 'get-main-window-visibility',
   SHOW_CHATBOX: 'show-chatbox',
   HIDE_CHATBOX: 'hide-chatbox',
   PREPARE_OVERLAY_TOOL_FOCUS: 'prepare-overlay-tool-focus',

@@ -40,6 +40,7 @@ contextBridge.exposeInMainWorld('ipc', {
       'set-overlay-ignore-mouse',
       'set-responsebox-size',
       'show-main-window',
+      'get-main-window-visibility',
       'show-chatbox',
       'hide-chatbox',
       'prepare-overlay-tool-focus',

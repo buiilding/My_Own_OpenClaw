@@ -116,6 +116,9 @@ export function resetToolRunnerTestState() {
   });
   jest.spyOn(IpcBridge, 'send').mockImplementation(() => undefined);
   jest.spyOn(IpcBridge, 'invoke').mockImplementation(async (channel: any) => {
+    if (channel === INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY) {
+      return { success: true, data: { visible: false } };
+    }
     if (
       channel === INVOKE_CHANNELS.SHOW_CHATBOX
       || channel === INVOKE_CHANNELS.HIDE_CHATBOX

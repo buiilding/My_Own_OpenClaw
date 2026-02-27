@@ -26,6 +26,7 @@ type ToolSurfacePreparation = {
 let nextSurfaceToken = 1;
 const activeSurfaceTokens = new Set<number>();
 const activeOverlayIgnoreTokens = new Set<number>();
+let pendingChatPillRestore = false;
 
 function registerSurfaceToken(): number {
   const token = nextSurfaceToken;
@@ -61,6 +62,15 @@ function unmarkOverlayIgnoreForToken(surfaceToken: number | null): boolean {
   }
   activeOverlayIgnoreTokens.delete(surfaceToken);
   return activeOverlayIgnoreTokens.size === 0;
+}
+
+async function isMainWindowVisible(): Promise<boolean> {
+  try {
+    const result = await IpcBridge.invoke(INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY);
+    return result?.success === true && result?.data?.visible === true;
+  } catch (_error) {
+    return false;
+  }
 }
 
 export function shouldSkipToolExecution(metadata: Record<string, unknown> | undefined): boolean {
@@ -145,10 +155,16 @@ export async function prepareToolExecutionSurface(
   let surfaceToken: number | null = null;
   let overlayIgnoreEnabled = false;
   const surfaceAlreadyPrepared = activeSurfaceTokens.size > 0;
+  const shouldCollapseForScreenshot = (
+    mode === 'screenshot'
+    && !surfaceAlreadyPrepared
+    && await isMainWindowVisible()
+  );
   try {
-    if (!surfaceAlreadyPrepared) {
+    if (shouldCollapseForScreenshot) {
       await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false });
       await IpcBridge.invoke(INVOKE_CHANNELS.HIDE_CHATBOX);
+      pendingChatPillRestore = true;
     }
     surfaceToken = registerSurfaceToken();
 
@@ -195,7 +211,7 @@ export async function prepareToolExecutionSurface(
       }
 
       return {
-        restoreChatPillAfterExecution: true,
+        restoreChatPillAfterExecution: shouldCollapseForScreenshot,
         canExecute: false,
         failureReason: 'external_window_focus_not_verified',
         surfaceToken,
@@ -203,7 +219,7 @@ export async function prepareToolExecutionSurface(
       };
     }
     return {
-      restoreChatPillAfterExecution: true,
+      restoreChatPillAfterExecution: shouldCollapseForScreenshot,
       canExecute: true,
       failureReason: null,
       surfaceToken,
@@ -231,15 +247,13 @@ export async function restoreToolExecutionSurface(
       console.warn('[useToolRunner] Failed to disable overlay click-through after tool execution:', error);
     }
   }
-  if (!preparation.restoreChatPillAfterExecution || typeof preparation.surfaceToken !== 'number') {
-    return;
-  }
   const shouldRestoreChatPill = releaseSurfaceToken(preparation.surfaceToken);
-  if (!shouldRestoreChatPill) {
+  if (!shouldRestoreChatPill || !pendingChatPillRestore) {
     return;
   }
   try {
     await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false });
+    pendingChatPillRestore = false;
   } catch (error) {
     console.warn('[useToolRunner] Failed to restore chat pill after tool execution:', error);
   }
@@ -257,4 +271,5 @@ export function __resetToolExecutionSurfaceStateForTests(): void {
   activeSurfaceTokens.clear();
   activeOverlayIgnoreTokens.clear();
   nextSurfaceToken = 1;
+  pendingChatPillRestore = false;
 }
