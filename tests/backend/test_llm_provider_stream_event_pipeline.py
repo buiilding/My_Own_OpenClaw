@@ -106,6 +106,28 @@ async def test_stream_text_content_events_emits_only_non_empty_chunks(monkeypatc
 
 
 @pytest.mark.asyncio
+async def test_stream_text_content_events_ignores_none_delta_without_emitting(monkeypatch):
+    chunks = [
+        {"usage": {"prompt_tokens": 1}, "delta": None},
+        {"usage": {"prompt_tokens": 2}, "delta": {"content": "ok"}},
+    ]
+    emitted, seen_usage = await _collect_events_for_pipeline(
+        monkeypatch=monkeypatch,
+        chunks=chunks,
+        stream_callable=stream_text_content_events,
+        stream_kwargs={
+            "extract_delta_content": lambda delta: _extract_non_empty_dict_string(
+                delta,
+                "content",
+            ),
+        },
+    )
+
+    assert [event.content for event in emitted if isinstance(event, ChunkEvent)] == ["ok"]
+    assert seen_usage == [{"prompt_tokens": 1}, {"prompt_tokens": 2}]
+
+
+@pytest.mark.asyncio
 async def test_stream_thinking_and_text_events_emits_reasoning_and_text(monkeypatch):
     chunks = [
         {"usage": {"prompt_tokens": 7}, "delta": None},
@@ -135,3 +157,57 @@ async def test_stream_thinking_and_text_events_emits_reasoning_and_text(monkeypa
         {"prompt_tokens": 8},
         {"prompt_tokens": 9},
     ]
+
+
+@pytest.mark.asyncio
+async def test_stream_thinking_and_text_events_skips_thinking_extractor_when_delta_missing(monkeypatch):
+    chunks = [
+        {"usage": {"prompt_tokens": 3}, "delta": None},
+        {"usage": {"prompt_tokens": 4}, "delta": {"content": "final"}},
+    ]
+    thinking_calls = {"count": 0}
+
+    def _extract_thinking(delta: Any) -> Optional[str]:
+        thinking_calls["count"] += 1
+        return _extract_non_empty_dict_string(delta, "thinking")
+
+    emitted, _seen_usage = await _collect_events_for_pipeline(
+        monkeypatch=monkeypatch,
+        chunks=chunks,
+        stream_callable=stream_thinking_and_text_events,
+        stream_kwargs={
+            "extract_thinking_content": _extract_thinking,
+            "extract_delta_content": lambda delta: _extract_non_empty_dict_string(
+                delta,
+                "content",
+            ),
+        },
+    )
+
+    assert thinking_calls["count"] == 1
+    assert [event.content for event in emitted if isinstance(event, ChunkEvent)] == ["final"]
+
+
+@pytest.mark.asyncio
+async def test_stream_pipeline_passes_params_to_litellm_acompletion(monkeypatch):
+    captured_params: Dict[str, Any] = {}
+
+    async def fake_acompletion(**params):
+        captured_params.update(params)
+        return _yield_chunks([{"usage": None, "delta": {"content": "x"}}])
+
+    monkeypatch.setattr(stream_event_pipeline.litellm, "acompletion", fake_acompletion)
+
+    emitted = []
+    async for event in stream_text_content_events(
+        params={"model": "test-model", "messages": [{"role": "user", "content": "hi"}], "stream": True},
+        record_stream_usage_from_chunk=lambda _chunk: None,
+        extract_stream_delta=_extract_dict_delta,
+        extract_delta_content=lambda delta: _extract_non_empty_dict_string(delta, "content"),
+    ):
+        emitted.append(event)
+
+    assert [event.content for event in emitted if isinstance(event, ChunkEvent)] == ["x"]
+    assert captured_params["model"] == "test-model"
+    assert captured_params["messages"] == [{"role": "user", "content": "hi"}]
+    assert captured_params["stream"] is True
