@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-thinking-dropdown): persist streamed `llm-thought` text on `streaming-complete` into assistant message metadata and render it as a collapsible `Show thinking` block above assistant response text (with new renderer/unit regressions).
 - fix(frontend-chat-pill-focus): refresh external-focus snapshot on chat-pill blur so overlay query pre-capture restores the real underlying app window (not the chat-pill window) before system-state collection.
 - test(backend-payload-serialization): extend regression coverage for `normalize_tool_arguments` fallback path when `model_dump()` does not accept `warnings` kwargs (TypeError compatibility path).
 - fix(backend-pydantic-warnings): suppress noisy Pydantic serializer warnings on LiteLLM payload normalization by using `model_dump(warnings=False)` (with fallback compatibility path) in tool-argument and usage payload normalization helpers, with regression coverage.

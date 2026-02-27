@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import { toSanitizedMarkdownHtml } from '../../../infrastructure/markdown';
 import { resolveLlmOutputContract } from '../../../infrastructure/llmOutputContract';
 import { isUserMessageWithScreenshot, resolveMessageScreenshotSrc } from '../utils/messageScreenshots';
+import { isDevUiEnabled } from '../utils/devUiFlag';
+import { resolveSourceTag } from '../utils/sourceTags';
 
 function MarkdownMessage({
   text,
@@ -206,6 +208,54 @@ UserMessage.propTypes = {
   }).isRequired,
 };
 
+function AssistantThinkingSection({ thinkingText, sourceEventType = null }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const normalizedThinkingText = useMemo(
+    () => (typeof thinkingText === 'string' ? thinkingText.trim() : ''),
+    [thinkingText],
+  );
+
+  const sourceTag = useMemo(() => {
+    if (!isDevUiEnabled() || !normalizedThinkingText) {
+      return null;
+    }
+    return resolveSourceTag(sourceEventType || 'llm-thought', 'from-backend');
+  }, [normalizedThinkingText, sourceEventType]);
+
+  if (!normalizedThinkingText) {
+    return null;
+  }
+
+  return (
+    <div className="assistant-thinking-section">
+      <button
+        type="button"
+        className="assistant-thinking-toggle"
+        aria-expanded={isOpen}
+        onClick={() => setIsOpen((previous) => !previous)}
+      >
+        <span>Show thinking</span>
+        <span className={`assistant-thinking-caret${isOpen ? ' is-open' : ''}`} aria-hidden="true">▾</span>
+      </button>
+      {isOpen ? (
+        <div className="assistant-thinking-panel" aria-label="Assistant reasoning details">
+          {sourceTag ? (
+            <div className="thinking-source-badge" title={`source_event=${sourceEventType || 'llm-thought'}`}>
+              {sourceTag}
+            </div>
+          ) : null}
+          <pre className="assistant-thinking-text">{normalizedThinkingText}</pre>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+AssistantThinkingSection.propTypes = {
+  thinkingText: PropTypes.string,
+  sourceEventType: PropTypes.string,
+};
+
 export default function MessageContent({ message }) {
   if (message.type === 'error') {
     return <ErrorMessage message={message} />;
@@ -221,6 +271,23 @@ export default function MessageContent({ message }) {
 
   if (isUserMessageWithScreenshot(message)) {
     return <UserMessage message={message} />;
+  }
+
+  if (message.sender === 'assistant' && (!message.type || message.type === 'llm-text')) {
+    return (
+      <div className="assistant-message-content">
+        <AssistantThinkingSection
+          thinkingText={message.thinkingText || ''}
+          sourceEventType={message.thinkingSourceEventType || null}
+        />
+        <MarkdownMessage
+          text={message.text}
+          sender={message.sender}
+          modelProvider={message.modelProvider || null}
+          modelId={message.modelId || null}
+        />
+      </div>
+    );
   }
 
   return (
@@ -251,5 +318,7 @@ MessageContent.propTypes = {
     success: PropTypes.bool,
     modelProvider: PropTypes.string,
     modelId: PropTypes.string,
+    thinkingText: PropTypes.string,
+    thinkingSourceEventType: PropTypes.string,
   }).isRequired,
 };

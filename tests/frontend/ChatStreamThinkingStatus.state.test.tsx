@@ -123,6 +123,37 @@ describe('useChatStream state + stream handling', () => {
     expect(useChatStore.getState().thinkingStatus).toBeNull();
   });
 
+  test('persists streamed thinking text onto completed assistant message', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.setState({
+        messages: [
+          {
+            id: 'assistant-turn-1',
+            text: 'final answer',
+            sender: 'assistant',
+            type: 'llm-text',
+            isComplete: false,
+            turnRef: 'turn-1',
+          },
+        ],
+        thinkingStatus: 'step 1\nstep 2',
+        thinkingSourceEventType: 'llm-thought',
+      });
+      emitBackendEvent({
+        type: 'streaming-complete',
+        turn_ref: 'turn-1',
+        payload: {},
+      });
+    });
+
+    const message = useChatStore.getState().messages[0];
+    expect(message.thinkingText).toBe('step 1\nstep 2');
+    expect(message.thinkingSourceEventType).toBe('llm-thought');
+    expect(useChatStore.getState().thinkingStatus).toBeNull();
+  });
+
   test('adds local user message to store', () => {
     const { emitBackendEvent } = registerBackendListener();
 
