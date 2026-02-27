@@ -1,8 +1,8 @@
 ---
-summary: "Frontend sidecar core docs sub-hub for JSON-RPC protocol/error semantics, graceful stdin shutdown handlers, stdout framing, backend URL resolution, remote memory clients, and shared thread-pool lifecycle."
+summary: "Frontend sidecar core docs sub-hub for JSON-RPC protocol/error semantics, graceful stdin shutdown handlers, stdout framing, backend URL resolution, remote embedding/semantic/title clients, and shared thread-pool lifecycle."
 read_when:
   - When changing `frontend/src/main/python/core/*` modules.
-  - When debugging sidecar protocol parse/dispatch failures, shutdown hangs, or remote embedding/semantic client connectivity.
+  - When debugging sidecar protocol parse/dispatch failures, shutdown hangs, or remote embedding/semantic/title client connectivity.
 title: "Frontend Sidecar Core Docs Hub"
 ---
 
@@ -28,6 +28,7 @@ title: "Frontend Sidecar Core Docs Hub"
 - `frontend/src/main/python/core/backend_config.py`
 - `frontend/src/main/python/core/remote_embedding_client.py`
 - `frontend/src/main/python/core/remote_semantic_client.py`
+- `frontend/src/main/python/core/remote_title_client.py`
 - `frontend/src/main/python/core/thread_pool.py`
 - `tests/sidecar/test_json_rpc_protocol.py`
 - `tests/sidecar/test_runtime_shutdown.py`
@@ -35,4 +36,5 @@ title: "Frontend Sidecar Core Docs Hub"
 - `tests/sidecar/test_backend_config.py`
 - `tests/sidecar/test_remote_embedding_client.py`
 - `tests/sidecar/test_remote_semantic_client.py`
+- `tests/sidecar/test_remote_title_client.py`
 - `tests/sidecar/test_thread_pool.py`
