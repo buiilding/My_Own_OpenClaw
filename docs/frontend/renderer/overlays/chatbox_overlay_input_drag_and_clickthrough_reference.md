@@ -153,6 +153,11 @@ Active loop phases:
 - `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`
 - `tests/frontend/OverlayPhaseListener.test.js`
 
+`ChatBoxOverlayMouseIgnore` now includes explicit anti-regression coverage for:
+
+- startup compact-class stability (no delayed `with-preview` flip when no images exist)
+- multi-attachment preview stability (stay expanded until last image is removed, then remain compact)
+
 ## Debug Checklist
 
 If chatbox becomes permanently click-through:
