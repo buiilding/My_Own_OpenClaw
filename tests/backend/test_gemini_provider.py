@@ -167,6 +167,9 @@ async def test_gemini_stream_emits_error_event_when_tool_arguments_json_is_inval
         "failed to parse streamed tool-call arguments" in message
         for message in error_messages
     )
+    assert any(
+        "Invalid response from Gemini stream" in message for message in error_messages
+    )
     assert provider.get_last_stream_response_payload() is None
 
 

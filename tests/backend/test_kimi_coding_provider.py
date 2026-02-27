@@ -244,6 +244,10 @@ async def test_kimi_stream_emits_error_event_when_tool_arguments_json_is_invalid
         event.content for event in events if isinstance(event, ErrorEvent)
     ]
     assert any("failed to parse streamed tool-call arguments" in message for message in error_messages)
+    assert any(
+        "Invalid response from Kimi Coding stream" in message
+        for message in error_messages
+    )
     assert provider.get_last_stream_response_payload() is None
 
 
