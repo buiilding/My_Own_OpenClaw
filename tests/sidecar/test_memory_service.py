@@ -134,6 +134,21 @@ async def test_handle_store_missing_fields():
 
 
 @pytest.mark.asyncio
+async def test_handle_store_rejects_whitespace_only_fields():
+    service = MemoryService()
+    service.memory_store = DummyStore()
+
+    response = await service.handle_store(
+        "req",
+        {"user_query": "   ", "assistant_response": "\n\t"},
+    )
+    assert response["success"] is False
+    assert response["id"] == "req"
+    assert response["error"] == "Missing user_query or assistant_response"
+    assert service.memory_store.add_calls == []
+
+
+@pytest.mark.asyncio
 async def test_handle_store_error():
     service = MemoryService()
     service.memory_store = DummyStoreRaises(RuntimeError("fail"))

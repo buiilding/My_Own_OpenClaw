@@ -83,6 +83,10 @@ Required fields:
 - `user_query`
 - `assistant_response`
 
+Validation detail:
+
+- both fields are trimmed; whitespace-only values are rejected as missing
+
 Defaults:
 
 - `memory_type = "episodic"`
