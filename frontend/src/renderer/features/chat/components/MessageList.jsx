@@ -166,6 +166,7 @@ function MessageList({
   messages,
   thinkingStatus = null,
   thinkingSourceEventType = null,
+  showAssistantAwaitingDot = false,
   enableAssistantActions = false,
   enableUserActions = false,
   disableAssistantActions = false,
@@ -265,6 +266,16 @@ function MessageList({
   return (
     <div className="message-list">
       {renderedMessages}
+      {showAssistantAwaitingDot ? (
+        <div
+          className="message-list-awaiting-dot"
+          role="status"
+          aria-live="polite"
+          aria-label="Assistant is preparing response"
+        >
+          <span className="message-list-awaiting-dot-indicator" aria-hidden="true" />
+        </div>
+      ) : null}
       {compactionStatusText ? (
         <div
           className="message-list-compaction-status"
@@ -285,6 +296,7 @@ MessageList.propTypes = {
   messages: PropTypes.arrayOf(messageShapePropType).isRequired,
   thinkingStatus: PropTypes.string,
   thinkingSourceEventType: PropTypes.string,
+  showAssistantAwaitingDot: PropTypes.bool,
   enableAssistantActions: PropTypes.bool,
   enableUserActions: PropTypes.bool,
   disableAssistantActions: PropTypes.bool,

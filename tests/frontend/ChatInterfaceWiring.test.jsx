@@ -364,6 +364,22 @@ describe('ChatInterface wiring', () => {
     expect(typeof lastInputProps.onStopResponse).toBe('function');
   });
 
+  test('shows awaiting dot only during awaiting-first-chunk after user message', () => {
+    mockChatState.messages = [
+      { id: 'user-1', sender: 'user', text: 'hello', type: 'user' },
+    ];
+    mockChatState.streamTracking.phase = 'awaiting-first-chunk';
+    const { rerender } = render(<ChatInterface />);
+
+    let lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
+    expect(lastMessageListProps.showAssistantAwaitingDot).toBe(true);
+
+    mockChatState.streamTracking.phase = 'streaming';
+    rerender(<ChatInterface />);
+    lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
+    expect(lastMessageListProps.showAssistantAwaitingDot).toBe(false);
+  });
+
   test('stop response handler is a no-op when no active stream is running', () => {
     mockChatState.streamTracking.phase = 'idle';
 
