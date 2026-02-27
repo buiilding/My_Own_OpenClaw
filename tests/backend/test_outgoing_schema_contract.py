@@ -113,6 +113,38 @@ def test_memory_store_formatter_output_matches_schema() -> None:
     assert parsed.payload.user_id == "user_1"
 
 
+def test_memory_store_formatter_rejects_blank_user_query() -> None:
+    formatter = MemoryStoreEventFormatter()
+    payload = formatter.format(
+        {
+            "user_query": "   ",
+            "assistant_response": "world",
+            "memory_type": "episodic",
+            "user_id": "user_1",
+            "session_id": "session_1",
+        },
+        "msg_blank_query",
+    )
+
+    assert payload is None
+
+
+def test_memory_store_formatter_rejects_blank_assistant_response() -> None:
+    formatter = MemoryStoreEventFormatter()
+    payload = formatter.format(
+        {
+            "user_query": "hello",
+            "assistant_response": "  ",
+            "memory_type": "episodic",
+            "user_id": "user_1",
+            "session_id": "session_1",
+        },
+        "msg_blank_response",
+    )
+
+    assert payload is None
+
+
 def test_context_compaction_started_formatter_output_matches_schema() -> None:
     formatter = ContextCompactionStartedEventFormatter()
     payload = formatter.format(
