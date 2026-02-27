@@ -209,6 +209,20 @@ async def test_perform_handshake_validation_failure_logs_warning(monkeypatch) ->
 
 
 @pytest.mark.asyncio
+async def test_perform_handshake_json_decode_failure_logs_warning(monkeypatch) -> None:
+    websocket = DummyWebSocket("{bad-json")
+    safe_ws = DummySafeWebSocket()
+    warning_calls, error_calls = _capture_connection_logger_calls(monkeypatch)
+
+    assigned_user_id = await perform_handshake(websocket, safe_ws)
+
+    assert assigned_user_id is None
+    assert safe_ws.closed
+    assert len(warning_calls) == 1
+    assert error_calls == []
+
+
+@pytest.mark.asyncio
 async def test_perform_handshake_unexpected_failure_logs_error(monkeypatch) -> None:
     websocket = DummyWebSocket(json.dumps({"type": "handshake", "user_id": "client_user"}))
     safe_ws = DummySafeWebSocket()
