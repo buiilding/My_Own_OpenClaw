@@ -3,7 +3,6 @@ import { useShallow } from 'zustand/react/shallow';
 import { ChevronDown, Sparkles, Volume2, Workflow } from 'lucide-react';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
-import ChatGptLogo from '../../../components/ChatGptLogo';
 import { useChatStore } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
@@ -315,11 +314,6 @@ function ChatInterface({ sidebarOpen = true, focusComposerToken = 0 }) {
       <header className="chat-header">
         <div className="chat-title-block">
           <div className="chat-model-row">
-            {!sidebarOpen ? (
-              <div className="chat-header-brand-dot" aria-hidden="true">
-                <ChatGptLogo size={14} />
-              </div>
-            ) : null}
             <div className="chat-provider-dropdown" ref={providerMenuRef}>
               <button
                 type="button"

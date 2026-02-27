@@ -8,10 +8,12 @@ Includes the last 300 commits on `main`.
 
 ### Added
 - fix(frontend-dashboard-sidebar-collapsed-icons): remove duplicate collapsed sidebar logo/toggle stack, render one hover-swap brand control (`logo` <-> `expand`), move `New chat` into the header toggle slot, and add focused sidebar tests for hover swap + single new-chat action.
+- fix(frontend-dashboard-collapsed-header-followup): remove duplicate chat-header logo shown beside provider/model row when sidebar is collapsed, and stop collapsed sidebar expand-icon swap from sticking due focus state by making it hover-only; add focused regressions.
 - docs(backend-protocol-testing): fix websocket schema-model naming typo (`memory-stored` -> `memory-store`) in backend protocol test coverage reference.
 - fix(sidecar-memory-type-validation): enforce `memory_type` allowlist (`episodic|semantic`) in both `local_backend.store_memory` and standalone `memory_service.store`; invalid values now fail fast.
 - fix(sidecar-memory-payload-types): enforce string-only `user_query`/`assistant_response` and string `memory_type` in sidecar `store_memory` handlers (local backend + standalone memory service), with fast-fail error contracts and regression coverage.
 - refactor(sidecar-memory-validation): extract shared `normalize_store_memory_payload(...)` helper in `memory.operations` and reuse it in `local_backend.store_memory` + `memory_service.store` to keep validation/error contracts aligned.
+- fix(sidecar-memory-search-validation): normalize/validate search `query` + optional `memory_type` in both `local_backend.search_memory` and `memory_service.search`, including strict `memory_type` allowlist handling and shared helper coverage.
 - fix(sidecar-memory-validation): trim and reject whitespace-only `user_query` / `assistant_response` in both `local_backend.store_memory` and standalone `memory_service.store` handlers; add sidecar regression coverage.
 - fix(sidecar-memory-service): persist `store` interactions with `record_kind=\"interaction\"` so standalone memory-service writes remain consistent with summarizer interaction-row sourcing.
 - fix(backend-memory-query-parse): resolve raw user query from the last `<user_query>` block in enriched content to avoid stale first-match capture when earlier snippets contain the same tag.
