@@ -26,6 +26,7 @@ title: "Conversation Search Runtime FTS, Semantic Fusion, and Summary-Fetch Cont
 - `search_transcript_hits_like(...)`
 - `search_transcript_hits_semantic(...)`
 - `fetch_conversation_summaries(...)`
+- `search_transcript_conversations(...)`
 - `build_ranked_conversation_search_rows(...)`
 
 These isolate runtime querying/scoring from small pure helper utilities in `conversation_search_helpers.py`.
@@ -110,6 +111,18 @@ Title resolution:
 - unresolved fallback source becomes `"pending"`
 - `is_resumable` true only when conversation id starts with `conv_`
 
+## End-to-End Runtime Orchestration (`search_transcript_conversations`)
+
+Orchestration contract:
+
+- query normalization + minimum-length guard (`len(query.strip()) >= 2`)
+- lexical query path on episodic DB connection
+- semantic query path via store callback
+- grouped hit merge via `group_conversation_search_hits(...)`
+- early return when grouped hits are empty
+- summary fetch on episodic DB connection
+- final row ranking/limit via `build_ranked_conversation_search_rows(...)`
+
 ## Final Ranking Contract (`build_ranked_conversation_search_rows`)
 
 Input contract:
@@ -135,12 +148,9 @@ Output contract:
 ## LocalMemoryStore Integration Boundary
 
 `LocalMemoryStore.search_conversations(...)` orchestrates:
-
-1. lexical helper query
-2. semantic helper query
-3. grouped fusion via `group_conversation_search_hits(...)`
-4. summary fetch via `fetch_conversation_summaries(...)`
-5. final ranking via `build_ranked_conversation_search_rows(...)`
+- delegates to `search_transcript_conversations(...)`
+- passes `episodic_db_path`, logger, and caller limits/query/user id
+- passes current UTC epoch seconds for recency scoring determinism
 
 ## Test-Backed Invariants
 
@@ -150,6 +160,7 @@ Output contract:
 - semantic helper filters out non-transcript and missing-conversation rows
 - summary fetch assigns `title_source="pending"` for unresolved `New chat` entries
 - conversation-id placeholder normalization excludes blank/null ids
+- orchestration early returns for short queries and empty grouped-hit paths
 - final score/recency ranking order and limit-floor behavior
 
 `tests/sidecar/test_conversation_search_helpers.py` + `test_conversation_search.py` verify:

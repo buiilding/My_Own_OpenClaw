@@ -28,11 +28,7 @@ from core.remote_embedding_client import RemoteEmbeddingClient
 from core.remote_title_client import RemoteTitleClient
 from memory.conversation_list_runtime import build_conversation_list_results
 from memory.conversation_list_runtime import fetch_transcript_conversation_rows
-from memory.conversation_search_helpers import group_conversation_search_hits
-from memory.conversation_search_runtime import build_ranked_conversation_search_rows
-from memory.conversation_search_runtime import fetch_conversation_summaries
-from memory.conversation_search_runtime import search_transcript_hits_lexical
-from memory.conversation_search_runtime import search_transcript_hits_semantic
+from memory.conversation_search_runtime import search_transcript_conversations
 from memory.conversation_title_helpers import fetch_title_generation_inputs
 from memory.conversation_title_helpers import lookup_conversation_title_state
 from memory.conversation_title_helpers import normalize_generated_title
@@ -1302,49 +1298,15 @@ class LocalMemoryStore:
         Ranking combines lexical transcript matches (FTS5/LIKE fallback),
         semantic transcript matches (vector search), and recency.
         """
-        normalized_query = (query or "").strip()
-        if len(normalized_query) < 2:
-            return []
-
-        lexical_hits: List[Dict[str, Any]] = []
-        async with aiosqlite.connect(self.episodic_db_path) as conn:
-            conn.row_factory = aiosqlite.Row
-            cursor = await conn.cursor()
-            lexical_hits = await search_transcript_hits_lexical(
-                cursor=cursor,
-                user_id=user_id,
-                query=normalized_query,
-                limit=max(1, lexical_limit),
-                logger=logger,
-            )
-
-        semantic_hits = await search_transcript_hits_semantic(
+        return await search_transcript_conversations(
             store=self,
+            episodic_db_path=self.episodic_db_path,
             user_id=user_id,
-            query=normalized_query,
-            limit=max(1, semantic_limit),
-            logger=logger,
-        )
-
-        grouped_hits = group_conversation_search_hits(lexical_hits, semantic_hits)
-        if not grouped_hits:
-            return []
-
-        conversation_ids = list(grouped_hits.keys())
-        summaries: Dict[str, Dict[str, Any]] = {}
-        async with aiosqlite.connect(self.episodic_db_path) as conn:
-            conn.row_factory = aiosqlite.Row
-            cursor = await conn.cursor()
-            summaries = await fetch_conversation_summaries(
-                cursor=cursor,
-                user_id=user_id,
-                conversation_ids=conversation_ids,
-            )
-            await conn.commit()
-        return build_ranked_conversation_search_rows(
-            grouped_hits=grouped_hits,
-            summaries=summaries,
+            query=query,
             limit=limit,
+            lexical_limit=lexical_limit,
+            semantic_limit=semantic_limit,
+            logger=logger,
             now_epoch_seconds=datetime.now(timezone.utc).timestamp(),
         )
 

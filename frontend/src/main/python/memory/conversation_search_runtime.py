@@ -6,9 +6,15 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
+try:
+    import aiosqlite
+except ImportError:
+    aiosqlite = None
+
 from memory.conversation_search_helpers import build_conversation_hit
 from memory.conversation_search_helpers import build_fts_query
 from memory.conversation_search_helpers import extract_query_terms
+from memory.conversation_search_helpers import group_conversation_search_hits
 from memory.conversation_search_helpers import pick_best_conversation_hit
 from memory.conversation_search_helpers import safe_timestamp_to_epoch_seconds
 from memory.conversation_title_helpers import ensure_conversation_title_from_row
@@ -315,6 +321,67 @@ async def fetch_conversation_summaries(
             ),
         }
     return summaries
+
+
+async def search_transcript_conversations(
+    *,
+    store,
+    episodic_db_path: str,
+    user_id: str,
+    query: str,
+    limit: int,
+    lexical_limit: int,
+    semantic_limit: int,
+    logger,
+    now_epoch_seconds: Optional[float] = None,
+) -> List[Dict[str, Any]]:
+    normalized_query = (query or "").strip()
+    if len(normalized_query) < 2:
+        return []
+
+    if aiosqlite is None:
+        raise ImportError("aiosqlite is not installed. Install with: pip install aiosqlite")
+
+    async with aiosqlite.connect(episodic_db_path) as conn:
+        conn.row_factory = aiosqlite.Row
+        cursor = await conn.cursor()
+        lexical_hits = await search_transcript_hits_lexical(
+            cursor=cursor,
+            user_id=user_id,
+            query=normalized_query,
+            limit=max(1, lexical_limit),
+            logger=logger,
+        )
+
+    semantic_hits = await search_transcript_hits_semantic(
+        store=store,
+        user_id=user_id,
+        query=normalized_query,
+        limit=max(1, semantic_limit),
+        logger=logger,
+    )
+
+    grouped_hits = group_conversation_search_hits(lexical_hits, semantic_hits)
+    if not grouped_hits:
+        return []
+
+    conversation_ids = list(grouped_hits.keys())
+    async with aiosqlite.connect(episodic_db_path) as conn:
+        conn.row_factory = aiosqlite.Row
+        cursor = await conn.cursor()
+        summaries = await fetch_conversation_summaries(
+            cursor=cursor,
+            user_id=user_id,
+            conversation_ids=conversation_ids,
+        )
+        await conn.commit()
+
+    return build_ranked_conversation_search_rows(
+        grouped_hits=grouped_hits,
+        summaries=summaries,
+        limit=limit,
+        now_epoch_seconds=now_epoch_seconds,
+    )
 
 
 def build_ranked_conversation_search_rows(
