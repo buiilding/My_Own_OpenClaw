@@ -59,8 +59,8 @@ async def test_capture_screenshot_success_with_display_bounds(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_capture_screenshot_import_error_returns_failure(monkeypatch):
-    monkeypatch.delitem(sys.modules, "pyautogui", raising=False)
-    monkeypatch.delitem(sys.modules, "PIL", raising=False)
+    monkeypatch.setitem(sys.modules, "pyautogui", None)
+    monkeypatch.setitem(sys.modules, "PIL", None)
 
     result = await screenshot_tool.capture_screenshot({})
 

@@ -123,7 +123,7 @@ async def test_execute_keyboard_control_rejects_missing_or_too_long_text(monkeyp
 
 @pytest.mark.asyncio
 async def test_execute_keyboard_control_import_error_returns_failure(monkeypatch):
-    monkeypatch.delitem(sys.modules, "pyautogui", raising=False)
+    monkeypatch.setitem(sys.modules, "pyautogui", None)
 
     result = await keyboard_tool.execute_keyboard_control(
         {"action": "press", "key": "enter"}
