@@ -1,40 +1,89 @@
 import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
-import { extractOSstate } from '../../frontend/src/renderer/infrastructure/services/SystemCapture';
+import {
+  __resetSystemCaptureStateForTests,
+  extractOSstate,
+} from '../../frontend/src/renderer/infrastructure/services/SystemCapture';
 
 const DISPLAY_BOUNDS_STORAGE_KEY = 'desktop-assistant-display-bounds';
 
-function mockFocusPreparation(invokeSpy: jest.SpyInstance): void {
-  invokeSpy.mockResolvedValueOnce({ success: true, data: { canVerifyExternalFocus: false } });
+type MockInvokeOptions = {
+  systemStateResults?: Array<unknown>;
+  screenshotResults?: Array<unknown>;
+};
+
+function nextQueuedValueOrDefault(queue: Array<unknown>, defaultValue: unknown): unknown {
+  if (queue.length === 0) {
+    return defaultValue;
+  }
+  const nextValue = queue.shift();
+  if (nextValue instanceof Error) {
+    throw nextValue;
+  }
+  return nextValue;
+}
+
+function mockInvokeForCapture(options: MockInvokeOptions = {}): jest.SpyInstance {
+  const systemStateQueue = [...(options.systemStateResults || [])];
+  const screenshotQueue = [...(options.screenshotResults || [])];
+
+  return jest.spyOn(IpcBridge, 'invoke').mockImplementation(async (channel: string) => {
+    if (channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS) {
+      return { success: true, data: { canVerifyExternalFocus: false } };
+    }
+    if (channel === INVOKE_CHANNELS.SHOW_CHATBOX || channel === INVOKE_CHANNELS.HIDE_CHATBOX) {
+      return { success: true };
+    }
+    if (channel === INVOKE_CHANNELS.GET_SYSTEM_STATE) {
+      return nextQueuedValueOrDefault(systemStateQueue, {
+        active_window: 'App',
+        mouse_position: '0,0',
+      });
+    }
+    if (channel === INVOKE_CHANNELS.EXECUTE_TOOL) {
+      return nextQueuedValueOrDefault(screenshotQueue, {
+        success: true,
+        data: { screenshot: 'shot' },
+      });
+    }
+    return { success: true };
+  });
 }
 
 describe('SystemCapture', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     localStorage.clear();
+    __resetSystemCaptureStateForTests();
   });
 
   test('extractOSstate returns system state and screenshot for first user message', async () => {
-    const invokeSpy = jest.spyOn(IpcBridge, 'invoke');
-    mockFocusPreparation(invokeSpy);
-    invokeSpy
-      .mockResolvedValueOnce({ active_window: 'App', mouse_position: '0,0' })
-      .mockResolvedValueOnce({ success: true, data: { screenshot: 'shot' } });
+    const invokeSpy = mockInvokeForCapture({
+      systemStateResults: [{ active_window: 'App', mouse_position: '0,0' }],
+      screenshotResults: [{ success: true, data: { screenshot: 'shot' } }],
+    });
 
     const result = await extractOSstate(true, true, 0, true);
 
     expect(invokeSpy).toHaveBeenNthCalledWith(1, INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
       waitMs: 120,
     });
-    expect(invokeSpy).toHaveBeenNthCalledWith(2, INVOKE_CHANNELS.GET_SYSTEM_STATE, {
+    expect(invokeSpy).toHaveBeenNthCalledWith(2, INVOKE_CHANNELS.SHOW_CHATBOX, {
+      focus: false,
+    });
+    expect(invokeSpy).toHaveBeenNthCalledWith(3, INVOKE_CHANNELS.HIDE_CHATBOX);
+    expect(invokeSpy).toHaveBeenNthCalledWith(4, INVOKE_CHANNELS.GET_SYSTEM_STATE, {
       fields: ['active_window', 'mouse_position', 'screen_resolution', 'windows'],
     });
-    expect(invokeSpy).toHaveBeenNthCalledWith(3, INVOKE_CHANNELS.EXECUTE_TOOL, {
+    expect(invokeSpy).toHaveBeenNthCalledWith(5, INVOKE_CHANNELS.EXECUTE_TOOL, {
       toolName: 'screenshot',
       args: {
         explanation: 'Initial user message screenshot',
         expectation: 'Current screen state',
       },
       skipAutoCapture: false,
+    });
+    expect(invokeSpy).toHaveBeenNthCalledWith(6, INVOKE_CHANNELS.SHOW_CHATBOX, {
+      focus: false,
     });
     expect(result.systemState).toEqual({ active_window: 'App', mouse_position: '0,0' });
     expect(result.screenshot).toBe('shot');
@@ -43,11 +92,10 @@ describe('SystemCapture', () => {
   test('extractOSstate waits before capture when wait is positive', async () => {
     jest.useFakeTimers();
     const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
-    const invokeSpy = jest.spyOn(IpcBridge, 'invoke');
-    mockFocusPreparation(invokeSpy);
-    invokeSpy
-      .mockResolvedValueOnce({ active_window: 'App', mouse_position: '0,0' })
-      .mockResolvedValueOnce({ success: true, data: { screenshot: 'shot' } });
+    const invokeSpy = mockInvokeForCapture({
+      systemStateResults: [{ active_window: 'App', mouse_position: '0,0' }],
+      screenshotResults: [{ success: true, data: { screenshot: 'shot' } }],
+    });
 
     const pending = extractOSstate(true, true, 0.25, false);
     expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 250);
@@ -60,6 +108,13 @@ describe('SystemCapture', () => {
       screenshot: 'shot',
       screenshotContentType: null,
     });
+    expect(invokeSpy).toHaveBeenNthCalledWith(2, INVOKE_CHANNELS.SHOW_CHATBOX, {
+      focus: false,
+    });
+    expect(invokeSpy).toHaveBeenNthCalledWith(3, INVOKE_CHANNELS.HIDE_CHATBOX);
+    expect(invokeSpy).toHaveBeenNthCalledWith(6, INVOKE_CHANNELS.SHOW_CHATBOX, {
+      focus: false,
+    });
     setTimeoutSpy.mockRestore();
     jest.useRealTimers();
   });
@@ -69,15 +124,14 @@ describe('SystemCapture', () => {
       DISPLAY_BOUNDS_STORAGE_KEY,
       JSON.stringify({ x: 10, y: 20, width: 300, height: 200 }),
     );
-    const invokeSpy = jest.spyOn(IpcBridge, 'invoke');
-    mockFocusPreparation(invokeSpy);
-    invokeSpy
-      .mockResolvedValueOnce({ active_window: 'App', mouse_position: '0,0' })
-      .mockResolvedValueOnce({ success: true, data: { screenshot: 'shot' } });
+    const invokeSpy = mockInvokeForCapture({
+      systemStateResults: [{ active_window: 'App', mouse_position: '0,0' }],
+      screenshotResults: [{ success: true, data: { screenshot: 'shot' } }],
+    });
 
     await extractOSstate(true, true, 0, true);
 
-    expect(invokeSpy).toHaveBeenNthCalledWith(3, INVOKE_CHANNELS.EXECUTE_TOOL, {
+    expect(invokeSpy).toHaveBeenNthCalledWith(5, INVOKE_CHANNELS.EXECUTE_TOOL, {
       toolName: 'screenshot',
       args: {
         explanation: 'Initial user message screenshot',
@@ -86,12 +140,15 @@ describe('SystemCapture', () => {
       },
       skipAutoCapture: false,
     });
+    expect(invokeSpy).toHaveBeenNthCalledWith(6, INVOKE_CHANNELS.SHOW_CHATBOX, {
+      focus: false,
+    });
   });
 
   test('extractOSstate handles system-state-only capture', async () => {
-    const invokeSpy = jest.spyOn(IpcBridge, 'invoke');
-    mockFocusPreparation(invokeSpy);
-    invokeSpy.mockResolvedValueOnce({ active_window: 'App', mouse_position: '1,1' });
+    const invokeSpy = mockInvokeForCapture({
+      systemStateResults: [{ active_window: 'App', mouse_position: '1,1' }],
+    });
 
     const result = await extractOSstate(false, true, 0, false);
 
@@ -106,13 +163,17 @@ describe('SystemCapture', () => {
   });
 
   test('extractOSstate captures screenshot only when system state disabled', async () => {
-    const invokeSpy = jest.spyOn(IpcBridge, 'invoke');
-    mockFocusPreparation(invokeSpy);
-    invokeSpy.mockResolvedValueOnce({ success: true, data: { screenshot: 'shot' } });
+    const invokeSpy = mockInvokeForCapture({
+      screenshotResults: [{ success: true, data: { screenshot: 'shot' } }],
+    });
 
     const result = await extractOSstate(true, false, 0, false);
 
-    expect(invokeSpy).toHaveBeenNthCalledWith(2, INVOKE_CHANNELS.EXECUTE_TOOL, {
+    expect(invokeSpy).toHaveBeenNthCalledWith(2, INVOKE_CHANNELS.SHOW_CHATBOX, {
+      focus: false,
+    });
+    expect(invokeSpy).toHaveBeenNthCalledWith(3, INVOKE_CHANNELS.HIDE_CHATBOX);
+    expect(invokeSpy).toHaveBeenNthCalledWith(4, INVOKE_CHANNELS.EXECUTE_TOOL, {
       toolName: 'screenshot',
       args: {
         explanation: 'Screenshot capture',
@@ -120,22 +181,26 @@ describe('SystemCapture', () => {
       },
       skipAutoCapture: false,
     });
-    expect(invokeSpy).toHaveBeenCalledTimes(2);
+    expect(invokeSpy).toHaveBeenNthCalledWith(5, INVOKE_CHANNELS.SHOW_CHATBOX, {
+      focus: false,
+    });
+    expect(invokeSpy).toHaveBeenCalledTimes(5);
     expect(result.systemState).toBeNull();
     expect(result.screenshot).toBe('shot');
   });
 
   test('extractOSstate resolves screenshot content types from compression/format fields', async () => {
-    const invokeSpy = jest.spyOn(IpcBridge, 'invoke');
-    mockFocusPreparation(invokeSpy);
-    invokeSpy.mockResolvedValueOnce({ success: true, data: { screenshot: 'png-shot', compression: 'png' } });
-    mockFocusPreparation(invokeSpy);
-    invokeSpy.mockResolvedValueOnce({ success: true, data: { screenshot: 'jpg-shot', format: 'jpg' } });
+    const invokeSpy = mockInvokeForCapture({
+      screenshotResults: [
+        { success: true, data: { screenshot: 'png-shot', compression: 'png' } },
+        { success: true, data: { screenshot: 'jpg-shot', format: 'jpg' } },
+      ],
+    });
 
     const pngResult = await extractOSstate(true, false, 0, false);
     const jpgResult = await extractOSstate(true, false, 0, false);
 
-    expect(invokeSpy).toHaveBeenCalledTimes(4);
+    expect(invokeSpy).toHaveBeenCalledTimes(10);
     expect(pngResult).toEqual({
       systemState: null,
       screenshot: 'png-shot',
@@ -149,11 +214,11 @@ describe('SystemCapture', () => {
   });
 
   test('extractOSstate ignores non-string screenshot payloads', async () => {
-    const invokeSpy = jest.spyOn(IpcBridge, 'invoke');
-    mockFocusPreparation(invokeSpy);
-    invokeSpy.mockResolvedValueOnce({
-      success: true,
-      data: { screenshot: { raw: 'not-supported' }, compression: 'png' },
+    const invokeSpy = mockInvokeForCapture({
+      screenshotResults: [{
+        success: true,
+        data: { screenshot: { raw: 'not-supported' }, compression: 'png' },
+      }],
     });
 
     const result = await extractOSstate(true, false, 0, false);
@@ -166,11 +231,11 @@ describe('SystemCapture', () => {
   });
 
   test('extractOSstate returns null screenshot fields for unsuccessful tool payloads', async () => {
-    const invokeSpy = jest.spyOn(IpcBridge, 'invoke');
-    mockFocusPreparation(invokeSpy);
-    invokeSpy.mockResolvedValueOnce({
-      success: false,
-      data: null,
+    const invokeSpy = mockInvokeForCapture({
+      screenshotResults: [{
+        success: false,
+        data: null,
+      }],
     });
 
     const result = await extractOSstate(true, false, 0, false);
@@ -225,11 +290,10 @@ describe('SystemCapture', () => {
   test('extractOSstate handles first-message extraction errors gracefully', async () => {
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
-    const invokeSpy = jest.spyOn(IpcBridge, 'invoke');
-    mockFocusPreparation(invokeSpy);
-    invokeSpy
-      .mockResolvedValueOnce({ active_window: 'App', mouse_position: '0,0' })
-      .mockRejectedValueOnce(new Error('first-message-screenshot-failure'));
+    const invokeSpy = mockInvokeForCapture({
+      systemStateResults: [{ active_window: 'App', mouse_position: '0,0' }],
+      screenshotResults: [new Error('first-message-screenshot-failure')],
+    });
 
     const result = await extractOSstate(true, true, 0, true);
 

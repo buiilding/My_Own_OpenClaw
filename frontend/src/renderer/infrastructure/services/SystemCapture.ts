@@ -8,6 +8,8 @@ import { getStoredDisplayBounds } from '../../utils/displaySelection';
 import type { SystemState, ToolResult } from './MessageFormatter';
 
 const CAPTURE_FOCUS_PREPARE_WAIT_MS = 120;
+let activeScreenshotCaptureCount = 0;
+let pendingScreenshotCaptureRestore = false;
 
 function buildScreenshotArgs(explanation: string) {
   const args: Record<string, any> = {
@@ -31,6 +33,40 @@ async function prepareExternalFocusForCapture(): Promise<void> {
   }
 }
 
+async function prepareScreenshotCaptureVisibility(): Promise<boolean> {
+  activeScreenshotCaptureCount += 1;
+  if (activeScreenshotCaptureCount > 1) {
+    return true;
+  }
+  try {
+    await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false });
+    await IpcBridge.invoke(INVOKE_CHANNELS.HIDE_CHATBOX);
+    pendingScreenshotCaptureRestore = true;
+    return true;
+  } catch (error) {
+    activeScreenshotCaptureCount = Math.max(0, activeScreenshotCaptureCount - 1);
+    console.warn('[extractOSstate] Failed to hide chat pill before screenshot capture:', error);
+    return false;
+  }
+}
+
+async function restoreScreenshotCaptureVisibility(prepared: boolean): Promise<void> {
+  if (!prepared) {
+    return;
+  }
+  activeScreenshotCaptureCount = Math.max(0, activeScreenshotCaptureCount - 1);
+  if (activeScreenshotCaptureCount > 0 || !pendingScreenshotCaptureRestore) {
+    return;
+  }
+  try {
+    await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false });
+  } catch (error) {
+    console.warn('[extractOSstate] Failed to restore chat pill after screenshot capture:', error);
+  } finally {
+    pendingScreenshotCaptureRestore = false;
+  }
+}
+
 /**
  * Extract OS state (system state and/or screenshot) with configurable options.
  * Unified function for all screenshot and system state capture scenarios.
@@ -48,6 +84,7 @@ export async function extractOSstate(
   is_first_user_message: boolean = false,
 ): Promise<{ systemState: SystemState | null; screenshot: string | null; screenshotContentType: string | null }> {
   const shouldEmitCaptureEvent = enable_screenshot && typeof window !== 'undefined';
+  let screenshotVisibilityPrepared = false;
   if (shouldEmitCaptureEvent) {
     window.dispatchEvent(new CustomEvent('windie:screenshot-capture', {
       detail: { active: true },
@@ -65,6 +102,9 @@ export async function extractOSstate(
 
     if (enable_screenshot || enable_system_state) {
       await prepareExternalFocusForCapture();
+    }
+    if (enable_screenshot) {
+      screenshotVisibilityPrepared = await prepareScreenshotCaptureVisibility();
     }
 
     // For first user message, extract full system state with 0 wait
@@ -149,12 +189,18 @@ export async function extractOSstate(
       return { systemState: null, screenshot: null, screenshotContentType: null };
     }
   } finally {
+    await restoreScreenshotCaptureVisibility(screenshotVisibilityPrepared);
     if (shouldEmitCaptureEvent) {
       window.dispatchEvent(new CustomEvent('windie:screenshot-capture', {
         detail: { active: false },
       }));
     }
   }
+}
+
+export function __resetSystemCaptureStateForTests(): void {
+  activeScreenshotCaptureCount = 0;
+  pendingScreenshotCaptureRestore = false;
 }
 
 function resolveScreenshotContentType(data: Record<string, any>): string | null {
