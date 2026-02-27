@@ -5,7 +5,7 @@
  */
 
 import { useCallback, useEffect, useRef } from 'react';
-import { IpcBridge, ON_CHANNELS, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { ToolExecutionService, type ToolExecutionResult, type BundleExecutionResult } from '../../../infrastructure/services/ToolExecutionService';
 import { useChatStore } from '../stores/chatStore';
 import { recordToolMessage } from '../../../infrastructure/transcript/TranscriptWriter';
@@ -22,6 +22,17 @@ import {
 } from '../utils/toolRunnerMessages';
 
 const TERMINAL_STREAM_PHASES = new Set(['idle', 'complete', 'error']);
+const CHAT_PILL_HANDOFF_TOOL_NAMES = new Set([
+  'mouse_control',
+  'keyboard_control',
+  'scroll_control',
+  'screenshot',
+  'click',
+  'type',
+  'scroll',
+]);
+const CHAT_PILL_HANDOFF_BROWSER_ACTIONS = new Set(['click', 'type', 'scroll', 'screenshot']);
+const CHAT_PILL_HANDOFF_EXCLUDED_TOOL_NAMES = new Set(['switch_tab']);
 
 function shouldSkipToolExecution(
   metadata: Record<string, unknown> | undefined,
@@ -59,6 +70,48 @@ function resolveToolRequestIdForCancellation(
     return payload.correlation_id;
   }
   return null;
+}
+
+function normalizeActionName(value: unknown): string {
+  if (typeof value !== 'string') {
+    return '';
+  }
+  return value.trim().toLowerCase();
+}
+
+function shouldHandoffToChatPillForTool(
+  toolName: string,
+  args: Record<string, unknown> | undefined,
+): boolean {
+  const normalizedToolName = normalizeActionName(toolName);
+  if (!normalizedToolName || CHAT_PILL_HANDOFF_EXCLUDED_TOOL_NAMES.has(normalizedToolName)) {
+    return false;
+  }
+  if (CHAT_PILL_HANDOFF_TOOL_NAMES.has(normalizedToolName)) {
+    return true;
+  }
+  if (normalizedToolName !== 'browser') {
+    return false;
+  }
+  const normalizedAction = normalizeActionName(args?.action);
+  if (!normalizedAction || CHAT_PILL_HANDOFF_EXCLUDED_TOOL_NAMES.has(normalizedAction)) {
+    return false;
+  }
+  return CHAT_PILL_HANDOFF_BROWSER_ACTIONS.has(normalizedAction);
+}
+
+async function ensureChatPillExecutionSurface(
+  toolName: string,
+  args: Record<string, unknown> | undefined,
+): Promise<void> {
+  if (!shouldHandoffToChatPillForTool(toolName, args)) {
+    return;
+  }
+  try {
+    await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false });
+  } catch (error) {
+    console.warn('[useToolRunner] Failed to switch to chat pill before computer-use tool:', error);
+  }
 }
 
 /**
@@ -239,9 +292,17 @@ export function useToolRunner(enabled = true) {
     }
 
     if (toolServiceRef.current) {
+      const toolService = toolServiceRef.current;
       const turnRef = event.turn_ref ?? useChatStore.getState().streamTracking.activeTurnRef ?? null;
       trackExecution(bundleId, turnRef);
-      toolServiceRef.current.executeToolBundle(tools, bundleId).catch(err => {
+      const executeBundle = async () => {
+        const matchingTool = tools.find((tool) => shouldHandoffToChatPillForTool(tool.toolName, tool.args));
+        if (matchingTool) {
+          await ensureChatPillExecutionSurface(matchingTool.toolName, matchingTool.args);
+        }
+        await toolService.executeToolBundle(tools, bundleId);
+      };
+      executeBundle().catch(err => {
         untrackExecution(bundleId);
         console.error('[useToolRunner] Failed to execute bundle:', err);
       });
@@ -274,6 +335,7 @@ export function useToolRunner(enabled = true) {
 
       trackExecution(correlationId, turnRef);
       try {
+        await ensureChatPillExecutionSurface(toolName, parameters);
         await toolService.executeTool(
           toolName,
           parameters,
