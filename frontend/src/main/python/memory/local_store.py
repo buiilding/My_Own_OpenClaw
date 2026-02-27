@@ -26,8 +26,7 @@ except ImportError:
 
 from core.remote_embedding_client import RemoteEmbeddingClient
 from core.remote_title_client import RemoteTitleClient
-from memory.conversation_list_runtime import build_conversation_list_results
-from memory.conversation_list_runtime import fetch_transcript_conversation_rows
+from memory.conversation_list_runtime import list_transcript_conversations
 from memory.conversation_semanticization_runtime import (
     count_unsemanticized_interaction_memories as fetch_unsemanticized_interaction_count,
 )
@@ -1242,22 +1241,12 @@ class LocalMemoryStore:
         Returns:
             List of conversation summaries with timestamps and entry counts
         """
-        async with aiosqlite.connect(self.episodic_db_path) as conn:
-            conn.row_factory = aiosqlite.Row
-            cursor = await conn.cursor()
-            _ = record_kind  # API compatibility; transcript is the only supported kind.
-            rows = await fetch_transcript_conversation_rows(
-                cursor=cursor,
-                user_id=user_id,
-                limit=limit,
-            )
-            results = await build_conversation_list_results(
-                cursor=cursor,
-                user_id=user_id,
-                rows=rows,
-            )
-            await conn.commit()
-            return results
+        _ = record_kind  # API compatibility; transcript is the only supported kind.
+        return await list_transcript_conversations(
+            episodic_db_path=self.episodic_db_path,
+            user_id=user_id,
+            limit=limit,
+        )
 
     async def search_conversations(
         self,

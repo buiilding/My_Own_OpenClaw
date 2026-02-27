@@ -1,5 +1,7 @@
+from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
+import aiosqlite
 import pytest
 
 from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
@@ -7,6 +9,7 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 ensure_frontend_python_path()
 
 from memory import conversation_list_runtime as runtime  # noqa: E402
+from memory.sqlite_store import init_episodic_schema  # noqa: E402
 
 
 class _FetchCursor:
@@ -21,6 +24,72 @@ class _FetchCursor:
 
     async def fetchall(self) -> List[Dict[str, Any]]:
         return self.rows
+
+
+async def _insert_transcript_memory(db_path: Path, **payload: Any) -> None:
+    async with aiosqlite.connect(db_path) as conn:
+        await conn.execute(
+            """
+            INSERT INTO memories (
+                id,
+                user_id,
+                content,
+                timestamp,
+                metadata,
+                conversation_id,
+                record_kind,
+                role,
+                message_index,
+                message_type,
+                model_id,
+                model_provider
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+            (
+                payload["id"],
+                payload["user_id"],
+                payload["content"],
+                payload["timestamp"],
+                payload.get("metadata", "{}"),
+                payload["conversation_id"],
+                "transcript",
+                payload.get("role", "user"),
+                payload.get("message_index", 1),
+                payload.get("message_type", "llm-text"),
+                payload.get("model_id"),
+                payload.get("model_provider"),
+            ),
+        )
+        await conn.commit()
+
+
+async def _insert_conversation_title(db_path: Path, **payload: Any) -> None:
+    async with aiosqlite.connect(db_path) as conn:
+        await conn.execute(
+            """
+            INSERT INTO conversation_titles (
+                user_id,
+                conversation_id,
+                title,
+                source,
+                is_locked,
+                created_at,
+                updated_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """,
+            (
+                payload["user_id"],
+                payload["conversation_id"],
+                payload["title"],
+                payload.get("source", "heuristic"),
+                payload.get("is_locked", 0),
+                payload.get("created_at", "2026-02-01T00:00:00+00:00"),
+                payload.get("updated_at", "2026-02-01T00:00:00+00:00"),
+            ),
+        )
+        await conn.commit()
 
 
 @pytest.mark.asyncio
@@ -97,3 +166,53 @@ async def test_build_conversation_list_results_filters_blank_titles_and_defaults
     assert results[0]["title"] == "Visible title"
     assert results[0]["title_source"] == "model"
     assert results[0]["is_resumable"] is True
+
+
+@pytest.mark.asyncio
+async def test_list_transcript_conversations_returns_newest_first_with_titles(tmp_path: Path):
+    db_path = tmp_path / "episodic.db"
+    await init_episodic_schema(db_path)
+
+    await _insert_transcript_memory(
+        db_path,
+        id="m_old",
+        user_id="user-1",
+        content="old content",
+        timestamp="2026-02-01T00:00:00+00:00",
+        conversation_id="conv_old",
+        model_id="gpt-5-mini",
+        model_provider="openai",
+    )
+    await _insert_transcript_memory(
+        db_path,
+        id="m_new",
+        user_id="user-1",
+        content="new content",
+        timestamp="2026-02-02T00:00:00+00:00",
+        conversation_id="conv_new",
+        model_id="gpt-5",
+        model_provider="openai",
+    )
+    await _insert_conversation_title(
+        db_path,
+        user_id="user-1",
+        conversation_id="conv_old",
+        title="Old title",
+    )
+    await _insert_conversation_title(
+        db_path,
+        user_id="user-1",
+        conversation_id="conv_new",
+        title="New title",
+    )
+
+    conversations = await runtime.list_transcript_conversations(
+        episodic_db_path=str(db_path),
+        user_id="user-1",
+        limit=10,
+    )
+
+    assert [row["conversation_id"] for row in conversations] == ["conv_new", "conv_old"]
+    assert conversations[0]["title"] == "New title"
+    assert conversations[0]["model_id"] == "gpt-5"
+    assert conversations[0]["model_provider"] == "openai"
