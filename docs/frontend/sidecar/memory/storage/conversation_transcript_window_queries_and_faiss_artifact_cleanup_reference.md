@@ -12,11 +12,13 @@ title: "Conversation Transcript Window Queries and FAISS Artifact Cleanup Refere
 
 - `frontend/src/main/python/memory/local_store.py`
 - `frontend/src/main/python/memory/conversation_list_runtime.py`
+- `frontend/src/main/python/memory/conversation_window_runtime.py`
 - `frontend/src/main/python/memory/conversation_search_helpers.py`
 - `frontend/src/main/python/memory/conversation_title_helpers.py`
 - `frontend/src/main/python/memory/watermark_state.py`
 - `tests/sidecar/test_local_store_delete_cleanup.py`
 - `tests/sidecar/test_conversation_list_runtime.py`
+- `tests/sidecar/test_conversation_window_runtime.py`
 - `tests/sidecar/test_memory_summarizer.py`
 - `tests/sidecar/test_conversation_search.py`
 - `tests/sidecar/test_conversation_search_helpers.py`
@@ -36,6 +38,13 @@ Transcript-window APIs are episodic-only and transcript-only by design:
 - `get_unprocessed_memories_after_id(...)`
 
 All these paths enforce `record_kind = 'transcript'` regardless of caller hint values.
+
+Runtime split:
+
+- `conversation_window_runtime.get_next_message_index_for_conversation(...)` owns next-index SQL for transcript windows.
+- `conversation_window_runtime.get_episodic_memories_for_conversation(...)` owns transcript window fetch + optional `after_message_index` cursor behavior.
+- `conversation_window_runtime.get_unsemanticized_conversation_windows(...)` and `get_unsemanticized_episodic_memories_by_conversation(...)` own interaction-window selection for summarizer inputs.
+- `LocalMemoryStore` keeps wrapper methods plus shared `_conversation_where_clause(...)` compatibility facade.
 
 ## Conversation Listing Semantics
 
@@ -138,6 +147,13 @@ Goal:
 - conversation delete does same for episodic index, including `conversation_id IS NULL` windows
 - rebuild path rewrites sparse embedding IDs to contiguous IDs
 - search short-circuits without embedder call when no searchable index exists
+
+`tests/sidecar/test_conversation_window_runtime.py` verifies:
+
+- `conversation_where_clause(...)` null vs explicit window semantics
+- transcript next-index increment behavior
+- transcript conversation fetch cursor + metadata parsing behavior
+- unsemanticized window ordering and by-conversation formatting callback behavior
 
 Summarizer tests additionally validate transcript/tool filtering and pending watermark behavior built on these storage queries.
 

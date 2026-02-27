@@ -34,6 +34,15 @@ from memory.conversation_title_runtime import ensure_title_generation_runtime_st
 from memory.conversation_title_runtime import generate_conversation_title_and_persist
 from memory.conversation_title_runtime import maybe_generate_conversation_title
 from memory.conversation_title_runtime import run_conversation_title_generation
+from memory.conversation_window_runtime import conversation_where_clause
+from memory.conversation_window_runtime import get_episodic_memories_for_conversation
+from memory.conversation_window_runtime import get_next_message_index_for_conversation
+from memory.conversation_window_runtime import (
+    get_unsemanticized_conversation_windows as fetch_unsemanticized_conversation_windows,
+)
+from memory.conversation_window_runtime import (
+    get_unsemanticized_episodic_memories_by_conversation as fetch_unsemanticized_episodic_by_conversation,
+)
 from memory.faiss_index import (
     read_index_safe,
     read_index_safe_async,
@@ -1689,22 +1698,11 @@ class LocalMemoryStore:
         """
         Get the next message index for a transcript conversation.
         """
-        async with aiosqlite.connect(self.episodic_db_path) as conn:
-            cursor = await conn.cursor()
-            conversation_clause, conversation_params = self._conversation_where_clause(
-                conversation_id
-            )
-            await cursor.execute(
-                f"""
-                SELECT MAX(message_index)
-                FROM memories
-                WHERE user_id = ? AND record_kind = 'transcript' AND {conversation_clause}
-            """,
-                (user_id, *conversation_params),
-            )
-            row = await cursor.fetchone()
-            max_index = row[0] if row and row[0] is not None else 0
-            return int(max_index) + 1
+        return await get_next_message_index_for_conversation(
+            episodic_db_path=self.episodic_db_path,
+            user_id=user_id,
+            conversation_id=conversation_id,
+        )
 
     async def get_episodic_memories_by_conversation(
         self,
@@ -1729,57 +1727,15 @@ class LocalMemoryStore:
         Returns:
             List of memory dictionaries with 'id', 'content', 'timestamp', 'metadata', 'conversation_id'
         """
-        async with aiosqlite.connect(self.episodic_db_path) as conn:
-            conn.row_factory = aiosqlite.Row
-            cursor = await conn.cursor()
-
-            _ = record_kind  # API compatibility; transcript is the only supported kind.
-            record_kind_clause = "AND record_kind = 'transcript'"
-            conversation_clause, conversation_params = self._conversation_where_clause(
-                conversation_id
-            )
-            pagination_clause = ""
-            pagination_params: Tuple[Any, ...] = ()
-            if isinstance(after_message_index, int):
-                pagination_clause = "AND message_index > ?"
-                pagination_params = (after_message_index,)
-
-            await cursor.execute(
-                f"""
-                SELECT id, content, timestamp, metadata, conversation_id, role, message_index, message_type, tool_name, correlation_id, record_kind, model_id, model_provider, screenshot
-                FROM memories
-                WHERE user_id = ? AND {conversation_clause}
-                {record_kind_clause}
-                {pagination_clause}
-                ORDER BY message_index ASC, timestamp ASC
-                LIMIT ?
-            """,
-                (user_id, *conversation_params, *pagination_params, limit),
-            )
-
-            rows = await cursor.fetchall()
-            
-            results = []
-            for row in rows:
-                metadata = self._parse_raw_metadata(row["metadata"])
-                results.append({
-                    "id": row["id"],
-                    "content": row["content"],
-                    "timestamp": row["timestamp"],
-                    "metadata": metadata,
-                    "conversation_id": row["conversation_id"],
-                    "record_kind": row["record_kind"] or metadata.get("record_kind"),
-                    "role": row["role"],
-                    "message_index": row["message_index"],
-                    "message_type": row["message_type"],
-                    "tool_name": row["tool_name"],
-                    "correlation_id": row["correlation_id"],
-                    "model_id": row["model_id"],
-                    "model_provider": row["model_provider"],
-                    "screenshot": row["screenshot"],
-                })
-            
-            return results
+        return await get_episodic_memories_for_conversation(
+            episodic_db_path=self.episodic_db_path,
+            user_id=user_id,
+            conversation_id=conversation_id,
+            limit=limit,
+            record_kind=record_kind,
+            after_message_index=after_message_index,
+            parse_raw_metadata=self._parse_raw_metadata,
+        )
     
     async def get_unsemanticized_conversation_windows(
         self, user_id: str
@@ -1794,21 +1750,10 @@ class LocalMemoryStore:
         Returns:
             List of conversation_id strings (None values are treated as separate windows)
         """
-        async with aiosqlite.connect(self.episodic_db_path) as conn:
-            cursor = await conn.cursor()
-            await cursor.execute(
-                """
-                SELECT conversation_id, MIN(timestamp) as earliest_timestamp
-                FROM memories
-                WHERE user_id = ? AND is_semanticized = 0
-                  AND record_kind = 'interaction'
-                GROUP BY conversation_id
-                ORDER BY earliest_timestamp ASC
-            """,
-                (user_id,),
-            )
-            rows = await cursor.fetchall()
-            return [row[0] for row in rows]  # conversation_id can be None
+        return await fetch_unsemanticized_conversation_windows(
+            episodic_db_path=self.episodic_db_path,
+            user_id=user_id,
+        )
     
     async def get_unsemanticized_episodic_memories_by_conversation(
         self, user_id: str, conversation_id: Optional[str], limit: int = 1000
@@ -1825,42 +1770,17 @@ class LocalMemoryStore:
         Returns:
             List of memory dictionaries with 'id', 'content', 'timestamp', 'metadata', 'conversation_id'
         """
-        async with aiosqlite.connect(self.episodic_db_path) as conn:
-            conn.row_factory = aiosqlite.Row
-            cursor = await conn.cursor()
-            conversation_clause, conversation_params = self._conversation_where_clause(
-                conversation_id
-            )
-            await cursor.execute(
-                f"""
-                SELECT
-                    id,
-                    content,
-                    timestamp,
-                    metadata,
-                    conversation_id,
-                    record_kind,
-                    role,
-                    message_type,
-                    tool_name
-                FROM memories
-                WHERE user_id = ? AND is_semanticized = 0
-                  AND record_kind = 'interaction'
-                  AND {conversation_clause}
-                ORDER BY timestamp ASC
-                LIMIT ?
-            """,
-                (user_id, *conversation_params, limit),
-            )
-            
-            rows = await cursor.fetchall()
-            return self._format_transcript_rows(rows, include_conversation_id=True)
+        return await fetch_unsemanticized_episodic_by_conversation(
+            episodic_db_path=self.episodic_db_path,
+            user_id=user_id,
+            conversation_id=conversation_id,
+            limit=limit,
+            format_transcript_rows=self._format_transcript_rows,
+        )
 
     @staticmethod
     def _conversation_where_clause(conversation_id: Optional[str]) -> Tuple[str, Tuple[Any, ...]]:
-        if conversation_id is None:
-            return "conversation_id IS NULL", ()
-        return "conversation_id = ?", (conversation_id,)
+        return conversation_where_clause(conversation_id)
     
     async def get_unsemanticized_episodic_memories(
         self, user_id: str, limit: int = 10

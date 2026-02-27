@@ -1,0 +1,202 @@
+import json
+from pathlib import Path
+from typing import Any, Dict, List
+
+import aiosqlite
+import pytest
+
+from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
+
+ensure_frontend_python_path()
+
+from memory import conversation_window_runtime as runtime  # noqa: E402
+from memory.sqlite_store import init_episodic_schema  # noqa: E402
+
+
+async def _insert_memory(db_path: Path, **payload: Any) -> None:
+    async with aiosqlite.connect(db_path) as conn:
+        await conn.execute(
+            """
+            INSERT INTO memories (
+                id,
+                user_id,
+                content,
+                timestamp,
+                metadata,
+                conversation_id,
+                record_kind,
+                role,
+                message_index,
+                message_type,
+                tool_name,
+                is_semanticized
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+            (
+                payload["id"],
+                payload["user_id"],
+                payload["content"],
+                payload["timestamp"],
+                payload.get("metadata", "{}"),
+                payload.get("conversation_id"),
+                payload.get("record_kind"),
+                payload.get("role"),
+                payload.get("message_index"),
+                payload.get("message_type"),
+                payload.get("tool_name"),
+                payload.get("is_semanticized", 0),
+            ),
+        )
+        await conn.commit()
+
+
+def test_conversation_where_clause_handles_null_and_value():
+    assert runtime.conversation_where_clause(None) == ("conversation_id IS NULL", ())
+    assert runtime.conversation_where_clause("conv_1") == ("conversation_id = ?", ("conv_1",))
+
+
+@pytest.mark.asyncio
+async def test_get_next_message_index_for_conversation_returns_incremented_value(tmp_path: Path):
+    db_path = tmp_path / "episodic.db"
+    await init_episodic_schema(db_path)
+
+    await _insert_memory(
+        db_path,
+        id="m1",
+        user_id="user-1",
+        content="hello",
+        timestamp="2026-02-01T00:00:00+00:00",
+        metadata="{}",
+        conversation_id="conv_1",
+        record_kind="transcript",
+        role="user",
+        message_index=2,
+        message_type="llm-text",
+    )
+    await _insert_memory(
+        db_path,
+        id="m2",
+        user_id="user-1",
+        content="world",
+        timestamp="2026-02-01T00:00:01+00:00",
+        metadata="{}",
+        conversation_id="conv_1",
+        record_kind="transcript",
+        role="assistant",
+        message_index=5,
+        message_type="llm-text",
+    )
+
+    next_index = await runtime.get_next_message_index_for_conversation(
+        episodic_db_path=str(db_path),
+        user_id="user-1",
+        conversation_id="conv_1",
+    )
+
+    assert next_index == 6
+
+
+@pytest.mark.asyncio
+async def test_get_episodic_memories_for_conversation_applies_cursor_and_metadata_parse(tmp_path: Path):
+    db_path = tmp_path / "episodic.db"
+    await init_episodic_schema(db_path)
+
+    await _insert_memory(
+        db_path,
+        id="m1",
+        user_id="user-1",
+        content="first",
+        timestamp="2026-02-01T00:00:00+00:00",
+        metadata=json.dumps({"record_kind": "transcript", "role": "user"}),
+        conversation_id="conv_1",
+        record_kind="transcript",
+        role="user",
+        message_index=1,
+        message_type="llm-text",
+    )
+    await _insert_memory(
+        db_path,
+        id="m2",
+        user_id="user-1",
+        content="second",
+        timestamp="2026-02-01T00:00:01+00:00",
+        metadata=json.dumps({"record_kind": "transcript", "role": "assistant"}),
+        conversation_id="conv_1",
+        record_kind="transcript",
+        role="assistant",
+        message_index=2,
+        message_type="llm-text",
+    )
+
+    rows = await runtime.get_episodic_memories_for_conversation(
+        episodic_db_path=str(db_path),
+        user_id="user-1",
+        conversation_id="conv_1",
+        limit=100,
+        record_kind="transcript",
+        after_message_index=1,
+        parse_raw_metadata=lambda raw: json.loads(raw),
+    )
+
+    assert len(rows) == 1
+    assert rows[0]["id"] == "m2"
+    assert rows[0]["message_index"] == 2
+    assert rows[0]["metadata"]["role"] == "assistant"
+
+
+@pytest.mark.asyncio
+async def test_unsemanticized_window_helpers_return_sorted_windows_and_formatted_rows(tmp_path: Path):
+    db_path = tmp_path / "episodic.db"
+    await init_episodic_schema(db_path)
+
+    await _insert_memory(
+        db_path,
+        id="i1",
+        user_id="user-1",
+        content="older",
+        timestamp="2026-02-01T00:00:00+00:00",
+        metadata="{}",
+        conversation_id="conv_old",
+        record_kind="interaction",
+        role="assistant",
+        message_index=1,
+        message_type="tool-result",
+        tool_name="tool_old",
+        is_semanticized=0,
+    )
+    await _insert_memory(
+        db_path,
+        id="i2",
+        user_id="user-1",
+        content="newer",
+        timestamp="2026-02-02T00:00:00+00:00",
+        metadata="{}",
+        conversation_id="conv_new",
+        record_kind="interaction",
+        role="assistant",
+        message_index=1,
+        message_type="tool-result",
+        tool_name="tool_new",
+        is_semanticized=0,
+    )
+
+    windows = await runtime.get_unsemanticized_conversation_windows(
+        episodic_db_path=str(db_path),
+        user_id="user-1",
+    )
+    assert windows == ["conv_old", "conv_new"]
+
+    def _format_rows(rows: List[Any], include_conversation_id: bool):
+        assert include_conversation_id is True
+        return [{"id": row["id"], "conversation_id": row["conversation_id"]} for row in rows]
+
+    rows = await runtime.get_unsemanticized_episodic_memories_by_conversation(
+        episodic_db_path=str(db_path),
+        user_id="user-1",
+        conversation_id="conv_old",
+        limit=10,
+        format_transcript_rows=_format_rows,
+    )
+
+    assert rows == [{"id": "i1", "conversation_id": "conv_old"}]
