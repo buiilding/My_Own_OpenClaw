@@ -100,4 +100,21 @@ describe('overlay_ipc_runtime prepare-overlay-tool-focus handler', () => {
     expect(invokeHandlers['set-chatbox-size']).toBeUndefined();
     expect(typeof invokeHandlers['set-responsebox-size']).toBe('function');
   });
+
+  test('reports main window visibility through get-main-window-visibility handler', async () => {
+    const visibleMainWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => true),
+    };
+    const { invokeHandlers } = createRuntime({
+      getWindows: () => ({ mainWindow: visibleMainWindow }),
+    });
+
+    const result = await invokeHandlers['get-main-window-visibility']();
+
+    expect(result).toEqual({
+      success: true,
+      data: { visible: true },
+    });
+  });
 });

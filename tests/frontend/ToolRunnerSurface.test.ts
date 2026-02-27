@@ -85,21 +85,48 @@ describe('toolRunnerSurface helpers', () => {
 
     const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
     expect(invokeCalls).toEqual([
+      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
+    ]);
+  });
+
+  test('collapses and restores chat pill for screenshot mode when dashboard is open', async () => {
+    (IpcBridge.invoke as jest.Mock).mockImplementation(async (channel: string) => {
+      if (channel === INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY) {
+        return { success: true, data: { visible: true } };
+      }
+      return { success: true };
+    });
+
+    const preparation = await prepareToolExecutionSurface('screenshot');
+    expect(preparation.canExecute).toBe(true);
+    await restoreToolExecutionSurface(preparation);
+
+    const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
+    expect(invokeCalls).toEqual([
+      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
       [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
       [INVOKE_CHANNELS.HIDE_CHATBOX],
       [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
     ]);
   });
 
-  test('does not restore chat pill early for overlapping surface tokens', async () => {
+  test('does not restore chat pill early for overlapping screenshot surface tokens', async () => {
+    (IpcBridge.invoke as jest.Mock).mockImplementation(async (channel: string) => {
+      if (channel === INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY) {
+        return { success: true, data: { visible: true } };
+      }
+      return { success: true };
+    });
+
     const first = await prepareToolExecutionSurface('screenshot');
     const second = await prepareToolExecutionSurface('screenshot');
 
     await restoreToolExecutionSurface(first);
-    expect(IpcBridge.invoke).toHaveBeenCalledTimes(2);
+    expect(IpcBridge.invoke).toHaveBeenCalledTimes(3);
 
     await restoreToolExecutionSurface(second);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
+      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
       [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
       [INVOKE_CHANNELS.HIDE_CHATBOX],
       [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],

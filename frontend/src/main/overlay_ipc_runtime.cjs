@@ -112,6 +112,19 @@ function initializeOverlayHandlersRuntime(deps = {}) {
     return result;
   });
 
+  ipcMain.handle('get-main-window-visibility', async () => {
+    const { mainWindow } = getWindows();
+    const visible = Boolean(
+      mainWindow
+      && !mainWindow.isDestroyed()
+      && mainWindow.isVisible()
+    );
+    return {
+      success: true,
+      data: { visible },
+    };
+  });
+
   ipcMain.handle('show-chatbox', async (_event, options = {}) => {
     return handleShowChatbox(options, { showChatWindow });
   });
