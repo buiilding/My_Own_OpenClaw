@@ -55,6 +55,14 @@ body {
   --chatbox-fixed-pill-padding: 58px 12px 8px;
 }
 
+.chatbox-input-shell-wrap:not(.with-preview) .chatbox-pill {
+  justify-content: center;
+}
+
+.chatbox-input-shell-wrap:not(.with-preview) .chatbox-main-row {
+  margin-top: 0;
+}
+
 .chatbox-input-shell-wrap .chatbox-image-preview-row {
   position: absolute;
   top: 10px;
