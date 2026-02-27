@@ -74,8 +74,8 @@ Reconnect policy:
 
 - `getUserMedia` with mono/16kHz + echo/noise controls
 - `AudioContext` at 16kHz
-- `ScriptProcessorNode` buffer size 4096
-- every `onaudioprocess`:
+- `AudioWorkletNode` capture processor when available (fallback: `ScriptProcessorNode` buffer size 4096)
+- every capture callback:
 - read Float32 input
 - convert to PCM16 (`float32ToPcm16`)
 - frame payload (`buildGatewayAudioMessage`)

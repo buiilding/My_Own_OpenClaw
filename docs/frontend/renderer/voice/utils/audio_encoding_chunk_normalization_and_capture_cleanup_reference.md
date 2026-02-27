@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for renderer voice utility primitives: Float32->PCM16 conversion, gateway binary framing cache, script-processor chunk-size normalization, and safe audio-node/context teardown behavior."
+summary: "Deep reference for renderer voice utility primitives: Float32->PCM16 conversion, gateway binary framing cache, chunk-size normalization, AudioWorklet/script fallback capture processing, and safe audio-node/context teardown behavior."
 read_when:
   - When changing voice/wakeword audio chunk conversion or gateway framing payload shape.
   - When debugging mic-resource leaks, repeated AudioContext-close warnings, or wakeword chunk-size warnings/normalization behavior.
@@ -12,6 +12,7 @@ title: "Audio Encoding, Chunk Normalization, and Capture Cleanup Reference"
 
 - `frontend/src/renderer/features/voice/utils/audioEncoding.ts`
 - `frontend/src/renderer/features/voice/utils/audioCaptureCleanup.ts`
+- `frontend/src/renderer/features/voice/utils/audioProcessorNode.ts`
 - `frontend/src/renderer/features/voice/utils/wakewordEventUtils.ts`
 - `frontend/src/renderer/features/voice/hooks/useAudioCaptureRefs.ts`
 - `frontend/src/renderer/features/voice/hooks/useVoiceMode.ts`
@@ -56,6 +57,19 @@ Wakeword hook behavior:
 - warning emitted when requested size differs from normalized value
 
 This keeps ScriptProcessor setup on a supported/stable set while preserving closest user intent.
+
+## Capture Processor Selection
+
+`createAudioCaptureProcessorNode(...)` behavior:
+
+- prefers `AudioWorkletNode` capture processor (`windieos-capture-processor`) when available
+- worklet path batches render quanta into configured chunk-size frames before posting to main thread
+- falls back to legacy `createScriptProcessor(...)` callback path when worklet module init is unavailable/fails
+
+Design goal:
+
+- keep modern browser audio path as default
+- preserve backwards compatibility on runtimes where worklets are unavailable
 
 ## Shared Mutable Refs (`useAudioCaptureRefs`)
 

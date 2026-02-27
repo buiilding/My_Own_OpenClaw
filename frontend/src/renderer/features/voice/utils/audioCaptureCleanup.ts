@@ -5,7 +5,10 @@ export type LegacyAudioProcessEvent = {
 };
 
 export type LegacyAudioProcessorNode = AudioNode & {
-  onaudioprocess: ((event: LegacyAudioProcessEvent) => void) | null;
+  onaudioprocess?: ((event: LegacyAudioProcessEvent) => void) | null;
+  port?: {
+    onmessage: ((event: MessageEvent<Float32Array>) => void) | null;
+  };
 };
 
 type ScriptNodeRef = MutableRefObject<LegacyAudioProcessorNode | null>;
@@ -28,6 +31,9 @@ export function cleanupAudioCaptureNodes(
   if (scriptNodeRef.current) {
     scriptNodeRef.current.disconnect();
     scriptNodeRef.current.onaudioprocess = null;
+    if (scriptNodeRef.current.port) {
+      scriptNodeRef.current.port.onmessage = null;
+    }
     scriptNodeRef.current = null;
   }
 
