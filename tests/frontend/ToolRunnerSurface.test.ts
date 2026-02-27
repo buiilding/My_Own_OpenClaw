@@ -105,4 +105,48 @@ describe('toolRunnerSurface helpers', () => {
       [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
     ]);
   });
+
+  test('retries interactive focus preparation until external focus verifies', async () => {
+    let focusAttemptCount = 0;
+    (IpcBridge.invoke as jest.Mock).mockImplementation(async (channel: string) => {
+      if (channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS) {
+        focusAttemptCount += 1;
+        return {
+          success: true,
+          data: {
+            canVerifyExternalFocus: true,
+            externalFocusActive: focusAttemptCount >= 3,
+          },
+        };
+      }
+      return { success: true };
+    });
+
+    const preparation = await prepareToolExecutionSurface('interactive');
+    expect(preparation.canExecute).toBe(true);
+    expect(preparation.failureReason).toBeNull();
+    expect(focusAttemptCount).toBe(3);
+  });
+
+  test('fails interactive surface prep after exhausting focus verification retries', async () => {
+    let focusAttemptCount = 0;
+    (IpcBridge.invoke as jest.Mock).mockImplementation(async (channel: string) => {
+      if (channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS) {
+        focusAttemptCount += 1;
+        return {
+          success: true,
+          data: {
+            canVerifyExternalFocus: true,
+            externalFocusActive: false,
+          },
+        };
+      }
+      return { success: true };
+    });
+
+    const preparation = await prepareToolExecutionSurface('interactive');
+    expect(preparation.canExecute).toBe(false);
+    expect(preparation.failureReason).toBe('external_window_focus_not_verified');
+    expect(focusAttemptCount).toBe(5);
+  });
 });
