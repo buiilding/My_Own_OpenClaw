@@ -265,3 +265,73 @@ async def test_close_connection_on_timeout_swallows_close_failures() -> None:
         user_id="user_timeout_close_fail",
         websocket_receive_timeout=0.5,
     )
+
+
+@pytest.mark.asyncio
+async def test_websocket_endpoint_reraises_unexpected_loop_error_after_cleanup(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cleanup_calls: list[str] = []
+
+    async def fake_perform_handshake(websocket, safe_ws):  # noqa: ARG001
+        return "user_loop_error"
+
+    async def fake_cleanup_connection(task_manager, session_manager, user_id: str) -> None:  # noqa: ARG001
+        cleanup_calls.append(user_id)
+
+    async def passthrough_wait_for(awaitable, timeout):  # noqa: ARG001
+        return await awaitable
+
+    monkeypatch.setattr(websocket_route_module, "SafeWebSocket", FakeSafeWebSocket)
+    monkeypatch.setattr(websocket_route_module, "TaskManager", FakeTaskManager)
+    monkeypatch.setattr(websocket_route_module, "perform_handshake", fake_perform_handshake)
+    monkeypatch.setattr(websocket_route_module, "cleanup_connection", fake_cleanup_connection)
+    monkeypatch.setattr(websocket_route_module.asyncio, "wait_for", passthrough_wait_for)
+
+    with pytest.raises(RuntimeError, match="receive exploded"):
+        await websocket_route_module.websocket_endpoint(
+            websocket=SequencedWebSocket([RuntimeError("receive exploded")]),
+            session_manager=DummySessionManager(),
+            handler_registry=object(),
+        )
+
+    assert cleanup_calls == ["user_loop_error"]
+
+
+@pytest.mark.asyncio
+async def test_websocket_endpoint_reraises_parse_error_send_failures_after_cleanup(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cleanup_calls: list[str] = []
+
+    async def fake_perform_handshake(websocket, safe_ws):  # noqa: ARG001
+        return "user_send_error_fail"
+
+    async def fake_cleanup_connection(task_manager, session_manager, user_id: str) -> None:  # noqa: ARG001
+        cleanup_calls.append(user_id)
+
+    async def fake_parse_and_validate_message(data, user_id, max_message_size):  # noqa: ARG001
+        return None, "Malformed JSON"
+
+    async def failing_send_error(websocket, msg_id, message=None, exception=None):  # noqa: ARG001
+        raise RuntimeError("send failed")
+
+    async def passthrough_wait_for(awaitable, timeout):  # noqa: ARG001
+        return await awaitable
+
+    monkeypatch.setattr(websocket_route_module, "SafeWebSocket", FakeSafeWebSocket)
+    monkeypatch.setattr(websocket_route_module, "TaskManager", FakeTaskManager)
+    monkeypatch.setattr(websocket_route_module, "perform_handshake", fake_perform_handshake)
+    monkeypatch.setattr(websocket_route_module, "cleanup_connection", fake_cleanup_connection)
+    monkeypatch.setattr(websocket_route_module, "parse_and_validate_message", fake_parse_and_validate_message)
+    monkeypatch.setattr(websocket_route_module, "send_error", failing_send_error)
+    monkeypatch.setattr(websocket_route_module.asyncio, "wait_for", passthrough_wait_for)
+
+    with pytest.raises(RuntimeError, match="send failed"):
+        await websocket_route_module.websocket_endpoint(
+            websocket=SequencedWebSocket(["{\"bad\":true}"]),
+            session_manager=DummySessionManager(),
+            handler_registry=object(),
+        )
+
+    assert cleanup_calls == ["user_send_error_fail"]
