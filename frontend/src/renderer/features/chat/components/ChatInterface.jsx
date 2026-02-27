@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { ChevronDown, Sparkles, Volume2 } from 'lucide-react';
+import { ChevronDown, Sparkles, Volume2, Workflow } from 'lucide-react';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import ChatGptLogo from '../../../components/ChatGptLogo';
@@ -17,6 +17,7 @@ import {
   normalizeProvider,
 } from '../utils/transcriptMessagePayload';
 import { useConversationReplayActions } from '../hooks/useConversationReplayActions';
+import { isDevUiEnabled } from '../utils/devUiFlag';
 import '../../../styles/ChatInterface.css';
 
 const ACTIVE_STREAM_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
@@ -131,6 +132,7 @@ function ChatInterface({ sidebarOpen = true, focusComposerToken = 0 }) {
   }, [availableModelPool, configuredProvider]);
   const providerLabel = configuredProvider || providerOptions[0] || 'No providers available';
   const modelLabel = configuredModelId || modelOptions[0]?.id || 'No models available';
+  const devUiEnabled = isDevUiEnabled();
   const [providerMenuOpen, setProviderMenuOpen] = useState(false);
   const [modelMenuOpen, setModelMenuOpen] = useState(false);
   const providerMenuRef = useRef(null);
@@ -210,6 +212,13 @@ function ChatInterface({ sidebarOpen = true, focusComposerToken = 0 }) {
       speech_mode_enabled: !speechModeEnabled,
     });
   }, [speechModeEnabled, updateConfig]);
+
+  const handleRunAutoCompaction = useCallback(() => {
+    if (canStop) {
+      return;
+    }
+    ApiClient.compactHistory(true);
+  }, [canStop]);
 
   const handleProviderSelect = useCallback((provider) => {
     setProviderMenuOpen(false);
@@ -378,6 +387,18 @@ function ChatInterface({ sidebarOpen = true, focusComposerToken = 0 }) {
             >
               <Volume2 size={18} />
             </button>
+            {devUiEnabled ? (
+              <button
+                type="button"
+                className="chat-top-icon-btn"
+                aria-label="Run auto compaction"
+                title="Run auto compaction"
+                onClick={handleRunAutoCompaction}
+                disabled={canStop}
+              >
+                <Workflow size={18} />
+              </button>
+            ) : null}
           </div>
         </div>
       </header>
