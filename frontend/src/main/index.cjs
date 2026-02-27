@@ -289,6 +289,7 @@ function createChatWindow() {
     positionChatWindow,
     hideChatWindow,
     syncWakewordToggleForChatVisibility,
+    externalFocusTracker,
     setChatWindow: (nextWindow) => {
       chatWindow = nextWindow;
     },
