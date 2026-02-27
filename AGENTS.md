@@ -57,7 +57,7 @@ User experience target:
 - When modifying code, do not keep backward compatibility, remove anything unused.
 
 ## Docs
-- Start: run docs list (`docs:list` script, or `bin/docs-list` here if present; ignore if not installed); open docs before coding.
+- Start: run docs list (`docs:list` script, or `scripts/docs-list` here if present; ignore if not installed); open docs before coding.
 - Follow links until domain makes sense; honor `Read when` hints.
 - Keep notes short; update docs when behavior/API changes (no ship w/o docs).
 - Add `read_when` hints on cross-cutting docs.

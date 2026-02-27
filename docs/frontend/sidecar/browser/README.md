@@ -11,6 +11,7 @@ title: "Frontend Sidecar Browser Docs Hub"
 ## Deep Pages
 
 - [Browser Runtime Provider, Vendoring, and Native Handler Bridge Reference](browser_runtime_provider_vendoring_and_native_handler_bridge_reference.md)
+- [Browser Runtime Extraction Provider, Model Resolution, and LLM Adapter Mapping Reference](browser_runtime_extraction_provider_model_resolution_and_llm_adapter_mapping_reference.md)
 - [Browser Adapter Action Routing and Compatibility Semantics Reference](browser_adapter_action_routing_and_compatibility_semantics_reference.md)
 - [Browser Contracts Docs Hub](contracts/README.md)
 - [Schema Registry and Action Validation Boundary Reference](contracts/schema_registry_and_action_validation_boundary_reference.md)
@@ -59,6 +60,7 @@ title: "Frontend Sidecar Browser Docs Hub"
 
 - `frontend/src/main/python/tools/browser/browser_tool.py`
 - `frontend/src/main/python/tools/browser/browser_runtime.py`
+- `frontend/src/main/python/tools/browser/browser_runtime_extraction.py`
 - `frontend/src/main/python/tools/browser/browser_adapter.py`
 - `frontend/src/main/python/tools/browser/chrome_detection.py`
 - `frontend/src/main/python/tools/browser/chrome_launcher.py`
@@ -75,4 +77,5 @@ title: "Frontend Sidecar Browser Docs Hub"
 - `tests/sidecar/tools/test_browser_enhanced_cdp_pipeline.py`
 - `tests/sidecar/tools/test_browser_use_adapter.py`
 - `tests/sidecar/tools/test_browser_use_tool_parity.py`
+- `tests/sidecar/tools/test_browser_runtime_extraction.py`
 - `tests/sidecar/tools/test_browser_tool.py`
