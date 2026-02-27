@@ -16,6 +16,10 @@ except ImportError:  # pragma: no cover - Windows fallback
 from pathlib import Path
 from typing import Dict, Any, Optional, Tuple, List
 
+from tools.system.shell_output_formatting import (
+    DEFAULT_MAX_OUTPUT_TOKENS,
+    resolve_max_output_tokens,
+)
 from tools.system.shell_process_registry import (
     ProcessSession,
     add_session,
@@ -24,14 +28,16 @@ from tools.system.shell_process_registry import (
     mark_backgrounded,
     mark_exited,
 )
+from tools.system.shell_response_payloads import (
+    build_background_response,
+    build_foreground_response,
+)
 
 logger = logging.getLogger(__name__)
 
 DEFAULT_SHELL_TIMEOUT = 120.0
 IS_WINDOWS = platform.system() == "Windows"
 IS_LINUX = platform.system() == "Linux"
-DEFAULT_MAX_OUTPUT_TOKENS = 10_000
-APPROX_BYTES_PER_TOKEN = 4
 _USE_SESSION_EXIT_CODE = object()
 _SUDO_AUTH_FAILURE_EXIT_CODES = {126, 127}
 _SUDO_AUTH_MODE_OS_PROMPT = "os_prompt"
@@ -78,46 +84,6 @@ _SUDO_IGNORED_FLAGS_WITH_VALUE = {
     "--type",
     "-C",
 }
-
-
-def _approx_token_count(text: str) -> int:
-    if not text:
-        return 0
-    return (len(text) + (APPROX_BYTES_PER_TOKEN - 1)) // APPROX_BYTES_PER_TOKEN
-
-
-def _truncate_text_for_tokens(content: str, max_tokens: int) -> tuple[str, bool, int]:
-    """Truncate content with a head+tail marker using an approximate token budget."""
-    original_tokens = _approx_token_count(content)
-    max_chars = max_tokens * APPROX_BYTES_PER_TOKEN
-
-    if len(content) <= max_chars:
-        return content, False, original_tokens
-
-    if max_chars <= 0:
-        return f"…{original_tokens} tokens truncated…", True, original_tokens
-
-    left_budget = max_chars // 2
-    right_budget = max_chars - left_budget
-    prefix = content[:left_budget]
-    suffix = content[-right_budget:] if right_budget > 0 else ""
-    removed_chars = max(0, len(content) - max_chars)
-    removed_tokens = (removed_chars + (APPROX_BYTES_PER_TOKEN - 1)) // APPROX_BYTES_PER_TOKEN
-    total_lines = len(content.splitlines())
-    truncated = f"{prefix}…{removed_tokens} tokens truncated…{suffix}"
-    return f"Total output lines: {total_lines}\n\n{truncated}", True, original_tokens
-
-
-def _resolve_max_output_tokens(raw_value: Any) -> tuple[Optional[int], Optional[str]]:
-    if raw_value is None:
-        return DEFAULT_MAX_OUTPUT_TOKENS, None
-    if isinstance(raw_value, bool) or not isinstance(raw_value, int):
-        return None, "max_output_tokens must be an integer"
-    if raw_value <= 0:
-        return None, "max_output_tokens must be greater than zero"
-    return raw_value, None
-
-
 async def run_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
     """
     Execute shell command.
@@ -136,7 +102,7 @@ async def run_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
     yield_after_seconds = args.get("yield_after_seconds")
     env_overrides = args.get("env")
     pty_requested = bool(args.get("pty", False))
-    max_output_tokens, max_output_error = _resolve_max_output_tokens(args.get("max_output_tokens"))
+    max_output_tokens, max_output_error = resolve_max_output_tokens(args.get("max_output_tokens"))
     
     if not command:
         return {"success": False, "error": "Command cannot be empty"}
@@ -180,20 +146,20 @@ async def run_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
 
         if run_in_background:
             mark_backgrounded(session)
-            return _build_background_response(session, warnings)
+            return build_background_response(session, warnings)
 
         if yield_after_seconds is not None:
             if yield_after_seconds <= 0:
                 mark_backgrounded(session)
-                return _build_background_response(session, warnings)
+                return build_background_response(session, warnings)
             done, _ = await asyncio.wait({wait_task}, timeout=yield_after_seconds)
             if not done:
                 mark_backgrounded(session)
-                return _build_background_response(session, warnings)
+                return build_background_response(session, warnings)
             result = _build_result_from_session(session, timed_out=False)
             if sudo_auth_routed:
                 result = _normalize_sudo_auth_result(result)
-            return _build_foreground_response(
+            return build_foreground_response(
                 command,
                 working_dir,
                 result,
@@ -228,7 +194,7 @@ async def run_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
             )
         if sudo_auth_routed:
             result = _normalize_sudo_auth_result(result)
-        return _build_foreground_response(
+        return build_foreground_response(
             command,
             working_dir,
             result,
@@ -486,65 +452,6 @@ def _build_env(overrides: Any) -> Dict[str, str]:
     return env
 
 
-def _build_background_response(session: ProcessSession, warnings: list) -> Dict[str, Any]:
-    warning_text = f" Warnings: {'; '.join(warnings)}" if warnings else ""
-    return {
-        "success": True,
-        "data": {
-            "command": session.command,
-            "working_directory": session.cwd,
-            "status": "running",
-            "session_id": session.id,
-            "pid": session.process.pid,
-            "pty": session.uses_pty,
-            "tail": session.tail,
-            "warnings": warnings,
-            "llm_content": (
-                f"Command '{session.command}' is running in the background (session {session.id})."
-                " Use the process tool to poll or manage it."
-            ),
-            "return_display": f"Command running in background (session {session.id}).{warning_text}",
-        },
-    }
-
-
-def _build_foreground_response(
-    command: str,
-    working_dir: Path,
-    result: Dict[str, Any],
-    warnings: list,
-    max_output_tokens: int,
-) -> Dict[str, Any]:
-    llm_content, output_truncated, original_output_tokens = _format_llm_output(
-        command,
-        working_dir,
-        result,
-        max_output_tokens,
-    )
-    return_display = _format_display_output(result)
-    if warnings:
-        return_display = f"{return_display}\nWarnings: {'; '.join(warnings)}"
-    success = result["exit_code"] == 0 or result["exit_code"] is None
-    return {
-        "success": success,
-        "data": {
-            "command": command,
-            "working_directory": str(working_dir),
-            "output": result["output"],
-            "error": result["error"],
-            "exit_code": result["exit_code"],
-            "execution_time": result["execution_time"],
-            "timed_out": result["timed_out"],
-            "warnings": warnings,
-            "output_token_limit": max_output_tokens,
-            "original_output_tokens": original_output_tokens,
-            "output_truncated": output_truncated,
-            "llm_content": llm_content,
-            "return_display": return_display,
-        },
-    }
-
-
 def _build_result_from_session(
     session: ProcessSession,
     timed_out: bool,
@@ -561,70 +468,3 @@ def _build_result_from_session(
         "execution_time": execution_time,
         "timed_out": timed_out,
     }
-
-
-def _format_llm_output(
-    command: str,
-    working_dir: Path,
-    result: Dict[str, Any],
-    max_output_tokens: int,
-) -> tuple[str, bool, int]:
-    """Format output for LLM."""
-    parts = [
-        f"Command: {command}",
-        f"Directory: {working_dir}",
-    ]
-
-    output_sections = []
-    if result["output"]:
-        output_sections.append(f"Output:\n{result['output']}")
-    if result["error"]:
-        output_sections.append(f"Error:\n{result['error']}")
-
-    output_block = "\n\n".join(output_sections)
-    truncated = False
-    original_output_tokens = 0
-    if output_block:
-        output_block, truncated, original_output_tokens = _truncate_text_for_tokens(
-            output_block,
-            max_output_tokens,
-        )
-        parts.append(output_block)
-
-    if result["exit_code"] is not None:
-        parts.append(f"Exit Code: {result['exit_code']}")
-
-    if result["timed_out"]:
-        parts.append("Status: Command timed out and was terminated")
-    elif result["exit_code"] == 0:
-        parts.append("Status: Success")
-    else:
-        parts.append("Status: Failed (non-zero exit code)")
-
-    parts.append(f"Execution Time: {result['execution_time']:.2f} seconds")
-    if truncated:
-        parts.append(f"Original output token count: {original_output_tokens}")
-
-    return "\n".join(parts), truncated, original_output_tokens
-
-
-def _format_display_output(result: Dict[str, Any]) -> str:
-    """Format output for display."""
-    if result["timed_out"]:
-        status = "Command timed out and was terminated"
-    elif result["exit_code"] == 0:
-        status = "Command completed successfully"
-    elif result["exit_code"] is not None:
-        status = f"Command failed with exit code {result['exit_code']}"
-    else:
-        status = "Command execution completed"
-    
-    output_lines = []
-    if result["output"]:
-        output_lines.append(f"Output:\n{result['output']}")
-    if result["error"]:
-        output_lines.append(f"Error:\n{result['error']}")
-    
-    output_text = "\n".join(output_lines) if output_lines else "No output"
-    
-    return f"{status}\n{output_text}"

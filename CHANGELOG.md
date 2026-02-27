@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-shell-tool): extract shell output/token formatting and response payload builders into dedicated modules (`shell_output_formatting.py`, `shell_response_payloads.py`) so `shell_tool.py` stays below the large-file threshold without behavior drift; add focused helper regression coverage.
 - fix(backend-query-events): normalize blank/whitespace event `type` values to `None` in extraction helpers so invalid event types never route as pseudo-valid strings; add regression coverage for dict and typed-event paths.
 - fix(backend-handler-context): trim `session_id` and runtime `active_conversation_ref` values, and suppress blank/whitespace context metadata before websocket response attachment; add handler-context regressions.
 - test(backend-stream-pipeline): expand pipeline edge coverage for no-TTS mode, transport-failure short-circuit behavior, and empty pending-TTS wait path.
