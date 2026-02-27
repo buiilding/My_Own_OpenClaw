@@ -21,6 +21,7 @@ title: "Backend Services Docs Hub"
 - [Token Calculation Docs Hub](token/calculation/README.md)
 - [Token Counter Invocation, Fallback Estimation, and Tool-Call Normalization Reference](token/calculation/token_counter_invocation_fallback_estimation_and_tool_call_normalization_reference.md)
 - [TTS and Wakeword Audio Runtime Reference](tts_and_wakeword_audio_runtime_reference.md)
+- [TTS CUDA Error Detection and Log-Truncation Helper Reference](tts_cuda_error_detection_and_log_truncation_helper_reference.md)
 - [Screen-Grounding Docs Hub](screen_grounding/README.md)
 - [OCR and Vision Coordinate Runtime Overview](ocr_and_vision_coordinate_runtime_reference.md)
 - [OCR Service and Screenshot State-Machine Reference](screen_grounding/ocr_service_and_screenshot_state_machine_reference.md)

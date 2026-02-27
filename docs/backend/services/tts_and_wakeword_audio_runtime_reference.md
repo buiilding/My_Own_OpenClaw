@@ -17,6 +17,7 @@ title: "TTS and Wakeword Audio Runtime Reference"
 - `backend/src/api/processing/tts/processor.py`
 - `backend/src/api/services/tts_session.py`
 - `backend/src/core/services/tts_service.py`
+- `backend/src/core/services/tts_cuda.py`
 - `backend/src/core/services/tts_worker.py`
 - `backend/src/core/services/tts_buffer.py`
 - `backend/src/core/services/tts_audio.py`
@@ -100,6 +101,12 @@ CUDA fallback behavior:
 - tries Piper load/synthesis with CUDA first
 - CUDA-related failures trigger CPU reload fallback
 - background retry loop periodically attempts CUDA recovery
+
+Helper boundary:
+
+- `tts_cuda.is_cuda_error(...)` is the classification predicate for GPU-failure fallback decisions in TTS paths.
+- `tts_cuda.format_truncated_error(...)` keeps fallback logs bounded (default 200 chars) before warning/error emission.
+- OCR uses a separate CUDA helper surface (`services/ocr/helpers.py`) and should not be assumed identical.
 
 ## Outbound Audio Chunk Contract (Runtime)
 
@@ -186,3 +193,4 @@ If wakeword greeting text appears but no greeting audio:
 - `docs/backend/api/processing/tts/README.md`
 - `docs/backend/api/processing/tts/tts_manager_audio_stream_and_cleanup_reference.md`
 - `docs/backend/api/processing/tts/tts_processor_suppression_state_machine_reference.md`
+- [TTS CUDA Error Detection and Log-Truncation Helper Reference](tts_cuda_error_detection_and_log_truncation_helper_reference.md)

@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(backend-tts): add dedicated `tts_cuda.py` helper contract reference and sync TTS runtime/services docs with explicit CUDA-error classification and bounded log-truncation semantics.
 - docs(backend-core-errors): add exception hierarchy/metadata propagation deep reference for `core.infrastructure.error_types`, including compatibility export facade behavior and domain-specific error-code/metadata contracts.
 - docs(backend-websocket-parse): clarify websocket size/offload policy docs to use UTF-8 byte-length semantics for parse offload and max-message guard contracts.
 - docs(frontend-chat-stream): expand renderer chat stream/runtime reference with extracted helper module ownership (`useChatStreamToolHandlers`, `chatStreamThinkingStatus`, `modelThinkingCapabilities`, `toolRunnerSurface`) and explicit thinking-fallback + overlay-surface preparation contracts.
