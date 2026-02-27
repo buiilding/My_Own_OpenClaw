@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, Optional, List, Callable
+from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, Optional, List, Callable, Union
 
 from backend.src.agent.session.config_runtime import SessionConfigRuntime
 from backend.src.agent.session.initializer import (
@@ -339,7 +339,7 @@ class AgentSession:
     async def process_query(
         self, 
         query: str, 
-        image_data: Optional[str] = None,
+        image_data: Optional[Union[str, List[str]]] = None,
         message_content: Optional[str] = None,
         conversation_ref: Optional[str] = None,
     ) -> AsyncGenerator[Dict[str, Any], None]:
@@ -348,7 +348,7 @@ class AgentSession:
         
         Args:
             query: The user's query text (for reference)
-            image_data: Optional base64-encoded image data for multimodal queries
+            image_data: Optional base64 image payload(s) for multimodal queries
             message_content: Complete message content from frontend (system state + memories + query)
             conversation_ref: Active conversation identity from frontend.
         """

@@ -449,11 +449,12 @@ describe('ChatInterface wiring', () => {
     );
     expect(sawExpectedRehydrateCall).toBe(true);
     const sawExpectedSendQueryCall = mockSendQuery.mock.calls.some(
-      ([queryText, conversationRef, screenshotRef, screenshotUrl]) => (
+      ([queryText, conversationRef, screenshotRef, screenshotUrl, screenshotRefs]) => (
         queryText === 'create a dashboard for this'
         && conversationRef === 'conv_existing'
         && (screenshotRef ?? null) === null
         && (screenshotUrl ?? null) === null
+        && (screenshotRefs ?? null) === null
       ),
     );
     expect(sawExpectedSendQueryCall).toBe(true);
@@ -491,6 +492,15 @@ describe('ChatInterface wiring', () => {
       userId: 'default_user',
     }));
     expect(mockSendRehydrateConversation).toHaveBeenCalledWith('conv_existing', []);
-    expect(mockSendQuery).toHaveBeenCalledWith('new prompt', 'conv_existing', null, null);
+    const sawEditedSendQueryCall = mockSendQuery.mock.calls.some(
+      ([queryText, conversationRef, screenshotRef, screenshotUrl, screenshotRefs]) => (
+        queryText === 'new prompt'
+        && conversationRef === 'conv_existing'
+        && (screenshotRef ?? null) === null
+        && (screenshotUrl ?? null) === null
+        && (screenshotRefs ?? null) === null
+      ),
+    );
+    expect(sawEditedSendQueryCall).toBe(true);
   });
 });

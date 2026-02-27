@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import time
 import asyncio
-from typing import TYPE_CHECKING, Any, Optional, Type
+from typing import TYPE_CHECKING, Any, List, Optional, Type, Union
 
 from backend.src.api.processing.formatter import ResponseFormatter
 from backend.src.api.processing.pipeline import StreamPipeline
@@ -90,11 +90,18 @@ class QueryExecutionService:
                 tts_processor = tts_processor_cls(self._tts_manager)
                 pipeline = pipeline_cls(tts_processor, self._response_formatter, transport)
 
-                screenshot = self._resolve_screenshot(message, artifact_store_cls)
+                resolved_screenshots = self._resolve_screenshots(message, artifact_store_cls)
+                image_data: Optional[Union[str, List[str]]] = None
+                if resolved_screenshots:
+                    image_data = (
+                        resolved_screenshots[0]
+                        if len(resolved_screenshots) == 1
+                        else resolved_screenshots
+                    )
 
                 async for event in agent_instance.process_query(
                     query_text,
-                    image_data=screenshot,
+                    image_data=image_data,
                     message_content=message.payload.content,
                     conversation_ref=message.payload.conversation_ref,
                 ):
@@ -229,18 +236,48 @@ class QueryExecutionService:
         artifact_store_cls: Type[ArtifactStore],
     ) -> Optional[str]:
         """Resolve screenshot from inline payload or artifact reference."""
+        screenshots = self._resolve_screenshots(message, artifact_store_cls)
+        return screenshots[0] if screenshots else None
+
+    def _resolve_screenshots(
+        self,
+        message: QueryMessage,
+        artifact_store_cls: Type[ArtifactStore],
+    ) -> Optional[List[str]]:
+        """Resolve screenshots from inline payload and/or artifact references."""
         screenshot = message.payload.screenshot
         screenshot_ref = message.payload.screenshot_ref
+        screenshot_refs = (
+            message.payload.screenshot_refs
+            if isinstance(message.payload.screenshot_refs, list)
+            else None
+        )
 
-        if screenshot or not screenshot_ref:
-            return screenshot
+        if screenshot:
+            return [screenshot]
 
+        refs_to_resolve = [
+            ref
+            for ref in (screenshot_refs or ([screenshot_ref] if screenshot_ref else []))
+            if isinstance(ref, str) and ref
+        ]
+        if not refs_to_resolve:
+            return None
+
+        resolved_screenshots: List[str] = []
         try:
             store = artifact_store_cls.from_config(self._session_manager.config)
-            return store.load_base64(screenshot_ref)
         except Exception as e:
-            logger.warning("Failed to load screenshot artifact %s: %s", screenshot_ref, e)
+            logger.warning("Failed to initialize artifact store for screenshots %s: %s", refs_to_resolve, e)
             return None
+
+        for ref in refs_to_resolve:
+            try:
+                resolved_screenshots.append(store.load_base64(ref))
+            except Exception as e:
+                logger.warning("Failed to load screenshot artifact %s: %s", ref, e)
+
+        return resolved_screenshots or None
 
     @staticmethod
     def _resolve_query_runtime_system_state(message: QueryMessage) -> Optional[dict[str, str]]:

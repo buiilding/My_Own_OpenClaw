@@ -47,6 +47,7 @@ function parseDataUrlImage(dataUrl, fallbackContentType = null) {
   const contentType = normalizeArtifactImageContentType(match[1] || fallbackContentType);
   const extension = resolveArtifactImageExtension(contentType);
   return {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
     base64: match[2],
     contentType,
     filename: `clipboard-image.${extension}`,
@@ -70,7 +71,7 @@ function MessageInput({
   const [plusMenuOpen, setPlusMenuOpen] = useState(false);
   const [thinkingMenuOpen, setThinkingMenuOpen] = useState(false);
   const [thinkingMode, setThinkingMode] = useState('Thinking');
-  const [clipboardImage, setClipboardImage] = useState(null);
+  const [clipboardImages, setClipboardImages] = useState([]);
   const {
     inputValue,
     setInputValue,
@@ -82,12 +83,12 @@ function MessageInput({
   } = useTranscription();
 
   const submitMessageValue = (nextInputValue) => {
-    const outgoingMessage = buildOutgoingMessage(nextInputValue, isSending, clipboardImage);
+    const outgoingMessage = buildOutgoingMessage(nextInputValue, isSending, clipboardImages);
     if (outgoingMessage) {
       onSendMessage(outgoingMessage);
       setInputValue('');
       resetTranscription();
-      setClipboardImage(null);
+      setClipboardImages([]);
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
       }
@@ -108,23 +109,26 @@ function MessageInput({
 
   const handleComposerPaste = useCallback(async (event) => {
     const clipboardItems = Array.from(event.clipboardData?.items || []);
-    const imageItem = clipboardItems.find((item) => item.type?.startsWith('image/'));
-    if (!imageItem) {
+    const imageItems = clipboardItems.filter((item) => item.type?.startsWith('image/'));
+    if (imageItems.length === 0) {
       handlePaste(event);
-      return;
-    }
-
-    const imageFile = imageItem.getAsFile();
-    if (!imageFile) {
       return;
     }
 
     event.preventDefault();
     try {
-      const dataUrl = await readFileAsDataUrl(imageFile);
-      const parsed = parseDataUrlImage(dataUrl, imageItem.type || imageFile.type || null);
-      if (parsed) {
-        setClipboardImage(parsed);
+      const parsedImages = (await Promise.all(
+        imageItems.map(async (imageItem) => {
+          const imageFile = imageItem.getAsFile();
+          if (!imageFile) {
+            return null;
+          }
+          const dataUrl = await readFileAsDataUrl(imageFile);
+          return parseDataUrlImage(dataUrl, imageItem.type || imageFile.type || null);
+        }),
+      )).filter(Boolean);
+      if (parsedImages.length > 0) {
+        setClipboardImages((previous) => [...previous, ...parsedImages]);
       }
     } catch (error) {
       console.warn('[MessageInput] Failed to parse pasted image:', error);
@@ -190,23 +194,29 @@ function MessageInput({
       ) : null}
       <div className={`message-input-container${isCentered ? ' message-input-centered' : ''}`}>
         <form onSubmit={handleSubmit} className="message-input-form" data-testid="composer-container">
-          {clipboardImage ? (
+          {clipboardImages.length > 0 ? (
             <div className="message-image-preview-row">
-              <div className="message-image-preview-card">
-                <img
-                  src={clipboardImage.previewUrl}
-                  alt="Pasted image preview"
-                  className="message-image-preview-thumb"
-                />
-                <button
-                  type="button"
-                  className="message-image-preview-remove"
-                  aria-label="Remove pasted image"
-                  onClick={() => setClipboardImage(null)}
-                >
-                  <X size={13} />
-                </button>
-              </div>
+              {clipboardImages.map((clipboardImage, index) => (
+                <div className="message-image-preview-card" key={clipboardImage.id || index}>
+                  <img
+                    src={clipboardImage.previewUrl}
+                    alt={`Pasted image preview ${index + 1}`}
+                    className="message-image-preview-thumb"
+                  />
+                  <button
+                    type="button"
+                    className="message-image-preview-remove"
+                    aria-label={`Remove pasted image ${index + 1}`}
+                    onClick={() => {
+                      setClipboardImages((previous) => (
+                        previous.filter((image) => image.id !== clipboardImage.id)
+                      ));
+                    }}
+                  >
+                    <X size={13} />
+                  </button>
+                </div>
+              ))}
             </div>
           ) : null}
 

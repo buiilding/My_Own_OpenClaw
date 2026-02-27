@@ -156,7 +156,7 @@ so memory embedding/summarization calls target the same backend host.
 
 **`query`**
 - Purpose: User query with optional screenshot
-- Payload: `{ text: string, conversation_ref: string, content?: string, screenshot?: string, screenshot_ref?: string, system_state_internal?: object }`
+- Payload: `{ text: string, conversation_ref: string, content?: string, screenshot?: string, screenshot_ref?: string, screenshot_refs?: string[], system_state_internal?: object }`
 - Response: Streaming response
 
 **`list-models`**
@@ -335,9 +335,9 @@ The Python sidecar uses REST endpoints on the same FastAPI server (default `http
    ↓
 3. Screenshot capture runs only when `include_query_screenshot=true` (default enabled)
    ↓
-4. If captured, screenshot uploaded via HTTP `/api/artifacts` → returns `screenshot_ref`
+4. If captured/pasted, screenshot artifact(s) uploaded via HTTP `/api/artifacts` → returns `screenshot_ref`/`screenshot_refs`
    ↓
-5. IpcBridge.send('to-backend', { type: 'query', payload: { screenshot_ref, ... } })
+5. IpcBridge.send('to-backend', { type: 'query', payload: { screenshot_ref, screenshot_refs?, ... } })
    ↓
 6. Main process receives IPC message
    ↓

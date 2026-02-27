@@ -45,30 +45,46 @@ type ClipboardImagePayload = {
 type OutgoingUserMessagePayload = string | {
   text: string;
   clipboardImage?: ClipboardImagePayload | null;
+  clipboardImages?: ClipboardImagePayload[] | null;
 };
 
 function normalizeOutgoingPayload(payload: OutgoingUserMessagePayload): {
   text: string;
-  clipboardImage: ClipboardImagePayload | null;
+  clipboardImages: ClipboardImagePayload[];
 } | null {
+  const normalizeClipboardImage = (
+    clipboardImage: ClipboardImagePayload | null | undefined,
+  ): ClipboardImagePayload | null => {
+    const hasClipboardImage = Boolean(
+      clipboardImage
+      && typeof clipboardImage.base64 === 'string'
+      && clipboardImage.base64.length > 0,
+    );
+    return hasClipboardImage ? clipboardImage : null;
+  };
+
   if (typeof payload === 'string') {
-    return { text: payload, clipboardImage: null };
+    return { text: payload, clipboardImages: [] };
   }
 
   if (!payload || typeof payload !== 'object' || typeof payload.text !== 'string') {
     return null;
   }
 
-  const clipboardImage = payload.clipboardImage;
-  const hasClipboardImage = Boolean(
-    clipboardImage
-    && typeof clipboardImage.base64 === 'string'
-    && clipboardImage.base64.length > 0,
-  );
+  const normalizedClipboardImages = Array.isArray(payload.clipboardImages)
+    ? payload.clipboardImages
+      .map((clipboardImage) => normalizeClipboardImage(clipboardImage))
+      .filter((clipboardImage): clipboardImage is ClipboardImagePayload => Boolean(clipboardImage))
+    : [];
+
+  const legacyClipboardImage = normalizeClipboardImage(payload.clipboardImage);
+  if (legacyClipboardImage) {
+    normalizedClipboardImages.push(legacyClipboardImage);
+  }
 
   return {
     text: payload.text,
-    clipboardImage: hasClipboardImage ? clipboardImage : null,
+    clipboardImages: normalizedClipboardImages,
   };
 }
 
@@ -123,7 +139,8 @@ export function useChatMessageSender(
     }
 
     const text = normalizedPayload.text;
-    const clipboardImage = normalizedPayload.clipboardImage;
+    const clipboardImages = normalizedPayload.clipboardImages;
+    const firstClipboardImage = clipboardImages[0] || null;
 
     // Stop audio playback if provided
     if (stopPlayback) {
@@ -136,15 +153,22 @@ export function useChatMessageSender(
     // Create user message immediately for instant UI display
     const userMessageId = crypto.randomUUID();
     const messageTimestamp = new Date().toISOString();
-    const userMessageScreenshotContentType = clipboardImage
-      ? normalizeArtifactImageContentType(clipboardImage.contentType)
+    const userMessageScreenshotContentType = firstClipboardImage
+      ? normalizeArtifactImageContentType(firstClipboardImage.contentType)
       : null;
+    const userMessageScreenshots = clipboardImages.map((clipboardImage) => ({
+      screenshot: clipboardImage.base64,
+      screenshotContentType: normalizeArtifactImageContentType(clipboardImage.contentType),
+      screenshotRef: null,
+      screenshotUrl: null,
+    }));
     const userMessage: ChatMessage = {
       ...buildPendingUserMessage(userMessageId, text),
       sourceEventType: 'renderer-compose',
       sourceChannel: 'renderer-local',
-      screenshot: clipboardImage?.base64 || null,
+      screenshot: firstClipboardImage?.base64 || null,
       screenshotContentType: userMessageScreenshotContentType,
+      screenshots: userMessageScreenshots.length > 0 ? userMessageScreenshots : null,
       timestamp: messageTimestamp,
     };
     
@@ -161,9 +185,9 @@ export function useChatMessageSender(
       }
     }
     
-    let screenshot: string | null = clipboardImage?.base64 || null;
+    let screenshot: string | null = firstClipboardImage?.base64 || null;
     let screenshotContentType: string | null = userMessageScreenshotContentType;
-    const screenshotFilename: string | null = clipboardImage?.filename || null;
+    const screenshotFilename: string | null = firstClipboardImage?.filename || null;
     if (!screenshot && shouldCaptureQueryScreenshot) {
       // Extract OS state (screenshot and system state).
       const isFirstUserMessage = !hadUserMessages;
@@ -183,25 +207,69 @@ export function useChatMessageSender(
       }
     }
 
-    let uploaded = null;
-    if (screenshot) {
+    const uploadedArtifacts: Array<{ artifactId?: string | null; url?: string | null } | null> = [];
+    if (clipboardImages.length > 0) {
+      for (const clipboardImage of clipboardImages) {
+        const artifactUploadMeta = buildArtifactUploadMeta(clipboardImage.contentType);
+        try {
+          const uploaded = await uploadArtifactBase64(
+            clipboardImage.base64,
+            artifactUploadMeta.contentType,
+            clipboardImage.filename || artifactUploadMeta.filename,
+          );
+          uploadedArtifacts.push(uploaded || null);
+        } catch (error) {
+          console.warn('[useChatMessageSender] Failed to upload screenshot artifact:', error);
+          uploadedArtifacts.push(null);
+        }
+      }
+    } else if (screenshot) {
       const artifactUploadMeta = buildArtifactUploadMeta(screenshotContentType);
       try {
-        uploaded = await uploadArtifactBase64(
+        const uploaded = await uploadArtifactBase64(
           screenshot,
           artifactUploadMeta.contentType,
           screenshotFilename || artifactUploadMeta.filename,
         );
+        uploadedArtifacts.push(uploaded || null);
       } catch (error) {
         console.warn('[useChatMessageSender] Failed to upload screenshot artifact:', error);
+        uploadedArtifacts.push(null);
       }
     }
-    const { screenshotRef, screenshotUrl } = toScreenshotAttachment(uploaded);
+
+    const uploadedScreenshotEntries = clipboardImages.map((clipboardImage, index) => {
+      const attachment = toScreenshotAttachment(uploadedArtifacts[index] || null);
+      return {
+        screenshot: clipboardImage.base64,
+        screenshotContentType: normalizeArtifactImageContentType(clipboardImage.contentType),
+        screenshotRef: attachment.screenshotRef,
+        screenshotUrl: attachment.screenshotUrl,
+      };
+    });
+    const uploadedScreenshotRefs = uploadedScreenshotEntries
+      .map((entry) => entry.screenshotRef)
+      .filter((ref): ref is string => typeof ref === 'string' && ref.length > 0);
+    const firstUploadedScreenshotEntry = uploadedScreenshotEntries.find(
+      (entry) => typeof entry.screenshotRef === 'string' && entry.screenshotRef.length > 0,
+    ) || null;
+
+    const fallbackAttachment = toScreenshotAttachment(uploadedArtifacts[0] || null);
+    const screenshotRef = firstUploadedScreenshotEntry?.screenshotRef || fallbackAttachment.screenshotRef;
+    const screenshotUrl = firstUploadedScreenshotEntry?.screenshotUrl || fallbackAttachment.screenshotUrl;
     
     // Update message with screenshot
-    updateMessage(userMessage.id, { screenshotRef, screenshotUrl });
+    updateMessage(userMessage.id, {
+      screenshotRef,
+      screenshotUrl,
+      screenshots: uploadedScreenshotEntries.length > 0 ? uploadedScreenshotEntries : null,
+    });
 
     const sessionInfo = getTranscriptSessionInfo();
+    const screenshotRefs = uploadedScreenshotRefs.length > 0
+      ? uploadedScreenshotRefs
+      : (screenshotRef ? [screenshotRef] : []);
+
     recordUserMessage(text, {
       conversationRef,
       userId: sessionInfo.userId,
@@ -211,7 +279,13 @@ export function useChatMessageSender(
     
     // Send query with screenshot to backend
     try {
-      await ApiClient.sendQuery(text, conversationRef, screenshotRef, screenshotUrl);
+      await ApiClient.sendQuery(
+        text,
+        conversationRef,
+        screenshotRef,
+        screenshotUrl,
+        screenshotRefs.length > 0 ? screenshotRefs : null,
+      );
     } catch (error) {
       console.error('[useChatMessageSender] Failed to send query:', error);
       setIsSending(false);

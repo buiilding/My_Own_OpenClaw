@@ -76,6 +76,7 @@ function normalizeBackendPayload(type, payload) {
 
   if (type === 'query' || type === 'tool-bundle-result') {
     delete normalized.screenshot_url;
+    delete normalized.screenshot_urls;
   }
 
   return normalized;

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from backend.src.core.messages.structures import StoredMessage
 from backend.src.core.types.enums import MessageRole, MessageType
@@ -33,7 +33,7 @@ def normalize_message_type(
 def build_user_message(
     *,
     content: str,
-    image_data: Optional[str],
+    image_data: Optional[Union[str, List[str]]],
     episodic_memory: Optional[List[str]],
     semantic_memory: Optional[List[str]],
     user_query_raw: Optional[str],
@@ -49,7 +49,10 @@ def build_user_message(
     )
 
 
-def build_tool_output_message(message: str, image_data: Optional[str]) -> StoredMessage:
+def build_tool_output_message(
+    message: str,
+    image_data: Optional[Union[str, List[str]]],
+) -> StoredMessage:
     return StoredMessage(
         role=MessageRole.USER,
         content=message,
@@ -62,7 +65,7 @@ def build_tool_result_message(
     *,
     message: str,
     tool_call_id: str,
-    image_data: Optional[str] = None,
+    image_data: Optional[Union[str, List[str]]] = None,
 ) -> StoredMessage:
     return StoredMessage(
         role=MessageRole.TOOL,

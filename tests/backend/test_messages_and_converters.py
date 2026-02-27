@@ -39,6 +39,22 @@ def test_stored_message_image_preserves_existing_prefix():
     assert content[1]["image_url"]["url"] == "data:image/png;base64,xyz"
 
 
+def test_stored_message_supports_multiple_images():
+    message = StoredMessage(
+        role=MessageRole.USER,
+        content="compare",
+        message_type=MessageType.USER_QUERY,
+        image_data=["first", "data:image/png;base64,second"],
+    )
+
+    llm_message = message.to_llm_message()
+    content = llm_message["content"]
+    assert isinstance(content, list)
+    assert content[0] == {"type": "text", "text": "compare"}
+    assert content[1]["image_url"]["url"] == "data:image/png;base64,first"
+    assert content[2]["image_url"]["url"] == "data:image/png;base64,second"
+
+
 def test_content_to_message_content_text_only():
     converted = content_to_message_content("hello")
     assert isinstance(converted, TextContent)

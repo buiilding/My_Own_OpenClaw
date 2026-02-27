@@ -52,6 +52,7 @@ import {
 } from '../utils/chatStreamToolMessages';
 import {
   buildScreenshotAttachment,
+  buildScreenshotAttachments,
   resolveErrorText,
   resolveToolOutputCorrelationId,
   shouldIgnoreStreamError,
@@ -428,7 +429,11 @@ export function useChatStream(enableTranscript: boolean = true) {
     if (!text) {
       return;
     }
-    const { screenshotRef, screenshotUrl } = buildScreenshotAttachment(
+    const screenshotAttachments = buildScreenshotAttachments(
+      event.payload?.screenshot_refs || [event.payload?.screenshot_ref],
+      event.payload?.screenshot_url,
+    );
+    const firstScreenshotAttachment = screenshotAttachments[0] || buildScreenshotAttachment(
       event.payload?.screenshot_ref,
       event.payload?.screenshot_url,
     );
@@ -438,8 +443,14 @@ export function useChatStream(enableTranscript: boolean = true) {
       sender: 'user',
       sourceEventType: 'local-user-message',
       sourceChannel: 'from-backend',
-      screenshotRef,
-      screenshotUrl,
+      screenshotRef: firstScreenshotAttachment.screenshotRef,
+      screenshotUrl: firstScreenshotAttachment.screenshotUrl,
+      screenshots: screenshotAttachments.length > 0
+        ? screenshotAttachments.map((attachment) => ({
+          screenshotRef: attachment.screenshotRef,
+          screenshotUrl: attachment.screenshotUrl,
+        }))
+        : null,
       timestamp: event.payload?.timestamp,
       turnRef: event.turn_ref,
     };

@@ -2,7 +2,11 @@ import { useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import { toSanitizedMarkdownHtml } from '../../../infrastructure/markdown';
 import { resolveLlmOutputContract } from '../../../infrastructure/llmOutputContract';
-import { isUserMessageWithScreenshot, resolveMessageScreenshotSrc } from '../utils/messageScreenshots';
+import {
+  isUserMessageWithScreenshot,
+  resolveMessageScreenshotSrc,
+  resolveMessageScreenshotSrcList,
+} from '../utils/messageScreenshots';
 import { isDevUiEnabled } from '../utils/devUiFlag';
 import { resolveSourceTag } from '../utils/sourceTags';
 
@@ -181,17 +185,21 @@ ErrorMessage.propTypes = {
 };
 
 function UserMessage({ message }) {
-  const screenshotSrc = resolveMessageScreenshotSrc(message);
+  const screenshotSources = resolveMessageScreenshotSrcList(message);
   return (
     <div className="user-message-container">
-      {screenshotSrc && (
-        <div className="user-screenshot-container">
-          <img
-            src={screenshotSrc}
-            alt="User message screenshot"
-            className="user-screenshot-image"
-            loading="lazy"
-          />
+      {screenshotSources.length > 0 && (
+        <div className="user-screenshot-gallery">
+          {screenshotSources.map((screenshotSrc, index) => (
+            <div className="user-screenshot-container" key={`${screenshotSrc}-${index}`}>
+              <img
+                src={screenshotSrc}
+                alt={screenshotSources.length > 1 ? `User message screenshot ${index + 1}` : 'User message screenshot'}
+                className="user-screenshot-image"
+                loading="lazy"
+              />
+            </div>
+          ))}
         </div>
       )}
       <MarkdownMessage text={message.text} sender="user" />
@@ -205,6 +213,12 @@ UserMessage.propTypes = {
     screenshot: PropTypes.string,
     screenshotUrl: PropTypes.string,
     screenshotContentType: PropTypes.string,
+    screenshots: PropTypes.arrayOf(PropTypes.shape({
+      screenshot: PropTypes.string,
+      screenshotRef: PropTypes.string,
+      screenshotUrl: PropTypes.string,
+      screenshotContentType: PropTypes.string,
+    })),
   }).isRequired,
 };
 

@@ -32,6 +32,26 @@ export function buildScreenshotAttachment(
   };
 }
 
+export function buildScreenshotAttachments(
+  screenshotRefs: Array<string | null | undefined> | null | undefined,
+  screenshotUrl?: string | null,
+) {
+  const normalizedRefs = Array.isArray(screenshotRefs)
+    ? screenshotRefs.filter((ref): ref is string => typeof ref === 'string' && ref.length > 0)
+    : [];
+
+  if (normalizedRefs.length === 0) {
+    const single = buildScreenshotAttachment(null, screenshotUrl);
+    return single.screenshotUrl
+      ? [single]
+      : [];
+  }
+
+  return normalizedRefs.map((ref, index) => (
+    buildScreenshotAttachment(ref, index === 0 ? screenshotUrl : null)
+  ));
+}
+
 export function resolveToolOutputCorrelationId(
   payload: ToolOutputPayload | null | undefined,
   eventId?: string | null,

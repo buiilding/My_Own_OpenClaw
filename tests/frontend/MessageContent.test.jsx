@@ -40,6 +40,26 @@ describe('MessageContent', () => {
     expect(image.getAttribute('src')).toBe('data:image/png;base64,abc123');
   });
 
+  test('renders multiple user screenshots when message includes screenshots array', () => {
+    render(
+      <MessageContent
+        message={{
+          sender: 'user',
+          text: 'hello',
+          screenshots: [
+            { screenshotUrl: 'https://cdn.example/screenshot-a.png' },
+            { screenshot: 'inline-b', screenshotContentType: 'image/png' },
+          ],
+        }}
+      />,
+    );
+
+    const firstImage = screen.getByRole('img', { name: 'User message screenshot 1' });
+    const secondImage = screen.getByRole('img', { name: 'User message screenshot 2' });
+    expect(firstImage.getAttribute('src')).toBe('https://cdn.example/screenshot-a.png');
+    expect(secondImage.getAttribute('src')).toBe('data:image/png;base64,inline-b');
+  });
+
   test('defaults inline screenshot data URL to jpeg when content type missing', () => {
     render(
       <MessageContent

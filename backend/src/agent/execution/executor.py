@@ -6,7 +6,7 @@ manages tool execution, handles LLM streaming, and coordinates memory operations
 """
 import asyncio
 import logging
-from typing import TYPE_CHECKING, AsyncGenerator, Optional
+from typing import TYPE_CHECKING, AsyncGenerator, List, Optional, Union
 
 from backend.src.agent.history.history_committer import HistoryCommitter
 from backend.src.agent.execution.interaction_loop import InteractionLoop
@@ -143,7 +143,7 @@ class AgentExecutor:
     async def process_query(
         self, 
         query: str, 
-        screenshot: Optional[str] = None,
+        screenshot: Optional[Union[str, List[str]]] = None,
         message_content: Optional[str] = None,
     ) -> AsyncGenerator[AgentStreamingEvent, None]:
         """
@@ -151,7 +151,7 @@ class AgentExecutor:
         
         Args:
             query: The user's query text (for reference)
-            screenshot: Optional base64-encoded screenshot data for multimodal queries
+            screenshot: Optional base64 screenshot payload(s) for multimodal queries
             message_content: Complete message content from frontend (system state + memories + query)
         """
         # 1. Format user message content (delegated to PromptConstructor)
@@ -215,10 +215,15 @@ class AgentExecutor:
         )
 
         # 4. Process user message screenshot if present (store as current, trigger OCR)
-        if screenshot:
+        primary_screenshot = self._resolve_primary_screenshot(screenshot)
+        if primary_screenshot:
             # Use a synthetic request_id for user messages (not from tool execution)
             user_request_id = f"user_msg_{self.session.session_id[:8]}"
-            await self.screenshot_manager.process_screenshot(self.session, screenshot, user_request_id)
+            await self.screenshot_manager.process_screenshot(
+                self.session,
+                primary_screenshot,
+                user_request_id,
+            )
 
         # 5. Execute Main Loop
         final_response = None
@@ -281,6 +286,19 @@ class AgentExecutor:
         if len(preview) > 180:
             return f"{preview[:177]}..."
         return preview
+
+    @staticmethod
+    def _resolve_primary_screenshot(
+        screenshot: Optional[Union[str, List[str]]],
+    ) -> Optional[str]:
+        """Return the first screenshot payload for OCR/system-state preparation."""
+        if isinstance(screenshot, str) and screenshot:
+            return screenshot
+        if isinstance(screenshot, list):
+            for screenshot_item in screenshot:
+                if isinstance(screenshot_item, str) and screenshot_item:
+                    return screenshot_item
+        return None
 
     def _is_first_user_message(self) -> bool:
         """

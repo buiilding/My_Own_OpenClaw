@@ -10,7 +10,13 @@ from backend.src.api.services.query_execution import (
 from backend.src.core.events.streaming_events import ChunkEvent, StreamingCompleteEvent
 
 
-def _build_message(*, system_state_internal=None, screenshot=None, screenshot_ref=None):
+def _build_message(
+    *,
+    system_state_internal=None,
+    screenshot=None,
+    screenshot_ref=None,
+    screenshot_refs=None,
+):
     return QueryMessage(
         id="msg-1",
         type="query",
@@ -21,6 +27,7 @@ def _build_message(*, system_state_internal=None, screenshot=None, screenshot_re
             "system_state_internal": system_state_internal,
             "screenshot": screenshot,
             "screenshot_ref": screenshot_ref,
+            "screenshot_refs": screenshot_refs,
         },
     )
 
@@ -138,6 +145,27 @@ def test_resolve_screenshot_loads_artifact_ref_when_inline_missing():
     message = _build_message(screenshot=None, screenshot_ref="artifact-ref")
 
     assert service._resolve_screenshot(message, _ArtifactStore) == "resolved:artifact-ref"
+
+
+def test_resolve_screenshots_loads_multi_artifact_refs_when_provided():
+    class _ArtifactStore:
+        @classmethod
+        def from_config(cls, _config):
+            return cls()
+
+        def load_base64(self, screenshot_ref):
+            return f"resolved:{screenshot_ref}"
+
+    service = _build_service()
+    message = _build_message(
+        screenshot=None,
+        screenshot_refs=["artifact-1", "artifact-2"],
+    )
+
+    assert service._resolve_screenshots(message, _ArtifactStore) == [
+        "resolved:artifact-1",
+        "resolved:artifact-2",
+    ]
 
 
 def test_resolve_screenshot_returns_none_when_artifact_load_fails():
