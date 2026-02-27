@@ -2,6 +2,12 @@
   "name": "desktop-assistant-frontend",
   "private": true,
   "version": "0.6.1",
+  "description": "WindieOS desktop client for the AI Operating System layer.",
+  "homepage": "https://api.windieos.com",
+  "author": {
+    "name": "WindieOS",
+    "email": "support@windieos.com"
+  },
   "type": "module",
   "main": "src/main/index.cjs",
   "scripts": {
