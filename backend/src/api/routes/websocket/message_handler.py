@@ -50,7 +50,7 @@ async def parse_and_validate_message(
     Returns:
         Tuple of (validated message or None, error message or None)
     """
-    data_size = len(data)
+    data_size = len(data.encode("utf-8"))
     # SECURITY: Validate message size after receiving
     if data_size > max_message_size:
         return None, (

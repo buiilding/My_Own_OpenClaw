@@ -127,6 +127,33 @@ async def test_parse_and_validate_message_rejects_oversized_payload() -> None:
 
 
 @pytest.mark.asyncio
+async def test_parse_and_validate_message_enforces_utf8_byte_size_limit() -> None:
+    payload = json.dumps(
+        {
+            "id": "msg_unicode_size",
+            "type": "query",
+            "payload": {
+                "text": "🙂" * 30,
+                "conversation_ref": "conv_test",
+            },
+        },
+        ensure_ascii=False,
+    )
+    max_message_size = len(payload)
+    assert len(payload.encode("utf-8")) > max_message_size
+
+    message, error = await mh.parse_and_validate_message(
+        payload,
+        user_id="user_1",
+        max_message_size=max_message_size,
+    )
+
+    assert message is None
+    assert error is not None
+    assert "Message too large" in error
+
+
+@pytest.mark.asyncio
 async def test_parse_and_validate_message_accepts_payload_at_exact_size_limit() -> None:
     payload = json.dumps(
         {
