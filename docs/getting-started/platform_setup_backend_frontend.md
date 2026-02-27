@@ -143,7 +143,7 @@ In another shell, start Electron and force it to use the sidecar Python 3.11 env
 
 ```bash
 cd frontend
-WINDIE_PYTHON_PATH=/absolute/path/to/WindieOS/.venv-sidecar311/bin/python npm run electron
+WINDIE_PYTHON_PATH=/absolute/path/to/WindieOS/.venv-sidecar311/bin/python npm run electron:dev
 ```
 
 For Windows PowerShell:
@@ -151,14 +151,14 @@ For Windows PowerShell:
 ```powershell
 cd frontend
 $env:WINDIE_PYTHON_PATH = "C:\path\to\WindieOS\.venv-sidecar311\Scripts\python.exe"
-npm run electron
+npm run electron:dev
 ```
 
 For headless Linux containers/CI without a display server:
 
 ```bash
 cd frontend
-WINDIE_PYTHON_PATH=/absolute/path/to/WindieOS/.venv-sidecar311/bin/python xvfb-run -a npm run electron
+WINDIE_PYTHON_PATH=/absolute/path/to/WindieOS/.venv-sidecar311/bin/python xvfb-run -a npm run electron:dev
 ```
 
 ## 5) Connect frontend to backend (manual check)
@@ -171,7 +171,7 @@ python -m backend.src.main
 ```
 
 2. Start frontend renderer (`npm run dev`).
-3. Start Electron (`npm run electron`) with `WINDIE_PYTHON_PATH` set to the sidecar Python 3.11 interpreter.
+3. Start Electron (`npm run electron:dev`) with `WINDIE_PYTHON_PATH` set to the sidecar Python 3.11 interpreter.
 4. Confirm frontend reaches backend websocket/API (default backend URL in this repo is typically `http://localhost:8765`).
 
 ## 6) Platform notes
@@ -188,6 +188,10 @@ python -m backend.src.main
 - OCR/GUI-related Python deps may need system libraries (`libgl1`, X11, GTK/ATK libs).
 - Electron may require additional packages, e.g. `libatk1.0-0`, `libgtk-3-0`, `libnss3`, `libxss1`.
 - If `npm run electron` reports `Electron failed to install correctly`, run `cd frontend && npm rebuild electron`.
+
+Mode reminder:
+- `npm run electron:dev` -> developer mode (recommended for development).
+- `npm run electron` -> customer mode.
 
 ### macOS
 

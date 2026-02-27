@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(frontend-dev-compaction-dashboard): add `electron:dev` dashboard header auto-compaction trigger (`compact-history`) so manual compaction can be run from dashboard and chat-pill surfaces.
 - feat(frontend-dev-compaction): add `electron:dev` chat-pill auto-compaction trigger button (`compact-history`) and render the same awaiting/thinking compaction overlay elements during compaction-start events for parity with production compaction UX.
 - fix(backend-openrouter-thinking-stream): mark `qwen/qwen3-vl-235b-a22b-thinking` as thinking-capable, enable OpenRouter thinking-stream event parsing, and add `reasoning_details` extraction support so Qwen/OpenRouter reasoning chunks emit `llm-thought` tokens in realtime.
 - fix(frontend-thinking-dropdown): stream and persist `llm-thought` into assistant message metadata, render `Show thinking` above assistant text, and remove the transient bottom-of-thread thinking strip that disappeared on completion.
@@ -15,6 +16,7 @@ Includes the last 300 commits on `main`.
 - fix(frontend-replay): harden edit/try-again replay flow to rebuild context from user/assistant conversational turns only (exclude tool-call/tool-output rows) before rehydrate/query resend, eliminating orphan `tool_call_id` payload failures after stop+retry/edit edge cases.
 - fix(frontend-replay-tool-pairs): preserve matched tool-call/tool-output pairs during edit/try-again replay while pruning only orphan tool rows (call-without-output or output-without-call), so tool history remains intact without rehydrate mismatch errors.
 - docs(frontend-replay-contract): codify try-again/edit+resend replay invariant in renderer transcript docs: keep all context and valid tool-call/tool-output pairs, prune only orphan tool rows.
+- docs(dev-launch-modes): clarify launcher intent and reminders so developers use `npm run electron:dev` while `npm run electron` remains customer mode.
 - fix(frontend-main-focus-runtime): include `canVerifyExternalFocus` in pre-tool focus-preparation runtime metadata so renderer can apply platform-aware external-focus safety checks.
 - test(backend-payload-serialization): extend regression coverage for `normalize_tool_arguments` fallback path when `model_dump()` does not accept `warnings` kwargs (TypeError compatibility path).
 - fix(backend-pydantic-warnings): suppress noisy Pydantic serializer warnings on LiteLLM payload normalization by using `model_dump(warnings=False)` (with fallback compatibility path) in tool-argument and usage payload normalization helpers, with regression coverage.
