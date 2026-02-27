@@ -205,6 +205,48 @@ def test_resolve_screenshots_returns_none_for_blank_single_ref():
     assert service._resolve_screenshots(message, _ArtifactStore) is None
 
 
+def test_resolve_screenshots_keeps_successful_refs_when_one_load_fails():
+    calls: list[str] = []
+
+    class _ArtifactStore:
+        @classmethod
+        def from_config(cls, _config):
+            return cls()
+
+        def load_base64(self, screenshot_ref):
+            calls.append(screenshot_ref)
+            if screenshot_ref == "bad-ref":
+                raise RuntimeError("missing artifact")
+            return f"resolved:{screenshot_ref}"
+
+    service = _build_service()
+    message = _build_message(
+        screenshot=None,
+        screenshot_refs=["ok-ref", "bad-ref", "ok-ref-2"],
+    )
+
+    assert service._resolve_screenshots(message, _ArtifactStore) == [
+        "resolved:ok-ref",
+        "resolved:ok-ref-2",
+    ]
+    assert calls == ["ok-ref", "bad-ref", "ok-ref-2"]
+
+
+def test_resolve_screenshots_returns_trimmed_inline_without_store():
+    class _ArtifactStore:
+        @classmethod
+        def from_config(cls, _config):
+            raise AssertionError("artifact store should not be initialized")
+
+    service = _build_service()
+    message = _build_message(
+        screenshot="  inline-b64  ",
+        screenshot_ref="artifact-ref",
+    )
+
+    assert service._resolve_screenshots(message, _ArtifactStore) == ["inline-b64"]
+
+
 def test_resolve_screenshot_returns_none_when_artifact_load_fails():
     class _ArtifactStore:
         @classmethod
