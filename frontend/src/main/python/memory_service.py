@@ -160,8 +160,8 @@ class MemoryService:
 
     async def handle_store(self, request_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Handle memory store request."""
-        user_query = payload.get("user_query")
-        assistant_response = payload.get("assistant_response")
+        user_query = (payload.get("user_query") or "").strip()
+        assistant_response = (payload.get("assistant_response") or "").strip()
         memory_type = payload.get("memory_type", "episodic")
         user_id = payload.get("user_id", "default_user")
         session_id = payload.get("session_id")

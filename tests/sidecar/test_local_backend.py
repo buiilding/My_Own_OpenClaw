@@ -486,6 +486,21 @@ async def test_handle_store_memory_requires_query_and_response():
 
 
 @pytest.mark.asyncio
+async def test_handle_store_memory_rejects_whitespace_only_fields():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+
+    result = await backend._handle_store_memory(
+        user_query="   ",
+        assistant_response="\n\t",
+    )
+
+    assert result["success"] is False
+    assert result["error"] == "Missing user_query or assistant_response"
+    assert backend.memory_store.added == []
+
+
+@pytest.mark.asyncio
 async def test_handle_list_conversations_fails_without_store():
     backend = LocalBackend()
     backend.memory_store = None

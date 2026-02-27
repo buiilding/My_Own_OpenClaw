@@ -587,6 +587,8 @@ class LocalBackend:
     @requires_memory_store
     async def _handle_store_memory(self, user_query: str, assistant_response: str, memory_type: str = "episodic", user_id: str = "default_user", session_id: str = None, **kwargs) -> Dict[str, Any]:
         """Store memory."""
+        user_query = (user_query or "").strip()
+        assistant_response = (assistant_response or "").strip()
         if not user_query or not assistant_response:
             return {
                 "success": False,
