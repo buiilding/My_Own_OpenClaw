@@ -4,12 +4,84 @@ Shared transcript conversation-search runtime helpers for LocalMemoryStore.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from memory.conversation_search_helpers import build_conversation_hit
 from memory.conversation_search_helpers import build_fts_query
 from memory.conversation_search_helpers import extract_query_terms
 from memory.conversation_title_helpers import ensure_conversation_title
+
+
+def _build_scored_transcript_hit(
+    *,
+    memory_id: Any,
+    conversation_id: Any,
+    role: Any,
+    content: Any,
+    timestamp: Any,
+    source: str,
+    score: float,
+    query: str,
+) -> Dict[str, Any]:
+    return build_conversation_hit(
+        memory_id=memory_id,
+        conversation_id=conversation_id,
+        role=role,
+        content=content,
+        timestamp=timestamp,
+        source=source,
+        score=score,
+        query=query,
+    )
+
+
+def _position_rank_score(*, index: int, limit: int) -> float:
+    return max(0.0, 1.0 - (index / max(1, limit)))
+
+
+def _build_lexical_hit(
+    *,
+    row: Dict[str, Any],
+    query: str,
+    index: int,
+    limit: int,
+    lexical_rank: Any = None,
+) -> Dict[str, Any]:
+    score = _position_rank_score(index=index, limit=limit)
+    if lexical_rank is not None:
+        rank_factor = 1.0 / (1.0 + abs(float(lexical_rank or 0.0)))
+        score = (score * 0.72) + (rank_factor * 0.28)
+
+    return _build_scored_transcript_hit(
+        memory_id=row["memory_id"],
+        conversation_id=row["conversation_id"],
+        role=row["role"],
+        content=row["content"],
+        timestamp=row["timestamp"],
+        source="lexical",
+        score=score,
+        query=query,
+    )
+
+
+def _build_lexical_hits_from_rows(
+    *,
+    rows: List[Dict[str, Any]],
+    query: str,
+    limit: int,
+    lexical_rank_key: Optional[str] = None,
+) -> List[Dict[str, Any]]:
+    hits: List[Dict[str, Any]] = []
+    for index, row in enumerate(rows):
+        lexical_rank = row[lexical_rank_key] if lexical_rank_key else None
+        hits.append(_build_lexical_hit(
+            row=row,
+            query=query,
+            index=index,
+            limit=limit,
+            lexical_rank=lexical_rank,
+        ))
+    return hits
 
 
 async def search_transcript_hits_lexical(
@@ -46,23 +118,12 @@ async def search_transcript_hits_lexical(
             (fts_query, user_id, limit),
         )
         rows = await cursor.fetchall()
-        hits: List[Dict[str, Any]] = []
-        for index, row in enumerate(rows):
-            position_score = max(0.0, 1.0 - (index / max(1, limit)))
-            lexical_rank = row["lexical_rank"]
-            rank_factor = 1.0 / (1.0 + abs(float(lexical_rank or 0.0)))
-            score = (position_score * 0.72) + (rank_factor * 0.28)
-            hits.append(build_conversation_hit(
-                memory_id=row["memory_id"],
-                conversation_id=row["conversation_id"],
-                role=row["role"],
-                content=row["content"],
-                timestamp=row["timestamp"],
-                source="lexical",
-                score=score,
-                query=query,
-            ))
-        return hits
+        return _build_lexical_hits_from_rows(
+            rows=rows,
+            query=query,
+            limit=limit,
+            lexical_rank_key="lexical_rank",
+        )
     except Exception as exc:
         logger.warning(
             "Transcript FTS query failed; falling back to LIKE search: %s",
@@ -107,20 +168,7 @@ async def search_transcript_hits_like(
         (user_id, *params, limit),
     )
     rows = await cursor.fetchall()
-    hits: List[Dict[str, Any]] = []
-    for index, row in enumerate(rows):
-        score = max(0.0, 1.0 - (index / max(1, limit)))
-        hits.append(build_conversation_hit(
-            memory_id=row["memory_id"],
-            conversation_id=row["conversation_id"],
-            role=row["role"],
-            content=row["content"],
-            timestamp=row["timestamp"],
-            source="lexical",
-            score=score,
-            query=query,
-        ))
-    return hits
+    return _build_lexical_hits_from_rows(rows=rows, query=query, limit=limit)
 
 
 async def search_transcript_hits_semantic(
@@ -158,7 +206,7 @@ async def search_transcript_hits_semantic(
         rank_bonus = max(0.0, 1.0 - (index / max(1, limit)))
         score = (semantic_score * 0.74) + (rank_bonus * 0.26)
 
-        hits.append(build_conversation_hit(
+        hits.append(_build_scored_transcript_hit(
             memory_id=row.get("id"),
             conversation_id=conversation_id,
             role=metadata.get("role"),
