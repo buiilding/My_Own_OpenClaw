@@ -3,6 +3,7 @@ Response Formatter for Query Handler.
 
 Formats agent events into WebSocket response messages.
 """
+from copy import deepcopy
 
 from typing import Any, Dict, Optional, Union
 
@@ -78,4 +79,4 @@ class ResponseFormatter:
     ) -> Optional[Dict[str, Any]]:
         if not response or not context:
             return response
-        return attach_context_fields(response, context)
+        return attach_context_fields(deepcopy(response), context)
