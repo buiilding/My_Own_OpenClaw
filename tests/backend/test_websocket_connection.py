@@ -308,3 +308,14 @@ async def test_cleanup_connection_continues_to_session_cleanup_when_task_cleanup
 
     assert task_manager.cleaned_user_ids == ["user_789"]
     assert session_manager.ended_user_ids == ["user_789"]
+
+
+@pytest.mark.asyncio
+async def test_cleanup_connection_swallows_when_task_and_session_cleanup_both_fail() -> None:
+    task_manager = FailingTaskManager()
+    session_manager = DummySessionManager(should_raise=True)
+
+    await cleanup_connection(task_manager, session_manager, "user_999")
+
+    assert task_manager.cleaned_user_ids == ["user_999"]
+    assert session_manager.ended_user_ids == ["user_999"]
