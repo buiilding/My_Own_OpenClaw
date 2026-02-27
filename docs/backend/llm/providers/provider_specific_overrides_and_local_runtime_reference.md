@@ -79,6 +79,8 @@ Default `list_models()` returns empty list; online model catalogs are static in 
   across chunks, then stores normalized stream payload via
   `get_last_stream_response_payload()` so agent tool loops can continue safely after
   streamed thinking/text.
+- streamed tool-argument JSON decode failures fail closed: provider emits stream error
+  and does not persist partial stream payloads/tool-calls.
 
 ## Kimi Coding Provider Specialization
 
