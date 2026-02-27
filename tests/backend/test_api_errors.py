@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Optional
 
 import pytest
+from fastapi import WebSocketDisconnect
 
 from backend.src.api.infrastructure.errors import (
     sanitize_error_message,
@@ -36,6 +37,11 @@ class RuntimeFailingWebSocket(FakeWebSocket):
         raise RuntimeError("socket write failed")
 
 
+class DisconnectingWebSocket(FakeWebSocket):
+    async def send_json(self, data: Any, mode: str = "text") -> None:  # noqa: ARG002
+        raise WebSocketDisconnect(code=1001)
+
+
 def test_sanitize_error_message_returns_validation_error_message() -> None:
     exc = ValidationError("Invalid model_mode value")
     assert sanitize_error_message(exc) == "Invalid model_mode value"
@@ -54,6 +60,11 @@ def test_sanitize_error_message_exposes_safe_key_error_keywords() -> None:
 def test_sanitize_error_message_hides_unsafe_value_error_details() -> None:
     exc = ValueError("database DSN password leaked")
     assert sanitize_error_message(exc) == "An internal error occurred"
+
+
+def test_sanitize_error_message_exposes_not_allowed_keyword_case_insensitive() -> None:
+    exc = ValueError("Operation Not Allowed for this user")
+    assert sanitize_error_message(exc) == "Operation Not Allowed for this user"
 
 
 def test_sanitize_error_message_applies_context_for_internal_errors() -> None:
@@ -199,6 +210,23 @@ async def test_send_helpers_swallow_runtime_send_failures() -> None:
     await send_success_response(
         websocket=websocket,
         msg_id="msg_ok_runtime",
+        response_type="settings-loaded",
+        payload={"config": {}},
+    )
+
+
+@pytest.mark.asyncio
+async def test_send_helpers_swallow_websocket_disconnect() -> None:
+    websocket = DisconnectingWebSocket()
+
+    await send_error_response(
+        websocket=websocket,
+        msg_id="msg_err_disconnect",
+        message="safe error",
+    )
+    await send_success_response(
+        websocket=websocket,
+        msg_id="msg_ok_disconnect",
         response_type="settings-loaded",
         payload={"config": {}},
     )
