@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(backend-pydantic-warnings): suppress noisy Pydantic serializer warnings on LiteLLM payload normalization by using `model_dump(warnings=False)` (with fallback compatibility path) in tool-argument and usage payload normalization helpers, with regression coverage.
 - feat(frontend-overlay-focus): add computer-use surface prep split for interactive vs screenshot tool turns, including `prepare-overlay-tool-focus` IPC handoff and external-window focus verification before interactive dispatch.
 - test(frontend-overlay-focus): add regression coverage for tool-runner surface transitions (interactive/screenshot), external-focus active-window verification, and overlay IPC focus-prep handler wait/error paths.
 - test(backend-llm-stream): add Gemini tool-turn stream regression in `LLMStreamProcessor` to ensure tool-enabled Gemini turns stay on streaming path when provider advertises `supports_streaming_tool_turns`, including thinking-chunk emission + normalized tool-call payload bridge.

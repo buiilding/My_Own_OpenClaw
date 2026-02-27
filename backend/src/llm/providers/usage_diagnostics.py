@@ -59,7 +59,12 @@ def normalize_usage_payload(payload: Any) -> Optional[Dict[str, Any]]:
     normalized = payload
     if hasattr(normalized, "model_dump"):
         try:
-            normalized = normalized.model_dump()
+            normalized = normalized.model_dump(warnings=False)
+        except TypeError:
+            try:
+                normalized = normalized.model_dump()
+            except Exception:
+                normalized = payload
         except Exception:
             normalized = payload
     elif hasattr(normalized, "dict"):

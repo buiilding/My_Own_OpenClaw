@@ -30,6 +30,24 @@ class _ModelDumpPayload:
         return {"prompt_tokens": 12}
 
 
+class _ModelDumpWithWarningsPayload:
+    def __init__(self):
+        self.called_with = None
+
+    def model_dump(self, **kwargs):
+        self.called_with = kwargs
+        return {"prompt_tokens": 18}
+
+
+class _ToolArgumentsModelDumpWithWarnings:
+    def __init__(self):
+        self.called_with = None
+
+    def model_dump(self, **kwargs):
+        self.called_with = kwargs
+        return {"path": "/tmp/demo.txt"}
+
+
 def test_extract_status_code_supports_direct_response_and_exception_chain():
     direct = RuntimeError("boom")
     direct.status_code = 429
@@ -54,6 +72,11 @@ def test_build_api_error_message_formats_520_and_generic_paths():
 def test_normalize_usage_payload_supports_model_dump_and_collect_usage_payload():
     normalized = normalize_usage_payload(_ModelDumpPayload())
     assert normalized == {"prompt_tokens": 12}
+
+    warning_safe_payload = _ModelDumpWithWarningsPayload()
+    warning_safe = normalize_usage_payload(warning_safe_payload)
+    assert warning_safe == {"prompt_tokens": 18}
+    assert warning_safe_payload.called_with == {"warnings": False}
 
     payload = collect_usage_payload(
         SimpleNamespace(model_extra={"usage": {"prompt_tokens": 9}})
@@ -162,3 +185,16 @@ def test_normalize_tool_arguments_rejects_non_object_json():
             model="m",
             invalid_response_message="Invalid response",
         )
+
+
+def test_normalize_tool_arguments_prefers_warning_safe_model_dump():
+    payload = _ToolArgumentsModelDumpWithWarnings()
+
+    normalized = normalize_tool_arguments(
+        payload,
+        model="m",
+        invalid_response_message="Invalid response",
+    )
+
+    assert normalized == {"path": "/tmp/demo.txt"}
+    assert payload.called_with == {"warnings": False}
