@@ -43,6 +43,8 @@ Responsibilities:
 - guards against stale-turn execution using `streamTracking.activeTurnRef`
 - tracks correlation IDs to reject late/out-of-turn results
 - sends cancellation-failure payloads (`frontend_stale_turn_cancelled`) when tool events arrive for closed turns
+- before computer-use execution (`click`/`type`/`scroll`/`screenshot` paths, excluding `switch_tab`), requests `show-chatbox` so dashboard view is hidden and tool turns continue in chat-pill mode
+- applies the same chat-pill handoff rule for bundles when any bundled step matches those computer-use actions
 
 ## ToolExecutionService
 
