@@ -14,9 +14,9 @@ This index maps frontend functionality to file ownership.
 
 | Surface | Files |
 | --- | ---: |
-| Main process (`frontend/src/main`, `.cjs`/`.js`) | 34 |
-| Sidecar Python (`frontend/src/main/python`, `.py`) | 140 |
-| Renderer runtime (`frontend/src/renderer`, TS/JS) | 127 |
+| Main process (`frontend/src/main`, `.cjs`/`.js`) | 35 |
+| Sidecar Python (`frontend/src/main/python`, `.py`) | 141 |
+| Renderer runtime (`frontend/src/renderer`, TS/JS) | 139 |
 | Landing (`frontend/src/landing`, `.jsx`/`.css`) | 13 |
 | Preload bridge (`frontend/src/preload.js`) | 1 |
 
@@ -62,6 +62,7 @@ Bridge/support modules:
 - `frontend/src/main/ipc_renderer_windows.cjs`
 - `frontend/src/main/ipc_runtime_helpers.cjs`
 - `frontend/src/main/ipc_frontend_config.cjs`
+- `frontend/src/main/ipc_settings_sync.cjs`
 - `frontend/src/main/test_shell.cjs`
 
 ## Renderer File Index
@@ -122,10 +123,12 @@ Service entrypoints:
 - `frontend/src/main/python/local_backend.py`
 - `frontend/src/main/python/memory_service.py`
 - `frontend/src/main/python/wakeword_service.py`
+- `frontend/src/main/python/dev_seed_mock_memory.py` (developer seed utility)
 
 Core infrastructure:
 
 - `frontend/src/main/python/core/{ipc_protocol,backend_config,runtime_shutdown,stdout_json,thread_pool,system_state,system_metrics,remote_embedding_client,remote_semantic_client}.py`
+- Includes additional backend HTTP client modules: `remote_api_client_base.py`, `remote_title_client.py`
 - Platform adapters: `frontend/src/main/python/core/platform/{base,windows,macos,linux}.py`
 
 Memory subsystem:

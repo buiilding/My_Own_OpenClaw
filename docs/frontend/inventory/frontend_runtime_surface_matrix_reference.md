@@ -10,14 +10,14 @@ title: "Frontend Runtime Surface Matrix Reference"
 
 This matrix maps runtime behavior to exact modules in `frontend/src`.
 
-## Coverage Snapshot (2026-02-26)
+## Coverage Snapshot (2026-02-27)
 
-- Main process files: `34`
-- Sidecar python files: `140`
-- Renderer files: `127`
+- Main process files: `35`
+- Sidecar python files: `141`
+- Renderer files: `139`
 - Landing files: `13`
 - Preload files: `1`
-- Total covered frontend files: `315`
+- Total covered frontend files: `329`
 
 ## Runtime Surface Ownership
 
@@ -25,7 +25,7 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 | --- | --- | --- | --- |
 | Electron app runtime | `frontend/src/main/index.cjs`, `frontend/src/main/main_window_runtime.cjs`, `frontend/src/main/main_process_lifecycle_runtime.cjs` | Window/tray setup, lifecycle listeners, bridge initializers | Renderer windows + process shutdown |
 | Main overlay/window runtime | `frontend/src/main/overlay_ipc_runtime.cjs`, `frontend/src/main/window_visibility_runtime.cjs`, `frontend/src/main/overlay_signal_runtime.cjs`, `frontend/src/main/overlay_window_helpers_runtime.cjs` | Overlay IPC registration, chat/main visibility transitions, overlay side-channel signals, positioning/top-most helpers | Overlay + main window state transitions |
-| Main process backend bridge | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc_runtime_helpers.cjs`, `frontend/src/main/ipc_renderer_windows.cjs`, `frontend/src/main/ipc_query_broadcast.cjs` | WebSocket session, settings ACK gate, relay fan-out | IPC events to renderer |
+| Main process backend bridge | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc_runtime_helpers.cjs`, `frontend/src/main/ipc_renderer_windows.cjs`, `frontend/src/main/ipc_query_broadcast.cjs`, `frontend/src/main/ipc_settings_sync.cjs` | WebSocket session, settings ACK gate, relay fan-out | IPC events to renderer |
 | Main process sidecar bridge | `frontend/src/main/local_backend_bridge.cjs` | Python subprocess lifecycle, JSON-RPC correlation | Tool/system/memory responses |
 | Main process wakeword bridge | `frontend/src/main/wakeword_bridge.cjs` | Wakeword subprocess lifecycle + binary framing | Wakeword events to renderer/main IPC |
 | Preload trust boundary | `frontend/src/preload.js` | Allowlisted IPC exposure only | `window.ipc` bridge methods |
@@ -79,7 +79,7 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 | Transcript buffering/session state | `renderer/infrastructure/transcript/*` |
 | Store/search invoke | `renderer/infrastructure/api/client.ts` + IPC invoke |
 | Sidecar memory handlers | `main/python/local_backend.py` + `memory/local_store.py` |
-| Optional semantic summarization | `memory/summarizer.py` + remote semantic client |
+| Optional semantic summarization | `memory/summarizer.py` + `core/{remote_api_client_base,remote_semantic_client,remote_title_client}.py` |
 
 ## High-Risk Cross-Boundary Contracts
 
