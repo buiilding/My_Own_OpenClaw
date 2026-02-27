@@ -4,13 +4,16 @@ import {
   IpcBridge,
   INVOKE_CHANNELS,
   ON_CHANNELS,
+  SEND_CHANNELS,
   emitBackendEventAsync,
   getRemoveListenerMock,
   mockExecuteTool,
   mockExecuteToolBundle,
+  recordToolMessage,
   renderToolRunner,
   resetToolRunnerTestState,
   restoreToolRunnerMocks,
+  useChatStore,
 } from './ToolRunnerHook.testUtils';
 
 describe('useToolRunner event handling', () => {
@@ -292,6 +295,129 @@ describe('useToolRunner event handling', () => {
     expect(firstShowIndex).toBeGreaterThanOrEqual(0);
     expect(hideIndex).toBeGreaterThan(firstShowIndex);
     expect(lastShowIndex).toBeGreaterThan(hideIndex);
+  });
+
+  test('emits local tool-output when interactive focus verification fails', async () => {
+    renderToolRunner(true);
+    (IpcBridge.invoke as jest.Mock).mockImplementation(async (channel: string) => {
+      if (channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS) {
+        return {
+          success: true,
+          data: {
+            canVerifyExternalFocus: true,
+            externalFocusActive: false,
+          },
+        };
+      }
+      if (
+        channel === INVOKE_CHANNELS.SHOW_CHATBOX
+        || channel === INVOKE_CHANNELS.HIDE_CHATBOX
+      ) {
+        return { success: true };
+      }
+      return {};
+    });
+
+    await emitBackendEventAsync({
+      type: 'tool-call',
+      id: 'event-focus-fail',
+      payload: {
+        tool_name: 'browser',
+        parameters: { action: 'click', ref: '444' },
+        request_id: 'req-focus-fail',
+      },
+    });
+
+    expect(mockExecuteTool).not.toHaveBeenCalled();
+    expect(IpcBridge.send).toHaveBeenCalledWith(
+      SEND_CHANNELS.TO_BACKEND,
+      expect.objectContaining({
+        type: 'tool-result',
+        payload: expect.objectContaining({
+          request_id: 'req-focus-fail',
+          success: false,
+          error: 'frontend_execution_surface_unavailable: external_window_focus_not_verified',
+        }),
+      }),
+    );
+    const lastMessage = useChatStore.getState().messages.at(-1);
+    expect(lastMessage).toEqual(expect.objectContaining({
+      type: 'tool-output',
+      toolName: 'browser',
+      correlationId: 'req-focus-fail',
+      success: false,
+    }));
+    expect(lastMessage?.text).toContain('frontend_execution_surface_unavailable: external_window_focus_not_verified');
+    expect(recordToolMessage).toHaveBeenCalledWith(
+      expect.stringContaining('frontend_execution_surface_unavailable: external_window_focus_not_verified'),
+      expect.objectContaining({
+        messageType: 'tool-output',
+        toolName: 'browser',
+        correlationId: 'req-focus-fail',
+      }),
+    );
+  });
+
+  test('emits local tool-output when interactive bundle focus verification fails', async () => {
+    renderToolRunner(true);
+    (IpcBridge.invoke as jest.Mock).mockImplementation(async (channel: string) => {
+      if (channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS) {
+        return {
+          success: true,
+          data: {
+            canVerifyExternalFocus: true,
+            externalFocusActive: false,
+          },
+        };
+      }
+      if (
+        channel === INVOKE_CHANNELS.SHOW_CHATBOX
+        || channel === INVOKE_CHANNELS.HIDE_CHATBOX
+      ) {
+        return { success: true };
+      }
+      return {};
+    });
+
+    await emitBackendEventAsync({
+      type: 'tool-bundle',
+      payload: {
+        bundle_id: 'bundle-focus-fail',
+        tools: [
+          { name: 'browser', args: { action: 'click', ref: '444' } },
+          { name: 'read_file', args: { file_path: '/tmp/a' } },
+        ],
+      },
+    });
+
+    expect(mockExecuteToolBundle).not.toHaveBeenCalled();
+    expect(IpcBridge.send).toHaveBeenCalledWith(
+      SEND_CHANNELS.TO_BACKEND,
+      expect.objectContaining({
+        type: 'tool-bundle-result',
+        payload: expect.objectContaining({
+          bundle_id: 'bundle-focus-fail',
+          status: 'failure',
+          error: 'frontend_execution_surface_unavailable: external_window_focus_not_verified',
+        }),
+      }),
+    );
+    const lastMessage = useChatStore.getState().messages.at(-1);
+    expect(lastMessage).toEqual(expect.objectContaining({
+      type: 'tool-output',
+      toolName: 'bundled_tools (2 tools)',
+      correlationId: 'bundle-focus-fail',
+      success: false,
+    }));
+    expect(lastMessage?.text).toContain('frontend_execution_surface_unavailable: external_window_focus_not_verified');
+    expect(recordToolMessage).toHaveBeenCalledWith(
+      expect.stringContaining('frontend_execution_surface_unavailable: external_window_focus_not_verified'),
+      expect.objectContaining({
+        messageType: 'tool-output',
+        toolName: 'bundled_tools (2 tools)',
+        correlationId: 'bundle-focus-fail',
+      }),
+    );
   });
 
   test('skips frontend execution for non-executable tool-call metadata', async () => {

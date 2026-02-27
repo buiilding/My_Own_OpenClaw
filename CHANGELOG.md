@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-tool-runner-surface-failure-output): when overlay/focus preparation blocks interactive tool execution, emit a local failed `tool-output` row in chat/transcript before sending backend `tool-result`/`tool-bundle-result` failure envelopes; add `useToolRunner` regressions for single-tool and bundle focus-verification failure paths.
 - feat(frontend-memory-retrieval-toggle): add a Memory modal toggle to disable query-time memory retrieval injection (skip sidecar `search_memory` + omit `<episodic_memory>/<semantic_memory>` prompt tags) while preserving episodic interaction writes and semanticization pipeline behavior; include renderer/main/query-builder regressions and docs updates.
 - style(frontend-memory-toggle-copy): simplify Memory modal retrieval toggle copy to `Memory On/Off` and remove explanatory subtitle text.
 - chore(dev-tool-selection): enable `mouse_control` `prediction` coordinate method in `backend/dev/tool_selection.toml` so non-text targets can use vision grounding during dev allowlist runs.

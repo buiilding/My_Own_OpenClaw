@@ -20,6 +20,7 @@ import {
   resolveToolCallCorrelationId,
   type TranscriptModelContext,
 } from '../utils/toolRunnerMessages';
+import { formatToolOutputMessage } from '../../../infrastructure/services/MessageFormatter';
 import {
   ensureToolExecutionSurface,
   prepareToolExecutionSurface,
@@ -132,6 +133,44 @@ export function useToolRunner(enabled = true) {
       },
     });
   }, []);
+
+  const buildSurfaceFailureError = useCallback((reason: string | null) => (
+    `frontend_execution_surface_unavailable${reason ? `: ${reason}` : ''}`
+  ), []);
+
+  const emitSurfaceFailureOutput = useCallback((
+    toolName: string,
+    correlationId: string,
+    failureError: string,
+  ) => {
+    const result = {
+      success: false,
+      error: failureError,
+      data: null,
+    };
+    const formattedMessage = formatToolOutputMessage(toolName, result, null, false);
+    addMessage(buildToolOutputMessage({
+      toolName,
+      result,
+      executionTime: 0,
+      correlationId,
+      formattedMessage,
+      screenshot: null,
+      screenshotRef: null,
+      screenshotUrl: null,
+      screenshotContentType: null,
+      systemState: null,
+    }));
+    recordToolMessage(
+      formattedMessage,
+      buildTranscriptMetadata(
+        toolName,
+        correlationId,
+        null,
+        modelContextRef.current,
+      ),
+    );
+  }, [addMessage, modelContextRef]);
 
   useEffect(() => {
     const activeTurnRef = streamTracking.activeTurnRef;
@@ -265,6 +304,8 @@ export function useToolRunner(enabled = true) {
       const executeBundle = async () => {
         const preparation = await prepareToolExecutionSurface(resolveBundleSurfaceMode(tools));
         if (!preparation.canExecute) {
+          const failureError = buildSurfaceFailureError(preparation.failureReason);
+          emitSurfaceFailureOutput(`bundled_tools (${tools.length} tools)`, bundleId, failureError);
           sendBundleSurfaceFailure(bundleId, preparation.failureReason);
           untrackExecution(bundleId);
           await restoreToolExecutionSurface(preparation);
@@ -281,7 +322,13 @@ export function useToolRunner(enabled = true) {
         console.error('[useToolRunner] Failed to execute bundle:', err);
       });
     }
-  }, [sendBundleSurfaceFailure, trackExecution, untrackExecution]);
+  }, [
+    buildSurfaceFailureError,
+    emitSurfaceFailureOutput,
+    sendBundleSurfaceFailure,
+    trackExecution,
+    untrackExecution,
+  ]);
 
   const handleToolCall = useCallback((event: ToolCallEvent) => {
     if (shouldIgnoreToolEventForTurn(event.turn_ref)) {
@@ -310,6 +357,8 @@ export function useToolRunner(enabled = true) {
       trackExecution(correlationId, turnRef);
       const preparation = await ensureToolExecutionSurface(toolName, parameters);
       if (!preparation.canExecute) {
+        const failureError = buildSurfaceFailureError(preparation.failureReason);
+        emitSurfaceFailureOutput(toolName, correlationId, failureError);
         sendToolSurfaceFailure(correlationId, preparation.failureReason);
         untrackExecution(correlationId);
         await restoreToolExecutionSurface(preparation);
@@ -333,7 +382,14 @@ export function useToolRunner(enabled = true) {
     };
 
     void executeToolCall();
-  }, [sendStaleToolCancellation, sendToolSurfaceFailure, trackExecution, untrackExecution]);
+  }, [
+    buildSurfaceFailureError,
+    emitSurfaceFailureOutput,
+    sendStaleToolCancellation,
+    sendToolSurfaceFailure,
+    trackExecution,
+    untrackExecution,
+  ]);
 
   useEffect(() => {
     if (!enabled) {
