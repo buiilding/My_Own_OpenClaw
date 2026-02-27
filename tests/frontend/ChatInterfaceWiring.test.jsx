@@ -239,6 +239,22 @@ describe('ChatInterface wiring', () => {
     });
   });
 
+  test('keeps dashboard compaction control clickable even during active stream phases', async () => {
+    mockIsDevUiEnabled.mockReturnValue(true);
+    mockChatState.streamTracking.phase = 'streaming';
+    render(<ChatInterface />);
+
+    const button = screen.getByRole('button', { name: 'Run auto compaction' });
+    expect(button).toBeEnabled();
+    fireEvent.click(button);
+
+    expect(mockSetThinkingStatus).toHaveBeenCalledWith('Compacting conversation history...');
+    expect(mockSetThinkingSourceEventType).toHaveBeenCalledWith('context-compaction-started');
+    await waitFor(() => {
+      expect(mockCompactHistory).toHaveBeenCalledWith(true);
+    });
+  });
+
   test('shows model selector and passes enabled voice mode to input', () => {
     mockConfig = {
       interaction_mode: 'agent',
