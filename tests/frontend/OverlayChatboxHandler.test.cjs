@@ -11,6 +11,7 @@ describe('overlay_chatbox_handler', () => {
       chatWindow: {
         isDestroyed: jest.fn().mockReturnValue(false),
         getSize: jest.fn().mockReturnValue([320, 120]),
+        getBounds: jest.fn().mockReturnValue({ x: 40, y: 320, width: 320, height: 120 }),
         setBounds: jest.fn(),
         setPosition: jest.fn(),
       },
@@ -29,8 +30,8 @@ describe('overlay_chatbox_handler', () => {
     const result = await handleSetChatboxSize({ width: 501.4, height: 300.2 }, deps);
 
     expect(result).toEqual({ success: true, resized: true, width: 501, height: 300 });
-    expect(deps.getChatWindowBounds).toHaveBeenCalledWith(501, 300);
-    expect(deps.chatWindow.setBounds).toHaveBeenCalledWith({ x: 10, y: 20, width: 501, height: 300 }, false);
+    expect(deps.getChatWindowBounds).not.toHaveBeenCalled();
+    expect(deps.chatWindow.setBounds).toHaveBeenCalledWith({ x: 40, y: 140, width: 501, height: 300 }, false);
     expect(deps.positionResponseWindow).toHaveBeenCalledTimes(1);
     expect(deps.positionContextLabelWindow).toHaveBeenCalledTimes(1);
     expect(deps.syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
@@ -58,7 +59,24 @@ describe('overlay_chatbox_handler', () => {
     const result = await handleSetChatboxSize({ width: 0, height: 999999 }, deps);
 
     expect(result).toEqual({ success: true, resized: true, width: 1, height: 7500 });
-    expect(deps.getChatWindowBounds).toHaveBeenCalledWith(1, 7500);
+    expect(deps.getChatWindowBounds).not.toHaveBeenCalled();
+    expect(deps.chatWindow.setBounds).toHaveBeenCalledWith({ x: 40, y: -7060, width: 1, height: 7500 }, false);
+  });
+
+  test('falls back to centered chat bounds when current bounds are unavailable', async () => {
+    const deps = createDeps({
+      chatWindow: {
+        isDestroyed: jest.fn().mockReturnValue(false),
+        getSize: jest.fn().mockReturnValue([320, 120]),
+        setBounds: jest.fn(),
+      },
+    });
+
+    const result = await handleSetChatboxSize({ width: 500, height: 250 }, deps);
+
+    expect(result).toEqual({ success: true, resized: true, width: 500, height: 250 });
+    expect(deps.getChatWindowBounds).toHaveBeenCalledWith(500, 250);
+    expect(deps.chatWindow.setBounds).toHaveBeenCalledWith({ x: 10, y: 20, width: 500, height: 250 }, false);
   });
 
   test('returns failure when chat window is unavailable', async () => {
@@ -71,6 +89,11 @@ describe('overlay_chatbox_handler', () => {
 
   test('logs resize failure reason', async () => {
     const deps = createDeps({
+      chatWindow: {
+        isDestroyed: jest.fn().mockReturnValue(false),
+        getSize: jest.fn().mockReturnValue([320, 120]),
+        setBounds: jest.fn(),
+      },
       getChatWindowBounds: jest.fn(() => {
         throw new Error('boom');
       }),
