@@ -177,8 +177,8 @@ Surface preparation contract (`toolRunnerSurface.ts`):
 
 - classifies tool UI mode as `none | screenshot | interactive`
 - interactive mode covers computer-control primitives (`mouse_control`, `keyboard_control`, `scroll_control`, plus browser actions `click|type|scroll`)
-- screenshot mode covers `screenshot` tool and browser `action=screenshot`
-- explicit exclusions keep `switch_tab` out of overlay hide/focus-prepare flow
+- screenshot mode covers capture-only computer-use actions (`screenshot`, `switch_tab`, `wait`, plus browser `action=screenshot|switch|switch_tab`)
+- every non-`none` preparation claims a surface token; chat-pill restoration runs only after the last outstanding token is released (prevents early restore when tool executions overlap)
 
 Overlay/focus runtime behavior:
 
@@ -189,7 +189,8 @@ Overlay/focus runtime behavior:
 - screenshot mode:
   - `SHOW_CHATBOX(focus=false)` then `HIDE_CHATBOX` (no focus verification call)
 - restoration:
-  - when preparation requested chat-pill hide, `restoreToolExecutionSurface(...)` calls `SHOW_CHATBOX(focus=false)` best-effort after execution
+  - when preparation requested chat-pill hide, `restoreToolExecutionSurface(...)` releases the token
+  - `SHOW_CHATBOX(focus=false)` runs best-effort only when no active surface tokens remain
 
 `ToolExecutionService.executeTool(...)` flow:
 

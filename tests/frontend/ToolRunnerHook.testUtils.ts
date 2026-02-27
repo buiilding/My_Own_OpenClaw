@@ -2,6 +2,7 @@ import { act, renderHook } from '@testing-library/react';
 
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS, SEND_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import { useToolRunner } from '../../frontend/src/renderer/features/chat/hooks/useToolRunner';
+import { __resetToolExecutionSurfaceStateForTests } from '../../frontend/src/renderer/features/chat/utils/toolRunnerSurface';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { recordToolMessage } from '../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter';
 import {
@@ -93,6 +94,7 @@ export async function emitBackendEventAsync(data: unknown) {
 
 export function resetToolRunnerTestState() {
   jest.clearAllMocks();
+  __resetToolExecutionSurfaceStateForTests();
   mockCapturedServiceCallbacks = null;
   backendHandler = null;
   setMockConfig(createDefaultTestAppConfig());

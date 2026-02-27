@@ -87,6 +87,7 @@ Default section on open: **Chat**.
 - The chatbox briefly disappears and returns after the capture.
 - This happens even if you sent the query from the dashboard (the dashboard closes, the chatbox is restored, and the chatbox hides/shows around capture).
 - The chatbox return does not steal focus, so ongoing computer-control actions continue in the target app.
+- The same dashboard-to-chat-pill handoff now applies to capture-only computer actions (`switch_tab`, `wait`, screenshot-style browser actions) so post-action screenshots do not show the dashboard.
 
 ## Troubleshooting
 
