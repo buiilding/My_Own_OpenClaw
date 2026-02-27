@@ -32,6 +32,7 @@ title: "Dashboard Memory Management and Resume Reference"
 `MemorySection` (opened from dashboard modal) owns:
 
 - memory-type tabs: `episodic`, `semantic`, `procedural`
+- retrieval injection toggle (`Inject memory into prompts`) persisted in localStorage key `desktop-assistant-memory-retrieval-injection-enabled`
 - memory list fetch + normalization
 - local search filter over loaded rows
 - edit/delete interactions for rendered memory rows
@@ -42,6 +43,12 @@ IPC methods used by this surface:
 - `LIST_SEMANTIC_MEMORIES`
 - `DELETE_EPISODIC_MEMORY`
 - `DELETE_SEMANTIC_MEMORY`
+
+Toggle behavior contract:
+
+- toggle `ON` (default): query payload builder performs sidecar memory search and injects `<episodic_memory>` / `<semantic_memory>` tags.
+- toggle `OFF`: query payload builder skips memory search and omits memory tags from prompt content.
+- memory persistence and semanticization are unchanged (interaction `memory-store` writes and summarizer pipeline continue).
 
 ### Conversation resume surface
 

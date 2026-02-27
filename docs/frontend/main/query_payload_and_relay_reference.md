@@ -86,6 +86,7 @@ Main calls `buildQueryPayloadContent(...)` with:
 - conversation ref
 - user ID
 - context type (`initial` for first query in connection, `sequential` afterward)
+- retrieval-injection toggle (`memory_retrieval_enabled`, default `true`) sourced from renderer local preference
 - local backend bridge methods (`getSystemState`, `searchMemory`)
 
 Output injected into query payload:
@@ -103,7 +104,7 @@ Output injected into query payload:
 `buildQueryPayloadContent(...)` composes:
 
 1. `<system_context>` XML (initial vs sequential field sets)
-2. episodic + semantic memory sections (or `None` placeholders)
+2. optional episodic + semantic memory sections (or `None` placeholders) when retrieval injection is enabled
 3. `<user_query>` XML block
 
 System-state field policy:
@@ -120,6 +121,7 @@ Failure behavior:
 
 - system-state failure falls back to minimal `<active_window>Unknown</active_window>` context
 - memory lookup failure logs and emits empty memory sections
+- retrieval injection disabled skips memory lookup entirely and omits both memory XML sections
 - global builder exception returns fallback context + escaped user query
 
 ## Local Backend Bridge Dependencies

@@ -139,4 +139,39 @@ describe('query_payload_builder', () => {
     expect(result.content).toContain('<episodic_memory>\n- entry\n</episodic_memory>');
     expect(result.runtimeSystemState).toBeNull();
   });
+
+  test('skips memory search and memory tags when memory retrieval injection is disabled', async () => {
+    const getSystemState = jest.fn().mockResolvedValue({
+      active_window: 'Editor',
+      mouse_position: '0,0',
+      screen_resolution: '2560x1440',
+      windows: ['Editor'],
+    });
+    const searchMemory = jest.fn().mockResolvedValue({
+      success: true,
+      data: {
+        memories: {
+          episodic: ['entry'],
+          semantic: ['fact'],
+        },
+      },
+    });
+
+    const result = await buildQueryPayloadContent({
+      text: 'no memory injection',
+      conversationRef: 'conv-no-memory',
+      userId: 'user-5',
+      contextType: 'initial',
+      getSystemState,
+      searchMemory,
+      memoryRetrievalEnabled: false,
+      log: jest.fn(),
+    });
+
+    expect(searchMemory).not.toHaveBeenCalled();
+    expect(result.content).toContain('<system_context>');
+    expect(result.content).not.toContain('<episodic_memory>');
+    expect(result.content).not.toContain('<semantic_memory>');
+    expect(result.content).toContain('<user_query>\nno memory injection\n</user_query>');
+  });
 });

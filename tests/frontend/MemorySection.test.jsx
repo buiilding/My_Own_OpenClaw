@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY } from '../../frontend/src/renderer/utils/memoryRetrievalPreference';
 
 const mockInvoke = jest.fn();
 let mockSessionInfo = { conversationRef: null, userId: 'default_user' };
@@ -23,6 +24,7 @@ describe('MemorySection', () => {
   beforeEach(() => {
     mockInvoke.mockReset();
     mockSessionInfo = { conversationRef: null, userId: 'default_user' };
+    window.localStorage.removeItem(MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY);
   });
 
   test('loads episodic and semantic memories without using conversation list', async () => {
@@ -245,5 +247,29 @@ describe('MemorySection', () => {
     } finally {
       confirmSpy.mockRestore();
     }
+  });
+
+  test('persists memory retrieval injection toggle state in localStorage', async () => {
+    mockInvoke.mockImplementation(async (channel) => {
+      if (channel === 'list-episodic-memories' || channel === 'list-semantic-memories') {
+        return { success: true, data: { memories: [] } };
+      }
+      return { success: true, data: {} };
+    });
+
+    const { default: MemorySection } = await import(
+      '../../frontend/src/renderer/features/dashboard/components/sections/MemorySection'
+    );
+
+    window.localStorage.setItem(MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY, 'false');
+    render(<MemorySection />);
+    await screen.findByText('No memories found');
+
+    const toggle = screen.getByRole('checkbox', { name: 'Inject memory into prompts' });
+    expect(toggle).not.toBeChecked();
+
+    fireEvent.click(toggle);
+    expect(toggle).toBeChecked();
+    expect(window.localStorage.getItem(MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY)).toBe('true');
   });
 });

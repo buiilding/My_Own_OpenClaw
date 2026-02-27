@@ -9,6 +9,10 @@ import {
 import { IpcBridge, INVOKE_CHANNELS } from '../../../../infrastructure/ipc/bridge';
 import { useTranscriptSessionInfo } from '../../hooks/useTranscriptSessionInfo';
 import { DEFAULT_USER_ID } from '../../utils/episodicMemoryUtils';
+import {
+  getMemoryRetrievalInjectionEnabled,
+  setMemoryRetrievalInjectionEnabled,
+} from '../../../../utils/memoryRetrievalPreference';
 import MemoryItem from './MemoryItem';
 import {
   buildProceduralMemories,
@@ -28,6 +32,9 @@ function MemorySection({ onClose = () => {} }) {
   const [expandedItemId, setExpandedItemId] = useState(null);
   const [editingItemId, setEditingItemId] = useState(null);
   const [editedDetail, setEditedDetail] = useState('');
+  const [memoryRetrievalEnabled, setMemoryRetrievalEnabledState] = useState(
+    () => getMemoryRetrievalInjectionEnabled(),
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [memoriesByType, setMemoriesByType] = useState({
@@ -185,6 +192,11 @@ function MemorySection({ onClose = () => {} }) {
     setNewDetail('');
   }, [activeType, newDetail, newTitle]);
 
+  const handleMemoryRetrievalToggle = useCallback((event) => {
+    const nextEnabled = setMemoryRetrievalInjectionEnabled(event.target.checked === true);
+    setMemoryRetrievalEnabledState(nextEnabled);
+  }, []);
+
   return (
     <div className="clone-memory-panel">
       <div className="clone-panel-close-row">
@@ -226,6 +238,26 @@ function MemorySection({ onClose = () => {} }) {
               </button>
             );
           })}
+        </div>
+
+        <div className="clone-memory-retrieval-row">
+          <div className="clone-memory-retrieval-copy">
+            <p className="clone-memory-retrieval-title">Inject memory into prompts</p>
+            <p className="clone-memory-retrieval-subtitle">
+              Keep storage and semanticization running, but skip retrieval search and prompt tags when disabled.
+            </p>
+          </div>
+          <label
+            className={`clone-memory-retrieval-toggle${memoryRetrievalEnabled ? ' checked' : ''}`.trim()}
+          >
+            <input
+              type="checkbox"
+              aria-label="Inject memory into prompts"
+              checked={memoryRetrievalEnabled}
+              onChange={handleMemoryRetrievalToggle}
+            />
+            <span className="clone-memory-retrieval-toggle-thumb" />
+          </label>
         </div>
 
         <div className="clone-memory-toolbar">
