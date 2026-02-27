@@ -7,6 +7,7 @@ jest.mock('electron', () => ({
 }));
 
 const {
+  createMainWindow,
   createChatWindow,
   prepareOverlayQueryCaptureFocus,
 } = require('../../frontend/src/main/main_window_runtime.cjs');
@@ -137,5 +138,84 @@ describe('main_window_runtime createChatWindow', () => {
     } finally {
       jest.useRealTimers();
     }
+  });
+
+  test('disables chat overlay devtools in customer mode', () => {
+    const { deps } = createDeps({ enableDevTransparencyUi: false });
+
+    createChatWindow(deps);
+
+    const options = deps.BrowserWindow.mock.calls[0][0];
+    expect(options.webPreferences.devTools).toBe(false);
+  });
+
+  test('enables chat overlay devtools in dev mode', () => {
+    const { deps } = createDeps({ enableDevTransparencyUi: true });
+
+    createChatWindow(deps);
+
+    const options = deps.BrowserWindow.mock.calls[0][0];
+    expect(options.webPreferences.devTools).toBe(true);
+  });
+});
+
+describe('main_window_runtime createMainWindow', () => {
+  function createDeps(overrides = {}) {
+    const handlers = {};
+    const mainWindow = {
+      setContentProtection: jest.fn(),
+      setMenuBarVisibility: jest.fn(),
+      loadURL: jest.fn(),
+      loadFile: jest.fn(),
+      hide: jest.fn(),
+      on: jest.fn((eventName, handler) => {
+        handlers[eventName] = handler;
+      }),
+      isDestroyed: jest.fn().mockReturnValue(false),
+      webContents: {
+        send: jest.fn(),
+        isDestroyed: jest.fn().mockReturnValue(false),
+      },
+    };
+    const BrowserWindow = jest.fn(() => mainWindow);
+    const deps = {
+      BrowserWindow,
+      path: require('path'),
+      app: { isPackaged: false, isQuitting: false },
+      platform: 'linux',
+      enableDevTransparencyUi: false,
+      initializeIpc: jest.fn(),
+      handleResponseOverlayPhaseChange: jest.fn(),
+      prepareOverlayQueryCaptureFocus: jest.fn(),
+      initializeWakewordBridge: jest.fn(),
+      showChatWindow: jest.fn().mockReturnValue({ success: true }),
+      emitWakewordSttTrigger: jest.fn(),
+      initializeLocalBackendBridge: jest.fn(),
+      initializeOverlayHandlers: jest.fn(),
+      getLatestFrontendConfig: jest.fn(),
+      getWindows: jest.fn(() => ({ mainWindow })),
+      setMainWindow: jest.fn(),
+      enableContentProtectionSafely: jest.fn(),
+      ...overrides,
+    };
+    return { deps, BrowserWindow, mainWindow, handlers };
+  }
+
+  test('disables dashboard devtools in customer mode', () => {
+    const { deps, BrowserWindow } = createDeps({ enableDevTransparencyUi: false });
+
+    createMainWindow(deps);
+
+    const options = BrowserWindow.mock.calls[0][0];
+    expect(options.webPreferences.devTools).toBe(false);
+  });
+
+  test('enables dashboard devtools in dev mode', () => {
+    const { deps, BrowserWindow } = createDeps({ enableDevTransparencyUi: true });
+
+    createMainWindow(deps);
+
+    const options = BrowserWindow.mock.calls[0][0];
+    expect(options.webPreferences.devTools).toBe(true);
   });
 });
