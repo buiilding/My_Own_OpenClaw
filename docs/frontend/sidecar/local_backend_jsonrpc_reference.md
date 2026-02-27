@@ -13,6 +13,7 @@ title: "Local Backend JSON-RPC Reference"
 - Electron bridge: `frontend/src/main/local_backend_bridge.cjs`
 - IPC->method mappers: `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 - Sidecar service: `frontend/src/main/python/local_backend.py`
+- Sidecar memory handler mixin: `frontend/src/main/python/local_backend_memory_handlers.py`
 - JSON-RPC protocol implementation: `frontend/src/main/python/core/ipc_protocol.py`
 
 ## Transport Model
@@ -77,6 +78,7 @@ Method validation behavior:
 
 - JSON-RPC protocol validates `jsonrpc == "2.0"`, method exists, and params bind to handler signature.
 - invalid method or params return JSON-RPC errors (`METHOD_NOT_FOUND`, `INVALID_PARAMS`, etc.).
+- memory method implementations are provided via `LocalBackendMemoryHandlersMixin` to keep runtime loop/lifecycle and memory RPC concerns separated.
 
 ## Renderer IPC -> JSON-RPC Mapping
 

@@ -13,12 +13,14 @@ title: "Python Sidecar and Memory"
 Primary Python entrypoints under `frontend/src/main/python`:
 
 - `local_backend.py`: JSON-RPC sidecar runtime used for tool execution, system state, and memory APIs
+- `local_backend_memory_handlers.py`: extracted memory-search/store/transcript/delete RPC handlers used by `LocalBackend`
 - `memory_service.py`: minimal memory-only service variant
 - `wakeword_service.py`: binary-protocol wakeword inference service
 
 ## Local Backend Protocol
 
 `local_backend.py` uses `core/ipc_protocol.py:JSONRPCProtocol` over stdin/stdout.
+Memory-focused RPC methods are implemented in `local_backend_memory_handlers.py` and mixed into `LocalBackend`.
 
 Registered methods include:
 

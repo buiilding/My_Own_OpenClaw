@@ -299,6 +299,25 @@ async def test_handle_get_system_state_error(monkeypatch):
     assert result["error"] == "nope"
 
 
+def test_initialize_methods_keeps_memory_handlers_registered():
+    backend = LocalBackend()
+
+    expected_methods = {
+        "search_memory",
+        "store_memory",
+        "search_conversations",
+        "list_conversations",
+        "list_episodic_memories",
+        "get_conversation",
+        "list_semantic_memories",
+        "delete_episodic_memory",
+        "delete_conversation",
+        "delete_semantic_memory",
+        "store_transcript",
+    }
+    assert expected_methods.issubset(set(backend.protocol.methods.keys()))
+
+
 @pytest.mark.asyncio
 async def test_handle_search_memory_groups_results():
     backend = LocalBackend()
