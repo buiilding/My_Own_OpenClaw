@@ -10,10 +10,10 @@ title: "Backend Capability to File Matrix Reference"
 
 This matrix maps backend capabilities to implementation files.
 
-## Coverage Snapshot (2026-02-26)
+## Coverage Snapshot (2026-02-27)
 
-- Total backend python files: `318`
-- Domain counts: `agent=69`, `api=72`, `core=77`, `tools=31`, `llm=31`, `services=16`, `simulation=12`, `sdk=6`, `embeddings=2`
+- Total backend python files: `322`
+- Domain counts: `agent=70`, `api=73`, `core=77`, `tools=31`, `llm=33`, `services=16`, `simulation=12`, `sdk=6`, `embeddings=2`
 
 ## 1) API Ingress and Transport
 
@@ -66,7 +66,7 @@ This matrix maps backend capabilities to implementation files.
 | Capability | Primary files | Notes |
 | --- | --- | --- |
 | Provider-independent client API | `backend/src/llm/client.py`, `backend/src/llm/providers/base.py` | Unified completion/stream APIs. |
-| Provider-specific request/stream behavior | `backend/src/llm/providers/{openai,anthropic,gemini,kimi_coding,mistral,openrouter,local,online}.py` | Provider overrides, stream assembly, usage diagnostics. |
+| Provider-specific request/stream behavior | `backend/src/llm/providers/{openai,anthropic,gemini,kimi_coding,mistral,openrouter,local,online}.py`, `backend/src/llm/providers/{stream_event_pipeline,streaming_tool_call_aggregation,response_parsing,usage_diagnostics,thinking_extraction}.py` | Provider overrides, stream assembly, chunked tool-call aggregation, usage/thinking diagnostics. |
 | Parser and trust-boundary validation | `backend/src/llm/{parser,parser_extraction,parser_validation,parser_types}.py` | Tool-call extraction/validation from model output. |
 | Prompt construction and transparency metadata | `backend/src/llm/prompts/{prompt_constructor,prompt_metadata,prompts}.py` | System prompt + tool schema + context shaping. |
 | Model service and catalog | `backend/src/llm/models/{model_service,models_config}.py` | Provider model list, capability metadata. |
@@ -78,7 +78,7 @@ This matrix maps backend capabilities to implementation files.
 | --- | --- | --- |
 | Dependency graph and factory assembly | `backend/src/core/container/{application,core_container,tool_container,memory_container,api_container,initializer,factories,facade}.py` | DI topology and object ownership. |
 | Bootstrap coordinator lifecycle | `backend/src/core/bootstrap/{coordinator,entrypoint,handler_initializer}.py` | Startup wiring, logging bootstrap, runtime launch helpers. |
-| Config schema/load/update/subscribe | `backend/src/core/config/{models,app_config,loader,runtime,manager,service,subscriptions}.py` | App config policy, runtime assembly, subscriber propagation. |
+| Config schema/load/update/subscribe | `backend/src/core/config/{models,app_config,loader,runtime,manager,service,subscriptions}.py` | App config policy, runtime assembly, subscriber propagation, lock-safe active-session rewiring. |
 | Event bus and cache layers | `backend/src/core/infrastructure/{bus,event_bus_registry,cache_store,cache_manager,cache_entry,cache}.py` | Event dispatch and cache utility abstractions. |
 | Validation/security/observability | `backend/src/core/validation/validators.py`, `backend/src/core/security/{policy,executor}.py`, `backend/src/core/observability/trust_boundary_metrics.py` | Input boundaries, policy enforcement, trust-boundary telemetry. |
 | Message and type conversion | `backend/src/core/messages/{structures,converters}.py`, `backend/src/core/types/{aliases,enums,schemas}.py` | Cross-layer type and message structures. |

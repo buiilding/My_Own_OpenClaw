@@ -10,15 +10,15 @@ title: "Backend Functionality Capability Catalog Reference"
 
 This page is the capability-first technical catalog for `backend/src`.
 
-## Coverage Snapshot (2026-02-26)
+## Coverage Snapshot (2026-02-27)
 
-- Python files in `backend/src`: `318`
+- Python files in `backend/src`: `322`
 - Domain split:
-  - `agent`: `69`
-  - `api`: `72`
+  - `agent`: `70`
+  - `api`: `73`
   - `core`: `77`
   - `tools`: `31`
-  - `llm`: `31`
+  - `llm`: `33`
   - `services`: `16`
   - `simulation`: `12`
   - `sdk`: `6`
@@ -57,6 +57,7 @@ Capabilities:
 - WebSocket handshake validation (`HandshakeMessage`) with policy-violation close on bad payloads.
 - Size-aware JSON parse path and typed handler routing.
 - Safe websocket sender queue + protocol envelope context fields (`user_id`, `session_id`, `turn_ref`, `conversation_ref`).
+- Message-type constants and formatter registry own the outbound schema alignment contract for query/setting ACK/control events.
 - Memory REST routes for embeddings and semantic summarize/title workloads.
 - Artifact upload/download routes for screenshot and binary references.
 
@@ -151,6 +152,7 @@ Primary files:
 
 - `backend/src/llm/client.py`
 - `backend/src/llm/providers/*`
+- `backend/src/llm/providers/{stream_event_pipeline,streaming_tool_call_aggregation,response_parsing,usage_diagnostics,thinking_extraction}.py`
 - `backend/src/llm/models/{model_service,models_config}.py`
 - `backend/src/llm/prompts/*`
 - `backend/src/llm/{parser,parser_extraction,parser_validation,parser_types,request_kwargs,client_response_normalization}.py`
@@ -159,6 +161,8 @@ Capabilities:
 
 - Provider-agnostic completion/stream interface with normalized response payloads.
 - Provider-specific request overrides and stream delta normalization.
+- Stream chunk tool-call aggregation and fallback response parsing for provider deltas that fragment tool calls across chunks.
+- Usage, thinking, and cache diagnostics emitted from provider helpers into agent/API stream events.
 - Model catalog + provider/model selection rules (online, local, thinking/vision capabilities).
 - Prompt constructor with metadata/transparency payloads and tool schema shaping.
 - Tool-call extraction and trust-boundary validation before loop execution.
@@ -176,6 +180,7 @@ Primary files:
 Capabilities:
 
 - Config schema + runtime assembly policies + subscriber-based update propagation.
+- Config subscriptions drive live runtime rewiring for active sessions with update-lock safety.
 - Containerized dependency graph for API/agent/tools/services.
 - Event bus, cache layers, structured exception types, and security policy enforcement.
 - Input validation and frontend patch allowlist boundary.

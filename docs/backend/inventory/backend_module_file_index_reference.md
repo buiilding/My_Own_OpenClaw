@@ -16,16 +16,16 @@ Based on current source tree under `backend/src`:
 
 | Domain | Python files |
 | --- | ---: |
-| `agent` | 69 |
-| `api` | 72 |
+| `agent` | 70 |
+| `api` | 73 |
 | `core` | 77 |
 | `tools` | 31 |
-| `llm` | 31 |
+| `llm` | 33 |
 | `services` | 16 |
 | `simulation` | 12 |
 | `sdk` | 6 |
 | `embeddings` | 2 |
-| **Total** | **318** |
+| **Total** | **322** |
 
 Count includes package `__init__.py` modules.
 
@@ -104,6 +104,7 @@ LLM domain:
 
 - `backend/src/llm/client.py`
 - `backend/src/llm/providers/*.py`
+- Includes provider stream helpers: `stream_event_pipeline.py`, `streaming_tool_call_aggregation.py`, `response_parsing.py`, `usage_diagnostics.py`, `thinking_extraction.py`
 - `backend/src/llm/models/{model_service,models_config}.py`
 - `backend/src/llm/prompts/{prompt_constructor,prompts,prompt_metadata}.py`
 - `backend/src/llm/{parser,parser_extraction,parser_validation,parser_types,request_kwargs,client_response_normalization}.py`

@@ -10,17 +10,17 @@ title: "Backend Full Functionality Inventory Reference"
 
 This is the canonical current-state inventory for `backend/src`.
 
-## Coverage Snapshot (2026-02-26)
+## Coverage Snapshot (2026-02-27)
 
 Source counts used in this inventory:
 
-- Python files in `backend/src`: `318`
+- Python files in `backend/src`: `322`
 - Domain split:
-  - `agent`: `69`
-  - `api`: `72`
+  - `agent`: `70`
+  - `api`: `73`
   - `core`: `77`
   - `tools`: `31`
-  - `llm`: `31`
+  - `llm`: `33`
   - `services`: `16`
   - `simulation`: `12`
   - `sdk`: `6`
@@ -138,6 +138,7 @@ Functionality:
 
 - Defines canonical incoming/outgoing envelope schemas.
 - Defines event formatter route table.
+- Enforces message-type constant and outgoing-schema parity for query/settings/control ACK payloads.
 - Provides compatibility schema export façade.
 
 ## 3) Agent Runtime Inventory
@@ -237,13 +238,14 @@ Primary files:
 - Providers: `backend/src/llm/providers/*`
 - Models: `backend/src/llm/models/*`
 - Prompts: `backend/src/llm/prompts/*`
-- Parsing: `backend/src/llm/{parser,parser_extraction,parser_validation,parser_types}.py`
+- Parsing: `backend/src/llm/{parser,parser_extraction,parser_validation,parser_types,request_kwargs,client_response_normalization}.py`
 
 Functionality:
 
 - Provider-agnostic client runtime (`LiteLLMClient`) with normalized response contract.
 - Provider selection/factory lifecycle and provider-specific overrides.
-- Streaming and non-stream completion transport.
+- Streaming and non-stream completion transport, including chunk-level tool-call aggregation.
+- Provider helper stack for response parsing fallback, usage diagnostics, and thinking extraction.
 - Model catalog service:
   - static online/thinking/vision catalogs.
   - dynamic local provider model discovery.
