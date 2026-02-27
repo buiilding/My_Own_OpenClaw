@@ -74,12 +74,19 @@ def _extract_string_content(value: Any) -> Optional[str]:
     """Extract first non-empty string from common reasoning payload shapes."""
     if isinstance(value, str):
         return value if value else None
+    if isinstance(value, list):
+        for item in value:
+            nested = _extract_string_content(item)
+            if nested:
+                return nested
+        return None
     if isinstance(value, dict):
         for key in (
             "text",
             "content",
             "reasoning_content",
             "reasoningContent",
+            "reasoning_details",
             "thinking",
             "thinking_content",
             "reasoning",
@@ -124,6 +131,7 @@ def _extract_reasoning_field_from_object(delta: Any) -> Any:
     for field_name in (
         "reasoning_content",
         "reasoningContent",
+        "reasoning_details",
         "thinking_content",
         "thinking",
         "reasoning",
@@ -153,6 +161,7 @@ def extract_thinking_content(delta: Any) -> Optional[str]:
         content = (
             delta.get("reasoning_content")
             or delta.get("reasoningContent")
+            or delta.get("reasoning_details")
             or delta.get("thinking_content")
             or delta.get("thinking")
             or delta.get("reasoning")
