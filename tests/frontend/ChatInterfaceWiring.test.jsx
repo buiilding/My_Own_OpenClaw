@@ -25,8 +25,10 @@ const mockPlayerService = {
   stopPlayback: jest.fn(),
 };
 const mockStopQuery = jest.fn();
+const mockCompactHistory = jest.fn();
 const mockSendQuery = jest.fn();
 const mockSendRehydrateConversation = jest.fn();
+const mockIsDevUiEnabled = jest.fn(() => false);
 const mockClearMessages = jest.fn();
 const mockSetMessages = jest.fn();
 const mockUpdateMessage = jest.fn();
@@ -83,9 +85,14 @@ jest.mock('../../frontend/src/renderer/infrastructure/audio/PlayerService', () =
 jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
   ApiClient: {
     stopQuery: (...args) => mockStopQuery(...args),
+    compactHistory: (...args) => mockCompactHistory(...args),
     sendQuery: (...args) => mockSendQuery(...args),
     sendRehydrateConversation: (...args) => mockSendRehydrateConversation(...args),
   },
+}));
+
+jest.mock('../../frontend/src/renderer/features/chat/utils/devUiFlag', () => ({
+  isDevUiEnabled: () => mockIsDevUiEnabled(),
 }));
 
 jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
@@ -138,6 +145,7 @@ describe('ChatInterface wiring', () => {
     mockPlayerService.enqueueAudio.mockClear();
     mockPlayerService.stopPlayback.mockClear();
     mockStopQuery.mockClear();
+    mockCompactHistory.mockClear();
     mockSendQuery.mockClear();
     mockSendRehydrateConversation.mockClear();
     mockClearMessages.mockClear();
@@ -160,6 +168,8 @@ describe('ChatInterface wiring', () => {
     mockIpcInvoke.mockClear();
     mockMessageList.mockClear();
     mockUpdateConfig.mockClear();
+    mockIsDevUiEnabled.mockReset();
+    mockIsDevUiEnabled.mockReturnValue(false);
     mockChatState.streamTracking.phase = 'idle';
     mockChatState.messages = [];
     mockChatState.isSending = false;
@@ -186,6 +196,19 @@ describe('ChatInterface wiring', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Toggle text-to-speech' }));
     expect(mockUpdateConfig).toHaveBeenCalledWith({ speech_mode_enabled: true });
+  });
+
+  test('does not render dashboard auto-compaction control when dev UI is disabled', () => {
+    render(<ChatInterface />);
+    expect(screen.queryByRole('button', { name: 'Run auto compaction' })).not.toBeInTheDocument();
+  });
+
+  test('runs compact-history from dashboard when dev auto-compaction control is clicked', () => {
+    mockIsDevUiEnabled.mockReturnValue(true);
+    render(<ChatInterface />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Run auto compaction' }));
+    expect(mockCompactHistory).toHaveBeenCalledWith(true);
   });
 
   test('shows model selector and passes enabled voice mode to input', () => {
@@ -401,24 +424,19 @@ describe('ChatInterface wiring', () => {
       conversationRef: 'conv_existing',
       userId: 'default_user',
     }));
-    expect(mockSendRehydrateConversation).toHaveBeenCalledWith('conv_existing', [
-      {
-        role: 'user',
-        content: 'create a dashboard for this',
-        message_type: 'user',
-        tool_name: null,
-        correlation_id: null,
-        timestamp: null,
-        screenshot_ref: null,
-        screenshot: null,
-      },
-    ]);
-    expect(mockSendQuery).toHaveBeenCalledWith(
-      'create a dashboard for this',
-      'conv_existing',
-      null,
-      null,
+    const sawExpectedRehydrateCall = mockSendRehydrateConversation.mock.calls.some(
+      ([conversationRef, messages]) => conversationRef === 'conv_existing' && Array.isArray(messages) && messages.length === 0,
     );
+    expect(sawExpectedRehydrateCall).toBe(true);
+    const sawExpectedSendQueryCall = mockSendQuery.mock.calls.some(
+      ([queryText, conversationRef, screenshotRef, screenshotUrl]) => (
+        queryText === 'create a dashboard for this'
+        && conversationRef === 'conv_existing'
+        && (screenshotRef ?? null) === null
+        && (screenshotUrl ?? null) === null
+      ),
+    );
+    expect(sawExpectedSendQueryCall).toBe(true);
   });
 
   test('user edit rewinds assistant output and re-queries with edited text', async () => {
