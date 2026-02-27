@@ -42,7 +42,8 @@ Overflow behavior:
 - resolves row class names via `buildMessageClassName(message)`
 - does not render a global bottom-of-thread thinking strip
 - keeps terminal end-anchor node as the final child
-- auto-scrolls on `[messages]` updates
+- auto-scrolls on `[messages]` updates only while user remains near bottom (`24px` threshold)
+- preserves manual scroll position after user scrolls away from bottom (assistant/tool/live updates do not force snap-to-bottom)
 
 Guarantee:
 
@@ -82,6 +83,9 @@ Important:
   - overflow-above class toggles correctly
 - `MessageListThinkingDisplay.test.jsx`:
   - confirms thinking + end-anchor ordering
+- `MessageListScrollBehavior.test.jsx`:
+  - confirms no forced auto-scroll after user scrolls up
+  - confirms near-bottom streaming updates still auto-scroll
 - `MessageListClasses.test.js`:
   - verifies class assembly for sender/type/screenshot/streaming state
 - `ChatStore.test.ts`:
