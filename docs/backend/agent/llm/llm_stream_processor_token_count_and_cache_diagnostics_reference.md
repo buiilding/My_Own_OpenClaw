@@ -137,7 +137,7 @@ Output totals:
 - token event prefers provider usage + thinking tokens when available
 - token event falls back to estimates when provider usage missing
 - Kimi tool turns choose non-stream path when streaming tool turns unsupported
-- Kimi tool turns remain stream path when provider supports streaming tool turns
+- Kimi/Gemini tool turns remain stream path when provider supports streaming tool turns
 - Kimi prompt cache key prefers active conversation ref over session id
 
 `tests/backend/test_llm_stream_processor_helpers.py` validates:

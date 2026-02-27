@@ -14,6 +14,7 @@ import {
   createDefaultTestAppConfig,
   setMockAppConfigContextValue,
   type TestAppConfig,
+  type TestAvailableModels,
 } from './appConfigTestUtils';
 
 let mockConfig: TestAppConfig = createDefaultTestAppConfig();
@@ -46,9 +47,12 @@ export function resetChatStreamTestState() {
   resetChatStoreForTests(createAssistantSeedMessage());
 }
 
-export function setMockConfig(config: TestAppConfig) {
+export function setMockConfig(
+  config: TestAppConfig,
+  availableModels?: TestAvailableModels,
+) {
   mockConfig = config;
-  setMockAppConfigContextValue(mockUseAppConfigContext, mockConfig);
+  setMockAppConfigContextValue(mockUseAppConfigContext, mockConfig, availableModels);
 }
 
 export function setMockActiveConversationRef(conversationRef: string | null) {

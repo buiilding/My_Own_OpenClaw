@@ -139,11 +139,41 @@ describe('useChatStream state + stream handling', () => {
     expect(last.text).toBe('hello from chatbox');
   });
 
-  test('shows generic thinking status for gemini models without thought-text stream', () => {
+  test('does not set generic thinking status for gemini when thought-text streaming is supported', () => {
     setMockConfig({
       selected_model_id: 'gemini-3.1-pro-preview',
       model_provider: 'gemini',
     });
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      emitBackendEvent({
+        type: 'local-user-message',
+        payload: { text: 'hello from chatbox', screenshot: null },
+      });
+    });
+
+    expect(useChatStore.getState().thinkingStatus).toBeNull();
+  });
+
+  test('shows generic thinking status for models explicitly marked without thought-text stream', () => {
+    setMockConfig(
+      {
+        selected_model_id: 'gemini-3.1-pro-preview',
+        model_provider: 'gemini',
+      },
+      {
+        local: [],
+        online: [
+          {
+            id: 'gemini-3.1-pro-preview',
+            provider: 'gemini',
+            supports_thinking: true,
+            supports_thinking_text_stream: false,
+          },
+        ],
+      },
+    );
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {

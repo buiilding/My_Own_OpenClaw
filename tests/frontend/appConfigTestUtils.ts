@@ -33,7 +33,7 @@ function createDefaultAvailableModels(config: TestAppConfig): TestAvailableModel
         id: config.selected_model_id,
         provider: config.model_provider,
         supports_thinking: isGemini,
-        supports_thinking_text_stream: !isGemini,
+        supports_thinking_text_stream: true,
       },
     ],
   };
