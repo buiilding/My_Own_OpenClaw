@@ -3,7 +3,10 @@ import struct
 
 import pytest
 
-from backend.src.agent.tools.preparation.helpers.preparation_helper import resolve_tool_with_coordinates
+from backend.src.agent.tools.preparation.helpers.preparation_helper import (
+    normalize_manual_coordinates,
+    resolve_tool_with_coordinates,
+)
 from backend.src.agent.tools.preparation.types.resolved_tool_call import ResolvedToolCall
 from backend.src.core.types.enums import CoordinateFindingMethod
 from backend.src.llm.parser import ParsedToolCall
@@ -229,3 +232,107 @@ async def test_resolve_tool_with_coordinates_preserves_prediction_description(mo
     )
     assert "find_coordinates_by" not in resolved_call.parameters
     assert resolved_call.metadata["coordinate_method"] == "prediction"
+
+
+def test_normalize_manual_coordinates_scales_to_display(monkeypatch):
+    screenshot_w, screenshot_h = 3840, 2160
+    screen_w, screen_h = 1920, 1080
+    session, _ = _create_session_and_manager(
+        screenshot_w,
+        screenshot_h,
+        f"{screen_w}x{screen_h}",
+    )
+    monkeypatch.setattr(
+        "backend.src.agent.tools.preparation.helpers.preparation_helper.platform.system",
+        lambda: "Windows",
+    )
+
+    tool_call = ParsedToolCall(
+        tool_name="mouse_control",
+        parameters={"action": "click", "x": 1000, "y": 600},
+        raw_call="{}",
+    )
+    resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
+
+    normalize_manual_coordinates(
+        resolved_call=resolved_call,
+        session=session,
+        context_id="manual-scale",
+    )
+
+    assert resolved_call.parameters["x"] == 500
+    assert resolved_call.parameters["y"] == 300
+    assert resolved_call.metadata["coordinate_resolution_screenshot_id"] == "deadbeef"
+    contract = resolved_call.metadata["coordinate_contract"]
+    assert contract["coordinate_space"] == "screenshot_px"
+    assert contract["source_image_size"] == {"width": screenshot_w, "height": screenshot_h}
+    assert contract["target_display_size"] == {"width": screen_w, "height": screen_h}
+    assert contract["normalization_status"] == "scaled_to_display"
+
+
+def test_normalize_manual_coordinates_scales_float_inputs(monkeypatch):
+    screenshot_w, screenshot_h = 3840, 2160
+    screen_w, screen_h = 1920, 1080
+    session, _ = _create_session_and_manager(
+        screenshot_w,
+        screenshot_h,
+        f"{screen_w}x{screen_h}",
+    )
+    monkeypatch.setattr(
+        "backend.src.agent.tools.preparation.helpers.preparation_helper.platform.system",
+        lambda: "Windows",
+    )
+
+    tool_call = ParsedToolCall(
+        tool_name="mouse_control",
+        parameters={"action": "click", "x": 1000.0, "y": 600.0},
+        raw_call="{}",
+    )
+    resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
+
+    normalize_manual_coordinates(
+        resolved_call=resolved_call,
+        session=session,
+        context_id="manual-float-scale",
+    )
+
+    assert resolved_call.parameters["x"] == 500
+    assert resolved_call.parameters["y"] == 300
+    assert resolved_call.metadata["coordinate_resolution_screenshot_id"] == "deadbeef"
+    contract = resolved_call.metadata["coordinate_contract"]
+    assert contract["source_coordinates"] == {"x": 1000, "y": 600}
+    assert contract["source_image_size"] == {"width": screenshot_w, "height": screenshot_h}
+    assert contract["target_display_size"] == {"width": screen_w, "height": screen_h}
+    assert contract["normalization_status"] == "scaled_to_display"
+
+
+def test_normalize_manual_coordinates_skips_without_screenshot(monkeypatch):
+    screenshot_w, screenshot_h = 3840, 2160
+    session, _ = _create_session_and_manager(
+        screenshot_w,
+        screenshot_h,
+        "1920x1080",
+    )
+    session._screenshot_b64 = None
+    session._screenshot_id = None
+    monkeypatch.setattr(
+        "backend.src.agent.tools.preparation.helpers.preparation_helper.platform.system",
+        lambda: "Windows",
+    )
+
+    tool_call = ParsedToolCall(
+        tool_name="mouse_control",
+        parameters={"action": "click", "x": 700, "y": 300},
+        raw_call="{}",
+    )
+    resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
+
+    normalize_manual_coordinates(
+        resolved_call=resolved_call,
+        session=session,
+        context_id="manual-no-screenshot",
+    )
+
+    assert resolved_call.parameters["x"] == 700
+    assert resolved_call.parameters["y"] == 300
+    assert not resolved_call.metadata or "coordinate_contract" not in resolved_call.metadata

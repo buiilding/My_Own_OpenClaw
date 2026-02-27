@@ -7,6 +7,9 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- chore(dev-tool-selection): enable `mouse_control` `prediction` coordinate method in `backend/dev/tool_selection.toml` so non-text targets can use vision grounding during dev allowlist runs.
+- fix(backend-coordinate-normalization): apply screenshot-to-display coordinate normalization to manual `mouse_control` calls during tool preparation (best-effort when screenshot is available), reusing OCR/prediction contract metadata and stale-screen linkage for improved HiDPI click accuracy.
+- fix(backend-coordinate-normalization): normalize manual numeric coordinates when `x/y` arrive as floats (for example `1000.0`) by coercing to integer pixels and running the same screenshot-to-display contract path used for integer manual inputs.
 - docs(sidecar-browser-extraction-runtime): add dedicated deep reference for `browser_runtime_extraction.py` provider/model/api-key/base-url resolution and adapter mapping contracts, and wire browser hub/runtime-provider docs to the new module ownership and test surface.
 - docs(frontend-main-ipc-memory-tool-args): add deep references for main-process `memory-store` persistence helper (`ipc_memory_store_persistence.cjs`) and local-backend tool-arg sudo-mode normalization helper (`local_backend_bridge_tool_args.cjs`), and wire main/contract/local-backend docs hubs to those ownership boundaries.
 - refactor(sidecar-memory-window-runtime): extract transcript-window query runtime (next message index, transcript window fetch with cursor, unsemanticized window listing, and by-conversation unsemanticized fetch) from `memory/local_store.py` into `memory/conversation_window_runtime.py`, keep local-store compatibility wrappers, add focused window-runtime regressions, and sync transcript-window/storage docs.

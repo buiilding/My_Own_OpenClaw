@@ -16,7 +16,9 @@ from typing import TYPE_CHECKING, Callable, List, Optional, Tuple
 from backend.src.agent.tools.preparation.coordinate_resolution import CoordinateResolver
 from backend.src.agent.tools.preparation.helpers.preparation_helper import (
     attach_coordinate_method_metadata,
+    normalize_manual_coordinates,
     resolve_tool_with_coordinates,
+    tool_call_has_manual_coordinates,
     tool_call_needs_coordinate_resolution,
 )
 from backend.src.agent.tools.preparation.helpers.vision_service_provider import (
@@ -124,6 +126,20 @@ class ToolPreparer:
             context_id,
         )
 
+    @staticmethod
+    def _normalize_manual_coordinates_for_call(
+        *,
+        resolved_call: ResolvedToolCall,
+        session: "AgentSession",
+        context_id: str,
+    ) -> None:
+        """Normalize manual mouse coordinates when screenshot/display spaces differ."""
+        normalize_manual_coordinates(
+            resolved_call=resolved_call,
+            session=session,
+            context_id=context_id,
+        )
+
     async def _prepare_bundle(
         self,
         tool_calls: List[ParsedToolCall],
@@ -161,6 +177,20 @@ class ToolPreparer:
                     )
                     errors.append((tool_call, str(exc)))
                     break
+            elif self._has_manual_coordinates(tool_call):
+                try:
+                    self._normalize_manual_coordinates_for_call(
+                        resolved_call=resolved_call,
+                        session=session,
+                        context_id=bundle_id,
+                    )
+                except Exception as exc:
+                    logger.warning(
+                        "[bundle_id=%s] Manual coordinate normalization failed for %s: %s",
+                        short_id(bundle_id),
+                        tool_call.tool_name,
+                        exc,
+                    )
 
             resolved_calls.append(resolved_call)
 
@@ -214,6 +244,20 @@ class ToolPreparer:
                     resolved_calls=[],
                     errors=[(tool_call, str(exc))],
                 )
+        elif self._has_manual_coordinates(tool_call):
+            try:
+                self._normalize_manual_coordinates_for_call(
+                    resolved_call=resolved_call,
+                    session=session,
+                    context_id=request_id,
+                )
+            except Exception as exc:
+                logger.warning(
+                    "[request_id=%s] Manual coordinate normalization failed for %s: %s",
+                    short_id(request_id),
+                    tool_call.tool_name,
+                    exc,
+                )
 
         self._register_resolved_call(session, request_id, resolved_call)
         return PreparationResult(
@@ -233,3 +277,8 @@ class ToolPreparer:
     def _needs_coordinate_resolution(self, tool_call: ParsedToolCall) -> bool:
         """Check if the tool call requires coordinate resolution."""
         return tool_call_needs_coordinate_resolution(tool_call)
+
+    @staticmethod
+    def _has_manual_coordinates(tool_call: ParsedToolCall) -> bool:
+        """Return whether this mouse call contains manual x/y coordinates."""
+        return tool_call_has_manual_coordinates(tool_call)
