@@ -155,7 +155,7 @@ Handlers in `overlay_ipc_runtime.cjs` (wired by `index.cjs`):
 - uses fixed overlay dimensions (no renderer-driven live resize IPC)
 - keeps preview lane always mounted and toggles animated visibility on image attach/remove
 - uses deterministic class-based layout states: compact default pill (`64px` shell / `56px` pill) and fixed expanded `with-preview` pill while image attachments exist
-- sets overlay click-through (`SET_OVERLAY_IGNORE_MOUSE`) by stream/overlay phases
+- keeps overlay interactive by default; click-through is toggled only during explicit interactive computer-use tool execution surface prep
 - listens for `chatbox-focus` to force input focus
 - sends `MOVE_CHATBOX_TO` while dragging
 

@@ -25,9 +25,6 @@ import {
 } from './ChatBoxIcons';
 import ChatBoxImagePreviewRow from './ChatBoxImagePreviewRow';
 
-const CLICK_THROUGH_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
-const OVERLAY_ACTIVE_PHASES = new Set(['awaiting-first-chunk', 'streaming']);
-const OVERLAY_TERMINAL_PHASES = new Set(['idle', 'complete', 'error']);
 const LOOP_ACTIVE_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
 
 function isDragBlockedTarget(target) {
@@ -118,14 +115,6 @@ function ChatBox() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [focusInput]);
-
-  useEffect(() => {
-    const overlayIsTerminal = OVERLAY_TERMINAL_PHASES.has(overlayPhase);
-    const shouldIgnore = !overlayIsTerminal && (
-      OVERLAY_ACTIVE_PHASES.has(overlayPhase) || CLICK_THROUGH_PHASES.has(streamPhase)
-    );
-    void setOverlayIgnore(shouldIgnore);
-  }, [overlayPhase, setOverlayIgnore, streamPhase]);
 
   useEffect(() => {
     return subscribeResponseOverlayPhase(setOverlayPhase);

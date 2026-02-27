@@ -69,27 +69,14 @@ Dashboard handoff affordance:
 
 State inputs:
 
-- `streamPhase` from chat store
-- `overlayPhase` from `response-overlay-phase` channel
-
-Constants:
-
-- click-through candidate phases:
-  - `awaiting-first-chunk`
-  - `streaming`
-  - `tool-call`
-  - `tool-output`
-- terminal phases:
-  - `idle`
-  - `complete`
-  - `error`
+- explicit interactive computer-use surface prep (`toolRunnerSurface`)
 
 Behavior:
 
-- component invokes `set-overlay-ignore-mouse` with dedupe ref guard
-- non-terminal active phases set ignore to `true`
-- terminal/idle states set ignore to `false`
-- cleanup restores interactive mode (`ignore=false`)
+- chatbox renderer defaults overlay to interactive (`ignore=false`) and keeps input-focus behavior
+- click-through is enabled only around interactive computer-use tool execution (`mouse_control`/`keyboard_control`/`scroll_control`) via `set-overlay-ignore-mouse(true)` in tool-surface prep
+- click-through is restored immediately after that tool surface completes (`set-overlay-ignore-mouse(false)`)
+- normal token streaming / waiting-for-tool-call phases do not force click-through
 
 ## Focus Contract
 
