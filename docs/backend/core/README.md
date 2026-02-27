@@ -2,7 +2,7 @@
 summary: "Backend core-infrastructure docs sub-hub for EventBus internals, cache primitives, and cross-cutting core runtime behavior."
 read_when:
   - When changing `backend/src/core/infrastructure/*` or wiring new cross-cutting backend runtime primitives.
-  - When debugging event dispatch ordering, handler-lifecycle leaks, or cache behavior under concurrent load.
+  - When debugging event dispatch ordering, handler-lifecycle leaks, cache behavior under concurrent load, or cross-domain exception metadata drift.
 title: "Backend Core Infrastructure Docs Hub"
 ---
 
@@ -11,6 +11,7 @@ title: "Backend Core Infrastructure Docs Hub"
 ## Deep Pages
 
 - [Event Bus and Cache Infrastructure Reference](event_bus_and_cache_infrastructure_reference.md)
+- [Exception Hierarchy and Metadata Propagation Reference](exception_hierarchy_and_metadata_propagation_reference.md)
 - [Core Observability Docs Hub](observability/README.md)
 - [Trust-Boundary Metrics and Enforcement Reference](observability/trust_boundary_metrics_and_enforcement_reference.md)
 - [Core Validation Docs Hub](validation/README.md)
@@ -30,6 +31,7 @@ title: "Backend Core Infrastructure Docs Hub"
 ## Code Scope
 
 - `backend/src/core/infrastructure/*`
+- `backend/src/core/infrastructure/error_types/*.py`
 - `backend/src/core/events/*`
 - `backend/src/core/observability/*`
 - `backend/src/core/validation/*`
