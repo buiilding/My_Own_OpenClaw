@@ -53,6 +53,16 @@ def test_extract_non_empty_chunk_text_accepts_payload_text_fallback():
         )
         == ""
     )
+    assert (
+        extract_non_empty_chunk_text(
+            {
+                "type": "streaming-response",
+                "content": "   ",
+                "payload": {"text": "payload chunk"},
+            },
+        )
+        == "payload chunk"
+    )
 
 
 def test_extract_dict_payload_and_string_field_helpers():
@@ -83,6 +93,13 @@ def test_extract_dict_payload_and_string_field_helpers():
             payload_key="text",
         )
         is None
+    )
+    assert (
+        extract_dict_string_field(
+            {"content": "   ", "payload": {"content": "payload-non-empty"}},
+            top_level_key="content",
+        )
+        == "payload-non-empty"
     )
 
 
@@ -125,6 +142,17 @@ def test_extract_streaming_complete_text_supports_payload_and_top_level():
             event_type="streaming-complete",
         )
         == "top level done"
+    )
+    assert (
+        extract_streaming_complete_text(
+            {
+                "type": "streaming-complete",
+                "final_response": "   ",
+                "payload": {"final_response": "payload fallback"},
+            },
+            event_type="streaming-complete",
+        )
+        == "payload fallback"
     )
 
 
