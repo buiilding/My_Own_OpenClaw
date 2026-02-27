@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-chatbox-top-clearance): loosen minimal non-dashboard chat-pill top cropping by adding input-shell-only top headroom (`chatbox-shell`/`chatbox-pill`/preview-row top padding), keeping bottom-edge lock behavior unchanged.
 - fix(frontend-chatbox-bottom-visual-lock): pin minimal non-dashboard chat-pill container to window bottom (`chatbox-input-shell-wrap`) so any compositor/rounding slack in overlay height cannot visually shift the pill’s bottom border during image/preview expansion; also anchor resize payload to `outerHeight`-based screen bottom.
 - fix(frontend-chatbox-resize-anchor-hard-lock): send explicit `anchor_bottom`/`anchor_x` from renderer on each minimal chat-pill resize IPC and prioritize those anchors in main resize handling, guaranteeing bottom-edge lock while preview/image rows expand upward; add handler+renderer regression coverage.
 - fix(frontend-chatbox-resize-anchor-applied-bounds): when resizing minimal non-dashboard chat-pill, persist anchor from the window manager’s applied bounds after `setBounds` (not only requested bounds) so compositor-adjusted geometry cannot reintroduce bottom-edge drift; add regression coverage.
