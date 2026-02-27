@@ -44,6 +44,28 @@ async def test_parse_json_payload_offloads_when_size_meets_threshold():
 
 
 @pytest.mark.asyncio
+async def test_parse_json_payload_offload_threshold_uses_utf8_byte_size() -> None:
+    payload = json.dumps({"text": "🙂" * 24}, ensure_ascii=False)
+    threshold = len(payload) + 1
+    assert len(payload.encode("utf-8")) > threshold > len(payload)
+    called = {"executor": False}
+
+    class FakeLoop:
+        async def run_in_executor(self, executor, fn, data):
+            called["executor"] = True
+            return fn(data)
+
+    result = await json_parse_module.parse_json_payload(
+        payload,
+        offload_threshold_bytes=threshold,
+        loop_getter=lambda: FakeLoop(),
+    )
+
+    assert result == {"text": "🙂" * 24}
+    assert called["executor"] is True
+
+
+@pytest.mark.asyncio
 async def test_parse_json_payload_offload_uses_json_loads_function():
     payload = json.dumps({"x": 1})
 

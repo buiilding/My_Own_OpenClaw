@@ -31,7 +31,7 @@ async def parse_json_payload(
     Small payloads are parsed inline to avoid thread-pool scheduling overhead.
     Large payloads are offloaded to avoid blocking the event loop.
     """
-    if len(data) >= offload_threshold_bytes:
+    if len(data.encode("utf-8")) >= offload_threshold_bytes:
         loop = loop_getter()
         return await loop.run_in_executor(None, json.loads, data)
     return json.loads(data)
