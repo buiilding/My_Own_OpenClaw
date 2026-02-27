@@ -176,6 +176,10 @@ describe('ChatBox overlay mouse ignore', () => {
       jest.advanceTimersByTime(45);
       await Promise.resolve();
     });
+    await act(async () => {
+      jest.advanceTimersByTime(140);
+      await Promise.resolve();
+    });
 
     expectInvokeCall(
       ([channel, payload]) =>
@@ -336,6 +340,52 @@ describe('ChatBox overlay mouse ignore', () => {
       global.ResizeObserver = originalResizeObserver;
       jest.useRealTimers();
     }
+  });
+
+  test('runs delayed settle sync timers in preview mode to capture late height growth', async () => {
+    jest.useFakeTimers();
+    const rafQueue = [];
+    global.requestAnimationFrame = (cb) => {
+      rafQueue.push(cb);
+      return rafQueue.length;
+    };
+    global.cancelAnimationFrame = jest.fn();
+    const flushResizeSync = async () => {
+      await act(async () => {
+        rafQueue.splice(0).forEach((cb) => cb());
+        jest.advanceTimersByTime(45);
+        await Promise.resolve();
+      });
+    };
+    const resizeHeights = () => mockInvoke.mock.calls
+      .filter(([channel]) => channel === 'set-chatbox-size')
+      .map(([, payload]) => payload?.height);
+    let measuredFrame = { width: 200, height: 52 };
+    mockGetRoundedFrameSize.mockImplementation(() => measuredFrame);
+
+    render(<ChatBox />);
+    await flushResizeSync();
+    await act(async () => {
+      jest.advanceTimersByTime(140);
+      await Promise.resolve();
+    });
+    expect(resizeHeights().at(-1)).toBe(52);
+
+    measuredFrame = { width: 200, height: 88 };
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+      await Promise.resolve();
+    });
+    await flushResizeSync();
+    expect(resizeHeights().at(-1)).toBe(88 + WITH_PREVIEW_TOP_HEADROOM_PX);
+
+    measuredFrame = { width: 200, height: 120 };
+    await act(async () => {
+      jest.advanceTimersByTime(100);
+      await Promise.resolve();
+    });
+    expect(resizeHeights().at(-1)).toBe(120 + WITH_PREVIEW_TOP_HEADROOM_PX);
+    jest.useRealTimers();
   });
 
   test('uses shell scrollHeight when it exceeds rounded frame height in preview mode', async () => {

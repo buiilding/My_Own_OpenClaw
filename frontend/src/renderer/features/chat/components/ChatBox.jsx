@@ -27,6 +27,8 @@ const CHATBOX_SIZE_MODES = Object.freeze({
 const RESIZE_TRANSITION_LOCK_MS = 240;
 const RESIZE_DEBOUNCE_MS = 40;
 const WITH_PREVIEW_TOP_HEADROOM_PX = 14;
+const STARTUP_LAYOUT_READY_MIN_DELAY_MS = 120;
+const PREVIEW_SETTLE_SYNC_DELAYS_MS = Object.freeze([90, 180]);
 
 function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -138,8 +140,11 @@ function ChatBox() {
   const resizeSyncRef = useRef({
     frameHandle: null,
     debounceHandle: null,
+    settleSyncHandles: [],
     inFlight: false,
     queuedSize: null,
+    layoutReadyTimer: null,
+    mountedAtMs: Date.now(),
     transitionLockUntil: 0,
     activeMode: CHATBOX_SIZE_MODES.COMPACT,
     cachedModeHeights: {
@@ -235,8 +240,27 @@ function ChatBox() {
     const cancelFrame = typeof window.cancelAnimationFrame === 'function'
       ? window.cancelAnimationFrame.bind(window)
       : (handle) => window.clearTimeout(handle);
+    const clearSettleSyncHandles = () => {
+      const handles = Array.isArray(resizeSyncState.settleSyncHandles)
+        ? resizeSyncState.settleSyncHandles
+        : [];
+      handles.forEach((handle) => window.clearTimeout(handle));
+      resizeSyncState.settleSyncHandles = [];
+    };
     const markLayoutReady = () => {
       if (layoutPendingClearedRef.current) {
+        return;
+      }
+      const mountedAtMs = Number(resizeSyncState.mountedAtMs || Date.now());
+      const elapsedMs = Math.max(0, Date.now() - mountedAtMs);
+      if (elapsedMs < STARTUP_LAYOUT_READY_MIN_DELAY_MS) {
+        if (resizeSyncState.layoutReadyTimer) {
+          window.clearTimeout(resizeSyncState.layoutReadyTimer);
+        }
+        resizeSyncState.layoutReadyTimer = window.setTimeout(
+          markLayoutReady,
+          STARTUP_LAYOUT_READY_MIN_DELAY_MS - elapsedMs,
+        );
         return;
       }
       layoutPendingClearedRef.current = true;
@@ -369,6 +393,11 @@ function ChatBox() {
         window.clearTimeout(resizeSyncState.debounceHandle);
         resizeSyncState.debounceHandle = null;
       }
+      if (resizeSyncState.layoutReadyTimer) {
+        window.clearTimeout(resizeSyncState.layoutReadyTimer);
+        resizeSyncState.layoutReadyTimer = null;
+      }
+      clearSettleSyncHandles();
       resizeSyncState.queuedSize = null;
       resizeSyncState.inFlight = false;
       resizeSyncState.scheduleSizeSync = null;
@@ -377,13 +406,27 @@ function ChatBox() {
 
   useEffect(() => {
     const resizeSyncState = resizeSyncRef.current;
+    const clearSettleSyncHandles = () => {
+      const handles = Array.isArray(resizeSyncState.settleSyncHandles)
+        ? resizeSyncState.settleSyncHandles
+        : [];
+      handles.forEach((handle) => window.clearTimeout(handle));
+      resizeSyncState.settleSyncHandles = [];
+    };
     resizeSyncState.activeMode = activeResizeMode;
     resizeSyncState.queuedSize = null;
     resizeSyncState.transitionLockUntil = activeResizeMode === CHATBOX_SIZE_MODES.COMPACT
       ? Date.now() + RESIZE_TRANSITION_LOCK_MS
       : 0;
+    clearSettleSyncHandles();
     resizeSyncState.scheduleSizeSync?.({ force: true, immediate: true });
     resizeSyncState.scheduleSizeSync?.();
+    const settleDelays = activeResizeMode === CHATBOX_SIZE_MODES.WITH_PREVIEW
+      ? PREVIEW_SETTLE_SYNC_DELAYS_MS
+      : [STARTUP_LAYOUT_READY_MIN_DELAY_MS];
+    resizeSyncState.settleSyncHandles = settleDelays.map((delayMs) => window.setTimeout(() => {
+      resizeSyncState.scheduleSizeSync?.({ force: true, immediate: true });
+    }, delayMs));
   }, [activeResizeMode]);
 
   useEffect(() => {
