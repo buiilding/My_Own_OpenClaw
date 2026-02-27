@@ -16,6 +16,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc_query_broadcast.cjs`
 - `frontend/src/main/ipc_query_events.cjs`
 - `frontend/src/main/ipc_settings_sync.cjs`
+- `frontend/src/main/ipc_memory_store_persistence.cjs`
 
 ## Split Ownership Model
 
@@ -75,6 +76,16 @@ Owns settings ACK gate primitives used by `ipc.cjs`:
 - `resolveSettingsSync`
 - `clearPendingSettingsSyncs`
 
+### `ipc_memory_store_persistence.cjs`
+
+Owns backend `memory-store` event side effect persistence:
+
+- payload-first mapping into `storeMemory(...)` shape
+- identity/session fallback (`payload` -> envelope `session_id` -> `conversation_ref`)
+- fail-open async write (`void ...catch`) with debug log on rejection
+
+This isolates persistence to main process once per backend event before renderer fan-out.
+
 ## Delegation Flow in `ipc.cjs`
 
 1. register/broadcast wiring delegates to `ipc_renderer_windows.cjs`.
@@ -96,3 +107,4 @@ Owns settings ACK gate primitives used by `ipc.cjs`:
 - [Electron Main and IPC](electron_main_and_ipc.md)
 - [Query Payload and Relay Reference](query_payload_and_relay_reference.md)
 - [WebSocket Handshake and Settings Sync Reference](websocket_handshake_and_settings_sync_reference.md)
+- [IPC Memory-Store Event Persistence Payload Fallback and Fail-Open Logging Contract Reference](ipc_memory_store_event_persistence_payload_fallback_and_fail_open_logging_contract_reference.md)

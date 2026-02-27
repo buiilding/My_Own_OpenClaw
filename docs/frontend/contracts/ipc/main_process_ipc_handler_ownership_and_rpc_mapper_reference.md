@@ -16,12 +16,14 @@ title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 - `frontend/src/main/ipc_renderer_windows.cjs`
 - `frontend/src/main/ipc_query_broadcast.cjs`
 - `frontend/src/main/ipc_query_events.cjs`
+- `frontend/src/main/ipc_memory_store_persistence.cjs`
 - `frontend/src/main/index.cjs`
 - `frontend/src/main/overlay_ipc_runtime.cjs`
 - `frontend/src/main/window_visibility_runtime.cjs`
 - `frontend/src/main/main_process_lifecycle_runtime.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
+- `frontend/src/main/local_backend_bridge_tool_args.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
 - `frontend/src/main/ipc_frontend_config.cjs`
 - `frontend/src/main/permission_service.cjs`
@@ -62,6 +64,7 @@ Notable behavior:
   - inbound backend message normalization/state/phase fan-out: `ipc_runtime_helpers.cjs`
   - renderer-window registration and broadcast fan-out: `ipc_renderer_windows.cjs`
   - synthetic local user/failure query event broadcast: `ipc_query_broadcast.cjs` with envelope builders from `ipc_query_events.cjs`
+  - main-process `memory-store` event persistence side effect: `ipc_memory_store_persistence.cjs`
 
 ### `overlay_ipc_runtime.cjs` (invoked from `index.cjs`)
 
@@ -128,6 +131,7 @@ Mapped `ipcMain.handle` registrations via `registerMappedRpcHandlers(...)`:
 Notable behavior:
 
 - `execute-tool` sets extended timeout for `browser` tool (120s vs default 30s)
+- `execute-tool` args are normalized by `resolveToolArgs(...)` before JSON-RPC dispatch, including `run_shell_command` `sudo_auth_mode` derivation from frontend config (`native` vs `os_prompt`)
 - `screenshot` tool path uses hidden-window guard wrapper
 - all mapped handlers call `sendRequestOrError(...)` and return normalized error payloads
 

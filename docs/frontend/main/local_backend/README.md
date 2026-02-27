@@ -12,6 +12,7 @@ title: "Frontend Main Local-Backend Docs Hub"
 
 - [Local-Backend Process Lifecycle, Readiness, and Request-Correlation Reference](process_lifecycle_readiness_and_request_correlation_reference.md)
 - [Local-Backend RPC Handler Registry and Payload-Mapper Reference](rpc_handler_registry_and_payload_mapper_reference.md)
+- [Tool Arg Sudo-Auth Mode Resolution and Config-Guard Contract Reference](tool_arg_sudo_auth_mode_resolution_and_config_guard_contract_reference.md)
 - [Local-Backend Windows Docs Hub](windows/README.md)
 - [Window Resolver Shapes and Linux Screenshot Hide/Restore Orchestration Reference](windows/window_resolver_shapes_and_linux_screenshot_hide_restore_orchestration_reference.md)
 
@@ -25,9 +26,11 @@ title: "Frontend Main Local-Backend Docs Hub"
 
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
+- `frontend/src/main/local_backend_bridge_tool_args.cjs`
 - `frontend/src/main/local_backend_bridge_windows.cjs`
 - `frontend/src/main/local_backend_bridge_utils.cjs`
 - `frontend/src/main/runtime_paths.cjs`
 - `frontend/src/main/backend_endpoints.cjs`
 - `tests/frontend/LocalBackendBridge.lifecycle.test.cjs`
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`
+- `tests/frontend/LocalBackendBridgeToolArgs.test.cjs`

@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-main-ipc-memory-tool-args): add deep references for main-process `memory-store` persistence helper (`ipc_memory_store_persistence.cjs`) and local-backend tool-arg sudo-mode normalization helper (`local_backend_bridge_tool_args.cjs`), and wire main/contract/local-backend docs hubs to those ownership boundaries.
 - docs(sidecar-memory-title-heuristics-links): wire sidecar memory hub/storage/title docs to the new heuristic title derivation deep reference and include `memory/conversation_titles.py` in documented code-scope ownership.
 - docs(sidecar-memory-title-heuristics): add dedicated deep reference for `memory/conversation_titles.py` heuristic title derivation contract (sanitization order, smalltalk filtering, truncation/fallback limits), and wire cross-links/code-scope coverage across sidecar memory storage/title docs.
 - refactor(sidecar-memory-search-runtime-flow): move transcript search orchestration (query-length guard, lexical/semantic fetch, grouped-hit short-circuit, summary fetch, and ranked row assembly call) from `LocalMemoryStore.search_conversations(...)` into `conversation_search_runtime.search_transcript_conversations(...)`, with new runtime orchestration regressions and docs sync.
