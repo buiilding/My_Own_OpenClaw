@@ -3,6 +3,7 @@ Transport Sender Implementation.
 
 Abstract base class and WebSocket implementation for transport senders.
 """
+from copy import deepcopy
 from abc import ABC, abstractmethod
 from typing import Any, Dict
 
@@ -60,5 +61,5 @@ class WebSocketTransportSender(TransportSender):
             RuntimeError: If connection error occurs
             ConnectionError: If connection error occurs
         """
-        # Protocol implementations raise these on disconnection
-        await self.websocket.send_json(message)
+        # Isolate transport payload from caller-side mutation.
+        await self.websocket.send_json(deepcopy(message))
