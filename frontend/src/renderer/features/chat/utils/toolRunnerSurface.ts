@@ -8,11 +8,11 @@ const INTERACTIVE_COMPUTER_TOOL_NAMES = new Set([
   'type',
   'scroll',
 ]);
-const SCREENSHOT_TOOL_NAMES = new Set(['screenshot']);
+const CAPTURE_ONLY_COMPUTER_TOOL_NAMES = new Set(['screenshot', 'switch_tab', 'wait']);
 const INTERACTIVE_BROWSER_ACTIONS = new Set(['click', 'type', 'scroll']);
-const SCREENSHOT_BROWSER_ACTIONS = new Set(['screenshot']);
-const EXCLUDED_COMPUTER_ACTION_NAMES = new Set(['switch_tab']);
+const CAPTURE_ONLY_BROWSER_ACTIONS = new Set(['screenshot', 'switch', 'switch_tab']);
 const TOOL_FOCUS_PREPARE_WAIT_MS = 180;
+const OVERLAY_SURFACE_PREPARE_EXCEPTION = 'overlay_surface_prepare_exception';
 
 type ToolSurfaceMode = 'none' | 'interactive' | 'screenshot';
 
@@ -20,7 +20,29 @@ type ToolSurfacePreparation = {
   restoreChatPillAfterExecution: boolean;
   canExecute: boolean;
   failureReason: string | null;
+  surfaceToken: number | null;
 };
+
+let nextSurfaceToken = 1;
+const activeSurfaceTokens = new Set<number>();
+
+function registerSurfaceToken(): number {
+  const token = nextSurfaceToken;
+  nextSurfaceToken += 1;
+  activeSurfaceTokens.add(token);
+  return token;
+}
+
+function releaseSurfaceToken(surfaceToken: number | null): boolean {
+  if (typeof surfaceToken !== 'number') {
+    return false;
+  }
+  if (!activeSurfaceTokens.has(surfaceToken)) {
+    return false;
+  }
+  activeSurfaceTokens.delete(surfaceToken);
+  return activeSurfaceTokens.size === 0;
+}
 
 export function shouldSkipToolExecution(metadata: Record<string, unknown> | undefined): boolean {
   if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) {
@@ -56,10 +78,10 @@ function resolveToolSurfaceMode(
   args: Record<string, unknown> | undefined,
 ): ToolSurfaceMode {
   const normalizedToolName = normalizeActionName(toolName);
-  if (!normalizedToolName || EXCLUDED_COMPUTER_ACTION_NAMES.has(normalizedToolName)) {
+  if (!normalizedToolName) {
     return 'none';
   }
-  if (SCREENSHOT_TOOL_NAMES.has(normalizedToolName)) {
+  if (CAPTURE_ONLY_COMPUTER_TOOL_NAMES.has(normalizedToolName)) {
     return 'screenshot';
   }
   if (INTERACTIVE_COMPUTER_TOOL_NAMES.has(normalizedToolName)) {
@@ -69,10 +91,10 @@ function resolveToolSurfaceMode(
     return 'none';
   }
   const normalizedAction = normalizeActionName(args?.action);
-  if (!normalizedAction || EXCLUDED_COMPUTER_ACTION_NAMES.has(normalizedAction)) {
+  if (!normalizedAction) {
     return 'none';
   }
-  if (SCREENSHOT_BROWSER_ACTIONS.has(normalizedAction)) {
+  if (CAPTURE_ONLY_BROWSER_ACTIONS.has(normalizedAction)) {
     return 'screenshot';
   }
   if (INTERACTIVE_BROWSER_ACTIONS.has(normalizedAction)) {
@@ -105,14 +127,19 @@ export async function prepareToolExecutionSurface(
       restoreChatPillAfterExecution: false,
       canExecute: true,
       failureReason: null,
+      surfaceToken: null,
     };
   }
-  let restoreChatPillAfterExecution = false;
+  let surfaceToken: number | null = null;
+  const surfaceAlreadyPrepared = activeSurfaceTokens.size > 0;
   try {
-    if (mode === 'interactive') {
+    if (!surfaceAlreadyPrepared) {
       await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false });
       await IpcBridge.invoke(INVOKE_CHANNELS.HIDE_CHATBOX);
-      restoreChatPillAfterExecution = true;
+    }
+    surfaceToken = registerSurfaceToken();
+
+    if (mode === 'interactive') {
       const focusPreparation = await IpcBridge.invoke(INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
         waitMs: TOOL_FOCUS_PREPARE_WAIT_MS,
       });
@@ -120,39 +147,42 @@ export async function prepareToolExecutionSurface(
       const externalFocusActive = focusPreparation?.data?.externalFocusActive === true;
       if (focusPreparation?.success === false) {
         return {
-          restoreChatPillAfterExecution,
+          restoreChatPillAfterExecution: true,
           canExecute: false,
           failureReason: typeof focusPreparation?.reason === 'string'
             ? focusPreparation.reason
             : 'overlay_focus_prepare_failed',
+          surfaceToken,
         };
       }
       if (canVerifyExternalFocus && !externalFocusActive) {
         return {
-          restoreChatPillAfterExecution,
+          restoreChatPillAfterExecution: true,
           canExecute: false,
           failureReason: 'external_window_focus_not_verified',
+          surfaceToken,
         };
       }
       return {
-        restoreChatPillAfterExecution,
+        restoreChatPillAfterExecution: true,
         canExecute: true,
         failureReason: null,
+        surfaceToken,
       };
     }
-    await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false });
-    await IpcBridge.invoke(INVOKE_CHANNELS.HIDE_CHATBOX);
     return {
       restoreChatPillAfterExecution: true,
       canExecute: true,
       failureReason: null,
+      surfaceToken,
     };
   } catch (error) {
     console.warn('[useToolRunner] Failed to prepare tool execution surface:', error);
     return {
-      restoreChatPillAfterExecution,
+      restoreChatPillAfterExecution: surfaceToken !== null,
       canExecute: false,
-      failureReason: 'overlay_surface_prepare_exception',
+      failureReason: OVERLAY_SURFACE_PREPARE_EXCEPTION,
+      surfaceToken,
     };
   }
 }
@@ -160,7 +190,11 @@ export async function prepareToolExecutionSurface(
 export async function restoreToolExecutionSurface(
   preparation: ToolSurfacePreparation,
 ): Promise<void> {
-  if (!preparation.restoreChatPillAfterExecution) {
+  if (!preparation.restoreChatPillAfterExecution || typeof preparation.surfaceToken !== 'number') {
+    return;
+  }
+  const shouldRestoreChatPill = releaseSurfaceToken(preparation.surfaceToken);
+  if (!shouldRestoreChatPill) {
     return;
   }
   try {
@@ -176,4 +210,9 @@ export async function ensureToolExecutionSurface(
 ): Promise<ToolSurfacePreparation> {
   const mode = resolveToolSurfaceMode(toolName, args);
   return prepareToolExecutionSurface(mode);
+}
+
+export function __resetToolExecutionSurfaceStateForTests(): void {
+  activeSurfaceTokens.clear();
+  nextSurfaceToken = 1;
 }

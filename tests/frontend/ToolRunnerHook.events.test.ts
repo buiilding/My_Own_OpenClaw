@@ -132,7 +132,7 @@ describe('useToolRunner event handling', () => {
     expect(prepareCallOrder).toBeLessThan(executeCallOrder);
   });
 
-  test('does not force chat-pill handoff for switch_tab tool-call', async () => {
+  test('forces chat-pill handoff for switch_tab tool-call', async () => {
     renderToolRunner(true);
 
     await emitBackendEventAsync({
@@ -150,10 +150,13 @@ describe('useToolRunner event handling', () => {
       { tab_name: 'Editor' },
       { correlationId: 'req-switch-tab', skipAutoCapture: false },
     );
-    expect(IpcBridge.invoke).not.toHaveBeenCalledWith(
+    const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
+    expect(invokeCalls).toContainEqual([
       INVOKE_CHANNELS.SHOW_CHATBOX,
-      expect.anything(),
-    );
+      { focus: false },
+    ]);
+    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.HIDE_CHATBOX)).toBe(true);
+    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS)).toBe(false);
   });
 
 
@@ -216,6 +219,34 @@ describe('useToolRunner event handling', () => {
       INVOKE_CHANNELS.SHOW_CHATBOX,
       { focus: false },
     ]);
+  });
+
+  test('forces chat-pill handoff for switch_tab-only bundles without focus verification', async () => {
+    renderToolRunner(true);
+
+    await emitBackendEventAsync({
+      type: 'tool-bundle',
+      payload: {
+        bundle_id: 'bundle-switch-tab',
+        tools: [
+          { name: 'switch_tab', args: { tab_name: 'Editor' } },
+        ],
+      },
+    });
+
+    expect(mockExecuteToolBundle).toHaveBeenCalledWith(
+      [
+        { toolName: 'switch_tab', args: { tab_name: 'Editor' } },
+      ],
+      'bundle-switch-tab',
+    );
+    const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
+    expect(invokeCalls).toContainEqual([
+      INVOKE_CHANNELS.SHOW_CHATBOX,
+      { focus: false },
+    ]);
+    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.HIDE_CHATBOX)).toBe(true);
+    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS)).toBe(false);
   });
 
   test('uses generated bundle id when bundle_id is missing', async () => {
