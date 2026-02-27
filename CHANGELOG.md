@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-compaction-dashboard-flow): allow dashboard `Run auto compaction` while a stream is active and bypass conversation-mismatch event gating for `context-compaction-started|completed|failed` so resumed/past-thread manual compaction always shows lifecycle status updates.
 - chore(dev-tool-selection): remove `prediction` from backend dev `enabled_coordinate_methods` allowlist, leaving `manual` + `ocr` for local tool-selection runs.
 - fix(frontend-focus-tracking-handoff): capture previous external focused window during all chatbox show transitions (including `focus=false`) so switch-tab-to-interactive tool chains can restore/verify the external target window before mouse/keyboard actions; add `window_visibility_runtime` regressions for non-focusing and focusing paths.
 - fix(frontend-computer-use-focus-capture): make overlay focus verification capability-aware (avoid false `external_window_focus_not_verified` on unsupported platforms), enforce interactive click-through toggling during tool-surface execution, and run pre-capture focus handoff before screenshot/system-state sampling; add regressions for tracker capability reporting, tool-surface interactive behavior, and capture focus-prep IPC ordering.
