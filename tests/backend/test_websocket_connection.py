@@ -43,6 +43,12 @@ class DummyTaskManager:
         self.cleaned_user_ids.append(user_id)
 
 
+class FailingTaskManager(DummyTaskManager):
+    async def cleanup(self, user_id: str) -> None:
+        await super().cleanup(user_id)
+        raise RuntimeError("task cleanup failed")
+
+
 class DummySessionManager:
     def __init__(self, should_raise: bool = False):
         self.ended_user_ids = []
@@ -291,3 +297,14 @@ async def test_cleanup_connection_swallows_session_cleanup_errors() -> None:
 
     assert task_manager.cleaned_user_ids == ["user_456"]
     assert session_manager.ended_user_ids == ["user_456"]
+
+
+@pytest.mark.asyncio
+async def test_cleanup_connection_continues_to_session_cleanup_when_task_cleanup_fails() -> None:
+    task_manager = FailingTaskManager()
+    session_manager = DummySessionManager()
+
+    await cleanup_connection(task_manager, session_manager, "user_789")
+
+    assert task_manager.cleaned_user_ids == ["user_789"]
+    assert session_manager.ended_user_ids == ["user_789"]
