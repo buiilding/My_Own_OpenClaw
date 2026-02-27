@@ -17,6 +17,8 @@ Includes the last 300 commits on `main`.
 - docs(frontend-protocol-inventory): refresh IPC protocol matrix/validation counts (`invoke=33`, RPC mapper definitions=`10`), add missing invoke channel coverage (`delete-episodic-memory`, `prepare-overlay-tool-focus`), and wire `ipc_settings_sync` ownership across lifecycle/state/error/observability/testing protocol references.
 - docs(frontend-protocols): align protocol-surface and validation references with current IPC channel set and local-backend mapper registry, including current invoke-channel matrix ownership details.
 - docs(backend-protocols): refresh websocket protocol-surface and validation-boundary coverage snapshots to current backend contract state.
+- docs(backend-protocols): sync remaining backend protocol lifecycle/state/error/observability/compatibility/testing references to current snapshot timestamp.
+- docs(frontend-protocols): sync remaining frontend protocol lifecycle/state/error/observability/compatibility/testing references to current snapshot timestamp.
 - test(backend-provider-utils): add parser/normalizer regressions for completion text fallback, tool-only delta suppression, blank tool_call_id drops, and OpenAI function-argument shape normalization.
 - test(backend-stream-tool-aggregation): add Gemini + Kimi stream regression coverage for Anthropic `tool_use` block parsing, synthesized fallback tool-call ids, and argument-object precedence over fragmented string chunks.
 - refactor(frontend-chat-compose): extract shared clipboard-image parser utility (`clipboardImageUtils.parseClipboardImageItems`) and reuse it across dashboard `MessageInput` and overlay `ChatBox`, reducing duplicate file-reader/data-url parsing logic and aligning attachment payload normalization.
