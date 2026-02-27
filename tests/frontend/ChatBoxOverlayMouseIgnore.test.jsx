@@ -7,7 +7,6 @@ const mockInvoke = jest.fn(() => Promise.resolve({ success: true }));
 const mockSend = jest.fn();
 const mockListeners = new Map();
 const mockSendMessage = jest.fn();
-const mockGetRoundedFrameSize = jest.fn();
 const mockExtractOSstate = jest.fn();
 const mockUseChatMessageSender = jest.fn(() => ({
   sendMessage: mockSendMessage,
@@ -21,7 +20,6 @@ const mockUseVoiceMode = jest.fn(() => ({
 const mockUpdateConfig = jest.fn();
 const mockCompactHistory = jest.fn();
 const mockIsDevUiEnabled = jest.fn(() => false);
-const WITH_PREVIEW_TOP_HEADROOM_PX = 14;
 
 const setWindowScreenPosition = (x, y) => {
   Object.defineProperty(window, 'screenX', {
@@ -107,10 +105,6 @@ jest.mock('../../frontend/src/renderer/features/chat/utils/devUiFlag', () => ({
   isDevUiEnabled: () => mockIsDevUiEnabled(),
 }));
 
-jest.mock('../../frontend/src/renderer/features/chat/utils/overlayFrameSize', () => ({
-  getRoundedFrameSize: (...args) => mockGetRoundedFrameSize(...args),
-}));
-
 jest.mock('../../frontend/src/renderer/infrastructure/services/SystemCapture', () => ({
   extractOSstate: (...args) => mockExtractOSstate(...args),
 }));
@@ -127,8 +121,6 @@ describe('ChatBox overlay mouse ignore', () => {
     mockCompactHistory.mockClear();
     mockIsDevUiEnabled.mockReset();
     mockIsDevUiEnabled.mockReturnValue(false);
-    mockGetRoundedFrameSize.mockReset();
-    mockGetRoundedFrameSize.mockImplementation(() => ({ width: 200, height: 100 }));
     mockExtractOSstate.mockReset();
     mockExtractOSstate.mockResolvedValue({
       screenshot: 'ZmFrZS1zY3JlZW5zaG90',
@@ -142,297 +134,35 @@ describe('ChatBox overlay mouse ignore', () => {
     jest.useRealTimers();
   });
 
-  test('defaults to interactive overlay and requests window resize to match pill', async () => {
-    jest.useFakeTimers();
-    const rafQueue = [];
-    global.requestAnimationFrame = (cb) => {
-      rafQueue.push(cb);
-      return rafQueue.length;
-    };
-    global.cancelAnimationFrame = jest.fn();
-
-    const { container } = render(<ChatBox />);
+  test('defaults to interactive overlay without requesting live window resize', () => {
+    render(<ChatBox />);
 
     const sawInteractive = mockInvoke.mock.calls.some(
       ([channel, payload]) => channel === 'set-overlay-ignore-mouse' && payload?.ignore === false,
     );
     expect(sawInteractive).toBe(true);
-
-    const shell = container.querySelector('.chatbox-shell');
-    expect(shell).toBeTruthy();
-
-    shell.getBoundingClientRect = () => ({
-      left: 0,
-      top: 0,
-      right: 200,
-      bottom: 100,
-      width: 200,
-      height: 100,
-    });
-    mockGetRoundedFrameSize.mockReturnValue({ width: 200, height: 100 });
-
-    await act(async () => {
-      rafQueue.splice(0).forEach((cb) => cb());
-      jest.advanceTimersByTime(45);
-      await Promise.resolve();
-    });
-    await act(async () => {
-      jest.advanceTimersByTime(140);
-      await Promise.resolve();
-    });
-
-    expectInvokeCall(
-      ([channel, payload]) =>
-        channel === 'set-chatbox-size'
-        && payload?.width === 200
-        && payload?.height === 100
-        && Number.isFinite(payload?.anchor_bottom),
-    );
-    expect(container.querySelector('.chatbox-input-shell-wrap')?.classList.contains('is-layout-pending')).toBe(false);
-    jest.useRealTimers();
+    expect(mockInvoke.mock.calls.some(([channel]) => channel === 'set-chatbox-size')).toBe(false);
   });
 
-  test('reuses cached compact height when the last image preview is removed', async () => {
-    jest.useFakeTimers();
-    const rafQueue = [];
-    global.requestAnimationFrame = (cb) => {
-      rafQueue.push(cb);
-      return rafQueue.length;
-    };
-    global.cancelAnimationFrame = jest.fn();
-    const flushResizeSync = async () => {
-      await act(async () => {
-        rafQueue.splice(0).forEach((cb) => cb());
-        jest.advanceTimersByTime(45);
-        await Promise.resolve();
-      });
-    };
-    const resizeHeights = () => mockInvoke.mock.calls
-      .filter(([channel]) => channel === 'set-chatbox-size')
-      .map(([, payload]) => payload?.height);
-    let measuredFrame = { width: 200, height: 52 };
-    mockGetRoundedFrameSize.mockImplementation(() => measuredFrame);
-
-    render(<ChatBox />);
-    await flushResizeSync();
-    expect(resizeHeights().at(-1)).toBe(52);
-
-    measuredFrame = { width: 200, height: 112 };
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
-      await Promise.resolve();
-    });
-    await flushResizeSync();
-    expect(resizeHeights().at(-1)).toBe(112 + WITH_PREVIEW_TOP_HEADROOM_PX);
-
-    measuredFrame = { width: 200, height: 78 };
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Remove screenshot 1' }));
-      await Promise.resolve();
-    });
-    await flushResizeSync();
-
-    expect(resizeHeights().at(-1)).toBe(52);
-    jest.useRealTimers();
-  });
-
-  test('updates with-preview cached height when re-entering preview mode with a taller measured frame', async () => {
-    jest.useFakeTimers();
-    const rafQueue = [];
-    global.requestAnimationFrame = (cb) => {
-      rafQueue.push(cb);
-      return rafQueue.length;
-    };
-    global.cancelAnimationFrame = jest.fn();
-    const flushResizeSync = async () => {
-      await act(async () => {
-        rafQueue.splice(0).forEach((cb) => cb());
-        jest.advanceTimersByTime(45);
-        await Promise.resolve();
-      });
-    };
-    const resizeHeights = () => mockInvoke.mock.calls
-      .filter(([channel]) => channel === 'set-chatbox-size')
-      .map(([, payload]) => payload?.height);
-    let measuredFrame = { width: 200, height: 52 };
-    mockGetRoundedFrameSize.mockImplementation(() => measuredFrame);
-
-    render(<ChatBox />);
-    await flushResizeSync();
-    expect(resizeHeights().at(-1)).toBe(52);
-
-    measuredFrame = { width: 200, height: 104 };
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
-      await Promise.resolve();
-    });
-    await flushResizeSync();
-    expect(resizeHeights().at(-1)).toBe(104 + WITH_PREVIEW_TOP_HEADROOM_PX);
-
-    measuredFrame = { width: 200, height: 132 };
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Remove screenshot 1' }));
-      await Promise.resolve();
-    });
-    await flushResizeSync();
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
-      await Promise.resolve();
-    });
-    await flushResizeSync();
-    expect(resizeHeights().at(-1)).toBe(132 + WITH_PREVIEW_TOP_HEADROOM_PX);
-    jest.useRealTimers();
-  });
-
-  test('does not apply compact transition lock while in with-preview mode', async () => {
-    jest.useFakeTimers();
-    const rafQueue = [];
-    global.requestAnimationFrame = (cb) => {
-      rafQueue.push(cb);
-      return rafQueue.length;
-    };
-    global.cancelAnimationFrame = jest.fn();
-    const originalResizeObserver = global.ResizeObserver;
-    const observerCallbacks = [];
-    global.ResizeObserver = class ResizeObserverMock {
-      constructor(callback) {
-        observerCallbacks.push(callback);
-      }
-
-      observe() {}
-
-      disconnect() {}
-    };
-    const flushResizeSync = async () => {
-      await act(async () => {
-        rafQueue.splice(0).forEach((cb) => cb());
-        jest.advanceTimersByTime(45);
-        await Promise.resolve();
-      });
-    };
-    const resizeHeights = () => mockInvoke.mock.calls
-      .filter(([channel]) => channel === 'set-chatbox-size')
-      .map(([, payload]) => payload?.height);
-    let measuredFrame = { width: 200, height: 52 };
-    mockGetRoundedFrameSize.mockImplementation(() => measuredFrame);
-
-    try {
-      render(<ChatBox />);
-      await flushResizeSync();
-      expect(resizeHeights().at(-1)).toBe(52);
-
-      measuredFrame = { width: 200, height: 88 };
-      await act(async () => {
-        fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
-        await Promise.resolve();
-      });
-      await flushResizeSync();
-      expect(resizeHeights().at(-1)).toBe(88 + WITH_PREVIEW_TOP_HEADROOM_PX);
-
-      measuredFrame = { width: 200, height: 132 };
-      await act(async () => {
-        observerCallbacks.forEach((callback) => callback());
-      });
-      await flushResizeSync();
-      expect(resizeHeights().at(-1)).toBe(132 + WITH_PREVIEW_TOP_HEADROOM_PX);
-    } finally {
-      global.ResizeObserver = originalResizeObserver;
-      jest.useRealTimers();
-    }
-  });
-
-  test('runs delayed settle sync timers in preview mode to capture late height growth', async () => {
-    jest.useFakeTimers();
-    const rafQueue = [];
-    global.requestAnimationFrame = (cb) => {
-      rafQueue.push(cb);
-      return rafQueue.length;
-    };
-    global.cancelAnimationFrame = jest.fn();
-    const flushResizeSync = async () => {
-      await act(async () => {
-        rafQueue.splice(0).forEach((cb) => cb());
-        jest.advanceTimersByTime(45);
-        await Promise.resolve();
-      });
-    };
-    const resizeHeights = () => mockInvoke.mock.calls
-      .filter(([channel]) => channel === 'set-chatbox-size')
-      .map(([, payload]) => payload?.height);
-    let measuredFrame = { width: 200, height: 52 };
-    mockGetRoundedFrameSize.mockImplementation(() => measuredFrame);
-
-    render(<ChatBox />);
-    await flushResizeSync();
-    await act(async () => {
-      jest.advanceTimersByTime(140);
-      await Promise.resolve();
-    });
-    expect(resizeHeights().at(-1)).toBe(52);
-
-    measuredFrame = { width: 200, height: 88 };
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
-      await Promise.resolve();
-    });
-    await flushResizeSync();
-    expect(resizeHeights().at(-1)).toBe(88 + WITH_PREVIEW_TOP_HEADROOM_PX);
-
-    measuredFrame = { width: 200, height: 120 };
-    await act(async () => {
-      jest.advanceTimersByTime(100);
-      await Promise.resolve();
-    });
-    expect(resizeHeights().at(-1)).toBe(120 + WITH_PREVIEW_TOP_HEADROOM_PX);
-    jest.useRealTimers();
-  });
-
-  test('uses shell scrollHeight when it exceeds rounded frame height in preview mode', async () => {
-    jest.useFakeTimers();
-    const rafQueue = [];
-    global.requestAnimationFrame = (cb) => {
-      rafQueue.push(cb);
-      return rafQueue.length;
-    };
-    global.cancelAnimationFrame = jest.fn();
-    const flushResizeSync = async () => {
-      await act(async () => {
-        rafQueue.splice(0).forEach((cb) => cb());
-        jest.advanceTimersByTime(45);
-        await Promise.resolve();
-      });
-    };
-    const resizeHeights = () => mockInvoke.mock.calls
-      .filter(([channel]) => channel === 'set-chatbox-size')
-      .map(([, payload]) => payload?.height);
-    let measuredFrame = { width: 200, height: 52 };
-    mockGetRoundedFrameSize.mockImplementation(() => measuredFrame);
-
+  test('keeps fixed-size preview lane and does not invoke chatbox resize when images change', async () => {
     const { container } = render(<ChatBox />);
-    const shell = container.querySelector('.chatbox-shell');
-    expect(shell).toBeTruthy();
+    const previewRow = container.querySelector('.chatbox-image-preview-row');
+    expect(previewRow).toBeTruthy();
+    expect(previewRow.classList.contains('has-items')).toBe(false);
 
-    Object.defineProperty(shell, 'scrollHeight', {
-      value: 52,
-      configurable: true,
-    });
-    await flushResizeSync();
-    expect(resizeHeights().at(-1)).toBe(52);
-
-    Object.defineProperty(shell, 'scrollHeight', {
-      value: 120,
-      configurable: true,
-    });
-    measuredFrame = { width: 200, height: 88 };
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
       await Promise.resolve();
     });
-    await flushResizeSync();
+    expect(previewRow.classList.contains('has-items')).toBe(true);
+    expect(mockInvoke.mock.calls.some(([channel]) => channel === 'set-chatbox-size')).toBe(false);
 
-    expect(resizeHeights().at(-1)).toBe(120 + WITH_PREVIEW_TOP_HEADROOM_PX);
-    jest.useRealTimers();
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Remove screenshot 1' }));
+      await Promise.resolve();
+    });
+    expect(previewRow.classList.contains('has-items')).toBe(false);
+    expect(mockInvoke.mock.calls.some(([channel]) => channel === 'set-chatbox-size')).toBe(false);
   });
 
   test('wires overlay sender surface for centralized UI send behavior', () => {
