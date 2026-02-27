@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(backend-compaction-feedback): emit `context-compaction-failed` (instead of generic `error`) when manual compaction is requested during an active query, and add explicit compact-history request/result backend logs so electron-dev terminal shows compaction flow responses.
 - fix(frontend-compaction-dashboard-flow): allow dashboard `Run auto compaction` while a stream is active and bypass conversation-mismatch event gating for `context-compaction-started|completed|failed` so resumed/past-thread manual compaction always shows lifecycle status updates.
 - chore(dev-tool-selection): remove `prediction` from backend dev `enabled_coordinate_methods` allowlist, leaving `manual` + `ocr` for local tool-selection runs.
 - fix(frontend-focus-tracking-handoff): capture previous external focused window during all chatbox show transitions (including `focus=false`) so switch-tab-to-interactive tool chains can restore/verify the external target window before mouse/keyboard actions; add `window_visibility_runtime` regressions for non-focusing and focusing paths.

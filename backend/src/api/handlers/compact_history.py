@@ -2,17 +2,20 @@
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
 
 from backend.src.api.contracts.message_types import OutgoingMessageType
 from backend.src.api.handlers.context import build_user_session_context
-from backend.src.api.infrastructure.errors import send_error_response, send_success_response
+from backend.src.api.infrastructure.errors import send_success_response
 from backend.src.api.infrastructure.handler import TypedMessageHandler
 from backend.src.api.schema import CompactHistoryMessage
 from backend.src.api.transport.protocol import WebSocketSender
 
 if TYPE_CHECKING:
     from backend.src.agent.session.manager import SessionManager
+
+logger = logging.getLogger(__name__)
 
 
 class CompactHistoryHandler(TypedMessageHandler[CompactHistoryMessage]):
@@ -29,11 +32,33 @@ class CompactHistoryHandler(TypedMessageHandler[CompactHistoryMessage]):
         websocket: WebSocketSender,
         user_id: str,
     ) -> None:
+        force = bool(message.payload.force)
+        logger.info(
+            "Manual compaction requested (user_id=%s, force=%s, msg_id=%s)",
+            user_id,
+            force,
+            message.id,
+        )
         if self.session_manager.has_active_query_task(user_id):
-            await send_error_response(
+            error_text = (
+                "Cannot compact history while a query is active. "
+                "Stop the current query and retry."
+            )
+            logger.info(
+                "Manual compaction rejected: active query in progress (user_id=%s, msg_id=%s)",
+                user_id,
+                message.id,
+            )
+            await send_success_response(
                 websocket,
                 message.id,
-                "Cannot compact history while a query is active. Stop the current query and retry.",
+                OutgoingMessageType.CONTEXT_COMPACTION_FAILED,
+                {
+                    "reason": "manual",
+                    "strategy": "manual",
+                    "error": error_text,
+                    "before_tokens": None,
+                },
             )
             return
 
@@ -42,7 +67,7 @@ class CompactHistoryHandler(TypedMessageHandler[CompactHistoryMessage]):
 
         decision, result = await session.run_history_compaction(
             reason="manual",
-            force=bool(message.payload.force),
+            force=force,
         )
 
         if decision.should_compact:
@@ -57,6 +82,23 @@ class CompactHistoryHandler(TypedMessageHandler[CompactHistoryMessage]):
                     "projected_tokens": decision.projected_tokens,
                 },
                 context=context,
+            )
+
+        if result.applied:
+            logger.info(
+                "Manual compaction applied (user_id=%s, strategy=%s, before=%s, after=%s, removed=%s)",
+                user_id,
+                result.strategy_name,
+                result.before_tokens,
+                result.after_tokens,
+                result.removed_messages,
+            )
+        else:
+            logger.info(
+                "Manual compaction completed without changes (user_id=%s, strategy=%s, skipped_reason=%s)",
+                user_id,
+                result.strategy_name,
+                result.skip_reason or "not-applied",
             )
 
         if result.applied:

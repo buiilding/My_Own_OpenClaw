@@ -85,8 +85,10 @@ async def test_compact_history_handler_rejects_when_query_is_active():
     await handler.handle(message, websocket, "user_1")
 
     assert websocket.sent
-    assert websocket.sent[0]["type"] == "error"
-    assert "Cannot compact history while a query is active" in websocket.sent[0]["payload"]["message"]
+    assert websocket.sent[0]["type"] == "context-compaction-failed"
+    assert websocket.sent[0]["payload"]["reason"] == "manual"
+    assert websocket.sent[0]["payload"]["strategy"] == "manual"
+    assert "Cannot compact history while a query is active" in websocket.sent[0]["payload"]["error"]
 
 
 @pytest.mark.asyncio
@@ -172,4 +174,3 @@ async def test_compact_history_handler_emits_completed_with_skip_reason():
     assert len(websocket.sent) == 1
     assert websocket.sent[0]["type"] == "context-compaction-completed"
     assert websocket.sent[0]["payload"]["skipped_reason"] == "below-threshold"
-
