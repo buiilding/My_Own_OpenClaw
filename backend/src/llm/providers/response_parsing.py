@@ -5,14 +5,16 @@ from __future__ import annotations
 import copy
 import json
 import logging
-import re
 from typing import Any, Dict, List, Optional
 
 from backend.src.core.infrastructure.exceptions import LLMAPIError
 from backend.src.core.types.schemas import NormalizedLLMResponse
+from backend.src.llm.providers.thinking_extraction import (
+    extract_tagged_thinking_from_content,
+    extract_thinking_content,
+)
 
 logger = logging.getLogger(__name__)
-THINKING_TAG_PATTERN = re.compile(r"<(thinking|think)>(.*?)</\1>", re.IGNORECASE | re.DOTALL)
 
 
 def first_item(values: Any) -> Optional[Any]:
@@ -52,137 +54,6 @@ def delta_contains_tool_calls(delta: Any) -> bool:
             if get_value(block, "type") == "tool_use":
                 return True
     return False
-
-
-def extract_tagged_thinking_from_content(delta: Any) -> Optional[str]:
-    """Extract <thinking>...</thinking> segments from delta.content fields."""
-    if isinstance(delta, dict):
-        raw_content = delta.get("content")
-    else:
-        raw_content = getattr(delta, "content", None)
-
-    if not isinstance(raw_content, str):
-        return None
-
-    match = THINKING_TAG_PATTERN.search(raw_content)
-    if not match:
-        return None
-    return match.group(2)
-
-
-def _extract_string_content(value: Any) -> Optional[str]:
-    """Extract first non-empty string from common reasoning payload shapes."""
-    if isinstance(value, str):
-        return value if value else None
-    if isinstance(value, list):
-        for item in value:
-            nested = _extract_string_content(item)
-            if nested:
-                return nested
-        return None
-    if isinstance(value, dict):
-        for key in (
-            "text",
-            "content",
-            "reasoning_content",
-            "reasoningContent",
-            "reasoning_details",
-            "thinking",
-            "thinking_content",
-            "reasoning",
-            "thought",
-            "thoughts",
-        ):
-            nested = value.get(key)
-            if isinstance(nested, str) and nested:
-                return nested
-    return None
-
-
-def _extract_thinking_from_content_blocks(delta: Any) -> Optional[str]:
-    """
-    Extract reasoning text from structured delta.content block lists.
-
-    Some providers emit chain-of-thought deltas as block arrays where each block
-    carries `type=thinking|reasoning|thought` plus a text-like field.
-    """
-    content_blocks = (
-        delta.get("content")
-        if isinstance(delta, dict)
-        else getattr(delta, "content", None)
-    )
-    if not isinstance(content_blocks, list):
-        return None
-
-    for block in content_blocks:
-        if not isinstance(block, dict):
-            continue
-        block_type = str(block.get("type") or "").lower()
-        if block_type not in {"thinking", "reasoning", "thought"}:
-            continue
-        extracted = _extract_string_content(block)
-        if extracted:
-            return extracted
-    return None
-
-
-def _extract_reasoning_field_from_object(delta: Any) -> Any:
-    """Read supported reasoning fields from object-like deltas."""
-    for field_name in (
-        "reasoning_content",
-        "reasoningContent",
-        "reasoning_details",
-        "thinking_content",
-        "thinking",
-        "reasoning",
-        "thought",
-        "thoughts",
-    ):
-        value = getattr(delta, field_name, None)
-        if value is None:
-            continue
-        if isinstance(value, (str, dict, list)):
-            return value
-    return None
-
-
-def extract_thinking_content(delta: Any) -> Optional[str]:
-    """
-    Extract reasoning/thinking content from a LiteLLM delta.
-
-    Handles:
-    - object attributes (`reasoning_content`, `thinking`, `reasoning`, `thought`)
-    - dictionary keys of same names
-    - tagged `<thinking>...</thinking>` content.
-    """
-    content = _extract_reasoning_field_from_object(delta)
-
-    if not content and isinstance(delta, dict):
-        content = (
-            delta.get("reasoning_content")
-            or delta.get("reasoningContent")
-            or delta.get("reasoning_details")
-            or delta.get("thinking_content")
-            or delta.get("thinking")
-            or delta.get("reasoning")
-            or delta.get("thought")
-            or delta.get("thoughts")
-        )
-
-    if not content:
-        content = _extract_thinking_from_content_blocks(delta)
-
-    if not content:
-        content = extract_tagged_thinking_from_content(delta)
-
-    extracted_string = _extract_string_content(content)
-    if extracted_string:
-        match = THINKING_TAG_PATTERN.search(extracted_string)
-        if match:
-            return match.group(2)
-        return extracted_string
-
-    return None
 
 
 def extract_stream_delta(chunk: Any) -> Optional[Any]:
