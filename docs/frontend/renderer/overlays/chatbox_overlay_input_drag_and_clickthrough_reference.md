@@ -107,6 +107,12 @@ This is required after main-process `showChatWindow({ focus: true })`.
 - chat overlay window dimensions are fixed in main runtime (`createChatWindow`).
 - `ChatBox.jsx` no longer emits renderer-driven resize IPC for preview or startup transitions; deprecated `set-chatbox-size` channel has been removed from preload/channel contracts.
 - attachment preview uses an always-mounted preview row with class toggle (`has-items`) and opacity/translate animation.
+- non-dashboard input pill now has two fixed CSS states (no live resize IPC):
+  - default compact pill: no `with-preview` class (`64px` shell / `56px` pill)
+  - preview-expanded pill: `with-preview` on shell/pill while image attachments exist
+- compact default state centers the main control row vertically within the pill; preview-expanded state keeps controls anchored lower beneath the preview lane.
+- response/typing/context-label overlays in main process use a compact visual anchor height so their vertical position follows the visible compact pill baseline instead of the full transparent chat window height.
+- response/typing overlay uses a tighter chat-to-response vertical gap (`2px` in current non-dashboard main runtime) to keep the response pill visually near the chat pill.
 - clipboard image parsing is shared through `clipboardImageUtils.parseClipboardImageItems(...)` (also used by dashboard `MessageInput`) to keep screenshot/paste payload shape consistent across overlay and dashboard composer surfaces.
 - result: no live overlay window bounds churn while typing, startup, or adding/removing images.
 
@@ -149,6 +155,11 @@ Active loop phases:
 - `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`
 - `tests/frontend/OverlayPhaseListener.test.js`
 
+`ChatBoxOverlayMouseIgnore` now includes explicit anti-regression coverage for:
+
+- startup compact-class stability (no delayed `with-preview` flip when no images exist)
+- multi-attachment preview stability (stay expanded until last image is removed, then remain compact)
+
 ## Debug Checklist
 
 If chatbox becomes permanently click-through:
@@ -166,5 +177,6 @@ If drag movement is jittery or ignored:
 If chatbox flickers on startup or image insert:
 
 1. confirm `ChatBox.jsx` only toggles preview row classes and does not attempt runtime window-size mutation
-2. confirm preview row class toggles between `chatbox-image-preview-row` and `... has-items`
-3. verify fixed overlay dimensions in `main_window_runtime.cjs` match CSS fixed shell/pill heights
+2. confirm shell/pill class toggles between compact default and `with-preview` while images are present
+3. confirm preview row class toggles between `chatbox-image-preview-row` and `... has-items`
+4. verify fixed overlay dimensions in `main_window_runtime.cjs` match CSS fixed shell/pill heights

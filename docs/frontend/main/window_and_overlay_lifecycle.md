@@ -75,7 +75,7 @@ Position helpers in `index.cjs`:
 - margin-bottom of `24px`
 - `getResponseWindowBounds(width, height)`:
 - centered to current chat window width
-- rendered above chat window with `10px` gap
+- rendered above chat window with tight runtime gap (`2px` in current non-dashboard config)
 - fallback to chat-window positioning if chat unavailable
 
 Reposition triggers:
@@ -154,6 +154,7 @@ Handlers in `overlay_ipc_runtime.cjs` (wired by `index.cjs`):
 
 - uses fixed overlay dimensions (no renderer-driven live resize IPC)
 - keeps preview lane always mounted and toggles animated visibility on image attach/remove
+- uses deterministic class-based layout states: compact default pill (`64px` shell / `56px` pill) and fixed expanded `with-preview` pill while image attachments exist
 - sets overlay click-through (`SET_OVERLAY_IGNORE_MOUSE`) by stream/overlay phases
 - listens for `chatbox-focus` to force input focus
 - sends `MOVE_CHATBOX_TO` while dragging
@@ -164,6 +165,7 @@ Handlers in `overlay_ipc_runtime.cjs` (wired by `index.cjs`):
 - computes visibility from phase + stream content state
 - reports frame size via `SET_RESPONSEBOX_SIZE`
 - supports awaiting-first-chunk view and final/error markdown pane
+- main-process response/context-label positioning now anchors to compact visual chat-pill height (instead of full transparent chat window height), preventing vertical drift when compact pill is shorter than the fixed overlay window.
 
 For renderer-only deep dives:
 

@@ -12,8 +12,31 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     contextLabelHeight,
     contextLabelOffsetX,
     contextLabelGapAboveChatbox,
+    responseGap = 10,
+    chatVisualAnchorHeight = null,
     warn = console.warn,
   } = deps;
+
+  function getAnchoredChatBounds(chatBounds) {
+    if (!chatBounds || typeof chatBounds !== 'object') {
+      return null;
+    }
+    const configuredAnchorHeight = Number(chatVisualAnchorHeight);
+    if (!Number.isFinite(configuredAnchorHeight) || configuredAnchorHeight <= 0) {
+      return chatBounds;
+    }
+    const currentHeight = Math.max(1, Math.round(Number(chatBounds.height) || 0));
+    const anchorHeight = Math.min(currentHeight, Math.round(configuredAnchorHeight));
+    const topOffset = Math.max(0, currentHeight - anchorHeight);
+    if (topOffset === 0) {
+      return chatBounds;
+    }
+    return {
+      ...chatBounds,
+      y: Math.round(Number(chatBounds.y) || 0) + topOffset,
+      height: anchorHeight,
+    };
+  }
 
   function getChatWindowBounds(width, height) {
     return getOverlayChatWindowBounds({ screen, width, height });
@@ -24,11 +47,13 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     const chatBounds = chatWindow && !chatWindow.isDestroyed()
       ? chatWindow.getBounds()
       : null;
+    const anchoredChatBounds = getAnchoredChatBounds(chatBounds);
     return getOverlayResponseWindowBounds({
       screen,
       width,
       height,
-      chatBounds,
+      chatBounds: anchoredChatBounds,
+      gap: responseGap,
     });
   }
 
@@ -37,9 +62,10 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     const chatBounds = chatWindow && !chatWindow.isDestroyed()
       ? chatWindow.getBounds()
       : null;
+    const anchoredChatBounds = getAnchoredChatBounds(chatBounds);
     return getOverlayContextLabelWindowBounds({
       screen,
-      chatBounds,
+      chatBounds: anchoredChatBounds,
       labelWidth: contextLabelWidth,
       labelHeight: contextLabelHeight,
       offsetX: contextLabelOffsetX,
