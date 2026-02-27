@@ -20,6 +20,14 @@ body {
   position: relative;
 }
 
+.chatbox-input-shell-wrap {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  margin: 0;
+  transform: translateX(-50%);
+}
+
 .chatbox-shell-wrap.has-response-pill {
   border-radius: 18px;
   clip-path: inset(0 round 18px);
