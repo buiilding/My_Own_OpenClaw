@@ -168,6 +168,43 @@ def test_resolve_screenshots_loads_multi_artifact_refs_when_provided():
     ]
 
 
+def test_resolve_screenshots_trims_refs_and_skips_blank_entries():
+    calls: list[str] = []
+
+    class _ArtifactStore:
+        @classmethod
+        def from_config(cls, _config):
+            return cls()
+
+        def load_base64(self, screenshot_ref):
+            calls.append(screenshot_ref)
+            return f"resolved:{screenshot_ref}"
+
+    service = _build_service()
+    message = _build_message(
+        screenshot=None,
+        screenshot_refs=[" artifact-1 ", "   ", "artifact-2"],
+    )
+
+    assert service._resolve_screenshots(message, _ArtifactStore) == [
+        "resolved:artifact-1",
+        "resolved:artifact-2",
+    ]
+    assert calls == ["artifact-1", "artifact-2"]
+
+
+def test_resolve_screenshots_returns_none_for_blank_single_ref():
+    class _ArtifactStore:
+        @classmethod
+        def from_config(cls, _config):
+            raise AssertionError("artifact store should not be initialized")
+
+    service = _build_service()
+    message = _build_message(screenshot=None, screenshot_ref="   ")
+
+    assert service._resolve_screenshots(message, _ArtifactStore) is None
+
+
 def test_resolve_screenshot_returns_none_when_artifact_load_fails():
     class _ArtifactStore:
         @classmethod

@@ -246,20 +246,32 @@ class QueryExecutionService:
     ) -> Optional[List[str]]:
         """Resolve screenshots from inline payload and/or artifact references."""
         screenshot = message.payload.screenshot
+        normalized_inline_screenshot = (
+            screenshot.strip() if isinstance(screenshot, str) else None
+        )
         screenshot_ref = message.payload.screenshot_ref
+        normalized_single_ref = (
+            screenshot_ref.strip() if isinstance(screenshot_ref, str) else None
+        )
         screenshot_refs = (
             message.payload.screenshot_refs
             if isinstance(message.payload.screenshot_refs, list)
             else None
         )
 
-        if screenshot:
-            return [screenshot]
+        if normalized_inline_screenshot:
+            return [normalized_inline_screenshot]
 
         refs_to_resolve = [
-            ref
-            for ref in (screenshot_refs or ([screenshot_ref] if screenshot_ref else []))
-            if isinstance(ref, str) and ref
+            normalized_ref
+            for normalized_ref in (
+                ref.strip() if isinstance(ref, str) else None
+                for ref in (
+                    screenshot_refs
+                    or ([normalized_single_ref] if normalized_single_ref else [])
+                )
+            )
+            if normalized_ref
         ]
         if not refs_to_resolve:
             return None
