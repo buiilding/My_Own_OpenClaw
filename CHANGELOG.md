@@ -7,6 +7,10 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(backend-query-events): normalize blank/whitespace event `type` values to `None` in extraction helpers so invalid event types never route as pseudo-valid strings; add regression coverage for dict and typed-event paths.
+- fix(backend-handler-context): trim `session_id` and runtime `active_conversation_ref` values, and suppress blank/whitespace context metadata before websocket response attachment; add handler-context regressions.
+- test(backend-stream-pipeline): expand pipeline edge coverage for no-TTS mode, transport-failure short-circuit behavior, and empty pending-TTS wait path.
+- test(backend-websocket-parse): add parse boundary coverage for payload-size equality acceptance and multi-field validation error formatting in websocket message parsing.
 - docs(backend-state): refresh protocol-state docs for handler context helper trimming/drop rules and include dedicated `test_handler_context.py` coverage in state propagation references.
 - docs(frontend-event-guards): sync frontend contract references with current `BackendEventType` union by adding `context-compaction-*` and `memory-store` coverage across schema/IPC/consumer ingress docs.
 - docs(frontend-events): update backend-event/local-user docs for current typed union surface (`context-compaction-*`, `memory-store`) and multi-image optimistic payload contract (`screenshot_refs` + `screenshot_ref` fallback).
