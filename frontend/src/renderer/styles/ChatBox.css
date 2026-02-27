@@ -21,6 +21,9 @@ body {
 }
 
 .chatbox-input-shell-wrap {
+  --chatbox-fixed-shell-height: 116px;
+  --chatbox-fixed-pill-height: 108px;
+  --chatbox-preview-track-height: 46px;
   position: fixed;
   left: 50%;
   bottom: 0;
@@ -29,32 +32,38 @@ body {
   animation: none;
 }
 
-.chatbox-input-shell-wrap.is-layout-pending {
-  opacity: 0;
-  pointer-events: none;
-}
-
 .chatbox-input-shell-wrap .chatbox-shell {
+  height: var(--chatbox-fixed-shell-height);
   padding-top: 4px;
+  display: flex;
+  align-items: flex-end;
 }
 
 .chatbox-input-shell-wrap .chatbox-pill {
-  padding-top: 10px;
+  height: var(--chatbox-fixed-pill-height);
+  min-height: var(--chatbox-fixed-pill-height);
+  padding: 58px 12px 8px;
+  gap: 8px;
+  justify-content: flex-end;
 }
 
 .chatbox-input-shell-wrap .chatbox-image-preview-row {
-  padding-top: 4px;
-}
-
-.chatbox-input-shell-wrap .chatbox-pill.has-preview {
-  padding-top: 16px;
-  padding-left: 12px;
-  padding-right: 12px;
-  gap: 8px;
-}
-
-.chatbox-input-shell-wrap .chatbox-pill.has-preview .chatbox-image-preview-row {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  right: 12px;
+  min-height: var(--chatbox-preview-track-height);
   padding: 0 2px;
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+  transition: opacity 150ms ease, transform 150ms ease;
+}
+
+.chatbox-input-shell-wrap .chatbox-image-preview-row.has-items {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
 }
 
 .chatbox-shell-wrap.has-response-pill {
@@ -134,6 +143,9 @@ body {
   align-items: center;
   gap: 8px;
   min-height: 36px;
+  margin-top: auto;
+  position: relative;
+  z-index: 1;
 }
 
 .chatbox-input-wrap {

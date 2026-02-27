@@ -1,4 +1,6 @@
 const { nativeImage } = require('electron');
+const CHATBOX_OVERLAY_FIXED_WIDTH = 520;
+const CHATBOX_OVERLAY_FIXED_HEIGHT = 116;
 
 async function prepareOverlayQueryCaptureFocus({
   chatWindow,
@@ -242,8 +244,8 @@ function createChatWindow({
   const chatWindow = createOverlayBrowserWindow({
     BrowserWindow,
     path,
-    width: 520,
-    height: 96,
+    width: CHATBOX_OVERLAY_FIXED_WIDTH,
+    height: CHATBOX_OVERLAY_FIXED_HEIGHT,
     allowDevTools: Boolean(enableDevTransparencyUi),
   });
   setChatWindow(chatWindow);

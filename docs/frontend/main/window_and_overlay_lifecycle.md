@@ -153,7 +153,8 @@ Handlers in `overlay_ipc_runtime.cjs` (wired by `index.cjs`):
 
 ### Chat overlay (`ChatBox.jsx`)
 
-- reports measured shell size via `SET_CHATBOX_SIZE` on `ResizeObserver`
+- uses fixed overlay dimensions (no renderer-driven live resize IPC)
+- keeps preview lane always mounted and toggles animated visibility on image attach/remove
 - sets overlay click-through (`SET_OVERLAY_IGNORE_MOUSE`) by stream/overlay phases
 - listens for `chatbox-focus` to force input focus
 - sends `MOVE_CHATBOX_TO` while dragging

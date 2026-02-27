@@ -3,7 +3,6 @@ import { useChatStore } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import { useTranscription } from '../hooks/useTranscription';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
-import { getRoundedFrameSize } from '../utils/overlayFrameSize';
 import { subscribeResponseOverlayPhase } from '../utils/overlayPhaseListener';
 import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
@@ -20,15 +19,6 @@ const CLICK_THROUGH_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool
 const OVERLAY_ACTIVE_PHASES = new Set(['awaiting-first-chunk', 'streaming']);
 const OVERLAY_TERMINAL_PHASES = new Set(['idle', 'complete', 'error']);
 const LOOP_ACTIVE_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
-const CHATBOX_SIZE_MODES = Object.freeze({
-  COMPACT: 'compact',
-  WITH_PREVIEW: 'with-preview',
-});
-const RESIZE_TRANSITION_LOCK_MS = 240;
-const RESIZE_DEBOUNCE_MS = 40;
-const WITH_PREVIEW_TOP_HEADROOM_PX = 14;
-const STARTUP_LAYOUT_READY_MIN_DELAY_MS = 120;
-const PREVIEW_SETTLE_SYNC_DELAYS_MS = Object.freeze([90, 180]);
 
 function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -132,27 +122,7 @@ function ChatBox() {
   const [clipboardImages, setClipboardImages] = useState([]);
   const [isCapturingScreenshot, setIsCapturingScreenshot] = useState(false);
   const ignoreMouseRef = useRef(undefined);
-  const layoutPendingClearedRef = useRef(false);
-  const shellWrapRef = useRef(null);
-  const shellRef = useRef(null);
   const inputRef = useRef(null);
-  const lastSizeRef = useRef({ width: 0, height: 0 });
-  const resizeSyncRef = useRef({
-    frameHandle: null,
-    debounceHandle: null,
-    settleSyncHandles: [],
-    inFlight: false,
-    queuedSize: null,
-    layoutReadyTimer: null,
-    mountedAtMs: Date.now(),
-    transitionLockUntil: 0,
-    activeMode: CHATBOX_SIZE_MODES.COMPACT,
-    cachedModeHeights: {
-      [CHATBOX_SIZE_MODES.COMPACT]: null,
-      [CHATBOX_SIZE_MODES.WITH_PREVIEW]: null,
-    },
-    scheduleSizeSync: null,
-  });
   const dragStateRef = useRef({
     isDragging: false,
     startClientX: 0,
@@ -173,9 +143,6 @@ function ChatBox() {
     resetTranscription,
     handleInputChange,
   } = useTranscription();
-  const activeResizeMode = clipboardImages.length > 0
-    ? CHATBOX_SIZE_MODES.WITH_PREVIEW
-    : CHATBOX_SIZE_MODES.COMPACT;
 
   const setOverlayIgnore = useCallback(async (ignore) => {
     if (ignoreMouseRef.current === ignore) {
@@ -228,206 +195,6 @@ function ChatBox() {
     );
     void setOverlayIgnore(shouldIgnore);
   }, [overlayPhase, setOverlayIgnore, streamPhase]);
-
-  useEffect(() => {
-    if (!shellRef.current) {
-      return () => {};
-    }
-    const resizeSyncState = resizeSyncRef.current;
-    const requestFrame = typeof window.requestAnimationFrame === 'function'
-      ? window.requestAnimationFrame.bind(window)
-      : (callback) => window.setTimeout(callback, 0);
-    const cancelFrame = typeof window.cancelAnimationFrame === 'function'
-      ? window.cancelAnimationFrame.bind(window)
-      : (handle) => window.clearTimeout(handle);
-    const clearSettleSyncHandles = () => {
-      const handles = Array.isArray(resizeSyncState.settleSyncHandles)
-        ? resizeSyncState.settleSyncHandles
-        : [];
-      handles.forEach((handle) => window.clearTimeout(handle));
-      resizeSyncState.settleSyncHandles = [];
-    };
-    const markLayoutReady = () => {
-      if (layoutPendingClearedRef.current) {
-        return;
-      }
-      const mountedAtMs = Number(resizeSyncState.mountedAtMs || Date.now());
-      const elapsedMs = Math.max(0, Date.now() - mountedAtMs);
-      if (elapsedMs < STARTUP_LAYOUT_READY_MIN_DELAY_MS) {
-        if (resizeSyncState.layoutReadyTimer) {
-          window.clearTimeout(resizeSyncState.layoutReadyTimer);
-        }
-        resizeSyncState.layoutReadyTimer = window.setTimeout(
-          markLayoutReady,
-          STARTUP_LAYOUT_READY_MIN_DELAY_MS - elapsedMs,
-        );
-        return;
-      }
-      layoutPendingClearedRef.current = true;
-      shellWrapRef.current?.classList?.remove('is-layout-pending');
-    };
-
-    const flushSizeUpdate = async (nextFrame) => {
-      const widthDelta = Math.abs((lastSizeRef.current.width || 0) - nextFrame.width);
-      const heightDelta = Math.abs((lastSizeRef.current.height || 0) - nextFrame.height);
-      if (widthDelta <= 1 && heightDelta <= 1) {
-        return;
-      }
-      if (resizeSyncState.inFlight) {
-        resizeSyncState.queuedSize = nextFrame;
-        return;
-      }
-
-      resizeSyncState.inFlight = true;
-      lastSizeRef.current = { width: nextFrame.width, height: nextFrame.height };
-      try {
-        const anchorX = Number(window.screenX);
-        const windowHeight = Number(window.outerHeight || window.innerHeight || 0);
-        const anchorBottom = Number(window.screenY) + windowHeight;
-        await IpcBridge.invoke(INVOKE_CHANNELS.SET_CHATBOX_SIZE, {
-          width: nextFrame.width,
-          height: nextFrame.height,
-          anchor_x: Number.isFinite(anchorX) ? Math.round(anchorX) : undefined,
-          anchor_bottom: Number.isFinite(anchorBottom) ? Math.round(anchorBottom) : undefined,
-        });
-      } catch (error) {
-        console.warn('[ChatBox] Failed to resize chatbox window:', error);
-      } finally {
-        resizeSyncState.inFlight = false;
-        if (resizeSyncState.queuedSize) {
-          const queuedSize = resizeSyncState.queuedSize;
-          resizeSyncState.queuedSize = null;
-          void flushSizeUpdate(queuedSize);
-          return;
-        }
-        markLayoutReady();
-      }
-    };
-
-    const measureAndQueueSize = ({ force = false } = {}) => {
-      if (
-        !force
-        && resizeSyncState.activeMode === CHATBOX_SIZE_MODES.COMPACT
-        && Date.now() < resizeSyncState.transitionLockUntil
-      ) {
-        return;
-      }
-      const measuredFrame = getRoundedFrameSize(shellRef.current);
-      if (!measuredFrame) {
-        return;
-      }
-      const activeMode = resizeSyncState.activeMode;
-      const shellScrollHeight = Number(shellRef.current?.scrollHeight || 0);
-      const baseMeasuredHeight = Number.isFinite(shellScrollHeight) && shellScrollHeight > 0
-        ? Math.max(measuredFrame.height, Math.round(shellScrollHeight))
-        : measuredFrame.height;
-      const measuredHeight = baseMeasuredHeight + (
-        activeMode === CHATBOX_SIZE_MODES.WITH_PREVIEW ? WITH_PREVIEW_TOP_HEADROOM_PX : 0
-      );
-      if (resizeSyncState.cachedModeHeights[activeMode] == null) {
-        resizeSyncState.cachedModeHeights[activeMode] = measuredHeight;
-      } else if (
-        activeMode === CHATBOX_SIZE_MODES.WITH_PREVIEW
-        && measuredHeight > resizeSyncState.cachedModeHeights[activeMode]
-      ) {
-        // Preview rows can settle after first measurement; allow upward cache correction.
-        resizeSyncState.cachedModeHeights[activeMode] = measuredHeight;
-      }
-      const nextFrame = {
-        width: measuredFrame.width,
-        height: resizeSyncState.cachedModeHeights[activeMode] ?? measuredHeight,
-      };
-      void flushSizeUpdate(nextFrame);
-    };
-
-    const scheduleSizeSync = ({ force = false, immediate = false } = {}) => {
-      if (resizeSyncState.frameHandle) {
-        cancelFrame(resizeSyncState.frameHandle);
-      }
-      if (resizeSyncState.debounceHandle) {
-        window.clearTimeout(resizeSyncState.debounceHandle);
-      }
-      if (immediate) {
-        measureAndQueueSize({ force });
-        return;
-      }
-      const debounceMs = resizeSyncState.activeMode === CHATBOX_SIZE_MODES.WITH_PREVIEW
-        ? 0
-        : RESIZE_DEBOUNCE_MS;
-      if (debounceMs === 0) {
-        measureAndQueueSize({ force });
-        return;
-      }
-      resizeSyncState.frameHandle = requestFrame(() => {
-        resizeSyncState.frameHandle = null;
-        resizeSyncState.debounceHandle = window.setTimeout(() => {
-          resizeSyncState.debounceHandle = null;
-          measureAndQueueSize({ force });
-        }, debounceMs);
-      });
-    };
-    resizeSyncState.scheduleSizeSync = scheduleSizeSync;
-
-    if (typeof ResizeObserver === 'undefined') {
-      scheduleSizeSync({ force: true, immediate: true });
-      scheduleSizeSync();
-      return () => {
-        resizeSyncState.scheduleSizeSync = null;
-      };
-    }
-
-    const observer = new ResizeObserver(() => {
-      scheduleSizeSync();
-    });
-    observer.observe(shellRef.current);
-    scheduleSizeSync({ force: true, immediate: true });
-    scheduleSizeSync();
-
-    return () => {
-      observer.disconnect();
-      if (resizeSyncState.frameHandle) {
-        cancelFrame(resizeSyncState.frameHandle);
-        resizeSyncState.frameHandle = null;
-      }
-      if (resizeSyncState.debounceHandle) {
-        window.clearTimeout(resizeSyncState.debounceHandle);
-        resizeSyncState.debounceHandle = null;
-      }
-      if (resizeSyncState.layoutReadyTimer) {
-        window.clearTimeout(resizeSyncState.layoutReadyTimer);
-        resizeSyncState.layoutReadyTimer = null;
-      }
-      clearSettleSyncHandles();
-      resizeSyncState.queuedSize = null;
-      resizeSyncState.inFlight = false;
-      resizeSyncState.scheduleSizeSync = null;
-    };
-  }, []);
-
-  useEffect(() => {
-    const resizeSyncState = resizeSyncRef.current;
-    const clearSettleSyncHandles = () => {
-      const handles = Array.isArray(resizeSyncState.settleSyncHandles)
-        ? resizeSyncState.settleSyncHandles
-        : [];
-      handles.forEach((handle) => window.clearTimeout(handle));
-      resizeSyncState.settleSyncHandles = [];
-    };
-    resizeSyncState.activeMode = activeResizeMode;
-    resizeSyncState.queuedSize = null;
-    resizeSyncState.transitionLockUntil = activeResizeMode === CHATBOX_SIZE_MODES.COMPACT
-      ? Date.now() + RESIZE_TRANSITION_LOCK_MS
-      : 0;
-    clearSettleSyncHandles();
-    resizeSyncState.scheduleSizeSync?.({ force: true, immediate: true });
-    resizeSyncState.scheduleSizeSync?.();
-    const settleDelays = activeResizeMode === CHATBOX_SIZE_MODES.WITH_PREVIEW
-      ? PREVIEW_SETTLE_SYNC_DELAYS_MS
-      : [STARTUP_LAYOUT_READY_MIN_DELAY_MS];
-    resizeSyncState.settleSyncHandles = settleDelays.map((delayMs) => window.setTimeout(() => {
-      resizeSyncState.scheduleSizeSync?.({ force: true, immediate: true });
-    }, delayMs));
-  }, [activeResizeMode]);
 
   useEffect(() => {
     return subscribeResponseOverlayPhase(setOverlayPhase);
@@ -643,36 +410,36 @@ function ChatBox() {
 
   return (
     <div
-      ref={shellWrapRef}
-      className={`chatbox-shell-wrap chatbox-input-shell-wrap is-layout-pending${isLoopActive ? ' loop-active' : ''}`}
+      className={`chatbox-shell-wrap chatbox-input-shell-wrap${isLoopActive ? ' loop-active' : ''}`}
     >
-      <div className="chatbox-shell" ref={shellRef}>
-        <form className={`chatbox-pill${showPreviewRow ? ' has-preview' : ''}`} onSubmit={handleSubmit} onMouseDown={handlePillMouseDown}>
-          {showPreviewRow ? (
-            <div className="chatbox-image-preview-row">
-              {clipboardImages.map((clipboardImage, index) => (
-                <div className="chatbox-image-preview-card" key={clipboardImage.id || index}>
-                  <img
-                    src={clipboardImage.previewUrl}
-                    alt={`Pasted image preview ${index + 1}`}
-                    className="chatbox-image-preview-thumb"
-                  />
-                  <button
-                    type="button"
-                    className="chatbox-image-preview-remove"
-                    aria-label={`Remove screenshot ${index + 1}`}
-                    onClick={() => {
-                      setClipboardImages((previous) => (
-                        previous.filter((image) => image.id !== clipboardImage.id)
-                      ));
-                    }}
-                  >
-                    x
-                  </button>
-                </div>
-              ))}
-            </div>
-          ) : null}
+      <div className="chatbox-shell">
+        <form className="chatbox-pill" onSubmit={handleSubmit} onMouseDown={handlePillMouseDown}>
+          <div
+            className={`chatbox-image-preview-row${showPreviewRow ? ' has-items' : ''}`}
+            aria-hidden={!showPreviewRow}
+          >
+            {clipboardImages.map((clipboardImage, index) => (
+              <div className="chatbox-image-preview-card" key={clipboardImage.id || index}>
+                <img
+                  src={clipboardImage.previewUrl}
+                  alt={`Pasted image preview ${index + 1}`}
+                  className="chatbox-image-preview-thumb"
+                />
+                <button
+                  type="button"
+                  className="chatbox-image-preview-remove"
+                  aria-label={`Remove screenshot ${index + 1}`}
+                  onClick={() => {
+                    setClipboardImages((previous) => (
+                      previous.filter((image) => image.id !== clipboardImage.id)
+                    ));
+                  }}
+                >
+                  x
+                </button>
+              </div>
+            ))}
+          </div>
           <div className="chatbox-main-row">
             <button
               type="button"
