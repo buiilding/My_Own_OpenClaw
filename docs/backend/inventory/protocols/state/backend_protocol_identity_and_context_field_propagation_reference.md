@@ -8,7 +8,7 @@ title: "Backend Protocol Identity and Context-Field Propagation Reference"
 
 # Backend Protocol Identity and Context-Field Propagation Reference
 
-## Coverage Snapshot (2026-02-26)
+## Coverage Snapshot (2026-02-27)
 
 - State-focused protocol test files: `5`
 - Total test cases across listed files: `65`

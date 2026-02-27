@@ -8,7 +8,7 @@ title: "Backend WebSocket Receive Loop and Task Cancellation Contract Reference"
 
 # Backend WebSocket Receive Loop and Task Cancellation Contract Reference
 
-## Coverage Snapshot (2026-02-26)
+## Coverage Snapshot (2026-02-27)
 
 - Lifecycle-focused protocol test files: `6`
 - Total test cases across listed files: `73`

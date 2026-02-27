@@ -8,7 +8,7 @@ title: "Backend WebSocket Error Surface and Sanitization Contract Reference"
 
 # Backend WebSocket Error Surface and Sanitization Contract Reference
 
-## Coverage Snapshot (2026-02-26)
+## Coverage Snapshot (2026-02-27)
 
 - Error-related websocket protocol test files: `5`
 - Total test cases across listed files: `50`
