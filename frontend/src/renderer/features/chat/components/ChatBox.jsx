@@ -22,10 +22,12 @@ import {
   SendIcon,
   SettingsIcon,
   SoundIcon,
+  StopIcon,
 } from './ChatBoxIcons';
 import ChatBoxImagePreviewRow from './ChatBoxImagePreviewRow';
 
 const LOOP_ACTIVE_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
+const ACTIVE_STREAM_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
 
 function isDragBlockedTarget(target) {
   if (!(target instanceof Element)) {
@@ -41,6 +43,8 @@ function ChatBox() {
   const isSending = useChatStore((state) => state.isSending);
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);
+  const setIsSending = useChatStore((state) => state.setIsSending);
+  const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
   const streamPhase = useChatStore((state) => state.streamTracking.phase);
   const { sendMessage } = useChatMessageSender(undefined, {
     senderSurface: 'overlay-chatbox',
@@ -62,6 +66,8 @@ function ChatBox() {
   });
   const wakewordSttEnabled = config?.wakeword_stt_enabled === true;
   const speechModeEnabled = config?.speech_mode_enabled === true;
+  const canStop = ACTIVE_STREAM_PHASES.has(streamPhase);
+  const composerBusy = isSending || canStop;
   const devUiEnabled = isDevUiEnabled();
   const {
     inputValue,
@@ -165,7 +171,7 @@ function ChatBox() {
   );
 
   const handleSend = useCallback(async () => {
-    const outgoingMessage = buildOutgoingMessage(getInputValue(), isSending, clipboardImages);
+    const outgoingMessage = buildOutgoingMessage(getInputValue(), composerBusy, clipboardImages);
     if (!outgoingMessage) {
       return;
     }
@@ -174,7 +180,25 @@ function ChatBox() {
     setInputValue('');
     setClipboardImages([]);
     await sendMessage(outgoingMessage);
-  }, [clipboardImages, getInputValue, isSending, resetTranscription, sendMessage, setInputValue]);
+  }, [clipboardImages, composerBusy, getInputValue, resetTranscription, sendMessage, setInputValue]);
+
+  const handleStopQuery = useCallback(() => {
+    if (!canStop) {
+      return;
+    }
+    const stoppedAt = new Date().toISOString();
+    setIsSending(false);
+    setThinkingStatus(null);
+    setThinkingSourceEventType(null);
+    updateStreamTracking((current) => ({
+      ...current,
+      phase: 'complete',
+      completedAt: stoppedAt,
+      lastEventAt: stoppedAt,
+      lastEventType: 'stop-query',
+    }));
+    ApiClient.stopQuery();
+  }, [canStop, setIsSending, setThinkingSourceEventType, setThinkingStatus, updateStreamTracking]);
 
   const handleSubmit = useCallback((event) => {
     event.preventDefault();
@@ -206,7 +230,7 @@ function ChatBox() {
   }, []);
 
   const handleCaptureScreenshot = useCallback(async () => {
-    if (isSending || isCapturingScreenshot) {
+    if (composerBusy || isCapturingScreenshot) {
       return;
     }
     setIsCapturingScreenshot(true);
@@ -233,7 +257,7 @@ function ChatBox() {
     } finally {
       setIsCapturingScreenshot(false);
     }
-  }, [focusInput, isCapturingScreenshot, isSending]);
+  }, [composerBusy, focusInput, isCapturingScreenshot]);
 
   const handleToggleSpeechMode = useCallback(() => {
     if (typeof updateConfig !== 'function') {
@@ -363,7 +387,7 @@ function ChatBox() {
                 onPaste={handleComposerPaste}
                 placeholder="Ask me anything..."
                 className="chatbox-input"
-                disabled={isSending}
+                disabled={composerBusy}
               />
             </div>
             <button
@@ -372,7 +396,7 @@ function ChatBox() {
               aria-label="Take screenshot"
               title="Take screenshot"
               onClick={handleCaptureScreenshot}
-              disabled={isSending || isCapturingScreenshot}
+              disabled={composerBusy || isCapturingScreenshot}
             >
               <ScreenshotIcon />
             </button>
@@ -385,15 +409,27 @@ function ChatBox() {
             >
               <SoundIcon />
             </button>
-            <button
-              type="submit"
-              className="chatbox-icon chatbox-send"
-              aria-label="Send message"
-              title="Send message"
-              disabled={isSending || !inputValue.trim()}
-            >
-              <SendIcon />
-            </button>
+            {composerBusy ? (
+              <button
+                type="button"
+                className="chatbox-icon chatbox-send"
+                aria-label="Stop response"
+                title="Stop response"
+                onClick={handleStopQuery}
+              >
+                <StopIcon />
+              </button>
+            ) : (
+              <button
+                type="submit"
+                className="chatbox-icon chatbox-send"
+                aria-label="Send message"
+                title="Send message"
+                disabled={!inputValue.trim()}
+              >
+                <SendIcon />
+              </button>
+            )}
           </div>
         </form>
       </div>

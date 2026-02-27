@@ -16,6 +16,14 @@ export function SendIcon() {
   );
 }
 
+export function StopIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="8" y="8" width="8" height="8" rx="1.2" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 export function SoundIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
