@@ -51,6 +51,15 @@ def test_normalize_response_payload_omits_optional_fields_when_absent():
     assert normalized == {"content": "ok"}
 
 
+def test_normalize_response_payload_preserves_finish_reason_none_when_key_present():
+    normalized = normalize_response_payload(
+        {"content": "ok", "finish_reason": None},
+        model="model",
+    )
+
+    assert normalized == {"content": "ok", "finish_reason": None}
+
+
 def test_normalize_content_requires_string_or_none():
     with pytest.raises(LLMAPIError, match="missing 'content' key"):
         normalize_content({"no_content": True}, model="model")
@@ -66,6 +75,17 @@ def test_normalize_tool_calls_requires_list_shape():
         normalize_tool_calls({"bad": "value"}, model="model")
 
     assert normalize_tool_calls(None, model="model") is None
+
+
+def test_normalize_tool_calls_defaults_missing_arguments_to_empty_dict():
+    normalized = normalize_tool_calls(
+        [{"id": "call_1", "name": "read_file"}],
+        model="model",
+    )
+
+    assert normalized == [
+        {"id": "call_1", "name": "read_file", "arguments": {}},
+    ]
 
 
 def test_normalize_tool_call_entry_validates_fields():
