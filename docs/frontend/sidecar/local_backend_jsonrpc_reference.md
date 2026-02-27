@@ -169,8 +169,8 @@ Validation behavior:
 
 Behavior:
 
-- stores combined interaction text (`User: ... / Assistant: ...`)
-- persists rows as `record_kind="interaction"` (semantic summarizer source rows)
+- delegates interaction writes to shared `memory.operations.store_interaction_memory(...)`
+- helper persists combined interaction text as `record_kind="interaction"` rows (semantic summarizer source rows)
 
 ## Tool Execution Semantics (`execute_tool`)
 

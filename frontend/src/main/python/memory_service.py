@@ -19,12 +19,11 @@ sys.path.insert(0, str(frontend_python_dir))
 
 from memory.local_store import LocalMemoryStore
 from memory.operations import (
-    build_interaction_metadata,
     build_memory_filters,
-    format_interaction_memory,
     group_memory_texts,
     normalize_search_memory_payload,
     normalize_store_memory_payload,
+    store_interaction_memory,
 )
 from core.runtime_shutdown import (
     handle_shutdown_signal,
@@ -187,15 +186,13 @@ class MemoryService:
         memory_type = normalized["memory_type"]
 
         try:
-            memory_content = format_interaction_memory(user_query, assistant_response)
-            metadata = build_interaction_metadata(memory_type, session_id)
-
-            memory_id = await self.memory_store.add(
-                memory_content,
-                user_id,
-                metadata,
-                conversation_id=session_id,
-                record_kind="interaction",
+            memory_id = await store_interaction_memory(
+                self.memory_store,
+                user_query=user_query,
+                assistant_response=assistant_response,
+                memory_type=memory_type,
+                user_id=user_id,
+                session_id=session_id,
             )
 
             logger.info(f"Stored {memory_type} memory {memory_id} for user {user_id}")

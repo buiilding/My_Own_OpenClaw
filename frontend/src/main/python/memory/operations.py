@@ -120,3 +120,24 @@ def build_interaction_metadata(
         "source": "interaction_completed",
         "conversation_id": session_id,
     }
+
+
+async def store_interaction_memory(
+    memory_store: Any,
+    *,
+    user_query: str,
+    assistant_response: str,
+    memory_type: str,
+    user_id: str,
+    session_id: Optional[str],
+) -> Any:
+    """Persist a normalized user/assistant interaction row."""
+    memory_content = format_interaction_memory(user_query, assistant_response)
+    metadata = build_interaction_metadata(memory_type, session_id)
+    return await memory_store.add(
+        memory_content,
+        user_id,
+        metadata,
+        conversation_id=session_id,
+        record_kind="interaction",
+    )
