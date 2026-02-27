@@ -182,6 +182,48 @@ async def test_send_success_response_without_context_uses_base_envelope() -> Non
 
 
 @pytest.mark.asyncio
+async def test_send_success_response_copies_payload_to_prevent_aliasing() -> None:
+    websocket = FakeWebSocket()
+    payload = {"config": {"theme": "dark"}}
+
+    await send_success_response(
+        websocket=websocket,
+        msg_id="msg_ok_3",
+        response_type="settings-loaded",
+        payload=payload,
+    )
+    payload["config"]["theme"] = "mutated"
+
+    assert websocket.sent == [
+        {
+            "type": "settings-loaded",
+            "id": "msg_ok_3",
+            "payload": {"config": {"theme": "dark"}},
+        }
+    ]
+
+
+@pytest.mark.asyncio
+async def test_send_error_response_exposes_validation_exception_message() -> None:
+    websocket = FakeWebSocket()
+
+    await send_error_response(
+        websocket=websocket,
+        msg_id="msg_err_validation",
+        message="ignore me",
+        exception=ValidationError("Missing required payload field: text"),
+    )
+
+    assert websocket.sent == [
+        {
+            "type": "error",
+            "id": "msg_err_validation",
+            "payload": {"message": "Missing required payload field: text"},
+        }
+    ]
+
+
+@pytest.mark.asyncio
 async def test_send_helpers_swallow_closed_connection_errors() -> None:
     websocket = FailingWebSocket()
 
