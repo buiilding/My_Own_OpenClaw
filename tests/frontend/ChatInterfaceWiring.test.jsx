@@ -223,6 +223,8 @@ describe('ChatInterface wiring', () => {
     render(<ChatInterface />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Run auto compaction' }));
+    expect(mockSetThinkingStatus).toHaveBeenCalledWith('Compacting conversation history...');
+    expect(mockSetThinkingSourceEventType).toHaveBeenCalledWith('context-compaction-started');
     await waitFor(() => {
       expect(mockIpcInvoke).toHaveBeenCalledWith(
         'get-conversation',

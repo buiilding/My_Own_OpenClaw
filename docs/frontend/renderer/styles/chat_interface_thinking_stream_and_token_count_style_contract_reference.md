@@ -44,7 +44,8 @@ Control placement:
 Message list:
 
 - `.message-list` is primary vertical scroller with stable gutter behavior.
-- `.message-list-compaction-status` renders a live compaction row under history while `context-compaction-started` is active, with animated `.message-list-compaction-indicator` and `.message-list-compaction-text`.
+- `.message-list-compaction-status` renders a compaction lifecycle row under history for `context-compaction-started|completed|failed`.
+- in-progress compaction keeps animated `.message-list-compaction-indicator` and `.message-list-compaction-text`; completed/failed states disable animation and use success/failure accents.
 - `.message` lane style is role/type-sensitive.
 
 Role-based surface:

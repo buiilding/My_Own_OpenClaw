@@ -62,7 +62,7 @@ Dashboard handoff affordance:
 `electron:dev` compaction harness:
 
 - when `dev_ui=1`, chatbox renders a `Run auto compaction` icon button.
-- button dispatches backend `compact-history` with payload `{ force: true }`.
+- button sets optimistic compaction status text (`Compacting conversation history...`) and dispatches backend `compact-history` with payload `{ force: true }`.
 - this is intended for validating compaction-status UI without waiting for token-threshold auto triggers.
 
 ## Click-Through Control Model

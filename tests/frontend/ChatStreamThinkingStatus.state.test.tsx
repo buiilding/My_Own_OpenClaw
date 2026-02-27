@@ -119,7 +119,7 @@ describe('useChatStream state + stream handling', () => {
     expect(useChatStore.getState().thinkingStatus).toBe('Compacting conversation history...');
   });
 
-  test('clears compacting status when context compaction completes', () => {
+  test('replaces compacting status with compacted status when context compaction completes', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
@@ -130,10 +130,26 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    expect(useChatStore.getState().thinkingStatus).toBeNull();
+    expect(useChatStore.getState().thinkingStatus).toBe('Conversation history compacted.');
+    expect(useChatStore.getState().thinkingSourceEventType).toBe('context-compaction-completed');
   });
 
-  test('clears compacting status when context compaction fails', () => {
+  test('shows completed-no-changes status when compaction completes with skipped_reason', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.setState({ thinkingStatus: 'Compacting conversation history...' });
+      emitBackendEvent({
+        type: 'context-compaction-completed',
+        payload: { reason: 'manual', strategy: 'inline', skipped_reason: 'below-threshold' },
+      });
+    });
+
+    expect(useChatStore.getState().thinkingStatus).toBe('Compaction completed (no changes needed).');
+    expect(useChatStore.getState().thinkingSourceEventType).toBe('context-compaction-completed');
+  });
+
+  test('replaces compacting status with failure status when context compaction fails', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
@@ -144,7 +160,8 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    expect(useChatStore.getState().thinkingStatus).toBeNull();
+    expect(useChatStore.getState().thinkingStatus).toBe('boom');
+    expect(useChatStore.getState().thinkingSourceEventType).toBe('context-compaction-failed');
   });
 
   test('clears thinking status on tool call', () => {

@@ -179,6 +179,21 @@ describe('MessageList assistant actions', () => {
     expect(screen.getByText('Compacting conversation history...')).toBeInTheDocument();
   });
 
+  test('renders compacted status row under history when compaction completes', () => {
+    render(
+      <MessageList
+        messages={[
+          { id: 'user-1', text: 'hello', sender: 'user', type: 'user' },
+        ]}
+        thinkingStatus="Conversation history compacted."
+        thinkingSourceEventType="context-compaction-completed"
+      />,
+    );
+
+    expect(screen.getByLabelText('Conversation compaction completed')).toBeInTheDocument();
+    expect(screen.getByText('Conversation history compacted.')).toBeInTheDocument();
+  });
+
   test('does not render compacting status row for non-compaction thinking states', () => {
     render(
       <MessageList

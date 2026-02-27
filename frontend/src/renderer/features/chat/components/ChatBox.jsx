@@ -10,6 +10,7 @@ import { ApiClient } from '../../../infrastructure/api/client';
 import { isDevUiEnabled } from '../utils/devUiFlag';
 import { buildOutgoingMessage } from '../utils/messageInput';
 import { parseClipboardImageItems } from '../utils/clipboardImageUtils';
+import { COMPACTION_THINKING_STATUS } from '../utils/chatStreamThinkingStatus';
 import { extractOSstate } from '../../../infrastructure/services/SystemCapture';
 import {
   normalizeArtifactImageContentType,
@@ -41,6 +42,8 @@ function isDragBlockedTarget(target) {
 function ChatBox() {
   const { config, updateConfig } = useAppConfigContext();
   const isSending = useChatStore((state) => state.isSending);
+  const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
+  const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);
   const streamPhase = useChatStore((state) => state.streamTracking.phase);
   const { sendMessage } = useChatMessageSender(undefined, {
     senderSurface: 'overlay-chatbox',
@@ -253,8 +256,10 @@ function ChatBox() {
   }, [speechModeEnabled, updateConfig]);
 
   const handleDevAutoCompaction = useCallback(() => {
+    setThinkingStatus(COMPACTION_THINKING_STATUS);
+    setThinkingSourceEventType('context-compaction-started');
     ApiClient.compactHistory(true);
-  }, []);
+  }, [setThinkingSourceEventType, setThinkingStatus]);
 
   const handleDragMove = useCallback((event) => {
     const dragState = dragStateRef.current;

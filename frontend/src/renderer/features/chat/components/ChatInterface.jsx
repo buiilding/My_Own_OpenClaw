@@ -21,6 +21,7 @@ import { toRehydrateMessagePayload } from '../../dashboard/utils/episodicMemoryU
 import {
   normalizeProvider,
 } from '../utils/transcriptMessagePayload';
+import { COMPACTION_THINKING_STATUS } from '../utils/chatStreamThinkingStatus';
 import { useConversationReplayActions } from '../hooks/useConversationReplayActions';
 import { isDevUiEnabled } from '../utils/devUiFlag';
 import '../../../styles/ChatInterface.css';
@@ -227,6 +228,8 @@ function ChatInterface({ focusComposerToken = 0 }) {
     if (canStop) {
       return;
     }
+    setThinkingStatus(COMPACTION_THINKING_STATUS);
+    setThinkingSourceEventType('context-compaction-started');
     const sessionInfo = getTranscriptSessionInfo();
     const conversationRef = getActiveConversationRef() || sessionInfo?.conversationRef || null;
     const userId = sessionInfo?.userId || null;
@@ -246,7 +249,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
       }
     }
     ApiClient.compactHistory(true);
-  }, [canStop]);
+  }, [canStop, setThinkingSourceEventType, setThinkingStatus]);
 
   const handleProviderSelect = useCallback((provider) => {
     setProviderMenuOpen(false);
