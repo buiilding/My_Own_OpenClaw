@@ -46,12 +46,13 @@ This structure centralizes orchestration in `executor.py` while preserving singl
 ## Per-Query Runtime Path (`AgentExecutor.process_query`)
 
 1. format user message content via prompt builder
-2. append user message to history
-3. optional screenshot registration + OCR kickoff
-4. iterate `InteractionLoop.run_loop()` and forward events
-5. finalization block (even on client disconnect):
+2. resolve/store raw user query text from `<user_query>` (fallback to plain query string)
+3. append user message to history
+4. optional screenshot registration + OCR kickoff
+5. iterate `InteractionLoop.run_loop()` and forward events
+6. finalization block (even on client disconnect):
   - publish `InteractionCompleted`
-  - emit/publish `MemoryStoreEvent` fallback
+  - emit/publish `MemoryStoreEvent` fallback (uses resolved raw user query, not full enriched content envelope)
 
 Important reliability behavior:
 

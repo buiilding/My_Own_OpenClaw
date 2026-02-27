@@ -5,7 +5,9 @@ This module implements the main agent execution loop that processes user queries
 manages tool execution, handles LLM streaming, and coordinates memory operations.
 """
 import asyncio
+import html
 import logging
+import re
 from typing import TYPE_CHECKING, AsyncGenerator, List, Optional, Union
 
 from backend.src.agent.history.history_committer import HistoryCommitter
@@ -48,6 +50,11 @@ if TYPE_CHECKING:
     from backend.src.services.ocr.ocr_service import OcrService
 
 logger = logging.getLogger(__name__)
+_USER_QUERY_TAG_PATTERN = re.compile(
+    r"<user_query>\s*(.*?)\s*</user_query>",
+    re.IGNORECASE | re.DOTALL,
+)
+_USER_QUERY_PARSE_MAX_CHARS = 300_000
 
 
 class AgentExecutor:
@@ -161,6 +168,7 @@ class AgentExecutor:
             query=query,
             is_first_message=is_first_message,
         )
+        raw_user_query = self._resolve_raw_user_query(query, final_content)
 
         # 2. Pre-sampling auto-compaction check (before user message append).
         compaction_engine = getattr(self.session, "compaction_engine", None)
@@ -210,7 +218,7 @@ class AgentExecutor:
         # 3. Add user message to history (backend appends for continual interaction)
         self.session.history.add_user_message(
             content=final_content,
-            user_query_raw=query,
+            user_query_raw=raw_user_query,
             image_data=screenshot  # History still uses image_data internally
         )
 
@@ -240,13 +248,13 @@ class AgentExecutor:
             if final_response:
                 try:
                     # Publish completion event (side-effect, doesn't require yielding)
-                    await self._publish_completion_event(query, final_response)
+                    await self._publish_completion_event(raw_user_query, final_response)
                     
                     # Emit memory store event for frontend to store the interaction
                     # Currently only episodic memory is automatically stored
                     # Semantic memory can be stored manually via the memory tool
                     memory_event = MemoryStoreEvent(
-                        user_query=query,
+                        user_query=raw_user_query,
                         assistant_response=final_response,
                         memory_type="episodic",  # Store interactions as episodic memory
                         user_id=self.session.user_id,
@@ -320,3 +328,24 @@ class AgentExecutor:
             assistant_response=response,
         )
         await self.event_bus.publish(event)
+
+    @staticmethod
+    def _resolve_raw_user_query(query: str, final_content: str) -> str:
+        """
+        Resolve user-typed query text from formatted content when possible.
+
+        The frontend sends a rich `message_content` envelope that includes
+        `<system_context>`, memory sections, and `<user_query>`. We store
+        only the user query text in history metadata/memory events.
+        """
+        fallback = (query or "").strip()
+        if not final_content:
+            return fallback
+
+        search_space = final_content[:_USER_QUERY_PARSE_MAX_CHARS]
+        match = _USER_QUERY_TAG_PATTERN.search(search_space)
+        if not match:
+            return fallback
+
+        extracted = html.unescape((match.group(1) or "").strip())
+        return extracted or fallback
