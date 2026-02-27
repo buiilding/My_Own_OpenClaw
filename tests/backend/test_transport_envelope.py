@@ -92,3 +92,30 @@ def test_build_transport_message_without_context_fields() -> None:
         "id": "msg_9",
         "payload": {"final_response": "done"},
     }
+
+
+def test_build_transport_message_copies_payload_to_prevent_aliasing() -> None:
+    payload = {"final_response": "done"}
+
+    message = build_transport_message(
+        "streaming-complete",
+        "msg_10",
+        payload,
+    )
+    payload["final_response"] = "mutated"
+
+    assert message["payload"]["final_response"] == "done"
+
+
+def test_build_transport_message_deep_copies_nested_payload_objects() -> None:
+    payload = {
+        "usage": {"input_tokens": 10},
+        "chunks": [{"index": 0, "text": "hello"}],
+    }
+
+    message = build_transport_message("streaming-complete", "msg_11", payload)
+    payload["usage"]["input_tokens"] = 99
+    payload["chunks"][0]["text"] = "mutated"
+
+    assert message["payload"]["usage"]["input_tokens"] == 10
+    assert message["payload"]["chunks"][0]["text"] == "hello"
