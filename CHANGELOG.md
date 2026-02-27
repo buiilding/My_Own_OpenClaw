@@ -9,6 +9,7 @@ Includes the last 300 commits on `main`.
 ### Added
 - fix(frontend-dashboard-sidebar-collapsed-icons): remove duplicate collapsed sidebar logo/toggle stack, render one hover-swap brand control (`logo` <-> `expand`), move `New chat` into the header toggle slot, and add focused sidebar tests for hover swap + single new-chat action.
 - fix(frontend-dashboard-collapsed-header-followup): remove duplicate chat-header logo shown beside provider/model row when sidebar is collapsed, and stop collapsed sidebar expand-icon swap from sticking due focus state by making it hover-only; add focused regressions.
+- fix(frontend-dashboard-collapsed-hover-reset): clear collapsed brand-toggle hover state on sidebar mode transitions so collapse->expand->collapse never renders stale expand icon unless currently hovered; add dedicated regression coverage.
 - docs(backend-protocol-testing): fix websocket schema-model naming typo (`memory-stored` -> `memory-store`) in backend protocol test coverage reference.
 - fix(sidecar-memory-type-validation): enforce `memory_type` allowlist (`episodic|semantic`) in both `local_backend.store_memory` and standalone `memory_service.store`; invalid values now fail fast.
 - fix(sidecar-memory-payload-types): enforce string-only `user_query`/`assistant_response` and string `memory_type` in sidecar `store_memory` handlers (local backend + standalone memory service), with fast-fail error contracts and regression coverage.

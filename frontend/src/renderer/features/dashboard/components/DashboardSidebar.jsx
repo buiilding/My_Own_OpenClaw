@@ -385,6 +385,10 @@ function DashboardSidebar({
   const [collapsedHeaderHovered, setCollapsedHeaderHovered] = useState(false);
   const toggleSidebarLabel = isCollapsed ? 'Expand sidebar' : 'Collapse sidebar';
 
+  useEffect(() => {
+    setCollapsedHeaderHovered(false);
+  }, [isCollapsed]);
+
   return (
     <aside className={`cg-sidebar${isCollapsed ? ' collapsed' : ''}`.trim()}>
       <div className="cg-sidebar-header">
