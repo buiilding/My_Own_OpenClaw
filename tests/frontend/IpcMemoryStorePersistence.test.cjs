@@ -1,13 +1,13 @@
 /** @jest-environment node */
 
 const {
-  mapMemoryStoreEventPayload,
   persistMemoryStoreEvent,
 } = require('../../frontend/src/main/ipc_memory_store_persistence.cjs');
 
 describe('ipc_memory_store_persistence', () => {
-  test('maps payload-first memory store fields with session fallbacks', () => {
-    const mapped = mapMemoryStoreEventPayload({
+  test('maps payload-first memory store fields with session fallbacks', async () => {
+    const storeMemory = jest.fn().mockResolvedValue({ success: true });
+    persistMemoryStoreEvent({
       user_id: 'event-user',
       session_id: 'event-session',
       conversation_ref: 'event-conv',
@@ -17,9 +17,10 @@ describe('ipc_memory_store_persistence', () => {
         memory_type: 'semantic',
         user_id: 'payload-user',
       },
-    });
+    }, { storeMemory, log: jest.fn() });
 
-    expect(mapped).toEqual({
+    await Promise.resolve();
+    expect(storeMemory).toHaveBeenCalledWith({
       user_query: 'u',
       assistant_response: 'a',
       memory_type: 'semantic',
@@ -28,17 +29,19 @@ describe('ipc_memory_store_persistence', () => {
     });
   });
 
-  test('defaults memory_type and uses conversation_ref when session ids are absent', () => {
-    const mapped = mapMemoryStoreEventPayload({
+  test('defaults memory_type and uses conversation_ref when session ids are absent', async () => {
+    const storeMemory = jest.fn().mockResolvedValue({ success: true });
+    persistMemoryStoreEvent({
       user_id: 'event-user',
       conversation_ref: 'conv-1',
       payload: {
         user_query: 'u',
         assistant_response: 'a',
       },
-    });
+    }, { storeMemory, log: jest.fn() });
 
-    expect(mapped).toEqual({
+    await Promise.resolve();
+    expect(storeMemory).toHaveBeenCalledWith({
       user_query: 'u',
       assistant_response: 'a',
       memory_type: 'episodic',
