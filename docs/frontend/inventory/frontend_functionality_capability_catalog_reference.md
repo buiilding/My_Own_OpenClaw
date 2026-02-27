@@ -19,6 +19,13 @@ This page is the capability-first technical catalog for `frontend/src`.
 - Preload bridge (`frontend/src/preload.js`): `1`
 - Total covered frontend files: `329`
 
+## IPC Surface Snapshot (Typed Renderer Channel Catalog)
+
+- `SEND_CHANNELS`: `5`
+- `INVOKE_CHANNELS`: `33`
+- `ON_CHANNELS`: `11`
+- `ipc.cjs` settings ACK timeout (`SETTINGS_SYNC_TIMEOUT_MS`): `2500ms`
+
 ## 1) Main Process Capability Catalog
 
 Primary files:
@@ -62,6 +69,8 @@ Capabilities:
 - Builds query payload with memory/system context sections.
 - Emits synthetic local-user-message and user-safe error fallbacks for send failures.
 - Persists frontend config to disk and returns merged config payloads to renderer.
+- Query send path resolves `conversation_ref` from payload or cached backend-ref fallback and reuses it for both local echo and outbound websocket message.
+- Query send gates first turn on config sync only when cached frontend config payload is object-valid; invalid payloads are dropped instead of sent.
 
 ## 3) Main Local Sidecar + Permission/Privilege Bridges
 
@@ -83,6 +92,11 @@ Capabilities:
 - Streams wakeword audio binary frames and receives framed detection payloads.
 - Provides permission list/check/request/probe IPC contracts for onboarding.
 - Provides Linux sudo enable/disable path with normalized renderer-safe result semantics.
+- Sidecar spawn env injects `WINDIE_BACKEND_HTTP_URL` and enforces `NODE_OPTIONS=--no-deprecation` append policy via bridge utils.
+- Sidecar readiness checks use bounded ping retry (`<=10` attempts, exponential backoff capped at `1000ms`) with stale-generation token guards.
+- Local sidecar RPC request timeout defaults to `30s` (`120s` for browser tool), with canonical `{success:false,error}` response normalization for failures.
+- Linux-only screenshot guard hides visible WindieOS windows, waits `320ms`, runs screenshot tool, then restores prior visibility/focus/always-on-top state.
+- Wakeword bridge uses length-prefixed binary frame protocol for audio/result streams and clears stale stdout/stderr buffers on restart/exit.
 
 ## 4) Preload Boundary
 
@@ -95,6 +109,7 @@ Capabilities:
 - Exposes allowlisted `send`/`invoke`/`on`/`once` channels only.
 - Preserves context-isolated boundary; no direct Node/Electron surface leak to renderer.
 - Enforces renderer-to-main channel constant parity via preload allowlist.
+- Disallows non-allowlisted channels at preload boundary so renderer code cannot invoke arbitrary Electron IPC handlers.
 
 ## 5) Renderer Entrypoint + Provider Composition
 
@@ -133,6 +148,7 @@ Capabilities:
 - Tool runner executes single and bundle tool requests and posts structured result payloads back to backend.
 - Transcript writer persists user/assistant/tool entries with pending-queue retry semantics.
 - Tool execution service includes capture, artifact upload, formatting, and backend callback fanout.
+- Tool-runner safety flow requests overlay prep (`show-chatbox` + `prepare-overlay-tool-focus`) before interactive computer-use execution to avoid dispatch on WindieOS surfaces.
 
 ## 7) Renderer Dashboard + Settings + Permissions + Voice
 

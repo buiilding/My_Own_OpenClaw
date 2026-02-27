@@ -24,6 +24,14 @@ This page is the capability-first technical catalog for `backend/src`.
   - `sdk`: `6`
   - `embeddings`: `2`
 
+## WebSocket Runtime Guardrails (Default Config)
+
+- `websocket_max_message_size`: `10MB` (rejects oversized client payloads before handler dispatch).
+- `websocket_max_concurrent_tasks`: `50` per connection/user in route task manager.
+- `websocket_receive_timeout`: `3600s`; idle connection closes with policy-violation (`1008`).
+- `websocket_task_cancellation_timeout`: `5s` cleanup bound for tracked message tasks.
+- JSON parse offload threshold: `64KiB` (`parse_json_object_payload` runs large payload parse in executor).
+
 ## 1) Runtime Boot + Dependency Graph
 
 Primary files:
@@ -56,6 +64,7 @@ Capabilities:
 
 - WebSocket handshake validation (`HandshakeMessage`) with policy-violation close on bad payloads.
 - Size-aware JSON parse path and typed handler routing.
+- Handshake and message JSON root enforcement reject non-object payloads (`JsonRootTypeError`) before schema model validation.
 - Safe websocket sender queue + protocol envelope context fields (`user_id`, `session_id`, `turn_ref`, `conversation_ref`).
 - Message-type constants and formatter registry own the outbound schema alignment contract for query/setting ACK/control events.
 - Memory REST routes for embeddings and semantic summarize/title workloads.
@@ -76,6 +85,8 @@ Capabilities:
 - `rehydrate`: transcript replacement and active conversation reassociation.
 - `wakeword`: greeting/query wakeword entry path.
 - `compact_history`: manual compaction trigger with active-query guard and started/completed events.
+- Route parser injects trusted connection `user_id` into parsed payload before `IncomingMessage` validation (client payload user id is not trusted as source of truth).
+- Route error path always emits sanitized error envelopes through `send_error_response`, with server-side detailed logging retained.
 
 ## 4) Query Execution + Stream Pipeline
 
@@ -97,6 +108,7 @@ Capabilities:
 - Emits fallback `streaming-complete` when upstream stream ends without terminal event.
 - On cancel, reconciles pending staged tool calls into synthetic cancelled tool outputs for history integrity.
 - Runs TTS lifecycle around stream pipeline with flush/wait semantics.
+- Persists `memory-store` stream events through formatter/transport contract while keeping payload/user-id guardrails at formatter boundary.
 
 ## 5) Session Lifecycle + Runtime State
 
