@@ -147,6 +147,41 @@ No context field gets attached when value is falsy.
 - passes all usage/cache fields through to payload
 - schema requires numeric fields; producer correctness required upstream
 
+### `context-compaction-started` -> `context-compaction-started`
+
+- formatter: `ContextCompactionStartedEventFormatter`
+- required:
+  - `reason`
+  - `strategy`
+  - `before_tokens`
+  - `projected_tokens`
+- validation failure: warning + `None`
+
+### `context-compaction-completed` -> `context-compaction-completed`
+
+- formatter: `ContextCompactionCompletedEventFormatter`
+- required:
+  - `reason`
+  - `strategy`
+  - `before_tokens`
+  - `after_tokens`
+  - `removed_messages`
+- optional passthrough:
+  - `summary_preview`
+  - `skipped_reason`
+- validation failure: warning + `None`
+
+### `context-compaction-failed` -> `context-compaction-failed`
+
+- formatter: `ContextCompactionFailedEventFormatter`
+- required:
+  - `reason`
+  - `strategy`
+  - `error`
+- optional passthrough:
+  - `before_tokens`
+- validation failure: warning + `None`
+
 ### `memory-store` -> `memory-store`
 
 - formatter: `MemoryStoreEventFormatter`
