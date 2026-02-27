@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(backend-coordinate-normalization): apply screenshot-to-display coordinate normalization to manual `mouse_control` calls during tool preparation (best-effort when screenshot is available), reusing OCR/prediction contract metadata and stale-screen linkage for improved HiDPI click accuracy.
 - fix(frontend-chat-ui): replace footer disclaimer branding text from `ChatGPT` to `WindieOS`.
 - fix(frontend-chat-ui): keep user copy/edit controls mounted but hidden (opacity/visibility) to prevent message reflow on hover, and slightly expand the user-message hover hit area.
 - fix(frontend-chat): show `Compacting conversation history...` in chat thinking UI during backend context-compaction lifecycle events (`context-compaction-started/completed/failed`).

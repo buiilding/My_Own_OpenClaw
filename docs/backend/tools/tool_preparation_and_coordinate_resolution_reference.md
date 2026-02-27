@@ -32,6 +32,7 @@ Responsibilities:
 
 - assign stable execution identifiers (`request_id` for single, `bundle_id` for bundle)
 - resolve OCR/prediction coordinates for `mouse_control` when needed
+- normalize manual mouse coordinates when screenshot/display spaces differ
 - rewrite resolved mouse calls to manual `x/y` parameters
 - attach transparency/diagnostic metadata
 - register resolved single-call payloads in session runtime for later stale-screen checks
@@ -57,7 +58,8 @@ Non-responsibilities:
 - tool name is `mouse_control`
 - `find_coordinates_by` is `ocr` or `prediction`
 
-`manual` mode bypasses resolution and keeps original coordinates.
+`manual` mode bypasses OCR/vision resolution.
+`tool_call_has_manual_coordinates(...)` marks manual `x/y` calls for best-effort normalization.
 
 ## Coordinate Resolution Pipeline
 
@@ -71,6 +73,15 @@ For a qualifying call:
 4. optional screenshot->display coordinate normalization
 5. rewrite prepared call to manual `x/y`
 6. persist metadata (`coordinate_method`, `coordinate_resolution_screenshot_id`, `coordinate_contract`)
+
+For manual `x/y` calls (no OCR/vision resolution):
+
+1. read current screenshot from session (if available)
+2. build the same `CoordinateContract` used by OCR/prediction
+3. normalize screenshot-space manual coordinates to display-space
+4. persist `coordinate_contract` metadata (+ screenshot id when available)
+
+If no active screenshot is available, manual normalization is skipped and coordinates pass through unchanged.
 
 ## Coordinate Normalization Contract
 
@@ -106,8 +117,8 @@ After successful resolution:
 Metadata additions:
 
 - `coordinate_method`: original user/model intent (`manual|ocr|prediction`)
-- `coordinate_resolution_screenshot_id`
-- `coordinate_contract`: source/target sizes, normalization status, normalized coordinates
+- `coordinate_resolution_screenshot_id` (OCR/prediction always, manual when screenshot available)
+- `coordinate_contract` (OCR/prediction always, manual when screenshot available): source/target sizes, normalization status, normalized coordinates
 
 ## Single vs Bundle Preparation Behavior
 
@@ -149,6 +160,7 @@ Bundle preparation failure:
 - mismatch returns immediate failure result (`Screen changed before tool execution`) to prevent dangerous clicks on changed UI
 
 This guard is independent of frontend behavior and protects local automation safety.
+Manual calls participate when normalization attached a screenshot id.
 
 ## Wait Path Coupling
 

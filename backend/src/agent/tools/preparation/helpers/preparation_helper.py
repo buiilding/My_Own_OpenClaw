@@ -53,6 +53,27 @@ def tool_call_needs_coordinate_resolution(tool_call: ParsedToolCall) -> bool:
     return tool_call.parameters.get("find_coordinates_by") in _COORDINATE_RESOLUTION_METHODS
 
 
+def tool_call_has_manual_coordinates(tool_call: ParsedToolCall) -> bool:
+    """
+    Return whether a mouse tool call uses manual coordinates with x/y payload.
+
+    Manual calls skip OCR/vision resolution, but still benefit from screenshot->display
+    normalization on HiDPI or cropped-screenshot setups.
+    """
+    if tool_call.tool_name != "mouse_control":
+        return False
+    method = normalize_coordinate_method(
+        tool_call.parameters.get("find_coordinates_by"),
+        default=CoordinateFindingMethod.MANUAL.value,
+    )
+    if method != CoordinateFindingMethod.MANUAL.value:
+        return False
+
+    x = tool_call.parameters.get("x")
+    y = tool_call.parameters.get("y")
+    return isinstance(x, int) and isinstance(y, int)
+
+
 def attach_coordinate_method_metadata(
     tool_call: ParsedToolCall,
     resolved_call: ResolvedToolCall,
@@ -206,13 +227,84 @@ async def resolve_tool_with_coordinates(
     )
 
 
+def normalize_manual_coordinates(
+    *,
+    resolved_call: ResolvedToolCall,
+    session: "AgentSession",
+    context_id: str,
+) -> None:
+    """
+    Best-effort normalization for manual mouse coordinates.
+
+    Manual coordinates are often chosen from screenshot pixel space. Reuse the
+    same contract-based normalization used for OCR/prediction so manual clicks
+    remain aligned on HiDPI displays.
+    """
+    if resolved_call.tool_name != "mouse_control":
+        return
+
+    x = resolved_call.parameters.get("x")
+    y = resolved_call.parameters.get("y")
+    if not isinstance(x, int) or not isinstance(y, int):
+        return
+
+    if not resolved_call.metadata:
+        resolved_call.metadata = {}
+
+    get_screenshot = getattr(session, "get_screenshot", None)
+    get_screenshot_id = getattr(session, "get_current_screenshot_id", None)
+    screenshot_data = get_screenshot() if callable(get_screenshot) else None
+    screenshot_id = get_screenshot_id() if callable(get_screenshot_id) else None
+    if not isinstance(screenshot_data, str) or not screenshot_data.strip():
+        logger.info(
+            "[context_id=%s] Skipping manual coordinate normalization: no active screenshot",
+            short_id(context_id),
+        )
+        return
+
+    contract = _build_coordinate_contract(session, screenshot_data, x, y)
+    if _should_disable_coordinate_normalization():
+        normalized = NormalizedCoordinates(
+            x=x,
+            y=y,
+            status="disabled_on_linux",
+        )
+    else:
+        normalized = normalize_to_display_space(contract)
+
+    resolved_call.parameters["x"] = normalized.x
+    resolved_call.parameters["y"] = normalized.y
+    if isinstance(screenshot_id, str) and screenshot_id:
+        resolved_call.metadata["coordinate_resolution_screenshot_id"] = screenshot_id
+    resolved_call.metadata["coordinate_contract"] = build_contract_metadata(
+        contract,
+        normalized,
+    )
+
+    if normalized.status == "scaled_to_display":
+        logger.info(
+            "[context_id=%s] Normalized manual coordinates from screenshot %sx%s "
+            "to display %sx%s: (%s,%s)->(%s,%s)",
+            short_id(context_id),
+            contract.source_image_size[0] if contract.source_image_size else "?",
+            contract.source_image_size[1] if contract.source_image_size else "?",
+            contract.target_display_size[0] if contract.target_display_size else "?",
+            contract.target_display_size[1] if contract.target_display_size else "?",
+            x,
+            y,
+            normalized.x,
+            normalized.y,
+        )
+
+
 def _build_coordinate_contract(
     session: "AgentSession",
     screenshot_b64: str,
     x: int,
     y: int,
 ) -> CoordinateContract:
-    system_state = session.get_current_system_state()
+    getter = getattr(session, "get_current_system_state", None)
+    system_state = getter() if callable(getter) else None
     target_display_size = parse_screen_resolution(
         system_state.get("screen_resolution") if isinstance(system_state, dict) else None
     )
