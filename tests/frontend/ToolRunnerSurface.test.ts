@@ -157,6 +157,14 @@ describe('toolRunnerSurface helpers', () => {
     expect(IpcBridge.invoke).toHaveBeenCalledWith(INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE, {
       ignore: true,
     });
+    const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
+    const firstIgnoreCallIndex = invokeCalls.findIndex(
+      ([channel]: unknown[]) => channel === INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE,
+    );
+    const lastFocusCallIndex = invokeCalls.reduce((lastIndex, [channel], index) => (
+      channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS ? index : lastIndex
+    ), -1);
+    expect(firstIgnoreCallIndex).toBeGreaterThan(lastFocusCallIndex);
 
     await restoreToolExecutionSurface(preparation);
     expect(IpcBridge.invoke).toHaveBeenCalledWith(INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE, {

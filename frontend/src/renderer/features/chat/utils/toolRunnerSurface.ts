@@ -169,17 +169,6 @@ export async function prepareToolExecutionSurface(
     surfaceToken = registerSurfaceToken();
 
     if (mode === 'interactive') {
-      try {
-        const ignoreResult = await IpcBridge.invoke(INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE, {
-          ignore: true,
-        });
-        overlayIgnoreEnabled = ignoreResult?.success !== false;
-        if (overlayIgnoreEnabled) {
-          markOverlayIgnoreForToken(surfaceToken);
-        }
-      } catch (error) {
-        console.warn('[useToolRunner] Failed to enable overlay click-through for tool execution:', error);
-      }
       for (let attempt = 1; attempt <= TOOL_FOCUS_PREPARE_MAX_ATTEMPTS; attempt += 1) {
         const focusPreparation = await IpcBridge.invoke(INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
           waitMs: TOOL_FOCUS_PREPARE_WAIT_MS,
@@ -200,6 +189,17 @@ export async function prepareToolExecutionSurface(
         }
 
         if (!canVerifyExternalFocus || externalFocusActive) {
+          try {
+            const ignoreResult = await IpcBridge.invoke(INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE, {
+              ignore: true,
+            });
+            overlayIgnoreEnabled = ignoreResult?.success !== false;
+            if (overlayIgnoreEnabled) {
+              markOverlayIgnoreForToken(surfaceToken);
+            }
+          } catch (error) {
+            console.warn('[useToolRunner] Failed to enable overlay click-through for tool execution:', error);
+          }
           return {
             restoreChatPillAfterExecution: true,
             canExecute: true,

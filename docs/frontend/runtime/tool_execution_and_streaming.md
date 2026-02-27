@@ -44,6 +44,7 @@ Responsibilities:
 - tracks correlation IDs to reject late/out-of-turn results
 - sends cancellation-failure payloads (`frontend_stale_turn_cancelled`) when tool events arrive for closed turns
 - before interactive computer-use execution (`click`/`type`/`scroll` paths), requests `show-chatbox` and then `prepare-overlay-tool-focus` so dashboard closes and external app focus is restored before dispatch
+- interactive computer-use click-through (`set-overlay-ignore-mouse(true)`) is applied only after focus prep succeeds and is restored immediately after tool completion
 - for capture-only computer-use turns (`screenshot`, `switch_tab`, `wait`, browser `switch|screenshot`), closes dashboard, temporarily hides chat-pill overlays for capture-safe execution, then restores chat-pill surface after execution
 - applies the same handoff policy to bundles when bundled steps include interactive/capture-only computer-use actions
 

@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for Windows-only external focus snapshot/restore in Electron main and pre-capture overlay blur/settle flow before query screenshot collection."
+summary: "Deep reference for external focus snapshot/restore in Electron main and pre-capture overlay blur/demotion flow before query screenshot and system-state collection."
 read_when:
   - When changing `showChatWindow` focus behavior or overlay query capture timing.
   - When debugging screenshots that capture WindieOS windows instead of target external apps.
@@ -17,12 +17,12 @@ title: "External Focus Snapshot, Restore, and Query-Capture Reference"
 
 ## Platform Scope
 
-External focus snapshot/restore logic is active only on Windows (`process.platform === "win32"`).
+Native external-window snapshot/restore via `node-window-manager` is active only on Windows (`process.platform === "win32"`).
 
 Non-Windows behavior:
 
-- snapshot and restore helpers return early
-- overlay capture prep still blurs WindieOS windows and waits settle delay
+- snapshot/restore helpers return early
+- capture prep now performs overlay demotion fallback (`hide` -> short settle -> `showInactive`) so WindieOS windows do not remain focused before query capture
 
 ## Snapshot Contract
 
@@ -61,8 +61,9 @@ Restoration is best effort and non-fatal.
 2. blur `mainWindow` when available
 3. check `externalFocusTracker.canTrackExternalFocus()` capability
 4. attempt external focus restore when capability is available
-5. verify restored external focus only when capability + restore both succeed
-6. otherwise wait settle duration (`120ms` default) without verification
+5. when restore is unavailable, demote overlay windows without stealing focus (`responseWindow`, `chatWindow`)
+6. verify restored external focus only when capability + restore both succeed
+7. otherwise wait settle duration (`120ms` default) without verification
 
 This hook is registered into IPC init as `onBeforeOverlayQueryCapture`.
 
@@ -77,8 +78,8 @@ Main process query relay flow calls the hook before capture-enriched query send 
 
 Coupled behavior:
 
-- overlay chat UI can remain visible while focus temporarily hops to external app
-- screenshot capture tool then samples external app state instead of overlay
+- overlay chat UI can remain visible while focus temporarily hops to external app (or is demoted off overlay windows on non-Windows)
+- query-time system state and screenshot capture are less likely to sample WindieOS windows as active
 
 ## Drift Hotspots
 

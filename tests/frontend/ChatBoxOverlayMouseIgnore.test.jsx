@@ -140,6 +140,7 @@ describe('ChatBox overlay mouse ignore', () => {
       screenshot: 'ZmFrZS1zY3JlZW5zaG90',
       screenshotContentType: 'image/png',
     });
+    mockChatState.isSending = false;
     mockChatState.messages = [];
     mockChatState.streamTracking.phase = 'idle';
   });
@@ -287,6 +288,25 @@ describe('ChatBox overlay mouse ignore', () => {
     );
   });
 
+  test('keeps only stop interactive during active loop phases', () => {
+    mockChatState.streamTracking.phase = 'streaming';
+    render(<ChatBox />);
+
+    expect(screen.getByRole('button', { name: 'Open dashboard' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Toggle text-to-speech' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Take screenshot' })).toBeDisabled();
+    expect(screen.getByPlaceholderText('Ask me anything...')).toBeDisabled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Open dashboard' }));
+    expectInvokeCall(([channel, payload]) => (
+      channel === 'set-overlay-ignore-mouse' && payload?.ignore === false
+    ));
+    expect(mockInvoke.mock.calls.some(([channel]) => channel === 'show-main-window')).toBe(false);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Stop response' }));
+    expect(mockStopQuery).toHaveBeenCalledTimes(1);
+  });
+
   test('does not render compaction control when dev UI flag is disabled', () => {
     render(<ChatBox />);
     expect(screen.queryByRole('button', { name: 'Run auto compaction' })).not.toBeInTheDocument();
@@ -334,6 +354,15 @@ describe('ChatBox overlay mouse ignore', () => {
     input.blur();
     fireEvent.focus(window);
     expect(document.activeElement).toBe(input);
+  });
+
+  test('does not auto-focus input while stop-only mode is active', () => {
+    mockChatState.streamTracking.phase = 'tool-call';
+    render(<ChatBox />);
+    const input = screen.getByPlaceholderText('Ask me anything...');
+
+    fireEvent.focus(window);
+    expect(document.activeElement).not.toBe(input);
   });
 
   test('adds ambient loop glow class while active stream phases are running', () => {
