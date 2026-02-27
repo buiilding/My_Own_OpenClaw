@@ -121,3 +121,15 @@ def test_get_all_remote_tools_returns_copy():
 
     fresh = get_all_remote_tools()
     assert "mouse_control" in fresh
+
+
+def test_remote_mouse_tool_schema_explicitly_guides_ocr_for_text_targets():
+    tool = RemoteMouseTool()
+    schema = tool.get_json_schema()
+    function = schema["function"]
+    parameters = function["parameters"]["properties"]
+
+    assert "find_coordinates_by='ocr'" in function["description"]
+    assert "type something here" in function["description"]
+    assert "type something here" in parameters["ocr_text"]["description"]
+    assert "visible text" in parameters["find_coordinates_by"]["description"]

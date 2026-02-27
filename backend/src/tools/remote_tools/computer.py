@@ -25,8 +25,9 @@ class RemoteMouseTool(RemoteToolBase, Tool[MouseControlArgs]):
     name = "mouse_control"
     description = (
         "Control mouse actions with schema-guided coordinate targeting. "
-        "Prefer OCR for visible text targets, prediction for non-text UI targets, "
-        "and manual coordinates only as fallback."
+        "For text-labeled UI elements, prefer find_coordinates_by='ocr' with exact "
+        "ocr_text (for example, 'type something here'). Use prediction for non-text "
+        "UI targets and manual coordinates only as fallback."
     )
     args_model = MouseControlArgs
     category = ToolDomain.COMPUTER
