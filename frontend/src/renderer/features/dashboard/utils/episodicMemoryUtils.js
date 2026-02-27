@@ -202,9 +202,56 @@ function appendTransparencyForRehydrate(content, transparency) {
   return `${baseContent}\n\n${sections.join('\n\n')}`.trim();
 }
 
+function buildMessageTransparencyFields(part, partCount, transparency) {
+  if (!transparency || typeof transparency !== 'object') {
+    return {};
+  }
+
+  const fields = {};
+  const canAttachUserContext = part.sender === 'user' || partCount === 1;
+  const systemPrompt = normalizeOptionalString(transparency.systemPrompt);
+  const toolSchemas = (
+    Array.isArray(transparency.toolSchemas) && transparency.toolSchemas.length > 0
+  ) ? transparency.toolSchemas : null;
+
+  if (canAttachUserContext && (systemPrompt || toolSchemas)) {
+    fields.systemPrompt = {
+      ...(systemPrompt ? { content: systemPrompt } : {}),
+      ...(toolSchemas ? { toolSchemas } : {}),
+    };
+  }
+  if (canAttachUserContext && toolSchemas) {
+    fields.toolSchemas = toolSchemas;
+  }
+
+  const fullUserContent = normalizeOptionalString(transparency?.fullUserMessage?.content);
+  const fullUserMetadata = (
+    transparency?.fullUserMessage?.metadata
+    && typeof transparency.fullUserMessage.metadata === 'object'
+    && !Array.isArray(transparency.fullUserMessage.metadata)
+  ) ? transparency.fullUserMessage.metadata : null;
+  if (canAttachUserContext && (fullUserContent || fullUserMetadata)) {
+    fields.fullUserMessage = {
+      ...(fullUserContent ? { content: fullUserContent } : {}),
+      ...(fullUserMetadata ? { metadata: fullUserMetadata } : {}),
+    };
+  }
+
+  const fullAssistantContent = normalizeOptionalString(transparency?.fullAssistantMessage?.content);
+  if (part.sender === 'assistant' && fullAssistantContent) {
+    fields.fullAssistantMessage = {
+      content: fullAssistantContent,
+    };
+  }
+
+  return fields;
+}
+
 export function parseMemoriesToMessages(memories) {
   return memories.flatMap((memory, index) => {
     const parts = parseMemoryContent(memory);
+    const transparency = resolveTranscriptTransparency(memory);
+    const partCount = parts.length;
     return parts.map((part, partIndex) => {
       const screenshotFields = {};
       if (part.screenshot) {
@@ -226,6 +273,7 @@ export function parseMemoriesToMessages(memories) {
       if (part.modelId) {
         modelFields.modelId = part.modelId;
       }
+      const transparencyFields = buildMessageTransparencyFields(part, partCount, transparency);
 
       return {
         id: `${memory.id || index}-${partIndex}`,
@@ -234,6 +282,7 @@ export function parseMemoriesToMessages(memories) {
         type: part.type,
         ...modelFields,
         ...screenshotFields,
+        ...transparencyFields,
         isComplete: true,
       };
     });
