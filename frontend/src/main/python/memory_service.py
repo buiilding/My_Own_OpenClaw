@@ -181,7 +181,8 @@ class MemoryService:
                 memory_content,
                 user_id,
                 metadata,
-                conversation_id=session_id
+                conversation_id=session_id,
+                record_kind="interaction",
             )
 
             logger.info(f"Stored {memory_type} memory {memory_id} for user {user_id}")

@@ -21,8 +21,8 @@ class DummyStore:
             {"type": "semantic", "text": "fact 1"},
         ]
 
-    async def add(self, content, user_id, metadata, conversation_id=None):
-        self.add_calls.append((content, user_id, metadata, conversation_id))
+    async def add(self, content, user_id, metadata, conversation_id=None, **kwargs):
+        self.add_calls.append((content, user_id, metadata, conversation_id, kwargs))
         return "mem-2"
 
 
@@ -34,7 +34,7 @@ class DummyStoreRaises(DummyStore):
     async def search(self, query, user_id, filters, limit):
         raise self.error
 
-    async def add(self, content, user_id, metadata, conversation_id=None):
+    async def add(self, content, user_id, metadata, conversation_id=None, **kwargs):
         raise self.error
 
 
@@ -116,6 +116,7 @@ async def test_handle_store_builds_memory_entry():
             "user",
             {"type": "episodic", "source": "interaction_completed", "conversation_id": "s1"},
             "s1",
+            {"record_kind": "interaction"},
         )
     ]
 

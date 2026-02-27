@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(sidecar-memory-service): persist `store` interactions with `record_kind=\"interaction\"` so standalone memory-service writes remain consistent with summarizer interaction-row sourcing.
 - fix(backend-memory-query-parse): resolve raw user query from the last `<user_query>` block in enriched content to avoid stale first-match capture when earlier snippets contain the same tag.
 - test(backend-memory-formatter): add explicit contract coverage for `MemoryStoreEventFormatter` skip paths when `user_id` is missing or `default_user`.
 - refactor(sidecar-memory-watermark): remove unused `increment_pending_count` helpers from `WatermarkStateStore` and `LocalMemoryStore`, and align sidecar watermark/docs/tests with DB-count-driven summarizer gating.
