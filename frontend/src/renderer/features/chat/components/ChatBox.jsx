@@ -268,7 +268,11 @@ function ChatBox() {
     };
 
     const measureAndQueueSize = ({ force = false } = {}) => {
-      if (!force && Date.now() < resizeSyncState.transitionLockUntil) {
+      if (
+        !force
+        && resizeSyncState.activeMode === CHATBOX_SIZE_MODES.COMPACT
+        && Date.now() < resizeSyncState.transitionLockUntil
+      ) {
         return;
       }
       const measuredFrame = getRoundedFrameSize(shellRef.current);
@@ -344,7 +348,9 @@ function ChatBox() {
     const resizeSyncState = resizeSyncRef.current;
     resizeSyncState.activeMode = activeResizeMode;
     resizeSyncState.queuedSize = null;
-    resizeSyncState.transitionLockUntil = Date.now() + RESIZE_TRANSITION_LOCK_MS;
+    resizeSyncState.transitionLockUntil = activeResizeMode === CHATBOX_SIZE_MODES.COMPACT
+      ? Date.now() + RESIZE_TRANSITION_LOCK_MS
+      : 0;
     resizeSyncState.scheduleSizeSync?.({ force: true });
   }, [activeResizeMode]);
 

@@ -278,6 +278,63 @@ describe('ChatBox overlay mouse ignore', () => {
     jest.useRealTimers();
   });
 
+  test('does not apply compact transition lock while in with-preview mode', async () => {
+    jest.useFakeTimers();
+    const rafQueue = [];
+    global.requestAnimationFrame = (cb) => {
+      rafQueue.push(cb);
+      return rafQueue.length;
+    };
+    global.cancelAnimationFrame = jest.fn();
+    const originalResizeObserver = global.ResizeObserver;
+    const observerCallbacks = [];
+    global.ResizeObserver = class ResizeObserverMock {
+      constructor(callback) {
+        observerCallbacks.push(callback);
+      }
+
+      observe() {}
+
+      disconnect() {}
+    };
+    const flushResizeSync = async () => {
+      await act(async () => {
+        rafQueue.splice(0).forEach((cb) => cb());
+        jest.advanceTimersByTime(45);
+        await Promise.resolve();
+      });
+    };
+    const resizeHeights = () => mockInvoke.mock.calls
+      .filter(([channel]) => channel === 'set-chatbox-size')
+      .map(([, payload]) => payload?.height);
+    let measuredFrame = { width: 200, height: 52 };
+    mockGetRoundedFrameSize.mockImplementation(() => measuredFrame);
+
+    try {
+      render(<ChatBox />);
+      await flushResizeSync();
+      expect(resizeHeights().at(-1)).toBe(52);
+
+      measuredFrame = { width: 200, height: 88 };
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+        await Promise.resolve();
+      });
+      await flushResizeSync();
+      expect(resizeHeights().at(-1)).toBe(88);
+
+      measuredFrame = { width: 200, height: 132 };
+      await act(async () => {
+        observerCallbacks.forEach((callback) => callback());
+      });
+      await flushResizeSync();
+      expect(resizeHeights().at(-1)).toBe(132);
+    } finally {
+      global.ResizeObserver = originalResizeObserver;
+      jest.useRealTimers();
+    }
+  });
+
   test('wires overlay sender surface for centralized UI send behavior', () => {
     render(<ChatBox />);
 
