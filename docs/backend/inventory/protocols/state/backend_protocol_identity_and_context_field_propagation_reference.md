@@ -10,8 +10,8 @@ title: "Backend Protocol Identity and Context-Field Propagation Reference"
 
 ## Coverage Snapshot (2026-02-27)
 
-- State-focused protocol test files: `5`
-- Total test cases across listed files: `65`
+- State-focused protocol test files: `6`
+- Total test cases across listed files: `78`
 
 ## Scope and Sources
 
@@ -36,6 +36,7 @@ Primary test sources:
 - `tests/backend/test_response_formatter.py`
 - `tests/backend/test_transport_envelope.py`
 - `tests/backend/test_session_manager.py`
+- `tests/backend/test_handler_context.py`
 
 ## State Contract Matrix
 
@@ -45,7 +46,7 @@ Primary test sources:
 | `session_id` | `AgentSession.session_id` from session manager | query stream context builder / stop-query context builder | formatter output + success helper context | `test_query_handler_success`, `test_stop_query_handler_cancels_active_query_and_emits_streaming_complete` |
 | `conversation_ref` | incoming `query.payload.conversation_ref` or canceled active query metadata | query stream context builder / stop-query canceled tuple | formatter output + success helper context | `test_query_handler_success`, `test_stop_query_handler_cancels_active_query_and_emits_streaming_complete` |
 | `turn_ref` | incoming message `id` | query stream context builder / active task registry / stop-query cancellation | formatter output + success helper context | `test_query_handler_success`, `test_cancel_active_query_task_cancels_all_tasks_and_returns_last_metadata` |
-| control-message context (`user_id`, optional `session_id`, optional runtime `conversation_ref`) | shared context helper | `build_user_session_context(...)` in handlers | success/error helper context | `test_compact_history_handler_*`, stop-query handler tests |
+| control-message context (`user_id`, optional `session_id`, optional runtime `conversation_ref`) | shared context helper | `build_user_session_context(...)` in handlers | success/error helper context | `test_compact_history_handler_*`, stop-query handler tests, `test_build_user_session_context_*` |
 
 ## Identity Boundary: Handshake and Route Injection
 
@@ -135,8 +136,8 @@ Locked by:
 
 - `build_user_session_context(...)` sets:
   - required `user_id`
-  - optional `session_id`
-  - optional runtime `conversation_ref`
+  - optional `session_id` (trimmed; blank/non-string dropped)
+  - optional runtime `conversation_ref` (trimmed; blank/non-string dropped)
 - `context-compaction-started` and `context-compaction-completed` envelopes reuse the same context object for consistent identity correlation.
 - when no active query exists, compaction responses still carry stable user/session context even though no `turn_ref` is attached.
 
@@ -160,7 +161,7 @@ When modifying this surface, keep aligned:
 - handshake model constraints vs route user injection assumptions
 - query stream-context builder fields vs frontend event correlation expectations
 - `SessionManager` active task metadata shape vs `StopQueryHandler` context attachment
-- shared handler context helper behavior vs stop-query/compact-history envelope fields
+- shared handler context helper behavior (trim/drop rules) vs stop-query/compact-history envelope fields
 - `attach_context_fields(...)` truthy-only behavior vs tests and renderer fallback logic
 
 ## State Control-Path Index

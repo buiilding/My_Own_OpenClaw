@@ -51,6 +51,7 @@ Properties:
 
 - calls `session_manager.cancel_active_query_task(user_id)`
 - derives optional context: `session_id`, `turn_ref`, `conversation_ref`
+- context helper trims optional `session_id`/`conversation_ref` and drops blank/non-string values
 - always emits `streaming-complete` success response, even when no active task exists
 
 Reason: frontend must always exit active streaming state when stop is requested.
@@ -168,6 +169,7 @@ This split keeps envelope strict while preserving per-tool extensibility.
 - load-settings returns frontend-owned key subset
 - wakeword sends activation then greeting events
 - rehydrate rebuilds tool-call/tool-output linkage for resumed transcripts
+- shared context helper tests (`tests/backend/test_handler_context.py`) verify trimmed session/conversation refs and blank/non-string drop behavior
 
 ## Drift Hotspots
 
