@@ -175,7 +175,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
   }, []);
 
   const handleStopQuery = useCallback(() => {
-    if (!canStop) {
+    if (!composerBusy) {
       return;
     }
     const stoppedAt = new Date().toISOString();
@@ -191,7 +191,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
     }));
     stopPlayback();
     ApiClient.stopQuery();
-  }, [canStop, setIsSending, setThinkingSourceEventType, setThinkingStatus, stopPlayback, updateStreamTracking]);
+  }, [composerBusy, setIsSending, setThinkingSourceEventType, setThinkingStatus, stopPlayback, updateStreamTracking]);
 
   const handleNewChat = useCallback(() => {
     startNewChatSession({
@@ -199,7 +199,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
       setIsSending,
       setThinkingStatus,
       setTokenCounts,
-      stopActiveQuery: canStop
+      stopActiveQuery: composerBusy
         ? () => {
           stopPlayback();
           ApiClient.stopQuery();
@@ -207,7 +207,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
         : undefined,
     });
   }, [
-    canStop,
+    composerBusy,
     clearMessages,
     setIsSending,
     setThinkingStatus,

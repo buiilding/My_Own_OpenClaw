@@ -183,7 +183,7 @@ function ChatBox() {
   }, [clipboardImages, composerBusy, getInputValue, resetTranscription, sendMessage, setInputValue]);
 
   const handleStopQuery = useCallback(() => {
-    if (!canStop) {
+    if (!composerBusy) {
       return;
     }
     const stoppedAt = new Date().toISOString();
@@ -198,7 +198,7 @@ function ChatBox() {
       lastEventType: 'stop-query',
     }));
     ApiClient.stopQuery();
-  }, [canStop, setIsSending, setThinkingSourceEventType, setThinkingStatus, updateStreamTracking]);
+  }, [composerBusy, setIsSending, setThinkingSourceEventType, setThinkingStatus, updateStreamTracking]);
 
   const handleSubmit = useCallback((event) => {
     event.preventDefault();
