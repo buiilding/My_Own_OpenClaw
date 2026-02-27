@@ -28,6 +28,15 @@ from core.remote_embedding_client import RemoteEmbeddingClient
 from core.remote_title_client import RemoteTitleClient
 from memory.conversation_list_runtime import build_conversation_list_results
 from memory.conversation_list_runtime import fetch_transcript_conversation_rows
+from memory.conversation_semanticization_runtime import (
+    count_unsemanticized_interaction_memories as fetch_unsemanticized_interaction_count,
+)
+from memory.conversation_semanticization_runtime import (
+    get_user_ids_with_unsemanticized_memories as fetch_users_with_unsemanticized_memories,
+)
+from memory.conversation_semanticization_runtime import (
+    semantic_summary_exists as check_semantic_summary_exists,
+)
 from memory.conversation_search_runtime import search_transcript_conversations
 from memory.conversation_title_runtime import cancel_title_generation_tasks
 from memory.conversation_title_runtime import ensure_title_generation_runtime_state
@@ -1189,22 +1198,10 @@ class LocalMemoryStore:
         """
         Return distinct user IDs that have unsemanticized episodic interaction memories.
         """
-        async with aiosqlite.connect(self.episodic_db_path) as conn:
-            cursor = await conn.cursor()
-            await cursor.execute(
-                """
-                SELECT user_id, MAX(timestamp) as latest_timestamp
-                FROM memories
-                WHERE is_semanticized = 0
-                  AND record_kind = 'interaction'
-                GROUP BY user_id
-                ORDER BY latest_timestamp DESC
-                LIMIT ?
-            """,
-                (limit,),
-            )
-            rows = await cursor.fetchall()
-            return [row[0] for row in rows if row and row[0]]
+        return await fetch_users_with_unsemanticized_memories(
+            episodic_db_path=self.episodic_db_path,
+            limit=limit,
+        )
 
     async def count_unsemanticized_interaction_memories(
         self,
@@ -1216,51 +1213,19 @@ class LocalMemoryStore:
         Args:
             user_id: Optional user filter.
         """
-        async with aiosqlite.connect(self.episodic_db_path) as conn:
-            cursor = await conn.cursor()
-            if user_id:
-                await cursor.execute(
-                    """
-                    SELECT COUNT(*)
-                    FROM memories
-                    WHERE user_id = ?
-                      AND is_semanticized = 0
-                      AND record_kind = 'interaction'
-                """,
-                    (user_id,),
-                )
-            else:
-                await cursor.execute(
-                    """
-                    SELECT COUNT(*)
-                    FROM memories
-                    WHERE is_semanticized = 0
-                      AND record_kind = 'interaction'
-                """
-                )
-            row = await cursor.fetchone()
-            return int(row[0]) if row else 0
+        return await fetch_unsemanticized_interaction_count(
+            episodic_db_path=self.episodic_db_path,
+            user_id=user_id,
+        )
 
     async def semantic_summary_exists(self, summary_hash: str) -> bool:
         """
         Check if a semantic summary with the given hash already exists.
         """
-        if not summary_hash:
-            return False
-
-        pattern = f'%\"summary_hash\": \"{summary_hash}\"%'
-        async with aiosqlite.connect(self.semantic_db_path) as conn:
-            cursor = await conn.cursor()
-            await cursor.execute(
-                """
-                SELECT 1 FROM memories
-                WHERE metadata LIKE ?
-                LIMIT 1
-            """,
-                (pattern,),
-            )
-            row = await cursor.fetchone()
-            return row is not None
+        return await check_semantic_summary_exists(
+            semantic_db_path=self.semantic_db_path,
+            summary_hash=summary_hash,
+        )
 
     async def list_conversations(
         self, user_id: str, limit: int = 200, record_kind: Optional[str] = "transcript"
