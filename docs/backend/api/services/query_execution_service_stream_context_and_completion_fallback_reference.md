@@ -104,6 +104,7 @@ Helper parsing/completion logic is single-sourced in `query_event_extraction.py`
 `QueryExecutionService` keeps compatibility wrapper methods.
 
 - `_extract_event_type` supports both dict and dataclass-like events
+- `_extract_event_type` trims type strings and treats whitespace-only values as missing
 - `_extract_non_empty_chunk_text` only accepts `chunk/content/streaming-response`
 - `_extract_assistant_full_text` only accepts `assistant_message_full`
 - `_extract_streaming_complete_text` only accepts `streaming-complete`
