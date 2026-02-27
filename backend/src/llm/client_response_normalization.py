@@ -1,3 +1,4 @@
+import copy
 from typing import Any, Dict, List, Optional
 
 from backend.src.core.infrastructure.exceptions import LLMAPIError
@@ -58,7 +59,7 @@ def normalize_tool_call_entry(
             f"Invalid tool call arguments at index {index}: expected dict",
             model=model,
         )
-    return {"id": tool_id, "name": tool_name, "arguments": arguments}
+    return {"id": tool_id, "name": tool_name, "arguments": copy.deepcopy(arguments)}
 
 
 def normalize_tool_calls(
