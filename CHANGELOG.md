@@ -8,6 +8,7 @@ Includes the last 300 commits on `main`.
 
 ### Added
 - feat(frontend-dashboard-awaiting-dot): add dashboard chat white-dot assistant placeholder immediately after user send while stream phase is `awaiting-first-chunk`, and remove it once streaming starts; add MessageList + ChatInterface wiring regressions.
+- fix(frontend-chatbox-preview-immediate-sync): make non-dashboard chat-pill resize sync immediate on startup/mode-switch and remove debounce while in preview mode, so image-preview expansion cannot sit in a transient undersized (top-cropped) state before delayed resize catches up.
 - fix(frontend-chatbox-preview-top-headroom): add explicit preview-mode top headroom (`+10px`) in chatbox resize calculation so non-dashboard pill allocates extra vertical space when image previews are present, preventing residual top-edge clipping while preserving bottom-anchor lock; align frontend resize regressions with preview headroom behavior.
 - fix(frontend-memory-delete-one-click): remove memory-delete confirmation prompt in dashboard memory panel so delete executes immediately on single click; add regression coverage asserting semantic delete does not call `window.confirm`.
 - fix(frontend-chatbox-preview-lock-scope): restrict resize transition-lock to compact mode only and keep `with-preview` mode responsive to late `ResizeObserver` growth updates, preventing top clipping when preview height settles shortly after image insert; add regression coverage for with-preview lock bypass.

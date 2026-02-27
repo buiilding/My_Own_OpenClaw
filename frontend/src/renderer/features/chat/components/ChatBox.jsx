@@ -25,6 +25,7 @@ const CHATBOX_SIZE_MODES = Object.freeze({
   WITH_PREVIEW: 'with-preview',
 });
 const RESIZE_TRANSITION_LOCK_MS = 240;
+const RESIZE_DEBOUNCE_MS = 40;
 const WITH_PREVIEW_TOP_HEADROOM_PX = 10;
 
 function readFileAsDataUrl(file) {
@@ -300,25 +301,36 @@ function ChatBox() {
       void flushSizeUpdate(nextFrame);
     };
 
-    const scheduleSizeSync = ({ force = false } = {}) => {
+    const scheduleSizeSync = ({ force = false, immediate = false } = {}) => {
       if (resizeSyncState.frameHandle) {
         cancelFrame(resizeSyncState.frameHandle);
       }
       if (resizeSyncState.debounceHandle) {
         window.clearTimeout(resizeSyncState.debounceHandle);
       }
+      if (immediate) {
+        measureAndQueueSize({ force });
+        return;
+      }
+      const debounceMs = resizeSyncState.activeMode === CHATBOX_SIZE_MODES.WITH_PREVIEW
+        ? 0
+        : RESIZE_DEBOUNCE_MS;
+      if (debounceMs === 0) {
+        measureAndQueueSize({ force });
+        return;
+      }
       resizeSyncState.frameHandle = requestFrame(() => {
         resizeSyncState.frameHandle = null;
         resizeSyncState.debounceHandle = window.setTimeout(() => {
           resizeSyncState.debounceHandle = null;
           measureAndQueueSize({ force });
-        }, 40);
+        }, debounceMs);
       });
     };
     resizeSyncState.scheduleSizeSync = scheduleSizeSync;
 
     if (typeof ResizeObserver === 'undefined') {
-      measureAndQueueSize({ force: true });
+      scheduleSizeSync({ force: true, immediate: true });
       scheduleSizeSync();
       return () => {
         resizeSyncState.scheduleSizeSync = null;
@@ -329,7 +341,7 @@ function ChatBox() {
       scheduleSizeSync();
     });
     observer.observe(shellRef.current);
-    measureAndQueueSize({ force: true });
+    scheduleSizeSync({ force: true, immediate: true });
     scheduleSizeSync();
 
     return () => {
@@ -355,7 +367,8 @@ function ChatBox() {
     resizeSyncState.transitionLockUntil = activeResizeMode === CHATBOX_SIZE_MODES.COMPACT
       ? Date.now() + RESIZE_TRANSITION_LOCK_MS
       : 0;
-    resizeSyncState.scheduleSizeSync?.({ force: true });
+    resizeSyncState.scheduleSizeSync?.({ force: true, immediate: true });
+    resizeSyncState.scheduleSizeSync?.();
   }, [activeResizeMode]);
 
   useEffect(() => {
