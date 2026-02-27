@@ -38,7 +38,6 @@ contextBridge.exposeInMainWorld('ipc', {
       'store-transcript',
       'get-client-user-id',
       'set-overlay-ignore-mouse',
-      'set-chatbox-size',
       'set-responsebox-size',
       'show-main-window',
       'show-chatbox',

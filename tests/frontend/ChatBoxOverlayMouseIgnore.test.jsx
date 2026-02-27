@@ -55,7 +55,6 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
   INVOKE_CHANNELS: {
     SET_OVERLAY_IGNORE_MOUSE: 'set-overlay-ignore-mouse',
-    SET_CHATBOX_SIZE: 'set-chatbox-size',
     SHOW_MAIN_WINDOW: 'show-main-window',
   },
   ON_CHANNELS: {

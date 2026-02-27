@@ -50,7 +50,6 @@ Delegated runtime modules:
 
 - overlay/window controls:
   - `set-overlay-ignore-mouse`
-  - `set-chatbox-size`
   - `move-chatbox-to`
   - `set-responsebox-size`
   - `show-main-window`

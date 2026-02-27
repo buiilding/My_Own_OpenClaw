@@ -85,7 +85,6 @@ Behavior:
 ## Window/overlay channels (`overlay_ipc_runtime.cjs`, wired by `index.cjs`)
 
 - `set-overlay-ignore-mouse` -> click-through toggle for overlay windows
-- `set-chatbox-size` -> bounded chat window resize + response reposition
 - `set-responsebox-size` -> bounded response overlay resize/show/hide
 - `show-main-window` -> shows main window; optional payload `{ open?: 'chat' | 'memory' | 'models' | 'settings', maximize?: boolean }` emits `main-window-open-target` when accepted
 - `show-chatbox`

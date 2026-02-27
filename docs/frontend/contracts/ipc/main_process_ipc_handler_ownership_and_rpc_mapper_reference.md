@@ -66,7 +66,6 @@ Notable behavior:
 `ipcMain.handle`:
 
 - `set-overlay-ignore-mouse`
-- `set-chatbox-size`
 - `set-responsebox-size`
 - `show-main-window` (optional payload `{ open?: 'chat' | 'memory' | 'models' | 'settings', maximize?: boolean }`)
 - `show-chatbox`
@@ -89,7 +88,7 @@ Notable behavior:
 Notable behavior:
 
 - overlay handlers guard for missing/destroyed windows and return structured success/reason payloads
-- chat/response/context windows are repositioned together after move/resize operations
+- chat/response/context windows are repositioned together after move operations, and response resize re-anchors against chat bounds
 - `show-main-window` normalizes optional open-target payload and emits `main-window-open-target` to renderer on accepted target
 - `show-main-window { maximize:true }` restores/minimizes state and maximizes before focusing dashboard window
 - permission handlers delegate to `permission_service.cjs` using shared deps (`platform`, `shell`, `systemPreferences`)

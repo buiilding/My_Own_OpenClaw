@@ -18,7 +18,7 @@ const {
   handleWindowToggleMaximize,
 } = require('./main_window_controls_handler.cjs');
 const { handleSetOverlayIgnoreMouse } = require('./overlay_mouse_handler.cjs');
-const { handleMoveChatboxTo, handleSetChatboxSize } = require('./overlay_chatbox_handler.cjs');
+const { handleMoveChatboxTo } = require('./overlay_chatbox_handler.cjs');
 const { handleSetResponseboxSize } = require('./overlay_responsebox_handler.cjs');
 
 function resolveUsername() {
@@ -37,7 +37,6 @@ function initializeOverlayHandlersRuntime(deps = {}) {
     systemPreferences,
     platform,
     getWindows = () => ({}),
-    getChatWindowBounds,
     positionResponseWindow,
     positionContextLabelWindow,
     syncContextLabelWindowVisibility,
@@ -78,17 +77,6 @@ function initializeOverlayHandlersRuntime(deps = {}) {
       chatWindow,
       responseWindow,
       contextLabelWindow,
-    });
-  });
-
-  ipcMain.handle('set-chatbox-size', async (_event, args = {}) => {
-    const { chatWindow } = getWindows();
-    return handleSetChatboxSize(args, {
-      chatWindow,
-      getChatWindowBounds,
-      positionResponseWindow,
-      positionContextLabelWindow,
-      syncContextLabelWindowVisibility,
     });
   });
 

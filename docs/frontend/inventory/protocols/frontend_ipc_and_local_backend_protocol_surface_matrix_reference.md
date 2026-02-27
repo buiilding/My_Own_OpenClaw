@@ -11,7 +11,7 @@ title: "Frontend IPC and Local-Backend Protocol Surface Matrix Reference"
 ## Coverage Snapshot (2026-02-26)
 
 - Renderer `send` channels: `5`
-- Renderer `invoke` channels: `32`
+- Renderer `invoke` channels: `31`
 - Renderer `on/once` channels: `11`
 - Compiled JSON-RPC mapper definitions: `9` (`COMPILED_RPC_HANDLER_DEFINITIONS`)
 
@@ -67,7 +67,6 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `run-permission-probe` | `main/index.cjs` | Explicit probe execution for one permission |
 | `request-permission` | `main/index.cjs` | OS request/open-settings path per permission |
 | `set-overlay-ignore-mouse` | `main/index.cjs` | Toggle overlay click-through |
-| `set-chatbox-size` | `main/index.cjs` | Resize chatbox overlay |
 | `set-responsebox-size` | `main/index.cjs` | Resize response overlay |
 | `show-main-window` | `main/index.cjs` | Show dashboard window; optional `{ open, maximize }`; `open` target must normalize to `chat|memory|models|settings` before emit |
 | `show-chatbox` | `main/index.cjs` | Show chatbox overlay |

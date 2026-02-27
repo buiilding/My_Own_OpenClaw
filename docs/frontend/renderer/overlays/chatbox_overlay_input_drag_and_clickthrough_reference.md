@@ -105,7 +105,7 @@ This is required after main-process `showChatWindow({ focus: true })`.
 ## Fixed Size Contract
 
 - chat overlay window dimensions are fixed in main runtime (`createChatWindow`).
-- `ChatBox.jsx` no longer emits renderer-driven resize IPC (`set-chatbox-size`) for preview or startup transitions.
+- `ChatBox.jsx` no longer emits renderer-driven resize IPC for preview or startup transitions; deprecated `set-chatbox-size` channel has been removed from preload/channel contracts.
 - attachment preview uses an always-mounted preview row with class toggle (`has-items`) and opacity/translate animation.
 - clipboard image parsing is shared through `clipboardImageUtils.parseClipboardImageItems(...)` (also used by dashboard `MessageInput`) to keep screenshot/paste payload shape consistent across overlay and dashboard composer surfaces.
 - result: no live overlay window bounds churn while typing, startup, or adding/removing images.
@@ -165,6 +165,6 @@ If drag movement is jittery or ignored:
 
 If chatbox flickers on startup or image insert:
 
-1. confirm `ChatBox.jsx` is not invoking `set-chatbox-size`
+1. confirm `ChatBox.jsx` only toggles preview row classes and does not attempt runtime window-size mutation
 2. confirm preview row class toggles between `chatbox-image-preview-row` and `... has-items`
 3. verify fixed overlay dimensions in `main_window_runtime.cjs` match CSS fixed shell/pill heights
