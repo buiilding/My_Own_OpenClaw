@@ -242,9 +242,8 @@ function MemorySection({ onClose = () => {} }) {
 
         <div className="clone-memory-retrieval-row">
           <div className="clone-memory-retrieval-copy">
-            <p className="clone-memory-retrieval-title">Inject memory into prompts</p>
-            <p className="clone-memory-retrieval-subtitle">
-              Keep storage and semanticization running, but skip retrieval search and prompt tags when disabled.
+            <p className="clone-memory-retrieval-title">
+              {`Memory ${memoryRetrievalEnabled ? 'On' : 'Off'}`}
             </p>
           </div>
           <label
@@ -252,7 +251,7 @@ function MemorySection({ onClose = () => {} }) {
           >
             <input
               type="checkbox"
-              aria-label="Inject memory into prompts"
+              aria-label="Memory on or off"
               checked={memoryRetrievalEnabled}
               onChange={handleMemoryRetrievalToggle}
             />
