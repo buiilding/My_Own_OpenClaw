@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 from typing import Any, Dict, Optional
 
 
@@ -43,6 +44,6 @@ def build_transport_message(
     message: Dict[str, Any] = {
         "type": message_type,
         "id": msg_id,
-        "payload": payload,
+        "payload": deepcopy(payload),
     }
     return attach_context_fields(message, context)
