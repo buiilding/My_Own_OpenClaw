@@ -23,6 +23,7 @@ _RECOVERABLE_TOOL_CALL_ERROR_MARKERS = (
     "invalid tool_calls type",
 )
 _TOOL_OUTPUT_ERROR_PREVIEW_CHARS = 600
+_RAW_ARGUMENTS_PREVIEW_MARKER = "Raw arguments preview:"
 
 
 def to_parsed_response(normalized_response: NormalizedLLMResponse) -> ParsedResponse:
@@ -136,6 +137,31 @@ def extract_tool_call_id_from_error(error_msg: str) -> str:
     if match:
         return (match.group(1) or "").strip().strip(".,;:()[]{}")
     return ""
+
+
+def extract_raw_arguments_preview_from_error(error_msg: str) -> str:
+    """Best-effort extraction of raw streamed tool arguments preview from error text."""
+    marker_index = error_msg.find(_RAW_ARGUMENTS_PREVIEW_MARKER)
+    if marker_index < 0:
+        return ""
+
+    preview = error_msg[marker_index + len(_RAW_ARGUMENTS_PREVIEW_MARKER):].strip()
+    if not preview:
+        return ""
+
+    if preview[0] in {"'", '"'}:
+        quote = preview[0]
+        preview = preview[1:]
+        if preview.endswith(quote):
+            preview = preview[:-1]
+    return preview.strip()
+
+
+def extract_tool_call_parse_error_from_error(error_msg: str) -> str:
+    """Extract a concise parse-error summary from recoverable tool-call error text."""
+    marker_index = error_msg.find(_RAW_ARGUMENTS_PREVIEW_MARKER)
+    summary = error_msg[:marker_index] if marker_index >= 0 else error_msg
+    return " ".join(summary.split()).strip()
 
 
 def build_recoverable_tool_output_message(tool_name: str, error_msg: str) -> str:

@@ -8,7 +8,7 @@ from backend.src.core.types.schemas import LLMMessage, NormalizedLLMResponse
 from backend.src.llm.providers.base import LLMProvider
 
 logger = logging.getLogger(__name__)
-_TOOL_ARGUMENTS_PREVIEW_CHARS = 512
+_TOOL_ARGUMENTS_PREVIEW_CHARS = 4000
 
 
 class StreamingToolCallAggregationMixin:
@@ -177,6 +177,7 @@ class StreamingToolCallAggregationMixin:
                     )
                 except LLMAPIError as exc:
                     arguments_preview = self._preview_tool_arguments(raw_arguments)
+                    parse_error_summary = " ".join(str(exc).split()).strip()
                     logger.warning(
                         "%s for id=%s; aborting tool turn. preview=%r",
                         self.tool_turn_parse_warning_prefix,
@@ -190,6 +191,16 @@ class StreamingToolCallAggregationMixin:
                             f"Raw arguments preview: {arguments_preview!r}"
                         ),
                         model=model,
+                        metadata={
+                            "llm_tool_call_parse_failed": True,
+                            "llm_tool_call_id": tool_call_id,
+                            "llm_tool_name": name.strip(),
+                            "llm_tool_call_parse_error": parse_error_summary,
+                            "llm_tool_call_raw_arguments_preview": arguments_preview,
+                            "llm_tool_call_raw_arguments_preview_truncated": (
+                                len(raw_arguments.strip()) > _TOOL_ARGUMENTS_PREVIEW_CHARS
+                            ),
+                        },
                     ) from exc
 
             normalized_tool_calls.append(

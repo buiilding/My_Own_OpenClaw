@@ -137,4 +137,36 @@ describe('useChatStream message metadata handling', () => {
     const toolOutput = useChatStore.getState().messages.find((message) => message.id === 'tool-output-1');
     expect(toolOutput?.fullAssistantMessage).toBeUndefined();
   });
+
+  test('tool-call message stores raw arguments preview metadata for recoverable parse failures', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      emitBackendEvent({
+        type: 'tool-call',
+        payload: {
+          tool_name: 'run_shell_command',
+          parameters: {},
+          metadata: {
+            llm_tool_call_validation_failed: true,
+            skip_frontend_execution: true,
+            llm_tool_call_raw_arguments_preview: '{"command":"cat > index.html << \\"EOF\\""}...[truncated]',
+            llm_tool_call_parse_error: 'failed to parse streamed tool-call arguments',
+          },
+        },
+      });
+    });
+
+    const toolCallMessage = useChatStore.getState().messages.at(-1);
+    expect(toolCallMessage).toEqual(expect.objectContaining({
+      type: 'tool-call',
+      modelFacingToolCall: expect.objectContaining({
+        name: 'run_shell_command',
+        raw_arguments_preview: expect.stringContaining('cat > index.html'),
+        parse_error: 'failed to parse streamed tool-call arguments',
+        frontend_execution_skipped: true,
+      }),
+    }));
+    expect((toolCallMessage?.modelFacingToolCall as Record<string, unknown>)?.arguments).toBeUndefined();
+  });
 });

@@ -2,6 +2,8 @@
 
 from backend.src.agent.execution.tool_call_bridge import (
     build_recoverable_tool_output_message,
+    extract_raw_arguments_preview_from_error,
+    extract_tool_call_parse_error_from_error,
     extract_tool_call_id_from_error,
     extract_tool_call_ids,
     extract_tool_name_from_error,
@@ -98,3 +100,19 @@ def test_recoverable_error_detection_and_message_formatting():
     assert formatted.startswith("replace output:")
     assert "malformed tool-call arguments from model" in formatted
     assert "status: failed" in formatted
+
+
+def test_extract_raw_arguments_preview_and_parse_error_summary():
+    error_msg = (
+        "Unexpected system error: [LLM_API_ERROR] Invalid response from stream: "
+        "failed to parse streamed tool-call arguments for id=tool_bad name=run_shell_command. "
+        "Raw arguments preview: '{\"command\":\"cat > index.html << \\\"EOF\\\"\\\\n<!DOCTYPE html>...\"...[truncated]'"
+    )
+
+    preview = extract_raw_arguments_preview_from_error(error_msg)
+    summary = extract_tool_call_parse_error_from_error(error_msg)
+
+    assert preview.startswith("{\"command\"")
+    assert preview.endswith("...[truncated]")
+    assert "failed to parse streamed tool-call arguments" in summary
+    assert "Raw arguments preview" not in summary

@@ -13,6 +13,16 @@ describe('chatStreamEventUtils', () => {
     expect(shouldIgnoreStreamError(undefined)).toBe(false);
   });
 
+  test('shouldIgnoreStreamError matches recoverable streamed tool-call parse failures', () => {
+    expect(shouldIgnoreStreamError({
+      content: (
+        'Unexpected system error: Invalid response from stream: '
+        + 'failed to parse streamed tool-call arguments for id=tool_bad name=run_shell_command. '
+        + 'Raw arguments preview: \'{"command":"cat > index.html << \\"EOF\\""}\''
+      ),
+    })).toBe(true);
+  });
+
   test('buildScreenshotAttachment resolves URL from explicit url or artifact ref', () => {
     expect(
       buildScreenshotAttachment('artifact-123', 'https://cdn.example/override.png'),

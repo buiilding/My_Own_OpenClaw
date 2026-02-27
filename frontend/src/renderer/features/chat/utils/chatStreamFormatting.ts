@@ -70,11 +70,54 @@ export function formatToolOutputText(payload?: ToolOutputPayloadLike): string {
 export function resolveModelFacingToolCall(payload?: ToolCallPayloadLike): {
   id?: string;
   name?: string;
-  arguments: Record<string, unknown>;
+  arguments?: Record<string, unknown>;
+  raw_arguments_preview?: string;
+  parse_error?: string;
+  frontend_execution_skipped?: boolean;
 } {
   const modelFacing = payload?.metadata?.model_facing_tool_call;
   const modelArguments = modelFacing?.arguments;
   const fallbackParameters = payload?.parameters;
+  const metadata = payload?.metadata;
+  const isRecoverableParseFailure = metadata?.llm_tool_call_validation_failed === true;
+  const rawArgumentsPreview = (
+    typeof metadata?.llm_tool_call_raw_arguments_preview === 'string'
+      ? metadata.llm_tool_call_raw_arguments_preview
+      : null
+  );
+  const parseError = (
+    typeof metadata?.llm_tool_call_parse_error === 'string'
+      ? metadata.llm_tool_call_parse_error
+      : null
+  );
+  const resolvedArguments = (
+    modelArguments
+    && typeof modelArguments === 'object'
+    && !Array.isArray(modelArguments)
+  )
+    ? modelArguments
+    : (fallbackParameters || {});
+  const hasResolvedArguments = (
+    resolvedArguments
+    && typeof resolvedArguments === 'object'
+    && !Array.isArray(resolvedArguments)
+    && Object.keys(resolvedArguments).length > 0
+  );
+
+  if (isRecoverableParseFailure && rawArgumentsPreview) {
+    return {
+      id: typeof modelFacing?.id === 'string' ? modelFacing.id : undefined,
+      name: (
+        typeof modelFacing?.name === 'string'
+          ? modelFacing.name
+          : payload?.tool_name
+      ),
+      raw_arguments_preview: rawArgumentsPreview,
+      parse_error: parseError || undefined,
+      frontend_execution_skipped: metadata?.skip_frontend_execution === true,
+      ...(hasResolvedArguments ? { arguments: resolvedArguments } : {}),
+    };
+  }
 
   return {
     id: typeof modelFacing?.id === 'string' ? modelFacing.id : undefined,
@@ -83,12 +126,6 @@ export function resolveModelFacingToolCall(payload?: ToolCallPayloadLike): {
         ? modelFacing.name
         : payload?.tool_name
     ),
-    arguments: (
-      modelArguments
-      && typeof modelArguments === 'object'
-      && !Array.isArray(modelArguments)
-    )
-      ? modelArguments
-      : (fallbackParameters || {}),
+    arguments: resolvedArguments,
   };
 }

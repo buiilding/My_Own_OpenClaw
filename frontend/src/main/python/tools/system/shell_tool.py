@@ -6,6 +6,7 @@ import asyncio
 import logging
 import os
 import platform
+import re
 import shlex
 import shutil
 import time
@@ -84,6 +85,23 @@ _SUDO_IGNORED_FLAGS_WITH_VALUE = {
     "--type",
     "-C",
 }
+_INLINE_PAYLOAD_REJECTION_ERROR = (
+    "Inline payload too large; write file via file-edit tool, then run shell command."
+)
+_INLINE_PAYLOAD_MIN_CHARS = 1800
+_INLINE_PAYLOAD_MIN_LINES = 45
+_INLINE_PAYLOAD_MIN_ESCAPED_NEWLINES = 80
+_INLINE_PAYLOAD_MIN_QUOTED_SPAN_CHARS = 1200
+_INLINE_PAYLOAD_INLINE_WRITE_PATTERN = re.compile(
+    r"\b(cat|tee|python|node|perl|ruby)\b.*(?:>|>>|<<)",
+    re.IGNORECASE | re.DOTALL,
+)
+_INLINE_PAYLOAD_QUOTED_SPAN_PATTERNS = (
+    re.compile(r"'(?:[^'\\]|\\.)*'"),
+    re.compile(r'"(?:[^"\\]|\\.)*"'),
+)
+
+
 async def run_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
     """
     Execute shell command.
@@ -108,6 +126,17 @@ async def run_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
         return {"success": False, "error": "Command cannot be empty"}
     if max_output_error:
         return {"success": False, "error": max_output_error}
+    inline_payload_violation = _detect_large_inline_payload_violation(command)
+    if inline_payload_violation:
+        logger.info(
+            "Rejected shell command due to large inline payload policy (%s)",
+            inline_payload_violation,
+        )
+        return {
+            "success": False,
+            "error": _INLINE_PAYLOAD_REJECTION_ERROR,
+            "error_code": "INLINE_PAYLOAD_TOO_LARGE",
+        }
     
     try:
         # Determine working directory
@@ -280,6 +309,63 @@ def _resolve_sudo_auth_mode(raw_value: Any) -> str:
         if normalized in {"os_prompt", "prompt", "pkexec"}:
             return _SUDO_AUTH_MODE_OS_PROMPT
     return _SUDO_AUTH_MODE_OS_PROMPT
+
+
+def _detect_large_inline_payload_violation(command: str) -> str:
+    """
+    Detect likely giant inline payload blobs without banning normal multiline usage.
+
+    Returns a short violation code when command shape suggests large inline file content.
+    """
+    normalized = command.strip()
+    if not normalized:
+        return ""
+
+    lower = normalized.lower()
+    command_chars = len(normalized)
+    line_count = normalized.count("\n") + 1
+    escaped_newlines = normalized.count("\\n")
+    has_heredoc = "<<" in normalized
+    has_inline_write_shape = bool(_INLINE_PAYLOAD_INLINE_WRITE_PATTERN.search(normalized))
+    has_content_markers = any(
+        marker in lower
+        for marker in ("<!doctype", "<html", "<head", "<body", "<script", "{\"", "</")
+    )
+    max_quoted_span = _max_quoted_span_chars(normalized)
+
+    if (
+        has_heredoc
+        and has_inline_write_shape
+        and (command_chars >= _INLINE_PAYLOAD_MIN_CHARS or line_count >= _INLINE_PAYLOAD_MIN_LINES)
+    ):
+        return "large_heredoc_inline_write"
+
+    if (
+        has_inline_write_shape
+        and escaped_newlines >= _INLINE_PAYLOAD_MIN_ESCAPED_NEWLINES
+        and command_chars >= _INLINE_PAYLOAD_MIN_CHARS
+    ):
+        return "large_escaped_inline_payload"
+
+    if (
+        has_inline_write_shape
+        and has_content_markers
+        and max_quoted_span >= _INLINE_PAYLOAD_MIN_QUOTED_SPAN_CHARS
+    ):
+        return "large_quoted_inline_payload"
+
+    return ""
+
+
+def _max_quoted_span_chars(command: str) -> int:
+    """Return maximum quoted literal span length in command string."""
+    max_chars = 0
+    for pattern in _INLINE_PAYLOAD_QUOTED_SPAN_PATTERNS:
+        for match in pattern.finditer(command):
+            span_chars = max(0, len(match.group(0)) - 2)
+            if span_chars > max_chars:
+                max_chars = span_chars
+    return max_chars
 
 
 def _rewrite_sudo_command_for_os_prompt(

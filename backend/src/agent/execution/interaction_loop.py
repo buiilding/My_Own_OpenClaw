@@ -11,6 +11,8 @@ from uuid import uuid4
 
 from backend.src.agent.execution.tool_call_bridge import (
     build_recoverable_tool_output_message,
+    extract_raw_arguments_preview_from_error,
+    extract_tool_call_parse_error_from_error,
     extract_tool_call_id_from_error,
     extract_tool_call_ids,
     extract_tool_name_from_error,
@@ -338,20 +340,34 @@ class InteractionLoop:
         """
         tool_name = self._extract_tool_name_from_error(error_msg)
         tool_call_id = self._extract_tool_call_id_from_error(error_msg)
+        raw_arguments_preview = self._extract_raw_arguments_preview_from_error(error_msg)
+        parse_error_summary = self._extract_tool_call_parse_error_from_error(error_msg)
         if not tool_call_id:
             tool_call_id = f"llm_tool_call_error_{uuid4().hex[:12]}"
 
         tool_output_message = self._build_recoverable_tool_output_message(tool_name, error_msg)
+        fallback_parameters: Dict[str, Any] = {}
+        if raw_arguments_preview:
+            fallback_parameters["raw_arguments_preview"] = raw_arguments_preview
+        if parse_error_summary:
+            fallback_parameters["parse_error"] = parse_error_summary
         metadata = {
             "request_id": tool_call_id,
             "llm_tool_call_validation_failed": True,
             "skip_frontend_execution": True,
         }
+        if raw_arguments_preview:
+            metadata["llm_tool_call_raw_arguments_preview"] = raw_arguments_preview
+            metadata["llm_tool_call_raw_arguments_preview_truncated"] = raw_arguments_preview.endswith(
+                "...[truncated]"
+            )
+        if parse_error_summary:
+            metadata["llm_tool_call_parse_error"] = parse_error_summary
 
         # Maintain ToolCallEvent -> ToolOutputEvent protocol ordering for frontend state.
         yield ToolCallEvent(
             tool_name=tool_name,
-            parameters={},
+            parameters=fallback_parameters,
             request_id=tool_call_id,
             metadata=metadata,
         )
@@ -436,6 +452,16 @@ class InteractionLoop:
     def _extract_tool_call_id_from_error(error_msg: str) -> str:
         """Best-effort extraction of tool call id from provider error text."""
         return extract_tool_call_id_from_error(error_msg)
+
+    @staticmethod
+    def _extract_raw_arguments_preview_from_error(error_msg: str) -> str:
+        """Best-effort extraction of raw streamed tool arguments preview."""
+        return extract_raw_arguments_preview_from_error(error_msg)
+
+    @staticmethod
+    def _extract_tool_call_parse_error_from_error(error_msg: str) -> str:
+        """Best-effort extraction of parse-error summary from provider error text."""
+        return extract_tool_call_parse_error_from_error(error_msg)
 
     @staticmethod
     def _build_recoverable_tool_output_message(tool_name: str, error_msg: str) -> str:
