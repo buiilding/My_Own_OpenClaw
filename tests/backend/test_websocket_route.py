@@ -61,6 +61,11 @@ class FakeSafeWebSocket:
         self.closed.append((code, reason))
 
 
+class ExplodingCloseSafeWebSocket(FakeSafeWebSocket):
+    async def close(self, code: int = 1000, reason: str | None = None) -> None:  # noqa: ARG002
+        raise RuntimeError("close failed")
+
+
 class FakeTaskManager:
     def __init__(self, max_concurrent_tasks: int, task_cancellation_timeout: float):
         self.max_concurrent_tasks = max_concurrent_tasks
@@ -249,3 +254,14 @@ async def test_websocket_endpoint_sends_limit_exceeded_error_with_message_id(
         ("msg_limit_1", "Too many concurrent requests. Please wait."),
     ]
     assert cleanup_calls == ["user_limited"]
+
+
+@pytest.mark.asyncio
+async def test_close_connection_on_timeout_swallows_close_failures() -> None:
+    safe_ws = ExplodingCloseSafeWebSocket(websocket=object())
+
+    await websocket_route_module._close_connection_on_timeout(
+        safe_ws=safe_ws,
+        user_id="user_timeout_close_fail",
+        websocket_receive_timeout=0.5,
+    )
