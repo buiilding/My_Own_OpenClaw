@@ -8,6 +8,7 @@ from backend.src.core.infrastructure.exceptions import LLMAPIError
 from backend.src.llm.providers.error_mapping import (
     build_api_error_message,
     extract_status_code,
+    iter_exception_chain,
 )
 from backend.src.llm.providers.message_normalization import (
     normalize_messages_for_provider,
@@ -84,6 +85,28 @@ def test_extract_status_code_supports_direct_response_and_exception_chain():
     assert extract_status_code(nested_outer) == 520
 
 
+def test_extract_status_code_supports_context_chain_and_regex_patterns():
+    context_inner = RuntimeError("status code 418")
+    context_outer = RuntimeError("wrapper")
+    context_outer.__context__ = context_inner
+    assert extract_status_code(context_outer) == 418
+
+    regex_error = RuntimeError("Provider returned error code 429 after retry")
+    assert extract_status_code(regex_error) == 429
+
+
+def test_iter_exception_chain_stops_on_cycles():
+    first = RuntimeError("first")
+    second = RuntimeError("second")
+    first.__cause__ = second
+    second.__cause__ = first
+
+    chain = list(iter_exception_chain(first))
+    assert len(chain) == 2
+    assert chain[0] is first
+    assert chain[1] is second
+
+
 def test_build_api_error_message_formats_520_and_generic_paths():
     assert "HTTP 520" in build_api_error_message("Provider", 520)
     assert build_api_error_message("Provider", 500) == "Provider API error (HTTP 500)"
@@ -103,6 +126,11 @@ def test_normalize_usage_payload_supports_model_dump_and_collect_usage_payload()
         SimpleNamespace(model_extra={"usage": {"prompt_tokens": 9}})
     )
     assert payload == {"prompt_tokens": 9}
+
+
+def test_normalize_usage_payload_returns_none_for_non_mapping_like_values():
+    assert normalize_usage_payload(123) is None
+    assert normalize_usage_payload("usage") is None
 
 
 def test_extract_usage_int_coerces_numeric_strings_and_integer_floats():
