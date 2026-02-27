@@ -23,12 +23,11 @@ from backend.src.tools.browser.snapshot_scope_fields import (
     SnapshotSelectorField,
 )
 from backend.src.tools.browser.shared_compat_fields import (
-    BrowserScreenshotImageFields,
     BrowserSharedCompatFields,
 )
 
 
-class _BrowserControlArgsBase(BrowserSharedCompatFields, BrowserScreenshotImageFields):
+class _BrowserControlArgsBase(BrowserSharedCompatFields):
     """
     Shared browser control arguments.
 
@@ -166,9 +165,6 @@ class _BrowserControlArgsBase(BrowserSharedCompatFields, BrowserScreenshotImageF
     amount: int = Field(500, description="Scroll amount", ge=100, le=5000)
     down: Optional[bool] = Field(None, description="Browser Use scroll direction flag")
     pages: Optional[float] = Field(None, description="Browser Use page count", gt=0)
-
-    # Screenshot args
-    full_page: bool = Field(False, description="Full page screenshot")
 
     # Wait args
     state: BrowserWaitState = Field("networkidle", description="Wait state")

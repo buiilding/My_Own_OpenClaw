@@ -345,6 +345,14 @@ class TestBrowserControlArgs:
         assert args.action == "screenshot"
         assert args.file_name == "capture.png"
 
+    def test_screenshot_compatibility_fields_not_exposed_on_unified_schema(self):
+        """Model-facing browser schema should not advertise deprecated screenshot args."""
+        model_fields = BrowserControlArgs.model_fields
+        assert "full_page" not in model_fields
+        assert "element" not in model_fields
+        assert "type" not in model_fields
+        assert "quality" not in model_fields
+
     def test_evaluate_action_requires_script_or_code(self):
         with pytest.raises(
             ValidationError,

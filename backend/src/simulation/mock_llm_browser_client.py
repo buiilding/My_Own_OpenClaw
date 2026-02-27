@@ -280,8 +280,7 @@ BROWSER_SIMULATION_RESPONSES = [
                 "functionCall": {
                     "name": "browser",
                     "args": {
-                        "action": "screenshot",
-                        "full_page": True
+                        "action": "screenshot"
                     }
                 }
             }
