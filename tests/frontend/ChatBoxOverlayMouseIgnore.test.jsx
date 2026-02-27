@@ -149,6 +149,16 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(mockInvoke.mock.calls.some(([channel]) => channel === 'set-chatbox-size')).toBe(false);
   });
 
+  test('does not enable click-through from stream phase activity alone', () => {
+    mockChatState.streamTracking.phase = 'streaming';
+    render(<ChatBox />);
+
+    const enabledClickThrough = mockInvoke.mock.calls.some(
+      ([channel, payload]) => channel === 'set-overlay-ignore-mouse' && payload?.ignore === true,
+    );
+    expect(enabledClickThrough).toBe(false);
+  });
+
   test('keeps fixed-size preview lane and does not invoke chatbox resize when images change', async () => {
     const { container } = render(<ChatBox />);
     const shellWrap = container.querySelector('.chatbox-input-shell-wrap');

@@ -150,7 +150,7 @@ Overlay phase is maintained in Electron main via `ipc.cjs` and emitted as `respo
 
 Renderer uses that channel in parallel with `streamTracking.phase`:
 
-- `ChatBox.jsx` toggles click-through behavior based on active loop phases.
+- `ChatBox.jsx` uses stream/overlay phases for visual loop state only (not click-through toggling).
 - `ChatBoxResponse.jsx` chooses awaiting/tool-ghost/final response views.
 
 ## Turn Correlation and Late Event Safety
