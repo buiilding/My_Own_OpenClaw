@@ -60,6 +60,18 @@ class _KimiSessionWithConversationRef:
     runtime = _KimiRuntime()
 
 
+class _GeminiConfig:
+    selected_model_id = "gemini-3.1-pro-preview"
+    model_provider = "gemini"
+
+
+class _GeminiSession:
+    cfg = _GeminiConfig()
+    history = _FakeHistory()
+    session_id = "session-gemini"
+    runtime = None
+
+
 class _FakeLLMClient:
     def __init__(self):
         self._turn = 0
@@ -270,6 +282,55 @@ class _KimiStreamingToolTurnLLMClient:
         return True
 
 
+class _GeminiStreamingToolTurnLLMClient:
+    def __init__(self):
+        self._payload = {
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "call_gemini_1",
+                    "name": "read_file",
+                    "arguments": {"path": "/tmp/gemini.txt"},
+                }
+            ],
+            "finish_reason": "tool_calls",
+        }
+
+    async def get_completion_response(
+        self,
+        model,
+        messages,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+        prompt_cache_key=None,
+    ):
+        _ = (model, messages, tools, tool_choice, parallel_tool_calls, prompt_cache_key)
+        raise AssertionError("Gemini tool turns should stay on stream path when supported")
+
+    async def get_completion_stream(
+        self,
+        model,
+        messages,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+        prompt_cache_key=None,
+    ):
+        _ = (model, messages, tools, tool_choice, parallel_tool_calls, prompt_cache_key)
+        yield ThinkingEvent(content="gemini-thinking...")
+
+    def get_last_stream_cache_diagnostics(self):
+        return None
+
+    def get_last_stream_response_payload(self):
+        return dict(self._payload)
+
+    def supports_streaming_tool_turns(self, model):
+        _ = model
+        return True
+
+
 def _patch_fake_token_service(monkeypatch):
     monkeypatch.setattr(
         "backend.src.agent.llm.llm_stream_processor.get_token_service",
@@ -466,3 +527,26 @@ async def test_kimi_prefers_conversation_ref_for_prompt_cache_key(monkeypatch):
     )
 
     assert llm_client.last_prompt_cache_key == "conv-kimi"
+
+
+@pytest.mark.asyncio
+async def test_gemini_streams_thinking_when_tools_present_if_streaming_supported(monkeypatch):
+    _patch_fake_token_service(monkeypatch)
+    processor = LLMStreamProcessor(
+        llm_client=_GeminiStreamingToolTurnLLMClient(),
+        session=_GeminiSession(),
+    )
+
+    events = await _collect_response_events(
+        processor,
+        tools=_single_function_tool("read_file"),
+    )
+
+    assert any(
+        isinstance(event, ThinkingEvent) and event.content == "gemini-thinking..."
+        for event in events
+    )
+    payload = processor.get_last_response_payload()
+    assert payload is not None
+    assert payload["finish_reason"] == "tool_calls"
+    assert payload["tool_calls"][0]["id"] == "call_gemini_1"
