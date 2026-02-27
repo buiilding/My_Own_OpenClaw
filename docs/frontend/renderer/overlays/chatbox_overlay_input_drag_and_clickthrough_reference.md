@@ -108,7 +108,7 @@ This is required after main-process `showChatWindow({ focus: true })`.
 - `ChatBox.jsx` no longer emits renderer-driven resize IPC for preview or startup transitions; deprecated `set-chatbox-size` channel has been removed from preload/channel contracts.
 - attachment preview uses an always-mounted preview row with class toggle (`has-items`) and opacity/translate animation.
 - non-dashboard input pill now has two fixed CSS states (no live resize IPC):
-  - default compact pill: no `with-preview` class (short baseline height)
+  - default compact pill: no `with-preview` class (`64px` shell / `56px` pill)
   - preview-expanded pill: `with-preview` on shell/pill while image attachments exist
 - clipboard image parsing is shared through `clipboardImageUtils.parseClipboardImageItems(...)` (also used by dashboard `MessageInput`) to keep screenshot/paste payload shape consistent across overlay and dashboard composer surfaces.
 - result: no live overlay window bounds churn while typing, startup, or adding/removing images.
