@@ -37,6 +37,20 @@ def test_normalize_response_payload_accepts_valid_contract():
     assert normalized["finish_reason"] == "tool_calls"
 
 
+def test_normalize_response_payload_rejects_non_dict():
+    with pytest.raises(LLMAPIError, match="Invalid response type"):
+        normalize_response_payload("bad", model="model")
+
+
+def test_normalize_response_payload_omits_optional_fields_when_absent():
+    normalized = normalize_response_payload(
+        {"content": "ok"},
+        model="model",
+    )
+
+    assert normalized == {"content": "ok"}
+
+
 def test_normalize_content_requires_string_or_none():
     with pytest.raises(LLMAPIError, match="missing 'content' key"):
         normalize_content({"no_content": True}, model="model")
@@ -71,6 +85,26 @@ def test_normalize_tool_call_entry_validates_fields():
             index=0,
             model="model",
         )
+
+    with pytest.raises(LLMAPIError, match="Invalid tool call name"):
+        normalize_tool_call_entry(
+            {"id": "call_1", "name": "", "arguments": {}},
+            index=0,
+            model="model",
+        )
+
+
+def test_normalize_tool_call_entry_copies_argument_payload():
+    arguments = {"path": "/tmp/demo.txt"}
+
+    normalized = normalize_tool_call_entry(
+        {"id": "call_1", "name": "read_file", "arguments": arguments},
+        index=0,
+        model="model",
+    )
+
+    arguments["path"] = "/tmp/mutated.txt"
+    assert normalized["arguments"]["path"] == "/tmp/demo.txt"
 
 
 def test_normalize_finish_reason_accepts_string_or_none_only():
