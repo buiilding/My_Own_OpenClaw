@@ -57,6 +57,25 @@ class _SummaryCursor:
         return self.rows
 
 
+class _FakeConn:
+    def __init__(self, cursor_obj: Any) -> None:
+        self._cursor = cursor_obj
+        self.row_factory = None
+        self.committed = False
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        return False
+
+    async def cursor(self):
+        return self._cursor
+
+    async def commit(self):
+        self.committed = True
+
+
 @pytest.mark.asyncio
 async def test_search_transcript_hits_lexical_falls_back_to_like_on_fts_error():
     cursor = _FallbackCursor()
@@ -309,3 +328,71 @@ def test_build_ranked_conversation_search_rows_applies_limit_floor():
     )
 
     assert len(rows) == 1
+
+
+@pytest.mark.asyncio
+async def test_search_transcript_conversations_returns_early_for_short_queries(monkeypatch):
+    class _NoConnect:
+        Row = object
+
+        @staticmethod
+        def connect(*_args, **_kwargs):
+            raise AssertionError("should not connect for short queries")
+
+    monkeypatch.setattr(runtime, "aiosqlite", _NoConnect)
+
+    rows = await runtime.search_transcript_conversations(
+        store=object(),
+        episodic_db_path="/tmp/ignored.db",
+        user_id="user-1",
+        query="x",
+        limit=5,
+        lexical_limit=10,
+        semantic_limit=5,
+        logger=logging.getLogger(__name__),
+        now_epoch_seconds=123.0,
+    )
+
+    assert rows == []
+
+
+@pytest.mark.asyncio
+async def test_search_transcript_conversations_short_circuits_when_grouped_hits_empty(monkeypatch):
+    connect_calls: List[str] = []
+
+    class _FakeSqlite:
+        Row = object
+
+        @staticmethod
+        def connect(_db_path: str):
+            connect_calls.append("connect")
+            return _FakeConn(cursor_obj=object())
+
+    async def _lexical(**_kwargs):
+        return []
+
+    async def _semantic(**_kwargs):
+        return []
+
+    async def _unexpected_fetch(**_kwargs):
+        raise AssertionError("summary fetch should not run when grouped hits are empty")
+
+    monkeypatch.setattr(runtime, "aiosqlite", _FakeSqlite)
+    monkeypatch.setattr(runtime, "search_transcript_hits_lexical", _lexical)
+    monkeypatch.setattr(runtime, "search_transcript_hits_semantic", _semantic)
+    monkeypatch.setattr(runtime, "fetch_conversation_summaries", _unexpected_fetch)
+
+    rows = await runtime.search_transcript_conversations(
+        store=object(),
+        episodic_db_path="/tmp/ignored.db",
+        user_id="user-1",
+        query="valid query",
+        limit=5,
+        lexical_limit=10,
+        semantic_limit=5,
+        logger=logging.getLogger(__name__),
+        now_epoch_seconds=123.0,
+    )
+
+    assert rows == []
+    assert len(connect_calls) == 1
