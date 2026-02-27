@@ -46,6 +46,7 @@ Runtime split:
 - `conversation_window_runtime.get_unsemanticized_conversation_windows(...)` and `get_unsemanticized_episodic_memories_by_conversation(...)` own interaction-window selection for summarizer inputs.
 - `conversation_window_runtime.get_unsemanticized_episodic_memories(...)`, `mark_episodic_memories_semanticized(...)`, and `get_unprocessed_memories_after_id(...)` own semanticization-batch source selection/update and watermark-cursor filtering.
 - `conversation_window_runtime.format_transcript_rows(...)` owns normalized transcript/interactions row payload shaping with metadata fallback semantics.
+- `conversation_semanticization_runtime.get_user_ids_with_unsemanticized_memories(...)`, `count_unsemanticized_interaction_memories(...)`, and `semantic_summary_exists(...)` own summarizer run-gate and dedupe metadata queries.
 - `LocalMemoryStore` keeps wrapper methods plus shared `_conversation_where_clause(...)` compatibility facade.
 
 ## Conversation Listing Semantics
@@ -112,6 +113,8 @@ Support methods for summarizer:
 - `mark_episodic_memories_semanticized(memory_ids)` sets `is_semanticized=1`
 - `get_unsemanticized_conversation_windows(user_id)` returns oldest-first windows with pending transcript rows
 - `get_user_ids_with_unsemanticized_memories(limit)` returns latest-active users by unsemanticized transcript timestamps
+- `count_unsemanticized_interaction_memories(user_id?)` enforces interaction-row count gate for summarizer cycle execution
+- `semantic_summary_exists(summary_hash)` enforces summary dedupe check before semantic write
 
 ## Delete Semantics and Mapping Cleanup
 
@@ -157,6 +160,7 @@ Goal:
 - transcript conversation fetch cursor + metadata parsing behavior
 - unsemanticized window ordering and by-conversation formatting callback behavior
 - semanticization mark + watermark-cursor filtering (`last_id` existing vs missing) behavior
+- summarizer user-discovery/count-gate query scope and summary-hash dedupe lookup behavior
 
 Summarizer tests additionally validate transcript/tool filtering and pending watermark behavior built on these storage queries.
 
