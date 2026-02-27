@@ -74,6 +74,11 @@ Default `list_models()` returns empty list; online model catalogs are static in 
 - custom invalid-response message for parser failures.
 - for models listed in `ONLINE_THINKING_MODELS["gemini"]`, adds:
   - `reasoning_effort = "low"`
+- `supports_streaming_tool_turns(...)` returns `True`.
+- stream path accumulates OpenAI-style `delta.tool_calls` (and block-style `tool_use`)
+  across chunks, then stores normalized stream payload via
+  `get_last_stream_response_payload()` so agent tool loops can continue safely after
+  streamed thinking/text.
 
 ## Kimi Coding Provider Specialization
 

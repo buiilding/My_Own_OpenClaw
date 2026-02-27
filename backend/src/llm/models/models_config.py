@@ -70,10 +70,8 @@ ONLINE_THINKING_MODELS: Dict[str, List[str]] = {
 
 # Models that emit reasoning token usage but do not reliably stream
 # textual thought deltas through LiteLLM streaming payloads.
+# Keep empty unless a concrete provider/model regression is confirmed.
 THINKING_TEXT_STREAM_UNSUPPORTED_MODELS: Dict[str, List[str]] = {
-    "gemini": [
-        "gemini-3.1-pro-preview",
-    ],
 }
 
 # Local HuggingFace vision models available via LiteLLM
