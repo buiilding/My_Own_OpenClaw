@@ -10,6 +10,7 @@ const INTERACTIVE_COMPUTER_TOOL_NAMES = new Set([
 ]);
 const CAPTURE_ONLY_COMPUTER_TOOL_NAMES = new Set(['screenshot', 'switch_tab', 'wait']);
 const TOOL_FOCUS_PREPARE_WAIT_MS = 180;
+const TOOL_FOCUS_PREPARE_MAX_ATTEMPTS = 5;
 const OVERLAY_SURFACE_PREPARE_EXCEPTION = 'overlay_surface_prepare_exception';
 
 type ToolSurfaceMode = 'none' | 'interactive' | 'screenshot';
@@ -130,33 +131,38 @@ export async function prepareToolExecutionSurface(
     surfaceToken = registerSurfaceToken();
 
     if (mode === 'interactive') {
-      const focusPreparation = await IpcBridge.invoke(INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
-        waitMs: TOOL_FOCUS_PREPARE_WAIT_MS,
-      });
-      const canVerifyExternalFocus = focusPreparation?.data?.canVerifyExternalFocus === true;
-      const externalFocusActive = focusPreparation?.data?.externalFocusActive === true;
-      if (focusPreparation?.success === false) {
-        return {
-          restoreChatPillAfterExecution: true,
-          canExecute: false,
-          failureReason: typeof focusPreparation?.reason === 'string'
-            ? focusPreparation.reason
-            : 'overlay_focus_prepare_failed',
-          surfaceToken,
-        };
+      for (let attempt = 1; attempt <= TOOL_FOCUS_PREPARE_MAX_ATTEMPTS; attempt += 1) {
+        const focusPreparation = await IpcBridge.invoke(INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
+          waitMs: TOOL_FOCUS_PREPARE_WAIT_MS,
+        });
+        const canVerifyExternalFocus = focusPreparation?.data?.canVerifyExternalFocus === true;
+        const externalFocusActive = focusPreparation?.data?.externalFocusActive === true;
+
+        if (focusPreparation?.success === false) {
+          return {
+            restoreChatPillAfterExecution: true,
+            canExecute: false,
+            failureReason: typeof focusPreparation?.reason === 'string'
+              ? focusPreparation.reason
+              : 'overlay_focus_prepare_failed',
+            surfaceToken,
+          };
+        }
+
+        if (!canVerifyExternalFocus || externalFocusActive) {
+          return {
+            restoreChatPillAfterExecution: true,
+            canExecute: true,
+            failureReason: null,
+            surfaceToken,
+          };
+        }
       }
-      if (canVerifyExternalFocus && !externalFocusActive) {
-        return {
-          restoreChatPillAfterExecution: true,
-          canExecute: false,
-          failureReason: 'external_window_focus_not_verified',
-          surfaceToken,
-        };
-      }
+
       return {
         restoreChatPillAfterExecution: true,
-        canExecute: true,
-        failureReason: null,
+        canExecute: false,
+        failureReason: 'external_window_focus_not_verified',
         surfaceToken,
       };
     }
