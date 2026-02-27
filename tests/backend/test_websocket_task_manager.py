@@ -115,6 +115,16 @@ async def test_create_task_if_under_limit_closes_coro_when_task_creation_fails(m
 
 
 @pytest.mark.asyncio
+async def test_create_task_if_under_limit_rejects_non_awaitable_input() -> None:
+    manager = TaskManager(max_concurrent_tasks=1, task_cancellation_timeout=0.1)
+
+    with pytest.raises(TypeError, match="a coroutine was expected"):
+        await manager.create_task_if_under_limit(object(), "user_bad_input")
+
+    assert len(manager.active_tasks) == 0
+
+
+@pytest.mark.asyncio
 async def test_cleanup_cancels_pending_tasks() -> None:
     manager = TaskManager(max_concurrent_tasks=2, task_cancellation_timeout=0.1)
 
