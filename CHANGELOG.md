@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-overlay-focus-nonactivating-show): make `show-chatbox {focus:false}` use non-activating overlay show (`showInactive` fallback to `show`) so chat-pill reappearance does not steal active-window focus from external apps; add `window_visibility_runtime` regressions for non-activating show and fallback path.
 - fix(frontend-transcript-transparency-visibility): show transparency sections outside dev-ui gating and hydrate saved transcript transparency (`systemPrompt`, `toolSchemas`, `fullUserMessage`, `fullAssistantMessage`) into loaded past-chat messages so normal `electron` history view still exposes full prompt/tool/user/assistant context.
 - feat(transcript-transparency-rehydrate): persist prompt/transparency snapshots (`systemPrompt`, `toolSchemas`, `fullUserMessage`, `fullAssistantMessage`) on transcript writes and inject them into rehydrate payload content so manual compaction on past chats has full saved context instead of only visible message text.
 - fix(frontend-compaction-optimistic-paint): render manual compaction `Compacting...` status for at least one paint frame before transcript rehydrate fetch starts, ensuring immediate visual feedback right after pressing the dashboard dev compaction button.
