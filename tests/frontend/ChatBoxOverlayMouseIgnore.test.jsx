@@ -390,6 +390,18 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(typeof nextState.lastEventAt).toBe('string');
   });
 
+  test('dispatches stop-query immediately when isSending is true before first stream event', () => {
+    mockChatState.streamTracking.phase = 'idle';
+    mockChatState.isSending = true;
+    render(<ChatBox />);
+
+    expect(screen.queryByRole('button', { name: 'Send message' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Stop response' }));
+    expect(mockStopQuery).toHaveBeenCalledTimes(1);
+    expect(mockSetIsSending).toHaveBeenCalledWith(false);
+    expect(mockUpdateStreamTracking).toHaveBeenCalledTimes(1);
+  });
+
   test('does not start wakeword STT voice mode when setting is disabled', () => {
     render(<ChatBox />);
 

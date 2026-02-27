@@ -367,6 +367,21 @@ describe('ChatInterface wiring', () => {
     expect(mockUpdateStreamTracking).toHaveBeenCalledTimes(1);
   });
 
+  test('stop response handler sends stop-query immediately after send while awaiting first event', () => {
+    mockChatState.streamTracking.phase = 'idle';
+    mockChatState.isSending = true;
+
+    render(<ChatInterface />);
+
+    const lastInputProps = mockMessageInput.mock.calls.at(-1)?.[0];
+    expect(lastInputProps.isSending).toBe(true);
+    lastInputProps.onStopResponse();
+    expect(mockStopQuery).toHaveBeenCalledTimes(1);
+    expect(mockSetIsSending).toHaveBeenCalledWith(false);
+    expect(mockSetThinkingStatus).toHaveBeenCalledWith(null);
+    expect(mockUpdateStreamTracking).toHaveBeenCalledTimes(1);
+  });
+
   test('keeps composer in stop state during tool loop even when isSending is false', () => {
     mockChatState.streamTracking.phase = 'tool-call';
     mockChatState.isSending = false;
@@ -400,6 +415,7 @@ describe('ChatInterface wiring', () => {
 
   test('stop response handler is a no-op when no active stream is running', () => {
     mockChatState.streamTracking.phase = 'idle';
+    mockChatState.isSending = false;
 
     render(<ChatInterface />);
 
