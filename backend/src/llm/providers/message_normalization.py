@@ -158,7 +158,7 @@ def normalize_assistant_tool_call_entry(
                 f"Invalid tool_calls[{call_index}] at assistant message index {message_index}: function.arguments must be string/object",
                 model=model,
             )
-        return raw_call, False
+        return copy.deepcopy(raw_call), False
 
     # Internal runtime shape: {id, name, arguments}
     call_id = raw_call.get("id")
