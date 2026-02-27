@@ -12,6 +12,7 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     contextLabelHeight,
     contextLabelOffsetX,
     contextLabelGapAboveChatbox,
+    responseGap = 10,
     chatVisualAnchorHeight = null,
     warn = console.warn,
   } = deps;
@@ -52,6 +53,7 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
       width,
       height,
       chatBounds: anchoredChatBounds,
+      gap: responseGap,
     });
   }
 

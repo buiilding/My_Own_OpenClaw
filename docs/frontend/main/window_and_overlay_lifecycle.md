@@ -75,7 +75,7 @@ Position helpers in `index.cjs`:
 - margin-bottom of `24px`
 - `getResponseWindowBounds(width, height)`:
 - centered to current chat window width
-- rendered above chat window with `10px` gap
+- rendered above chat window with tight runtime gap (`2px` in current non-dashboard config)
 - fallback to chat-window positioning if chat unavailable
 
 Reposition triggers:
