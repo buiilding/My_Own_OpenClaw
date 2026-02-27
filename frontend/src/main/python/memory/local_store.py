@@ -2457,6 +2457,7 @@ class LocalMemoryStore:
         conversation_id: Optional[str],
         limit: int = 1000,
         record_kind: Optional[str] = "transcript",
+        after_message_index: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
         """
         Get episodic memories for a specific conversation window.
@@ -2467,6 +2468,8 @@ class LocalMemoryStore:
             conversation_id: Conversation window identifier (None for memories without conversation_id)
             limit: Maximum number of memories to return (for safety)
             record_kind: Optional filter. Transcript-only; non-transcript values are ignored.
+            after_message_index: Optional cursor. When provided, returns rows with
+                message_index strictly greater than this cursor.
 
         Returns:
             List of memory dictionaries with 'id', 'content', 'timestamp', 'metadata', 'conversation_id'
@@ -2480,6 +2483,11 @@ class LocalMemoryStore:
             conversation_clause, conversation_params = self._conversation_where_clause(
                 conversation_id
             )
+            pagination_clause = ""
+            pagination_params: Tuple[Any, ...] = ()
+            if isinstance(after_message_index, int):
+                pagination_clause = "AND message_index > ?"
+                pagination_params = (after_message_index,)
 
             await cursor.execute(
                 f"""
@@ -2487,10 +2495,11 @@ class LocalMemoryStore:
                 FROM memories
                 WHERE user_id = ? AND {conversation_clause}
                 {record_kind_clause}
+                {pagination_clause}
                 ORDER BY message_index ASC, timestamp ASC
                 LIMIT ?
             """,
-                (user_id, *conversation_params, limit),
+                (user_id, *conversation_params, *pagination_params, limit),
             )
 
             rows = await cursor.fetchall()

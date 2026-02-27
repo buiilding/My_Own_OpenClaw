@@ -164,6 +164,8 @@ MessageItem.propTypes = {
 
 function MessageList({
   messages,
+  thinkingStatus = null,
+  thinkingSourceEventType = null,
   enableAssistantActions = false,
   enableUserActions = false,
   disableAssistantActions = false,
@@ -250,9 +252,30 @@ function MessageList({
     scrollToBottom();
   }, [messages]);
 
+  const compactionStatusText = useMemo(() => {
+    if (thinkingSourceEventType !== 'context-compaction-started') {
+      return '';
+    }
+    if (typeof thinkingStatus !== 'string') {
+      return '';
+    }
+    return thinkingStatus.trim();
+  }, [thinkingSourceEventType, thinkingStatus]);
+
   return (
     <div className="message-list">
       {renderedMessages}
+      {compactionStatusText ? (
+        <div
+          className="message-list-compaction-status"
+          role="status"
+          aria-live="polite"
+          aria-label="Conversation compaction in progress"
+        >
+          <span className="message-list-compaction-indicator" aria-hidden="true" />
+          <span className="message-list-compaction-text">{compactionStatusText}</span>
+        </div>
+      ) : null}
       <div ref={messagesEndRef} data-testid="message-list-end" />
     </div>
   );
@@ -260,6 +283,8 @@ function MessageList({
 
 MessageList.propTypes = {
   messages: PropTypes.arrayOf(messageShapePropType).isRequired,
+  thinkingStatus: PropTypes.string,
+  thinkingSourceEventType: PropTypes.string,
   enableAssistantActions: PropTypes.bool,
   enableUserActions: PropTypes.bool,
   disableAssistantActions: PropTypes.bool,

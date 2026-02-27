@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-compaction-history): render dashboard compaction progress row under conversation history, rehydrate dashboard/manual compaction from full paginated local transcript history, and add `after_message_index` cursor plumbing/tests for `get-conversation`.
 - feat(frontend-dev-compaction-dashboard): add `electron:dev` dashboard header auto-compaction trigger (`compact-history`) so manual compaction can be run from dashboard and chat-pill surfaces, with dashboard wiring coverage updates.
 - feat(frontend-dev-compaction): add `electron:dev` chat-pill auto-compaction trigger button (`compact-history`) and render the same awaiting/thinking compaction overlay elements during compaction-start events for parity with production compaction UX.
 - fix(backend-openrouter-thinking-stream): mark `qwen/qwen3-vl-235b-a22b-thinking` as thinking-capable, enable OpenRouter thinking-stream event parsing, and add `reasoning_details` extraction support so Qwen/OpenRouter reasoning chunks emit `llm-thought` tokens in realtime.

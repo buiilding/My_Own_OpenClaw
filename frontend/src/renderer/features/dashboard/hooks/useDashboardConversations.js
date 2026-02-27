@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ApiClient } from '../../../infrastructure/api/client';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { loadConversationTranscriptMemories } from '../../../infrastructure/transcript/conversationTranscriptLoader';
 import {
   setActiveConversationRef,
   updateTranscriptSession,
@@ -109,18 +110,11 @@ function useDashboardConversations({
     setRecentConversationsError('');
 
     try {
-      const result = await IpcBridge.invoke(INVOKE_CHANNELS.GET_CONVERSATION, {
+      const memories = await loadConversationTranscriptMemories({
         userId: resolvedUserId,
-        conversationId: conversationRef,
-        limit: 1000,
+        conversationRef,
         recordKind: conversation?.record_kind || 'transcript',
       });
-
-      if (!result || result.success === false) {
-        throw new Error(result?.error || 'Failed to load conversation');
-      }
-
-      const memories = result?.data?.memories ?? [];
       const parsedMessages = parseMemoriesToMessages(memories);
 
       await ApiClient.sendRehydrateConversation(

@@ -405,12 +405,17 @@ class LocalBackend:
         user_id: str = "default_user",
         limit: int = 1000,
         record_kind: Optional[str] = "transcript",
+        after_message_index: Optional[int] = None,
         **kwargs,
     ) -> Dict[str, Any]:
         """Get episodic memories for a conversation window."""
         try:
             memories = await self.memory_store.get_episodic_memories_by_conversation(
-                user_id, conversation_id, limit, record_kind=record_kind
+                user_id,
+                conversation_id,
+                limit,
+                record_kind=record_kind,
+                after_message_index=after_message_index,
             )
             return {
                 "success": True,
