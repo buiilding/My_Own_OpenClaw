@@ -160,11 +160,33 @@ class MemoryService:
 
     async def handle_store(self, request_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Handle memory store request."""
-        user_query = (payload.get("user_query") or "").strip()
-        assistant_response = (payload.get("assistant_response") or "").strip()
-        memory_type = (payload.get("memory_type") or "episodic").strip().lower()
+        user_query = payload.get("user_query")
+        assistant_response = payload.get("assistant_response")
+        memory_type = payload.get("memory_type", "episodic")
         user_id = payload.get("user_id", "default_user")
         session_id = payload.get("session_id")
+
+        if user_query is None or assistant_response is None:
+            return {
+                "id": request_id,
+                "success": False,
+                "error": "Missing user_query or assistant_response",
+            }
+        if not isinstance(user_query, str) or not isinstance(assistant_response, str):
+            return {
+                "id": request_id,
+                "success": False,
+                "error": "user_query and assistant_response must be strings",
+            }
+        if memory_type is not None and not isinstance(memory_type, str):
+            return {
+                "id": request_id,
+                "success": False,
+                "error": "memory_type must be a string",
+            }
+        user_query = user_query.strip()
+        assistant_response = assistant_response.strip()
+        memory_type = (memory_type or "episodic").strip().lower()
 
         if not user_query or not assistant_response:
             return {
