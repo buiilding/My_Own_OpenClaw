@@ -1,5 +1,21 @@
 const chatboxResizeAnchorState = new WeakMap();
 
+function updateAnchorFromBounds(anchorState, bounds) {
+  if (!anchorState || !bounds || typeof bounds !== 'object') {
+    return false;
+  }
+  let updated = false;
+  if (Number.isFinite(bounds.x)) {
+    anchorState.x = Math.round(bounds.x);
+    updated = true;
+  }
+  if (Number.isFinite(bounds.y) && Number.isFinite(bounds.height)) {
+    anchorState.bottom = Math.round(bounds.y + bounds.height);
+    updated = true;
+  }
+  return updated;
+}
+
 function getOrCreateAnchorState(chatWindow) {
   let state = chatboxResizeAnchorState.get(chatWindow);
   if (!state) {
@@ -47,16 +63,8 @@ async function handleSetChatboxSize(
       : null;
     const hasAnchorX = Number.isFinite(anchorState.x);
     const hasAnchorBottom = Number.isFinite(anchorState.bottom);
-    if (!hasAnchorX && currentBounds && Number.isFinite(currentBounds.x)) {
-      anchorState.x = Math.round(currentBounds.x);
-    }
-    if (
-      !hasAnchorBottom
-      && currentBounds
-      && Number.isFinite(currentBounds.y)
-      && Number.isFinite(currentBounds.height)
-    ) {
-      anchorState.bottom = Math.round(currentBounds.y + currentBounds.height);
+    if (!hasAnchorX || !hasAnchorBottom) {
+      updateAnchorFromBounds(anchorState, currentBounds);
     }
     if (anchorState.x == null || anchorState.bottom == null) {
       fallbackBounds = getChatWindowBounds(nextWidth, nextHeight);
@@ -81,8 +89,13 @@ async function handleSetChatboxSize(
     };
 
     chatWindow.setBounds(bounds, false);
-    anchorState.x = bounds.x;
-    anchorState.bottom = bounds.y + bounds.height;
+    const appliedBounds = typeof chatWindow.getBounds === 'function'
+      ? chatWindow.getBounds()
+      : null;
+    if (!updateAnchorFromBounds(anchorState, appliedBounds)) {
+      anchorState.x = bounds.x;
+      anchorState.bottom = bounds.y + bounds.height;
+    }
     positionResponseWindow();
     positionContextLabelWindow();
     syncContextLabelWindowVisibility();
