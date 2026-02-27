@@ -7,6 +7,11 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(backend-transport): deep-copy websocket envelope payloads in `build_transport_message(...)` so caller-side mutation cannot rewrite emitted transport events; add nested aliasing regressions in `test_transport_envelope.py`.
+- fix(backend-transport): deep-copy outbound payloads in `WebSocketTransportSender.send(...)` to isolate transport writes from caller mutation timing; add sender aliasing regression coverage.
+- test(backend-transport): add runtime protocol contract coverage for `WebSocketSender` structural compliance (accept/reject cases + `SafeWebSocket` conformance) in `test_transport_protocol.py`.
+- test(backend-transport): extend safe-websocket direct-close race-path coverage to assert close-race swallowing behavior when raw socket close already failed.
+- test(backend-transport): expand envelope edge coverage for `id=None` preservation and falsey context field filtering contracts.
 - docs(capability-catalog): deepen backend/frontend capability catalogs with concrete runtime guardrails (websocket limits/timeouts, JSON parse offload policy, typed IPC channel counts, settings ACK timeout, sidecar spawn/readiness/timeout semantics, and overlay/wakeword safety contracts).
 - docs(frontend-docs): align frontend memory/IPC contract references with current runtime by documenting `delete-episodic-memory` parity, backend-backed episodic+semantic delete behavior, one-click delete semantics (no confirm), and updated protocol-test coverage notes.
 - refactor(frontend-tool-runner-surface): extract tool-surface mode resolution and overlay preparation/restore helpers into `toolRunnerSurface.ts`, reduce `useToolRunner.ts` below the large-file threshold, and add direct helper regression coverage.
