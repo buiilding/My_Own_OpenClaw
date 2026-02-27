@@ -28,6 +28,16 @@ import '../../../styles/ChatInterface.css';
 
 const ACTIVE_STREAM_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
 
+function waitForNextPaint() {
+  return new Promise((resolve) => {
+    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+      window.requestAnimationFrame(() => resolve());
+      return;
+    }
+    setTimeout(resolve, 0);
+  });
+}
+
 function ChatInterface({ focusComposerToken = 0 }) {
   const { messages, isSending, thinkingStatus, thinkingSourceEventType, streamPhase } = useChatStore(
     useShallow(selectChatInterfaceState),
@@ -227,6 +237,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
   const handleRunAutoCompaction = useCallback(async () => {
     setThinkingStatus(COMPACTION_THINKING_STATUS);
     setThinkingSourceEventType('context-compaction-started');
+    await waitForNextPaint();
     const sessionInfo = getTranscriptSessionInfo();
     const conversationRef = getActiveConversationRef() || sessionInfo?.conversationRef || null;
     const userId = sessionInfo?.userId || null;
