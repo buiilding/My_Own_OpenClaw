@@ -247,7 +247,8 @@ function ChatBox() {
       lastSizeRef.current = { width: nextFrame.width, height: nextFrame.height };
       try {
         const anchorX = Number(window.screenX);
-        const anchorBottom = Number(window.screenY) + Number(window.innerHeight || 0);
+        const windowHeight = Number(window.outerHeight || window.innerHeight || 0);
+        const anchorBottom = Number(window.screenY) + windowHeight;
         await IpcBridge.invoke(INVOKE_CHANNELS.SET_CHATBOX_SIZE, {
           width: nextFrame.width,
           height: nextFrame.height,
@@ -551,7 +552,7 @@ function ChatBox() {
   const isLoopActive = LOOP_ACTIVE_PHASES.has(streamPhase) || LOOP_ACTIVE_PHASES.has(overlayPhase);
 
   return (
-    <div className={`chatbox-shell-wrap${isLoopActive ? ' loop-active' : ''}`}>
+    <div className={`chatbox-shell-wrap chatbox-input-shell-wrap${isLoopActive ? ' loop-active' : ''}`}>
       <div className="chatbox-shell" ref={shellRef}>
         <form className="chatbox-pill" onSubmit={handleSubmit} onMouseDown={handlePillMouseDown}>
           {clipboardImages.length > 0 ? (
