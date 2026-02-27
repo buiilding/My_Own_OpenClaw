@@ -26,13 +26,14 @@ except ImportError:
 
 from core.remote_embedding_client import RemoteEmbeddingClient
 from core.remote_title_client import RemoteTitleClient
+from memory.conversation_list_runtime import build_conversation_list_results
+from memory.conversation_list_runtime import fetch_transcript_conversation_rows
 from memory.conversation_search_helpers import group_conversation_search_hits
 from memory.conversation_search_helpers import pick_best_conversation_hit
 from memory.conversation_search_helpers import safe_timestamp_to_epoch_seconds
 from memory.conversation_search_runtime import fetch_conversation_summaries
 from memory.conversation_search_runtime import search_transcript_hits_lexical
 from memory.conversation_search_runtime import search_transcript_hits_semantic
-from memory.conversation_title_helpers import ensure_conversation_title
 from memory.conversation_title_helpers import fetch_title_generation_inputs
 from memory.conversation_title_helpers import lookup_conversation_title_state
 from memory.conversation_title_helpers import normalize_generated_title
@@ -1274,43 +1275,17 @@ class LocalMemoryStore:
         async with aiosqlite.connect(self.episodic_db_path) as conn:
             conn.row_factory = aiosqlite.Row
             cursor = await conn.cursor()
-            normalized_record_kind = "transcript"
-            rows = await self._list_conversations_with_record_kind(
-                cursor,
+            _ = record_kind  # API compatibility; transcript is the only supported kind.
+            rows = await fetch_transcript_conversation_rows(
+                cursor=cursor,
                 user_id=user_id,
                 limit=limit,
-                record_kind=normalized_record_kind,
             )
-
-            results = []
-            for row in rows:
-                conversation_id = row["conversation_id"]
-                title, title_source = await ensure_conversation_title(
-                    cursor=cursor,
-                    user_id=user_id,
-                    conversation_id=conversation_id,
-                    existing_title=row["title"],
-                    existing_title_source=row["title_source"],
-                    existing_title_locked=row["title_locked"],
-                )
-                if not isinstance(title, str) or not title.strip():
-                    continue
-                results.append({
-                    "conversation_id": conversation_id,
-                    "first_timestamp": row["first_timestamp"],
-                    "last_timestamp": row["last_timestamp"],
-                    "entry_count": row["entry_count"],
-                    "record_kind": row["record_kind"],
-                    "model_id": row["model_id"],
-                    "model_provider": row["model_provider"],
-                    "title": title.strip(),
-                    "title_source": title_source or "model",
-                    "is_resumable": bool(
-                        isinstance(conversation_id, str)
-                        and conversation_id.startswith("conv_")
-                    ),
-                })
-
+            results = await build_conversation_list_results(
+                cursor=cursor,
+                user_id=user_id,
+                rows=rows,
+            )
             await conn.commit()
             return results
 
@@ -1909,62 +1884,6 @@ class LocalMemoryStore:
             "Cleared %s FAISS index artifacts after indexed rows reached zero",
             memory_type,
         )
-
-    async def _list_conversations_with_record_kind(
-        self,
-        cursor,
-        user_id: str,
-        limit: int,
-        record_kind: Optional[str],
-    ) -> List[Any]:
-        _ = record_kind  # API compatibility; transcript is the only supported kind.
-        await cursor.execute(
-            """
-            SELECT conversation_id,
-                   MIN(timestamp) as first_timestamp,
-                   MAX(timestamp) as last_timestamp,
-                   COUNT(*) as entry_count,
-                   record_kind,
-                   (
-                     SELECT title FROM conversation_titles ct
-                     WHERE ct.user_id = ? AND ct.conversation_id = memories.conversation_id
-                     LIMIT 1
-                   ) as title,
-                   (
-                     SELECT source FROM conversation_titles ct
-                     WHERE ct.user_id = ? AND ct.conversation_id = memories.conversation_id
-                     LIMIT 1
-                   ) as title_source,
-                   (
-                     SELECT is_locked FROM conversation_titles ct
-                     WHERE ct.user_id = ? AND ct.conversation_id = memories.conversation_id
-                     LIMIT 1
-                   ) as title_locked,
-                   (
-                     SELECT model_id FROM memories m2
-                     WHERE m2.user_id = ? AND m2.conversation_id = memories.conversation_id
-                       AND m2.record_kind = 'transcript'
-                       AND m2.model_id IS NOT NULL AND m2.model_id != ''
-                     ORDER BY m2.timestamp DESC, m2.message_index DESC
-                     LIMIT 1
-                   ) as model_id,
-                   (
-                     SELECT model_provider FROM memories m2
-                     WHERE m2.user_id = ? AND m2.conversation_id = memories.conversation_id
-                       AND m2.record_kind = 'transcript'
-                       AND m2.model_provider IS NOT NULL AND m2.model_provider != ''
-                     ORDER BY m2.timestamp DESC, m2.message_index DESC
-                     LIMIT 1
-                   ) as model_provider
-            FROM memories
-            WHERE user_id = ? AND record_kind = 'transcript'
-            GROUP BY conversation_id
-            ORDER BY last_timestamp DESC
-            LIMIT ?
-        """,
-            (user_id, user_id, user_id, user_id, user_id, user_id, limit),
-        )
-        return await cursor.fetchall()
 
     async def get_next_message_index(
         self, user_id: str, conversation_id: Optional[str]

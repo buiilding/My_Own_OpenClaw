@@ -5,7 +5,7 @@ Shared conversation-title generation/query helpers for LocalMemoryStore.
 from __future__ import annotations
 
 import re
-from typing import Optional, Tuple
+from typing import Any, Mapping, Optional, Tuple
 
 TITLE_NORMALIZED_MAX_WORDS = 6
 TITLE_NORMALIZED_MAX_CHARS = 48
@@ -168,3 +168,28 @@ async def ensure_conversation_title(
     if is_locked or existing_title_locked:
         return None, source
     return None, None
+
+
+async def ensure_conversation_title_from_row(
+    *,
+    cursor,
+    user_id: str,
+    row: Mapping[str, Any],
+) -> Tuple[Optional[str], Optional[str]]:
+    def _row_value(key: str) -> Any:
+        getter = getattr(row, "get", None)
+        if callable(getter):
+            return getter(key)
+        try:
+            return row[key]
+        except Exception:
+            return None
+
+    return await ensure_conversation_title(
+        cursor=cursor,
+        user_id=user_id,
+        conversation_id=_row_value("conversation_id"),
+        existing_title=_row_value("title"),
+        existing_title_source=_row_value("title_source"),
+        existing_title_locked=_row_value("title_locked"),
+    )

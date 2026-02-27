@@ -5,6 +5,7 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 ensure_frontend_python_path()
 
 from memory.conversation_title_helpers import ensure_conversation_title  # noqa: E402
+from memory.conversation_title_helpers import ensure_conversation_title_from_row  # noqa: E402
 from memory.conversation_title_helpers import fetch_title_generation_inputs  # noqa: E402
 from memory.conversation_title_helpers import lookup_conversation_title_state  # noqa: E402
 from memory.conversation_title_helpers import normalize_generated_title  # noqa: E402
@@ -99,3 +100,21 @@ async def test_ensure_conversation_title_prefers_existing_title_without_lookup()
     assert title == "Existing title"
     assert source == "manual"
     assert cursor.executed == []
+
+
+@pytest.mark.asyncio
+async def test_ensure_conversation_title_from_row_reads_row_shape():
+    cursor = _QueueCursor([])
+    title, source = await ensure_conversation_title_from_row(
+        cursor=cursor,
+        user_id="user-1",
+        row={
+            "conversation_id": "conv_1",
+            "title": "  Row title  ",
+            "title_source": None,
+            "title_locked": 0,
+        },
+    )
+
+    assert title == "Row title"
+    assert source == "model"
