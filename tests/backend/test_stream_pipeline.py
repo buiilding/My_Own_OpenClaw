@@ -142,3 +142,42 @@ async def test_wait_for_pending_tts_noop_when_empty() -> None:
     await pipeline.wait_for_pending_tts()
 
     assert len(pipeline._pending_tts_tasks) == 0
+
+
+@pytest.mark.asyncio
+async def test_process_skips_transport_when_formatter_returns_none() -> None:
+    formatter = DummyFormatter(response=None)
+    transport = DummyTransportSender()
+    tts_processor = DummyTTSProcessor()
+    pipeline = StreamPipeline(tts_processor, formatter, transport)
+
+    await pipeline.process(
+        event={"type": "llm-thought", "payload": {"text": "hidden"}},
+        tts_service=None,
+        msg_id="msg_5",
+    )
+    await asyncio.sleep(0)
+
+    assert transport.sent == []
+    assert tts_processor.calls == []
+
+
+@pytest.mark.asyncio
+async def test_process_still_runs_tts_when_formatter_returns_none() -> None:
+    formatter = DummyFormatter(response=None)
+    transport = DummyTransportSender()
+    tts_processor = DummyTTSProcessor()
+    pipeline = StreamPipeline(tts_processor, formatter, transport)
+    tts_service = DummyTTSService()
+    event = {"type": "llm-thought", "payload": {"text": "audio only"}}
+
+    await pipeline.process(
+        event=event,
+        tts_service=tts_service,
+        msg_id="msg_6",
+    )
+    await asyncio.sleep(0)
+    await pipeline.wait_for_pending_tts()
+
+    assert transport.sent == []
+    assert tts_processor.calls == [(event, tts_service)]
