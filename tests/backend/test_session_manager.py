@@ -238,3 +238,60 @@ async def test_cancel_active_query_task_cancels_all_registered_tasks() -> None:
         assert "user-1" not in manager._active_query_tasks
     finally:
         await asyncio.gather(first_task, second_task, return_exceptions=True)
+
+
+@pytest.mark.asyncio
+async def test_cancel_active_query_task_sets_pending_stop_and_consumes_late_registration() -> None:
+    manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
+
+    async def _sleep_forever() -> None:
+        await asyncio.sleep(3600)
+
+    cancelled = manager.cancel_active_query_task("user-1")
+    assert cancelled is None
+    assert "user-1" in manager._pending_stop_requests
+
+    late_query_task = asyncio.create_task(_sleep_forever())
+    try:
+        consumed_stop = manager.register_active_query_task(
+            "user-1",
+            late_query_task,
+            turn_ref="turn-late",
+            conversation_ref="conv-late",
+        )
+        await asyncio.sleep(0)
+
+        assert consumed_stop is True
+        assert late_query_task.cancelled() is False
+        assert "user-1" not in manager._active_query_tasks
+        assert "user-1" not in manager._pending_stop_requests
+    finally:
+        if not late_query_task.done():
+            late_query_task.cancel()
+        await asyncio.gather(late_query_task, return_exceptions=True)
+
+
+@pytest.mark.asyncio
+async def test_register_active_query_task_ignores_expired_pending_stop_request() -> None:
+    manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
+    manager._pending_stop_requests["user-1"] = 0.0
+
+    async def _sleep_forever() -> None:
+        await asyncio.sleep(3600)
+
+    active_task = asyncio.create_task(_sleep_forever())
+    try:
+        consumed_stop = manager.register_active_query_task(
+            "user-1",
+            active_task,
+            turn_ref="turn-active",
+            conversation_ref="conv-active",
+        )
+
+        assert consumed_stop is False
+        assert manager.has_active_query_task("user-1") is True
+        assert "user-1" not in manager._pending_stop_requests
+    finally:
+        manager.clear_active_query_task("user-1", active_task)
+        active_task.cancel()
+        await asyncio.gather(active_task, return_exceptions=True)

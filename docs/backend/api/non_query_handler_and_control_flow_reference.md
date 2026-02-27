@@ -77,7 +77,8 @@ Behavior:
 
 1. call `SessionManager.cancel_active_query_task(user_id)`
 2. if task canceled, capture `(turn_ref, conversation_ref)` metadata
-3. always emit terminal success envelope so renderer exits active streaming UI state
+3. if no task is currently registered, SessionManager stores a short-lived pending stop intent (race guard for query task registration)
+4. always emit terminal success envelope so renderer exits active streaming UI state
 
 Response type emitted by handler:
 
@@ -86,6 +87,7 @@ Response type emitted by handler:
 Cancellation source of truth:
 
 - session manager `_active_query_tasks` map (`task -> (turn_ref, conversation_ref)`) per user
+- short-lived `_pending_stop_requests` latch consumed by `register_active_query_task(...)` to cancel a just-starting query if stop arrived first
 
 ## Wakeword Control Path
 
