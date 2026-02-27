@@ -179,7 +179,8 @@ describe('ChatBox overlay mouse ignore', () => {
       ([channel, payload]) =>
         channel === 'set-chatbox-size'
         && payload?.width === 200
-        && payload?.height === 100,
+        && payload?.height === 100
+        && Number.isFinite(payload?.anchor_bottom),
     );
     jest.useRealTimers();
   });

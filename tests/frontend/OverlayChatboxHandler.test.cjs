@@ -185,6 +185,32 @@ describe('overlay_chatbox_handler', () => {
     }, false);
   });
 
+  test('uses explicit anchor coordinates from resize payload when provided', async () => {
+    const deps = createDeps({
+      chatWindow: {
+        isDestroyed: jest.fn().mockReturnValue(false),
+        getSize: jest.fn().mockReturnValue([320, 120]),
+        getBounds: jest.fn().mockReturnValue({ x: 999, y: 999, width: 320, height: 120 }),
+        setBounds: jest.fn(),
+      },
+    });
+
+    const result = await handleSetChatboxSize({
+      width: 501,
+      height: 300,
+      anchor_x: 55,
+      anchor_bottom: 500,
+    }, deps);
+
+    expect(result).toEqual({ success: true, resized: true, width: 501, height: 300 });
+    expect(deps.chatWindow.setBounds).toHaveBeenCalledWith({
+      x: 55,
+      y: 200,
+      width: 501,
+      height: 300,
+    }, false);
+  });
+
   test('returns failure when chat window is unavailable', async () => {
     const deps = createDeps({ chatWindow: null });
 

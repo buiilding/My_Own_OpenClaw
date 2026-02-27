@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-chatbox-resize-anchor-hard-lock): send explicit `anchor_bottom`/`anchor_x` from renderer on each minimal chat-pill resize IPC and prioritize those anchors in main resize handling, guaranteeing bottom-edge lock while preview/image rows expand upward; add handler+renderer regression coverage.
 - fix(frontend-chatbox-resize-anchor-applied-bounds): when resizing minimal non-dashboard chat-pill, persist anchor from the window manager’s applied bounds after `setBounds` (not only requested bounds) so compositor-adjusted geometry cannot reintroduce bottom-edge drift; add regression coverage.
 - fix(frontend-chatbox-resize-anchor-lock): keep minimal non-dashboard chat-pill bottom edge pinned during sequential size IPC updates by initializing anchor from bounds once (or explicit move only), so growth happens upward without bottom-edge drift/cropping; add regression coverage for top-anchored bounds reports.
 - fix(frontend-dashboard-sidebar-collapsed-icons): remove duplicate collapsed sidebar logo/toggle stack, render one hover-swap brand control (`logo` <-> `expand`), move `New chat` into the header toggle slot, and add focused sidebar tests for hover swap + single new-chat action.
