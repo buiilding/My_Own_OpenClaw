@@ -8,6 +8,7 @@ Includes the last 300 commits on `main`.
 
 ### Added
 - fix(frontend-chat-pill-focus): refresh external-focus snapshot on chat-pill blur so overlay query pre-capture restores the real underlying app window (not the chat-pill window) before system-state collection.
+- test(backend-payload-serialization): extend regression coverage for `normalize_tool_arguments` fallback path when `model_dump()` does not accept `warnings` kwargs (TypeError compatibility path).
 - fix(backend-pydantic-warnings): suppress noisy Pydantic serializer warnings on LiteLLM payload normalization by using `model_dump(warnings=False)` (with fallback compatibility path) in tool-argument and usage payload normalization helpers, with regression coverage.
 - feat(frontend-overlay-focus): add computer-use surface prep split for interactive vs screenshot tool turns, including `prepare-overlay-tool-focus` IPC handoff and external-window focus verification before interactive dispatch.
 - test(frontend-overlay-focus): add regression coverage for tool-runner surface transitions (interactive/screenshot), external-focus active-window verification, and overlay IPC focus-prep handler wait/error paths.

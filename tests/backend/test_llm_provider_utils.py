@@ -48,6 +48,11 @@ class _ToolArgumentsModelDumpWithWarnings:
         return {"path": "/tmp/demo.txt"}
 
 
+class _ToolArgumentsModelDumpNoKwargs:
+    def model_dump(self):
+        return {"path": "/tmp/no-kwargs.txt"}
+
+
 def test_extract_status_code_supports_direct_response_and_exception_chain():
     direct = RuntimeError("boom")
     direct.status_code = 429
@@ -198,3 +203,15 @@ def test_normalize_tool_arguments_prefers_warning_safe_model_dump():
 
     assert normalized == {"path": "/tmp/demo.txt"}
     assert payload.called_with == {"warnings": False}
+
+
+def test_normalize_tool_arguments_supports_model_dump_without_kwargs():
+    payload = _ToolArgumentsModelDumpNoKwargs()
+
+    normalized = normalize_tool_arguments(
+        payload,
+        model="m",
+        invalid_response_message="Invalid response",
+    )
+
+    assert normalized == {"path": "/tmp/no-kwargs.txt"}
