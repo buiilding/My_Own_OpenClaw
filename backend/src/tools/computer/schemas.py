@@ -26,8 +26,9 @@ class MouseControlArgs(BaseModel):
     find_coordinates_by: CoordinateFindingMethod = Field(
         CoordinateFindingMethod.MANUAL,
         description=(
-            "Coordinate targeting strategy. Prefer 'ocr' for visible text targets, "
-            "'prediction' for non-text UI elements, and 'manual' only as fallback."
+            "Coordinate targeting strategy. If the target has visible text, use 'ocr' "
+            "with exact ocr_text (for example: ocr_text='type something here'). "
+            "Use 'prediction' for non-text UI elements and 'manual' only as fallback."
         ),
     )
 
@@ -45,7 +46,11 @@ class MouseControlArgs(BaseModel):
     ocr_text: Optional[str] = Field(
         None,
         description=(
-            "Exact on-screen text for OCR targeting. Required for find_coordinates_by='ocr'. Generate the exact text that you see on the image, the text should be on the same line, the ocr doesnt work well with multi-line text."
+            "Exact visible on-screen text for OCR targeting. Required for "
+            "find_coordinates_by='ocr'. Prefer this whenever clicking text-labeled "
+            "elements (placeholders, buttons, tabs). Example: if an input shows "
+            "'type something here', pass that exact string. Keep text to one line; "
+            "OCR matching is weaker on multiline strings."
         ),
     )
 
