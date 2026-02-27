@@ -35,6 +35,13 @@ export function shouldIgnoreEventForActiveConversation(
     phase: StreamPhase;
   },
 ): boolean {
+  if (
+    event.type === 'context-compaction-started'
+    || event.type === 'context-compaction-completed'
+    || event.type === 'context-compaction-failed'
+  ) {
+    return false;
+  }
   if (!activeConversationRef) {
     return false;
   }

@@ -225,9 +225,6 @@ function ChatInterface({ focusComposerToken = 0 }) {
   }, [speechModeEnabled, updateConfig]);
 
   const handleRunAutoCompaction = useCallback(async () => {
-    if (canStop) {
-      return;
-    }
     setThinkingStatus(COMPACTION_THINKING_STATUS);
     setThinkingSourceEventType('context-compaction-started');
     const sessionInfo = getTranscriptSessionInfo();
@@ -249,7 +246,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
       }
     }
     ApiClient.compactHistory(true);
-  }, [canStop, setThinkingSourceEventType, setThinkingStatus]);
+  }, [setThinkingSourceEventType, setThinkingStatus]);
 
   const handleProviderSelect = useCallback((provider) => {
     setProviderMenuOpen(false);
@@ -420,7 +417,6 @@ function ChatInterface({ focusComposerToken = 0 }) {
                 aria-label="Run auto compaction"
                 title="Run auto compaction"
                 onClick={handleRunAutoCompaction}
-                disabled={canStop}
               >
                 <Workflow size={18} />
               </button>

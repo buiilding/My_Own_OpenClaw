@@ -76,4 +76,27 @@ describe('chatStreamConversationGate', () => {
       ),
     ).toBe(false);
   });
+
+  test('never ignores context-compaction lifecycle events despite conversation mismatch', () => {
+    const started = buildEvent({
+      type: 'context-compaction-started',
+      conversation_ref: 'conv-stale',
+      payload: { reason: 'manual' },
+    });
+    const completed = buildEvent({
+      type: 'context-compaction-completed',
+      conversation_ref: 'conv-stale',
+      payload: { reason: 'manual' },
+    });
+    const failed = buildEvent({
+      type: 'context-compaction-failed',
+      conversation_ref: 'conv-stale',
+      payload: { reason: 'manual', error: 'boom' },
+    });
+
+    const streamTracking = { activeTurnRef: 'turn-1', phase: 'streaming' as const };
+    expect(shouldIgnoreEventForActiveConversation(started, 'conv-active', streamTracking)).toBe(false);
+    expect(shouldIgnoreEventForActiveConversation(completed, 'conv-active', streamTracking)).toBe(false);
+    expect(shouldIgnoreEventForActiveConversation(failed, 'conv-active', streamTracking)).toBe(false);
+  });
 });
