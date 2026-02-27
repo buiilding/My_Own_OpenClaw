@@ -336,9 +336,7 @@ class BrowserRuntimeAdapter:
         self,
         args: Mapping[str, Any],
     ) -> dict[str, Any] | AdapterActionResult:
-        text = self._value_as_str(args.get("text"))
-        if not text:
-            return self._invalid_argument("done", "done requires non-empty 'text'")
+        text = self._value_as_str(args.get("text")) or "Done."
         params: dict[str, Any] = {"text": text}
         if isinstance(args.get("success"), bool):
             params["success"] = bool(args.get("success"))

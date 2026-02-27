@@ -139,3 +139,23 @@ async def test_canonical_status_routes_direct_runtime_dispatch() -> None:
         action="status",
         params={},
     )
+
+
+@pytest.mark.asyncio
+async def test_done_defaults_text_when_missing() -> None:
+    adapter, runtime = _make_adapter(
+        runtime_result={
+            "success": True,
+            "action": "done",
+            "native_source": "browser_use.tools",
+        }
+    )
+
+    result = await adapter.execute("done", {"action": "done", "success": True})
+
+    assert result.success is True
+    assert result.action == "done"
+    runtime.execute_browser_use_action.assert_awaited_once_with(
+        action="done",
+        params={"text": "Done.", "success": True},
+    )
