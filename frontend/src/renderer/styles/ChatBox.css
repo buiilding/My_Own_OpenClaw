@@ -28,6 +28,18 @@ body {
   transform: translateX(-50%);
 }
 
+.chatbox-input-shell-wrap .chatbox-shell {
+  padding-top: 4px;
+}
+
+.chatbox-input-shell-wrap .chatbox-pill {
+  padding-top: 10px;
+}
+
+.chatbox-input-shell-wrap .chatbox-image-preview-row {
+  padding-top: 4px;
+}
+
 .chatbox-shell-wrap.has-response-pill {
   border-radius: 18px;
   clip-path: inset(0 round 18px);
