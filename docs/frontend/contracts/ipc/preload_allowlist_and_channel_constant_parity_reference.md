@@ -58,7 +58,6 @@ Shared names in preload + `INVOKE_CHANNELS`:
 - `store-transcript`
 - `get-client-user-id`
 - `set-overlay-ignore-mouse`
-- `set-chatbox-size`
 - `set-responsebox-size`
 - `show-main-window` (optional payload `{ open?: 'chat' | 'memory' | 'models' | 'settings', maximize?: boolean }`)
 - `show-chatbox`

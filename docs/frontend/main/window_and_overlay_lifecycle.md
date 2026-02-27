@@ -1,5 +1,5 @@
 ---
-summary: "Electron window lifecycle reference for main/dashboard window, chat overlay, response overlay, focus restoration, sizing IPC, and overlay phase transitions."
+summary: "Electron window lifecycle reference for main/dashboard window, chat overlay, response overlay, focus restoration, response sizing IPC, and overlay phase transitions."
 read_when:
   - When changing chat/response overlay behavior, window positioning, or click-through policy.
   - When adding/editing Electron IPC handlers for window state, sizing, focus, or display selection.
@@ -82,7 +82,7 @@ Reposition triggers:
 
 - explicit `positionChatWindow()` and `positionResponseWindow()` calls
 - display metric change event (`screen.on('display-metrics-changed', ...)`)
-- chat/response resize IPC handlers (`set-chatbox-size`, `set-responsebox-size`)
+- response resize IPC handler (`set-responsebox-size`)
 
 ## Overlay Phase Model
 
@@ -133,7 +133,6 @@ Windows-specific external focus preservation:
 Handlers in `overlay_ipc_runtime.cjs` (wired by `index.cjs`):
 
 - `set-overlay-ignore-mouse`: toggles click-through for chat and response overlays
-- `set-chatbox-size`: bounded resize (`width <= 900`, `height <= 7500`), repositions response overlay
 - `set-responsebox-size`:
   - default mode: bounded resize (`width <= 900`, `height <= 750`), show/hide + re-anchor above chat
   - fullscreen ghost mode (`full_screen=true`): expands response overlay to the active display bounds for anywhere-on-screen ghost cursor rendering

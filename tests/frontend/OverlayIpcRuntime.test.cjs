@@ -93,4 +93,11 @@ describe('overlay_ipc_runtime prepare-overlay-tool-focus handler', () => {
       reason: 'Failed to prepare overlay tool focus: focus boom',
     });
   });
+
+  test('does not register deprecated chatbox resize invoke channel', () => {
+    const { invokeHandlers } = createRuntime();
+
+    expect(invokeHandlers['set-chatbox-size']).toBeUndefined();
+    expect(typeof invokeHandlers['set-responsebox-size']).toBe('function');
+  });
 });
