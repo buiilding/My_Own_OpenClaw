@@ -123,7 +123,10 @@ async def cleanup_connection(
         user_id: User ID for the connection
     """
     # Clean up tasks
-    await task_manager.cleanup(user_id)
+    try:
+        await task_manager.cleanup(user_id)
+    except Exception as e:
+        logger.error(f"Error cleaning up tasks for user {user_id}: {e}", exc_info=True)
     
     # Clean up session - handle exceptions to prevent cleanup failure
     try:
