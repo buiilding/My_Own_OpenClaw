@@ -123,6 +123,12 @@ Params:
 - `memory_type` (optional filter)
 - `exclude_conversation_id` (optional)
 
+Validation behavior:
+
+- requires non-empty string `query` (trimmed)
+- validates optional `memory_type` as case-insensitive `episodic|semantic`
+- rejects non-string `memory_type`
+
 Returns:
 
 - `{ success: true, data: { memories: { episodic:[], semantic:[] } } }` on success

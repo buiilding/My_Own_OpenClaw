@@ -23,6 +23,7 @@ from memory.operations import (
     build_memory_filters,
     format_interaction_memory,
     group_memory_texts,
+    normalize_search_memory_payload,
     normalize_store_memory_payload,
 )
 from core.runtime_shutdown import (
@@ -122,17 +123,22 @@ class MemoryService:
 
     async def handle_search(self, request_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Handle memory search request."""
-        query = payload.get("query")
+        normalized, error = normalize_search_memory_payload(
+            query=payload.get("query"),
+            memory_type=payload.get("memory_type"),
+        )
         user_id = payload.get("user_id", "default_user")
         limit = payload.get("limit", 5)
-        memory_type = payload.get("memory_type")
 
-        if not query:
+        if error:
             return {
                 "id": request_id,
                 "success": False,
-                "error": "Query is required for memory search"
+                "error": error,
             }
+
+        query = normalized["query"]
+        memory_type = normalized["memory_type"]
 
         try:
             filters = build_memory_filters(memory_type)

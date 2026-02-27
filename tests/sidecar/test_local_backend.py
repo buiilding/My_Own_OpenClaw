@@ -352,6 +352,34 @@ async def test_handle_search_memory_applies_filters():
 
 
 @pytest.mark.asyncio
+async def test_handle_search_memory_rejects_invalid_memory_type_filter():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStoreCapturing([])
+
+    result = await backend._handle_search_memory(
+        "query",
+        memory_type="archive",
+    )
+    assert result["success"] is False
+    assert result["error"] == "Invalid memory_type: archive"
+    assert backend.memory_store.search_calls == []
+
+
+@pytest.mark.asyncio
+async def test_handle_search_memory_normalizes_query_and_type_filter():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStoreCapturing([])
+
+    result = await backend._handle_search_memory(
+        "  query  ",
+        user_id="user-1",
+        memory_type=" SEMANTIC ",
+    )
+    assert result["success"] is True
+    assert backend.memory_store.search_calls == [("query", "user-1", {"type": "semantic"}, 5)]
+
+
+@pytest.mark.asyncio
 async def test_handle_search_memory_ignores_unknown_type():
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStoreCapturing(

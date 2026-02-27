@@ -85,6 +85,34 @@ async def test_handle_search_missing_query():
 
 
 @pytest.mark.asyncio
+async def test_handle_search_rejects_invalid_memory_type():
+    service = MemoryService()
+    service.memory_store = DummyStore()
+
+    response = await service.handle_search(
+        "req",
+        {"query": "hello", "memory_type": "archive"},
+    )
+    assert response["success"] is False
+    assert response["id"] == "req"
+    assert response["error"] == "Invalid memory_type: archive"
+    assert service.memory_store.search_calls == []
+
+
+@pytest.mark.asyncio
+async def test_handle_search_normalizes_memory_type_filter():
+    service = MemoryService()
+    service.memory_store = DummyStore()
+
+    response = await service.handle_search(
+        "req",
+        {"query": " hello ", "memory_type": " SEMANTIC ", "user_id": "u1"},
+    )
+    assert response["success"] is True
+    assert service.memory_store.search_calls == [("hello", "u1", {"type": "semantic"}, 5)]
+
+
+@pytest.mark.asyncio
 async def test_handle_search_error():
     service = MemoryService()
     service.memory_store = DummyStoreRaises(RuntimeError("fail"))

@@ -32,6 +32,7 @@ from memory.operations import (
     exclude_conversation_results,
     format_interaction_memory,
     group_memory_texts,
+    normalize_search_memory_payload,
     normalize_store_memory_payload,
 )
 from memory.summarizer import MemorySummarizer
@@ -284,6 +285,18 @@ class LocalBackend:
         **kwargs,
     ) -> Dict[str, Any]:
         """Search memory."""
+        normalized, error = normalize_search_memory_payload(
+            query=query,
+            memory_type=memory_type,
+        )
+        if error:
+            return {
+                "success": False,
+                "error": error,
+            }
+
+        query = normalized["query"]
+        memory_type = normalized["memory_type"]
         try:
             filters = build_memory_filters(memory_type)
             results = await self.memory_store.search(query, user_id, filters, limit)
