@@ -196,4 +196,5 @@ If health route reports unhealthy unexpectedly:
 - [Backend API Docs Hub](README.md)
 - [Backend API Memory Docs Hub](memory/README.md)
 - [Semantic Summarization Service Config Resolution, Prompt Assembly, and Parser-Fallback Contract Reference](memory/semantic_summarization_service_config_resolution_prompt_assembly_and_parser_fallback_contract_reference.md)
+- [Semantic Title Generation Route, Model-Override, and Parser-Fallback Contract Reference](memory/semantic_title_generation_route_model_override_and_parser_fallback_contract_reference.md)
 - [Embeddings Route Serialization, Sanitized Error Surface, and Health-Probe Contract Reference](memory/embeddings_route_serialization_sanitized_error_surface_and_health_probe_contract_reference.md)

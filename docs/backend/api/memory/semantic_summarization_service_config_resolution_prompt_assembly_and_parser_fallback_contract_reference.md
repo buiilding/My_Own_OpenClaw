@@ -162,5 +162,6 @@ Unexpected title failures are sanitized to:
 ## Related Pages
 
 - [Backend API Memory Docs Hub](README.md)
+- [Semantic Title Generation Route, Model-Override, and Parser-Fallback Contract Reference](semantic_title_generation_route_model_override_and_parser_fallback_contract_reference.md)
 - [Embeddings Route Serialization, Sanitized Error Surface, and Health-Probe Contract Reference](embeddings_route_serialization_sanitized_error_surface_and_health_probe_contract_reference.md)
 - [Memory Route Validation and Fallback Reference](../memory_route_validation_and_fallback_reference.md)
