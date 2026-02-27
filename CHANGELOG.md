@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- chore(dev-tool-selection): remove `prediction` from backend dev `enabled_coordinate_methods` allowlist, leaving `manual` + `ocr` for local tool-selection runs.
 - fix(tool-recovery-followup-shell-policy): remove shell runtime inline-payload gating (no multiline/heredoc-aware policy enforcement), while keeping Codex-style `run_shell_command` guidance, recoverable parse-failure metadata preservation, red-banner suppression for recoverable parse failures, and raw streamed argument preview rendering in tool-call cards.
 - fix(tool-call-recovery-inline-payload-guard): add Codex-style `run_shell_command` guidance, preserve recoverable streamed tool-arg parse context in fallback metadata (`raw_arguments_preview`, parse summary, truncation flag), suppress recoverable parse-error red banners in chat UI, and render tool-call cards with raw preview/parse-error/skip-execution metadata instead of empty `{}` fallback arguments.
 - fix(frontend-tool-surface-browser-no-handoff): stop applying dashboard/chat-pill surface transitions to browser tool actions (including browser `click|type|scroll|screenshot|switch|switch_tab`) so browser-use runs without overlay handoff/focus-prep side effects; keep transitions scoped to direct desktop computer-use tools only and add focused runner/surface regressions.
