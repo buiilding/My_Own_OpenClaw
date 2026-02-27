@@ -120,6 +120,11 @@ class DummySummarizer:
         self.notified.append(user_id)
 
 
+class DummySummarizerRaises:
+    def notify_new_memory(self, user_id):
+        raise RuntimeError(f"notify-failed-{user_id}")
+
+
 class DummyMemoryStorePendingFails(DummyMemoryStore):
     async def increment_pending_count(self):
         raise RuntimeError("pending-fail")
@@ -405,7 +410,7 @@ async def test_handle_store_memory_success_notifies_summarizer():
     _, _, _, conversation_id, kwargs = backend.memory_store.added[-1]
     assert conversation_id == "session-1"
     assert kwargs["record_kind"] == "interaction"
-    assert backend.memory_store.pending_count == 1
+    assert backend.memory_store.pending_count == 0
     assert backend._summarizer.notified == ["user-1"]
 
 
@@ -431,10 +436,10 @@ async def test_handle_store_memory_semantic_does_not_notify():
 
 
 @pytest.mark.asyncio
-async def test_handle_store_memory_pending_failure_still_succeeds():
+async def test_handle_store_memory_notify_failure_still_succeeds():
     backend = LocalBackend()
-    backend.memory_store = DummyMemoryStorePendingFails()
-    backend._summarizer = DummySummarizer()
+    backend.memory_store = DummyMemoryStore()
+    backend._summarizer = DummySummarizerRaises()
 
     result = await backend._handle_store_memory(
         user_query="hi",
@@ -443,7 +448,7 @@ async def test_handle_store_memory_pending_failure_still_succeeds():
         user_id="user-1",
     )
     assert result["success"] is True
-    assert backend._summarizer.notified == []
+    assert backend.memory_store.pending_count == 0
 
 
 @pytest.mark.asyncio

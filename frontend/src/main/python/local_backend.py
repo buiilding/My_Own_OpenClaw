@@ -137,25 +137,6 @@ class LocalBackend:
         return False
 
     @staticmethod
-    def _counts_toward_pending_turns(
-        role: Optional[str],
-        message_type: Optional[str],
-    ) -> bool:
-        """
-        Return True when a transcript entry represents a completed assistant turn.
-
-        Pending counts are used as summarization cadence, so this tracks turns
-        (assistant terminal text/error) instead of every stored transcript row.
-        """
-        normalized_role = (role or "").strip().lower()
-        normalized_type = (message_type or "").strip().lower()
-
-        if normalized_role != "assistant":
-            return False
-
-        return normalized_type in ("", "llm-text", "error")
-
-    @staticmethod
     def _memory_store_not_initialized_response() -> Dict[str, Any]:
         """Canonical response shape for memory handlers when store is unavailable."""
         return {
@@ -163,26 +144,28 @@ class LocalBackend:
             "error": "Memory store not initialized",
         }
 
-    async def _maybe_update_summarization_watermark(
+    async def _maybe_notify_summarizer(
         self,
         *,
-        should_update: bool,
+        should_notify: bool,
         user_id: str,
     ) -> None:
         """
-        Best-effort summarization watermark update for episodic turn storage.
+        Best-effort summarizer notification for new episodic interactions.
 
-        Memory writes should not fail when pending-count bookkeeping fails.
+        Summarizer run gating now comes from DB counts, so this only nudges the
+        active summarizer with user activity and never mutates watermark counters.
         """
-        if not should_update:
+        if not should_notify:
+            return
+
+        if self._summarizer is None:
             return
 
         try:
-            await self.memory_store.increment_pending_count()
-            if self._summarizer:
-                self._summarizer.notify_new_memory(user_id)
+            self._summarizer.notify_new_memory(user_id)
         except Exception as e:
-            logger.warning(f"Failed to update summarization watermark: {e}")
+            logger.warning(f"Failed to notify summarizer about new interaction: {e}")
     
     async def initialize(self) -> None:
         """Initialize the backend services."""
@@ -621,8 +604,8 @@ class LocalBackend:
                 record_kind="interaction",
             )
 
-            await self._maybe_update_summarization_watermark(
-                should_update=(memory_type == "episodic"),
+            await self._maybe_notify_summarizer(
+                should_notify=(memory_type == "episodic"),
                 user_id=user_id,
             )
             

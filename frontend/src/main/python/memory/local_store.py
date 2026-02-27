@@ -1133,14 +1133,12 @@ class LocalMemoryStore:
                 await cursor.execute(
                     """
                     SELECT COUNT(*) FROM memories
-                    WHERE user_id = ? AND record_kind = 'transcript'
+                    WHERE user_id = ?
                     """,
                     (user_id,),
                 )
             else:
-                await cursor.execute(
-                    "SELECT COUNT(*) FROM memories WHERE record_kind = 'transcript'"
-                )
+                await cursor.execute("SELECT COUNT(*) FROM memories")
             row = await cursor.fetchone()
             episodic_count = row[0] if row else 0
             by_type["episodic"] = episodic_count
