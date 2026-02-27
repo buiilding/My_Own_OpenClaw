@@ -310,6 +310,7 @@ function ChatBox() {
     resizeSyncState.scheduleSizeSync = scheduleSizeSync;
 
     if (typeof ResizeObserver === 'undefined') {
+      measureAndQueueSize({ force: true });
       scheduleSizeSync();
       return () => {
         resizeSyncState.scheduleSizeSync = null;
@@ -320,6 +321,7 @@ function ChatBox() {
       scheduleSizeSync();
     });
     observer.observe(shellRef.current);
+    measureAndQueueSize({ force: true });
     scheduleSizeSync();
 
     return () => {
