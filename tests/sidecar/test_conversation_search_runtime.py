@@ -188,3 +188,124 @@ async def test_fetch_conversation_summaries_assigns_pending_when_title_missing(m
     assert summaries["thread-beta"]["is_resumable"] is False
     assert cursor.last_params[-2:] == ("conv_alpha", "thread-beta")
     assert "conversation_id IN (?,?)" in cursor.last_query
+
+
+def test_build_ranked_conversation_search_rows_sorts_by_score_and_recency_tiebreak():
+    grouped_hits = {
+        "conv_a": {
+            "hits": [
+                {
+                    "source": "lexical",
+                    "role": "assistant",
+                    "timestamp": "2026-01-01T00:00:00+00:00",
+                    "snippet": "alpha snippet",
+                }
+            ],
+            "lexical_best": 0.7,
+            "semantic_best": 0.0,
+            "match_count": 1,
+            "lexical_match_count": 1,
+            "semantic_match_count": 0,
+        },
+        "conv_b": {
+            "hits": [
+                {
+                    "source": "lexical",
+                    "role": "assistant",
+                    "timestamp": "2026-01-01T00:00:00+00:00",
+                    "snippet": "beta snippet",
+                }
+            ],
+            "lexical_best": 0.7,
+            "semantic_best": 0.0,
+            "match_count": 1,
+            "lexical_match_count": 1,
+            "semantic_match_count": 0,
+        },
+        "conv_missing_summary": {
+            "hits": [
+                {
+                    "source": "semantic",
+                    "role": "assistant",
+                    "timestamp": "2026-01-01T00:00:00+00:00",
+                    "snippet": "ignored",
+                }
+            ],
+            "lexical_best": 1.0,
+            "semantic_best": 1.0,
+            "match_count": 9,
+            "lexical_match_count": 1,
+            "semantic_match_count": 1,
+        },
+    }
+    summaries = {
+        "conv_a": {
+            "conversation_id": "conv_a",
+            "last_timestamp": "2026-01-01T00:00:00+00:00",
+            "title": "A",
+            "title_source": "model",
+            "is_resumable": True,
+            "model_id": "gpt-5-mini",
+            "model_provider": "openai",
+            "first_timestamp": "2026-01-01T00:00:00+00:00",
+            "entry_count": 2,
+        },
+        "conv_b": {
+            "conversation_id": "conv_b",
+            "last_timestamp": "2026-01-02T00:00:00+00:00",
+            "title": "B",
+            "title_source": "model",
+            "is_resumable": True,
+            "model_id": "gpt-5-mini",
+            "model_provider": "openai",
+            "first_timestamp": "2026-01-02T00:00:00+00:00",
+            "entry_count": 2,
+        },
+    }
+
+    rows = runtime.build_ranked_conversation_search_rows(
+        grouped_hits=grouped_hits,
+        summaries=summaries,
+        limit=5,
+        now_epoch_seconds=1735905600.0,  # 2025-01-03T00:00:00Z
+    )
+
+    assert [row["conversation_id"] for row in rows] == ["conv_b", "conv_a"]
+    assert all(row["score"] > 0.0 for row in rows)
+    assert rows[0]["match_source"] == "lexical"
+    assert rows[0]["snippet"] == "beta snippet"
+    assert all(row["conversation_id"] != "conv_missing_summary" for row in rows)
+
+
+def test_build_ranked_conversation_search_rows_applies_limit_floor():
+    grouped_hits = {
+        "conv_a": {
+            "hits": [{"source": "semantic", "role": "assistant", "timestamp": None, "snippet": "a"}],
+            "lexical_best": 0.0,
+            "semantic_best": 0.8,
+            "match_count": 2,
+            "lexical_match_count": 0,
+            "semantic_match_count": 1,
+        },
+        "conv_b": {
+            "hits": [{"source": "semantic", "role": "assistant", "timestamp": None, "snippet": "b"}],
+            "lexical_best": 0.0,
+            "semantic_best": 0.5,
+            "match_count": 1,
+            "lexical_match_count": 0,
+            "semantic_match_count": 1,
+        },
+    }
+    summaries = {
+        "conv_a": {"conversation_id": "conv_a", "last_timestamp": "2026-01-02T00:00:00+00:00"},
+        "conv_b": {"conversation_id": "conv_b", "last_timestamp": "2026-01-01T00:00:00+00:00"},
+    }
+
+    rows = runtime.build_ranked_conversation_search_rows(
+        grouped_hits=grouped_hits,
+        summaries=summaries,
+        limit=0,
+        now_epoch_seconds=1735905600.0,
+    )
+
+    assert len(rows) == 1

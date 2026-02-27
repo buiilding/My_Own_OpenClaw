@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(sidecar-memory-title-heuristics): add dedicated deep reference for `memory/conversation_titles.py` heuristic title derivation contract (sanitization order, smalltalk filtering, truncation/fallback limits), and wire cross-links/code-scope coverage across sidecar memory storage/title docs.
+- refactor(sidecar-memory-search-runtime-ranking): move transcript conversation-search final ranking (lexical/semantic/match-count/recency blend, summary presence filtering, sort + limit clamp) from `memory/local_store.py` into `memory/conversation_search_runtime.py`, add direct runtime ranking regressions, and sync runtime contract docs.
 - refactor(sidecar-memory-list-runtime): extract transcript conversation-list SQL and title-filter/result shaping from `memory/local_store.py` into `memory/conversation_list_runtime.py`, remove the old local-store private list helper, add focused runtime unit coverage, and sync transcript-window/storage docs to the new module ownership.
 - docs(backend-memory-title-route): add dedicated deep reference for `/api/semantic/title` request validation, session/global config + model/provider override flow, title parser normalization/fallback semantics, and route/service test-backed invariants.
 - refactor(sidecar-memory-search-runtime): extract transcript search runtime helpers (`search_transcript_hits_lexical/semantic`, LIKE fallback, conversation summary fetch/title fallback) from `memory/local_store.py` into `memory/conversation_search_runtime.py`, remove duplicated local-store methods/imports, add focused runtime regressions, and sync storage/title contract docs to the new helper ownership.

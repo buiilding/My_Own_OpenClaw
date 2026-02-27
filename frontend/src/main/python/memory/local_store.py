@@ -29,8 +29,7 @@ from core.remote_title_client import RemoteTitleClient
 from memory.conversation_list_runtime import build_conversation_list_results
 from memory.conversation_list_runtime import fetch_transcript_conversation_rows
 from memory.conversation_search_helpers import group_conversation_search_hits
-from memory.conversation_search_helpers import pick_best_conversation_hit
-from memory.conversation_search_helpers import safe_timestamp_to_epoch_seconds
+from memory.conversation_search_runtime import build_ranked_conversation_search_rows
 from memory.conversation_search_runtime import fetch_conversation_summaries
 from memory.conversation_search_runtime import search_transcript_hits_lexical
 from memory.conversation_search_runtime import search_transcript_hits_semantic
@@ -1342,49 +1341,12 @@ class LocalMemoryStore:
                 conversation_ids=conversation_ids,
             )
             await conn.commit()
-
-        scored_rows: List[Dict[str, Any]] = []
-        now_ts = datetime.now(timezone.utc).timestamp()
-        for conversation_id, hit_info in grouped_hits.items():
-            summary = summaries.get(conversation_id)
-            if not summary:
-                continue
-
-            best_hit = pick_best_conversation_hit(hit_info)
-            lexical_best = float(hit_info.get("lexical_best", 0.0))
-            semantic_best = float(hit_info.get("semantic_best", 0.0))
-            match_count = int(hit_info.get("match_count", 0))
-
-            last_ts = safe_timestamp_to_epoch_seconds(summary.get("last_timestamp"))
-            age_days = max(0.0, (now_ts - last_ts) / 86400.0) if last_ts > 0 else 3650.0
-            recency_boost = 1.0 / (1.0 + (age_days / 14.0))
-            final_score = (
-                (lexical_best * 0.56)
-                + (semantic_best * 0.32)
-                + (min(match_count, 8) * 0.03)
-                + (recency_boost * 0.12)
-            )
-
-            scored_rows.append({
-                **summary,
-                "score": float(final_score),
-                "match_count": match_count,
-                "lexical_match_count": int(hit_info.get("lexical_match_count", 0)),
-                "semantic_match_count": int(hit_info.get("semantic_match_count", 0)),
-                "match_source": best_hit.get("source"),
-                "matched_role": best_hit.get("role"),
-                "matched_at": best_hit.get("timestamp"),
-                "snippet": best_hit.get("snippet"),
-            })
-
-        scored_rows.sort(
-            key=lambda row: (
-                float(row.get("score", 0.0)),
-                safe_timestamp_to_epoch_seconds(row.get("last_timestamp")),
-            ),
-            reverse=True,
+        return build_ranked_conversation_search_rows(
+            grouped_hits=grouped_hits,
+            summaries=summaries,
+            limit=limit,
+            now_epoch_seconds=datetime.now(timezone.utc).timestamp(),
         )
-        return scored_rows[: max(1, limit)]
 
     async def _maybe_generate_conversation_title(
         self,

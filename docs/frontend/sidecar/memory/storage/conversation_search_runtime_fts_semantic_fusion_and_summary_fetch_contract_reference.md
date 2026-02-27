@@ -20,12 +20,13 @@ title: "Conversation Search Runtime FTS, Semantic Fusion, and Summary-Fetch Cont
 
 ## Runtime Helper Surface
 
-`conversation_search_runtime.py` provides four async helpers used by `LocalMemoryStore.search_conversations(...)`:
+`conversation_search_runtime.py` provides async/runtime helpers used by `LocalMemoryStore.search_conversations(...)`:
 
 - `search_transcript_hits_lexical(...)`
 - `search_transcript_hits_like(...)`
 - `search_transcript_hits_semantic(...)`
 - `fetch_conversation_summaries(...)`
+- `build_ranked_conversation_search_rows(...)`
 
 These isolate runtime querying/scoring from small pure helper utilities in `conversation_search_helpers.py`.
 
@@ -109,6 +110,28 @@ Title resolution:
 - unresolved fallback source becomes `"pending"`
 - `is_resumable` true only when conversation id starts with `conv_`
 
+## Final Ranking Contract (`build_ranked_conversation_search_rows`)
+
+Input contract:
+
+- grouped hit payload from `group_conversation_search_hits(...)`
+- summary payload from `fetch_conversation_summaries(...)`
+- `limit` and caller-supplied `now_epoch_seconds`
+
+Score formula:
+
+- lexical contribution: `lexical_best * 0.56`
+- semantic contribution: `semantic_best * 0.32`
+- match count contribution: `min(match_count, 8) * 0.03`
+- recency boost: `1 / (1 + age_days/14)` weighted by `0.12`
+
+Output contract:
+
+- drops grouped-hit entries without matching summary row
+- sorts by `score DESC`, then `last_timestamp DESC` tie-break
+- enforces `max(1, limit)` result floor
+- includes renderer-facing fields (`match_source`, `matched_role`, `matched_at`, `snippet`)
+
 ## LocalMemoryStore Integration Boundary
 
 `LocalMemoryStore.search_conversations(...)` orchestrates:
@@ -117,9 +140,7 @@ Title resolution:
 2. semantic helper query
 3. grouped fusion via `group_conversation_search_hits(...)`
 4. summary fetch via `fetch_conversation_summaries(...)`
-5. final recency/lexical/semantic/match-count blend ranking
-
-This runtime module is intentionally scoped to hit generation + summary fetch, not final inter-source merge ordering.
+5. final ranking via `build_ranked_conversation_search_rows(...)`
 
 ## Test-Backed Invariants
 
@@ -129,6 +150,7 @@ This runtime module is intentionally scoped to hit generation + summary fetch, n
 - semantic helper filters out non-transcript and missing-conversation rows
 - summary fetch assigns `title_source="pending"` for unresolved `New chat` entries
 - conversation-id placeholder normalization excludes blank/null ids
+- final score/recency ranking order and limit-floor behavior
 
 `tests/sidecar/test_conversation_search_helpers.py` + `test_conversation_search.py` verify:
 
