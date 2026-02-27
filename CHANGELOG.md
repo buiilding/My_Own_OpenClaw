@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(memory-episodic-semantic-boundary): route backend `memory-store` stream events to renderer `store-memory` IPC, persist episodic interaction rows as `record_kind='interaction'`, and switch semantic-summarizer gating/source queries from transcript rows to unsemanticized interaction rows (with sidecar/frontend regression coverage and docs refresh).
 - feat(frontend-chatbox-screenshot-attach): add minimal chat-pill screenshot action button (left of sound icon), append-on-click screenshot previews, and parity image paste (`Ctrl+V`) with multi-image compose support before send.
 - feat(frontend-multi-image-compose): enable multi-image paste in dashboard/chat composer (`clipboardImages[]` append-on-paste), upload all image artifacts per user turn, send `query.screenshot_refs` alongside legacy `screenshot_ref`, and render multi-image user attachments in chat history.
 - fix(frontend-chat-pill-plus-menu): allow chat-pill composer overflow so the `+` attachment menu is no longer clipped, and add `MessageInput` coverage for plus-menu open/close + updated clipboard payload expectations.

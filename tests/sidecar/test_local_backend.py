@@ -402,6 +402,9 @@ async def test_handle_store_memory_success_notifies_summarizer():
         session_id="session-1",
     )
     assert result["success"] is True
+    _, _, _, conversation_id, kwargs = backend.memory_store.added[-1]
+    assert conversation_id == "session-1"
+    assert kwargs["record_kind"] == "interaction"
     assert backend.memory_store.pending_count == 1
     assert backend._summarizer.notified == ["user-1"]
 
@@ -420,6 +423,9 @@ async def test_handle_store_memory_semantic_does_not_notify():
         session_id="session-1",
     )
     assert result["success"] is True
+    _, _, _, conversation_id, kwargs = backend.memory_store.added[-1]
+    assert conversation_id == "session-1"
+    assert kwargs["record_kind"] == "interaction"
     assert backend.memory_store.pending_count == 0
     assert backend._summarizer.notified == []
 
@@ -549,8 +555,8 @@ async def test_handle_store_transcript_success():
     assert kwargs["model_provider"] == "openai"
     assert kwargs["screenshot"] == "base64-shot"
     assert kwargs["skip_embedding"] is False
-    assert backend.memory_store.pending_count == 1
-    assert backend._summarizer.notified == ["user-1"]
+    assert backend.memory_store.pending_count == 0
+    assert backend._summarizer.notified == []
 
 
 @pytest.mark.asyncio

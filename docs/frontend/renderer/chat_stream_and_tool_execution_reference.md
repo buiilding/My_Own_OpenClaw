@@ -106,6 +106,7 @@ Handler map (`BackendEventType` -> behavior):
 - `system-prompt`: annotate last user message with system prompt + tool schema snapshot
 - `user-message-full`: annotate user message with full payload metadata
 - `assistant-message-full`: annotate latest assistant `llm-text` message
+- `memory-store`: forward backend-provided `{user_query, assistant_response}` pair to sidecar `store-memory` IPC so episodic interaction memory is persisted
 - `tool-schemas`: annotate first user message with tool schema list
 - `token-count`: update token counters
 - `streaming-complete`: persist final streamed thinking text onto the same-turn assistant `llm-text` message (`thinkingText` + `thinkingSourceEventType`), then mark assistant message complete and clear transient `thinkingStatus`
