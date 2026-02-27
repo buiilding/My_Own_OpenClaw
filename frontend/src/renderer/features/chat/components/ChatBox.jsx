@@ -9,11 +9,50 @@ import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { ApiClient } from '../../../infrastructure/api/client';
 import { isDevUiEnabled } from '../utils/devUiFlag';
+import { buildOutgoingMessage } from '../utils/messageInput';
+import { extractOSstate } from '../../../infrastructure/services/SystemCapture';
+import {
+  normalizeArtifactImageContentType,
+  resolveArtifactImageExtension,
+} from '../../../infrastructure/services/ArtifactImageUtils';
 
 const CLICK_THROUGH_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
 const OVERLAY_ACTIVE_PHASES = new Set(['awaiting-first-chunk', 'streaming']);
 const OVERLAY_TERMINAL_PHASES = new Set(['idle', 'complete', 'error']);
 const LOOP_ACTIVE_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result);
+        return;
+      }
+      reject(new Error('Failed to load pasted image data.'));
+    };
+    reader.onerror = () => {
+      reject(reader.error || new Error('Failed to read pasted image.'));
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function parseDataUrlImage(dataUrl, fallbackContentType = null) {
+  const match = /^data:([^;]+);base64,(.+)$/i.exec(dataUrl);
+  if (!match) {
+    return null;
+  }
+  const contentType = normalizeArtifactImageContentType(match[1] || fallbackContentType);
+  const extension = resolveArtifactImageExtension(contentType);
+  return {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+    base64: match[2],
+    contentType,
+    filename: `clipboard-image.${extension}`,
+    previewUrl: dataUrl,
+  };
+}
 
 function isDragBlockedTarget(target) {
   if (!(target instanceof Element)) {
@@ -52,6 +91,15 @@ function SoundIcon() {
   );
 }
 
+function ScreenshotIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 7h3l1.2-2h7.6L17 7h3a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z" />
+      <circle cx="12" cy="13" r="3.4" />
+    </svg>
+  );
+}
+
 function CompactIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -72,6 +120,8 @@ function ChatBox() {
   });
   const [overlayPhase, setOverlayPhase] = useState('idle');
   const [wakewordSttSessionActive, setWakewordSttSessionActive] = useState(false);
+  const [clipboardImages, setClipboardImages] = useState([]);
+  const [isCapturingScreenshot, setIsCapturingScreenshot] = useState(false);
   const ignoreMouseRef = useRef(undefined);
   const shellRef = useRef(null);
   const inputRef = useRef(null);
@@ -237,15 +287,16 @@ function ChatBox() {
   );
 
   const handleSend = useCallback(async () => {
-    const trimmed = getInputValue().trim();
-    if (!trimmed || isSending) {
+    const outgoingMessage = buildOutgoingMessage(getInputValue(), isSending, clipboardImages);
+    if (!outgoingMessage) {
       return;
     }
     setWakewordSttSessionActive(false);
     resetTranscription();
     setInputValue('');
-    await sendMessage(trimmed);
-  }, [getInputValue, isSending, resetTranscription, sendMessage, setInputValue]);
+    setClipboardImages([]);
+    await sendMessage(outgoingMessage);
+  }, [clipboardImages, getInputValue, isSending, resetTranscription, sendMessage, setInputValue]);
 
   const handleSubmit = useCallback((event) => {
     event.preventDefault();
@@ -262,6 +313,62 @@ function ChatBox() {
       console.warn('[ChatBox] Failed to show main window:', error);
     }
   }, []);
+
+  const handleComposerPaste = useCallback(async (event) => {
+    const clipboardItems = Array.from(event.clipboardData?.items || []);
+    const imageItems = clipboardItems.filter((item) => item.type?.startsWith('image/'));
+    if (imageItems.length === 0) {
+      return;
+    }
+    event.preventDefault();
+    try {
+      const parsedImages = (await Promise.all(
+        imageItems.map(async (imageItem) => {
+          const imageFile = imageItem.getAsFile();
+          if (!imageFile) {
+            return null;
+          }
+          const dataUrl = await readFileAsDataUrl(imageFile);
+          return parseDataUrlImage(dataUrl, imageItem.type || imageFile.type || null);
+        }),
+      )).filter(Boolean);
+      if (parsedImages.length > 0) {
+        setClipboardImages((previous) => [...previous, ...parsedImages]);
+      }
+    } catch (error) {
+      console.warn('[ChatBox] Failed to parse pasted image:', error);
+    }
+  }, []);
+
+  const handleCaptureScreenshot = useCallback(async () => {
+    if (isSending || isCapturingScreenshot) {
+      return;
+    }
+    setIsCapturingScreenshot(true);
+    try {
+      const capture = await extractOSstate(true, false, 0, false);
+      if (!capture?.screenshot) {
+        return;
+      }
+      const contentType = normalizeArtifactImageContentType(capture.screenshotContentType || 'image/png');
+      const extension = resolveArtifactImageExtension(contentType);
+      setClipboardImages((previous) => ([
+        ...previous,
+        {
+          id: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+          base64: capture.screenshot,
+          contentType,
+          filename: `screenshot-${Date.now()}.${extension}`,
+          previewUrl: `data:${contentType};base64,${capture.screenshot}`,
+        },
+      ]));
+      focusInput();
+    } catch (error) {
+      console.warn('[ChatBox] Failed to capture screenshot:', error);
+    } finally {
+      setIsCapturingScreenshot(false);
+    }
+  }, [focusInput, isCapturingScreenshot, isSending]);
 
   const handleToggleSpeechMode = useCallback(() => {
     if (typeof updateConfig !== 'function') {
@@ -346,55 +453,93 @@ function ChatBox() {
     <div className={`chatbox-shell-wrap${isLoopActive ? ' loop-active' : ''}`}>
       <div className="chatbox-shell" ref={shellRef}>
         <form className="chatbox-pill" onSubmit={handleSubmit} onMouseDown={handlePillMouseDown}>
-          <button
-            type="button"
-            className="chatbox-icon chatbox-settings"
-            onClick={handleOpenSettings}
-            aria-label="Open dashboard"
-            title="Open dashboard"
-          >
-            <SettingsIcon />
-          </button>
-          {devUiEnabled ? (
+          {clipboardImages.length > 0 ? (
+            <div className="chatbox-image-preview-row">
+              {clipboardImages.map((clipboardImage, index) => (
+                <div className="chatbox-image-preview-card" key={clipboardImage.id || index}>
+                  <img
+                    src={clipboardImage.previewUrl}
+                    alt={`Pasted image preview ${index + 1}`}
+                    className="chatbox-image-preview-thumb"
+                  />
+                  <button
+                    type="button"
+                    className="chatbox-image-preview-remove"
+                    aria-label={`Remove screenshot ${index + 1}`}
+                    onClick={() => {
+                      setClipboardImages((previous) => (
+                        previous.filter((image) => image.id !== clipboardImage.id)
+                      ));
+                    }}
+                  >
+                    x
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : null}
+          <div className="chatbox-main-row">
             <button
               type="button"
-              className="chatbox-icon chatbox-dev-compact"
-              onClick={handleDevAutoCompaction}
-              aria-label="Run auto compaction"
-              title="Run auto compaction"
+              className="chatbox-icon chatbox-settings"
+              onClick={handleOpenSettings}
+              aria-label="Open dashboard"
+              title="Open dashboard"
             >
-              <CompactIcon />
+              <SettingsIcon />
             </button>
-          ) : null}
-          <div className="chatbox-input-wrap">
-            <input
-              ref={inputRef}
-              type="text"
-              value={inputValue}
-              onChange={handleInputChange}
-              placeholder="Ask me anything..."
-              className="chatbox-input"
-              disabled={isSending}
-            />
+            {devUiEnabled ? (
+              <button
+                type="button"
+                className="chatbox-icon chatbox-dev-compact"
+                onClick={handleDevAutoCompaction}
+                aria-label="Run auto compaction"
+                title="Run auto compaction"
+              >
+                <CompactIcon />
+              </button>
+            ) : null}
+            <div className="chatbox-input-wrap">
+              <input
+                ref={inputRef}
+                type="text"
+                value={inputValue}
+                onChange={handleInputChange}
+                onPaste={handleComposerPaste}
+                placeholder="Ask me anything..."
+                className="chatbox-input"
+                disabled={isSending}
+              />
+            </div>
+            <button
+              type="button"
+              className="chatbox-icon chatbox-screenshot"
+              aria-label="Take screenshot"
+              title="Take screenshot"
+              onClick={handleCaptureScreenshot}
+              disabled={isSending || isCapturingScreenshot}
+            >
+              <ScreenshotIcon />
+            </button>
+            <button
+              type="button"
+              className={`chatbox-icon chatbox-tts${speechModeEnabled ? ' is-enabled' : ''}`}
+              aria-label="Toggle text-to-speech"
+              title={speechModeEnabled ? 'Disable text-to-speech' : 'Enable text-to-speech'}
+              onClick={handleToggleSpeechMode}
+            >
+              <SoundIcon />
+            </button>
+            <button
+              type="submit"
+              className="chatbox-icon chatbox-send"
+              aria-label="Send message"
+              title="Send message"
+              disabled={isSending || !inputValue.trim()}
+            >
+              <SendIcon />
+            </button>
           </div>
-          <button
-            type="button"
-            className={`chatbox-icon chatbox-tts${speechModeEnabled ? ' is-enabled' : ''}`}
-            aria-label="Toggle text-to-speech"
-            title={speechModeEnabled ? 'Disable text-to-speech' : 'Enable text-to-speech'}
-            onClick={handleToggleSpeechMode}
-          >
-            <SoundIcon />
-          </button>
-          <button
-            type="submit"
-            className="chatbox-icon chatbox-send"
-            aria-label="Send message"
-            title="Send message"
-            disabled={isSending || !inputValue.trim()}
-          >
-            <SendIcon />
-          </button>
         </form>
       </div>
     </div>
