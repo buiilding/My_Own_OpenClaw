@@ -40,7 +40,10 @@ class ReplaceOperationArgs(BaseModel):
     )
     new_string: str = Field(
         ...,
-        description="Replacement string for this operation."
+        description=(
+            "Replacement string for this operation. Keep payloads focused; split large "
+            "edits across multiple replace/apply_patch-style calls."
+        )
     )
     replace_all: bool = Field(
         False,
@@ -108,7 +111,10 @@ class ReplaceArgs(BaseModel):
     )
     new_string: Optional[str] = Field(
         None,
-        description="Single-operation replacement string. Required when old_string is used."
+        description=(
+            "Single-operation replacement string. Required when old_string is used. "
+            "Do not send giant payloads in one call; chunk large edits across multiple calls."
+        )
     )
     replace_all: bool = Field(
         False,
@@ -146,7 +152,8 @@ class ReplaceArgs(BaseModel):
         None,
         description=(
             "Optional apply_patch-style ordered update chunks for robust multi-region edits. "
-            "When provided, patch_chunks cannot be combined with old_string/new_string/replacements."
+            "When provided, patch_chunks cannot be combined with old_string/new_string/replacements. "
+            "Prefer multiple focused chunks/calls over one oversized payload."
         )
     )
     explanation: str = explanation_field()

@@ -132,7 +132,13 @@ class _BrowserControlArgsBase(BrowserSharedCompatFields, BrowserScreenshotImageF
     file_name: Optional[str] = Field(
         None, description="Filename for file or screenshot actions"
     )
-    content: Optional[str] = Field(None, description="Content for write_file action")
+    content: Optional[str] = Field(
+        None,
+        description=(
+            "Content for write_file action. Keep payloads small; split large content "
+            "into multiple write_file/replace_file calls."
+        ),
+    )
 
     # Element interaction args
     ref: Optional[str] = Field(None, description="Element reference from snapshot")

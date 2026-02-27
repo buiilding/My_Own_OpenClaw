@@ -345,12 +345,11 @@ class InteractionLoop:
         if not tool_call_id:
             tool_call_id = f"llm_tool_call_error_{uuid4().hex[:12]}"
 
-        tool_output_message = self._build_recoverable_tool_output_message(tool_name, error_msg)
-        fallback_parameters: Dict[str, Any] = {}
-        if raw_arguments_preview:
-            fallback_parameters["raw_arguments_preview"] = raw_arguments_preview
-        if parse_error_summary:
-            fallback_parameters["parse_error"] = parse_error_summary
+        tool_output_message = self._build_recoverable_tool_output_message(
+            tool_name,
+            error_msg,
+            raw_arguments_preview=raw_arguments_preview,
+        )
         metadata = {
             "request_id": tool_call_id,
             "llm_tool_call_validation_failed": True,
@@ -367,7 +366,7 @@ class InteractionLoop:
         # Maintain ToolCallEvent -> ToolOutputEvent protocol ordering for frontend state.
         yield ToolCallEvent(
             tool_name=tool_name,
-            parameters=fallback_parameters,
+            parameters={},
             request_id=tool_call_id,
             metadata=metadata,
         )
@@ -464,9 +463,17 @@ class InteractionLoop:
         return extract_tool_call_parse_error_from_error(error_msg)
 
     @staticmethod
-    def _build_recoverable_tool_output_message(tool_name: str, error_msg: str) -> str:
+    def _build_recoverable_tool_output_message(
+        tool_name: str,
+        error_msg: str,
+        raw_arguments_preview: str | None = None,
+    ) -> str:
         """Format synthetic tool output in standard tool-output message style."""
-        return build_recoverable_tool_output_message(tool_name, error_msg)
+        return build_recoverable_tool_output_message(
+            tool_name,
+            error_msg,
+            raw_arguments_preview=raw_arguments_preview,
+        )
 
     @staticmethod
     def _summary_preview(summary_text: str) -> str:

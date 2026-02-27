@@ -30,6 +30,27 @@ async def test_replace_single_unique_match(tmp_path: Path):
 
 
 @pytest.mark.asyncio
+async def test_replace_rejects_oversized_new_string_payload(tmp_path: Path):
+    target = tmp_path / "oversized.txt"
+    target.write_text("hello\n", encoding="utf-8")
+
+    result = await replace(
+        {
+            "file_path": str(target),
+            "old_string": "hello",
+            "new_string": "x" * (16 * 1024 + 1),
+        }
+    )
+
+    assert result.success is False
+    assert result.error == (
+        "Payload too large for one replace call; split into multiple "
+        "replace/apply_patch calls."
+    )
+    assert target.read_text(encoding="utf-8") == "hello\n"
+
+
+@pytest.mark.asyncio
 async def test_replace_rejects_multiple_matches_without_replace_all(tmp_path: Path):
     target = tmp_path / "duplicate.txt"
     target.write_text("dup\nx\ndup\n", encoding="utf-8")
