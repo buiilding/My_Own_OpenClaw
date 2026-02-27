@@ -1,5 +1,11 @@
 /** @jest-environment node */
 
+jest.mock('electron', () => ({
+  nativeImage: {
+    createFromDataURL: jest.fn(() => ({ isEmpty: () => false })),
+  },
+}));
+
 const {
   createChatWindow,
   prepareOverlayQueryCaptureFocus,
