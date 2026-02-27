@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-events): update backend-event/local-user docs for current typed union surface (`context-compaction-*`, `memory-store`) and multi-image optimistic payload contract (`screenshot_refs` + `screenshot_ref` fallback).
 - fix(backend-query-events): treat blank top-level event text fields as absent and fall back to payload-backed content in query event extraction helpers; add regressions for chunk/assistant/streaming-complete payload fallback behavior.
 - fix(backend-query-execution): normalize screenshot inline payload and artifact refs (trim + ignore blanks) before artifact-store loading; add resolver coverage for trimmed refs, blank single refs, and partial load-failure continuation.
 - test(backend-api-errors): add websocket helper regressions for success-payload alias protection and validation-exception message exposure in `send_error_response`.
