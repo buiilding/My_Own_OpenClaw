@@ -118,7 +118,10 @@ class CompactionEngine:
             )
 
         current_messages = self._session.history.get_stored_messages()
-        compaction_input = self._build_compaction_input(current_messages)
+        compaction_input = self._build_compaction_input(
+            current_messages,
+            allow_minimal_history=(reason == "manual"),
+        )
         if compaction_input is None:
             return CompactionResult(
                 applied=False,
@@ -170,6 +173,8 @@ class CompactionEngine:
     def _build_compaction_input(
         self,
         messages: List[StoredMessage],
+        *,
+        allow_minimal_history: bool = False,
     ) -> Optional[CompactionInput]:
         if not messages:
             return None
@@ -181,7 +186,9 @@ class CompactionEngine:
             keep_recent_users=keep_recent_users,
         )
         if split_index <= 0:
-            return None
+            if not allow_minimal_history:
+                return None
+            split_index = len(messages)
 
         messages_to_compact = messages[:split_index]
         keep_tail_messages = messages[split_index:]

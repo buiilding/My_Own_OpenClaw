@@ -100,6 +100,35 @@ async def test_compaction_engine_manual_force_replaces_history(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_compaction_engine_manual_force_compacts_short_history(monkeypatch):
+    monkeypatch.setattr(
+        token_service_module,
+        "get_token_service",
+        lambda: _FakeTokenService(),
+    )
+    history = ConversationHistory(max_length=200)
+    history.add_user_message("single user turn")
+    history.add_assistant_message("single assistant turn")
+    cfg = AppConfig(
+        history_compaction_enabled=False,
+        history_compaction_manual_enabled=True,
+    )
+    session = _FakeSession(cfg=cfg, history=history)
+    engine = CompactionEngine(session)
+
+    decision = engine.evaluate(reason="manual", force=True)
+    assert decision.should_compact is True
+    result = await engine.compact(reason="manual", decision=decision)
+
+    assert result.applied is True
+    assert result.skip_reason is None
+    stored = history.get_stored_messages()
+    assert len(stored) == 1
+    assert stored[0].message_type == MessageType.CONTEXT_COMPACTION
+    assert "Compacted summary" in stored[0].content
+
+
+@pytest.mark.asyncio
 async def test_compaction_engine_respects_cooldown(monkeypatch):
     class _CooldownTokenService:
         def count_tokens(self, messages, model):
