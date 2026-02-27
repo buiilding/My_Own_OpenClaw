@@ -11,6 +11,7 @@ title: "Frontend Sidecar System Tools Docs Hub"
 ## Deep Pages
 
 - [Wait, Window, and Stats Runtime Reference](wait_window_stats_runtime_reference.md)
+- [Shell Output Formatting and Response Payload Contract Reference](shell_output_formatting_and_response_payload_contract_reference.md)
 
 ## Related Pages
 
@@ -19,6 +20,8 @@ title: "Frontend Sidecar System Tools Docs Hub"
 
 ## Code Scope
 
+- `frontend/src/main/python/tools/system/shell_output_formatting.py`
+- `frontend/src/main/python/tools/system/shell_response_payloads.py`
 - `frontend/src/main/python/tools/system/wait_tool.py`
 - `frontend/src/main/python/tools/system/window_tool.py`
 - `frontend/src/main/python/tools/system/stats_tool.py`
@@ -28,5 +31,6 @@ title: "Frontend Sidecar System Tools Docs Hub"
 - `frontend/src/main/python/core/platform/linux.py`
 - `frontend/src/main/python/core/platform/windows.py`
 - `frontend/src/main/python/core/platform/macos.py`
+- `tests/sidecar/test_shell_output_formatting.py`
 - `tests/sidecar/test_system_tools.py`
 - `tests/sidecar/test_linux_window_manager.py`

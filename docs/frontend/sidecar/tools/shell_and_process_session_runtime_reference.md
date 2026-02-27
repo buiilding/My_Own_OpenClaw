@@ -11,9 +11,12 @@ title: "Shell and Process Session Runtime Reference"
 ## Canonical Modules
 
 - `frontend/src/main/python/tools/system/shell_tool.py`
+- `frontend/src/main/python/tools/system/shell_output_formatting.py`
+- `frontend/src/main/python/tools/system/shell_response_payloads.py`
 - `frontend/src/main/python/tools/system/process_tool.py`
 - `frontend/src/main/python/tools/system/shell_process_registry.py`
 - `frontend/src/main/python/tools/schemas.py` (`RunShellCommandArgs`, `ProcessShellCommandArgs`)
+- `tests/sidecar/test_shell_output_formatting.py`
 - `tests/sidecar/test_shell_process_tool.py`
 - `tests/sidecar/test_shell_process_registry.py`
 
@@ -24,6 +27,8 @@ title: "Shell and Process Session Runtime Reference"
 The design separates:
 
 - execution path + stream capture (`shell_tool.py`)
+- output/token formatting + `llm_content`/`return_display` shaping (`shell_output_formatting.py`)
+- foreground/background response envelope assembly (`shell_response_payloads.py`)
 - session state store + retention policy (`shell_process_registry.py`)
 - user-facing session operations (`process_tool.py`)
 
@@ -151,9 +156,19 @@ Termination and cleanup:
 - TTL pruning behavior
 - sweeper cancellation/reset and registry shutdown cleanup
 
+`tests/sidecar/test_shell_output_formatting.py` covers:
+
+- `max_output_tokens` default/validation behavior
+- truncation marker and token-count metadata in `llm_content`
+- status-specific `return_display` formatting
+
 ## Drift Hotspots
 
 1. Changing session id/output field names breaks renderer/main-process assumptions for poll/log tooling.
 2. Tweaking output truncation logic can silently alter LLM context quality for long commands.
 3. Inconsistent PTY fallback handling can cause platform-specific stdin/write failures.
 4. Registry cap/TTL changes directly affect memory footprint and debugging retention windows.
+
+## Related Pages
+
+- [Shell Output Formatting and Response Payload Contract Reference](system/shell_output_formatting_and_response_payload_contract_reference.md)
