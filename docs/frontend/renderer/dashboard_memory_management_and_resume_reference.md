@@ -13,7 +13,11 @@ title: "Dashboard Memory Management and Resume Reference"
 - `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
 - `frontend/src/renderer/features/dashboard/components/DashboardSidebar.jsx`
 - `frontend/src/renderer/features/dashboard/components/SearchChatsModal.jsx`
+- `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
+- `frontend/src/renderer/features/dashboard/utils/conversationGroups.js`
 - `frontend/src/renderer/features/dashboard/components/sections/MemorySection.jsx`
+- `frontend/src/renderer/features/dashboard/components/sections/MemoryItem.jsx`
+- `frontend/src/renderer/features/dashboard/components/sections/memorySectionData.js`
 - `frontend/src/renderer/features/dashboard/hooks/useTranscriptSessionInfo.js`
 - `frontend/src/renderer/features/dashboard/utils/episodicMemoryUtils.js`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
@@ -36,11 +40,12 @@ IPC methods used by this surface:
 
 - `LIST_EPISODIC_MEMORIES`
 - `LIST_SEMANTIC_MEMORIES`
+- `DELETE_EPISODIC_MEMORY`
 - `DELETE_SEMANTIC_MEMORY`
 
 ### Conversation resume surface
 
-Conversation resume now lives in shell + sidebar/search, not in `MemorySection`.
+Conversation resume now lives in shell + `useDashboardConversations` (consumed by sidebar/search surfaces), not in `MemorySection`.
 
 Resume call chain:
 
@@ -103,8 +108,10 @@ Normalization:
 
 ### Delete behavior
 
-- semantic delete issues `DELETE_SEMANTIC_MEMORY`.
-- episodic row delete is UI-local in this component today; transcript conversation deletion is handled in conversation/sidebar surfaces.
+- rows with backend IDs route delete through memory IPC:
+  - semantic -> `DELETE_SEMANTIC_MEMORY`
+  - episodic -> `DELETE_EPISODIC_MEMORY`
+- rows without backend IDs remain UI-local removals.
 
 ## Conversation Resume Flow (Sidebar/Search)
 

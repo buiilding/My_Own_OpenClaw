@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for sidecar transcript storage semantics: renderer/main JSON-RPC mapping, `store_transcript` candidate gating, message-index ordering, and summarizer pending-count updates."
+summary: "Deep reference for sidecar transcript storage semantics: renderer/main JSON-RPC mapping, `store_transcript` candidate gating, message-index ordering, and interaction-memory summarizer notification coupling."
 read_when:
   - When changing transcript persistence fields or `store_transcript` behavior in local sidecar memory handlers.
-  - When debugging transcript rows that persist but do not embed, or summarizer pending counts that never advance/reset.
+  - When debugging transcript rows that persist but do not embed, or interaction memories that do not trigger summarization.
 title: "Transcript Storage, Semantic Candidate, and Watermark Reference"
 ---
 
@@ -27,7 +27,7 @@ Transcript persistence path:
 2. main maps camelCase payload to sidecar snake_case params (`store-transcript` -> `store_transcript`)
 3. sidecar `LocalBackend._handle_store_transcript(...)` validates and normalizes
 4. sidecar writes episodic row via `LocalMemoryStore.add(..., record_kind="transcript")`
-5. sidecar optionally updates summarizer pending watermark counter
+5. sidecar does not alter summarizer run-gate counters for transcript writes
 
 Core payload fields preserved across this path:
 
@@ -51,7 +51,7 @@ On success, handler:
 3. allocates `message_index` from `get_next_message_index(...)` when omitted
 4. evaluates semantic candidate via `_is_semantic_transcript_candidate(role, message_type)`
 5. writes row with `skip_embedding = not semantic_candidate`
-6. evaluates pending watermark update gate via `_counts_toward_pending_turns(role, message_type)`
+6. returns write metadata without triggering summarizer watermark updates
 
 Response payload includes:
 
@@ -60,9 +60,9 @@ Response payload includes:
 - `record_kind` (`transcript`)
 - `semantic_candidate` (bool)
 
-## Semantic Candidate Gate vs Pending-Counter Gate
+## Semantic Candidate Gate and Summarizer Boundary
 
-Two related but distinct gates exist.
+Transcript storage gate:
 
 Embedding/semantic-candidate gate (`_is_semantic_transcript_candidate`):
 
@@ -70,17 +70,12 @@ Embedding/semantic-candidate gate (`_is_semantic_transcript_candidate`):
 - assistant rows: candidate only for `"" | "llm-text" | "error"`
 - tool rows: non-candidate
 
-Pending-count gate (`_counts_toward_pending_turns`):
-
-- only assistant rows with `"" | "llm-text" | "error"` increment pending count
-- user rows do not increment pending count
-- tool rows do not increment pending count
-
 Result:
 
-- user messages are searchable (embedded) but do not drive summarizer cadence
-- assistant terminal outputs are both searchable and cadence-driving
-- tool chatter is persisted for transcript fidelity but skipped for embedding/cadence
+- user messages are searchable (embedded) but do not directly trigger summarization
+- assistant terminal outputs are searchable transcripts
+- tool chatter is persisted for transcript fidelity but skipped for embedding
+- summarization source rows are episodic interaction pairs (`record_kind='interaction'`) written via `store_memory`, not transcript rows
 
 ## `LocalMemoryStore` Transcript Invariants
 
@@ -117,26 +112,26 @@ Implication:
 
 ## Watermark Update and Summarizer Coupling
 
-`_maybe_update_summarization_watermark(...)` is best-effort:
+`_maybe_notify_summarizer(...)` is best-effort:
 
-- memory write should still succeed when pending-count increment fails
-- pending update failure logs warning and does not fail `store_transcript`
+- memory write should still succeed when summarizer notification fails
+- notification failure logs warning and does not fail `store_memory`
 
-When update gate passes:
+When notification gate passes:
 
-- `memory_store.increment_pending_count()` runs
 - summarizer is nudged with `notify_new_memory(user_id)` when active
+- no pending watermark mutation occurs during memory-store writes
 
-Summarizer loop later resets pending count only after successful summary write path (`update_watermark(..., pending_message_count=0)`).
+Summarizer loop still clears watermark pending fields after successful summary writes (`update_watermark(..., pending_message_count=0)`), but run gating now uses DB interaction-row counts.
 
 ## Test-Backed Contracts
 
 `tests/sidecar/test_local_backend.py` validates:
 
-- assistant `llm-text` transcript rows set `skip_embedding=False` and increment pending count
-- tool transcript rows set `skip_embedding=True` and do not increment pending count
-- user transcript rows can embed but do not increment pending count
-- pending-count update failure does not fail transcript write result
+- assistant `llm-text` transcript rows set `skip_embedding=False`
+- tool transcript rows set `skip_embedding=True`
+- user transcript rows can embed
+- summarizer-notify failure does not fail episodic `store_memory` write result
 - missing `content` fails with validation error
 
 `tests/frontend/LocalBackendBridge.rpc.test.cjs` validates:
@@ -154,8 +149,8 @@ If transcript rows exist but semantic search quality is poor:
 
 If summarizer appears idle despite ongoing chat:
 
-1. verify assistant terminal rows (`llm-text` or `error`) are being stored
-2. verify pending counter increments in watermark state
+1. verify episodic interaction pairs are being stored (`record_kind='interaction'`)
+2. verify unsemanticized interaction rows exist for the user
 3. verify summarizer enabled (`WINDIE_ENABLE_SEMANTIC_SUMMARIZER` not disabled)
 
 If resume order appears scrambled:

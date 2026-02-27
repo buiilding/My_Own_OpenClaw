@@ -121,6 +121,21 @@ describe('local_backend_bridge RPC handlers', () => {
     );
   });
 
+  test('passes packaged hosted backend default URL to Python sidecar env', () => {
+    const { spawn } = initBridge({ isPackaged: true });
+    markReady();
+
+    expect(spawn).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(Array),
+      expect.objectContaining({
+        env: expect.objectContaining({
+          WINDIE_BACKEND_HTTP_URL: 'https://api.windieos.com',
+        }),
+      }),
+    );
+  });
+
   test('adds --no-deprecation to Node options for local backend subprocesses', () => {
     process.env.NODE_OPTIONS = '--max-old-space-size=4096';
     const { spawn } = initBridge();
@@ -349,6 +364,30 @@ describe('local_backend_bridge RPC handlers', () => {
       conversation_id: null,
       limit: 4,
       record_kind: 'transcript',
+      after_message_index: undefined,
+    });
+
+    await expectResolvedSuccess(stdoutHandler, promise, { messages: [] });
+  });
+
+  test('get-conversation handler maps afterMessageIndex cursor', async () => {
+    const { handlers, stdoutHandler } = initBridge();
+    markReady();
+
+    const promise = handlers['get-conversation'](null, {
+      userId: 'u-1',
+      conversationId: 'conv-1',
+      limit: 100,
+      recordKind: 'transcript',
+      afterMessageIndex: 500,
+    });
+
+    expectLastRequestWith('get_conversation', {
+      user_id: 'u-1',
+      conversation_id: 'conv-1',
+      limit: 100,
+      record_kind: 'transcript',
+      after_message_index: 500,
     });
 
     await expectResolvedSuccess(stdoutHandler, promise, { messages: [] });
@@ -385,6 +424,23 @@ describe('local_backend_bridge RPC handlers', () => {
     expectLastRequestWith('delete_semantic_memory', {
       user_id: 'u-1',
       memory_id: 'm-1',
+    });
+
+    await expectResolvedSuccess(stdoutHandler, promise, { deleted: true });
+  });
+
+  test('delete-episodic-memory handler maps payload keys to backend params', async () => {
+    const { handlers, stdoutHandler } = initBridge();
+    markReady();
+
+    const promise = handlers['delete-episodic-memory'](null, {
+      userId: 'u-1',
+      memoryId: 'ep-1',
+    });
+
+    expectLastRequestWith('delete_episodic_memory', {
+      user_id: 'u-1',
+      memory_id: 'ep-1',
     });
 
     await expectResolvedSuccess(stdoutHandler, promise, { deleted: true });

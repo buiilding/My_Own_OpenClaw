@@ -19,40 +19,7 @@ FormatterSpec: TypeAlias = tuple[type, str, type, str]
 def get_formatter_specs() -> tuple[FormatterSpec, ...]:
     """Return canonical event->formatter specs for ResponseFormatter."""
 
-    from backend.src.api.processing.formatters.assistant_message import (
-        AssistantMessageFullEventFormatter,
-    )
-    from backend.src.api.processing.formatters.chunk import ChunkEventFormatter
-    from backend.src.api.processing.formatters.complete import (
-        StreamingCompleteEventFormatter,
-    )
-    from backend.src.api.processing.formatters.context_compaction_completed import (
-        ContextCompactionCompletedEventFormatter,
-    )
-    from backend.src.api.processing.formatters.context_compaction_failed import (
-        ContextCompactionFailedEventFormatter,
-    )
-    from backend.src.api.processing.formatters.context_compaction_started import (
-        ContextCompactionStartedEventFormatter,
-    )
-    from backend.src.api.processing.formatters.error import ErrorEventFormatter
-    from backend.src.api.processing.formatters.memory_store import (
-        MemoryStoreEventFormatter,
-    )
-    from backend.src.api.processing.formatters.system_prompt import (
-        SystemPromptEventFormatter,
-    )
-    from backend.src.api.processing.formatters.thinking import ThinkingEventFormatter
-    from backend.src.api.processing.formatters.token_count import TokenCountEventFormatter
-    from backend.src.api.processing.formatters.tool_bundle import ToolBundleEventFormatter
-    from backend.src.api.processing.formatters.tool_call import ToolCallEventFormatter
-    from backend.src.api.processing.formatters.tool_output import ToolOutputEventFormatter
-    from backend.src.api.processing.formatters.tool_schemas import (
-        ToolSchemasEventFormatter,
-    )
-    from backend.src.api.processing.formatters.user_message import (
-        UserMessageFullEventFormatter,
-    )
+    from backend.src.api.processing import formatters as formatter_module
     from backend.src.core.events import (
         AssistantMessageFullEvent,
         ChunkEvent,
@@ -76,97 +43,97 @@ def get_formatter_specs() -> tuple[FormatterSpec, ...]:
         (
             ThinkingEvent,
             StreamingEventType.THINKING.value,
-            ThinkingEventFormatter,
+            formatter_module.ThinkingEventFormatter,
             OutgoingMessageType.LLM_THOUGHT,
         ),
         (
             ChunkEvent,
             StreamingEventType.CHUNK.value,
-            ChunkEventFormatter,
+            formatter_module.ChunkEventFormatter,
             OutgoingMessageType.STREAMING_RESPONSE,
         ),
         (
             ErrorEvent,
             StreamingEventType.ERROR.value,
-            ErrorEventFormatter,
+            formatter_module.ErrorEventFormatter,
             OutgoingMessageType.ERROR,
         ),
         (
             StreamingCompleteEvent,
             StreamingEventType.STREAMING_COMPLETE.value,
-            StreamingCompleteEventFormatter,
+            formatter_module.StreamingCompleteEventFormatter,
             OutgoingMessageType.STREAMING_COMPLETE,
         ),
         (
             ToolCallEvent,
             StreamingEventType.TOOL_CALL.value,
-            ToolCallEventFormatter,
+            formatter_module.ToolCallEventFormatter,
             OutgoingMessageType.TOOL_CALL,
         ),
         (
             ToolOutputEvent,
             StreamingEventType.TOOL_OUTPUT.value,
-            ToolOutputEventFormatter,
+            formatter_module.ToolOutputEventFormatter,
             OutgoingMessageType.TOOL_OUTPUT,
         ),
         (
             SystemPromptEvent,
             StreamingEventType.SYSTEM_PROMPT.value,
-            SystemPromptEventFormatter,
+            formatter_module.SystemPromptEventFormatter,
             OutgoingMessageType.SYSTEM_PROMPT,
         ),
         (
             ToolSchemasEvent,
             StreamingEventType.TOOL_SCHEMAS.value,
-            ToolSchemasEventFormatter,
+            formatter_module.ToolSchemasEventFormatter,
             OutgoingMessageType.TOOL_SCHEMAS,
         ),
         (
             UserMessageFullEvent,
             StreamingEventType.USER_MESSAGE_FULL.value,
-            UserMessageFullEventFormatter,
+            formatter_module.UserMessageFullEventFormatter,
             OutgoingMessageType.USER_MESSAGE_FULL,
         ),
         (
             AssistantMessageFullEvent,
             StreamingEventType.ASSISTANT_MESSAGE_FULL.value,
-            AssistantMessageFullEventFormatter,
+            formatter_module.AssistantMessageFullEventFormatter,
             OutgoingMessageType.ASSISTANT_MESSAGE_FULL,
         ),
         (
             TokenCountEvent,
             StreamingEventType.TOKEN_COUNT.value,
-            TokenCountEventFormatter,
+            formatter_module.TokenCountEventFormatter,
             OutgoingMessageType.TOKEN_COUNT,
         ),
         (
             ContextCompactionStartedEvent,
             StreamingEventType.CONTEXT_COMPACTION_STARTED.value,
-            ContextCompactionStartedEventFormatter,
+            formatter_module.ContextCompactionStartedEventFormatter,
             OutgoingMessageType.CONTEXT_COMPACTION_STARTED,
         ),
         (
             ContextCompactionCompletedEvent,
             StreamingEventType.CONTEXT_COMPACTION_COMPLETED.value,
-            ContextCompactionCompletedEventFormatter,
+            formatter_module.ContextCompactionCompletedEventFormatter,
             OutgoingMessageType.CONTEXT_COMPACTION_COMPLETED,
         ),
         (
             ContextCompactionFailedEvent,
             StreamingEventType.CONTEXT_COMPACTION_FAILED.value,
-            ContextCompactionFailedEventFormatter,
+            formatter_module.ContextCompactionFailedEventFormatter,
             OutgoingMessageType.CONTEXT_COMPACTION_FAILED,
         ),
         (
             MemoryStoreEvent,
             StreamingEventType.MEMORY_STORE.value,
-            MemoryStoreEventFormatter,
+            formatter_module.MemoryStoreEventFormatter,
             OutgoingMessageType.MEMORY_STORE,
         ),
         (
             ToolBundleEvent,
             StreamingEventType.TOOL_BUNDLE.value,
-            ToolBundleEventFormatter,
+            formatter_module.ToolBundleEventFormatter,
             OutgoingMessageType.TOOL_BUNDLE,
         ),
     )

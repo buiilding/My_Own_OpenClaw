@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Check, Copy, RotateCcw, ThumbsDown, ThumbsUp } from 'lucide-react';
+import { useCopyMessageAction } from '../hooks/useCopyMessageAction';
 
 function AssistantMessageActions({
   messageId,
@@ -10,38 +10,10 @@ function AssistantMessageActions({
   onFeedbackChange,
   onTryAgain,
 }) {
-  const [copySuccess, setCopySuccess] = useState(false);
-  const copyResetTimerRef = useRef(null);
-
-  const scheduleCopyReset = () => {
-    if (copyResetTimerRef.current) {
-      window.clearTimeout(copyResetTimerRef.current);
-    }
-    copyResetTimerRef.current = window.setTimeout(() => {
-      setCopySuccess(false);
-      copyResetTimerRef.current = null;
-    }, 4000);
-  };
-
-  useEffect(() => () => {
-    if (copyResetTimerRef.current) {
-      window.clearTimeout(copyResetTimerRef.current);
-      copyResetTimerRef.current = null;
-    }
-  }, []);
-
-  const handleCopy = async () => {
-    if (!messageText) {
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(messageText);
-      setCopySuccess(true);
-      scheduleCopyReset();
-    } catch (error) {
-      console.warn('[AssistantMessageActions] Failed to copy assistant message:', error);
-    }
-  };
+  const { copySuccess, handleCopy } = useCopyMessageAction({
+    messageText,
+    warningPrefix: 'AssistantMessageActions',
+  });
 
   const handleFeedback = (nextFeedback) => {
     if (typeof onFeedbackChange !== 'function') {

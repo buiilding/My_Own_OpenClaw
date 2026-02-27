@@ -1,5 +1,11 @@
 import React from 'react';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 
 import ChatInterface from '../../frontend/src/renderer/features/chat/components/ChatInterface';
 const { selectMockStoreState: mockSelectStoreState } = require('./storeSelectorTestUtils.cjs');
@@ -12,6 +18,10 @@ let mockConfig = {
   voice_mode_enabled: false,
   speech_mode_enabled: false,
 };
+let mockAvailableModels = {
+  local: [],
+  online: [],
+};
 const mockUpdateConfig = jest.fn();
 const mockMessageInput = jest.fn(() => <div data-testid="message-input" />);
 
@@ -21,13 +31,16 @@ const mockPlayerService = {
   stopPlayback: jest.fn(),
 };
 const mockStopQuery = jest.fn();
+const mockCompactHistory = jest.fn();
 const mockSendQuery = jest.fn();
 const mockSendRehydrateConversation = jest.fn();
+const mockIsDevUiEnabled = jest.fn(() => false);
 const mockClearMessages = jest.fn();
 const mockSetMessages = jest.fn();
 const mockUpdateMessage = jest.fn();
 const mockSetIsSending = jest.fn();
 const mockSetThinkingStatus = jest.fn();
+const mockSetThinkingSourceEventType = jest.fn();
 const mockSetTokenCounts = jest.fn();
 const mockUpdateStreamTracking = jest.fn();
 const mockSetActiveConversationRef = jest.fn();
@@ -43,6 +56,7 @@ const mockChatState = {
   messages: [],
   isSending: false,
   thinkingStatus: null,
+  thinkingSourceEventType: null,
   tokenCounts: null,
   streamTracking: { phase: 'idle' },
   clearMessages: (...args) => mockClearMessages(...args),
@@ -50,6 +64,7 @@ const mockChatState = {
   updateMessage: (...args) => mockUpdateMessage(...args),
   setIsSending: (...args) => mockSetIsSending(...args),
   setThinkingStatus: (...args) => mockSetThinkingStatus(...args),
+  setThinkingSourceEventType: (...args) => mockSetThinkingSourceEventType(...args),
   setTokenCounts: (...args) => mockSetTokenCounts(...args),
   updateStreamTracking: (...args) => mockUpdateStreamTracking(...args),
 };
@@ -65,6 +80,7 @@ jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
 jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
   useAppConfigContext: () => ({
     config: mockConfig,
+    availableModels: mockAvailableModels,
     updateConfig: (...args) => mockUpdateConfig(...args),
   }),
 }));
@@ -76,9 +92,14 @@ jest.mock('../../frontend/src/renderer/infrastructure/audio/PlayerService', () =
 jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
   ApiClient: {
     stopQuery: (...args) => mockStopQuery(...args),
+    compactHistory: (...args) => mockCompactHistory(...args),
     sendQuery: (...args) => mockSendQuery(...args),
     sendRehydrateConversation: (...args) => mockSendRehydrateConversation(...args),
   },
+}));
+
+jest.mock('../../frontend/src/renderer/features/chat/utils/devUiFlag', () => ({
+  isDevUiEnabled: () => mockIsDevUiEnabled(),
 }));
 
 jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
@@ -94,6 +115,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     invoke: (...args) => mockIpcInvoke(...args),
   },
   INVOKE_CHANNELS: {
+    GET_CONVERSATION: 'get-conversation',
     DELETE_CONVERSATION: 'delete-conversation',
     STORE_TRANSCRIPT: 'store-transcript',
   },
@@ -121,12 +143,17 @@ describe('ChatInterface wiring', () => {
       voice_mode_enabled: false,
       speech_mode_enabled: false,
     };
+    mockAvailableModels = {
+      local: [],
+      online: [],
+    };
     mockMessageInput.mockClear();
     mockUseChatMessageSender.mockClear();
     mockPlayerService.cleanup.mockClear();
     mockPlayerService.enqueueAudio.mockClear();
     mockPlayerService.stopPlayback.mockClear();
     mockStopQuery.mockClear();
+    mockCompactHistory.mockClear();
     mockSendQuery.mockClear();
     mockSendRehydrateConversation.mockClear();
     mockClearMessages.mockClear();
@@ -134,6 +161,7 @@ describe('ChatInterface wiring', () => {
     mockUpdateMessage.mockClear();
     mockSetIsSending.mockClear();
     mockSetThinkingStatus.mockClear();
+    mockSetThinkingSourceEventType.mockClear();
     mockSetTokenCounts.mockClear();
     mockUpdateStreamTracking.mockClear();
     mockSetActiveConversationRef.mockClear();
@@ -148,10 +176,13 @@ describe('ChatInterface wiring', () => {
     mockIpcInvoke.mockClear();
     mockMessageList.mockClear();
     mockUpdateConfig.mockClear();
+    mockIsDevUiEnabled.mockReset();
+    mockIsDevUiEnabled.mockReturnValue(false);
     mockChatState.streamTracking.phase = 'idle';
     mockChatState.messages = [];
     mockChatState.isSending = false;
     mockChatState.thinkingStatus = null;
+    mockChatState.thinkingSourceEventType = null;
   });
 
   test('uses main-window sender surface for centralized send behavior', () => {
@@ -169,6 +200,12 @@ describe('ChatInterface wiring', () => {
     expect(screen.getByRole('button', { name: 'Toggle text-to-speech' })).toBeInTheDocument();
   });
 
+  test('does not render a duplicate header logo when sidebar is collapsed', () => {
+    const { container } = render(<ChatInterface sidebarOpen={false} />);
+
+    expect(container.querySelector('.chat-header-brand-dot')).toBeNull();
+  });
+
   test('text-to-speech toggle updates speech_mode_enabled', () => {
     render(<ChatInterface />);
 
@@ -176,12 +213,44 @@ describe('ChatInterface wiring', () => {
     expect(mockUpdateConfig).toHaveBeenCalledWith({ speech_mode_enabled: true });
   });
 
+  test('does not render dashboard auto-compaction control when dev UI is disabled', () => {
+    render(<ChatInterface />);
+    expect(screen.queryByRole('button', { name: 'Run auto compaction' })).not.toBeInTheDocument();
+  });
+
+  test('runs compact-history from dashboard when dev auto-compaction control is clicked', async () => {
+    mockIsDevUiEnabled.mockReturnValue(true);
+    render(<ChatInterface />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Run auto compaction' }));
+    await waitFor(() => {
+      expect(mockIpcInvoke).toHaveBeenCalledWith(
+        'get-conversation',
+        expect.objectContaining({
+          userId: 'default_user',
+          conversationId: 'conv_existing',
+          recordKind: 'transcript',
+        }),
+      );
+      expect(mockSendRehydrateConversation).toHaveBeenCalledWith('conv_existing', []);
+      expect(mockCompactHistory).toHaveBeenCalledWith(true);
+    });
+  });
+
   test('shows model selector and passes enabled voice mode to input', () => {
     mockConfig = {
       interaction_mode: 'agent',
+      model_mode: 'online',
+      model_provider: 'openai',
       voice_mode_enabled: true,
       speech_mode_enabled: false,
       selected_model_id: 'gpt-test-model',
+    };
+    mockAvailableModels = {
+      local: [],
+      online: [
+        { id: 'gpt-test-model', provider: 'openai' },
+      ],
     };
 
     render(<ChatInterface />);
@@ -197,13 +266,67 @@ describe('ChatInterface wiring', () => {
 
   test('falls back to default model label and disabled voice mode when config is missing', () => {
     mockConfig = null;
+    mockAvailableModels = { local: [], online: [] };
 
     render(<ChatInterface />);
 
-    expect(screen.getByRole('button', { name: 'Model selector' })).toHaveTextContent('ChatGPT 5.2 Thinking');
+    expect(screen.getByRole('button', { name: 'Model selector' })).toHaveTextContent('No models available');
     const lastInputProps = mockMessageInput.mock.calls.at(-1)?.[0];
     expect(lastInputProps.voiceModeEnabled).toBe(false);
     expect(lastInputProps.isCentered).toBe(true);
+  });
+
+  test('model selector lists only models for selected provider', () => {
+    mockConfig = {
+      interaction_mode: 'chat',
+      model_mode: 'online',
+      model_provider: 'gemini',
+      selected_model_id: 'gemini-3.1-pro-preview',
+      voice_mode_enabled: false,
+      speech_mode_enabled: false,
+    };
+    mockAvailableModels = {
+      local: [],
+      online: [
+        { id: 'gemini-3.1-pro-preview', provider: 'gemini' },
+        { id: 'gemini-2.5-flash', provider: 'gemini' },
+        { id: 'gpt-5.1', provider: 'openai' },
+      ],
+    };
+
+    render(<ChatInterface />);
+    fireEvent.click(screen.getByRole('button', { name: 'Model selector' }));
+
+    expect(screen.getByRole('menuitem', { name: 'gemini-3.1-pro-preview' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'gemini-2.5-flash' })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'gpt-5.1' })).not.toBeInTheDocument();
+  });
+
+  test('selecting a model updates config with model id and provider', () => {
+    mockConfig = {
+      interaction_mode: 'chat',
+      model_mode: 'online',
+      model_provider: 'gemini',
+      selected_model_id: 'gemini-3.1-pro-preview',
+      voice_mode_enabled: false,
+      speech_mode_enabled: false,
+    };
+    mockAvailableModels = {
+      local: [],
+      online: [
+        { id: 'gemini-3.1-pro-preview', provider: 'gemini' },
+        { id: 'gemini-2.5-flash', provider: 'gemini' },
+      ],
+    };
+
+    render(<ChatInterface />);
+    fireEvent.click(screen.getByRole('button', { name: 'Model selector' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'gemini-2.5-flash' }));
+
+    expect(mockUpdateConfig).toHaveBeenCalledWith({
+      selected_model_id: 'gemini-2.5-flash',
+      model_provider: 'gemini',
+    });
   });
 
   test('renders welcome empty state when there are no messages', () => {
@@ -239,6 +362,22 @@ describe('ChatInterface wiring', () => {
     const lastInputProps = mockMessageInput.mock.calls.at(-1)?.[0];
     expect(lastInputProps.isSending).toBe(true);
     expect(typeof lastInputProps.onStopResponse).toBe('function');
+  });
+
+  test('shows awaiting dot only during awaiting-first-chunk after user message', () => {
+    mockChatState.messages = [
+      { id: 'user-1', sender: 'user', text: 'hello', type: 'user' },
+    ];
+    mockChatState.streamTracking.phase = 'awaiting-first-chunk';
+    const { rerender } = render(<ChatInterface />);
+
+    let lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
+    expect(lastMessageListProps.showAssistantAwaitingDot).toBe(true);
+
+    mockChatState.streamTracking.phase = 'streaming';
+    rerender(<ChatInterface />);
+    lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
+    expect(lastMessageListProps.showAssistantAwaitingDot).toBe(false);
   });
 
   test('stop response handler is a no-op when no active stream is running', () => {
@@ -327,24 +466,20 @@ describe('ChatInterface wiring', () => {
       conversationRef: 'conv_existing',
       userId: 'default_user',
     }));
-    expect(mockSendRehydrateConversation).toHaveBeenCalledWith('conv_existing', [
-      {
-        role: 'user',
-        content: 'create a dashboard for this',
-        message_type: 'user',
-        tool_name: null,
-        correlation_id: null,
-        timestamp: null,
-        screenshot_ref: null,
-        screenshot: null,
-      },
-    ]);
-    expect(mockSendQuery).toHaveBeenCalledWith(
-      'create a dashboard for this',
-      'conv_existing',
-      null,
-      null,
+    const sawExpectedRehydrateCall = mockSendRehydrateConversation.mock.calls.some(
+      ([conversationRef, messages]) => conversationRef === 'conv_existing' && Array.isArray(messages) && messages.length === 0,
     );
+    expect(sawExpectedRehydrateCall).toBe(true);
+    const sawExpectedSendQueryCall = mockSendQuery.mock.calls.some(
+      ([queryText, conversationRef, screenshotRef, screenshotUrl, screenshotRefs]) => (
+        queryText === 'create a dashboard for this'
+        && conversationRef === 'conv_existing'
+        && (screenshotRef ?? null) === null
+        && (screenshotUrl ?? null) === null
+        && (screenshotRefs ?? null) === null
+      ),
+    );
+    expect(sawExpectedSendQueryCall).toBe(true);
   });
 
   test('user edit rewinds assistant output and re-queries with edited text', async () => {
@@ -379,6 +514,15 @@ describe('ChatInterface wiring', () => {
       userId: 'default_user',
     }));
     expect(mockSendRehydrateConversation).toHaveBeenCalledWith('conv_existing', []);
-    expect(mockSendQuery).toHaveBeenCalledWith('new prompt', 'conv_existing', null, null);
+    const sawEditedSendQueryCall = mockSendQuery.mock.calls.some(
+      ([queryText, conversationRef, screenshotRef, screenshotUrl, screenshotRefs]) => (
+        queryText === 'new prompt'
+        && conversationRef === 'conv_existing'
+        && (screenshotRef ?? null) === null
+        && (screenshotUrl ?? null) === null
+        && (screenshotRefs ?? null) === null
+      ),
+    );
+    expect(sawEditedSendQueryCall).toBe(true);
   });
 });

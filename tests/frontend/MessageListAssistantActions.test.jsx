@@ -163,4 +163,58 @@ describe('MessageList assistant actions', () => {
     expect(onUserEdit).not.toHaveBeenCalled();
     expect(screen.queryByRole('group', { name: 'Edit user message' })).not.toBeInTheDocument();
   });
+
+  test('renders compacting status row under history when compaction is in progress', () => {
+    render(
+      <MessageList
+        messages={[
+          { id: 'user-1', text: 'hello', sender: 'user', type: 'user' },
+        ]}
+        thinkingStatus="Compacting conversation history..."
+        thinkingSourceEventType="context-compaction-started"
+      />,
+    );
+
+    expect(screen.getByLabelText('Conversation compaction in progress')).toBeInTheDocument();
+    expect(screen.getByText('Compacting conversation history...')).toBeInTheDocument();
+  });
+
+  test('does not render compacting status row for non-compaction thinking states', () => {
+    render(
+      <MessageList
+        messages={[
+          { id: 'user-1', text: 'hello', sender: 'user', type: 'user' },
+        ]}
+        thinkingStatus="Thinking..."
+        thinkingSourceEventType="llm-thought"
+      />,
+    );
+
+    expect(screen.queryByLabelText('Conversation compaction in progress')).not.toBeInTheDocument();
+  });
+
+  test('renders assistant awaiting dot while waiting for first token', () => {
+    render(
+      <MessageList
+        messages={[
+          { id: 'user-1', text: 'hello', sender: 'user', type: 'user' },
+        ]}
+        showAssistantAwaitingDot
+      />,
+    );
+
+    expect(screen.getByLabelText('Assistant is preparing response')).toBeInTheDocument();
+  });
+
+  test('does not render assistant awaiting dot by default', () => {
+    render(
+      <MessageList
+        messages={[
+          { id: 'user-1', text: 'hello', sender: 'user', type: 'user' },
+        ]}
+      />,
+    );
+
+    expect(screen.queryByLabelText('Assistant is preparing response')).not.toBeInTheDocument();
+  });
 });

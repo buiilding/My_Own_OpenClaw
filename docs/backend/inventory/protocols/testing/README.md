@@ -1,7 +1,7 @@
 ---
-summary: "Backend protocol testing sub-hub for websocket route/message validation, transport safety, schema-contract checks, and route-table integrity coverage."
+summary: "Backend protocol testing sub-hub for websocket route/message validation, transport safety, schema-contract checks, route-table integrity, and compact-history control-path coverage."
 read_when:
-  - When changing websocket route/message handling, SafeWebSocket send semantics, or incoming route-table bindings.
+  - When changing websocket route/message handling, SafeWebSocket send semantics, incoming route-table bindings, or compact-history control messaging.
   - When updating backend outgoing formatter payloads or canonical websocket envelope context fields.
 title: "Backend Protocol Testing Hub"
 ---

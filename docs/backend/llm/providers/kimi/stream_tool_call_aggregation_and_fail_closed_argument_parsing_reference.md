@@ -11,13 +11,14 @@ title: "Stream Tool-Call Aggregation and Fail-Closed Argument Parsing Reference"
 ## Canonical Modules
 
 - `backend/src/llm/providers/kimi_coding.py`
+- `backend/src/llm/providers/streaming_tool_call_aggregation.py`
 - `backend/src/llm/providers/online.py`
 - `backend/src/llm/providers/base.py`
 - `tests/backend/test_kimi_coding_provider.py`
 
 ## Request Wiring and Stream Param Surface
 
-`KimiCodingProvider` derives from `OnlineLLMProvider` and reuses shared stream param building.
+`KimiCodingProvider` derives from `OnlineLLMProvider` and reuses shared stream param building plus shared stream tool-call aggregation mixin logic.
 
 Kimi-specific request behavior:
 

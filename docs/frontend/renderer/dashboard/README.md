@@ -1,8 +1,8 @@
 ---
-summary: "Renderer dashboard docs sub-hub for shell routing/search/sidebar behavior, section-level panels, and dashboard-specific persistence contracts."
+summary: "Renderer dashboard docs sub-hub for shell/sidebar/search behavior, panel section runtime contracts, and dashboard utility ownership."
 read_when:
-  - When changing `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx` panel routing behavior.
-  - When modifying dashboard sidebar/search UX or section components under `features/dashboard/components/sections`.
+  - When changing `ChatGptDashboardShell.jsx` panel routing behavior.
+  - When modifying sidebar/search UX or section components under `features/dashboard/components/sections`.
 title: "Renderer Dashboard Docs Hub"
 ---
 
@@ -11,7 +11,10 @@ title: "Renderer Dashboard Docs Hub"
 ## Deep Pages
 
 - [Dashboard Shell Docs Hub](shell/README.md)
+- [Dashboard Conversation Hook Search, Polling, and Group Bucket Contract Reference](shell/dashboard_conversation_hook_search_polling_and_group_bucket_contract_reference.md)
 - [Dashboard Sections Docs Hub](sections/README.md)
+- [Memory Section Data Normalization and Semantic Delete Contract Reference](sections/memory_section_data_normalization_and_semantic_delete_contract_reference.md)
+- [Models Section Selection Reconciliation and Dashboard Storage Contract Reference](sections/models_section_selection_reconciliation_and_dashboard_storage_contract_reference.md)
 
 ## Related Pages
 
@@ -26,12 +29,22 @@ title: "Renderer Dashboard Docs Hub"
 - `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
 - `frontend/src/renderer/features/dashboard/components/DashboardSidebar.jsx`
 - `frontend/src/renderer/features/dashboard/components/SearchChatsModal.jsx`
-- `frontend/src/renderer/features/dashboard/components/sections/ModelsSection.jsx`
-- `frontend/src/renderer/features/dashboard/components/sections/SettingsSection.jsx`
+- `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
 - `frontend/src/renderer/features/dashboard/components/sections/MemorySection.jsx`
+- `frontend/src/renderer/features/dashboard/components/sections/MemoryItem.jsx`
+- `frontend/src/renderer/features/dashboard/components/sections/memorySectionData.js`
+- `frontend/src/renderer/features/dashboard/components/sections/ModelsSection.jsx`
+- `frontend/src/renderer/features/dashboard/components/sections/modelCardData.js`
+- `frontend/src/renderer/features/dashboard/components/sections/modelCards.jsx`
+- `frontend/src/renderer/features/dashboard/components/sections/providerApiKeys.js`
+- `frontend/src/renderer/features/dashboard/components/sections/ApiKeysSection.jsx`
+- `frontend/src/renderer/features/dashboard/components/sections/SettingsSection.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/UsageSection.jsx`
+- `frontend/src/renderer/features/dashboard/utils/conversationGroups.js`
 - `frontend/src/renderer/features/dashboard/utils/modelSelectionUtils.js`
-- `frontend/src/renderer/features/dashboard/utils/storage.js`
-- `tests/frontend/ModelSelectionUtils.test.js`
-- `tests/frontend/DashboardStorageUtils.test.js`
+- `frontend/src/renderer/features/dashboard/utils/episodicMemoryUtils.js`
 - `tests/frontend/ChatGptDashboardShell.test.jsx`
+- `tests/frontend/MemorySection.test.jsx`
+- `tests/frontend/ModelsSection.test.jsx`
+- `tests/frontend/ModelSelectionUtils.test.js`
+- `tests/frontend/EpisodicMemoryUtils.test.js`

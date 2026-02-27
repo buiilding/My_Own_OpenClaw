@@ -1,44 +1,16 @@
-import { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Check, Copy, Pencil } from 'lucide-react';
+import { useCopyMessageAction } from '../hooks/useCopyMessageAction';
 
 function UserMessageActions({
   messageId,
   messageText = '',
   onEdit = null,
 }) {
-  const [copySuccess, setCopySuccess] = useState(false);
-  const copyResetTimerRef = useRef(null);
-
-  const scheduleCopyReset = () => {
-    if (copyResetTimerRef.current) {
-      window.clearTimeout(copyResetTimerRef.current);
-    }
-    copyResetTimerRef.current = window.setTimeout(() => {
-      setCopySuccess(false);
-      copyResetTimerRef.current = null;
-    }, 4000);
-  };
-
-  useEffect(() => () => {
-    if (copyResetTimerRef.current) {
-      window.clearTimeout(copyResetTimerRef.current);
-      copyResetTimerRef.current = null;
-    }
-  }, []);
-
-  const handleCopy = async () => {
-    if (!messageText) {
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(messageText);
-      setCopySuccess(true);
-      scheduleCopyReset();
-    } catch (error) {
-      console.warn('[UserMessageActions] Failed to copy user message:', error);
-    }
-  };
+  const { copySuccess, handleCopy } = useCopyMessageAction({
+    messageText,
+    warningPrefix: 'UserMessageActions',
+  });
 
   const handleEdit = () => {
     if (typeof onEdit !== 'function') {

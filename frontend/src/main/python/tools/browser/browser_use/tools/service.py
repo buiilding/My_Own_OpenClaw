@@ -2148,7 +2148,7 @@ Validated Code (after quote fixing):
 		This is automatically enabled for models that support coordinate clicking:
 		- claude-sonnet-4-5
 		- claude-opus-4-5
-		- gemini-3-pro
+		- gemini-3.1-pro
 		- browser-use/* models
 
 		Args:

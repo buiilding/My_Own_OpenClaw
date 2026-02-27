@@ -19,37 +19,38 @@ title: "Query Execution Helper Contracts and Compatibility Event Extraction Refe
 
 ## Helper Surface in Query Execution
 
-`QueryExecutionService.execute(...)` relies on helper functions in `query_event_extraction.py` (and compatibility wrappers in `QueryExecutionService`) to keep stream-loop logic compatible across event shapes:
+`QueryExecutionService.execute(...)` relies on module-level helper functions in `query_event_extraction.py` (plus compatibility wrapper methods in `QueryExecutionService`) to keep stream-loop logic compatible across event shapes:
 
-- `_extract_event_type`
-- `_extract_dict_payload`
-- `_extract_dict_string_field`
-- `_extract_chunk_text`
-- `_extract_non_empty_chunk_text`
-- `_extract_assistant_full_text`
-- `_extract_streaming_complete_text`
-- `_resolve_completion_text`
+- `extract_event_type`
+- `extract_dict_payload`
+- `extract_dict_string_field`
+- `extract_chunk_text`
+- `extract_non_empty_chunk_text`
+- `extract_assistant_full_text`
+- `extract_streaming_complete_text`
+- `resolve_completion_text`
 - `_emit_completion_events`
 
 These helpers isolate parsing/compat logic from transport/tts orchestration.
 
 ## Event-Type Compatibility Contract
 
-`_extract_event_type(event)` supports:
+`extract_event_type(event)` supports:
 
 1. dict events with string `type`
 2. object events with string `.type`
 3. enum-backed `.type.value` strings
 
 Any other shape returns `None`.
+Whitespace-only type strings are normalized to `None` (trim + empty guard).
 
 This allows mixed event producers during migrations without failing the stream loop.
 
 ## Dict Payload Field Resolution
 
-`_extract_dict_string_field(...)` behavior:
+`extract_dict_string_field(...)` behavior:
 
-- check top-level key first
+- check top-level key first (non-empty/trimmed for top-level value)
 - fallback to payload key inside object payload
 - optional `payload_key` override
 
@@ -66,25 +67,27 @@ Accepted chunk-like event types:
 - `content`
 - `streaming-response`
 
-`_extract_non_empty_chunk_text` only returns non-whitespace strings; empty/whitespace-only chunks are ignored for aggregation.
+`extract_non_empty_chunk_text` only returns non-whitespace strings; empty/whitespace-only chunks are ignored for aggregation.
 
 Aggregated text is used as one completion fallback source when explicit terminal text is absent.
 
 ## Assistant Full Message Fallback
 
-`_extract_assistant_full_text` only reads events typed `assistant_message_full`.
+`extract_assistant_full_text` only reads events typed `assistant_message_full`.
 
 If present, trimmed assistant full text is retained as secondary completion fallback after aggregated chunk text.
 
 ## Terminal Completion Resolution Order
 
-`_resolve_completion_text(...)` precedence:
+`resolve_completion_text(...)` precedence:
 
 1. `streaming-complete.final_response`
 2. aggregated chunk text (when any non-empty chunk seen)
 3. last `assistant_message_full` text
 4. constant fallback:
 - `"I completed the requested action(s), but the model returned an empty final response."`
+
+If `saw_text_chunk=True` but joined chunk text is whitespace-only, resolver falls through to assistant-full text (or fallback), not blank completion text.
 
 This ensures frontend receives deterministic terminal text even on malformed/incomplete streams.
 

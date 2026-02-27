@@ -5,85 +5,75 @@ from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel, Field
 
 
+def _compat_field(description: str):
+    return Field(None, description=description)
+
+
 class BrowserSharedCompatFields(BaseModel):
     """Common storage/network/emulation fields for browser compatibility schemas."""
 
-    clear: Optional[bool] = Field(
-        None, description="Clear retained console/dialog events"
+    clear: Optional[bool] = _compat_field("Clear retained console/dialog events")
+    timeoutMs: Optional[int] = _compat_field("Timeout in milliseconds")
+    timeout_ms: Optional[int] = _compat_field("Timeout in milliseconds (snake_case)")
+    accept: Optional[bool] = _compat_field("Dialog accept/dismiss policy")
+    promptText: Optional[str] = _compat_field("Prompt text for dialog.accept()")
+    prompt_text: Optional[str] = _compat_field(
+        "Prompt text for dialog.accept() (snake_case)"
     )
-    timeoutMs: Optional[int] = Field(None, description="Timeout in milliseconds")
-    timeout_ms: Optional[int] = Field(
-        None, description="Timeout in milliseconds (snake_case)"
+    cookies: Optional[List[Dict[str, Any]]] = _compat_field(
+        "Cookies payload for cookies_set"
     )
-    accept: Optional[bool] = Field(None, description="Dialog accept/dismiss policy")
-    promptText: Optional[str] = Field(
-        None, description="Prompt text for dialog.accept()"
-    )
-    prompt_text: Optional[str] = Field(
-        None, description="Prompt text for dialog.accept() (snake_case)"
-    )
-    cookies: Optional[List[Dict[str, Any]]] = Field(
-        None, description="Cookies payload for cookies_set"
-    )
-    kind: Optional[Literal["local", "session"]] = Field(
-        None, description="Storage kind"
-    )
-    values: Optional[Dict[str, Any]] = Field(None, description="Storage key-values")
-    value: Optional[Any] = Field(None, description="Single storage value")
+    kind: Optional[Literal["local", "session"]] = _compat_field("Storage kind")
+    values: Optional[Dict[str, Any]] = _compat_field("Storage key-values")
+    value: Optional[Any] = _compat_field("Single storage value")
 
-    contains: Optional[str] = Field(None, description="Requests contains filter")
-    filter: Optional[str] = Field(None, description="Requests filter alias")
-    snapshots: Optional[bool] = Field(None, description="Trace snapshots toggle")
-    screenshots: Optional[bool] = Field(None, description="Trace screenshots toggle")
-    sources: Optional[bool] = Field(None, description="Trace sources toggle")
-    offline: Optional[bool] = Field(None, description="Offline toggle")
-    enabled: Optional[bool] = Field(None, description="Offline alias")
-    headers: Optional[Dict[str, str]] = Field(None, description="Extra HTTP headers")
-    username: Optional[str] = Field(None, description="HTTP auth username")
-    user: Optional[str] = Field(None, description="HTTP auth username alias")
-    password: Optional[str] = Field(None, description="HTTP auth password")
-    latitude: Optional[float] = Field(None, description="Geolocation latitude")
-    longitude: Optional[float] = Field(None, description="Geolocation longitude")
-    accuracy: Optional[float] = Field(None, description="Geolocation accuracy meters")
-    media: Optional[str] = Field(None, description="Media type emulation")
-    color_scheme: Optional[str] = Field(None, description="Color scheme emulation")
-    colorScheme: Optional[str] = Field(None, description="Color scheme emulation alias")
-    timezone: Optional[str] = Field(None, description="Timezone id")
-    locale: Optional[str] = Field(None, description="Locale id")
-    device: Optional[str] = Field(None, description="Device preset name")
+    contains: Optional[str] = _compat_field("Requests contains filter")
+    filter: Optional[str] = _compat_field("Requests filter alias")
+    snapshots: Optional[bool] = _compat_field("Trace snapshots toggle")
+    screenshots: Optional[bool] = _compat_field("Trace screenshots toggle")
+    sources: Optional[bool] = _compat_field("Trace sources toggle")
+    offline: Optional[bool] = _compat_field("Offline toggle")
+    enabled: Optional[bool] = _compat_field("Offline alias")
+    headers: Optional[Dict[str, str]] = _compat_field("Extra HTTP headers")
+    username: Optional[str] = _compat_field("HTTP auth username")
+    user: Optional[str] = _compat_field("HTTP auth username alias")
+    password: Optional[str] = _compat_field("HTTP auth password")
+    latitude: Optional[float] = _compat_field("Geolocation latitude")
+    longitude: Optional[float] = _compat_field("Geolocation longitude")
+    accuracy: Optional[float] = _compat_field("Geolocation accuracy meters")
+    media: Optional[str] = _compat_field("Media type emulation")
+    color_scheme: Optional[str] = _compat_field("Color scheme emulation")
+    colorScheme: Optional[str] = _compat_field("Color scheme emulation alias")
+    timezone: Optional[str] = _compat_field("Timezone id")
+    locale: Optional[str] = _compat_field("Locale id")
+    device: Optional[str] = _compat_field("Device preset name")
 
     # Shared file/text mutation compatibility fields.
-    content: Optional[str] = Field(None, description="Content for write_file")
-    append: Optional[bool] = Field(None, description="Append mode for write_file")
-    trailing_newline: Optional[bool] = Field(
-        None, description="Append trailing newline for write_file"
+    content: Optional[str] = _compat_field("Content for write_file")
+    append: Optional[bool] = _compat_field("Append mode for write_file")
+    trailing_newline: Optional[bool] = _compat_field(
+        "Append trailing newline for write_file"
     )
-    leading_newline: Optional[bool] = Field(
-        None, description="Append leading newline for write_file"
+    leading_newline: Optional[bool] = _compat_field(
+        "Append leading newline for write_file"
     )
-    old_str: Optional[str] = Field(None, description="Target string for replace_file")
-    new_str: Optional[str] = Field(
-        None, description="Replacement string for replace_file"
-    )
-    path: Optional[str] = Field(None, description="File path for upload_file")
-    goal: Optional[str] = Field(None, description="Goal for read_long_content")
-    source: Optional[str] = Field(None, description="Source for read_long_content")
-    context: Optional[str] = Field(None, description="Context for read_long_content")
-    keys: Optional[str] = Field(None, description="Keyboard sequence for send_keys")
-    success: Optional[bool] = Field(None, description="Success flag for done action")
-    files_to_display: Optional[List[str]] = Field(
-        None, description="Optional attachment paths for done action"
+    old_str: Optional[str] = _compat_field("Target string for replace_file")
+    new_str: Optional[str] = _compat_field("Replacement string for replace_file")
+    path: Optional[str] = _compat_field("File path for upload_file")
+    goal: Optional[str] = _compat_field("Goal for read_long_content")
+    source: Optional[str] = _compat_field("Source for read_long_content")
+    context: Optional[str] = _compat_field("Context for read_long_content")
+    keys: Optional[str] = _compat_field("Keyboard sequence for send_keys")
+    success: Optional[bool] = _compat_field("Success flag for done action")
+    files_to_display: Optional[List[str]] = _compat_field(
+        "Optional attachment paths for done action"
     )
 
     # Shared no-op compatibility fields.
-    profile: Optional[str] = Field(
-        None, description="Compatibility field (unused in WindieOS)"
-    )
-    node: Optional[str] = Field(
-        None, description="Compatibility field (unused in WindieOS)"
-    )
-    target: Optional[Literal["sandbox", "host", "node"]] = Field(
-        None, description="Compatibility field (unused in WindieOS)"
+    profile: Optional[str] = _compat_field("Compatibility field (unused in WindieOS)")
+    node: Optional[str] = _compat_field("Compatibility field (unused in WindieOS)")
+    target: Optional[Literal["sandbox", "host", "node"]] = _compat_field(
+        "Compatibility field (unused in WindieOS)"
     )
 
 
@@ -91,12 +81,15 @@ class BrowserScreenshotImageFields(BaseModel):
     """Shared screenshot image options for browser schemas."""
 
     element: Optional[str] = Field(
-        None, description="Optional CSS selector to screenshot"
+        None, description="Optional CSS selector target for screenshot capture"
     )
-    type: Literal["png", "jpeg"] = Field("png", description="Screenshot image type")
+    type: Literal["png", "jpeg"] = Field(
+        default="png",
+        description="Screenshot output image format",
+    )
     quality: Optional[int] = Field(
         None,
-        description="JPEG quality (1-100)",
+        description="JPEG quality percentage (1-100)",
         ge=1,
         le=100,
     )

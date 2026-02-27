@@ -198,6 +198,29 @@ describe('useChatStream transcript + event filtering', () => {
     expect(transcriptSpies.updateTranscriptSession).toHaveBeenCalledWith('conv-2', 'user-2');
   });
 
+  test('tracks memory-store events without renderer-side persistence side effects', async () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    await act(async () => {
+      emitBackendEvent({
+        type: 'memory-store',
+        user_id: 'user-9',
+        session_id: 'session-9',
+        payload: {
+          user_query: 'hi',
+          assistant_response: 'hello',
+          memory_type: 'episodic',
+          user_id: 'user-9',
+          session_id: 'session-9',
+        },
+      });
+      await Promise.resolve();
+    });
+
+    const tracking = useChatStore.getState().streamTracking;
+    expect(tracking.lastEventType).toBe('memory-store');
+  });
+
   test('ignores stale events when conversation_ref does not match active conversation', () => {
     setMockActiveConversationRef('conv-active');
     const { emitBackendEvent } = registerBackendListener();
@@ -219,6 +242,34 @@ describe('useChatStream transcript + event filtering', () => {
     });
 
     expect(useChatStore.getState()).toEqual(beforeState);
+    expect(transcriptSpies.updateTranscriptSession).not.toHaveBeenCalled();
+  });
+
+  test('ignores stale memory-store events when payload session_id does not match active conversation', async () => {
+    setMockActiveConversationRef('conv-active');
+    const { emitBackendEvent } = registerBackendListener();
+    useChatStore.setState({
+      streamTracking: {
+        ...useChatStore.getState().streamTracking,
+        activeTurnRef: 'turn-active',
+        phase: 'streaming',
+      },
+    });
+
+    await act(async () => {
+      emitBackendEvent({
+        type: 'memory-store',
+        payload: {
+          user_query: 'hi',
+          assistant_response: 'hello',
+          memory_type: 'episodic',
+          session_id: 'conv-stale',
+          user_id: 'user-1',
+        },
+      });
+      await Promise.resolve();
+    });
+
     expect(transcriptSpies.updateTranscriptSession).not.toHaveBeenCalled();
   });
 

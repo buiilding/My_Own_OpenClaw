@@ -16,6 +16,7 @@ title: "Frontend Sidecar Tools Docs Hub"
 - [Filesystem Tools Docs Hub](filesystem/README.md)
 - [Tools Contracts Docs Hub](contracts/README.md)
 - [Shell and Process Session Runtime Reference](shell_and_process_session_runtime_reference.md)
+- [Shell Output Formatting and Response Payload Contract Reference](system/shell_output_formatting_and_response_payload_contract_reference.md)
 - [Filesystem Read and Replace Runtime Reference](filesystem_read_replace_runtime_reference.md)
 - [Tool Registry Exposed Schema and Result Normalization Reference](registry/tool_registry_exposed_schema_and_result_normalization_reference.md)
 - [Mouse, Keyboard, Scroll, and Screenshot Runtime Reference](computer/mouse_keyboard_scroll_and_screenshot_runtime_reference.md)
@@ -35,6 +36,8 @@ title: "Frontend Sidecar Tools Docs Hub"
 - `frontend/src/main/python/tools/system/window_tool.py`
 - `frontend/src/main/python/tools/system/stats_tool.py`
 - `frontend/src/main/python/tools/system/shell_tool.py`
+- `frontend/src/main/python/tools/system/shell_output_formatting.py`
+- `frontend/src/main/python/tools/system/shell_response_payloads.py`
 - `frontend/src/main/python/tools/system/process_tool.py`
 - `frontend/src/main/python/tools/system/shell_process_registry.py`
 - `frontend/src/main/python/tools/filesystem/read_file_tool.py`
@@ -43,6 +46,7 @@ title: "Frontend Sidecar Tools Docs Hub"
 - `frontend/src/main/python/tools/filesystem/file_utils.py`
 - `frontend/src/main/python/tools/filesystem/gitignore_utils.py`
 - `tests/sidecar/test_shell_process_tool.py`
+- `tests/sidecar/test_shell_output_formatting.py`
 - `tests/sidecar/test_shell_process_registry.py`
 - `tests/sidecar/test_read_file_tool.py`
 - `tests/sidecar/test_replace_tool.py`

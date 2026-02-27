@@ -248,6 +248,35 @@ describe('ipc.cjs bridge query handling', () => {
     expectQueryContentWithEmptyMemories(lastMessage.payload.content, 'memory malformed');
   });
 
+  test('persists memory-store backend events once in main process before renderer fanout', async () => {
+    const { ws, backendBridge, mainWindow } = setupQueryBridge();
+
+    ws.handlers.message(JSON.stringify({
+      type: 'memory-store',
+      user_id: 'user-main',
+      session_id: 'session-main',
+      payload: {
+        user_query: 'hi',
+        assistant_response: 'hello',
+        memory_type: 'episodic',
+      },
+    }));
+
+    await Promise.resolve();
+
+    expect(backendBridge.storeMemory).toHaveBeenCalledTimes(1);
+    expect(backendBridge.storeMemory).toHaveBeenCalledWith({
+      user_query: 'hi',
+      assistant_response: 'hello',
+      memory_type: 'episodic',
+      user_id: 'user-main',
+      session_id: 'session-main',
+    });
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith('from-backend', expect.objectContaining({
+      type: 'memory-store',
+    }));
+  });
+
   test('gates first query behind settings-updated ack when frontend config exists', async () => {
     const { handlers, ws, backendBridge, fs } = initIpc();
     fs.existsSync.mockReturnValue(true);

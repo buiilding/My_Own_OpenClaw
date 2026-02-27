@@ -5,6 +5,12 @@ from __future__ import annotations
 import re
 from typing import List, Tuple
 
+_FACT_BULLET_PREFIX = r"(?:[-*]|\d+[.)])"
+_FACT_LINE_PATTERN = re.compile(
+    rf"{_FACT_BULLET_PREFIX}\s*(.+?)(?:\n|$)",
+    re.MULTILINE,
+)
+
 
 def parse_summarization_response(response_text: str) -> Tuple[str, List[str]]:
     """Extract structured summary + facts from LLM output."""
@@ -20,15 +26,14 @@ def parse_summarization_response(response_text: str) -> Tuple[str, List[str]]:
         summary = summary_match.group(1).strip()
 
     facts_section_pattern = re.compile(
-        r"FACTS:\s*\n((?:[-*]\s*.+?(?:\n|$))+)",
+        rf"FACTS:\s*\n((?:{_FACT_BULLET_PREFIX}\s*.+?(?:\n|$))+)",
         re.IGNORECASE | re.MULTILINE,
     )
     facts_match = facts_section_pattern.search(response_text)
 
     if facts_match:
         facts_text = facts_match.group(1)
-        fact_line_pattern = re.compile(r"[-*]\s*(.+?)(?:\n|$)", re.MULTILINE)
-        for match in fact_line_pattern.finditer(facts_text):
+        for match in _FACT_LINE_PATTERN.finditer(facts_text):
             fact = match.group(1).strip()
             if fact:
                 facts.append(fact)
@@ -37,8 +42,7 @@ def parse_summarization_response(response_text: str) -> Tuple[str, List[str]]:
         marker_match = facts_marker_pattern.search(response_text)
         if marker_match:
             after_marker = response_text[marker_match.end() :]
-            fact_line_pattern = re.compile(r"[-*]\s*(.+?)(?:\n|$)", re.MULTILINE)
-            for match in fact_line_pattern.finditer(after_marker):
+            for match in _FACT_LINE_PATTERN.finditer(after_marker):
                 fact = match.group(1).strip()
                 if fact:
                     facts.append(fact)
@@ -49,8 +53,7 @@ def parse_summarization_response(response_text: str) -> Tuple[str, List[str]]:
 def extract_fallback_facts(response_text: str) -> List[str]:
     """Fallback extraction for bullet-like facts from free-form output."""
     facts: List[str] = []
-    fact_line_pattern = re.compile(r"[-*]\s*(.+?)(?:\n|$)", re.MULTILINE)
-    for match in fact_line_pattern.finditer(response_text):
+    for match in _FACT_LINE_PATTERN.finditer(response_text):
         fact = match.group(1).strip()
         if fact and len(fact) > 3:
             facts.append(fact)

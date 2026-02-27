@@ -36,7 +36,7 @@ Handshake parse uses:
 
 Behavior:
 
-- payload smaller than threshold parses inline
+- payload UTF-8 byte size smaller than threshold parses inline
 - payload at/above threshold uses loop executor (`run_in_executor`)
 - non-object roots raise `JsonRootTypeError`
 

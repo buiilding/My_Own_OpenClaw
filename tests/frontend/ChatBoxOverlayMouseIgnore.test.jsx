@@ -7,6 +7,7 @@ const mockInvoke = jest.fn(() => Promise.resolve({ success: true }));
 const mockSend = jest.fn();
 const mockListeners = new Map();
 const mockSendMessage = jest.fn();
+const mockExtractOSstate = jest.fn();
 const mockUseChatMessageSender = jest.fn(() => ({
   sendMessage: mockSendMessage,
 }));
@@ -17,6 +18,8 @@ const mockUseVoiceMode = jest.fn(() => ({
   clientId: null,
 }));
 const mockUpdateConfig = jest.fn();
+const mockCompactHistory = jest.fn();
+const mockIsDevUiEnabled = jest.fn(() => false);
 
 const setWindowScreenPosition = (x, y) => {
   Object.defineProperty(window, 'screenX', {
@@ -52,7 +55,6 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
   INVOKE_CHANNELS: {
     SET_OVERLAY_IGNORE_MOUSE: 'set-overlay-ignore-mouse',
-    SET_CHATBOX_SIZE: 'set-chatbox-size',
     SHOW_MAIN_WINDOW: 'show-main-window',
   },
   ON_CHANNELS: {
@@ -92,6 +94,20 @@ jest.mock('../../frontend/src/renderer/features/chat/hooks/useChatMessageSender'
   useChatMessageSender: (...args) => mockUseChatMessageSender(...args),
 }));
 
+jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
+  ApiClient: {
+    compactHistory: (...args) => mockCompactHistory(...args),
+  },
+}));
+
+jest.mock('../../frontend/src/renderer/features/chat/utils/devUiFlag', () => ({
+  isDevUiEnabled: () => mockIsDevUiEnabled(),
+}));
+
+jest.mock('../../frontend/src/renderer/infrastructure/services/SystemCapture', () => ({
+  extractOSstate: (...args) => mockExtractOSstate(...args),
+}));
+
 describe('ChatBox overlay mouse ignore', () => {
   beforeEach(() => {
     mockInvoke.mockClear();
@@ -101,46 +117,51 @@ describe('ChatBox overlay mouse ignore', () => {
     mockUseVoiceMode.mockClear();
     mockUpdateConfig.mockClear();
     mockSendMessage.mockClear();
+    mockCompactHistory.mockClear();
+    mockIsDevUiEnabled.mockReset();
+    mockIsDevUiEnabled.mockReturnValue(false);
+    mockExtractOSstate.mockReset();
+    mockExtractOSstate.mockResolvedValue({
+      screenshot: 'ZmFrZS1zY3JlZW5zaG90',
+      screenshotContentType: 'image/png',
+    });
     mockChatState.messages = [];
     mockChatState.streamTracking.phase = 'idle';
   });
 
-  test('defaults to interactive overlay and requests window resize to match pill', () => {
-    const rafQueue = [];
-    global.requestAnimationFrame = (cb) => {
-      rafQueue.push(cb);
-      return rafQueue.length;
-    };
+  afterEach(() => {
+    jest.useRealTimers();
+  });
 
-    const { container } = render(<ChatBox />);
+  test('defaults to interactive overlay without requesting live window resize', () => {
+    render(<ChatBox />);
 
     const sawInteractive = mockInvoke.mock.calls.some(
       ([channel, payload]) => channel === 'set-overlay-ignore-mouse' && payload?.ignore === false,
     );
     expect(sawInteractive).toBe(true);
+    expect(mockInvoke.mock.calls.some(([channel]) => channel === 'set-chatbox-size')).toBe(false);
+  });
 
-    const shell = container.querySelector('.chatbox-shell');
-    expect(shell).toBeTruthy();
+  test('keeps fixed-size preview lane and does not invoke chatbox resize when images change', async () => {
+    const { container } = render(<ChatBox />);
+    const previewRow = container.querySelector('.chatbox-image-preview-row');
+    expect(previewRow).toBeTruthy();
+    expect(previewRow.classList.contains('has-items')).toBe(false);
 
-    shell.getBoundingClientRect = () => ({
-      left: 0,
-      top: 0,
-      right: 200,
-      bottom: 100,
-      width: 200,
-      height: 100,
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+      await Promise.resolve();
     });
+    expect(previewRow.classList.contains('has-items')).toBe(true);
+    expect(mockInvoke.mock.calls.some(([channel]) => channel === 'set-chatbox-size')).toBe(false);
 
-    act(() => {
-      rafQueue.splice(0).forEach((cb) => cb());
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Remove screenshot 1' }));
+      await Promise.resolve();
     });
-
-    expectInvokeCall(
-      ([channel, payload]) =>
-        channel === 'set-chatbox-size'
-        && payload?.width === 200
-        && payload?.height === 100,
-    );
+    expect(previewRow.classList.contains('has-items')).toBe(false);
+    expect(mockInvoke.mock.calls.some(([channel]) => channel === 'set-chatbox-size')).toBe(false);
   });
 
   test('wires overlay sender surface for centralized UI send behavior', () => {
@@ -159,8 +180,22 @@ describe('ChatBox overlay mouse ignore', () => {
     expectInvokeCall(
       ([channel, payload]) =>
         channel === 'show-main-window'
-        && payload?.maximize === true,
+        && payload?.maximize === true
+        && payload?.open === 'chat',
     );
+  });
+
+  test('does not render compaction control when dev UI flag is disabled', () => {
+    render(<ChatBox />);
+    expect(screen.queryByRole('button', { name: 'Run auto compaction' })).not.toBeInTheDocument();
+  });
+
+  test('renders dev compaction control and dispatches compact-history', () => {
+    mockIsDevUiEnabled.mockReturnValue(true);
+    render(<ChatBox />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Run auto compaction' }));
+    expect(mockCompactHistory).toHaveBeenCalledWith(true);
   });
 
   test('dragging pill sends absolute move-chatbox-to coordinates', () => {
@@ -188,6 +223,15 @@ describe('ChatBox overlay mouse ignore', () => {
     fireEvent.mouseUp(window);
 
     expect(mockSend).not.toHaveBeenCalledWith('move-chatbox-to', expect.anything());
+  });
+
+  test('auto-focuses input when chatbox window gains focus', () => {
+    render(<ChatBox />);
+    const input = screen.getByPlaceholderText('Ask me anything...');
+
+    input.blur();
+    fireEvent.focus(window);
+    expect(document.activeElement).toBe(input);
   });
 
   test('adds ambient loop glow class while active stream phases are running', () => {

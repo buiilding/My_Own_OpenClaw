@@ -40,11 +40,16 @@ def _build_frontend_settings_payload(config: Any) -> Dict[str, Any]:
     """
     if config is None:
         return {}
-    return {
-        key: getattr(config, key)
-        for key in sorted(FRONTEND_CONFIG_FIELDS)
-        if hasattr(config, key)
-    }
+    payload: Dict[str, Any] = {}
+    for key in sorted(FRONTEND_CONFIG_FIELDS):
+        if not hasattr(config, key):
+            continue
+        value = getattr(config, key)
+        if hasattr(value, "model_dump"):
+            payload[key] = value.model_dump()
+            continue
+        payload[key] = value
+    return payload
 
 
 class LoadSettingsHandler(TypedMessageHandler[LoadSettingsMessage]):

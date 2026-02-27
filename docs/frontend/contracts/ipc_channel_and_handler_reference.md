@@ -1,7 +1,7 @@
 ---
 summary: "Renderer-main IPC reference: preload allowlists, typed channel constants, Electron main handler ownership, and backend/ws relay channel behavior."
 read_when:
-  - When adding or changing Electron IPC channels.
+  - When adding or changing Electron IPC channels, including permission onboarding/data-controls channels.
   - When debugging renderer-main contract mismatches or unhandled invoke/send events.
 title: "IPC Channel and Handler Reference"
 ---
@@ -15,7 +15,14 @@ title: "IPC Channel and Handler Reference"
 - Typed bridge wrapper: `frontend/src/renderer/infrastructure/ipc/bridge.ts`
 - Main-process handlers:
 - `frontend/src/main/ipc.cjs`
+- `frontend/src/main/ipc_runtime_helpers.cjs`
+- `frontend/src/main/ipc_renderer_windows.cjs`
+- `frontend/src/main/ipc_query_broadcast.cjs`
+- `frontend/src/main/ipc_query_events.cjs`
 - `frontend/src/main/index.cjs`
+- `frontend/src/main/overlay_ipc_runtime.cjs`
+- `frontend/src/main/window_visibility_runtime.cjs`
+- `frontend/src/main/main_process_lifecycle_runtime.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
 
@@ -42,7 +49,7 @@ Behavior:
 
 ### `move-chatbox-to`
 
-Owner: `index.cjs`
+Owner: `overlay_ipc_runtime.cjs` (registered via `index.cjs`)
 
 Behavior:
 
@@ -75,18 +82,24 @@ Behavior:
 - `get-client-user-id` -> returns websocket user/session endpoint metadata
 - `upload-artifact` -> multipart upload to backend HTTP `/api/artifacts/`
 
-## Window/overlay channels (`index.cjs`)
+## Window/overlay channels (`overlay_ipc_runtime.cjs`, wired by `index.cjs`)
 
 - `set-overlay-ignore-mouse` -> click-through toggle for overlay windows
-- `set-chatbox-size` -> bounded chat window resize + response reposition
 - `set-responsebox-size` -> bounded response overlay resize/show/hide
 - `show-main-window` -> shows main window; optional payload `{ open?: 'chat' | 'memory' | 'models' | 'settings', maximize?: boolean }` emits `main-window-open-target` when accepted
 - `show-chatbox`
 - `hide-chatbox`
+- `prepare-overlay-tool-focus` -> pre-tool overlay hide + external focus verification payload
 - `get-displays`
 - `window-minimize`
 - `window-toggle-maximize`
 - `window-close`
+- `set-agent-sudo-access`
+- `list-permissions`
+- `check-permissions`
+- `check-permission`
+- `run-permission-probe`
+- `request-permission`
 
 ## Local sidecar bridge channels (`local_backend_bridge.cjs`)
 
@@ -99,6 +112,7 @@ Behavior:
 - `list-episodic-memories`
 - `get-conversation`
 - `list-semantic-memories`
+- `delete-episodic-memory`
 - `delete-conversation`
 - `delete-semantic-memory`
 - `store-memory`
@@ -117,13 +131,26 @@ Behavior:
 - `wakeword-detected`
 - `wakeword-status`
 - `wakeword-toggle`
+- `wakeword-stt-trigger`
 - `chatbox-focus`
 - `main-window-open-target`
 - `log` (diagnostic)
 
+## Permission Runtime Channel Contract
+
+Permission onboarding and settings data-controls use invoke-only channels:
+
+- `list-permissions`: returns manifest snapshot + status list
+- `check-permissions`: batch status re-check
+- `check-permission`: single status check helper
+- `run-permission-probe`: explicit one-permission probe rerun
+- `request-permission`: best-effort OS request flow + post-request probe
+
+These channels are registered in `overlay_ipc_runtime.cjs` and delegated to `permission_service.cjs`.
+
 ## `to-backend` Query Relay Lifecycle (main process)
 
-Owner: `ipc.cjs`.
+Owner: `ipc.cjs` (with helper-module delegation to `ipc_runtime_helpers.cjs`, `ipc_query_broadcast.cjs`, and `ipc_query_events.cjs`).
 
 1. validates message envelope and type.
 2. for first query after connect, enforces one-time settings sync gate (`update-settings` ACK/timeout handling).
@@ -140,7 +167,7 @@ Owner: `ipc.cjs`.
 - for `query` and `tool-bundle-result`, strips `screenshot_url`.
 - backend message envelope always includes `{id,type,payload,user_id,timestamp}`.
 
-Incoming websocket messages are rebroadcast to all tracked renderer windows, excluding optional source sender where applicable.
+Incoming websocket messages are normalized by `processBackendMessageData` (`ipc_runtime_helpers.cjs`) and rebroadcast to all tracked renderer windows via `ipc_renderer_windows.cjs`, excluding optional source sender where applicable.
 
 ## Drift Hotspots
 

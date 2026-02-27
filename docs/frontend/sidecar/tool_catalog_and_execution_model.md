@@ -58,9 +58,15 @@ Deep runtime reference:
 - `get_system_stats`
 - `wait`
 
+System shell output shaping is split into dedicated helpers:
+
+- `tools/system/shell_output_formatting.py` (token-budget truncation + display/LLM formatting)
+- `tools/system/shell_response_payloads.py` (foreground/background envelope assembly)
+
 Deep runtime reference:
 
 - [Shell and Process Session Runtime Reference](tools/shell_and_process_session_runtime_reference.md)
+- [Shell Output Formatting and Response Payload Contract Reference](tools/system/shell_output_formatting_and_response_payload_contract_reference.md)
 - [Wait, Window, and Stats Runtime Reference](tools/system/wait_window_stats_runtime_reference.md)
 
 ### Browser tools

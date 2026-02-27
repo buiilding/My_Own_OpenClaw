@@ -24,6 +24,11 @@ class DummyMemoryStore:
         self.added = []
         self.pending_count = 0
         self.next_index = 1
+        self.conversation_calls = []
+        self.deleted_semantic_calls = []
+        self.deleted_episodic_calls = []
+        self.delete_semantic_return = True
+        self.delete_episodic_return = True
 
     async def search(self, query, user_id, filters, limit):
         return [
@@ -46,16 +51,40 @@ class DummyMemoryStore:
             }
         ]
 
-    async def increment_pending_count(self):
-        self.pending_count += 1
-
     async def get_next_message_index(self, user_id, conversation_id):
         value = self.next_index
         self.next_index += 1
         return value
 
+    async def get_episodic_memories_by_conversation(
+        self,
+        user_id,
+        conversation_id,
+        limit,
+        record_kind="transcript",
+        after_message_index=None,
+    ):
+        self.conversation_calls.append(
+            {
+                "user_id": user_id,
+                "conversation_id": conversation_id,
+                "limit": limit,
+                "record_kind": record_kind,
+                "after_message_index": after_message_index,
+            }
+        )
+        return [{"id": "mem-1"}]
+
     async def close(self):
         return None
+
+    async def delete_semantic_memory(self, user_id, memory_id):
+        self.deleted_semantic_calls.append((user_id, memory_id))
+        return self.delete_semantic_return
+
+    async def delete_episodic_memory(self, user_id, memory_id):
+        self.deleted_episodic_calls.append((user_id, memory_id))
+        return self.delete_episodic_return
 
 
 class DummyRegistryRaises:
@@ -100,9 +129,9 @@ class DummySummarizer:
         self.notified.append(user_id)
 
 
-class DummyMemoryStorePendingFails(DummyMemoryStore):
-    async def increment_pending_count(self):
-        raise RuntimeError("pending-fail")
+class DummySummarizerRaises:
+    def notify_new_memory(self, user_id):
+        raise RuntimeError(f"notify-failed-{user_id}")
 
 
 class DummyMemoryStoreInit(DummyMemoryStore):
@@ -270,6 +299,25 @@ async def test_handle_get_system_state_error(monkeypatch):
     assert result["error"] == "nope"
 
 
+def test_initialize_methods_keeps_memory_handlers_registered():
+    backend = LocalBackend()
+
+    expected_methods = {
+        "search_memory",
+        "store_memory",
+        "search_conversations",
+        "list_conversations",
+        "list_episodic_memories",
+        "get_conversation",
+        "list_semantic_memories",
+        "delete_episodic_memory",
+        "delete_conversation",
+        "delete_semantic_memory",
+        "store_transcript",
+    }
+    assert expected_methods.issubset(set(backend.protocol.methods.keys()))
+
+
 @pytest.mark.asyncio
 async def test_handle_search_memory_groups_results():
     backend = LocalBackend()
@@ -335,6 +383,34 @@ async def test_handle_search_memory_applies_filters():
 
 
 @pytest.mark.asyncio
+async def test_handle_search_memory_rejects_invalid_memory_type_filter():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStoreCapturing([])
+
+    result = await backend._handle_search_memory(
+        "query",
+        memory_type="archive",
+    )
+    assert result["success"] is False
+    assert result["error"] == "Invalid memory_type: archive"
+    assert backend.memory_store.search_calls == []
+
+
+@pytest.mark.asyncio
+async def test_handle_search_memory_normalizes_query_and_type_filter():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStoreCapturing([])
+
+    result = await backend._handle_search_memory(
+        "  query  ",
+        user_id="user-1",
+        memory_type=" SEMANTIC ",
+    )
+    assert result["success"] is True
+    assert backend.memory_store.search_calls == [("query", "user-1", {"type": "semantic"}, 5)]
+
+
+@pytest.mark.asyncio
 async def test_handle_search_memory_ignores_unknown_type():
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStoreCapturing(
@@ -382,7 +458,10 @@ async def test_handle_store_memory_success_notifies_summarizer():
         session_id="session-1",
     )
     assert result["success"] is True
-    assert backend.memory_store.pending_count == 1
+    _, _, _, conversation_id, kwargs = backend.memory_store.added[-1]
+    assert conversation_id == "session-1"
+    assert kwargs["record_kind"] == "interaction"
+    assert backend.memory_store.pending_count == 0
     assert backend._summarizer.notified == ["user-1"]
 
 
@@ -400,15 +479,18 @@ async def test_handle_store_memory_semantic_does_not_notify():
         session_id="session-1",
     )
     assert result["success"] is True
+    _, _, _, conversation_id, kwargs = backend.memory_store.added[-1]
+    assert conversation_id == "session-1"
+    assert kwargs["record_kind"] == "interaction"
     assert backend.memory_store.pending_count == 0
     assert backend._summarizer.notified == []
 
 
 @pytest.mark.asyncio
-async def test_handle_store_memory_pending_failure_still_succeeds():
+async def test_handle_store_memory_notify_failure_still_succeeds():
     backend = LocalBackend()
-    backend.memory_store = DummyMemoryStorePendingFails()
-    backend._summarizer = DummySummarizer()
+    backend.memory_store = DummyMemoryStore()
+    backend._summarizer = DummySummarizerRaises()
 
     result = await backend._handle_store_memory(
         user_query="hi",
@@ -417,7 +499,7 @@ async def test_handle_store_memory_pending_failure_still_succeeds():
         user_id="user-1",
     )
     assert result["success"] is True
-    assert backend._summarizer.notified == []
+    assert backend.memory_store.pending_count == 0
 
 
 @pytest.mark.asyncio
@@ -463,6 +545,83 @@ async def test_handle_store_memory_requires_query_and_response():
 
 
 @pytest.mark.asyncio
+async def test_handle_store_memory_treats_none_fields_as_missing():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+
+    result = await backend._handle_store_memory(
+        user_query=None,  # type: ignore[arg-type]
+        assistant_response="hello",
+    )
+
+    assert result["success"] is False
+    assert result["error"] == "Missing user_query or assistant_response"
+    assert backend.memory_store.added == []
+
+
+@pytest.mark.asyncio
+async def test_handle_store_memory_rejects_whitespace_only_fields():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+
+    result = await backend._handle_store_memory(
+        user_query="   ",
+        assistant_response="\n\t",
+    )
+
+    assert result["success"] is False
+    assert result["error"] == "Missing user_query or assistant_response"
+    assert backend.memory_store.added == []
+
+
+@pytest.mark.asyncio
+async def test_handle_store_memory_rejects_invalid_memory_type():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+
+    result = await backend._handle_store_memory(
+        user_query="hi",
+        assistant_response="hello",
+        memory_type="archive",
+    )
+
+    assert result["success"] is False
+    assert result["error"] == "Invalid memory_type: archive"
+    assert backend.memory_store.added == []
+
+
+@pytest.mark.asyncio
+async def test_handle_store_memory_rejects_non_string_query_or_response():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+
+    result = await backend._handle_store_memory(
+        user_query=123,  # type: ignore[arg-type]
+        assistant_response="hello",
+    )
+
+    assert result["success"] is False
+    assert result["error"] == "user_query and assistant_response must be strings"
+    assert backend.memory_store.added == []
+
+
+@pytest.mark.asyncio
+async def test_handle_store_memory_rejects_non_string_memory_type():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+
+    result = await backend._handle_store_memory(
+        user_query="hi",
+        assistant_response="hello",
+        memory_type=7,  # type: ignore[arg-type]
+    )
+
+    assert result["success"] is False
+    assert result["error"] == "memory_type must be a string"
+    assert backend.memory_store.added == []
+
+
+@pytest.mark.asyncio
 async def test_handle_list_conversations_fails_without_store():
     backend = LocalBackend()
     backend.memory_store = None
@@ -470,6 +629,67 @@ async def test_handle_list_conversations_fails_without_store():
     result = await backend._handle_list_conversations(user_id="user-1")
     assert result["success"] is False
     assert result["error"] == "Memory store not initialized"
+
+
+@pytest.mark.asyncio
+async def test_handle_get_conversation_forwards_after_message_index_cursor():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+
+    result = await backend._handle_get_conversation(
+        user_id="user-1",
+        conversation_id="conv-1",
+        limit=250,
+        record_kind="transcript",
+        after_message_index=1200,
+    )
+
+    assert result["success"] is True
+    assert result["data"]["conversation_id"] == "conv-1"
+    assert result["data"]["count"] == 1
+    assert backend.memory_store.conversation_calls == [
+        {
+            "user_id": "user-1",
+            "conversation_id": "conv-1",
+            "limit": 250,
+            "record_kind": "transcript",
+            "after_message_index": 1200,
+        }
+    ]
+
+
+@pytest.mark.asyncio
+async def test_handle_delete_episodic_memory_routes_to_store():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+
+    result = await backend._handle_delete_episodic_memory(
+        user_id="user-1",
+        memory_id="ep-1",
+    )
+
+    assert result == {
+        "success": True,
+        "data": {
+            "memory_id": "ep-1",
+            "deleted": True,
+        },
+    }
+    assert backend.memory_store.deleted_episodic_calls == [("user-1", "ep-1")]
+
+
+@pytest.mark.asyncio
+async def test_handle_delete_episodic_memory_requires_memory_id():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+
+    result = await backend._handle_delete_episodic_memory(
+        user_id="user-1",
+        memory_id=None,
+    )
+
+    assert result["success"] is False
+    assert result["error"] == "memory_id is required"
 
 
 @pytest.mark.asyncio
@@ -502,8 +722,8 @@ async def test_handle_store_transcript_success():
     assert kwargs["model_provider"] == "openai"
     assert kwargs["screenshot"] == "base64-shot"
     assert kwargs["skip_embedding"] is False
-    assert backend.memory_store.pending_count == 1
-    assert backend._summarizer.notified == ["user-1"]
+    assert backend.memory_store.pending_count == 0
+    assert backend._summarizer.notified == []
 
 
 @pytest.mark.asyncio
@@ -545,24 +765,6 @@ async def test_handle_store_transcript_user_message_does_not_increment_pending()
     _, _, _, _, kwargs = backend.memory_store.added[-1]
     assert kwargs["skip_embedding"] is False
     assert backend.memory_store.pending_count == 0
-    assert backend._summarizer.notified == []
-
-
-@pytest.mark.asyncio
-async def test_handle_store_transcript_pending_failure_still_succeeds():
-    backend = LocalBackend()
-    backend.memory_store = DummyMemoryStorePendingFails()
-    backend._summarizer = DummySummarizer()
-
-    result = await backend._handle_store_transcript(
-        content="assistant reply",
-        user_id="user-1",
-        conversation_ref="conv-1",
-        role="assistant",
-        message_type="llm-text",
-    )
-
-    assert result["success"] is True
     assert backend._summarizer.notified == []
 
 

@@ -8,15 +8,23 @@ title: "Frontend Protocol Session and Conversation-State Propagation Reference"
 
 # Frontend Protocol Session and Conversation-State Propagation Reference
 
+## Coverage Snapshot (2026-02-27)
+
+- State-focused protocol test files: `8`
+- Total test cases across listed files: `101`
+
 ## Scope and Sources
 
 Primary runtime sources:
 
 - `frontend/src/main/ipc.cjs`
+- `frontend/src/main/ipc_settings_sync.cjs`
 - `frontend/src/main/ipc_query_events.cjs`
+- `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamConversationGate.ts`
+- `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
 - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts`
 
@@ -28,6 +36,8 @@ Primary test sources:
 - `tests/frontend/ChatStreamConversationGate.test.ts`
 - `tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx`
 - `tests/frontend/TranscriptWriter.session.test.ts`
+- `tests/frontend/ChatGptDashboardShell.test.jsx`
+- `tests/frontend/LocalBackendBridge.rpc.test.cjs`
 
 ## State Ownership Matrix
 
@@ -37,6 +47,7 @@ Primary test sources:
 | `currentSessionId` | `ipc.cjs` | inbound backend events with `session_id` | synthetic local query context fields, renderer session info |
 | `currentServerUserId` | `ipc.cjs` | inbound backend events with `user_id` | synthetic local query context fields |
 | `currentConversationRef` | `ipc.cjs` | inbound backend events with `conversation_ref`; reset on reconnect close | query payload fallback when renderer omits conversation ref |
+| backend endpoint snapshot (`BACKEND_URL`, `BACKEND_HTTP_URL`) | `ipc.cjs` | backend endpoint resolution during init | `get-client-user-id` payload, `ipc-status`, artifact uploader base URL sync |
 | transcript session `{conversationRef,userId}` | `TranscriptWriter` state (`sessionInfoState.ts`) | `updateTranscriptSession(...)`, `setActiveConversationRef(...)` | transcript write routing, pending flush eligibility, dashboard memory views |
 
 ## Main-Process Bridge State Flow (`ipc.cjs`)
@@ -69,6 +80,30 @@ On websocket close:
 
 This reset is critical to avoid leaking stale conversation identity across reconnect boundaries.
 
+## Client Snapshot State Propagation (`get-client-user-id` + `ipc-status`)
+
+`ipc.cjs` exports a snapshot via:
+
+- `ipcMain.handle('get-client-user-id', ...)` (pull path)
+- `broadcastConnectionStatus(...)` -> `ipc-status` (push path)
+
+Snapshot fields:
+
+- `userId`
+- `isConnected`
+- `backendWsUrl`
+- `backendHttpUrl`
+
+`AppConfigProvider` state propagation on each snapshot:
+
+- `updateTranscriptSession(undefined, userId)` when user id resolves
+- `setBackendHttpUrl(backendHttpUrl)` for artifact upload routing
+- `syncCurrentConfigToBackend()` when already connected
+
+Locked by:
+
+- `tests/frontend/AppConfigProvider.storageAndIpc.test.tsx`
+
 ## Query Conversation-Ref Fallback and Synthetic Event Context
 
 `ipc_query_events.cjs` encapsulates context-field assembly for query-side synthetic events.
@@ -96,6 +131,25 @@ Locked by `tests/frontend/IpcMainBridge.query.test.cjs`:
 - conversation-ref fallback reused for both local echo and outbound query
 - reconnect clears stale fallback before next query
 - query-send failure emits context-preserving error envelope
+
+## Dashboard Conversation Selection State Transitions
+
+`useDashboardConversations` state transitions:
+
+- open conversation:
+  - `setActiveConversationRef(conversationRef)`
+  - `updateTranscriptSession(conversationRef, resolvedUserId)`
+  - replace chat state from rehydrated transcript memories
+- delete active conversation:
+  - `setActiveConversationRef(null)`
+  - `updateTranscriptSession(null, resolvedUserId)`
+  - clear chat messages + active send/thinking flags
+
+`ChatGptDashboardShell` consumes `useTranscriptSessionInfo()` for active-row highlighting and user-id fallback flow.
+
+Locked by:
+
+- `tests/frontend/ChatGptDashboardShell.test.jsx`
 
 ## Renderer Conversation Gate and Event Acceptance Rules
 
@@ -153,6 +207,21 @@ Locked by:
 
 - `tests/frontend/TranscriptWriter.session.test.ts`
 
+## Frontend Config -> Sidecar Tool Arg State Propagation
+
+`local_backend_bridge.cjs` rewrites shell-tool args with frontend config state:
+
+- reads `getFrontendConfig()?.agent_full_sudo_enabled`
+- for `run_shell_command` only:
+  - `true` -> `sudo_auth_mode: 'native'`
+  - `false`/missing -> `sudo_auth_mode: 'os_prompt'`
+
+This is protocol state propagation because a renderer config bit changes sidecar RPC payload semantics (`execute_tool` args) without call-site changes.
+
+Locked by:
+
+- `tests/frontend/LocalBackendBridge.rpc.test.cjs`
+
 ## Drift Checks
 
 When changing this surface, keep aligned:
@@ -161,9 +230,23 @@ When changing this surface, keep aligned:
 - `ipc_query_events.cjs` context-field names vs renderer `BackendEvent` typing
 - AppConfigProvider snapshot handling (`get-client-user-id` + `ipc-status`) vs transcript session identity expectations
 - conversation-gate terminal-phase list vs stream-tracking phase names
+- dashboard conversation open/delete session updates vs active-row session snapshots
+- `agent_full_sudo_enabled` config propagation to sidecar `sudo_auth_mode` arg rewrite
+
+## State Control-Path Index
+
+| State control path | Runtime owner | State contract |
+|---|---|---|
+| handshake identity caching and snapshot fan-out | `frontend/src/main/ipc.cjs` | stable client identity/session endpoint snapshot exposed via `get-client-user-id` and `ipc-status` |
+| backend context-field cache updates | `frontend/src/main/ipc.cjs` | inbound `session_id`/`user_id`/`conversation_ref` cache fields track latest backend correlation context |
+| conversation_ref fallback for query/local echo | `frontend/src/main/ipc_query_events.cjs`, `frontend/src/main/ipc.cjs` | query payload and synthetic local-user-message share same resolved conversation reference |
+| dashboard conversation open/delete session transitions | `useDashboardConversations`, transcript writer | active conversation + transcript session identity stay in sync during rehydrate/delete flows |
+| renderer stale-event gating | `chatStreamConversationGate.ts` + `useChatStream.ts` | active conversation mismatch rules prevent cross-conversation stream pollution while preserving compatibility events |
+| frontend config to sidecar sudo-mode propagation | `frontend/src/main/local_backend_bridge.cjs` | `agent_full_sudo_enabled` deterministically maps to `sudo_auth_mode` in sidecar RPC args |
 
 ## Related Pages
 
 - [Frontend Protocol Lifecycle Hub](../lifecycle/README.md)
 - [Frontend Protocol Errors Hub](../errors/README.md)
+- [Frontend Protocol Validation Hub](../validation/README.md)
 - [Frontend Protocol Testing Hub](../testing/README.md)

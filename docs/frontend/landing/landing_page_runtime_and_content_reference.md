@@ -15,9 +15,14 @@ title: "Landing Page Runtime and Content Reference"
 - `frontend/src/landing/LandingPage.jsx`
 - `frontend/src/landing/components/*.jsx`
 - `frontend/src/landing/components/HeroSection.jsx`
+- `frontend/src/landing/components/WhySection.jsx`
 - `frontend/src/landing/components/HowItWorksSection.jsx`
 - `frontend/src/landing/components/AvailableTodaySection.jsx`
+- `frontend/src/landing/components/PrivacySection.jsx`
 - `frontend/src/landing/components/RoadmapSection.jsx`
+- `frontend/src/landing/components/CTAFooter.jsx`
+- `frontend/src/landing/components/SectionIntro.jsx`
+- `frontend/src/landing/components/icons/ProviderStackIcon.jsx`
 - `frontend/src/landing/styles/LandingPage.css`
 - `frontend/src/landing/styles/variables.css`
 - `frontend/vite.config.js`
@@ -76,6 +81,7 @@ Landing content is statically defined inside components (not fetched at runtime)
 - `AvailableTodaySection`: category matrix (`Core`, `Tools`, `Memory`, `Browser`) with per-item status.
 - `PrivacySection`: `privacyFeatures` + `privacyHighlights` arrays for trust claims.
 - `RoadmapSection`: phase timeline array with `available|planned` state and checklist items.
+- `CTAFooter`: CTA metadata row, footer link groups, and `new Date().getFullYear()` copyright text.
 
 This means product capability changes require code edits in component arrays; there is no CMS/config document feed.
 
@@ -155,3 +161,4 @@ If landing layout breaks on mobile:
 - [Frontend Landing Docs Hub](README.md)
 - [Frontend Landing Sections Docs Hub](sections/README.md)
 - [Hero, How, Available, and Roadmap Section Content Contract Reference](sections/hero_how_available_and_roadmap_section_content_contract_reference.md)
+- [Why, Privacy, CTA Footer, and Shared Intro Component Contract Reference](sections/why_privacy_cta_footer_and_shared_intro_component_contract_reference.md)

@@ -8,7 +8,6 @@ instead of local embedding providers.
 import asyncio
 import json
 import logging
-import re
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -27,6 +26,41 @@ except ImportError:
 
 from core.remote_embedding_client import RemoteEmbeddingClient
 from core.remote_title_client import RemoteTitleClient
+from memory.conversation_list_runtime import list_transcript_conversations
+from memory.conversation_semanticization_runtime import (
+    count_unsemanticized_interaction_memories as fetch_unsemanticized_interaction_count,
+)
+from memory.conversation_semanticization_runtime import (
+    get_user_ids_with_unsemanticized_memories as fetch_users_with_unsemanticized_memories,
+)
+from memory.conversation_semanticization_runtime import (
+    semantic_summary_exists as check_semantic_summary_exists,
+)
+from memory.conversation_search_runtime import search_transcript_conversations
+from memory.conversation_title_runtime import cancel_title_generation_tasks
+from memory.conversation_title_runtime import ensure_title_generation_runtime_state
+from memory.conversation_title_runtime import generate_conversation_title_and_persist
+from memory.conversation_title_runtime import maybe_generate_conversation_title
+from memory.conversation_title_runtime import run_conversation_title_generation
+from memory.conversation_window_runtime import conversation_where_clause
+from memory.conversation_window_runtime import format_transcript_rows
+from memory.conversation_window_runtime import get_episodic_memories_for_conversation
+from memory.conversation_window_runtime import get_next_message_index_for_conversation
+from memory.conversation_window_runtime import (
+    get_unprocessed_memories_after_id as fetch_unprocessed_memories_after_id,
+)
+from memory.conversation_window_runtime import (
+    get_unsemanticized_conversation_windows as fetch_unsemanticized_conversation_windows,
+)
+from memory.conversation_window_runtime import (
+    get_unsemanticized_episodic_memories as fetch_unsemanticized_episodic_memories,
+)
+from memory.conversation_window_runtime import (
+    get_unsemanticized_episodic_memories_by_conversation as fetch_unsemanticized_episodic_by_conversation,
+)
+from memory.conversation_window_runtime import (
+    mark_episodic_memories_semanticized as mark_semanticized_memories_runtime,
+)
 from memory.faiss_index import (
     read_index_safe,
     read_index_safe_async,
@@ -40,21 +74,6 @@ from memory.sqlite_store import (
 from memory.watermark_state import WatermarkStateStore
 
 logger = logging.getLogger(__name__)
-
-
-class _NoopTitleClient:
-    async def initialize(self) -> None:
-        return None
-
-    async def close(self) -> None:
-        return None
-
-    async def generate_title(self, **_kwargs) -> str:
-        return ""
-
-
-TITLE_NORMALIZED_MAX_WORDS = 6
-TITLE_NORMALIZED_MAX_CHARS = 48
 
 
 @dataclass(frozen=True)
@@ -1133,14 +1152,12 @@ class LocalMemoryStore:
                 await cursor.execute(
                     """
                     SELECT COUNT(*) FROM memories
-                    WHERE user_id = ? AND record_kind = 'transcript'
+                    WHERE user_id = ?
                     """,
                     (user_id,),
                 )
             else:
-                await cursor.execute(
-                    "SELECT COUNT(*) FROM memories WHERE record_kind = 'transcript'"
-                )
+                await cursor.execute("SELECT COUNT(*) FROM memories")
             row = await cursor.fetchone()
             episodic_count = row[0] if row else 0
             by_type["episodic"] = episodic_count
@@ -1178,45 +1195,36 @@ class LocalMemoryStore:
         self, limit: int = 100
     ) -> List[str]:
         """
-        Return distinct user IDs that have unsemanticized episodic memories.
+        Return distinct user IDs that have unsemanticized episodic interaction memories.
         """
-        async with aiosqlite.connect(self.episodic_db_path) as conn:
-            cursor = await conn.cursor()
-            await cursor.execute(
-                """
-                SELECT user_id, MAX(timestamp) as latest_timestamp
-                FROM memories
-                WHERE is_semanticized = 0
-                  AND record_kind = 'transcript'
-                GROUP BY user_id
-                ORDER BY latest_timestamp DESC
-                LIMIT ?
-            """,
-                (limit,),
-            )
-            rows = await cursor.fetchall()
-            return [row[0] for row in rows if row and row[0]]
+        return await fetch_users_with_unsemanticized_memories(
+            episodic_db_path=self.episodic_db_path,
+            limit=limit,
+        )
+
+    async def count_unsemanticized_interaction_memories(
+        self,
+        user_id: Optional[str] = None,
+    ) -> int:
+        """
+        Count unsemanticized episodic interaction rows.
+
+        Args:
+            user_id: Optional user filter.
+        """
+        return await fetch_unsemanticized_interaction_count(
+            episodic_db_path=self.episodic_db_path,
+            user_id=user_id,
+        )
 
     async def semantic_summary_exists(self, summary_hash: str) -> bool:
         """
         Check if a semantic summary with the given hash already exists.
         """
-        if not summary_hash:
-            return False
-
-        pattern = f'%\"summary_hash\": \"{summary_hash}\"%'
-        async with aiosqlite.connect(self.semantic_db_path) as conn:
-            cursor = await conn.cursor()
-            await cursor.execute(
-                """
-                SELECT 1 FROM memories
-                WHERE metadata LIKE ?
-                LIMIT 1
-            """,
-                (pattern,),
-            )
-            row = await cursor.fetchone()
-            return row is not None
+        return await check_semantic_summary_exists(
+            semantic_db_path=self.semantic_db_path,
+            summary_hash=summary_hash,
+        )
 
     async def list_conversations(
         self, user_id: str, limit: int = 200, record_kind: Optional[str] = "transcript"
@@ -1233,48 +1241,12 @@ class LocalMemoryStore:
         Returns:
             List of conversation summaries with timestamps and entry counts
         """
-        async with aiosqlite.connect(self.episodic_db_path) as conn:
-            conn.row_factory = aiosqlite.Row
-            cursor = await conn.cursor()
-            normalized_record_kind = "transcript"
-            rows = await self._list_conversations_with_record_kind(
-                cursor,
-                user_id=user_id,
-                limit=limit,
-                record_kind=normalized_record_kind,
-            )
-
-            results = []
-            for row in rows:
-                conversation_id = row["conversation_id"]
-                title, title_source = await self._ensure_conversation_title(
-                    cursor=cursor,
-                    user_id=user_id,
-                    conversation_id=conversation_id,
-                    existing_title=row["title"],
-                    existing_title_source=row["title_source"],
-                    existing_title_locked=row["title_locked"],
-                )
-                if not isinstance(title, str) or not title.strip():
-                    continue
-                results.append({
-                    "conversation_id": conversation_id,
-                    "first_timestamp": row["first_timestamp"],
-                    "last_timestamp": row["last_timestamp"],
-                    "entry_count": row["entry_count"],
-                    "record_kind": row["record_kind"],
-                    "model_id": row["model_id"],
-                    "model_provider": row["model_provider"],
-                    "title": title.strip(),
-                    "title_source": title_source or "model",
-                    "is_resumable": bool(
-                        isinstance(conversation_id, str)
-                        and conversation_id.startswith("conv_")
-                    ),
-                })
-
-            await conn.commit()
-            return results
+        _ = record_kind  # API compatibility; transcript is the only supported kind.
+        return await list_transcript_conversations(
+            episodic_db_path=self.episodic_db_path,
+            user_id=user_id,
+            limit=limit,
+        )
 
     async def search_conversations(
         self,
@@ -1290,85 +1262,17 @@ class LocalMemoryStore:
         Ranking combines lexical transcript matches (FTS5/LIKE fallback),
         semantic transcript matches (vector search), and recency.
         """
-        normalized_query = (query or "").strip()
-        if len(normalized_query) < 2:
-            return []
-
-        lexical_hits: List[Dict[str, Any]] = []
-        async with aiosqlite.connect(self.episodic_db_path) as conn:
-            conn.row_factory = aiosqlite.Row
-            cursor = await conn.cursor()
-            lexical_hits = await self._search_transcript_hits_lexical(
-                cursor=cursor,
-                user_id=user_id,
-                query=normalized_query,
-                limit=max(1, lexical_limit),
-            )
-
-        semantic_hits = await self._search_transcript_hits_semantic(
+        return await search_transcript_conversations(
+            store=self,
+            episodic_db_path=self.episodic_db_path,
             user_id=user_id,
-            query=normalized_query,
-            limit=max(1, semantic_limit),
+            query=query,
+            limit=limit,
+            lexical_limit=lexical_limit,
+            semantic_limit=semantic_limit,
+            logger=logger,
+            now_epoch_seconds=datetime.now(timezone.utc).timestamp(),
         )
-
-        grouped_hits = self._group_conversation_search_hits(lexical_hits, semantic_hits)
-        if not grouped_hits:
-            return []
-
-        conversation_ids = list(grouped_hits.keys())
-        summaries: Dict[str, Dict[str, Any]] = {}
-        async with aiosqlite.connect(self.episodic_db_path) as conn:
-            conn.row_factory = aiosqlite.Row
-            cursor = await conn.cursor()
-            summaries = await self._fetch_conversation_summaries(
-                cursor=cursor,
-                user_id=user_id,
-                conversation_ids=conversation_ids,
-            )
-            await conn.commit()
-
-        scored_rows: List[Dict[str, Any]] = []
-        now_ts = datetime.now(timezone.utc).timestamp()
-        for conversation_id, hit_info in grouped_hits.items():
-            summary = summaries.get(conversation_id)
-            if not summary:
-                continue
-
-            best_hit = self._pick_best_conversation_hit(hit_info)
-            lexical_best = float(hit_info.get("lexical_best", 0.0))
-            semantic_best = float(hit_info.get("semantic_best", 0.0))
-            match_count = int(hit_info.get("match_count", 0))
-
-            last_ts = self._safe_timestamp_to_epoch_seconds(summary.get("last_timestamp"))
-            age_days = max(0.0, (now_ts - last_ts) / 86400.0) if last_ts > 0 else 3650.0
-            recency_boost = 1.0 / (1.0 + (age_days / 14.0))
-            final_score = (
-                (lexical_best * 0.56)
-                + (semantic_best * 0.32)
-                + (min(match_count, 8) * 0.03)
-                + (recency_boost * 0.12)
-            )
-
-            scored_rows.append({
-                **summary,
-                "score": float(final_score),
-                "match_count": match_count,
-                "lexical_match_count": int(hit_info.get("lexical_match_count", 0)),
-                "semantic_match_count": int(hit_info.get("semantic_match_count", 0)),
-                "match_source": best_hit.get("source"),
-                "matched_role": best_hit.get("role"),
-                "matched_at": best_hit.get("timestamp"),
-                "snippet": best_hit.get("snippet"),
-            })
-
-        scored_rows.sort(
-            key=lambda row: (
-                float(row.get("score", 0.0)),
-                self._safe_timestamp_to_epoch_seconds(row.get("last_timestamp")),
-            ),
-            reverse=True,
-        )
-        return scored_rows[: max(1, limit)]
 
     async def _maybe_generate_conversation_title(
         self,
@@ -1380,58 +1284,20 @@ class LocalMemoryStore:
         """
         Non-blocking title generation trigger after assistant transcript writes.
         """
-        if not conversation_id:
-            return
-        self._ensure_title_generation_runtime_state()
-        task_key = (user_id, conversation_id)
-        existing_task = self._title_generation_tasks.get(task_key)
-        if existing_task and not existing_task.done():
-            return
-
-        task = asyncio.create_task(
-            self._run_conversation_title_generation(
-                user_id=user_id,
-                conversation_id=conversation_id,
-                preferred_model_id=preferred_model_id,
-                preferred_model_provider=preferred_model_provider,
-            ),
-            name=f"title-gen:{user_id}:{conversation_id}",
+        await maybe_generate_conversation_title(
+            store=self,
+            user_id=user_id,
+            conversation_id=conversation_id,
+            preferred_model_id=preferred_model_id,
+            preferred_model_provider=preferred_model_provider,
+            logger=logger,
         )
-        self._title_generation_tasks[task_key] = task
-
-        def _cleanup(done_task: asyncio.Task[Any]) -> None:
-            current = self._title_generation_tasks.get(task_key)
-            if current is done_task:
-                self._title_generation_tasks.pop(task_key, None)
-
-        task.add_done_callback(_cleanup)
 
     def _ensure_title_generation_runtime_state(self) -> None:
-        if not hasattr(self, "title_client") or self.title_client is None:
-            # Test harnesses that instantiate via __new__ can omit title wiring.
-            self.title_client = _NoopTitleClient()
-        if not hasattr(self, "_title_generation_tasks") or self._title_generation_tasks is None:
-            self._title_generation_tasks = {}
-        if (
-            not hasattr(self, "_title_generation_semaphore")
-            or self._title_generation_semaphore is None
-        ):
-            self._title_generation_semaphore = asyncio.Semaphore(2)
+        ensure_title_generation_runtime_state(store=self)
 
     async def _cancel_title_generation_tasks(self) -> None:
-        self._ensure_title_generation_runtime_state()
-        pending_tasks = [
-            task
-            for task in self._title_generation_tasks.values()
-            if task and not task.done()
-        ]
-        if not pending_tasks:
-            self._title_generation_tasks.clear()
-            return
-        for task in pending_tasks:
-            task.cancel()
-        await asyncio.gather(*pending_tasks, return_exceptions=True)
-        self._title_generation_tasks.clear()
+        await cancel_title_generation_tasks(store=self)
 
     async def _run_conversation_title_generation(
         self,
@@ -1441,24 +1307,14 @@ class LocalMemoryStore:
         preferred_model_id: Optional[str],
         preferred_model_provider: Optional[str],
     ) -> None:
-        self._ensure_title_generation_runtime_state()
-        try:
-            async with self._title_generation_semaphore:
-                await self._generate_conversation_title_and_persist(
-                    user_id=user_id,
-                    conversation_id=conversation_id,
-                    preferred_model_id=preferred_model_id,
-                    preferred_model_provider=preferred_model_provider,
-                )
-        except asyncio.CancelledError:
-            raise
-        except Exception as exc:
-            logger.warning(
-                "Failed to generate conversation title (user_id=%s conversation_id=%s): %s",
-                user_id,
-                conversation_id,
-                exc,
-            )
+        await run_conversation_title_generation(
+            store=self,
+            user_id=user_id,
+            conversation_id=conversation_id,
+            preferred_model_id=preferred_model_id,
+            preferred_model_provider=preferred_model_provider,
+            logger=logger,
+        )
 
     async def _generate_conversation_title_and_persist(
         self,
@@ -1468,636 +1324,13 @@ class LocalMemoryStore:
         preferred_model_id: Optional[str],
         preferred_model_provider: Optional[str],
     ) -> None:
-        async with aiosqlite.connect(self.episodic_db_path) as conn:
-            conn.row_factory = aiosqlite.Row
-            cursor = await conn.cursor()
-
-            current_title, _, is_locked = await self._lookup_conversation_title_state(
-                cursor=cursor,
-                user_id=user_id,
-                conversation_id=conversation_id,
-            )
-            if current_title or is_locked:
-                return
-
-            first_user_content, first_assistant_content, assistant_model_id, assistant_model_provider = (
-                await self._fetch_title_generation_inputs(
-                    cursor=cursor,
-                    user_id=user_id,
-                    conversation_id=conversation_id,
-                    preferred_model_id=preferred_model_id,
-                    preferred_model_provider=preferred_model_provider,
-                )
-            )
-            if not first_user_content or not first_assistant_content:
-                return
-
-            selected_model_id = (
-                preferred_model_id.strip()
-                if isinstance(preferred_model_id, str) and preferred_model_id.strip()
-                else assistant_model_id
-            )
-            selected_model_provider = (
-                preferred_model_provider.strip()
-                if isinstance(preferred_model_provider, str) and preferred_model_provider.strip()
-                else assistant_model_provider
-            )
-
-            generated_title = await self.title_client.generate_title(
-                user_id=user_id,
-                user_message=first_user_content,
-                assistant_message=first_assistant_content,
-                model_id=selected_model_id,
-                model_provider=selected_model_provider,
-            )
-            normalized_title = self._normalize_generated_title(generated_title)
-            if not normalized_title:
-                return
-
-            now_iso = datetime.now(timezone.utc).isoformat()
-            await cursor.execute(
-                """
-                INSERT INTO conversation_titles (
-                    user_id,
-                    conversation_id,
-                    title,
-                    source,
-                    is_locked,
-                    created_at,
-                    updated_at
-                )
-                VALUES (?, ?, ?, ?, 0, ?, ?)
-                ON CONFLICT(user_id, conversation_id)
-                DO UPDATE SET
-                    title = excluded.title,
-                    source = excluded.source,
-                    updated_at = excluded.updated_at
-                WHERE conversation_titles.is_locked = 0
-            """,
-                (
-                    user_id,
-                    conversation_id,
-                    normalized_title,
-                    "model",
-                    now_iso,
-                    now_iso,
-                ),
-            )
-            await conn.commit()
-
-    async def _lookup_conversation_title_state(
-        self,
-        *,
-        cursor,
-        user_id: str,
-        conversation_id: str,
-    ) -> Tuple[Optional[str], Optional[str], bool]:
-        await cursor.execute(
-            """
-            SELECT title, source, is_locked
-            FROM conversation_titles
-            WHERE user_id = ? AND conversation_id = ?
-        """,
-            (user_id, conversation_id),
-        )
-        row = await cursor.fetchone()
-        if not row:
-            return None, None, False
-
-        title = (row["title"] or "").strip() or None
-        source = (row["source"] or "").strip() or None
-        is_locked = bool(row["is_locked"])
-        return title, source, is_locked
-
-    async def _fetch_title_generation_inputs(
-        self,
-        *,
-        cursor,
-        user_id: str,
-        conversation_id: str,
-        preferred_model_id: Optional[str],
-        preferred_model_provider: Optional[str],
-    ) -> Tuple[Optional[str], Optional[str], Optional[str], Optional[str]]:
-        await cursor.execute(
-            """
-            SELECT content
-            FROM memories
-            WHERE user_id = ? AND conversation_id = ?
-              AND record_kind = 'transcript'
-              AND role = 'user'
-              AND content IS NOT NULL
-              AND content != ''
-            ORDER BY message_index ASC, timestamp ASC
-            LIMIT 1
-        """,
-            (user_id, conversation_id),
-        )
-        first_user_row = await cursor.fetchone()
-
-        normalized_model_id = (
-            preferred_model_id.strip()
-            if isinstance(preferred_model_id, str) and preferred_model_id.strip()
-            else None
-        )
-        normalized_model_provider = (
-            preferred_model_provider.strip()
-            if isinstance(preferred_model_provider, str) and preferred_model_provider.strip()
-            else None
-        )
-
-        first_assistant_row = None
-        if normalized_model_id and normalized_model_provider:
-            await cursor.execute(
-                """
-                SELECT content, model_id, model_provider
-                FROM memories
-                WHERE user_id = ? AND conversation_id = ?
-                  AND record_kind = 'transcript'
-                  AND role = 'assistant'
-                  AND LOWER(REPLACE(COALESCE(message_type, ''), '_', '-')) = 'llm-text'
-                  AND model_id = ?
-                  AND model_provider = ?
-                  AND content IS NOT NULL
-                  AND content != ''
-                ORDER BY message_index ASC, timestamp ASC
-                LIMIT 1
-            """,
-                (
-                    user_id,
-                    conversation_id,
-                    normalized_model_id,
-                    normalized_model_provider,
-                ),
-            )
-            first_assistant_row = await cursor.fetchone()
-
-        if not first_assistant_row:
-            await cursor.execute(
-                """
-                SELECT content, model_id, model_provider
-                FROM memories
-                WHERE user_id = ? AND conversation_id = ?
-                  AND record_kind = 'transcript'
-                  AND role = 'assistant'
-                  AND LOWER(REPLACE(COALESCE(message_type, ''), '_', '-')) = 'llm-text'
-                  AND content IS NOT NULL
-                  AND content != ''
-                ORDER BY message_index ASC, timestamp ASC
-                LIMIT 1
-            """,
-                (user_id, conversation_id),
-            )
-            first_assistant_row = await cursor.fetchone()
-
-        return (
-            first_user_row["content"] if first_user_row else None,
-            first_assistant_row["content"] if first_assistant_row else None,
-            (first_assistant_row["model_id"] or "").strip() if first_assistant_row else None,
-            (first_assistant_row["model_provider"] or "").strip() if first_assistant_row else None,
-        )
-
-    @staticmethod
-    def _normalize_generated_title(raw_title: Optional[str]) -> str:
-        if not isinstance(raw_title, str):
-            return ""
-        title = raw_title.strip()
-        if not title:
-            return ""
-        first_line = next((line.strip() for line in title.splitlines() if line.strip()), "")
-        if not first_line:
-            return ""
-        first_line = re.sub(r"^(title\s*:\s*)", "", first_line, flags=re.IGNORECASE)
-        first_line = first_line.strip().strip("`").strip().strip("\"'")
-        first_line = re.sub(r"\s+", " ", first_line).strip()
-        words = first_line.split()
-        if words:
-            first_line = " ".join(words[:TITLE_NORMALIZED_MAX_WORDS]).strip()
-        if len(first_line) > TITLE_NORMALIZED_MAX_CHARS:
-            first_line = first_line[:TITLE_NORMALIZED_MAX_CHARS].rstrip()
-        return first_line
-
-    async def _ensure_conversation_title(
-        self,
-        cursor,
-        user_id: str,
-        conversation_id: Optional[str],
-        existing_title: Optional[str],
-        existing_title_source: Optional[str],
-        existing_title_locked: Optional[int],
-    ) -> Tuple[Optional[str], Optional[str]]:
-        if not conversation_id:
-            return None, None
-
-        current_title = (existing_title or "").strip()
-        if current_title:
-            return current_title, existing_title_source or "model"
-
-        title, source, is_locked = await self._lookup_conversation_title_state(
-            cursor=cursor,
+        await generate_conversation_title_and_persist(
+            store=self,
             user_id=user_id,
             conversation_id=conversation_id,
+            preferred_model_id=preferred_model_id,
+            preferred_model_provider=preferred_model_provider,
         )
-        if title:
-            return title, source or "model"
-        if is_locked:
-            return None, source
-        return None, None
-
-    async def _search_transcript_hits_lexical(
-        self,
-        cursor,
-        user_id: str,
-        query: str,
-        limit: int,
-    ) -> List[Dict[str, Any]]:
-        fts_query = self._build_fts_query(query)
-        if not fts_query:
-            return []
-
-        try:
-            await cursor.execute(
-                """
-                SELECT
-                    m.id AS memory_id,
-                    m.conversation_id AS conversation_id,
-                    m.role AS role,
-                    m.content AS content,
-                    m.timestamp AS timestamp,
-                    bm25(transcript_fts) AS lexical_rank
-                FROM transcript_fts
-                JOIN memories m ON m.rowid = transcript_fts.rowid
-                WHERE transcript_fts MATCH ?
-                  AND m.user_id = ?
-                  AND m.record_kind = 'transcript'
-                  AND m.conversation_id IS NOT NULL
-                ORDER BY lexical_rank ASC, m.timestamp DESC
-                LIMIT ?
-            """,
-                (fts_query, user_id, limit),
-            )
-            rows = await cursor.fetchall()
-            hits: List[Dict[str, Any]] = []
-            for index, row in enumerate(rows):
-                position_score = max(0.0, 1.0 - (index / max(1, limit)))
-                lexical_rank = row["lexical_rank"]
-                rank_factor = 1.0 / (1.0 + abs(float(lexical_rank or 0.0)))
-                score = (position_score * 0.72) + (rank_factor * 0.28)
-                hits.append(self._build_conversation_hit(
-                    memory_id=row["memory_id"],
-                    conversation_id=row["conversation_id"],
-                    role=row["role"],
-                    content=row["content"],
-                    timestamp=row["timestamp"],
-                    source="lexical",
-                    score=score,
-                    query=query,
-                ))
-            return hits
-        except Exception as exc:
-            logger.warning(
-                "Transcript FTS query failed; falling back to LIKE search: %s",
-                exc,
-            )
-            return await self._search_transcript_hits_like(cursor, user_id, query, limit)
-
-    async def _search_transcript_hits_like(
-        self,
-        cursor,
-        user_id: str,
-        query: str,
-        limit: int,
-    ) -> List[Dict[str, Any]]:
-        like_terms = self._extract_query_terms(query)
-        if not like_terms:
-            return []
-        where_clause = " OR ".join(["LOWER(content) LIKE ?"] * len(like_terms))
-        params = tuple(f"%{term.lower()}%" for term in like_terms)
-        await cursor.execute(
-            f"""
-            SELECT
-                id AS memory_id,
-                conversation_id,
-                role,
-                content,
-                timestamp
-            FROM memories
-            WHERE user_id = ?
-              AND record_kind = 'transcript'
-              AND conversation_id IS NOT NULL
-              AND ({where_clause})
-            ORDER BY timestamp DESC
-            LIMIT ?
-        """,
-            (user_id, *params, limit),
-        )
-        rows = await cursor.fetchall()
-        hits: List[Dict[str, Any]] = []
-        for index, row in enumerate(rows):
-            score = max(0.0, 1.0 - (index / max(1, limit)))
-            hits.append(self._build_conversation_hit(
-                memory_id=row["memory_id"],
-                conversation_id=row["conversation_id"],
-                role=row["role"],
-                content=row["content"],
-                timestamp=row["timestamp"],
-                source="lexical",
-                score=score,
-                query=query,
-            ))
-        return hits
-
-    async def _search_transcript_hits_semantic(
-        self,
-        user_id: str,
-        query: str,
-        limit: int,
-    ) -> List[Dict[str, Any]]:
-        try:
-            semantic_rows = await self.search(
-                query=query,
-                user_id=user_id,
-                filters={"type": "episodic"},
-                limit=limit,
-            )
-        except Exception as exc:
-            logger.warning("Semantic transcript search failed: %s", exc)
-            return []
-
-        hits: List[Dict[str, Any]] = []
-        for index, row in enumerate(semantic_rows):
-            metadata = row.get("metadata") or {}
-            record_kind = (metadata.get("record_kind") or "").strip().lower()
-            if record_kind != "transcript":
-                continue
-
-            conversation_id = row.get("conversation_id") or metadata.get("conversation_id")
-            if not conversation_id:
-                continue
-
-            raw_score = float(row.get("score") or 0.0)
-            semantic_score = max(0.0, min(1.0, (raw_score + 1.0) / 2.0))
-            rank_bonus = max(0.0, 1.0 - (index / max(1, limit)))
-            score = (semantic_score * 0.74) + (rank_bonus * 0.26)
-
-            hits.append(self._build_conversation_hit(
-                memory_id=row.get("id"),
-                conversation_id=conversation_id,
-                role=metadata.get("role"),
-                content=row.get("text"),
-                timestamp=row.get("timestamp"),
-                source="semantic",
-                score=score,
-                query=query,
-            ))
-
-        return hits
-
-    async def _fetch_conversation_summaries(
-        self,
-        cursor,
-        user_id: str,
-        conversation_ids: List[str],
-    ) -> Dict[str, Dict[str, Any]]:
-        normalized_ids = [
-            conversation_id
-            for conversation_id in conversation_ids
-            if isinstance(conversation_id, str) and conversation_id
-        ]
-        if not normalized_ids:
-            return {}
-
-        placeholders = ",".join(["?"] * len(normalized_ids))
-        await cursor.execute(
-            f"""
-            SELECT conversation_id,
-                   MIN(timestamp) AS first_timestamp,
-                   MAX(timestamp) AS last_timestamp,
-                   COUNT(*) AS entry_count,
-                   (
-                     SELECT title FROM conversation_titles ct
-                     WHERE ct.user_id = ? AND ct.conversation_id = memories.conversation_id
-                     LIMIT 1
-                   ) AS title,
-                   (
-                     SELECT source FROM conversation_titles ct
-                     WHERE ct.user_id = ? AND ct.conversation_id = memories.conversation_id
-                     LIMIT 1
-                   ) AS title_source,
-                   (
-                     SELECT is_locked FROM conversation_titles ct
-                     WHERE ct.user_id = ? AND ct.conversation_id = memories.conversation_id
-                     LIMIT 1
-                   ) AS title_locked,
-                   (
-                     SELECT model_id FROM memories m2
-                     WHERE m2.user_id = ? AND m2.conversation_id = memories.conversation_id
-                       AND m2.record_kind = 'transcript'
-                       AND m2.model_id IS NOT NULL AND m2.model_id != ''
-                     ORDER BY m2.timestamp DESC, m2.message_index DESC
-                     LIMIT 1
-                   ) AS model_id,
-                   (
-                     SELECT model_provider FROM memories m2
-                     WHERE m2.user_id = ? AND m2.conversation_id = memories.conversation_id
-                       AND m2.record_kind = 'transcript'
-                       AND m2.model_provider IS NOT NULL AND m2.model_provider != ''
-                     ORDER BY m2.timestamp DESC, m2.message_index DESC
-                     LIMIT 1
-                   ) AS model_provider
-            FROM memories
-            WHERE user_id = ?
-              AND record_kind = 'transcript'
-              AND conversation_id IN ({placeholders})
-            GROUP BY conversation_id
-        """,
-            (
-                user_id,
-                user_id,
-                user_id,
-                user_id,
-                user_id,
-                user_id,
-                *normalized_ids,
-            ),
-        )
-        rows = await cursor.fetchall()
-        summaries: Dict[str, Dict[str, Any]] = {}
-        for row in rows:
-            conversation_id = row["conversation_id"]
-            title, title_source = await self._ensure_conversation_title(
-                cursor=cursor,
-                user_id=user_id,
-                conversation_id=conversation_id,
-                existing_title=row["title"],
-                existing_title_source=row["title_source"],
-                existing_title_locked=row["title_locked"],
-            )
-            normalized_title = title.strip() if isinstance(title, str) and title.strip() else "New chat"
-            summaries[conversation_id] = {
-                "conversation_id": conversation_id,
-                "first_timestamp": row["first_timestamp"],
-                "last_timestamp": row["last_timestamp"],
-                "entry_count": row["entry_count"],
-                "model_id": row["model_id"],
-                "model_provider": row["model_provider"],
-                "title": normalized_title,
-                "title_source": title_source or ("model" if normalized_title != "New chat" else "pending"),
-                "is_resumable": bool(
-                    isinstance(conversation_id, str)
-                    and conversation_id.startswith("conv_")
-                ),
-            }
-        return summaries
-
-    @staticmethod
-    def _extract_query_terms(query: str) -> List[str]:
-        terms = re.findall(r"[A-Za-z0-9_]+", (query or "").lower())
-        deduped: List[str] = []
-        seen = set()
-        for term in terms:
-            normalized = term.strip()
-            if len(normalized) < 2 or normalized in seen:
-                continue
-            seen.add(normalized)
-            deduped.append(normalized)
-            if len(deduped) >= 8:
-                break
-        return deduped
-
-    def _build_fts_query(self, query: str) -> str:
-        terms = self._extract_query_terms(query)
-        if not terms:
-            return ""
-        return " ".join(f"{term}*" for term in terms)
-
-    def _build_content_snippet(self, content: Optional[str], query: str) -> str:
-        text = " ".join((content or "").split())
-        if not text:
-            return ""
-        max_chars = 160
-        if len(text) <= max_chars:
-            return text
-
-        lower_text = text.lower()
-        terms = self._extract_query_terms(query)
-        hit_index = 0
-        for term in terms:
-            pos = lower_text.find(term)
-            if pos >= 0:
-                hit_index = pos
-                break
-
-        window = 130
-        start = max(0, hit_index - 45)
-        end = min(len(text), start + window)
-        start = max(0, end - window)
-        snippet = text[start:end].strip()
-        if start > 0:
-            snippet = f"…{snippet}"
-        if end < len(text):
-            snippet = f"{snippet}…"
-        return snippet
-
-    def _build_conversation_hit(
-        self,
-        memory_id: Optional[str],
-        conversation_id: Optional[str],
-        role: Optional[str],
-        content: Optional[str],
-        timestamp: Optional[str],
-        source: str,
-        score: float,
-        query: str,
-    ) -> Dict[str, Any]:
-        normalized_role = (role or "").strip().lower() or "assistant"
-        snippet = self._build_content_snippet(content, query)
-        return {
-            "memory_id": memory_id,
-            "conversation_id": conversation_id,
-            "role": normalized_role,
-            "content": content or "",
-            "timestamp": timestamp,
-            "source": source,
-            "score": float(score),
-            "snippet": snippet,
-        }
-
-    def _group_conversation_search_hits(
-        self,
-        lexical_hits: List[Dict[str, Any]],
-        semantic_hits: List[Dict[str, Any]],
-    ) -> Dict[str, Dict[str, Any]]:
-        grouped: Dict[str, Dict[str, Any]] = {}
-
-        def append_hit(hit: Dict[str, Any]) -> None:
-            conversation_id = hit.get("conversation_id")
-            if not conversation_id:
-                return
-            bucket = grouped.setdefault(conversation_id, {
-                "hits": [],
-                "match_ids": set(),
-                "lexical_match_count": 0,
-                "semantic_match_count": 0,
-                "lexical_best": 0.0,
-                "semantic_best": 0.0,
-            })
-            memory_id = hit.get("memory_id")
-            if memory_id and memory_id in bucket["match_ids"]:
-                return
-
-            bucket["hits"].append(hit)
-            if memory_id:
-                bucket["match_ids"].add(memory_id)
-
-            source = hit.get("source")
-            score = float(hit.get("score", 0.0))
-            if source == "lexical":
-                bucket["lexical_match_count"] += 1
-                bucket["lexical_best"] = max(bucket["lexical_best"], score)
-            elif source == "semantic":
-                bucket["semantic_match_count"] += 1
-                bucket["semantic_best"] = max(bucket["semantic_best"], score)
-
-        for hit in lexical_hits:
-            append_hit(hit)
-        for hit in semantic_hits:
-            append_hit(hit)
-
-        for payload in grouped.values():
-            payload["match_count"] = len(payload["match_ids"])
-            payload.pop("match_ids", None)
-        return grouped
-
-    @staticmethod
-    def _pick_best_conversation_hit(hit_info: Dict[str, Any]) -> Dict[str, Any]:
-        hits = hit_info.get("hits") or []
-        if not hits:
-            return {
-                "source": "lexical",
-                "role": "assistant",
-                "timestamp": None,
-                "snippet": "",
-                "score": 0.0,
-            }
-        lexical_hits = [hit for hit in hits if hit.get("source") == "lexical"]
-        if lexical_hits:
-            return max(lexical_hits, key=lambda hit: float(hit.get("score", 0.0)))
-        return max(hits, key=lambda hit: float(hit.get("score", 0.0)))
-
-    @staticmethod
-    def _safe_timestamp_to_epoch_seconds(timestamp: Optional[str]) -> float:
-        if not isinstance(timestamp, str) or not timestamp.strip():
-            return 0.0
-        text = timestamp.strip()
-        try:
-            if text.endswith("Z"):
-                text = text.replace("Z", "+00:00")
-            parsed = datetime.fromisoformat(text)
-            if parsed.tzinfo is None:
-                parsed = parsed.replace(tzinfo=timezone.utc)
-            return parsed.timestamp()
-        except Exception:
-            return 0.0
 
     async def list_semantic_memories(
         self, user_id: str, limit: int = 200
@@ -2175,6 +1408,57 @@ class LocalMemoryStore:
                 })
 
             return results
+
+    async def delete_episodic_memory(self, user_id: str, memory_id: str) -> bool:
+        """
+        Delete a non-transcript episodic memory entry by ID for a given user.
+
+        Transcript rows are intentionally excluded from this path; transcript
+        deletions should continue through conversation-level deletion.
+        """
+        if not memory_id:
+            return False
+
+        vector_id: Optional[int] = None
+        deleted = False
+
+        async with aiosqlite.connect(self.episodic_db_path) as conn:
+            cursor = await conn.cursor()
+            await cursor.execute(
+                """
+                SELECT embedding_id
+                FROM memories
+                WHERE id = ? AND user_id = ? AND COALESCE(record_kind, '') != 'transcript'
+            """,
+                (memory_id, user_id),
+            )
+            row = await cursor.fetchone()
+            if row:
+                try:
+                    vector_id = row[0] if row[0] is None else int(row[0])
+                except Exception:
+                    vector_id = None
+
+            await cursor.execute(
+                """
+                DELETE FROM memories
+                WHERE id = ? AND user_id = ? AND COALESCE(record_kind, '') != 'transcript'
+            """,
+                (memory_id, user_id),
+            )
+            deleted = cursor.rowcount > 0
+            await conn.commit()
+
+        if deleted and vector_id is not None:
+            self.episodic_vector_id_to_memory_id.pop(vector_id, None)
+            self.episodic_memory_id_to_vector_id.pop(memory_id, None)
+        elif deleted:
+            self.episodic_memory_id_to_vector_id.pop(memory_id, None)
+
+        if deleted:
+            await self._cleanup_index_artifacts_if_empty("episodic")
+            logger.debug("Deleted episodic memory %s (user_id=%s)", memory_id, user_id)
+        return bool(deleted)
 
     async def delete_semantic_memory(self, user_id: str, memory_id: str) -> bool:
         """
@@ -2372,84 +1656,17 @@ class LocalMemoryStore:
             memory_type,
         )
 
-    async def _list_conversations_with_record_kind(
-        self,
-        cursor,
-        user_id: str,
-        limit: int,
-        record_kind: Optional[str],
-    ) -> List[Any]:
-        _ = record_kind  # API compatibility; transcript is the only supported kind.
-        await cursor.execute(
-            """
-            SELECT conversation_id,
-                   MIN(timestamp) as first_timestamp,
-                   MAX(timestamp) as last_timestamp,
-                   COUNT(*) as entry_count,
-                   record_kind,
-                   (
-                     SELECT title FROM conversation_titles ct
-                     WHERE ct.user_id = ? AND ct.conversation_id = memories.conversation_id
-                     LIMIT 1
-                   ) as title,
-                   (
-                     SELECT source FROM conversation_titles ct
-                     WHERE ct.user_id = ? AND ct.conversation_id = memories.conversation_id
-                     LIMIT 1
-                   ) as title_source,
-                   (
-                     SELECT is_locked FROM conversation_titles ct
-                     WHERE ct.user_id = ? AND ct.conversation_id = memories.conversation_id
-                     LIMIT 1
-                   ) as title_locked,
-                   (
-                     SELECT model_id FROM memories m2
-                     WHERE m2.user_id = ? AND m2.conversation_id = memories.conversation_id
-                       AND m2.record_kind = 'transcript'
-                       AND m2.model_id IS NOT NULL AND m2.model_id != ''
-                     ORDER BY m2.timestamp DESC, m2.message_index DESC
-                     LIMIT 1
-                   ) as model_id,
-                   (
-                     SELECT model_provider FROM memories m2
-                     WHERE m2.user_id = ? AND m2.conversation_id = memories.conversation_id
-                       AND m2.record_kind = 'transcript'
-                       AND m2.model_provider IS NOT NULL AND m2.model_provider != ''
-                     ORDER BY m2.timestamp DESC, m2.message_index DESC
-                     LIMIT 1
-                   ) as model_provider
-            FROM memories
-            WHERE user_id = ? AND record_kind = 'transcript'
-            GROUP BY conversation_id
-            ORDER BY last_timestamp DESC
-            LIMIT ?
-        """,
-            (user_id, user_id, user_id, user_id, user_id, user_id, limit),
-        )
-        return await cursor.fetchall()
-
     async def get_next_message_index(
         self, user_id: str, conversation_id: Optional[str]
     ) -> int:
         """
         Get the next message index for a transcript conversation.
         """
-        async with aiosqlite.connect(self.episodic_db_path) as conn:
-            cursor = await conn.cursor()
-            conversation_clause, conversation_params = self._conversation_where_clause(
-                conversation_id
-            )
-            await cursor.execute(
-                f"""
-                SELECT MAX(message_index)
-                FROM memories
-                WHERE user_id = ? AND record_kind = 'transcript' AND {conversation_clause}
-            """,
-                (user_id, *conversation_params),
-            )
-            row = await cursor.fetchone()
-            max_index = row[0] if row and row[0] is not None else 0
-            return int(max_index) + 1
+        return await get_next_message_index_for_conversation(
+            episodic_db_path=self.episodic_db_path,
+            user_id=user_id,
+            conversation_id=conversation_id,
+        )
 
     async def get_episodic_memories_by_conversation(
         self,
@@ -2457,6 +1674,7 @@ class LocalMemoryStore:
         conversation_id: Optional[str],
         limit: int = 1000,
         record_kind: Optional[str] = "transcript",
+        after_message_index: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
         """
         Get episodic memories for a specific conversation window.
@@ -2467,55 +1685,21 @@ class LocalMemoryStore:
             conversation_id: Conversation window identifier (None for memories without conversation_id)
             limit: Maximum number of memories to return (for safety)
             record_kind: Optional filter. Transcript-only; non-transcript values are ignored.
+            after_message_index: Optional cursor. When provided, returns rows with
+                message_index strictly greater than this cursor.
 
         Returns:
             List of memory dictionaries with 'id', 'content', 'timestamp', 'metadata', 'conversation_id'
         """
-        async with aiosqlite.connect(self.episodic_db_path) as conn:
-            conn.row_factory = aiosqlite.Row
-            cursor = await conn.cursor()
-
-            _ = record_kind  # API compatibility; transcript is the only supported kind.
-            record_kind_clause = "AND record_kind = 'transcript'"
-            conversation_clause, conversation_params = self._conversation_where_clause(
-                conversation_id
-            )
-
-            await cursor.execute(
-                f"""
-                SELECT id, content, timestamp, metadata, conversation_id, role, message_index, message_type, tool_name, correlation_id, record_kind, model_id, model_provider, screenshot
-                FROM memories
-                WHERE user_id = ? AND {conversation_clause}
-                {record_kind_clause}
-                ORDER BY message_index ASC, timestamp ASC
-                LIMIT ?
-            """,
-                (user_id, *conversation_params, limit),
-            )
-
-            rows = await cursor.fetchall()
-            
-            results = []
-            for row in rows:
-                metadata = self._parse_raw_metadata(row["metadata"])
-                results.append({
-                    "id": row["id"],
-                    "content": row["content"],
-                    "timestamp": row["timestamp"],
-                    "metadata": metadata,
-                    "conversation_id": row["conversation_id"],
-                    "record_kind": row["record_kind"] or metadata.get("record_kind"),
-                    "role": row["role"],
-                    "message_index": row["message_index"],
-                    "message_type": row["message_type"],
-                    "tool_name": row["tool_name"],
-                    "correlation_id": row["correlation_id"],
-                    "model_id": row["model_id"],
-                    "model_provider": row["model_provider"],
-                    "screenshot": row["screenshot"],
-                })
-            
-            return results
+        return await get_episodic_memories_for_conversation(
+            episodic_db_path=self.episodic_db_path,
+            user_id=user_id,
+            conversation_id=conversation_id,
+            limit=limit,
+            record_kind=record_kind,
+            after_message_index=after_message_index,
+            parse_raw_metadata=self._parse_raw_metadata,
+        )
     
     async def get_unsemanticized_conversation_windows(
         self, user_id: str
@@ -2530,21 +1714,10 @@ class LocalMemoryStore:
         Returns:
             List of conversation_id strings (None values are treated as separate windows)
         """
-        async with aiosqlite.connect(self.episodic_db_path) as conn:
-            cursor = await conn.cursor()
-            await cursor.execute(
-                """
-                SELECT conversation_id, MIN(timestamp) as earliest_timestamp
-                FROM memories
-                WHERE user_id = ? AND is_semanticized = 0
-                  AND record_kind = 'transcript'
-                GROUP BY conversation_id
-                ORDER BY earliest_timestamp ASC
-            """,
-                (user_id,),
-            )
-            rows = await cursor.fetchall()
-            return [row[0] for row in rows]  # conversation_id can be None
+        return await fetch_unsemanticized_conversation_windows(
+            episodic_db_path=self.episodic_db_path,
+            user_id=user_id,
+        )
     
     async def get_unsemanticized_episodic_memories_by_conversation(
         self, user_id: str, conversation_id: Optional[str], limit: int = 1000
@@ -2561,42 +1734,17 @@ class LocalMemoryStore:
         Returns:
             List of memory dictionaries with 'id', 'content', 'timestamp', 'metadata', 'conversation_id'
         """
-        async with aiosqlite.connect(self.episodic_db_path) as conn:
-            conn.row_factory = aiosqlite.Row
-            cursor = await conn.cursor()
-            conversation_clause, conversation_params = self._conversation_where_clause(
-                conversation_id
-            )
-            await cursor.execute(
-                f"""
-                SELECT
-                    id,
-                    content,
-                    timestamp,
-                    metadata,
-                    conversation_id,
-                    record_kind,
-                    role,
-                    message_type,
-                    tool_name
-                FROM memories
-                WHERE user_id = ? AND is_semanticized = 0
-                  AND record_kind = 'transcript'
-                  AND {conversation_clause}
-                ORDER BY timestamp ASC
-                LIMIT ?
-            """,
-                (user_id, *conversation_params, limit),
-            )
-            
-            rows = await cursor.fetchall()
-            return self._format_transcript_rows(rows, include_conversation_id=True)
+        return await fetch_unsemanticized_episodic_by_conversation(
+            episodic_db_path=self.episodic_db_path,
+            user_id=user_id,
+            conversation_id=conversation_id,
+            limit=limit,
+            format_transcript_rows=self._format_transcript_rows,
+        )
 
     @staticmethod
     def _conversation_where_clause(conversation_id: Optional[str]) -> Tuple[str, Tuple[Any, ...]]:
-        if conversation_id is None:
-            return "conversation_id IS NULL", ()
-        return "conversation_id = ?", (conversation_id,)
+        return conversation_where_clause(conversation_id)
     
     async def get_unsemanticized_episodic_memories(
         self, user_id: str, limit: int = 10
@@ -2611,22 +1759,12 @@ class LocalMemoryStore:
         Returns:
             List of memory dictionaries with 'id', 'content', 'timestamp', 'metadata'
         """
-        async with aiosqlite.connect(self.episodic_db_path) as conn:
-            conn.row_factory = aiosqlite.Row
-            cursor = await conn.cursor()
-            await cursor.execute(
-                """
-                SELECT id, content, timestamp, metadata, record_kind, role, message_type, tool_name
-                FROM memories
-                WHERE user_id = ? AND is_semanticized = 0
-                  AND record_kind = 'transcript'
-                ORDER BY timestamp ASC
-                LIMIT ?
-            """,
-                (user_id, limit),
-            )
-            rows = await cursor.fetchall()
-            return self._format_transcript_rows(rows, include_conversation_id=False)
+        return await fetch_unsemanticized_episodic_memories(
+            episodic_db_path=self.episodic_db_path,
+            user_id=user_id,
+            limit=limit,
+            format_transcript_rows=self._format_transcript_rows,
+        )
     
     async def mark_episodic_memories_semanticized(
         self, memory_ids: List[str]
@@ -2637,22 +1775,11 @@ class LocalMemoryStore:
         Args:
             memory_ids: List of memory IDs to mark as processed
         """
-        if not memory_ids:
-            return
-            
-        async with aiosqlite.connect(self.episodic_db_path) as conn:
-            cursor = await conn.cursor()
-            placeholders = ",".join(["?"] * len(memory_ids))
-            await cursor.execute(
-                f"""
-                UPDATE memories
-                SET is_semanticized = 1
-                WHERE id IN ({placeholders})
-            """,
-                memory_ids,
-            )
-            await conn.commit()
-            logger.debug(f"Marked {len(memory_ids)} episodic memories as semanticized")
+        await mark_semanticized_memories_runtime(
+            episodic_db_path=self.episodic_db_path,
+            memory_ids=memory_ids,
+            log_debug=logger.debug,
+        )
     
     async def get_watermark(self) -> Dict[str, Any]:
         """
@@ -2674,17 +1801,6 @@ class LocalMemoryStore:
         await self._watermark_store.update(last_semanticized_id, pending_message_count)
         logger.debug(f"Updated watermark: last_id={last_semanticized_id}, pending={pending_message_count}")
     
-    async def increment_pending_count(self) -> int:
-        """
-        Increment pending message count and return new value.
-        
-        Returns:
-            New pending message count
-        """
-        new_count = await self._watermark_store.increment_pending_count()
-        logger.debug(f"Incremented pending count to {new_count}")
-        return new_count
-    
     async def get_unprocessed_memories_after_id(
         self, last_id: Optional[str], user_id: str, limit: int = 1000 
     ) -> List[Dict[str, Any]]:
@@ -2700,46 +1816,13 @@ class LocalMemoryStore:
         Returns:
             List of memory dictionaries with 'id', 'content', 'timestamp', 'metadata', 'conversation_id'
         """
-        async with aiosqlite.connect(self.episodic_db_path) as conn:
-            conn.row_factory = aiosqlite.Row
-            cursor = await conn.cursor()
-            await cursor.execute(
-                """
-                WITH watermark AS (
-                    SELECT timestamp
-                    FROM memories
-                    WHERE id = ?
-                )
-                SELECT
-                    id,
-                    content,
-                    timestamp,
-                    metadata,
-                    conversation_id,
-                    record_kind,
-                    role,
-                    message_type,
-                    tool_name
-                FROM memories
-                WHERE user_id = ?
-                  AND is_semanticized = 0
-                  AND record_kind = 'transcript'
-                  AND (
-                      ? IS NULL
-                      OR NOT EXISTS (SELECT 1 FROM watermark)
-                      OR timestamp > (SELECT timestamp FROM watermark)
-                      OR (
-                          timestamp = (SELECT timestamp FROM watermark)
-                          AND id > ?
-                      )
-                  )
-                ORDER BY timestamp ASC, id ASC
-                LIMIT ?
-            """,
-                (last_id, user_id, last_id, last_id, limit),
-            )
-            rows = await cursor.fetchall()
-            return self._format_transcript_rows(rows, include_conversation_id=True)
+        return await fetch_unprocessed_memories_after_id(
+            episodic_db_path=self.episodic_db_path,
+            last_id=last_id,
+            user_id=user_id,
+            limit=limit,
+            format_transcript_rows=self._format_transcript_rows,
+        )
 
     def _format_transcript_rows(
         self,
@@ -2747,20 +1830,8 @@ class LocalMemoryStore:
         *,
         include_conversation_id: bool,
     ) -> List[Dict[str, Any]]:
-        results: List[Dict[str, Any]] = []
-        for row in rows:
-            metadata = self._parse_raw_metadata(row["metadata"])
-            entry = {
-                "id": row["id"],
-                "content": row["content"],
-                "timestamp": row["timestamp"],
-                "metadata": metadata,
-                "record_kind": row["record_kind"] or metadata.get("record_kind"),
-                "role": row["role"] or metadata.get("role"),
-                "message_type": row["message_type"] or metadata.get("message_type"),
-                "tool_name": row["tool_name"] or metadata.get("tool_name"),
-            }
-            if include_conversation_id:
-                entry["conversation_id"] = row["conversation_id"]
-            results.append(entry)
-        return results
+        return format_transcript_rows(
+            rows=rows,
+            include_conversation_id=include_conversation_id,
+            parse_raw_metadata=self._parse_raw_metadata,
+        )

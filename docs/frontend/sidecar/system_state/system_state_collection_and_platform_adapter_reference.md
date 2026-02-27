@@ -143,9 +143,10 @@ Platform bootstrap:
 
 ### Context-label overlay
 
-`ChatBoxContextLabel` requests only:
+Current runtime note:
 
-- `active_window`
+- `ChatBoxContextLabel` is a no-op renderer component in current frontend runtime.
+- no active renderer polling path currently requests `active_window` for context-label rendering.
 
 ### Main-process direct consumers
 

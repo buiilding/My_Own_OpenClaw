@@ -1,8 +1,8 @@
 ---
-summary: "Frontend protocol observability sub-hub for websocket bridge status/phase broadcasts, renderer stream tracking metrics, and token-count signal consumption contracts."
+summary: "Frontend protocol observability sub-hub for websocket bridge status/phase broadcasts, settings-ACK diagnostics, renderer stream-tracking metrics, and token-count signal consumption contracts."
 read_when:
   - When changing `ipc-status` or `response-overlay-phase` broadcast behavior in Electron main.
-  - When changing renderer stream-tracking counters/timestamps or token-count event handling.
+  - When changing renderer stream-tracking counters/timestamps, settings-ACK timeout diagnostics, or token-count event handling.
 title: "Frontend Protocol Observability Hub"
 ---
 

@@ -1,0 +1,135 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+Bootstrap WindieOS self-hosting on this machine:
+1) install cloudflared locally
+2) install backend user-service
+3) create/configure tunnel + DNS + tunnel user-service
+
+Usage:
+  scripts/cloudflared/bootstrap-windieos-host [options]
+
+Options:
+  --domain DOMAIN           Base domain (default: windieos.com)
+  --hostname HOSTNAME       Full API hostname (default: api.<domain>)
+  --tunnel-name NAME        Tunnel name (default: windieos-backend)
+  --backend-origin URL      Local backend URL for tunnel ingress (default: http://127.0.0.1:8765)
+  --backend-env NAME        WINDIE_BACKEND_ENV for backend service (default: jarvis)
+  --skip-login              Skip cloudflared tunnel login flow
+  --dry-run                 Print actions without executing
+  -h, --help                Show this help
+
+Examples:
+  scripts/cloudflared/bootstrap-windieos-host
+  scripts/cloudflared/bootstrap-windieos-host --hostname api.windieos.com --backend-env jarvis
+EOF
+}
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+DOMAIN="windieos.com"
+HOSTNAME=""
+TUNNEL_NAME="windieos-backend"
+BACKEND_ORIGIN="http://127.0.0.1:8765"
+BACKEND_ENV_NAME="jarvis"
+SKIP_LOGIN=0
+DRY_RUN=0
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --domain)
+      DOMAIN="${2:-}"
+      shift 2
+      ;;
+    --hostname)
+      HOSTNAME="${2:-}"
+      shift 2
+      ;;
+    --tunnel-name)
+      TUNNEL_NAME="${2:-}"
+      shift 2
+      ;;
+    --backend-origin)
+      BACKEND_ORIGIN="${2:-}"
+      shift 2
+      ;;
+    --backend-env)
+      BACKEND_ENV_NAME="${2:-}"
+      shift 2
+      ;;
+    --skip-login)
+      SKIP_LOGIN=1
+      shift
+      ;;
+    --dry-run)
+      DRY_RUN=1
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown argument: $1" >&2
+      usage
+      exit 1
+      ;;
+  esac
+done
+
+if [[ -z "$HOSTNAME" ]]; then
+  HOSTNAME="api.${DOMAIN}"
+fi
+
+run_cmd() {
+  if ((DRY_RUN)); then
+    printf '[dry-run] '
+    printf '%q ' "$@"
+    echo
+    return 0
+  fi
+  "$@"
+}
+
+if [[ ! -x "${ROOT}/scripts/cloudflared/install-cloudflared-user" ]]; then
+  echo "Missing executable: scripts/cloudflared/install-cloudflared-user" >&2
+  exit 1
+fi
+if [[ ! -x "${ROOT}/scripts/cloudflared/install-backend-user-service" ]]; then
+  echo "Missing executable: scripts/cloudflared/install-backend-user-service" >&2
+  exit 1
+fi
+if [[ ! -x "${ROOT}/scripts/cloudflared/setup-windieos-tunnel" ]]; then
+  echo "Missing executable: scripts/cloudflared/setup-windieos-tunnel" >&2
+  exit 1
+fi
+
+run_cmd "${ROOT}/scripts/cloudflared/install-cloudflared-user"
+
+BACKEND_ARGS=(
+  "${ROOT}/scripts/cloudflared/install-backend-user-service"
+  "--repo-root" "${ROOT}"
+  "--backend-env" "${BACKEND_ENV_NAME}"
+)
+if ((DRY_RUN)); then
+  BACKEND_ARGS+=("--dry-run")
+fi
+run_cmd "${BACKEND_ARGS[@]}"
+
+TUNNEL_ARGS=(
+  "${ROOT}/scripts/cloudflared/setup-windieos-tunnel"
+  "--domain" "${DOMAIN}"
+  "--hostname" "${HOSTNAME}"
+  "--tunnel-name" "${TUNNEL_NAME}"
+  "--backend-origin" "${BACKEND_ORIGIN}"
+)
+if ((SKIP_LOGIN)); then
+  TUNNEL_ARGS+=("--skip-login")
+fi
+if ((DRY_RUN)); then
+  TUNNEL_ARGS+=("--dry-run")
+fi
+run_cmd "${TUNNEL_ARGS[@]}"
+
+echo "Bootstrap complete. API hostname target: https://${HOSTNAME}"

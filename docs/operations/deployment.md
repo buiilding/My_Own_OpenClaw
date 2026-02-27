@@ -34,6 +34,19 @@ For feature roadmap details, see `../planning/future_plan.md`.
 - Agent execution, memory, and model serving mostly remote.
 - Local-only still available as an explicit privacy mode.
 
+## Fast Path: Self-Hosted `api.windieos.com` via Cloudflare Tunnel
+
+For immediate remote access from packaged desktop clients, use the Cloudflared
+runbook:
+
+- `docs/operations/cloudflared_self_host_windieos.md`
+
+Supporting scripts in this repo:
+- `scripts/cloudflared/install-cloudflared-user`
+- `scripts/cloudflared/install-backend-user-service`
+- `scripts/cloudflared/setup-windieos-tunnel`
+- `scripts/cloudflared/bootstrap-windieos-host`
+
 ## Desktop Packaging Plan
 
 ### Artifacts
@@ -50,6 +63,8 @@ Bundled sidecar-runtime packaging profile:
 - `npm run package:win:bundled-python`
 - `npm run package:mac:bundled-python`
 - `npm run package:linux:bundled-python`
+- These default to the slim sidecar runtime profile.
+- Full profile (with Playwright Chromium payload): `npm run package:*:bundled-python:full`
 - runtime build guide: `docs/operations/sidecar_runtime_packaging.md`
 
 ### Signing & update channels

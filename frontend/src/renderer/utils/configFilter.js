@@ -16,6 +16,7 @@ const FRONTEND_CONFIG_FIELDS = [
   'wakeword_stt_enabled',
   'agent_full_sudo_enabled',
   'include_query_screenshot',
+  'provider_api_keys',
 ];
 
 /**

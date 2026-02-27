@@ -64,6 +64,7 @@ describe('external_focus_tracker', () => {
     tracker.capturePreviousExternalFocusedWindow();
     expect(tracker.restorePreviousExternalFocusedWindow()).toBe(true);
     expect(bringToTop).toHaveBeenCalledTimes(1);
+    expect(tracker.isPreviousExternalFocusedWindowActive()).toBe(true);
   });
 
   test('restore falls back to title when id not found', () => {
@@ -110,5 +111,33 @@ describe('external_focus_tracker', () => {
 
     tracker.capturePreviousExternalFocusedWindow();
     expect(tracker.restorePreviousExternalFocusedWindow()).toBe(false);
+    expect(tracker.isPreviousExternalFocusedWindowActive()).toBe(false);
+  });
+
+  test('active-window verification returns false when active window does not match captured', () => {
+    const activeWindowRef = {
+      current: {
+        id: 10,
+        getTitle: jest.fn().mockReturnValue('Code'),
+      },
+    };
+    const tracker = createExternalFocusTracker({
+      getPlatform: () => 'win32',
+      windowManager: {
+        getActiveWindow: jest.fn(() => activeWindowRef.current),
+        getWindows: jest.fn().mockReturnValue([
+          { id: 10, bringToTop: jest.fn() },
+        ]),
+      },
+      appWindowTitleMarkers: ['windieos'],
+      warn: jest.fn(),
+    });
+    tracker.capturePreviousExternalFocusedWindow();
+    activeWindowRef.current = {
+      id: 11,
+      getTitle: jest.fn().mockReturnValue('Different'),
+    };
+
+    expect(tracker.isPreviousExternalFocusedWindowActive()).toBe(false);
   });
 });

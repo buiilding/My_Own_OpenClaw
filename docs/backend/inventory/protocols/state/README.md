@@ -16,6 +16,9 @@ title: "Backend Protocol State Hub"
 
 - [Backend Inventory Protocols Hub](../README.md)
 - [Backend Protocol Lifecycle Hub](../lifecycle/README.md)
+- [Backend Protocol Errors Hub](../errors/README.md)
+- [Backend Protocol Compatibility Hub](../compatibility/README.md)
+- [Backend Protocol Observability Hub](../observability/README.md)
 - [Backend Protocol Validation Hub](../validation/README.md)
 - [Backend Protocol Testing Hub](../testing/README.md)
 

@@ -1,9 +1,3 @@
-/**
- * useChatStream Hook.
- * Handles streaming message responses from backend.
- * Manages LLM thoughts, streaming chunks, and completion states.
- */
-
 import { useCallback, useEffect, useMemo } from 'react';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import {
@@ -14,7 +8,6 @@ import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import {
   getActiveConversationRef,
   recordAssistantMessage,
-  recordToolMessage,
   updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
 import {
@@ -32,6 +25,7 @@ import {
   type SystemPromptEvent,
   type UserMessageFullEvent,
   type AssistantMessageFullEvent,
+  type MemoryStoreEvent,
   type TokenCountEvent,
   type ToolSchemasEvent,
   type LocalUserMessageEvent,
@@ -40,24 +34,18 @@ import {
 } from '../../../types/backendEvents';
 import {
   buildThinkingStatus,
-  formatToolBundlePayload,
-  formatToolCallPayload,
-  formatToolOutputText,
-  resolveModelFacingToolCall,
 } from '../utils/chatStreamFormatting';
 import {
   buildScreenshotAttachment,
+  buildScreenshotAttachments,
   resolveErrorText,
-  resolveToolOutputCorrelationId,
   shouldIgnoreStreamError,
 } from '../utils/chatStreamEventUtils';
 import {
   buildAssistantMessageFullUpdate,
   buildSystemPromptUpdate,
-  findLastAssistantLlmTextMessageId,
   buildUserMessageFullUpdate,
-  findFirstMessageIdBySender,
-  findLastMessageIdBySender,
+  findLastAssistantLlmTextMessageId,
   findStreamingCompleteAssistantMessage,
   resolveStreamingResponseAction,
 } from '../utils/chatStreamMessageUpdates';
@@ -69,28 +57,39 @@ import {
   resolveEventConversationRef,
   shouldIgnoreEventForActiveConversation,
 } from '../utils/chatStreamConversationGate';
+import { resolveThinkingCapabilities } from '../utils/modelThinkingCapabilities';
+import {
+  COMPACTION_THINKING_STATUS,
+  GENERIC_THINKING_STATUS,
+  normalizePersistedThinkingStatus,
+} from '../utils/chatStreamThinkingStatus';
+import { type TranscriptModelContext } from '../utils/chatStreamTypes';
 import { useChatCommonActions } from './useChatCommonActions';
+import { useStreamMessageUpdaters } from './useStreamMessageUpdaters';
+import { useChatStreamToolHandlers } from './useChatStreamToolHandlers';
 import { useLatestRef } from '../../../infrastructure/hooks/useLatestRef';
 
-type TranscriptModelContext = {
-  modelId: string | null;
-  modelProvider: string | null;
-};
-
-const COMPACTION_THINKING_STATUS = 'Compacting conversation history...';
-
-/**
- * Custom hook for managing streaming message responses.
- * Handles LLM thoughts, streaming chunks, and completion states.
- */
 export function useChatStream(enableTranscript: boolean = true) {
-  const { addMessage, updateMessage, setIsSending, setThinkingStatus } = useChatCommonActions();
+  const {
+    addMessage,
+    updateMessage,
+    setIsSending,
+    setThinkingStatus,
+    setThinkingSourceEventType,
+  } = useChatCommonActions();
   const setTokenCounts = useChatStore((state) => state.setTokenCounts);
   const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
-  const { config } = useAppConfigContext();
+  const { config, availableModels } = useAppConfigContext();
+  const modelCapabilities = useMemo(() => resolveThinkingCapabilities(
+    config?.selected_model_id || null,
+    config?.model_provider || null,
+    availableModels,
+  ), [availableModels, config?.model_provider, config?.selected_model_id]);
   const modelContextRef = useLatestRef<TranscriptModelContext>({
     modelId: config?.selected_model_id || null,
     modelProvider: config?.model_provider || null,
+    supportsThinking: modelCapabilities.supportsThinking,
+    supportsThinkingTextStream: modelCapabilities.supportsThinkingTextStream,
   });
 
   const recordTrackingEvent = useCallback((
@@ -102,47 +101,23 @@ export function useChatStream(enableTranscript: boolean = true) {
     updateStreamTracking((current) => applyTrackingEvent(current, eventType, turnRef, now, options));
   }, [updateStreamTracking]);
 
-  const updateLastMessageBySender = useCallback((
-    sender: ChatMessage['sender'],
-    updates: Partial<ChatMessage>,
-    turnRef?: string,
-  ) => {
-    const scopedMessageId = findLastMessageIdBySender(
-      useChatStore.getState().messages,
-      sender,
-      turnRef,
-    );
-    const fallbackMessageId = turnRef
-      ? findLastMessageIdBySender(
-        useChatStore.getState().messages,
-        sender,
-      )
-      : null;
-    const messageId = scopedMessageId || fallbackMessageId;
-    if (messageId) {
-      updateMessage(messageId, updates);
-    }
-  }, [updateMessage]);
+  const {
+    updateLastMessageBySender,
+    updateFirstMessageBySender,
+    updateLastAssistantLlmTextMessage,
+  } = useStreamMessageUpdaters(updateMessage);
 
-  const updateFirstMessageBySender = useCallback((sender: ChatMessage['sender'], updates: Partial<ChatMessage>) => {
-    const messageId = findFirstMessageIdBySender(useChatStore.getState().messages, sender);
-    if (messageId) {
-      updateMessage(messageId, updates);
+  const persistThinkingForTurn = useCallback((turnRef?: string) => {
+    const state = useChatStore.getState();
+    const thinkingText = normalizePersistedThinkingStatus(state.thinkingStatus);
+    if (!thinkingText) {
+      return;
     }
-  }, [updateMessage]);
-
-  const updateLastAssistantLlmTextMessage = useCallback((
-    updates: Partial<ChatMessage>,
-    turnRef?: string,
-  ) => {
-    const messageId = findLastAssistantLlmTextMessageId(
-      useChatStore.getState().messages,
-      turnRef,
-    );
-    if (messageId) {
-      updateMessage(messageId, updates);
-    }
-  }, [updateMessage]);
+    updateLastAssistantLlmTextMessage({
+      thinkingText,
+      thinkingSourceEventType: state.thinkingSourceEventType || 'llm-thought',
+    }, turnRef);
+  }, [updateLastAssistantLlmTextMessage]);
 
   const handleLlmThought = useCallback((event: LlmThoughtEvent) => {
     const currentStatus = useChatStore.getState().thinkingStatus;
@@ -153,12 +128,64 @@ export function useChatStream(enableTranscript: boolean = true) {
         : typeof payload?.content === 'string'
           ? payload.content
           : undefined;
-    setThinkingStatus(buildThinkingStatus(currentStatus, thoughtChunk));
+    const nextBaseStatus = currentStatus === GENERIC_THINKING_STATUS ? null : currentStatus;
+    const nextThinkingStatus = buildThinkingStatus(nextBaseStatus, thoughtChunk);
+    setThinkingStatus(nextThinkingStatus);
+    setThinkingSourceEventType('llm-thought');
+
+    const modelContext = modelContextRef.current;
+    const modelMetadata = {
+      modelId: modelContext.modelId,
+      modelProvider: modelContext.modelProvider,
+    };
+    const turnRef = event.turn_ref || undefined;
+    const messages = useChatStore.getState().messages;
+    const assistantMessageId = findLastAssistantLlmTextMessageId(messages, turnRef);
+    if (assistantMessageId) {
+      const assistantMessage = messages.find((message) => message.id === assistantMessageId);
+      const nextMessageThinkingText = buildThinkingStatus(
+        typeof assistantMessage?.thinkingText === 'string' ? assistantMessage.thinkingText : null,
+        thoughtChunk,
+      );
+      updateMessage(assistantMessageId, {
+        thinkingText: nextMessageThinkingText,
+        thinkingSourceEventType: 'llm-thought',
+        ...modelMetadata,
+      });
+    } else if (nextThinkingStatus.trim()) {
+      const placeholderAssistantMessage: ChatMessage = {
+        id: crypto.randomUUID(),
+        text: '',
+        sender: 'assistant',
+        isComplete: false,
+        type: 'llm-text',
+        sourceEventType: 'streaming-response',
+        sourceChannel: 'from-backend',
+        turnRef,
+        thinkingText: nextThinkingStatus,
+        thinkingSourceEventType: 'llm-thought',
+        ...modelMetadata,
+      };
+      addMessage(placeholderAssistantMessage);
+    }
+
     recordTrackingEvent('llm-thought', event.turn_ref);
-  }, [setThinkingStatus, recordTrackingEvent]);
+  }, [
+    addMessage,
+    modelContextRef,
+    recordTrackingEvent,
+    setThinkingSourceEventType,
+    setThinkingStatus,
+    updateMessage,
+  ]);
 
   const handleStreamingResponse = useCallback((event: StreamingResponseEvent) => {
     setIsSending(false);
+    const modelContext = modelContextRef.current;
+    const modelMetadata = {
+      modelId: modelContext.modelId,
+      modelProvider: modelContext.modelProvider,
+    };
 
     const action = resolveStreamingResponseAction(
       useChatStore.getState().messages,
@@ -169,6 +196,9 @@ export function useChatStream(enableTranscript: boolean = true) {
       updateMessage(action.messageId, {
         text: action.nextText,
         type: 'llm-text',
+        sourceEventType: 'streaming-response',
+        sourceChannel: 'from-backend',
+        ...modelMetadata,
       });
     } else {
       const newMessage: ChatMessage = {
@@ -177,7 +207,10 @@ export function useChatStream(enableTranscript: boolean = true) {
         sender: 'assistant',
         isComplete: false,
         type: 'llm-text',
+        sourceEventType: 'streaming-response',
+        sourceChannel: 'from-backend',
         turnRef: action.turnRef,
+        ...modelMetadata,
       };
       addMessage(newMessage);
     }
@@ -190,145 +223,45 @@ export function useChatStream(enableTranscript: boolean = true) {
     addMessage,
     updateMessage,
     setIsSending,
+    modelContextRef,
     recordTrackingEvent,
   ]);
 
   const handleContextCompactionStarted = useCallback((event: ContextCompactionStartedEvent) => {
     setThinkingStatus(COMPACTION_THINKING_STATUS);
+    setThinkingSourceEventType('context-compaction-started');
     recordTrackingEvent('context-compaction-started', event.turn_ref);
-  }, [setThinkingStatus, recordTrackingEvent]);
+  }, [setThinkingSourceEventType, setThinkingStatus, recordTrackingEvent]);
+
+  const clearCompactionThinkingStatus = useCallback(() => {
+    if (useChatStore.getState().thinkingStatus === COMPACTION_THINKING_STATUS) {
+      setThinkingStatus(null);
+      setThinkingSourceEventType(null);
+    }
+  }, [setThinkingSourceEventType, setThinkingStatus]);
 
   const handleContextCompactionCompleted = useCallback((event: ContextCompactionCompletedEvent) => {
-    if (useChatStore.getState().thinkingStatus === COMPACTION_THINKING_STATUS) {
-      setThinkingStatus(null);
-    }
+    clearCompactionThinkingStatus();
     recordTrackingEvent('context-compaction-completed', event.turn_ref);
-  }, [setThinkingStatus, recordTrackingEvent]);
+  }, [clearCompactionThinkingStatus, recordTrackingEvent]);
 
   const handleContextCompactionFailed = useCallback((event: ContextCompactionFailedEvent) => {
-    if (useChatStore.getState().thinkingStatus === COMPACTION_THINKING_STATUS) {
-      setThinkingStatus(null);
-    }
+    clearCompactionThinkingStatus();
     recordTrackingEvent('context-compaction-failed', event.turn_ref);
-  }, [setThinkingStatus, recordTrackingEvent]);
+  }, [clearCompactionThinkingStatus, recordTrackingEvent]);
 
-  const handleToolCall = useCallback((event: ToolCallEvent) => {
-    setThinkingStatus(null);
-    const modelFacingToolCall = resolveModelFacingToolCall(event.payload);
-    const formattedText = formatToolCallPayload(event.payload);
-
-    const newMessage: ChatMessage = {
-      id: crypto.randomUUID(),
-      text: formattedText,
-      sender: 'assistant',
-      type: 'tool-call',
-      modelFacingToolCall,
-      toolCallDetails: (
-        event.payload && typeof event.payload === 'object'
-          ? { ...event.payload }
-          : null
-      ),
-      turnRef: event.turn_ref,
-    };
-    addMessage(newMessage);
-
-    recordTrackingEvent('tool-call', event.turn_ref, { toolCall: true });
-
-    const correlationId = event.payload?.correlation_id || event.payload?.request_id;
-
-    if (enableTranscript) {
-      const modelContext = modelContextRef.current;
-      recordToolMessage(formattedText, {
-        messageType: 'tool-call',
-        toolName: event.payload?.tool_name,
-        correlationId,
-        conversationRef: event.conversation_ref,
-        userId: event.user_id,
-        modelId: modelContext.modelId,
-        modelProvider: modelContext.modelProvider,
-      });
-    }
-  }, [addMessage, enableTranscript, modelContextRef, setThinkingStatus, recordTrackingEvent]);
-
-  const handleToolOutput = useCallback((event: ToolOutputEvent) => {
-    setThinkingStatus(null);
-    const outputText = formatToolOutputText(event.payload);
-    const { screenshotRef, screenshotUrl } = buildScreenshotAttachment(event.payload?.screenshot_ref);
-
-    const newMessage: ChatMessage = {
-      id: crypto.randomUUID(),
-      text: outputText,
-      sender: 'assistant',
-      type: 'tool-output',
-      screenshotRef,
-      screenshotUrl,
-      toolMetadata: event.payload?.metadata,
-      toolName: event.payload?.tool_name,
-      executionTime: event.payload?.execution_time,
-      success: event.payload?.success,
-      correlationId: resolveToolOutputCorrelationId(event.payload, event.id),
-      modelFacingToolOutput: outputText,
-      toolOutputDetails: (
-        event.payload && typeof event.payload === 'object'
-          ? { ...event.payload }
-          : null
-      ),
-      turnRef: event.turn_ref,
-    };
-
-    addMessage(newMessage);
-    recordTrackingEvent('tool-output', event.turn_ref, { toolOutput: true });
-
-    const correlationId = resolveToolOutputCorrelationId(event.payload, event.id) || undefined;
-
-    if (enableTranscript) {
-      const modelContext = modelContextRef.current;
-      recordToolMessage(outputText, {
-        messageType: 'tool-output',
-        toolName: event.payload?.tool_name,
-        correlationId,
-        conversationRef: event.conversation_ref,
-        userId: event.user_id,
-        screenshotRef,
-        modelId: modelContext.modelId,
-        modelProvider: modelContext.modelProvider,
-      });
-    }
-  }, [addMessage, enableTranscript, modelContextRef, setThinkingStatus, recordTrackingEvent]);
-
-  const handleToolBundle = useCallback((event: ToolBundleEvent) => {
-    setThinkingStatus(null);
-    const formattedText = formatToolBundlePayload(event.payload);
-
-    const newMessage: ChatMessage = {
-      id: crypto.randomUUID(),
-      text: formattedText,
-      sender: 'assistant',
-      type: 'tool-call',
-      toolCallDetails: (
-        event.payload && typeof event.payload === 'object'
-          ? { ...event.payload }
-          : null
-      ),
-      turnRef: event.turn_ref,
-    };
-    addMessage(newMessage);
-
-    recordTrackingEvent('tool-bundle', event.turn_ref, { phase: 'tool-call', toolCall: true });
-
-    if (enableTranscript) {
-      const modelContext = modelContextRef.current;
-      recordToolMessage(formattedText, {
-        messageType: 'tool-call',
-        toolName: 'tool-bundle',
-        correlationId: event.payload?.bundle_id,
-        conversationRef: event.conversation_ref,
-        userId: event.user_id,
-        modelId: modelContext.modelId,
-        modelProvider: modelContext.modelProvider,
-      });
-    }
-  }, [addMessage, enableTranscript, modelContextRef, setThinkingStatus, recordTrackingEvent]);
+  const {
+    handleToolCall,
+    handleToolOutput,
+    handleToolBundle,
+  } = useChatStreamToolHandlers({
+    enableTranscript,
+    addMessage,
+    setThinkingStatus,
+    setThinkingSourceEventType,
+    modelContextRef,
+    recordTrackingEvent,
+  });
 
   const handleSystemPrompt = useCallback((event: SystemPromptEvent) => {
     updateLastMessageBySender('user', {
@@ -363,7 +296,11 @@ export function useChatStream(enableTranscript: boolean = true) {
     if (!text) {
       return;
     }
-    const { screenshotRef, screenshotUrl } = buildScreenshotAttachment(
+    const screenshotAttachments = buildScreenshotAttachments(
+      event.payload?.screenshot_refs || [event.payload?.screenshot_ref],
+      event.payload?.screenshot_url,
+    );
+    const firstScreenshotAttachment = screenshotAttachments[0] || buildScreenshotAttachment(
       event.payload?.screenshot_ref,
       event.payload?.screenshot_url,
     );
@@ -371,22 +308,46 @@ export function useChatStream(enableTranscript: boolean = true) {
       id: crypto.randomUUID(),
       text,
       sender: 'user',
-      screenshotRef,
-      screenshotUrl,
+      sourceEventType: 'local-user-message',
+      sourceChannel: 'from-backend',
+      screenshotRef: firstScreenshotAttachment.screenshotRef,
+      screenshotUrl: firstScreenshotAttachment.screenshotUrl,
+      screenshots: screenshotAttachments.length > 0
+        ? screenshotAttachments.map((attachment) => ({
+          screenshotRef: attachment.screenshotRef,
+          screenshotUrl: attachment.screenshotUrl,
+        }))
+        : null,
       timestamp: event.payload?.timestamp,
       turnRef: event.turn_ref,
     };
     addMessage(newMessage);
+    const modelContext = modelContextRef.current;
+    if (modelContext.supportsThinking && !modelContext.supportsThinkingTextStream) {
+      setThinkingStatus(GENERIC_THINKING_STATUS);
+      setThinkingSourceEventType('local-user-message');
+    } else {
+      setThinkingStatus(null);
+      setThinkingSourceEventType(null);
+    }
 
     recordTrackingEvent('local-user-message', event.turn_ref, {
       phase: 'awaiting-first-chunk',
       resetForTurn: true,
     });
-  }, [addMessage, recordTrackingEvent]);
+  }, [
+    addMessage,
+    modelContextRef,
+    recordTrackingEvent,
+    setThinkingSourceEventType,
+    setThinkingStatus,
+  ]);
 
   const handleStreamingComplete = useCallback((event: StreamingCompleteEvent) => {
     setIsSending(false);
+    persistThinkingForTurn(event.turn_ref || undefined);
     setThinkingStatus(null);
+    setThinkingSourceEventType(null);
 
     const lastMessage = findStreamingCompleteAssistantMessage(
       useChatStore.getState().messages,
@@ -409,7 +370,9 @@ export function useChatStream(enableTranscript: boolean = true) {
     recordTrackingEvent('streaming-complete', event.turn_ref, { phase: 'complete' });
   }, [
     enableTranscript,
+    persistThinkingForTurn,
     setIsSending,
+    setThinkingSourceEventType,
     setThinkingStatus,
     updateMessage,
     modelContextRef,
@@ -421,16 +384,26 @@ export function useChatStream(enableTranscript: boolean = true) {
     recordTrackingEvent('token-count', event.turn_ref);
   }, [setTokenCounts, recordTrackingEvent]);
 
+  const handleMemoryStore = useCallback((event: MemoryStoreEvent) => {
+    recordTrackingEvent('memory-store', event.turn_ref);
+  }, [recordTrackingEvent]);
+
   const handleError = useCallback((event: ErrorEvent) => {
     setIsSending(false);
     setThinkingStatus('');
+    setThinkingSourceEventType(null);
     const errorText = resolveErrorText(event.payload);
+    const modelContext = modelContextRef.current;
     const newMessage: ChatMessage = {
       id: crypto.randomUUID(),
       text: errorText,
       sender: 'assistant',
       type: 'error',
+      sourceEventType: 'error',
+      sourceChannel: 'from-backend',
       turnRef: event.turn_ref,
+      modelId: modelContext.modelId,
+      modelProvider: modelContext.modelProvider,
     };
     addMessage(newMessage);
 
@@ -440,7 +413,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     });
 
     if (enableTranscript) {
-      const modelContext = modelContextRef.current;
       recordAssistantMessage(errorText, {
         messageType: 'error',
         conversationRef: event.conversation_ref,
@@ -449,7 +421,15 @@ export function useChatStream(enableTranscript: boolean = true) {
         modelProvider: modelContext.modelProvider,
       });
     }
-  }, [addMessage, enableTranscript, modelContextRef, setIsSending, setThinkingStatus, recordTrackingEvent]);
+  }, [
+    addMessage,
+    enableTranscript,
+    modelContextRef,
+    setIsSending,
+    setThinkingSourceEventType,
+    setThinkingStatus,
+    recordTrackingEvent,
+  ]);
 
   const handlers = useMemo<Record<BackendEventType, (event: BackendEvent) => void>>(() => ({
     'llm-thought': event => handleLlmThought(event as LlmThoughtEvent),
@@ -465,6 +445,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     'local-user-message': event => handleLocalUserMessage(event as LocalUserMessageEvent),
     'user-message-full': event => handleUserMessageFull(event as UserMessageFullEvent),
     'assistant-message-full': event => handleAssistantMessageFull(event as AssistantMessageFullEvent),
+    'memory-store': event => handleMemoryStore(event as MemoryStoreEvent),
     'token-count': event => handleTokenCount(event as TokenCountEvent),
     'tool-schemas': event => handleToolSchemas(event as ToolSchemasEvent),
     'error': event => {
@@ -487,6 +468,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleLocalUserMessage,
     handleUserMessageFull,
     handleAssistantMessageFull,
+    handleMemoryStore,
     handleTokenCount,
     handleToolSchemas,
     handleError,

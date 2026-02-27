@@ -10,6 +10,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   INVOKE_CHANNELS: {
     LIST_EPISODIC_MEMORIES: 'list-episodic-memories',
     LIST_SEMANTIC_MEMORIES: 'list-semantic-memories',
+    DELETE_EPISODIC_MEMORY: 'delete-episodic-memory',
     DELETE_SEMANTIC_MEMORY: 'delete-semantic-memory',
   },
 }));
@@ -22,7 +23,6 @@ describe('MemorySection', () => {
   beforeEach(() => {
     mockInvoke.mockReset();
     mockSessionInfo = { conversationRef: null, userId: 'default_user' };
-    window.confirm = jest.fn(() => true);
   });
 
   test('loads episodic and semantic memories without using conversation list', async () => {
@@ -103,6 +103,7 @@ describe('MemorySection', () => {
 
     const onClose = jest.fn();
     render(<MemorySection onClose={onClose} />);
+    await screen.findByText('No memories found');
 
     fireEvent.click(screen.getByRole('button', { name: 'Close memory' }));
     expect(onClose).toHaveBeenCalledTimes(1);
@@ -153,5 +154,96 @@ describe('MemorySection', () => {
         memoryId: 'sem-del-1',
       });
     });
+  });
+
+  test('episodic delete routes through delete-episodic-memory', async () => {
+    mockInvoke.mockImplementation(async (channel) => {
+      if (channel === 'list-episodic-memories') {
+        return {
+          success: true,
+          data: {
+            memories: [
+              {
+                id: 'ep-del-1',
+                content: 'User: remove this memory',
+                timestamp: '2026-02-25T08:00:00Z',
+                metadata: { source: 'interaction_completed' },
+              },
+            ],
+          },
+        };
+      }
+      if (channel === 'list-semantic-memories') {
+        return { success: true, data: { memories: [] } };
+      }
+      if (channel === 'delete-episodic-memory') {
+        return { success: true, data: { deleted: true } };
+      }
+      return { success: true, data: {} };
+    });
+
+    const { default: MemorySection } = await import(
+      '../../frontend/src/renderer/features/dashboard/components/sections/MemorySection'
+    );
+
+    render(<MemorySection />);
+
+    const deleteButton = await screen.findByRole('button', { name: 'Delete' });
+    fireEvent.click(deleteButton);
+
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith('delete-episodic-memory', {
+        userId: 'default_user',
+        memoryId: 'ep-del-1',
+      });
+    });
+  });
+
+  test('deletes semantic memory with one click and does not show confirmation dialog', async () => {
+    mockInvoke.mockImplementation(async (channel) => {
+      if (channel === 'list-episodic-memories') {
+        return { success: true, data: { memories: [] } };
+      }
+      if (channel === 'list-semantic-memories') {
+        return {
+          success: true,
+          data: {
+            memories: [
+              {
+                id: 'sem-del-no-confirm-1',
+                content: 'Summary: Prefers no confirmation modals',
+                timestamp: '2026-02-25T08:10:00Z',
+                metadata: { source: 'semantic_summary' },
+              },
+            ],
+          },
+        };
+      }
+      if (channel === 'delete-semantic-memory') {
+        return { success: true, data: { deleted: true } };
+      }
+      return { success: true, data: {} };
+    });
+
+    const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(false);
+    const { default: MemorySection } = await import(
+      '../../frontend/src/renderer/features/dashboard/components/sections/MemorySection'
+    );
+
+    try {
+      render(<MemorySection />);
+      fireEvent.click(await screen.findByRole('button', { name: /Semantic/i }));
+      fireEvent.click(await screen.findByRole('button', { name: 'Delete' }));
+
+      await waitFor(() => {
+        expect(mockInvoke).toHaveBeenCalledWith('delete-semantic-memory', {
+          userId: 'default_user',
+          memoryId: 'sem-del-no-confirm-1',
+        });
+      });
+      expect(confirmSpy).not.toHaveBeenCalled();
+    } finally {
+      confirmSpy.mockRestore();
+    }
   });
 });

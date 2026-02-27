@@ -1,670 +1,223 @@
 ---
-summary: "Frontend Architecture"
+summary: "Current WindieOS frontend architecture across Electron main, React renderer, preload IPC boundary, and Python sidecar runtime."
 read_when:
-  - When changing renderer or Electron main process.
+  - When changing renderer/main/sidecar ownership boundaries.
+  - When changing query, stream, tool, wakeword, or transcript flow across frontend processes.
+title: "Frontend Architecture"
 ---
 
 # Frontend Architecture
 
-See also: [Frontend Functionality Map](../frontend/README.md) for implementation-level module docs.
+See also: [Frontend Functionality Map](../frontend/README.md) and [Frontend Full Functionality Inventory Reference](../frontend/inventory/frontend_full_functionality_inventory_reference.md).
 
-## Overview
+## Runtime Topology
 
-The frontend is built using Electron with React, providing a desktop application with a modern UI. It uses a three-process architecture: Main Process (Node.js), Renderer Process (React), and Python Sidecar (tool execution).
+WindieOS frontend is a multi-runtime desktop stack:
 
-## Future: Multi-User UX & Subscription Readiness (Planned)
+1. Renderer (React): UX state, chat/dashboard surfaces, tool-stream rendering.
+2. Main process (Electron/Node): window lifecycle, backend WebSocket bridge, sidecar process bridge, wakeword subprocess bridge.
+3. Preload boundary: allowlisted IPC bridge (`window.ipc`) between renderer and main.
+4. Sidecar (Python): local tool execution, local transcript/memory store, system-state capture, browser/file/system tool adapters.
 
-To bring this to end users at scale, the frontend needs explicit **account, billing, and usage limit** UX. This section outlines the planned additions.
+## Current Source Layout
 
-### 1) Authentication & Account Management
-- **Login / Signup** screens (email + OAuth).
-- **Session persistence** using secure storage (OS keychain).
-- **Device management**: list active sessions, revoke device access.
-
-### 2) Subscription & Billing UI
-- **Plan selection** page with feature matrix.
-- **Upgrade/downgrade** flow with proration awareness.
-- **Billing portal** link (Stripe customer portal).
-- **Payment failure** UX with retry and grace period messaging.
-
-### 3) Usage & Limits
-- **Usage meter**: show remaining tokens/requests for the billing period.
-- **Soft limit warning**: 80–90% usage indicators in the UI.
-- **Hard limit blocking**: clear “limit reached” state with upgrade CTA.
-- **Per-feature gating**: show locked states for higher-tier features.
-
-### 4) Multi-Device & Sync
-- **User profile** and preferences synced across devices.
-- **Settings conflict resolution** (last-write-wins + versioning).
-- **Conversation sync** for active sessions.
-
-### 5) Safety & Transparency
-- **Tool permission prompts** scoped to plan/role.
-- **Audit history UI** to show tool calls and actions.
-- **Data deletion** flows for compliance (account + data removal).
-
-### 6) Offline & Local-Only Modes
-- **Local-only mode** for privacy-first users (no cloud sync).
-- **Graceful fallback** when backend is unreachable.
-
-## Architecture Overview
-
-```
-┌─────────────────────────────────────────────────────────┐
-│              Electron Application                       │
-│  ┌───────────────────────────────────────────────────┐  │
-│  │  Renderer Process (React)                         │  │
-│  │  - React Components                               │  │
-│  │  - Context Providers                              │  │
-│  │  - Custom Hooks                                  │  │
-│  │  - API Client                                    │  │
-│  └───────────────────────────────────────────────────┘  │
-│                    ↕ IPC (preload.js)                     │
-│  ┌───────────────────────────────────────────────────┐  │
-│  │  Main Process (Node.js)                           │  │
-│  │  - IPC Bridge (ipc.cjs)                           │  │
-│  │  - WebSocket Client                                │  │
-│  │  - Wakeword Bridge                                │  │
-│  │  - Window Management                               │  │
-│  └───────────────────────────────────────────────────┘  │
-│                    ↕ WebSocket                            │
-│  ┌───────────────────────────────────────────────────┐  │
-│  │  Python Backend                                    │  │
-│  └───────────────────────────────────────────────────┘  │
-│                    ↕ stdin/stdout                         │
-│  ┌───────────────────────────────────────────────────┐  │
-│  │  Python Sidecar (local_backend.py)                 │  │
-│  │  - Tool Execution                                   │  │
-│  │  - System State Capture                             │  │
-│  └───────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────┘
+```text
+frontend/src/
+├── main/
+│   ├── index.cjs                          # Electron main composition root (wires runtime modules)
+│   ├── ipc.cjs                            # Renderer <-> backend WS bridge and event fan-out
+│   ├── ipc_runtime_helpers.cjs            # IPC runtime helper set (user-id, payload normalization, upload, backend message processing)
+│   ├── ipc_renderer_windows.cjs           # Renderer-window tracking + broadcast helpers for IPC bridge
+│   ├── ipc_query_broadcast.cjs            # Local user-message/query-failure bridge helpers
+│   ├── main_window_runtime.cjs            # Main/chat/response/tray window constructors + renderer view loading
+│   ├── window_visibility_runtime.cjs      # Main/chat overlay visibility operations (show/hide/maximize)
+│   ├── overlay_window_helpers_runtime.cjs # Overlay bounds/position/on-top/context-label runtime helpers
+│   ├── overlay_signal_runtime.cjs         # Wakeword + overlay visibility signal fan-out helpers
+│   ├── overlay_ipc_runtime.cjs            # IPC channel registration for overlay/window/permission handlers
+│   ├── main_process_lifecycle_runtime.cjs # app.whenReady/activate/quit lifecycle wiring + shortcut registration
+│   ├── local_backend_bridge*.cjs          # Main <-> sidecar JSON-RPC bridge
+│   ├── wakeword_bridge.cjs                # Main <-> wakeword subprocess bridge
+│   ├── query_payload_builder.cjs          # System-state/memory XML augmentation for query payload
+│   ├── permission_service.cjs             # Install-time permission manifest checks + OS probe/request helpers
+│   └── python/                            # Sidecar runtime (tools/memory/system/browser)
+├── preload.js                             # Context-isolated channel allowlist bridge
+├── renderer/
+│   ├── app/                               # App/provider composition + wakeword controller
+│   ├── features/chat                      # Chat stream, tool runner, message UI
+│   ├── features/dashboard                 # Sidebar, memory/models/settings/usage/search panels
+│   ├── features/voice                     # Voice mode + wakeword capture hooks
+│   └── infrastructure                     # API/IPC/transcript/tool-exec/audio services
+└── landing/                               # Marketing/landing surface
 ```
 
-## Directory Structure
-
-```
-frontend/
-├── src/
-│   ├── main/              # Main process (Electron)
-│   │   ├── index.cjs      # Electron main entry
-│   │   ├── ipc.cjs        # IPC bridge
-│   │   ├── wakeword_bridge.cjs  # Wakeword service bridge
-│   │   ├── local_backend_bridge.cjs  # Local backend bridge
-│   │   └── python/        # Python sidecar
-│   │       ├── local_backend.py  # Local backend service
-│   │       ├── memory_service.py  # Memory service
-│   │       ├── core/      # Core utilities
-│   │       ├── tools/     # Tool implementations
-│   │       └── memory/    # Memory storage
-│   ├── preload.js         # Preload script (IPC bridge)
-│   ├── renderer/          # Renderer process (React)
-│   │   ├── app/           # App-level components
-│   │   │   ├── App.jsx    # Root component
-│   │   │   ├── main.jsx   # React entry point
-│   │   │   └── providers/ # Context providers
-│   │   │       ├── AppProvider.jsx  # Main app provider
-│   │   │       ├── AppConfigContext.jsx  # Config context
-│   │   │       ├── AppStatusContext.jsx   # Status context
-│   │   │       └── ChatProvider.jsx  # Chat provider
-│   │   ├── components/    # Shared React components
-│   │   │   ├── ErrorBoundary.jsx
-│   │   ├── features/      # Feature-based modules
-│   │   │   ├── chat/      # Chat feature
-│   │   │   │   ├── components/  # Chat components
-│   │   │   │   ├── hooks/       # Chat hooks
-│   │   │   │   └── stores/      # Zustand store
-│   │   │   ├── settings/  # Settings feature
-│   │   │   │   ├── components/
-│   │   │   │   └── hooks/
-│   │   │   └── voice/     # Voice feature
-│   │   │       ├── components/
-│   │   │       └── hooks/
-│   │   ├── infrastructure/ # Infrastructure layer
-│   │   │   ├── api/       # API client
-│   │   │   ├── ipc/       # IPC bridge abstraction
-│   │   │   ├── services/  # Business logic services
-│   │   │   └── audio/     # Audio services
-│   │   ├── utils/         # Utilities
-│   │   └── styles/        # CSS styles
-│   └── types/             # TypeScript types
-├── index.html             # HTML entry point
-├── package.json           # Dependencies and scripts
-├── vite.config.js         # Vite configuration
-└── schema.json            # WebSocket message schema
-```
-
-## Process Architecture
-
-### Renderer Process (React)
-
-The renderer process runs in a browser-like environment and contains the React UI.
-
-#### Component Hierarchy
-
-```
-App
-├── ErrorBoundary
-└── AppProvider (AppConfigProvider + AppStatusProvider)
-    └── ChatProvider
-        └── ChatGptDashboardShell
-            ├── ChatInterface
-            │   ├── MessageList
-            │   │   ├── ThinkingDisplay
-            │   │   └── TokenCountDisplay
-            │   ├── MessageInput
-            │   │   └── VoiceStatus
-            │   └── TransparencySection
-            ├── Memory Modal
-            ├── Models Modal
-            └── Settings Modal
-```
-
-#### Key Components
-
-**App.jsx**
-- Root component
-- Sets up context providers
-- Error boundary wrapper
-
-**ChatInterface.jsx**
-- Main chat interface
-- Orchestrates message display and input
-- Wakeword detection integration
-- Validates backend audio-chunk payloads before enqueueing playback data
-
-**ChatBox.jsx**
-- Floating quick-chat overlay
-- Uses shared chatbox selector and presentation helpers for status and assistant preview derivation
-
-**MessageList.jsx**
-- Displays chat messages
-- Handles different message types
-- Auto-scroll functionality
-- Reuses shared screenshot-presence utility with `MessageContent` and shared message-row class helpers for consistent screenshot/streaming/type CSS state handling
-
-**MessageContent.jsx**
-- Renders user/assistant/tool/error message bodies
-- Uses shared screenshot utilities for screenshot-presence checks and screenshot URL/data-URL resolution
-- Normalizes tool detail payloads inline so tool-call/tool-output details stay close to rendering logic
-
-**MessageTransparencySections.jsx**
-- Builds transparency section configs via shared chat utility helpers, then maps to `TransparencySection` rendering
-
-**MessageInput.jsx**
-- Text input with voice support
-- Transcription integration
-- Auto-send on utterance end
-- Uses shared message-normalization helper before send dispatch
-
-**TokenCountDisplay.jsx**
-- Displays token usage counters in a table-driven render path backed by shared token-count formatting helpers
-
-**ChatGptDashboardShell.jsx**
-- Main dashboard shell for the main window
-- Keeps conversation (`ChatInterface`) as persistent primary content
-- Opens memory/models/settings in isolated modals
-- Listens for `main-window-open-target` IPC events to open targeted panels (e.g. settings from chat pill)
-
-**EpisodicMemorySection.jsx**
-- Transcript conversation browsing and replay panel in the dashboard memory section
-- Uses shared episodic-memory utility helpers for content parsing and conversation key/model/timestamp formatting
-
-**ModelsSection.jsx**
-- Dashboard model-mode and provider key panel
-- Uses shared model-selection utility helpers for list filtering and selected-model reconciliation
-
-**SettingsSection.jsx**
-- Dashboard settings panel for wakeword, speech reply toggle, and active display selection
-- Uses shared settings-display utility helpers for display selection fallback and speech-mode update payload shaping
-
-#### Context Providers
-
-**AppProvider** (`app/providers/AppProvider.jsx`)
-- Combines AppConfigProvider and AppStatusProvider
-- Maintains backward compatibility with legacy `useAppContext()` hook
-- Coordinates between config and status contexts
-
-**AppConfigContext** (`app/providers/AppConfigContext.jsx`)
-- Application configuration (infrequently changing)
-- Settings management
-- Model list management
-- Wakeword state
-- Optimized to avoid unnecessary re-renders
-- Uses shared provider event helpers for backend model-list routing and transcript user-id extraction
-- Uses shared config persistence helpers for sanitize-and-apply update flow across disk-load and user-update paths
-
-**AppStatusContext** (`app/providers/AppStatusContext.jsx`)
-- Transient application status (frequently changing)
-- Settings save status (idle, saving, success, error)
-- Separated from config to prevent unnecessary re-renders
-
-**ChatProvider** (`app/providers/ChatProvider.jsx`)
-- Thin wrapper that sets up chat hooks
-- Initializes `useChatStream()` and `useToolRunner()`
-- Provides access to chat store via Zustand
-
-#### Custom Hooks
-
-**Chat Feature Hooks** (`features/chat/hooks/`)
-
-**useChatMessageSender** (`useChatMessageSender.ts`)
-- Handles sending user messages
-- Screenshot capture coordination
-- Message formatting and transmission
-- Uses shared sender utility helpers for first-user-message detection and screenshot artifact metadata/attachment shaping
-
-**useChatStream** (`useChatStream.ts`)
-- Manages streaming message responses from backend
-- Handles LLM thought tokens
-- Tool call/output handling
-- Message completion states
-- Token count updates
-- Uses shared chat-stream formatting/status helpers for thought truncation and tool-call/tool-bundle/tool-output text shaping
-- Uses shared stream-event helpers for screenshot attachment shaping, correlation-id resolution, and settings-update error filtering
-- Uses shared stream message-update helpers for first/last sender message selection and streaming/system/full-message payload shaping
-
-**useToolRunner** (`useToolRunner.ts`)
-- Connects UI to ToolExecutionService
-- Handles tool execution events
-- Manages tool bundling
-- Updates chat store with tool results
-- Uses shared tool-runner message/mapping helpers for output message shaping and tool-call/bundle normalization
-
-**useTranscription** (`useTranscription.ts`)
-- Input field state management
-- Transcription text insertion
-- Smart replacement logic
-- Uses shared transcription-region helpers for cursor/boundary updates across typing and paste paths
-
-**Settings Feature Hooks** (`features/settings/hooks/`)
-
-**useSettingsManagement** (`useSettingsManagement.ts`)
-- Settings loading and saving
-- Model list management
-- IPC event handling
-
-**Voice Feature Hooks** (`features/voice/hooks/`)
-
-**useVoiceMode** (`useVoiceMode.ts`)
-- Voice input mode management
-- WebSocket connection to Nova-Voice Gateway
-- Audio capture and transcription
-- Bounded reconnect retries with exponential backoff and stale-socket close guards
-
-**useWakewordDetection** (`useWakewordDetection.ts`)
-- Wakeword detection via openWakeWord
-- Audio capture and processing
-- IPC communication with main process
-- Detection-event confidence validation and chunk-size normalization warnings
-
-**Shared Voice Audio Utilities** (`features/voice/utils/audioEncoding.ts`)
-- PCM float32 -> int16 conversion used by both voice hooks
-- ScriptProcessor chunk-size normalization helper
-- Gateway packet framing with cached metadata prefixes
-
-### Main Process (Node.js)
-
-The main process manages the application lifecycle and IPC communication.
-
-#### Key Modules
-
-**index.cjs**
-- Electron main entry point
-- Window management
-- Enables content protection on Windows/macOS to reduce self-capture in screenshots
-- Chat box overlay window (transparent, always-on-top) with click-through default; settings button opens main window
-- System tray
-- Application lifecycle
-
-**ipc.cjs**
-- IPC bridge between renderer and main
-- WebSocket client to backend
-- Message routing
-- Broadcasts backend events to all renderer windows (main + chat box)
-- System state management
-
-**wakeword_bridge.cjs**
-- Python wakeword service management
-- Audio chunk forwarding
-- Detection result handling
-- Service status management
-- Guards against stale process callbacks by ignoring stdout/stderr/exit events from superseded wakeword process instances
-- Resets `stderr` parser buffer on stop/start so partial JSON lines from an old process cannot corrupt the next process `{"status":"ready"}` signal
-
-**local_backend_bridge.cjs**
-- Python sidecar lifecycle management for `local_backend.py`
-- JSON-RPC request/response correlation and timeout handling
-- Readiness probing via `ping` with bounded exponential-backoff retries
-- Stale readiness-timeout callback guards so restarted processes do not inherit old readiness state
-- Readiness retry timers are token-scoped per process generation, preventing stale retry callbacks from overriding a newer process readiness request/response mapping
-
-#### IPC Channels
-
-**Renderer → Main**:
-- `to-backend`: Messages to backend
-- `wakeword-audio-chunk`: Audio data
-- `wakeword-enable`: Enable wakeword
-- `wakeword-disable`: Disable wakeword
-- `show-main-window`: Bring the main window to the front
-- `set-overlay-ignore-mouse`: Toggle click-through behavior for the chat box overlay
-
-**Main → Renderer**:
-- `from-backend`: Backend messages plus main-process `local-user-message` query-mirror events
-- `ipc-status`: Connection status
-- `wakeword-detected`: Wakeword detection
-- `wakeword-status`: Service status
-
-### Python Sidecar
-
-The Python sidecar handles tool execution and system state capture.
-
-#### Key Modules
-
-**local_backend.py**
-- Main Python sidecar entry
-- JSON-RPC processing
-- Tool execution routing via ToolRegistry
-
-**tools/registry.py**
-- Tool dispatcher/registry
-- Lightweight arg passthrough dispatch (validation handled by backend/tool implementation)
-- Calls tool implementations under `tools/`
-
-**core/system_state.py**
-- System state capture
-- Active window detection
-- Mouse position
-- Clipboard preview
-- System statistics
-
-## Communication Flow
-
-### User Message Flow
-
-```
-1. User types message in MessageInput
-   ↓
-2. useChatMessageSender hook handles message
-   ↓
-3. Screenshot capture runs when `include_query_screenshot=true` (default enabled)
-   ↓
-4. Message sent via IpcBridge.send('to-backend')
-   ↓
-5. Main process receives via IPC
-   ↓
-6. Main process ensures startup settings sync is acknowledged (`update-settings` → `settings-updated`) for first query on each connection
-   ↓
-7. Main process builds complete message with system state and memories
-   ↓
-8. Main process forwards to backend via WebSocket
-   ↓
-9. Backend processes and streams response
-   ↓
-10. Main process receives WebSocket messages
-   ↓
-11. Main process forwards to renderer via IPC
-    ↓
-12. useChatStream hook processes streaming events
-    ↓
-13. Chat store updated with messages
-    ↓
-14. UI updates via Zustand subscriptions
-```
-
-### Tool Execution Flow
-
-#### Individual Tool Execution
-
-```
-1. Backend sends tool-call message
-   ↓
-2. Main process receives via WebSocket
-   ↓
-3. Main process forwards to renderer via IPC
-   ↓
-4. useToolRunner hook receives tool-call event
-   ↓
-5. ToolExecutionService.executeTool() called
-   ↓
-6. Tool sent to Python sidecar via IPC invoke
-   ↓
-7. Python sidecar executes tool
-   ↓
-8. `ensureAutoCapture()` runs ONCE (if computer-use tool and no screenshot already provided by the tool result)
-   - Default wait is 2 seconds for computer-use tools (0 for `screenshot`, or overridden by tool args such as `wait`/`seconds`)
-   - Captures screenshot and system state via `extractOSstate(...)`
-   ↓
-9. ToolExecutionService formats result with MessageFormatter
-   ↓
-10. Result displayed in UI via callback
-    ↓
-11. Result sent to backend via WebSocket
-    ↓
-12. Backend processes result and continues
-```
-
-### Atomic Tool Bundling Flow
-
-```
-1. Backend sends single tool-bundle message with all tools
-   ↓
-2. useToolRunner receives tool-bundle and calls ToolExecutionService.executeToolBundle() directly
-   ↓
-3. Tools executed sequentially via Python sidecar (with skipAutoCapture=true, fail-fast on error)
-   ↓
-4. Step results collected in stepResults array
-   ↓
-5. Bundle capture path runs once for computer-use bundles (wait + screenshot/system-state capture)
-   - Wait behavior follows per-tool/bundle capture settings
-   - Captures screenshot and system state via shared capture utilities
-   ↓
-6. Combined formatted message created for UI display
-   ↓
-7. Single tool-bundle-result message sent to backend
-   ↓
-8. Bundled result displayed in UI
-```
-
-## State Management
-
-### Hybrid State Management
-
-The frontend uses a hybrid approach combining React Context API and Zustand:
-
-**Context API** (for app-level, infrequently changing state):
-- **AppConfigContext**: Application configuration, models, wakeword state
-- **AppStatusContext**: Transient status (save status)
-- Split contexts prevent unnecessary re-renders when only status changes
-
-**Note**: AppConfigContext persists settings to localStorage and `frontend-config.json` (Electron userData). Settings are not stored by the backend.
-
-**Zustand Store** (for chat state):
-- **chatStore** (`features/chat/stores/chatStore.ts`): Chat messages, sending state, thinking status, token counts
-- Pure state management with no business logic
-- O(1) access time with shallow equality checks
-- Components subscribe directly to store slices
-
-### State Flow
-
-```
-User Action
-  ↓
-Component Event Handler
-  ↓
-Service/Hook (business logic)
-  ↓
-Store/Context Update
-  ↓
-Component Re-render (only subscribed components)
-  ↓
-UI Update
-```
-
-### Performance Optimizations
-
-- **Split Contexts**: AppConfigContext and AppStatusContext separated to prevent re-renders
-- **Zustand Store**: Direct subscriptions to store slices, no context propagation overhead
-- **Conversation-First Shell**: Chat view remains mounted while dashboard panels open as modal overlays
-- **Stable IPC Listeners**: IPC callbacks use refs to maintain stable identity
-
-## Infrastructure Layer
-
-### API Client (`infrastructure/api/client.ts`)
-
-Typed API client for backend communication.
-
-**Methods**:
-- `sendQuery(text, conversationRef, screenshotRef)`: Send user query with conversation correlation and optional screenshot artifact ref
-- `sendRehydrateConversation(conversationRef, messages)`: Rehydrate backend conversation state from transcript history
-- `updateSettings(config)`: Send frontend-managed config updates
-- `listModels()`: Request available models
-- `wakewordDetected()`: Notify wakeword detection
-
-**Note**: Settings are persisted locally and also sent via `update-settings` events so backend session runtime can apply relevant config changes.
-
-### IPC Bridge (`infrastructure/ipc/bridge.ts`)
-
-Type-safe IPC bridge abstraction with channel validation.
-
-**Features**:
-- Type-safe channel constants (SEND_CHANNELS, INVOKE_CHANNELS, ON_CHANNELS)
-- Runtime validation in development
-- Preload.js security validation in production
-- O(1) channel lookup using Set data structures
-
-**Methods**:
-- `IpcBridge.send(channel, data)`: Send one-way message
-- `IpcBridge.invoke(channel, data)`: Invoke async handler
-- `IpcBridge.on(channel, handler)`: Subscribe to messages
-- `IpcBridge.once(channel, handler)`: One-time subscription
-
-### Services (`infrastructure/services/`)
-
-**ToolExecutionService** (`ToolExecutionService.ts`):
-- Handles tool execution and bundling
-- Automatic screenshot capture for computer-use tools:
-  - Individual tools: Screenshot captured **once** after tool execution
-  - Bundled tools: Screenshot captured **once** after all bundled tools execute
-  - Individual tools use `ensureAutoCapture(...)` shared capture policy helper
-  - Default wait is 2 seconds for most computer-use tools, 0 for `screenshot`, and may be overridden by `wait`/`seconds` args
-- System state capture and formatting
-- Callback-based architecture for UI updates
-- Pure infrastructure code (no React dependencies)
-
-**MessageFormatter** (`MessageFormatter.ts`):
-- Pure functions for formatting tool output messages
-- System context XML formatting
-- Tool result formatting
-- Bundle result formatting
-- No side effects, no React dependencies
-
-**PlayerService** (`infrastructure/audio/PlayerService.ts`):
-- TTS audio playback queue
-- Sequential playback management
-- Audio format conversion
-- Callback-based architecture
-- Stop/cleanup logic cancels active audio sources and prevents stale `onended` callbacks from continuing cleared queues
-
-## Security
-
-### IPC Security
-
-- **Context Isolation**: Renderer isolated from Node.js
-- **Preload Script**: Secure IPC bridge
-- **Whitelisted Channels**: Only allowed channels exposed
-- **No Node Integration**: Renderer has no Node.js access
-
-### Content Security
-
-- **CSP Headers**: Content Security Policy enforced
-- **No Inline Scripts**: All scripts from files
-- **HTTPS Only**: All external resources over HTTPS
-
-## Performance
-
-### Optimization Strategies
-
-- **Code Splitting**: Lazy loading of components
-- **Memoization**: React.memo for expensive components
-- **Virtual Scrolling**: For long message lists (planned)
-- **Debouncing**: Input debouncing for search
-
-### Caching
-
-- **Settings Cache**: Cached in context
-- **Model List Cache**: Cached after first load
-- **Screenshot Cache**: Cached in message objects
-
-## Build System
-
-### Vite Configuration
-
-- **Dev Server**: Hot module replacement
-- **Build**: Production bundle optimization
-- **React Plugin**: JSX transformation
-
-### Electron Build
-
-- **Electron Builder**: Package for distribution
-- **Platform Targets**: Windows, macOS, Linux
-- **Auto Updater**: Update mechanism (planned)
-
-## Testing
-
-### Test Structure
-
-```
-tests/frontend/
-├── AppProvider.test.tsx
-├── ChatStore.test.ts
-├── MessageInput.test.jsx
-├── ToolExecutionService.test.ts
-└── landing/LandingPage.test.jsx
-```
-
-### Testing Tools
-
-- **Jest**: Test runner
-- **React Testing Library**: Component testing
-- **jsdom**: DOM environment
-- **Babel**: JavaScript transpilation
-
-## Development Workflow
-
-### Development Mode
-
-1. Start backend: `./scripts/run-backend`
-2. Start Vite dev server: `./scripts/run-frontend-dev`
-3. Launch Electron: `./scripts/run-frontend-electron`
-
-### Production Build
-
-1. Build renderer: `npm run build`
-2. Package Electron: `npm run package`
-
-## Extension Points
-
-### Custom Components
-
-1. Create component in `src/renderer/features/<feature>/components/` or `src/renderer/components/`.
-2. Add to feature or shared component hierarchy.
-3. Add styles in `src/renderer/styles/` (or feature-specific style files already used by that feature).
-
-### Custom Hooks
-
-1. Create hook in `src/renderer/features/<feature>/hooks/` or `src/renderer/app/providers/`.
-2. Export hook function
-3. Use in components
-
-### Custom Tools
-
-1. Create tool in `frontend/src/main/python/tools/`.
-2. Register it in `frontend/src/main/python/tools/registry.py`.
-3. Expose it to backend tool-calling via `EXPOSED_TO_BACKEND_TOOLS` when needed.
-
----
-
-For more detailed information, see:
-- [Communication Flow](communication_flow.md)
-- [API Reference](../reference/api_reference.md)
-- [Tool System](tool_system.md)
+## Core Runtime Flows
+
+### Query Send Flow
+
+1. User enters message in `renderer/features/chat/components/MessageInput.jsx`.
+2. `useChatMessageSender` builds payload and optional screenshot metadata.
+3. `ApiClient.sendQuery()` emits `to-backend` IPC message.
+4. Main `ipc.cjs`:
+   - Ensures one-time initial settings sync ACK gate.
+   - Runs overlay pre-capture focus handoff for chatbox-surface sends.
+   - Emits local synthetic `local-user-message` event to renderer immediately.
+   - Calls `buildQueryPayloadContent()` to inject system-context + memory sections.
+   - Sends normalized `query` over backend WebSocket.
+
+### Stream Receive Flow
+
+1. Backend WebSocket events arrive in main `ipc.cjs`.
+2. Main updates response-overlay phase (`awaiting-first-chunk`/`streaming`/`tool-call`/`complete`/`error`) and broadcasts `from-backend` to renderer windows.
+3. Renderer `useChatStream`:
+   - Filters by active conversation/turn tracking.
+   - Updates Zustand store for thinking, streaming text, tool messages, completion, errors.
+   - Persists transcript rows (`recordUserMessage`, `recordAssistantMessage`, `recordToolMessage`).
+
+### Tool Turn Flow
+
+1. Backend emits `tool-call` or `tool-bundle`.
+2. Renderer `useToolRunner` validates active turn and stale-turn guards.
+3. `ToolExecutionService` executes sidecar-facing tools and sends `tool-result`/`tool-bundle-result` via IPC -> backend.
+4. Tool output is rendered as assistant tool rows and persisted in transcript queue.
+
+### Conversation/Transcript Flow
+
+1. Renderer writes transcript rows through `INVOKE_CHANNELS.STORE_TRANSCRIPT`.
+2. `TranscriptWriter` queues failed writes and retries when session info becomes available.
+3. Dashboard sidebar/search open operations fetch transcript windows via sidecar RPC (`list-conversations`, `search-conversations`, `get-conversation`).
+   `get-conversation` resume/hydrate paths use `message_index` cursor pagination (`after_message_index`) so large local DB transcripts are fully reloaded instead of capped at one page.
+4. Resume action rehydrates backend context (`rehydrate-conversation`) and replaces in-memory renderer chat state.
+
+### Wakeword/Voice Flow
+
+1. Renderer wakeword hook captures mic PCM and sends `wakeword-audio-chunk` IPC.
+2. Main wakeword bridge forwards framed audio to Python wakeword subprocess.
+3. Detection emits `wakeword-detected` back to renderer + `wakeword-detected` backend event.
+4. Renderer shows chatbox/focuses input; optional STT continuation uses voice-mode gateway hook.
+
+### Permission Onboarding Flow
+
+1. Renderer `App.jsx` bootstraps `usePermissionStore` before dashboard/chat surfaces mount.
+2. Store invokes `LIST_PERMISSIONS` to fetch manifest + live status probes from main process.
+3. If required-now permission state is incomplete (or manifest version changed), app stays in onboarding wizard.
+4. Wizard/request actions call `REQUEST_PERMISSION` and `RUN_PERMISSION_PROBE`; settings "Data controls" renders the same control center component.
+5. Normal dashboard unlocks only after required permissions are granted and planned-system-access disclosure consent is stored.
+
+## Main Process Responsibilities
+
+Primary modules:
+
+- `main/index.cjs`:
+  - Main-process composition root: assembles runtime modules and shared state references.
+  - Delegates lifecycle boot/activate/quit wiring to `main_process_lifecycle_runtime.cjs`.
+  - Delegates overlay/window/permission IPC handler registration to `overlay_ipc_runtime.cjs`.
+  - Delegates visibility and overlay positioning helpers to `window_visibility_runtime.cjs`, `overlay_window_helpers_runtime.cjs`, and `overlay_signal_runtime.cjs`.
+- `main/ipc.cjs`:
+  - Single backend WebSocket client lifecycle and reconnect.
+  - Handshake/user/session/conversation context propagation.
+  - Settings sync ACK tracking (`settings-updated`/timeout handling).
+  - Query preprocessing + local-user-message synthesis.
+  - Artifact upload HTTP helper.
+- `main/local_backend_bridge.cjs`:
+  - Sidecar subprocess start/readiness ping/retry.
+  - JSON-RPC request correlation and timeout handling.
+  - Tool execution handlers, system-state/memory RPC handlers.
+  - Screenshot execution wrapper that temporarily hides windows on Linux.
+- `main/wakeword_bridge.cjs`:
+  - Wakeword subprocess lifecycle.
+  - Binary length-prefixed detection frame parsing.
+  - Enable/disable buffering policy to avoid stale detections.
+
+## Renderer Responsibilities
+
+### Provider and App Composition
+
+- `renderer/app/App.jsx`: Root provider stack and dashboard shell mounting.
+  - Boot-time permission gate: permission store bootstrap + onboarding wizard route before normal shell.
+- `renderer/app/providers/AppConfigProvider.jsx`:
+  - Frontend config load/merge/save.
+  - Backend settings sync, backend model-list routing.
+  - Wakeword suppression and effective wakeword state.
+- `renderer/app/providers/AppProvider.jsx`:
+  - Config/status coordination and keyboard interaction-mode toggle.
+- `renderer/app/providers/ChatProvider.jsx`:
+  - Wires `useChatStream` and `useToolRunner`.
+
+### Chat Runtime
+
+- `features/chat/stores/chatStore.ts`: canonical chat state + stream tracking.
+- `features/chat/hooks/useChatStream.ts`:
+  - Stream event routing (`llm-thought`, `streaming-response`, `tool-call`, `tool-output`, `streaming-complete`, etc.).
+  - Conversation gating, turn tracking, token-count handling.
+  - Dev transparency source tagging: in `electron:dev` (`dev_ui=1`), message/thinking/response surfaces show source badges mapped to stream/event origin (`streaming-response`, `tool-call`, `tool-output`, `llm-thought`, etc.).
+- `features/chat/hooks/useToolRunner.ts`:
+  - Executes incoming tool calls/bundles, stale-turn cancellation responses.
+- `features/chat/components/ChatInterface.jsx`:
+  - Provider + model selectors, stop/new-chat actions, speech toggle, retry/edit message flows.
+- `features/chat/components/MessageList.jsx`:
+  - Message rendering + inline user-message editor.
+
+### Permission Runtime
+
+- `features/permissions/stores/permissionStore.js`:
+  - Manifest/status fetch + probe/request actions.
+  - Required-now gate evaluation + onboarding completion persistence.
+- `features/permissions/components/PermissionOnboardingWizard.jsx`:
+  - First-run permission checklist + planned-system-access consent step.
+- `features/permissions/components/PermissionControlCenter.jsx`:
+  - Settings-tab live permission status, request/re-check actions, and full recheck.
+
+### Dashboard Runtime
+
+- `features/dashboard/components/ChatGptDashboardShell.jsx`:
+  - Sidebar + modal surface orchestration.
+  - Conversation search/recent grouping/open/rename/pin/delete actions.
+  - `main-window-open-target` IPC target routing (`chat|settings|models|memory`).
+- `features/dashboard/hooks/useDashboardConversations.js`:
+  - Extracted conversation runtime state: list/search fetch, open/rehydrate, rename/pin/delete handlers, transcript-entry polling.
+- `features/dashboard/components/sections/MemorySection.jsx`:
+  - Unified episodic/semantic/procedural view.
+  - Fetch/delete semantic memory via sidecar RPC.
+  - Local editable/add flows for panel state.
+- `features/dashboard/components/sections/ModelsSection.jsx`:
+  - Provider-first model selection, fallback reconciliation, API-key section.
+
+### Voice Runtime
+
+- `features/voice/hooks/useWakewordDetection.ts`: wakeword PCM capture + confidence/cooldown gating.
+- `features/voice/hooks/useVoiceMode.ts`: gateway websocket + live transcription streaming.
+- `app/WakewordController.jsx`: backend wakeword event + chatbox show/focus behavior.
+
+### Shared Infrastructure
+
+- `infrastructure/ipc/bridge.ts`: typed channel wrappers over preload API.
+- `infrastructure/api/client.ts`: typed backend command emitter.
+- `infrastructure/transcript/TranscriptWriter.ts`: transcript session state + queued persistence.
+- `infrastructure/services/ToolExecutionService.ts`: tool execution/capture bundling.
+- `infrastructure/audio/PlayerService.ts`: chunk queue decode/playback.
+
+## Sidecar Responsibilities (`frontend/src/main/python`)
+
+- `local_backend.py`:
+  - JSON-RPC method registry for tool/system-state/transcript/memory operations.
+  - Memory summarization watermark logic and transcript routing.
+- `tools/registry.py`:
+  - Canonical sidecar-exposed tool surface for backend contract parity.
+- `memory/local_store.py`:
+  - SQLite + FAISS local storage.
+  - Separate episodic/semantic stores and vector mapping sync.
+  - Remote embedding/title client integrations.
+- `core/system_state.py` + `core/platform/*`:
+  - OS-aware active-window/mouse/display/system-state probes.
+
+## Current Frontend Refactor Notes (2026-02-26)
+
+Canonical current behavior that replaced older module splits:
+
+- Token counter UI component removed from active renderer surfaces.
+- Memory panel consolidated into `MemorySection` + `MemoryItem`; old `EpisodicMemorySection`/`SemanticMemorySection` split is retired.
+- Tool ghost lifecycle moved away from old `useToolGhostLifecycle.js` + `toolGhostPreview.js` utility ownership.
+- Dashboard utility storage/settings helper split changed; provider/model/memory helpers now live in section-local data/helper files.
+- Stream updater logic now centralized in `useStreamMessageUpdaters.ts` and transcript payload formatting in `transcriptMessagePayload.js`.
+
+Use inventory docs as source of truth before touching older deep references.

@@ -41,12 +41,26 @@ function normalizeToolSchemas(value: unknown): ToolSchema[] | undefined {
   return isCanonicalList ? (value as ToolSchema[]) : undefined;
 }
 
+function findLastMessage(
+  messages: ChatMessage[],
+  predicate: (message: ChatMessage) => boolean,
+): ChatMessage | null {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index];
+    if (predicate(message)) {
+      return message;
+    }
+  }
+  return null;
+}
+
 export function findLastMessageIdBySender(
   messages: ChatMessage[],
   sender: ChatMessage['sender'],
   turnRef?: string,
 ): string | null {
-  const lastMessage = messages.findLast(
+  const lastMessage = findLastMessage(
+    messages,
     (message) => (
       message.sender === sender
       && (!turnRef || message.turnRef === turnRef)
@@ -59,7 +73,8 @@ export function findLastAssistantLlmTextMessageId(
   messages: ChatMessage[],
   turnRef?: string,
 ): string | null {
-  const lastMessage = messages.findLast(
+  const lastMessage = findLastMessage(
+    messages,
     (message) => (
       message.sender === 'assistant'
       && message.type === 'llm-text'
@@ -109,7 +124,8 @@ export function findStreamingCompleteAssistantMessage(
   turnRef?: string,
 ): ChatMessage | null {
   const withTurnRef = turnRef
-    ? messages.findLast(
+    ? findLastMessage(
+      messages,
       (message) => (
         message.sender === 'assistant'
         && (!message.type || message.type === 'llm-text')
@@ -121,7 +137,8 @@ export function findStreamingCompleteAssistantMessage(
     return withTurnRef;
   }
   return (
-    messages.findLast(
+    findLastMessage(
+      messages,
       (message) => message.sender === 'assistant' && (!message.type || message.type === 'llm-text'),
     )
     || null
@@ -136,9 +153,12 @@ export function buildSystemPromptUpdate(payload: SystemPromptPayload | null | un
 }
 
 export function buildUserMessageFullUpdate(payload: UserMessageFullPayload | null | undefined) {
+  const metadata = payload?.metadata;
   return {
     content: typeof payload?.content === 'string' ? payload.content : '',
-    metadata: payload?.metadata,
+    metadata: metadata && typeof metadata === 'object' && !Array.isArray(metadata)
+      ? metadata as Record<string, unknown>
+      : undefined,
   };
 }
 

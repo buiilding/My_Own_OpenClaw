@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+FRONTEND_DIR="${ROOT_DIR}/frontend"
+RUNTIME_DIR="${FRONTEND_DIR}/python-runtime"
+RUNTIME_ARCHIVE="${FRONTEND_DIR}/python-runtime.tar.gz"
+RUNTIME_REQS="${FRONTEND_DIR}/src/main/python/requirements.runtime.txt"
+MODE="${WINDIE_SIDECAR_RUNTIME_MODE:-slim}"
+
+if [[ ! -f "${RUNTIME_REQS}" ]]; then
+  echo "[build-sidecar-runtime] Missing runtime requirements file: ${RUNTIME_REQS}" >&2
+  exit 1
+fi
+
+if [[ -n "${WINDIE_PYTHON_BUILD:-}" ]]; then
+  BASE_PYTHON="${WINDIE_PYTHON_BUILD}"
+elif command -v python3 >/dev/null 2>&1; then
+  BASE_PYTHON="python3"
+elif command -v python >/dev/null 2>&1; then
+  BASE_PYTHON="python"
+else
+  echo "[build-sidecar-runtime] Could not find python3/python on PATH." >&2
+  exit 1
+fi
+
+echo "[build-sidecar-runtime] mode=${MODE}"
+echo "[build-sidecar-runtime] python=${BASE_PYTHON}"
+echo "[build-sidecar-runtime] runtime=${RUNTIME_DIR}"
+
+rm -rf "${RUNTIME_DIR}"
+"${BASE_PYTHON}" -m venv "${RUNTIME_DIR}"
+
+if [[ -x "${RUNTIME_DIR}/bin/python" ]]; then
+  RUNTIME_PYTHON="${RUNTIME_DIR}/bin/python"
+elif [[ -x "${RUNTIME_DIR}/Scripts/python.exe" ]]; then
+  RUNTIME_PYTHON="${RUNTIME_DIR}/Scripts/python.exe"
+else
+  echo "[build-sidecar-runtime] Could not resolve runtime python executable." >&2
+  exit 1
+fi
+
+"${RUNTIME_PYTHON}" -m pip install --upgrade pip setuptools wheel
+"${RUNTIME_PYTHON}" -m pip install -r "${RUNTIME_REQS}"
+
+if [[ "${MODE}" == "full" ]]; then
+  echo "[build-sidecar-runtime] installing playwright browser payload (full mode)"
+  PLAYWRIGHT_BROWSERS_PATH="${RUNTIME_DIR}/ms-playwright" \
+    "${RUNTIME_PYTHON}" -m playwright install chromium
+else
+  echo "[build-sidecar-runtime] skipping playwright browser payload (slim mode)"
+fi
+
+# Shrink package output by removing transient bytecode caches.
+find "${RUNTIME_DIR}" -type d -name "__pycache__" -prune -exec rm -rf {} +
+find "${RUNTIME_DIR}" -type f -name "*.pyc" -delete
+
+rm -f "${RUNTIME_ARCHIVE}"
+tar -C "${FRONTEND_DIR}" -czf "${RUNTIME_ARCHIVE}" "python-runtime"
+
+echo "[build-sidecar-runtime] wrote ${RUNTIME_ARCHIVE}"

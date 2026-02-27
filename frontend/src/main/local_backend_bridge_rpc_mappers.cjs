@@ -104,6 +104,7 @@ const COMPILED_RPC_HANDLER_DEFINITIONS = [
       conversation_id: ({ conversationId }) => conversationId ?? null,
       limit: 'limit',
       record_kind: 'recordKind',
+      after_message_index: 'afterMessageIndex',
     }),
   },
   {
@@ -112,6 +113,14 @@ const COMPILED_RPC_HANDLER_DEFINITIONS = [
     mapParams: createPayloadMapper({
       user_id: 'userId',
       limit: 'limit',
+    }),
+  },
+  {
+    channel: 'delete-episodic-memory',
+    method: 'delete_episodic_memory',
+    mapParams: createPayloadMapper({
+      user_id: 'userId',
+      memory_id: 'memoryId',
     }),
   },
   {

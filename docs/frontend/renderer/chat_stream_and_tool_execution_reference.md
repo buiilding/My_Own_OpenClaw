@@ -17,11 +17,18 @@ title: "Chat Stream and Tool Execution Reference"
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
+- `frontend/src/renderer/features/chat/hooks/useChatStreamToolHandlers.ts`
 - `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamConversationGate.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamTracking.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamMessageUpdates.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamEventUtils.ts`
+- `frontend/src/renderer/features/chat/utils/chatStreamToolMessages.ts`
+- `frontend/src/renderer/features/chat/utils/chatStreamThinkingStatus.ts`
+- `frontend/src/renderer/features/chat/utils/chatStreamTypes.ts`
+- `frontend/src/renderer/features/chat/utils/modelThinkingCapabilities.ts`
+- `frontend/src/renderer/features/chat/utils/toolRunnerSurface.ts`
+- `frontend/src/renderer/infrastructure/hooks/useLatestRef.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionService.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionBundleRunner.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionCapture.ts`
@@ -62,6 +69,25 @@ Primary state:
 - last error text
 - transition math lives in `chatStreamTracking.applyTrackingEvent(...)`
 
+## Model Capability Resolution and Thinking Fallback Policy
+
+`useChatStream` resolves selected-model thinking flags through `resolveThinkingCapabilities(...)`:
+
+- source set is merged `availableModels.local + availableModels.online`
+- primary match: `{id, provider}`
+- fallback match: `id` only
+- fallback heuristic for Gemini: provider `gemini` + model id prefix `gemini-` implies `supportsThinking=true` when catalog flags are absent
+
+Resulting policy:
+
+- if `supportsThinking=true` and `supportsThinkingTextStream=false`, local-user send path sets generic `Thinking...` status until stream text arrives
+- otherwise thinking state starts empty and waits for `llm-thought` chunks
+
+Persisted thinking cleanup contract from `chatStreamThinkingStatus.ts`:
+
+- `GENERIC_THINKING_STATUS` and `COMPACTION_THINKING_STATUS` are never persisted into final assistant message `thinkingText`
+- blank/non-string statuses are normalized to `null`
+
 ## Message Send Lifecycle (`useChatMessageSender`)
 
 `sendMessage(text)` sequence:
@@ -90,12 +116,12 @@ Listener source:
 Pre-routing guards:
 
 - event shape validated by `isBackendEvent`
-- event filtered by active `conversation_ref` mismatch guard (`chatStreamConversationGate`)
+- event filtered by active conversation mismatch guard (`chatStreamConversationGate`), including `memory-store` fallback routing via payload/session `session_id` when `conversation_ref` is absent
 
 Handler map (`BackendEventType` -> behavior):
 
 - `local-user-message`: adds user row, resets `streamTracking` for turn
-- `llm-thought`: accumulates thinking text
+- `llm-thought`: accumulates transient thinking text and writes live reasoning (`thinkingText`) onto the same-turn assistant `llm-text` message (creates placeholder assistant row before first text chunk when needed)
 - `streaming-response`: append/create assistant `llm-text` row and increment chunk tracking
 - `context-compaction-started`: sets thinking text to `Compacting conversation history...` while backend compaction runs
 - `context-compaction-completed`: clears compaction thinking text so normal stream status can resume
@@ -106,9 +132,10 @@ Handler map (`BackendEventType` -> behavior):
 - `system-prompt`: annotate last user message with system prompt + tool schema snapshot
 - `user-message-full`: annotate user message with full payload metadata
 - `assistant-message-full`: annotate latest assistant `llm-text` message
+- `memory-store`: forward backend-provided `{user_query, assistant_response}` pair to sidecar `store-memory` IPC so episodic interaction memory is persisted
 - `tool-schemas`: annotate first user message with tool schema list
 - `token-count`: update token counters
-- `streaming-complete`: mark assistant message complete, clear sending/thinking, transcript assistant row
+- `streaming-complete`: persist final streamed thinking text onto the same-turn assistant `llm-text` message (`thinkingText` + `thinkingSourceEventType`), then mark assistant message complete and clear transient `thinkingStatus`
 - `error`: append assistant error row unless ignored by settings-update-error filter
 
 Message targeting utilities:
@@ -117,6 +144,14 @@ Message targeting utilities:
 - `findLastAssistantLlmTextMessageId`
 - `findStreamingCompleteAssistantMessage`
 - `resolveStreamingResponseAction`
+
+Tool-specific handler extraction (`useChatStreamToolHandlers`) ownership:
+
+- clears transient thinking status/source before each tool event
+- converts backend tool payloads into chat rows via `chatStreamToolMessages.ts`
+- records transcript tool rows with model metadata from `modelContextRef`
+- resolves tool-output correlation id fallback via `resolveToolOutputCorrelationId(...)`
+- normalizes screenshot attachment from `payload.screenshot_ref`
 
 ## Tool Execution Runtime (`useToolRunner` + `ToolExecutionService`)
 
@@ -137,6 +172,24 @@ Correlation tracking:
 - hook tracks correlation IDs to active turn refs
 - drops late/foreign callback results before UI append/backend relay
 - removes correlation tracking after backend send
+
+Surface preparation contract (`toolRunnerSurface.ts`):
+
+- classifies tool UI mode as `none | screenshot | interactive`
+- interactive mode covers computer-control primitives (`mouse_control`, `keyboard_control`, `scroll_control`, plus browser actions `click|type|scroll`)
+- screenshot mode covers `screenshot` tool and browser `action=screenshot`
+- explicit exclusions keep `switch_tab` out of overlay hide/focus-prepare flow
+
+Overlay/focus runtime behavior:
+
+- interactive mode:
+  - `SHOW_CHATBOX(focus=false)` then `HIDE_CHATBOX`
+  - `PREPARE_OVERLAY_TOOL_FOCUS(waitMs=180)`
+  - fail-close when focus prep fails or `externalFocusActive` check fails while verification is available
+- screenshot mode:
+  - `SHOW_CHATBOX(focus=false)` then `HIDE_CHATBOX` (no focus verification call)
+- restoration:
+  - when preparation requested chat-pill hide, `restoreToolExecutionSurface(...)` calls `SHOW_CHATBOX(focus=false)` best-effort after execution
 
 `ToolExecutionService.executeTool(...)` flow:
 

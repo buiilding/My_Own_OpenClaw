@@ -1,0 +1,92 @@
+---
+summary: "Deep reference for `useStreamMessageUpdaters`: sender/turn-scoped message-id selection helpers and update fallback behavior used by `useChatStream` event handlers."
+read_when:
+  - When changing message-id selector behavior in `useStreamMessageUpdaters.ts`.
+  - When debugging stream events that fail to update expected user/assistant rows.
+title: "Stream Message Updater Selector Contract Reference"
+---
+
+# Stream Message Updater Selector Contract Reference
+
+## Canonical Modules
+
+- `frontend/src/renderer/features/chat/hooks/useStreamMessageUpdaters.ts`
+- `frontend/src/renderer/features/chat/utils/chatStreamMessageUpdates.ts`
+- `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
+- `frontend/src/renderer/features/chat/stores/chatStore.ts`
+- `tests/frontend/ChatStreamMessageUpdates.test.ts`
+
+## Hook Responsibility
+
+`useStreamMessageUpdaters(updateMessage)` provides selector-backed update helpers that resolve message ids from current store state at call time.
+
+Returned helpers:
+
+- `updateLastMessageBySender(sender, updates, turnRef?)`
+- `updateFirstMessageBySender(sender, updates)`
+- `updateLastAssistantLlmTextMessage(updates, turnRef?)`
+
+All helpers call provided `updateMessage(id, updates)` only when a message id is found.
+
+## Selector Source of Truth
+
+Hook reads live messages from `useChatStore.getState().messages` per invocation.
+
+Implications:
+
+- avoids stale closure snapshots from render-time arrays
+- update targeting follows latest stream-mutated state
+
+## Target Resolution Semantics
+
+### `updateLastMessageBySender`
+
+Selection order:
+
+1. turn-scoped last match by sender (`findLastMessageIdBySender(..., turnRef)`)
+2. fallback to global last match by sender when scoped match missing and `turnRef` provided
+
+If both missing: no-op.
+
+### `updateFirstMessageBySender`
+
+- uses `findFirstMessageIdBySender`
+- no turn scoping
+- no-op when no sender match
+
+### `updateLastAssistantLlmTextMessage`
+
+- uses `findLastAssistantLlmTextMessageId(messages, turnRef?)`
+- turn-scoped lookup first when `turnRef` provided
+- no-op when no candidate
+
+## Primary Use in Stream Hook
+
+`useChatStream` uses this hook for event-to-row updates (for example full-message/system-prompt update paths) without duplicating selector logic inline.
+
+Benefits:
+
+- shared targeting behavior across handlers
+- turn-scoped fallback policy centralized
+- simpler event handler code in `useChatStream`
+
+## Drift Hotspots
+
+1. Changing fallback behavior in `updateLastMessageBySender` can retarget updates to wrong turn rows.
+2. Switching from `getState()` to captured messages can reintroduce stale-update races under rapid stream events.
+3. Diverging selector utility contracts from hook assumptions can produce silent no-op updates.
+
+## Coverage Notes
+
+Current direct unit coverage for this hook is absent.
+
+Adjacent coverage:
+
+- `ChatStreamMessageUpdates` selector utilities are covered.
+- `useChatStream` integration tests exercise downstream behavior that depends on these helpers.
+
+## Related Pages
+
+- [Frontend Renderer Chat Stream Docs Hub](README.md)
+- [Tracking, Formatting, and Message-Update Utility Reference](tracking_formatting_and_message_update_utility_reference.md)
+- [Conversation Gate and Active-Turn Filtering Reference](conversation_gate_and_active_turn_filtering_reference.md)

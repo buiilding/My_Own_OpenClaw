@@ -8,11 +8,17 @@ title: "Frontend Protocol Status, Phase, and Stream-Telemetry Signal Reference"
 
 # Frontend Protocol Status, Phase, and Stream-Telemetry Signal Reference
 
+## Coverage Snapshot (2026-02-27)
+
+- Observability-focused protocol test files: `4`
+- Total test cases across listed files: `56`
+
 ## Scope and Sources
 
 Primary runtime sources:
 
 - `frontend/src/main/ipc.cjs`
+- `frontend/src/main/ipc_settings_sync.cjs`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamTracking.ts`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
@@ -164,8 +170,20 @@ When changing observability surfaces, keep aligned:
 - stream-tracking field names and semantics vs chat store/test assertions
 - token-count handler and payload shape vs backend token-count schema event contract
 
+## Observability Control-Path Index
+
+| Observability control path | Runtime owner | Signal contract |
+|---|---|---|
+| ws connection snapshot broadcast | `frontend/src/main/ipc.cjs` | `ipc-status` carries connection/user/backend endpoint metadata across open/close lifecycle |
+| overlay phase transition broadcast | `frontend/src/main/ipc.cjs` | `response-overlay-phase` stays constrained to canonical phase literals and transition sources |
+| settings ACK timeout diagnostics | `frontend/src/main/ipc.cjs` | unresolved ACKs log timeout source + id and resolve without deadlocking query flow |
+| stream turn telemetry aggregation | `frontend/src/renderer/features/chat/utils/chatStreamTracking.ts` | per-turn phase/timestamp/counter fields remain coherent across local-user/chunk/tool/error events |
+| token usage ingestion | `frontend/src/renderer/features/chat/hooks/useChatStream.ts` | `token-count` events update token counters without mutating turn-phase telemetry semantics |
+
 ## Related Pages
 
 - [Frontend Protocol Lifecycle Hub](../lifecycle/README.md)
 - [Frontend Protocol State Hub](../state/README.md)
+- [Frontend Protocol Validation Hub](../validation/README.md)
+- [Frontend Protocol Errors Hub](../errors/README.md)
 - [Frontend Protocol Testing Hub](../testing/README.md)

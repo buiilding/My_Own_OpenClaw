@@ -1,8 +1,9 @@
 ---
-summary: "Renderer chat response-overlay presentation docs sub-hub for response-pill auto-resize contracts and shared tool-ghost cursor markup/label semantics."
+summary: "Renderer chat response-overlay presentation docs sub-hub for response-pill auto-resize contracts and debug-only tool-ghost cursor markup semantics."
 read_when:
-  - When changing `ChatBoxResponse.jsx` response-pill sizing behavior or overlay ghost cursor rendering markup.
-  - When debugging clipped response content, resize jitter, or inconsistent ghost label rendering between overlay and debug app surfaces.
+  - When changing `ChatBoxResponse.jsx` response-pill sizing behavior.
+  - When changing `ToolGhostCursor`/`ToolGhostDebugApp` debug animation markup and classes in `ChatBoxResponseOverlay.css`.
+  - When debugging clipped response content, resize jitter, or debug ghost-cursor label rendering.
 title: "Renderer Chat Response-Overlay Presentation Docs Hub"
 ---
 
@@ -27,6 +28,5 @@ title: "Renderer Chat Response-Overlay Presentation Docs Hub"
 - `frontend/src/renderer/features/chat/hooks/useAutoResizedResponseHeight.js`
 - `frontend/src/renderer/app/ToolGhostDebugApp.jsx`
 - `frontend/src/renderer/styles/ChatBoxResponseOverlay.css`
-- `tests/frontend/ChatBoxResponse.toolGhost.test.jsx`
 - `tests/frontend/ChatBoxResponse.state.test.jsx`
 - `tests/frontend/ChatBoxResponse.testUtils.jsx`

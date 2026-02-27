@@ -11,7 +11,11 @@ title: "WebSocket Handshake and Settings Sync Reference"
 ## Canonical Modules
 
 - `frontend/src/main/ipc.cjs`
+- `frontend/src/main/ipc_runtime_helpers.cjs`
+- `frontend/src/main/ipc_renderer_windows.cjs`
+- `frontend/src/main/ipc_query_broadcast.cjs`
 - `frontend/src/main/ipc_query_events.cjs`
+- `frontend/src/main/ipc_settings_sync.cjs`
 - `frontend/src/main/ipc_frontend_config.cjs`
 - `frontend/src/main/backend_endpoints.cjs`
 - `frontend/src/main/query_payload_builder.cjs`
@@ -22,7 +26,9 @@ title: "WebSocket Handshake and Settings Sync Reference"
 
 - explicit `BACKEND_WS_URL` / `BACKEND_HTTP_URL` if valid
 - otherwise derived counterpart URL from whichever explicit URL exists
-- final fallback: `127.0.0.1:8765` (`ws://.../ws`, `http://...`)
+- final fallback:
+  - dev/source runs: `127.0.0.1:8765` (`ws://.../ws`, `http://...`)
+  - packaged runs: hosted defaults (`wss://api.windieos.com/ws`, `https://api.windieos.com`)
 
 Relay state keeps:
 
@@ -70,6 +76,7 @@ Inbound backend messages update these fields opportunistically before renderer f
 All backend messages are broadcast via:
 
 - `broadcastToRenderers('from-backend', data)`
+- implementation owner: `ipc_renderer_windows.cjs`
 
 Window-aware behavior:
 
@@ -80,7 +87,7 @@ Window-aware behavior:
 
 ## Settings Sync ACK Pipeline
 
-Core primitives:
+Core primitives (implemented in `ipc_settings_sync.cjs`, orchestrated by `ipc.cjs`):
 
 - `sendSettingsUpdate(config, source)`
 - `waitForSettingsAck(msgId, source)`
@@ -140,6 +147,8 @@ Before successful backend query send, main emits synthetic:
 
 Built via `buildLocalUserMessage(...)` and broadcast to other renderer windows (excluding sender when provided).
 
+Broadcast plumbing is delegated to `ipc_query_broadcast.cjs`.
+
 ## Debug Checklist
 
 If first query uses stale settings:
@@ -159,3 +168,5 @@ If user/session context is inconsistent across windows:
 1. inspect inbound event updates to `currentSessionId/currentServerUserId/currentConversationRef`
 2. verify synthetic event builders used expected context at emission time
 3. verify renderer windows were registered with `registerRendererWindow`
+
+For helper-module split ownership details, see [IPC Helper Module Split and Runtime Boundary Reference](ipc_helper_module_split_and_runtime_boundary_reference.md).

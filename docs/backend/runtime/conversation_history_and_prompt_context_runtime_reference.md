@@ -11,6 +11,7 @@ title: "Conversation History and Prompt Context Runtime Reference"
 ## Canonical Modules
 
 - `backend/src/agent/session/state.py`
+- `backend/src/agent/session/message_builders.py`
 - `backend/src/agent/llm/conversation_context.py`
 - `backend/src/llm/prompts/prompt_constructor.py`
 - `backend/src/agent/execution/interaction_loop.py`
@@ -26,6 +27,13 @@ Core views:
 - `get_stored_messages()` -> structured rows with `message_type`, `tool_call_id`, optional images/tool_calls
 - `get_history()` -> LLM message list, includes system prompt first (if present), returns internal cache by read-only contract
 - `get_history_mutable()` -> deep-copied mutable LLM message list
+
+`message_builders.py` is the constructor/normalization boundary used by `ConversationHistory`:
+
+- `build_user_message(...)` -> canonical `role=user`, `message_type=USER_QUERY`
+- `build_assistant_message(...)` -> canonical `role=assistant`, `message_type=ASSISTANT_RESPONSE`
+- `build_tool_result_message(...)` -> canonical linked `role=tool`, `message_type=TOOL_OUTPUT`, includes `tool_call_id`
+- `build_tool_output_message(...)` -> fallback unlinked `role=user`, `message_type=TOOL_OUTPUT`
 
 Session initialization sets system prompt source of truth:
 
@@ -73,12 +81,13 @@ This makes later iterations cheap and preserves identical tool schema surface ac
 
 History consumption semantics in `ConversationHistory.add_tool_output(...)`:
 
-- when staged ids exist, history writes one or more `role=tool` rows with `tool_call_id`
-- then appends legacy multimodal `TOOL_OUTPUT` row (`role=user`) for screenshot continuity
+- when staged ids exist, history writes one or more canonical `role=tool` rows with `tool_call_id`
+- if staged ids exist and screenshot payload(s) are present, history attaches `image_data` directly to the first canonical `role=tool` row (multimodal `content=[text,image_url,...]` in LLM view)
+- if no staged ids exist, history writes a single legacy `TOOL_OUTPUT` row (`role=user`) with text (and optional screenshot payloads)
 - for bundles, `consume_all_on_next_output=True` consumes all staged ids on next output
 - for non-bundles, one staged id consumed per output event
 
-This dual-row strategy preserves both strict provider tool-message linkage and legacy screenshot continuity behavior.
+This preserves strict provider tool-message linkage while keeping screenshot continuity without duplicated tool-output text rows or companion screenshot rows.
 
 ## Rehydrate Normalization Rules
 
@@ -90,6 +99,14 @@ Normalization includes:
 - message_type normalization (`tool-output`, `tool-call`, `llm-text`, `user`, etc.)
 - preservation of assistant tool-call rows with `tool_calls`
 - preservation of tool rows with `tool_call_id`
+
+`normalize_message_type(role, message_type)` compatibility aliases:
+
+- tool variants (`tool`, `tool_output`, `tool_call`) -> `TOOL_OUTPUT`
+- compaction variants (`context_compaction`, `compaction`, `context_summary`) -> `CONTEXT_COMPACTION`
+- assistant variants (`assistant`, `assistant_response`, `llm_text`, `error`) -> `ASSISTANT_RESPONSE`
+- user variants (`user`, `user_query`, `query`) -> `USER_QUERY`
+- fallback by role when `message_type` is absent/unknown (`assistant` -> assistant response, `tool` -> tool output, else user query)
 
 Key outcome: rehydrated history can be passed through provider normalization without dropping linked tool messages.
 

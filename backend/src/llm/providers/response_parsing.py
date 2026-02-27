@@ -5,14 +5,16 @@ from __future__ import annotations
 import copy
 import json
 import logging
-import re
 from typing import Any, Dict, List, Optional
 
 from backend.src.core.infrastructure.exceptions import LLMAPIError
 from backend.src.core.types.schemas import NormalizedLLMResponse
+from backend.src.llm.providers.thinking_extraction import (
+    extract_tagged_thinking_from_content,
+    extract_thinking_content,
+)
 
 logger = logging.getLogger(__name__)
-THINKING_TAG_PATTERN = re.compile(r"<thinking>(.*?)</thinking>", re.DOTALL)
 
 
 def first_item(values: Any) -> Optional[Any]:
@@ -52,64 +54,6 @@ def delta_contains_tool_calls(delta: Any) -> bool:
             if get_value(block, "type") == "tool_use":
                 return True
     return False
-
-
-def extract_tagged_thinking_from_content(delta: Any) -> Optional[str]:
-    """Extract <thinking>...</thinking> segments from delta.content fields."""
-    if isinstance(delta, dict):
-        raw_content = delta.get("content")
-    else:
-        raw_content = getattr(delta, "content", None)
-
-    if not isinstance(raw_content, str):
-        return None
-
-    match = THINKING_TAG_PATTERN.search(raw_content)
-    if not match:
-        return None
-    return match.group(1)
-
-
-def extract_thinking_content(delta: Any) -> Optional[str]:
-    """
-    Extract reasoning/thinking content from a LiteLLM delta.
-
-    Handles:
-    - object attributes (`reasoning_content`, `thinking`, `reasoning`, `thought`)
-    - dictionary keys of same names
-    - tagged `<thinking>...</thinking>` content.
-    """
-    content = (
-        getattr(delta, "reasoning_content", None)
-        or getattr(delta, "thinking", None)
-        or getattr(delta, "reasoning", None)
-        or getattr(delta, "thought", None)
-    )
-
-    if not content and isinstance(delta, dict):
-        content = (
-            delta.get("reasoning_content")
-            or delta.get("thinking")
-            or delta.get("reasoning")
-            or delta.get("thought")
-        )
-
-    if not content:
-        content = extract_tagged_thinking_from_content(delta)
-
-    if isinstance(content, str):
-        match = THINKING_TAG_PATTERN.search(content)
-        if match:
-            return match.group(1)
-        return content
-
-    if isinstance(content, dict):
-        text_value = content.get("text") or content.get("content")
-        if isinstance(text_value, str):
-            return text_value
-        return None
-
-    return None
 
 
 def extract_stream_delta(chunk: Any) -> Optional[Any]:
@@ -386,9 +330,16 @@ def normalize_tool_arguments(
 
     if hasattr(raw_arguments, "model_dump"):
         try:
-            dumped = raw_arguments.model_dump()
+            dumped = raw_arguments.model_dump(warnings=False)
             if isinstance(dumped, dict):
                 return dumped
+        except TypeError:
+            try:
+                dumped = raw_arguments.model_dump()
+                if isinstance(dumped, dict):
+                    return dumped
+            except Exception:
+                pass
         except Exception:
             pass
     if hasattr(raw_arguments, "dict"):

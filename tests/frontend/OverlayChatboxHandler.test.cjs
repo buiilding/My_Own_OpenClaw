@@ -2,19 +2,15 @@
 
 const {
   handleMoveChatboxTo,
-  handleSetChatboxSize,
 } = require('../../frontend/src/main/overlay_chatbox_handler.cjs');
 
-describe('overlay_chatbox_handler', () => {
+describe('overlay_chatbox_handler move runtime', () => {
   function createDeps(overrides = {}) {
     return {
       chatWindow: {
         isDestroyed: jest.fn().mockReturnValue(false),
-        getSize: jest.fn().mockReturnValue([320, 120]),
-        setBounds: jest.fn(),
         setPosition: jest.fn(),
       },
-      getChatWindowBounds: jest.fn((width, height) => ({ x: 10, y: 20, width, height })),
       positionResponseWindow: jest.fn(),
       positionContextLabelWindow: jest.fn(),
       syncContextLabelWindowVisibility: jest.fn(),
@@ -22,64 +18,6 @@ describe('overlay_chatbox_handler', () => {
       ...overrides,
     };
   }
-
-  test('resizes chatbox and repositions dependent overlays', async () => {
-    const deps = createDeps();
-
-    const result = await handleSetChatboxSize({ width: 501.4, height: 300.2 }, deps);
-
-    expect(result).toEqual({ success: true, resized: true, width: 501, height: 300 });
-    expect(deps.getChatWindowBounds).toHaveBeenCalledWith(501, 300);
-    expect(deps.chatWindow.setBounds).toHaveBeenCalledWith({ x: 10, y: 20, width: 501, height: 300 }, false);
-    expect(deps.positionResponseWindow).toHaveBeenCalledTimes(1);
-    expect(deps.positionContextLabelWindow).toHaveBeenCalledTimes(1);
-    expect(deps.syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
-  });
-
-  test('returns resized false when requested size already applied', async () => {
-    const deps = createDeps({
-      chatWindow: {
-        isDestroyed: jest.fn().mockReturnValue(false),
-        getSize: jest.fn().mockReturnValue([400, 250]),
-        setBounds: jest.fn(),
-      },
-    });
-
-    const result = await handleSetChatboxSize({ width: 400, height: 250 }, deps);
-
-    expect(result).toEqual({ success: true, resized: false });
-    expect(deps.getChatWindowBounds).not.toHaveBeenCalled();
-    expect(deps.chatWindow.setBounds).not.toHaveBeenCalled();
-  });
-
-  test('applies size bounds clamps', async () => {
-    const deps = createDeps();
-
-    const result = await handleSetChatboxSize({ width: 0, height: 999999 }, deps);
-
-    expect(result).toEqual({ success: true, resized: true, width: 1, height: 7500 });
-    expect(deps.getChatWindowBounds).toHaveBeenCalledWith(1, 7500);
-  });
-
-  test('returns failure when chat window is unavailable', async () => {
-    const deps = createDeps({ chatWindow: null });
-
-    const result = await handleSetChatboxSize({ width: 500, height: 250 }, deps);
-
-    expect(result).toEqual({ success: false, reason: 'Chat window not available' });
-  });
-
-  test('logs resize failure reason', async () => {
-    const deps = createDeps({
-      getChatWindowBounds: jest.fn(() => {
-        throw new Error('boom');
-      }),
-    });
-
-    const result = await handleSetChatboxSize({ width: 500, height: 250 }, deps);
-
-    expect(result).toEqual({ success: false, reason: 'Failed to resize chatbox: boom' });
-  });
 
   test('moves chatbox and repositions dependent overlays', () => {
     const deps = createDeps();
@@ -92,12 +30,35 @@ describe('overlay_chatbox_handler', () => {
     expect(deps.syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
   });
 
+  test('skips move when chat window is unavailable', () => {
+    const deps = createDeps({ chatWindow: null });
+
+    handleMoveChatboxTo({ x: 10, y: 20 }, deps);
+
+    expect(deps.positionResponseWindow).not.toHaveBeenCalled();
+  });
+
+  test('skips move when chat window is destroyed', () => {
+    const deps = createDeps({
+      chatWindow: {
+        isDestroyed: jest.fn().mockReturnValue(true),
+        setPosition: jest.fn(),
+      },
+    });
+
+    handleMoveChatboxTo({ x: 10, y: 20 }, deps);
+
+    expect(deps.chatWindow.setPosition).not.toHaveBeenCalled();
+    expect(deps.positionResponseWindow).not.toHaveBeenCalled();
+  });
+
   test('skips move when coordinates are invalid', () => {
     const deps = createDeps();
 
     handleMoveChatboxTo({ x: 'invalid', y: 50 }, deps);
 
     expect(deps.chatWindow.setPosition).not.toHaveBeenCalled();
+    expect(deps.positionResponseWindow).not.toHaveBeenCalled();
   });
 
   test('warns on move failure', () => {

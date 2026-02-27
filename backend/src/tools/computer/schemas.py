@@ -134,10 +134,22 @@ ScrollToolDirection = Literal["up", "down", "left", "right"]
 class ScrollControlArgs(BaseModel):
     model_config = ConfigDict(extra='forbid')
 
-    action: Literal["scroll", "scroll_up", "scroll_down"] = Field(..., description="Scroll action to perform")
-    x: int = Field(..., description="X coordinate to move to before scrolling (manual coordinates only)")
-    y: int = Field(..., description="Y coordinate to move to before scrolling (manual coordinates only)")
-    clicks: int = Field(5, description="Number of scroll clicks (positive=up/right, negative=down/left)")
+    action: Literal["scroll", "scroll_up", "scroll_down"] = Field(
+        ...,
+        description="Scroll action to perform (`scroll`, `scroll_up`, or `scroll_down`).",
+    )
+    x: int = Field(
+        ...,
+        description="Screen X coordinate to move to before scrolling (manual coordinate mode).",
+    )
+    y: int = Field(
+        ...,
+        description="Screen Y coordinate to move to before scrolling (manual coordinate mode).",
+    )
+    clicks: int = Field(
+        5,
+        description="Scroll click count (positive moves up/right, negative moves down/left).",
+    )
     direction: Optional[ScrollToolDirection] = Field(
         None,
         description="Direction for scroll action: vertical 'up'|'down', or horizontal 'left'|'right'. Required when action is 'scroll'.",

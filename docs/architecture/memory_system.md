@@ -95,14 +95,12 @@ $mem = Join-Path $env:APPDATA "desktop-assistant\\memory"; Remove-Item -Force `
 - Calls backend `/api/semantic/summarize` via `RemoteSemanticClient`
 
 **Behavior notes**:
-- Runs on a fixed interval; summarization only proceeds when pending count reaches the configured threshold (`min_batch_size`, default `6`).
+- Runs on a fixed interval; summarization only proceeds when unsemanticized episodic interaction rows reach the configured threshold (`min_batch_size`, default `6`).
 - Deduplicates summaries using a `summary_hash` over source memory IDs.
 - Marks episodic memories as semanticized only after a successful summary write.
 - Uses `watermark_state.json` to track progress and resumes safely after restarts.
-- Summarizes transcript episodic rows only (`record_kind='transcript'`).
-- Transcript summarization excludes tool-call/tool-output chatter (single and
-  bundled) when building summary chunks, while still marking the full processed
-  batch semanticized.
+- Summarizes episodic interaction rows only (`record_kind='interaction'`).
+- Transcript rows (`record_kind='transcript'`) are excluded from semantic summarization.
 
 ### Summarization and Deletion FAQ (Current Behavior)
 
@@ -115,43 +113,39 @@ $mem = Join-Path $env:APPDATA "desktop-assistant\\memory"; Remove-Item -Force `
 - For partial deletes, stale vectors may remain in existing FAISS index files.
 - When a memory type reaches zero indexed rows, WindieOS clears in-memory vector mappings and removes that FAISS index file from disk.
 
-#### Does pending count increase for every assistant message?
+#### Does every assistant transcript message trigger summarization?
 
 - No.
-- Pending count increments only for assistant terminal transcript entries:
-  - `role="assistant"` and `message_type` in `""`, `"llm-text"`, or `"error"`.
-- Tool-call/tool-output entries do not increment pending count.
-- User transcript rows do not increment pending count.
-- Example: if you send 4 user messages and receive 4 assistant replies, pending count is `4` (not `8`).
+- Summarizer triggering is based on database count of unsemanticized episodic interaction rows (`record_kind='interaction'`).
+- Transcript writes do not affect the run gate.
 
 #### Does idle mode trigger summarization?
 
 - No.
-- Run gate now only checks pending count threshold (`pending_message_count >= min_batch_size`, default `6`).
+- Run gate only checks unsemanticized interaction-row count (`count >= min_batch_size`, default `6`).
 - Batch gate still applies after run gate: a conversation batch is summarized only if batch size and age checks pass.
 - Batch gate defaults:
   - Immediate summarize when batch size `>= min_batch_size` (`6`).
   - Otherwise requires `>= min_batch_size_idle` (`6`) plus age checks.
-- Because both defaults are `6`, the effective per-conversation requirement is typically at least 6 unsemanticized transcript rows.
+- Because both defaults are `6`, the effective per-conversation requirement is typically at least 6 unsemanticized interaction rows.
 
-#### If pending count is 10, are exactly those 10 rows sent to one prompt?
+#### If there are 10 unsemanticized interaction rows, are exactly those 10 rows sent to one prompt?
 
 - Not necessarily.
-- Pending count is only a cadence signal; it is not a direct batch size.
+- Row count is only a run gate; it is not a direct batch size.
 - Actual summarization input is fetched per conversation window, up to `max_batch_size=30`, ordered oldest to newest by timestamp.
-- Tool chatter may be filtered out before prompt chunks are built.
 
 #### Can one summarization request mix different conversation histories?
 
 - No.
 - Summarization batches are scoped to a single `conversation_id`.
-- Pending count can include activity from multiple conversations, but each request summarizes one conversation window at a time.
+- Unsemanticized row count can include activity from multiple conversations, but each request summarizes one conversation window at a time.
 
 #### Are messages ordered like conversation history?
 
 - Yes.
 - Rows are loaded in ascending timestamp order for each conversation window.
-- After filtering tool chatter, remaining rows keep chronological order in summary chunks.
+- Rows keep chronological order in summary chunks.
 
 #### Is low-signal filtering currently implemented?
 
@@ -162,8 +156,8 @@ $mem = Join-Path $env:APPDATA "desktop-assistant\\memory"; Remove-Item -Force `
 #### Idle-trigger removal status
 
 - Implemented.
-- Summarization runs only when pending count reaches threshold.
-- With current defaults, pending `>= 6` is required even after long idle periods.
+- Summarization runs only when unsemanticized interaction-row count reaches threshold.
+- With current defaults, at least 6 unsemanticized interaction rows are required even after long idle periods.
 
 ### MemoryTool
 

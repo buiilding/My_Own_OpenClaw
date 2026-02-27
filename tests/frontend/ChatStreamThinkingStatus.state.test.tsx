@@ -1,6 +1,10 @@
 import { act } from '@testing-library/react';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
-import { registerBackendListener, resetChatStreamTestState } from './ChatStreamThinkingStatus.testUtils';
+import {
+  registerBackendListener,
+  resetChatStreamTestState,
+  setMockConfig,
+} from './ChatStreamThinkingStatus.testUtils';
 
 describe('useChatStream state + stream handling', () => {
   beforeEach(() => {
@@ -33,6 +37,58 @@ describe('useChatStream state + stream handling', () => {
     });
 
     expect(useChatStore.getState().thinkingStatus).toContain('thinking');
+  });
+
+  test('creates assistant placeholder with live thinking before first text chunk', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.setState({ messages: [] });
+      emitBackendEvent({
+        type: 'llm-thought',
+        turn_ref: 'turn-live',
+        payload: { status: 'drafting plan' },
+      });
+    });
+
+    const messages = useChatStore.getState().messages;
+    expect(messages).toHaveLength(1);
+    expect(messages[0]).toEqual(expect.objectContaining({
+      sender: 'assistant',
+      type: 'llm-text',
+      turnRef: 'turn-live',
+      text: '',
+      thinkingText: 'drafting plan',
+      thinkingSourceEventType: 'llm-thought',
+    }));
+  });
+
+  test('appends streaming response text to same assistant message that holds live thinking', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.setState({ messages: [] });
+      emitBackendEvent({
+        type: 'llm-thought',
+        turn_ref: 'turn-live',
+        payload: { status: 'step 1' },
+      });
+      emitBackendEvent({
+        type: 'streaming-response',
+        turn_ref: 'turn-live',
+        payload: { text: 'Final answer' },
+      });
+    });
+
+    const messages = useChatStore.getState().messages;
+    expect(messages).toHaveLength(1);
+    expect(messages[0]).toEqual(expect.objectContaining({
+      sender: 'assistant',
+      type: 'llm-text',
+      turnRef: 'turn-live',
+      text: 'Final answer',
+      thinkingText: 'step 1',
+    }));
   });
 
   test('accepts llm-thought payload content fallback', () => {
@@ -119,6 +175,37 @@ describe('useChatStream state + stream handling', () => {
     expect(useChatStore.getState().thinkingStatus).toBeNull();
   });
 
+  test('persists streamed thinking text onto completed assistant message', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.setState({
+        messages: [
+          {
+            id: 'assistant-turn-1',
+            text: 'final answer',
+            sender: 'assistant',
+            type: 'llm-text',
+            isComplete: false,
+            turnRef: 'turn-1',
+          },
+        ],
+        thinkingStatus: 'step 1\nstep 2',
+        thinkingSourceEventType: 'llm-thought',
+      });
+      emitBackendEvent({
+        type: 'streaming-complete',
+        turn_ref: 'turn-1',
+        payload: {},
+      });
+    });
+
+    const message = useChatStore.getState().messages[0];
+    expect(message.thinkingText).toBe('step 1\nstep 2');
+    expect(message.thinkingSourceEventType).toBe('llm-thought');
+    expect(useChatStore.getState().thinkingStatus).toBeNull();
+  });
+
   test('adds local user message to store', () => {
     const { emitBackendEvent } = registerBackendListener();
 
@@ -133,6 +220,74 @@ describe('useChatStream state + stream handling', () => {
     const last = messages[messages.length - 1];
     expect(last.sender).toBe('user');
     expect(last.text).toBe('hello from chatbox');
+  });
+
+  test('does not set generic thinking status for gemini when thought-text streaming is supported', () => {
+    setMockConfig({
+      selected_model_id: 'gemini-3.1-pro-preview',
+      model_provider: 'gemini',
+    });
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      emitBackendEvent({
+        type: 'local-user-message',
+        payload: { text: 'hello from chatbox', screenshot: null },
+      });
+    });
+
+    expect(useChatStore.getState().thinkingStatus).toBeNull();
+  });
+
+  test('shows generic thinking status for models explicitly marked without thought-text stream', () => {
+    setMockConfig(
+      {
+        selected_model_id: 'gemini-3.1-pro-preview',
+        model_provider: 'gemini',
+      },
+      {
+        local: [],
+        online: [
+          {
+            id: 'gemini-3.1-pro-preview',
+            provider: 'gemini',
+            supports_thinking: true,
+            supports_thinking_text_stream: false,
+          },
+        ],
+      },
+    );
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      emitBackendEvent({
+        type: 'local-user-message',
+        payload: { text: 'hello from chatbox', screenshot: null },
+      });
+    });
+
+    expect(useChatStore.getState().thinkingStatus).toBe('Thinking...');
+  });
+
+  test('replaces generic thinking fallback when llm-thought chunks arrive', () => {
+    setMockConfig({
+      selected_model_id: 'gemini-3.1-pro-preview',
+      model_provider: 'gemini',
+    });
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      emitBackendEvent({
+        type: 'local-user-message',
+        payload: { text: 'hello from chatbox', screenshot: null },
+      });
+      emitBackendEvent({
+        type: 'llm-thought',
+        payload: { status: 'reasoning chunk' },
+      });
+    });
+
+    expect(useChatStore.getState().thinkingStatus).toBe('reasoning chunk');
   });
 
   test('updates token counts from token-count events', () => {

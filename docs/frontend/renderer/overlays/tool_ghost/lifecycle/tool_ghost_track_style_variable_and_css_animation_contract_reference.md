@@ -1,23 +1,23 @@
 ---
-summary: "Deep reference for tool-ghost track style contract: ratio->CSS variable mapping, movement/click animation class semantics, ripple/rect behavior, and motion-threshold gating."
+summary: "Deep reference for current debug tool-ghost track style contract: static CSS variable map, class tokens, and animation-loop expectations."
 read_when:
-  - When changing `buildToolGhostTrackStyle` or `hasToolGhostMotion` in `chatBoxResponseUtils.js`.
-  - When changing ghost animation keyframes/classes in `ChatBoxResponseOverlay.css`.
-title: "Tool Ghost Track Style Variable and CSS Animation Contract Reference"
+  - When changing `TRACK_STYLE` payload keys in `ToolGhostDebugApp`.
+  - When changing tool-ghost class selectors or animation behavior in debug overlay CSS.
+title: "Tool Ghost Debug Track Style and CSS Class Contract Reference"
 ---
 
-# Tool Ghost Track Style Variable and CSS Animation Contract Reference
+# Tool Ghost Debug Track Style and CSS Class Contract Reference
 
 ## Canonical Modules
 
-- `frontend/src/renderer/features/chat/components/chatBoxResponseUtils.js`
-- `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
+- `frontend/src/renderer/app/ToolGhostDebugApp.jsx`
+- `frontend/src/renderer/features/chat/components/ToolGhostCursor.jsx`
+- `frontend/src/renderer/features/chat/constants/toolGhostRuntime.ts`
 - `frontend/src/renderer/styles/ChatBoxResponseOverlay.css`
-- `tests/frontend/ChatBoxResponse.test.jsx`
 
-## Style Variable Builder Contract
+## Static Style Variable Contract
 
-`buildToolGhostTrackStyle(toolGhostPreview, startRatio, targetRatio)` emits:
+`TRACK_STYLE` emits deterministic CSS variables:
 
 - `--ghost-start-left`
 - `--ghost-start-top`
@@ -28,88 +28,38 @@ title: "Tool Ghost Track Style Variable and CSS Animation Contract Reference"
 - `--ghost-target-scale`
 - `--ghost-motion-duration`
 
-Optional rectangle vars (only when `hasRect` and ratio fields are finite):
+`--ghost-motion-duration` must stay aligned with `TOOL_GHOST_CLICK_SYNC_DELAY_MS`.
 
-- `--ghost-rect-left`
-- `--ghost-rect-top`
-- `--ghost-rect-width`
-- `--ghost-rect-height`
+## Class Token Contract
 
-Ratio normalization:
+Track class list in debug harness:
 
-- all ratio->percent values clamp to `[0,1]`
+- `chatbox-tool-ghost-track`
+- `is-targeted`
+- `is-click-animating`
+- `is-moving`
 
-Duration selection:
+Ripple class list:
 
-- click action => `TOOL_GHOST_CLICK_SYNC_DELAY_MS` (`3200ms`)
-- non-click motion => `500ms`
+- `chatbox-tool-ghost-target-ripple`
+- `is-click-timeline`
 
-## Motion Path Threshold Contract
+Cursor subtree classes come from `ToolGhostCursor`.
 
-`hasToolGhostMotion(...)` returns true only when:
+## Current Runtime Scope
 
-- target ratio exists
-- absolute delta on x or y is greater than `RATIO_EPSILON` (`0.001`)
-
-Effect:
-
-- prevents noisy/near-identical ratios from activating motion class/keyframes
-
-## ChatBoxResponse Class Mapping
-
-Track classes:
-
-- `is-targeted`: effective target exists
-- `has-rect`: preview has rect ratios
-- `is-click-animating`: click timeline branch
-- `is-moving`: motion action plus `hasToolGhostMotion(...)`
-
-Target ripple rendering:
-
-- rendered only when target exists and `showsTargetRipple` true
-- `is-click-timeline` class enables click-specific ripple keyframe
-
-Label anchor:
-
-- positioned at `--ghost-end-left` / `--ghost-end-top` offset region
-
-## CSS Animation Contract
-
-Primary keyframes:
-
-- `chatboxToolGhostMove`:
-  - start at `--ghost-start-left/top`
-  - end at `--ghost-end-left/top`
-- `chatboxToolGhostClickTimeline`:
-  - hold start through 31.25%
-  - move by 68.75%
-  - hold target through 100%
-- `chatboxToolGhostTargetRippleClick`:
-  - hidden until 68.75%
-  - visible burst near target-hold stage
-
-Static positioning behavior:
-
-- targeted non-moving non-click tracks place cursor directly at end coordinates
-
-## Test-Backed Signals
-
-`tests/frontend/ChatBoxResponse.test.jsx` asserts:
-
-- click branch sets `is-click-animating`
-- start and end variables diverge when sampled mouse differs from target
-- unresolved target-display fallback still maps raw coordinates into non-default end variables
-- rect metadata sets `has-rect` and rect CSS variables
-- target ripple appears and uses click timeline class for click actions
+- this style contract is debug-harness scoped.
+- production response overlay no longer maps model tool-call payloads into dynamic tool-ghost track style variables.
 
 ## Drift Hotspots
 
-1. Renaming CSS custom properties in JS or CSS without parity update breaks ghost rendering silently.
-2. Changing `RATIO_EPSILON` can suppress legitimate movement or trigger jitter animations.
-3. Duration/keyframe ratio drift from `TOOL_GHOST_CLICK_SYNC_DELAY_MS` breaks visual sync with delayed tool execution.
+1. renaming CSS variable keys in JS without stylesheet parity breaks positioning/ripple.
+2. class-token changes in debug app without CSS updates silently remove animation styling.
+3. duration drift between style payload and sync constant causes timing mismatch across loop phases.
 
 ## Related Pages
 
 - [Renderer Tool-Ghost Lifecycle Docs Hub](README.md)
-- [Tool Ghost Lifecycle System-State Sampling, Target Resolution, and Click Hide-Timer Reference](tool_ghost_lifecycle_system_state_sampling_target_resolution_and_click_hide_timer_reference.md)
-- [Response Overlay Phase and Tool-Ghost Runtime Reference](../../response_overlay_phase_and_tool_ghost_runtime_reference.md)
+- [Tool Ghost Debug Lifecycle and Timer Reference](tool_ghost_lifecycle_system_state_sampling_target_resolution_and_click_hide_timer_reference.md)
+- [Tool Ghost Debug Cursor Payload and Timing Reference](../tool_ghost_preview_payload_parsing_and_target_mapping_reference.md)
+- [Response Overlay Phase Runtime Reference](../../response_overlay_phase_and_tool_ghost_runtime_reference.md)

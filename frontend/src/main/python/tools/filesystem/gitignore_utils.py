@@ -118,8 +118,14 @@ def is_ignored_by_any(relative_path: str, specs: list) -> bool:
     for dir_path, spec in specs:
         try:
             # Make path relative to this gitignore's directory
-            if normalized_path.startswith(dir_path.replace('\\', '/')):
-                rel_to_gitignore = normalized_path[len(dir_path.replace('\\', '/')):].lstrip('/')
+            normalized_dir = dir_path.replace('\\', '/').rstrip('/')
+            if normalized_path == normalized_dir:
+                rel_to_gitignore = ""
+            elif normalized_path.startswith(f"{normalized_dir}/"):
+                rel_to_gitignore = normalized_path[len(normalized_dir):].lstrip('/')
+            else:
+                continue
+            if rel_to_gitignore or normalized_path == normalized_dir:
                 if spec.match_file(rel_to_gitignore):
                     return True
         except Exception as e:

@@ -1,6 +1,7 @@
 import {
   hasMessageScreenshot,
   isUserMessageWithScreenshot,
+  resolveMessageScreenshotSrcList,
 } from '../../frontend/src/renderer/features/chat/utils/messageScreenshots';
 
 describe('messageScreenshots', () => {
@@ -24,5 +25,18 @@ describe('messageScreenshots', () => {
     expect(isUserMessageWithScreenshot({ sender: 'user', screenshotRef: 'artifact-123' })).toBe(true);
     expect(isUserMessageWithScreenshot({ sender: 'assistant', screenshotRef: 'artifact-123' })).toBe(false);
     expect(isUserMessageWithScreenshot({ sender: 'user' })).toBe(false);
+  });
+
+  test('resolves multiple screenshot sources from screenshots array', () => {
+    const sources = resolveMessageScreenshotSrcList({
+      screenshots: [
+        { screenshotRef: 'artifact-1' },
+        { screenshot: 'base64-2', screenshotContentType: 'image/png' },
+      ],
+    });
+
+    expect(sources).toHaveLength(2);
+    expect(sources[0]).toContain('/api/artifacts/artifact-1');
+    expect(sources[1]).toBe('data:image/png;base64,base64-2');
   });
 });

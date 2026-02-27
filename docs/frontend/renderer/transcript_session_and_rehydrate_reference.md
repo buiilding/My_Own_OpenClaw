@@ -1,8 +1,9 @@
 ---
-summary: "Renderer transcript runtime reference: session identity state, queued transcript write semantics, IPC storage contract, and episodic-memory rehydrate flow back into live chat."
+summary: "Renderer transcript runtime reference: session identity state, queued transcript write semantics, IPC storage contract, and dashboard conversation resume/rehydrate flow."
 read_when:
   - When changing transcript write behavior, session identity wiring, or `store-transcript` payload shape.
   - When debugging missing transcript rows, stuck pending transcript queues, or resume-conversation rehydrate mismatches.
+  - When changing try-again/edit+resend replay sequencing in `useConversationReplayActions.js`.
 title: "Transcript Session and Rehydrate Reference"
 ---
 
@@ -11,6 +12,7 @@ title: "Transcript Session and Rehydrate Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+- `frontend/src/renderer/infrastructure/transcript/conversationTranscriptLoader.js`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoStorage.ts`
 - `frontend/src/renderer/infrastructure/transcript/pendingUserQueue.ts`
@@ -18,9 +20,10 @@ title: "Transcript Session and Rehydrate Reference"
 - `frontend/src/renderer/infrastructure/transcript/pendingToolQueue.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
+- `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js`
 - `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
 - `frontend/src/renderer/features/chat/utils/newChatSession.ts`
-- `frontend/src/renderer/features/dashboard/components/sections/EpisodicMemorySection.jsx`
+- `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
 - `frontend/src/renderer/features/dashboard/hooks/useTranscriptSessionInfo.js`
 - `frontend/src/renderer/features/dashboard/utils/episodicMemoryUtils.js`
 - `frontend/src/renderer/infrastructure/api/client.ts`
@@ -29,31 +32,35 @@ title: "Transcript Session and Rehydrate Reference"
 
 ## Session Identity Model (Renderer)
 
-Transcript writes depend on two values:
+Transcript writes require:
 
 - `conversationRef`
 - `userId`
 
-`createTranscriptSessionState(...)` stores them in-memory with lazy storage bootstrap:
+`createTranscriptSessionState(...)` behavior:
 
-- first read loads from `sessionStorage` key `transcript-session-info`
+- lazy bootstrap from `sessionStorage` key `transcript-session-info`
 - legacy fallback accepts stored `sessionId` as conversation ref
-- repeated reads are in-memory (no repeated storage parse)
+- after bootstrap, reads are in-memory
 
 Update semantics:
 
 - `update(conversationRef?, userId?)`
-- conversation ref can be set to `null` explicitly
-- user ID only changes when truthy (empty/undefined does not overwrite existing user ID)
+- conversation ref can be explicitly set `null`
+- empty/undefined user id does not overwrite existing user id
 
-## Persist + Broadcast Behavior
+## Persist and Broadcast Behavior
 
-`TranscriptWriter` persists session info and emits browser event only when either field changed:
+Session info is persisted/emitted only when changed:
 
 - writes to `sessionStorage`
-- dispatches `window` custom event: `transcript-session-update`
+- dispatches browser event `transcript-session-update`
 
-Dashboard consumers subscribe via `useSyncExternalStore` (`useTranscriptSessionInfo`), with referentially stable snapshots to avoid unnecessary rerenders.
+Dashboard consumers subscribe via `useSyncExternalStore` (`useTranscriptSessionInfo`) for stable snapshot behavior.
+
+Transcript conversation pagination helper:
+
+- `loadConversationTranscriptMemories(...)` centralizes paginated `GET_CONVERSATION` fetch with `afterMessageIndex` cursor progression, used by dashboard open + manual compaction rehydrate flows.
 
 ## Transcript Write API Surface
 
@@ -66,89 +73,91 @@ Public writer entrypoints:
 Each path:
 
 1. resolve session identity from explicit options + current session state
-2. if `conversationRef` or `userId` missing, enqueue for retry and return
-3. otherwise invoke main IPC `store-transcript` immediately
+2. if missing identity fields, queue for retry and return
+3. otherwise invoke `store-transcript` over main IPC bridge
 
 Stored fields include:
 
 - `content`, `role`, `messageType`
-- `toolName`, `correlationId` (tool paths)
+- `toolName`, `correlationId` (tool rows)
 - `conversationRef`, `userId`
 - optional `modelId`, `modelProvider`, `timestamp`
-- `screenshotRef` sent under IPC key `screenshot`
+- screenshot ref under IPC key `screenshot`
 
 ## Queue and Retry Semantics
 
-Three independent FIFO queues exist:
+Separate FIFO queues:
 
-- user queue
-- assistant queue
-- tool queue
+- user
+- assistant
+- tool
 
 Flush behavior (`flushPendingMessages`):
 
-- runs only when session state updates (`updateTranscriptSession` or `setActiveConversationRef`)
-- no-op if identity is incomplete or all queues empty
-- flush order is fixed: user -> assistant -> tool
-- if one category fails mid-flush, remaining messages in that category are requeued; later categories are not flushed in that pass
-
-Immediate store failures also requeue per message category.
+- runs on transcript session updates
+- no-op if identity incomplete or queues empty
+- fixed category order: user -> assistant -> tool
+- if a category fails mid-flush, remaining items in that category are requeued and later categories wait for next pass
 
 ## Call-Site Wiring Across Renderer
 
 ### User identity seeding
 
-`AppConfigProvider` updates transcript session user ID from:
+`AppConfigProvider` sets transcript `userId` from:
 
-- `ipc-status` push events
-- initial `get-client-user-id` invoke response
-
-This is the main path that unlocks queued transcript writes after app startup/reconnect.
+- pushed `ipc-status` events
+- initial `get-client-user-id` invoke
 
 ### New turn + user row
 
 `useChatMessageSender`:
 
-- ensures active conversation ref exists (creates one if missing)
-- records user transcript row with timestamp and optional screenshot ref
+- ensures active conversation ref exists
+- records user row with timestamp and optional screenshot ref
 
 `startNewChatSession(...)`:
 
-- clears chat state and sets a fresh conversation ref via `setActiveConversationRef(...)`
+- clears chat state
+- sets fresh active conversation ref
 
 ### Stream + tool rows
 
 `useChatStream`:
 
-- refreshes transcript session identity on each accepted backend event
-- records tool-call/tool-output rows
-- records assistant rows on `streaming-complete` and `error`
+- updates transcript session identity from accepted backend events
+- records tool-call/tool-output/assistant/error rows
 
-`useToolRunner` records frontend-side tool execution rows as tool messages.
+`useToolRunner` records frontend-side tool execution rows.
 
-## Episodic Memory Resume and Rehydrate Flow
+## Dashboard Resume and Rehydrate Flow
 
-`EpisodicMemorySection` integrates transcript persistence with replay/resume:
+`ChatGptDashboardShell` conversation-open path:
 
-1. list conversations via `list-conversations` (record kind `transcript`)
-2. load selected conversation via `get-conversation`
-3. transform stored memories to chat messages for preview (`parseMemoriesToMessages`)
-4. on Continue:
-   - send `rehydrate-conversation` via `ApiClient.sendRehydrateConversation(...)`
-   - map memory rows into backend shape (`role/content/message_type/tool_name/correlation_id/timestamp`)
-   - preserve screenshot payload as either inline base64 (`screenshot`) or ref (`screenshot_ref`)
-   - set active transcript conversation + session state
-   - hydrate chat store with parsed messages and switch UI back to chat
+1. list conversations (`list-conversations`, transcript record kind)
+2. load selected conversation transcript rows via `loadConversationTranscriptMemories(...)` (cursor-paginated `get-conversation`)
+3. parse rows to chat messages (`parseMemoriesToMessages`)
+4. send backend rehydrate payload (`ApiClient.sendRehydrateConversation`)
+5. set active transcript conversation/session info
+6. replace renderer chat store with parsed rows
 
-Non-resumable legacy conversations are shown as view-only.
+Search modal uses the same open path after `search-conversations` results.
+
+## Try-Again and Edit+Resend Replay Contract
+
+Replay rehydrate must keep prior context stable.
+
+- Keep all prior non-tool transcript rows.
+- Keep valid tool history pairs (`tool-call` + matching `tool-output`).
+- Remove only orphan tool rows (call without output, output without call).
+
+This contract prevents provider tool-call sequencing errors without losing valid tool context.
 
 ## Main/Sidecar Contract for Transcript Storage
 
-Renderer `INVOKE_CHANNELS.STORE_TRANSCRIPT` goes through main local-backend bridge:
+Renderer `STORE_TRANSCRIPT` invoke path:
 
-- main registers mapped RPC handlers (`registerMappedRpcHandlers(...)`)
-- channel `store-transcript` -> JSON-RPC method `store_transcript`
-- mapper converts camelCase payload into snake_case backend params:
+- main mapped handler: `store-transcript` -> JSON-RPC `store_transcript`
+- camelCase to snake_case mapping includes:
   - `conversationRef` -> `conversation_ref`
   - `userId` -> `user_id`
   - `messageType` -> `message_type`
@@ -157,31 +166,27 @@ Renderer `INVOKE_CHANNELS.STORE_TRANSCRIPT` goes through main local-backend brid
   - `modelId` -> `model_id`
   - `modelProvider` -> `model_provider`
 
-Conversation list/get/delete flows use the same mapped-handler pipeline:
-
-- `list-conversations` -> `list_conversations`
-- `get-conversation` -> `get_conversation`
-- `delete-conversation` -> `delete_conversation`
+Conversation list/get/delete similarly map through same bridge mapper set.
 
 ## Debug Checklist
 
 If transcript rows never appear:
 
 1. verify transcript session has both `conversationRef` and `userId`
-2. verify `updateTranscriptSession(...)` runs after IPC status / backend events
-3. inspect console warnings for immediate store failures or requeue logs
+2. verify `updateTranscriptSession(...)` runs after IPC status/backend events
+3. inspect renderer warnings for immediate store failures/requeues
 
 If pending rows never drain:
 
-1. verify session identity actually changes (flush only runs on update calls)
-2. verify no repeated failure in earliest queue category (user queue blocks later categories in one pass)
-3. verify main local-backend bridge readiness (`Local backend not ready`)
+1. verify session identity changes (flush only runs on update calls)
+2. verify earliest queue category is not repeatedly failing
+3. verify sidecar readiness (`Local backend not ready`)
 
-If resumed conversation loses screenshots/tool linkage:
+If resumed conversation loses screenshot/tool linkage:
 
-1. inspect rehydrate mapping in `toRehydrateMessage(...)`
-2. verify inline image vs ref detection (base64 vs artifact id)
-3. verify `correlation_id` and `tool_name` fields survive list/get round-trip
+1. inspect rehydrate payload mapping (`toRehydrateMessagePayload`)
+2. verify screenshot ref propagation
+3. verify `correlation_id` + `tool_name` survive list/get round-trip
 
 ## Related Pages
 

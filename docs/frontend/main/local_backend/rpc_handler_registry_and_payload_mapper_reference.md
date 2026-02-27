@@ -12,8 +12,10 @@ title: "Local-Backend RPC Handler Registry and Payload-Mapper Reference"
 
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
+- `frontend/src/main/local_backend_bridge_tool_args.cjs`
 - `frontend/src/main/local_backend_bridge_windows.cjs`
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`
+- `tests/frontend/LocalBackendBridgeToolArgs.test.cjs`
 
 ## Handler Registration Topology
 
@@ -32,6 +34,7 @@ Mapped handlers via `registerMappedRpcHandlers(registerRpcHandler, COMPILED_RPC_
 - `list-episodic-memories`
 - `get-conversation`
 - `list-semantic-memories`
+- `delete-episodic-memory`
 - `delete-conversation`
 - `delete-semantic-memory`
 - `store-memory`
@@ -55,7 +58,15 @@ Dispatch:
 - JSON-RPC method: `execute_tool`
 - params:
   - `tool_name = toolName`
-  - `args = args`
+  - `args = resolveToolArgs(toolName, args, getFrontendConfig)`
+
+Tool-arg normalization behavior:
+
+- `run_shell_command` always receives derived `sudo_auth_mode`
+  - `native` when frontend config has `agent_full_sudo_enabled=true`
+  - `os_prompt` otherwise (including config-read failure)
+- non-shell tools receive cloned object args
+- non-object args normalize to `{}`
 
 Timeout tiers:
 
@@ -129,6 +140,7 @@ Guarantee:
 - `list-episodic-memories` -> `list_episodic_memories` with `{ userId, limit } -> { user_id, limit }`
 - `get-conversation` -> `get_conversation` with `conversation_id = conversationId ?? null`
 - `list-semantic-memories` -> `list_semantic_memories` with `{ userId, limit } -> { user_id, limit }`
+- `delete-episodic-memory` -> `delete_episodic_memory` with `{ memoryId } -> { memory_id }`
 - `delete-conversation` -> `delete_conversation` with null-safe `conversation_id`
 - `delete-semantic-memory` -> `delete_semantic_memory` with `{ memoryId } -> { memory_id }`
 - `store-memory` -> `store_memory` with camelCase-to-snake_case memory write fields
@@ -157,4 +169,5 @@ From `tests/frontend/LocalBackendBridge.rpc.test.cjs`:
 
 - [Frontend Main Local-Backend Docs Hub](README.md)
 - [Local-Backend Process Lifecycle, Readiness, and Request-Correlation Reference](process_lifecycle_readiness_and_request_correlation_reference.md)
+- [Tool Arg Sudo-Auth Mode Resolution and Config-Guard Contract Reference](tool_arg_sudo_auth_mode_resolution_and_config_guard_contract_reference.md)
 - [Main-Process IPC Handler Ownership and RPC Mapper Reference](../../contracts/ipc/main_process_ipc_handler_ownership_and_rpc_mapper_reference.md)

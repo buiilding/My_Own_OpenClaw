@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import TYPE_CHECKING, Any, Optional, Type
+import asyncio
+from typing import TYPE_CHECKING, Any, List, Optional, Type, Union
 
 from backend.src.api.processing.formatter import ResponseFormatter
 from backend.src.api.processing.pipeline import StreamPipeline
@@ -78,46 +79,88 @@ class QueryExecutionService:
         text_chunks: list[str] = []
         last_assistant_full_text: str = ""
 
-        async with TTSSession(
-            self._tts_manager,
-            agent_instance.cfg,
-            websocket,
-            msg_id,
-        ) as tts_session:
-            transport = transport_sender_cls(websocket)
-            tts_processor = tts_processor_cls(self._tts_manager)
-            pipeline = pipeline_cls(tts_processor, self._response_formatter, transport)
+        try:
+            async with TTSSession(
+                self._tts_manager,
+                agent_instance.cfg,
+                websocket,
+                msg_id,
+            ) as tts_session:
+                transport = transport_sender_cls(websocket)
+                tts_processor = tts_processor_cls(self._tts_manager)
+                pipeline = pipeline_cls(tts_processor, self._response_formatter, transport)
 
-            screenshot = self._resolve_screenshot(message, artifact_store_cls)
+                resolved_screenshots = self._resolve_screenshots(message, artifact_store_cls)
+                image_data: Optional[Union[str, List[str]]] = None
+                if resolved_screenshots:
+                    image_data = (
+                        resolved_screenshots[0]
+                        if len(resolved_screenshots) == 1
+                        else resolved_screenshots
+                    )
 
-            async for event in agent_instance.process_query(
-                query_text,
-                image_data=screenshot,
-                message_content=message.payload.content,
-                conversation_ref=message.payload.conversation_ref,
-            ):
-                event_type = self._extract_event_type(event)
+                async for event in agent_instance.process_query(
+                    query_text,
+                    image_data=image_data,
+                    message_content=message.payload.content,
+                    conversation_ref=message.payload.conversation_ref,
+                ):
+                    event_type = self._extract_event_type(event)
 
-                chunk_text = self._extract_non_empty_chunk_text(
-                    event,
-                    event_type=event_type,
-                )
-                if chunk_text:
-                    saw_text_chunk = True
-                    text_chunks.append(chunk_text)
-
-                assistant_full_text = self._extract_assistant_full_text(
-                    event,
-                    event_type=event_type,
-                )
-                if assistant_full_text:
-                    last_assistant_full_text = assistant_full_text
-
-                if event_type == "streaming-complete":
-                    saw_terminal_event = True
-                    completion_text = self._resolve_completion_text(
-                        event=event,
+                    chunk_text = self._extract_non_empty_chunk_text(
+                        event,
                         event_type=event_type,
+                    )
+                    if chunk_text:
+                        saw_text_chunk = True
+                        text_chunks.append(chunk_text)
+
+                    assistant_full_text = self._extract_assistant_full_text(
+                        event,
+                        event_type=event_type,
+                    )
+                    if assistant_full_text:
+                        last_assistant_full_text = assistant_full_text
+
+                    if event_type == "streaming-complete":
+                        saw_terminal_event = True
+                        completion_text = self._resolve_completion_text(
+                            event=event,
+                            event_type=event_type,
+                            text_chunks=text_chunks,
+                            assistant_full_text=last_assistant_full_text,
+                            saw_text_chunk=saw_text_chunk,
+                        )
+                        saw_text_chunk = await self._emit_completion_events(
+                            pipeline=pipeline,
+                            tts_service=tts_session.service,
+                            msg_id=msg_id,
+                            stream_context=stream_context,
+                            completion_text=completion_text,
+                            saw_text_chunk=saw_text_chunk,
+                        )
+                        continue
+
+                    if event_type == "error":
+                        saw_terminal_event = True
+
+                    await self._process_pipeline_event(
+                        pipeline=pipeline,
+                        event=event,
+                        tts_service=tts_session.service,
+                        msg_id=msg_id,
+                        stream_context=stream_context,
+                    )
+
+                if not saw_terminal_event:
+                    logger.warning(
+                        "Agent stream ended without terminal event; emitting fallback completion "
+                        "(user_id=%s, turn_ref=%s)",
+                        agent_instance.user_id,
+                        msg_id,
+                    )
+                    completion_text = self._resolve_completion_text(
+                        event=None,
                         text_chunks=text_chunks,
                         assistant_full_text=last_assistant_full_text,
                         saw_text_chunk=saw_text_chunk,
@@ -130,44 +173,17 @@ class QueryExecutionService:
                         completion_text=completion_text,
                         saw_text_chunk=saw_text_chunk,
                     )
-                    continue
 
-                if event_type == "error":
-                    saw_terminal_event = True
-
-                await self._process_pipeline_event(
-                    pipeline=pipeline,
-                    event=event,
-                    tts_service=tts_session.service,
-                    msg_id=msg_id,
-                    stream_context=stream_context,
-                )
-
-            if not saw_terminal_event:
-                logger.warning(
-                    "Agent stream ended without terminal event; emitting fallback completion "
-                    "(user_id=%s, turn_ref=%s)",
-                    agent_instance.user_id,
-                    msg_id,
-                )
-                completion_text = self._resolve_completion_text(
-                    event=None,
-                    text_chunks=text_chunks,
-                    assistant_full_text=last_assistant_full_text,
-                    saw_text_chunk=saw_text_chunk,
-                )
-                saw_text_chunk = await self._emit_completion_events(
-                    pipeline=pipeline,
-                    tts_service=tts_session.service,
-                    msg_id=msg_id,
-                    stream_context=stream_context,
-                    completion_text=completion_text,
-                    saw_text_chunk=saw_text_chunk,
-                )
-
-            if tts_session.service:
-                await pipeline.wait_for_pending_tts()
-                await tts_session.service.flush()
+                if tts_session.service:
+                    await pipeline.wait_for_pending_tts()
+                    await tts_session.service.flush()
+        except asyncio.CancelledError:
+            self._finalize_pending_tool_calls_on_cancel(
+                agent_instance=agent_instance,
+                msg_id=msg_id,
+                conversation_ref=message.payload.conversation_ref,
+            )
+            raise
 
         query_total_time = time.perf_counter() - query_start_time
         logger.info(
@@ -176,24 +192,104 @@ class QueryExecutionService:
             user_id,
         )
 
+    @staticmethod
+    def _finalize_pending_tool_calls_on_cancel(
+        *,
+        agent_instance: Any,
+        msg_id: str,
+        conversation_ref: Optional[str],
+    ) -> None:
+        """
+        Best-effort reconciliation for cancelled turns with pending tool_call ids.
+        """
+        history = getattr(agent_instance, "history", None)
+        finalize = getattr(history, "finalize_pending_tool_calls_as_cancelled", None)
+        if not callable(finalize):
+            return
+        try:
+            reconciled_count = int(finalize() or 0)
+        except Exception as exc:
+            logger.warning(
+                "[Query Cancelled] Failed to reconcile pending tool calls "
+                "(user_id=%s, session_id=%s, turn_ref=%s, conversation_ref=%s): %s",
+                getattr(agent_instance, "user_id", "unknown"),
+                getattr(agent_instance, "session_id", "unknown"),
+                msg_id,
+                conversation_ref,
+                exc,
+            )
+            return
+        if reconciled_count > 0:
+            logger.info(
+                "[Query Cancelled] Reconciled %s pending tool call(s) with synthetic "
+                "tool outputs (user_id=%s, session_id=%s, turn_ref=%s, conversation_ref=%s)",
+                reconciled_count,
+                getattr(agent_instance, "user_id", "unknown"),
+                getattr(agent_instance, "session_id", "unknown"),
+                msg_id,
+                conversation_ref,
+            )
+
     def _resolve_screenshot(
         self,
         message: QueryMessage,
         artifact_store_cls: Type[ArtifactStore],
     ) -> Optional[str]:
         """Resolve screenshot from inline payload or artifact reference."""
+        screenshots = self._resolve_screenshots(message, artifact_store_cls)
+        return screenshots[0] if screenshots else None
+
+    def _resolve_screenshots(
+        self,
+        message: QueryMessage,
+        artifact_store_cls: Type[ArtifactStore],
+    ) -> Optional[List[str]]:
+        """Resolve screenshots from inline payload and/or artifact references."""
         screenshot = message.payload.screenshot
+        normalized_inline_screenshot = (
+            screenshot.strip() if isinstance(screenshot, str) else None
+        )
         screenshot_ref = message.payload.screenshot_ref
+        normalized_single_ref = (
+            screenshot_ref.strip() if isinstance(screenshot_ref, str) else None
+        )
+        screenshot_refs = (
+            message.payload.screenshot_refs
+            if isinstance(message.payload.screenshot_refs, list)
+            else None
+        )
 
-        if screenshot or not screenshot_ref:
-            return screenshot
+        if normalized_inline_screenshot:
+            return [normalized_inline_screenshot]
 
+        normalized_ref_list = [
+            ref.strip()
+            for ref in (screenshot_refs or [])
+            if isinstance(ref, str) and ref.strip()
+        ]
+        ref_candidates = (
+            normalized_ref_list
+            if normalized_ref_list
+            else ([normalized_single_ref] if normalized_single_ref else [])
+        )
+        refs_to_resolve = ref_candidates
+        if not refs_to_resolve:
+            return None
+
+        resolved_screenshots: List[str] = []
         try:
             store = artifact_store_cls.from_config(self._session_manager.config)
-            return store.load_base64(screenshot_ref)
         except Exception as e:
-            logger.warning("Failed to load screenshot artifact %s: %s", screenshot_ref, e)
+            logger.warning("Failed to initialize artifact store for screenshots %s: %s", refs_to_resolve, e)
             return None
+
+        for ref in refs_to_resolve:
+            try:
+                resolved_screenshots.append(store.load_base64(ref))
+            except Exception as e:
+                logger.warning("Failed to load screenshot artifact %s: %s", ref, e)
+
+        return resolved_screenshots or None
 
     @staticmethod
     def _resolve_query_runtime_system_state(message: QueryMessage) -> Optional[dict[str, str]]:

@@ -43,6 +43,12 @@ class DummyTaskManager:
         self.cleaned_user_ids.append(user_id)
 
 
+class FailingTaskManager(DummyTaskManager):
+    async def cleanup(self, user_id: str) -> None:
+        await super().cleanup(user_id)
+        raise RuntimeError("task cleanup failed")
+
+
 class DummySessionManager:
     def __init__(self, should_raise: bool = False):
         self.ended_user_ids = []
@@ -121,6 +127,36 @@ async def test_perform_handshake_large_payload_uses_executor(monkeypatch) -> Non
 
 
 @pytest.mark.asyncio
+async def test_perform_handshake_offload_threshold_uses_utf8_byte_size(monkeypatch) -> None:
+    payload = json.dumps(
+        {
+            "type": "handshake",
+            "user_id": "🙂" * 24,
+        },
+        ensure_ascii=False,
+    )
+    threshold = len(payload) + 1
+    assert len(payload.encode("utf-8")) > threshold > len(payload)
+
+    websocket = DummyWebSocket(payload)
+    safe_ws = DummySafeWebSocket()
+    monkeypatch.setattr(connection_module, "_HANDSHAKE_JSON_PARSE_OFFLOAD_BYTES", threshold)
+    called = {"executor": False}
+
+    class FakeLoop:
+        async def run_in_executor(self, executor, fn, data):
+            called["executor"] = True
+            return fn(data)
+
+    monkeypatch.setattr(connection_module.asyncio, "get_running_loop", lambda: FakeLoop())
+    assigned_user_id = await perform_handshake(websocket, safe_ws)
+
+    assert assigned_user_id == "🙂" * 24
+    assert safe_ws.closed == []
+    assert called["executor"] is True
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "payload",
     [
@@ -167,6 +203,20 @@ async def test_perform_handshake_parse_runtime_error_closes_socket(monkeypatch) 
 @pytest.mark.asyncio
 async def test_perform_handshake_validation_failure_logs_warning(monkeypatch) -> None:
     websocket = DummyWebSocket(json.dumps({"type": "handshake"}))
+    safe_ws = DummySafeWebSocket()
+    warning_calls, error_calls = _capture_connection_logger_calls(monkeypatch)
+
+    assigned_user_id = await perform_handshake(websocket, safe_ws)
+
+    assert assigned_user_id is None
+    assert safe_ws.closed
+    assert len(warning_calls) == 1
+    assert error_calls == []
+
+
+@pytest.mark.asyncio
+async def test_perform_handshake_json_decode_failure_logs_warning(monkeypatch) -> None:
+    websocket = DummyWebSocket("{bad-json")
     safe_ws = DummySafeWebSocket()
     warning_calls, error_calls = _capture_connection_logger_calls(monkeypatch)
 
@@ -247,3 +297,25 @@ async def test_cleanup_connection_swallows_session_cleanup_errors() -> None:
 
     assert task_manager.cleaned_user_ids == ["user_456"]
     assert session_manager.ended_user_ids == ["user_456"]
+
+
+@pytest.mark.asyncio
+async def test_cleanup_connection_continues_to_session_cleanup_when_task_cleanup_fails() -> None:
+    task_manager = FailingTaskManager()
+    session_manager = DummySessionManager()
+
+    await cleanup_connection(task_manager, session_manager, "user_789")
+
+    assert task_manager.cleaned_user_ids == ["user_789"]
+    assert session_manager.ended_user_ids == ["user_789"]
+
+
+@pytest.mark.asyncio
+async def test_cleanup_connection_swallows_when_task_and_session_cleanup_both_fail() -> None:
+    task_manager = FailingTaskManager()
+    session_manager = DummySessionManager(should_raise=True)
+
+    await cleanup_connection(task_manager, session_manager, "user_999")
+
+    assert task_manager.cleaned_user_ids == ["user_999"]
+    assert session_manager.ended_user_ids == ["user_999"]

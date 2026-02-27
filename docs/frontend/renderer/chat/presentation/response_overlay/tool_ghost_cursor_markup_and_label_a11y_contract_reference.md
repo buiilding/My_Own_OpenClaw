@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for shared ToolGhostCursor markup contract: CSS class ownership, decorative-icon accessibility defaults, and label rendering invariants across response-overlay and debug-app surfaces."
+summary: "Deep reference for ToolGhostCursor markup contract: CSS class ownership, decorative-icon accessibility defaults, and debug-app label rendering invariants."
 read_when:
-  - When changing `ToolGhostCursor.jsx` structure, class names, or SVG markup used by chat overlay and debug app ghost previews.
-  - When debugging ghost-cursor visuals that break after CSS class renames or tool-label text not rendering in response-overlay previews.
+  - When changing `ToolGhostCursor.jsx` structure, class names, or SVG markup used by the ghost debug app.
+  - When debugging ghost-cursor visuals that break after CSS class renames or tool-label text not rendering in debug previews.
 title: "Tool Ghost Cursor Markup and Label A11y Contract Reference"
 ---
 
@@ -11,10 +11,8 @@ title: "Tool Ghost Cursor Markup and Label A11y Contract Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/features/chat/components/ToolGhostCursor.jsx`
-- `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
 - `frontend/src/renderer/app/ToolGhostDebugApp.jsx`
 - `frontend/src/renderer/styles/ChatBoxResponseOverlay.css`
-- `tests/frontend/ChatBoxResponse.toolGhost.test.jsx`
 
 ## Component Boundary
 
@@ -41,7 +39,7 @@ Class names are part of the styling contract with `ChatBoxResponseOverlay.css`.
 
 - root wrapper is explicitly hidden from accessibility tree (`aria-hidden="true"`)
 - nested SVG is also marked `aria-hidden="true"`
-- user-visible accessible label for the overlay stays on parent container (`aria-label="Assistant tool action preview"` in `ChatBoxResponse`)
+- user-visible accessible label stays on parent debug container (`aria-label="Ghost cursor debug animation"` in `ToolGhostDebugApp`)
 
 Implication:
 
@@ -49,29 +47,27 @@ Implication:
 
 ## Cross-Surface Reuse Contract
 
-`ToolGhostCursor` is shared by:
+`ToolGhostCursor` currently renders in:
 
-- `ChatBoxResponse` tool-action preview overlay
-- `ToolGhostDebugApp` animation sandbox
+- `ToolGhostDebugApp` animation sandbox only
 
-Expected outcome:
+Current runtime note:
 
-- cursor shape, ring, and label visuals stay identical between production overlay and debug harness.
+- production `ChatBoxResponse` no longer renders ghost cursor preview layers.
 
 ## Test-Backed Signals
 
-Indirect coverage exists via `ChatBoxResponse.toolGhost` tests:
+Dedicated automated coverage for `ToolGhostCursor` markup in current frontend tests is absent.
 
-- explanation text is rendered as visible label text (for click and scroll payloads)
-- tool-action preview container appears/disappears with ghost lifecycle state
+Closest adjacent coverage:
 
-Direct unit tests for `ToolGhostCursor` alone are currently absent.
+- `tests/frontend/ChatBoxResponse.state.test.jsx` verifies response-overlay state transitions, not ghost cursor markup.
 
 ## Drift Hotspots
 
 1. Renaming `.chatbox-tool-ghost-*` classes in JSX without CSS parity update breaks cursor styling silently.
 2. Moving `aria-hidden` flags can create duplicate or noisy assistive announcements.
-3. Replacing SVG geometry without preserving 24x24 viewbox/coordinates can desync cursor hit-shape from animation expectations.
+3. Replacing SVG geometry without preserving 24x24 viewbox/coordinates can desync cursor shape from debug animation expectations.
 
 ## Related Pages
 

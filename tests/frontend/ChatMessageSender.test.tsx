@@ -88,6 +88,7 @@ describe('useChatMessageSender', () => {
     conversationRef: string,
     screenshotRef: string | null = null,
     screenshotUrl: string | null = null,
+    screenshotRefs: string[] | null = null,
   ) {
     expect(mockSendQuery).toHaveBeenCalledTimes(1);
     expect(mockSendQuery).toHaveBeenCalledWith(
@@ -95,6 +96,7 @@ describe('useChatMessageSender', () => {
       conversationRef,
       screenshotRef,
       screenshotUrl,
+      screenshotRefs,
     );
   }
 
@@ -341,6 +343,7 @@ describe('useChatMessageSender', () => {
       'conv_msg-1',
       'artifact-1',
       '/api/artifacts/artifact-1',
+      ['artifact-1'],
     );
     expect(useChatStore.getState().messages[0]).toEqual(
       expect.objectContaining({
@@ -386,6 +389,7 @@ describe('useChatMessageSender', () => {
       'conv_msg-1',
       'artifact-clipboard-1',
       '/api/artifacts/artifact-clipboard-1',
+      ['artifact-clipboard-1'],
     );
     expect(useChatStore.getState().messages[0]).toEqual(
       expect.objectContaining({
@@ -393,6 +397,80 @@ describe('useChatMessageSender', () => {
         screenshot: 'clipboard-image-base64',
         screenshotRef: 'artifact-clipboard-1',
         screenshotUrl: '/api/artifacts/artifact-clipboard-1',
+        screenshots: [
+          expect.objectContaining({
+            screenshotRef: 'artifact-clipboard-1',
+            screenshotUrl: '/api/artifacts/artifact-clipboard-1',
+          }),
+        ],
+      }),
+    );
+  });
+
+  test('uploads multiple pasted clipboard images and sends all screenshot refs', async () => {
+    mockUploadArtifactBase64
+      .mockResolvedValueOnce({
+        artifactId: 'artifact-clipboard-1',
+        url: '/api/artifacts/artifact-clipboard-1',
+      } as any)
+      .mockResolvedValueOnce({
+        artifactId: 'artifact-clipboard-2',
+        url: '/api/artifacts/artifact-clipboard-2',
+      } as any);
+
+    const { result } = renderSender({ senderSurface: 'main-window' });
+
+    await sendPayload(result, {
+      text: 'Please inspect both images',
+      clipboardImages: [
+        {
+          base64: 'clipboard-image-base64-1',
+          contentType: 'image/png',
+          filename: 'clipboard-image-1.png',
+        },
+        {
+          base64: 'clipboard-image-base64-2',
+          contentType: 'image/jpeg',
+          filename: 'clipboard-image-2.jpg',
+        },
+      ],
+    });
+
+    expect(mockExtractOSstate).not.toHaveBeenCalled();
+    expect(mockUploadArtifactBase64).toHaveBeenNthCalledWith(
+      1,
+      'clipboard-image-base64-1',
+      'image/png',
+      'clipboard-image-1.png',
+    );
+    expect(mockUploadArtifactBase64).toHaveBeenNthCalledWith(
+      2,
+      'clipboard-image-base64-2',
+      'image/jpeg',
+      'clipboard-image-2.jpg',
+    );
+    expectSingleSendQueryCall(
+      'Please inspect both images',
+      'conv_msg-1',
+      'artifact-clipboard-1',
+      '/api/artifacts/artifact-clipboard-1',
+      ['artifact-clipboard-1', 'artifact-clipboard-2'],
+    );
+    expect(useChatStore.getState().messages[0]).toEqual(
+      expect.objectContaining({
+        text: 'Please inspect both images',
+        screenshotRef: 'artifact-clipboard-1',
+        screenshotUrl: '/api/artifacts/artifact-clipboard-1',
+        screenshots: [
+          expect.objectContaining({
+            screenshotRef: 'artifact-clipboard-1',
+            screenshotUrl: '/api/artifacts/artifact-clipboard-1',
+          }),
+          expect.objectContaining({
+            screenshotRef: 'artifact-clipboard-2',
+            screenshotUrl: '/api/artifacts/artifact-clipboard-2',
+          }),
+        ],
       }),
     );
   });

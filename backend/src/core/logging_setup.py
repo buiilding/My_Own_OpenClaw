@@ -73,6 +73,32 @@ def _resolve_level(default_level: int) -> int:
     return logging._nameToLevel.get(env_level.upper(), default_level)
 
 
+def _configure_litellm_runtime_flags() -> None:
+    """
+    Configure LiteLLM runtime verbosity flags.
+
+    LiteLLM prints red provider-help lines directly to stdout in some internal
+    fallback paths (for example provider inference inside model metadata probes).
+    Those lines are noisy in normal operation and are not actionable app errors.
+    """
+    try:
+        import litellm
+    except Exception:
+        return
+
+    suppress_debug_info = os.getenv("WINDIEOS_LITELLM_SUPPRESS_DEBUG_INFO", "1")
+    should_suppress = suppress_debug_info.strip().lower() not in {"0", "false", "no", "off"}
+    try:
+        litellm.suppress_debug_info = should_suppress
+    except Exception:
+        pass
+
+    try:
+        litellm.set_verbose = False
+    except Exception:
+        pass
+
+
 def configure_logging(profile: str | None = None) -> None:
     """
     Configure logging levels and noise filters.
@@ -89,6 +115,7 @@ def configure_logging(profile: str | None = None) -> None:
         level = _resolve_level(logging.INFO)
 
     logging.basicConfig(level=level, format=_DEFAULT_FORMAT)
+    _configure_litellm_runtime_flags()
 
     # Reduce library noise in all profiles
     _set_levels(_NOISY_LIB_LOGGERS)

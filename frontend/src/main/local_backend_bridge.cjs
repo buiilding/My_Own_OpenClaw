@@ -8,6 +8,7 @@ const {
   mapSearchMemoryPayload,
   registerMappedRpcHandlers,
 } = require('./local_backend_bridge_rpc_mappers.cjs');
+const { resolveToolArgs } = require('./local_backend_bridge_tool_args.cjs');
 const {
   createWindowResolvers,
   withHiddenWindowForScreenshot,
@@ -31,44 +32,6 @@ let readinessCheckCallback = null;
 let readinessCheckToken = 0;
 
 let cachedPythonPath = null;
-
-function resolveRunShellCommandArgs(args, getFrontendConfig) {
-  const nextArgs = (
-    args
-    && typeof args === 'object'
-    && !Array.isArray(args)
-  ) ? { ...args } : {};
-
-  let agentHasFullSudoAccess = false;
-  if (typeof getFrontendConfig === 'function') {
-    try {
-      const config = getFrontendConfig();
-      agentHasFullSudoAccess = Boolean(
-        config
-        && typeof config === 'object'
-        && !Array.isArray(config)
-        && config.agent_full_sudo_enabled === true,
-      );
-    } catch (error) {
-      console.warn(
-        `[LocalBackend] Failed to read frontend config for sudo auth mode: ${getErrorMessage(error)}`,
-      );
-    }
-  }
-
-  nextArgs.sudo_auth_mode = agentHasFullSudoAccess ? 'native' : 'os_prompt';
-  return nextArgs;
-}
-
-function resolveToolArgs(toolName, args, getFrontendConfig) {
-  if (toolName === 'run_shell_command') {
-    return resolveRunShellCommandArgs(args, getFrontendConfig);
-  }
-  if (args && typeof args === 'object' && !Array.isArray(args)) {
-    return { ...args };
-  }
-  return {};
-}
 
 function getReadinessRetryDelay(attempt) {
   return Math.min(50 * Math.pow(2, attempt - 1), 1000);
@@ -189,7 +152,7 @@ function checkReadiness(mainWindow, attempt = 1, maxAttempts = 10) {
   }, 500);
 }
 
-function startLocalBackend(mainWindow) {
+function startLocalBackend(mainWindow, options = {}) {
   if (pythonProcess) {
     console.log('[LocalBackend] Service already running');
     return;
@@ -214,7 +177,9 @@ function startLocalBackend(mainWindow) {
     console.log(`[LocalBackend] Starting Python local backend: ${pythonPath} ${scriptPath}`);
   }
 
-  const backendEndpoints = resolveBackendEndpoints();
+  const backendEndpoints = resolveBackendEndpoints(process.env, {
+    isPackaged: options.isPackaged === true,
+  });
 
   pythonProcess = spawn(pythonPath, [scriptPath], {
     stdio: ['pipe', 'pipe', 'pipe'],
@@ -374,6 +339,29 @@ async function sendMemorySearchRequest(payload = {}) {
   );
 }
 
+function mapStoreMemoryPayload(payload = {}) {
+  const source = (
+    payload
+    && typeof payload === 'object'
+    && !Array.isArray(payload)
+  ) ? payload : {};
+
+  return {
+    user_query: source.user_query ?? source.userQuery,
+    assistant_response: source.assistant_response ?? source.assistantResponse,
+    memory_type: source.memory_type ?? source.memoryType,
+    user_id: source.user_id ?? source.userId,
+    session_id: source.session_id ?? source.sessionId,
+  };
+}
+
+async function storeMemory(payload = {}) {
+  return sendRequestOrError(
+    'store_memory',
+    mapStoreMemoryPayload(payload),
+  );
+}
+
 function stopLocalBackend() {
   if (pythonProcess) {
     const processToStop = pythonProcess;
@@ -393,6 +381,7 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
   const getFrontendConfig = typeof options.getFrontendConfig === 'function'
     ? options.getFrontendConfig
     : null;
+  const isPackaged = options.isPackaged === true;
   const {
     resolveWindows,
     resolveChatWindow,
@@ -400,7 +389,7 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
   } = createWindowResolvers(getWindows);
 
   const [mainWindow] = resolveWindows();
-  startLocalBackend(mainWindow);
+  startLocalBackend(mainWindow, { isPackaged });
 
   const registerRpcHandler = (channel, method, mapParams) => {
     ipcMain.handle(channel, async (event, payload = {}) => (
@@ -486,4 +475,5 @@ module.exports = {
   stopLocalBackend,
   getSystemState,
   searchMemory,
+  storeMemory,
 };

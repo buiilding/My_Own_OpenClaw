@@ -111,6 +111,95 @@ def test_memory_store_formatter_output_matches_schema() -> None:
         }
     )
     assert parsed.payload.user_id == "user_1"
+    assert parsed.payload.user_query == "hello"
+    assert parsed.payload.assistant_response == "world"
+
+
+def test_memory_store_formatter_trims_query_and_response() -> None:
+    formatter = MemoryStoreEventFormatter()
+    payload = formatter.format(
+        {
+            "user_query": "  hello  ",
+            "assistant_response": "\nworld\t",
+            "memory_type": "semantic",
+            "user_id": "user_1",
+            "session_id": "session_1",
+        },
+        "msg_trim",
+    )
+
+    assert payload is not None
+    parsed = MemoryStoreMessage.model_validate(
+        {
+            **payload,
+            "user_id": "user_1",
+        }
+    )
+    assert parsed.payload.user_query == "hello"
+    assert parsed.payload.assistant_response == "world"
+
+
+def test_memory_store_formatter_rejects_blank_user_query() -> None:
+    formatter = MemoryStoreEventFormatter()
+    payload = formatter.format(
+        {
+            "user_query": "   ",
+            "assistant_response": "world",
+            "memory_type": "episodic",
+            "user_id": "user_1",
+            "session_id": "session_1",
+        },
+        "msg_blank_query",
+    )
+
+    assert payload is None
+
+
+def test_memory_store_formatter_rejects_blank_assistant_response() -> None:
+    formatter = MemoryStoreEventFormatter()
+    payload = formatter.format(
+        {
+            "user_query": "hello",
+            "assistant_response": "  ",
+            "memory_type": "episodic",
+            "user_id": "user_1",
+            "session_id": "session_1",
+        },
+        "msg_blank_response",
+    )
+
+    assert payload is None
+
+
+def test_memory_store_formatter_rejects_default_user() -> None:
+    formatter = MemoryStoreEventFormatter()
+    payload = formatter.format(
+        {
+            "user_query": "hello",
+            "assistant_response": "world",
+            "memory_type": "episodic",
+            "user_id": "default_user",
+            "session_id": "session_1",
+        },
+        "msg_default_user",
+    )
+
+    assert payload is None
+
+
+def test_memory_store_formatter_rejects_missing_user_id() -> None:
+    formatter = MemoryStoreEventFormatter()
+    payload = formatter.format(
+        {
+            "user_query": "hello",
+            "assistant_response": "world",
+            "memory_type": "episodic",
+            "session_id": "session_1",
+        },
+        "msg_missing_user",
+    )
+
+    assert payload is None
 
 
 def test_context_compaction_started_formatter_output_matches_schema() -> None:

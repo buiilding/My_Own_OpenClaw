@@ -8,6 +8,11 @@ title: "Backend WebSocket Error Surface and Sanitization Contract Reference"
 
 # Backend WebSocket Error Surface and Sanitization Contract Reference
 
+## Coverage Snapshot (2026-02-27)
+
+- Error-related websocket protocol test files: `5`
+- Total test cases across listed files: `50`
+
 ## Scope and Sources
 
 Primary sources:
@@ -18,6 +23,14 @@ Primary sources:
 - JSON root parse policy: `backend/src/api/routes/websocket/json_parse.py`
 - Sender transport seam: `backend/src/api/transport/sender.py`
 - Queue sender failure behavior: `backend/src/api/transport/websocket.py`
+
+Primary error-path tests:
+
+- `tests/backend/test_websocket_connection.py`
+- `tests/backend/test_websocket_json_parse.py`
+- `tests/backend/test_websocket_message_handler.py`
+- `tests/backend/test_safe_websocket.py`
+- `tests/backend/test_websocket_route.py`
 
 ## Canonical Error Envelope
 
@@ -128,7 +141,19 @@ When changing error behavior, keep aligned:
 - Parse-stage returned message strings (frontend may assert exact substrings in tests).
 - Handshake close policy (`1008`) in connection handler.
 
+## Error Control-Path Index
+
+| Error control path | Runtime owner | Recovery/safety contract |
+|---|---|---|
+| handshake parse/validation failure close | `backend/src/api/routes/websocket/connection.py`, `backend/src/api/routes/websocket/json_parse.py` | closes connection with policy violation (`1008`) before normal route loop |
+| post-handshake parse/schema failure response | `backend/src/api/routes/websocket/message_handler.py` | returns canonical websocket `error` envelope while keeping receive loop alive |
+| handler exception sanitization | `backend/src/api/infrastructure/errors.py`, `message_handler.py` | only safe validation-like errors pass through; internal errors collapse to generic client-safe message |
+| closed-socket error-send fallback | `backend/src/api/transport/sender.py`, `backend/src/api/infrastructure/errors.py` | expected close-path send exceptions are swallowed/logged, preventing route crash loops |
+| sender-task terminal failure propagation | `backend/src/api/transport/websocket.py` | queued/pending sends fail fast when sender enters terminal error state |
+
 ## Related Deep Dives
 
 - [Backend Protocol Lifecycle Hub](../lifecycle/README.md)
+- [Backend Protocol State Hub](../state/README.md)
 - [Backend Protocol Validation Hub](../validation/README.md)
+- [Backend Protocol Testing Hub](../testing/README.md)

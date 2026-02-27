@@ -370,6 +370,13 @@ class TestExtractThinkingContent:
         
         assert result == "Line 1\nLine 2\nLine 3"
 
+    def test_extract_short_think_tags(self, provider):
+        delta = {"thinking": "<think>Short tag content</think>"}
+
+        result = provider._extract_thinking_content(delta)
+
+        assert result == "Short tag content"
+
     def test_extract_from_dict_text_field(self, provider):
         delta = {"reasoning_content": {"text": "Nested text"}}
         
@@ -384,12 +391,54 @@ class TestExtractThinkingContent:
 
         assert result == "Nested content"
 
+    def test_extract_from_dict_reasoning_details_list(self, provider):
+        delta = {
+            "reasoning_details": [
+                {"type": "reasoning.text", "text": "Reasoning chunk from list"},
+            ]
+        }
+
+        result = provider._extract_thinking_content(delta)
+
+        assert result == "Reasoning chunk from list"
+
+    def test_extract_from_camel_case_reasoning_content(self, provider):
+        delta = {"reasoningContent": "Camel case reasoning"}
+
+        result = provider._extract_thinking_content(delta)
+
+        assert result == "Camel case reasoning"
+
+    def test_extract_from_structured_thinking_content_blocks(self, provider):
+        delta = {
+            "content": [
+                {"type": "text", "text": "normal assistant text"},
+                {"type": "thinking", "text": "reasoning block"},
+            ]
+        }
+
+        result = provider._extract_thinking_content(delta)
+
+        assert result == "reasoning block"
+
     def test_extract_from_dict_non_string_nested_value_returns_none(self, provider):
         delta = {"reasoning_content": {"text": 123}}
 
         result = provider._extract_thinking_content(delta)
 
         assert result is None
+
+    def test_extract_from_object_reasoning_details_list(self, provider):
+        delta = MagicMock()
+        delta.reasoning_content = None
+        delta.thinking = None
+        delta.reasoning = None
+        delta.thought = None
+        delta.reasoning_details = [{"text": "Object reasoning details"}]
+
+        result = provider._extract_thinking_content(delta)
+
+        assert result == "Object reasoning details"
 
     def test_extract_plain_string_without_tags(self, provider):
         delta = {"thinking": "plain thinking text"}

@@ -1,8 +1,8 @@
 ---
-summary: "Backend API formatter signal docs sub-hub for chunk/thinking required-content skip behavior and token-count/tool-schemas schema-alignment contracts."
+summary: "Backend API formatter signal docs sub-hub for chunk/thinking required-content skip behavior, token-count/tool-schemas schema-alignment contracts, and context-compaction lifecycle formatter field guarantees."
 read_when:
-  - When changing stream-signal formatters (`chunk`, `thinking`, `token_count`, `tool_schemas`).
-  - When debugging missing `streaming-response`/`llm-thought` events or strict tool-schemas payload validation failures.
+  - When changing stream-signal formatters (`chunk`, `thinking`, `token_count`, `tool_schemas`, `context_compaction_*`).
+  - When debugging missing `streaming-response`/`llm-thought`/`context-compaction-*` events or strict tool-schemas payload validation failures.
 title: "Backend API Formatter Signal Docs Hub"
 ---
 
@@ -12,6 +12,7 @@ title: "Backend API Formatter Signal Docs Hub"
 
 - [Chunk and Thinking Formatter Required-Content and Skip Contract Reference](chunk_and_thinking_formatter_required_content_and_skip_contract_reference.md)
 - [Token Count and Tool Schemas Formatter Schema-Alignment and Strict-Validation Reference](token_count_and_tool_schemas_formatter_schema_alignment_and_strict_validation_reference.md)
+- [Context Compaction Event Formatter Required-Fields and Optional-Payload Contract Reference](context_compaction_event_formatter_required_fields_and_optional_payload_contract_reference.md)
 
 ## Related Pages
 
@@ -26,6 +27,9 @@ title: "Backend API Formatter Signal Docs Hub"
 - `backend/src/api/processing/formatters/thinking.py`
 - `backend/src/api/processing/formatters/token_count.py`
 - `backend/src/api/processing/formatters/tool_schemas.py`
+- `backend/src/api/processing/formatters/context_compaction_started.py`
+- `backend/src/api/processing/formatters/context_compaction_completed.py`
+- `backend/src/api/processing/formatters/context_compaction_failed.py`
 - `backend/src/api/contracts/formatter_specs.py`
 - `backend/src/api/schemas/outgoing.py`
 - `tests/backend/test_formatters.py`

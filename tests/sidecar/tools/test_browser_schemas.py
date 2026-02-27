@@ -14,6 +14,7 @@ from backend.src.tools.browser.schema_types import (
     BrowserOpenClawAction,
 )
 from tools.browser.browser_action_contract import (
+    BROWSER_ALL_ACTIONS,
     BROWSER_CANONICAL_ACTIONS as SIDECAR_CANONICAL_ACTIONS,
     REMOVED_BROWSER_ACTION_ALIASES,
 )
@@ -564,3 +565,11 @@ class TestBackendSidecarContractParity:
         assert set(OPENCLAW_COMPAT_ACTIONS) == {
             action for action in get_args(BrowserOpenClawAction) if isinstance(action, str)
         }
+
+    def test_all_action_set_contains_canonical_and_removed_aliases(self):
+        assert set(SIDECAR_CANONICAL_ACTIONS).issubset(BROWSER_ALL_ACTIONS)
+        assert set(REMOVED_BROWSER_ACTION_ALIASES.keys()).issubset(BROWSER_ALL_ACTIONS)
+
+    def test_removed_alias_map_is_immutable(self):
+        with pytest.raises(TypeError):
+            REMOVED_BROWSER_ACTION_ALIASES["open"] = "connect"

@@ -44,6 +44,28 @@ async def test_parse_json_payload_offloads_when_size_meets_threshold():
 
 
 @pytest.mark.asyncio
+async def test_parse_json_payload_offload_threshold_uses_utf8_byte_size() -> None:
+    payload = json.dumps({"text": "🙂" * 24}, ensure_ascii=False)
+    threshold = len(payload) + 1
+    assert len(payload.encode("utf-8")) > threshold > len(payload)
+    called = {"executor": False}
+
+    class FakeLoop:
+        async def run_in_executor(self, executor, fn, data):
+            called["executor"] = True
+            return fn(data)
+
+    result = await json_parse_module.parse_json_payload(
+        payload,
+        offload_threshold_bytes=threshold,
+        loop_getter=lambda: FakeLoop(),
+    )
+
+    assert result == {"text": "🙂" * 24}
+    assert called["executor"] is True
+
+
+@pytest.mark.asyncio
 async def test_parse_json_payload_offload_uses_json_loads_function():
     payload = json.dumps({"x": 1})
 
@@ -138,6 +160,29 @@ async def test_parse_json_object_payload_rejects_non_object_root():
         )
 
     assert exc_info.value.payload_type == "list"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("payload", "expected_payload_type"),
+    [
+        (json.dumps(None), "NoneType"),
+        (json.dumps(123), "int"),
+        (json.dumps("hello"), "str"),
+    ],
+)
+async def test_parse_json_object_payload_rejects_scalar_roots_with_payload_type(
+    payload: str,
+    expected_payload_type: str,
+):
+    with pytest.raises(json_parse_module.JsonRootTypeError) as exc_info:
+        await json_parse_module.parse_json_object_payload(
+            payload,
+            offload_threshold_bytes=4096,
+            loop_getter=asyncio.get_running_loop,
+        )
+
+    assert exc_info.value.payload_type == expected_payload_type
 
 
 def test_default_json_offload_threshold_contract():

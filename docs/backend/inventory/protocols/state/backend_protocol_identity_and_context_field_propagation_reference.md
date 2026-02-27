@@ -8,6 +8,11 @@ title: "Backend Protocol Identity and Context-Field Propagation Reference"
 
 # Backend Protocol Identity and Context-Field Propagation Reference
 
+## Coverage Snapshot (2026-02-27)
+
+- State-focused protocol test files: `6`
+- Total test cases across listed files: `78`
+
 ## Scope and Sources
 
 Primary runtime sources:
@@ -17,6 +22,8 @@ Primary runtime sources:
 - `backend/src/api/services/query_execution.py`
 - `backend/src/api/handlers/query.py`
 - `backend/src/api/handlers/stop_query.py`
+- `backend/src/api/handlers/compact_history.py`
+- `backend/src/api/handlers/context.py`
 - `backend/src/api/processing/formatter.py`
 - `backend/src/api/infrastructure/errors.py`
 - `backend/src/api/transport/envelope.py`
@@ -29,6 +36,7 @@ Primary test sources:
 - `tests/backend/test_response_formatter.py`
 - `tests/backend/test_transport_envelope.py`
 - `tests/backend/test_session_manager.py`
+- `tests/backend/test_handler_context.py`
 
 ## State Contract Matrix
 
@@ -38,6 +46,7 @@ Primary test sources:
 | `session_id` | `AgentSession.session_id` from session manager | query stream context builder / stop-query context builder | formatter output + success helper context | `test_query_handler_success`, `test_stop_query_handler_cancels_active_query_and_emits_streaming_complete` |
 | `conversation_ref` | incoming `query.payload.conversation_ref` or canceled active query metadata | query stream context builder / stop-query canceled tuple | formatter output + success helper context | `test_query_handler_success`, `test_stop_query_handler_cancels_active_query_and_emits_streaming_complete` |
 | `turn_ref` | incoming message `id` | query stream context builder / active task registry / stop-query cancellation | formatter output + success helper context | `test_query_handler_success`, `test_cancel_active_query_task_cancels_all_tasks_and_returns_last_metadata` |
+| control-message context (`user_id`, optional `session_id`, optional runtime `conversation_ref`) | shared context helper | `build_user_session_context(...)` in handlers | success/error helper context | `test_compact_history_handler_*`, stop-query handler tests, `test_build_user_session_context_*` |
 
 ## Identity Boundary: Handshake and Route Injection
 
@@ -121,6 +130,19 @@ Locked by:
 - `tests/backend/test_api_handlers.py::test_stop_query_handler_cancels_active_query_and_emits_streaming_complete`
 - `tests/backend/test_session_manager.py::test_cancel_active_query_task_cancels_all_tasks_and_returns_last_metadata`
 
+## Compact-History Context Semantics
+
+`CompactHistoryHandler` uses shared context helper output for control responses:
+
+- `build_user_session_context(...)` sets:
+  - required `user_id`
+  - optional `session_id` (trimmed; blank/non-string dropped)
+  - optional runtime `conversation_ref` (trimmed; blank/non-string dropped)
+- `context-compaction-started` and `context-compaction-completed` envelopes reuse the same context object for consistent identity correlation.
+- when no active query exists, compaction responses still carry stable user/session context even though no `turn_ref` is attached.
+
+This keeps control-message correlation consistent with query/stop-query response envelopes.
+
 ## Error Path State Behavior
 
 `send_error_response(...)` can include `id` correlation but does not attach context by default unless caller supplies it through message build path.
@@ -139,10 +161,22 @@ When modifying this surface, keep aligned:
 - handshake model constraints vs route user injection assumptions
 - query stream-context builder fields vs frontend event correlation expectations
 - `SessionManager` active task metadata shape vs `StopQueryHandler` context attachment
+- shared handler context helper behavior (trim/drop rules) vs stop-query/compact-history envelope fields
 - `attach_context_fields(...)` truthy-only behavior vs tests and renderer fallback logic
+
+## State Control-Path Index
+
+| State control path | Runtime owner | State contract |
+|---|---|---|
+| handshake user identity establishment | `backend/src/api/routes/websocket/connection.py` | accepted handshake `user_id` becomes authoritative identity for route context |
+| route-level user injection into incoming frames | `backend/src/api/routes/websocket/message_handler.py` | per-message user identity is injected server-side before schema validation |
+| query turn correlation context assembly | query handler + query execution service | `user_id`/`session_id`/`conversation_ref`/`turn_ref` context stays stable across all stream events in a turn |
+| stop-query cancellation correlation propagation | `backend/src/agent/session/manager.py`, `backend/src/api/handlers/stop_query.py` | canceled task metadata feeds terminal `streaming-complete` context fields |
+| generic envelope context attachment | `backend/src/api/transport/envelope.py`, `backend/src/api/infrastructure/errors.py` | context fields attach only when truthy and are shared across success/error helper paths |
 
 ## Related Pages
 
 - [Backend Protocol Lifecycle Hub](../lifecycle/README.md)
 - [Backend Protocol Errors Hub](../errors/README.md)
+- [Backend Protocol Validation Hub](../validation/README.md)
 - [Backend Protocol Testing Hub](../testing/README.md)

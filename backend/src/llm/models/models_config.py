@@ -31,7 +31,7 @@ ONLINE_MODELS: Dict[str, List[str]] = {
         "claude-3-haiku-20240307",
     ],
     "gemini": [
-        "gemini-3-pro-preview",
+        "gemini-3.1-pro-preview",
         "gemini-3-flash-preview",
         "gemini-2.5-pro",
         "gemini-2.5-flash",
@@ -43,6 +43,7 @@ ONLINE_MODELS: Dict[str, List[str]] = {
     ],
     "openrouter": [
         "auto",
+        "qwen/qwen3-vl-235b-a22b-thinking",
     ],
     "kimi-coding": [
         "k2p5",
@@ -60,10 +61,20 @@ ONLINE_THINKING_MODELS: Dict[str, List[str]] = {
         "claude-haiku-4-5-20251001",
     ],
     "gemini": [
+        "gemini-3.1-pro-preview",
         "gemini-2.5-pro",
         "gemini-2.5-flash",
         "gemini-2.5-flash-lite",
     ],
+    "openrouter": [
+        "qwen/qwen3-vl-235b-a22b-thinking",
+    ],
+}
+
+# Models that emit reasoning token usage but do not reliably stream
+# textual thought deltas through LiteLLM streaming payloads.
+# Keep empty unless a concrete provider/model regression is confirmed.
+THINKING_TEXT_STREAM_UNSUPPORTED_MODELS: Dict[str, List[str]] = {
 }
 
 # Local HuggingFace vision models available via LiteLLM

@@ -13,6 +13,10 @@ title: "Electron Main and IPC"
 Primary entrypoint:
 
 - `frontend/src/main/index.cjs`
+- `frontend/src/main/main_window_runtime.cjs`
+- `frontend/src/main/main_process_lifecycle_runtime.cjs`
+- `frontend/src/main/overlay_ipc_runtime.cjs`
+- `frontend/src/main/window_visibility_runtime.cjs`
 
 Responsibilities:
 
@@ -20,6 +24,13 @@ Responsibilities:
 - Maintains overlay response phases (`idle`, `awaiting-first-chunk`, `streaming`, tool phases).
 - Tracks and restores external focused window (notably on Windows) for overlay UX.
 - Registers tray/shortcuts and always-on-top behavior for overlay windows.
+- Delegates BrowserWindow factory/bootstrap helpers to `main_window_runtime.cjs`.
+- Delegates lifecycle listeners/startup wiring to `main_process_lifecycle_runtime.cjs`.
+- Delegates overlay/window IPC handler registration to `overlay_ipc_runtime.cjs`.
+- Delegates chat/main visibility transitions to `window_visibility_runtime.cjs`.
+
+See [Main Window Runtime Factory and Overlay Bootstrap Reference](main_window_runtime_factory_and_overlay_bootstrap_reference.md) for extracted helper boundaries.
+See [Main Process Lifecycle, Overlay IPC, and Window Visibility Runtime Reference](main_process_lifecycle_overlay_ipc_and_window_visibility_runtime_reference.md) for lifecycle and overlay-runtime split ownership.
 
 ## Preload Boundary
 
@@ -33,9 +44,14 @@ Responsibilities:
 
 ## IPC Bridge to Backend WebSocket
 
-Main module:
+Main modules:
 
 - `frontend/src/main/ipc.cjs`
+- `frontend/src/main/ipc_settings_sync.cjs`
+- `frontend/src/main/ipc_runtime_helpers.cjs`
+- `frontend/src/main/ipc_renderer_windows.cjs`
+- `frontend/src/main/ipc_query_broadcast.cjs`
+- `frontend/src/main/ipc_query_events.cjs`
 
 Responsibilities:
 
@@ -44,6 +60,13 @@ Responsibilities:
 - Gates first query on settings synchronization ACK.
 - Broadcasts connection status to all renderer windows.
 - Uploads artifacts over HTTP endpoint and injects returned references.
+
+Split boundary:
+
+- `ipc.cjs` owns lifecycle orchestration and IPC handler registration.
+- `ipc_settings_sync.cjs` owns settings ACK wait/resolve/timeout primitives for first-query gating.
+- helper modules own event processing, renderer-window fan-out, and synthetic query event broadcast paths.
+- See [IPC Helper Module Split and Runtime Boundary Reference](ipc_helper_module_split_and_runtime_boundary_reference.md) for per-module contract details.
 
 ## Query Payload Enrichment
 
@@ -90,12 +113,36 @@ Responsibilities:
 - Parses framed binary wakeword detection responses.
 - Supports wakeword enable/disable state and buffer flushing.
 
+## Permission Runtime
+
+Main modules:
+
+- `frontend/src/main/permission_service.cjs`
+- `frontend/src/main/index.cjs`
+- `frontend/src/shared/permissions/permission_manifest.json`
+
+Responsibilities:
+
+- Loads permission manifest metadata and cloned permission definitions.
+- Runs per-permission probes for onboarding/data-controls status surfaces.
+- Handles permission request flows (notably macOS privacy-pane deep links and microphone access request).
+- Exposes renderer invoke handlers:
+  - `list-permissions`
+  - `check-permissions`
+  - `check-permission`
+  - `run-permission-probe`
+  - `request-permission`
+
 ## IPC Channel Taxonomy
 
 From renderer usage perspective:
 
 - send channels: backend messaging, overlay window control, wakeword chunk/control
 - invoke channels: tool execution, artifact upload, memory CRUD/search, config load/save, window/display APIs
-- on channels: backend stream events, connection status, wakeword events, overlay phase updates
+- invoke channels include overlay tool-focus prep (`prepare-overlay-tool-focus`) and explicit episodic memory delete (`delete-episodic-memory`).
+- invoke channels also include permission/status request channels and sudo access toggle:
+  - `set-agent-sudo-access`
+  - `list-permissions`, `check-permissions`, `check-permission`, `run-permission-probe`, `request-permission`
+- on channels: backend stream events, connection status, wakeword events (including `wakeword-stt-trigger`), overlay phase updates
 
 Canonical constants are in renderer infra (`frontend/src/renderer/infrastructure/ipc/channels.ts`) and must stay aligned with main-process handlers.

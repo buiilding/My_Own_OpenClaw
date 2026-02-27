@@ -1,10 +1,33 @@
 import { useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import { toSanitizedMarkdownHtml } from '../../../infrastructure/markdown';
-import { isUserMessageWithScreenshot, resolveMessageScreenshotSrc } from '../utils/messageScreenshots';
+import { resolveLlmOutputContract } from '../../../infrastructure/llmOutputContract';
+import {
+  isUserMessageWithScreenshot,
+  resolveMessageScreenshotSrc,
+  resolveMessageScreenshotSrcList,
+} from '../utils/messageScreenshots';
+import ThinkingDisplay from './ThinkingDisplay';
 
-function MarkdownMessage({ text }) {
-  const html = useMemo(() => toSanitizedMarkdownHtml(text ?? ''), [text]);
+function MarkdownMessage({
+  text,
+  sender = 'assistant',
+  modelProvider = null,
+  modelId = null,
+}) {
+  const contract = useMemo(
+    () => resolveLlmOutputContract(text ?? '', {
+      provider: sender === 'assistant' ? modelProvider : null,
+      modelId: sender === 'assistant' ? modelId : null,
+      enableMath: sender === 'assistant',
+      stripAccidentalHtmlTokens: sender === 'assistant',
+    }),
+    [text, sender, modelProvider, modelId],
+  );
+  const html = useMemo(
+    () => toSanitizedMarkdownHtml(contract.markdown, { enableMath: contract.mathEnabled }),
+    [contract.markdown, contract.mathEnabled],
+  );
   return (
     <div
       className="message-content message-content-markdown"
@@ -15,6 +38,9 @@ function MarkdownMessage({ text }) {
 
 MarkdownMessage.propTypes = {
   text: PropTypes.string,
+  sender: PropTypes.oneOf(['user', 'assistant']),
+  modelProvider: PropTypes.string,
+  modelId: PropTypes.string,
 };
 
 function ToolOutputMessage({ message }) {
@@ -158,20 +184,24 @@ ErrorMessage.propTypes = {
 };
 
 function UserMessage({ message }) {
-  const screenshotSrc = resolveMessageScreenshotSrc(message);
+  const screenshotSources = resolveMessageScreenshotSrcList(message);
   return (
     <div className="user-message-container">
-      {screenshotSrc && (
-        <div className="user-screenshot-container">
-          <img
-            src={screenshotSrc}
-            alt="User message screenshot"
-            className="user-screenshot-image"
-            loading="lazy"
-          />
+      {screenshotSources.length > 0 && (
+        <div className="user-screenshot-gallery">
+          {screenshotSources.map((screenshotSrc, index) => (
+            <div className="user-screenshot-container" key={`${screenshotSrc}-${index}`}>
+              <img
+                src={screenshotSrc}
+                alt={screenshotSources.length > 1 ? `User message screenshot ${index + 1}` : 'User message screenshot'}
+                className="user-screenshot-image"
+                loading="lazy"
+              />
+            </div>
+          ))}
         </div>
       )}
-      <MarkdownMessage text={message.text} />
+      <MarkdownMessage text={message.text} sender="user" />
     </div>
   );
 }
@@ -182,7 +212,52 @@ UserMessage.propTypes = {
     screenshot: PropTypes.string,
     screenshotUrl: PropTypes.string,
     screenshotContentType: PropTypes.string,
+    screenshots: PropTypes.arrayOf(PropTypes.shape({
+      screenshot: PropTypes.string,
+      screenshotRef: PropTypes.string,
+      screenshotUrl: PropTypes.string,
+      screenshotContentType: PropTypes.string,
+    })),
   }).isRequired,
+};
+
+function AssistantThinkingSection({ thinkingText, sourceEventType = null }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const normalizedThinkingText = useMemo(
+    () => (typeof thinkingText === 'string' ? thinkingText.trim() : ''),
+    [thinkingText],
+  );
+
+  if (!normalizedThinkingText) {
+    return null;
+  }
+
+  return (
+    <div className="assistant-thinking-section">
+      <button
+        type="button"
+        className="assistant-thinking-toggle"
+        aria-expanded={isOpen}
+        onClick={() => setIsOpen((previous) => !previous)}
+      >
+        <span>Show thinking</span>
+        <span className={`assistant-thinking-caret${isOpen ? ' is-open' : ''}`} aria-hidden="true">▾</span>
+      </button>
+      {isOpen ? (
+        <div className="assistant-thinking-panel" aria-label="Assistant reasoning details">
+          <ThinkingDisplay
+            status={normalizedThinkingText}
+            sourceEventType={sourceEventType || null}
+          />
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+AssistantThinkingSection.propTypes = {
+  thinkingText: PropTypes.string,
+  sourceEventType: PropTypes.string,
 };
 
 export default function MessageContent({ message }) {
@@ -202,7 +277,34 @@ export default function MessageContent({ message }) {
     return <UserMessage message={message} />;
   }
 
-  return <MarkdownMessage text={message.text} />;
+  if (message.sender === 'assistant' && (!message.type || message.type === 'llm-text')) {
+    const hasVisibleAssistantText = typeof message.text === 'string' && message.text.trim().length > 0;
+    return (
+      <div className="assistant-message-content">
+        <AssistantThinkingSection
+          thinkingText={message.thinkingText || ''}
+          sourceEventType={message.thinkingSourceEventType || null}
+        />
+        {hasVisibleAssistantText ? (
+          <MarkdownMessage
+            text={message.text}
+            sender={message.sender}
+            modelProvider={message.modelProvider || null}
+            modelId={message.modelId || null}
+          />
+        ) : null}
+      </div>
+    );
+  }
+
+  return (
+    <MarkdownMessage
+      text={message.text}
+      sender={message.sender}
+      modelProvider={message.modelProvider || null}
+      modelId={message.modelId || null}
+    />
+  );
 }
 
 MessageContent.propTypes = {
@@ -221,5 +323,9 @@ MessageContent.propTypes = {
     toolName: PropTypes.string,
     executionTime: PropTypes.number,
     success: PropTypes.bool,
+    modelProvider: PropTypes.string,
+    modelId: PropTypes.string,
+    thinkingText: PropTypes.string,
+    thinkingSourceEventType: PropTypes.string,
   }).isRequired,
 };

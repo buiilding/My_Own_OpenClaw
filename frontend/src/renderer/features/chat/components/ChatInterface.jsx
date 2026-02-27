@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { ChevronDown, Sparkles, Volume2 } from 'lucide-react';
+import { ChevronDown, Sparkles, Volume2, Workflow } from 'lucide-react';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import { useChatStore } from '../stores/chatStore';
@@ -8,66 +8,27 @@ import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { ApiClient } from '../../../infrastructure/api/client';
 import { PlayerService } from '../../../infrastructure/audio/PlayerService';
-import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { extractAudioChunkPayload } from '../utils/backendAudioEvents';
 import { selectChatInterfaceState } from '../utils/chatSelectors';
 import { startNewChatSession } from '../utils/newChatSession';
+import { loadConversationTranscriptMemories } from '../../../infrastructure/transcript/conversationTranscriptLoader';
 import {
   getActiveConversationRef,
   getTranscriptSessionInfo,
-  setActiveConversationRef,
-  updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
-import { createConversationRef } from '../utils/conversationRef';
+import { toRehydrateMessagePayload } from '../../dashboard/utils/episodicMemoryUtils';
+import {
+  normalizeProvider,
+} from '../utils/transcriptMessagePayload';
+import { useConversationReplayActions } from '../hooks/useConversationReplayActions';
+import { isDevUiEnabled } from '../utils/devUiFlag';
 import '../../../styles/ChatInterface.css';
 
 const ACTIVE_STREAM_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
-const DEFAULT_MODEL_OPTIONS = ['ChatGPT 5.2 Thinking', 'ChatGPT 4o', 'ChatGPT 4o mini'];
-const TOOL_MESSAGE_TYPES = new Set(['tool-call', 'tool-output']);
 
-function resolveTranscriptRole(message) {
-  if (message.sender === 'user') {
-    return 'user';
-  }
-  if (message.type && TOOL_MESSAGE_TYPES.has(message.type)) {
-    return 'tool';
-  }
-  return 'assistant';
-}
-
-function resolveTranscriptMessageType(message) {
-  if (message.sender === 'user') {
-    return 'user';
-  }
-  return message.type || 'llm-text';
-}
-
-function toRehydratePayload(message) {
-  const role = resolveTranscriptRole(message);
-  return {
-    role,
-    content: message.text || '',
-    message_type: resolveTranscriptMessageType(message),
-    tool_name: role === 'tool' ? (message.toolName || null) : null,
-    correlation_id: role === 'tool' ? (message.correlationId || null) : null,
-    timestamp: message.timestamp || null,
-    screenshot_ref: typeof message.screenshotRef === 'string' ? message.screenshotRef : null,
-    screenshot: null,
-  };
-}
-
-function ChatGptLogo({ size = 14 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function ChatInterface({ sidebarOpen = true }) {
-  const { messages, isSending, thinkingStatus, streamPhase } = useChatStore(
+function ChatInterface({ focusComposerToken = 0 }) {
+  const { messages, isSending, thinkingStatus, thinkingSourceEventType, streamPhase } = useChatStore(
     useShallow(selectChatInterfaceState),
   );
   const clearMessages = useChatStore((state) => state.clearMessages);
@@ -75,9 +36,10 @@ function ChatInterface({ sidebarOpen = true }) {
   const updateMessage = useChatStore((state) => state.updateMessage);
   const setIsSending = useChatStore((state) => state.setIsSending);
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
+  const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);
   const setTokenCounts = useChatStore((state) => state.setTokenCounts);
   const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
-  const { config, updateConfig } = useAppConfigContext();
+  const { config, updateConfig, availableModels } = useAppConfigContext();
 
   const audioPlayerRef = useRef(null);
 
@@ -102,30 +64,102 @@ function ChatInterface({ sidebarOpen = true }) {
   const speechModeEnabled = config?.speech_mode_enabled === true;
   const canStop = ACTIVE_STREAM_PHASES.has(streamPhase);
   const composerBusy = isSending || canStop;
+  const showAssistantAwaitingDot = (
+    streamPhase === 'awaiting-first-chunk'
+    && messages.length > 0
+    && messages[messages.length - 1]?.sender === 'user'
+  );
+  const modelMode = config?.model_mode || 'online';
+  const configuredProvider = config?.model_provider || '';
   const configuredModelId = config?.selected_model_id || '';
+  const availableModelPool = useMemo(() => {
+    const localModels = Array.isArray(availableModels?.local) ? availableModels.local : [];
+    const onlineModels = Array.isArray(availableModels?.online) ? availableModels.online : [];
+    return modelMode === 'local' ? localModels : onlineModels;
+  }, [availableModels, modelMode]);
   const modelOptions = useMemo(() => {
-    if (!configuredModelId) {
-      return DEFAULT_MODEL_OPTIONS;
+    const normalizedSelectedProvider = normalizeProvider(configuredProvider);
+    const seenModelIds = new Set();
+    const options = [];
+
+    availableModelPool.forEach((model) => {
+      const modelId = String(model?.id || '').trim();
+      if (!modelId || seenModelIds.has(modelId)) {
+        return;
+      }
+      if (
+        normalizedSelectedProvider
+        && normalizeProvider(model?.provider) !== normalizedSelectedProvider
+      ) {
+        return;
+      }
+      seenModelIds.add(modelId);
+      options.push({
+        id: modelId,
+        provider: String(model?.provider || configuredProvider || '').trim(),
+      });
+    });
+
+    if (configuredModelId && !seenModelIds.has(configuredModelId)) {
+      options.unshift({
+        id: configuredModelId,
+        provider: String(configuredProvider || '').trim(),
+      });
+      return options;
     }
-    if (DEFAULT_MODEL_OPTIONS.includes(configuredModelId)) {
-      return DEFAULT_MODEL_OPTIONS;
+
+    const selectedIndex = options.findIndex((option) => option.id === configuredModelId);
+    if (selectedIndex > 0) {
+      const [selectedOption] = options.splice(selectedIndex, 1);
+      options.unshift(selectedOption);
     }
-    return [configuredModelId, ...DEFAULT_MODEL_OPTIONS];
-  }, [configuredModelId]);
-  const [modelLabel, setModelLabel] = useState(() => modelOptions[0]);
+
+    return options;
+  }, [availableModelPool, configuredModelId, configuredProvider]);
+  const providerOptions = useMemo(() => {
+    const seenProviders = new Set();
+    const options = [];
+
+    availableModelPool.forEach((model) => {
+      const provider = String(model?.provider || '').trim();
+      if (!provider || seenProviders.has(provider)) {
+        return;
+      }
+      seenProviders.add(provider);
+      options.push(provider);
+    });
+
+    options.sort((left, right) => left.localeCompare(right));
+
+    if (
+      configuredProvider
+      && !options.some((provider) => normalizeProvider(provider) === normalizeProvider(configuredProvider))
+    ) {
+      options.unshift(configuredProvider);
+    }
+
+    return options;
+  }, [availableModelPool, configuredProvider]);
+  const providerLabel = configuredProvider || providerOptions[0] || 'No providers available';
+  const modelLabel = configuredModelId || modelOptions[0]?.id || 'No models available';
+  const devUiEnabled = isDevUiEnabled();
+  const [providerMenuOpen, setProviderMenuOpen] = useState(false);
   const [modelMenuOpen, setModelMenuOpen] = useState(false);
+  const providerMenuRef = useRef(null);
   const modelMenuRef = useRef(null);
 
   useEffect(() => {
-    setModelLabel(modelOptions[0]);
-  }, [modelOptions]);
-
-  useEffect(() => {
     const handlePointerDown = (event) => {
-      if (!modelMenuRef.current) {
-        return;
+      if (
+        providerMenuRef.current
+        && !providerMenuRef.current.contains(event.target)
+      ) {
+        setProviderMenuOpen(false);
       }
-      if (!modelMenuRef.current.contains(event.target)) {
+      if (
+        modelMenuRef.current
+        && !modelMenuRef.current.contains(event.target)
+      ) {
         setModelMenuOpen(false);
       }
     };
@@ -146,6 +180,7 @@ function ChatInterface({ sidebarOpen = true }) {
     const stoppedAt = new Date().toISOString();
     setIsSending(false);
     setThinkingStatus(null);
+    setThinkingSourceEventType(null);
     updateStreamTracking((current) => ({
       ...current,
       phase: 'complete',
@@ -155,7 +190,7 @@ function ChatInterface({ sidebarOpen = true }) {
     }));
     stopPlayback();
     ApiClient.stopQuery();
-  }, [canStop, setIsSending, setThinkingStatus, stopPlayback, updateStreamTracking]);
+  }, [canStop, setIsSending, setThinkingSourceEventType, setThinkingStatus, stopPlayback, updateStreamTracking]);
 
   const handleNewChat = useCallback(() => {
     startNewChatSession({
@@ -188,165 +223,82 @@ function ChatInterface({ sidebarOpen = true }) {
     });
   }, [speechModeEnabled, updateConfig]);
 
+  const handleRunAutoCompaction = useCallback(async () => {
+    if (canStop) {
+      return;
+    }
+    const sessionInfo = getTranscriptSessionInfo();
+    const conversationRef = getActiveConversationRef() || sessionInfo?.conversationRef || null;
+    const userId = sessionInfo?.userId || null;
+    if (conversationRef && userId) {
+      try {
+        const memories = await loadConversationTranscriptMemories({
+          userId,
+          conversationRef,
+          recordKind: 'transcript',
+        });
+        await ApiClient.sendRehydrateConversation(
+          conversationRef,
+          memories.map(toRehydrateMessagePayload),
+        );
+      } catch (error) {
+        console.warn('[ChatInterface] Failed to rehydrate conversation before compaction:', error);
+      }
+    }
+    ApiClient.compactHistory(true);
+  }, [canStop]);
+
+  const handleProviderSelect = useCallback((provider) => {
+    setProviderMenuOpen(false);
+    if (!provider || typeof updateConfig !== 'function') {
+      return;
+    }
+
+    const selectedProvider = String(provider).trim();
+    if (!selectedProvider) {
+      return;
+    }
+
+    const normalizedSelectedProvider = normalizeProvider(selectedProvider);
+    const providerModels = availableModelPool.filter(
+      (model) => normalizeProvider(model?.provider) === normalizedSelectedProvider,
+    );
+
+    let nextModelId = configuredModelId;
+    const currentModelInProvider = providerModels.some(
+      (model) => String(model?.id || '').trim() === configuredModelId,
+    );
+    if (!currentModelInProvider) {
+      nextModelId = String(providerModels[0]?.id || '').trim();
+    }
+
+    updateConfig({
+      model_provider: selectedProvider,
+      selected_model_id: nextModelId,
+    });
+  }, [availableModelPool, configuredModelId, updateConfig]);
+
+  const handleModelSelect = useCallback((option) => {
+    setModelMenuOpen(false);
+    if (!option || typeof updateConfig !== 'function') {
+      return;
+    }
+    updateConfig({
+      selected_model_id: option.id,
+      model_provider: option.provider || configuredProvider,
+    });
+  }, [configuredProvider, updateConfig]);
+
   const handleAssistantFeedbackChange = useCallback((messageId, feedback) => {
     updateMessage(messageId, { feedback });
   }, [updateMessage]);
-
-  const handleEditFromUser = useCallback(async (userMessageId, editedText) => {
-    const normalizedEditedText = typeof editedText === 'string'
-      ? editedText.trim()
-      : '';
-    if (!normalizedEditedText) {
-      return;
-    }
-
-    const userIndex = messages.findIndex(
-      (message) => message.id === userMessageId && message.sender === 'user',
-    );
-    if (userIndex < 0) {
-      return;
-    }
-
-    const editUserMessage = {
-      ...messages[userIndex],
-      text: normalizedEditedText,
-    };
-    const preservedMessages = messages.slice(0, userIndex);
-    const trimmedConversation = [...preservedMessages, editUserMessage];
-    const preservedPayloads = preservedMessages.map(toRehydratePayload);
-    const sessionInfo = getTranscriptSessionInfo();
-
-    let conversationRef = getActiveConversationRef() || sessionInfo.conversationRef;
-    if (!conversationRef) {
-      conversationRef = createConversationRef();
-      setActiveConversationRef(conversationRef);
-    }
-    updateTranscriptSession(conversationRef, sessionInfo.userId || undefined);
-
-    setMessages(trimmedConversation);
-    setThinkingStatus(null);
-    setIsSending(true);
-
-    try {
-      const userId = sessionInfo.userId;
-      if (userId) {
-        await IpcBridge.invoke(INVOKE_CHANNELS.DELETE_CONVERSATION, {
-          userId,
-          conversationId: conversationRef,
-          recordKind: 'transcript',
-        });
-
-        for (const message of preservedMessages) {
-          await IpcBridge.invoke(INVOKE_CHANNELS.STORE_TRANSCRIPT, {
-            content: message.text,
-            userId,
-            conversationRef,
-            role: resolveTranscriptRole(message),
-            messageType: resolveTranscriptMessageType(message),
-            toolName: message.toolName || null,
-            correlationId: message.correlationId || null,
-            screenshot: message.screenshotRef || null,
-            timestamp: message.timestamp || null,
-          });
-        }
-
-        await IpcBridge.invoke(INVOKE_CHANNELS.STORE_TRANSCRIPT, {
-          content: editUserMessage.text,
-          userId,
-          conversationRef,
-          role: 'user',
-          messageType: 'user',
-          toolName: null,
-          correlationId: null,
-          screenshot: editUserMessage.screenshotRef || null,
-          timestamp: editUserMessage.timestamp || null,
-        });
-      }
-
-      await ApiClient.sendRehydrateConversation(conversationRef, preservedPayloads);
-      await ApiClient.sendQuery(
-        normalizedEditedText,
-        conversationRef,
-        editUserMessage.screenshotRef || null,
-        editUserMessage.screenshotUrl || null,
-      );
-    } catch (error) {
-      console.error('[ChatInterface] Failed to edit user message:', error);
-      setIsSending(false);
-    }
-  }, [messages, setIsSending, setMessages, setThinkingStatus]);
-
-  const handleTryAgainFromAssistant = useCallback(async (assistantMessageId) => {
-    const assistantIndex = messages.findIndex(
-      (message) => message.id === assistantMessageId && message.sender === 'assistant',
-    );
-    if (assistantIndex < 0) {
-      return;
-    }
-
-    let userIndex = -1;
-    for (let index = assistantIndex; index >= 0; index -= 1) {
-      if (messages[index]?.sender === 'user') {
-        userIndex = index;
-        break;
-      }
-    }
-    if (userIndex < 0) {
-      return;
-    }
-
-    const retryUserMessage = messages[userIndex];
-    const preservedMessages = messages.slice(0, userIndex + 1);
-    const preservedPayloads = preservedMessages.map(toRehydratePayload);
-    const sessionInfo = getTranscriptSessionInfo();
-
-    let conversationRef = getActiveConversationRef() || sessionInfo.conversationRef;
-    if (!conversationRef) {
-      conversationRef = createConversationRef();
-      setActiveConversationRef(conversationRef);
-    }
-    updateTranscriptSession(conversationRef, sessionInfo.userId || undefined);
-
-    setMessages(preservedMessages);
-    setThinkingStatus(null);
-    setIsSending(true);
-
-    try {
-      const userId = sessionInfo.userId;
-      if (userId) {
-        await IpcBridge.invoke(INVOKE_CHANNELS.DELETE_CONVERSATION, {
-          userId,
-          conversationId: conversationRef,
-          recordKind: 'transcript',
-        });
-
-        for (const message of preservedMessages) {
-          await IpcBridge.invoke(INVOKE_CHANNELS.STORE_TRANSCRIPT, {
-            content: message.text,
-            userId,
-            conversationRef,
-            role: resolveTranscriptRole(message),
-            messageType: resolveTranscriptMessageType(message),
-            toolName: message.toolName || null,
-            correlationId: message.correlationId || null,
-            screenshot: message.screenshotRef || null,
-            timestamp: message.timestamp || null,
-          });
-        }
-      }
-
-      await ApiClient.sendRehydrateConversation(conversationRef, preservedPayloads);
-      await ApiClient.sendQuery(
-        retryUserMessage.text,
-        conversationRef,
-        retryUserMessage.screenshotRef || null,
-        retryUserMessage.screenshotUrl || null,
-      );
-    } catch (error) {
-      console.error('[ChatInterface] Failed to retry assistant message:', error);
-      setIsSending(false);
-    }
-  }, [messages, setIsSending, setMessages, setThinkingStatus]);
+  const { handleEditFromUser, handleTryAgainFromAssistant } = useConversationReplayActions({
+    messages,
+    setMessages,
+    setThinkingStatus,
+    setThinkingSourceEventType,
+    setIsSending,
+  });
 
   useEffect(() => {
     const handleDashboardNewChat = () => {
@@ -367,11 +319,44 @@ function ChatInterface({ sidebarOpen = true }) {
       <header className="chat-header">
         <div className="chat-title-block">
           <div className="chat-model-row">
-            {!sidebarOpen ? (
-              <div className="chat-header-brand-dot" aria-hidden="true">
-                <ChatGptLogo size={14} />
-              </div>
-            ) : null}
+            <div className="chat-provider-dropdown" ref={providerMenuRef}>
+              <button
+                type="button"
+                className="chat-provider-selector"
+                aria-label="Provider selector"
+                aria-expanded={providerMenuOpen}
+                onClick={() => {
+                  setProviderMenuOpen((current) => !current);
+                  setModelMenuOpen(false);
+                }}
+              >
+                <span>{providerLabel}</span>
+                <ChevronDown size={14} />
+              </button>
+              {providerMenuOpen ? (
+                <div className="chat-provider-menu" role="menu">
+                  {providerOptions.length > 0 ? (
+                    providerOptions.map((provider) => (
+                      <button
+                        key={provider}
+                        type="button"
+                        className="chat-provider-menu-item"
+                        role="menuitem"
+                        onClick={() => {
+                          handleProviderSelect(provider);
+                        }}
+                      >
+                        <span>{provider}</span>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="chat-provider-menu-item" aria-disabled="true">
+                      <span>No providers available</span>
+                    </div>
+                  )}
+                </div>
+              ) : null}
+            </div>
             <div className="chat-model-dropdown" ref={modelMenuRef}>
               <button
                 type="button"
@@ -380,6 +365,7 @@ function ChatInterface({ sidebarOpen = true }) {
                 aria-expanded={modelMenuOpen}
                 onClick={() => {
                   setModelMenuOpen((current) => !current);
+                  setProviderMenuOpen(false);
                 }}
               >
                 <span>{modelLabel}</span>
@@ -387,21 +373,27 @@ function ChatInterface({ sidebarOpen = true }) {
               </button>
               {modelMenuOpen ? (
                 <div className="chat-model-menu" role="menu">
-                  {modelOptions.map((option) => (
-                    <button
-                      key={option}
-                      type="button"
-                      className="chat-model-menu-item"
-                      role="menuitem"
-                      onClick={() => {
-                        setModelLabel(option);
-                        setModelMenuOpen(false);
-                      }}
-                    >
+                  {modelOptions.length > 0 ? (
+                    modelOptions.map((option) => (
+                      <button
+                        key={`${option.provider || 'unknown'}:${option.id}`}
+                        type="button"
+                        className="chat-model-menu-item"
+                        role="menuitem"
+                        onClick={() => {
+                          handleModelSelect(option);
+                        }}
+                      >
+                        <Sparkles size={16} />
+                        <span>{option.id}</span>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="chat-model-menu-item" aria-disabled="true">
                       <Sparkles size={16} />
-                      <span>{option}</span>
-                    </button>
-                  ))}
+                      <span>No models available</span>
+                    </div>
+                  )}
                 </div>
               ) : null}
             </div>
@@ -418,6 +410,18 @@ function ChatInterface({ sidebarOpen = true }) {
             >
               <Volume2 size={18} />
             </button>
+            {devUiEnabled ? (
+              <button
+                type="button"
+                className="chat-top-icon-btn"
+                aria-label="Run auto compaction"
+                title="Run auto compaction"
+                onClick={handleRunAutoCompaction}
+                disabled={canStop}
+              >
+                <Workflow size={18} />
+              </button>
+            ) : null}
           </div>
         </div>
       </header>
@@ -431,6 +435,7 @@ function ChatInterface({ sidebarOpen = true }) {
             voiceModeEnabled={voiceModeEnabled}
             onStopResponse={handleStopQuery}
             isCentered
+            focusRequestToken={focusComposerToken}
           />
         </div>
       ) : (
@@ -438,6 +443,8 @@ function ChatInterface({ sidebarOpen = true }) {
           <MessageList
             messages={messages}
             thinkingStatus={thinkingStatus}
+            thinkingSourceEventType={thinkingSourceEventType}
+            showAssistantAwaitingDot={showAssistantAwaitingDot}
             enableAssistantActions
             enableUserActions
             disableAssistantActions={isSending || canStop}
@@ -450,6 +457,7 @@ function ChatInterface({ sidebarOpen = true }) {
             isSending={composerBusy}
             voiceModeEnabled={voiceModeEnabled}
             onStopResponse={handleStopQuery}
+            focusRequestToken={focusComposerToken}
           />
         </>
       )}

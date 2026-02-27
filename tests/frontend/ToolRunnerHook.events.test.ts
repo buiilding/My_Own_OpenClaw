@@ -2,6 +2,7 @@ import { act } from '@testing-library/react';
 
 import {
   IpcBridge,
+  INVOKE_CHANNELS,
   ON_CHANNELS,
   emitBackendEventAsync,
   getRemoveListenerMock,
@@ -62,6 +63,10 @@ describe('useToolRunner event handling', () => {
       { file_path: '/tmp/a' },
       { correlationId: 'corr-1', skipAutoCapture: false },
     );
+    expect(IpcBridge.invoke).not.toHaveBeenCalledWith(
+      INVOKE_CHANNELS.SHOW_CHATBOX,
+      expect.anything(),
+    );
   });
 
   test.each([
@@ -109,6 +114,43 @@ describe('useToolRunner event handling', () => {
       parameters,
       { correlationId: requestId, skipAutoCapture: false },
     );
+    expect(IpcBridge.invoke).toHaveBeenCalledWith(
+      INVOKE_CHANNELS.SHOW_CHATBOX,
+      { focus: false },
+    );
+    expect(IpcBridge.invoke).toHaveBeenCalledWith(
+      INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS,
+      { waitMs: 180 },
+    );
+    const showCallOrder = (IpcBridge.invoke as jest.Mock).mock.invocationCallOrder[0];
+    const prepareCallOrder = (IpcBridge.invoke as jest.Mock).mock.invocationCallOrder[1];
+    const executeCallOrder = mockExecuteTool.mock.invocationCallOrder[0];
+    expect(showCallOrder).toBeLessThan(prepareCallOrder);
+    expect(prepareCallOrder).toBeLessThan(executeCallOrder);
+  });
+
+  test('does not force chat-pill handoff for switch_tab tool-call', async () => {
+    renderToolRunner(true);
+
+    await emitBackendEventAsync({
+      type: 'tool-call',
+      id: 'event-switch-tab',
+      payload: {
+        tool_name: 'switch_tab',
+        parameters: { tab_name: 'Editor' },
+        request_id: 'req-switch-tab',
+      },
+    });
+
+    expect(mockExecuteTool).toHaveBeenCalledWith(
+      'switch_tab',
+      { tab_name: 'Editor' },
+      { correlationId: 'req-switch-tab', skipAutoCapture: false },
+    );
+    expect(IpcBridge.invoke).not.toHaveBeenCalledWith(
+      INVOKE_CHANNELS.SHOW_CHATBOX,
+      expect.anything(),
+    );
   });
 
 
@@ -134,6 +176,43 @@ describe('useToolRunner event handling', () => {
       ],
       'bundle-abc',
     );
+    expect(IpcBridge.invoke).not.toHaveBeenCalledWith(
+      INVOKE_CHANNELS.SHOW_CHATBOX,
+      expect.anything(),
+    );
+  });
+
+  test('forces chat-pill handoff before executing computer-use tool bundles', async () => {
+    renderToolRunner(true);
+
+    await emitBackendEventAsync({
+      type: 'tool-bundle',
+      payload: {
+        bundle_id: 'bundle-computer-tool',
+        tools: [
+          { name: 'read_file', args: { file_path: '/tmp/a' } },
+          { name: 'screenshot', args: {} },
+        ],
+      },
+    });
+
+    const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
+    expect(invokeCalls).toContainEqual([
+      INVOKE_CHANNELS.SHOW_CHATBOX,
+      { focus: false },
+    ]);
+    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.HIDE_CHATBOX)).toBe(true);
+    expect(mockExecuteToolBundle).toHaveBeenCalledWith(
+      [
+        { toolName: 'read_file', args: { file_path: '/tmp/a' } },
+        { toolName: 'screenshot', args: {} },
+      ],
+      'bundle-computer-tool',
+    );
+    expect(invokeCalls).toContainEqual([
+      INVOKE_CHANNELS.SHOW_CHATBOX,
+      { focus: false },
+    ]);
   });
 
   test('uses generated bundle id when bundle_id is missing', async () => {
@@ -196,6 +275,23 @@ describe('useToolRunner event handling', () => {
       {},
       { correlationId: 'event-empty-args', skipAutoCapture: false },
     );
+    const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
+    expect(invokeCalls).toContainEqual([
+      INVOKE_CHANNELS.SHOW_CHATBOX,
+      { focus: false },
+    ]);
+    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.HIDE_CHATBOX)).toBe(true);
+    const firstShowIndex = invokeCalls.findIndex(([channel]: unknown[]) => channel === INVOKE_CHANNELS.SHOW_CHATBOX);
+    const hideIndex = invokeCalls.findIndex(([channel]: unknown[]) => channel === INVOKE_CHANNELS.HIDE_CHATBOX);
+    let lastShowIndex = -1;
+    invokeCalls.forEach((call: unknown[], index: number) => {
+      if (call[0] === INVOKE_CHANNELS.SHOW_CHATBOX) {
+        lastShowIndex = index;
+      }
+    });
+    expect(firstShowIndex).toBeGreaterThanOrEqual(0);
+    expect(hideIndex).toBeGreaterThan(firstShowIndex);
+    expect(lastShowIndex).toBeGreaterThan(hideIndex);
   });
 
   test('skips frontend execution for non-executable tool-call metadata', async () => {

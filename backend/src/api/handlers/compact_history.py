@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from backend.src.api.contracts.message_types import OutgoingMessageType
+from backend.src.api.handlers.context import build_user_session_context
 from backend.src.api.infrastructure.errors import send_error_response, send_success_response
 from backend.src.api.infrastructure.handler import TypedMessageHandler
 from backend.src.api.schema import CompactHistoryMessage
@@ -13,8 +13,6 @@ from backend.src.api.transport.protocol import WebSocketSender
 
 if TYPE_CHECKING:
     from backend.src.agent.session.manager import SessionManager
-
-logger = logging.getLogger(__name__)
 
 
 class CompactHistoryHandler(TypedMessageHandler[CompactHistoryMessage]):
@@ -40,7 +38,7 @@ class CompactHistoryHandler(TypedMessageHandler[CompactHistoryMessage]):
             return
 
         session = await self.session_manager.get_or_create_session(user_id)
-        context = self._build_context(session=session, user_id=user_id)
+        context = build_user_session_context(user_id=user_id, session=session)
 
         decision, result = await session.run_history_compaction(
             reason="manual",
@@ -97,17 +95,3 @@ class CompactHistoryHandler(TypedMessageHandler[CompactHistoryMessage]):
             },
             context=context,
         )
-
-    @staticmethod
-    def _build_context(*, session: Any, user_id: str) -> dict[str, Any]:
-        context: dict[str, Any] = {"user_id": user_id}
-        session_id = getattr(session, "session_id", None)
-        if isinstance(session_id, str) and session_id:
-            context["session_id"] = session_id
-        runtime = getattr(session, "runtime", None)
-        if runtime is not None:
-            conversation_ref = getattr(runtime, "active_conversation_ref", None)
-            if isinstance(conversation_ref, str) and conversation_ref:
-                context["conversation_ref"] = conversation_ref
-        return context
-

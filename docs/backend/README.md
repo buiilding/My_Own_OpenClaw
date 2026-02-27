@@ -32,6 +32,8 @@ Covers:
 - [Bootstrap and Config](bootstrap/bootstrap_and_config.md)
 - [Backend Inventory Docs Hub](inventory/README.md)
 - [Backend Full Functionality Inventory Reference](inventory/backend_full_functionality_inventory_reference.md)
+- [Backend Functionality Capability Catalog Reference](inventory/backend_functionality_capability_catalog_reference.md)
+- [Backend Capability to File Matrix Reference](inventory/backend_capability_to_file_matrix_reference.md)
 - [Backend Runtime Flow Matrix Reference](inventory/backend_runtime_flow_matrix_reference.md)
 - [Backend Module File Index Reference](inventory/backend_module_file_index_reference.md)
 - [Backend Cross-Layer Contract Touchpoints Reference](inventory/backend_cross_layer_contract_touchpoints_reference.md)

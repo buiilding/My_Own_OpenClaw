@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 
 import ChatGptDashboardShell from '../../frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell';
 
@@ -84,8 +84,15 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 }));
 
 describe('ChatGptDashboardShell', () => {
+  const flushMicrotasks = async () => {
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+  };
+
   const renderDashboardShell = async () => {
-    render(
+    const view = render(
       <ChatGptDashboardShell
         config={{}}
         availableModels={{ local: [], online: [] }}
@@ -93,9 +100,9 @@ describe('ChatGptDashboardShell', () => {
       />,
     );
 
-    await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalled();
-    });
+    await flushMicrotasks();
+    expect(mockInvoke).toHaveBeenCalled();
+    return view;
   };
 
   beforeEach(() => {
@@ -122,6 +129,20 @@ describe('ChatGptDashboardShell', () => {
     });
 
     expect(screen.getByTestId('settings-section-stub')).toBeInTheDocument();
+  });
+
+  test('collapses and expands sidebar through dedicated controls', async () => {
+    const { container } = await renderDashboardShell();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Collapse sidebar' }));
+    expect(container.querySelector('.cg-sidebar')).toHaveClass('collapsed');
+    expect(container.querySelector('.cg-main-content')).toHaveClass('cg-main-content-collapsed');
+    expect(screen.getByRole('button', { name: 'Expand sidebar' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Expand sidebar' }));
+    expect(container.querySelector('.cg-sidebar')).not.toHaveClass('collapsed');
+    expect(container.querySelector('.cg-main-content')).not.toHaveClass('cg-main-content-collapsed');
+    expect(screen.getByRole('button', { name: 'Collapse sidebar' })).toBeInTheDocument();
   });
 
   test('sidebar models button opens models modal', async () => {
@@ -195,18 +216,16 @@ describe('ChatGptDashboardShell', () => {
     await renderDashboardShell();
 
     fireEvent.click(await screen.findByRole('button', { name: 'Fix Ubuntu mic settings' }));
-
-    await waitFor(() => {
-      const getConversationCall = mockInvoke.mock.calls.find(
-        ([channel]) => channel === 'get-conversation',
-      );
-      expect(getConversationCall).toBeDefined();
-      expect(getConversationCall?.[1]).toEqual(
-        expect.objectContaining({
-          conversationId: 'conv-history-1',
-        }),
-      );
-    });
+    await flushMicrotasks();
+    const getConversationCall = mockInvoke.mock.calls.find(
+      ([channel]) => channel === 'get-conversation',
+    );
+    expect(getConversationCall).toBeDefined();
+    expect(getConversationCall?.[1]).toEqual(
+      expect.objectContaining({
+        conversationId: 'conv-history-1',
+      }),
+    );
 
     expect(mockSendRehydrateConversation).toHaveBeenCalledWith('conv-history-1', []);
     expect(mockSetActiveConversationRef).toHaveBeenCalledWith('conv-history-1');
@@ -307,16 +326,14 @@ describe('ChatGptDashboardShell', () => {
 
       fireEvent.click(await screen.findByRole('button', { name: /Conversation actions for Mission Today/i }));
       fireEvent.click(screen.getByRole('menuitem', { name: 'Delete' }));
-
-      await waitFor(() => {
-        expect(mockInvoke).toHaveBeenCalledWith(
-          'delete-conversation',
-          expect.objectContaining({
-            conversationId: 'conv-delete-1',
-            recordKind: 'transcript',
-          }),
-        );
-      });
+      await flushMicrotasks();
+      expect(mockInvoke).toHaveBeenCalledWith(
+        'delete-conversation',
+        expect.objectContaining({
+          conversationId: 'conv-delete-1',
+          recordKind: 'transcript',
+        }),
+      );
     } finally {
       confirmSpy.mockRestore();
     }
@@ -326,13 +343,11 @@ describe('ChatGptDashboardShell', () => {
     mockSessionInfo = { conversationRef: null, userId: null };
 
     await renderDashboardShell();
-
-    await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith(
-        'list-conversations',
-        expect.objectContaining({ userId: 'default_user' }),
-      );
-    });
+    await flushMicrotasks();
+    expect(mockInvoke).toHaveBeenCalledWith(
+      'list-conversations',
+      expect.objectContaining({ userId: 'default_user' }),
+    );
 
     mockInvoke.mockClear();
     mockSessionInfo = { conversationRef: null, userId: 'peter-bui' };
@@ -340,13 +355,11 @@ describe('ChatGptDashboardShell', () => {
     act(() => {
       window.dispatchEvent(new CustomEvent('transcript-session-update'));
     });
-
-    await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith(
-        'list-conversations',
-        expect.objectContaining({ userId: 'peter-bui' }),
-      );
-    });
+    await flushMicrotasks();
+    expect(mockInvoke).toHaveBeenCalledWith(
+      'list-conversations',
+      expect.objectContaining({ userId: 'peter-bui' }),
+    );
   });
 
   test('reloads recent chats after assistant llm transcript entry is stored', async () => {
@@ -389,14 +402,12 @@ describe('ChatGptDashboardShell', () => {
         },
       }));
     });
-
-    await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith(
-        'list-conversations',
-        expect.objectContaining({ userId: 'default_user' }),
-      );
-      expect(screen.getByRole('button', { name: 'How are you' })).toBeInTheDocument();
-    });
+    await flushMicrotasks();
+    expect(mockInvoke).toHaveBeenCalledWith(
+      'list-conversations',
+      expect.objectContaining({ userId: 'default_user' }),
+    );
+    expect(screen.getByRole('button', { name: 'How are you' })).toBeInTheDocument();
   });
 
   test('plays dashboard open animation on mount and when window becomes visible again', async () => {
@@ -419,10 +430,8 @@ describe('ChatGptDashboardShell', () => {
           onConfigChange={jest.fn()}
         />,
       );
-
-      await waitFor(() => {
-        expect(mockInvoke).toHaveBeenCalled();
-      });
+      await flushMicrotasks();
+      expect(mockInvoke).toHaveBeenCalled();
 
       const shell = container.querySelector('.cg-dashboard-shell');
       expect(shell).toBeTruthy();
@@ -457,62 +466,67 @@ describe('ChatGptDashboardShell', () => {
   });
 
   test('search chats opens modal, filters list, and opens selected conversation', async () => {
+    jest.useFakeTimers();
     const nowIso = new Date().toISOString();
-    mockInvoke.mockImplementation(async (channel) => {
-      if (channel === 'list-conversations') {
-        return {
-          success: true,
-          data: {
-            conversations: [
-              {
-                conversation_id: 'conv-history-1',
-                record_kind: 'transcript',
-                last_timestamp: nowIso,
-                title: 'Moon Landing Technology Explained',
-              },
-              {
-                conversation_id: 'conv-history-2',
-                record_kind: 'transcript',
-                last_timestamp: nowIso,
-                title: 'Vietnamese-speaking lawyer leads',
-              },
-            ],
-          },
-        };
-      }
-      if (channel === 'search-conversations') {
-        return {
-          success: true,
-          data: {
-            conversations: [
-              {
-                conversation_id: 'conv-history-2',
-                record_kind: 'transcript',
-                last_timestamp: nowIso,
-                title: 'Vietnamese-speaking lawyer leads',
-                snippet: 'You: Looking for Vietnamese-speaking lawyer lead in California.',
-                matched_role: 'user',
-              },
-            ],
-          },
-        };
-      }
-      if (channel === 'get-conversation') {
-        return { success: true, data: { memories: [] } };
-      }
-      return { success: true, data: {} };
-    });
+    try {
+      mockInvoke.mockImplementation(async (channel) => {
+        if (channel === 'list-conversations') {
+          return {
+            success: true,
+            data: {
+              conversations: [
+                {
+                  conversation_id: 'conv-history-1',
+                  record_kind: 'transcript',
+                  last_timestamp: nowIso,
+                  title: 'Moon Landing Technology Explained',
+                },
+                {
+                  conversation_id: 'conv-history-2',
+                  record_kind: 'transcript',
+                  last_timestamp: nowIso,
+                  title: 'Vietnamese-speaking lawyer leads',
+                },
+              ],
+            },
+          };
+        }
+        if (channel === 'search-conversations') {
+          return {
+            success: true,
+            data: {
+              conversations: [
+                {
+                  conversation_id: 'conv-history-2',
+                  record_kind: 'transcript',
+                  last_timestamp: nowIso,
+                  title: 'Vietnamese-speaking lawyer leads',
+                  snippet: 'You: Looking for Vietnamese-speaking lawyer lead in California.',
+                  matched_role: 'user',
+                },
+              ],
+            },
+          };
+        }
+        if (channel === 'get-conversation') {
+          return { success: true, data: { memories: [] } };
+        }
+        return { success: true, data: {} };
+      });
 
-    await renderDashboardShell();
+      await renderDashboardShell();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Search chats' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Search chats' }));
 
-    const dialog = screen.getByRole('dialog', { name: 'Search chats' });
-    const input = within(dialog).getByLabelText('Search chats input');
-    expect(within(dialog).getByRole('button', { name: 'New chat' })).toBeInTheDocument();
+      const dialog = screen.getByRole('dialog', { name: 'Search chats' });
+      const input = within(dialog).getByLabelText('Search chats input');
+      expect(within(dialog).getByRole('button', { name: 'New chat' })).toBeInTheDocument();
 
-    fireEvent.change(input, { target: { value: 'lawyer' } });
-    await waitFor(() => {
+      fireEvent.change(input, { target: { value: 'lawyer' } });
+      act(() => {
+        jest.advanceTimersByTime(200);
+      });
+      await flushMicrotasks();
       expect(mockInvoke).toHaveBeenCalledWith(
         'search-conversations',
         expect.objectContaining({
@@ -520,18 +534,18 @@ describe('ChatGptDashboardShell', () => {
           userId: 'default_user',
         }),
       );
-    });
-    expect(within(dialog).queryByText('Moon Landing Technology Explained')).not.toBeInTheDocument();
-    expect(within(dialog).getByText('Vietnamese-speaking lawyer leads')).toBeInTheDocument();
-    expect(within(dialog).getByText(/You: Looking for Vietnamese-speaking lawyer lead/i)).toBeInTheDocument();
+      expect(within(dialog).queryByText('Moon Landing Technology Explained')).not.toBeInTheDocument();
+      expect(within(dialog).getByText('Vietnamese-speaking lawyer leads')).toBeInTheDocument();
+      expect(within(dialog).getByText(/You: Looking for Vietnamese-speaking lawyer lead/i)).toBeInTheDocument();
 
-    fireEvent.click(within(dialog).getByText('Vietnamese-speaking lawyer leads').closest('button'));
-
-    await waitFor(() => {
+      fireEvent.click(within(dialog).getByText('Vietnamese-speaking lawyer leads').closest('button'));
+      await flushMicrotasks();
       expect(mockInvoke).toHaveBeenCalledWith(
         'get-conversation',
         expect.objectContaining({ conversationId: 'conv-history-2' }),
       );
-    });
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });

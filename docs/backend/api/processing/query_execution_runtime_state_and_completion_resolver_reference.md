@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for QueryExecutionService internals: runtime system-state merge rules, screenshot artifact resolution, stream context attachment, and completion-text resolver helpers."
+summary: "Deep reference for QueryExecutionService internals: runtime system-state merge rules, multi-screenshot artifact resolution, stream context attachment, and completion-text resolver helpers."
 read_when:
   - When changing `backend/src/api/services/query_execution.py` helper methods or completion fallback behavior.
-  - When debugging missing screenshot artifacts, wrong stream context fields, or empty-final-response synthesis.
+  - When debugging missing screenshot artifacts (`screenshot_ref`/`screenshot_refs`), wrong stream context fields, or empty-final-response synthesis.
 title: "Query Execution Runtime-State and Completion Resolver Reference"
 ---
 
@@ -43,13 +43,21 @@ This state is backend-runtime-only context for tool preparation; it is not promp
 
 ## Screenshot Resolution Boundary
 
-`_resolve_screenshot(message, artifact_store_cls)` behavior:
+`_resolve_screenshots(message, artifact_store_cls)` behavior:
 
-- returns inline `payload.screenshot` when present
-- if no inline screenshot and `screenshot_ref` exists:
-  - build store via `ArtifactStore.from_config(...)`
-  - load base64 with `store.load_base64(screenshot_ref)`
-- artifact load failure logs warning and returns `None`
+- returns `[payload.screenshot]` when inline screenshot is present
+- if no inline screenshot, resolves refs from:
+  - `payload.screenshot_refs[]` (preferred)
+  - fallback `payload.screenshot_ref`
+- builds store via `ArtifactStore.from_config(...)` once and loads each ref with `store.load_base64(...)`
+- artifact load failure logs warning and continues resolving remaining refs
+- returns `None` only when no screenshot data resolves
+
+`execute(...)` then maps resolved screenshots to `image_data`:
+
+- single screenshot -> string payload
+- multiple screenshots -> list payload
+- no resolved screenshot -> `None`
 
 Failure is non-fatal; query continues without screenshot payload.
 

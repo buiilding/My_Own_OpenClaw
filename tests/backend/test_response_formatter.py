@@ -27,6 +27,19 @@ class NoneFormatter(EventFormatter):
         return None
 
 
+class SharedResponseFormatter(EventFormatter):
+    def __init__(self):
+        self.shared = {"type": "dummy-out", "id": None, "payload": {}}
+
+    def format(self, event, msg_id):
+        self.shared["id"] = msg_id
+        if isinstance(event, dict):
+            self.shared["payload"]["content"] = event.get("content")
+        else:
+            self.shared["payload"]["content"] = getattr(event, "content", None)
+        return self.shared
+
+
 def _set_specs(monkeypatch, specs):
     monkeypatch.setattr(formatter_module, "get_formatter_specs", lambda: specs)
 
@@ -129,3 +142,54 @@ def test_response_formatter_raises_for_duplicate_event_class_specs(monkeypatch):
 
     with pytest.raises(ValueError, match="Duplicate formatter registration for class"):
         ResponseFormatter()
+
+
+def test_response_formatter_does_not_mutate_shared_formatter_response_when_attaching_context(
+    monkeypatch,
+):
+    _set_specs(
+        monkeypatch,
+        (
+            (DummyEvent, "dummy", SharedResponseFormatter, "dummy-out"),
+        ),
+    )
+    formatter = ResponseFormatter()
+
+    first = formatter.format(
+        DummyEvent(content="first"),
+        "msg-ctx",
+        context={"session_id": "session-1"},
+    )
+    second = formatter.format(DummyEvent(content="second"), "msg-no-ctx")
+
+    assert first is not None
+    assert first["session_id"] == "session-1"
+    assert second is not None
+    assert second["id"] == "msg-no-ctx"
+    assert second["payload"]["content"] == "second"
+    assert "session_id" not in second
+
+
+def test_response_formatter_preserves_prior_contextualized_result_snapshot(monkeypatch):
+    _set_specs(
+        monkeypatch,
+        (
+            (DummyEvent, "dummy", SharedResponseFormatter, "dummy-out"),
+        ),
+    )
+    formatter = ResponseFormatter()
+
+    first = formatter.format(
+        DummyEvent(content="first"),
+        "msg-first",
+        context={"session_id": "session-1"},
+    )
+    second = formatter.format(DummyEvent(content="second"), "msg-second")
+
+    assert first is not None
+    assert second is not None
+    assert first["id"] == "msg-first"
+    assert first["payload"]["content"] == "first"
+    assert first["session_id"] == "session-1"
+    assert second["id"] == "msg-second"
+    assert second["payload"]["content"] == "second"

@@ -43,12 +43,13 @@ Schema alignment:
 
 - skip (`None`) when `user_id` is missing
 - skip (`None`) when `user_id == "default_user"`
+- skip (`None`) when `user_query` or `assistant_response` is empty/whitespace
 - logs warning including `msg_id` on skip
 
 When guard passes, payload maps:
 
-- `user_query`
-- `assistant_response`
+- `user_query` (trimmed)
+- `assistant_response` (trimmed)
 - `memory_type`
 - `user_id`
 - `session_id`
@@ -78,13 +79,17 @@ Guard behavior in formatter is stricter than dataclass defaults (`MemoryStoreEve
 
 Coverage note:
 
-- formatter-unit tests do not currently include explicit `default_user` rejection assertions for `MemoryStoreEventFormatter`.
+- contract tests include explicit rejection assertions for:
+  - `user_id` missing
+  - `user_id="default_user"`
+  - blank `user_query`/`assistant_response`
 
 ## Drift Hotspots
 
 1. Reverting error key mapping (`message` vs `content`) breaks `ErrorPayload` contract and frontend display paths.
 2. Relaxing `default_user` skip logic can emit policy-invalid memory events and leak cross-session storage behavior.
-3. Removing warning logs on memory skip paths reduces debuggability for dropped memory-store messages.
+3. Removing non-empty query/response guards can emit low-signal or malformed memory-store events to frontend persistence.
+4. Removing warning logs on memory skip paths reduces debuggability for dropped memory-store messages.
 
 ## Related Pages
 

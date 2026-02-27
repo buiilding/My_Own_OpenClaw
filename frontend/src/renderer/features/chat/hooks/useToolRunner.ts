@@ -20,17 +20,16 @@ import {
   resolveToolCallCorrelationId,
   type TranscriptModelContext,
 } from '../utils/toolRunnerMessages';
+import {
+  ensureToolExecutionSurface,
+  prepareToolExecutionSurface,
+  resolveBundleSurfaceMode,
+  resolveToolRequestIdForCancellation,
+  restoreToolExecutionSurface,
+  shouldSkipToolExecution,
+} from '../utils/toolRunnerSurface';
 
 const TERMINAL_STREAM_PHASES = new Set(['idle', 'complete', 'error']);
-
-function shouldSkipToolExecution(
-  metadata: Record<string, unknown> | undefined,
-): boolean {
-  if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) {
-    return false;
-  }
-  return metadata.skip_frontend_execution === true;
-}
 
 function shouldIgnoreToolEventForTurn(turnRef: string | null | undefined): boolean {
   if (!turnRef) {
@@ -44,21 +43,6 @@ function shouldIgnoreToolEventForTurn(turnRef: string | null | undefined): boole
     return true;
   }
   return TERMINAL_STREAM_PHASES.has(streamTracking.phase);
-}
-
-function resolveToolRequestIdForCancellation(
-  payload: ToolCallEvent['payload'] | undefined,
-): string | null {
-  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
-    return null;
-  }
-  if (typeof payload.request_id === 'string' && payload.request_id.length > 0) {
-    return payload.request_id;
-  }
-  if (typeof payload.correlation_id === 'string' && payload.correlation_id.length > 0) {
-    return payload.correlation_id;
-  }
-  return null;
 }
 
 /**
@@ -109,6 +93,42 @@ export function useToolRunner(enabled = true) {
         success: false,
         data: null,
         error: 'frontend_stale_turn_cancelled',
+      },
+    });
+  }, []);
+
+  const sendToolSurfaceFailure = useCallback((
+    requestId: string | null | undefined,
+    reason: string | null,
+  ) => {
+    if (!requestId) {
+      return;
+    }
+    IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
+      type: 'tool-result',
+      payload: {
+        request_id: requestId,
+        success: false,
+        data: null,
+        error: `frontend_execution_surface_unavailable${reason ? `: ${reason}` : ''}`,
+      },
+    });
+  }, []);
+
+  const sendBundleSurfaceFailure = useCallback((
+    bundleId: string,
+    reason: string | null,
+  ) => {
+    if (!bundleId) {
+      return;
+    }
+    IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
+      type: 'tool-bundle-result',
+      payload: {
+        bundle_id: bundleId,
+        status: 'failure',
+        step_results: [],
+        error: `frontend_execution_surface_unavailable${reason ? `: ${reason}` : ''}`,
       },
     });
   }, []);
@@ -239,14 +259,29 @@ export function useToolRunner(enabled = true) {
     }
 
     if (toolServiceRef.current) {
+      const toolService = toolServiceRef.current;
       const turnRef = event.turn_ref ?? useChatStore.getState().streamTracking.activeTurnRef ?? null;
       trackExecution(bundleId, turnRef);
-      toolServiceRef.current.executeToolBundle(tools, bundleId).catch(err => {
+      const executeBundle = async () => {
+        const preparation = await prepareToolExecutionSurface(resolveBundleSurfaceMode(tools));
+        if (!preparation.canExecute) {
+          sendBundleSurfaceFailure(bundleId, preparation.failureReason);
+          untrackExecution(bundleId);
+          await restoreToolExecutionSurface(preparation);
+          return;
+        }
+        try {
+          await toolService.executeToolBundle(tools, bundleId);
+        } finally {
+          await restoreToolExecutionSurface(preparation);
+        }
+      };
+      executeBundle().catch(err => {
         untrackExecution(bundleId);
         console.error('[useToolRunner] Failed to execute bundle:', err);
       });
     }
-  }, [trackExecution, untrackExecution]);
+  }, [sendBundleSurfaceFailure, trackExecution, untrackExecution]);
 
   const handleToolCall = useCallback((event: ToolCallEvent) => {
     if (shouldIgnoreToolEventForTurn(event.turn_ref)) {
@@ -273,6 +308,13 @@ export function useToolRunner(enabled = true) {
       }
 
       trackExecution(correlationId, turnRef);
+      const preparation = await ensureToolExecutionSurface(toolName, parameters);
+      if (!preparation.canExecute) {
+        sendToolSurfaceFailure(correlationId, preparation.failureReason);
+        untrackExecution(correlationId);
+        await restoreToolExecutionSurface(preparation);
+        return;
+      }
       try {
         await toolService.executeTool(
           toolName,
@@ -285,11 +327,13 @@ export function useToolRunner(enabled = true) {
       } catch (err) {
         untrackExecution(correlationId);
         console.error('[useToolRunner] Failed to execute tool:', err);
+      } finally {
+        await restoreToolExecutionSurface(preparation);
       }
     };
 
     void executeToolCall();
-  }, [sendStaleToolCancellation, trackExecution, untrackExecution]);
+  }, [sendStaleToolCancellation, sendToolSurfaceFailure, trackExecution, untrackExecution]);
 
   useEffect(() => {
     if (!enabled) {

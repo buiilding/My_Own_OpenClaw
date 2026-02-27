@@ -83,11 +83,28 @@ def load_api_key_for_provider(cfg: AppConfig) -> AppConfig:
     normalized_provider = provider_name.lower().replace("-", "_")
     if normalized_provider == "kimi_code":
         normalized_provider = "kimi_coding"
+    if normalized_provider == "gemini":
+        normalized_provider = "google"
     logger.info(
         f"[API Key Load] Loading API key for provider='{provider_name}', "
         f"model_mode='{cfg.model_mode}', selected_model_id='{cfg.selected_model_id}'"
     )
     api_key_env_var = None
+
+    provider_override = cfg.provider_api_keys.get_provider_override(provider_name)
+    if provider_override and provider_override.enabled:
+        user_api_key = provider_override.api_key.strip()
+        if user_api_key:
+            logger.info(
+                "[API Key Load] Using user-provided API key override for provider '%s'",
+                provider_name,
+            )
+            return cfg.model_copy(update={"api_key": user_api_key})
+        logger.warning(
+            "[API Key Load] User API key override is enabled for provider '%s' but no key is set.",
+            provider_name,
+        )
+        return cfg.model_copy(update={"api_key": None})
 
     try:
         provider_config = cfg.llm_providers.get_provider_config(provider_name)

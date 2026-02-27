@@ -37,4 +37,18 @@ describe('toSanitizedMarkdownHtml', () => {
     expect(html).toContain('<pre class="code-block">');
     expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
   });
+
+  test('renders inline and block math when enabled', () => {
+    const html = toSanitizedMarkdownHtml('Inline $x^2$ and block:\n\n$$\ny = mx + b\n$$', {
+      enableMath: true,
+    });
+    expect(html).toContain('class="katex');
+  });
+
+  test('does not invoke math renderer when disabled', () => {
+    const html = toSanitizedMarkdownHtml('Inline $x^2$', {
+      enableMath: false,
+    });
+    expect(html.includes('class="katex')).toBe(false);
+  });
 });

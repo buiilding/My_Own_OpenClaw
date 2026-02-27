@@ -19,10 +19,11 @@ sys.path.insert(0, str(frontend_python_dir))
 
 from memory.local_store import LocalMemoryStore
 from memory.operations import (
-    build_interaction_metadata,
+    build_store_memory_response_data,
     build_memory_filters,
-    format_interaction_memory,
     group_memory_texts,
+    normalize_and_store_interaction_memory,
+    normalize_search_memory_payload,
 )
 from core.runtime_shutdown import (
     handle_shutdown_signal,
@@ -121,17 +122,22 @@ class MemoryService:
 
     async def handle_search(self, request_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Handle memory search request."""
-        query = payload.get("query")
+        normalized, error = normalize_search_memory_payload(
+            query=payload.get("query"),
+            memory_type=payload.get("memory_type"),
+        )
         user_id = payload.get("user_id", "default_user")
         limit = payload.get("limit", 5)
-        memory_type = payload.get("memory_type")
 
-        if not query:
+        if error:
             return {
                 "id": request_id,
                 "success": False,
-                "error": "Query is required for memory search"
+                "error": error,
             }
+
+        query = normalized["query"]
+        memory_type = normalized["memory_type"]
 
         try:
             filters = build_memory_filters(memory_type)
@@ -160,40 +166,35 @@ class MemoryService:
 
     async def handle_store(self, request_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Handle memory store request."""
-        user_query = payload.get("user_query")
-        assistant_response = payload.get("assistant_response")
-        memory_type = payload.get("memory_type", "episodic")
         user_id = payload.get("user_id", "default_user")
         session_id = payload.get("session_id")
-
-        if not user_query or not assistant_response:
-            return {
-                "id": request_id,
-                "success": False,
-                "error": "Missing user_query or assistant_response"
-            }
-
         try:
-            memory_content = format_interaction_memory(user_query, assistant_response)
-            metadata = build_interaction_metadata(memory_type, session_id)
-
-            memory_id = await self.memory_store.add(
-                memory_content,
-                user_id,
-                metadata,
-                conversation_id=session_id
+            stored, error = await normalize_and_store_interaction_memory(
+                self.memory_store,
+                user_query=payload.get("user_query"),
+                assistant_response=payload.get("assistant_response"),
+                memory_type=payload.get("memory_type", "episodic"),
+                user_id=user_id,
+                session_id=session_id,
             )
+            if error:
+                return {
+                    "id": request_id,
+                    "success": False,
+                    "error": error,
+                }
 
-            logger.info(f"Stored {memory_type} memory {memory_id} for user {user_id}")
+            memory_type = stored["memory_type"]
+
+            logger.info(f"Stored {memory_type} memory {stored['memory_id']} for user {user_id}")
 
             return {
                 "id": request_id,
                 "success": True,
-                "data": {
-                    "memory_id": memory_id,
-                    "memory_type": memory_type,
-                    "message": f"Stored {memory_type} memory"
-                }
+                "data": build_store_memory_response_data(
+                    memory_id=stored["memory_id"],
+                    memory_type=memory_type,
+                ),
             }
         except Exception as e:
             logger.error(f"Memory store failed: {e}", exc_info=True)

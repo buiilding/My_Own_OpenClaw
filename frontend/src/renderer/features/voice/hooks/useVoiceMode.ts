@@ -3,8 +3,8 @@ import { buildGatewayAudioMessage, float32ToPcm16 } from '../utils/audioEncoding
 import {
   cleanupAudioCaptureNodes,
   takeAudioContext,
-  type LegacyAudioProcessorNode,
 } from '../utils/audioCaptureCleanup';
+import { createAudioCaptureProcessorNode } from '../utils/audioProcessorNode';
 import { useAudioCaptureRefs } from './useAudioCaptureRefs';
 import { useLatestRef } from '../../../infrastructure/hooks/useLatestRef';
 
@@ -213,35 +213,26 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
       const sourceNode = audioContext.createMediaStreamSource(stream);
       setSourceNodeRef(sourceNode);
 
-      // Create ScriptProcessorNode for raw audio processing
-      const bufferSize = 4096;
-      const scriptNode = audioContext.createScriptProcessor(bufferSize, 1, 1) as unknown as LegacyAudioProcessorNode;
+      const scriptNode = await createAudioCaptureProcessorNode({
+        audioContext,
+        sourceNode,
+        chunkSize: 4096,
+        onChunk: (inputData) => {
+          if (!isRecordingRef.current || !websocketRef.current || websocketRef.current.readyState !== WebSocket.OPEN) {
+            return;
+          }
+
+          const int16Data = float32ToPcm16(inputData);
+          const message = buildGatewayAudioMessage(int16Data, 16000);
+
+          try {
+            websocketRef.current.send(message);
+          } catch (err) {
+            console.error('[VoiceMode] Error sending audio:', err);
+          }
+        },
+      });
       setScriptNodeRef(scriptNode);
-
-      scriptNode.onaudioprocess = (event) => {
-        if (!isRecordingRef.current || !websocketRef.current || websocketRef.current.readyState !== WebSocket.OPEN) {
-          return;
-        }
-
-        // Get raw audio data from input buffer
-        const inputData = event.inputBuffer.getChannelData(0);
-        
-        // Convert Float32Array to Int16Array
-        const int16Data = float32ToPcm16(inputData);
-        
-        // Format and send to Gateway
-        const message = buildGatewayAudioMessage(int16Data, 16000);
-        
-        try {
-          websocketRef.current.send(message);
-        } catch (err) {
-          console.error('[VoiceMode] Error sending audio:', err);
-        }
-      };
-
-      // Connect the nodes
-      sourceNode.connect(scriptNode);
-      scriptNode.connect(audioContext.destination); // Connect to destination to start processing
 
       isRecordingRef.current = true;
       setIsRecording(true);

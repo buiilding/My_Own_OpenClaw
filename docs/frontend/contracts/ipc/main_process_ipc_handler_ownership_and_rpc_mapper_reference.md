@@ -1,7 +1,7 @@
 ---
-summary: "Deep reference for main-process IPC handler ownership across `ipc.cjs`, `index.cjs`, local-backend bridge, wakeword bridge, and mapped sidecar RPC channels."
+summary: "Deep reference for main-process IPC handler ownership across `ipc.cjs` + IPC helper modules, `index.cjs`, permission/wakeword handlers, local-backend bridge, and mapped sidecar RPC channels."
 read_when:
-  - When adding/removing `ipcMain.on/handle` registrations.
+  - When adding/removing `ipcMain.on/handle` registrations, including permission onboarding channels.
   - When debugging renderer invoke/send calls that do not reach expected main/sidecar behavior.
 title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 ---
@@ -11,18 +11,33 @@ title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 ## Canonical Modules
 
 - `frontend/src/main/ipc.cjs`
+- `frontend/src/main/ipc_settings_sync.cjs`
+- `frontend/src/main/ipc_runtime_helpers.cjs`
+- `frontend/src/main/ipc_renderer_windows.cjs`
+- `frontend/src/main/ipc_query_broadcast.cjs`
+- `frontend/src/main/ipc_query_events.cjs`
+- `frontend/src/main/ipc_memory_store_persistence.cjs`
 - `frontend/src/main/index.cjs`
+- `frontend/src/main/overlay_ipc_runtime.cjs`
+- `frontend/src/main/window_visibility_runtime.cjs`
+- `frontend/src/main/main_process_lifecycle_runtime.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
+- `frontend/src/main/local_backend_bridge_tool_args.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
 - `frontend/src/main/ipc_frontend_config.cjs`
+- `frontend/src/main/permission_service.cjs`
 
 ## Registration Topology
 
 Main-process handler registration is split by responsibility:
 
-- transport/backend relay and config persistence: `ipc.cjs`
-- window/overlay runtime control: `index.cjs`
+- transport/backend relay orchestration and config persistence: `ipc.cjs`
+- relay helper ownership for message processing/fan-out/synthetic query events: `ipc_runtime_helpers.cjs`, `ipc_renderer_windows.cjs`, `ipc_query_broadcast.cjs`, `ipc_query_events.cjs`
+- settings ACK-gate helper ownership: `ipc_settings_sync.cjs`
+- window/overlay runtime control registration: `overlay_ipc_runtime.cjs` (wired by `index.cjs`)
+- chat/main window visibility transitions: `window_visibility_runtime.cjs` (called from `overlay_visibility_handler.cjs` + runtime hooks)
+- app lifecycle listener bootstrap: `main_process_lifecycle_runtime.cjs` (wired by `index.cjs`)
 - Python sidecar tool + memory bridge: `local_backend_bridge.cjs`
 - wakeword audio process bridge: `wakeword_bridge.cjs`
 
@@ -45,21 +60,32 @@ Notable behavior:
 
 - `to-backend` query path performs initial settings sync gate, local optimistic user event synthesis, payload enrichment, and websocket send
 - `save/load-frontend-config` call atomic file helpers in `ipc_frontend_config.cjs`
+- helper-module split:
+  - inbound backend message normalization/state/phase fan-out: `ipc_runtime_helpers.cjs`
+  - renderer-window registration and broadcast fan-out: `ipc_renderer_windows.cjs`
+  - synthetic local user/failure query event broadcast: `ipc_query_broadcast.cjs` with envelope builders from `ipc_query_events.cjs`
+  - main-process `memory-store` event persistence side effect: `ipc_memory_store_persistence.cjs`
 
-### `index.cjs`
+### `overlay_ipc_runtime.cjs` (invoked from `index.cjs`)
 
 `ipcMain.handle`:
 
 - `set-overlay-ignore-mouse`
-- `set-chatbox-size`
 - `set-responsebox-size`
 - `show-main-window` (optional payload `{ open?: 'chat' | 'memory' | 'models' | 'settings', maximize?: boolean }`)
 - `show-chatbox`
 - `hide-chatbox`
+- `prepare-overlay-tool-focus`
 - `get-displays`
 - `window-minimize`
 - `window-toggle-maximize`
 - `window-close`
+- `set-agent-sudo-access`
+- `list-permissions`
+- `check-permissions`
+- `check-permission`
+- `run-permission-probe`
+- `request-permission`
 
 `ipcMain.on`:
 
@@ -68,9 +94,18 @@ Notable behavior:
 Notable behavior:
 
 - overlay handlers guard for missing/destroyed windows and return structured success/reason payloads
-- chat/response/context windows are repositioned together after move/resize operations
+- chat/response/context windows are repositioned together after move operations, and response resize re-anchors against chat bounds
 - `show-main-window` normalizes optional open-target payload and emits `main-window-open-target` to renderer on accepted target
 - `show-main-window { maximize:true }` restores/minimizes state and maximizes before focusing dashboard window
+- permission handlers delegate to `permission_service.cjs` using shared deps (`platform`, `shell`, `systemPreferences`)
+
+### `window_visibility_runtime.cjs`
+
+Visibility runtime owners:
+
+- `show-chatbox` behavior (main hide/overlay restore/focus/wakeword sync) via `showChatWindow(...)`
+- `hide-chatbox` behavior (chat/response/context hide and wakeword sync) via `hideChatWindow(...)`
+- `show-main-window` visibility/maximize/focus flow via `showMainWindow(...)`
 
 ### `local_backend_bridge.cjs`
 
@@ -87,6 +122,7 @@ Mapped `ipcMain.handle` registrations via `registerMappedRpcHandlers(...)`:
 - `list-episodic-memories`
 - `get-conversation`
 - `list-semantic-memories`
+- `delete-episodic-memory`
 - `delete-conversation`
 - `delete-semantic-memory`
 - `store-memory`
@@ -95,6 +131,7 @@ Mapped `ipcMain.handle` registrations via `registerMappedRpcHandlers(...)`:
 Notable behavior:
 
 - `execute-tool` sets extended timeout for `browser` tool (120s vs default 30s)
+- `execute-tool` args are normalized by `resolveToolArgs(...)` before JSON-RPC dispatch, including `run_shell_command` `sudo_auth_mode` derivation from frontend config (`native` vs `os_prompt`)
 - `screenshot` tool path uses hidden-window guard wrapper
 - all mapped handlers call `sendRequestOrError(...)` and return normalized error payloads
 

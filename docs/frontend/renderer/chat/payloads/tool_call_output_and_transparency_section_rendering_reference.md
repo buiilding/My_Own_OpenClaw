@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for renderer chat payload surfaces: tool-call/tool-output card rendering, screenshot source selection, and transparency section configuration/validation."
+summary: "Deep reference for renderer chat payload surfaces: tool-call/tool-output card rendering, provider-aware markdown normalization (Gemini), optional math rendering, structured-JSON output parsing, screenshot source selection, and transparency section configuration/validation."
 read_when:
   - When changing model-facing tool payload display behavior in message rows.
   - When changing system prompt/tool schemas/full-user-message transparency section assembly.
@@ -11,11 +11,16 @@ title: "Tool Call/Output and Transparency Section Rendering Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/features/chat/components/MessageContent.jsx`
+- `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
 - `frontend/src/renderer/features/chat/components/MessageTransparencySections.jsx`
 - `frontend/src/renderer/features/chat/components/TransparencySection.jsx`
 - `frontend/src/renderer/features/chat/utils/messageTransparency.js`
 - `frontend/src/renderer/features/chat/utils/messageScreenshots.js`
+- `frontend/src/renderer/infrastructure/llmOutputContract.ts`
+- `frontend/src/renderer/infrastructure/markdown.ts`
 - `tests/frontend/MessageContent.test.jsx`
+- `tests/frontend/LlmOutputContract.test.ts`
+- `tests/frontend/MarkdownRenderer.test.ts`
 - `tests/frontend/MessageTransparency.test.js`
 
 ## Message Type Routing in `MessageContent`
@@ -29,6 +34,31 @@ Render priority:
 5. fallback markdown message
 
 This ensures tool cards are chosen before generic markdown rendering.
+
+## LLM Output Rendering Contract
+
+Assistant markdown rendering now follows a single contract:
+
+- **Input contract**: model text must resolve to **renderable markdown + optional math**
+- **Provider-aware normalization** happens before markdown parse in `resolveLlmOutputContract(...)`
+- **Renderer remains model-agnostic** (`toSanitizedMarkdownHtml`) and receives normalized markdown + `enableMath`
+
+Contract fields:
+
+- `markdown`: normalized markdown payload for render
+- `source`: `markdown` or `structured-json`
+- `provider` / `modelId`: metadata used for provider-specific normalization
+- `mathEnabled`: boolean toggle for KaTeX-enabled markdown parse
+
+Gemini-specific normalizations:
+
+- normalize malformed escaped newlines (`\\n`, `\\r\\n`) into real newlines
+- normalize escaped math delimiters and convert `\\(...\\)` / `\\[...\\]` into `$...$` / `$$...$$`
+- optionally strip accidental wrapper html tokens (for example `<div>`, `<p>`) and map `<br>` to newline
+
+Structured JSON support:
+
+- if assistant output parses as JSON and matches supported fields (`markdown`, `content`, `text`, `answer`, `output`, or `blocks[]`), renderer converts JSON payload to markdown client-side before parse/sanitize.
 
 ## Tool Output Card Contract
 

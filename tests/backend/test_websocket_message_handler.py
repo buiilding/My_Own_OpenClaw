@@ -95,6 +95,26 @@ async def test_parse_and_validate_message_success() -> None:
 
 
 @pytest.mark.asyncio
+async def test_parse_and_validate_message_overrides_client_user_id_with_connection_user_id() -> None:
+    payload = json.dumps(
+        {
+            "id": "msg_user_override",
+            "type": "query",
+            "user_id": "attacker_user",
+            "payload": {"text": "hello", "conversation_ref": "conv_test"},
+        }
+    )
+
+    message, error = await mh.parse_and_validate_message(
+        payload, user_id="trusted_user", max_message_size=1024
+    )
+
+    assert error is None
+    assert isinstance(message, QueryMessage)
+    assert message.user_id == "trusted_user"
+
+
+@pytest.mark.asyncio
 async def test_parse_and_validate_message_rejects_oversized_payload() -> None:
     data = "x" * 20
 
@@ -107,6 +127,78 @@ async def test_parse_and_validate_message_rejects_oversized_payload() -> None:
 
 
 @pytest.mark.asyncio
+async def test_parse_and_validate_message_enforces_utf8_byte_size_limit() -> None:
+    payload = json.dumps(
+        {
+            "id": "msg_unicode_size",
+            "type": "query",
+            "payload": {
+                "text": "🙂" * 30,
+                "conversation_ref": "conv_test",
+            },
+        },
+        ensure_ascii=False,
+    )
+    max_message_size = len(payload)
+    assert len(payload.encode("utf-8")) > max_message_size
+
+    message, error = await mh.parse_and_validate_message(
+        payload,
+        user_id="user_1",
+        max_message_size=max_message_size,
+    )
+
+    assert message is None
+    assert error is not None
+    assert "Message too large" in error
+
+
+@pytest.mark.asyncio
+async def test_parse_and_validate_message_accepts_payload_at_exact_utf8_byte_limit() -> None:
+    payload = json.dumps(
+        {
+            "id": "msg_unicode_exact",
+            "type": "query",
+            "payload": {
+                "text": "🙂" * 10,
+                "conversation_ref": "conv_test",
+            },
+        },
+        ensure_ascii=False,
+    )
+    max_message_size = len(payload.encode("utf-8"))
+
+    message, error = await mh.parse_and_validate_message(
+        payload,
+        user_id="user_1",
+        max_message_size=max_message_size,
+    )
+
+    assert error is None
+    assert isinstance(message, QueryMessage)
+
+
+@pytest.mark.asyncio
+async def test_parse_and_validate_message_accepts_payload_at_exact_size_limit() -> None:
+    payload = json.dumps(
+        {
+            "id": "msg_exact_size",
+            "type": "query",
+            "payload": {"text": "hello", "conversation_ref": "conv_test"},
+        }
+    )
+
+    message, error = await mh.parse_and_validate_message(
+        payload,
+        user_id="user_1",
+        max_message_size=len(payload),
+    )
+
+    assert error is None
+    assert isinstance(message, QueryMessage)
+
+
+@pytest.mark.asyncio
 async def test_parse_and_validate_message_rejects_malformed_json() -> None:
     message, error = await mh.parse_and_validate_message(
         "{bad-json",
@@ -116,6 +208,51 @@ async def test_parse_and_validate_message_rejects_malformed_json() -> None:
 
     assert message is None
     assert error == "Malformed JSON"
+
+
+@pytest.mark.asyncio
+async def test_parse_and_validate_message_returns_multiple_validation_details() -> None:
+    payload = json.dumps({"type": "query", "payload": {}})
+
+    message, error = await mh.parse_and_validate_message(
+        payload,
+        user_id="user_1",
+        max_message_size=1024,
+    )
+
+    assert message is None
+    assert error is not None
+    assert "Invalid message format:" in error
+    assert "id" in error
+    assert "payload.text" in error
+    assert ";" in error
+
+
+@pytest.mark.asyncio
+async def test_parse_and_validate_message_includes_indexed_nested_validation_paths() -> None:
+    payload = json.dumps(
+        {
+            "id": "msg_nested_invalid",
+            "type": "tool-bundle-result",
+            "payload": {
+                "bundle_id": "bundle-1",
+                "status": "success",
+                "step_results": [{}],
+            },
+        }
+    )
+
+    message, error = await mh.parse_and_validate_message(
+        payload,
+        user_id="user_1",
+        max_message_size=2048,
+    )
+
+    assert message is None
+    assert error is not None
+    assert "Invalid message format:" in error
+    assert "payload.step_results.0.tool" in error
+    assert "payload.step_results.0.status" in error
 
 
 @pytest.mark.asyncio
@@ -347,6 +484,17 @@ async def test_send_error_forwards_exception_when_provided(monkeypatch) -> None:
 
 
 @pytest.mark.asyncio
+async def test_send_error_defaults_to_empty_message_when_none(monkeypatch) -> None:
+    websocket = SimpleNamespace()
+    captured = _capture_send_error_response(monkeypatch)
+
+    await mh.send_error(websocket, "msg_302", None)
+
+    assert captured["message"] == ""
+    assert captured["exception"] is None
+
+
+@pytest.mark.asyncio
 async def test_handle_message_uses_sanitize_error_message_result(monkeypatch) -> None:
     registry = DummyRegistry(exc=RuntimeError("raw exception"))
     websocket = SimpleNamespace()
@@ -388,3 +536,49 @@ async def test_handle_message_does_not_raise_if_send_error_fails(
     await mh.handle_message(websocket, message, registry, "user_1")
     assert len(warning_calls) == expected_warning_count
     assert len(error_calls) == expected_error_count
+
+
+@pytest.mark.asyncio
+async def test_send_error_with_fallback_logging_uses_warning_for_non_critical_failures(
+    monkeypatch,
+) -> None:
+    warning_calls, _error_calls = _capture_logger_calls(monkeypatch)
+
+    async def failing_send_error(_ws, _msg_id, _error_message):
+        raise RuntimeError("socket already closed")
+
+    monkeypatch.setattr(mh, "send_error", failing_send_error)
+
+    await mh._send_error_with_fallback_logging(
+        websocket=SimpleNamespace(),
+        msg_id="msg_warn",
+        user_id="user_1",
+        message="validation failed",
+        critical=False,
+    )
+
+    assert len(warning_calls) == 1
+    assert "Failed to send %serror response to user %s (msg_id=%s): %s" in warning_calls[0][0][0]
+
+
+@pytest.mark.asyncio
+async def test_send_error_with_fallback_logging_uses_error_for_critical_failures(
+    monkeypatch,
+) -> None:
+    _warning_calls, error_calls = _capture_logger_calls(monkeypatch)
+
+    async def failing_send_error(_ws, _msg_id, _error_message):
+        raise RuntimeError("socket already closed")
+
+    monkeypatch.setattr(mh, "send_error", failing_send_error)
+
+    await mh._send_error_with_fallback_logging(
+        websocket=SimpleNamespace(),
+        msg_id="msg_crit",
+        user_id="user_1",
+        message="internal error",
+        critical=True,
+    )
+
+    assert len(error_calls) == 1
+    assert "Failed to send %serror response to user %s (msg_id=%s): %s" in error_calls[0][0][0]

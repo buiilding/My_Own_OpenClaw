@@ -46,6 +46,211 @@ read_when:
 - Audit delta:
   - backend `jscpd` reduced from `11` clones to `0` clones (`0` duplicated lines/tokens) for `backend/src` + `tests/backend`.
 
+## Frontend/Main Execution Log (2026-02-26)
+
+- Chat stream + replay split:
+  - extracted replay/edit-retry transcript/query flow from `ChatInterface.jsx` into:
+    - `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js`
+  - extracted stream utility modules from `useChatStream.ts`:
+    - `frontend/src/renderer/features/chat/utils/modelThinkingCapabilities.ts`
+    - `frontend/src/renderer/features/chat/utils/chatStreamToolMessages.ts`
+  - extracted shared dashboard conversation-group PropTypes:
+    - `frontend/src/renderer/features/dashboard/components/shared/conversationGroupPropTypes.js`
+  - result:
+    - `ChatInterface.jsx` reduced to `419` LOC.
+    - `useChatStream.ts` reduced to `492` LOC (below file-size target).
+    - `jscpd` frontend+backend total clones reduced from `29` to `27` (TS/JSX clone count now `0` in latest run).
+- Backend non-query handler dedupe:
+  - added shared response-context builder:
+    - `backend/src/api/handlers/context.py` (`build_user_session_context`)
+  - rewired:
+    - `backend/src/api/handlers/stop_query.py`
+    - `backend/src/api/handlers/compact_history.py`
+  - added regression coverage:
+    - `tests/backend/test_handler_context.py`
+- Main sudo-auth dedupe:
+  - collapsed duplicated child-process capture/error handling in:
+    - `frontend/src/main/agent_sudo_access_handler.cjs`
+  - introduced shared command runner used by both `pkexec` and `sudo -n` flows while preserving auth-cancel/disable-guidance behavior.
+  - added startup-error regression coverage:
+    - `tests/frontend/AgentSudoAccessHandler.test.cjs`
+  - audit delta:
+    - frontend+backend `jscpd` total clones reduced from `27` to `25`.
+- Sidecar remote-client dedupe:
+  - added shared base:
+    - `frontend/src/main/python/core/remote_api_client_base.py`
+  - rewired:
+    - `frontend/src/main/python/core/remote_semantic_client.py`
+    - `frontend/src/main/python/core/remote_title_client.py`
+  - verification:
+    - `./scripts/python-in-env sidecar python -m pytest tests/sidecar/test_remote_semantic_client.py tests/sidecar/test_remote_title_client.py -q`
+  - note:
+    - jscpd clone count unchanged (`25`), but duplicated python lines/tokens reduced in latest report.
+- Backend formatter-spec import dedupe:
+  - rewired `backend/src/api/contracts/formatter_specs.py` to import formatter classes via `backend.src.api.processing.formatters` module alias instead of repeating per-class import statements.
+  - preserved canonical event->formatter mapping output and lazy registration behavior.
+  - verification:
+    - `./scripts/python-in-env backend python -m pytest tests/backend/test_api_contract_registry.py tests/backend/test_response_formatter.py tests/backend/test_outgoing_schema_contract.py -q`
+  - audit delta:
+    - frontend+backend `jscpd` total clones reduced from `25` to `24`.
+- Frontend style dedupe:
+  - merged duplicated provider/model icon style declarations in:
+    - `frontend/src/renderer/styles/CloneMemoryModels.css`
+  - verification:
+    - `cd frontend && npm run lint`
+  - audit delta:
+    - frontend+backend `jscpd` total clones reduced from `24` to `23`.
+- Backend session-state split:
+  - extracted message builder/normalization helpers from:
+    - `backend/src/agent/session/state.py`
+    - to `backend/src/agent/session/message_builders.py`
+  - result:
+    - `state.py` reduced from `511` LOC to `441` LOC.
+  - verification:
+    - `./scripts/python-in-env backend python -m pytest tests/backend/test_conversation_history.py tests/backend/test_api_handlers.py tests/backend/test_interaction_loop_compaction.py -q`
+- Frontend tool-runner payload dedupe:
+  - extracted shared tool-output envelope field wiring in:
+    - `frontend/src/renderer/features/chat/utils/toolRunnerMessages.ts`
+  - preserved message payload shape for both single-tool and bundled-tool output messages.
+  - verification:
+    - `cd frontend && npm run test:ci -- tests/frontend/ToolRunnerMessages.test.ts`
+    - `cd frontend && npm run lint`
+  - audit delta:
+    - frontend+backend `jscpd` total clones reduced from `23` to `22`.
+- Frontend slow-test optimization:
+  - reduced async polling overhead and debounce wait time in:
+    - `tests/frontend/ChatGptDashboardShell.test.jsx`
+  - changes:
+    - replaced repeated `waitFor` bootstrap polling with deterministic microtask flush helper.
+    - used fake timers in `search chats` test to advance the 180ms debounced search path directly.
+  - verification:
+    - `cd frontend && npm run test:ci -- tests/frontend/ChatGptDashboardShell.test.jsx`
+    - `cd frontend && npm run lint`
+    - `cd frontend && npm run test:ci`
+  - runtime delta:
+    - `ChatGptDashboardShell.test.jsx` duration improved from `1084ms` to `843ms` in `.audit/plan1/jest-report.json` (~22.2% faster).
+- Frontend async-test warning cleanup:
+  - removed `act(...)` warnings caused by unresolved async state updates in:
+    - `tests/frontend/MemorySection.test.jsx`
+    - `tests/frontend/SettingsSection.test.jsx`
+  - changes:
+    - awaited initial memory load completion in close-button test before ending assertions.
+    - replaced `await Promise.resolve()` timing assumptions with `waitFor(...)` assertions that observe completion of sudo pending-state reset.
+  - verification:
+    - `cd frontend && npm run test:ci -- tests/frontend/MemorySection.test.jsx tests/frontend/SettingsSection.test.jsx`
+    - `cd frontend && npm run lint`
+- Backend browser warning-log dedupe:
+  - rewrote legacy-alias warning log assembly in:
+    - `backend/src/tools/remote_tools/browser.py`
+  - behavior:
+    - preserves existing warning message text/metadata fields for removed legacy aliases.
+  - verification:
+    - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -q`
+    - `cd frontend && npm run audit:jscpd`
+  - audit note:
+    - clone count stayed `22`, but duplicated python lines/tokens reduced (`412/4078` -> `410/4066`) after warning-log refactor.
+- Backend browser clone hotspot dedupe:
+  - extracted legacy warning message assembly helper and simplified logger call path in:
+    - `backend/src/tools/remote_tools/browser.py`
+  - behavior:
+    - preserved removed-alias warning text and structured log metadata fields consumed by tests.
+  - verification:
+    - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -q`
+    - `cd frontend && npm run audit:jscpd`
+  - audit delta:
+    - frontend+backend `jscpd` clone count reduced from `22` to `21`.
+- Backend system-schema clone hotspot dedupe:
+  - added shared optional process-field factory and rewired process action option fields in:
+    - `backend/src/tools/system/schemas.py`
+  - behavior:
+    - preserves `ProcessShellCommandArgs` field defaults and descriptions while reducing repeated field-construction boilerplate.
+  - verification:
+    - `./scripts/python-in-env backend python - <<'PY' ... ProcessShellCommandArgs(action='list') ... PY`
+    - `cd frontend && npm run audit:jscpd`
+  - audit delta:
+    - frontend+backend `jscpd` clone count reduced from `21` to `20`.
+- Backend computer-schema clone hotspot dedupe:
+  - rewired scroll-control field declarations in:
+    - `backend/src/tools/computer/schemas.py`
+  - behavior:
+    - preserved `ScrollControlArgs` validation/shape while replacing clone-prone inline field signatures with clearer multiline schema metadata.
+  - verification:
+    - `./scripts/python-in-env backend python -m pytest tests/backend/test_remote_tools.py -q`
+    - `cd frontend && npm run audit:jscpd`
+  - audit delta:
+    - frontend+backend `jscpd` clone count reduced from `20` to `19`.
+- Backend browser shared-compat field dedupe:
+  - introduced `_compat_field(...)` and rewired repeated compatibility field declarations in:
+    - `backend/src/tools/browser/shared_compat_fields.py`
+  - behavior:
+    - preserved default values, descriptions, and validation constraints while reducing repeated `Field(None, ...)` signatures.
+  - verification:
+    - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py tests/backend/test_remote_tools.py -q`
+    - `cd frontend && npm run audit:jscpd`
+  - audit delta:
+    - frontend+backend `jscpd` clone count reduced from `19` to `14`.
+- Backend browser screenshot-field clone cleanup:
+  - normalized screenshot field metadata wording/structure in:
+    - `backend/src/tools/browser/shared_compat_fields.py` (`BrowserScreenshotImageFields`)
+  - behavior:
+    - preserved field defaults and bounds (`type` default `png`, `quality` 1-100) while removing another cross-runtime clone signature.
+  - verification:
+    - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -q`
+    - `cd frontend && npm run audit:jscpd`
+  - audit delta:
+    - frontend+backend `jscpd` clone count reduced from `14` to `13`.
+- Backend browser schema-base extraction:
+  - added shared schema base model and rewired browser action args classes in:
+    - `backend/src/tools/browser/schemas.py`
+  - behavior:
+    - preserved `extra="ignore"` behavior while reducing repeated class-level config boilerplate.
+  - verification:
+    - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -q`
+    - `cd frontend && npm run audit:jscpd`
+  - audit delta:
+    - frontend+backend `jscpd` clone count reduced from `13` to `12`.
+
+- Dashboard shell split:
+  - extracted conversation/search orchestration from `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx` into:
+    - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
+    - `frontend/src/renderer/features/dashboard/utils/conversationGroups.js`
+  - added focused grouping regression coverage:
+    - `tests/frontend/ConversationGroups.test.js`
+  - result: `ChatGptDashboardShell.jsx` reduced from `700` LOC to `313` LOC.
+- Main IPC split:
+  - extracted helper modules from `frontend/src/main/ipc.cjs`:
+    - `frontend/src/main/ipc_runtime_helpers.cjs`
+    - `frontend/src/main/ipc_renderer_windows.cjs`
+    - `frontend/src/main/ipc_query_broadcast.cjs`
+  - result: `ipc.cjs` reduced from `675` LOC to `499` LOC (under file-size target).
+- Main process index split:
+  - extracted runtime modules from `frontend/src/main/index.cjs`:
+    - `frontend/src/main/main_process_lifecycle_runtime.cjs`
+    - `frontend/src/main/overlay_ipc_runtime.cjs`
+    - `frontend/src/main/window_visibility_runtime.cjs`
+    - `frontend/src/main/overlay_signal_runtime.cjs`
+    - `frontend/src/main/overlay_window_helpers_runtime.cjs`
+  - result: `index.cjs` reduced from `887` LOC to `390` LOC (under file-size target).
+- Renderer dedupe slice:
+  - extracted shared chat copy-action hook:
+    - `frontend/src/renderer/features/chat/hooks/useCopyMessageAction.js`
+    - rewired `AssistantMessageActions.jsx` and `UserMessageActions.jsx` to consume shared hook.
+  - extracted shared provider API key PropTypes shape:
+    - `frontend/src/renderer/features/dashboard/components/sections/providerApiKeysPropTypes.js`
+    - rewired `ApiKeysSection.jsx` and `ModelsSection.jsx` to use shared shape.
+  - reduced repeated outside-click/Escape close logic in:
+    - `frontend/src/renderer/features/dashboard/components/DashboardSidebar.jsx`
+    - via shared local hook `useDismissOnOutside(...)`.
+- Verification:
+  - `cd frontend && npm run lint`
+  - `cd frontend && npm run lint:audit`
+  - `cd frontend && npm run audit:knip`
+  - `cd frontend && npm run audit:jscpd`
+  - `./scripts/test`
+  - `./bin/docs-list`
+- Audit delta:
+  - frontend+backend combined `jscpd` run reduced clones from `41` to `33`.
+
 ## Baseline Metrics (Snapshot: 2026-02-23)
 
 ### jscpd duplication
@@ -243,7 +448,7 @@ read_when:
 ### Phase 9 Execution Slice (Current Loop)
 
 - Dead module removal:
-  - delete `frontend/src/renderer/features/chat/utils/chatBoxPresentation.js`.
+  - delete legacy `chatBoxPresentation.js` helper module in chat utils.
   - delete `tests/frontend/ChatBoxPresentation.test.js` (dead-module-only test).
   - update docs references (folder structure) for removed module.
 - Logger helper export pruning:
@@ -1069,7 +1274,7 @@ read_when:
 ## Phase 9 Outcome (2026-02-23)
 
 - Dead module cleanup shipped:
-  - removed unused `frontend/src/renderer/features/chat/utils/chatBoxPresentation.js`.
+  - removed unused legacy `chatBoxPresentation.js` helper module in chat utils.
   - removed module-specific test `tests/frontend/ChatBoxPresentation.test.js`.
   - removed stale folder-structure reference for `chatBoxPresentation.js`.
 - Logger export cleanup shipped:
@@ -3578,7 +3783,7 @@ read_when:
     - `chatStreamTracking.ts` (`applyTrackingEvent`)
     - `chatStreamConversationGate.ts` (conversation-filter helpers)
   - removed dead frontend utility + test:
-    - `frontend/src/renderer/features/chat/utils/messageToolMetadata.js`
+    - legacy chat utils helper `messageToolMetadata.js`
     - `tests/frontend/MessageToolMetadata.test.js`
   - backend dedupe:
     - `ToolSender` now uses shared `_build_tool_event_metadata(...)` for single-call + bundle paths.
@@ -4334,3 +4539,182 @@ read_when:
   - `./scripts/python-in-env backend python -m pytest tests/backend --durations=20 -q` (pass)
   - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
   - `npx jscpd --gitignore --min-lines 8 --reporters console,markdown --output .audit/plan1/jscpd-backend backend/src tests/backend` (0 clones)
+
+## Phase 188 Outcome (2026-02-26)
+
+- Refactor slice (backend browser compat schema): dedupe OpenClaw compatibility field declarations.
+  - updated:
+    - `backend/src/tools/browser/openclaw_compat_schema.py`
+      - added shared `_openclaw_field(...)` helper for optional compatibility fields
+      - rewired repeated `Field(None, description=...)` declarations to helper calls
+      - preserved default `None` behavior and all existing validation bounds (`ge`/`gt`/`le`) on constrained fields
+  - route consolidation check:
+    - `jscpd` on `backend/src/api/routes` found `0` clones; no route merge needed in this slice.
+  - audit outcome:
+    - combined `backend/src` + `frontend/src` `jscpd` clone count dropped from `12` to `9`
+    - remaining clones are shared schema blocks between backend and frontend sidecar browser schema files.
+- Validation:
+  - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -q` (pass)
+  - `cd frontend && npm run audit:jscpd` (9 clones)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
+
+## Phase 189 Outcome (2026-02-26)
+
+- Refactor slice (backend browser schema validators): centralize click/evaluate validation helpers in the backend schema module.
+  - updated:
+    - `backend/src/tools/browser/schemas.py`
+      - added shared helper functions:
+        - `_ensure_click_target(...)`
+        - `_ensure_evaluate_payload(...)`
+      - rewired `BrowserClickArgs.validate_ref_or_index(...)` and `BrowserEvaluateArgs.validate_script_or_code(...)` to delegate to helpers
+      - kept validation message text and behavior unchanged.
+    - `tests/backend/test_browser_remote_tool.py`
+      - added regression checks covering:
+        - click target required (`ref`/`index` or both coordinates)
+        - coordinate-pair requirement when one axis is supplied
+        - evaluate payload requirement (`script` or `code`)
+  - route consolidation check:
+    - `jscpd` on `backend/src/api/routes` found `0` clones; no route merge needed in this slice.
+  - audit outcome:
+    - combined `backend/src` + `frontend/src` `jscpd` clone count dropped from `9` to `8`.
+- Validation:
+  - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -q` (pass)
+  - `cd frontend && npm run audit:jscpd` (8 clones)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
+
+## Phase 190 Outcome (2026-02-26)
+
+- Refactor slice (backend browser connect schema): dedupe repeated compatibility field declarations.
+  - updated:
+    - `backend/src/tools/browser/schemas.py`
+      - added shared `_ignored_compat_field(...)` helper for ignored compatibility payload fields
+      - rewired `BrowserConnectArgs.mode` and `BrowserConnectArgs.cdp_url` to helper-backed declarations
+      - preserved default values and compatibility-field semantics.
+  - route consolidation check:
+    - `jscpd` on `backend/src/api/routes` found `0` clones; no route merge needed in this slice.
+  - audit outcome:
+    - combined `backend/src` + `frontend/src` `jscpd` clone count dropped from `8` to `7`.
+- Validation:
+  - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -q` (pass)
+  - `cd frontend && npm run audit:jscpd` (7 clones)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
+
+## Phase 191 Outcome (2026-02-26)
+
+- Refactor slice (backend browser schema fields): centralize repeated string field declarations.
+  - updated:
+    - `backend/src/tools/browser/schemas.py`
+      - added shared field factories:
+        - `_required_string_field(...)`
+        - `_optional_string_field(...)`
+      - rewired:
+        - `BrowserTypeArgs.text`
+        - `BrowserEvaluateArgs.script`
+        - `BrowserEvaluateArgs.code`
+      - preserved field constraints and defaults (`max_length`, required vs optional).
+  - route consolidation check:
+    - `jscpd` on `backend/src/api/routes` found `0` clones; no route merge needed in this slice.
+  - audit outcome:
+    - combined `backend/src` + `frontend/src` `jscpd` clone count dropped from `7` to `5`.
+- Validation:
+  - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -q` (pass)
+  - `cd frontend && npm run audit:jscpd` (5 clones)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
+
+## Phase 192 Outcome (2026-02-26)
+
+- Refactor slice (backend browser char-window schema fields): dedupe repeated bounded char-window field declarations.
+  - updated:
+    - `backend/src/tools/browser/schemas.py`
+      - added shared helpers:
+        - `_optional_char_limit_field(...)`
+        - `_optional_char_offset_field(...)`
+        - `_optional_char_page_size_field(...)`
+      - rewired:
+        - `BrowserSnapshotArgs.max_chars`
+        - `BrowserSnapshotArgs.offset`
+        - `BrowserSnapshotArgs.limit`
+        - `BrowserExtractArgs.max_chars`
+      - preserved existing bounds/defaults and descriptions.
+  - route consolidation check:
+    - `jscpd` on `backend/src/api/routes` found `0` clones; no route merge needed in this slice.
+  - audit outcome:
+    - combined `backend/src` + `frontend/src` `jscpd` clone count dropped from `5` to `4`.
+- Validation:
+  - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -q` (pass)
+  - `cd frontend && npm run audit:jscpd` (4 clones)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
+
+## Phase 193 Outcome (2026-02-26)
+
+- Refactor slice (backend browser click/screenshot field declarations): dedupe repeated optional ref/coordinate/index/file field signatures.
+  - updated:
+    - `backend/src/tools/browser/schemas.py`
+      - added shared helpers:
+        - `_optional_ref_field(...)`
+        - `_optional_file_name_field(...)`
+        - `_optional_non_negative_int_field(...)`
+        - `_optional_coordinate_field(...)`
+      - rewired:
+        - `BrowserClickArgs.ref`, `BrowserClickArgs.index`, `BrowserClickArgs.coordinate_x`, `BrowserClickArgs.coordinate_y`
+        - `BrowserScrollArgs.index`
+        - `BrowserScreenshotArgs.ref`, `BrowserScreenshotArgs.file_name`
+      - preserved required validation behavior and field bounds.
+  - route consolidation check:
+    - `jscpd` on `backend/src/api/routes` found `0` clones; no route merge needed in this slice.
+  - audit outcome:
+    - combined `backend/src` + `frontend/src` `jscpd` clone count dropped from `4` to `3`.
+- Validation:
+  - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -q` (pass)
+  - `cd frontend && npm run audit:jscpd` (3 clones)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
+
+## Phase 194 Outcome (2026-02-26)
+
+- Refactor slice (backend browser extract/screenshot field declarations): centralize repeated extract + screenshot field signatures.
+  - updated:
+    - `backend/src/tools/browser/schemas.py`
+      - added extract helpers:
+        - `_extract_action_field(...)`
+        - `_extract_query_field(...)`
+        - `_extract_mode_field(...)`
+        - `_extract_links_field(...)`
+        - `_extract_start_char_field(...)`
+        - `_extract_wait_until_field(...)`
+        - `_extract_selector_field(...)`
+        - `_extract_frame_field(...)`
+        - `_extract_output_schema_field(...)`
+      - added screenshot helpers:
+        - `_screenshot_action_field(...)`
+        - `_full_page_screenshot_field(...)`
+      - rewired `BrowserExtractArgs` and `BrowserScreenshotArgs` to helper-backed declarations.
+      - preserved defaults, constraints, and field descriptions.
+  - route consolidation check:
+    - `jscpd` on `backend/src/api/routes` found `0` clones; no route merge needed in this slice.
+  - audit outcome:
+    - combined `backend/src` + `frontend/src` `jscpd` clone count dropped from `3` to `1`.
+- Validation:
+  - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -q` (pass)
+  - `cd frontend && npm run audit:jscpd` (1 clone)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
+
+## Phase 195 Outcome (2026-02-26)
+
+- Refactor slice (backend browser scroll schema fields): dedupe remaining scroll field declaration block.
+  - updated:
+    - `backend/src/tools/browser/schemas.py`
+      - added shared helpers:
+        - `_scroll_direction_field(...)`
+        - `_scroll_amount_field(...)`
+        - `_scroll_down_flag_field(...)`
+        - `_scroll_pages_field(...)`
+      - rewired `BrowserScrollArgs.direction`, `amount`, `down`, and `pages` to helper-backed declarations.
+      - preserved defaults and numeric constraints.
+  - route consolidation check:
+    - `jscpd` on `backend/src/api/routes` found `0` clones; no route merge needed in this slice.
+  - audit outcome:
+    - combined `backend/src` + `frontend/src` `jscpd` clone count dropped from `1` to `0`.
+- Validation:
+  - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -q` (pass)
+  - `cd frontend && npm run audit:jscpd` (0 clones)
+  - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)

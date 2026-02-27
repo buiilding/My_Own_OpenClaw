@@ -12,4 +12,15 @@ describe('overlayFrameSize', () => {
     expect(getRoundedFrameSize(null)).toBeNull();
     expect(getRoundedFrameSize({})).toBeNull();
   });
+
+  test('uses ceil and structural box metrics to avoid clipping from fractional frame bounds', () => {
+    const size = getRoundedFrameSize({
+      scrollWidth: 183,
+      scrollHeight: 121,
+      offsetWidth: 182,
+      offsetHeight: 120,
+      getBoundingClientRect: () => ({ width: 182.01, height: 120.01 }),
+    });
+    expect(size).toEqual({ width: 183, height: 121 });
+  });
 });

@@ -206,6 +206,10 @@ export OPENAI_API_KEY="your-key"
 ./scripts/run-frontend-electron
 ```
 
+Developer note:
+- Use `npm run electron:dev` for development builds (source tags/dev UI enabled).
+- `npm run electron` is customer mode.
+
 ### Running Tests
 The project includes backend, sidecar, and frontend test suites.
 

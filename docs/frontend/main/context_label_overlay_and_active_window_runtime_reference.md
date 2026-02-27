@@ -1,8 +1,8 @@
 ---
-summary: "Frontend main/runtime reference for the context-label overlay window: Electron lifecycle, renderer view wiring, active-window polling, and response-overlay visibility gates."
+summary: "Frontend main/runtime reference for the context-label overlay shell: retained main-process window orchestration hooks, renderer route wiring, and current no-op label component status."
 read_when:
-  - When changing `chatbox-context-label` window creation, positioning, or visibility rules.
-  - When debugging active-window label drift between sidecar system-state reads and overlay rendering.
+  - When changing `chatbox-context-label` window lifecycle, positioning helpers, or visibility gates in main process overlay code.
+  - When re-enabling active-window label rendering in `ChatBoxContextLabel` and related renderer IPC/system-state flows.
 title: "Context Label Overlay and Active-Window Runtime Reference"
 ---
 
@@ -14,162 +14,72 @@ title: "Context Label Overlay and Active-Window Runtime Reference"
 - `frontend/src/renderer/app/main.jsx`
 - `frontend/src/renderer/app/ChatBoxContextLabelApp.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBoxContextLabel.jsx`
-- `frontend/src/renderer/features/chat/utils/activeWindowContext.js`
-- `frontend/src/renderer/styles/ChatBox.css`
 
-## Purpose and Boundary
+## Current Runtime Status
 
-The context-label overlay is a separate always-on-top transparent Electron window that displays a short active-app label above the chatbox.
+Context-label overlay logic is currently a retained shell, not an active feature.
 
-It is intentionally split from the chatbox and response windows so main process can:
+Current behavior in tree:
 
-- position it independently
-- hide it whenever response overlay is visible
-- keep it click-through compatible with chat overlay behavior
+- `ChatBoxContextLabel` returns `null` (no rendered label UI)
+- no active-window polling helper is used by renderer
+- no `activeWindowContext` utility module exists in current chat utils
+- main process still keeps context-label visibility/position helper functions and constants
+- no `createContextLabelWindow()` flow is currently wired during `app.whenReady()`
 
-## View Routing and App Composition
+Result: no active context-label overlay content is shown at runtime.
 
-Renderer entry (`frontend/src/renderer/app/main.jsx`) selects root component by `view` query param.
+## View Routing
 
-`view=chatbox-context-label` maps to `ChatBoxContextLabelApp`.
+Renderer routing in `frontend/src/renderer/app/main.jsx` still maps:
 
-`ChatBoxContextLabelApp` wraps `ChatBoxContextLabel` in:
+- `view=chatbox-context-label` -> `ChatBoxContextLabelApp`
+
+`ChatBoxContextLabelApp` still wraps the component in:
 
 - `ErrorBoundary`
 - `AppProvider`
 - `ChatProvider(enableToolRunner=false, enableTranscript=false)`
 
-This keeps context-label window lightweight and avoids tool-runner/transcript overhead.
+This preserves route compatibility, but with current component no-op output.
 
-## Main-Process Window Lifecycle
+## Main-Process Retained Hooks
 
-`createContextLabelWindow()` in `frontend/src/main/index.cjs` creates a dedicated overlay window with:
+`frontend/src/main/index.cjs` retains context-label constants and helper flow:
 
-- fixed size constants:
-  - `CONTEXT_LABEL_WIDTH = 280`
-  - `CONTEXT_LABEL_HEIGHT = 26`
-- transparent, frameless, always-on-top toolbar window
-- preload boundary enabled (`../preload.js`)
-- view target `chatbox-context-label`
+- sizing constants (`CONTEXT_LABEL_WIDTH`, `CONTEXT_LABEL_HEIGHT`)
+- position math via `getOverlayContextLabelWindowBounds(...)`
+- visibility gate via `syncContextLabelWindowVisibility()`
+- z-order helper via `ensureContextLabelWindowOnTop()`
 
-Positioning behavior:
+Guard behavior is defensive:
 
-- anchored to chatbox via `getContextLabelWindowBounds()`
-- x-offset constant `CONTEXT_LABEL_OFFSET_X`
-- vertical placement above chatbox using `CONTEXT_LABEL_GAP_ABOVE_CHATBOX`
-- re-positioned on chat move/resize and display metric changes
+- every helper early-returns when `contextLabelWindow` is `null` or destroyed
+- visibility sync is called from chat/response overlay transitions
 
-Close behavior:
+These hooks currently operate as dormant guards because context-label window is not instantiated.
 
-- close is intercepted unless `app.isQuitting`
-- window hides instead of being destroyed
+## Overlay Visibility Coupling
 
-## Visibility Control Model
+Even in dormant mode, main process preserves coupling points:
 
-Main-process visibility source of truth is `syncContextLabelWindowVisibility()`.
+- chat show/hide path calls `syncContextLabelWindowVisibility()`
+- response-overlay visibility transitions call `syncContextLabelWindowVisibility()`
+- `broadcastResponseOverlayVisibility(...)` includes context-label window in renderer broadcast target list when window exists
 
-Label window shows only when:
+This keeps re-enable path low-friction if window creation is restored later.
 
-- chat window exists and is visible
-- `responseOverlayVisible` is `false`
+## Reactivation Checklist
 
-Label window hides when:
+If re-enabling context-label UI:
 
-- chat overlay hidden
-- response overlay becomes visible
-- response overlay enters streaming/tool phases
+1. restore/create context-label BrowserWindow lifecycle in `index.cjs`
+2. reintroduce renderer active-window state resolution (poll + normalization)
+3. wire channel contracts for overlay visibility and optional system-state polling cadence
+4. add/restore frontend tests for label render, overlay hide behavior, and fallback/offline state
 
-Main process also broadcasts `response-overlay-visibility` to all renderer windows (including context label window).
+## Drift Hotspots
 
-Renderer-level guard in `ChatBoxContextLabel` adds a second safety layer:
-
-- subscribes to `ON_CHANNELS.RESPONSE_OVERLAY_VISIBILITY`
-- returns `null` when overlay visibility payload is `true`
-
-This dual guard prevents stale label render during fast overlay phase transitions.
-
-## Active-Window Data Pipeline
-
-`ChatBoxContextLabel` polls `INVOKE_CHANNELS.GET_SYSTEM_STATE` every 5000ms with fields:
-
-- `active_window`
-
-Pipeline:
-
-1. invoke `get-system-state`
-2. normalize label with `resolveActiveWindowContext(...)`
-3. render compact text + aria label + full title tooltip
-
-Status model:
-
-- `fresh`: successful read path
-- `offline`: initial fetch failures before any successful sample
-
-Resilience behavior:
-
-- `hasSuccessfulContextRef` tracks whether at least one successful read occurred
-- after first success, transient poll failures keep status as `fresh` with fallback label
-
-## Label Normalization Rules
-
-`resolveActiveWindowContext(...)` maps raw titles to concise categories.
-
-Predefined pattern buckets include:
-
-- browsers (`Chrome`, `Edge`, `Firefox`, etc.)
-- editors (`VS Code`, `Cursor`, `Windsurf`, generic `Code`)
-- terminal shells (`Terminal`)
-- communication (`Chat`, `Mail`)
-- docs/design apps
-
-Fallback behavior:
-
-- split title by separators (` - `, ` | `, ` : `)
-- prefer final segment
-- truncate to max 26 chars with ellipsis
-- derive two-letter icon code from sanitized text
-
-## Styling Contract
-
-`ChatBox.css` class `.chatbox-floating-context` controls rendering:
-
-- fixed top-left placement within context-label window
-- single-line ellipsis clipping (`max-width: 260px`)
-- selectable text with tooltip fallback for full label
-- `is-offline` modifier switches to warning color
-
-## Critical Couplings
-
-Keep these aligned together:
-
-1. `index.cjs` context-label window creation + visibility calls
-2. renderer `view=chatbox-context-label` route in `app/main.jsx`
-3. `ChatBoxContextLabel` subscription to `response-overlay-visibility`
-4. preload + channel constants for `get-system-state` and `response-overlay-visibility`
-
-## Test Coverage Anchors
-
-- `tests/frontend/ChatBoxContextLabel.test.jsx`
-  - renders mapped label (`VS Code`)
-  - hides on `response-overlay-visibility` event
-- `tests/frontend/OverlayPhaseListener.test.js`
-  - verifies overlay phase subscription/unsubscribe wrapper behavior
-
-## Debug Checklist
-
-If context label never appears:
-
-1. verify `createContextLabelWindow()` is called in `app.whenReady()`
-2. verify renderer view route includes `chatbox-context-label`
-3. verify chat window is visible and `responseOverlayVisible === false`
-
-If label text is stale/wrong:
-
-1. verify `get-system-state` invoke returns `active_window`
-2. inspect `resolveActiveWindowContext(...)` rule matching order
-3. verify poll interval timer still active (not unmounted)
-
-If flicker happens during response streaming:
-
-1. inspect `response-overlay-visibility` broadcast timing in `index.cjs`
-2. verify both main-process hide and renderer `return null` guard remain intact
+1. Doc/runtime mismatch if docs assume active label rendering while component remains no-op.
+2. Re-enabling renderer polling without main window lifecycle wiring creates invisible work and IPC noise.
+3. Re-introducing context-label window without overlay visibility gating can overlap response overlay phases.

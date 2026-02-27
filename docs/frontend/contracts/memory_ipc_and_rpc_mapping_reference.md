@@ -14,6 +14,7 @@ title: "Memory IPC and RPC Mapping Reference"
 - `frontend/src/renderer/infrastructure/ipc/bridge.ts`
 - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
 - `frontend/src/renderer/features/dashboard/components/sections/MemorySection.jsx`
+- `frontend/src/main/ipc_memory_store_persistence.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/python/local_backend.py`
@@ -31,6 +32,7 @@ Memory-related `invoke` channels exposed to renderer:
 - `get-conversation`
 - `delete-conversation`
 - `list-semantic-memories`
+- `delete-episodic-memory`
 - `delete-semantic-memory`
 - `store-memory`
 - `search-memory`
@@ -39,7 +41,7 @@ Current primary renderer call sites:
 
 - `TranscriptWriter` -> `store-transcript`
 - `ChatGptDashboardShell` + `DashboardSidebar` + `SearchChatsModal` -> search/list/get transcript conversations
-- `MemorySection` -> list episodic memory entries + list/delete semantic memory
+- `MemorySection` -> list episodic + semantic memory entries + delete episodic/semantic memory
 
 ## Main-Process Mapping Layer
 
@@ -50,9 +52,20 @@ Mapping helper behavior:
 - only object payloads are accepted (`getPayloadObject`)
 - supports direct key mapping, function mapping, and fallback-key mapping
 
+## Backend `memory-store` Event Persistence Boundary
+
+Backend stream events with `type="memory-store"` persist interaction memory in Electron main process via `ipc_memory_store_persistence.cjs`:
+
+- map payload-first fields into `storeMemory(...)` request shape
+- default `memory_type` to `episodic`
+- derive `session_id` from payload, then envelope `session_id`, then `conversation_ref`
+- execute one fire-and-forget side effect per backend event (failure logs only, no throw)
+
+This prevents renderer-window fan-out from producing duplicate `store_memory` writes.
+
 ## Channel -> JSON-RPC Method Map
 
-### Conversation and semantic list/delete
+### Conversation and memory list/delete
 
 - `search-conversations` -> `search_conversations`
 - `list-conversations` -> `list_conversations`
@@ -60,6 +73,7 @@ Mapping helper behavior:
 - `get-conversation` -> `get_conversation`
 - `delete-conversation` -> `delete_conversation`
 - `list-semantic-memories` -> `list_semantic_memories`
+- `delete-episodic-memory` -> `delete_episodic_memory`
 - `delete-semantic-memory` -> `delete_semantic_memory`
 
 Renderer camelCase to sidecar snake_case conversions:
@@ -103,6 +117,11 @@ Renderer camelCase to sidecar snake_case conversions:
 - snake: `exclude_conversation_id`
 
 Output always sends `exclude_conversation_id` to sidecar method `search_memory`.
+
+Search payload validation at sidecar boundary:
+
+- `query` must be a non-empty string (trimmed)
+- `memory_type` must be a string when provided and must normalize to `episodic` or `semantic`
 
 ## Sidecar JSON-RPC Response Envelope
 
@@ -155,6 +174,12 @@ Decorator `@requires_memory_store` gates most memory handlers:
 - returns `deleted_count`
 - cleans in-memory FAISS ID mappings for removed rows
 
+### `delete_episodic_memory`
+
+- requires `memory_id`
+- deletes non-transcript episodic entry by id
+- returns `{ memory_id, deleted }`
+
 ### `list_semantic_memories`
 
 - returns semantic records newest-first with parsed metadata
@@ -171,13 +196,17 @@ Decorator `@requires_memory_store` gates most memory handlers:
 - computes/assigns `message_index` when omitted
 - marks semantic candidate only for selected roles/message types
 - sets `skip_embedding` for non-candidate rows
-- increments summarization watermark only for assistant terminal rows (`llm-text`/`error`)
+- does not drive semantic-summarization run gating
 
 ### `store_memory`
 
 - stores combined interaction text (`User: ... / Assistant: ...`)
 - attaches interaction metadata and optional session/conversation id
-- episodic writes can also trigger summarization watermark update
+- writes episodic rows with `record_kind='interaction'` for semantic-summarization source input
+- rejects non-string `user_query` / `assistant_response` payloads before normalization
+- requires `memory_type` to be a string when provided
+- trims accepted string values and rejects blank user/assistant message content
+- validates `memory_type` strictly (`episodic` or `semantic`); invalid values return an error
 
 ## Contract Edge Cases
 
@@ -208,5 +237,6 @@ If search results include active conversation unexpectedly:
 ## Related Pages
 
 - [Local Backend JSON-RPC Reference](../sidecar/local_backend_jsonrpc_reference.md)
+- [IPC Memory-Store Event Persistence Payload Fallback and Fail-Open Logging Contract Reference](../main/ipc_memory_store_event_persistence_payload_fallback_and_fail_open_logging_contract_reference.md)
 - [Transcript Storage, Semantic Candidate, and Watermark Reference](../sidecar/memory/transcript_storage_semantic_candidate_and_watermark_reference.md)
 - [Transcript Session and Rehydrate Reference](../renderer/transcript_session_and_rehydrate_reference.md)

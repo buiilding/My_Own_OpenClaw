@@ -66,11 +66,13 @@ Input defaults:
 
 Behavior:
 
-1. require non-empty `query`
-2. build filters via `build_memory_filters(memory_type)`
-3. call `memory_store.search(query, user_id, filters, limit)`
-4. group result texts with `group_memory_texts(...)`
-5. return grouped episodic/semantic memories
+1. require non-empty string `query` (trimmed)
+2. validate/normalize optional `memory_type` (`episodic|semantic`, case-insensitive)
+3. reject non-string `memory_type`
+4. build filters via `build_memory_filters(memory_type)`
+5. call `memory_store.search(query, user_id, filters, limit)`
+6. group result texts with `group_memory_texts(...)`
+7. return grouped episodic/semantic memories
 
 Failure behavior:
 
@@ -83,18 +85,28 @@ Required fields:
 - `user_query`
 - `assistant_response`
 
+Validation detail:
+
+- uses shared `memory.operations.normalize_store_memory_payload(...)` so `memory_service.py` and `local_backend.py` enforce the same contract
+- `user_query` and `assistant_response` must be strings; non-string payloads fail fast
+- both fields are trimmed; whitespace-only values are rejected as missing
+
 Defaults:
 
 - `memory_type = "episodic"`
 - `user_id = "default_user"`
 - optional `session_id`
 
+Validation detail:
+
+- `memory_type` must be a string when provided
+- `memory_type` is normalized to lowercase and must be `episodic` or `semantic`
+
 Behavior:
 
-1. format content with `format_interaction_memory(user_query, assistant_response)`
-2. build metadata with `build_interaction_metadata(memory_type, session_id)`
-3. persist via `memory_store.add(..., conversation_id=session_id)`
-4. return `memory_id` and stored type
+1. delegate persistence to shared `memory.operations.store_interaction_memory(...)`
+2. helper formats content + builds metadata + writes `record_kind="interaction"` row
+3. return `memory_id` and stored type
 
 ## Main Loop and Framing
 

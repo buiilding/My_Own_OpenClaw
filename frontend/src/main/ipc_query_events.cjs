@@ -52,6 +52,7 @@ function buildLocalUserMessage({
     payload: {
       text: payload.text,
       screenshot_ref: payload.screenshot_ref || null,
+      screenshot_refs: Array.isArray(payload.screenshot_refs) ? payload.screenshot_refs : null,
       screenshot_url: payload.screenshot_url || null,
       timestamp: new Date().toISOString(),
       session_id: queryContext.session_id,
@@ -92,4 +93,3 @@ module.exports = {
   buildLocalUserMessage,
   buildQuerySendFailure,
 };
-

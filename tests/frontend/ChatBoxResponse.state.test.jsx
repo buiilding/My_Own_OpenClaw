@@ -146,4 +146,20 @@ describe('ChatBoxResponse state behavior', () => {
     expect(screen.getByText(/step 1/)).toBeInTheDocument();
     expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
   });
+
+  test('shows compaction status stream even when overlay phase is idle', async () => {
+    setChatState([]);
+    useChatStore.setState({
+      thinkingStatus: 'Compacting conversation history...',
+      thinkingSourceEventType: 'context-compaction-started',
+    });
+
+    render(<ChatBoxResponse />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Assistant reasoning stream')).toBeInTheDocument();
+    });
+    expect(screen.getByText('Compacting conversation history...')).toBeInTheDocument();
+    expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
+  });
 });

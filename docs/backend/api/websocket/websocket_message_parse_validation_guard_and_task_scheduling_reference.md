@@ -31,8 +31,8 @@ Threshold contract:
 
 Parse behavior:
 
-- payload length `< threshold` -> inline `json.loads`
-- payload length `>= threshold` -> `loop.run_in_executor(None, json.loads, data)`
+- payload UTF-8 byte length `< threshold` -> inline `json.loads`
+- payload UTF-8 byte length `>= threshold` -> `loop.run_in_executor(None, json.loads, data)`
 
 Object-root guard:
 
@@ -68,7 +68,8 @@ Test anchors:
 `parse_and_validate_message(data, user_id, max_message_size)` sequence:
 
 1. size guard before parse:
-   - if `len(data) > max_message_size`, return `"Message too large: ..."`
+   - if `len(data.encode("utf-8")) > max_message_size`, return `"Message too large: ..."`
+   - equality is accepted (`len(data.encode("utf-8")) == max_message_size` remains valid)
 2. parse object-root JSON
 3. inject connection `user_id` into parsed payload
 4. validate through cached `TypeAdapter(IncomingMessage)`
@@ -80,6 +81,12 @@ Error surface:
 - non-object root -> `"Invalid message format: root must be an object, got <type>"`
 - schema mismatch -> `"Invalid message format: ..."`
 - unexpected parse exceptions -> `"An internal error occurred"` (sanitized)
+
+Validation-detail formatting contract:
+
+- multiple schema issues join with `; `
+- each issue renders dotted location paths from Pydantic `loc` entries
+- list indices are preserved in paths (for example `payload.step_results.0.tool`)
 
 Contract hardening:
 
@@ -144,6 +151,7 @@ Error-send resilience:
 3. changing message-size guard order (after parse) reopens large-payload CPU pressure.
 4. not closing rejected coroutines at task limit can leak `RuntimeWarning: coroutine was never awaited`.
 5. weakening timeout close semantics can leave idle sockets consuming connection slots.
+6. changing the size comparison from `>` to `>=` would incorrectly reject payloads exactly at configured byte limit.
 
 ## Change Checklist
 

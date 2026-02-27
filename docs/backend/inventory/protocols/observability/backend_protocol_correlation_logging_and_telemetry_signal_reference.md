@@ -8,6 +8,11 @@ title: "Backend Protocol Correlation, Logging, and Telemetry Signal Reference"
 
 # Backend Protocol Correlation, Logging, and Telemetry Signal Reference
 
+## Coverage Snapshot (2026-02-27)
+
+- Observability-focused protocol test files: `4`
+- Total test cases across listed files: `53`
+
 ## Scope and Sources
 
 Primary runtime sources:
@@ -133,7 +138,19 @@ When changing observability behavior, keep aligned:
 - query timing log markers (`[Timing]`) and placement
 - token-count payload keys vs frontend token display/tracking consumers
 
+## Observability Control-Path Index
+
+| Observability control path | Runtime owner | Signal contract |
+|---|---|---|
+| handshake/route logging severity split | `backend/src/api/routes/websocket/connection.py`, `backend/src/api/routes/websocket/message_handler.py` | expected validation/parse failures log warning, unexpected runtime failures log error |
+| query lifecycle timing markers | `backend/src/api/handlers/query.py`, `backend/src/api/services/query_execution.py` | `[Timing]` logs bracket query start/completion and late stream warnings with correlation context |
+| context field envelope attachment | `backend/src/api/transport/envelope.py` | truthy-only `user_id`/`session_id`/`conversation_ref`/`turn_ref` attachment to outbound envelopes |
+| sanitized client error emission + internal exception logging | `backend/src/api/infrastructure/errors.py` | client sees safe error payload while internal logs retain exception diagnostics |
+| token-count telemetry schema conformance | formatter/output schema layer | token telemetry/caching fields stay schema-compatible for frontend tracking consumers |
+
 ## Related Pages
 
 - [Backend Protocol State Hub](../state/README.md)
+- [Backend Protocol Validation Hub](../validation/README.md)
+- [Backend Protocol Errors Hub](../errors/README.md)
 - [Backend Protocol Testing Hub](../testing/README.md)

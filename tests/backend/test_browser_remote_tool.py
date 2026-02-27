@@ -9,7 +9,9 @@ from pydantic import ValidationError
 
 from backend.src.tools.browser import RemoteBrowserTool
 from backend.src.tools.browser.schemas import (
+    BrowserClickArgs,
     BrowserControlArgs,
+    BrowserEvaluateArgs,
     BrowserScreenshotArgs,
     BrowserSnapshotArgs,
 )
@@ -284,6 +286,20 @@ class TestBrowserControlArgs:
         assert args.coordinate_x == 100
         assert args.coordinate_y == 250
 
+    def test_click_action_requires_ref_index_or_coordinates(self):
+        with pytest.raises(
+            ValidationError,
+            match="click requires either 'ref'/'index' or both 'coordinate_x' and 'coordinate_y'",
+        ):
+            BrowserClickArgs(action="click")
+
+    def test_click_action_requires_both_coordinate_axes(self):
+        with pytest.raises(
+            ValidationError,
+            match="click requires both 'coordinate_x' and 'coordinate_y' when using coordinate click",
+        ):
+            BrowserClickArgs(action="click", ref="5", coordinate_x=100)
+
     def test_type_action(self):
         """Test removed type alias fields remain available for migration errors."""
         args = BrowserControlArgs(
@@ -328,6 +344,13 @@ class TestBrowserControlArgs:
         args = BrowserControlArgs(action="screenshot", file_name="capture.png")
         assert args.action == "screenshot"
         assert args.file_name == "capture.png"
+
+    def test_evaluate_action_requires_script_or_code(self):
+        with pytest.raises(
+            ValidationError,
+            match="evaluate requires either 'script' or 'code'",
+        ):
+            BrowserEvaluateArgs(action="evaluate")
 
     def test_default_values(self):
         """Test default values."""

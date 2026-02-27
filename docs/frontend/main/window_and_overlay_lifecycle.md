@@ -1,5 +1,5 @@
 ---
-summary: "Electron window lifecycle reference for main/dashboard window, chat overlay, response overlay, focus restoration, sizing IPC, and overlay phase transitions."
+summary: "Electron window lifecycle reference for main/dashboard window, chat overlay, response overlay, focus restoration, response sizing IPC, and overlay phase transitions."
 read_when:
   - When changing chat/response overlay behavior, window positioning, or click-through policy.
   - When adding/editing Electron IPC handlers for window state, sizing, focus, or display selection.
@@ -13,6 +13,10 @@ title: "Window and Overlay Lifecycle"
 Primary modules:
 
 - `frontend/src/main/index.cjs`
+- `frontend/src/main/main_window_runtime.cjs`
+- `frontend/src/main/main_process_lifecycle_runtime.cjs`
+- `frontend/src/main/overlay_ipc_runtime.cjs`
+- `frontend/src/main/window_visibility_runtime.cjs`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/local_backend_bridge_windows.cjs`
 - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
@@ -23,7 +27,7 @@ Window set:
 - `mainWindow`: dashboard/settings surface (`frame: false`, hidden on start)
 - `chatWindow`: bottom-center overlay input pill (`transparent`, `alwaysOnTop`)
 - `responseWindow`: response overlay above chat pill (`transparent`, `alwaysOnTop`)
-- `contextLabelWindow`: active-app context label above chat pill (`transparent`, `alwaysOnTop`)
+- `contextLabelWindow`: dormant context-label shell window hooks remain in main process, but window is not currently instantiated in startup flow
 
 For deeper context-label runtime details, see [Context Label Overlay and Active-Window Runtime Reference](context_label_overlay_and_active_window_runtime_reference.md).
 
@@ -31,11 +35,15 @@ For deeper context-label runtime details, see [Context Label Overlay and Active-
 
 App-ready path (`app.whenReady()`):
 
-1. `createWindow()` creates `mainWindow`, wires IPC, wakeword bridge, local backend bridge.
-2. `createChatWindow()` creates overlay input surface (`view=chatbox`).
-3. `createResponseWindow()` creates overlay response surface (`view=chatbox-response`).
-4. tray and global hotkey (`Super+Alt+W`) are initialized.
-5. chat/response windows are registered in IPC broadcaster set.
+1. `initializeMainProcessLifecycleRuntime(...)` runs startup lifecycle listeners.
+2. `createWindow()` delegates to `createMainWindowRuntime(...)` to create `mainWindow` and wire IPC/wakeword/local-backend/overlay handlers.
+3. `createChatWindow()` delegates to `createChatWindowRuntime(...)` for overlay input surface (`view=chatbox`).
+4. `createResponseWindow()` delegates to `createResponseWindowRuntime(...)` for response surface (`view=chatbox-response` or debug view).
+5. tray and global hotkey (`Super+Alt+W`) are initialized.
+6. chat/response windows are registered in IPC broadcaster set.
+
+For extracted factory/helper ownership details, see [Main Window Runtime Factory and Overlay Bootstrap Reference](main_window_runtime_factory_and_overlay_bootstrap_reference.md).
+For lifecycle + overlay-handler split details, see [Main Process Lifecycle, Overlay IPC, and Window Visibility Runtime Reference](main_process_lifecycle_overlay_ipc_and_window_visibility_runtime_reference.md).
 
 Window close policy:
 
@@ -74,7 +82,7 @@ Reposition triggers:
 
 - explicit `positionChatWindow()` and `positionResponseWindow()` calls
 - display metric change event (`screen.on('display-metrics-changed', ...)`)
-- chat/response resize IPC handlers (`set-chatbox-size`, `set-responsebox-size`)
+- response resize IPC handler (`set-responsebox-size`)
 
 ## Overlay Phase Model
 
@@ -122,10 +130,9 @@ Windows-specific external focus preservation:
 
 ## Main IPC Handlers for Window Control
 
-Handlers in `index.cjs`:
+Handlers in `overlay_ipc_runtime.cjs` (wired by `index.cjs`):
 
 - `set-overlay-ignore-mouse`: toggles click-through for chat and response overlays
-- `set-chatbox-size`: bounded resize (`width <= 900`, `height <= 7500`), repositions response overlay
 - `set-responsebox-size`:
   - default mode: bounded resize (`width <= 900`, `height <= 750`), show/hide + re-anchor above chat
   - fullscreen ghost mode (`full_screen=true`): expands response overlay to the active display bounds for anywhere-on-screen ghost cursor rendering
@@ -145,18 +152,18 @@ Handlers in `index.cjs`:
 
 ### Chat overlay (`ChatBox.jsx`)
 
-- reports measured shell size via `SET_CHATBOX_SIZE` on `ResizeObserver`
+- uses fixed overlay dimensions (no renderer-driven live resize IPC)
+- keeps preview lane always mounted and toggles animated visibility on image attach/remove
 - sets overlay click-through (`SET_OVERLAY_IGNORE_MOUSE`) by stream/overlay phases
 - listens for `chatbox-focus` to force input focus
 - sends `MOVE_CHATBOX_TO` while dragging
-- polls `GET_SYSTEM_STATE(active_window)` for context badge freshness
 
 ### Response overlay (`ChatBoxResponse.jsx`)
 
 - listens to `response-overlay-phase`
 - computes visibility from phase + stream content state
 - reports frame size via `SET_RESPONSEBOX_SIZE`
-- supports awaiting-first-chunk view, tool-call ghost preview, final/error markdown pane
+- supports awaiting-first-chunk view and final/error markdown pane
 
 For renderer-only deep dives:
 

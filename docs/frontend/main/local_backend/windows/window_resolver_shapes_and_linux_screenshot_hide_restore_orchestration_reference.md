@@ -12,7 +12,7 @@ title: "Window Resolver Shapes and Linux Screenshot Hide/Restore Orchestration R
 
 - `frontend/src/main/local_backend_bridge_windows.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
-- `frontend/src/main/overlays/focus_runtime.cjs`
+- `frontend/src/main/index.cjs`
 
 ## Resolver Input Normalization
 

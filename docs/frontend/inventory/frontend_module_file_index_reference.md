@@ -14,9 +14,9 @@ This index maps frontend functionality to file ownership.
 
 | Surface | Files |
 | --- | ---: |
-| Main process (`frontend/src/main`, `.cjs`/`.js`) | 23 |
-| Sidecar Python (`frontend/src/main/python`, `.py`) | 136 |
-| Renderer runtime (`frontend/src/renderer`, TS/JS) | 114 |
+| Main process (`frontend/src/main`, `.cjs`/`.js`) | 35 |
+| Sidecar Python (`frontend/src/main/python`, `.py`) | 141 |
+| Renderer runtime (`frontend/src/renderer`, TS/JS) | 139 |
 | Landing (`frontend/src/landing`, `.jsx`/`.css`) | 13 |
 | Preload bridge (`frontend/src/preload.js`) | 1 |
 
@@ -25,6 +25,8 @@ This index maps frontend functionality to file ownership.
 Core runtime:
 
 - `frontend/src/main/index.cjs`
+- `frontend/src/main/main_window_runtime.cjs`
+- `frontend/src/main/main_process_lifecycle_runtime.cjs`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/backend_endpoints.cjs`
 - `frontend/src/main/query_payload_builder.cjs`
@@ -33,15 +35,19 @@ Core runtime:
 Overlay/window control helpers:
 
 - `frontend/src/main/overlay_visibility_handler.cjs`
+- `frontend/src/main/overlay_ipc_runtime.cjs`
 - `frontend/src/main/overlay_mouse_handler.cjs`
 - `frontend/src/main/overlay_chatbox_handler.cjs`
 - `frontend/src/main/overlay_responsebox_handler.cjs`
 - `frontend/src/main/overlay_bounds.cjs`
 - `frontend/src/main/overlay_renderer_registration.cjs`
+- `frontend/src/main/overlay_signal_runtime.cjs`
+- `frontend/src/main/overlay_window_helpers_runtime.cjs`
 - `frontend/src/main/response_overlay_phase_handler.cjs`
 - `frontend/src/main/main_window_controls_handler.cjs`
 - `frontend/src/main/display_query_handler.cjs`
 - `frontend/src/main/external_focus_tracker.cjs`
+- `frontend/src/main/window_visibility_runtime.cjs`
 
 Bridge/support modules:
 
@@ -50,8 +56,13 @@ Bridge/support modules:
 - `frontend/src/main/local_backend_bridge_utils.cjs`
 - `frontend/src/main/local_backend_bridge_windows.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
+- `frontend/src/main/permission_service.cjs`
 - `frontend/src/main/ipc_query_events.cjs`
+- `frontend/src/main/ipc_query_broadcast.cjs`
+- `frontend/src/main/ipc_renderer_windows.cjs`
+- `frontend/src/main/ipc_runtime_helpers.cjs`
 - `frontend/src/main/ipc_frontend_config.cjs`
+- `frontend/src/main/ipc_settings_sync.cjs`
 - `frontend/src/main/test_shell.cjs`
 
 ## Renderer File Index
@@ -60,10 +71,12 @@ App + providers:
 
 - `frontend/src/renderer/app/*.jsx`
 - `frontend/src/renderer/app/providers/*`
+- Includes view-routed app roots: `App`, `ChatBoxApp`, `ChatBoxResponseApp`, `ChatBoxContextLabelApp`, `ToolGhostDebugApp`
 
 Shared components:
 
 - `frontend/src/renderer/components/ErrorBoundary.jsx`
+- `frontend/src/renderer/components/ChatGptLogo.jsx`
 
 Feature slices:
 
@@ -84,6 +97,10 @@ Feature slices:
 - `frontend/src/renderer/features/voice/components/*`
 - `frontend/src/renderer/features/voice/hooks/*`
 - `frontend/src/renderer/features/voice/utils/*`
+- Permissions:
+- `frontend/src/renderer/features/permissions/components/*`
+- `frontend/src/renderer/features/permissions/stores/*`
+- `frontend/src/renderer/features/permissions/utils/*`
 
 Infrastructure:
 
@@ -106,10 +123,12 @@ Service entrypoints:
 - `frontend/src/main/python/local_backend.py`
 - `frontend/src/main/python/memory_service.py`
 - `frontend/src/main/python/wakeword_service.py`
+- `frontend/src/main/python/dev_seed_mock_memory.py` (developer seed utility)
 
 Core infrastructure:
 
 - `frontend/src/main/python/core/{ipc_protocol,backend_config,runtime_shutdown,stdout_json,thread_pool,system_state,system_metrics,remote_embedding_client,remote_semantic_client}.py`
+- Includes additional backend HTTP client modules: `remote_api_client_base.py`, `remote_title_client.py`
 - Platform adapters: `frontend/src/main/python/core/platform/{base,windows,macos,linux}.py`
 
 Memory subsystem:

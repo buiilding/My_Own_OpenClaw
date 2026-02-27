@@ -5,30 +5,18 @@ Client for calling the backend conversation title API from the frontend memory s
 """
 
 import aiohttp
-import logging
 from typing import Optional
 
-from core.backend_config import get_backend_http_url
-
-logger = logging.getLogger(__name__)
+from core.remote_api_client_base import RemoteApiClientBase
 
 
-class RemoteTitleClient:
+class RemoteTitleClient(RemoteApiClientBase):
     """Client for remote model-based conversation title generation."""
 
+    _aiohttp = aiohttp
+
     def __init__(self, backend_url: Optional[str] = None, timeout_seconds: int = 45):
-        self.backend_url = (backend_url or get_backend_http_url()).rstrip("/")
-        self.timeout_seconds = timeout_seconds
-        self._session: Optional[aiohttp.ClientSession] = None
-
-    async def initialize(self) -> None:
-        if self._session is None:
-            self._session = aiohttp.ClientSession()
-
-    async def close(self) -> None:
-        if self._session:
-            await self._session.close()
-            self._session = None
+        super().__init__(backend_url=backend_url, timeout_seconds=timeout_seconds)
 
     async def generate_title(
         self,
@@ -53,26 +41,12 @@ class RemoteTitleClient:
         if isinstance(model_provider, str) and model_provider.strip():
             payload["model_provider"] = model_provider.strip()
 
-        try:
-            async with self._session.post(
-                f"{self.backend_url}/api/semantic/title",
-                json=payload,
-                timeout=aiohttp.ClientTimeout(total=self.timeout_seconds),
-            ) as response:
-                if response.status != 200:
-                    error_text = await response.text()
-                    raise Exception(f"Title API returned {response.status}: {error_text}")
-
-                data = await response.json()
-                if not data.get("success"):
-                    raise Exception("Title API returned success=false")
-
-                title = data.get("title", "") or ""
-                return title.strip()
-
-        except aiohttp.ClientError as e:
-            logger.error(f"Network error calling title API: {e}")
-            raise Exception(f"Failed to connect to title service: {e}")
-        except Exception as e:
-            logger.error(f"Error requesting conversation title: {e}")
-            raise
+        data = await self._post_success_json(
+            path="/api/semantic/title",
+            payload=payload,
+            api_label="Title",
+            network_service_label="title",
+            request_error_label="conversation title",
+        )
+        title = data.get("title", "") or ""
+        return title.strip()

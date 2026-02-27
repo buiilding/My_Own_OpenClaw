@@ -8,6 +8,12 @@ title: "Backend Message Envelope and Contract Validation Boundary Reference"
 
 # Backend Message Envelope and Contract Validation Boundary Reference
 
+## Coverage Snapshot (2026-02-27)
+
+- Incoming message-type literals: `10`
+- Schema-validated outgoing message types: `19`
+- Allowed frontend config patch keys: `10`
+
 ## Scope and Sources
 
 Validation boundary sources:
@@ -90,9 +96,28 @@ Effect:
 - payload shape mismatch for known type -> schema validation failure
 - client gets formatted validation message list from pydantic errors
 
+Validation message formatting details:
+
+- per-error entries are joined with `; `
+- each entry includes dotted `loc` path + message (`<path>: <msg>`)
+- nested list indices are preserved (for example `payload.step_results.0.status`)
+
+Current incoming message-type literals (`10`):
+
+- `query`
+- `stop-query`
+- `rehydrate-conversation`
+- `load-settings`
+- `list-models`
+- `update-settings`
+- `wakeword-detected`
+- `compact-history`
+- `tool-result`
+- `tool-bundle-result`
+
 ### Parse offload policy
 
-`parse_json_object_payload(...)` offloads large parses to threadpool when payload bytes >= `64 * 1024`, reducing event-loop blocking risk.
+`parse_json_object_payload(...)` offloads large parses to threadpool when payload UTF-8 byte length >= `64 * 1024`, reducing event-loop blocking risk even for multibyte-heavy text payloads.
 
 ## Schema Strictness Matrix (high-level)
 
@@ -142,7 +167,9 @@ Purpose:
   - `voice_mode_enabled`
   - `speech_mode_enabled`
   - `wakeword_stt_enabled`
+  - `agent_full_sudo_enabled`
   - `include_query_screenshot`
+  - `provider_api_keys`
 - output only includes explicitly-set keys (`exclude_unset=True`)
 
 Role in protocol surface:
@@ -157,3 +184,33 @@ When editing validation logic, verify:
 - incoming schema union literals stay synchronized with route table and incoming constants.
 - outgoing schema subset list and contract registry still match.
 - parse-size/error strings remain compatible with frontend error-handling expectations.
+
+## Validation Control-Path Index
+
+| Validation control path | Runtime owner | Safety contract |
+|---|---|---|
+| handshake envelope gate | `backend/src/api/schemas/common.py`, websocket route handshake path | rejects missing/invalid handshake identity before entering normal receive loop |
+| message-size + JSON-root parse gate | `backend/src/api/routes/websocket/message_handler.py`, `backend/src/api/routes/websocket/json_parse.py` | oversized/malformed/non-object payloads fail before schema/model routing |
+| incoming discriminated-union validation | `backend/src/api/schemas/incoming.py`, `TypeAdapter(IncomingMessage)` | unknown message types and invalid payload shapes fail with structured validation errors |
+| route-table parity/startup guard | `backend/src/core/container/incoming_routing.py` | startup fails if incoming schema literals and route declarations diverge |
+| contract-registry parity guard | `backend/src/api/contracts/registry.py` | startup/tests fail when incoming/outgoing contract registries diverge from canonical type constants |
+| frontend config patch allowlist gate | `backend/src/core/validation/validators.py` | `update-settings` accepts only typed allowlisted frontend fields and drops unknown keys |
+
+## Recompute Validation Surface Commands
+
+Use this command to recompute protocol validation cardinalities:
+
+- `python - <<'PY'`
+- `from backend.src.api.contracts.message_types import INCOMING_MESSAGE_TYPES, OUTGOING_SCHEMA_MESSAGE_TYPES`
+- `from backend.src.core.validation.validators import FRONTEND_CONFIG_FIELDS`
+- `print('incoming_types', len(INCOMING_MESSAGE_TYPES), sorted(INCOMING_MESSAGE_TYPES))`
+- `print('outgoing_schema_types', len(OUTGOING_SCHEMA_MESSAGE_TYPES))`
+- `print('frontend_config_fields', len(FRONTEND_CONFIG_FIELDS), sorted(FRONTEND_CONFIG_FIELDS))`
+- `PY`
+
+## Related Pages
+
+- [Backend WebSocket Protocol Surface Matrix Reference](../backend_websocket_protocol_surface_matrix_reference.md)
+- [Backend Protocol State Hub](../state/README.md)
+- [Backend Protocol Lifecycle Hub](../lifecycle/README.md)
+- [Backend Protocol Testing Hub](../testing/README.md)

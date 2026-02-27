@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useAppConfigContext } from '../../../../app/providers/AppContextHooks';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../../infrastructure/ipc/bridge';
+import PermissionControlCenter from '../../../permissions/components/PermissionControlCenter';
 import '../../../../styles/CloneSettings.css';
 
 const SETTINGS_TABS = Object.freeze([
@@ -301,6 +302,9 @@ function SettingsSection({ config, onConfigChange, initialTab = 'general', onClo
   const renderTabContent = () => {
     if (activeTab === 'general') {
       return <GeneralTab config={config} onConfigChange={onConfigChange} />;
+    }
+    if (activeTab === 'data-controls') {
+      return <PermissionControlCenter />;
     }
 
     const tab = SETTINGS_TABS.find((item) => item.id === activeTab);

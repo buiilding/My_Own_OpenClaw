@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from contextlib import suppress
+from types import SimpleNamespace
 from typing import Any, Dict, List, Optional
 
 import pytest
@@ -156,11 +157,12 @@ class DummyAssistantFullThenCompleteAgent:
 
 
 class DummyBlockingAgent:
-    def __init__(self, started_event: asyncio.Event):
+    def __init__(self, started_event: asyncio.Event, history=None):
         self.cfg = AppConfig()
         self.user_id = "user_1"
         self.session_id = "session_1"
         self._started_event = started_event
+        self.history = history
 
     async def process_query(
         self,
@@ -179,6 +181,16 @@ class DummyBlockingAgent:
                 "message_content": message_content,
                 "conversation_ref": conversation_ref,
             }
+
+
+class DummyPendingToolCallHistory:
+    def __init__(self, reconciled_count: int = 0):
+        self.reconciled_count = reconciled_count
+        self.calls = 0
+
+    def finalize_pending_tool_calls_as_cancelled(self) -> int:
+        self.calls += 1
+        return self.reconciled_count
 
 
 class DummySessionManager:
@@ -445,11 +457,13 @@ async def test_query_handler_logs_when_active_query_is_cancelled(caplog):
     websocket = FakeWebSocket()
     session_manager = DummySessionManager()
     started_event = asyncio.Event()
-    session_manager.session = DummyBlockingAgent(started_event)
+    pending_history = DummyPendingToolCallHistory(reconciled_count=2)
+    session_manager.session = DummyBlockingAgent(started_event, history=pending_history)
     handler = QueryMessageHandler(
         session_manager, DummyTTSManager(), ResponseFormatter()
     )
     caplog.set_level(logging.INFO, logger="backend.src.api.handlers.query")
+    caplog.set_level(logging.INFO, logger="backend.src.api.services.query_execution")
 
     message = QueryMessage(
         id="msg_cancelled_1",
@@ -472,6 +486,13 @@ async def test_query_handler_logs_when_active_query_is_cancelled(caplog):
 
     assert any(
         "[Query Cancelled] Active query task cancelled" in record.message
+        and "turn_ref=msg_cancelled_1" in record.message
+        and "conversation_ref=conv_cancelled_1" in record.message
+        for record in caplog.records
+    )
+    assert pending_history.calls == 1
+    assert any(
+        "[Query Cancelled] Reconciled 2 pending tool call(s)" in record.message
         and "turn_ref=msg_cancelled_1" in record.message
         and "conversation_ref=conv_cancelled_1" in record.message
         for record in caplog.records
@@ -547,6 +568,59 @@ async def test_query_handler_loads_screenshot_from_artifact_ref(monkeypatch):
 
     assert len(session_manager.session.calls) == 1
     assert session_manager.session.calls[0]["image_data"] == "artifact-base64"
+    assert session_manager.session.calls[0]["conversation_ref"] == "conv_test"
+
+
+@pytest.mark.asyncio
+async def test_query_handler_loads_multiple_screenshots_from_artifact_refs(monkeypatch):
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    session_manager.session = DummyCaptureAgent()
+    session_manager.config = AppConfig()
+    handler = QueryMessageHandler(
+        session_manager, DummyTTSManager(), ResponseFormatter()
+    )
+
+    class DummyPipeline:
+        def __init__(self, *_args, **_kwargs):
+            return None
+
+        async def process(self, *_args, **_kwargs):
+            return None
+
+        async def wait_for_pending_tts(self):
+            return None
+
+    class DummyStore:
+        def load_base64(self, artifact_id: str) -> str:
+            return f"artifact:{artifact_id}"
+
+    monkeypatch.setattr("backend.src.api.handlers.query.StreamPipeline", DummyPipeline)
+    monkeypatch.setattr(
+        query_handler_module.ArtifactStore,
+        "from_config",
+        classmethod(lambda _cls, _cfg: DummyStore()),
+    )
+
+    message = QueryMessage(
+        id="msg_artifact_refs_1",
+        type="query",
+        user_id="user_1",
+        payload={
+            "text": "use artifact screenshots",
+            "conversation_ref": "conv_test",
+            "content": "<user_query>use artifact screenshots</user_query>",
+            "screenshot_refs": ["shot_1.png", "shot_2.png"],
+        },
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert len(session_manager.session.calls) == 1
+    assert session_manager.session.calls[0]["image_data"] == [
+        "artifact:shot_1.png",
+        "artifact:shot_2.png",
+    ]
     assert session_manager.session.calls[0]["conversation_ref"] == "conv_test"
 
 
@@ -1037,6 +1111,9 @@ async def test_update_settings_handler_updates_session():
             "selected_model_id": "gpt-5.1",
             "wakeword_stt_enabled": True,
             "agent_full_sudo_enabled": True,
+            "provider_api_keys": {
+                "openai": {"enabled": True, "api_key": "sk-openai"},
+            },
         },
     )
 
@@ -1048,6 +1125,8 @@ async def test_update_settings_handler_updates_session():
     assert session_manager.session.updated_configs
     assert session_manager.session.cfg.wakeword_stt_enabled is True
     assert session_manager.session.cfg.agent_full_sudo_enabled is True
+    assert session_manager.session.cfg.provider_api_keys.openai.enabled is True
+    assert session_manager.session.cfg.provider_api_keys.openai.api_key == "sk-openai"
 
 
 @pytest.mark.asyncio
@@ -1094,11 +1173,78 @@ async def test_load_settings_handler_returns_frontend_config():
         "interaction_mode": "chat",
         "model_mode": "online",
         "model_provider": "openai",
+        "provider_api_keys": {
+            "anthropic": {"api_key": "", "enabled": False},
+            "google": {"api_key": "", "enabled": False},
+            "kimi_coding": {"api_key": "", "enabled": False},
+            "mistral": {"api_key": "", "enabled": False},
+            "openai": {"api_key": "", "enabled": False},
+            "openrouter": {"api_key": "", "enabled": False},
+        },
         "selected_model_id": "gpt-5.1",
         "speech_mode_enabled": False,
         "wakeword_stt_enabled": False,
         "voice_mode_enabled": False,
     }
+
+
+@pytest.mark.asyncio
+async def test_load_settings_handler_uses_global_config_when_session_missing():
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    session_manager.config = AppConfig(
+        model_provider="openrouter",
+        selected_model_id="openrouter/qwen/qwen3-32b",
+    )
+    handler = LoadSettingsHandler(session_manager)
+
+    message = LoadSettingsMessage(
+        id="msg_11_global_config",
+        type="load-settings",
+        user_id="user_1",
+        payload={},
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert websocket.sent
+    assert websocket.sent[0]["type"] == "settings-loaded"
+    assert websocket.sent[0]["payload"]["config"]["model_provider"] == "openrouter"
+    assert (
+        websocket.sent[0]["payload"]["config"]["selected_model_id"]
+        == "openrouter/qwen/qwen3-32b"
+    )
+
+
+@pytest.mark.asyncio
+async def test_load_settings_handler_sends_error_when_config_serialization_fails():
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+
+    class _BrokenDump:
+        def model_dump(self):
+            raise RuntimeError("model dump failed")
+
+    session_manager.session_instance = SimpleNamespace(
+        cfg=SimpleNamespace(
+            model_provider="openai",
+            provider_api_keys=_BrokenDump(),
+        )
+    )
+    handler = LoadSettingsHandler(session_manager)
+
+    message = LoadSettingsMessage(
+        id="msg_11_serialize_fail",
+        type="load-settings",
+        user_id="user_1",
+        payload={},
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert websocket.sent
+    assert websocket.sent[0]["type"] == "error"
+    assert websocket.sent[0]["payload"]["message"] == "An internal error occurred"
 
 
 @pytest.mark.asyncio

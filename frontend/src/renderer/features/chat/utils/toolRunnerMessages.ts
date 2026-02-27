@@ -11,6 +11,32 @@ type BundleToolInput = {
   args?: unknown;
 };
 
+type ToolOutputEnvelopeInput = {
+  formattedMessage: string;
+  screenshotRef: string | null | undefined;
+  screenshotUrl: string | null | undefined;
+  executionTime: number;
+  success: boolean;
+  correlationId: string;
+};
+
+function buildToolOutputEnvelope(result: ToolOutputEnvelopeInput) {
+  return {
+    id: crypto.randomUUID(),
+    text: result.formattedMessage,
+    sender: 'assistant' as const,
+    type: 'tool-output' as const,
+    sourceEventType: 'tool-runner-result' as const,
+    sourceChannel: 'renderer-tool-runner' as const,
+    screenshotRef: result.screenshotRef || null,
+    screenshotUrl: result.screenshotUrl || null,
+    executionTime: result.executionTime,
+    success: result.success,
+    correlationId: result.correlationId,
+    modelFacingToolOutput: result.formattedMessage,
+  };
+}
+
 export function buildToolOutputMessage(result: ToolExecutionResult): ChatMessage {
   const toolOutputDetails = {
     result: result.result,
@@ -20,20 +46,18 @@ export function buildToolOutputMessage(result: ToolExecutionResult): ChatMessage
     execution_time: result.executionTime,
   };
   return {
-    id: crypto.randomUUID(),
-    text: result.formattedMessage,
-    sender: 'assistant',
-    type: 'tool-output',
-    screenshotRef: result.screenshotRef || null,
-    screenshotUrl: result.screenshotUrl || null,
+    ...buildToolOutputEnvelope({
+      formattedMessage: result.formattedMessage,
+      screenshotRef: result.screenshotRef,
+      screenshotUrl: result.screenshotUrl,
+      executionTime: result.executionTime,
+      success: result.result.success,
+      correlationId: result.correlationId,
+    }),
     toolMetadata: result.result.data && typeof result.result.data === 'object'
       ? result.result.data.metadata || null
       : null,
     toolName: result.toolName,
-    executionTime: result.executionTime,
-    success: result.result.success,
-    correlationId: result.correlationId,
-    modelFacingToolOutput: result.formattedMessage,
     toolOutputDetails,
   };
 }
@@ -45,13 +69,16 @@ export function buildBundleOutputMessage(result: BundleExecutionResult): ChatMes
     correlation_id: result.correlationId,
     execution_time_total: result.totalTime,
   };
+  const isSuccessful = result.results.every((toolResult) => toolResult.success);
   return {
-    id: crypto.randomUUID(),
-    text: result.formattedMessage,
-    sender: 'assistant',
-    type: 'tool-output',
-    screenshotRef: result.screenshotRef || null,
-    screenshotUrl: result.screenshotUrl || null,
+    ...buildToolOutputEnvelope({
+      formattedMessage: result.formattedMessage,
+      screenshotRef: result.screenshotRef,
+      screenshotUrl: result.screenshotUrl,
+      executionTime: result.totalTime,
+      success: isSuccessful,
+      correlationId: result.correlationId,
+    }),
     toolMetadata: {
       bundled: true,
       tool_count: result.results.length,
@@ -62,10 +89,6 @@ export function buildBundleOutputMessage(result: BundleExecutionResult): ChatMes
       })),
     },
     toolName: `bundled_tools (${result.results.length} tools)`,
-    executionTime: result.totalTime,
-    success: result.results.every((toolResult) => toolResult.success),
-    correlationId: result.correlationId,
-    modelFacingToolOutput: result.formattedMessage,
     toolOutputDetails,
   };
 }
@@ -86,12 +109,16 @@ export function buildTranscriptMetadata(
   };
 }
 
-export function mapBundleTools(tools: BundleToolInput[] | null | undefined) {
+export function mapBundleTools(
+  tools: BundleToolInput[] | null | undefined,
+): Array<{ toolName: string; args: Record<string, unknown> }> {
   return (tools || [])
     .filter((tool) => typeof tool?.name === 'string' && tool.name.length > 0)
     .map((tool) => ({
       toolName: tool.name as string,
-      args: tool.args && typeof tool.args === 'object' ? tool.args : {},
+      args: tool.args && typeof tool.args === 'object'
+        ? (tool.args as Record<string, unknown>)
+        : {},
     }));
 }
 

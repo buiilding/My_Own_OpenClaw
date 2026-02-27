@@ -96,6 +96,35 @@ def _build_stream_chunk(
     return {"choices": [choice]}
 
 
+def _build_block_tool_use_chunk(
+    *,
+    tool_name: str | None = None,
+    tool_input: dict | str | None = None,
+    tool_use_id: str | None = None,
+    tool_index: int | None = None,
+    text_block: str | None = None,
+    finish_reason: str | None = None,
+) -> dict:
+    content_blocks: list[dict] = []
+    if text_block is not None:
+        content_blocks.append({"type": "text", "text": text_block})
+    if tool_name is not None or tool_input is not None:
+        block: dict = {"type": "tool_use"}
+        if tool_name is not None:
+            block["name"] = tool_name
+        if tool_input is not None:
+            block["input"] = tool_input
+        if tool_use_id is not None:
+            block["tool_use_id"] = tool_use_id
+        if tool_index is not None:
+            block["index"] = tool_index
+        content_blocks.append(block)
+    choice = {"delta": {"content": content_blocks}}
+    if finish_reason is not None:
+        choice["finish_reason"] = finish_reason
+    return {"choices": [choice]}
+
+
 def test_kimi_provider_supports_streaming_tool_turns():
     provider = KimiCodingProvider(api_key="test-key")
     assert provider.supports_streaming_tool_turns("k2p5") is True
@@ -215,4 +244,75 @@ async def test_kimi_stream_emits_error_event_when_tool_arguments_json_is_invalid
         event.content for event in events if isinstance(event, ErrorEvent)
     ]
     assert any("failed to parse streamed tool-call arguments" in message for message in error_messages)
+    assert any(
+        "Invalid response from Kimi Coding stream" in message
+        for message in error_messages
+    )
     assert provider.get_last_stream_response_payload() is None
+
+
+@pytest.mark.asyncio
+async def test_kimi_stream_parses_block_tool_use_and_synthesizes_missing_id(monkeypatch):
+    async def fake_stream():
+        yield _build_block_tool_use_chunk(
+            text_block="Hello ",
+            tool_name="read_file",
+            tool_input={"path": "/tmp/block.txt"},
+            tool_index=3,
+        )
+        yield _build_stream_chunk(content="world", finish_reason="tool_calls")
+
+    provider, events = await _run_stream_tool_case(
+        monkeypatch,
+        fake_stream_factory=fake_stream,
+        tool_name="read_file",
+    )
+
+    chunk_text = "".join(event.content for event in events if isinstance(event, ChunkEvent))
+    assert chunk_text == "Hello world"
+
+    payload = provider.get_last_stream_response_payload()
+    assert payload is not None
+    assert payload["tool_calls"] == [
+        {
+            "id": "tool_call_3",
+            "name": "read_file",
+            "arguments": {"path": "/tmp/block.txt"},
+        }
+    ]
+
+
+@pytest.mark.asyncio
+async def test_kimi_stream_prefers_object_arguments_over_fragmented_string(monkeypatch):
+    async def fake_stream():
+        yield _build_stream_chunk(
+            tool_name="replace",
+            tool_arguments="{\"file_path\":\"/tmp/a\",\"old_string\":\"x\"",
+        )
+        yield _build_block_tool_use_chunk(
+            tool_name="replace",
+            tool_input={"file_path": "/tmp/a", "old_string": "x", "new_string": "y"},
+            tool_index=0,
+            finish_reason="tool_calls",
+        )
+
+    provider, events = await _run_stream_tool_case(
+        monkeypatch,
+        fake_stream_factory=fake_stream,
+        tool_name="replace",
+    )
+
+    assert not any(isinstance(event, ErrorEvent) for event in events)
+    payload = provider.get_last_stream_response_payload()
+    assert payload is not None
+    assert payload["tool_calls"] == [
+        {
+            "id": "tool_call_0",
+            "name": "replace",
+            "arguments": {
+                "file_path": "/tmp/a",
+                "old_string": "x",
+                "new_string": "y",
+            },
+        }
+    ]

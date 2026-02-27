@@ -5,8 +5,10 @@ This module implements the main agent execution loop that processes user queries
 manages tool execution, handles LLM streaming, and coordinates memory operations.
 """
 import asyncio
+import html
 import logging
-from typing import TYPE_CHECKING, AsyncGenerator, Optional
+import re
+from typing import TYPE_CHECKING, AsyncGenerator, List, Optional, Union
 
 from backend.src.agent.history.history_committer import HistoryCommitter
 from backend.src.agent.execution.interaction_loop import InteractionLoop
@@ -48,6 +50,11 @@ if TYPE_CHECKING:
     from backend.src.services.ocr.ocr_service import OcrService
 
 logger = logging.getLogger(__name__)
+_USER_QUERY_TAG_PATTERN = re.compile(
+    r"<user_query>\s*(.*?)\s*</user_query>",
+    re.IGNORECASE | re.DOTALL,
+)
+_USER_QUERY_PARSE_MAX_CHARS = 300_000
 
 
 class AgentExecutor:
@@ -143,7 +150,7 @@ class AgentExecutor:
     async def process_query(
         self, 
         query: str, 
-        screenshot: Optional[str] = None,
+        screenshot: Optional[Union[str, List[str]]] = None,
         message_content: Optional[str] = None,
     ) -> AsyncGenerator[AgentStreamingEvent, None]:
         """
@@ -151,7 +158,7 @@ class AgentExecutor:
         
         Args:
             query: The user's query text (for reference)
-            screenshot: Optional base64-encoded screenshot data for multimodal queries
+            screenshot: Optional base64 screenshot payload(s) for multimodal queries
             message_content: Complete message content from frontend (system state + memories + query)
         """
         # 1. Format user message content (delegated to PromptConstructor)
@@ -161,6 +168,7 @@ class AgentExecutor:
             query=query,
             is_first_message=is_first_message,
         )
+        raw_user_query = self._resolve_raw_user_query(query, final_content)
 
         # 2. Pre-sampling auto-compaction check (before user message append).
         compaction_engine = getattr(self.session, "compaction_engine", None)
@@ -210,15 +218,20 @@ class AgentExecutor:
         # 3. Add user message to history (backend appends for continual interaction)
         self.session.history.add_user_message(
             content=final_content,
-            user_query_raw=query,
+            user_query_raw=raw_user_query,
             image_data=screenshot  # History still uses image_data internally
         )
 
         # 4. Process user message screenshot if present (store as current, trigger OCR)
-        if screenshot:
+        primary_screenshot = self._resolve_primary_screenshot(screenshot)
+        if primary_screenshot:
             # Use a synthetic request_id for user messages (not from tool execution)
             user_request_id = f"user_msg_{self.session.session_id[:8]}"
-            await self.screenshot_manager.process_screenshot(self.session, screenshot, user_request_id)
+            await self.screenshot_manager.process_screenshot(
+                self.session,
+                primary_screenshot,
+                user_request_id,
+            )
 
         # 5. Execute Main Loop
         final_response = None
@@ -235,13 +248,13 @@ class AgentExecutor:
             if final_response:
                 try:
                     # Publish completion event (side-effect, doesn't require yielding)
-                    await self._publish_completion_event(query, final_response)
+                    await self._publish_completion_event(raw_user_query, final_response)
                     
                     # Emit memory store event for frontend to store the interaction
                     # Currently only episodic memory is automatically stored
                     # Semantic memory can be stored manually via the memory tool
                     memory_event = MemoryStoreEvent(
-                        user_query=query,
+                        user_query=raw_user_query,
                         assistant_response=final_response,
                         memory_type="episodic",  # Store interactions as episodic memory
                         user_id=self.session.user_id,
@@ -282,6 +295,19 @@ class AgentExecutor:
             return f"{preview[:177]}..."
         return preview
 
+    @staticmethod
+    def _resolve_primary_screenshot(
+        screenshot: Optional[Union[str, List[str]]],
+    ) -> Optional[str]:
+        """Return the first screenshot payload for OCR/system-state preparation."""
+        if isinstance(screenshot, str) and screenshot:
+            return screenshot
+        if isinstance(screenshot, list):
+            for screenshot_item in screenshot:
+                if isinstance(screenshot_item, str) and screenshot_item:
+                    return screenshot_item
+        return None
+
     def _is_first_user_message(self) -> bool:
         """
         Check if this is the first user message in the conversation.
@@ -302,3 +328,26 @@ class AgentExecutor:
             assistant_response=response,
         )
         await self.event_bus.publish(event)
+
+    @staticmethod
+    def _resolve_raw_user_query(query: str, final_content: str) -> str:
+        """
+        Resolve user-typed query text from formatted content when possible.
+
+        The frontend sends a rich `message_content` envelope that includes
+        `<system_context>`, memory sections, and `<user_query>`. We store
+        only the user query text in history metadata/memory events.
+        """
+        fallback = (query or "").strip()
+        if not final_content:
+            return fallback
+
+        search_space = final_content[:_USER_QUERY_PARSE_MAX_CHARS]
+        match = None
+        for candidate in _USER_QUERY_TAG_PATTERN.finditer(search_space):
+            match = candidate
+        if not match:
+            return fallback
+
+        extracted = html.unescape((match.group(1) or "").strip())
+        return extracted or fallback

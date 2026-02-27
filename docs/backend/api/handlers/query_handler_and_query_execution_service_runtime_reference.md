@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for query websocket handling: active-task registration, runtime state seeding, screenshot artifact resolution, stream completion backfill semantics, and TTS lifecycle boundaries."
+summary: "Deep reference for query websocket handling: active-task registration, runtime state seeding, multi-screenshot artifact resolution, stream completion backfill semantics, and TTS lifecycle boundaries."
 read_when:
   - When changing `QueryMessageHandler` or `QueryExecutionService` event/terminal behavior.
-  - When debugging missing completions, empty-final-response fallback text, screenshot-ref loading, or cancellation logging in query runs.
+  - When debugging missing completions, empty-final-response fallback text, screenshot artifact loading (`screenshot_ref`/`screenshot_refs`), or cancellation logging in query runs.
 title: "Query Handler and Query Execution Service Runtime Reference"
 ---
 
@@ -48,6 +48,7 @@ Cancellation behavior:
 
 - `CancelledError` is logged with user/turn/conversation refs and re-raised
 - stop-query path depends on this task registration map to signal cancellation
+- `QueryExecutionService` performs cancellation reconciliation before re-raise: if history has staged tool-call ids, it writes synthetic `role='tool'` outputs so the next provider request does not fail assistant-tool-call sequencing validation.
 
 ## Query Payload Ingress and Runtime Seeding
 
@@ -56,7 +57,7 @@ Cancellation behavior:
 - `text` -> validated prompt text
 - `conversation_ref` -> stream context + session routing
 - `content` -> model-facing structured content forwarded to `process_query(...)`
-- `screenshot` / `screenshot_ref` -> screenshot resolution path
+- `screenshot` / `screenshot_ref` / `screenshot_refs[]` -> screenshot resolution path
 - `system_state_internal` -> backend-only runtime state seed
 
 ### `system_state_internal` merge semantics
@@ -71,11 +72,16 @@ Service merges incoming state over any existing state returned by `agent_instanc
 
 ## Screenshot Resolution Precedence
 
-`_resolve_screenshot(...)` policy:
+`_resolve_screenshots(...)` + `image_data` policy:
 
-1. if inline `screenshot` exists -> use it
-2. else if `screenshot_ref` exists -> load via `ArtifactStore.from_config(...).load_base64(...)`
-3. on artifact load failure -> warn and continue with `None`
+1. if inline `screenshot` exists -> use it and skip artifact refs.
+2. else resolve artifact refs from `screenshot_refs[]` or fallback single `screenshot_ref`.
+3. load each ref via `ArtifactStore.from_config(...).load_base64(...)`.
+4. artifact load failures are per-ref warnings; unresolved refs are skipped.
+5. if at least one artifact loads:
+  - one image -> `image_data` is string
+  - multiple images -> `image_data` is string list
+6. if nothing resolves -> continue query with `image_data=None`.
 
 This preserves query execution even when artifact storage is unavailable.
 
@@ -140,8 +146,10 @@ Handler-side errors call `send_error_response(...)` from `api/infrastructure/err
 - silent agent streams emit fallback chunk + completion
 - assistant-full-only path backfills chunk before completion
 - active query cancellation is logged and task map is cleared
-- screenshot resolution precedence: inline screenshot beats `screenshot_ref`
-- missing screenshot artifact logs warning and continues
+- cancelled query path reconciles staged tool-call ids through history cancellation hook
+- screenshot resolution precedence: inline screenshot beats artifact refs
+- single `screenshot_ref` and multi `screenshot_refs[]` loading paths
+- missing screenshot artifacts log warnings and query still continues
 - runtime `system_state_internal` applies to agent runtime state before processing
 - extractor helpers honor precomputed event type and payload/top-level fallbacks
 
@@ -150,7 +158,7 @@ Handler-side errors call `send_error_response(...)` from `api/infrastructure/err
 1. breaking `register_active_query_task`/`clear_active_query_task` symmetry causes stop-query misfires or leaked task references.
 2. changing completion precedence/backfill ordering can regress frontend phase transitions.
 3. removing context reuse in pipeline calls increases per-event allocations on hot paths.
-4. altering screenshot-ref fallback to hard-fail can block query execution on artifact outages.
+4. altering screenshot artifact fallback to hard-fail can block query execution on artifact outages.
 
 ## Related Pages
 

@@ -38,6 +38,11 @@ class FakeRawWebSocket:
         self.accepted = True
 
 
+class FailingCloseRawWebSocket(FakeRawWebSocket):
+    async def close(self, code: int = 1000, reason: Optional[str] = None) -> None:  # noqa: ARG002
+        raise RuntimeError("already closed")
+
+
 def test_safe_websocket_rejects_non_positive_queue_size() -> None:
     raw = FakeRawWebSocket()
 
@@ -106,6 +111,16 @@ async def test_safe_websocket_close_without_sender_loop_closes_directly() -> Non
     await safe.close(code=1001, reason="shutdown")
 
     assert raw.closed == [(1001, "shutdown")]
+    with pytest.raises(RuntimeError, match="WebSocket sender stopped"):
+        await safe.send_json({"index": 1})
+
+
+@pytest.mark.asyncio
+async def test_safe_websocket_close_without_sender_loop_swallows_close_race() -> None:
+    safe = SafeWebSocket(FailingCloseRawWebSocket(), max_queue_size=2)
+
+    await safe.close(code=1001, reason="shutdown")
+
     with pytest.raises(RuntimeError, match="WebSocket sender stopped"):
         await safe.send_json({"index": 1})
 

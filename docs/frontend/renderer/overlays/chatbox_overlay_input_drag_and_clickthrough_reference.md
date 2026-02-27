@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for chatbox overlay renderer behavior: input/send lifecycle, click-through toggling, drag movement IPC, and frame-size synchronization."
+summary: "Deep reference for chatbox overlay renderer behavior: input/send lifecycle, click-through toggling, drag movement IPC, and fixed-size preview-lane behavior."
 read_when:
   - When changing `ChatBox.jsx` interaction rules or overlay input behavior.
-  - When debugging chatbox focus/click-through drift, drag positioning, or size-report IPC chatter.
+  - When debugging chatbox focus/click-through drift, drag positioning, or startup/attachment flicker.
 title: "Chatbox Overlay Input, Drag, and Click-Through Reference"
 ---
 
@@ -12,10 +12,12 @@ title: "Chatbox Overlay Input, Drag, and Click-Through Reference"
 
 - `frontend/src/renderer/app/ChatBoxApp.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
+- `frontend/src/renderer/features/chat/components/ChatBoxIcons.jsx`
+- `frontend/src/renderer/features/chat/components/ChatBoxImagePreviewRow.jsx`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/policies/messageSendUiPolicy.ts`
+- `frontend/src/renderer/features/chat/utils/clipboardImageUtils.js`
 - `frontend/src/renderer/features/chat/utils/overlayPhaseListener.js`
-- `frontend/src/renderer/features/chat/utils/overlayFrameSize.js`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 
@@ -57,6 +59,12 @@ Dashboard handoff affordance:
 - chatbox settings icon invokes `show-main-window` with `{ maximize: true }`.
 - this requests expanded dashboard view before focus handoff.
 
+`electron:dev` compaction harness:
+
+- when `dev_ui=1`, chatbox renders a `Run auto compaction` icon button.
+- button dispatches backend `compact-history` with payload `{ force: true }`.
+- this is intended for validating compaction-status UI without waiting for token-threshold auto triggers.
+
 ## Click-Through Control Model
 
 State inputs:
@@ -94,18 +102,13 @@ Listener:
 
 This is required after main-process `showChatWindow({ focus: true })`.
 
-## Size Synchronization Contract
+## Fixed Size Contract
 
-`ChatBox` measures shell bounds via `ResizeObserver` + `requestAnimationFrame`.
-
-Normalization:
-
-- `getRoundedFrameSize(...)` rounds width/height and enforces minimum `1x1`
-- last frame is memoized; duplicate size sends are skipped
-
-IPC:
-
-- `set-chatbox-size` invoked with `{ width, height }`
+- chat overlay window dimensions are fixed in main runtime (`createChatWindow`).
+- `ChatBox.jsx` no longer emits renderer-driven resize IPC for preview or startup transitions; deprecated `set-chatbox-size` channel has been removed from preload/channel contracts.
+- attachment preview uses an always-mounted preview row with class toggle (`has-items`) and opacity/translate animation.
+- clipboard image parsing is shared through `clipboardImageUtils.parseClipboardImageItems(...)` (also used by dashboard `MessageInput`) to keep screenshot/paste payload shape consistent across overlay and dashboard composer surfaces.
+- result: no live overlay window bounds churn while typing, startup, or adding/removing images.
 
 ## Drag Movement Runtime
 
@@ -144,7 +147,6 @@ Active loop phases:
 ## Related Tests
 
 - `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`
-- `tests/frontend/OverlayFrameSize.test.js`
 - `tests/frontend/OverlayPhaseListener.test.js`
 
 ## Debug Checklist
@@ -161,8 +163,8 @@ If drag movement is jittery or ignored:
 2. inspect computed pointer offset and 2px movement threshold behavior
 3. verify `move-chatbox-to` IPC reaches main process
 
-If chatbox size desyncs from visual pill:
+If chatbox flickers on startup or image insert:
 
-1. verify `ResizeObserver` availability path and RAF callback
-2. inspect rounded size values from `getRoundedFrameSize`
-3. verify duplicate-size suppression is not holding stale bounds
+1. confirm `ChatBox.jsx` only toggles preview row classes and does not attempt runtime window-size mutation
+2. confirm preview row class toggles between `chatbox-image-preview-row` and `... has-items`
+3. verify fixed overlay dimensions in `main_window_runtime.cjs` match CSS fixed shell/pill heights

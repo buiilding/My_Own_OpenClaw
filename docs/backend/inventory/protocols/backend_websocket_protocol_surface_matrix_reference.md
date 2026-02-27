@@ -8,6 +8,13 @@ title: "Backend WebSocket Protocol Surface Matrix Reference"
 
 # Backend WebSocket Protocol Surface Matrix Reference
 
+## Coverage Snapshot (2026-02-27)
+
+- Incoming message types: `10` (`INCOMING_MESSAGE_TYPES`)
+- Schema-validated outgoing message types: `19` (`OUTGOING_SCHEMA_MESSAGE_TYPES`)
+- Incoming routes: `10` (`INCOMING_ROUTES`)
+- Formatter specs: `16` (`get_formatter_specs()`)
+
 ## Scope and Sources
 
 This page maps the live websocket protocol owned by backend runtime code:
@@ -60,10 +67,22 @@ Runtime flow for each frame after handshake:
 | `rehydrate-conversation` | `RehydrateConversationMessage` | `conversation_ref`, `messages[]`, `rehydrate_mode="replace"` | `rehydrate_conversation_handler` |
 | `load-settings` | `LoadSettingsMessage` | Optional `client_version` | `load_settings_handler` |
 | `list-models` | `ListModelsMessage` | Empty payload object | `list_models_handler` |
-| `update-settings` | `UpdateSettingsMessage` | Optional frontend-owned config fields (`model_mode`, `model_provider`, `selected_model_id`, `interaction_mode`, `voice_mode_enabled`, `speech_mode_enabled`, `wakeword_stt_enabled`, `include_query_screenshot`) | `update_settings_handler` |
+| `update-settings` | `UpdateSettingsMessage` | Optional frontend-owned config fields (`model_mode`, `model_provider`, `selected_model_id`, `interaction_mode`, `voice_mode_enabled`, `speech_mode_enabled`, `wakeword_stt_enabled`, `agent_full_sudo_enabled`, `include_query_screenshot`, `provider_api_keys`) | `update_settings_handler` |
 | `wakeword-detected` | `WakewordDetectedMessage` | Empty payload object | `wakeword_handler` |
+| `compact-history` | `CompactHistoryMessage` | Optional `force` (default `true`) | `compact_history_handler` |
 | `tool-result` | `ToolResultMessage` | `request_id`, `success`, optional `data`, optional `error` | `tool_result_handler` |
 | `tool-bundle-result` | `ToolBundleResultMessage` | `bundle_id`, `status`, `step_results[]`, optional `screenshot`, `screenshot_ref`, `system_state`, `error` | `tool_result_handler` |
+
+## Control-Path Contract Index
+
+| Runtime control path | Incoming trigger | Primary handler key | Primary outbound/control effects | Deep contract |
+|---|---|---|---|---|
+| Handshake identity bootstrap | websocket initial frame | route bootstrap (`validate_handshake`) | establishes validated `user_id` for all subsequent schema validations + context attachment | [Backend Protocol Identity and Context-Field Propagation Reference](state/backend_protocol_identity_and_context_field_propagation_reference.md) |
+| Query loop + stream lifecycle | `query` | `query_handler` | `streaming-response`, `tool-call`, `tool-output`, `streaming-complete`, `error` | [Backend WebSocket Receive Loop and Task-Cancellation Contract Reference](lifecycle/backend_websocket_receive_loop_and_task_cancellation_contract_reference.md) |
+| Active-query cancellation | `stop-query` | `stop_query_handler` | cancel active task, emit completion/error path, keep session context stable | [Backend WebSocket Receive Loop and Task-Cancellation Contract Reference](lifecycle/backend_websocket_receive_loop_and_task_cancellation_contract_reference.md) |
+| Settings ACK control path | `update-settings` | `update_settings_handler` | emits `settings-updated` or `error` with request correlation id | [Backend Message Envelope and Contract Validation Boundary Reference](validation/backend_message_envelope_and_contract_validation_boundary_reference.md) |
+| Wakeword activation path | `wakeword-detected` | `wakeword_handler` | emits wakeword activation/greeting flow (`wakeword-activated`, `wakeword-greeting`, optional `audio-chunk`) | [Backend Protocol Identity and Context-Field Propagation Reference](state/backend_protocol_identity_and_context_field_propagation_reference.md) |
+| Tool turn result reintegration | `tool-result`, `tool-bundle-result` | `tool_result_handler` | resolves pending tool requests, injects tool output back into active loop, can advance stream lifecycle | [Backend WebSocket Protocol Test Coverage and Runtime Contract Reference](testing/backend_websocket_protocol_test_coverage_and_runtime_contract_reference.md) |
 
 ## Outgoing Message Contract Matrix
 
@@ -89,6 +108,9 @@ Runtime flow for each frame after handshake:
 | `memory-store` | `MemoryStoreMessage` | normalized memory persistence payload |
 | `user-message-full` | `UserMessageFullMessage` | `content`, metadata bundle |
 | `assistant-message-full` | `AssistantMessageFullMessage` | `content` |
+| `context-compaction-started` | `ContextCompactionStartedMessage` | `reason`, `strategy`, `before_tokens`, `projected_tokens` |
+| `context-compaction-completed` | `ContextCompactionCompletedMessage` | `reason`, `strategy`, `before_tokens`, `after_tokens`, `removed_messages`, optional `summary_preview`, optional `skipped_reason` |
+| `context-compaction-failed` | `ContextCompactionFailedMessage` | `reason`, `strategy`, `error`, optional `before_tokens` |
 
 ### ACK/Control Outgoing Types (Not in Schema-Validated Subset)
 
@@ -115,6 +137,9 @@ These constants are declared in `OutgoingMessageType` and emitted by settings ha
 | `user-message-full` | `UserMessageFullEventFormatter` | `user-message-full` |
 | `assistant-message-full` | `AssistantMessageFullEventFormatter` | `assistant-message-full` |
 | `token-count` | `TokenCountEventFormatter` | `token-count` |
+| `context-compaction-started` | `ContextCompactionStartedEventFormatter` | `context-compaction-started` |
+| `context-compaction-completed` | `ContextCompactionCompletedEventFormatter` | `context-compaction-completed` |
+| `context-compaction-failed` | `ContextCompactionFailedEventFormatter` | `context-compaction-failed` |
 | `memory-store` | `MemoryStoreEventFormatter` | `memory-store` |
 | `tool-bundle` | `ToolBundleEventFormatter` | `tool-bundle` |
 
@@ -140,8 +165,29 @@ All helper send paths (`send_success_response`, formatter pipeline with context)
 - Incoming parser returns structured `error` messages for malformed JSON, invalid root type, oversized payload, or schema validation issues.
 - Unexpected handler exceptions are sanitized through `sanitize_error_message(...)` before client delivery.
 
+## Recompute Surface Commands
+
+Use this to recompute protocol cardinalities:
+
+- `python - <<'PY'`
+- `from backend.src.api.contracts.message_types import INCOMING_MESSAGE_TYPES, OUTGOING_SCHEMA_MESSAGE_TYPES`
+- `from backend.src.core.container.incoming_routing import INCOMING_ROUTES`
+- `from backend.src.api.contracts.formatter_specs import get_formatter_specs`
+- `print('incoming_types', len(INCOMING_MESSAGE_TYPES))`
+- `print('outgoing_schema_types', len(OUTGOING_SCHEMA_MESSAGE_TYPES))`
+- `print('incoming_routes', len(INCOMING_ROUTES))`
+- `print('formatter_specs', len(get_formatter_specs()))`
+- `PY`
+
 ## Related Deep Dive
 
+- [Backend Full Functionality Inventory Reference](../backend_full_functionality_inventory_reference.md)
+- [Backend Functionality Capability Catalog Reference](../backend_functionality_capability_catalog_reference.md)
+- [Backend Capability to File Matrix Reference](../backend_capability_to_file_matrix_reference.md)
 - [Backend Protocol Lifecycle Hub](lifecycle/README.md)
+- [Backend Protocol State Hub](state/README.md)
+- [Backend Protocol Compatibility Hub](compatibility/README.md)
+- [Backend Protocol Observability Hub](observability/README.md)
 - [Backend Protocol Errors Hub](errors/README.md)
 - [Backend Protocol Validation Hub](validation/README.md)
+- [Backend Protocol Testing Hub](testing/README.md)

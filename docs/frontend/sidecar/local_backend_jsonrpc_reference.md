@@ -13,6 +13,7 @@ title: "Local Backend JSON-RPC Reference"
 - Electron bridge: `frontend/src/main/local_backend_bridge.cjs`
 - IPC->method mappers: `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 - Sidecar service: `frontend/src/main/python/local_backend.py`
+- Sidecar memory handler mixin: `frontend/src/main/python/local_backend_memory_handlers.py`
 - JSON-RPC protocol implementation: `frontend/src/main/python/core/ipc_protocol.py`
 
 ## Transport Model
@@ -68,6 +69,7 @@ Registered methods:
 - `list_episodic_memories`
 - `get_conversation`
 - `list_semantic_memories`
+- `delete_episodic_memory`
 - `delete_conversation`
 - `delete_semantic_memory`
 - `store_transcript`
@@ -76,6 +78,7 @@ Method validation behavior:
 
 - JSON-RPC protocol validates `jsonrpc == "2.0"`, method exists, and params bind to handler signature.
 - invalid method or params return JSON-RPC errors (`METHOD_NOT_FOUND`, `INVALID_PARAMS`, etc.).
+- memory method implementations are provided via `LocalBackendMemoryHandlersMixin` to keep runtime loop/lifecycle and memory RPC concerns separated.
 
 ## Renderer IPC -> JSON-RPC Mapping
 
@@ -100,6 +103,7 @@ From `local_backend_bridge_rpc_mappers.cjs`:
 - `list-episodic-memories` -> `list_episodic_memories`
 - `get-conversation` -> `get_conversation`
 - `list-semantic-memories` -> `list_semantic_memories`
+- `delete-episodic-memory` -> `delete_episodic_memory`
 - `delete-conversation` -> `delete_conversation`
 - `delete-semantic-memory` -> `delete_semantic_memory`
 - `store-memory` -> `store_memory`
@@ -123,6 +127,12 @@ Params:
 - `memory_type` (optional filter)
 - `exclude_conversation_id` (optional)
 
+Validation behavior:
+
+- requires non-empty string `query` (trimmed)
+- validates optional `memory_type` as case-insensitive `episodic|semantic`
+- rejects non-string `memory_type`
+
 Returns:
 
 - `{ success: true, data: { memories: { episodic:[], semantic:[] } } }` on success
@@ -140,7 +150,31 @@ Behavior:
 
 - writes transcript record to local memory store as episodic `record_kind="transcript"`
 - selectively skips embedding for non-semantic-candidate rows
-- increments summarization pending count only for assistant terminal turns
+- does not mutate semantic-summarizer pending counters (run gating is DB interaction-row based)
+
+### `store_memory`
+
+Required params:
+
+- `user_query`
+- `assistant_response`
+
+Optional params:
+
+- `memory_type` (`episodic` default; allowlist: `episodic|semantic`)
+- `user_id` (`default_user` default)
+- `session_id`
+
+Validation behavior:
+
+- rejects non-string `user_query` / `assistant_response`
+- rejects non-string `memory_type` when provided
+- trims accepted string fields and rejects blank query/response payloads
+
+Behavior:
+
+- delegates interaction writes to shared `memory.operations.store_interaction_memory(...)`
+- helper persists combined interaction text as `record_kind="interaction"` rows (semantic summarizer source rows)
 
 ## Tool Execution Semantics (`execute_tool`)
 

@@ -1,5 +1,4 @@
 export const DEFAULT_USER_ID = 'default_user';
-const UNASSIGNED_CONVERSATION_KEY = '__unassigned_conversation__';
 
 function normalizeOptionalString(value) {
   return typeof value === 'string' && value.length > 0 ? value : null;
@@ -52,17 +51,6 @@ function resolveScreenshotAttachment(memory) {
   };
 }
 
-export function formatTimestamp(timestamp) {
-  if (!timestamp) {
-    return 'Unknown time';
-  }
-  const parsed = new Date(timestamp);
-  if (Number.isNaN(parsed.getTime())) {
-    return timestamp;
-  }
-  return parsed.toLocaleString();
-}
-
 function parseMemoryContent(memory) {
   if (!memory) {
     return [];
@@ -71,6 +59,18 @@ function parseMemoryContent(memory) {
   const rawContent = memory.content || '';
   const role = memory.role || memory.metadata?.role;
   const messageType = memory.message_type || memory.metadata?.message_type;
+  const modelProvider = normalizeOptionalString(
+    memory?.model_provider
+      || memory?.modelProvider
+      || memory?.metadata?.model_provider
+      || memory?.metadata?.modelProvider,
+  );
+  const modelId = normalizeOptionalString(
+    memory?.model_id
+      || memory?.modelId
+      || memory?.metadata?.model_id
+      || memory?.metadata?.modelId,
+  );
   const screenshotAttachment = resolveScreenshotAttachment(memory);
 
   if (role) {
@@ -83,6 +83,8 @@ function parseMemoryContent(memory) {
       sender,
       text: rawContent || '(empty)',
       type: normalizedType,
+      modelProvider,
+      modelId,
       screenshot: shouldAttachScreenshot ? screenshotAttachment.screenshot : null,
       screenshotRef: shouldAttachScreenshot ? screenshotAttachment.screenshotRef : null,
       screenshotUrl: shouldAttachScreenshot ? screenshotAttachment.screenshotUrl : null,
@@ -104,38 +106,12 @@ function parseMemoryContent(memory) {
     const assistantText = content.slice(assistantIndex + assistantMarker.length).trim();
 
     return [
-      { sender: 'user', text: userText || '(empty)', type: 'user' },
-      { sender: 'assistant', text: assistantText || '(empty)', type: 'llm-text' },
+      { sender: 'user', text: userText || '(empty)', type: 'user', modelProvider, modelId },
+      { sender: 'assistant', text: assistantText || '(empty)', type: 'llm-text', modelProvider, modelId },
     ];
   }
 
-  return [{ sender: 'assistant', text: content, type: 'llm-text' }];
-}
-
-export function buildConversationKey(conversation) {
-  const recordKind = conversation?.record_kind || 'memory';
-  const conversationId = conversation?.conversation_id ?? UNASSIGNED_CONVERSATION_KEY;
-  return `${recordKind}::${conversationId}`;
-}
-
-export function toTimestampValue(timestamp) {
-  if (!timestamp) {
-    return 0;
-  }
-  const parsed = Date.parse(timestamp);
-  return Number.isNaN(parsed) ? 0 : parsed;
-}
-
-export function formatModelLabel(conversation) {
-  if (!conversation) {
-    return 'Unknown model';
-  }
-  const modelId = conversation.model_id || conversation.modelId || '';
-  const modelProvider = conversation.model_provider || conversation.modelProvider || '';
-  if (modelId && modelProvider) {
-    return `${modelProvider}/${modelId}`;
-  }
-  return modelId || modelProvider || 'Unknown model';
+  return [{ sender: 'assistant', text: content, type: 'llm-text', modelProvider, modelId }];
 }
 
 export function parseMemoriesToMessages(memories) {
@@ -155,12 +131,20 @@ export function parseMemoriesToMessages(memories) {
       if (part.screenshotContentType) {
         screenshotFields.screenshotContentType = part.screenshotContentType;
       }
+      const modelFields = {};
+      if (part.modelProvider) {
+        modelFields.modelProvider = part.modelProvider;
+      }
+      if (part.modelId) {
+        modelFields.modelId = part.modelId;
+      }
 
       return {
         id: `${memory.id || index}-${partIndex}`,
         text: part.text,
         sender: part.sender,
         type: part.type,
+        ...modelFields,
         ...screenshotFields,
         isComplete: true,
       };

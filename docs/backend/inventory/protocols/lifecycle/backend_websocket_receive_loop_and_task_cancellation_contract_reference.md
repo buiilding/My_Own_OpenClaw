@@ -8,6 +8,11 @@ title: "Backend WebSocket Receive Loop and Task Cancellation Contract Reference"
 
 # Backend WebSocket Receive Loop and Task Cancellation Contract Reference
 
+## Coverage Snapshot (2026-02-27)
+
+- Lifecycle-focused protocol test files: `6`
+- Total test cases across listed files: `73`
+
 ## Scope and Sources
 
 Lifecycle contract sources:
@@ -18,7 +23,18 @@ Lifecycle contract sources:
 - Per-connection task tracking: `backend/src/api/routes/websocket/task_manager.py`
 - Sender serialization/backpressure: `backend/src/api/transport/websocket.py`
 - Stop-query terminal behavior: `backend/src/api/handlers/stop_query.py`
+- Compact-history control behavior: `backend/src/api/handlers/compact_history.py`
+- Shared handler context helper: `backend/src/api/handlers/context.py`
 - Runtime config fields: `backend/src/core/config/models.py`
+
+Primary lifecycle test sources:
+
+- `tests/backend/test_websocket_route.py`
+- `tests/backend/test_websocket_message_handler.py`
+- `tests/backend/test_safe_websocket.py`
+- `tests/backend/test_api_handlers.py`
+- `tests/backend/test_compact_history_handler.py`
+- `tests/backend/test_session_manager.py`
 
 ## Connection Timeline
 
@@ -117,6 +133,35 @@ Reason:
 
 - Frontend stream UI can always exit active/streaming phase after stop request, independent of backend task presence.
 
+## Compact-History Control Lifecycle Semantics
+
+`CompactHistoryHandler` protocol behavior:
+
+- Rejects request when `SessionManager.has_active_query_task(user_id)` is `True`.
+- Uses session context from `build_user_session_context(...)`:
+  - always `user_id`
+  - optional `session_id`
+  - optional runtime `conversation_ref`
+- Runs `session.run_history_compaction(reason="manual", force=<payload.force>)`.
+- Emits:
+  - `context-compaction-started` when decision indicates apply
+  - `context-compaction-completed` always (applied or skipped)
+- Completion payload includes `skipped_reason` when compaction was not applied.
+
+Lifecycle implication:
+
+- Manual compaction is a control-path message in the same receive loop lifecycle as query/stop-query, but it is explicitly blocked during active query execution to avoid turn-state races.
+
+## Shared Handler Context Builder Semantics
+
+`build_user_session_context(...)` centralizes handler response context fields:
+
+- `user_id` from route context (required)
+- `session_id` from `session.session_id` when present
+- `conversation_ref` from `session.runtime.active_conversation_ref` when present
+
+This helper is shared by stop-query and compact-history handlers so context propagation rules stay consistent across control messages.
+
 ## Operational Drift Checks
 
 When changing lifecycle code, keep these aligned:
@@ -125,7 +170,22 @@ When changing lifecycle code, keep these aligned:
 - Message-size/parse/schema error surfaces expected by frontend error handling.
 - Task-limit cap and cancel timeout semantics versus frontend retry/stop behavior.
 - `streaming-complete` stop-query guarantee.
+- compact-history active-query guard and started/completed emission order.
+
+## Lifecycle Control-Path Index
+
+| Lifecycle control path | Runtime owner | Lifecycle contract |
+|---|---|---|
+| handshake bootstrapping | `backend/src/api/routes/websocket/connection.py` | initial frame validation gates entry into receive loop with policy-close on failure |
+| receive-loop parse/dispatch pipeline | `backend/src/api/routes/websocket/__init__.py`, `message_handler.py` | message-size/parse/schema validation occurs before handler routing on every frame |
+| per-connection task cap enforcement | `backend/src/api/routes/websocket/task_manager.py` | concurrent task limit blocks new requests safely without leaking coroutine warnings |
+| disconnect cancellation + session cleanup | websocket route cleanup + session manager | pending tasks are canceled with bounded timeout and session is ended once per disconnect |
+| serialized sender queue lifecycle | `backend/src/api/transport/websocket.py` | write serialization/backpressure prevents racey concurrent sends and fails fast on terminal sender errors |
+| stop-query/compact-history control flow | `backend/src/api/handlers/stop_query.py`, `compact_history.py` | stop emits terminal completion context; compact-history blocks during active query and emits deterministic started/completed envelopes |
 
 ## Related Deep Dives
 
 - [Backend Protocol Errors Hub](../errors/README.md)
+- [Backend Protocol State Hub](../state/README.md)
+- [Backend Protocol Validation Hub](../validation/README.md)
+- [Backend Protocol Testing Hub](../testing/README.md)

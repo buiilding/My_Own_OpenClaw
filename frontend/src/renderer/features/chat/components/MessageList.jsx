@@ -7,13 +7,12 @@ import {
   useState,
 } from 'react';
 import PropTypes from 'prop-types';
-import ThinkingDisplay from './ThinkingDisplay';
 import MessageContent from './MessageContent';
 import MessageTransparencySections from './MessageTransparencySections';
 import AssistantMessageActions from './AssistantMessageActions';
 import UserMessageActions from './UserMessageActions';
+import MessageSourceBadge from './MessageSourceBadge';
 import { buildMessageClassName } from '../utils/messageListClasses';
-import '../../../styles/ThinkingDisplay.css';
 
 const messageShapePropType = PropTypes.shape({
   id: PropTypes.string.isRequired,
@@ -25,6 +24,10 @@ const messageShapePropType = PropTypes.shape({
   screenshot: PropTypes.string,
   screenshotRef: PropTypes.string,
   screenshotUrl: PropTypes.string,
+  sourceEventType: PropTypes.string,
+  sourceChannel: PropTypes.string,
+  thinkingText: PropTypes.string,
+  thinkingSourceEventType: PropTypes.string,
 });
 
 function shouldRenderAssistantActions(message, enableAssistantActions) {
@@ -121,6 +124,7 @@ const MessageItem = memo(function MessageItem({
       ) : (
         <MessageContent message={message} />
       )}
+      <MessageSourceBadge message={message} />
       {shouldRenderAssistantActions(message, enableAssistantActions) ? (
         <AssistantMessageActions
           messageId={message.id}
@@ -160,7 +164,9 @@ MessageItem.propTypes = {
 
 function MessageList({
   messages,
-  thinkingStatus,
+  thinkingStatus = null,
+  thinkingSourceEventType = null,
+  showAssistantAwaitingDot = false,
   enableAssistantActions = false,
   enableUserActions = false,
   disableAssistantActions = false,
@@ -236,7 +242,6 @@ function MessageList({
       handleStartUserEdit,
       handleCancelUserEdit,
       handleSubmitUserEdit,
-      onUserEdit,
     ]
   );
 
@@ -246,12 +251,42 @@ function MessageList({
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, thinkingStatus]);
+  }, [messages]);
+
+  const compactionStatusText = useMemo(() => {
+    if (thinkingSourceEventType !== 'context-compaction-started') {
+      return '';
+    }
+    if (typeof thinkingStatus !== 'string') {
+      return '';
+    }
+    return thinkingStatus.trim();
+  }, [thinkingSourceEventType, thinkingStatus]);
 
   return (
     <div className="message-list">
       {renderedMessages}
-      <ThinkingDisplay status={thinkingStatus} />
+      {showAssistantAwaitingDot ? (
+        <div
+          className="message-list-awaiting-dot"
+          role="status"
+          aria-live="polite"
+          aria-label="Assistant is preparing response"
+        >
+          <span className="message-list-awaiting-dot-indicator" aria-hidden="true" />
+        </div>
+      ) : null}
+      {compactionStatusText ? (
+        <div
+          className="message-list-compaction-status"
+          role="status"
+          aria-live="polite"
+          aria-label="Conversation compaction in progress"
+        >
+          <span className="message-list-compaction-indicator" aria-hidden="true" />
+          <span className="message-list-compaction-text">{compactionStatusText}</span>
+        </div>
+      ) : null}
       <div ref={messagesEndRef} data-testid="message-list-end" />
     </div>
   );
@@ -260,6 +295,8 @@ function MessageList({
 MessageList.propTypes = {
   messages: PropTypes.arrayOf(messageShapePropType).isRequired,
   thinkingStatus: PropTypes.string,
+  thinkingSourceEventType: PropTypes.string,
+  showAssistantAwaitingDot: PropTypes.bool,
   enableAssistantActions: PropTypes.bool,
   enableUserActions: PropTypes.bool,
   disableAssistantActions: PropTypes.bool,

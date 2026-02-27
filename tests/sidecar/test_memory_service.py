@@ -21,8 +21,8 @@ class DummyStore:
             {"type": "semantic", "text": "fact 1"},
         ]
 
-    async def add(self, content, user_id, metadata, conversation_id=None):
-        self.add_calls.append((content, user_id, metadata, conversation_id))
+    async def add(self, content, user_id, metadata, conversation_id=None, **kwargs):
+        self.add_calls.append((content, user_id, metadata, conversation_id, kwargs))
         return "mem-2"
 
 
@@ -34,7 +34,7 @@ class DummyStoreRaises(DummyStore):
     async def search(self, query, user_id, filters, limit):
         raise self.error
 
-    async def add(self, content, user_id, metadata, conversation_id=None):
+    async def add(self, content, user_id, metadata, conversation_id=None, **kwargs):
         raise self.error
 
 
@@ -85,6 +85,34 @@ async def test_handle_search_missing_query():
 
 
 @pytest.mark.asyncio
+async def test_handle_search_rejects_invalid_memory_type():
+    service = MemoryService()
+    service.memory_store = DummyStore()
+
+    response = await service.handle_search(
+        "req",
+        {"query": "hello", "memory_type": "archive"},
+    )
+    assert response["success"] is False
+    assert response["id"] == "req"
+    assert response["error"] == "Invalid memory_type: archive"
+    assert service.memory_store.search_calls == []
+
+
+@pytest.mark.asyncio
+async def test_handle_search_normalizes_memory_type_filter():
+    service = MemoryService()
+    service.memory_store = DummyStore()
+
+    response = await service.handle_search(
+        "req",
+        {"query": " hello ", "memory_type": " SEMANTIC ", "user_id": "u1"},
+    )
+    assert response["success"] is True
+    assert service.memory_store.search_calls == [("hello", "u1", {"type": "semantic"}, 5)]
+
+
+@pytest.mark.asyncio
 async def test_handle_search_error():
     service = MemoryService()
     service.memory_store = DummyStoreRaises(RuntimeError("fail"))
@@ -116,6 +144,7 @@ async def test_handle_store_builds_memory_entry():
             "user",
             {"type": "episodic", "source": "interaction_completed", "conversation_id": "s1"},
             "s1",
+            {"record_kind": "interaction"},
         )
     ]
 
@@ -129,6 +158,92 @@ async def test_handle_store_missing_fields():
     assert response["success"] is False
     assert response["id"] == "req"
     assert response["error"] == "Missing user_query or assistant_response"
+    assert service.memory_store.add_calls == []
+
+
+@pytest.mark.asyncio
+async def test_handle_store_treats_none_fields_as_missing():
+    service = MemoryService()
+    service.memory_store = DummyStore()
+
+    response = await service.handle_store(
+        "req",
+        {
+            "user_query": "Hi",
+            "assistant_response": None,  # type: ignore[dict-item]
+        },
+    )
+    assert response["success"] is False
+    assert response["id"] == "req"
+    assert response["error"] == "Missing user_query or assistant_response"
+    assert service.memory_store.add_calls == []
+
+
+@pytest.mark.asyncio
+async def test_handle_store_rejects_whitespace_only_fields():
+    service = MemoryService()
+    service.memory_store = DummyStore()
+
+    response = await service.handle_store(
+        "req",
+        {"user_query": "   ", "assistant_response": "\n\t"},
+    )
+    assert response["success"] is False
+    assert response["id"] == "req"
+    assert response["error"] == "Missing user_query or assistant_response"
+    assert service.memory_store.add_calls == []
+
+
+@pytest.mark.asyncio
+async def test_handle_store_rejects_invalid_memory_type():
+    service = MemoryService()
+    service.memory_store = DummyStore()
+
+    response = await service.handle_store(
+        "req",
+        {
+            "user_query": "hi",
+            "assistant_response": "hello",
+            "memory_type": "archive",
+        },
+    )
+    assert response["success"] is False
+    assert response["id"] == "req"
+    assert response["error"] == "Invalid memory_type: archive"
+    assert service.memory_store.add_calls == []
+
+
+@pytest.mark.asyncio
+async def test_handle_store_rejects_non_string_query_or_response():
+    service = MemoryService()
+    service.memory_store = DummyStore()
+
+    response = await service.handle_store(
+        "req",
+        {"user_query": 1, "assistant_response": "hello"},  # type: ignore[dict-item]
+    )
+    assert response["success"] is False
+    assert response["id"] == "req"
+    assert response["error"] == "user_query and assistant_response must be strings"
+    assert service.memory_store.add_calls == []
+
+
+@pytest.mark.asyncio
+async def test_handle_store_rejects_non_string_memory_type():
+    service = MemoryService()
+    service.memory_store = DummyStore()
+
+    response = await service.handle_store(
+        "req",
+        {
+            "user_query": "hi",
+            "assistant_response": "hello",
+            "memory_type": 1,  # type: ignore[dict-item]
+        },
+    )
+    assert response["success"] is False
+    assert response["id"] == "req"
+    assert response["error"] == "memory_type must be a string"
     assert service.memory_store.add_calls == []
 
 

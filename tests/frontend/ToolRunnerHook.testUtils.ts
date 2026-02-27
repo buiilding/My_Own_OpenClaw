@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 
-import { IpcBridge, ON_CHANNELS, SEND_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
+import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS, SEND_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import { useToolRunner } from '../../frontend/src/renderer/features/chat/hooks/useToolRunner';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { recordToolMessage } from '../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter';
@@ -113,6 +113,16 @@ export function resetToolRunnerTestState() {
     return removeListener;
   });
   jest.spyOn(IpcBridge, 'send').mockImplementation(() => undefined);
+  jest.spyOn(IpcBridge, 'invoke').mockImplementation(async (channel: any) => {
+    if (
+      channel === INVOKE_CHANNELS.SHOW_CHATBOX
+      || channel === INVOKE_CHANNELS.HIDE_CHATBOX
+      || channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS
+    ) {
+      return { success: true };
+    }
+    return {};
+  });
 }
 
 export function restoreToolRunnerMocks() {
@@ -121,6 +131,7 @@ export function restoreToolRunnerMocks() {
 
 export {
   IpcBridge,
+  INVOKE_CHANNELS,
   ON_CHANNELS,
   SEND_CHANNELS,
   useChatStore,

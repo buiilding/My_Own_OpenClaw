@@ -156,11 +156,14 @@ class MemorySummarizer:
             return False
 
         try:
-            state = await self.memory_store.get_watermark()
-        except Exception:
-            state = {"pending_message_count": 0}
+            pending = await self.memory_store.count_unsemanticized_interaction_memories()
+        except Exception as e:
+            logger.warning(
+                "Failed to count unsemanticized interaction memories for summarizer gate: %s",
+                e,
+            )
+            return False
 
-        pending = int(state.get("pending_message_count", 0))
         return pending >= self.settings.min_batch_size
 
     def _is_idle(self) -> bool:

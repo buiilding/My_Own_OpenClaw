@@ -1,7 +1,7 @@
 ---
-summary: "Frontend protocol error sub-hub for preload IPC rejection behavior, main websocket bridge recovery flow, and local-backend/wakeword failure surfaces."
+summary: "Frontend protocol error sub-hub for preload IPC rejection behavior, websocket bridge recovery flow, synthetic query-send error fallback semantics, and local-backend/wakeword failure/status surfaces."
 read_when:
-  - When changing renderer-visible IPC error behavior or ws reconnect logic.
+  - When changing renderer-visible IPC error behavior, ws reconnect logic, or query-send failure fallback semantics.
   - When debugging local-backend or wakeword subprocess failures and status propagation.
 title: "Frontend Protocol Errors Hub"
 ---
@@ -16,4 +16,6 @@ title: "Frontend Protocol Errors Hub"
 
 - [Frontend Inventory Protocols Hub](../README.md)
 - [Frontend Protocol Lifecycle Hub](../lifecycle/README.md)
+- [Frontend Protocol State Hub](../state/README.md)
+- [Frontend Protocol Validation Hub](../validation/README.md)
 - [Frontend IPC and Local-Backend Protocol Surface Matrix Reference](../frontend_ipc_and_local_backend_protocol_surface_matrix_reference.md)

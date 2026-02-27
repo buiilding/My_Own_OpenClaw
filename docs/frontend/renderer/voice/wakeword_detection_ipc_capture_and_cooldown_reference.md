@@ -15,6 +15,7 @@ title: "Wakeword Detection IPC Capture and Cooldown Reference"
 - `frontend/src/renderer/features/voice/utils/wakewordEventUtils.ts`
 - `frontend/src/renderer/features/voice/utils/audioEncoding.ts`
 - `frontend/src/renderer/features/voice/utils/audioCaptureCleanup.ts`
+- `frontend/src/renderer/features/voice/utils/audioProcessorNode.ts`
 - `frontend/src/renderer/features/voice/hooks/useAudioCaptureRefs.ts`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
@@ -87,7 +88,7 @@ Capture defaults:
 - chunk size normalized from user option (default input `1024`)
 - mono channel + echo/noise/auto-gain constraints
 
-Per script processor callback:
+Per capture callback (`AudioWorkletNode` preferred, `ScriptProcessorNode` fallback):
 
 1. read Float32 channel data
 2. convert to PCM16 via `float32ToPcm16`

@@ -8,15 +8,25 @@ title: "Frontend Main WS Bridge, Query Gate, and Overlay Phase Lifecycle Referen
 
 # Frontend Main WS Bridge, Query Gate, and Overlay Phase Lifecycle Reference
 
+## Coverage Snapshot (2026-02-27)
+
+- Lifecycle-focused protocol test files: `4`
+- Total test cases across listed files: `54`
+
 ## Scope and Sources
 
 Lifecycle contract sources:
 
 - Main websocket bridge/state machine: `frontend/src/main/ipc.cjs`
+- Settings-sync ACK gate helpers: `frontend/src/main/ipc_settings_sync.cjs`
 - Query payload enrichment: `frontend/src/main/query_payload_builder.cjs`
 - Synthetic local query events: `frontend/src/main/ipc_query_events.cjs`
 - Overlay phase -> window visibility behavior: `frontend/src/main/response_overlay_phase_handler.cjs`, `frontend/src/main/index.cjs`
+- Wakeword + overlay signal emitters: `frontend/src/main/main_window_runtime.cjs`, `frontend/src/main/overlay_signal_runtime.cjs`
+- Main-window target routing from invoke handler to dashboard: `frontend/src/main/overlay_ipc_runtime.cjs`, `frontend/src/main/main_window_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
+- Chatbox wakeword trigger handling: `frontend/src/renderer/features/chat/components/ChatBox.jsx`
 - Renderer boundary allowlists: `frontend/src/preload.js`, `frontend/src/renderer/infrastructure/ipc/channels.ts`
+- Primary lifecycle tests: `tests/frontend/IpcMainBridge.lifecycle.test.cjs`, `tests/frontend/IpcMainBridge.query.test.cjs`, `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`, `tests/frontend/ChatGptDashboardShell.test.jsx`
 
 ## Main Bridge State Model
 
@@ -154,6 +164,59 @@ Result:
 - Terminal phases (`complete`, `error`) keep/show response overlay when chatbox still visible.
 - Context-label visibility sync runs after non-stream transitions.
 
+## Wakeword -> STT Trigger Lifecycle
+
+Wakeword trigger path contracts:
+
+1. `createMainWindow(...)` wires `initializeWakewordBridge(...)` callback.
+2. Wakeword callback attempts `showChatWindow({ focus: true })`.
+3. Only when show succeeds (`result.success`) does main emit `wakeword-stt-trigger`.
+4. `emitWakewordSttTrigger(...)` sends to chat window only (no main-window broadcast).
+5. `ChatBox` listener on `ON_CHANNELS.WAKEWORD_STT_TRIGGER`:
+   - when `config.wakeword_stt_enabled !== true`, force session inactive and do nothing else.
+   - when enabled, clear transcription/input, mark wakeword STT session active, and focus input.
+
+Guardrails validated in tests:
+
+- `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx` verifies disabled wakeword setting does not start STT session.
+- `tests/frontend/IpcMainBridge.query.test.cjs` verifies overlay pre-capture hook runs only for chatbox view query sends.
+
+## Main-Window Open Target Routing Lifecycle
+
+`show-main-window` invoke routing (`overlay_ipc_runtime.cjs`):
+
+1. `handleShowMainWindow(...)` executes window open/maximize behavior.
+2. Target normalization only accepts one of: `chat`, `memory`, `models`, `settings`.
+3. `main-window-open-target` event is emitted only when main-window show succeeded and target is valid.
+
+Renderer consumption contract (`ChatGptDashboardShell.jsx`):
+
+- `chat` target closes panels and requests composer focus.
+- `settings`/`models`/`memory` targets open corresponding modal surfaces.
+- Unknown targets are ignored.
+
+Coverage anchors:
+
+- `tests/frontend/ChatGptDashboardShell.test.jsx` checks settings-target open and chat-target modal-close behavior.
+
+## Overlay Visibility Broadcast Contract
+
+`setResponseOverlayVisibilityState(...)` in main:
+
+- Stores in-memory `responseOverlayVisible` state.
+- Broadcasts `response-overlay-visibility` payload `{ visible: boolean }` to all overlay/main windows.
+- Triggers context-label visibility sync each time visibility flips.
+
+Call sites include:
+
+- `response_overlay_phase_handler.cjs` phase transitions (`idle`, streaming phases, terminal phases).
+- response window close flow (`main_window_runtime.cjs`) which forces visibility false.
+
+Channel typing surface:
+
+- `frontend/src/renderer/infrastructure/ipc/channels.ts` exports `ON_CHANNELS.RESPONSE_OVERLAY_VISIBILITY`.
+- Current renderer runtime has no dedicated listener module for this channel; broadcast remains a main-process synchronization signal.
+
 ## Protocol Drift Checks
 
 When changing this lifecycle, keep synchronized:
@@ -162,6 +225,17 @@ When changing this lifecycle, keep synchronized:
 - ACK/control message type assumptions (`settings-updated`, error id correlation).
 - Overlay phase literals used by `ipc.cjs` and `response_overlay_phase_handler.cjs`.
 - Synthetic `local-user-message` / send-failure error envelopes consumed by renderer stream hooks.
+
+## Lifecycle Control-Path Index
+
+| Lifecycle control path | Runtime owner | Lifecycle contract |
+|---|---|---|
+| websocket open/close transition | `frontend/src/main/ipc.cjs` | connection state reset, handshake send, settings-gate reset, and reconnect scheduling remain coupled |
+| first-query settings ACK gate | `frontend/src/main/ipc.cjs` | first query/wakeword send waits for settings sync outcome, with bounded timeout fallback |
+| query send bootstrap + optimistic local echo | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc_query_events.cjs` | outbound query uses resolved conversation context and emits synthetic local-user-message before backend response |
+| overlay phase transition fan-out | `frontend/src/main/ipc.cjs`, `frontend/src/main/response_overlay_phase_handler.cjs` | canonical phase set drives renderer/state sync and response-window visibility behavior |
+| wakeword callback -> STT trigger | `frontend/src/main/index.cjs`, `frontend/src/main/main_window_runtime.cjs` | STT trigger emits only after chat window show succeeds |
+| show-main-window target routing | `frontend/src/main/overlay_ipc_runtime.cjs`, dashboard shell listener | target normalization and event routing remain constrained to supported dashboard surfaces |
 
 ## Related Deep Dives
 

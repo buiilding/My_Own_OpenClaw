@@ -153,6 +153,16 @@ When launching Electron (dev or packaged), these env vars can override defaults:
 - `BACKEND_HTTP_URL`: full backend HTTP base URL.
 - `BACKEND_WS_URL`: full backend WebSocket URL (`/ws`).
 - `BACKEND_HOST` and `BACKEND_PORT`: fallback host/port when full URLs are unset.
+- `WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL`: packaged-app default HTTP URL when no `BACKEND_*` override is set.
+- `WINDIE_DEFAULT_PACKAGED_BACKEND_WS_URL`: packaged-app default WS URL when no `BACKEND_*` override is set.
 - `WINDIE_PYTHON_PATH`: explicit Python executable path for sidecar processes.
 
+Default behavior:
+
+- Dev/source runs fallback to local backend (`127.0.0.1:8765`).
+- Packaged builds fallback to hosted backend (`https://api.windieos.com`, `wss://api.windieos.com/ws`) unless overridden by `BACKEND_*` or `WINDIE_DEFAULT_PACKAGED_BACKEND_*`.
+
 For bundled runtime packaging details, see `docs/operations/sidecar_runtime_packaging.md`.
+
+For self-hosting `api.windieos.com` via Cloudflare Tunnel on your own machine,
+see `docs/operations/cloudflared_self_host_windieos.md`.

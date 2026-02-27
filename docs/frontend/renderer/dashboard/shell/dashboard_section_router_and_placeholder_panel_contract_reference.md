@@ -11,6 +11,8 @@ title: "Dashboard Shell Modal Routing Contract Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
+- `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
+- `frontend/src/renderer/features/dashboard/utils/conversationGroups.js`
 - `frontend/src/renderer/features/dashboard/components/DashboardSidebar.jsx`
 - `frontend/src/renderer/features/dashboard/components/SearchChatsModal.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/UsageSection.jsx`
@@ -111,15 +113,14 @@ Search modal behavior:
 
 ## Conversation Resume/Rehydrate Flow
 
-Shell `handleOpenConversation(conversation)` lifecycle:
+Conversation-open lifecycle (`useDashboardConversations`):
 
 1. resolve `conversation_ref` from selected row.
-2. close all open panels.
-3. call `GET_CONVERSATION` (`limit: 1000`, `recordKind` from row fallback to `transcript`).
-4. map memories into renderer rows via `parseMemoriesToMessages`.
-5. send backend rehydrate request: `ApiClient.sendRehydrateConversation(conversationRef, memories.map(toRehydrateMessagePayload))`.
-6. sync transcript runtime: `setActiveConversationRef(conversationRef)` and `updateTranscriptSession(conversationRef, resolvedUserId)`.
-7. replace chat store message list and clear sending/thinking flags.
+2. call `GET_CONVERSATION` (`limit: 1000`, `recordKind` from row fallback to `transcript`).
+3. map memories into renderer rows via `parseMemoriesToMessages`.
+4. send backend rehydrate request: `ApiClient.sendRehydrateConversation(conversationRef, memories.map(toRehydrateMessagePayload))`.
+5. sync transcript runtime: `setActiveConversationRef(conversationRef)` and `updateTranscriptSession(conversationRef, resolvedUserId)`.
+6. replace chat store message list and clear sending/thinking flags.
 
 Failure behavior:
 
@@ -146,13 +147,14 @@ Unrecognized targets are ignored.
 ## Drift Hotspots
 
 1. Adding panel booleans without extending `closeAllPanels` breaks modal exclusivity.
-2. Changing search debounce/query-length threshold without tests can regress network chatter and stale list behavior.
+2. Changing hook search debounce/query-length threshold without tests can regress network chatter and stale list behavior.
 3. Changing conversation grouping logic in one path (recent/search) but not the other causes UI ordering drift.
 4. Skipping `updateTranscriptSession` after rehydrate causes transcript write routing to stale conversation ids.
 
 ## Related Pages
 
 - [Dashboard Shell Docs Hub](README.md)
+- [Dashboard Conversation Hook Search, Polling, and Group Bucket Contract Reference](dashboard_conversation_hook_search_polling_and_group_bucket_contract_reference.md)
 - [Renderer Dashboard Docs Hub](../README.md)
 - [Dashboard Memory Management and Resume Reference](../../dashboard_memory_management_and_resume_reference.md)
 - [Dashboard Sidebar, Search, and Profile Menu Runtime Reference](sidebar_search_profile_menu_and_recent_conversation_resume_reference.md)

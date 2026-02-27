@@ -11,10 +11,15 @@ title: "Local Memory Store Embedding, Search, and Memory-Type Routing Reference"
 ## Canonical Modules
 
 - `frontend/src/main/python/memory/local_store.py`
+- `frontend/src/main/python/memory/conversation_search_helpers.py`
+- `frontend/src/main/python/memory/conversation_search_runtime.py`
+- `frontend/src/main/python/memory/conversation_title_helpers.py`
 - `frontend/src/main/python/core/remote_embedding_client.py`
+- `frontend/src/main/python/core/remote_title_client.py`
 - `frontend/src/main/python/memory/faiss_index.py`
 - `frontend/src/main/python/memory/sqlite_store.py`
 - `tests/sidecar/test_local_store_delete_cleanup.py`
+- `tests/sidecar/test_conversation_search_helpers.py`
 
 ## Runtime Topology
 
@@ -104,6 +109,16 @@ For episodic rows, embedding eligibility uses `_should_embed_episodic_entry(...)
 
 This avoids indexing low-signal tool chatter while preserving useful conversational turns.
 
+## Conversation-Title Boundary
+
+Transcript title generation is a parallel contract (not part of semantic vector search):
+
+- triggered only by assistant transcript rows with normalized `message_type = llm-text`
+- executed through async background tasks with bounded concurrency
+- resolved/persisted through `conversation_title_helpers` + `RemoteTitleClient`
+
+See dedicated title contract reference for trigger/lock/upsert/task details.
+
 ## Search Execution Model
 
 `search(query, user_id, filters, limit)`:
@@ -127,6 +142,11 @@ Result payload fields:
 
 - `id`, `text`, `metadata`, `score`, `timestamp`, `type`, optional `conversation_id`
 
+Conversation search surface (`search_conversations(...)`):
+
+- lexical + semantic transcript hit collection now routes through `conversation_search_runtime`
+- helper module owns FTS/LIKE fallback, transcript filtering, and summary/title fetch normalization
+
 ## Mapping and Index Drift Recovery
 
 On startup or detected empty index with existing mappings:
@@ -147,5 +167,8 @@ Test coverage confirms sparse/legacy embedding IDs are rewritten deterministical
 ## Related Pages
 
 - [Frontend Sidecar Memory Storage Docs Hub](README.md)
+- [Conversation Search Helper Term, Snippet, Grouping, and Timestamp Contract Reference](conversation_search_helper_term_snippet_grouping_and_timestamp_contract_reference.md)
+- [Conversation Search Runtime FTS, Semantic Fusion, and Summary-Fetch Contract Reference](conversation_search_runtime_fts_semantic_fusion_and_summary_fetch_contract_reference.md)
+- [Conversation Title Generation Runtime and Helper Contract Reference](conversation_title_generation_runtime_and_helper_contract_reference.md)
 - [Conversation Transcript Window Queries and FAISS Artifact Cleanup Reference](conversation_transcript_window_queries_and_faiss_artifact_cleanup_reference.md)
 - [SQLite Schema Migration, FAISS Index I/O, and Watermark State Reference](sqlite_schema_migration_faiss_index_and_watermark_state_reference.md)

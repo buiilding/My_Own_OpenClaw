@@ -23,8 +23,11 @@ title: "Frontend Sidecar Filesystem Tools Docs Hub"
 - `frontend/src/main/python/tools/filesystem/read_file_tool.py`
 - `frontend/src/main/python/tools/filesystem/replace_tool.py`
 - `frontend/src/main/python/tools/filesystem/replace_engine.py`
+- `frontend/src/main/python/tools/filesystem/replace_matchers.py`
+- `frontend/src/main/python/tools/filesystem/replace_patch_chunks.py`
 - `frontend/src/main/python/tools/filesystem/file_utils.py`
 - `frontend/src/main/python/tools/filesystem/gitignore_utils.py`
 - `frontend/src/main/python/tools/schemas.py`
 - `tests/sidecar/test_read_file_tool.py`
+- `tests/sidecar/test_replace_engine.py`
 - `tests/sidecar/test_replace_tool.py`

@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for `ConversationHistory` tool-output write semantics: staged tool_call_id consumption modes, dual-row output strategy, token-cache incremental updates, and rehydrate/linkage normalization behavior."
+summary: "Deep reference for `ConversationHistory` tool-output write semantics: staged tool_call_id consumption modes, canonical multimodal tool-row strategy, token-cache incremental updates, and rehydrate/linkage normalization behavior."
 read_when:
   - When changing `ConversationHistory.add_tool_output` or `stage_tool_call_ids` behavior.
   - When debugging tool-call/tool-output linkage issues in provider-normalized history or token-count drift after tool turns.
@@ -11,6 +11,7 @@ title: "Tool-Call-ID Staging and Tool-Output History Row Contract Reference"
 ## Canonical Modules
 
 - `backend/src/agent/session/state.py`
+- `backend/src/agent/session/message_builders.py`
 - `backend/src/agent/execution/interaction_loop.py`
 - `backend/src/agent/history/history_committer.py`
 - `tests/backend/test_conversation_history.py`
@@ -19,6 +20,8 @@ title: "Tool-Call-ID Staging and Tool-Output History Row Contract Reference"
 ## Staging API and Consumption Modes
 
 `ConversationHistory.stage_tool_call_ids(tool_call_ids, consume_all_on_next_output=False)` stores pending ids for next tool-output commit.
+
+`ConversationHistory.finalize_pending_tool_calls_as_cancelled(...)` reconciles staged ids when a turn is cancelled before tool results arrive, by writing synthetic `role='tool'` rows for each pending `tool_call_id`.
 
 `_consume_tool_call_ids_for_next_output()` behavior:
 
@@ -32,17 +35,25 @@ title: "Tool-Call-ID Staging and Tool-Output History Row Contract Reference"
 - bundle path: sets `consume_all_on_next_output=is_bundle`
 - recoverable malformed tool-call path: stages synthetic single id before synthetic output write
 
-## Dual-Row Tool Output Strategy
+## Tool Output Storage Strategy
 
 `add_tool_output(message, image_data)` writes:
 
-1. zero or more `role='tool'` rows with `tool_call_id` (from staged ids)
-2. always one legacy `role='user'` `TOOL_OUTPUT` row (includes screenshot when present)
+1. when staged ids exist: one or more canonical `role='tool'` rows with `tool_call_id`
+2. when staged ids exist and screenshot is present: attach `image_data` directly to the first canonical `role='tool'` row (multimodal `content=[text,image_url]` in LLM view)
+3. when no staged ids exist: one legacy `role='user'` `TOOL_OUTPUT` row with text (and screenshot, if present)
+
+Builder ownership:
+
+- linked tool rows are created via `build_tool_result_message(...)`
+- fallback unlinked rows are created via `build_tool_output_message(...)`
+- assistant tool-call rows remain owned by `build_assistant_message(...)`
 
 Reason:
 
 - provider-facing tool-call linkage needs explicit `tool_call_id` rows
-- legacy multimodal continuity relies on user-role row carrying screenshot payload
+- screenshot continuity stays on canonical linked tool rows
+- duplicate tool-output text rows are avoided on linked tool turns
 
 ## Token Cache Behavior on Tool Output
 
@@ -65,6 +76,12 @@ On tool output:
 - tool rows keep `tool_call_id`
 - assistant tool-call rows keep `tool_calls`
 
+Message-type compatibility in rehydrate path comes from `normalize_message_type(...)`:
+
+- tool aliases and legacy forms map to `TOOL_OUTPUT`
+- compaction aliases map to `CONTEXT_COMPACTION`
+- unknown types fall back by role
+
 This allows restored history to survive provider normalization without dropping tool linkage.
 
 ## Test-Backed Invariants
@@ -75,6 +92,7 @@ This allows restored history to survive provider normalization without dropping 
 - incremental token-cache update for tool outputs
 - cache invalidation when pruning occurs
 - rehydrate preservation of assistant tool-call row and linked tool row
+- cancellation reconciliation writes synthetic linked tool rows and clears staged ids
 
 `tests/backend/test_interaction_loop.py` covers:
 
@@ -83,7 +101,7 @@ This allows restored history to survive provider normalization without dropping 
 
 ## Drift Hotspots
 
-1. removing legacy user-role tool-output row breaks screenshot continuity assumptions in downstream paths.
+1. changing tool-row multimodal conversion can break screenshot continuity for linked tool turns.
 2. changing staged-id consumption mode can mismatch tool-call/tool-output ordering for bundled turns.
 3. mutating tool-output token cache logic can reintroduce O(N) counting per tool event.
 4. weakening rehydrate normalization can orphan tool rows from assistant tool-call records.

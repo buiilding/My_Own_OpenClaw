@@ -20,6 +20,52 @@ body {
   position: relative;
 }
 
+.chatbox-input-shell-wrap {
+  --chatbox-fixed-shell-height: 116px;
+  --chatbox-fixed-pill-height: 108px;
+  --chatbox-preview-track-height: 46px;
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  margin: 0;
+  transform: translateX(-50%);
+  animation: none;
+}
+
+.chatbox-input-shell-wrap .chatbox-shell {
+  height: var(--chatbox-fixed-shell-height);
+  padding-top: 4px;
+  display: flex;
+  align-items: flex-end;
+}
+
+.chatbox-input-shell-wrap .chatbox-pill {
+  height: var(--chatbox-fixed-pill-height);
+  min-height: var(--chatbox-fixed-pill-height);
+  padding: 58px 12px 8px;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.chatbox-input-shell-wrap .chatbox-image-preview-row {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  right: 12px;
+  min-height: var(--chatbox-preview-track-height);
+  padding: 0 2px;
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+  transition: opacity 150ms ease, transform 150ms ease;
+}
+
+.chatbox-input-shell-wrap .chatbox-image-preview-row.has-items {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
 .chatbox-shell-wrap.has-response-pill {
   border-radius: 18px;
   clip-path: inset(0 round 18px);
@@ -74,12 +120,13 @@ body {
 }
 
 .chatbox-pill {
-  border-radius: 9999px;
-  clip-path: inset(0 round 9999px);
+  border-radius: 26px;
+  clip-path: inset(0 round 26px);
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  padding: 8px 10px;
   min-height: 52px;
   margin: 0;
   position: relative;
@@ -89,6 +136,16 @@ body {
     -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
+}
+
+.chatbox-main-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  margin-top: auto;
+  position: relative;
+  z-index: 1;
 }
 
 .chatbox-input-wrap {
@@ -107,8 +164,8 @@ body {
   font-size: 14px;
   line-height: 1.4;
   outline: none;
-  height: 36px;
-  padding: 4px 12px;
+  height: 34px;
+  padding: 4px 10px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
@@ -178,6 +235,70 @@ body {
 .chatbox-settings svg {
   width: 16px;
   height: 16px;
+}
+
+.chatbox-image-preview-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.24) transparent;
+  padding: 2px 2px 0;
+}
+
+.chatbox-image-preview-row::-webkit-scrollbar {
+  height: 4px;
+}
+
+.chatbox-image-preview-row::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chatbox-image-preview-row::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.chatbox-image-preview-card {
+  position: relative;
+  width: 70px;
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid var(--ui-border-soft);
+  background: rgba(0, 0, 0, 0.24);
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+
+.chatbox-image-preview-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.chatbox-image-preview-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(8, 8, 8, 0.74);
+  color: #fff;
+  font-size: 10px;
+  line-height: 1;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.chatbox-image-preview-remove:hover {
+  background: rgba(22, 22, 22, 0.9);
 }
 
 .chatbox-tts.is-enabled {
@@ -252,6 +373,34 @@ body {
     height 240ms cubic-bezier(0.2, 0.8, 0.2, 1),
     border-color 140ms ease;
   will-change: height;
+}
+
+.chatbox-response-pill,
+.chatbox-response-pill * {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.24) transparent;
+}
+
+.chatbox-response-pill::-webkit-scrollbar,
+.chatbox-response-pill *::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.chatbox-response-pill::-webkit-scrollbar-track,
+.chatbox-response-pill *::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chatbox-response-pill::-webkit-scrollbar-thumb,
+.chatbox-response-pill *::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+}
+
+.chatbox-response-pill::-webkit-scrollbar-thumb:hover,
+.chatbox-response-pill *::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.34);
 }
 
 .chatbox-response-pill::before {

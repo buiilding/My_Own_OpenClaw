@@ -11,6 +11,10 @@ from backend.src.tools.browser.schema_types import (
 from backend.src.tools.browser.shared_compat_fields import BrowserSharedCompatFields
 
 
+def _openclaw_field(description: str, **kwargs):
+    return Field(None, description=description, **kwargs)
+
+
 class BrowserOpenClawCompatArgs(BrowserSharedCompatFields):
     """OpenClaw-compatible browser actions and payload fields.
 
@@ -22,64 +26,59 @@ class BrowserOpenClawCompatArgs(BrowserSharedCompatFields):
     action: BrowserOpenClawAction = Field(
         ..., description="OpenClaw-compatible browser action"
     )
-    mode: Optional[Literal["user_chrome", "managed", "efficient"]] = Field(
-        None, description="Connect/snapshot mode for compatible actions."
+    mode: Optional[Literal["user_chrome", "managed", "efficient"]] = _openclaw_field(
+        "Connect/snapshot mode for compatible actions."
     )
-    cdp_url: Optional[str] = Field(None, description="Optional CDP URL.")
-    target_id: Optional[str] = Field(None, description="Tab target ID")
-    targetId: Optional[str] = Field(None, description="Tab target ID (camelCase)")
-    target_url: Optional[str] = Field(None, description="URL to open/navigate")
-    targetUrl: Optional[str] = Field(
-        None, description="URL to open/navigate (camelCase)"
+    cdp_url: Optional[str] = _openclaw_field("Optional CDP URL.")
+    target_id: Optional[str] = _openclaw_field("Tab target ID")
+    targetId: Optional[str] = _openclaw_field("Tab target ID (camelCase)")
+    target_url: Optional[str] = _openclaw_field("URL to open/navigate")
+    targetUrl: Optional[str] = _openclaw_field("URL to open/navigate (camelCase)")
+    url: Optional[str] = _openclaw_field("URL to open/navigate")
+    query: Optional[str] = _openclaw_field("Search/extract query text")
+    description: Optional[str] = _openclaw_field("Description for go_back action")
+    engine: Optional[str] = _openclaw_field("Search engine (for search action)")
+    pattern: Optional[str] = _openclaw_field(
+        "Pattern to find for search_page/find_text"
     )
-    url: Optional[str] = Field(None, description="URL to open/navigate")
-    query: Optional[str] = Field(None, description="Search/extract query text")
-    description: Optional[str] = Field(None, description="Description for go_back action")
-    engine: Optional[str] = Field(None, description="Search engine (for search action)")
-    pattern: Optional[str] = Field(
-        None, description="Pattern to find for search_page/find_text"
+    regex: Optional[bool] = _openclaw_field("Interpret pattern as regex")
+    case_sensitive: Optional[bool] = _openclaw_field("Case-sensitive match toggle")
+    context_chars: Optional[int] = _openclaw_field(
+        "Context window chars for search_page",
+        ge=0,
     )
-    regex: Optional[bool] = Field(None, description="Interpret pattern as regex")
-    case_sensitive: Optional[bool] = Field(
-        None, description="Case-sensitive match toggle"
+    css_scope: Optional[str] = _openclaw_field("CSS scope for search_page")
+    max_results: Optional[int] = _openclaw_field("Maximum result count", ge=1)
+    attributes: Optional[List[str]] = _openclaw_field(
+        "Attributes to include for find_elements"
     )
-    context_chars: Optional[int] = Field(
-        None, description="Context window chars for search_page", ge=0
+    include_text: Optional[bool] = _openclaw_field(
+        "Include text output for find_elements"
     )
-    css_scope: Optional[str] = Field(None, description="CSS scope for search_page")
-    max_results: Optional[int] = Field(None, description="Maximum result count", ge=1)
-    attributes: Optional[List[str]] = Field(
-        None, description="Attributes to include for find_elements"
+    index: Optional[int] = _openclaw_field("Browser Use element index", ge=0)
+    tab_id: Optional[str] = _openclaw_field("Browser Use tab id")
+    new_tab: Optional[bool] = _openclaw_field("Open navigate URL in new tab")
+    snapshotFormat: Optional[BrowserSnapshotFormat] = _openclaw_field(
+        "Snapshot format alias."
     )
-    include_text: Optional[bool] = Field(
-        None, description="Include text output for find_elements"
+    input_ref: Optional[str] = _openclaw_field("Input ref for upload")
+    inputRef: Optional[str] = _openclaw_field("Input ref for upload (camelCase)")
+    paths: Optional[List[str]] = _openclaw_field("File paths for upload")
+    level: Optional[str] = _openclaw_field("Console log level filter")
+    limit: Optional[int] = _openclaw_field("Result item limit")
+    text: Optional[str] = _openclaw_field(
+        "Text payload for done/input/find_text/select_dropdown actions"
     )
-    index: Optional[int] = Field(None, description="Browser Use element index", ge=0)
-    tab_id: Optional[str] = Field(None, description="Browser Use tab id")
-    new_tab: Optional[bool] = Field(None, description="Open navigate URL in new tab")
-    snapshotFormat: Optional[BrowserSnapshotFormat] = Field(
-        None, description="Snapshot format alias."
+    selector: Optional[str] = _openclaw_field(
+        "CSS selector for find_elements action"
     )
-    input_ref: Optional[str] = Field(None, description="Input ref for upload")
-    inputRef: Optional[str] = Field(
-        None, description="Input ref for upload (camelCase)"
+    key: Optional[str] = _openclaw_field("Single storage key")
+    element: Optional[str] = _openclaw_field("Element selector alias")
+    type: Optional[Literal["png", "jpeg"]] = _openclaw_field(
+        "Screenshot image type"
     )
-    paths: Optional[List[str]] = Field(None, description="File paths for upload")
-    level: Optional[str] = Field(None, description="Console log level filter")
-    limit: Optional[int] = Field(None, description="Result item limit")
-    text: Optional[str] = Field(
-        None, description="Text payload for done/input/find_text/select_dropdown actions"
-    )
-    selector: Optional[str] = Field(
-        None, description="CSS selector for find_elements action"
-    )
-    key: Optional[str] = Field(None, description="Single storage key")
-    element: Optional[str] = Field(None, description="Element selector alias")
-    type: Optional[Literal["png", "jpeg"]] = Field(
-        None, description="Screenshot image type"
-    )
-    quality: Optional[int] = Field(None, description="JPEG quality", ge=1, le=100)
-    file_name: Optional[str] = Field(None, description="Filename for file actions")
-    pages: Optional[float] = Field(None, description="Browser Use page count", gt=0)
-    down: Optional[bool] = Field(None, description="Browser Use scroll direction flag")
-    code: Optional[str] = Field(None, description="Browser Use evaluate code")
+    quality: Optional[int] = _openclaw_field("JPEG quality", ge=1, le=100)
+    file_name: Optional[str] = _openclaw_field("Filename for file actions")
+    pages: Optional[float] = _openclaw_field("Browser Use page count", gt=0)
+    down: Optional[bool] = _openclaw_field("Browser Use scroll direction flag")
+    code: Optional[str] = _openclaw_field("Browser Use evaluate code")

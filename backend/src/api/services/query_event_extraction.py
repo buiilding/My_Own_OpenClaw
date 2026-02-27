@@ -11,13 +11,20 @@ def extract_event_type(event: Any) -> Optional[str]:
     """Extract event type from dict or typed event objects."""
     if isinstance(event, dict):
         value = event.get("type")
-        return str(value) if isinstance(value, str) else None
+        if not isinstance(value, str):
+            return None
+        normalized = value.strip()
+        return normalized or None
 
     event_type = getattr(event, "type", None)
     if isinstance(event_type, str):
-        return event_type
+        normalized = event_type.strip()
+        return normalized or None
     value = getattr(event_type, "value", None)
-    return str(value) if isinstance(value, str) else None
+    if not isinstance(value, str):
+        return None
+    normalized = value.strip()
+    return normalized or None
 
 
 def extract_dict_payload(event: Any) -> Optional[dict[str, Any]]:
@@ -39,7 +46,7 @@ def extract_dict_string_field(
         return None
 
     top_level_value = event.get(top_level_key)
-    if isinstance(top_level_value, str):
+    if isinstance(top_level_value, str) and top_level_value.strip():
         return top_level_value
 
     payload = extract_dict_payload(event)
