@@ -52,6 +52,9 @@ Implication:
 - `llm-thought`
 - `streaming-response`
 - `streaming-complete`
+- `context-compaction-started`
+- `context-compaction-completed`
+- `context-compaction-failed`
 - `tool-call`
 - `tool-output`
 - `tool-bundle`
@@ -59,6 +62,7 @@ Implication:
 - `system-prompt`
 - `user-message-full`
 - `assistant-message-full`
+- `memory-store`
 - `token-count`
 - `tool-schemas`
 - `error`
