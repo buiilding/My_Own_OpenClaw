@@ -1,7 +1,7 @@
 ---
 summary: "Electron main IPC helper-module split reference for websocket event processing, renderer-window fan-out, and query-local event broadcast boundaries."
 read_when:
-  - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_renderer_windows.cjs`, or `ipc_query_broadcast.cjs`.
+  - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_renderer_windows.cjs`, `ipc_query_broadcast.cjs`, or `ipc_settings_sync.cjs`.
   - When debugging renderer fan-out drift, overlay pre-capture hook timing, or synthetic query/local-user message behavior.
 title: "IPC Helper Module Split and Runtime Boundary Reference"
 ---
@@ -15,6 +15,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc_renderer_windows.cjs`
 - `frontend/src/main/ipc_query_broadcast.cjs`
 - `frontend/src/main/ipc_query_events.cjs`
+- `frontend/src/main/ipc_settings_sync.cjs`
 
 ## Split Ownership Model
 
@@ -64,6 +65,15 @@ Owns query-context and synthetic envelope constructors consumed by `ipc_query_br
 - `resolveConversationRef`
 - `buildLocalUserMessage`
 - `buildQuerySendFailure`
+
+### `ipc_settings_sync.cjs`
+
+Owns settings ACK gate primitives used by `ipc.cjs`:
+
+- `isValidConfigPayload`
+- `waitForSettingsAck`
+- `resolveSettingsSync`
+- `clearPendingSettingsSyncs`
 
 ## Delegation Flow in `ipc.cjs`
 

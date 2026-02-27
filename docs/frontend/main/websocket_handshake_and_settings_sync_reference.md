@@ -15,6 +15,7 @@ title: "WebSocket Handshake and Settings Sync Reference"
 - `frontend/src/main/ipc_renderer_windows.cjs`
 - `frontend/src/main/ipc_query_broadcast.cjs`
 - `frontend/src/main/ipc_query_events.cjs`
+- `frontend/src/main/ipc_settings_sync.cjs`
 - `frontend/src/main/ipc_frontend_config.cjs`
 - `frontend/src/main/backend_endpoints.cjs`
 - `frontend/src/main/query_payload_builder.cjs`
@@ -86,7 +87,7 @@ Window-aware behavior:
 
 ## Settings Sync ACK Pipeline
 
-Core primitives:
+Core primitives (implemented in `ipc_settings_sync.cjs`, orchestrated by `ipc.cjs`):
 
 - `sendSettingsUpdate(config, source)`
 - `waitForSettingsAck(msgId, source)`
