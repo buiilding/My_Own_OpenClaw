@@ -164,3 +164,59 @@ async def test_registry_handle_propagates_handler_exceptions() -> None:
 
     with pytest.raises(RuntimeError, match="handler boom"):
         await registry.handle("query", _build_query_message(), object(), "user_1")
+
+
+@pytest.mark.asyncio
+async def test_registry_runs_middleware_in_registration_order_before_handler() -> None:
+    registry = MessageHandlerRegistry()
+    handler = RecordingHandler()
+    registry.register("query", handler)
+    events: list[str] = []
+
+    def first_middleware(message, websocket):  # noqa: ARG001
+        events.append(f"middleware:first:{message.id}")
+
+    async def second_middleware(message, websocket):  # noqa: ARG001
+        events.append(f"middleware:second:{message.id}")
+
+    class OrderedHandler(RecordingHandler):
+        async def handle(self, message, websocket, user_id: str) -> None:  # noqa: ARG002
+            events.append(f"handler:{message.id}")
+            await super().handle(message, websocket, user_id)
+
+    ordered_handler = OrderedHandler()
+    registry.register("query", ordered_handler)
+    registry.add_middleware(first_middleware)
+    registry.add_middleware(second_middleware)
+
+    await registry.handle("query", _build_query_message(), object(), "user_1")
+
+    assert events == [
+        "middleware:first:msg_registry_1",
+        "middleware:second:msg_registry_1",
+        "handler:msg_registry_1",
+    ]
+
+
+@pytest.mark.asyncio
+async def test_registry_middleware_exception_short_circuits_later_middleware_and_handler() -> None:
+    registry = MessageHandlerRegistry()
+    handler = RecordingHandler()
+    registry.register("query", handler)
+    events: list[str] = []
+
+    def first_middleware(message, websocket):  # noqa: ARG001
+        events.append("first")
+        raise RuntimeError("stop chain")
+
+    def second_middleware(message, websocket):  # noqa: ARG001
+        events.append("second")
+
+    registry.add_middleware(first_middleware)
+    registry.add_middleware(second_middleware)
+
+    with pytest.raises(RuntimeError, match="stop chain"):
+        await registry.handle("query", _build_query_message(), object(), "user_1")
+
+    assert events == ["first"]
+    assert handler.calls == []
