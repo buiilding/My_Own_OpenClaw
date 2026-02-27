@@ -14,6 +14,7 @@ title: "Memory IPC and RPC Mapping Reference"
 - `frontend/src/renderer/infrastructure/ipc/bridge.ts`
 - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
 - `frontend/src/renderer/features/dashboard/components/sections/MemorySection.jsx`
+- `frontend/src/main/ipc_memory_store_persistence.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/python/local_backend.py`
@@ -50,6 +51,17 @@ Mapping helper behavior:
 
 - only object payloads are accepted (`getPayloadObject`)
 - supports direct key mapping, function mapping, and fallback-key mapping
+
+## Backend `memory-store` Event Persistence Boundary
+
+Backend stream events with `type="memory-store"` persist interaction memory in Electron main process via `ipc_memory_store_persistence.cjs`:
+
+- map payload-first fields into `storeMemory(...)` request shape
+- default `memory_type` to `episodic`
+- derive `session_id` from payload, then envelope `session_id`, then `conversation_ref`
+- execute one fire-and-forget side effect per backend event (failure logs only, no throw)
+
+This prevents renderer-window fan-out from producing duplicate `store_memory` writes.
 
 ## Channel -> JSON-RPC Method Map
 
@@ -225,5 +237,6 @@ If search results include active conversation unexpectedly:
 ## Related Pages
 
 - [Local Backend JSON-RPC Reference](../sidecar/local_backend_jsonrpc_reference.md)
+- [IPC Memory-Store Event Persistence Payload Fallback and Fail-Open Logging Contract Reference](../main/ipc_memory_store_event_persistence_payload_fallback_and_fail_open_logging_contract_reference.md)
 - [Transcript Storage, Semantic Candidate, and Watermark Reference](../sidecar/memory/transcript_storage_semantic_candidate_and_watermark_reference.md)
 - [Transcript Session and Rehydrate Reference](../renderer/transcript_session_and_rehydrate_reference.md)
