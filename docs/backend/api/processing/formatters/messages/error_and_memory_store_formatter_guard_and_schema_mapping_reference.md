@@ -48,8 +48,8 @@ Schema alignment:
 
 When guard passes, payload maps:
 
-- `user_query`
-- `assistant_response`
+- `user_query` (trimmed)
+- `assistant_response` (trimmed)
 - `memory_type`
 - `user_id`
 - `session_id`
