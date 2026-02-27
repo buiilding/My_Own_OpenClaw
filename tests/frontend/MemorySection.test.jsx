@@ -265,7 +265,7 @@ describe('MemorySection', () => {
     render(<MemorySection />);
     await screen.findByText('No memories found');
 
-    const toggle = screen.getByRole('checkbox', { name: 'Inject memory into prompts' });
+    const toggle = screen.getByRole('checkbox', { name: 'Memory on or off' });
     expect(toggle).not.toBeChecked();
 
     fireEvent.click(toggle);

@@ -8,6 +8,7 @@ Includes the last 300 commits on `main`.
 
 ### Added
 - feat(frontend-memory-retrieval-toggle): add a Memory modal toggle to disable query-time memory retrieval injection (skip sidecar `search_memory` + omit `<episodic_memory>/<semantic_memory>` prompt tags) while preserving episodic interaction writes and semanticization pipeline behavior; include renderer/main/query-builder regressions and docs updates.
+- style(frontend-memory-toggle-copy): simplify Memory modal retrieval toggle copy to `Memory On/Off` and remove explanatory subtitle text.
 - chore(dev-tool-selection): enable `mouse_control` `prediction` coordinate method in `backend/dev/tool_selection.toml` so non-text targets can use vision grounding during dev allowlist runs.
 - fix(backend-coordinate-normalization): apply screenshot-to-display coordinate normalization to manual `mouse_control` calls during tool preparation (best-effort when screenshot is available), reusing OCR/prediction contract metadata and stale-screen linkage for improved HiDPI click accuracy.
 - fix(backend-coordinate-normalization): normalize manual numeric coordinates when `x/y` arrive as floats (for example `1000.0`) by coercing to integer pixels and running the same screenshot-to-display contract path used for integer manual inputs.
