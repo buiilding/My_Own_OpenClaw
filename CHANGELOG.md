@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-tool-runner-surface): extract tool-surface mode resolution and overlay preparation/restore helpers into `toolRunnerSurface.ts`, reduce `useToolRunner.ts` below the large-file threshold, and add direct helper regression coverage.
 - refactor(frontend-dashboard-sidebar): split `DashboardSidebar` into focused sidebar modules (`DashboardSidebarNavigation`, `DashboardSidebarUserMenu`, `useDismissOnOutside`) to keep the main component below the large-file threshold while preserving sidebar behavior; add profile-menu settings action regression coverage.
 - refactor(frontend-main-ipc): extract memory-store event payload mapping/persistence into `ipc_memory_store_persistence.cjs`, add focused unit coverage, and keep `ipc.cjs` below the large-file threshold.
 - refactor(sidecar-memory-store-helper): add shared `normalize_and_store_interaction_memory(...)` operation and reuse it in both `local_backend` and `memory_service` store handlers, reducing duplicated store-memory flow while preserving error/response behavior.
