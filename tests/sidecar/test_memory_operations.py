@@ -7,6 +7,7 @@ from memory.operations import (  # noqa: E402
     build_store_memory_response_data,
     build_interaction_metadata,
     format_interaction_memory,
+    normalize_and_store_interaction_memory,
     normalize_search_memory_payload,
     normalize_store_memory_payload,
     store_interaction_memory,
@@ -148,6 +149,53 @@ async def test_store_interaction_memory_formats_and_persists_entry():
             format_interaction_memory("hi", "hello"),
             "user-1",
             build_interaction_metadata("episodic", "session-1"),
+            "session-1",
+            {"record_kind": "interaction"},
+        )
+    ]
+
+
+@pytest.mark.asyncio
+async def test_normalize_and_store_interaction_memory_returns_validation_error():
+    store = _DummyStore()
+
+    stored, error = await normalize_and_store_interaction_memory(
+        store,
+        user_query="",
+        assistant_response="hello",
+        memory_type="episodic",
+        user_id="user-1",
+        session_id="session-1",
+    )
+
+    assert stored is None
+    assert error == "Missing user_query or assistant_response"
+    assert store.calls == []
+
+
+@pytest.mark.asyncio
+async def test_normalize_and_store_interaction_memory_persists_and_returns_metadata():
+    store = _DummyStore()
+
+    stored, error = await normalize_and_store_interaction_memory(
+        store,
+        user_query="  hi  ",
+        assistant_response="\nhello\t",
+        memory_type="  SEMANTIC ",
+        user_id="user-1",
+        session_id="session-1",
+    )
+
+    assert error is None
+    assert stored == {
+        "memory_id": "mem-42",
+        "memory_type": "semantic",
+    }
+    assert store.calls == [
+        (
+            format_interaction_memory("hi", "hello"),
+            "user-1",
+            build_interaction_metadata("semantic", "session-1"),
             "session-1",
             {"record_kind": "interaction"},
         )

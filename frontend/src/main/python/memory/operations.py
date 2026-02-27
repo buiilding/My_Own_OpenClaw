@@ -153,3 +153,43 @@ def build_store_memory_response_data(
         "memory_type": memory_type,
         "message": f"Stored {memory_type} memory",
     }
+
+
+async def normalize_and_store_interaction_memory(
+    memory_store: Any,
+    *,
+    user_query: Any,
+    assistant_response: Any,
+    memory_type: Any,
+    user_id: str,
+    session_id: Optional[str],
+) -> Tuple[Optional[Dict[str, str]], Optional[str]]:
+    """
+    Validate store-memory inputs and persist interaction row on success.
+
+    Returns:
+        ({"memory_id": str, "memory_type": str}, None) on success
+        (None, "<error message>") on validation failure
+    """
+    normalized, error = normalize_store_memory_payload(
+        user_query=user_query,
+        assistant_response=assistant_response,
+        memory_type=memory_type,
+    )
+    if error:
+        return None, error
+
+    normalized_memory_type = normalized["memory_type"]
+    memory_id = await store_interaction_memory(
+        memory_store,
+        user_query=normalized["user_query"],
+        assistant_response=normalized["assistant_response"],
+        memory_type=normalized_memory_type,
+        user_id=user_id,
+        session_id=session_id,
+    )
+
+    return {
+        "memory_id": memory_id,
+        "memory_type": normalized_memory_type,
+    }, None

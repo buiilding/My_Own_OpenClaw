@@ -22,9 +22,8 @@ from memory.operations import (
     build_store_memory_response_data,
     build_memory_filters,
     group_memory_texts,
+    normalize_and_store_interaction_memory,
     normalize_search_memory_payload,
-    normalize_store_memory_payload,
-    store_interaction_memory,
 )
 from core.runtime_shutdown import (
     handle_shutdown_signal,
@@ -167,42 +166,33 @@ class MemoryService:
 
     async def handle_store(self, request_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Handle memory store request."""
-        normalized, error = normalize_store_memory_payload(
-            user_query=payload.get("user_query"),
-            assistant_response=payload.get("assistant_response"),
-            memory_type=payload.get("memory_type", "episodic"),
-        )
         user_id = payload.get("user_id", "default_user")
         session_id = payload.get("session_id")
-
-        if error:
-            return {
-                "id": request_id,
-                "success": False,
-                "error": error,
-            }
-
-        user_query = normalized["user_query"]
-        assistant_response = normalized["assistant_response"]
-        memory_type = normalized["memory_type"]
-
         try:
-            memory_id = await store_interaction_memory(
+            stored, error = await normalize_and_store_interaction_memory(
                 self.memory_store,
-                user_query=user_query,
-                assistant_response=assistant_response,
-                memory_type=memory_type,
+                user_query=payload.get("user_query"),
+                assistant_response=payload.get("assistant_response"),
+                memory_type=payload.get("memory_type", "episodic"),
                 user_id=user_id,
                 session_id=session_id,
             )
+            if error:
+                return {
+                    "id": request_id,
+                    "success": False,
+                    "error": error,
+                }
 
-            logger.info(f"Stored {memory_type} memory {memory_id} for user {user_id}")
+            memory_type = stored["memory_type"]
+
+            logger.info(f"Stored {memory_type} memory {stored['memory_id']} for user {user_id}")
 
             return {
                 "id": request_id,
                 "success": True,
                 "data": build_store_memory_response_data(
-                    memory_id=memory_id,
+                    memory_id=stored["memory_id"],
                     memory_type=memory_type,
                 ),
             }

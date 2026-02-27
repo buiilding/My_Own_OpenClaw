@@ -31,9 +31,8 @@ from memory.operations import (
     build_memory_filters,
     exclude_conversation_results,
     group_memory_texts,
+    normalize_and_store_interaction_memory,
     normalize_search_memory_payload,
-    normalize_store_memory_payload,
-    store_interaction_memory,
 )
 from memory.summarizer import MemorySummarizer
 
@@ -635,22 +634,8 @@ class LocalBackend:
     @requires_memory_store
     async def _handle_store_memory(self, user_query: str, assistant_response: str, memory_type: str = "episodic", user_id: str = "default_user", session_id: str = None, **kwargs) -> Dict[str, Any]:
         """Store memory."""
-        normalized, error = normalize_store_memory_payload(
-            user_query=user_query,
-            assistant_response=assistant_response,
-            memory_type=memory_type,
-        )
-        if error:
-            return {
-                "success": False,
-                "error": error,
-            }
-
-        user_query = normalized["user_query"]
-        assistant_response = normalized["assistant_response"]
-        memory_type = normalized["memory_type"]
         try:
-            memory_id = await store_interaction_memory(
+            stored, error = await normalize_and_store_interaction_memory(
                 self.memory_store,
                 user_query=user_query,
                 assistant_response=assistant_response,
@@ -658,7 +643,13 @@ class LocalBackend:
                 user_id=user_id,
                 session_id=session_id,
             )
+            if error:
+                return {
+                    "success": False,
+                    "error": error,
+                }
 
+            memory_type = stored["memory_type"]
             await self._maybe_notify_summarizer(
                 should_notify=(memory_type == "episodic"),
                 user_id=user_id,
@@ -667,7 +658,7 @@ class LocalBackend:
             return {
                 "success": True,
                 "data": build_store_memory_response_data(
-                    memory_id=memory_id,
+                    memory_id=stored["memory_id"],
                     memory_type=memory_type,
                 ),
             }
