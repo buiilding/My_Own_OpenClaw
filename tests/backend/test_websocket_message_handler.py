@@ -177,6 +177,33 @@ async def test_parse_and_validate_message_returns_multiple_validation_details() 
 
 
 @pytest.mark.asyncio
+async def test_parse_and_validate_message_includes_indexed_nested_validation_paths() -> None:
+    payload = json.dumps(
+        {
+            "id": "msg_nested_invalid",
+            "type": "tool-bundle-result",
+            "payload": {
+                "bundle_id": "bundle-1",
+                "status": "success",
+                "step_results": [{}],
+            },
+        }
+    )
+
+    message, error = await mh.parse_and_validate_message(
+        payload,
+        user_id="user_1",
+        max_message_size=2048,
+    )
+
+    assert message is None
+    assert error is not None
+    assert "Invalid message format:" in error
+    assert "payload.step_results.0.tool" in error
+    assert "payload.step_results.0.status" in error
+
+
+@pytest.mark.asyncio
 async def test_parse_and_validate_message_handles_unexpected_parse_errors(monkeypatch) -> None:
     async def raise_unexpected(*_args, **_kwargs):
         raise RuntimeError("decoder exploded")
