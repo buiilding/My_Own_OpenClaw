@@ -26,4 +26,22 @@ describe('MessageContent assistant thinking section', () => {
     expect(screen.getByText(/Step A/)).toBeInTheDocument();
     expect(screen.getByText(/Here is the answer/)).toBeInTheDocument();
   });
+
+  test('renders thinking section without blank markdown bubble when assistant text is empty', () => {
+    const { container } = render(
+      <MessageContent
+        message={{
+          id: 'assistant-2',
+          sender: 'assistant',
+          type: 'llm-text',
+          text: '',
+          thinkingText: 'Internal reasoning',
+          thinkingSourceEventType: 'llm-thought',
+        }}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: /show thinking/i })).toBeInTheDocument();
+    expect(container.querySelector('.message-content-markdown')).toBeNull();
+  });
 });

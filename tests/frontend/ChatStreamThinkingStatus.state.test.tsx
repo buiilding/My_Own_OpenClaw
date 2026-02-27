@@ -39,6 +39,58 @@ describe('useChatStream state + stream handling', () => {
     expect(useChatStore.getState().thinkingStatus).toContain('thinking');
   });
 
+  test('creates assistant placeholder with live thinking before first text chunk', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.setState({ messages: [] });
+      emitBackendEvent({
+        type: 'llm-thought',
+        turn_ref: 'turn-live',
+        payload: { status: 'drafting plan' },
+      });
+    });
+
+    const messages = useChatStore.getState().messages;
+    expect(messages).toHaveLength(1);
+    expect(messages[0]).toEqual(expect.objectContaining({
+      sender: 'assistant',
+      type: 'llm-text',
+      turnRef: 'turn-live',
+      text: '',
+      thinkingText: 'drafting plan',
+      thinkingSourceEventType: 'llm-thought',
+    }));
+  });
+
+  test('appends streaming response text to same assistant message that holds live thinking', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.setState({ messages: [] });
+      emitBackendEvent({
+        type: 'llm-thought',
+        turn_ref: 'turn-live',
+        payload: { status: 'step 1' },
+      });
+      emitBackendEvent({
+        type: 'streaming-response',
+        turn_ref: 'turn-live',
+        payload: { text: 'Final answer' },
+      });
+    });
+
+    const messages = useChatStore.getState().messages;
+    expect(messages).toHaveLength(1);
+    expect(messages[0]).toEqual(expect.objectContaining({
+      sender: 'assistant',
+      type: 'llm-text',
+      turnRef: 'turn-live',
+      text: 'Final answer',
+      thinkingText: 'step 1',
+    }));
+  });
+
   test('accepts llm-thought payload content fallback', () => {
     const { emitBackendEvent } = registerBackendListener();
 

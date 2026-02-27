@@ -7,14 +7,12 @@ import {
   useState,
 } from 'react';
 import PropTypes from 'prop-types';
-import ThinkingDisplay from './ThinkingDisplay';
 import MessageContent from './MessageContent';
 import MessageTransparencySections from './MessageTransparencySections';
 import AssistantMessageActions from './AssistantMessageActions';
 import UserMessageActions from './UserMessageActions';
 import MessageSourceBadge from './MessageSourceBadge';
 import { buildMessageClassName } from '../utils/messageListClasses';
-import '../../../styles/ThinkingDisplay.css';
 
 const messageShapePropType = PropTypes.shape({
   id: PropTypes.string.isRequired,
@@ -166,8 +164,6 @@ MessageItem.propTypes = {
 
 function MessageList({
   messages,
-  thinkingStatus,
-  thinkingSourceEventType = null,
   enableAssistantActions = false,
   enableUserActions = false,
   disableAssistantActions = false,
@@ -252,12 +248,11 @@ function MessageList({
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, thinkingStatus]);
+  }, [messages]);
 
   return (
     <div className="message-list">
       {renderedMessages}
-      <ThinkingDisplay status={thinkingStatus} sourceEventType={thinkingSourceEventType} />
       <div ref={messagesEndRef} data-testid="message-list-end" />
     </div>
   );
@@ -265,8 +260,6 @@ function MessageList({
 
 MessageList.propTypes = {
   messages: PropTypes.arrayOf(messageShapePropType).isRequired,
-  thinkingStatus: PropTypes.string,
-  thinkingSourceEventType: PropTypes.string,
   enableAssistantActions: PropTypes.bool,
   enableUserActions: PropTypes.bool,
   disableAssistantActions: PropTypes.bool,

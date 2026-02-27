@@ -12,7 +12,7 @@ describe('MessageList thinking display ordering', () => {
     });
   });
 
-  test('keeps end anchor after thinking display so auto-scroll includes reasoning tokens', () => {
+  test('keeps end anchor as final child (no global thinking strip)', () => {
     render(
       <MessageList
         messages={[
@@ -23,15 +23,11 @@ describe('MessageList thinking display ordering', () => {
             type: 'llm-text',
           },
         ]}
-        thinkingStatus="Model reasoning chunk"
       />,
     );
 
     const endAnchor = screen.getByTestId('message-list-end');
-    const thinkingDisplay = screen.getByRole('status');
     expect(endAnchor.parentElement?.lastElementChild).toBe(endAnchor);
-    expect(
-      thinkingDisplay.compareDocumentPosition(endAnchor) & Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
+    expect(screen.queryByRole('status', { name: /assistant reasoning stream/i })).not.toBeInTheDocument();
   });
 });

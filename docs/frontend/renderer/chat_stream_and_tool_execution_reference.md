@@ -95,7 +95,7 @@ Pre-routing guards:
 Handler map (`BackendEventType` -> behavior):
 
 - `local-user-message`: adds user row, resets `streamTracking` for turn
-- `llm-thought`: accumulates thinking text
+- `llm-thought`: accumulates transient thinking text and writes live reasoning (`thinkingText`) onto the same-turn assistant `llm-text` message (creates placeholder assistant row before first text chunk when needed)
 - `streaming-response`: append/create assistant `llm-text` row and increment chunk tracking
 - `context-compaction-started`: sets thinking text to `Compacting conversation history...` while backend compaction runs
 - `context-compaction-completed`: clears compaction thinking text so normal stream status can resume

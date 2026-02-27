@@ -60,6 +60,7 @@ import {
   buildAssistantMessageFullUpdate,
   buildSystemPromptUpdate,
   buildUserMessageFullUpdate,
+  findLastAssistantLlmTextMessageId,
   findStreamingCompleteAssistantMessage,
   resolveStreamingResponseAction,
 } from '../utils/chatStreamMessageUpdates';
@@ -163,10 +164,55 @@ export function useChatStream(enableTranscript: boolean = true) {
           ? payload.content
           : undefined;
     const nextBaseStatus = currentStatus === GENERIC_THINKING_STATUS ? null : currentStatus;
-    setThinkingStatus(buildThinkingStatus(nextBaseStatus, thoughtChunk));
+    const nextThinkingStatus = buildThinkingStatus(nextBaseStatus, thoughtChunk);
+    setThinkingStatus(nextThinkingStatus);
     setThinkingSourceEventType('llm-thought');
+
+    const modelContext = modelContextRef.current;
+    const modelMetadata = {
+      modelId: modelContext.modelId,
+      modelProvider: modelContext.modelProvider,
+    };
+    const turnRef = event.turn_ref || undefined;
+    const messages = useChatStore.getState().messages;
+    const assistantMessageId = findLastAssistantLlmTextMessageId(messages, turnRef);
+    if (assistantMessageId) {
+      const assistantMessage = messages.find((message) => message.id === assistantMessageId);
+      const nextMessageThinkingText = buildThinkingStatus(
+        typeof assistantMessage?.thinkingText === 'string' ? assistantMessage.thinkingText : null,
+        thoughtChunk,
+      );
+      updateMessage(assistantMessageId, {
+        thinkingText: nextMessageThinkingText,
+        thinkingSourceEventType: 'llm-thought',
+        ...modelMetadata,
+      });
+    } else if (nextThinkingStatus.trim()) {
+      const placeholderAssistantMessage: ChatMessage = {
+        id: crypto.randomUUID(),
+        text: '',
+        sender: 'assistant',
+        isComplete: false,
+        type: 'llm-text',
+        sourceEventType: 'streaming-response',
+        sourceChannel: 'from-backend',
+        turnRef,
+        thinkingText: nextThinkingStatus,
+        thinkingSourceEventType: 'llm-thought',
+        ...modelMetadata,
+      };
+      addMessage(placeholderAssistantMessage);
+    }
+
     recordTrackingEvent('llm-thought', event.turn_ref);
-  }, [setThinkingSourceEventType, setThinkingStatus, recordTrackingEvent]);
+  }, [
+    addMessage,
+    modelContextRef,
+    recordTrackingEvent,
+    setThinkingSourceEventType,
+    setThinkingStatus,
+    updateMessage,
+  ]);
 
   const handleStreamingResponse = useCallback((event: StreamingResponseEvent) => {
     setIsSending(false);

@@ -274,18 +274,21 @@ export default function MessageContent({ message }) {
   }
 
   if (message.sender === 'assistant' && (!message.type || message.type === 'llm-text')) {
+    const hasVisibleAssistantText = typeof message.text === 'string' && message.text.trim().length > 0;
     return (
       <div className="assistant-message-content">
         <AssistantThinkingSection
           thinkingText={message.thinkingText || ''}
           sourceEventType={message.thinkingSourceEventType || null}
         />
-        <MarkdownMessage
-          text={message.text}
-          sender={message.sender}
-          modelProvider={message.modelProvider || null}
-          modelId={message.modelId || null}
-        />
+        {hasVisibleAssistantText ? (
+          <MarkdownMessage
+            text={message.text}
+            sender={message.sender}
+            modelProvider={message.modelProvider || null}
+            modelId={message.modelId || null}
+          />
+        ) : null}
       </div>
     );
   }
