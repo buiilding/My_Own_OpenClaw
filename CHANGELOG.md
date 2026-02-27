@@ -7,6 +7,10 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(backend-query-events): treat blank top-level event text fields as absent and fall back to payload-backed content in query event extraction helpers; add regressions for chunk/assistant/streaming-complete payload fallback behavior.
+- fix(backend-query-execution): normalize screenshot inline payload and artifact refs (trim + ignore blanks) before artifact-store loading; add resolver coverage for trimmed refs, blank single refs, and partial load-failure continuation.
+- test(backend-api-errors): add websocket helper regressions for success-payload alias protection and validation-exception message exposure in `send_error_response`.
+- test(backend-query-events): lock completion-text precedence when streamed chunks are whitespace-only and assistant full text should win.
 - docs(backend-query-runtime): align query runtime docs with current multi-screenshot artifact behavior (`screenshot_ref` + `screenshot_refs[]`), non-fatal per-ref artifact fallback semantics, and module-level query-event extraction compatibility contracts.
 - chore(frontend-audit-knip): remove test-only exports from IPC/tool-surface helper modules and assert mappings via public entrypoints so `npm run audit:knip` stays clean after refactor extraction work.
 - docs(setup): expand backend/frontend Windows setup guide with interpreter resolution order (`WINDIE_PYTHON_PATH` -> bundled runtime -> `CONDA_PREFIX` -> platform fallback), backend endpoint override env vars, packaged-vs-dev endpoint defaults, and additional sidecar/OCR troubleshooting notes.
