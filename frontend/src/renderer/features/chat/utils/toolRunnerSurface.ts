@@ -9,14 +9,6 @@ const INTERACTIVE_COMPUTER_TOOL_NAMES = new Set([
   'scroll',
 ]);
 const CAPTURE_ONLY_COMPUTER_TOOL_NAMES = new Set(['screenshot', 'switch_tab', 'wait']);
-const CHAT_PILL_HANDOFF_BROWSER_ACTIONS = new Set([
-  'click',
-  'type',
-  'scroll',
-  'screenshot',
-  'switch',
-  'switch_tab',
-]);
 const TOOL_FOCUS_PREPARE_WAIT_MS = 180;
 const OVERLAY_SURFACE_PREPARE_EXCEPTION = 'overlay_surface_prepare_exception';
 
@@ -81,7 +73,7 @@ function normalizeActionName(value: unknown): string {
 
 function resolveToolSurfaceMode(
   toolName: string,
-  args: Record<string, unknown> | undefined,
+  _args: Record<string, unknown> | undefined,
 ): ToolSurfaceMode {
   const normalizedToolName = normalizeActionName(toolName);
   if (!normalizedToolName) {
@@ -96,13 +88,8 @@ function resolveToolSurfaceMode(
   if (normalizedToolName !== 'browser') {
     return 'none';
   }
-  const normalizedAction = normalizeActionName(args?.action);
-  if (!normalizedAction) {
-    return 'none';
-  }
-  if (CHAT_PILL_HANDOFF_BROWSER_ACTIONS.has(normalizedAction)) {
-    return 'screenshot';
-  }
+  // Browser Use actions execute in the browser runtime and should not
+  // trigger dashboard/chat-pill surface transitions.
   return 'none';
 }
 

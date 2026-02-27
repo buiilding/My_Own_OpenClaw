@@ -50,16 +50,16 @@ describe('toolRunnerSurface helpers', () => {
     ).toBe('screenshot');
     expect(
       resolveBundleSurfaceMode([{ toolName: 'browser', args: { action: 'click' } }]),
-    ).toBe('screenshot');
+    ).toBe('none');
     expect(
       resolveBundleSurfaceMode([{ toolName: 'browser', args: { action: 'screenshot' } }]),
-    ).toBe('screenshot');
+    ).toBe('none');
     expect(
       resolveBundleSurfaceMode([{ toolName: 'browser', args: { action: 'switch_tab' } }]),
-    ).toBe('screenshot');
+    ).toBe('none');
     expect(
       resolveBundleSurfaceMode([{ toolName: 'browser', args: { action: 'switch' } }]),
-    ).toBe('screenshot');
+    ).toBe('none');
   });
 
   test('resolves bundle mode with interactive precedence over screenshot', () => {

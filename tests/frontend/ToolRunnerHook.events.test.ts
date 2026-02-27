@@ -125,7 +125,7 @@ describe('useToolRunner event handling', () => {
     expect(prepareCallOrder).toBeLessThan(executeCallOrder);
   });
 
-  test('dispatches browser click without focus verification', async () => {
+  test('dispatches browser click without surface handoff', async () => {
     renderToolRunner(true);
 
     await emitBackendEventAsync({
@@ -143,13 +143,18 @@ describe('useToolRunner event handling', () => {
       { action: 'click', ref: '3' },
       { correlationId: 'req-browser-click-delay', skipAutoCapture: false },
     );
-    const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
-    expect(invokeCalls).toContainEqual([
+    expect(IpcBridge.invoke).not.toHaveBeenCalledWith(
       INVOKE_CHANNELS.SHOW_CHATBOX,
-      { focus: false },
-    ]);
-    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.HIDE_CHATBOX)).toBe(true);
-    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS)).toBe(false);
+      expect.anything(),
+    );
+    expect(IpcBridge.invoke).not.toHaveBeenCalledWith(
+      INVOKE_CHANNELS.HIDE_CHATBOX,
+      expect.anything(),
+    );
+    expect(IpcBridge.invoke).not.toHaveBeenCalledWith(
+      INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS,
+      expect.anything(),
+    );
   });
 
   test('forces chat-pill handoff for switch_tab tool-call', async () => {
