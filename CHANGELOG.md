@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(backend-history-runtime): expand conversation-history/runtime docs with `message_builders.py` ownership and alias-normalization contracts (`tool_*`, `context_compaction`, assistant/user fallbacks) used during rehydrate and tool-result history writes.
 - docs(backend-formatters-signals): add dedicated context-compaction formatter contract reference and sync formatter hub/dispatch docs with required-field and optional-payload guarantees for `context-compaction-started|completed|failed` events.
 - refactor(sidecar-filesystem-replace): extract line/lenient matching helpers from `replace_engine.py` into `replace_matchers.py`, reducing replace-engine size below the large-file threshold while preserving replace/patch behavior; add regression coverage for unicode-dash lenient matching and context+EOF patch-chunk application.
 - refactor(backend-stream-tool-aggregation): dedupe Gemini + Kimi streamed tool-call aggregation into shared `streaming_tool_call_aggregation.py` mixin, keep provider-specific fail-closed error text overrides, and tighten provider regressions for model-specific invalid-JSON error surfaces.

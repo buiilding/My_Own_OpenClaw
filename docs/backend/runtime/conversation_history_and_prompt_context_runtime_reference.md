@@ -11,6 +11,7 @@ title: "Conversation History and Prompt Context Runtime Reference"
 ## Canonical Modules
 
 - `backend/src/agent/session/state.py`
+- `backend/src/agent/session/message_builders.py`
 - `backend/src/agent/llm/conversation_context.py`
 - `backend/src/llm/prompts/prompt_constructor.py`
 - `backend/src/agent/execution/interaction_loop.py`
@@ -26,6 +27,13 @@ Core views:
 - `get_stored_messages()` -> structured rows with `message_type`, `tool_call_id`, optional images/tool_calls
 - `get_history()` -> LLM message list, includes system prompt first (if present), returns internal cache by read-only contract
 - `get_history_mutable()` -> deep-copied mutable LLM message list
+
+`message_builders.py` is the constructor/normalization boundary used by `ConversationHistory`:
+
+- `build_user_message(...)` -> canonical `role=user`, `message_type=USER_QUERY`
+- `build_assistant_message(...)` -> canonical `role=assistant`, `message_type=ASSISTANT_RESPONSE`
+- `build_tool_result_message(...)` -> canonical linked `role=tool`, `message_type=TOOL_OUTPUT`, includes `tool_call_id`
+- `build_tool_output_message(...)` -> fallback unlinked `role=user`, `message_type=TOOL_OUTPUT`
 
 Session initialization sets system prompt source of truth:
 
@@ -91,6 +99,14 @@ Normalization includes:
 - message_type normalization (`tool-output`, `tool-call`, `llm-text`, `user`, etc.)
 - preservation of assistant tool-call rows with `tool_calls`
 - preservation of tool rows with `tool_call_id`
+
+`normalize_message_type(role, message_type)` compatibility aliases:
+
+- tool variants (`tool`, `tool_output`, `tool_call`) -> `TOOL_OUTPUT`
+- compaction variants (`context_compaction`, `compaction`, `context_summary`) -> `CONTEXT_COMPACTION`
+- assistant variants (`assistant`, `assistant_response`, `llm_text`, `error`) -> `ASSISTANT_RESPONSE`
+- user variants (`user`, `user_query`, `query`) -> `USER_QUERY`
+- fallback by role when `message_type` is absent/unknown (`assistant` -> assistant response, `tool` -> tool output, else user query)
 
 Key outcome: rehydrated history can be passed through provider normalization without dropping linked tool messages.
 

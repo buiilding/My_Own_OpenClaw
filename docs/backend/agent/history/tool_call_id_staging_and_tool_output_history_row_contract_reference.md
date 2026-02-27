@@ -11,6 +11,7 @@ title: "Tool-Call-ID Staging and Tool-Output History Row Contract Reference"
 ## Canonical Modules
 
 - `backend/src/agent/session/state.py`
+- `backend/src/agent/session/message_builders.py`
 - `backend/src/agent/execution/interaction_loop.py`
 - `backend/src/agent/history/history_committer.py`
 - `tests/backend/test_conversation_history.py`
@@ -42,6 +43,12 @@ title: "Tool-Call-ID Staging and Tool-Output History Row Contract Reference"
 2. when staged ids exist and screenshot is present: attach `image_data` directly to the first canonical `role='tool'` row (multimodal `content=[text,image_url]` in LLM view)
 3. when no staged ids exist: one legacy `role='user'` `TOOL_OUTPUT` row with text (and screenshot, if present)
 
+Builder ownership:
+
+- linked tool rows are created via `build_tool_result_message(...)`
+- fallback unlinked rows are created via `build_tool_output_message(...)`
+- assistant tool-call rows remain owned by `build_assistant_message(...)`
+
 Reason:
 
 - provider-facing tool-call linkage needs explicit `tool_call_id` rows
@@ -68,6 +75,12 @@ On tool output:
 - role normalization includes explicit `tool` and `assistant`
 - tool rows keep `tool_call_id`
 - assistant tool-call rows keep `tool_calls`
+
+Message-type compatibility in rehydrate path comes from `normalize_message_type(...)`:
+
+- tool aliases and legacy forms map to `TOOL_OUTPUT`
+- compaction aliases map to `CONTEXT_COMPACTION`
+- unknown types fall back by role
 
 This allows restored history to survive provider normalization without dropping tool linkage.
 
