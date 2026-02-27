@@ -14,6 +14,7 @@ from backend.src.llm.providers.message_normalization import (
     normalize_tools_for_litellm,
 )
 from backend.src.llm.providers.response_parsing import (
+    extract_delta_content,
     extract_completion_response,
     normalize_tool_arguments,
 )
@@ -181,6 +182,98 @@ def test_extract_completion_response_parses_and_dedupes_openai_and_tool_use_bloc
     assert normalized["tool_calls"] == [
         {"id": "call_1", "name": "read_file", "arguments": {"path": "/tmp/demo.txt"}}
     ]
+
+
+def test_extract_completion_response_falls_back_to_choice_text_when_message_content_empty():
+    response = {
+        "choices": [
+            {
+                "text": "fallback text",
+                "message": {"content": None},
+            }
+        ]
+    }
+
+    normalized = extract_completion_response(
+        response,
+        model="m",
+        invalid_response_message="Invalid response",
+    )
+
+    assert normalized["content"] == "fallback text"
+
+
+def test_extract_delta_content_suppresses_tool_use_only_blocks():
+    delta = {
+        "content": [
+            {
+                "type": "tool_use",
+                "id": "call_1",
+                "name": "read_file",
+                "input": {"path": "/tmp/demo.txt"},
+            }
+        ]
+    }
+    assert extract_delta_content(delta) is None
+
+
+def test_extract_delta_content_joins_text_blocks_and_ignores_tool_use():
+    delta = {
+        "content": [
+            {"type": "text", "text": "Hello "},
+            {"type": "tool_use", "name": "read_file", "input": {"path": "/tmp/a"}},
+            {"text": "world"},
+        ]
+    }
+    assert extract_delta_content(delta) == "Hello world"
+
+
+def test_normalize_messages_for_provider_drops_tool_message_with_blank_tool_call_id():
+    messages = [
+        {
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [
+                {"id": "call_1", "name": "read_file", "arguments": {"path": "/tmp/demo.txt"}}
+            ],
+        },
+        {"role": "tool", "tool_call_id": " ", "content": "invalid"},
+        {"role": "tool", "tool_call_id": "call_1", "content": "ok"},
+    ]
+
+    normalized = normalize_messages_for_provider(messages, model="m")
+    assert len(normalized) == 2
+    assert normalized[-1]["tool_call_id"] == "call_1"
+
+
+def test_normalize_messages_for_provider_normalizes_openai_function_argument_shapes():
+    messages = [
+        {
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "call_dict",
+                    "type": "function",
+                    "function": {"name": "read_file", "arguments": {"path": "/tmp/demo.txt"}},
+                },
+                {
+                    "id": "call_none",
+                    "type": "function",
+                    "function": {"name": "wait", "arguments": None},
+                },
+            ],
+        },
+        {"role": "tool", "tool_call_id": "call_dict", "content": "ok"},
+        {"role": "tool", "tool_call_id": "call_none", "content": "ok"},
+    ]
+
+    normalized = normalize_messages_for_provider(messages, model="m")
+    assistant_calls = normalized[0]["tool_calls"]
+    assert assistant_calls[0]["function"]["arguments"] == "{\"path\":\"/tmp/demo.txt\"}"
+    assert assistant_calls[1]["function"]["arguments"] == "{}"
+    assert normalized[1]["tool_call_id"] == "call_dict"
+    assert normalized[2]["tool_call_id"] == "call_none"
 
 
 def test_normalize_tool_arguments_rejects_non_object_json():
