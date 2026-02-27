@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 
 import ChatGptDashboardShell from '../../frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell';
 
@@ -216,18 +216,16 @@ describe('ChatGptDashboardShell', () => {
     await renderDashboardShell();
 
     fireEvent.click(await screen.findByRole('button', { name: 'Fix Ubuntu mic settings' }));
-
-    await waitFor(() => {
-      const getConversationCall = mockInvoke.mock.calls.find(
-        ([channel]) => channel === 'get-conversation',
-      );
-      expect(getConversationCall).toBeDefined();
-      expect(getConversationCall?.[1]).toEqual(
-        expect.objectContaining({
-          conversationId: 'conv-history-1',
-        }),
-      );
-    });
+    await flushMicrotasks();
+    const getConversationCall = mockInvoke.mock.calls.find(
+      ([channel]) => channel === 'get-conversation',
+    );
+    expect(getConversationCall).toBeDefined();
+    expect(getConversationCall?.[1]).toEqual(
+      expect.objectContaining({
+        conversationId: 'conv-history-1',
+      }),
+    );
 
     expect(mockSendRehydrateConversation).toHaveBeenCalledWith('conv-history-1', []);
     expect(mockSetActiveConversationRef).toHaveBeenCalledWith('conv-history-1');
@@ -328,16 +326,14 @@ describe('ChatGptDashboardShell', () => {
 
       fireEvent.click(await screen.findByRole('button', { name: /Conversation actions for Mission Today/i }));
       fireEvent.click(screen.getByRole('menuitem', { name: 'Delete' }));
-
-      await waitFor(() => {
-        expect(mockInvoke).toHaveBeenCalledWith(
-          'delete-conversation',
-          expect.objectContaining({
-            conversationId: 'conv-delete-1',
-            recordKind: 'transcript',
-          }),
-        );
-      });
+      await flushMicrotasks();
+      expect(mockInvoke).toHaveBeenCalledWith(
+        'delete-conversation',
+        expect.objectContaining({
+          conversationId: 'conv-delete-1',
+          recordKind: 'transcript',
+        }),
+      );
     } finally {
       confirmSpy.mockRestore();
     }
@@ -347,13 +343,11 @@ describe('ChatGptDashboardShell', () => {
     mockSessionInfo = { conversationRef: null, userId: null };
 
     await renderDashboardShell();
-
-    await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith(
-        'list-conversations',
-        expect.objectContaining({ userId: 'default_user' }),
-      );
-    });
+    await flushMicrotasks();
+    expect(mockInvoke).toHaveBeenCalledWith(
+      'list-conversations',
+      expect.objectContaining({ userId: 'default_user' }),
+    );
 
     mockInvoke.mockClear();
     mockSessionInfo = { conversationRef: null, userId: 'peter-bui' };
@@ -361,13 +355,11 @@ describe('ChatGptDashboardShell', () => {
     act(() => {
       window.dispatchEvent(new CustomEvent('transcript-session-update'));
     });
-
-    await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith(
-        'list-conversations',
-        expect.objectContaining({ userId: 'peter-bui' }),
-      );
-    });
+    await flushMicrotasks();
+    expect(mockInvoke).toHaveBeenCalledWith(
+      'list-conversations',
+      expect.objectContaining({ userId: 'peter-bui' }),
+    );
   });
 
   test('reloads recent chats after assistant llm transcript entry is stored', async () => {
@@ -410,14 +402,12 @@ describe('ChatGptDashboardShell', () => {
         },
       }));
     });
-
-    await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith(
-        'list-conversations',
-        expect.objectContaining({ userId: 'default_user' }),
-      );
-      expect(screen.getByRole('button', { name: 'How are you' })).toBeInTheDocument();
-    });
+    await flushMicrotasks();
+    expect(mockInvoke).toHaveBeenCalledWith(
+      'list-conversations',
+      expect.objectContaining({ userId: 'default_user' }),
+    );
+    expect(screen.getByRole('button', { name: 'How are you' })).toBeInTheDocument();
   });
 
   test('plays dashboard open animation on mount and when window becomes visible again', async () => {
@@ -440,10 +430,8 @@ describe('ChatGptDashboardShell', () => {
           onConfigChange={jest.fn()}
         />,
       );
-
-      await waitFor(() => {
-        expect(mockInvoke).toHaveBeenCalled();
-      });
+      await flushMicrotasks();
+      expect(mockInvoke).toHaveBeenCalled();
 
       const shell = container.querySelector('.cg-dashboard-shell');
       expect(shell).toBeTruthy();
