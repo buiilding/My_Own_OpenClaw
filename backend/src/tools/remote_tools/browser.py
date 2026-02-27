@@ -66,7 +66,7 @@ File-edit payload guidance:
 Compatibility validation notes:
 - snapshot rejects compatibility fields `format`/`snapshotFormat`/`wait_until`/`state`/`mode`/`max_chars`/`refs`/`interactive`/`compact`/`depth`/`selector`/`frame`
 - extract rejects compatibility fields `mode`/`selector`/`frame`
-- screenshot rejects compatibility fields `full_page`/`ref`/`element`/`type`/`quality`"""
+- screenshot supports Browser Use-native parameters (for WindieOS this is currently optional `file_name`)"""
     args_model = BrowserControlArgs
     category = ToolDomain.BROWSER
 
