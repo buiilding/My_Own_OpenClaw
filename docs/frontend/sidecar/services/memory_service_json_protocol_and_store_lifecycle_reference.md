@@ -93,7 +93,7 @@ Behavior:
 
 1. format content with `format_interaction_memory(user_query, assistant_response)`
 2. build metadata with `build_interaction_metadata(memory_type, session_id)`
-3. persist via `memory_store.add(..., conversation_id=session_id)`
+3. persist via `memory_store.add(..., conversation_id=session_id, record_kind="interaction")`
 4. return `memory_id` and stored type
 
 ## Main Loop and Framing
