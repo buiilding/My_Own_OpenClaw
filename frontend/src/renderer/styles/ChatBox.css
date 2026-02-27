@@ -29,6 +29,11 @@ body {
   animation: none;
 }
 
+.chatbox-input-shell-wrap.is-layout-pending {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .chatbox-input-shell-wrap .chatbox-shell {
   padding-top: 4px;
 }
@@ -39,6 +44,11 @@ body {
 
 .chatbox-input-shell-wrap .chatbox-image-preview-row {
   padding-top: 4px;
+}
+
+.chatbox-input-shell-wrap .chatbox-pill.has-preview {
+  padding-top: 14px;
+  gap: 8px;
 }
 
 .chatbox-shell-wrap.has-response-pill {

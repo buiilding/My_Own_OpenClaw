@@ -130,6 +130,8 @@ function ChatBox() {
   const [clipboardImages, setClipboardImages] = useState([]);
   const [isCapturingScreenshot, setIsCapturingScreenshot] = useState(false);
   const ignoreMouseRef = useRef(undefined);
+  const layoutPendingClearedRef = useRef(false);
+  const shellWrapRef = useRef(null);
   const shellRef = useRef(null);
   const inputRef = useRef(null);
   const lastSizeRef = useRef({ width: 0, height: 0 });
@@ -233,6 +235,13 @@ function ChatBox() {
     const cancelFrame = typeof window.cancelAnimationFrame === 'function'
       ? window.cancelAnimationFrame.bind(window)
       : (handle) => window.clearTimeout(handle);
+    const markLayoutReady = () => {
+      if (layoutPendingClearedRef.current) {
+        return;
+      }
+      layoutPendingClearedRef.current = true;
+      shellWrapRef.current?.classList?.remove('is-layout-pending');
+    };
 
     const flushSizeUpdate = async (nextFrame) => {
       const widthDelta = Math.abs((lastSizeRef.current.width || 0) - nextFrame.width);
@@ -260,6 +269,7 @@ function ChatBox() {
       } catch (error) {
         console.warn('[ChatBox] Failed to resize chatbox window:', error);
       } finally {
+        markLayoutReady();
         resizeSyncState.inFlight = false;
         if (resizeSyncState.queuedSize) {
           const queuedSize = resizeSyncState.queuedSize;
@@ -581,12 +591,16 @@ function ChatBox() {
     event.preventDefault();
   }, []);
   const isLoopActive = LOOP_ACTIVE_PHASES.has(streamPhase) || LOOP_ACTIVE_PHASES.has(overlayPhase);
+  const showPreviewRow = clipboardImages.length > 0;
 
   return (
-    <div className={`chatbox-shell-wrap chatbox-input-shell-wrap${isLoopActive ? ' loop-active' : ''}`}>
+    <div
+      ref={shellWrapRef}
+      className={`chatbox-shell-wrap chatbox-input-shell-wrap is-layout-pending${isLoopActive ? ' loop-active' : ''}`}
+    >
       <div className="chatbox-shell" ref={shellRef}>
-        <form className="chatbox-pill" onSubmit={handleSubmit} onMouseDown={handlePillMouseDown}>
-          {clipboardImages.length > 0 ? (
+        <form className={`chatbox-pill${showPreviewRow ? ' has-preview' : ''}`} onSubmit={handleSubmit} onMouseDown={handlePillMouseDown}>
+          {showPreviewRow ? (
             <div className="chatbox-image-preview-row">
               {clipboardImages.map((clipboardImage, index) => (
                 <div className="chatbox-image-preview-card" key={clipboardImage.id || index}>
