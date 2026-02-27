@@ -1,9 +1,3 @@
-/**
- * useChatStream Hook.
- * Handles streaming message responses from backend.
- * Manages LLM thoughts, streaming chunks, and completion states.
- */
-
 import { useCallback, useEffect, useMemo } from 'react';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import {
@@ -14,7 +8,6 @@ import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import {
   getActiveConversationRef,
   recordAssistantMessage,
-  recordToolMessage,
   updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
 import {
@@ -41,21 +34,11 @@ import {
 } from '../../../types/backendEvents';
 import {
   buildThinkingStatus,
-  formatToolBundlePayload,
-  formatToolCallPayload,
-  formatToolOutputText,
-  resolveModelFacingToolCall,
 } from '../utils/chatStreamFormatting';
-import {
-  buildToolBundleMessage,
-  buildToolCallMessage,
-  buildToolOutputMessage,
-} from '../utils/chatStreamToolMessages';
 import {
   buildScreenshotAttachment,
   buildScreenshotAttachments,
   resolveErrorText,
-  resolveToolOutputCorrelationId,
   shouldIgnoreStreamError,
 } from '../utils/chatStreamEventUtils';
 import {
@@ -75,37 +58,17 @@ import {
   shouldIgnoreEventForActiveConversation,
 } from '../utils/chatStreamConversationGate';
 import { resolveThinkingCapabilities } from '../utils/modelThinkingCapabilities';
+import {
+  COMPACTION_THINKING_STATUS,
+  GENERIC_THINKING_STATUS,
+  normalizePersistedThinkingStatus,
+} from '../utils/chatStreamThinkingStatus';
+import { type TranscriptModelContext } from '../utils/chatStreamTypes';
 import { useChatCommonActions } from './useChatCommonActions';
 import { useStreamMessageUpdaters } from './useStreamMessageUpdaters';
+import { useChatStreamToolHandlers } from './useChatStreamToolHandlers';
 import { useLatestRef } from '../../../infrastructure/hooks/useLatestRef';
 
-type TranscriptModelContext = {
-  modelId: string | null;
-  modelProvider: string | null;
-  supportsThinking: boolean;
-  supportsThinkingTextStream: boolean;
-};
-
-const COMPACTION_THINKING_STATUS = 'Compacting conversation history...';
-const GENERIC_THINKING_STATUS = 'Thinking...';
-
-function normalizePersistedThinkingStatus(
-  thinkingStatus: string | null,
-): string | null {
-  if (typeof thinkingStatus !== 'string') {
-    return null;
-  }
-  const trimmed = thinkingStatus.trim();
-  if (!trimmed || trimmed === GENERIC_THINKING_STATUS || trimmed === COMPACTION_THINKING_STATUS) {
-    return null;
-  }
-  return trimmed;
-}
-
-/**
- * Custom hook for managing streaming message responses.
- * Handles LLM thoughts, streaming chunks, and completion states.
- */
 export function useChatStream(enableTranscript: boolean = true) {
   const {
     addMessage,
@@ -287,115 +250,18 @@ export function useChatStream(enableTranscript: boolean = true) {
     recordTrackingEvent('context-compaction-failed', event.turn_ref);
   }, [clearCompactionThinkingStatus, recordTrackingEvent]);
 
-  const recordToolCallTranscript = useCallback((
-    text: string,
-    event: ToolCallEvent | ToolBundleEvent,
-    toolName: string,
-    correlationId: string | null | undefined,
-  ) => {
-    if (!enableTranscript) {
-      return;
-    }
-    const modelContext = modelContextRef.current;
-    recordToolMessage(text, {
-      messageType: 'tool-call',
-      toolName,
-      correlationId,
-      conversationRef: event.conversation_ref,
-      userId: event.user_id,
-      modelId: modelContext.modelId,
-      modelProvider: modelContext.modelProvider,
-    });
-  }, [enableTranscript, modelContextRef]);
-
-  const handleToolCall = useCallback((event: ToolCallEvent) => {
-    setThinkingStatus(null);
-    setThinkingSourceEventType(null);
-    const modelFacingToolCall = resolveModelFacingToolCall(event.payload);
-    const formattedText = formatToolCallPayload(event.payload);
-    const modelContext = modelContextRef.current;
-    addMessage(buildToolCallMessage(event, formattedText, modelContext, modelFacingToolCall));
-
-    recordTrackingEvent('tool-call', event.turn_ref, { toolCall: true });
-
-    const correlationId = event.payload?.correlation_id || event.payload?.request_id;
-
-    recordToolCallTranscript(
-      formattedText,
-      event,
-      event.payload?.tool_name || '',
-      correlationId,
-    );
-  }, [
-    addMessage,
-    modelContextRef,
-    recordToolCallTranscript,
-    setThinkingSourceEventType,
-    setThinkingStatus,
-    recordTrackingEvent,
-  ]);
-
-  const handleToolOutput = useCallback((event: ToolOutputEvent) => {
-    setThinkingStatus(null);
-    setThinkingSourceEventType(null);
-    const outputText = formatToolOutputText(event.payload);
-    const { screenshotRef, screenshotUrl } = buildScreenshotAttachment(event.payload?.screenshot_ref);
-    const modelContext = modelContextRef.current;
-    addMessage(buildToolOutputMessage(
-      event,
-      outputText,
-      modelContext,
-      screenshotRef,
-      screenshotUrl,
-    ));
-    recordTrackingEvent('tool-output', event.turn_ref, { toolOutput: true });
-
-    const correlationId = resolveToolOutputCorrelationId(event.payload, event.id) || undefined;
-
-    if (enableTranscript) {
-      recordToolMessage(outputText, {
-        messageType: 'tool-output',
-        toolName: event.payload?.tool_name,
-        correlationId,
-        conversationRef: event.conversation_ref,
-        userId: event.user_id,
-        screenshotRef,
-        modelId: modelContext.modelId,
-        modelProvider: modelContext.modelProvider,
-      });
-    }
-  }, [
-    addMessage,
+  const {
+    handleToolCall,
+    handleToolOutput,
+    handleToolBundle,
+  } = useChatStreamToolHandlers({
     enableTranscript,
-    modelContextRef,
-    setThinkingSourceEventType,
-    setThinkingStatus,
-    recordTrackingEvent,
-  ]);
-
-  const handleToolBundle = useCallback((event: ToolBundleEvent) => {
-    setThinkingStatus(null);
-    setThinkingSourceEventType(null);
-    const formattedText = formatToolBundlePayload(event.payload);
-    const modelContext = modelContextRef.current;
-    addMessage(buildToolBundleMessage(event, formattedText, modelContext));
-
-    recordTrackingEvent('tool-bundle', event.turn_ref, { phase: 'tool-call', toolCall: true });
-
-    recordToolCallTranscript(
-      formattedText,
-      event,
-      'tool-bundle',
-      event.payload?.bundle_id,
-    );
-  }, [
     addMessage,
-    modelContextRef,
-    recordToolCallTranscript,
-    setThinkingSourceEventType,
     setThinkingStatus,
+    setThinkingSourceEventType,
+    modelContextRef,
     recordTrackingEvent,
-  ]);
+  });
 
   const handleSystemPrompt = useCallback((event: SystemPromptEvent) => {
     updateLastMessageBySender('user', {
