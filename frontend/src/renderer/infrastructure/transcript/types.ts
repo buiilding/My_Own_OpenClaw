@@ -3,12 +3,25 @@ export type SessionInfo = {
   userId: string | null;
 };
 
+export type TranscriptTransparencyData = {
+  systemPrompt?: string | null;
+  toolSchemas?: unknown[] | null;
+  fullUserMessage?: {
+    content?: string | null;
+    metadata?: Record<string, unknown> | null;
+  } | null;
+  fullAssistantMessage?: {
+    content?: string | null;
+  } | null;
+};
+
 export type PendingUserMessage = {
   text: string;
   screenshotRef?: string | null;
   timestamp?: string;
   modelId?: string | null;
   modelProvider?: string | null;
+  transparency?: TranscriptTransparencyData | null;
 };
 
 export type PendingToolMessage = {
@@ -19,6 +32,7 @@ export type PendingToolMessage = {
   modelId?: string | null;
   modelProvider?: string | null;
   screenshotRef?: string | null;
+  transparency?: TranscriptTransparencyData | null;
 };
 
 export type PendingAssistantMessage = {
@@ -27,6 +41,7 @@ export type PendingAssistantMessage = {
   modelId?: string | null;
   modelProvider?: string | null;
   screenshotRef?: string | null;
+  transparency?: TranscriptTransparencyData | null;
 };
 
 export type TranscriptEntry = {
@@ -41,4 +56,5 @@ export type TranscriptEntry = {
   modelId?: string | null;
   modelProvider?: string | null;
   screenshotRef?: string | null;
+  transparency?: TranscriptTransparencyData | null;
 };

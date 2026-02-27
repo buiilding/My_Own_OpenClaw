@@ -13,6 +13,7 @@ import type {
   PendingToolMessage,
   PendingUserMessage,
   SessionInfo,
+  TranscriptTransparencyData,
   TranscriptEntry,
 } from './types';
 
@@ -20,6 +21,56 @@ const sessionState = createTranscriptSessionState(readSessionInfoFromStorage);
 const pendingAssistantQueue = createPendingAssistantQueue();
 const pendingUserQueue = createPendingUserQueue();
 const pendingToolQueue = createPendingToolQueue();
+
+const normalizeOptionalString = (value: unknown): string | null => {
+  if (typeof value !== 'string') {
+    return null;
+  }
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : null;
+};
+
+const normalizeTransparencyData = (
+  transparency: TranscriptTransparencyData | null | undefined,
+): TranscriptTransparencyData | null => {
+  if (!transparency || typeof transparency !== 'object') {
+    return null;
+  }
+
+  const normalized: TranscriptTransparencyData = {};
+  const systemPrompt = normalizeOptionalString(transparency.systemPrompt);
+  if (systemPrompt) {
+    normalized.systemPrompt = systemPrompt;
+  }
+
+  if (Array.isArray(transparency.toolSchemas) && transparency.toolSchemas.length > 0) {
+    normalized.toolSchemas = [...transparency.toolSchemas];
+  }
+
+  const fullUserContent = normalizeOptionalString(transparency.fullUserMessage?.content);
+  const fullUserMetadata = (
+    transparency.fullUserMessage?.metadata
+    && typeof transparency.fullUserMessage.metadata === 'object'
+    && !Array.isArray(transparency.fullUserMessage.metadata)
+  )
+    ? { ...transparency.fullUserMessage.metadata }
+    : null;
+  if (fullUserContent || fullUserMetadata) {
+    normalized.fullUserMessage = {
+      content: fullUserContent || undefined,
+      metadata: fullUserMetadata || undefined,
+    };
+  }
+
+  const fullAssistantContent = normalizeOptionalString(transparency.fullAssistantMessage?.content);
+  if (fullAssistantContent) {
+    normalized.fullAssistantMessage = {
+      content: fullAssistantContent,
+    };
+  }
+
+  return Object.keys(normalized).length > 0 ? normalized : null;
+};
 
 const sessionInfoChanged = (previous: SessionInfo, next: SessionInfo): boolean => (
   previous.conversationRef !== next.conversationRef
@@ -87,6 +138,7 @@ const flushPendingMessages = async () => {
       modelId: message.modelId,
       modelProvider: message.modelProvider,
       screenshotRef: message.screenshotRef,
+      transparency: message.transparency,
     }),
     (messages) => requeuePending(messages, pendingUserQueue.enqueue),
     'user',
@@ -105,6 +157,7 @@ const flushPendingMessages = async () => {
       modelId: message.modelId,
       modelProvider: message.modelProvider,
       screenshotRef: message.screenshotRef,
+      transparency: message.transparency,
     }),
     (messages) => requeuePending(messages, pendingAssistantQueue.enqueue),
     'assistant',
@@ -125,6 +178,7 @@ const flushPendingMessages = async () => {
       modelId: message.modelId,
       modelProvider: message.modelProvider,
       screenshotRef: message.screenshotRef,
+      transparency: message.transparency,
     }),
     (messages) => requeuePending(messages, pendingToolQueue.enqueue),
     'tool',
@@ -138,6 +192,7 @@ const queueUserMessageForRetry = (
     modelId?: string | null;
     modelProvider?: string | null;
     screenshotRef?: string | null;
+    transparency?: TranscriptTransparencyData | null;
   } = {},
 ) => {
   pendingUserQueue.enqueue({
@@ -146,6 +201,7 @@ const queueUserMessageForRetry = (
     modelId: options.modelId,
     modelProvider: options.modelProvider,
     screenshotRef: options.screenshotRef,
+    transparency: options.transparency,
   });
 };
 
@@ -156,6 +212,7 @@ const queueAssistantMessageForRetry = (
     modelId?: string | null;
     modelProvider?: string | null;
     screenshotRef?: string | null;
+    transparency?: TranscriptTransparencyData | null;
   } = {},
 ) => {
   pendingAssistantQueue.enqueue({
@@ -164,6 +221,7 @@ const queueAssistantMessageForRetry = (
     modelId: options.modelId,
     modelProvider: options.modelProvider,
     screenshotRef: options.screenshotRef,
+    transparency: options.transparency,
   });
 };
 
@@ -176,6 +234,7 @@ const queueToolMessageForRetry = (
     modelId?: string | null;
     modelProvider?: string | null;
     screenshotRef?: string | null;
+    transparency?: TranscriptTransparencyData | null;
   },
 ) => {
   pendingToolQueue.enqueue({
@@ -186,6 +245,7 @@ const queueToolMessageForRetry = (
     modelId: options.modelId,
     modelProvider: options.modelProvider,
     screenshotRef: options.screenshotRef,
+    transparency: options.transparency,
   });
 };
 
@@ -220,6 +280,7 @@ type TranscriptRecordContextOptions = TranscriptSessionResolveOptions & {
   modelId?: string | null;
   modelProvider?: string | null;
   screenshotRef?: string | null;
+  transparency?: TranscriptTransparencyData | null;
 };
 
 const resolveSessionInfoFromOptions = (
@@ -296,8 +357,16 @@ export const recordUserMessage = (
     modelId,
     modelProvider,
     screenshotRef,
+    transparency,
   } = options;
-  const retryOptions = { timestamp, modelId, modelProvider, screenshotRef };
+  const normalizedTransparency = normalizeTransparencyData(transparency);
+  const retryOptions = {
+    timestamp,
+    modelId,
+    modelProvider,
+    screenshotRef,
+    transparency: normalizedTransparency,
+  };
   const queueForRetry = () => queueUserMessageForRetry(text, retryOptions);
   const info = resolveSessionInfoOrQueue(
     { conversationRef, sessionId, userId },
@@ -315,6 +384,7 @@ export const recordUserMessage = (
     modelId,
     modelProvider,
     screenshotRef,
+    transparency: normalizedTransparency,
     conversationRef: info.conversationRef,
     userId: info.userId,
   }, queueForRetry, '[TranscriptWriter] Failed to store immediate user transcript entry; queued for retry');
@@ -330,11 +400,13 @@ export const recordAssistantMessage = (
     return;
   }
   const messageType = options.messageType || 'llm-text';
+  const normalizedTransparency = normalizeTransparencyData(options.transparency);
   const retryOptions = {
     messageType,
     modelId: options.modelId,
     modelProvider: options.modelProvider,
     screenshotRef: options.screenshotRef,
+    transparency: normalizedTransparency,
   };
   const queueForRetry = () => queueAssistantMessageForRetry(text, retryOptions);
   const info = resolveSessionInfoOrQueue(options, queueForRetry);
@@ -349,6 +421,7 @@ export const recordAssistantMessage = (
     modelId: options.modelId,
     modelProvider: options.modelProvider,
     screenshotRef: options.screenshotRef,
+    transparency: normalizedTransparency,
     conversationRef: info.conversationRef,
     userId: info.userId,
   }, queueForRetry, '[TranscriptWriter] Failed to store immediate assistant transcript entry; queued for retry');
@@ -372,6 +445,7 @@ export const recordToolMessage = (
     modelId: options.modelId,
     modelProvider: options.modelProvider,
     screenshotRef: options.screenshotRef,
+    transparency: normalizeTransparencyData(options.transparency),
   };
   const queueForRetry = () => queueToolMessageForRetry(text, retryOptions);
   const info = resolveSessionInfoOrQueue(options, queueForRetry);
@@ -388,6 +462,7 @@ export const recordToolMessage = (
     modelId: options.modelId,
     modelProvider: options.modelProvider,
     screenshotRef: options.screenshotRef,
+    transparency: retryOptions.transparency,
     conversationRef: info.conversationRef,
     userId: info.userId,
   }, queueForRetry, '[TranscriptWriter] Failed to store immediate tool transcript entry; queued for retry');
@@ -414,6 +489,7 @@ const storeTranscriptEntry = async (entry: TranscriptEntry) => {
     modelProvider: entry.modelProvider,
     screenshot: entry.screenshotRef,
     timestamp: entry.timestamp,
+    ...(entry.transparency ? { transparency: entry.transparency } : {}),
   });
   emitTranscriptEntryStoredEvent(entry, info);
 };

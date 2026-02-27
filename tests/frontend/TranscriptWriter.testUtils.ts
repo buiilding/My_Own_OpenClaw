@@ -16,6 +16,7 @@ type StoreTranscriptPayload = {
   modelProvider?: string;
   screenshot?: string;
   timestamp?: string;
+  transparency?: Record<string, unknown>;
 };
 
 export function loadTranscriptWriter() {
@@ -68,7 +69,9 @@ export function expectStoreTranscriptCall(
   invokeMock: jest.Mock,
   payload: ReturnType<typeof createStoreTranscriptPayload>,
 ) {
-  expect(invokeMock).toHaveBeenCalledWith('store-transcript', payload);
+  const call = invokeMock.mock.calls.find((args) => args[0] === 'store-transcript');
+  expect(call).toBeDefined();
+  expect(call?.[1]).toEqual(payload);
 }
 
 export function expectNthStoreTranscriptCall(
@@ -76,7 +79,10 @@ export function expectNthStoreTranscriptCall(
   callIndex: number,
   payload: ReturnType<typeof createStoreTranscriptPayload>,
 ) {
-  expect(invokeMock).toHaveBeenNthCalledWith(callIndex, 'store-transcript', payload);
+  const call = invokeMock.mock.calls[callIndex - 1];
+  expect(call).toBeDefined();
+  expect(call?.[0]).toBe('store-transcript');
+  expect(call?.[1]).toEqual(payload);
 }
 
 export function setupStoreFailureRetry(invokeMock: jest.Mock, errorMessage = 'store failed') {

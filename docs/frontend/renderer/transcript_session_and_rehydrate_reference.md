@@ -83,6 +83,11 @@ Stored fields include:
 - `conversationRef`, `userId`
 - optional `modelId`, `modelProvider`, `timestamp`
 - screenshot ref under IPC key `screenshot`
+- optional `transparency` object snapshot (when available on assistant turns):
+  - `systemPrompt`
+  - `toolSchemas`
+  - `fullUserMessage`
+  - `fullAssistantMessage`
 
 ## Queue and Retry Semantics
 
@@ -137,6 +142,7 @@ Flush behavior (`flushPendingMessages`):
 2. load selected conversation transcript rows via `loadConversationTranscriptMemories(...)` (cursor-paginated `get-conversation`)
 3. parse rows to chat messages (`parseMemoriesToMessages`)
 4. send backend rehydrate payload (`ApiClient.sendRehydrateConversation`)
+   - `toRehydrateMessagePayload(...)` appends persisted `transparency` snapshots to rehydrate `content` so resumed/manual compaction runs see saved prompt/tool-schema/full-message context.
 5. set active transcript conversation/session info
 6. replace renderer chat store with parsed rows
 

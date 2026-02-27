@@ -1,6 +1,7 @@
 import {
   DEFAULT_USER_ID,
   parseMemoriesToMessages,
+  toRehydrateMessagePayload,
 } from '../../frontend/src/renderer/features/dashboard/utils/episodicMemoryUtils';
 
 describe('episodicMemoryUtils', () => {
@@ -189,5 +190,46 @@ describe('episodicMemoryUtils', () => {
         isComplete: true,
       },
     ]);
+  });
+
+  test('toRehydrateMessagePayload appends saved transparency context to content', () => {
+    const payload = toRehydrateMessagePayload({
+      role: 'assistant',
+      content: 'assistant reply',
+      metadata: {
+        transparency: {
+          systemPrompt: 'System prompt text',
+          toolSchemas: [{ type: 'function', function: { name: 'read_file', parameters: { type: 'object' } } }],
+          fullUserMessage: {
+            content: '<user_query>hello</user_query>',
+            metadata: { source: 'user-message-full' },
+          },
+          fullAssistantMessage: {
+            content: 'raw assistant completion',
+          },
+        },
+      },
+    });
+
+    expect(payload.content).toContain('assistant reply');
+    expect(payload.content).toContain('[Saved System Prompt]');
+    expect(payload.content).toContain('System prompt text');
+    expect(payload.content).toContain('[Saved Tool Schemas]');
+    expect(payload.content).toContain('"name":"read_file"');
+    expect(payload.content).toContain('[Saved Full User Message]');
+    expect(payload.content).toContain('<user_query>hello</user_query>');
+    expect(payload.content).toContain('[Saved Full User Metadata]');
+    expect(payload.content).toContain('"source":"user-message-full"');
+    expect(payload.content).toContain('[Saved Full Assistant Message]');
+    expect(payload.content).toContain('raw assistant completion');
+  });
+
+  test('toRehydrateMessagePayload keeps content unchanged when transparency metadata is absent', () => {
+    const payload = toRehydrateMessagePayload({
+      role: 'assistant',
+      content: 'plain content',
+      metadata: {},
+    });
+    expect(payload.content).toBe('plain content');
   });
 });

@@ -114,6 +114,94 @@ function parseMemoryContent(memory) {
   return [{ sender: 'assistant', text: content, type: 'llm-text', modelProvider, modelId }];
 }
 
+function resolveTranscriptTransparency(memory) {
+  const metadata = (
+    memory?.metadata
+    && typeof memory.metadata === 'object'
+    && !Array.isArray(memory.metadata)
+  ) ? memory.metadata : {};
+  const rawTransparency = (
+    metadata.transparency
+    && typeof metadata.transparency === 'object'
+    && !Array.isArray(metadata.transparency)
+  ) ? metadata.transparency : null;
+  if (!rawTransparency) {
+    return null;
+  }
+
+  const transparency = {};
+  const systemPrompt = normalizeOptionalString(rawTransparency.systemPrompt);
+  if (systemPrompt) {
+    transparency.systemPrompt = systemPrompt;
+  }
+  if (Array.isArray(rawTransparency.toolSchemas) && rawTransparency.toolSchemas.length > 0) {
+    transparency.toolSchemas = rawTransparency.toolSchemas;
+  }
+  const fullUserContent = normalizeOptionalString(rawTransparency?.fullUserMessage?.content);
+  const fullUserMetadata = (
+    rawTransparency?.fullUserMessage?.metadata
+    && typeof rawTransparency.fullUserMessage.metadata === 'object'
+    && !Array.isArray(rawTransparency.fullUserMessage.metadata)
+  ) ? rawTransparency.fullUserMessage.metadata : null;
+  if (fullUserContent || fullUserMetadata) {
+    transparency.fullUserMessage = {
+      content: fullUserContent || undefined,
+      metadata: fullUserMetadata || undefined,
+    };
+  }
+  const fullAssistantContent = normalizeOptionalString(rawTransparency?.fullAssistantMessage?.content);
+  if (fullAssistantContent) {
+    transparency.fullAssistantMessage = {
+      content: fullAssistantContent,
+    };
+  }
+
+  return Object.keys(transparency).length > 0 ? transparency : null;
+}
+
+function appendTransparencyForRehydrate(content, transparency) {
+  if (!transparency || typeof transparency !== 'object') {
+    return content;
+  }
+
+  const sections = [];
+  if (typeof transparency.systemPrompt === 'string' && transparency.systemPrompt.trim()) {
+    sections.push(`[Saved System Prompt]\n${transparency.systemPrompt.trim()}`);
+  }
+  if (Array.isArray(transparency.toolSchemas) && transparency.toolSchemas.length > 0) {
+    try {
+      sections.push(`[Saved Tool Schemas]\n${JSON.stringify(transparency.toolSchemas)}`);
+    } catch (_error) {
+      // Ignore non-serializable schema data for rehydrate augmentation.
+    }
+  }
+  const fullUserContent = normalizeOptionalString(transparency?.fullUserMessage?.content);
+  if (fullUserContent) {
+    sections.push(`[Saved Full User Message]\n${fullUserContent}`);
+  }
+  if (
+    transparency?.fullUserMessage?.metadata
+    && typeof transparency.fullUserMessage.metadata === 'object'
+    && !Array.isArray(transparency.fullUserMessage.metadata)
+  ) {
+    try {
+      sections.push(`[Saved Full User Metadata]\n${JSON.stringify(transparency.fullUserMessage.metadata)}`);
+    } catch (_error) {
+      // Ignore non-serializable metadata for rehydrate augmentation.
+    }
+  }
+  const fullAssistantContent = normalizeOptionalString(transparency?.fullAssistantMessage?.content);
+  if (fullAssistantContent) {
+    sections.push(`[Saved Full Assistant Message]\n${fullAssistantContent}`);
+  }
+
+  if (sections.length === 0) {
+    return content;
+  }
+  const baseContent = typeof content === 'string' ? content : '';
+  return `${baseContent}\n\n${sections.join('\n\n')}`.trim();
+}
+
 export function parseMemoriesToMessages(memories) {
   return memories.flatMap((memory, index) => {
     const parts = parseMemoryContent(memory);
@@ -161,10 +249,11 @@ export function toRehydrateMessagePayload(memory) {
   const screenshotRef = memory?.screenshot_ref
     || metadata?.screenshot_ref
     || (!screenshotInline && typeof rawScreenshot === 'string' ? rawScreenshot : null);
+  const transparency = resolveTranscriptTransparency(memory);
 
   return {
     role,
-    content: memory?.content || '',
+    content: appendTransparencyForRehydrate(memory?.content || '', transparency),
     message_type: messageType,
     tool_name: memory?.tool_name || metadata?.tool_name || null,
     correlation_id: memory?.correlation_id || metadata?.correlation_id || null,

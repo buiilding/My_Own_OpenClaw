@@ -4,6 +4,7 @@ Memory-specific handler mixin for LocalBackend JSON-RPC service.
 
 from __future__ import annotations
 
+import json
 import logging
 from functools import wraps
 from typing import Any, Awaitable, Callable, Dict, Optional
@@ -36,6 +37,20 @@ def requires_memory_store(
 
 class LocalBackendMemoryHandlersMixin:
     """Memory RPC handlers shared by the local backend service."""
+
+    @staticmethod
+    def _normalize_transcript_transparency(
+        transparency: Optional[Dict[str, Any]],
+    ) -> Optional[Dict[str, Any]]:
+        """Validate transcript transparency payload is JSON-serializable object data."""
+        if not isinstance(transparency, dict):
+            return None
+        try:
+            json.dumps(transparency)
+        except (TypeError, ValueError):
+            logger.warning("Dropping non-serializable transcript transparency payload")
+            return None
+        return dict(transparency)
 
     @staticmethod
     def _is_semantic_transcript_candidate(
@@ -376,6 +391,7 @@ class LocalBackendMemoryHandlersMixin:
         model_provider: Optional[str] = None,
         screenshot: Optional[str] = None,
         timestamp: Optional[str] = None,
+        transparency: Optional[Dict[str, Any]] = None,
         **kwargs,
     ) -> Dict[str, Any]:
         """Store a transcript entry with selective embeddings for recall/summarization."""
@@ -400,6 +416,9 @@ class LocalBackendMemoryHandlersMixin:
                 metadata["tool_name"] = tool_name
             if correlation_id:
                 metadata["correlation_id"] = correlation_id
+            normalized_transparency = self._normalize_transcript_transparency(transparency)
+            if normalized_transparency is not None:
+                metadata["transparency"] = normalized_transparency
 
             if message_index is None:
                 message_index = await self.memory_store.get_next_message_index(

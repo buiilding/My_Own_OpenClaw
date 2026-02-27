@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(transcript-transparency-rehydrate): persist prompt/transparency snapshots (`systemPrompt`, `toolSchemas`, `fullUserMessage`, `fullAssistantMessage`) on transcript writes and inject them into rehydrate payload content so manual compaction on past chats has full saved context instead of only visible message text.
 - fix(frontend-compaction-optimistic-paint): render manual compaction `Compacting...` status for at least one paint frame before transcript rehydrate fetch starts, ensuring immediate visual feedback right after pressing the dashboard dev compaction button.
 - fix(backend-manual-compaction-short-history): allow manual compaction runs to summarize/compact even when the normal recent-user split would previously return `insufficient-history`, so dev manual compaction tests can run against short conversations.
 - fix(backend-compaction-feedback): emit `context-compaction-failed` (instead of generic `error`) when manual compaction is requested during an active query, and add explicit compact-history request/result backend logs so electron-dev terminal shows compaction flow responses.
