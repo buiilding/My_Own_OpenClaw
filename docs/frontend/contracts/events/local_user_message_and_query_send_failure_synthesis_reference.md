@@ -39,6 +39,7 @@ Event shape:
 - payload fields:
   - `text`
   - `screenshot_ref` (nullable)
+  - `screenshot_refs` (nullable array; multi-image compatibility path)
   - `screenshot_url` (nullable)
   - `timestamp` (ISO)
   - `session_id`
@@ -91,7 +92,7 @@ The optimistic user message is emitted before send attempt, so send failures can
 
 `local-user-message` is part of typed `BackendEventType` union and is handled by `useChatStream`:
 
-- adds user chat row with optional screenshot refs
+- adds user chat row with optional screenshot refs (`screenshot_refs[]` first, fallback `screenshot_ref`)
 - resets stream-tracking for new turn (`awaiting-first-chunk`, `resetForTurn`)
 
 Synthetic send-failure `error` events are handled through normal error path unless filtered by `shouldIgnoreStreamError(...)`.
@@ -99,9 +100,10 @@ Synthetic send-failure `error` events are handled through normal error path unle
 ## Drift Hotspots
 
 1. helper emits `local-user-message` payload keys not reflected in renderer type definitions
-2. query send-failure text changed and downstream status/error heuristics rely on exact string fragments
-3. fallback user-id policy modified, causing unexpected null/non-null context behavior
-4. conversation-ref resolution changed, breaking active-conversation filtering
+2. multi-image payload omitted (`screenshot_refs`) while query payload includes it
+3. query send-failure text changed and downstream status/error heuristics rely on exact string fragments
+4. fallback user-id policy modified, causing unexpected null/non-null context behavior
+5. conversation-ref resolution changed, breaking active-conversation filtering
 
 ## Debug Checklist
 
