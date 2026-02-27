@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-compaction-optimistic-paint): render manual compaction `Compacting...` status for at least one paint frame before transcript rehydrate fetch starts, ensuring immediate visual feedback right after pressing the dashboard dev compaction button.
 - fix(backend-manual-compaction-short-history): allow manual compaction runs to summarize/compact even when the normal recent-user split would previously return `insufficient-history`, so dev manual compaction tests can run against short conversations.
 - fix(backend-compaction-feedback): emit `context-compaction-failed` (instead of generic `error`) when manual compaction is requested during an active query, and add explicit compact-history request/result backend logs so electron-dev terminal shows compaction flow responses.
 - fix(frontend-compaction-dashboard-flow): allow dashboard `Run auto compaction` while a stream is active and bypass conversation-mismatch event gating for `context-compaction-started|completed|failed` so resumed/past-thread manual compaction always shows lifecycle status updates.
