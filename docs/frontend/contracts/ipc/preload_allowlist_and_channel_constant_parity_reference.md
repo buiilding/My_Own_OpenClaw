@@ -53,6 +53,7 @@ Shared names in preload + `INVOKE_CHANNELS`:
 - `list-episodic-memories`
 - `get-conversation`
 - `list-semantic-memories`
+- `delete-episodic-memory`
 - `delete-conversation`
 - `delete-semantic-memory`
 - `store-transcript`
@@ -62,6 +63,7 @@ Shared names in preload + `INVOKE_CHANNELS`:
 - `show-main-window` (optional payload `{ open?: 'chat' | 'memory' | 'models' | 'settings', maximize?: boolean }`)
 - `show-chatbox`
 - `hide-chatbox`
+- `prepare-overlay-tool-focus`
 - `get-displays`
 - `load-frontend-config`
 - `save-frontend-config`
@@ -89,6 +91,7 @@ Shared names in preload + `ON_CHANNELS`:
 - `wakeword-detected`
 - `wakeword-status`
 - `wakeword-toggle`
+- `wakeword-stt-trigger`
 - `chatbox-focus`
 - `main-window-open-target`
 - `response-overlay-phase`

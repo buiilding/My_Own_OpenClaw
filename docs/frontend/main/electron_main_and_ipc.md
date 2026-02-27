@@ -47,6 +47,7 @@ Responsibilities:
 Main modules:
 
 - `frontend/src/main/ipc.cjs`
+- `frontend/src/main/ipc_settings_sync.cjs`
 - `frontend/src/main/ipc_runtime_helpers.cjs`
 - `frontend/src/main/ipc_renderer_windows.cjs`
 - `frontend/src/main/ipc_query_broadcast.cjs`
@@ -63,6 +64,7 @@ Responsibilities:
 Split boundary:
 
 - `ipc.cjs` owns lifecycle orchestration and IPC handler registration.
+- `ipc_settings_sync.cjs` owns settings ACK wait/resolve/timeout primitives for first-query gating.
 - helper modules own event processing, renderer-window fan-out, and synthetic query event broadcast paths.
 - See [IPC Helper Module Split and Runtime Boundary Reference](ipc_helper_module_split_and_runtime_boundary_reference.md) for per-module contract details.
 
@@ -137,9 +139,10 @@ From renderer usage perspective:
 
 - send channels: backend messaging, overlay window control, wakeword chunk/control
 - invoke channels: tool execution, artifact upload, memory CRUD/search, config load/save, window/display APIs
+- invoke channels include overlay tool-focus prep (`prepare-overlay-tool-focus`) and explicit episodic memory delete (`delete-episodic-memory`).
 - invoke channels also include permission/status request channels and sudo access toggle:
   - `set-agent-sudo-access`
   - `list-permissions`, `check-permissions`, `check-permission`, `run-permission-probe`, `request-permission`
-- on channels: backend stream events, connection status, wakeword events, overlay phase updates
+- on channels: backend stream events, connection status, wakeword events (including `wakeword-stt-trigger`), overlay phase updates
 
 Canonical constants are in renderer infra (`frontend/src/renderer/infrastructure/ipc/channels.ts`) and must stay aligned with main-process handlers.

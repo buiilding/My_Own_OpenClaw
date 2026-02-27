@@ -11,6 +11,7 @@ title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 ## Canonical Modules
 
 - `frontend/src/main/ipc.cjs`
+- `frontend/src/main/ipc_settings_sync.cjs`
 - `frontend/src/main/ipc_runtime_helpers.cjs`
 - `frontend/src/main/ipc_renderer_windows.cjs`
 - `frontend/src/main/ipc_query_broadcast.cjs`
@@ -31,6 +32,7 @@ Main-process handler registration is split by responsibility:
 
 - transport/backend relay orchestration and config persistence: `ipc.cjs`
 - relay helper ownership for message processing/fan-out/synthetic query events: `ipc_runtime_helpers.cjs`, `ipc_renderer_windows.cjs`, `ipc_query_broadcast.cjs`, `ipc_query_events.cjs`
+- settings ACK-gate helper ownership: `ipc_settings_sync.cjs`
 - window/overlay runtime control registration: `overlay_ipc_runtime.cjs` (wired by `index.cjs`)
 - chat/main window visibility transitions: `window_visibility_runtime.cjs` (called from `overlay_visibility_handler.cjs` + runtime hooks)
 - app lifecycle listener bootstrap: `main_process_lifecycle_runtime.cjs` (wired by `index.cjs`)
@@ -70,6 +72,7 @@ Notable behavior:
 - `show-main-window` (optional payload `{ open?: 'chat' | 'memory' | 'models' | 'settings', maximize?: boolean }`)
 - `show-chatbox`
 - `hide-chatbox`
+- `prepare-overlay-tool-focus`
 - `get-displays`
 - `window-minimize`
 - `window-toggle-maximize`
@@ -116,6 +119,7 @@ Mapped `ipcMain.handle` registrations via `registerMappedRpcHandlers(...)`:
 - `list-episodic-memories`
 - `get-conversation`
 - `list-semantic-memories`
+- `delete-episodic-memory`
 - `delete-conversation`
 - `delete-semantic-memory`
 - `store-memory`

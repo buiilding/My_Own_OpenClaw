@@ -32,6 +32,7 @@ Mapped handlers via `registerMappedRpcHandlers(registerRpcHandler, COMPILED_RPC_
 - `list-episodic-memories`
 - `get-conversation`
 - `list-semantic-memories`
+- `delete-episodic-memory`
 - `delete-conversation`
 - `delete-semantic-memory`
 - `store-memory`
@@ -129,6 +130,7 @@ Guarantee:
 - `list-episodic-memories` -> `list_episodic_memories` with `{ userId, limit } -> { user_id, limit }`
 - `get-conversation` -> `get_conversation` with `conversation_id = conversationId ?? null`
 - `list-semantic-memories` -> `list_semantic_memories` with `{ userId, limit } -> { user_id, limit }`
+- `delete-episodic-memory` -> `delete_episodic_memory` with `{ memoryId } -> { memory_id }`
 - `delete-conversation` -> `delete_conversation` with null-safe `conversation_id`
 - `delete-semantic-memory` -> `delete_semantic_memory` with `{ memoryId } -> { memory_id }`
 - `store-memory` -> `store_memory` with camelCase-to-snake_case memory write fields

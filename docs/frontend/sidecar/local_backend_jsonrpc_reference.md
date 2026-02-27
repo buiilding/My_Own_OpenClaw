@@ -68,6 +68,7 @@ Registered methods:
 - `list_episodic_memories`
 - `get_conversation`
 - `list_semantic_memories`
+- `delete_episodic_memory`
 - `delete_conversation`
 - `delete_semantic_memory`
 - `store_transcript`
@@ -100,6 +101,7 @@ From `local_backend_bridge_rpc_mappers.cjs`:
 - `list-episodic-memories` -> `list_episodic_memories`
 - `get-conversation` -> `get_conversation`
 - `list-semantic-memories` -> `list_semantic_memories`
+- `delete-episodic-memory` -> `delete_episodic_memory`
 - `delete-conversation` -> `delete_conversation`
 - `delete-semantic-memory` -> `delete_semantic_memory`
 - `store-memory` -> `store_memory`

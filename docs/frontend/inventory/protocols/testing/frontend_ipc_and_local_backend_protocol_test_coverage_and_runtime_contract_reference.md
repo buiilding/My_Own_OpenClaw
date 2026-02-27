@@ -135,6 +135,7 @@ This reflects current intent: runtime safety in preload, fast-fail ergonomics in
   - `list-semantic-memories`
   - `get-conversation`
   - `delete-conversation`
+  - `delete-episodic-memory`
   - `delete-semantic-memory`
   - `store-transcript`
   - `store-memory`
