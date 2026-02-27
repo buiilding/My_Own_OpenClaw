@@ -4,9 +4,9 @@ import { float32ToPcm16, normalizeScriptProcessorChunkSize } from '../utils/audi
 import {
   cleanupAudioCaptureNodes,
   closeAudioContextSafely,
-  type LegacyAudioProcessorNode,
   takeAudioContext,
 } from '../utils/audioCaptureCleanup';
+import { createAudioCaptureProcessorNode } from '../utils/audioProcessorNode';
 import {
   getChunkSizeWarning,
   isWithinCooldown,
@@ -133,29 +133,33 @@ export function useWakewordDetection(
       const sourceNode = audioContext.createMediaStreamSource(stream);
       setSourceNodeRef(sourceNode);
 
-      // Create ScriptProcessorNode for audio processing
-      const bufferSize = chunkSize;
-      const scriptNode = audioContext.createScriptProcessor(bufferSize, 1, 1) as unknown as LegacyAudioProcessorNode;
-      setScriptNodeRef(scriptNode);
+      const scriptNode = await createAudioCaptureProcessorNode({
+        audioContext,
+        sourceNode,
+        chunkSize,
+        onChunk: (inputData) => {
+          if (!isCapturingRef.current) {
+            return;
+          }
+          const int16Data = float32ToPcm16(inputData);
+          sendAudioChunk(int16Data);
+        },
+      });
 
-      scriptNode.onaudioprocess = (event) => {
-        if (!isCapturingRef.current) {
-          return;
+      if (generation !== captureGenerationRef.current) {
+        scriptNode.disconnect();
+        if (scriptNode.port) {
+          scriptNode.port.onmessage = null;
         }
+        if (scriptNode.onaudioprocess) {
+          scriptNode.onaudioprocess = null;
+        }
+        stream.getTracks().forEach(track => track.stop());
+        await closeAudioContextSafely(audioContext, logUnexpectedAudioContextCloseError);
+        return;
+      }
 
-        // Get audio data from input buffer
-        const inputData = event.inputBuffer.getChannelData(0);
-        
-        // Convert Float32Array to Int16Array
-        const int16Data = float32ToPcm16(inputData);
-        
-        // Send to main process
-        sendAudioChunk(int16Data);
-      };
-
-      // Connect the nodes
-      sourceNode.connect(scriptNode);
-      scriptNode.connect(audioContext.destination);
+      setScriptNodeRef(scriptNode);
 
       isCapturingRef.current = true;
     } catch (err: any) {
