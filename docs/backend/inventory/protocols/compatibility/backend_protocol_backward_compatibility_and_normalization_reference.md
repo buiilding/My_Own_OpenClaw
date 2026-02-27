@@ -8,7 +8,7 @@ title: "Backend Protocol Backward Compatibility and Normalization Reference"
 
 # Backend Protocol Backward Compatibility and Normalization Reference
 
-## Coverage Snapshot (2026-02-26)
+## Coverage Snapshot (2026-02-27)
 
 - Compatibility-focused test files: `3`
 - Total test cases across listed files: `44`

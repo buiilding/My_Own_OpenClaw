@@ -8,7 +8,7 @@ title: "Backend WebSocket Protocol Test Coverage and Runtime Contract Reference"
 
 # Backend WebSocket Protocol Test Coverage and Runtime Contract Reference
 
-## Coverage Snapshot (2026-02-26)
+## Coverage Snapshot (2026-02-27)
 
 - Protocol test files in this reference: `7`
 - Total test cases across listed files: `52`
