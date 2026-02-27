@@ -87,13 +87,6 @@ describe('useToolRunner event handling', () => {
       toolName: 'click',
       parameters: { x: 88, y: 44 },
     },
-    {
-      caseName: 'browser action click tool-call',
-      eventId: 'event-browser-click-delay',
-      requestId: 'req-browser-click-delay',
-      toolName: 'browser',
-      parameters: { action: 'click', ref: '3' },
-    },
   ])('dispatches $caseName without ghost-sync delay', async ({
     eventId,
     requestId,
@@ -130,6 +123,33 @@ describe('useToolRunner event handling', () => {
     const executeCallOrder = mockExecuteTool.mock.invocationCallOrder[0];
     expect(showCallOrder).toBeLessThan(prepareCallOrder);
     expect(prepareCallOrder).toBeLessThan(executeCallOrder);
+  });
+
+  test('dispatches browser click without focus verification', async () => {
+    renderToolRunner(true);
+
+    await emitBackendEventAsync({
+      type: 'tool-call',
+      id: 'event-browser-click-delay',
+      payload: {
+        tool_name: 'browser',
+        parameters: { action: 'click', ref: '3' },
+        request_id: 'req-browser-click-delay',
+      },
+    });
+
+    expect(mockExecuteTool).toHaveBeenCalledWith(
+      'browser',
+      { action: 'click', ref: '3' },
+      { correlationId: 'req-browser-click-delay', skipAutoCapture: false },
+    );
+    const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
+    expect(invokeCalls).toContainEqual([
+      INVOKE_CHANNELS.SHOW_CHATBOX,
+      { focus: false },
+    ]);
+    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.HIDE_CHATBOX)).toBe(true);
+    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS)).toBe(false);
   });
 
   test('forces chat-pill handoff for switch_tab tool-call', async () => {
@@ -353,8 +373,8 @@ describe('useToolRunner event handling', () => {
       type: 'tool-call',
       id: 'event-focus-fail',
       payload: {
-        tool_name: 'browser',
-        parameters: { action: 'click', ref: '444' },
+        tool_name: 'click',
+        parameters: { x: 444, y: 222 },
         request_id: 'req-focus-fail',
       },
     });
@@ -374,7 +394,7 @@ describe('useToolRunner event handling', () => {
     const lastMessage = useChatStore.getState().messages.at(-1);
     expect(lastMessage).toEqual(expect.objectContaining({
       type: 'tool-output',
-      toolName: 'browser',
+      toolName: 'click',
       correlationId: 'req-focus-fail',
       success: false,
     }));
@@ -383,7 +403,7 @@ describe('useToolRunner event handling', () => {
       expect.stringContaining('frontend_execution_surface_unavailable: external_window_focus_not_verified'),
       expect.objectContaining({
         messageType: 'tool-output',
-        toolName: 'browser',
+        toolName: 'click',
         correlationId: 'req-focus-fail',
       }),
     );
@@ -415,7 +435,7 @@ describe('useToolRunner event handling', () => {
       payload: {
         bundle_id: 'bundle-focus-fail',
         tools: [
-          { name: 'browser', args: { action: 'click', ref: '444' } },
+          { name: 'click', args: { x: 444, y: 222 } },
           { name: 'read_file', args: { file_path: '/tmp/a' } },
         ],
       },

@@ -50,7 +50,7 @@ describe('toolRunnerSurface helpers', () => {
     ).toBe('screenshot');
     expect(
       resolveBundleSurfaceMode([{ toolName: 'browser', args: { action: 'click' } }]),
-    ).toBe('interactive');
+    ).toBe('screenshot');
     expect(
       resolveBundleSurfaceMode([{ toolName: 'browser', args: { action: 'screenshot' } }]),
     ).toBe('screenshot');
@@ -75,7 +75,7 @@ describe('toolRunnerSurface helpers', () => {
         { toolName: 'screenshot', args: {} },
         { toolName: 'browser', args: { action: 'click' } },
       ]),
-    ).toBe('interactive');
+    ).toBe('screenshot');
   });
 
   test('runs collapse/restore around switch_tab tool surface preparation', async () => {

@@ -9,8 +9,14 @@ const INTERACTIVE_COMPUTER_TOOL_NAMES = new Set([
   'scroll',
 ]);
 const CAPTURE_ONLY_COMPUTER_TOOL_NAMES = new Set(['screenshot', 'switch_tab', 'wait']);
-const INTERACTIVE_BROWSER_ACTIONS = new Set(['click', 'type', 'scroll']);
-const CAPTURE_ONLY_BROWSER_ACTIONS = new Set(['screenshot', 'switch', 'switch_tab']);
+const CHAT_PILL_HANDOFF_BROWSER_ACTIONS = new Set([
+  'click',
+  'type',
+  'scroll',
+  'screenshot',
+  'switch',
+  'switch_tab',
+]);
 const TOOL_FOCUS_PREPARE_WAIT_MS = 180;
 const OVERLAY_SURFACE_PREPARE_EXCEPTION = 'overlay_surface_prepare_exception';
 
@@ -94,11 +100,8 @@ function resolveToolSurfaceMode(
   if (!normalizedAction) {
     return 'none';
   }
-  if (CAPTURE_ONLY_BROWSER_ACTIONS.has(normalizedAction)) {
+  if (CHAT_PILL_HANDOFF_BROWSER_ACTIONS.has(normalizedAction)) {
     return 'screenshot';
-  }
-  if (INTERACTIVE_BROWSER_ACTIONS.has(normalizedAction)) {
-    return 'interactive';
   }
   return 'none';
 }
