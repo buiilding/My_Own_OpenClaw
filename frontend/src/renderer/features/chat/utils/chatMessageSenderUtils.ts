@@ -37,18 +37,3 @@ export function toScreenshotAttachment(uploaded: UploadedArtifact | null | undef
     screenshotUrl: uploaded?.url || null,
   };
 }
-
-export function toScreenshotAttachments(uploadedArtifacts: Array<UploadedArtifact | null | undefined>) {
-  const normalized = uploadedArtifacts
-    .map((uploaded) => toScreenshotAttachment(uploaded))
-    .filter((attachment) => attachment.screenshotRef || attachment.screenshotUrl);
-
-  return {
-    screenshotRefs: normalized
-      .map((attachment) => attachment.screenshotRef)
-      .filter((ref): ref is string => typeof ref === 'string' && ref.length > 0),
-    screenshotUrls: normalized
-      .map((attachment) => attachment.screenshotUrl)
-      .filter((url): url is string => typeof url === 'string' && url.length > 0),
-  };
-}

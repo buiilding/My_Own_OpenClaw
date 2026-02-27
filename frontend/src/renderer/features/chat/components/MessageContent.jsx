@@ -7,8 +7,7 @@ import {
   resolveMessageScreenshotSrc,
   resolveMessageScreenshotSrcList,
 } from '../utils/messageScreenshots';
-import { isDevUiEnabled } from '../utils/devUiFlag';
-import { resolveSourceTag } from '../utils/sourceTags';
+import ThinkingDisplay from './ThinkingDisplay';
 
 function MarkdownMessage({
   text,
@@ -229,13 +228,6 @@ function AssistantThinkingSection({ thinkingText, sourceEventType = null }) {
     [thinkingText],
   );
 
-  const sourceTag = useMemo(() => {
-    if (!isDevUiEnabled() || !normalizedThinkingText) {
-      return null;
-    }
-    return resolveSourceTag(sourceEventType || 'llm-thought', 'from-backend');
-  }, [normalizedThinkingText, sourceEventType]);
-
   if (!normalizedThinkingText) {
     return null;
   }
@@ -253,12 +245,10 @@ function AssistantThinkingSection({ thinkingText, sourceEventType = null }) {
       </button>
       {isOpen ? (
         <div className="assistant-thinking-panel" aria-label="Assistant reasoning details">
-          {sourceTag ? (
-            <div className="thinking-source-badge" title={`source_event=${sourceEventType || 'llm-thought'}`}>
-              {sourceTag}
-            </div>
-          ) : null}
-          <pre className="assistant-thinking-text">{normalizedThinkingText}</pre>
+          <ThinkingDisplay
+            status={normalizedThinkingText}
+            sourceEventType={sourceEventType || null}
+          />
         </div>
       ) : null}
     </div>
