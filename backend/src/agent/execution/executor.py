@@ -343,7 +343,9 @@ class AgentExecutor:
             return fallback
 
         search_space = final_content[:_USER_QUERY_PARSE_MAX_CHARS]
-        match = _USER_QUERY_TAG_PATTERN.search(search_space)
+        match = None
+        for candidate in _USER_QUERY_TAG_PATTERN.finditer(search_space):
+            match = candidate
         if not match:
             return fallback
 

@@ -41,3 +41,21 @@ def test_resolve_raw_user_query_falls_back_when_user_query_tag_empty() -> None:
     final_content = "<user_query>\n   \n</user_query>"
     resolved = AgentExecutor._resolve_raw_user_query("typed text", final_content)
     assert resolved == "typed text"
+
+
+def test_resolve_raw_user_query_uses_last_user_query_tag() -> None:
+    final_content = """
+<user_query>
+old value
+</user_query>
+
+<semantic_memory>
+- stored snippet mentioning <user_query>old value</user_query>
+</semantic_memory>
+
+<user_query>
+new value
+</user_query>
+"""
+    resolved = AgentExecutor._resolve_raw_user_query("fallback", final_content)
+    assert resolved == "new value"

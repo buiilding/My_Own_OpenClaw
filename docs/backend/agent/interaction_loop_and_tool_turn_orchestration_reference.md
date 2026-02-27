@@ -46,7 +46,7 @@ This structure centralizes orchestration in `executor.py` while preserving singl
 ## Per-Query Runtime Path (`AgentExecutor.process_query`)
 
 1. format user message content via prompt builder
-2. resolve/store raw user query text from `<user_query>` (fallback to plain query string)
+2. resolve/store raw user query text from the last `<user_query>` block (fallback to plain query string)
 3. append user message to history
 4. optional screenshot registration + OCR kickoff
 5. iterate `InteractionLoop.run_loop()` and forward events

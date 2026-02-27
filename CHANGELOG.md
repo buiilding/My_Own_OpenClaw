@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(backend-memory-query-parse): resolve raw user query from the last `<user_query>` block in enriched content to avoid stale first-match capture when earlier snippets contain the same tag.
 - test(backend-memory-formatter): add explicit contract coverage for `MemoryStoreEventFormatter` skip paths when `user_id` is missing or `default_user`.
 - refactor(sidecar-memory-watermark): remove unused `increment_pending_count` helpers from `WatermarkStateStore` and `LocalMemoryStore`, and align sidecar watermark/docs/tests with DB-count-driven summarizer gating.
 - test(sidecar-memory): remove stale transcript pending-counter failure path from `test_local_backend.py` now that transcript writes no longer mutate summarizer watermark counters.
