@@ -344,6 +344,24 @@
   animation: compactionTextShift 1.4s ease-in-out infinite;
 }
 
+.message-list-awaiting-dot {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 4px 0 2px;
+}
+
+.message-list-awaiting-dot-indicator {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.3),
+    0 6px 14px rgba(0, 0, 0, 0.28);
+}
+
 @keyframes compactionPulse {
   0% {
     transform: scale(1);

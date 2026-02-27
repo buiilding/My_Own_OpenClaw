@@ -192,4 +192,29 @@ describe('MessageList assistant actions', () => {
 
     expect(screen.queryByLabelText('Conversation compaction in progress')).not.toBeInTheDocument();
   });
+
+  test('renders assistant awaiting dot while waiting for first token', () => {
+    render(
+      <MessageList
+        messages={[
+          { id: 'user-1', text: 'hello', sender: 'user', type: 'user' },
+        ]}
+        showAssistantAwaitingDot
+      />,
+    );
+
+    expect(screen.getByLabelText('Assistant is preparing response')).toBeInTheDocument();
+  });
+
+  test('does not render assistant awaiting dot by default', () => {
+    render(
+      <MessageList
+        messages={[
+          { id: 'user-1', text: 'hello', sender: 'user', type: 'user' },
+        ]}
+      />,
+    );
+
+    expect(screen.queryByLabelText('Assistant is preparing response')).not.toBeInTheDocument();
+  });
 });

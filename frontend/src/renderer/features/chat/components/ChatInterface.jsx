@@ -64,6 +64,11 @@ function ChatInterface({ focusComposerToken = 0 }) {
   const speechModeEnabled = config?.speech_mode_enabled === true;
   const canStop = ACTIVE_STREAM_PHASES.has(streamPhase);
   const composerBusy = isSending || canStop;
+  const showAssistantAwaitingDot = (
+    streamPhase === 'awaiting-first-chunk'
+    && messages.length > 0
+    && messages[messages.length - 1]?.sender === 'user'
+  );
   const modelMode = config?.model_mode || 'online';
   const configuredProvider = config?.model_provider || '';
   const configuredModelId = config?.selected_model_id || '';
@@ -439,6 +444,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
             messages={messages}
             thinkingStatus={thinkingStatus}
             thinkingSourceEventType={thinkingSourceEventType}
+            showAssistantAwaitingDot={showAssistantAwaitingDot}
             enableAssistantActions
             enableUserActions
             disableAssistantActions={isSending || canStop}
