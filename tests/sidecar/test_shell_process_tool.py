@@ -164,17 +164,6 @@ async def test_run_shell_command_rejects_invalid_max_output_tokens():
 
 
 @pytest.mark.asyncio
-async def test_run_shell_command_rejects_large_inline_payload_blob():
-    large_html = "\n".join(f"<div>line-{index}</div>" for index in range(220))
-    cmd = f"cat > index.html <<'EOF'\n{large_html}\nEOF"
-    result = await run_shell_command({"command": cmd, "run_in_background": False})
-
-    assert result["success"] is False
-    assert result.get("error_code") == "INLINE_PAYLOAD_TOO_LARGE"
-    assert "Inline payload too large" in result.get("error", "")
-
-
-@pytest.mark.asyncio
 async def test_run_shell_command_allows_small_multiline_heredoc():
     cmd = "cat <<'EOF'\nsmall\npayload\nEOF"
     result = await run_shell_command({"command": cmd, "run_in_background": False})
@@ -182,6 +171,17 @@ async def test_run_shell_command_allows_small_multiline_heredoc():
     assert result["success"] is True
     assert "small" in result["data"]["output"]
     assert "payload" in result["data"]["output"]
+
+
+@pytest.mark.asyncio
+async def test_run_shell_command_allows_large_multiline_heredoc():
+    large_payload = "\n".join(f"line-{index}" for index in range(220))
+    cmd = f"cat <<'EOF' | wc -l\n{large_payload}\nEOF"
+    result = await run_shell_command({"command": cmd, "run_in_background": False})
+
+    assert result["success"] is True
+    assert not result["data"]["error"]
+    assert result["data"]["output"].strip() == "220"
 
 
 def test_rewrite_sudo_command_for_os_prompt_uses_pkexec(monkeypatch):
