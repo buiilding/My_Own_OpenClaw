@@ -14,6 +14,24 @@ import UserMessageActions from './UserMessageActions';
 import MessageSourceBadge from './MessageSourceBadge';
 import { buildMessageClassName } from '../utils/messageListClasses';
 
+const MESSAGE_LIST_BOTTOM_STICK_THRESHOLD_PX = 24;
+
+function isNearBottom(element) {
+  if (!element) {
+    return true;
+  }
+  const scrollHeight = Number(element.scrollHeight) || 0;
+  const clientHeight = Number(element.clientHeight) || 0;
+  const scrollTop = Number(element.scrollTop) || 0;
+  const distanceFromBottom = scrollHeight - clientHeight - scrollTop;
+
+  if (!Number.isFinite(distanceFromBottom)) {
+    return true;
+  }
+
+  return distanceFromBottom <= MESSAGE_LIST_BOTTOM_STICK_THRESHOLD_PX;
+}
+
 const messageShapePropType = PropTypes.shape({
   id: PropTypes.string.isRequired,
   text: PropTypes.string.isRequired,
@@ -176,7 +194,9 @@ function MessageList({
 }) {
   const [editingUserMessageId, setEditingUserMessageId] = useState(null);
   const [editingUserDraft, setEditingUserDraft] = useState('');
+  const messageListRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const shouldAutoScrollRef = useRef(true);
 
   const handleStartUserEdit = useCallback((messageId, messageText) => {
     setEditingUserMessageId(messageId);
@@ -245,13 +265,20 @@ function MessageList({
     ]
   );
 
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  }, []);
+
+  const handleMessageListScroll = useCallback(() => {
+    shouldAutoScrollRef.current = isNearBottom(messageListRef.current);
+  }, []);
 
   useEffect(() => {
+    if (!shouldAutoScrollRef.current) {
+      return;
+    }
     scrollToBottom();
-  }, [messages]);
+  }, [messages, scrollToBottom]);
 
   const compactionStatusText = useMemo(() => {
     if (thinkingSourceEventType !== 'context-compaction-started') {
@@ -264,7 +291,11 @@ function MessageList({
   }, [thinkingSourceEventType, thinkingStatus]);
 
   return (
-    <div className="message-list">
+    <div
+      className="message-list"
+      ref={messageListRef}
+      onScroll={handleMessageListScroll}
+    >
       {renderedMessages}
       {showAssistantAwaitingDot ? (
         <div
