@@ -16,6 +16,7 @@ from backend.src.llm.providers.message_normalization import (
 from backend.src.llm.providers.response_parsing import (
     extract_delta_content,
     extract_completion_response,
+    normalize_raw_tool_calls,
     normalize_tool_arguments,
 )
 from backend.src.llm.providers.usage_diagnostics import (
@@ -240,6 +241,32 @@ def test_extract_completion_response_parses_and_dedupes_openai_and_tool_use_bloc
     ]
 
 
+def test_extract_completion_response_keeps_same_id_when_tool_names_differ():
+    response = {
+        "choices": [
+            {
+                "message": {
+                    "content": "ok",
+                    "tool_calls": [
+                        {"id": "call_1", "name": "read_file", "arguments": {"path": "/tmp/a"}},
+                        {"id": "call_1", "name": "replace", "arguments": {"path": "/tmp/b"}},
+                    ],
+                }
+            }
+        ]
+    }
+
+    normalized = extract_completion_response(
+        response,
+        model="m",
+        invalid_response_message="Invalid response",
+    )
+    assert normalized["tool_calls"] == [
+        {"id": "call_1", "name": "read_file", "arguments": {"path": "/tmp/a"}},
+        {"id": "call_1", "name": "replace", "arguments": {"path": "/tmp/b"}},
+    ]
+
+
 def test_extract_completion_response_falls_back_to_choice_text_when_message_content_empty():
     response = {
         "choices": [
@@ -425,6 +452,46 @@ def test_normalize_tool_arguments_rejects_unsupported_non_string_non_mapping_pay
     with pytest.raises(LLMAPIError, match="unsupported tool arguments type list"):
         normalize_tool_arguments(
             [1, 2, 3],
+            model="m",
+            invalid_response_message="Invalid response",
+        )
+
+
+def test_normalize_raw_tool_calls_supports_tool_use_with_string_input():
+    normalized = normalize_raw_tool_calls(
+        [
+            {
+                "type": "tool_use",
+                "name": "replace",
+                "input": "{\"path\":\"/tmp/demo.txt\"}",
+            }
+        ],
+        model="m",
+        invalid_response_message="Invalid response",
+    )
+
+    assert normalized == [
+        {
+            "id": "tool_call_0",
+            "name": "replace",
+            "arguments": {"path": "/tmp/demo.txt"},
+        }
+    ]
+
+
+def test_normalize_raw_tool_calls_rejects_invalid_container_shape():
+    with pytest.raises(LLMAPIError, match="Invalid response"):
+        normalize_raw_tool_calls(
+            {"bad": "shape"},
+            model="m",
+            invalid_response_message="Invalid response",
+        )
+
+
+def test_normalize_raw_tool_calls_rejects_blank_tool_name():
+    with pytest.raises(LLMAPIError, match="invalid tool name"):
+        normalize_raw_tool_calls(
+            [{"id": "call_1", "name": " ", "arguments": {}}],
             model="m",
             invalid_response_message="Invalid response",
         )
