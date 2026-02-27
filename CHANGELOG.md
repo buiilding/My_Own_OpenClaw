@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-chatbox-resize-anchor-lock): keep minimal non-dashboard chat-pill bottom edge pinned during sequential size IPC updates by initializing anchor from bounds once (or explicit move only), so growth happens upward without bottom-edge drift/cropping; add regression coverage for top-anchored bounds reports.
 - fix(frontend-dashboard-sidebar-collapsed-icons): remove duplicate collapsed sidebar logo/toggle stack, render one hover-swap brand control (`logo` <-> `expand`), move `New chat` into the header toggle slot, and add focused sidebar tests for hover swap + single new-chat action.
 - fix(frontend-dashboard-collapsed-header-followup): remove duplicate chat-header logo shown beside provider/model row when sidebar is collapsed, and stop collapsed sidebar expand-icon swap from sticking due focus state by making it hover-only; add focused regressions.
 - fix(frontend-dashboard-collapsed-hover-reset): clear collapsed brand-toggle hover state on sidebar mode transitions so collapse->expand->collapse never renders stale expand icon unless currently hovered; add dedicated regression coverage.

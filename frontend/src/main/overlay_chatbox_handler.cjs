@@ -45,11 +45,14 @@ async function handleSetChatboxSize(
     const currentBounds = typeof chatWindow.getBounds === 'function'
       ? chatWindow.getBounds()
       : null;
-    if (currentBounds && Number.isFinite(currentBounds.x)) {
+    const hasAnchorX = Number.isFinite(anchorState.x);
+    const hasAnchorBottom = Number.isFinite(anchorState.bottom);
+    if (!hasAnchorX && currentBounds && Number.isFinite(currentBounds.x)) {
       anchorState.x = Math.round(currentBounds.x);
     }
     if (
-      currentBounds
+      !hasAnchorBottom
+      && currentBounds
       && Number.isFinite(currentBounds.y)
       && Number.isFinite(currentBounds.height)
     ) {
