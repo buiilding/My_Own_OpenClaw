@@ -129,10 +129,14 @@ function SidebarNavigation({
   usageOpen,
   modelsOpen,
 }) {
+  const primaryNavItems = collapsed
+    ? PRIMARY_NAV_ITEMS.filter((item) => item.id !== 'new-chat')
+    : PRIMARY_NAV_ITEMS;
+
   return (
     <>
       <nav className="cg-sidebar-nav">
-        {PRIMARY_NAV_ITEMS.map((item) => (
+        {primaryNavItems.map((item) => (
           <SidebarItem
             key={item.id}
             label={item.label}
@@ -378,32 +382,61 @@ function DashboardSidebar({
   );
 
   const isCollapsed = !sidebarOpen;
-  const ToggleSidebarIcon = isCollapsed ? PanelLeft : PanelLeftClose;
+  const [collapsedHeaderHovered, setCollapsedHeaderHovered] = useState(false);
   const toggleSidebarLabel = isCollapsed ? 'Expand sidebar' : 'Collapse sidebar';
 
   return (
     <aside className={`cg-sidebar${isCollapsed ? ' collapsed' : ''}`.trim()}>
       <div className="cg-sidebar-header">
         {isCollapsed ? (
-          <div className="cg-brand-mark" aria-hidden="true">
-            <ChatGptLogo size={14} />
-          </div>
+          <>
+            <button
+              type="button"
+              className="cg-sidebar-brand-toggle"
+              onClick={onToggleSidebar}
+              aria-label={toggleSidebarLabel}
+              title={toggleSidebarLabel}
+              onMouseEnter={() => setCollapsedHeaderHovered(true)}
+              onMouseLeave={() => setCollapsedHeaderHovered(false)}
+              onFocus={() => setCollapsedHeaderHovered(true)}
+              onBlur={() => setCollapsedHeaderHovered(false)}
+            >
+              {collapsedHeaderHovered ? (
+                <PanelLeft size={18} data-testid="sidebar-collapsed-expand-icon" />
+              ) : (
+                <span data-testid="sidebar-collapsed-brand-icon" aria-hidden="true">
+                  <ChatGptLogo size={14} />
+                </span>
+              )}
+            </button>
+            <button
+              type="button"
+              className="cg-sidebar-toggle cg-sidebar-collapsed-new-chat"
+              onClick={onStartNewChat}
+              aria-label="New chat"
+              title="New chat"
+            >
+              <PenSquare size={18} />
+            </button>
+          </>
         ) : (
-          <div className="cg-sidebar-brand">
-            <div className="cg-brand-dot">
-              <ChatGptLogo size={14} />
+          <>
+            <div className="cg-sidebar-brand">
+              <div className="cg-brand-dot">
+                <ChatGptLogo size={14} />
+              </div>
             </div>
-          </div>
+            <button
+              type="button"
+              className="cg-sidebar-toggle"
+              onClick={onToggleSidebar}
+              aria-label={toggleSidebarLabel}
+              title={toggleSidebarLabel}
+            >
+              <PanelLeftClose size={18} />
+            </button>
+          </>
         )}
-        <button
-          type="button"
-          className="cg-sidebar-toggle"
-          onClick={onToggleSidebar}
-          aria-label={toggleSidebarLabel}
-          title={toggleSidebarLabel}
-        >
-          <ToggleSidebarIcon size={18} />
-        </button>
       </div>
 
       <div className="cg-sidebar-content">
