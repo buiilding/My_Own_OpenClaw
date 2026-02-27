@@ -1,3 +1,17 @@
+const chatboxResizeAnchorState = new WeakMap();
+
+function getOrCreateAnchorState(chatWindow) {
+  let state = chatboxResizeAnchorState.get(chatWindow);
+  if (!state) {
+    state = {
+      x: null,
+      bottom: null,
+    };
+    chatboxResizeAnchorState.set(chatWindow, state);
+  }
+  return state;
+}
+
 async function handleSetChatboxSize(
   {
     width,
@@ -20,34 +34,52 @@ async function handleSetChatboxSize(
   const nextWidth = Math.max(1, Math.min(900, Math.round(Number(width) || 0)));
   const nextHeight = Math.max(1, Math.min(7500, Math.round(Number(height) || 0)));
   try {
+    const anchorState = getOrCreateAnchorState(chatWindow);
     const [curWidth, curHeight] = chatWindow.getSize();
     if (curWidth === nextWidth && curHeight === nextHeight) {
       return { success: true, resized: false };
     }
 
-    // Keep the current horizontal position and bottom anchor to avoid visible position churn.
-    let bounds = null;
+    // Keep bottom fixed and preserve x across resize bursts.
+    let fallbackBounds = null;
     const currentBounds = typeof chatWindow.getBounds === 'function'
       ? chatWindow.getBounds()
       : null;
+    if (currentBounds && Number.isFinite(currentBounds.x)) {
+      anchorState.x = Math.round(currentBounds.x);
+    }
     if (
       currentBounds
-      && Number.isFinite(currentBounds.x)
       && Number.isFinite(currentBounds.y)
       && Number.isFinite(currentBounds.height)
     ) {
-      const currentBottom = currentBounds.y + currentBounds.height;
-      bounds = {
-        x: Math.round(currentBounds.x),
-        y: Math.round(currentBottom - nextHeight),
-        width: nextWidth,
-        height: nextHeight,
-      };
-    } else {
-      bounds = getChatWindowBounds(nextWidth, nextHeight);
+      anchorState.bottom = Math.round(currentBounds.y + currentBounds.height);
     }
+    if (anchorState.x == null || anchorState.bottom == null) {
+      fallbackBounds = getChatWindowBounds(nextWidth, nextHeight);
+      if (anchorState.x == null && Number.isFinite(fallbackBounds?.x)) {
+        anchorState.x = Math.round(fallbackBounds.x);
+      }
+      if (anchorState.bottom == null && Number.isFinite(fallbackBounds?.y)) {
+        anchorState.bottom = Math.round(fallbackBounds.y + nextHeight);
+      }
+    }
+    const nextX = Number.isFinite(anchorState.x)
+      ? anchorState.x
+      : Math.round(fallbackBounds?.x || 0);
+    const nextBottom = Number.isFinite(anchorState.bottom)
+      ? anchorState.bottom
+      : Math.round((fallbackBounds?.y || 0) + nextHeight);
+    const bounds = {
+      x: nextX,
+      y: Math.round(nextBottom - nextHeight),
+      width: nextWidth,
+      height: nextHeight,
+    };
 
     chatWindow.setBounds(bounds, false);
+    anchorState.x = bounds.x;
+    anchorState.bottom = bounds.y + bounds.height;
     positionResponseWindow();
     positionContextLabelWindow();
     syncContextLabelWindowVisibility();
@@ -83,6 +115,14 @@ function handleMoveChatboxTo(
   }
 
   try {
+    const [, curHeight] = typeof chatWindow.getSize === 'function'
+      ? chatWindow.getSize()
+      : [null, null];
+    const anchorState = getOrCreateAnchorState(chatWindow);
+    anchorState.x = nextX;
+    if (Number.isFinite(curHeight)) {
+      anchorState.bottom = nextY + curHeight;
+    }
     chatWindow.setPosition(nextX, nextY, false);
     positionResponseWindow();
     positionContextLabelWindow();
