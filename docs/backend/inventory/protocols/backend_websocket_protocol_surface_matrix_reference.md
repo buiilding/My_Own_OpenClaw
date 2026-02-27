@@ -8,7 +8,7 @@ title: "Backend WebSocket Protocol Surface Matrix Reference"
 
 # Backend WebSocket Protocol Surface Matrix Reference
 
-## Coverage Snapshot (2026-02-26)
+## Coverage Snapshot (2026-02-27)
 
 - Incoming message types: `10` (`INCOMING_MESSAGE_TYPES`)
 - Schema-validated outgoing message types: `19` (`OUTGOING_SCHEMA_MESSAGE_TYPES`)
