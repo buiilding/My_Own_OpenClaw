@@ -10,14 +10,14 @@ title: "Frontend Functionality Capability Catalog Reference"
 
 This page is the capability-first technical catalog for `frontend/src`.
 
-## Coverage Snapshot (2026-02-26)
+## Coverage Snapshot (2026-02-27)
 
-- Main process (`frontend/src/main`, `.cjs|.js`): `34`
-- Sidecar runtime (`frontend/src/main/python`, `.py`): `140`
-- Renderer runtime (`frontend/src/renderer`, `.ts|.tsx|.js|.jsx`): `127`
+- Main process (`frontend/src/main`, `.cjs|.js`): `35`
+- Sidecar runtime (`frontend/src/main/python`, `.py`): `141`
+- Renderer runtime (`frontend/src/renderer`, `.ts|.tsx|.js|.jsx`): `139`
 - Landing (`frontend/src/landing`, `.jsx|.css`): `13`
 - Preload bridge (`frontend/src/preload.js`): `1`
-- Total covered frontend files: `315`
+- Total covered frontend files: `329`
 
 ## 1) Main Process Capability Catalog
 
@@ -49,6 +49,7 @@ Primary files:
 - `frontend/src/main/ipc_renderer_windows.cjs`
 - `frontend/src/main/ipc_query_broadcast.cjs`
 - `frontend/src/main/ipc_query_events.cjs`
+- `frontend/src/main/ipc_settings_sync.cjs`
 - `frontend/src/main/query_payload_builder.cjs`
 - `frontend/src/main/backend_endpoints.cjs`
 - `frontend/src/main/ipc_frontend_config.cjs`
@@ -57,7 +58,7 @@ Capabilities:
 
 - Maintains backend websocket session and handshake to `/ws`.
 - Relays backend stream envelopes to renderer windows (`from-backend`).
-- Enforces settings-sync ack attempt before first query dispatch.
+- Enforces first-query settings-sync ACK/timeout policy through `ipc_settings_sync` helpers.
 - Builds query payload with memory/system context sections.
 - Emits synthetic local-user-message and user-safe error fallbacks for send failures.
 - Persists frontend config to disk and returns merged config payloads to renderer.
@@ -103,11 +104,13 @@ Primary files:
 - `frontend/src/renderer/app/App.jsx`
 - `frontend/src/renderer/app/{ChatBoxApp,ChatBoxResponseApp,ChatBoxContextLabelApp,ToolGhostDebugApp}.jsx`
 - `frontend/src/renderer/app/providers/*`
+- `frontend/src/renderer/app/providers/{appConfigPersistence,configComparison}.js`
 
 Capabilities:
 
 - Routes renderer entry by `?view=` across full app and overlay/debug-specific roots.
 - Mounts provider stack (`AppProvider` + `ChatProvider`) with shared status/config hooks.
+- Provider-level config comparison/persistence guards avoid redundant writes and stale-config merges.
 - Enforces permission-onboarding gate before dashboard/chat runtime.
 - Boots wakeword controller and chat stream/tool-runner runtime at app scope.
 
@@ -156,7 +159,7 @@ Capabilities:
 Primary files:
 
 - Entrypoints: `frontend/src/main/python/{local_backend,memory_service,wakeword_service}.py`
-- Core: `frontend/src/main/python/core/*`
+- Core: `frontend/src/main/python/core/*`, `frontend/src/main/python/core/{remote_api_client_base,remote_title_client}.py`
 - Memory: `frontend/src/main/python/memory/*`
 - Tools: `frontend/src/main/python/tools/*`
 
@@ -165,6 +168,7 @@ Capabilities:
 - Local backend JSON-RPC host for tool execution, memory operations, and transcript persistence.
 - Core protocol runtime includes request framing, stdout JSON transport, shutdown handling, and platform adapters.
 - Memory runtime uses SQLite + FAISS with transcript search/list/get/delete and semantic summarization workflow.
+- Sidecar core remote clients call backend semantic/title/embedding routes with shared retry/error policy wrappers.
 - Tool runtime exposes computer/filesystem/system/browser/memory tool suites with normalized result envelopes.
 - Browser stack includes native chrome controller contracts and vendored Browser Use runtime modules.
 

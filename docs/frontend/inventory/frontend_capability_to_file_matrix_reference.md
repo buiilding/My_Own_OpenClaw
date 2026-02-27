@@ -10,14 +10,14 @@ title: "Frontend Capability to File Matrix Reference"
 
 This matrix maps frontend capabilities to implementation files.
 
-## Coverage Snapshot (2026-02-26)
+## Coverage Snapshot (2026-02-27)
 
-- Main process files: `34`
-- Sidecar python files: `140`
-- Renderer files: `127`
+- Main process files: `35`
+- Sidecar python files: `141`
+- Renderer files: `139`
 - Landing files: `13`
 - Preload files: `1`
-- Total covered frontend files: `315`
+- Total covered frontend files: `329`
 
 ## 1) Main Process Runtime
 
@@ -36,6 +36,7 @@ This matrix maps frontend capabilities to implementation files.
 | Capability | Primary files | Notes |
 | --- | --- | --- |
 | Backend websocket handshake + relay | `frontend/src/main/ipc.cjs`, `frontend/src/main/backend_endpoints.cjs` | Manages `/ws` session and relays stream events to renderer. |
+| First-query settings ACK gate | `frontend/src/main/ipc_settings_sync.cjs`, `frontend/src/main/ipc.cjs` | Runs timeout-bound settings ACK before first query send. |
 | IPC helper module split | `frontend/src/main/ipc_runtime_helpers.cjs`, `frontend/src/main/ipc_renderer_windows.cjs`, `frontend/src/main/ipc_query_broadcast.cjs`, `frontend/src/main/ipc_query_events.cjs` | Shared helper boundaries for relay/send/failure semantics. |
 | Query payload construction | `frontend/src/main/query_payload_builder.cjs` | Adds system/memory context and query metadata before send. |
 | Frontend config load/save | `frontend/src/main/ipc_frontend_config.cjs` | Disk + in-memory config snapshot ownership. |
@@ -91,6 +92,7 @@ This matrix maps frontend capabilities to implementation files.
 | Memory-only service entrypoint | `frontend/src/main/python/memory_service.py` | Dedicated memory service runtime mode. |
 | Wakeword sidecar entrypoint | `frontend/src/main/python/wakeword_service.py` | Wakeword model load + framed output loop. |
 | Core protocol and lifecycle | `frontend/src/main/python/core/{ipc_protocol,stdout_json,runtime_shutdown,thread_pool}.py` | Request framing, response writes, graceful shutdown behavior. |
+| Sidecar backend HTTP clients | `frontend/src/main/python/core/{remote_api_client_base,remote_embedding_client,remote_semantic_client,remote_title_client}.py` | Shared retry/error policy wrappers for semantic/title/embedding backend calls. |
 | Platform state and metrics | `frontend/src/main/python/core/{system_state,system_metrics}.py`, `core/platform/*.py` | OS-specific probes and normalized runtime metrics payloads. |
 | Memory persistence and semantic pipeline | `frontend/src/main/python/memory/{local_store,sqlite_store,faiss_index,summarizer,operations,watermark_state,conversation_titles}.py` | Transcript store/search and semantic indexing/summarization. |
 | Tool registry and schemas | `frontend/src/main/python/tools/{registry,schemas,result,base}.py` | Sidecar tool catalog and standardized result structures. |

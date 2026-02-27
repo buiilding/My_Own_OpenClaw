@@ -10,16 +10,16 @@ title: "Frontend Full Functionality Inventory Reference"
 
 This is the canonical current-state functionality inventory for `frontend/src`.
 
-## Coverage Snapshot (2026-02-26)
+## Coverage Snapshot (2026-02-27)
 
 Source counts used in this inventory:
 
-- Main process (`frontend/src/main`, `.cjs|.js`): `34`
-- Sidecar runtime (`frontend/src/main/python`, `.py`): `140`
-- Renderer runtime (`frontend/src/renderer`, `.ts|.tsx|.js|.jsx`): `127`
+- Main process (`frontend/src/main`, `.cjs|.js`): `35`
+- Sidecar runtime (`frontend/src/main/python`, `.py`): `141`
+- Renderer runtime (`frontend/src/renderer`, `.ts|.tsx|.js|.jsx`): `139`
 - Landing (`frontend/src/landing`, `.jsx|.css`): `13`
 - Preload bridge (`frontend/src/preload.js`): `1`
-- Total covered frontend files: `315`
+- Total covered frontend files: `329`
 
 ## 1) Electron Main Process Inventory
 
@@ -72,13 +72,14 @@ Primary files:
 - `frontend/src/main/query_payload_builder.cjs`
 - `frontend/src/main/ipc_query_events.cjs`
 - `frontend/src/main/ipc_frontend_config.cjs`
+- `frontend/src/main/ipc_settings_sync.cjs`
 
 Functionality:
 
 - Opens backend websocket (`/ws`) and sends handshake with validated user id.
 - Tracks backend session/user/conversation identifiers from stream envelopes.
 - Broadcasts backend events to all renderer windows (`from-backend`).
-- Maintains settings-sync ACK lifecycle with timeout protection.
+- Maintains settings-sync ACK lifecycle with timeout protection via `ipc_settings_sync` helper module.
 - Gates first query behind initial settings sync attempt.
 - Builds query payload content with system-context XML + memory sections.
 - Emits synthetic `local-user-message` and fallback error envelopes for failed sends through split broadcaster helpers.
@@ -149,6 +150,7 @@ Primary files:
 - `frontend/src/renderer/app/{ChatBoxApp,ChatBoxResponseApp,ChatBoxContextLabelApp,ToolGhostDebugApp}.jsx`
 - `frontend/src/renderer/app/WakewordController.jsx`
 - `frontend/src/renderer/app/providers/*`
+- `frontend/src/renderer/app/providers/{appConfigPersistence,configComparison}.js`
 - `frontend/src/renderer/features/permissions/stores/permissionStore.js`
 - `frontend/src/renderer/features/permissions/components/*`
 
@@ -158,6 +160,7 @@ Functionality:
   - `main.jsx` selects root by `?view=` (`App`, `chatbox`, `chatbox-response`, `chatbox-context-label`, `tool-ghost-debug`).
 - Mounts provider stack (`AppConfigProvider` + `AppStatusProvider` + `ChatProvider`).
 - Loads/syncs frontend config with disk/localStorage/backend update-settings.
+- Uses provider-layer diff/merge guards to avoid redundant writes and stale config merges.
 - Maintains wakeword preference/suppression state.
 - Coordinates save-state callback from config updates into status context.
 - Boots chat stream + tool runner hooks at app scope.
@@ -313,7 +316,7 @@ Functionality:
 
 Primary files:
 
-- `frontend/src/main/python/core/{ipc_protocol,system_state,system_metrics,runtime_shutdown,stdout_json,thread_pool}.py`
+- `frontend/src/main/python/core/{ipc_protocol,system_state,system_metrics,runtime_shutdown,stdout_json,thread_pool,remote_api_client_base,remote_embedding_client,remote_semantic_client,remote_title_client}.py`
 - `frontend/src/main/python/core/platform/*`
 
 Functionality:
@@ -321,6 +324,7 @@ Functionality:
 - JSON-RPC request parsing/dispatch.
 - Graceful signal/shutdown flow.
 - OS-specific system-state probes.
+- Shared remote API client base and semantic/title/embedding clients for backend HTTP calls from sidecar workflows.
 - Runtime thread/worker helpers and JSON stdout helpers.
 
 ## 5) Landing Surface Inventory
