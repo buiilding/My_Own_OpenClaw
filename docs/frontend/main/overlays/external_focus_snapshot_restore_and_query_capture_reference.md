@@ -39,7 +39,7 @@ Non-Windows behavior:
 
 Called from:
 
-- `showChatWindow({ focus: true })` before chat window gets focus
+- `showChatWindow(...)` before chat window visibility/focus transitions (including `focus=false`)
 
 ## Restore Contract
 
@@ -59,8 +59,10 @@ Restoration is best effort and non-fatal.
 
 1. blur `chatWindow` when available
 2. blur `mainWindow` when available
-3. attempt external focus restore
-4. wait `120ms`
+3. check `externalFocusTracker.canTrackExternalFocus()` capability
+4. attempt external focus restore when capability is available
+5. verify restored external focus only when capability + restore both succeed
+6. otherwise wait settle duration (`120ms` default) without verification
 
 This hook is registered into IPC init as `onBeforeOverlayQueryCapture`.
 

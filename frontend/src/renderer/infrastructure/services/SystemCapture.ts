@@ -7,6 +7,8 @@ import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
 import { getStoredDisplayBounds } from '../../utils/displaySelection';
 import type { SystemState, ToolResult } from './MessageFormatter';
 
+const CAPTURE_FOCUS_PREPARE_WAIT_MS = 120;
+
 function buildScreenshotArgs(explanation: string) {
   const args: Record<string, any> = {
     explanation,
@@ -17,6 +19,16 @@ function buildScreenshotArgs(explanation: string) {
     args.display_bounds = displayBounds;
   }
   return args;
+}
+
+async function prepareExternalFocusForCapture(): Promise<void> {
+  try {
+    await IpcBridge.invoke(INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
+      waitMs: CAPTURE_FOCUS_PREPARE_WAIT_MS,
+    });
+  } catch (error) {
+    console.warn('[extractOSstate] Failed to prepare external focus before capture:', error);
+  }
 }
 
 /**
@@ -49,6 +61,10 @@ export async function extractOSstate(
     // Wait for specified delay (allows UI to update before capturing)
     if (waitMilliseconds > 0) {
       await new Promise((resolve) => setTimeout(resolve, waitMilliseconds));
+    }
+
+    if (enable_screenshot || enable_system_state) {
+      await prepareExternalFocusForCapture();
     }
 
     // For first user message, extract full system state with 0 wait

@@ -66,6 +66,7 @@ Wait-delay resolution:
 Shared behavior:
 
 - optional wait (seconds -> milliseconds) before capture
+- pre-capture focus handoff via `prepare-overlay-tool-focus` (default `waitMs:120`) so active-window/system-state sampling prefers the external target window instead of overlay surfaces
 - wraps screenshot activity in window event markers:
   - `windie:screenshot-capture {active:true|false}`
 
