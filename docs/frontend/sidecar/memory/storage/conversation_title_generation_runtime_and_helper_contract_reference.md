@@ -123,7 +123,7 @@ Schema defaults from `sqlite_store`:
 
 `search_conversations(...)` summary path:
 
-- fetches title metadata in `_fetch_conversation_summaries(...)`
+- fetches title metadata in `conversation_search_runtime.fetch_conversation_summaries(...)`
 - unresolved titles become `"New chat"`
 - unresolved source is tagged `"pending"` when title fallback is still `"New chat"`
 
