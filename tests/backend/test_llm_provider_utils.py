@@ -293,6 +293,40 @@ def test_normalize_messages_for_provider_rejects_non_list_assistant_tool_calls()
         normalize_messages_for_provider(messages, model="m")
 
 
+def test_normalize_messages_for_provider_rejects_openai_function_arguments_wrong_type():
+    messages = [
+        {
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "call_bad",
+                    "type": "function",
+                    "function": {"name": "read_file", "arguments": 123},
+                }
+            ],
+        }
+    ]
+
+    with pytest.raises(LLMAPIError, match="function\\.arguments must be string/object"):
+        normalize_messages_for_provider(messages, model="m")
+
+
+def test_normalize_messages_for_provider_rejects_internal_tool_call_non_object_arguments():
+    messages = [
+        {
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [
+                {"id": "call_bad", "name": "read_file", "arguments": "not-an-object"},
+            ],
+        }
+    ]
+
+    with pytest.raises(LLMAPIError, match="arguments must be object"):
+        normalize_messages_for_provider(messages, model="m")
+
+
 def test_normalize_tool_arguments_rejects_non_object_json():
     with pytest.raises(LLMAPIError, match="must decode to object"):
         normalize_tool_arguments(
@@ -346,3 +380,50 @@ def test_normalize_tool_arguments_rejects_unsupported_non_string_non_mapping_pay
             model="m",
             invalid_response_message="Invalid response",
         )
+
+
+def test_normalize_tools_for_litellm_requires_parameters_object():
+    with pytest.raises(LLMAPIError, match="function\\.parameters is required"):
+        normalize_tools_for_litellm(
+            [
+                {
+                    "type": "function",
+                    "function": {"name": "read_file"},
+                }
+            ],
+            model="m",
+        )
+
+
+def test_normalize_tools_for_litellm_requires_description_to_be_string_when_present():
+    with pytest.raises(LLMAPIError, match="function\\.description must be a string"):
+        normalize_tools_for_litellm(
+            [
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "read_file",
+                        "description": 42,
+                        "parameters": {"type": "object"},
+                    },
+                }
+            ],
+            model="m",
+        )
+
+
+def test_normalize_tools_for_litellm_returns_deep_copy():
+    tools = [
+        {
+            "type": "function",
+            "function": {
+                "name": "read_file",
+                "parameters": {"type": "object", "properties": {"path": {"type": "string"}}},
+            },
+        }
+    ]
+
+    normalized = normalize_tools_for_litellm(tools, model="m")
+    normalized[0]["function"]["parameters"]["properties"]["path"]["type"] = "number"
+
+    assert tools[0]["function"]["parameters"]["properties"]["path"]["type"] == "string"
