@@ -55,8 +55,12 @@ Default `list_models()` returns empty list; online model catalogs are static in 
 
 - `provider_label = "OpenRouter"`
 - `model_prefix = "openrouter"`
+- `stream_includes_thinking = True`
 - constructor applies default base URL when missing:
   - `https://openrouter.ai/api/v1`
+- for thinking models listed in `ONLINE_THINKING_MODELS["openrouter"]`, requests
+  reasoning details by setting:
+  - `reasoning = {"exclude": False}` (when caller has not already provided reasoning params)
 
 ### AnthropicProvider
 

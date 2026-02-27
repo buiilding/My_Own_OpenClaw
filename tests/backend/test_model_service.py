@@ -278,6 +278,23 @@ def test_get_all_online_models_marks_gemini_3_1_as_thinking_text_stream_capable(
     assert gemini_3_1.get("supports_thinking_text_stream") is True
 
 
+def test_get_all_online_models_marks_openrouter_qwen3_vl_as_thinking_text_stream_capable():
+    service = ModelService(AppConfig())
+    models = service.get_all_online_models()
+
+    qwen3_vl = next(
+        (
+            model for model in models
+            if model.get("provider") == "openrouter"
+            and model.get("id") == "qwen/qwen3-vl-235b-a22b-thinking"
+        ),
+        None,
+    )
+    assert qwen3_vl is not None
+    assert qwen3_vl.get("supports_thinking") is True
+    assert qwen3_vl.get("supports_thinking_text_stream") is True
+
+
 def test_get_online_models_includes_openrouter_qwen3_vl_235b_a22b_thinking():
     service = ModelService(AppConfig())
     models = service.get_online_models()

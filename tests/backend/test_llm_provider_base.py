@@ -391,6 +391,17 @@ class TestExtractThinkingContent:
 
         assert result == "Nested content"
 
+    def test_extract_from_dict_reasoning_details_list(self, provider):
+        delta = {
+            "reasoning_details": [
+                {"type": "reasoning.text", "text": "Reasoning chunk from list"},
+            ]
+        }
+
+        result = provider._extract_thinking_content(delta)
+
+        assert result == "Reasoning chunk from list"
+
     def test_extract_from_camel_case_reasoning_content(self, provider):
         delta = {"reasoningContent": "Camel case reasoning"}
 
@@ -416,6 +427,18 @@ class TestExtractThinkingContent:
         result = provider._extract_thinking_content(delta)
 
         assert result is None
+
+    def test_extract_from_object_reasoning_details_list(self, provider):
+        delta = MagicMock()
+        delta.reasoning_content = None
+        delta.thinking = None
+        delta.reasoning = None
+        delta.thought = None
+        delta.reasoning_details = [{"text": "Object reasoning details"}]
+
+        result = provider._extract_thinking_content(delta)
+
+        assert result == "Object reasoning details"
 
     def test_extract_plain_string_without_tags(self, provider):
         delta = {"thinking": "plain thinking text"}

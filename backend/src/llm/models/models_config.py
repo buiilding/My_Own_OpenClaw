@@ -66,6 +66,9 @@ ONLINE_THINKING_MODELS: Dict[str, List[str]] = {
         "gemini-2.5-flash",
         "gemini-2.5-flash-lite",
     ],
+    "openrouter": [
+        "qwen/qwen3-vl-235b-a22b-thinking",
+    ],
 }
 
 # Models that emit reasoning token usage but do not reliably stream
