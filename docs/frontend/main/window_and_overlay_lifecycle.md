@@ -165,6 +165,7 @@ Handlers in `overlay_ipc_runtime.cjs` (wired by `index.cjs`):
 - computes visibility from phase + stream content state
 - reports frame size via `SET_RESPONSEBOX_SIZE`
 - supports awaiting-first-chunk view and final/error markdown pane
+- main-process response/context-label positioning now anchors to compact visual chat-pill height (instead of full transparent chat window height), preventing vertical drift when compact pill is shorter than the fixed overlay window.
 
 For renderer-only deep dives:
 
