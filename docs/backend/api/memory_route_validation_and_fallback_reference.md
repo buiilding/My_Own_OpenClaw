@@ -2,7 +2,7 @@
 summary: "Backend memory HTTP route reference for `/api/embeddings` and `/api/semantic`: request validation limits, config/session resolution, parser/fallback behavior, and health-check normalization."
 read_when:
   - When changing backend memory HTTP request schemas, validation constraints, or health routes.
-  - When debugging embedding route availability, semantic summarization parse misses, or sanitized HTTP error behavior.
+  - When debugging embedding route availability, semantic summarize/title parse misses, or sanitized HTTP error behavior.
 title: "Memory Route Validation and Fallback Reference"
 ---
 

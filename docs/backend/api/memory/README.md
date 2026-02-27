@@ -1,8 +1,8 @@
 ---
-summary: "Backend API memory docs sub-hub for semantic summarization service config resolution/parser fallback and embeddings route serialization/health-check contracts."
+summary: "Backend API memory docs sub-hub for semantic summarize/title service config resolution/parser fallback and embeddings route serialization/health-check contracts."
 read_when:
   - When changing files under `backend/src/api/routes/memory/*`.
-  - When debugging summarize endpoint parsing fallback behavior or embeddings health-check failures.
+  - When debugging summarize/title endpoint parsing fallback behavior or embeddings health-check failures.
 title: "Backend API Memory Docs Hub"
 ---
 
