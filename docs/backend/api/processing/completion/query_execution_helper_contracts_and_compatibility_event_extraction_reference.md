@@ -42,6 +42,7 @@ These helpers isolate parsing/compat logic from transport/tts orchestration.
 3. enum-backed `.type.value` strings
 
 Any other shape returns `None`.
+Whitespace-only type strings are normalized to `None` (trim + empty guard).
 
 This allows mixed event producers during migrations without failing the stream loop.
 
@@ -85,6 +86,8 @@ If present, trimmed assistant full text is retained as secondary completion fall
 3. last `assistant_message_full` text
 4. constant fallback:
 - `"I completed the requested action(s), but the model returned an empty final response."`
+
+If `saw_text_chunk=True` but joined chunk text is whitespace-only, resolver falls through to assistant-full text (or fallback), not blank completion text.
 
 This ensures frontend receives deterministic terminal text even on malformed/incomplete streams.
 

@@ -11,7 +11,7 @@ title: "Backend Protocol Backward Compatibility and Normalization Reference"
 ## Coverage Snapshot (2026-02-27)
 
 - Compatibility-focused test files: `4`
-- Total named test functions across listed files: `28`
+- Total test functions across listed files: `55`
 
 ## Scope and Sources
 
@@ -82,6 +82,7 @@ Locked by `tests/backend/test_response_formatter.py`:
   - dict `{"type": "..."}`
   - object `event.type` string
   - enum-like `event.type.value`
+  - trims string values and treats whitespace-only type strings as invalid (`None`)
 
 ### Chunk text normalization
 
@@ -110,6 +111,8 @@ Locked by `tests/backend/test_response_formatter.py`:
 3. assistant full-text payload
 4. fixed empty-final-response fallback message
 
+If accumulated chunks join to whitespace-only content, resolver falls through to assistant-full text instead of returning blank output.
+
 Locked by tests in `tests/backend/test_api_handlers.py`:
 
 - `test_query_execution_extract_non_empty_chunk_text_respects_precomputed_event_type`
@@ -119,10 +122,12 @@ Locked by tests in `tests/backend/test_api_handlers.py`:
 Additional direct helper coverage in `tests/backend/test_query_event_extraction.py`:
 
 - typed string `.type` handling (`assistant_message_full`) and missing `.type.value` fallback to `None`
+- whitespace-only event type normalization to `None` for dict and typed-event paths
 - top-level whitespace fallback to payload (`extract_dict_string_field`)
 - `streaming-response` + payload `text` compatibility in chunk extraction
 - typed-event `final_response` extraction for `streaming-complete`
 - completion resolution precedence without `QueryExecutionService` wrapper indirection
+- assistant-full fallback when `saw_text_chunk=True` but chunk aggregate is whitespace-only
 
 ## Incoming Route Type Extraction Tolerance
 
