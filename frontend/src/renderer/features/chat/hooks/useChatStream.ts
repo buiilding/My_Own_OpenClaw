@@ -5,7 +5,7 @@
  */
 
 import { useCallback, useEffect, useMemo } from 'react';
-import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import {
   useChatStore,
   type ChatMessage,
@@ -32,6 +32,7 @@ import {
   type SystemPromptEvent,
   type UserMessageFullEvent,
   type AssistantMessageFullEvent,
+  type MemoryStoreEvent,
   type TokenCountEvent,
   type ToolSchemasEvent,
   type LocalUserMessageEvent,
@@ -517,6 +518,26 @@ export function useChatStream(enableTranscript: boolean = true) {
     recordTrackingEvent('token-count', event.turn_ref);
   }, [setTokenCounts, recordTrackingEvent]);
 
+  const handleMemoryStore = useCallback((event: MemoryStoreEvent) => {
+    const userQuery = event.payload?.user_query;
+    const assistantResponse = event.payload?.assistant_response;
+    if (!userQuery || !assistantResponse) {
+      return;
+    }
+
+    void IpcBridge.invoke(INVOKE_CHANNELS.STORE_MEMORY, {
+      userQuery,
+      assistantResponse,
+      memoryType: event.payload?.memory_type || 'episodic',
+      userId: event.payload?.user_id || event.user_id,
+      sessionId: event.payload?.session_id || event.session_id || event.conversation_ref,
+    }).catch(() => {
+      // Avoid blocking stream handling when best-effort memory persistence fails.
+    });
+
+    recordTrackingEvent('memory-store', event.turn_ref);
+  }, [recordTrackingEvent]);
+
   const handleError = useCallback((event: ErrorEvent) => {
     setIsSending(false);
     setThinkingStatus('');
@@ -574,6 +595,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     'local-user-message': event => handleLocalUserMessage(event as LocalUserMessageEvent),
     'user-message-full': event => handleUserMessageFull(event as UserMessageFullEvent),
     'assistant-message-full': event => handleAssistantMessageFull(event as AssistantMessageFullEvent),
+    'memory-store': event => handleMemoryStore(event as MemoryStoreEvent),
     'token-count': event => handleTokenCount(event as TokenCountEvent),
     'tool-schemas': event => handleToolSchemas(event as ToolSchemasEvent),
     'error': event => {
@@ -596,6 +618,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleLocalUserMessage,
     handleUserMessageFull,
     handleAssistantMessageFull,
+    handleMemoryStore,
     handleTokenCount,
     handleToolSchemas,
     handleError,

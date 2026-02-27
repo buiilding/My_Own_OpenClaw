@@ -1,4 +1,5 @@
 import { act } from '@testing-library/react';
+import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
   registerBackendListener,
@@ -196,6 +197,35 @@ describe('useChatStream transcript + event filtering', () => {
     });
 
     expect(transcriptSpies.updateTranscriptSession).toHaveBeenCalledWith('conv-2', 'user-2');
+  });
+
+  test('persists memory-store events via store-memory IPC', async () => {
+    const invokeSpy = jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({ success: true });
+    const { emitBackendEvent } = registerBackendListener();
+
+    await act(async () => {
+      emitBackendEvent({
+        type: 'memory-store',
+        user_id: 'user-9',
+        session_id: 'session-9',
+        payload: {
+          user_query: 'hi',
+          assistant_response: 'hello',
+          memory_type: 'episodic',
+          user_id: 'user-9',
+          session_id: 'session-9',
+        },
+      });
+      await Promise.resolve();
+    });
+
+    expect(invokeSpy).toHaveBeenCalledWith(INVOKE_CHANNELS.STORE_MEMORY, {
+      userQuery: 'hi',
+      assistantResponse: 'hello',
+      memoryType: 'episodic',
+      userId: 'user-9',
+      sessionId: 'session-9',
+    });
   });
 
   test('ignores stale events when conversation_ref does not match active conversation', () => {

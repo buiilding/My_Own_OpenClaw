@@ -14,6 +14,7 @@ export type BackendEventType =
   | 'system-prompt'
   | 'user-message-full'
   | 'assistant-message-full'
+  | 'memory-store'
   | 'token-count'
   | 'tool-schemas'
   | 'error';
@@ -123,6 +124,13 @@ export type UserMessageFullEvent = BackendEventBase<'user-message-full', {
 export type AssistantMessageFullEvent = BackendEventBase<'assistant-message-full', {
   content?: string;
 }>;
+export type MemoryStoreEvent = BackendEventBase<'memory-store', {
+  user_query?: string;
+  assistant_response?: string;
+  memory_type?: string;
+  user_id?: string;
+  session_id?: string;
+}>;
 export type TokenCountEvent = BackendEventBase<'token-count', TokenCounts>;
 export type ToolSchemasEvent = BackendEventBase<'tool-schemas', {
   tool_schemas?: ToolSchema[];
@@ -146,6 +154,7 @@ export type BackendEvent =
   | SystemPromptEvent
   | UserMessageFullEvent
   | AssistantMessageFullEvent
+  | MemoryStoreEvent
   | TokenCountEvent
   | ToolSchemasEvent
   | ErrorEvent;
@@ -164,6 +173,7 @@ const BACKEND_EVENT_TYPES = new Set<BackendEventType>([
   'system-prompt',
   'user-message-full',
   'assistant-message-full',
+  'memory-store',
   'token-count',
   'tool-schemas',
   'error'

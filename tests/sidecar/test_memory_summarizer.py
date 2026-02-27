@@ -48,8 +48,8 @@ class FakeCycleMemoryStore:
     def __init__(self):
         self.watermark_updates = []
 
-    async def get_watermark(self):
-        return {"pending_message_count": 10}
+    async def count_unsemanticized_interaction_memories(self, user_id=None):
+        return 10
 
     async def get_unsemanticized_conversation_windows(self, user_id):
         return [f"conv-for-{user_id}"]
@@ -74,60 +74,29 @@ class FakeUserIdMemoryStore:
 
 
 class FakeShouldRunMemoryStore:
-    def __init__(self, pending_message_count):
-        self.pending_message_count = pending_message_count
-        self.discovery_calls = []
+    def __init__(self, unsemanticized_count):
+        self.unsemanticized_count = unsemanticized_count
+        self.count_calls = 0
 
-    async def get_watermark(self):
-        return {"pending_message_count": self.pending_message_count}
-
-    async def get_user_ids_with_unsemanticized_memories(self, limit=100):
-        self.discovery_calls.append(limit)
-        return ["user-1"]
+    async def count_unsemanticized_interaction_memories(self, user_id=None):
+        self.count_calls += 1
+        return self.unsemanticized_count
 
 
 @pytest.mark.asyncio
-async def test_summarizer_processes_transcript_batch_and_skips_tool_calls():
+async def test_summarizer_processes_interaction_batch():
     memories = [
         {
             "id": "1",
-            "content": "run shell command with args",
+            "content": "User: Please stop the dashboard server.\nAssistant: Done. Port 8050 is now free.",
             "timestamp": "2026-02-12T10:00:00Z",
-            "record_kind": "transcript",
-            "role": "tool",
-            "message_type": "tool-call",
+            "record_kind": "interaction",
         },
         {
             "id": "2",
-            "content": "stdout: npm run dev\nexit code: 0",
+            "content": "User: Summarize project status\nAssistant: Milestone 2 complete, waiting on QA.",
             "timestamp": "2026-02-12T10:00:00.500Z",
-            "record_kind": "transcript",
-            "role": "tool",
-            "message_type": "tool-output",
-        },
-        {
-            "id": "3",
-            "content": "Bundle output: 3 tools succeeded",
-            "timestamp": "2026-02-12T10:00:00.900Z",
-            "record_kind": "transcript",
-            "role": "tool",
-            "message_type": "tool-bundle-result",
-        },
-        {
-            "id": "4",
-            "content": "Please stop the dashboard server.",
-            "timestamp": "2026-02-12T10:00:01Z",
-            "record_kind": "transcript",
-            "role": "user",
-            "message_type": "user",
-        },
-        {
-            "id": "5",
-            "content": "Done. Port 8050 is now free.",
-            "timestamp": "2026-02-12T10:00:02Z",
-            "record_kind": "transcript",
-            "role": "assistant",
-            "message_type": "llm-text",
+            "record_kind": "interaction",
         },
     ]
     memory_store = FakeMemoryStore(memories)
@@ -146,16 +115,12 @@ async def test_summarizer_processes_transcript_batch_and_skips_tool_calls():
     assert summarized == 1
     assert len(semantic_client.requests) == 1
     chunk_payload = "\n".join(semantic_client.requests[0]["conversations"])
-    assert "tool-call" not in chunk_payload
-    assert "tool-output" not in chunk_payload
-    assert "tool-bundle-result" not in chunk_payload
-    assert "stdout: npm run dev" not in chunk_payload
-    assert "Bundle output: 3 tools succeeded" not in chunk_payload
     assert "Please stop the dashboard server." in chunk_payload
     assert "Done. Port 8050 is now free." in chunk_payload
+    assert "Summarize project status" in chunk_payload
     assert len(memory_store.add_calls) == 1
-    assert memory_store.add_calls[0]["metadata"]["source_memory_count"] == 5
-    assert memory_store.marked_ids == ["1", "2", "3", "4", "5"]
+    assert memory_store.add_calls[0]["metadata"]["source_memory_count"] == 2
+    assert memory_store.marked_ids == ["1", "2"]
 
 
 @pytest.mark.asyncio
@@ -261,8 +226,8 @@ async def test_should_summarize_batch_handles_naive_timestamp_without_error():
 
 
 @pytest.mark.asyncio
-async def test_should_run_requires_pending_threshold_when_below_min_batch_size():
-    memory_store = FakeShouldRunMemoryStore(pending_message_count=5)
+async def test_should_run_requires_unsemanticized_interaction_threshold_when_below_min_batch_size():
+    memory_store = FakeShouldRunMemoryStore(unsemanticized_count=5)
     summarizer = MemorySummarizer(
         memory_store=memory_store,
         semantic_client=FakeSemanticClient(),
@@ -271,12 +236,12 @@ async def test_should_run_requires_pending_threshold_when_below_min_batch_size()
     should_run = await summarizer._should_run()
 
     assert should_run is False
-    assert memory_store.discovery_calls == []
+    assert memory_store.count_calls == 1
 
 
 @pytest.mark.asyncio
-async def test_should_run_when_pending_reaches_min_batch_size():
-    memory_store = FakeShouldRunMemoryStore(pending_message_count=6)
+async def test_should_run_when_unsemanticized_interactions_reach_min_batch_size():
+    memory_store = FakeShouldRunMemoryStore(unsemanticized_count=6)
     summarizer = MemorySummarizer(
         memory_store=memory_store,
         semantic_client=FakeSemanticClient(),
@@ -285,4 +250,4 @@ async def test_should_run_when_pending_reaches_min_batch_size():
     should_run = await summarizer._should_run()
 
     assert should_run is True
-    assert memory_store.discovery_calls == []
+    assert memory_store.count_calls == 1

@@ -171,13 +171,13 @@ Decorator `@requires_memory_store` gates most memory handlers:
 - computes/assigns `message_index` when omitted
 - marks semantic candidate only for selected roles/message types
 - sets `skip_embedding` for non-candidate rows
-- increments summarization watermark only for assistant terminal rows (`llm-text`/`error`)
+- does not drive semantic-summarization run gating
 
 ### `store_memory`
 
 - stores combined interaction text (`User: ... / Assistant: ...`)
 - attaches interaction metadata and optional session/conversation id
-- episodic writes can also trigger summarization watermark update
+- writes episodic rows with `record_kind='interaction'` for semantic-summarization source input
 
 ## Contract Edge Cases
 

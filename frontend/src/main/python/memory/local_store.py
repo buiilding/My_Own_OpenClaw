@@ -1178,7 +1178,7 @@ class LocalMemoryStore:
         self, limit: int = 100
     ) -> List[str]:
         """
-        Return distinct user IDs that have unsemanticized episodic memories.
+        Return distinct user IDs that have unsemanticized episodic interaction memories.
         """
         async with aiosqlite.connect(self.episodic_db_path) as conn:
             cursor = await conn.cursor()
@@ -1187,7 +1187,7 @@ class LocalMemoryStore:
                 SELECT user_id, MAX(timestamp) as latest_timestamp
                 FROM memories
                 WHERE is_semanticized = 0
-                  AND record_kind = 'transcript'
+                  AND record_kind = 'interaction'
                 GROUP BY user_id
                 ORDER BY latest_timestamp DESC
                 LIMIT ?
@@ -1196,6 +1196,41 @@ class LocalMemoryStore:
             )
             rows = await cursor.fetchall()
             return [row[0] for row in rows if row and row[0]]
+
+    async def count_unsemanticized_interaction_memories(
+        self,
+        user_id: Optional[str] = None,
+    ) -> int:
+        """
+        Count unsemanticized episodic interaction rows.
+
+        Args:
+            user_id: Optional user filter.
+        """
+        async with aiosqlite.connect(self.episodic_db_path) as conn:
+            cursor = await conn.cursor()
+            if user_id:
+                await cursor.execute(
+                    """
+                    SELECT COUNT(*)
+                    FROM memories
+                    WHERE user_id = ?
+                      AND is_semanticized = 0
+                      AND record_kind = 'interaction'
+                """,
+                    (user_id,),
+                )
+            else:
+                await cursor.execute(
+                    """
+                    SELECT COUNT(*)
+                    FROM memories
+                    WHERE is_semanticized = 0
+                      AND record_kind = 'interaction'
+                """
+                )
+            row = await cursor.fetchone()
+            return int(row[0]) if row else 0
 
     async def semantic_summary_exists(self, summary_hash: str) -> bool:
         """
@@ -2546,7 +2581,7 @@ class LocalMemoryStore:
                 SELECT conversation_id, MIN(timestamp) as earliest_timestamp
                 FROM memories
                 WHERE user_id = ? AND is_semanticized = 0
-                  AND record_kind = 'transcript'
+                  AND record_kind = 'interaction'
                 GROUP BY conversation_id
                 ORDER BY earliest_timestamp ASC
             """,
@@ -2590,7 +2625,7 @@ class LocalMemoryStore:
                     tool_name
                 FROM memories
                 WHERE user_id = ? AND is_semanticized = 0
-                  AND record_kind = 'transcript'
+                  AND record_kind = 'interaction'
                   AND {conversation_clause}
                 ORDER BY timestamp ASC
                 LIMIT ?
@@ -2628,7 +2663,7 @@ class LocalMemoryStore:
                 SELECT id, content, timestamp, metadata, record_kind, role, message_type, tool_name
                 FROM memories
                 WHERE user_id = ? AND is_semanticized = 0
-                  AND record_kind = 'transcript'
+                  AND record_kind = 'interaction'
                 ORDER BY timestamp ASC
                 LIMIT ?
             """,
@@ -2732,7 +2767,7 @@ class LocalMemoryStore:
                 FROM memories
                 WHERE user_id = ?
                   AND is_semanticized = 0
-                  AND record_kind = 'transcript'
+                  AND record_kind = 'interaction'
                   AND (
                       ? IS NULL
                       OR NOT EXISTS (SELECT 1 FROM watermark)

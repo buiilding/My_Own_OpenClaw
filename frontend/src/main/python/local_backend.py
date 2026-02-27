@@ -585,13 +585,6 @@ class LocalBackend:
                 timestamp=timestamp,
             )
 
-            counts_pending = self._counts_toward_pending_turns(role, message_type)
-
-            await self._maybe_update_summarization_watermark(
-                should_update=counts_pending,
-                user_id=user_id,
-            )
-
             return {
                 "success": True,
                 "data": {
@@ -624,7 +617,8 @@ class LocalBackend:
                 memory_content,
                 user_id,
                 metadata,
-                conversation_id=session_id
+                conversation_id=session_id,
+                record_kind="interaction",
             )
 
             await self._maybe_update_summarization_watermark(
