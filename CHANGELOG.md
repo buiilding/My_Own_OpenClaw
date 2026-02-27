@@ -8,6 +8,7 @@ Includes the last 300 commits on `main`.
 
 ### Added
 - feat(frontend-overlay-focus): add computer-use surface prep split for interactive vs screenshot tool turns, including `prepare-overlay-tool-focus` IPC handoff and external-window focus verification before interactive dispatch.
+- test(frontend-overlay-focus): add regression coverage for tool-runner surface transitions (interactive/screenshot), external-focus active-window verification, and overlay IPC focus-prep handler wait/error paths.
 - test(backend-llm-stream): add Gemini tool-turn stream regression in `LLMStreamProcessor` to ensure tool-enabled Gemini turns stay on streaming path when provider advertises `supports_streaming_tool_turns`, including thinking-chunk emission + normalized tool-call payload bridge.
 - test(backend-gemini-stream): add fail-closed regression coverage for invalid streamed Gemini tool-call arguments (emits stream error event and keeps stream payload unset).
 - fix(frontend-thinking-capability): align default thinking-text stream inference with backend model metadata so Gemini thinking models no longer fall back to generic `Thinking...` unless explicitly marked `supports_thinking_text_stream=false`.

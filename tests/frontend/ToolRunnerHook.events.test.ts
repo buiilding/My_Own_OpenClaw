@@ -118,6 +118,15 @@ describe('useToolRunner event handling', () => {
       INVOKE_CHANNELS.SHOW_CHATBOX,
       { focus: false },
     );
+    expect(IpcBridge.invoke).toHaveBeenCalledWith(
+      INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS,
+      { waitMs: 180 },
+    );
+    const showCallOrder = (IpcBridge.invoke as jest.Mock).mock.invocationCallOrder[0];
+    const prepareCallOrder = (IpcBridge.invoke as jest.Mock).mock.invocationCallOrder[1];
+    const executeCallOrder = mockExecuteTool.mock.invocationCallOrder[0];
+    expect(showCallOrder).toBeLessThan(prepareCallOrder);
+    expect(prepareCallOrder).toBeLessThan(executeCallOrder);
   });
 
   test('does not force chat-pill handoff for switch_tab tool-call', async () => {
@@ -187,10 +196,12 @@ describe('useToolRunner event handling', () => {
       },
     });
 
-    expect(IpcBridge.invoke).toHaveBeenCalledWith(
+    const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
+    expect(invokeCalls).toContainEqual([
       INVOKE_CHANNELS.SHOW_CHATBOX,
       { focus: false },
-    );
+    ]);
+    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.HIDE_CHATBOX)).toBe(true);
     expect(mockExecuteToolBundle).toHaveBeenCalledWith(
       [
         { toolName: 'read_file', args: { file_path: '/tmp/a' } },
@@ -198,6 +209,10 @@ describe('useToolRunner event handling', () => {
       ],
       'bundle-computer-tool',
     );
+    expect(invokeCalls).toContainEqual([
+      INVOKE_CHANNELS.SHOW_CHATBOX,
+      { focus: false },
+    ]);
   });
 
   test('uses generated bundle id when bundle_id is missing', async () => {
@@ -260,6 +275,23 @@ describe('useToolRunner event handling', () => {
       {},
       { correlationId: 'event-empty-args', skipAutoCapture: false },
     );
+    const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
+    expect(invokeCalls).toContainEqual([
+      INVOKE_CHANNELS.SHOW_CHATBOX,
+      { focus: false },
+    ]);
+    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.HIDE_CHATBOX)).toBe(true);
+    const firstShowIndex = invokeCalls.findIndex(([channel]: unknown[]) => channel === INVOKE_CHANNELS.SHOW_CHATBOX);
+    const hideIndex = invokeCalls.findIndex(([channel]: unknown[]) => channel === INVOKE_CHANNELS.HIDE_CHATBOX);
+    let lastShowIndex = -1;
+    invokeCalls.forEach((call: unknown[], index: number) => {
+      if (call[0] === INVOKE_CHANNELS.SHOW_CHATBOX) {
+        lastShowIndex = index;
+      }
+    });
+    expect(firstShowIndex).toBeGreaterThanOrEqual(0);
+    expect(hideIndex).toBeGreaterThan(firstShowIndex);
+    expect(lastShowIndex).toBeGreaterThan(hideIndex);
   });
 
   test('skips frontend execution for non-executable tool-call metadata', async () => {
