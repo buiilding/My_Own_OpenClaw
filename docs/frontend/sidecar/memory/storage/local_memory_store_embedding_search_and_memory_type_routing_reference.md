@@ -12,6 +12,7 @@ title: "Local Memory Store Embedding, Search, and Memory-Type Routing Reference"
 
 - `frontend/src/main/python/memory/local_store.py`
 - `frontend/src/main/python/memory/conversation_search_helpers.py`
+- `frontend/src/main/python/memory/conversation_search_runtime.py`
 - `frontend/src/main/python/memory/conversation_title_helpers.py`
 - `frontend/src/main/python/core/remote_embedding_client.py`
 - `frontend/src/main/python/core/remote_title_client.py`
@@ -141,6 +142,11 @@ Result payload fields:
 
 - `id`, `text`, `metadata`, `score`, `timestamp`, `type`, optional `conversation_id`
 
+Conversation search surface (`search_conversations(...)`):
+
+- lexical + semantic transcript hit collection now routes through `conversation_search_runtime`
+- helper module owns FTS/LIKE fallback, transcript filtering, and summary/title fetch normalization
+
 ## Mapping and Index Drift Recovery
 
 On startup or detected empty index with existing mappings:
@@ -161,6 +167,7 @@ Test coverage confirms sparse/legacy embedding IDs are rewritten deterministical
 ## Related Pages
 
 - [Frontend Sidecar Memory Storage Docs Hub](README.md)
+- [Conversation Search Runtime FTS, Semantic Fusion, and Summary-Fetch Contract Reference](conversation_search_runtime_fts_semantic_fusion_and_summary_fetch_contract_reference.md)
 - [Conversation Title Generation Runtime and Helper Contract Reference](conversation_title_generation_runtime_and_helper_contract_reference.md)
 - [Conversation Transcript Window Queries and FAISS Artifact Cleanup Reference](conversation_transcript_window_queries_and_faiss_artifact_cleanup_reference.md)
 - [SQLite Schema Migration, FAISS Index I/O, and Watermark State Reference](sqlite_schema_migration_faiss_index_and_watermark_state_reference.md)

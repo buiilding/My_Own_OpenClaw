@@ -185,6 +185,7 @@ Effect:
 ## Related Pages
 
 - [Frontend Sidecar Memory Storage Docs Hub](README.md)
+- [Conversation Search Runtime FTS, Semantic Fusion, and Summary-Fetch Contract Reference](conversation_search_runtime_fts_semantic_fusion_and_summary_fetch_contract_reference.md)
 - [Local Memory Store Embedding, Search, and Memory-Type Routing Reference](local_memory_store_embedding_search_and_memory_type_routing_reference.md)
 - [Conversation Transcript Window Queries and FAISS Artifact Cleanup Reference](conversation_transcript_window_queries_and_faiss_artifact_cleanup_reference.md)
 - [Transcript Storage, Semantic Candidate, and Watermark Reference](../transcript_storage_semantic_candidate_and_watermark_reference.md)

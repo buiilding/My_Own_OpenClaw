@@ -14,6 +14,7 @@ title: "Frontend Sidecar Memory Docs Hub"
 - [Summarizer Watermark and Conversation Batch Reference](summarizer_watermark_and_conversation_batch_reference.md)
 - [Transcript Storage, Semantic Candidate, and Watermark Reference](transcript_storage_semantic_candidate_and_watermark_reference.md)
 - [Local Memory Store Embedding, Search, and Memory-Type Routing Reference](storage/local_memory_store_embedding_search_and_memory_type_routing_reference.md)
+- [Conversation Search Runtime FTS, Semantic Fusion, and Summary-Fetch Contract Reference](storage/conversation_search_runtime_fts_semantic_fusion_and_summary_fetch_contract_reference.md)
 - [Conversation Title Generation Runtime and Helper Contract Reference](storage/conversation_title_generation_runtime_and_helper_contract_reference.md)
 - [Conversation Transcript Window Queries and FAISS Artifact Cleanup Reference](storage/conversation_transcript_window_queries_and_faiss_artifact_cleanup_reference.md)
 - [SQLite Schema Migration, FAISS Index I/O, and Watermark State Reference](storage/sqlite_schema_migration_faiss_index_and_watermark_state_reference.md)
@@ -28,6 +29,7 @@ title: "Frontend Sidecar Memory Docs Hub"
 - `frontend/src/main/python/memory/summarizer.py`
 - `frontend/src/main/python/memory/local_store.py`
 - `frontend/src/main/python/memory/conversation_search_helpers.py`
+- `frontend/src/main/python/memory/conversation_search_runtime.py`
 - `frontend/src/main/python/memory/conversation_title_helpers.py`
 - `frontend/src/main/python/memory/sqlite_store.py`
 - `frontend/src/main/python/memory/faiss_index.py`
@@ -39,6 +41,7 @@ title: "Frontend Sidecar Memory Docs Hub"
 - `tests/sidecar/test_memory_summarizer.py`
 - `tests/sidecar/test_conversation_search.py`
 - `tests/sidecar/test_conversation_search_helpers.py`
+- `tests/sidecar/test_conversation_search_runtime.py`
 - `tests/sidecar/test_conversation_titles.py`
 - `tests/sidecar/test_conversation_title_helpers.py`
 - `tests/sidecar/test_remote_title_client.py`
