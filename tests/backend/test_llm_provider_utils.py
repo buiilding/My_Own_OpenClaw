@@ -54,6 +54,14 @@ class _ToolArgumentsModelDumpNoKwargs:
         return {"path": "/tmp/no-kwargs.txt"}
 
 
+class _ToolArgumentsDictFallback:
+    def model_dump(self, **_kwargs):
+        raise RuntimeError("model_dump unavailable")
+
+    def dict(self):
+        return {"path": "/tmp/dict-fallback.txt"}
+
+
 def test_extract_status_code_supports_direct_response_and_exception_chain():
     direct = RuntimeError("boom")
     direct.status_code = 429
@@ -276,6 +284,15 @@ def test_normalize_messages_for_provider_normalizes_openai_function_argument_sha
     assert normalized[2]["tool_call_id"] == "call_none"
 
 
+def test_normalize_messages_for_provider_rejects_non_list_assistant_tool_calls():
+    messages = [
+        {"role": "assistant", "content": "", "tool_calls": "invalid"},
+    ]
+
+    with pytest.raises(LLMAPIError, match="assistant\\.tool_calls"):
+        normalize_messages_for_provider(messages, model="m")
+
+
 def test_normalize_tool_arguments_rejects_non_object_json():
     with pytest.raises(LLMAPIError, match="must decode to object"):
         normalize_tool_arguments(
@@ -308,3 +325,24 @@ def test_normalize_tool_arguments_supports_model_dump_without_kwargs():
     )
 
     assert normalized == {"path": "/tmp/no-kwargs.txt"}
+
+
+def test_normalize_tool_arguments_falls_back_to_dict_method():
+    payload = _ToolArgumentsDictFallback()
+
+    normalized = normalize_tool_arguments(
+        payload,
+        model="m",
+        invalid_response_message="Invalid response",
+    )
+
+    assert normalized == {"path": "/tmp/dict-fallback.txt"}
+
+
+def test_normalize_tool_arguments_rejects_unsupported_non_string_non_mapping_payload():
+    with pytest.raises(LLMAPIError, match="unsupported tool arguments type list"):
+        normalize_tool_arguments(
+            [1, 2, 3],
+            model="m",
+            invalid_response_message="Invalid response",
+        )
