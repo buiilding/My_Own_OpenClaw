@@ -2,7 +2,7 @@
 summary: "Backend LLM provider docs sub-hub for base request/stream normalization contracts and provider-specific overrides across cloud/local runtimes."
 read_when:
   - When changing `backend/src/llm/providers/*` request building, stream handling, or response normalization behavior.
-  - When debugging provider-specific model prefixing, thinking flags, local model listing, or Kimi tool-call stream assembly.
+  - When debugging provider-specific model prefixing, thinking flags, local model listing, or Gemini/Kimi tool-call stream assembly.
 title: "Backend LLM Provider Docs Hub"
 ---
 
@@ -24,6 +24,7 @@ title: "Backend LLM Provider Docs Hub"
 - `backend/src/llm/client.py`
 - `backend/src/llm/providers/base.py`
 - `backend/src/llm/providers/stream_event_pipeline.py`
+- `backend/src/llm/providers/streaming_tool_call_aggregation.py`
 - `backend/src/llm/providers/online.py`
 - `backend/src/llm/providers/local.py`
 - `backend/src/llm/providers/kimi_coding.py`

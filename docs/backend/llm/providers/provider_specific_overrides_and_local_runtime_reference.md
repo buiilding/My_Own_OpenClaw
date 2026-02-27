@@ -1,8 +1,8 @@
 ---
-summary: "Provider-specific runtime reference for online/local LLM providers: model-prefix rules, reasoning/thinking request flags, local model-listing endpoints, and Kimi streaming tool-call assembly."
+summary: "Provider-specific runtime reference for online/local LLM providers: model-prefix rules, reasoning/thinking request flags, local model-listing endpoints, and shared Gemini/Kimi streaming tool-call assembly."
 read_when:
   - When adding/changing a concrete provider class under `backend/src/llm/providers/*`.
-  - When debugging provider-specific completion params, local provider model discovery, or Kimi stream tool-call payloads.
+  - When debugging provider-specific completion params, local provider model discovery, or Gemini/Kimi stream tool-call payloads.
 title: "Provider-Specific Overrides and Local Runtime Reference"
 ---
 
@@ -11,6 +11,7 @@ title: "Provider-Specific Overrides and Local Runtime Reference"
 ## Canonical Modules
 
 - `backend/src/llm/providers/online.py`
+- `backend/src/llm/providers/streaming_tool_call_aggregation.py`
 - `backend/src/llm/providers/openai.py`
 - `backend/src/llm/providers/anthropic.py`
 - `backend/src/llm/providers/gemini.py`
@@ -79,7 +80,7 @@ Default `list_models()` returns empty list; online model catalogs are static in 
 - for models listed in `ONLINE_THINKING_MODELS["gemini"]`, adds:
   - `reasoning_effort = "low"`
 - `supports_streaming_tool_turns(...)` returns `True`.
-- stream path accumulates OpenAI-style `delta.tool_calls` (and block-style `tool_use`)
+- stream path reuses shared `StreamingToolCallAggregationMixin`, which accumulates OpenAI-style `delta.tool_calls` (and block-style `tool_use`)
   across chunks, then stores normalized stream payload via
   `get_last_stream_response_payload()` so agent tool loops can continue safely after
   streamed thinking/text.
@@ -115,7 +116,7 @@ This keeps transport model id aligned with Kimi endpoint expectations.
 
 `supports_streaming_tool_turns(...)` returns `True`.
 
-Kimi stream path accumulates text + tool-call deltas and emits final normalized payload:
+Kimi stream path reuses shared `StreamingToolCallAggregationMixin` for text + tool-call delta aggregation and emits final normalized payload:
 
 - tracks partial arguments across stream chunks,
 - merges OpenAI-style `delta.tool_calls` and Anthropic-style `content[type=tool_use]`,

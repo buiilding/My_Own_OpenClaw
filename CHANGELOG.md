@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(backend-stream-tool-aggregation): dedupe Gemini + Kimi streamed tool-call aggregation into shared `streaming_tool_call_aggregation.py` mixin, keep provider-specific fail-closed error text overrides, and tighten provider regressions for model-specific invalid-JSON error surfaces.
 - docs(backend-compat): tighten query-event compatibility docs for whitespace-normalized event-type handling, whitespace-only chunk fallback behavior, and updated compatibility test-surface counts.
 - docs(sidecar-shell): add dedicated shell output formatting/response payload contract docs and wire them into sidecar tool/system documentation hubs.
 - refactor(sidecar-shell-tool): extract shell output/token formatting and response payload builders into dedicated modules (`shell_output_formatting.py`, `shell_response_payloads.py`) so `shell_tool.py` stays below the large-file threshold without behavior drift; add focused helper regression coverage.
