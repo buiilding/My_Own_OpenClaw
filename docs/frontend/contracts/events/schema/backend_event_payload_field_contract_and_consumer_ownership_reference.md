@@ -24,6 +24,9 @@ title: "Backend Event Payload Field Contract and Consumer Ownership Reference"
 - `llm-thought`
 - `streaming-response`
 - `streaming-complete`
+- `context-compaction-started`
+- `context-compaction-completed`
+- `context-compaction-failed`
 - `tool-call`
 - `tool-output`
 - `tool-bundle`
@@ -31,6 +34,7 @@ title: "Backend Event Payload Field Contract and Consumer Ownership Reference"
 - `system-prompt`
 - `user-message-full`
 - `assistant-message-full`
+- `memory-store`
 - `token-count`
 - `tool-schemas`
 - `error`
@@ -97,10 +101,47 @@ Used by:
 - tool runner bundle execution + relay
 - chat stream tool-bundle summary rendering
 
+### `local-user-message`
+
+- `payload.text?: string`
+- `payload.screenshot_ref?: string|null`
+- `payload.screenshot_refs?: string[]|null`
+- `payload.screenshot_url?: string|null`
+- `payload.timestamp?: string`
+
+Used by:
+
+- optimistic user message insertion before backend query send result
+- multi-image attachment rendering parity with query payload artifacts
+
 ### `token-count`
 
 - payload typed as `TokenCounts` store model
 - used by token display and usage tracking UI
+
+### `context-compaction-*`
+
+- `context-compaction-started.payload.reason|strategy|before_tokens|projected_tokens`
+- `context-compaction-completed.payload.reason|strategy|before_tokens|after_tokens|removed_messages|summary_preview|skipped_reason`
+- `context-compaction-failed.payload.reason|strategy|error|before_tokens`
+
+Used by:
+
+- stream phase/status UI transitions around manual/auto compaction
+- chat timeline system-state messaging for compaction lifecycle
+
+### `memory-store`
+
+- `payload.user_query?: string`
+- `payload.assistant_response?: string`
+- `payload.memory_type?: string`
+- `payload.user_id?: string`
+- `payload.session_id?: string`
+
+Used by:
+
+- renderer/store paths that persist interaction memory rows
+- session/conversation correlation filtering for memory-write fanout
 
 ### `error`
 
