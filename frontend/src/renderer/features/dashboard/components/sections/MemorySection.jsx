@@ -100,11 +100,6 @@ function MemorySection({ onClose = () => {} }) {
       return;
     }
 
-    const shouldDelete = window.confirm('Delete this memory? This cannot be undone.');
-    if (!shouldDelete) {
-      return;
-    }
-
     if (activeType === 'semantic' && memory.backendMemoryId) {
       try {
         const result = await IpcBridge.invoke(INVOKE_CHANNELS.DELETE_SEMANTIC_MEMORY, {
