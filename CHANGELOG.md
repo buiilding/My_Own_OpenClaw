@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(backend-stream-tool-aggregation): add Gemini + Kimi stream regression coverage for Anthropic `tool_use` block parsing, synthesized fallback tool-call ids, and argument-object precedence over fragmented string chunks.
 - refactor(frontend-chat-compose): extract shared clipboard-image parser utility (`clipboardImageUtils.parseClipboardImageItems`) and reuse it across dashboard `MessageInput` and overlay `ChatBox`, reducing duplicate file-reader/data-url parsing logic and aligning attachment payload normalization.
 - refactor(frontend-chatbox-structure): split minimal chat-pill icon set and preview-row markup into dedicated components (`ChatBoxIcons`, `ChatBoxImagePreviewRow`) and keep `ChatBox.jsx` below the large-file threshold while preserving fixed-size overlay behavior.
 - perf(frontend-tests): speed up `ChatGptDashboardShell.test.jsx` by replacing multiple polling `waitFor(...)` calls with deterministic microtask flushes for mocked async flows; keeps assertions equivalent with lower runtime overhead.
