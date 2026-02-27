@@ -269,6 +269,20 @@ def test_is_ignored_by_any_requires_directory_boundary_for_prefix_match():
     assert gitignore_utils.is_ignored_by_any("/rooted/file.txt", specs) is False
 
 
+def test_is_ignored_by_any_handles_exact_directory_path_without_crashing():
+    class EmptyPathSpec:
+        def __init__(self):
+            self.seen = None
+
+        def match_file(self, path):
+            self.seen = path
+            return False
+
+    spec = EmptyPathSpec()
+    assert gitignore_utils.is_ignored_by_any("/root", [("/root", spec)]) is False
+    assert spec.seen == ""
+
+
 def test_is_ignored_normalizes_windows_separators(monkeypatch):
     class DummySpec:
         def __init__(self):
