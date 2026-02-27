@@ -18,6 +18,7 @@ title: "Base Request, Stream, and Normalization Reference"
 - `backend/src/llm/providers/error_mapping.py`
 - `backend/src/llm/providers/message_normalization.py`
 - `backend/src/llm/providers/response_parsing.py`
+- `backend/src/llm/providers/thinking_extraction.py`
 - `backend/src/llm/providers/usage_diagnostics.py`
 - `tests/backend/test_llm_provider_base.py`
 - `tests/backend/test_llm_client.py`
@@ -38,6 +39,7 @@ Provider utility helpers now centralize shared logic:
 - `error_mapping.py`: exception-chain walking, HTTP status extraction, API error message formatting.
 - `message_normalization.py`: assistant/tool message normalization and canonical LiteLLM tool-schema validation.
 - `response_parsing.py`: stream delta extraction, completion payload parsing, and tool-call argument normalization.
+- `thinking_extraction.py`: reasoning/thinking delta parsing, including structured content blocks and `<thinking>` tags.
 - `usage_diagnostics.py`: usage payload normalization/collection and stream cache diagnostics derivation.
 - `base_payload_compat_mixin.py`: compatibility wrapper surface preserving historical `LLMProvider` helper methods while delegating to extracted modules.
 - `stream_event_pipeline.py`: stream-mode request flagging and shared text/thinking event emission loops.
@@ -142,7 +144,7 @@ Key extraction helpers:
 - `_extract_stream_delta(...)` supports dict/object chunk structures.
 - `_extract_stream_finish_reason(...)` supports dict/object choice structures.
 - `_extract_delta_content(...)` supports plain-string and block-list text content.
-- `_extract_thinking_content(...)` supports:
+- `_extract_thinking_content(...)` (delegated to `thinking_extraction.py`) supports:
   - object fields (`reasoning_content`, `thinking`, `reasoning`, `thought`),
   - dict fields of same names,
   - `<thinking>...</thinking>` tagged content.
