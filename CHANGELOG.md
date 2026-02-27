@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(backend-websocket-parse): clarify websocket size/offload policy docs to use UTF-8 byte-length semantics for parse offload and max-message guard contracts.
 - docs(frontend-chat-stream): expand renderer chat stream/runtime reference with extracted helper module ownership (`useChatStreamToolHandlers`, `chatStreamThinkingStatus`, `modelThinkingCapabilities`, `toolRunnerSurface`) and explicit thinking-fallback + overlay-surface preparation contracts.
 - docs(backend-history-runtime): expand conversation-history/runtime docs with `message_builders.py` ownership and alias-normalization contracts (`tool_*`, `context_compaction`, assistant/user fallbacks) used during rehydrate and tool-result history writes.
 - docs(backend-formatters-signals): add dedicated context-compaction formatter contract reference and sync formatter hub/dispatch docs with required-field and optional-payload guarantees for `context-compaction-started|completed|failed` events.
