@@ -76,6 +76,7 @@ function createOverlayBrowserWindow({
   width,
   height,
   show,
+  allowDevTools = false,
 }) {
   const windowOptions = {
     width,
@@ -95,6 +96,7 @@ function createOverlayBrowserWindow({
       preload: path.join(__dirname, '../preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
+      devTools: Boolean(allowDevTools),
     },
   };
   if (typeof show === 'boolean') {
@@ -162,6 +164,7 @@ function createMainWindow({
   setMainWindow,
   enableContentProtectionSafely,
 }) {
+  const allowDevTools = Boolean(enableDevTransparencyUi);
   const mainWindow = new BrowserWindow({
     width: 1000,
     height: 700,
@@ -173,6 +176,7 @@ function createMainWindow({
       preload: path.join(__dirname, '../preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
+      devTools: allowDevTools,
     },
   });
 
@@ -240,6 +244,7 @@ function createChatWindow({
     path,
     width: 520,
     height: 96,
+    allowDevTools: Boolean(enableDevTransparencyUi),
   });
   setChatWindow(chatWindow);
   enableContentProtectionSafely({ targetWindow: chatWindow, platform, windowLabel: 'chat box' });
@@ -311,6 +316,7 @@ function createResponseWindow({
     width: 520,
     height: enableOsToolGhostDebug ? 620 : 1,
     show: enableOsToolGhostDebug,
+    allowDevTools: Boolean(enableDevTransparencyUi),
   });
   setResponseWindow(responseWindow);
   enableContentProtectionSafely({
