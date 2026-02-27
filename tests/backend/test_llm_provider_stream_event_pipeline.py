@@ -75,6 +75,19 @@ def test_enable_stream_with_usage_sets_stream_fields():
     assert params["stream_options"] == {"include_usage": True}
 
 
+def test_enable_stream_with_usage_overrides_existing_stream_options():
+    params: Dict[str, Any] = {
+        "model": "test-model",
+        "stream": False,
+        "stream_options": {"include_usage": False, "other": "value"},
+    }
+
+    enable_stream_with_usage(params)
+
+    assert params["stream"] is True
+    assert params["stream_options"] == {"include_usage": True}
+
+
 @pytest.mark.asyncio
 async def test_stream_text_content_events_emits_only_non_empty_chunks(monkeypatch):
     chunks = [
