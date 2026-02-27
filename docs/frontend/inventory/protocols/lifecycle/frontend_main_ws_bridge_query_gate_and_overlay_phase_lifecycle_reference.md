@@ -8,6 +8,11 @@ title: "Frontend Main WS Bridge, Query Gate, and Overlay Phase Lifecycle Referen
 
 # Frontend Main WS Bridge, Query Gate, and Overlay Phase Lifecycle Reference
 
+## Coverage Snapshot (2026-02-26)
+
+- Lifecycle-focused protocol test files: `4`
+- Total test cases across listed files: `54`
+
 ## Scope and Sources
 
 Lifecycle contract sources:
@@ -219,6 +224,17 @@ When changing this lifecycle, keep synchronized:
 - ACK/control message type assumptions (`settings-updated`, error id correlation).
 - Overlay phase literals used by `ipc.cjs` and `response_overlay_phase_handler.cjs`.
 - Synthetic `local-user-message` / send-failure error envelopes consumed by renderer stream hooks.
+
+## Lifecycle Control-Path Index
+
+| Lifecycle control path | Runtime owner | Lifecycle contract |
+|---|---|---|
+| websocket open/close transition | `frontend/src/main/ipc.cjs` | connection state reset, handshake send, settings-gate reset, and reconnect scheduling remain coupled |
+| first-query settings ACK gate | `frontend/src/main/ipc.cjs` | first query/wakeword send waits for settings sync outcome, with bounded timeout fallback |
+| query send bootstrap + optimistic local echo | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc_query_events.cjs` | outbound query uses resolved conversation context and emits synthetic local-user-message before backend response |
+| overlay phase transition fan-out | `frontend/src/main/ipc.cjs`, `frontend/src/main/response_overlay_phase_handler.cjs` | canonical phase set drives renderer/state sync and response-window visibility behavior |
+| wakeword callback -> STT trigger | `frontend/src/main/index.cjs`, `frontend/src/main/main_window_runtime.cjs` | STT trigger emits only after chat window show succeeds |
+| show-main-window target routing | `frontend/src/main/overlay_ipc_runtime.cjs`, dashboard shell listener | target normalization and event routing remain constrained to supported dashboard surfaces |
 
 ## Related Deep Dives
 

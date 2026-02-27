@@ -8,6 +8,11 @@ title: "Backend Protocol Identity and Context-Field Propagation Reference"
 
 # Backend Protocol Identity and Context-Field Propagation Reference
 
+## Coverage Snapshot (2026-02-26)
+
+- State-focused protocol test files: `5`
+- Total test cases across listed files: `65`
+
 ## Scope and Sources
 
 Primary runtime sources:
@@ -158,8 +163,19 @@ When modifying this surface, keep aligned:
 - shared handler context helper behavior vs stop-query/compact-history envelope fields
 - `attach_context_fields(...)` truthy-only behavior vs tests and renderer fallback logic
 
+## State Control-Path Index
+
+| State control path | Runtime owner | State contract |
+|---|---|---|
+| handshake user identity establishment | `backend/src/api/routes/websocket/connection.py` | accepted handshake `user_id` becomes authoritative identity for route context |
+| route-level user injection into incoming frames | `backend/src/api/routes/websocket/message_handler.py` | per-message user identity is injected server-side before schema validation |
+| query turn correlation context assembly | query handler + query execution service | `user_id`/`session_id`/`conversation_ref`/`turn_ref` context stays stable across all stream events in a turn |
+| stop-query cancellation correlation propagation | `backend/src/agent/session/manager.py`, `backend/src/api/handlers/stop_query.py` | canceled task metadata feeds terminal `streaming-complete` context fields |
+| generic envelope context attachment | `backend/src/api/transport/envelope.py`, `backend/src/api/infrastructure/errors.py` | context fields attach only when truthy and are shared across success/error helper paths |
+
 ## Related Pages
 
 - [Backend Protocol Lifecycle Hub](../lifecycle/README.md)
 - [Backend Protocol Errors Hub](../errors/README.md)
+- [Backend Protocol Validation Hub](../validation/README.md)
 - [Backend Protocol Testing Hub](../testing/README.md)
