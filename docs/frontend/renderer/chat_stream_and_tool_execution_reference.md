@@ -108,7 +108,7 @@ Handler map (`BackendEventType` -> behavior):
 - `assistant-message-full`: annotate latest assistant `llm-text` message
 - `tool-schemas`: annotate first user message with tool schema list
 - `token-count`: update token counters
-- `streaming-complete`: mark assistant message complete, clear sending/thinking, transcript assistant row
+- `streaming-complete`: persist final streamed thinking text onto the same-turn assistant `llm-text` message (`thinkingText` + `thinkingSourceEventType`), then mark assistant message complete and clear transient `thinkingStatus`
 - `error`: append assistant error row unless ignored by settings-update-error filter
 
 Message targeting utilities:

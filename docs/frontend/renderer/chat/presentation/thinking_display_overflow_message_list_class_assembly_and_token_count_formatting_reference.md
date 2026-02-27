@@ -47,6 +47,11 @@ Guarantee:
 
 - end-anchor stays last child so both message and thinking updates stay in auto-scroll path.
 
+Assistant message thinking presentation:
+
+- finalized reasoning text is persisted onto assistant rows (`message.thinkingText`) by `useChatStream` at `streaming-complete`.
+- `MessageContent` renders this as a per-message collapsible section (`Show thinking`) above assistant markdown output.
+
 ## Message CSS Class Assembly Contract
 
 `buildMessageClassName(message)` emits:

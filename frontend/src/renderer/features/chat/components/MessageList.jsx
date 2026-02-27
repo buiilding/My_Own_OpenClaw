@@ -28,6 +28,8 @@ const messageShapePropType = PropTypes.shape({
   screenshotUrl: PropTypes.string,
   sourceEventType: PropTypes.string,
   sourceChannel: PropTypes.string,
+  thinkingText: PropTypes.string,
+  thinkingSourceEventType: PropTypes.string,
 });
 
 function shouldRenderAssistantActions(message, enableAssistantActions) {

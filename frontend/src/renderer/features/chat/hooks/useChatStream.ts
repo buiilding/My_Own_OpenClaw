@@ -86,6 +86,19 @@ type TranscriptModelContext = {
 const COMPACTION_THINKING_STATUS = 'Compacting conversation history...';
 const GENERIC_THINKING_STATUS = 'Thinking...';
 
+function normalizePersistedThinkingStatus(
+  thinkingStatus: string | null,
+): string | null {
+  if (typeof thinkingStatus !== 'string') {
+    return null;
+  }
+  const trimmed = thinkingStatus.trim();
+  if (!trimmed || trimmed === GENERIC_THINKING_STATUS || trimmed === COMPACTION_THINKING_STATUS) {
+    return null;
+  }
+  return trimmed;
+}
+
 /**
  * Custom hook for managing streaming message responses.
  * Handles LLM thoughts, streaming chunks, and completion states.
@@ -127,6 +140,18 @@ export function useChatStream(enableTranscript: boolean = true) {
     updateFirstMessageBySender,
     updateLastAssistantLlmTextMessage,
   } = useStreamMessageUpdaters(updateMessage);
+
+  const persistThinkingForTurn = useCallback((turnRef?: string) => {
+    const state = useChatStore.getState();
+    const thinkingText = normalizePersistedThinkingStatus(state.thinkingStatus);
+    if (!thinkingText) {
+      return;
+    }
+    updateLastAssistantLlmTextMessage({
+      thinkingText,
+      thinkingSourceEventType: state.thinkingSourceEventType || 'llm-thought',
+    }, turnRef);
+  }, [updateLastAssistantLlmTextMessage]);
 
   const handleLlmThought = useCallback((event: LlmThoughtEvent) => {
     const currentStatus = useChatStore.getState().thinkingStatus;
@@ -396,6 +421,7 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const handleStreamingComplete = useCallback((event: StreamingCompleteEvent) => {
     setIsSending(false);
+    persistThinkingForTurn(event.turn_ref || undefined);
     setThinkingStatus(null);
     setThinkingSourceEventType(null);
 
@@ -420,6 +446,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     recordTrackingEvent('streaming-complete', event.turn_ref, { phase: 'complete' });
   }, [
     enableTranscript,
+    persistThinkingForTurn,
     setIsSending,
     setThinkingSourceEventType,
     setThinkingStatus,

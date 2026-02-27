@@ -51,6 +51,8 @@ export interface ChatMessage {
     content: string;
   };
   feedback?: 'like' | 'dislike' | null;
+  thinkingText?: string | null;
+  thinkingSourceEventType?: string | null;
 }
 
 /**
