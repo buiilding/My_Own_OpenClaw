@@ -100,17 +100,26 @@ function MemorySection({ onClose = () => {} }) {
       return;
     }
 
-    if (activeType === 'semantic' && memory.backendMemoryId) {
+    const backendMemoryId = memory.backendMemoryId || memory.id || null;
+    const backendType = memory.backendType || activeType;
+
+    if (backendMemoryId && (backendType === 'semantic' || backendType === 'episodic')) {
       try {
-        const result = await IpcBridge.invoke(INVOKE_CHANNELS.DELETE_SEMANTIC_MEMORY, {
+        const deleteChannel = backendType === 'semantic'
+          ? INVOKE_CHANNELS.DELETE_SEMANTIC_MEMORY
+          : INVOKE_CHANNELS.DELETE_EPISODIC_MEMORY;
+        const result = await IpcBridge.invoke(deleteChannel, {
           userId,
-          memoryId: memory.backendMemoryId,
+          memoryId: backendMemoryId,
         });
         if (!result || result.success === false) {
-          throw new Error(result?.error || 'Failed to delete semantic memory');
+          throw new Error(result?.error || `Failed to delete ${backendType} memory`);
+        }
+        if (result?.data?.deleted === false) {
+          throw new Error(`${backendType} memory was not deleted`);
         }
       } catch (error) {
-        setLoadError(error?.message || 'Failed to delete semantic memory');
+        setLoadError(error?.message || `Failed to delete ${backendType} memory`);
         return;
       }
     }

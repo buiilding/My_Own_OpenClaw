@@ -183,6 +183,39 @@ async def test_delete_semantic_memory_clears_faiss_artifacts_when_empty(tmp_path
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(faiss is None, reason="faiss is required")
+async def test_delete_episodic_memory_clears_faiss_artifacts_when_empty(tmp_path: Path):
+    store = _build_store(tmp_path)
+    _create_episodic_memories_table(store.episodic_db_path)
+
+    with sqlite3.connect(store.episodic_db_path) as conn:
+        conn.execute(
+            """
+            INSERT INTO memories (id, user_id, embedding_id, conversation_id, record_kind)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            ("episodic-1", "user-1", 0, "conv-1", "interaction"),
+        )
+        conn.commit()
+
+    store.episodic_memory_id_to_vector_id = {"episodic-1": 0}
+    store.episodic_vector_id_to_memory_id = {0: "episodic-1"}
+    store.episodic_next_vector_id = 7
+    store.episodic_index = faiss.IndexFlatIP(store.embedder.dimension)
+    store.episodic_index_path.write_bytes(b"stale-index")
+
+    deleted = await store.delete_episodic_memory("user-1", "episodic-1")
+
+    assert deleted is True
+    assert store.episodic_memory_id_to_vector_id == {}
+    assert store.episodic_vector_id_to_memory_id == {}
+    assert store.episodic_next_vector_id == 0
+    assert store.episodic_index is not None
+    assert store.episodic_index.ntotal == 0
+    assert store.episodic_index_path.exists() is False
+
+
+@pytest.mark.asyncio
+@pytest.mark.skipif(faiss is None, reason="faiss is required")
 @pytest.mark.parametrize(
     ("memory_id", "embedding_id", "conversation_id"),
     [

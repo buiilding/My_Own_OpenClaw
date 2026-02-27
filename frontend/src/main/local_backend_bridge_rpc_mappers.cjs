@@ -116,6 +116,14 @@ const COMPILED_RPC_HANDLER_DEFINITIONS = [
     }),
   },
   {
+    channel: 'delete-episodic-memory',
+    method: 'delete_episodic_memory',
+    mapParams: createPayloadMapper({
+      user_id: 'userId',
+      memory_id: 'memoryId',
+    }),
+  },
+  {
     channel: 'delete-conversation',
     method: 'delete_conversation',
     mapParams: createPayloadMapper({

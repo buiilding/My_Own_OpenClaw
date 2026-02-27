@@ -10,6 +10,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   INVOKE_CHANNELS: {
     LIST_EPISODIC_MEMORIES: 'list-episodic-memories',
     LIST_SEMANTIC_MEMORIES: 'list-semantic-memories',
+    DELETE_EPISODIC_MEMORY: 'delete-episodic-memory',
     DELETE_SEMANTIC_MEMORY: 'delete-semantic-memory',
   },
 }));
@@ -151,6 +152,49 @@ describe('MemorySection', () => {
       expect(mockInvoke).toHaveBeenCalledWith('delete-semantic-memory', {
         userId: 'default_user',
         memoryId: 'sem-del-1',
+      });
+    });
+  });
+
+  test('episodic delete routes through delete-episodic-memory', async () => {
+    mockInvoke.mockImplementation(async (channel) => {
+      if (channel === 'list-episodic-memories') {
+        return {
+          success: true,
+          data: {
+            memories: [
+              {
+                id: 'ep-del-1',
+                content: 'User: remove this memory',
+                timestamp: '2026-02-25T08:00:00Z',
+                metadata: { source: 'interaction_completed' },
+              },
+            ],
+          },
+        };
+      }
+      if (channel === 'list-semantic-memories') {
+        return { success: true, data: { memories: [] } };
+      }
+      if (channel === 'delete-episodic-memory') {
+        return { success: true, data: { deleted: true } };
+      }
+      return { success: true, data: {} };
+    });
+
+    const { default: MemorySection } = await import(
+      '../../frontend/src/renderer/features/dashboard/components/sections/MemorySection'
+    );
+
+    render(<MemorySection />);
+
+    const deleteButton = await screen.findByRole('button', { name: 'Delete' });
+    fireEvent.click(deleteButton);
+
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith('delete-episodic-memory', {
+        userId: 'default_user',
+        memoryId: 'ep-del-1',
       });
     });
   });

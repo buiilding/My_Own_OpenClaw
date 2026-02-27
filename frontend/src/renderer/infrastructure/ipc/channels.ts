@@ -28,6 +28,7 @@ export const INVOKE_CHANNELS = {
   LIST_EPISODIC_MEMORIES: 'list-episodic-memories',
   GET_CONVERSATION: 'get-conversation',
   LIST_SEMANTIC_MEMORIES: 'list-semantic-memories',
+  DELETE_EPISODIC_MEMORY: 'delete-episodic-memory',
   DELETE_CONVERSATION: 'delete-conversation',
   DELETE_SEMANTIC_MEMORY: 'delete-semantic-memory',
   STORE_TRANSCRIPT: 'store-transcript',
