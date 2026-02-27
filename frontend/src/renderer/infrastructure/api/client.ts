@@ -55,6 +55,17 @@ export const ApiClient = {
     });
   },
 
+  /**
+   * Request backend conversation-history compaction.
+   * Used for dev harnessing and manual compaction triggers.
+   */
+  compactHistory: (force: boolean = true): void => {
+    IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
+      type: 'compact-history',
+      payload: { force },
+    });
+  },
+
   sendRehydrateConversation: async (
     conversationRef: string,
     messages: RehydrateConversationEntry[]

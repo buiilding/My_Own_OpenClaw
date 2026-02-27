@@ -93,10 +93,6 @@ function ChatBoxResponse() {
       && activeResponse.id !== closedResponseId,
   );
 
-  const showAwaitingReply = (
-    awaitingFirstChunk || overlayPhase === 'awaiting-first-chunk' || overlayPhase === 'tool-call'
-  ) && !showResponse;
-  const isVisible = showResponse || showAwaitingReply;
   const responseMarkdownHtml = useMemo(() => {
     if (!activeResponse || activeResponse.type === 'tool-call' || activeResponse.type === 'error') {
       return '';
@@ -113,6 +109,16 @@ function ChatBoxResponse() {
     () => (typeof thinkingStatus === 'string' ? thinkingStatus.trim() : ''),
     [thinkingStatus],
   );
+  const showCompactionStatus = Boolean(
+    !showResponse
+      && thinkingText
+      && thinkingSourceEventType === 'context-compaction-started',
+  );
+  const showAwaitingReply = (
+    ((awaitingFirstChunk || overlayPhase === 'awaiting-first-chunk' || overlayPhase === 'tool-call') && !showResponse)
+    || showCompactionStatus
+  );
+  const isVisible = showResponse || showAwaitingReply;
   const sourceTagForResponse = useMemo(() => {
     if (!isDevUiEnabled() || !activeResponse) {
       return null;

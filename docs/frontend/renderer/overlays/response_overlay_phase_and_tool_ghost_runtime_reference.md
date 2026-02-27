@@ -51,6 +51,7 @@ Modes:
   - not manually dismissed
 - `showAwaitingReply`:
   - awaiting mode / phase is `awaiting-first-chunk` or `tool-call`
+  - or chat thinking source is `context-compaction-started` with active compaction status text
   - no visible response row
 
 Rendering:
@@ -76,6 +77,7 @@ Scroll behavior:
 - awaiting mode shows typing indicator.
 - thinking text renders in dedicated stream container with independent overflow tracking.
 - thinking stream uses separate bottom-stick threshold from response pane.
+- compaction-start status (`Compacting conversation history...`) reuses the same awaiting/thinking stream elements.
 
 ## Overlay Size IPC Contract
 

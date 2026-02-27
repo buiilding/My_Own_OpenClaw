@@ -57,6 +57,12 @@ Dashboard handoff affordance:
 - chatbox settings icon invokes `show-main-window` with `{ maximize: true }`.
 - this requests expanded dashboard view before focus handoff.
 
+`electron:dev` compaction harness:
+
+- when `dev_ui=1`, chatbox renders a `Run auto compaction` icon button.
+- button dispatches backend `compact-history` with payload `{ force: true }`.
+- this is intended for validating compaction-status UI without waiting for token-threshold auto triggers.
+
 ## Click-Through Control Model
 
 State inputs:
