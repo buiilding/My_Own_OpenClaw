@@ -205,6 +205,31 @@ def test_resolve_screenshots_returns_none_for_blank_single_ref():
     assert service._resolve_screenshots(message, _ArtifactStore) is None
 
 
+def test_resolve_screenshots_falls_back_to_single_ref_when_ref_list_is_blank_only():
+    calls: list[str] = []
+
+    class _ArtifactStore:
+        @classmethod
+        def from_config(cls, _config):
+            return cls()
+
+        def load_base64(self, screenshot_ref):
+            calls.append(screenshot_ref)
+            return f"resolved:{screenshot_ref}"
+
+    service = _build_service()
+    message = _build_message(
+        screenshot=None,
+        screenshot_ref="legacy-ref",
+        screenshot_refs=["   ", ""],
+    )
+
+    assert service._resolve_screenshots(message, _ArtifactStore) == [
+        "resolved:legacy-ref"
+    ]
+    assert calls == ["legacy-ref"]
+
+
 def test_resolve_screenshots_keeps_successful_refs_when_one_load_fails():
     calls: list[str] = []
 

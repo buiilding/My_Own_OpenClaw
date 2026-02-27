@@ -262,17 +262,17 @@ class QueryExecutionService:
         if normalized_inline_screenshot:
             return [normalized_inline_screenshot]
 
-        refs_to_resolve = [
-            normalized_ref
-            for normalized_ref in (
-                ref.strip() if isinstance(ref, str) else None
-                for ref in (
-                    screenshot_refs
-                    or ([normalized_single_ref] if normalized_single_ref else [])
-                )
-            )
-            if normalized_ref
+        normalized_ref_list = [
+            ref.strip()
+            for ref in (screenshot_refs or [])
+            if isinstance(ref, str) and ref.strip()
         ]
+        ref_candidates = (
+            normalized_ref_list
+            if normalized_ref_list
+            else ([normalized_single_ref] if normalized_single_ref else [])
+        )
+        refs_to_resolve = ref_candidates
         if not refs_to_resolve:
             return None
 
