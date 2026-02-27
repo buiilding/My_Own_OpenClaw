@@ -930,6 +930,13 @@
   gap: 8px;
 }
 
+.user-screenshot-gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
 .user-screenshot-container {
   width: min(380px, 42vw);
   max-width: min(380px, 100%);
@@ -977,7 +984,7 @@
   background: var(--ui-panel-bg);
   border: 1px solid var(--ui-border-soft);
   border-radius: 26px;
-  overflow: hidden;
+  overflow: visible;
   backdrop-filter: blur(var(--ui-backdrop-blur));
   -webkit-backdrop-filter: blur(var(--ui-backdrop-blur));
   display: flex;
@@ -994,6 +1001,8 @@
   padding: 10px 12px 2px;
   display: flex;
   align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .message-image-preview-card {
