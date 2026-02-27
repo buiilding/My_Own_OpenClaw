@@ -269,13 +269,14 @@ function ChatBox() {
       } catch (error) {
         console.warn('[ChatBox] Failed to resize chatbox window:', error);
       } finally {
-        markLayoutReady();
         resizeSyncState.inFlight = false;
         if (resizeSyncState.queuedSize) {
           const queuedSize = resizeSyncState.queuedSize;
           resizeSyncState.queuedSize = null;
           void flushSizeUpdate(queuedSize);
+          return;
         }
+        markLayoutReady();
       }
     };
 

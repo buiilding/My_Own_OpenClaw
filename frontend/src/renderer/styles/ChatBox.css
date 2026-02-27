@@ -47,8 +47,14 @@ body {
 }
 
 .chatbox-input-shell-wrap .chatbox-pill.has-preview {
-  padding-top: 14px;
+  padding-top: 16px;
+  padding-left: 12px;
+  padding-right: 12px;
   gap: 8px;
+}
+
+.chatbox-input-shell-wrap .chatbox-pill.has-preview .chatbox-image-preview-row {
+  padding: 0 2px;
 }
 
 .chatbox-shell-wrap.has-response-pill {
