@@ -34,6 +34,7 @@ title: "Frontend Sidecar Memory Storage Docs Hub"
 - `frontend/src/main/python/memory/conversation_search_runtime.py`
 - `frontend/src/main/python/memory/conversation_titles.py`
 - `frontend/src/main/python/memory/conversation_title_helpers.py`
+- `frontend/src/main/python/memory/conversation_title_runtime.py`
 - `frontend/src/main/python/memory/sqlite_store.py`
 - `frontend/src/main/python/memory/faiss_index.py`
 - `frontend/src/main/python/memory/watermark_state.py`
@@ -46,6 +47,7 @@ title: "Frontend Sidecar Memory Storage Docs Hub"
 - `tests/sidecar/test_conversation_search_runtime.py`
 - `tests/sidecar/test_conversation_titles.py`
 - `tests/sidecar/test_conversation_title_helpers.py`
+- `tests/sidecar/test_conversation_title_runtime.py`
 - `tests/sidecar/test_remote_title_client.py`
 - `tests/sidecar/test_memory_summarizer.py`
 - `tests/sidecar/test_memory_service.py`

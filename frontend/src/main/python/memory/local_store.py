@@ -29,9 +29,11 @@ from core.remote_title_client import RemoteTitleClient
 from memory.conversation_list_runtime import build_conversation_list_results
 from memory.conversation_list_runtime import fetch_transcript_conversation_rows
 from memory.conversation_search_runtime import search_transcript_conversations
-from memory.conversation_title_helpers import fetch_title_generation_inputs
-from memory.conversation_title_helpers import lookup_conversation_title_state
-from memory.conversation_title_helpers import normalize_generated_title
+from memory.conversation_title_runtime import cancel_title_generation_tasks
+from memory.conversation_title_runtime import ensure_title_generation_runtime_state
+from memory.conversation_title_runtime import generate_conversation_title_and_persist
+from memory.conversation_title_runtime import maybe_generate_conversation_title
+from memory.conversation_title_runtime import run_conversation_title_generation
 from memory.faiss_index import (
     read_index_safe,
     read_index_safe_async,
@@ -45,17 +47,6 @@ from memory.sqlite_store import (
 from memory.watermark_state import WatermarkStateStore
 
 logger = logging.getLogger(__name__)
-
-
-class _NoopTitleClient:
-    async def initialize(self) -> None:
-        return None
-
-    async def close(self) -> None:
-        return None
-
-    async def generate_title(self, **_kwargs) -> str:
-        return ""
 
 
 @dataclass(frozen=True)
@@ -1320,58 +1311,20 @@ class LocalMemoryStore:
         """
         Non-blocking title generation trigger after assistant transcript writes.
         """
-        if not conversation_id:
-            return
-        self._ensure_title_generation_runtime_state()
-        task_key = (user_id, conversation_id)
-        existing_task = self._title_generation_tasks.get(task_key)
-        if existing_task and not existing_task.done():
-            return
-
-        task = asyncio.create_task(
-            self._run_conversation_title_generation(
-                user_id=user_id,
-                conversation_id=conversation_id,
-                preferred_model_id=preferred_model_id,
-                preferred_model_provider=preferred_model_provider,
-            ),
-            name=f"title-gen:{user_id}:{conversation_id}",
+        await maybe_generate_conversation_title(
+            store=self,
+            user_id=user_id,
+            conversation_id=conversation_id,
+            preferred_model_id=preferred_model_id,
+            preferred_model_provider=preferred_model_provider,
+            logger=logger,
         )
-        self._title_generation_tasks[task_key] = task
-
-        def _cleanup(done_task: asyncio.Task[Any]) -> None:
-            current = self._title_generation_tasks.get(task_key)
-            if current is done_task:
-                self._title_generation_tasks.pop(task_key, None)
-
-        task.add_done_callback(_cleanup)
 
     def _ensure_title_generation_runtime_state(self) -> None:
-        if not hasattr(self, "title_client") or self.title_client is None:
-            # Test harnesses that instantiate via __new__ can omit title wiring.
-            self.title_client = _NoopTitleClient()
-        if not hasattr(self, "_title_generation_tasks") or self._title_generation_tasks is None:
-            self._title_generation_tasks = {}
-        if (
-            not hasattr(self, "_title_generation_semaphore")
-            or self._title_generation_semaphore is None
-        ):
-            self._title_generation_semaphore = asyncio.Semaphore(2)
+        ensure_title_generation_runtime_state(store=self)
 
     async def _cancel_title_generation_tasks(self) -> None:
-        self._ensure_title_generation_runtime_state()
-        pending_tasks = [
-            task
-            for task in self._title_generation_tasks.values()
-            if task and not task.done()
-        ]
-        if not pending_tasks:
-            self._title_generation_tasks.clear()
-            return
-        for task in pending_tasks:
-            task.cancel()
-        await asyncio.gather(*pending_tasks, return_exceptions=True)
-        self._title_generation_tasks.clear()
+        await cancel_title_generation_tasks(store=self)
 
     async def _run_conversation_title_generation(
         self,
@@ -1381,24 +1334,14 @@ class LocalMemoryStore:
         preferred_model_id: Optional[str],
         preferred_model_provider: Optional[str],
     ) -> None:
-        self._ensure_title_generation_runtime_state()
-        try:
-            async with self._title_generation_semaphore:
-                await self._generate_conversation_title_and_persist(
-                    user_id=user_id,
-                    conversation_id=conversation_id,
-                    preferred_model_id=preferred_model_id,
-                    preferred_model_provider=preferred_model_provider,
-                )
-        except asyncio.CancelledError:
-            raise
-        except Exception as exc:
-            logger.warning(
-                "Failed to generate conversation title (user_id=%s conversation_id=%s): %s",
-                user_id,
-                conversation_id,
-                exc,
-            )
+        await run_conversation_title_generation(
+            store=self,
+            user_id=user_id,
+            conversation_id=conversation_id,
+            preferred_model_id=preferred_model_id,
+            preferred_model_provider=preferred_model_provider,
+            logger=logger,
+        )
 
     async def _generate_conversation_title_and_persist(
         self,
@@ -1408,82 +1351,13 @@ class LocalMemoryStore:
         preferred_model_id: Optional[str],
         preferred_model_provider: Optional[str],
     ) -> None:
-        async with aiosqlite.connect(self.episodic_db_path) as conn:
-            conn.row_factory = aiosqlite.Row
-            cursor = await conn.cursor()
-
-            current_title, _, is_locked = await lookup_conversation_title_state(
-                cursor=cursor,
-                user_id=user_id,
-                conversation_id=conversation_id,
-            )
-            if current_title or is_locked:
-                return
-
-            first_user_content, first_assistant_content, assistant_model_id, assistant_model_provider = (
-                await fetch_title_generation_inputs(
-                    cursor=cursor,
-                    user_id=user_id,
-                    conversation_id=conversation_id,
-                    preferred_model_id=preferred_model_id,
-                    preferred_model_provider=preferred_model_provider,
-                )
-            )
-            if not first_user_content or not first_assistant_content:
-                return
-
-            selected_model_id = (
-                preferred_model_id.strip()
-                if isinstance(preferred_model_id, str) and preferred_model_id.strip()
-                else assistant_model_id
-            )
-            selected_model_provider = (
-                preferred_model_provider.strip()
-                if isinstance(preferred_model_provider, str) and preferred_model_provider.strip()
-                else assistant_model_provider
-            )
-
-            generated_title = await self.title_client.generate_title(
-                user_id=user_id,
-                user_message=first_user_content,
-                assistant_message=first_assistant_content,
-                model_id=selected_model_id,
-                model_provider=selected_model_provider,
-            )
-            normalized_title = normalize_generated_title(generated_title)
-            if not normalized_title:
-                return
-
-            now_iso = datetime.now(timezone.utc).isoformat()
-            await cursor.execute(
-                """
-                INSERT INTO conversation_titles (
-                    user_id,
-                    conversation_id,
-                    title,
-                    source,
-                    is_locked,
-                    created_at,
-                    updated_at
-                )
-                VALUES (?, ?, ?, ?, 0, ?, ?)
-                ON CONFLICT(user_id, conversation_id)
-                DO UPDATE SET
-                    title = excluded.title,
-                    source = excluded.source,
-                    updated_at = excluded.updated_at
-                WHERE conversation_titles.is_locked = 0
-            """,
-                (
-                    user_id,
-                    conversation_id,
-                    normalized_title,
-                    "model",
-                    now_iso,
-                    now_iso,
-                ),
-            )
-            await conn.commit()
+        await generate_conversation_title_and_persist(
+            store=self,
+            user_id=user_id,
+            conversation_id=conversation_id,
+            preferred_model_id=preferred_model_id,
+            preferred_model_provider=preferred_model_provider,
+        )
 
     async def list_semantic_memories(
         self, user_id: str, limit: int = 200

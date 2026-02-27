@@ -12,6 +12,7 @@ title: "Conversation Title Generation Runtime and Helper Contract Reference"
 
 - `frontend/src/main/python/memory/local_store.py`
 - `frontend/src/main/python/memory/conversation_title_helpers.py`
+- `frontend/src/main/python/memory/conversation_title_runtime.py`
 - `frontend/src/main/python/memory/conversation_titles.py`
 - `frontend/src/main/python/core/remote_title_client.py`
 - `frontend/src/main/python/memory/sqlite_store.py`
@@ -19,6 +20,7 @@ title: "Conversation Title Generation Runtime and Helper Contract Reference"
 - `backend/src/api/routes/memory/semantic_service.py`
 - `tests/sidecar/test_conversation_titles.py`
 - `tests/sidecar/test_conversation_title_helpers.py`
+- `tests/sidecar/test_conversation_title_runtime.py`
 - `tests/sidecar/test_remote_title_client.py`
 - `tests/backend/test_memory_routes.py`
 
@@ -42,9 +44,18 @@ Implications:
 
 Runtime fields:
 
-- `title_client` (`RemoteTitleClient` in normal runtime, `_NoopTitleClient` fallback in `__new__` test harnesses)
+- `title_client` (`RemoteTitleClient` in normal runtime, `conversation_title_runtime.NoopTitleClient` fallback in `__new__` test harnesses)
 - `_title_generation_tasks: Dict[(user_id, conversation_id), asyncio.Task]`
 - `_title_generation_semaphore = asyncio.Semaphore(2)`
+
+Runtime ownership:
+
+- `conversation_title_runtime.ensure_title_generation_runtime_state(...)`
+- `conversation_title_runtime.maybe_generate_conversation_title(...)`
+- `conversation_title_runtime.cancel_title_generation_tasks(...)`
+- `conversation_title_runtime.run_conversation_title_generation(...)`
+- `conversation_title_runtime.generate_conversation_title_and_persist(...)`
+- `LocalMemoryStore` keeps thin private wrapper methods for compatibility.
 
 Behavior:
 
@@ -163,6 +174,12 @@ Effect:
 - helper normalization/lookup precedence
 - preferred-model assistant lookup fallback path
 - `ensure_conversation_title(...)` short-circuits with existing query row title
+
+`tests/sidecar/test_conversation_title_runtime.py` validates:
+
+- runtime-state default initialization (`NoopTitleClient`, task map, semaphore)
+- per-conversation task de-duplication in `maybe_generate_conversation_title(...)`
+- cancellation/cleanup behavior of `cancel_title_generation_tasks(...)`
 
 `tests/sidecar/test_remote_title_client.py` validates:
 
