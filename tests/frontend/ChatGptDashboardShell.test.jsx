@@ -92,7 +92,7 @@ describe('ChatGptDashboardShell', () => {
   };
 
   const renderDashboardShell = async () => {
-    render(
+    const view = render(
       <ChatGptDashboardShell
         config={{}}
         availableModels={{ local: [], online: [] }}
@@ -102,6 +102,7 @@ describe('ChatGptDashboardShell', () => {
 
     await flushMicrotasks();
     expect(mockInvoke).toHaveBeenCalled();
+    return view;
   };
 
   beforeEach(() => {
@@ -128,6 +129,20 @@ describe('ChatGptDashboardShell', () => {
     });
 
     expect(screen.getByTestId('settings-section-stub')).toBeInTheDocument();
+  });
+
+  test('collapses and expands sidebar through dedicated controls', async () => {
+    const { container } = await renderDashboardShell();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Collapse sidebar' }));
+    expect(container.querySelector('.cg-sidebar')).toHaveClass('collapsed');
+    expect(container.querySelector('.cg-main-content')).toHaveClass('cg-main-content-collapsed');
+    expect(screen.getByRole('button', { name: 'Expand sidebar' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Expand sidebar' }));
+    expect(container.querySelector('.cg-sidebar')).not.toHaveClass('collapsed');
+    expect(container.querySelector('.cg-main-content')).not.toHaveClass('cg-main-content-collapsed');
+    expect(screen.getByRole('button', { name: 'Collapse sidebar' })).toBeInTheDocument();
   });
 
   test('sidebar models button opens models modal', async () => {

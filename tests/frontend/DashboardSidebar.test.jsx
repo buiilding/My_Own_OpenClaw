@@ -6,7 +6,8 @@ import DashboardSidebar from '../../frontend/src/renderer/features/dashboard/com
 function buildProps(overrides = {}) {
   return {
     sidebarOpen: false,
-    onToggleSidebar: jest.fn(),
+    onExpandSidebar: jest.fn(),
+    onCollapseSidebar: jest.fn(),
     onStartNewChat: jest.fn(),
     onOpenSearch: jest.fn(),
     onOpenMemory: jest.fn(),
@@ -73,6 +74,22 @@ describe('DashboardSidebar collapsed header controls', () => {
 
     expect(screen.getByTestId('sidebar-collapsed-brand-icon')).toBeInTheDocument();
     expect(screen.queryByTestId('sidebar-collapsed-expand-icon')).not.toBeInTheDocument();
+  });
+
+  test('uses explicit expand callback when collapsed expand button is clicked', () => {
+    const onExpandSidebar = jest.fn();
+    render(<DashboardSidebar {...buildProps({ onExpandSidebar, sidebarOpen: false })} />);
+
+    fireEvent.click(screen.getByTestId('sidebar-expand-button'));
+    expect(onExpandSidebar).toHaveBeenCalledTimes(1);
+  });
+
+  test('uses explicit collapse callback when expanded collapse button is clicked', () => {
+    const onCollapseSidebar = jest.fn();
+    render(<DashboardSidebar {...buildProps({ onCollapseSidebar, sidebarOpen: true })} />);
+
+    fireEvent.click(screen.getByTestId('sidebar-collapse-button'));
+    expect(onCollapseSidebar).toHaveBeenCalledTimes(1);
   });
 
   test('renders one new chat action in collapsed mode and triggers new chat from header', () => {

@@ -126,8 +126,12 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
     setUsageOpen(true);
   }, [closeAllPanels]);
 
-  const handleSidebarToggle = useCallback(() => {
-    setSidebarOpen((current) => !current);
+  const handleExpandSidebar = useCallback(() => {
+    setSidebarOpen(true);
+  }, []);
+
+  const handleCollapseSidebar = useCallback(() => {
+    setSidebarOpen(false);
   }, []);
 
   const requestComposerFocus = useCallback(() => {
@@ -221,7 +225,8 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
     <div className={`cg-dashboard-shell${dashboardOpening ? ' cg-dashboard-shell-opening' : ''}`}>
       <DashboardSidebar
         sidebarOpen={sidebarOpen}
-        onToggleSidebar={handleSidebarToggle}
+        onExpandSidebar={handleExpandSidebar}
+        onCollapseSidebar={handleCollapseSidebar}
         onStartNewChat={handleStartNewChat}
         onOpenSearch={handleOpenSearch}
         onOpenMemory={handleMemorySurface}
