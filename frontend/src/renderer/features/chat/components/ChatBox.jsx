@@ -25,6 +25,7 @@ const CHATBOX_SIZE_MODES = Object.freeze({
   WITH_PREVIEW: 'with-preview',
 });
 const RESIZE_TRANSITION_LOCK_MS = 240;
+const WITH_PREVIEW_TOP_HEADROOM_PX = 10;
 
 function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -280,18 +281,21 @@ function ChatBox() {
         return;
       }
       const activeMode = resizeSyncState.activeMode;
+      const measuredHeight = measuredFrame.height + (
+        activeMode === CHATBOX_SIZE_MODES.WITH_PREVIEW ? WITH_PREVIEW_TOP_HEADROOM_PX : 0
+      );
       if (resizeSyncState.cachedModeHeights[activeMode] == null) {
-        resizeSyncState.cachedModeHeights[activeMode] = measuredFrame.height;
+        resizeSyncState.cachedModeHeights[activeMode] = measuredHeight;
       } else if (
         activeMode === CHATBOX_SIZE_MODES.WITH_PREVIEW
-        && measuredFrame.height > resizeSyncState.cachedModeHeights[activeMode]
+        && measuredHeight > resizeSyncState.cachedModeHeights[activeMode]
       ) {
         // Preview rows can settle after first measurement; allow upward cache correction.
-        resizeSyncState.cachedModeHeights[activeMode] = measuredFrame.height;
+        resizeSyncState.cachedModeHeights[activeMode] = measuredHeight;
       }
       const nextFrame = {
         width: measuredFrame.width,
-        height: resizeSyncState.cachedModeHeights[activeMode] ?? measuredFrame.height,
+        height: resizeSyncState.cachedModeHeights[activeMode] ?? measuredHeight,
       };
       void flushSizeUpdate(nextFrame);
     };

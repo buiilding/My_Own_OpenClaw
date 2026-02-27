@@ -21,6 +21,7 @@ const mockUseVoiceMode = jest.fn(() => ({
 const mockUpdateConfig = jest.fn();
 const mockCompactHistory = jest.fn();
 const mockIsDevUiEnabled = jest.fn(() => false);
+const WITH_PREVIEW_TOP_HEADROOM_PX = 10;
 
 const setWindowScreenPosition = (x, y) => {
   Object.defineProperty(window, 'screenX', {
@@ -216,7 +217,7 @@ describe('ChatBox overlay mouse ignore', () => {
       await Promise.resolve();
     });
     await flushResizeSync();
-    expect(resizeHeights().at(-1)).toBe(112);
+    expect(resizeHeights().at(-1)).toBe(112 + WITH_PREVIEW_TOP_HEADROOM_PX);
 
     measuredFrame = { width: 200, height: 78 };
     await act(async () => {
@@ -260,7 +261,7 @@ describe('ChatBox overlay mouse ignore', () => {
       await Promise.resolve();
     });
     await flushResizeSync();
-    expect(resizeHeights().at(-1)).toBe(104);
+    expect(resizeHeights().at(-1)).toBe(104 + WITH_PREVIEW_TOP_HEADROOM_PX);
 
     measuredFrame = { width: 200, height: 132 };
     await act(async () => {
@@ -274,7 +275,7 @@ describe('ChatBox overlay mouse ignore', () => {
       await Promise.resolve();
     });
     await flushResizeSync();
-    expect(resizeHeights().at(-1)).toBe(132);
+    expect(resizeHeights().at(-1)).toBe(132 + WITH_PREVIEW_TOP_HEADROOM_PX);
     jest.useRealTimers();
   });
 
@@ -321,14 +322,14 @@ describe('ChatBox overlay mouse ignore', () => {
         await Promise.resolve();
       });
       await flushResizeSync();
-      expect(resizeHeights().at(-1)).toBe(88);
+      expect(resizeHeights().at(-1)).toBe(88 + WITH_PREVIEW_TOP_HEADROOM_PX);
 
       measuredFrame = { width: 200, height: 132 };
       await act(async () => {
         observerCallbacks.forEach((callback) => callback());
       });
       await flushResizeSync();
-      expect(resizeHeights().at(-1)).toBe(132);
+      expect(resizeHeights().at(-1)).toBe(132 + WITH_PREVIEW_TOP_HEADROOM_PX);
     } finally {
       global.ResizeObserver = originalResizeObserver;
       jest.useRealTimers();
