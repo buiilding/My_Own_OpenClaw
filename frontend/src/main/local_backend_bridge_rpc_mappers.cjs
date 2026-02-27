@@ -167,6 +167,7 @@ const COMPILED_RPC_HANDLER_DEFINITIONS = [
       model_provider: 'modelProvider',
       screenshot: 'screenshot',
       timestamp: 'timestamp',
+      transparency: 'transparency',
     }),
   },
 ];

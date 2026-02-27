@@ -111,6 +111,7 @@ Payload defaults:
 - assistant default `messageType` is `llm-text`
 - tool rows include optional `toolName`/`correlationId`
 - screenshot ref is passed under IPC field `screenshot`
+- assistant/user/tool rows can include optional `transparency` metadata; writer normalizes and drops empty/non-object snapshots before IPC persistence.
 
 ## Session Update Entry Points
 

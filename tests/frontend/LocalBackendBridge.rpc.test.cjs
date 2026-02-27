@@ -455,6 +455,9 @@ describe('local_backend_bridge RPC handlers', () => {
       userId: 'u-1',
       conversationRef: 'conv-1',
       role: 'assistant',
+      transparency: {
+        systemPrompt: 'prompt',
+      },
     });
 
     const request = getLastWrittenRequest();
@@ -465,6 +468,9 @@ describe('local_backend_bridge RPC handlers', () => {
           user_id: 'u-1',
           conversation_ref: 'conv-1',
           role: 'assistant',
+          transparency: {
+            systemPrompt: 'prompt',
+          },
         }),
       }),
     );

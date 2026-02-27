@@ -10,6 +10,7 @@ import {
   recordAssistantMessage,
   updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
+import type { TranscriptTransparencyData } from '../../../infrastructure/transcript/types';
 import {
   type BackendEvent,
   type BackendEventType,
@@ -361,13 +362,78 @@ export function useChatStream(enableTranscript: boolean = true) {
     setThinkingStatus(null);
     setThinkingSourceEventType(null);
 
+    const currentMessages = useChatStore.getState().messages;
     const lastMessage = findStreamingCompleteAssistantMessage(
-      useChatStore.getState().messages,
+      currentMessages,
       event.turn_ref,
     );
     if (lastMessage && lastMessage.sender === 'assistant') {
       updateMessage(lastMessage.id, { isComplete: true });
       if (lastMessage.text && enableTranscript) {
+        const userMessageForTurn = (
+          currentMessages
+            .slice()
+            .reverse()
+            .find((message) => (
+              message.sender === 'user'
+              && (!event.turn_ref || message.turnRef === event.turn_ref)
+            ))
+          || currentMessages
+            .slice()
+            .reverse()
+            .find((message) => message.sender === 'user')
+          || null
+        );
+        const transparency: TranscriptTransparencyData = {};
+        const systemPromptContent = (
+          typeof userMessageForTurn?.systemPrompt?.content === 'string'
+            ? userMessageForTurn.systemPrompt.content.trim()
+            : ''
+        );
+        if (systemPromptContent) {
+          transparency.systemPrompt = systemPromptContent;
+        }
+        const toolSchemas = (
+          Array.isArray(userMessageForTurn?.toolSchemas)
+            ? userMessageForTurn.toolSchemas
+            : Array.isArray(userMessageForTurn?.systemPrompt?.toolSchemas)
+              ? userMessageForTurn.systemPrompt.toolSchemas
+              : null
+        );
+        if (Array.isArray(toolSchemas) && toolSchemas.length > 0) {
+          transparency.toolSchemas = toolSchemas;
+        }
+        const fullUserContent = (
+          typeof userMessageForTurn?.fullUserMessage?.content === 'string'
+            ? userMessageForTurn.fullUserMessage.content.trim()
+            : ''
+        );
+        const fullUserMetadata = (
+          userMessageForTurn?.fullUserMessage?.metadata
+          && typeof userMessageForTurn.fullUserMessage.metadata === 'object'
+          && !Array.isArray(userMessageForTurn.fullUserMessage.metadata)
+        )
+          ? userMessageForTurn.fullUserMessage.metadata as Record<string, unknown>
+          : null;
+        if (fullUserContent || fullUserMetadata) {
+          transparency.fullUserMessage = {
+            content: fullUserContent || undefined,
+            metadata: fullUserMetadata || undefined,
+          };
+        }
+        const fullAssistantContent = (
+          typeof lastMessage.fullAssistantMessage?.content === 'string'
+            ? lastMessage.fullAssistantMessage.content.trim()
+            : ''
+        );
+        if (fullAssistantContent) {
+          transparency.fullAssistantMessage = {
+            content: fullAssistantContent,
+          };
+        }
+        const normalizedTransparency = Object.keys(transparency).length > 0
+          ? transparency
+          : undefined;
         const modelContext = modelContextRef.current;
         recordAssistantMessage(lastMessage.text, {
           messageType: lastMessage.type || 'llm-text',
@@ -375,6 +441,7 @@ export function useChatStream(enableTranscript: boolean = true) {
           userId: event.user_id,
           modelId: modelContext.modelId,
           modelProvider: modelContext.modelProvider,
+          transparency: normalizedTransparency,
         });
       }
     }

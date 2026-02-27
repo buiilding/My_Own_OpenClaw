@@ -108,6 +108,9 @@ Renderer camelCase to sidecar snake_case conversions:
 - `modelProvider` -> `model_provider`
 - `screenshot`
 - `timestamp`
+- `transparency`
+  - optional JSON object persisted in transcript metadata
+  - currently carries renderer prompt/transparency snapshots (`systemPrompt`, `toolSchemas`, `fullUserMessage`, `fullAssistantMessage`) for richer resume/rehydrate context
 
 ### Search-memory mapping detail
 

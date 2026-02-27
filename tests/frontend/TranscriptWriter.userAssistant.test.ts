@@ -147,6 +147,46 @@ describe('TranscriptWriter user + assistant writes', () => {
     }));
   });
 
+  test('recordAssistantMessage persists transparency payload when provided', async () => {
+    const { writer, invokeMock } = loadTranscriptWriter();
+    writer.updateTranscriptSession('conv-transparency', 'user-transparency');
+
+    writer.recordAssistantMessage('assistant with transparency', {
+      messageType: 'llm-text',
+      transparency: {
+        systemPrompt: 'System prompt text',
+        toolSchemas: [{ type: 'function', function: { name: 'read_file', parameters: { type: 'object' } } }],
+        fullUserMessage: {
+          content: '<user_query>hello</user_query>',
+          metadata: { source: 'user-message-full' },
+        },
+        fullAssistantMessage: {
+          content: 'Raw full assistant completion',
+        },
+      },
+    });
+    await Promise.resolve();
+
+    expectStoreTranscriptCall(invokeMock, createStoreTranscriptPayload({
+      content: 'assistant with transparency',
+      userId: 'user-transparency',
+      conversationRef: 'conv-transparency',
+      role: 'assistant',
+      messageType: 'llm-text',
+      transparency: {
+        systemPrompt: 'System prompt text',
+        toolSchemas: [{ type: 'function', function: { name: 'read_file', parameters: { type: 'object' } } }],
+        fullUserMessage: {
+          content: '<user_query>hello</user_query>',
+          metadata: { source: 'user-message-full' },
+        },
+        fullAssistantMessage: {
+          content: 'Raw full assistant completion',
+        },
+      },
+    }));
+  });
+
   test('recordAssistantMessage emits transcript-entry-stored event after successful write', async () => {
     const { writer } = loadTranscriptWriter();
     writer.updateTranscriptSession('conv-event', 'user-event');

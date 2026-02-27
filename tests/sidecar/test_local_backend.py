@@ -711,13 +711,21 @@ async def test_handle_store_transcript_success():
         model_provider="openai",
         screenshot="base64-shot",
         timestamp="2024-01-01T00:00:00",
+        transparency={
+            "systemPrompt": "prompt text",
+            "fullAssistantMessage": {"content": "raw assistant"},
+        },
     )
 
     assert result["success"] is True
     assert result["data"]["record_kind"] == "transcript"
     assert backend.memory_store.added
-    _, _, _, conversation_id, kwargs = backend.memory_store.added[-1]
+    _, _, metadata, conversation_id, kwargs = backend.memory_store.added[-1]
     assert conversation_id == "conv-1"
+    assert metadata["transparency"] == {
+        "systemPrompt": "prompt text",
+        "fullAssistantMessage": {"content": "raw assistant"},
+    }
     assert kwargs["model_id"] == "gpt-test"
     assert kwargs["model_provider"] == "openai"
     assert kwargs["screenshot"] == "base64-shot"

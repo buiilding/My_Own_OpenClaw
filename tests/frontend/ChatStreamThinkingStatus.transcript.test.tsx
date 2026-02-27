@@ -88,13 +88,30 @@ describe('useChatStream transcript + event filtering', () => {
     act(() => {
       useChatStore.setState({
         messages: [
-          { id: 'user-1', text: 'hi', sender: 'user' },
+          {
+            id: 'user-1',
+            text: 'hi',
+            sender: 'user',
+            turnRef: 'turn-1',
+            systemPrompt: {
+              content: 'system prompt text',
+              toolSchemas: [{ type: 'function', function: { name: 'read_file', parameters: { type: 'object' } } }],
+            },
+            fullUserMessage: {
+              content: '<user_query>hi</user_query>',
+              metadata: { source: 'user-message-full' },
+            },
+          },
           {
             id: 'assistant-1',
             text: 'answer',
             sender: 'assistant',
             type: 'llm-text',
             isComplete: false,
+            turnRef: 'turn-1',
+            fullAssistantMessage: {
+              content: 'raw assistant completion',
+            },
           },
         ],
       });
@@ -102,6 +119,7 @@ describe('useChatStream transcript + event filtering', () => {
         type: 'streaming-complete',
         conversation_ref: 'conv-1',
         user_id: 'user-1',
+        turn_ref: 'turn-1',
       });
     });
 
@@ -113,6 +131,17 @@ describe('useChatStream transcript + event filtering', () => {
       expect.objectContaining({
         conversationRef: 'conv-1',
         userId: 'user-1',
+        transparency: {
+          systemPrompt: 'system prompt text',
+          toolSchemas: [{ type: 'function', function: { name: 'read_file', parameters: { type: 'object' } } }],
+          fullUserMessage: {
+            content: '<user_query>hi</user_query>',
+            metadata: { source: 'user-message-full' },
+          },
+          fullAssistantMessage: {
+            content: 'raw assistant completion',
+          },
+        },
       }),
     );
   });
