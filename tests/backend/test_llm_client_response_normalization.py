@@ -93,6 +93,20 @@ def test_normalize_tool_call_entry_validates_fields():
             model="model",
         )
 
+    with pytest.raises(LLMAPIError, match="Invalid tool call id"):
+        normalize_tool_call_entry(
+            {"id": " ", "name": "read_file", "arguments": {}},
+            index=0,
+            model="model",
+        )
+
+    with pytest.raises(LLMAPIError, match="Invalid tool call name"):
+        normalize_tool_call_entry(
+            {"id": "call_1", "name": " ", "arguments": {}},
+            index=0,
+            model="model",
+        )
+
 
 def test_normalize_tool_call_entry_copies_argument_payload():
     arguments = {"path": "/tmp/demo.txt"}

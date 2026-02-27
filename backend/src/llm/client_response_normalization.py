@@ -44,12 +44,12 @@ def normalize_tool_call_entry(
     tool_id = tool_call.get("id")
     tool_name = tool_call.get("name")
     arguments = tool_call.get("arguments", {})
-    if not isinstance(tool_id, str) or not tool_id:
+    if not isinstance(tool_id, str) or not tool_id.strip():
         raise LLMAPIError(
             f"Invalid tool call id at index {index}: expected non-empty str",
             model=model,
         )
-    if not isinstance(tool_name, str) or not tool_name:
+    if not isinstance(tool_name, str) or not tool_name.strip():
         raise LLMAPIError(
             f"Invalid tool call name at index {index}: expected non-empty str",
             model=model,
@@ -59,7 +59,11 @@ def normalize_tool_call_entry(
             f"Invalid tool call arguments at index {index}: expected dict",
             model=model,
         )
-    return {"id": tool_id, "name": tool_name, "arguments": copy.deepcopy(arguments)}
+    return {
+        "id": tool_id.strip(),
+        "name": tool_name.strip(),
+        "arguments": copy.deepcopy(arguments),
+    }
 
 
 def normalize_tool_calls(
