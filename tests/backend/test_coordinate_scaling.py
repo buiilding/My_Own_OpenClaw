@@ -270,6 +270,42 @@ def test_normalize_manual_coordinates_scales_to_display(monkeypatch):
     assert contract["normalization_status"] == "scaled_to_display"
 
 
+def test_normalize_manual_coordinates_scales_float_inputs(monkeypatch):
+    screenshot_w, screenshot_h = 3840, 2160
+    screen_w, screen_h = 1920, 1080
+    session, _ = _create_session_and_manager(
+        screenshot_w,
+        screenshot_h,
+        f"{screen_w}x{screen_h}",
+    )
+    monkeypatch.setattr(
+        "backend.src.agent.tools.preparation.helpers.preparation_helper.platform.system",
+        lambda: "Windows",
+    )
+
+    tool_call = ParsedToolCall(
+        tool_name="mouse_control",
+        parameters={"action": "click", "x": 1000.0, "y": 600.0},
+        raw_call="{}",
+    )
+    resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
+
+    normalize_manual_coordinates(
+        resolved_call=resolved_call,
+        session=session,
+        context_id="manual-float-scale",
+    )
+
+    assert resolved_call.parameters["x"] == 500
+    assert resolved_call.parameters["y"] == 300
+    assert resolved_call.metadata["coordinate_resolution_screenshot_id"] == "deadbeef"
+    contract = resolved_call.metadata["coordinate_contract"]
+    assert contract["source_coordinates"] == {"x": 1000, "y": 600}
+    assert contract["source_image_size"] == {"width": screenshot_w, "height": screenshot_h}
+    assert contract["target_display_size"] == {"width": screen_w, "height": screen_h}
+    assert contract["normalization_status"] == "scaled_to_display"
+
+
 def test_normalize_manual_coordinates_skips_without_screenshot(monkeypatch):
     screenshot_w, screenshot_h = 3840, 2160
     session, _ = _create_session_and_manager(

@@ -5,6 +5,7 @@ Extracts shared logic for resolving a tool call that requires coordinate resolut
 Pure infrastructure code - no side effects beyond tool resolution.
 """
 import logging
+import math
 import platform
 import time
 from typing import Optional, TYPE_CHECKING
@@ -53,6 +54,39 @@ def tool_call_needs_coordinate_resolution(tool_call: ParsedToolCall) -> bool:
     return tool_call.parameters.get("find_coordinates_by") in _COORDINATE_RESOLUTION_METHODS
 
 
+def _round_coordinate(value: float) -> int:
+    """
+    Round one numeric coordinate to the nearest pixel.
+
+    Uses half-away-from-zero behavior for deterministic 0.5 handling.
+    """
+    if value >= 0:
+        return int(math.floor(value + 0.5))
+    return int(math.ceil(value - 0.5))
+
+
+def _coerce_coordinate_value(value: object) -> Optional[int]:
+    """Convert one coordinate value to an integer pixel when possible."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float):
+        if not math.isfinite(value):
+            return None
+        return _round_coordinate(value)
+    return None
+
+
+def _coerce_manual_coordinate_pair(x: object, y: object) -> Optional[tuple[int, int]]:
+    """Convert manual x/y values to integer pixels or return None if invalid."""
+    parsed_x = _coerce_coordinate_value(x)
+    parsed_y = _coerce_coordinate_value(y)
+    if parsed_x is None or parsed_y is None:
+        return None
+    return parsed_x, parsed_y
+
+
 def tool_call_has_manual_coordinates(tool_call: ParsedToolCall) -> bool:
     """
     Return whether a mouse tool call uses manual coordinates with x/y payload.
@@ -69,9 +103,13 @@ def tool_call_has_manual_coordinates(tool_call: ParsedToolCall) -> bool:
     if method != CoordinateFindingMethod.MANUAL.value:
         return False
 
-    x = tool_call.parameters.get("x")
-    y = tool_call.parameters.get("y")
-    return isinstance(x, int) and isinstance(y, int)
+    return (
+        _coerce_manual_coordinate_pair(
+            tool_call.parameters.get("x"),
+            tool_call.parameters.get("y"),
+        )
+        is not None
+    )
 
 
 def attach_coordinate_method_metadata(
@@ -243,10 +281,16 @@ def normalize_manual_coordinates(
     if resolved_call.tool_name != "mouse_control":
         return
 
-    x = resolved_call.parameters.get("x")
-    y = resolved_call.parameters.get("y")
-    if not isinstance(x, int) or not isinstance(y, int):
+    coordinate_pair = _coerce_manual_coordinate_pair(
+        resolved_call.parameters.get("x"),
+        resolved_call.parameters.get("y"),
+    )
+    if coordinate_pair is None:
         return
+    x, y = coordinate_pair
+    # Canonicalize numeric manual inputs (including floats) to display pixel ints.
+    resolved_call.parameters["x"] = x
+    resolved_call.parameters["y"] = y
 
     if not resolved_call.metadata:
         resolved_call.metadata = {}

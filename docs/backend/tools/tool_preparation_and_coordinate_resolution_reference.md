@@ -60,6 +60,7 @@ Non-responsibilities:
 
 `manual` mode bypasses OCR/vision resolution.
 `tool_call_has_manual_coordinates(...)` marks manual `x/y` calls for best-effort normalization.
+Manual coordinates accept numeric values (`int` or finite `float`) and are canonicalized to integer pixels before execution.
 
 ## Coordinate Resolution Pipeline
 
