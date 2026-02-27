@@ -2,7 +2,7 @@
 summary: "Backend core observability docs sub-hub for trust-boundary violation metrics, DI wiring, and exception metadata conventions."
 read_when:
   - When changing trust-boundary validation behavior in parser/prompt modules.
-  - When debugging missing violation metrics, boundary-name tagging, or cross-boundary stats aggregation.
+  - When debugging missing violation metrics, boundary-name tagging, cross-boundary stats aggregation, or trust-boundary exception metadata propagation.
 title: "Backend Core Observability Docs Hub"
 ---
 
@@ -11,6 +11,7 @@ title: "Backend Core Observability Docs Hub"
 ## Deep Pages
 
 - [Trust-Boundary Metrics and Enforcement Reference](trust_boundary_metrics_and_enforcement_reference.md)
+- [Exception Hierarchy and Metadata Propagation Reference](../exception_hierarchy_and_metadata_propagation_reference.md)
 
 ## Code Scope
 
