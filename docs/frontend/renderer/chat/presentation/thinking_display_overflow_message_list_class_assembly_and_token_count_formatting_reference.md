@@ -40,17 +40,18 @@ Overflow behavior:
 
 - memoizes message rows through `MessageItem`
 - resolves row class names via `buildMessageClassName(message)`
-- renders `<ThinkingDisplay />` before terminal end-anchor node
-- auto-scrolls on `[messages, thinkingStatus]` updates
+- does not render a global bottom-of-thread thinking strip
+- keeps terminal end-anchor node as the final child
+- auto-scrolls on `[messages]` updates
 
 Guarantee:
 
-- end-anchor stays last child so both message and thinking updates stay in auto-scroll path.
+- end-anchor stays last child and streamed thinking appears inside assistant message rows (not in a transient global strip).
 
 Assistant message thinking presentation:
 
 - finalized reasoning text is persisted onto assistant rows (`message.thinkingText`) by `useChatStream` at `streaming-complete`.
-- `MessageContent` renders this as a per-message collapsible section (`Show thinking`) above assistant markdown output.
+- live `llm-thought` chunks also write to the same assistant row while streaming; `MessageContent` renders this as a per-message collapsible section (`Show thinking`) above assistant markdown output.
 
 ## Message CSS Class Assembly Contract
 
