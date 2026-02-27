@@ -15,9 +15,20 @@ function showChatWindow(options = {}, deps = {}) {
     externalFocusTracker,
   } = deps;
   const focus = options?.focus !== false;
+  const capturePreviousExternalFocus = (
+    typeof externalFocusTracker?.capturePreviousExternalFocusedWindow === 'function'
+      ? externalFocusTracker.capturePreviousExternalFocusedWindow.bind(externalFocusTracker)
+      : null
+  );
 
   if (!chatWindow || chatWindow.isDestroyed()) {
     return { success: false, reason: 'Chat window not available' };
+  }
+  // Capture external focus target even for non-focusing chatbox transitions.
+  // Interactive tool-surface prep calls show-chatbox with focus=false and relies
+  // on this snapshot for subsequent focus restoration/verification.
+  if (capturePreviousExternalFocus) {
+    capturePreviousExternalFocus();
   }
   if (mainWindow && !mainWindow.isDestroyed() && mainWindow.isVisible()) {
     mainWindow.hide();
@@ -40,7 +51,6 @@ function showChatWindow(options = {}, deps = {}) {
   broadcastResponseOverlayVisibility(responseIsVisible);
   syncContextLabelWindowVisibility();
   if (focus) {
-    externalFocusTracker.capturePreviousExternalFocusedWindow();
     chatWindow.focus();
     chatWindow.webContents.send('chatbox-focus');
   }

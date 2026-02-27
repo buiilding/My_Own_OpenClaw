@@ -24,6 +24,7 @@ describe('main_window_runtime prepareOverlayQueryCaptureFocus', () => {
     const chatWindow = createFocusableWindow();
     const mainWindow = createFocusableWindow();
     const externalFocusTracker = {
+      canTrackExternalFocus: jest.fn().mockReturnValue(true),
       restorePreviousExternalFocusedWindow: jest.fn().mockReturnValue(true),
       isPreviousExternalFocusedWindowActive: jest.fn().mockReturnValue(true),
     };
@@ -37,6 +38,7 @@ describe('main_window_runtime prepareOverlayQueryCaptureFocus', () => {
 
     expect(chatWindow.blur).toHaveBeenCalledTimes(1);
     expect(mainWindow.blur).toHaveBeenCalledTimes(1);
+    expect(externalFocusTracker.canTrackExternalFocus).toHaveBeenCalledTimes(1);
     expect(externalFocusTracker.restorePreviousExternalFocusedWindow).toHaveBeenCalledTimes(1);
     expect(externalFocusTracker.isPreviousExternalFocusedWindowActive).toHaveBeenCalledTimes(1);
     expect(result).toEqual({
@@ -48,6 +50,7 @@ describe('main_window_runtime prepareOverlayQueryCaptureFocus', () => {
 
   test('returns inactive verification result when restored app is not active', async () => {
     const externalFocusTracker = {
+      canTrackExternalFocus: jest.fn().mockReturnValue(true),
       restorePreviousExternalFocusedWindow: jest.fn().mockReturnValue(true),
       isPreviousExternalFocusedWindowActive: jest.fn().mockReturnValue(false),
     };
@@ -67,6 +70,7 @@ describe('main_window_runtime prepareOverlayQueryCaptureFocus', () => {
 
   test('skips active-window verification when external focus cannot be restored', async () => {
     const externalFocusTracker = {
+      canTrackExternalFocus: jest.fn().mockReturnValue(true),
       restorePreviousExternalFocusedWindow: jest.fn().mockReturnValue(false),
       isPreviousExternalFocusedWindowActive: jest.fn().mockReturnValue(true),
     };
@@ -82,6 +86,27 @@ describe('main_window_runtime prepareOverlayQueryCaptureFocus', () => {
       restoredExternalFocus: false,
       externalFocusActive: false,
       canVerifyExternalFocus: true,
+    });
+  });
+
+  test('reports focus verification unavailable when platform tracking is disabled', async () => {
+    const externalFocusTracker = {
+      canTrackExternalFocus: jest.fn().mockReturnValue(false),
+      restorePreviousExternalFocusedWindow: jest.fn(),
+      isPreviousExternalFocusedWindowActive: jest.fn(),
+    };
+
+    const result = await prepareOverlayQueryCaptureFocus({
+      externalFocusTracker,
+      waitMs: 0,
+    });
+
+    expect(externalFocusTracker.restorePreviousExternalFocusedWindow).not.toHaveBeenCalled();
+    expect(externalFocusTracker.isPreviousExternalFocusedWindowActive).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      restoredExternalFocus: false,
+      externalFocusActive: false,
+      canVerifyExternalFocus: false,
     });
   });
 });

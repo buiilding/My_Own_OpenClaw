@@ -15,8 +15,18 @@ function createExternalFocusTracker({
   let lastExternalFocusedWindowId = null;
   let lastExternalFocusedWindowTitle = null;
 
+  function canTrackExternalFocus() {
+    if (getPlatform() !== 'win32' || !windowManager) {
+      return false;
+    }
+    return (
+      typeof windowManager.getActiveWindow === 'function'
+      && typeof windowManager.getWindows === 'function'
+    );
+  }
+
   function capturePreviousExternalFocusedWindow() {
-    if (getPlatform() !== 'win32' || !windowManager || typeof windowManager.getActiveWindow !== 'function') {
+    if (!canTrackExternalFocus()) {
       return;
     }
     try {
@@ -40,7 +50,7 @@ function createExternalFocusTracker({
   }
 
   function restorePreviousExternalFocusedWindow() {
-    if (getPlatform() !== 'win32' || !windowManager || typeof windowManager.getWindows !== 'function') {
+    if (!canTrackExternalFocus()) {
       return false;
     }
     try {
@@ -71,11 +81,7 @@ function createExternalFocusTracker({
   }
 
   function isPreviousExternalFocusedWindowActive() {
-    if (
-      getPlatform() !== 'win32'
-      || !windowManager
-      || typeof windowManager.getActiveWindow !== 'function'
-    ) {
+    if (!canTrackExternalFocus()) {
       return false;
     }
     if (typeof lastExternalFocusedWindowId !== 'number' && !lastExternalFocusedWindowTitle) {
@@ -101,6 +107,7 @@ function createExternalFocusTracker({
   }
 
   return {
+    canTrackExternalFocus,
     capturePreviousExternalFocusedWindow,
     isPreviousExternalFocusedWindowActive,
     restorePreviousExternalFocusedWindow,

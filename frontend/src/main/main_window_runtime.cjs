@@ -14,8 +14,18 @@ async function prepareOverlayQueryCaptureFocus({
   if (mainWindow && !mainWindow.isDestroyed() && typeof mainWindow.blur === 'function') {
     mainWindow.blur();
   }
-  const restoredExternalFocus = externalFocusTracker.restorePreviousExternalFocusedWindow();
-  const canVerifyExternalFocus = typeof externalFocusTracker.isPreviousExternalFocusedWindowActive === 'function';
+  const canTrackExternalFocus = (
+    typeof externalFocusTracker?.canTrackExternalFocus === 'function'
+      ? externalFocusTracker.canTrackExternalFocus()
+      : false
+  );
+  const restoredExternalFocus = canTrackExternalFocus
+    ? externalFocusTracker.restorePreviousExternalFocusedWindow()
+    : false;
+  const canVerifyExternalFocus = (
+    canTrackExternalFocus
+    && typeof externalFocusTracker?.isPreviousExternalFocusedWindowActive === 'function'
+  );
   const shouldWaitForVerification = restoredExternalFocus && canVerifyExternalFocus;
   let externalFocusActive = false;
 

@@ -125,7 +125,16 @@ describe('toolRunnerSurface helpers', () => {
     const preparation = await prepareToolExecutionSurface('interactive');
     expect(preparation.canExecute).toBe(true);
     expect(preparation.failureReason).toBeNull();
+    expect(preparation.overlayIgnoreEnabled).toBe(true);
     expect(focusAttemptCount).toBe(3);
+    expect(IpcBridge.invoke).toHaveBeenCalledWith(INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE, {
+      ignore: true,
+    });
+
+    await restoreToolExecutionSurface(preparation);
+    expect(IpcBridge.invoke).toHaveBeenCalledWith(INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE, {
+      ignore: false,
+    });
   });
 
   test('fails interactive surface prep after exhausting focus verification retries', async () => {
@@ -148,5 +157,24 @@ describe('toolRunnerSurface helpers', () => {
     expect(preparation.canExecute).toBe(false);
     expect(preparation.failureReason).toBe('external_window_focus_not_verified');
     expect(focusAttemptCount).toBe(5);
+  });
+
+  test('allows interactive execution when external focus verification is unavailable', async () => {
+    (IpcBridge.invoke as jest.Mock).mockImplementation(async (channel: string) => {
+      if (channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS) {
+        return {
+          success: true,
+          data: {
+            canVerifyExternalFocus: false,
+            externalFocusActive: false,
+          },
+        };
+      }
+      return { success: true };
+    });
+
+    const preparation = await prepareToolExecutionSurface('interactive');
+    expect(preparation.canExecute).toBe(true);
+    expect(preparation.failureReason).toBeNull();
   });
 });

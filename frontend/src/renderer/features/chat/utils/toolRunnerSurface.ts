@@ -20,10 +20,12 @@ type ToolSurfacePreparation = {
   canExecute: boolean;
   failureReason: string | null;
   surfaceToken: number | null;
+  overlayIgnoreEnabled: boolean;
 };
 
 let nextSurfaceToken = 1;
 const activeSurfaceTokens = new Set<number>();
+const activeOverlayIgnoreTokens = new Set<number>();
 
 function registerSurfaceToken(): number {
   const token = nextSurfaceToken;
@@ -41,6 +43,24 @@ function releaseSurfaceToken(surfaceToken: number | null): boolean {
   }
   activeSurfaceTokens.delete(surfaceToken);
   return activeSurfaceTokens.size === 0;
+}
+
+function markOverlayIgnoreForToken(surfaceToken: number | null): void {
+  if (typeof surfaceToken !== 'number') {
+    return;
+  }
+  activeOverlayIgnoreTokens.add(surfaceToken);
+}
+
+function unmarkOverlayIgnoreForToken(surfaceToken: number | null): boolean {
+  if (typeof surfaceToken !== 'number') {
+    return false;
+  }
+  if (!activeOverlayIgnoreTokens.has(surfaceToken)) {
+    return false;
+  }
+  activeOverlayIgnoreTokens.delete(surfaceToken);
+  return activeOverlayIgnoreTokens.size === 0;
 }
 
 export function shouldSkipToolExecution(metadata: Record<string, unknown> | undefined): boolean {
@@ -119,9 +139,11 @@ export async function prepareToolExecutionSurface(
       canExecute: true,
       failureReason: null,
       surfaceToken: null,
+      overlayIgnoreEnabled: false,
     };
   }
   let surfaceToken: number | null = null;
+  let overlayIgnoreEnabled = false;
   const surfaceAlreadyPrepared = activeSurfaceTokens.size > 0;
   try {
     if (!surfaceAlreadyPrepared) {
@@ -131,6 +153,17 @@ export async function prepareToolExecutionSurface(
     surfaceToken = registerSurfaceToken();
 
     if (mode === 'interactive') {
+      try {
+        const ignoreResult = await IpcBridge.invoke(INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE, {
+          ignore: true,
+        });
+        overlayIgnoreEnabled = ignoreResult?.success !== false;
+        if (overlayIgnoreEnabled) {
+          markOverlayIgnoreForToken(surfaceToken);
+        }
+      } catch (error) {
+        console.warn('[useToolRunner] Failed to enable overlay click-through for tool execution:', error);
+      }
       for (let attempt = 1; attempt <= TOOL_FOCUS_PREPARE_MAX_ATTEMPTS; attempt += 1) {
         const focusPreparation = await IpcBridge.invoke(INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
           waitMs: TOOL_FOCUS_PREPARE_WAIT_MS,
@@ -146,6 +179,7 @@ export async function prepareToolExecutionSurface(
               ? focusPreparation.reason
               : 'overlay_focus_prepare_failed',
             surfaceToken,
+            overlayIgnoreEnabled,
           };
         }
 
@@ -155,6 +189,7 @@ export async function prepareToolExecutionSurface(
             canExecute: true,
             failureReason: null,
             surfaceToken,
+            overlayIgnoreEnabled,
           };
         }
       }
@@ -164,6 +199,7 @@ export async function prepareToolExecutionSurface(
         canExecute: false,
         failureReason: 'external_window_focus_not_verified',
         surfaceToken,
+        overlayIgnoreEnabled,
       };
     }
     return {
@@ -171,6 +207,7 @@ export async function prepareToolExecutionSurface(
       canExecute: true,
       failureReason: null,
       surfaceToken,
+      overlayIgnoreEnabled,
     };
   } catch (error) {
     console.warn('[useToolRunner] Failed to prepare tool execution surface:', error);
@@ -179,6 +216,7 @@ export async function prepareToolExecutionSurface(
       canExecute: false,
       failureReason: OVERLAY_SURFACE_PREPARE_EXCEPTION,
       surfaceToken,
+      overlayIgnoreEnabled,
     };
   }
 }
@@ -186,6 +224,13 @@ export async function prepareToolExecutionSurface(
 export async function restoreToolExecutionSurface(
   preparation: ToolSurfacePreparation,
 ): Promise<void> {
+  if (preparation.overlayIgnoreEnabled && unmarkOverlayIgnoreForToken(preparation.surfaceToken)) {
+    try {
+      await IpcBridge.invoke(INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE, { ignore: false });
+    } catch (error) {
+      console.warn('[useToolRunner] Failed to disable overlay click-through after tool execution:', error);
+    }
+  }
   if (!preparation.restoreChatPillAfterExecution || typeof preparation.surfaceToken !== 'number') {
     return;
   }
@@ -210,5 +255,6 @@ export async function ensureToolExecutionSurface(
 
 export function __resetToolExecutionSurfaceStateForTests(): void {
   activeSurfaceTokens.clear();
+  activeOverlayIgnoreTokens.clear();
   nextSurfaceToken = 1;
 }

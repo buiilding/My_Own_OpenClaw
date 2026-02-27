@@ -89,6 +89,7 @@ describe('external_focus_tracker', () => {
     const tracker = createExternalFocusTracker({
       getPlatform: () => 'win32',
       windowManager: {
+        getActiveWindow: jest.fn(),
         getWindows: jest.fn(() => {
           throw new Error('boom');
         }),
@@ -98,7 +99,9 @@ describe('external_focus_tracker', () => {
     });
 
     expect(tracker.restorePreviousExternalFocusedWindow()).toBe(false);
-    expect(warn).toHaveBeenCalledWith('[Main] Failed to restore external focused window:', 'boom');
+    expect(warn.mock.calls.length).toBeGreaterThan(0);
+    expect(warn.mock.calls[0][0]).toBe('[Main] Failed to restore external focused window:');
+    expect(String(warn.mock.calls[0][1])).toContain('boom');
   });
 
   test('capture and restore no-op outside win32', () => {
@@ -109,9 +112,33 @@ describe('external_focus_tracker', () => {
       warn: jest.fn(),
     });
 
+    expect(tracker.canTrackExternalFocus()).toBe(false);
     tracker.capturePreviousExternalFocusedWindow();
     expect(tracker.restorePreviousExternalFocusedWindow()).toBe(false);
     expect(tracker.isPreviousExternalFocusedWindowActive()).toBe(false);
+  });
+
+  test('reports capability only when platform and manager APIs support tracking', () => {
+    const unsupportedTracker = createExternalFocusTracker({
+      getPlatform: () => 'win32',
+      windowManager: {
+        getWindows: jest.fn(),
+      },
+      appWindowTitleMarkers: ['windieos'],
+      warn: jest.fn(),
+    });
+    expect(unsupportedTracker.canTrackExternalFocus()).toBe(false);
+
+    const supportedTracker = createExternalFocusTracker({
+      getPlatform: () => 'win32',
+      windowManager: {
+        getActiveWindow: jest.fn(),
+        getWindows: jest.fn(),
+      },
+      appWindowTitleMarkers: ['windieos'],
+      warn: jest.fn(),
+    });
+    expect(supportedTracker.canTrackExternalFocus()).toBe(true);
   });
 
   test('active-window verification returns false when active window does not match captured', () => {
