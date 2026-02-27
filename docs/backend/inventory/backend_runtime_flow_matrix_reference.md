@@ -10,10 +10,10 @@ title: "Backend Runtime Flow Matrix Reference"
 
 This matrix maps runtime responsibilities to exact modules in `backend/src`.
 
-## Coverage Snapshot (2026-02-26)
+## Coverage Snapshot (2026-02-27)
 
-- Total backend python files: `318`
-- Domain counts: `agent=69`, `api=72`, `core=77`, `tools=31`, `llm=31`, `services=16`, `simulation=12`, `sdk=6`, `embeddings=2`
+- Total backend python files: `322`
+- Domain counts: `agent=70`, `api=73`, `core=77`, `tools=31`, `llm=33`, `services=16`, `simulation=12`, `sdk=6`, `embeddings=2`
 
 ## Core Runtime Flows
 
@@ -34,7 +34,7 @@ This matrix maps runtime responsibilities to exact modules in `backend/src`.
 | Session lifecycle | `backend/src/agent/session/manager.py` | `backend/src/agent/session/session.py`, `backend/src/agent/session/lifecycle.py` | Session removal + task cleanup |
 | Query execution in session | `backend/src/agent/session/session.py` | `backend/src/agent/execution/executor.py`, `backend/src/agent/execution/interaction_loop.py` | Assistant output commit to history |
 | Prompt and tool-schema prep | `backend/src/agent/llm/conversation_context.py` | `backend/src/llm/prompts/prompt_constructor.py`, `backend/src/tools/registry.py` | Prompt metadata events via presenter |
-| LLM request + stream parse | `backend/src/agent/llm/llm_stream_processor.py` | `backend/src/llm/client.py`, `backend/src/llm/providers/*.py`, `backend/src/llm/parser.py` | Parsed response + token diagnostics |
+| LLM request + stream parse | `backend/src/agent/llm/llm_stream_processor.py` | `backend/src/llm/client.py`, `backend/src/llm/providers/*.py`, `backend/src/llm/providers/streaming_tool_call_aggregation.py`, `backend/src/llm/parser.py` | Parsed response + token diagnostics |
 | Tool preparation phase | `backend/src/agent/tools/preparation/preparer.py` | Screenshot + OCR helpers, coordinate resolvers | Resolved tool call registration |
 | Tool send phase | `backend/src/agent/tools/sending/sender.py` | Tool/bundle event shaping | `tool-call` / `tool-bundle` event emission |
 | Tool wait phase | `backend/src/tools/orchestrator.py` | `backend/src/tools/single_tool_execution.py`, `backend/src/tools/bundle_execution.py` | Awaited result (single/bundle) |
@@ -63,6 +63,7 @@ This matrix maps runtime responsibilities to exact modules in `backend/src`.
 | Runtime flow | Entry module | Core orchestrators | Completion/exit modules |
 | --- | --- | --- | --- |
 | Provider selection and factory cache | `backend/src/llm/providers/__init__.py` | Provider classes in `backend/src/llm/providers/*.py` | Bound provider instance |
+| Provider stream aggregation + diagnostics | `backend/src/llm/providers/stream_event_pipeline.py` | `backend/src/llm/providers/{streaming_tool_call_aggregation,response_parsing,usage_diagnostics,thinking_extraction}.py` | Normalized tool-calls/metrics/thinking payloads |
 | Model discovery/listing | `backend/src/llm/models/model_service.py` | Models config in `backend/src/llm/models/models_config.py` | Models API payload |
 | Token counting diagnostics | `backend/src/services/token_service.py` | `backend/src/agent/llm/token_counting.py` | `token-count` stream event |
 | OCR/vision coordinate resolution | `backend/src/services/ocr/ocr_service.py` | `backend/src/services/vision/vision_service.py`, provider modules | Pixel coordinate output |
