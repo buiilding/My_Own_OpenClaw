@@ -7,6 +7,10 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(backend-tool-argument-normalization): add strict regressions for invalid assistant `tool_calls` shape, `model_dump` fallback to `dict()`, and unsupported argument payload type rejection.
+- refactor(frontend-overlay-ipc): remove deprecated `set-chatbox-size` IPC channel/handler from preload, typed renderer channels, and overlay runtime registration now that non-dashboard chat-pill sizing is fixed; keep drag-only chatbox IPC ownership and add regression coverage to prevent channel reintroduction.
+- docs(backend-inventory): refresh backend inventory counts (`322` Python files), add missing LLM stream-tool aggregation ownership, and tighten API schema/contract alignment details across capability and runtime matrix references.
+- docs(frontend-inventory): refresh frontend inventory counts (`35` main / `141` sidecar / `139` renderer / `329` total), add `ipc_settings_sync` and sidecar remote-client ownership, and expand provider-config/runtime boundary details.
 - test(backend-provider-utils): add parser/normalizer regressions for completion text fallback, tool-only delta suppression, blank tool_call_id drops, and OpenAI function-argument shape normalization.
 - test(backend-stream-tool-aggregation): add Gemini + Kimi stream regression coverage for Anthropic `tool_use` block parsing, synthesized fallback tool-call ids, and argument-object precedence over fragmented string chunks.
 - refactor(frontend-chat-compose): extract shared clipboard-image parser utility (`clipboardImageUtils.parseClipboardImageItems`) and reuse it across dashboard `MessageInput` and overlay `ChatBox`, reducing duplicate file-reader/data-url parsing logic and aligning attachment payload normalization.
