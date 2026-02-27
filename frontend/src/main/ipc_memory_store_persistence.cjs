@@ -25,6 +25,5 @@ function persistMemoryStoreEvent(eventData, deps = {}) {
 }
 
 module.exports = {
-  mapMemoryStoreEventPayload,
   persistMemoryStoreEvent,
 };

@@ -14,9 +14,9 @@ const SCREENSHOT_BROWSER_ACTIONS = new Set(['screenshot']);
 const EXCLUDED_COMPUTER_ACTION_NAMES = new Set(['switch_tab']);
 const TOOL_FOCUS_PREPARE_WAIT_MS = 180;
 
-export type ToolSurfaceMode = 'none' | 'interactive' | 'screenshot';
+type ToolSurfaceMode = 'none' | 'interactive' | 'screenshot';
 
-export type ToolSurfacePreparation = {
+type ToolSurfacePreparation = {
   restoreChatPillAfterExecution: boolean;
   canExecute: boolean;
   failureReason: string | null;
@@ -51,7 +51,7 @@ function normalizeActionName(value: unknown): string {
   return value.trim().toLowerCase();
 }
 
-export function resolveToolSurfaceMode(
+function resolveToolSurfaceMode(
   toolName: string,
   args: Record<string, unknown> | undefined,
 ): ToolSurfaceMode {
@@ -177,4 +177,3 @@ export async function ensureToolExecutionSurface(
   const mode = resolveToolSurfaceMode(toolName, args);
   return prepareToolExecutionSurface(mode);
 }
-

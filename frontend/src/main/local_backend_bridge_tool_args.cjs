@@ -39,6 +39,5 @@ function resolveToolArgs(toolName, args, getFrontendConfig, warn = console.warn)
 }
 
 module.exports = {
-  resolveRunShellCommandArgs,
   resolveToolArgs,
 };

@@ -1,7 +1,6 @@
 import {
   resolveBundleSurfaceMode,
   resolveToolRequestIdForCancellation,
-  resolveToolSurfaceMode,
   shouldSkipToolExecution,
 } from '../../frontend/src/renderer/features/chat/utils/toolRunnerSurface';
 
@@ -20,18 +19,28 @@ describe('toolRunnerSurface helpers', () => {
     ).toBe('req-1');
   });
 
-  test('resolves tool surface mode for direct tool names', () => {
-    expect(resolveToolSurfaceMode('read_file', {})).toBe('none');
-    expect(resolveToolSurfaceMode('mouse_control', { action: 'click' })).toBe('interactive');
-    expect(resolveToolSurfaceMode('screenshot', {})).toBe('screenshot');
-    expect(resolveToolSurfaceMode('switch_tab', {})).toBe('none');
-  });
-
-  test('resolves browser action tool surface mode', () => {
-    expect(resolveToolSurfaceMode('browser', { action: 'click' })).toBe('interactive');
-    expect(resolveToolSurfaceMode('browser', { action: 'screenshot' })).toBe('screenshot');
-    expect(resolveToolSurfaceMode('browser', { action: 'switch_tab' })).toBe('none');
-    expect(resolveToolSurfaceMode('browser', { action: 'unknown' })).toBe('none');
+  test('resolves surface mode semantics through bundle mode resolver', () => {
+    expect(
+      resolveBundleSurfaceMode([{ toolName: 'read_file', args: {} }]),
+    ).toBe('none');
+    expect(
+      resolveBundleSurfaceMode([{ toolName: 'mouse_control', args: { action: 'click' } }]),
+    ).toBe('interactive');
+    expect(
+      resolveBundleSurfaceMode([{ toolName: 'screenshot', args: {} }]),
+    ).toBe('screenshot');
+    expect(
+      resolveBundleSurfaceMode([{ toolName: 'switch_tab', args: {} }]),
+    ).toBe('none');
+    expect(
+      resolveBundleSurfaceMode([{ toolName: 'browser', args: { action: 'click' } }]),
+    ).toBe('interactive');
+    expect(
+      resolveBundleSurfaceMode([{ toolName: 'browser', args: { action: 'screenshot' } }]),
+    ).toBe('screenshot');
+    expect(
+      resolveBundleSurfaceMode([{ toolName: 'browser', args: { action: 'switch_tab' } }]),
+    ).toBe('none');
   });
 
   test('resolves bundle mode with interactive precedence over screenshot', () => {
@@ -50,4 +59,3 @@ describe('toolRunnerSurface helpers', () => {
     ).toBe('interactive');
   });
 });
-
