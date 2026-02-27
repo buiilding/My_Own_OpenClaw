@@ -34,7 +34,11 @@ function showChatWindow(options = {}, deps = {}) {
     mainWindow.hide();
   }
   if (!chatWindow.isVisible()) {
-    chatWindow.show();
+    if (!focus && typeof chatWindow.showInactive === 'function') {
+      chatWindow.showInactive();
+    } else {
+      chatWindow.show();
+    }
   }
   ensureChatWindowOnTop();
   const shouldRestoreResponse = responseOverlayVisible || isResponseOverlayStreamingPhase();

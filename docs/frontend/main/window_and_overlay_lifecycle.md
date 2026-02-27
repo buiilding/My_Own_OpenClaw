@@ -120,7 +120,8 @@ Windows-specific external focus preservation:
 
 - hides main window if visible
 - shows chat overlay and restores response overlay if stream is active
-- optional focus + emits `chatbox-focus` to renderer
+- `focus=false` path uses non-activating show (`showInactive`) when available to avoid stealing active external window
+- `focus=true` path focuses chat overlay and emits `chatbox-focus` to renderer
 
 `hideChatWindow()` behavior:
 
