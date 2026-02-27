@@ -11,6 +11,7 @@ Includes the last 300 commits on `main`.
 - docs(backend-protocol-testing): fix websocket schema-model naming typo (`memory-stored` -> `memory-store`) in backend protocol test coverage reference.
 - fix(sidecar-memory-type-validation): enforce `memory_type` allowlist (`episodic|semantic`) in both `local_backend.store_memory` and standalone `memory_service.store`; invalid values now fail fast.
 - fix(sidecar-memory-payload-types): enforce string-only `user_query`/`assistant_response` and string `memory_type` in sidecar `store_memory` handlers (local backend + standalone memory service), with fast-fail error contracts and regression coverage.
+- refactor(sidecar-memory-validation): extract shared `normalize_store_memory_payload(...)` helper in `memory.operations` and reuse it in `local_backend.store_memory` + `memory_service.store` to keep validation/error contracts aligned.
 - fix(sidecar-memory-validation): trim and reject whitespace-only `user_query` / `assistant_response` in both `local_backend.store_memory` and standalone `memory_service.store` handlers; add sidecar regression coverage.
 - fix(sidecar-memory-service): persist `store` interactions with `record_kind=\"interaction\"` so standalone memory-service writes remain consistent with summarizer interaction-row sourcing.
 - fix(backend-memory-query-parse): resolve raw user query from the last `<user_query>` block in enriched content to avoid stale first-match capture when earlier snippets contain the same tag.

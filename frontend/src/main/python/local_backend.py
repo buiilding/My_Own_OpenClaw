@@ -32,6 +32,7 @@ from memory.operations import (
     exclude_conversation_results,
     format_interaction_memory,
     group_memory_texts,
+    normalize_store_memory_payload,
 )
 from memory.summarizer import MemorySummarizer
 
@@ -587,34 +588,20 @@ class LocalBackend:
     @requires_memory_store
     async def _handle_store_memory(self, user_query: str, assistant_response: str, memory_type: str = "episodic", user_id: str = "default_user", session_id: str = None, **kwargs) -> Dict[str, Any]:
         """Store memory."""
-        if user_query is None or assistant_response is None:
+        normalized, error = normalize_store_memory_payload(
+            user_query=user_query,
+            assistant_response=assistant_response,
+            memory_type=memory_type,
+        )
+        if error:
             return {
                 "success": False,
-                "error": "Missing user_query or assistant_response"
+                "error": error,
             }
-        if not isinstance(user_query, str) or not isinstance(assistant_response, str):
-            return {
-                "success": False,
-                "error": "user_query and assistant_response must be strings"
-            }
-        if memory_type is not None and not isinstance(memory_type, str):
-            return {
-                "success": False,
-                "error": "memory_type must be a string"
-            }
-        user_query = user_query.strip()
-        assistant_response = assistant_response.strip()
-        memory_type = (memory_type or "episodic").strip().lower()
-        if not user_query or not assistant_response:
-            return {
-                "success": False,
-                "error": "Missing user_query or assistant_response"
-            }
-        if memory_type not in {"episodic", "semantic"}:
-            return {
-                "success": False,
-                "error": f"Invalid memory_type: {memory_type}"
-            }
+
+        user_query = normalized["user_query"]
+        assistant_response = normalized["assistant_response"]
+        memory_type = normalized["memory_type"]
         try:
             memory_content = format_interaction_memory(user_query, assistant_response)
             metadata = build_interaction_metadata(memory_type, session_id)

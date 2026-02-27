@@ -23,6 +23,7 @@ from memory.operations import (
     build_memory_filters,
     format_interaction_memory,
     group_memory_texts,
+    normalize_store_memory_payload,
 )
 from core.runtime_shutdown import (
     handle_shutdown_signal,
@@ -160,46 +161,24 @@ class MemoryService:
 
     async def handle_store(self, request_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Handle memory store request."""
-        user_query = payload.get("user_query")
-        assistant_response = payload.get("assistant_response")
-        memory_type = payload.get("memory_type", "episodic")
+        normalized, error = normalize_store_memory_payload(
+            user_query=payload.get("user_query"),
+            assistant_response=payload.get("assistant_response"),
+            memory_type=payload.get("memory_type", "episodic"),
+        )
         user_id = payload.get("user_id", "default_user")
         session_id = payload.get("session_id")
 
-        if user_query is None or assistant_response is None:
+        if error:
             return {
                 "id": request_id,
                 "success": False,
-                "error": "Missing user_query or assistant_response",
+                "error": error,
             }
-        if not isinstance(user_query, str) or not isinstance(assistant_response, str):
-            return {
-                "id": request_id,
-                "success": False,
-                "error": "user_query and assistant_response must be strings",
-            }
-        if memory_type is not None and not isinstance(memory_type, str):
-            return {
-                "id": request_id,
-                "success": False,
-                "error": "memory_type must be a string",
-            }
-        user_query = user_query.strip()
-        assistant_response = assistant_response.strip()
-        memory_type = (memory_type or "episodic").strip().lower()
 
-        if not user_query or not assistant_response:
-            return {
-                "id": request_id,
-                "success": False,
-                "error": "Missing user_query or assistant_response"
-            }
-        if memory_type not in {"episodic", "semantic"}:
-            return {
-                "id": request_id,
-                "success": False,
-                "error": f"Invalid memory_type: {memory_type}",
-            }
+        user_query = normalized["user_query"]
+        assistant_response = normalized["assistant_response"]
+        memory_type = normalized["memory_type"]
 
         try:
             memory_content = format_interaction_memory(user_query, assistant_response)
