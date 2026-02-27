@@ -27,7 +27,7 @@ import '../../../styles/ChatInterface.css';
 
 const ACTIVE_STREAM_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
 
-function ChatInterface({ sidebarOpen = true, focusComposerToken = 0 }) {
+function ChatInterface({ focusComposerToken = 0 }) {
   const { messages, isSending, thinkingStatus, thinkingSourceEventType, streamPhase } = useChatStore(
     useShallow(selectChatInterfaceState),
   );
