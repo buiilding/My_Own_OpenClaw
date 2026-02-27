@@ -127,6 +127,26 @@ async def test_parse_and_validate_message_rejects_oversized_payload() -> None:
 
 
 @pytest.mark.asyncio
+async def test_parse_and_validate_message_accepts_payload_at_exact_size_limit() -> None:
+    payload = json.dumps(
+        {
+            "id": "msg_exact_size",
+            "type": "query",
+            "payload": {"text": "hello", "conversation_ref": "conv_test"},
+        }
+    )
+
+    message, error = await mh.parse_and_validate_message(
+        payload,
+        user_id="user_1",
+        max_message_size=len(payload),
+    )
+
+    assert error is None
+    assert isinstance(message, QueryMessage)
+
+
+@pytest.mark.asyncio
 async def test_parse_and_validate_message_rejects_malformed_json() -> None:
     message, error = await mh.parse_and_validate_message(
         "{bad-json",
@@ -136,6 +156,24 @@ async def test_parse_and_validate_message_rejects_malformed_json() -> None:
 
     assert message is None
     assert error == "Malformed JSON"
+
+
+@pytest.mark.asyncio
+async def test_parse_and_validate_message_returns_multiple_validation_details() -> None:
+    payload = json.dumps({"type": "query", "payload": {}})
+
+    message, error = await mh.parse_and_validate_message(
+        payload,
+        user_id="user_1",
+        max_message_size=1024,
+    )
+
+    assert message is None
+    assert error is not None
+    assert "Invalid message format:" in error
+    assert "id" in error
+    assert "payload.text" in error
+    assert ";" in error
 
 
 @pytest.mark.asyncio
