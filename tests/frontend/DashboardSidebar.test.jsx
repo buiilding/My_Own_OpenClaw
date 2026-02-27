@@ -102,4 +102,14 @@ describe('DashboardSidebar collapsed header controls', () => {
     fireEvent.click(newChatButtons[0]);
     expect(onStartNewChat).toHaveBeenCalledTimes(1);
   });
+
+  test('profile menu settings action opens general settings tab', () => {
+    const onOpenSettings = jest.fn();
+    render(<DashboardSidebar {...buildProps({ onOpenSettings })} />);
+
+    fireEvent.click(screen.getByTestId('sidebar-user-menu-trigger'));
+    fireEvent.click(screen.getByTestId('sidebar-user-menu-settings'));
+
+    expect(onOpenSettings).toHaveBeenCalledWith('general');
+  });
 });
