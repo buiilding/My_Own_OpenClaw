@@ -8,6 +8,11 @@ from typing import Any, Dict, List
 
 from memory.conversation_title_helpers import ensure_conversation_title_from_row
 
+try:
+    import aiosqlite
+except ImportError:
+    aiosqlite = None
+
 
 async def fetch_transcript_conversation_rows(
     *,
@@ -94,3 +99,29 @@ async def build_conversation_list_results(
             ),
         })
     return results
+
+
+async def list_transcript_conversations(
+    *,
+    episodic_db_path: str,
+    user_id: str,
+    limit: int,
+) -> List[Dict[str, Any]]:
+    if aiosqlite is None:
+        raise ImportError("aiosqlite is not installed. Install with: pip install aiosqlite")
+
+    async with aiosqlite.connect(episodic_db_path) as conn:
+        conn.row_factory = aiosqlite.Row
+        cursor = await conn.cursor()
+        rows = await fetch_transcript_conversation_rows(
+            cursor=cursor,
+            user_id=user_id,
+            limit=limit,
+        )
+        results = await build_conversation_list_results(
+            cursor=cursor,
+            user_id=user_id,
+            rows=rows,
+        )
+        await conn.commit()
+        return results

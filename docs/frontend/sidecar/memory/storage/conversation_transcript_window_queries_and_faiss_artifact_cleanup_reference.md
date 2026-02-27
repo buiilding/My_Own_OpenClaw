@@ -67,6 +67,7 @@ Runtime split:
 
 - `conversation_list_runtime.fetch_transcript_conversation_rows(...)` owns list-conversation SQL query shape and ordering.
 - `conversation_list_runtime.build_conversation_list_results(...)` owns title resolution/filtering and response payload shaping.
+- `conversation_list_runtime.list_transcript_conversations(...)` owns connection/row-factory orchestration for transcript conversation listing runtime.
 
 ## Message Index Allocation and Replay Order
 
