@@ -12,8 +12,11 @@ title: "Chatbox Overlay Input, Drag, and Click-Through Reference"
 
 - `frontend/src/renderer/app/ChatBoxApp.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
+- `frontend/src/renderer/features/chat/components/ChatBoxIcons.jsx`
+- `frontend/src/renderer/features/chat/components/ChatBoxImagePreviewRow.jsx`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/policies/messageSendUiPolicy.ts`
+- `frontend/src/renderer/features/chat/utils/clipboardImageUtils.js`
 - `frontend/src/renderer/features/chat/utils/overlayPhaseListener.js`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
@@ -104,6 +107,7 @@ This is required after main-process `showChatWindow({ focus: true })`.
 - chat overlay window dimensions are fixed in main runtime (`createChatWindow`).
 - `ChatBox.jsx` no longer emits renderer-driven resize IPC (`set-chatbox-size`) for preview or startup transitions.
 - attachment preview uses an always-mounted preview row with class toggle (`has-items`) and opacity/translate animation.
+- clipboard image parsing is shared through `clipboardImageUtils.parseClipboardImageItems(...)` (also used by dashboard `MessageInput`) to keep screenshot/paste payload shape consistent across overlay and dashboard composer surfaces.
 - result: no live overlay window bounds churn while typing, startup, or adding/removing images.
 
 ## Drag Movement Runtime
