@@ -95,6 +95,26 @@ async def test_parse_and_validate_message_success() -> None:
 
 
 @pytest.mark.asyncio
+async def test_parse_and_validate_message_overrides_client_user_id_with_connection_user_id() -> None:
+    payload = json.dumps(
+        {
+            "id": "msg_user_override",
+            "type": "query",
+            "user_id": "attacker_user",
+            "payload": {"text": "hello", "conversation_ref": "conv_test"},
+        }
+    )
+
+    message, error = await mh.parse_and_validate_message(
+        payload, user_id="trusted_user", max_message_size=1024
+    )
+
+    assert error is None
+    assert isinstance(message, QueryMessage)
+    assert message.user_id == "trusted_user"
+
+
+@pytest.mark.asyncio
 async def test_parse_and_validate_message_rejects_oversized_payload() -> None:
     data = "x" * 20
 
@@ -347,6 +367,17 @@ async def test_send_error_forwards_exception_when_provided(monkeypatch) -> None:
 
 
 @pytest.mark.asyncio
+async def test_send_error_defaults_to_empty_message_when_none(monkeypatch) -> None:
+    websocket = SimpleNamespace()
+    captured = _capture_send_error_response(monkeypatch)
+
+    await mh.send_error(websocket, "msg_302", None)
+
+    assert captured["message"] == ""
+    assert captured["exception"] is None
+
+
+@pytest.mark.asyncio
 async def test_handle_message_uses_sanitize_error_message_result(monkeypatch) -> None:
     registry = DummyRegistry(exc=RuntimeError("raw exception"))
     websocket = SimpleNamespace()
@@ -388,3 +419,49 @@ async def test_handle_message_does_not_raise_if_send_error_fails(
     await mh.handle_message(websocket, message, registry, "user_1")
     assert len(warning_calls) == expected_warning_count
     assert len(error_calls) == expected_error_count
+
+
+@pytest.mark.asyncio
+async def test_send_error_with_fallback_logging_uses_warning_for_non_critical_failures(
+    monkeypatch,
+) -> None:
+    warning_calls, _error_calls = _capture_logger_calls(monkeypatch)
+
+    async def failing_send_error(_ws, _msg_id, _error_message):
+        raise RuntimeError("socket already closed")
+
+    monkeypatch.setattr(mh, "send_error", failing_send_error)
+
+    await mh._send_error_with_fallback_logging(
+        websocket=SimpleNamespace(),
+        msg_id="msg_warn",
+        user_id="user_1",
+        message="validation failed",
+        critical=False,
+    )
+
+    assert len(warning_calls) == 1
+    assert "Failed to send %serror response to user %s (msg_id=%s): %s" in warning_calls[0][0][0]
+
+
+@pytest.mark.asyncio
+async def test_send_error_with_fallback_logging_uses_error_for_critical_failures(
+    monkeypatch,
+) -> None:
+    _warning_calls, error_calls = _capture_logger_calls(monkeypatch)
+
+    async def failing_send_error(_ws, _msg_id, _error_message):
+        raise RuntimeError("socket already closed")
+
+    monkeypatch.setattr(mh, "send_error", failing_send_error)
+
+    await mh._send_error_with_fallback_logging(
+        websocket=SimpleNamespace(),
+        msg_id="msg_crit",
+        user_id="user_1",
+        message="internal error",
+        critical=True,
+    )
+
+    assert len(error_calls) == 1
+    assert "Failed to send %serror response to user %s (msg_id=%s): %s" in error_calls[0][0][0]
