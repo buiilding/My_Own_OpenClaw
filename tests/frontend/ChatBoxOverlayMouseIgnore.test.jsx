@@ -142,7 +142,7 @@ describe('ChatBox overlay mouse ignore', () => {
     jest.useRealTimers();
   });
 
-  test('defaults to interactive overlay and requests window resize to match pill', () => {
+  test('defaults to interactive overlay and requests window resize to match pill', async () => {
     jest.useFakeTimers();
     const rafQueue = [];
     global.requestAnimationFrame = (cb) => {
@@ -171,9 +171,10 @@ describe('ChatBox overlay mouse ignore', () => {
     });
     mockGetRoundedFrameSize.mockReturnValue({ width: 200, height: 100 });
 
-    act(() => {
+    await act(async () => {
       rafQueue.splice(0).forEach((cb) => cb());
       jest.advanceTimersByTime(45);
+      await Promise.resolve();
     });
 
     expectInvokeCall(
@@ -183,6 +184,7 @@ describe('ChatBox overlay mouse ignore', () => {
         && payload?.height === 100
         && Number.isFinite(payload?.anchor_bottom),
     );
+    expect(container.querySelector('.chatbox-input-shell-wrap')?.classList.contains('is-layout-pending')).toBe(false);
     jest.useRealTimers();
   });
 

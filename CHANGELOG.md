@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(frontend-chatbox-layout-ready-gate): assert non-dashboard chatbox clears `is-layout-pending` after first successful resize IPC, guarding against startup hidden-stuck regressions while retaining cropped-flash suppression.
 - fix(frontend-chatbox-preview-safe-inset): add extra preview-mode top/side inset inside rounded non-dashboard chat-pill and defer layout-ready reveal until resize queue is drained, preventing top-corner preview clipping and reducing startup transient crop from first in-flight resize.
 - fix(frontend-memory-delete-persistence): wire memory-panel delete to backend for both episodic and semantic entries (`delete-episodic-memory` + `delete-semantic-memory`) so removals persist across window/app reopen; add RPC mapper, sidecar handler/store, and frontend+sidecar regression coverage.
 - fix(frontend-chatbox-preview-content-height): use `chatbox-shell` `scrollHeight` (when larger than rounded frame measure) plus increased preview headroom (`+14px`) for non-dashboard preview-mode resize calculations, eliminating stubborn top clipping when preview content height settles beyond initial rect measurement; add regression coverage for scrollHeight-dominant preview sizing.
