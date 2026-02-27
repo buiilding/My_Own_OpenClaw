@@ -23,6 +23,7 @@ title: "Frontend Renderer Chat Docs Hub"
 - [Chat Common Actions Selector Boundary and Message-Input Send Guard Reference](presentation/chat_common_actions_selector_boundary_and_message_input_send_guard_reference.md)
 - [MessageInput Clipboard Image and Voice Submit Reference](presentation/message_input_clipboard_image_and_voice_submit_reference.md)
 - [Thinking Display Overflow, Message List Class Assembly, and Stream Token Tracking Reference](presentation/thinking_display_overflow_message_list_class_assembly_and_token_count_formatting_reference.md)
+- [Message Action Controls, Source Badge, and Dev-UI Tagging Reference](presentation/message_action_controls_source_badge_and_dev_ui_tagging_reference.md)
 - [Renderer Chat Response-Overlay Presentation Docs Hub](presentation/response_overlay/README.md)
 - [Auto-Resized Response Height ResizeObserver and Clamp Contract Reference](presentation/response_overlay/auto_resized_response_height_resizeobserver_and_clamp_contract_reference.md)
 - [Tool Ghost Cursor Markup and Label A11y Contract Reference](presentation/response_overlay/tool_ghost_cursor_markup_and_label_a11y_contract_reference.md)
