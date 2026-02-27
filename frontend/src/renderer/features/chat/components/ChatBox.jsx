@@ -321,13 +321,18 @@ function ChatBox() {
     event.preventDefault();
   }, []);
   const isLoopActive = LOOP_ACTIVE_PHASES.has(streamPhase) || LOOP_ACTIVE_PHASES.has(overlayPhase);
+  const hasImagePreview = clipboardImages.length > 0;
 
   return (
     <div
-      className={`chatbox-shell-wrap chatbox-input-shell-wrap${isLoopActive ? ' loop-active' : ''}`}
+      className={`chatbox-shell-wrap chatbox-input-shell-wrap${hasImagePreview ? ' with-preview' : ''}${isLoopActive ? ' loop-active' : ''}`}
     >
       <div className="chatbox-shell">
-        <form className="chatbox-pill" onSubmit={handleSubmit} onMouseDown={handlePillMouseDown}>
+        <form
+          className={`chatbox-pill${hasImagePreview ? ' with-preview' : ''}`}
+          onSubmit={handleSubmit}
+          onMouseDown={handlePillMouseDown}
+        >
           <ChatBoxImagePreviewRow
             clipboardImages={clipboardImages}
             onRemoveImage={(id) => {
