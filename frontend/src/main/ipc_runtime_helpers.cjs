@@ -121,6 +121,7 @@ function processBackendMessageData(data, {
   resolveSettingsSync,
   setResponseOverlayPhase,
   getResponseOverlayPhase,
+  onMemoryStoreEvent,
   broadcastToRenderers,
   log,
 }) {
@@ -154,6 +155,13 @@ function processBackendMessageData(data, {
     setResponseOverlayPhase('complete', 'backend');
   } else if (data.type === 'error' && getResponseOverlayPhase() !== 'idle') {
     setResponseOverlayPhase('error', 'backend');
+  }
+  if (data.type === 'memory-store' && typeof onMemoryStoreEvent === 'function') {
+    try {
+      onMemoryStoreEvent(data);
+    } catch (error) {
+      log(`Memory-store side effect failed: ${error.message}`);
+    }
   }
   broadcastToRenderers('from-backend', data);
 }

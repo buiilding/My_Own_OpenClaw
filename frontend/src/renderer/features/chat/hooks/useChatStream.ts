@@ -5,7 +5,7 @@
  */
 
 import { useCallback, useEffect, useMemo } from 'react';
-import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import {
   useChatStore,
   type ChatMessage,
@@ -519,22 +519,6 @@ export function useChatStream(enableTranscript: boolean = true) {
   }, [setTokenCounts, recordTrackingEvent]);
 
   const handleMemoryStore = useCallback((event: MemoryStoreEvent) => {
-    const userQuery = event.payload?.user_query;
-    const assistantResponse = event.payload?.assistant_response;
-    if (!userQuery || !assistantResponse) {
-      return;
-    }
-
-    void IpcBridge.invoke(INVOKE_CHANNELS.STORE_MEMORY, {
-      userQuery,
-      assistantResponse,
-      memoryType: event.payload?.memory_type || 'episodic',
-      userId: event.payload?.user_id || event.user_id,
-      sessionId: event.payload?.session_id || event.session_id || event.conversation_ref,
-    }).catch(() => {
-      // Avoid blocking stream handling when best-effort memory persistence fails.
-    });
-
     recordTrackingEvent('memory-store', event.turn_ref);
   }, [recordTrackingEvent]);
 

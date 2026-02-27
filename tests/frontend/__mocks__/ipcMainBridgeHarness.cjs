@@ -63,6 +63,7 @@ jest.mock('fs', () => ({
 jest.mock('../../../frontend/src/main/local_backend_bridge.cjs', () => ({
   getSystemState: jest.fn(),
   searchMemory: jest.fn(),
+  storeMemory: jest.fn(),
 }));
 
 const { createBridgeSuiteLifecycle } = require('./bridgeSuiteLifecycle.cjs');

@@ -376,6 +376,29 @@ async function sendMemorySearchRequest(payload = {}) {
   );
 }
 
+function mapStoreMemoryPayload(payload = {}) {
+  const source = (
+    payload
+    && typeof payload === 'object'
+    && !Array.isArray(payload)
+  ) ? payload : {};
+
+  return {
+    user_query: source.user_query ?? source.userQuery,
+    assistant_response: source.assistant_response ?? source.assistantResponse,
+    memory_type: source.memory_type ?? source.memoryType,
+    user_id: source.user_id ?? source.userId,
+    session_id: source.session_id ?? source.sessionId,
+  };
+}
+
+async function storeMemory(payload = {}) {
+  return sendRequestOrError(
+    'store_memory',
+    mapStoreMemoryPayload(payload),
+  );
+}
+
 function stopLocalBackend() {
   if (pythonProcess) {
     const processToStop = pythonProcess;
@@ -489,4 +512,5 @@ module.exports = {
   stopLocalBackend,
   getSystemState,
   searchMemory,
+  storeMemory,
 };

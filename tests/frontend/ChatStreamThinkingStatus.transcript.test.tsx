@@ -1,5 +1,4 @@
 import { act } from '@testing-library/react';
-import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
   registerBackendListener,
@@ -199,8 +198,7 @@ describe('useChatStream transcript + event filtering', () => {
     expect(transcriptSpies.updateTranscriptSession).toHaveBeenCalledWith('conv-2', 'user-2');
   });
 
-  test('persists memory-store events via store-memory IPC', async () => {
-    const invokeSpy = jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({ success: true });
+  test('tracks memory-store events without renderer-side persistence side effects', async () => {
     const { emitBackendEvent } = registerBackendListener();
 
     await act(async () => {
@@ -219,13 +217,8 @@ describe('useChatStream transcript + event filtering', () => {
       await Promise.resolve();
     });
 
-    expect(invokeSpy).toHaveBeenCalledWith(INVOKE_CHANNELS.STORE_MEMORY, {
-      userQuery: 'hi',
-      assistantResponse: 'hello',
-      memoryType: 'episodic',
-      userId: 'user-9',
-      sessionId: 'session-9',
-    });
+    const tracking = useChatStore.getState().streamTracking;
+    expect(tracking.lastEventType).toBe('memory-store');
   });
 
   test('ignores stale events when conversation_ref does not match active conversation', () => {
@@ -254,7 +247,6 @@ describe('useChatStream transcript + event filtering', () => {
 
   test('ignores stale memory-store events when payload session_id does not match active conversation', async () => {
     setMockActiveConversationRef('conv-active');
-    const invokeSpy = jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({ success: true });
     const { emitBackendEvent } = registerBackendListener();
     useChatStore.setState({
       streamTracking: {
@@ -278,7 +270,6 @@ describe('useChatStream transcript + event filtering', () => {
       await Promise.resolve();
     });
 
-    expect(invokeSpy).not.toHaveBeenCalled();
     expect(transcriptSpies.updateTranscriptSession).not.toHaveBeenCalled();
   });
 

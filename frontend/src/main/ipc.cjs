@@ -2,7 +2,7 @@ const { ipcMain } = require('electron');
 const WebSocket = require('ws');
 const { v4: uuidv4 } = require('uuid');
 const os = require('os');
-const { getSystemState, searchMemory } = require('./local_backend_bridge.cjs');
+const { getSystemState, searchMemory, storeMemory } = require('./local_backend_bridge.cjs');
 const { resolveBackendEndpoints } = require('./backend_endpoints.cjs');
 const {
   loadFrontendConfigFromDisk,
@@ -263,6 +263,21 @@ function connect() {
         },
         setResponseOverlayPhase,
         getResponseOverlayPhase: () => responseOverlayPhase,
+        onMemoryStoreEvent: (eventData) => {
+          void storeMemory({
+            user_query: eventData?.payload?.user_query,
+            assistant_response: eventData?.payload?.assistant_response,
+            memory_type: eventData?.payload?.memory_type || 'episodic',
+            user_id: eventData?.payload?.user_id || eventData?.user_id,
+            session_id: (
+              eventData?.payload?.session_id
+              || eventData?.session_id
+              || eventData?.conversation_ref
+            ),
+          }).catch((error) => {
+            log(`Main-process memory-store persistence failed: ${error.message}`);
+          });
+        },
         broadcastToRenderers,
         log,
       });

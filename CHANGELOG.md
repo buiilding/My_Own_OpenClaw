@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-chatbox-preview-content-height): use `chatbox-shell` `scrollHeight` (when larger than rounded frame measure) plus increased preview headroom (`+14px`) for non-dashboard preview-mode resize calculations, eliminating stubborn top clipping when preview content height settles beyond initial rect measurement; add regression coverage for scrollHeight-dominant preview sizing.
+- fix(memory-store-dedup-architecture): move `memory-store` persistence into main-process websocket handling (single write per backend event) and remove renderer-side store side effects so multi-window `from-backend` fanout no longer multiplies episodic interaction rows.
 - fix(frontend-chatbox-layout-ready-gate): keep non-dashboard chat-pill hidden until first overlay-size sync is applied, then clear pending class via refs (no async state churn), eliminating startup cropped flash while avoiding test/act timing noise.
 - feat(frontend-dashboard-awaiting-dot): add dashboard chat white-dot assistant placeholder immediately after user send while stream phase is `awaiting-first-chunk`, and remove it once streaming starts; add MessageList + ChatInterface wiring regressions.
 - fix(frontend-chatbox-preview-immediate-sync): make non-dashboard chat-pill resize sync immediate on startup/mode-switch and remove debounce while in preview mode, so image-preview expansion cannot sit in a transient undersized (top-cropped) state before delayed resize catches up.
