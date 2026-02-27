@@ -177,7 +177,8 @@ Surface preparation contract (`toolRunnerSurface.ts`):
 
 - classifies tool UI mode as `none | screenshot | interactive`
 - interactive mode covers direct computer-control primitives only (`mouse_control`, `keyboard_control`, `scroll_control`, `click`, `type`, `scroll`)
-- screenshot mode covers capture-only computer-use actions (`screenshot`, `switch_tab`, `wait`) plus browser dashboard-to-chat-pill handoff actions (`action=click|type|scroll|screenshot|switch|switch_tab`) without external focus verification
+- screenshot mode covers capture-only computer-use actions (`screenshot`, `switch_tab`, `wait`)
+- browser tool actions stay in `none` mode and do not trigger dashboard/chat-pill surface transitions
 - every non-`none` preparation claims a surface token; chat-pill restoration runs only after the last outstanding token is released (prevents early restore when tool executions overlap)
 
 Overlay/focus runtime behavior:
