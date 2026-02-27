@@ -26,21 +26,27 @@ export const ApiClient = {
    * @param {string} conversationRef
    * @param {string|null} screenshotRef - Optional artifact reference for screenshot data
    * @param {string|null} screenshotUrl - Optional artifact URL (kept for caller compatibility; not sent)
+   * @param {string[]|null} screenshotRefs - Optional artifact references for multi-image payloads
    */
   sendQuery: async (
     text: string,
     conversationRef: string,
     screenshotRef: string | null = null,
-    screenshotUrl: string | null = null
+    screenshotUrl: string | null = null,
+    screenshotRefs: string[] | null = null,
   ): Promise<void> => {
     void screenshotUrl;
+    const normalizedScreenshotRefs = Array.isArray(screenshotRefs)
+      ? screenshotRefs.filter((ref): ref is string => typeof ref === 'string' && ref.length > 0)
+      : [];
     // System state and memories are automatically added by ipc.cjs
     IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
       type: 'query',
       payload: {
         text,
         conversation_ref: conversationRef,
-        screenshot_ref: screenshotRef  // Optional screenshot reference
+        screenshot_ref: screenshotRef,  // Optional screenshot reference
+        screenshot_refs: normalizedScreenshotRefs.length > 0 ? normalizedScreenshotRefs : null,
       }
     });
   },

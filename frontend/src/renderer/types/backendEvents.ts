@@ -105,6 +105,7 @@ export type LocalUserMessageEvent = BackendEventBase<'local-user-message', {
   text?: string;
   screenshot?: string | null;
   screenshot_ref?: string | null;
+  screenshot_refs?: string[] | null;
   screenshot_url?: string | null;
   timestamp?: string;
   session_id?: string | null;

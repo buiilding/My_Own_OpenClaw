@@ -3,7 +3,7 @@ function normalizeMessageForSend(inputValue) {
   return trimmed.length > 0 ? trimmed : null;
 }
 
-function hasClipboardImage(clipboardImage) {
+function isClipboardImage(clipboardImage) {
   return Boolean(
     clipboardImage
     && typeof clipboardImage === 'object'
@@ -12,7 +12,14 @@ function hasClipboardImage(clipboardImage) {
   );
 }
 
-export function buildOutgoingMessage(inputValue, isSending, clipboardImage = null) {
+function normalizeClipboardImages(clipboardImages) {
+  if (!Array.isArray(clipboardImages)) {
+    return [];
+  }
+  return clipboardImages.filter((image) => isClipboardImage(image));
+}
+
+export function buildOutgoingMessage(inputValue, isSending, clipboardImages = []) {
   if (isSending) {
     return null;
   }
@@ -22,12 +29,13 @@ export function buildOutgoingMessage(inputValue, isSending, clipboardImage = nul
     return null;
   }
 
-  if (!hasClipboardImage(clipboardImage)) {
+  const normalizedClipboardImages = normalizeClipboardImages(clipboardImages);
+  if (normalizedClipboardImages.length === 0) {
     return normalizedText;
   }
 
   return {
     text: normalizedText,
-    clipboardImage,
+    clipboardImages: normalizedClipboardImages,
   };
 }

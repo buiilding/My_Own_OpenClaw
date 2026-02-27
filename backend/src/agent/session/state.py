@@ -7,7 +7,7 @@ context window overflow.
 
 import copy
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from backend.src.agent.session.message_builders import (
     build_assistant_message,
@@ -60,7 +60,7 @@ class ConversationHistory:
     def add_user_message(
         self,
         content: str,
-        image_data: Optional[str] = None,
+        image_data: Optional[Union[str, List[str]]] = None,
         episodic_memory: Optional[List[str]] = None,
         semantic_memory: Optional[List[str]] = None,
         user_query_raw: Optional[str] = None,
@@ -71,7 +71,7 @@ class ConversationHistory:
 
         Args:
             content: Message content (context + memory + query)
-            image_data: Optional base64 image data
+            image_data: Optional base64 image payload(s)
             episodic_memory: Optional list of episodic memory strings (structured data)
             semantic_memory: Optional list of semantic memory strings (structured data)
             user_query_raw: Optional raw user query text (structured data)
@@ -88,7 +88,11 @@ class ConversationHistory:
         self._invalidate_token_cache()
         self._prune_if_needed()
 
-    def add_tool_output(self, message: str, image_data: Optional[str] = None) -> None:
+    def add_tool_output(
+        self,
+        message: str,
+        image_data: Optional[Union[str, List[str]]] = None,
+    ) -> None:
         """
         Add a tool execution result to the conversation history.
         These messages do NOT trigger memory retrieval.
@@ -103,7 +107,7 @@ class ConversationHistory:
 
         Args:
             message: Tool output message text (pre-formatted by frontend with os_state XML)
-            image_data: Optional base64 image data (for screenshots). Automatically captured
+            image_data: Optional base64 image payload(s) for screenshots. Automatically captured
                        by the frontend after tool execution. Included in history
                        and sent to LLM as multimodal content.
         """

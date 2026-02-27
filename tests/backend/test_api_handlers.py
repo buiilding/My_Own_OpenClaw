@@ -571,6 +571,59 @@ async def test_query_handler_loads_screenshot_from_artifact_ref(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_query_handler_loads_multiple_screenshots_from_artifact_refs(monkeypatch):
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    session_manager.session = DummyCaptureAgent()
+    session_manager.config = AppConfig()
+    handler = QueryMessageHandler(
+        session_manager, DummyTTSManager(), ResponseFormatter()
+    )
+
+    class DummyPipeline:
+        def __init__(self, *_args, **_kwargs):
+            return None
+
+        async def process(self, *_args, **_kwargs):
+            return None
+
+        async def wait_for_pending_tts(self):
+            return None
+
+    class DummyStore:
+        def load_base64(self, artifact_id: str) -> str:
+            return f"artifact:{artifact_id}"
+
+    monkeypatch.setattr("backend.src.api.handlers.query.StreamPipeline", DummyPipeline)
+    monkeypatch.setattr(
+        query_handler_module.ArtifactStore,
+        "from_config",
+        classmethod(lambda _cls, _cfg: DummyStore()),
+    )
+
+    message = QueryMessage(
+        id="msg_artifact_refs_1",
+        type="query",
+        user_id="user_1",
+        payload={
+            "text": "use artifact screenshots",
+            "conversation_ref": "conv_test",
+            "content": "<user_query>use artifact screenshots</user_query>",
+            "screenshot_refs": ["shot_1.png", "shot_2.png"],
+        },
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert len(session_manager.session.calls) == 1
+    assert session_manager.session.calls[0]["image_data"] == [
+        "artifact:shot_1.png",
+        "artifact:shot_2.png",
+    ]
+    assert session_manager.session.calls[0]["conversation_ref"] == "conv_test"
+
+
+@pytest.mark.asyncio
 async def test_query_handler_continues_when_artifact_load_fails(monkeypatch):
     websocket = FakeWebSocket()
     session_manager = DummySessionManager()

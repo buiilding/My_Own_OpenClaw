@@ -24,7 +24,7 @@ title: "MessageInput Clipboard Image and Voice Submit Reference"
 Component-owned state:
 
 - UI menus: `plusMenuOpen`, `thinkingMenuOpen`, `thinkingVisible`, `thinkingMode`
-- clipboard preview: `clipboardImage`
+- clipboard previews: `clipboardImages[]`
 
 Hook-owned text/transcription state (`useTranscription`):
 
@@ -47,11 +47,11 @@ All submit paths call `submitMessageValue(...)`.
 
 `submitMessageValue(...)` behavior:
 
-1. build outgoing payload through `buildOutgoingMessage(input, isSending, clipboardImage)`.
+1. build outgoing payload through `buildOutgoingMessage(input, isSending, clipboardImages)`.
 2. if payload is null, abort.
 3. call `onSendMessage(payload)`.
 4. clear input/transcription.
-5. clear clipboard preview.
+5. clear all clipboard previews.
 6. reset textarea height to auto baseline.
 
 ## Clipboard Image Paste Flow
@@ -60,12 +60,12 @@ Paste handler logic:
 
 1. inspect `clipboardData.items`.
 2. if no `image/*` item -> delegate to `handlePaste`.
-3. if image item exists:
+3. if one or more image items exist:
  - prevent default paste behavior
- - read file as data URL (`FileReader`)
- - parse data URL into structured payload
+ - read each file as data URL (`FileReader`)
+ - parse each data URL into structured payload
  - normalize content type + extension
- - store preview payload in state
+ - append new preview payload(s) into `clipboardImages[]` (do not replace previous pasted images)
 
 Parsed payload shape:
 
@@ -77,7 +77,8 @@ Parsed payload shape:
 Preview UI:
 
 - thumbnail image row above composer textarea
-- explicit remove button clears `clipboardImage`
+- multiple cards render when multiple images are pasted
+- per-card remove button clears one image from `clipboardImages[]`
 
 ## Voice Mode Handoff
 
@@ -131,7 +132,7 @@ These menus do not alter outbound query payload today; they are presentation con
 - `isSending` submit block + stop-button rendering.
 - voice utterance-end submit with latest transcription value.
 - pasted-image preview render.
-- pasted-image payload shape passed to `onSendMessage`.
+- pasted-image payload shape passed to `onSendMessage` as `clipboardImages[]`.
 - remove-preview behavior before send.
 
 ## Drift Hotspots

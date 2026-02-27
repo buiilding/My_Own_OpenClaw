@@ -22,6 +22,12 @@ export interface ChatMessage {
   screenshotRef?: string | null;
   screenshotUrl?: string | null;
   screenshotContentType?: string | null;
+  screenshots?: Array<{
+    screenshot?: string | null;
+    screenshotRef?: string | null;
+    screenshotUrl?: string | null;
+    screenshotContentType?: string | null;
+  }> | null;
   modelId?: string | null;
   modelProvider?: string | null;
   toolMetadata?: Record<string, unknown> | null;

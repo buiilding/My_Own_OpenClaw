@@ -40,16 +40,17 @@ Surface consequences:
 `sendMessage(payload)` accepts:
 
 - plain string
-- object `{ text, clipboardImage? }`
+- object `{ text, clipboardImages?, clipboardImage? }`
 
 Normalized shape:
 
 - `text`: required
-- `clipboardImage`: accepted only if `base64` non-empty string
+- `clipboardImages[]`: accepted only when each image has non-empty `base64`
+- legacy `clipboardImage` is still accepted and normalized into `clipboardImages[]`
 
 Invalid object payloads are ignored (no send side effect).
 
-`clipboardImage` metadata fields:
+`clipboardImages[]` metadata fields:
 
 - `base64`
 - optional `contentType`
@@ -63,15 +64,15 @@ Invalid object payloads are ignored (no send side effect).
 2. detect clipboard `image/*` item
 3. read file as data URL
 4. parse to `{ base64, contentType, filename, previewUrl }`
-5. pass as `clipboardImage` with trimmed text on submit
+5. pass as `clipboardImages[]` with trimmed text on submit
 
 When no pasted image exists:
 
 - sends plain trimmed string.
 
-When pasted image exists:
+When pasted image(s) exist:
 
-- sends object payload so sender can skip screenshot capture and upload clipboard image directly.
+- sends object payload so sender can skip screenshot capture and upload each clipboard image directly.
 
 ## Send Pipeline Order
 
@@ -84,26 +85,28 @@ When pasted image exists:
 5. set `isSending=true`, clear thinking status.
 6. optional overlay return-to-chatbox invoke.
 7. resolve screenshot source:
-  - clipboard image base64 first
+  - clipboard image base64 list first
   - else OS screenshot capture path (if enabled for surface/config)
-8. upload artifact when screenshot exists.
-9. update optimistic message with `screenshotRef/screenshotUrl`.
-10. write transcript user row (`recordUserMessage`) with conversation ref + screenshot ref.
-11. send backend query (`ApiClient.sendQuery`).
+8. upload artifact(s) when screenshot(s) exist.
+9. update optimistic message with `screenshotRef/screenshotUrl` (first uploaded ref) plus `screenshots[]`.
+10. write transcript user row (`recordUserMessage`) with conversation ref + first screenshot ref.
+11. send backend query (`ApiClient.sendQuery`) with:
+  - `screenshot_ref` (first ref, compatibility path)
+  - `screenshot_refs` (all uploaded refs for multi-image queries)
 
 ## Screenshot Source and Fallback Chain
 
 Priority order:
 
-1. clipboard image payload from `MessageInput`
+1. clipboard image payload(s) from `MessageInput`
 2. `extractOSstate(...)` capture path
 3. no screenshot
 
 Clipboard path specifics:
 
-- `screenshot` field in optimistic message stores raw base64 string.
-- `screenshotContentType` in optimistic message stores normalized MIME type.
-- upload filename prefers clipboard-provided filename.
+- `screenshot` + `screenshotContentType` still mirror the first image for compatibility.
+- `screenshots[]` stores all pasted image payloads (inline + uploaded refs).
+- upload filename prefers per-image clipboard-provided filename.
 
 Capture path specifics:
 
@@ -116,11 +119,11 @@ Optimistic user row includes:
 
 - `text`
 - `timestamp`
-- optional `screenshot` (base64 for clipboard path)
-- optional `screenshotContentType`
+- optional first-image `screenshot` and `screenshotContentType`
+- optional `screenshots[]` for multi-image attachments
 - later patched `screenshotRef` and `screenshotUrl` after upload
 
-Final backend query payload only sends screenshot ref/url, not raw screenshot bytes.
+Final backend query payload sends `screenshot_ref` + optional `screenshot_refs` (artifact ids only), not raw screenshot bytes.
 
 ## Failure and Recovery Semantics
 

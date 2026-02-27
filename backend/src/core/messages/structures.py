@@ -28,7 +28,7 @@ class StoredMessage:
     content: str  # Rendered content for backward compatibility and LLM consumption
     message_type: MessageType
     timestamp: float = field(default_factory=time.time)
-    image_data: Optional[str] = None
+    image_data: Optional[Union[str, List[str]]] = None
     # Structured components for user query messages (None for other message types)
     user_query_raw: Optional[str] = None
     episodic_memory: Optional[List[str]] = None
@@ -62,18 +62,10 @@ class StoredMessage:
             return assistant_message
 
         if self.role == MessageRole.TOOL:
-            if self.image_data:
-                if not self.image_data.startswith("data:image/"):
-                    image_url = f"data:image/png;base64,{self.image_data}"
-                else:
-                    image_url = self.image_data
-
-                tool_content: Union[str, MultimodalContent] = [
-                    {"type": ContentType.TEXT.value, "text": self.content},
-                    {"type": ContentType.IMAGE_URL.value, "image_url": {"url": image_url}},
-                ]
-            else:
-                tool_content = self.content
+            tool_content: Union[str, MultimodalContent] = self._build_multimodal_content(
+                self.content,
+                self.image_data,
+            )
 
             tool_message: Dict[str, Any] = {
                 "role": self.role.value,
@@ -84,28 +76,51 @@ class StoredMessage:
                 tool_message["name"] = self.tool_name
             return tool_message
 
-        if self.image_data:
-            # Convert to multimodal format - screenshots are included here
-            if not self.image_data.startswith("data:image/"):
-                image_url = f"data:image/png;base64,{self.image_data}"
-            else:
-                image_url = self.image_data
+        message_content = self._build_multimodal_content(self.content, self.image_data)
+        return {
+            "role": self.role.value,
+            "content": message_content,
+        }
 
-            multimodal_content: MultimodalContent = [
-                {"type": ContentType.TEXT.value, "text": self.content},
-                {"type": ContentType.IMAGE_URL.value, "image_url": {"url": image_url}}
+    @staticmethod
+    def _normalized_image_data(image_data: Optional[Union[str, List[str]]]) -> List[str]:
+        """Return validated image payload list from a single or multi-image field."""
+        if isinstance(image_data, str):
+            return [image_data] if image_data else []
+        if isinstance(image_data, list):
+            return [
+                image_item
+                for image_item in image_data
+                if isinstance(image_item, str) and image_item
             ]
+        return []
 
-            return {
-                "role": self.role.value,
-                "content": multimodal_content
-            }
-        else:
-            # Simple text message
-            return {
-                "role": self.role.value,
-                "content": self.content
-            }
+    @classmethod
+    def _build_multimodal_content(
+        cls,
+        text: str,
+        image_data: Optional[Union[str, List[str]]],
+    ) -> Union[str, MultimodalContent]:
+        """
+        Convert text + optional image payload(s) into LLM multimodal content.
+        """
+        normalized_image_data = cls._normalized_image_data(image_data)
+        if not normalized_image_data:
+            return text
+
+        multimodal_content: MultimodalContent = [
+            {"type": ContentType.TEXT.value, "text": text},
+        ]
+        for image_item in normalized_image_data:
+            image_url = (
+                image_item
+                if image_item.startswith("data:image/")
+                else f"data:image/png;base64,{image_item}"
+            )
+            multimodal_content.append(
+                {"type": ContentType.IMAGE_URL.value, "image_url": {"url": image_url}}
+            )
+        return multimodal_content
 
     @staticmethod
     def _normalize_tool_calls(

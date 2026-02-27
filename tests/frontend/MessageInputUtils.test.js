@@ -23,4 +23,16 @@ describe('messageInput utils', () => {
   test('buildOutgoingMessage returns null for whitespace even when sending is allowed', () => {
     expect(buildOutgoingMessage('   ', false)).toBeNull();
   });
+
+  test('buildOutgoingMessage includes normalized clipboardImages payload', () => {
+    const result = buildOutgoingMessage('  hello  ', false, [
+      { base64: 'abc', contentType: 'image/png' },
+      { base64: '' },
+      null,
+    ]);
+    expect(result).toEqual({
+      text: 'hello',
+      clipboardImages: [{ base64: 'abc', contentType: 'image/png' }],
+    });
+  });
 });
