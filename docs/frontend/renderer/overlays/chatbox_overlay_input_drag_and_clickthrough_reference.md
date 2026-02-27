@@ -50,9 +50,15 @@ Resulting behavior in `useChatMessageSender`:
 Send sequence in chatbox component:
 
 1. trim input
-2. bail when empty or already sending
+2. bail when empty or already sending/active stream
 3. clear input optimistically
 4. call async `sendMessage(trimmed)`
+
+Right-side action button parity with dashboard composer:
+
+- send button (`ArrowUp`) is shown when composer is idle
+- stop button (`Square`) replaces send while query is active (`isSending || active stream phase`)
+- stop click sends backend `stop-query` and updates stream tracking to `complete`
 
 Dashboard handoff affordance:
 

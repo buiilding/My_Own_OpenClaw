@@ -19,9 +19,12 @@ const mockUseVoiceMode = jest.fn(() => ({
 }));
 const mockUpdateConfig = jest.fn();
 const mockCompactHistory = jest.fn();
+const mockStopQuery = jest.fn();
 const mockIsDevUiEnabled = jest.fn(() => false);
 const mockSetThinkingStatus = jest.fn();
 const mockSetThinkingSourceEventType = jest.fn();
+const mockSetIsSending = jest.fn();
+const mockUpdateStreamTracking = jest.fn();
 
 const setWindowScreenPosition = (x, y) => {
   Object.defineProperty(window, 'screenX', {
@@ -71,6 +74,8 @@ const mockChatState = {
   thinkingStatus: null,
   setThinkingStatus: (...args) => mockSetThinkingStatus(...args),
   setThinkingSourceEventType: (...args) => mockSetThinkingSourceEventType(...args),
+  setIsSending: (...args) => mockSetIsSending(...args),
+  updateStreamTracking: (...args) => mockUpdateStreamTracking(...args),
   streamTracking: { phase: 'idle' },
 };
 
@@ -101,6 +106,7 @@ jest.mock('../../frontend/src/renderer/features/chat/hooks/useChatMessageSender'
 jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
   ApiClient: {
     compactHistory: (...args) => mockCompactHistory(...args),
+    stopQuery: (...args) => mockStopQuery(...args),
   },
 }));
 
@@ -122,8 +128,11 @@ describe('ChatBox overlay mouse ignore', () => {
     mockUpdateConfig.mockClear();
     mockSendMessage.mockClear();
     mockCompactHistory.mockClear();
+    mockStopQuery.mockClear();
     mockSetThinkingStatus.mockClear();
     mockSetThinkingSourceEventType.mockClear();
+    mockSetIsSending.mockClear();
+    mockUpdateStreamTracking.mockClear();
     mockIsDevUiEnabled.mockReset();
     mockIsDevUiEnabled.mockReturnValue(false);
     mockExtractOSstate.mockReset();
@@ -351,6 +360,34 @@ describe('ChatBox overlay mouse ignore', () => {
 
     expect(mockSendMessage).toHaveBeenCalledWith('hello world');
     expect(input).toHaveValue('');
+  });
+
+  test('replaces send button with stop button during active stream and dispatches stop-query', () => {
+    mockChatState.streamTracking.phase = 'streaming';
+    render(<ChatBox />);
+
+    expect(screen.queryByRole('button', { name: 'Send message' })).not.toBeInTheDocument();
+    const stopButton = screen.getByRole('button', { name: 'Stop response' });
+    fireEvent.click(stopButton);
+
+    expect(mockStopQuery).toHaveBeenCalledTimes(1);
+    expect(mockSetIsSending).toHaveBeenCalledWith(false);
+    expect(mockSetThinkingStatus).toHaveBeenCalledWith(null);
+    expect(mockSetThinkingSourceEventType).toHaveBeenCalledWith(null);
+    expect(mockUpdateStreamTracking).toHaveBeenCalledTimes(1);
+
+    const streamUpdater = mockUpdateStreamTracking.mock.calls[0][0];
+    expect(typeof streamUpdater).toBe('function');
+    const nextState = streamUpdater({
+      phase: 'streaming',
+      completedAt: null,
+      lastEventAt: null,
+      lastEventType: null,
+    });
+    expect(nextState.phase).toBe('complete');
+    expect(nextState.lastEventType).toBe('stop-query');
+    expect(typeof nextState.completedAt).toBe('string');
+    expect(typeof nextState.lastEventAt).toBe('string');
   });
 
   test('does not start wakeword STT voice mode when setting is disabled', () => {
