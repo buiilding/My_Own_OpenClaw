@@ -13,6 +13,7 @@ Includes the last 300 commits on `main`.
 - fix(sidecar-memory-service): persist `store` interactions with `record_kind=\"interaction\"` so standalone memory-service writes remain consistent with summarizer interaction-row sourcing.
 - fix(backend-memory-query-parse): resolve raw user query from the last `<user_query>` block in enriched content to avoid stale first-match capture when earlier snippets contain the same tag.
 - test(backend-memory-formatter): add explicit contract coverage for `MemoryStoreEventFormatter` skip paths when `user_id` is missing or `default_user`.
+- test(backend-memory-formatter): assert `MemoryStoreEventFormatter` trims accepted `user_query`/`assistant_response` payload values before websocket emission.
 - refactor(sidecar-memory-watermark): remove unused `increment_pending_count` helpers from `WatermarkStateStore` and `LocalMemoryStore`, and align sidecar watermark/docs/tests with DB-count-driven summarizer gating.
 - test(sidecar-memory): remove stale transcript pending-counter failure path from `test_local_backend.py` now that transcript writes no longer mutate summarizer watermark counters.
 - fix(backend-memory-formatter-guard): reject `memory-store` websocket payloads when `user_query` or `assistant_response` is blank, trim accepted values, and add contract coverage for formatter skip behavior.
