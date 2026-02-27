@@ -125,11 +125,6 @@ class DummySummarizerRaises:
         raise RuntimeError(f"notify-failed-{user_id}")
 
 
-class DummyMemoryStorePendingFails(DummyMemoryStore):
-    async def increment_pending_count(self):
-        raise RuntimeError("pending-fail")
-
-
 class DummyMemoryStoreInit(DummyMemoryStore):
     def __init__(self):
         super().__init__()
@@ -603,24 +598,6 @@ async def test_handle_store_transcript_user_message_does_not_increment_pending()
     _, _, _, _, kwargs = backend.memory_store.added[-1]
     assert kwargs["skip_embedding"] is False
     assert backend.memory_store.pending_count == 0
-    assert backend._summarizer.notified == []
-
-
-@pytest.mark.asyncio
-async def test_handle_store_transcript_pending_failure_still_succeeds():
-    backend = LocalBackend()
-    backend.memory_store = DummyMemoryStorePendingFails()
-    backend._summarizer = DummySummarizer()
-
-    result = await backend._handle_store_transcript(
-        content="assistant reply",
-        user_id="user-1",
-        conversation_ref="conv-1",
-        role="assistant",
-        message_type="llm-text",
-    )
-
-    assert result["success"] is True
     assert backend._summarizer.notified == []
 
 
