@@ -90,7 +90,7 @@ Listener source:
 Pre-routing guards:
 
 - event shape validated by `isBackendEvent`
-- event filtered by active `conversation_ref` mismatch guard (`chatStreamConversationGate`)
+- event filtered by active conversation mismatch guard (`chatStreamConversationGate`), including `memory-store` fallback routing via payload/session `session_id` when `conversation_ref` is absent
 
 Handler map (`BackendEventType` -> behavior):
 
