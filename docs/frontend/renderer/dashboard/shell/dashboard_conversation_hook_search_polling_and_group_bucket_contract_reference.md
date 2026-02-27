@@ -17,6 +17,7 @@ title: "Dashboard Conversation Hook Search, Polling, and Group Bucket Contract R
 - `frontend/src/renderer/features/dashboard/components/SearchChatsModal.jsx`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+- `frontend/src/renderer/infrastructure/transcript/conversationTranscriptLoader.js`
 - `frontend/src/renderer/infrastructure/api/client.ts`
 - `tests/frontend/ConversationGroups.test.js`
 - `tests/frontend/ChatGptDashboardShell.test.jsx`
@@ -91,7 +92,7 @@ When `includeSearchMetadata=true`, adds:
 
 `handleOpenConversation(conversation)`:
 
-1. invokes `GET_CONVERSATION` (`limit: 1000`, record kind fallback `transcript`)
+1. loads full transcript rows through `loadConversationTranscriptMemories(...)` (paginated `GET_CONVERSATION` calls with `afterMessageIndex` cursor)
 2. parses rows with `parseMemoriesToMessages(...)`
 3. sends backend rehydrate (`ApiClient.sendRehydrateConversation`)
 4. updates transcript session and active conversation ref

@@ -12,6 +12,7 @@ title: "Transcript Session and Rehydrate Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+- `frontend/src/renderer/infrastructure/transcript/conversationTranscriptLoader.js`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoStorage.ts`
 - `frontend/src/renderer/infrastructure/transcript/pendingUserQueue.ts`
@@ -56,6 +57,10 @@ Session info is persisted/emitted only when changed:
 - dispatches browser event `transcript-session-update`
 
 Dashboard consumers subscribe via `useSyncExternalStore` (`useTranscriptSessionInfo`) for stable snapshot behavior.
+
+Transcript conversation pagination helper:
+
+- `loadConversationTranscriptMemories(...)` centralizes paginated `GET_CONVERSATION` fetch with `afterMessageIndex` cursor progression, used by dashboard open + manual compaction rehydrate flows.
 
 ## Transcript Write API Surface
 
@@ -129,7 +134,7 @@ Flush behavior (`flushPendingMessages`):
 `ChatGptDashboardShell` conversation-open path:
 
 1. list conversations (`list-conversations`, transcript record kind)
-2. get selected conversation (`get-conversation`)
+2. load selected conversation transcript rows via `loadConversationTranscriptMemories(...)` (cursor-paginated `get-conversation`)
 3. parse rows to chat messages (`parseMemoriesToMessages`)
 4. send backend rehydrate payload (`ApiClient.sendRehydrateConversation`)
 5. set active transcript conversation/session info
