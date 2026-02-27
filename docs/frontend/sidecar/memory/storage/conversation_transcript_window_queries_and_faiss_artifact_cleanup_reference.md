@@ -44,6 +44,8 @@ Runtime split:
 - `conversation_window_runtime.get_next_message_index_for_conversation(...)` owns next-index SQL for transcript windows.
 - `conversation_window_runtime.get_episodic_memories_for_conversation(...)` owns transcript window fetch + optional `after_message_index` cursor behavior.
 - `conversation_window_runtime.get_unsemanticized_conversation_windows(...)` and `get_unsemanticized_episodic_memories_by_conversation(...)` own interaction-window selection for summarizer inputs.
+- `conversation_window_runtime.get_unsemanticized_episodic_memories(...)`, `mark_episodic_memories_semanticized(...)`, and `get_unprocessed_memories_after_id(...)` own semanticization-batch source selection/update and watermark-cursor filtering.
+- `conversation_window_runtime.format_transcript_rows(...)` owns normalized transcript/interactions row payload shaping with metadata fallback semantics.
 - `LocalMemoryStore` keeps wrapper methods plus shared `_conversation_where_clause(...)` compatibility facade.
 
 ## Conversation Listing Semantics
@@ -154,6 +156,7 @@ Goal:
 - transcript next-index increment behavior
 - transcript conversation fetch cursor + metadata parsing behavior
 - unsemanticized window ordering and by-conversation formatting callback behavior
+- semanticization mark + watermark-cursor filtering (`last_id` existing vs missing) behavior
 
 Summarizer tests additionally validate transcript/tool filtering and pending watermark behavior built on these storage queries.
 

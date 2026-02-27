@@ -35,13 +35,23 @@ from memory.conversation_title_runtime import generate_conversation_title_and_pe
 from memory.conversation_title_runtime import maybe_generate_conversation_title
 from memory.conversation_title_runtime import run_conversation_title_generation
 from memory.conversation_window_runtime import conversation_where_clause
+from memory.conversation_window_runtime import format_transcript_rows
 from memory.conversation_window_runtime import get_episodic_memories_for_conversation
 from memory.conversation_window_runtime import get_next_message_index_for_conversation
+from memory.conversation_window_runtime import (
+    get_unprocessed_memories_after_id as fetch_unprocessed_memories_after_id,
+)
 from memory.conversation_window_runtime import (
     get_unsemanticized_conversation_windows as fetch_unsemanticized_conversation_windows,
 )
 from memory.conversation_window_runtime import (
+    get_unsemanticized_episodic_memories as fetch_unsemanticized_episodic_memories,
+)
+from memory.conversation_window_runtime import (
     get_unsemanticized_episodic_memories_by_conversation as fetch_unsemanticized_episodic_by_conversation,
+)
+from memory.conversation_window_runtime import (
+    mark_episodic_memories_semanticized as mark_semanticized_memories_runtime,
 )
 from memory.faiss_index import (
     read_index_safe,
@@ -1795,22 +1805,12 @@ class LocalMemoryStore:
         Returns:
             List of memory dictionaries with 'id', 'content', 'timestamp', 'metadata'
         """
-        async with aiosqlite.connect(self.episodic_db_path) as conn:
-            conn.row_factory = aiosqlite.Row
-            cursor = await conn.cursor()
-            await cursor.execute(
-                """
-                SELECT id, content, timestamp, metadata, record_kind, role, message_type, tool_name
-                FROM memories
-                WHERE user_id = ? AND is_semanticized = 0
-                  AND record_kind = 'interaction'
-                ORDER BY timestamp ASC
-                LIMIT ?
-            """,
-                (user_id, limit),
-            )
-            rows = await cursor.fetchall()
-            return self._format_transcript_rows(rows, include_conversation_id=False)
+        return await fetch_unsemanticized_episodic_memories(
+            episodic_db_path=self.episodic_db_path,
+            user_id=user_id,
+            limit=limit,
+            format_transcript_rows=self._format_transcript_rows,
+        )
     
     async def mark_episodic_memories_semanticized(
         self, memory_ids: List[str]
@@ -1821,22 +1821,11 @@ class LocalMemoryStore:
         Args:
             memory_ids: List of memory IDs to mark as processed
         """
-        if not memory_ids:
-            return
-            
-        async with aiosqlite.connect(self.episodic_db_path) as conn:
-            cursor = await conn.cursor()
-            placeholders = ",".join(["?"] * len(memory_ids))
-            await cursor.execute(
-                f"""
-                UPDATE memories
-                SET is_semanticized = 1
-                WHERE id IN ({placeholders})
-            """,
-                memory_ids,
-            )
-            await conn.commit()
-            logger.debug(f"Marked {len(memory_ids)} episodic memories as semanticized")
+        await mark_semanticized_memories_runtime(
+            episodic_db_path=self.episodic_db_path,
+            memory_ids=memory_ids,
+            log_debug=logger.debug,
+        )
     
     async def get_watermark(self) -> Dict[str, Any]:
         """
@@ -1873,46 +1862,13 @@ class LocalMemoryStore:
         Returns:
             List of memory dictionaries with 'id', 'content', 'timestamp', 'metadata', 'conversation_id'
         """
-        async with aiosqlite.connect(self.episodic_db_path) as conn:
-            conn.row_factory = aiosqlite.Row
-            cursor = await conn.cursor()
-            await cursor.execute(
-                """
-                WITH watermark AS (
-                    SELECT timestamp
-                    FROM memories
-                    WHERE id = ?
-                )
-                SELECT
-                    id,
-                    content,
-                    timestamp,
-                    metadata,
-                    conversation_id,
-                    record_kind,
-                    role,
-                    message_type,
-                    tool_name
-                FROM memories
-                WHERE user_id = ?
-                  AND is_semanticized = 0
-                  AND record_kind = 'interaction'
-                  AND (
-                      ? IS NULL
-                      OR NOT EXISTS (SELECT 1 FROM watermark)
-                      OR timestamp > (SELECT timestamp FROM watermark)
-                      OR (
-                          timestamp = (SELECT timestamp FROM watermark)
-                          AND id > ?
-                      )
-                  )
-                ORDER BY timestamp ASC, id ASC
-                LIMIT ?
-            """,
-                (last_id, user_id, last_id, last_id, limit),
-            )
-            rows = await cursor.fetchall()
-            return self._format_transcript_rows(rows, include_conversation_id=True)
+        return await fetch_unprocessed_memories_after_id(
+            episodic_db_path=self.episodic_db_path,
+            last_id=last_id,
+            user_id=user_id,
+            limit=limit,
+            format_transcript_rows=self._format_transcript_rows,
+        )
 
     def _format_transcript_rows(
         self,
@@ -1920,20 +1876,8 @@ class LocalMemoryStore:
         *,
         include_conversation_id: bool,
     ) -> List[Dict[str, Any]]:
-        results: List[Dict[str, Any]] = []
-        for row in rows:
-            metadata = self._parse_raw_metadata(row["metadata"])
-            entry = {
-                "id": row["id"],
-                "content": row["content"],
-                "timestamp": row["timestamp"],
-                "metadata": metadata,
-                "record_kind": row["record_kind"] or metadata.get("record_kind"),
-                "role": row["role"] or metadata.get("role"),
-                "message_type": row["message_type"] or metadata.get("message_type"),
-                "tool_name": row["tool_name"] or metadata.get("tool_name"),
-            }
-            if include_conversation_id:
-                entry["conversation_id"] = row["conversation_id"]
-            results.append(entry)
-        return results
+        return format_transcript_rows(
+            rows=rows,
+            include_conversation_id=include_conversation_id,
+            parse_raw_metadata=self._parse_raw_metadata,
+        )
