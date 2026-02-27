@@ -40,6 +40,7 @@ IPC methods used by this surface:
 
 - `LIST_EPISODIC_MEMORIES`
 - `LIST_SEMANTIC_MEMORIES`
+- `DELETE_EPISODIC_MEMORY`
 - `DELETE_SEMANTIC_MEMORY`
 
 ### Conversation resume surface
@@ -107,8 +108,10 @@ Normalization:
 
 ### Delete behavior
 
-- semantic delete issues `DELETE_SEMANTIC_MEMORY`.
-- episodic row delete is UI-local in this component today; transcript conversation deletion is handled in conversation/sidebar surfaces.
+- rows with backend IDs route delete through memory IPC:
+  - semantic -> `DELETE_SEMANTIC_MEMORY`
+  - episodic -> `DELETE_EPISODIC_MEMORY`
+- rows without backend IDs remain UI-local removals.
 
 ## Conversation Resume Flow (Sidebar/Search)
 

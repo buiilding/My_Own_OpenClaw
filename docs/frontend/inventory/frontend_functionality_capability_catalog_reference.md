@@ -148,7 +148,7 @@ Primary files:
 Capabilities:
 
 - Dashboard shell routes sections (memory/models/settings/usage) with search + transcript open/rehydrate.
-- Memory panel supports episodic/semantic fetch, local edit/search state, and semantic delete.
+- Memory panel supports episodic/semantic fetch, local edit/search state, and episodic/semantic delete for backend-backed rows.
 - Models panel reconciles provider/model selection + provider API-key controls.
 - Settings hook syncs renderer config edits through typed main-process IPC path.
 - Permissions store and onboarding wizard gate runtime until required capabilities are granted.

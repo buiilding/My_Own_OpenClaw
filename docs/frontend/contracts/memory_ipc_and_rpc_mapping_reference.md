@@ -31,6 +31,7 @@ Memory-related `invoke` channels exposed to renderer:
 - `get-conversation`
 - `delete-conversation`
 - `list-semantic-memories`
+- `delete-episodic-memory`
 - `delete-semantic-memory`
 - `store-memory`
 - `search-memory`
@@ -39,7 +40,7 @@ Current primary renderer call sites:
 
 - `TranscriptWriter` -> `store-transcript`
 - `ChatGptDashboardShell` + `DashboardSidebar` + `SearchChatsModal` -> search/list/get transcript conversations
-- `MemorySection` -> list episodic memory entries + list/delete semantic memory
+- `MemorySection` -> list episodic + semantic memory entries + delete episodic/semantic memory
 
 ## Main-Process Mapping Layer
 
@@ -52,7 +53,7 @@ Mapping helper behavior:
 
 ## Channel -> JSON-RPC Method Map
 
-### Conversation and semantic list/delete
+### Conversation and memory list/delete
 
 - `search-conversations` -> `search_conversations`
 - `list-conversations` -> `list_conversations`
@@ -60,6 +61,7 @@ Mapping helper behavior:
 - `get-conversation` -> `get_conversation`
 - `delete-conversation` -> `delete_conversation`
 - `list-semantic-memories` -> `list_semantic_memories`
+- `delete-episodic-memory` -> `delete_episodic_memory`
 - `delete-semantic-memory` -> `delete_semantic_memory`
 
 Renderer camelCase to sidecar snake_case conversions:
@@ -159,6 +161,12 @@ Decorator `@requires_memory_store` gates most memory handlers:
 - deletes transcript rows for conversation (or null-conversation bucket)
 - returns `deleted_count`
 - cleans in-memory FAISS ID mappings for removed rows
+
+### `delete_episodic_memory`
+
+- requires `memory_id`
+- deletes non-transcript episodic entry by id
+- returns `{ memory_id, deleted }`
 
 ### `list_semantic_memories`
 

@@ -89,6 +89,7 @@ Behavior:
 - `show-main-window` -> shows main window; optional payload `{ open?: 'chat' | 'memory' | 'models' | 'settings', maximize?: boolean }` emits `main-window-open-target` when accepted
 - `show-chatbox`
 - `hide-chatbox`
+- `prepare-overlay-tool-focus` -> pre-tool overlay hide + external focus verification payload
 - `get-displays`
 - `window-minimize`
 - `window-toggle-maximize`
@@ -111,6 +112,7 @@ Behavior:
 - `list-episodic-memories`
 - `get-conversation`
 - `list-semantic-memories`
+- `delete-episodic-memory`
 - `delete-conversation`
 - `delete-semantic-memory`
 - `store-memory`
@@ -129,6 +131,7 @@ Behavior:
 - `wakeword-detected`
 - `wakeword-status`
 - `wakeword-toggle`
+- `wakeword-stt-trigger`
 - `chatbox-focus`
 - `main-window-open-target`
 - `log` (diagnostic)

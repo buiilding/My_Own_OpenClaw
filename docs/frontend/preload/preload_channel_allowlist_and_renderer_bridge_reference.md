@@ -58,6 +58,7 @@ Allowed channels:
 - `list-episodic-memories`
 - `get-conversation`
 - `list-semantic-memories`
+- `delete-episodic-memory`
 - `delete-conversation`
 - `delete-semantic-memory`
 - `store-transcript`
@@ -67,6 +68,7 @@ Allowed channels:
 - `show-main-window`
 - `show-chatbox`
 - `hide-chatbox`
+- `prepare-overlay-tool-focus`
 - `get-displays`
 - `load-frontend-config`
 - `save-frontend-config`
@@ -94,6 +96,7 @@ Allowed channels:
 - `wakeword-detected`
 - `wakeword-status`
 - `wakeword-toggle`
+- `wakeword-stt-trigger`
 - `chatbox-focus`
 - `main-window-open-target`
 - `response-overlay-phase`

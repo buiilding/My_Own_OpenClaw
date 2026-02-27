@@ -1,12 +1,12 @@
 ---
-summary: "Deep reference for dashboard MemorySection runtime: episodic/semantic fetch normalization, procedural placeholder behavior, local edit/add UX, and semantic delete IPC contract."
+summary: "Deep reference for dashboard MemorySection runtime: episodic/semantic fetch normalization, procedural placeholder behavior, local edit/add UX, and backend-backed delete IPC contracts."
 read_when:
   - When changing `MemorySection.jsx`, `MemoryItem.jsx`, or `memorySectionData.js`.
-  - When debugging dashboard memory list shape drift, semantic delete failures, or search/edit state behavior.
-title: "Memory Section Data Normalization and Semantic Delete Contract Reference"
+  - When debugging dashboard memory list shape drift, episodic/semantic delete failures, or search/edit state behavior.
+title: "Memory Section Data Normalization and Delete Contract Reference"
 ---
 
-# Memory Section Data Normalization and Semantic Delete Contract Reference
+# Memory Section Data Normalization and Delete Contract Reference
 
 ## Canonical Modules
 
@@ -25,7 +25,7 @@ title: "Memory Section Data Normalization and Semantic Delete Contract Reference
 - fetch + normalization on mount/user switch
 - local search filter
 - local add/edit flows
-- semantic delete RPC flow
+- episodic/semantic delete RPC flow (for backend-backed rows)
 
 State buckets:
 
@@ -95,9 +95,11 @@ Match behavior:
 
 ### Delete
 
-- confirmation required (`window.confirm`)
-- semantic rows with `backendMemoryId` call `DELETE_SEMANTIC_MEMORY`
-- episodic/procedural delete is local list removal only
+- no confirmation prompt; delete is single-click
+- rows with `backendMemoryId` and backend type:
+  - `semantic` -> `DELETE_SEMANTIC_MEMORY`
+  - `episodic` -> `DELETE_EPISODIC_MEMORY`
+- rows without backend id (including local add rows and procedural placeholders) are removed from local list only
 
 After delete:
 
@@ -122,12 +124,14 @@ After delete:
 - semantic tab render + procedural empty state
 - left close button delegates `onClose`
 - semantic delete uses `delete-semantic-memory` with expected payload
+- episodic delete uses `delete-episodic-memory` with expected payload
+- semantic delete path does not use `window.confirm`
 
 ## Drift Hotspots
 
 1. Changing sidecar memory payload shape without updating normalizers.
 2. Treating local add/edit as persisted behavior without backend write path.
-3. Removing backend id propagation (`backendMemoryId`) breaks semantic delete routing.
+3. Removing backend id propagation (`backendMemoryId`) breaks backend delete routing.
 4. Divergent user-id fallback policy can split memory visibility by session state.
 
 ## Related Pages
