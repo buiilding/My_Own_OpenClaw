@@ -131,5 +131,6 @@ Validated behaviors:
 ## Related Pages
 
 - [Frontend Sidecar Core Docs Hub](README.md)
+- [Remote Semantic Client Summarize Payload, Timeout, and Error-Surface Contract Reference](remote_semantic_client_summarize_payload_timeout_and_error_surface_contract_reference.md)
 - [Backend URL Resolution, Remote Memory Clients, and Thread-Pool Runtime Reference](backend_url_resolution_remote_memory_clients_and_thread_pool_runtime_reference.md)
 - [Memory Pipeline and Summarization](../memory_pipeline_and_summarization.md)
