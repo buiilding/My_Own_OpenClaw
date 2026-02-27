@@ -13,9 +13,12 @@ title: "Filesystem Read and Replace Runtime Reference"
 - `frontend/src/main/python/tools/filesystem/read_file_tool.py`
 - `frontend/src/main/python/tools/filesystem/replace_tool.py`
 - `frontend/src/main/python/tools/filesystem/replace_engine.py`
+- `frontend/src/main/python/tools/filesystem/replace_matchers.py`
+- `frontend/src/main/python/tools/filesystem/replace_patch_chunks.py`
 - `frontend/src/main/python/tools/filesystem/file_utils.py`
 - `frontend/src/main/python/tools/schemas.py` (`ReadFileArgs`, `ReplaceArgs`)
 - `tests/sidecar/test_read_file_tool.py`
+- `tests/sidecar/test_replace_engine.py`
 - `tests/sidecar/test_replace_tool.py`
 
 ## Runtime Purpose
@@ -116,6 +119,8 @@ Ambiguity handling:
 Fallback path:
 
 - if exact spans fail in lenient mode, engine attempts line-sequence matching
+- line-sequence/lenient punctuation matching helpers are isolated in `replace_matchers.py` for reusable, test-focused behavior.
+- ordered patch-chunk span resolution/apply helpers are isolated in `replace_patch_chunks.py`.
 
 Patch chunk mode:
 
@@ -147,6 +152,12 @@ Patch chunk mode:
 - batch atomicity (no partial writes on failure)
 - file creation path
 - patch-chunk ordered updates, insertions, EOF matching, and change-context anchors
+
+`tests/sidecar/test_replace_engine.py` verifies:
+
+- operation parsing defaults/validation (`match_mode`, `occurrence_index`, patch-chunk shape guards)
+- lenient unicode punctuation matching fallback behavior
+- patch-chunk context + EOF anchored line replacement behavior
 
 ## Drift Hotspots
 

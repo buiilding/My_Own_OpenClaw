@@ -3,6 +3,7 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 ensure_frontend_python_path()
 
 from tools.filesystem.replace_engine import (
+    apply_patch_chunks,
     apply_operations,
     build_operations,
     build_patch_chunks,
@@ -95,3 +96,54 @@ def test_apply_operations_occurrence_index_out_of_range_error():
 
     assert apply_error is not None
     assert "occurrence_index=3 is out of range for 2 match(es)." in apply_error
+
+
+def test_apply_operations_lenient_matches_unicode_dash_variants():
+    operations, error = build_operations(
+        {"old_string": "hello—world", "new_string": "patched"}
+    )
+    assert error is None
+    assert operations is not None
+
+    updated, replacements, spans, operation_payloads, apply_error = apply_operations(
+        "hello-world\n",
+        operations,
+    )
+
+    assert apply_error is None
+    assert updated == "patched\n"
+    assert replacements == 1
+    assert len(spans) == 1
+    assert operation_payloads[0]["match_mode"] == "lenient"
+
+
+def test_apply_patch_chunks_honors_context_and_eof():
+    chunks, error = build_patch_chunks(
+        {
+            "patch_chunks": [
+                {
+                    "change_context": "header",
+                    "old_lines": ["body"],
+                    "new_lines": ["BODY"],
+                },
+                {
+                    "old_lines": ["tail"],
+                    "new_lines": ["TAIL"],
+                    "is_end_of_file": True,
+                },
+            ]
+        }
+    )
+    assert error is None
+    assert chunks is not None
+
+    updated, replacements, spans, operation_payloads, apply_error = apply_patch_chunks(
+        "header\nbody\ntail\n",
+        chunks,
+    )
+
+    assert apply_error is None
+    assert updated == "header\nBODY\nTAIL\n"
+    assert replacements == 2
+    assert len(spans) == 2
+    assert [payload["mode"] for payload in operation_payloads] == ["patch_chunk", "patch_chunk"]

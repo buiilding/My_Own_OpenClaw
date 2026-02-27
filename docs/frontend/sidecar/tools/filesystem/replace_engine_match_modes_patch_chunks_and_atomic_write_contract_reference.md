@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for sidecar `replace`: operation parsing, strict/lenient matching strategy, patch-chunk ordered application, and atomic write/no-partial-update guarantees."
 read_when:
-  - When changing `replace_tool.py`, `replace_engine.py`, or `ReplaceArgs` schema behavior.
+  - When changing `replace_tool.py`, `replace_engine.py`, `replace_matchers.py`, `replace_patch_chunks.py`, or `ReplaceArgs` schema behavior.
   - When debugging multi-match ambiguity errors, context-anchor misses, or patch chunk ordering issues.
 title: "Replace Engine Match Modes, Patch Chunks, and Atomic Write Contract Reference"
 ---
@@ -12,7 +12,10 @@ title: "Replace Engine Match Modes, Patch Chunks, and Atomic Write Contract Refe
 
 - `frontend/src/main/python/tools/filesystem/replace_tool.py`
 - `frontend/src/main/python/tools/filesystem/replace_engine.py`
+- `frontend/src/main/python/tools/filesystem/replace_matchers.py`
+- `frontend/src/main/python/tools/filesystem/replace_patch_chunks.py`
 - `frontend/src/main/python/tools/schemas.py`
+- `tests/sidecar/test_replace_engine.py`
 - `tests/sidecar/test_replace_tool.py`
 
 ## Entry Modes and Mutual Exclusivity
