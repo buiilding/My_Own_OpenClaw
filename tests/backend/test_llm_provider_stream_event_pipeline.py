@@ -224,3 +224,44 @@ async def test_stream_pipeline_passes_params_to_litellm_acompletion(monkeypatch)
     assert captured_params["model"] == "test-model"
     assert captured_params["messages"] == [{"role": "user", "content": "hi"}]
     assert captured_params["stream"] is True
+
+
+@pytest.mark.asyncio
+async def test_stream_text_content_events_propagates_extractor_errors(monkeypatch):
+    async def fake_acompletion(**_params):
+        return _yield_chunks([{"usage": None, "delta": {"content": "x"}}])
+
+    monkeypatch.setattr(stream_event_pipeline.litellm, "acompletion", fake_acompletion)
+
+    async def _collect():
+        async for _event in stream_text_content_events(
+            params={"model": "x", "messages": []},
+            record_stream_usage_from_chunk=lambda _chunk: None,
+            extract_stream_delta=_extract_dict_delta,
+            extract_delta_content=lambda _delta: (_ for _ in ()).throw(RuntimeError("boom")),
+        ):
+            pass
+
+    with pytest.raises(RuntimeError, match="boom"):
+        await _collect()
+
+
+@pytest.mark.asyncio
+async def test_stream_thinking_and_text_events_propagates_extractor_errors(monkeypatch):
+    async def fake_acompletion(**_params):
+        return _yield_chunks([{"usage": None, "delta": {"thinking": "plan"}}])
+
+    monkeypatch.setattr(stream_event_pipeline.litellm, "acompletion", fake_acompletion)
+
+    async def _collect():
+        async for _event in stream_thinking_and_text_events(
+            params={"model": "x", "messages": []},
+            record_stream_usage_from_chunk=lambda _chunk: None,
+            extract_stream_delta=_extract_dict_delta,
+            extract_thinking_content=lambda _delta: (_ for _ in ()).throw(RuntimeError("boom")),
+            extract_delta_content=lambda _delta: None,
+        ):
+            pass
+
+    with pytest.raises(RuntimeError, match="boom"):
+        await _collect()
