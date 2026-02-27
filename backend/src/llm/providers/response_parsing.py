@@ -450,9 +450,16 @@ def normalize_tool_arguments(
 
     if hasattr(raw_arguments, "model_dump"):
         try:
-            dumped = raw_arguments.model_dump()
+            dumped = raw_arguments.model_dump(warnings=False)
             if isinstance(dumped, dict):
                 return dumped
+        except TypeError:
+            try:
+                dumped = raw_arguments.model_dump()
+                if isinstance(dumped, dict):
+                    return dumped
+            except Exception:
+                pass
         except Exception:
             pass
     if hasattr(raw_arguments, "dict"):
