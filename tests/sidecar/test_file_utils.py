@@ -43,6 +43,13 @@ def test_is_binary_file_nonexistent_path_returns_false(tmp_path: Path):
     assert file_utils.is_binary_file(str(missing)) is False
 
 
+def test_is_binary_file_empty_file_returns_false(tmp_path: Path):
+    empty = tmp_path / "empty.txt"
+    empty.write_bytes(b"")
+
+    assert file_utils.is_binary_file(str(empty)) is False
+
+
 def test_is_binary_file_low_printable_ratio_detects_binary(tmp_path: Path):
     suspicious = tmp_path / "payload.dat"
     suspicious.write_bytes(b"\x01\x02\x03\x04abc")
@@ -99,6 +106,39 @@ def test_detect_encoding_falls_back_to_utf8_on_runtime_error(monkeypatch, tmp_pa
     monkeypatch.setitem(sys.modules, "chardet", BrokenChardet)
 
     assert file_utils.detect_encoding(str(text_file)) == "utf-8"
+
+
+def test_detect_encoding_falls_back_to_utf8_when_detector_returns_no_encoding(
+    monkeypatch,
+    tmp_path: Path,
+):
+    text_file = tmp_path / "encoded.txt"
+    text_file.write_bytes(b"dummy-bytes")
+
+    class NoEncodingChardet:
+        @staticmethod
+        def detect(_raw):
+            return {"confidence": 0.1}
+
+    monkeypatch.setitem(sys.modules, "chardet", NoEncodingChardet)
+
+    assert file_utils.detect_encoding(str(text_file)) == "utf-8"
+
+
+def test_is_binary_file_returns_false_when_file_read_raises(monkeypatch, tmp_path: Path):
+    text_file = tmp_path / "note.txt"
+    text_file.write_text("hello")
+
+    original_open = builtins.open
+
+    def fake_open(path, mode="r", *args, **kwargs):
+        if str(path) == str(text_file) and "rb" in mode:
+            raise OSError("boom")
+        return original_open(path, mode, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "open", fake_open)
+
+    assert file_utils.is_binary_file(str(text_file)) is False
 
 
 def test_gitignore_utils_without_pathspec(monkeypatch, tmp_path: Path):
