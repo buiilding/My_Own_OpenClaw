@@ -139,7 +139,7 @@ async def test_execute_mouse_control_scroll_requires_amount(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_execute_mouse_control_import_error_returns_failure(monkeypatch):
-    monkeypatch.delitem(sys.modules, "pyautogui", raising=False)
+    monkeypatch.setitem(sys.modules, "pyautogui", None)
 
     result = await mouse_tool.execute_mouse_control({"action": "click", "x": 1, "y": 2})
 

@@ -151,7 +151,7 @@ async def test_execute_scroll_control_requires_direction_for_scroll_action(monke
 
 @pytest.mark.asyncio
 async def test_execute_scroll_control_import_error_returns_failure(monkeypatch):
-    monkeypatch.delitem(sys.modules, "pyautogui", raising=False)
+    monkeypatch.setitem(sys.modules, "pyautogui", None)
 
     result = await scroll_tool.execute_scroll_control(
         {"action": "scroll_up", "x": 1, "y": 2}

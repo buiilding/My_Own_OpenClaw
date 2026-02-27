@@ -32,7 +32,11 @@ describe('main_window_runtime prepareOverlayQueryCaptureFocus', () => {
     expect(mainWindow.blur).toHaveBeenCalledTimes(1);
     expect(externalFocusTracker.restorePreviousExternalFocusedWindow).toHaveBeenCalledTimes(1);
     expect(externalFocusTracker.isPreviousExternalFocusedWindowActive).toHaveBeenCalledTimes(1);
-    expect(result).toEqual({ restoredExternalFocus: true, externalFocusActive: true });
+    expect(result).toEqual({
+      restoredExternalFocus: true,
+      externalFocusActive: true,
+      canVerifyExternalFocus: true,
+    });
   });
 
   test('returns inactive verification result when restored app is not active', async () => {
@@ -47,7 +51,11 @@ describe('main_window_runtime prepareOverlayQueryCaptureFocus', () => {
     });
 
     expect(externalFocusTracker.isPreviousExternalFocusedWindowActive).toHaveBeenCalledTimes(1);
-    expect(result).toEqual({ restoredExternalFocus: true, externalFocusActive: false });
+    expect(result).toEqual({
+      restoredExternalFocus: true,
+      externalFocusActive: false,
+      canVerifyExternalFocus: true,
+    });
   });
 
   test('skips active-window verification when external focus cannot be restored', async () => {
@@ -63,7 +71,11 @@ describe('main_window_runtime prepareOverlayQueryCaptureFocus', () => {
 
     expect(externalFocusTracker.restorePreviousExternalFocusedWindow).toHaveBeenCalledTimes(1);
     expect(externalFocusTracker.isPreviousExternalFocusedWindowActive).not.toHaveBeenCalled();
-    expect(result).toEqual({ restoredExternalFocus: false, externalFocusActive: false });
+    expect(result).toEqual({
+      restoredExternalFocus: false,
+      externalFocusActive: false,
+      canVerifyExternalFocus: true,
+    });
   });
 });
 
