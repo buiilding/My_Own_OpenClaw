@@ -65,6 +65,7 @@ Each frame follows this route-level path:
 2. Timeout triggers close code `1008` with reason `"Connection timeout - no data received"`.
 3. `parse_and_validate_message(...)` enforces:
    - raw frame size <= `websocket_max_message_size`
+   - exact limit is accepted (only `len(data) > max` is rejected)
    - JSON object root only
    - connection-scoped `user_id` injected before schema validation
    - discriminated-union validation via cached `TypeAdapter(IncomingMessage)`

@@ -96,6 +96,12 @@ Effect:
 - payload shape mismatch for known type -> schema validation failure
 - client gets formatted validation message list from pydantic errors
 
+Validation message formatting details:
+
+- per-error entries are joined with `; `
+- each entry includes dotted `loc` path + message (`<path>: <msg>`)
+- nested list indices are preserved (for example `payload.step_results.0.status`)
+
 Current incoming message-type literals (`10`):
 
 - `query`
