@@ -15,6 +15,7 @@ build/
 frontend/release/
 frontend/python-runtime/
 frontend/python-runtime.tar.gz
+frontend/python-runtime.no-browsers.tar.gz
 
 # Environment variables
 .env
