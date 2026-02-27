@@ -51,6 +51,16 @@ describe('DashboardSidebar collapsed header controls', () => {
     expect(screen.queryByTestId('sidebar-collapsed-expand-icon')).not.toBeInTheDocument();
   });
 
+  test('does not swap to expand icon from keyboard focus alone', () => {
+    render(<DashboardSidebar {...buildProps()} />);
+
+    const expandButton = screen.getByRole('button', { name: 'Expand sidebar' });
+    fireEvent.focus(expandButton);
+
+    expect(screen.getByTestId('sidebar-collapsed-brand-icon')).toBeInTheDocument();
+    expect(screen.queryByTestId('sidebar-collapsed-expand-icon')).not.toBeInTheDocument();
+  });
+
   test('renders one new chat action in collapsed mode and triggers new chat from header', () => {
     const onStartNewChat = jest.fn();
     render(<DashboardSidebar {...buildProps({ onStartNewChat })} />);

@@ -398,8 +398,6 @@ function DashboardSidebar({
               title={toggleSidebarLabel}
               onMouseEnter={() => setCollapsedHeaderHovered(true)}
               onMouseLeave={() => setCollapsedHeaderHovered(false)}
-              onFocus={() => setCollapsedHeaderHovered(true)}
-              onBlur={() => setCollapsedHeaderHovered(false)}
             >
               {collapsedHeaderHovered ? (
                 <PanelLeft size={18} data-testid="sidebar-collapsed-expand-icon" />

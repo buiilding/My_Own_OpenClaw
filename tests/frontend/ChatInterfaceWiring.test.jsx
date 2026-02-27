@@ -200,6 +200,12 @@ describe('ChatInterface wiring', () => {
     expect(screen.getByRole('button', { name: 'Toggle text-to-speech' })).toBeInTheDocument();
   });
 
+  test('does not render a duplicate header logo when sidebar is collapsed', () => {
+    const { container } = render(<ChatInterface sidebarOpen={false} />);
+
+    expect(container.querySelector('.chat-header-brand-dot')).toBeNull();
+  });
+
   test('text-to-speech toggle updates speech_mode_enabled', () => {
     render(<ChatInterface />);
 
