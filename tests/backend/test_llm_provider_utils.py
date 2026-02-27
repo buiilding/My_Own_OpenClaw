@@ -62,6 +62,12 @@ class _ToolArgumentsDictFallback:
         return {"path": "/tmp/dict-fallback.txt"}
 
 
+class _UsageDictBackedObject:
+    def __init__(self):
+        self.prompt_tokens = 21
+        self.cached_tokens = 5
+
+
 def test_extract_status_code_supports_direct_response_and_exception_chain():
     direct = RuntimeError("boom")
     direct.status_code = 429
@@ -104,6 +110,12 @@ def test_extract_usage_int_coerces_numeric_strings_and_integer_floats():
     assert extract_usage_int(usage, [("float_value",)]) == 12
 
 
+def test_extract_usage_int_ignores_bool_and_non_integral_float_values():
+    usage = {"bool_value": True, "float_value": 12.5}
+    assert extract_usage_int(usage, [("bool_value",)]) is None
+    assert extract_usage_int(usage, [("float_value",)]) is None
+
+
 def test_build_stream_cache_diagnostics_returns_unknown_hit_and_miss():
     unknown = build_stream_cache_diagnostics(model="m", usage=None)
     assert unknown["status"] == "unknown"
@@ -122,6 +134,28 @@ def test_build_stream_cache_diagnostics_returns_unknown_hit_and_miss():
     )
     assert miss["status"] == "miss"
     assert miss["cache_hit"] is False
+
+
+def test_build_stream_cache_diagnostics_supports_usage_metadata_camel_case_paths():
+    diagnostics = build_stream_cache_diagnostics(
+        model="m",
+        usage={
+            "usageMetadata": {
+                "cachedContentTokenCount": 9,
+                "promptTokenCount": 40,
+                "candidatesTokenCount": 12,
+                "thoughtsTokenCount": 5,
+                "totalTokenCount": 57,
+            }
+        },
+    )
+    assert diagnostics["status"] == "hit"
+    assert diagnostics["cache_hit"] is True
+    assert diagnostics["cached_tokens"] == 9
+    assert diagnostics["prompt_tokens"] == 40
+    assert diagnostics["completion_tokens"] == 12
+    assert diagnostics["thinking_tokens"] == 5
+    assert diagnostics["total_tokens"] == 57
 
 
 def test_normalize_messages_for_provider_converts_internal_tool_calls_and_drops_orphans():
@@ -149,6 +183,20 @@ def test_normalize_tools_for_litellm_rejects_legacy_shape():
             [{"name": "read_file", "parameters": {"type": "object"}}],
             model="m",
         )
+
+
+def test_normalize_usage_payload_supports_object_dict_fallback():
+    normalized = normalize_usage_payload(_UsageDictBackedObject())
+    assert normalized == {"prompt_tokens": 21, "cached_tokens": 5}
+
+
+def test_collect_usage_payload_prefers_top_level_usage_before_model_extra():
+    payload = SimpleNamespace(
+        usage={"prompt_tokens": 8},
+        model_extra={"usage": {"prompt_tokens": 99}},
+    )
+    collected = collect_usage_payload(payload)
+    assert collected == {"prompt_tokens": 8}
 
 
 def test_extract_completion_response_parses_and_dedupes_openai_and_tool_use_blocks():
