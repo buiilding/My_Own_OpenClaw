@@ -47,9 +47,6 @@ class DummyMemoryStore:
             }
         ]
 
-    async def increment_pending_count(self):
-        self.pending_count += 1
-
     async def get_next_message_index(self, user_id, conversation_id):
         value = self.next_index
         self.next_index += 1

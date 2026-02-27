@@ -2716,17 +2716,6 @@ class LocalMemoryStore:
         await self._watermark_store.update(last_semanticized_id, pending_message_count)
         logger.debug(f"Updated watermark: last_id={last_semanticized_id}, pending={pending_message_count}")
     
-    async def increment_pending_count(self) -> int:
-        """
-        Increment pending message count and return new value.
-        
-        Returns:
-            New pending message count
-        """
-        new_count = await self._watermark_store.increment_pending_count()
-        logger.debug(f"Incremented pending count to {new_count}")
-        return new_count
-    
     async def get_unprocessed_memories_after_id(
         self, last_id: Optional[str], user_id: str, limit: int = 1000 
     ) -> List[Dict[str, Any]]:
