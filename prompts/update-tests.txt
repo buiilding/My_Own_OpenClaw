@@ -1,0 +1,2 @@
+you are responsible to read windieos and create tests that would debug windieos, update tests for different features, make sure the features are clean, scalable
+consistent, update tests for windieos

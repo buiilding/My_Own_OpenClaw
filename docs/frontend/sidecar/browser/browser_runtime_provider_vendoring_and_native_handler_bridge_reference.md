@@ -11,10 +11,12 @@ title: "Browser Runtime Provider, Vendoring, and Native Handler Bridge Reference
 ## Canonical Modules
 
 - `frontend/src/main/python/tools/browser/browser_runtime.py`
+- `frontend/src/main/python/tools/browser/browser_runtime_extraction.py`
 - `frontend/src/main/python/tools/browser/browser_tool.py`
 - `frontend/src/main/python/tools/browser/controller.py`
 - `tests/sidecar/tools/test_browser_use_adapter.py`
 - `tests/sidecar/tools/test_browser_use_tool_parity.py`
+- `tests/sidecar/tools/test_browser_runtime_extraction.py`
 
 ## Runtime Provider Selection Contract
 
@@ -207,5 +209,6 @@ If snapshot pagination fails:
 ## Related Pages
 
 - [Frontend Sidecar Browser Docs Hub](README.md)
+- [Browser Runtime Extraction Provider, Model Resolution, and LLM Adapter Mapping Reference](browser_runtime_extraction_provider_model_resolution_and_llm_adapter_mapping_reference.md)
 - [Browser Adapter Action Routing and Compatibility Semantics Reference](browser_adapter_action_routing_and_compatibility_semantics_reference.md)
 - [Browser Action Compatibility and Runtime Reference](../browser_action_compatibility_and_runtime_reference.md)
