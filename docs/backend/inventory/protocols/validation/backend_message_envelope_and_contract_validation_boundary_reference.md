@@ -117,7 +117,7 @@ Current incoming message-type literals (`10`):
 
 ### Parse offload policy
 
-`parse_json_object_payload(...)` offloads large parses to threadpool when payload bytes >= `64 * 1024`, reducing event-loop blocking risk.
+`parse_json_object_payload(...)` offloads large parses to threadpool when payload UTF-8 byte length >= `64 * 1024`, reducing event-loop blocking risk even for multibyte-heavy text payloads.
 
 ## Schema Strictness Matrix (high-level)
 
