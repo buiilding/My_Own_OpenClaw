@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-main-local-backend): extract shell-tool argument normalization into `local_backend_bridge_tool_args.cjs` and add direct unit coverage, reducing `local_backend_bridge.cjs` to sub-500 LOC without changing sidecar IPC behavior.
 - test(backend-tool-argument-normalization): add strict regressions for invalid assistant `tool_calls` shape, `model_dump` fallback to `dict()`, and unsupported argument payload type rejection.
 - refactor(frontend-overlay-ipc): remove deprecated `set-chatbox-size` IPC channel/handler from preload, typed renderer channels, and overlay runtime registration now that non-dashboard chat-pill sizing is fixed; keep drag-only chatbox IPC ownership and add regression coverage to prevent channel reintroduction.
 - docs(backend-inventory): refresh backend inventory counts (`322` Python files), add missing LLM stream-tool aggregation ownership, and tighten API schema/contract alignment details across capability and runtime matrix references.
