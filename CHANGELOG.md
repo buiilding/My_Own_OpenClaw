@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-chatbox-preview-lock-scope): restrict resize transition-lock to compact mode only and keep `with-preview` mode responsive to late `ResizeObserver` growth updates, preventing top clipping when preview height settles shortly after image insert; add regression coverage for with-preview lock bypass.
+- fix(frontend-dashboard-sidebar-expand-collapse): implement explicit sidebar expand/collapse handlers (instead of toggle), wire dedicated header controls for each state, and add dashboard/sidebar regressions that verify collapse->expand class transitions and callback wiring.
 - fix(frontend-chatbox-startup-crop-flash): remove entry animation from minimal non-dashboard input-pill shell and force immediate first resize sync on mount so startup no longer shows transient top-cropped chat-pill before settling.
 - fix(frontend-chatbox-preview-cache-growth): allow minimal non-dashboard chat-pill `with-preview` cached height to grow when later measurements are taller (for example after preview row settles), preventing persistent top clipping from early undersized cache initialization; add regression coverage for re-entering preview mode with taller measured frame.
 - fix(frontend-chatbox-top-clearance): loosen minimal non-dashboard chat-pill top cropping by adding input-shell-only top headroom (`chatbox-shell`/`chatbox-pill`/preview-row top padding), keeping bottom-edge lock behavior unchanged.

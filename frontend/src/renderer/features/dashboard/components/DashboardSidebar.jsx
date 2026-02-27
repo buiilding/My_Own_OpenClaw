@@ -253,7 +253,8 @@ SidebarUserMenu.propTypes = {
 
 function DashboardSidebar({
   sidebarOpen,
-  onToggleSidebar,
+  onExpandSidebar,
+  onCollapseSidebar,
   onStartNewChat,
   onOpenSearch,
   onOpenMemory,
@@ -383,7 +384,8 @@ function DashboardSidebar({
 
   const isCollapsed = !sidebarOpen;
   const [collapsedHeaderHovered, setCollapsedHeaderHovered] = useState(false);
-  const toggleSidebarLabel = isCollapsed ? 'Expand sidebar' : 'Collapse sidebar';
+  const expandSidebarLabel = 'Expand sidebar';
+  const collapseSidebarLabel = 'Collapse sidebar';
 
   useEffect(() => {
     setCollapsedHeaderHovered(false);
@@ -397,9 +399,10 @@ function DashboardSidebar({
             <button
               type="button"
               className="cg-sidebar-brand-toggle"
-              onClick={onToggleSidebar}
-              aria-label={toggleSidebarLabel}
-              title={toggleSidebarLabel}
+              onClick={onExpandSidebar}
+              aria-label={expandSidebarLabel}
+              title={expandSidebarLabel}
+              data-testid="sidebar-expand-button"
               onMouseEnter={() => setCollapsedHeaderHovered(true)}
               onMouseLeave={() => setCollapsedHeaderHovered(false)}
             >
@@ -431,9 +434,10 @@ function DashboardSidebar({
             <button
               type="button"
               className="cg-sidebar-toggle"
-              onClick={onToggleSidebar}
-              aria-label={toggleSidebarLabel}
-              title={toggleSidebarLabel}
+              onClick={onCollapseSidebar}
+              aria-label={collapseSidebarLabel}
+              title={collapseSidebarLabel}
+              data-testid="sidebar-collapse-button"
             >
               <PanelLeftClose size={18} />
             </button>
@@ -492,7 +496,8 @@ function DashboardSidebar({
 
 DashboardSidebar.propTypes = {
   sidebarOpen: PropTypes.bool.isRequired,
-  onToggleSidebar: PropTypes.func.isRequired,
+  onExpandSidebar: PropTypes.func.isRequired,
+  onCollapseSidebar: PropTypes.func.isRequired,
   onStartNewChat: PropTypes.func.isRequired,
   onOpenSearch: PropTypes.func.isRequired,
   onOpenMemory: PropTypes.func.isRequired,
