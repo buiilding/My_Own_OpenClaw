@@ -27,3 +27,20 @@ title: "Frontend Inventory Protocols Hub"
 - [Frontend IPC and Sidecar Contract Touchpoints Reference](../frontend_ipc_and_sidecar_contract_touchpoints_reference.md)
 - [Frontend Contracts Docs Hub](../../contracts/README.md)
 - [Frontend Main Docs Hub](../../main/README.md)
+
+## Code Scope
+
+- `frontend/src/preload.js`
+- `frontend/src/main/ipc.cjs`
+- `frontend/src/main/ipc_runtime_helpers.cjs`
+- `frontend/src/main/local_backend_bridge.cjs`
+- `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
+- `frontend/src/main/wakeword_bridge.cjs`
+- `frontend/src/main/overlay_ipc_runtime.cjs`
+- `frontend/src/renderer/infrastructure/ipc/channels.ts`
+- `frontend/src/renderer/infrastructure/ipc/bridge.ts`
+- `tests/frontend/IpcMainBridge.lifecycle.test.cjs`
+- `tests/frontend/IpcMainBridge.query.test.cjs`
+- `tests/frontend/LocalBackendBridge.lifecycle.test.cjs`
+- `tests/frontend/LocalBackendBridge.rpc.test.cjs`
+- `tests/frontend/WakewordBridge.test.cjs`
