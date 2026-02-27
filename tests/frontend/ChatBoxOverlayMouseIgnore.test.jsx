@@ -7,6 +7,8 @@ const mockInvoke = jest.fn(() => Promise.resolve({ success: true }));
 const mockSend = jest.fn();
 const mockListeners = new Map();
 const mockSendMessage = jest.fn();
+const mockGetRoundedFrameSize = jest.fn();
+const mockExtractOSstate = jest.fn();
 const mockUseChatMessageSender = jest.fn(() => ({
   sendMessage: mockSendMessage,
 }));
@@ -104,6 +106,14 @@ jest.mock('../../frontend/src/renderer/features/chat/utils/devUiFlag', () => ({
   isDevUiEnabled: () => mockIsDevUiEnabled(),
 }));
 
+jest.mock('../../frontend/src/renderer/features/chat/utils/overlayFrameSize', () => ({
+  getRoundedFrameSize: (...args) => mockGetRoundedFrameSize(...args),
+}));
+
+jest.mock('../../frontend/src/renderer/infrastructure/services/SystemCapture', () => ({
+  extractOSstate: (...args) => mockExtractOSstate(...args),
+}));
+
 describe('ChatBox overlay mouse ignore', () => {
   beforeEach(() => {
     mockInvoke.mockClear();
@@ -116,16 +126,29 @@ describe('ChatBox overlay mouse ignore', () => {
     mockCompactHistory.mockClear();
     mockIsDevUiEnabled.mockReset();
     mockIsDevUiEnabled.mockReturnValue(false);
+    mockGetRoundedFrameSize.mockReset();
+    mockGetRoundedFrameSize.mockImplementation(() => ({ width: 200, height: 100 }));
+    mockExtractOSstate.mockReset();
+    mockExtractOSstate.mockResolvedValue({
+      screenshot: 'ZmFrZS1zY3JlZW5zaG90',
+      screenshotContentType: 'image/png',
+    });
     mockChatState.messages = [];
     mockChatState.streamTracking.phase = 'idle';
   });
 
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   test('defaults to interactive overlay and requests window resize to match pill', () => {
+    jest.useFakeTimers();
     const rafQueue = [];
     global.requestAnimationFrame = (cb) => {
       rafQueue.push(cb);
       return rafQueue.length;
     };
+    global.cancelAnimationFrame = jest.fn();
 
     const { container } = render(<ChatBox />);
 
@@ -145,9 +168,11 @@ describe('ChatBox overlay mouse ignore', () => {
       width: 200,
       height: 100,
     });
+    mockGetRoundedFrameSize.mockReturnValue({ width: 200, height: 100 });
 
     act(() => {
       rafQueue.splice(0).forEach((cb) => cb());
+      jest.advanceTimersByTime(45);
     });
 
     expectInvokeCall(
@@ -156,6 +181,51 @@ describe('ChatBox overlay mouse ignore', () => {
         && payload?.width === 200
         && payload?.height === 100,
     );
+    jest.useRealTimers();
+  });
+
+  test('reuses cached compact height when the last image preview is removed', async () => {
+    jest.useFakeTimers();
+    const rafQueue = [];
+    global.requestAnimationFrame = (cb) => {
+      rafQueue.push(cb);
+      return rafQueue.length;
+    };
+    global.cancelAnimationFrame = jest.fn();
+    const flushResizeSync = async () => {
+      await act(async () => {
+        rafQueue.splice(0).forEach((cb) => cb());
+        jest.advanceTimersByTime(45);
+        await Promise.resolve();
+      });
+    };
+    const resizeHeights = () => mockInvoke.mock.calls
+      .filter(([channel]) => channel === 'set-chatbox-size')
+      .map(([, payload]) => payload?.height);
+    let measuredFrame = { width: 200, height: 52 };
+    mockGetRoundedFrameSize.mockImplementation(() => measuredFrame);
+
+    render(<ChatBox />);
+    await flushResizeSync();
+    expect(resizeHeights().at(-1)).toBe(52);
+
+    measuredFrame = { width: 200, height: 112 };
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Take screenshot' }));
+      await Promise.resolve();
+    });
+    await flushResizeSync();
+    expect(resizeHeights().at(-1)).toBe(112);
+
+    measuredFrame = { width: 200, height: 78 };
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Remove screenshot 1' }));
+      await Promise.resolve();
+    });
+    await flushResizeSync();
+
+    expect(resizeHeights().at(-1)).toBe(52);
+    jest.useRealTimers();
   });
 
   test('wires overlay sender surface for centralized UI send behavior', () => {

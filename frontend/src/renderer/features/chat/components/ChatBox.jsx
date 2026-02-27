@@ -20,6 +20,10 @@ const CLICK_THROUGH_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool
 const OVERLAY_ACTIVE_PHASES = new Set(['awaiting-first-chunk', 'streaming']);
 const OVERLAY_TERMINAL_PHASES = new Set(['idle', 'complete', 'error']);
 const LOOP_ACTIVE_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
+const CHATBOX_SIZE_MODES = Object.freeze({
+  COMPACT: 'compact',
+  WITH_PREVIEW: 'with-preview',
+});
 
 function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -131,6 +135,12 @@ function ChatBox() {
     debounceHandle: null,
     inFlight: false,
     queuedSize: null,
+    activeMode: CHATBOX_SIZE_MODES.COMPACT,
+    cachedModeHeights: {
+      [CHATBOX_SIZE_MODES.COMPACT]: null,
+      [CHATBOX_SIZE_MODES.WITH_PREVIEW]: null,
+    },
+    scheduleSizeSync: null,
   });
   const dragStateRef = useRef({
     isDragging: false,
@@ -152,6 +162,9 @@ function ChatBox() {
     resetTranscription,
     handleInputChange,
   } = useTranscription();
+  const activeResizeMode = clipboardImages.length > 0
+    ? CHATBOX_SIZE_MODES.WITH_PREVIEW
+    : CHATBOX_SIZE_MODES.COMPACT;
 
   const setOverlayIgnore = useCallback(async (ignore) => {
     if (ignoreMouseRef.current === ignore) {
@@ -210,6 +223,12 @@ function ChatBox() {
       return () => {};
     }
     const resizeSyncState = resizeSyncRef.current;
+    const requestFrame = typeof window.requestAnimationFrame === 'function'
+      ? window.requestAnimationFrame.bind(window)
+      : (callback) => window.setTimeout(callback, 0);
+    const cancelFrame = typeof window.cancelAnimationFrame === 'function'
+      ? window.cancelAnimationFrame.bind(window)
+      : (handle) => window.clearTimeout(handle);
 
     const flushSizeUpdate = async (nextFrame) => {
       const widthDelta = Math.abs((lastSizeRef.current.width || 0) - nextFrame.width);
@@ -242,21 +261,29 @@ function ChatBox() {
     };
 
     const measureAndQueueSize = () => {
-      const nextFrame = getRoundedFrameSize(shellRef.current);
-      if (!nextFrame) {
+      const measuredFrame = getRoundedFrameSize(shellRef.current);
+      if (!measuredFrame) {
         return;
       }
+      const activeMode = resizeSyncState.activeMode;
+      if (resizeSyncState.cachedModeHeights[activeMode] == null) {
+        resizeSyncState.cachedModeHeights[activeMode] = measuredFrame.height;
+      }
+      const nextFrame = {
+        width: measuredFrame.width,
+        height: resizeSyncState.cachedModeHeights[activeMode] ?? measuredFrame.height,
+      };
       void flushSizeUpdate(nextFrame);
     };
 
     const scheduleSizeSync = () => {
       if (resizeSyncState.frameHandle) {
-        window.cancelAnimationFrame(resizeSyncState.frameHandle);
+        cancelFrame(resizeSyncState.frameHandle);
       }
       if (resizeSyncState.debounceHandle) {
         window.clearTimeout(resizeSyncState.debounceHandle);
       }
-      resizeSyncState.frameHandle = window.requestAnimationFrame(() => {
+      resizeSyncState.frameHandle = requestFrame(() => {
         resizeSyncState.frameHandle = null;
         resizeSyncState.debounceHandle = window.setTimeout(() => {
           resizeSyncState.debounceHandle = null;
@@ -264,10 +291,13 @@ function ChatBox() {
         }, 40);
       });
     };
+    resizeSyncState.scheduleSizeSync = scheduleSizeSync;
 
     if (typeof ResizeObserver === 'undefined') {
       scheduleSizeSync();
-      return () => {};
+      return () => {
+        resizeSyncState.scheduleSizeSync = null;
+      };
     }
 
     const observer = new ResizeObserver(() => {
@@ -279,7 +309,7 @@ function ChatBox() {
     return () => {
       observer.disconnect();
       if (resizeSyncState.frameHandle) {
-        window.cancelAnimationFrame(resizeSyncState.frameHandle);
+        cancelFrame(resizeSyncState.frameHandle);
         resizeSyncState.frameHandle = null;
       }
       if (resizeSyncState.debounceHandle) {
@@ -288,8 +318,15 @@ function ChatBox() {
       }
       resizeSyncState.queuedSize = null;
       resizeSyncState.inFlight = false;
+      resizeSyncState.scheduleSizeSync = null;
     };
   }, []);
+
+  useEffect(() => {
+    const resizeSyncState = resizeSyncRef.current;
+    resizeSyncState.activeMode = activeResizeMode;
+    resizeSyncState.scheduleSizeSync?.();
+  }, [activeResizeMode]);
 
   useEffect(() => {
     return subscribeResponseOverlayPhase(setOverlayPhase);
