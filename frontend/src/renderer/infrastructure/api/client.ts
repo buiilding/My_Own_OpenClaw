@@ -5,6 +5,7 @@
  */
 
 import { IpcBridge, SEND_CHANNELS } from '../ipc/bridge';
+import { getMemoryRetrievalInjectionEnabled } from '../../utils/memoryRetrievalPreference';
 
 type RehydrateConversationEntry = {
   role: 'user' | 'assistant' | 'tool';
@@ -47,6 +48,7 @@ export const ApiClient = {
         conversation_ref: conversationRef,
         screenshot_ref: screenshotRef,  // Optional screenshot reference
         screenshot_refs: normalizedScreenshotRefs.length > 0 ? normalizedScreenshotRefs : null,
+        memory_retrieval_enabled: getMemoryRetrievalInjectionEnabled(),
       }
     });
   },

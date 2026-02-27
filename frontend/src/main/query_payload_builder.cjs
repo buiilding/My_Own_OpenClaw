@@ -172,9 +172,11 @@ async function buildQueryPayloadContent({
   contextType,
   getSystemState,
   searchMemory,
+  memoryRetrievalEnabled = true,
   log,
 }) {
   const logger = typeof log === 'function' ? log : () => {};
+  const shouldInjectMemories = memoryRetrievalEnabled !== false;
 
   try {
     logger('Building complete user message with system state and memories...');
@@ -185,23 +187,29 @@ async function buildQueryPayloadContent({
         getSystemState,
         logger,
       }),
-      resolveMemoryEnrichment({
-        text,
-        userId,
-        conversationRef,
-        searchMemory,
-        logger,
-      }),
+      shouldInjectMemories
+        ? resolveMemoryEnrichment({
+          text,
+          userId,
+          conversationRef,
+          searchMemory,
+          logger,
+        })
+        : Promise.resolve(null),
     ]);
 
     const parts = [];
     const runtimeSystemState = stateEnrichment.runtimeSystemState || null;
     parts.push(stateEnrichment.systemStateXml);
 
-    if (memories) {
-      appendMemorySections(parts, memories);
+    if (shouldInjectMemories) {
+      if (memories) {
+        appendMemorySections(parts, memories);
+      } else {
+        appendMemorySections(parts);
+      }
     } else {
-      appendMemorySections(parts);
+      logger('Memory retrieval injection disabled; skipping memory search and prompt tags');
     }
 
     parts.push(`<user_query>\n${escapeXml(text)}\n</user_query>`);

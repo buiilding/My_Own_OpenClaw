@@ -248,6 +248,29 @@ describe('ipc.cjs bridge query handling', () => {
     expectQueryContentWithEmptyMemories(lastMessage.payload.content, 'memory malformed');
   });
 
+  test('skips memory retrieval search and memory tags when retrieval injection is disabled', async () => {
+    const { handlers, ws, backendBridge } = setupQueryBridge({}, {
+      memoryResult: {
+        success: true,
+        data: { memories: { episodic: ['should not appear'], semantic: ['should not appear'] } },
+      },
+    });
+
+    await sendQuery(handlers, {
+      text: 'no retrieval',
+      conversation_ref: 'conv-no-retrieval',
+      memory_retrieval_enabled: false,
+    });
+
+    const lastMessage = getLastSentMessage(ws);
+    expect(lastMessage.payload.content).toContain('<system_context>');
+    expect(lastMessage.payload.content).toContain('<user_query>\nno retrieval\n</user_query>');
+    expect(lastMessage.payload.content).not.toContain('<episodic_memory>');
+    expect(lastMessage.payload.content).not.toContain('<semantic_memory>');
+    expect(lastMessage.payload).not.toHaveProperty('memory_retrieval_enabled');
+    expect(backendBridge.searchMemory).not.toHaveBeenCalled();
+  });
+
   test('persists memory-store backend events once in main process before renderer fanout', async () => {
     const { ws, backendBridge, mainWindow } = setupQueryBridge();
 

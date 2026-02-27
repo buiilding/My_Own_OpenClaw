@@ -406,6 +406,8 @@ function initializeIpc(win, options = {}) {
         onBeforeOverlayQueryCapture,
         log,
       });
+      const memoryRetrievalEnabled = payload.memory_retrieval_enabled !== false;
+      delete payload.memory_retrieval_enabled;
       queryMessageId = uuidv4();
       setResponseOverlayPhase('awaiting-first-chunk', 'query');
       const conversationRef = resolveConversationRefFromPayload(payload, currentConversationRef);
@@ -442,6 +444,7 @@ function initializeIpc(win, options = {}) {
         contextType,
         getSystemState,
         searchMemory,
+        memoryRetrievalEnabled,
         log,
       });
       payload.content = completeContent;
