@@ -26,6 +26,7 @@ body {
   bottom: 0;
   margin: 0;
   transform: translateX(-50%);
+  animation: none;
 }
 
 .chatbox-input-shell-wrap .chatbox-shell {
