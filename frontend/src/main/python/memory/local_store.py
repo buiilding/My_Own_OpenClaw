@@ -27,6 +27,12 @@ except ImportError:
 
 from core.remote_embedding_client import RemoteEmbeddingClient
 from core.remote_title_client import RemoteTitleClient
+from memory.conversation_search_helpers import build_conversation_hit
+from memory.conversation_search_helpers import build_fts_query
+from memory.conversation_search_helpers import extract_query_terms
+from memory.conversation_search_helpers import group_conversation_search_hits
+from memory.conversation_search_helpers import pick_best_conversation_hit
+from memory.conversation_search_helpers import safe_timestamp_to_epoch_seconds
 from memory.faiss_index import (
     read_index_safe,
     read_index_safe_async,
@@ -1344,7 +1350,7 @@ class LocalMemoryStore:
             limit=max(1, semantic_limit),
         )
 
-        grouped_hits = self._group_conversation_search_hits(lexical_hits, semantic_hits)
+        grouped_hits = group_conversation_search_hits(lexical_hits, semantic_hits)
         if not grouped_hits:
             return []
 
@@ -1367,12 +1373,12 @@ class LocalMemoryStore:
             if not summary:
                 continue
 
-            best_hit = self._pick_best_conversation_hit(hit_info)
+            best_hit = pick_best_conversation_hit(hit_info)
             lexical_best = float(hit_info.get("lexical_best", 0.0))
             semantic_best = float(hit_info.get("semantic_best", 0.0))
             match_count = int(hit_info.get("match_count", 0))
 
-            last_ts = self._safe_timestamp_to_epoch_seconds(summary.get("last_timestamp"))
+            last_ts = safe_timestamp_to_epoch_seconds(summary.get("last_timestamp"))
             age_days = max(0.0, (now_ts - last_ts) / 86400.0) if last_ts > 0 else 3650.0
             recency_boost = 1.0 / (1.0 + (age_days / 14.0))
             final_score = (
@@ -1397,7 +1403,7 @@ class LocalMemoryStore:
         scored_rows.sort(
             key=lambda row: (
                 float(row.get("score", 0.0)),
-                self._safe_timestamp_to_epoch_seconds(row.get("last_timestamp")),
+                safe_timestamp_to_epoch_seconds(row.get("last_timestamp")),
             ),
             reverse=True,
         )
@@ -1743,7 +1749,7 @@ class LocalMemoryStore:
         query: str,
         limit: int,
     ) -> List[Dict[str, Any]]:
-        fts_query = self._build_fts_query(query)
+        fts_query = build_fts_query(query)
         if not fts_query:
             return []
 
@@ -1775,7 +1781,7 @@ class LocalMemoryStore:
                 lexical_rank = row["lexical_rank"]
                 rank_factor = 1.0 / (1.0 + abs(float(lexical_rank or 0.0)))
                 score = (position_score * 0.72) + (rank_factor * 0.28)
-                hits.append(self._build_conversation_hit(
+                hits.append(build_conversation_hit(
                     memory_id=row["memory_id"],
                     conversation_id=row["conversation_id"],
                     role=row["role"],
@@ -1800,7 +1806,7 @@ class LocalMemoryStore:
         query: str,
         limit: int,
     ) -> List[Dict[str, Any]]:
-        like_terms = self._extract_query_terms(query)
+        like_terms = extract_query_terms(query)
         if not like_terms:
             return []
         where_clause = " OR ".join(["LOWER(content) LIKE ?"] * len(like_terms))
@@ -1827,7 +1833,7 @@ class LocalMemoryStore:
         hits: List[Dict[str, Any]] = []
         for index, row in enumerate(rows):
             score = max(0.0, 1.0 - (index / max(1, limit)))
-            hits.append(self._build_conversation_hit(
+            hits.append(build_conversation_hit(
                 memory_id=row["memory_id"],
                 conversation_id=row["conversation_id"],
                 role=row["role"],
@@ -1872,7 +1878,7 @@ class LocalMemoryStore:
             rank_bonus = max(0.0, 1.0 - (index / max(1, limit)))
             score = (semantic_score * 0.74) + (rank_bonus * 0.26)
 
-            hits.append(self._build_conversation_hit(
+            hits.append(build_conversation_hit(
                 memory_id=row.get("id"),
                 conversation_id=conversation_id,
                 role=metadata.get("role"),
@@ -1981,156 +1987,6 @@ class LocalMemoryStore:
                 ),
             }
         return summaries
-
-    @staticmethod
-    def _extract_query_terms(query: str) -> List[str]:
-        terms = re.findall(r"[A-Za-z0-9_]+", (query or "").lower())
-        deduped: List[str] = []
-        seen = set()
-        for term in terms:
-            normalized = term.strip()
-            if len(normalized) < 2 or normalized in seen:
-                continue
-            seen.add(normalized)
-            deduped.append(normalized)
-            if len(deduped) >= 8:
-                break
-        return deduped
-
-    def _build_fts_query(self, query: str) -> str:
-        terms = self._extract_query_terms(query)
-        if not terms:
-            return ""
-        return " ".join(f"{term}*" for term in terms)
-
-    def _build_content_snippet(self, content: Optional[str], query: str) -> str:
-        text = " ".join((content or "").split())
-        if not text:
-            return ""
-        max_chars = 160
-        if len(text) <= max_chars:
-            return text
-
-        lower_text = text.lower()
-        terms = self._extract_query_terms(query)
-        hit_index = 0
-        for term in terms:
-            pos = lower_text.find(term)
-            if pos >= 0:
-                hit_index = pos
-                break
-
-        window = 130
-        start = max(0, hit_index - 45)
-        end = min(len(text), start + window)
-        start = max(0, end - window)
-        snippet = text[start:end].strip()
-        if start > 0:
-            snippet = f"…{snippet}"
-        if end < len(text):
-            snippet = f"{snippet}…"
-        return snippet
-
-    def _build_conversation_hit(
-        self,
-        memory_id: Optional[str],
-        conversation_id: Optional[str],
-        role: Optional[str],
-        content: Optional[str],
-        timestamp: Optional[str],
-        source: str,
-        score: float,
-        query: str,
-    ) -> Dict[str, Any]:
-        normalized_role = (role or "").strip().lower() or "assistant"
-        snippet = self._build_content_snippet(content, query)
-        return {
-            "memory_id": memory_id,
-            "conversation_id": conversation_id,
-            "role": normalized_role,
-            "content": content or "",
-            "timestamp": timestamp,
-            "source": source,
-            "score": float(score),
-            "snippet": snippet,
-        }
-
-    def _group_conversation_search_hits(
-        self,
-        lexical_hits: List[Dict[str, Any]],
-        semantic_hits: List[Dict[str, Any]],
-    ) -> Dict[str, Dict[str, Any]]:
-        grouped: Dict[str, Dict[str, Any]] = {}
-
-        def append_hit(hit: Dict[str, Any]) -> None:
-            conversation_id = hit.get("conversation_id")
-            if not conversation_id:
-                return
-            bucket = grouped.setdefault(conversation_id, {
-                "hits": [],
-                "match_ids": set(),
-                "lexical_match_count": 0,
-                "semantic_match_count": 0,
-                "lexical_best": 0.0,
-                "semantic_best": 0.0,
-            })
-            memory_id = hit.get("memory_id")
-            if memory_id and memory_id in bucket["match_ids"]:
-                return
-
-            bucket["hits"].append(hit)
-            if memory_id:
-                bucket["match_ids"].add(memory_id)
-
-            source = hit.get("source")
-            score = float(hit.get("score", 0.0))
-            if source == "lexical":
-                bucket["lexical_match_count"] += 1
-                bucket["lexical_best"] = max(bucket["lexical_best"], score)
-            elif source == "semantic":
-                bucket["semantic_match_count"] += 1
-                bucket["semantic_best"] = max(bucket["semantic_best"], score)
-
-        for hit in lexical_hits:
-            append_hit(hit)
-        for hit in semantic_hits:
-            append_hit(hit)
-
-        for payload in grouped.values():
-            payload["match_count"] = len(payload["match_ids"])
-            payload.pop("match_ids", None)
-        return grouped
-
-    @staticmethod
-    def _pick_best_conversation_hit(hit_info: Dict[str, Any]) -> Dict[str, Any]:
-        hits = hit_info.get("hits") or []
-        if not hits:
-            return {
-                "source": "lexical",
-                "role": "assistant",
-                "timestamp": None,
-                "snippet": "",
-                "score": 0.0,
-            }
-        lexical_hits = [hit for hit in hits if hit.get("source") == "lexical"]
-        if lexical_hits:
-            return max(lexical_hits, key=lambda hit: float(hit.get("score", 0.0)))
-        return max(hits, key=lambda hit: float(hit.get("score", 0.0)))
-
-    @staticmethod
-    def _safe_timestamp_to_epoch_seconds(timestamp: Optional[str]) -> float:
-        if not isinstance(timestamp, str) or not timestamp.strip():
-            return 0.0
-        text = timestamp.strip()
-        try:
-            if text.endswith("Z"):
-                text = text.replace("Z", "+00:00")
-            parsed = datetime.fromisoformat(text)
-            if parsed.tzinfo is None:
-                parsed = parsed.replace(tzinfo=timezone.utc)
-            return parsed.timestamp()
-        except Exception:
-            return 0.0
 
     async def list_semantic_memories(
         self, user_id: str, limit: int = 200

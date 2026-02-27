@@ -11,10 +11,12 @@ title: "Local Memory Store Embedding, Search, and Memory-Type Routing Reference"
 ## Canonical Modules
 
 - `frontend/src/main/python/memory/local_store.py`
+- `frontend/src/main/python/memory/conversation_search_helpers.py`
 - `frontend/src/main/python/core/remote_embedding_client.py`
 - `frontend/src/main/python/memory/faiss_index.py`
 - `frontend/src/main/python/memory/sqlite_store.py`
 - `tests/sidecar/test_local_store_delete_cleanup.py`
+- `tests/sidecar/test_conversation_search_helpers.py`
 
 ## Runtime Topology
 

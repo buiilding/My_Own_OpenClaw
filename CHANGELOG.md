@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-memory-search): extract transcript conversation-search term/snippet/grouping/timestamp helpers from `memory/local_store.py` into `memory/conversation_search_helpers.py`, reducing local-store size while preserving ranking/merge behavior; add focused helper regression coverage.
 - docs(frontend-chat-actions): add message-action/source-badge dev-ui reference covering assistant/user action gating, shared copy timer behavior, and source-tag label resolution contracts.
 - docs(frontend-sidebar): refresh dashboard sidebar/search/profile runtime reference for split sidebar module ownership (`DashboardSidebarNavigation`, `DashboardSidebarUserMenu`, shared `useDismissOnOutside`) and current conversation kebab/profile action contracts.
 - docs(frontend-transcript-loader): add renderer infrastructure reference for paginated transcript loading (`afterMessageIndex`) and screenshot display-bounds storage/injection contracts; sync dashboard/rehydrate docs with loader-based flow.
