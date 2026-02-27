@@ -11,10 +11,12 @@ title: "Conversation Transcript Window Queries and FAISS Artifact Cleanup Refere
 ## Canonical Modules
 
 - `frontend/src/main/python/memory/local_store.py`
+- `frontend/src/main/python/memory/conversation_list_runtime.py`
 - `frontend/src/main/python/memory/conversation_search_helpers.py`
 - `frontend/src/main/python/memory/conversation_title_helpers.py`
 - `frontend/src/main/python/memory/watermark_state.py`
 - `tests/sidecar/test_local_store_delete_cleanup.py`
+- `tests/sidecar/test_conversation_list_runtime.py`
 - `tests/sidecar/test_memory_summarizer.py`
 - `tests/sidecar/test_conversation_search.py`
 - `tests/sidecar/test_conversation_search_helpers.py`
@@ -48,6 +50,11 @@ All these paths enforce `record_kind = 'transcript'` regardless of caller hint v
 Ordering:
 
 - newest conversation first (`ORDER BY last_timestamp DESC`)
+
+Runtime split:
+
+- `conversation_list_runtime.fetch_transcript_conversation_rows(...)` owns list-conversation SQL query shape and ordering.
+- `conversation_list_runtime.build_conversation_list_results(...)` owns title resolution/filtering and response payload shaping.
 
 ## Message Index Allocation and Replay Order
 

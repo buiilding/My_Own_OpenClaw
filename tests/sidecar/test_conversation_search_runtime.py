@@ -158,21 +158,20 @@ async def test_fetch_conversation_summaries_assigns_pending_when_title_missing(m
     ]
     cursor = _SummaryCursor(rows)
 
-    async def _fake_ensure_conversation_title(
+    async def _fake_ensure_conversation_title_from_row(
         *,
         cursor,
         user_id: str,
-        conversation_id: str,
-        existing_title: Any,
-        existing_title_source: Any,
-        existing_title_locked: Any,
+        row: Dict[str, Any],
     ):
-        _ = (cursor, user_id, existing_title, existing_title_source, existing_title_locked)
-        if conversation_id == "thread-beta":
+        _ = (cursor, user_id)
+        if row.get("conversation_id") == "thread-beta":
             return None, None
         return "  Alpha title  ", "model"
 
-    monkeypatch.setattr(runtime, "ensure_conversation_title", _fake_ensure_conversation_title)
+    monkeypatch.setattr(
+        runtime, "ensure_conversation_title_from_row", _fake_ensure_conversation_title_from_row
+    )
 
     summaries = await runtime.fetch_conversation_summaries(
         cursor=cursor,

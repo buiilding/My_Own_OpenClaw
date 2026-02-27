@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional
 from memory.conversation_search_helpers import build_conversation_hit
 from memory.conversation_search_helpers import build_fts_query
 from memory.conversation_search_helpers import extract_query_terms
-from memory.conversation_title_helpers import ensure_conversation_title
+from memory.conversation_title_helpers import ensure_conversation_title_from_row
 
 
 def _build_scored_transcript_hit(
@@ -292,13 +292,10 @@ async def fetch_conversation_summaries(
     summaries: Dict[str, Dict[str, Any]] = {}
     for row in rows:
         conversation_id = row["conversation_id"]
-        title, title_source = await ensure_conversation_title(
+        title, title_source = await ensure_conversation_title_from_row(
             cursor=cursor,
             user_id=user_id,
-            conversation_id=conversation_id,
-            existing_title=row["title"],
-            existing_title_source=row["title_source"],
-            existing_title_locked=row["title_locked"],
+            row=row,
         )
         normalized_title = title.strip() if isinstance(title, str) and title.strip() else "New chat"
         summaries[conversation_id] = {

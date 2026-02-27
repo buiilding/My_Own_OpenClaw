@@ -28,6 +28,7 @@ title: "Frontend Sidecar Memory Storage Docs Hub"
 ## Code Scope
 
 - `frontend/src/main/python/memory/local_store.py`
+- `frontend/src/main/python/memory/conversation_list_runtime.py`
 - `frontend/src/main/python/memory/conversation_search_helpers.py`
 - `frontend/src/main/python/memory/conversation_search_runtime.py`
 - `frontend/src/main/python/memory/conversation_title_helpers.py`
@@ -37,6 +38,7 @@ title: "Frontend Sidecar Memory Storage Docs Hub"
 - `frontend/src/main/python/memory/operations.py`
 - `frontend/src/main/python/core/remote_title_client.py`
 - `tests/sidecar/test_local_store_delete_cleanup.py`
+- `tests/sidecar/test_conversation_list_runtime.py`
 - `tests/sidecar/test_conversation_search.py`
 - `tests/sidecar/test_conversation_search_helpers.py`
 - `tests/sidecar/test_conversation_search_runtime.py`

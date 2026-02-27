@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-memory-list-runtime): extract transcript conversation-list SQL and title-filter/result shaping from `memory/local_store.py` into `memory/conversation_list_runtime.py`, remove the old local-store private list helper, add focused runtime unit coverage, and sync transcript-window/storage docs to the new module ownership.
 - docs(backend-memory-title-route): add dedicated deep reference for `/api/semantic/title` request validation, session/global config + model/provider override flow, title parser normalization/fallback semantics, and route/service test-backed invariants.
 - refactor(sidecar-memory-search-runtime): extract transcript search runtime helpers (`search_transcript_hits_lexical/semantic`, LIKE fallback, conversation summary fetch/title fallback) from `memory/local_store.py` into `memory/conversation_search_runtime.py`, remove duplicated local-store methods/imports, add focused runtime regressions, and sync storage/title contract docs to the new helper ownership.
 - docs(sidecar-core-title-client): expand sidecar core connectivity/runtime docs to include `RemoteTitleClient` endpoint/payload/timeout/error contracts, shared session lifecycle semantics, and direct test-surface coverage mapping.
