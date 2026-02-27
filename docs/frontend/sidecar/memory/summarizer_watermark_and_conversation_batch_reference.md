@@ -1,8 +1,8 @@
 ---
-summary: "Sidecar memory summarizer deep reference: run-loop gating, per-user conversation batching, semantic dedupe hash behavior, transcript filtering rules, chunk limits, and watermark updates."
+summary: "Sidecar memory summarizer deep reference: run-loop gating, per-user conversation batching, semantic dedupe hash behavior, interaction-row chunking rules, and watermark updates."
 read_when:
   - When changing `MemorySummarizer` thresholds, chunking, or backoff behavior.
-  - When debugging semanticization gaps, duplicate summaries, or pending watermark counters that never clear.
+  - When debugging semanticization gaps, duplicate summaries, or interaction rows that are not being summarized.
 title: "Summarizer Watermark and Conversation Batch Reference"
 ---
 
@@ -18,12 +18,12 @@ title: "Summarizer Watermark and Conversation Batch Reference"
 
 ## Runtime Purpose
 
-The sidecar summarizer periodically converts transcript-backed episodic rows into semantic memories while preventing duplicate summaries and uncontrolled background churn.
+The sidecar summarizer periodically converts episodic interaction rows into semantic memories while preventing duplicate summaries and uncontrolled background churn.
 
 Dev toggle:
 
 - `WINDIE_ENABLE_SEMANTIC_SUMMARIZER=0` disables summarizer startup in `local_backend.py`.
-- When disabled, transcript writes still persist to episodic memory; periodic semanticization loop does not run.
+- When disabled, episodic writes still persist to local memory; periodic semanticization loop does not run.
 
 ## Settings and Scheduling Model
 
@@ -47,16 +47,16 @@ Loop behavior:
 - `_maybe_summarize()` is lock-guarded to avoid concurrent cycles
 - backoff doubles on cycle-level failure until max, resets after successful cycle
 
-## Watermark Gate and Pending Counter
+## Run Gate and Watermark State
 
-Cycle entry checks `memory_store.get_watermark()` and requires:
+Cycle entry checks DB state and requires:
 
-- `pending_message_count >= min_batch_size`
+- `count_unsemanticized_interaction_memories() >= min_batch_size`
 
-Pending counter lifecycle:
+Watermark lifecycle:
 
-- incremented by sidecar on new store-memory events (`increment_pending_count`)
-- reset to zero only when at least one summary is produced in cycle (`update_watermark(..., pending_message_count=0)`)
+- watermark pending fields are no longer the run gate
+- pending counter is reset to zero when at least one summary is produced in cycle (`update_watermark(..., pending_message_count=0)`)
 
 Watermark storage:
 
@@ -80,7 +80,7 @@ Conversation selection:
 
 `_summarize_conversation_batch(user_id, conversation_id)`:
 
-1. load unsummarized transcript memories for conversation (`max_batch_size` cap)
+1. load unsummarized interaction memories for conversation (`max_batch_size` cap)
 2. apply batch readiness rules (`_should_summarize_batch`)
 3. compute deterministic summary hash from user/conversation/memory IDs
 4. if semantic summary already exists, mark source memories semanticized and skip API call
@@ -103,14 +103,9 @@ Timestamp handling:
 - naive timestamps get local tz then normalized to UTC
 - failures fall back to idle heuristic
 
-## Transcript Filtering and Chunking
+## Interaction Chunking
 
 Before summarization, each memory row is normalized by `_format_memory_line`.
-
-Filtering:
-
-- transcript rows with `role="tool"` are skipped
-- defensive skip list also removes tool message types (`tool-call`, `tool-output`, `tool-bundle-result`, etc.)
 
 Normalization:
 
@@ -125,27 +120,27 @@ Chunking:
 
 ## Store Queries Used by Summarizer
 
-`LocalMemoryStore` queries enforce transcript-only summarization surface:
+`LocalMemoryStore` queries enforce interaction-only summarization surface:
 
-- unsemanticized user discovery: `record_kind='transcript' AND is_semanticized=0`
+- unsemanticized user discovery: `record_kind='interaction' AND is_semanticized=0`
 - conversation windows: grouped by `conversation_id`
-- memory batch load: transcript rows ordered chronologically
+- memory batch load: interaction rows ordered chronologically
 - semantic dedupe check: `semantic_summary_exists(summary_hash)` via metadata lookup
 
 ## Test-Backed Behavior
 
 `tests/sidecar/test_memory_summarizer.py` validates:
 
-- tool transcript chatter is excluded from semantic request chunks
+- interaction rows are used to build semantic request chunks
 - one user batch failure does not prevent processing remaining users
 - known-user preference skips cold-start discovery query
 - cold-start discovery limits to one user
 - mixed timezone timestamp parsing remains stable
-- pending watermark threshold gate for `_should_run()`
+- interaction-row threshold gate for `_should_run()`
 
 ## Drift Hotspots
 
-1. Changing pending-counter reset behavior can leave summarizer permanently gated or always active.
+1. Breaking interaction-row count queries can leave summarizer permanently gated or always active.
 2. Loosening transcript tool-entry filtering can pollute semantic memory with low-signal execution chatter.
 3. Altering summary-hash inputs can reintroduce duplicate semantic writes for same memory window.
 4. Raising chunk size/count caps without safeguards can increase semantic request latency and failure blast radius.
