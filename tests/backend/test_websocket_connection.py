@@ -121,6 +121,36 @@ async def test_perform_handshake_large_payload_uses_executor(monkeypatch) -> Non
 
 
 @pytest.mark.asyncio
+async def test_perform_handshake_offload_threshold_uses_utf8_byte_size(monkeypatch) -> None:
+    payload = json.dumps(
+        {
+            "type": "handshake",
+            "user_id": "🙂" * 24,
+        },
+        ensure_ascii=False,
+    )
+    threshold = len(payload) + 1
+    assert len(payload.encode("utf-8")) > threshold > len(payload)
+
+    websocket = DummyWebSocket(payload)
+    safe_ws = DummySafeWebSocket()
+    monkeypatch.setattr(connection_module, "_HANDSHAKE_JSON_PARSE_OFFLOAD_BYTES", threshold)
+    called = {"executor": False}
+
+    class FakeLoop:
+        async def run_in_executor(self, executor, fn, data):
+            called["executor"] = True
+            return fn(data)
+
+    monkeypatch.setattr(connection_module.asyncio, "get_running_loop", lambda: FakeLoop())
+    assigned_user_id = await perform_handshake(websocket, safe_ws)
+
+    assert assigned_user_id == "🙂" * 24
+    assert safe_ws.closed == []
+    assert called["executor"] is True
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "payload",
     [
