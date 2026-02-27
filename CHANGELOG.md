@@ -8,6 +8,7 @@ Includes the last 300 commits on `main`.
 
 ### Added
 - fix(frontend-dashboard-sidebar-collapsed-icons): remove duplicate collapsed sidebar logo/toggle stack, render one hover-swap brand control (`logo` <-> `expand`), move `New chat` into the header toggle slot, and add focused sidebar tests for hover swap + single new-chat action.
+- docs(backend-protocol-testing): fix websocket schema-model naming typo (`memory-stored` -> `memory-store`) in backend protocol test coverage reference.
 - fix(sidecar-memory-type-validation): enforce `memory_type` allowlist (`episodic|semantic`) in both `local_backend.store_memory` and standalone `memory_service.store`; invalid values now fail fast.
 - fix(sidecar-memory-validation): trim and reject whitespace-only `user_query` / `assistant_response` in both `local_backend.store_memory` and standalone `memory_service.store` handlers; add sidecar regression coverage.
 - fix(sidecar-memory-service): persist `store` interactions with `record_kind=\"interaction\"` so standalone memory-service writes remain consistent with summarizer interaction-row sourcing.
