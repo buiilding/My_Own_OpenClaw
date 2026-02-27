@@ -11,6 +11,7 @@ title: "Frontend Sidecar Core Docs Hub"
 ## Deep Pages
 
 - [JSON-RPC Protocol, Stdout Framing, and Shutdown Signal Runtime Reference](json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md)
+- [Remote API Client Base Session Lifecycle, Timeout, and Error-Wrapper Contract Reference](remote_api_client_base_session_lifecycle_timeout_and_error_wrapper_contract_reference.md)
 - [Backend URL Resolution, Remote Memory Clients, and Thread-Pool Runtime Reference](backend_url_resolution_remote_memory_clients_and_thread_pool_runtime_reference.md)
 
 ## Related Pages
@@ -26,6 +27,7 @@ title: "Frontend Sidecar Core Docs Hub"
 - `frontend/src/main/python/core/runtime_shutdown.py`
 - `frontend/src/main/python/core/stdout_json.py`
 - `frontend/src/main/python/core/backend_config.py`
+- `frontend/src/main/python/core/remote_api_client_base.py`
 - `frontend/src/main/python/core/remote_embedding_client.py`
 - `frontend/src/main/python/core/remote_semantic_client.py`
 - `frontend/src/main/python/core/remote_title_client.py`
@@ -37,4 +39,5 @@ title: "Frontend Sidecar Core Docs Hub"
 - `tests/sidecar/test_remote_embedding_client.py`
 - `tests/sidecar/test_remote_semantic_client.py`
 - `tests/sidecar/test_remote_title_client.py`
+- `tests/sidecar/remote_client_test_utils.py`
 - `tests/sidecar/test_thread_pool.py`
