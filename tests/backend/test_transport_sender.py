@@ -35,3 +35,15 @@ async def test_websocket_transport_sender_propagates_send_errors():
 
     with pytest.raises(RuntimeError, match="send failed: event"):
         await sender.send({"type": "event", "payload": {"ok": False}})
+
+
+@pytest.mark.asyncio
+async def test_websocket_transport_sender_copies_payload_before_forwarding():
+    websocket = DummyWebSocket()
+    sender = WebSocketTransportSender(websocket)
+    payload = {"type": "event", "payload": {"status": "pending"}}
+
+    await sender.send(payload)
+    payload["payload"]["status"] = "mutated"
+
+    assert websocket.calls[0][0]["payload"]["status"] == "pending"
