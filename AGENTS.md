@@ -29,73 +29,118 @@ User experience target:
 
 Treat this as the high-level mental model of WindieOS behavior.
 
-### 1) Core agent loop
+### 1) Turn lifecycle (outer loop)
 
-- User message -> model thinks -> may call tools -> tool outputs return -> model thinks again.
-- Repeat until model stops calling tools.
-- End condition: model emits normal assistant text response.
+- User message -> optimistic user row appears immediately.
+- Backend opens one turn -> streams events for that turn.
+- Turn ends only on terminal event (`streaming-complete` or error).
 
-### 2) Message send flow
+### 2) Agent loop (inner loop)
 
-- User presses send -> message appears immediately in UI.
-- Optional screenshot/context capture happens.
-- Request goes to backend -> backend starts response stream.
+- User goal -> model response.
+- If tool calls exist: execute tools -> feed tool outputs back to model.
+- Repeat until model stops calling tools -> final normal assistant text.
 
-### 3) Chat pill visibility flow
+### 3) Tool-call handshake
 
-- Overlay chat mode -> chat pill can show/hide around tool execution or capture phases.
-- Dashboard mode -> dashboard remains primary surface.
-- After tool/capture phase ends -> UI returns to normal visible state.
+- Model emits tool call -> system assigns execution identity.
+- Frontend executes tool -> sends result with same identity.
+- Backend matches result to waiting call -> loop continues.
 
-### 4) Focus handoff flow
+### 4) Grounding frame contract
 
-- If a tool needs outside-app interaction -> assistant UI yields focus.
-- Target app gets focus -> action runs.
-- Action done/fails -> assistant UI regains expected focus state.
+- Every screenshot produces a frame identity.
+- OCR/manual grounding is tied to that exact frame.
+- Click execution uses that same frame mapping, not global screen heuristics.
 
-### 5) Click-through behavior flow
+### 5) OCR ambiguity contract
 
-- Normal chatting -> chat UI is interactive (clickable).
-- Interactive computer-use phase -> click-through/focus mode adjusts so desktop actions can run cleanly.
-- Phase ends -> click-through mode resets to normal interactive UI.
+- OCR text query -> 0/1/many matches.
+- If many matches: system returns stable candidates for that frame.
+- Model selects one candidate -> retry on same frame identity.
 
-### 6) Screenshot capture flow
+### 6) Stale-frame safety contract
 
-- Capture requested -> UI prepares capture-safe state.
-- Screenshot taken -> result attached to the ongoing flow.
-- UI restores to normal state after capture.
+- If click was grounded on old frame but current frame changed -> reject click.
+- Required next step: re-ground on latest frame, then retry.
 
-### 7) OCR and grounding flow
+### 7) Bundle atomicity contract
 
-- Click by text request -> OCR tries to find one target.
-- One match -> click executes.
-- Multiple matches -> system returns options.
-- Model/user picks one option -> retry click.
-- If screen changed before retry -> re-ground on latest frame first.
+- Model emits bundle -> steps run in order as one unit.
+- Bundle resolves to one aggregate result before next model iteration.
+- No partial advance to next iteration before bundle completes.
 
-### 8) Tool bundle flow
+### 8) Stale-turn event gate
 
-- Model emits multi-step bundle -> steps execute in order.
-- Step outputs aggregate into one bundle result.
-- Model receives bundle result -> decides next actions or finishes.
+- Active turn identity is tracked in UI/runtime.
+- Late tool events from older turns are canceled/ignored.
+- Old outputs cannot mutate current turn state.
 
-### 9) Stop flow
+### 9) Message send and capture flow
 
-- User presses stop -> stop signal sent immediately.
+- Send action -> optional screenshot/context capture -> backend query.
+- Capture/upload failures degrade gracefully; query still sends.
+- Uploaded artifacts become the shared visual context for that turn.
+
+### 10) Surface mode flow (dashboard vs chat pill)
+
+- Dashboard mode: main window is primary.
+- Overlay mode: chat pill is primary lightweight surface.
+- Tool/capture phases may temporarily alter surfaces, then restore.
+
+### 11) Chat pill hide/show flow
+
+- Interactive tool phases may hide the chat pill for clean control.
+- Non-interactive phases keep normal visibility behavior.
+- Restore happens after phase completion using scoped lifecycle tokens.
+
+### 12) Focus handoff flow
+
+- External interaction needed -> WindieOS yields focus.
+- Target app gets focus -> action/capture executes.
+- Flow then restores expected assistant/window focus state.
+
+### 13) Click-through flow
+
+- Idle/chatting -> chat UI clickable.
+- Interactive computer-use phase -> click-through toggled to avoid interception.
+- Phase end -> click-through reset to normal interactive state.
+
+### 14) Stop flow
+
+- User stop -> cancel signal issued immediately.
 - Active or just-starting query is canceled.
-- Late outputs from old run are ignored.
+- UI always receives terminal completion for clean exit.
 
-### 10) Memory flow
+### 15) Rehydrate flow
 
-- New conversation activity -> episodic memory written.
-- Background process distills longer-term semantic memory.
-- Next query -> memory is injected only if retrieval is enabled.
+- Opening prior conversation -> transcript snapshot loaded.
+- Backend rebuilds model-usable history from transcript.
+- New turns continue from reconstructed context.
 
-### 11) Transcript flow
+### 16) Compaction flow
 
-- User/assistant/tool events -> transcript entries recorded.
-- Temporary write failures -> queued and retried.
-- Opening an old conversation -> transcript is rehydrated into UI.
+- History growth crosses policy -> compaction lifecycle events emitted.
+- Manual compaction allowed only when no active query race.
+- Result: history reduced or explicitly skipped with reason.
+
+### 17) Permission gate flow
+
+- App boot -> permission manifest + probes.
+- Missing required permissions -> onboarding gate blocks normal shell.
+- Granted/consented state -> main chat surfaces unlocked.
+
+### 18) Memory flow
+
+- Completed interaction -> episodic memory write.
+- Background processing may distill semantic memory.
+- Future queries retrieve memory only when enabled.
+
+### 19) Transcript durability flow
+
+- User/assistant/tool events -> persisted transcript entries.
+- Temporary persistence failure -> queued retry.
+- UI and backend can rehydrate from persisted transcript state.
 
 ## Project Structure & Module Organization
 
