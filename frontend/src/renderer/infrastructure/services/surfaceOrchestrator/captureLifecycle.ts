@@ -1,6 +1,10 @@
 import { IpcBridge, INVOKE_CHANNELS } from '../../ipc/bridge';
 import { logSurfaceTransition } from './logging';
 import {
+  resolveCaptureFocusPreparationWaitMs,
+  resolveSurfaceTransitionContext,
+} from './context';
+import {
   collapseChatPillForBackgroundCapture,
   restoreChatPillInactive,
 } from './chatPillVisibility';
@@ -9,11 +13,9 @@ import {
   getActiveScreenshotCaptureCount,
   incrementActiveScreenshotCaptureCount,
   isPendingScreenshotCaptureRestore,
-  resolveCorrelationId,
   setPendingScreenshotCaptureRestore,
 } from './state';
 import {
-  DEFAULT_CAPTURE_FOCUS_PREPARE_WAIT_MS,
   type CaptureVisibilityPreparation,
   type SurfaceTransitionSource,
 } from './types';
@@ -24,8 +26,14 @@ export async function prepareScreenshotCaptureVisibility(
     source?: SurfaceTransitionSource;
   } = {},
 ): Promise<CaptureVisibilityPreparation> {
-  const source = options.source || 'system-capture';
-  const captureId = resolveCorrelationId(options.captureId, 'capture');
+  const context = resolveSurfaceTransitionContext(
+    options.source,
+    options.captureId,
+    'system-capture',
+    'capture',
+  );
+  const source = context.source;
+  const captureId = context.correlationId;
 
   const activeCaptureCount = incrementActiveScreenshotCaptureCount();
   if (activeCaptureCount > 1) {
@@ -128,11 +136,15 @@ export async function prepareExternalFocusForCapture(
     source?: SurfaceTransitionSource;
   } = {},
 ): Promise<void> {
-  const source = options.source || 'system-capture';
-  const captureId = resolveCorrelationId(options.captureId, 'capture-focus');
-  const waitMs = typeof options.waitMs === 'number'
-    ? options.waitMs
-    : DEFAULT_CAPTURE_FOCUS_PREPARE_WAIT_MS;
+  const context = resolveSurfaceTransitionContext(
+    options.source,
+    options.captureId,
+    'system-capture',
+    'capture-focus',
+  );
+  const source = context.source;
+  const captureId = context.correlationId;
+  const waitMs = resolveCaptureFocusPreparationWaitMs(options.waitMs);
 
   try {
     logSurfaceTransition({

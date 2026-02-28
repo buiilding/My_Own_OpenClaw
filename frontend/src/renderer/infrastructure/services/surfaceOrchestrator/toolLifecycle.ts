@@ -1,6 +1,10 @@
 import { IpcBridge, INVOKE_CHANNELS } from '../../ipc/bridge';
 import { logSurfaceTransition } from './logging';
 import {
+  resolveInteractiveFocusPreparationOptions,
+  resolveSurfaceTransitionContext,
+} from './context';
+import {
   collapseChatPillForBackgroundCapture,
   restoreChatPillInactive,
 } from './chatPillVisibility';
@@ -11,13 +15,10 @@ import {
   markOverlayIgnoreForToken,
   registerSurfaceToken,
   releaseSurfaceToken,
-  resolveCorrelationId,
   setPendingChatPillRestore,
   unmarkOverlayIgnoreForToken,
 } from './state';
 import {
-  DEFAULT_TOOL_FOCUS_PREPARE_MAX_ATTEMPTS,
-  DEFAULT_TOOL_FOCUS_PREPARE_WAIT_MS,
   OVERLAY_SURFACE_PREPARE_EXCEPTION,
   type SurfaceMode,
   type SurfaceTransitionSource,
@@ -42,8 +43,13 @@ export async function prepareToolExecutionSurface(
     focusMaxAttempts?: number;
   } = {},
 ): Promise<ToolSurfacePreparation> {
-  const source = options.source || 'tool-runner';
-  const correlationId = resolveCorrelationId(options.correlationId, 'surface');
+  const context = resolveSurfaceTransitionContext(
+    options.source,
+    options.correlationId,
+    'tool-runner',
+    'surface',
+  );
+  const { source, correlationId } = context;
   if (mode === 'none') {
     logSurfaceTransition({
       source,
@@ -95,12 +101,11 @@ export async function prepareToolExecutionSurface(
     surfaceToken = registerSurfaceToken();
 
     if (mode === 'interactive') {
-      const waitMs = typeof options.focusWaitMs === 'number'
-        ? options.focusWaitMs
-        : DEFAULT_TOOL_FOCUS_PREPARE_WAIT_MS;
-      const maxAttempts = typeof options.focusMaxAttempts === 'number'
-        ? options.focusMaxAttempts
-        : DEFAULT_TOOL_FOCUS_PREPARE_MAX_ATTEMPTS;
+      const interactiveFocusOptions = resolveInteractiveFocusPreparationOptions(
+        options.focusWaitMs,
+        options.focusMaxAttempts,
+      );
+      const { waitMs, maxAttempts } = interactiveFocusOptions;
 
       for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
         logSurfaceTransition({
@@ -233,8 +238,13 @@ export async function restoreToolExecutionSurface(
     source?: SurfaceTransitionSource;
   } = {},
 ): Promise<void> {
-  const source = options.source || 'tool-runner';
-  const correlationId = resolveCorrelationId(preparation.correlationId, 'surface-restore');
+  const context = resolveSurfaceTransitionContext(
+    options.source,
+    preparation.correlationId,
+    'tool-runner',
+    'surface-restore',
+  );
+  const { source, correlationId } = context;
 
   logSurfaceTransition({
     source,
