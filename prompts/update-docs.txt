@@ -1,4 +1,8 @@
-you are doing detailed docs handling. i
-  want you to create detailed docs on every functionalities in backend and frontend in
-  windieos, read the docs in windieos, read windieos backend and frontend extensively and add
-  each technical detail, and create or add doc.remember to make commits regularly.
+You are doing detailed docs handling.
+
+Create detailed docs for backend and frontend functionality in WindieOS.
+Read existing docs first, then read backend and frontend code extensively, and
+add missing technical details.
+
+Create new docs or update existing docs as needed.
+Remember to make commits regularly.
