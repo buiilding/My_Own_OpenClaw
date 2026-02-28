@@ -13,6 +13,7 @@ title: "Audio Chunk Playback and Stop Semantics Reference"
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
+- `frontend/src/renderer/features/chat/utils/stopQueryState.js`
 - `frontend/src/renderer/features/chat/utils/backendAudioEvents.js`
 - `frontend/src/renderer/infrastructure/audio/PlayerService.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
@@ -103,7 +104,7 @@ This prevents overlap between old and new response audio.
 
 When user stops query:
 
-1. renderer updates stream state to complete-like terminal phase
+1. renderer applies shared stop-state helper (`applyStopQueryUiState`) to mark terminal stop phase
 2. playback stops immediately
 3. `ApiClient.stopQuery()` sends `stop-query` to backend
 
