@@ -94,7 +94,14 @@ export async function restoreScreenshotCaptureVisibility(
     source?: SurfaceTransitionSource;
   } = {},
 ): Promise<void> {
-  const source = options.source || 'system-capture';
+  const context = resolveSurfaceTransitionContext(
+    options.source,
+    preparation.captureId,
+    'system-capture',
+    'capture-restore',
+  );
+  const source = context.source;
+  const captureId = context.correlationId;
   if (!preparation.prepared) {
     return;
   }
@@ -106,7 +113,7 @@ export async function restoreScreenshotCaptureVisibility(
 
   logSurfaceTransition({
     source,
-    correlationId: preparation.captureId,
+    correlationId: captureId,
     mode: 'screenshot',
     phaseBefore: SURFACE_PHASE.CAPTURE_READY,
     phaseAfter: SURFACE_PHASE.RESTORING_SURFACE,
@@ -118,7 +125,7 @@ export async function restoreScreenshotCaptureVisibility(
     console.warn('[SurfaceOrchestrator] Failed to restore chat pill after screenshot capture:', error);
     logSurfaceTransition({
       source,
-      correlationId: preparation.captureId,
+      correlationId: captureId,
       mode: 'screenshot',
       phaseBefore: SURFACE_PHASE.RESTORING_SURFACE,
       phaseAfter: SURFACE_PHASE.FAILED_TERMINAL,
@@ -128,7 +135,7 @@ export async function restoreScreenshotCaptureVisibility(
     setPendingScreenshotCaptureRestore(false);
     logSurfaceTransition({
       source,
-      correlationId: preparation.captureId,
+      correlationId: captureId,
       mode: 'screenshot',
       phaseBefore: SURFACE_PHASE.RESTORING_SURFACE,
       phaseAfter: SURFACE_PHASE.IDLE,
