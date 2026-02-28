@@ -40,6 +40,7 @@ Module:
 - `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
 - `frontend/src/renderer/features/chat/utils/toolRunnerFailureContracts.ts`
 - `frontend/src/renderer/features/chat/utils/toolRunnerTracking.ts`
+- `frontend/src/renderer/features/chat/utils/toolRunnerSurfaceExecution.ts`
 - `frontend/src/renderer/infrastructure/services/SurfaceOrchestrator.ts`
 - `frontend/src/renderer/infrastructure/services/CorrelationId.ts`
 - `frontend/src/renderer/infrastructure/services/ToolComputerUseCatalog.ts`
@@ -53,6 +54,7 @@ Responsibilities:
 - resolves correlation IDs via shared normalization helper (`CorrelationId.resolveCorrelationId`) so whitespace-only ids cannot leak into cancellation/result paths
 - sends cancellation-failure payloads (`frontend_stale_turn_cancelled`) via shared `toolRunnerFailureContracts` envelopes when tool events arrive for closed turns
 - sends surface-preparation failure envelopes from the same contract helper (`frontend_execution_surface_unavailable[:reason]`) so single-tool and bundle failure payloads stay synchronized
+- routes bundle and single-tool surface lifecycle sequencing through shared `toolRunnerSurfaceExecution` (`track -> prepare -> execute -> restore`) so failure ordering stays aligned
 - delegates all surface preparation/restore transitions to `SurfaceOrchestrator` (single source of truth)
 - uses shared computer-use tool catalog (`ToolComputerUseCatalog`) so capture policy and surface mode resolution stay aligned
 - interactive computer-use click-through (`set-overlay-ignore-mouse(true)`) is enabled only inside orchestrator-managed execution windows and reference-count restored after completion
