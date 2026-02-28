@@ -267,6 +267,70 @@ async def test_websocket_endpoint_recovers_after_parse_error_and_dispatches_next
 
 
 @pytest.mark.asyncio
+async def test_websocket_endpoint_dispatches_sequential_control_messages(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cleanup_calls: list[str] = []
+    parse_calls = {"value": 0}
+    handled_messages: list[tuple[str, str, str]] = []
+
+    class FakeTaskManagerSyncDispatch(FakeTaskManager):
+        async def create_task_if_under_limit(self, coro, user_id: str):  # noqa: ARG002
+            await coro
+            return None, False
+
+    class DummyValidatedMessage:
+        def __init__(self, msg_id: str, msg_type: str):
+            self.id = msg_id
+            self.type = msg_type
+
+    async def fake_perform_handshake(websocket, safe_ws):  # noqa: ARG001
+        return "user_control_flow"
+
+    async def fake_cleanup_connection(task_manager, session_manager, user_id: str):  # noqa: ARG001
+        cleanup_calls.append(user_id)
+
+    async def fake_parse_and_validate_message(data, user_id, max_message_size):  # noqa: ARG001
+        parse_calls["value"] += 1
+        if parse_calls["value"] == 1:
+            return DummyValidatedMessage("msg_stop_1", "stop-query"), None
+        return DummyValidatedMessage("msg_rehydrate_1", "rehydrate-conversation"), None
+
+    async def fake_handle_message(websocket, validated_msg, handler_registry, user_id):  # noqa: ARG001
+        handled_messages.append((validated_msg.id, validated_msg.type, user_id))
+
+    async def passthrough_wait_for(awaitable, timeout):  # noqa: ARG001
+        return await awaitable
+
+    monkeypatch.setattr(websocket_route_module, "SafeWebSocket", FakeSafeWebSocket)
+    monkeypatch.setattr(websocket_route_module, "TaskManager", FakeTaskManagerSyncDispatch)
+    monkeypatch.setattr(websocket_route_module, "perform_handshake", fake_perform_handshake)
+    monkeypatch.setattr(websocket_route_module, "cleanup_connection", fake_cleanup_connection)
+    monkeypatch.setattr(websocket_route_module, "parse_and_validate_message", fake_parse_and_validate_message)
+    monkeypatch.setattr(websocket_route_module, "handle_message", fake_handle_message)
+    monkeypatch.setattr(websocket_route_module.asyncio, "wait_for", passthrough_wait_for)
+
+    await websocket_route_module.websocket_endpoint(
+        websocket=SequencedWebSocket(
+            [
+                "{\"id\":\"msg_stop_1\",\"type\":\"stop-query\"}",
+                "{\"id\":\"msg_rehydrate_1\",\"type\":\"rehydrate-conversation\"}",
+                websocket_route_module.WebSocketDisconnect(code=1000),
+            ]
+        ),
+        session_manager=DummySessionManager(),
+        handler_registry=object(),
+    )
+
+    assert parse_calls["value"] == 2
+    assert handled_messages == [
+        ("msg_stop_1", "stop-query", "user_control_flow"),
+        ("msg_rehydrate_1", "rehydrate-conversation", "user_control_flow"),
+    ]
+    assert cleanup_calls == ["user_control_flow"]
+
+
+@pytest.mark.asyncio
 async def test_websocket_endpoint_sends_limit_exceeded_error_with_message_id(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

@@ -1627,7 +1627,17 @@ class LocalMemoryStore:
         if indexed_rows > 0:
             return
 
-        self._set_memory_index(memory_type, faiss.IndexFlatIP(self.embedder.dimension))
+        empty_index = None
+        if faiss is not None:
+            try:
+                empty_index = faiss.IndexFlatIP(self.embedder.dimension)
+            except Exception as e:
+                logger.warning(
+                    "Failed to reinitialize %s FAISS index in cleanup path: %s",
+                    memory_type,
+                    e,
+                )
+        self._set_memory_index(memory_type, empty_index)
         vector_id_to_memory_id.clear()
         memory_id_to_vector_id.clear()
         self._set_next_vector_id(memory_type, 0)

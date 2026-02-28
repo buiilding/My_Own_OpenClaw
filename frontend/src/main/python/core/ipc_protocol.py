@@ -7,6 +7,7 @@ with Electron main process.
 
 import json
 import logging
+import math
 from dataclasses import dataclass
 from inspect import Signature, iscoroutinefunction, signature
 from typing import Any, Callable, Dict, Optional
@@ -60,7 +61,9 @@ class JSONRPCProtocol:
             return True
         if isinstance(request_id, bool):
             return False
-        return isinstance(request_id, (str, int, float))
+        if isinstance(request_id, float):
+            return math.isfinite(request_id)
+        return isinstance(request_id, (str, int))
     
     def register_method(self, name: str, handler: Callable[..., Any]) -> None:
         """Register a method handler."""
