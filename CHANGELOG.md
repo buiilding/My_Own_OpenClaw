@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-chat-input-add-menu-placement): anchor the `+` menu below the composer so the remaining `Add photos & files` action opens under the chat pill instead of above it.
 - fix(frontend-chat-input-add-menu): simplify the `+` attachment dropdown to only show `Add photos & files`, removing `Create image`, `Deep research`, `Shopping research`, `Web search`, and `More`; add MessageInput regression assertions for removed entries.
 - fix(frontend-chat-input-thinking-toggle-removal): remove the chat composer thinking dropdown/toggle pill beside the add-attachment button and add `MessageInput` regression coverage to ensure the control stays absent.
 - fix(frontend-chat-pill-awaiting-indicator): make `local-user-message` set workspace `isSending=true` in stream handlers, treat response-overlay `tool-output` as an awaiting-reply phase, and update `ChatBoxResponse` awaiting gating to include send-state fallback so typing indicator no longer intermittently disappears after user send/tool output transitions; add regressions in `ChatBoxResponse.state`, `StreamPhaseState`, and `ChatStreamThinkingStatus.state`.

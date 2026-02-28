@@ -1183,6 +1183,11 @@
   z-index: 60;
 }
 
+.message-add-photos-under-pill {
+  top: calc(100% + 8px);
+  bottom: auto;
+}
+
 .message-dropdown-item {
   width: 100%;
   border: 0;
