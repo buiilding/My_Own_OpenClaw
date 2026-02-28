@@ -209,6 +209,33 @@ describe('ipc.cjs bridge query handling', () => {
     expect(lastMessage.payload).not.toHaveProperty('screenshot_url');
   });
 
+  test('strips tool-bundle-result screenshot_url fields before sending to backend', async () => {
+    const { handlers, ws } = setupQueryBridge();
+
+    await handlers['to-backend']({ sender: null }, {
+      type: 'tool-bundle-result',
+      payload: {
+        bundle_id: 'bundle-1',
+        status: 'success',
+        step_results: [],
+        screenshot_ref: 'artifact_ref_1',
+        screenshot_url: 'http://localhost:8765/api/artifacts/shot.png',
+        screenshot_urls: ['http://localhost:8765/api/artifacts/shot2.png'],
+      },
+    });
+
+    const lastMessage = getLastSentMessage(ws);
+    expect(lastMessage.type).toBe('tool-bundle-result');
+    expect(lastMessage.payload).toEqual(expect.objectContaining({
+      bundle_id: 'bundle-1',
+      status: 'success',
+      step_results: [],
+      screenshot_ref: 'artifact_ref_1',
+    }));
+    expect(lastMessage.payload).not.toHaveProperty('screenshot_url');
+    expect(lastMessage.payload).not.toHaveProperty('screenshot_urls');
+  });
+
   test('builds query with fallback system context on system state error', async () => {
     const { handlers, ws } = setupQueryBridge({}, {
       systemStateError: new Error('boom'),
@@ -353,6 +380,34 @@ describe('ipc.cjs bridge query handling', () => {
     const queryMessage = getLastSentMessage(ws);
     expect(queryMessage.type).toBe('query');
     expect(queryMessage.payload.content).toContain('<user_query>\nafter settings update\n</user_query>');
+  });
+
+  test('sends first query after initial settings sync timeout fallback', async () => {
+    jest.useFakeTimers();
+    try {
+      const { handlers, ws, backendBridge, fs } = initIpc();
+      fs.existsSync.mockReturnValue(true);
+      fs.promises.readFile.mockResolvedValue(JSON.stringify({
+        interaction_mode: 'agent',
+        model_mode: 'online',
+      }));
+      ws.triggerOpen();
+      primeQueryContext(backendBridge);
+
+      const queryPromise = sendQuery(handlers, { text: 'timeout fallback query', conversation_ref: 'conv-timeout-1' });
+      await Promise.resolve();
+      await Promise.resolve();
+
+      await jest.advanceTimersByTimeAsync(2500);
+      await queryPromise;
+
+      const messageTypes = ws.sent.map((msg) => JSON.parse(msg).type);
+      expect(messageTypes).toEqual(['handshake', 'update-settings', 'query']);
+      const queryMessage = getLastSentMessage(ws);
+      expect(queryMessage.payload.content).toContain('<user_query>\ntimeout fallback query\n</user_query>');
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   test('keeps initial query context after transient query send failure', async () => {

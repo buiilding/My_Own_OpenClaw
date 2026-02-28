@@ -96,6 +96,34 @@ async def test_handle_request_invalid_version():
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "invalid_id",
+    [
+        {"bad": "id"},
+        ["bad", "id"],
+        True,
+    ],
+)
+async def test_handle_request_invalid_id_type_returns_invalid_request(invalid_id):
+    protocol = JSONRPCProtocol()
+    calls = []
+
+    def handler():
+        calls.append("called")
+        return "ok"
+
+    protocol.register_method("ping", handler)
+    response = await protocol.handle_request(
+        {"jsonrpc": "2.0", "method": "ping", "id": invalid_id}
+    )
+
+    assert response["error"]["code"] == JSONRPCProtocol.INVALID_REQUEST
+    assert response["error"]["message"] == "Invalid request: id must be string, number, or null"
+    assert response.get("id") is None
+    assert calls == []
+
+
+@pytest.mark.asyncio
 async def test_handle_request_method_not_found():
     protocol = JSONRPCProtocol()
     request = {"jsonrpc": "2.0", "method": "missing", "id": "1"}
