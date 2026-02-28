@@ -71,6 +71,7 @@ export function resolveModelFacingToolCall(payload?: ToolCallPayloadLike): {
   id?: string;
   name?: string;
   arguments?: Record<string, unknown>;
+  thought_signature?: string;
   raw_arguments_preview?: string;
   parse_error?: string;
   frontend_execution_skipped?: boolean;
@@ -90,6 +91,23 @@ export function resolveModelFacingToolCall(payload?: ToolCallPayloadLike): {
       ? metadata.llm_tool_call_parse_error
       : null
   );
+  const thoughtSignature = (
+    typeof modelFacing?.thought_signature === 'string'
+      ? modelFacing.thought_signature
+      : (
+        typeof modelFacing?.thoughtSignature === 'string'
+          ? modelFacing.thoughtSignature
+          : (
+            typeof metadata?.thought_signature === 'string'
+              ? metadata.thought_signature
+              : (
+                typeof metadata?.thoughtSignature === 'string'
+                  ? metadata.thoughtSignature
+                  : null
+              )
+          )
+      )
+  );
   const resolvedArguments = (
     modelArguments
     && typeof modelArguments === 'object'
@@ -106,6 +124,7 @@ export function resolveModelFacingToolCall(payload?: ToolCallPayloadLike): {
           ? modelFacing.name
           : payload?.tool_name
       ),
+      thought_signature: thoughtSignature || undefined,
       raw_arguments_preview: rawArgumentsPreview || undefined,
       parse_error: parseError || undefined,
       frontend_execution_skipped: metadata?.skip_frontend_execution === true,
@@ -120,5 +139,6 @@ export function resolveModelFacingToolCall(payload?: ToolCallPayloadLike): {
         : payload?.tool_name
     ),
     arguments: resolvedArguments,
+    thought_signature: thoughtSignature || undefined,
   };
 }
