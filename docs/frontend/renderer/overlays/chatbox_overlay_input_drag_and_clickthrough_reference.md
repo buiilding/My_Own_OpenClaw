@@ -18,6 +18,7 @@ title: "Chatbox Overlay Input, Drag, and Click-Through Reference"
 - `frontend/src/renderer/features/chat/policies/messageSendUiPolicy.ts`
 - `frontend/src/renderer/features/chat/utils/clipboardImageUtils.js`
 - `frontend/src/renderer/features/chat/utils/overlayPhaseListener.js`
+- `frontend/src/renderer/features/chat/utils/streamPhaseState.js`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 
@@ -146,6 +147,8 @@ Active loop phases:
 - `streaming`
 - `tool-call`
 - `tool-output`
+
+The canonical phase set and helper predicates now live in `streamPhaseState.js` and are shared by `ChatBox` and `ChatInterface` for stop-button availability and loop-active gating.
 
 ## Related Tests
 
