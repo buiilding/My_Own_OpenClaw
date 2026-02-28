@@ -51,6 +51,12 @@ Workflow:
 4. Interact (canonical): browser(action="click", ref="1"), browser(action="input", index=2, text="hello"), browser(action="send_keys", keys="Enter")
 5. Close: browser(action="close")
 
+Snapshot pagination contract (important):
+- Snapshot responses can be paginated: `offset`, `limit`, `returned_chars`, `total_chars`, `has_more`, `next_offset`.
+- If `has_more=true`, continue reading by calling `browser(action="snapshot", offset=<next_offset>, limit=<same_limit>)`.
+- During that pagination loop, do not scroll/click/navigate/type; those mutate page state and invalidate the snapshot window.
+- Only scroll or interact after pagination is complete (`has_more=false`) or when you intentionally want a new page state, then restart pagination at `offset=0`.
+
 Automatic `post_action_snapshot` attachment is temporarily disabled for testing.
 Use explicit `browser(action="snapshot", ...)` calls when snapshot data is needed.
 

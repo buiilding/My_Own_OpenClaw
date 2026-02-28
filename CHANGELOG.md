@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(browser-snapshot-pagination-contract): clarify browser snapshot pagination discipline (`has_more` -> `next_offset` loop) in model-facing browser tool guidance and user docs, explicitly forbidding scroll/click/navigate/input during same-window pagination; add backend regression coverage for description contract.
 - refactor(rehydrate-data-flow-contract): split transcript rehydrate normalization into dedicated backend helper (`rehydrate_entry_normalization.py`) and shared frontend payload contract (`rehydratePayload.js`), rewiring dashboard-open + edit/retry flows to one transparency/tool-call/content-restore path and adding focused helper regressions.
 - docs(agents-foundation-flows): extend `AGENTS.md` conceptual map with additional runtime-invariant flows for handshake-bound connection identity, optimistic-query failure fallback, terminal completion backfill guarantees, recoverable malformed tool-call replay, and settings-sync query gating.
 - fix(rehydrate-session-fidelity): stop appending transparency blobs into rehydrate message text; replay structured transparency (`systemPrompt`, `toolSchemas`, full user/assistant content), restore transcript system prompt onto session history, preserve tool-call `thought_signature` and `tool_call_id` in rehydrated assistant tool-call rows, and add backend/frontend regressions for exact transcript replay semantics.
