@@ -99,6 +99,18 @@ User experience target:
 - When answering questions, verify in code first; avoid guessing.
 - If unrelated changes from other agents are present, continue with your scoped task and report only the files/behavior you changed.
 
+### Frontend Wiring Protocol
+
+- For complex UI/runtime bugs, define state machine + event timeline before code changes.
+- Use one behavior scope per patch; avoid combining focus, visibility, click-through, and transport changes in one implementation.
+- Declare phase invariants explicitly (expected focus owner, overlay visibility, click-through mode, stop interactivity, capture timing).
+- Centralize cross-process surface control in one orchestrator/module; avoid duplicated toggles across renderer/main/sidecar.
+- Add deterministic transition logging for each phase change (turn/tool correlation id + before/after state snapshot).
+- Prefer fail-safe retries for focus/surface prep with bounded attempts and explicit terminal errors.
+- Keep dev/prod gating explicit and test both paths when behavior differs by mode.
+- Add scenario tests for race-prone flows (tool execution start/stop, screenshot hide/show, focus verification, resume after failure).
+- If requirements conflict or timing semantics are ambiguous, stop and resolve spec conflicts before implementation.
+
 ## Git
 - Safe by default: `git status/diff/log`. Push only when user asks.
 - Commits are pre-authorized: make commits automatically for completed work without waiting for additional user confirmation.
