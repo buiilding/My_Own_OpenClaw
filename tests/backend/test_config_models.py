@@ -1,7 +1,11 @@
 """Tests for configuration models."""
+from pathlib import Path
+from types import SimpleNamespace
+
 import pytest
 from pydantic import ValidationError
 
+import backend.src.core.config.models as config_models
 from backend.src.core.config.models import (
     AnthropicConfig,
     AppConfig,
@@ -225,6 +229,35 @@ class TestAppConfig:
         assert len(config.wakeword_greetings) == 5
         assert config.tts_enabled is True
         assert config.speech_mode_enabled is False
+        assert config.artifact_store_path.endswith("artifacts")
+        assert "windieos-artifacts" not in config.artifact_store_path
+
+    def test_default_artifact_store_path_windows_uses_appdata(self, monkeypatch):
+        monkeypatch.setattr(
+            config_models,
+            "os",
+            SimpleNamespace(
+                name="nt",
+                getenv=lambda key: "C:/Users/test/AppData/Roaming" if key == "APPDATA" else None,
+            ),
+        )
+
+        path = config_models._default_artifact_store_path()
+
+        assert path == "C:/Users/test/AppData/Roaming/DesktopAssistant/artifacts"
+
+    def test_default_artifact_store_path_linux_uses_xdg_style_location(self, monkeypatch):
+        monkeypatch.setattr(
+            config_models,
+            "os",
+            SimpleNamespace(name="posix", getenv=lambda _key: None),
+        )
+        monkeypatch.setattr(config_models.platform, "system", lambda: "Linux")
+        monkeypatch.setattr(config_models.Path, "home", lambda: Path("/home/test"))
+
+        path = config_models._default_artifact_store_path()
+
+        assert path == "/home/test/.config/DesktopAssistant/artifacts"
 
     def test_llm_model_property_online(self):
         config = AppConfig(model_mode="online", model_provider="openai", selected_model_id="gpt-4")

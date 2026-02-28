@@ -106,7 +106,7 @@ Provider defaults in `LLMProviders`:
 | `websocket_max_concurrent_tasks` | `int` | `50` | Per-connection task cap in `TaskManager`. |
 | `websocket_receive_timeout` | `float` | `3600.0` | Slowloris protection timeout for receive loop. |
 | `websocket_task_cancellation_timeout` | `float` | `5.0` | Cleanup timeout on disconnect. |
-| `artifact_store_path` | `str` | tempdir path | Default `<temp>/windieos-artifacts`. |
+| `artifact_store_path` | `str` | user config path | Default `<APPDATA>/DesktopAssistant/artifacts` (Windows), `~/Library/Application Support/DesktopAssistant/artifacts` (macOS), `~/.config/DesktopAssistant/artifacts` (Linux). |
 | `artifact_max_bytes` | `int` | `25MB` | Max upload payload accepted by artifact route. |
 
 Runtime-only field:
