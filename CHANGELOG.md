@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-tool-correlation): add shared `toolCorrelationIds` helpers and rewire stream event utilities plus tool-runner correlation assembly to one normalization/precedence contract.
 - refactor(frontend-tool-runner-result-contract): add shared `toolRunnerResultContracts` envelope builders/correlation resolver and rewire failure-envelope + backend-gating helpers to the same tool-result/tool-bundle-result contract primitives.
 - refactor(frontend-surface-capture): normalize capture-restore transition context through shared orchestrator context helpers and add dedicated capture lifecycle regression scenarios for overlap reuse, final-release restore, and focus-prep failure logging.
 - refactor(frontend-chat-stream-correlation): centralize tool-call and tool-bundle correlation-id normalization in `chatStreamEventUtils` and rewire `useChatStreamToolHandlers` to the shared helpers for consistent transcript/tracking ids.

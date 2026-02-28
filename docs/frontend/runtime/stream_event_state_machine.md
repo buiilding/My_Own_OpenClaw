@@ -173,6 +173,7 @@ Correlation helpers:
 - `turn_ref` is propagated through chat rows.
 - tool output correlation id is derived from payload (`correlation_id` or request id fallback).
 - tool-call/tool-bundle correlation ids are normalized via `chatStreamEventUtils` helpers so whitespace-only ids are ignored consistently across transcript metadata and tracking logs.
+- shared normalization now routes through `toolCorrelationIds.ts` so tool-call/tool-output/tool-bundle correlation precedence stays consistent between stream handlers and tool runner message assembly.
 
 Late-event mitigation:
 
