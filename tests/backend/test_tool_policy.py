@@ -39,7 +39,7 @@ def test_filter_tool_names_applies_dev_selection(tmp_path: Path):
     assert filtered == ["read_file", "write_file"]
 
 
-def test_filter_tool_schemas_filters_mouse_method_fields(tmp_path: Path):
+def test_filter_tool_schemas_enforces_ocr_only_model_contract(tmp_path: Path):
     selection = _load_selection(
         tmp_path,
         (
@@ -47,7 +47,7 @@ def test_filter_tool_schemas_filters_mouse_method_fields(tmp_path: Path):
             'mode = "allowlist"\n'
             'tools = ["mouse_control"]\n'
             "[tool_options.mouse_control]\n"
-            'enabled_coordinate_methods = ["manual"]\n'
+            'enabled_coordinate_methods = ["manual", "ocr"]\n'
         ),
     )
     policy = ToolPolicy(config=AppConfig(interaction_mode="agent"), selection=selection)
@@ -66,10 +66,12 @@ def test_filter_tool_schemas_filters_mouse_method_fields(tmp_path: Path):
     assert schemas[0]["function"]["name"] == "mouse_control"
     args_props = schemas[0]["function"]["parameters"]["properties"]
     assert args_props["find_coordinates_by"]["type"] == "string"
-    assert args_props["find_coordinates_by"]["enum"] == ["manual"]
-    assert "x" in args_props
-    assert "y" in args_props
-    assert "ocr_text" not in args_props
+    assert args_props["find_coordinates_by"]["enum"] == ["ocr"]
+    assert "x" not in args_props
+    assert "y" not in args_props
+    assert "ocr_text" in args_props
+    assert "candidate_id" in args_props
+    assert "screenshot_id" in args_props
     assert "description" not in args_props
     assert "model_name" not in args_props
 
@@ -111,3 +113,15 @@ def test_should_initialize_startup_services_follow_mouse_methods(tmp_path: Path)
 
     assert policy.should_initialize_ocr() is False
     assert policy.should_initialize_vision() is False
+
+
+def test_get_method_validation_errors_rejects_manual_without_dev_selection():
+    policy = ToolPolicy(config=AppConfig(interaction_mode="agent"), selection=None)
+
+    errors = policy.get_method_validation_errors(
+        "mouse_control",
+        {"action": "click", "find_coordinates_by": "manual", "x": 10, "y": 20},
+    )
+
+    assert len(errors) == 1
+    assert "Allowed methods: ocr" in errors[0]

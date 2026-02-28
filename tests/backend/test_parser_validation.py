@@ -155,6 +155,17 @@ def test_validate_tool_call_accepts_enabled_mouse_ocr_method(
     )
 
 
+def test_validate_tool_call_rejects_manual_mouse_method_without_dev_selection():
+    validator, _metrics = _make_validator(["mouse_control"], interaction_mode="agent")
+    validator._dev_tool_selection = None
+
+    with pytest.raises(ParseValidationError, match="Allowed methods: ocr"):
+        validator.validate_tool_call(
+            "mouse_control",
+            {"action": "click", "find_coordinates_by": "manual", "x": 10, "y": 20},
+        )
+
+
 def test_validate_tool_call_handles_non_iterable_registry_tool_names():
     validator, _metrics = _make_validator_for_registry(BrokenRegistry(123))
 
