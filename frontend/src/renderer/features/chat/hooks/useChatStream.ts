@@ -20,28 +20,15 @@ import {
   type ContextCompactionStartedEvent,
   type ContextCompactionCompletedEvent,
   type ContextCompactionFailedEvent,
-  type ToolCallEvent,
-  type ToolOutputEvent,
-  type ToolBundleEvent,
   type SystemPromptEvent,
   type UserMessageFullEvent,
   type AssistantMessageFullEvent,
-  type MemoryStoreEvent,
-  type TokenCountEvent,
   type ToolSchemasEvent,
-  type LocalUserMessageEvent,
-  type ErrorEvent,
   isBackendEvent,
 } from '../../../types/backendEvents';
 import {
   buildThinkingStatus,
 } from '../utils/chatStreamFormatting';
-import {
-  buildScreenshotAttachment,
-  buildScreenshotAttachments,
-  resolveErrorText,
-  shouldIgnoreStreamError,
-} from '../utils/chatStreamEventUtils';
 import {
   buildAssistantMessageFullUpdate,
   buildSystemPromptUpdate,
@@ -72,6 +59,9 @@ import { useChatCommonActions } from './useChatCommonActions';
 import { useStreamMessageUpdaters } from './useStreamMessageUpdaters';
 import { useChatStreamToolHandlers } from './useChatStreamToolHandlers';
 import { useLatestRef } from '../../../infrastructure/hooks/useLatestRef';
+import { useChatStreamTerminalHandlers } from './useChatStreamTerminalHandlers';
+import { buildChatStreamHandlerMap } from '../utils/chatStreamHandlerMap';
+import { useChatStreamLocalUserHandler } from './useChatStreamLocalUserHandler';
 
 export function useChatStream(enableTranscript: boolean = true) {
   const {
@@ -81,7 +71,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     setThinkingStatus,
     setThinkingSourceEventType,
   } = useChatCommonActions();
-  const setTokenCounts = useChatStore((state) => state.setTokenCounts);
   const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
   const { config, availableModels } = useAppConfigContext();
   const modelCapabilities = useMemo(() => resolveThinkingCapabilities(
@@ -304,57 +293,13 @@ export function useChatStream(enableTranscript: boolean = true) {
     recordTrackingEvent('tool-schemas', event.turn_ref);
   }, [updateFirstMessageBySender, recordTrackingEvent]);
 
-  const handleLocalUserMessage = useCallback((event: LocalUserMessageEvent) => {
-    const text = event.payload?.text;
-    if (!text) {
-      return;
-    }
-    const screenshotAttachments = buildScreenshotAttachments(
-      event.payload?.screenshot_refs || [event.payload?.screenshot_ref],
-      event.payload?.screenshot_url,
-    );
-    const firstScreenshotAttachment = screenshotAttachments[0] || buildScreenshotAttachment(
-      event.payload?.screenshot_ref,
-      event.payload?.screenshot_url,
-    );
-    const newMessage: ChatMessage = {
-      id: crypto.randomUUID(),
-      text,
-      sender: 'user',
-      sourceEventType: 'local-user-message',
-      sourceChannel: 'from-backend',
-      screenshotRef: firstScreenshotAttachment.screenshotRef,
-      screenshotUrl: firstScreenshotAttachment.screenshotUrl,
-      screenshots: screenshotAttachments.length > 0
-        ? screenshotAttachments.map((attachment) => ({
-          screenshotRef: attachment.screenshotRef,
-          screenshotUrl: attachment.screenshotUrl,
-        }))
-        : null,
-      timestamp: event.payload?.timestamp,
-      turnRef: event.turn_ref,
-    };
-    addMessage(newMessage);
-    const modelContext = modelContextRef.current;
-    if (modelContext.supportsThinking && !modelContext.supportsThinkingTextStream) {
-      setThinkingStatus(GENERIC_THINKING_STATUS);
-      setThinkingSourceEventType('local-user-message');
-    } else {
-      setThinkingStatus(null);
-      setThinkingSourceEventType(null);
-    }
-
-    recordTrackingEvent('local-user-message', event.turn_ref, {
-      phase: 'awaiting-first-chunk',
-      resetForTurn: true,
-    });
-  }, [
+  const handleLocalUserMessage = useChatStreamLocalUserHandler({
     addMessage,
     modelContextRef,
     recordTrackingEvent,
     setThinkingSourceEventType,
     setThinkingStatus,
-  ]);
+  });
 
   const handleStreamingComplete = useCallback((event: StreamingCompleteEvent) => {
     setIsSending(false);
@@ -458,81 +403,38 @@ export function useChatStream(enableTranscript: boolean = true) {
     recordTrackingEvent,
   ]);
 
-  const handleTokenCount = useCallback((event: TokenCountEvent) => {
-    setTokenCounts(event.payload ?? null);
-    recordTrackingEvent('token-count', event.turn_ref);
-  }, [setTokenCounts, recordTrackingEvent]);
-
-  const handleMemoryStore = useCallback((event: MemoryStoreEvent) => {
-    recordTrackingEvent('memory-store', event.turn_ref);
-  }, [recordTrackingEvent]);
-
-  const handleError = useCallback((event: ErrorEvent) => {
-    setIsSending(false);
-    setThinkingStatus('');
-    setThinkingSourceEventType(null);
-    const errorText = resolveErrorText(event.payload);
-    const modelContext = modelContextRef.current;
-    const newMessage: ChatMessage = {
-      id: crypto.randomUUID(),
-      text: errorText,
-      sender: 'assistant',
-      type: 'error',
-      sourceEventType: 'error',
-      sourceChannel: 'from-backend',
-      turnRef: event.turn_ref,
-      modelId: modelContext.modelId,
-      modelProvider: modelContext.modelProvider,
-    };
-    addMessage(newMessage);
-
-    recordTrackingEvent('error', event.turn_ref, {
-      phase: 'error',
-      errorText,
-    });
-
-    if (enableTranscript) {
-      recordAssistantMessage(errorText, {
-        messageType: 'error',
-        conversationRef: event.conversation_ref,
-        userId: event.user_id,
-        modelId: modelContext.modelId,
-        modelProvider: modelContext.modelProvider,
-      });
-    }
-  }, [
+  const {
+    handleError,
+    handleMemoryStore,
+    handleTokenCount,
+  } = useChatStreamTerminalHandlers({
     addMessage,
     enableTranscript,
     modelContextRef,
+    recordTrackingEvent,
     setIsSending,
     setThinkingSourceEventType,
     setThinkingStatus,
-    recordTrackingEvent,
-  ]);
+  });
 
-  const handlers = useMemo<Record<BackendEventType, (event: BackendEvent) => void>>(() => ({
-    'llm-thought': event => handleLlmThought(event as LlmThoughtEvent),
-    'streaming-response': event => handleStreamingResponse(event as StreamingResponseEvent),
-    'streaming-complete': event => handleStreamingComplete(event as StreamingCompleteEvent),
-    'context-compaction-started': event => handleContextCompactionStarted(event as ContextCompactionStartedEvent),
-    'context-compaction-completed': event => handleContextCompactionCompleted(event as ContextCompactionCompletedEvent),
-    'context-compaction-failed': event => handleContextCompactionFailed(event as ContextCompactionFailedEvent),
-    'tool-call': event => handleToolCall(event as ToolCallEvent),
-    'tool-output': event => handleToolOutput(event as ToolOutputEvent),
-    'tool-bundle': event => handleToolBundle(event as ToolBundleEvent),
-    'system-prompt': event => handleSystemPrompt(event as SystemPromptEvent),
-    'local-user-message': event => handleLocalUserMessage(event as LocalUserMessageEvent),
-    'user-message-full': event => handleUserMessageFull(event as UserMessageFullEvent),
-    'assistant-message-full': event => handleAssistantMessageFull(event as AssistantMessageFullEvent),
-    'memory-store': event => handleMemoryStore(event as MemoryStoreEvent),
-    'token-count': event => handleTokenCount(event as TokenCountEvent),
-    'tool-schemas': event => handleToolSchemas(event as ToolSchemasEvent),
-    'error': event => {
-      const errorEvent = event as ErrorEvent;
-      if (!shouldIgnoreStreamError(errorEvent.payload)) {
-        handleError(errorEvent);
-      }
-    },
+  const handlers = useMemo<Record<BackendEventType, (event: BackendEvent) => void>>(() => buildChatStreamHandlerMap({
+    handleLlmThought,
+    handleStreamingResponse,
+    handleStreamingComplete,
+    handleContextCompactionStarted,
+    handleContextCompactionCompleted,
+    handleContextCompactionFailed,
+    handleToolCall,
+    handleToolOutput,
+    handleToolBundle,
+    handleSystemPrompt,
+    handleLocalUserMessage,
+    handleUserMessageFull,
+    handleAssistantMessageFull,
+    handleMemoryStore,
+    handleTokenCount,
+    handleToolSchemas,
+    handleError,
   }), [
     handleLlmThought,
     handleStreamingResponse,
