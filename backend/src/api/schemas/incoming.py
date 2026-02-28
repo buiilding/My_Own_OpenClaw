@@ -4,7 +4,15 @@ from __future__ import annotations
 
 from typing import Annotated, Any, Dict, List, Literal, Optional, Union
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+
+def _validate_conversation_ref(value: str) -> str:
+    """Normalize and validate conversation refs carried in payloads."""
+    normalized = value.strip()
+    if not normalized:
+        raise ValueError("conversation_ref cannot be empty or whitespace-only")
+    return normalized
 
 from backend.src.api.schemas.common import BaseMessage
 
@@ -24,6 +32,11 @@ class QueryPayload(BaseModel):
     screenshot_ref: Optional[str] = None
     screenshot_refs: Optional[List[str]] = None
     system_state_internal: Optional[Dict[str, Any]] = None
+
+    @field_validator("conversation_ref")
+    @classmethod
+    def validate_conversation_ref(cls, value: str) -> str:
+        return _validate_conversation_ref(value)
 
 
 class QueryMessage(BaseMessage):
@@ -67,6 +80,11 @@ class RehydrateConversationPayload(BaseModel):
     conversation_ref: str
     messages: List[RehydrateConversationEntry]
     rehydrate_mode: Literal["replace"]
+
+    @field_validator("conversation_ref")
+    @classmethod
+    def validate_conversation_ref(cls, value: str) -> str:
+        return _validate_conversation_ref(value)
 
 
 class RehydrateConversationMessage(BaseMessage):
