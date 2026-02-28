@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(frontend-surface-recovery): add interactive prep recovery regression proving a focus-verification exhaustion failure does not poison the next execution window; subsequent prep can still enable/restore click-through normally.
 - test(frontend-tool-runner-stop-race): add late bundle-result stop/completion regression in `ToolRunnerHook.callbacks` so post-stop callback/backend-send races are dropped symmetrically with single-tool results; extract stale bundle cancellation send path in `useToolRunner` to the same helper style as single-tool cancellation.
 - test(frontend-surface-clickthrough-failure): add interactive focus-retry exhaustion regression to assert click-through never enables (and never restores) when surface preparation fails, strengthening race-prone failed-prep recovery coverage.
 - refactor(frontend-surface-focus-preparation): extract shared `surfaceOrchestrator/focusPreparation.ts` helper for overlay focus-prep IPC normalization and reuse it across tool and screenshot-capture lifecycles so focus metadata/reason parsing has one contract; add focused helper regression coverage.
