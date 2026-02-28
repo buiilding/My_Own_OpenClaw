@@ -58,6 +58,8 @@ describe('chatStreamEventUtils', () => {
 
     expect(resolveToolOutputCorrelationId({}, 'event-1')).toBe('event-1');
     expect(resolveToolOutputCorrelationId({}, null)).toBeUndefined();
+    expect(resolveToolOutputCorrelationId({ request_id: '   ', metadata: { request_id: ' meta-2 ' } }, 'event-1')).toBe('meta-2');
+    expect(resolveToolOutputCorrelationId({ request_id: '   ', metadata: { request_id: '   ' } }, ' event-2 ')).toBe('event-2');
   });
 
   test('resolveErrorText prefers payload content then message then fallback', () => {
