@@ -215,6 +215,11 @@ describe('MessageInput', () => {
     fireEvent.click(screen.getByTestId('plus-btn'));
     expect(screen.getByRole('menu')).toBeInTheDocument();
     expect(screen.getByText('Add photos & files')).toBeInTheDocument();
+    expect(screen.queryByText('Create image')).not.toBeInTheDocument();
+    expect(screen.queryByText('Deep research')).not.toBeInTheDocument();
+    expect(screen.queryByText('Shopping research')).not.toBeInTheDocument();
+    expect(screen.queryByText('Web search')).not.toBeInTheDocument();
+    expect(screen.queryByText('More')).not.toBeInTheDocument();
 
     fireEvent.mouseDown(document.body);
     expect(screen.queryByText('Add photos & files')).not.toBeInTheDocument();
