@@ -1,8 +1,13 @@
-export const DEFAULT_USER_ID = 'default_user';
+import {
+  buildRehydrateToolCall,
+  normalizeMessageType,
+  normalizeOptionalString,
+  normalizeTranscriptTransparency,
+  parseToolCallPayload,
+  resolveRehydrateContent,
+} from '../../../infrastructure/transcript/rehydratePayload';
 
-function normalizeOptionalString(value) {
-  return typeof value === 'string' && value.length > 0 ? value : null;
-}
+export const DEFAULT_USER_ID = 'default_user';
 
 function looksLikeInlineImageData(value) {
   if (!value) {
@@ -120,157 +125,7 @@ function resolveTranscriptTransparency(memory) {
     && typeof memory.metadata === 'object'
     && !Array.isArray(memory.metadata)
   ) ? memory.metadata : {};
-  const rawTransparency = (
-    metadata.transparency
-    && typeof metadata.transparency === 'object'
-    && !Array.isArray(metadata.transparency)
-  ) ? metadata.transparency : null;
-  if (!rawTransparency) {
-    return null;
-  }
-
-  const transparency = {};
-  const systemPrompt = normalizeOptionalString(rawTransparency.systemPrompt);
-  if (systemPrompt) {
-    transparency.systemPrompt = systemPrompt;
-  }
-  if (Array.isArray(rawTransparency.toolSchemas) && rawTransparency.toolSchemas.length > 0) {
-    transparency.toolSchemas = rawTransparency.toolSchemas;
-  }
-  const fullUserContent = normalizeOptionalString(rawTransparency?.fullUserMessage?.content);
-  const fullUserMetadata = (
-    rawTransparency?.fullUserMessage?.metadata
-    && typeof rawTransparency.fullUserMessage.metadata === 'object'
-    && !Array.isArray(rawTransparency.fullUserMessage.metadata)
-  ) ? rawTransparency.fullUserMessage.metadata : null;
-  if (fullUserContent || fullUserMetadata) {
-    transparency.fullUserMessage = {
-      content: fullUserContent || undefined,
-      metadata: fullUserMetadata || undefined,
-    };
-  }
-  const fullAssistantContent = normalizeOptionalString(rawTransparency?.fullAssistantMessage?.content);
-  if (fullAssistantContent) {
-    transparency.fullAssistantMessage = {
-      content: fullAssistantContent,
-    };
-  }
-
-  return Object.keys(transparency).length > 0 ? transparency : null;
-}
-
-function normalizeMessageType(value) {
-  return typeof value === 'string'
-    ? value.trim().toLowerCase().replaceAll('_', '-')
-    : '';
-}
-
-function resolveRehydrateContent(role, messageType, rawContent, transparency) {
-  const baseContent = typeof rawContent === 'string' ? rawContent : '';
-  if (!transparency || typeof transparency !== 'object') {
-    return baseContent;
-  }
-
-  if (role === 'user') {
-    const fullUserContent = normalizeOptionalString(transparency?.fullUserMessage?.content);
-    if (fullUserContent) {
-      return fullUserContent;
-    }
-    return baseContent;
-  }
-
-  if (role === 'assistant' && normalizeMessageType(messageType) === 'llm-text') {
-    const fullAssistantContent = normalizeOptionalString(transparency?.fullAssistantMessage?.content);
-    if (fullAssistantContent) {
-      return fullAssistantContent;
-    }
-  }
-
-  return baseContent;
-}
-
-function parseToolCallPayload(rawContent) {
-  if (typeof rawContent !== 'string' || !rawContent.trim()) {
-    return null;
-  }
-
-  let parsed;
-  try {
-    parsed = JSON.parse(rawContent);
-  } catch (_error) {
-    return null;
-  }
-  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-    return null;
-  }
-
-  const functionBlock = (
-    parsed.function
-    && typeof parsed.function === 'object'
-    && !Array.isArray(parsed.function)
-  ) ? parsed.function : null;
-
-  const name = normalizeOptionalString(parsed.name || functionBlock?.name);
-  const callId = normalizeOptionalString(parsed.id || functionBlock?.id);
-  let argumentsPayload = {};
-  if (parsed.arguments && typeof parsed.arguments === 'object' && !Array.isArray(parsed.arguments)) {
-    argumentsPayload = parsed.arguments;
-  } else if (parsed.args && typeof parsed.args === 'object' && !Array.isArray(parsed.args)) {
-    argumentsPayload = parsed.args;
-  } else if (typeof functionBlock?.arguments === 'string' && functionBlock.arguments.trim()) {
-    try {
-      const decoded = JSON.parse(functionBlock.arguments);
-      if (decoded && typeof decoded === 'object' && !Array.isArray(decoded)) {
-        argumentsPayload = decoded;
-      }
-    } catch (_error) {
-      argumentsPayload = {};
-    }
-  } else if (
-    functionBlock?.arguments
-    && typeof functionBlock.arguments === 'object'
-    && !Array.isArray(functionBlock.arguments)
-  ) {
-    argumentsPayload = functionBlock.arguments;
-  }
-
-  const thoughtSignature = normalizeOptionalString(
-    parsed.thought_signature
-      || parsed.thoughtSignature
-      || functionBlock?.thought_signature
-      || functionBlock?.thoughtSignature,
-  );
-
-  if (!name && !callId) {
-    return null;
-  }
-
-  return {
-    id: callId || undefined,
-    name: name || undefined,
-    arguments: { ...argumentsPayload },
-    thought_signature: thoughtSignature || undefined,
-  };
-}
-
-function buildRehydrateToolCall({
-  parsedToolCall,
-  fallbackToolName,
-  fallbackToolCallId,
-}) {
-  if (!parsedToolCall && !fallbackToolName && !fallbackToolCallId) {
-    return null;
-  }
-  const toolCall = {
-    id: parsedToolCall?.id || fallbackToolCallId || undefined,
-    name: parsedToolCall?.name || fallbackToolName || undefined,
-    arguments: parsedToolCall?.arguments || {},
-    thought_signature: parsedToolCall?.thought_signature || undefined,
-  };
-  if (!toolCall.id && !toolCall.name) {
-    return null;
-  }
-  return toolCall;
+  return normalizeTranscriptTransparency(metadata.transparency);
 }
 
 function buildMessageTransparencyFields(part, partCount, transparency) {
@@ -394,10 +249,12 @@ export function toRehydrateMessagePayload(memory) {
     })
     : null;
   const content = resolveRehydrateContent(
-    role,
-    messageType,
-    memory?.content || '',
-    transparency,
+    {
+      role,
+      messageType,
+      content: memory?.content || '',
+      transparency,
+    },
   );
 
   return {

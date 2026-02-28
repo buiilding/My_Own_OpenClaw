@@ -12,6 +12,7 @@ title: "Transcript Message Payload Role, Type, and Rehydrate Shape Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/features/chat/utils/transcriptMessagePayload.js`
+- `frontend/src/renderer/infrastructure/transcript/rehydratePayload.js`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js`
 - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
@@ -50,6 +51,16 @@ This keeps transcript role model stable across stream and UI-generated rows.
 - otherwise -> `message.type || 'llm-text'`
 
 This defaults assistant rows without explicit type to canonical `llm-text`.
+
+## Shared Rehydrate Payload Helpers
+
+`transcriptMessagePayload.js` now delegates payload-field normalization to
+`infrastructure/transcript/rehydratePayload.js` so edit/retry and dashboard-open
+rehydrate flows use one canonical contract for:
+
+- transparency normalization (`systemPrompt`, `toolSchemas`, full user/assistant payloads)
+- full-content restoration rules (`fullUserMessage` / `fullAssistantMessage`)
+- tool-call payload parsing (`id`, `name`, `arguments`, `thought_signature`)
 
 ## Rehydrate Payload Shape
 

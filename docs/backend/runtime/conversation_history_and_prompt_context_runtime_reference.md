@@ -12,6 +12,7 @@ title: "Conversation History and Prompt Context Runtime Reference"
 
 - `backend/src/agent/session/state.py`
 - `backend/src/agent/session/message_builders.py`
+- `backend/src/api/services/rehydrate_entry_normalization.py`
 - `backend/src/agent/llm/conversation_context.py`
 - `backend/src/llm/prompts/prompt_constructor.py`
 - `backend/src/agent/execution/interaction_loop.py`
