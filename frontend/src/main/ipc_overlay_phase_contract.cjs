@@ -16,6 +16,15 @@ const RESPONSE_OVERLAY_METADATA_KEYS = [
   'failure_reason',
 ];
 
+function createResponseOverlayPhaseEnum() {
+  const phaseEnum = {};
+  for (const phase of RESPONSE_OVERLAY_PHASES) {
+    const enumKey = phase.toUpperCase().replace(/-/g, '_');
+    phaseEnum[enumKey] = phase;
+  }
+  return Object.freeze(phaseEnum);
+}
+
 function normalizeOverlayString(value) {
   if (typeof value !== 'string') {
     return null;
@@ -32,6 +41,7 @@ function normalizeOverlayNumber(value) {
 }
 
 module.exports = {
+  createResponseOverlayPhaseEnum,
   RESPONSE_OVERLAY_METADATA_KEYS,
   RESPONSE_OVERLAY_PHASES,
   normalizeOverlayNumber,

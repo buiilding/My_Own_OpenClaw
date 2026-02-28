@@ -1,6 +1,7 @@
 /** @jest-environment node */
 
 const {
+  createResponseOverlayPhaseEnum,
   RESPONSE_OVERLAY_METADATA_KEYS,
   RESPONSE_OVERLAY_PHASES,
   normalizeOverlayNumber,
@@ -20,6 +21,18 @@ describe('ipc_overlay_phase_contract', () => {
       'recovery_stage',
       'failure_reason',
     ]);
+  });
+
+  test('builds canonical response overlay phase enum object', () => {
+    expect(createResponseOverlayPhaseEnum()).toEqual({
+      IDLE: 'idle',
+      AWAITING_FIRST_CHUNK: 'awaiting-first-chunk',
+      STREAMING: 'streaming',
+      TOOL_CALL: 'tool-call',
+      TOOL_OUTPUT: 'tool-output',
+      COMPLETE: 'complete',
+      ERROR: 'error',
+    });
   });
 
   test('normalizes overlay strings by trimming and filtering empties', () => {

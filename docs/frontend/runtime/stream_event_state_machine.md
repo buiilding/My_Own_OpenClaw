@@ -150,6 +150,8 @@ Effects:
 
 Overlay phase is maintained in Electron main via `ipc.cjs` and emitted as `response-overlay-phase`.
 
+Main process phase names and metadata keys are centralized in `frontend/src/main/ipc_overlay_phase_contract.cjs`; `index.cjs` now consumes `createResponseOverlayPhaseEnum()` so handler/runtime wiring cannot drift from the canonical phase contract.
+
 Renderer uses that channel in parallel with `streamTracking.phase`:
 
 - `ChatBox.jsx` uses stream/overlay phases for visual loop state only (not click-through toggling).
