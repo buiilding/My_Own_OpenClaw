@@ -24,7 +24,10 @@ import {
 import { COMPACTION_THINKING_STATUS } from '../utils/chatStreamThinkingStatus';
 import { useConversationReplayActions } from '../hooks/useConversationReplayActions';
 import { isDevUiEnabled } from '../utils/devUiFlag';
-import { isStopControlAvailablePhase } from '../utils/streamPhaseState';
+import {
+  isAwaitingFirstChunkPhase,
+  isStopControlAvailablePhase,
+} from '../utils/streamPhaseState';
 import '../../../styles/ChatInterface.css';
 
 function waitForNextPaint() {
@@ -75,7 +78,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
   const canStop = isStopControlAvailablePhase(streamPhase);
   const composerBusy = isSending || canStop;
   const showAssistantAwaitingDot = (
-    streamPhase === 'awaiting-first-chunk'
+    isAwaitingFirstChunkPhase(streamPhase)
     && messages.length > 0
     && messages[messages.length - 1]?.sender === 'user'
   );

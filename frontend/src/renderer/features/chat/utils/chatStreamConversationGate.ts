@@ -1,7 +1,6 @@
 import type { BackendEvent } from '../../../types/backendEvents';
 import type { StreamPhase } from '../stores/chatStore';
-
-const TERMINAL_STREAM_PHASES = new Set<StreamPhase>(['idle', 'complete', 'error']);
+import { isTerminalStreamPhase } from './streamPhaseState';
 
 export function resolveEventConversationRef(event: BackendEvent): string | null {
   if (typeof event.conversation_ref === 'string' && event.conversation_ref.length > 0) {
@@ -63,5 +62,5 @@ export function shouldIgnoreEventForActiveConversation(
   if (!hasActiveTurn) {
     return false;
   }
-  return !TERMINAL_STREAM_PHASES.has(streamTracking.phase);
+  return !isTerminalStreamPhase(streamTracking.phase);
 }

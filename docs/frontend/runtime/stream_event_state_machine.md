@@ -17,6 +17,7 @@ title: "Stream Event State Machine"
 - `frontend/src/renderer/features/chat/utils/chatStreamTracking.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamMessageUpdates.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamEventUtils.ts`
+- `frontend/src/renderer/features/chat/utils/streamPhaseState.js`
 
 ## Inbound Event Surface
 
@@ -45,6 +46,7 @@ Before dispatch:
 3. transcript session metadata is refreshed (`updateTranscriptSession(...)`) when transcript mode is enabled.
 
 This prevents cross-conversation leakage when multiple threads are loaded locally.
+Terminal-vs-active stream turn gating is centralized in `streamPhaseState.isTerminalStreamPhase(...)` so stale-conversation filtering and tool-runner stale-turn behavior share one phase contract.
 
 ## Stream Tracking Model
 
@@ -151,7 +153,7 @@ Overlay phase is maintained in Electron main via `ipc.cjs` and emitted as `respo
 Renderer uses that channel in parallel with `streamTracking.phase`:
 
 - `ChatBox.jsx` uses stream/overlay phases for visual loop state only (not click-through toggling).
-- `ChatBoxResponse.jsx` chooses awaiting/tool-ghost/final response views.
+- `ChatBoxResponse.jsx` chooses awaiting/tool-ghost/final response views using canonical overlay phase predicates in `streamPhaseState` (`isOverlayAwaitingReplyPhase`, `shouldOverlayClearAwaitingFirstChunk`).
 - payload contract now includes optional recovery metadata:
 - `correlation_id`
 - `attempt`

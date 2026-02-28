@@ -11,6 +11,11 @@ import { useAutoResizedResponseHeight } from '../hooks/useAutoResizedResponseHei
 import { isDevUiEnabled } from '../utils/devUiFlag';
 import { resolveSourceTag } from '../utils/sourceTags';
 import {
+  isAwaitingFirstChunkPhase,
+  isOverlayAwaitingReplyPhase,
+  shouldOverlayClearAwaitingFirstChunk,
+} from '../utils/streamPhaseState';
+import {
   findLastUserIndex,
   findLatestMessageAfterUser,
 } from './chatBoxResponseUtils';
@@ -115,7 +120,7 @@ function ChatBoxResponse() {
       && thinkingSourceEventType === 'context-compaction-started',
   );
   const showAwaitingReply = (
-    ((awaitingFirstChunk || overlayPhase === 'awaiting-first-chunk' || overlayPhase === 'tool-call') && !showResponse)
+    ((awaitingFirstChunk || isOverlayAwaitingReplyPhase(overlayPhase)) && !showResponse)
     || showCompactionStatus
   );
   const isVisible = showResponse || showAwaitingReply;
@@ -196,10 +201,10 @@ function ChatBoxResponse() {
   useEffect(() => {
     return subscribeResponseOverlayPhase((phase) => {
       setOverlayPhase(phase);
-      if (phase === 'awaiting-first-chunk') {
+      if (isAwaitingFirstChunkPhase(phase)) {
         setAwaitingFirstChunk(true);
         setClosedResponseId(null);
-      } else if (phase === 'streaming' || phase === 'complete' || phase === 'error' || phase === 'idle') {
+      } else if (shouldOverlayClearAwaitingFirstChunk(phase)) {
         setAwaitingFirstChunk(false);
       }
     });
