@@ -2,13 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   ArrowUp,
-  Globe,
   Image,
   Mic,
-  MoreHorizontal,
   Plus,
-  ShoppingBag,
-  Sparkles,
   Square,
   X,
 } from 'lucide-react';
@@ -205,26 +201,6 @@ function MessageInput({
                     <button type="button" className="message-dropdown-item" role="menuitem">
                       <Image size={16} />
                       <span>Add photos & files</span>
-                    </button>
-                    <button type="button" className="message-dropdown-item" role="menuitem">
-                      <Sparkles size={16} />
-                      <span>Create image</span>
-                    </button>
-                    <button type="button" className="message-dropdown-item" role="menuitem">
-                      <Sparkles size={16} />
-                      <span>Deep research</span>
-                    </button>
-                    <button type="button" className="message-dropdown-item" role="menuitem">
-                      <ShoppingBag size={16} />
-                      <span>Shopping research</span>
-                    </button>
-                    <button type="button" className="message-dropdown-item" role="menuitem">
-                      <Globe size={16} />
-                      <span>Web search</span>
-                    </button>
-                    <button type="button" className="message-dropdown-item" role="menuitem">
-                      <MoreHorizontal size={16} />
-                      <span>More</span>
                     </button>
                   </div>
                 ) : null}
