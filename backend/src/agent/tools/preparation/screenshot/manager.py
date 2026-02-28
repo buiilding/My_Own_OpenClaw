@@ -7,7 +7,11 @@ Centralizes storage of the active screenshot and OCR triggering.
 import asyncio
 import hashlib
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Optional
+
+from backend.src.agent.tools.preparation.helpers.coordinate_contract import (
+    normalize_capture_meta,
+)
 
 from backend.src.agent.tools.shared.logging_utils import short_id
 
@@ -52,7 +56,10 @@ class ScreenshotManager:
         self,
         session: "AgentSession",
         screenshot_data: str,
-        request_id: str
+        request_id: str,
+        *,
+        screenshot_id: Optional[str] = None,
+        capture_meta: Optional[dict] = None,
     ) -> str:
         """
         Process a screenshot: store it as current (discarding old), and trigger OCR.
@@ -71,15 +78,37 @@ class ScreenshotManager:
         Returns:
             screenshot_id: Unique ID for the screenshot
         """
-        screenshot_id = self._generate_screenshot_id(screenshot_data)
+        normalized_screenshot_id = (
+            screenshot_id.strip()
+            if isinstance(screenshot_id, str) and screenshot_id.strip()
+            else self._generate_screenshot_id(screenshot_data)
+        )
+        normalized_capture_meta = normalize_capture_meta(
+            capture_meta,
+            screenshot_id=normalized_screenshot_id,
+            fallback_screenshot_b64=screenshot_data,
+        )
         # SIMPLIFIED: Just set as current (discards old automatically)
-        session.set_current_screenshot(screenshot_id, screenshot_data)
-        logger.debug(f"Stored screenshot {screenshot_id[:8]} as current (request {short_id(request_id)})")
+        session.set_current_screenshot(
+            normalized_screenshot_id,
+            screenshot_data,
+            capture_meta=normalized_capture_meta,
+        )
+        logger.debug(
+            "Stored screenshot %s as current (request %s)",
+            normalized_screenshot_id[:8],
+            short_id(request_id),
+        )
         
         # Trigger OCR in background (non-blocking)
-        await self._maybe_trigger_ocr(session, screenshot_data, screenshot_id, request_id)
+        await self._maybe_trigger_ocr(
+            session,
+            screenshot_data,
+            normalized_screenshot_id,
+            request_id,
+        )
         
-        return screenshot_id
+        return normalized_screenshot_id
     
     async def _maybe_trigger_ocr(
         self,

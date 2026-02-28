@@ -107,6 +107,8 @@ describe('SystemCapture', () => {
       systemState: { active_window: 'App', mouse_position: '0,0' },
       screenshot: 'shot',
       screenshotContentType: null,
+      screenshotId: null,
+      captureMeta: null,
     });
     expect(invokeSpy).toHaveBeenNthCalledWith(2, INVOKE_CHANNELS.HIDE_CHATBOX);
     expect(invokeSpy).toHaveBeenNthCalledWith(1, INVOKE_CHANNELS.SHOW_CHATBOX, {
@@ -211,11 +213,38 @@ describe('SystemCapture', () => {
       systemState: null,
       screenshot: 'png-shot',
       screenshotContentType: 'image/png',
+      screenshotId: null,
+      captureMeta: null,
     });
     expect(jpgResult).toEqual({
       systemState: null,
       screenshot: 'jpg-shot',
       screenshotContentType: 'image/jpeg',
+      screenshotId: null,
+      captureMeta: null,
+    });
+  });
+
+  test('extractOSstate extracts screenshot grounding metadata when available', async () => {
+    mockInvokeForCapture({
+      screenshotResults: [{
+        success: true,
+        data: {
+          screenshot: 'shot',
+          screenshot_id: 'shot-abc',
+          capture_meta: { source_w: 1920, source_h: 1080, crop_x: 0, crop_y: 0, crop_w: 1920, crop_h: 1080 },
+        },
+      }],
+    });
+
+    const result = await extractOSstate(true, false, 0, false);
+
+    expect(result).toEqual({
+      systemState: null,
+      screenshot: 'shot',
+      screenshotContentType: null,
+      screenshotId: 'shot-abc',
+      captureMeta: { source_w: 1920, source_h: 1080, crop_x: 0, crop_y: 0, crop_w: 1920, crop_h: 1080 },
     });
   });
 
@@ -233,6 +262,8 @@ describe('SystemCapture', () => {
       systemState: null,
       screenshot: null,
       screenshotContentType: 'image/png',
+      screenshotId: null,
+      captureMeta: null,
     });
   });
 
@@ -250,6 +281,8 @@ describe('SystemCapture', () => {
       systemState: null,
       screenshot: null,
       screenshotContentType: null,
+      screenshotId: null,
+      captureMeta: null,
     });
   });
 
@@ -259,7 +292,13 @@ describe('SystemCapture', () => {
     const result = await extractOSstate(false, false, 0, false);
 
     expect(invokeSpy).not.toHaveBeenCalled();
-    expect(result).toEqual({ systemState: null, screenshot: null, screenshotContentType: null });
+    expect(result).toEqual({
+      systemState: null,
+      screenshot: null,
+      screenshotContentType: null,
+      screenshotId: null,
+      captureMeta: null,
+    });
   });
 
   test('extractOSstate uses default non-first-message mode when fourth arg is omitted', async () => {
@@ -268,7 +307,13 @@ describe('SystemCapture', () => {
     const result = await extractOSstate(false, false, 0);
 
     expect(invokeSpy).not.toHaveBeenCalled();
-    expect(result).toEqual({ systemState: null, screenshot: null, screenshotContentType: null });
+    expect(result).toEqual({
+      systemState: null,
+      screenshot: null,
+      screenshotContentType: null,
+      screenshotId: null,
+      captureMeta: null,
+    });
   });
 
   test('extractOSstate first-message path supports disabled screenshot/system-state flags', async () => {
@@ -277,7 +322,13 @@ describe('SystemCapture', () => {
     const result = await extractOSstate(false, false, 0, true);
 
     expect(invokeSpy).not.toHaveBeenCalled();
-    expect(result).toEqual({ systemState: null, screenshot: null, screenshotContentType: null });
+    expect(result).toEqual({
+      systemState: null,
+      screenshot: null,
+      screenshotContentType: null,
+      screenshotId: null,
+      captureMeta: null,
+    });
   });
 
   test('extractOSstate handles invoke errors gracefully', async () => {
@@ -287,7 +338,13 @@ describe('SystemCapture', () => {
 
     const result = await extractOSstate(true, true, 0, false);
 
-    expect(result).toEqual({ systemState: null, screenshot: null, screenshotContentType: null });
+    expect(result).toEqual({
+      systemState: null,
+      screenshot: null,
+      screenshotContentType: null,
+      screenshotId: null,
+      captureMeta: null,
+    });
     expect(consoleWarnSpy).toHaveBeenCalled();
     consoleErrorSpy.mockRestore();
     consoleWarnSpy.mockRestore();
@@ -303,7 +360,13 @@ describe('SystemCapture', () => {
 
     const result = await extractOSstate(true, true, 0, true);
 
-    expect(result).toEqual({ systemState: null, screenshot: null, screenshotContentType: null });
+    expect(result).toEqual({
+      systemState: null,
+      screenshot: null,
+      screenshotContentType: null,
+      screenshotId: null,
+      captureMeta: null,
+    });
     expect(consoleErrorSpy).toHaveBeenCalled();
     expect(consoleWarnSpy).not.toHaveBeenCalled();
     consoleErrorSpy.mockRestore();

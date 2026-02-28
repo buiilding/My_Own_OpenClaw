@@ -76,7 +76,7 @@ Most tools are executed on the frontend Python sidecar:
 The backend does not directly execute tools. It:
 - Builds tool schemas and passes them to LiteLLM via native request params (`tools`, optional `tool_choice`, optional `parallel_tool_calls`)
 - Emits tool schemas as a transparency event (`tool-schemas`)
-- Resolves coordinates and screenshots
+- Resolves coordinates and screenshots with frame-local metadata (`screenshot_id`, `capture_meta`)
 - Waits for results from the frontend sidecar
 - Keeps tool-specific usage guidance (operational rules, parameter strategy, verification hints) in tool descriptions and argument schema descriptions, not in the global system prompt
 
@@ -260,8 +260,12 @@ For tools requiring coordinate resolution via OCR:
 5. Tool call prepared with coordinates
 
 If multiple OCR rows match the target text above the configured similarity threshold,
-resolution fails with an ambiguity error that lists candidate `(x, y)` positions.
-The agent must retry using manual coordinates (`find_coordinates_by="manual"`).
+resolution fails with an ambiguity error that lists candidate ids and candidate `(x, y)` positions.
+The agent must retry using either:
+- OCR candidate selection (`find_coordinates_by="ocr"`, `candidate_id`, `screenshot_id`)
+- Manual selection (`find_coordinates_by="manual"`, `screenshot_id`, `x`, `y`)
+
+All grounding coordinates are interpreted as screenshot pixel coordinates and normalized once to desktop coordinates using `capture_meta` from the same frame.
 
 ### Vision-Based Resolution
 
@@ -296,7 +300,7 @@ For tools using vision models:
    - Individual tools use `ensureAutoCapture(...)` for shared capture policy and fallback behavior.
    - Bundles use the shared bundle capture path (one capture per bundle when computer-use actions are present).
    - Default wait is 2 seconds for most computer-use tools, 0 for `screenshot`, and may be overridden by tool args (`wait`/`seconds`).
-3. **WS Reference**: WebSocket payloads carry `screenshot_ref` instead of base64 blobs
+3. **WS Reference + Metadata**: WebSocket payloads carry `screenshot_ref` (no base64 blobs), plus `screenshot_id` and `capture_meta`
 4. **OCR Processing**: Screenshot processed for OCR (backend, resolved from artifact store)
 5. **Storage**: Screenshot stored in session with unique ID (backend)
 
@@ -306,7 +310,7 @@ For tools using vision models:
 
 - **get_screenshot()**: Ensure an active screenshot is available in session
 - **process_screenshot()**: Process and store screenshot, trigger OCR
-- **Screenshot IDs**: Unique IDs prevent race conditions
+- **Screenshot IDs + Capture Metadata**: Frame IDs and capture metadata prevent stale clicks and ensure deterministic screenshot_px -> desktop_px mapping
 
 ## Tool Schemas
 
@@ -360,7 +364,7 @@ No dual-shape fallback is supported in provider transport.
 
 ### Computer Control Tools
 
-- **mouse_control**: Mouse actions (click, drag, move)
+- **mouse_control**: Mouse actions (click, drag, move). Manual clicks require `screenshot_id` and screenshot-space `x/y` from the same frame.
 - **keyboard_control**: Keyboard input
 - **scroll_control**: Scroll actions. Manual coordinates only: model must provide `x` and `y`, sidecar moves cursor to that location before every scroll action (`scroll`, `scroll_up`, `scroll_down`).
 - **screenshot**: Capture screenshot

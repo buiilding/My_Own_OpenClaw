@@ -62,6 +62,8 @@ class DummyAgent:
         self,
         _text,
         image_data=None,
+        screenshot_id=None,
+        capture_meta=None,
         message_content=None,
         conversation_ref=None,
     ):
@@ -88,6 +90,8 @@ class DummyCaptureAgent:
         self,
         text,
         image_data=None,
+        screenshot_id=None,
+        capture_meta=None,
         message_content=None,
         conversation_ref=None,
     ):
@@ -95,6 +99,8 @@ class DummyCaptureAgent:
             {
                 "text": text,
                 "image_data": image_data,
+                "screenshot_id": screenshot_id,
+                "capture_meta": capture_meta,
                 "message_content": message_content,
                 "conversation_ref": conversation_ref,
             }
@@ -126,6 +132,8 @@ class DummySilentAgent:
         self,
         text,
         image_data=None,
+        screenshot_id=None,
+        capture_meta=None,
         message_content=None,
         conversation_ref=None,
     ):
@@ -149,6 +157,8 @@ class DummyAssistantFullThenCompleteAgent:
         self,
         text,
         image_data=None,
+        screenshot_id=None,
+        capture_meta=None,
         message_content=None,
         conversation_ref=None,
     ):
@@ -168,6 +178,8 @@ class DummyBlockingAgent:
         self,
         text,
         image_data=None,
+        screenshot_id=None,
+        capture_meta=None,
         message_content=None,
         conversation_ref=None,
     ):

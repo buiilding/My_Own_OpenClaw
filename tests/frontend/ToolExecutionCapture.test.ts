@@ -28,6 +28,8 @@ describe('ToolExecutionCapture', () => {
     mockExtractOSstate.mockResolvedValue({
       systemState: { active_window: 'App', mouse_position: '1,1' },
       screenshot: 'shot',
+      screenshotId: null,
+      captureMeta: null,
     });
 
     const nowSpy = jest
@@ -65,6 +67,8 @@ describe('ToolExecutionCapture', () => {
     mockExtractOSstate.mockResolvedValue({
       systemState: { active_window: 'App' },
       screenshot: 'shot',
+      screenshotId: null,
+      captureMeta: null,
     });
 
     const result = await captureAfterTool('mouse_control', { action: 'click' }, false, 2);
@@ -86,6 +90,8 @@ describe('ToolExecutionCapture', () => {
     expect(fromScreenshot).toEqual({
       screenshot: 'shot-a',
       screenshotContentType: 'image/png',
+      screenshotId: null,
+      captureMeta: null,
       systemState: { active_window: 'App' },
       waitDelay: 0,
       captureTime: 0,
@@ -102,6 +108,8 @@ describe('ToolExecutionCapture', () => {
     expect(fromImageData).toEqual({
       screenshot: 'shot-b',
       screenshotContentType: 'image/jpeg',
+      screenshotId: null,
+      captureMeta: null,
       systemState: null,
       waitDelay: 0,
       captureTime: 0,
@@ -124,6 +132,8 @@ describe('ToolExecutionCapture', () => {
     expect(result).toEqual({
       screenshot: null,
       screenshotContentType: 'image/png',
+      screenshotId: null,
+      captureMeta: null,
       systemState: null,
       waitDelay: 0,
       captureTime: 0,
@@ -166,6 +176,8 @@ describe('ToolExecutionCapture', () => {
     expect(capture).toEqual({
       screenshot: 'existing-shot',
       screenshotContentType: 'image/png',
+      screenshotId: null,
+      captureMeta: null,
       systemState: { active_window: 'Existing' },
       waitDelay: 0,
       captureTime: 0,
@@ -178,6 +190,8 @@ describe('ToolExecutionCapture', () => {
       systemState: { active_window: 'Captured' },
       screenshot: 'captured-shot',
       screenshotContentType: 'image/jpeg',
+      screenshotId: 'shot-id-1',
+      captureMeta: { source_w: 1920, source_h: 1080 },
     } as any);
 
     const result: any = { success: true, data: { output: 'ok' } };
@@ -187,8 +201,12 @@ describe('ToolExecutionCapture', () => {
     expect(mockExtractOSstate).toHaveBeenCalledWith(true, true, 0, false, undefined);
     expect(capture.screenshot).toBe('captured-shot');
     expect(capture.screenshotContentType).toBe('image/jpeg');
+    expect(capture.screenshotId).toBe('shot-id-1');
+    expect(capture.captureMeta).toEqual({ source_w: 1920, source_h: 1080 });
     expect(result.data.screenshot).toBe('captured-shot');
     expect(result.data.screenshot_content_type).toBe('image/jpeg');
+    expect(result.data.screenshot_id).toBe('shot-id-1');
+    expect(result.data.capture_meta).toEqual({ source_w: 1920, source_h: 1080 });
   });
 
   test('ensureAutoCapture forwards correlation id to capture extraction path', async () => {
@@ -196,6 +214,8 @@ describe('ToolExecutionCapture', () => {
       systemState: { active_window: 'Captured' },
       screenshot: 'captured-shot',
       screenshotContentType: 'image/png',
+      screenshotId: null,
+      captureMeta: null,
     } as any);
 
     const result: any = { success: true, data: { output: 'ok' } };
@@ -212,6 +232,8 @@ describe('ToolExecutionCapture', () => {
     expect(mockExtractOSstate).not.toHaveBeenCalled();
     expect(capture.screenshot).toBeNull();
     expect(capture.screenshotContentType).toBeNull();
+    expect(capture.screenshotId).toBeNull();
+    expect(capture.captureMeta).toBeNull();
     expect(capture.systemState).toBeNull();
     expect(capture.isComputerTool).toBe(true);
     expect(result.data).toEqual({ output: 'ok' });

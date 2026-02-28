@@ -75,6 +75,7 @@ class DisplayBounds(BaseModel):
     y: int = Field(..., description="Display Y origin")
     width: int = Field(..., description="Display width")
     height: int = Field(..., description="Display height")
+    monitor_id: Optional[str] = Field(None, description="Optional monitor identifier")
 
 class ScreenshotToolArgs(BaseModel):
     """Arguments for screenshot tool."""

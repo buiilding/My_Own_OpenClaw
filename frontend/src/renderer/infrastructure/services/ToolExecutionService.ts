@@ -49,6 +49,7 @@ import {
   buildToolBundleResultEnvelope,
   buildToolResultEnvelope,
 } from './ToolResultEnvelope';
+import type { CaptureMeta } from './SystemCapture';
 
 export {
   ToolExecutionResult,
@@ -96,7 +97,14 @@ export class ToolExecutionService {
         result,
         options.correlationId,
       );
-      const { screenshot, screenshotContentType, systemState, waitDelay, captureTime, isComputerTool } = capture;
+      const {
+        screenshot,
+        screenshotContentType,
+        systemState,
+        waitDelay,
+        captureTime,
+        isComputerTool,
+      } = capture;
 
       const uploaded = isComputerTool && screenshot
         ? await uploadArtifactBase64(
@@ -278,6 +286,8 @@ export class ToolExecutionService {
     status: string,
     stepResults: BundleStepResult[],
     screenshotRef: string | null,
+    screenshotId: string | null,
+    captureMeta: CaptureMeta | null,
     systemState: SystemState | null,
     error: string | null,
     includeScreenshot: boolean,
@@ -296,6 +306,12 @@ export class ToolExecutionService {
 
     if (includeScreenshot && screenshotRef) {
       payload.screenshot_ref = screenshotRef;
+    }
+    if (includeScreenshot && screenshotId) {
+      payload.screenshot_id = screenshotId;
+    }
+    if (includeScreenshot && captureMeta) {
+      payload.capture_meta = captureMeta;
     }
 
     if (includeSystemState && systemState) {
@@ -327,6 +343,8 @@ export class ToolExecutionService {
         systemState,
         screenshot,
         screenshotContentType,
+        screenshotId,
+        captureMeta,
         totalWaitDelay,
         totalCaptureTime,
         toolExecutionTimes
@@ -343,6 +361,7 @@ export class ToolExecutionService {
         normalizedResults,
         systemState,
         screenshot,
+        screenshotId,
         bundleHasComputerTool,
       );
       const formattingTime = (performance.now() - formattingStartTime) / 1000;
@@ -387,6 +406,8 @@ export class ToolExecutionService {
         bundleStatus,
         stepResults,
         bundleScreenshotRef,
+        screenshotId,
+        captureMeta,
         systemState,
         errorMessage,
         bundleHasComputerTool,
@@ -421,6 +442,8 @@ export class ToolExecutionService {
         bundleId,
         'failure',
         stepResults,
+        null,
+        null,
         null,
         null,
         errorMessage,

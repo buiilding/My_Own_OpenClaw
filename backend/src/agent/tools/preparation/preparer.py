@@ -185,12 +185,14 @@ class ToolPreparer:
                         context_id=bundle_id,
                     )
                 except Exception as exc:
-                    logger.warning(
+                    logger.error(
                         "[bundle_id=%s] Manual coordinate normalization failed for %s: %s",
                         short_id(bundle_id),
                         tool_call.tool_name,
                         exc,
                     )
+                    errors.append((tool_call, str(exc)))
+                    break
 
             resolved_calls.append(resolved_call)
 
@@ -252,11 +254,15 @@ class ToolPreparer:
                     context_id=request_id,
                 )
             except Exception as exc:
-                logger.warning(
+                logger.error(
                     "[request_id=%s] Manual coordinate normalization failed for %s: %s",
                     short_id(request_id),
                     tool_call.tool_name,
                     exc,
+                )
+                return PreparationResult(
+                    resolved_calls=[],
+                    errors=[(tool_call, str(exc))],
                 )
 
         self._register_resolved_call(session, request_id, resolved_call)

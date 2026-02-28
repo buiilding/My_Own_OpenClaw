@@ -32,7 +32,7 @@ Responsibilities:
 
 - assign stable execution identifiers (`request_id` for single, `bundle_id` for bundle)
 - resolve OCR/prediction coordinates for `mouse_control` when needed
-- normalize manual mouse coordinates when screenshot/display spaces differ
+- normalize all grounding coordinates from screenshot space to desktop space
 - rewrite resolved mouse calls to manual `x/y` parameters
 - attach transparency/diagnostic metadata
 - register resolved single-call payloads in session runtime for later stale-screen checks
@@ -59,7 +59,7 @@ Non-responsibilities:
 - `find_coordinates_by` is `ocr` or `prediction`
 
 `manual` mode bypasses OCR/vision resolution.
-`tool_call_has_manual_coordinates(...)` marks manual `x/y` calls for best-effort normalization.
+`tool_call_has_manual_coordinates(...)` marks manual `x/y` calls for strict normalization.
 Manual coordinates accept numeric values (`int` or finite `float`) and are canonicalized to integer pixels before execution.
 
 ## Coordinate Resolution Pipeline
@@ -77,35 +77,42 @@ For a qualifying call:
 
 For manual `x/y` calls (no OCR/vision resolution):
 
-1. read current screenshot from session (if available)
-2. build the same `CoordinateContract` used by OCR/prediction
-3. normalize screenshot-space manual coordinates to display-space
-4. persist `coordinate_contract` metadata (+ screenshot id when available)
+1. require `screenshot_id` in tool args
+2. require current session frame id to exist and match `screenshot_id`
+3. build the same `CoordinateContract` used by OCR/prediction
+4. normalize screenshot-space manual coordinates to display-space
+5. persist `coordinate_contract` metadata + `coordinate_resolution_screenshot_id`
 
-If no active screenshot is available, manual normalization is skipped and coordinates pass through unchanged.
+If any manual precondition fails (missing frame id, mismatch, missing screenshot bytes), preparation fails fast with an actionable error.
 
 ## Coordinate Normalization Contract
 
-`CoordinateContract` converts screenshot-space coordinates into display-space coordinates.
+`CoordinateContract` converts screenshot-space coordinates into desktop-space coordinates using frame-local `capture_meta`.
 
 Inputs:
 
 - resolved coordinate pair in screenshot pixel space
-- source screenshot dimensions
-- target display resolution from runtime system state
+- capture metadata from the same frame:
+  - `source_w` / `source_h`
+  - `crop_x` / `crop_y` / `crop_w` / `crop_h`
+  - optional `desktop_virtual_bounds`, `monitor_id`, `timestamp`
 
 Statuses include:
 
-- `scaled_to_display`
-- `source_equals_target`
-- `missing_source_image_size`
-- `missing_target_display_size`
-- `invalid_dimensions`
-- `already_display_space`
+- `already_desktop_space`
+- `missing_capture_meta`
+- `invalid_source_dimensions`
+- `invalid_crop_dimensions`
+- `source_equals_crop`
+- `scaled_to_desktop`
+- `scaled_to_desktop_clamped`
 
-Platform rule:
+Canonical transform:
 
-- normalization is disabled on Linux (`disabled_on_linux` metadata status) to avoid known mismatch behavior.
+- `desktop_x = crop_x + round(x * crop_w / source_w)`
+- `desktop_y = crop_y + round(y * crop_h / source_h)`
+
+Input `x/y` are clamped to `[0, source_w-1]` and `[0, source_h-1]` before mapping.
 
 ## Rewritten Call Shape
 
@@ -118,8 +125,8 @@ After successful resolution:
 Metadata additions:
 
 - `coordinate_method`: original user/model intent (`manual|ocr|prediction`)
-- `coordinate_resolution_screenshot_id` (OCR/prediction always, manual when screenshot available)
-- `coordinate_contract` (OCR/prediction always, manual when screenshot available): source/target sizes, normalization status, normalized coordinates
+- `coordinate_resolution_screenshot_id` (always required for safe execution)
+- `coordinate_contract`: source coordinates, clamped source coordinates, source image size, capture crop, normalized desktop coordinates, normalization status
 
 ## Single vs Bundle Preparation Behavior
 
@@ -158,10 +165,10 @@ Bundle preparation failure:
 `execute_single_tool(...)` verifies prepared screenshot identity before waiting:
 
 - compares `coordinate_resolution_screenshot_id` in resolved metadata vs current session screenshot id
-- mismatch returns immediate failure result (`Screen changed before tool execution`) to prevent dangerous clicks on changed UI
+- mismatch returns immediate failure result (`frame changed, re-ground required`) to prevent dangerous clicks on changed UI
 
 This guard is independent of frontend behavior and protects local automation safety.
-Manual calls participate when normalization attached a screenshot id.
+Manual calls always participate because `screenshot_id` is mandatory.
 
 ## Wait Path Coupling
 
@@ -176,9 +183,9 @@ If synthetic preparation failures already populated storage, waits complete imme
 
 If `mouse_control` executes wrong location:
 
-1. inspect `coordinate_contract` metadata (source/target sizes + normalization status)
-2. verify runtime `screen_resolution` exists in system state
-3. verify normalization disabled/enabled status for current OS
+1. inspect `coordinate_contract` metadata (source, crop, normalized coords, status)
+2. verify click used the same `coordinate_resolution_screenshot_id` as current frame
+3. verify sidecar screenshot result included `capture_meta` for the same `screenshot_id`
 
 If prepared call never reaches frontend:
 

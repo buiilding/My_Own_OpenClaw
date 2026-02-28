@@ -26,6 +26,31 @@ function buildScreenshotArgs(explanation: string) {
   return args;
 }
 
+export type CaptureMeta = {
+  screenshot_id?: string | null;
+  source_w?: number;
+  source_h?: number;
+  crop_x?: number;
+  crop_y?: number;
+  crop_w?: number;
+  crop_h?: number;
+  desktop_virtual_bounds?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null;
+  monitor_id?: string | null;
+  timestamp?: number;
+};
+
+type ExtractedScreenshotData = {
+  screenshot: string | null;
+  screenshotContentType: string | null;
+  screenshotId: string | null;
+  captureMeta: CaptureMeta | null;
+};
+
 /**
  * Extract OS state (system state and/or screenshot) with configurable options.
  * Unified function for all screenshot and system state capture scenarios.
@@ -42,7 +67,13 @@ export async function extractOSstate(
   wait: number,
   is_first_user_message: boolean = false,
   captureCorrelationId: string | null = null,
-): Promise<{ systemState: SystemState | null; screenshot: string | null; screenshotContentType: string | null }> {
+): Promise<{
+  systemState: SystemState | null;
+  screenshot: string | null;
+  screenshotContentType: string | null;
+  screenshotId: string | null;
+  captureMeta: CaptureMeta | null;
+}> {
   const shouldEmitCaptureEvent = enable_screenshot && typeof window !== 'undefined';
   let screenshotVisibilityPreparation: CaptureVisibilityPreparation = {
     prepared: false,
@@ -100,20 +131,36 @@ export async function extractOSstate(
         const systemState = enable_system_state ? stateResult : null;
         const screenshotData = enable_screenshot
           ? extractScreenshotData(screenshotResult)
-          : { screenshot: null, screenshotContentType: null };
+          : {
+            screenshot: null,
+            screenshotContentType: null,
+            screenshotId: null,
+            captureMeta: null,
+          };
 
-        return { systemState, screenshot: screenshotData.screenshot, screenshotContentType: screenshotData.screenshotContentType };
+        return {
+          systemState,
+          screenshot: screenshotData.screenshot,
+          screenshotContentType: screenshotData.screenshotContentType,
+          screenshotId: screenshotData.screenshotId,
+          captureMeta: screenshotData.captureMeta,
+        };
       } catch (err) {
         console.error(
           `[extractOSstate] Failed to extract OS state (first user message):`,
           err,
         );
-        return { systemState: null, screenshot: null, screenshotContentType: null };
+        return {
+          systemState: null,
+          screenshot: null,
+          screenshotContentType: null,
+          screenshotId: null,
+          captureMeta: null,
+        };
       }
     }
 
     // Regular extraction for tool outputs.
-    // Include screen_resolution for backend-only coordinate normalization (HiDPI-safe clicks).
     try {
       const promises: Array<Promise<any>> = [];
 
@@ -141,6 +188,8 @@ export async function extractOSstate(
       let systemState: SystemState | null = null;
       let screenshot: string | null = null;
       let screenshotContentType: string | null = null;
+      let screenshotId: string | null = null;
+      let captureMeta: CaptureMeta | null = null;
 
       let resultIndex = 0;
       if (enable_system_state) {
@@ -153,12 +202,26 @@ export async function extractOSstate(
         const screenshotData = extractScreenshotData(screenshotResult);
         screenshot = screenshotData.screenshot;
         screenshotContentType = screenshotData.screenshotContentType;
+        screenshotId = screenshotData.screenshotId;
+        captureMeta = screenshotData.captureMeta;
       }
 
-      return { systemState, screenshot, screenshotContentType };
+      return {
+        systemState,
+        screenshot,
+        screenshotContentType,
+        screenshotId,
+        captureMeta,
+      };
     } catch (err) {
       console.error(`[extractOSstate] Failed to extract OS state:`, err);
-      return { systemState: null, screenshot: null, screenshotContentType: null };
+      return {
+        systemState: null,
+        screenshot: null,
+        screenshotContentType: null,
+        screenshotId: null,
+        captureMeta: null,
+      };
     }
   } finally {
     await restoreScreenshotCaptureVisibility(screenshotVisibilityPreparation, {
@@ -190,14 +253,27 @@ function resolveScreenshotContentType(data: Record<string, any>): string | null 
 function extractScreenshotData(result: ToolResult): {
   screenshot: string | null;
   screenshotContentType: string | null;
+  screenshotId: string | null;
+  captureMeta: CaptureMeta | null;
 } {
   if (!result.success || !result.data || typeof result.data !== 'object') {
-    return { screenshot: null, screenshotContentType: null };
+    return {
+      screenshot: null,
+      screenshotContentType: null,
+      screenshotId: null,
+      captureMeta: null,
+    };
   }
 
   const screenshot = typeof result.data.screenshot === 'string'
     ? result.data.screenshot
     : null;
+  const screenshotId = typeof result.data.screenshot_id === 'string'
+    ? result.data.screenshot_id
+    : null;
+  const captureMeta = result.data.capture_meta && typeof result.data.capture_meta === 'object'
+    ? result.data.capture_meta as CaptureMeta
+    : null;
   const screenshotContentType = resolveScreenshotContentType(result.data);
-  return { screenshot, screenshotContentType };
+  return { screenshot, screenshotContentType, screenshotId, captureMeta };
 }

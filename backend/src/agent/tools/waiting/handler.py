@@ -94,6 +94,8 @@ class ToolResultHandler:
         step_results: List[Dict[str, Any]],
         screenshot: Optional[str],
         screenshot_ref: Optional[str],
+        screenshot_id: Optional[str],
+        capture_meta: Optional[Dict[str, Any]],
         system_state: Optional[Dict[str, Any]],
         error: Optional[str]
     ) -> None:
@@ -110,7 +112,15 @@ class ToolResultHandler:
         """
         # Receive bundle result
         bundle_result = self.receiver.receive_bundle_result(
-            bundle_id, status, step_results, screenshot, screenshot_ref, system_state, error
+            bundle_id,
+            status,
+            step_results,
+            screenshot,
+            screenshot_ref,
+            screenshot_id,
+            capture_meta,
+            system_state,
+            error,
         )
         
         # Route bundle result

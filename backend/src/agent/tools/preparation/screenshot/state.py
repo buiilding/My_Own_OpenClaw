@@ -7,6 +7,11 @@ AgentSession complexity and improve modularity.
 import asyncio
 from typing import Any, Optional
 
+from backend.src.agent.tools.preparation.helpers.coordinate_contract import (
+    CaptureMetaDict,
+    normalize_capture_meta,
+)
+
 
 class ScreenshotState:
     """
@@ -20,6 +25,7 @@ class ScreenshotState:
         """Initialize empty screenshot state."""
         self._current_screenshot: Optional[str] = None  # Base64-encoded screenshot data
         self._current_screenshot_id: Optional[str] = None  # ID of the current screenshot
+        self._current_capture_meta: Optional[CaptureMetaDict] = None
         self._current_ocr_results: Optional[list[dict]] = None  # OCR results for current screenshot
         self._active_ocr_task: Optional[asyncio.Task[Any]] = None
         self._active_ocr_task_screenshot_id: Optional[str] = None
@@ -47,8 +53,19 @@ class ScreenshotState:
             Current screenshot ID or None if no screenshot is available
         """
         return self._current_screenshot_id
+
+    def get_current_capture_meta(self) -> Optional[CaptureMetaDict]:
+        """Get normalized capture metadata for the current screenshot."""
+        if not isinstance(self._current_capture_meta, dict):
+            return None
+        return dict(self._current_capture_meta)
     
-    def set_current_screenshot(self, screenshot_id: str, screenshot_data: str) -> None:
+    def set_current_screenshot(
+        self,
+        screenshot_id: str,
+        screenshot_data: str,
+        capture_meta: Optional[dict] = None,
+    ) -> None:
         """
         Set the current screenshot, discarding any previous screenshot.
         
@@ -61,6 +78,11 @@ class ScreenshotState:
         """
         self._current_screenshot = screenshot_data
         self._current_screenshot_id = screenshot_id
+        self._current_capture_meta = normalize_capture_meta(
+            capture_meta,
+            screenshot_id=screenshot_id,
+            fallback_screenshot_b64=screenshot_data,
+        )
         # Discard old OCR results when screenshot changes
         self._current_ocr_results = None
     
@@ -122,4 +144,5 @@ class ScreenshotState:
         self.cancel_active_ocr_task()
         self._current_screenshot = None
         self._current_screenshot_id = None
+        self._current_capture_meta = None
         self._current_ocr_results = None

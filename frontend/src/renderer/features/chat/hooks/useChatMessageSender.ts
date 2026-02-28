@@ -6,7 +6,7 @@
 import { useCallback } from 'react';
 import { ApiClient } from '../../../infrastructure/api/client';
 import { useChatStore, type ChatMessage } from '../stores/chatStore';
-import { extractOSstate } from '../../../infrastructure/services/SystemCapture';
+import { extractOSstate, type CaptureMeta } from '../../../infrastructure/services/SystemCapture';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { uploadArtifactBase64 } from '../../../infrastructure/services/ArtifactUploader';
 import {
@@ -187,6 +187,8 @@ export function useChatMessageSender(
     
     let screenshot: string | null = firstClipboardImage?.base64 || null;
     let screenshotContentType: string | null = userMessageScreenshotContentType;
+    let screenshotId: string | null = null;
+    let captureMeta: CaptureMeta | null = null;
     const screenshotFilename: string | null = firstClipboardImage?.filename || null;
     if (!screenshot && shouldCaptureQueryScreenshot) {
       // Extract OS state (screenshot and system state).
@@ -201,6 +203,8 @@ export function useChatMessageSender(
 
         screenshot = osStateResult.screenshot;
         screenshotContentType = osStateResult.screenshotContentType;
+        screenshotId = osStateResult.screenshotId;
+        captureMeta = osStateResult.captureMeta;
       } catch (error) {
         console.error('[useChatMessageSender] Failed to extract OS state:', error);
         // Continue without screenshot/system state if capture fails
@@ -285,6 +289,8 @@ export function useChatMessageSender(
         screenshotRef,
         screenshotUrl,
         screenshotRefs.length > 0 ? screenshotRefs : null,
+        screenshotId,
+        captureMeta,
       );
     } catch (error) {
       console.error('[useChatMessageSender] Failed to send query:', error);

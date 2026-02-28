@@ -31,6 +31,8 @@ class QueryPayload(BaseModel):
     screenshot: Optional[str] = None
     screenshot_ref: Optional[str] = None
     screenshot_refs: Optional[List[str]] = None
+    screenshot_id: Optional[str] = None
+    capture_meta: Optional[Dict[str, Any]] = None
     system_state_internal: Optional[Dict[str, Any]] = None
 
     @field_validator("conversation_ref")
@@ -196,6 +198,34 @@ class ToolResultSystemState(BaseModel):
     mouse_position: str
 
 
+class ToolCaptureBounds(BaseModel):
+    """Desktop-space rectangle bounds used by capture metadata."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    x: int
+    y: int
+    width: int
+    height: int
+
+
+class ToolCaptureMeta(BaseModel):
+    """Frame-local capture metadata used for screenshot_px -> desktop_px mapping."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    screenshot_id: Optional[str] = None
+    source_w: int
+    source_h: int
+    crop_x: int
+    crop_y: int
+    crop_w: int
+    crop_h: int
+    desktop_virtual_bounds: Optional[ToolCaptureBounds] = None
+    monitor_id: Optional[str] = None
+    timestamp: int
+
+
 class ToolResultData(BaseModel):
     """Tool-result data emitted by frontend and consumed by backend."""
 
@@ -206,6 +236,8 @@ class ToolResultData(BaseModel):
     system_state: Optional[ToolResultSystemState] = None
     screenshot: Optional[str] = None
     screenshot_ref: Optional[str] = None
+    screenshot_id: Optional[str] = None
+    capture_meta: Optional[ToolCaptureMeta] = None
 
 
 class ToolResultPayload(BaseModel):
@@ -245,6 +277,8 @@ class ToolBundleResultPayload(BaseModel):
     # Screenshot fields are conditional: include only for computer-use bundles.
     screenshot: Optional[str] = None
     screenshot_ref: Optional[str] = None
+    screenshot_id: Optional[str] = None
+    capture_meta: Optional[ToolCaptureMeta] = None
     system_state: Optional[Dict[str, Any]] = None
     step_results: List[ToolBundleStepResult]
     error: Optional[str] = None

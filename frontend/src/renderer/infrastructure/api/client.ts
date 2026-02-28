@@ -6,6 +6,7 @@
 
 import { IpcBridge, SEND_CHANNELS } from '../ipc/bridge';
 import { getMemoryRetrievalInjectionEnabled } from '../../utils/memoryRetrievalPreference';
+import type { CaptureMeta } from '../services/SystemCapture';
 
 type RehydrateConversationEntry = {
   role: 'user' | 'assistant' | 'tool';
@@ -35,6 +36,8 @@ export const ApiClient = {
     screenshotRef: string | null = null,
     screenshotUrl: string | null = null,
     screenshotRefs: string[] | null = null,
+    screenshotId: string | null = null,
+    captureMeta: CaptureMeta | null = null,
   ): Promise<void> => {
     void screenshotUrl;
     const normalizedScreenshotRefs = Array.isArray(screenshotRefs)
@@ -48,6 +51,8 @@ export const ApiClient = {
         conversation_ref: conversationRef,
         screenshot_ref: screenshotRef,  // Optional screenshot reference
         screenshot_refs: normalizedScreenshotRefs.length > 0 ? normalizedScreenshotRefs : null,
+        screenshot_id: screenshotId,
+        capture_meta: captureMeta,
         memory_retrieval_enabled: getMemoryRetrievalInjectionEnabled(),
       }
     });

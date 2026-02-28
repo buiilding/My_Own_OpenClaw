@@ -13,6 +13,7 @@ from tools.computer import screenshot_tool  # noqa: E402
 class _FakeImage:
     def __init__(self, mode="RGBA"):
         self.mode = mode
+        self.size = (300, 200)
 
     def convert(self, mode):
         return _FakeImage(mode=mode)
@@ -28,6 +29,7 @@ class _FakeImage:
 def _install_fake_modules(monkeypatch, *, screenshot_fn):
     pyautogui_module = ModuleType("pyautogui")
     pyautogui_module.screenshot = screenshot_fn
+    pyautogui_module.size = lambda: SimpleNamespace(width=1920, height=1080)
     pil_module = ModuleType("PIL")
     pil_module.Image = object()
     monkeypatch.setitem(sys.modules, "pyautogui", pyautogui_module)
@@ -55,6 +57,26 @@ async def test_capture_screenshot_success_with_display_bounds(monkeypatch):
     assert payload["return_display"] == "Screenshot captured"
     assert base64.b64decode(payload["screenshot"]) == b"fake-jpeg-bytes"
     assert payload["size"] == int(len(payload["screenshot"]) * 0.75)
+    assert isinstance(payload["screenshot_id"], str)
+    assert len(payload["screenshot_id"]) == 16
+    assert payload["capture_meta"] == {
+      "screenshot_id": payload["screenshot_id"],
+      "source_w": 300,
+      "source_h": 200,
+      "crop_x": 10,
+      "crop_y": 20,
+      "crop_w": 300,
+      "crop_h": 200,
+      "desktop_virtual_bounds": {
+        "x": 10,
+        "y": 20,
+        "width": 300,
+        "height": 200,
+      },
+      "monitor_id": None,
+      "timestamp": payload["capture_meta"]["timestamp"],
+    }
+    assert isinstance(payload["capture_meta"]["timestamp"], int)
 
 
 @pytest.mark.asyncio

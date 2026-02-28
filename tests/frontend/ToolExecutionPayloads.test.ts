@@ -16,6 +16,8 @@ describe('ToolExecutionPayloads', () => {
           screenshot: 'shot',
           image_data: 'inline',
           screenshot_ref: 'existing-ref',
+          screenshot_id: 'shot-id',
+          capture_meta: { source_w: 1920, source_h: 1080 },
         },
       },
       'formatted',
@@ -34,6 +36,8 @@ describe('ToolExecutionPayloads', () => {
         data: {
           output: 'ok',
           screenshot_ref: 'old-ref',
+          screenshot_id: 'shot-new',
+          capture_meta: { source_w: 100, source_h: 100 },
         },
       },
       'formatted',
@@ -47,6 +51,8 @@ describe('ToolExecutionPayloads', () => {
     expect(payload).toEqual({
       output: 'ok',
       screenshot_ref: 'new-ref',
+      screenshot_id: 'shot-new',
+      capture_meta: { source_w: 100, source_h: 100 },
       llm_content: 'formatted',
       system_state: {
         active_window: 'Unknown',

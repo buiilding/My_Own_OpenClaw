@@ -12,9 +12,32 @@ from backend.src.llm.parser import ParsedToolCall
 class DummySession:
     def __init__(self):
         self.resolved_calls = {}
+        self._screenshot = "fake-shot"
+        self._screenshot_id = "shot-prepare"
+        self._capture_meta = {
+            "screenshot_id": "shot-prepare",
+            "source_w": 1920,
+            "source_h": 1080,
+            "crop_x": 0,
+            "crop_y": 0,
+            "crop_w": 1920,
+            "crop_h": 1080,
+            "desktop_virtual_bounds": {"x": 0, "y": 0, "width": 1920, "height": 1080},
+            "monitor_id": None,
+            "timestamp": 1,
+        }
 
     def register_resolved_tool_call(self, request_id, resolved_call):
         self.resolved_calls[request_id] = resolved_call
+
+    def get_current_screenshot_id(self):
+        return self._screenshot_id
+
+    def get_screenshot(self):
+        return self._screenshot
+
+    def get_current_capture_meta(self):
+        return dict(self._capture_meta)
 
 
 async def _collect_preparation(preparer, tool_calls):
@@ -87,12 +110,34 @@ async def test_prepare_mouse_control_manual_sets_coordinate_method_metadata():
     preparer = ToolPreparer(object(), object(), object())
     tool_call = ParsedToolCall(
         tool_name="mouse_control",
-        parameters={"action": "click", "x": 100, "y": 200},
+        parameters={
+            "action": "click",
+            "x": 100,
+            "y": 200,
+            "screenshot_id": "shot-prepare",
+        },
         raw_call="{}",
     )
 
     events, result = await _collect_preparation(preparer, [tool_call])
     _assert_single_result_with_coordinate_method(events, result, "manual")
+
+
+@pytest.mark.asyncio
+async def test_prepare_mouse_control_manual_requires_screenshot_id():
+    preparer = ToolPreparer(object(), object(), object())
+    tool_call = ParsedToolCall(
+        tool_name="mouse_control",
+        parameters={"action": "click", "x": 100, "y": 200},
+        raw_call="{}",
+    )
+
+    _events, result = await _collect_preparation(preparer, [tool_call])
+
+    assert result is not None
+    assert result.resolved_calls == []
+    assert len(result.errors) == 1
+    assert "screenshot_id" in result.errors[0][1]
 
 
 def test_tool_call_needs_coordinate_resolution_requires_mouse_control_and_supported_method():

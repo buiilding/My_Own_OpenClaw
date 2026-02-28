@@ -1,10 +1,13 @@
 import { extractOSstate } from './SystemCapture';
 import { STANDARD_COMPUTER_USE_TOOLS } from './ToolComputerUseCatalog';
 import type { SystemState, ToolResult } from './MessageFormatter';
+import type { CaptureMeta } from './SystemCapture';
 
 type ToolCaptureResult = {
   screenshot: string | null;
   screenshotContentType: string | null;
+  screenshotId: string | null;
+  captureMeta: CaptureMeta | null;
   systemState: SystemState | null;
   waitSeconds: number;
   captureTime: number;
@@ -13,6 +16,8 @@ type ToolCaptureResult = {
 type AutoCaptureResult = {
   screenshot: string | null;
   screenshotContentType: string | null;
+  screenshotId: string | null;
+  captureMeta: CaptureMeta | null;
   systemState: SystemState | null;
   waitDelay: number;
   captureTime: number;
@@ -50,23 +55,41 @@ function getWaitSeconds(
 function extractCaptureFromResult(result: ToolResult): {
   screenshot: string | null;
   screenshotContentType: string | null;
+  screenshotId: string | null;
+  captureMeta: CaptureMeta | null;
   systemState: SystemState | null;
 } {
   if (result.data && typeof result.data === 'object' && !Array.isArray(result.data)) {
     const screenshotContentType = resolveContentType(result.data);
     const screenshot = resolveScreenshotValue(result.data);
+    const screenshotId = typeof result.data.screenshot_id === 'string'
+      ? result.data.screenshot_id
+      : null;
+    const captureMeta = result.data.capture_meta && typeof result.data.capture_meta === 'object'
+      ? result.data.capture_meta as CaptureMeta
+      : null;
     return {
       screenshot,
       screenshotContentType,
+      screenshotId,
+      captureMeta,
       systemState: result.data.system_state || null
     };
   }
-  return { screenshot: null, screenshotContentType: null, systemState: null };
+  return {
+    screenshot: null,
+    screenshotContentType: null,
+    screenshotId: null,
+    captureMeta: null,
+    systemState: null,
+  };
 }
 
 function applyCaptureToResult(
   result: ToolResult,
   screenshot: string | null,
+  screenshotId: string | null,
+  captureMeta: CaptureMeta | null,
   systemState: SystemState | null,
   screenshotContentType: string | null
 ): void {
@@ -77,6 +100,8 @@ function applyCaptureToResult(
     result.data = {
       ...result.data,
       screenshot,
+      screenshot_id: screenshotId ?? undefined,
+      capture_meta: captureMeta ?? undefined,
       system_state: systemState ?? undefined,
       screenshot_content_type: screenshotContentType ?? undefined
     };
@@ -110,7 +135,13 @@ export async function ensureAutoCapture(
   captureCorrelationId?: string | null,
 ): Promise<AutoCaptureResult> {
   const isComputerTool = isComputerUseTool(toolName, args);
-  let { screenshot, screenshotContentType, systemState } = extractCaptureFromResult(result);
+  let {
+    screenshot,
+    screenshotContentType,
+    screenshotId,
+    captureMeta,
+    systemState,
+  } = extractCaptureFromResult(result);
   let waitDelay = 0;
   let captureTime = 0;
 
@@ -128,12 +159,23 @@ export async function ensureAutoCapture(
     systemState = capture.systemState;
     screenshot = capture.screenshot;
     screenshotContentType = capture.screenshotContentType;
-    applyCaptureToResult(result, screenshot, systemState, screenshotContentType);
+    screenshotId = capture.screenshotId;
+    captureMeta = capture.captureMeta;
+    applyCaptureToResult(
+      result,
+      screenshot,
+      screenshotId,
+      captureMeta,
+      systemState,
+      screenshotContentType,
+    );
   }
 
   return {
     screenshot,
     screenshotContentType,
+    screenshotId,
+    captureMeta,
     systemState,
     waitDelay,
     captureTime,
@@ -161,6 +203,8 @@ export async function captureAfterTool(
   return {
     screenshot: captureResult.screenshot,
     screenshotContentType: captureResult.screenshotContentType,
+    screenshotId: captureResult.screenshotId,
+    captureMeta: captureResult.captureMeta,
     systemState: enableSystemState ? captureResult.systemState : null,
     waitSeconds,
     captureTime

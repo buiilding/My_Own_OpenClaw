@@ -50,12 +50,24 @@ class ToolResultRouter:
         self.result_storage = result_storage
         self.session = session
     
-    async def _process_screenshot(self, screenshot: Optional[str], request_id: str, context: str) -> None:
+    async def _process_screenshot(
+        self,
+        screenshot: Optional[str],
+        request_id: str,
+        context: str,
+        *,
+        screenshot_id: Optional[str] = None,
+        capture_meta: Optional[dict] = None,
+    ) -> None:
         if not screenshot:
             return
         logger.debug(f"{context} includes screenshot data")
         await self.screenshot_processor.process_from_result(
-            self.session, screenshot, request_id
+            self.session,
+            screenshot,
+            request_id,
+            screenshot_id=screenshot_id,
+            capture_meta=capture_meta,
         )
 
     def _resolve_screenshot_ref(self, screenshot_ref: Optional[str]) -> Optional[str]:
@@ -119,6 +131,24 @@ class ToolResultRouter:
             self.session.set_current_system_state(runtime_state)
             return
         self.session.set_current_system_state(tool_result.data.get("system_state"))
+
+    @staticmethod
+    def _extract_capture_meta(result_data: Any) -> Optional[dict]:
+        if not isinstance(result_data, dict):
+            return None
+        capture_meta = result_data.get("capture_meta")
+        if isinstance(capture_meta, dict):
+            return dict(capture_meta)
+        return None
+
+    @staticmethod
+    def _extract_screenshot_id(result_data: Any) -> Optional[str]:
+        if not isinstance(result_data, dict):
+            return None
+        screenshot_id = result_data.get("screenshot_id")
+        if isinstance(screenshot_id, str) and screenshot_id.strip():
+            return screenshot_id.strip()
+        return None
 
     def _extract_screenshot_from_result_data(
         self,
@@ -210,7 +240,15 @@ class ToolResultRouter:
             tool_result.data,
             tool_result,
         )
-        await self._process_screenshot(screenshot_data, correlation_id, context)
+        screenshot_id = self._extract_screenshot_id(tool_result.data)
+        capture_meta = self._extract_capture_meta(tool_result.data)
+        await self._process_screenshot(
+            screenshot_data,
+            correlation_id,
+            context,
+            screenshot_id=screenshot_id,
+            capture_meta=capture_meta,
+        )
 
         if is_bundle:
             self._store_and_resolve_bundle_result(correlation_id, tool_result)

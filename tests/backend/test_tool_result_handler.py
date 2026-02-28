@@ -12,7 +12,18 @@ class DummyReceiver:
         self.calls.append(("individual", request_id))
         return ToolResult(success=success)
 
-    def receive_bundle_result(self, bundle_id, status, step_results, screenshot, screenshot_ref, system_state, error):
+    def receive_bundle_result(
+        self,
+        bundle_id,
+        status,
+        step_results,
+        screenshot,
+        screenshot_ref,
+        screenshot_id,
+        capture_meta,
+        system_state,
+        error,
+    ):
         self.calls.append(("bundle", bundle_id))
         return ToolResult(success=True)
 
@@ -77,6 +88,8 @@ async def test_process_frontend_tool_bundle_result():
         step_results=[],
         screenshot=None,
         screenshot_ref=None,
+        screenshot_id=None,
+        capture_meta=None,
         system_state=None,
         error=None,
     )
