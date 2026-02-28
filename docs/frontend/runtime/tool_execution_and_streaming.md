@@ -78,6 +78,7 @@ Module:
 - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/chatPillVisibility.ts`
 - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/context.ts`
 - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/preparation.ts`
+- `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/focusPreparation.ts`
 - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/windowVisibility.ts`
 - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/reasons.ts`
 - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/types.ts` (`SURFACE_PHASE` constants)
@@ -88,6 +89,7 @@ Responsibilities:
 - centralized mode resolution (`none | interactive | screenshot`) for single tools and bundles
 - shared chat-pill visibility collapse/restore helper used by both tool-execution and screenshot-capture lifecycles
 - shared transition-context and focus-default resolver helper (`context.ts`) for source/correlation-id/wait-attempt defaults across tool and capture lifecycles
+- shared overlay-focus IPC normalization helper (`focusPreparation.ts`) reused by both tool and capture lifecycles so focus verification metadata and failure-reason parsing stay aligned
 - capture restore path also resolves source/correlation through the shared context helper so hide/show completion logs keep the same normalized contract as prepare/focus transitions
 - shared `ToolSurfacePreparation` builder helper (`preparation.ts`) to keep ready/failure payload shapes stable across tool-lifecycle branches
 - shared main-window visibility probe helper (`windowVisibility.ts`) for screenshot-mode collapse decisions

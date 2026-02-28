@@ -17,6 +17,7 @@ import {
   collapseChatPillForBackgroundCapture,
   restoreChatPillInactive,
 } from './chatPillVisibility';
+import { prepareOverlayToolFocus } from './focusPreparation';
 import { resolveToolSurfaceMode } from './mode';
 import {
   hasActiveSurfaceTokens,
@@ -119,16 +120,12 @@ export async function prepareToolExecutionSurface(
           maxAttempts,
         });
 
-        const focusPreparation = await IpcBridge.invoke(INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
-          waitMs,
-        });
-        const canVerifyExternalFocus = focusPreparation?.data?.canVerifyExternalFocus === true;
-        const externalFocusActive = focusPreparation?.data?.externalFocusActive === true;
+        const focusPreparation = await prepareOverlayToolFocus(waitMs);
+        const canVerifyExternalFocus = focusPreparation.canVerifyExternalFocus;
+        const externalFocusActive = focusPreparation.externalFocusActive;
 
-        if (focusPreparation?.success === false) {
-          const failureReason = typeof focusPreparation?.reason === 'string'
-            ? focusPreparation.reason
-            : SURFACE_REASON_OVERLAY_FOCUS_PREPARE_FAILED;
+        if (!focusPreparation.success) {
+          const failureReason = focusPreparation.reason || SURFACE_REASON_OVERLAY_FOCUS_PREPARE_FAILED;
           logSurfaceTransition({
             source,
             correlationId,
