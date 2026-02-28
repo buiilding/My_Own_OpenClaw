@@ -286,6 +286,44 @@ async def test_parse_and_validate_message_returns_validation_error() -> None:
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {
+            "id": "msg_query_whitespace_conversation",
+            "type": "query",
+            "payload": {"text": "hello", "conversation_ref": "   "},
+        },
+        {
+            "id": "msg_rehydrate_whitespace_conversation",
+            "type": "rehydrate-conversation",
+            "payload": {
+                "conversation_ref": " \t ",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": "hi",
+                    }
+                ],
+                "rehydrate_mode": "replace",
+            },
+        },
+    ],
+    ids=["query", "rehydrate-conversation"],
+)
+async def test_parse_and_validate_message_rejects_whitespace_conversation_ref(payload: dict) -> None:
+    message, error = await mh.parse_and_validate_message(
+        json.dumps(payload),
+        user_id="user_1",
+        max_message_size=4096,
+    )
+
+    assert message is None
+    assert error is not None
+    assert "conversation_ref" in error
+
+
+@pytest.mark.asyncio
 async def test_parse_and_validate_message_rejects_non_object_json_root() -> None:
     payload = json.dumps(["not", "an", "object"])
 
