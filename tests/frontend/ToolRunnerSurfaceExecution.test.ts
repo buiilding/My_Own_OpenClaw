@@ -21,6 +21,7 @@ describe('toolRunnerSurfaceExecution', () => {
     await executeWithSurfaceLifecycle({
       correlationId: 'req-success',
       turnRef: 'turn-1',
+      conversationRef: 'conv-1',
       trackExecution,
       untrackExecution,
       prepareSurface,
@@ -30,7 +31,7 @@ describe('toolRunnerSurfaceExecution', () => {
       onExecutionError,
     });
 
-    expect(trackExecution).toHaveBeenCalledWith('req-success', 'turn-1');
+    expect(trackExecution).toHaveBeenCalledWith('req-success', 'turn-1', 'conv-1');
     expect(prepareSurface).toHaveBeenCalledTimes(1);
     expect(runExecution).toHaveBeenCalledTimes(1);
     expect(restoreSurface).toHaveBeenCalledWith({
@@ -58,6 +59,7 @@ describe('toolRunnerSurfaceExecution', () => {
     await executeWithSurfaceLifecycle({
       correlationId: 'req-prep-fail',
       turnRef: 'turn-2',
+      conversationRef: null,
       trackExecution,
       untrackExecution,
       prepareSurface,
@@ -91,6 +93,7 @@ describe('toolRunnerSurfaceExecution', () => {
     await executeWithSurfaceLifecycle({
       correlationId: 'req-run-fail',
       turnRef: null,
+      conversationRef: null,
       trackExecution,
       untrackExecution,
       prepareSurface,
@@ -118,6 +121,7 @@ describe('toolRunnerSurfaceExecution', () => {
     await expect(executeWithSurfaceLifecycle({
       correlationId: 'req-prepare-throw',
       turnRef: 'turn-3',
+      conversationRef: 'conv-3',
       trackExecution,
       untrackExecution,
       prepareSurface,

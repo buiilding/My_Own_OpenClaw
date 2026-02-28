@@ -5,6 +5,14 @@ export type TrackedExecution = {
   conversationRef: string | null;
 };
 
+function resolveTrackedTurnRef(trackedExecution: TrackedExecution | null | undefined): string | null {
+  if (!trackedExecution || typeof trackedExecution !== 'object') {
+    return null;
+  }
+  const turnRef = trackedExecution.turnRef;
+  return typeof turnRef === 'string' && turnRef ? turnRef : null;
+}
+
 export function trackExecutionTurn(
   trackedExecutionTurns: Map<string, TrackedExecution>,
   correlationId: string | null | undefined,
@@ -55,7 +63,8 @@ export function pruneTrackedExecutionTurns(
 
   if (isTerminalStreamPhase(streamPhase)) {
     for (const [correlationId, trackedExecution] of trackedExecutionTurns.entries()) {
-      if (!trackedExecution.turnRef || trackedExecution.turnRef === activeTurnRef) {
+      const trackedTurnRef = resolveTrackedTurnRef(trackedExecution);
+      if (!trackedTurnRef || trackedTurnRef === activeTurnRef) {
         trackedExecutionTurns.delete(correlationId);
       }
     }
@@ -63,7 +72,8 @@ export function pruneTrackedExecutionTurns(
   }
 
   for (const [correlationId, trackedExecution] of trackedExecutionTurns.entries()) {
-    if (trackedExecution.turnRef && trackedExecution.turnRef !== activeTurnRef) {
+    const trackedTurnRef = resolveTrackedTurnRef(trackedExecution);
+    if (trackedTurnRef && trackedTurnRef !== activeTurnRef) {
       trackedExecutionTurns.delete(correlationId);
     }
   }
