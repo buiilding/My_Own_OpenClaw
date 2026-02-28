@@ -135,4 +135,21 @@ describe('local_backend_bridge process lifecycle', () => {
     expect(secondProcess.kill).not.toHaveBeenCalledWith('SIGKILL');
     jest.useRealTimers();
   });
+
+  test('stale process error event from previous sidecar instance is ignored after restart', () => {
+    const firstProcess = createMockPythonProcess();
+    const secondProcess = createMockPythonProcess();
+    const { bridge, mainWindow } = initBridgeWithProcesses([firstProcess, secondProcess]);
+
+    firstProcess._handlers.exit?.(0, null);
+    bridge.initializeLocalBackendBridge(mainWindow);
+    markProcessReady(secondProcess);
+    mainWindow.webContents.send.mockClear();
+
+    firstProcess._handlers.error?.(new Error('stale-process-error'));
+
+    const statusCalls = mainWindow.webContents.send.mock.calls
+      .filter(([channel]) => channel === 'local-backend-status');
+    expect(statusCalls).toEqual([]);
+  });
 });

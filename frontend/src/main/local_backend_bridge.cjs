@@ -33,6 +33,10 @@ let readinessCheckToken = 0;
 
 let cachedPythonPath = null;
 
+function isActiveProcessReference(processRef) {
+  return Boolean(processRef) && pythonProcess === processRef;
+}
+
 function getReadinessRetryDelay(attempt) {
   return Math.min(50 * Math.pow(2, attempt - 1), 1000);
 }
@@ -190,12 +194,16 @@ function startLocalBackend(mainWindow, options = {}) {
       WINDIE_BACKEND_HTTP_URL: backendEndpoints.httpUrl,
     }),
   });
+  const processRef = pythonProcess;
 
   checkReadiness(mainWindow);
 
   stdoutBuffer = '';
 
   pythonProcess.stdout.on('data', (data) => {
+    if (!isActiveProcessReference(processRef)) {
+      return;
+    }
     try {
       stdoutBuffer += data.toString();
       
@@ -218,6 +226,9 @@ function startLocalBackend(mainWindow, options = {}) {
   });
 
   pythonProcess.stderr.on('data', (data) => {
+    if (!isActiveProcessReference(processRef)) {
+      return;
+    }
     const text = data.toString();
     const lines = text.split('\n');
     for (const line of lines) {
@@ -231,6 +242,9 @@ function startLocalBackend(mainWindow, options = {}) {
   });
 
   pythonProcess.on('exit', (code, signal) => {
+    if (!isActiveProcessReference(processRef)) {
+      return;
+    }
     console.log(`[LocalBackend] Python process exited with code ${code}, signal ${signal}`);
     resetBackendProcessState('Local backend process exited');
     const exitError = code !== 0 && code !== null
@@ -240,6 +254,9 @@ function startLocalBackend(mainWindow, options = {}) {
   });
 
   pythonProcess.on('error', (error) => {
+    if (!isActiveProcessReference(processRef)) {
+      return;
+    }
     console.error('[LocalBackend] Failed to start Python process:', error);
     resetBackendProcessState('Local backend process error');
 

@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import copy
 from dataclasses import dataclass
+import hashlib
 import logging
 import os
 from pathlib import Path
@@ -191,10 +192,10 @@ class ToolSelection:
         return tool_name if isinstance(tool_name, str) else None
 
 
-_CACHE: dict[Path, tuple[tuple[int, int, int], Optional[ToolSelection]]] = {}
+_CACHE: dict[Path, tuple[tuple[int, int, int], str, Optional[ToolSelection]]] = {}
 
 
-def _cache_signature(stat_result: os.stat_result) -> tuple[int, int, int]:
+def _cache_stat_signature(stat_result: os.stat_result) -> tuple[int, int, int]:
     """
     Return a file-change signature robust against same-mtime rewrites.
 
@@ -203,6 +204,11 @@ def _cache_signature(stat_result: os.stat_result) -> tuple[int, int, int]:
     preserved (for example, via explicit utime calls in tooling/scripts).
     """
     return (stat_result.st_mtime_ns, stat_result.st_ctime_ns, stat_result.st_size)
+
+
+def _cache_content_signature(raw_bytes: bytes) -> str:
+    """Return a stable content fingerprint for same-size/same-mtime rewrites."""
+    return hashlib.blake2b(raw_bytes, digest_size=16).hexdigest()
 
 
 def _parse_selection(data: Dict[str, Any]) -> Optional[ToolSelection]:
@@ -285,15 +291,16 @@ def load_tool_selection(path: Optional[Path] = None) -> Optional[ToolSelection]:
         return None
 
     cached = _CACHE.get(path)
-    signature = _cache_signature(stat)
-
-    if cached and cached[0] == signature:
-        return cached[1]
+    stat_signature = _cache_stat_signature(stat)
 
     selection: Optional[ToolSelection] = None
+    content_signature = ""
     try:
-        with path.open("rb") as f:
-            data = tomllib.load(f)
+        raw_bytes = path.read_bytes()
+        content_signature = _cache_content_signature(raw_bytes)
+        if cached and cached[0] == stat_signature and cached[1] == content_signature:
+            return cached[2]
+        data = tomllib.loads(raw_bytes.decode("utf-8"))
         if isinstance(data, dict):
             selection = _parse_selection(data)
         else:
@@ -303,7 +310,7 @@ def load_tool_selection(path: Optional[Path] = None) -> Optional[ToolSelection]:
         logger.warning("Failed to load tool selection file %s: %s", path, e)
         selection = None
 
-    _CACHE[path] = (signature, selection)
+    _CACHE[path] = (stat_signature, content_signature, selection)
     if selection is not None and selection.mode == "allowlist" and not selection.tools:
         logger.warning("Tool selection enabled with allowlist mode but no tools configured (0 tools allowed).")
     return selection

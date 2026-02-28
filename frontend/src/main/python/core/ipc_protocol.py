@@ -52,6 +52,15 @@ class JSONRPCProtocol:
     
     def __init__(self):
         self.methods: Dict[str, RegisteredMethod] = {}
+
+    @staticmethod
+    def _is_valid_request_id(request_id: Any) -> bool:
+        """Validate JSON-RPC request id type (string, number, or null)."""
+        if request_id is None:
+            return True
+        if isinstance(request_id, bool):
+            return False
+        return isinstance(request_id, (str, int, float))
     
     def register_method(self, name: str, handler: Callable[..., Any]) -> None:
         """Register a method handler."""
@@ -149,6 +158,12 @@ class JSONRPCProtocol:
             )
         is_notification = "id" not in request
         request_id = request.get("id")
+        if "id" in request and not self._is_valid_request_id(request_id):
+            return self.create_error_response(
+                None,
+                self.INVALID_REQUEST,
+                "Invalid request: id must be string, number, or null",
+            )
 
         # Validate JSON-RPC version
         if request.get("jsonrpc") != "2.0":
