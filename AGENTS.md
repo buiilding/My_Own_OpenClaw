@@ -142,6 +142,36 @@ Treat this as the high-level mental model of WindieOS behavior.
 - Temporary persistence failure -> queued retry.
 - UI and backend can rehydrate from persisted transcript state.
 
+### 20) Connection identity flow
+
+- Client connects -> handshake provides identity.
+- Backend validates handshake identity once, then binds it to that socket.
+- Later messages use connection identity; disconnect triggers task/session cleanup.
+
+### 21) Query optimistic + failure fallback flow
+
+- Query send starts -> local optimistic user event is broadcast immediately.
+- Backend send succeeds -> normal streaming continues.
+- Backend send fails/disconnects -> synthetic error event + UI phase reset.
+
+### 22) Completion guarantee flow
+
+- Stream may end with explicit terminal event, or may end unexpectedly.
+- If terminal event is missing, backend emits fallback completion events.
+- UI still receives deterministic turn close-out.
+
+### 23) Malformed tool-call recovery flow
+
+- Model emits malformed tool-call arguments.
+- System classifies recoverable cases -> emits synthetic failed tool output with retry guidance.
+- Agent loop continues same turn instead of hard-aborting immediately.
+
+### 24) Settings sync gate flow
+
+- On new connection, frontend pushes latest settings and waits for ack tracking.
+- Early query/wakeword sends pass through this sync gate.
+- Result: turns run against intended active runtime settings.
+
 ## Project Structure & Module Organization
 
 - Backend (Python): `backend/src/` (agent, tools, llm, api, core, sdk, services).
