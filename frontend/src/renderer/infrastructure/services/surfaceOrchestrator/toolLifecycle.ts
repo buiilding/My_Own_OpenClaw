@@ -4,6 +4,7 @@ import {
   resolveInteractiveFocusPreparationOptions,
   resolveSurfaceTransitionContext,
 } from './context';
+import { buildToolSurfacePreparation } from './preparation';
 import {
   collapseChatPillForBackgroundCapture,
   restoreChatPillInactive,
@@ -59,15 +60,13 @@ export async function prepareToolExecutionSurface(
       phaseAfter: 'idle',
       reason: 'no_surface_transition_needed',
     });
-    return {
+    return buildToolSurfacePreparation(mode, correlationId, {
       restoreChatPillAfterExecution: false,
       canExecute: true,
       failureReason: null,
       surfaceToken: null,
       overlayIgnoreEnabled: false,
-      mode,
-      correlationId,
-    };
+    });
   }
 
   let surfaceToken: number | null = null;
@@ -138,15 +137,13 @@ export async function prepareToolExecutionSurface(
             maxAttempts,
             reason: failureReason,
           });
-          return {
+          return buildToolSurfacePreparation(mode, correlationId, {
             restoreChatPillAfterExecution: true,
             canExecute: false,
             failureReason,
             surfaceToken,
             overlayIgnoreEnabled,
-            mode,
-            correlationId,
-          };
+          });
         }
 
         if (!canVerifyExternalFocus || externalFocusActive) {
@@ -170,15 +167,13 @@ export async function prepareToolExecutionSurface(
             attempt,
             maxAttempts,
           });
-          return {
+          return buildToolSurfacePreparation(mode, correlationId, {
             restoreChatPillAfterExecution: true,
             canExecute: true,
             failureReason: null,
             surfaceToken,
             overlayIgnoreEnabled,
-            mode,
-            correlationId,
-          };
+          });
         }
       }
 
@@ -190,26 +185,22 @@ export async function prepareToolExecutionSurface(
         phaseAfter: 'failed_terminal',
         reason: 'external_window_focus_not_verified',
       });
-      return {
+      return buildToolSurfacePreparation(mode, correlationId, {
         restoreChatPillAfterExecution: shouldCollapseForScreenshot,
         canExecute: false,
         failureReason: 'external_window_focus_not_verified',
         surfaceToken,
         overlayIgnoreEnabled,
-        mode,
-        correlationId,
-      };
+      });
     }
 
-    return {
+    return buildToolSurfacePreparation(mode, correlationId, {
       restoreChatPillAfterExecution: shouldCollapseForScreenshot,
       canExecute: true,
       failureReason: null,
       surfaceToken,
       overlayIgnoreEnabled,
-      mode,
-      correlationId,
-    };
+    });
   } catch (error) {
     console.warn('[SurfaceOrchestrator] Failed to prepare tool execution surface:', error);
     logSurfaceTransition({
@@ -220,15 +211,13 @@ export async function prepareToolExecutionSurface(
       phaseAfter: 'failed_terminal',
       reason: OVERLAY_SURFACE_PREPARE_EXCEPTION,
     });
-    return {
+    return buildToolSurfacePreparation(mode, correlationId, {
       restoreChatPillAfterExecution: surfaceToken !== null,
       canExecute: false,
       failureReason: OVERLAY_SURFACE_PREPARE_EXCEPTION,
       surfaceToken,
       overlayIgnoreEnabled,
-      mode,
-      correlationId,
-    };
+    });
   }
 }
 
