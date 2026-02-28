@@ -75,7 +75,8 @@ function resolveStepOutput(result: ToolResult, toolName: string): string {
 }
 
 export async function runToolBundle(
-  bundle: Array<{ toolName: string; args: any }>
+  bundle: Array<{ toolName: string; args: any }>,
+  bundleId: string,
 ): Promise<BundleRunOutcome> {
   const stepResults: BundleStepResult[] = [];
   const toolExecutionTimes: Array<{ tool: string; time: number }> = [];
@@ -115,11 +116,13 @@ export async function runToolBundle(
       const isComputerTool = isComputerUseTool(tool.toolName, tool.args);
       if (isComputerTool) {
         const isLastTool = i === bundle.length - 1;
+        const captureCorrelationId = `${bundleId}:step-${i + 1}:${tool.toolName}`;
         const capture = await captureAfterTool(
           tool.toolName,
           tool.args,
           isLastTool,
-          0
+          0,
+          captureCorrelationId,
         );
         totalCaptureTime += capture.captureTime;
         totalWaitDelay += capture.waitSeconds;

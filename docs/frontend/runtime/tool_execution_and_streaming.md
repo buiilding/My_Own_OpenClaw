@@ -59,6 +59,7 @@ Responsibilities:
 - focus verification retries and bounded exhaustion are orchestrator-owned (`maxAttempts`, `waitMs`) and fail closed with explicit terminal reasons
 - capture-only computer-use turns (`screenshot`, `switch_tab`, `wait`) use orchestrator capture-visibility transitions (hide-before-capture, show-after, overlap-safe restore)
 - applies the same handoff policy to bundles when bundled steps include interactive/capture-only computer-use actions
+- forwards execution correlation IDs into auto-capture/screenshot lifecycles so capture transition logs and tool timing logs share deterministic ids (single tool: request id, bundle: deterministic step id)
 
 ## Surface Orchestrator
 
@@ -117,6 +118,7 @@ Computer-use tools trigger capture policy checks via `ensureAutoCapture`:
 
 - default wait and screenshot behavior can vary by tool type
 - capture path can be skipped when tool already provides screenshot payload
+- capture path accepts optional correlation id so orchestrator capture/focus transitions are directly joinable with tool request/bundle-step logs
 - resulting screenshot may be uploaded as artifact reference for backend payloads
 
 ## Message Formatting and Payload Builders

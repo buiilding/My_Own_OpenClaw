@@ -89,7 +89,8 @@ export class ToolExecutionService {
         toolName,
         args,
         options.skipAutoCapture,
-        result
+        result,
+        options.correlationId,
       );
       const { screenshot, screenshotContentType, systemState, waitDelay, captureTime, isComputerTool } = capture;
 
@@ -329,7 +330,7 @@ export class ToolExecutionService {
         totalWaitDelay,
         totalCaptureTime,
         toolExecutionTimes
-      } = await runToolBundle(bundle);
+      } = await runToolBundle(bundle, bundleId);
       stepResults = collectedStepResults;
 
       // Determine bundle status

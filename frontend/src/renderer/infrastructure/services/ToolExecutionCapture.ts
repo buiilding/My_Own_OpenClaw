@@ -106,7 +106,8 @@ export async function ensureAutoCapture(
   toolName: string,
   args: any,
   skipAutoCapture: boolean | undefined,
-  result: ToolResult
+  result: ToolResult,
+  captureCorrelationId?: string | null,
 ): Promise<AutoCaptureResult> {
   const isComputerTool = isComputerUseTool(toolName, args);
   let { screenshot, screenshotContentType, systemState } = extractCaptureFromResult(result);
@@ -119,7 +120,8 @@ export async function ensureAutoCapture(
       toolName,
       args,
       true,
-      getDefaultWaitSeconds(toolName)
+      getDefaultWaitSeconds(toolName),
+      captureCorrelationId,
     );
     waitDelay = capture.waitSeconds;
     captureTime = capture.captureTime;
@@ -143,7 +145,8 @@ export async function captureAfterTool(
   toolName: string,
   args: any,
   enableSystemState: boolean,
-  defaultWaitSeconds: number
+  defaultWaitSeconds: number,
+  captureCorrelationId?: string | null,
 ): Promise<ToolCaptureResult> {
   const waitSeconds = getWaitSeconds(toolName, args, defaultWaitSeconds);
   const captureStartTime = performance.now();
@@ -151,7 +154,8 @@ export async function captureAfterTool(
     true,
     enableSystemState,
     waitSeconds,
-    false
+    false,
+    captureCorrelationId,
   );
   const captureTime = (performance.now() - captureStartTime) / 1000;
   return {

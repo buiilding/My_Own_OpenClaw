@@ -37,7 +37,7 @@ describe('ToolExecutionCapture', () => {
 
     const result = await captureAfterTool('wait', { seconds: 3 }, true, 2);
 
-    expect(mockExtractOSstate).toHaveBeenCalledWith(true, true, 3, false);
+    expect(mockExtractOSstate).toHaveBeenCalledWith(true, true, 3, false, undefined);
     expect(result.waitSeconds).toBe(3);
     expect(result.systemState).toEqual({ active_window: 'App', mouse_position: '1,1' });
     expect(result.screenshot).toBe('shot');
@@ -53,11 +53,11 @@ describe('ToolExecutionCapture', () => {
     } as any);
 
     const waitArgResult = await captureAfterTool('run_shell_command', { wait: 4 }, true, 2);
-    expect(mockExtractOSstate).toHaveBeenNthCalledWith(1, true, true, 4, false);
+    expect(mockExtractOSstate).toHaveBeenNthCalledWith(1, true, true, 4, false, undefined);
     expect(waitArgResult.waitSeconds).toBe(4);
 
     const defaultWaitResult = await captureAfterTool('mouse_control', {}, true, 2);
-    expect(mockExtractOSstate).toHaveBeenNthCalledWith(2, true, true, 2, false);
+    expect(mockExtractOSstate).toHaveBeenNthCalledWith(2, true, true, 2, false, undefined);
     expect(defaultWaitResult.waitSeconds).toBe(2);
   });
 
@@ -69,7 +69,7 @@ describe('ToolExecutionCapture', () => {
 
     const result = await captureAfterTool('mouse_control', { action: 'click' }, false, 2);
 
-    expect(mockExtractOSstate).toHaveBeenCalledWith(true, false, 2, false);
+    expect(mockExtractOSstate).toHaveBeenCalledWith(true, false, 2, false, undefined);
     expect(result.systemState).toBeNull();
     expect(result.screenshot).toBe('shot');
   });
@@ -184,11 +184,24 @@ describe('ToolExecutionCapture', () => {
 
     const capture = await ensureAutoCapture('screenshot', {}, false, result);
 
-    expect(mockExtractOSstate).toHaveBeenCalledWith(true, true, 0, false);
+    expect(mockExtractOSstate).toHaveBeenCalledWith(true, true, 0, false, undefined);
     expect(capture.screenshot).toBe('captured-shot');
     expect(capture.screenshotContentType).toBe('image/jpeg');
     expect(result.data.screenshot).toBe('captured-shot');
     expect(result.data.screenshot_content_type).toBe('image/jpeg');
+  });
+
+  test('ensureAutoCapture forwards correlation id to capture extraction path', async () => {
+    mockExtractOSstate.mockResolvedValue({
+      systemState: { active_window: 'Captured' },
+      screenshot: 'captured-shot',
+      screenshotContentType: 'image/png',
+    } as any);
+
+    const result: any = { success: true, data: { output: 'ok' } };
+    await ensureAutoCapture('mouse_control', { action: 'click' }, false, result, 'req-capture-corr');
+
+    expect(mockExtractOSstate).toHaveBeenCalledWith(true, true, 2, false, 'req-capture-corr');
   });
 
   test('ensureAutoCapture respects skipAutoCapture option', async () => {

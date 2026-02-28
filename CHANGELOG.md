@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-capture-correlation): thread tool and bundle-step correlation ids through `ToolExecutionCapture` and `SystemCapture` so surface capture/focus transition logs align deterministically with tool timing and failure traces.
 - refactor(frontend-tool-runner-tracking): extract correlation-id execution tracking/pruning helpers into shared `toolRunnerTracking.ts`, rewire `useToolRunner` to the shared tracking contract, and add direct tracking-state regression coverage.
 - refactor(frontend-surface-phases): define shared `SURFACE_PHASE` constants in `surfaceOrchestrator/types.ts`, rewire tool/capture lifecycle transition logs to the shared phase constants, and add direct phase-contract regression coverage.
 - refactor(frontend-surface-reasons): extract shared `surfaceOrchestrator/reasons.ts` constants for transition and failure reason strings, rewire tool/capture lifecycle logging to the shared constants, and add direct reason-contract regression coverage.
