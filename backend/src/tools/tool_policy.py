@@ -10,7 +10,6 @@ Centralizes decisions for:
 
 from __future__ import annotations
 
-import copy
 from dataclasses import dataclass
 import logging
 from typing import Any, Dict, List, Optional, Sequence
@@ -21,8 +20,6 @@ from backend.src.tools.tool_selection import ToolSelection, load_tool_selection
 logger = logging.getLogger(__name__)
 
 _UNSET = object()
-_MOUSE_COORD_METHODS: tuple[str, ...] = ("manual", "ocr", "prediction")
-_MODEL_MOUSE_COORD_METHODS: frozenset[str] = frozenset({"ocr"})
 
 
 @dataclass(slots=True)
@@ -61,12 +58,6 @@ class ToolPolicy:
         effective_selection = self._resolve_selection(selection)
         if effective_selection is not None:
             filtered = effective_selection.filter_tool_names(filtered)
-
-        allowed_mouse_methods = self._get_model_allowed_mouse_coordinate_methods(
-            effective_selection
-        )
-        if "mouse_control" in filtered and not allowed_mouse_methods:
-            filtered = [name for name in filtered if name != "mouse_control"]
         return filtered
 
     def filter_tool_schemas(
@@ -89,11 +80,7 @@ class ToolPolicy:
         effective_selection = self._resolve_selection(selection)
         if effective_selection is not None:
             filtered = effective_selection.filter_tool_schemas(filtered)
-
-        return self._apply_model_mouse_schema_contract(
-            filtered,
-            selection=effective_selection,
-        )
+        return filtered
 
     def get_method_validation_errors(
         self,
@@ -110,12 +97,13 @@ class ToolPolicy:
             return []
 
         effective_selection = self._resolve_selection(selection)
-        allowed_methods = self._get_model_allowed_mouse_coordinate_methods(
-            effective_selection
-        )
+        if effective_selection is None:
+            return []
+
+        allowed_methods = effective_selection.get_allowed_mouse_coordinate_methods()
         if not allowed_methods:
             return [
-                "Tool name 'mouse_control' is disabled by policy (no coordinate methods enabled)"
+                "Tool name 'mouse_control' is disabled by dev tool selection (no coordinate methods enabled)"
             ]
 
         raw_method = args.get("find_coordinates_by")
@@ -125,11 +113,11 @@ class ToolPolicy:
 
         allowed_display = ", ".join(
             method_name
-            for method_name in _MOUSE_COORD_METHODS
+            for method_name in ("manual", "ocr", "prediction")
             if method_name in allowed_methods
         )
         return [
-            f"mouse_control.find_coordinates_by='{raw_method}' is disabled by policy. "
+            f"mouse_control.find_coordinates_by='{raw_method}' is disabled by dev tool selection. "
             f"Allowed methods: {allowed_display or 'none'}"
         ]
 
@@ -139,9 +127,9 @@ class ToolPolicy:
     ) -> bool:
         """Whether OCR startup initialization should run."""
         effective_selection = self._resolve_selection(selection)
-        return "ocr" in self._get_model_allowed_mouse_coordinate_methods(
-            effective_selection
-        )
+        if effective_selection is None:
+            return True
+        return "ocr" in effective_selection.get_allowed_mouse_coordinate_methods()
 
     def should_initialize_vision(
         self,
@@ -149,9 +137,9 @@ class ToolPolicy:
     ) -> bool:
         """Whether vision startup initialization should run."""
         effective_selection = self._resolve_selection(selection)
-        return "prediction" in self._get_model_allowed_mouse_coordinate_methods(
-            effective_selection
-        )
+        if effective_selection is None:
+            return True
+        return "prediction" in effective_selection.get_allowed_mouse_coordinate_methods()
 
     def _resolve_selection(
         self,
@@ -187,84 +175,3 @@ class ToolPolicy:
             return None
         tool_name = function_schema.get("name")
         return tool_name if isinstance(tool_name, str) else None
-
-    @staticmethod
-    def _get_mouse_args_properties(schema: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        function_schema = schema.get("function")
-        if not isinstance(function_schema, dict):
-            return None
-        parameters = function_schema.get("parameters")
-        if not isinstance(parameters, dict):
-            return None
-        properties = parameters.get("properties")
-        if isinstance(properties, dict):
-            return properties
-        return None
-
-    @staticmethod
-    def _filter_mouse_schema_methods(
-        schema: Dict[str, Any],
-        allowed_methods: frozenset[str],
-    ) -> Optional[Dict[str, Any]]:
-        if not allowed_methods:
-            return None
-
-        schema_copy = copy.deepcopy(schema)
-        args_props = ToolPolicy._get_mouse_args_properties(schema_copy)
-        if args_props is None:
-            return schema_copy
-
-        ordered_methods = [
-            method for method in _MOUSE_COORD_METHODS if method in allowed_methods
-        ]
-        method_schema = args_props.get("find_coordinates_by")
-        if isinstance(method_schema, dict):
-            method_schema["type"] = "string"
-            method_schema["enum"] = ordered_methods
-            default_method = method_schema.get("default")
-            if default_method not in allowed_methods:
-                if ordered_methods:
-                    method_schema["default"] = ordered_methods[0]
-                else:
-                    method_schema.pop("default", None)
-
-        if "manual" not in allowed_methods:
-            args_props.pop("x", None)
-            args_props.pop("y", None)
-        if "ocr" not in allowed_methods:
-            args_props.pop("ocr_text", None)
-            args_props.pop("candidate_id", None)
-            args_props.pop("screenshot_id", None)
-        if "prediction" not in allowed_methods:
-            args_props.pop("description", None)
-            args_props.pop("model_name", None)
-
-        return schema_copy
-
-    def _get_model_allowed_mouse_coordinate_methods(
-        self,
-        selection: Optional[ToolSelection],
-    ) -> frozenset[str]:
-        allowed_methods = set(_MODEL_MOUSE_COORD_METHODS)
-        if selection is not None:
-            selection_methods = selection.get_allowed_mouse_coordinate_methods()
-            allowed_methods &= set(selection_methods)
-        return frozenset(allowed_methods)
-
-    def _apply_model_mouse_schema_contract(
-        self,
-        tool_schemas: Sequence[Dict[str, Any]],
-        *,
-        selection: Optional[ToolSelection],
-    ) -> List[Dict[str, Any]]:
-        allowed_methods = self._get_model_allowed_mouse_coordinate_methods(selection)
-        filtered: List[Dict[str, Any]] = []
-        for schema in tool_schemas:
-            tool_name = self._extract_tool_name(schema)
-            if tool_name != "mouse_control":
-                filtered.append(schema)
-                continue
-            filtered_mouse = self._filter_mouse_schema_methods(schema, allowed_methods)
-            if filtered_mouse is not None:
-                filtered.append(filtered_mouse)
-        return filtered
