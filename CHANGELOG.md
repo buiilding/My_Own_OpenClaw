@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-surface-chatpill-visibility): extract shared `chatPillVisibility` helper for non-focusing chat-pill collapse/restore IPC sequencing, rewire both tool and screenshot capture lifecycles to the shared path, and add focused helper regressions for ordering and fail-closed error propagation.
 - refactor(frontend-stop-query-state): extract shared stop-control state transition helper (`stopQueryState.js`) for chatbox and dashboard stop handlers, preserving stop behavior while removing duplicated terminal stream patch logic; add direct helper regression coverage and sync stop/runtime docs.
 - refactor(frontend-tool-catalog): add shared `ToolComputerUseCatalog` as the canonical interactive/capture-only computer-use tool name source, rewire surface mode and auto-capture classification to that catalog, and add direct catalog regression coverage to prevent classification drift.
 - refactor(frontend-stream-phase-predicates): expand shared `streamPhaseState.js` with canonical terminal-stream and response-overlay awaiting/clear predicates, rewire `useToolRunner`, `chatStreamConversationGate`, `ChatInterface`, and `ChatBoxResponse` to the shared helpers, and add scenario regressions for tool-output awaiting persistence plus direct predicate contract coverage.

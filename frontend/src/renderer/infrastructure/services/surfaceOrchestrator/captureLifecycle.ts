@@ -1,6 +1,10 @@
 import { IpcBridge, INVOKE_CHANNELS } from '../../ipc/bridge';
 import { logSurfaceTransition } from './logging';
 import {
+  collapseChatPillForBackgroundCapture,
+  restoreChatPillInactive,
+} from './chatPillVisibility';
+import {
   decrementActiveScreenshotCaptureCount,
   getActiveScreenshotCaptureCount,
   incrementActiveScreenshotCaptureCount,
@@ -44,8 +48,7 @@ export async function prepareScreenshotCaptureVisibility(
       phaseBefore: 'idle',
       phaseAfter: 'preparing_capture_visibility',
     });
-    await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false });
-    await IpcBridge.invoke(INVOKE_CHANNELS.HIDE_CHATBOX);
+    await collapseChatPillForBackgroundCapture();
     setPendingScreenshotCaptureRestore(true);
     logSurfaceTransition({
       source,
@@ -95,7 +98,7 @@ export async function restoreScreenshotCaptureVisibility(
   });
 
   try {
-    await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false });
+    await restoreChatPillInactive();
   } catch (error) {
     console.warn('[SurfaceOrchestrator] Failed to restore chat pill after screenshot capture:', error);
     logSurfaceTransition({

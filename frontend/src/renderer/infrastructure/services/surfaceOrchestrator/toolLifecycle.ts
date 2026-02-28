@@ -1,5 +1,9 @@
 import { IpcBridge, INVOKE_CHANNELS } from '../../ipc/bridge';
 import { logSurfaceTransition } from './logging';
+import {
+  collapseChatPillForBackgroundCapture,
+  restoreChatPillInactive,
+} from './chatPillVisibility';
 import { resolveToolSurfaceMode } from './mode';
 import {
   hasActiveSurfaceTokens,
@@ -77,8 +81,7 @@ export async function prepareToolExecutionSurface(
         phaseBefore: 'idle',
         phaseAfter: 'preparing_capture_visibility',
       });
-      await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false });
-      await IpcBridge.invoke(INVOKE_CHANNELS.HIDE_CHATBOX);
+      await collapseChatPillForBackgroundCapture();
       setPendingChatPillRestore(true);
       logSurfaceTransition({
         source,
@@ -263,7 +266,7 @@ export async function restoreToolExecutionSurface(
   }
 
   try {
-    await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false });
+    await restoreChatPillInactive();
     setPendingChatPillRestore(false);
     logSurfaceTransition({
       source,
