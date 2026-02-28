@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(frontend-overlay-phase-contract): add cross-layer parity regression (`OverlayPhaseContractParity.test.js`) that enforces renderer/main phase list, metadata key list, and enum mapping equivalence.
 - refactor(frontend-tool-runner-lifecycle): extract shared `executeWithSurfaceLifecycle` utility for track/prepare/execute/restore sequencing and rewire `useToolRunner` single-tool plus bundle paths to the typed lifecycle helper.
 - refactor(frontend-overlay-phase-renderer-contract): add shared renderer `responseOverlayPhaseContract` module and rewire `streamPhaseState` plus `responseOverlayPhasePayload` to consume the same phase/metadata normalization contract.
 - refactor(frontend-overlay-phase-contract): add `createResponseOverlayPhaseEnum()` in `ipc_overlay_phase_contract.cjs` and wire `main/index.cjs` to consume the canonical phase enum so runtime phase constants cannot drift from the shared contract.
