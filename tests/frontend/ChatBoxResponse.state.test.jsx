@@ -39,6 +39,24 @@ describe('ChatBoxResponse state behavior', () => {
     });
   });
 
+  test('keeps awaiting indicator during tool-output and clears on terminal overlay phase', async () => {
+    setChatState([
+      { id: 'user-1', text: 'run command', sender: 'user' },
+    ]);
+
+    render(<ChatBoxResponse />);
+    emitOverlayPhase('tool-output');
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
+    });
+
+    emitOverlayPhase('complete');
+    await waitFor(() => {
+      expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
+    });
+  });
+
   test('incomplete llm response is visible but not closeable', async () => {
     setChatState([
       { id: 'user-1', text: 'question', sender: 'user' },

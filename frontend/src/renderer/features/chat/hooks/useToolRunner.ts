@@ -29,8 +29,7 @@ import {
   restoreToolExecutionSurface,
   shouldSkipToolExecution,
 } from '../utils/toolRunnerSurface';
-
-const TERMINAL_STREAM_PHASES = new Set(['idle', 'complete', 'error']);
+import { isTerminalStreamPhase } from '../utils/streamPhaseState';
 
 function shouldIgnoreToolEventForTurn(turnRef: string | null | undefined): boolean {
   if (!turnRef) {
@@ -43,7 +42,7 @@ function shouldIgnoreToolEventForTurn(turnRef: string | null | undefined): boole
   if (streamTracking.activeTurnRef !== turnRef) {
     return true;
   }
-  return TERMINAL_STREAM_PHASES.has(streamTracking.phase);
+  return isTerminalStreamPhase(streamTracking.phase);
 }
 
 /**
@@ -181,13 +180,13 @@ export function useToolRunner(enabled = true) {
     }
 
     if (!activeTurnRef) {
-      if (TERMINAL_STREAM_PHASES.has(phase)) {
+      if (isTerminalStreamPhase(phase)) {
         trackedEntries.clear();
       }
       return;
     }
 
-    if (TERMINAL_STREAM_PHASES.has(phase)) {
+    if (isTerminalStreamPhase(phase)) {
       for (const [correlationId, turnRef] of trackedEntries.entries()) {
         if (!turnRef || turnRef === activeTurnRef) {
           trackedEntries.delete(correlationId);

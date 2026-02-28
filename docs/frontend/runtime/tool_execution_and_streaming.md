@@ -13,12 +13,14 @@ title: "Tool Execution and Streaming"
 Module:
 
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
+- `frontend/src/renderer/features/chat/utils/streamPhaseState.js`
 
 Responsibilities:
 
 - subscribes to backend event channel
 - rejects events for inactive conversation references
 - tracks stream lifecycle per turn (`awaiting-first-chunk`, `streaming`, tool phases, `complete`, `error`)
+- centralizes stream/overlay phase predicates (`active`, `terminal`, awaiting/clear) so UI and guard logic share one contract
 - updates chat message rows incrementally for chunk/tool/transparency events
 - records assistant/tool transcript events with model context metadata
 
@@ -43,6 +45,7 @@ Responsibilities:
 
 - receives `tool-call` and `tool-bundle` events
 - guards against stale-turn execution using `streamTracking.activeTurnRef`
+- uses shared terminal phase predicate (`isTerminalStreamPhase`) for stale-turn cleanup/acceptance paths
 - tracks correlation IDs to reject late/out-of-turn results
 - resolves correlation IDs via shared normalization helper (`CorrelationId.resolveCorrelationId`) so whitespace-only ids cannot leak into cancellation/result paths
 - sends cancellation-failure payloads (`frontend_stale_turn_cancelled`) when tool events arrive for closed turns
