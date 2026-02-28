@@ -109,6 +109,9 @@ Provider defaults in `LLMProviders`:
 | `artifact_store_path` | `str` | user config path | Default `<APPDATA>/DesktopAssistant/artifacts` (Windows), `~/Library/Application Support/DesktopAssistant/artifacts` (macOS), `~/.config/DesktopAssistant/artifacts` (Linux). |
 | `artifact_max_bytes` | `int` | `25MB` | Max upload payload accepted by artifact route. |
 
+Artifact compatibility behavior:
+- lookup falls back to legacy `<temp>/windieos-artifacts` and migrates matches into current `artifact_store_path`.
+
 Runtime-only field:
 
 - `api_key`: populated post-load from provider env vars; not persisted in config file.

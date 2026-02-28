@@ -148,6 +148,28 @@ def test_artifact_store_load_base64_enforces_max_bytes(tmp_path) -> None:
     assert exc_info.value.status_code == 413
 
 
+def test_artifact_store_resolve_path_falls_back_to_legacy_temp_store(
+    tmp_path, monkeypatch
+) -> None:
+    legacy_root = tmp_path / "legacy-root"
+    legacy_dir = legacy_root / "windieos-artifacts"
+    legacy_dir.mkdir(parents=True)
+    legacy_path = legacy_dir / "abc123.png"
+    legacy_path.write_bytes(b"legacy-bytes")
+
+    monkeypatch.setattr(
+        "backend.src.services.artifacts.store.tempfile.gettempdir",
+        lambda: str(legacy_root),
+    )
+
+    store = ArtifactStore(tmp_path / "new-artifacts", max_bytes=1024)
+    resolved_path, content_type = store.resolve_path("abc123.png")
+
+    assert content_type == "image/png"
+    assert resolved_path == store.base_dir / "abc123.png"
+    assert resolved_path.read_bytes() == b"legacy-bytes"
+
+
 @pytest.mark.asyncio
 async def test_artifact_store_cleans_up_partial_file_on_read_failure(tmp_path, monkeypatch) -> None:
     store = ArtifactStore(tmp_path, max_bytes=1024)
