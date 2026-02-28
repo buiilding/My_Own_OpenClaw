@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-tool-runner-lifecycle): extract shared `executeWithSurfaceLifecycle` utility for track/prepare/execute/restore sequencing and rewire `useToolRunner` single-tool plus bundle paths to the typed lifecycle helper.
 - refactor(frontend-overlay-phase-renderer-contract): add shared renderer `responseOverlayPhaseContract` module and rewire `streamPhaseState` plus `responseOverlayPhasePayload` to consume the same phase/metadata normalization contract.
 - refactor(frontend-overlay-phase-contract): add `createResponseOverlayPhaseEnum()` in `ipc_overlay_phase_contract.cjs` and wire `main/index.cjs` to consume the canonical phase enum so runtime phase constants cannot drift from the shared contract.
 - refactor(frontend-capture-correlation): thread tool and bundle-step correlation ids through `ToolExecutionCapture` and `SystemCapture` so surface capture/focus transition logs align deterministically with tool timing and failure traces.

@@ -43,6 +43,7 @@ import {
   trackExecutionTurn,
   untrackExecutionTurn,
 } from '../utils/toolRunnerTracking';
+import { executeWithSurfaceLifecycle } from '../utils/toolRunnerSurfaceExecution';
 
 function shouldIgnoreToolEventForTurn(turnRef: string | null | undefined): boolean {
   if (!turnRef) {
@@ -243,27 +244,30 @@ export function useToolRunner(enabled = true) {
     if (toolServiceRef.current) {
       const toolService = toolServiceRef.current;
       const turnRef = event.turn_ref ?? useChatStore.getState().streamTracking.activeTurnRef ?? null;
-      trackExecution(bundleId, turnRef);
-      const executeBundle = async () => {
-        const preparation = await prepareToolExecutionSurface(resolveBundleSurfaceMode(tools), {
+      executeWithSurfaceLifecycle({
+        correlationId: bundleId,
+        turnRef,
+        trackExecution,
+        untrackExecution,
+        prepareSurface: () => prepareToolExecutionSurface(resolveBundleSurfaceMode(tools), {
           correlationId: bundleId,
           source: 'tool-runner',
-        });
-        if (!preparation.canExecute) {
+        }),
+        runExecution: async () => {
+          await toolService.executeToolBundle(tools, bundleId);
+        },
+        restoreSurface: async (preparation) => {
+          await restoreToolExecutionSurface(preparation, { source: 'tool-runner' });
+        },
+        onPreparationFailure: async (preparation) => {
           const failureError = buildSurfaceFailureError(preparation.failureReason);
           emitSurfaceFailureOutput(`bundled_tools (${tools.length} tools)`, bundleId, failureError);
           sendBundleSurfaceFailure(bundleId, preparation.failureReason);
-          untrackExecution(bundleId);
-          await restoreToolExecutionSurface(preparation, { source: 'tool-runner' });
-          return;
-        }
-        try {
-          await toolService.executeToolBundle(tools, bundleId);
-        } finally {
-          await restoreToolExecutionSurface(preparation, { source: 'tool-runner' });
-        }
-      };
-      executeBundle().catch(err => {
+        },
+        onExecutionError: (err) => {
+          console.error('[useToolRunner] Failed to execute bundle:', err);
+        },
+      }).catch(err => {
         untrackExecution(bundleId);
         console.error('[useToolRunner] Failed to execute bundle:', err);
       });
@@ -293,43 +297,44 @@ export function useToolRunner(enabled = true) {
     const correlationId = resolveToolCallCorrelationId(event.payload, event.id);
 
     const turnRef = event.turn_ref ?? useChatStore.getState().streamTracking.activeTurnRef ?? null;
-    const executeToolCall = async () => {
-      const toolService = toolServiceRef.current;
-      if (!toolService) {
-        return;
-      }
-
-      trackExecution(correlationId, turnRef);
-      const preparation = await ensureToolExecutionSurface(toolName, parameters, {
+    void executeWithSurfaceLifecycle({
+      correlationId,
+      turnRef,
+      trackExecution,
+      untrackExecution,
+      prepareSurface: () => ensureToolExecutionSurface(toolName, parameters, {
         correlationId,
         source: 'tool-runner',
-      });
-      if (!preparation.canExecute) {
-        const failureError = buildSurfaceFailureError(preparation.failureReason);
-        emitSurfaceFailureOutput(toolName, correlationId, failureError);
-        sendToolSurfaceFailure(correlationId, preparation.failureReason);
-        untrackExecution(correlationId);
-        await restoreToolExecutionSurface(preparation, { source: 'tool-runner' });
-        return;
-      }
-      try {
+      }),
+      runExecution: async () => {
+        const toolService = toolServiceRef.current;
+        if (!toolService) {
+          return;
+        }
         await toolService.executeTool(
           toolName,
           parameters,
           {
             correlationId,
-            skipAutoCapture: false
-          }
+            skipAutoCapture: false,
+          },
         );
-      } catch (err) {
-        untrackExecution(correlationId);
-        console.error('[useToolRunner] Failed to execute tool:', err);
-      } finally {
+      },
+      restoreSurface: async (preparation) => {
         await restoreToolExecutionSurface(preparation, { source: 'tool-runner' });
-      }
-    };
-
-    void executeToolCall();
+      },
+      onPreparationFailure: async (preparation) => {
+        const failureError = buildSurfaceFailureError(preparation.failureReason);
+        emitSurfaceFailureOutput(toolName, correlationId, failureError);
+        sendToolSurfaceFailure(correlationId, preparation.failureReason);
+      },
+      onExecutionError: (err) => {
+        console.error('[useToolRunner] Failed to execute tool:', err);
+      },
+    }).catch((err) => {
+      untrackExecution(correlationId);
+      console.error('[useToolRunner] Failed to execute tool:', err);
+    });
   }, [
     emitSurfaceFailureOutput,
     sendStaleToolCancellation,
