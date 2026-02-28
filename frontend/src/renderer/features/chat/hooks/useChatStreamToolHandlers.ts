@@ -20,7 +20,6 @@ import {
 } from '../utils/chatStreamToolMessages';
 import {
   buildScreenshotAttachment,
-  resolveToolBundleCorrelationId,
   resolveToolCallCorrelationId,
   resolveToolOutputCorrelationId,
 } from '../utils/chatStreamEventUtils';
@@ -34,13 +33,14 @@ type TrackEventFn = (
   eventType: BackendEventType,
   turnRef: string | null | undefined,
   options?: Record<string, unknown>,
+  conversationRef?: string | null,
 ) => void;
 
 type UseChatStreamToolHandlersDeps = {
   enableTranscript: boolean;
-  addMessage: (message: ChatMessage) => void;
-  setThinkingStatus: (value: string | null) => void;
-  setThinkingSourceEventType: (value: string | null) => void;
+  addMessage: (message: ChatMessage, conversationRef?: string | null) => void;
+  setThinkingStatus: (value: string | null, conversationRef?: string | null) => void;
+  setThinkingSourceEventType: (value: string | null, conversationRef?: string | null) => void;
   modelContextRef: { current: MinimalModelContext };
   recordTrackingEvent: TrackEventFn;
 };
@@ -74,15 +74,15 @@ export function useChatStreamToolHandlers({
     });
   }, [enableTranscript, modelContextRef]);
 
-  const handleToolCall = useCallback((event: ToolCallEvent) => {
-    setThinkingStatus(null);
-    setThinkingSourceEventType(null);
+  const handleToolCall = useCallback((event: ToolCallEvent, conversationRef?: string | null) => {
+    setThinkingStatus(null, conversationRef);
+    setThinkingSourceEventType(null, conversationRef);
     const modelFacingToolCall = resolveModelFacingToolCall(event.payload);
     const formattedText = formatToolCallPayload(event.payload);
     const modelContext = modelContextRef.current;
-    addMessage(buildToolCallMessage(event, formattedText, modelContext, modelFacingToolCall));
+    addMessage(buildToolCallMessage(event, formattedText, modelContext, modelFacingToolCall), conversationRef);
 
-    recordTrackingEvent('tool-call', event.turn_ref, { toolCall: true });
+    recordTrackingEvent('tool-call', event.turn_ref, { toolCall: true }, conversationRef);
 
     const correlationId = resolveToolCallCorrelationId(event.payload);
 
@@ -101,9 +101,9 @@ export function useChatStreamToolHandlers({
     recordTrackingEvent,
   ]);
 
-  const handleToolOutput = useCallback((event: ToolOutputEvent) => {
-    setThinkingStatus(null);
-    setThinkingSourceEventType(null);
+  const handleToolOutput = useCallback((event: ToolOutputEvent, conversationRef?: string | null) => {
+    setThinkingStatus(null, conversationRef);
+    setThinkingSourceEventType(null, conversationRef);
     const outputText = formatToolOutputText(event.payload);
     const { screenshotRef, screenshotUrl } = buildScreenshotAttachment(event.payload?.screenshot_ref);
     const modelContext = modelContextRef.current;
@@ -113,8 +113,8 @@ export function useChatStreamToolHandlers({
       modelContext,
       screenshotRef,
       screenshotUrl,
-    ));
-    recordTrackingEvent('tool-output', event.turn_ref, { toolOutput: true });
+    ), conversationRef);
+    recordTrackingEvent('tool-output', event.turn_ref, { toolOutput: true }, conversationRef);
 
     const correlationId = resolveToolOutputCorrelationId(event.payload, event.id) || undefined;
 
@@ -139,25 +139,24 @@ export function useChatStreamToolHandlers({
     recordTrackingEvent,
   ]);
 
-  const handleToolBundle = useCallback((event: ToolBundleEvent) => {
-    setThinkingStatus(null);
-    setThinkingSourceEventType(null);
+  const handleToolBundle = useCallback((event: ToolBundleEvent, conversationRef?: string | null) => {
+    setThinkingStatus(null, conversationRef);
+    setThinkingSourceEventType(null, conversationRef);
     const formattedText = formatToolBundlePayload(event.payload);
     const modelContext = modelContextRef.current;
-    addMessage(buildToolBundleMessage(event, formattedText, modelContext));
+    addMessage(buildToolBundleMessage(event, formattedText, modelContext), conversationRef);
 
-    recordTrackingEvent('tool-bundle', event.turn_ref, { phase: 'tool-call', toolCall: true });
-
-    recordToolCallTranscript(
-      formattedText,
-      event,
+    recordTrackingEvent(
       'tool-bundle',
-      resolveToolBundleCorrelationId(event.payload),
+      event.turn_ref,
+      { phase: 'tool-call', toolCall: true },
+      conversationRef,
     );
+    // Internal bundle orchestration events are not executable tool names.
+    // Keep them out of transcript tool-call rows to avoid rehydrate contamination.
   }, [
     addMessage,
     modelContextRef,
-    recordToolCallTranscript,
     setThinkingSourceEventType,
     setThinkingStatus,
     recordTrackingEvent,

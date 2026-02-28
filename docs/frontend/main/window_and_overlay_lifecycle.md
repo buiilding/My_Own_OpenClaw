@@ -62,7 +62,9 @@ OS debug mode for ghost animation:
 
 Global app policy:
 
-- `window-all-closed` is prevented to keep tray runtime active.
+- startup acquires `app.requestSingleInstanceLock()`; duplicate launches exit and trigger `second-instance` on the primary process to focus the existing main window.
+- startup emits `[Main][StartupMetrics]` snapshots (ready + 2s delayed) with PID, RSS/heap, and Electron process-type counts for repeated-launch diagnostics.
+- `window-all-closed` is prevented only while tray mode is active (`!app.isQuitting`).
 - `before-quit` sets `app.isQuitting=true` and stops local backend sidecar process.
 
 ## Positioning and Bounds Rules
@@ -76,6 +78,7 @@ Position helpers in `index.cjs`:
 - `getResponseWindowBounds(width, height)`:
 - centered to current chat window width
 - rendered above chat window with tight runtime gap (`2px` in current non-dashboard config)
+- compact response shells (`<=56px` tall, e.g., typing indicator only) apply a hover offset so the bubble sits closer to the chat pill instead of floating high above it
 - fallback to chat-window positioning if chat unavailable
 
 Reposition triggers:
@@ -114,6 +117,7 @@ Windows-specific external focus preservation:
 
 - before chat overlay focus, app snapshots external focused window id/title via `node-window-manager`
 - pre-capture hook (`prepareOverlayQueryCaptureFocus`) blurs app windows, restores previous external window, and waits `120ms`
+- interactive tool-run focus prep now passes `skipDemotion=true`, so overlay focus handoff avoids hide/show demotion flicker and relies on explicit click-through + non-focusable toggles
 - used before overlay query capture path to avoid self-capture interference
 
 `showChatWindow({focus})` behavior:
@@ -129,11 +133,26 @@ Windows-specific external focus preservation:
 - hides response overlay
 - re-enables wakeword toggle broadcast
 
+Tool-execution chat-pill lifecycle (interactive computer-use path):
+
+- on tool-call execution prep, renderer requests `set-overlay-ignore-mouse(true)` and `set-overlay-focusable(false)` before focus verification so the chat/response overlays stay visible but non-interactive
+- focus handoff uses `prepare-overlay-tool-focus` with `skipDemotion=true` for tool-run/capture orchestrator paths, avoiding hide/show demotion flicker
+- while tool execution and follow-up auto-capture are active, overlay click-through/non-focusable state stays pinned by surface tokens and is only restored when the final token releases
+- screenshot capture visibility prep still collapses chat pill (`show-chatbox { focus: false }` + `hide-chatbox`) before capture and restores with `show-chatbox { focus: false }` after capture
+- response overlay renderer now listens to `response-overlay-visibility`; hide marks the cached frame as hidden and show forces a fresh `set-responsebox-size` report (including `compact_hover`) so typing-indicator compact hover offset is re-applied after capture hide/show cycles
+
+Dashboard-to-chat-pill conversation continuity:
+
+- renderer session updates now publish `transcript-session-sync` to main process whenever `conversationRef`/`userId` changes
+- main process fans that payload out to other renderer windows (excluding sender) and updates its own `currentConversationRef` fallback
+- result: if user selects `New chat` or a past chat in dashboard, then closes dashboard back to minimal chat pill, the pill continues in that selected conversation instead of drifting to a stale one
+
 ## Main IPC Handlers for Window Control
 
 Handlers in `overlay_ipc_runtime.cjs` (wired by `index.cjs`):
 
 - `set-overlay-ignore-mouse`: toggles click-through for chat and response overlays
+- `set-overlay-focusable`: toggles whether overlay windows can receive OS focus during tool execution
 - `set-responsebox-size`:
   - default mode: bounded resize (`width <= 900`, `height <= 750`), show/hide + re-anchor above chat
   - fullscreen ghost mode (`full_screen=true`): expands response overlay to the active display bounds for anywhere-on-screen ghost cursor rendering
@@ -142,6 +161,10 @@ Handlers in `overlay_ipc_runtime.cjs` (wired by `index.cjs`):
 - `show-chatbox`, `hide-chatbox`
 - `get-displays`: returns display id/label/bounds/scaleFactor
 - `window-minimize`, `window-toggle-maximize`, `window-close`
+
+Main bridge fanout channel (`ipc.cjs`):
+
+- `transcript-session-sync`: accepts `{ conversationRef, userId }` from any renderer, updates IPC bridge conversation fallback, and broadcasts to sibling renderers so dashboard/chat-pill windows share the same active conversation identity
 
 `show-main-window` behavior details:
 
@@ -163,6 +186,9 @@ Handlers in `overlay_ipc_runtime.cjs` (wired by `index.cjs`):
 ### Response overlay (`ChatBoxResponse.jsx`)
 
 - listens to `response-overlay-phase`
+- listens to `response-overlay-visibility` and re-reports compact frame size after hide/show cycles, preventing stale tall typing-indicator bounds after tool capture
+- uses explicit layout modes (`response`, `awaiting-typing`, `awaiting-thinking`, `hidden`) so sizing/reporting logic is deterministic across query/tool/capture transitions
+- `awaiting-typing` mode locks to a deterministic fixed frame height (`24px`) so typing-indicator vertical placement remains stable between turns
 - computes visibility from phase + stream content state
 - reports frame size via `SET_RESPONSEBOX_SIZE`
 - supports awaiting-first-chunk view and final/error markdown pane

@@ -5,7 +5,12 @@ type SurfacePreparation = {
 type SurfaceLifecycleOptions<TPreparation extends SurfacePreparation> = {
   correlationId: string;
   turnRef: string | null;
-  trackExecution: (correlationId: string, turnRef: string | null) => void;
+  conversationRef: string | null;
+  trackExecution: (
+    correlationId: string,
+    turnRef: string | null,
+    conversationRef: string | null,
+  ) => void;
   untrackExecution: (correlationId: string) => void;
   prepareSurface: () => Promise<TPreparation>;
   runExecution: () => Promise<void>;
@@ -20,6 +25,7 @@ export async function executeWithSurfaceLifecycle<TPreparation extends SurfacePr
   const {
     correlationId,
     turnRef,
+    conversationRef,
     trackExecution,
     untrackExecution,
     prepareSurface,
@@ -29,7 +35,7 @@ export async function executeWithSurfaceLifecycle<TPreparation extends SurfacePr
     onExecutionError,
   } = options;
 
-  trackExecution(correlationId, turnRef);
+  trackExecution(correlationId, turnRef, conversationRef);
   const preparation = await prepareSurface();
 
   if (!preparation.canExecute) {

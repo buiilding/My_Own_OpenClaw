@@ -42,7 +42,7 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     return getOverlayChatWindowBounds({ screen, width, height });
   }
 
-  function getResponseWindowBounds(width, height) {
+  function getResponseWindowBounds(width, height, options = {}) {
     const chatWindow = getChatWindow();
     const chatBounds = chatWindow && !chatWindow.isDestroyed()
       ? chatWindow.getBounds()
@@ -54,6 +54,7 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
       height,
       chatBounds: anchoredChatBounds,
       gap: responseGap,
+      compactHover: options?.compactHover === true,
     });
   }
 

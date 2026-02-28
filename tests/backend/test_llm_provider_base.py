@@ -296,6 +296,29 @@ class TestBuildRequestParams:
         assert len(params["messages"]) == 2
         assert params["messages"][-1]["role"] == "assistant"
 
+    def test_build_preserves_thought_signature_for_gemini_tool_calls(self, provider):
+        messages = [
+            {"role": "user", "content": "click"},
+            {
+                "role": "assistant",
+                "content": "",
+                "tool_calls": [
+                    {
+                        "id": "call_1",
+                        "name": "browser",
+                        "arguments": {"action": "snapshot"},
+                        "thought_signature": "sig-123",
+                    }
+                ],
+            },
+            {"role": "tool", "tool_call_id": "call_1", "content": "ok"},
+        ]
+
+        params = provider._build_request_params("gemini-3.0-flash", messages)
+        tool_call = params["messages"][1]["tool_calls"][0]
+        assert tool_call["thought_signature"] == "sig-123"
+        assert tool_call["function"]["thought_signature"] == "sig-123"
+
 
 class TestExtractThinkingContent:
     """Tests for _extract_thinking_content method."""

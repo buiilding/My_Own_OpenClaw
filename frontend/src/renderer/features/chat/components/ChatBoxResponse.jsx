@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useChatStore } from '../stores/chatStore';
-import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { toSanitizedMarkdownHtml } from '../../../infrastructure/markdown';
 import { resolveLlmOutputContract } from '../../../infrastructure/llmOutputContract';
 import { selectChatBoxState } from '../utils/chatSelectors';
@@ -10,6 +10,11 @@ import { subscribeResponseOverlayPhase } from '../utils/overlayPhaseListener';
 import { useAutoResizedResponseHeight } from '../hooks/useAutoResizedResponseHeight';
 import { isDevUiEnabled } from '../utils/devUiFlag';
 import { resolveSourceTag } from '../utils/sourceTags';
+import {
+  isCompactHoverLayoutMode,
+  RESPONSE_OVERLAY_LAYOUT_MODE,
+  resolveResponseOverlayLayoutMode,
+} from '../utils/responseOverlayLayoutMode';
 import {
   isAwaitingFirstChunkPhase,
   isOverlayAwaitingReplyPhase,
@@ -27,6 +32,7 @@ const RESPONSE_MAX_HEIGHT = 460;
 const RESPONSE_CHROME_HEIGHT = 28;
 const RESPONSE_BOTTOM_STICK_THRESHOLD = 20;
 const THINKING_BOTTOM_STICK_THRESHOLD = 12;
+const TYPING_FRAME_HEIGHT = 24;
 
 function renderResponseContent(response, markdownHtml) {
   if (!response) {
@@ -59,7 +65,14 @@ function ChatBoxResponse() {
   const shouldStickToBottomRef = useRef(true);
   const shouldStickThinkingToBottomRef = useRef(true);
   const lastUserMessageIdRef = useRef(null);
-  const lastFrameRef = useRef({ width: 0, height: 0, visible: null, fullScreenGhost: false });
+  const lastFrameRef = useRef({
+    width: 0,
+    height: 0,
+    visible: null,
+    fullScreenGhost: false,
+    compactHover: false,
+    layoutMode: RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
+  });
 
   const lastUserIndex = useMemo(
     () => findLastUserIndex(messages),
@@ -123,7 +136,12 @@ function ChatBoxResponse() {
     ((awaitingFirstChunk || isOverlayAwaitingReplyPhase(overlayPhase)) && !showResponse)
     || showCompactionStatus
   );
-  const isVisible = showResponse || showAwaitingReply;
+  const overlayLayoutMode = useMemo(() => resolveResponseOverlayLayoutMode({
+    showResponse,
+    showAwaitingReply,
+    thinkingText,
+  }), [showAwaitingReply, showResponse, thinkingText]);
+  const isVisible = overlayLayoutMode !== RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN;
   const sourceTagForResponse = useMemo(() => {
     if (!isDevUiEnabled() || !activeResponse) {
       return null;
@@ -153,12 +171,20 @@ function ChatBoxResponse() {
 
   const reportOverlaySize = useCallback(async ({
     visible,
+    layoutMode = RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
   }) => {
     if (!visible) {
       if (lastFrameRef.current.visible === false) {
         return;
       }
-      lastFrameRef.current = { width: 0, height: 0, visible: false, fullScreenGhost: false };
+      lastFrameRef.current = {
+        width: 0,
+        height: 0,
+        visible: false,
+        fullScreenGhost: false,
+        compactHover: false,
+        layoutMode: RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
+      };
       try {
         await IpcBridge.invoke(INVOKE_CHANNELS.SET_RESPONSEBOX_SIZE, {
           visible: false,
@@ -175,23 +201,38 @@ function ChatBoxResponse() {
     if (!nextFrame) {
       return;
     }
-    const { width, height } = nextFrame;
+    const compactHover = isCompactHoverLayoutMode(layoutMode);
+    let { width, height } = nextFrame;
+    if (layoutMode === RESPONSE_OVERLAY_LAYOUT_MODE.AWAITING_TYPING) {
+      // Keep typing indicator hover position deterministic across tool/capture cycles.
+      height = TYPING_FRAME_HEIGHT;
+    }
     const unchanged = (
       lastFrameRef.current.visible === true
       && lastFrameRef.current.fullScreenGhost === false
+      && lastFrameRef.current.compactHover === Boolean(compactHover)
+      && lastFrameRef.current.layoutMode === layoutMode
       && lastFrameRef.current.width === width
       && lastFrameRef.current.height === height
     );
     if (unchanged) {
       return;
     }
-    lastFrameRef.current = { width, height, visible: true, fullScreenGhost: false };
+    lastFrameRef.current = {
+      width,
+      height,
+      visible: true,
+      fullScreenGhost: false,
+      compactHover: Boolean(compactHover),
+      layoutMode,
+    };
 
     try {
       await IpcBridge.invoke(INVOKE_CHANNELS.SET_RESPONSEBOX_SIZE, {
         visible: true,
         width,
         height,
+        compact_hover: Boolean(compactHover),
       });
     } catch (error) {
       console.warn('[ChatBoxResponse] Failed to resize response overlay:', error);
@@ -209,6 +250,35 @@ function ChatBoxResponse() {
       }
     });
   }, []);
+
+  useEffect(() => {
+    const removeListener = IpcBridge.on(ON_CHANNELS.RESPONSE_OVERLAY_VISIBILITY, (payload = {}) => {
+      const overlayVisible = payload?.visible === true;
+      if (!overlayVisible) {
+        lastFrameRef.current = {
+          width: 0,
+          height: 0,
+          visible: false,
+          fullScreenGhost: false,
+          compactHover: false,
+          layoutMode: RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
+        };
+        return;
+      }
+      if (!isVisible) {
+        return;
+      }
+      window.requestAnimationFrame(() => {
+        void reportOverlaySize({
+          visible: true,
+          layoutMode: overlayLayoutMode,
+        });
+      });
+    });
+    return () => {
+      removeListener?.();
+    };
+  }, [isVisible, overlayLayoutMode, reportOverlaySize]);
 
   useEffect(() => {
     if (!lastUserMessageId) {
@@ -309,41 +379,72 @@ function ChatBoxResponse() {
 
   useEffect(() => {
     let observer = null;
+    let cancelled = false;
+    let rafId = null;
 
     if (!isVisible) {
-      void reportOverlaySize({ visible: false });
-      return () => {};
+      void reportOverlaySize({
+        visible: false,
+        layoutMode: RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
+      });
+      return () => {
+        cancelled = true;
+      };
     }
 
-    const updateSize = () => {
-      void reportOverlaySize({
-        visible: true,
+    const scheduleSizeUpdate = () => {
+      if (cancelled) {
+        return;
+      }
+      if (rafId !== null) {
+        window.cancelAnimationFrame(rafId);
+      }
+      rafId = window.requestAnimationFrame(() => {
+        if (cancelled) {
+          return;
+        }
+        void reportOverlaySize({
+          visible: true,
+          layoutMode: overlayLayoutMode,
+        });
       });
     };
 
     if (typeof ResizeObserver !== 'undefined' && shellRef.current) {
       observer = new ResizeObserver(() => {
-        window.requestAnimationFrame(updateSize);
+        scheduleSizeUpdate();
       });
       observer.observe(shellRef.current);
     }
 
-    updateSize();
-    window.requestAnimationFrame(updateSize);
+    scheduleSizeUpdate();
 
     return () => {
+      cancelled = true;
+      if (rafId !== null) {
+        window.cancelAnimationFrame(rafId);
+      }
       if (observer) {
         observer.disconnect();
       }
     };
   }, [
     isVisible,
+    overlayLayoutMode,
     reportOverlaySize,
+    activeResponse?.id,
+    activeResponse?.text,
+    responseHeight,
+    showResponse,
+    thinkingText,
   ]);
 
   useEffect(() => {
     return () => {
-      void reportOverlaySize({ visible: false });
+      void reportOverlaySize({
+        visible: false,
+        layoutMode: RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
+      });
     };
   }, [reportOverlaySize]);
 

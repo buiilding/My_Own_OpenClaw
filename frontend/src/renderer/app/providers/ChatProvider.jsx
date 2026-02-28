@@ -1,5 +1,8 @@
+import { useEffect } from 'react';
 import { useChatStream } from '../../features/chat/hooks/useChatStream';
 import { useToolRunner } from '../../features/chat/hooks/useToolRunner';
+import { useChatStore } from '../../features/chat/stores/chatStore';
+import { useTranscriptSessionInfo } from '../../features/dashboard/hooks/useTranscriptSessionInfo';
 import { ChatContext, EMPTY_CHAT_CONTEXT } from './ChatContext';
 
 /**
@@ -7,6 +10,13 @@ import { ChatContext, EMPTY_CHAT_CONTEXT } from './ChatContext';
  * No business logic - just composition.
  */
 export function ChatProvider({ children, enableToolRunner = true, enableTranscript = true }) {
+  const setActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
+  const transcriptSessionInfo = useTranscriptSessionInfo();
+
+  useEffect(() => {
+    setActiveConversationRef(transcriptSessionInfo?.conversationRef || null);
+  }, [setActiveConversationRef, transcriptSessionInfo?.conversationRef]);
+
   useChatStream(enableTranscript);
   useToolRunner(enableToolRunner);
 

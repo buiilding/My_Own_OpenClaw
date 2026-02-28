@@ -32,6 +32,7 @@ Responsibilities split:
 - `active_sessions: Dict[user_id, AgentSession]`
 - `_user_locks: Dict[user_id, asyncio.Lock]`
 - `_active_query_tasks: Dict[user_id, Dict[Task, (turn_ref, conversation_ref)]]`
+- `_pending_stop_requests: Dict[user_id, Dict[conversation_ref|None, expires_at]]`
 
 Locking model:
 
@@ -64,8 +65,11 @@ Registration:
 
 Cancellation:
 
-- `stop-query` calls `SessionManager.cancel_active_query_task(user_id)`.
-- manager cancels live tasks, removes finished tasks, returns last cancelled `(turn_ref, conversation_ref)`.
+- `stop-query` calls `SessionManager.cancel_active_query_task(user_id, conversation_ref=...)`.
+- when `conversation_ref` is provided, only matching live tasks are canceled.
+- when omitted, all live tasks for the user are canceled (legacy/global stop behavior).
+- manager returns last cancelled `(turn_ref, conversation_ref)` metadata tuple.
+- if nothing is currently cancelable, manager stores short-lived pending stop intent (scoped by conversation when provided) and consumes it on later query registration race.
 - `StopQueryHandler` always emits `streaming-complete` so renderer exits active phase even if no live task exists.
 
 Cleanup:

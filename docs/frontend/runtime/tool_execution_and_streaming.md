@@ -63,7 +63,7 @@ Responsibilities:
 - routes bundle and single-tool surface lifecycle sequencing through shared `toolRunnerSurfaceExecution` (`track -> prepare -> execute -> restore`) so failure ordering stays aligned
 - delegates all surface preparation/restore transitions to `SurfaceOrchestrator` (single source of truth)
 - uses shared computer-use tool catalog (`ToolComputerUseCatalog`) so capture policy and surface mode resolution stay aligned
-- interactive computer-use click-through (`set-overlay-ignore-mouse(true)`) is enabled only inside orchestrator-managed execution windows and reference-count restored after completion
+- interactive computer-use execution enables both click-through (`set-overlay-ignore-mouse(true)`) and non-focusable overlays (`set-overlay-focusable(false)`) inside orchestrator-managed execution windows; both are reference-count restored after completion
 - focus verification retries and bounded exhaustion are orchestrator-owned (`maxAttempts`, `waitMs`) and fail closed with explicit terminal reasons
 - capture-only computer-use turns (`screenshot`, `switch_tab`, `wait`) use orchestrator capture-visibility transitions (hide-before-capture, show-after, overlap-safe restore)
 - applies the same handoff policy to bundles when bundled steps include interactive/capture-only computer-use actions
@@ -83,6 +83,7 @@ Module:
 - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/windowVisibility.ts`
 - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/reasons.ts`
 - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/types.ts` (`SURFACE_PHASE` constants)
+- `frontend/src/renderer/features/chat/utils/responseOverlayLayoutMode.js`
 
 Responsibilities:
 
@@ -90,12 +91,13 @@ Responsibilities:
 - centralized mode resolution (`none | interactive | screenshot`) for single tools and bundles
 - shared chat-pill visibility collapse/restore helper used by both tool-execution and screenshot-capture lifecycles
 - shared transition-context and focus-default resolver helper (`context.ts`) for source/correlation-id/wait-attempt defaults across tool and capture lifecycles
-- shared overlay-focus IPC normalization helper (`focusPreparation.ts`) reused by both tool and capture lifecycles so focus verification metadata and failure-reason parsing stay aligned
+- shared overlay-focus IPC normalization helper (`focusPreparation.ts`) reused by both tool and capture lifecycles so focus verification metadata and failure-reason parsing stay aligned (`skipDemotion=true` for orchestrator tool/capture handoffs)
 - capture restore path also resolves source/correlation through the shared context helper so hide/show completion logs keep the same normalized contract as prepare/focus transitions
 - shared `ToolSurfacePreparation` builder helper (`preparation.ts`) to keep ready/failure payload shapes stable across tool-lifecycle branches
 - shared main-window visibility probe helper (`windowVisibility.ts`) for screenshot-mode collapse decisions
 - shared transition/failure reason constants (`reasons.ts`) so logged `reason` fields stay stable across tool/capture paths
 - shared `SURFACE_PHASE` constants in `types.ts` to keep transition phase names consistent across all logs/branches
+- response overlay layout mode helper centralizes `hidden/response/awaiting-typing/awaiting-thinking` mode resolution so typing/awaiting frame sizing remains deterministic across tool/capture visibility cycles (`awaiting-typing` uses fixed `24px` frame height)
 - deterministic transition logs (`correlation_id`, retry attempt, before/after phase, terminal reason)
 - explicit dev/prod log gating via `loggingGate.shouldLogSurfaceTransitions()` (production suppresses transition logs unless verbose override is enabled)
 - bounded focus-prepare retries and fail-safe cleanup on both success and terminal failure paths

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import inspect
 import os
+from pathlib import Path
+import sys
 from typing import Any, Callable
 
 ImportModuleFn = Callable[[str], Any]
@@ -47,13 +49,27 @@ def resolve_windie_extraction_target(
 
     # Resolve from WindieOS runtime settings when explicit extraction overrides
     # are not supplied.
-    try:
-        loader_module = import_module_fn("backend.src.core.config.loader")
-        load_settings_from_file = getattr(loader_module, "load_settings_from_file", None)
-        if not callable(load_settings_from_file):
-            return provider_name, model_id, api_key, base_url
-        runtime_config = load_settings_from_file()
-    except Exception:
+    runtime_config = None
+    for attempt in range(2):
+        try:
+            loader_module = import_module_fn("backend.src.core.config.loader")
+            load_settings_from_file = getattr(loader_module, "load_settings_from_file", None)
+            if not callable(load_settings_from_file):
+                return provider_name, model_id, api_key, base_url
+            runtime_config = load_settings_from_file()
+            break
+        except Exception:
+            if attempt == 1:
+                return provider_name, model_id, api_key, base_url
+
+            # Sidecar Python runtime can be started without repo root on sys.path.
+            # Retry once after injecting repository root so backend config loader resolves.
+            repo_root = Path(__file__).resolve().parents[6]
+            repo_root_str = str(repo_root)
+            if repo_root_str not in sys.path:
+                sys.path.insert(0, repo_root_str)
+
+    if runtime_config is None:
         return provider_name, model_id, api_key, base_url
 
     runtime_provider = normalize_provider_name(getattr(runtime_config, "model_provider", None))

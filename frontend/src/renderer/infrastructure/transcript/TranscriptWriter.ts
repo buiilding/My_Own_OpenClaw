@@ -1,4 +1,4 @@
-import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
+import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS, SEND_CHANNELS } from '../ipc/bridge';
 import { createPendingAssistantQueue } from './pendingAssistantQueue';
 import { createPendingUserQueue } from './pendingUserQueue';
 import { createPendingToolQueue } from './pendingToolQueue';
@@ -84,6 +84,124 @@ const persistAndEmitSessionInfoIfChanged = (previous: SessionInfo, next: Session
   persistSessionInfoToStorage(next);
   emitSessionUpdateEvent(next);
 };
+
+const syncSessionInfoToMainProcess = (info: SessionInfo) => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    IpcBridge.send(SEND_CHANNELS.TRANSCRIPT_SESSION_SYNC, {
+      conversationRef: info.conversationRef,
+      userId: info.userId,
+    });
+  } catch (error) {
+    console.warn('[TranscriptWriter] Failed to sync transcript session to main process:', error);
+  }
+};
+
+const applyTranscriptSessionUpdate = (
+  conversationRef: string | null | undefined,
+  userId: string | null | undefined,
+  options: {
+    syncToMainProcess?: boolean;
+  } = {},
+): SessionInfo => {
+  const { syncToMainProcess = true } = options;
+  const previousInfo = sessionState.get();
+  const nextInfo = sessionState.update(conversationRef, userId);
+  persistAndEmitSessionInfoIfChanged(previousInfo, nextInfo);
+  if (syncToMainProcess) {
+    syncSessionInfoToMainProcess(nextInfo);
+  }
+  void flushPendingMessages();
+  return nextInfo;
+};
+
+const hasOwnProperty = (value: unknown, key: string): boolean => {
+  return Boolean(value && typeof value === 'object' && Object.prototype.hasOwnProperty.call(value, key));
+};
+
+const normalizeOptionalSessionField = (value: unknown): string | null => {
+  if (value === null) {
+    return null;
+  }
+  return normalizeOptionalString(value);
+};
+
+const extractTranscriptSessionSyncPayload = (
+  payload: unknown,
+): {
+  conversationRef?: string | null;
+  userId?: string | null;
+} | null => {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    return null;
+  }
+
+  const hasConversationRef = (
+    hasOwnProperty(payload, 'conversationRef')
+    || hasOwnProperty(payload, 'conversation_ref')
+    || hasOwnProperty(payload, 'sessionId')
+    || hasOwnProperty(payload, 'session_id')
+  );
+  const hasUserId = hasOwnProperty(payload, 'userId') || hasOwnProperty(payload, 'user_id');
+  if (!hasConversationRef && !hasUserId) {
+    return null;
+  }
+
+  const conversationRefCandidate = hasOwnProperty(payload, 'conversationRef')
+    ? (payload as { conversationRef?: unknown }).conversationRef
+    : (
+      hasOwnProperty(payload, 'conversation_ref')
+        ? (payload as { conversation_ref?: unknown }).conversation_ref
+        : (
+          hasOwnProperty(payload, 'sessionId')
+            ? (payload as { sessionId?: unknown }).sessionId
+            : (payload as { session_id?: unknown }).session_id
+        )
+    );
+  const userIdCandidate = hasOwnProperty(payload, 'userId')
+    ? (payload as { userId?: unknown }).userId
+    : (payload as { user_id?: unknown }).user_id;
+
+  return {
+    conversationRef: hasConversationRef
+      ? normalizeOptionalSessionField(conversationRefCandidate)
+      : undefined,
+    userId: hasUserId
+      ? normalizeOptionalSessionField(userIdCandidate)
+      : undefined,
+  };
+};
+
+let transcriptSessionSyncSubscribed = false;
+
+const subscribeToTranscriptSessionSync = () => {
+  if (transcriptSessionSyncSubscribed || typeof window === 'undefined') {
+    return;
+  }
+
+  transcriptSessionSyncSubscribed = true;
+  try {
+    IpcBridge.on(ON_CHANNELS.TRANSCRIPT_SESSION_SYNC, (payload) => {
+      const normalized = extractTranscriptSessionSyncPayload(payload);
+      if (!normalized) {
+        return;
+      }
+      applyTranscriptSessionUpdate(
+        normalized.conversationRef,
+        normalized.userId,
+        { syncToMainProcess: false },
+      );
+    });
+  } catch (error) {
+    transcriptSessionSyncSubscribed = false;
+    console.warn('[TranscriptWriter] Failed to subscribe to transcript session sync channel:', error);
+  }
+};
+
+subscribeToTranscriptSessionSync();
 
 const requeuePending = <T>(messages: T[], enqueue: (message: T) => void) => {
   for (const message of messages) {
@@ -319,17 +437,11 @@ export const updateTranscriptSession = (
   conversationRef?: string | null,
   userId?: string | null,
 ) => {
-  const previousInfo = sessionState.get();
-  const nextInfo = sessionState.update(conversationRef, userId);
-  persistAndEmitSessionInfoIfChanged(previousInfo, nextInfo);
-  void flushPendingMessages();
+  applyTranscriptSessionUpdate(conversationRef, userId, { syncToMainProcess: true });
 };
 
 export const setActiveConversationRef = (conversationRef: string | null) => {
-  const previousInfo = sessionState.get();
-  const nextInfo = sessionState.update(conversationRef, undefined);
-  persistAndEmitSessionInfoIfChanged(previousInfo, nextInfo);
-  void flushPendingMessages();
+  applyTranscriptSessionUpdate(conversationRef, undefined, { syncToMainProcess: true });
 };
 
 export const getActiveConversationRef = (): string | null => {

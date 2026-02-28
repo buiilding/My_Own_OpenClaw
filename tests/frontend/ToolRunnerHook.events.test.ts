@@ -124,7 +124,7 @@ describe('useToolRunner event handling', () => {
     );
     expect(IpcBridge.invoke).toHaveBeenCalledWith(
       INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS,
-      { waitMs: 180 },
+      expect.objectContaining({ waitMs: 180 }),
     );
     const setIgnoreCallOrder = (IpcBridge.invoke as jest.Mock).mock.invocationCallOrder[0];
     const prepareCallOrder = (IpcBridge.invoke as jest.Mock).mock.invocationCallOrder[1];

@@ -1,8 +1,13 @@
 import PropTypes from 'prop-types';
 import TransparencySection from './TransparencySection';
 import { buildTransparencySectionConfigs } from '../utils/messageTransparency';
+import { isDevUiEnabled } from '../utils/devUiFlag';
 
 export default function MessageTransparencySections({ message }) {
+  if (!isDevUiEnabled()) {
+    return null;
+  }
+
   const sections = buildTransparencySectionConfigs(message);
 
   if (sections.length === 0) {

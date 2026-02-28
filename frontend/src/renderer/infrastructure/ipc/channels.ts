@@ -8,6 +8,7 @@
  */
 export const SEND_CHANNELS = {
   TO_BACKEND: 'to-backend',
+  TRANSCRIPT_SESSION_SYNC: 'transcript-session-sync',
   MOVE_CHATBOX_TO: 'move-chatbox-to',
   WAKEWORD_AUDIO_CHUNK: 'wakeword-audio-chunk',
   WAKEWORD_ENABLE: 'wakeword-enable',
@@ -34,6 +35,7 @@ export const INVOKE_CHANNELS = {
   STORE_TRANSCRIPT: 'store-transcript',
   GET_CLIENT_USER_ID: 'get-client-user-id',
   SET_OVERLAY_IGNORE_MOUSE: 'set-overlay-ignore-mouse',
+  SET_OVERLAY_FOCUSABLE: 'set-overlay-focusable',
   SET_RESPONSEBOX_SIZE: 'set-responsebox-size',
   SHOW_MAIN_WINDOW: 'show-main-window',
   GET_MAIN_WINDOW_VISIBILITY: 'get-main-window-visibility',
@@ -59,6 +61,7 @@ export const INVOKE_CHANNELS = {
  */
 export const ON_CHANNELS = {
   FROM_BACKEND: 'from-backend',
+  TRANSCRIPT_SESSION_SYNC: 'transcript-session-sync',
   IPC_STATUS: 'ipc-status',
   LOG: 'log',
   WAKEWORD_DETECTED: 'wakeword-detected',

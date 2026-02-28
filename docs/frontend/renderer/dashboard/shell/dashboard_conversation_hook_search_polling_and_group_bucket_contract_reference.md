@@ -97,6 +97,12 @@ When `includeSearchMetadata=true`, adds:
 3. sends backend rehydrate (`ApiClient.sendRehydrateConversation`)
 4. updates transcript session and active conversation ref
 5. replaces chat store messages and clears sending/thinking flags
+- switches visible chat workspace while in-flight loops continue in their original workspace
+
+Shell behavior:
+
+- conversation selection stays enabled during active loops
+- stream/tool events route by conversation workspace; switching history does not hijack in-flight turns
 
 ### Rename conversation
 

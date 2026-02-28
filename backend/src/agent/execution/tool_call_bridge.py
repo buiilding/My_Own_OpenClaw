@@ -35,6 +35,16 @@ _CAT_REDIRECT_PATTERN = re.compile(
 )
 
 
+def _extract_thought_signature(payload: Any) -> str:
+    if not isinstance(payload, dict):
+        return ""
+    for key in ("thought_signature", "thoughtSignature"):
+        value = payload.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return ""
+
+
 def to_parsed_response(normalized_response: NormalizedLLMResponse) -> ParsedResponse:
     """Bridge native SDK tool calls into existing ParsedResponse-based tool pipeline."""
     content = normalized_response.get("content", "")
@@ -65,6 +75,10 @@ def to_parsed_tool_call(tool_call: Dict[str, Any]) -> ParsedToolCall:
     if isinstance(tool_call_id, str) and tool_call_id:
         metadata["tool_call_id"] = tool_call_id
 
+    thought_signature = _extract_thought_signature(tool_call)
+    if thought_signature:
+        metadata["thought_signature"] = thought_signature
+
     metadata_payload = parameters.get("metadata")
     if isinstance(metadata_payload, dict):
         metadata.update(metadata_payload)
@@ -89,12 +103,20 @@ def to_history_tool_calls(
         if tool_call_id is None:
             tool_call_id = f"tool_call_{index}"
 
+        thought_signature = ""
+        if isinstance(tool_call.metadata, dict):
+            thought_signature = _extract_thought_signature(tool_call.metadata)
+
+        history_call: Dict[str, Any] = {
+            "id": tool_call_id,
+            "name": tool_call.tool_name,
+            "arguments": dict(tool_call.parameters or {}),
+        }
+        if thought_signature:
+            history_call["thought_signature"] = thought_signature
+
         history_calls.append(
-            {
-                "id": tool_call_id,
-                "name": tool_call.tool_name,
-                "arguments": dict(tool_call.parameters or {}),
-            }
+            history_call
         )
     return history_calls
 

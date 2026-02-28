@@ -20,6 +20,7 @@ export type ToolSurfacePreparation = {
   failureReason: string | null;
   surfaceToken: number | null;
   overlayIgnoreEnabled: boolean;
+  overlayNonFocusableEnabled: boolean;
   mode: SurfaceMode;
   correlationId: string;
 };

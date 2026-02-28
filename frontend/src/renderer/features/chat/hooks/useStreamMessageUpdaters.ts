@@ -10,50 +10,61 @@ import {
 } from '../utils/chatStreamMessageUpdates';
 
 export function useStreamMessageUpdaters(
-  updateMessage: (id: string, updates: Partial<ChatMessage>) => void,
+  updateMessage: (
+    id: string,
+    updates: Partial<ChatMessage>,
+    conversationRef?: string | null,
+  ) => void,
 ) {
   const updateLastMessageBySender = useCallback((
     sender: ChatMessage['sender'],
     updates: Partial<ChatMessage>,
     turnRef?: string,
+    conversationRef?: string | null,
   ) => {
+    const workspaceMessages = useChatStore.getState().getWorkspaceState(conversationRef).messages;
     const scopedMessageId = findLastMessageIdBySender(
-      useChatStore.getState().messages,
+      workspaceMessages,
       sender,
       turnRef,
     );
     const fallbackMessageId = turnRef
       ? findLastMessageIdBySender(
-        useChatStore.getState().messages,
+        workspaceMessages,
         sender,
       )
       : null;
     const messageId = scopedMessageId || fallbackMessageId;
     if (messageId) {
-      updateMessage(messageId, updates);
+      updateMessage(messageId, updates, conversationRef);
     }
   }, [updateMessage]);
 
   const updateFirstMessageBySender = useCallback((
     sender: ChatMessage['sender'],
     updates: Partial<ChatMessage>,
+    conversationRef?: string | null,
   ) => {
-    const messageId = findFirstMessageIdBySender(useChatStore.getState().messages, sender);
+    const messageId = findFirstMessageIdBySender(
+      useChatStore.getState().getWorkspaceState(conversationRef).messages,
+      sender,
+    );
     if (messageId) {
-      updateMessage(messageId, updates);
+      updateMessage(messageId, updates, conversationRef);
     }
   }, [updateMessage]);
 
   const updateLastAssistantLlmTextMessage = useCallback((
     updates: Partial<ChatMessage>,
     turnRef?: string,
+    conversationRef?: string | null,
   ) => {
     const messageId = findLastAssistantLlmTextMessageId(
-      useChatStore.getState().messages,
+      useChatStore.getState().getWorkspaceState(conversationRef).messages,
       turnRef,
     );
     if (messageId) {
-      updateMessage(messageId, updates);
+      updateMessage(messageId, updates, conversationRef);
     }
   }, [updateMessage]);
 

@@ -133,7 +133,7 @@ function initIpc(options = {}) {
 
   const ws = WebSocketMock.instances[0];
 
-  return { handlers, ws, backendBridge, mainWindow, fs };
+  return { handlers, ws, backendBridge, mainWindow, fs, ipc };
 }
 
 module.exports = {

@@ -45,6 +45,53 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(handshake.user_id).toBe('bad_user_');
   });
 
+  test('keeps dashboard-selected conversation for chat-pill send after dashboard handoff', async () => {
+    const { handlers, ws, mainWindow, backendBridge, ipc } = setupOpenedIpc();
+    primeQueryContext(backendBridge);
+
+    const chatPillWindow = {
+      on: jest.fn(),
+      isDestroyed: jest.fn(() => false),
+      webContents: {
+        send: jest.fn(),
+        on: jest.fn(),
+        removeListener: jest.fn(),
+        isLoadingMainFrame: jest.fn(() => false),
+        getURL: jest.fn(() => 'http://localhost:5173/?view=chatbox'),
+      },
+    };
+    ipc.registerRendererWindow(chatPillWindow);
+
+    // Dashboard renderer selects a conversation before close/handoff to chat pill.
+    handlers['transcript-session-sync'](
+      { sender: mainWindow.webContents },
+      { conversationRef: 'conv-dashboard-selected', userId: 'user-dashboard' },
+    );
+
+    const dashboardSyncCalls = mainWindow.webContents.send.mock.calls
+      .filter(([channel]) => channel === 'transcript-session-sync');
+    expect(dashboardSyncCalls).toEqual([]);
+
+    const chatPillSyncCalls = chatPillWindow.webContents.send.mock.calls
+      .filter(([channel]) => channel === 'transcript-session-sync');
+    expect(chatPillSyncCalls).toEqual([
+      ['transcript-session-sync', {
+        conversationRef: 'conv-dashboard-selected',
+        userId: 'user-dashboard',
+      }],
+    ]);
+
+    // Dashboard closes; chat pill sends query without explicit conversation_ref.
+    await handlers['to-backend']({ sender: chatPillWindow.webContents }, {
+      type: 'query',
+      payload: { text: 'follow-up without explicit conversation ref' },
+    });
+
+    const sentQuery = JSON.parse(ws.sent[ws.sent.length - 1]);
+    expect(sentQuery.type).toBe('query');
+    expect(sentQuery.payload.conversation_ref).toBe('conv-dashboard-selected');
+  });
+
   test('switches response overlay phase to tool-call when backend emits tool-call', () => {
     const onResponseOverlayPhaseChange = jest.fn();
     const { ws } = setupOpenedIpc({ onResponseOverlayPhaseChange });

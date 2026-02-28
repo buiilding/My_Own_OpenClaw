@@ -74,6 +74,62 @@ function log(message) {
   }
 }
 
+function normalizeOptionalString(value) {
+  if (typeof value !== 'string') {
+    return null;
+  }
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : null;
+}
+
+function hasOwnProperty(target, key) {
+  return Object.prototype.hasOwnProperty.call(target, key);
+}
+
+function normalizeTranscriptSessionSyncPayload(payload = {}) {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    return null;
+  }
+
+  const hasConversationRef = (
+    hasOwnProperty(payload, 'conversationRef')
+    || hasOwnProperty(payload, 'conversation_ref')
+    || hasOwnProperty(payload, 'sessionId')
+    || hasOwnProperty(payload, 'session_id')
+  );
+  const hasUserId = hasOwnProperty(payload, 'userId') || hasOwnProperty(payload, 'user_id');
+
+  if (!hasConversationRef && !hasUserId) {
+    return null;
+  }
+
+  const rawConversationRef = hasOwnProperty(payload, 'conversationRef')
+    ? payload.conversationRef
+    : (
+      hasOwnProperty(payload, 'conversation_ref')
+        ? payload.conversation_ref
+        : (hasOwnProperty(payload, 'sessionId') ? payload.sessionId : payload.session_id)
+    );
+  const rawUserId = hasOwnProperty(payload, 'userId') ? payload.userId : payload.user_id;
+
+  return {
+    conversationRef: hasConversationRef
+      ? (
+        rawConversationRef === null
+          ? null
+          : normalizeOptionalString(rawConversationRef)
+      )
+      : undefined,
+    userId: hasUserId
+      ? (
+        rawUserId === null
+          ? null
+          : normalizeOptionalString(rawUserId)
+      )
+      : undefined,
+  };
+}
+
 async function loadCachedFrontendConfigFromDisk() {
   return loadFrontendConfigFromDisk(log);
 }
@@ -349,6 +405,25 @@ function initializeIpc(win, options = {}) {
 
   ipcMain.handle('save-frontend-config', async (event, config) => {
     return await persistFrontendConfigToDisk(config);
+  });
+
+  ipcMain.on('transcript-session-sync', (event, payload = {}) => {
+    const normalizedPayload = normalizeTranscriptSessionSyncPayload(payload);
+    if (!normalizedPayload) {
+      return;
+    }
+
+    if (normalizedPayload.conversationRef !== undefined) {
+      currentConversationRef = normalizedPayload.conversationRef;
+    }
+    if (typeof normalizedPayload.userId === 'string' && normalizedPayload.userId.length > 0) {
+      currentUserId = normalizedPayload.userId;
+    }
+
+    broadcastToRenderers('transcript-session-sync', {
+      conversationRef: normalizedPayload.conversationRef ?? null,
+      userId: normalizedPayload.userId ?? null,
+    }, event?.sender || null);
   });
 
   ipcMain.on('to-backend', async (event, message = {}) => {

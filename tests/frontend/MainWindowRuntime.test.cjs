@@ -160,6 +160,45 @@ describe('main_window_runtime prepareOverlayQueryCaptureFocus', () => {
       jest.useRealTimers();
     }
   });
+
+  test('skips overlay demotion when skipDemotion is requested', async () => {
+    const responseWindow = {
+      isDestroyed: jest.fn().mockReturnValue(false),
+      isVisible: jest.fn().mockReturnValue(true),
+      hide: jest.fn(),
+      showInactive: jest.fn(),
+      setAlwaysOnTop: jest.fn(),
+      moveTop: jest.fn(),
+    };
+    const chatWindow = {
+      isDestroyed: jest.fn().mockReturnValue(false),
+      isVisible: jest.fn().mockReturnValue(true),
+      hide: jest.fn(),
+      showInactive: jest.fn(),
+      setAlwaysOnTop: jest.fn(),
+      moveTop: jest.fn(),
+    };
+    const externalFocusTracker = {
+      canTrackExternalFocus: jest.fn().mockReturnValue(false),
+    };
+
+    const result = await prepareOverlayQueryCaptureFocus({
+      responseWindow,
+      chatWindow,
+      externalFocusTracker,
+      waitMs: 0,
+      skipDemotion: true,
+    });
+
+    expect(responseWindow.hide).not.toHaveBeenCalled();
+    expect(chatWindow.hide).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      restoredExternalFocus: false,
+      demotedOverlayFocus: false,
+      externalFocusActive: false,
+      canVerifyExternalFocus: false,
+    });
+  });
 });
 
 describe('main_window_runtime createChatWindow', () => {

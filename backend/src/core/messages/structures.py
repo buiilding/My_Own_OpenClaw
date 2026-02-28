@@ -140,13 +140,17 @@ class StoredMessage:
             arguments = call.get("arguments")
             if not isinstance(arguments, dict):
                 arguments = {}
-            normalized_calls.append(
-                {
-                    "id": call_id,
-                    "name": name,
-                    "arguments": dict(arguments),
-                }
-            )
+            normalized_call: Dict[str, Any] = {
+                "id": call_id,
+                "name": name,
+                "arguments": dict(arguments),
+            }
+            for key in ("thought_signature", "thoughtSignature"):
+                thought_signature = call.get(key)
+                if isinstance(thought_signature, str) and thought_signature.strip():
+                    normalized_call["thought_signature"] = thought_signature.strip()
+                    break
+            normalized_calls.append(normalized_call)
         return normalized_calls
 
 

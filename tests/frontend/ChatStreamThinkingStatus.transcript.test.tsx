@@ -83,38 +83,37 @@ describe('useChatStream transcript + event filtering', () => {
   });
 
   test('streaming-complete marks assistant message complete and records transcript', () => {
+    setMockActiveConversationRef('conv-1');
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.setState({
-        messages: [
-          {
-            id: 'user-1',
-            text: 'hi',
-            sender: 'user',
-            turnRef: 'turn-1',
-            systemPrompt: {
-              content: 'system prompt text',
-              toolSchemas: [{ type: 'function', function: { name: 'read_file', parameters: { type: 'object' } } }],
-            },
-            fullUserMessage: {
-              content: '<user_query>hi</user_query>',
-              metadata: { source: 'user-message-full' },
-            },
+      useChatStore.getState().setMessages([
+        {
+          id: 'user-1',
+          text: 'hi',
+          sender: 'user',
+          turnRef: 'turn-1',
+          systemPrompt: {
+            content: 'system prompt text',
+            toolSchemas: [{ type: 'function', function: { name: 'read_file', parameters: { type: 'object' } } }],
           },
-          {
-            id: 'assistant-1',
-            text: 'answer',
-            sender: 'assistant',
-            type: 'llm-text',
-            isComplete: false,
-            turnRef: 'turn-1',
-            fullAssistantMessage: {
-              content: 'raw assistant completion',
-            },
+          fullUserMessage: {
+            content: '<user_query>hi</user_query>',
+            metadata: { source: 'user-message-full' },
           },
-        ],
-      });
+        },
+        {
+          id: 'assistant-1',
+          text: 'answer',
+          sender: 'assistant',
+          type: 'llm-text',
+          isComplete: false,
+          turnRef: 'turn-1',
+          fullAssistantMessage: {
+            content: 'raw assistant completion',
+          },
+        },
+      ], 'conv-1');
       emitBackendEvent({
         type: 'streaming-complete',
         conversation_ref: 'conv-1',
@@ -123,7 +122,7 @@ describe('useChatStream transcript + event filtering', () => {
       });
     });
 
-    expect(useChatStore.getState().messages.at(-1)).toEqual(
+    expect(useChatStore.getState().getWorkspaceState('conv-1').messages.at(-1)).toEqual(
       expect.objectContaining({ id: 'assistant-1', isComplete: true }),
     );
     expect(transcriptSpies.recordAssistantMessage).toHaveBeenCalledWith(
@@ -162,7 +161,31 @@ describe('useChatStream transcript + event filtering', () => {
     expect(transcriptSpies.updateTranscriptSession).not.toHaveBeenCalled();
   });
 
-  test('handles tool-bundle events and records transcript metadata', () => {
+  test('promotes active conversation for local-user events even when transcript is disabled', () => {
+    const { emitBackendEvent } = registerBackendListener(false);
+
+    act(() => {
+      emitBackendEvent({
+        type: 'local-user-message',
+        conversation_ref: 'conv-overlay',
+        user_id: 'user-1',
+        turn_ref: 'turn-overlay',
+        payload: { text: 'overlay prompt' },
+      });
+    });
+
+    expect(useChatStore.getState().activeConversationRef).toBe('conv-overlay');
+    expect(useChatStore.getState().messages.at(-1)).toEqual(
+      expect.objectContaining({
+        sender: 'user',
+        text: 'overlay prompt',
+        sourceEventType: 'local-user-message',
+      }),
+    );
+    expect(transcriptSpies.updateTranscriptSession).not.toHaveBeenCalled();
+  });
+
+  test('handles tool-bundle events without persisting bundle tool-call transcript rows', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
@@ -184,14 +207,7 @@ describe('useChatStream transcript + event filtering', () => {
         type: 'tool-call',
       }),
     );
-    expect(transcriptSpies.recordToolMessage).toHaveBeenCalledWith(
-      expect.any(String),
-      expect.objectContaining({
-        messageType: 'tool-call',
-        toolName: 'tool-bundle',
-        correlationId: 'bundle-1',
-      }),
-    );
+    expect(transcriptSpies.recordToolMessage).not.toHaveBeenCalled();
   });
 
   test('ignores non-backend events entirely', () => {
@@ -246,21 +262,21 @@ describe('useChatStream transcript + event filtering', () => {
       await Promise.resolve();
     });
 
-    const tracking = useChatStore.getState().streamTracking;
+    const tracking = useChatStore.getState().getWorkspaceState('session-9').streamTracking;
     expect(tracking.lastEventType).toBe('memory-store');
   });
 
-  test('ignores stale events when conversation_ref does not match active conversation', () => {
+  test('routes non-active conversation events into their own workspace', () => {
     setMockActiveConversationRef('conv-active');
     const { emitBackendEvent } = registerBackendListener();
-    useChatStore.setState({
-      streamTracking: {
-        ...useChatStore.getState().streamTracking,
-        activeTurnRef: 'turn-active',
-        phase: 'streaming',
+    useChatStore.getState().setMessages([
+      {
+        id: 'active-assistant-1',
+        text: 'active',
+        sender: 'assistant',
       },
-    });
-    const beforeState = useChatStore.getState();
+    ], 'conv-active');
+    const activeBefore = useChatStore.getState().getWorkspaceState('conv-active');
 
     act(() => {
       emitBackendEvent({
@@ -270,20 +286,22 @@ describe('useChatStream transcript + event filtering', () => {
       });
     });
 
-    expect(useChatStore.getState()).toEqual(beforeState);
-    expect(transcriptSpies.updateTranscriptSession).not.toHaveBeenCalled();
+    const activeAfter = useChatStore.getState().getWorkspaceState('conv-active');
+    const staleWorkspace = useChatStore.getState().getWorkspaceState('conv-stale');
+    expect(activeAfter).toEqual(activeBefore);
+    expect(staleWorkspace.messages.at(-1)).toEqual(
+      expect.objectContaining({
+        text: 'stale chunk',
+        sender: 'assistant',
+        type: 'llm-text',
+      }),
+    );
+    expect(transcriptSpies.updateTranscriptSession).toHaveBeenCalledWith('conv-active', undefined);
   });
 
-  test('ignores stale memory-store events when payload session_id does not match active conversation', async () => {
+  test('tracks stale memory-store events in their own workspace without switching active transcript', async () => {
     setMockActiveConversationRef('conv-active');
     const { emitBackendEvent } = registerBackendListener();
-    useChatStore.setState({
-      streamTracking: {
-        ...useChatStore.getState().streamTracking,
-        activeTurnRef: 'turn-active',
-        phase: 'streaming',
-      },
-    });
 
     await act(async () => {
       emitBackendEvent({
@@ -299,7 +317,9 @@ describe('useChatStream transcript + event filtering', () => {
       await Promise.resolve();
     });
 
-    expect(transcriptSpies.updateTranscriptSession).not.toHaveBeenCalled();
+    const staleTracking = useChatStore.getState().getWorkspaceState('conv-stale').streamTracking;
+    expect(staleTracking.lastEventType).toBe('memory-store');
+    expect(transcriptSpies.updateTranscriptSession).toHaveBeenCalledWith('conv-active', undefined);
   });
 
   test('still processes events that omit conversation_ref for compatibility', () => {
@@ -320,13 +340,13 @@ describe('useChatStream transcript + event filtering', () => {
       });
     });
 
-    expect(useChatStore.getState().tokenCounts).toEqual(
+    expect(useChatStore.getState().getWorkspaceState('conv-active').tokenCounts).toEqual(
       expect.objectContaining({
         prompt_tokens: 1,
         visible_output_tokens: 1,
       }),
     );
-    expect(transcriptSpies.updateTranscriptSession).toHaveBeenCalledWith(undefined, undefined);
+    expect(transcriptSpies.updateTranscriptSession).toHaveBeenCalledWith('conv-active', undefined);
   });
 
   test('preserves transcript session refs when backend event omits conversation and user ids', () => {

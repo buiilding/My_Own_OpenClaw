@@ -1,6 +1,10 @@
 import { act, renderHook } from '@testing-library/react';
 import { useChatMessageSender } from '../../frontend/src/renderer/features/chat/hooks/useChatMessageSender';
-import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import {
+  DEFAULT_CHAT_WORKSPACE_REF,
+  createInitialStreamTracking,
+  useChatStore,
+} from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import { extractOSstate } from '../../frontend/src/renderer/infrastructure/services/SystemCapture';
 import { ApiClient } from '../../frontend/src/renderer/infrastructure/api/client';
@@ -123,11 +127,26 @@ describe('useChatMessageSender', () => {
     mockGetTranscriptSessionInfo.mockClear();
     mockRecordUserMessage.mockClear();
 
+    const streamTracking = createInitialStreamTracking();
     useChatStore.setState({
+      activeConversationRef: null,
+      turnConversationRefs: {},
+      workspaces: {
+        [DEFAULT_CHAT_WORKSPACE_REF]: {
+          messages: [],
+          isSending: false,
+          thinkingStatus: null,
+          thinkingSourceEventType: null,
+          tokenCounts: null,
+          streamTracking,
+        },
+      },
       messages: [],
       isSending: false,
       thinkingStatus: null,
+      thinkingSourceEventType: null,
       tokenCounts: null,
+      streamTracking,
     });
 
     jest.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('msg-1');

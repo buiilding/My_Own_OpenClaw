@@ -65,6 +65,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
   const setChatMessages = useChatStore((state) => state.setMessages);
   const setChatIsSending = useChatStore((state) => state.setIsSending);
   const setChatThinkingStatus = useChatStore((state) => state.setThinkingStatus);
+  const setChatActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
   const {
     searchQuery,
     isSearchingConversations,
@@ -85,6 +86,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
     setChatMessages,
     setChatIsSending,
     setChatThinkingStatus,
+    setChatActiveConversationRef,
     searchOpen,
   });
 

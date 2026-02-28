@@ -52,26 +52,63 @@ class SessionManager(ConfigSubscriber):
         self._active_query_tasks: Dict[
             str, Dict[asyncio.Task[Any], tuple[str, Optional[str]]]
         ] = {}
-        # Pending stop-query requests keyed by user_id.
+        # Pending stop-query requests keyed by user_id and optional conversation_ref.
         # Value is expiry timestamp (monotonic seconds).
-        self._pending_stop_requests: Dict[str, float] = {}
+        self._pending_stop_requests: Dict[str, Dict[Optional[str], float]] = {}
 
-    def _register_pending_stop_request(self, user_id: str) -> None:
+    @staticmethod
+    def _normalize_optional_conversation_ref(
+        conversation_ref: Optional[str],
+    ) -> Optional[str]:
+        if not isinstance(conversation_ref, str):
+            return None
+        normalized = conversation_ref.strip()
+        return normalized or None
+
+    def _register_pending_stop_request(
+        self,
+        user_id: str,
+        conversation_ref: Optional[str] = None,
+    ) -> None:
         """Store a short-lived stop intent for races before query registration."""
-        self._pending_stop_requests[user_id] = (
+        normalized_conversation_ref = self._normalize_optional_conversation_ref(
+            conversation_ref
+        )
+        user_pending = self._pending_stop_requests.setdefault(user_id, {})
+        user_pending[normalized_conversation_ref] = (
             time.monotonic() + _PENDING_STOP_GRACE_SECONDS
         )
 
-    def _consume_pending_stop_request(self, user_id: str) -> bool:
+    def _consume_pending_stop_request(
+        self,
+        user_id: str,
+        conversation_ref: Optional[str] = None,
+    ) -> bool:
         """Consume a pending stop request if still valid."""
-        expires_at = self._pending_stop_requests.get(user_id)
-        if expires_at is None:
+        user_pending = self._pending_stop_requests.get(user_id)
+        if not user_pending:
             return False
-        if expires_at <= time.monotonic():
+        now = time.monotonic()
+        normalized_conversation_ref = self._normalize_optional_conversation_ref(
+            conversation_ref
+        )
+        candidate_keys = [normalized_conversation_ref]
+        if normalized_conversation_ref is not None:
+            candidate_keys.append(None)
+        for pending_key in candidate_keys:
+            expires_at = user_pending.get(pending_key)
+            if expires_at is None:
+                continue
+            if expires_at <= now:
+                user_pending.pop(pending_key, None)
+                continue
+            user_pending.pop(pending_key, None)
+            if not user_pending:
+                self._pending_stop_requests.pop(user_id, None)
+            return True
+        if not user_pending:
             self._pending_stop_requests.pop(user_id, None)
-            return False
-        self._pending_stop_requests.pop(user_id, None)
-        return True
+        return False
 
     def register_active_query_task(
         self,
@@ -82,17 +119,20 @@ class SessionManager(ConfigSubscriber):
         conversation_ref: Optional[str] = None,
     ) -> bool:
         """Track the currently running query task for a user."""
-        if self._consume_pending_stop_request(user_id):
+        normalized_conversation_ref = self._normalize_optional_conversation_ref(
+            conversation_ref
+        )
+        if self._consume_pending_stop_request(user_id, normalized_conversation_ref):
             logger.info(
                 "[Stop Query] Consumed pending stop request during query registration "
                 "(user_id=%s, turn_ref=%s, conversation_ref=%s)",
                 user_id,
                 turn_ref,
-                conversation_ref,
+                normalized_conversation_ref,
             )
             return True
         user_tasks = self._active_query_tasks.setdefault(user_id, {})
-        user_tasks[task] = (turn_ref, conversation_ref)
+        user_tasks[task] = (turn_ref, normalized_conversation_ref)
         return False
 
     def clear_active_query_task(
@@ -120,6 +160,7 @@ class SessionManager(ConfigSubscriber):
     def cancel_active_query_task(
         self,
         user_id: str,
+        conversation_ref: Optional[str] = None,
     ) -> Optional[tuple[str, Optional[str]]]:
         """
         Cancel the currently active query task for a user.
@@ -128,15 +169,23 @@ class SessionManager(ConfigSubscriber):
             Tuple of ``(turn_ref, conversation_ref)`` when a live task was canceled;
             otherwise ``None``.
         """
+        normalized_conversation_ref = self._normalize_optional_conversation_ref(
+            conversation_ref
+        )
         user_tasks = self._active_query_tasks.get(user_id)
         if not user_tasks:
-            self._register_pending_stop_request(user_id)
+            self._register_pending_stop_request(user_id, normalized_conversation_ref)
             return None
 
         cancelled_entries: list[tuple[str, Optional[str]]] = []
         for active_task, (turn_ref, conversation_ref) in list(user_tasks.items()):
             if active_task.done():
                 user_tasks.pop(active_task, None)
+                continue
+            if (
+                normalized_conversation_ref is not None
+                and conversation_ref != normalized_conversation_ref
+            ):
                 continue
             active_task.cancel()
             user_tasks.pop(active_task, None)
@@ -146,9 +195,16 @@ class SessionManager(ConfigSubscriber):
             self._active_query_tasks.pop(user_id, None)
 
         if not cancelled_entries:
-            self._register_pending_stop_request(user_id)
+            self._register_pending_stop_request(user_id, normalized_conversation_ref)
             return None
-        self._pending_stop_requests.pop(user_id, None)
+        if normalized_conversation_ref is None:
+            self._pending_stop_requests.pop(user_id, None)
+        else:
+            pending = self._pending_stop_requests.get(user_id)
+            if pending is not None:
+                pending.pop(normalized_conversation_ref, None)
+                if not pending:
+                    self._pending_stop_requests.pop(user_id, None)
         return cancelled_entries[-1]
 
     def has_active_query_task(self, user_id: str) -> bool:

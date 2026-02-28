@@ -260,6 +260,50 @@ def test_normalize_messages_for_provider_returns_isolated_tool_calls_when_any_ca
     assert normalized[0]["tool_calls"][1]["function"]["arguments"] == "{\"path\":\"/tmp/b\"}"
 
 
+def test_normalize_messages_for_provider_preserves_thought_signature_for_gemini():
+    messages = [
+        {
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "call_1",
+                    "name": "browser",
+                    "arguments": {"action": "snapshot"},
+                    "thought_signature": "sig-xyz",
+                }
+            ],
+        },
+        {"role": "tool", "tool_call_id": "call_1", "content": "ok"},
+    ]
+
+    normalized = normalize_messages_for_provider(messages, model="gemini-3.0-flash")
+    tool_call = normalized[0]["tool_calls"][0]
+    assert tool_call["thought_signature"] == "sig-xyz"
+    assert tool_call["function"]["thought_signature"] == "sig-xyz"
+
+
+def test_normalize_messages_for_provider_drops_thought_signature_for_non_gemini():
+    messages = [
+        {
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "call_1",
+                    "name": "browser",
+                    "arguments": {"action": "snapshot"},
+                    "thought_signature": "sig-xyz",
+                }
+            ],
+        },
+    ]
+
+    normalized = normalize_messages_for_provider(messages, model="gpt-4o-mini")
+    assert normalized[0]["tool_calls"][0].get("thought_signature") is None
+    assert normalized[0]["tool_calls"][0]["function"].get("thought_signature") is None
+
+
 def test_normalize_tools_for_litellm_rejects_legacy_shape():
     with pytest.raises(LLMAPIError, match="field 'type' must be 'function'"):
         normalize_tools_for_litellm(
@@ -329,6 +373,43 @@ def test_extract_completion_response_parses_and_dedupes_openai_and_tool_use_bloc
     assert normalized["finish_reason"] == "tool_calls"
     assert normalized["tool_calls"] == [
         {"id": "call_1", "name": "read_file", "arguments": {"path": "/tmp/demo.txt"}}
+    ]
+
+
+def test_extract_completion_response_preserves_tool_call_thought_signature():
+    response = {
+        "choices": [
+            {
+                "message": {
+                    "content": "",
+                    "tool_calls": [
+                        {
+                            "id": "call_1",
+                            "function": {
+                                "name": "browser",
+                                "arguments": "{\"action\":\"snapshot\"}",
+                                "thoughtSignature": "sig-abc",
+                            },
+                        }
+                    ],
+                }
+            }
+        ]
+    }
+
+    normalized = extract_completion_response(
+        response,
+        model="gemini-3.0-flash",
+        invalid_response_message="Invalid response",
+    )
+
+    assert normalized["tool_calls"] == [
+        {
+            "id": "call_1",
+            "name": "browser",
+            "arguments": {"action": "snapshot"},
+            "thought_signature": "sig-abc",
+        }
     ]
 
 

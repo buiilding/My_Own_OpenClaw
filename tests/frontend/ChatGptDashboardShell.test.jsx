@@ -2,6 +2,7 @@ import React from 'react';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 
 import ChatGptDashboardShell from '../../frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell';
+import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 
 const mockListeners = new Map();
 const mockInvoke = jest.fn(async (channel) => {
@@ -112,6 +113,24 @@ describe('ChatGptDashboardShell', () => {
     mockSetActiveConversationRef.mockClear();
     mockUpdateTranscriptSession.mockClear();
     mockSessionInfo = { conversationRef: null, userId: null };
+    useChatStore.setState({
+      isSending: false,
+      streamTracking: {
+        activeTurnRef: null,
+        phase: 'idle',
+        startedAt: null,
+        firstChunkAt: null,
+        completedAt: null,
+        lastEventAt: null,
+        lastEventType: null,
+        eventCount: 0,
+        chunkCount: 0,
+        toolCallCount: 0,
+        toolOutputCount: 0,
+        lastChunkSize: 0,
+        lastError: null,
+      },
+    });
   });
 
   test('renders chat interface as primary main content', async () => {
@@ -227,6 +246,58 @@ describe('ChatGptDashboardShell', () => {
       }),
     );
 
+    expect(mockSendRehydrateConversation).toHaveBeenCalledWith('conv-history-1', []);
+    expect(mockSetActiveConversationRef).toHaveBeenCalledWith('conv-history-1');
+    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-history-1', 'default_user');
+  });
+
+  test('allows switching history while another loop is active', async () => {
+    const nowIso = new Date().toISOString();
+    useChatStore.setState((state) => ({
+      ...state,
+      isSending: false,
+      streamTracking: {
+        ...state.streamTracking,
+        activeTurnRef: 'turn-active',
+        phase: 'tool-output',
+      },
+    }));
+    mockInvoke.mockImplementation(async (channel) => {
+      if (channel === 'list-conversations') {
+        return {
+          success: true,
+          data: {
+            conversations: [
+              {
+                conversation_id: 'conv-history-1',
+                record_kind: 'transcript',
+                last_timestamp: nowIso,
+                title: 'Do not switch while looping',
+              },
+            ],
+          },
+        };
+      }
+      if (channel === 'get-conversation') {
+        return { success: true, data: { memories: [] } };
+      }
+      return { success: true, data: {} };
+    });
+
+    await renderDashboardShell();
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Do not switch while looping' }));
+    await flushMicrotasks();
+
+    const getConversationCall = mockInvoke.mock.calls.find(
+      ([channel]) => channel === 'get-conversation',
+    );
+    expect(getConversationCall).toBeDefined();
+    expect(getConversationCall?.[1]).toEqual(
+      expect.objectContaining({
+        conversationId: 'conv-history-1',
+      }),
+    );
     expect(mockSendRehydrateConversation).toHaveBeenCalledWith('conv-history-1', []);
     expect(mockSetActiveConversationRef).toHaveBeenCalledWith('conv-history-1');
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-history-1', 'default_user');

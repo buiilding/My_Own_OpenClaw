@@ -37,6 +37,7 @@ class NormalizedToolCall(TypedDict):
     id: str
     name: str
     arguments: Dict[str, Any]
+    thought_signature: NotRequired[str]
 
 
 class SystemLLMMessage(TypedDict):

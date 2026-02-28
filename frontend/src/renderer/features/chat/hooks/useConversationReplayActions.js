@@ -103,12 +103,12 @@ export function useConversationReplayActions({
     const conversationRef = ensureConversationRef(sessionInfo.conversationRef);
     updateTranscriptSession(conversationRef, sessionInfo.userId || undefined);
 
-    setMessages(replayConversation);
-    setThinkingStatus(null);
+    setMessages(replayConversation, conversationRef);
+    setThinkingStatus(null, conversationRef);
     if (typeof setThinkingSourceEventType === 'function') {
-      setThinkingSourceEventType(null);
+      setThinkingSourceEventType(null, conversationRef);
     }
-    setIsSending(true);
+    setIsSending(true, conversationRef);
 
     try {
       await runReplayQueryFlow({
@@ -122,7 +122,7 @@ export function useConversationReplayActions({
       });
     } catch (error) {
       console.error('[ChatInterface] Failed to edit user message:', error);
-      setIsSending(false);
+      setIsSending(false, conversationRef);
     }
   }, [messages, setIsSending, setMessages, setThinkingSourceEventType, setThinkingStatus]);
 
@@ -155,12 +155,12 @@ export function useConversationReplayActions({
     const conversationRef = ensureConversationRef(sessionInfo.conversationRef);
     updateTranscriptSession(conversationRef, sessionInfo.userId || undefined);
 
-    setMessages(replayContextMessages);
-    setThinkingStatus(null);
+    setMessages(replayContextMessages, conversationRef);
+    setThinkingStatus(null, conversationRef);
     if (typeof setThinkingSourceEventType === 'function') {
-      setThinkingSourceEventType(null);
+      setThinkingSourceEventType(null, conversationRef);
     }
-    setIsSending(true);
+    setIsSending(true, conversationRef);
 
     try {
       await runReplayQueryFlow({
@@ -174,7 +174,7 @@ export function useConversationReplayActions({
       });
     } catch (error) {
       console.error('[ChatInterface] Failed to retry assistant message:', error);
-      setIsSending(false);
+      setIsSending(false, conversationRef);
     }
   }, [messages, setIsSending, setMessages, setThinkingSourceEventType, setThinkingStatus]);
 

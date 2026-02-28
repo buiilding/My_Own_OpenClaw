@@ -168,7 +168,7 @@ export async function prepareExternalFocusForCapture(
       phaseBefore: SURFACE_PHASE.CAPTURE_READY,
       phaseAfter: SURFACE_PHASE.PREPARING_INTERACTIVE_FOCUS,
     });
-    await prepareOverlayToolFocus(waitMs);
+    await prepareOverlayToolFocus(waitMs, { skipDemotion: true });
     logSurfaceTransition({
       source,
       correlationId: captureId,

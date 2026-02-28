@@ -97,6 +97,7 @@ export function useChatMessageSender(
   options: ChatMessageSenderOptions = {},
 ) {
   const { addMessage, updateMessage, setIsSending, setThinkingStatus } = useChatCommonActions();
+  const setChatActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
   const { config } = useAppConfigContext();
   const { senderSurface = 'overlay-chatbox', returnToChatboxPolicy } = options;
   const includeQueryScreenshot = config?.include_query_screenshot ?? true;
@@ -110,7 +111,7 @@ export function useChatMessageSender(
     ? false
     : sendUiBehavior.shouldReturnToChatboxOnSend;
 
-  const appendSendFailureMessage = useCallback(() => {
+  const appendSendFailureMessage = useCallback((conversationRef?: string | null) => {
     addMessage({
       id: crypto.randomUUID(),
       text: 'Failed to send message. Please try again.',
@@ -119,18 +120,20 @@ export function useChatMessageSender(
       sourceEventType: 'renderer-compose',
       sourceChannel: 'renderer-local',
       isComplete: true,
-    });
+    }, conversationRef);
   }, [addMessage]);
 
   const ensureConversationRef = useCallback((): string => {
     const activeRef = getActiveConversationRef();
     if (activeRef) {
+      setChatActiveConversationRef(activeRef);
       return activeRef;
     }
     const generatedRef = createConversationRef();
     setActiveConversationRef(generatedRef);
+    setChatActiveConversationRef(generatedRef);
     return generatedRef;
-  }, []);
+  }, [setChatActiveConversationRef]);
 
   const sendMessage = useCallback(async (payload: OutgoingUserMessagePayload) => {
     const normalizedPayload = normalizeOutgoingPayload(payload);
@@ -173,9 +176,9 @@ export function useChatMessageSender(
     };
     
     // Display message immediately
-    addMessage(userMessage);
-    setIsSending(true);
-    setThinkingStatus(null);
+    addMessage(userMessage, conversationRef);
+    setIsSending(true, conversationRef);
+    setThinkingStatus(null, conversationRef);
 
     if (shouldReturnToChatboxOnSend) {
       try {
@@ -267,7 +270,7 @@ export function useChatMessageSender(
       screenshotRef,
       screenshotUrl,
       screenshots: uploadedScreenshotEntries.length > 0 ? uploadedScreenshotEntries : null,
-    });
+    }, conversationRef);
 
     const sessionInfo = getTranscriptSessionInfo();
     const screenshotRefs = uploadedScreenshotRefs.length > 0
@@ -294,8 +297,8 @@ export function useChatMessageSender(
       );
     } catch (error) {
       console.error('[useChatMessageSender] Failed to send query:', error);
-      setIsSending(false);
-      appendSendFailureMessage();
+      setIsSending(false, conversationRef);
+      appendSendFailureMessage(conversationRef);
       throw error;
     }
   }, [

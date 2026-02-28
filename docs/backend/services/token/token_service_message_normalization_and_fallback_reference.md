@@ -70,12 +70,14 @@ Canonical OpenAI shape preserved and normalized:
 - `{id, type:"function", function:{name, arguments}}`
 - ensures `type` is `"function"`
 - serializes `function.arguments` to compact JSON string when non-string
+- preserves optional Gemini `thought_signature` metadata on tool-call + function blocks
 
 Internal runtime shape transformed:
 
 - `{id?, name, arguments}`
 - mapped to OpenAI function-call schema
 - missing/blank `id` becomes deterministic fallback `tool_call_<index>`
+- preserves optional `thought_signature` when present
 
 Filtering behavior:
 

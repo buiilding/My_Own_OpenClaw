@@ -159,22 +159,33 @@ describe('toolRunnerSurface helpers', () => {
     expect(preparation.canExecute).toBe(true);
     expect(preparation.failureReason).toBeNull();
     expect(preparation.overlayIgnoreEnabled).toBe(true);
+    expect(preparation.overlayNonFocusableEnabled).toBe(true);
     expect(focusAttemptCount).toBe(3);
     expect(IpcBridge.invoke).toHaveBeenCalledWith(INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE, {
       ignore: true,
+    });
+    expect(IpcBridge.invoke).toHaveBeenCalledWith(INVOKE_CHANNELS.SET_OVERLAY_FOCUSABLE, {
+      focusable: false,
+    });
+    expect(IpcBridge.invoke).toHaveBeenCalledWith(INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
+      waitMs: 180,
+      skipDemotion: true,
     });
     const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
     const firstIgnoreCallIndex = invokeCalls.findIndex(
       ([channel]: unknown[]) => channel === INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE,
     );
-    const lastFocusCallIndex = invokeCalls.reduce((lastIndex, [channel], index) => (
-      channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS ? index : lastIndex
-    ), -1);
-    expect(firstIgnoreCallIndex).toBeGreaterThan(lastFocusCallIndex);
+    const firstFocusCallIndex = invokeCalls.findIndex(
+      ([channel]: unknown[]) => channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS,
+    );
+    expect(firstIgnoreCallIndex).toBeLessThan(firstFocusCallIndex);
 
     await restoreToolExecutionSurface(preparation);
     expect(IpcBridge.invoke).toHaveBeenCalledWith(INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE, {
       ignore: false,
+    });
+    expect(IpcBridge.invoke).toHaveBeenCalledWith(INVOKE_CHANNELS.SET_OVERLAY_FOCUSABLE, {
+      focusable: true,
     });
   });
 
@@ -200,7 +211,7 @@ describe('toolRunnerSurface helpers', () => {
     expect(focusAttemptCount).toBe(5);
   });
 
-  test('keeps click-through disabled when interactive focus prep exhausts retries', async () => {
+  test('restores overlay interaction toggles when interactive focus prep exhausts retries', async () => {
     (IpcBridge.invoke as jest.Mock).mockImplementation(async (channel: string) => {
       if (channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS) {
         return {
@@ -219,16 +230,25 @@ describe('toolRunnerSurface helpers', () => {
       focusMaxAttempts: 2,
     });
     expect(preparation.canExecute).toBe(false);
-    expect(preparation.overlayIgnoreEnabled).toBe(false);
-    expect((IpcBridge.invoke as jest.Mock).mock.calls).not.toContainEqual([
+    expect(preparation.overlayIgnoreEnabled).toBe(true);
+    expect(preparation.overlayNonFocusableEnabled).toBe(true);
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).toContainEqual([
       INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE,
       { ignore: true },
     ]);
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).toContainEqual([
+      INVOKE_CHANNELS.SET_OVERLAY_FOCUSABLE,
+      { focusable: false },
+    ]);
 
     await restoreToolExecutionSurface(preparation);
-    expect((IpcBridge.invoke as jest.Mock).mock.calls).not.toContainEqual([
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).toContainEqual([
       INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE,
       { ignore: false },
+    ]);
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).toContainEqual([
+      INVOKE_CHANNELS.SET_OVERLAY_FOCUSABLE,
+      { focusable: true },
     ]);
   });
 
@@ -253,7 +273,9 @@ describe('toolRunnerSurface helpers', () => {
       focusMaxAttempts: 2,
     });
     expect(first.canExecute).toBe(false);
-    expect(first.overlayIgnoreEnabled).toBe(false);
+    expect(first.overlayIgnoreEnabled).toBe(true);
+    expect(first.overlayNonFocusableEnabled).toBe(true);
+    await restoreToolExecutionSurface(first);
 
     const second = await prepareToolExecutionSurface('interactive', {
       correlationId: 'corr-recovery-second',
@@ -261,13 +283,20 @@ describe('toolRunnerSurface helpers', () => {
     });
     expect(second.canExecute).toBe(true);
     expect(second.overlayIgnoreEnabled).toBe(true);
+    expect(second.overlayNonFocusableEnabled).toBe(true);
     expect(IpcBridge.invoke).toHaveBeenCalledWith(INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE, {
       ignore: true,
+    });
+    expect(IpcBridge.invoke).toHaveBeenCalledWith(INVOKE_CHANNELS.SET_OVERLAY_FOCUSABLE, {
+      focusable: false,
     });
 
     await restoreToolExecutionSurface(second);
     expect(IpcBridge.invoke).toHaveBeenCalledWith(INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE, {
       ignore: false,
+    });
+    expect(IpcBridge.invoke).toHaveBeenCalledWith(INVOKE_CHANNELS.SET_OVERLAY_FOCUSABLE, {
+      focusable: true,
     });
   });
 

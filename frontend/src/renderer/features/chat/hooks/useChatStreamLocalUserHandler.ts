@@ -12,14 +12,15 @@ type TrackEventFn = (
   eventType: 'local-user-message',
   turnRef: string | null | undefined,
   options?: Record<string, unknown>,
+  conversationRef?: string | null,
 ) => void;
 
 type UseChatStreamLocalUserHandlerDeps = {
-  addMessage: (message: ChatMessage) => void;
+  addMessage: (message: ChatMessage, conversationRef?: string | null) => void;
   modelContextRef: { current: TranscriptModelContext };
   recordTrackingEvent: TrackEventFn;
-  setThinkingSourceEventType: (value: string | null) => void;
-  setThinkingStatus: (value: string | null) => void;
+  setThinkingSourceEventType: (value: string | null, conversationRef?: string | null) => void;
+  setThinkingStatus: (value: string | null, conversationRef?: string | null) => void;
 };
 
 export function useChatStreamLocalUserHandler({
@@ -29,7 +30,7 @@ export function useChatStreamLocalUserHandler({
   setThinkingSourceEventType,
   setThinkingStatus,
 }: UseChatStreamLocalUserHandlerDeps) {
-  return useCallback((event: LocalUserMessageEvent) => {
+  return useCallback((event: LocalUserMessageEvent, conversationRef?: string | null) => {
     const text = event.payload?.text;
     if (!text) {
       return;
@@ -59,20 +60,20 @@ export function useChatStreamLocalUserHandler({
       timestamp: event.payload?.timestamp,
       turnRef: event.turn_ref,
     };
-    addMessage(newMessage);
+    addMessage(newMessage, conversationRef);
     const modelContext = modelContextRef.current;
     if (modelContext.supportsThinking && !modelContext.supportsThinkingTextStream) {
-      setThinkingStatus(GENERIC_THINKING_STATUS);
-      setThinkingSourceEventType('local-user-message');
+      setThinkingStatus(GENERIC_THINKING_STATUS, conversationRef);
+      setThinkingSourceEventType('local-user-message', conversationRef);
     } else {
-      setThinkingStatus(null);
-      setThinkingSourceEventType(null);
+      setThinkingStatus(null, conversationRef);
+      setThinkingSourceEventType(null, conversationRef);
     }
 
     recordTrackingEvent('local-user-message', event.turn_ref, {
       phase: 'awaiting-first-chunk',
       resetForTurn: true,
-    });
+    }, conversationRef);
   }, [
     addMessage,
     modelContextRef,

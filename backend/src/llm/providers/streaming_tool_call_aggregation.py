@@ -11,6 +11,18 @@ logger = logging.getLogger(__name__)
 _TOOL_ARGUMENTS_PREVIEW_CHARS = 4000
 
 
+def _extract_thought_signature(*sources: Any) -> Optional[str]:
+    """Extract optional Gemini thought signature from stream payload fragments."""
+    for source in sources:
+        if source is None:
+            continue
+        for key in ("thought_signature", "thoughtSignature"):
+            value = LLMProvider._get_value(source, key)
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+    return None
+
+
 class StreamingToolCallAggregationMixin:
     """
     Shared stream-time tool-call aggregation for providers that emit
@@ -105,6 +117,12 @@ class StreamingToolCallAggregationMixin:
                 elif isinstance(raw_arguments, dict):
                     state["arguments_obj"] = copy.deepcopy(raw_arguments)
 
+                thought_signature = _extract_thought_signature(
+                    function_payload, raw_tool_call
+                )
+                if thought_signature is not None:
+                    state["thought_signature"] = thought_signature
+
         content_blocks = LLMProvider._get_value(delta, "content")
         if isinstance(content_blocks, list):
             for block_index, block in enumerate(content_blocks):
@@ -131,6 +149,10 @@ class StreamingToolCallAggregationMixin:
                 elif isinstance(raw_input, str) and raw_input:
                     state["arguments_chunks"].append(raw_input)
 
+                thought_signature = _extract_thought_signature(block)
+                if thought_signature is not None:
+                    state["thought_signature"] = thought_signature
+
     @staticmethod
     def _get_or_init_tool_call_state(
         tool_call_deltas: Dict[int, Dict[str, Any]],
@@ -144,6 +166,7 @@ class StreamingToolCallAggregationMixin:
                 "name": None,
                 "arguments_chunks": [],
                 "arguments_obj": None,
+                "thought_signature": None,
             },
         )
 
@@ -203,13 +226,15 @@ class StreamingToolCallAggregationMixin:
                         },
                     ) from exc
 
-            normalized_tool_calls.append(
-                {
-                    "id": tool_call_id,
-                    "name": name.strip(),
-                    "arguments": arguments,
-                }
-            )
+            normalized_call: Dict[str, Any] = {
+                "id": tool_call_id,
+                "name": name.strip(),
+                "arguments": arguments,
+            }
+            thought_signature = state.get("thought_signature")
+            if isinstance(thought_signature, str) and thought_signature.strip():
+                normalized_call["thought_signature"] = thought_signature.strip()
+            normalized_tool_calls.append(normalized_call)
         return normalized_tool_calls
 
     @staticmethod

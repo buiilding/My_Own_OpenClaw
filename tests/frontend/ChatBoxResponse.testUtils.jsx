@@ -17,6 +17,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
   ON_CHANNELS: {
     RESPONSE_OVERLAY_PHASE: 'response-overlay-phase',
+    RESPONSE_OVERLAY_VISIBILITY: 'response-overlay-visibility',
   },
 }));
 
@@ -40,6 +41,14 @@ export function emitOverlayPhase(phase) {
   expect(onPhase).toEqual(expect.any(Function));
   act(() => {
     onPhase({ phase });
+  });
+}
+
+export function emitOverlayVisibility(visible) {
+  const onVisibility = mockListeners.get('response-overlay-visibility');
+  expect(onVisibility).toEqual(expect.any(Function));
+  act(() => {
+    onVisibility({ visible: Boolean(visible) });
   });
 }
 

@@ -53,6 +53,7 @@ async function prepareOverlayQueryCaptureFocus({
   mainWindow,
   externalFocusTracker,
   waitMs = 120,
+  skipDemotion = false,
 }) {
   if (chatWindow && !chatWindow.isDestroyed() && typeof chatWindow.blur === 'function') {
     chatWindow.blur();
@@ -68,7 +69,7 @@ async function prepareOverlayQueryCaptureFocus({
   const restoredExternalFocus = canTrackExternalFocus
     ? externalFocusTracker.restorePreviousExternalFocusedWindow()
     : false;
-  const demotedOverlayFocus = !restoredExternalFocus
+  const demotedOverlayFocus = (!restoredExternalFocus && !skipDemotion)
     ? await demoteOverlayFocusWithoutStealing({ responseWindow, chatWindow })
     : false;
   const canVerifyExternalFocus = (

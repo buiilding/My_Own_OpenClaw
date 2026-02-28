@@ -23,10 +23,12 @@ import {
   hasActiveSurfaceTokens,
   isPendingChatPillRestore,
   markOverlayIgnoreForToken,
+  markOverlayNonFocusableForToken,
   registerSurfaceToken,
   releaseSurfaceToken,
   setPendingChatPillRestore,
   unmarkOverlayIgnoreForToken,
+  unmarkOverlayNonFocusableForToken,
 } from './state';
 import {
   OVERLAY_SURFACE_PREPARE_EXCEPTION,
@@ -67,11 +69,13 @@ export async function prepareToolExecutionSurface(
       failureReason: null,
       surfaceToken: null,
       overlayIgnoreEnabled: false,
+      overlayNonFocusableEnabled: false,
     });
   }
 
   let surfaceToken: number | null = null;
   let overlayIgnoreEnabled = false;
+  let overlayNonFocusableEnabled = false;
   const shouldCollapseForScreenshot = (
     mode === 'screenshot'
     && !hasActiveSurfaceTokens()
@@ -108,6 +112,34 @@ export async function prepareToolExecutionSurface(
       const { waitMs, maxAttempts } = interactiveFocusOptions;
 
       for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+        if (!overlayIgnoreEnabled) {
+          try {
+            const ignoreResult = await IpcBridge.invoke(INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE, {
+              ignore: true,
+            });
+            overlayIgnoreEnabled = ignoreResult?.success !== false;
+            if (overlayIgnoreEnabled) {
+              markOverlayIgnoreForToken(surfaceToken);
+            }
+          } catch (error) {
+            console.warn('[SurfaceOrchestrator] Failed to enable overlay click-through for tool execution:', error);
+          }
+        }
+
+        if (!overlayNonFocusableEnabled) {
+          try {
+            const focusableResult = await IpcBridge.invoke(INVOKE_CHANNELS.SET_OVERLAY_FOCUSABLE, {
+              focusable: false,
+            });
+            overlayNonFocusableEnabled = focusableResult?.success !== false;
+            if (overlayNonFocusableEnabled) {
+              markOverlayNonFocusableForToken(surfaceToken);
+            }
+          } catch (error) {
+            console.warn('[SurfaceOrchestrator] Failed to disable overlay focus for tool execution:', error);
+          }
+        }
+
         logSurfaceTransition({
           source,
           correlationId,
@@ -120,7 +152,7 @@ export async function prepareToolExecutionSurface(
           maxAttempts,
         });
 
-        const focusPreparation = await prepareOverlayToolFocus(waitMs);
+        const focusPreparation = await prepareOverlayToolFocus(waitMs, { skipDemotion: true });
         const canVerifyExternalFocus = focusPreparation.canVerifyExternalFocus;
         const externalFocusActive = focusPreparation.externalFocusActive;
 
@@ -142,21 +174,11 @@ export async function prepareToolExecutionSurface(
             failureReason,
             surfaceToken,
             overlayIgnoreEnabled,
+            overlayNonFocusableEnabled,
           });
         }
 
         if (!canVerifyExternalFocus || externalFocusActive) {
-          try {
-            const ignoreResult = await IpcBridge.invoke(INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE, {
-              ignore: true,
-            });
-            overlayIgnoreEnabled = ignoreResult?.success !== false;
-            if (overlayIgnoreEnabled) {
-              markOverlayIgnoreForToken(surfaceToken);
-            }
-          } catch (error) {
-            console.warn('[SurfaceOrchestrator] Failed to enable overlay click-through for tool execution:', error);
-          }
           logSurfaceTransition({
             source,
             correlationId,
@@ -172,6 +194,7 @@ export async function prepareToolExecutionSurface(
             failureReason: null,
             surfaceToken,
             overlayIgnoreEnabled,
+            overlayNonFocusableEnabled,
           });
         }
       }
@@ -190,6 +213,7 @@ export async function prepareToolExecutionSurface(
         failureReason: SURFACE_REASON_EXTERNAL_FOCUS_NOT_VERIFIED,
         surfaceToken,
         overlayIgnoreEnabled,
+        overlayNonFocusableEnabled,
       });
     }
 
@@ -199,6 +223,7 @@ export async function prepareToolExecutionSurface(
       failureReason: null,
       surfaceToken,
       overlayIgnoreEnabled,
+      overlayNonFocusableEnabled,
     });
   } catch (error) {
     console.warn('[SurfaceOrchestrator] Failed to prepare tool execution surface:', error);
@@ -218,6 +243,7 @@ export async function prepareToolExecutionSurface(
       failureReason: OVERLAY_SURFACE_PREPARE_EXCEPTION,
       surfaceToken,
       overlayIgnoreEnabled,
+      overlayNonFocusableEnabled,
     });
   }
 }
@@ -249,6 +275,14 @@ export async function restoreToolExecutionSurface(
       await IpcBridge.invoke(INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE, { ignore: false });
     } catch (error) {
       console.warn('[SurfaceOrchestrator] Failed to disable overlay click-through after tool execution:', error);
+    }
+  }
+
+  if (preparation.overlayNonFocusableEnabled && unmarkOverlayNonFocusableForToken(preparation.surfaceToken)) {
+    try {
+      await IpcBridge.invoke(INVOKE_CHANNELS.SET_OVERLAY_FOCUSABLE, { focusable: true });
+    } catch (error) {
+      console.warn('[SurfaceOrchestrator] Failed to restore overlay focusability after tool execution:', error);
     }
   }
 

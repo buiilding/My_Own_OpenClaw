@@ -29,7 +29,7 @@ describe('chatStreamConversationGate', () => {
     expect(resolveEventConversationRef(event)).toBe('conv-2');
   });
 
-  test('ignores stale non-local events only when stream turn is active', () => {
+  test('always ignores stale non-local events when conversation_ref mismatches active conversation', () => {
     const event = buildEvent({
       type: 'streaming-response',
       conversation_ref: 'conv-stale',
@@ -50,7 +50,7 @@ describe('chatStreamConversationGate', () => {
         'conv-active',
         { activeTurnRef: null, phase: 'streaming' },
       ),
-    ).toBe(false);
+    ).toBe(true);
 
     expect(
       shouldIgnoreEventForActiveConversation(
@@ -58,7 +58,7 @@ describe('chatStreamConversationGate', () => {
         'conv-active',
         { activeTurnRef: 'turn-1', phase: 'complete' },
       ),
-    ).toBe(false);
+    ).toBe(true);
   });
 
   test('never ignores local-user-message mismatch events', () => {
@@ -77,7 +77,7 @@ describe('chatStreamConversationGate', () => {
     ).toBe(false);
   });
 
-  test('never ignores context-compaction lifecycle events despite conversation mismatch', () => {
+  test('ignores context-compaction lifecycle events when conversation mismatch is explicit', () => {
     const started = buildEvent({
       type: 'context-compaction-started',
       conversation_ref: 'conv-stale',
@@ -95,8 +95,8 @@ describe('chatStreamConversationGate', () => {
     });
 
     const streamTracking = { activeTurnRef: 'turn-1', phase: 'streaming' as const };
-    expect(shouldIgnoreEventForActiveConversation(started, 'conv-active', streamTracking)).toBe(false);
-    expect(shouldIgnoreEventForActiveConversation(completed, 'conv-active', streamTracking)).toBe(false);
-    expect(shouldIgnoreEventForActiveConversation(failed, 'conv-active', streamTracking)).toBe(false);
+    expect(shouldIgnoreEventForActiveConversation(started, 'conv-active', streamTracking)).toBe(true);
+    expect(shouldIgnoreEventForActiveConversation(completed, 'conv-active', streamTracking)).toBe(true);
+    expect(shouldIgnoreEventForActiveConversation(failed, 'conv-active', streamTracking)).toBe(true);
   });
 });

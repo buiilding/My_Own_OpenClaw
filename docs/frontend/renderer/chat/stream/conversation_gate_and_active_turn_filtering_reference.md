@@ -1,12 +1,12 @@
 ---
-summary: "Deep reference for `chatStreamConversationGate`: conversation_ref resolution, stale-event suppression rules, and active-turn terminal-phase gating."
+summary: "Deep reference for `chatStreamConversationGate`: conversation_ref resolution helpers and workspace routing behavior for multi-conversation streaming."
 read_when:
   - When changing cross-conversation event handling in `useChatStream`.
   - When debugging dropped backend events during chatbox/main-window handoff.
-title: "Conversation Gate and Active-Turn Filtering Reference"
+title: "Conversation Gate and Conversation Isolation Reference"
 ---
 
-# Conversation Gate and Active-Turn Filtering Reference
+# Conversation Gate and Conversation Isolation Reference
 
 ## Canonical Modules
 
@@ -18,7 +18,7 @@ title: "Conversation Gate and Active-Turn Filtering Reference"
 
 ## Ownership Boundary
 
-`chatStreamConversationGate` decides whether a valid backend event should be ignored because it belongs to a different conversation while a turn is still active.
+`chatStreamConversationGate` resolves conversation identity from backend events (`conversation_ref` + compatibility fallbacks). Runtime event acceptance/filtering now lives in `useChatStream` workspace routing logic.
 
 It does not:
 
@@ -36,36 +36,30 @@ It does not:
 
 This keeps compatibility for local-user-message payloads that carry conversation identity inside payload fields.
 
-## Ignore Decision Matrix
+## Routing Decision Matrix
 
-`shouldIgnoreEventForActiveConversation(...)` returns `true` only when all conditions hold:
+`useChatStream` resolves target workspace per event with this precedence:
 
-1. active conversation ref exists
-2. event has resolvable conversation ref
-3. event conversation ref differs from active conversation
-4. event type is not `local-user-message`
-5. stream has an active turn (`streamTracking.activeTurnRef` non-empty)
-6. stream phase is non-terminal (`awaiting-first-chunk`, `streaming`, `tool-call`, `tool-output`)
+1. `resolveEventConversationRef(event)` from top-level `conversation_ref` (or compatibility payload fallback for `local-user-message`)
+2. `chatStore.resolveConversationRefForTurn(event.turn_ref)` when conversation ref is omitted
+3. current transcript active conversation ref
 
-Terminal phases are allowlisted for cross-conversation pass-through:
+Result:
 
-- `idle`
-- `complete`
-- `error`
-
-This allows handoff after a turn is done while still blocking stale in-flight events.
+- mismatched conversation events are no longer dropped outright
+- every event is routed to its owning workspace
+- currently visible chat renders only the active workspace projection
 
 ## Integration Point in `useChatStream`
 
 Event flow inside backend listener:
 
 1. drop invalid payloads (`!isBackendEvent`)
-2. read current `streamTracking` from store
-3. gate by `shouldIgnoreEventForActiveConversation`
-4. update transcript session (`updateTranscriptSession`) if event is accepted
+2. resolve target conversation workspace and register `turn_ref -> conversation_ref` mapping when available
+3. update transcript session user binding without force-switching active conversation
 5. dispatch to per-event handler map
 
-Because transcript session update happens after gate evaluation, stale events do not rewrite transcript conversation/user identity.
+Because routing is per-workspace, background conversation events do not leak into the currently active chat.
 
 ## Test-Backed Invariants
 
@@ -73,19 +67,17 @@ Because transcript session update happens after gate evaluation, stale events do
 
 - top-level `conversation_ref` precedence
 - `local-user-message` payload fallback resolution
-- stale non-local events ignored only when turn active and phase non-terminal
-- local-user-message mismatch events never ignored
+- compatibility fallback resolution behavior for payload-level conversation refs
 
 `tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx` verifies end-to-end listener behavior:
 
-- stale `streaming-response` with mismatched conversation ref is ignored
-- compatibility events that omit conversation ref still process normally
+- events with omitted conversation refs still process through turn mapping / active fallback
 
 ## Drift Hotspots
 
-1. ignoring all mismatched events regardless of phase blocks post-turn handoff.
-2. removing local-user-message fallback breaks first-turn session updates in mixed payload shapes.
-3. moving transcript-session update before the gate causes stale events to overwrite transcript identity.
+1. removing turn-ref workspace mapping reintroduces ambiguous routing for events without `conversation_ref`.
+2. removing local-user-message fallback breaks compatibility for payload-level conversation identity.
+3. force-switching transcript active conversation from background events causes visible chat jumps while another chat is open.
 
 ## Related Pages
 

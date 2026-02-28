@@ -102,10 +102,37 @@ export interface StreamTracking {
   lastError: string | null;
 }
 
+export interface ChatWorkspaceState {
+  messages: ChatMessage[];
+  isSending: boolean;
+  thinkingStatus: string | null;
+  thinkingSourceEventType: string | null;
+  tokenCounts: TokenCounts | null;
+  streamTracking: StreamTracking;
+}
+
+export const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
+
+export function normalizeConversationRef(value: string | null | undefined): string | null {
+  if (typeof value !== 'string') {
+    return null;
+  }
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : null;
+}
+
+export function resolveChatWorkspaceRef(conversationRef: string | null | undefined): string {
+  return normalizeConversationRef(conversationRef) || DEFAULT_CHAT_WORKSPACE_REF;
+}
+
 /**
  * Chat store state
  */
 interface ChatState {
+  activeConversationRef: string | null;
+  workspaces: Record<string, ChatWorkspaceState>;
+  turnConversationRefs: Record<string, string>;
+
   // State
   messages: ChatMessage[];
   isSending: boolean;
@@ -113,20 +140,34 @@ interface ChatState {
   thinkingSourceEventType: string | null;
   tokenCounts: TokenCounts | null;
   streamTracking: StreamTracking;
+  getWorkspaceState: (conversationRef?: string | null) => ChatWorkspaceState;
+  setActiveConversationRef: (conversationRef: string | null) => void;
+  registerTurnConversationRef: (turnRef: string, conversationRef: string | null | undefined) => void;
+  resolveConversationRefForTurn: (turnRef: string | null | undefined) => string | null;
 
   // Actions
-  addMessage: (message: ChatMessage) => void;
-  updateMessage: (id: string, updates: Partial<ChatMessage>) => void;
-  setMessages: (messages: ChatMessage[]) => void;
-  setIsSending: (isSending: boolean) => void;
-  setThinkingStatus: (status: string | null) => void;
-  setThinkingSourceEventType: (sourceEventType: string | null) => void;
-  setTokenCounts: (counts: TokenCounts | null) => void;
-  updateStreamTracking: (updater: (current: StreamTracking) => StreamTracking) => void;
-  clearMessages: () => void;
+  addMessage: (message: ChatMessage, conversationRef?: string | null) => void;
+  updateMessage: (
+    id: string,
+    updates: Partial<ChatMessage>,
+    conversationRef?: string | null,
+  ) => void;
+  setMessages: (messages: ChatMessage[], conversationRef?: string | null) => void;
+  setIsSending: (isSending: boolean, conversationRef?: string | null) => void;
+  setThinkingStatus: (status: string | null, conversationRef?: string | null) => void;
+  setThinkingSourceEventType: (
+    sourceEventType: string | null,
+    conversationRef?: string | null,
+  ) => void;
+  setTokenCounts: (counts: TokenCounts | null, conversationRef?: string | null) => void;
+  updateStreamTracking: (
+    updater: (current: StreamTracking) => StreamTracking,
+    conversationRef?: string | null,
+  ) => void;
+  clearMessages: (conversationRef?: string | null) => void;
 }
 
-function createInitialStreamTracking(): StreamTracking {
+export function createInitialStreamTracking(): StreamTracking {
   return {
     activeTurnRef: null,
     phase: 'idle',
@@ -144,62 +185,359 @@ function createInitialStreamTracking(): StreamTracking {
   };
 }
 
+function createInitialWorkspaceState(): ChatWorkspaceState {
+  return {
+    messages: [],
+    isSending: false,
+    thinkingStatus: null,
+    thinkingSourceEventType: null,
+    tokenCounts: null,
+    streamTracking: createInitialStreamTracking(),
+  };
+}
+
+function resolveWorkspaceConversationRef(
+  requestedConversationRef: string | null | undefined,
+  activeConversationRef: string | null,
+): string | null {
+  return normalizeConversationRef(requestedConversationRef ?? activeConversationRef);
+}
+
+function resolveWorkspaceKey(
+  requestedConversationRef: string | null | undefined,
+  activeConversationRef: string | null,
+): string {
+  return resolveChatWorkspaceRef(
+    resolveWorkspaceConversationRef(requestedConversationRef, activeConversationRef),
+  );
+}
+
+function readWorkspaceState(state: ChatState, workspaceRef: string): ChatWorkspaceState {
+  const workspace = state.workspaces[workspaceRef];
+  const activeWorkspaceRef = resolveChatWorkspaceRef(state.activeConversationRef);
+  const activeRootWorkspace: ChatWorkspaceState = {
+    messages: state.messages,
+    isSending: state.isSending,
+    thinkingStatus: state.thinkingStatus,
+    thinkingSourceEventType: state.thinkingSourceEventType,
+    tokenCounts: state.tokenCounts,
+    streamTracking: state.streamTracking,
+  };
+  if (workspace) {
+    if (
+      workspaceRef === activeWorkspaceRef
+      && (
+        workspace.messages !== activeRootWorkspace.messages
+        || workspace.isSending !== activeRootWorkspace.isSending
+        || workspace.thinkingStatus !== activeRootWorkspace.thinkingStatus
+        || workspace.thinkingSourceEventType !== activeRootWorkspace.thinkingSourceEventType
+        || workspace.tokenCounts !== activeRootWorkspace.tokenCounts
+        || workspace.streamTracking !== activeRootWorkspace.streamTracking
+      )
+    ) {
+      return activeRootWorkspace;
+    }
+    return workspace;
+  }
+  if (workspaceRef === activeWorkspaceRef) {
+    return activeRootWorkspace;
+  }
+  return createInitialWorkspaceState();
+}
+
 /**
  * Chat store
  * Uses shallow equality for better performance with Zustand
  */
-export const useChatStore = create<ChatState>((set) => ({
+export const useChatStore = create<ChatState>((set, get) => ({
   // Initial state
+  activeConversationRef: null,
+  workspaces: {
+    [DEFAULT_CHAT_WORKSPACE_REF]: createInitialWorkspaceState(),
+  },
+  turnConversationRefs: {},
   messages: [],
   isSending: false,
   thinkingStatus: null,
   thinkingSourceEventType: null,
   tokenCounts: null,
   streamTracking: createInitialStreamTracking(),
+  getWorkspaceState: (conversationRef) => {
+    const state = get();
+    const workspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
+    return readWorkspaceState(state, workspaceRef);
+  },
+
+  setActiveConversationRef: (conversationRef) =>
+    set((state) => {
+      const normalizedConversationRef = normalizeConversationRef(conversationRef);
+      const nextWorkspaceRef = resolveChatWorkspaceRef(normalizedConversationRef);
+      const nextWorkspace = readWorkspaceState(state, nextWorkspaceRef);
+      const hasWorkspace = Boolean(state.workspaces[nextWorkspaceRef]);
+      if (
+        state.activeConversationRef === normalizedConversationRef
+        && hasWorkspace
+        && state.messages === nextWorkspace.messages
+        && state.isSending === nextWorkspace.isSending
+        && state.thinkingStatus === nextWorkspace.thinkingStatus
+        && state.thinkingSourceEventType === nextWorkspace.thinkingSourceEventType
+        && state.tokenCounts === nextWorkspace.tokenCounts
+        && state.streamTracking === nextWorkspace.streamTracking
+      ) {
+        return state;
+      }
+
+      return {
+        activeConversationRef: normalizedConversationRef,
+        workspaces: hasWorkspace
+          ? state.workspaces
+          : {
+            ...state.workspaces,
+            [nextWorkspaceRef]: nextWorkspace,
+          },
+        messages: nextWorkspace.messages,
+        isSending: nextWorkspace.isSending,
+        thinkingStatus: nextWorkspace.thinkingStatus,
+        thinkingSourceEventType: nextWorkspace.thinkingSourceEventType,
+        tokenCounts: nextWorkspace.tokenCounts,
+        streamTracking: nextWorkspace.streamTracking,
+      };
+    }),
+
+  registerTurnConversationRef: (turnRef, conversationRef) =>
+    set((state) => {
+      const normalizedTurnRef = typeof turnRef === 'string' ? turnRef.trim() : '';
+      const normalizedConversationRef = normalizeConversationRef(conversationRef);
+      if (!normalizedTurnRef || !normalizedConversationRef) {
+        return state;
+      }
+      if (state.turnConversationRefs[normalizedTurnRef] === normalizedConversationRef) {
+        return state;
+      }
+      return {
+        turnConversationRefs: {
+          ...state.turnConversationRefs,
+          [normalizedTurnRef]: normalizedConversationRef,
+        },
+      };
+    }),
+
+  resolveConversationRefForTurn: (turnRef) => {
+    const normalizedTurnRef = typeof turnRef === 'string' ? turnRef.trim() : '';
+    if (!normalizedTurnRef) {
+      return null;
+    }
+    return get().turnConversationRefs[normalizedTurnRef] || null;
+  },
 
   // Actions
-  addMessage: (message) =>
-    set((state) => ({
-      messages: [...state.messages, message],
-    })),
-
-  updateMessage: (id, updates) =>
+  addMessage: (message, conversationRef) =>
     set((state) => {
-      const index = state.messages.findIndex((message) => message.id === id);
+      const normalizedConversationRef = resolveWorkspaceConversationRef(
+        conversationRef,
+        state.activeConversationRef,
+      );
+      const targetWorkspaceRef = resolveChatWorkspaceRef(normalizedConversationRef);
+      const currentWorkspace = readWorkspaceState(state, targetWorkspaceRef);
+      const nextWorkspace = {
+        ...currentWorkspace,
+        messages: [...currentWorkspace.messages, message],
+      };
+      const isActiveWorkspace = targetWorkspaceRef === resolveChatWorkspaceRef(state.activeConversationRef);
+      const nextTurnConversationRefs = (
+        message.turnRef && normalizedConversationRef
+          ? {
+            ...state.turnConversationRefs,
+            [message.turnRef]: normalizedConversationRef,
+          }
+          : state.turnConversationRefs
+      );
+
+      return {
+        workspaces: {
+          ...state.workspaces,
+          [targetWorkspaceRef]: nextWorkspace,
+        },
+        turnConversationRefs: nextTurnConversationRefs,
+        ...(isActiveWorkspace ? {
+          messages: nextWorkspace.messages,
+          isSending: nextWorkspace.isSending,
+          thinkingStatus: nextWorkspace.thinkingStatus,
+          thinkingSourceEventType: nextWorkspace.thinkingSourceEventType,
+          tokenCounts: nextWorkspace.tokenCounts,
+          streamTracking: nextWorkspace.streamTracking,
+        } : {}),
+      };
+    }),
+
+  updateMessage: (id, updates, conversationRef) =>
+    set((state) => {
+      const normalizedConversationRef = resolveWorkspaceConversationRef(
+        conversationRef,
+        state.activeConversationRef,
+      );
+      const targetWorkspaceRef = resolveChatWorkspaceRef(normalizedConversationRef);
+      const currentWorkspace = readWorkspaceState(state, targetWorkspaceRef);
+      const index = currentWorkspace.messages.findIndex((message) => message.id === id);
       if (index === -1) {
         return state;
       }
 
-      const nextMessages = [...state.messages];
+      const nextMessages = [...currentWorkspace.messages];
       nextMessages[index] = { ...nextMessages[index], ...updates };
-      return { messages: nextMessages };
+      const nextWorkspace = { ...currentWorkspace, messages: nextMessages };
+      const isActiveWorkspace = targetWorkspaceRef === resolveChatWorkspaceRef(state.activeConversationRef);
+      const nextTurnConversationRefs = (
+        typeof updates.turnRef === 'string' && updates.turnRef.length > 0 && normalizedConversationRef
+          ? {
+            ...state.turnConversationRefs,
+            [updates.turnRef]: normalizedConversationRef,
+          }
+          : state.turnConversationRefs
+      );
+      return {
+        workspaces: {
+          ...state.workspaces,
+          [targetWorkspaceRef]: nextWorkspace,
+        },
+        turnConversationRefs: nextTurnConversationRefs,
+        ...(isActiveWorkspace ? { messages: nextMessages } : {}),
+      };
     }),
 
-  setMessages: (messages) =>
-    set((state) => (state.messages === messages ? state : { messages })),
+  setMessages: (messages, conversationRef) =>
+    set((state) => {
+      const targetWorkspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
+      const currentWorkspace = readWorkspaceState(state, targetWorkspaceRef);
+      if (currentWorkspace.messages === messages) {
+        return state;
+      }
+      const nextWorkspace = { ...currentWorkspace, messages };
+      const isActiveWorkspace = targetWorkspaceRef === resolveChatWorkspaceRef(state.activeConversationRef);
+      return {
+        workspaces: {
+          ...state.workspaces,
+          [targetWorkspaceRef]: nextWorkspace,
+        },
+        ...(isActiveWorkspace ? { messages } : {}),
+      };
+    }),
 
-  setIsSending: (isSending) =>
-    set((state) => (state.isSending === isSending ? state : { isSending })),
+  setIsSending: (isSending, conversationRef) =>
+    set((state) => {
+      const targetWorkspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
+      const currentWorkspace = readWorkspaceState(state, targetWorkspaceRef);
+      if (currentWorkspace.isSending === isSending) {
+        return state;
+      }
+      const nextWorkspace = { ...currentWorkspace, isSending };
+      const isActiveWorkspace = targetWorkspaceRef === resolveChatWorkspaceRef(state.activeConversationRef);
+      return {
+        workspaces: {
+          ...state.workspaces,
+          [targetWorkspaceRef]: nextWorkspace,
+        },
+        ...(isActiveWorkspace ? { isSending } : {}),
+      };
+    }),
 
-  setThinkingStatus: (thinkingStatus) =>
-    set((state) => (state.thinkingStatus === thinkingStatus ? state : { thinkingStatus })),
+  setThinkingStatus: (thinkingStatus, conversationRef) =>
+    set((state) => {
+      const targetWorkspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
+      const currentWorkspace = readWorkspaceState(state, targetWorkspaceRef);
+      if (currentWorkspace.thinkingStatus === thinkingStatus) {
+        return state;
+      }
+      const nextWorkspace = { ...currentWorkspace, thinkingStatus };
+      const isActiveWorkspace = targetWorkspaceRef === resolveChatWorkspaceRef(state.activeConversationRef);
+      return {
+        workspaces: {
+          ...state.workspaces,
+          [targetWorkspaceRef]: nextWorkspace,
+        },
+        ...(isActiveWorkspace ? { thinkingStatus } : {}),
+      };
+    }),
 
-  setThinkingSourceEventType: (thinkingSourceEventType) =>
-    set((state) => (state.thinkingSourceEventType === thinkingSourceEventType
-      ? state
-      : { thinkingSourceEventType })),
+  setThinkingSourceEventType: (thinkingSourceEventType, conversationRef) =>
+    set((state) => {
+      const targetWorkspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
+      const currentWorkspace = readWorkspaceState(state, targetWorkspaceRef);
+      if (currentWorkspace.thinkingSourceEventType === thinkingSourceEventType) {
+        return state;
+      }
+      const nextWorkspace = { ...currentWorkspace, thinkingSourceEventType };
+      const isActiveWorkspace = targetWorkspaceRef === resolveChatWorkspaceRef(state.activeConversationRef);
+      return {
+        workspaces: {
+          ...state.workspaces,
+          [targetWorkspaceRef]: nextWorkspace,
+        },
+        ...(isActiveWorkspace ? { thinkingSourceEventType } : {}),
+      };
+    }),
 
-  setTokenCounts: (tokenCounts) =>
-    set((state) => (state.tokenCounts === tokenCounts ? state : { tokenCounts })),
+  setTokenCounts: (tokenCounts, conversationRef) =>
+    set((state) => {
+      const targetWorkspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
+      const currentWorkspace = readWorkspaceState(state, targetWorkspaceRef);
+      if (currentWorkspace.tokenCounts === tokenCounts) {
+        return state;
+      }
+      const nextWorkspace = { ...currentWorkspace, tokenCounts };
+      const isActiveWorkspace = targetWorkspaceRef === resolveChatWorkspaceRef(state.activeConversationRef);
+      return {
+        workspaces: {
+          ...state.workspaces,
+          [targetWorkspaceRef]: nextWorkspace,
+        },
+        ...(isActiveWorkspace ? { tokenCounts } : {}),
+      };
+    }),
 
-  updateStreamTracking: (updater) =>
-    set((state) => ({
-      streamTracking: updater(state.streamTracking),
-    })),
+  updateStreamTracking: (updater, conversationRef) =>
+    set((state) => {
+      const targetWorkspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
+      const currentWorkspace = readWorkspaceState(state, targetWorkspaceRef);
+      const nextStreamTracking = updater(currentWorkspace.streamTracking);
+      if (nextStreamTracking === currentWorkspace.streamTracking) {
+        return state;
+      }
+      const nextWorkspace = {
+        ...currentWorkspace,
+        streamTracking: nextStreamTracking,
+      };
+      const isActiveWorkspace = targetWorkspaceRef === resolveChatWorkspaceRef(state.activeConversationRef);
+      return {
+        workspaces: {
+          ...state.workspaces,
+          [targetWorkspaceRef]: nextWorkspace,
+        },
+        ...(isActiveWorkspace ? { streamTracking: nextStreamTracking } : {}),
+      };
+    }),
 
-  clearMessages: () => set({
-    messages: [],
-    thinkingSourceEventType: null,
-    streamTracking: createInitialStreamTracking(),
-  }),
+  clearMessages: (conversationRef) =>
+    set((state) => {
+      const targetWorkspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
+      const currentWorkspace = readWorkspaceState(state, targetWorkspaceRef);
+      const nextWorkspace: ChatWorkspaceState = {
+        ...currentWorkspace,
+        messages: [],
+        thinkingSourceEventType: null,
+        streamTracking: createInitialStreamTracking(),
+      };
+      const isActiveWorkspace = targetWorkspaceRef === resolveChatWorkspaceRef(state.activeConversationRef);
+      return {
+        workspaces: {
+          ...state.workspaces,
+          [targetWorkspaceRef]: nextWorkspace,
+        },
+        ...(isActiveWorkspace ? {
+          messages: [],
+          thinkingSourceEventType: null,
+          streamTracking: nextWorkspace.streamTracking,
+        } : {}),
+      };
+    }),
 }));

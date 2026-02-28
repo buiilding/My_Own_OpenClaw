@@ -158,3 +158,18 @@ def test_normalize_finish_reason_accepts_string_or_none_only():
 
     with pytest.raises(LLMAPIError, match="Invalid finish_reason type"):
         normalize_finish_reason(123, model="model")
+
+
+def test_normalize_tool_call_entry_preserves_thought_signature():
+    normalized = normalize_tool_call_entry(
+        {
+            "id": "call_1",
+            "name": "browser",
+            "arguments": {"action": "snapshot"},
+            "thoughtSignature": "sig-abc",
+        },
+        index=0,
+        model="model",
+    )
+
+    assert normalized["thought_signature"] == "sig-abc"

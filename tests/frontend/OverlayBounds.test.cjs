@@ -47,6 +47,41 @@ describe('overlay_bounds', () => {
     });
   });
 
+  test('compact response bounds apply hover offset so typing bubble sits near chat pill', () => {
+    expect(
+      getResponseWindowBounds({
+        screen,
+        width: 320,
+        height: 30,
+        chatBounds: { x: 200, y: 700, width: 600, height: 96 },
+        gap: 2,
+      }),
+    ).toEqual({
+      x: 340,
+      y: 674,
+      width: 320,
+      height: 30,
+    });
+  });
+
+  test('compactHover flag keeps hover offset for taller awaiting overlays', () => {
+    expect(
+      getResponseWindowBounds({
+        screen,
+        width: 320,
+        height: 120,
+        chatBounds: { x: 200, y: 700, width: 600, height: 96 },
+        gap: 2,
+        compactHover: true,
+      }),
+    ).toEqual({
+      x: 340,
+      y: 584,
+      width: 320,
+      height: 120,
+    });
+  });
+
   test('context label bounds use fallback chat position when chat bounds missing', () => {
     expect(
       getContextLabelWindowBounds({
