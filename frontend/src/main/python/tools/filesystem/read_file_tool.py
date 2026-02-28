@@ -4,6 +4,7 @@ Read File Tool - Python implementation.
 
 import asyncio
 import logging
+import re
 from pathlib import Path
 from typing import Dict, Any
 
@@ -14,6 +15,33 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_LINE_LIMIT = 2000
 MAX_LINE_LENGTH = 500
+PDF_MAX_CHARS = 50000
+PDF_MIN_PAGE_BODY_CHARS = 60
+PDF_TRUNCATION_MARKER = "\n[...truncated]"
+PDF_SEARCH_TERM_LIMIT = 8
+PDF_SEARCH_STOPWORDS = {
+    "about",
+    "after",
+    "before",
+    "could",
+    "from",
+    "have",
+    "into",
+    "just",
+    "should",
+    "that",
+    "their",
+    "there",
+    "these",
+    "this",
+    "were",
+    "what",
+    "when",
+    "where",
+    "which",
+    "with",
+    "would",
+}
 
 
 def _truncate_line_preserving_ending(line: str) -> tuple[str, bool]:
@@ -32,6 +60,245 @@ def _truncate_line_preserving_ending(line: str) -> tuple[str, bool]:
         return line, False
 
     return f"{line_body[:MAX_LINE_LENGTH]}{line_ending}", True
+
+
+def _collect_pdf_search_terms(path: Path, args: Dict[str, Any]) -> list[str]:
+    """Collect relevance terms from read_file args for PDF truncation selection."""
+    candidate_fields = ["query", "search_query", "goal", "context", "explanation"]
+    candidate_text_chunks: list[str] = []
+
+    for field in candidate_fields:
+        value = args.get(field)
+        if isinstance(value, str):
+            normalized = value.strip()
+            if normalized:
+                candidate_text_chunks.append(normalized)
+
+    stem_terms = path.stem.replace("_", " ").replace("-", " ").strip()
+    if stem_terms:
+        candidate_text_chunks.append(stem_terms)
+
+    if not candidate_text_chunks:
+        return []
+
+    term_counts: dict[str, int] = {}
+    first_seen: dict[str, int] = {}
+    token_index = 0
+    token_pattern = re.compile(r"[A-Za-z0-9][A-Za-z0-9_\-]{2,}")
+
+    for chunk in candidate_text_chunks:
+        for match in token_pattern.finditer(chunk.lower()):
+            token = match.group(0)
+            if token in PDF_SEARCH_STOPWORDS or token.isdigit():
+                continue
+            term_counts[token] = term_counts.get(token, 0) + 1
+            if token not in first_seen:
+                first_seen[token] = token_index
+                token_index += 1
+
+    sorted_terms = sorted(
+        term_counts,
+        key=lambda token: (-term_counts[token], first_seen[token]),
+    )
+    return sorted_terms[:PDF_SEARCH_TERM_LIMIT]
+
+
+def _score_pdf_pages(
+    page_entries: list[tuple[int, str]],
+    search_terms: list[str],
+) -> dict[int, int]:
+    """Score PDF pages by search-term occurrences."""
+    if not search_terms:
+        return {}
+
+    page_scores: dict[int, int] = {}
+    for page_number, page_text in page_entries:
+        if not page_text:
+            continue
+
+        page_score = 0
+        for term in search_terms:
+            matches = re.findall(re.escape(term), page_text, flags=re.IGNORECASE)
+            if matches:
+                page_score += min(len(matches), 6)
+
+        if page_score > 0:
+            page_scores[page_number] = page_score
+
+    return page_scores
+
+
+def _build_pdf_page_content(
+    page_entries: list[tuple[int, str]],
+    max_chars: int,
+    search_terms: list[str],
+) -> tuple[str, list[int], bool]:
+    """
+    Build PDF extracted text under char budget with relevance-first page selection.
+    Returns (content_text, included_page_numbers, truncated_for_size).
+    """
+    if not page_entries:
+        return "", [], False
+
+    total_chars = sum(len(text) for _, text in page_entries)
+    page_order: list[int] = []
+    page_lookup = {page_number: page_text for page_number, page_text in page_entries}
+
+    # Always prioritize first page, then relevance-scored pages, then remaining pages.
+    first_page_number = page_entries[0][0]
+    page_order.append(first_page_number)
+
+    page_scores = _score_pdf_pages(page_entries, search_terms)
+    for page_number, _ in sorted(page_scores.items(), key=lambda item: (-item[1], item[0])):
+        if page_number not in page_order:
+            page_order.append(page_number)
+
+    for page_number, _ in page_entries:
+        if page_number not in page_order:
+            page_order.append(page_number)
+
+    content_parts: list[str] = []
+    included_pages: list[int] = []
+    chars_used = 0
+    truncated_for_size = total_chars > max_chars
+
+    for page_number in page_order:
+        page_text = page_lookup.get(page_number, "")
+        normalized_page_text = page_text.strip() if isinstance(page_text, str) else ""
+        if not normalized_page_text:
+            normalized_page_text = "[No extractable text on this page]"
+
+        page_header = f"--- Page {page_number} ---\n"
+        page_content = f"{page_header}{normalized_page_text}"
+        remaining = max_chars - chars_used
+        min_required = len(page_header) + PDF_MIN_PAGE_BODY_CHARS
+
+        if remaining < min_required:
+            truncated_for_size = True
+            break
+
+        if len(page_content) > remaining:
+            body_budget = remaining - len(page_header) - len(PDF_TRUNCATION_MARKER)
+            if body_budget < PDF_MIN_PAGE_BODY_CHARS:
+                truncated_for_size = True
+                break
+            page_content = f"{page_header}{normalized_page_text[:body_budget]}{PDF_TRUNCATION_MARKER}"
+            truncated_for_size = True
+            content_parts.append(page_content)
+            included_pages.append(page_number)
+            chars_used += len(page_content)
+            break
+
+        content_parts.append(page_content)
+        included_pages.append(page_number)
+        chars_used += len(page_content)
+
+    return "\n\n".join(content_parts), included_pages, truncated_for_size
+
+
+async def _read_pdf_file(
+    path: Path,
+    args: Dict[str, Any],
+    page_offset: int,
+    page_limit: int,
+) -> ToolResult:
+    """Read PDF file via pypdf with size-aware truncation and relevance selection."""
+    try:
+        import pypdf
+    except Exception as error:
+        logger.error("Failed to import pypdf for read_file PDF extraction: %s", error, exc_info=True)
+        return ToolResult.error_result(
+            "PDF reading requires the 'pypdf' dependency in the sidecar runtime."
+        )
+
+    loop = asyncio.get_running_loop()
+
+    def _extract_pdf_pages() -> list[str]:
+        reader = pypdf.PdfReader(str(path))
+        return [page.extract_text() or "" for page in reader.pages]
+
+    page_texts = await loop.run_in_executor(None, _extract_pdf_pages)
+    total_pages = len(page_texts)
+    total_pages_all = total_pages
+
+    effective_start = min(page_offset, total_pages_all)
+    effective_end = min(effective_start + page_limit, total_pages_all)
+
+    page_entries = [
+        (page_number + 1, page_texts[page_number])
+        for page_number in range(effective_start, effective_end)
+    ]
+    search_terms = _collect_pdf_search_terms(path, args)
+    content_text, included_pages, truncated_for_size = _build_pdf_page_content(
+        page_entries,
+        max_chars=PDF_MAX_CHARS,
+        search_terms=search_terms,
+    )
+
+    windowed = effective_start > 0 or effective_end < total_pages_all
+    is_truncated = windowed or truncated_for_size
+
+    llm_header = f"File path: {path}\n\n"
+    if is_truncated:
+        next_offset = effective_end
+        if included_pages:
+            shown_range = f"{included_pages[0]}-{included_pages[-1]}"
+        else:
+            shown_range = "none"
+
+        status_line = (
+            f"Status: PDF has {total_pages_all} total pages. "
+            f"Current page window: {effective_start + 1}-{effective_end}.\n"
+            f"Pages included in this response: {shown_range}.\n"
+        ) if effective_end > effective_start else (
+            f"Status: Showing 0 pages at or after page {effective_start + 1} "
+            f"of {total_pages_all} total pages.\n"
+        )
+
+        search_hint = ""
+        if search_terms:
+            preview_terms = ", ".join(search_terms[:5])
+            search_hint = f"Relevance terms used for page selection: {preview_terms}.\n"
+
+        llm_content = (
+            f"{llm_header}"
+            "IMPORTANT: The PDF text has been truncated using size-aware page selection.\n"
+            f"{status_line}"
+            f"{search_hint}"
+            "Action: To read more pages, call 'read_file' again with a higher 'offset' "
+            f"(PDF page offset). For example, use offset: {next_offset}.\n\n"
+            "--- PDF CONTENT (truncated) ---\n"
+            f"{content_text}"
+        )
+    else:
+        if content_text:
+            llm_content = (
+                f"{llm_header}"
+                f"PDF extracted text across {total_pages_all} page(s).\n\n"
+                f"{content_text}"
+            )
+        else:
+            llm_content = (
+                f"{llm_header}"
+                "PDF contains no extractable text."
+            )
+
+    total_lines = sum((page_text.count("\n") + 1) for page_text in page_texts if page_text)
+    read_lines = content_text.count("\n") + (1 if content_text else 0)
+
+    return ToolResult.success_result({
+        "content": content_text,
+        "file_path": str(path),
+        "total_lines": total_lines,
+        "read_lines": read_lines,
+        "is_truncated": is_truncated,
+        "line_truncation_limit": MAX_LINE_LENGTH,
+        "truncated_line_count": 0,
+        "llm_content": llm_content,
+        "pdf_total_pages": total_pages_all,
+        "pdf_pages_included": included_pages,
+        "pdf_search_terms": search_terms,
+    })
 
 
 async def read_file(args: Dict[str, Any]) -> ToolResult:
@@ -61,15 +328,6 @@ async def read_file(args: Dict[str, Any]) -> ToolResult:
         
         if not path.is_file():
             return ToolResult.error_result(f"Not a file: {file_path}")
-        
-        # Check if binary file
-        if is_binary_file(str(path)):
-            return ToolResult.error_result(
-                f"File appears to be binary and cannot be read as text: {file_path}"
-            )
-        
-        # Detect encoding
-        encoding = detect_encoding(str(path))
 
         start = offset if offset is not None else 0
         line_limit = limit if limit is not None else DEFAULT_LINE_LIMIT
@@ -78,6 +336,18 @@ async def read_file(args: Dict[str, Any]) -> ToolResult:
             return ToolResult.error_result("offset must be a non-negative integer")
         if not isinstance(line_limit, int) or line_limit <= 0:
             return ToolResult.error_result("limit must be a positive integer")
+
+        if path.suffix.lower() == ".pdf":
+            return await _read_pdf_file(path, args, start, line_limit)
+
+        # Check if binary file
+        if is_binary_file(str(path)):
+            return ToolResult.error_result(
+                f"File appears to be binary and cannot be read as text: {file_path}"
+            )
+
+        # Detect encoding
+        encoding = detect_encoding(str(path))
 
         def _read_file_window() -> tuple[list[str], int, int]:
             collected_lines: list[str] = []

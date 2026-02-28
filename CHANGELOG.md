@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(sidecar-read-file-pdf-extraction): extend sidecar `read_file` to support `.pdf` files via `pypdf` with page extraction, size-aware truncation, relevance-based page prioritization, PDF page-window controls via `offset`/`limit`, and PDF metadata in tool results; add sidecar regression coverage for small-PDF extraction, large-PDF relevance truncation, and windowed PDF reads.
 - fix(frontend-chat-input-add-menu-placement): anchor the `+` menu below the composer so the remaining `Add photos & files` action opens under the chat pill instead of above it.
 - fix(frontend-chat-input-add-menu): simplify the `+` attachment dropdown to only show `Add photos & files`, removing `Create image`, `Deep research`, `Shopping research`, `Web search`, and `More`; add MessageInput regression assertions for removed entries.
 - fix(frontend-chat-input-thinking-toggle-removal): remove the chat composer thinking dropdown/toggle pill beside the add-attachment button and add `MessageInput` regression coverage to ensure the control stays absent.

@@ -46,6 +46,26 @@ If binary-like:
 
 - `read_file` rejects with binary-file message and does not return text content
 
+Exception:
+
+- `.pdf` files are handled by a dedicated `pypdf` extraction path before binary rejection.
+- PDF reads use page extraction + size-aware relevance selection instead of line-window reads.
+
+## PDF Read Path
+
+For `.pdf` files, `read_file`:
+
+- imports `pypdf` and extracts text page-by-page
+- uses `offset`/`limit` as page-window controls (`offset` = starting page index, `limit` = max pages considered)
+- applies size-aware truncation (`PDF_MAX_CHARS`) with relevance-first page ordering:
+  - always include the first page of the current page window
+  - prioritize pages matching search terms from request context (`query`, `search_query`, `goal`, `context`, `explanation`, file stem)
+  - fill remaining budget with other pages in order
+- returns PDF metadata fields:
+  - `pdf_total_pages`
+  - `pdf_pages_included`
+  - `pdf_search_terms`
+
 ## Encoding Path
 
 `detect_encoding(path)` behavior:
