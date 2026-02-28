@@ -37,12 +37,14 @@ Module:
 
 - `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
 - `frontend/src/renderer/infrastructure/services/SurfaceOrchestrator.ts`
+- `frontend/src/renderer/infrastructure/services/CorrelationId.ts`
 
 Responsibilities:
 
 - receives `tool-call` and `tool-bundle` events
 - guards against stale-turn execution using `streamTracking.activeTurnRef`
 - tracks correlation IDs to reject late/out-of-turn results
+- resolves correlation IDs via shared normalization helper (`CorrelationId.resolveCorrelationId`) so whitespace-only ids cannot leak into cancellation/result paths
 - sends cancellation-failure payloads (`frontend_stale_turn_cancelled`) when tool events arrive for closed turns
 - delegates all surface preparation/restore transitions to `SurfaceOrchestrator` (single source of truth)
 - interactive computer-use click-through (`set-overlay-ignore-mouse(true)`) is enabled only inside orchestrator-managed execution windows and reference-count restored after completion

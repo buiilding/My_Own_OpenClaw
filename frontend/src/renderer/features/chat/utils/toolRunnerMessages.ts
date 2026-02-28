@@ -1,5 +1,6 @@
 import type { BundleExecutionResult, ToolExecutionResult } from '../../../infrastructure/services/ToolExecutionService';
 import type { ChatMessage } from '../stores/chatStore';
+import { resolveCorrelationId } from '../../../infrastructure/services/CorrelationId';
 
 export type TranscriptModelContext = {
   modelId: string | null;
@@ -126,5 +127,9 @@ export function resolveToolCallCorrelationId(
   payload: { correlation_id?: string; request_id?: string } | null | undefined,
   eventId?: string,
 ) {
-  return payload?.correlation_id || payload?.request_id || eventId || crypto.randomUUID();
+  return resolveCorrelationId(
+    payload?.correlation_id,
+    payload?.request_id,
+    eventId,
+  ) || crypto.randomUUID();
 }

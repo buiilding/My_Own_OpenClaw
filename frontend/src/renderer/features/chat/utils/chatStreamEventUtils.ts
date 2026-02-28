@@ -1,4 +1,5 @@
 import { buildArtifactUrl } from '../../../infrastructure/services/ArtifactUploader';
+import { resolveCorrelationId } from '../../../infrastructure/services/CorrelationId';
 
 const SETTINGS_UPDATE_ERROR_TEXT = 'Failed to update settings';
 const RECOVERABLE_TOOL_PARSE_ERROR_MARKERS = [
@@ -66,10 +67,16 @@ export function resolveToolOutputCorrelationId(
   payload: ToolOutputPayload | null | undefined,
   eventId?: string | null,
 ) {
-  return payload?.request_id
-    || (typeof payload?.metadata === 'object' ? (payload?.metadata as any)?.request_id : undefined)
-    || eventId
-    || undefined;
+  const metadataRequestId = (
+    typeof payload?.metadata === 'object'
+      ? (payload?.metadata as any)?.request_id
+      : undefined
+  );
+  return resolveCorrelationId(
+    payload?.request_id,
+    metadataRequestId,
+    eventId,
+  ) || undefined;
 }
 
 export function resolveErrorText(payload: ErrorPayload | null | undefined): string {

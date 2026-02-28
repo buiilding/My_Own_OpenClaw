@@ -1,4 +1,5 @@
 import type { SurfaceMode } from './types';
+import { resolveCorrelationId } from '../CorrelationId';
 
 const INTERACTIVE_COMPUTER_TOOL_NAMES = new Set([
   'mouse_control',
@@ -67,17 +68,5 @@ export function resolveToolRequestIdForCancellation(
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
     return null;
   }
-  if (typeof payload.request_id === 'string') {
-    const requestId = payload.request_id.trim();
-    if (requestId.length > 0) {
-      return requestId;
-    }
-  }
-  if (typeof payload.correlation_id === 'string') {
-    const correlationId = payload.correlation_id.trim();
-    if (correlationId.length > 0) {
-      return correlationId;
-    }
-  }
-  return null;
+  return resolveCorrelationId(payload.request_id, payload.correlation_id);
 }

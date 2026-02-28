@@ -173,7 +173,10 @@ describe('toolRunnerMessages', () => {
 
     expect(resolveToolCallCorrelationId({ correlation_id: 'corr-1', request_id: 'req-1' }, 'event-1')).toBe('corr-1');
     expect(resolveToolCallCorrelationId({ request_id: 'req-1' }, 'event-1')).toBe('req-1');
+    expect(resolveToolCallCorrelationId({ correlation_id: '   ', request_id: ' req-2 ' }, 'event-1')).toBe('req-2');
+    expect(resolveToolCallCorrelationId({}, ' event-2 ')).toBe('event-2');
     expect(resolveToolCallCorrelationId({}, 'event-1')).toBe('event-1');
+    expect(resolveToolCallCorrelationId({}, '   ')).toBe('uuid-fallback');
     expect(resolveToolCallCorrelationId(undefined, undefined)).toBe('uuid-fallback');
 
     uuidSpy.mockRestore();
