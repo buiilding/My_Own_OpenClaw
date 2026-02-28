@@ -1,4 +1,5 @@
 import pytest
+import re
 
 from backend.src.agent.tools.preparation.coordinate_resolution.resolvers import (
     CoordinateResolver,
@@ -113,6 +114,36 @@ def test_ambiguous_error_limits_listed_matches_and_reports_hidden_count():
 
     assert "Multiple OCR instances matched 'target' above threshold 0.80" in message
     assert "+2 more" in message
+
+
+def test_candidate_id_from_ambiguity_error_resolves_when_matches_are_sparse_in_ocr_list():
+    # First row is a non-match to force matched rows to have non-zero source indices.
+    ocr_results = [
+        _ocr_item("Ignore me", 10, 10),
+        _ocr_item("Select plan", 500, 560, width=120, height=20),
+        _ocr_item("Select plan", 850, 560, width=120, height=20),
+    ]
+    screenshot_id = "shot-ambiguity-sparse"
+
+    with pytest.raises(ValueError) as exc_info:
+        OcrCoordinateResolver.resolve(
+            "Select plan",
+            ocr_results,
+            screenshot_id=screenshot_id,
+        )
+    message = str(exc_info.value)
+    candidate_ids = re.findall(r"candidate_id=(ocr_[a-f0-9]{12})", message)
+    assert len(candidate_ids) >= 2
+
+    # Use one candidate id emitted in the ambiguity message.
+    x, y = OcrCoordinateResolver.resolve(
+        "",
+        ocr_results,
+        screenshot_id=screenshot_id,
+        candidate_id=candidate_ids[0],
+    )
+
+    assert (x, y) in {(560, 570), (910, 570)}
 
 
 def test_extract_bbox_center_handles_invalid_shapes():

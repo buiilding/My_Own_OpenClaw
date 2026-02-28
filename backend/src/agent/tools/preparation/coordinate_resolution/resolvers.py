@@ -82,11 +82,17 @@ class OcrCoordinateResolver:
         target = text.lower().strip()
         fuzzy_matches: List[Dict[str, Any]] = []
         
-        for item in ocr_results:
+        for source_index, item in enumerate(ocr_results):
             current = item.get("text", "").lower().strip()
             score = difflib.SequenceMatcher(None, target, current).ratio()
             if score >= threshold:
-                fuzzy_matches.append({"item": item, "score": score})
+                fuzzy_matches.append(
+                    {
+                        "item": item,
+                        "score": score,
+                        "source_index": source_index,
+                    }
+                )
             if score > best_score:
                 best_score = score
         
@@ -135,14 +141,19 @@ class OcrCoordinateResolver:
             key=lambda match: float(match.get("score", 0.0)),
             reverse=True,
         )
-        for index, match in enumerate(ordered_matches[:max_listed]):
+        for fallback_index, match in enumerate(ordered_matches[:max_listed]):
             item = match.get("item") if isinstance(match, dict) else {}
             score = float(match.get("score", 0.0)) if isinstance(match, dict) else 0.0
             text = str(item.get("text", "")).strip() or "<empty>"
             center = OcrCoordinateResolver._extract_bbox_center(item.get("bbox"))
+            source_index = (
+                match.get("source_index")
+                if isinstance(match, dict) and isinstance(match.get("source_index"), int)
+                else fallback_index
+            )
             candidate_id = OcrCoordinateResolver._build_candidate_id(
                 item,
-                index=index,
+                index=source_index,
                 screenshot_id=screenshot_id,
             )
             if center is None:
