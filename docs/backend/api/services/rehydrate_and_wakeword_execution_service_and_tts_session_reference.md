@@ -11,6 +11,7 @@ title: "Rehydrate and Wakeword Execution Service and TTS Session Reference"
 ## Canonical Modules
 
 - `backend/src/api/services/rehydrate_execution.py`
+- `backend/src/api/services/rehydrate_entry_normalization.py`
 - `backend/src/api/services/wakeword_execution.py`
 - `backend/src/api/services/tts_session.py`
 - `backend/src/api/handlers/rehydrate.py`
@@ -19,13 +20,14 @@ title: "Rehydrate and Wakeword Execution Service and TTS Session Reference"
 
 ## Rehydrate Service Ownership
 
-`RehydrateExecutionService.execute(...)` owns transcript snapshot normalization before session write.
+`RehydrateExecutionService.execute(...)` owns rehydrate orchestration while
+`rehydrate_entry_normalization.py` owns row-level normalization/parsing.
 
 Flow:
 
 1. get/create session
 2. optionally build artifact store from backend config
-3. normalize each frontend transcript entry
+3. normalize each frontend transcript entry (shared normalizer)
 4. rebuild tool linkage when needed
 5. call `session.rehydrate_conversation(conversation_ref, hydrated_entries)`
 
