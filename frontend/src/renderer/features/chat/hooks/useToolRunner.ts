@@ -98,6 +98,13 @@ export function useToolRunner(enabled = true) {
     IpcBridge.send(SEND_CHANNELS.TO_BACKEND, buildStaleToolResultEnvelope(requestId));
   }, []);
 
+  const sendStaleBundleCancellation = useCallback((bundleId: string | null | undefined) => {
+    if (!bundleId) {
+      return;
+    }
+    IpcBridge.send(SEND_CHANNELS.TO_BACKEND, buildStaleBundleResultEnvelope(bundleId));
+  }, []);
+
   const sendToolSurfaceFailure = useCallback((
     requestId: string | null | undefined,
     reason: string | null,
@@ -226,9 +233,7 @@ export function useToolRunner(enabled = true) {
   const handleToolBundle = useCallback((event: ToolBundleEvent) => {
     if (shouldIgnoreToolEventForTurn(event.turn_ref)) {
       const bundleId = event.payload?.bundle_id;
-      if (typeof bundleId === 'string' && bundleId.length > 0) {
-        IpcBridge.send(SEND_CHANNELS.TO_BACKEND, buildStaleBundleResultEnvelope(bundleId));
-      }
+      sendStaleBundleCancellation(typeof bundleId === 'string' ? bundleId : null);
       return;
     }
     const bundleId = event.payload?.bundle_id || `bundle-${crypto.randomUUID()}`;
@@ -271,6 +276,7 @@ export function useToolRunner(enabled = true) {
     }
   }, [
     emitSurfaceFailureOutput,
+    sendStaleBundleCancellation,
     sendBundleSurfaceFailure,
     trackExecution,
     untrackExecution,
