@@ -3,14 +3,24 @@ Configuration Models.
 
 This module contains Pydantic models for the application configuration.
 """
-import tempfile
+import os
+import platform
 from pathlib import Path
 from typing import List, Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 
 def _default_artifact_store_path() -> str:
-    return str(Path(tempfile.gettempdir()) / "windieos-artifacts")
+    app_name = "DesktopAssistant"
+    if os.name == "nt":
+        appdata = os.getenv("APPDATA")
+        if appdata:
+            return str(Path(appdata) / app_name / "artifacts")
+
+    home_dir = Path.home()
+    if os.name == "posix" and platform.system() == "Darwin":
+        return str(home_dir / "Library" / "Application Support" / app_name / "artifacts")
+    return str(home_dir / ".config" / app_name / "artifacts")
 
 class OpenAIConfig(BaseModel):
     """Configuration for OpenAI provider."""
