@@ -1,19 +1,6 @@
 import type { SurfaceMode, SurfacePhase, SurfaceTransitionSource } from './types';
 import { nextTransitionSequence } from './state';
-
-function shouldLogSurfaceTransitions(): boolean {
-  const globalWindow = typeof window !== 'undefined' ? (window as Window & {
-    __WINDIE_VERBOSE_TOOL_LOGS__?: boolean;
-  }) : null;
-  if (globalWindow && typeof globalWindow.__WINDIE_VERBOSE_TOOL_LOGS__ === 'boolean') {
-    return globalWindow.__WINDIE_VERBOSE_TOOL_LOGS__;
-  }
-  return !(
-    typeof process !== 'undefined'
-    && process.env
-    && process.env.NODE_ENV === 'production'
-  );
-}
+import { shouldLogSurfaceTransitions } from './loggingGate';
 
 export function logSurfaceTransition(options: {
   source: SurfaceTransitionSource;
