@@ -1,5 +1,9 @@
 import { buildArtifactUrl } from '../../../infrastructure/services/ArtifactUploader';
-import { resolveCorrelationId } from '../../../infrastructure/services/CorrelationId';
+import {
+  resolveToolBundleCorrelationId as resolveSharedToolBundleCorrelationId,
+  resolveToolCallCorrelationId as resolveSharedToolCallCorrelationId,
+  resolveToolOutputCorrelationId as resolveSharedToolOutputCorrelationId,
+} from './toolCorrelationIds';
 
 const SETTINGS_UPDATE_ERROR_TEXT = 'Failed to update settings';
 const RECOVERABLE_TOOL_PARSE_ERROR_MARKERS = [
@@ -76,33 +80,19 @@ export function resolveToolOutputCorrelationId(
   payload: ToolOutputPayload | null | undefined,
   eventId?: string | null,
 ) {
-  const metadataRequestId = (
-    typeof payload?.metadata === 'object'
-      ? (payload?.metadata as any)?.request_id
-      : undefined
-  );
-  return resolveCorrelationId(
-    payload?.request_id,
-    metadataRequestId,
-    eventId,
-  ) || undefined;
+  return resolveSharedToolOutputCorrelationId(payload, eventId);
 }
 
 export function resolveToolCallCorrelationId(
   payload: ToolCallPayload | null | undefined,
 ) {
-  return resolveCorrelationId(
-    payload?.correlation_id,
-    payload?.request_id,
-  ) || undefined;
+  return resolveSharedToolCallCorrelationId(payload);
 }
 
 export function resolveToolBundleCorrelationId(
   payload: ToolBundlePayload | null | undefined,
 ) {
-  return resolveCorrelationId(
-    payload?.bundle_id,
-  ) || undefined;
+  return resolveSharedToolBundleCorrelationId(payload);
 }
 
 export function resolveErrorText(payload: ErrorPayload | null | undefined): string {

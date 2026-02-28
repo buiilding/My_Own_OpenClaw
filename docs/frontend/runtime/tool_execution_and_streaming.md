@@ -55,6 +55,7 @@ Responsibilities:
 - tracks correlation IDs to reject late/out-of-turn results via shared `toolRunnerTracking` helpers (track/untrack/acceptance/prune)
 - builds and parses tool-result/tool-bundle-result envelopes through shared `toolRunnerResultContracts` + `toolRunnerBackendPayload` helpers so failure responses and backend send gating use one typed correlation contract
 - resolves correlation IDs via shared normalization helper (`CorrelationId.resolveCorrelationId`) so whitespace-only ids cannot leak into cancellation/result paths
+- uses shared `toolCorrelationIds` helpers for tool-call/tool-output/bundle correlation precedence so stream handlers and tool-runner message assembly share one normalization contract
 - sends cancellation-failure payloads (`frontend_stale_turn_cancelled`) via shared `toolRunnerFailureContracts` envelopes when tool events arrive for closed turns
 - sends surface-preparation failure envelopes from the same contract helper (`frontend_execution_surface_unavailable[:reason]`) so single-tool and bundle failure payloads stay synchronized
 - routes bundle and single-tool surface lifecycle sequencing through shared `toolRunnerSurfaceExecution` (`track -> prepare -> execute -> restore`) so failure ordering stays aligned
