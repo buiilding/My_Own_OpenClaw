@@ -139,6 +139,25 @@ describe('ChatGptDashboardShell', () => {
     expect(screen.getByTestId('chat-interface-stub')).toBeInTheDocument();
   });
 
+  test('locks document scroll while dashboard shell is mounted', async () => {
+    const { unmount } = await renderDashboardShell();
+
+    expect(document.documentElement).toHaveClass('cg-scroll-locked');
+    expect(document.body).toHaveClass('cg-scroll-locked');
+    const rootElement = document.getElementById('root');
+    if (rootElement) {
+      expect(rootElement).toHaveClass('cg-scroll-locked');
+    }
+
+    unmount();
+
+    expect(document.documentElement).not.toHaveClass('cg-scroll-locked');
+    expect(document.body).not.toHaveClass('cg-scroll-locked');
+    if (rootElement) {
+      expect(rootElement).not.toHaveClass('cg-scroll-locked');
+    }
+  });
+
   test('opens settings modal when main process emits settings target', async () => {
     await renderDashboardShell();
 
