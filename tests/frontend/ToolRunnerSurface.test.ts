@@ -212,4 +212,59 @@ describe('toolRunnerSurface helpers', () => {
     expect(preparation.canExecute).toBe(true);
     expect(preparation.failureReason).toBeNull();
   });
+
+  test('logs correlation-id retries and terminal failure transitions for interactive prep exhaustion', async () => {
+    const previousNodeEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'development';
+    const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
+    (IpcBridge.invoke as jest.Mock).mockImplementation(async (channel: string) => {
+      if (channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS) {
+        return {
+          success: true,
+          data: {
+            canVerifyExternalFocus: true,
+            externalFocusActive: false,
+          },
+        };
+      }
+      return { success: true };
+    });
+
+    const preparation = await prepareToolExecutionSurface('interactive', {
+      correlationId: 'corr-focus-retry',
+      focusMaxAttempts: 2,
+    });
+
+    expect(preparation.canExecute).toBe(false);
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      '[SurfaceOrchestrator] transition',
+      expect.objectContaining({
+        correlation_id: 'corr-focus-retry',
+        attempt: 1,
+      }),
+    );
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      '[SurfaceOrchestrator] transition',
+      expect.objectContaining({
+        correlation_id: 'corr-focus-retry',
+        phase_after: 'failed_terminal',
+        reason: 'external_window_focus_not_verified',
+      }),
+    );
+
+    consoleLogSpy.mockRestore();
+    process.env.NODE_ENV = previousNodeEnv;
+  });
+
+  test('suppresses surface transition logs in production mode', async () => {
+    const previousNodeEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+    const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    await prepareToolExecutionSurface('none', { correlationId: 'corr-prod' });
+
+    expect(consoleLogSpy).not.toHaveBeenCalled();
+    consoleLogSpy.mockRestore();
+    process.env.NODE_ENV = previousNodeEnv;
+  });
 });

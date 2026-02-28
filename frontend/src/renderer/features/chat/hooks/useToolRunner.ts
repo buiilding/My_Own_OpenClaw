@@ -302,19 +302,22 @@ export function useToolRunner(enabled = true) {
       const turnRef = event.turn_ref ?? useChatStore.getState().streamTracking.activeTurnRef ?? null;
       trackExecution(bundleId, turnRef);
       const executeBundle = async () => {
-        const preparation = await prepareToolExecutionSurface(resolveBundleSurfaceMode(tools));
+        const preparation = await prepareToolExecutionSurface(resolveBundleSurfaceMode(tools), {
+          correlationId: bundleId,
+          source: 'tool-runner',
+        });
         if (!preparation.canExecute) {
           const failureError = buildSurfaceFailureError(preparation.failureReason);
           emitSurfaceFailureOutput(`bundled_tools (${tools.length} tools)`, bundleId, failureError);
           sendBundleSurfaceFailure(bundleId, preparation.failureReason);
           untrackExecution(bundleId);
-          await restoreToolExecutionSurface(preparation);
+          await restoreToolExecutionSurface(preparation, { source: 'tool-runner' });
           return;
         }
         try {
           await toolService.executeToolBundle(tools, bundleId);
         } finally {
-          await restoreToolExecutionSurface(preparation);
+          await restoreToolExecutionSurface(preparation, { source: 'tool-runner' });
         }
       };
       executeBundle().catch(err => {
@@ -355,13 +358,16 @@ export function useToolRunner(enabled = true) {
       }
 
       trackExecution(correlationId, turnRef);
-      const preparation = await ensureToolExecutionSurface(toolName, parameters);
+      const preparation = await ensureToolExecutionSurface(toolName, parameters, {
+        correlationId,
+        source: 'tool-runner',
+      });
       if (!preparation.canExecute) {
         const failureError = buildSurfaceFailureError(preparation.failureReason);
         emitSurfaceFailureOutput(toolName, correlationId, failureError);
         sendToolSurfaceFailure(correlationId, preparation.failureReason);
         untrackExecution(correlationId);
-        await restoreToolExecutionSurface(preparation);
+        await restoreToolExecutionSurface(preparation, { source: 'tool-runner' });
         return;
       }
       try {
@@ -377,7 +383,7 @@ export function useToolRunner(enabled = true) {
         untrackExecution(correlationId);
         console.error('[useToolRunner] Failed to execute tool:', err);
       } finally {
-        await restoreToolExecutionSurface(preparation);
+        await restoreToolExecutionSurface(preparation, { source: 'tool-runner' });
       }
     };
 
