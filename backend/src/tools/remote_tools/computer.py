@@ -26,6 +26,7 @@ class RemoteMouseTool(RemoteToolBase, Tool[MouseControlArgs]):
     description = (
         "Control mouse actions with schema-guided coordinate targeting. "
         "Use find_coordinates_by='ocr' with exact ocr_text for initial targeting. "
+        "For text fields, pass the exact visible string (for example: 'type something here'). "
         "When OCR is ambiguous, retry with candidate_id + screenshot_id from the "
         "ambiguity response."
     )
