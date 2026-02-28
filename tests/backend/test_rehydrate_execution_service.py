@@ -9,6 +9,7 @@ from backend.src.api.services.rehydrate_execution import RehydrateExecutionServi
 class _FakeSession:
     def __init__(self):
         self.calls = []
+        self.history = SimpleNamespace(system_prompt=None)
 
     async def rehydrate_conversation(self, conversation_ref, entries):
         self.calls.append((conversation_ref, entries))
@@ -176,6 +177,7 @@ def test_normalize_rehydrated_tool_output_injects_synthetic_tool_call_entry():
         image_data=None,
         known_tool_call_ids=known_tool_call_ids,
         pending_tool_call_id=None,
+        transparency=None,
     )
 
     assert len(entries) == 2
@@ -209,6 +211,7 @@ def test_normalize_rehydrated_entry_sanitizes_internal_tool_bundle_call_trace():
         image_data=None,
         known_tool_call_ids=known_tool_call_ids,
         pending_tool_call_id=None,
+        transparency=None,
     )
 
     assert len(entries) == 1
@@ -240,6 +243,7 @@ def test_normalize_rehydrated_entry_sanitizes_internal_bundled_output_trace():
         image_data=None,
         known_tool_call_ids=known_tool_call_ids,
         pending_tool_call_id=None,
+        transparency=None,
     )
 
     assert len(entries) == 1
@@ -294,6 +298,7 @@ def test_normalize_rehydrated_entry_reuses_pending_tool_call_id_for_tool_output(
         image_data=None,
         known_tool_call_ids=known_tool_call_ids,
         pending_tool_call_id=None,
+        transparency=None,
     )
     assert entries[0]["tool_calls"][0]["id"] == "call-1"
     assert pending == "call-1"
@@ -314,6 +319,7 @@ def test_normalize_rehydrated_entry_reuses_pending_tool_call_id_for_tool_output(
         image_data=None,
         known_tool_call_ids=known_tool_call_ids,
         pending_tool_call_id=pending,
+        transparency=None,
     )
     assert len(entries) == 1
     assert entries[0]["role"] == "tool"
@@ -323,31 +329,37 @@ def test_normalize_rehydrated_entry_reuses_pending_tool_call_id_for_tool_output(
 
 def test_extract_tool_call_details_reads_arguments_alias_field():
     service = RehydrateExecutionService(_FakeSessionManager())
-    tool_name, arguments = service._extract_tool_call_details(
+    tool_name, arguments, tool_call_id, thought_signature = service._extract_tool_call_details(
         content='{"name":"replace","arguments":{"path":"/tmp/a.txt"}}',
         fallback_tool_name="fallback_tool",
     )
 
     assert tool_name == "replace"
     assert arguments == {"path": "/tmp/a.txt"}
+    assert tool_call_id is None
+    assert thought_signature is None
 
 
 def test_extract_tool_call_details_falls_back_for_invalid_payload_shapes():
     service = RehydrateExecutionService(_FakeSessionManager())
 
-    tool_name, arguments = service._extract_tool_call_details(
+    tool_name, arguments, tool_call_id, thought_signature = service._extract_tool_call_details(
         content='["not", "a", "dict"]',
         fallback_tool_name="fallback_tool",
     )
     assert tool_name == "fallback_tool"
     assert arguments == {}
+    assert tool_call_id is None
+    assert thought_signature is None
 
-    tool_name, arguments = service._extract_tool_call_details(
+    tool_name, arguments, tool_call_id, thought_signature = service._extract_tool_call_details(
         content="not-json",
         fallback_tool_name=None,
     )
     assert tool_name == "unknown_tool"
     assert arguments == {}
+    assert tool_call_id is None
+    assert thought_signature is None
 
 
 def test_normalize_tool_calls_falls_back_for_missing_name_and_bad_json_arguments():
@@ -412,6 +424,7 @@ def test_normalize_rehydrated_tool_call_entry_uses_explicit_tool_call_id():
         image_data=None,
         known_tool_call_ids=known_tool_call_ids,
         pending_tool_call_id=None,
+        transparency=None,
     )
 
     assert len(entries) == 1
@@ -425,6 +438,79 @@ def test_normalize_rehydrated_tool_call_entry_uses_explicit_tool_call_id():
     }
     assert pending == "call-explicit"
     assert known_tool_call_ids == {"call-explicit"}
+
+
+@pytest.mark.asyncio
+async def test_execute_restores_system_prompt_and_full_transparency_content():
+    manager = _FakeSessionManager()
+    service = RehydrateExecutionService(manager)
+    message = _build_message(
+        [
+            {
+                "role": "user",
+                "content": "visible user text",
+                "message_type": "user",
+                "transparency": {
+                    "systemPrompt": "System prompt from transcript",
+                    "fullUserMessage": {
+                        "content": "<full_user>payload</full_user>",
+                    },
+                },
+            },
+            {
+                "role": "assistant",
+                "content": "visible assistant text",
+                "message_type": "llm-text",
+                "transparency": {
+                    "fullAssistantMessage": {
+                        "content": "<full_assistant>payload</full_assistant>",
+                    },
+                },
+            },
+        ]
+    )
+
+    await service.execute(message, "user-1", artifact_store_cls=_TrackingArtifactStore)
+
+    _, entries = manager.session.calls[0]
+    assert entries[0]["content"] == "<full_user>payload</full_user>"
+    assert entries[1]["content"] == "<full_assistant>payload</full_assistant>"
+    assert manager.session.history.system_prompt == "System prompt from transcript"
+
+
+def test_normalize_rehydrated_tool_call_entry_preserves_thought_signature_from_content():
+    service = RehydrateExecutionService(_FakeSessionManager())
+    known_tool_call_ids = set()
+    entry = SimpleNamespace(
+        role="tool",
+        content='{"id":"call-1","name":"browser","arguments":{"action":"snapshot"},"thought_signature":"sig-123"}',
+        message_type="tool-call",
+        tool_name=None,
+        correlation_id=None,
+        tool_call_id=None,
+        timestamp="2026-02-26T00:00:00Z",
+        tool_calls=None,
+    )
+
+    entries, pending = service._normalize_rehydrated_entry(
+        entry=entry,
+        index=3,
+        image_data=None,
+        known_tool_call_ids=known_tool_call_ids,
+        pending_tool_call_id=None,
+        transparency=None,
+    )
+
+    assert len(entries) == 1
+    call_entry = entries[0]
+    assert call_entry["tool_calls"][0] == {
+        "id": "call-1",
+        "name": "browser",
+        "arguments": {"action": "snapshot"},
+        "thought_signature": "sig-123",
+    }
+    assert pending == "call-1"
+    assert known_tool_call_ids == {"call-1"}
 
 
 def test_normalize_stored_message_type_collapses_context_summary_variants():

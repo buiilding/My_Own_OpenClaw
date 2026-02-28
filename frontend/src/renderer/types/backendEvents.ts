@@ -98,6 +98,8 @@ export type ToolCallEvent = BackendEventBase<'tool-call', {
       id?: string;
       name?: string;
       arguments?: Record<string, unknown>;
+      thought_signature?: string;
+      thoughtSignature?: string;
     };
   };
 }>;
@@ -122,6 +124,8 @@ export type ToolBundleEvent = BackendEventBase<'tool-bundle', {
         id?: string;
         name?: string;
         arguments?: Record<string, unknown>;
+        thought_signature?: string;
+        thoughtSignature?: string;
       };
     };
   }>;

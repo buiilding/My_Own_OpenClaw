@@ -237,9 +237,10 @@ describe('episodicMemoryUtils', () => {
     ]);
   });
 
-  test('toRehydrateMessagePayload appends saved transparency context to content', () => {
+  test('toRehydrateMessagePayload preserves transparency as structured payload and restores full content', () => {
     const payload = toRehydrateMessagePayload({
       role: 'assistant',
+      message_type: 'llm-text',
       content: 'assistant reply',
       metadata: {
         transparency: {
@@ -256,17 +257,58 @@ describe('episodicMemoryUtils', () => {
       },
     });
 
-    expect(payload.content).toContain('assistant reply');
-    expect(payload.content).toContain('[Saved System Prompt]');
-    expect(payload.content).toContain('System prompt text');
-    expect(payload.content).toContain('[Saved Tool Schemas]');
-    expect(payload.content).toContain('"name":"read_file"');
-    expect(payload.content).toContain('[Saved Full User Message]');
-    expect(payload.content).toContain('<user_query>hello</user_query>');
-    expect(payload.content).toContain('[Saved Full User Metadata]');
-    expect(payload.content).toContain('"source":"user-message-full"');
-    expect(payload.content).toContain('[Saved Full Assistant Message]');
-    expect(payload.content).toContain('raw assistant completion');
+    expect(payload.content).toBe('raw assistant completion');
+    expect(payload.transparency).toEqual({
+      systemPrompt: 'System prompt text',
+      toolSchemas: [{ type: 'function', function: { name: 'read_file', parameters: { type: 'object' } } }],
+      fullUserMessage: {
+        content: '<user_query>hello</user_query>',
+        metadata: { source: 'user-message-full' },
+      },
+      fullAssistantMessage: {
+        content: 'raw assistant completion',
+      },
+    });
+  });
+
+  test('toRehydrateMessagePayload restores full user message content when available', () => {
+    const payload = toRehydrateMessagePayload({
+      role: 'user',
+      content: 'visible user text',
+      metadata: {
+        transparency: {
+          fullUserMessage: {
+            content: '<message><query>real user payload</query></message>',
+          },
+        },
+      },
+    });
+
+    expect(payload.content).toBe('<message><query>real user payload</query></message>');
+  });
+
+  test('toRehydrateMessagePayload extracts tool_call payload with thought signature', () => {
+    const payload = toRehydrateMessagePayload({
+      role: 'tool',
+      message_type: 'tool-call',
+      content: JSON.stringify({
+        id: 'call_123',
+        name: 'mouse_control',
+        arguments: { action: 'click', x: 100, y: 200 },
+        thought_signature: 'sig_abc',
+      }),
+      correlation_id: 'corr-1',
+    });
+
+    expect(payload.tool_call_id).toBe('corr-1');
+    expect(payload.tool_calls).toEqual([
+      {
+        id: 'call_123',
+        name: 'mouse_control',
+        arguments: { action: 'click', x: 100, y: 200 },
+        thought_signature: 'sig_abc',
+      },
+    ]);
   });
 
   test('toRehydrateMessagePayload keeps content unchanged when transparency metadata is absent', () => {

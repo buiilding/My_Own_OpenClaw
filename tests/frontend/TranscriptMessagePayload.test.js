@@ -30,8 +30,13 @@ describe('transcriptMessagePayload', () => {
       sender: 'assistant',
       type: 'tool-call',
       text: 'open browser',
-      toolName: 'browser.open',
       correlationId: 'corr-1',
+      modelFacingToolCall: {
+        id: 'call-1',
+        name: 'browser.open',
+        arguments: { action: 'snapshot' },
+        thought_signature: 'sig-1',
+      },
       timestamp: '2026-02-26T10:00:00.000Z',
       screenshotRef: 'artifact://image-1',
     })).toEqual({
@@ -40,9 +45,17 @@ describe('transcriptMessagePayload', () => {
       message_type: 'tool-call',
       tool_name: 'browser.open',
       correlation_id: 'corr-1',
+      tool_call_id: 'corr-1',
+      tool_calls: [{
+        id: 'call-1',
+        name: 'browser.open',
+        arguments: { action: 'snapshot' },
+        thought_signature: 'sig-1',
+      }],
       timestamp: '2026-02-26T10:00:00.000Z',
       screenshot_ref: 'artifact://image-1',
       screenshot: null,
+      transparency: null,
     });
 
     expect(toRehydratePayload({
@@ -57,9 +70,46 @@ describe('transcriptMessagePayload', () => {
       message_type: 'llm-text',
       tool_name: null,
       correlation_id: null,
+      tool_call_id: null,
+      tool_calls: null,
       timestamp: null,
       screenshot_ref: null,
       screenshot: null,
+      transparency: null,
+    });
+  });
+
+  test('toRehydratePayload restores full message content and sends transparency metadata', () => {
+    expect(toRehydratePayload({
+      sender: 'user',
+      text: 'visible text',
+      fullUserMessage: {
+        content: '<full_user>original payload</full_user>',
+        metadata: { source: 'user-message-full' },
+      },
+      systemPrompt: {
+        content: 'System prompt text',
+      },
+      toolSchemas: [{ type: 'function', function: { name: 'read_file', parameters: { type: 'object' } } }],
+    })).toEqual({
+      role: 'user',
+      content: '<full_user>original payload</full_user>',
+      message_type: 'user',
+      tool_name: null,
+      correlation_id: null,
+      tool_call_id: null,
+      tool_calls: null,
+      timestamp: null,
+      screenshot_ref: null,
+      screenshot: null,
+      transparency: {
+        systemPrompt: 'System prompt text',
+        toolSchemas: [{ type: 'function', function: { name: 'read_file', parameters: { type: 'object' } } }],
+        fullUserMessage: {
+          content: '<full_user>original payload</full_user>',
+          metadata: { source: 'user-message-full' },
+        },
+      },
     });
   });
 });

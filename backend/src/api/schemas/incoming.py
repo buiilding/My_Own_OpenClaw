@@ -80,6 +80,7 @@ class RehydrateConversationEntry(BaseModel):
     timestamp: Optional[str] = None
     screenshot_ref: Optional[str] = None
     screenshot: Optional[str] = None
+    transparency: Optional[Dict[str, Any]] = None
 
 
 class RehydrateConversationPayload(BaseModel):

@@ -159,47 +159,118 @@ function resolveTranscriptTransparency(memory) {
   return Object.keys(transparency).length > 0 ? transparency : null;
 }
 
-function appendTransparencyForRehydrate(content, transparency) {
+function normalizeMessageType(value) {
+  return typeof value === 'string'
+    ? value.trim().toLowerCase().replaceAll('_', '-')
+    : '';
+}
+
+function resolveRehydrateContent(role, messageType, rawContent, transparency) {
+  const baseContent = typeof rawContent === 'string' ? rawContent : '';
   if (!transparency || typeof transparency !== 'object') {
-    return content;
+    return baseContent;
   }
 
-  const sections = [];
-  if (typeof transparency.systemPrompt === 'string' && transparency.systemPrompt.trim()) {
-    sections.push(`[Saved System Prompt]\n${transparency.systemPrompt.trim()}`);
+  if (role === 'user') {
+    const fullUserContent = normalizeOptionalString(transparency?.fullUserMessage?.content);
+    if (fullUserContent) {
+      return fullUserContent;
+    }
+    return baseContent;
   }
-  if (Array.isArray(transparency.toolSchemas) && transparency.toolSchemas.length > 0) {
-    try {
-      sections.push(`[Saved Tool Schemas]\n${JSON.stringify(transparency.toolSchemas)}`);
-    } catch (_error) {
-      // Ignore non-serializable schema data for rehydrate augmentation.
+
+  if (role === 'assistant' && normalizeMessageType(messageType) === 'llm-text') {
+    const fullAssistantContent = normalizeOptionalString(transparency?.fullAssistantMessage?.content);
+    if (fullAssistantContent) {
+      return fullAssistantContent;
     }
   }
-  const fullUserContent = normalizeOptionalString(transparency?.fullUserMessage?.content);
-  if (fullUserContent) {
-    sections.push(`[Saved Full User Message]\n${fullUserContent}`);
+
+  return baseContent;
+}
+
+function parseToolCallPayload(rawContent) {
+  if (typeof rawContent !== 'string' || !rawContent.trim()) {
+    return null;
   }
-  if (
-    transparency?.fullUserMessage?.metadata
-    && typeof transparency.fullUserMessage.metadata === 'object'
-    && !Array.isArray(transparency.fullUserMessage.metadata)
+
+  let parsed;
+  try {
+    parsed = JSON.parse(rawContent);
+  } catch (_error) {
+    return null;
+  }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    return null;
+  }
+
+  const functionBlock = (
+    parsed.function
+    && typeof parsed.function === 'object'
+    && !Array.isArray(parsed.function)
+  ) ? parsed.function : null;
+
+  const name = normalizeOptionalString(parsed.name || functionBlock?.name);
+  const callId = normalizeOptionalString(parsed.id || functionBlock?.id);
+  let argumentsPayload = {};
+  if (parsed.arguments && typeof parsed.arguments === 'object' && !Array.isArray(parsed.arguments)) {
+    argumentsPayload = parsed.arguments;
+  } else if (parsed.args && typeof parsed.args === 'object' && !Array.isArray(parsed.args)) {
+    argumentsPayload = parsed.args;
+  } else if (typeof functionBlock?.arguments === 'string' && functionBlock.arguments.trim()) {
+    try {
+      const decoded = JSON.parse(functionBlock.arguments);
+      if (decoded && typeof decoded === 'object' && !Array.isArray(decoded)) {
+        argumentsPayload = decoded;
+      }
+    } catch (_error) {
+      argumentsPayload = {};
+    }
+  } else if (
+    functionBlock?.arguments
+    && typeof functionBlock.arguments === 'object'
+    && !Array.isArray(functionBlock.arguments)
   ) {
-    try {
-      sections.push(`[Saved Full User Metadata]\n${JSON.stringify(transparency.fullUserMessage.metadata)}`);
-    } catch (_error) {
-      // Ignore non-serializable metadata for rehydrate augmentation.
-    }
-  }
-  const fullAssistantContent = normalizeOptionalString(transparency?.fullAssistantMessage?.content);
-  if (fullAssistantContent) {
-    sections.push(`[Saved Full Assistant Message]\n${fullAssistantContent}`);
+    argumentsPayload = functionBlock.arguments;
   }
 
-  if (sections.length === 0) {
-    return content;
+  const thoughtSignature = normalizeOptionalString(
+    parsed.thought_signature
+      || parsed.thoughtSignature
+      || functionBlock?.thought_signature
+      || functionBlock?.thoughtSignature,
+  );
+
+  if (!name && !callId) {
+    return null;
   }
-  const baseContent = typeof content === 'string' ? content : '';
-  return `${baseContent}\n\n${sections.join('\n\n')}`.trim();
+
+  return {
+    id: callId || undefined,
+    name: name || undefined,
+    arguments: { ...argumentsPayload },
+    thought_signature: thoughtSignature || undefined,
+  };
+}
+
+function buildRehydrateToolCall({
+  parsedToolCall,
+  fallbackToolName,
+  fallbackToolCallId,
+}) {
+  if (!parsedToolCall && !fallbackToolName && !fallbackToolCallId) {
+    return null;
+  }
+  const toolCall = {
+    id: parsedToolCall?.id || fallbackToolCallId || undefined,
+    name: parsedToolCall?.name || fallbackToolName || undefined,
+    arguments: parsedToolCall?.arguments || {},
+    thought_signature: parsedToolCall?.thought_signature || undefined,
+  };
+  if (!toolCall.id && !toolCall.name) {
+    return null;
+  }
+  return toolCall;
 }
 
 function buildMessageTransparencyFields(part, partCount, transparency) {
@@ -293,21 +364,53 @@ export function toRehydrateMessagePayload(memory) {
   const metadata = memory?.metadata || {};
   const role = memory?.role || metadata?.role || 'assistant';
   const messageType = memory?.message_type || metadata?.message_type || null;
+  const normalizedMessageType = normalizeMessageType(messageType);
   const rawScreenshot = memory?.screenshot || metadata?.screenshot || null;
   const screenshotInline = looksLikeInlineImageData(rawScreenshot);
   const screenshotRef = memory?.screenshot_ref
     || metadata?.screenshot_ref
     || (!screenshotInline && typeof rawScreenshot === 'string' ? rawScreenshot : null);
   const transparency = resolveTranscriptTransparency(memory);
+  const parsedToolCall = normalizedMessageType === 'tool-call'
+    ? parseToolCallPayload(memory?.content || '')
+    : null;
+  const resolvedToolCallId = normalizeOptionalString(
+    memory?.tool_call_id
+      || metadata?.tool_call_id
+      || memory?.correlation_id
+      || metadata?.correlation_id
+      || parsedToolCall?.id,
+  );
+  const resolvedToolName = normalizeOptionalString(
+    memory?.tool_name
+      || metadata?.tool_name
+      || parsedToolCall?.name,
+  );
+  const normalizedToolCall = normalizedMessageType === 'tool-call'
+    ? buildRehydrateToolCall({
+      parsedToolCall,
+      fallbackToolName: resolvedToolName,
+      fallbackToolCallId: resolvedToolCallId,
+    })
+    : null;
+  const content = resolveRehydrateContent(
+    role,
+    messageType,
+    memory?.content || '',
+    transparency,
+  );
 
   return {
     role,
-    content: appendTransparencyForRehydrate(memory?.content || '', transparency),
+    content,
     message_type: messageType,
-    tool_name: memory?.tool_name || metadata?.tool_name || null,
+    tool_name: resolvedToolName,
     correlation_id: memory?.correlation_id || metadata?.correlation_id || null,
+    tool_call_id: resolvedToolCallId,
+    tool_calls: normalizedToolCall ? [normalizedToolCall] : null,
     timestamp: memory?.timestamp || null,
     screenshot_ref: screenshotRef,
     screenshot: screenshotInline ? rawScreenshot : null,
+    transparency,
   };
 }
