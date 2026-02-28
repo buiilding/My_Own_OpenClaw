@@ -62,11 +62,6 @@ Non-responsibilities:
 `tool_call_has_manual_coordinates(...)` marks manual `x/y` calls for strict normalization.
 Manual coordinates accept numeric values (`int` or finite `float`) and are canonicalized to integer pixels before execution.
 
-Model-facing contract:
-
-- `mouse_control.find_coordinates_by` is OCR-only for LLM tool calls.
-- manual coordinates remain internal execution behavior after backend grounding rewrite.
-
 ## Coordinate Resolution Pipeline
 
 For a qualifying call:

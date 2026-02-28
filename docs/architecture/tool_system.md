@@ -252,10 +252,6 @@ For tools requiring coordinate resolution via OCR:
 }
 ```
 
-Model-facing mouse contract:
-- `find_coordinates_by` is OCR-only in injected tool schemas.
-- Initial click uses `ocr_text`; ambiguity retry uses `candidate_id` + exact `screenshot_id`.
-
 **Flow**:
 1. Screenshot captured
 2. OCR runs on screenshot
