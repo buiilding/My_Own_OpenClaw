@@ -56,6 +56,24 @@ describe('responseOverlayPhasePayload', () => {
     });
   });
 
+  test('trims string metadata and drops whitespace-only values', () => {
+    expect(parseResponseOverlayPhasePayload({
+      phase: ' streaming ',
+      source: ' backend ',
+      correlation_id: '   ',
+      recovery_stage: ' tool-output ',
+      failure_reason: '\t',
+    })).toEqual({
+      phase: 'streaming',
+      source: 'backend',
+      correlation_id: undefined,
+      attempt: undefined,
+      max_attempts: undefined,
+      recovery_stage: 'tool-output',
+      failure_reason: undefined,
+    });
+  });
+
   test('returns null for invalid phase payloads', () => {
     expect(parseResponseOverlayPhasePayload({ phase: 'unknown-phase' })).toBeNull();
     expect(parseResponseOverlayPhasePayload({ phase: '' })).toBeNull();

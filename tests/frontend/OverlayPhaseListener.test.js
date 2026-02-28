@@ -38,6 +38,12 @@ describe('overlayPhaseListener', () => {
       recovery_stage: 'tool-output',
       failure_reason: 'focus_retrying',
     });
+    listener?.({
+      phase: 'tool-call',
+      correlation_id: '   ',
+      recovery_stage: '\t',
+      failure_reason: ' ',
+    });
     listener?.({ phase: 'complete' });
     listener?.({ phase: 'unknown-phase' });
     listener?.({ phase: 'error', attempt: Infinity });
@@ -45,7 +51,7 @@ describe('overlayPhaseListener', () => {
     listener?.({});
     listener?.(null);
 
-    expect(onPhase).toHaveBeenCalledTimes(3);
+    expect(onPhase).toHaveBeenCalledTimes(4);
     expect(onPhase).toHaveBeenNthCalledWith(
       1,
       'streaming',
@@ -61,11 +67,21 @@ describe('overlayPhaseListener', () => {
     );
     expect(onPhase).toHaveBeenNthCalledWith(
       2,
+      'tool-call',
+      expect.objectContaining({
+        phase: 'tool-call',
+        correlation_id: undefined,
+        recovery_stage: undefined,
+        failure_reason: undefined,
+      }),
+    );
+    expect(onPhase).toHaveBeenNthCalledWith(
+      3,
       'complete',
       expect.objectContaining({ phase: 'complete' }),
     );
     expect(onPhase).toHaveBeenNthCalledWith(
-      3,
+      4,
       'error',
       expect.objectContaining({
         phase: 'error',
