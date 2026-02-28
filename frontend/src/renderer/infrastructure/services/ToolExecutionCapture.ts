@@ -1,5 +1,5 @@
 import { extractOSstate } from './SystemCapture';
-import { COMPUTER_USE_TOOLS } from './ToolExecutionTypes';
+import { STANDARD_COMPUTER_USE_TOOLS } from './ToolComputerUseCatalog';
 import type { SystemState, ToolResult } from './MessageFormatter';
 
 type ToolCaptureResult = {
@@ -23,7 +23,7 @@ const DEFAULT_COMPUTER_TOOL_WAIT_SECONDS = 2;
 const DEFAULT_SCREENSHOT_WAIT_SECONDS = 0;
 
 export function isComputerUseTool(toolName: string, args: any): boolean {
-  const isStandardComputerUseTool = (COMPUTER_USE_TOOLS as string[]).includes(toolName);
+  const isStandardComputerUseTool = STANDARD_COMPUTER_USE_TOOLS.includes(toolName);
   const isRunShellCommandWithWait =
     toolName === 'run_shell_command' &&
     args &&

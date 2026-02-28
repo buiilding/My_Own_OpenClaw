@@ -1,16 +1,12 @@
 import type { SurfaceMode } from './types';
 import { resolveCorrelationId } from '../CorrelationId';
+import {
+  CAPTURE_ONLY_COMPUTER_USE_TOOLS,
+  INTERACTIVE_COMPUTER_USE_TOOLS,
+} from '../ToolComputerUseCatalog';
 
-const INTERACTIVE_COMPUTER_TOOL_NAMES = new Set([
-  'mouse_control',
-  'keyboard_control',
-  'scroll_control',
-  'click',
-  'type',
-  'scroll',
-]);
-
-const CAPTURE_ONLY_COMPUTER_TOOL_NAMES = new Set(['screenshot', 'switch_tab', 'wait']);
+const INTERACTIVE_COMPUTER_TOOL_NAMES = new Set(INTERACTIVE_COMPUTER_USE_TOOLS);
+const CAPTURE_ONLY_COMPUTER_TOOL_NAMES = new Set(CAPTURE_ONLY_COMPUTER_USE_TOOLS);
 
 function normalizeActionName(value: unknown): string {
   if (typeof value !== 'string') {
