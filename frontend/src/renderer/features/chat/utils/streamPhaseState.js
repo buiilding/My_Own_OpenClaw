@@ -1,26 +1,28 @@
+import { RESPONSE_OVERLAY_PHASE } from './responseOverlayPhaseContract';
+
 const ACTIVE_LOOP_PHASES = Object.freeze([
-  'awaiting-first-chunk',
-  'streaming',
-  'tool-call',
-  'tool-output',
+  RESPONSE_OVERLAY_PHASE.AWAITING_FIRST_CHUNK,
+  RESPONSE_OVERLAY_PHASE.STREAMING,
+  RESPONSE_OVERLAY_PHASE.TOOL_CALL,
+  RESPONSE_OVERLAY_PHASE.TOOL_OUTPUT,
 ]);
 
 const TERMINAL_STREAM_PHASES = Object.freeze([
-  'idle',
-  'complete',
-  'error',
+  RESPONSE_OVERLAY_PHASE.IDLE,
+  RESPONSE_OVERLAY_PHASE.COMPLETE,
+  RESPONSE_OVERLAY_PHASE.ERROR,
 ]);
 
 const OVERLAY_AWAITING_REPLY_PHASES = Object.freeze([
-  'awaiting-first-chunk',
-  'tool-call',
+  RESPONSE_OVERLAY_PHASE.AWAITING_FIRST_CHUNK,
+  RESPONSE_OVERLAY_PHASE.TOOL_CALL,
 ]);
 
 const OVERLAY_CLEAR_AWAITING_PHASES = Object.freeze([
-  'idle',
-  'streaming',
-  'complete',
-  'error',
+  RESPONSE_OVERLAY_PHASE.IDLE,
+  RESPONSE_OVERLAY_PHASE.STREAMING,
+  RESPONSE_OVERLAY_PHASE.COMPLETE,
+  RESPONSE_OVERLAY_PHASE.ERROR,
 ]);
 
 const ACTIVE_LOOP_PHASE_SET = new Set(ACTIVE_LOOP_PHASES);
@@ -37,7 +39,7 @@ export function isTerminalStreamPhase(phase) {
 }
 
 export function isAwaitingFirstChunkPhase(phase) {
-  return phase === 'awaiting-first-chunk';
+  return phase === RESPONSE_OVERLAY_PHASE.AWAITING_FIRST_CHUNK;
 }
 
 export function isOverlayAwaitingReplyPhase(phase) {
