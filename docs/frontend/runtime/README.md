@@ -22,4 +22,5 @@ title: "Frontend Runtime Docs Hub"
 - `frontend/src/renderer/infrastructure/services/SurfaceOrchestrator.ts`
 - `frontend/src/renderer/app/providers/*`
 - `frontend/src/main/ipc.cjs`
+- `frontend/src/main/ipc_overlay_phase_state.cjs`
 - `frontend/src/main/ipc_frontend_config.cjs`
