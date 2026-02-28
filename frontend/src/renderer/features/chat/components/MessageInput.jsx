@@ -197,7 +197,7 @@ function MessageInput({
                   <Plus size={18} />
                 </button>
                 {plusMenuOpen ? (
-                  <div className="message-dropdown-menu" role="menu">
+                  <div className="message-dropdown-menu message-add-photos-under-pill" role="menu">
                     <button type="button" className="message-dropdown-item" role="menuitem">
                       <Image size={16} />
                       <span>Add photos & files</span>
