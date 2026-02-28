@@ -37,6 +37,8 @@ def test_receive_bundle_result_success_and_failure():
         step_results=[{"status": "ok"}, {"status": "ok"}],
         screenshot=None,
         screenshot_ref=None,
+        screenshot_id=None,
+        capture_meta=None,
         system_state=None,
         error=None,
     )
@@ -49,6 +51,8 @@ def test_receive_bundle_result_success_and_failure():
         step_results=[{"status": "ok"}, {"status": "error"}],
         screenshot=None,
         screenshot_ref=None,
+        screenshot_id=None,
+        capture_meta=None,
         system_state=None,
         error=None,
     )
@@ -67,6 +71,8 @@ def test_receive_bundle_result_accepts_pydantic_step_models():
         ],
         screenshot=None,
         screenshot_ref=None,
+        screenshot_id=None,
+        capture_meta=None,
         system_state=None,
         error=None,
     )

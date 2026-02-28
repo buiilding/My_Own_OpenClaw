@@ -89,15 +89,18 @@ describe('useChatMessageSender', () => {
     screenshotRef: string | null = null,
     screenshotUrl: string | null = null,
     screenshotRefs: string[] | null = null,
+    screenshotId: string | null = null,
+    captureMeta: Record<string, unknown> | null = null,
   ) {
     expect(mockSendQuery).toHaveBeenCalledTimes(1);
-    expect(mockSendQuery).toHaveBeenCalledWith(
-      text,
-      conversationRef,
-      screenshotRef,
-      screenshotUrl,
-      screenshotRefs,
-    );
+    const call = mockSendQuery.mock.calls[0];
+    expect(call[0]).toBe(text);
+    expect(call[1]).toBe(conversationRef);
+    expect(call[2]).toBe(screenshotRef);
+    expect(call[3]).toBe(screenshotUrl);
+    expect(call[4]).toEqual(screenshotRefs);
+    expect((call[5] ?? null) as string | null).toBe(screenshotId);
+    expect((call[6] ?? null) as Record<string, unknown> | null).toEqual(captureMeta);
   }
 
   function expectNoShowChatboxCall() {
