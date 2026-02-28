@@ -12,6 +12,7 @@ title: "WebSocket Handshake and Settings Sync Reference"
 
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc_runtime_helpers.cjs`
+- `frontend/src/main/ipc_overlay_phase_events.cjs`
 - `frontend/src/main/ipc_renderer_windows.cjs`
 - `frontend/src/main/ipc_query_broadcast.cjs`
 - `frontend/src/main/ipc_query_events.cjs`
@@ -84,6 +85,11 @@ Window-aware behavior:
 - optional source window exclusion for synthetic local events
 
 `trackRendererWindow(...)` also syncs latest overlay phase to windows after `did-finish-load`.
+
+Overlay transition contract:
+
+- backend event -> overlay phase mapping and recovery metadata extraction live in `ipc_overlay_phase_events.cjs`
+- `ipc_runtime_helpers.processBackendMessageData(...)` applies that transition via `setResponseOverlayPhase(...)`
 
 ## Settings Sync ACK Pipeline
 
