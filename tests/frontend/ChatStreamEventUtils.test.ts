@@ -1,6 +1,8 @@
 import {
   buildScreenshotAttachment,
   resolveErrorText,
+  resolveToolBundleCorrelationId,
+  resolveToolCallCorrelationId,
   resolveToolOutputCorrelationId,
   shouldIgnoreStreamError,
 } from '../../frontend/src/renderer/features/chat/utils/chatStreamEventUtils';
@@ -60,6 +62,29 @@ describe('chatStreamEventUtils', () => {
     expect(resolveToolOutputCorrelationId({}, null)).toBeUndefined();
     expect(resolveToolOutputCorrelationId({ request_id: '   ', metadata: { request_id: ' meta-2 ' } }, 'event-1')).toBe('meta-2');
     expect(resolveToolOutputCorrelationId({ request_id: '   ', metadata: { request_id: '   ' } }, ' event-2 ')).toBe('event-2');
+  });
+
+  test('resolveToolCallCorrelationId normalizes correlation/request ids', () => {
+    expect(resolveToolCallCorrelationId({
+      correlation_id: ' corr-1 ',
+      request_id: 'req-1',
+    })).toBe('corr-1');
+
+    expect(resolveToolCallCorrelationId({
+      correlation_id: '   ',
+      request_id: ' req-2 ',
+    })).toBe('req-2');
+
+    expect(resolveToolCallCorrelationId({
+      correlation_id: '   ',
+      request_id: '   ',
+    })).toBeUndefined();
+  });
+
+  test('resolveToolBundleCorrelationId normalizes bundle ids', () => {
+    expect(resolveToolBundleCorrelationId({ bundle_id: ' bundle-1 ' })).toBe('bundle-1');
+    expect(resolveToolBundleCorrelationId({ bundle_id: '   ' })).toBeUndefined();
+    expect(resolveToolBundleCorrelationId(undefined)).toBeUndefined();
   });
 
   test('resolveErrorText prefers payload content then message then fallback', () => {

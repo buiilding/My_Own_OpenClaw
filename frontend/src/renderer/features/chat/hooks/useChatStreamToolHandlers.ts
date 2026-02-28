@@ -20,6 +20,8 @@ import {
 } from '../utils/chatStreamToolMessages';
 import {
   buildScreenshotAttachment,
+  resolveToolBundleCorrelationId,
+  resolveToolCallCorrelationId,
   resolveToolOutputCorrelationId,
 } from '../utils/chatStreamEventUtils';
 
@@ -82,7 +84,7 @@ export function useChatStreamToolHandlers({
 
     recordTrackingEvent('tool-call', event.turn_ref, { toolCall: true });
 
-    const correlationId = event.payload?.correlation_id || event.payload?.request_id;
+    const correlationId = resolveToolCallCorrelationId(event.payload);
 
     recordToolCallTranscript(
       formattedText,
@@ -150,7 +152,7 @@ export function useChatStreamToolHandlers({
       formattedText,
       event,
       'tool-bundle',
-      event.payload?.bundle_id,
+      resolveToolBundleCorrelationId(event.payload),
     );
   }, [
     addMessage,
@@ -167,4 +169,3 @@ export function useChatStreamToolHandlers({
     handleToolBundle,
   };
 }
-

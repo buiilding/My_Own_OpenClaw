@@ -17,6 +17,15 @@ type ToolOutputPayload = {
   metadata?: unknown;
 };
 
+type ToolCallPayload = {
+  correlation_id?: string | null;
+  request_id?: string | null;
+};
+
+type ToolBundlePayload = {
+  bundle_id?: string | null;
+};
+
 export function shouldIgnoreStreamError(payload: ErrorPayload | null | undefined): boolean {
   const message = payload?.message;
   const content = payload?.content;
@@ -76,6 +85,23 @@ export function resolveToolOutputCorrelationId(
     payload?.request_id,
     metadataRequestId,
     eventId,
+  ) || undefined;
+}
+
+export function resolveToolCallCorrelationId(
+  payload: ToolCallPayload | null | undefined,
+) {
+  return resolveCorrelationId(
+    payload?.correlation_id,
+    payload?.request_id,
+  ) || undefined;
+}
+
+export function resolveToolBundleCorrelationId(
+  payload: ToolBundlePayload | null | undefined,
+) {
+  return resolveCorrelationId(
+    payload?.bundle_id,
   ) || undefined;
 }
 
