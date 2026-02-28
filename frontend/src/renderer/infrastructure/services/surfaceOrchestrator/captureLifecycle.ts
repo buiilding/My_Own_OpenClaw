@@ -16,6 +16,12 @@ import {
   setPendingScreenshotCaptureRestore,
 } from './state';
 import {
+  SURFACE_REASON_CAPTURE_FOCUS_PREPARE_FAILED,
+  SURFACE_REASON_CAPTURE_OVERLAP_REUSE,
+  SURFACE_REASON_CAPTURE_RESTORE_FAILED,
+  SURFACE_REASON_PREPARE_CAPTURE_VISIBILITY_FAILED,
+} from './reasons';
+import {
   type CaptureVisibilityPreparation,
   type SurfaceTransitionSource,
 } from './types';
@@ -43,7 +49,7 @@ export async function prepareScreenshotCaptureVisibility(
       mode: 'screenshot',
       phaseBefore: 'capture_ready',
       phaseAfter: 'capture_ready',
-      reason: 'capture_overlap_reuse',
+      reason: SURFACE_REASON_CAPTURE_OVERLAP_REUSE,
     });
     return { prepared: true, captureId };
   }
@@ -75,7 +81,7 @@ export async function prepareScreenshotCaptureVisibility(
       mode: 'screenshot',
       phaseBefore: 'preparing_capture_visibility',
       phaseAfter: 'failed_terminal',
-      reason: 'prepare_capture_visibility_failed',
+      reason: SURFACE_REASON_PREPARE_CAPTURE_VISIBILITY_FAILED,
     });
     return { prepared: false, captureId };
   }
@@ -115,7 +121,7 @@ export async function restoreScreenshotCaptureVisibility(
       mode: 'screenshot',
       phaseBefore: 'restoring_surface',
       phaseAfter: 'failed_terminal',
-      reason: 'capture_restore_failed',
+      reason: SURFACE_REASON_CAPTURE_RESTORE_FAILED,
     });
   } finally {
     setPendingScreenshotCaptureRestore(false);
@@ -172,7 +178,7 @@ export async function prepareExternalFocusForCapture(
       mode: 'screenshot',
       phaseBefore: 'preparing_interactive_focus',
       phaseAfter: 'failed_terminal',
-      reason: 'capture_focus_prepare_failed',
+      reason: SURFACE_REASON_CAPTURE_FOCUS_PREPARE_FAILED,
     });
   }
 }
