@@ -49,6 +49,7 @@ const {
   showChatWindow: showChatWindowRuntime,
   showMainWindow: showMainWindowRuntime,
 } = require('./window_visibility_runtime.cjs');
+const { createResponseOverlayPhaseEnum } = require('./ipc_overlay_phase_contract.cjs');
 let windowManager = null;
 try {
   ({ windowManager } = require('node-window-manager'));
@@ -80,15 +81,7 @@ const CONTEXT_LABEL_OFFSET_X = 14;
 const CONTEXT_LABEL_GAP_ABOVE_CHATBOX = -6;
 const RESPONSE_OVERLAY_CHAT_GAP = 2;
 const CHATBOX_VISUAL_ANCHOR_HEIGHT = 64;
-const RESPONSE_OVERLAY_PHASE = Object.freeze({
-  IDLE: 'idle',
-  AWAITING_FIRST_CHUNK: 'awaiting-first-chunk',
-  STREAMING: 'streaming',
-  TOOL_CALL: 'tool-call',
-  TOOL_OUTPUT: 'tool-output',
-  COMPLETE: 'complete',
-  ERROR: 'error',
-});
+const RESPONSE_OVERLAY_PHASE = createResponseOverlayPhaseEnum();
 const APP_WINDOW_TITLE_MARKERS = ['desktop assistant', 'windieos'];
 const ENABLE_OS_TOOL_GHOST_DEBUG = process.env.WINDIE_DEBUG_GHOST_OVERLAY === '1';
 const ENABLE_DEV_TRANSPARENCY_UI = process.env.WINDIE_DEV_UI === '1';
