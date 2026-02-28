@@ -47,6 +47,7 @@ DashboardModal.propTypes = {
 };
 
 const DASHBOARD_OPEN_ANIMATION_MS = 420;
+const DASHBOARD_SCROLL_LOCK_CLASS = 'cg-scroll-locked';
 
 function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -196,6 +197,15 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [triggerDashboardOpenAnimation]);
+
+  useEffect(() => {
+    const rootElement = document.getElementById('root');
+    const scrollLockTargets = [document.documentElement, document.body, rootElement].filter(Boolean);
+    scrollLockTargets.forEach((target) => target.classList.add(DASHBOARD_SCROLL_LOCK_CLASS));
+    return () => {
+      scrollLockTargets.forEach((target) => target.classList.remove(DASHBOARD_SCROLL_LOCK_CLASS));
+    };
+  }, []);
 
 
   useEffect(() => {

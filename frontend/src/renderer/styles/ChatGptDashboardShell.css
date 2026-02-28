@@ -1,3 +1,10 @@
+html.cg-scroll-locked,
+body.cg-scroll-locked,
+#root.cg-scroll-locked {
+  overflow: hidden !important;
+  overscroll-behavior: none;
+}
+
 .cg-dashboard-shell {
   --cg-sidebar-motion-duration: 260ms;
   --cg-sidebar-motion-ease: cubic-bezier(0.22, 1, 0.36, 1);

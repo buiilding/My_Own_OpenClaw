@@ -74,6 +74,7 @@ Desktop layout behavior:
 - split pane layout (`256px` left shell + flexible chat content)
 - sidebar uses translucent backdrop styling; navigation buttons track active/selected modal state
 - modal overlays center memory/models/settings panels over persistent chat content
+- shell mount applies `cg-scroll-locked` on `html`, `body`, and `#root` so wheel/touchpad input cannot scroll the outer document instead of internal dashboard panes
 
 Sidebar navigation state contract:
 
