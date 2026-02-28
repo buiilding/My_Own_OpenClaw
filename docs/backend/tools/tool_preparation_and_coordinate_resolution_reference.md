@@ -75,6 +75,12 @@ For a qualifying call:
 5. rewrite prepared call to manual `x/y`
 6. persist metadata (`coordinate_method`, `coordinate_resolution_screenshot_id`, `coordinate_contract`)
 
+For OCR candidate retries (`find_coordinates_by='ocr'` + `candidate_id`):
+
+1. require `screenshot_id` in tool args
+2. require `screenshot_id` to exactly match current session screenshot id
+3. fail fast with `frame changed, re-ground required` on mismatch
+
 For manual `x/y` calls (no OCR/vision resolution):
 
 1. require `screenshot_id` in tool args
@@ -186,6 +192,11 @@ If `mouse_control` executes wrong location:
 1. inspect `coordinate_contract` metadata (source, crop, normalized coords, status)
 2. verify click used the same `coordinate_resolution_screenshot_id` as current frame
 3. verify sidecar screenshot result included `capture_meta` for the same `screenshot_id`
+
+If OCR ambiguity retries are inconsistent:
+
+1. verify model copied the exact `screenshot_id` from ambiguity output
+2. verify retry used `candidate_id` from `ambiguity_payload_json` (not free-typed)
 
 If prepared call never reaches frontend:
 

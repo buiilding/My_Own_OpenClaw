@@ -261,9 +261,9 @@ For tools requiring coordinate resolution via OCR:
 
 If multiple OCR rows match the target text above the configured similarity threshold,
 resolution fails with an ambiguity error that lists candidate ids and candidate `(x, y)` positions.
-The agent must retry using either:
-- OCR candidate selection (`find_coordinates_by="ocr"`, `candidate_id`, `screenshot_id`)
-- Manual selection (`find_coordinates_by="manual"`, `screenshot_id`, `x`, `y`)
+The agent must retry using OCR candidate selection only:
+- `find_coordinates_by="ocr"` + `candidate_id` + exact `screenshot_id` from the ambiguity response.
+- Ambiguity output also includes a structured JSON payload (`ambiguity_payload_json`) with `screenshot_id` and candidate list for deterministic copy-through.
 
 All grounding coordinates are interpreted as screenshot pixel coordinates and normalized once to desktop coordinates using `capture_meta` from the same frame.
 

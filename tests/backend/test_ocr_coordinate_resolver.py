@@ -1,5 +1,6 @@
 import pytest
 import re
+import json
 
 from backend.src.agent.tools.preparation.coordinate_resolution.resolvers import (
     CoordinateResolver,
@@ -55,8 +56,16 @@ def test_resolve_raises_actionable_error_for_multiple_fuzzy_matches():
     assert "Add to carts [candidate_id=" in message
     assert "Grounding screenshot_id='shot-clarity-1'" in message
     assert "do not use placeholders like 'current' or 'latest'" in message
+    assert "Retry with OCR candidate selection only" in message
     assert "find_coordinates_by='ocr', candidate_id='...'" in message
-    assert "find_coordinates_by='manual'" in message
+    assert "find_coordinates_by='manual'" not in message
+    payload_match = re.search(r"ambiguity_payload_json=(\{.*\})$", message)
+    assert payload_match is not None
+    payload = json.loads(payload_match.group(1))
+    assert payload["retry_tool"] == "mouse_control"
+    assert payload["retry_method"] == "ocr_candidate"
+    assert payload["screenshot_id"] == "shot-clarity-1"
+    assert len(payload["candidates"]) >= 2
 
 
 def test_resolve_supports_candidate_id_selection():
@@ -120,6 +129,7 @@ def test_ambiguous_error_limits_listed_matches_and_reports_hidden_count():
 
     assert "Multiple OCR instances matched 'target' above threshold 0.80" in message
     assert "+2 more" in message
+    assert "Retry with OCR candidate selection only" in message
 
 
 def test_candidate_id_from_ambiguity_error_resolves_when_matches_are_sparse_in_ocr_list():
