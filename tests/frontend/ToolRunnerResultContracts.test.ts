@@ -5,11 +5,15 @@ import {
   TOOL_RUNNER_BUNDLE_RESULT_TYPE,
   TOOL_RUNNER_RESULT_TYPE,
 } from '../../frontend/src/renderer/features/chat/utils/toolRunnerResultContracts';
+import {
+  TOOL_BUNDLE_RESULT_ENVELOPE_TYPE,
+  TOOL_RESULT_ENVELOPE_TYPE,
+} from '../../frontend/src/renderer/infrastructure/services/ToolResultEnvelope';
 
 describe('toolRunnerResultContracts', () => {
   test('exports canonical tool result envelope types', () => {
-    expect(TOOL_RUNNER_RESULT_TYPE).toBe('tool-result');
-    expect(TOOL_RUNNER_BUNDLE_RESULT_TYPE).toBe('tool-bundle-result');
+    expect(TOOL_RUNNER_RESULT_TYPE).toBe(TOOL_RESULT_ENVELOPE_TYPE);
+    expect(TOOL_RUNNER_BUNDLE_RESULT_TYPE).toBe(TOOL_BUNDLE_RESULT_ENVELOPE_TYPE);
   });
 
   test('builds single and bundle result envelopes with canonical type fields', () => {

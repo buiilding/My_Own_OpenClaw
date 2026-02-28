@@ -45,6 +45,10 @@ import {
   logBundleFailure,
 } from './ToolExecutionLogger';
 import { runToolBundle, type BundleStepResult } from './ToolExecutionBundleRunner';
+import {
+  buildToolBundleResultEnvelope,
+  buildToolResultEnvelope,
+} from './ToolResultEnvelope';
 
 export {
   ToolExecutionResult,
@@ -259,15 +263,14 @@ export class ToolExecutionService {
       includeSystemState,
     });
 
-    this.callbacks.sendToBackend({
-      type: 'tool-result',
-      payload: {
+    this.callbacks.sendToBackend(
+      buildToolResultEnvelope({
         request_id: correlationId,
         success: result.success,
         data: payloadData,
         error: result.error,
-      }
-    });
+      }),
+    );
   }
 
   private _sendBundleResult(
@@ -299,10 +302,7 @@ export class ToolExecutionService {
       payload.system_state = systemState;
     }
 
-    this.callbacks.sendToBackend({
-      type: 'tool-bundle-result',
-      payload
-    });
+    this.callbacks.sendToBackend(buildToolBundleResultEnvelope(payload));
   }
 
   /**
