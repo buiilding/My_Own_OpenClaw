@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   ArrowUp,
-  ChevronDown,
   Globe,
   Image,
   Mic,
@@ -30,11 +29,7 @@ function MessageInput({
   const textareaRef = useRef(null);
   const lastHandledFocusRequestRef = useRef(focusRequestToken);
   const plusMenuRef = useRef(null);
-  const thinkingMenuRef = useRef(null);
-  const [thinkingVisible, setThinkingVisible] = useState(true);
   const [plusMenuOpen, setPlusMenuOpen] = useState(false);
-  const [thinkingMenuOpen, setThinkingMenuOpen] = useState(false);
-  const [thinkingMode, setThinkingMode] = useState('Thinking');
   const [clipboardImages, setClipboardImages] = useState([]);
   const {
     inputValue,
@@ -103,9 +98,6 @@ function MessageInput({
       const target = event.target;
       if (plusMenuRef.current && !plusMenuRef.current.contains(target)) {
         setPlusMenuOpen(false);
-      }
-      if (thinkingMenuRef.current && !thinkingMenuRef.current.contains(target)) {
-        setThinkingMenuOpen(false);
       }
     };
 
@@ -237,51 +229,6 @@ function MessageInput({
                   </div>
                 ) : null}
               </div>
-
-              {thinkingVisible ? (
-                <div className="message-thinking-pill-wrap" ref={thinkingMenuRef}>
-                  <button
-                    type="button"
-                    className="message-close-thinking"
-                    onClick={() => setThinkingVisible(false)}
-                    aria-label="Close thinking mode"
-                  >
-                    <X size={14} />
-                  </button>
-                  <button
-                    type="button"
-                    className="message-thinking-pill"
-                    data-testid="thinking-mode-btn"
-                    aria-label={`${thinkingMode} mode`}
-                    title={`${thinkingMode} mode`}
-                    aria-expanded={thinkingMenuOpen}
-                    onClick={() => {
-                      setThinkingMenuOpen((current) => !current);
-                    }}
-                  >
-                    <Sparkles size={15} />
-                    <ChevronDown size={14} />
-                  </button>
-                  {thinkingMenuOpen ? (
-                    <div className="message-dropdown-menu message-thinking-menu" role="menu">
-                      {['Thinking', 'Search', 'Reason'].map((mode) => (
-                        <button
-                          key={mode}
-                          type="button"
-                          className="message-dropdown-item"
-                          role="menuitem"
-                          onClick={() => {
-                            setThinkingMode(mode);
-                            setThinkingMenuOpen(false);
-                          }}
-                        >
-                          {mode}
-                        </button>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-              ) : null}
             </div>
 
             <div className="message-input-right-actions">

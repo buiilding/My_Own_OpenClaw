@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-chat-input-thinking-toggle-removal): remove the chat composer thinking dropdown/toggle pill beside the add-attachment button and add `MessageInput` regression coverage to ensure the control stays absent.
 - fix(frontend-chat-pill-awaiting-indicator): make `local-user-message` set workspace `isSending=true` in stream handlers, treat response-overlay `tool-output` as an awaiting-reply phase, and update `ChatBoxResponse` awaiting gating to include send-state fallback so typing indicator no longer intermittently disappears after user send/tool output transitions; add regressions in `ChatBoxResponse.state`, `StreamPhaseState`, and `ChatStreamThinkingStatus.state`.
 - fix(frontend-tool-runner-tracking-tests): align ToolRunner surface/tracking tests with `{turnRef, conversationRef}` tracking contract and harden `pruneTrackedExecutionTurns` against null legacy entries so stale maps no longer throw on `turnRef` reads.
 - fix(frontend-dashboard-scroll-lock): enforce dashboard root scroll lock by toggling `cg-scroll-locked` on `html`/`body`/`#root` while `ChatGptDashboardShell` is mounted so wheel/trackpad gestures cannot scroll the outer document "to oblivion"; add dashboard-shell regression coverage for mount/unmount scroll-lock cleanup.

@@ -219,4 +219,11 @@ describe('MessageInput', () => {
     fireEvent.mouseDown(document.body);
     expect(screen.queryByText('Add photos & files')).not.toBeInTheDocument();
   });
+
+  test('does not render thinking dropdown control next to add attachment', () => {
+    render(<MessageInput onSendMessage={jest.fn()} isSending={false} />);
+
+    expect(screen.queryByTestId('thinking-mode-btn')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Close thinking mode')).not.toBeInTheDocument();
+  });
 });
