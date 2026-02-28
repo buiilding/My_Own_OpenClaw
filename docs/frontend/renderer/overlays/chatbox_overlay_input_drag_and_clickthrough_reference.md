@@ -18,6 +18,7 @@ title: "Chatbox Overlay Input, Drag, and Click-Through Reference"
 - `frontend/src/renderer/features/chat/policies/messageSendUiPolicy.ts`
 - `frontend/src/renderer/features/chat/utils/clipboardImageUtils.js`
 - `frontend/src/renderer/features/chat/utils/overlayPhaseListener.js`
+- `frontend/src/renderer/features/chat/utils/stopQueryState.js`
 - `frontend/src/renderer/features/chat/utils/streamPhaseState.js`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
@@ -59,7 +60,7 @@ Right-side action button parity with dashboard composer:
 
 - send button (`ArrowUp`) is shown when composer is idle
 - stop button (`Square`) replaces send while query is active (`isSending || active stream phase`)
-- stop click sends backend `stop-query` and updates stream tracking to `complete`
+- stop click applies shared stop-state helper (`applyStopQueryUiState`) before sending backend `stop-query`
 - during active loop phases, chat pill runs in stop-only mode:
   - input, settings, screenshot, TTS, and dev compaction actions are disabled
   - drag motion is disabled

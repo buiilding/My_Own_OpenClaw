@@ -24,6 +24,7 @@ import {
 import { COMPACTION_THINKING_STATUS } from '../utils/chatStreamThinkingStatus';
 import { useConversationReplayActions } from '../hooks/useConversationReplayActions';
 import { isDevUiEnabled } from '../utils/devUiFlag';
+import { applyStopQueryUiState } from '../utils/stopQueryState';
 import {
   isAwaitingFirstChunkPhase,
   isStopControlAvailablePhase,
@@ -190,17 +191,12 @@ function ChatInterface({ focusComposerToken = 0 }) {
     if (!composerBusy) {
       return;
     }
-    const stoppedAt = new Date().toISOString();
-    setIsSending(false);
-    setThinkingStatus(null);
-    setThinkingSourceEventType(null);
-    updateStreamTracking((current) => ({
-      ...current,
-      phase: 'complete',
-      completedAt: stoppedAt,
-      lastEventAt: stoppedAt,
-      lastEventType: 'stop-query',
-    }));
+    applyStopQueryUiState({
+      setIsSending,
+      setThinkingStatus,
+      setThinkingSourceEventType,
+      updateStreamTracking,
+    });
     stopPlayback();
     ApiClient.stopQuery();
   }, [composerBusy, setIsSending, setThinkingSourceEventType, setThinkingStatus, stopPlayback, updateStreamTracking]);

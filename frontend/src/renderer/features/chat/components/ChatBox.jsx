@@ -11,6 +11,7 @@ import { isDevUiEnabled } from '../utils/devUiFlag';
 import { buildOutgoingMessage } from '../utils/messageInput';
 import { parseClipboardImageItems } from '../utils/clipboardImageUtils';
 import { COMPACTION_THINKING_STATUS } from '../utils/chatStreamThinkingStatus';
+import { applyStopQueryUiState } from '../utils/stopQueryState';
 import { extractOSstate } from '../../../infrastructure/services/SystemCapture';
 import {
   isLoopActivePhase,
@@ -200,17 +201,12 @@ function ChatBox() {
     if (!composerBusy) {
       return;
     }
-    const stoppedAt = new Date().toISOString();
-    setIsSending(false);
-    setThinkingStatus(null);
-    setThinkingSourceEventType(null);
-    updateStreamTracking((current) => ({
-      ...current,
-      phase: 'complete',
-      completedAt: stoppedAt,
-      lastEventAt: stoppedAt,
-      lastEventType: 'stop-query',
-    }));
+    applyStopQueryUiState({
+      setIsSending,
+      setThinkingStatus,
+      setThinkingSourceEventType,
+      updateStreamTracking,
+    });
     ApiClient.stopQuery();
   }, [composerBusy, setIsSending, setThinkingSourceEventType, setThinkingStatus, updateStreamTracking]);
 
