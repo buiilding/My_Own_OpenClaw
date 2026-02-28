@@ -19,6 +19,7 @@ type UseChatStreamLocalUserHandlerDeps = {
   addMessage: (message: ChatMessage, conversationRef?: string | null) => void;
   modelContextRef: { current: TranscriptModelContext };
   recordTrackingEvent: TrackEventFn;
+  setIsSending: (value: boolean, conversationRef?: string | null) => void;
   setThinkingSourceEventType: (value: string | null, conversationRef?: string | null) => void;
   setThinkingStatus: (value: string | null, conversationRef?: string | null) => void;
 };
@@ -27,6 +28,7 @@ export function useChatStreamLocalUserHandler({
   addMessage,
   modelContextRef,
   recordTrackingEvent,
+  setIsSending,
   setThinkingSourceEventType,
   setThinkingStatus,
 }: UseChatStreamLocalUserHandlerDeps) {
@@ -61,6 +63,7 @@ export function useChatStreamLocalUserHandler({
       turnRef: event.turn_ref,
     };
     addMessage(newMessage, conversationRef);
+    setIsSending(true, conversationRef);
     const modelContext = modelContextRef.current;
     if (modelContext.supportsThinking && !modelContext.supportsThinkingTextStream) {
       setThinkingStatus(GENERIC_THINKING_STATUS, conversationRef);
@@ -78,6 +81,7 @@ export function useChatStreamLocalUserHandler({
     addMessage,
     modelContextRef,
     recordTrackingEvent,
+    setIsSending,
     setThinkingSourceEventType,
     setThinkingStatus,
   ]);

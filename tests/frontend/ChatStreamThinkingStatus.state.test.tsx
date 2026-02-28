@@ -237,6 +237,7 @@ describe('useChatStream state + stream handling', () => {
     const last = messages[messages.length - 1];
     expect(last.sender).toBe('user');
     expect(last.text).toBe('hello from chatbox');
+    expect(useChatStore.getState().isSending).toBe(true);
   });
 
   test('does not set generic thinking status for gemini when thought-text streaming is supported', () => {

@@ -33,6 +33,7 @@ describe('streamPhaseState', () => {
     expect(OVERLAY_AWAITING_REPLY_PHASES).toEqual([
       'awaiting-first-chunk',
       'tool-call',
+      'tool-output',
     ]);
     expect(OVERLAY_CLEAR_AWAITING_PHASES).toEqual([
       'idle',
@@ -74,7 +75,7 @@ describe('streamPhaseState', () => {
   test('detects response-overlay awaiting phases only', () => {
     expect(isOverlayAwaitingReplyPhase('awaiting-first-chunk')).toBe(true);
     expect(isOverlayAwaitingReplyPhase('tool-call')).toBe(true);
-    expect(isOverlayAwaitingReplyPhase('tool-output')).toBe(false);
+    expect(isOverlayAwaitingReplyPhase('tool-output')).toBe(true);
     expect(isOverlayAwaitingReplyPhase('streaming')).toBe(false);
     expect(isOverlayAwaitingReplyPhase('idle')).toBe(false);
     expect(isOverlayAwaitingReplyPhase(undefined)).toBe(false);

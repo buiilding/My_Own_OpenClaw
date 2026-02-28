@@ -41,6 +41,22 @@ describe('ChatBoxResponse state behavior', () => {
     });
   });
 
+  test('keeps awaiting indicator visible when query is sending and overlay phase is streaming', async () => {
+    setChatState([
+      { id: 'user-1', text: 'run command', sender: 'user' },
+    ]);
+    useChatStore.setState({
+      isSending: true,
+    });
+
+    render(<ChatBoxResponse />);
+    emitOverlayPhase('streaming');
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
+    });
+  });
+
   test('keeps awaiting indicator during tool-output and clears on terminal overlay phase', async () => {
     setChatState([
       { id: 'user-1', text: 'run command', sender: 'user' },
@@ -56,6 +72,38 @@ describe('ChatBoxResponse state behavior', () => {
     emitOverlayPhase('complete');
     await waitFor(() => {
       expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
+    });
+  });
+
+  test('shows awaiting indicator for tool-output phase after response is dismissed', async () => {
+    setChatState([
+      { id: 'user-1', text: 'run command', sender: 'user' },
+      {
+        id: 'assistant-1',
+        text: 'partial answer',
+        sender: 'assistant',
+        type: 'llm-text',
+        isComplete: true,
+      },
+    ]);
+
+    render(<ChatBoxResponse />);
+
+    await waitFor(() => {
+      expect(screen.getByText('partial answer')).toBeInTheDocument();
+    });
+
+    emitOverlayPhase('streaming');
+    fireEvent.click(screen.getByRole('button', { name: 'Close response' }));
+
+    await waitFor(() => {
+      expect(screen.queryByText('partial answer')).not.toBeInTheDocument();
+    });
+
+    emitOverlayPhase('tool-output');
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
     });
   });
 

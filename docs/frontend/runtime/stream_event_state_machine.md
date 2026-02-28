@@ -74,6 +74,7 @@ Terminal-vs-active stream turn gating is centralized in `streamPhaseState.isTerm
 Effects:
 
 - append user chat row immediately (optimistic local echo).
+- set `isSending=true` for the target workspace.
 - optional screenshot refs attached.
 - transition phase to `awaiting-first-chunk`.
 - reset stream-tracking counters for new turn.
