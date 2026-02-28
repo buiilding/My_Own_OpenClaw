@@ -124,6 +124,33 @@ async def test_handle_request_invalid_id_type_returns_invalid_request(invalid_id
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "raw_line",
+    [
+        '{"jsonrpc":"2.0","method":"ping","id":NaN}',
+        '{"jsonrpc":"2.0","method":"ping","id":Infinity}',
+        '{"jsonrpc":"2.0","method":"ping","id":-Infinity}',
+    ],
+)
+async def test_process_line_rejects_non_finite_numeric_id(raw_line):
+    protocol = JSONRPCProtocol()
+    calls = []
+
+    def handler():
+        calls.append("called")
+        return "ok"
+
+    protocol.register_method("ping", handler)
+
+    response = await protocol.process_line(raw_line)
+
+    assert response["error"]["code"] == JSONRPCProtocol.INVALID_REQUEST
+    assert response["error"]["message"] == "Invalid request: id must be string, number, or null"
+    assert response.get("id") is None
+    assert calls == []
+
+
+@pytest.mark.asyncio
 async def test_handle_request_method_not_found():
     protocol = JSONRPCProtocol()
     request = {"jsonrpc": "2.0", "method": "missing", "id": "1"}

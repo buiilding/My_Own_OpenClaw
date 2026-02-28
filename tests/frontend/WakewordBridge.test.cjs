@@ -258,4 +258,41 @@ describe('wakeword_bridge', () => {
       { ready: true },
     );
   });
+
+  test('maps ENOENT process start failures to wakeword-status error payload', () => {
+    const { mainWindow, createdProcesses } = initBridge();
+
+    handlers['wakeword-enable']();
+    expect(createdProcesses).toHaveLength(1);
+
+    createdProcesses[0]._handlers.error?.({
+      code: 'ENOENT',
+      message: 'spawn failed',
+    });
+
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith(
+      'wakeword-status',
+      expect.objectContaining({
+        ready: false,
+        error: expect.stringContaining("Python executable"),
+      }),
+    );
+  });
+
+  test('maps non-zero wakeword process exits to wakeword-status error payload', () => {
+    const { mainWindow, createdProcesses } = initBridge();
+
+    handlers['wakeword-enable']();
+    expect(createdProcesses).toHaveLength(1);
+
+    createdProcesses[0]._handlers.exit?.(7, null);
+
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith(
+      'wakeword-status',
+      {
+        ready: false,
+        error: 'Python process exited with code 7',
+      },
+    );
+  });
 });
