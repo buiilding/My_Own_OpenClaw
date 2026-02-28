@@ -43,12 +43,18 @@ def test_resolve_raises_actionable_error_for_multiple_fuzzy_matches():
     ]
 
     with pytest.raises(ValueError) as exc_info:
-        OcrCoordinateResolver.resolve("Add to cart", ocr_results)
+        OcrCoordinateResolver.resolve(
+            "Add to cart",
+            ocr_results,
+            screenshot_id="shot-clarity-1",
+        )
 
     message = str(exc_info.value)
     assert "Multiple OCR instances matched 'Add to cart' above threshold 0.80" in message
     assert "Add to cart [candidate_id=" in message
     assert "Add to carts [candidate_id=" in message
+    assert "Grounding screenshot_id='shot-clarity-1'" in message
+    assert "do not use placeholders like 'current' or 'latest'" in message
     assert "find_coordinates_by='ocr', candidate_id='...'" in message
     assert "find_coordinates_by='manual'" in message
 
