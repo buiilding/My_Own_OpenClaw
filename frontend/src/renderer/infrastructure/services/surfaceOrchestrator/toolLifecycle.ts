@@ -5,6 +5,7 @@ import {
   resolveSurfaceTransitionContext,
 } from './context';
 import { buildToolSurfacePreparation } from './preparation';
+import { isMainWindowVisible } from './windowVisibility';
 import {
   collapseChatPillForBackgroundCapture,
   restoreChatPillInactive,
@@ -25,15 +26,6 @@ import {
   type SurfaceTransitionSource,
   type ToolSurfacePreparation,
 } from './types';
-
-async function isMainWindowVisible(): Promise<boolean> {
-  try {
-    const result = await IpcBridge.invoke(INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY);
-    return result?.success === true && result?.data?.visible === true;
-  } catch (_error) {
-    return false;
-  }
-}
 
 export async function prepareToolExecutionSurface(
   mode: SurfaceMode,
