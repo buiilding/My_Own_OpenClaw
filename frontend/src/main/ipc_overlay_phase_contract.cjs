@@ -1,20 +1,8 @@
-const RESPONSE_OVERLAY_PHASES = new Set([
-  'idle',
-  'awaiting-first-chunk',
-  'streaming',
-  'tool-call',
-  'tool-output',
-  'complete',
-  'error',
-]);
+const responseOverlayPhaseContract = require('../shared/response_overlay_phase_contract.json');
 
-const RESPONSE_OVERLAY_METADATA_KEYS = [
-  'correlation_id',
-  'attempt',
-  'max_attempts',
-  'recovery_stage',
-  'failure_reason',
-];
+const RESPONSE_OVERLAY_PHASES = new Set(responseOverlayPhaseContract.phases || []);
+
+const RESPONSE_OVERLAY_METADATA_KEYS = [...(responseOverlayPhaseContract.metadata_keys || [])];
 
 function createResponseOverlayPhaseEnum() {
   const phaseEnum = {};

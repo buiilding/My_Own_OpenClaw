@@ -150,8 +150,8 @@ Effects:
 
 Overlay phase is maintained in Electron main via `ipc.cjs` and emitted as `response-overlay-phase`.
 
-Main process phase names and metadata keys are centralized in `frontend/src/main/ipc_overlay_phase_contract.cjs`; `index.cjs` now consumes `createResponseOverlayPhaseEnum()` so handler/runtime wiring cannot drift from the canonical phase contract.
-Renderer phase predicates and payload parsing now share the same contract module (`frontend/src/renderer/features/chat/utils/responseOverlayPhaseContract.js`) so stream-phase guards and overlay event payload parsing use one canonical phase/metadata vocabulary.
+Main process phase names and metadata keys are centralized in `frontend/src/main/ipc_overlay_phase_contract.cjs`, sourced from shared contract data in `frontend/src/shared/response_overlay_phase_contract.json`; `index.cjs` consumes `createResponseOverlayPhaseEnum()` so handler/runtime wiring cannot drift from the canonical phase contract.
+Renderer phase predicates and payload parsing now share the same contract module (`frontend/src/renderer/features/chat/utils/responseOverlayPhaseContract.js`), which reads the same shared JSON contract so stream-phase guards and overlay event payload parsing use one canonical phase/metadata vocabulary.
 Cross-layer parity is guarded by `tests/frontend/OverlayPhaseContractParity.test.js`, which asserts renderer/main phase names, metadata keys, and enum mapping remain identical.
 
 Renderer uses that channel in parallel with `streamTracking.phase`:

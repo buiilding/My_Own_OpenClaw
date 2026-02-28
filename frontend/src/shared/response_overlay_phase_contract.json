@@ -1,0 +1,18 @@
+{
+  "phases": [
+    "idle",
+    "awaiting-first-chunk",
+    "streaming",
+    "tool-call",
+    "tool-output",
+    "complete",
+    "error"
+  ],
+  "metadata_keys": [
+    "correlation_id",
+    "attempt",
+    "max_attempts",
+    "recovery_stage",
+    "failure_reason"
+  ]
+}
