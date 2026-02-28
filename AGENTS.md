@@ -25,6 +25,78 @@ User experience target:
 - WindieOS can inspect context, act on the computer, and iterate until completion.
 - Transparency is preserved via streamed reasoning/events and tool-result feedback.
 
+## Canonical Data Flows (Persistent Foundations)
+
+Treat these as stable contracts unless explicitly re-designed across backend + frontend + sidecar.
+
+### 1) Frontend message send flow (renderer -> backend)
+
+1. `useChatMessageSender` normalizes payload, creates local pending user message, ensures `conversation_ref`.
+2. Optional query screenshot capture via `SystemCapture.extractOSstate(...)` returns `screenshot`, `screenshot_id`, `capture_meta`.
+3. Screenshot/clipboard images upload to artifacts; first artifact becomes `screenshot_ref`, list becomes `screenshot_refs`.
+4. `ApiClient.sendQuery(...)` sends:
+   - `text`
+   - `conversation_ref`
+   - `screenshot_ref`
+   - `screenshot_refs`
+   - `screenshot_id`
+   - `capture_meta`
+5. Main IPC forwards query payload to backend unchanged for grounding contract fields.
+
+### 2) Frontend tool surface flow (renderer orchestrator)
+
+1. `useToolRunner` classifies tool mode (`interactive`, `screenshot`, `none`).
+2. `SurfaceOrchestrator` owns phase transitions/logging.
+3. Interactive tools: prepare external focus -> enable execution window/click-through policy -> execute -> restore.
+4. Screenshot/capture tools: prepare capture visibility -> capture -> restore.
+5. Failures are fail-closed with explicit terminal reasons; no silent best-effort hidden state.
+
+### 3) Backend agent loop flow
+
+1. Backend receives `query` event, registers active session/query task.
+2. Query builder composes model input from conversation state + optional memory retrieval + screenshot/system context.
+3. LLM stream emits assistant tokens and optional tool calls.
+4. Tool calls execute (local/remote); remote computer tools route to frontend executor.
+5. Backend waits for `tool-result` / `tool-bundle-result`, appends outputs to loop context, continues until completion.
+6. Completion path emits final assistant result and clears active task state.
+
+### 4) Grounding/screenshot coordinate contract
+
+1. Canonical model-facing grounding space: `screenshot_px` on a specific `screenshot_id`.
+2. Manual mouse grounding requires `screenshot_id + x + y` (`x/y` in screenshot pixels).
+3. OCR ambiguity responses return `candidate_id` values bound to the same `screenshot_id`.
+4. Execution maps `screenshot_px -> desktop_px` once using `capture_meta`; no resolution heuristics.
+5. Stale-frame safety: if requested grounding frame != current frame, reject and require re-ground.
+
+### 5) OCR ambiguity retry flow
+
+1. Initial click by OCR text (`find_coordinates_by='ocr'`, `ocr_text`).
+2. If multiple matches, backend returns deterministic candidates (`candidate_id`, coordinates, score, `screenshot_id`).
+3. Retry click uses OCR candidate path (`candidate_id + screenshot_id`) on same frame.
+4. If frame changed, retry must re-run grounding on latest screenshot.
+
+### 6) Tool bundle result flow
+
+1. Frontend bundle callback sends:
+   - `bundle_id`, `status`, `step_results`
+   - `screenshot`, `screenshot_ref`, `screenshot_id`, `capture_meta`
+   - `system_state`, `error`
+2. Backend `ToolResultReceiver.receive_bundle_result(...)` normalizes step payloads and computes overall success.
+3. Bundle metadata (`is_bundled`, `bundle_id`) preserved for downstream transcript/log handling.
+
+### 7) Stop-query control flow
+
+1. Frontend stop action sends `stop-query` immediately.
+2. Backend stop latch handles both active and not-yet-registered query race window.
+3. Query loop exits/cancels deterministically; late tool/stream events are ignored by stale-turn guards.
+
+### 8) Persistence flow (transcript + memory)
+
+1. Frontend transcript writer records user/assistant/tool entries immediately; queue fallback retries on transient failures.
+2. Sidecar stores episodic interaction rows.
+3. Semanticization pipeline derives semantic summaries from eligible episodic windows.
+4. Retrieval path injects memory only when retrieval toggle/config allows.
+
 ## Project Structure & Module Organization
 
 - Backend (Python): `backend/src/` (agent, tools, llm, api, core, sdk, services).
