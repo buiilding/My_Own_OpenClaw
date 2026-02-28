@@ -6,6 +6,7 @@ No side effects, no session access, fully testable.
 """
 import difflib
 import hashlib
+import json
 import logging
 import time
 from typing import List, Dict, Any, Optional, Tuple, TYPE_CHECKING
@@ -136,6 +137,7 @@ class OcrCoordinateResolver:
         """Build an actionable error message for ambiguous fuzzy OCR matches."""
         max_listed = 8
         formatted_matches: List[str] = []
+        candidate_payloads: List[Dict[str, Any]] = []
         ordered_matches = sorted(
             matches,
             key=lambda match: float(match.get("score", 0.0)),
@@ -156,14 +158,24 @@ class OcrCoordinateResolver:
                 index=source_index,
                 screenshot_id=screenshot_id,
             )
+            candidate_payload: Dict[str, Any] = {
+                "candidate_id": candidate_id,
+                "text": text,
+                "score": round(score, 4),
+            }
             if center is None:
+                candidate_payload["x"] = None
+                candidate_payload["y"] = None
                 formatted_matches.append(
                     f"{text} [candidate_id={candidate_id}] (unknown coordinates, score={score:.2f})"
                 )
             else:
+                candidate_payload["x"] = center[0]
+                candidate_payload["y"] = center[1]
                 formatted_matches.append(
                     f"{text} [candidate_id={candidate_id}] ({center[0]}, {center[1]}, score={score:.2f})"
                 )
+            candidate_payloads.append(candidate_payload)
 
         hidden_count = len(ordered_matches) - max_listed
         if hidden_count > 0:
@@ -175,6 +187,12 @@ class OcrCoordinateResolver:
             if isinstance(screenshot_id, str) and screenshot_id
             else "<latest_screenshot_id>"
         )
+        ambiguity_payload = {
+            "retry_tool": "mouse_control",
+            "retry_method": "ocr_candidate",
+            "screenshot_id": screenshot_hint,
+            "candidates": candidate_payloads,
+        }
         if isinstance(screenshot_id, str) and screenshot_id:
             screenshot_guidance = (
                 f"Grounding screenshot_id='{screenshot_id}' "
@@ -188,10 +206,9 @@ class OcrCoordinateResolver:
         return (
             f"Multiple OCR instances matched '{requested_text}' above threshold {threshold:.2f}: {candidates}. "
             f"{screenshot_guidance}"
-            "Choose one by calling click again with either "
-            f"(find_coordinates_by='ocr', candidate_id='...', screenshot_id='{screenshot_hint}') "
-            "or manual grounding "
-            f"(find_coordinates_by='manual', screenshot_id='{screenshot_hint}', x=..., y=...)."
+            "Retry with OCR candidate selection only: "
+            f"(find_coordinates_by='ocr', candidate_id='...', screenshot_id='{screenshot_hint}'). "
+            f"ambiguity_payload_json={json.dumps(ambiguity_payload, separators=(',', ':'))}"
         )
 
     @staticmethod

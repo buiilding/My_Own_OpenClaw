@@ -170,6 +170,73 @@ async def test_resolve_tool_with_coordinates_preserves_prediction_description(mo
     assert resolved_call.metadata["coordinate_method"] == "prediction"
 
 
+@pytest.mark.asyncio
+async def test_resolve_tool_with_coordinates_rejects_stale_ocr_candidate_screenshot_id():
+    session, screenshot_manager = _create_session_and_manager(
+        screenshot_id="shot-current",
+        capture_meta={
+            "screenshot_id": "shot-current",
+            "source_w": 1920,
+            "source_h": 1080,
+            "crop_x": 0,
+            "crop_y": 0,
+            "crop_w": 1920,
+            "crop_h": 1080,
+            "desktop_virtual_bounds": {"x": 0, "y": 0, "width": 1920, "height": 1080},
+            "monitor_id": None,
+            "timestamp": 1,
+        },
+    )
+
+    tool_call, resolved_call = _build_mouse_call(
+        method=CoordinateFindingMethod.OCR,
+        candidate_id="ocr_deadbeef0000",
+        screenshot_id="shot-old",
+    )
+
+    with pytest.raises(ValueError, match="frame changed, re-ground required"):
+        await _resolve_with_stubs(
+            tool_call,
+            resolved_call,
+            session,
+            screenshot_manager,
+            "ocr-candidate-stale",
+        )
+
+
+@pytest.mark.asyncio
+async def test_resolve_tool_with_coordinates_requires_screenshot_id_for_ocr_candidate():
+    session, screenshot_manager = _create_session_and_manager(
+        screenshot_id="shot-current",
+        capture_meta={
+            "screenshot_id": "shot-current",
+            "source_w": 1920,
+            "source_h": 1080,
+            "crop_x": 0,
+            "crop_y": 0,
+            "crop_w": 1920,
+            "crop_h": 1080,
+            "desktop_virtual_bounds": {"x": 0, "y": 0, "width": 1920, "height": 1080},
+            "monitor_id": None,
+            "timestamp": 1,
+        },
+    )
+
+    tool_call, resolved_call = _build_mouse_call(
+        method=CoordinateFindingMethod.OCR,
+        candidate_id="ocr_deadbeef0000",
+    )
+
+    with pytest.raises(ValueError, match="requires screenshot_id"):
+        await _resolve_with_stubs(
+            tool_call,
+            resolved_call,
+            session,
+            screenshot_manager,
+            "ocr-candidate-missing-shot-id",
+        )
+
+
 def test_normalize_manual_coordinates_requires_screenshot_id():
     session, _ = _create_session_and_manager(
         screenshot_id="shot-manual",

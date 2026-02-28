@@ -85,6 +85,51 @@ def _normalize_screenshot_id(value: object) -> Optional[str]:
     return None
 
 
+def _normalize_nonempty_str(value: object) -> Optional[str]:
+    if isinstance(value, str):
+        normalized = value.strip()
+        if normalized:
+            return normalized
+    return None
+
+
+def _enforce_ocr_candidate_frame_binding(
+    tool_call: ParsedToolCall,
+    *,
+    current_screenshot_id: str,
+) -> None:
+    """
+    Enforce strict frame binding for OCR candidate selection.
+
+    Candidate-based retries must provide the exact screenshot_id returned with the
+    ambiguity response. This prevents stale-frame clicks.
+    """
+    method = normalize_coordinate_method(
+        tool_call.parameters.get("find_coordinates_by"),
+        default=CoordinateFindingMethod.MANUAL.value,
+    )
+    if method != CoordinateFindingMethod.OCR.value:
+        return
+
+    candidate_id = _normalize_nonempty_str(tool_call.parameters.get("candidate_id"))
+    if not candidate_id:
+        return
+
+    requested_screenshot_id = _normalize_screenshot_id(
+        tool_call.parameters.get("screenshot_id")
+    )
+    if not requested_screenshot_id:
+        raise ValueError(
+            "OCR candidate selection requires screenshot_id from the same grounding frame"
+        )
+    if requested_screenshot_id != current_screenshot_id:
+        raise ValueError(
+            "frame changed, re-ground required: "
+            f"requested screenshot_id={requested_screenshot_id[:8]} "
+            f"current screenshot_id={current_screenshot_id[:8]}"
+        )
+
+
 def tool_call_has_manual_coordinates(tool_call: ParsedToolCall) -> bool:
     """
     Return whether a mouse tool call uses manual coordinates with x/y payload.
@@ -167,6 +212,10 @@ async def resolve_tool_with_coordinates(
     screenshot_id = session.get_current_screenshot_id()
     if not screenshot_data or not screenshot_id:
         raise ValueError("No screenshot data available for coordinate resolution")
+    _enforce_ocr_candidate_frame_binding(
+        tool_call,
+        current_screenshot_id=screenshot_id,
+    )
 
     source_x, source_y = await resolve_coordinates(
         tool_call,
