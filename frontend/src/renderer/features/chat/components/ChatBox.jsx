@@ -13,6 +13,10 @@ import { parseClipboardImageItems } from '../utils/clipboardImageUtils';
 import { COMPACTION_THINKING_STATUS } from '../utils/chatStreamThinkingStatus';
 import { extractOSstate } from '../../../infrastructure/services/SystemCapture';
 import {
+  isLoopActivePhase,
+  isStopControlAvailablePhase,
+} from '../utils/streamPhaseState';
+import {
   normalizeArtifactImageContentType,
   resolveArtifactImageExtension,
 } from '../../../infrastructure/services/ArtifactImageUtils';
@@ -25,9 +29,6 @@ import {
   StopIcon,
 } from './ChatBoxIcons';
 import ChatBoxImagePreviewRow from './ChatBoxImagePreviewRow';
-
-const LOOP_ACTIVE_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
-const ACTIVE_STREAM_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
 
 function isDragBlockedTarget(target) {
   if (!(target instanceof Element)) {
@@ -66,9 +67,9 @@ function ChatBox() {
   });
   const wakewordSttEnabled = config?.wakeword_stt_enabled === true;
   const speechModeEnabled = config?.speech_mode_enabled === true;
-  const isLoopPhaseActive = LOOP_ACTIVE_PHASES.has(streamPhase) || LOOP_ACTIVE_PHASES.has(overlayPhase);
+  const isLoopPhaseActive = isLoopActivePhase(streamPhase) || isLoopActivePhase(overlayPhase);
   const stopOnlyModeActive = isSending || isLoopPhaseActive;
-  const canStop = ACTIVE_STREAM_PHASES.has(streamPhase);
+  const canStop = isStopControlAvailablePhase(streamPhase);
   const composerBusy = stopOnlyModeActive || canStop;
   const devUiEnabled = isDevUiEnabled();
   const {

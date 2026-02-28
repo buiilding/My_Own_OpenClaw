@@ -24,9 +24,8 @@ import {
 import { COMPACTION_THINKING_STATUS } from '../utils/chatStreamThinkingStatus';
 import { useConversationReplayActions } from '../hooks/useConversationReplayActions';
 import { isDevUiEnabled } from '../utils/devUiFlag';
+import { isStopControlAvailablePhase } from '../utils/streamPhaseState';
 import '../../../styles/ChatInterface.css';
-
-const ACTIVE_STREAM_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
 
 function waitForNextPaint() {
   return new Promise((resolve) => {
@@ -73,7 +72,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
 
   const voiceModeEnabled = config?.voice_mode_enabled === true;
   const speechModeEnabled = config?.speech_mode_enabled === true;
-  const canStop = ACTIVE_STREAM_PHASES.has(streamPhase);
+  const canStop = isStopControlAvailablePhase(streamPhase);
   const composerBusy = isSending || canStop;
   const showAssistantAwaitingDot = (
     streamPhase === 'awaiting-first-chunk'
