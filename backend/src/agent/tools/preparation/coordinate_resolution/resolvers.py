@@ -170,9 +170,24 @@ class OcrCoordinateResolver:
             formatted_matches.append(f"+{hidden_count} more")
 
         candidates = ", ".join(formatted_matches)
-        screenshot_hint = screenshot_id if isinstance(screenshot_id, str) and screenshot_id else "<latest_screenshot_id>"
+        screenshot_hint = (
+            screenshot_id
+            if isinstance(screenshot_id, str) and screenshot_id
+            else "<latest_screenshot_id>"
+        )
+        if isinstance(screenshot_id, str) and screenshot_id:
+            screenshot_guidance = (
+                f"Grounding screenshot_id='{screenshot_id}' "
+                "(copy this exact value; do not use placeholders like 'current' or 'latest'). "
+            )
+        else:
+            screenshot_guidance = (
+                "Grounding screenshot_id is unavailable; use the latest screenshot id "
+                "returned by screenshot/tool output. "
+            )
         return (
             f"Multiple OCR instances matched '{requested_text}' above threshold {threshold:.2f}: {candidates}. "
+            f"{screenshot_guidance}"
             "Choose one by calling click again with either "
             f"(find_coordinates_by='ocr', candidate_id='...', screenshot_id='{screenshot_hint}') "
             "or manual grounding "
