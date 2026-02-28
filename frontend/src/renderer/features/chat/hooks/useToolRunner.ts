@@ -37,6 +37,12 @@ import {
   shouldSkipToolExecution,
 } from '../utils/toolRunnerSurface';
 import { isTerminalStreamPhase } from '../utils/streamPhaseState';
+import {
+  isTrackedExecution,
+  pruneTrackedExecutionTurns,
+  trackExecutionTurn,
+  untrackExecutionTurn,
+} from '../utils/toolRunnerTracking';
 
 function shouldIgnoreToolEventForTurn(turnRef: string | null | undefined): boolean {
   if (!turnRef) {
@@ -69,24 +75,15 @@ export function useToolRunner(enabled = true) {
   });
 
   const trackExecution = useCallback((correlationId: string | null | undefined, turnRef: string | null) => {
-    if (!correlationId) {
-      return;
-    }
-    trackedExecutionTurnsRef.current.set(correlationId, turnRef);
+    trackExecutionTurn(trackedExecutionTurnsRef.current, correlationId, turnRef);
   }, []);
 
   const untrackExecution = useCallback((correlationId: string | null | undefined) => {
-    if (!correlationId) {
-      return;
-    }
-    trackedExecutionTurnsRef.current.delete(correlationId);
+    untrackExecutionTurn(trackedExecutionTurnsRef.current, correlationId);
   }, []);
 
   const shouldAcceptExecutionResult = useCallback((correlationId: string | null | undefined) => {
-    if (!correlationId) {
-      return true;
-    }
-    return trackedExecutionTurnsRef.current.has(correlationId);
+    return isTrackedExecution(trackedExecutionTurnsRef.current, correlationId);
   }, []);
 
   const sendStaleToolCancellation = useCallback((requestId: string | null | undefined) => {
@@ -154,31 +151,7 @@ export function useToolRunner(enabled = true) {
     const activeTurnRef = streamTracking.activeTurnRef;
     const phase = streamTracking.phase;
     const trackedEntries = trackedExecutionTurnsRef.current;
-    if (trackedEntries.size === 0) {
-      return;
-    }
-
-    if (!activeTurnRef) {
-      if (isTerminalStreamPhase(phase)) {
-        trackedEntries.clear();
-      }
-      return;
-    }
-
-    if (isTerminalStreamPhase(phase)) {
-      for (const [correlationId, turnRef] of trackedEntries.entries()) {
-        if (!turnRef || turnRef === activeTurnRef) {
-          trackedEntries.delete(correlationId);
-        }
-      }
-      return;
-    }
-
-    for (const [correlationId, turnRef] of trackedEntries.entries()) {
-      if (turnRef && turnRef !== activeTurnRef) {
-        trackedEntries.delete(correlationId);
-      }
-    }
+    pruneTrackedExecutionTurns(trackedEntries, activeTurnRef, phase);
   }, [streamTracking.activeTurnRef, streamTracking.phase]);
 
   useEffect(() => {
