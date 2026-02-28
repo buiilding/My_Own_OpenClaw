@@ -8,17 +8,13 @@ import type {
   SystemState,
   BundledToolResult,
 } from './MessageFormatter';
+import { STANDARD_COMPUTER_USE_TOOLS } from './ToolComputerUseCatalog';
 
 /**
  * Computer-use tools that require screenshots.
  */
 export const COMPUTER_USE_TOOLS: string[] = [
-  'mouse_control',
-  'keyboard_control',
-  'scroll_control',
-  'screenshot',
-  'wait',
-  'switch_tab',
+  ...STANDARD_COMPUTER_USE_TOOLS,
 ];
 
 /**
