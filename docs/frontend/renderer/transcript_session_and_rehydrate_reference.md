@@ -155,6 +155,7 @@ Replay rehydrate must keep prior context stable.
 - Keep all prior non-tool transcript rows.
 - Keep valid tool history pairs (`tool-call` + matching `tool-output`).
 - Remove only orphan tool rows (call without output, output without call).
+- Pairing/correlation normalization for this pruning path is centralized in `features/chat/utils/conversationReplayToolMessages.js` so edit+resend and try-again flows share one replay contract.
 
 This contract prevents provider tool-call sequencing errors without losing valid tool context.
 
