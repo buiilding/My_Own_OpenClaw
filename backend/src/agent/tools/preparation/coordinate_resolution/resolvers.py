@@ -82,18 +82,19 @@ class OcrCoordinateResolver:
         best_score = 0.0
         target = text.lower().strip()
         fuzzy_matches: List[Dict[str, Any]] = []
+        scored_matches: List[Dict[str, Any]] = []
         
         for source_index, item in enumerate(ocr_results):
             current = item.get("text", "").lower().strip()
             score = difflib.SequenceMatcher(None, target, current).ratio()
+            scored_match = {
+                "item": item,
+                "score": score,
+                "source_index": source_index,
+            }
+            scored_matches.append(scored_match)
             if score >= threshold:
-                fuzzy_matches.append(
-                    {
-                        "item": item,
-                        "score": score,
-                        "source_index": source_index,
-                    }
-                )
+                fuzzy_matches.append(scored_match)
             if score > best_score:
                 best_score = score
         
@@ -123,7 +124,12 @@ class OcrCoordinateResolver:
             return x, y
 
         raise ValueError(
-            f"Could not find text '{text}' on screen (best match: {best_score:.2f})"
+            OcrCoordinateResolver._build_no_match_error(
+                text,
+                scored_matches,
+                threshold,
+                screenshot_id=screenshot_id,
+            )
         )
 
     @staticmethod
@@ -135,7 +141,79 @@ class OcrCoordinateResolver:
         screenshot_id: Optional[str] = None,
     ) -> str:
         """Build an actionable error message for ambiguous fuzzy OCR matches."""
-        max_listed = 8
+        formatted_matches, candidate_payloads = OcrCoordinateResolver._format_candidate_matches(
+            matches,
+            screenshot_id=screenshot_id,
+            max_listed=8,
+        )
+        candidates = ", ".join(formatted_matches)
+        screenshot_hint = OcrCoordinateResolver._resolve_screenshot_hint(screenshot_id)
+        ambiguity_payload = {
+            "retry_tool": "mouse_control",
+            "retry_method": "ocr_candidate",
+            "screenshot_id": screenshot_hint,
+            "candidates": candidate_payloads,
+        }
+        screenshot_guidance = OcrCoordinateResolver._build_screenshot_guidance(screenshot_id)
+        return (
+            f"Multiple OCR instances matched '{requested_text}' above threshold {threshold:.2f}: {candidates}. "
+            f"{screenshot_guidance}"
+            "Retry with OCR candidate selection only: "
+            f"(find_coordinates_by='ocr', candidate_id='...', screenshot_id='{screenshot_hint}'). "
+            f"ambiguity_payload_json={json.dumps(ambiguity_payload, separators=(',', ':'))}"
+        )
+
+    @staticmethod
+    def _build_no_match_error(
+        requested_text: str,
+        scored_matches: List[Dict[str, Any]],
+        threshold: float,
+        *,
+        screenshot_id: Optional[str] = None,
+    ) -> str:
+        """Build a no-match error with top candidate suggestions for manual disambiguation."""
+        formatted_matches, candidate_payloads = OcrCoordinateResolver._format_candidate_matches(
+            scored_matches,
+            screenshot_id=screenshot_id,
+            max_listed=3,
+        )
+        best_score = max(
+            (
+                float(match.get("score", 0.0))
+                for match in scored_matches
+                if isinstance(match, dict)
+            ),
+            default=0.0,
+        )
+
+        screenshot_hint = OcrCoordinateResolver._resolve_screenshot_hint(screenshot_id)
+        no_match_payload = {
+            "retry_tool": "mouse_control",
+            "retry_method": "ocr_candidate",
+            "screenshot_id": screenshot_hint,
+            "threshold": round(float(threshold), 4),
+            "best_score": round(best_score, 4),
+            "candidates": candidate_payloads,
+        }
+        screenshot_guidance = OcrCoordinateResolver._build_screenshot_guidance(screenshot_id)
+        candidates = ", ".join(formatted_matches) if formatted_matches else "<none>"
+        return (
+            f"Could not find text '{requested_text}' above threshold {threshold:.2f} "
+            f"(best match: {best_score:.2f}). Top 3 fuzzy matches: {candidates}. "
+            f"{screenshot_guidance}"
+            "Retry with OCR candidate selection only: "
+            f"(find_coordinates_by='ocr', candidate_id='...', screenshot_id='{screenshot_hint}'). "
+            f"ambiguity_payload_json={json.dumps(no_match_payload, separators=(',', ':'))}"
+        )
+
+    @staticmethod
+    def _format_candidate_matches(
+        matches: List[Dict[str, Any]],
+        *,
+        screenshot_id: Optional[str] = None,
+        max_listed: int,
+    ) -> Tuple[List[str], List[Dict[str, Any]]]:
+        """Format candidate summaries and machine-readable payloads."""
         formatted_matches: List[str] = []
         candidate_payloads: List[Dict[str, Any]] = []
         ordered_matches = sorted(
@@ -180,35 +258,24 @@ class OcrCoordinateResolver:
         hidden_count = len(ordered_matches) - max_listed
         if hidden_count > 0:
             formatted_matches.append(f"+{hidden_count} more")
+        return formatted_matches, candidate_payloads
 
-        candidates = ", ".join(formatted_matches)
-        screenshot_hint = (
-            screenshot_id
-            if isinstance(screenshot_id, str) and screenshot_id
-            else "<latest_screenshot_id>"
-        )
-        ambiguity_payload = {
-            "retry_tool": "mouse_control",
-            "retry_method": "ocr_candidate",
-            "screenshot_id": screenshot_hint,
-            "candidates": candidate_payloads,
-        }
+    @staticmethod
+    def _resolve_screenshot_hint(screenshot_id: Optional[str]) -> str:
         if isinstance(screenshot_id, str) and screenshot_id:
-            screenshot_guidance = (
+            return screenshot_id
+        return "<latest_screenshot_id>"
+
+    @staticmethod
+    def _build_screenshot_guidance(screenshot_id: Optional[str]) -> str:
+        if isinstance(screenshot_id, str) and screenshot_id:
+            return (
                 f"Grounding screenshot_id='{screenshot_id}' "
                 "(copy this exact value; do not use placeholders like 'current' or 'latest'). "
             )
-        else:
-            screenshot_guidance = (
-                "Grounding screenshot_id is unavailable; use the latest screenshot id "
-                "returned by screenshot/tool output. "
-            )
         return (
-            f"Multiple OCR instances matched '{requested_text}' above threshold {threshold:.2f}: {candidates}. "
-            f"{screenshot_guidance}"
-            "Retry with OCR candidate selection only: "
-            f"(find_coordinates_by='ocr', candidate_id='...', screenshot_id='{screenshot_hint}'). "
-            f"ambiguity_payload_json={json.dumps(ambiguity_payload, separators=(',', ':'))}"
+            "Grounding screenshot_id is unavailable; use the latest screenshot id "
+            "returned by screenshot/tool output. "
         )
 
     @staticmethod

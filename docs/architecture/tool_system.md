@@ -265,6 +265,10 @@ The agent must retry using OCR candidate selection only:
 - `find_coordinates_by="ocr"` + `candidate_id` + exact `screenshot_id` from the ambiguity response.
 - Ambiguity output also includes a structured JSON payload (`ambiguity_payload_json`) with `screenshot_id` and candidate list for deterministic copy-through.
 
+If no OCR row meets threshold, resolution now returns the top 3 fuzzy candidates
+(with `candidate_id`, score, coordinates when available) and the same
+`ambiguity_payload_json` shape so retries can still pick a deterministic candidate.
+
 All grounding coordinates are interpreted as screenshot pixel coordinates and normalized once to desktop coordinates using `capture_meta` from the same frame.
 
 ### Vision-Based Resolution

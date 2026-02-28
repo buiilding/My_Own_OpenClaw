@@ -198,6 +198,12 @@ If OCR ambiguity retries are inconsistent:
 1. verify model copied the exact `screenshot_id` from ambiguity output
 2. verify retry used `candidate_id` from `ambiguity_payload_json` (not free-typed)
 
+If OCR says text was not found:
+
+1. inspect the top-3 fuzzy candidates listed in the no-match error
+2. select one of those `candidate_id` values
+3. retry with `find_coordinates_by='ocr'`, `candidate_id`, and exact `screenshot_id`
+
 If prepared call never reaches frontend:
 
 1. inspect preparation errors from `ToolSender`
