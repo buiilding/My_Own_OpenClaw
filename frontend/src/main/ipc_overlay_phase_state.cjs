@@ -1,20 +1,9 @@
-const RESPONSE_OVERLAY_PHASES = new Set([
-  'idle',
-  'awaiting-first-chunk',
-  'streaming',
-  'tool-call',
-  'tool-output',
-  'complete',
-  'error',
-]);
-
-const RESPONSE_OVERLAY_METADATA_KEYS = [
-  'correlation_id',
-  'attempt',
-  'max_attempts',
-  'recovery_stage',
-  'failure_reason',
-];
+const {
+  RESPONSE_OVERLAY_PHASES,
+  RESPONSE_OVERLAY_METADATA_KEYS,
+  normalizeOverlayNumber,
+  normalizeOverlayString,
+} = require('./ipc_overlay_phase_contract.cjs');
 
 function normalizeResponseOverlayMetadata(metadata) {
   if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) {
@@ -24,13 +13,15 @@ function normalizeResponseOverlayMetadata(metadata) {
   for (const key of RESPONSE_OVERLAY_METADATA_KEYS) {
     const value = metadata[key];
     if (key === 'attempt' || key === 'max_attempts') {
-      if (typeof value === 'number' && Number.isFinite(value)) {
-        normalized[key] = value;
+      const normalizedNumber = normalizeOverlayNumber(value);
+      if (normalizedNumber !== null) {
+        normalized[key] = normalizedNumber;
       }
       continue;
     }
-    if (typeof value === 'string' && value.length > 0) {
-      normalized[key] = value;
+    const normalizedString = normalizeOverlayString(value);
+    if (normalizedString !== null) {
+      normalized[key] = normalizedString;
     }
   }
   return Object.keys(normalized).length > 0 ? normalized : null;

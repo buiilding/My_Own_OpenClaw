@@ -1,3 +1,8 @@
+const {
+  normalizeOverlayNumber,
+  normalizeOverlayString,
+} = require('./ipc_overlay_phase_contract.cjs');
+
 function resolveOverlayCorrelationId(data) {
   if (!data || typeof data !== 'object') {
     return null;
@@ -16,13 +21,13 @@ function resolveOverlayCorrelationId(data) {
 
   const candidateKeys = ['request_id', 'correlation_id', 'bundle_id'];
   for (const key of candidateKeys) {
-    const value = payload[key];
-    if (typeof value === 'string' && value.length > 0) {
+    const value = normalizeOverlayString(payload[key]);
+    if (value) {
       return value;
     }
   }
 
-  return typeof data.id === 'string' && data.id.length > 0 ? data.id : null;
+  return normalizeOverlayString(data.id);
 }
 
 function resolveOverlayPhaseMetadata(data, recoveryStage) {
@@ -40,17 +45,21 @@ function resolveOverlayPhaseMetadata(data, recoveryStage) {
     ? data.payload.metadata
     : null;
 
-  if (typeof payloadMetadata?.attempt === 'number' && Number.isFinite(payloadMetadata.attempt)) {
-    metadata.attempt = payloadMetadata.attempt;
+  const attempt = normalizeOverlayNumber(payloadMetadata?.attempt);
+  if (attempt !== null) {
+    metadata.attempt = attempt;
   }
-  if (typeof payloadMetadata?.max_attempts === 'number' && Number.isFinite(payloadMetadata.max_attempts)) {
-    metadata.max_attempts = payloadMetadata.max_attempts;
+  const maxAttempts = normalizeOverlayNumber(payloadMetadata?.max_attempts);
+  if (maxAttempts !== null) {
+    metadata.max_attempts = maxAttempts;
   }
-  if (typeof payloadMetadata?.failure_reason === 'string' && payloadMetadata.failure_reason.length > 0) {
-    metadata.failure_reason = payloadMetadata.failure_reason;
+  const payloadFailureReason = normalizeOverlayString(payloadMetadata?.failure_reason);
+  if (payloadFailureReason) {
+    metadata.failure_reason = payloadFailureReason;
   }
-  if (typeof data?.payload?.message === 'string' && data.payload.message.length > 0) {
-    metadata.failure_reason = data.payload.message;
+  const payloadMessage = normalizeOverlayString(data?.payload?.message);
+  if (payloadMessage) {
+    metadata.failure_reason = payloadMessage;
   }
 
   return metadata;

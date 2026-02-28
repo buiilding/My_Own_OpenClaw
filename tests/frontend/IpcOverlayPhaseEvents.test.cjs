@@ -31,6 +31,18 @@ describe('ipc_overlay_phase_events', () => {
     expect(resolveOverlayCorrelationId({ payload: {} })).toBeNull();
   });
 
+  test('ignores whitespace-only correlation id candidates before fallback', () => {
+    expect(resolveOverlayCorrelationId({
+      payload: { request_id: '   ', correlation_id: '  ', bundle_id: '\t' },
+      id: 'event-fallback',
+    })).toBe('event-fallback');
+
+    expect(resolveOverlayCorrelationId({
+      payload: { request_id: '   ', correlation_id: 'corr-1' },
+      id: 'event-fallback',
+    })).toBe('corr-1');
+  });
+
   test('resolves overlay metadata and prioritizes payload message as terminal failure reason', () => {
     expect(resolveOverlayPhaseMetadata({
       id: 'event-5',

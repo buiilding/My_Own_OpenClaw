@@ -36,6 +36,17 @@ describe('ipc_overlay_phase_state', () => {
     expect(normalizeResponseOverlayMetadata({ attempt: '2', correlation_id: '' })).toBeNull();
   });
 
+  test('drops whitespace-only string metadata values', () => {
+    expect(normalizeResponseOverlayMetadata({
+      correlation_id: '   ',
+      recovery_stage: '\t',
+      failure_reason: '  ',
+      attempt: 1,
+    })).toEqual({
+      attempt: 1,
+    });
+  });
+
   test('compares metadata objects deterministically', () => {
     expect(areResponseOverlayMetadataEqual(null, null)).toBe(true);
     expect(areResponseOverlayMetadataEqual(null, { attempt: 1 })).toBe(false);

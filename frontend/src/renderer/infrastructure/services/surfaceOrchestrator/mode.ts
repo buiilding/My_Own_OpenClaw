@@ -67,11 +67,17 @@ export function resolveToolRequestIdForCancellation(
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
     return null;
   }
-  if (typeof payload.request_id === 'string' && payload.request_id.length > 0) {
-    return payload.request_id;
+  if (typeof payload.request_id === 'string') {
+    const requestId = payload.request_id.trim();
+    if (requestId.length > 0) {
+      return requestId;
+    }
   }
-  if (typeof payload.correlation_id === 'string' && payload.correlation_id.length > 0) {
-    return payload.correlation_id;
+  if (typeof payload.correlation_id === 'string') {
+    const correlationId = payload.correlation_id.trim();
+    if (correlationId.length > 0) {
+      return correlationId;
+    }
   }
   return null;
 }

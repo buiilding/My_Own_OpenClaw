@@ -30,6 +30,12 @@ describe('toolRunnerSurface helpers', () => {
     expect(
       resolveToolRequestIdForCancellation({ request_id: 'req-1', correlation_id: 'corr-1' }),
     ).toBe('req-1');
+    expect(
+      resolveToolRequestIdForCancellation({ request_id: '   ', correlation_id: 'corr-2' }),
+    ).toBe('corr-2');
+    expect(
+      resolveToolRequestIdForCancellation({ request_id: '   ', correlation_id: '   ' }),
+    ).toBeNull();
   });
 
   test('resolves surface mode semantics through bundle mode resolver', () => {

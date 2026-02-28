@@ -11,7 +11,11 @@ export const RESPONSE_OVERLAY_PHASES = Object.freeze([
 const RESPONSE_OVERLAY_PHASE_SET = new Set(RESPONSE_OVERLAY_PHASES);
 
 function resolveString(value) {
-  return typeof value === 'string' && value.length > 0 ? value : undefined;
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : undefined;
 }
 
 function resolveFiniteNumber(value) {

@@ -13,6 +13,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc_runtime_helpers.cjs`
 - `frontend/src/main/ipc_overlay_phase_events.cjs`
+- `frontend/src/main/ipc_overlay_phase_contract.cjs`
 - `frontend/src/main/ipc_renderer_windows.cjs`
 - `frontend/src/main/ipc_query_broadcast.cjs`
 - `frontend/src/main/ipc_query_events.cjs`
@@ -53,6 +54,14 @@ Owns backend-event to response-overlay transition contract:
 - `resolveOverlayCorrelationId`: deterministic id precedence (`request_id` -> `correlation_id` -> `bundle_id` -> event `id`)
 - `resolveOverlayPhaseMetadata`: normalized recovery metadata extraction (`attempt`, `max_attempts`, `failure_reason`, `recovery_stage`)
 - `resolveBackendOverlayPhaseTransition`: canonical transition mapping for `streaming-response`, `tool-call`, `tool-bundle`, `tool-output`, `streaming-complete`, and phase-guarded `error`
+
+### `ipc_overlay_phase_contract.cjs`
+
+Owns shared overlay phase contract primitives used by both state and event mappers:
+
+- canonical phase set (`RESPONSE_OVERLAY_PHASES`)
+- canonical metadata keys (`RESPONSE_OVERLAY_METADATA_KEYS`)
+- shared scalar normalizers (`normalizeOverlayString`, `normalizeOverlayNumber`)
 
 ### `ipc_renderer_windows.cjs`
 
