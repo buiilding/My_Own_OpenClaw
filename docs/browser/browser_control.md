@@ -149,6 +149,11 @@ Defaults:
 - `offset + limit` must be `<= 120000`.
 - Compatibility snapshot fields are rejected at runtime (`format`, `snapshotFormat`, `wait_until`, `state`, `mode`, `max_chars`, `refs`, `interactive`, `compact`, `depth`, `selector`, `frame`).
 
+Pagination discipline:
+- If `has_more=true`, continue with `snapshot` using `offset=next_offset` and same `limit`.
+- Do not `scroll`/`click`/`navigate`/`input` while paginating one snapshot window.
+- After any page-changing action, restart snapshot pagination from `offset=0`.
+
 Pagination example:
 ```json
 {

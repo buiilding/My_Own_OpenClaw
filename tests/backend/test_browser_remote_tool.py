@@ -40,6 +40,14 @@ class TestRemoteBrowserTool:
         assert len(tool.description) > 100
         assert "browser" in tool.description.lower()
 
+    def test_tool_description_includes_snapshot_pagination_contract(self):
+        """Snapshot pagination guidance should be present for model behavior."""
+        tool = RemoteBrowserTool()
+        assert "Snapshot pagination contract" in tool.description
+        assert "If `has_more=true`" in tool.description
+        assert "offset=<next_offset>" in tool.description
+        assert "do not scroll/click/navigate/type" in tool.description
+
     def test_args_model(self):
         """Test tool has correct args model."""
         tool = RemoteBrowserTool()
