@@ -1,2 +1,32 @@
-you are responsible to read windieos and create tests that would debug windieos, update tests for different features, make sure the features are clean, scalable
-consistent, update tests for windieos
+Strengthen WindieOS test coverage with a plan-first approach.
+Do not start writing tests immediately.
+
+First produce a no-code testing plan with:
+1) risk-ranked feature areas and failure modes
+2) current coverage gaps by layer (backend, sidecar, frontend)
+3) exact test modules to update/create
+4) acceptance criteria for each test scenario
+
+Prioritize deterministic, behavior-level tests that catch regressions in real
+execution paths (event flow, tool lifecycle, IPC contracts, state transitions,
+and error recovery), not shallow snapshot-only coverage.
+
+When implementing:
+- add/upgrade tests in small phases
+- keep each phase scoped to one behavior family
+- reproduce real bugs first, then codify them as regression tests before
+  expanding coverage
+- avoid brittle timing assertions; use stable synchronization points and clear
+  fixtures/fakes
+- minimize over-mocking while keeping tests fast and isolated
+- where behavior is cross-process, add paired assertions at boundaries
+  (backend payload shape, sidecar/runtime behavior, renderer state handling)
+
+For every phase, report:
+- tests added/updated
+- what bug/regression they protect
+- why the assertions are stable
+
+Run targeted suites after each phase, then full gate at the end
+(backend + sidecar pytest, frontend jest, lint/typecheck where relevant).
+If any tests fail, fix them or explicitly document blockers and residual risk.

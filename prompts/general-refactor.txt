@@ -1,0 +1,37 @@
+Refactor WindieOS with a plan-first, risk-controlled approach.
+Do not start coding immediately.
+
+First produce a no-code refactor plan with:
+1) findings from `jscpd`, `knip`, frontend `eslint` (including react-compiler and
+   deprecation checks), backend/sidecar architecture hotspots, oversized files,
+   slow/flaky tests, and API route consolidation opportunities
+2) a prioritized execution roadmap split into small phases with scope, touched files,
+   risk, rollback strategy, and expected behavior impact
+3) explicit non-goals to prevent scope creep
+
+After plan approval, implement phase-by-phase with no unintended user-visible
+regressions, keep behavior stable unless explicitly justified, preserve clean module
+boundaries, and prefer deletion/simplification over adding abstractions.
+
+For each phase, deliver:
+- concrete code changes
+- tests added/updated
+- docs updated
+- a short before/after rationale
+
+Refactor React code toward modern patterns only when it improves
+clarity/perf/testability and does not change semantics (remove unnecessary
+`useEffect`, reduce prop drilling, improve state ownership).
+Add comments only for non-obvious logic.
+
+Run relevant validation after each phase, then full gate at the end:
+`pytest` backend/sidecar, frontend tests, lint, typecheck.
+If failures appear, fix them or document exactly what remains blocked and why.
+
+Output format:
+- findings summary table
+- approved phase plan
+- implementation log per phase
+- validation results
+- residual risks
+- recommended next phases
