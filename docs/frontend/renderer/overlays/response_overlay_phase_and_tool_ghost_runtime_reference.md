@@ -56,7 +56,8 @@ Modes:
   - not awaiting first chunk
   - not manually dismissed
 - `showAwaitingReply`:
-  - awaiting mode / phase is `awaiting-first-chunk` or `tool-call`
+  - awaiting mode / phase is `awaiting-first-chunk`, `tool-call`, or `tool-output`
+  - local send fallback when chat workspace `isSending === true`
   - or chat thinking source is `context-compaction-started` with active compaction status text
   - no visible response row
 

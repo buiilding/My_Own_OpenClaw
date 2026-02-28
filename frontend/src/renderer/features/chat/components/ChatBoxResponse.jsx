@@ -52,7 +52,12 @@ function renderResponseContent(response, markdownHtml) {
 }
 
 function ChatBoxResponse() {
-  const { messages, thinkingStatus, thinkingSourceEventType } = useChatStore(useShallow(selectChatBoxState));
+  const {
+    messages,
+    isSending,
+    thinkingStatus,
+    thinkingSourceEventType,
+  } = useChatStore(useShallow(selectChatBoxState));
   const [closedResponseId, setClosedResponseId] = useState(null);
   const [awaitingFirstChunk, setAwaitingFirstChunk] = useState(false);
   const [overlayPhase, setOverlayPhase] = useState('idle');
@@ -133,7 +138,7 @@ function ChatBoxResponse() {
       && thinkingSourceEventType === 'context-compaction-started',
   );
   const showAwaitingReply = (
-    ((awaitingFirstChunk || isOverlayAwaitingReplyPhase(overlayPhase)) && !showResponse)
+    ((awaitingFirstChunk || isSending || isOverlayAwaitingReplyPhase(overlayPhase)) && !showResponse)
     || showCompactionStatus
   );
   const overlayLayoutMode = useMemo(() => resolveResponseOverlayLayoutMode({

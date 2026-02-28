@@ -359,6 +359,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     addMessage,
     modelContextRef,
     recordTrackingEvent,
+    setIsSending,
     setThinkingSourceEventType,
     setThinkingStatus,
   });
