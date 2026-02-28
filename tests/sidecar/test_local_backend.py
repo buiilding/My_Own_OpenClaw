@@ -735,6 +735,27 @@ async def test_handle_store_transcript_success():
 
 
 @pytest.mark.asyncio
+async def test_handle_store_transcript_omits_whitespace_correlation_id():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+    backend._summarizer = DummySummarizer()
+
+    result = await backend._handle_store_transcript(
+        content="hello",
+        user_id="user-1",
+        conversation_ref="conv-1",
+        role="assistant",
+        message_type="llm-text",
+        correlation_id=" \t ",
+    )
+
+    assert result["success"] is True
+    _, _, metadata, _, kwargs = backend.memory_store.added[-1]
+    assert "correlation_id" not in metadata
+    assert kwargs["correlation_id"] is None
+
+
+@pytest.mark.asyncio
 async def test_handle_store_transcript_skips_non_semantic_candidate():
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStore()

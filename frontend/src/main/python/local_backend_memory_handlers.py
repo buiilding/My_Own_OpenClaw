@@ -404,6 +404,11 @@ class LocalBackendMemoryHandlersMixin:
         try:
             record_kind = "transcript"
             conversation_id = conversation_ref or session_id
+            normalized_correlation_id = None
+            if isinstance(correlation_id, str):
+                trimmed_correlation_id = correlation_id.strip()
+                if trimmed_correlation_id:
+                    normalized_correlation_id = trimmed_correlation_id
             metadata = {
                 "type": "episodic",
                 "record_kind": record_kind,
@@ -414,8 +419,8 @@ class LocalBackendMemoryHandlersMixin:
                 metadata["message_type"] = message_type
             if tool_name:
                 metadata["tool_name"] = tool_name
-            if correlation_id:
-                metadata["correlation_id"] = correlation_id
+            if normalized_correlation_id:
+                metadata["correlation_id"] = normalized_correlation_id
             normalized_transparency = self._normalize_transcript_transparency(transparency)
             if normalized_transparency is not None:
                 metadata["transparency"] = normalized_transparency
@@ -437,7 +442,7 @@ class LocalBackendMemoryHandlersMixin:
                 message_index=message_index,
                 message_type=message_type,
                 tool_name=tool_name,
-                correlation_id=correlation_id,
+                correlation_id=normalized_correlation_id,
                 model_id=model_id,
                 model_provider=model_provider,
                 screenshot=screenshot,
