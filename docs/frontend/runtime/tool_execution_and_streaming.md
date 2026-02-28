@@ -54,6 +54,7 @@ Responsibilities:
 - guards against stale-turn execution using `streamTracking.activeTurnRef`
 - uses shared terminal phase predicate (`isTerminalStreamPhase`) for stale-turn cleanup/acceptance paths
 - tracks correlation IDs to reject late/out-of-turn results via shared `toolRunnerTracking` helpers (track/untrack/acceptance/prune)
+- drops late single-tool and bundle callbacks/backend payload sends when the active turn reaches terminal/stop-complete phases, preventing post-stop race writes
 - builds and parses tool-result/tool-bundle-result envelopes through shared `ToolResultEnvelope` infrastructure primitives (via `toolRunnerResultContracts` + `toolRunnerBackendPayload`) so hook/runtime failure responses and backend send gating use one typed correlation contract
 - resolves correlation IDs via shared normalization helper (`CorrelationId.resolveCorrelationId`) so whitespace-only ids cannot leak into cancellation/result paths
 - uses shared `toolCorrelationIds` helpers for tool-call/tool-output/bundle correlation precedence so stream handlers and tool-runner message assembly share one normalization contract

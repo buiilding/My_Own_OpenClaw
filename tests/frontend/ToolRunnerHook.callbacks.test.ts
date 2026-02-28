@@ -231,4 +231,65 @@ describe('useToolRunner callback wiring', () => {
     expect(recordToolMessage).not.toHaveBeenCalled();
     expect(IpcBridge.send).not.toHaveBeenCalled();
   });
+
+  test('drops late bundled tool results after active turn is stopped/completed', async () => {
+    setStreamTracking({
+      activeTurnRef: 'turn-stop-bundle',
+      phase: 'streaming',
+    });
+
+    renderToolRunner(true);
+
+    await emitBackendEventAsync({
+      type: 'tool-bundle',
+      turn_ref: 'turn-stop-bundle',
+      payload: {
+        bundle_id: 'bundle-stop',
+        tools: [
+          { name: 'read_file', args: { file_path: '/tmp/a' } },
+        ],
+      },
+    });
+
+    await act(async () => {
+      setStreamTracking({
+        activeTurnRef: 'turn-stop-bundle',
+        phase: 'complete',
+      });
+      await Promise.resolve();
+    });
+
+    const messagesBefore = useChatStore.getState().messages.length;
+    (IpcBridge.send as jest.Mock).mockClear();
+    (recordToolMessage as jest.Mock).mockClear();
+
+    const callbacks = getCapturedServiceCallbacks();
+
+    await act(async () => {
+      callbacks.onBundleResult({
+        formattedMessage: 'bundle should be dropped',
+        screenshotRef: null,
+        screenshotUrl: null,
+        totalTime: 0.2,
+        correlationId: 'bundle-stop',
+        results: [
+          { tool_name: 'read_file', success: true, error: null },
+        ],
+      });
+    });
+
+    callbacks.sendToBackend({
+      type: 'tool-bundle-result',
+      payload: {
+        bundle_id: 'bundle-stop',
+        status: 'success',
+        step_results: [],
+        error: null,
+      },
+    });
+
+    expect(useChatStore.getState().messages.length).toBe(messagesBefore);
+    expect(recordToolMessage).not.toHaveBeenCalled();
+    expect(IpcBridge.send).not.toHaveBeenCalled();
+  });
 });
