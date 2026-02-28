@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import hashlib
 import re
+import shutil
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Tuple
@@ -31,6 +33,7 @@ _EXT_TO_CONTENT_TYPE = {
     "jpeg": "image/jpeg",
 }
 _UPLOAD_CHUNK_SIZE_BYTES = 1024 * 1024
+_LEGACY_ARTIFACT_DIR_NAME = "windieos-artifacts"
 
 
 @dataclass(frozen=True)
@@ -62,9 +65,34 @@ class ArtifactStore:
             raise HTTPException(status_code=400, detail="Invalid artifact id")
         path = self.base_dir / artifact_id
         if not path.is_file():
+            path = self._resolve_legacy_path(artifact_id) or path
+        if not path.is_file():
             raise HTTPException(status_code=404, detail="Artifact not found")
         content_type = _EXT_TO_CONTENT_TYPE.get(path.suffix.lstrip("."), "application/octet-stream")
         return path, content_type
+
+    def _resolve_legacy_path(self, artifact_id: str) -> Optional[Path]:
+        """
+        Resolve artifact from legacy temp storage and opportunistically migrate it.
+
+        Legacy location was `<temp>/windieos-artifacts`.
+        """
+        legacy_dir = Path(tempfile.gettempdir()) / _LEGACY_ARTIFACT_DIR_NAME
+        if legacy_dir == self.base_dir:
+            return None
+
+        legacy_path = legacy_dir / artifact_id
+        if not legacy_path.is_file():
+            return None
+
+        destination = self.base_dir / artifact_id
+        if not destination.is_file():
+            try:
+                shutil.copy2(legacy_path, destination)
+            except Exception:
+                # Best effort only; still serve directly from legacy path.
+                pass
+        return destination if destination.is_file() else legacy_path
 
     def _resolve_upload_extension(self, upload: UploadFile) -> str:
         """Resolve file extension for an upload content type."""
