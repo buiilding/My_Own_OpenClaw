@@ -115,6 +115,43 @@ def test_resolve_raises_when_no_match_found():
         OcrCoordinateResolver.resolve("missing", [_ocr_item("other", 10, 10)])
 
 
+def test_resolve_no_match_error_includes_top_three_candidates():
+    ocr_results = [
+        _ocr_item("Feb 20 Sat", 100, 200),
+        _ocr_item("Feb 2B", 300, 200),
+        _ocr_item("Feb 2026", 500, 200),
+        _ocr_item("Tue 28", 700, 200),
+        _ocr_item("Calendar", 900, 200),
+    ]
+
+    with pytest.raises(ValueError) as exc_info:
+        OcrCoordinateResolver.resolve(
+            "Feb 28 Tue",
+            ocr_results,
+            screenshot_id="shot-no-match-1",
+        )
+
+    message = str(exc_info.value)
+    assert "Could not find text 'Feb 28 Tue' above threshold 0.80" in message
+    assert "Top 3 fuzzy matches:" in message
+    assert "Retry with OCR candidate selection only" in message
+    assert "Grounding screenshot_id='shot-no-match-1'" in message
+    assert "find_coordinates_by='ocr', candidate_id='...'" in message
+
+    candidate_ids = re.findall(r"candidate_id=(ocr_[a-f0-9]{12})", message)
+    assert len(candidate_ids) == 3
+
+    payload_match = re.search(r"ambiguity_payload_json=(\{.*\})$", message)
+    assert payload_match is not None
+    payload = json.loads(payload_match.group(1))
+    assert payload["retry_tool"] == "mouse_control"
+    assert payload["retry_method"] == "ocr_candidate"
+    assert payload["screenshot_id"] == "shot-no-match-1"
+    assert payload["threshold"] == 0.8
+    assert payload["best_score"] >= 0.6
+    assert len(payload["candidates"]) == 3
+
+
 def test_ambiguous_error_limits_listed_matches_and_reports_hidden_count():
     matches = [
         {"item": _ocr_item(f"item-{i}", i * 10, i * 20), "score": 0.9 - i * 0.01}
