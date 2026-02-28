@@ -243,7 +243,6 @@ function createMainWindow({
   });
 
   setMainWindow(mainWindow);
-  enableContentProtectionSafely({ targetWindow: mainWindow, platform, windowLabel: 'main window' });
   loadRendererView({
     targetWindow: mainWindow,
     app,

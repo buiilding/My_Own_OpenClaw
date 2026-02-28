@@ -244,6 +244,18 @@ describe('main_window_runtime createChatWindow', () => {
     expect(options.height).toBe(116);
     expect(options.resizable).toBe(false);
   });
+
+  test('keeps chat overlay hidden from system screenshots', () => {
+    const { deps, chatWindow } = createDeps({ platform: 'win32' });
+
+    createChatWindow(deps);
+
+    expect(deps.enableContentProtectionSafely).toHaveBeenCalledWith({
+      targetWindow: chatWindow,
+      platform: 'win32',
+      windowLabel: 'chat box',
+    });
+  });
 });
 
 describe('main_window_runtime createMainWindow', () => {
@@ -304,5 +316,13 @@ describe('main_window_runtime createMainWindow', () => {
 
     const options = BrowserWindow.mock.calls[0][0];
     expect(options.webPreferences.devTools).toBe(true);
+  });
+
+  test('keeps dashboard visible in system screenshots', () => {
+    const { deps } = createDeps({ platform: 'win32' });
+
+    createMainWindow(deps);
+
+    expect(deps.enableContentProtectionSafely).not.toHaveBeenCalled();
   });
 });
