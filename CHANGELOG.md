@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-surface-preparation): extract shared `surfaceOrchestrator/preparation.ts` builder for `ToolSurfacePreparation` payloads, rewire `toolLifecycle` branches to the shared builder, and add direct preparation-helper regression coverage.
 - refactor(frontend-surface-context): add shared `surfaceOrchestrator/context.ts` to centralize transition source/correlation resolution and focus preparation default resolution, rewire tool/capture lifecycles to the shared helper, and add focused context helper regressions.
 - refactor(frontend-tool-runner-failure-contracts): extract stale-turn and surface-preparation backend envelope builders into shared `toolRunnerFailureContracts.ts`, rewire `useToolRunner` to the shared contracts for both single-tool and bundle failure paths, and add direct contract regression coverage.
 - refactor(frontend-surface-chatpill-visibility): extract shared `chatPillVisibility` helper for non-focusing chat-pill collapse/restore IPC sequencing, rewire both tool and screenshot capture lifecycles to the shared path, and add focused helper regressions for ordering and fail-closed error propagation.
