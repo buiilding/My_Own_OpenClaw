@@ -39,6 +39,7 @@ Module:
 
 - `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
 - `frontend/src/renderer/features/chat/utils/toolRunnerFailureContracts.ts`
+- `frontend/src/renderer/features/chat/utils/toolRunnerTracking.ts`
 - `frontend/src/renderer/infrastructure/services/SurfaceOrchestrator.ts`
 - `frontend/src/renderer/infrastructure/services/CorrelationId.ts`
 - `frontend/src/renderer/infrastructure/services/ToolComputerUseCatalog.ts`
@@ -48,7 +49,7 @@ Responsibilities:
 - receives `tool-call` and `tool-bundle` events
 - guards against stale-turn execution using `streamTracking.activeTurnRef`
 - uses shared terminal phase predicate (`isTerminalStreamPhase`) for stale-turn cleanup/acceptance paths
-- tracks correlation IDs to reject late/out-of-turn results
+- tracks correlation IDs to reject late/out-of-turn results via shared `toolRunnerTracking` helpers (track/untrack/acceptance/prune)
 - resolves correlation IDs via shared normalization helper (`CorrelationId.resolveCorrelationId`) so whitespace-only ids cannot leak into cancellation/result paths
 - sends cancellation-failure payloads (`frontend_stale_turn_cancelled`) via shared `toolRunnerFailureContracts` envelopes when tool events arrive for closed turns
 - sends surface-preparation failure envelopes from the same contract helper (`frontend_execution_surface_unavailable[:reason]`) so single-tool and bundle failure payloads stay synchronized
