@@ -106,6 +106,42 @@ def test_resolve_windie_extraction_target_falls_back_to_runtime_settings():
     assert base_url == "https://runtime-provider.example/v1"
 
 
+def test_resolve_windie_extraction_target_retries_loader_after_import_failure():
+    runtime_config = _runtime_config(
+        model_provider="openai",
+        selected_model_id="gpt-5.1",
+        api_key="runtime-openai-key",
+        provider_config=SimpleNamespace(base_url=None, api_key_env="OPENAI_API_KEY"),
+    )
+
+    loader_module = ModuleType("backend.src.core.config.loader")
+    loader_module.load_settings_from_file = mock.Mock(return_value=runtime_config)
+    attempts = {"count": 0}
+
+    def import_module(name: str):
+        if name != "backend.src.core.config.loader":
+            raise ImportError(name)
+        attempts["count"] += 1
+        if attempts["count"] == 1:
+            raise ImportError("backend loader missing on initial sys.path")
+        return loader_module
+
+    with mock.patch.dict("os.environ", {}, clear=False):
+        provider, model_id, api_key, base_url = resolve_windie_extraction_target(
+            import_module,
+            provider_env="WINDIE_BROWSER_USE_EXTRACTION_PROVIDER",
+            model_id_env="WINDIE_BROWSER_USE_EXTRACTION_MODEL_ID",
+            api_key_env="WINDIE_BROWSER_USE_EXTRACTION_API_KEY",
+            base_url_env="WINDIE_BROWSER_USE_EXTRACTION_BASE_URL",
+        )
+
+    assert attempts["count"] == 2
+    assert provider == "openai"
+    assert model_id == "gpt-5.1"
+    assert api_key == "runtime-openai-key"
+    assert base_url is None
+
+
 def test_build_windie_extraction_llm_openrouter_uses_default_base_url():
     openai_module = ModuleType("browser_use.llm.openai.chat")
     openai_module.ChatOpenAI = FakeChatModel

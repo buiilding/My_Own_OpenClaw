@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(backend-gemini-thought-signature-replay): preserve optional Gemini `thought_signature` across completion/stream tool-call normalization, parsed-response/history bridge, rehydrate loading, provider request normalization, and token-service assistant tool-call canonicalization; add regression coverage for response parsing, stream aggregation, message normalization, bridge replay, token normalization, and rehydrate.
 - fix(ocr-no-match-top-candidates): when OCR text search has no hits above threshold, return top-3 fuzzy candidates (with candidate_id/score/coords) and `ambiguity_payload_json` so retry can still use deterministic `candidate_id` selection instead of only `best match` score text.
 - fix(backend-artifact-store-persistence): move default `artifact_store_path` from temp dir to persistent user config storage (`DesktopAssistant/artifacts`) so historical `screenshot_ref` attachments survive temp cleanup/restarts, plus legacy `<temp>/windieos-artifacts` fallback+migration on lookup; add backend config-model/artifact-store regressions and update config docs.
 - fix(ci-contract-tests): align frontend/backend regression suites with the new screenshot grounding contract by asserting `ApiClient.sendQuery` includes `screenshot_id` + `capture_meta`, requiring manual `MouseControlArgs.screenshot_id` in remote-tool tests, and updating bundle-result receiver tests for the expanded `receive_bundle_result` signature.

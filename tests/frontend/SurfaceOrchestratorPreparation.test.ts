@@ -8,12 +8,14 @@ describe('surfaceOrchestrator preparation helper', () => {
       failureReason: null,
       surfaceToken: 7,
       overlayIgnoreEnabled: true,
+      overlayNonFocusableEnabled: true,
     })).toEqual({
       restoreChatPillAfterExecution: true,
       canExecute: true,
       failureReason: null,
       surfaceToken: 7,
       overlayIgnoreEnabled: true,
+      overlayNonFocusableEnabled: true,
       mode: 'interactive',
       correlationId: 'corr-1',
     });
@@ -26,12 +28,14 @@ describe('surfaceOrchestrator preparation helper', () => {
       failureReason: 'overlay_focus_prepare_failed',
       surfaceToken: null,
       overlayIgnoreEnabled: false,
+      overlayNonFocusableEnabled: false,
     })).toEqual({
       restoreChatPillAfterExecution: false,
       canExecute: false,
       failureReason: 'overlay_focus_prepare_failed',
       surfaceToken: null,
       overlayIgnoreEnabled: false,
+      overlayNonFocusableEnabled: false,
       mode: 'screenshot',
       correlationId: 'corr-2',
     });

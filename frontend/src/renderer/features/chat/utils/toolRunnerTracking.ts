@@ -1,18 +1,24 @@
 import { isTerminalStreamPhase } from './streamPhaseState';
 
+export type TrackedExecution = {
+  turnRef: string | null;
+  conversationRef: string | null;
+};
+
 export function trackExecutionTurn(
-  trackedExecutionTurns: Map<string, string | null>,
+  trackedExecutionTurns: Map<string, TrackedExecution>,
   correlationId: string | null | undefined,
   turnRef: string | null,
+  conversationRef: string | null,
 ): void {
   if (!correlationId) {
     return;
   }
-  trackedExecutionTurns.set(correlationId, turnRef);
+  trackedExecutionTurns.set(correlationId, { turnRef, conversationRef });
 }
 
 export function untrackExecutionTurn(
-  trackedExecutionTurns: Map<string, string | null>,
+  trackedExecutionTurns: Map<string, TrackedExecution>,
   correlationId: string | null | undefined,
 ): void {
   if (!correlationId) {
@@ -22,7 +28,7 @@ export function untrackExecutionTurn(
 }
 
 export function isTrackedExecution(
-  trackedExecutionTurns: Map<string, string | null>,
+  trackedExecutionTurns: Map<string, TrackedExecution>,
   correlationId: string | null | undefined,
 ): boolean {
   if (!correlationId) {
@@ -32,7 +38,7 @@ export function isTrackedExecution(
 }
 
 export function pruneTrackedExecutionTurns(
-  trackedExecutionTurns: Map<string, string | null>,
+  trackedExecutionTurns: Map<string, TrackedExecution>,
   activeTurnRef: string | null,
   streamPhase: string | null | undefined,
 ): void {
@@ -48,16 +54,16 @@ export function pruneTrackedExecutionTurns(
   }
 
   if (isTerminalStreamPhase(streamPhase)) {
-    for (const [correlationId, turnRef] of trackedExecutionTurns.entries()) {
-      if (!turnRef || turnRef === activeTurnRef) {
+    for (const [correlationId, trackedExecution] of trackedExecutionTurns.entries()) {
+      if (!trackedExecution.turnRef || trackedExecution.turnRef === activeTurnRef) {
         trackedExecutionTurns.delete(correlationId);
       }
     }
     return;
   }
 
-  for (const [correlationId, turnRef] of trackedExecutionTurns.entries()) {
-    if (turnRef && turnRef !== activeTurnRef) {
+  for (const [correlationId, trackedExecution] of trackedExecutionTurns.entries()) {
+    if (trackedExecution.turnRef && trackedExecution.turnRef !== activeTurnRef) {
       trackedExecutionTurns.delete(correlationId);
     }
   }

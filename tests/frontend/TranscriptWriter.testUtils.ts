@@ -22,14 +22,22 @@ type StoreTranscriptPayload = {
 export function loadTranscriptWriter() {
   jest.resetModules();
   const invokeMock = jest.fn().mockResolvedValue(undefined);
+  const sendMock = jest.fn();
+  const onHandlers = new Map<string, (...args: any[]) => void>();
+  const onMock = jest.fn((channel: string, handler: (...args: any[]) => void) => {
+    onHandlers.set(channel, handler);
+    return jest.fn();
+  });
 
   jest.doMock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
-    IpcBridge: { invoke: invokeMock },
+    IpcBridge: { invoke: invokeMock, send: sendMock, on: onMock },
     INVOKE_CHANNELS: { STORE_TRANSCRIPT: 'store-transcript' },
+    SEND_CHANNELS: { TRANSCRIPT_SESSION_SYNC: 'transcript-session-sync' },
+    ON_CHANNELS: { TRANSCRIPT_SESSION_SYNC: 'transcript-session-sync' },
   }));
 
   const writer = require('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter') as TranscriptWriterModule;
-  return { writer, invokeMock };
+  return { writer, invokeMock, sendMock, onMock, onHandlers };
 }
 
 export async function flushMicrotasks() {

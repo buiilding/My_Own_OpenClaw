@@ -18,6 +18,7 @@ const {
   handleWindowToggleMaximize,
 } = require('./main_window_controls_handler.cjs');
 const { handleSetOverlayIgnoreMouse } = require('./overlay_mouse_handler.cjs');
+const { handleSetOverlayFocusable } = require('./overlay_focusable_handler.cjs');
 const { handleMoveChatboxTo } = require('./overlay_chatbox_handler.cjs');
 const { handleSetResponseboxSize } = require('./overlay_responsebox_handler.cjs');
 
@@ -74,6 +75,15 @@ function initializeOverlayHandlersRuntime(deps = {}) {
   ipcMain.handle('set-overlay-ignore-mouse', async (_event, { ignore } = {}) => {
     const { chatWindow, responseWindow, contextLabelWindow } = getWindows();
     return handleSetOverlayIgnoreMouse({ ignore }, {
+      chatWindow,
+      responseWindow,
+      contextLabelWindow,
+    });
+  });
+
+  ipcMain.handle('set-overlay-focusable', async (_event, { focusable } = {}) => {
+    const { chatWindow, responseWindow, contextLabelWindow } = getWindows();
+    return handleSetOverlayFocusable({ focusable }, {
       chatWindow,
       responseWindow,
       contextLabelWindow,
@@ -138,8 +148,9 @@ function initializeOverlayHandlersRuntime(deps = {}) {
       return { success: false, reason: 'Overlay focus preparation unavailable' };
     }
     const waitMs = typeof options?.waitMs === 'number' ? options.waitMs : 180;
+    const skipDemotion = options?.skipDemotion === true;
     try {
-      const data = await prepareOverlayToolFocus({ waitMs });
+      const data = await prepareOverlayToolFocus({ waitMs, skipDemotion });
       return { success: true, data: data || null };
     } catch (error) {
       return {

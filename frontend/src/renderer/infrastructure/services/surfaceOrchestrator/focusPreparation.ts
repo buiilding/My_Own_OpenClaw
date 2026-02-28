@@ -7,9 +7,15 @@ export type OverlayFocusPreparationResult = {
   externalFocusActive: boolean;
 };
 
-export async function prepareOverlayToolFocus(waitMs: number): Promise<OverlayFocusPreparationResult> {
+export async function prepareOverlayToolFocus(
+  waitMs: number,
+  options: {
+    skipDemotion?: boolean;
+  } = {},
+): Promise<OverlayFocusPreparationResult> {
   const focusPreparation = await IpcBridge.invoke(INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
     waitMs,
+    skipDemotion: options.skipDemotion === true,
   });
 
   return {

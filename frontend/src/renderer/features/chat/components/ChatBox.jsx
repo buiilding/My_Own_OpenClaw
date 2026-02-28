@@ -7,6 +7,7 @@ import { subscribeResponseOverlayPhase } from '../utils/overlayPhaseListener';
 import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { ApiClient } from '../../../infrastructure/api/client';
+import { getActiveConversationRef } from '../../../infrastructure/transcript/TranscriptWriter';
 import { isDevUiEnabled } from '../utils/devUiFlag';
 import { buildOutgoingMessage } from '../utils/messageInput';
 import { parseClipboardImageItems } from '../utils/clipboardImageUtils';
@@ -207,7 +208,7 @@ function ChatBox() {
       setThinkingSourceEventType,
       updateStreamTracking,
     });
-    ApiClient.stopQuery();
+    ApiClient.stopQuery(getActiveConversationRef());
   }, [composerBusy, setIsSending, setThinkingSourceEventType, setThinkingStatus, updateStreamTracking]);
 
   const handleSubmit = useCallback((event) => {

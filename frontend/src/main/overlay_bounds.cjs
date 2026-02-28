@@ -1,3 +1,6 @@
+const COMPACT_RESPONSE_HEIGHT_THRESHOLD = 56;
+const COMPACT_RESPONSE_HOVER_OFFSET = 6;
+
 function resolvePrimaryWorkArea(screen) {
   if (!screen || typeof screen.getPrimaryDisplay !== 'function') {
     return { x: 0, y: 0, width: 0, height: 0 };
@@ -24,19 +27,37 @@ function getChatWindowBounds({
   return { x, y, width, height };
 }
 
+function resolveResponseGap({ gap = 10, height, compactHover = false }) {
+  const normalizedGap = Number.isFinite(Number(gap)) ? Number(gap) : 10;
+  const normalizedHeight = Math.max(0, Math.round(Number(height) || 0));
+
+  if (
+    compactHover
+    || (normalizedHeight > 0 && normalizedHeight <= COMPACT_RESPONSE_HEIGHT_THRESHOLD)
+  ) {
+    // Keep compact awaiting indicators visually "hovering" over the chat pill
+    // instead of floating far above due strict top anchoring.
+    return normalizedGap - COMPACT_RESPONSE_HOVER_OFFSET;
+  }
+
+  return normalizedGap;
+}
+
 function getResponseWindowBounds({
   screen,
   width,
   height,
   chatBounds = null,
   gap = 10,
+  compactHover = false,
 }) {
   if (!chatBounds) {
     return getChatWindowBounds({ screen, width, height });
   }
+  const resolvedGap = resolveResponseGap({ gap, height, compactHover });
   return {
     x: Math.round(chatBounds.x + (chatBounds.width - width) / 2),
-    y: Math.round(chatBounds.y - gap - height),
+    y: Math.round(chatBounds.y - resolvedGap - height),
     width,
     height,
   };

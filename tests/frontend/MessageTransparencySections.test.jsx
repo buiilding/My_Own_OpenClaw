@@ -3,6 +3,12 @@ import { render, screen } from '@testing-library/react';
 
 import MessageTransparencySections from '../../frontend/src/renderer/features/chat/components/MessageTransparencySections';
 
+const mockIsDevUiEnabled = jest.fn(() => false);
+
+jest.mock('../../frontend/src/renderer/features/chat/utils/devUiFlag', () => ({
+  isDevUiEnabled: () => mockIsDevUiEnabled(),
+}));
+
 const messageWithTransparency = {
   systemPrompt: { content: 'system content' },
   toolSchemas: [
@@ -24,6 +30,11 @@ const messageWithTransparency = {
 };
 
 describe('MessageTransparencySections', () => {
+  beforeEach(() => {
+    mockIsDevUiEnabled.mockReset();
+    mockIsDevUiEnabled.mockReturnValue(false);
+  });
+
   test('renders nothing when message has no transparency payloads', () => {
     render(<MessageTransparencySections message={{ text: 'hello' }} />);
 
@@ -33,7 +44,17 @@ describe('MessageTransparencySections', () => {
     expect(screen.queryByText(/Full Assistant Message \(Complete\)/i)).not.toBeInTheDocument();
   });
 
-  test('shows all transparency sections when message has transparency payloads', () => {
+  test('renders nothing when dev UI is disabled even with transparency payloads', () => {
+    render(<MessageTransparencySections message={messageWithTransparency} />);
+
+    expect(screen.queryByText(/System Prompt/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Tool Schemas \(Available Tools\)/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Full Message Sent to Assistant \(Complete\)/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Full Assistant Message \(Complete\)/i)).not.toBeInTheDocument();
+  });
+
+  test('shows all transparency sections when dev UI is enabled', () => {
+    mockIsDevUiEnabled.mockReturnValue(true);
     render(<MessageTransparencySections message={messageWithTransparency} />);
 
     expect(screen.getByText(/System Prompt/i)).toBeInTheDocument();

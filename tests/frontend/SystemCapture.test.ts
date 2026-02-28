@@ -70,6 +70,7 @@ describe('SystemCapture', () => {
     expect(invokeSpy).toHaveBeenNthCalledWith(2, INVOKE_CHANNELS.HIDE_CHATBOX);
     expect(invokeSpy).toHaveBeenNthCalledWith(3, INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
       waitMs: 120,
+      skipDemotion: true,
     });
     expect(invokeSpy).toHaveBeenNthCalledWith(4, INVOKE_CHANNELS.GET_SYSTEM_STATE, {
       fields: ['active_window', 'mouse_position', 'screen_resolution', 'windows'],
@@ -116,6 +117,7 @@ describe('SystemCapture', () => {
     });
     expect(invokeSpy).toHaveBeenNthCalledWith(3, INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
       waitMs: 120,
+      skipDemotion: true,
     });
     expect(invokeSpy).toHaveBeenNthCalledWith(6, INVOKE_CHANNELS.SHOW_CHATBOX, {
       focus: false,
@@ -159,6 +161,7 @@ describe('SystemCapture', () => {
 
     expect(invokeSpy).toHaveBeenNthCalledWith(1, INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
       waitMs: 120,
+      skipDemotion: true,
     });
     expect(invokeSpy).toHaveBeenNthCalledWith(2, INVOKE_CHANNELS.GET_SYSTEM_STATE, {
       fields: ['active_window', 'mouse_position', 'screen_resolution'],
@@ -180,6 +183,7 @@ describe('SystemCapture', () => {
     expect(invokeSpy).toHaveBeenNthCalledWith(2, INVOKE_CHANNELS.HIDE_CHATBOX);
     expect(invokeSpy).toHaveBeenNthCalledWith(3, INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
       waitMs: 120,
+      skipDemotion: true,
     });
     expect(invokeSpy).toHaveBeenNthCalledWith(4, INVOKE_CHANNELS.EXECUTE_TOOL, {
       toolName: 'screenshot',

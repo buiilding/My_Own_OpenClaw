@@ -1,5 +1,7 @@
 import {
+  DEFAULT_CHAT_WORKSPACE_REF,
   ChatMessage,
+  createInitialStreamTracking,
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 
@@ -15,11 +17,26 @@ export function createAssistantSeedMessage(overrides: Partial<ChatMessage> = {})
 export function resetChatStoreForTests(
   initialMessage: ChatMessage | null = createAssistantSeedMessage(),
 ) {
-  useChatStore.getState().clearMessages();
+  const messages = initialMessage ? [initialMessage] : [];
+  const streamTracking = createInitialStreamTracking();
   useChatStore.setState({
-    messages: initialMessage ? [initialMessage] : [],
+    activeConversationRef: null,
+    turnConversationRefs: {},
+    workspaces: {
+      [DEFAULT_CHAT_WORKSPACE_REF]: {
+        messages,
+        isSending: false,
+        thinkingStatus: null,
+        thinkingSourceEventType: null,
+        tokenCounts: null,
+        streamTracking,
+      },
+    },
+    messages,
     isSending: false,
     thinkingStatus: null,
+    thinkingSourceEventType: null,
     tokenCounts: null,
+    streamTracking,
   });
 }

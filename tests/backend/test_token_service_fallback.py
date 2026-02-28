@@ -292,6 +292,33 @@ def test_count_tokens_stringifies_canonical_assistant_tool_call_arguments(monkey
     ]
 
 
+def test_count_tokens_preserves_tool_call_thought_signature(monkeypatch):
+    captured = _patch_token_counter_capture(monkeypatch, return_value=4)
+
+    token_count = TokenService.count_tokens(
+        [
+            {
+                "role": "assistant",
+                "content": "",
+                "tool_calls": [
+                    {
+                        "id": "tool_xyz",
+                        "name": "browser",
+                        "arguments": {"action": "snapshot"},
+                        "thought_signature": "sig-abc",
+                    }
+                ],
+            }
+        ],
+        model="gemini-3.0-flash",
+    )
+
+    assert token_count == 4
+    normalized_call = captured["messages"][0]["tool_calls"][0]
+    assert normalized_call["thought_signature"] == "sig-abc"
+    assert normalized_call["function"]["thought_signature"] == "sig-abc"
+
+
 def test_get_token_service_singleton_thread_safe(monkeypatch):
     creation_count = {"value": 0}
     barrier = threading.Barrier(16)

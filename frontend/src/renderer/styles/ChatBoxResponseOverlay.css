@@ -64,15 +64,15 @@
   gap: 5px;
   padding: 6px 10px;
   border-radius: 999px;
-  background: rgba(22, 29, 37, 0.84);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--ui-panel-bg);
+  border: 1px solid var(--ui-border-soft);
 }
 
 .chatbox-typing-indicator span {
   width: 6px;
   height: 6px;
   border-radius: 999px;
-  background: rgba(236, 240, 247, 0.84);
+  background: var(--ui-text-primary);
   animation: chatboxTyping 1.08s ease-in-out infinite;
 }
 

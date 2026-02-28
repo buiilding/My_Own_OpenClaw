@@ -39,12 +39,13 @@ Effect:
 
 1. calls `useChatStream(enableTranscript)`
 2. calls `useToolRunner(enableToolRunner)`
-3. returns `ChatContext.Provider` with frozen empty object value
+3. syncs chat-store `activeConversationRef` from transcript session (`useTranscriptSessionInfo`)
+4. returns `ChatContext.Provider` with frozen empty object value
 
 Ownership model:
 
 - side effects live inside hooks (event listeners, transcript/tool execution wiring)
-- provider component itself remains composition-only
+- provider also owns active-conversation projection sync so overlay renderer stores select the same workspace as transcript session identity
 
 ## Surface Flag Semantics
 
@@ -66,8 +67,8 @@ Even though both consume backend events, contract stability assumes this order r
 
 ## Coverage Notes
 
-- direct unit tests for `ChatProvider`/`ChatContext` are not currently present.
-- behavior is covered indirectly by app/provider and overlay integration docs/tests that assert flag wiring and surface ownership.
+- direct `ChatProvider` coverage now exists in `tests/frontend/ChatProvider.test.jsx` for flag wiring and transcript-session conversation sync.
+- `ChatContext` value identity remains covered indirectly by app/provider and overlay integration behavior.
 
 ## Drift Hotspots
 

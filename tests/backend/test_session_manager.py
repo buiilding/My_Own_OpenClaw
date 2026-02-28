@@ -249,7 +249,7 @@ async def test_cancel_active_query_task_sets_pending_stop_and_consumes_late_regi
 
     cancelled = manager.cancel_active_query_task("user-1")
     assert cancelled is None
-    assert "user-1" in manager._pending_stop_requests
+    assert manager._pending_stop_requests["user-1"][None] > 0
 
     late_query_task = asyncio.create_task(_sleep_forever())
     try:
@@ -274,7 +274,7 @@ async def test_cancel_active_query_task_sets_pending_stop_and_consumes_late_regi
 @pytest.mark.asyncio
 async def test_register_active_query_task_ignores_expired_pending_stop_request() -> None:
     manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
-    manager._pending_stop_requests["user-1"] = 0.0
+    manager._pending_stop_requests["user-1"] = {None: 0.0}
 
     async def _sleep_forever() -> None:
         await asyncio.sleep(3600)
@@ -295,3 +295,77 @@ async def test_register_active_query_task_ignores_expired_pending_stop_request()
         manager.clear_active_query_task("user-1", active_task)
         active_task.cancel()
         await asyncio.gather(active_task, return_exceptions=True)
+
+
+@pytest.mark.asyncio
+async def test_cancel_active_query_task_scopes_cancellation_by_conversation_ref() -> None:
+    manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
+
+    async def _sleep_forever() -> None:
+        await asyncio.sleep(3600)
+
+    task_a = asyncio.create_task(_sleep_forever())
+    task_b = asyncio.create_task(_sleep_forever())
+    try:
+        manager.register_active_query_task(
+            "user-1",
+            task_a,
+            turn_ref="turn-a",
+            conversation_ref="conv-a",
+        )
+        manager.register_active_query_task(
+            "user-1",
+            task_b,
+            turn_ref="turn-b",
+            conversation_ref="conv-b",
+        )
+
+        cancelled = manager.cancel_active_query_task("user-1", conversation_ref="conv-a")
+        await asyncio.sleep(0)
+
+        assert cancelled == ("turn-a", "conv-a")
+        assert task_a.cancelled() is True
+        assert task_b.cancelled() is False
+        assert manager.has_active_query_task("user-1") is True
+    finally:
+        manager.clear_active_query_task("user-1", task_b)
+        task_b.cancel()
+        await asyncio.gather(task_a, task_b, return_exceptions=True)
+
+
+@pytest.mark.asyncio
+async def test_pending_stop_request_is_scoped_to_matching_conversation_ref() -> None:
+    manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
+
+    async def _sleep_forever() -> None:
+        await asyncio.sleep(3600)
+
+    cancelled = manager.cancel_active_query_task("user-1", conversation_ref="conv-a")
+    assert cancelled is None
+    assert manager._pending_stop_requests["user-1"]["conv-a"] > 0
+
+    query_conv_b = asyncio.create_task(_sleep_forever())
+    query_conv_a = asyncio.create_task(_sleep_forever())
+    try:
+        consumed_for_b = manager.register_active_query_task(
+            "user-1",
+            query_conv_b,
+            turn_ref="turn-b",
+            conversation_ref="conv-b",
+        )
+        consumed_for_a = manager.register_active_query_task(
+            "user-1",
+            query_conv_a,
+            turn_ref="turn-a",
+            conversation_ref="conv-a",
+        )
+
+        assert consumed_for_b is False
+        assert consumed_for_a is True
+        assert manager.has_active_query_task("user-1") is True
+    finally:
+        manager.clear_active_query_task("user-1", query_conv_b)
+        query_conv_b.cancel()
+        if not query_conv_a.done():
+            query_conv_a.cancel()
+        await asyncio.gather(query_conv_b, query_conv_a, return_exceptions=True)

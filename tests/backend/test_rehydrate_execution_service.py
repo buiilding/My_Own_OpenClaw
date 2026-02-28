@@ -189,6 +189,68 @@ def test_normalize_rehydrated_tool_output_injects_synthetic_tool_call_entry():
     assert known_tool_call_ids == {"rehydrate_tool_call_7"}
 
 
+def test_normalize_rehydrated_entry_sanitizes_internal_tool_bundle_call_trace():
+    service = RehydrateExecutionService(_FakeSessionManager())
+    known_tool_call_ids = set()
+    entry = SimpleNamespace(
+        role="tool",
+        content='{"bundle_id":"bundle-1","tools":[{"name":"mouse_control","arguments":{"x":1,"y":2}}]}',
+        message_type="tool-bundle",
+        tool_name="tool-bundle",
+        correlation_id="bundle-1",
+        tool_call_id=None,
+        timestamp="2026-02-26T00:00:00Z",
+        tool_calls=None,
+    )
+
+    entries, pending = service._normalize_rehydrated_entry(
+        entry=entry,
+        index=11,
+        image_data=None,
+        known_tool_call_ids=known_tool_call_ids,
+        pending_tool_call_id=None,
+    )
+
+    assert len(entries) == 1
+    normalized_entry = entries[0]
+    assert normalized_entry["role"] == "assistant"
+    assert normalized_entry["message_type"] == "llm-text"
+    assert "tool_calls" not in normalized_entry
+    assert pending is None
+    assert known_tool_call_ids == set()
+
+
+def test_normalize_rehydrated_entry_sanitizes_internal_bundled_output_trace():
+    service = RehydrateExecutionService(_FakeSessionManager())
+    known_tool_call_ids = set()
+    entry = SimpleNamespace(
+        role="tool",
+        content="bundled_tools output:\nstatus: failed",
+        message_type="tool-output",
+        tool_name="bundled_tools",
+        correlation_id="bundle-1",
+        tool_call_id=None,
+        timestamp="2026-02-26T00:00:01Z",
+        tool_calls=None,
+    )
+
+    entries, pending = service._normalize_rehydrated_entry(
+        entry=entry,
+        index=12,
+        image_data=None,
+        known_tool_call_ids=known_tool_call_ids,
+        pending_tool_call_id=None,
+    )
+
+    assert len(entries) == 1
+    normalized_entry = entries[0]
+    assert normalized_entry["role"] == "assistant"
+    assert normalized_entry["message_type"] == "llm-text"
+    assert "tool_calls" not in normalized_entry
+    assert pending is None
+    assert known_tool_call_ids == set()
+
+
 def test_normalize_tool_calls_parses_function_payload_and_skips_invalid_entries():
     normalized = RehydrateExecutionService._normalize_tool_calls(
         [
@@ -303,6 +365,31 @@ def test_normalize_tool_calls_falls_back_for_missing_name_and_bad_json_arguments
     )
 
     assert normalized == [{"id": "call-1", "name": "unknown_tool_0", "arguments": {}}]
+
+
+def test_normalize_tool_calls_preserves_thought_signature():
+    normalized = RehydrateExecutionService._normalize_tool_calls(
+        [
+            {
+                "id": "call-1",
+                "type": "function",
+                "function": {
+                    "name": "browser",
+                    "arguments": '{"action":"snapshot"}',
+                    "thoughtSignature": "sig-123",
+                },
+            }
+        ]
+    )
+
+    assert normalized == [
+        {
+            "id": "call-1",
+            "name": "browser",
+            "arguments": {"action": "snapshot"},
+            "thought_signature": "sig-123",
+        }
+    ]
 
 
 def test_normalize_rehydrated_tool_call_entry_uses_explicit_tool_call_id():

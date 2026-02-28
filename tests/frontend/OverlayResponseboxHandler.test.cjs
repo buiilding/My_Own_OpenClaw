@@ -136,6 +136,21 @@ describe('overlay_responsebox_handler', () => {
     expect(deps.showResponseWindowWhenChatVisible).toHaveBeenCalledTimes(1);
   });
 
+  test('passes compact hover flag through to response bounds helper', async () => {
+    const deps = createDeps();
+
+    const result = await handleSetResponseboxSize({
+      visible: true,
+      width: 300,
+      height: 140,
+      compact_hover: true,
+    }, deps);
+
+    expect(result).toEqual({ success: true, visible: true, width: 300, height: 140 });
+    expect(deps.getResponseWindowBounds).toHaveBeenCalledWith(300, 140, { compactHover: true });
+    expect(deps.responseWindow.setBounds).toHaveBeenCalledWith({ x: 1, y: 2, width: 300, height: 140 }, false);
+  });
+
   test('returns unavailable result when response window is missing', async () => {
     const deps = createDeps({ responseWindow: null });
 

@@ -55,6 +55,11 @@ Then attempts runtime fallback via `backend.src.core.config.loader.load_settings
   2. provider config `api_key_env` resolved from process env
   3. legacy `KIMICODE_API_KEY` when provider is `kimi_coding`
 
+Loader import retry behavior:
+
+- resolver retries backend loader import once after prepending repository root to `sys.path`
+- this prevents `extract`/`read_long_content` failures when sidecar starts without repo root import visibility
+
 If loader import/read fails, helper returns env-derived values without raising.
 
 ## OpenAI-Compatible Default Base URL Contract

@@ -1,6 +1,5 @@
 import type { BackendEvent } from '../../../types/backendEvents';
 import type { StreamPhase } from '../stores/chatStore';
-import { isTerminalStreamPhase } from './streamPhaseState';
 
 export function resolveEventConversationRef(event: BackendEvent): string | null {
   if (typeof event.conversation_ref === 'string' && event.conversation_ref.length > 0) {
@@ -29,18 +28,11 @@ export function resolveEventConversationRef(event: BackendEvent): string | null 
 export function shouldIgnoreEventForActiveConversation(
   event: BackendEvent,
   activeConversationRef: string | null,
-  streamTracking: {
+  _streamTracking: {
     activeTurnRef: string | null;
     phase: StreamPhase;
   },
 ): boolean {
-  if (
-    event.type === 'context-compaction-started'
-    || event.type === 'context-compaction-completed'
-    || event.type === 'context-compaction-failed'
-  ) {
-    return false;
-  }
   if (!activeConversationRef) {
     return false;
   }
@@ -54,13 +46,5 @@ export function shouldIgnoreEventForActiveConversation(
   if (event.type === 'local-user-message') {
     return false;
   }
-
-  const hasActiveTurn = (
-    typeof streamTracking.activeTurnRef === 'string'
-    && streamTracking.activeTurnRef.length > 0
-  );
-  if (!hasActiveTurn) {
-    return false;
-  }
-  return !isTerminalStreamPhase(streamTracking.phase);
+  return true;
 }

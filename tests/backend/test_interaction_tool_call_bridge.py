@@ -72,6 +72,35 @@ def test_to_history_tool_calls_preserves_ids_with_fallback():
     ]
 
 
+def test_tool_call_bridge_preserves_thought_signature_between_shapes():
+    parsed = to_parsed_response(
+        {
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "call_1",
+                    "name": "browser",
+                    "arguments": {"action": "snapshot"},
+                    "thought_signature": "sig-123",
+                }
+            ],
+        }
+    )
+
+    assert parsed.tool_calls[0].metadata is not None
+    assert parsed.tool_calls[0].metadata["thought_signature"] == "sig-123"
+
+    history_calls = to_history_tool_calls(parsed.tool_calls)
+    assert history_calls == [
+        {
+            "id": "call_1",
+            "name": "browser",
+            "arguments": {"action": "snapshot"},
+            "thought_signature": "sig-123",
+        }
+    ]
+
+
 def test_extract_tool_call_ids_ignores_missing_or_invalid_values():
     ids = extract_tool_call_ids(
         [

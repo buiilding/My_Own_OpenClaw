@@ -99,6 +99,7 @@ Normalization includes:
 - message_type normalization (`tool-output`, `tool-call`, `llm-text`, `user`, etc.)
 - preservation of assistant tool-call rows with `tool_calls`
 - preservation of tool rows with `tool_call_id`
+- sanitization of internal bundle orchestration traces (`tool-bundle`, `bundled_tools`, or `{"bundle_id","tools"}` payload shapes) into plain assistant context rows so rehydrate does not synthesize non-executable tool names into assistant `tool_calls`
 
 `normalize_message_type(role, message_type)` compatibility aliases:
 
@@ -173,6 +174,7 @@ It does not transform content or make control-flow decisions.
 
 - tool-call rows are reconstructed as assistant tool-call entries
 - subsequent tool-output rows carry matching `tool_call_id`
+- optional Gemini `thought_signature` on assistant tool-calls is preserved through normalize/rehydrate/history replay so follow-up tool turns can include provider-required signature metadata
 
 ## Drift Hotspots
 

@@ -43,6 +43,7 @@ const mockSetThinkingStatus = jest.fn();
 const mockSetThinkingSourceEventType = jest.fn();
 const mockSetTokenCounts = jest.fn();
 const mockUpdateStreamTracking = jest.fn();
+const mockSetChatActiveConversationRef = jest.fn();
 const mockSetActiveConversationRef = jest.fn();
 const mockUpdateTranscriptSession = jest.fn();
 const mockGetActiveConversationRef = jest.fn(() => 'conv_existing');
@@ -67,6 +68,7 @@ const mockChatState = {
   setThinkingSourceEventType: (...args) => mockSetThinkingSourceEventType(...args),
   setTokenCounts: (...args) => mockSetTokenCounts(...args),
   updateStreamTracking: (...args) => mockUpdateStreamTracking(...args),
+  setActiveConversationRef: (...args) => mockSetChatActiveConversationRef(...args),
 };
 
 jest.mock('../../frontend/src/renderer/features/chat/hooks/useChatMessageSender', () => ({
@@ -124,6 +126,13 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
 }));
 
+jest.mock('../../frontend/src/renderer/features/dashboard/hooks/useTranscriptSessionInfo', () => ({
+  useTranscriptSessionInfo: () => ({
+    conversationRef: 'conv_existing',
+    userId: 'default_user',
+  }),
+}));
+
 jest.mock('../../frontend/src/renderer/features/chat/utils/backendAudioEvents', () => ({
   extractAudioChunkPayload: () => null,
 }));
@@ -164,6 +173,7 @@ describe('ChatInterface wiring', () => {
     mockSetThinkingSourceEventType.mockClear();
     mockSetTokenCounts.mockClear();
     mockUpdateStreamTracking.mockClear();
+    mockSetChatActiveConversationRef.mockClear();
     mockSetActiveConversationRef.mockClear();
     mockUpdateTranscriptSession.mockClear();
     mockGetActiveConversationRef.mockClear();
@@ -485,9 +495,9 @@ describe('ChatInterface wiring', () => {
 
     expect(mockSetMessages).toHaveBeenCalledWith([
       { id: 'user-1', sender: 'user', text: 'create a dashboard for this', type: 'user' },
-    ]);
-    expect(mockSetThinkingStatus).toHaveBeenCalledWith(null);
-    expect(mockSetIsSending).toHaveBeenCalledWith(true);
+    ], 'conv_existing');
+    expect(mockSetThinkingStatus).toHaveBeenCalledWith(null, 'conv_existing');
+    expect(mockSetIsSending).toHaveBeenCalledWith(true, 'conv_existing');
 
     expect(mockIpcInvoke).toHaveBeenCalledWith('delete-conversation', {
       userId: 'default_user',
@@ -532,9 +542,9 @@ describe('ChatInterface wiring', () => {
 
     expect(mockSetMessages).toHaveBeenCalledWith([
       { id: 'user-1', sender: 'user', text: 'new prompt', type: 'user' },
-    ]);
-    expect(mockSetThinkingStatus).toHaveBeenCalledWith(null);
-    expect(mockSetIsSending).toHaveBeenCalledWith(true);
+    ], 'conv_existing');
+    expect(mockSetThinkingStatus).toHaveBeenCalledWith(null, 'conv_existing');
+    expect(mockSetIsSending).toHaveBeenCalledWith(true, 'conv_existing');
 
     expect(mockIpcInvoke).toHaveBeenCalledWith('delete-conversation', {
       userId: 'default_user',

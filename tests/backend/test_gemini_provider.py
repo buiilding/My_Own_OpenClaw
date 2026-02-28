@@ -18,6 +18,7 @@ def _build_stream_chunk(
     tool_name: str | None = None,
     tool_arguments: str | None = None,
     tool_call_id: str | None = None,
+    thought_signature: str | None = None,
     content: str | None = None,
     reasoning_content: str | None = None,
     finish_reason: str | None = None,
@@ -33,6 +34,8 @@ def _build_stream_chunk(
             function_payload["name"] = tool_name
         if tool_arguments is not None:
             function_payload["arguments"] = tool_arguments
+        if thought_signature is not None:
+            function_payload["thoughtSignature"] = thought_signature
         tool_call_payload = {"index": 0, "function": function_payload}
         if tool_call_id is not None:
             tool_call_payload["id"] = tool_call_id
@@ -262,5 +265,47 @@ async def test_gemini_stream_prefers_object_arguments_over_fragmented_string(mon
                 "old_string": "x",
                 "new_string": "y",
             },
+        }
+    ]
+
+
+@pytest.mark.asyncio
+async def test_gemini_stream_preserves_thought_signature(monkeypatch):
+    provider = GeminiProvider(api_key="test-key")
+
+    async def fake_stream():
+        yield _build_stream_chunk(
+            tool_name="browser",
+            tool_arguments='{"action":"snapshot"}',
+            tool_call_id="call_1",
+            thought_signature="sig-123",
+            finish_reason="tool_calls",
+        )
+
+    async def fake_open_stream(*, model, messages, completion_kwargs):
+        _ = (model, messages, completion_kwargs)
+        return fake_stream()
+
+    monkeypatch.setattr(provider, "_open_stream", fake_open_stream)
+    await _collect_stream_events(
+        provider,
+        model="gemini-3.1-pro-preview",
+        messages=[{"role": "user", "content": "hi"}],
+        tools=[
+            {
+                "type": "function",
+                "function": {"name": "browser", "parameters": {"type": "object"}},
+            }
+        ],
+    )
+
+    payload = provider.get_last_stream_response_payload()
+    assert payload is not None
+    assert payload["tool_calls"] == [
+        {
+            "id": "call_1",
+            "name": "browser",
+            "arguments": {"action": "snapshot"},
+            "thought_signature": "sig-123",
         }
     ]

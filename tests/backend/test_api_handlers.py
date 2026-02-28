@@ -258,14 +258,23 @@ class DummySessionManager:
             return
         self.registered_query_tasks.pop(user_id, None)
 
-    def cancel_active_query_task(self, user_id: str):
-        self.cancel_calls.append(user_id)
+    def cancel_active_query_task(
+        self,
+        user_id: str,
+        conversation_ref: Optional[str] = None,
+    ):
+        self.cancel_calls.append((user_id, conversation_ref))
         registered = self.registered_query_tasks.get(user_id)
         if registered is None:
             return None
-        task, turn_ref, conversation_ref = registered
+        task, turn_ref, registered_conversation_ref = registered
+        if (
+            conversation_ref is not None
+            and registered_conversation_ref != conversation_ref
+        ):
+            return None
         task.cancel()
-        return turn_ref, conversation_ref
+        return turn_ref, registered_conversation_ref
 
     async def update_session_config(
         self, user_id: str, updates: Dict[str, Any]

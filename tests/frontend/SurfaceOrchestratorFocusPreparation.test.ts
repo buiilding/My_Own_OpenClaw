@@ -23,6 +23,7 @@ describe('surfaceOrchestrator focusPreparation helper', () => {
     });
     expect(IpcBridge.invoke).toHaveBeenCalledWith(INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
       waitMs: 180,
+      skipDemotion: false,
     });
   });
 
@@ -52,6 +53,17 @@ describe('surfaceOrchestrator focusPreparation helper', () => {
       reason: null,
       canVerifyExternalFocus: false,
       externalFocusActive: false,
+    });
+  });
+
+  test('forwards skipDemotion option for no-flicker focus preparation', async () => {
+    jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({ success: true, data: {} });
+
+    await prepareOverlayToolFocus(120, { skipDemotion: true });
+
+    expect(IpcBridge.invoke).toHaveBeenCalledWith(INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
+      waitMs: 120,
+      skipDemotion: true,
     });
   });
 });

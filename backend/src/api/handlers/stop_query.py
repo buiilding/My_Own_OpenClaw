@@ -33,7 +33,10 @@ class StopQueryHandler(TypedMessageHandler[StopQueryMessage]):
         user_id: str,
     ) -> None:
         try:
-            canceled = self.session_manager.cancel_active_query_task(user_id)
+            canceled = self.session_manager.cancel_active_query_task(
+                user_id,
+                conversation_ref=message.payload.conversation_ref,
+            )
             session = self.session_manager.get_session(user_id)
             context = build_user_session_context(user_id=user_id, session=session)
 

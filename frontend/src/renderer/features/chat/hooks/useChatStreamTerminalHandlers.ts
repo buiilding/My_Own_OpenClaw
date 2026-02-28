@@ -16,16 +16,17 @@ type TrackEventFn = (
   eventType: 'token-count' | 'memory-store' | 'error',
   turnRef: string | null | undefined,
   options?: Record<string, unknown>,
+  conversationRef?: string | null,
 ) => void;
 
 type UseChatStreamTerminalHandlersDeps = {
-  addMessage: (message: ChatMessage) => void;
+  addMessage: (message: ChatMessage, conversationRef?: string | null) => void;
   enableTranscript: boolean;
   modelContextRef: { current: TranscriptModelContext };
   recordTrackingEvent: TrackEventFn;
-  setIsSending: (value: boolean) => void;
-  setThinkingSourceEventType: (value: string | null) => void;
-  setThinkingStatus: (value: string | null) => void;
+  setIsSending: (value: boolean, conversationRef?: string | null) => void;
+  setThinkingSourceEventType: (value: string | null, conversationRef?: string | null) => void;
+  setThinkingStatus: (value: string | null, conversationRef?: string | null) => void;
 };
 
 export function useChatStreamTerminalHandlers({
@@ -39,19 +40,19 @@ export function useChatStreamTerminalHandlers({
 }: UseChatStreamTerminalHandlersDeps) {
   const setTokenCounts = useChatStore((state) => state.setTokenCounts);
 
-  const handleTokenCount = useCallback((event: TokenCountEvent) => {
-    setTokenCounts(event.payload ?? null);
-    recordTrackingEvent('token-count', event.turn_ref);
+  const handleTokenCount = useCallback((event: TokenCountEvent, conversationRef?: string | null) => {
+    setTokenCounts(event.payload ?? null, conversationRef);
+    recordTrackingEvent('token-count', event.turn_ref, undefined, conversationRef);
   }, [setTokenCounts, recordTrackingEvent]);
 
-  const handleMemoryStore = useCallback((event: MemoryStoreEvent) => {
-    recordTrackingEvent('memory-store', event.turn_ref);
+  const handleMemoryStore = useCallback((event: MemoryStoreEvent, conversationRef?: string | null) => {
+    recordTrackingEvent('memory-store', event.turn_ref, undefined, conversationRef);
   }, [recordTrackingEvent]);
 
-  const handleError = useCallback((event: ErrorEvent) => {
-    setIsSending(false);
-    setThinkingStatus('');
-    setThinkingSourceEventType(null);
+  const handleError = useCallback((event: ErrorEvent, conversationRef?: string | null) => {
+    setIsSending(false, conversationRef);
+    setThinkingStatus('', conversationRef);
+    setThinkingSourceEventType(null, conversationRef);
     const errorText = resolveErrorText(event.payload);
     const modelContext = modelContextRef.current;
     const newMessage: ChatMessage = {
@@ -65,12 +66,12 @@ export function useChatStreamTerminalHandlers({
       modelId: modelContext.modelId,
       modelProvider: modelContext.modelProvider,
     };
-    addMessage(newMessage);
+    addMessage(newMessage, conversationRef);
 
     recordTrackingEvent('error', event.turn_ref, {
       phase: 'error',
       errorText,
-    });
+    }, conversationRef);
 
     if (enableTranscript) {
       recordAssistantMessage(errorText, {

@@ -5,6 +5,15 @@ from backend.src.core.infrastructure.exceptions import LLMAPIError
 from backend.src.core.types.schemas import NormalizedLLMResponse
 
 
+def _extract_thought_signature(tool_call: Dict[str, Any]) -> Optional[str]:
+    """Extract optional thought signature from snake/camel case fields."""
+    for key in ("thought_signature", "thoughtSignature"):
+        value = tool_call.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return None
+
+
 def normalize_content(
     response: Dict[str, Any],
     *,
@@ -59,11 +68,15 @@ def normalize_tool_call_entry(
             f"Invalid tool call arguments at index {index}: expected dict",
             model=model,
         )
-    return {
+    normalized = {
         "id": tool_id.strip(),
         "name": tool_name.strip(),
         "arguments": copy.deepcopy(arguments),
     }
+    thought_signature = _extract_thought_signature(tool_call)
+    if thought_signature is not None:
+        normalized["thought_signature"] = thought_signature
+    return normalized
 
 
 def normalize_tool_calls(

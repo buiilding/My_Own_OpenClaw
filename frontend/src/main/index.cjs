@@ -95,12 +95,14 @@ const externalFocusTracker = createExternalFocusTracker({
 
 async function prepareOverlayQueryCaptureFocus(options = {}) {
   const waitMs = typeof options?.waitMs === 'number' ? options.waitMs : 120;
+  const skipDemotion = options?.skipDemotion === true;
   return await prepareOverlayQueryCaptureFocusRuntime({
     chatWindow,
     responseWindow,
     mainWindow,
     externalFocusTracker,
     waitMs,
+    skipDemotion,
   });
 }
 

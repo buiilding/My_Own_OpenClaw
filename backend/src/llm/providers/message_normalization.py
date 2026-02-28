@@ -13,6 +13,48 @@ from backend.src.core.types.schemas import LLMMessage
 logger = logging.getLogger(__name__)
 
 
+def _model_requires_thought_signature(model: str) -> bool:
+    return "gemini" in model.lower()
+
+
+def _extract_tool_call_thought_signature(raw_call: Dict[str, Any]) -> str:
+    function_block = raw_call.get("function")
+    candidate_sources = [raw_call]
+    if isinstance(function_block, dict):
+        candidate_sources.append(function_block)
+    for source in candidate_sources:
+        for key in ("thought_signature", "thoughtSignature"):
+            value = source.get(key)
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+    return ""
+
+
+def _apply_thought_signature(
+    *,
+    normalized_call: Dict[str, Any],
+    thought_signature: str,
+    model: str,
+) -> bool:
+    """Attach Gemini thought signature to OpenAI-format tool-call payload."""
+    if not thought_signature or not _model_requires_thought_signature(model):
+        return False
+
+    changed = False
+    if normalized_call.get("thought_signature") != thought_signature:
+        normalized_call["thought_signature"] = thought_signature
+        changed = True
+
+    function_block = normalized_call.get("function")
+    if (
+        isinstance(function_block, dict)
+        and function_block.get("thought_signature") != thought_signature
+    ):
+        function_block["thought_signature"] = thought_signature
+        changed = True
+    return changed
+
+
 def normalize_messages_for_provider(
     messages: List[LLMMessage],
     *,
@@ -143,22 +185,30 @@ def normalize_assistant_tool_call_entry(
                 model=model,
             )
         arguments = function_block.get("arguments")
+        if not isinstance(arguments, str):
+            if arguments is not None and not isinstance(arguments, dict):
+                raise LLMAPIError(
+                    f"Invalid tool_calls[{call_index}] at assistant message index {message_index}: function.arguments must be string/object",
+                    model=model,
+                )
+        normalized = copy.deepcopy(raw_call)
+        changed = False
         if isinstance(arguments, dict):
-            normalized = copy.deepcopy(raw_call)
             normalized["function"]["arguments"] = json.dumps(
                 arguments, ensure_ascii=False, separators=(",", ":")
             )
-            return normalized, True
-        if arguments is None:
-            normalized = copy.deepcopy(raw_call)
+            changed = True
+        elif arguments is None:
             normalized["function"]["arguments"] = "{}"
-            return normalized, True
-        if not isinstance(arguments, str):
-            raise LLMAPIError(
-                f"Invalid tool_calls[{call_index}] at assistant message index {message_index}: function.arguments must be string/object",
-                model=model,
-            )
-        return copy.deepcopy(raw_call), False
+            changed = True
+
+        thought_signature = _extract_tool_call_thought_signature(raw_call)
+        changed = _apply_thought_signature(
+            normalized_call=normalized,
+            thought_signature=thought_signature,
+            model=model,
+        ) or changed
+        return normalized, changed
 
     # Internal runtime shape: {id, name, arguments}
     call_id = raw_call.get("id")
@@ -179,18 +229,21 @@ def normalize_assistant_tool_call_entry(
             f"Invalid tool_calls[{call_index}] at assistant message index {message_index}: arguments must be object",
             model=model,
         )
-
-    return (
-        {
-            "id": call_id,
-            "type": "function",
-            "function": {
-                "name": name,
-                "arguments": json.dumps(arguments, ensure_ascii=False, separators=(",", ":")),
-            },
+    normalized: Dict[str, Any] = {
+        "id": call_id,
+        "type": "function",
+        "function": {
+            "name": name,
+            "arguments": json.dumps(arguments, ensure_ascii=False, separators=(",", ":")),
         },
-        True,
+    }
+    thought_signature = _extract_tool_call_thought_signature(raw_call)
+    _apply_thought_signature(
+        normalized_call=normalized,
+        thought_signature=thought_signature,
+        model=model,
     )
+    return normalized, True
 
 
 def normalize_tools_for_litellm(

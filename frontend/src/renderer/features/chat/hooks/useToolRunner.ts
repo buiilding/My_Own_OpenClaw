@@ -38,8 +38,8 @@ import {
 } from '../utils/toolRunnerSurface';
 import { isTerminalStreamPhase } from '../utils/streamPhaseState';
 import {
+  type TrackedExecution,
   isTrackedExecution,
-  pruneTrackedExecutionTurns,
   trackExecutionTurn,
   untrackExecutionTurn,
 } from '../utils/toolRunnerTracking';
@@ -49,11 +49,35 @@ import {
   shouldDropUntrackedToolRunnerPayload,
 } from '../utils/toolRunnerBackendPayload';
 
-function shouldIgnoreToolEventForTurn(turnRef: string | null | undefined): boolean {
+function resolveToolEventConversationRef(
+  event: Pick<ToolCallEvent | ToolBundleEvent, 'conversation_ref' | 'turn_ref'>,
+): string | null {
+  const explicitConversationRef = (
+    typeof event.conversation_ref === 'string'
+      ? event.conversation_ref.trim()
+      : ''
+  );
+  if (explicitConversationRef) {
+    return explicitConversationRef;
+  }
+  const turnRef = typeof event.turn_ref === 'string' ? event.turn_ref.trim() : '';
+  if (turnRef) {
+    const mappedConversationRef = useChatStore.getState().resolveConversationRefForTurn(turnRef);
+    if (mappedConversationRef) {
+      return mappedConversationRef;
+    }
+  }
+  return useChatStore.getState().activeConversationRef;
+}
+
+function shouldIgnoreToolEventForTurn(
+  turnRef: string | null | undefined,
+  conversationRef: string | null,
+): boolean {
   if (!turnRef) {
     return false;
   }
-  const { streamTracking } = useChatStore.getState();
+  const { streamTracking } = useChatStore.getState().getWorkspaceState(conversationRef);
   if (!streamTracking.activeTurnRef) {
     return true;
   }
@@ -69,18 +93,21 @@ function shouldIgnoreToolEventForTurn(turnRef: string | null | undefined): boole
  */
 export function useToolRunner(enabled = true) {
   const addMessage = useChatStore((state) => state.addMessage);
-  const streamTracking = useChatStore((state) => state.streamTracking);
   const { config } = useAppConfigContext();
 
   const toolServiceRef = useRef<ToolExecutionService | null>(null);
-  const trackedExecutionTurnsRef = useRef<Map<string, string | null>>(new Map());
+  const trackedExecutionTurnsRef = useRef<Map<string, TrackedExecution>>(new Map());
   const modelContextRef = useLatestRef<TranscriptModelContext>({
     modelId: config?.selected_model_id || null,
     modelProvider: config?.model_provider || null,
   });
 
-  const trackExecution = useCallback((correlationId: string | null | undefined, turnRef: string | null) => {
-    trackExecutionTurn(trackedExecutionTurnsRef.current, correlationId, turnRef);
+  const trackExecution = useCallback((
+    correlationId: string | null | undefined,
+    turnRef: string | null,
+    conversationRef: string | null,
+  ) => {
+    trackExecutionTurn(trackedExecutionTurnsRef.current, correlationId, turnRef, conversationRef);
   }, []);
 
   const untrackExecution = useCallback((correlationId: string | null | undefined) => {
@@ -88,7 +115,43 @@ export function useToolRunner(enabled = true) {
   }, []);
 
   const shouldAcceptExecutionResult = useCallback((correlationId: string | null | undefined) => {
-    return isTrackedExecution(trackedExecutionTurnsRef.current, correlationId);
+    if (!isTrackedExecution(trackedExecutionTurnsRef.current, correlationId)) {
+      return false;
+    }
+    if (!correlationId) {
+      return true;
+    }
+    const trackedExecution = trackedExecutionTurnsRef.current.get(correlationId);
+    if (!trackedExecution) {
+      return false;
+    }
+    const streamTracking = useChatStore.getState()
+      .getWorkspaceState(trackedExecution.conversationRef)
+      .streamTracking;
+    if (
+      trackedExecution.turnRef
+      && streamTracking.activeTurnRef
+      && trackedExecution.turnRef !== streamTracking.activeTurnRef
+    ) {
+      trackedExecutionTurnsRef.current.delete(correlationId);
+      return false;
+    }
+    if (
+      trackedExecution.turnRef
+      && streamTracking.activeTurnRef === trackedExecution.turnRef
+      && isTerminalStreamPhase(streamTracking.phase)
+    ) {
+      trackedExecutionTurnsRef.current.delete(correlationId);
+      return false;
+    }
+    return true;
+  }, []);
+
+  const resolveExecutionConversationRef = useCallback((correlationId: string | null | undefined) => {
+    if (!correlationId) {
+      return null;
+    }
+    return trackedExecutionTurnsRef.current.get(correlationId)?.conversationRef || null;
   }, []);
 
   const sendStaleToolCancellation = useCallback((requestId: string | null | undefined) => {
@@ -129,6 +192,7 @@ export function useToolRunner(enabled = true) {
     toolName: string,
     correlationId: string,
     failureError: string,
+    conversationRef: string | null,
   ) => {
     const result = {
       success: false,
@@ -147,24 +211,20 @@ export function useToolRunner(enabled = true) {
       screenshotUrl: null,
       screenshotContentType: null,
       systemState: null,
-    }));
+    }), conversationRef);
     recordToolMessage(
       formattedMessage,
-      buildTranscriptMetadata(
-        toolName,
-        correlationId,
-        null,
-        modelContextRef.current,
-      ),
+      {
+        ...buildTranscriptMetadata(
+          toolName,
+          correlationId,
+          null,
+          modelContextRef.current,
+        ),
+        conversationRef: conversationRef || undefined,
+      },
     );
   }, [addMessage, modelContextRef]);
-
-  useEffect(() => {
-    const activeTurnRef = streamTracking.activeTurnRef;
-    const phase = streamTracking.phase;
-    const trackedEntries = trackedExecutionTurnsRef.current;
-    pruneTrackedExecutionTurns(trackedEntries, activeTurnRef, phase);
-  }, [streamTracking.activeTurnRef, streamTracking.phase]);
 
   useEffect(() => {
     if (!enabled) {
@@ -177,30 +237,38 @@ export function useToolRunner(enabled = true) {
         if (!shouldAcceptExecutionResult(result.correlationId)) {
           return;
         }
-        addMessage(buildToolOutputMessage(result));
+        const conversationRef = resolveExecutionConversationRef(result.correlationId);
+        addMessage(buildToolOutputMessage(result), conversationRef);
         recordToolMessage(
           result.formattedMessage,
-          buildTranscriptMetadata(
-            result.toolName,
-            result.correlationId,
-            result.screenshotRef,
-            modelContextRef.current,
-          ),
+          {
+            ...buildTranscriptMetadata(
+              result.toolName,
+              result.correlationId,
+              result.screenshotRef,
+              modelContextRef.current,
+            ),
+            conversationRef: conversationRef || undefined,
+          },
         );
       },
       onBundleResult: (result: BundleExecutionResult) => {
         if (!shouldAcceptExecutionResult(result.correlationId)) {
           return;
         }
-        addMessage(buildBundleOutputMessage(result));
+        const conversationRef = resolveExecutionConversationRef(result.correlationId);
+        addMessage(buildBundleOutputMessage(result), conversationRef);
         recordToolMessage(
           result.formattedMessage,
-          buildTranscriptMetadata(
-            'bundled_tools',
-            result.correlationId,
-            result.screenshotRef,
-            modelContextRef.current,
-          ),
+          {
+            ...buildTranscriptMetadata(
+              'bundled_tools',
+              result.correlationId,
+              result.screenshotRef,
+              modelContextRef.current,
+            ),
+            conversationRef: conversationRef || undefined,
+          },
         );
       },
       sendToBackend: (payload: unknown) => {
@@ -226,12 +294,14 @@ export function useToolRunner(enabled = true) {
     addMessage,
     enabled,
     modelContextRef,
+    resolveExecutionConversationRef,
     shouldAcceptExecutionResult,
     untrackExecution,
   ]);
 
   const handleToolBundle = useCallback((event: ToolBundleEvent) => {
-    if (shouldIgnoreToolEventForTurn(event.turn_ref)) {
+    const conversationRef = resolveToolEventConversationRef(event);
+    if (shouldIgnoreToolEventForTurn(event.turn_ref, conversationRef)) {
       const bundleId = event.payload?.bundle_id;
       sendStaleBundleCancellation(typeof bundleId === 'string' ? bundleId : null);
       return;
@@ -245,10 +315,12 @@ export function useToolRunner(enabled = true) {
 
     if (toolServiceRef.current) {
       const toolService = toolServiceRef.current;
-      const turnRef = event.turn_ref ?? useChatStore.getState().streamTracking.activeTurnRef ?? null;
+      const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
+      const turnRef = event.turn_ref ?? workspace.streamTracking.activeTurnRef ?? null;
       executeWithSurfaceLifecycle({
         correlationId: bundleId,
         turnRef,
+        conversationRef,
         trackExecution,
         untrackExecution,
         prepareSurface: () => prepareToolExecutionSurface(resolveBundleSurfaceMode(tools), {
@@ -263,7 +335,12 @@ export function useToolRunner(enabled = true) {
         },
         onPreparationFailure: async (preparation) => {
           const failureError = buildSurfaceFailureError(preparation.failureReason);
-          emitSurfaceFailureOutput(`bundled_tools (${tools.length} tools)`, bundleId, failureError);
+          emitSurfaceFailureOutput(
+            `bundled_tools (${tools.length} tools)`,
+            bundleId,
+            failureError,
+            conversationRef,
+          );
           sendBundleSurfaceFailure(bundleId, preparation.failureReason);
         },
         onExecutionError: (err) => {
@@ -283,7 +360,8 @@ export function useToolRunner(enabled = true) {
   ]);
 
   const handleToolCall = useCallback((event: ToolCallEvent) => {
-    if (shouldIgnoreToolEventForTurn(event.turn_ref)) {
+    const conversationRef = resolveToolEventConversationRef(event);
+    if (shouldIgnoreToolEventForTurn(event.turn_ref, conversationRef)) {
       const requestId = resolveToolRequestIdForCancellation(event.payload);
       sendStaleToolCancellation(requestId);
       return;
@@ -299,10 +377,12 @@ export function useToolRunner(enabled = true) {
 
     const correlationId = resolveToolCallCorrelationId(event.payload, event.id);
 
-    const turnRef = event.turn_ref ?? useChatStore.getState().streamTracking.activeTurnRef ?? null;
+    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
+    const turnRef = event.turn_ref ?? workspace.streamTracking.activeTurnRef ?? null;
     void executeWithSurfaceLifecycle({
       correlationId,
       turnRef,
+      conversationRef,
       trackExecution,
       untrackExecution,
       prepareSurface: () => ensureToolExecutionSurface(toolName, parameters, {
@@ -328,7 +408,7 @@ export function useToolRunner(enabled = true) {
       },
       onPreparationFailure: async (preparation) => {
         const failureError = buildSurfaceFailureError(preparation.failureReason);
-        emitSurfaceFailureOutput(toolName, correlationId, failureError);
+        emitSurfaceFailureOutput(toolName, correlationId, failureError, conversationRef);
         sendToolSurfaceFailure(correlationId, preparation.failureReason);
       },
       onExecutionError: (err) => {

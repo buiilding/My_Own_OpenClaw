@@ -1,5 +1,82 @@
 const { registerOverlayRendererWindows } = require('./overlay_renderer_registration.cjs');
 
+function toMb(value) {
+  if (!Number.isFinite(value)) {
+    return null;
+  }
+  return Number((value / (1024 * 1024)).toFixed(1));
+}
+
+function summarizeElectronAppMetrics(metrics = []) {
+  const summary = {
+    processes: 0,
+    browser: 0,
+    renderer: 0,
+    gpu: 0,
+    utility: 0,
+    totalWorkingSetMb: null,
+  };
+  if (!Array.isArray(metrics)) {
+    return summary;
+  }
+
+  let totalWorkingSetBytes = 0;
+  summary.processes = metrics.length;
+  metrics.forEach((metric) => {
+    const type = String(metric?.type || '').toLowerCase();
+    if (type === 'browser') {
+      summary.browser += 1;
+    } else if (type === 'renderer' || type === 'tab') {
+      summary.renderer += 1;
+    } else if (type === 'gpu') {
+      summary.gpu += 1;
+    } else if (type === 'utility') {
+      summary.utility += 1;
+    }
+
+    const workingSetSize = Number(metric?.memory?.workingSetSize);
+    if (Number.isFinite(workingSetSize)) {
+      totalWorkingSetBytes += workingSetSize;
+    }
+  });
+  summary.totalWorkingSetMb = toMb(totalWorkingSetBytes);
+  return summary;
+}
+
+function logStartupMetricsSnapshot(label, deps = {}) {
+  const {
+    log = console.log,
+    getPid = () => process.pid,
+    getProcessMemoryUsage = () => process.memoryUsage(),
+    getAppMetrics = () => [],
+  } = deps;
+
+  let memoryUsage = {};
+  let appMetrics = [];
+  try {
+    memoryUsage = getProcessMemoryUsage() || {};
+  } catch (_error) {
+    memoryUsage = {};
+  }
+  try {
+    appMetrics = getAppMetrics() || [];
+  } catch (_error) {
+    appMetrics = [];
+  }
+
+  const summary = summarizeElectronAppMetrics(appMetrics);
+  const pid = Number(getPid?.()) || process.pid;
+  const rssMb = toMb(Number(memoryUsage?.rss));
+  const heapUsedMb = toMb(Number(memoryUsage?.heapUsed));
+  const workingSetMb = summary.totalWorkingSetMb ?? 'n/a';
+  log(
+    `[Main][StartupMetrics] ${label} pid=${pid} rss_mb=${rssMb ?? 'n/a'} ` +
+      `heap_used_mb=${heapUsedMb ?? 'n/a'} app_processes=${summary.processes} ` +
+      `browser=${summary.browser} renderer=${summary.renderer} gpu=${summary.gpu} ` +
+      `utility=${summary.utility} app_working_set_mb=${workingSetMb}`,
+  );
+}
+
 function initializeMainProcessLifecycleRuntime(deps = {}) {
   const {
     app,
@@ -23,7 +100,37 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
     stopLocalBackend,
     log = console.log,
     warn = console.warn,
+    scheduleTimeout = (fn, ms) => setTimeout(fn, ms),
+    getPid = () => process.pid,
+    getProcessMemoryUsage = () => process.memoryUsage(),
+    getAppMetrics = () => {
+      if (typeof app?.getAppMetrics === 'function') {
+        return app.getAppMetrics();
+      }
+      return [];
+    },
+    requestSingleInstanceLock = () => {
+      if (typeof app?.requestSingleInstanceLock === 'function') {
+        return app.requestSingleInstanceLock();
+      }
+      return true;
+    },
+    quitApp = () => {
+      app.quit();
+    },
   } = deps;
+
+  const singleInstanceLockAcquired = requestSingleInstanceLock();
+  if (!singleInstanceLockAcquired) {
+    log('[Main] Existing instance detected, exiting duplicate process.');
+    quitApp();
+    return;
+  }
+
+  app.on('second-instance', () => {
+    log('[Main][StartupMetrics] second-instance event received; focusing existing window.');
+    showMainWindow({ focus: true });
+  });
 
   app.whenReady().then(() => {
     createWindow();
@@ -58,6 +165,21 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
       warn(`[Main] Failed to register global shortcut: ${wakewordHotkey}`);
     }
 
+    logStartupMetricsSnapshot('startup-ready', {
+      log,
+      getPid,
+      getProcessMemoryUsage,
+      getAppMetrics,
+    });
+    scheduleTimeout(() => {
+      logStartupMetricsSnapshot('startup-ready+2000ms', {
+        log,
+        getPid,
+        getProcessMemoryUsage,
+        getAppMetrics,
+      });
+    }, 2000);
+
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) {
         createWindow();
@@ -84,10 +206,14 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
   });
 
   app.on('window-all-closed', (event) => {
-    event.preventDefault();
+    if (!app.isQuitting) {
+      event.preventDefault();
+    }
   });
 }
 
 module.exports = {
   initializeMainProcessLifecycleRuntime,
+  summarizeElectronAppMetrics,
+  logStartupMetricsSnapshot,
 };

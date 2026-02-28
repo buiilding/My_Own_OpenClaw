@@ -30,7 +30,7 @@ APP_CONFIG = AppConfig(
     # Agent Execution Settings
     max_history_length=None,
     max_agent_iterations=1000,
-    interaction_mode="chat",
+    interaction_mode="agent",
     history_compaction_enabled=True,
     history_compaction_manual_enabled=True,
     history_compaction_openai_remote_enabled=False,

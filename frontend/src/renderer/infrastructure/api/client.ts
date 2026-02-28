@@ -61,10 +61,12 @@ export const ApiClient = {
   /**
    * Request cancellation of the currently active query stream
    */
-  stopQuery: (): void => {
+  stopQuery: (conversationRef: string | null = null): void => {
     IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
       type: 'stop-query',
-      payload: {},
+      payload: {
+        conversation_ref: conversationRef,
+      },
     });
   },
 

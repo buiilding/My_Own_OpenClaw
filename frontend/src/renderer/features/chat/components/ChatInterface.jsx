@@ -29,6 +29,7 @@ import {
   isAwaitingFirstChunkPhase,
   isStopControlAvailablePhase,
 } from '../utils/streamPhaseState';
+import { useTranscriptSessionInfo } from '../../dashboard/hooks/useTranscriptSessionInfo';
 import '../../../styles/ChatInterface.css';
 
 function waitForNextPaint() {
@@ -53,7 +54,13 @@ function ChatInterface({ focusComposerToken = 0 }) {
   const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);
   const setTokenCounts = useChatStore((state) => state.setTokenCounts);
   const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
+  const setChatActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
   const { config, updateConfig, availableModels } = useAppConfigContext();
+  const transcriptSessionInfo = useTranscriptSessionInfo();
+
+  useEffect(() => {
+    setChatActiveConversationRef(transcriptSessionInfo.conversationRef || null);
+  }, [setChatActiveConversationRef, transcriptSessionInfo.conversationRef]);
 
   const audioPlayerRef = useRef(null);
 
@@ -198,8 +205,16 @@ function ChatInterface({ focusComposerToken = 0 }) {
       updateStreamTracking,
     });
     stopPlayback();
-    ApiClient.stopQuery();
-  }, [composerBusy, setIsSending, setThinkingSourceEventType, setThinkingStatus, stopPlayback, updateStreamTracking]);
+    ApiClient.stopQuery(transcriptSessionInfo.conversationRef || getActiveConversationRef() || null);
+  }, [
+    composerBusy,
+    setIsSending,
+    setThinkingSourceEventType,
+    setThinkingStatus,
+    stopPlayback,
+    transcriptSessionInfo.conversationRef,
+    updateStreamTracking,
+  ]);
 
   const handleNewChat = useCallback(() => {
     startNewChatSession({
@@ -210,7 +225,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
       stopActiveQuery: composerBusy
         ? () => {
           stopPlayback();
-          ApiClient.stopQuery();
+          ApiClient.stopQuery(transcriptSessionInfo.conversationRef || getActiveConversationRef() || null);
         }
         : undefined,
     });
@@ -221,6 +236,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
     setThinkingStatus,
     setTokenCounts,
     stopPlayback,
+    transcriptSessionInfo.conversationRef,
   ]);
 
   const handleToggleSpeechMode = useCallback(() => {

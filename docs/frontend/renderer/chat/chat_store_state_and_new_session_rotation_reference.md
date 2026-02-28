@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for chat store and session-rotation behavior: Zustand state contracts, no-op update guards, stream-tracking reset rules, new-chat lifecycle, and conversation-ref synchronization paths."
+summary: "Deep reference for chat store and session-rotation behavior: per-conversation workspace state, active-workspace projection, stream-tracking reset rules, new-chat lifecycle, and conversation-ref synchronization paths."
 read_when:
   - When changing `chatStore`, `startNewChatSession`, or conversation-resume/new-chat state transitions.
   - When debugging stale stream phases, unexpected `isSending` state, or conversation-ref mismatch after new/continued sessions.
@@ -22,13 +22,21 @@ title: "Chat Store State and New Session Rotation Reference"
 
 ## Chat Store Contract
 
-Primary state slices:
+Primary projected state slices (active workspace projection):
 
 - `messages`
 - `isSending`
 - `thinkingStatus`
 - `tokenCounts`
 - `streamTracking`
+
+Conversation workspace state:
+
+- `activeConversationRef`
+- `workspaces: Record<workspaceRef, ChatWorkspaceState>`
+- `turnConversationRefs: Record<turnRef, conversationRef>`
+
+All mutating actions accept optional `conversationRef` and write into that workspace. The projected top-level fields above always mirror the currently active workspace so existing selectors/components stay stable.
 
 Message attachment fields used by current send/runtime paths include:
 
@@ -37,10 +45,10 @@ Message attachment fields used by current send/runtime paths include:
 - `screenshotRef`
 - `screenshotUrl`
 
-`streamTracking` fields capture turn identity, phase, counters, and timestamps:
+`streamTracking` fields capture turn identity, phase, counters, and timestamps per workspace:
 
 - phases: `idle | awaiting-first-chunk | streaming | tool-call | tool-output | complete | error`
-- active turn ref and last event metadata are stored centrally for stop/cancel/tool guards
+- active turn ref and last event metadata are scoped by conversation workspace for stop/cancel/tool guards
 
 ## Action Semantics and No-Op Guards
 
@@ -52,17 +60,19 @@ Message attachment fields used by current send/runtime paths include:
 - `setIsSending`, `setThinkingStatus`, `setTokenCounts` no-op when value/reference unchanged
 - `updateStreamTracking` always applies updater output
 - `clearMessages` clears messages and resets `streamTracking` to initial idle shape
+- `setActiveConversationRef` switches the projected top-level state to that workspace snapshot
+- `registerTurnConversationRef` / `resolveConversationRefForTurn` maintain turn->conversation routing for events that omit `conversation_ref`
 
 No-op guards reduce unnecessary re-renders on high-frequency stream paths.
 
 ## Selector Boundary
 
-`selectChatInterfaceState` exposes:
+`selectChatInterfaceState` exposes active-workspace projection:
 
 - `messages`, `isSending`, `thinkingStatus`, `tokenCounts`
 - derived `streamPhase` from `streamTracking.phase`
 
-`selectChatBoxState` exposes only overlay-needed fields:
+`selectChatBoxState` exposes only active-workspace overlay-needed fields:
 
 - `messages`, `isSending`, `thinkingStatus`
 
@@ -104,6 +114,8 @@ So new-chat resets local store regardless, while active backend loop receives st
 6. close dashboard overlays and keep chat surface active
 
 This path intentionally does not call `startNewChatSession`; it restores an existing conversation ref.
+
+During active loops, dashboard history switching is allowed. In-flight events continue writing to their originating workspace, while the shell renders whichever conversation is currently active.
 
 ## Transcript Session Synchronization
 

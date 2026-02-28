@@ -48,7 +48,7 @@ Ownership boundaries:
 
 - `AppConfigProvider`: persisted config, model-list fetch trigger, backend settings sync, wakeword preference/suppression state
 - `AppStatusProvider`: transient settings-save status (`idle/saving/success/error`) with timeout-based transitions
-- `ChatProvider`: mounts `useChatStream` and `useToolRunner`; no extra chat business logic
+- `ChatProvider`: mounts `useChatStream` and `useToolRunner`, and mirrors transcript session `conversationRef` into chat-store `activeConversationRef` so overlay renderers consume the correct conversation workspace
 
 ## Chat Store Contract (`chatStore.ts`)
 
@@ -59,6 +59,12 @@ Primary state:
 - `thinkingStatus`
 - `tokenCounts`
 - `streamTracking`
+
+Workspace identity state:
+
+- `activeConversationRef`
+- `workspaces` (per-conversation `messages/isSending/thinking/tokenCounts/streamTracking`)
+- `turnConversationRefs` (turn->conversation routing fallback)
 
 `streamTracking` fields used for runtime guardrails:
 
@@ -113,10 +119,13 @@ Listener source:
 
 - `IpcBridge.on(ON_CHANNELS.FROM_BACKEND, ...)`
 
-Pre-routing guards:
+Pre-routing and workspace resolution:
 
 - event shape validated by `isBackendEvent`
-- event filtered by active conversation mismatch guard (`chatStreamConversationGate`), including `memory-store` fallback routing via payload/session `session_id` when `conversation_ref` is absent
+- event conversation resolved from `conversation_ref`, then turn map fallback, then active transcript conversation
+- explicit `conversation_ref` events promote chat-store `activeConversationRef` when no active workspace exists; `local-user-message` also rebinds active workspace to the explicit conversation so overlay-only surfaces (`enableTranscript=false`) project the current turn
+- `turn_ref -> conversation_ref` map is updated opportunistically so later events without `conversation_ref` route correctly
+- handlers write into target conversation workspace instead of only active chat projection
 
 Handler map (`BackendEventType` -> behavior):
 
@@ -162,15 +171,15 @@ Ingress events:
 
 Stale-turn guardrails:
 
-- tool events are ignored when `turn_ref` does not match active stream turn or stream is terminal (`idle/complete/error`)
+- tool events are ignored when `turn_ref` does not match target workspace active turn or stream is terminal (`idle/complete/error`) in that workspace
 - stale tool events send explicit backend cancellation payloads:
 - tool call -> `tool-result` failure with `frontend_stale_turn_cancelled`
 - tool bundle -> `tool-bundle-result` failure with `frontend_stale_turn_cancelled`
 
 Correlation tracking:
 
-- hook tracks correlation IDs to active turn refs
-- drops late/foreign callback results before UI append/backend relay
+- hook tracks correlation IDs to `{turnRef, conversationRef}`
+- drops late/foreign callback results using target workspace stream phase/turn checks before UI append/backend relay
 - removes correlation tracking after backend send
 
 Surface preparation contract (`toolRunnerSurface.ts`):

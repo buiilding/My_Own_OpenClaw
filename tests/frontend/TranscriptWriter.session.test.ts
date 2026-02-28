@@ -28,7 +28,7 @@ describe('TranscriptWriter session lifecycle', () => {
   });
 
   test('emits transcript-session-update event and persists session info on update', async () => {
-    const { writer } = loadTranscriptWriter();
+    const { writer, sendMock } = loadTranscriptWriter();
     const { updates, handler } = createSessionUpdateRecorder();
 
     await withTranscriptSessionUpdateListener(handler, () => {
@@ -39,6 +39,10 @@ describe('TranscriptWriter session lifecycle', () => {
     expect(window.sessionStorage.getItem(TRANSCRIPT_SESSION_STORAGE_KEY)).toBe(
       JSON.stringify({ conversationRef: 'conv-2', userId: 'user-2' }),
     );
+    expect(sendMock).toHaveBeenCalledWith('transcript-session-sync', {
+      conversationRef: 'conv-2',
+      userId: 'user-2',
+    });
   });
 
   test('skips redundant persistence and session-update events when session info is unchanged', async () => {
@@ -76,7 +80,7 @@ describe('TranscriptWriter session lifecycle', () => {
   });
 
   test('setActiveConversationRef updates only conversation identity', () => {
-    const { writer } = loadTranscriptWriter();
+    const { writer, sendMock } = loadTranscriptWriter();
     writer.updateTranscriptSession(null, 'user-1');
 
     writer.setActiveConversationRef('conv-active');
@@ -86,6 +90,24 @@ describe('TranscriptWriter session lifecycle', () => {
       conversationRef: 'conv-active',
       userId: 'user-1',
     });
+    expect(sendMock).toHaveBeenLastCalledWith('transcript-session-sync', {
+      conversationRef: 'conv-active',
+      userId: 'user-1',
+    });
+  });
+
+  test('applies transcript-session-sync updates from main process without rebroadcast', () => {
+    const { writer, sendMock, onHandlers } = loadTranscriptWriter();
+    const handler = onHandlers.get('transcript-session-sync');
+    expect(typeof handler).toBe('function');
+
+    handler?.({ conversationRef: 'conv-synced', userId: 'user-synced' });
+
+    expect(writer.getTranscriptSessionInfo()).toEqual({
+      conversationRef: 'conv-synced',
+      userId: 'user-synced',
+    });
+    expect(sendMock).not.toHaveBeenCalled();
   });
 
   test('setActiveConversationRef(null) clears active conversation and queues new messages', async () => {

@@ -16,6 +16,8 @@ logger = logging.getLogger(__name__)
 
 _TOOL_CALL_MESSAGE_TYPES = frozenset({"tool-call", "tool_call", "tool-bundle", "tool_bundle"})
 _TOOL_OUTPUT_MESSAGE_TYPES = frozenset({"tool-output", "tool_output", "tool-result", "tool_result"})
+_INTERNAL_BUNDLE_MESSAGE_TYPES = frozenset({"tool-bundle", "tool_bundle"})
+_INTERNAL_BUNDLE_TOOL_NAMES = frozenset({"tool-bundle", "tool_bundle", "bundled_tools", "bundled-tools"})
 
 
 class RehydrateExecutionService:
@@ -72,6 +74,20 @@ class RehydrateExecutionService:
         correlation_id = self._normalize_optional_string(entry.correlation_id)
         explicit_tool_call_id = self._normalize_optional_string(entry.tool_call_id)
         message_tool_call_id = explicit_tool_call_id or correlation_id
+
+        if self._is_internal_bundle_trace(
+            normalized_message_type=normalized_message_type,
+            normalized_tool_name=normalized_tool_name,
+            content=entry.content,
+        ):
+            assistant_entry = self._build_assistant_context_entry(
+                content=entry.content,
+                timestamp=entry.timestamp,
+                image_data=image_data,
+            )
+            if assistant_entry is None:
+                return [], None
+            return [assistant_entry], None
 
         if normalized_message_type in _TOOL_CALL_MESSAGE_TYPES:
             call_id = message_tool_call_id or f"rehydrate_tool_call_{index}"
@@ -154,6 +170,26 @@ class RehydrateExecutionService:
         return [hydrated_entry], None
 
     @staticmethod
+    def _build_assistant_context_entry(
+        *,
+        content: Any,
+        timestamp: Optional[str],
+        image_data: Optional[str],
+    ) -> Optional[Dict[str, Any]]:
+        normalized_content = content if isinstance(content, str) else ""
+        if not normalized_content.strip() and image_data is None:
+            return None
+        return {
+            "role": "assistant",
+            "content": normalized_content,
+            "message_type": "llm-text",
+            "tool_name": None,
+            "correlation_id": None,
+            "timestamp": timestamp,
+            "image_data": image_data,
+        }
+
+    @staticmethod
     def _normalize_message_type(message_type: Optional[str]) -> str:
         if not isinstance(message_type, str):
             return ""
@@ -203,6 +239,34 @@ class RehydrateExecutionService:
 
         return tool_name, arguments
 
+    @classmethod
+    def _is_internal_bundle_trace(
+        cls,
+        *,
+        normalized_message_type: str,
+        normalized_tool_name: Optional[str],
+        content: Any,
+    ) -> bool:
+        if normalized_message_type in _INTERNAL_BUNDLE_MESSAGE_TYPES:
+            return True
+
+        if isinstance(normalized_tool_name, str):
+            normalized = normalized_tool_name.strip().lower().replace("_", "-")
+            if normalized in _INTERNAL_BUNDLE_TOOL_NAMES:
+                return True
+
+        if not isinstance(content, str) or not content.strip():
+            return False
+        try:
+            payload = json.loads(content)
+        except (TypeError, ValueError):
+            return False
+        return (
+            isinstance(payload, dict)
+            and isinstance(payload.get("bundle_id"), str)
+            and isinstance(payload.get("tools"), list)
+        )
+
     @staticmethod
     def _normalize_tool_calls(raw_tool_calls: Any) -> List[Dict[str, Any]]:
         if not isinstance(raw_tool_calls, list):
@@ -218,6 +282,13 @@ class RehydrateExecutionService:
 
             call_name: Optional[str] = None
             call_arguments: Dict[str, Any] = {}
+            thought_signature: Optional[str] = None
+
+            for key in ("thought_signature", "thoughtSignature"):
+                raw_signature = raw_call.get(key)
+                if isinstance(raw_signature, str) and raw_signature.strip():
+                    thought_signature = raw_signature.strip()
+                    break
 
             if isinstance(raw_call.get("name"), str) and raw_call.get("name", "").strip():
                 call_name = raw_call["name"].strip()
@@ -227,6 +298,12 @@ class RehydrateExecutionService:
                 function_block = raw_call["function"]
                 if isinstance(function_block.get("name"), str) and function_block.get("name", "").strip():
                     call_name = function_block["name"].strip()
+                if thought_signature is None:
+                    for key in ("thought_signature", "thoughtSignature"):
+                        function_signature = function_block.get(key)
+                        if isinstance(function_signature, str) and function_signature.strip():
+                            thought_signature = function_signature.strip()
+                            break
                 function_arguments = function_block.get("arguments")
                 if isinstance(function_arguments, dict):
                     call_arguments = dict(function_arguments)
@@ -241,13 +318,14 @@ class RehydrateExecutionService:
             if not call_name:
                 call_name = f"unknown_tool_{index}"
 
-            normalized_calls.append(
-                {
-                    "id": call_id.strip(),
-                    "name": call_name,
-                    "arguments": call_arguments,
-                }
-            )
+            normalized_call: Dict[str, Any] = {
+                "id": call_id.strip(),
+                "name": call_name,
+                "arguments": call_arguments,
+            }
+            if thought_signature is not None:
+                normalized_call["thought_signature"] = thought_signature
+            normalized_calls.append(normalized_call)
         return normalized_calls
 
     @staticmethod

@@ -88,6 +88,31 @@ def _serialize_tool_arguments(value: Any) -> str:
         return "{}"
 
 
+def _extract_tool_call_thought_signature(raw_call: Dict[str, Any]) -> str:
+    function_block = raw_call.get("function")
+    candidate_sources = [raw_call]
+    if isinstance(function_block, dict):
+        candidate_sources.append(function_block)
+    for source in candidate_sources:
+        for key in ("thought_signature", "thoughtSignature"):
+            value = source.get(key)
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+    return ""
+
+
+def _apply_tool_call_thought_signature(
+    normalized_call: Dict[str, Any],
+    thought_signature: str,
+) -> None:
+    if not thought_signature:
+        return
+    normalized_call["thought_signature"] = thought_signature
+    function_block = normalized_call.get("function")
+    if isinstance(function_block, dict):
+        function_block["thought_signature"] = thought_signature
+
+
 def _normalize_assistant_tool_calls(tool_calls: Any) -> Optional[list[Dict[str, Any]]]:
     """
     Normalize assistant tool_calls to OpenAI/LiteLLM shape.
@@ -117,6 +142,10 @@ def _normalize_assistant_tool_calls(tool_calls: Any) -> Optional[list[Dict[str, 
             normalized_call = dict(raw_call)
             normalized_call["type"] = "function"
             normalized_call["function"] = function_block
+            _apply_tool_call_thought_signature(
+                normalized_call,
+                _extract_tool_call_thought_signature(raw_call),
+            )
             normalized_calls.append(normalized_call)
             continue
 
@@ -127,16 +156,19 @@ def _normalize_assistant_tool_calls(tool_calls: Any) -> Optional[list[Dict[str, 
         tool_call_id = raw_call.get("id")
         if not isinstance(tool_call_id, str) or not tool_call_id.strip():
             tool_call_id = f"tool_call_{index}"
-        normalized_calls.append(
-            {
-                "id": tool_call_id,
-                "type": "function",
-                "function": {
-                    "name": function_name,
-                    "arguments": _serialize_tool_arguments(raw_call.get("arguments", {})),
-                },
-            }
+        normalized_call = {
+            "id": tool_call_id,
+            "type": "function",
+            "function": {
+                "name": function_name,
+                "arguments": _serialize_tool_arguments(raw_call.get("arguments", {})),
+            },
+        }
+        _apply_tool_call_thought_signature(
+            normalized_call,
+            _extract_tool_call_thought_signature(raw_call),
         )
+        normalized_calls.append(normalized_call)
 
     return normalized_calls
 

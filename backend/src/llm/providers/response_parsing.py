@@ -17,6 +17,18 @@ from backend.src.llm.providers.thinking_extraction import (
 logger = logging.getLogger(__name__)
 
 
+def _extract_thought_signature(raw_tool_call: Any, function_payload: Any) -> Optional[str]:
+    """Extract optional Gemini thought signature from tool-call payloads."""
+    for source in (function_payload, raw_tool_call):
+        if source is None:
+            continue
+        for key in ("thought_signature", "thoughtSignature"):
+            value = get_value(source, key)
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+    return None
+
+
 def first_item(values: Any) -> Optional[Any]:
     """Return first item from indexable or iterable inputs, otherwise None."""
     if not values:
@@ -304,13 +316,15 @@ def normalize_raw_tool_calls(
             model=model,
             invalid_response_message=invalid_response_message,
         )
-        normalized_calls.append(
-            {
-                "id": tool_id,
-                "name": tool_name.strip(),
-                "arguments": arguments,
-            }
-        )
+        normalized_call: Dict[str, Any] = {
+            "id": tool_id,
+            "name": tool_name.strip(),
+            "arguments": arguments,
+        }
+        thought_signature = _extract_thought_signature(raw_tool_call, function_payload)
+        if thought_signature is not None:
+            normalized_call["thought_signature"] = thought_signature
+        normalized_calls.append(normalized_call)
 
     return normalized_calls
 

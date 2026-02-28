@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('ipc', {
   send: (channel, data) => {
     const validChannels = [
       'to-backend',
+      'transcript-session-sync',
       'move-chatbox-to',
       'wakeword-audio-chunk',
       'wakeword-enable',
@@ -38,6 +39,7 @@ contextBridge.exposeInMainWorld('ipc', {
       'store-transcript',
       'get-client-user-id',
       'set-overlay-ignore-mouse',
+      'set-overlay-focusable',
       'set-responsebox-size',
       'show-main-window',
       'get-main-window-visibility',
@@ -66,6 +68,7 @@ contextBridge.exposeInMainWorld('ipc', {
   on: (channel, func) => {
     const validChannels = [
       'from-backend',
+      'transcript-session-sync',
       'ipc-status',
       'log',
       'wakeword-detected',
@@ -90,6 +93,7 @@ contextBridge.exposeInMainWorld('ipc', {
   once: (channel, func) => {
     const validChannels = [
       'from-backend',
+      'transcript-session-sync',
       'ipc-status',
       'log',
       'wakeword-detected',

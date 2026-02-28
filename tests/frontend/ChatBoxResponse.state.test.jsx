@@ -4,6 +4,8 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import {
   ChatBoxResponse,
   emitOverlayPhase,
+  emitOverlayVisibility,
+  mockInvoke,
   resetChatBoxResponseTestState,
   setChatState,
   useChatStore,
@@ -180,4 +182,35 @@ describe('ChatBoxResponse state behavior', () => {
     expect(screen.getByText('Compacting conversation history...')).toBeInTheDocument();
     expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
   });
+
+  test('re-reports compact overlay size after visibility hide/show cycle', async () => {
+    setChatState([
+      { id: 'user-1', text: 'run command', sender: 'user' },
+    ]);
+
+    render(<ChatBoxResponse />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
+    });
+
+    const initialVisibleReports = mockInvoke.mock.calls.filter(
+      ([channel, payload]) => channel === 'set-responsebox-size' && payload?.visible === true,
+    ).length;
+
+    emitOverlayVisibility(false);
+    emitOverlayVisibility(true);
+
+    await waitFor(() => {
+      const visibleReports = mockInvoke.mock.calls.filter(
+        ([channel, payload]) => channel === 'set-responsebox-size' && payload?.visible === true,
+      );
+      expect(visibleReports.length).toBeGreaterThan(initialVisibleReports);
+      expect(visibleReports[visibleReports.length - 1][1]).toEqual(expect.objectContaining({
+        visible: true,
+        compact_hover: true,
+      }));
+    });
+  });
+
 });

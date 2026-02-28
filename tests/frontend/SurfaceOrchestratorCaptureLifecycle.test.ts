@@ -79,4 +79,13 @@ describe('surfaceOrchestrator capture lifecycle', () => {
     consoleLogSpy.mockRestore();
     consoleWarnSpy.mockRestore();
   });
+
+  test('uses no-demotion focus preparation for capture focus handoff', async () => {
+    await prepareExternalFocusForCapture({ captureId: 'capture-focus-2' });
+
+    expect(IpcBridge.invoke).toHaveBeenCalledWith(INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
+      waitMs: 120,
+      skipDemotion: true,
+    });
+  });
 });

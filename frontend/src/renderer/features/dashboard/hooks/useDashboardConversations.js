@@ -18,6 +18,7 @@ function useDashboardConversations({
   setChatMessages,
   setChatIsSending,
   setChatThinkingStatus,
+  setChatActiveConversationRef,
   searchOpen,
 }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -124,14 +125,16 @@ function useDashboardConversations({
 
       setActiveConversationRef(conversationRef);
       updateTranscriptSession(conversationRef, resolvedUserId);
-      setChatMessages(parsedMessages);
-      setChatIsSending(false);
-      setChatThinkingStatus(null);
+      setChatActiveConversationRef(conversationRef);
+      setChatMessages(parsedMessages, conversationRef);
+      setChatIsSending(false, conversationRef);
+      setChatThinkingStatus(null, conversationRef);
     } catch (error) {
       setRecentConversationsError(error?.message || 'Failed to open conversation');
     }
   }, [
     resolvedUserId,
+    setChatActiveConversationRef,
     setChatIsSending,
     setChatMessages,
     setChatThinkingStatus,
@@ -204,9 +207,10 @@ function useDashboardConversations({
       if (sessionConversationRef === conversationRef) {
         setActiveConversationRef(null);
         updateTranscriptSession(null, resolvedUserId);
-        setChatMessages([]);
-        setChatIsSending(false);
-        setChatThinkingStatus(null);
+        setChatActiveConversationRef(null);
+        setChatMessages([], null);
+        setChatIsSending(false, null);
+        setChatThinkingStatus(null, null);
       }
     } catch (error) {
       setRecentConversationsError(error?.message || 'Failed to delete chat');
@@ -214,6 +218,7 @@ function useDashboardConversations({
   }, [
     resolvedUserId,
     sessionConversationRef,
+    setChatActiveConversationRef,
     setChatIsSending,
     setChatMessages,
     setChatThinkingStatus,
