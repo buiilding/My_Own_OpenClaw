@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(frontend-surface-clickthrough-failure): add interactive focus-retry exhaustion regression to assert click-through never enables (and never restores) when surface preparation fails, strengthening race-prone failed-prep recovery coverage.
 - refactor(frontend-surface-focus-preparation): extract shared `surfaceOrchestrator/focusPreparation.ts` helper for overlay focus-prep IPC normalization and reuse it across tool and screenshot-capture lifecycles so focus metadata/reason parsing has one contract; add focused helper regression coverage.
 - refactor(frontend-tool-result-envelope): add shared infrastructure `ToolResultEnvelope` contract module for canonical `tool-result`/`tool-bundle-result` type constants, envelope builders, and correlation-id extraction; rewire `ToolExecutionService` and renderer tool-runner result helpers to the shared source-of-truth and add focused regression coverage.
 - refactor(frontend-replay-context): extract replay tool-message pairing/correlation logic into shared `conversationReplayToolMessages` helpers and rewire `useConversationReplayActions` to the centralized replay-context contract.

@@ -200,6 +200,38 @@ describe('toolRunnerSurface helpers', () => {
     expect(focusAttemptCount).toBe(5);
   });
 
+  test('keeps click-through disabled when interactive focus prep exhausts retries', async () => {
+    (IpcBridge.invoke as jest.Mock).mockImplementation(async (channel: string) => {
+      if (channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS) {
+        return {
+          success: true,
+          data: {
+            canVerifyExternalFocus: true,
+            externalFocusActive: false,
+          },
+        };
+      }
+      return { success: true };
+    });
+
+    const preparation = await prepareToolExecutionSurface('interactive', {
+      correlationId: 'corr-no-click-through-on-failure',
+      focusMaxAttempts: 2,
+    });
+    expect(preparation.canExecute).toBe(false);
+    expect(preparation.overlayIgnoreEnabled).toBe(false);
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).not.toContainEqual([
+      INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE,
+      { ignore: true },
+    ]);
+
+    await restoreToolExecutionSurface(preparation);
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).not.toContainEqual([
+      INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE,
+      { ignore: false },
+    ]);
+  });
+
   test('allows interactive execution when external focus verification is unavailable', async () => {
     (IpcBridge.invoke as jest.Mock).mockImplementation(async (channel: string) => {
       if (channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS) {
