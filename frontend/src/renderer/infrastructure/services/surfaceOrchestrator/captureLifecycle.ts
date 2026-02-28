@@ -1,4 +1,3 @@
-import { IpcBridge, INVOKE_CHANNELS } from '../../ipc/bridge';
 import { logSurfaceTransition } from './logging';
 import {
   resolveCaptureFocusPreparationWaitMs,
@@ -26,6 +25,7 @@ import {
   type CaptureVisibilityPreparation,
   type SurfaceTransitionSource,
 } from './types';
+import { prepareOverlayToolFocus } from './focusPreparation';
 
 export async function prepareScreenshotCaptureVisibility(
   options: {
@@ -168,9 +168,7 @@ export async function prepareExternalFocusForCapture(
       phaseBefore: SURFACE_PHASE.CAPTURE_READY,
       phaseAfter: SURFACE_PHASE.PREPARING_INTERACTIVE_FOCUS,
     });
-    await IpcBridge.invoke(INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
-      waitMs,
-    });
+    await prepareOverlayToolFocus(waitMs);
     logSurfaceTransition({
       source,
       correlationId: captureId,
