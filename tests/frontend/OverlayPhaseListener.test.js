@@ -36,8 +36,16 @@ describe('overlayPhaseListener', () => {
     listener?.(null);
 
     expect(onPhase).toHaveBeenCalledTimes(2);
-    expect(onPhase).toHaveBeenNthCalledWith(1, 'streaming');
-    expect(onPhase).toHaveBeenNthCalledWith(2, 'complete');
+    expect(onPhase).toHaveBeenNthCalledWith(
+      1,
+      'streaming',
+      expect.objectContaining({ phase: 'streaming' }),
+    );
+    expect(onPhase).toHaveBeenNthCalledWith(
+      2,
+      'complete',
+      expect.objectContaining({ phase: 'complete' }),
+    );
 
     unsubscribe();
     expect(removeListener).toHaveBeenCalledTimes(1);

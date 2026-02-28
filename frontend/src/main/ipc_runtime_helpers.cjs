@@ -114,6 +114,60 @@ async function uploadArtifact({ base64, contentType, filename, backendHttpUrl })
   }
 }
 
+function resolveOverlayCorrelationId(data) {
+  if (!data || typeof data !== 'object') {
+    return null;
+  }
+  const payload = (
+    data.payload
+    && typeof data.payload === 'object'
+    && !Array.isArray(data.payload)
+  )
+    ? data.payload
+    : null;
+  if (!payload) {
+    return null;
+  }
+  const candidateKeys = ['request_id', 'correlation_id', 'bundle_id'];
+  for (const key of candidateKeys) {
+    const value = payload[key];
+    if (typeof value === 'string' && value.length > 0) {
+      return value;
+    }
+  }
+  return typeof data.id === 'string' && data.id.length > 0 ? data.id : null;
+}
+
+function resolveOverlayPhaseMetadata(data, recoveryStage) {
+  const metadata = { recovery_stage: recoveryStage };
+  const correlationId = resolveOverlayCorrelationId(data);
+  if (correlationId) {
+    metadata.correlation_id = correlationId;
+  }
+  const payloadMetadata = (
+    data?.payload?.metadata
+    && typeof data.payload.metadata === 'object'
+    && !Array.isArray(data.payload.metadata)
+  )
+    ? data.payload.metadata
+    : null;
+
+  if (typeof payloadMetadata?.attempt === 'number' && Number.isFinite(payloadMetadata.attempt)) {
+    metadata.attempt = payloadMetadata.attempt;
+  }
+  if (typeof payloadMetadata?.max_attempts === 'number' && Number.isFinite(payloadMetadata.max_attempts)) {
+    metadata.max_attempts = payloadMetadata.max_attempts;
+  }
+  if (typeof payloadMetadata?.failure_reason === 'string' && payloadMetadata.failure_reason.length > 0) {
+    metadata.failure_reason = payloadMetadata.failure_reason;
+  }
+  if (typeof data?.payload?.message === 'string' && data.payload.message.length > 0) {
+    metadata.failure_reason = data.payload.message;
+  }
+
+  return metadata;
+}
+
 function processBackendMessageData(data, {
   setCurrentSessionId,
   setCurrentServerUserId,
@@ -148,13 +202,25 @@ function processBackendMessageData(data, {
   if (data.type === 'streaming-response') {
     setResponseOverlayPhase('streaming', 'backend');
   } else if (data.type === 'tool-call' || data.type === 'tool-bundle') {
-    setResponseOverlayPhase('tool-call', 'backend');
+    setResponseOverlayPhase(
+      'tool-call',
+      'backend',
+      resolveOverlayPhaseMetadata(data, 'tool-call'),
+    );
   } else if (data.type === 'tool-output') {
-    setResponseOverlayPhase('awaiting-first-chunk', 'backend');
+    setResponseOverlayPhase(
+      'awaiting-first-chunk',
+      'backend',
+      resolveOverlayPhaseMetadata(data, 'tool-output'),
+    );
   } else if (data.type === 'streaming-complete') {
     setResponseOverlayPhase('complete', 'backend');
   } else if (data.type === 'error' && getResponseOverlayPhase() !== 'idle') {
-    setResponseOverlayPhase('error', 'backend');
+    setResponseOverlayPhase(
+      'error',
+      'backend',
+      resolveOverlayPhaseMetadata(data, 'error'),
+    );
   }
   if (data.type === 'memory-store' && typeof onMemoryStoreEvent === 'function') {
     try {

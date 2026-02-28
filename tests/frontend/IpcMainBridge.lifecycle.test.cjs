@@ -53,6 +53,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(onResponseOverlayPhaseChange).toHaveBeenCalledWith({
       phase: 'tool-call',
       source: 'backend',
+      recovery_stage: 'tool-call',
     });
   });
 
@@ -65,10 +66,39 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(onResponseOverlayPhaseChange).toHaveBeenNthCalledWith(1, {
       phase: 'tool-call',
       source: 'backend',
+      recovery_stage: 'tool-call',
     });
     expect(onResponseOverlayPhaseChange).toHaveBeenNthCalledWith(2, {
       phase: 'awaiting-first-chunk',
       source: 'backend',
+      recovery_stage: 'tool-output',
+    });
+  });
+
+  test('includes overlay recovery metadata for tool-call phase events when available', () => {
+    const onResponseOverlayPhaseChange = jest.fn();
+    const { ws } = setupOpenedIpc({ onResponseOverlayPhaseChange });
+    emitBackendMessage(ws, {
+      id: 'event-tool-call-1',
+      type: 'tool-call',
+      payload: {
+        request_id: 'req-tool-1',
+        metadata: {
+          attempt: 2,
+          max_attempts: 5,
+          failure_reason: 'focus_retrying',
+        },
+      },
+    });
+
+    expect(onResponseOverlayPhaseChange).toHaveBeenCalledWith({
+      phase: 'tool-call',
+      source: 'backend',
+      correlation_id: 'req-tool-1',
+      attempt: 2,
+      max_attempts: 5,
+      recovery_stage: 'tool-call',
+      failure_reason: 'focus_retrying',
     });
   });
 

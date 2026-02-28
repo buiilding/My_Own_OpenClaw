@@ -256,6 +256,54 @@ describe('useToolRunner event handling', () => {
     ]);
   });
 
+  test('enables and then restores click-through around interactive tool execution window', async () => {
+    renderToolRunner(true);
+
+    await emitBackendEventAsync({
+      type: 'tool-call',
+      id: 'event-interactive-click-through-window',
+      payload: {
+        tool_name: 'click',
+        parameters: { x: 24, y: 12 },
+        request_id: 'req-interactive-click-through-window',
+      },
+    });
+
+    expect(mockExecuteTool).toHaveBeenCalledWith(
+      'click',
+      { x: 24, y: 12 },
+      { correlationId: 'req-interactive-click-through-window', skipAutoCapture: false },
+    );
+    expect(IpcBridge.invoke).toHaveBeenCalledWith(
+      INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE,
+      { ignore: true },
+    );
+    expect(IpcBridge.invoke).toHaveBeenCalledWith(
+      INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE,
+      { ignore: false },
+    );
+    const invokeCallOrder = (IpcBridge.invoke as jest.Mock).mock.invocationCallOrder;
+    const enableOrder = invokeCallOrder[
+      (IpcBridge.invoke as jest.Mock).mock.calls.findIndex(
+        ([channel, payload]: unknown[]) => (
+          channel === INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE
+          && (payload as Record<string, unknown> | undefined)?.ignore === true
+        ),
+      )
+    ];
+    const disableOrder = invokeCallOrder[
+      (IpcBridge.invoke as jest.Mock).mock.calls.findIndex(
+        ([channel, payload]: unknown[]) => (
+          channel === INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE
+          && (payload as Record<string, unknown> | undefined)?.ignore === false
+        ),
+      )
+    ];
+    const executeOrder = mockExecuteTool.mock.invocationCallOrder[0];
+    expect(enableOrder).toBeLessThan(executeOrder);
+    expect(executeOrder).toBeLessThan(disableOrder);
+  });
+
 
   test('dispatches tool-bundle events with mapped tools', async () => {
     renderToolRunner(true);

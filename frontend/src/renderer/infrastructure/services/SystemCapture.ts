@@ -6,10 +6,13 @@
 import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
 import { getStoredDisplayBounds } from '../../utils/displaySelection';
 import type { SystemState, ToolResult } from './MessageFormatter';
-
-const CAPTURE_FOCUS_PREPARE_WAIT_MS = 120;
-let activeScreenshotCaptureCount = 0;
-let pendingScreenshotCaptureRestore = false;
+import {
+  __resetSurfaceOrchestratorStateForTests,
+  prepareExternalFocusForCapture,
+  prepareScreenshotCaptureVisibility,
+  restoreScreenshotCaptureVisibility,
+  type CaptureVisibilityPreparation,
+} from './SurfaceOrchestrator';
 
 function buildScreenshotArgs(explanation: string) {
   const args: Record<string, any> = {
@@ -21,50 +24,6 @@ function buildScreenshotArgs(explanation: string) {
     args.display_bounds = displayBounds;
   }
   return args;
-}
-
-async function prepareExternalFocusForCapture(): Promise<void> {
-  try {
-    await IpcBridge.invoke(INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
-      waitMs: CAPTURE_FOCUS_PREPARE_WAIT_MS,
-    });
-  } catch (error) {
-    console.warn('[extractOSstate] Failed to prepare external focus before capture:', error);
-  }
-}
-
-async function prepareScreenshotCaptureVisibility(): Promise<boolean> {
-  activeScreenshotCaptureCount += 1;
-  if (activeScreenshotCaptureCount > 1) {
-    return true;
-  }
-  try {
-    await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false });
-    await IpcBridge.invoke(INVOKE_CHANNELS.HIDE_CHATBOX);
-    pendingScreenshotCaptureRestore = true;
-    return true;
-  } catch (error) {
-    activeScreenshotCaptureCount = Math.max(0, activeScreenshotCaptureCount - 1);
-    console.warn('[extractOSstate] Failed to hide chat pill before screenshot capture:', error);
-    return false;
-  }
-}
-
-async function restoreScreenshotCaptureVisibility(prepared: boolean): Promise<void> {
-  if (!prepared) {
-    return;
-  }
-  activeScreenshotCaptureCount = Math.max(0, activeScreenshotCaptureCount - 1);
-  if (activeScreenshotCaptureCount > 0 || !pendingScreenshotCaptureRestore) {
-    return;
-  }
-  try {
-    await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false });
-  } catch (error) {
-    console.warn('[extractOSstate] Failed to restore chat pill after screenshot capture:', error);
-  } finally {
-    pendingScreenshotCaptureRestore = false;
-  }
 }
 
 /**
@@ -84,7 +43,10 @@ export async function extractOSstate(
   is_first_user_message: boolean = false,
 ): Promise<{ systemState: SystemState | null; screenshot: string | null; screenshotContentType: string | null }> {
   const shouldEmitCaptureEvent = enable_screenshot && typeof window !== 'undefined';
-  let screenshotVisibilityPrepared = false;
+  let screenshotVisibilityPreparation: CaptureVisibilityPreparation = {
+    prepared: false,
+    captureId: 'capture-uninitialized',
+  };
   if (shouldEmitCaptureEvent) {
     window.dispatchEvent(new CustomEvent('windie:screenshot-capture', {
       detail: { active: true },
@@ -101,10 +63,15 @@ export async function extractOSstate(
     }
 
     if (enable_screenshot) {
-      screenshotVisibilityPrepared = await prepareScreenshotCaptureVisibility();
+      screenshotVisibilityPreparation = await prepareScreenshotCaptureVisibility({
+        source: 'system-capture',
+      });
     }
     if (enable_screenshot || enable_system_state) {
-      await prepareExternalFocusForCapture();
+      await prepareExternalFocusForCapture({
+        captureId: screenshotVisibilityPreparation.captureId,
+        source: 'system-capture',
+      });
     }
 
     // For first user message, extract full system state with 0 wait
@@ -189,7 +156,9 @@ export async function extractOSstate(
       return { systemState: null, screenshot: null, screenshotContentType: null };
     }
   } finally {
-    await restoreScreenshotCaptureVisibility(screenshotVisibilityPrepared);
+    await restoreScreenshotCaptureVisibility(screenshotVisibilityPreparation, {
+      source: 'system-capture',
+    });
     if (shouldEmitCaptureEvent) {
       window.dispatchEvent(new CustomEvent('windie:screenshot-capture', {
         detail: { active: false },
@@ -199,8 +168,7 @@ export async function extractOSstate(
 }
 
 export function __resetSystemCaptureStateForTests(): void {
-  activeScreenshotCaptureCount = 0;
-  pendingScreenshotCaptureRestore = false;
+  __resetSurfaceOrchestratorStateForTests();
 }
 
 function resolveScreenshotContentType(data: Record<string, any>): string | null {

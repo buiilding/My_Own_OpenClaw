@@ -19,6 +19,25 @@ export type BackendEventType =
   | 'tool-schemas'
   | 'error';
 
+export type ResponseOverlayPhase =
+  | 'idle'
+  | 'awaiting-first-chunk'
+  | 'streaming'
+  | 'tool-call'
+  | 'tool-output'
+  | 'complete'
+  | 'error';
+
+export type ResponseOverlayPhasePayload = {
+  phase: ResponseOverlayPhase;
+  source?: string;
+  correlation_id?: string;
+  attempt?: number;
+  max_attempts?: number;
+  recovery_stage?: string;
+  failure_reason?: string;
+};
+
 export type BackendEventBase<TType extends BackendEventType, TPayload = undefined> = {
   type: TType;
   payload?: TPayload;

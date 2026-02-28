@@ -36,6 +36,7 @@ Handled backend event families:
 Module:
 
 - `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
+- `frontend/src/renderer/infrastructure/services/SurfaceOrchestrator.ts`
 
 Responsibilities:
 
@@ -43,10 +44,25 @@ Responsibilities:
 - guards against stale-turn execution using `streamTracking.activeTurnRef`
 - tracks correlation IDs to reject late/out-of-turn results
 - sends cancellation-failure payloads (`frontend_stale_turn_cancelled`) when tool events arrive for closed turns
-- before interactive computer-use execution (`click`/`type`/`scroll` paths), requests `show-chatbox` and then `prepare-overlay-tool-focus` so dashboard closes and external app focus is restored before dispatch
-- interactive computer-use click-through (`set-overlay-ignore-mouse(true)`) is applied only after focus prep succeeds and is restored immediately after tool completion
-- for capture-only computer-use turns (`screenshot`, `switch_tab`, `wait`, browser `switch|screenshot`), closes dashboard, temporarily hides chat-pill overlays for capture-safe execution, then restores chat-pill surface after execution
+- delegates all surface preparation/restore transitions to `SurfaceOrchestrator` (single source of truth)
+- interactive computer-use click-through (`set-overlay-ignore-mouse(true)`) is enabled only inside orchestrator-managed execution windows and reference-count restored after completion
+- focus verification retries and bounded exhaustion are orchestrator-owned (`maxAttempts`, `waitMs`) and fail closed with explicit terminal reasons
+- capture-only computer-use turns (`screenshot`, `switch_tab`, `wait`) use orchestrator capture-visibility transitions (hide-before-capture, show-after, overlap-safe restore)
 - applies the same handoff policy to bundles when bundled steps include interactive/capture-only computer-use actions
+
+## Surface Orchestrator
+
+Module:
+
+- `frontend/src/renderer/infrastructure/services/SurfaceOrchestrator.ts`
+
+Responsibilities:
+
+- typed surface transition APIs for tool execution and screenshot capture paths
+- centralized mode resolution (`none | interactive | screenshot`) for single tools and bundles
+- deterministic transition logs (`correlation_id`, retry attempt, before/after phase, terminal reason)
+- explicit dev/prod log gating (production suppresses transition logs unless verbose override is enabled)
+- bounded focus-prepare retries and fail-safe cleanup on both success and terminal failure paths
 
 ## ToolExecutionService
 
