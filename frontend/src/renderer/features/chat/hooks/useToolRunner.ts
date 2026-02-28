@@ -20,6 +20,13 @@ import {
   resolveToolCallCorrelationId,
   type TranscriptModelContext,
 } from '../utils/toolRunnerMessages';
+import {
+  buildBundleSurfaceFailureEnvelope,
+  buildStaleBundleResultEnvelope,
+  buildStaleToolResultEnvelope,
+  buildSurfaceFailureError,
+  buildToolSurfaceFailureEnvelope,
+} from '../utils/toolRunnerFailureContracts';
 import { formatToolOutputMessage } from '../../../infrastructure/services/MessageFormatter';
 import {
   ensureToolExecutionSurface,
@@ -86,15 +93,7 @@ export function useToolRunner(enabled = true) {
     if (!requestId) {
       return;
     }
-    IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
-      type: 'tool-result',
-      payload: {
-        request_id: requestId,
-        success: false,
-        data: null,
-        error: 'frontend_stale_turn_cancelled',
-      },
-    });
+    IpcBridge.send(SEND_CHANNELS.TO_BACKEND, buildStaleToolResultEnvelope(requestId));
   }, []);
 
   const sendToolSurfaceFailure = useCallback((
@@ -104,15 +103,7 @@ export function useToolRunner(enabled = true) {
     if (!requestId) {
       return;
     }
-    IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
-      type: 'tool-result',
-      payload: {
-        request_id: requestId,
-        success: false,
-        data: null,
-        error: `frontend_execution_surface_unavailable${reason ? `: ${reason}` : ''}`,
-      },
-    });
+    IpcBridge.send(SEND_CHANNELS.TO_BACKEND, buildToolSurfaceFailureEnvelope(requestId, reason));
   }, []);
 
   const sendBundleSurfaceFailure = useCallback((
@@ -122,20 +113,8 @@ export function useToolRunner(enabled = true) {
     if (!bundleId) {
       return;
     }
-    IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
-      type: 'tool-bundle-result',
-      payload: {
-        bundle_id: bundleId,
-        status: 'failure',
-        step_results: [],
-        error: `frontend_execution_surface_unavailable${reason ? `: ${reason}` : ''}`,
-      },
-    });
+    IpcBridge.send(SEND_CHANNELS.TO_BACKEND, buildBundleSurfaceFailureEnvelope(bundleId, reason));
   }, []);
-
-  const buildSurfaceFailureError = useCallback((reason: string | null) => (
-    `frontend_execution_surface_unavailable${reason ? `: ${reason}` : ''}`
-  ), []);
 
   const emitSurfaceFailureOutput = useCallback((
     toolName: string,
@@ -277,15 +256,7 @@ export function useToolRunner(enabled = true) {
     if (shouldIgnoreToolEventForTurn(event.turn_ref)) {
       const bundleId = event.payload?.bundle_id;
       if (typeof bundleId === 'string' && bundleId.length > 0) {
-        IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
-          type: 'tool-bundle-result',
-          payload: {
-            bundle_id: bundleId,
-            status: 'failure',
-            step_results: [],
-            error: 'frontend_stale_turn_cancelled',
-          },
-        });
+        IpcBridge.send(SEND_CHANNELS.TO_BACKEND, buildStaleBundleResultEnvelope(bundleId));
       }
       return;
     }
@@ -325,7 +296,6 @@ export function useToolRunner(enabled = true) {
       });
     }
   }, [
-    buildSurfaceFailureError,
     emitSurfaceFailureOutput,
     sendBundleSurfaceFailure,
     trackExecution,
@@ -388,7 +358,6 @@ export function useToolRunner(enabled = true) {
 
     void executeToolCall();
   }, [
-    buildSurfaceFailureError,
     emitSurfaceFailureOutput,
     sendStaleToolCancellation,
     sendToolSurfaceFailure,

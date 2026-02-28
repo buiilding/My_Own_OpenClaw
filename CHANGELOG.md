@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-tool-runner-failure-contracts): extract stale-turn and surface-preparation backend envelope builders into shared `toolRunnerFailureContracts.ts`, rewire `useToolRunner` to the shared contracts for both single-tool and bundle failure paths, and add direct contract regression coverage.
 - refactor(frontend-surface-chatpill-visibility): extract shared `chatPillVisibility` helper for non-focusing chat-pill collapse/restore IPC sequencing, rewire both tool and screenshot capture lifecycles to the shared path, and add focused helper regressions for ordering and fail-closed error propagation.
 - refactor(frontend-stop-query-state): extract shared stop-control state transition helper (`stopQueryState.js`) for chatbox and dashboard stop handlers, preserving stop behavior while removing duplicated terminal stream patch logic; add direct helper regression coverage and sync stop/runtime docs.
 - refactor(frontend-tool-catalog): add shared `ToolComputerUseCatalog` as the canonical interactive/capture-only computer-use tool name source, rewire surface mode and auto-capture classification to that catalog, and add direct catalog regression coverage to prevent classification drift.
