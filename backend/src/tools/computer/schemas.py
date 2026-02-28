@@ -26,9 +26,9 @@ class MouseControlArgs(BaseModel):
     find_coordinates_by: CoordinateFindingMethod = Field(
         CoordinateFindingMethod.MANUAL,
         description=(
-            "Coordinate targeting strategy. If the target has visible text, use 'ocr' "
-            "with exact ocr_text (for example: ocr_text='type something here'). "
-            "Use 'prediction' for non-text UI elements and 'manual' only as fallback."
+            "Coordinate targeting strategy. Model-facing contract is OCR-first: use 'ocr' "
+            "with exact ocr_text for initial targeting, then use candidate_id + screenshot_id "
+            "for ambiguity retries."
         ),
     )
 
