@@ -15,6 +15,7 @@ title: "Response Overlay Phase Runtime Reference"
 - `frontend/src/renderer/features/chat/components/chatBoxResponseUtils.js`
 - `frontend/src/renderer/features/chat/utils/chatSelectors.js`
 - `frontend/src/renderer/features/chat/utils/overlayPhaseListener.js`
+- `frontend/src/renderer/features/chat/utils/responseOverlayPhasePayload.js`
 - `frontend/src/renderer/features/chat/utils/overlayFrameSize.js`
 - `frontend/src/renderer/features/chat/hooks/useAutoResizedResponseHeight.js`
 - `frontend/src/renderer/infrastructure/markdown.ts`
@@ -42,6 +43,11 @@ Closeability:
 ## Phase-Driven View Modes
 
 Overlay phase channel: `response-overlay-phase`.
+
+Payload normalization boundary:
+
+- `responseOverlayPhasePayload.parseResponseOverlayPhasePayload(...)` is the canonical parser for phase + recovery metadata (`correlation_id`, `attempt`, `max_attempts`, `recovery_stage`, `failure_reason`).
+- `overlayPhaseListener` forwards only parsed payloads; invalid phase strings are dropped.
 
 Modes:
 

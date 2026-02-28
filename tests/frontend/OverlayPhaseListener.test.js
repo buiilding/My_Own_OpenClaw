@@ -29,22 +29,48 @@ describe('overlayPhaseListener', () => {
 
     expect(mockOn).toHaveBeenCalledWith('response-overlay-phase', expect.any(Function));
 
-    listener?.({ phase: 'streaming' });
+    listener?.({
+      phase: 'streaming',
+      source: 'backend',
+      correlation_id: 'req-1',
+      attempt: 1,
+      max_attempts: 5,
+      recovery_stage: 'tool-output',
+      failure_reason: 'focus_retrying',
+    });
     listener?.({ phase: 'complete' });
+    listener?.({ phase: 'unknown-phase' });
+    listener?.({ phase: 'error', attempt: Infinity });
     listener?.({ phase: 7 });
     listener?.({});
     listener?.(null);
 
-    expect(onPhase).toHaveBeenCalledTimes(2);
+    expect(onPhase).toHaveBeenCalledTimes(3);
     expect(onPhase).toHaveBeenNthCalledWith(
       1,
       'streaming',
-      expect.objectContaining({ phase: 'streaming' }),
+      {
+        phase: 'streaming',
+        source: 'backend',
+        correlation_id: 'req-1',
+        attempt: 1,
+        max_attempts: 5,
+        recovery_stage: 'tool-output',
+        failure_reason: 'focus_retrying',
+      },
     );
     expect(onPhase).toHaveBeenNthCalledWith(
       2,
       'complete',
       expect.objectContaining({ phase: 'complete' }),
+    );
+    expect(onPhase).toHaveBeenNthCalledWith(
+      3,
+      'error',
+      expect.objectContaining({
+        phase: 'error',
+        attempt: undefined,
+      }),
     );
 
     unsubscribe();
