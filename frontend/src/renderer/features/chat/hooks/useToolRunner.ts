@@ -44,6 +44,10 @@ import {
   untrackExecutionTurn,
 } from '../utils/toolRunnerTracking';
 import { executeWithSurfaceLifecycle } from '../utils/toolRunnerSurfaceExecution';
+import {
+  resolveToolRunnerPayloadCorrelationId,
+  shouldDropUntrackedToolRunnerPayload,
+} from '../utils/toolRunnerBackendPayload';
 
 function shouldIgnoreToolEventForTurn(turnRef: string | null | undefined): boolean {
   if (!turnRef) {
@@ -193,15 +197,8 @@ export function useToolRunner(enabled = true) {
         );
       },
       sendToBackend: (payload: unknown) => {
-        const message = payload as { type?: string; payload?: Record<string, unknown> } | null;
-        const payloadType = message?.type;
-        let correlationId: string | null = null;
-        if (payloadType === 'tool-result' && typeof message?.payload?.request_id === 'string') {
-          correlationId = message.payload.request_id;
-        } else if (payloadType === 'tool-bundle-result' && typeof message?.payload?.bundle_id === 'string') {
-          correlationId = message.payload.bundle_id;
-        }
-        if (correlationId && !shouldAcceptExecutionResult(correlationId)) {
+        const correlationId = resolveToolRunnerPayloadCorrelationId(payload);
+        if (shouldDropUntrackedToolRunnerPayload(correlationId, shouldAcceptExecutionResult)) {
           return;
         }
         IpcBridge.send(SEND_CHANNELS.TO_BACKEND, payload);
