@@ -70,6 +70,7 @@ Module:
 - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/context.ts`
 - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/preparation.ts`
 - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/windowVisibility.ts`
+- `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/reasons.ts`
 
 Responsibilities:
 
@@ -79,6 +80,7 @@ Responsibilities:
 - shared transition-context and focus-default resolver helper (`context.ts`) for source/correlation-id/wait-attempt defaults across tool and capture lifecycles
 - shared `ToolSurfacePreparation` builder helper (`preparation.ts`) to keep ready/failure payload shapes stable across tool-lifecycle branches
 - shared main-window visibility probe helper (`windowVisibility.ts`) for screenshot-mode collapse decisions
+- shared transition/failure reason constants (`reasons.ts`) so logged `reason` fields stay stable across tool/capture paths
 - deterministic transition logs (`correlation_id`, retry attempt, before/after phase, terminal reason)
 - explicit dev/prod log gating via `loggingGate.shouldLogSurfaceTransitions()` (production suppresses transition logs unless verbose override is enabled)
 - bounded focus-prepare retries and fail-safe cleanup on both success and terminal failure paths

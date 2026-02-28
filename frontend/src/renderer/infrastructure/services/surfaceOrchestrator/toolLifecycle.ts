@@ -7,6 +7,13 @@ import {
 import { buildToolSurfacePreparation } from './preparation';
 import { isMainWindowVisible } from './windowVisibility';
 import {
+  SURFACE_REASON_EXTERNAL_FOCUS_NOT_VERIFIED,
+  SURFACE_REASON_NO_TRANSITION_NEEDED,
+  SURFACE_REASON_OVERLAY_FOCUS_PREPARE_FAILED,
+  SURFACE_REASON_RESTORE_CHATBOX_FAILED,
+  SURFACE_REASON_RESTORE_NOT_REQUIRED,
+} from './reasons';
+import {
   collapseChatPillForBackgroundCapture,
   restoreChatPillInactive,
 } from './chatPillVisibility';
@@ -50,7 +57,7 @@ export async function prepareToolExecutionSurface(
       mode,
       phaseBefore: 'idle',
       phaseAfter: 'idle',
-      reason: 'no_surface_transition_needed',
+      reason: SURFACE_REASON_NO_TRANSITION_NEEDED,
     });
     return buildToolSurfacePreparation(mode, correlationId, {
       restoreChatPillAfterExecution: false,
@@ -118,7 +125,7 @@ export async function prepareToolExecutionSurface(
         if (focusPreparation?.success === false) {
           const failureReason = typeof focusPreparation?.reason === 'string'
             ? focusPreparation.reason
-            : 'overlay_focus_prepare_failed';
+            : SURFACE_REASON_OVERLAY_FOCUS_PREPARE_FAILED;
           logSurfaceTransition({
             source,
             correlationId,
@@ -175,12 +182,12 @@ export async function prepareToolExecutionSurface(
         mode,
         phaseBefore: 'preparing_interactive_focus',
         phaseAfter: 'failed_terminal',
-        reason: 'external_window_focus_not_verified',
+        reason: SURFACE_REASON_EXTERNAL_FOCUS_NOT_VERIFIED,
       });
       return buildToolSurfacePreparation(mode, correlationId, {
         restoreChatPillAfterExecution: shouldCollapseForScreenshot,
         canExecute: false,
-        failureReason: 'external_window_focus_not_verified',
+        failureReason: SURFACE_REASON_EXTERNAL_FOCUS_NOT_VERIFIED,
         surfaceToken,
         overlayIgnoreEnabled,
       });
@@ -251,7 +258,7 @@ export async function restoreToolExecutionSurface(
       mode: preparation.mode,
       phaseBefore: 'restoring_surface',
       phaseAfter: 'idle',
-      reason: 'restore_not_required',
+      reason: SURFACE_REASON_RESTORE_NOT_REQUIRED,
     });
     return;
   }
@@ -274,7 +281,7 @@ export async function restoreToolExecutionSurface(
       mode: preparation.mode,
       phaseBefore: 'restoring_surface',
       phaseAfter: 'failed_terminal',
-      reason: 'restore_chatbox_failed',
+      reason: SURFACE_REASON_RESTORE_CHATBOX_FAILED,
     });
   }
 }
