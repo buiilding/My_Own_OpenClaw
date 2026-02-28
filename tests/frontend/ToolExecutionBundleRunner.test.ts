@@ -24,9 +24,11 @@ const mockCaptureAfterTool = captureAfterTool as jest.MockedFunction<typeof capt
 const mockIsComputerUseTool = isComputerUseTool as jest.MockedFunction<typeof isComputerUseTool>;
 const READ_FILE_STEP = { toolName: 'read_file', args: { file_path: '/tmp/a' } };
 const MOUSE_CLICK_STEP = { toolName: 'mouse_control', args: { action: 'click', x: 1, y: 2 } };
+const READ_FILE_BUNDLE_ID = 'bundle-read-file';
+const DEFAULT_TWO_STEP_BUNDLE_ID = 'bundle-two-step';
 
-const runReadFileBundle = () => runToolBundle([READ_FILE_STEP]);
-const runDefaultTwoStepBundle = () => runToolBundle([READ_FILE_STEP, MOUSE_CLICK_STEP]);
+const runReadFileBundle = () => runToolBundle([READ_FILE_STEP], READ_FILE_BUNDLE_ID);
+const runDefaultTwoStepBundle = () => runToolBundle([READ_FILE_STEP, MOUSE_CLICK_STEP], DEFAULT_TWO_STEP_BUNDLE_ID);
 const expectSingleStepResult = (
   outcome: Awaited<ReturnType<typeof runReadFileBundle>>,
   status: 'ok' | 'error',
@@ -90,6 +92,7 @@ describe('ToolExecutionBundleRunner', () => {
       MOUSE_CLICK_STEP.args,
       true,
       0,
+      'bundle-two-step:step-2:mouse_control',
     );
     expect(outcome.stepResults).toEqual([
       { tool: 'read_file', status: 'ok', output: 'first' },
@@ -189,13 +192,14 @@ describe('ToolExecutionBundleRunner', () => {
     const outcome = await runToolBundle([
       { toolName: 'mouse_control', args: { action: 'move', x: 1, y: 2 } },
       { toolName: 'read_file', args: { file_path: '/tmp/a' } },
-    ]);
+    ], 'bundle-two-step-non-final-capture');
 
     expect(mockCaptureAfterTool).toHaveBeenCalledWith(
       'mouse_control',
       { action: 'move', x: 1, y: 2 },
       false,
       0,
+      'bundle-two-step-non-final-capture:step-1:mouse_control',
     );
     expect(outcome.systemState).toBeNull();
     expect(outcome.screenshot).toBe('shot-1');

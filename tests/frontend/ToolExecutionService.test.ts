@@ -112,7 +112,7 @@ describe('ToolExecutionService', () => {
       args: { action: 'click', x: 1, y: 2 },
       skipAutoCapture: false,
     });
-    expect(mockExtractOSstate).toHaveBeenCalledWith(true, true, 2, false);
+    expect(mockExtractOSstate).toHaveBeenCalledWith(true, true, 2, false, 'req-123');
     expect(mockUploadArtifactBase64).toHaveBeenCalledWith(
       'shot',
       'image/png',
@@ -248,7 +248,7 @@ describe('ToolExecutionService', () => {
       { correlationId: 'req-789', skipAutoCapture: false },
     );
 
-    expect(mockExtractOSstate).toHaveBeenCalledWith(true, true, 5, false);
+    expect(mockExtractOSstate).toHaveBeenCalledWith(true, true, 5, false, 'req-789');
   });
 
   test('executeTool formats and reports errors', async () => {
@@ -306,7 +306,7 @@ describe('ToolExecutionService', () => {
       args: { action: 'click', x: 1, y: 2 },
       skipAutoCapture: true,
     });
-    expect(mockExtractOSstate).toHaveBeenCalledWith(true, true, 0, false);
+    expect(mockExtractOSstate).toHaveBeenCalledWith(true, true, 0, false, 'bundle-1:step-2:mouse_control');
     expect(result.screenshot).toBe('bundle-shot');
     expect(onBundleResult).toHaveBeenCalledTimes(1);
     expectBundleResultEnvelope(sendToBackend, 'bundle-1', 'success', {

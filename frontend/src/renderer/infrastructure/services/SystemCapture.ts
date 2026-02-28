@@ -41,6 +41,7 @@ export async function extractOSstate(
   enable_system_state: boolean,
   wait: number,
   is_first_user_message: boolean = false,
+  captureCorrelationId: string | null = null,
 ): Promise<{ systemState: SystemState | null; screenshot: string | null; screenshotContentType: string | null }> {
   const shouldEmitCaptureEvent = enable_screenshot && typeof window !== 'undefined';
   let screenshotVisibilityPreparation: CaptureVisibilityPreparation = {
@@ -64,12 +65,16 @@ export async function extractOSstate(
 
     if (enable_screenshot) {
       screenshotVisibilityPreparation = await prepareScreenshotCaptureVisibility({
+        captureId: captureCorrelationId,
         source: 'system-capture',
       });
     }
+    const captureFocusCorrelationId = screenshotVisibilityPreparation.prepared
+      ? screenshotVisibilityPreparation.captureId
+      : captureCorrelationId;
     if (enable_screenshot || enable_system_state) {
       await prepareExternalFocusForCapture({
-        captureId: screenshotVisibilityPreparation.captureId,
+        captureId: captureFocusCorrelationId,
         source: 'system-capture',
       });
     }
