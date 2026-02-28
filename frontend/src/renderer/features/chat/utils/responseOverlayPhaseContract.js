@@ -1,20 +1,12 @@
-export const RESPONSE_OVERLAY_PHASES = Object.freeze([
-  'idle',
-  'awaiting-first-chunk',
-  'streaming',
-  'tool-call',
-  'tool-output',
-  'complete',
-  'error',
-]);
+import responseOverlayPhaseContract from '../../../../shared/response_overlay_phase_contract.json';
 
-export const RESPONSE_OVERLAY_METADATA_KEYS = Object.freeze([
-  'correlation_id',
-  'attempt',
-  'max_attempts',
-  'recovery_stage',
-  'failure_reason',
-]);
+export const RESPONSE_OVERLAY_PHASES = Object.freeze(
+  [...(responseOverlayPhaseContract?.phases || [])],
+);
+
+export const RESPONSE_OVERLAY_METADATA_KEYS = Object.freeze(
+  [...(responseOverlayPhaseContract?.metadata_keys || [])],
+);
 
 export const RESPONSE_OVERLAY_PHASE = Object.freeze(Object.fromEntries(
   RESPONSE_OVERLAY_PHASES.map((phase) => [

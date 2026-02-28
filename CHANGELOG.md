@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-overlay-phase-contract-source): move canonical overlay phase + metadata key lists into shared `frontend/src/shared/response_overlay_phase_contract.json`, and rewire both renderer (`responseOverlayPhaseContract.js`) and main (`ipc_overlay_phase_contract.cjs`) to consume that single source-of-truth while preserving existing parity tests.
 - test(frontend-surface-recovery): add interactive prep recovery regression proving a focus-verification exhaustion failure does not poison the next execution window; subsequent prep can still enable/restore click-through normally.
 - test(frontend-tool-runner-stop-race): add late bundle-result stop/completion regression in `ToolRunnerHook.callbacks` so post-stop callback/backend-send races are dropped symmetrically with single-tool results; extract stale bundle cancellation send path in `useToolRunner` to the same helper style as single-tool cancellation.
 - test(frontend-surface-clickthrough-failure): add interactive focus-retry exhaustion regression to assert click-through never enables (and never restores) when surface preparation fails, strengthening race-prone failed-prep recovery coverage.
