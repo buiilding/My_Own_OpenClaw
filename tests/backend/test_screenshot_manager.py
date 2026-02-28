@@ -20,14 +20,16 @@ class DummySession:
         self.ocr_completion_event.set()
         self._current_screenshot_id = None
         self._current_screenshot = None
+        self._current_capture_meta = None
         self._current_ocr_results = None
         self._active_ocr_task = None
         self._active_ocr_screenshot_id = None
         self.cancel_calls = 0
 
-    def set_current_screenshot(self, screenshot_id, data):
+    def set_current_screenshot(self, screenshot_id, data, capture_meta=None):
         self._current_screenshot_id = screenshot_id
         self._current_screenshot = data
+        self._current_capture_meta = capture_meta
 
     def get_current_screenshot_id(self):
         return self._current_screenshot_id
@@ -100,6 +102,8 @@ async def test_process_screenshot_stores_id_and_data():
     assert len(screenshot_id) == 16
     assert session.get_current_screenshot_id() == screenshot_id
     assert session.get_screenshot() == "img-data"
+    if session._current_capture_meta is not None:
+        assert session._current_capture_meta["screenshot_id"] == screenshot_id
 
 
 def test_generate_screenshot_id_deterministic_for_same_input():

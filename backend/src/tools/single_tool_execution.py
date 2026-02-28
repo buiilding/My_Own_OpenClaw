@@ -103,18 +103,24 @@ async def execute_single_tool(
         )
         current_screenshot_id = session_ref.get_current_screenshot_id()
         
-        if resolution_screenshot_id and current_screenshot_id and resolution_screenshot_id != current_screenshot_id:
+        if resolution_screenshot_id and resolution_screenshot_id != current_screenshot_id:
             logger.warning(
                 f"[request_id={request_id_short}] STALE SCREEN DETECTED: "
                 f"Coordinates were resolved using screenshot {resolution_screenshot_id[:8]}, "
-                f"but current screenshot is {current_screenshot_id[:8]}. "
+                f"but current screenshot is {(current_screenshot_id[:8] if current_screenshot_id else 'none')}. "
                 f"Screen changed before execution - tool will fail to prevent dangerous actions."
             )
             # Fail the tool to prevent executing on wrong screen
             stale_screen_result = ToolResult(
                 success=False,
-                error="Screen changed before tool execution. Coordinates are no longer valid.",
-                llm_content="Error: The screen state changed after coordinate resolution. Please try again."
+                error=(
+                    "frame changed, re-ground required: "
+                    "screen changed before tool execution and coordinates are no longer valid."
+                ),
+                llm_content=(
+                    "Error: frame changed, re-ground required. "
+                    "The screen state changed after coordinate resolution."
+                ),
             )
             return create_tool_result_object(tool_call, stale_screen_result, execution_time=0)
     

@@ -5,6 +5,7 @@ type DisplayBounds = {
   y: number;
   width: number;
   height: number;
+  monitor_id?: string;
 };
 
 function isFiniteNumber(value: unknown): value is number {
@@ -18,7 +19,7 @@ function parseDisplayBounds(raw: string): DisplayBounds | null {
       return null;
     }
 
-    const { x, y, width, height } = parsed as DisplayBounds;
+    const { x, y, width, height, monitor_id } = parsed as DisplayBounds;
     if (
       !isFiniteNumber(x) ||
       !isFiniteNumber(y) ||
@@ -30,7 +31,11 @@ function parseDisplayBounds(raw: string): DisplayBounds | null {
     if (width <= 0 || height <= 0) {
       return null;
     }
-    return { x, y, width, height };
+    const normalized: DisplayBounds = { x, y, width, height };
+    if (typeof monitor_id === 'string' && monitor_id.length > 0) {
+      normalized.monitor_id = monitor_id;
+    }
+    return normalized;
   } catch (error) {
     console.warn('[DisplaySelection] Failed to parse stored bounds:', error);
     return null;

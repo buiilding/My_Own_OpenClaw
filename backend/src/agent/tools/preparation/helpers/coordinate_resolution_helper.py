@@ -85,7 +85,11 @@ async def resolve_coordinates(
     # 4. Resolve coordinates
     coord_resolve_start_time = time.perf_counter()
     x, y = await coordinate_resolver.resolve(
-        tool_call, screenshot_data, ocr_results, effective_vision_service
+        tool_call,
+        screenshot_data,
+        ocr_results,
+        effective_vision_service,
+        screenshot_id=screenshot_id,
     )
     coord_resolve_time = time.perf_counter() - coord_resolve_start_time
     logger.info(

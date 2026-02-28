@@ -146,6 +146,7 @@ class ToolSelection:
             args_props.pop("y", None)
         if "ocr" not in allowed_methods:
             args_props.pop("ocr_text", None)
+            args_props.pop("candidate_id", None)
         if "prediction" not in allowed_methods:
             args_props.pop("description", None)
             args_props.pop("model_name", None)

@@ -80,6 +80,8 @@ class ToolResultReceiver:
         step_results: List[Any],
         screenshot: Optional[str],
         screenshot_ref: Optional[str],
+        screenshot_id: Optional[str],
+        capture_meta: Optional[Dict[str, Any]],
         system_state: Optional[Dict[str, Any]],
         error: Optional[str],
     ) -> ToolResult:
@@ -106,6 +108,8 @@ class ToolResultReceiver:
             "step_results": normalized_step_results,
             "screenshot": screenshot,
             "screenshot_ref": screenshot_ref,
+            "screenshot_id": screenshot_id,
+            "capture_meta": capture_meta,
             "system_state": system_state,
         }
 

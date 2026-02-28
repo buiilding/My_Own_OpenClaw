@@ -38,6 +38,9 @@ class ScreenshotProcessor:
         session: "AgentSession",
         screenshot_data: str,
         context_id: str,
+        *,
+        screenshot_id: Optional[str] = None,
+        capture_meta: Optional[dict] = None,
     ) -> Optional[str]:
         """
         Process screenshot from tool result.
@@ -54,7 +57,11 @@ class ScreenshotProcessor:
         """
         try:
             screenshot_id = await self.screenshot_manager.process_screenshot(
-                session, screenshot_data, context_id
+                session,
+                screenshot_data,
+                context_id,
+                screenshot_id=screenshot_id,
+                capture_meta=capture_meta,
             )
             return screenshot_id
         except Exception as e:

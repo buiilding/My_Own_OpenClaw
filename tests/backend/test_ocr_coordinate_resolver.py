@@ -46,10 +46,42 @@ def test_resolve_raises_actionable_error_for_multiple_fuzzy_matches():
 
     message = str(exc_info.value)
     assert "Multiple OCR instances matched 'Add to cart' above threshold 0.80" in message
-    assert "Add to cart (150, 210" in message
-    assert "Add to carts (350, 210" in message
-    assert "manual coordinates" in message
+    assert "Add to cart [candidate_id=" in message
+    assert "Add to carts [candidate_id=" in message
+    assert "find_coordinates_by='ocr', candidate_id='...'" in message
     assert "find_coordinates_by='manual'" in message
+
+
+def test_resolve_supports_candidate_id_selection():
+    ocr_results = [
+        _ocr_item("Select plan", 500, 560, width=120, height=20),
+        _ocr_item("Select plan", 850, 560, width=120, height=20),
+    ]
+    screenshot_id = "shot-ocr-candidates"
+    candidate_id = OcrCoordinateResolver._build_candidate_id(
+        ocr_results[1],
+        index=1,
+        screenshot_id=screenshot_id,
+    )
+
+    x, y = OcrCoordinateResolver.resolve(
+        "",
+        ocr_results,
+        screenshot_id=screenshot_id,
+        candidate_id=candidate_id,
+    )
+
+    assert (x, y) == (910, 570)
+
+
+def test_resolve_raises_for_unknown_candidate_id():
+    with pytest.raises(ValueError, match="frame changed, re-ground required"):
+        OcrCoordinateResolver.resolve(
+            "",
+            [_ocr_item("Select plan", 500, 560, width=120, height=20)],
+            screenshot_id="shot-ocr",
+            candidate_id="ocr_deadbeef",
+        )
 
 
 def test_resolve_raises_for_empty_ocr_results():
@@ -154,7 +186,13 @@ async def test_coordinate_resolver_routes_ocr_and_prediction_methods():
         },
     )
     ocr_results = [_ocr_item("target", 50, 60, width=20, height=10)]
-    ocr_coords = await resolver.resolve(ocr_call, "shot", ocr_results, vision_service=None)
+    ocr_coords = await resolver.resolve(
+        ocr_call,
+        "shot",
+        ocr_results,
+        vision_service=None,
+        screenshot_id="shot-1",
+    )
     assert ocr_coords == (60, 65)
 
     model = DummyVisionModel((77, 88))
@@ -166,7 +204,13 @@ async def test_coordinate_resolver_routes_ocr_and_prediction_methods():
             "description": "submit",
         },
     )
-    vision_coords = await resolver.resolve(vision_call, "vision-shot", None, vision_service)
+    vision_coords = await resolver.resolve(
+        vision_call,
+        "vision-shot",
+        None,
+        vision_service,
+        screenshot_id="vision-shot-1",
+    )
     assert vision_coords == (77, 88)
 
 
@@ -185,7 +229,13 @@ async def test_coordinate_resolver_raises_for_missing_inputs_and_unknown_method(
         },
     )
     with pytest.raises(ValueError, match="OCR results are required"):
-        await resolver.resolve(ocr_call_missing_results, "shot", None, vision_service=None)
+        await resolver.resolve(
+            ocr_call_missing_results,
+            "shot",
+            None,
+            vision_service=None,
+            screenshot_id="shot-2",
+        )
 
     pred_call_missing_service = ParsedToolCall(
         tool_name="mouse_control",
@@ -195,11 +245,23 @@ async def test_coordinate_resolver_raises_for_missing_inputs_and_unknown_method(
         },
     )
     with pytest.raises(ValueError, match="Vision service is required"):
-        await resolver.resolve(pred_call_missing_service, "shot", [], vision_service=None)
+        await resolver.resolve(
+            pred_call_missing_service,
+            "shot",
+            [],
+            vision_service=None,
+            screenshot_id="shot-3",
+        )
 
     unknown_call = ParsedToolCall(
         tool_name="mouse_control",
         parameters={"find_coordinates_by": "manual"},
     )
     with pytest.raises(ValueError, match="Unknown coordinate finding method"):
-        await resolver.resolve(unknown_call, "shot", [], vision_service=None)
+        await resolver.resolve(
+            unknown_call,
+            "shot",
+            [],
+            vision_service=None,
+            screenshot_id="shot-4",
+        )

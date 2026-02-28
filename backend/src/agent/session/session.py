@@ -126,11 +126,25 @@ class AgentSession:
         """
         return self.runtime.screenshot.get_current_screenshot_id()
 
-    def set_current_screenshot(self, screenshot_id: str, screenshot_data: str) -> None:
+    def get_current_capture_meta(self) -> Optional[Dict[str, Any]]:
+        """Get normalized capture metadata for the current screenshot."""
+        capture_meta = self.runtime.screenshot.get_current_capture_meta()
+        return dict(capture_meta) if isinstance(capture_meta, dict) else None
+
+    def set_current_screenshot(
+        self,
+        screenshot_id: str,
+        screenshot_data: str,
+        capture_meta: Optional[Dict[str, Any]] = None,
+    ) -> None:
         """
         Set the current screenshot, discarding any previous screenshot.
         """
-        self.runtime.screenshot.set_current_screenshot(screenshot_id, screenshot_data)
+        self.runtime.screenshot.set_current_screenshot(
+            screenshot_id,
+            screenshot_data,
+            capture_meta=capture_meta,
+        )
 
     def set_current_ocr_results(self, ocr_results: list[dict]) -> None:
         """
@@ -142,8 +156,7 @@ class AgentSession:
         """
         Store the most recent system_state payload from the frontend.
 
-        Used for coordinate normalization when screenshot pixel space differs from
-        OS coordinate space (common with HiDPI scaling on Linux).
+        Used for runtime observability and tool-context diagnostics.
         """
         if system_state is None:
             self.runtime.set_system_state(None)
@@ -340,6 +353,8 @@ class AgentSession:
         self, 
         query: str, 
         image_data: Optional[Union[str, List[str]]] = None,
+        screenshot_id: Optional[str] = None,
+        capture_meta: Optional[Dict[str, Any]] = None,
         message_content: Optional[str] = None,
         conversation_ref: Optional[str] = None,
     ) -> AsyncGenerator[Dict[str, Any], None]:
@@ -349,6 +364,8 @@ class AgentSession:
         Args:
             query: The user's query text (for reference)
             image_data: Optional base64 image payload(s) for multimodal queries
+            screenshot_id: Optional screenshot frame identifier for image_data[0]
+            capture_meta: Optional capture metadata for image_data[0]
             message_content: Complete message content from frontend (system state + memories + query)
             conversation_ref: Active conversation identity from frontend.
         """
@@ -365,6 +382,8 @@ class AgentSession:
             async for event in self.executor.process_query(
                 query, 
                 screenshot=image_data, 
+                screenshot_id=screenshot_id,
+                capture_meta=capture_meta,
                 message_content=message_content,
             ):
                 yield event

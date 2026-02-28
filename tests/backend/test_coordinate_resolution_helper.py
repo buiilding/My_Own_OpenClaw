@@ -23,8 +23,16 @@ class _FakeCoordinateResolver:
         self.return_xy = return_xy
         self.calls = []
 
-    async def resolve(self, tool_call, screenshot_data, ocr_results, vision_service):
-        self.calls.append((tool_call, screenshot_data, ocr_results, vision_service))
+    async def resolve(
+        self,
+        tool_call,
+        screenshot_data,
+        ocr_results,
+        vision_service,
+        *,
+        screenshot_id=None,
+    ):
+        self.calls.append((tool_call, screenshot_data, ocr_results, vision_service, screenshot_id))
         return self.return_xy
 
 
@@ -53,6 +61,7 @@ async def test_resolve_coordinates_ocr_path_uses_ocr_results():
     assert ocr.calls == [(session, "screenshot-b64", "shot-1")]
     assert resolver.calls[0][2] == [{"text": "Submit"}]
     assert resolver.calls[0][3] is None
+    assert resolver.calls[0][4] == "shot-1"
 
 
 @pytest.mark.asyncio
@@ -87,6 +96,7 @@ async def test_resolve_coordinates_prediction_path_uses_provider_when_service_mi
     assert provider_calls == [session]
     assert resolver.calls[0][2] is None
     assert resolver.calls[0][3] is provided_service
+    assert resolver.calls[0][4] == "shot-2"
 
 
 @pytest.mark.asyncio
@@ -110,3 +120,4 @@ async def test_resolve_coordinates_prediction_path_keeps_none_when_provider_unav
 
     assert (x, y) == (1, 2)
     assert resolver.calls[0][3] is None
+    assert resolver.calls[0][4] == "shot-3"

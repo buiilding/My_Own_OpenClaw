@@ -33,13 +33,20 @@ class MouseControlArgs(BaseModel):
     )
 
     # Manual coordinate fields
+    screenshot_id: Optional[str] = Field(
+        None,
+        description=(
+            "Screenshot frame identifier for grounding. Required when find_coordinates_by='manual', "
+            "and when selecting an OCR candidate via candidate_id. Must match the current frame."
+        ),
+    )
     x: Optional[int] = Field(
         None,
-        description="X coordinate in screen pixels. Required when find_coordinates_by='manual'.",
+        description="X coordinate in screenshot pixels. Required when find_coordinates_by='manual'.",
     )
     y: Optional[int] = Field(
         None,
-        description="Y coordinate in screen pixels. Required when find_coordinates_by='manual'.",
+        description="Y coordinate in screenshot pixels. Required when find_coordinates_by='manual'.",
     )
 
     # OCR coordinate fields
@@ -47,10 +54,17 @@ class MouseControlArgs(BaseModel):
         None,
         description=(
             "Exact visible on-screen text for OCR targeting. Required for "
-            "find_coordinates_by='ocr'. Prefer this whenever clicking text-labeled "
+            "find_coordinates_by='ocr' unless candidate_id is provided. Prefer this whenever clicking text-labeled "
             "elements (placeholders, buttons, tabs). Example: if an input shows "
             "'type something here', pass that exact string. Keep text to one line; "
             "OCR matching is weaker on multiline strings."
+        ),
+    )
+    candidate_id: Optional[str] = Field(
+        None,
+        description=(
+            "Stable OCR candidate id from an earlier ambiguity response. "
+            "Use this for deterministic follow-up selection when multiple OCR matches exist."
         ),
     )
 
@@ -74,11 +88,23 @@ class MouseControlArgs(BaseModel):
     def validate_conditional_fields(self):
         """Validate that required fields are present based on find_coordinates_by value."""
         if self.find_coordinates_by == CoordinateFindingMethod.MANUAL:
+            if not isinstance(self.screenshot_id, str) or not self.screenshot_id.strip():
+                raise ValueError("screenshot_id is required when find_coordinates_by='manual'")
             if self.x is None or self.y is None:
-                raise ValueError("x and y coordinates are required when find_coordinates_by='manual'")
+                raise ValueError(
+                    "x and y coordinates are required when find_coordinates_by='manual'"
+                )
         elif self.find_coordinates_by == CoordinateFindingMethod.OCR:
-            if not self.ocr_text:
-                raise ValueError("ocr_text is required when find_coordinates_by='ocr'")
+            if not self.ocr_text and not self.candidate_id:
+                raise ValueError(
+                    "ocr_text or candidate_id is required when find_coordinates_by='ocr'"
+                )
+            if self.candidate_id and (
+                not isinstance(self.screenshot_id, str) or not self.screenshot_id.strip()
+            ):
+                raise ValueError(
+                    "screenshot_id is required when find_coordinates_by='ocr' and candidate_id is used"
+                )
         elif self.find_coordinates_by == CoordinateFindingMethod.PREDICTION:
             if not self.description:
                 raise ValueError("description is required when find_coordinates_by='prediction'")

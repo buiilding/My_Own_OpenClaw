@@ -102,6 +102,8 @@ export function buildToolResultPayloadData(
     screenshot: _screenshot,
     image_data: _imageData,
     screenshot_ref: rawScreenshotRef,
+    screenshot_id: rawScreenshotId,
+    capture_meta: rawCaptureMeta,
     system_state: rawSystemState,
     ...payloadData
   } = rawData;
@@ -116,7 +118,7 @@ export function buildToolResultPayloadData(
     const internalState = asInternalSystemState(options.systemState, rawSystemState);
     normalizedPayload.system_state = modelState;
     if (internalState.screen_resolution) {
-      // Keep display sizing data available for backend runtime normalization only.
+      // Preserve runtime screen diagnostics for backend observability.
       normalizedPayload.system_state_internal = internalState;
     }
   }
@@ -129,6 +131,12 @@ export function buildToolResultPayloadData(
         : null);
     if (selectedScreenshotRef) {
       normalizedPayload.screenshot_ref = selectedScreenshotRef;
+    }
+    if (typeof rawScreenshotId === 'string' && rawScreenshotId.length > 0) {
+      normalizedPayload.screenshot_id = rawScreenshotId;
+    }
+    if (rawCaptureMeta && typeof rawCaptureMeta === 'object') {
+      normalizedPayload.capture_meta = rawCaptureMeta;
     }
   }
 

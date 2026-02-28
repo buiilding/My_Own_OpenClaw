@@ -58,6 +58,7 @@ Cancellation behavior:
 - `conversation_ref` -> stream context + session routing
 - `content` -> model-facing structured content forwarded to `process_query(...)`
 - `screenshot` / `screenshot_ref` / `screenshot_refs[]` -> screenshot resolution path
+- `screenshot_id` / `capture_meta` -> frame metadata forwarded to session/executor screenshot ingestion
 - `system_state_internal` -> backend-only runtime state seed
 
 ### `system_state_internal` merge semantics
@@ -69,6 +70,7 @@ Only string keys are considered:
 - `screen_resolution`
 
 Service merges incoming state over any existing state returned by `agent_instance.get_current_system_state()` and writes via `set_current_system_state(...)` when available. Failures are non-fatal warnings.
+`screen_resolution` remains diagnostic runtime state; coordinate normalization no longer depends on it.
 
 ## Screenshot Resolution Precedence
 
@@ -84,6 +86,15 @@ Service merges incoming state over any existing state returned by `agent_instanc
 6. if nothing resolves -> continue query with `image_data=None`.
 
 This preserves query execution even when artifact storage is unavailable.
+
+## Query Screenshot Metadata Forwarding
+
+`_resolve_query_screenshot_metadata(...)` forwards optional frame metadata from query payload:
+
+- `screenshot_id`: normalized non-empty string
+- `capture_meta`: dict payload passed through for normalization in screenshot manager
+
+These fields are consumed by session/executor screenshot processing so query-attached screenshots can use the same screenshot_px -> desktop_px contract as tool-result screenshots.
 
 ## Stream Event Processing and Completion Backfill
 
@@ -150,6 +161,7 @@ Handler-side errors call `send_error_response(...)` from `api/infrastructure/err
 - screenshot resolution precedence: inline screenshot beats artifact refs
 - single `screenshot_ref` and multi `screenshot_refs[]` loading paths
 - missing screenshot artifacts log warnings and query still continues
+- `screenshot_id` and `capture_meta` are forwarded to `process_query(...)`
 - runtime `system_state_internal` applies to agent runtime state before processing
 - extractor helpers honor precomputed event type and payload/top-level fallbacks
 

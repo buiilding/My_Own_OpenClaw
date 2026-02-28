@@ -154,6 +154,8 @@ class ToolResultHandler(MessageHandler):
             step_results=self._serialize_step_results(payload.step_results),
             screenshot=payload.screenshot,
             screenshot_ref=payload.screenshot_ref,
+            screenshot_id=payload.screenshot_id,
+            capture_meta=payload.capture_meta,
             system_state=payload.system_state,
             error=payload.error,
         )

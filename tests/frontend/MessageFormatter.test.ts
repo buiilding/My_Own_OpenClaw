@@ -34,6 +34,23 @@ describe('MessageFormatter', () => {
     expect(output).toContain('State of the screen after read_file was executed:');
   });
 
+  test('formatToolOutputMessage includes grounding_screenshot_id when available', () => {
+    const output = formatToolOutputMessage(
+      'mouse_control',
+      {
+        success: true,
+        data: {
+          llm_content: 'clicked',
+          screenshot_id: 'shot-xyz',
+        },
+      },
+      null,
+    );
+
+    expect(output).toContain('grounding_screenshot_id: shot-xyz');
+    expect(output).not.toContain('"screenshot_id"');
+  });
+
   test('formatToolOutputMessage formats failure', () => {
     const output = formatToolOutputMessage(
       'read_file',
