@@ -1,7 +1,7 @@
 ---
 summary: "Electron main IPC helper-module split reference for websocket event processing, renderer-window fan-out, and query-local event broadcast boundaries."
 read_when:
-  - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_renderer_windows.cjs`, `ipc_query_broadcast.cjs`, or `ipc_settings_sync.cjs`.
+  - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_overlay_phase_events.cjs`, `ipc_renderer_windows.cjs`, `ipc_query_broadcast.cjs`, or `ipc_settings_sync.cjs`.
   - When debugging renderer fan-out drift, overlay pre-capture hook timing, or synthetic query/local-user message behavior.
 title: "IPC Helper Module Split and Runtime Boundary Reference"
 ---
@@ -12,6 +12,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc_runtime_helpers.cjs`
+- `frontend/src/main/ipc_overlay_phase_events.cjs`
 - `frontend/src/main/ipc_renderer_windows.cjs`
 - `frontend/src/main/ipc_query_broadcast.cjs`
 - `frontend/src/main/ipc_query_events.cjs`
@@ -24,7 +25,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 
 - websocket connection lifecycle (`connect`, reconnect, handshake)
 - settings ACK gate (`ensureInitialSettingsSync`, pending-ack map)
-- query relay orchestration and overlay phase transitions
+- query relay orchestration and overlay phase transition application
 - handler registration (`ipcMain.handle/on`)
 
 Helper modules hold isolated runtime responsibilities.
@@ -42,8 +43,16 @@ Owns cross-cutting utilities used by relay hot paths:
 - `processBackendMessageData` inbound event normalization:
   - session/user/conversation state updates
   - settings ACK resolution (`settings-updated` / `error` by id)
-  - response-overlay phase transitions by backend event type
+  - applies response-overlay transitions resolved by `ipc_overlay_phase_events.cjs`
   - renderer fan-out to `from-backend`
+
+### `ipc_overlay_phase_events.cjs`
+
+Owns backend-event to response-overlay transition contract:
+
+- `resolveOverlayCorrelationId`: deterministic id precedence (`request_id` -> `correlation_id` -> `bundle_id` -> event `id`)
+- `resolveOverlayPhaseMetadata`: normalized recovery metadata extraction (`attempt`, `max_attempts`, `failure_reason`, `recovery_stage`)
+- `resolveBackendOverlayPhaseTransition`: canonical transition mapping for `streaming-response`, `tool-call`, `tool-bundle`, `tool-output`, `streaming-complete`, and phase-guarded `error`
 
 ### `ipc_renderer_windows.cjs`
 
