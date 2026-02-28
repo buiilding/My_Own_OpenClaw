@@ -55,13 +55,15 @@ Responsibilities:
 Module:
 
 - `frontend/src/renderer/infrastructure/services/SurfaceOrchestrator.ts`
+- `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/logging.ts`
+- `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/loggingGate.ts`
 
 Responsibilities:
 
 - typed surface transition APIs for tool execution and screenshot capture paths
 - centralized mode resolution (`none | interactive | screenshot`) for single tools and bundles
 - deterministic transition logs (`correlation_id`, retry attempt, before/after phase, terminal reason)
-- explicit dev/prod log gating (production suppresses transition logs unless verbose override is enabled)
+- explicit dev/prod log gating via `loggingGate.shouldLogSurfaceTransitions()` (production suppresses transition logs unless verbose override is enabled)
 - bounded focus-prepare retries and fail-safe cleanup on both success and terminal failure paths
 
 ## ToolExecutionService

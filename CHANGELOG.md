@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-surface-logging-gate): extract `SurfaceOrchestrator` transition log gating into dedicated `loggingGate.ts`, keep existing behavior (`NODE_ENV=production` suppresses logs unless `__WINDIE_VERBOSE_TOOL_LOGS__` override), and add direct gate regressions for both dev/prod paths and explicit override on/off behavior.
 - refactor(frontend-overlay-phase-contract): add shared main-process `ipc_overlay_phase_contract.cjs` for canonical overlay phase/metadata keys and scalar normalization, rewire both `ipc_overlay_phase_state.cjs` and `ipc_overlay_phase_events.cjs` to that contract, trim whitespace-only correlation/recovery metadata (including request-id cancellation fallback), and add dedicated contract regressions plus expanded overlay/surface test coverage.
 - refactor(frontend-overlay-phase-payload-parser): extract renderer-side `response-overlay-phase` payload parsing into shared `responseOverlayPhasePayload.js` (phase validation + recovery metadata normalization), rewire `overlayPhaseListener` to the parser, add direct parser regressions, and refresh response-overlay runtime docs.
 - refactor(frontend-stream-phase-invariants): centralize chat loop/stop phase invariants into shared `streamPhaseState.js` and rewire `ChatBox` + `ChatInterface` stop-button gating to the same helper contract; add direct regression coverage (`StreamPhaseState.test.js`) and update chatbox overlay runtime docs.
