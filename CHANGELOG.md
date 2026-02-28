@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-surface-window-visibility): extract shared `surfaceOrchestrator/windowVisibility.ts` helper for main-window visibility probing, rewire screenshot-mode collapse checks to the shared helper, and add focused visibility-contract regressions for success/malformed/error paths.
 - refactor(frontend-surface-preparation): extract shared `surfaceOrchestrator/preparation.ts` builder for `ToolSurfacePreparation` payloads, rewire `toolLifecycle` branches to the shared builder, and add direct preparation-helper regression coverage.
 - refactor(frontend-surface-context): add shared `surfaceOrchestrator/context.ts` to centralize transition source/correlation resolution and focus preparation default resolution, rewire tool/capture lifecycles to the shared helper, and add focused context helper regressions.
 - refactor(frontend-tool-runner-failure-contracts): extract stale-turn and surface-preparation backend envelope builders into shared `toolRunnerFailureContracts.ts`, rewire `useToolRunner` to the shared contracts for both single-tool and bundle failure paths, and add direct contract regression coverage.
