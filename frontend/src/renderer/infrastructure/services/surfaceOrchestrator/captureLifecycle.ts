@@ -22,6 +22,7 @@ import {
   SURFACE_REASON_PREPARE_CAPTURE_VISIBILITY_FAILED,
 } from './reasons';
 import {
+  SURFACE_PHASE,
   type CaptureVisibilityPreparation,
   type SurfaceTransitionSource,
 } from './types';
@@ -47,8 +48,8 @@ export async function prepareScreenshotCaptureVisibility(
       source,
       correlationId: captureId,
       mode: 'screenshot',
-      phaseBefore: 'capture_ready',
-      phaseAfter: 'capture_ready',
+      phaseBefore: SURFACE_PHASE.CAPTURE_READY,
+      phaseAfter: SURFACE_PHASE.CAPTURE_READY,
       reason: SURFACE_REASON_CAPTURE_OVERLAP_REUSE,
     });
     return { prepared: true, captureId };
@@ -59,8 +60,8 @@ export async function prepareScreenshotCaptureVisibility(
       source,
       correlationId: captureId,
       mode: 'screenshot',
-      phaseBefore: 'idle',
-      phaseAfter: 'preparing_capture_visibility',
+      phaseBefore: SURFACE_PHASE.IDLE,
+      phaseAfter: SURFACE_PHASE.PREPARING_CAPTURE_VISIBILITY,
     });
     await collapseChatPillForBackgroundCapture();
     setPendingScreenshotCaptureRestore(true);
@@ -68,8 +69,8 @@ export async function prepareScreenshotCaptureVisibility(
       source,
       correlationId: captureId,
       mode: 'screenshot',
-      phaseBefore: 'preparing_capture_visibility',
-      phaseAfter: 'capture_ready',
+      phaseBefore: SURFACE_PHASE.PREPARING_CAPTURE_VISIBILITY,
+      phaseAfter: SURFACE_PHASE.CAPTURE_READY,
     });
     return { prepared: true, captureId };
   } catch (error) {
@@ -79,8 +80,8 @@ export async function prepareScreenshotCaptureVisibility(
       source,
       correlationId: captureId,
       mode: 'screenshot',
-      phaseBefore: 'preparing_capture_visibility',
-      phaseAfter: 'failed_terminal',
+      phaseBefore: SURFACE_PHASE.PREPARING_CAPTURE_VISIBILITY,
+      phaseAfter: SURFACE_PHASE.FAILED_TERMINAL,
       reason: SURFACE_REASON_PREPARE_CAPTURE_VISIBILITY_FAILED,
     });
     return { prepared: false, captureId };
@@ -107,8 +108,8 @@ export async function restoreScreenshotCaptureVisibility(
     source,
     correlationId: preparation.captureId,
     mode: 'screenshot',
-    phaseBefore: 'capture_ready',
-    phaseAfter: 'restoring_surface',
+    phaseBefore: SURFACE_PHASE.CAPTURE_READY,
+    phaseAfter: SURFACE_PHASE.RESTORING_SURFACE,
   });
 
   try {
@@ -119,8 +120,8 @@ export async function restoreScreenshotCaptureVisibility(
       source,
       correlationId: preparation.captureId,
       mode: 'screenshot',
-      phaseBefore: 'restoring_surface',
-      phaseAfter: 'failed_terminal',
+      phaseBefore: SURFACE_PHASE.RESTORING_SURFACE,
+      phaseAfter: SURFACE_PHASE.FAILED_TERMINAL,
       reason: SURFACE_REASON_CAPTURE_RESTORE_FAILED,
     });
   } finally {
@@ -129,8 +130,8 @@ export async function restoreScreenshotCaptureVisibility(
       source,
       correlationId: preparation.captureId,
       mode: 'screenshot',
-      phaseBefore: 'restoring_surface',
-      phaseAfter: 'idle',
+      phaseBefore: SURFACE_PHASE.RESTORING_SURFACE,
+      phaseAfter: SURFACE_PHASE.IDLE,
     });
   }
 }
@@ -157,8 +158,8 @@ export async function prepareExternalFocusForCapture(
       source,
       correlationId: captureId,
       mode: 'screenshot',
-      phaseBefore: 'capture_ready',
-      phaseAfter: 'preparing_interactive_focus',
+      phaseBefore: SURFACE_PHASE.CAPTURE_READY,
+      phaseAfter: SURFACE_PHASE.PREPARING_INTERACTIVE_FOCUS,
     });
     await IpcBridge.invoke(INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
       waitMs,
@@ -167,8 +168,8 @@ export async function prepareExternalFocusForCapture(
       source,
       correlationId: captureId,
       mode: 'screenshot',
-      phaseBefore: 'preparing_interactive_focus',
-      phaseAfter: 'capture_ready',
+      phaseBefore: SURFACE_PHASE.PREPARING_INTERACTIVE_FOCUS,
+      phaseAfter: SURFACE_PHASE.CAPTURE_READY,
     });
   } catch (error) {
     console.warn('[SurfaceOrchestrator] Failed to prepare external focus before capture:', error);
@@ -176,8 +177,8 @@ export async function prepareExternalFocusForCapture(
       source,
       correlationId: captureId,
       mode: 'screenshot',
-      phaseBefore: 'preparing_interactive_focus',
-      phaseAfter: 'failed_terminal',
+      phaseBefore: SURFACE_PHASE.PREPARING_INTERACTIVE_FOCUS,
+      phaseAfter: SURFACE_PHASE.FAILED_TERMINAL,
       reason: SURFACE_REASON_CAPTURE_FOCUS_PREPARE_FAILED,
     });
   }

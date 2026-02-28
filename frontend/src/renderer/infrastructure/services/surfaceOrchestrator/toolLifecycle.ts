@@ -29,6 +29,7 @@ import {
 } from './state';
 import {
   OVERLAY_SURFACE_PREPARE_EXCEPTION,
+  SURFACE_PHASE,
   type SurfaceMode,
   type SurfaceTransitionSource,
   type ToolSurfacePreparation,
@@ -55,8 +56,8 @@ export async function prepareToolExecutionSurface(
       source,
       correlationId,
       mode,
-      phaseBefore: 'idle',
-      phaseAfter: 'idle',
+      phaseBefore: SURFACE_PHASE.IDLE,
+      phaseAfter: SURFACE_PHASE.IDLE,
       reason: SURFACE_REASON_NO_TRANSITION_NEEDED,
     });
     return buildToolSurfacePreparation(mode, correlationId, {
@@ -82,8 +83,8 @@ export async function prepareToolExecutionSurface(
         source,
         correlationId,
         mode,
-        phaseBefore: 'idle',
-        phaseAfter: 'preparing_capture_visibility',
+        phaseBefore: SURFACE_PHASE.IDLE,
+        phaseAfter: SURFACE_PHASE.PREPARING_CAPTURE_VISIBILITY,
       });
       await collapseChatPillForBackgroundCapture();
       setPendingChatPillRestore(true);
@@ -91,8 +92,8 @@ export async function prepareToolExecutionSurface(
         source,
         correlationId,
         mode,
-        phaseBefore: 'preparing_capture_visibility',
-        phaseAfter: 'capture_ready',
+        phaseBefore: SURFACE_PHASE.PREPARING_CAPTURE_VISIBILITY,
+        phaseAfter: SURFACE_PHASE.CAPTURE_READY,
       });
     }
 
@@ -110,8 +111,10 @@ export async function prepareToolExecutionSurface(
           source,
           correlationId,
           mode,
-          phaseBefore: attempt === 1 ? 'idle' : 'preparing_interactive_focus',
-          phaseAfter: 'preparing_interactive_focus',
+          phaseBefore: attempt === 1
+            ? SURFACE_PHASE.IDLE
+            : SURFACE_PHASE.PREPARING_INTERACTIVE_FOCUS,
+          phaseAfter: SURFACE_PHASE.PREPARING_INTERACTIVE_FOCUS,
           attempt,
           maxAttempts,
         });
@@ -130,8 +133,8 @@ export async function prepareToolExecutionSurface(
             source,
             correlationId,
             mode,
-            phaseBefore: 'preparing_interactive_focus',
-            phaseAfter: 'failed_terminal',
+            phaseBefore: SURFACE_PHASE.PREPARING_INTERACTIVE_FOCUS,
+            phaseAfter: SURFACE_PHASE.FAILED_TERMINAL,
             attempt,
             maxAttempts,
             reason: failureReason,
@@ -161,8 +164,8 @@ export async function prepareToolExecutionSurface(
             source,
             correlationId,
             mode,
-            phaseBefore: 'preparing_interactive_focus',
-            phaseAfter: 'interactive_ready',
+            phaseBefore: SURFACE_PHASE.PREPARING_INTERACTIVE_FOCUS,
+            phaseAfter: SURFACE_PHASE.INTERACTIVE_READY,
             attempt,
             maxAttempts,
           });
@@ -180,8 +183,8 @@ export async function prepareToolExecutionSurface(
         source,
         correlationId,
         mode,
-        phaseBefore: 'preparing_interactive_focus',
-        phaseAfter: 'failed_terminal',
+        phaseBefore: SURFACE_PHASE.PREPARING_INTERACTIVE_FOCUS,
+        phaseAfter: SURFACE_PHASE.FAILED_TERMINAL,
         reason: SURFACE_REASON_EXTERNAL_FOCUS_NOT_VERIFIED,
       });
       return buildToolSurfacePreparation(mode, correlationId, {
@@ -206,8 +209,10 @@ export async function prepareToolExecutionSurface(
       source,
       correlationId,
       mode,
-      phaseBefore: mode === 'interactive' ? 'preparing_interactive_focus' : 'preparing_capture_visibility',
-      phaseAfter: 'failed_terminal',
+      phaseBefore: mode === 'interactive'
+        ? SURFACE_PHASE.PREPARING_INTERACTIVE_FOCUS
+        : SURFACE_PHASE.PREPARING_CAPTURE_VISIBILITY,
+      phaseAfter: SURFACE_PHASE.FAILED_TERMINAL,
       reason: OVERLAY_SURFACE_PREPARE_EXCEPTION,
     });
     return buildToolSurfacePreparation(mode, correlationId, {
@@ -238,8 +243,8 @@ export async function restoreToolExecutionSurface(
     source,
     correlationId,
     mode: preparation.mode,
-    phaseBefore: 'idle',
-    phaseAfter: 'restoring_surface',
+    phaseBefore: SURFACE_PHASE.IDLE,
+    phaseAfter: SURFACE_PHASE.RESTORING_SURFACE,
   });
 
   if (preparation.overlayIgnoreEnabled && unmarkOverlayIgnoreForToken(preparation.surfaceToken)) {
@@ -256,8 +261,8 @@ export async function restoreToolExecutionSurface(
       source,
       correlationId,
       mode: preparation.mode,
-      phaseBefore: 'restoring_surface',
-      phaseAfter: 'idle',
+      phaseBefore: SURFACE_PHASE.RESTORING_SURFACE,
+      phaseAfter: SURFACE_PHASE.IDLE,
       reason: SURFACE_REASON_RESTORE_NOT_REQUIRED,
     });
     return;
@@ -270,8 +275,8 @@ export async function restoreToolExecutionSurface(
       source,
       correlationId,
       mode: preparation.mode,
-      phaseBefore: 'restoring_surface',
-      phaseAfter: 'idle',
+      phaseBefore: SURFACE_PHASE.RESTORING_SURFACE,
+      phaseAfter: SURFACE_PHASE.IDLE,
     });
   } catch (error) {
     console.warn('[SurfaceOrchestrator] Failed to restore chat pill after tool execution:', error);
@@ -279,8 +284,8 @@ export async function restoreToolExecutionSurface(
       source,
       correlationId,
       mode: preparation.mode,
-      phaseBefore: 'restoring_surface',
-      phaseAfter: 'failed_terminal',
+      phaseBefore: SURFACE_PHASE.RESTORING_SURFACE,
+      phaseAfter: SURFACE_PHASE.FAILED_TERMINAL,
       reason: SURFACE_REASON_RESTORE_CHATBOX_FAILED,
     });
   }

@@ -1,13 +1,16 @@
 export type SurfaceMode = 'none' | 'interactive' | 'screenshot';
 
-export type SurfacePhase =
-  | 'idle'
-  | 'preparing_interactive_focus'
-  | 'interactive_ready'
-  | 'preparing_capture_visibility'
-  | 'capture_ready'
-  | 'restoring_surface'
-  | 'failed_terminal';
+export const SURFACE_PHASE = Object.freeze({
+  IDLE: 'idle',
+  PREPARING_INTERACTIVE_FOCUS: 'preparing_interactive_focus',
+  INTERACTIVE_READY: 'interactive_ready',
+  PREPARING_CAPTURE_VISIBILITY: 'preparing_capture_visibility',
+  CAPTURE_READY: 'capture_ready',
+  RESTORING_SURFACE: 'restoring_surface',
+  FAILED_TERMINAL: 'failed_terminal',
+});
+
+export type SurfacePhase = (typeof SURFACE_PHASE)[keyof typeof SURFACE_PHASE];
 
 export type SurfaceTransitionSource = 'tool-runner' | 'system-capture';
 
