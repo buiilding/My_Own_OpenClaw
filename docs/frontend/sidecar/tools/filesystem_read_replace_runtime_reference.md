@@ -37,7 +37,7 @@ Entry: `read_file(args: dict) -> ToolResult`.
 Validation:
 
 - `file_path` must be absolute and point to existing regular file
-- binary-like files are rejected via extension/signature/null-byte/printable-ratio checks (`file_utils.is_binary_file`)
+- binary-like non-PDF files are rejected via extension/signature/null-byte/printable-ratio checks (`file_utils.is_binary_file`)
 - `offset` must be non-negative int
 - `limit` must be positive int
 
@@ -49,7 +49,7 @@ Defaults:
 Read behavior:
 
 - file read happens in executor thread (`run_in_executor`) to avoid blocking loop
-- returns line window starting at `offset`
+- text files return line window starting at `offset`
 - line endings preserved while truncating overlong line bodies
 - reports:
   - `total_lines`
@@ -57,6 +57,13 @@ Read behavior:
   - `is_truncated` (windowed read or EOF not fully shown)
   - `truncated_line_count`
   - `line_truncation_limit`
+
+PDF behavior (`.pdf`):
+
+- read via `pypdf` page extraction path
+- `offset`/`limit` are interpreted as page window controls
+- large extracted content is truncated with relevance-aware page ordering under char budget
+- includes PDF metadata in response payload (`pdf_total_pages`, `pdf_pages_included`, `pdf_search_terms`)
 
 LLM content shape:
 

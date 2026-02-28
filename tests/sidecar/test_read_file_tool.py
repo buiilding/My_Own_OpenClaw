@@ -1,4 +1,6 @@
 from pathlib import Path
+import sys
+import types
 
 import pytest
 from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
@@ -6,6 +8,22 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 ensure_frontend_python_path()
 
 from tools.filesystem.read_file_tool import read_file  # noqa: E402
+
+
+def _install_fake_pypdf(monkeypatch: pytest.MonkeyPatch, page_texts: list[str]) -> None:
+    class _FakePage:
+        def __init__(self, text: str) -> None:
+            self._text = text
+
+        def extract_text(self) -> str:
+            return self._text
+
+    class _FakePdfReader:
+        def __init__(self, _file_path: str) -> None:
+            self.pages = [_FakePage(text) for text in page_texts]
+
+    fake_module = types.SimpleNamespace(PdfReader=_FakePdfReader)
+    monkeypatch.setitem(sys.modules, "pypdf", fake_module)
 
 
 @pytest.mark.asyncio
@@ -115,3 +133,86 @@ async def test_read_file_allows_large_files_with_paging(tmp_path: Path):
     assert result.data["read_lines"] == 1
     assert result.data["is_truncated"] is True
     assert f"File path: {target}" in result.data["llm_content"]
+
+
+@pytest.mark.asyncio
+async def test_read_file_pdf_extracts_text_via_pypdf(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    target = tmp_path / "report.pdf"
+    target.write_bytes(b"%PDF-1.4\n%fake-pdf")
+    _install_fake_pypdf(
+        monkeypatch,
+        [
+            "Executive summary page",
+            "Findings and recommendations",
+        ],
+    )
+
+    result = await read_file({"file_path": str(target)})
+
+    assert result.success is True
+    assert result.data["pdf_total_pages"] == 2
+    assert result.data["pdf_pages_included"] == [1, 2]
+    assert result.data["is_truncated"] is False
+    assert "--- Page 1 ---" in result.data["content"]
+    assert "Executive summary page" in result.data["content"]
+    assert "PDF extracted text across 2 page(s)." in result.data["llm_content"]
+
+
+@pytest.mark.asyncio
+async def test_read_file_pdf_uses_relevance_selection_when_large(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    target = tmp_path / "policy.pdf"
+    target.write_bytes(b"%PDF-1.4\n%large-fake-pdf")
+    _install_fake_pypdf(
+        monkeypatch,
+        [
+            "overview " + ("x" * 18000),
+            "noise " + ("y" * 24000),
+            ("compliance audit controls " * 1800),
+            "appendix " + ("z" * 12000),
+        ],
+    )
+
+    result = await read_file(
+        {
+            "file_path": str(target),
+            "explanation": "Find compliance audit controls details in this policy PDF.",
+        }
+    )
+
+    assert result.success is True
+    assert result.data["is_truncated"] is True
+    assert 1 in result.data["pdf_pages_included"]
+    assert 3 in result.data["pdf_pages_included"]
+    assert "size-aware page selection" in result.data["llm_content"]
+    assert "Relevance terms used for page selection" in result.data["llm_content"]
+
+
+@pytest.mark.asyncio
+async def test_read_file_pdf_respects_offset_and_limit_as_page_window(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    target = tmp_path / "windowed.pdf"
+    target.write_bytes(b"%PDF-1.4\n%window-fake-pdf")
+    _install_fake_pypdf(
+        monkeypatch,
+        [
+            "page one",
+            "page two",
+            "page three",
+            "page four",
+        ],
+    )
+
+    result = await read_file({"file_path": str(target), "offset": 1, "limit": 2})
+
+    assert result.success is True
+    assert result.data["is_truncated"] is True
+    assert result.data["pdf_pages_included"] == [2, 3]
+    assert "--- Page 2 ---" in result.data["content"]
+    assert "--- Page 3 ---" in result.data["content"]
+    assert "--- Page 1 ---" not in result.data["content"]
+    assert "offset: 3" in result.data["llm_content"]

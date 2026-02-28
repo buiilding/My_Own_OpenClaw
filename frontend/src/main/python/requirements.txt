@@ -28,6 +28,7 @@ pyperclip>=1.8.2
 
 # Image processing (for screenshots)
 Pillow>=10.0.0
+pypdf>=5.5.0
 
 # Data validation
 pydantic>=2.0.0
