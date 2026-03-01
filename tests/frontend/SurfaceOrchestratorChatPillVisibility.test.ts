@@ -13,11 +13,10 @@ describe('surfaceOrchestrator chatPillVisibility', () => {
     jest.restoreAllMocks();
   });
 
-  test('collapses chat pill with deterministic show-then-hide ordering', async () => {
+  test('collapses chat pill with deterministic hide-only ordering', async () => {
     await collapseChatPillForBackgroundCapture();
 
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
       [INVOKE_CHANNELS.HIDE_CHATBOX],
     ]);
   });
@@ -32,12 +31,10 @@ describe('surfaceOrchestrator chatPillVisibility', () => {
 
   test('propagates collapse errors to caller for fail-closed handling', async () => {
     (IpcBridge.invoke as jest.Mock)
-      .mockResolvedValueOnce({ success: true })
       .mockRejectedValueOnce(new Error('hide-failed'));
 
     await expect(collapseChatPillForBackgroundCapture()).rejects.toThrow('hide-failed');
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
       [INVOKE_CHANNELS.HIDE_CHATBOX],
     ]);
   });
