@@ -260,6 +260,7 @@ describe('MessageInput', () => {
 
     expect(screen.getByAltText(/Pasted image preview/i)).toBeInTheDocument();
     expect(screen.getByText('notes.txt')).toBeInTheDocument();
+    expect(screen.getByText('TXT')).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText('Type your message'), {
       target: { value: 'Review attachments', selectionStart: 18 },
