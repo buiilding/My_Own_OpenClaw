@@ -80,6 +80,16 @@ def test_gemini_provider_supports_streaming_tool_turns():
     assert provider.supports_streaming_tool_turns("gemini-3.1-pro-preview") is True
 
 
+def test_gemini_build_request_params_uses_provider_default_reasoning_effort():
+    provider = GeminiProvider(api_key="test-key")
+    params = provider._build_request_params(
+        "gemini-3.1-pro-preview",
+        [{"role": "user", "content": "hi"}],
+    )
+
+    assert "reasoning_effort" not in params
+
+
 @pytest.mark.asyncio
 async def test_gemini_stream_emits_thinking_and_captures_stream_tool_calls(monkeypatch):
     provider = GeminiProvider(api_key="test-key")

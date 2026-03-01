@@ -7,6 +7,10 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(backend-gemini-default-reasoning): remove Gemini provider request override that forced `reasoning_effort="low"` so Gemini requests use provider defaults.
+- test(backend-gemini-default-reasoning): add regression coverage asserting Gemini request params do not inject `reasoning_effort` implicitly.
+- docs(planning-screenshot-normalization): add future plan for dual screenshot pipelines (normalized LLM input + full-resolution grounding/OCR) and register it in planning hub.
+- chore(dev-tool-selection): include dev tool-selection update enabling `mouse_control` coordinate methods `manual` + `ocr`.
 - fix(prompt-focus-image-delta-heuristic): extend text-entry focus personality guidance to require comparing latest vs previous screenshot and treat unchanged target text-bar visuals as likely focus failure requiring refocus/retry.
 - feat(prompt-personality-input-focus-obsession): add explicit system-prompt personality traits that are obsessive about text-field focus verification, codify visual focus heuristics (highlighted field or disappearing placeholder), and require treating missing typed text as a focus failure requiring refocus/retry.
 - fix(mouse-manual-click-verification-guidance): strengthen model-facing behavior and `mouse_control` schema guidance so manual click success is not inferred from tool status alone; require intended UI-state confirmation and use cursor position as a supporting verification signal for manual coordinate grounding.
