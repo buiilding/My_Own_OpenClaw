@@ -290,7 +290,6 @@ export function useChatMessageSender(
     
     let screenshot: string | null = firstClipboardImage?.base64 || null;
     let screenshotContentType: string | null = userMessageScreenshotContentType;
-    let screenshotId: string | null = null;
     let captureMeta: CaptureMeta | null = null;
     const screenshotFilename: string | null = firstClipboardImage?.filename || null;
     if (!screenshot && shouldCaptureQueryScreenshot) {
@@ -306,7 +305,6 @@ export function useChatMessageSender(
 
         screenshot = osStateResult.screenshot;
         screenshotContentType = osStateResult.screenshotContentType;
-        screenshotId = osStateResult.screenshotId;
         captureMeta = osStateResult.captureMeta;
       } catch (error) {
         console.error('[useChatMessageSender] Failed to extract OS state:', error);
@@ -393,7 +391,6 @@ export function useChatMessageSender(
         screenshotRef,
         screenshotUrl,
         screenshotRefs.length > 0 ? screenshotRefs : null,
-        screenshotId,
         captureMeta,
         attachmentContext,
         attachmentFilenames.length > 0 ? attachmentFilenames : null,

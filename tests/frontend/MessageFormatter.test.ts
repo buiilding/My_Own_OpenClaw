@@ -34,21 +34,23 @@ describe('MessageFormatter', () => {
     expect(output).toContain('State of the screen after read_file was executed:');
   });
 
-  test('formatToolOutputMessage includes grounding_screenshot_id when available', () => {
+  test('formatToolOutputMessage treats screenshot_ref as indicator and excludes screenshot fields from text', () => {
     const output = formatToolOutputMessage(
       'mouse_control',
       {
         success: true,
         data: {
           llm_content: 'clicked',
-          screenshot_id: 'shot-xyz',
+          screenshot_ref: 'artifact:shot-xyz',
+          screenshot_id: 'legacy-shot-id',
         },
       },
       null,
     );
 
-    expect(output).toContain('grounding_screenshot_id: shot-xyz');
-    expect(output).not.toContain('"screenshot_id"');
+    expect(output).toContain('State of the screen after mouse_control was executed:');
+    expect(output).not.toContain('screenshot_ref');
+    expect(output).not.toContain('screenshot_id');
   });
 
   test('formatToolOutputMessage formats failure', () => {

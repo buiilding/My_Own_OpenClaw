@@ -56,7 +56,6 @@ class ToolResultRouter:
         request_id: str,
         context: str,
         *,
-        screenshot_id: Optional[str] = None,
         capture_meta: Optional[dict] = None,
     ) -> None:
         if not screenshot:
@@ -66,7 +65,6 @@ class ToolResultRouter:
             self.session,
             screenshot,
             request_id,
-            screenshot_id=screenshot_id,
             capture_meta=capture_meta,
         )
 
@@ -139,15 +137,6 @@ class ToolResultRouter:
         capture_meta = result_data.get("capture_meta")
         if isinstance(capture_meta, dict):
             return dict(capture_meta)
-        return None
-
-    @staticmethod
-    def _extract_screenshot_id(result_data: Any) -> Optional[str]:
-        if not isinstance(result_data, dict):
-            return None
-        screenshot_id = result_data.get("screenshot_id")
-        if isinstance(screenshot_id, str) and screenshot_id.strip():
-            return screenshot_id.strip()
         return None
 
     def _extract_screenshot_from_result_data(
@@ -240,13 +229,11 @@ class ToolResultRouter:
             tool_result.data,
             tool_result,
         )
-        screenshot_id = self._extract_screenshot_id(tool_result.data)
         capture_meta = self._extract_capture_meta(tool_result.data)
         await self._process_screenshot(
             screenshot_data,
             correlation_id,
             context,
-            screenshot_id=screenshot_id,
             capture_meta=capture_meta,
         )
 

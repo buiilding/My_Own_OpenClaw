@@ -31,7 +31,6 @@ class QueryPayload(BaseModel):
     screenshot: Optional[str] = None
     screenshot_ref: Optional[str] = None
     screenshot_refs: Optional[List[str]] = None
-    screenshot_id: Optional[str] = None
     capture_meta: Optional[Dict[str, Any]] = None
     system_state_internal: Optional[Dict[str, Any]] = None
 
@@ -223,7 +222,6 @@ class ToolCaptureMeta(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    screenshot_id: Optional[str] = None
     source_w: int
     source_h: int
     crop_x: int
@@ -233,6 +231,7 @@ class ToolCaptureMeta(BaseModel):
     desktop_virtual_bounds: Optional[ToolCaptureBounds] = None
     monitor_id: Optional[str] = None
     timestamp: int
+    capture_backend: Optional[str] = None
 
 
 class ToolResultData(BaseModel):
@@ -245,7 +244,6 @@ class ToolResultData(BaseModel):
     system_state: Optional[ToolResultSystemState] = None
     screenshot: Optional[str] = None
     screenshot_ref: Optional[str] = None
-    screenshot_id: Optional[str] = None
     capture_meta: Optional[ToolCaptureMeta] = None
 
 
@@ -286,7 +284,6 @@ class ToolBundleResultPayload(BaseModel):
     # Screenshot fields are conditional: include only for computer-use bundles.
     screenshot: Optional[str] = None
     screenshot_ref: Optional[str] = None
-    screenshot_id: Optional[str] = None
     capture_meta: Optional[ToolCaptureMeta] = None
     system_state: Optional[Dict[str, Any]] = None
     step_results: List[ToolBundleStepResult]

@@ -996,6 +996,46 @@ async def test_tool_result_handler_routes_without_system_state_for_non_computer_
 
 
 @pytest.mark.asyncio
+async def test_tool_result_handler_accepts_capture_backend_in_capture_meta():
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    session_manager.session_instance = DummySession()
+    handler = ToolResultHandler(session_manager)
+
+    message = ToolResultMessage(
+        id="msg_4c",
+        type="tool-result",
+        user_id="user_1",
+        payload={
+            "request_id": "req_capture_backend_1",
+            "success": True,
+            "data": {
+                "llm_content": "ok",
+                "capture_meta": {
+                    "source_w": 1920,
+                    "source_h": 1080,
+                    "crop_x": 0,
+                    "crop_y": 0,
+                    "crop_w": 1920,
+                    "crop_h": 1080,
+                    "timestamp": 1700000000000,
+                    "capture_backend": "linux_gnome_screenshot_include_pointer",
+                },
+                "output": "ok",
+            },
+        },
+    )
+
+    await handler.handle(message, websocket, "user_1")
+    assert session_manager.session_instance.tool_calls
+    routed_call = session_manager.session_instance.tool_calls[0]
+    assert routed_call["request_id"] == "req_capture_backend_1"
+    assert routed_call["result_data"]["capture_meta"]["capture_backend"] == (
+        "linux_gnome_screenshot_include_pointer"
+    )
+
+
+@pytest.mark.asyncio
 async def test_tool_bundle_result_handler_routes_to_session():
     websocket = FakeWebSocket()
     session_manager = DummySessionManager()

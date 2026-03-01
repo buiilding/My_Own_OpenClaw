@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(prompt-tool-guidance-boundary): remove tool-operation mechanics from global system prompt, keep behavior-only computer interaction guidance (including manual coordinate grounding against latest image + mouse position), and move keybind-first/manual-grounding guidance into `mouse_control`/`keyboard_control` schema + remote tool descriptions with backend regressions.
 - fix(frontend-dashboard-history-open-scroll): force message list to jump instantly to a near-bottom anchor (`72px` above absolute bottom, no smooth-scroll animation) when active conversation changes from sidebar history selection, while preserving manual scroll-up behavior for normal streaming updates within the same conversation.
 - feat(frontend-dashboard-awaiting-indicator-inline): render dashboard awaiting/typing indicator directly under the latest user message (left-aligned with assistant reply lane), show it during local-send/awaiting-first-token, and remove it as soon as assistant streaming starts.
 - style(frontend-message-input-inline-actions): convert dashboard composer to a single-row input/action layout so `+`, input text, mic, and send align on one line, and reduce base chat-pill height to match the compact ChatGPT-like input bar.

@@ -85,57 +85,12 @@ def _normalize_screenshot_id(value: object) -> Optional[str]:
     return None
 
 
-def _normalize_nonempty_str(value: object) -> Optional[str]:
-    if isinstance(value, str):
-        normalized = value.strip()
-        if normalized:
-            return normalized
-    return None
-
-
-def _enforce_ocr_candidate_frame_binding(
-    tool_call: ParsedToolCall,
-    *,
-    current_screenshot_id: str,
-) -> None:
-    """
-    Enforce strict frame binding for OCR candidate selection.
-
-    Candidate-based retries must provide the exact screenshot_id returned with the
-    ambiguity response. This prevents stale-frame clicks.
-    """
-    method = normalize_coordinate_method(
-        tool_call.parameters.get("find_coordinates_by"),
-        default=CoordinateFindingMethod.MANUAL.value,
-    )
-    if method != CoordinateFindingMethod.OCR.value:
-        return
-
-    candidate_id = _normalize_nonempty_str(tool_call.parameters.get("candidate_id"))
-    if not candidate_id:
-        return
-
-    requested_screenshot_id = _normalize_screenshot_id(
-        tool_call.parameters.get("screenshot_id")
-    )
-    if not requested_screenshot_id:
-        raise ValueError(
-            "OCR candidate selection requires screenshot_id from the same grounding frame"
-        )
-    if requested_screenshot_id != current_screenshot_id:
-        raise ValueError(
-            "frame changed, re-ground required: "
-            f"requested screenshot_id={requested_screenshot_id[:8]} "
-            f"current screenshot_id={current_screenshot_id[:8]}"
-        )
-
-
 def tool_call_has_manual_coordinates(tool_call: ParsedToolCall) -> bool:
     """
     Return whether a mouse tool call uses manual coordinates with x/y payload.
 
-    Manual calls skip OCR/vision resolution and must include `screenshot_id` so
-    coordinates can be transformed against the same captured frame.
+    Manual calls skip OCR/vision resolution and are transformed against the
+    current captured frame.
     """
     if tool_call.tool_name != "mouse_control":
         return False
@@ -212,10 +167,6 @@ async def resolve_tool_with_coordinates(
     screenshot_id = session.get_current_screenshot_id()
     if not screenshot_data or not screenshot_id:
         raise ValueError("No screenshot data available for coordinate resolution")
-    _enforce_ocr_candidate_frame_binding(
-        tool_call,
-        current_screenshot_id=screenshot_id,
-    )
 
     source_x, source_y = await resolve_coordinates(
         tool_call,
@@ -270,8 +221,8 @@ def normalize_manual_coordinates(
     """
     Normalize manual mouse coordinates from screenshot pixel space to desktop space.
 
-    Contract (breaking): manual calls must include `screenshot_id` and screenshot-pixel
-    coordinates (`x`,`y`) grounded in that same frame.
+    Manual coordinates are interpreted in screenshot pixel space and normalized to
+    desktop space using the current session frame.
     """
     if resolved_call.tool_name != "mouse_control":
         return
@@ -284,23 +235,10 @@ def normalize_manual_coordinates(
         raise ValueError("Manual coordinates require numeric x and y values")
     source_x, source_y = coordinate_pair
 
-    requested_screenshot_id = _normalize_screenshot_id(
-        resolved_call.parameters.get("screenshot_id")
-    )
-    if not requested_screenshot_id:
-        raise ValueError(
-            "Manual mouse coordinates require screenshot_id from the same grounding frame"
-        )
-
     current_screenshot_id = _normalize_screenshot_id(session.get_current_screenshot_id())
     if not current_screenshot_id:
         raise ValueError("No active screenshot frame available for manual grounding")
-    if requested_screenshot_id != current_screenshot_id:
-        raise ValueError(
-            "frame changed, re-ground required: "
-            f"requested screenshot_id={requested_screenshot_id[:8]} "
-            f"current screenshot_id={current_screenshot_id[:8]}"
-        )
+    effective_screenshot_id = current_screenshot_id
 
     screenshot_data = session.get_screenshot()
     if not isinstance(screenshot_data, str) or not screenshot_data.strip():
@@ -309,7 +247,7 @@ def normalize_manual_coordinates(
     contract = _build_coordinate_contract(
         session,
         screenshot_b64=screenshot_data,
-        screenshot_id=requested_screenshot_id,
+        screenshot_id=effective_screenshot_id,
         x=source_x,
         y=source_y,
     )
@@ -320,7 +258,7 @@ def normalize_manual_coordinates(
 
     if not resolved_call.metadata:
         resolved_call.metadata = {}
-    resolved_call.metadata["coordinate_resolution_screenshot_id"] = requested_screenshot_id
+    resolved_call.metadata["coordinate_resolution_screenshot_id"] = effective_screenshot_id
     resolved_call.metadata["coordinate_contract"] = build_contract_metadata(
         contract,
         normalized,
@@ -335,7 +273,7 @@ def normalize_manual_coordinates(
         normalized.x,
         normalized.y,
         normalized.status,
-        requested_screenshot_id[:8],
+        effective_screenshot_id[:8],
     )
 
 

@@ -39,7 +39,6 @@ class ScreenshotProcessor:
         screenshot_data: str,
         context_id: str,
         *,
-        screenshot_id: Optional[str] = None,
         capture_meta: Optional[dict] = None,
     ) -> Optional[str]:
         """
@@ -60,7 +59,6 @@ class ScreenshotProcessor:
                 session,
                 screenshot_data,
                 context_id,
-                screenshot_id=screenshot_id,
                 capture_meta=capture_meta,
             )
             return screenshot_id

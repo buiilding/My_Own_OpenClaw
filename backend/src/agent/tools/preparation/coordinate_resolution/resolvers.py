@@ -147,19 +147,15 @@ class OcrCoordinateResolver:
             max_listed=8,
         )
         candidates = ", ".join(formatted_matches)
-        screenshot_hint = OcrCoordinateResolver._resolve_screenshot_hint(screenshot_id)
         ambiguity_payload = {
             "retry_tool": "mouse_control",
             "retry_method": "ocr_candidate",
-            "screenshot_id": screenshot_hint,
             "candidates": candidate_payloads,
         }
-        screenshot_guidance = OcrCoordinateResolver._build_screenshot_guidance(screenshot_id)
         return (
             f"Multiple OCR instances matched '{requested_text}' above threshold {threshold:.2f}: {candidates}. "
-            f"{screenshot_guidance}"
             "Retry with OCR candidate selection only: "
-            f"(find_coordinates_by='ocr', candidate_id='...', screenshot_id='{screenshot_hint}'). "
+            "(find_coordinates_by='ocr', candidate_id='...'). "
             f"ambiguity_payload_json={json.dumps(ambiguity_payload, separators=(',', ':'))}"
         )
 
@@ -186,23 +182,19 @@ class OcrCoordinateResolver:
             default=0.0,
         )
 
-        screenshot_hint = OcrCoordinateResolver._resolve_screenshot_hint(screenshot_id)
         no_match_payload = {
             "retry_tool": "mouse_control",
             "retry_method": "ocr_candidate",
-            "screenshot_id": screenshot_hint,
             "threshold": round(float(threshold), 4),
             "best_score": round(best_score, 4),
             "candidates": candidate_payloads,
         }
-        screenshot_guidance = OcrCoordinateResolver._build_screenshot_guidance(screenshot_id)
         candidates = ", ".join(formatted_matches) if formatted_matches else "<none>"
         return (
             f"Could not find text '{requested_text}' above threshold {threshold:.2f} "
             f"(best match: {best_score:.2f}). Top 3 fuzzy matches: {candidates}. "
-            f"{screenshot_guidance}"
             "Retry with OCR candidate selection only: "
-            f"(find_coordinates_by='ocr', candidate_id='...', screenshot_id='{screenshot_hint}'). "
+            "(find_coordinates_by='ocr', candidate_id='...'). "
             f"ambiguity_payload_json={json.dumps(no_match_payload, separators=(',', ':'))}"
         )
 
@@ -259,24 +251,6 @@ class OcrCoordinateResolver:
         if hidden_count > 0:
             formatted_matches.append(f"+{hidden_count} more")
         return formatted_matches, candidate_payloads
-
-    @staticmethod
-    def _resolve_screenshot_hint(screenshot_id: Optional[str]) -> str:
-        if isinstance(screenshot_id, str) and screenshot_id:
-            return screenshot_id
-        return "<latest_screenshot_id>"
-
-    @staticmethod
-    def _build_screenshot_guidance(screenshot_id: Optional[str]) -> str:
-        if isinstance(screenshot_id, str) and screenshot_id:
-            return (
-                f"Grounding screenshot_id='{screenshot_id}' "
-                "(copy this exact value; do not use placeholders like 'current' or 'latest'). "
-            )
-        return (
-            "Grounding screenshot_id is unavailable; use the latest screenshot id "
-            "returned by screenshot/tool output. "
-        )
 
     @staticmethod
     def _build_candidate_id(

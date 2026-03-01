@@ -22,10 +22,9 @@ class FakeScreenshotProcessor:
         screenshot_data,
         request_id,
         *,
-        screenshot_id=None,
         capture_meta=None,
     ):
-        self.calls.append((session, screenshot_data, request_id, screenshot_id, capture_meta))
+        self.calls.append((session, screenshot_data, request_id, capture_meta))
 
 
 class FakeResultStorage:
@@ -74,7 +73,7 @@ async def test_route_individual_result_processes_screenshot_and_stores():
     await router.route_individual_result("req-1", result)
 
     assert router.screenshot_processor.calls == [
-        (router.session, "shot", "req-1", "shot-1", {"source_w": 1, "source_h": 1})
+        (router.session, "shot", "req-1", {"source_w": 1, "source_h": 1})
     ]
     assert router.result_storage.pending == [("req-1", result)]
     assert router.result_storage.pending_resolves == [("req-1", result)]
@@ -132,7 +131,7 @@ async def test_route_individual_result_resolves_screenshot_ref(monkeypatch):
     await router.route_individual_result("req-1", result)
 
     assert router.screenshot_processor.calls == [
-        (router.session, "decoded-shot", "req-1", None, None)
+        (router.session, "decoded-shot", "req-1", None)
     ]
     assert result.artifacts == {"screenshot": "decoded-shot"}
 
@@ -152,7 +151,7 @@ async def test_route_bundle_result_processes_screenshot_and_resolves():
     await router.route_bundle_result("bundle-1", result)
 
     assert router.screenshot_processor.calls == [
-        (router.session, "shot", "bundle-1", "shot-bundle", {"source_w": 2, "source_h": 2})
+        (router.session, "shot", "bundle-1", {"source_w": 2, "source_h": 2})
     ]
     assert router.result_storage.bundled == [("bundle-1", result)]
     assert router.result_storage.bundle_resolves == [("bundle-1", result)]
@@ -168,7 +167,7 @@ async def test_route_bundle_result_resolves_screenshot_ref(monkeypatch):
     await router.route_bundle_result("bundle-1", result)
 
     assert router.screenshot_processor.calls == [
-        (router.session, "decoded-bundle-shot", "bundle-1", None, None)
+        (router.session, "decoded-bundle-shot", "bundle-1", None)
     ]
     assert result.artifacts == {"screenshot": "decoded-bundle-shot"}
 

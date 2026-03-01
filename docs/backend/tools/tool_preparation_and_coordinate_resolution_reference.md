@@ -77,19 +77,19 @@ For a qualifying call:
 
 For OCR candidate retries (`find_coordinates_by='ocr'` + `candidate_id`):
 
-1. require `screenshot_id` in tool args
-2. require `screenshot_id` to exactly match current session screenshot id
-3. fail fast with `frame changed, re-ground required` on mismatch
+1. use current session frame id for candidate lookup/normalization
+2. ignore any legacy `screenshot_id` passed by the caller
+3. fail fast with `frame changed, re-ground required` when execution-time frame check detects drift
 
 For manual `x/y` calls (no OCR/vision resolution):
 
-1. require `screenshot_id` in tool args
-2. require current session frame id to exist and match `screenshot_id`
+1. require current session frame id to exist
+2. ignore any legacy `screenshot_id` field in tool args
 3. build the same `CoordinateContract` used by OCR/prediction
 4. normalize screenshot-space manual coordinates to display-space
 5. persist `coordinate_contract` metadata + `coordinate_resolution_screenshot_id`
 
-If any manual precondition fails (missing frame id, mismatch, missing screenshot bytes), preparation fails fast with an actionable error.
+If any manual precondition fails (missing frame id, missing screenshot bytes), preparation fails fast with an actionable error.
 
 ## Coordinate Normalization Contract
 
@@ -174,7 +174,8 @@ Bundle preparation failure:
 - mismatch returns immediate failure result (`frame changed, re-ground required`) to prevent dangerous clicks on changed UI
 
 This guard is independent of frontend behavior and protects local automation safety.
-Manual calls always participate because `screenshot_id` is mandatory.
+Manual calls always participate because preparation writes `coordinate_resolution_screenshot_id`
+from the current frame even when tool args omit `screenshot_id`.
 
 ## Wait Path Coupling
 
@@ -191,18 +192,18 @@ If `mouse_control` executes wrong location:
 
 1. inspect `coordinate_contract` metadata (source, crop, normalized coords, status)
 2. verify click used the same `coordinate_resolution_screenshot_id` as current frame
-3. verify sidecar screenshot result included `capture_meta` for the same `screenshot_id`
+3. verify sidecar screenshot result included frame-local `capture_meta`
 
 If OCR ambiguity retries are inconsistent:
 
-1. verify model copied the exact `screenshot_id` from ambiguity output
-2. verify retry used `candidate_id` from `ambiguity_payload_json` (not free-typed)
+1. verify retry used `candidate_id` from `ambiguity_payload_json` (not free-typed)
+2. verify no stale frame change occurred between ambiguity response and retry
 
 If OCR says text was not found:
 
 1. inspect the top-3 fuzzy candidates listed in the no-match error
 2. select one of those `candidate_id` values
-3. retry with `find_coordinates_by='ocr'`, `candidate_id`, and exact `screenshot_id`
+3. retry with `find_coordinates_by='ocr'` and `candidate_id`
 
 If prepared call never reaches frontend:
 

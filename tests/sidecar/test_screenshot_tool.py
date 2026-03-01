@@ -16,7 +16,9 @@ class _FakeImage:
         self.size = (300, 200)
 
     def convert(self, mode):
-        return _FakeImage(mode=mode)
+        converted = _FakeImage(mode=mode)
+        converted.size = self.size
+        return converted
 
     def save(self, buffer, format, quality, optimize, progressive):  # noqa: A002
         assert format == "JPEG"
@@ -26,7 +28,7 @@ class _FakeImage:
         buffer.write(b"fake-jpeg-bytes")
 
 
-def _install_fake_modules(monkeypatch, *, screenshot_fn):
+def _install_fake_modules(monkeypatch, *, screenshot_fn, stub_system_capture=True):
     pyautogui_module = ModuleType("pyautogui")
     pyautogui_module.screenshot = screenshot_fn
     pyautogui_module.size = lambda: SimpleNamespace(width=1920, height=1080)
@@ -34,6 +36,8 @@ def _install_fake_modules(monkeypatch, *, screenshot_fn):
     pil_module.Image = object()
     monkeypatch.setitem(sys.modules, "pyautogui", pyautogui_module)
     monkeypatch.setitem(sys.modules, "PIL", pil_module)
+    if stub_system_capture:
+        monkeypatch.setattr(screenshot_tool, "_capture_with_system_cursor", lambda region=None: None)
 
 
 @pytest.mark.asyncio
@@ -57,10 +61,7 @@ async def test_capture_screenshot_success_with_display_bounds(monkeypatch):
     assert payload["return_display"] == "Screenshot captured"
     assert base64.b64decode(payload["screenshot"]) == b"fake-jpeg-bytes"
     assert payload["size"] == int(len(payload["screenshot"]) * 0.75)
-    assert isinstance(payload["screenshot_id"], str)
-    assert len(payload["screenshot_id"]) == 16
     assert payload["capture_meta"] == {
-      "screenshot_id": payload["screenshot_id"],
       "source_w": 300,
       "source_h": 200,
       "crop_x": 10,
@@ -75,6 +76,7 @@ async def test_capture_screenshot_success_with_display_bounds(monkeypatch):
       },
       "monitor_id": None,
       "timestamp": payload["capture_meta"]["timestamp"],
+      "capture_backend": "pyautogui_fallback",
     }
     assert isinstance(payload["capture_meta"]["timestamp"], int)
 
@@ -101,3 +103,62 @@ async def test_capture_screenshot_runtime_error_returns_failure(monkeypatch):
 
     assert result["success"] is False
     assert "Screenshot failed: device busy" == result["error"]
+
+
+@pytest.mark.asyncio
+async def test_capture_screenshot_windows_uses_native_cursor_capture_path(monkeypatch):
+    image = _FakeImage(mode="RGB")
+    called = {"windows_capture": False}
+
+    def _screenshot(region=None):  # noqa: ARG001
+        raise AssertionError("pyautogui.screenshot should not be used on Windows path")
+
+    _install_fake_modules(monkeypatch, screenshot_fn=_screenshot, stub_system_capture=False)
+    monkeypatch.setattr(screenshot_tool, "_is_windows_platform", lambda: True)
+
+    def _fake_windows_capture(region=None):
+        called["windows_capture"] = True
+        return image
+
+    monkeypatch.setattr(screenshot_tool, "_capture_with_windows_cursor", _fake_windows_capture)
+
+    result = await screenshot_tool.capture_screenshot({})
+
+    assert result["success"] is True
+    assert called["windows_capture"] is True
+
+
+def test_capture_with_system_cursor_routes_to_macos(monkeypatch):
+    monkeypatch.setattr(screenshot_tool, "_is_windows_platform", lambda: False)
+    monkeypatch.setattr(screenshot_tool.platform, "system", lambda: "Darwin")
+
+    result = screenshot_tool._capture_with_system_cursor(None)
+
+    assert result is None
+
+
+def test_capture_with_system_cursor_routes_to_linux(monkeypatch):
+    sentinel = object()
+    monkeypatch.setattr(screenshot_tool, "_is_windows_platform", lambda: False)
+    monkeypatch.setattr(screenshot_tool.platform, "system", lambda: "Linux")
+    monkeypatch.setattr(screenshot_tool, "_is_linux_x11_session", lambda: False)
+    monkeypatch.setattr(screenshot_tool, "_capture_with_linux_cursor", lambda region=None: sentinel)
+
+    result = screenshot_tool._capture_with_system_cursor(None)
+
+    assert result is sentinel
+
+
+def test_capture_with_system_cursor_uses_silent_fallback_on_linux_x11(monkeypatch):
+    monkeypatch.setattr(screenshot_tool, "_is_windows_platform", lambda: False)
+    monkeypatch.setattr(screenshot_tool.platform, "system", lambda: "Linux")
+    monkeypatch.setattr(screenshot_tool, "_is_linux_x11_session", lambda: True)
+    monkeypatch.setattr(
+        screenshot_tool,
+        "_capture_with_linux_cursor",
+        lambda region=None: (_ for _ in ()).throw(AssertionError("linux native capture should be skipped on x11")),
+    )
+
+    result = screenshot_tool._capture_with_system_cursor(None)
+
+    assert result is None

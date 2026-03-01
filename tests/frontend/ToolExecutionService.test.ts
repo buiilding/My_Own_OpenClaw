@@ -95,7 +95,6 @@ describe('ToolExecutionService', () => {
       systemState: { active_window: 'App' },
       screenshot: 'shot',
       screenshotContentType: 'image/png',
-      screenshotId: 'shot-req-123',
       captureMeta: { source_w: 1920, source_h: 1080 },
     });
 
@@ -134,13 +133,13 @@ describe('ToolExecutionService', () => {
     const firstSentPayload = sendToBackend.mock.calls[0][0];
     expect(firstSentPayload.payload.data).toMatchObject({
       llm_content: 'formatted',
-      screenshot_id: 'shot-req-123',
       capture_meta: { source_w: 1920, source_h: 1080 },
       system_state: {
         active_window: 'App',
         mouse_position: 'Unknown',
       },
     });
+    expect(firstSentPayload.payload.data).not.toHaveProperty('screenshot_id');
     expect(firstSentPayload.payload.data).not.toHaveProperty('is_preformatted');
     expect(mockFormatToolOutputMessage).toHaveBeenCalled();
   });
@@ -285,7 +284,6 @@ describe('ToolExecutionService', () => {
     mockExtractOSstate.mockResolvedValue({
       systemState: { active_window: 'Shell' },
       screenshot: 'shell-shot',
-      screenshotId: null,
       captureMeta: null,
     });
 
@@ -337,7 +335,6 @@ describe('ToolExecutionService', () => {
     mockExtractOSstate.mockResolvedValue({
       systemState: { active_window: 'App' },
       screenshot: 'bundle-shot',
-      screenshotId: 'bundle-shot-id',
       captureMeta: { source_w: 1440, source_h: 900 },
     });
 
@@ -388,7 +385,6 @@ describe('ToolExecutionService', () => {
       ],
       { active_window: 'App' },
       'bundle-shot',
-      'bundle-shot-id',
       true,
     );
   });

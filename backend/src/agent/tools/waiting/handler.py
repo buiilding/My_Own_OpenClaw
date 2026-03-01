@@ -94,7 +94,6 @@ class ToolResultHandler:
         step_results: List[Dict[str, Any]],
         screenshot: Optional[str],
         screenshot_ref: Optional[str],
-        screenshot_id: Optional[str],
         capture_meta: Optional[Dict[str, Any]],
         system_state: Optional[Dict[str, Any]],
         error: Optional[str]
@@ -117,7 +116,6 @@ class ToolResultHandler:
             step_results,
             screenshot,
             screenshot_ref,
-            screenshot_id,
             capture_meta,
             system_state,
             error,

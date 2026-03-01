@@ -108,7 +108,6 @@ describe('SystemCapture', () => {
       systemState: { active_window: 'App', mouse_position: '0,0' },
       screenshot: 'shot',
       screenshotContentType: null,
-      screenshotId: null,
       captureMeta: null,
     });
     expect(invokeSpy).toHaveBeenNthCalledWith(2, INVOKE_CHANNELS.HIDE_CHATBOX);
@@ -217,14 +216,12 @@ describe('SystemCapture', () => {
       systemState: null,
       screenshot: 'png-shot',
       screenshotContentType: 'image/png',
-      screenshotId: null,
       captureMeta: null,
     });
     expect(jpgResult).toEqual({
       systemState: null,
       screenshot: 'jpg-shot',
       screenshotContentType: 'image/jpeg',
-      screenshotId: null,
       captureMeta: null,
     });
   });
@@ -247,7 +244,6 @@ describe('SystemCapture', () => {
       systemState: null,
       screenshot: 'shot',
       screenshotContentType: null,
-      screenshotId: 'shot-abc',
       captureMeta: { source_w: 1920, source_h: 1080, crop_x: 0, crop_y: 0, crop_w: 1920, crop_h: 1080 },
     });
   });
@@ -266,7 +262,6 @@ describe('SystemCapture', () => {
       systemState: null,
       screenshot: null,
       screenshotContentType: 'image/png',
-      screenshotId: null,
       captureMeta: null,
     });
   });
@@ -285,7 +280,6 @@ describe('SystemCapture', () => {
       systemState: null,
       screenshot: null,
       screenshotContentType: null,
-      screenshotId: null,
       captureMeta: null,
     });
   });
@@ -300,7 +294,6 @@ describe('SystemCapture', () => {
       systemState: null,
       screenshot: null,
       screenshotContentType: null,
-      screenshotId: null,
       captureMeta: null,
     });
   });
@@ -315,7 +308,6 @@ describe('SystemCapture', () => {
       systemState: null,
       screenshot: null,
       screenshotContentType: null,
-      screenshotId: null,
       captureMeta: null,
     });
   });
@@ -330,7 +322,6 @@ describe('SystemCapture', () => {
       systemState: null,
       screenshot: null,
       screenshotContentType: null,
-      screenshotId: null,
       captureMeta: null,
     });
   });
@@ -346,7 +337,6 @@ describe('SystemCapture', () => {
       systemState: null,
       screenshot: null,
       screenshotContentType: null,
-      screenshotId: null,
       captureMeta: null,
     });
     expect(consoleWarnSpy).toHaveBeenCalled();
@@ -368,7 +358,6 @@ describe('SystemCapture', () => {
       systemState: null,
       screenshot: null,
       screenshotContentType: null,
-      screenshotId: null,
       captureMeta: null,
     });
     expect(consoleErrorSpy).toHaveBeenCalled();

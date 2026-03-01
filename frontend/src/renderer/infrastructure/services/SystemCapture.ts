@@ -27,7 +27,6 @@ function buildScreenshotArgs(explanation: string) {
 }
 
 export type CaptureMeta = {
-  screenshot_id?: string | null;
   source_w?: number;
   source_h?: number;
   crop_x?: number;
@@ -47,7 +46,6 @@ export type CaptureMeta = {
 type ExtractedScreenshotData = {
   screenshot: string | null;
   screenshotContentType: string | null;
-  screenshotId: string | null;
   captureMeta: CaptureMeta | null;
 };
 
@@ -71,7 +69,6 @@ export async function extractOSstate(
   systemState: SystemState | null;
   screenshot: string | null;
   screenshotContentType: string | null;
-  screenshotId: string | null;
   captureMeta: CaptureMeta | null;
 }> {
   const shouldEmitCaptureEvent = enable_screenshot && typeof window !== 'undefined';
@@ -134,7 +131,6 @@ export async function extractOSstate(
           : {
             screenshot: null,
             screenshotContentType: null,
-            screenshotId: null,
             captureMeta: null,
           };
 
@@ -142,7 +138,6 @@ export async function extractOSstate(
           systemState,
           screenshot: screenshotData.screenshot,
           screenshotContentType: screenshotData.screenshotContentType,
-          screenshotId: screenshotData.screenshotId,
           captureMeta: screenshotData.captureMeta,
         };
       } catch (err) {
@@ -154,7 +149,6 @@ export async function extractOSstate(
           systemState: null,
           screenshot: null,
           screenshotContentType: null,
-          screenshotId: null,
           captureMeta: null,
         };
       }
@@ -188,7 +182,6 @@ export async function extractOSstate(
       let systemState: SystemState | null = null;
       let screenshot: string | null = null;
       let screenshotContentType: string | null = null;
-      let screenshotId: string | null = null;
       let captureMeta: CaptureMeta | null = null;
 
       let resultIndex = 0;
@@ -202,7 +195,6 @@ export async function extractOSstate(
         const screenshotData = extractScreenshotData(screenshotResult);
         screenshot = screenshotData.screenshot;
         screenshotContentType = screenshotData.screenshotContentType;
-        screenshotId = screenshotData.screenshotId;
         captureMeta = screenshotData.captureMeta;
       }
 
@@ -210,7 +202,6 @@ export async function extractOSstate(
         systemState,
         screenshot,
         screenshotContentType,
-        screenshotId,
         captureMeta,
       };
     } catch (err) {
@@ -219,7 +210,6 @@ export async function extractOSstate(
         systemState: null,
         screenshot: null,
         screenshotContentType: null,
-        screenshotId: null,
         captureMeta: null,
       };
     }
@@ -250,17 +240,23 @@ function resolveScreenshotContentType(data: Record<string, any>): string | null 
   return null;
 }
 
+function sanitizeCaptureMeta(value: unknown): CaptureMeta | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null;
+  }
+  const { screenshot_id: _ignoredScreenshotId, ...rest } = value as Record<string, unknown>;
+  return rest as CaptureMeta;
+}
+
 function extractScreenshotData(result: ToolResult): {
   screenshot: string | null;
   screenshotContentType: string | null;
-  screenshotId: string | null;
   captureMeta: CaptureMeta | null;
 } {
   if (!result.success || !result.data || typeof result.data !== 'object') {
     return {
       screenshot: null,
       screenshotContentType: null,
-      screenshotId: null,
       captureMeta: null,
     };
   }
@@ -268,12 +264,7 @@ function extractScreenshotData(result: ToolResult): {
   const screenshot = typeof result.data.screenshot === 'string'
     ? result.data.screenshot
     : null;
-  const screenshotId = typeof result.data.screenshot_id === 'string'
-    ? result.data.screenshot_id
-    : null;
-  const captureMeta = result.data.capture_meta && typeof result.data.capture_meta === 'object'
-    ? result.data.capture_meta as CaptureMeta
-    : null;
+  const captureMeta = sanitizeCaptureMeta(result.data.capture_meta);
   const screenshotContentType = resolveScreenshotContentType(result.data);
-  return { screenshot, screenshotContentType, screenshotId, captureMeta };
+  return { screenshot, screenshotContentType, captureMeta };
 }

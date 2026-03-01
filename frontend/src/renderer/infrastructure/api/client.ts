@@ -37,7 +37,6 @@ export const ApiClient = {
     screenshotRef: string | null = null,
     screenshotUrl: string | null = null,
     screenshotRefs: string[] | null = null,
-    screenshotId: string | null = null,
     captureMeta: CaptureMeta | null = null,
     attachmentContext: string | null = null,
     attachmentFilenames: string[] | null = null,
@@ -59,7 +58,6 @@ export const ApiClient = {
         conversation_ref: conversationRef,
         screenshot_ref: screenshotRef,  // Optional screenshot reference
         screenshot_refs: normalizedScreenshotRefs.length > 0 ? normalizedScreenshotRefs : null,
-        screenshot_id: screenshotId,
         capture_meta: captureMeta,
         attachment_context: (
           typeof attachmentContext === 'string' && attachmentContext.trim().length > 0

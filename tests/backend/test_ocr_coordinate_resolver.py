@@ -54,17 +54,16 @@ def test_resolve_raises_actionable_error_for_multiple_fuzzy_matches():
     assert "Multiple OCR instances matched 'Add to cart' above threshold 0.80" in message
     assert "Add to cart [candidate_id=" in message
     assert "Add to carts [candidate_id=" in message
-    assert "Grounding screenshot_id='shot-clarity-1'" in message
-    assert "do not use placeholders like 'current' or 'latest'" in message
     assert "Retry with OCR candidate selection only" in message
     assert "find_coordinates_by='ocr', candidate_id='...'" in message
+    assert "screenshot_id" not in message
     assert "find_coordinates_by='manual'" not in message
     payload_match = re.search(r"ambiguity_payload_json=(\{.*\})$", message)
     assert payload_match is not None
     payload = json.loads(payload_match.group(1))
     assert payload["retry_tool"] == "mouse_control"
     assert payload["retry_method"] == "ocr_candidate"
-    assert payload["screenshot_id"] == "shot-clarity-1"
+    assert "screenshot_id" not in payload
     assert len(payload["candidates"]) >= 2
 
 
@@ -135,8 +134,8 @@ def test_resolve_no_match_error_includes_top_three_candidates():
     assert "Could not find text 'Feb 28 Tue' above threshold 0.80" in message
     assert "Top 3 fuzzy matches:" in message
     assert "Retry with OCR candidate selection only" in message
-    assert "Grounding screenshot_id='shot-no-match-1'" in message
     assert "find_coordinates_by='ocr', candidate_id='...'" in message
+    assert "screenshot_id" not in message
 
     candidate_ids = re.findall(r"candidate_id=(ocr_[a-f0-9]{12})", message)
     assert len(candidate_ids) == 3
@@ -146,7 +145,7 @@ def test_resolve_no_match_error_includes_top_three_candidates():
     payload = json.loads(payload_match.group(1))
     assert payload["retry_tool"] == "mouse_control"
     assert payload["retry_method"] == "ocr_candidate"
-    assert payload["screenshot_id"] == "shot-no-match-1"
+    assert "screenshot_id" not in payload
     assert payload["threshold"] == 0.8
     assert payload["best_score"] >= 0.6
     assert len(payload["candidates"]) == 3

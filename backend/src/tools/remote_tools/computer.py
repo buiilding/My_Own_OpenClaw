@@ -25,10 +25,12 @@ class RemoteMouseTool(RemoteToolBase, Tool[MouseControlArgs]):
     name = "mouse_control"
     description = (
         "Control mouse actions with schema-guided coordinate targeting. "
+        "Prefer keyboard shortcuts and app-native navigation first; use mouse interaction when needed. "
         "Use find_coordinates_by='ocr' with exact ocr_text for initial targeting. "
         "For text fields, pass the exact visible string (for example: 'type something here'). "
-        "When OCR is ambiguous, retry with candidate_id + screenshot_id from the "
-        "ambiguity response."
+        "When OCR is ambiguous, retry with candidate_id from the ambiguity response. "
+        "For manual coordinates, use screenshot pixels from the latest image and beware of the mouse position "
+        "on that image when grounding x/y."
     )
     args_model = MouseControlArgs
     category = ToolDomain.COMPUTER
@@ -45,7 +47,8 @@ class RemoteKeyboardTool(RemoteToolBase, Tool[KeyboardControlArgs]):
     name = "keyboard_control"
     description = (
         "Control keyboard input including typing text, pressing keys, and shortcuts. "
-        "Use deterministic action sequences for predictable flows (for example, type then press Enter)."
+        "Use deterministic action sequences for predictable flows (for example, type then press Enter). "
+        "Prefer this tool over mouse clicks when a shortcut or key-driven path exists."
     )
     args_model = KeyboardControlArgs
     category = ToolDomain.COMPUTER

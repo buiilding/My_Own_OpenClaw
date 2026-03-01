@@ -151,7 +151,6 @@ class AgentExecutor:
         self, 
         query: str, 
         screenshot: Optional[Union[str, List[str]]] = None,
-        screenshot_id: Optional[str] = None,
         capture_meta: Optional[dict] = None,
         message_content: Optional[str] = None,
     ) -> AsyncGenerator[AgentStreamingEvent, None]:
@@ -161,7 +160,6 @@ class AgentExecutor:
         Args:
             query: The user's query text (for reference)
             screenshot: Optional base64 screenshot payload(s) for multimodal queries
-            screenshot_id: Optional screenshot frame ID for the primary screenshot
             capture_meta: Optional capture metadata for the primary screenshot
             message_content: Complete message content from frontend (system state + memories + query)
         """
@@ -235,7 +233,6 @@ class AgentExecutor:
                 self.session,
                 primary_screenshot,
                 user_request_id,
-                screenshot_id=screenshot_id,
                 capture_meta=capture_meta,
             )
 
