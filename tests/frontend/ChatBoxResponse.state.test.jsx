@@ -314,30 +314,11 @@ describe('ChatBoxResponse state behavior', () => {
     expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
   });
 
-  test('pre-renders awaiting indicator on screenshot-capture start before overlay phase updates', async () => {
+  test('keeps overlay awaiting indicator latched through idle gap and clears on streaming', async () => {
     setChatState([]);
     render(<ChatBoxResponse />);
 
-    act(() => {
-      window.dispatchEvent(new CustomEvent('windie:screenshot-capture', {
-        detail: { active: true },
-      }));
-    });
-
-    await waitFor(() => {
-      expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
-    });
-  });
-
-  test('keeps capture-await indicator through idle and clears on streaming', async () => {
-    setChatState([]);
-    render(<ChatBoxResponse />);
-
-    act(() => {
-      window.dispatchEvent(new CustomEvent('windie:screenshot-capture', {
-        detail: { active: true },
-      }));
-    });
+    emitOverlayPhase('tool-output');
     emitOverlayPhase('idle');
 
     await waitFor(() => {

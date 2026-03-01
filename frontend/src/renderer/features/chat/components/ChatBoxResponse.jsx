@@ -70,7 +70,7 @@ function ChatBoxResponse() {
   } = useChatStore(useShallow(selectChatBoxState));
   const [closedResponseId, setClosedResponseId] = useState(null);
   const [awaitingFirstChunk, setAwaitingFirstChunk] = useState(false);
-  const [awaitingAfterCapture, setAwaitingAfterCapture] = useState(false);
+  const [awaitingPhaseLatch, setAwaitingPhaseLatch] = useState(false);
   const [overlayPhase, setOverlayPhase] = useState('idle');
   const [hasOverflowAbove, setHasOverflowAbove] = useState(false);
   const [responseHeight, setResponseHeight] = useState(RESPONSE_MIN_HEIGHT);
@@ -142,7 +142,7 @@ function ChatBoxResponse() {
     [thinkingStatus],
   );
   const showAwaitingReply = (
-    (awaitingFirstChunk || awaitingAfterCapture || isSending || isOverlayAwaitingReplyPhase(overlayPhase))
+    (awaitingFirstChunk || awaitingPhaseLatch || isSending || isOverlayAwaitingReplyPhase(overlayPhase))
     && !showResponse
   );
   const overlayLayoutMode = useMemo(() => resolveResponseOverlayLayoutMode({
@@ -241,28 +241,16 @@ function ChatBoxResponse() {
       } else if (shouldOverlayClearAwaitingFirstChunk(phase)) {
         setAwaitingFirstChunk(false);
       }
-      if (
+      if (isOverlayAwaitingReplyPhase(phase) || isAwaitingFirstChunkPhase(phase)) {
+        setAwaitingPhaseLatch(true);
+      } else if (
         phase === RESPONSE_OVERLAY_PHASE.STREAMING
         || phase === RESPONSE_OVERLAY_PHASE.COMPLETE
         || phase === RESPONSE_OVERLAY_PHASE.ERROR
       ) {
-        setAwaitingAfterCapture(false);
+        setAwaitingPhaseLatch(false);
       }
     });
-  }, []);
-
-  useEffect(() => {
-    const handleScreenshotCapture = (event) => {
-      const active = event?.detail?.active === true;
-      if (active) {
-        // Keep awaiting indicator pre-rendered so chat-pill return is stable after capture.
-        setAwaitingAfterCapture(true);
-      }
-    };
-    window.addEventListener('windie:screenshot-capture', handleScreenshotCapture);
-    return () => {
-      window.removeEventListener('windie:screenshot-capture', handleScreenshotCapture);
-    };
   }, []);
 
   useEffect(() => {
@@ -303,6 +291,7 @@ function ChatBoxResponse() {
     }
     lastUserMessageIdRef.current = lastUserMessageId;
     setAwaitingFirstChunk(true);
+    setAwaitingPhaseLatch(true);
     setClosedResponseId(null);
     shouldStickToBottomRef.current = true;
     setHasOverflowAbove(false);
@@ -316,10 +305,10 @@ function ChatBoxResponse() {
   }, [awaitingFirstChunk, firstTextOrError]);
 
   useEffect(() => {
-    if (showResponse && awaitingAfterCapture) {
-      setAwaitingAfterCapture(false);
+    if (showResponse && awaitingPhaseLatch) {
+      setAwaitingPhaseLatch(false);
     }
-  }, [showResponse, awaitingAfterCapture]);
+  }, [showResponse, awaitingPhaseLatch]);
 
   const syncScrollState = useCallback(() => {
     const responseEl = responsePillRef.current;
