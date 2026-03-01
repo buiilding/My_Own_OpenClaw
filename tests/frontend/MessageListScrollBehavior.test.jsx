@@ -63,6 +63,7 @@ describe('MessageList auto-scroll behavior', () => {
     fireEvent.scroll(list);
 
     const callsBeforeUpdate = scrollIntoView.mock.calls.length;
+    const scrollToCallsBeforeUpdate = scrollTo.mock.calls.length;
     rerender(
       <MessageList
         messages={[
@@ -73,6 +74,7 @@ describe('MessageList auto-scroll behavior', () => {
     );
 
     expect(scrollIntoView).toHaveBeenCalledTimes(callsBeforeUpdate);
+    expect(scrollTo).toHaveBeenCalledTimes(scrollToCallsBeforeUpdate);
   });
 
   test('keeps auto-scroll when user remains near bottom', () => {
@@ -94,7 +96,8 @@ describe('MessageList auto-scroll behavior', () => {
     });
     fireEvent.scroll(list);
 
-    const callsBeforeUpdate = scrollIntoView.mock.calls.length;
+    const scrollIntoViewCallsBeforeUpdate = scrollIntoView.mock.calls.length;
+    const scrollToCallsBeforeUpdate = scrollTo.mock.calls.length;
     rerender(
       <MessageList
         messages={[
@@ -104,7 +107,11 @@ describe('MessageList auto-scroll behavior', () => {
       />,
     );
 
-    expect(scrollIntoView.mock.calls.length).toBeGreaterThan(callsBeforeUpdate);
+    const scrollToCallsAfterUpdate = scrollTo.mock.calls.slice(scrollToCallsBeforeUpdate);
+    expect(scrollToCallsAfterUpdate.length).toBeGreaterThan(0);
+    expect(scrollToCallsAfterUpdate.every(([options]) => Number.isFinite(options?.top))).toBe(true);
+    expect(scrollToCallsAfterUpdate.every(([options]) => options?.behavior === 'smooth')).toBe(true);
+    expect(scrollIntoView).toHaveBeenCalledTimes(scrollIntoViewCallsBeforeUpdate);
   });
 
   test('forces auto-scroll when conversation selection changes', () => {

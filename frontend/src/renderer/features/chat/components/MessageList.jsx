@@ -324,7 +324,16 @@ function MessageList({
   );
 
   const scrollToBottom = useCallback((behavior = 'smooth') => {
-    messagesEndRef.current?.scrollIntoView({ behavior });
+    const element = messageListRef.current;
+    if (!element) {
+      return;
+    }
+    const targetTop = Number(element.scrollHeight) || 0;
+    if (typeof element.scrollTo === 'function') {
+      element.scrollTo({ top: targetTop, behavior });
+      return;
+    }
+    element.scrollTop = targetTop;
   }, []);
 
   useEffect(() => {
