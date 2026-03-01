@@ -29,6 +29,7 @@ from backend.src.llm.providers.stream_event_pipeline import (
     stream_text_content_events,
     stream_thinking_and_text_events,
 )
+from backend.src.llm.models.models_config import resolve_runtime_model_id
 from backend.src.llm.providers.usage_diagnostics import (
     build_stream_cache_diagnostics,
     collect_usage_payload,
@@ -402,29 +403,37 @@ class LLMProvider(ProviderPayloadCompatMixin, ABC):
         if not isinstance(messages, list):
             raise TypeError(f"messages must be list, got {type(messages).__name__}")
 
+        runtime_model_id = resolve_runtime_model_id(model)
+
         params = {
-            "model": model_string or self._get_full_model_string(model),
-            "messages": self._normalize_messages_for_provider(messages, model=model),
+            "model": model_string or self._get_full_model_string(runtime_model_id),
+            "messages": self._normalize_messages_for_provider(messages, model=runtime_model_id),
             "api_key": self.api_key,
             "base_url": self.base_url,
             "timeout": self.timeout,
         }
         if tools is not None:
-            params["tools"] = self._normalize_tools_for_litellm(tools, model=model)
+            params["tools"] = self._normalize_tools_for_litellm(tools, model=runtime_model_id)
         if tool_choice is not None:
             params["tool_choice"] = tool_choice
         if parallel_tool_calls is not None:
             params["parallel_tool_calls"] = parallel_tool_calls
         apply_prompt_cache_key(params, prompt_cache_key)
-        return self._apply_provider_request_params(params, model=model)
+        return self._apply_provider_request_params(
+            params,
+            model=model,
+            runtime_model_id=runtime_model_id,
+        )
 
     def _apply_provider_request_params(
         self,
         params: Dict[str, Any],
         *,
         model: str,
+        runtime_model_id: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Provider hook for adding provider-specific LiteLLM request params."""
+        _ = runtime_model_id
         _ = model
         return params
 

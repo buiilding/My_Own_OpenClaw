@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(models-online-preset-variants): add OpenAI/Anthropic/Gemini preset variants in online model windows (including dual thinking/non-thinking instances where requested), carry friendly `display_name` metadata to chat/dashboard selectors, and map synthetic preset ids to runtime LiteLLM model ids server-side so variant entries resolve to valid provider model ids during requests.
 - fix(frontend-test-regressions-chatbox-overlay): restore `ChatBoxResponse` awaiting-lock/latch behavior for terminal and no-correlation overlay phases (including preloaded assistant response visibility), guard overlay runtime chat-window bounds/size access for minimal mocks, and default capture-restore prep to restore when `restoreChatPillAfterCapture` is omitted; frontend `test:ci` back to green.
 - docs(agents): update `AGENTS.md` docs-list instructions to use executable `./bin/docs-list` in this checkout and set `bin/docs-list` executable.
 - fix(backend-gemini-3-flash-thinking-catalog): mark `gemini-3-flash-preview` as thinking-capable in online thinking model config so metadata emits `supports_thinking=true` and `supports_thinking_text_stream=true`; add `ModelService` regression coverage.

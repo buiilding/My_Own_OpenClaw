@@ -63,7 +63,7 @@ export function ModelCard({ model, isSelected, isHovered, onSelect, onHover }) {
           </div>
           <div className="clone-model-title-wrap">
             <div className="clone-model-title-row">
-              <h3>{model.id}</h3>
+              <h3>{model.displayName || model.id}</h3>
               {model.badge ? (
                 <span className={`clone-model-badge${model.badge === 'Recommended' ? ' recommended' : ''}`}>
                   {model.badge}
@@ -127,6 +127,7 @@ export function ModelCard({ model, isSelected, isHovered, onSelect, onHover }) {
 ModelCard.propTypes = {
   model: PropTypes.shape({
     id: PropTypes.string.isRequired,
+    displayName: PropTypes.string,
     provider: PropTypes.string.isRequired,
     description: PropTypes.string.isRequired,
     context: PropTypes.string.isRequired,

@@ -118,6 +118,8 @@ function ChatInterface({ focusComposerToken = 0 }) {
       options.push({
         id: modelId,
         provider: String(model?.provider || configuredProvider || '').trim(),
+        label: String(model?.display_name || model?.displayName || modelId),
+        supportsThinking: model?.supports_thinking === true,
       });
     });
 
@@ -125,6 +127,8 @@ function ChatInterface({ focusComposerToken = 0 }) {
       options.unshift({
         id: configuredModelId,
         provider: String(configuredProvider || '').trim(),
+        label: configuredModelId,
+        supportsThinking: false,
       });
       return options;
     }
@@ -162,7 +166,10 @@ function ChatInterface({ focusComposerToken = 0 }) {
     return options;
   }, [availableModelPool, configuredProvider]);
   const providerLabel = configuredProvider || providerOptions[0] || 'No providers available';
-  const modelLabel = configuredModelId || modelOptions[0]?.id || 'No models available';
+  const selectedModelOption = modelOptions.find((option) => option.id === configuredModelId)
+    || modelOptions[0];
+  const modelLabelBase = selectedModelOption?.label || configuredModelId || 'No models available';
+  const modelLabel = selectedModelOption?.supportsThinking ? `${modelLabelBase} 🧠` : modelLabelBase;
   const devUiEnabled = isDevUiEnabled();
   const [providerMenuOpen, setProviderMenuOpen] = useState(false);
   const [modelMenuOpen, setModelMenuOpen] = useState(false);
@@ -410,7 +417,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
                         }}
                       >
                         <Sparkles size={16} />
-                        <span>{option.id}</span>
+                        <span>{option.supportsThinking ? `${option.label || option.id} 🧠` : (option.label || option.id)}</span>
                       </button>
                     ))
                   ) : (

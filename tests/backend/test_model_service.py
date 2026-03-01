@@ -189,6 +189,22 @@ async def test_get_local_models_accepts_iterable_provider_payloads(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_get_local_models_skips_provider_discovery_in_online_mode(monkeypatch):
+    def _should_not_be_called(_cfg):
+        raise AssertionError("create_provider_factory should not be called in online mode")
+
+    monkeypatch.setattr(
+        "backend.src.llm.providers.create_provider_factory",
+        _should_not_be_called,
+    )
+    service = ModelService(AppConfig(model_mode="online"))
+
+    models = await service.get_local_models()
+
+    assert models == []
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     ("raw_model", "expected_model"),
     [
@@ -261,21 +277,22 @@ def test_get_all_online_models_deduplicates_provider_model_pairs():
     assert any(m.get("supports_thinking") for m in models)
 
 
-def test_get_all_online_models_marks_gemini_3_1_as_thinking_text_stream_capable():
+def test_get_all_online_models_marks_gemini_3_pro_preview_as_thinking_text_stream_capable():
     service = ModelService(AppConfig())
     models = service.get_all_online_models()
 
-    gemini_3_1 = next(
+    gemini_3_pro_preview = next(
         (
             model for model in models
             if model.get("provider") == "gemini"
-            and model.get("id") == "gemini-3.1-pro-preview"
+            and model.get("runtime_model_id") == "gemini-3-pro-preview"
+            and model.get("supports_thinking") is True
         ),
         None,
     )
-    assert gemini_3_1 is not None
-    assert gemini_3_1.get("supports_thinking") is True
-    assert gemini_3_1.get("supports_thinking_text_stream") is True
+    assert gemini_3_pro_preview is not None
+    assert gemini_3_pro_preview.get("supports_thinking") is True
+    assert gemini_3_pro_preview.get("supports_thinking_text_stream") is True
 
 
 def test_get_all_online_models_marks_gemini_3_flash_preview_as_thinking_text_stream_capable():
@@ -286,13 +303,32 @@ def test_get_all_online_models_marks_gemini_3_flash_preview_as_thinking_text_str
         (
             model for model in models
             if model.get("provider") == "gemini"
-            and model.get("id") == "gemini-3-flash-preview"
+            and model.get("runtime_model_id") == "gemini-3-flash-preview"
+            and model.get("supports_thinking") is True
         ),
         None,
     )
     assert gemini_3_flash_preview is not None
     assert gemini_3_flash_preview.get("supports_thinking") is True
     assert gemini_3_flash_preview.get("supports_thinking_text_stream") is True
+
+
+def test_get_all_online_models_marks_gemini_3_1_pro_preview_as_non_thinking():
+    service = ModelService(AppConfig())
+    models = service.get_all_online_models()
+
+    gemini_3_1 = next(
+        (
+            model for model in models
+            if model.get("provider") == "gemini"
+            and model.get("runtime_model_id") == "gemini-3.1-pro-preview"
+            and model.get("supports_thinking") is False
+        ),
+        None,
+    )
+    assert gemini_3_1 is not None
+    assert gemini_3_1.get("supports_thinking") is False
+    assert gemini_3_1.get("supports_thinking_text_stream") is None
 
 
 def test_get_all_online_models_marks_openrouter_qwen3_vl_as_thinking_text_stream_capable():
