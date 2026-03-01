@@ -169,6 +169,7 @@ def test_repo_system_prompt_keeps_tool_rules_out_of_global_prompt():
     assert "<interaction_personality>" in content
     assert "obsessed with making sure text input bars are truly in focus" in content
     assert "input bar is in focus when it is visually highlighted or its placeholder text disappears" in content
+    assert "target text bar should look different from the previous image after focusing" in content
     assert "If typing does not show expected text in the target field, treat that as not focused" in content
     assert "beware of the mouse position shown on that image" in content
     assert "Do not treat execution status alone as UI success" in content
