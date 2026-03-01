@@ -1,3 +1,4 @@
+import base64
 from pathlib import Path
 import sys
 import types
@@ -216,3 +217,36 @@ async def test_read_file_pdf_respects_offset_and_limit_as_page_window(
     assert "--- Page 3 ---" in result.data["content"]
     assert "--- Page 1 ---" not in result.data["content"]
     assert "offset: 3" in result.data["llm_content"]
+
+
+@pytest.mark.asyncio
+async def test_read_file_image_returns_attachment_payload_without_ocr(tmp_path: Path):
+    target = tmp_path / "diagram.png"
+    target_bytes = b"\x89PNG\r\n\x1a\nfake-image-content"
+    target.write_bytes(target_bytes)
+
+    result = await read_file({"file_path": str(target)})
+
+    assert result.success is True
+    assert result.data["file_path"] == str(target)
+    assert result.data["content"] == ""
+    assert result.data["screenshot"] == base64.b64encode(target_bytes).decode("ascii")
+    assert result.data["image_data"] == base64.b64encode(target_bytes).decode("ascii")
+    assert result.data["screenshot_content_type"] == "image/png"
+    assert result.data["image_content_type"] == "image/png"
+    assert result.data["image_size_bytes"] == len(target_bytes)
+    assert result.data["read_lines"] == 0
+    assert result.data["total_lines"] == 0
+    assert result.data["is_truncated"] is False
+    assert "OCR/text extraction is not performed" in result.data["llm_content"]
+
+
+@pytest.mark.asyncio
+async def test_read_file_non_image_binary_remains_rejected(tmp_path: Path):
+    target = tmp_path / "payload.bin"
+    target.write_bytes(b"\x00\x01\x02binary")
+
+    result = await read_file({"file_path": str(target)})
+
+    assert result.success is False
+    assert "appears to be binary and cannot be read as text" in (result.error or "")

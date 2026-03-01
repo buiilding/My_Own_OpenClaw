@@ -56,6 +56,90 @@ export {
   BundleExecutionResult,
 };
 
+type ExtractedToolResultImage = {
+  base64: string;
+  contentType: string | null;
+};
+
+function asToolResultData(
+  data: ToolResult['data'],
+): Record<string, unknown> | null {
+  if (data && typeof data === 'object' && !Array.isArray(data)) {
+    return data as Record<string, unknown>;
+  }
+  return null;
+}
+
+function parseImagePayload(payload: string): ExtractedToolResultImage | null {
+  const trimmedPayload = payload.trim();
+  if (!trimmedPayload) {
+    return null;
+  }
+  if (
+    trimmedPayload.toLowerCase().startsWith('artifact://')
+    || trimmedPayload.toLowerCase().startsWith('http://')
+    || trimmedPayload.toLowerCase().startsWith('https://')
+  ) {
+    return null;
+  }
+
+  const dataUrlMatch = trimmedPayload.match(/^data:(image\/[a-z0-9.+-]+);base64,(.+)$/i);
+  if (dataUrlMatch) {
+    return {
+      contentType: dataUrlMatch[1].toLowerCase(),
+      base64: dataUrlMatch[2].trim(),
+    };
+  }
+
+  return {
+    base64: trimmedPayload,
+    contentType: null,
+  };
+}
+
+function extractToolResultImage(result: ToolResult): ExtractedToolResultImage | null {
+  const data = asToolResultData(result.data);
+  if (!data) {
+    return null;
+  }
+
+  const rawScreenshot = (
+    typeof data.screenshot === 'string' && data.screenshot.trim().length > 0
+      ? data.screenshot
+      : (
+        typeof data.image_data === 'string' && data.image_data.trim().length > 0
+          ? data.image_data
+          : null
+      )
+  );
+  if (!rawScreenshot) {
+    return null;
+  }
+
+  const parsedPayload = parseImagePayload(rawScreenshot);
+  if (!parsedPayload) {
+    return null;
+  }
+
+  const explicitContentType = (
+    typeof data.screenshot_content_type === 'string' && data.screenshot_content_type.trim().length > 0
+      ? data.screenshot_content_type.trim().toLowerCase()
+      : (
+        typeof data.image_content_type === 'string' && data.image_content_type.trim().length > 0
+          ? data.image_content_type.trim().toLowerCase()
+          : null
+      )
+  );
+  const selectedContentType = explicitContentType && explicitContentType.startsWith('image/')
+    ? explicitContentType
+    : parsedPayload.contentType;
+
+  return {
+    base64: parsedPayload.base64,
+    contentType: selectedContentType,
+  };
+}
+
 /**
  * Tool Execution Service
  */
@@ -106,11 +190,24 @@ export class ToolExecutionService {
         isComputerTool,
       } = capture;
 
-      const uploaded = isComputerTool && screenshot
+      const captureImage = (
+        typeof screenshot === 'string' && screenshot.length > 0
+          ? parseImagePayload(screenshot)
+          : null
+      );
+      const toolResultImage = extractToolResultImage(result);
+      const selectedImage = captureImage || toolResultImage;
+      const effectiveScreenshot = selectedImage?.base64 || null;
+      const effectiveScreenshotContentType = (
+        screenshotContentType
+        || selectedImage?.contentType
+        || null
+      );
+      const uploaded = effectiveScreenshot
         ? await uploadArtifactBase64(
-            screenshot,
-            normalizeArtifactImageContentType(screenshotContentType),
-            `${toolName}-screenshot.${resolveArtifactImageExtension(screenshotContentType)}`
+            effectiveScreenshot,
+            normalizeArtifactImageContentType(effectiveScreenshotContentType),
+            `${toolName}-screenshot.${resolveArtifactImageExtension(effectiveScreenshotContentType)}`
           )
         : null;
       const screenshotRef = uploaded?.artifactId || null;
@@ -130,10 +227,10 @@ export class ToolExecutionService {
         result,
         options.correlationId,
         formattedMessage,
-        screenshot,
+        effectiveScreenshot,
         screenshotRef,
         screenshotUrl,
-        screenshotContentType,
+        effectiveScreenshotContentType,
         finalSystemState
       );
       this._emitToolResult(executionResult);

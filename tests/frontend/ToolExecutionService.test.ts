@@ -193,6 +193,48 @@ describe('ToolExecutionService', () => {
     expect(payload).not.toHaveProperty('system_state');
   });
 
+  test('executeTool surfaces image payloads from read_file without forwarding screenshot fields to backend', async () => {
+    jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({
+      success: true,
+      data: {
+        image_data: 'data:image/webp;base64,YWJjZA==',
+      },
+    });
+    mockUploadArtifactBase64.mockResolvedValue({
+      artifactId: 'artifact-image-1',
+      contentType: 'image/webp',
+      sizeBytes: 4,
+      sha256: 'hash',
+      url: 'http://localhost/artifacts/artifact-image-1',
+    });
+
+    const sendToBackend = jest.fn();
+    const service = new ToolExecutionService({ sendToBackend });
+    const result = await service.executeTool(
+      'read_file',
+      { file_path: '/tmp/image.webp' },
+      { correlationId: 'req-image', skipAutoCapture: false },
+    );
+
+    expect(mockExtractOSstate).not.toHaveBeenCalled();
+    const uploadArgs = mockUploadArtifactBase64.mock.calls[0];
+    expect(uploadArgs?.[0]).toBe('YWJjZA==');
+    expect(uploadArgs?.[1]).toBe('image/webp');
+    expect(uploadArgs?.[2]).toBe('read_file-screenshot.webp');
+    expect(result.screenshot).toBe('YWJjZA==');
+    expect(result.screenshotRef).toBe('artifact-image-1');
+    expect(result.screenshotUrl).toBe('http://localhost/artifacts/artifact-image-1');
+    expect(result.screenshotContentType).toBe('image/webp');
+
+    const payload = sendToBackend.mock.calls[0][0].payload.data;
+    expect(payload).toMatchObject({
+      llm_content: 'formatted',
+    });
+    expect(payload).not.toHaveProperty('screenshot_ref');
+    expect(payload).not.toHaveProperty('screenshot');
+    expect(payload).not.toHaveProperty('image_data');
+  });
+
   test('executeTool reuses system_state and screenshot from tool result', async () => {
     jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({
       success: true,

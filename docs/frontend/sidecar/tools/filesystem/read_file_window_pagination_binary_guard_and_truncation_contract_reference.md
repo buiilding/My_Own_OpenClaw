@@ -50,6 +50,7 @@ Exception:
 
 - `.pdf` files are handled by a dedicated `pypdf` extraction path before binary rejection.
 - PDF reads use page extraction + size-aware relevance selection instead of line-window reads.
+- supported image files (`.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.bmp`, `.tif`, `.tiff`, `.ico`, `.svg`) are handled before binary rejection and returned as image attachment payloads.
 
 ## PDF Read Path
 
@@ -65,6 +66,14 @@ For `.pdf` files, `read_file`:
   - `pdf_total_pages`
   - `pdf_pages_included`
   - `pdf_search_terms`
+
+## Image Read Path
+
+For supported image files, `read_file`:
+
+- reads raw bytes and returns base64 attachment fields (`screenshot`, `image_data`)
+- includes MIME metadata (`screenshot_content_type`, `image_content_type`) and `image_size_bytes`
+- returns a deterministic `llm_content` note that OCR/text extraction is not performed
 
 ## Encoding Path
 
@@ -142,6 +151,8 @@ Offset-past-EOF path returns:
 - offset past EOF returns empty content window with truncation status
 - empty-file deterministic message
 - large file with tiny limit keeps paging behavior stable
+- image payload output shape and explicit no-OCR note
+- non-image binary files remain rejected
 
 ## Drift Hotspots
 
