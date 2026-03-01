@@ -198,6 +198,7 @@ function MessageList({
   const messageListRef = useRef(null);
   const messagesEndRef = useRef(null);
   const shouldAutoScrollRef = useRef(true);
+  const forceInstantAutoScrollRef = useRef(false);
 
   const handleStartUserEdit = useCallback((messageId, messageText) => {
     setEditingUserMessageId(messageId);
@@ -304,8 +305,8 @@ function MessageList({
     ]
   );
 
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const scrollToBottom = useCallback((behavior = 'smooth') => {
+    messagesEndRef.current?.scrollIntoView({ behavior });
   }, []);
 
   useEffect(() => {
@@ -314,7 +315,8 @@ function MessageList({
     }
     // Conversation switches should always land at the latest message.
     shouldAutoScrollRef.current = true;
-    scrollToBottom();
+    forceInstantAutoScrollRef.current = true;
+    scrollToBottom('auto');
   }, [conversationRef, scrollToBottom]);
 
   const handleMessageListScroll = useCallback(() => {
@@ -325,7 +327,9 @@ function MessageList({
     if (!shouldAutoScrollRef.current) {
       return;
     }
-    scrollToBottom();
+    const behavior = forceInstantAutoScrollRef.current ? 'auto' : 'smooth';
+    forceInstantAutoScrollRef.current = false;
+    scrollToBottom(behavior);
   }, [messages, scrollToBottom]);
 
   const compactionStatusText = useMemo(() => {
