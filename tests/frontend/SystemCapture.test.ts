@@ -64,18 +64,15 @@ describe('SystemCapture', () => {
 
     const result = await extractOSstate(true, true, 0, true);
 
-    expect(invokeSpy).toHaveBeenNthCalledWith(1, INVOKE_CHANNELS.SHOW_CHATBOX, {
-      focus: false,
-    });
-    expect(invokeSpy).toHaveBeenNthCalledWith(2, INVOKE_CHANNELS.HIDE_CHATBOX);
-    expect(invokeSpy).toHaveBeenNthCalledWith(3, INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
+    expect(invokeSpy).toHaveBeenNthCalledWith(1, INVOKE_CHANNELS.HIDE_CHATBOX);
+    expect(invokeSpy).toHaveBeenNthCalledWith(2, INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
       waitMs: 120,
       skipDemotion: true,
     });
-    expect(invokeSpy).toHaveBeenNthCalledWith(4, INVOKE_CHANNELS.GET_SYSTEM_STATE, {
+    expect(invokeSpy).toHaveBeenNthCalledWith(3, INVOKE_CHANNELS.GET_SYSTEM_STATE, {
       fields: ['active_window', 'mouse_position', 'screen_resolution', 'windows'],
     });
-    expect(invokeSpy).toHaveBeenNthCalledWith(5, INVOKE_CHANNELS.EXECUTE_TOOL, {
+    expect(invokeSpy).toHaveBeenNthCalledWith(4, INVOKE_CHANNELS.EXECUTE_TOOL, {
       toolName: 'screenshot',
       args: {
         explanation: 'Initial user message screenshot',
@@ -83,7 +80,7 @@ describe('SystemCapture', () => {
       },
       skipAutoCapture: false,
     });
-    expect(invokeSpy).toHaveBeenNthCalledWith(6, INVOKE_CHANNELS.SHOW_CHATBOX, {
+    expect(invokeSpy).toHaveBeenNthCalledWith(5, INVOKE_CHANNELS.SHOW_CHATBOX, {
       focus: false,
     });
     expect(result.systemState).toEqual({ active_window: 'App', mouse_position: '0,0' });
@@ -110,15 +107,12 @@ describe('SystemCapture', () => {
       screenshotContentType: null,
       captureMeta: null,
     });
-    expect(invokeSpy).toHaveBeenNthCalledWith(2, INVOKE_CHANNELS.HIDE_CHATBOX);
-    expect(invokeSpy).toHaveBeenNthCalledWith(1, INVOKE_CHANNELS.SHOW_CHATBOX, {
-      focus: false,
-    });
-    expect(invokeSpy).toHaveBeenNthCalledWith(3, INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
+    expect(invokeSpy).toHaveBeenNthCalledWith(1, INVOKE_CHANNELS.HIDE_CHATBOX);
+    expect(invokeSpy).toHaveBeenNthCalledWith(2, INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
       waitMs: 120,
       skipDemotion: true,
     });
-    expect(invokeSpy).toHaveBeenNthCalledWith(6, INVOKE_CHANNELS.SHOW_CHATBOX, {
+    expect(invokeSpy).toHaveBeenNthCalledWith(5, INVOKE_CHANNELS.SHOW_CHATBOX, {
       focus: false,
     });
     setTimeoutSpy.mockRestore();
@@ -137,7 +131,7 @@ describe('SystemCapture', () => {
 
     await extractOSstate(true, true, 0, true);
 
-    expect(invokeSpy).toHaveBeenNthCalledWith(5, INVOKE_CHANNELS.EXECUTE_TOOL, {
+    expect(invokeSpy).toHaveBeenNthCalledWith(4, INVOKE_CHANNELS.EXECUTE_TOOL, {
       toolName: 'screenshot',
       args: {
         explanation: 'Initial user message screenshot',
@@ -146,7 +140,7 @@ describe('SystemCapture', () => {
       },
       skipAutoCapture: false,
     });
-    expect(invokeSpy).toHaveBeenNthCalledWith(6, INVOKE_CHANNELS.SHOW_CHATBOX, {
+    expect(invokeSpy).toHaveBeenNthCalledWith(5, INVOKE_CHANNELS.SHOW_CHATBOX, {
       focus: false,
     });
   });
@@ -176,15 +170,12 @@ describe('SystemCapture', () => {
 
     const result = await extractOSstate(true, false, 0, false);
 
-    expect(invokeSpy).toHaveBeenNthCalledWith(1, INVOKE_CHANNELS.SHOW_CHATBOX, {
-      focus: false,
-    });
-    expect(invokeSpy).toHaveBeenNthCalledWith(2, INVOKE_CHANNELS.HIDE_CHATBOX);
-    expect(invokeSpy).toHaveBeenNthCalledWith(3, INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
+    expect(invokeSpy).toHaveBeenNthCalledWith(1, INVOKE_CHANNELS.HIDE_CHATBOX);
+    expect(invokeSpy).toHaveBeenNthCalledWith(2, INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
       waitMs: 120,
       skipDemotion: true,
     });
-    expect(invokeSpy).toHaveBeenNthCalledWith(4, INVOKE_CHANNELS.EXECUTE_TOOL, {
+    expect(invokeSpy).toHaveBeenNthCalledWith(3, INVOKE_CHANNELS.EXECUTE_TOOL, {
       toolName: 'screenshot',
       args: {
         explanation: 'Screenshot capture',
@@ -192,10 +183,10 @@ describe('SystemCapture', () => {
       },
       skipAutoCapture: false,
     });
-    expect(invokeSpy).toHaveBeenNthCalledWith(5, INVOKE_CHANNELS.SHOW_CHATBOX, {
+    expect(invokeSpy).toHaveBeenNthCalledWith(4, INVOKE_CHANNELS.SHOW_CHATBOX, {
       focus: false,
     });
-    expect(invokeSpy).toHaveBeenCalledTimes(5);
+    expect(invokeSpy).toHaveBeenCalledTimes(4);
     expect(result.systemState).toBeNull();
     expect(result.screenshot).toBe('shot');
   });
@@ -211,7 +202,7 @@ describe('SystemCapture', () => {
     const pngResult = await extractOSstate(true, false, 0, false);
     const jpgResult = await extractOSstate(true, false, 0, false);
 
-    expect(invokeSpy).toHaveBeenCalledTimes(10);
+    expect(invokeSpy).toHaveBeenCalledTimes(8);
     expect(pngResult).toEqual({
       systemState: null,
       screenshot: 'png-shot',

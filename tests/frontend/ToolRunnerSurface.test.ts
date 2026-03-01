@@ -110,7 +110,6 @@ describe('toolRunnerSurface helpers', () => {
     const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
     expect(invokeCalls).toEqual([
       [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
-      [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
       [INVOKE_CHANNELS.HIDE_CHATBOX],
       [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
     ]);
@@ -128,12 +127,11 @@ describe('toolRunnerSurface helpers', () => {
     const second = await prepareToolExecutionSurface('screenshot');
 
     await restoreToolExecutionSurface(first);
-    expect(IpcBridge.invoke).toHaveBeenCalledTimes(3);
+    expect(IpcBridge.invoke).toHaveBeenCalledTimes(2);
 
     await restoreToolExecutionSurface(second);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
       [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
-      [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
       [INVOKE_CHANNELS.HIDE_CHATBOX],
       [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
     ]);

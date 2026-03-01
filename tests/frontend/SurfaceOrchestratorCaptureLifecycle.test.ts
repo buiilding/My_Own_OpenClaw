@@ -25,16 +25,14 @@ describe('surfaceOrchestrator capture lifecycle', () => {
     expect(first.prepared).toBe(true);
     expect(second.prepared).toBe(true);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
       [INVOKE_CHANNELS.HIDE_CHATBOX],
     ]);
 
     await restoreScreenshotCaptureVisibility(first);
-    expect(IpcBridge.invoke).toHaveBeenCalledTimes(2);
+    expect(IpcBridge.invoke).toHaveBeenCalledTimes(1);
 
     await restoreScreenshotCaptureVisibility(second);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
       [INVOKE_CHANNELS.HIDE_CHATBOX],
       [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
     ]);
@@ -56,14 +54,12 @@ describe('surfaceOrchestrator capture lifecycle', () => {
     await restoreScreenshotCaptureVisibility(capturePreparation);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
       [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
-      [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
       [INVOKE_CHANNELS.HIDE_CHATBOX],
     ]);
 
     await restoreToolExecutionSurface(toolPreparation);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
       [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
-      [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
       [INVOKE_CHANNELS.HIDE_CHATBOX],
       [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
     ]);
