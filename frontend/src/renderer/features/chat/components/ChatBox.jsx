@@ -460,7 +460,7 @@ function ChatBox() {
             {composerBusy ? (
               <button
                 type="button"
-                className="chatbox-icon chatbox-send"
+                className="chatbox-icon chatbox-send chatbox-stop-button"
                 aria-label="Stop response"
                 title="Stop response"
                 onClick={handleStopQuery}

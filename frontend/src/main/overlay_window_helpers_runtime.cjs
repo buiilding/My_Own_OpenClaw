@@ -121,7 +121,9 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
       : 520;
     const [currentWidth, currentHeight] = responseWindow.getSize();
     const width = Math.max(1, currentWidth || defaultWidth);
-    const height = Math.max(42, currentHeight || 0);
+    // Keep compact awaiting typing overlays from being forced to taller fallback
+    // bounds during hide/show restore races.
+    const height = Math.max(24, currentHeight || 0);
     const bounds = getResponseWindowBounds(width, height);
     responseWindow.setBounds(bounds, false);
   }
