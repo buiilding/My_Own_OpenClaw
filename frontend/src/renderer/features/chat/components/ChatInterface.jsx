@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { ChevronDown, Sparkles, Volume2, Workflow } from 'lucide-react';
+import { ChevronDown, Volume2, Workflow } from 'lucide-react';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import { useChatStore } from '../stores/chatStore';
@@ -416,13 +416,11 @@ function ChatInterface({ focusComposerToken = 0 }) {
                           handleModelSelect(option);
                         }}
                       >
-                        <Sparkles size={16} />
                         <span>{option.supportsThinking ? `${option.label || option.id} 🧠` : (option.label || option.id)}</span>
                       </button>
                     ))
                   ) : (
                     <div className="chat-model-menu-item" aria-disabled="true">
-                      <Sparkles size={16} />
                       <span>No models available</span>
                     </div>
                   )}
