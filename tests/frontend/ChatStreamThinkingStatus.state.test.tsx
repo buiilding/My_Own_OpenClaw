@@ -178,6 +178,28 @@ describe('useChatStream state + stream handling', () => {
     expect(useChatStore.getState().thinkingStatus).toBeNull();
   });
 
+  test('clears sending state on tool output so awaiting dot cannot stick', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.setState({
+        isSending: true,
+        thinkingStatus: 'thinking',
+      });
+      emitBackendEvent({
+        type: 'tool-output',
+        payload: {
+          tool_name: 'screenshot',
+          output: 'ok',
+        },
+      });
+    });
+
+    const state = useChatStore.getState();
+    expect(state.isSending).toBe(false);
+    expect(state.thinkingStatus).toBeNull();
+  });
+
   test('clears thinking status on streaming complete', () => {
     const { emitBackendEvent } = registerBackendListener();
 
