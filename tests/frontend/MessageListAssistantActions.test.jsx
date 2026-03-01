@@ -221,6 +221,24 @@ describe('MessageList assistant actions', () => {
     expect(screen.getByLabelText('Assistant is preparing response')).toBeInTheDocument();
   });
 
+  test('renders assistant awaiting dot directly after latest user message', () => {
+    const { container } = render(
+      <MessageList
+        messages={[
+          { id: 'user-1', text: 'first', sender: 'user', type: 'user' },
+          { id: 'assistant-1', text: 'reply', sender: 'assistant', type: 'llm-text' },
+          { id: 'user-2', text: 'second', sender: 'user', type: 'user' },
+        ]}
+        showAssistantAwaitingDot
+      />,
+    );
+
+    const latestUserMessage = screen.getByText('second').closest('.message');
+    const awaitingDot = screen.getByLabelText('Assistant is preparing response');
+    expect(awaitingDot.previousElementSibling).toBe(latestUserMessage);
+    expect(container.querySelector('.message-list-awaiting-dot-inline')).toBe(awaitingDot);
+  });
+
   test('does not render assistant awaiting dot by default', () => {
     render(
       <MessageList

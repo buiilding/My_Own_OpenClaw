@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(frontend-dashboard-awaiting-indicator-inline): render dashboard awaiting/typing indicator directly under the latest user message (left-aligned with assistant reply lane), show it during local-send/awaiting-first-token, and remove it as soon as assistant streaming starts.
 - style(frontend-message-input-inline-actions): convert dashboard composer to a single-row input/action layout so `+`, input text, mic, and send align on one line, and reduce base chat-pill height to match the compact ChatGPT-like input bar.
 - style(frontend-message-input-file-preview-card): restyle dashboard composer file attachments from compact pills to a card preview (document icon, filename, file type, inline remove action) to match the new add-photos/files UX.
 - fix(frontend-overlay-preview-anchor): add chatbox visual-anchor IPC updates (`64` compact / `116` with-preview) so main-process response/context overlays re-anchor when the chat pill enters preview mode, keeping response overlay above expanded preview height; add overlay IPC + helper runtime and chatbox regression coverage.
