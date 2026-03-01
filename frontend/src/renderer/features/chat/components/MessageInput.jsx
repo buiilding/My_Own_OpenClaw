@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   ArrowUp,
+  FileText,
   Image,
   Mic,
   Plus,
@@ -14,6 +15,23 @@ import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
 import VoiceStatus from '../../voice/components/VoiceStatus';
 import { parseClipboardImageItems } from '../utils/clipboardImageUtils';
 import { parseSelectedComposerFiles } from '../utils/fileAttachmentUtils';
+
+function resolveReadableFileTypeLabel(filename) {
+  if (typeof filename !== 'string') {
+    return 'FILE';
+  }
+  const normalized = filename.trim();
+  const lastDotIndex = normalized.lastIndexOf('.');
+  if (lastDotIndex < 0 || lastDotIndex === normalized.length - 1) {
+    return 'FILE';
+  }
+  const extension = normalized.slice(lastDotIndex + 1).trim();
+  if (extension.length === 0) {
+    return 'FILE';
+  }
+  const upper = extension.toUpperCase();
+  return upper.length <= 8 ? upper : upper.slice(0, 8);
+}
 
 function MessageInput({
   onSendMessage,
@@ -200,8 +218,14 @@ function MessageInput({
           {selectedReadableFiles.length > 0 ? (
             <div className="message-file-preview-row">
               {selectedReadableFiles.map((file, index) => (
-                <div className="message-file-preview-pill" key={file.id || `${file.filename}-${index}`}>
-                  <span className="message-file-preview-name">{file.filename}</span>
+                <div className="message-file-preview-card" key={file.id || `${file.filename}-${index}`}>
+                  <div className="message-file-preview-icon" aria-hidden="true">
+                    <FileText size={16} />
+                  </div>
+                  <div className="message-file-preview-meta">
+                    <span className="message-file-preview-name" title={file.filename}>{file.filename}</span>
+                    <span className="message-file-preview-type">{resolveReadableFileTypeLabel(file.filename)}</span>
+                  </div>
                   <button
                     type="button"
                     className="message-file-preview-remove"

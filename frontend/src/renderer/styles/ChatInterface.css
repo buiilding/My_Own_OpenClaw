@@ -1063,41 +1063,72 @@
 }
 
 .message-file-preview-row {
-  padding: 0 12px 4px;
+  padding: 10px 12px 2px;
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
 }
 
-.message-file-preview-pill {
+.message-file-preview-card {
+  position: relative;
   min-width: 0;
-  max-width: 100%;
-  border-radius: 999px;
-  border: 1px solid var(--ui-border-soft);
-  background: rgba(15, 18, 24, 0.78);
+  width: min(100%, 320px);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.04);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 34px 10px 10px;
+}
+
+.message-file-preview-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(255, 95, 95, 0.98), rgba(236, 61, 61, 0.95));
+  color: #fff;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 8px 6px 10px;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.message-file-preview-meta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
 }
 
 .message-file-preview-name {
-  color: var(--ui-text-secondary);
-  font-size: 12px;
-  line-height: 1.2;
+  color: var(--ui-text-primary);
+  font-size: 15px;
+  line-height: 1.15;
+  font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 260px;
+}
+
+.message-file-preview-type {
+  color: var(--ui-text-secondary);
+  font-size: 12px;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
 }
 
 .message-file-preview-remove {
-  width: 20px;
-  height: 20px;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 18px;
+  height: 18px;
   border: 0;
   border-radius: 999px;
-  background: rgba(20, 20, 20, 0.7);
+  background: rgba(20, 20, 20, 0.5);
   color: var(--ui-text-primary);
   display: inline-flex;
   align-items: center;
@@ -1106,7 +1137,7 @@
 }
 
 .message-file-preview-remove:hover {
-  background: rgba(20, 20, 20, 0.95);
+  background: rgba(20, 20, 20, 0.85);
 }
 
 .message-image-preview-card {
