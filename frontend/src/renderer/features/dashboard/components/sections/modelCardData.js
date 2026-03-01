@@ -33,9 +33,15 @@ function buildModelStrengths(model) {
 }
 
 export function toModelCard(model, isRecommended) {
+  const displayName = model?.display_name || model?.displayName || model?.id || 'unknown-model';
   const contextHint = model?.context_window || model?.contextWindow || model?.context || 'Context unknown';
+  const thinkingBadge = typeof model?.supports_thinking === 'boolean'
+    ? (model.supports_thinking ? 'Thinking' : 'Non-thinking')
+    : null;
+  const badge = thinkingBadge || (isRecommended ? 'Recommended' : null);
   return {
     id: model?.id || 'unknown-model',
+    displayName: String(displayName),
     provider: model?.provider || 'unknown',
     description: buildModelDescription(model),
     context: typeof contextHint === 'number' ? `${contextHint} tokens` : String(contextHint),
@@ -43,7 +49,7 @@ export function toModelCard(model, isRecommended) {
     outputPrice: model?.output_price || model?.outputPrice || 'N/A',
     latency: model?.latency || '~1.5s',
     strengths: buildModelStrengths(model),
-    badge: isRecommended ? 'Recommended' : null,
+    badge,
   };
 }
 

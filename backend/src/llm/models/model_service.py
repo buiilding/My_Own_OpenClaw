@@ -15,7 +15,6 @@ from backend.src.core.config import AppConfig
 from backend.src.llm.models.models_config import (
     LOCAL_VISION_MODELS,
     ONLINE_MODELS,
-    ONLINE_THINKING_MODELS,
     THINKING_TEXT_STREAM_UNSUPPORTED_MODELS,
 )
 
@@ -30,20 +29,49 @@ logger = logging.getLogger(__name__)
 
 
 def _build_catalog(
-    source: Dict[str, List[str]],
+    source: Dict[str, List[Any]],
     supports_thinking: Optional[bool] = None,
 ) -> Tuple[Dict[str, Any], ...]:
     """Build immutable catalog tuples from static model config."""
     models: List[Dict[str, Any]] = []
-    for provider, model_ids in source.items():
-        for model_id in model_ids:
-            entry: Dict[str, Any] = {
-                "id": model_id,
-                "provider": provider,
-                "display_name": f"{provider}/{model_id}",
-            }
-            if supports_thinking is not None:
+    for provider, model_entries in source.items():
+        for model_entry in model_entries:
+            if isinstance(model_entry, dict):
+                model_id = str(model_entry.get("id") or "").strip()
+                if not model_id:
+                    continue
+                runtime_model_id = str(
+                    model_entry.get("runtime_model_id") or model_id
+                ).strip() or model_id
+                display_name = str(
+                    model_entry.get("display_name") or f"{provider}/{model_id}"
+                ).strip() or f"{provider}/{model_id}"
+                entry = {
+                    "id": model_id,
+                    "runtime_model_id": runtime_model_id,
+                    "provider": provider,
+                    "display_name": display_name,
+                }
+                if "supports_thinking" in model_entry:
+                    entry["supports_thinking"] = bool(model_entry["supports_thinking"])
+                if "supports_thinking_text_stream" in model_entry:
+                    entry["supports_thinking_text_stream"] = bool(
+                        model_entry["supports_thinking_text_stream"]
+                    )
+            else:
+                model_id = str(model_entry).strip()
+                if not model_id:
+                    continue
+                entry = {
+                    "id": model_id,
+                    "runtime_model_id": model_id,
+                    "provider": provider,
+                    "display_name": f"{provider}/{model_id}",
+                }
+            if supports_thinking is not None and "supports_thinking" not in entry:
                 entry["supports_thinking"] = supports_thinking
+            if "supports_thinking" in entry and entry["supports_thinking"] and "supports_thinking_text_stream" not in entry:
+                entry["supports_thinking_text_stream"] = True
             models.append(entry)
     return tuple(models)
 
@@ -69,7 +97,7 @@ def _with_thinking_stream_capabilities(catalog: Sequence[Dict[str, Any]]) -> Tup
         entry = dict(model)
         if entry.get("supports_thinking"):
             provider = str(entry.get("provider") or "")
-            model_id = str(entry.get("id") or "")
+            model_id = str(entry.get("runtime_model_id") or entry.get("id") or "")
             entry["supports_thinking_text_stream"] = (
                 model_id not in unsupported_by_provider.get(provider, set())
             )
@@ -92,7 +120,11 @@ def _dedupe_models(models: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
 _ONLINE_MODELS_CATALOG = _build_catalog(ONLINE_MODELS, supports_thinking=False)
 _THINKING_MODELS_CATALOG = _with_thinking_stream_capabilities(
-    _build_catalog(ONLINE_THINKING_MODELS, supports_thinking=True)
+    tuple(
+        model
+        for model in _ONLINE_MODELS_CATALOG
+        if model.get("supports_thinking") is True
+    )
 )
 _VISION_MODELS_CATALOG = _build_catalog(LOCAL_VISION_MODELS)
 
@@ -166,6 +198,11 @@ class ModelService:
             normalized_item = dict(item)
             normalized_item["id"] = normalized_id
             normalized_item["provider"] = normalized_provider
+            runtime_model_id = normalized_item.get("runtime_model_id")
+            if not isinstance(runtime_model_id, str) or not runtime_model_id.strip():
+                normalized_item["runtime_model_id"] = normalized_id
+            else:
+                normalized_item["runtime_model_id"] = runtime_model_id.strip()
             display_name = normalized_item.get("display_name")
             if not isinstance(display_name, str) or not display_name.strip():
                 normalized_item["display_name"] = f"{normalized_provider}/{normalized_id}"
@@ -204,6 +241,13 @@ class ModelService:
             List of available local models. If a provider fails, it logs a warning
             but continues to try other providers. Returns empty list if all providers fail.
         """
+        if self.config.model_mode != "local":
+            logger.debug(
+                "Skipping local model discovery because model_mode=%s",
+                self.config.model_mode,
+            )
+            return []
+
         # Lazy import to avoid circular dependency
         from backend.src.llm.providers import create_provider_factory
         
