@@ -3,16 +3,7 @@ import PropTypes from 'prop-types';
 import {
   X,
   Settings,
-  Bell,
-  Sparkles,
-  LayoutGrid,
-  Clock,
-  FileText,
-  Shield,
-  Users,
-  User,
   ChevronDown,
-  Play,
 } from 'lucide-react';
 import { useAppConfigContext } from '../../../../app/providers/AppContextHooks';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../../infrastructure/ipc/bridge';
@@ -21,15 +12,6 @@ import '../../../../styles/CloneSettings.css';
 
 const SETTINGS_TABS = Object.freeze([
   { id: 'general', icon: Settings, label: 'General' },
-  { id: 'notifications', icon: Bell, label: 'Notifications' },
-  { id: 'personalization', icon: Sparkles, label: 'Personalization' },
-  { id: 'apps', icon: LayoutGrid, label: 'Apps' },
-  { id: 'schedules', icon: Clock, label: 'Schedules' },
-  { id: 'orders', icon: FileText, label: 'Orders' },
-  { id: 'data-controls', icon: Shield, label: 'Data controls' },
-  { id: 'security', icon: Shield, label: 'Security' },
-  { id: 'parental-controls', icon: Users, label: 'Parental controls' },
-  { id: 'account', icon: User, label: 'Account' },
 ]);
 
 function SelectDropdown({ value, options, onChange, showSwatch = false }) {
@@ -86,23 +68,10 @@ function GeneralTab({ config, onConfigChange }) {
     wakewordSuppressed,
     setWakewordEnabled,
   } = useAppConfigContext();
-  const [appearance, setAppearance] = useState('System');
-  const [accentColor, setAccentColor] = useState('Black');
-  const [language, setLanguage] = useState('Auto-detect');
-  const [spokenLanguage, setSpokenLanguage] = useState('English');
-  const [voice, setVoice] = useState('Spruce');
-  const [separateVoice, setSeparateVoice] = useState(false);
+  const [voice, setVoice] = useState('Jenny');
   const [sudoAccessPending, setSudoAccessPending] = useState(false);
-  const showAdditionalModels = config?.show_additional_models ?? true;
   const wakewordSttEnabled = config?.wakeword_stt_enabled ?? false;
   const agentFullSudoEnabled = config?.agent_full_sudo_enabled ?? false;
-
-  const handleShowAdditionalModelsChange = (enabled) => {
-    onConfigChange({
-      ...(config || {}),
-      show_additional_models: enabled,
-    });
-  };
 
   const handleWakewordSttEnabledChange = (enabled) => {
     onConfigChange({
@@ -145,72 +114,13 @@ function GeneralTab({ config, onConfigChange }) {
     <div className="clone-settings-general">
       <h2>General</h2>
 
-      <div className="clone-settings-row">
-        <span>Appearance</span>
+      <div className="clone-settings-row clone-settings-row-tts">
+        <span>Text-to-speech name</span>
         <SelectDropdown
-          value={appearance}
-          options={['System', 'Light', 'Dark']}
-          onChange={setAppearance}
+          value={voice}
+          options={['Jenny']}
+          onChange={setVoice}
         />
-      </div>
-
-      <div className="clone-settings-row">
-        <span>Accent color</span>
-        <SelectDropdown
-          value={accentColor}
-          options={['Black', 'Blue', 'Green', 'Purple']}
-          onChange={setAccentColor}
-          showSwatch
-        />
-      </div>
-
-      <div className="clone-settings-row">
-        <span>Language</span>
-        <SelectDropdown
-          value={language}
-          options={['Auto-detect', 'English', 'Spanish', 'French', 'German']}
-          onChange={setLanguage}
-        />
-      </div>
-
-      <div className="clone-settings-row clone-settings-row-rich">
-        <div>
-          <span>Spoken language</span>
-          <p>
-            For best results, select the language you mainly speak. If it&apos;s not listed, it may
-            still be supported via auto-detection.
-          </p>
-        </div>
-        <SelectDropdown
-          value={spokenLanguage}
-          options={['English', 'Spanish', 'French', 'German', 'Japanese']}
-          onChange={setSpokenLanguage}
-        />
-      </div>
-
-      <div className="clone-settings-row">
-        <span>Voice</span>
-        <div className="clone-settings-voice-wrap">
-          <button type="button" className="clone-settings-play-button">
-            <Play size={12} />
-            Play
-          </button>
-          <SelectDropdown
-            value={voice}
-            options={['Spruce', 'Breeze', 'Cove', 'Ember']}
-            onChange={setVoice}
-          />
-        </div>
-      </div>
-
-      <div className="clone-settings-row clone-settings-row-rich">
-        <div>
-          <span>Separate Voice</span>
-          <p>
-            Keep ChatGPT Voice in a separate full screen, without real time transcripts and visuals.
-          </p>
-        </div>
-        <CloneToggle checked={separateVoice} onChange={setSeparateVoice} ariaLabel="Separate Voice" />
       </div>
 
       <div className="clone-settings-row clone-settings-row-rich">
@@ -258,21 +168,12 @@ function GeneralTab({ config, onConfigChange }) {
         />
       </div>
 
-      <div className="clone-settings-row">
-        <span>Show additional models</span>
-        <CloneToggle
-          checked={showAdditionalModels}
-          onChange={handleShowAdditionalModelsChange}
-          ariaLabel="Show additional models"
-        />
-      </div>
     </div>
   );
 }
 
 GeneralTab.propTypes = {
   config: PropTypes.shape({
-    show_additional_models: PropTypes.bool,
     wakeword_stt_enabled: PropTypes.bool,
     agent_full_sudo_enabled: PropTypes.bool,
   }),

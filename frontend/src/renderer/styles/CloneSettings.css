@@ -151,6 +151,35 @@
   background: var(--ui-panel-bg);
 }
 
+.clone-settings-row-tts .clone-settings-select-wrap {
+  position: relative;
+  min-width: 132px;
+  justify-content: flex-start;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--ui-border-soft);
+  background: color-mix(in srgb, var(--ui-panel-bg) 78%, white 22%);
+  cursor: pointer;
+}
+
+.clone-settings-row-tts .clone-settings-select {
+  width: 100%;
+  padding-right: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.clone-settings-row-tts .clone-settings-select-wrap:hover {
+  border-color: var(--ui-text-dim);
+}
+
+.clone-settings-row-tts .clone-settings-select-wrap svg {
+  position: absolute;
+  right: 10px;
+  pointer-events: none;
+}
+
 .clone-settings-swatch {
   width: 12px;
   height: 12px;

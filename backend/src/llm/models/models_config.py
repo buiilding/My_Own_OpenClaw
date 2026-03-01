@@ -135,7 +135,7 @@ KIMI_CODING_PRESETS: List[Dict[str, Any]] = [
     {
         "id": "k2p5",
         "runtime_model_id": "k2p5",
-        "display_name": "Kimi K2.5",
+        "display_name": "K2P5",
         "supports_thinking": False,
     },
 ]

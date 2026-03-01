@@ -7,6 +7,7 @@ from memory.operations import (  # noqa: E402
     build_store_memory_response_data,
     build_interaction_metadata,
     format_interaction_memory,
+    group_memory_texts,
     normalize_and_store_interaction_memory,
     normalize_search_memory_payload,
     normalize_store_memory_payload,
@@ -200,3 +201,35 @@ async def test_normalize_and_store_interaction_memory_persists_and_returns_metad
             {"record_kind": "interaction"},
         )
     ]
+
+
+def test_group_memory_texts_prefers_user_assistant_interactions_for_episodic():
+    grouped = group_memory_texts([
+        {
+            "type": "episodic",
+            "text": "single transcript row",
+            "metadata": {"record_kind": "transcript"},
+        },
+        {
+            "type": "episodic",
+            "text": "User: plan trip\nAssistant: Start with flights",
+            "metadata": {"source": "interaction_completed"},
+        },
+        {
+            "type": "semantic",
+            "text": "User prefers aisle seats",
+        },
+    ])
+
+    assert grouped["episodic"] == ["User: plan trip\nAssistant: Start with flights"]
+    assert grouped["semantic"] == ["User prefers aisle seats"]
+
+
+def test_group_memory_texts_falls_back_when_no_interaction_style_episodic_rows():
+    grouped = group_memory_texts([
+        {"type": "episodic", "text": "recent note"},
+        {"type": "semantic", "text": "works in short bursts"},
+    ])
+
+    assert grouped["episodic"] == ["recent note"]
+    assert grouped["semantic"] == ["works in short bursts"]

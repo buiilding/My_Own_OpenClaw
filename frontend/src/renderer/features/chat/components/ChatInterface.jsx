@@ -482,7 +482,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
 
       {messages.length === 0 ? (
         <div className="chat-empty-state" data-testid="chat-empty-state">
-          <h1 className="chat-empty-title">Good to see you, peter.</h1>
+          <h1 className="chat-empty-title">Welcome to WindieOS Demo</h1>
           <MessageInput
             onSendMessage={sendMessage}
             isSending={composerBusy}
