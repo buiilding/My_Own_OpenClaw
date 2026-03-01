@@ -93,7 +93,6 @@ describe('useChatMessageSender', () => {
     screenshotRef: string | null = null,
     screenshotUrl: string | null = null,
     screenshotRefs: string[] | null = null,
-    screenshotId: string | null = null,
     captureMeta: Record<string, unknown> | null = null,
     attachmentContext: string | null = null,
     attachmentFilenames: string[] | null = null,
@@ -105,10 +104,9 @@ describe('useChatMessageSender', () => {
     expect(call[2]).toBe(screenshotRef);
     expect(call[3]).toBe(screenshotUrl);
     expect(call[4]).toEqual(screenshotRefs);
-    expect((call[5] ?? null) as string | null).toBe(screenshotId);
-    expect((call[6] ?? null) as Record<string, unknown> | null).toEqual(captureMeta);
-    expect((call[7] ?? null) as string | null).toBe(attachmentContext);
-    const actualAttachmentFilenames = (call[8] ?? null) as string[] | null;
+    expect((call[5] ?? null) as Record<string, unknown> | null).toEqual(captureMeta);
+    expect((call[6] ?? null) as string | null).toBe(attachmentContext);
+    const actualAttachmentFilenames = (call[7] ?? null) as string[] | null;
     if (attachmentFilenames === null) {
       expect(actualAttachmentFilenames === null || typeof actualAttachmentFilenames === 'undefined').toBe(true);
       return;
@@ -427,7 +425,6 @@ describe('useChatMessageSender', () => {
       ['artifact-clipboard-1'],
       null,
       null,
-      null,
       ['clipboard-image.png'],
     );
     expect(useChatStore.getState().messages[0]).toEqual(
@@ -496,7 +493,6 @@ describe('useChatMessageSender', () => {
       ['artifact-clipboard-1', 'artifact-clipboard-2'],
       null,
       null,
-      null,
       ['clipboard-image-1.png', 'clipboard-image-2.jpg'],
     );
     expect(useChatStore.getState().messages[0]).toEqual(
@@ -551,7 +547,6 @@ describe('useChatMessageSender', () => {
     expectSingleSendQueryCall(
       'Summarize the attached file',
       'conv_msg-1',
-      null,
       null,
       null,
       null,

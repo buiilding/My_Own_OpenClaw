@@ -58,7 +58,7 @@ Cancellation behavior:
 - `conversation_ref` -> stream context + session routing
 - `content` -> model-facing structured content forwarded to `process_query(...)`
 - `screenshot` / `screenshot_ref` / `screenshot_refs[]` -> screenshot resolution path
-- `screenshot_id` / `capture_meta` -> frame metadata forwarded to session/executor screenshot ingestion
+- `capture_meta` -> frame metadata forwarded to session/executor screenshot ingestion
 - `system_state_internal` -> backend-only runtime state seed
 
 ### `system_state_internal` merge semantics
@@ -91,7 +91,6 @@ This preserves query execution even when artifact storage is unavailable.
 
 `_resolve_query_screenshot_metadata(...)` forwards optional frame metadata from query payload:
 
-- `screenshot_id`: normalized non-empty string
 - `capture_meta`: dict payload passed through for normalization in screenshot manager
 
 These fields are consumed by session/executor screenshot processing so query-attached screenshots can use the same screenshot_px -> desktop_px contract as tool-result screenshots.
@@ -161,7 +160,7 @@ Handler-side errors call `send_error_response(...)` from `api/infrastructure/err
 - screenshot resolution precedence: inline screenshot beats artifact refs
 - single `screenshot_ref` and multi `screenshot_refs[]` loading paths
 - missing screenshot artifacts log warnings and query still continues
-- `screenshot_id` and `capture_meta` are forwarded to `process_query(...)`
+- `capture_meta` is forwarded to `process_query(...)`
 - runtime `system_state_internal` applies to agent runtime state before processing
 - extractor helpers honor precomputed event type and payload/top-level fallbacks
 

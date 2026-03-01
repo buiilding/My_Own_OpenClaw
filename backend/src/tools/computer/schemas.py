@@ -19,7 +19,10 @@ class MouseControlArgs(BaseModel):
 
     action: MouseAction = Field(
         ...,
-        description="Mouse action to perform (click, double_click, right_click, move, drag, or scroll).",
+        description=(
+            "Mouse action to perform (click, double_click, right_click, move, drag, or scroll). "
+            "Prefer keyboard shortcuts/hotkeys first when they can accomplish the same goal."
+        ),
     )
 
     # Coordinate finding method
@@ -27,26 +30,26 @@ class MouseControlArgs(BaseModel):
         CoordinateFindingMethod.MANUAL,
         description=(
             "Coordinate targeting strategy. If the target has visible text, use 'ocr' "
-            "with exact ocr_text for initial targeting, then use candidate_id + screenshot_id "
-            "for ambiguity retries."
+            "with exact ocr_text for initial targeting, then use candidate_id "
+            "for ambiguity retries. For manual targeting, ground x/y from the latest "
+            "screenshot and use the visible mouse position as a spatial reference."
         ),
     )
 
     # Manual coordinate fields
-    screenshot_id: Optional[str] = Field(
-        None,
-        description=(
-            "Screenshot frame identifier for grounding. Required when find_coordinates_by='manual', "
-            "and when selecting an OCR candidate via candidate_id. Must match the current frame."
-        ),
-    )
     x: Optional[int] = Field(
         None,
-        description="X coordinate in screenshot pixels. Required when find_coordinates_by='manual'.",
+        description=(
+            "X coordinate in screenshot pixels. Required when find_coordinates_by='manual'. "
+            "Beware of the mouse position on the image when determining manual coordinates."
+        ),
     )
     y: Optional[int] = Field(
         None,
-        description="Y coordinate in screenshot pixels. Required when find_coordinates_by='manual'.",
+        description=(
+            "Y coordinate in screenshot pixels. Required when find_coordinates_by='manual'. "
+            "Beware of the mouse position on the image when determining manual coordinates."
+        ),
     )
 
     # OCR coordinate fields
@@ -88,8 +91,6 @@ class MouseControlArgs(BaseModel):
     def validate_conditional_fields(self):
         """Validate that required fields are present based on find_coordinates_by value."""
         if self.find_coordinates_by == CoordinateFindingMethod.MANUAL:
-            if not isinstance(self.screenshot_id, str) or not self.screenshot_id.strip():
-                raise ValueError("screenshot_id is required when find_coordinates_by='manual'")
             if self.x is None or self.y is None:
                 raise ValueError(
                     "x and y coordinates are required when find_coordinates_by='manual'"
@@ -98,12 +99,6 @@ class MouseControlArgs(BaseModel):
             if not self.ocr_text and not self.candidate_id:
                 raise ValueError(
                     "ocr_text or candidate_id is required when find_coordinates_by='ocr'"
-                )
-            if self.candidate_id and (
-                not isinstance(self.screenshot_id, str) or not self.screenshot_id.strip()
-            ):
-                raise ValueError(
-                    "screenshot_id is required when find_coordinates_by='ocr' and candidate_id is used"
                 )
         elif self.find_coordinates_by == CoordinateFindingMethod.PREDICTION:
             if not self.description:
@@ -125,6 +120,7 @@ class KeyboardControlArgs(BaseModel):
         ...,
         description=(
             "Keyboard action to perform: type (text input), press (single key), or hotkey (combined keys)."
+            " Prefer keyboard-driven navigation over clicking when equivalent."
         ),
     )
     text: Optional[str] = Field(

@@ -124,7 +124,7 @@ async def test_prepare_mouse_control_manual_sets_coordinate_method_metadata():
 
 
 @pytest.mark.asyncio
-async def test_prepare_mouse_control_manual_requires_screenshot_id():
+async def test_prepare_mouse_control_manual_without_screenshot_id_uses_current_frame():
     preparer = ToolPreparer(object(), object(), object())
     tool_call = ParsedToolCall(
         tool_name="mouse_control",
@@ -132,12 +132,8 @@ async def test_prepare_mouse_control_manual_requires_screenshot_id():
         raw_call="{}",
     )
 
-    _events, result = await _collect_preparation(preparer, [tool_call])
-
-    assert result is not None
-    assert result.resolved_calls == []
-    assert len(result.errors) == 1
-    assert "screenshot_id" in result.errors[0][1]
+    events, result = await _collect_preparation(preparer, [tool_call])
+    _assert_single_result_with_coordinate_method(events, result, "manual")
 
 
 def test_tool_call_needs_coordinate_resolution_requires_mouse_control_and_supported_method():

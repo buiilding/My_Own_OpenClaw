@@ -29,6 +29,14 @@ type InternalSystemState = RequiredSystemState & {
   screen_resolution?: string;
 };
 
+function sanitizeCaptureMeta(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null;
+  }
+  const { screenshot_id: _ignoredScreenshotId, ...rest } = value as Record<string, unknown>;
+  return rest;
+}
+
 function pickSystemStateCandidate(
   preferred: SystemState | null | undefined,
   fallback: unknown,
@@ -102,7 +110,7 @@ export function buildToolResultPayloadData(
     screenshot: _screenshot,
     image_data: _imageData,
     screenshot_ref: rawScreenshotRef,
-    screenshot_id: rawScreenshotId,
+    screenshot_id: _rawScreenshotId,
     capture_meta: rawCaptureMeta,
     system_state: rawSystemState,
     ...payloadData
@@ -132,11 +140,9 @@ export function buildToolResultPayloadData(
     if (selectedScreenshotRef) {
       normalizedPayload.screenshot_ref = selectedScreenshotRef;
     }
-    if (typeof rawScreenshotId === 'string' && rawScreenshotId.length > 0) {
-      normalizedPayload.screenshot_id = rawScreenshotId;
-    }
-    if (rawCaptureMeta && typeof rawCaptureMeta === 'object') {
-      normalizedPayload.capture_meta = rawCaptureMeta;
+    const captureMeta = sanitizeCaptureMeta(rawCaptureMeta);
+    if (captureMeta) {
+      normalizedPayload.capture_meta = captureMeta;
     }
   }
 

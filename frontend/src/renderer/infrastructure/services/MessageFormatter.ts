@@ -37,7 +37,6 @@ const NON_TEXT_DATA_KEYS = new Set([
   'screenshot',
   'image_data',
   'screenshot_ref',
-  'screenshot_id',
   'screenshot_content_type',
   'capture_meta',
   'system_state',
@@ -138,18 +137,6 @@ function hasScreenshotData(data: ToolResult['data']): boolean {
   return Boolean(objectData && (objectData.screenshot || objectData.image_data || objectData.screenshot_ref));
 }
 
-function extractGroundingScreenshotId(data: ToolResult['data']): string | null {
-  const objectData = asResultDataObject(data);
-  if (!objectData) {
-    return null;
-  }
-  const screenshotId = objectData.screenshot_id;
-  if (typeof screenshotId === 'string' && screenshotId.length > 0) {
-    return screenshotId;
-  }
-  return null;
-}
-
 function escapeXml(value: unknown): string {
   return String(value ?? '')
     .replace(/&/g, '&amp;')
@@ -200,11 +187,6 @@ export function formatToolOutputMessage(
     parts.push('status: failed');
   }
 
-  const screenshotId = extractGroundingScreenshotId(result.data);
-  if (screenshotId) {
-    parts.push(`grounding_screenshot_id: ${screenshotId}`);
-  }
-  
   if (includeSystemContext) {
     const systemContextXml = formatSequentialStateXml(systemState);
     parts.push(systemContextXml);
@@ -239,7 +221,6 @@ export function formatBundledToolOutputMessage(
   tools: BundledToolResult[],
   systemState: SystemState | null,
   screenshot: string | null,
-  screenshotId: string | null = null,
   includeSystemContext: boolean = true,
 ): string {
   const parts = ['Bundled tool execution output:'];
@@ -270,10 +251,6 @@ export function formatBundledToolOutputMessage(
     parts.push('\n' + systemContextXml);
   }
 
-  if (screenshotId) {
-    parts.push(`\ngrounding_screenshot_id: ${screenshotId}`);
-  }
-  
   // Add screenshot indicator if screenshot is present
   if (screenshot) {
     parts.push('\nState of the screen after bundled tools were executed:');

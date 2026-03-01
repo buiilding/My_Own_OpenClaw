@@ -6,7 +6,6 @@ import type { CaptureMeta } from './SystemCapture';
 type ToolCaptureResult = {
   screenshot: string | null;
   screenshotContentType: string | null;
-  screenshotId: string | null;
   captureMeta: CaptureMeta | null;
   systemState: SystemState | null;
   waitSeconds: number;
@@ -16,7 +15,6 @@ type ToolCaptureResult = {
 type AutoCaptureResult = {
   screenshot: string | null;
   screenshotContentType: string | null;
-  screenshotId: string | null;
   captureMeta: CaptureMeta | null;
   systemState: SystemState | null;
   waitDelay: number;
@@ -52,26 +50,27 @@ function getWaitSeconds(
   return defaultWaitSeconds;
 }
 
+function sanitizeCaptureMeta(value: unknown): CaptureMeta | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null;
+  }
+  const { screenshot_id: _ignoredScreenshotId, ...rest } = value as Record<string, unknown>;
+  return rest as CaptureMeta;
+}
+
 function extractCaptureFromResult(result: ToolResult): {
   screenshot: string | null;
   screenshotContentType: string | null;
-  screenshotId: string | null;
   captureMeta: CaptureMeta | null;
   systemState: SystemState | null;
 } {
   if (result.data && typeof result.data === 'object' && !Array.isArray(result.data)) {
     const screenshotContentType = resolveContentType(result.data);
     const screenshot = resolveScreenshotValue(result.data);
-    const screenshotId = typeof result.data.screenshot_id === 'string'
-      ? result.data.screenshot_id
-      : null;
-    const captureMeta = result.data.capture_meta && typeof result.data.capture_meta === 'object'
-      ? result.data.capture_meta as CaptureMeta
-      : null;
+    const captureMeta = sanitizeCaptureMeta(result.data.capture_meta);
     return {
       screenshot,
       screenshotContentType,
-      screenshotId,
       captureMeta,
       systemState: result.data.system_state || null
     };
@@ -79,7 +78,6 @@ function extractCaptureFromResult(result: ToolResult): {
   return {
     screenshot: null,
     screenshotContentType: null,
-    screenshotId: null,
     captureMeta: null,
     systemState: null,
   };
@@ -88,7 +86,6 @@ function extractCaptureFromResult(result: ToolResult): {
 function applyCaptureToResult(
   result: ToolResult,
   screenshot: string | null,
-  screenshotId: string | null,
   captureMeta: CaptureMeta | null,
   systemState: SystemState | null,
   screenshotContentType: string | null
@@ -100,7 +97,6 @@ function applyCaptureToResult(
     result.data = {
       ...result.data,
       screenshot,
-      screenshot_id: screenshotId ?? undefined,
       capture_meta: captureMeta ?? undefined,
       system_state: systemState ?? undefined,
       screenshot_content_type: screenshotContentType ?? undefined
@@ -138,7 +134,6 @@ export async function ensureAutoCapture(
   let {
     screenshot,
     screenshotContentType,
-    screenshotId,
     captureMeta,
     systemState,
   } = extractCaptureFromResult(result);
@@ -159,12 +154,10 @@ export async function ensureAutoCapture(
     systemState = capture.systemState;
     screenshot = capture.screenshot;
     screenshotContentType = capture.screenshotContentType;
-    screenshotId = capture.screenshotId;
     captureMeta = capture.captureMeta;
     applyCaptureToResult(
       result,
       screenshot,
-      screenshotId,
       captureMeta,
       systemState,
       screenshotContentType,
@@ -174,7 +167,6 @@ export async function ensureAutoCapture(
   return {
     screenshot,
     screenshotContentType,
-    screenshotId,
     captureMeta,
     systemState,
     waitDelay,
@@ -203,7 +195,6 @@ export async function captureAfterTool(
   return {
     screenshot: captureResult.screenshot,
     screenshotContentType: captureResult.screenshotContentType,
-    screenshotId: captureResult.screenshotId,
     captureMeta: captureResult.captureMeta,
     systemState: enableSystemState ? captureResult.systemState : null,
     waitSeconds,

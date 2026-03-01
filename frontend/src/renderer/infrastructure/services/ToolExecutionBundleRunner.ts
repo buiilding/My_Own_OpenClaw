@@ -15,7 +15,6 @@ type BundleRunOutcome = {
   systemState: SystemState | null;
   screenshot: string | null;
   screenshotContentType: string | null;
-  screenshotId: string | null;
   captureMeta: CaptureMeta | null;
   totalWaitDelay: number;
   totalCaptureTime: number;
@@ -86,7 +85,6 @@ export async function runToolBundle(
   let systemState: SystemState | null = null;
   let screenshot: string | null = null;
   let screenshotContentType: string | null = null;
-  let screenshotId: string | null = null;
   let captureMeta: CaptureMeta | null = null;
   let totalWaitDelay = 0;
   let totalCaptureTime = 0;
@@ -133,7 +131,6 @@ export async function runToolBundle(
         totalWaitDelay += capture.waitSeconds;
         screenshot = capture.screenshot;
         screenshotContentType = capture.screenshotContentType;
-        screenshotId = capture.screenshotId;
         captureMeta = capture.captureMeta;
         if (isLastTool) {
           systemState = capture.systemState;
@@ -160,7 +157,6 @@ export async function runToolBundle(
     systemState,
     screenshot,
     screenshotContentType,
-    screenshotId,
     captureMeta,
     totalWaitDelay,
     totalCaptureTime,

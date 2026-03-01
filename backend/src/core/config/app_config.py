@@ -43,7 +43,7 @@ APP_CONFIG = AppConfig(
     history_compaction_cooldown_turns=1,
     
     # Vision Model Settings (UI grounding / Venus)
-    vision_model_name="OpenGVLab/InternVL3_5-4B",
+    vision_model_name="OpenGVLab/InternVL3_5-2B",
     
     # Voice Mode Settings
     voice_mode_enabled=False,

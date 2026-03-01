@@ -30,7 +30,7 @@ def _make_context(metadata=None):
 async def test_remote_tool_uses_request_id_from_session_metadata():
     ctx = _make_context(metadata={"request_id": "req-123"})
     tool = RemoteMouseTool()
-    args = MouseControlArgs(action="click", screenshot_id="shot-1", x=1, y=2)
+    args = MouseControlArgs(action="click", x=1, y=2)
 
     result = await tool.run(args, ctx)
     assert result.is_remote is True
@@ -43,7 +43,7 @@ async def test_remote_tool_generates_request_id_when_missing(monkeypatch):
     monkeypatch.setattr(uuid, "uuid4", lambda: "fixed-uuid")
     ctx = _make_context()
     tool = RemoteMouseTool()
-    args = MouseControlArgs(action="click", screenshot_id="shot-1", x=1, y=2)
+    args = MouseControlArgs(action="click", x=1, y=2)
 
     result = await tool.run(args, ctx)
     assert result.request_id == "fixed-uuid"
@@ -84,7 +84,7 @@ def test_remote_tool_result_to_dict():
 def test_remote_tool_build_result_prefers_explicit_request_id_over_context():
     ctx = _make_context(metadata={"request_id": "metadata-id"})
     tool = RemoteMouseTool()
-    args = MouseControlArgs(action="click", screenshot_id="shot-1", x=1, y=2)
+    args = MouseControlArgs(action="click", x=1, y=2)
 
     result = tool._build_remote_result(args, ctx, request_id="explicit-id")
 
@@ -129,7 +129,12 @@ def test_remote_mouse_tool_schema_explicitly_guides_ocr_for_text_targets():
     function = schema["function"]
     parameters = function["parameters"]["properties"]
 
+    assert "Prefer keyboard shortcuts" in function["description"]
     assert "find_coordinates_by='ocr'" in function["description"]
     assert "type something here" in function["description"]
+    assert "beware of the mouse position on that image" in function["description"]
+    assert "visible mouse position as a spatial reference" in parameters["find_coordinates_by"]["description"]
     assert "type something here" in parameters["ocr_text"]["description"]
     assert "visible text" in parameters["find_coordinates_by"]["description"]
+    assert "Beware of the mouse position on the image" in parameters["x"]["description"]
+    assert "Beware of the mouse position on the image" in parameters["y"]["description"]

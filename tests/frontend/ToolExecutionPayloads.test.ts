@@ -51,7 +51,6 @@ describe('ToolExecutionPayloads', () => {
     expect(payload).toEqual({
       output: 'ok',
       screenshot_ref: 'new-ref',
-      screenshot_id: 'shot-new',
       capture_meta: { source_w: 100, source_h: 100 },
       llm_content: 'formatted',
       system_state: {
@@ -59,6 +58,7 @@ describe('ToolExecutionPayloads', () => {
         mouse_position: 'Unknown',
       },
     });
+    expect(payload).not.toHaveProperty('screenshot_id');
   });
 
   test('buildToolResultPayloadData includes system_state with fallback values when requested', () => {

@@ -98,14 +98,13 @@ class QueryExecutionService:
                         if len(resolved_screenshots) == 1
                         else resolved_screenshots
                     )
-                query_screenshot_id, query_capture_meta = self._resolve_query_screenshot_metadata(
+                query_capture_meta = self._resolve_query_screenshot_metadata(
                     message
                 )
 
                 async for event in agent_instance.process_query(
                     query_text,
                     image_data=image_data,
-                    screenshot_id=query_screenshot_id,
                     capture_meta=query_capture_meta,
                     message_content=message.payload.content,
                     conversation_ref=message.payload.conversation_ref,
@@ -299,20 +298,14 @@ class QueryExecutionService:
     @staticmethod
     def _resolve_query_screenshot_metadata(
         message: QueryMessage,
-    ) -> tuple[Optional[str], Optional[dict[str, Any]]]:
-        screenshot_id = message.payload.screenshot_id
-        normalized_screenshot_id = (
-            screenshot_id.strip()
-            if isinstance(screenshot_id, str) and screenshot_id.strip()
-            else None
-        )
+    ) -> Optional[dict[str, Any]]:
         capture_meta = message.payload.capture_meta
         normalized_capture_meta = (
             dict(capture_meta)
             if isinstance(capture_meta, dict)
             else None
         )
-        return normalized_screenshot_id, normalized_capture_meta
+        return normalized_capture_meta
 
     @staticmethod
     def _resolve_query_runtime_system_state(message: QueryMessage) -> Optional[dict[str, str]]:

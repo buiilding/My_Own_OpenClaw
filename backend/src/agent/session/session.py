@@ -353,7 +353,6 @@ class AgentSession:
         self, 
         query: str, 
         image_data: Optional[Union[str, List[str]]] = None,
-        screenshot_id: Optional[str] = None,
         capture_meta: Optional[Dict[str, Any]] = None,
         message_content: Optional[str] = None,
         conversation_ref: Optional[str] = None,
@@ -364,7 +363,6 @@ class AgentSession:
         Args:
             query: The user's query text (for reference)
             image_data: Optional base64 image payload(s) for multimodal queries
-            screenshot_id: Optional screenshot frame identifier for image_data[0]
             capture_meta: Optional capture metadata for image_data[0]
             message_content: Complete message content from frontend (system state + memories + query)
             conversation_ref: Active conversation identity from frontend.
@@ -382,7 +380,6 @@ class AgentSession:
             async for event in self.executor.process_query(
                 query, 
                 screenshot=image_data, 
-                screenshot_id=screenshot_id,
                 capture_meta=capture_meta,
                 message_content=message_content,
             ):

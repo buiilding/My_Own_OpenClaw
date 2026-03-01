@@ -58,7 +58,6 @@ class ScreenshotManager:
         screenshot_data: str,
         request_id: str,
         *,
-        screenshot_id: Optional[str] = None,
         capture_meta: Optional[dict] = None,
     ) -> str:
         """
@@ -78,11 +77,7 @@ class ScreenshotManager:
         Returns:
             screenshot_id: Unique ID for the screenshot
         """
-        normalized_screenshot_id = (
-            screenshot_id.strip()
-            if isinstance(screenshot_id, str) and screenshot_id.strip()
-            else self._generate_screenshot_id(screenshot_data)
-        )
+        normalized_screenshot_id = self._generate_screenshot_id(screenshot_data)
         normalized_capture_meta = normalize_capture_meta(
             capture_meta,
             screenshot_id=normalized_screenshot_id,

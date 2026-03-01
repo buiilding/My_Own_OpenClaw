@@ -1,5 +1,6 @@
 import threading
 import time
+from pathlib import Path
 
 import pytest
 
@@ -151,3 +152,18 @@ def test_get_system_prompt_global_accessor(tmp_path, monkeypatch):
     manager.initialize(prompt_file)
 
     assert get_system_prompt() == "global TestOS"
+
+
+def test_repo_system_prompt_keeps_tool_rules_out_of_global_prompt():
+    prompt_file = (
+        Path(__file__).resolve().parents[2]
+        / "backend/src/llm/prompts/system_prompt.txt"
+    )
+    content = prompt_file.read_text(encoding="utf-8")
+
+    assert "<tool_schema_guidelines>" not in content
+    assert "<tool_chaining_guidelines>" not in content
+    assert "KEYBINDS > CLICKS" not in content
+    assert "exact tool format" not in content
+    assert "<computer_interaction_behavior>" in content
+    assert "beware of the mouse position shown on that image" in content
