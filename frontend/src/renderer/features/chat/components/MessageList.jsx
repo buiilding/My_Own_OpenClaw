@@ -182,6 +182,7 @@ MessageItem.propTypes = {
 
 function MessageList({
   messages,
+  conversationRef = null,
   thinkingStatus = null,
   thinkingSourceEventType = null,
   showAssistantAwaitingDot = false,
@@ -307,6 +308,15 @@ function MessageList({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
 
+  useEffect(() => {
+    if (conversationRef === undefined) {
+      return;
+    }
+    // Conversation switches should always land at the latest message.
+    shouldAutoScrollRef.current = true;
+    scrollToBottom();
+  }, [conversationRef, scrollToBottom]);
+
   const handleMessageListScroll = useCallback(() => {
     shouldAutoScrollRef.current = isNearBottom(messageListRef.current);
   }, []);
@@ -380,6 +390,7 @@ function MessageList({
 
 MessageList.propTypes = {
   messages: PropTypes.arrayOf(messageShapePropType).isRequired,
+  conversationRef: PropTypes.string,
   thinkingStatus: PropTypes.string,
   thinkingSourceEventType: PropTypes.string,
   showAssistantAwaitingDot: PropTypes.bool,

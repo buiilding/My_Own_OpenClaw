@@ -99,4 +99,38 @@ describe('MessageList auto-scroll behavior', () => {
 
     expect(scrollIntoView.mock.calls.length).toBeGreaterThan(callsBeforeUpdate);
   });
+
+  test('forces auto-scroll when conversation selection changes', () => {
+    const { container, rerender } = render(
+      <MessageList
+        conversationRef="conv-1"
+        messages={[
+          { id: 'user-1', text: 'hello', sender: 'user', type: 'user' },
+          { id: 'assistant-1', text: 'working...', sender: 'assistant', type: 'llm-text' },
+        ]}
+      />,
+    );
+
+    const list = container.querySelector('.message-list');
+    expect(list).toBeTruthy();
+    applyScrollMetrics(list, {
+      scrollHeight: 1200,
+      clientHeight: 400,
+      scrollTop: 260,
+    });
+    fireEvent.scroll(list);
+
+    const callsBeforeSwitch = scrollIntoView.mock.calls.length;
+    rerender(
+      <MessageList
+        conversationRef="conv-2"
+        messages={[
+          { id: 'user-2', text: 'new conversation', sender: 'user', type: 'user' },
+          { id: 'assistant-2', text: 'latest row', sender: 'assistant', type: 'llm-text' },
+        ]}
+      />,
+    );
+
+    expect(scrollIntoView.mock.calls.length).toBeGreaterThan(callsBeforeSwitch);
+  });
 });
