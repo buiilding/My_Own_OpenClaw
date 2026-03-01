@@ -1573,3 +1573,12 @@
     animation: none;
   }
 }
+.chat-model-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chat-model-label svg {
+  flex-shrink: 0;
+}

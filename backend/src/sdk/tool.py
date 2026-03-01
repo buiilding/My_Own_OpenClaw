@@ -152,10 +152,10 @@ class Tool(ABC, Generic[TArgs]):
         cleaned_params.pop("title", None)
         cleaned_params.pop("additionalProperties", None)
         
-        # If type is "object" and it's the only thing, we can remove it
-        # (properties already implies object type)
-        if cleaned_params.get("type") == "object" and "properties" in cleaned_params:
-            cleaned_params.pop("type", None)
+        # OpenAI Responses API requires function.parameters to be an explicit
+        # JSON Schema object with type="object".
+        if "properties" in cleaned_params and cleaned_params.get("type") is None:
+            cleaned_params["type"] = "object"
         
         return {
             "type": "function",

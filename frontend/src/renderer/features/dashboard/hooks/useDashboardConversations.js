@@ -60,7 +60,6 @@ function useDashboardConversations({
       return list;
     } catch (error) {
       setRecentConversationsError(error?.message || 'Failed to load recent chats');
-      setRecentConversations([]);
       return [];
     } finally {
       setIsLoadingRecentConversations(false);

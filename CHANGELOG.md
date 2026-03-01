@@ -7,6 +7,9 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-sidebar-flicker-provider-labels): keep existing "Your chats" rows visible during background reload/error states (fallback states only when list is empty), preserve recent chats on refresh failures, and title-case provider labels in chat provider selector/dropdown.
+- style(frontend-chat-model-thinking-icon): render thinking indicator with monochrome lucide brain icon styling instead of emoji/sparkle glyphs.
+- fix(backend-openai-tool-schema-object): preserve tool `parameters.type=object` schema for OpenAI Responses tool calls and enforce object type when properties exist to prevent invalid-function-parameters 400 errors.
 - style(frontend-chat-model-selector): remove sparkle icon glyph from chat model dropdown rows and empty-state row, keeping label text-only with optional thinking brain indicator.
 - feat(models-online-preset-variants): add OpenAI/Anthropic/Gemini preset variants in online model windows (including dual thinking/non-thinking instances where requested), carry friendly `display_name` metadata to chat/dashboard selectors, and map synthetic preset ids to runtime LiteLLM model ids server-side so variant entries resolve to valid provider model ids during requests.
 - fix(frontend-test-regressions-chatbox-overlay): restore `ChatBoxResponse` awaiting-lock/latch behavior for terminal and no-correlation overlay phases (including preloaded assistant response visibility), guard overlay runtime chat-window bounds/size access for minimal mocks, and default capture-restore prep to restore when `restoreChatPillAfterCapture` is omitted; frontend `test:ci` back to green.
