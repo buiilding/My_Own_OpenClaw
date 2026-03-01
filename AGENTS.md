@@ -204,7 +204,7 @@ Treat this as the high-level mental model of WindieOS behavior.
 - When modifying code, do not keep backward compatibility, remove anything unused.
 
 ## Docs
-- Start: run docs list (`docs:list` script, or `scripts/docs-list` here if present; ignore if not installed); open docs before coding.
+- Start: run docs list (`docs:list` script, or `./bin/docs-list` here if present; fallback: `node scripts/docs-list.js`; ignore if not installed); open docs before coding.
 - Follow links until domain makes sense; honor `Read when` hints.
 - Keep notes short; update docs when behavior/API changes (no ship w/o docs).
 - Add `read_when` hints on cross-cutting docs.
@@ -284,6 +284,7 @@ Treat this as the high-level mental model of WindieOS behavior.
 
 ### bin/docs-list / scripts/docs-list.ts
 - Optional. Lists `docs/` + enforces front-matter. Ignore if `bin/docs-list` not installed. Rebuild: `bun build scripts/docs-list.ts --compile --outfile bin/docs-list`.
+- `bin/docs-list` is executable here: use `./bin/docs-list` for direct runs.
 
 ### tmux
 - Use only when you need persistence/interaction (debugger/server).
