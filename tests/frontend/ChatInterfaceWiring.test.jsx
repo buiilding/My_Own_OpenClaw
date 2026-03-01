@@ -424,6 +424,19 @@ describe('ChatInterface wiring', () => {
     expect(lastMessageListProps.showAssistantAwaitingDot).toBe(false);
   });
 
+  test('shows awaiting dot while local send is pending first token', () => {
+    mockChatState.messages = [
+      { id: 'user-1', sender: 'user', text: 'hello', type: 'user' },
+    ];
+    mockChatState.streamTracking.phase = 'idle';
+    mockChatState.isSending = true;
+
+    render(<ChatInterface />);
+
+    const lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
+    expect(lastMessageListProps.showAssistantAwaitingDot).toBe(true);
+  });
+
   test('stop response handler is a no-op when no active stream is running', () => {
     mockChatState.streamTracking.phase = 'idle';
     mockChatState.isSending = false;

@@ -232,26 +232,64 @@ function MessageList({
     }
   }, [editingUserMessageId, messages]);
 
+  const awaitingDotTargetMessageId = useMemo(() => {
+    if (!showAssistantAwaitingDot) {
+      return null;
+    }
+    for (let index = messages.length - 1; index >= 0; index -= 1) {
+      const message = messages[index];
+      if (message?.sender === 'user' && typeof message?.id === 'string' && message.id) {
+        return message.id;
+      }
+    }
+    return null;
+  }, [messages, showAssistantAwaitingDot]);
+
   const renderedMessages = useMemo(
-    () => messages.map((msg) => (
-      <MessageItem
-        key={msg.id}
-        message={msg}
-        enableAssistantActions={enableAssistantActions}
-        enableUserActions={enableUserActions}
-        disableAssistantActions={disableAssistantActions}
-        onAssistantFeedbackChange={onAssistantFeedbackChange}
-        onAssistantTryAgain={onAssistantTryAgain}
-        isUserEditing={editingUserMessageId === msg.id}
-        userEditDraft={editingUserDraft}
-        onUserEditDraftChange={setEditingUserDraft}
-        onStartUserEdit={handleStartUserEdit}
-        onCancelUserEdit={handleCancelUserEdit}
-        onSubmitUserEdit={handleSubmitUserEdit}
-      />
-    )),
+    () => messages.flatMap((msg) => {
+      const nodes = [
+        (
+          <MessageItem
+            key={msg.id}
+            message={msg}
+            enableAssistantActions={enableAssistantActions}
+            enableUserActions={enableUserActions}
+            disableAssistantActions={disableAssistantActions}
+            onAssistantFeedbackChange={onAssistantFeedbackChange}
+            onAssistantTryAgain={onAssistantTryAgain}
+            isUserEditing={editingUserMessageId === msg.id}
+            userEditDraft={editingUserDraft}
+            onUserEditDraftChange={setEditingUserDraft}
+            onStartUserEdit={handleStartUserEdit}
+            onCancelUserEdit={handleCancelUserEdit}
+            onSubmitUserEdit={handleSubmitUserEdit}
+          />
+        ),
+      ];
+
+      if (awaitingDotTargetMessageId && msg.id === awaitingDotTargetMessageId) {
+        nodes.push(
+          <div
+            key={`${msg.id}__awaiting`}
+            className="message-list-awaiting-dot message-list-awaiting-dot-inline"
+            role="status"
+            aria-live="polite"
+            aria-label="Assistant is preparing response"
+          >
+            <span className="message-list-awaiting-dot-indicator" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </span>
+          </div>,
+        );
+      }
+
+      return nodes;
+    }),
     [
       messages,
+      awaitingDotTargetMessageId,
       enableAssistantActions,
       enableUserActions,
       disableAssistantActions,
@@ -319,16 +357,6 @@ function MessageList({
       onScroll={handleMessageListScroll}
     >
       {renderedMessages}
-      {showAssistantAwaitingDot ? (
-        <div
-          className="message-list-awaiting-dot"
-          role="status"
-          aria-live="polite"
-          aria-label="Assistant is preparing response"
-        >
-          <span className="message-list-awaiting-dot-indicator" aria-hidden="true" />
-        </div>
-      ) : null}
       {compactionStatusText ? (
         <div
           className={`message-list-compaction-status compaction-state-${compactionStatusText.state}`}

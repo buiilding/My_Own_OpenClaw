@@ -86,7 +86,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
   const canStop = isStopControlAvailablePhase(streamPhase);
   const composerBusy = isSending || canStop;
   const showAssistantAwaitingDot = (
-    isAwaitingFirstChunkPhase(streamPhase)
+    (isSending || isAwaitingFirstChunkPhase(streamPhase))
     && messages.length > 0
     && messages[messages.length - 1]?.sender === 'user'
   );
