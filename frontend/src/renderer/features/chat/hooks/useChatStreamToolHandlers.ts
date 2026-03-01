@@ -39,6 +39,7 @@ type TrackEventFn = (
 type UseChatStreamToolHandlersDeps = {
   enableTranscript: boolean;
   addMessage: (message: ChatMessage, conversationRef?: string | null) => void;
+  setIsSending: (value: boolean, conversationRef?: string | null) => void;
   setThinkingStatus: (value: string | null, conversationRef?: string | null) => void;
   setThinkingSourceEventType: (value: string | null, conversationRef?: string | null) => void;
   modelContextRef: { current: MinimalModelContext };
@@ -48,6 +49,7 @@ type UseChatStreamToolHandlersDeps = {
 export function useChatStreamToolHandlers({
   enableTranscript,
   addMessage,
+  setIsSending,
   setThinkingStatus,
   setThinkingSourceEventType,
   modelContextRef,
@@ -75,6 +77,7 @@ export function useChatStreamToolHandlers({
   }, [enableTranscript, modelContextRef]);
 
   const handleToolCall = useCallback((event: ToolCallEvent, conversationRef?: string | null) => {
+    setIsSending(false, conversationRef);
     setThinkingStatus(null, conversationRef);
     setThinkingSourceEventType(null, conversationRef);
     const modelFacingToolCall = resolveModelFacingToolCall(event.payload);
@@ -96,12 +99,14 @@ export function useChatStreamToolHandlers({
     addMessage,
     modelContextRef,
     recordToolCallTranscript,
+    setIsSending,
     setThinkingSourceEventType,
     setThinkingStatus,
     recordTrackingEvent,
   ]);
 
   const handleToolOutput = useCallback((event: ToolOutputEvent, conversationRef?: string | null) => {
+    setIsSending(false, conversationRef);
     setThinkingStatus(null, conversationRef);
     setThinkingSourceEventType(null, conversationRef);
     const outputText = formatToolOutputText(event.payload);
@@ -134,6 +139,7 @@ export function useChatStreamToolHandlers({
     addMessage,
     enableTranscript,
     modelContextRef,
+    setIsSending,
     setThinkingSourceEventType,
     setThinkingStatus,
     recordTrackingEvent,
