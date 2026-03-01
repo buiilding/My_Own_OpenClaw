@@ -466,6 +466,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
         <>
           <MessageList
             messages={messages}
+            conversationRef={transcriptSessionInfo.conversationRef || null}
             thinkingStatus={thinkingStatus}
             thinkingSourceEventType={thinkingSourceEventType}
             showAssistantAwaitingDot={showAssistantAwaitingDot}

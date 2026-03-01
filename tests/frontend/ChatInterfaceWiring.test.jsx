@@ -424,6 +424,18 @@ describe('ChatInterface wiring', () => {
     expect(lastMessageListProps.showAssistantAwaitingDot).toBe(false);
   });
 
+  test('passes active conversation ref to MessageList for conversation-switch scroll resets', () => {
+    mockChatState.messages = [
+      { id: 'user-1', sender: 'user', text: 'hello', type: 'user' },
+      { id: 'assistant-1', sender: 'assistant', text: 'world', type: 'llm-text' },
+    ];
+
+    render(<ChatInterface />);
+
+    const lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
+    expect(lastMessageListProps.conversationRef).toBe('conv_existing');
+  });
+
   test('shows awaiting dot while local send is pending first token', () => {
     mockChatState.messages = [
       { id: 'user-1', sender: 'user', text: 'hello', type: 'user' },
