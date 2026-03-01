@@ -130,6 +130,18 @@ def test_kimi_provider_supports_streaming_tool_turns():
     assert provider.supports_streaming_tool_turns("k2p5") is True
 
 
+def test_kimi_apply_provider_request_params_accepts_runtime_model_id():
+    provider = KimiCodingProvider(api_key="test-key")
+
+    updated = provider._apply_provider_request_params(
+        {"messages": []},
+        model="k2p5",
+        runtime_model_id="k2p5",
+    )
+
+    assert updated["custom_llm_provider"] == "anthropic"
+
+
 @pytest.mark.asyncio
 async def test_kimi_completion_uses_anthropic_custom_provider(monkeypatch):
     provider = KimiCodingProvider(api_key="test-key")
