@@ -34,13 +34,28 @@ describe('ChatBoxResponse state behavior', () => {
     });
   });
 
-  test('hides awaiting indicator after overlay phase moves to streaming', async () => {
+  test('hides awaiting indicator after first assistant chunk arrives during streaming', async () => {
     setChatState([
       { id: 'user-1', text: 'run command', sender: 'user' },
     ]);
 
     render(<ChatBoxResponse />);
+    emitOverlayPhase('tool-output');
     emitOverlayPhase('streaming');
+    act(() => {
+      useChatStore.setState({
+        messages: [
+          { id: 'user-1', text: 'run command', sender: 'user' },
+          {
+            id: 'assistant-1',
+            text: 'first chunk',
+            sender: 'assistant',
+            type: 'llm-text',
+            isComplete: false,
+          },
+        ],
+      });
+    });
 
     await waitFor(() => {
       expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
@@ -314,7 +329,7 @@ describe('ChatBoxResponse state behavior', () => {
     expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
   });
 
-  test('keeps overlay awaiting indicator latched through idle gap and clears on streaming', async () => {
+  test('keeps overlay awaiting indicator latched through idle gap until first chunk arrives', async () => {
     setChatState([]);
     render(<ChatBoxResponse />);
 
@@ -327,8 +342,35 @@ describe('ChatBoxResponse state behavior', () => {
 
     emitOverlayPhase('streaming');
     await waitFor(() => {
-      expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
+      expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
     });
+  });
+
+  test('hides stale completed response while awaiting lock is active', async () => {
+    setChatState([
+      { id: 'user-1', text: 'run command', sender: 'user' },
+      {
+        id: 'assistant-prev',
+        text: 'previous complete response',
+        sender: 'assistant',
+        type: 'llm-text',
+        isComplete: true,
+      },
+    ]);
+
+    render(<ChatBoxResponse />);
+
+    await waitFor(() => {
+      expect(screen.getByText('previous complete response')).toBeInTheDocument();
+    });
+
+    emitOverlayPhase('tool-output');
+    emitOverlayPhase('idle');
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('previous complete response')).not.toBeInTheDocument();
   });
 
   test('re-reports compact overlay size after visibility hide/show cycle', async () => {

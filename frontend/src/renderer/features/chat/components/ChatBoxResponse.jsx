@@ -71,6 +71,11 @@ function ChatBoxResponse() {
   const [closedResponseId, setClosedResponseId] = useState(null);
   const [awaitingFirstChunk, setAwaitingFirstChunk] = useState(false);
   const [awaitingPhaseLatch, setAwaitingPhaseLatch] = useState(false);
+  const [awaitingOverlayLock, setAwaitingOverlayLock] = useState({
+    active: false,
+    baselineResponseId: null,
+    correlationId: null,
+  });
   const [overlayPhase, setOverlayPhase] = useState('idle');
   const [hasOverflowAbove, setHasOverflowAbove] = useState(false);
   const [responseHeight, setResponseHeight] = useState(RESPONSE_MIN_HEIGHT);
@@ -87,6 +92,7 @@ function ChatBoxResponse() {
     compactHover: false,
     layoutMode: RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
   });
+  const activeResponseIdRef = useRef(null);
 
   const lastUserIndex = useMemo(
     () => findLastUserIndex(messages),
@@ -109,6 +115,7 @@ function ChatBoxResponse() {
     () => findLatestMessageAfterUser(messages, lastUserIndex, FIRST_CHUNK_TYPES),
     [messages, lastUserIndex],
   );
+  const firstChunkId = firstTextOrError?.id || null;
   const responseIsCloseable = useMemo(() => {
     if (!activeResponse) {
       return false;
@@ -118,10 +125,24 @@ function ChatBoxResponse() {
     }
     return Boolean(activeResponse.isComplete);
   }, [activeResponse]);
+  useEffect(() => {
+    activeResponseIdRef.current = activeResponse?.id || null;
+  }, [activeResponse?.id]);
+
+  const hasFreshChunkForOverlayLock = Boolean(
+    awaitingOverlayLock.active
+      && firstChunkId
+      && firstChunkId !== awaitingOverlayLock.baselineResponseId,
+  );
+  const shouldSuppressResponseForOverlayLock = (
+    awaitingOverlayLock.active
+    && !hasFreshChunkForOverlayLock
+  );
 
   const showResponse = Boolean(
     activeResponse
       && !awaitingFirstChunk
+      && !shouldSuppressResponseForOverlayLock
       && activeResponse.id !== closedResponseId,
   );
 
@@ -142,7 +163,13 @@ function ChatBoxResponse() {
     [thinkingStatus],
   );
   const showAwaitingReply = (
-    (awaitingFirstChunk || awaitingPhaseLatch || isSending || isOverlayAwaitingReplyPhase(overlayPhase))
+    (
+      awaitingFirstChunk
+      || awaitingPhaseLatch
+      || shouldSuppressResponseForOverlayLock
+      || isSending
+      || isOverlayAwaitingReplyPhase(overlayPhase)
+    )
     && !showResponse
   );
   const overlayLayoutMode = useMemo(() => resolveResponseOverlayLayoutMode({
@@ -233,7 +260,12 @@ function ChatBoxResponse() {
   }, []);
 
   useEffect(() => {
-    return subscribeResponseOverlayPhase((phase) => {
+    return subscribeResponseOverlayPhase((phase, payload = {}) => {
+      const payloadCorrelationId = (
+        typeof payload?.correlation_id === 'string' && payload.correlation_id.trim().length > 0
+      )
+        ? payload.correlation_id.trim()
+        : null;
       setOverlayPhase(phase);
       if (isAwaitingFirstChunkPhase(phase)) {
         setAwaitingFirstChunk(true);
@@ -243,15 +275,36 @@ function ChatBoxResponse() {
       }
       if (isOverlayAwaitingReplyPhase(phase) || isAwaitingFirstChunkPhase(phase)) {
         setAwaitingPhaseLatch(true);
+        setAwaitingOverlayLock((currentLock) => {
+          if (currentLock.active) {
+            return {
+              ...currentLock,
+              correlationId: payloadCorrelationId || currentLock.correlationId,
+            };
+          }
+          return {
+            active: true,
+            baselineResponseId: activeResponseIdRef.current,
+            correlationId: payloadCorrelationId,
+          };
+        });
       } else if (
         phase === RESPONSE_OVERLAY_PHASE.STREAMING
         || phase === RESPONSE_OVERLAY_PHASE.COMPLETE
         || phase === RESPONSE_OVERLAY_PHASE.ERROR
       ) {
-        setAwaitingPhaseLatch(false);
+        setAwaitingPhaseLatch((currentLatch) => {
+          if (!currentLatch) {
+            return currentLatch;
+          }
+          if (!awaitingOverlayLock.active || !awaitingOverlayLock.correlationId || !payloadCorrelationId) {
+            return currentLatch;
+          }
+          return awaitingOverlayLock.correlationId === payloadCorrelationId ? false : currentLatch;
+        });
       }
     });
-  }, []);
+  }, [awaitingOverlayLock.active, awaitingOverlayLock.correlationId]);
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.RESPONSE_OVERLAY_VISIBILITY, (payload = {}) => {
@@ -292,6 +345,11 @@ function ChatBoxResponse() {
     lastUserMessageIdRef.current = lastUserMessageId;
     setAwaitingFirstChunk(true);
     setAwaitingPhaseLatch(true);
+    setAwaitingOverlayLock({
+      active: true,
+      baselineResponseId: activeResponseIdRef.current,
+      correlationId: null,
+    });
     setClosedResponseId(null);
     shouldStickToBottomRef.current = true;
     setHasOverflowAbove(false);
@@ -305,10 +363,19 @@ function ChatBoxResponse() {
   }, [awaitingFirstChunk, firstTextOrError]);
 
   useEffect(() => {
+    if (hasFreshChunkForOverlayLock && awaitingOverlayLock.active) {
+      setAwaitingOverlayLock({
+        active: false,
+        baselineResponseId: null,
+        correlationId: null,
+      });
+      setAwaitingPhaseLatch(false);
+      return;
+    }
     if (showResponse && awaitingPhaseLatch) {
       setAwaitingPhaseLatch(false);
     }
-  }, [showResponse, awaitingPhaseLatch]);
+  }, [showResponse, awaitingPhaseLatch, hasFreshChunkForOverlayLock, awaitingOverlayLock.active]);
 
   const syncScrollState = useCallback(() => {
     const responseEl = responsePillRef.current;
