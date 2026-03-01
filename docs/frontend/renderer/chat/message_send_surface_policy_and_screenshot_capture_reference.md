@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for chat send-path runtime: sender-surface UI policy, clipboard-image payload normalization, screenshot capture/upload fallback chain, optimistic message updates, and send-failure behavior."
+summary: "Deep reference for chat send-path runtime: sender-surface UI policy, clipboard/file attachment normalization, screenshot capture/upload fallback chain, hidden read_file context injection, optimistic message updates, and send-failure behavior."
 read_when:
-  - When changing `useChatMessageSender`, screenshot/clipboard attachment behavior, or sender-surface return-to-chatbox policy.
-  - When debugging missing screenshot refs, send failures, or mismatch between optimistic user rows and backend query payloads.
+  - When changing `useChatMessageSender`, screenshot/clipboard/file attachment behavior, or sender-surface return-to-chatbox policy.
+  - When debugging missing screenshot refs, hidden attachment context, send failures, or mismatch between optimistic user rows and backend query payloads.
 title: "Message Send Surface Policy and Screenshot Capture Reference"
 ---
 
@@ -15,6 +15,7 @@ title: "Message Send Surface Policy and Screenshot Capture Reference"
 - `frontend/src/renderer/features/chat/policies/messageSendUiPolicy.ts`
 - `frontend/src/renderer/features/chat/components/MessageInput.jsx`
 - `frontend/src/renderer/features/chat/utils/messageInput.js`
+- `frontend/src/renderer/features/chat/utils/fileAttachmentUtils.js`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/infrastructure/services/SystemCapture.ts`
 - `frontend/src/renderer/infrastructure/services/ArtifactUploader.ts`
@@ -40,12 +41,13 @@ Surface consequences:
 `sendMessage(payload)` accepts:
 
 - plain string
-- object `{ text, clipboardImages?, clipboardImage? }`
+- object `{ text, clipboardImages?, clipboardImage?, readableFiles? }`
 
 Normalized shape:
 
 - `text`: required
 - `clipboardImages[]`: accepted only when each image has non-empty `base64`
+- `readableFiles[]`: accepted only when each file has non-empty absolute-ish `filePath` + `filename`
 - legacy `clipboardImage` is still accepted and normalized into `clipboardImages[]`
 
 Invalid object payloads are ignored (no send side effect).
@@ -58,21 +60,18 @@ Invalid object payloads are ignored (no send side effect).
 
 ## MessageInput -> Sender Coupling
 
-`MessageInput` supports pasted-image path:
+`MessageInput` supports paste + picker path:
 
-1. intercept paste
-2. detect clipboard `image/*` item
-3. read file as data URL
-4. parse to `{ base64, contentType, filename, previewUrl }`
-5. pass as `clipboardImages[]` with trimmed text on submit
+1. intercept paste for clipboard `image/*` item
+2. parse image to `{ base64, contentType, filename, previewUrl }`
+3. `+ -> Add photos & files` opens native file picker
+4. picker image files become preview cards (`clipboardImages[]`)
+5. picker non-image files become `readableFiles[]`
+6. submit payload includes text + image previews + readable file descriptors
 
-When no pasted image exists:
+When attachment(s) exist:
 
-- sends plain trimmed string.
-
-When pasted image(s) exist:
-
-- sends object payload so sender can skip screenshot capture and upload each clipboard image directly.
+- sends object payload so sender can upload image artifacts and inject non-image file context without showing file content in UI.
 
 ## Send Pipeline Order
 
@@ -93,6 +92,15 @@ When pasted image(s) exist:
 11. send backend query (`ApiClient.sendQuery`) with:
   - `screenshot_ref` (first ref, compatibility path)
   - `screenshot_refs` (all uploaded refs for multi-image queries)
+  - optional `attachment_context` (hidden read_file output for selected non-image files)
+  - optional `attachment_filenames` (visible filename chips for optimistic/local echo user rows)
+
+Readable file injection path:
+
+- for each `readableFiles[]` item, sender executes sidecar `read_file` via `execute-tool`.
+- successful `llm_content` outputs are concatenated into hidden attachment context.
+- context is appended into backend-bound composed query content by main process.
+- raw `read_file` content is never rendered in user-visible chat row.
 
 ## Screenshot Source and Fallback Chain
 
@@ -119,6 +127,7 @@ Optimistic user row includes:
 
 - `text`
 - `timestamp`
+- optional `attachmentFilenames[]` for picker/clipboard filenames
 - optional first-image `screenshot` and `screenshotContentType`
 - optional `screenshots[]` for multi-image attachments
 - later patched `screenshotRef` and `screenshotUrl` after upload
@@ -157,6 +166,7 @@ Fatal failure:
 - whitespace/no-send guards
 - voice utterance-end submit path
 - pasted image preview lifecycle + payload shape + remove action
+- file-picker trigger and selected readable-file payload shape
 
 ## Drift Hotspots
 

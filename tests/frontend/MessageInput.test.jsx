@@ -225,6 +225,86 @@ describe('MessageInput', () => {
     expect(screen.queryByText('Add photos & files')).not.toBeInTheDocument();
   });
 
+  test('opens native file picker when selecting add photos & files', () => {
+    render(<MessageInput onSendMessage={jest.fn()} isSending={false} />);
+
+    const attachmentInput = screen.getByTestId('attachment-input');
+    const clickSpy = jest.spyOn(attachmentInput, 'click').mockImplementation(() => {});
+
+    fireEvent.click(screen.getByTestId('plus-btn'));
+    fireEvent.click(screen.getByRole('menuitem', { name: /Add photos & files/i }));
+
+    expect(clickSpy).toHaveBeenCalledTimes(1);
+    clickSpy.mockRestore();
+  });
+
+  test('includes selected readable files in outgoing payload and shows file name', async () => {
+    const onSendMessage = jest.fn();
+    render(<MessageInput onSendMessage={onSendMessage} isSending={false} />);
+
+    const attachmentInput = screen.getByTestId('attachment-input');
+    const imageFile = new File(['image-bytes'], 'photo.png', { type: 'image/png' });
+    const textFile = new File(['hello'], 'notes.txt', { type: 'text/plain' });
+    Object.defineProperty(textFile, 'path', {
+      value: '/tmp/notes.txt',
+      configurable: true,
+    });
+
+    await act(async () => {
+      fireEvent.change(attachmentInput, {
+        target: {
+          files: [imageFile, textFile],
+        },
+      });
+    });
+
+    expect(screen.getByAltText(/Pasted image preview/i)).toBeInTheDocument();
+    expect(screen.getByText('notes.txt')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Type your message'), {
+      target: { value: 'Review attachments', selectionStart: 18 },
+    });
+    fireEvent.submit(screen.getByTestId('composer-container'));
+
+    const [firstCallPayload] = onSendMessage.mock.calls[0] || [];
+    expect(firstCallPayload?.text).toBe('Review attachments');
+    expect(Array.isArray(firstCallPayload?.clipboardImages)).toBe(true);
+    expect(Array.isArray(firstCallPayload?.readableFiles)).toBe(true);
+    expect(firstCallPayload?.readableFiles).toEqual([
+      expect.objectContaining({
+        filePath: '/tmp/notes.txt',
+        filename: 'notes.txt',
+      }),
+    ]);
+  });
+
+  test('enables send button for attachment-only message', async () => {
+    const onSendMessage = jest.fn();
+    render(<MessageInput onSendMessage={onSendMessage} isSending={false} />);
+
+    const attachmentInput = screen.getByTestId('attachment-input');
+    const textFile = new File(['hello'], 'notes.txt', { type: 'text/plain' });
+    Object.defineProperty(textFile, 'path', {
+      value: '/tmp/notes.txt',
+      configurable: true,
+    });
+
+    await act(async () => {
+      fireEvent.change(attachmentInput, {
+        target: {
+          files: [textFile],
+        },
+      });
+    });
+
+    const sendButton = screen.getByRole('button', { name: 'Send message' });
+    expect(sendButton).toBeEnabled();
+
+    fireEvent.click(sendButton);
+    const [firstCallPayload] = onSendMessage.mock.calls[0] || [];
+    expect(firstCallPayload?.text).toBe('Please review the attached files.');
+  });
+
   test('does not render thinking dropdown control next to add attachment', () => {
     render(<MessageInput onSendMessage={jest.fn()} isSending={false} />);
 

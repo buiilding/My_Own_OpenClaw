@@ -54,6 +54,9 @@ function buildLocalUserMessage({
       screenshot_ref: payload.screenshot_ref || null,
       screenshot_refs: Array.isArray(payload.screenshot_refs) ? payload.screenshot_refs : null,
       screenshot_url: payload.screenshot_url || null,
+      attachment_filenames: Array.isArray(payload.attachment_filenames)
+        ? payload.attachment_filenames
+        : null,
       timestamp: new Date().toISOString(),
       session_id: queryContext.session_id,
       user_id: queryContext.user_id,

@@ -121,6 +121,34 @@ describe('ipc.cjs bridge query handling', () => {
     });
   });
 
+  test('injects attachment context into backend query content and keeps filenames in local echo only', async () => {
+    const { handlers, ws, mainWindow } = setupQueryBridge({}, {
+      systemState: {
+        active_window: 'App',
+        mouse_position: '0,0',
+        screen_resolution: '1920x1080',
+        windows: ['A', 'B'],
+      },
+    });
+
+    await sendQuery(handlers, {
+      text: 'summarize',
+      conversation_ref: 'conv-attachments',
+      attachment_context: '--- Attached File: notes.txt ---\nFile path: /tmp/notes.txt',
+      attachment_filenames: ['notes.txt'],
+    });
+
+    const outgoingQuery = getLastSentMessage(ws);
+    expect(outgoingQuery.payload.content).toContain('<attached_file_context>');
+    expect(outgoingQuery.payload.content).toContain('--- Attached File: notes.txt ---');
+    expect(outgoingQuery.payload.content).toContain('<user_query>\nsummarize\n</user_query>');
+    expect(outgoingQuery.payload).not.toHaveProperty('attachment_context');
+    expect(outgoingQuery.payload).not.toHaveProperty('attachment_filenames');
+
+    const localUserMessage = getLatestLocalUserMessage(mainWindow);
+    expect(localUserMessage.payload.attachment_filenames).toEqual(['notes.txt']);
+  });
+
   test('reuses backend conversation_ref fallback for local echo and outbound query payload', async () => {
     const { handlers, ws, mainWindow } = setupQueryBridge({}, {
       systemState: {

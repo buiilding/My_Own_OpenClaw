@@ -39,10 +39,17 @@ export const ApiClient = {
     screenshotRefs: string[] | null = null,
     screenshotId: string | null = null,
     captureMeta: CaptureMeta | null = null,
+    attachmentContext: string | null = null,
+    attachmentFilenames: string[] | null = null,
   ): Promise<void> => {
     void screenshotUrl;
     const normalizedScreenshotRefs = Array.isArray(screenshotRefs)
       ? screenshotRefs.filter((ref): ref is string => typeof ref === 'string' && ref.length > 0)
+      : [];
+    const normalizedAttachmentFilenames = Array.isArray(attachmentFilenames)
+      ? attachmentFilenames
+        .filter((filename): filename is string => typeof filename === 'string' && filename.trim().length > 0)
+        .map((filename) => filename.trim())
       : [];
     // System state and memories are automatically added by ipc.cjs
     IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
@@ -54,6 +61,14 @@ export const ApiClient = {
         screenshot_refs: normalizedScreenshotRefs.length > 0 ? normalizedScreenshotRefs : null,
         screenshot_id: screenshotId,
         capture_meta: captureMeta,
+        attachment_context: (
+          typeof attachmentContext === 'string' && attachmentContext.trim().length > 0
+            ? attachmentContext
+            : null
+        ),
+        attachment_filenames: normalizedAttachmentFilenames.length > 0
+          ? normalizedAttachmentFilenames
+          : null,
         memory_retrieval_enabled: getMemoryRetrievalInjectionEnabled(),
       }
     });

@@ -22,6 +22,7 @@ export interface ChatMessage {
   screenshotRef?: string | null;
   screenshotUrl?: string | null;
   screenshotContentType?: string | null;
+  attachmentFilenames?: string[] | null;
   screenshots?: Array<{
     screenshot?: string | null;
     screenshotRef?: string | null;

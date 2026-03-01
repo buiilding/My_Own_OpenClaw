@@ -464,6 +464,22 @@ function initializeIpc(win, options = {}) {
         onBeforeOverlayQueryCapture,
         log,
       });
+      const attachmentContext = (
+        typeof payload.attachment_context === 'string' && payload.attachment_context.trim().length > 0
+      )
+        ? payload.attachment_context
+        : null;
+      const normalizedAttachmentFilenames = Array.isArray(payload.attachment_filenames)
+        ? payload.attachment_filenames
+          .filter((filename) => typeof filename === 'string' && filename.trim().length > 0)
+          .map((filename) => filename.trim())
+        : [];
+      if (normalizedAttachmentFilenames.length > 0) {
+        payload.attachment_filenames = normalizedAttachmentFilenames;
+      } else {
+        delete payload.attachment_filenames;
+      }
+      delete payload.attachment_context;
       const memoryRetrievalEnabled = payload.memory_retrieval_enabled !== false;
       delete payload.memory_retrieval_enabled;
       queryMessageId = uuidv4();
@@ -500,6 +516,7 @@ function initializeIpc(win, options = {}) {
         conversationRef,
         userId,
         contextType,
+        attachmentContext,
         getSystemState,
         searchMemory,
         memoryRetrievalEnabled,
