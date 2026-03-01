@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-dashboard-scroll-overflow): remove dashboard shell `100vw/100vh` viewport traps, harden modal/panel overflow containment, and scope scroll/overscroll to inner memory/models/settings panes so dashboard scrolling no longer leaks page-level overflow.
 - feat(sidecar-read-file-image-attachments): extend sidecar `read_file` to support common image formats by returning base64 attachment payloads (`screenshot`/`image_data` + MIME/size metadata) with an explicit no-OCR note, and update frontend tool-runner upload handling so non-computer tool image payloads render in tool-output cards without forwarding screenshot fields to backend OCR paths; add sidecar + frontend regression coverage.
 - feat(sidecar-read-file-pdf-extraction): extend sidecar `read_file` to support `.pdf` files via `pypdf` with page extraction, size-aware truncation, relevance-based page prioritization, PDF page-window controls via `offset`/`limit`, and PDF metadata in tool results; add sidecar regression coverage for small-PDF extraction, large-PDF relevance truncation, and windowed PDF reads.
 - fix(frontend-chat-input-add-menu-placement): anchor the `+` menu below the composer so the remaining `Add photos & files` action opens under the chat pill instead of above it.
