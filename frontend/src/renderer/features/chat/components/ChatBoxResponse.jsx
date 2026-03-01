@@ -97,6 +97,12 @@ function ChatBoxResponse() {
   });
   const activeResponseIdRef = useRef(null);
   const activeResponseTextRef = useRef(null);
+  const clearAwaitingOverlayLock = useCallback(() => ({
+    active: false,
+    baselineResponseId: null,
+    baselineResponseText: null,
+    correlationId: null,
+  }), []);
 
   const lastUserIndex = useMemo(
     () => findLastUserIndex(messages),
@@ -156,7 +162,7 @@ function ChatBoxResponse() {
     && !hasFreshChunkForOverlayLock
   );
   const shouldForceAwaitingState = (
-    awaitingFirstChunk
+    (awaitingFirstChunk && !firstChunkId)
     || awaitingPhaseLatch
     || shouldSuppressResponseForOverlayLock
     || isSending
@@ -311,18 +317,33 @@ function ChatBoxResponse() {
         || phase === RESPONSE_OVERLAY_PHASE.COMPLETE
         || phase === RESPONSE_OVERLAY_PHASE.ERROR
       ) {
+        const isStreamingPhase = phase === RESPONSE_OVERLAY_PHASE.STREAMING;
         setAwaitingPhaseLatch((currentLatch) => {
           if (!currentLatch) {
             return currentLatch;
           }
-          if (!awaitingOverlayLock.active || !awaitingOverlayLock.correlationId || !payloadCorrelationId) {
-            return currentLatch;
+          if (!awaitingOverlayLock.active) {
+            return false;
+          }
+          if (!awaitingOverlayLock.correlationId || !payloadCorrelationId) {
+            return isStreamingPhase ? currentLatch : false;
           }
           return awaitingOverlayLock.correlationId === payloadCorrelationId ? false : currentLatch;
         });
+        setAwaitingOverlayLock((currentLock) => {
+          if (!currentLock.active) {
+            return currentLock;
+          }
+          if (!currentLock.correlationId || !payloadCorrelationId) {
+            return isStreamingPhase ? currentLock : clearAwaitingOverlayLock();
+          }
+          return currentLock.correlationId === payloadCorrelationId
+            ? clearAwaitingOverlayLock()
+            : currentLock;
+        });
       }
     });
-  }, [awaitingOverlayLock.active, awaitingOverlayLock.correlationId]);
+  }, [awaitingOverlayLock.active, awaitingOverlayLock.correlationId, clearAwaitingOverlayLock]);
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.RESPONSE_OVERLAY_VISIBILITY, (payload = {}) => {
@@ -391,6 +412,13 @@ function ChatBoxResponse() {
       return;
     }
     lastUserMessageIdRef.current = lastUserMessageId;
+    if (firstTextOrError) {
+      setAwaitingFirstChunk(false);
+      setAwaitingPhaseLatch(false);
+      setAwaitingOverlayLock(clearAwaitingOverlayLock());
+      setClosedResponseId(null);
+      return;
+    }
     setAwaitingFirstChunk(true);
     setAwaitingPhaseLatch(true);
     setAwaitingOverlayLock({
@@ -402,7 +430,7 @@ function ChatBoxResponse() {
     setClosedResponseId(null);
     shouldStickToBottomRef.current = true;
     setHasOverflowAbove(false);
-  }, [lastUserMessageId]);
+  }, [lastUserMessageId, firstTextOrError, clearAwaitingOverlayLock]);
 
   useEffect(() => {
     if (!awaitingFirstChunk || !firstTextOrError) {
@@ -413,19 +441,14 @@ function ChatBoxResponse() {
 
   useEffect(() => {
     if (hasFreshChunkForOverlayLock && awaitingOverlayLock.active) {
-      setAwaitingOverlayLock({
-        active: false,
-        baselineResponseId: null,
-        baselineResponseText: null,
-        correlationId: null,
-      });
+      setAwaitingOverlayLock(clearAwaitingOverlayLock());
       setAwaitingPhaseLatch(false);
       return;
     }
     if (showResponse && awaitingPhaseLatch) {
       setAwaitingPhaseLatch(false);
     }
-  }, [showResponse, awaitingPhaseLatch, hasFreshChunkForOverlayLock, awaitingOverlayLock.active]);
+  }, [showResponse, awaitingPhaseLatch, hasFreshChunkForOverlayLock, awaitingOverlayLock.active, clearAwaitingOverlayLock]);
 
   const syncScrollState = useCallback(() => {
     const responseEl = responsePillRef.current;
