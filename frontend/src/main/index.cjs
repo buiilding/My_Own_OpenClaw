@@ -81,6 +81,7 @@ const CONTEXT_LABEL_OFFSET_X = 14;
 const CONTEXT_LABEL_GAP_ABOVE_CHATBOX = -6;
 const RESPONSE_OVERLAY_CHAT_GAP = 2;
 const CHATBOX_VISUAL_ANCHOR_HEIGHT = 64;
+let chatVisualAnchorHeight = CHATBOX_VISUAL_ANCHOR_HEIGHT;
 const RESPONSE_OVERLAY_PHASE = createResponseOverlayPhaseEnum();
 const APP_WINDOW_TITLE_MARKERS = ['desktop assistant', 'windieos'];
 const ENABLE_OS_TOOL_GHOST_DEBUG = process.env.WINDIE_DEBUG_GHOST_OVERLAY === '1';
@@ -144,9 +145,21 @@ const {
   contextLabelOffsetX: CONTEXT_LABEL_OFFSET_X,
   contextLabelGapAboveChatbox: CONTEXT_LABEL_GAP_ABOVE_CHATBOX,
   responseGap: RESPONSE_OVERLAY_CHAT_GAP,
-  chatVisualAnchorHeight: CHATBOX_VISUAL_ANCHOR_HEIGHT,
+  getChatVisualAnchorHeight: () => chatVisualAnchorHeight,
   warn: console.warn,
 });
+
+function setChatVisualAnchorHeight(height) {
+  const nextHeight = Math.round(Number(height));
+  if (!Number.isFinite(nextHeight) || nextHeight <= 0) {
+    return false;
+  }
+  if (nextHeight === chatVisualAnchorHeight) {
+    return false;
+  }
+  chatVisualAnchorHeight = nextHeight;
+  return true;
+}
 
 function syncWakewordToggleForChatVisibility() {
   syncWakewordToggleForChatVisibilityRuntime({
@@ -380,6 +393,7 @@ function initializeOverlayHandlers() {
     positionResponseWindow,
     positionContextLabelWindow,
     syncContextLabelWindowVisibility,
+    setChatVisualAnchorHeight,
     getResponseWindowBounds,
     setResponseOverlayVisibilityState,
     showResponseWindowWhenChatVisible,

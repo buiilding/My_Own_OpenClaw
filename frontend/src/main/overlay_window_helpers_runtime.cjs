@@ -13,6 +13,7 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     contextLabelOffsetX,
     contextLabelGapAboveChatbox,
     responseGap = 10,
+    getChatVisualAnchorHeight = null,
     chatVisualAnchorHeight = null,
     warn = console.warn,
   } = deps;
@@ -21,7 +22,11 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     if (!chatBounds || typeof chatBounds !== 'object') {
       return null;
     }
-    const configuredAnchorHeight = Number(chatVisualAnchorHeight);
+    const configuredAnchorHeight = (
+      typeof getChatVisualAnchorHeight === 'function'
+        ? Number(getChatVisualAnchorHeight())
+        : Number(chatVisualAnchorHeight)
+    );
     if (!Number.isFinite(configuredAnchorHeight) || configuredAnchorHeight <= 0) {
       return chatBounds;
     }

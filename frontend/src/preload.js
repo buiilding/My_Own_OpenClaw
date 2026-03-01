@@ -40,6 +40,7 @@ contextBridge.exposeInMainWorld('ipc', {
       'get-client-user-id',
       'set-overlay-ignore-mouse',
       'set-overlay-focusable',
+      'set-chatbox-visual-anchor-height',
       'set-responsebox-size',
       'show-main-window',
       'get-main-window-visibility',

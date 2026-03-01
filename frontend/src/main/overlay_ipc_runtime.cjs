@@ -20,6 +20,7 @@ const {
 const { handleSetOverlayIgnoreMouse } = require('./overlay_mouse_handler.cjs');
 const { handleSetOverlayFocusable } = require('./overlay_focusable_handler.cjs');
 const { handleMoveChatboxTo } = require('./overlay_chatbox_handler.cjs');
+const { handleSetChatboxVisualAnchorHeight } = require('./overlay_chatbox_visual_anchor_handler.cjs');
 const { handleSetResponseboxSize } = require('./overlay_responsebox_handler.cjs');
 
 function resolveUsername() {
@@ -41,6 +42,7 @@ function initializeOverlayHandlersRuntime(deps = {}) {
     positionResponseWindow,
     positionContextLabelWindow,
     syncContextLabelWindowVisibility,
+    setChatVisualAnchorHeight,
     getResponseWindowBounds,
     setResponseOverlayVisibilityState,
     showResponseWindowWhenChatVisible,
@@ -87,6 +89,16 @@ function initializeOverlayHandlersRuntime(deps = {}) {
       chatWindow,
       responseWindow,
       contextLabelWindow,
+    });
+  });
+
+  ipcMain.handle('set-chatbox-visual-anchor-height', async (_event, args = {}) => {
+    return handleSetChatboxVisualAnchorHeight(args, {
+      setChatVisualAnchorHeight,
+      positionResponseWindow,
+      positionContextLabelWindow,
+      syncContextLabelWindowVisibility,
+      warn,
     });
   });
 

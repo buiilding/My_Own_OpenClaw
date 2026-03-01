@@ -111,6 +111,32 @@ describe('overlay_ipc_runtime prepare-overlay-tool-focus handler', () => {
 
     expect(invokeHandlers['set-chatbox-size']).toBeUndefined();
     expect(typeof invokeHandlers['set-responsebox-size']).toBe('function');
+    expect(typeof invokeHandlers['set-chatbox-visual-anchor-height']).toBe('function');
+  });
+
+  test('routes chatbox visual anchor updates to positioning runtime', async () => {
+    const positionResponseWindow = jest.fn();
+    const positionContextLabelWindow = jest.fn();
+    const syncContextLabelWindowVisibility = jest.fn();
+    const setChatVisualAnchorHeight = jest.fn(() => true);
+    const { invokeHandlers } = createRuntime({
+      positionResponseWindow,
+      positionContextLabelWindow,
+      syncContextLabelWindowVisibility,
+      setChatVisualAnchorHeight,
+    });
+
+    const result = await invokeHandlers['set-chatbox-visual-anchor-height'](null, { height: 116 });
+
+    expect(result).toEqual({
+      success: true,
+      height: 116,
+      changed: true,
+    });
+    expect(setChatVisualAnchorHeight).toHaveBeenCalledWith(116);
+    expect(positionResponseWindow).toHaveBeenCalledTimes(1);
+    expect(positionContextLabelWindow).toHaveBeenCalledTimes(1);
+    expect(syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
   });
 
   test('reports main window visibility through get-main-window-visibility handler', async () => {
