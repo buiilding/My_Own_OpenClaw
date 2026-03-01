@@ -16,6 +16,7 @@ import {
 } from '../utils/responseOverlayLayoutMode';
 import { RESPONSE_OVERLAY_PHASE } from '../utils/responseOverlayPhaseContract';
 import {
+  isLoopActivePhase,
   isAwaitingFirstChunkPhase,
   isOverlayAwaitingReplyPhase,
   shouldOverlayClearAwaitingFirstChunk,
@@ -74,6 +75,7 @@ function ChatBoxResponse() {
   const [awaitingOverlayLock, setAwaitingOverlayLock] = useState({
     active: false,
     baselineResponseId: null,
+    baselineResponseText: null,
     correlationId: null,
   });
   const [overlayPhase, setOverlayPhase] = useState('idle');
@@ -83,6 +85,7 @@ function ChatBoxResponse() {
   const responsePillRef = useRef(null);
   const responseBodyRef = useRef(null);
   const shouldStickToBottomRef = useRef(true);
+  const hideOverlayTimeoutRef = useRef(null);
   const lastUserMessageIdRef = useRef(null);
   const lastFrameRef = useRef({
     width: 0,
@@ -93,6 +96,7 @@ function ChatBoxResponse() {
     layoutMode: RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
   });
   const activeResponseIdRef = useRef(null);
+  const activeResponseTextRef = useRef(null);
 
   const lastUserIndex = useMemo(
     () => findLastUserIndex(messages),
@@ -128,21 +132,40 @@ function ChatBoxResponse() {
   useEffect(() => {
     activeResponseIdRef.current = activeResponse?.id || null;
   }, [activeResponse?.id]);
+  useEffect(() => {
+    activeResponseTextRef.current = typeof activeResponse?.text === 'string'
+      ? activeResponse.text
+      : null;
+  }, [activeResponse?.text]);
 
   const hasFreshChunkForOverlayLock = Boolean(
     awaitingOverlayLock.active
       && firstChunkId
-      && firstChunkId !== awaitingOverlayLock.baselineResponseId,
+      && (
+        firstChunkId !== awaitingOverlayLock.baselineResponseId
+        || (
+          firstChunkId === awaitingOverlayLock.baselineResponseId
+          && typeof activeResponse?.text === 'string'
+          && typeof awaitingOverlayLock.baselineResponseText === 'string'
+          && activeResponse.text !== awaitingOverlayLock.baselineResponseText
+        )
+      ),
   );
   const shouldSuppressResponseForOverlayLock = (
     awaitingOverlayLock.active
     && !hasFreshChunkForOverlayLock
   );
+  const shouldForceAwaitingState = (
+    awaitingFirstChunk
+    || awaitingPhaseLatch
+    || shouldSuppressResponseForOverlayLock
+    || isSending
+    || isOverlayAwaitingReplyPhase(overlayPhase)
+  );
 
   const showResponse = Boolean(
     activeResponse
-      && !awaitingFirstChunk
-      && !shouldSuppressResponseForOverlayLock
+      && !shouldForceAwaitingState
       && activeResponse.id !== closedResponseId,
   );
 
@@ -163,13 +186,7 @@ function ChatBoxResponse() {
     [thinkingStatus],
   );
   const showAwaitingReply = (
-    (
-      awaitingFirstChunk
-      || awaitingPhaseLatch
-      || shouldSuppressResponseForOverlayLock
-      || isSending
-      || isOverlayAwaitingReplyPhase(overlayPhase)
-    )
+    shouldForceAwaitingState
     && !showResponse
   );
   const overlayLayoutMode = useMemo(() => resolveResponseOverlayLayoutMode({
@@ -285,6 +302,7 @@ function ChatBoxResponse() {
           return {
             active: true,
             baselineResponseId: activeResponseIdRef.current,
+            baselineResponseText: activeResponseTextRef.current,
             correlationId: payloadCorrelationId,
           };
         });
@@ -318,6 +336,27 @@ function ChatBoxResponse() {
           compactHover: false,
           layoutMode: RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
         };
+        const shouldLatchAwaitingOnReappear = (
+          isSending
+          || awaitingFirstChunk
+          || awaitingPhaseLatch
+          || awaitingOverlayLock.active
+          || isLoopActivePhase(overlayPhase)
+        );
+        if (shouldLatchAwaitingOnReappear) {
+          setAwaitingPhaseLatch(true);
+          setAwaitingOverlayLock((currentLock) => {
+            if (currentLock.active) {
+              return currentLock;
+            }
+            return {
+              active: true,
+              baselineResponseId: activeResponseIdRef.current,
+              baselineResponseText: activeResponseTextRef.current,
+              correlationId: null,
+            };
+          });
+        }
         return;
       }
       if (!isVisible) {
@@ -333,7 +372,16 @@ function ChatBoxResponse() {
     return () => {
       removeListener?.();
     };
-  }, [isVisible, overlayLayoutMode, reportOverlaySize]);
+  }, [
+    isVisible,
+    overlayLayoutMode,
+    reportOverlaySize,
+    isSending,
+    awaitingFirstChunk,
+    awaitingPhaseLatch,
+    awaitingOverlayLock.active,
+    overlayPhase,
+  ]);
 
   useEffect(() => {
     if (!lastUserMessageId) {
@@ -348,6 +396,7 @@ function ChatBoxResponse() {
     setAwaitingOverlayLock({
       active: true,
       baselineResponseId: activeResponseIdRef.current,
+      baselineResponseText: activeResponseTextRef.current,
       correlationId: null,
     });
     setClosedResponseId(null);
@@ -367,6 +416,7 @@ function ChatBoxResponse() {
       setAwaitingOverlayLock({
         active: false,
         baselineResponseId: null,
+        baselineResponseText: null,
         correlationId: null,
       });
       setAwaitingPhaseLatch(false);
@@ -448,13 +498,29 @@ function ChatBoxResponse() {
     let cancelled = false;
     let rafId = null;
 
+    if (hideOverlayTimeoutRef.current !== null) {
+      window.clearTimeout(hideOverlayTimeoutRef.current);
+      hideOverlayTimeoutRef.current = null;
+    }
+
     if (!isVisible) {
-      void reportOverlaySize({
-        visible: false,
-        layoutMode: RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
-      });
+      // Avoid single-frame hide/show oscillation during capture-return state updates.
+      hideOverlayTimeoutRef.current = window.setTimeout(() => {
+        if (cancelled) {
+          return;
+        }
+        hideOverlayTimeoutRef.current = null;
+        void reportOverlaySize({
+          visible: false,
+          layoutMode: RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
+        });
+      }, 120);
       return () => {
         cancelled = true;
+        if (hideOverlayTimeoutRef.current !== null) {
+          window.clearTimeout(hideOverlayTimeoutRef.current);
+          hideOverlayTimeoutRef.current = null;
+        }
       };
     }
 
@@ -497,6 +563,10 @@ function ChatBoxResponse() {
 
   useEffect(() => {
     return () => {
+      if (hideOverlayTimeoutRef.current !== null) {
+        window.clearTimeout(hideOverlayTimeoutRef.current);
+        hideOverlayTimeoutRef.current = null;
+      }
       void reportOverlaySize({
         visible: false,
         layoutMode: RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
