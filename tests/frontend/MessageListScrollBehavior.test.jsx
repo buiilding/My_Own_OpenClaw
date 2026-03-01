@@ -131,6 +131,8 @@ describe('MessageList auto-scroll behavior', () => {
       />,
     );
 
-    expect(scrollIntoView.mock.calls.length).toBeGreaterThan(callsBeforeSwitch);
+    const callsAfterSwitch = scrollIntoView.mock.calls.slice(callsBeforeSwitch);
+    expect(callsAfterSwitch.length).toBeGreaterThan(0);
+    expect(callsAfterSwitch.every(([options]) => options?.behavior === 'auto')).toBe(true);
   });
 });
