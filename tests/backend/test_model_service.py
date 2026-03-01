@@ -278,6 +278,23 @@ def test_get_all_online_models_marks_gemini_3_1_as_thinking_text_stream_capable(
     assert gemini_3_1.get("supports_thinking_text_stream") is True
 
 
+def test_get_all_online_models_marks_gemini_3_flash_preview_as_thinking_text_stream_capable():
+    service = ModelService(AppConfig())
+    models = service.get_all_online_models()
+
+    gemini_3_flash_preview = next(
+        (
+            model for model in models
+            if model.get("provider") == "gemini"
+            and model.get("id") == "gemini-3-flash-preview"
+        ),
+        None,
+    )
+    assert gemini_3_flash_preview is not None
+    assert gemini_3_flash_preview.get("supports_thinking") is True
+    assert gemini_3_flash_preview.get("supports_thinking_text_stream") is True
+
+
 def test_get_all_online_models_marks_openrouter_qwen3_vl_as_thinking_text_stream_capable():
     service = ModelService(AppConfig())
     models = service.get_all_online_models()
