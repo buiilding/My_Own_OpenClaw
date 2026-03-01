@@ -87,15 +87,41 @@ function buildEpisodicTitle(content, fallbackIndex) {
   return normalized.length > 84 ? `${normalized.slice(0, 81)}...` : normalized;
 }
 
+function extractAssistantResponse(content) {
+  const normalized = (content || '').replace(/\r\n/g, '\n').trim();
+  if (!normalized) {
+    return '';
+  }
+
+  const assistantMarkerMatch = normalized.match(/(?:^|\n)assistant:\s*/i);
+  if (!assistantMarkerMatch || typeof assistantMarkerMatch.index !== 'number') {
+    return '';
+  }
+
+  const assistantStart = assistantMarkerMatch.index + assistantMarkerMatch[0].length;
+  const tail = normalized.slice(assistantStart).trim();
+  if (!tail) {
+    return '';
+  }
+
+  const nextRoleMatch = tail.match(/\n(?:user|assistant):\s*/i);
+  if (!nextRoleMatch || typeof nextRoleMatch.index !== 'number') {
+    return tail;
+  }
+  return tail.slice(0, nextRoleMatch.index).trim();
+}
+
 export function normalizeEpisodicMemories(memories = []) {
   return memories.map((memory, index) => {
     const detail = (memory?.content || '').trim() || '(empty memory)';
+    const assistantResponse = extractAssistantResponse(memory?.content);
     const words = detail.split(/\s+/).filter(Boolean).length;
 
     return {
       id: memory?.id || `episodic-${index}`,
       title: buildEpisodicTitle(memory?.content, index),
       detail,
+      assistantResponse,
       date: formatDateLabel(memory?.timestamp),
       tokens: Math.max(words, 0),
       source: memory?.metadata?.source || 'memory_store',

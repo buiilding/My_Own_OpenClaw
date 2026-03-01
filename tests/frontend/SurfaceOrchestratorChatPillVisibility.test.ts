@@ -1,16 +1,28 @@
 import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
-import {
+import * as chatPillVisibility from '../../frontend/src/renderer/infrastructure/services/surfaceOrchestrator/chatPillVisibility';
+
+const {
   collapseChatPillForBackgroundCapture,
   restoreChatPillInactive,
-} from '../../frontend/src/renderer/infrastructure/services/surfaceOrchestrator/chatPillVisibility';
+} = chatPillVisibility;
 
 describe('surfaceOrchestrator chatPillVisibility', () => {
+  const originalUserAgent = navigator.userAgent;
+
   beforeEach(() => {
     jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({ success: true });
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'Mozilla/5.0 (X11; Linux x86_64)',
+    });
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: originalUserAgent,
+    });
   });
 
   test('collapses chat pill with deterministic hide-only ordering', async () => {
@@ -37,5 +49,17 @@ describe('surfaceOrchestrator chatPillVisibility', () => {
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
       [INVOKE_CHANNELS.HIDE_CHATBOX],
     ]);
+  });
+
+  test('skips collapse and restore chat pill IPC outside Linux', async () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+    });
+
+    await collapseChatPillForBackgroundCapture();
+    await restoreChatPillInactive();
+
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([]);
   });
 });

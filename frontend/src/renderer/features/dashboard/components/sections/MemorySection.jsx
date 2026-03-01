@@ -98,7 +98,15 @@ function MemorySection({ onClose = () => {} }) {
     return source.filter((memory) => {
       const title = (memory.title || '').toLowerCase();
       const detail = (memory.detail || '').toLowerCase();
-      return title.includes(normalized) || detail.includes(normalized);
+      if (activeType !== 'episodic') {
+        return title.includes(normalized) || detail.includes(normalized);
+      }
+      const assistantResponse = (memory.assistantResponse || '').toLowerCase();
+      return (
+        title.includes(normalized)
+        || detail.includes(normalized)
+        || assistantResponse.includes(normalized)
+      );
     });
   }, [activeType, memoriesByType, searchQuery]);
 

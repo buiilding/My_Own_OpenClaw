@@ -57,13 +57,41 @@ def exclude_conversation_results(
 
 
 def group_memory_texts(results: Iterable[Dict[str, Any]]) -> Dict[str, List[str]]:
-    """Normalize raw memory rows into semantic/episodic text buckets."""
+    """Normalize raw memory rows into semantic/episodic text buckets.
+
+    Episodic injection prefers interaction-style memories that include both
+    user and assistant content (for richer retrieval context in prompt
+    construction). If no interaction-style episodic rows are present, falls
+    back to the original episodic results.
+    """
     grouped: Dict[str, List[str]] = {"semantic": [], "episodic": []}
+    episodic_interactions: List[str] = []
+    episodic_fallback: List[str] = []
+
+    def _is_user_assistant_interaction(result: Dict[str, Any], text: str) -> bool:
+        metadata = result.get("metadata")
+        if isinstance(metadata, dict):
+            source = str(metadata.get("source", "")).strip().lower()
+            record_kind = str(metadata.get("record_kind", "")).strip().lower()
+            if source == "interaction_completed" or record_kind == "interaction":
+                return True
+
+        normalized_text = text.strip().lower()
+        return "user:" in normalized_text and "assistant:" in normalized_text
+
     for result in results:
         memory_type = result.get("type", "episodic")
         text = result.get("text")
         if memory_type in grouped and text:
-            grouped[memory_type].append(text)
+            if memory_type == "semantic":
+                grouped["semantic"].append(text)
+                continue
+            if _is_user_assistant_interaction(result, text):
+                episodic_interactions.append(text)
+            else:
+                episodic_fallback.append(text)
+
+    grouped["episodic"] = episodic_interactions or episodic_fallback
     return grouped
 
 

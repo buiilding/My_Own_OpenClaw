@@ -272,4 +272,42 @@ describe('MemorySection', () => {
     expect(toggle).toBeChecked();
     expect(window.localStorage.getItem(MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY)).toBe('true');
   });
+
+  test('episodic search matches assistant responses', async () => {
+    mockInvoke.mockImplementation(async (channel) => {
+      if (channel === 'list-episodic-memories') {
+        return {
+          success: true,
+          data: {
+            memories: [
+              {
+                id: 'ep-assistant-search-1',
+                content: 'User: what should I pack?\nAssistant: Bring a waterproof jacket and trail shoes.',
+                timestamp: '2026-02-25T08:00:00Z',
+                metadata: { source: 'interaction_completed' },
+              },
+            ],
+          },
+        };
+      }
+      if (channel === 'list-semantic-memories') {
+        return { success: true, data: { memories: [] } };
+      }
+      return { success: true, data: {} };
+    });
+
+    const { default: MemorySection } = await import(
+      '../../frontend/src/renderer/features/dashboard/components/sections/MemorySection'
+    );
+
+    render(<MemorySection />);
+    await screen.findByText(/what should I pack\?/i);
+
+    fireEvent.change(screen.getByPlaceholderText('Search memories...'), {
+      target: { value: 'trail shoes' },
+    });
+
+    await screen.findByText(/what should I pack\?/i);
+    expect(screen.queryByText('No memories found')).not.toBeInTheDocument();
+  });
 });
