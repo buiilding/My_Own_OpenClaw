@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- style(frontend-chatbox-stop-icon-rounder): increase stop control inner rounded-square icon from 8x8 to 16x16 and raise its corner radius for a larger, rounder stop glyph in the minimal chat pill.
 - fix(frontend-minimal-chat-pill-reappear-latch): harden capture restore state with visibility-hide awaiting latch and baseline-text-aware overlay unlock so chat pill reappears once in typing state (no stale response flash, no double flicker), plus `ChatBoxResponse.state` regression for hide/show + same-id first-token update.
 - fix(frontend-message-list-stream-scroll-scope): keep streaming auto-scroll scoped to the message-list container (replace bottom `scrollIntoView` with container `scrollTo/scrollTop`) so long responses do not scroll the page viewport and shift the chat pill upward; add MessageList scroll-behavior regressions for container-only follow behavior.
 - fix(frontend-minimal-chat-pill-loop): refactor minimal response overlay state handling to keep awaiting typing indicator stable and pre-rendered across screenshot/tool loops, remove animated awaiting<->response transitions, and prevent nested screenshot capture from double-restoring the chat pill (eliminates Linux double-flicker on reappear).
