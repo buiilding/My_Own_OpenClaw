@@ -3,7 +3,9 @@ Read File Tool - Python implementation.
 """
 
 import asyncio
+import base64
 import logging
+import mimetypes
 import re
 from pathlib import Path
 from typing import Dict, Any
@@ -19,6 +21,30 @@ PDF_MAX_CHARS = 50000
 PDF_MIN_PAGE_BODY_CHARS = 60
 PDF_TRUNCATION_MARKER = "\n[...truncated]"
 PDF_SEARCH_TERM_LIMIT = 8
+IMAGE_EXTENSIONS = {
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".webp",
+    ".bmp",
+    ".tif",
+    ".tiff",
+    ".ico",
+    ".svg",
+}
+IMAGE_FALLBACK_CONTENT_TYPES = {
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".gif": "image/gif",
+    ".webp": "image/webp",
+    ".bmp": "image/bmp",
+    ".tif": "image/tiff",
+    ".tiff": "image/tiff",
+    ".ico": "image/x-icon",
+    ".svg": "image/svg+xml",
+}
 PDF_SEARCH_STOPWORDS = {
     "about",
     "after",
@@ -60,6 +86,60 @@ def _truncate_line_preserving_ending(line: str) -> tuple[str, bool]:
         return line, False
 
     return f"{line_body[:MAX_LINE_LENGTH]}{line_ending}", True
+
+
+def _is_image_file(path: Path) -> bool:
+    guessed_type, _ = mimetypes.guess_type(str(path))
+    if isinstance(guessed_type, str) and guessed_type.startswith("image/"):
+        return True
+    return path.suffix.lower() in IMAGE_EXTENSIONS
+
+
+def _resolve_image_content_type(path: Path) -> str:
+    guessed_type, _ = mimetypes.guess_type(str(path))
+    if isinstance(guessed_type, str) and guessed_type.startswith("image/"):
+        return guessed_type.lower()
+    return IMAGE_FALLBACK_CONTENT_TYPES.get(path.suffix.lower(), "image/png")
+
+
+async def _read_image_file(path: Path) -> ToolResult:
+    """
+    Read image bytes and return attachment payload for tool output.
+    This path intentionally does not perform OCR or text extraction.
+    """
+    loop = asyncio.get_running_loop()
+
+    def _read_image_bytes() -> bytes:
+        return path.read_bytes()
+
+    image_bytes = await loop.run_in_executor(None, _read_image_bytes)
+    if not image_bytes:
+        return ToolResult.error_result(f"Image file is empty: {path}")
+
+    image_base64 = base64.b64encode(image_bytes).decode("ascii")
+    image_content_type = _resolve_image_content_type(path)
+    llm_content = (
+        f"File path: {path}\n\n"
+        f"Image file loaded ({image_content_type}, {len(image_bytes)} bytes).\n"
+        "Note: OCR/text extraction is not performed by read_file."
+    )
+    return ToolResult.success_result(
+        {
+            "content": "",
+            "file_path": str(path),
+            "total_lines": 0,
+            "read_lines": 0,
+            "is_truncated": False,
+            "line_truncation_limit": MAX_LINE_LENGTH,
+            "truncated_line_count": 0,
+            "llm_content": llm_content,
+            "screenshot": image_base64,
+            "image_data": image_base64,
+            "screenshot_content_type": image_content_type,
+            "image_content_type": image_content_type,
+            "image_size_bytes": len(image_bytes),
+        }
+    )
 
 
 def _collect_pdf_search_terms(path: Path, args: Dict[str, Any]) -> list[str]:
@@ -339,6 +419,9 @@ async def read_file(args: Dict[str, Any]) -> ToolResult:
 
         if path.suffix.lower() == ".pdf":
             return await _read_pdf_file(path, args, start, line_limit)
+
+        if _is_image_file(path):
+            return await _read_image_file(path)
 
         # Check if binary file
         if is_binary_file(str(path)):

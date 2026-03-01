@@ -38,6 +38,7 @@ Validation:
 
 - `file_path` must be absolute and point to existing regular file
 - binary-like non-PDF files are rejected via extension/signature/null-byte/printable-ratio checks (`file_utils.is_binary_file`)
+- image files (`.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.bmp`, `.tif`, `.tiff`, `.ico`, `.svg`) are handled by an image attachment path before binary rejection
 - `offset` must be non-negative int
 - `limit` must be positive int
 
@@ -64,6 +65,12 @@ PDF behavior (`.pdf`):
 - `offset`/`limit` are interpreted as page window controls
 - large extracted content is truncated with relevance-aware page ordering under char budget
 - includes PDF metadata in response payload (`pdf_total_pages`, `pdf_pages_included`, `pdf_search_terms`)
+
+Image behavior:
+
+- reads image bytes and returns attachment payload fields (`screenshot`, `image_data`, content type, byte size)
+- intentionally does not run OCR or extract text from pixels
+- returns deterministic `llm_content` note stating OCR is not performed
 
 LLM content shape:
 
@@ -147,6 +154,8 @@ Patch chunk mode:
 - offset past EOF window semantics
 - empty file message
 - large-file paging stability
+- image-file attachment payloads (no OCR text extraction)
+- non-image binary files still rejected
 
 `tests/sidecar/test_replace_tool.py` verifies:
 
