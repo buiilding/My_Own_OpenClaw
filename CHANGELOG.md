@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- style(frontend-message-input-inline-actions): convert dashboard composer to a single-row input/action layout so `+`, input text, mic, and send align on one line, and reduce base chat-pill height to match the compact ChatGPT-like input bar.
 - style(frontend-message-input-file-preview-card): restyle dashboard composer file attachments from compact pills to a card preview (document icon, filename, file type, inline remove action) to match the new add-photos/files UX.
 - fix(frontend-overlay-preview-anchor): add chatbox visual-anchor IPC updates (`64` compact / `116` with-preview) so main-process response/context overlays re-anchor when the chat pill enters preview mode, keeping response overlay above expanded preview height; add overlay IPC + helper runtime and chatbox regression coverage.
 - fix(frontend-response-overlay-step-heights): replace live response-overlay auto-resize with deterministic 5-step height snapping (`92`, `164`, `236`, `324`, `460`) based on content-fit checks, remove renderer `ResizeObserver`-driven continuous resizing for response shells, and add `ChatBoxResponse.state` regression coverage for fixed-step transitions.
