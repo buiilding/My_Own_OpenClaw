@@ -7,8 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
-- style(frontend-dashboard-composer-bottom-offset): move the dashboard composer slightly upward by increasing bottom spacing in chat layout so the pill sits less flush with the window edge.
-- fix(frontend-dashboard-history-open-scroll): force message list to snap to bottom immediately (no smooth-scroll animation) when active conversation changes from sidebar history selection, while preserving manual scroll-up behavior for normal streaming updates within the same conversation.
+- fix(frontend-dashboard-history-open-scroll): force message list to jump instantly to a near-bottom anchor (`72px` above absolute bottom, no smooth-scroll animation) when active conversation changes from sidebar history selection, while preserving manual scroll-up behavior for normal streaming updates within the same conversation.
 - feat(frontend-dashboard-awaiting-indicator-inline): render dashboard awaiting/typing indicator directly under the latest user message (left-aligned with assistant reply lane), show it during local-send/awaiting-first-token, and remove it as soon as assistant streaming starts.
 - style(frontend-message-input-inline-actions): convert dashboard composer to a single-row input/action layout so `+`, input text, mic, and send align on one line, and reduce base chat-pill height to match the compact ChatGPT-like input bar.
 - style(frontend-message-input-file-preview-card): restyle dashboard composer file attachments from compact pills to a card preview (document icon, filename, file type, inline remove action) to match the new add-photos/files UX.
