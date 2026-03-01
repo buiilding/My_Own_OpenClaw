@@ -1,5 +1,11 @@
 import React from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 
 import {
   ChatBoxResponse,
@@ -195,6 +201,85 @@ describe('ChatBoxResponse state behavior', () => {
 
     await waitFor(() => {
       expect(responsePane.classList.contains('has-overflow-above')).toBe(true);
+    });
+  });
+
+  test('snaps response pane height to deterministic fixed steps', async () => {
+    const userMessage = { id: 'user-1', text: 'question', sender: 'user' };
+    const assistantMessage = {
+      id: 'assistant-1',
+      text: 'short response',
+      sender: 'assistant',
+      type: 'llm-text',
+      isComplete: false,
+    };
+    setChatState([userMessage, assistantMessage]);
+
+    const { container } = render(<ChatBoxResponse />);
+
+    await waitFor(() => {
+      expect(screen.getByText('short response')).toBeInTheDocument();
+    });
+
+    const responsePane = container.querySelector('.chatbox-response-pill');
+    const responseBody = container.querySelector('.chatbox-response-body');
+    expect(responsePane).toBeTruthy();
+    expect(responseBody).toBeTruthy();
+
+    let mockScrollHeight = 90;
+    Object.defineProperty(responseBody, 'scrollHeight', {
+      configurable: true,
+      get: () => mockScrollHeight,
+    });
+
+    act(() => {
+      useChatStore.setState({
+        messages: [
+          userMessage,
+          {
+            ...assistantMessage,
+            text: 'step one',
+          },
+        ],
+      });
+    });
+
+    await waitFor(() => {
+      expect(responsePane.style.height).toBe('164px');
+    });
+
+    mockScrollHeight = 215;
+    act(() => {
+      useChatStore.setState({
+        messages: [
+          userMessage,
+          {
+            ...assistantMessage,
+            text: 'step two',
+          },
+        ],
+      });
+    });
+
+    await waitFor(() => {
+      expect(responsePane.style.height).toBe('324px');
+    });
+
+    mockScrollHeight = 700;
+    act(() => {
+      useChatStore.setState({
+        messages: [
+          userMessage,
+          {
+            ...assistantMessage,
+            text: 'step three',
+          },
+        ],
+      });
+    });
+
+    await waitFor(() => {
+      expect(responsePane.style.height).toBe('460px');
     });
   });
 
