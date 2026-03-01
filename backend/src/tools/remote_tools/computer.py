@@ -30,7 +30,8 @@ class RemoteMouseTool(RemoteToolBase, Tool[MouseControlArgs]):
         "For text fields, pass the exact visible string (for example: 'type something here'). "
         "When OCR is ambiguous, retry with candidate_id from the ambiguity response. "
         "For manual coordinates, use screenshot pixels from the latest image and beware of the mouse position "
-        "on that image when grounding x/y."
+        "on that image when grounding x/y. Do not treat tool status alone as success; confirm expected UI state "
+        "change, and use cursor position as one verification signal."
     )
     args_model = MouseControlArgs
     category = ToolDomain.COMPUTER

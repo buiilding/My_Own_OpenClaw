@@ -21,7 +21,8 @@ class MouseControlArgs(BaseModel):
         ...,
         description=(
             "Mouse action to perform (click, double_click, right_click, move, drag, or scroll). "
-            "Prefer keyboard shortcuts/hotkeys first when they can accomplish the same goal."
+            "Prefer keyboard shortcuts/hotkeys first when they can accomplish the same goal. "
+            "Do not treat tool execution status alone as UI success; verify the expected UI change from the latest screenshot."
         ),
     )
 
@@ -32,7 +33,8 @@ class MouseControlArgs(BaseModel):
             "Coordinate targeting strategy. If the target has visible text, use 'ocr' "
             "with exact ocr_text for initial targeting, then use candidate_id "
             "for ambiguity retries. For manual targeting, ground x/y from the latest "
-            "screenshot and use the visible mouse position as a spatial reference."
+            "screenshot and use the visible mouse position as a spatial reference. "
+            "For manual clicks, success requires both cursor alignment and the intended UI state change."
         ),
     )
 
