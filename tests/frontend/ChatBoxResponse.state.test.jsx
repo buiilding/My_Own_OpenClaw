@@ -373,6 +373,55 @@ describe('ChatBoxResponse state behavior', () => {
     expect(screen.queryByText('previous complete response')).not.toBeInTheDocument();
   });
 
+  test('keeps stale response hidden after visibility restore and unlocks on same-id token update', async () => {
+    setChatState([
+      { id: 'user-1', text: 'run command', sender: 'user' },
+      {
+        id: 'assistant-1',
+        text: 'before tool',
+        sender: 'assistant',
+        type: 'llm-text',
+        isComplete: false,
+      },
+    ]);
+
+    render(<ChatBoxResponse />);
+
+    await waitFor(() => {
+      expect(screen.getByText('before tool')).toBeInTheDocument();
+    });
+
+    emitOverlayPhase('tool-output');
+    emitOverlayVisibility(false);
+    emitOverlayVisibility(true);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('before tool')).not.toBeInTheDocument();
+
+    emitOverlayPhase('streaming');
+    act(() => {
+      useChatStore.setState({
+        messages: [
+          { id: 'user-1', text: 'run command', sender: 'user' },
+          {
+            id: 'assistant-1',
+            text: 'before tool + first token',
+            sender: 'assistant',
+            type: 'llm-text',
+            isComplete: false,
+          },
+        ],
+      });
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
+    });
+    expect(screen.getByText('before tool + first token')).toBeInTheDocument();
+  });
+
   test('re-reports compact overlay size after visibility hide/show cycle', async () => {
     setChatState([
       { id: 'user-1', text: 'run command', sender: 'user' },
