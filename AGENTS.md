@@ -266,7 +266,7 @@ Treat this as the high-level mental model of WindieOS behavior.
 - Branch changes require user consent.
 - Destructive ops forbidden unless explicit (`reset --hard`, `clean`, `restore`, `rm`, …).
 - Prefer HTTPS remotes; flip SSH->HTTPS before pull/push.
-- Commit helper on PATH: `committer` (bash). Prefer it; if repo has `./scripts/committer`, use that.
+- Commit helper on PATH: `committer` (bash). This repo ships `./scripts/committer` (executable); use it directly or via PATH `committer`.
 - Commit message: Conventional Commit subject + short description body (when it helps review). Example:
   - `feat(frontend-dashboard): delete semantic memory entries`
   - blank line
@@ -294,7 +294,7 @@ Treat this as the high-level mental model of WindieOS behavior.
 Avoid “AI slop” UI. Be opinionated + distinctive.
 
 ### committer
-- Commit helper (PATH). Stages only listed paths; required here. Repo may also ship `./scripts/committer`.
+- Commit helper (PATH). Stages only listed paths; required here. If `committer` is unavailable on PATH, use `./scripts/committer` directly (executable).
 
 Do:
 - Typography: pick a real font; avoid Inter/Roboto/Arial/system defaults.
