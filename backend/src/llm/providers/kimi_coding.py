@@ -52,7 +52,9 @@ class KimiCodingProvider(StreamingToolCallAggregationMixin, OnlineLLMProvider):
         params: Dict[str, Any],
         *,
         model: str,
+        runtime_model_id: Optional[str] = None,
     ) -> Dict[str, Any]:
         _ = model
+        _ = runtime_model_id
         params["custom_llm_provider"] = "anthropic"
         return params
