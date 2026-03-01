@@ -12,6 +12,7 @@ Includes the last 300 commits on `main`.
 - fix(frontend-minimal-chat-pill-collapse): change screenshot/tool capture collapse path to hide-only (no pre-hide show) and update surface/capture regressions so hidden chat pill no longer flashes before restore on Linux.
 - fix(frontend-minimal-chat-pill-await-latch): keep minimal chat-pill typing indicator latched during screenshot capture restore so the pill reappears once with awaiting state already rendered, then clear latch on first token/terminal overlay phase.
 - fix(frontend-minimal-chat-pill-overlay-phase-latch): replace renderer-local screenshot event latch with shared response-overlay phase latch (`tool-call/tool-output/awaiting-first-chunk` persists through transient `idle`) so minimal typing indicator state remains pre-rendered across multi-window capture restore.
+- fix(frontend-minimal-chat-pill-overlay-lock): add strict awaiting overlay lock that freezes stale response content after tool/screenshot-await phases until a fresh first chunk is observed, removing intermittent old-response flash and post-capture double-toggling.
 - fix(backend-gemini-default-reasoning): remove Gemini provider request override that forced `reasoning_effort="low"` so Gemini requests use provider defaults.
 - test(backend-gemini-default-reasoning): add regression coverage asserting Gemini request params do not inject `reasoning_effort` implicitly.
 - docs(planning-screenshot-normalization): add future plan for dual screenshot pipelines (normalized LLM input + full-resolution grounding/OCR) and register it in planning hub.
