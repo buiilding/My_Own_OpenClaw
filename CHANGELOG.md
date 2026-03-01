@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-test-regressions-chatbox-overlay): restore `ChatBoxResponse` awaiting-lock/latch behavior for terminal and no-correlation overlay phases (including preloaded assistant response visibility), guard overlay runtime chat-window bounds/size access for minimal mocks, and default capture-restore prep to restore when `restoreChatPillAfterCapture` is omitted; frontend `test:ci` back to green.
 - docs(agents): update `AGENTS.md` docs-list instructions to use executable `./bin/docs-list` in this checkout and set `bin/docs-list` executable.
 - fix(backend-gemini-3-flash-thinking-catalog): mark `gemini-3-flash-preview` as thinking-capable in online thinking model config so metadata emits `supports_thinking=true` and `supports_thinking_text_stream=true`; add `ModelService` regression coverage.
 - style(frontend-chatbox-stop-icon-rounder): increase stop control inner rounded-square icon from 8x8 to 16x16 and raise its corner radius for a larger, rounder stop glyph in the minimal chat pill.

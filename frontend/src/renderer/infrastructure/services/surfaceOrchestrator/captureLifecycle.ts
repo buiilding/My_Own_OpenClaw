@@ -123,6 +123,7 @@ export async function restoreScreenshotCaptureVisibility(
     source?: SurfaceTransitionSource;
   } = {},
 ): Promise<void> {
+  const shouldRestoreChatPillAfterCapture = preparation.restoreChatPillAfterCapture !== false;
   const context = resolveSurfaceTransitionContext(
     options.source,
     preparation.captureId,
@@ -138,7 +139,7 @@ export async function restoreScreenshotCaptureVisibility(
   decrementActiveScreenshotCaptureCount();
   if (
     getActiveScreenshotCaptureCount() > 0
-    || !preparation.restoreChatPillAfterCapture
+    || !shouldRestoreChatPillAfterCapture
     || !isPendingScreenshotCaptureRestore()
   ) {
     return;

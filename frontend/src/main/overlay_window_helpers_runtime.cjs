@@ -49,7 +49,9 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
 
   function getResponseWindowBounds(width, height, options = {}) {
     const chatWindow = getChatWindow();
-    const chatBounds = chatWindow && !chatWindow.isDestroyed()
+    const chatBounds = chatWindow
+      && !chatWindow.isDestroyed()
+      && typeof chatWindow.getBounds === 'function'
       ? chatWindow.getBounds()
       : null;
     const anchoredChatBounds = getAnchoredChatBounds(chatBounds);
@@ -65,7 +67,9 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
 
   function getContextLabelWindowBounds() {
     const chatWindow = getChatWindow();
-    const chatBounds = chatWindow && !chatWindow.isDestroyed()
+    const chatBounds = chatWindow
+      && !chatWindow.isDestroyed()
+      && typeof chatWindow.getBounds === 'function'
       ? chatWindow.getBounds()
       : null;
     const anchoredChatBounds = getAnchoredChatBounds(chatBounds);
@@ -116,7 +120,9 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
       return;
     }
     const chatWindow = getChatWindow();
-    const defaultWidth = chatWindow && !chatWindow.isDestroyed()
+    const defaultWidth = chatWindow
+      && !chatWindow.isDestroyed()
+      && typeof chatWindow.getSize === 'function'
       ? chatWindow.getSize()[0]
       : 520;
     const [currentWidth, currentHeight] = responseWindow.getSize();
