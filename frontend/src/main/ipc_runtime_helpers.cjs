@@ -82,6 +82,10 @@ function normalizeBackendPayload(type, payload) {
     delete normalized.screenshot_url;
     delete normalized.screenshot_urls;
   }
+  if (type === 'query') {
+    delete normalized.attachment_context;
+    delete normalized.attachment_filenames;
+  }
 
   return normalized;
 }

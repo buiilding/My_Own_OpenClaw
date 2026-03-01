@@ -170,6 +170,7 @@ async function buildQueryPayloadContent({
   conversationRef,
   userId,
   contextType,
+  attachmentContext = null,
   getSystemState,
   searchMemory,
   memoryRetrievalEnabled = true,
@@ -210,6 +211,10 @@ async function buildQueryPayloadContent({
       }
     } else {
       logger('Memory retrieval injection disabled; skipping memory search and prompt tags');
+    }
+
+    if (typeof attachmentContext === 'string' && attachmentContext.trim().length > 0) {
+      parts.push(`<attached_file_context>\n${attachmentContext}\n</attached_file_context>`);
     }
 
     parts.push(`<user_query>\n${escapeXml(text)}\n</user_query>`);

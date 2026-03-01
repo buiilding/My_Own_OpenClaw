@@ -95,6 +95,8 @@ describe('useChatMessageSender', () => {
     screenshotRefs: string[] | null = null,
     screenshotId: string | null = null,
     captureMeta: Record<string, unknown> | null = null,
+    attachmentContext: string | null = null,
+    attachmentFilenames: string[] | null = null,
   ) {
     expect(mockSendQuery).toHaveBeenCalledTimes(1);
     const call = mockSendQuery.mock.calls[0];
@@ -105,6 +107,17 @@ describe('useChatMessageSender', () => {
     expect(call[4]).toEqual(screenshotRefs);
     expect((call[5] ?? null) as string | null).toBe(screenshotId);
     expect((call[6] ?? null) as Record<string, unknown> | null).toEqual(captureMeta);
+    expect((call[7] ?? null) as string | null).toBe(attachmentContext);
+    const actualAttachmentFilenames = (call[8] ?? null) as string[] | null;
+    if (attachmentFilenames === null) {
+      expect(actualAttachmentFilenames === null || typeof actualAttachmentFilenames === 'undefined').toBe(true);
+      return;
+    }
+    expect(Array.isArray(actualAttachmentFilenames)).toBe(true);
+    expect(actualAttachmentFilenames?.length).toBe(attachmentFilenames.length);
+    for (let index = 0; index < attachmentFilenames.length; index += 1) {
+      expect(actualAttachmentFilenames?.[index]).toBe(attachmentFilenames[index]);
+    }
   }
 
   function expectNoShowChatboxCall() {
@@ -412,6 +425,10 @@ describe('useChatMessageSender', () => {
       'artifact-clipboard-1',
       '/api/artifacts/artifact-clipboard-1',
       ['artifact-clipboard-1'],
+      null,
+      null,
+      null,
+      ['clipboard-image.png'],
     );
     expect(useChatStore.getState().messages[0]).toEqual(
       expect.objectContaining({
@@ -477,6 +494,10 @@ describe('useChatMessageSender', () => {
       'artifact-clipboard-1',
       '/api/artifacts/artifact-clipboard-1',
       ['artifact-clipboard-1', 'artifact-clipboard-2'],
+      null,
+      null,
+      null,
+      ['clipboard-image-1.png', 'clipboard-image-2.jpg'],
     );
     expect(useChatStore.getState().messages[0]).toEqual(
       expect.objectContaining({
@@ -493,6 +514,56 @@ describe('useChatMessageSender', () => {
             screenshotUrl: '/api/artifacts/artifact-clipboard-2',
           }),
         ],
+      }),
+    );
+  });
+
+  test('reads selected non-image files via read_file and injects hidden attachment context', async () => {
+    (window as any).ipc.invoke = jest.fn().mockImplementation((channel: string, payload: any) => {
+      if (channel === INVOKE_CHANNELS.EXECUTE_TOOL) {
+        expect(payload).toEqual(expect.objectContaining({
+          toolName: 'read_file',
+          args: { file_path: '/tmp/notes.txt' },
+          skipAutoCapture: true,
+        }));
+        return Promise.resolve({
+          success: true,
+          data: {
+            llm_content: 'File path: /tmp/notes.txt\n\nImportant notes',
+          },
+        });
+      }
+      return Promise.resolve({ success: true });
+    });
+
+    const { result } = renderSender({ senderSurface: 'main-window' });
+
+    await sendPayload(result, {
+      text: 'Summarize the attached file',
+      readableFiles: [
+        {
+          filePath: '/tmp/notes.txt',
+          filename: 'notes.txt',
+        },
+      ],
+    });
+
+    expectSingleSendQueryCall(
+      'Summarize the attached file',
+      'conv_msg-1',
+      null,
+      null,
+      null,
+      null,
+      null,
+      '--- Attached File: notes.txt ---\nFile path: /tmp/notes.txt\n\nImportant notes',
+      ['notes.txt'],
+    );
+
+    expect(useChatStore.getState().messages[0]).toEqual(
+      expect.objectContaining({
+        text: 'Summarize the attached file',
+        attachmentFilenames: ['notes.txt'],
       }),
     );
   });

@@ -19,23 +19,50 @@ function normalizeClipboardImages(clipboardImages) {
   return clipboardImages.filter((image) => isClipboardImage(image));
 }
 
-export function buildOutgoingMessage(inputValue, isSending, clipboardImages = []) {
+function isReadableFileAttachment(readableFile) {
+  return Boolean(
+    readableFile
+    && typeof readableFile === 'object'
+    && typeof readableFile.filePath === 'string'
+    && readableFile.filePath.length > 0
+    && typeof readableFile.filename === 'string'
+    && readableFile.filename.length > 0,
+  );
+}
+
+function normalizeReadableFiles(readableFiles) {
+  if (!Array.isArray(readableFiles)) {
+    return [];
+  }
+  return readableFiles.filter((readableFile) => isReadableFileAttachment(readableFile));
+}
+
+export function buildOutgoingMessage(
+  inputValue,
+  isSending,
+  clipboardImages = [],
+  readableFiles = [],
+) {
   if (isSending) {
     return null;
   }
 
   const normalizedText = normalizeMessageForSend(inputValue);
-  if (!normalizedText) {
+  const normalizedClipboardImages = normalizeClipboardImages(clipboardImages);
+  const normalizedReadableFiles = normalizeReadableFiles(readableFiles);
+  const hasAttachments = normalizedClipboardImages.length > 0 || normalizedReadableFiles.length > 0;
+
+  if (!normalizedText && !hasAttachments) {
     return null;
   }
 
-  const normalizedClipboardImages = normalizeClipboardImages(clipboardImages);
-  if (normalizedClipboardImages.length === 0) {
+  if (!hasAttachments) {
     return normalizedText;
   }
 
   return {
-    text: normalizedText,
+    text: normalizedText || 'Please review the attached files.',
     clipboardImages: normalizedClipboardImages,
+    readableFiles: normalizedReadableFiles,
   };
 }

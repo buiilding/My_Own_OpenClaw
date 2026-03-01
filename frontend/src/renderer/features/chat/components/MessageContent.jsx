@@ -185,8 +185,20 @@ ErrorMessage.propTypes = {
 
 function UserMessage({ message }) {
   const screenshotSources = resolveMessageScreenshotSrcList(message);
+  const attachmentFilenames = Array.isArray(message.attachmentFilenames)
+    ? message.attachmentFilenames.filter((filename) => typeof filename === 'string' && filename.length > 0)
+    : [];
   return (
     <div className="user-message-container">
+      {attachmentFilenames.length > 0 ? (
+        <div className="user-file-attachments">
+          {attachmentFilenames.map((filename, index) => (
+            <span className="user-file-attachment-pill" key={`${filename}-${index}`}>
+              {filename}
+            </span>
+          ))}
+        </div>
+      ) : null}
       {screenshotSources.length > 0 && (
         <div className="user-screenshot-gallery">
           {screenshotSources.map((screenshotSrc, index) => (
@@ -209,6 +221,7 @@ function UserMessage({ message }) {
 UserMessage.propTypes = {
   message: PropTypes.shape({
     text: PropTypes.string.isRequired,
+    attachmentFilenames: PropTypes.arrayOf(PropTypes.string),
     screenshot: PropTypes.string,
     screenshotUrl: PropTypes.string,
     screenshotContentType: PropTypes.string,

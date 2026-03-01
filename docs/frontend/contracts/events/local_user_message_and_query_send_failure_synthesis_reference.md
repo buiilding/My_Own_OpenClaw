@@ -40,6 +40,7 @@ Event shape:
   - `text`
   - `screenshot_ref` (nullable)
   - `screenshot_refs` (nullable array; multi-image compatibility path)
+  - `attachment_filenames` (nullable array; filename chips for user-row display)
   - `screenshot_url` (nullable)
   - `timestamp` (ISO)
   - `session_id`

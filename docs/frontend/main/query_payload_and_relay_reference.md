@@ -75,6 +75,7 @@ Main broadcasts synthetic `local-user-message` to renderer via `from-backend` ch
 
 - includes `turn_ref` (query message id)
 - includes screenshot refs/urls when present
+- includes `attachment_filenames` when renderer supplied picker/clipboard attachment names
 - includes session/user/conversation context fields
 - uses `broadcastLocalUserMessage` in `ipc_query_broadcast.cjs` with shape builder from `ipc_query_events.cjs`
 
@@ -87,6 +88,7 @@ Main calls `buildQueryPayloadContent(...)` with:
 - user ID
 - context type (`initial` for first query in connection, `sequential` afterward)
 - retrieval-injection toggle (`memory_retrieval_enabled`, default `true`) sourced from renderer local preference
+- optional hidden `attachment_context` generated from sender-side `read_file` calls for selected non-image files
 - local backend bridge methods (`getSystemState`, `searchMemory`)
 
 Output injected into query payload:
@@ -105,7 +107,8 @@ Output injected into query payload:
 
 1. `<system_context>` XML (initial vs sequential field sets)
 2. optional episodic + semantic memory sections (or `None` placeholders) when retrieval injection is enabled
-3. `<user_query>` XML block
+3. optional `<attached_file_context>` section (hidden non-image file context from renderer-side `read_file`)
+4. `<user_query>` XML block
 
 System-state field policy:
 

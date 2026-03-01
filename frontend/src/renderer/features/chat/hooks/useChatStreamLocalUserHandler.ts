@@ -51,6 +51,9 @@ export function useChatStreamLocalUserHandler({
       sender: 'user',
       sourceEventType: 'local-user-message',
       sourceChannel: 'from-backend',
+      attachmentFilenames: Array.isArray(event.payload?.attachment_filenames)
+        ? event.payload.attachment_filenames
+        : null,
       screenshotRef: firstScreenshotAttachment.screenshotRef,
       screenshotUrl: firstScreenshotAttachment.screenshotUrl,
       screenshots: screenshotAttachments.length > 0

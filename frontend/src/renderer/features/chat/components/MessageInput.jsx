@@ -13,6 +13,7 @@ import { buildOutgoingMessage } from '../utils/messageInput';
 import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
 import VoiceStatus from '../../voice/components/VoiceStatus';
 import { parseClipboardImageItems } from '../utils/clipboardImageUtils';
+import { parseSelectedComposerFiles } from '../utils/fileAttachmentUtils';
 
 function MessageInput({
   onSendMessage,
@@ -23,10 +24,12 @@ function MessageInput({
   focusRequestToken = 0,
 }) {
   const textareaRef = useRef(null);
+  const attachmentInputRef = useRef(null);
   const lastHandledFocusRequestRef = useRef(focusRequestToken);
   const plusMenuRef = useRef(null);
   const [plusMenuOpen, setPlusMenuOpen] = useState(false);
   const [clipboardImages, setClipboardImages] = useState([]);
+  const [selectedReadableFiles, setSelectedReadableFiles] = useState([]);
   const {
     inputValue,
     setInputValue,
@@ -38,12 +41,21 @@ function MessageInput({
   } = useTranscription();
 
   const submitMessageValue = (nextInputValue) => {
-    const outgoingMessage = buildOutgoingMessage(nextInputValue, isSending, clipboardImages);
+    const outgoingMessage = buildOutgoingMessage(
+      nextInputValue,
+      isSending,
+      clipboardImages,
+      selectedReadableFiles,
+    );
     if (outgoingMessage) {
       onSendMessage(outgoingMessage);
       setInputValue('');
       resetTranscription();
       setClipboardImages([]);
+      setSelectedReadableFiles([]);
+      if (attachmentInputRef.current) {
+        attachmentInputRef.current.value = '';
+      }
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
       }
@@ -80,6 +92,29 @@ function MessageInput({
       console.warn('[MessageInput] Failed to parse pasted image:', error);
     }
   }, [handlePaste]);
+
+  const handleAttachmentSelection = useCallback(async (event) => {
+    const fileList = event?.target?.files || [];
+    if (!fileList || fileList.length === 0) {
+      return;
+    }
+
+    try {
+      const parsedAttachments = await parseSelectedComposerFiles(fileList);
+      if (parsedAttachments.imageAttachments.length > 0) {
+        setClipboardImages((previous) => [...previous, ...parsedAttachments.imageAttachments]);
+      }
+      if (parsedAttachments.readableFiles.length > 0) {
+        setSelectedReadableFiles((previous) => [...previous, ...parsedAttachments.readableFiles]);
+      }
+    } catch (error) {
+      console.warn('[MessageInput] Failed to parse selected attachments:', error);
+    } finally {
+      if (event?.target) {
+        event.target.value = '';
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (!textareaRef.current) {
@@ -162,6 +197,27 @@ function MessageInput({
               ))}
             </div>
           ) : null}
+          {selectedReadableFiles.length > 0 ? (
+            <div className="message-file-preview-row">
+              {selectedReadableFiles.map((file, index) => (
+                <div className="message-file-preview-pill" key={file.id || `${file.filename}-${index}`}>
+                  <span className="message-file-preview-name">{file.filename}</span>
+                  <button
+                    type="button"
+                    className="message-file-preview-remove"
+                    aria-label={`Remove attached file ${index + 1}`}
+                    onClick={() => {
+                      setSelectedReadableFiles((previous) => (
+                        previous.filter((entry) => entry.id !== file.id)
+                      ));
+                    }}
+                  >
+                    <X size={13} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : null}
 
           <div className="message-input-top-row">
             <label htmlFor="chat-input" className="visually-hidden">Type your message</label>
@@ -181,6 +237,17 @@ function MessageInput({
             />
           </div>
 
+          <input
+            ref={attachmentInputRef}
+            type="file"
+            multiple
+            data-testid="attachment-input"
+            style={{ display: 'none' }}
+            onChange={(event) => {
+              void handleAttachmentSelection(event);
+            }}
+          />
+
           <div className="message-input-bottom-row">
             <div className="message-input-left-actions">
               <div className="message-action-dropdown" ref={plusMenuRef}>
@@ -198,7 +265,15 @@ function MessageInput({
                 </button>
                 {plusMenuOpen ? (
                   <div className="message-dropdown-menu message-add-photos-under-pill" role="menu">
-                    <button type="button" className="message-dropdown-item" role="menuitem">
+                    <button
+                      type="button"
+                      className="message-dropdown-item"
+                      role="menuitem"
+                      onClick={() => {
+                        setPlusMenuOpen(false);
+                        attachmentInputRef.current?.click();
+                      }}
+                    >
                       <Image size={16} />
                       <span>Add photos & files</span>
                     </button>
@@ -225,7 +300,11 @@ function MessageInput({
                 <button
                   type="submit"
                   className="message-send-btn"
-                  disabled={!inputValue.trim()}
+                  disabled={(
+                    !inputValue.trim()
+                    && clipboardImages.length === 0
+                    && selectedReadableFiles.length === 0
+                  )}
                   aria-label="Send message"
                   data-testid="send-btn"
                 >
