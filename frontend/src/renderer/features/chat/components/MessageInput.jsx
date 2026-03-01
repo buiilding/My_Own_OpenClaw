@@ -243,24 +243,6 @@ function MessageInput({
             </div>
           ) : null}
 
-          <div className="message-input-top-row">
-            <label htmlFor="chat-input" className="visually-hidden">Type your message</label>
-            <textarea
-              ref={textareaRef}
-              id="chat-input"
-              value={inputValue}
-              onChange={handleInputChange}
-              onPaste={handleComposerPaste}
-              onKeyDown={handleKeyDown}
-              placeholder="Ask anything"
-              disabled={isSending}
-              className="message-input"
-              rows={1}
-              style={{ minHeight: '24px', maxHeight: '200px' }}
-              aria-label="Type your message"
-            />
-          </div>
-
           <input
             ref={attachmentInputRef}
             type="file"
@@ -272,7 +254,7 @@ function MessageInput({
             }}
           />
 
-          <div className="message-input-bottom-row">
+          <div className="message-input-row">
             <div className="message-input-left-actions">
               <div className="message-action-dropdown" ref={plusMenuRef}>
                 <button
@@ -305,6 +287,22 @@ function MessageInput({
                 ) : null}
               </div>
             </div>
+
+            <label htmlFor="chat-input" className="visually-hidden">Type your message</label>
+            <textarea
+              ref={textareaRef}
+              id="chat-input"
+              value={inputValue}
+              onChange={handleInputChange}
+              onPaste={handleComposerPaste}
+              onKeyDown={handleKeyDown}
+              placeholder="Ask anything"
+              disabled={isSending}
+              className="message-input"
+              rows={1}
+              style={{ minHeight: '24px', maxHeight: '200px' }}
+              aria-label="Type your message"
+            />
 
             <div className="message-input-right-actions">
               <button type="button" className="message-icon-btn" aria-label="Voice input" data-testid="voice-btn">
