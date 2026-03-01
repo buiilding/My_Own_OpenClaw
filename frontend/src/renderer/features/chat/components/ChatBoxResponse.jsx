@@ -14,6 +14,7 @@ import {
   RESPONSE_OVERLAY_LAYOUT_MODE,
   resolveResponseOverlayLayoutMode,
 } from '../utils/responseOverlayLayoutMode';
+import { RESPONSE_OVERLAY_PHASE } from '../utils/responseOverlayPhaseContract';
 import {
   isAwaitingFirstChunkPhase,
   isOverlayAwaitingReplyPhase,
@@ -69,6 +70,7 @@ function ChatBoxResponse() {
   } = useChatStore(useShallow(selectChatBoxState));
   const [closedResponseId, setClosedResponseId] = useState(null);
   const [awaitingFirstChunk, setAwaitingFirstChunk] = useState(false);
+  const [awaitingAfterCapture, setAwaitingAfterCapture] = useState(false);
   const [overlayPhase, setOverlayPhase] = useState('idle');
   const [hasOverflowAbove, setHasOverflowAbove] = useState(false);
   const [responseHeight, setResponseHeight] = useState(RESPONSE_MIN_HEIGHT);
@@ -140,7 +142,8 @@ function ChatBoxResponse() {
     [thinkingStatus],
   );
   const showAwaitingReply = (
-    (awaitingFirstChunk || isSending || isOverlayAwaitingReplyPhase(overlayPhase)) && !showResponse
+    (awaitingFirstChunk || awaitingAfterCapture || isSending || isOverlayAwaitingReplyPhase(overlayPhase))
+    && !showResponse
   );
   const overlayLayoutMode = useMemo(() => resolveResponseOverlayLayoutMode({
     showResponse,
@@ -238,7 +241,28 @@ function ChatBoxResponse() {
       } else if (shouldOverlayClearAwaitingFirstChunk(phase)) {
         setAwaitingFirstChunk(false);
       }
+      if (
+        phase === RESPONSE_OVERLAY_PHASE.STREAMING
+        || phase === RESPONSE_OVERLAY_PHASE.COMPLETE
+        || phase === RESPONSE_OVERLAY_PHASE.ERROR
+      ) {
+        setAwaitingAfterCapture(false);
+      }
     });
+  }, []);
+
+  useEffect(() => {
+    const handleScreenshotCapture = (event) => {
+      const active = event?.detail?.active === true;
+      if (active) {
+        // Keep awaiting indicator pre-rendered so chat-pill return is stable after capture.
+        setAwaitingAfterCapture(true);
+      }
+    };
+    window.addEventListener('windie:screenshot-capture', handleScreenshotCapture);
+    return () => {
+      window.removeEventListener('windie:screenshot-capture', handleScreenshotCapture);
+    };
   }, []);
 
   useEffect(() => {
@@ -290,6 +314,12 @@ function ChatBoxResponse() {
     }
     setAwaitingFirstChunk(false);
   }, [awaitingFirstChunk, firstTextOrError]);
+
+  useEffect(() => {
+    if (showResponse && awaitingAfterCapture) {
+      setAwaitingAfterCapture(false);
+    }
+  }, [showResponse, awaitingAfterCapture]);
 
   const syncScrollState = useCallback(() => {
     const responseEl = responsePillRef.current;
