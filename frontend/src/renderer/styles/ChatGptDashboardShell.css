@@ -9,9 +9,13 @@ body.cg-scroll-locked,
   --cg-sidebar-motion-duration: 260ms;
   --cg-sidebar-motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
   display: flex;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
   overflow: hidden;
+  overscroll-behavior: none;
   background: var(--ui-shell-bg);
   color: var(--ui-text-primary);
   transform: translateZ(0);
@@ -609,6 +613,7 @@ body.cg-scroll-locked,
   flex: 1;
   min-width: 0;
   min-height: 0;
+  overflow: hidden;
   background: var(--ui-shell-bg);
   transform: translateX(0);
   transition: transform var(--cg-sidebar-motion-duration) var(--cg-sidebar-motion-ease);
@@ -798,12 +803,16 @@ body.cg-scroll-locked,
   align-items: center;
   justify-content: center;
   padding: 20px;
+  overflow: hidden;
+  overscroll-behavior: contain;
   animation: cg-modal-overlay-enter 240ms ease forwards;
 }
 
 .cg-modal {
   width: min(1024px, calc(100vw - 40px));
   height: min(80vh, calc(100vh - 40px));
+  max-width: 100%;
+  max-height: 100%;
   border-radius: 16px;
   background: var(--ui-panel-bg);
   border: 1px solid var(--ui-border-soft);
@@ -824,13 +833,19 @@ body.cg-scroll-locked,
 
 .cg-modal-body {
   flex: 1;
+  min-width: 0;
   min-height: 0;
-  overflow: auto;
+  overflow: hidden;
 }
 
 .cg-panel-wrapper {
+  width: 100%;
   height: 100%;
+  min-width: 0;
   min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .cg-panel-wrapper .settings-panel {
