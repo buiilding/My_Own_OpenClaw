@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { ChevronDown, Volume2, Workflow } from 'lucide-react';
+import { Brain, ChevronDown, Volume2, Workflow } from 'lucide-react';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import { useChatStore } from '../stores/chatStore';
@@ -43,6 +43,32 @@ function waitForNextPaint() {
 }
 
 function ChatInterface({ focusComposerToken = 0 }) {
+  const formatProviderLabel = useCallback((providerValue) => {
+    const provider = String(providerValue || '').trim();
+    if (!provider) {
+      return provider;
+    }
+    const lowerProvider = provider.toLowerCase();
+    if (lowerProvider === 'openai') {
+      return 'OpenAI';
+    }
+    if (lowerProvider === 'openrouter') {
+      return 'OpenRouter';
+    }
+    return provider
+      .split('-')
+      .filter(Boolean)
+      .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+      .join('-');
+  }, []);
+
+  const renderModelLabel = useCallback((label, supportsThinking) => (
+    <span className="chat-model-label">
+      <span>{label}</span>
+      {supportsThinking ? <Brain size={13} strokeWidth={2} aria-hidden="true" /> : null}
+    </span>
+  ), []);
+
   const { messages, isSending, thinkingStatus, thinkingSourceEventType, streamPhase } = useChatStore(
     useShallow(selectChatInterfaceState),
   );
@@ -165,11 +191,10 @@ function ChatInterface({ focusComposerToken = 0 }) {
 
     return options;
   }, [availableModelPool, configuredProvider]);
-  const providerLabel = configuredProvider || providerOptions[0] || 'No providers available';
+  const providerLabel = formatProviderLabel(configuredProvider || providerOptions[0] || 'No providers available');
   const selectedModelOption = modelOptions.find((option) => option.id === configuredModelId)
     || modelOptions[0];
   const modelLabelBase = selectedModelOption?.label || configuredModelId || 'No models available';
-  const modelLabel = selectedModelOption?.supportsThinking ? `${modelLabelBase} 🧠` : modelLabelBase;
   const devUiEnabled = isDevUiEnabled();
   const [providerMenuOpen, setProviderMenuOpen] = useState(false);
   const [modelMenuOpen, setModelMenuOpen] = useState(false);
@@ -378,7 +403,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
                           handleProviderSelect(provider);
                         }}
                       >
-                        <span>{provider}</span>
+                        <span>{formatProviderLabel(provider)}</span>
                       </button>
                     ))
                   ) : (
@@ -400,7 +425,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
                   setProviderMenuOpen(false);
                 }}
               >
-                <span>{modelLabel}</span>
+                {renderModelLabel(modelLabelBase, selectedModelOption?.supportsThinking)}
                 <ChevronDown size={14} />
               </button>
               {modelMenuOpen ? (
@@ -416,7 +441,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
                           handleModelSelect(option);
                         }}
                       >
-                        <span>{option.supportsThinking ? `${option.label || option.id} 🧠` : (option.label || option.id)}</span>
+                        {renderModelLabel(option.label || option.id, option.supportsThinking)}
                       </button>
                     ))
                   ) : (

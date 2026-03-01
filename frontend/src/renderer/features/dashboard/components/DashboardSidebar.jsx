@@ -228,11 +228,7 @@ function DashboardSidebar({
             <div className="cg-sidebar-divider" />
             <div className="cg-sidebar-section-label">Your chats</div>
             <div className="cg-chat-list-scroll">
-              {isLoadingRecentConversations ? (
-                <div className="cg-chat-list-state">Loading chats...</div>
-              ) : recentConversationsError ? (
-                <div className="cg-chat-list-state">Unable to load chats.</div>
-              ) : hasRecentConversations ? (
+              {hasRecentConversations ? (
                 <>
                   {pinnedConversations.length > 0 ? (
                     <div className="cg-chat-list-subheader">Pinned</div>
@@ -243,6 +239,10 @@ function DashboardSidebar({
                   ) : null}
                   {unpinnedConversations.map((conversation) => renderConversationRow(conversation))}
                 </>
+              ) : isLoadingRecentConversations ? (
+                <div className="cg-chat-list-state">Loading chats...</div>
+              ) : recentConversationsError ? (
+                <div className="cg-chat-list-state">Unable to load chats.</div>
               ) : (
                 <div className="cg-chat-list-state">No chats yet.</div>
               )}
