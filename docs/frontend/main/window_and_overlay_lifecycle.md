@@ -179,6 +179,7 @@ Main bridge fanout channel (`ipc.cjs`):
 - uses fixed overlay dimensions (no renderer-driven live resize IPC)
 - keeps preview lane always mounted and toggles animated visibility on image attach/remove
 - uses deterministic class-based layout states: compact default pill (`64px` shell / `56px` pill) and fixed expanded `with-preview` pill while image attachments exist
+- reports chat visual anchor height (`64` compact / `116` with-preview) via IPC so response/context overlays re-anchor upward when preview mode is active
 - keeps overlay interactive by default; click-through is toggled only during explicit interactive computer-use tool execution surface prep
 - listens for `chatbox-focus` to force input focus
 - sends `MOVE_CHATBOX_TO` while dragging

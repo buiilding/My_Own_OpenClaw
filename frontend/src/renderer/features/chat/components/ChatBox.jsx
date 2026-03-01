@@ -32,6 +32,9 @@ import {
 } from './ChatBoxIcons';
 import ChatBoxImagePreviewRow from './ChatBoxImagePreviewRow';
 
+const CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT = 64;
+const CHATBOX_VISUAL_ANCHOR_HEIGHT_WITH_PREVIEW = 116;
+
 function isDragBlockedTarget(target) {
   if (!(target instanceof Element)) {
     return false;
@@ -363,6 +366,25 @@ function ChatBox() {
   }, [stopOnlyModeActive]);
   const isLoopActive = isLoopPhaseActive;
   const hasImagePreview = clipboardImages.length > 0;
+
+  useEffect(() => {
+    const nextAnchorHeight = hasImagePreview
+      ? CHATBOX_VISUAL_ANCHOR_HEIGHT_WITH_PREVIEW
+      : CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT;
+    IpcBridge.invoke(INVOKE_CHANNELS.SET_CHATBOX_VISUAL_ANCHOR_HEIGHT, {
+      height: nextAnchorHeight,
+    }).catch((error) => {
+      console.warn('[ChatBox] Failed to sync visual anchor height:', error);
+    });
+  }, [hasImagePreview]);
+
+  useEffect(() => {
+    return () => {
+      IpcBridge.invoke(INVOKE_CHANNELS.SET_CHATBOX_VISUAL_ANCHOR_HEIGHT, {
+        height: CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT,
+      }).catch(() => {});
+    };
+  }, []);
 
   return (
     <div

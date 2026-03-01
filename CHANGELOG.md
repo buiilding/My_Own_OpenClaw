@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-overlay-preview-anchor): add chatbox visual-anchor IPC updates (`64` compact / `116` with-preview) so main-process response/context overlays re-anchor when the chat pill enters preview mode, keeping response overlay above expanded preview height; add overlay IPC + helper runtime and chatbox regression coverage.
 - fix(frontend-response-overlay-step-heights): replace live response-overlay auto-resize with deterministic 5-step height snapping (`92`, `164`, `236`, `324`, `460`) based on content-fit checks, remove renderer `ResizeObserver`-driven continuous resizing for response shells, and add `ChatBoxResponse.state` regression coverage for fixed-step transitions.
 - fix(frontend-dashboard-scroll-overflow): remove dashboard shell `100vw/100vh` viewport traps, harden modal/panel overflow containment, and scope scroll/overscroll to inner memory/models/settings panes so dashboard scrolling no longer leaks page-level overflow.
 - feat(frontend-composer-file-picker-read-file-injection): wire dashboard composer `Add photos & files` to native file picker, keep image previews in composer and user rows, execute sidecar `read_file` for selected non-image files at send-time, inject successful `read_file` output into hidden query `attachment_context` (not shown in chat UI), and propagate filename chips through optimistic + local-user-message paths.

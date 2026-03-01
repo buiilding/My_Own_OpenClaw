@@ -108,4 +108,40 @@ describe('overlay_window_helpers_runtime', () => {
       }),
     );
   });
+
+  test('uses dynamic chat visual anchor height getter when provided', () => {
+    const chatWindow = {
+      isDestroyed: jest.fn(() => false),
+      getBounds: jest.fn(() => ({ x: 220, y: 700, width: 520, height: 116 })),
+    };
+    const getOverlayResponseWindowBounds = jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 }));
+    const getChatVisualAnchorHeight = jest.fn(() => 116);
+
+    const runtime = createOverlayWindowHelpersRuntime({
+      screen: {},
+      getChatWindow: () => chatWindow,
+      getOverlayChatWindowBounds: jest.fn(),
+      getOverlayResponseWindowBounds,
+      getOverlayContextLabelWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
+      contextLabelWidth: 280,
+      contextLabelHeight: 26,
+      contextLabelOffsetX: 14,
+      contextLabelGapAboveChatbox: -6,
+      chatVisualAnchorHeight: 64,
+      getChatVisualAnchorHeight,
+    });
+
+    runtime.getResponseWindowBounds(380, 140);
+
+    expect(getChatVisualAnchorHeight).toHaveBeenCalled();
+    expect(getOverlayResponseWindowBounds).toHaveBeenCalledWith(
+      expect.objectContaining({
+        chatBounds: expect.objectContaining({
+          x: 220,
+          y: 700,
+          height: 116,
+        }),
+      }),
+    );
+  });
 });

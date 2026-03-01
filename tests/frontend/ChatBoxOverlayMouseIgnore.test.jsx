@@ -60,6 +60,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
   INVOKE_CHANNELS: {
     SET_OVERLAY_IGNORE_MOUSE: 'set-overlay-ignore-mouse',
+    SET_CHATBOX_VISUAL_ANCHOR_HEIGHT: 'set-chatbox-visual-anchor-height',
     SHOW_MAIN_WINDOW: 'show-main-window',
   },
   ON_CHANNELS: {
@@ -156,6 +157,9 @@ describe('ChatBox overlay mouse ignore', () => {
       ([channel, payload]) => channel === 'set-overlay-ignore-mouse' && payload?.ignore === false,
     );
     expect(sawInteractive).toBe(true);
+    expect(mockInvoke.mock.calls.some(
+      ([channel, payload]) => channel === 'set-chatbox-visual-anchor-height' && payload?.height === 64,
+    )).toBe(true);
     expect(mockInvoke.mock.calls.some(([channel]) => channel === 'set-chatbox-size')).toBe(false);
   });
 
@@ -186,6 +190,9 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(shellWrap?.classList.contains('with-preview')).toBe(true);
     expect(pill?.classList.contains('with-preview')).toBe(true);
     expect(previewRow.classList.contains('has-items')).toBe(true);
+    expect(mockInvoke.mock.calls.some(
+      ([channel, payload]) => channel === 'set-chatbox-visual-anchor-height' && payload?.height === 116,
+    )).toBe(true);
     expect(mockInvoke.mock.calls.some(([channel]) => channel === 'set-chatbox-size')).toBe(false);
 
     await act(async () => {
@@ -195,6 +202,9 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(shellWrap?.classList.contains('with-preview')).toBe(false);
     expect(pill?.classList.contains('with-preview')).toBe(false);
     expect(previewRow.classList.contains('has-items')).toBe(false);
+    expect(mockInvoke.mock.calls.some(
+      ([channel, payload]) => channel === 'set-chatbox-visual-anchor-height' && payload?.height === 64,
+    )).toBe(true);
     expect(mockInvoke.mock.calls.some(([channel]) => channel === 'set-chatbox-size')).toBe(false);
   });
 
