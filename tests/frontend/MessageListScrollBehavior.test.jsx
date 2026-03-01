@@ -26,12 +26,19 @@ function applyScrollMetrics(element, { scrollHeight, clientHeight, scrollTop }) 
 
 describe('MessageList auto-scroll behavior', () => {
   const scrollIntoView = jest.fn();
+  const scrollTo = jest.fn();
 
   beforeEach(() => {
     scrollIntoView.mockReset();
+    scrollTo.mockReset();
     Object.defineProperty(window.HTMLElement.prototype, 'scrollIntoView', {
       configurable: true,
       value: scrollIntoView,
+      writable: true,
+    });
+    Object.defineProperty(window.HTMLElement.prototype, 'scrollTo', {
+      configurable: true,
+      value: scrollTo,
       writable: true,
     });
   });
@@ -120,7 +127,8 @@ describe('MessageList auto-scroll behavior', () => {
     });
     fireEvent.scroll(list);
 
-    const callsBeforeSwitch = scrollIntoView.mock.calls.length;
+    const scrollIntoViewCallsBeforeSwitch = scrollIntoView.mock.calls.length;
+    const scrollToCallsBeforeSwitch = scrollTo.mock.calls.length;
     rerender(
       <MessageList
         conversationRef="conv-2"
@@ -131,8 +139,10 @@ describe('MessageList auto-scroll behavior', () => {
       />,
     );
 
-    const callsAfterSwitch = scrollIntoView.mock.calls.slice(callsBeforeSwitch);
-    expect(callsAfterSwitch.length).toBeGreaterThan(0);
-    expect(callsAfterSwitch.every(([options]) => options?.behavior === 'auto')).toBe(true);
+    const scrollToCallsAfterSwitch = scrollTo.mock.calls.slice(scrollToCallsBeforeSwitch);
+    expect(scrollToCallsAfterSwitch.length).toBeGreaterThan(0);
+    expect(scrollToCallsAfterSwitch.every(([options]) => options?.behavior === 'auto')).toBe(true);
+    expect(scrollToCallsAfterSwitch.some(([options]) => options?.top === 728)).toBe(true);
+    expect(scrollIntoView).toHaveBeenCalledTimes(scrollIntoViewCallsBeforeSwitch);
   });
 });

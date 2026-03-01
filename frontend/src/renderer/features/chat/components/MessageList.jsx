@@ -15,6 +15,7 @@ import MessageSourceBadge from './MessageSourceBadge';
 import { buildMessageClassName } from '../utils/messageListClasses';
 
 const MESSAGE_LIST_BOTTOM_STICK_THRESHOLD_PX = 24;
+const CONVERSATION_SWITCH_BOTTOM_OFFSET_PX = 72;
 
 function isNearBottom(element) {
   if (!element) {
@@ -30,6 +31,22 @@ function isNearBottom(element) {
   }
 
   return distanceFromBottom <= MESSAGE_LIST_BOTTOM_STICK_THRESHOLD_PX;
+}
+
+function scrollToConversationSwitchTarget(element, behavior = 'auto') {
+  if (!element) {
+    return;
+  }
+  const scrollHeight = Number(element.scrollHeight) || 0;
+  const clientHeight = Number(element.clientHeight) || 0;
+  const maxScrollTop = Math.max(0, scrollHeight - clientHeight);
+  const targetTop = Math.max(0, maxScrollTop - CONVERSATION_SWITCH_BOTTOM_OFFSET_PX);
+
+  if (typeof element.scrollTo === 'function') {
+    element.scrollTo({ top: targetTop, behavior });
+    return;
+  }
+  element.scrollTop = targetTop;
 }
 
 const messageShapePropType = PropTypes.shape({
@@ -199,6 +216,7 @@ function MessageList({
   const messagesEndRef = useRef(null);
   const shouldAutoScrollRef = useRef(true);
   const forceInstantAutoScrollRef = useRef(false);
+  const skipNextMessagesAutoScrollRef = useRef(false);
 
   const handleStartUserEdit = useCallback((messageId, messageText) => {
     setEditingUserMessageId(messageId);
@@ -313,11 +331,12 @@ function MessageList({
     if (conversationRef === undefined) {
       return;
     }
-    // Conversation switches should always land at the latest message.
+    // Conversation switches should land near latest message without animation.
     shouldAutoScrollRef.current = true;
+    skipNextMessagesAutoScrollRef.current = true;
     forceInstantAutoScrollRef.current = true;
-    scrollToBottom('auto');
-  }, [conversationRef, scrollToBottom]);
+    scrollToConversationSwitchTarget(messageListRef.current, 'auto');
+  }, [conversationRef]);
 
   const handleMessageListScroll = useCallback(() => {
     shouldAutoScrollRef.current = isNearBottom(messageListRef.current);
@@ -325,6 +344,11 @@ function MessageList({
 
   useEffect(() => {
     if (!shouldAutoScrollRef.current) {
+      return;
+    }
+    if (skipNextMessagesAutoScrollRef.current) {
+      skipNextMessagesAutoScrollRef.current = false;
+      forceInstantAutoScrollRef.current = false;
       return;
     }
     const behavior = forceInstantAutoScrollRef.current ? 'auto' : 'smooth';

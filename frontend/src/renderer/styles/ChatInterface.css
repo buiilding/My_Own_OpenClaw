@@ -1041,7 +1041,7 @@
   width: 100%;
   max-width: var(--chat-thread-max-width);
   margin: 0 auto;
-  padding: 8px var(--chat-thread-inline-padding) 24px;
+  padding: 8px var(--chat-thread-inline-padding) 16px;
   box-sizing: border-box;
 }
 
@@ -1551,7 +1551,7 @@
   }
 
   .message-input-container {
-    padding-bottom: 16px;
+    padding-bottom: 12px;
   }
 
   .message-input-centered {

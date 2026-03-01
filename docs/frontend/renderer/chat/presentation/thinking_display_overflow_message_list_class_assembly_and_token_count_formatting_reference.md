@@ -44,7 +44,7 @@ Overflow behavior:
 - keeps terminal end-anchor node as the final child
 - auto-scrolls on `[messages]` updates only while user remains near bottom (`24px` threshold)
 - preserves manual scroll position after user scrolls away from bottom (assistant/tool/live updates do not force snap-to-bottom)
-- on active conversation switch, resets auto-scroll stickiness and snaps to bottom immediately (no smooth animation) so history selection opens at the latest message
+- on active conversation switch, resets auto-scroll stickiness and jumps instantly to a near-bottom anchor (`72px` above absolute bottom, no smooth animation) so history selection opens at the latest context without fully pinning the last pixel
 
 Guarantee:
 
@@ -87,7 +87,7 @@ Important:
 - `MessageListScrollBehavior.test.jsx`:
   - confirms no forced auto-scroll after user scrolls up
   - confirms near-bottom streaming updates still auto-scroll
-  - confirms conversation selection changes force snap-to-bottom even after manual scroll-up in previous thread
+  - confirms conversation selection changes force an instant near-bottom jump (`top = maxScrollTop - 72`) even after manual scroll-up in previous thread
 - `MessageListClasses.test.js`:
   - verifies class assembly for sender/type/screenshot/streaming state
 - `ChatStore.test.ts`:
