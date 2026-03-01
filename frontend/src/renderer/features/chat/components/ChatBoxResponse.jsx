@@ -30,7 +30,6 @@ const RESPONSE_FIXED_HEIGHTS = [92, 164, 236, 324, 460];
 const RESPONSE_MIN_HEIGHT = RESPONSE_FIXED_HEIGHTS[0];
 const RESPONSE_CHROME_HEIGHT = 28;
 const RESPONSE_BOTTOM_STICK_THRESHOLD = 20;
-const THINKING_BOTTOM_STICK_THRESHOLD = 12;
 const TYPING_FRAME_HEIGHT = 24;
 
 function resolveSteppedResponseHeight(measuredHeight) {
@@ -67,20 +66,16 @@ function ChatBoxResponse() {
     messages,
     isSending,
     thinkingStatus,
-    thinkingSourceEventType,
   } = useChatStore(useShallow(selectChatBoxState));
   const [closedResponseId, setClosedResponseId] = useState(null);
   const [awaitingFirstChunk, setAwaitingFirstChunk] = useState(false);
   const [overlayPhase, setOverlayPhase] = useState('idle');
   const [hasOverflowAbove, setHasOverflowAbove] = useState(false);
-  const [hasThinkingOverflowAbove, setHasThinkingOverflowAbove] = useState(false);
   const [responseHeight, setResponseHeight] = useState(RESPONSE_MIN_HEIGHT);
   const shellRef = useRef(null);
   const responsePillRef = useRef(null);
   const responseBodyRef = useRef(null);
-  const thinkingTextRef = useRef(null);
   const shouldStickToBottomRef = useRef(true);
-  const shouldStickThinkingToBottomRef = useRef(true);
   const lastUserMessageIdRef = useRef(null);
   const lastFrameRef = useRef({
     width: 0,
@@ -144,20 +139,13 @@ function ChatBoxResponse() {
     () => (typeof thinkingStatus === 'string' ? thinkingStatus.trim() : ''),
     [thinkingStatus],
   );
-  const showCompactionStatus = Boolean(
-    !showResponse
-      && thinkingText
-      && thinkingSourceEventType === 'context-compaction-started',
-  );
   const showAwaitingReply = (
-    ((awaitingFirstChunk || isSending || isOverlayAwaitingReplyPhase(overlayPhase)) && !showResponse)
-    || showCompactionStatus
+    (awaitingFirstChunk || isSending || isOverlayAwaitingReplyPhase(overlayPhase)) && !showResponse
   );
   const overlayLayoutMode = useMemo(() => resolveResponseOverlayLayoutMode({
     showResponse,
     showAwaitingReply,
-    thinkingText,
-  }), [showAwaitingReply, showResponse, thinkingText]);
+  }), [showAwaitingReply, showResponse]);
   const isVisible = overlayLayoutMode !== RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN;
   const sourceTagForResponse = useMemo(() => {
     if (!isDevUiEnabled() || !activeResponse) {
@@ -171,13 +159,6 @@ function ChatBoxResponse() {
       : 'unknown';
     return resolveSourceTag(sourceEventType, sourceChannel);
   }, [activeResponse]);
-  const sourceTagForThinking = useMemo(() => {
-    if (!isDevUiEnabled() || !thinkingText) {
-      return null;
-    }
-    return resolveSourceTag(thinkingSourceEventType || 'llm-thought', 'from-backend');
-  }, [thinkingSourceEventType, thinkingText]);
-
   const reportOverlaySize = useCallback(async ({
     visible,
     layoutMode = RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
@@ -301,8 +282,6 @@ function ChatBoxResponse() {
     setClosedResponseId(null);
     shouldStickToBottomRef.current = true;
     setHasOverflowAbove(false);
-    shouldStickThinkingToBottomRef.current = true;
-    setHasThinkingOverflowAbove(false);
   }, [lastUserMessageId]);
 
   useEffect(() => {
@@ -328,23 +307,6 @@ function ChatBoxResponse() {
   const handleResponseScroll = useCallback(() => {
     syncScrollState();
   }, [syncScrollState]);
-
-  const syncThinkingScrollState = useCallback(() => {
-    const thinkingEl = thinkingTextRef.current;
-    if (!thinkingEl) {
-      setHasThinkingOverflowAbove(false);
-      shouldStickThinkingToBottomRef.current = true;
-      return;
-    }
-
-    setHasThinkingOverflowAbove(thinkingEl.scrollTop > 2);
-    const distanceFromBottom = thinkingEl.scrollHeight - thinkingEl.clientHeight - thinkingEl.scrollTop;
-    shouldStickThinkingToBottomRef.current = distanceFromBottom <= THINKING_BOTTOM_STICK_THRESHOLD;
-  }, []);
-
-  const handleThinkingScroll = useCallback(() => {
-    syncThinkingScrollState();
-  }, [syncThinkingScrollState]);
 
   useEffect(() => {
     if (!showResponse) {
@@ -395,24 +357,6 @@ function ChatBoxResponse() {
     }
     syncScrollState();
   }, [showResponse, activeResponse?.id, activeResponse?.text, responseHeight, syncScrollState]);
-
-  useEffect(() => {
-    if (!showAwaitingReply || !thinkingText) {
-      setHasThinkingOverflowAbove(false);
-      shouldStickThinkingToBottomRef.current = true;
-      return;
-    }
-
-    const thinkingEl = thinkingTextRef.current;
-    if (!thinkingEl) {
-      return;
-    }
-
-    if (shouldStickThinkingToBottomRef.current) {
-      thinkingEl.scrollTop = thinkingEl.scrollHeight;
-    }
-    syncThinkingScrollState();
-  }, [showAwaitingReply, thinkingText, syncThinkingScrollState]);
 
   useEffect(() => {
     let cancelled = false;
@@ -486,7 +430,7 @@ function ChatBoxResponse() {
   }
 
   return (
-    <div className={`chatbox-shell-wrap${showResponse ? ' has-response-pill' : ''}`}>
+    <div className={`chatbox-shell-wrap chatbox-response-shell-wrap${showResponse ? ' has-response-pill' : ''}`}>
       <div className="chatbox-shell" ref={shellRef}>
         {showResponse ? (
           <div
@@ -516,30 +460,13 @@ function ChatBoxResponse() {
         ) : null}
 
         {showAwaitingReply ? (
-          <>
-            {thinkingText ? (
-              <div
-                className={`chatbox-thinking-stream${hasThinkingOverflowAbove ? ' has-overflow-above' : ''}`}
-                ref={thinkingTextRef}
-                onScroll={handleThinkingScroll}
-                role="status"
-                aria-live="polite"
-                aria-label="Assistant reasoning stream"
-              >
-                {sourceTagForThinking ? (
-                  <div className="chatbox-source-badge" title={`source_event=${thinkingSourceEventType || 'llm-thought'}`}>
-                    {sourceTagForThinking}
-                  </div>
-                ) : null}
-                <pre className="chatbox-thinking-stream-text">{thinkingText}</pre>
-              </div>
-            ) : null}
+          <div className="chatbox-awaiting-shell" data-thinking={thinkingText ? '1' : '0'}>
             <div className="chatbox-typing-indicator" aria-label="Assistant is awaiting reply">
               <span />
               <span />
               <span />
             </div>
-          </>
+          </div>
         ) : null}
       </div>
     </div>

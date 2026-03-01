@@ -1,3 +1,13 @@
+.chatbox-response-shell-wrap {
+  animation: none;
+}
+
+.chatbox-awaiting-shell {
+  display: flex;
+  align-items: flex-end;
+  min-height: 24px;
+}
+
 .chatbox-thinking-stream {
   align-self: stretch;
   max-height: 132px;

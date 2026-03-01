@@ -9,7 +9,6 @@ describe('responseOverlayLayoutMode', () => {
     expect(resolveResponseOverlayLayoutMode({
       showResponse: true,
       showAwaitingReply: true,
-      thinkingText: 'thinking',
     })).toBe(RESPONSE_OVERLAY_LAYOUT_MODE.RESPONSE);
   });
 
@@ -17,23 +16,13 @@ describe('responseOverlayLayoutMode', () => {
     expect(resolveResponseOverlayLayoutMode({
       showResponse: false,
       showAwaitingReply: false,
-      thinkingText: '',
     })).toBe(RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN);
   });
 
-  test('resolves awaiting-thinking mode when awaiting with non-empty thinking text', () => {
+  test('resolves awaiting-typing mode when awaiting', () => {
     expect(resolveResponseOverlayLayoutMode({
       showResponse: false,
       showAwaitingReply: true,
-      thinkingText: 'step 1',
-    })).toBe(RESPONSE_OVERLAY_LAYOUT_MODE.AWAITING_THINKING);
-  });
-
-  test('resolves awaiting-typing mode when awaiting without thinking text', () => {
-    expect(resolveResponseOverlayLayoutMode({
-      showResponse: false,
-      showAwaitingReply: true,
-      thinkingText: '   ',
     })).toBe(RESPONSE_OVERLAY_LAYOUT_MODE.AWAITING_TYPING);
   });
 
@@ -41,6 +30,5 @@ describe('responseOverlayLayoutMode', () => {
     expect(isCompactHoverLayoutMode(RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN)).toBe(false);
     expect(isCompactHoverLayoutMode(RESPONSE_OVERLAY_LAYOUT_MODE.RESPONSE)).toBe(false);
     expect(isCompactHoverLayoutMode(RESPONSE_OVERLAY_LAYOUT_MODE.AWAITING_TYPING)).toBe(true);
-    expect(isCompactHoverLayoutMode(RESPONSE_OVERLAY_LAYOUT_MODE.AWAITING_THINKING)).toBe(true);
   });
 });

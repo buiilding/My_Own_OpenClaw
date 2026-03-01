@@ -28,6 +28,7 @@ export type ToolSurfacePreparation = {
 export type CaptureVisibilityPreparation = {
   prepared: boolean;
   captureId: string;
+  restoreChatPillAfterCapture?: boolean;
 };
 
 export const DEFAULT_TOOL_FOCUS_PREPARE_WAIT_MS = 180;

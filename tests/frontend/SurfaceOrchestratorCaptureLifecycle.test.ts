@@ -3,7 +3,9 @@ import {
   __resetSurfaceOrchestratorStateForTests,
   prepareExternalFocusForCapture,
   prepareScreenshotCaptureVisibility,
+  prepareToolExecutionSurface,
   restoreScreenshotCaptureVisibility,
+  restoreToolExecutionSurface,
 } from '../../frontend/src/renderer/infrastructure/services/SurfaceOrchestrator';
 
 describe('surfaceOrchestrator capture lifecycle', () => {
@@ -32,6 +34,35 @@ describe('surfaceOrchestrator capture lifecycle', () => {
 
     await restoreScreenshotCaptureVisibility(second);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
+      [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
+      [INVOKE_CHANNELS.HIDE_CHATBOX],
+      [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
+    ]);
+  });
+
+  test('skips capture-level chat-pill restore when nested inside screenshot surface token', async () => {
+    (IpcBridge.invoke as jest.Mock).mockImplementation(async (channel: string) => {
+      if (channel === INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY) {
+        return { success: true, data: { visible: true } };
+      }
+      return { success: true };
+    });
+
+    const toolPreparation = await prepareToolExecutionSurface('screenshot');
+    const capturePreparation = await prepareScreenshotCaptureVisibility({ captureId: 'capture-nested' });
+
+    expect(capturePreparation.restoreChatPillAfterCapture).toBe(false);
+
+    await restoreScreenshotCaptureVisibility(capturePreparation);
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
+      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
+      [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
+      [INVOKE_CHANNELS.HIDE_CHATBOX],
+    ]);
+
+    await restoreToolExecutionSurface(toolPreparation);
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
+      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
       [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
       [INVOKE_CHANNELS.HIDE_CHATBOX],
       [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],

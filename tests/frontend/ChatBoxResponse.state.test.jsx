@@ -283,7 +283,7 @@ describe('ChatBoxResponse state behavior', () => {
     });
   });
 
-  test('renders thinking text as transparent stream while awaiting reply', async () => {
+  test('keeps awaiting indicator stable while thinking text exists', async () => {
     setChatState([
       { id: 'user-1', text: 'think', sender: 'user' },
     ]);
@@ -294,13 +294,12 @@ describe('ChatBoxResponse state behavior', () => {
     render(<ChatBoxResponse />);
 
     await waitFor(() => {
-      expect(screen.getByLabelText('Assistant reasoning stream')).toBeInTheDocument();
+      expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
     });
-    expect(screen.getByText(/step 1/)).toBeInTheDocument();
-    expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Assistant reasoning stream')).not.toBeInTheDocument();
   });
 
-  test('shows compaction status stream even when overlay phase is idle', async () => {
+  test('does not show reasoning stream when compaction status arrives without awaiting phase', async () => {
     setChatState([]);
     useChatStore.setState({
       thinkingStatus: 'Compacting conversation history...',
@@ -310,10 +309,9 @@ describe('ChatBoxResponse state behavior', () => {
     render(<ChatBoxResponse />);
 
     await waitFor(() => {
-      expect(screen.getByLabelText('Assistant reasoning stream')).toBeInTheDocument();
+      expect(screen.queryByLabelText('Assistant reasoning stream')).not.toBeInTheDocument();
     });
-    expect(screen.getByText('Compacting conversation history...')).toBeInTheDocument();
-    expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
   });
 
   test('re-reports compact overlay size after visibility hide/show cycle', async () => {

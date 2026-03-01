@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-minimal-chat-pill-loop): refactor minimal response overlay state handling to keep awaiting typing indicator stable and pre-rendered across screenshot/tool loops, remove animated awaiting<->response transitions, and prevent nested screenshot capture from double-restoring the chat pill (eliminates Linux double-flicker on reappear).
 - fix(backend-gemini-default-reasoning): remove Gemini provider request override that forced `reasoning_effort="low"` so Gemini requests use provider defaults.
 - test(backend-gemini-default-reasoning): add regression coverage asserting Gemini request params do not inject `reasoning_effort` implicitly.
 - docs(planning-screenshot-normalization): add future plan for dual screenshot pipelines (normalized LLM input + full-resolution grounding/OCR) and register it in planning hub.

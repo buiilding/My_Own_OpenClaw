@@ -8,6 +8,7 @@ import {
   restoreChatPillInactive,
 } from './chatPillVisibility';
 import {
+  hasActiveSurfaceTokens,
   decrementActiveScreenshotCaptureCount,
   getActiveScreenshotCaptureCount,
   incrementActiveScreenshotCaptureCount,
@@ -41,6 +42,7 @@ export async function prepareScreenshotCaptureVisibility(
   );
   const source = context.source;
   const captureId = context.correlationId;
+  const shouldRestoreChatPillAfterCapture = !hasActiveSurfaceTokens();
 
   const activeCaptureCount = incrementActiveScreenshotCaptureCount();
   if (activeCaptureCount > 1) {
@@ -52,10 +54,29 @@ export async function prepareScreenshotCaptureVisibility(
       phaseAfter: SURFACE_PHASE.CAPTURE_READY,
       reason: SURFACE_REASON_CAPTURE_OVERLAP_REUSE,
     });
-    return { prepared: true, captureId };
+    return {
+      prepared: true,
+      captureId,
+      restoreChatPillAfterCapture: shouldRestoreChatPillAfterCapture,
+    };
   }
 
   try {
+    if (!shouldRestoreChatPillAfterCapture) {
+      logSurfaceTransition({
+        source,
+        correlationId: captureId,
+        mode: 'screenshot',
+        phaseBefore: SURFACE_PHASE.IDLE,
+        phaseAfter: SURFACE_PHASE.CAPTURE_READY,
+      });
+      return {
+        prepared: true,
+        captureId,
+        restoreChatPillAfterCapture: false,
+      };
+    }
+
     logSurfaceTransition({
       source,
       correlationId: captureId,
@@ -72,7 +93,11 @@ export async function prepareScreenshotCaptureVisibility(
       phaseBefore: SURFACE_PHASE.PREPARING_CAPTURE_VISIBILITY,
       phaseAfter: SURFACE_PHASE.CAPTURE_READY,
     });
-    return { prepared: true, captureId };
+    return {
+      prepared: true,
+      captureId,
+      restoreChatPillAfterCapture: true,
+    };
   } catch (error) {
     decrementActiveScreenshotCaptureCount();
     console.warn('[SurfaceOrchestrator] Failed to hide chat pill before screenshot capture:', error);
@@ -84,7 +109,11 @@ export async function prepareScreenshotCaptureVisibility(
       phaseAfter: SURFACE_PHASE.FAILED_TERMINAL,
       reason: SURFACE_REASON_PREPARE_CAPTURE_VISIBILITY_FAILED,
     });
-    return { prepared: false, captureId };
+    return {
+      prepared: false,
+      captureId,
+      restoreChatPillAfterCapture: false,
+    };
   }
 }
 
@@ -107,7 +136,11 @@ export async function restoreScreenshotCaptureVisibility(
   }
 
   decrementActiveScreenshotCaptureCount();
-  if (getActiveScreenshotCaptureCount() > 0 || !isPendingScreenshotCaptureRestore()) {
+  if (
+    getActiveScreenshotCaptureCount() > 0
+    || !preparation.restoreChatPillAfterCapture
+    || !isPendingScreenshotCaptureRestore()
+  ) {
     return;
   }
 
