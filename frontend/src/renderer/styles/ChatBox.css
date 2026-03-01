@@ -219,6 +219,16 @@ body {
   stroke-linejoin: round;
 }
 
+.chatbox-stop-button {
+  width: 30px;
+  height: 30px;
+}
+
+.chatbox-stop-button svg {
+  width: 18px;
+  height: 18px;
+}
+
 .chatbox-icon:hover:not(:disabled) {
   transform: none;
   border-color: transparent;

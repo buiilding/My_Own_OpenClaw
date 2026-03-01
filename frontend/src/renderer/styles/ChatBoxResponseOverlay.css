@@ -5,7 +5,9 @@
 .chatbox-awaiting-shell {
   display: flex;
   align-items: flex-end;
+  height: 24px;
   min-height: 24px;
+  overflow: hidden;
 }
 
 .chatbox-thinking-stream {
@@ -68,7 +70,6 @@
 }
 
 .chatbox-typing-indicator {
-  align-self: flex-start;
   display: inline-flex;
   align-items: center;
   gap: 5px;

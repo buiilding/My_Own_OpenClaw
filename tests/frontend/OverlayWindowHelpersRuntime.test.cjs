@@ -144,4 +144,49 @@ describe('overlay_window_helpers_runtime', () => {
       }),
     );
   });
+
+  test('keeps compact fallback response height at 24px instead of inflating to 42px', () => {
+    const responseWindow = {
+      isDestroyed: jest.fn(() => false),
+      getSize: jest.fn(() => [520, 1]),
+      setBounds: jest.fn(),
+    };
+    const chatWindow = {
+      isDestroyed: jest.fn(() => false),
+      getSize: jest.fn(() => [520, 64]),
+    };
+    const getOverlayResponseWindowBounds = jest.fn((args) => ({
+      x: 0,
+      y: 0,
+      width: args.width,
+      height: args.height,
+    }));
+
+    const runtime = createOverlayWindowHelpersRuntime({
+      screen: {},
+      getChatWindow: () => chatWindow,
+      getResponseWindow: () => responseWindow,
+      getResponseOverlayVisible: () => true,
+      getOverlayChatWindowBounds: jest.fn(),
+      getOverlayResponseWindowBounds,
+      getOverlayContextLabelWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
+      contextLabelWidth: 280,
+      contextLabelHeight: 26,
+      contextLabelOffsetX: 14,
+      contextLabelGapAboveChatbox: -6,
+    });
+
+    runtime.ensureResponseOverlayFallbackBounds();
+
+    expect(getOverlayResponseWindowBounds).toHaveBeenCalledWith(
+      expect.objectContaining({
+        width: 520,
+        height: 24,
+      }),
+    );
+    expect(responseWindow.setBounds).toHaveBeenCalledWith(
+      expect.objectContaining({ width: 520, height: 24 }),
+      false,
+    );
+  });
 });
