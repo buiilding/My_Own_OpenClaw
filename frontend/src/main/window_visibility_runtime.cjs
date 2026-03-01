@@ -41,7 +41,9 @@ function showChatWindow(options = {}, deps = {}) {
     }
   }
   ensureChatWindowOnTop();
-  const shouldRestoreResponse = responseOverlayVisible || isResponseOverlayStreamingPhase();
+  // Non-focusing chatbox restores (tool/capture lifecycle) should not resurrect
+  // stale response overlays before renderer awaiting state is ready.
+  const shouldRestoreResponse = focus && (responseOverlayVisible || isResponseOverlayStreamingPhase());
   if (responseWindow && !responseWindow.isDestroyed() && shouldRestoreResponse) {
     if (isResponseOverlayStreamingPhase()) {
       setResponseOverlayVisible(true);

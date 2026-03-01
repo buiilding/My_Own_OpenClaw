@@ -86,4 +86,31 @@ describe('window_visibility_runtime showChatWindow', () => {
     expect(chatWindow.focus).toHaveBeenCalledTimes(1);
     expect(chatWindow.webContents.send).toHaveBeenCalledWith('chatbox-focus');
   });
+
+  test('does not auto-restore response overlay on non-focusing show', () => {
+    const chatWindow = createWindow({ visible: false });
+    const responseWindow = createWindow({ visible: false });
+    const showResponseWindowInactive = jest.fn();
+    const ensureResponseOverlayFallbackBounds = jest.fn();
+    const setResponseOverlayVisible = jest.fn();
+
+    const result = showChatWindow(
+      { focus: false },
+      {
+        chatWindow,
+        responseWindow,
+        responseOverlayVisible: true,
+        isResponseOverlayStreamingPhase: () => true,
+        showResponseWindowInactive,
+        ensureResponseOverlayFallbackBounds,
+        setResponseOverlayVisible,
+        syncWakewordToggleForChatVisibility: jest.fn(),
+      },
+    );
+
+    expect(result).toEqual({ success: true });
+    expect(showResponseWindowInactive).not.toHaveBeenCalled();
+    expect(ensureResponseOverlayFallbackBounds).not.toHaveBeenCalled();
+    expect(setResponseOverlayVisible).not.toHaveBeenCalled();
+  });
 });
