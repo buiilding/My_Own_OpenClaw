@@ -7,7 +7,6 @@ import { resolveLlmOutputContract } from '../../../infrastructure/llmOutputContr
 import { selectChatBoxState } from '../utils/chatSelectors';
 import { getRoundedFrameSize } from '../utils/overlayFrameSize';
 import { subscribeResponseOverlayPhase } from '../utils/overlayPhaseListener';
-import { useAutoResizedResponseHeight } from '../hooks/useAutoResizedResponseHeight';
 import { isDevUiEnabled } from '../utils/devUiFlag';
 import { resolveSourceTag } from '../utils/sourceTags';
 import {
@@ -27,12 +26,24 @@ import {
 
 const RESPONSE_TYPES = new Set(['llm-text', 'error']);
 const FIRST_CHUNK_TYPES = new Set(['llm-text', 'error']);
-const RESPONSE_MIN_HEIGHT = 92;
-const RESPONSE_MAX_HEIGHT = 460;
+const RESPONSE_FIXED_HEIGHTS = [92, 164, 236, 324, 460];
+const RESPONSE_MIN_HEIGHT = RESPONSE_FIXED_HEIGHTS[0];
 const RESPONSE_CHROME_HEIGHT = 28;
 const RESPONSE_BOTTOM_STICK_THRESHOLD = 20;
 const THINKING_BOTTOM_STICK_THRESHOLD = 12;
 const TYPING_FRAME_HEIGHT = 24;
+
+function resolveSteppedResponseHeight(measuredHeight) {
+  if (!Number.isFinite(measuredHeight)) {
+    return RESPONSE_MIN_HEIGHT;
+  }
+  for (const fixedHeight of RESPONSE_FIXED_HEIGHTS) {
+    if (measuredHeight <= fixedHeight) {
+      return fixedHeight;
+    }
+  }
+  return RESPONSE_FIXED_HEIGHTS[RESPONSE_FIXED_HEIGHTS.length - 1];
+}
 
 function renderResponseContent(response, markdownHtml) {
   if (!response) {
@@ -63,6 +74,7 @@ function ChatBoxResponse() {
   const [overlayPhase, setOverlayPhase] = useState('idle');
   const [hasOverflowAbove, setHasOverflowAbove] = useState(false);
   const [hasThinkingOverflowAbove, setHasThinkingOverflowAbove] = useState(false);
+  const [responseHeight, setResponseHeight] = useState(RESPONSE_MIN_HEIGHT);
   const shellRef = useRef(null);
   const responsePillRef = useRef(null);
   const responseBodyRef = useRef(null);
@@ -165,14 +177,6 @@ function ChatBoxResponse() {
     }
     return resolveSourceTag(thinkingSourceEventType || 'llm-thought', 'from-backend');
   }, [thinkingSourceEventType, thinkingText]);
-  const responseHeight = useAutoResizedResponseHeight({
-    activeResponseId: activeResponse?.id,
-    bodyRef: responseBodyRef,
-    enabled: showResponse,
-    minHeight: RESPONSE_MIN_HEIGHT,
-    maxHeight: RESPONSE_MAX_HEIGHT,
-    chromeHeight: RESPONSE_CHROME_HEIGHT,
-  });
 
   const reportOverlaySize = useCallback(async ({
     visible,
@@ -344,6 +348,34 @@ function ChatBoxResponse() {
 
   useEffect(() => {
     if (!showResponse) {
+      setResponseHeight(RESPONSE_MIN_HEIGHT);
+      return;
+    }
+
+    let cancelled = false;
+    const rafId = window.requestAnimationFrame(() => {
+      if (cancelled) {
+        return;
+      }
+      const bodyEl = responseBodyRef.current;
+      if (!bodyEl) {
+        return;
+      }
+      const measuredHeight = bodyEl.scrollHeight + RESPONSE_CHROME_HEIGHT;
+      const nextHeight = resolveSteppedResponseHeight(measuredHeight);
+      setResponseHeight((currentHeight) => (
+        currentHeight === nextHeight ? currentHeight : nextHeight
+      ));
+    });
+
+    return () => {
+      cancelled = true;
+      window.cancelAnimationFrame(rafId);
+    };
+  }, [showResponse, activeResponse?.id, activeResponse?.text, responseMarkdownHtml]);
+
+  useEffect(() => {
+    if (!showResponse) {
       setHasOverflowAbove(false);
       shouldStickToBottomRef.current = true;
     }
@@ -383,7 +415,6 @@ function ChatBoxResponse() {
   }, [showAwaitingReply, thinkingText, syncThinkingScrollState]);
 
   useEffect(() => {
-    let observer = null;
     let cancelled = false;
     let rafId = null;
 
@@ -415,22 +446,12 @@ function ChatBoxResponse() {
       });
     };
 
-    if (typeof ResizeObserver !== 'undefined' && shellRef.current) {
-      observer = new ResizeObserver(() => {
-        scheduleSizeUpdate();
-      });
-      observer.observe(shellRef.current);
-    }
-
     scheduleSizeUpdate();
 
     return () => {
       cancelled = true;
       if (rafId !== null) {
         window.cancelAnimationFrame(rafId);
-      }
-      if (observer) {
-        observer.disconnect();
       }
     };
   }, [

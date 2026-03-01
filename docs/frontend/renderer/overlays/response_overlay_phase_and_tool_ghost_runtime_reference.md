@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for response overlay renderer behavior: phase-driven visibility, awaiting/thinking states, closeability rules, and dynamic sizing IPC updates."
+summary: "Deep reference for response overlay renderer behavior: phase-driven visibility, awaiting/thinking states, closeability rules, and deterministic stepped sizing IPC updates."
 read_when:
   - When changing `ChatBoxResponse.jsx` rendering logic or response overlay UX states.
   - When debugging missing response panes, stale awaiting indicators, or incorrect response overlay resize behavior.
@@ -17,7 +17,6 @@ title: "Response Overlay Phase Runtime Reference"
 - `frontend/src/renderer/features/chat/utils/overlayPhaseListener.js`
 - `frontend/src/renderer/features/chat/utils/responseOverlayPhasePayload.js`
 - `frontend/src/renderer/features/chat/utils/overlayFrameSize.js`
-- `frontend/src/renderer/features/chat/hooks/useAutoResizedResponseHeight.js`
 - `frontend/src/renderer/infrastructure/markdown.ts`
 - `tests/frontend/ChatBoxResponse.state.test.jsx`
 - `tests/frontend/OverlayPhaseListener.test.js`
@@ -69,10 +68,9 @@ Rendering:
 
 - `error` renders plain text.
 - `llm-text` renders sanitized markdown.
-- response height measured from content and clamped:
-  - min `92`
-  - max `460`
-- `ResizeObserver` + RAF scheduling updates `set-responsebox-size` IPC payload.
+- response pane height snaps to 1 of 5 fixed values based on content fit:
+  - `92`, `164`, `236`, `324`, `460`
+- sizing is step-based (no continuous live resize).
 
 Scroll behavior:
 

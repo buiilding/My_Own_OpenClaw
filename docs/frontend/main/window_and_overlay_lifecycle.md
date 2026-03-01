@@ -188,6 +188,7 @@ Main bridge fanout channel (`ipc.cjs`):
 - listens to `response-overlay-phase`
 - listens to `response-overlay-visibility` and re-reports compact frame size after hide/show cycles, preventing stale tall typing-indicator bounds after tool capture
 - uses explicit layout modes (`response`, `awaiting-typing`, `awaiting-thinking`, `hidden`) so sizing/reporting logic is deterministic across query/tool/capture transitions
+- response mode uses deterministic stepped heights (`92`, `164`, `236`, `324`, `460`) chosen by content-fit checks instead of continuous live measurement
 - `awaiting-typing` mode locks to a deterministic fixed frame height (`24px`) so typing-indicator vertical placement remains stable between turns
 - computes visibility from phase + stream content state
 - reports frame size via `SET_RESPONSEBOX_SIZE`
