@@ -167,3 +167,4 @@ def test_repo_system_prompt_keeps_tool_rules_out_of_global_prompt():
     assert "exact tool format" not in content
     assert "<computer_interaction_behavior>" in content
     assert "beware of the mouse position shown on that image" in content
+    assert "Do not treat execution status alone as UI success" in content
