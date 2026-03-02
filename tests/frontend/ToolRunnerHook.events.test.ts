@@ -4,12 +4,10 @@ import {
   IpcBridge,
   INVOKE_CHANNELS,
   ON_CHANNELS,
-  SEND_CHANNELS,
   emitBackendEventAsync,
   getRemoveListenerMock,
   mockExecuteTool,
   mockExecuteToolBundle,
-  recordToolMessage,
   renderToolRunner,
   resetToolRunnerTestState,
   restoreToolRunnerMocks,
@@ -118,19 +116,7 @@ describe('useToolRunner event handling', () => {
       INVOKE_CHANNELS.HIDE_CHATBOX,
       expect.anything(),
     );
-    expect(IpcBridge.invoke).toHaveBeenCalledWith(
-      INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE,
-      { ignore: true },
-    );
-    expect(IpcBridge.invoke).toHaveBeenCalledWith(
-      INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS,
-      expect.objectContaining({ waitMs: 180 }),
-    );
-    const setIgnoreCallOrder = (IpcBridge.invoke as jest.Mock).mock.invocationCallOrder[0];
-    const prepareCallOrder = (IpcBridge.invoke as jest.Mock).mock.invocationCallOrder[1];
-    const executeCallOrder = mockExecuteTool.mock.invocationCallOrder[0];
-    expect(setIgnoreCallOrder).toBeLessThan(prepareCallOrder);
-    expect(prepareCallOrder).toBeLessThan(executeCallOrder);
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([]);
   });
 
   test('dispatches browser click without surface handoff', async () => {
@@ -249,13 +235,10 @@ describe('useToolRunner event handling', () => {
     expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY)).toBe(false);
     expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.SHOW_CHATBOX)).toBe(false);
     expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.HIDE_CHATBOX)).toBe(false);
-    expect(invokeCalls).toContainEqual([
-      INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE,
-      { ignore: true },
-    ]);
+    expect(invokeCalls).toEqual([]);
   });
 
-  test('enables and then restores click-through around interactive tool execution window', async () => {
+  test('keeps renderer-side overlay IPC disabled around interactive tool execution window', async () => {
     renderToolRunner(true);
 
     await emitBackendEventAsync({
@@ -273,34 +256,7 @@ describe('useToolRunner event handling', () => {
       { x: 24, y: 12 },
       { correlationId: 'req-interactive-click-through-window', skipAutoCapture: false },
     );
-    expect(IpcBridge.invoke).toHaveBeenCalledWith(
-      INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE,
-      { ignore: true },
-    );
-    expect(IpcBridge.invoke).toHaveBeenCalledWith(
-      INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE,
-      { ignore: false },
-    );
-    const invokeCallOrder = (IpcBridge.invoke as jest.Mock).mock.invocationCallOrder;
-    const enableOrder = invokeCallOrder[
-      (IpcBridge.invoke as jest.Mock).mock.calls.findIndex(
-        ([channel, payload]: unknown[]) => (
-          channel === INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE
-          && (payload as Record<string, unknown> | undefined)?.ignore === true
-        ),
-      )
-    ];
-    const disableOrder = invokeCallOrder[
-      (IpcBridge.invoke as jest.Mock).mock.calls.findIndex(
-        ([channel, payload]: unknown[]) => (
-          channel === INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE
-          && (payload as Record<string, unknown> | undefined)?.ignore === false
-        ),
-      )
-    ];
-    const executeOrder = mockExecuteTool.mock.invocationCallOrder[0];
-    expect(enableOrder).toBeLessThan(executeOrder);
-    expect(executeOrder).toBeLessThan(disableOrder);
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([]);
   });
 
 
@@ -453,18 +409,9 @@ describe('useToolRunner event handling', () => {
     expect(invokeCalls.findIndex(([channel]: unknown[]) => channel === INVOKE_CHANNELS.HIDE_CHATBOX)).toBe(-1);
   });
 
-  test('emits local tool-output when interactive focus verification fails', async () => {
+  test('keeps interactive tool-call executable without focus verification IPC', async () => {
     renderToolRunner(true);
     (IpcBridge.invoke as jest.Mock).mockImplementation(async (channel: string) => {
-      if (channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS) {
-        return {
-          success: true,
-          data: {
-            canVerifyExternalFocus: true,
-            externalFocusActive: false,
-          },
-        };
-      }
       if (
         channel === INVOKE_CHANNELS.SHOW_CHATBOX
         || channel === INVOKE_CHANNELS.HIDE_CHATBOX
@@ -484,48 +431,19 @@ describe('useToolRunner event handling', () => {
       },
     });
 
-    expect(mockExecuteTool).not.toHaveBeenCalled();
-    expect(IpcBridge.send).toHaveBeenCalledWith(
-      SEND_CHANNELS.TO_BACKEND,
-      expect.objectContaining({
-        type: 'tool-result',
-        payload: expect.objectContaining({
-          request_id: 'req-focus-fail',
-          success: false,
-          error: 'frontend_execution_surface_unavailable: external_window_focus_not_verified',
-        }),
-      }),
+    expect(mockExecuteTool).toHaveBeenCalledWith(
+      'click',
+      { x: 444, y: 222 },
+      { correlationId: 'req-focus-fail', skipAutoCapture: false },
     );
-    const lastMessage = useChatStore.getState().messages.at(-1);
-    expect(lastMessage).toEqual(expect.objectContaining({
-      type: 'tool-output',
-      toolName: 'click',
-      correlationId: 'req-focus-fail',
-      success: false,
-    }));
-    expect(lastMessage?.text).toContain('frontend_execution_surface_unavailable: external_window_focus_not_verified');
-    expect(recordToolMessage).toHaveBeenCalledWith(
-      expect.stringContaining('frontend_execution_surface_unavailable: external_window_focus_not_verified'),
-      expect.objectContaining({
-        messageType: 'tool-output',
-        toolName: 'click',
-        correlationId: 'req-focus-fail',
-      }),
-    );
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([]);
+    expect(IpcBridge.send).not.toHaveBeenCalled();
+    expect(useChatStore.getState().messages).toEqual([]);
   });
 
-  test('emits local tool-output when interactive bundle focus verification fails', async () => {
+  test('keeps interactive tool bundles executable without focus verification IPC', async () => {
     renderToolRunner(true);
     (IpcBridge.invoke as jest.Mock).mockImplementation(async (channel: string) => {
-      if (channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS) {
-        return {
-          success: true,
-          data: {
-            canVerifyExternalFocus: true,
-            externalFocusActive: false,
-          },
-        };
-      }
       if (
         channel === INVOKE_CHANNELS.SHOW_CHATBOX
         || channel === INVOKE_CHANNELS.HIDE_CHATBOX
@@ -546,34 +464,16 @@ describe('useToolRunner event handling', () => {
       },
     });
 
-    expect(mockExecuteToolBundle).not.toHaveBeenCalled();
-    expect(IpcBridge.send).toHaveBeenCalledWith(
-      SEND_CHANNELS.TO_BACKEND,
-      expect.objectContaining({
-        type: 'tool-bundle-result',
-        payload: expect.objectContaining({
-          bundle_id: 'bundle-focus-fail',
-          status: 'failure',
-          error: 'frontend_execution_surface_unavailable: external_window_focus_not_verified',
-        }),
-      }),
+    expect(mockExecuteToolBundle).toHaveBeenCalledWith(
+      [
+        { toolName: 'click', args: { x: 444, y: 222 } },
+        { toolName: 'read_file', args: { file_path: '/tmp/a' } },
+      ],
+      'bundle-focus-fail',
     );
-    const lastMessage = useChatStore.getState().messages.at(-1);
-    expect(lastMessage).toEqual(expect.objectContaining({
-      type: 'tool-output',
-      toolName: 'bundled_tools (2 tools)',
-      correlationId: 'bundle-focus-fail',
-      success: false,
-    }));
-    expect(lastMessage?.text).toContain('frontend_execution_surface_unavailable: external_window_focus_not_verified');
-    expect(recordToolMessage).toHaveBeenCalledWith(
-      expect.stringContaining('frontend_execution_surface_unavailable: external_window_focus_not_verified'),
-      expect.objectContaining({
-        messageType: 'tool-output',
-        toolName: 'bundled_tools (2 tools)',
-        correlationId: 'bundle-focus-fail',
-      }),
-    );
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([]);
+    expect(IpcBridge.send).not.toHaveBeenCalled();
+    expect(useChatStore.getState().messages).toEqual([]);
   });
 
   test('skips frontend execution for non-executable tool-call metadata', async () => {

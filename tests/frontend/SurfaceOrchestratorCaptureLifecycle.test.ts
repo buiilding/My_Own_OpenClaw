@@ -96,20 +96,21 @@ describe('surfaceOrchestrator capture lifecycle', () => {
     consoleLogSpy.mockRestore();
   });
 
-  test('logs terminal transition when capture focus preparation invoke fails', async () => {
+  test('logs no-op transition for capture focus preparation', async () => {
     const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
     const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
     (IpcBridge.invoke as jest.Mock).mockRejectedValueOnce(new Error('focus failed'));
 
     await prepareExternalFocusForCapture({ captureId: 'capture-focus-1' });
 
-    expect(consoleWarnSpy).toHaveBeenCalled();
+    expect(IpcBridge.invoke).not.toHaveBeenCalled();
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
     expect(consoleLogSpy).toHaveBeenCalledWith(
       '[SurfaceOrchestrator] transition',
       expect.objectContaining({
         correlation_id: 'capture-focus-1',
-        phase_after: 'failed_terminal',
-        reason: 'capture_focus_prepare_failed',
+        phase_after: 'capture_ready',
+        reason: 'no_surface_transition_needed',
       }),
     );
 
@@ -117,13 +118,10 @@ describe('surfaceOrchestrator capture lifecycle', () => {
     consoleWarnSpy.mockRestore();
   });
 
-  test('uses no-demotion focus preparation for capture focus handoff', async () => {
+  test('keeps capture focus handoff free of renderer IPC', async () => {
     await prepareExternalFocusForCapture({ captureId: 'capture-focus-2' });
 
-    expect(IpcBridge.invoke).toHaveBeenCalledWith(INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
-      waitMs: 120,
-      skipDemotion: true,
-    });
+    expect(IpcBridge.invoke).not.toHaveBeenCalled();
   });
 
   test('skips Linux-only capture hide bookkeeping on Windows', async () => {
