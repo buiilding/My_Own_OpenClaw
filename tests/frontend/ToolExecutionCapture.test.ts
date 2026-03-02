@@ -115,7 +115,14 @@ describe('ToolExecutionCapture', () => {
     expect(mockExtractOSstate).not.toHaveBeenCalled();
   });
 
-  test('ensureAutoCapture treats screenshot_ref as an existing capture and skips recapture', async () => {
+  test('ensureAutoCapture treats screenshot_ref as an existing capture and fetches missing system state only', async () => {
+    mockExtractOSstate.mockResolvedValue({
+      systemState: { active_window: 'Captured', mouse_position: '(10, 20)' },
+      screenshot: null,
+      screenshotContentType: null,
+      captureMeta: null,
+    } as any);
+
     const result = await ensureAutoCapture('screenshot', {}, false, {
       success: true,
       data: {
@@ -128,12 +135,12 @@ describe('ToolExecutionCapture', () => {
       screenshot: 'artifact://artifact-1',
       screenshotContentType: null,
       captureMeta: null,
-      systemState: null,
+      systemState: { active_window: 'Captured', mouse_position: '(10, 20)' },
       waitDelay: 0,
-      captureTime: 0,
+      captureTime: expect.any(Number),
       isComputerTool: true,
     });
-    expect(mockExtractOSstate).not.toHaveBeenCalled();
+    expect(mockExtractOSstate).toHaveBeenCalledWith(false, true, 0, false, undefined);
   });
 
   test('ensureAutoCapture ignores non-string screenshot fields for non-capture tools', async () => {

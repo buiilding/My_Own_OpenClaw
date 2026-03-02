@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-screenshot-system-state-and-window-title): ensure explicit `screenshot` tool runs populate missing `system_state` via state-only capture when screenshot artifacts already exist, add regression coverage for the `screenshot_ref` path, and rename renderer document title from `Desktop Assistant` to `WindieOS` so active-window context reflects product branding.
 - fix(packaging-linux-xdotool-runtime-warning): declare `xdotool` as Linux `.deb`/`.rpm` package dependency, emit sidecar startup/status runtime warnings when `xdotool` is missing, and document AppImage manual-install expectation while preserving Xlib fallback behavior.
 - fix(sidecar-wakeword-model-bootstrap-permissions): route wakeword model bootstrap to a user-writable cache fallback (`WINDIE_WAKEWORD_MODEL_DIR` override), support both `openwakeword.models` and `openwakeword.MODELS` metadata layouts, resolve concrete downloaded model paths for model init, and prefetch wakeword assets during runtime packaging to avoid first-run permission failures in read-only install paths.
 - fix(sidecar-linux-system-state-fallbacks): add Linux Xlib fallbacks for active-window and mouse-position probes when `xdotool`/`pyautogui` paths fail, reducing `Unknown` system-context values in packaged desktop runs.
