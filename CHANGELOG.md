@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- perf(memory-summarizer-batching): keep global run gate at 6 unsemanticized interaction rows, lower idle per-conversation summarize threshold to 3, and raise per-cycle summarize throughput to 3 conversations so low-volume chats semanticize sooner.
 - style(frontend-model-dropdown-scroll): cap dashboard/chat model dropdown visible rows at five and enable internal menu scrolling so long model lists stay usable without oversized overlays.
 - fix(backend-test-compat-model-catalog): align backend provider/model tests with runtime-model-id normalization and dict-based online model catalog entries, and restore local provider request-param hook compatibility with base runtime-model-id hook signature.
 - perf(sidecar-browser-extract-no-llm): remove sidecar Browser Use extraction LLM wiring/deps, switch `extract`/`read_long_content` to deterministic markdown extraction in native runtime, and drop extraction-specific runtime requirement packs so browser sidecar stays lean while backend remains the only LLM inference path.
