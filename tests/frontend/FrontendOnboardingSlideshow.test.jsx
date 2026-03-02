@@ -5,7 +5,7 @@ import FrontendOnboardingSlideshow from '../../frontend/src/renderer/features/on
 describe('FrontendOnboardingSlideshow', () => {
   test('renders slide progression and completes onboarding', () => {
     const onComplete = jest.fn();
-    render(<FrontendOnboardingSlideshow onComplete={onComplete} stopAgentShortcutLabel="Shift + Tab" />);
+    render(<FrontendOnboardingSlideshow onComplete={onComplete} stopAgentShortcutLabel="Ctrl + Alt + ." />);
 
     expect(screen.getByText('Step 1 of 2')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Grant access to your computer' })).toBeInTheDocument();
@@ -16,7 +16,7 @@ describe('FrontendOnboardingSlideshow', () => {
 
     expect(screen.getByText('Step 2 of 2')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Stop the agent during loops' })).toBeInTheDocument();
-    expect(screen.getByText('Shift + Tab')).toBeInTheDocument();
+    expect(screen.getByText('Ctrl + Alt + .')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Back' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Start WindieOS' })).toBeInTheDocument();
 
@@ -28,4 +28,3 @@ describe('FrontendOnboardingSlideshow', () => {
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
 });
-
