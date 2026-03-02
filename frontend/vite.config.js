@@ -3,6 +3,9 @@ import react from '@vitejs/plugin-react';
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  // Electron packaged builds load dist/index.html via file://.
+  // Relative asset paths prevent blank renderer windows in production.
+  base: './',
   plugins: [react()],
   build: {
     // Optimize for faster startup
