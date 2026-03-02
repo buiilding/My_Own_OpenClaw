@@ -14,10 +14,10 @@
   width: 100%;
   margin: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px 16px;
+  padding: 0 16px 12px;
   border-bottom: 1px solid var(--ui-border-subtle);
   -webkit-app-region: drag;
 }
@@ -36,6 +36,7 @@
 
 .chat-title-block {
   min-width: 0;
+  padding-top: 12px;
   -webkit-app-region: no-drag;
 }
 
@@ -47,8 +48,11 @@
 
 .chat-meta {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-start;
   gap: 8px;
+  margin-right: -16px;
   -webkit-app-region: no-drag;
 }
 
@@ -184,7 +188,9 @@
   align-items: center;
   gap: 0;
   border: 1px solid var(--ui-border-subtle);
-  border-radius: 6px;
+  border-top: 0;
+  border-right: 0;
+  border-radius: 0 0 0 6px;
   overflow: hidden;
   background: rgba(10, 12, 18, 0.46);
 }
@@ -245,6 +251,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  padding-right: 16px;
 }
 
 .chat-top-icon-btn {
@@ -1526,11 +1533,20 @@
   }
 
   .chat-header {
-    padding: 10px 12px;
+    padding: 0 12px 10px;
+  }
+
+  .chat-title-block {
+    padding-top: 10px;
   }
 
   .chat-meta {
     gap: 6px;
+    margin-right: -12px;
+  }
+
+  .chat-utility-controls {
+    padding-right: 12px;
   }
 
   .chat-empty-state {
