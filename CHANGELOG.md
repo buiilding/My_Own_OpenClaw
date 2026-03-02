@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-overlay-ipc-split): replace the old catch-all `overlay_ipc_runtime` registrar with explicit `overlay_phase`, `window_controls`, and `permission` IPC modules, retarget `index.cjs` wiring, and align docs/tests with the narrower ownership split.
 - refactor(frontend-overlay-ipc-prune): remove dead renderer-callable overlay interactivity/focus-prep IPC channels from main/preload, delete legacy toggle handler modules, and align docs/tests with the phase-owned overlay loop contract.
 - refactor(frontend-surface-contract): trim the renderer surface-orchestrator payload/state to the minimal execution contract, remove generic window/tab refocus churn from the chat pill, and align focused overlay/runtime docs plus regressions with the explicit phase-owned interaction model.
 - refactor(frontend-overlay-phase-mode): centralize main-process overlay phase handling behind explicit phase-to-window modes, keep `tool-output` as its own shared overlay phase, and align focused phase-handler regressions with the simplified loop state model.

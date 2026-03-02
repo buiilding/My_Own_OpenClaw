@@ -12,12 +12,12 @@ This matrix maps frontend capabilities to implementation files.
 
 ## Coverage Snapshot (2026-02-27)
 
-- Main process files: `35`
+- Main process files: `37`
 - Sidecar python files: `141`
 - Renderer files: `139`
 - Landing files: `13`
 - Preload files: `1`
-- Total covered frontend files: `329`
+- Total covered frontend files: `331`
 
 ## 1) Main Process Runtime
 
@@ -25,7 +25,7 @@ This matrix maps frontend capabilities to implementation files.
 | --- | --- | --- |
 | Electron app bootstrap + window creation | `frontend/src/main/index.cjs`, `frontend/src/main/main_window_runtime.cjs` | Creates dashboard and overlay windows; wires runtime deps. |
 | App lifecycle and global shortcut policy | `frontend/src/main/main_process_lifecycle_runtime.cjs` | Startup/activate/quit behavior and wakeword hotkey toggling. |
-| Overlay IPC invoke handlers | `frontend/src/main/overlay_ipc_runtime.cjs`, `frontend/src/main/overlay_*_handler.cjs`, `frontend/src/main/main_window_controls_handler.cjs` | Window visibility, sizing, display, permissions, sudo, controls. |
+| Split main-process IPC registrars | `frontend/src/main/{overlay_phase_ipc_runtime,window_controls_ipc_runtime,permission_ipc_runtime}.cjs`, `frontend/src/main/overlay_*_handler.cjs`, `frontend/src/main/main_window_controls_handler.cjs` | Phase-owned overlay shell channels, dashboard/display controls, and permission/sudo handlers. |
 | Overlay visibility and side-channel signaling | `frontend/src/main/overlay_signal_runtime.cjs`, `frontend/src/main/response_overlay_phase_handler.cjs` | Broadcasts overlay visibility + wakeword toggle/STT triggers. |
 | Overlay bounds and top-most helper runtime | `frontend/src/main/overlay_window_helpers_runtime.cjs`, `frontend/src/main/overlay_bounds.cjs` | Positioning, fallback bounds, always-on-top helpers, context-label sync. |
 | Main/chat visibility transitions | `frontend/src/main/window_visibility_runtime.cjs`, `frontend/src/main/overlay_visibility_handler.cjs` | Focus/hide/show policy across chat, response overlay, and main window. |

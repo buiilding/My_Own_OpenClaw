@@ -65,7 +65,7 @@ Primary protocol tests:
 | query send + settings ACK gate + synthetic local echo | `frontend/src/main/ipc.cjs` | `IpcMainBridge.query.test.cjs` |
 | overlay pre-capture + response-overlay phase transitions | `frontend/src/main/ipc.cjs`, `frontend/src/main/response_overlay_phase_handler.cjs` | `IpcMainBridge.query.test.cjs`, `IpcMainBridge.lifecycle.test.cjs`, `OverlayPhaseListener.test.js` |
 | wakeword detect -> STT trigger channel | `frontend/src/main/index.cjs`, `frontend/src/main/wakeword_bridge.cjs` | `WakewordBridge.test.cjs`, `ChatBoxOverlayMouseIgnore.test.jsx` |
-| show-main-window target normalization -> dashboard surface routing | `frontend/src/main/overlay_ipc_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx` | `ChatGptDashboardShell.test.jsx` |
+| show-main-window target normalization -> dashboard surface routing | `frontend/src/main/window_controls_ipc_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx` | `ChatGptDashboardShell.test.jsx` |
 | local sidecar RPC mapping + sudo mode propagation | `frontend/src/main/local_backend_bridge.cjs` | `LocalBackendBridge.rpc.test.cjs`, `LocalBackendBridge.lifecycle.test.cjs` |
 
 ## Renderer IPC Validation Contract

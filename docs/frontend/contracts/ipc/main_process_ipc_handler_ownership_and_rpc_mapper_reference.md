@@ -18,7 +18,9 @@ title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 - `frontend/src/main/ipc_query_events.cjs`
 - `frontend/src/main/ipc_memory_store_persistence.cjs`
 - `frontend/src/main/index.cjs`
-- `frontend/src/main/overlay_ipc_runtime.cjs`
+- `frontend/src/main/overlay_phase_ipc_runtime.cjs`
+- `frontend/src/main/window_controls_ipc_runtime.cjs`
+- `frontend/src/main/permission_ipc_runtime.cjs`
 - `frontend/src/main/window_visibility_runtime.cjs`
 - `frontend/src/main/main_process_lifecycle_runtime.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
@@ -35,7 +37,9 @@ Main-process handler registration is split by responsibility:
 - transport/backend relay orchestration and config persistence: `ipc.cjs`
 - relay helper ownership for message processing/fan-out/synthetic query events: `ipc_runtime_helpers.cjs`, `ipc_renderer_windows.cjs`, `ipc_query_broadcast.cjs`, `ipc_query_events.cjs`
 - settings ACK-gate helper ownership: `ipc_settings_sync.cjs`
-- window/overlay runtime control registration: `overlay_ipc_runtime.cjs` (wired by `index.cjs`)
+- phase-owned overlay shell registration: `overlay_phase_ipc_runtime.cjs` (wired by `index.cjs`)
+- main-window/display control registration: `window_controls_ipc_runtime.cjs` (wired by `index.cjs`)
+- permission/sudo registration: `permission_ipc_runtime.cjs` (wired by `index.cjs`)
 - chat/main window visibility transitions: `window_visibility_runtime.cjs` (called from `overlay_visibility_handler.cjs` + runtime hooks)
 - app lifecycle listener bootstrap: `main_process_lifecycle_runtime.cjs` (wired by `index.cjs`)
 - Python sidecar tool + memory bridge: `local_backend_bridge.cjs`
@@ -66,24 +70,14 @@ Notable behavior:
   - synthetic local user/failure query event broadcast: `ipc_query_broadcast.cjs` with envelope builders from `ipc_query_events.cjs`
   - main-process `memory-store` event persistence side effect: `ipc_memory_store_persistence.cjs`
 
-### `overlay_ipc_runtime.cjs` (invoked from `index.cjs`)
+### `overlay_phase_ipc_runtime.cjs` (invoked from `index.cjs`)
 
 `ipcMain.handle`:
 
+- `set-chatbox-visual-anchor-height`
 - `set-responsebox-size`
-- `show-main-window` (optional payload `{ open?: 'chat' | 'memory' | 'models' | 'settings', maximize?: boolean }`)
 - `show-chatbox`
 - `hide-chatbox`
-- `get-displays`
-- `window-minimize`
-- `window-toggle-maximize`
-- `window-close`
-- `set-agent-sudo-access`
-- `list-permissions`
-- `check-permissions`
-- `check-permission`
-- `run-permission-probe`
-- `request-permission`
 
 `ipcMain.on`:
 
@@ -93,8 +87,37 @@ Notable behavior:
 
 - overlay handlers guard for missing/destroyed windows and return structured success/reason payloads
 - chat/response/context windows are repositioned together after move operations, and response resize re-anchors against chat bounds
+- phase-only scope: this registrar no longer owns dashboard window controls or permission channels
+
+### `window_controls_ipc_runtime.cjs` (invoked from `index.cjs`)
+
+`ipcMain.handle`:
+
+- `show-main-window` (optional payload `{ open?: 'chat' | 'memory' | 'models' | 'settings', maximize?: boolean }`)
+- `get-main-window-visibility`
+- `get-displays`
+- `window-minimize`
+- `window-toggle-maximize`
+- `window-close`
+
+Notable behavior:
+
 - `show-main-window` normalizes optional open-target payload and emits `main-window-open-target` to renderer on accepted target
 - `show-main-window { maximize:true }` restores/minimizes state and maximizes before focusing dashboard window
+
+### `permission_ipc_runtime.cjs` (invoked from `index.cjs`)
+
+`ipcMain.handle`:
+
+- `set-agent-sudo-access`
+- `list-permissions`
+- `check-permissions`
+- `check-permission`
+- `run-permission-probe`
+- `request-permission`
+
+Notable behavior:
+
 - permission handlers delegate to `permission_service.cjs` using shared deps (`platform`, `shell`, `systemPreferences`)
 
 ### `window_visibility_runtime.cjs`

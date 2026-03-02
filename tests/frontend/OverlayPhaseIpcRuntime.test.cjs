@@ -1,10 +1,10 @@
 /** @jest-environment node */
 
 const {
-  initializeOverlayHandlersRuntime,
-} = require('../../frontend/src/main/overlay_ipc_runtime.cjs');
+  initializeOverlayPhaseHandlersRuntime,
+} = require('../../frontend/src/main/overlay_phase_ipc_runtime.cjs');
 
-describe('overlay_ipc_runtime', () => {
+describe('overlay_phase_ipc_runtime', () => {
   function createRuntime(overrides = {}) {
     const invokeHandlers = {};
     const eventHandlers = {};
@@ -17,25 +17,18 @@ describe('overlay_ipc_runtime', () => {
       }),
     };
 
-    initializeOverlayHandlersRuntime({
+    initializeOverlayPhaseHandlersRuntime({
       ipcMain,
       screen: {},
-      shell: {},
-      systemPreferences: {},
-      platform: 'win32',
       getWindows: () => ({}),
-      getChatWindowBounds: jest.fn(),
       positionResponseWindow: jest.fn(),
       positionContextLabelWindow: jest.fn(),
       syncContextLabelWindowVisibility: jest.fn(),
       getResponseWindowBounds: jest.fn(),
       setResponseOverlayVisibilityState: jest.fn(),
       showResponseWindowWhenChatVisible: jest.fn(),
-      showMainWindow: jest.fn(),
       showChatWindow: jest.fn(),
       hideChatWindow: jest.fn(),
-      normalizeMainWindowOpenTarget: jest.fn(),
-      emitMainWindowOpenTarget: jest.fn(),
       warn: jest.fn(),
       ...overrides,
     });
@@ -54,12 +47,17 @@ describe('overlay_ipc_runtime', () => {
     expect(invokeHandlers['prepare-overlay-tool-focus']).toBeUndefined();
   });
 
-  test('does not register deprecated chatbox resize invoke channel', () => {
-    const { invokeHandlers } = createRuntime();
+  test('registers only phase-owned overlay surface channels', () => {
+    const { invokeHandlers, eventHandlers } = createRuntime();
 
     expect(invokeHandlers['set-chatbox-size']).toBeUndefined();
     expect(typeof invokeHandlers['set-responsebox-size']).toBe('function');
     expect(typeof invokeHandlers['set-chatbox-visual-anchor-height']).toBe('function');
+    expect(typeof invokeHandlers['show-chatbox']).toBe('function');
+    expect(typeof invokeHandlers['hide-chatbox']).toBe('function');
+    expect(typeof eventHandlers['move-chatbox-to']).toBe('function');
+    expect(invokeHandlers['show-main-window']).toBeUndefined();
+    expect(invokeHandlers['list-permissions']).toBeUndefined();
   });
 
   test('routes chatbox visual anchor updates to positioning runtime', async () => {
@@ -86,22 +84,4 @@ describe('overlay_ipc_runtime', () => {
     expect(positionContextLabelWindow).toHaveBeenCalledTimes(1);
     expect(syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
   });
-
-  test('reports main window visibility through get-main-window-visibility handler', async () => {
-    const visibleMainWindow = {
-      isDestroyed: jest.fn(() => false),
-      isVisible: jest.fn(() => true),
-    };
-    const { invokeHandlers } = createRuntime({
-      getWindows: () => ({ mainWindow: visibleMainWindow }),
-    });
-
-    const result = await invokeHandlers['get-main-window-visibility']();
-
-    expect(result).toEqual({
-      success: true,
-      data: { visible: true },
-    });
-  });
-
 });

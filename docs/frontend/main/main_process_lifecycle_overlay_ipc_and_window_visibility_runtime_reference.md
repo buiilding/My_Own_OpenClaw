@@ -2,7 +2,7 @@
 summary: "Deep reference for main-process runtime split: app lifecycle bootstrap, overlay IPC handler registration, and chat/main window visibility transitions delegated from `index.cjs`."
 read_when:
   - When changing app startup/quit lifecycle wiring in `main_process_lifecycle_runtime.cjs`.
-  - When changing overlay IPC registration or show/hide/main-window behavior delegated through `overlay_ipc_runtime.cjs` and `window_visibility_runtime.cjs`.
+  - When changing split main-process IPC registration or show/hide/main-window behavior delegated through `overlay_phase_ipc_runtime.cjs`, `window_controls_ipc_runtime.cjs`, `permission_ipc_runtime.cjs`, and `window_visibility_runtime.cjs`.
 title: "Main Process Lifecycle, Overlay IPC, and Window Visibility Runtime Reference"
 ---
 
@@ -12,7 +12,9 @@ title: "Main Process Lifecycle, Overlay IPC, and Window Visibility Runtime Refer
 
 - `frontend/src/main/index.cjs`
 - `frontend/src/main/main_process_lifecycle_runtime.cjs`
-- `frontend/src/main/overlay_ipc_runtime.cjs`
+- `frontend/src/main/overlay_phase_ipc_runtime.cjs`
+- `frontend/src/main/window_controls_ipc_runtime.cjs`
+- `frontend/src/main/permission_ipc_runtime.cjs`
 - `frontend/src/main/window_visibility_runtime.cjs`
 - `frontend/src/main/main_window_runtime.cjs`
 
@@ -23,7 +25,9 @@ title: "Main Process Lifecycle, Overlay IPC, and Window Visibility Runtime Refer
 Delegated runtime modules:
 
 - lifecycle orchestration: `main_process_lifecycle_runtime.cjs`
-- overlay/window IPC handler registration: `overlay_ipc_runtime.cjs`
+- phase-owned overlay shell IPC registration: `overlay_phase_ipc_runtime.cjs`
+- main-window/display IPC registration: `window_controls_ipc_runtime.cjs`
+- permission/sudo IPC registration: `permission_ipc_runtime.cjs`
 - show/hide/main-window transition behavior: `window_visibility_runtime.cjs`
 
 ## Lifecycle Runtime (`main_process_lifecycle_runtime.cjs`)
@@ -44,29 +48,45 @@ Delegated runtime modules:
   - `will-quit`: unregister shortcuts
   - `window-all-closed`: prevent app quit (tray runtime)
 
-## Overlay IPC Runtime (`overlay_ipc_runtime.cjs`)
+## Split Main-Process IPC Registrars
 
-`initializeOverlayHandlersRuntime(deps)` centralizes `ipcMain.handle/on` registrations for:
+`index.cjs` now wires three narrower registrars instead of one catch-all overlay IPC module:
 
-- overlay/window controls:
-  - `move-chatbox-to`
-  - `set-responsebox-size`
-  - `show-main-window`
-  - `show-chatbox`
-  - `hide-chatbox`
-  - `get-displays`
-  - `window-minimize`
-  - `window-toggle-maximize`
-  - `window-close`
-- privilege/permissions:
-  - `set-agent-sudo-access`
-  - `list-permissions`
-  - `check-permissions`
-  - `check-permission`
-  - `run-permission-probe`
-  - `request-permission`
+- `initializeOverlayPhaseHandlersRuntime(deps)` in `overlay_phase_ipc_runtime.cjs`
+- `initializeWindowControlHandlersRuntime(deps)` in `window_controls_ipc_runtime.cjs`
+- `initializePermissionHandlersRuntime(deps)` in `permission_ipc_runtime.cjs`
 
-It delegates business logic to existing handler modules while normalizing dependency injection (`getWindows`, `screen`, permission deps, open-target emitters).
+### `overlay_phase_ipc_runtime.cjs`
+
+Owns only phase-driven overlay shell channels:
+
+- `set-chatbox-visual-anchor-height`
+- `move-chatbox-to`
+- `set-responsebox-size`
+- `show-chatbox`
+- `hide-chatbox`
+
+### `window_controls_ipc_runtime.cjs`
+
+Owns dashboard/display window control channels:
+
+- `show-main-window`
+- `get-main-window-visibility`
+- `get-displays`
+- `window-minimize`
+- `window-toggle-maximize`
+- `window-close`
+
+### `permission_ipc_runtime.cjs`
+
+Owns privilege/permission channels:
+
+- `set-agent-sudo-access`
+- `list-permissions`
+- `check-permissions`
+- `check-permission`
+- `run-permission-probe`
+- `request-permission`
 
 Removed legacy invoke channels:
 
@@ -108,7 +128,7 @@ Behavior:
 ## Drift Hotspots
 
 1. Duplicating lifecycle listeners in `index.cjs` after split causes duplicate hotkey/listener registration.
-2. Adding new overlay channels directly in `index.cjs` and skipping `overlay_ipc_runtime.cjs` breaks registration centralization.
+2. Adding new main-process channels directly in `index.cjs` and skipping the split registrar modules breaks registration centralization.
 3. Mutating window visibility behavior in one path (`window_visibility_runtime`) but not corresponding overlay handler call sites can desync UX.
 4. Changing dependency names in `initialize*Runtime` calls without matching runtime module contracts breaks startup silently.
 
