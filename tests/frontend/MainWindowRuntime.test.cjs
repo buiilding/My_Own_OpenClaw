@@ -2,6 +2,7 @@
 
 jest.mock('electron', () => ({
   nativeImage: {
+    createFromPath: jest.fn(() => ({ isEmpty: () => false })),
     createFromDataURL: jest.fn(() => ({ isEmpty: () => false })),
   },
 }));
@@ -9,8 +10,10 @@ jest.mock('electron', () => ({
 const {
   createMainWindow,
   createChatWindow,
+  createTray,
   enableContentProtectionSafely,
   prepareOverlayQueryCaptureFocus,
+  resolveAppIconPathRuntime,
 } = require('../../frontend/src/main/main_window_runtime.cjs');
 
 describe('main_window_runtime enableContentProtectionSafely', () => {
@@ -349,5 +352,76 @@ describe('main_window_runtime createMainWindow', () => {
     createMainWindow(deps);
 
     expect(deps.enableContentProtectionSafely).not.toHaveBeenCalled();
+  });
+
+  test('passes app icon path into dashboard BrowserWindow options when available', () => {
+    const { deps, BrowserWindow } = createDeps({
+      resolveAppIconPath: jest.fn(() => '/tmp/windieos.png'),
+    });
+
+    createMainWindow(deps);
+
+    const options = BrowserWindow.mock.calls[0][0];
+    expect(options.icon).toBe('/tmp/windieos.png');
+  });
+});
+
+describe('main_window_runtime createTray', () => {
+  function createTrayDeps(overrides = {}) {
+    const tray = {
+      setToolTip: jest.fn(),
+      setContextMenu: jest.fn(),
+      on: jest.fn(),
+    };
+    return {
+      deps: {
+        Tray: jest.fn(() => tray),
+        Menu: {
+          buildFromTemplate: jest.fn(() => ({ menu: true })),
+        },
+        showMainWindow: jest.fn(),
+        app: { quit: jest.fn(), isQuitting: false },
+        resolveTrayIconPath: jest.fn(() => '/tmp/windieos.png'),
+        warn: jest.fn(),
+        ...overrides,
+      },
+      tray,
+    };
+  }
+
+  test('loads tray icon from resolved path and sets WindieOS tooltip', () => {
+    const { nativeImage } = require('electron');
+    const icon = { isEmpty: () => false };
+    nativeImage.createFromPath.mockReturnValueOnce(icon);
+
+    const { deps, tray } = createTrayDeps();
+    createTray(deps);
+
+    expect(nativeImage.createFromPath).toHaveBeenCalledWith('/tmp/windieos.png');
+    expect(deps.Tray).toHaveBeenCalledWith(icon);
+    expect(tray.setToolTip).toHaveBeenCalledWith('WindieOS');
+  });
+
+  test('falls back to data-url tray icon when path icon is empty', () => {
+    const { nativeImage } = require('electron');
+    nativeImage.createFromPath.mockReturnValueOnce({ isEmpty: () => true });
+
+    const { deps } = createTrayDeps();
+    createTray(deps);
+
+    expect(nativeImage.createFromDataURL).toHaveBeenCalledTimes(1);
+    expect(deps.warn).toHaveBeenCalled();
+  });
+});
+
+describe('main_window_runtime resolveAppIconPathRuntime', () => {
+  test('returns first existing icon candidate path', () => {
+    const result = resolveAppIconPathRuntime({
+      resourcesPath: '/opt/windie',
+      cwd: '/workspace/windie',
+      existsSync: (candidate) => candidate === '/opt/windie/src/main/assets/icons/windieos.png',
+    });
+
+    expect(result).toBe('/opt/windie/src/main/assets/icons/windieos.png');
   });
 });
