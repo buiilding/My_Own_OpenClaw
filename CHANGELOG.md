@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(packaging-linux-brand-name): rename frontend package slug to `windieos` and set explicit Linux package/executable/desktop naming in electron-builder so Software Center and generated `.deb` no longer show `desktop-assistant-frontend`.
 - feat(frontend-main-app-icon-wiring): move the provided WindieOS icon into `frontend/src/main/assets/icons/` and wire main-process BrowserWindow + tray icon resolution to `windieos.app.png`, plus wire electron-builder platform installer/executable icons to `windieos.ico` (Windows), `windieos.icns` (macOS), and `windieos.app.png` (Linux), with runtime regressions.
 - fix(frontend-onboarding-stop-shortcut-fallback): remove stale `Shift + Tab` fallback from the first-run slideshow stop guidance, use the shared dedicated stop shortcut resolver for default labeling, and refresh slideshow regression assertions to dedicated shortcut text.
 - feat(frontend-first-run-onboarding-slideshow): add a persisted two-step post-permission onboarding slideshow in renderer `App` flow (access reminder + loop-stop keybind guidance), style it as a minimal black/white high-legibility screen, add frontend onboarding storage + slideshow regressions, wire dedicated stop shortcut (`Ctrl+Alt+.` Windows/Linux, `Command+Option+.` macOS) to the existing stop-query path, and document the first-run flow in architecture/user docs.
