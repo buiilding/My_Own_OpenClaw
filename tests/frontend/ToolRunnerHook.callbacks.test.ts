@@ -292,4 +292,82 @@ describe('useToolRunner callback wiring', () => {
     expect(recordToolMessage).not.toHaveBeenCalled();
     expect(IpcBridge.send).not.toHaveBeenCalled();
   });
+
+  test('drops late single-tool callbacks after conversation switches and prior turn is completed', async () => {
+    act(() => {
+      useChatStore.getState().setActiveConversationRef('conv-a');
+      useChatStore.getState().updateStreamTracking((current) => ({
+        ...current,
+        activeTurnRef: 'turn-a',
+        phase: 'streaming',
+      }), 'conv-a');
+    });
+
+    renderToolRunner(true);
+
+    await emitBackendEventAsync({
+      type: 'tool-call',
+      id: 'event-conv-switch',
+      conversation_ref: 'conv-a',
+      turn_ref: 'turn-a',
+      payload: {
+        tool_name: 'read_file',
+        parameters: { file_path: '/tmp/a' },
+        correlation_id: 'corr-conv-switch',
+      },
+    });
+
+    await act(async () => {
+      useChatStore.getState().setActiveConversationRef('conv-b');
+      useChatStore.getState().updateStreamTracking((current) => ({
+        ...current,
+        activeTurnRef: 'turn-a',
+        phase: 'complete',
+      }), 'conv-a');
+      await Promise.resolve();
+    });
+
+    const messagesBefore = useChatStore.getState().messages.length;
+    (recordToolMessage as jest.Mock).mockClear();
+    (IpcBridge.send as jest.Mock).mockClear();
+
+    const callbacks = getCapturedServiceCallbacks();
+
+    await act(async () => {
+      callbacks.onToolResult({
+        toolName: 'read_file',
+        result: { success: true, data: { metadata: {} }, error: null },
+        executionTime: 0.1,
+        correlationId: 'corr-conv-switch',
+        formattedMessage: 'late result should be dropped',
+        screenshotRef: null,
+        screenshotUrl: null,
+      });
+    });
+
+    callbacks.sendToBackend({
+      type: 'tool-result',
+      payload: { request_id: 'corr-conv-switch', success: true, data: {} },
+    });
+
+    expect(useChatStore.getState().messages.length).toBe(messagesBefore);
+    expect(recordToolMessage).not.toHaveBeenCalled();
+    expect(IpcBridge.send).not.toHaveBeenCalled();
+  });
+
+  test('drops backend payloads that carry unknown or stale correlation ids', () => {
+    renderToolRunner(true);
+    const callbacks = getCapturedServiceCallbacks();
+
+    callbacks.sendToBackend({
+      type: 'tool-result',
+      payload: { request_id: 'untracked-correlation', success: true, data: {} },
+    });
+    callbacks.sendToBackend({
+      type: 'tool-bundle-result',
+      payload: { bundle_id: 'unknown-bundle', status: 'success', step_results: [] },
+    });
+
+    expect(IpcBridge.send).not.toHaveBeenCalled();
+  });
 });

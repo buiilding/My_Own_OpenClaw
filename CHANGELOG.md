@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(frontend-chat-loop-race-guards): add regressions for out-of-order chat-loop phase projection (`tool-output` before first visible reply), reconnect watchdog terminal-state disarm behavior, conversation-switch late tool-result drops, and untracked-correlation backend payload drops in tool-runner callback wiring.
 - refactor(frontend-main-bootstrap-naming): rename the main bootstrap contracts to `initializeMainProcessIpc` and `applyResponseOverlayPhase` so `index.cjs`, `main_window_runtime.cjs`, and `ipc.cjs` read as state application/bootstrap wiring instead of handler plumbing.
 - refactor(frontend-chatbox-surface-state): centralize the renderer chat pill projection into one shared `compact|awaiting-reply|response` state helper so `ChatBox` and `ChatBoxResponse` stop carrying divergent local loop-state rules.
 - refactor(frontend-chat-loop-ui-state): add a shared renderer loop vocabulary for dashboard + chat pill, keep the dashboard awaiting indicator stable when `streaming` lands before the first assistant row, and lock dashboard composer side controls during active loops.
