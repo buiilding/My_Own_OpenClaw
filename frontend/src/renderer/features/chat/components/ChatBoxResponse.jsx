@@ -1,21 +1,26 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useChatStore } from '../stores/chatStore';
+import { useResponseOverlayPhase } from '../hooks/useResponseOverlayPhase';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { toSanitizedMarkdownHtml } from '../../../infrastructure/markdown';
 import { resolveLlmOutputContract } from '../../../infrastructure/llmOutputContract';
 import { selectChatBoxState } from '../utils/chatSelectors';
 import { getRoundedFrameSize } from '../utils/overlayFrameSize';
-import { subscribeResponseOverlayPhase } from '../utils/overlayPhaseListener';
 import { isDevUiEnabled } from '../utils/devUiFlag';
 import { resolveSourceTag } from '../utils/sourceTags';
+import {
+  hasVisibleChatboxResponse,
+  resolveChatboxSurfaceState,
+  shouldShowChatboxAwaitingReply,
+  shouldShowChatboxResponse,
+} from '../utils/chatboxSurfaceState';
 import {
   isCompactHoverLayoutMode,
   RESPONSE_OVERLAY_LAYOUT_MODE,
   resolveResponseOverlayLayoutMode,
 } from '../utils/responseOverlayLayoutMode';
 import { RESPONSE_OVERLAY_PHASE } from '../utils/responseOverlayPhaseContract';
-import { isOverlayAwaitingReplyPhase } from '../utils/streamPhaseState';
 import {
   findLastUserIndex,
   findLatestMessageAfterUser,
@@ -54,36 +59,6 @@ function renderResponseContent(response, markdownHtml) {
   );
 }
 
-function resolveOverlayPresentationState({
-  overlayPhase,
-  isSending,
-  activeResponse,
-  closedResponseId,
-}) {
-  const awaitingPhase = isOverlayAwaitingReplyPhase(overlayPhase);
-  const visibleResponse = (
-    activeResponse
-    && activeResponse.id !== closedResponseId
-  ) ? activeResponse : null;
-  const showResponse = Boolean(visibleResponse && !awaitingPhase);
-  const waitingForFirstVisibleChunk = (
-    overlayPhase === RESPONSE_OVERLAY_PHASE.STREAMING
-    && !visibleResponse
-  );
-
-  // Keep the overlay as a direct projection of shared stream state.
-  const showAwaitingReply = !showResponse && (
-    awaitingPhase
-    || waitingForFirstVisibleChunk
-    || (isSending && !visibleResponse)
-  );
-
-  return {
-    showAwaitingReply,
-    showResponse,
-  };
-}
-
 function ChatBoxResponse() {
   const {
     messages,
@@ -91,7 +66,7 @@ function ChatBoxResponse() {
     thinkingStatus,
   } = useChatStore(useShallow(selectChatBoxState));
   const [closedResponseId, setClosedResponseId] = useState(null);
-  const [overlayPhase, setOverlayPhase] = useState(RESPONSE_OVERLAY_PHASE.IDLE);
+  const overlayPhase = useResponseOverlayPhase();
   const [hasOverflowAbove, setHasOverflowAbove] = useState(false);
   const shellRef = useRef(null);
   const responsePillRef = useRef(null);
@@ -108,38 +83,41 @@ function ChatBoxResponse() {
     [messages, lastUserIndex],
   );
 
-  const {
-    showAwaitingReply,
-    showResponse,
-  } = useMemo(() => resolveOverlayPresentationState({
+  const visibleResponse = useMemo(
+    () => (hasVisibleChatboxResponse(activeResponse, closedResponseId) ? activeResponse : null),
+    [activeResponse, closedResponseId],
+  );
+
+  const surfaceState = useMemo(() => resolveChatboxSurfaceState({
     overlayPhase,
     isSending,
-    activeResponse,
-    closedResponseId,
-  }), [activeResponse, closedResponseId, isSending, overlayPhase]);
+    hasVisibleResponse: Boolean(visibleResponse),
+  }), [isSending, overlayPhase, visibleResponse]);
+  const showAwaitingReply = shouldShowChatboxAwaitingReply(surfaceState);
+  const showResponse = shouldShowChatboxResponse(surfaceState);
 
   const responseIsCloseable = useMemo(() => {
-    if (!activeResponse || activeResponse.id === closedResponseId) {
+    if (!visibleResponse) {
       return false;
     }
-    if (activeResponse.type === 'error') {
+    if (visibleResponse.type === 'error') {
       return true;
     }
-    return Boolean(activeResponse.isComplete);
-  }, [activeResponse, closedResponseId]);
+    return Boolean(visibleResponse.isComplete);
+  }, [visibleResponse]);
 
   const responseMarkdownHtml = useMemo(() => {
-    if (!activeResponse || activeResponse.type === 'tool-call' || activeResponse.type === 'error') {
+    if (!visibleResponse || visibleResponse.type === 'tool-call' || visibleResponse.type === 'error') {
       return '';
     }
-    const contract = resolveLlmOutputContract(activeResponse.text ?? '', {
-      provider: activeResponse.modelProvider || null,
-      modelId: activeResponse.modelId || null,
+    const contract = resolveLlmOutputContract(visibleResponse.text ?? '', {
+      provider: visibleResponse.modelProvider || null,
+      modelId: visibleResponse.modelId || null,
       enableMath: true,
       stripAccidentalHtmlTokens: true,
     });
     return toSanitizedMarkdownHtml(contract.markdown, { enableMath: contract.mathEnabled });
-  }, [activeResponse]);
+  }, [visibleResponse]);
 
   const thinkingText = useMemo(
     () => (typeof thinkingStatus === 'string' ? thinkingStatus.trim() : ''),
@@ -153,17 +131,17 @@ function ChatBoxResponse() {
   const isVisible = overlayLayoutMode !== RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN;
 
   const sourceTagForResponse = useMemo(() => {
-    if (!isDevUiEnabled() || !activeResponse || !showResponse) {
+    if (!isDevUiEnabled() || !visibleResponse || !showResponse) {
       return null;
     }
-    const sourceEventType = typeof activeResponse.sourceEventType === 'string' && activeResponse.sourceEventType
-      ? activeResponse.sourceEventType
+    const sourceEventType = typeof visibleResponse.sourceEventType === 'string' && visibleResponse.sourceEventType
+      ? visibleResponse.sourceEventType
       : 'unknown';
-    const sourceChannel = typeof activeResponse.sourceChannel === 'string' && activeResponse.sourceChannel
-      ? activeResponse.sourceChannel
+    const sourceChannel = typeof visibleResponse.sourceChannel === 'string' && visibleResponse.sourceChannel
+      ? visibleResponse.sourceChannel
       : 'unknown';
     return resolveSourceTag(sourceEventType, sourceChannel);
-  }, [activeResponse, showResponse]);
+  }, [showResponse, visibleResponse]);
 
   const reportOverlaySize = useCallback(async ({
     visible,
@@ -229,13 +207,10 @@ function ChatBoxResponse() {
   }, []);
 
   useEffect(() => {
-    return subscribeResponseOverlayPhase((phase) => {
-      setOverlayPhase(phase);
-      if (phase === RESPONSE_OVERLAY_PHASE.AWAITING_FIRST_CHUNK) {
-        setClosedResponseId(null);
-      }
-    });
-  }, []);
+    if (overlayPhase === RESPONSE_OVERLAY_PHASE.AWAITING_FIRST_CHUNK) {
+      setClosedResponseId(null);
+    }
+  }, [overlayPhase]);
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.RESPONSE_OVERLAY_VISIBILITY, (payload = {}) => {
@@ -361,11 +336,11 @@ function ChatBoxResponse() {
   }, [reportOverlaySize]);
 
   const handleCloseResponse = useCallback(() => {
-    if (!activeResponse || !responseIsCloseable) {
+    if (!visibleResponse || !responseIsCloseable) {
       return;
     }
-    setClosedResponseId(activeResponse.id);
-  }, [activeResponse, responseIsCloseable]);
+    setClosedResponseId(visibleResponse.id);
+  }, [responseIsCloseable, visibleResponse]);
 
   if (!isVisible) {
     return null;
@@ -396,7 +371,7 @@ function ChatBoxResponse() {
                   {sourceTagForResponse}
                 </div>
               ) : null}
-              {renderResponseContent(activeResponse, responseMarkdownHtml)}
+              {renderResponseContent(visibleResponse, responseMarkdownHtml)}
             </div>
           </div>
         ) : null}

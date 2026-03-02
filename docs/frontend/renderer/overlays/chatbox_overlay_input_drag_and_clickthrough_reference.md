@@ -14,8 +14,10 @@ title: "Chatbox Overlay Input, Drag, and Click-Through Reference"
 - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBoxIcons.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBoxImagePreviewRow.jsx`
+- `frontend/src/renderer/features/chat/hooks/useResponseOverlayPhase.js`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/policies/messageSendUiPolicy.ts`
+- `frontend/src/renderer/features/chat/utils/chatboxSurfaceState.js`
 - `frontend/src/renderer/features/chat/utils/clipboardImageUtils.js`
 - `frontend/src/renderer/features/chat/utils/overlayPhaseListener.js`
 - `frontend/src/renderer/features/chat/utils/stopQueryState.js`
@@ -42,6 +44,7 @@ This keeps overlay window lightweight:
 `ChatBox` calls:
 
 - `useChatMessageSender(undefined, { senderSurface: "overlay-chatbox" })`
+- `useResponseOverlayPhase()` so the overlay chat pill reads one shared main-process phase channel instead of carrying duplicated local phase listeners in each component.
 
 Resulting behavior in `useChatMessageSender`:
 
@@ -137,19 +140,18 @@ Movement path:
 
 ## Visual Loop Activity Signal
 
-`loop-active` CSS class is enabled when either:
+`chatboxSurfaceState.js` is the renderer-side projection contract for the minimal pill:
 
-- `streamTracking.phase` in active loop set, or
-- `overlayPhase` in active loop set
+- `compact`: chat pill only
+- `awaiting-reply`: chat pill + typing indicator
+- `response`: chat pill + response overlay
 
-Active loop phases:
+`ChatBox` and `ChatBoxResponse` both derive those visuals from the same `overlayPhase` channel plus the send latch, so the overlay no longer carries separate component-local transition rules.
 
-- `awaiting-first-chunk`
-- `streaming`
-- `tool-call`
-- `tool-output`
+`loop-active` CSS class is enabled when `isChatboxLoopInteractionLocked(...)` reports an active loop:
 
-The canonical phase set and helper predicates now live in `streamPhaseState.js` and are shared by `ChatBox` and `ChatInterface` for stop-button availability and loop-active gating.
+- `isSending === true` before the first phase event lands
+- active overlay phases: `awaiting-first-chunk`, `streaming`, `tool-call`, `tool-output`
 
 ## Related Tests
 

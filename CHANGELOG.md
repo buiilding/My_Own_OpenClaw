@@ -8,6 +8,7 @@ Includes the last 300 commits on `main`.
 
 ### Added
 - refactor(frontend-main-bootstrap-naming): rename the main bootstrap contracts to `initializeMainProcessIpc` and `applyResponseOverlayPhase` so `index.cjs`, `main_window_runtime.cjs`, and `ipc.cjs` read as state application/bootstrap wiring instead of handler plumbing.
+- refactor(frontend-chatbox-surface-state): centralize the renderer chat pill projection into one shared `compact|awaiting-reply|response` state helper so `ChatBox` and `ChatBoxResponse` stop carrying divergent local loop-state rules.
 - refactor(frontend-overlay-phase-contract): stop exporting private overlay-phase helper internals, keep tests focused on public contracts, and cut the frontend `knip` unused-export baseline from `37` to `29`.
 - refactor(frontend-overlay-ipc-split): replace the old catch-all `overlay_ipc_runtime` registrar with explicit `overlay_phase`, `window_controls`, and `permission` IPC modules, retarget `index.cjs` wiring, and align docs/tests with the narrower ownership split.
 - refactor(frontend-overlay-ipc-prune): remove dead renderer-callable overlay interactivity/focus-prep IPC channels from main/preload, delete legacy toggle handler modules, and align docs/tests with the phase-owned overlay loop contract.
