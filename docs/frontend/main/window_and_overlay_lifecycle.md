@@ -151,8 +151,6 @@ Dashboard-to-chat-pill conversation continuity:
 
 Handlers in `overlay_ipc_runtime.cjs` (wired by `index.cjs`):
 
-- `set-overlay-ignore-mouse`: toggles click-through for chat and response overlays
-- `set-overlay-focusable`: toggles whether overlay windows can receive OS focus during tool execution
 - `set-responsebox-size`:
   - default mode: bounded resize (`width <= 900`, `height <= 750`), show/hide + re-anchor above chat
   - fullscreen ghost mode (`full_screen=true`): expands response overlay to the active display bounds for anywhere-on-screen ghost cursor rendering
@@ -161,6 +159,8 @@ Handlers in `overlay_ipc_runtime.cjs` (wired by `index.cjs`):
 - `show-chatbox`, `hide-chatbox`
 - `get-displays`: returns display id/label/bounds/scaleFactor
 - `window-minimize`, `window-toggle-maximize`, `window-close`
+
+Legacy overlay interactivity/focus-prep invoke handlers were removed; the shared response-overlay phase handler now owns active-loop click-through/`focusable=false`, and query-capture focus prep remains an internal main-process callback.
 
 Main bridge fanout channel (`ipc.cjs`):
 

@@ -195,7 +195,7 @@ describe('toolRunnerSurface helpers', () => {
     expect(preparation.canExecute).toBe(true);
     expect(preparation.failureReason).toBeNull();
     expect((IpcBridge.invoke as jest.Mock).mock.calls.some(
-      ([channel]: unknown[]) => channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS,
+      ([channel]: unknown[]) => channel === 'prepare-overlay-tool-focus',
     )).toBe(false);
   });
 

@@ -122,7 +122,6 @@ export function resetToolRunnerTestState() {
     if (
       channel === INVOKE_CHANNELS.SHOW_CHATBOX
       || channel === INVOKE_CHANNELS.HIDE_CHATBOX
-      || channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS
     ) {
       return { success: true };
     }

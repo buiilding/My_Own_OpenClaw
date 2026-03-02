@@ -70,12 +70,10 @@ Notable behavior:
 
 `ipcMain.handle`:
 
-- `set-overlay-ignore-mouse`
 - `set-responsebox-size`
 - `show-main-window` (optional payload `{ open?: 'chat' | 'memory' | 'models' | 'settings', maximize?: boolean }`)
 - `show-chatbox`
 - `hide-chatbox`
-- `prepare-overlay-tool-focus`
 - `get-displays`
 - `window-minimize`
 - `window-toggle-maximize`

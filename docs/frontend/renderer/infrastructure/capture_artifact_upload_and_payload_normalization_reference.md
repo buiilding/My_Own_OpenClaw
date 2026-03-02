@@ -67,7 +67,7 @@ Shared behavior:
 
 - optional wait (seconds -> milliseconds) before capture
 - when screenshot capture is enabled, renderer hides chat-pill overlays before capture (`show-chatbox {focus:false}` -> `hide-chatbox`) and restores after capture
-- pre-capture focus handoff via `prepare-overlay-tool-focus` (default `waitMs:120`) after screenshot visibility prep so active-window/system-state sampling prefers the external target window instead of overlay surfaces
+- no renderer-callable focus-prep IPC; any capture focus demotion stays internal to the main-process query-capture path
 - wraps screenshot activity in window event markers:
   - `windie:screenshot-capture {active:true|false}`
 

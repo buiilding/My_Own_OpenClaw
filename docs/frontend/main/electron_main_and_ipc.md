@@ -139,7 +139,7 @@ From renderer usage perspective:
 
 - send channels: backend messaging, overlay window control, wakeword chunk/control
 - invoke channels: tool execution, artifact upload, memory CRUD/search, config load/save, window/display APIs
-- invoke channels include overlay tool-focus prep (`prepare-overlay-tool-focus`) and explicit episodic memory delete (`delete-episodic-memory`).
+- invoke channels include explicit episodic memory delete (`delete-episodic-memory`); legacy overlay focus-prep/toggle RPCs were removed from the renderer boundary.
 - invoke channels also include permission/status request channels and sudo access toggle:
   - `set-agent-sudo-access`
   - `list-permissions`, `check-permissions`, `check-permission`, `run-permission-probe`, `request-permission`

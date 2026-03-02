@@ -146,7 +146,7 @@ describe('useToolRunner event handling', () => {
       expect.anything(),
     );
     expect(IpcBridge.invoke).not.toHaveBeenCalledWith(
-      INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS,
+      'prepare-overlay-tool-focus',
       expect.anything(),
     );
   });
@@ -173,7 +173,7 @@ describe('useToolRunner event handling', () => {
     expect(invokeCalls).toContainEqual([INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY]);
     expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.SHOW_CHATBOX)).toBe(false);
     expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.HIDE_CHATBOX)).toBe(false);
-    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS)).toBe(false);
+    expect(invokeCalls.some(([channel]: unknown[]) => channel === 'prepare-overlay-tool-focus')).toBe(false);
   });
 
   test('hides then restores chat pill for screenshot tool-call when dashboard is open', async () => {
@@ -339,7 +339,7 @@ describe('useToolRunner event handling', () => {
     expect(invokeCalls).toContainEqual([INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY]);
     expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.SHOW_CHATBOX)).toBe(false);
     expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.HIDE_CHATBOX)).toBe(false);
-    expect(invokeCalls.some(([channel]: unknown[]) => channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS)).toBe(false);
+    expect(invokeCalls.some(([channel]: unknown[]) => channel === 'prepare-overlay-tool-focus')).toBe(false);
   });
 
   test('uses generated bundle id when bundle_id is missing', async () => {

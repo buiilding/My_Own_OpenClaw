@@ -49,7 +49,6 @@ Delegated runtime modules:
 `initializeOverlayHandlersRuntime(deps)` centralizes `ipcMain.handle/on` registrations for:
 
 - overlay/window controls:
-  - `set-overlay-ignore-mouse`
   - `move-chatbox-to`
   - `set-responsebox-size`
   - `show-main-window`
@@ -68,6 +67,14 @@ Delegated runtime modules:
   - `request-permission`
 
 It delegates business logic to existing handler modules while normalizing dependency injection (`getWindows`, `screen`, permission deps, open-target emitters).
+
+Removed legacy invoke channels:
+
+- `set-overlay-ignore-mouse`
+- `set-overlay-focusable`
+- `prepare-overlay-tool-focus`
+
+Loop interactivity and query-capture focus prep are now internal main-process behavior, not renderer-callable IPC.
 
 ## Window Visibility Runtime (`window_visibility_runtime.cjs`)
 
