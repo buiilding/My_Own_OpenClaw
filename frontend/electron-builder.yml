@@ -35,8 +35,9 @@ linux:
   executableName: windieos
   artifactName: windieos_${version}_${arch}.${ext}
   desktop:
-    Name: WindieOS
-    StartupWMClass: WindieOS
+    entry:
+      Name: WindieOS
+      StartupWMClass: WindieOS
   category: Utility
   maintainer: WindieOS <support@windieos.com>
   target:
