@@ -36,8 +36,8 @@
 
 .chat-title-block {
   min-width: 0;
-  padding-top: 18px;
-  padding-bottom: 2px;
+  padding-top: 30px;
+  padding-bottom: 0;
   -webkit-app-region: no-drag;
 }
 
@@ -1538,8 +1538,8 @@
   }
 
   .chat-title-block {
-    padding-top: 12px;
-    padding-bottom: 1px;
+    padding-top: 20px;
+    padding-bottom: 0;
   }
 
   .chat-meta {
