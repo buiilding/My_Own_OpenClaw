@@ -157,6 +157,7 @@ Primary modules:
   - Executes incoming tool calls/bundles, stale-turn cancellation responses.
 - `features/chat/components/ChatInterface.jsx`:
   - Provider + model selectors, stop/new-chat actions, speech toggle, retry/edit message flows.
+  - Dedicated loop-stop shortcut handler (`Ctrl+Alt+.` on Windows/Linux, `Command+Option+.` on macOS) wired to the same stop-query path as the stop button.
 - `features/chat/components/MessageList.jsx`:
   - Message rendering + inline user-message editor.
 

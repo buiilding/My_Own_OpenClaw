@@ -27,6 +27,7 @@ import { isDevUiEnabled } from '../utils/devUiFlag';
 import { applyStopQueryUiState } from '../utils/stopQueryState';
 import { useChatLoopUiState } from '../hooks/useChatLoopUiState';
 import { useTranscriptSessionInfo } from '../../dashboard/hooks/useTranscriptSessionInfo';
+import { isAgentStopShortcutEvent } from '../../../infrastructure/shortcuts/agentStopShortcut';
 import '../../../styles/ChatInterface.css';
 
 function waitForNextPaint() {
@@ -252,6 +253,21 @@ function ChatInterface({ focusComposerToken = 0 }) {
     transcriptSessionInfo.conversationRef,
     updateStreamTracking,
   ]);
+
+  useEffect(() => {
+    const handleStopShortcut = (event) => {
+      if (!canStop || !isAgentStopShortcutEvent(event)) {
+        return;
+      }
+      event.preventDefault();
+      handleStopQuery();
+    };
+
+    window.addEventListener('keydown', handleStopShortcut);
+    return () => {
+      window.removeEventListener('keydown', handleStopShortcut);
+    };
+  }, [canStop, handleStopQuery]);
 
   const handleNewChat = useCallback(() => {
     startNewChatSession({

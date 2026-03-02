@@ -13,7 +13,7 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel = 'Shi
     {
       id: 'stop-flow',
       title: 'Stop the agent during loops',
-      body: 'Use this keybind to switch modes quickly, then press Stop on the dashboard while the loop is active.',
+      body: 'Press this keybind to stop the active agent loop immediately.',
       emphasisLabel: 'Keybind',
       emphasisValue: stopAgentShortcutLabel,
     },
