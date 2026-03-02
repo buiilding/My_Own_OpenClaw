@@ -36,14 +36,15 @@
 
 .chat-title-block {
   min-width: 0;
-  padding-top: 12px;
+  padding-top: 18px;
+  padding-bottom: 2px;
   -webkit-app-region: no-drag;
 }
 
 .chat-model-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .chat-meta {
@@ -68,10 +69,10 @@
   border: none;
   background: transparent;
   color: var(--ui-text-primary);
-  padding: 6px 10px;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 500;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: 550;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -90,10 +91,10 @@
   border: none;
   background: transparent;
   color: var(--ui-text-primary);
-  padding: 6px 10px;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 500;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: 550;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -110,11 +111,11 @@
 
 .chat-model-menu {
   --chat-model-menu-visible-rows: 5;
-  --chat-model-menu-row-height: 36px;
+  --chat-model-menu-row-height: 42px;
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
-  min-width: 220px;
+  min-width: 260px;
   max-height: calc(
     var(--chat-model-menu-visible-rows) * var(--chat-model-menu-row-height) + 12px
   );
@@ -135,7 +136,7 @@
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
-  min-width: 220px;
+  min-width: 260px;
   border-radius: 12px;
   border: 1px solid var(--ui-border-soft);
   background: var(--ui-panel-bg);
@@ -153,8 +154,8 @@
   background: transparent;
   color: var(--ui-text-primary);
   text-align: left;
-  padding: 9px 10px;
-  font-size: 14px;
+  padding: 10px 12px;
+  font-size: 15px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -172,8 +173,8 @@
   background: transparent;
   color: var(--ui-text-primary);
   text-align: left;
-  padding: 9px 10px;
-  font-size: 14px;
+  padding: 10px 12px;
+  font-size: 15px;
   display: inline-flex;
   align-items: center;
   cursor: pointer;
@@ -1537,7 +1538,8 @@
   }
 
   .chat-title-block {
-    padding-top: 10px;
+    padding-top: 12px;
+    padding-bottom: 1px;
   }
 
   .chat-meta {
@@ -1551,6 +1553,13 @@
 
   .chat-empty-state {
     padding-top: 24vh;
+  }
+
+  .chat-provider-selector,
+  .chat-model-selector {
+    padding: 8px 11px;
+    font-size: 16px;
+    border-radius: 9px;
   }
 
   .chat-empty-title {

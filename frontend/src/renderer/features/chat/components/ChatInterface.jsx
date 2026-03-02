@@ -430,7 +430,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
                 }}
               >
                 <span>{providerLabel}</span>
-                <ChevronDown size={14} />
+                <ChevronDown size={16} />
               </button>
               {providerMenuOpen ? (
                 <div className="chat-provider-menu" role="menu">
@@ -468,7 +468,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
                 }}
               >
                 {renderModelLabel(modelLabelBase, selectedModelOption?.supportsThinking)}
-                <ChevronDown size={14} />
+                <ChevronDown size={16} />
               </button>
               {modelMenuOpen ? (
                 <div className="chat-model-menu" role="menu">
