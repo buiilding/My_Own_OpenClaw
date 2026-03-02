@@ -219,24 +219,25 @@ class LocalMemoryStore:
         # Create database schemas and load vector mappings
         await self._init_databases()
         await self._load_vector_mappings()
-        await self._sync_vector_mappings()
 
         # Initialize FAISS indices if not loaded
         dimension = self.embedder.dimension
-        
+
         if self.episodic_index is None:
             self.episodic_index = faiss.IndexFlatIP(dimension)
         elif self.episodic_index.ntotal == 0 and len(self.episodic_vector_id_to_memory_id) > 0:
             # Index is empty but we have memories - rebuild it
             logger.warning("Episodic FAISS index is empty but memories exist. Rebuilding index...")
             await self._rebuild_index("episodic")
-        
+
         if self.semantic_index is None:
             self.semantic_index = faiss.IndexFlatIP(dimension)
         elif self.semantic_index.ntotal == 0 and len(self.semantic_vector_id_to_memory_id) > 0:
             # Index is empty but we have memories - rebuild it
             logger.warning("Semantic FAISS index is empty but memories exist. Rebuilding index...")
             await self._rebuild_index("semantic")
+
+        await self._sync_vector_mappings()
 
     async def close(self) -> None:
         """Close the embedding client and save indices."""
@@ -266,6 +267,7 @@ class LocalMemoryStore:
 
     async def _sync_vector_mappings(self) -> None:
         """Sync vector mappings: ensure all memories in both DBs have vector IDs."""
+        embedded_total = 0
         for memory_type in self._MEMORY_ATTRS:
             (
                 db_path,
@@ -274,7 +276,7 @@ class LocalMemoryStore:
                 memory_id_to_vector_id,
                 next_vector_id,
             ) = self._get_memory_state(memory_type)
-            updated_next_vector_id = await self._sync_vector_mappings_for_db(
+            updated_next_vector_id, embedded_count = await self._sync_vector_mappings_for_db(
                 memory_type=memory_type,
                 db_path=db_path,
                 index=index,
@@ -283,9 +285,10 @@ class LocalMemoryStore:
                 next_vector_id=next_vector_id,
             )
             self._set_next_vector_id(memory_type, updated_next_vector_id)
-        
-        # Always save indices after sync to ensure persistence
-        await self._save_faiss_indices()
+            embedded_total += embedded_count
+
+        if embedded_total > 0:
+            await self._save_faiss_indices()
 
     async def _sync_vector_mappings_for_db(
         self,
@@ -295,7 +298,7 @@ class LocalMemoryStore:
         vector_id_to_memory_id: Dict[int, str],
         memory_id_to_vector_id: Dict[str, int],
         next_vector_id: int,
-    ) -> int:
+    ) -> Tuple[int, int]:
         async with aiosqlite.connect(db_path) as conn:
             conn.row_factory = aiosqlite.Row
             cursor = await conn.cursor()
@@ -357,12 +360,7 @@ class LocalMemoryStore:
                 embedded_count += 1
 
             await conn.commit()
-
-            # Save index if we added any vectors
-            if embedded_count > 0:
-                await self._save_faiss_indices()
-
-        return next_vector_id
+        return next_vector_id, embedded_count
 
     async def _save_faiss_indices(self) -> None:
         """Save both FAISS indices to disk (async operation using global thread pool)."""

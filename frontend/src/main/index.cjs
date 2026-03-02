@@ -52,6 +52,7 @@ const {
   showMainWindow: showMainWindowRuntime,
 } = require('./window_visibility_runtime.cjs');
 const { createResponseOverlayPhaseEnum } = require('./ipc_overlay_phase_contract.cjs');
+const { configureGpuRuntime } = require('./gpu_runtime.cjs');
 let windowManager = null;
 try {
   ({ windowManager } = require('node-window-manager'));
@@ -59,12 +60,7 @@ try {
   windowManager = null;
 }
 
-// Disable hardware acceleration to prevent GPU crashes
-app.disableHardwareAcceleration();
-
-// Suppress GPU-related warnings
-process.env.LIBGL_ALWAYS_SOFTWARE = '1';
-process.env.GALLIUM_DRIVER = 'llvmpipe';
+configureGpuRuntime({ app, env: process.env });
 
 let mainWindow = null;
 let chatWindow = null;

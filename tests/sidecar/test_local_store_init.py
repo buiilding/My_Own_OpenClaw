@@ -3,6 +3,7 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 ensure_frontend_python_path()
 
 import pytest
+import types
 
 import memory.local_store as local_store_module  # noqa: E402
 from memory.local_store import LocalMemoryStore  # noqa: E402
@@ -26,3 +27,116 @@ def test_local_memory_store_init_skips_sync_faiss_reads(monkeypatch, tmp_path):
 
     assert store.episodic_index is None
     assert store.semantic_index is None
+
+
+@pytest.mark.asyncio
+async def test_initialize_creates_faiss_indices_before_sync(monkeypatch, tmp_path):
+    if local_store_module.faiss is None:
+        pytest.skip("FAISS runtime dependency is unavailable")
+
+    async def _noop_async(*_args, **_kwargs):
+        return None
+
+    async def _read_index_none(*_args, **_kwargs):
+        return None
+
+    observed_sync_state = []
+
+    async def _record_sync(self):
+        observed_sync_state.append(
+            (
+                self.episodic_index is not None,
+                self.semantic_index is not None,
+            )
+        )
+
+    monkeypatch.setattr(local_store_module, "read_index_safe_async", _read_index_none)
+    monkeypatch.setattr(LocalMemoryStore, "_init_databases", _noop_async)
+    monkeypatch.setattr(LocalMemoryStore, "_load_vector_mappings", _noop_async)
+    monkeypatch.setattr(LocalMemoryStore, "_rebuild_index", _noop_async)
+    monkeypatch.setattr(LocalMemoryStore, "_sync_vector_mappings", _record_sync)
+
+    store = LocalMemoryStore.__new__(LocalMemoryStore)
+    store.episodic_index_path = tmp_path / "episodic.faiss.index"
+    store.semantic_index_path = tmp_path / "semantic.faiss.index"
+    store.episodic_index = None
+    store.semantic_index = None
+    store.episodic_vector_id_to_memory_id = {}
+    store.semantic_vector_id_to_memory_id = {}
+    store.episodic_next_vector_id = 0
+    store.semantic_next_vector_id = 0
+    store.embedder = types.SimpleNamespace(
+        dimension=8,
+        initialize=_noop_async,
+    )
+    store.title_client = types.SimpleNamespace(initialize=_noop_async)
+
+    await LocalMemoryStore.initialize(store)
+
+    assert observed_sync_state == [(True, True)]
+
+
+@pytest.mark.asyncio
+async def test_sync_vector_mappings_skips_index_save_when_no_backfill(monkeypatch):
+    store = LocalMemoryStore.__new__(LocalMemoryStore)
+    store.episodic_db_path = "/tmp/episodic.db"
+    store.semantic_db_path = "/tmp/semantic.db"
+    store.episodic_index = object()
+    store.semantic_index = object()
+    store.episodic_vector_id_to_memory_id = {}
+    store.semantic_vector_id_to_memory_id = {}
+    store.episodic_memory_id_to_vector_id = {}
+    store.semantic_memory_id_to_vector_id = {}
+    store.episodic_next_vector_id = 3
+    store.semantic_next_vector_id = 5
+
+    async def _no_updates(*, next_vector_id, **_kwargs):
+        return next_vector_id, 0
+
+    save_calls = []
+
+    async def _record_save():
+        save_calls.append("saved")
+
+    monkeypatch.setattr(store, "_sync_vector_mappings_for_db", _no_updates)
+    monkeypatch.setattr(store, "_save_faiss_indices", _record_save)
+
+    await LocalMemoryStore._sync_vector_mappings(store)
+
+    assert save_calls == []
+    assert store.episodic_next_vector_id == 3
+    assert store.semantic_next_vector_id == 5
+
+
+@pytest.mark.asyncio
+async def test_sync_vector_mappings_saves_once_when_backfill_added(monkeypatch):
+    store = LocalMemoryStore.__new__(LocalMemoryStore)
+    store.episodic_db_path = "/tmp/episodic.db"
+    store.semantic_db_path = "/tmp/semantic.db"
+    store.episodic_index = object()
+    store.semantic_index = object()
+    store.episodic_vector_id_to_memory_id = {}
+    store.semantic_vector_id_to_memory_id = {}
+    store.episodic_memory_id_to_vector_id = {}
+    store.semantic_memory_id_to_vector_id = {}
+    store.episodic_next_vector_id = 7
+    store.semantic_next_vector_id = 11
+
+    async def _updates(memory_type, *, next_vector_id, **_kwargs):
+        if memory_type == "episodic":
+            return next_vector_id + 2, 2
+        return next_vector_id, 0
+
+    save_calls = []
+
+    async def _record_save():
+        save_calls.append("saved")
+
+    monkeypatch.setattr(store, "_sync_vector_mappings_for_db", _updates)
+    monkeypatch.setattr(store, "_save_faiss_indices", _record_save)
+
+    await LocalMemoryStore._sync_vector_mappings(store)
+
+    assert save_calls == ["saved"]
+    assert store.episodic_next_vector_id == 9
+    assert store.semantic_next_vector_id == 11
