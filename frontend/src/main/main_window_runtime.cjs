@@ -319,13 +319,20 @@ function createChatWindow({
   chatWindow.setIgnoreMouseEvents(false);
   positionChatWindow();
 
-  loadRendererView({
-    targetWindow: chatWindow,
-    view: 'chatbox',
-    app,
-    path,
-    enableDevTransparencyUi,
-  });
+  let chatRendererLoaded = false;
+  const ensureChatRendererLoaded = () => {
+    if (chatRendererLoaded) {
+      return;
+    }
+    chatRendererLoaded = true;
+    loadRendererView({
+      targetWindow: chatWindow,
+      view: 'chatbox',
+      app,
+      path,
+      enableDevTransparencyUi,
+    });
+  };
 
   chatWindow.on('close', (event) => {
     if (!app.isQuitting) {
@@ -340,6 +347,7 @@ function createChatWindow({
   });
 
   chatWindow.on('show', () => {
+    ensureChatRendererLoaded();
     syncWakewordToggleForChatVisibility();
   });
 
@@ -401,19 +409,31 @@ function createResponseWindow({
   responseWindow.setAlwaysOnTop(true, 'floating');
   responseWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
 
-  loadRendererView({
-    targetWindow: responseWindow,
-    view: enableOsToolGhostDebug ? responseWindowDebugView : 'chatbox-response',
-    app,
-    path,
-    enableDevTransparencyUi,
-  });
+  let responseRendererLoaded = false;
+  const ensureResponseRendererLoaded = () => {
+    if (responseRendererLoaded) {
+      return;
+    }
+    responseRendererLoaded = true;
+    loadRendererView({
+      targetWindow: responseWindow,
+      view: enableOsToolGhostDebug ? responseWindowDebugView : 'chatbox-response',
+      app,
+      path,
+      enableDevTransparencyUi,
+    });
+  };
 
   if (enableOsToolGhostDebug) {
+    ensureResponseRendererLoaded();
     setResponseOverlayVisible(true);
     positionResponseWindow();
     showResponseWindowInactive();
   }
+
+  responseWindow.on('show', () => {
+    ensureResponseRendererLoaded();
+  });
 
   responseWindow.on('close', (event) => {
     if (!app.isQuitting) {

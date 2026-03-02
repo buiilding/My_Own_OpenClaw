@@ -10,6 +10,7 @@ jest.mock('electron', () => ({
 const {
   createMainWindow,
   createChatWindow,
+  createResponseWindow,
   createTray,
   enableContentProtectionSafely,
   prepareOverlayQueryCaptureFocus,
@@ -276,6 +277,85 @@ describe('main_window_runtime createChatWindow', () => {
       platform: 'win32',
       windowLabel: 'chat box',
     });
+  });
+
+  test('defers chat renderer load until first show event', () => {
+    const { deps, handlers, chatWindow } = createDeps();
+
+    createChatWindow(deps);
+    expect(chatWindow.loadURL).not.toHaveBeenCalled();
+    expect(chatWindow.loadFile).not.toHaveBeenCalled();
+
+    handlers.show();
+    expect(chatWindow.loadURL).toHaveBeenCalledTimes(1);
+    expect(chatWindow.loadURL).toHaveBeenCalledWith(expect.stringContaining('view=chatbox'));
+
+    handlers.show();
+    expect(chatWindow.loadURL).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('main_window_runtime createResponseWindow', () => {
+  function createDeps(overrides = {}) {
+    const handlers = {};
+    const responseWindow = {
+      setAlwaysOnTop: jest.fn(),
+      setVisibleOnAllWorkspaces: jest.fn(),
+      setContentProtection: jest.fn(),
+      loadURL: jest.fn(),
+      loadFile: jest.fn(),
+      hide: jest.fn(),
+      on: jest.fn((eventName, handler) => {
+        handlers[eventName] = handler;
+      }),
+      isDestroyed: jest.fn().mockReturnValue(false),
+    };
+    const BrowserWindow = jest.fn(() => responseWindow);
+    const deps = {
+      BrowserWindow,
+      path: require('path'),
+      app: { isPackaged: false, isQuitting: false },
+      platform: 'linux',
+      enableDevTransparencyUi: false,
+      enableOsToolGhostDebug: false,
+      responseWindowDebugView: 'chatbox-response-debug',
+      positionResponseWindow: jest.fn(),
+      showResponseWindowInactive: jest.fn(),
+      setResponseOverlayVisible: jest.fn(),
+      setResponseOverlayVisibilityState: jest.fn(),
+      syncContextLabelWindowVisibility: jest.fn(),
+      setResponseWindow: jest.fn(),
+      enableContentProtectionSafely: jest.fn(),
+      ...overrides,
+    };
+    return { deps, handlers, responseWindow };
+  }
+
+  test('defers response overlay renderer load until first show event in normal mode', () => {
+    const { deps, handlers, responseWindow } = createDeps({ enableOsToolGhostDebug: false });
+
+    createResponseWindow(deps);
+    expect(responseWindow.loadURL).not.toHaveBeenCalled();
+    expect(responseWindow.loadFile).not.toHaveBeenCalled();
+
+    handlers.show();
+    expect(responseWindow.loadURL).toHaveBeenCalledTimes(1);
+    expect(responseWindow.loadURL).toHaveBeenCalledWith(expect.stringContaining('view=chatbox-response'));
+
+    handlers.show();
+    expect(responseWindow.loadURL).toHaveBeenCalledTimes(1);
+  });
+
+  test('keeps debug response overlay eager-loaded', () => {
+    const { deps, responseWindow } = createDeps({ enableOsToolGhostDebug: true });
+
+    createResponseWindow(deps);
+
+    expect(responseWindow.loadURL).toHaveBeenCalledTimes(1);
+    expect(responseWindow.loadURL).toHaveBeenCalledWith(expect.stringContaining('view=chatbox-response-debug'));
+    expect(deps.positionResponseWindow).toHaveBeenCalledTimes(1);
+    expect(deps.showResponseWindowInactive).toHaveBeenCalledTimes(1);
+    expect(deps.setResponseOverlayVisible).toHaveBeenCalledWith(true);
   });
 });
 
