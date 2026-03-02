@@ -174,5 +174,6 @@ export function useChatLoopUiState({
     loopUiState: machineState.loopUiState,
     isBusy: isChatLoopBusy(machineState.loopUiState),
     isAwaitingReply: isChatLoopAwaitingReply(machineState.loopUiState),
-  }), [machineState.loopUiState]);
+    isTransportConnected: machineState.transportConnected,
+  }), [machineState.loopUiState, machineState.transportConnected]);
 }
