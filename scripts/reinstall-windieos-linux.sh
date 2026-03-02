@@ -38,7 +38,19 @@ echo "[reinstall-windieos-linux] stopping running app (if present)"
 pkill -f '(^|/)windieos($| )' || true
 
 echo "[reinstall-windieos-linux] uninstalling previous packages"
-sudo apt purge -y windieos desktop-assistant-frontend || true
+INSTALLED_PACKAGES=()
+for pkg in windieos desktop-assistant-frontend; do
+  if dpkg-query -W -f='${db:Status-Status}\n' "${pkg}" 2>/dev/null | grep -qx 'installed'; then
+    INSTALLED_PACKAGES+=("${pkg}")
+  fi
+done
+
+if [[ "${#INSTALLED_PACKAGES[@]}" -gt 0 ]]; then
+  echo "[reinstall-windieos-linux] purging: ${INSTALLED_PACKAGES[*]}"
+  sudo apt purge -y "${INSTALLED_PACKAGES[@]}"
+else
+  echo "[reinstall-windieos-linux] no existing windieos package install found; skipping purge"
+fi
 sudo apt autoremove -y || true
 
 echo "[reinstall-windieos-linux] cleaning previous build artifacts"
