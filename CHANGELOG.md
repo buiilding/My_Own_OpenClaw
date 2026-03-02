@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- chore(scripts-linux-reinstall-helper): add executable `scripts/reinstall-windieos-linux.sh` to fully purge previous Linux package install, rebuild bundled-python artifacts with pinned Conda/Python build interpreter, reinstall latest `.deb`, and verify bundled runtime `_tkinter`.
 - fix(frontend-dashboard-startup-chat-history-retry): auto-retry dashboard recent chat loading on startup after transient sidecar readiness failures (`Local backend not ready`/timeout), so “Your chats” populates without requiring the user to send a new query first; add dashboard regression coverage.
 - fix(packaging-wakeword-prefetch-log-branch): correct `build-sidecar-runtime` wakeword prefetch success/failure shell branch so successful model prefetch no longer logs a false warning fallback message.
 - fix(sidecar-system-state-pyautogui-systemexit-guard): harden sidecar system-state probes so `pyautogui`/`mouseinfo` `SystemExit` failures (for example missing Linux `tkinter`) no longer terminate local backend; return safe fallback system-state errors instead, with sidecar regressions for `SystemExit` handling in both system-state probes and local-backend handler.
