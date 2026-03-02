@@ -302,23 +302,7 @@ class LocalMemoryStore:
         async with aiosqlite.connect(db_path) as conn:
             conn.row_factory = aiosqlite.Row
             cursor = await conn.cursor()
-            if memory_type == "episodic":
-                # Backfill embeddings for semantic candidates in transcript storage.
-                await cursor.execute(
-                    """
-                    SELECT id, content, record_kind, role, message_type
-                    FROM memories
-                    WHERE embedding_id IS NULL
-                """
-                )
-            else:
-                await cursor.execute(
-                    """
-                    SELECT id, content
-                    FROM memories
-                    WHERE embedding_id IS NULL
-                """
-                )
+            await cursor.execute(self._missing_embedding_rows_query(memory_type))
 
             rows = await cursor.fetchall()
             embedded_count = 0
@@ -326,16 +310,6 @@ class LocalMemoryStore:
             for row in rows:
                 memory_id = row["id"]
                 content = row["content"]
-                if memory_type == "episodic":
-                    record_kind = row["record_kind"]
-                    role = row["role"]
-                    message_type = row["message_type"]
-                    if not self._should_embed_episodic_entry(
-                        record_kind=record_kind,
-                        role=role,
-                        message_type=message_type,
-                    ):
-                        continue
 
                 if not content:
                     continue
@@ -361,6 +335,34 @@ class LocalMemoryStore:
 
             await conn.commit()
         return next_vector_id, embedded_count
+
+    @staticmethod
+    def _missing_embedding_rows_query(memory_type: str) -> str:
+        """
+        SQL query used for startup backfill scans.
+
+        Episodic policy intentionally excludes low-signal transcript tool chatter
+        so startup does not repeatedly rescan rows that are never embeddable.
+        """
+        if memory_type == "episodic":
+            return """
+                SELECT id, content
+                FROM memories
+                WHERE embedding_id IS NULL
+                  AND (
+                    COALESCE(LOWER(TRIM(record_kind)), '') != 'transcript'
+                    OR COALESCE(LOWER(TRIM(role)), '') = 'user'
+                    OR (
+                      COALESCE(LOWER(TRIM(role)), '') = 'assistant'
+                      AND COALESCE(LOWER(TRIM(message_type)), '') IN ('', 'llm-text', 'error')
+                    )
+                  )
+            """
+        return """
+            SELECT id, content
+            FROM memories
+            WHERE embedding_id IS NULL
+        """
 
     async def _save_faiss_indices(self) -> None:
         """Save both FAISS indices to disk (async operation using global thread pool)."""
