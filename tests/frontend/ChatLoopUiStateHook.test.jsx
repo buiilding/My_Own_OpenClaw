@@ -113,4 +113,37 @@ describe('useChatLoopUiState', () => {
     expect(screen.getByTestId('loop-state-probe').dataset.loopUiState).toBe('active-response');
     expect(screen.getByTestId('loop-state-probe').dataset.isBusy).toBe('1');
   });
+
+  test('maps tool-output before first visible reply to awaiting state, then switches to response once content appears', () => {
+    const { rerender } = render(
+      <LoopStateProbe phase="tool-output" isSending={false} hasVisibleReply={false} />,
+    );
+
+    expect(screen.getByTestId('loop-state-probe').dataset.loopUiState).toBe('awaiting-reply');
+
+    rerender(<LoopStateProbe phase="streaming" isSending={false} hasVisibleReply />);
+    expect(screen.getByTestId('loop-state-probe').dataset.loopUiState).toBe('active-response');
+  });
+
+  test('keeps watchdog disarmed when reconnect settles on terminal state with duplicate terminal snapshots', async () => {
+    jest.useFakeTimers();
+    const { rerender } = render(<LoopStateProbe phase="awaiting-first-chunk" isSending />);
+
+    act(() => {
+      mockListeners.get('ipc-status')?.({ isConnected: false });
+      mockListeners.get('ipc-status')?.({ isConnected: true });
+    });
+
+    rerender(<LoopStateProbe phase="complete" isSending={false} hasVisibleReply={false} />);
+    rerender(<LoopStateProbe phase="complete" isSending={false} hasVisibleReply={false} />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+    act(() => {
+      jest.advanceTimersByTime(120);
+    });
+
+    expect(screen.getByTestId('loop-state-probe').dataset.loopUiState).toBe('idle');
+    expect(screen.getByTestId('loop-state-probe').dataset.isBusy).toBe('0');
+  });
 });
