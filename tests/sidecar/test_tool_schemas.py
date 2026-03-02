@@ -49,6 +49,9 @@ def test_keyboard_control_validates_action_fields_and_length():
         KeyboardControlArgs(action="type")
 
     with pytest.raises(ValidationError):
+        KeyboardControlArgs(action="paste")
+
+    with pytest.raises(ValidationError):
         KeyboardControlArgs(action="press")
 
     with pytest.raises(ValidationError):
@@ -57,8 +60,14 @@ def test_keyboard_control_validates_action_fields_and_length():
     with pytest.raises(ValidationError):
         KeyboardControlArgs(action="type", text="a" * 10001)
 
+    with pytest.raises(ValidationError):
+        KeyboardControlArgs(action="paste", text="a" * 10001)
+
     args = KeyboardControlArgs(action="type", text="hello")
     assert args.text == "hello"
+
+    paste_args = KeyboardControlArgs(action="paste", text="hello")
+    assert paste_args.text == "hello"
 
 
 def test_keyboard_control_accepts_press_and_hotkey_actions():
@@ -72,6 +81,9 @@ def test_keyboard_control_accepts_press_and_hotkey_actions():
 def test_keyboard_control_allows_text_length_boundary():
     args = KeyboardControlArgs(action="type", text="a" * 10000)
     assert len(args.text) == 10000
+
+    paste_args = KeyboardControlArgs(action="paste", text="a" * 10000)
+    assert len(paste_args.text) == 10000
 
 
 def test_scroll_control_requires_direction_for_scroll_action():

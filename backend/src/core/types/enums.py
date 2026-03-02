@@ -63,6 +63,7 @@ class MouseAction(str, Enum):
 class KeyboardAction(str, Enum):
     """Keyboard actions for computer control."""
     TYPE = "type"
+    PASTE = "paste"
     PRESS = "press"
     HOTKEY = "hotkey"
 

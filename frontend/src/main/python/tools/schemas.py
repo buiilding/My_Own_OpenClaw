@@ -42,8 +42,14 @@ class KeyboardControlArgs(BaseModel):
     """Arguments for keyboard control tool."""
     model_config = ConfigDict(extra='ignore')
     
-    action: Literal["type", "press", "hotkey"] = Field(..., description="Keyboard action to perform")
-    text: Optional[str] = Field(None, description="Text to type (required for 'type' action)")
+    action: Literal["type", "paste", "press", "hotkey"] = Field(
+        ...,
+        description="Keyboard action to perform",
+    )
+    text: Optional[str] = Field(
+        None,
+        description="Text to input (required for 'type' and 'paste' actions)",
+    )
     key: Optional[str] = Field(None, description="Single key to press (required for 'press' action)")
     keys: Optional[List[str]] = Field(None, description="List of keys for hotkey (required for 'hotkey' action)")
     wait: Optional[float] = Field(
@@ -54,13 +60,13 @@ class KeyboardControlArgs(BaseModel):
     @model_validator(mode='after')
     def validate_action_fields(self):
         """Validate that required fields are present based on action."""
-        if self.action == "type" and not self.text:
-            raise ValueError("text parameter required for type action")
+        if self.action in {"type", "paste"} and not self.text:
+            raise ValueError("text parameter required for type or paste action")
         if self.action == "press" and not self.key:
             raise ValueError("key parameter required for press action")
         if self.action == "hotkey" and (not self.keys or len(self.keys) == 0):
             raise ValueError("keys parameter required for hotkey action")
-        if self.action == "type" and len(self.text) > 10000:
+        if self.action in {"type", "paste"} and len(self.text) > 10000:
             raise ValueError(f"Text too long: {len(self.text)} characters (max 10000)")
         return self
 

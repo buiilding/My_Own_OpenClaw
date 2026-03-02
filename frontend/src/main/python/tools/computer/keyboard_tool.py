@@ -4,11 +4,15 @@ Keyboard Control Tool - Python implementation using pyautogui and pynput.
 
 import asyncio
 import logging
-from typing import Dict, Any, List
+import platform
+from typing import Any, Dict
 
 from core.executors import get_interactive_executor
 
 logger = logging.getLogger(__name__)
+_MAX_TEXT_LENGTH = 10000
+_AUTO_PASTE_THRESHOLD = 120
+_CLIPBOARD_NOT_CAPTURED = object()
 
 # Key mapping for special keys
 KEY_MAP = {
@@ -58,42 +62,107 @@ async def execute_keyboard_control(args: Dict[str, Any]) -> Dict[str, Any]:
     
     try:
         import pyautogui
-        
+
         # Disable pyautogui failsafe
         pyautogui.FAILSAFE = False
-        
+
+        def _get_text_input() -> str:
+            text = args.get("text")
+            if not text:
+                raise ValueError("text parameter required for type or paste action")
+            if len(text) > _MAX_TEXT_LENGTH:
+                raise ValueError(f"Text too long: {len(text)} characters (max {_MAX_TEXT_LENGTH})")
+            return text
+
+        def _paste_text(text: str) -> Dict[str, Any]:
+            try:
+                import pyperclip
+            except Exception as exc:
+                raise ImportError("pyperclip library not available") from exc
+
+            if not hasattr(pyperclip, "copy") or not hasattr(pyperclip, "paste"):
+                raise ImportError("pyperclip library not available")
+
+            restore_clipboard = _CLIPBOARD_NOT_CAPTURED
+            try:
+                restore_clipboard = pyperclip.paste()
+            except Exception as exc:
+                logger.warning(
+                    "Failed to capture clipboard before paste; skipping restore: %s",
+                    exc,
+                )
+
+            pyperclip.copy(text)
+            modifier_key = "command" if platform.system() == "Darwin" else "ctrl"
+            pyautogui.hotkey(modifier_key, "v")
+
+            clipboard_restored = False
+            if restore_clipboard is not _CLIPBOARD_NOT_CAPTURED:
+                try:
+                    pyperclip.copy(restore_clipboard)
+                    clipboard_restored = True
+                except Exception as exc:
+                    logger.warning("Failed to restore clipboard after paste: %s", exc)
+
+            return {
+                "input_mode": "paste",
+                "paste_hotkey": f"{modifier_key}+v",
+                "clipboard_restored": clipboard_restored,
+            }
+
+        def _should_use_paste_mode_for_type(text: str) -> bool:
+            return "\n" in text or "\r" in text or len(text) >= _AUTO_PASTE_THRESHOLD
+
         def _execute_action():
             if action == "type":
-                text = args.get("text")
-                if not text:
-                    raise ValueError("text parameter required for type action")
-                if len(text) > 10000:
-                    raise ValueError(f"Text too long: {len(text)} characters (max 10000)")
-                
-                pyautogui.write(text, interval=0.01)
-                
+                text = _get_text_input()
+                metadata: Dict[str, Any] = {
+                    "action": "type",
+                    "input_type": "text",
+                    "input_length": len(text),
+                    "input_mode": "type",
+                }
+
+                if _should_use_paste_mode_for_type(text):
+                    metadata.update(_paste_text(text))
+                else:
+                    pyautogui.write(text, interval=0.01)
+
                 return {
                     "action": "type",
                     "input": text[:50] + "..." if len(text) > 50 else text,
                     "message": f"Typed text: '{text}'",
                     "llm_content": f"Typed text: '{text}'",
                     "return_display": f"Typed text: '{text}'",
+                    "metadata": metadata,
+                }
+
+            elif action == "paste":
+                text = _get_text_input()
+                metadata = _paste_text(text)
+                return {
+                    "action": "paste",
+                    "input": text[:50] + "..." if len(text) > 50 else text,
+                    "message": f"Pasted text: '{text}'",
+                    "llm_content": f"Pasted text: '{text}'",
+                    "return_display": f"Pasted text: '{text}'",
                     "metadata": {
-                        "action": "type",
+                        "action": "paste",
                         "input_type": "text",
                         "input_length": len(text),
+                        **metadata,
                     },
                 }
-            
+
             elif action == "press":
                 key = args.get("key")
                 if not key:
                     raise ValueError("key parameter required for press action")
-                
+
                 # Map key string to pyautogui key name
                 key_name = KEY_MAP.get(key.lower(), key.lower())
                 pyautogui.press(key_name)
-                
+
                 return {
                     "action": "press",
                     "input": key,
@@ -106,12 +175,12 @@ async def execute_keyboard_control(args: Dict[str, Any]) -> Dict[str, Any]:
                         "input_length": 1,
                     },
                 }
-            
+
             elif action == "hotkey":
                 keys = args.get("keys")
                 if not keys or len(keys) == 0:
                     raise ValueError("keys parameter required for hotkey action")
-                
+
                 # Block dangerous key combinations
                 dangerous_combos = [
                     ["alt", "f4"],
@@ -122,11 +191,11 @@ async def execute_keyboard_control(args: Dict[str, Any]) -> Dict[str, Any]:
                 for combo in dangerous_combos:
                     if all(k in keys_lower for k in combo):
                         raise ValueError(f"Dangerous key combination blocked: {' + '.join(combo)}")
-                
+
                 # Map keys to pyautogui key names
                 mapped_keys = [KEY_MAP.get(k.lower(), k.lower()) for k in keys]
                 pyautogui.hotkey(*mapped_keys)
-                
+
                 return {
                     "action": "hotkey",
                     "input": " + ".join(keys),
@@ -139,18 +208,22 @@ async def execute_keyboard_control(args: Dict[str, Any]) -> Dict[str, Any]:
                         "input_length": len(keys),
                     },
                 }
-            
+
             else:
                 raise ValueError(f"Unknown keyboard action: {action}")
-        
+
         loop = asyncio.get_event_loop()
         result = await loop.run_in_executor(get_interactive_executor(), _execute_action)
-        
+
         return {
             "success": True,
             "data": result,
         }
-    except ImportError:
+    except ImportError as e:
+        message = str(e).strip().lower()
+        if "pyperclip" in message:
+            logger.error("pyperclip not available, cannot execute clipboard paste")
+            return {"success": False, "error": "pyperclip library not available"}
         logger.error("pyautogui not available, cannot execute keyboard control")
         return {"success": False, "error": "pyautogui library not available"}
     except Exception as e:
