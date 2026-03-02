@@ -497,28 +497,6 @@ function ChatInterface({ focusComposerToken = 0 }) {
           </div>
         </div>
         <div className="chat-meta">
-          <div className="chat-utility-controls">
-            <button
-              type="button"
-              className={`chat-top-icon-btn${speechModeEnabled ? ' is-enabled' : ''}`}
-              aria-label="Toggle text-to-speech"
-              title={speechModeEnabled ? 'Disable text-to-speech' : 'Enable text-to-speech'}
-              onClick={handleToggleSpeechMode}
-            >
-              <Volume2 size={18} />
-            </button>
-            {devUiEnabled ? (
-              <button
-                type="button"
-                className="chat-top-icon-btn"
-                aria-label="Run auto compaction"
-                title="Run auto compaction"
-                onClick={handleRunAutoCompaction}
-              >
-                <Workflow size={18} />
-              </button>
-            ) : null}
-          </div>
           <div className="chat-window-controls">
             <button
               type="button"
@@ -547,6 +525,28 @@ function ChatInterface({ focusComposerToken = 0 }) {
             >
               <X size={13} strokeWidth={2.2} />
             </button>
+          </div>
+          <div className="chat-utility-controls">
+            <button
+              type="button"
+              className={`chat-top-icon-btn${speechModeEnabled ? ' is-enabled' : ''}`}
+              aria-label="Toggle text-to-speech"
+              title={speechModeEnabled ? 'Disable text-to-speech' : 'Enable text-to-speech'}
+              onClick={handleToggleSpeechMode}
+            >
+              <Volume2 size={18} />
+            </button>
+            {devUiEnabled ? (
+              <button
+                type="button"
+                className="chat-top-icon-btn"
+                aria-label="Run auto compaction"
+                title="Run auto compaction"
+                onClick={handleRunAutoCompaction}
+              >
+                <Workflow size={18} />
+              </button>
+            ) : null}
           </div>
         </div>
       </header>
