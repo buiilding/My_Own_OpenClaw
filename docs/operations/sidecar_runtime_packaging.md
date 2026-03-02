@@ -153,4 +153,5 @@ On a clean test machine:
 - Playwright browser binary payload is installed only in full profile builds.
 - Browser `extract`/`read_long_content` now use deterministic markdown extraction in sidecar (no sidecar LLM provider SDK dependency).
 - Browser launch now requires a system-installed Chromium-based browser (Chrome/Chromium/Edge/Brave); if missing, WindieOS returns install guidance instead of attempting an embedded browser bootstrap.
-- Wakeword model assets are pre-downloaded during runtime build step.
+- Wakeword model assets are pre-downloaded during runtime build step (best effort).
+- If packaged wakeword assets are missing at runtime, sidecar downloads wakeword models into a user-writable cache (`WINDIE_WAKEWORD_MODEL_DIR` override supported) instead of writing under read-only install paths.

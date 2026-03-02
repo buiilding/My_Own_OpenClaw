@@ -8,6 +8,7 @@ Cross-platform support for Windows, macOS, and Linux.
 
 import asyncio
 import logging
+import os
 import platform
 from datetime import datetime
 from typing import Dict, Optional, Any
@@ -221,26 +222,13 @@ async def _get_active_window_macos() -> Optional[str]:
 async def _get_active_window_linux() -> Optional[str]:
     """Get active window on Linux."""
     try:
-        # Try xdotool first
-        def _get_window_title_xdotool():
-            import subprocess
-            result = subprocess.run(
-                ["xdotool", "getactivewindow", "getwindowname"],
-                capture_output=True,
-                text=True,
-                timeout=1
-            )
-            if result.returncode == 0:
-                return result.stdout.strip()
-            return None
-        
-        loop = asyncio.get_event_loop()
-        title = await loop.run_in_executor(get_interactive_executor(), _get_window_title_xdotool)
+        loop = asyncio.get_running_loop()
+        title = await loop.run_in_executor(get_interactive_executor(), _get_active_window_linux_xdotool)
         if title:
             return title
-        
-        # Fallback: try wmctrl (not implemented - xdotool is primary method)
-        return None
+
+        # Fallback for environments where xdotool is missing/unavailable.
+        return await loop.run_in_executor(get_interactive_executor(), _get_active_window_linux_xlib)
     except Exception as e:
         logger.error(f"Linux window detection failed: {e}", exc_info=True)
         return None
@@ -248,20 +236,19 @@ async def _get_active_window_linux() -> Optional[str]:
 
 async def _get_mouse_position() -> Optional[str]:
     """Get mouse position as string."""
+    loop = asyncio.get_running_loop()
     try:
-        import pyautogui
-        
-        def _get_position():
-            return pyautogui.position()
-        
-        loop = asyncio.get_event_loop()
-        pos = await loop.run_in_executor(get_interactive_executor(), _get_position)
+        pos = await loop.run_in_executor(get_interactive_executor(), _get_mouse_position_pyautogui)
         return f"({pos.x}, {pos.y})"
-    except ImportError:
-        logger.warning("pyautogui not available, cannot get mouse position")
-        return None
     except Exception as e:
-        logger.error(f"Failed to get mouse position: {e}", exc_info=True)
+        logger.warning("PyAutoGUI mouse probe failed, trying Xlib fallback: %s", e)
+        try:
+            pos = await loop.run_in_executor(get_interactive_executor(), _get_mouse_position_linux_xlib)
+            if not pos:
+                return None
+            return f"({pos[0]}, {pos[1]})"
+        except Exception as fallback_error:
+            logger.error(f"Failed to get mouse position: {fallback_error}", exc_info=True)
         return None
 
 
@@ -341,3 +328,106 @@ async def _get_system_stats() -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"Failed to get system stats: {e}", exc_info=True)
         return {}
+
+
+def _get_active_window_linux_xdotool() -> Optional[str]:
+    """Get active Linux window title using xdotool."""
+    try:
+        import subprocess
+
+        result = subprocess.run(
+            ["xdotool", "getactivewindow", "getwindowname"],
+            capture_output=True,
+            text=True,
+            timeout=1,
+        )
+        if result.returncode != 0:
+            return None
+        title = result.stdout.strip()
+        return title or None
+    except Exception:
+        return None
+
+
+def _decode_x11_property(value: object) -> Optional[str]:
+    if isinstance(value, bytes):
+        decoded = value.decode("utf-8", errors="ignore").strip()
+        return decoded or None
+    if isinstance(value, str):
+        decoded = value.strip()
+        return decoded or None
+    try:
+        decoded = bytes(value).decode("utf-8", errors="ignore").strip()
+        return decoded or None
+    except Exception:
+        return None
+
+
+def _get_active_window_linux_xlib() -> Optional[str]:
+    """Get active Linux window title via X11 properties."""
+    if not IS_LINUX:
+        return None
+    if not (os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY")):
+        return None
+
+    display_connection = None
+    try:
+        from Xlib import X, display  # type: ignore
+
+        display_connection = display.Display()
+        root = display_connection.screen().root
+        active_window_atom = display_connection.intern_atom("_NET_ACTIVE_WINDOW")
+        active_prop = root.get_full_property(active_window_atom, X.AnyPropertyType)
+        if active_prop is None or not getattr(active_prop, "value", None):
+            return None
+
+        active_window_id = int(active_prop.value[0])
+        active_window = display_connection.create_resource_object("window", active_window_id)
+
+        for property_name in ("_NET_WM_NAME", "WM_NAME"):
+            property_atom = display_connection.intern_atom(property_name)
+            name_prop = active_window.get_full_property(property_atom, X.AnyPropertyType)
+            if name_prop is None:
+                continue
+            decoded_name = _decode_x11_property(name_prop.value)
+            if decoded_name:
+                return decoded_name
+        return None
+    except Exception:
+        return None
+    finally:
+        try:
+            if display_connection is not None:
+                display_connection.close()
+        except Exception:
+            pass
+
+
+def _get_mouse_position_pyautogui():
+    import pyautogui
+
+    return pyautogui.position()
+
+
+def _get_mouse_position_linux_xlib() -> Optional[tuple[int, int]]:
+    """Get Linux mouse position via X11 pointer query."""
+    if not IS_LINUX:
+        return None
+    if not (os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY")):
+        return None
+
+    display_connection = None
+    try:
+        from Xlib import display  # type: ignore
+
+        display_connection = display.Display()
+        pointer = display_connection.screen().root.query_pointer()
+        return int(pointer.root_x), int(pointer.root_y)
+    except Exception:
+        return None
+    finally:
+        try:
+            if display_connection is not None:
+                display_connection.close()
+        except Exception:
+            pass

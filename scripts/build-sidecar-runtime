@@ -76,6 +76,42 @@ if [[ "${INCLUDE_BROWSER_PACK}" -eq 1 ]]; then
   "${RUNTIME_PYTHON}" -m pip install -r "${RUNTIME_REQS_BROWSER}"
 fi
 
+echo "[build-sidecar-runtime] prefetching wakeword model assets (best effort)"
+if ! "${RUNTIME_PYTHON}" - <<'PY'
+import importlib
+import inspect
+import pathlib
+import sys
+
+try:
+    openwakeword_mod = importlib.import_module("openwakeword")
+    utils_mod = importlib.import_module("openwakeword.utils")
+except Exception as exc:
+    print(f"[build-sidecar-runtime] wakeword prefetch skipped (import failed): {exc}", file=sys.stderr)
+    raise SystemExit(0)
+
+download_models = getattr(utils_mod, "download_models", None)
+if not callable(download_models):
+    print("[build-sidecar-runtime] wakeword prefetch skipped (download_models unavailable)", file=sys.stderr)
+    raise SystemExit(0)
+
+target_dir = pathlib.Path(openwakeword_mod.__file__).resolve().parent / "resources" / "models"
+target_dir.mkdir(parents=True, exist_ok=True)
+download_params = inspect.signature(download_models).parameters
+
+if "target_directory" in download_params:
+    download_models(["hey_jarvis"], target_directory=str(target_dir))
+else:
+    download_models(["hey_jarvis"])
+
+print(f"[build-sidecar-runtime] wakeword models prefetched to {target_dir}", file=sys.stderr)
+PY
+then
+  echo "[build-sidecar-runtime] wakeword prefetch completed"
+else
+  echo "[build-sidecar-runtime] WARNING: wakeword prefetch failed; runtime will fall back to user cache download"
+fi
+
 if [[ "${MODE}" == "full" ]]; then
   echo "[build-sidecar-runtime] installing playwright browser payload (full mode)"
   PLAYWRIGHT_BROWSERS_PATH="${RUNTIME_DIR}/ms-playwright" \

@@ -30,10 +30,11 @@ It is not JSON-RPC and does not share `JSONRPCProtocol`.
 
 Startup pipeline:
 
-1. `ensure_models_available()` checks packaged openWakeWord model path for `hey_jarvis_v0.1.tflite`
-2. if missing, calls `download_models(['hey_jarvis'])`
-3. initializes `Model` with `wakeword_models=["hey_jarvis"]`
-4. inference framework tries `tflite` first, falls back to `onnx` on failure
+1. `resolve_wakeword_model()` reads openWakeWord metadata (`models` or `MODELS`) and resolves the preferred model id/path.
+2. `ensure_models_available()` first checks packaged model path, then checks user cache path (`WINDIE_WAKEWORD_MODEL_DIR` or WindieOS user-data dir).
+3. if model is missing, `download_models(['hey_jarvis'], target_directory=<user-cache>)` is used when supported by the installed openWakeWord version.
+4. runtime resolves a concrete model file path from the writable cache and initializes `Model` with explicit `wakeword_model_paths` when constructor signature supports it (including `**kwargs` signatures).
+5. inference framework tries `tflite` first, falls back to `onnx` on failure
 
 Status payloads are written to stderr JSON lines:
 
@@ -43,6 +44,10 @@ Status payloads are written to stderr JSON lines:
 - `fallback`
 - `ready`
 - `error`
+
+Runtime note:
+
+- Installed desktop builds typically run from read-only app directories (for example `/opt/WindieOS/...` on Linux); wakeword model downloads are redirected to a user-writable cache directory to avoid permission failures.
 
 Startup hard failure exits process with non-zero code.
 
