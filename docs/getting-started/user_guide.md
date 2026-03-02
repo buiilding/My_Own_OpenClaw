@@ -12,6 +12,13 @@ read_when:
 2. Start the frontend UI: `./scripts/run-frontend-dev`
 3. Launch Electron: `./scripts/run-frontend-electron`
 
+## First-Run Onboarding
+
+- After required permission onboarding is complete, WindieOS shows a short two-step onboarding slideshow.
+- Slide 1 confirms access requirements for OS-level actions (screen state + control capabilities).
+- Slide 2 reminds users how to reach the stop path during loops: **Shift + Tab** (mode toggle shortcut), then **Stop** on the dashboard.
+- The slideshow is shown once and then persisted locally.
+
 ## Two Windows
 
 - **Chatbox**: small overlay at bottom-center. Always-on-top. Click-through when the agent is busy; clickable when idle.
