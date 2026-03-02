@@ -301,13 +301,13 @@ describe('main_window_runtime createMainWindow', () => {
       platform: 'linux',
       enableDevTransparencyUi: false,
       initializeIpc: jest.fn(),
-      handleResponseOverlayPhaseChange: jest.fn(),
+      applyResponseOverlayPhase: jest.fn(),
       prepareOverlayQueryCaptureFocus: jest.fn(),
       initializeWakewordBridge: jest.fn(),
       showChatWindow: jest.fn().mockReturnValue({ success: true }),
       emitWakewordSttTrigger: jest.fn(),
       initializeLocalBackendBridge: jest.fn(),
-      initializeMainProcessIpcHandlers: jest.fn(),
+      initializeMainProcessIpc: jest.fn(),
       getLatestFrontendConfig: jest.fn(),
       getWindows: jest.fn(() => ({ mainWindow })),
       setMainWindow: jest.fn(),
@@ -340,7 +340,7 @@ describe('main_window_runtime createMainWindow', () => {
 
     createMainWindow(deps);
 
-    expect(deps.initializeMainProcessIpcHandlers).toHaveBeenCalledTimes(1);
+    expect(deps.initializeMainProcessIpc).toHaveBeenCalledTimes(1);
   });
 
   test('keeps dashboard visible in system screenshots', () => {

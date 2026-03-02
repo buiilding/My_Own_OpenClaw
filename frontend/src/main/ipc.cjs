@@ -57,7 +57,7 @@ let latestFrontendConfig = null;
 let hasAttemptedInitialSettingsSync = false;
 let pendingSettingsSyncPromise = null;
 const pendingSettingsSyncs = new Map();
-let onResponseOverlayPhaseChange = null;
+let applyResponseOverlayPhase = null;
 let onBeforeOverlayQueryCapture = null;
 const responseOverlayPhaseState = createResponseOverlayPhaseState();
 
@@ -238,7 +238,7 @@ function broadcastToRenderers(channel, payload, sourceWebContents = null) {
 
 function setResponseOverlayPhase(phase, source = 'ipc', metadata = null) {
   responseOverlayPhaseState.setPhase(phase, source, metadata, {
-    onPhaseChange: onResponseOverlayPhaseChange,
+    onPhaseChange: applyResponseOverlayPhase,
     broadcastToRenderers,
     log,
   });
@@ -369,8 +369,8 @@ function initializeIpc(win, options = {}) {
   refreshBackendEndpoints({
     isPackaged: options.isPackaged === true,
   });
-  onResponseOverlayPhaseChange = typeof options.onResponseOverlayPhaseChange === 'function'
-    ? options.onResponseOverlayPhaseChange
+  applyResponseOverlayPhase = typeof options.applyResponseOverlayPhase === 'function'
+    ? options.applyResponseOverlayPhase
     : null;
   onBeforeOverlayQueryCapture = typeof options.onBeforeOverlayQueryCapture === 'function'
     ? options.onBeforeOverlayQueryCapture
