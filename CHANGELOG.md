@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- perf(sidecar-packaging-browser-pack): split sidecar runtime requirements into core vs browser feature-pack sets, default runtime build to slim+core, add local-backend on-demand browser feature-pack install + tool-registry reload on first browser-tool use, and replace browser watchdog playwright auto-install fallback with explicit system Chrome/Chromium install guidance.
 - docs+ci(frontend-runtime-invariants-gate): add canonical frontend runtime invariants checklist doc, wire runtime/docs hub links, add PR template checklist tokens, and gate pull requests with CI validation of runtime-invariant checklist attestations (with explicit N/A override token).
 - test(frontend-chat-loop-race-guards): add regressions for out-of-order chat-loop phase projection (`tool-output` before first visible reply), reconnect watchdog terminal-state disarm behavior, conversation-switch late tool-result drops, and untracked-correlation backend payload drops in tool-runner callback wiring.
 - refactor(frontend-main-bootstrap-naming): rename the main bootstrap contracts to `initializeMainProcessIpc` and `applyResponseOverlayPhase` so `index.cjs`, `main_window_runtime.cjs`, and `ipc.cjs` read as state application/bootstrap wiring instead of handler plumbing.
