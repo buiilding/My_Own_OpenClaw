@@ -5,6 +5,19 @@ on:
   pull_request:
 
 jobs:
+  pr-runtime-invariants:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Validate PR runtime invariant checklist
+        run: node scripts/check-pr-runtime-invariants.cjs
+
   backend-tests:
     runs-on: ubuntu-latest
     steps:

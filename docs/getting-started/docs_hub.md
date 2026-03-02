@@ -269,6 +269,7 @@ This page mirrors the domain-based docs navigation style used in OpenClaw, but a
 - [Frontend Linux Screenshot Window Hide and Restore Guard Reference](../frontend/main/overlays/linux_screenshot_window_hide_and_restore_guard_reference.md)
 - [Frontend Preload Channel Allowlist + Renderer Bridge Reference](../frontend/preload/preload_channel_allowlist_and_renderer_bridge_reference.md)
 - [Frontend Stream State Machine](../frontend/runtime/stream_event_state_machine.md)
+- [Frontend Runtime Invariants and PR Checklist](../frontend/runtime/frontend_runtime_invariants_checklist.md)
 - [Frontend Config Sync + Settings Lifecycle Reference](../frontend/runtime/config_sync_and_settings_lifecycle_reference.md)
 - [Frontend Audio Chunk Playback + Stop Semantics Reference](../frontend/runtime/audio_chunk_playback_and_stop_semantics_reference.md)
 - [Frontend Sidecar Browser Stack](../frontend/sidecar/browser_automation_stack.md)

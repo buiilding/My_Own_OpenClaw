@@ -10,6 +10,7 @@ title: "Frontend Runtime Docs Hub"
 
 ## Deep Pages
 
+- [Frontend Runtime Invariants and PR Checklist](frontend_runtime_invariants_checklist.md)
 - [Tool Execution and Streaming](tool_execution_and_streaming.md)
 - [Stream Event State Machine](stream_event_state_machine.md)
 - [Surface Orchestration Refactor Design Package (2026-02-28)](surface_orchestration_refactor_design_package_2026-02-28.md)
