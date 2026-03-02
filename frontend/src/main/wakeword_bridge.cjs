@@ -6,24 +6,15 @@
  */
 
 const { spawn } = require('child_process');
-const path = require('path');
 const { ipcMain } = require('electron');
 const {
-  resolvePythonExecutablePath,
-  resolvePythonScriptPath,
+  resolveSidecarLaunchTarget,
 } = require('./runtime_paths.cjs');
 
 let pythonProcess = null;
 let isPythonReady = false;
 let stderrBuffer = '';
 let wakewordDetectedCallback = null;
-
-/**
- * Get Python executable path
- */
-function getPythonPath() {
-  return resolvePythonExecutablePath();
-}
 
 /**
  * Start Python wakeword service
@@ -34,14 +25,16 @@ function startWakewordService(mainWindow, onWakewordDetected) {
     return;
   }
 
-  const pythonScript = resolvePythonScriptPath('wakeword_service.py');
-  const pythonExe = getPythonPath();
+  const launchTarget = resolveSidecarLaunchTarget('wakeword_service.py');
   stderrBuffer = '';
 
-  console.log(`[Wakeword] Starting Python service: ${pythonExe} ${pythonScript}`);
-  const spawnedProcess = spawn(pythonExe, [pythonScript], {
+  console.log(
+    `[Wakeword] Starting service (${launchTarget.kind}): ` +
+    `${launchTarget.command} ${launchTarget.args.join(' ')}`.trim(),
+  );
+  const spawnedProcess = spawn(launchTarget.command, launchTarget.args, {
     stdio: ['pipe', 'pipe', 'pipe'], // stdin, stdout, stderr
-    cwd: path.dirname(pythonScript),
+    cwd: launchTarget.cwd,
   });
   pythonProcess = spawnedProcess;
 
@@ -153,7 +146,9 @@ function startWakewordService(mainWindow, onWakewordDetected) {
     
     let errorMessage = error.message;
     if (error.code === 'ENOENT') {
-      errorMessage = `Python executable '${pythonExe}' not found. Please install Python 3 or ensure it is in your PATH.`;
+      errorMessage = launchTarget.kind === 'binary'
+        ? `Bundled wakeword executable '${launchTarget.command}' not found. Reinstall WindieOS.`
+        : `Python executable '${launchTarget.command}' not found. Please install Python 3 or ensure it is in your PATH.`;
     }
     
     mainWindow?.webContents.send('wakeword-status', { 

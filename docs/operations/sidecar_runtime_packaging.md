@@ -14,7 +14,8 @@ frontend app and do not need Python installed system-wide.
 
 - Installer includes Electron app.
 - Installer includes a bundled Python runtime at `resources/python-runtime`.
-- Sidecar processes (`local_backend.py`, `wakeword_service.py`) run from bundled runtime.
+- Sidecar processes run from `resources/python-runtime/sidecar`.
+- Default build mode ships sidecar bytecode (`.pyc`) so raw sidecar `.py` files are not exposed in installed artifacts.
 
 ## Repository Pieces
 
@@ -59,6 +60,12 @@ Optional slim profile with browser Python deps pre-bundled (no browser binary pa
 
 ```bash
 WINDIE_SIDECAR_RUNTIME_PROFILE=core+browser bash scripts/build-sidecar-runtime
+```
+
+Optional source-mode override for debug builds:
+
+```bash
+WINDIE_SIDECAR_SOURCE_MODE=source bash scripts/build-sidecar-runtime
 ```
 
 This creates:
@@ -127,6 +134,7 @@ export WINDIE_DEFAULT_PACKAGED_BACKEND_WS_URL="wss://your-api.example.com/ws"
 ## Optional Overrides
 
 - `WINDIE_PYTHON_PATH` can force a specific Python executable.
+- `WINDIE_SIDECAR_SOURCE_MODE=source` keeps plaintext sidecar `.py` files in `python-runtime/sidecar` (default is `sourceless`).
 - `BACKEND_HOST` + `BACKEND_PORT` can be used instead of full URL vars.
 
 ## Verification Checklist

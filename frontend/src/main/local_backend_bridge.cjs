@@ -23,7 +23,7 @@ const {
 } = require('./local_backend_bridge_utils.cjs');
 const {
   resolvePythonExecutablePath,
-  resolvePythonScriptPath,
+  resolveSidecarLaunchTarget,
 } = require('./runtime_paths.cjs');
 
 let pythonProcess = null;
@@ -402,10 +402,11 @@ function startLocalBackend(mainWindow, options = {}) {
     return;
   }
 
-  const pythonPath = getPythonPath();
-  const scriptPath = resolvePythonScriptPath('local_backend.py');
+  const launchTarget = resolveSidecarLaunchTarget('local_backend.py');
+  const scriptPath = launchTarget.resolvedPath;
+  const pythonPath = launchTarget.kind === 'python' ? getPythonPath() : launchTarget.command;
 
-  if (!fs.existsSync(scriptPath)) {
+  if (launchTarget.kind === 'python' && !fs.existsSync(scriptPath)) {
     if (process.env.NODE_ENV !== 'production') {
       console.error(`[LocalBackend] Script not found at: ${scriptPath}`);
     }
@@ -417,16 +418,19 @@ function startLocalBackend(mainWindow, options = {}) {
   }
 
   if (process.env.NODE_ENV !== 'production') {
-    console.log(`[LocalBackend] Starting Python local backend: ${pythonPath} ${scriptPath}`);
+    console.log(
+      `[LocalBackend] Starting local backend (${launchTarget.kind}): ` +
+      `${launchTarget.command} ${launchTarget.args.join(' ')}`.trim(),
+    );
   }
 
   const backendEndpoints = options.backendEndpoints || resolveBackendEndpoints(process.env, {
     isPackaged: options.isPackaged === true,
   });
 
-  pythonProcess = spawn(pythonPath, [scriptPath], {
+  pythonProcess = spawn(launchTarget.command, launchTarget.args, {
     stdio: ['pipe', 'pipe', 'pipe'],
-    cwd: path.dirname(scriptPath),
+    cwd: launchTarget.cwd,
     env: withLocalBackendNodeOptions({
       ...process.env,
       PYTHONUNBUFFERED: '1',
@@ -517,7 +521,9 @@ function startLocalBackend(mainWindow, options = {}) {
 
     let errorMessage = error.message;
     if (error.code === 'ENOENT') {
-      errorMessage = `Python executable '${pythonPath}' not found. Please install Python 3 or ensure it is in your PATH.`;
+      errorMessage = launchTarget.kind === 'binary'
+        ? `Bundled sidecar executable '${launchTarget.command}' not found. Reinstall WindieOS.`
+        : `Python executable '${pythonPath}' not found. Please install Python 3 or ensure it is in your PATH.`;
     }
 
     notifyBackendUnavailable(mainWindow, errorMessage);
