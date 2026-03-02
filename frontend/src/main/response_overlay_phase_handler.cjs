@@ -161,11 +161,6 @@ function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
 }
 
 module.exports = {
-  applyResponseOverlayWindowMode,
   handleResponseOverlayPhaseEvent,
   isStreamingResponseOverlayPhase,
-  resolveResponseOverlayWindowMode,
-  RESPONSE_OVERLAY_WINDOW_MODE,
-  shouldRestoreTerminalResponseWindow,
-  syncOverlayLoopInteractivity,
 };

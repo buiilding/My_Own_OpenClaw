@@ -149,7 +149,7 @@ function createMainWindow({
   showChatWindow,
   emitWakewordSttTrigger,
   initializeLocalBackendBridge,
-  initializeOverlayHandlers,
+  initializeMainProcessIpcHandlers,
   getLatestFrontendConfig,
   getWindows,
   setMainWindow,
@@ -193,7 +193,7 @@ function createMainWindow({
     getFrontendConfig: getLatestFrontendConfig,
     isPackaged: app.isPackaged,
   });
-  initializeOverlayHandlers();
+  initializeMainProcessIpcHandlers();
 
   if (platform !== 'darwin') {
     mainWindow.setMenuBarVisibility(false);

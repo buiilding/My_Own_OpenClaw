@@ -1,51 +1,87 @@
 /** @jest-environment node */
 
 const {
-  BACKEND_OVERLAY_PHASE_TRANSITIONS,
   resolveBackendOverlayPhaseTransition,
-  resolveOverlayCorrelationId,
-  resolveOverlayPhaseMetadata,
 } = require('../../frontend/src/main/ipc_overlay_phase_events.cjs');
 
 describe('ipc_overlay_phase_events', () => {
-  test('resolves correlation id from payload keys then event id', () => {
-    expect(resolveOverlayCorrelationId({
+  test('maps backend tool events using payload id precedence then event id fallback', () => {
+    expect(resolveBackendOverlayPhaseTransition({
+      type: 'tool-call',
       payload: { request_id: 'req-1', correlation_id: 'corr-1', bundle_id: 'bundle-1' },
       id: 'event-1',
-    })).toBe('req-1');
+    }, 'streaming')).toEqual({
+      phase: 'tool-call',
+      metadata: {
+        recovery_stage: 'tool-call',
+        correlation_id: 'req-1',
+      },
+    });
 
-    expect(resolveOverlayCorrelationId({
+    expect(resolveBackendOverlayPhaseTransition({
+      type: 'tool-call',
       payload: { correlation_id: 'corr-2', bundle_id: 'bundle-2' },
       id: 'event-2',
-    })).toBe('corr-2');
+    }, 'streaming')).toEqual({
+      phase: 'tool-call',
+      metadata: {
+        recovery_stage: 'tool-call',
+        correlation_id: 'corr-2',
+      },
+    });
 
-    expect(resolveOverlayCorrelationId({
+    expect(resolveBackendOverlayPhaseTransition({
+      type: 'tool-bundle',
       payload: { bundle_id: 'bundle-3' },
       id: 'event-3',
-    })).toBe('bundle-3');
+    }, 'streaming')).toEqual({
+      phase: 'tool-call',
+      metadata: {
+        recovery_stage: 'tool-call',
+        correlation_id: 'bundle-3',
+      },
+    });
 
-    expect(resolveOverlayCorrelationId({
+    expect(resolveBackendOverlayPhaseTransition({
+      type: 'tool-output',
       payload: {},
       id: 'event-4',
-    })).toBe('event-4');
+    }, 'tool-call')).toEqual({
+      phase: 'tool-output',
+      metadata: {
+        recovery_stage: 'tool-output',
+        correlation_id: 'event-4',
+      },
+    });
 
-    expect(resolveOverlayCorrelationId({ payload: {} })).toBeNull();
-  });
-
-  test('ignores whitespace-only correlation id candidates before fallback', () => {
-    expect(resolveOverlayCorrelationId({
+    expect(resolveBackendOverlayPhaseTransition({
+      type: 'tool-call',
       payload: { request_id: '   ', correlation_id: '  ', bundle_id: '\t' },
       id: 'event-fallback',
-    })).toBe('event-fallback');
+    }, 'streaming')).toEqual({
+      phase: 'tool-call',
+      metadata: {
+        recovery_stage: 'tool-call',
+        correlation_id: 'event-fallback',
+      },
+    });
 
-    expect(resolveOverlayCorrelationId({
+    expect(resolveBackendOverlayPhaseTransition({
+      type: 'tool-call',
       payload: { request_id: '   ', correlation_id: 'corr-1' },
       id: 'event-fallback',
-    })).toBe('corr-1');
+    }, 'streaming')).toEqual({
+      phase: 'tool-call',
+      metadata: {
+        recovery_stage: 'tool-call',
+        correlation_id: 'corr-1',
+      },
+    });
   });
 
-  test('resolves overlay metadata and prioritizes payload message as terminal failure reason', () => {
-    expect(resolveOverlayPhaseMetadata({
+  test('normalizes recovery metadata and prioritizes payload message as terminal failure reason', () => {
+    expect(resolveBackendOverlayPhaseTransition({
+      type: 'tool-call',
       id: 'event-5',
       payload: {
         request_id: 'req-5',
@@ -55,15 +91,19 @@ describe('ipc_overlay_phase_events', () => {
           failure_reason: 'focus_retrying',
         },
       },
-    }, 'tool-call')).toEqual({
-      recovery_stage: 'tool-call',
-      correlation_id: 'req-5',
-      attempt: 2,
-      max_attempts: 5,
-      failure_reason: 'focus_retrying',
+    }, 'streaming')).toEqual({
+      phase: 'tool-call',
+      metadata: {
+        recovery_stage: 'tool-call',
+        correlation_id: 'req-5',
+        attempt: 2,
+        max_attempts: 5,
+        failure_reason: 'focus_retrying',
+      },
     });
 
-    expect(resolveOverlayPhaseMetadata({
+    expect(resolveBackendOverlayPhaseTransition({
+      type: 'error',
       id: 'event-6',
       payload: {
         metadata: {
@@ -73,19 +113,17 @@ describe('ipc_overlay_phase_events', () => {
         },
         message: 'focus_verification_failed',
       },
-    }, 'error')).toEqual({
-      recovery_stage: 'error',
-      correlation_id: 'event-6',
-      failure_reason: 'focus_verification_failed',
+    }, 'streaming')).toEqual({
+      phase: 'error',
+      metadata: {
+        recovery_stage: 'error',
+        correlation_id: 'event-6',
+        failure_reason: 'focus_verification_failed',
+      },
     });
   });
 
   test('maps backend events to overlay transitions', () => {
-    expect(BACKEND_OVERLAY_PHASE_TRANSITIONS['tool-output']).toEqual({
-      phase: 'tool-output',
-      recoveryStage: 'tool-output',
-    });
-
     expect(resolveBackendOverlayPhaseTransition(
       { type: 'streaming-response' },
       'awaiting-first-chunk',
