@@ -1,6 +1,0 @@
-# Frontend Python sidecar Browser Use extraction LLM dependencies (OpenAI-compatible).
-#
-# Installed at runtime when browser extract/read_long_content actions need
-# openai-compatible providers (openai/openrouter/ollama/lmstudio/kimi_coding).
-
-openai>=2.7.2,<3.0.0
