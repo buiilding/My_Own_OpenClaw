@@ -1,7 +1,5 @@
 import {
   isChatLoopAwaitingReply,
-  isChatLoopBusy,
-  resolveChatLoopUiState,
 } from './chatLoopUiState';
 
 const CHATBOX_SURFACE_STATE = Object.freeze({
@@ -14,18 +12,10 @@ export function hasVisibleChatboxResponse(activeResponse, dismissedResponseId) {
   return Boolean(activeResponse && activeResponse.id !== dismissedResponseId);
 }
 
-export function resolveChatboxSurfaceState({
-  overlayPhase,
-  isSending,
+export function resolveChatboxSurfaceStateFromLoopUiState({
+  loopUiState,
   hasVisibleResponse,
 }) {
-  // One renderer projection for the minimal pill: compact, waiting, or response.
-  const loopUiState = resolveChatLoopUiState({
-    phase: overlayPhase,
-    isSending,
-    hasVisibleReply: hasVisibleResponse,
-  });
-
   if (hasVisibleResponse && !isChatLoopAwaitingReply(loopUiState)) {
     return CHATBOX_SURFACE_STATE.RESPONSE;
   }
@@ -35,16 +25,6 @@ export function resolveChatboxSurfaceState({
   }
 
   return CHATBOX_SURFACE_STATE.COMPACT;
-}
-
-export function isChatboxLoopInteractionLocked({
-  overlayPhase,
-  isSending,
-}) {
-  return isChatLoopBusy(resolveChatLoopUiState({
-    phase: overlayPhase,
-    isSending,
-  }));
 }
 
 export function shouldShowChatboxAwaitingReply(surfaceState) {

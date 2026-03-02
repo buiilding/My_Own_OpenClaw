@@ -25,11 +25,7 @@ import { COMPACTION_THINKING_STATUS } from '../utils/chatStreamThinkingStatus';
 import { useConversationReplayActions } from '../hooks/useConversationReplayActions';
 import { isDevUiEnabled } from '../utils/devUiFlag';
 import { applyStopQueryUiState } from '../utils/stopQueryState';
-import {
-  isChatLoopAwaitingReply,
-  isChatLoopBusy,
-  resolveChatLoopUiState,
-} from '../utils/chatLoopUiState';
+import { useChatLoopUiState } from '../hooks/useChatLoopUiState';
 import { useTranscriptSessionInfo } from '../../dashboard/hooks/useTranscriptSessionInfo';
 import '../../../styles/ChatInterface.css';
 
@@ -111,15 +107,17 @@ function ChatInterface({ focusComposerToken = 0 }) {
   const voiceModeEnabled = config?.voice_mode_enabled === true;
   const speechModeEnabled = config?.speech_mode_enabled === true;
   const hasVisibleReply = messages[messages.length - 1]?.sender === 'assistant';
-  const loopUiState = resolveChatLoopUiState({
+  const {
+    isBusy: composerBusy,
+    isAwaitingReply: isAwaitingReply,
+  } = useChatLoopUiState({
     phase: streamPhase,
     isSending,
     hasVisibleReply,
   });
-  const composerBusy = isChatLoopBusy(loopUiState);
   const canStop = composerBusy;
   const showAssistantAwaitingDot = (
-    isChatLoopAwaitingReply(loopUiState)
+    isAwaitingReply
     && messages.length > 0
     && !hasVisibleReply
   );

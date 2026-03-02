@@ -146,9 +146,15 @@ Movement path:
 - `awaiting-reply`: chat pill + typing indicator
 - `response`: chat pill + response overlay
 
-`ChatBox` and `ChatBoxResponse` both derive those visuals from the same `overlayPhase` channel plus the send latch, so the overlay no longer carries separate component-local transition rules.
+`ChatBox` and `ChatBoxResponse` both derive those visuals from the same loop-state reducer hook (`useChatLoopUiState`) plus `chatboxSurfaceState.js`, so the overlay no longer carries separate component-local transition rules.
 
-`loop-active` CSS class is enabled when `isChatboxLoopInteractionLocked(...)` reports an active loop:
+Loop watchdog behavior:
+
+- main-process `ipc-status` disconnect forces renderer loop UI to `idle` immediately.
+- reconnect arms a short recovery watchdog; if no stream progress arrives before timeout, loop state is forced back to `idle`.
+- this prevents stuck click-through/lock visuals when terminal stream events are dropped across transport reconnects.
+
+`loop-active` CSS class is enabled when `useChatLoopUiState(...).isBusy` reports an active loop:
 
 - `isSending === true` before the first phase event lands
 - active overlay phases: `awaiting-first-chunk`, `streaming`, `tool-call`, `tool-output`

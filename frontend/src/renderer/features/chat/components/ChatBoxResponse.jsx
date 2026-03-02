@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useChatStore } from '../stores/chatStore';
+import { useChatLoopUiState } from '../hooks/useChatLoopUiState';
 import { useResponseOverlayPhase } from '../hooks/useResponseOverlayPhase';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { toSanitizedMarkdownHtml } from '../../../infrastructure/markdown';
@@ -11,7 +12,7 @@ import { isDevUiEnabled } from '../utils/devUiFlag';
 import { resolveSourceTag } from '../utils/sourceTags';
 import {
   hasVisibleChatboxResponse,
-  resolveChatboxSurfaceState,
+  resolveChatboxSurfaceStateFromLoopUiState,
   shouldShowChatboxAwaitingReply,
   shouldShowChatboxResponse,
 } from '../utils/chatboxSurfaceState';
@@ -88,11 +89,15 @@ function ChatBoxResponse() {
     [activeResponse, closedResponseId],
   );
 
-  const surfaceState = useMemo(() => resolveChatboxSurfaceState({
-    overlayPhase,
+  const { loopUiState } = useChatLoopUiState({
+    phase: overlayPhase,
     isSending,
+    hasVisibleReply: Boolean(visibleResponse),
+  });
+  const surfaceState = useMemo(() => resolveChatboxSurfaceStateFromLoopUiState({
+    loopUiState,
     hasVisibleResponse: Boolean(visibleResponse),
-  }), [isSending, overlayPhase, visibleResponse]);
+  }), [loopUiState, visibleResponse]);
   const showAwaitingReply = shouldShowChatboxAwaitingReply(surfaceState);
   const showResponse = shouldShowChatboxResponse(surfaceState);
 

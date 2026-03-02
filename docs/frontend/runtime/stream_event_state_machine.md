@@ -158,7 +158,7 @@ Cross-layer parity is guarded by `tests/frontend/OverlayPhaseContractParity.test
 Renderer uses that channel in parallel with `streamTracking.phase`:
 
 - `ChatBox.jsx` uses stream/overlay phases for visual loop state only (not click-through toggling).
-- `chatLoopUiState.js` now provides the shared renderer loop vocabulary used by both dashboard and overlay surfaces:
+- `chatLoopUiState.js` now provides a shared finite-state transition table (`idle|awaiting-reply|active-response`) and `useChatLoopUiState(...)` is the single reducer-driven runtime used by both dashboard and overlay surfaces.
 - `idle`
 - `awaiting-reply`
 - `active-response`
@@ -168,6 +168,7 @@ Renderer uses that channel in parallel with `streamTracking.phase`:
 - `response` -> chat pill + response overlay
 - `ChatInterface.jsx` uses that same loop vocabulary for dashboard stop-button state and awaiting-dot behavior, including the race where `streaming` arrives before the first assistant row renders.
 - `ChatBoxResponse.jsx` uses that shared contract plus the latest visible assistant response to swap between typing and response views without separate component-local transition rules.
+- `useChatLoopUiState(...)` listens to main-process `ipc-status` updates and applies a reconnect watchdog so missing terminal stream events after backend disconnect/reconnect cannot leave dashboard/chat pill permanently loop-locked.
 - payload contract now includes optional recovery metadata:
 - `correlation_id`
 - `attempt`

@@ -1,14 +1,30 @@
 import {
   hasVisibleChatboxResponse,
-  isChatboxLoopInteractionLocked,
-  resolveChatboxSurfaceState,
+  resolveChatboxSurfaceStateFromLoopUiState,
   shouldShowChatboxAwaitingReply,
   shouldShowChatboxResponse,
 } from '../../frontend/src/renderer/features/chat/utils/chatboxSurfaceState';
+import { resolveChatLoopUiState } from '../../frontend/src/renderer/features/chat/utils/chatLoopUiState';
 
 describe('chatboxSurfaceState', () => {
+  function deriveSurfaceState({
+    overlayPhase,
+    isSending,
+    hasVisibleResponse,
+  }) {
+    const loopUiState = resolveChatLoopUiState({
+      phase: overlayPhase,
+      isSending,
+      hasVisibleReply: hasVisibleResponse,
+    });
+    return resolveChatboxSurfaceStateFromLoopUiState({
+      loopUiState,
+      hasVisibleResponse,
+    });
+  }
+
   test('shows awaiting state while user message is still sending', () => {
-    const surfaceState = resolveChatboxSurfaceState({
+    const surfaceState = deriveSurfaceState({
       overlayPhase: 'idle',
       isSending: true,
       hasVisibleResponse: false,
@@ -20,7 +36,7 @@ describe('chatboxSurfaceState', () => {
   });
 
   test('shows response state after first visible chunk arrives', () => {
-    const surfaceState = resolveChatboxSurfaceState({
+    const surfaceState = deriveSurfaceState({
       overlayPhase: 'streaming',
       isSending: false,
       hasVisibleResponse: true,
@@ -32,7 +48,7 @@ describe('chatboxSurfaceState', () => {
   });
 
   test('returns to awaiting state when tool output resumes the loop', () => {
-    const surfaceState = resolveChatboxSurfaceState({
+    const surfaceState = deriveSurfaceState({
       overlayPhase: 'tool-output',
       isSending: false,
       hasVisibleResponse: true,
@@ -43,7 +59,7 @@ describe('chatboxSurfaceState', () => {
   });
 
   test('keeps compact state when no response is visible and loop is terminal', () => {
-    const surfaceState = resolveChatboxSurfaceState({
+    const surfaceState = deriveSurfaceState({
       overlayPhase: 'complete',
       isSending: false,
       hasVisibleResponse: false,
@@ -57,20 +73,5 @@ describe('chatboxSurfaceState', () => {
   test('treats dismissed responses as not visible', () => {
     expect(hasVisibleChatboxResponse({ id: 'assistant-1' }, 'assistant-1')).toBe(false);
     expect(hasVisibleChatboxResponse({ id: 'assistant-1' }, 'assistant-2')).toBe(true);
-  });
-
-  test('locks interaction for active phases and pre-first-chunk send latch', () => {
-    expect(isChatboxLoopInteractionLocked({
-      overlayPhase: 'tool-call',
-      isSending: false,
-    })).toBe(true);
-    expect(isChatboxLoopInteractionLocked({
-      overlayPhase: 'idle',
-      isSending: true,
-    })).toBe(true);
-    expect(isChatboxLoopInteractionLocked({
-      overlayPhase: 'complete',
-      isSending: false,
-    })).toBe(false);
   });
 });
