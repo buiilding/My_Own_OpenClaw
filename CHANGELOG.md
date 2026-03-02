@@ -7,6 +7,11 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-electron-dev-python-env): snapshot the caller's active Conda
+  interpreter into `WINDIE_PYTHON_PATH` before npm Electron launchers enter
+  `bash -lc`, preventing login-shell startup from silently switching the local
+  Python sidecar back to the base Conda interpreter; document the launch
+  behavior in the Python sidecar architecture notes.
 - fix(frontend-onboarding-stop-shortcut-fallback): remove stale `Shift + Tab` fallback from the first-run slideshow stop guidance, use the shared dedicated stop shortcut resolver for default labeling, and refresh slideshow regression assertions to dedicated shortcut text.
 - feat(frontend-first-run-onboarding-slideshow): add a persisted two-step post-permission onboarding slideshow in renderer `App` flow (access reminder + loop-stop keybind guidance), style it as a minimal black/white high-legibility screen, add frontend onboarding storage + slideshow regressions, wire dedicated stop shortcut (`Ctrl+Alt+.` Windows/Linux, `Command+Option+.` macOS) to the existing stop-query path, and document the first-run flow in architecture/user docs.
 - fix(frontend-linux-capture-hide-regression): make Linux screenshot capture hide/restore depend on pending screenshot-surface restore state (not generic active surface tokens) so tool-loop auto-captures still hide chat pill before capture, and force nested screenshot captures to re-show the chat pill at capture restore (clearing stale outer pending restore) so it does not remain hidden; add `SurfaceOrchestratorCaptureLifecycle` regressions for interactive-token and screenshot-token nested captures.
