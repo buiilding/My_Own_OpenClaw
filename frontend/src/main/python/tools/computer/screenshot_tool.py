@@ -4,7 +4,6 @@ Optimized for speed using JPEG compression.
 """
 
 import asyncio
-import base64
 import io
 import logging
 import os
@@ -430,14 +429,21 @@ async def capture_screenshot(args: Dict[str, Any]) -> Dict[str, Any]:
                 progressive=False,
             )
             img_bytes = img_buffer.getvalue()
-            base64_data = base64.b64encode(img_bytes).decode("utf-8")
+            with tempfile.NamedTemporaryFile(
+                suffix=".jpg",
+                prefix="windie-shot-",
+                delete=False,
+            ) as screenshot_file:
+                screenshot_file.write(img_bytes)
+                screenshot_path = screenshot_file.name
 
             timestamp_ms = int(time.time() * 1000)
 
             return {
-                "screenshot": base64_data,
+                "screenshot_path": screenshot_path,
+                "screenshot_content_type": "image/jpeg",
                 "compression": "jpeg",
-                "size": int(len(base64_data) * 0.75),
+                "size": len(img_bytes),
                 "capture_meta": {
                     "source_w": int(source_w),
                     "source_h": int(source_h),

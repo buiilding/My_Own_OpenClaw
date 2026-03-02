@@ -1,5 +1,5 @@
-import base64
 import sys
+from pathlib import Path
 from types import ModuleType, SimpleNamespace
 
 import pytest
@@ -59,8 +59,14 @@ async def test_capture_screenshot_success_with_display_bounds(monkeypatch):
     payload = result["data"]
     assert payload["compression"] == "jpeg"
     assert payload["return_display"] == "Screenshot captured"
-    assert base64.b64decode(payload["screenshot"]) == b"fake-jpeg-bytes"
-    assert payload["size"] == int(len(payload["screenshot"]) * 0.75)
+    assert payload["screenshot_content_type"] == "image/jpeg"
+    screenshot_path = payload["screenshot_path"]
+    screenshot_file = Path(screenshot_path)
+    try:
+        assert screenshot_file.read_bytes() == b"fake-jpeg-bytes"
+    finally:
+        screenshot_file.unlink(missing_ok=True)
+    assert payload["size"] == len(b"fake-jpeg-bytes")
     assert payload["capture_meta"] == {
       "source_w": 300,
       "source_h": 200,

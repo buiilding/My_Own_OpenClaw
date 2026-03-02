@@ -1,4 +1,6 @@
 const { spawn } = require('child_process');
+const fs = require('fs');
+const fsPromises = require('fs/promises');
 const path = require('path');
 const { ipcMain } = require('electron');
 const { v4: uuidv4 } = require('uuid');
@@ -32,6 +34,139 @@ let readinessCheckCallback = null;
 let readinessCheckToken = 0;
 
 let cachedPythonPath = null;
+
+function isRecord(value) {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function isImageContentType(value) {
+  return typeof value === 'string' && value.toLowerCase().startsWith('image/');
+}
+
+function resolveScreenshotContentType(data) {
+  if (!isRecord(data)) {
+    return 'image/jpeg';
+  }
+  if (isImageContentType(data.screenshot_content_type)) {
+    return data.screenshot_content_type.toLowerCase();
+  }
+  if (isImageContentType(data.image_content_type)) {
+    return data.image_content_type.toLowerCase();
+  }
+
+  const format = (
+    typeof data.compression === 'string'
+      ? data.compression
+      : typeof data.format === 'string'
+        ? data.format
+        : ''
+  ).toLowerCase();
+  if (format === 'png') {
+    return 'image/png';
+  }
+  if (format === 'webp') {
+    return 'image/webp';
+  }
+  return 'image/jpeg';
+}
+
+function resolveScreenshotFilename(screenshotPath, contentType) {
+  const basename = path.basename(screenshotPath || '');
+  if (basename && basename.includes('.')) {
+    return basename;
+  }
+  if (contentType === 'image/png') {
+    return 'screenshot.png';
+  }
+  if (contentType === 'image/webp') {
+    return 'screenshot.webp';
+  }
+  return 'screenshot.jpg';
+}
+
+async function uploadScreenshotArtifactFromPath({
+  screenshotPath,
+  backendHttpUrl,
+  contentType,
+}) {
+  const resolvedContentType = isImageContentType(contentType) ? contentType : 'image/jpeg';
+  const fileBuffer = await fsPromises.readFile(screenshotPath);
+  const blob = new Blob([fileBuffer], { type: resolvedContentType });
+  const form = new FormData();
+  form.append('file', blob, resolveScreenshotFilename(screenshotPath, resolvedContentType));
+
+  const response = await fetch(`${backendHttpUrl}/api/artifacts/`, {
+    method: 'POST',
+    body: form,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Upload failed (${response.status}): ${errorText}`);
+  }
+
+  return response.json();
+}
+
+async function unlinkQuietly(targetPath) {
+  if (!targetPath) {
+    return;
+  }
+  try {
+    await fsPromises.unlink(targetPath);
+  } catch (error) {
+    if (error && error.code !== 'ENOENT') {
+      console.warn(`[LocalBackend] Failed to delete temporary screenshot ${targetPath}:`, error);
+    }
+  }
+}
+
+async function hydrateScreenshotArtifact(result, backendHttpUrl) {
+  if (!result || result.success === false || !isRecord(result.data)) {
+    return result;
+  }
+  const data = result.data;
+  const screenshotPath = typeof data.screenshot_path === 'string'
+    ? data.screenshot_path.trim()
+    : '';
+  if (!screenshotPath) {
+    return result;
+  }
+
+  try {
+    const uploaded = await uploadScreenshotArtifactFromPath({
+      screenshotPath,
+      backendHttpUrl,
+      contentType: resolveScreenshotContentType(data),
+    });
+    const artifactId = (
+      uploaded
+      && typeof uploaded === 'object'
+      && typeof uploaded.artifact_id === 'string'
+      && uploaded.artifact_id.trim()
+    ) ? uploaded.artifact_id.trim() : null;
+    const artifactUrl = (
+      uploaded
+      && typeof uploaded === 'object'
+      && typeof uploaded.url === 'string'
+      && uploaded.url.trim()
+    ) ? uploaded.url.trim() : null;
+
+    if (artifactId) {
+      data.screenshot_ref = artifactId;
+      data.screenshot_url = artifactUrl || `${backendHttpUrl}/api/artifacts/${artifactId}`;
+    }
+  } catch (error) {
+    console.warn(
+      `[LocalBackend] Failed to upload screenshot artifact from ${screenshotPath}: ${getErrorMessage(error)}`,
+    );
+  } finally {
+    await unlinkQuietly(screenshotPath);
+    delete data.screenshot_path;
+  }
+
+  return result;
+}
 
 function isActiveProcessReference(processRef) {
   return Boolean(processRef) && pythonProcess === processRef;
@@ -165,7 +300,6 @@ function startLocalBackend(mainWindow, options = {}) {
   const pythonPath = getPythonPath();
   const scriptPath = resolvePythonScriptPath('local_backend.py');
 
-  const fs = require('fs');
   if (!fs.existsSync(scriptPath)) {
     if (process.env.NODE_ENV !== 'production') {
       console.error(`[LocalBackend] Script not found at: ${scriptPath}`);
@@ -181,7 +315,7 @@ function startLocalBackend(mainWindow, options = {}) {
     console.log(`[LocalBackend] Starting Python local backend: ${pythonPath} ${scriptPath}`);
   }
 
-  const backendEndpoints = resolveBackendEndpoints(process.env, {
+  const backendEndpoints = options.backendEndpoints || resolveBackendEndpoints(process.env, {
     isPackaged: options.isPackaged === true,
   });
 
@@ -399,6 +533,7 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
     ? options.getFrontendConfig
     : null;
   const isPackaged = options.isPackaged === true;
+  const backendEndpoints = resolveBackendEndpoints(process.env, { isPackaged });
   const {
     resolveWindows,
     resolveChatWindow,
@@ -406,7 +541,7 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
   } = createWindowResolvers(getWindows);
 
   const [mainWindow] = resolveWindows();
-  startLocalBackend(mainWindow, { isPackaged });
+  startLocalBackend(mainWindow, { isPackaged, backendEndpoints });
 
   const registerRpcHandler = (channel, method, mapParams) => {
     ipcMain.handle(channel, async (event, payload = {}) => (
@@ -426,7 +561,7 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
           tool_name: toolName,
           args: normalizedArgs,
         }, { timeoutMs });
-      const result = toolName === 'screenshot'
+      let result = toolName === 'screenshot'
         ? await withHiddenWindowForScreenshot({
           platform: process.platform,
           task: runTool,
@@ -435,6 +570,7 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
           resolveResponseWindow,
         })
         : await runTool();
+      result = await hydrateScreenshotArtifact(result, backendEndpoints.httpUrl);
       
       if (result.success === false) {
         return { success: false, error: result.error };

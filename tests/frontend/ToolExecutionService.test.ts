@@ -192,6 +192,32 @@ describe('ToolExecutionService', () => {
     expect(payload).not.toHaveProperty('system_state');
   });
 
+  test('executeTool reuses pre-uploaded screenshot_ref from tool result when image payload is absent', async () => {
+    jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({
+      success: true,
+      data: {
+        screenshot_ref: 'artifact-sidecar-1',
+        screenshot_url: 'http://127.0.0.1:8765/api/artifacts/artifact-sidecar-1',
+      },
+    });
+
+    const sendToBackend = jest.fn();
+    const service = new ToolExecutionService({ sendToBackend });
+    const result = await service.executeTool(
+      'screenshot',
+      {},
+      { correlationId: 'req-sidecar-artifact', skipAutoCapture: false },
+    );
+
+    expect(mockUploadArtifactBase64.mock.calls.length).toBe(0);
+    expect(result.screenshot).toBeNull();
+    expect(result.screenshotRef).toBe('artifact-sidecar-1');
+    expect(result.screenshotUrl).toBe('http://127.0.0.1:8765/api/artifacts/artifact-sidecar-1');
+
+    const payload = sendToBackend.mock.calls[0][0].payload.data;
+    expect(payload.screenshot_ref).toBe('artifact-sidecar-1');
+  });
+
   test('executeTool surfaces image payloads from read_file without forwarding screenshot fields to backend', async () => {
     jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({
       success: true,

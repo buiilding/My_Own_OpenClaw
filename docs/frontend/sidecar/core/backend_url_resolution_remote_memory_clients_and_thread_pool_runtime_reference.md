@@ -211,6 +211,7 @@ Related runtime knobs:
 4. eager browser tool imports during sidecar startup can increase initial boot latency; keep browser runtime import lazy.
 5. duplicate sync+async FAISS index reads during startup can increase local memory bootstrap time.
 6. weakening remote-client error wrapping can leak inconsistent exception surfaces to memory-store/summarizer/title-generation callers.
+7. returning inline screenshot base64 in sidecar JSON-RPC responses can bloat stdout lines and main-process parse work; keep screenshot transport on temp-file-ref + artifact-upload path.
 
 ## Related Pages
 
