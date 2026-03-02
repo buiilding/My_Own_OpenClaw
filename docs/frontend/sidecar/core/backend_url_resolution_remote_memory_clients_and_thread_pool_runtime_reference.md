@@ -151,6 +151,13 @@ Compatibility:
 - `core/thread_pool.get_executor(max_workers=10)` now aliases the background executor for legacy memory paths
 - `core/thread_pool.shutdown_executor(...)` shuts down only that background executor
 
+Related runtime knobs:
+
+- `WINDIE_INTERACTIVE_WORKERS`
+- `WINDIE_BACKGROUND_WORKERS`
+- `WINDIE_SIDECAR_LOG_LEVEL` (default sidecar Python logger level is `WARNING`)
+- `WINDIE_VERBOSE_SIDECAR_STDERR=1` (forward all sidecar stderr lines through Electron main; default is severity-filtered forwarding)
+
 ## Test-Backed Invariants
 
 `tests/sidecar/test_backend_config.py` verifies:
@@ -201,7 +208,9 @@ Compatibility:
 1. changing backend URL env precedence can silently redirect memory clients to wrong backend instance.
 2. dropping trailing-slash normalization can build malformed doubled-slash endpoint URLs.
 3. routing latency-sensitive tool calls through background executors can increase user-visible lag.
-4. weakening remote-client error wrapping can leak inconsistent exception surfaces to memory-store/summarizer/title-generation callers.
+4. eager browser tool imports during sidecar startup can increase initial boot latency; keep browser runtime import lazy.
+5. duplicate sync+async FAISS index reads during startup can increase local memory bootstrap time.
+6. weakening remote-client error wrapping can leak inconsistent exception surfaces to memory-store/summarizer/title-generation callers.
 
 ## Related Pages
 

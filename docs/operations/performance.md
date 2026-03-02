@@ -44,6 +44,10 @@ read_when:
 
 - **Single capture after tool execution**: screenshots are captured once per tool/bundle to avoid redundant work.
 - **Bounded executor routing**: sidecar now uses split interactive/background executors, with interactive bound as loop default to prevent unbounded default-thread growth on macOS-heavy capture/state paths.
+- **Lower-noise stderr forwarding**: Electron main now forwards sidecar stderr lines by severity (`WARNING+` by default) with opt-in verbose pass-through via `WINDIE_VERBOSE_SIDECAR_STDERR=1`.
+- **Quieter default sidecar logging**: Python sidecar now defaults to `WARNING` logs and supports explicit override via `WINDIE_SIDECAR_LOG_LEVEL`.
+- **Lazier browser startup path**: browser tool runtime imports are now deferred until first browser tool execution instead of sidecar boot.
+- **No duplicate FAISS read at startup**: `LocalMemoryStore` no longer performs redundant sync+async FAISS index reads during initialization.
 
 ## Tips
 

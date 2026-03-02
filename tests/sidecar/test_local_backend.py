@@ -175,6 +175,24 @@ class DummySummarizerInit:
         self.stopped = True
 
 
+def test_resolve_sidecar_log_level_defaults_to_warning(monkeypatch):
+    monkeypatch.delenv(local_backend_module.ENV_SIDECAR_LOG_LEVEL, raising=False)
+
+    assert local_backend_module._resolve_sidecar_log_level() == local_backend_module.logging.WARNING
+
+
+def test_resolve_sidecar_log_level_accepts_valid_levels(monkeypatch):
+    monkeypatch.setenv(local_backend_module.ENV_SIDECAR_LOG_LEVEL, "info")
+
+    assert local_backend_module._resolve_sidecar_log_level() == local_backend_module.logging.INFO
+
+
+def test_resolve_sidecar_log_level_falls_back_on_invalid_value(monkeypatch):
+    monkeypatch.setenv(local_backend_module.ENV_SIDECAR_LOG_LEVEL, "verbose-ish")
+
+    assert local_backend_module._resolve_sidecar_log_level() == local_backend_module.logging.WARNING
+
+
 @pytest.mark.asyncio
 async def test_handle_execute_tool_success():
     backend = LocalBackend()

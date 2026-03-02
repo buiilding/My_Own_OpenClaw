@@ -8,6 +8,7 @@ Includes the last 300 commits on `main`.
 
 ### Added
 - perf(sidecar-executor-bounds): split sidecar blocking offloads into bounded interactive/background executors, bind the event-loop default executor to the interactive pool to cap `run_in_executor(None, ...)` thread growth, route system/computer/filesystem hot paths to the interactive pool, keep legacy `core.thread_pool` as a background-compat wrapper, add executor regression coverage, and refresh sidecar core/performance docs for the new routing contract.
+- perf(sidecar-startup-and-log-gating): defer browser tool runtime import until first browser action, remove duplicate sync FAISS index reads from `LocalMemoryStore.__init__`, default sidecar Python logging to `WARNING` with `WINDIE_SIDECAR_LOG_LEVEL` override, and gate Electron-side sidecar stderr forwarding to warning/error lines by default with opt-in verbose pass-through via `WINDIE_VERBOSE_SIDECAR_STDERR=1`.
 - fix(frontend-electron-dev-python-env): snapshot the caller's active Conda
   interpreter into `WINDIE_PYTHON_PATH` before npm Electron launchers enter
   `bash -lc`, preventing login-shell startup from silently switching the local

@@ -1,8 +1,10 @@
 import pytest
+from types import SimpleNamespace
 from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 
 ensure_frontend_python_path()
 
+import tools.registry as registry_module  # noqa: E402
 from tools.registry import ToolRegistry  # noqa: E402
 from tools.result import ToolResult  # noqa: E402
 
@@ -118,3 +120,27 @@ async def test_execute_tool_handles_exceptions():
     result = await registry.execute_tool("read_file", {"file_path": "/tmp/a"})
     assert result.success is False
     assert "Tool execution failed" in (result.error or "")
+
+
+@pytest.mark.asyncio
+async def test_browser_tool_imports_module_lazily(monkeypatch):
+    registry = ToolRegistry()
+    import_calls = []
+
+    async def fake_execute_browser(_args):
+        return ToolResult.success_result({"ok": True})
+
+    def fake_import_module(module_name):
+        import_calls.append(module_name)
+        return SimpleNamespace(execute_browser=fake_execute_browser)
+
+    monkeypatch.setattr(registry_module, "import_module", fake_import_module)
+
+    assert import_calls == []
+
+    first_result = await registry.execute_tool("browser", {"action": "open"})
+    second_result = await registry.execute_tool("browser", {"action": "close"})
+
+    assert first_result.success is True
+    assert second_result.success is True
+    assert import_calls == ["tools.browser.browser_tool"]
