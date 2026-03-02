@@ -337,6 +337,34 @@ describe('ChatInterface wiring', () => {
     expect(typeof lastInputProps.onStopResponse).toBe('function');
   });
 
+  test('renders curated model display label when selected_model_id is a legacy runtime id', () => {
+    mockConfig = {
+      interaction_mode: 'chat',
+      model_mode: 'online',
+      model_provider: 'openai',
+      selected_model_id: 'gpt-5.1',
+      voice_mode_enabled: false,
+      speech_mode_enabled: false,
+    };
+    mockAvailableModels = {
+      local: [],
+      online: [
+        {
+          id: 'gpt-5.1@@gpt-5-1-high-thinking',
+          runtime_model_id: 'gpt-5.1',
+          provider: 'openai',
+          display_name: 'GPT-5.1 High',
+          supports_thinking: true,
+        },
+      ],
+    };
+
+    render(<ChatInterface />);
+
+    expect(screen.getByRole('button', { name: 'Model selector' })).toHaveTextContent('GPT-5.1 High');
+    expect(screen.getByRole('button', { name: 'Model selector' })).not.toHaveTextContent('gpt-5.1');
+  });
+
   test('falls back to default model label and disabled voice mode when config is missing', () => {
     mockConfig = null;
     mockAvailableModels = { local: [], online: [] };

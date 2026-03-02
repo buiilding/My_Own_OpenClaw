@@ -150,15 +150,27 @@ function ChatInterface({ focusComposerToken = 0 }) {
       seenModelIds.add(modelId);
       options.push({
         id: modelId,
+        runtimeModelId: String(model?.runtime_model_id || '').trim(),
         provider: String(model?.provider || configuredProvider || '').trim(),
         label: String(model?.display_name || model?.displayName || modelId),
         supportsThinking: model?.supports_thinking === true,
       });
     });
 
+    const selectedRuntimeIndex = options.findIndex(
+      (option) => option.runtimeModelId === configuredModelId,
+    );
     if (configuredModelId && !seenModelIds.has(configuredModelId)) {
+      if (selectedRuntimeIndex >= 0) {
+        if (selectedRuntimeIndex > 0) {
+          const [selectedOption] = options.splice(selectedRuntimeIndex, 1);
+          options.unshift(selectedOption);
+        }
+        return options;
+      }
       options.unshift({
         id: configuredModelId,
+        runtimeModelId: '',
         provider: String(configuredProvider || '').trim(),
         label: configuredModelId,
         supportsThinking: false,
@@ -199,7 +211,9 @@ function ChatInterface({ focusComposerToken = 0 }) {
     return options;
   }, [availableModelPool, configuredProvider]);
   const providerLabel = formatProviderLabel(configuredProvider || providerOptions[0] || 'No providers available');
-  const selectedModelOption = modelOptions.find((option) => option.id === configuredModelId)
+  const selectedModelOption = modelOptions.find(
+    (option) => option.id === configuredModelId || option.runtimeModelId === configuredModelId,
+  )
     || modelOptions[0];
   const modelLabelBase = selectedModelOption?.label || configuredModelId || 'No models available';
   const devUiEnabled = isDevUiEnabled();

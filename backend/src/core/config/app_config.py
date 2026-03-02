@@ -15,7 +15,7 @@ APP_CONFIG = AppConfig(
     # LLM Settings
     model_mode="online",
     model_provider="openai",
-    selected_model_id="gpt-5.1",
+    selected_model_id="gpt-5.1@@gpt-5-1-high-thinking",
     llm_timeout=300,
     query_timeout=600,
     debug_litellm=False,
