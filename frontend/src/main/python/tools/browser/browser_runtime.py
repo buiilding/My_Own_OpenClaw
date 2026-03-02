@@ -9,15 +9,9 @@ from importlib.util import find_spec
 import logging
 import os
 from pathlib import Path
+import re
 import sys
 from typing import Any, Awaitable, Callable, Mapping, Protocol
-
-from tools.browser.browser_runtime_extraction import (
-    build_windie_extraction_llm,
-    ensure_extraction_feature_pack_available,
-    normalize_provider_name,
-    resolve_windie_extraction_target,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -426,13 +420,11 @@ def get_browser_runtime_provider(
 NativeActionHandler = Callable[..., Awaitable[Any] | Any]
 DEFAULT_CDP_URL = "http://127.0.0.1:9333"
 DEFAULT_FILESYSTEM_DIR = Path.home() / ".config" / "desktop-assistant" / "browser-use"
-DEFAULT_EXTRACTION_MODEL_ENV = "WINDIE_BROWSER_USE_EXTRACTION_MODEL"
-DEFAULT_EXTRACTION_PROVIDER_ENV = "WINDIE_BROWSER_USE_EXTRACTION_PROVIDER"
-DEFAULT_EXTRACTION_MODEL_ID_ENV = "WINDIE_BROWSER_USE_EXTRACTION_MODEL_ID"
-DEFAULT_EXTRACTION_API_KEY_ENV = "WINDIE_BROWSER_USE_EXTRACTION_API_KEY"
-DEFAULT_EXTRACTION_BASE_URL_ENV = "WINDIE_BROWSER_USE_EXTRACTION_BASE_URL"
 DEFAULT_SNAPSHOT_PAGE_LIMIT = 4_000
 MAX_SNAPSHOT_WINDOW_CHARS = 120_000
+DEFAULT_DETERMINISTIC_EXTRACT_MAX_CHARS = 4_000
+DEFAULT_DETERMINISTIC_LONG_CONTENT_MAX_CHARS = 8_000
+MAX_DETERMINISTIC_EXTRACT_CHARS = 20_000
 
 _BROWSER_REQUIRED_ACTIONS = frozenset(
     {
@@ -459,7 +451,7 @@ _BROWSER_REQUIRED_ACTIONS = frozenset(
     }
 )
 _FILESYSTEM_REQUIRED_ACTIONS = frozenset(
-    {"done", "write_file", "replace_file", "read_file", "extract", "screenshot"}
+    {"done", "write_file", "replace_file", "read_file", "screenshot"}
 )
 _BROWSER_USE_ACTIONS = (
     "done",
@@ -508,7 +500,6 @@ class _BrowserUseActionBridge:
         self._file_system: Any | None = None
         self._session_mode: str | None = None
         self._session_cdp_url: str | None = None
-        self._page_extraction_llm: Any | None = None
         self._lock = asyncio.Lock()
 
     def _ensure_browser_use_modules(self) -> None:
@@ -648,69 +639,213 @@ class _BrowserUseActionBridge:
         self._file_system = self._file_system_type(str(base_dir), create_default_files=True)
         return self._file_system
 
-    async def _ensure_page_extraction_llm(self) -> Any:
-        if self._page_extraction_llm is not None:
-            return self._page_extraction_llm
+    @staticmethod
+    def _clamp_positive_int(
+        value: Any,
+        *,
+        default: int,
+        minimum: int,
+        maximum: int,
+    ) -> int:
+        if not isinstance(value, int):
+            return default
+        if value < minimum:
+            return minimum
+        if value > maximum:
+            return maximum
+        return value
 
-        model_name_raw = os.getenv(DEFAULT_EXTRACTION_MODEL_ENV, "")
-        model_name = model_name_raw.strip()
-        if model_name:
-            provider_guess = None
-            if "_" in model_name:
-                provider_guess = normalize_provider_name(model_name.split("_", 1)[0])
-            dependency_error = await asyncio.to_thread(
-                ensure_extraction_feature_pack_available,
-                provider_guess,
+    @staticmethod
+    def _query_terms(query: str) -> list[str]:
+        terms: list[str] = []
+        seen: set[str] = set()
+        for term in re.findall(r"[a-zA-Z0-9]{3,}", query.lower()):
+            if term in seen:
+                continue
+            seen.add(term)
+            terms.append(term)
+        return terms
+
+    @classmethod
+    def _focused_excerpt(
+        cls,
+        content: str,
+        *,
+        query: str,
+        max_chars: int,
+    ) -> str:
+        if not content:
+            return ""
+
+        terms = cls._query_terms(query)
+        if not terms:
+            return content[:max_chars]
+
+        lines = content.splitlines()
+        snippets: list[str] = []
+        seen_snippets: set[str] = set()
+        current_chars = 0
+
+        for line_index, line in enumerate(lines):
+            lowered = line.lower()
+            if not any(term in lowered for term in terms):
+                continue
+            start = max(0, line_index - 1)
+            end = min(len(lines), line_index + 2)
+            snippet = "\n".join(
+                part for part in lines[start:end] if part.strip()
+            ).strip()
+            if not snippet:
+                continue
+            dedupe_key = snippet.lower()
+            if dedupe_key in seen_snippets:
+                continue
+            seen_snippets.add(dedupe_key)
+            snippets.append(snippet)
+            current_chars += len(snippet)
+            if current_chars >= max_chars * 2:
+                break
+
+        if not snippets:
+            return content[:max_chars]
+
+        excerpt = "\n\n".join(snippets)
+        if len(excerpt) > max_chars:
+            return excerpt[:max_chars]
+        return excerpt
+
+    async def _extract_clean_markdown(
+        self,
+        *,
+        browser_session: Any,
+        extract_links: bool,
+    ) -> tuple[str, dict[str, Any]]:
+        markdown_module = self._import_module("browser_use.dom.markdown_extractor")
+        extract_clean_markdown = getattr(markdown_module, "extract_clean_markdown", None)
+        if not callable(extract_clean_markdown):
+            raise RuntimeError(
+                "browser_use.dom.markdown_extractor.extract_clean_markdown is unavailable"
             )
-            if dependency_error:
-                raise RuntimeError(dependency_error)
-            llm_models_module = self._import_module("browser_use.llm.models")
-            get_llm_by_name = getattr(llm_models_module, "get_llm_by_name", None)
-            if not callable(get_llm_by_name):
-                raise RuntimeError("browser_use.llm.models.get_llm_by_name is unavailable")
-            llm = get_llm_by_name(model_name)
-            self._page_extraction_llm = llm
-            return llm
+        markdown, stats = await extract_clean_markdown(
+            browser_session=browser_session,
+            extract_links=extract_links,
+        )
+        normalized_markdown = markdown if isinstance(markdown, str) else str(markdown or "")
+        normalized_stats = stats if isinstance(stats, dict) else {}
+        return normalized_markdown, dict(normalized_stats)
 
-        provider_name, model_id, api_key, base_url = resolve_windie_extraction_target(
-            self._import_module,
-            provider_env=DEFAULT_EXTRACTION_PROVIDER_ENV,
-            model_id_env=DEFAULT_EXTRACTION_MODEL_ID_ENV,
-            api_key_env=DEFAULT_EXTRACTION_API_KEY_ENV,
-            base_url_env=DEFAULT_EXTRACTION_BASE_URL_ENV,
-        )
-        dependency_error = await asyncio.to_thread(
-            ensure_extraction_feature_pack_available,
-            provider_name,
-        )
-        if dependency_error:
-            raise RuntimeError(dependency_error)
+    async def _run_deterministic_extract_action(
+        self,
+        *,
+        browser_session: Any,
+        params: Mapping[str, Any],
+    ) -> dict[str, Any]:
+        query = str(params.get("query") or "").strip()
+        if not query:
+            raise RuntimeError("extract requires non-empty query")
 
-        windie_llm, windie_resolution_error = build_windie_extraction_llm(
-            self._import_module,
-            provider_name=provider_name,
-            model_id=model_id,
-            api_key=api_key,
-            base_url=base_url,
+        extract_links = bool(params.get("extract_links", False))
+        start_from_char = self._clamp_positive_int(
+            params.get("start_from_char"),
+            default=0,
+            minimum=0,
+            maximum=MAX_SNAPSHOT_WINDOW_CHARS,
         )
-        if windie_llm is not None:
-            self._page_extraction_llm = windie_llm
-            return windie_llm
+        max_chars = self._clamp_positive_int(
+            params.get("max_chars"),
+            default=DEFAULT_DETERMINISTIC_EXTRACT_MAX_CHARS,
+            minimum=100,
+            maximum=MAX_DETERMINISTIC_EXTRACT_CHARS,
+        )
 
-        error_suffix = (
-            f" {windie_resolution_error}" if isinstance(windie_resolution_error, str) else ""
+        markdown, stats = await self._extract_clean_markdown(
+            browser_session=browser_session,
+            extract_links=extract_links,
         )
-        raise RuntimeError(
-            "Browser Use extraction actions require a native page_extraction_llm. "
-            "Configure WindieOS extraction settings via "
-            f"{DEFAULT_EXTRACTION_PROVIDER_ENV}/{DEFAULT_EXTRACTION_MODEL_ID_ENV} "
-            "(optionally with "
-            f"{DEFAULT_EXTRACTION_API_KEY_ENV}/{DEFAULT_EXTRACTION_BASE_URL_ENV}), "
-            "or set "
-            f"{DEFAULT_EXTRACTION_MODEL_ENV} to a Browser Use model name "
-            "(for example: openai_gpt_4o_mini)."
-            f"{error_suffix}"
+        total_chars = len(markdown)
+        bounded_start = min(start_from_char, total_chars)
+        excerpt = self._focused_excerpt(
+            markdown[bounded_start:],
+            query=query,
+            max_chars=max_chars,
         )
+        returned_chars = len(excerpt)
+        has_more = bounded_start + max_chars < total_chars
+        next_offset = bounded_start + max_chars if has_more else None
+
+        metadata: dict[str, Any] = {
+            "query": query,
+            "extract_links": extract_links,
+            "start_from_char": bounded_start,
+            "max_chars": max_chars,
+            "extraction_backend": "sidecar_deterministic",
+            "schema_enforced": False,
+            "stats": stats,
+        }
+        if isinstance(params.get("output_schema"), dict):
+            metadata["schema_hint_received"] = True
+
+        return {
+            "success": True,
+            "action": "extract",
+            "native_source": "browser_use.tools",
+            "extracted_content": excerpt,
+            "metadata": metadata,
+            "total_chars": total_chars,
+            "returned_chars": returned_chars,
+            "has_more": has_more,
+            "next_offset": next_offset,
+        }
+
+    async def _run_deterministic_read_long_content_action(
+        self,
+        *,
+        browser_session: Any,
+        params: Mapping[str, Any],
+    ) -> dict[str, Any]:
+        goal = str(params.get("goal") or "").strip()
+        if not goal:
+            raise RuntimeError("read_long_content requires non-empty goal")
+
+        source = str(params.get("source") or "").strip()
+        context = str(params.get("context") or "").strip()
+        query = " ".join(part for part in (goal, source, context) if part)
+
+        max_chars = self._clamp_positive_int(
+            params.get("max_chars"),
+            default=DEFAULT_DETERMINISTIC_LONG_CONTENT_MAX_CHARS,
+            minimum=250,
+            maximum=MAX_DETERMINISTIC_EXTRACT_CHARS,
+        )
+
+        markdown, stats = await self._extract_clean_markdown(
+            browser_session=browser_session,
+            extract_links=True,
+        )
+        total_chars = len(markdown)
+        excerpt = self._focused_excerpt(markdown, query=query, max_chars=max_chars)
+        returned_chars = len(excerpt)
+        has_more = max_chars < total_chars
+        next_offset = max_chars if has_more else None
+
+        return {
+            "success": True,
+            "action": "read_long_content",
+            "native_source": "browser_use.tools",
+            "extracted_content": excerpt,
+            "metadata": {
+                "goal": goal,
+                "source": source,
+                "context": context,
+                "max_chars": max_chars,
+                "extraction_backend": "sidecar_deterministic",
+                "stats": stats,
+            },
+            "total_chars": total_chars,
+            "returned_chars": returned_chars,
+            "has_more": has_more,
+            "next_offset": next_offset,
+        }
 
     @staticmethod
     def _normalize_action_result(action_name: str, result: Any) -> dict[str, Any]:
@@ -738,6 +873,10 @@ class _BrowserUseActionBridge:
             "attachments",
             "images",
             "is_done",
+            "total_chars",
+            "returned_chars",
+            "has_more",
+            "next_offset",
         ):
             value = payload.get(key)
             if value is not None:
@@ -776,16 +915,21 @@ class _BrowserUseActionBridge:
                     await self._ensure_browser_session() if needs_browser else None
                 )
                 file_system = self._ensure_file_system() if needs_file_system else None
+                if normalized_action == "extract":
+                    return await self._run_deterministic_extract_action(
+                        browser_session=browser_session,
+                        params=params,
+                    )
+                if normalized_action == "read_long_content":
+                    return await self._run_deterministic_read_long_content_action(
+                        browser_session=browser_session,
+                        params=params,
+                    )
                 available_file_paths: list[str] = []
                 if normalized_action == "upload_file":
                     raw_path = params.get("path")
                     if isinstance(raw_path, str) and raw_path.strip():
                         available_file_paths.append(raw_path.strip())
-                page_extraction_llm = (
-                    await self._ensure_page_extraction_llm()
-                    if normalized_action in {"extract", "read_long_content"}
-                    else None
-                )
                 execute_action = self._execute_action
                 assert callable(execute_action)
                 result = execute_action(
@@ -794,7 +938,7 @@ class _BrowserUseActionBridge:
                     browser_session=browser_session,
                     file_system=file_system,
                     available_file_paths=available_file_paths,
-                    page_extraction_llm=page_extraction_llm,
+                    page_extraction_llm=None,
                 )
                 if inspect.isawaitable(result):
                     result = await result

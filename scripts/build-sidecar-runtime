@@ -7,13 +7,10 @@ RUNTIME_DIR="${FRONTEND_DIR}/python-runtime"
 RUNTIME_ARCHIVE="${FRONTEND_DIR}/python-runtime.tar.gz"
 RUNTIME_REQS_CORE="${FRONTEND_DIR}/src/main/python/requirements.runtime.core.txt"
 RUNTIME_REQS_BROWSER="${FRONTEND_DIR}/src/main/python/requirements.runtime.browser.txt"
-RUNTIME_REQS_BROWSER_LLM_OPENAI="${FRONTEND_DIR}/src/main/python/requirements.runtime.browser-llm-openai.txt"
-RUNTIME_REQS_BROWSER_LLM_GOOGLE="${FRONTEND_DIR}/src/main/python/requirements.runtime.browser-llm-google.txt"
 RUNTIME_REQS_FULL="${FRONTEND_DIR}/src/main/python/requirements.runtime.txt"
 MODE="${WINDIE_SIDECAR_RUNTIME_MODE:-slim}"
 PROFILE="${WINDIE_SIDECAR_RUNTIME_PROFILE:-core}"
 INCLUDE_BROWSER_PACK=0
-INCLUDE_BROWSER_LLM_PACKS=0
 
 if [[ ! -f "${RUNTIME_REQS_CORE}" ]]; then
   echo "[build-sidecar-runtime] Missing runtime requirements file: ${RUNTIME_REQS_CORE}" >&2
@@ -22,16 +19,6 @@ fi
 
 if [[ ! -f "${RUNTIME_REQS_BROWSER}" ]]; then
   echo "[build-sidecar-runtime] Missing runtime browser requirements file: ${RUNTIME_REQS_BROWSER}" >&2
-  exit 1
-fi
-
-if [[ ! -f "${RUNTIME_REQS_BROWSER_LLM_OPENAI}" ]]; then
-  echo "[build-sidecar-runtime] Missing runtime browser llm requirements file: ${RUNTIME_REQS_BROWSER_LLM_OPENAI}" >&2
-  exit 1
-fi
-
-if [[ ! -f "${RUNTIME_REQS_BROWSER_LLM_GOOGLE}" ]]; then
-  echo "[build-sidecar-runtime] Missing runtime browser llm requirements file: ${RUNTIME_REQS_BROWSER_LLM_GOOGLE}" >&2
   exit 1
 fi
 
@@ -73,15 +60,9 @@ fi
 case "${PROFILE}" in
   core)
     INCLUDE_BROWSER_PACK=0
-    INCLUDE_BROWSER_LLM_PACKS=0
     ;;
-  core+browser|browser)
+  core+browser|browser|full)
     INCLUDE_BROWSER_PACK=1
-    INCLUDE_BROWSER_LLM_PACKS=0
-    ;;
-  full)
-    INCLUDE_BROWSER_PACK=1
-    INCLUDE_BROWSER_LLM_PACKS=1
     ;;
   *)
     echo "[build-sidecar-runtime] Unsupported WINDIE_SIDECAR_RUNTIME_PROFILE=${PROFILE}" >&2
@@ -93,10 +74,6 @@ esac
 "${RUNTIME_PYTHON}" -m pip install -r "${RUNTIME_REQS_CORE}"
 if [[ "${INCLUDE_BROWSER_PACK}" -eq 1 ]]; then
   "${RUNTIME_PYTHON}" -m pip install -r "${RUNTIME_REQS_BROWSER}"
-fi
-if [[ "${INCLUDE_BROWSER_LLM_PACKS}" -eq 1 ]]; then
-  "${RUNTIME_PYTHON}" -m pip install -r "${RUNTIME_REQS_BROWSER_LLM_OPENAI}"
-  "${RUNTIME_PYTHON}" -m pip install -r "${RUNTIME_REQS_BROWSER_LLM_GOOGLE}"
 fi
 
 if [[ "${MODE}" == "full" ]]; then

@@ -1140,89 +1140,80 @@ class TestBrowserRuntimeAdapter:
         )
 
     @pytest.mark.asyncio
-    async def test_native_handler_extract_uses_configured_browser_use_llm_and_filesystem(
+    async def test_native_handler_extract_uses_deterministic_markdown_extraction(
         self,
     ):
-        fake_llm_models_module = ModuleType("browser_use.llm.models")
         execute_action = mock.AsyncMock(
-            return_value=SimpleNamespace(extracted_content="Extracted content")
+            return_value=SimpleNamespace(extracted_content="unused")
         )
-        fake_page_extraction_llm = object()
-        get_llm_by_name = mock.Mock(return_value=fake_page_extraction_llm)
-        fake_llm_models_module.get_llm_by_name = get_llm_by_name
+        fake_markdown_module = ModuleType("browser_use.dom.markdown_extractor")
+        extract_clean_markdown = mock.AsyncMock(
+            return_value=(
+                "Plans\nBasic $10\nPro plan $20\nEnterprise $50",
+                {"url": "https://example.com/pricing"},
+            )
+        )
+        fake_markdown_module.extract_clean_markdown = extract_clean_markdown
         import_module_mock, _ = _build_fake_browser_use_import_module(
             execute_action=execute_action,
-            extra_modules={"browser_use.llm.models": fake_llm_models_module},
+            extra_modules={
+                "browser_use.dom.markdown_extractor": fake_markdown_module
+            },
         )
 
         controller = SimpleNamespace(is_connected=True, _mode="managed", _cdp_url=None)
 
-        with mock.patch.dict(
-            "os.environ",
-            {"WINDIE_BROWSER_USE_EXTRACTION_MODEL": "openai_gpt_4o_mini"},
-            clear=False,
-        ), mock.patch(
+        with mock.patch(
             "tools.browser.browser_tool.import_module",
             new=import_module_mock,
         ):
             handlers = get_native_runtime_handlers(controller=controller)
-            result = await handlers["extract"](query="pricing")
+            result = await handlers["extract"](query="pro plan", extract_links=True)
 
         assert result["success"] is True
         assert result["native_source"] == "browser_use.tools"
-        get_llm_by_name.assert_called_once_with("openai_gpt_4o_mini")
-        execute_action.assert_awaited_once_with(
-            "extract",
-            {"query": "pricing"},
-            browser_session=mock.ANY,
-            file_system=mock.ANY,
-            available_file_paths=[],
-            page_extraction_llm=fake_page_extraction_llm,
-        )
+        assert "Pro plan" in result["extracted_content"]
+        assert result["metadata"]["extraction_backend"] == "sidecar_deterministic"
+        extract_clean_markdown.assert_awaited_once()
+        execute_action.assert_not_awaited()
 
     @pytest.mark.asyncio
-    async def test_native_handler_extract_uses_windie_provider_model_settings(
+    async def test_native_handler_read_long_content_uses_deterministic_markdown_extraction(
         self,
     ):
-        fake_openai_chat_module = ModuleType("browser_use.llm.openai.chat")
         execute_action = mock.AsyncMock(
-            return_value=SimpleNamespace(extracted_content="Extracted content")
+            return_value=SimpleNamespace(extracted_content="unused")
         )
-
-        class FakeChatOpenAI:
-            def __init__(self, **kwargs):
-                self.kwargs = kwargs
-
-        fake_openai_chat_module.ChatOpenAI = FakeChatOpenAI
+        fake_markdown_module = ModuleType("browser_use.dom.markdown_extractor")
+        extract_clean_markdown = mock.AsyncMock(
+            return_value=(
+                "Introduction\nWindieOS helps automate tasks.\nPricing\nPro plan includes browser tools.",
+                {"url": "https://example.com/docs"},
+            )
+        )
+        fake_markdown_module.extract_clean_markdown = extract_clean_markdown
         import_module_mock, _ = _build_fake_browser_use_import_module(
             execute_action=execute_action,
-            extra_modules={"browser_use.llm.openai.chat": fake_openai_chat_module},
+            extra_modules={
+                "browser_use.dom.markdown_extractor": fake_markdown_module
+            },
         )
 
         controller = SimpleNamespace(is_connected=True, _mode="managed", _cdp_url=None)
 
-        with mock.patch.dict(
-            "os.environ",
-            {
-                "WINDIE_BROWSER_USE_EXTRACTION_PROVIDER": "openai",
-                "WINDIE_BROWSER_USE_EXTRACTION_MODEL_ID": "gpt-5.1",
-                "WINDIE_BROWSER_USE_EXTRACTION_API_KEY": "test-openai-key",
-            },
-            clear=False,
-        ), mock.patch(
+        with mock.patch(
             "tools.browser.browser_tool.import_module",
             new=import_module_mock,
         ):
             handlers = get_native_runtime_handlers(controller=controller)
-            result = await handlers["extract"](query="pricing")
+            result = await handlers["read_long_content"](goal="pricing details")
 
         assert result["success"] is True
-        assert result["native_source"] == "browser_use.tools"
-        execute_action.assert_awaited_once()
-        assert execute_action.await_args.kwargs["page_extraction_llm"].kwargs == {
-            "model": "gpt-5.1",
-            "api_key": "test-openai-key",
-        }
+        assert result["action"] == "read_long_content"
+        assert result["metadata"]["extraction_backend"] == "sidecar_deterministic"
+        assert result["metadata"]["goal"] == "pricing details"
+        extract_clean_markdown.assert_awaited_once()
+        execute_action.assert_not_awaited()
 
     def test_runtime_factory_loads_handlers_from_custom_module(self, make_controller):
         controller = make_controller()

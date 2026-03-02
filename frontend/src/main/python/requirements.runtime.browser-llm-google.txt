@@ -1,6 +1,0 @@
-# Frontend Python sidecar Browser Use extraction LLM dependencies (Google).
-#
-# Installed at runtime when browser extract/read_long_content actions need
-# Google Gemini extraction providers.
-
-google-genai>=1.50.0,<2.0.0
