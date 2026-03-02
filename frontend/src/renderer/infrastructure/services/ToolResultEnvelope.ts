@@ -1,9 +1,5 @@
-export const TOOL_RESULT_ENVELOPE_TYPE = 'tool-result';
-export const TOOL_BUNDLE_RESULT_ENVELOPE_TYPE = 'tool-bundle-result';
-
-export type ToolResultEnvelopeType =
-  | typeof TOOL_RESULT_ENVELOPE_TYPE
-  | typeof TOOL_BUNDLE_RESULT_ENVELOPE_TYPE;
+const TOOL_RESULT_ENVELOPE_TYPE = 'tool-result';
+const TOOL_BUNDLE_RESULT_ENVELOPE_TYPE = 'tool-bundle-result';
 
 type ToolResultEnvelopePayload = Record<string, unknown>;
 

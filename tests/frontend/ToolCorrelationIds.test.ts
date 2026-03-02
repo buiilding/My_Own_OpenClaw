@@ -1,5 +1,4 @@
 import {
-  resolveToolBundleCorrelationId,
   resolveToolCallCorrelationId,
   resolveToolOutputCorrelationId,
 } from '../../frontend/src/renderer/features/chat/utils/toolCorrelationIds';
@@ -39,9 +38,4 @@ describe('toolCorrelationIds', () => {
     }, ' event-out-3 ')).toBe('event-out-3');
   });
 
-  test('resolves tool-bundle ids and filters whitespace-only values', () => {
-    expect(resolveToolBundleCorrelationId({ bundle_id: ' bundle-1 ' })).toBe('bundle-1');
-    expect(resolveToolBundleCorrelationId({ bundle_id: '   ' })).toBeUndefined();
-    expect(resolveToolBundleCorrelationId(undefined)).toBeUndefined();
-  });
 });

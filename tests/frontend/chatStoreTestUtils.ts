@@ -1,9 +1,27 @@
 import {
-  DEFAULT_CHAT_WORKSPACE_REF,
   ChatMessage,
-  createInitialStreamTracking,
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+
+const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
+
+function createInitialStreamTracking() {
+  return {
+    activeTurnRef: null,
+    phase: 'idle',
+    startedAt: null,
+    firstChunkAt: null,
+    completedAt: null,
+    lastEventAt: null,
+    lastEventType: null,
+    eventCount: 0,
+    chunkCount: 0,
+    toolCallCount: 0,
+    toolOutputCount: 0,
+    lastChunkSize: 0,
+    lastError: null,
+  };
+}
 
 export function createAssistantSeedMessage(overrides: Partial<ChatMessage> = {}): ChatMessage {
   return {

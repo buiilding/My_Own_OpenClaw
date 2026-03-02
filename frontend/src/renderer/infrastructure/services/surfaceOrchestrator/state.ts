@@ -83,13 +83,3 @@ export function setPendingScreenshotCaptureRestore(pending: boolean): void {
 export function isPendingScreenshotCaptureRestore(): boolean {
   return state.pendingScreenshotCaptureRestore;
 }
-
-export function resetSurfaceOrchestratorStateForTests(): void {
-  state.activeSurfaceTokens.clear();
-  state.nextSurfaceToken = 1;
-  state.pendingChatPillRestore = false;
-  state.activeScreenshotCaptureCount = 0;
-  state.pendingScreenshotCaptureRestore = false;
-  state.transitionLogSequence = 0;
-  state.nextSyntheticCorrelationId = 1;
-}

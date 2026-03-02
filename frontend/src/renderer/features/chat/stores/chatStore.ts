@@ -103,7 +103,7 @@ export interface StreamTracking {
   lastError: string | null;
 }
 
-export interface ChatWorkspaceState {
+interface ChatWorkspaceState {
   messages: ChatMessage[];
   isSending: boolean;
   thinkingStatus: string | null;
@@ -112,9 +112,9 @@ export interface ChatWorkspaceState {
   streamTracking: StreamTracking;
 }
 
-export const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
+const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
 
-export function normalizeConversationRef(value: string | null | undefined): string | null {
+function normalizeConversationRef(value: string | null | undefined): string | null {
   if (typeof value !== 'string') {
     return null;
   }
@@ -122,7 +122,7 @@ export function normalizeConversationRef(value: string | null | undefined): stri
   return normalized.length > 0 ? normalized : null;
 }
 
-export function resolveChatWorkspaceRef(conversationRef: string | null | undefined): string {
+function resolveChatWorkspaceRef(conversationRef: string | null | undefined): string {
   return normalizeConversationRef(conversationRef) || DEFAULT_CHAT_WORKSPACE_REF;
 }
 
@@ -168,7 +168,7 @@ interface ChatState {
   clearMessages: (conversationRef?: string | null) => void;
 }
 
-export function createInitialStreamTracking(): StreamTracking {
+function createInitialStreamTracking(): StreamTracking {
   return {
     activeTurnRef: null,
     phase: 'idle',

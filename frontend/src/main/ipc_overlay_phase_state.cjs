@@ -90,8 +90,5 @@ function createResponseOverlayPhaseState() {
 }
 
 module.exports = {
-  RESPONSE_OVERLAY_PHASES,
-  areResponseOverlayMetadataEqual,
   createResponseOverlayPhaseState,
-  normalizeResponseOverlayMetadata,
 };

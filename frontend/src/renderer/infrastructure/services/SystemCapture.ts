@@ -7,7 +7,6 @@ import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
 import { getStoredDisplayBounds } from '../../utils/displaySelection';
 import type { SystemState, ToolResult } from './MessageFormatter';
 import {
-  __resetSurfaceOrchestratorStateForTests,
   prepareExternalFocusForCapture,
   prepareScreenshotCaptureVisibility,
   restoreScreenshotCaptureVisibility,
@@ -217,10 +216,6 @@ export async function extractOSstate(
       }));
     }
   }
-}
-
-export function __resetSystemCaptureStateForTests(): void {
-  __resetSurfaceOrchestratorStateForTests();
 }
 
 function resolveScreenshotContentType(data: Record<string, any>): string | null {

@@ -1,4 +1,4 @@
-export function buildStopQueryTrackingPatch(stoppedAt) {
+function buildStopQueryTrackingPatch(stoppedAt) {
   return {
     phase: 'complete',
     completedAt: stoppedAt,

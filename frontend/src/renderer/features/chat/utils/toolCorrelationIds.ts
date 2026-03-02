@@ -10,10 +10,6 @@ type ToolOutputCorrelationPayload = {
   metadata?: unknown;
 };
 
-type ToolBundleCorrelationPayload = {
-  bundle_id?: string | null;
-};
-
 export function resolveToolCallCorrelationId(
   payload: ToolCallCorrelationPayload | null | undefined,
   eventId?: string | null,
@@ -38,13 +34,5 @@ export function resolveToolOutputCorrelationId(
     payload?.request_id,
     metadataRequestId,
     eventId,
-  ) || undefined;
-}
-
-export function resolveToolBundleCorrelationId(
-  payload: ToolBundleCorrelationPayload | null | undefined,
-): string | undefined {
-  return resolveCorrelationId(
-    payload?.bundle_id,
   ) || undefined;
 }

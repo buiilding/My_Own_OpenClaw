@@ -1,11 +1,11 @@
 /** @jest-environment node */
 
 const {
-  RESPONSE_OVERLAY_PHASES,
-  areResponseOverlayMetadataEqual,
   createResponseOverlayPhaseState,
-  normalizeResponseOverlayMetadata,
 } = require('../../frontend/src/main/ipc_overlay_phase_state.cjs');
+const {
+  RESPONSE_OVERLAY_PHASES,
+} = require('../../frontend/src/main/ipc_overlay_phase_contract.cjs');
 
 describe('ipc_overlay_phase_state', () => {
   test('exports supported overlay phases', () => {
@@ -13,51 +13,6 @@ describe('ipc_overlay_phase_state', () => {
     expect(RESPONSE_OVERLAY_PHASES.has('tool-call')).toBe(true);
     expect(RESPONSE_OVERLAY_PHASES.has('error')).toBe(true);
     expect(RESPONSE_OVERLAY_PHASES.has('not-a-phase')).toBe(false);
-  });
-
-  test('normalizes metadata with typed filtering', () => {
-    expect(normalizeResponseOverlayMetadata(null)).toBeNull();
-    expect(normalizeResponseOverlayMetadata([])).toBeNull();
-    expect(normalizeResponseOverlayMetadata({
-      correlation_id: 'corr-1',
-      attempt: 2,
-      max_attempts: 5,
-      recovery_stage: 'tool-call',
-      failure_reason: 'focus_retrying',
-      ignored_key: 'ignored',
-      invalid_number: Infinity,
-    })).toEqual({
-      correlation_id: 'corr-1',
-      attempt: 2,
-      max_attempts: 5,
-      recovery_stage: 'tool-call',
-      failure_reason: 'focus_retrying',
-    });
-    expect(normalizeResponseOverlayMetadata({ attempt: '2', correlation_id: '' })).toBeNull();
-  });
-
-  test('drops whitespace-only string metadata values', () => {
-    expect(normalizeResponseOverlayMetadata({
-      correlation_id: '   ',
-      recovery_stage: '\t',
-      failure_reason: '  ',
-      attempt: 1,
-    })).toEqual({
-      attempt: 1,
-    });
-  });
-
-  test('compares metadata objects deterministically', () => {
-    expect(areResponseOverlayMetadataEqual(null, null)).toBe(true);
-    expect(areResponseOverlayMetadataEqual(null, { attempt: 1 })).toBe(false);
-    expect(areResponseOverlayMetadataEqual(
-      { correlation_id: 'corr-1', attempt: 1 },
-      { correlation_id: 'corr-1', attempt: 1 },
-    )).toBe(true);
-    expect(areResponseOverlayMetadataEqual(
-      { correlation_id: 'corr-1', attempt: 1 },
-      { correlation_id: 'corr-1', attempt: 2 },
-    )).toBe(false);
   });
 
   test('broadcasts and invokes callback on valid phase transition', () => {

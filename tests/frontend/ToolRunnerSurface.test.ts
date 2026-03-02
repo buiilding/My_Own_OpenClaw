@@ -1,5 +1,4 @@
 import {
-  __resetToolExecutionSurfaceStateForTests,
   prepareToolExecutionSurface,
   restoreToolExecutionSurface,
   resolveBundleSurfaceMode,
@@ -12,7 +11,6 @@ describe('toolRunnerSurface helpers', () => {
   const originalUserAgent = navigator.userAgent;
 
   beforeEach(() => {
-    __resetToolExecutionSurfaceStateForTests();
     jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({ success: true });
     Object.defineProperty(window.navigator, 'userAgent', {
       configurable: true,

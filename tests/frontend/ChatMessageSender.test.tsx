@@ -1,8 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { useChatMessageSender } from '../../frontend/src/renderer/features/chat/hooks/useChatMessageSender';
 import {
-  DEFAULT_CHAT_WORKSPACE_REF,
-  createInitialStreamTracking,
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
@@ -60,6 +58,25 @@ const mockRecordUserMessage = recordUserMessage as jest.MockedFunction<typeof re
 const mockGetActiveConversationRef = getActiveConversationRef as jest.MockedFunction<typeof getActiveConversationRef>;
 const mockSetActiveConversationRef = setActiveConversationRef as jest.MockedFunction<typeof setActiveConversationRef>;
 const mockGetTranscriptSessionInfo = getTranscriptSessionInfo as jest.MockedFunction<typeof getTranscriptSessionInfo>;
+const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
+
+function createInitialStreamTracking() {
+  return {
+    activeTurnRef: null,
+    phase: 'idle',
+    startedAt: null,
+    firstChunkAt: null,
+    completedAt: null,
+    lastEventAt: null,
+    lastEventType: null,
+    eventCount: 0,
+    chunkCount: 0,
+    toolCallCount: 0,
+    toolOutputCount: 0,
+    lastChunkSize: 0,
+    lastError: null,
+  };
+}
 
 describe('useChatMessageSender', () => {
   function renderSender(

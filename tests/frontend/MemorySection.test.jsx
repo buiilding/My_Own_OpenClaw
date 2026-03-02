@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY } from '../../frontend/src/renderer/utils/memoryRetrievalPreference';
+
+const MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY = 'desktop-assistant-memory-retrieval-injection-enabled';
 
 const mockInvoke = jest.fn();
 let mockSessionInfo = { conversationRef: null, userId: 'default_user' };

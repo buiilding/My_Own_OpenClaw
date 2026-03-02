@@ -1,6 +1,5 @@
 import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import {
-  __resetSystemCaptureStateForTests,
   extractOSstate,
 } from '../../frontend/src/renderer/infrastructure/services/SystemCapture';
 
@@ -50,7 +49,6 @@ describe('SystemCapture', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     localStorage.clear();
-    __resetSystemCaptureStateForTests();
   });
 
   test('extractOSstate returns system state and screenshot for first user message', async () => {

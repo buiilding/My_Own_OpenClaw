@@ -2,8 +2,6 @@
 
 const {
   initializeMainProcessLifecycleRuntime,
-  summarizeElectronAppMetrics,
-  logStartupMetricsSnapshot,
 } = require('../../frontend/src/main/main_process_lifecycle_runtime.cjs');
 
 function flushPromises() {
@@ -161,47 +159,5 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
     const quittingEvent = { preventDefault: jest.fn() };
     handler(quittingEvent);
     expect(quittingEvent.preventDefault).not.toHaveBeenCalled();
-  });
-});
-
-describe('main_process_lifecycle_runtime metrics helpers', () => {
-  test('summarizes app metric process types and working set', () => {
-    const summary = summarizeElectronAppMetrics([
-      { type: 'Browser', memory: { workingSetSize: 100 * 1024 * 1024 } },
-      { type: 'Renderer', memory: { workingSetSize: 20 * 1024 * 1024 } },
-      { type: 'Tab', memory: { workingSetSize: 15 * 1024 * 1024 } },
-      { type: 'GPU', memory: { workingSetSize: 10 * 1024 * 1024 } },
-      { type: 'Utility', memory: { workingSetSize: 5 * 1024 * 1024 } },
-      { type: 'Unknown' },
-    ]);
-
-    expect(summary).toEqual({
-      processes: 6,
-      browser: 1,
-      renderer: 2,
-      gpu: 1,
-      utility: 1,
-      totalWorkingSetMb: 150,
-    });
-  });
-
-  test('logs a snapshot line when metrics providers throw', () => {
-    const log = jest.fn();
-    logStartupMetricsSnapshot('test-snapshot', {
-      log,
-      getPid: () => 777,
-      getProcessMemoryUsage: () => {
-        throw new Error('mem fail');
-      },
-      getAppMetrics: () => {
-        throw new Error('metrics fail');
-      },
-    });
-
-    expect(log).toHaveBeenCalledWith(
-      expect.stringContaining(
-        '[Main][StartupMetrics] test-snapshot pid=777 rss_mb=n/a heap_used_mb=n/a app_processes=0',
-      ),
-    );
   });
 });

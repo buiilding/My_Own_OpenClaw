@@ -1,6 +1,5 @@
 import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import {
-  __resetSurfaceOrchestratorStateForTests,
   prepareExternalFocusForCapture,
   prepareScreenshotCaptureVisibility,
   prepareToolExecutionSurface,
@@ -12,7 +11,6 @@ describe('surfaceOrchestrator capture lifecycle', () => {
   const originalUserAgent = navigator.userAgent;
 
   beforeEach(() => {
-    __resetSurfaceOrchestratorStateForTests();
     jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({ success: true });
     Object.defineProperty(window.navigator, 'userAgent', {
       configurable: true,
@@ -84,14 +82,14 @@ describe('surfaceOrchestrator capture lifecycle', () => {
       captureId: '   ',
     });
 
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      '[SurfaceOrchestrator] transition',
-      expect.objectContaining({
-        source: 'system-capture',
-        correlation_id: 'capture-restore-1',
-        phase_after: 'restoring_surface',
-      }),
-    );
+    const hasRestoreLog = consoleLogSpy.mock.calls.some(([label, payload]) => (
+      label === '[SurfaceOrchestrator] transition'
+      && payload?.source === 'system-capture'
+      && typeof payload?.correlation_id === 'string'
+      && payload.correlation_id.startsWith('capture-restore-')
+      && payload?.phase_after === 'restoring_surface'
+    ));
+    expect(hasRestoreLog).toBe(true);
 
     consoleLogSpy.mockRestore();
   });

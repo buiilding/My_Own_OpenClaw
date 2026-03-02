@@ -1,6 +1,6 @@
 import responseOverlayPhaseContract from '../../../../shared/response_overlay_phase_contract.json';
 
-export const RESPONSE_OVERLAY_PHASES = Object.freeze(
+const RESPONSE_OVERLAY_PHASES = Object.freeze(
   [...(responseOverlayPhaseContract?.phases || [])],
 );
 
