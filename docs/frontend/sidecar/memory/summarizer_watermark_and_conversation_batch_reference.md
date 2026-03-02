@@ -32,10 +32,10 @@ Dev toggle:
 - `interval_seconds=60`
 - `idle_seconds=120`
 - `min_batch_size=6`
-- `min_batch_size_idle=6`
+- `min_batch_size_idle=3`
 - `max_batch_size=30`
 - `min_memory_age_seconds=45`
-- `max_summaries_per_cycle=1`
+- `max_summaries_per_cycle=3`
 - `max_conversations_per_cycle=5`
 - `max_chunk_chars=24000`
 - `max_chunks_per_request=20`

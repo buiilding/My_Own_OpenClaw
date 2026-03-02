@@ -23,10 +23,10 @@ class SummarizerSettings:
     interval_seconds: int = 60
     idle_seconds: int = 120
     min_batch_size: int = 6
-    min_batch_size_idle: int = 6
+    min_batch_size_idle: int = 3
     max_batch_size: int = 30
     min_memory_age_seconds: int = 45
-    max_summaries_per_cycle: int = 1
+    max_summaries_per_cycle: int = 3
     max_conversations_per_cycle: int = 5
     max_chunk_chars: int = 24000
     max_chunks_per_request: int = 20
