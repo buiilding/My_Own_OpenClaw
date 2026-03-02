@@ -26,9 +26,10 @@ import { useConversationReplayActions } from '../hooks/useConversationReplayActi
 import { isDevUiEnabled } from '../utils/devUiFlag';
 import { applyStopQueryUiState } from '../utils/stopQueryState';
 import {
-  isAwaitingFirstChunkPhase,
-  isStopControlAvailablePhase,
-} from '../utils/streamPhaseState';
+  isChatLoopAwaitingReply,
+  isChatLoopBusy,
+  resolveChatLoopUiState,
+} from '../utils/chatLoopUiState';
 import { useTranscriptSessionInfo } from '../../dashboard/hooks/useTranscriptSessionInfo';
 import '../../../styles/ChatInterface.css';
 
@@ -109,12 +110,18 @@ function ChatInterface({ focusComposerToken = 0 }) {
 
   const voiceModeEnabled = config?.voice_mode_enabled === true;
   const speechModeEnabled = config?.speech_mode_enabled === true;
-  const canStop = isStopControlAvailablePhase(streamPhase);
-  const composerBusy = isSending || canStop;
+  const hasVisibleReply = messages[messages.length - 1]?.sender === 'assistant';
+  const loopUiState = resolveChatLoopUiState({
+    phase: streamPhase,
+    isSending,
+    hasVisibleReply,
+  });
+  const composerBusy = isChatLoopBusy(loopUiState);
+  const canStop = composerBusy;
   const showAssistantAwaitingDot = (
-    (isSending || isAwaitingFirstChunkPhase(streamPhase))
+    isChatLoopAwaitingReply(loopUiState)
     && messages.length > 0
-    && messages[messages.length - 1]?.sender === 'user'
+    && !hasVisibleReply
   );
   const modelMode = config?.model_mode || 'online';
   const configuredProvider = config?.model_provider || '';

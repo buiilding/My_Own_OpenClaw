@@ -99,6 +99,13 @@ describe('MessageInput', () => {
     expect(screen.getByRole('button', { name: 'Stop response' })).toBeInTheDocument();
   });
 
+  test('disables side controls while loop is active', () => {
+    render(<MessageInput onSendMessage={jest.fn()} isSending />);
+
+    expect(screen.getByTestId('plus-btn')).toBeDisabled();
+    expect(screen.getByTestId('voice-btn')).toBeDisabled();
+  });
+
   test('send button is disabled for empty input', () => {
     render(<MessageInput onSendMessage={jest.fn()} isSending={false} />);
     expect(screen.getByRole('button', { name: 'Send message' })).toBeDisabled();
@@ -223,6 +230,17 @@ describe('MessageInput', () => {
 
     fireEvent.mouseDown(document.body);
     expect(screen.queryByText('Add photos & files')).not.toBeInTheDocument();
+  });
+
+  test('closes add-attachment menu when loop becomes active', () => {
+    const { rerender } = render(<MessageInput onSendMessage={jest.fn()} isSending={false} />);
+
+    fireEvent.click(screen.getByTestId('plus-btn'));
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+
+    rerender(<MessageInput onSendMessage={jest.fn()} isSending />);
+
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   });
 
   test('opens native file picker when selecting add photos & files', () => {

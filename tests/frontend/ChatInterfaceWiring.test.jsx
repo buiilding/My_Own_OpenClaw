@@ -408,7 +408,7 @@ describe('ChatInterface wiring', () => {
     expect(typeof lastInputProps.onStopResponse).toBe('function');
   });
 
-  test('shows awaiting dot only during awaiting-first-chunk after user message', () => {
+  test('shows awaiting dot until the first assistant row is visible', () => {
     mockChatState.messages = [
       { id: 'user-1', sender: 'user', text: 'hello', type: 'user' },
     ];
@@ -419,6 +419,10 @@ describe('ChatInterface wiring', () => {
     expect(lastMessageListProps.showAssistantAwaitingDot).toBe(true);
 
     mockChatState.streamTracking.phase = 'streaming';
+    mockChatState.messages = [
+      { id: 'user-1', sender: 'user', text: 'hello', type: 'user' },
+      { id: 'assistant-1', sender: 'assistant', text: 'first chunk', type: 'llm-text' },
+    ];
     rerender(<ChatInterface />);
     lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
     expect(lastMessageListProps.showAssistantAwaitingDot).toBe(false);
@@ -442,6 +446,19 @@ describe('ChatInterface wiring', () => {
     ];
     mockChatState.streamTracking.phase = 'idle';
     mockChatState.isSending = true;
+
+    render(<ChatInterface />);
+
+    const lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
+    expect(lastMessageListProps.showAssistantAwaitingDot).toBe(true);
+  });
+
+  test('keeps awaiting dot visible if streaming phase arrives before the first assistant row renders', () => {
+    mockChatState.messages = [
+      { id: 'user-1', sender: 'user', text: 'hello', type: 'user' },
+    ];
+    mockChatState.streamTracking.phase = 'streaming';
+    mockChatState.isSending = false;
 
     render(<ChatInterface />);
 
