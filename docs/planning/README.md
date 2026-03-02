@@ -34,6 +34,7 @@ Single entrypoint for future work. Use this page first.
 - `windieos_browser_use_hard_merge_plan_2026-02-25.md`
 - `windieos_backend_web_search_tool_plan_2026-02-26.md`
 - `windieos_screenshot_normalization_plan_2026-03-01.md`
+- `windieos_dashboard_tool_trace_toggle_plan_2026-03-02.md`
 - `windieos_refactor_plan_2026-02-23.md`
 - `windieos_conversation_history_compaction_plan_2026-02-24.md`
 
