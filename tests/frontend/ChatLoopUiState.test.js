@@ -49,4 +49,16 @@ describe('chatLoopUiState', () => {
     expect(loopUiState).toBe('idle');
     expect(isChatLoopBusy(loopUiState)).toBe(false);
   });
+
+  test('forces idle when transport is disconnected', () => {
+    const loopUiState = resolveChatLoopUiState({
+      phase: 'tool-call',
+      isSending: true,
+      hasVisibleReply: false,
+      transportConnected: false,
+    });
+
+    expect(loopUiState).toBe('idle');
+    expect(isChatLoopBusy(loopUiState)).toBe(false);
+  });
 });

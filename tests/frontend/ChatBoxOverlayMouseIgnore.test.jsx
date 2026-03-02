@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import ChatBox from '../../frontend/src/renderer/features/chat/components/ChatBox';
 
@@ -380,15 +380,26 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(document.activeElement).toBe(input);
   });
 
-  test('does not focus input from chatbox-focus while loop interaction is locked', () => {
-    mockChatState.isSending = true;
-    render(<ChatBox />);
+  test('does not focus input from chatbox-focus while loop interaction is locked', async () => {
+    const { container } = render(<ChatBox />);
+    emitOverlayPhase('tool-call');
     const input = screen.getByPlaceholderText('Ask me anything...');
+    await waitFor(() => {
+      const shellWrap = container.querySelector('.chatbox-shell-wrap');
+      expect(shellWrap?.classList.contains('loop-active')).toBe(true);
+    });
+    expect(input).toBeDisabled();
+    input.blur();
+    await act(async () => {
+      await Promise.resolve();
+    });
+    const focusSpy = jest.spyOn(input, 'focus');
 
     act(() => {
       mockListeners.get('chatbox-focus')?.();
     });
-    expect(document.activeElement).not.toBe(input);
+    expect(focusSpy).not.toHaveBeenCalled();
+    focusSpy.mockRestore();
   });
 
   test('adds ambient loop glow class while active overlay phases are running', () => {

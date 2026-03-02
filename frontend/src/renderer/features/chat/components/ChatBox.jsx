@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
+import { useChatLoopUiState } from '../hooks/useChatLoopUiState';
 import { useResponseOverlayPhase } from '../hooks/useResponseOverlayPhase';
 import { useTranscription } from '../hooks/useTranscription';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
@@ -12,7 +13,6 @@ import { buildOutgoingMessage } from '../utils/messageInput';
 import { parseClipboardImageItems } from '../utils/clipboardImageUtils';
 import { COMPACTION_THINKING_STATUS } from '../utils/chatStreamThinkingStatus';
 import { extractOSstate } from '../../../infrastructure/services/SystemCapture';
-import { isChatboxLoopInteractionLocked } from '../utils/chatboxSurfaceState';
 import {
   normalizeArtifactImageContentType,
   resolveArtifactImageExtension,
@@ -51,6 +51,7 @@ function ChatBox() {
   const [clipboardImages, setClipboardImages] = useState([]);
   const [isCapturingScreenshot, setIsCapturingScreenshot] = useState(false);
   const inputRef = useRef(null);
+  const loopInteractionLockedRef = useRef(false);
   const dragStateRef = useRef({
     isDragging: false,
     startClientX: 0,
@@ -62,9 +63,10 @@ function ChatBox() {
   });
   const wakewordSttEnabled = config?.wakeword_stt_enabled === true;
   const speechModeEnabled = config?.speech_mode_enabled === true;
-  const loopInteractionLocked = isChatboxLoopInteractionLocked({
-    overlayPhase,
+  const { isBusy: loopInteractionLocked } = useChatLoopUiState({
+    phase: overlayPhase,
     isSending,
+    hasVisibleReply: false,
   });
   const devUiEnabled = isDevUiEnabled();
   const {
@@ -77,12 +79,12 @@ function ChatBox() {
   } = useTranscription();
 
   const focusInput = useCallback(() => {
-    if (loopInteractionLocked) {
+    if (loopInteractionLockedRef.current) {
       inputRef.current?.blur();
       return;
     }
     inputRef.current?.focus();
-  }, [loopInteractionLocked]);
+  }, []);
 
   useEffect(() => {
     focusInput();
@@ -118,6 +120,10 @@ function ChatBox() {
       setWakewordSttSessionActive(false);
     }
   }, [wakewordSttEnabled, wakewordSttSessionActive]);
+
+  useEffect(() => {
+    loopInteractionLockedRef.current = loopInteractionLocked;
+  }, [loopInteractionLocked]);
 
   useEffect(() => {
     if (!loopInteractionLocked) {
