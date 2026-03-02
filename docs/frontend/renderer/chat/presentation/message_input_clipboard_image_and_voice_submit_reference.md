@@ -23,8 +23,9 @@ title: "MessageInput Clipboard Image and Voice Submit Reference"
 
 Component-owned state:
 
-- UI menus: `plusMenuOpen`, `thinkingMenuOpen`, `thinkingVisible`, `thinkingMode`
+- UI menu: `plusMenuOpen`
 - clipboard previews: `clipboardImages[]`
+- readable file previews: `selectedReadableFiles[]`
 
 Hook-owned text/transcription state (`useTranscription`):
 
@@ -108,6 +109,12 @@ Stop button behavior:
 - shown when `isSending=true`
 - invokes optional `onStopResponse`
 
+Loop-lock side controls:
+
+- plus/attachment button is disabled when `isSending=true`
+- voice button is disabled when `isSending=true`
+- open attachment menu is forcibly closed when loop lock begins
+
 Hard send guard:
 
 - if `isSending=true`, `buildOutgoingMessage(...)` returns null.
@@ -116,15 +123,10 @@ Hard send guard:
 
 Plus menu:
 
-- toggles add-on action list (image/create/deep-research/shopping/web/more)
+- toggles add-on action list for `Add photos & files`
 - click outside closes menu
 
-Thinking mode pill:
-
-- closable (`thinkingVisible`)
-- mode dropdown currently UI-local (`Thinking`, `Search`, `Reason`)
-
-These menus do not alter outbound query payload today; they are presentation controls pending deeper runtime wiring.
+The menu does not alter outbound query payload; it only opens the native file-picker path.
 
 ## Test-Backed Invariants
 

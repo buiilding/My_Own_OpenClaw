@@ -157,6 +157,13 @@ function MessageInput({
   }, []);
 
   useEffect(() => {
+    if (!isSending) {
+      return;
+    }
+    setPlusMenuOpen(false);
+  }, [isSending]);
+
+  useEffect(() => {
     if (focusRequestToken === lastHandledFocusRequestRef.current) {
       return;
     }
@@ -263,13 +270,14 @@ function MessageInput({
                   aria-label="Add attachment"
                   data-testid="plus-btn"
                   aria-expanded={plusMenuOpen}
+                  disabled={isSending}
                   onClick={() => {
                     setPlusMenuOpen((current) => !current);
                   }}
                 >
                   <Plus size={18} />
                 </button>
-                {plusMenuOpen ? (
+                {plusMenuOpen && !isSending ? (
                   <div className="message-dropdown-menu message-add-photos-under-pill" role="menu">
                     <button
                       type="button"
@@ -305,7 +313,7 @@ function MessageInput({
             />
 
             <div className="message-input-right-actions">
-              <button type="button" className="message-icon-btn" aria-label="Voice input" data-testid="voice-btn">
+              <button type="button" className="message-icon-btn" aria-label="Voice input" data-testid="voice-btn" disabled={isSending}>
                 <Mic size={18} />
               </button>
               {isSending ? (
