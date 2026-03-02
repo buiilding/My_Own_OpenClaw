@@ -1275,6 +1275,7 @@ async def test_load_settings_handler_returns_frontend_config():
 
     assert websocket.sent
     assert websocket.sent[0]["type"] == "settings-loaded"
+    expected_selected_model_id = session_manager.session.cfg.selected_model_id
     assert websocket.sent[0]["payload"]["config"] == {
         "agent_full_sudo_enabled": False,
         "include_query_screenshot": True,
@@ -1289,7 +1290,7 @@ async def test_load_settings_handler_returns_frontend_config():
             "openai": {"api_key": "", "enabled": False},
             "openrouter": {"api_key": "", "enabled": False},
         },
-        "selected_model_id": "gpt-5.1",
+        "selected_model_id": expected_selected_model_id,
         "speech_mode_enabled": False,
         "wakeword_stt_enabled": False,
         "voice_mode_enabled": False,

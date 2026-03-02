@@ -61,7 +61,7 @@ async def test_update_config_uses_llm_factory():
         event_bus=event_bus,
     )
 
-    assert session.llm_client.tag == "gpt-5.1"
+    assert session.llm_client.tag == config.selected_model_id
 
     new_cfg = AppConfig(
         **{
@@ -73,4 +73,4 @@ async def test_update_config_uses_llm_factory():
     await session.update_config(new_cfg)
 
     assert session.llm_client.tag == "k2p5"
-    assert calls == ["gpt-5.1", "k2p5"]
+    assert calls == [config.selected_model_id, "k2p5"]
