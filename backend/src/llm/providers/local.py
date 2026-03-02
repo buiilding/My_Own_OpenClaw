@@ -193,8 +193,10 @@ class LocalLLMProvider(OnlineLLMProvider):
         params: Dict[str, Any],
         *,
         model: str,
+        runtime_model_id: Optional[str] = None,
     ) -> Dict[str, Any]:
         _ = model
+        _ = runtime_model_id
         # Local models often need to be told they are compatible with OpenAI's API
         params["custom_llm_provider"] = "openai"
         if not params.get("api_key"):

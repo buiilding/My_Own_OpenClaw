@@ -10,13 +10,19 @@ def test_online_model_lists_are_non_empty_and_unique_per_provider():
     assert ONLINE_MODELS
     for provider, models in ONLINE_MODELS.items():
         assert models, f"{provider} should have at least one model"
-        assert len(models) == len(set(models)), f"{provider} has duplicate model ids"
+        model_ids = [str(model.get("id")) for model in models if isinstance(model, dict)]
+        assert len(model_ids) == len(models), f"{provider} has non-dict model entries"
+        assert len(model_ids) == len(set(model_ids)), f"{provider} has duplicate model ids"
 
 
 def test_thinking_models_are_subsets_of_online_models():
     for provider, thinking_models in ONLINE_THINKING_MODELS.items():
         assert provider in ONLINE_MODELS
-        online = set(ONLINE_MODELS[provider])
+        online = {
+            str(model.get("id"))
+            for model in ONLINE_MODELS[provider]
+            if isinstance(model, dict) and model.get("id")
+        }
         assert set(thinking_models).issubset(online)
 
 
@@ -27,8 +33,18 @@ def test_unsupported_thinking_text_stream_models_are_subsets_of_thinking_models(
 
 
 def test_expected_provider_defaults_exist_in_catalog():
-    assert "auto" in ONLINE_MODELS["openrouter"]
-    assert "k2p5" in ONLINE_MODELS["kimi-coding"]
+    openrouter_model_ids = {
+        str(model.get("id"))
+        for model in ONLINE_MODELS["openrouter"]
+        if isinstance(model, dict) and model.get("id")
+    }
+    kimi_model_ids = {
+        str(model.get("id"))
+        for model in ONLINE_MODELS["kimi-coding"]
+        if isinstance(model, dict) and model.get("id")
+    }
+    assert "qwen/qwen3-vl-235b-a22b-thinking" in openrouter_model_ids
+    assert "k2p5" in kimi_model_ids
 
 
 def test_local_vision_model_lists_are_non_empty_and_unique():
