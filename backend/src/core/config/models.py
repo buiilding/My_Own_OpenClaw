@@ -212,7 +212,7 @@ class AppConfig(BaseModel):
     # LLM Settings
     model_mode: Literal["local", "online"] = "online"
     model_provider: str = "openai"  # Default provider
-    selected_model_id: str = "gpt-5.1@@gpt-5-1-high-thinking"
+    selected_model_id: str = "gpt-5@@gpt-5-nonthinking"
     llm_timeout: int = 300
     query_timeout: int = 600  # New field for query timeout
     debug_litellm: bool = False  # Enable LiteLLM debug logging

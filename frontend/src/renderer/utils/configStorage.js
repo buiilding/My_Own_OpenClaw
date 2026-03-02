@@ -22,7 +22,7 @@ const DEFAULT_PROVIDER_API_KEYS = {
 const DEFAULT_FRONTEND_CONFIG = {
   model_mode: 'online',
   model_provider: 'openai',
-  selected_model_id: 'gpt-5.1@@gpt-5-1-high-thinking',
+  selected_model_id: 'gpt-5@@gpt-5-nonthinking',
   interaction_mode: 'chat',
   voice_mode_enabled: false,
   speech_mode_enabled: false,
