@@ -307,7 +307,7 @@ describe('main_window_runtime createMainWindow', () => {
       showChatWindow: jest.fn().mockReturnValue({ success: true }),
       emitWakewordSttTrigger: jest.fn(),
       initializeLocalBackendBridge: jest.fn(),
-      initializeOverlayHandlers: jest.fn(),
+      initializeMainProcessIpcHandlers: jest.fn(),
       getLatestFrontendConfig: jest.fn(),
       getWindows: jest.fn(() => ({ mainWindow })),
       setMainWindow: jest.fn(),
@@ -333,6 +333,14 @@ describe('main_window_runtime createMainWindow', () => {
 
     const options = BrowserWindow.mock.calls[0][0];
     expect(options.webPreferences.devTools).toBe(true);
+  });
+
+  test('boots the split main-process IPC registrars during main window startup', () => {
+    const { deps } = createDeps();
+
+    createMainWindow(deps);
+
+    expect(deps.initializeMainProcessIpcHandlers).toHaveBeenCalledTimes(1);
   });
 
   test('keeps dashboard visible in system screenshots', () => {

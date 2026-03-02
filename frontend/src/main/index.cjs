@@ -277,7 +277,7 @@ function createWindow() {
     showChatWindow,
     emitWakewordSttTrigger,
     initializeLocalBackendBridge,
-    initializeOverlayHandlers: initializeMainProcessIpcHandlers,
+    initializeMainProcessIpcHandlers,
     getLatestFrontendConfig,
     getWindows: () => ({
       mainWindow,

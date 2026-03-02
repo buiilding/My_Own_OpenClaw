@@ -114,8 +114,5 @@ function resolveBackendOverlayPhaseTransition(data, currentPhase) {
 }
 
 module.exports = {
-  BACKEND_OVERLAY_PHASE_TRANSITIONS,
   resolveBackendOverlayPhaseTransition,
-  resolveOverlayCorrelationId,
-  resolveOverlayPhaseMetadata,
 };

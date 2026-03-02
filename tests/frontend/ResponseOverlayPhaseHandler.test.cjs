@@ -1,12 +1,8 @@
 /** @jest-environment node */
 
 const {
-  RESPONSE_OVERLAY_WINDOW_MODE,
-  applyResponseOverlayWindowMode,
   handleResponseOverlayPhaseEvent,
   isStreamingResponseOverlayPhase,
-  resolveResponseOverlayWindowMode,
-  shouldRestoreTerminalResponseWindow,
 } = require('../../frontend/src/main/response_overlay_phase_handler.cjs');
 
 const PHASE = Object.freeze({
@@ -54,19 +50,6 @@ describe('response_overlay_phase_handler', () => {
     expect(isStreamingResponseOverlayPhase(PHASE.TOOL_CALL, PHASE)).toBe(true);
     expect(isStreamingResponseOverlayPhase(PHASE.TOOL_OUTPUT, PHASE)).toBe(true);
     expect(isStreamingResponseOverlayPhase(PHASE.COMPLETE, PHASE)).toBe(false);
-  });
-
-  test('maps phases onto explicit overlay window modes', () => {
-    expect(resolveResponseOverlayWindowMode(PHASE.IDLE, PHASE)).toBe(
-      RESPONSE_OVERLAY_WINDOW_MODE.HIDDEN,
-    );
-    expect(resolveResponseOverlayWindowMode(PHASE.STREAMING, PHASE)).toBe(
-      RESPONSE_OVERLAY_WINDOW_MODE.ACTIVE_LOOP,
-    );
-    expect(resolveResponseOverlayWindowMode(PHASE.COMPLETE, PHASE)).toBe(
-      RESPONSE_OVERLAY_WINDOW_MODE.TERMINAL,
-    );
-    expect(resolveResponseOverlayWindowMode('unknown-phase', PHASE)).toBeNull();
   });
 
   test('returns early when debug overlay mode is enabled', () => {
@@ -147,24 +130,22 @@ describe('response_overlay_phase_handler', () => {
     expect(deps.syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
   });
 
-  test('terminal restore helper only returns true when response shell can be safely shown', () => {
+  test('terminal phases restore only when the cached response shell is safely visible', () => {
     const deps = createDeps({
       getResponseOverlayVisible: jest.fn().mockReturnValue(true),
     });
-    expect(shouldRestoreTerminalResponseWindow(deps)).toBe(true);
-
-    deps.chatWindow.isVisible.mockReturnValue(false);
-    expect(shouldRestoreTerminalResponseWindow(deps)).toBe(false);
-  });
-
-  test('applyResponseOverlayWindowMode keeps terminal sync behavior centralized', () => {
-    const deps = createDeps({
-      getResponseOverlayVisible: jest.fn().mockReturnValue(true),
-    });
-
-    applyResponseOverlayWindowMode(RESPONSE_OVERLAY_WINDOW_MODE.TERMINAL, deps);
-
+    handleResponseOverlayPhaseEvent({ phase: PHASE.COMPLETE }, deps);
     expect(deps.showResponseWindowInactive).toHaveBeenCalledTimes(1);
     expect(deps.syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
+
+    const hiddenChatDeps = createDeps({
+      getResponseOverlayVisible: jest.fn().mockReturnValue(true),
+    });
+    hiddenChatDeps.chatWindow.isVisible.mockReturnValue(false);
+
+    handleResponseOverlayPhaseEvent({ phase: PHASE.COMPLETE }, hiddenChatDeps);
+
+    expect(hiddenChatDeps.showResponseWindowInactive).not.toHaveBeenCalled();
+    expect(hiddenChatDeps.syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
   });
 });

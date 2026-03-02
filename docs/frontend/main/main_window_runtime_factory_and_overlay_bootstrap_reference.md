@@ -60,7 +60,7 @@ Creation behavior:
   - IPC bridge (`initializeIpc`)
   - wakeword bridge (`initializeWakewordBridge`)
   - local backend bridge (`initializeLocalBackendBridge`)
-  - overlay handler registration (`initializeOverlayHandlers`)
+  - main-process IPC registration (`initializeMainProcessIpcHandlers`)
 
 Close behavior:
 
