@@ -17,7 +17,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  padding: 0 16px 12px;
+  padding: 0 16px 4px;
   border-bottom: 1px solid var(--ui-border-subtle);
   -webkit-app-region: drag;
 }
@@ -1534,7 +1534,7 @@
   }
 
   .chat-header {
-    padding: 0 12px 10px;
+    padding: 0 12px 4px;
   }
 
   .chat-title-block {
