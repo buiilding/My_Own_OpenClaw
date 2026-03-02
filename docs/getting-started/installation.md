@@ -227,6 +227,29 @@ npm run package:linux
 
 Build artifacts are written to `frontend/release/`.
 
+### Linux `.deb` install/uninstall
+
+For Linux package installs from `frontend/release/`:
+
+- Package name is `windieos`.
+- Install rebuilt `.deb`:
+
+```bash
+sudo apt install -y ./release/windieos_*_amd64.deb
+```
+
+- Uninstall:
+
+```bash
+sudo apt purge -y windieos
+```
+
+- If you need to remove orphaned dependencies, review first:
+
+```bash
+sudo apt autoremove --dry-run
+```
+
 If you host the backend separately, set endpoint env vars before launching the
 packaged app:
 

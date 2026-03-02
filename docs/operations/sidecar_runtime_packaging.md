@@ -135,6 +135,10 @@ On a clean test machine:
 
 1. Ensure system Python is not installed (or unavailable in `PATH`).
 2. Install built app.
+   - Linux `.deb` package name is `windieos`.
+   - Install command example: `sudo apt install -y ./release/windieos_*_amd64.deb`
+   - Uninstall command example: `sudo apt purge -y windieos`
+   - Review dependency cleanup before running autoremove: `sudo apt autoremove --dry-run`
 3. Launch app and verify sidecar starts without Python-not-found errors.
 4. Send a prompt and verify local tools execute (screenshot/mouse/keyboard flow).
 5. Verify wakeword initialization path.
