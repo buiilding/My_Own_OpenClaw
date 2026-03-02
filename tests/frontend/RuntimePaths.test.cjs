@@ -75,6 +75,22 @@ describe('runtime_paths sidecar launch target resolution', () => {
     });
   });
 
+  test('packaged mode does not fall back to legacy app.asar python source paths', () => {
+    withIsolatedRuntimePaths(({ fs, app, runtimePaths }) => {
+      app.isPackaged = true;
+      const runtimePython = process.platform === 'win32'
+        ? '/opt/WindieOS/resources/python-runtime/python.exe'
+        : '/opt/WindieOS/resources/python-runtime/bin/python3';
+      fs.existsSync.mockImplementation((candidate) => candidate === runtimePython);
+
+      const target = runtimePaths.resolveSidecarLaunchTarget('local_backend.py');
+
+      expect(target.kind).toBe('python');
+      expect(target.resolvedPath).toBe('/opt/WindieOS/resources/python-runtime/sidecar/local_backend.pyc');
+      expect(target.args).toEqual(['/opt/WindieOS/resources/python-runtime/sidecar/local_backend.pyc']);
+    });
+  });
+
   test('uses development source path when app is not packaged', () => {
     withIsolatedRuntimePaths(({ fs, app, runtimePaths }) => {
       app.isPackaged = false;

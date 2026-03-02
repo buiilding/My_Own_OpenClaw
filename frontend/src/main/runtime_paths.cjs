@@ -2,7 +2,8 @@
  * Runtime path helpers for dev vs packaged Electron execution.
  *
  * Packaged builds can run from app.asar, where child processes cannot execute
- * scripts directly from the archive. These helpers resolve unpacked paths first.
+ * scripts directly from the archive. Packaged sidecar code is expected under
+ * resources/python-runtime/sidecar as sourceless bytecode.
  */
 
 const fs = require('fs');
@@ -30,9 +31,6 @@ function resolvePythonScriptPath(scriptName) {
   const candidates = [];
 
   if (isPackagedApp()) {
-    candidates.push(
-      path.join(process.resourcesPath, 'python-runtime', 'sidecar', scriptBaseName),
-    );
     if (scriptBaseName.toLowerCase().endsWith('.py')) {
       candidates.push(
         path.join(
@@ -42,13 +40,12 @@ function resolvePythonScriptPath(scriptName) {
           `${scriptBaseName.slice(0, -3)}.pyc`,
         ),
       );
+    } else if (scriptBaseName.toLowerCase().endsWith('.pyc')) {
+      candidates.push(
+        path.join(process.resourcesPath, 'python-runtime', 'sidecar', scriptBaseName),
+      );
     }
-    candidates.push(path.join(process.resourcesPath, 'python', 'sidecar', scriptBaseName));
-
-    candidates.push(
-      path.join(process.resourcesPath, 'app.asar.unpacked', 'src', 'main', 'python', scriptBaseName),
-    );
-    candidates.push(path.join(process.resourcesPath, 'python', scriptBaseName));
+    return firstExistingPath(candidates) || candidates[0];
   }
 
   candidates.push(path.join(__dirname, 'python', scriptBaseName));
