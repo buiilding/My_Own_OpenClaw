@@ -45,6 +45,22 @@ function resolveTrayIconNativeImage({
   return nativeImage.createFromDataURL(TRAY_ICON_FALLBACK_DATA_URL);
 }
 
+function resolveAppIconNativeImage({
+  resolveAppIconPath = resolveAppIconPathRuntime,
+  warn = console.warn,
+} = {}) {
+  const iconPath = resolveAppIconPath();
+  if (!iconPath || typeof nativeImage.createFromPath !== 'function') {
+    return null;
+  }
+  const resolvedIcon = nativeImage.createFromPath(iconPath);
+  if (resolvedIcon && typeof resolvedIcon.isEmpty === 'function' && !resolvedIcon.isEmpty()) {
+    return resolvedIcon;
+  }
+  warn(`[Main] App icon path was empty or unreadable: ${iconPath}`);
+  return null;
+}
+
 async function prepareOverlayQueryCaptureFocus({
   chatWindow,
   responseWindow,
@@ -112,7 +128,7 @@ function createOverlayBrowserWindow({
   width,
   height,
   show,
-  iconPath = null,
+  icon = null,
   allowDevTools = false,
 }) {
   const windowOptions = {
@@ -136,8 +152,8 @@ function createOverlayBrowserWindow({
       devTools: Boolean(allowDevTools),
     },
   };
-  if (iconPath) {
-    windowOptions.icon = iconPath;
+  if (icon) {
+    windowOptions.icon = icon;
   }
   if (typeof show === 'boolean') {
     windowOptions.show = show;
@@ -198,9 +214,14 @@ function createMainWindow({
   getWindows,
   setMainWindow,
   resolveAppIconPath = resolveAppIconPathRuntime,
+  resolveAppIcon = resolveAppIconNativeImage,
+  warn = console.warn,
 }) {
   const allowDevTools = Boolean(enableDevTransparencyUi);
-  const appIconPath = resolveAppIconPath();
+  const appIcon = resolveAppIcon({
+    resolveAppIconPath,
+    warn,
+  });
   const mainWindow = new BrowserWindow({
     width: 1000,
     height: 700,
@@ -214,7 +235,7 @@ function createMainWindow({
       nodeIntegration: false,
       devTools: allowDevTools,
     },
-    ...(appIconPath ? { icon: appIconPath } : {}),
+    ...(appIcon ? { icon: appIcon } : {}),
   });
 
   setMainWindow(mainWindow);
@@ -275,14 +296,19 @@ function createChatWindow({
   setChatWindow,
   enableContentProtectionSafely,
   resolveAppIconPath = resolveAppIconPathRuntime,
+  resolveAppIcon = resolveAppIconNativeImage,
+  warn = console.warn,
 }) {
-  const appIconPath = resolveAppIconPath();
+  const appIcon = resolveAppIcon({
+    resolveAppIconPath,
+    warn,
+  });
   const chatWindow = createOverlayBrowserWindow({
     BrowserWindow,
     path,
     width: CHATBOX_OVERLAY_FIXED_WIDTH,
     height: CHATBOX_OVERLAY_FIXED_HEIGHT,
-    iconPath: appIconPath,
+    icon: appIcon,
     allowDevTools: Boolean(enableDevTransparencyUi),
   });
   setChatWindow(chatWindow);
@@ -349,15 +375,20 @@ function createResponseWindow({
   setResponseWindow,
   enableContentProtectionSafely,
   resolveAppIconPath = resolveAppIconPathRuntime,
+  resolveAppIcon = resolveAppIconNativeImage,
+  warn = console.warn,
 }) {
-  const appIconPath = resolveAppIconPath();
+  const appIcon = resolveAppIcon({
+    resolveAppIconPath,
+    warn,
+  });
   const responseWindow = createOverlayBrowserWindow({
     BrowserWindow,
     path,
     width: 520,
     height: enableOsToolGhostDebug ? 620 : 1,
     show: enableOsToolGhostDebug,
-    iconPath: appIconPath,
+    icon: appIcon,
     allowDevTools: Boolean(enableDevTransparencyUi),
   });
   setResponseWindow(responseWindow);
@@ -451,4 +482,5 @@ module.exports = {
   normalizeMainWindowOpenTarget,
   prepareOverlayQueryCaptureFocus,
   resolveAppIconPathRuntime,
+  resolveAppIconNativeImage,
 };

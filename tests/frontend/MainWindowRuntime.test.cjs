@@ -13,6 +13,7 @@ const {
   createTray,
   enableContentProtectionSafely,
   prepareOverlayQueryCaptureFocus,
+  resolveAppIconNativeImage,
   resolveAppIconPathRuntime,
 } = require('../../frontend/src/main/main_window_runtime.cjs');
 
@@ -354,7 +355,10 @@ describe('main_window_runtime createMainWindow', () => {
     expect(deps.enableContentProtectionSafely).not.toHaveBeenCalled();
   });
 
-  test('passes app icon path into dashboard BrowserWindow options when available', () => {
+  test('passes native app icon into dashboard BrowserWindow options when available', () => {
+    const { nativeImage } = require('electron');
+    const icon = { isEmpty: () => false };
+    nativeImage.createFromPath.mockReturnValueOnce(icon);
     const { deps, BrowserWindow } = createDeps({
       resolveAppIconPath: jest.fn(() => '/tmp/windieos.png'),
     });
@@ -362,7 +366,8 @@ describe('main_window_runtime createMainWindow', () => {
     createMainWindow(deps);
 
     const options = BrowserWindow.mock.calls[0][0];
-    expect(options.icon).toBe('/tmp/windieos.png');
+    expect(nativeImage.createFromPath).toHaveBeenCalledWith('/tmp/windieos.png');
+    expect(options.icon).toBe(icon);
   });
 });
 
@@ -423,5 +428,21 @@ describe('main_window_runtime resolveAppIconPathRuntime', () => {
     });
 
     expect(result).toBe('/opt/windie/src/main/assets/icons/windieos.app.png');
+  });
+});
+
+describe('main_window_runtime resolveAppIconNativeImage', () => {
+  test('returns null and warns when resolved icon path is unreadable', () => {
+    const { nativeImage } = require('electron');
+    nativeImage.createFromPath.mockReturnValueOnce({ isEmpty: () => true });
+    const warn = jest.fn();
+
+    const result = resolveAppIconNativeImage({
+      resolveAppIconPath: () => '/tmp/missing.png',
+      warn,
+    });
+
+    expect(result).toBeNull();
+    expect(warn).toHaveBeenCalled();
   });
 });
