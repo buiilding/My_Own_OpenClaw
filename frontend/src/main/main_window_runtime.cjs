@@ -1,9 +1,49 @@
 const { nativeImage } = require('electron');
+const fs = require('fs');
+const nodePath = require('path');
 const {
   createContentProtectionRuntime,
 } = require('./platform/content_protection/index.cjs');
 const CHATBOX_OVERLAY_FIXED_WIDTH = 520;
 const CHATBOX_OVERLAY_FIXED_HEIGHT = 116;
+const APP_ICON_RELATIVE_PATH = nodePath.join('src', 'main', 'assets', 'icons', 'windieos.png');
+const TRAY_ICON_FALLBACK_DATA_URL = 'data:image/png;base64,iVBORw0KGgoAAAANSUEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+
+function resolveAppIconPathRuntime({
+  existsSync = fs.existsSync,
+  resourcesPath = process.resourcesPath,
+  cwd = process.cwd(),
+} = {}) {
+  const candidates = [
+    nodePath.join(__dirname, 'assets', 'icons', 'windieos.png'),
+    resourcesPath ? nodePath.join(resourcesPath, APP_ICON_RELATIVE_PATH) : null,
+    cwd ? nodePath.join(cwd, APP_ICON_RELATIVE_PATH) : null,
+  ];
+
+  for (const candidate of candidates) {
+    if (!candidate || typeof candidate !== 'string') {
+      continue;
+    }
+    if (existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
+function resolveTrayIconNativeImage({
+  iconPath,
+  warn = console.warn,
+} = {}) {
+  if (iconPath && typeof nativeImage.createFromPath === 'function') {
+    const resolvedIcon = nativeImage.createFromPath(iconPath);
+    if (resolvedIcon && typeof resolvedIcon.isEmpty === 'function' && !resolvedIcon.isEmpty()) {
+      return resolvedIcon;
+    }
+    warn(`[Main] Tray icon path was empty or unreadable: ${iconPath}`);
+  }
+  return nativeImage.createFromDataURL(TRAY_ICON_FALLBACK_DATA_URL);
+}
 
 async function prepareOverlayQueryCaptureFocus({
   chatWindow,
@@ -72,6 +112,7 @@ function createOverlayBrowserWindow({
   width,
   height,
   show,
+  iconPath = null,
   allowDevTools = false,
 }) {
   const windowOptions = {
@@ -95,6 +136,9 @@ function createOverlayBrowserWindow({
       devTools: Boolean(allowDevTools),
     },
   };
+  if (iconPath) {
+    windowOptions.icon = iconPath;
+  }
   if (typeof show === 'boolean') {
     windowOptions.show = show;
   }
@@ -153,8 +197,10 @@ function createMainWindow({
   getLatestFrontendConfig,
   getWindows,
   setMainWindow,
+  resolveAppIconPath = resolveAppIconPathRuntime,
 }) {
   const allowDevTools = Boolean(enableDevTransparencyUi);
+  const appIconPath = resolveAppIconPath();
   const mainWindow = new BrowserWindow({
     width: 1000,
     height: 700,
@@ -168,6 +214,7 @@ function createMainWindow({
       nodeIntegration: false,
       devTools: allowDevTools,
     },
+    ...(appIconPath ? { icon: appIconPath } : {}),
   });
 
   setMainWindow(mainWindow);
@@ -227,12 +274,15 @@ function createChatWindow({
   externalFocusTracker,
   setChatWindow,
   enableContentProtectionSafely,
+  resolveAppIconPath = resolveAppIconPathRuntime,
 }) {
+  const appIconPath = resolveAppIconPath();
   const chatWindow = createOverlayBrowserWindow({
     BrowserWindow,
     path,
     width: CHATBOX_OVERLAY_FIXED_WIDTH,
     height: CHATBOX_OVERLAY_FIXED_HEIGHT,
+    iconPath: appIconPath,
     allowDevTools: Boolean(enableDevTransparencyUi),
   });
   setChatWindow(chatWindow);
@@ -298,13 +348,16 @@ function createResponseWindow({
   syncContextLabelWindowVisibility,
   setResponseWindow,
   enableContentProtectionSafely,
+  resolveAppIconPath = resolveAppIconPathRuntime,
 }) {
+  const appIconPath = resolveAppIconPath();
   const responseWindow = createOverlayBrowserWindow({
     BrowserWindow,
     path,
     width: 520,
     height: enableOsToolGhostDebug ? 620 : 1,
     show: enableOsToolGhostDebug,
+    iconPath: appIconPath,
     allowDevTools: Boolean(enableDevTransparencyUi),
   });
   setResponseWindow(responseWindow);
@@ -349,10 +402,18 @@ function createResponseWindow({
   return responseWindow;
 }
 
-function createTray({ Tray, Menu, showMainWindow, app }) {
-  const icon = nativeImage.createFromDataURL(
-    'data:image/png;base64,iVBORw0KGgoAAAANSUEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
-  );
+function createTray({
+  Tray,
+  Menu,
+  showMainWindow,
+  app,
+  resolveTrayIconPath = resolveAppIconPathRuntime,
+  warn = console.warn,
+}) {
+  const icon = resolveTrayIconNativeImage({
+    iconPath: resolveTrayIconPath(),
+    warn,
+  });
   const tray = new Tray(icon);
 
   const contextMenu = Menu.buildFromTemplate([
@@ -371,7 +432,7 @@ function createTray({ Tray, Menu, showMainWindow, app }) {
     },
   ]);
 
-  tray.setToolTip('Desktop Assistant');
+  tray.setToolTip('WindieOS');
   tray.setContextMenu(contextMenu);
   tray.on('double-click', () => {
     showMainWindow({ focus: true });
@@ -389,4 +450,5 @@ module.exports = {
   enableContentProtectionSafely,
   normalizeMainWindowOpenTarget,
   prepareOverlayQueryCaptureFocus,
+  resolveAppIconPathRuntime,
 };

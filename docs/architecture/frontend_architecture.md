@@ -115,6 +115,8 @@ Primary modules:
   - Delegates lifecycle boot/activate/quit wiring to `main_process_lifecycle_runtime.cjs`.
   - Delegates split IPC handler registration to `overlay_phase_ipc_runtime.cjs`, `window_controls_ipc_runtime.cjs`, and `permission_ipc_runtime.cjs`.
   - Delegates visibility and overlay positioning helpers to `window_visibility_runtime.cjs`, `overlay_window_helpers_runtime.cjs`, and `overlay_signal_runtime.cjs`.
+- `main/main_window_runtime.cjs`:
+  - Resolves canonical app icon from `src/main/assets/icons/windieos.png` for BrowserWindow and tray runtime wiring.
 - `main/ipc.cjs`:
   - Single backend WebSocket client lifecycle and reconnect.
   - Handshake/user/session/conversation context propagation.
