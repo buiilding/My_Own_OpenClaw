@@ -30,10 +30,13 @@ let pythonProcess = null;
 let isPythonReady = false;
 let pendingRequests = new Map();
 let stdoutBuffer = '';
+let pendingStdoutLines = [];
+let isDrainingStdoutLines = false;
 let readinessCheckCallback = null;
 let readinessCheckToken = 0;
 
 let cachedPythonPath = null;
+const LARGE_JSON_PARSE_OFFLOAD_THRESHOLD_BYTES = 128 * 1024;
 
 function isRecord(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -168,6 +171,106 @@ async function hydrateScreenshotArtifact(result, backendHttpUrl) {
   return result;
 }
 
+function shouldOffloadJsonParse(line) {
+  return Buffer.byteLength(line, 'utf8') >= LARGE_JSON_PARSE_OFFLOAD_THRESHOLD_BYTES;
+}
+
+function parseJsonInWorker(line) {
+  let WorkerClass;
+  try {
+    ({ Worker: WorkerClass } = require('worker_threads'));
+  } catch (_error) {
+    return Promise.resolve(JSON.parse(line));
+  }
+
+  return new Promise((resolve, reject) => {
+    const worker = new WorkerClass(
+      `
+const { parentPort } = require('worker_threads');
+parentPort.on('message', (payload) => {
+  try {
+    parentPort.postMessage({ ok: true, value: JSON.parse(payload) });
+  } catch (error) {
+    parentPort.postMessage({
+      ok: false,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+});
+`,
+      { eval: true },
+    );
+
+    let settled = false;
+    const finish = (resolver, value) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      Promise.resolve(worker.terminate())
+        .catch(() => {})
+        .finally(() => resolver(value));
+    };
+
+    worker.once('message', (message) => {
+      if (message && message.ok === true) {
+        finish(resolve, message.value);
+        return;
+      }
+      const errorMessage = (
+        message
+        && typeof message === 'object'
+        && typeof message.error === 'string'
+        && message.error.trim()
+      ) ? message.error : 'JSON parse worker failed';
+      finish(reject, new Error(errorMessage));
+    });
+
+    worker.once('error', (error) => {
+      finish(reject, error);
+    });
+
+    worker.once('exit', (code) => {
+      if (!settled && code !== 0) {
+        finish(reject, new Error(`JSON parse worker exited with code ${code}`));
+      }
+    });
+
+    worker.postMessage(line);
+  });
+}
+
+async function drainStdoutLines(processRef) {
+  if (isDrainingStdoutLines) {
+    return;
+  }
+  isDrainingStdoutLines = true;
+
+  try {
+    while (pendingStdoutLines.length > 0) {
+      if (!isActiveProcessReference(processRef)) {
+        pendingStdoutLines = [];
+        return;
+      }
+
+      const line = pendingStdoutLines.shift();
+      try {
+        const response = shouldOffloadJsonParse(line)
+          ? await parseJsonInWorker(line)
+          : JSON.parse(line);
+        handlePythonResponse(response);
+      } catch (error) {
+        console.error('[LocalBackend] Error parsing response:', error, 'Line:', line);
+      }
+    }
+  } finally {
+    isDrainingStdoutLines = false;
+    if (pendingStdoutLines.length > 0 && isActiveProcessReference(processRef)) {
+      void drainStdoutLines(processRef);
+    }
+  }
+}
+
 function isActiveProcessReference(processRef) {
   return Boolean(processRef) && pythonProcess === processRef;
 }
@@ -212,6 +315,8 @@ function resetBackendProcessState(reason) {
   readinessCheckToken += 1;
   rejectPendingRequests(reason);
   stdoutBuffer = '';
+  pendingStdoutLines = [];
+  isDrainingStdoutLines = false;
 }
 
 function notifyBackendUnavailable(mainWindow, error) {
@@ -343,16 +448,32 @@ function startLocalBackend(mainWindow, options = {}) {
       
       const lines = stdoutBuffer.split('\n');
       stdoutBuffer = lines.pop() || '';
-
       for (const line of lines) {
-        if (line.trim()) {
-          try {
-            const response = JSON.parse(line);
-            handlePythonResponse(response);
-          } catch (error) {
-            console.error('[LocalBackend] Error parsing response:', error, 'Line:', line);
-          }
+        if (!line.trim()) {
+          continue;
         }
+
+        const queueLine = (
+          isDrainingStdoutLines
+          || pendingStdoutLines.length > 0
+          || shouldOffloadJsonParse(line)
+        );
+
+        if (queueLine) {
+          pendingStdoutLines.push(line);
+          continue;
+        }
+
+        try {
+          const response = JSON.parse(line);
+          handlePythonResponse(response);
+        } catch (error) {
+          console.error('[LocalBackend] Error parsing response:', error, 'Line:', line);
+        }
+      }
+
+      if (pendingStdoutLines.length > 0) {
+        void drainStdoutLines(processRef);
       }
     } catch (error) {
       console.error('[LocalBackend] Error processing stdout:', error);

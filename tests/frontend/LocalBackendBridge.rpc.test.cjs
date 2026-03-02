@@ -60,6 +60,26 @@ describe('local_backend_bridge RPC handlers', () => {
     expect(result).toEqual({ success: true, data: { value: 1 } });
   });
 
+  test('execute-tool handles large JSON-RPC stdout lines', async () => {
+    const { handlers, stdoutHandler } = initBridge();
+    markReady();
+
+    const largePayload = 'x'.repeat(140 * 1024);
+    const promise = handlers['execute-tool'](null, {
+      toolName: 'read_file',
+      args: { file_path: '/tmp/a' },
+    });
+
+    emitRpcResult(stdoutHandler, {
+      success: true,
+      data: { large_payload: largePayload },
+    });
+
+    const result = await promise;
+    expect(result.success).toBe(true);
+    expect(result.data.large_payload).toHaveLength(140 * 1024);
+  });
+
   test('execute-tool uploads screenshot temp-path responses and returns artifact refs', async () => {
     const { handlers, stdoutHandler } = initBridge();
     markReady();
