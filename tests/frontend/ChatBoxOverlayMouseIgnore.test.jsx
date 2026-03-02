@@ -59,7 +59,6 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     MOVE_CHATBOX_TO: 'move-chatbox-to',
   },
   INVOKE_CHANNELS: {
-    SET_OVERLAY_IGNORE_MOUSE: 'set-overlay-ignore-mouse',
     SET_CHATBOX_VISUAL_ANCHOR_HEIGHT: 'set-chatbox-visual-anchor-height',
     SHOW_MAIN_WINDOW: 'show-main-window',
   },

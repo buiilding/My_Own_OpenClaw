@@ -150,7 +150,7 @@ If input does not focus when chat opens:
 
 1. verify `chatbox-focus` event is emitted from `showChatWindow({focus:true})`
 2. verify `ChatBox` listener is mounted
-3. inspect click-through toggle path (`set-overlay-ignore-mouse`) for stale ignore state
+3. inspect shared response-overlay phase handling for stale loop interactivity state
 
 ## Cross-Doc References
 

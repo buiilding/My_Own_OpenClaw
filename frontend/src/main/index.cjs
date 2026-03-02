@@ -399,7 +399,6 @@ function initializeOverlayHandlers() {
     showMainWindow,
     showChatWindow,
     hideChatWindow,
-    prepareOverlayToolFocus: prepareOverlayQueryCaptureFocus,
     normalizeMainWindowOpenTarget,
     emitMainWindowOpenTarget,
     warn: console.warn,

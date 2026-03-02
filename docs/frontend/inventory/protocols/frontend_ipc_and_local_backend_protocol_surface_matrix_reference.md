@@ -67,12 +67,10 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `check-permission` | `main/index.cjs` | Single permission probe shortcut |
 | `run-permission-probe` | `main/index.cjs` | Explicit probe execution for one permission |
 | `request-permission` | `main/index.cjs` | OS request/open-settings path per permission |
-| `set-overlay-ignore-mouse` | `main/index.cjs` | Toggle overlay click-through |
 | `set-responsebox-size` | `main/index.cjs` | Resize response overlay |
 | `show-main-window` | `main/index.cjs` | Show dashboard window; optional `{ open, maximize }`; `open` target must normalize to `chat|memory|models|settings` before emit |
 | `show-chatbox` | `main/index.cjs` | Show chatbox overlay |
 | `hide-chatbox` | `main/index.cjs` | Hide chatbox overlay |
-| `prepare-overlay-tool-focus` | `main/index.cjs` | Pre-tool overlay hide/focus prep; returns active-window verification metadata |
 | `get-displays` | `main/index.cjs` | Return display inventory |
 | `window-minimize` | `main/index.cjs` | Minimize main window |
 | `window-toggle-maximize` | `main/index.cjs` | Toggle maximize state |

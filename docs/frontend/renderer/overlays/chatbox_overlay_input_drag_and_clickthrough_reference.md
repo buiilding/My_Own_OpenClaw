@@ -166,7 +166,7 @@ The canonical phase set and helper predicates now live in `streamPhaseState.js` 
 If chatbox becomes permanently click-through:
 
 1. inspect latest `response-overlay-phase` payload seen by renderer
-2. verify terminal transition emits and `set-overlay-ignore-mouse(false)` fires
+2. verify terminal transition emits and main-process overlay phase handling restores normal interactivity
 3. verify cleanup runs on unmount
 
 If drag movement is jittery or ignored:

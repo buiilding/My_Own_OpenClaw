@@ -148,7 +148,7 @@ Capabilities:
 - Tool runner executes single and bundle tool requests and posts structured result payloads back to backend.
 - Transcript writer persists user/assistant/tool entries with pending-queue retry semantics.
 - Tool execution service includes capture, artifact upload, formatting, and backend callback fanout.
-- Tool-runner safety flow requests overlay prep (`show-chatbox` + `prepare-overlay-tool-focus`) before interactive computer-use execution to avoid dispatch on WindieOS surfaces.
+- Tool-runner safety flow no longer exposes separate overlay-prep IPC; renderer surface orchestration plus main-process overlay phase handling own the loop guard behavior.
 
 ## 7) Renderer Dashboard + Settings + Permissions + Voice
 

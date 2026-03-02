@@ -194,10 +194,10 @@ Overlay/focus runtime behavior:
 
 - interactive mode:
   - `SHOW_CHATBOX(focus=false)` then `HIDE_CHATBOX`
-  - `PREPARE_OVERLAY_TOOL_FOCUS(waitMs=180)`
-  - fail-close when focus prep fails or `externalFocusActive` check fails while verification is available
+  - no separate renderer-callable focus-prep IPC
+  - shared response-overlay phase in main owns click-through + `focusable=false` for the loop window state
 - screenshot mode:
-  - `SHOW_CHATBOX(focus=false)` then `HIDE_CHATBOX` (no focus verification call)
+  - `SHOW_CHATBOX(focus=false)` then `HIDE_CHATBOX`
 - restoration:
   - when preparation requested chat-pill hide, `restoreToolExecutionSurface(...)` releases the token
   - `SHOW_CHATBOX(focus=false)` runs best-effort only when no active surface tokens remain

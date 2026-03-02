@@ -63,12 +63,10 @@ Allowed channels:
 - `delete-semantic-memory`
 - `store-transcript`
 - `get-client-user-id`
-- `set-overlay-ignore-mouse`
 - `set-responsebox-size`
 - `show-main-window`
 - `show-chatbox`
 - `hide-chatbox`
-- `prepare-overlay-tool-focus`
 - `get-displays`
 - `load-frontend-config`
 - `save-frontend-config`
@@ -85,6 +83,11 @@ Allowed channels:
 For invalid channels:
 
 - returns `Promise.reject(new Error("Invalid invoke channel: ..."))`
+
+Legacy note:
+
+- overlay click-through/focus prep is no longer renderer-callable over preload
+- active-loop interactivity is owned by main-process overlay phase handling instead
 
 ### `on(...)` and `once(...)` behavior
 

@@ -4,7 +4,7 @@ const {
   initializeOverlayHandlersRuntime,
 } = require('../../frontend/src/main/overlay_ipc_runtime.cjs');
 
-describe('overlay_ipc_runtime prepare-overlay-tool-focus handler', () => {
+describe('overlay_ipc_runtime', () => {
   function createRuntime(overrides = {}) {
     const invokeHandlers = {};
     const eventHandlers = {};
@@ -46,64 +46,12 @@ describe('overlay_ipc_runtime prepare-overlay-tool-focus handler', () => {
     };
   }
 
-  test('forwards waitMs to overlay focus preparation and returns payload', async () => {
-    const prepareOverlayToolFocus = jest.fn().mockResolvedValue({
-      restoredExternalFocus: true,
-      externalFocusActive: true,
-    });
-    const { invokeHandlers } = createRuntime({ prepareOverlayToolFocus });
+  test('does not register deprecated overlay interactivity/focus-prep invoke channels', () => {
+    const { invokeHandlers } = createRuntime();
 
-    const result = await invokeHandlers['prepare-overlay-tool-focus'](null, { waitMs: 260 });
-
-    expect(prepareOverlayToolFocus).toHaveBeenCalledWith({ waitMs: 260, skipDemotion: false });
-    expect(result).toEqual({
-      success: true,
-      data: {
-        restoredExternalFocus: true,
-        externalFocusActive: true,
-      },
-    });
-  });
-
-  test('uses default wait duration when none is provided', async () => {
-    const prepareOverlayToolFocus = jest.fn().mockResolvedValue(null);
-    const { invokeHandlers } = createRuntime({ prepareOverlayToolFocus });
-
-    await invokeHandlers['prepare-overlay-tool-focus'](null, {});
-
-    expect(prepareOverlayToolFocus).toHaveBeenCalledWith({ waitMs: 180, skipDemotion: false });
-  });
-
-  test('forwards skipDemotion flag to overlay focus preparation', async () => {
-    const prepareOverlayToolFocus = jest.fn().mockResolvedValue(null);
-    const { invokeHandlers } = createRuntime({ prepareOverlayToolFocus });
-
-    await invokeHandlers['prepare-overlay-tool-focus'](null, {
-      waitMs: 90,
-      skipDemotion: true,
-    });
-
-    expect(prepareOverlayToolFocus).toHaveBeenCalledWith({ waitMs: 90, skipDemotion: true });
-  });
-
-  test('returns unavailable error when focus preparation is not wired', async () => {
-    const { invokeHandlers } = createRuntime({ prepareOverlayToolFocus: undefined });
-
-    const result = await invokeHandlers['prepare-overlay-tool-focus'](null, {});
-
-    expect(result).toEqual({ success: false, reason: 'Overlay focus preparation unavailable' });
-  });
-
-  test('returns failure when focus preparation throws', async () => {
-    const prepareOverlayToolFocus = jest.fn().mockRejectedValue(new Error('focus boom'));
-    const { invokeHandlers } = createRuntime({ prepareOverlayToolFocus });
-
-    const result = await invokeHandlers['prepare-overlay-tool-focus'](null, { waitMs: 10 });
-
-    expect(result).toEqual({
-      success: false,
-      reason: 'Failed to prepare overlay tool focus: focus boom',
-    });
+    expect(invokeHandlers['set-overlay-ignore-mouse']).toBeUndefined();
+    expect(invokeHandlers['set-overlay-focusable']).toBeUndefined();
+    expect(invokeHandlers['prepare-overlay-tool-focus']).toBeUndefined();
   });
 
   test('does not register deprecated chatbox resize invoke channel', () => {
@@ -156,30 +104,4 @@ describe('overlay_ipc_runtime prepare-overlay-tool-focus handler', () => {
     });
   });
 
-  test('registers and handles set-overlay-focusable invoke channel', async () => {
-    const windows = {
-      chatWindow: {
-        isDestroyed: jest.fn(() => false),
-        setFocusable: jest.fn(),
-      },
-      responseWindow: {
-        isDestroyed: jest.fn(() => false),
-        setFocusable: jest.fn(),
-      },
-      contextLabelWindow: {
-        isDestroyed: jest.fn(() => false),
-        setFocusable: jest.fn(),
-      },
-    };
-    const { invokeHandlers } = createRuntime({
-      getWindows: () => windows,
-    });
-
-    const result = await invokeHandlers['set-overlay-focusable'](null, { focusable: false });
-
-    expect(result).toEqual({ success: true });
-    expect(windows.chatWindow.setFocusable).toHaveBeenCalledWith(false);
-    expect(windows.responseWindow.setFocusable).toHaveBeenCalledWith(false);
-    expect(windows.contextLabelWindow.setFocusable).toHaveBeenCalledWith(false);
-  });
 });

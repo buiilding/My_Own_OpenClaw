@@ -84,12 +84,10 @@ Behavior:
 
 ## Window/overlay channels (`overlay_ipc_runtime.cjs`, wired by `index.cjs`)
 
-- `set-overlay-ignore-mouse` -> click-through toggle for overlay windows
 - `set-responsebox-size` -> bounded response overlay resize/show/hide
 - `show-main-window` -> shows main window; optional payload `{ open?: 'chat' | 'memory' | 'models' | 'settings', maximize?: boolean }` emits `main-window-open-target` when accepted
 - `show-chatbox`
 - `hide-chatbox`
-- `prepare-overlay-tool-focus` -> pre-tool overlay hide + external focus verification payload
 - `get-displays`
 - `window-minimize`
 - `window-toggle-maximize`
@@ -100,6 +98,12 @@ Behavior:
 - `check-permission`
 - `run-permission-probe`
 - `request-permission`
+
+Removed legacy renderer-callable channels:
+
+- `set-overlay-ignore-mouse`
+- `set-overlay-focusable`
+- `prepare-overlay-tool-focus`
 
 ## Local sidecar bridge channels (`local_backend_bridge.cjs`)
 
