@@ -162,6 +162,31 @@ export async function ensureAutoCapture(
       systemState,
       screenshotContentType,
     );
+  } else {
+    const shouldCaptureSystemStateOnly = (
+      !skipAutoCapture
+      && Boolean(screenshot)
+      && !systemState
+      && (isComputerTool || toolName === 'screenshot')
+    );
+    if (shouldCaptureSystemStateOnly) {
+      const stateCapture = await captureSystemStateAfterTool(
+        toolName,
+        args,
+        getDefaultWaitSeconds(toolName),
+        captureCorrelationId,
+      );
+      waitDelay = stateCapture.waitSeconds;
+      captureTime = stateCapture.captureTime;
+      systemState = stateCapture.systemState;
+      applyCaptureToResult(
+        result,
+        screenshot,
+        captureMeta,
+        systemState,
+        screenshotContentType,
+      );
+    }
   }
 
   return {
@@ -172,6 +197,29 @@ export async function ensureAutoCapture(
     waitDelay,
     captureTime,
     isComputerTool
+  };
+}
+
+async function captureSystemStateAfterTool(
+  toolName: string,
+  args: any,
+  defaultWaitSeconds: number,
+  captureCorrelationId?: string | null,
+): Promise<Pick<ToolCaptureResult, 'systemState' | 'waitSeconds' | 'captureTime'>> {
+  const waitSeconds = getWaitSeconds(toolName, args, defaultWaitSeconds);
+  const captureStartTime = performance.now();
+  const captureResult = await extractOSstate(
+    false,
+    true,
+    waitSeconds,
+    false,
+    captureCorrelationId,
+  );
+  const captureTime = (performance.now() - captureStartTime) / 1000;
+  return {
+    systemState: captureResult.systemState,
+    waitSeconds,
+    captureTime,
   };
 }
 
