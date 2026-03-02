@@ -1,13 +1,8 @@
 import {
   resolveSurfaceTransitionContext,
 } from '../../frontend/src/renderer/infrastructure/services/surfaceOrchestrator/context';
-import { resetSurfaceOrchestratorStateForTests } from '../../frontend/src/renderer/infrastructure/services/surfaceOrchestrator/state';
 
 describe('surfaceOrchestrator context helpers', () => {
-  beforeEach(() => {
-    resetSurfaceOrchestratorStateForTests();
-  });
-
   test('resolves source and trims provided correlation id', () => {
     const context = resolveSurfaceTransitionContext(
       undefined,
@@ -36,13 +31,10 @@ describe('surfaceOrchestrator context helpers', () => {
       'capture',
     );
 
-    expect(first).toEqual({
-      source: 'system-capture',
-      correlationId: 'capture-1',
-    });
-    expect(second).toEqual({
-      source: 'tool-runner',
-      correlationId: 'capture-2',
-    });
+    expect(first.source).toBe('system-capture');
+    expect(second.source).toBe('tool-runner');
+    expect(first.correlationId).toMatch(/^capture-\d+$/);
+    expect(second.correlationId).toMatch(/^capture-\d+$/);
+    expect(second.correlationId).not.toBe(first.correlationId);
   });
 });

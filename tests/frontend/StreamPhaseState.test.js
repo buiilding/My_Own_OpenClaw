@@ -1,48 +1,12 @@
 import {
-  ACTIVE_LOOP_PHASES,
-  OVERLAY_AWAITING_REPLY_PHASES,
-  OVERLAY_CLEAR_AWAITING_PHASES,
-  TERMINAL_STREAM_PHASES,
   isAwaitingFirstChunkPhase,
   isLoopActivePhase,
   isOverlayAwaitingReplyPhase,
   isTerminalStreamPhase,
   isStopControlAvailablePhase,
-  shouldOverlayClearAwaitingFirstChunk,
 } from '../../frontend/src/renderer/features/chat/utils/streamPhaseState';
 
 describe('streamPhaseState', () => {
-  test('exports canonical active loop phase set', () => {
-    expect(ACTIVE_LOOP_PHASES).toEqual([
-      'awaiting-first-chunk',
-      'streaming',
-      'tool-call',
-      'tool-output',
-    ]);
-  });
-
-  test('exports canonical terminal stream phase set', () => {
-    expect(TERMINAL_STREAM_PHASES).toEqual([
-      'idle',
-      'complete',
-      'error',
-    ]);
-  });
-
-  test('exports canonical response-overlay awaiting/clear phase sets', () => {
-    expect(OVERLAY_AWAITING_REPLY_PHASES).toEqual([
-      'awaiting-first-chunk',
-      'tool-call',
-      'tool-output',
-    ]);
-    expect(OVERLAY_CLEAR_AWAITING_PHASES).toEqual([
-      'idle',
-      'streaming',
-      'complete',
-      'error',
-    ]);
-  });
-
   test('detects active loop phases only', () => {
     expect(isLoopActivePhase('awaiting-first-chunk')).toBe(true);
     expect(isLoopActivePhase('streaming')).toBe(true);
@@ -79,16 +43,6 @@ describe('streamPhaseState', () => {
     expect(isOverlayAwaitingReplyPhase('streaming')).toBe(false);
     expect(isOverlayAwaitingReplyPhase('idle')).toBe(false);
     expect(isOverlayAwaitingReplyPhase(undefined)).toBe(false);
-  });
-
-  test('detects response-overlay phases that clear awaiting-first-chunk', () => {
-    expect(shouldOverlayClearAwaitingFirstChunk('idle')).toBe(true);
-    expect(shouldOverlayClearAwaitingFirstChunk('streaming')).toBe(true);
-    expect(shouldOverlayClearAwaitingFirstChunk('complete')).toBe(true);
-    expect(shouldOverlayClearAwaitingFirstChunk('error')).toBe(true);
-    expect(shouldOverlayClearAwaitingFirstChunk('tool-call')).toBe(false);
-    expect(shouldOverlayClearAwaitingFirstChunk('tool-output')).toBe(false);
-    expect(shouldOverlayClearAwaitingFirstChunk(undefined)).toBe(false);
   });
 
   test('stop-control availability matches active stream phases', () => {

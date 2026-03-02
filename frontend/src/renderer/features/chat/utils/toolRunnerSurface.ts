@@ -5,7 +5,6 @@ import {
   resolveToolRequestIdForCancellation,
   restoreToolExecutionSurface,
   shouldSkipToolExecution,
-  __resetSurfaceOrchestratorStateForTests,
 } from '../../../infrastructure/services/SurfaceOrchestrator';
 
 export {
@@ -16,7 +15,3 @@ export {
   restoreToolExecutionSurface,
   shouldSkipToolExecution,
 };
-
-export function __resetToolExecutionSurfaceStateForTests(): void {
-  __resetSurfaceOrchestratorStateForTests();
-}

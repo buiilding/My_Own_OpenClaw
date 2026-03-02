@@ -24,7 +24,7 @@ function pickCorrelationIdFromPayload(payload) {
   );
 }
 
-export function resolveReplayToolMessageCorrelationId(message) {
+function resolveReplayToolMessageCorrelationId(message) {
   if (!message || typeof message !== 'object') {
     return null;
   }

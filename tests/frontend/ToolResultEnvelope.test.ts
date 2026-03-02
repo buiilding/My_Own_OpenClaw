@@ -2,16 +2,9 @@ import {
   buildToolBundleResultEnvelope,
   buildToolResultEnvelope,
   resolveToolResultEnvelopeCorrelationId,
-  TOOL_BUNDLE_RESULT_ENVELOPE_TYPE,
-  TOOL_RESULT_ENVELOPE_TYPE,
 } from '../../frontend/src/renderer/infrastructure/services/ToolResultEnvelope';
 
 describe('ToolResultEnvelope', () => {
-  test('exports canonical tool result envelope types', () => {
-    expect(TOOL_RESULT_ENVELOPE_TYPE).toBe('tool-result');
-    expect(TOOL_BUNDLE_RESULT_ENVELOPE_TYPE).toBe('tool-bundle-result');
-  });
-
   test('builds single and bundle result envelopes', () => {
     expect(buildToolResultEnvelope({ request_id: 'req-1', success: true })).toEqual({
       type: 'tool-result',

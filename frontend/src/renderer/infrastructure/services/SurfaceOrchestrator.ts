@@ -1,10 +1,4 @@
-export type {
-  CaptureVisibilityPreparation,
-  SurfaceMode,
-  SurfacePhase,
-  SurfaceTransitionSource,
-  ToolSurfacePreparation,
-} from './surfaceOrchestrator/types';
+export type { CaptureVisibilityPreparation } from './surfaceOrchestrator/types';
 
 export {
   ensureToolExecutionSurface,
@@ -21,12 +15,5 @@ export {
 export {
   resolveBundleSurfaceMode,
   resolveToolRequestIdForCancellation,
-  resolveToolSurfaceMode,
   shouldSkipToolExecution,
 } from './surfaceOrchestrator/mode';
-
-import { resetSurfaceOrchestratorStateForTests } from './surfaceOrchestrator/state';
-
-export function __resetSurfaceOrchestratorStateForTests(): void {
-  resetSurfaceOrchestratorStateForTests();
-}

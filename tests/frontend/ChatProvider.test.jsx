@@ -2,8 +2,6 @@ import React from 'react';
 import { render, waitFor } from '@testing-library/react';
 
 import {
-  DEFAULT_CHAT_WORKSPACE_REF,
-  createInitialStreamTracking,
   useChatStore,
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { ChatProvider } from '../../frontend/src/renderer/app/providers/ChatProvider';
@@ -11,6 +9,25 @@ import { ChatProvider } from '../../frontend/src/renderer/app/providers/ChatProv
 const mockUseChatStream = jest.fn();
 const mockUseToolRunner = jest.fn();
 const mockUseTranscriptSessionInfo = jest.fn();
+const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
+
+function createInitialStreamTracking() {
+  return {
+    activeTurnRef: null,
+    phase: 'idle',
+    startedAt: null,
+    firstChunkAt: null,
+    completedAt: null,
+    lastEventAt: null,
+    lastEventType: null,
+    eventCount: 0,
+    chunkCount: 0,
+    toolCallCount: 0,
+    toolOutputCount: 0,
+    lastChunkSize: 0,
+    lastError: null,
+  };
+}
 
 jest.mock('../../frontend/src/renderer/features/chat/hooks/useChatStream', () => ({
   useChatStream: (...args) => mockUseChatStream(...args),

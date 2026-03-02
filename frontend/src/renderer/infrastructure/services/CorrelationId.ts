@@ -1,4 +1,4 @@
-export function normalizeCorrelationId(value: unknown): string | null {
+function normalizeCorrelationId(value: unknown): string | null {
   if (typeof value !== 'string') {
     return null;
   }

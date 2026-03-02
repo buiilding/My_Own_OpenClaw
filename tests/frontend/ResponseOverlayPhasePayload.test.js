@@ -1,11 +1,13 @@
 import {
   parseResponseOverlayPhasePayload,
-  RESPONSE_OVERLAY_PHASES,
 } from '../../frontend/src/renderer/features/chat/utils/responseOverlayPhasePayload';
+import {
+  RESPONSE_OVERLAY_PHASE,
+} from '../../frontend/src/renderer/features/chat/utils/responseOverlayPhaseContract';
 
 describe('responseOverlayPhasePayload', () => {
   test('exports canonical response overlay phases', () => {
-    expect(RESPONSE_OVERLAY_PHASES).toEqual([
+    expect(Object.values(RESPONSE_OVERLAY_PHASE)).toEqual([
       'idle',
       'awaiting-first-chunk',
       'streaming',

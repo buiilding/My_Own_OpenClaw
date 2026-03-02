@@ -3,7 +3,6 @@
 import {
   RESPONSE_OVERLAY_METADATA_KEYS as rendererMetadataKeys,
   RESPONSE_OVERLAY_PHASE as rendererPhaseEnum,
-  RESPONSE_OVERLAY_PHASES as rendererPhases,
 } from '../../frontend/src/renderer/features/chat/utils/responseOverlayPhaseContract';
 
 const {
@@ -14,7 +13,7 @@ const {
 
 describe('overlay phase contract parity', () => {
   test('keeps renderer and main phase sequence in lockstep', () => {
-    expect(Array.from(mainPhaseSet)).toEqual(rendererPhases);
+    expect(Array.from(mainPhaseSet)).toEqual(Object.values(rendererPhaseEnum));
   });
 
   test('keeps renderer and main metadata keys in lockstep', () => {

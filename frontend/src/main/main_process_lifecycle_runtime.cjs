@@ -214,6 +214,4 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
 
 module.exports = {
   initializeMainProcessLifecycleRuntime,
-  summarizeElectronAppMetrics,
-  logStartupMetricsSnapshot,
 };

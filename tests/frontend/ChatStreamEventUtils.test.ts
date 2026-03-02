@@ -1,7 +1,6 @@
 import {
   buildScreenshotAttachment,
   resolveErrorText,
-  resolveToolBundleCorrelationId,
   resolveToolCallCorrelationId,
   resolveToolOutputCorrelationId,
   shouldIgnoreStreamError,
@@ -79,12 +78,6 @@ describe('chatStreamEventUtils', () => {
       correlation_id: '   ',
       request_id: '   ',
     })).toBeUndefined();
-  });
-
-  test('resolveToolBundleCorrelationId normalizes bundle ids', () => {
-    expect(resolveToolBundleCorrelationId({ bundle_id: ' bundle-1 ' })).toBe('bundle-1');
-    expect(resolveToolBundleCorrelationId({ bundle_id: '   ' })).toBeUndefined();
-    expect(resolveToolBundleCorrelationId(undefined)).toBeUndefined();
   });
 
   test('resolveErrorText prefers payload content then message then fallback', () => {

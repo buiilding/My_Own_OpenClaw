@@ -1,17 +1,7 @@
-import { isTerminalStreamPhase } from './streamPhaseState';
-
 export type TrackedExecution = {
   turnRef: string | null;
   conversationRef: string | null;
 };
-
-function resolveTrackedTurnRef(trackedExecution: TrackedExecution | null | undefined): string | null {
-  if (!trackedExecution || typeof trackedExecution !== 'object') {
-    return null;
-  }
-  const turnRef = trackedExecution.turnRef;
-  return typeof turnRef === 'string' && turnRef ? turnRef : null;
-}
 
 export function trackExecutionTurn(
   trackedExecutionTurns: Map<string, TrackedExecution>,
@@ -43,38 +33,4 @@ export function isTrackedExecution(
     return true;
   }
   return trackedExecutionTurns.has(correlationId);
-}
-
-export function pruneTrackedExecutionTurns(
-  trackedExecutionTurns: Map<string, TrackedExecution>,
-  activeTurnRef: string | null,
-  streamPhase: string | null | undefined,
-): void {
-  if (trackedExecutionTurns.size === 0) {
-    return;
-  }
-
-  if (!activeTurnRef) {
-    if (isTerminalStreamPhase(streamPhase)) {
-      trackedExecutionTurns.clear();
-    }
-    return;
-  }
-
-  if (isTerminalStreamPhase(streamPhase)) {
-    for (const [correlationId, trackedExecution] of trackedExecutionTurns.entries()) {
-      const trackedTurnRef = resolveTrackedTurnRef(trackedExecution);
-      if (!trackedTurnRef || trackedTurnRef === activeTurnRef) {
-        trackedExecutionTurns.delete(correlationId);
-      }
-    }
-    return;
-  }
-
-  for (const [correlationId, trackedExecution] of trackedExecutionTurns.entries()) {
-    const trackedTurnRef = resolveTrackedTurnRef(trackedExecution);
-    if (trackedTurnRef && trackedTurnRef !== activeTurnRef) {
-      trackedExecutionTurns.delete(correlationId);
-    }
-  }
 }

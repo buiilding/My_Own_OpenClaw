@@ -4,12 +4,11 @@ import {
   normalizeResponseOverlayString,
   RESPONSE_OVERLAY_METADATA_KEYS,
   RESPONSE_OVERLAY_PHASE,
-  RESPONSE_OVERLAY_PHASES,
 } from '../../frontend/src/renderer/features/chat/utils/responseOverlayPhaseContract';
 
 describe('responseOverlayPhaseContract', () => {
   test('exports canonical phase list and enum object', () => {
-    expect(RESPONSE_OVERLAY_PHASES).toEqual([
+    expect(Object.values(RESPONSE_OVERLAY_PHASE)).toEqual([
       'idle',
       'awaiting-first-chunk',
       'streaming',

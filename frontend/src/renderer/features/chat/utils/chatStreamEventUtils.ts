@@ -1,6 +1,5 @@
 import { buildArtifactUrl } from '../../../infrastructure/services/ArtifactUploader';
 import {
-  resolveToolBundleCorrelationId as resolveSharedToolBundleCorrelationId,
   resolveToolCallCorrelationId as resolveSharedToolCallCorrelationId,
   resolveToolOutputCorrelationId as resolveSharedToolOutputCorrelationId,
 } from './toolCorrelationIds';
@@ -24,10 +23,6 @@ type ToolOutputPayload = {
 type ToolCallPayload = {
   correlation_id?: string | null;
   request_id?: string | null;
-};
-
-type ToolBundlePayload = {
-  bundle_id?: string | null;
 };
 
 export function shouldIgnoreStreamError(payload: ErrorPayload | null | undefined): boolean {
@@ -87,12 +82,6 @@ export function resolveToolCallCorrelationId(
   payload: ToolCallPayload | null | undefined,
 ) {
   return resolveSharedToolCallCorrelationId(payload);
-}
-
-export function resolveToolBundleCorrelationId(
-  payload: ToolBundlePayload | null | undefined,
-) {
-  return resolveSharedToolBundleCorrelationId(payload);
 }
 
 export function resolveErrorText(payload: ErrorPayload | null | undefined): string {

@@ -2,10 +2,8 @@ import {
   isResponseOverlayPhase,
   normalizeResponseOverlayNumber,
   normalizeResponseOverlayString,
-  RESPONSE_OVERLAY_PHASES,
+  RESPONSE_OVERLAY_METADATA_KEYS,
 } from './responseOverlayPhaseContract';
-
-export { RESPONSE_OVERLAY_PHASES };
 
 export function parseResponseOverlayPhasePayload(payload) {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
@@ -17,13 +15,16 @@ export function parseResponseOverlayPhasePayload(payload) {
     return null;
   }
 
-  return {
+  const normalizedPayload = {
     phase,
     source: normalizeResponseOverlayString(payload.source),
-    correlation_id: normalizeResponseOverlayString(payload.correlation_id),
-    attempt: normalizeResponseOverlayNumber(payload.attempt),
-    max_attempts: normalizeResponseOverlayNumber(payload.max_attempts),
-    recovery_stage: normalizeResponseOverlayString(payload.recovery_stage),
-    failure_reason: normalizeResponseOverlayString(payload.failure_reason),
   };
+  RESPONSE_OVERLAY_METADATA_KEYS.forEach((key) => {
+    if (key === 'attempt' || key === 'max_attempts') {
+      normalizedPayload[key] = normalizeResponseOverlayNumber(payload[key]);
+      return;
+    }
+    normalizedPayload[key] = normalizeResponseOverlayString(payload[key]);
+  });
+  return normalizedPayload;
 }

@@ -1,8 +1,9 @@
 import {
   getMemoryRetrievalInjectionEnabled,
-  MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY,
   setMemoryRetrievalInjectionEnabled,
 } from '../../frontend/src/renderer/utils/memoryRetrievalPreference';
+
+const MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY = 'desktop-assistant-memory-retrieval-injection-enabled';
 
 describe('memoryRetrievalPreference', () => {
   beforeEach(() => {

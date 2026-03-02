@@ -43,7 +43,3 @@ export function setMemoryRetrievalInjectionEnabled(enabled, storage = null) {
   }
   return normalizedEnabled;
 }
-
-export {
-  MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY,
-};

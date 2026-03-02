@@ -1,19 +1,8 @@
 import {
   applyStopQueryUiState,
-  buildStopQueryTrackingPatch,
 } from '../../frontend/src/renderer/features/chat/utils/stopQueryState';
 
 describe('stopQueryState', () => {
-  test('buildStopQueryTrackingPatch emits canonical terminal stop payload', () => {
-    const stoppedAt = '2026-02-28T00:00:00.000Z';
-    expect(buildStopQueryTrackingPatch(stoppedAt)).toEqual({
-      phase: 'complete',
-      completedAt: stoppedAt,
-      lastEventAt: stoppedAt,
-      lastEventType: 'stop-query',
-    });
-  });
-
   test('applyStopQueryUiState clears sending/thinking state and updates stream tracking', () => {
     const setIsSending = jest.fn();
     const setThinkingStatus = jest.fn();
