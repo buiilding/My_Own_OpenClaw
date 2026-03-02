@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import ChatInterface from '../../chat/components/ChatInterface';
 import { useChatStore } from '../../chat/stores/chatStore';
-import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import ModelsSection from './sections/ModelsSection';
 import SettingsSection from './sections/SettingsSection';
 import UsageSection from './sections/UsageSection';
@@ -58,6 +58,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
   const [memoryOpen, setMemoryOpen] = useState(false);
   const [usageOpen, setUsageOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [isTransportConnected, setIsTransportConnected] = useState(true);
   const [composerFocusToken, setComposerFocusToken] = useState(0);
   const wasHiddenRef = useRef(false);
   const sessionInfo = useTranscriptSessionInfo();
@@ -233,6 +234,23 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
     };
   }, [handleChatSurface, openMemory, openModels, openSettings]);
 
+  useEffect(() => {
+    const removeListener = IpcBridge.on(ON_CHANNELS.IPC_STATUS, (payload) => {
+      setIsTransportConnected(payload?.isConnected === true);
+    });
+    return () => {
+      removeListener?.();
+    };
+  }, []);
+
+  useEffect(() => {
+    IpcBridge.invoke(INVOKE_CHANNELS.GET_CLIENT_USER_ID)
+      .then((payload) => {
+        setIsTransportConnected(payload?.isConnected === true);
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <div className={`cg-dashboard-shell${dashboardOpening ? ' cg-dashboard-shell-opening' : ''}`}>
       <DashboardSidebar
@@ -257,6 +275,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
         onTogglePinConversation={handleTogglePinConversation}
         onDeleteConversation={handleDeleteConversation}
         activeConversationRef={sessionInfo.conversationRef || null}
+        isTransportConnected={isTransportConnected}
       />
 
       <main className={`cg-main-content${sidebarOpen ? '' : ' cg-main-content-collapsed'}`.trim()}>

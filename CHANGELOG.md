@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-dashboard-sidebar-empty-state): show `No chats yet.` when recent chat list is empty but IPC transport is connected, and only show `Unable to load chats.` when transport is disconnected; wire dashboard shell IPC status into sidebar state and add regression coverage.
 - fix(frontend-packaged-blank-window): set Vite build `base` to `./` so packaged Electron `file://.../dist/index.html` resolves renderer assets via relative paths, preventing black/blank dashboard window in installed builds.
 - fix(frontend-main-startup-window-visibility): show dashboard main window on first app-ready startup (while preserving tray behavior after close) so launcher clicks no longer appear as no-op when chat overlay is hidden/unmapped.
 - fix(packaging-missing-shared-manifest): include `frontend/src/shared/**/*` in electron-builder packaged files so main-process runtime can load shared JSON contracts/manifests (`response_overlay_phase_contract.json`, permission manifest) and avoid startup crash/no-window launches in installed builds.
