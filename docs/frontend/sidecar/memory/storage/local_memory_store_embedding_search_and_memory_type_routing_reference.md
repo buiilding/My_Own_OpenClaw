@@ -109,6 +109,11 @@ For episodic rows, embedding eligibility uses `_should_embed_episodic_entry(...)
 
 This avoids indexing low-signal tool chatter while preserving useful conversational turns.
 
+Startup performance guard:
+
+- startup backfill query now applies this eligibility filter directly in SQL for episodic rows.
+- non-embeddable transcript tool rows are excluded before iteration, so launches avoid repeated full-row rescans of permanent `embedding_id IS NULL` tool chatter.
+
 ## Conversation-Title Boundary
 
 Transcript title generation is a parallel contract (not part of semantic vector search):

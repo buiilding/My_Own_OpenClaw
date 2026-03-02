@@ -4,6 +4,7 @@ ensure_frontend_python_path()
 
 import pytest
 import types
+import numpy as np
 
 import memory.local_store as local_store_module  # noqa: E402
 from memory.local_store import LocalMemoryStore  # noqa: E402
@@ -140,3 +141,93 @@ async def test_sync_vector_mappings_saves_once_when_backfill_added(monkeypatch):
     assert save_calls == ["saved"]
     assert store.episodic_next_vector_id == 9
     assert store.semantic_next_vector_id == 11
+
+
+@pytest.mark.asyncio
+async def test_sync_vector_mappings_backfill_query_skips_non_embeddable_transcript_tool_rows(
+    monkeypatch,
+    tmp_path,
+):
+    if local_store_module.faiss is None or local_store_module.aiosqlite is None:
+        pytest.skip("LocalMemoryStore runtime dependencies are unavailable")
+
+    db_path = tmp_path / "episodic.db"
+    async with local_store_module.aiosqlite.connect(db_path) as conn:
+        await conn.execute(
+            """
+            CREATE TABLE memories (
+                id TEXT PRIMARY KEY,
+                content TEXT,
+                embedding_id INTEGER,
+                record_kind TEXT,
+                role TEXT,
+                message_type TEXT
+            )
+            """
+        )
+        await conn.executemany(
+            """
+            INSERT INTO memories (id, content, embedding_id, record_kind, role, message_type)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            [
+                ("tool-call-1", "tool payload", None, "transcript", "tool", "tool-call"),
+                ("user-turn-1", "user text", None, "transcript", "user", "llm-text"),
+            ],
+        )
+        await conn.commit()
+
+    store = LocalMemoryStore.__new__(LocalMemoryStore)
+    store.embedder = types.SimpleNamespace(
+        embed_text=lambda _text: None,
+    )
+
+    async def _embed_text(_text):
+        return np.array([1.0, 0.0], dtype=np.float32)
+
+    store.embedder.embed_text = _embed_text
+
+    def _unexpected_embed_gate_check(*_args, **_kwargs):
+        raise AssertionError("startup backfill should rely on SQL prefilter, not python per-row embed gate")
+
+    monkeypatch.setattr(store, "_should_embed_episodic_entry", _unexpected_embed_gate_check, raising=False)
+    monkeypatch.setattr(local_store_module.faiss, "normalize_L2", lambda _vector: None)
+
+    class _Index:
+        def __init__(self):
+            self.vectors = []
+
+        def add(self, vector):
+            self.vectors.append(vector)
+
+    index = _Index()
+    vector_id_to_memory_id = {}
+    memory_id_to_vector_id = {}
+
+    next_vector_id, embedded_count = await LocalMemoryStore._sync_vector_mappings_for_db(
+        store,
+        memory_type="episodic",
+        db_path=str(db_path),
+        index=index,
+        vector_id_to_memory_id=vector_id_to_memory_id,
+        memory_id_to_vector_id=memory_id_to_vector_id,
+        next_vector_id=41,
+    )
+
+    assert embedded_count == 1
+    assert next_vector_id == 42
+    assert vector_id_to_memory_id == {41: "user-turn-1"}
+    assert memory_id_to_vector_id == {"user-turn-1": 41}
+    assert len(index.vectors) == 1
+
+    async with local_store_module.aiosqlite.connect(db_path) as conn:
+        cursor = await conn.cursor()
+        await cursor.execute(
+            "SELECT id, embedding_id FROM memories ORDER BY id"
+        )
+        rows = await cursor.fetchall()
+
+    assert rows == [
+        ("tool-call-1", None),
+        ("user-turn-1", 41),
+    ]
