@@ -147,6 +147,8 @@ On a clean test machine:
 ## Known Platform Notes
 
 - Linux may require non-Python packages for some operations (for example `xdotool`).
+- Linux `.deb`/`.rpm` installers declare `xdotool` package dependency; AppImage users must install `xdotool` manually.
+- Sidecar startup/status now emits runtime dependency warnings when `xdotool` is missing so degraded window probes are visible in logs/status payloads.
 - Default slim+core runtime no longer bundles browser Python dependencies.
   - On first browser-tool use, sidecar attempts to install the browser core feature pack (`requirements.runtime.browser.txt`) into a user-writable runtime path.
   - If auto-install fails, WindieOS returns an actionable pip command in the tool error.

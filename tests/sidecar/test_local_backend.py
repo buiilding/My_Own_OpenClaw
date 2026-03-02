@@ -193,6 +193,16 @@ def test_resolve_sidecar_log_level_falls_back_on_invalid_value(monkeypatch):
     assert local_backend_module._resolve_sidecar_log_level() == local_backend_module.logging.WARNING
 
 
+def test_collect_runtime_dependency_warnings_linux_missing_xdotool(monkeypatch):
+    monkeypatch.setattr(local_backend_module.platform, "system", lambda: "Linux")
+    monkeypatch.setattr(local_backend_module.shutil, "which", lambda _name: None)
+
+    warnings = local_backend_module._collect_runtime_dependency_warnings()
+
+    assert len(warnings) == 1
+    assert "xdotool" in warnings[0]
+
+
 @pytest.mark.asyncio
 async def test_handle_execute_tool_success():
     backend = LocalBackend()
@@ -300,12 +310,14 @@ async def test_handle_get_status_reports_tools():
     backend.tool_registry = DummyRegistry(ToolResult.success_result({}))
     backend.running = True
     backend.memory_store = DummyMemoryStore()
+    backend._runtime_dependency_warnings = ["missing xdotool"]
 
     status = await backend._handle_get_status()
     assert status["running"] is True
     assert status["tool_count"] == 2
     assert "read_file" in status["registered_tools"]
     assert status["semantic_summarizer_enabled"] is True
+    assert status["runtime_dependency_warnings"] == ["missing xdotool"]
 
 
 @pytest.mark.asyncio

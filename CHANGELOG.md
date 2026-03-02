@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(packaging-linux-xdotool-runtime-warning): declare `xdotool` as Linux `.deb`/`.rpm` package dependency, emit sidecar startup/status runtime warnings when `xdotool` is missing, and document AppImage manual-install expectation while preserving Xlib fallback behavior.
 - fix(sidecar-wakeword-model-bootstrap-permissions): route wakeword model bootstrap to a user-writable cache fallback (`WINDIE_WAKEWORD_MODEL_DIR` override), support both `openwakeword.models` and `openwakeword.MODELS` metadata layouts, resolve concrete downloaded model paths for model init, and prefetch wakeword assets during runtime packaging to avoid first-run permission failures in read-only install paths.
 - fix(sidecar-linux-system-state-fallbacks): add Linux Xlib fallbacks for active-window and mouse-position probes when `xdotool`/`pyautogui` paths fail, reducing `Unknown` system-context values in packaged desktop runs.
 - fix(frontend-dashboard-sidebar-empty-state): show `No chats yet.` when recent chat list is empty but IPC transport is connected, and only show `Unable to load chats.` when transport is disconnected; wire dashboard shell IPC status into sidebar state and add regression coverage.

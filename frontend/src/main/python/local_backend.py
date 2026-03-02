@@ -10,6 +10,8 @@ via JSON-RPC 2.0 protocol over stdin/stdout.
 import asyncio
 import logging
 import os
+import platform
+import shutil
 import sys
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -76,6 +78,21 @@ def _resolve_sidecar_log_level() -> int:
     return getattr(logging, normalized, logging.WARNING)
 
 
+def _collect_runtime_dependency_warnings() -> list[str]:
+    """Collect host dependency warnings that should surface at startup/status."""
+    warnings: list[str] = []
+    if platform.system() != "Linux":
+        return warnings
+
+    if shutil.which("xdotool") is None:
+        warnings.append(
+            "Linux dependency missing: xdotool. Window switching and active-window probes "
+            "may be degraded; Xlib fallback remains enabled. Install with "
+            "`sudo apt install xdotool` (or distro equivalent)."
+        )
+    return warnings
+
+
 # Configure logging
 logging.basicConfig(
     level=_resolve_sidecar_log_level(),
@@ -97,6 +114,7 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
         self.protocol = JSONRPCProtocol()
         self.memory_store = None
         self._summarizer: Optional[MemorySummarizer] = None
+        self._runtime_dependency_warnings: list[str] = []
         self._semantic_summarizer_enabled = _env_flag_enabled(
             ENV_ENABLE_SEMANTIC_SUMMARIZER,
             default=True,
@@ -145,6 +163,9 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
         
         try:
             configure_event_loop_default_executor(asyncio.get_running_loop())
+            self._runtime_dependency_warnings = _collect_runtime_dependency_warnings()
+            for warning in self._runtime_dependency_warnings:
+                logger.warning(warning)
 
             # Initialize memory store
             logger.info("Initializing memory store...")
@@ -234,6 +255,7 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
                 "browser_feature_pack_autoinstall_enabled": (
                     self._browser_feature_pack_autoinstall_enabled
                 ),
+                "runtime_dependency_warnings": list(self._runtime_dependency_warnings),
             }
             
             if self.tool_registry:
