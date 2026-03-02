@@ -1,5 +1,9 @@
 /** @jest-environment node */
 
+const fsPromises = require('fs/promises');
+const os = require('os');
+const path = require('path');
+
 const {
   getLastWrittenRequest,
   initBridge,
@@ -54,6 +58,60 @@ describe('local_backend_bridge RPC handlers', () => {
 
     const result = await promise;
     expect(result).toEqual({ success: true, data: { value: 1 } });
+  });
+
+  test('execute-tool uploads screenshot temp-path responses and returns artifact refs', async () => {
+    const { handlers, stdoutHandler } = initBridge();
+    markReady();
+
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-shot-'));
+    const screenshotPath = path.join(tempDir, 'capture.jpg');
+    await fsPromises.writeFile(screenshotPath, Buffer.from('fake-jpeg-bytes'));
+
+    const originalFetch = global.fetch;
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        artifact_id: 'artifact-1',
+        url: 'http://127.0.0.1:8765/api/artifacts/artifact-1',
+      }),
+    });
+    global.fetch = fetchMock;
+
+    try {
+      const promise = handlers['execute-tool'](null, {
+        toolName: 'screenshot',
+        args: {},
+      });
+
+      emitRpcResult(stdoutHandler, {
+        success: true,
+        data: {
+          screenshot_path: screenshotPath,
+          screenshot_content_type: 'image/jpeg',
+          compression: 'jpeg',
+        },
+      });
+
+      await expect(promise).resolves.toEqual({
+        success: true,
+        data: {
+          screenshot_content_type: 'image/jpeg',
+          compression: 'jpeg',
+          screenshot_ref: 'artifact-1',
+          screenshot_url: 'http://127.0.0.1:8765/api/artifacts/artifact-1',
+        },
+      });
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        'http://127.0.0.1:8765/api/artifacts/',
+        expect.objectContaining({ method: 'POST' }),
+      );
+      await expect(fsPromises.access(screenshotPath)).rejects.toThrow();
+    } finally {
+      global.fetch = originalFetch;
+      await fsPromises.rm(tempDir, { recursive: true, force: true });
+    }
   });
 
   test('execute-tool injects native sudo auth mode when full sudo access is enabled', async () => {

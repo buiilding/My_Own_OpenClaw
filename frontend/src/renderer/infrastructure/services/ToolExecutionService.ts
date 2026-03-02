@@ -61,6 +61,11 @@ type ExtractedToolResultImage = {
   contentType: string | null;
 };
 
+type ExtractedToolResultScreenshotRef = {
+  screenshotRef: string | null;
+  screenshotUrl: string | null;
+};
+
 function asToolResultData(
   data: ToolResult['data'],
 ): Record<string, unknown> | null {
@@ -140,6 +145,29 @@ function extractToolResultImage(result: ToolResult): ExtractedToolResultImage | 
   };
 }
 
+function extractToolResultScreenshotRef(
+  result: ToolResult,
+): ExtractedToolResultScreenshotRef | null {
+  const data = asToolResultData(result.data);
+  if (!data) {
+    return null;
+  }
+  const screenshotRef = (
+    typeof data.screenshot_ref === 'string' && data.screenshot_ref.trim().length > 0
+      ? data.screenshot_ref.trim()
+      : null
+  );
+  const screenshotUrl = (
+    typeof data.screenshot_url === 'string' && data.screenshot_url.trim().length > 0
+      ? data.screenshot_url.trim()
+      : null
+  );
+  if (!screenshotRef && !screenshotUrl) {
+    return null;
+  }
+  return { screenshotRef, screenshotUrl };
+}
+
 /**
  * Tool Execution Service
  */
@@ -196,6 +224,7 @@ export class ToolExecutionService {
           : null
       );
       const toolResultImage = extractToolResultImage(result);
+      const preUploadedScreenshot = extractToolResultScreenshotRef(result);
       const selectedImage = captureImage || toolResultImage;
       const effectiveScreenshot = selectedImage?.base64 || null;
       const effectiveScreenshotContentType = (
@@ -210,8 +239,8 @@ export class ToolExecutionService {
             `${toolName}-screenshot.${resolveArtifactImageExtension(effectiveScreenshotContentType)}`
           )
         : null;
-      const screenshotRef = uploaded?.artifactId || null;
-      const screenshotUrl = uploaded?.url || null;
+      const screenshotRef = uploaded?.artifactId || preUploadedScreenshot?.screenshotRef || null;
+      const screenshotUrl = uploaded?.url || preUploadedScreenshot?.screenshotUrl || null;
 
       // Format complete message with system context XML
       const finalSystemState = resolveSystemState(systemState, result.data);

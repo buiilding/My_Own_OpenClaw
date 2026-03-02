@@ -48,6 +48,7 @@ read_when:
 - **Quieter default sidecar logging**: Python sidecar now defaults to `WARNING` logs and supports explicit override via `WINDIE_SIDECAR_LOG_LEVEL`.
 - **Lazier browser startup path**: browser tool runtime imports are now deferred until first browser tool execution instead of sidecar boot.
 - **No duplicate FAISS read at startup**: `LocalMemoryStore` no longer performs redundant sync+async FAISS index reads during initialization.
+- **Lean screenshot transport over sidecar JSON-RPC**: sidecar screenshot tool now returns temp file refs, and Electron main uploads those files to backend artifacts (`screenshot_ref`) before renderer tool handling, removing huge inline base64 JSON lines from the sidecar stdout hot path.
 
 ## Tips
 
