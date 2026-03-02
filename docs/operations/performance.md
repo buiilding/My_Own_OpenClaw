@@ -39,6 +39,7 @@ read_when:
 - **Shared artifact image metadata normalization**: chat send, tool execution upload, and chat message rendering paths now use one image content-type/extension helper, reducing duplicate string parsing and keeping screenshot handling consistent.
 - **Stable tool runner service lifecycle**: `useToolRunner` keeps one `ToolExecutionService` instance across model-config updates and reads model metadata via refs, reducing service churn while preserving transcript attribution.
 - **PlayerService cleanup hardening**: audio playback stop/cleanup now cancels active sources and invalidates stale playback callbacks to avoid race-driven queue continuation after stop.
+- **GPU acceleration default-on for Electron UI**: frontend no longer forces software rendering by default; set `WINDIE_FORCE_SOFTWARE_RENDERING=1` only as a fallback for GPU-driver-specific crashes.
 
 ## Sidecar
 
@@ -48,6 +49,7 @@ read_when:
 - **Quieter default sidecar logging**: Python sidecar now defaults to `WARNING` logs and supports explicit override via `WINDIE_SIDECAR_LOG_LEVEL`.
 - **Lazier browser startup path**: browser tool runtime imports are now deferred until first browser tool execution instead of sidecar boot.
 - **No duplicate FAISS read at startup**: `LocalMemoryStore` no longer performs redundant sync+async FAISS index reads during initialization.
+- **Safer/lighter startup vector sync**: `LocalMemoryStore` now ensures FAISS indices exist before embedding backfill and skips FAISS disk writes when startup sync made no vector changes.
 - **Lean screenshot transport over sidecar JSON-RPC**: sidecar screenshot tool now returns temp file refs, and Electron main uploads those files to backend artifacts (`screenshot_ref`) before renderer tool handling, removing huge inline base64 JSON lines from the sidecar stdout hot path.
 - **Large JSON-line parse off main thread**: Electron main now routes oversized sidecar JSON-RPC lines (>=128KB) through worker-thread JSON parsing and drains them through a serialized queue, reducing main-thread parse spikes.
 
