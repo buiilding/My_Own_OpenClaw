@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { Brain, ChevronDown, Volume2, Workflow } from 'lucide-react';
+import { Brain, ChevronDown, Minus, Square, Volume2, Workflow, X } from 'lucide-react';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import { useChatStore } from '../stores/chatStore';
@@ -8,7 +8,7 @@ import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { ApiClient } from '../../../infrastructure/api/client';
 import { PlayerService } from '../../../infrastructure/audio/PlayerService';
-import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { extractAudioChunkPayload } from '../utils/backendAudioEvents';
 import { selectChatInterfaceState } from '../utils/chatSelectors';
 import { startNewChatSession } from '../utils/newChatSession';
@@ -302,6 +302,26 @@ function ChatInterface({ focusComposerToken = 0 }) {
     });
   }, [speechModeEnabled, updateConfig]);
 
+  const handleWindowAction = useCallback(async (channel, actionLabel) => {
+    try {
+      await IpcBridge.invoke(channel);
+    } catch (error) {
+      console.warn(`[ChatInterface] Failed to ${actionLabel}:`, error);
+    }
+  }, []);
+
+  const handleWindowMinimize = useCallback(() => {
+    void handleWindowAction(INVOKE_CHANNELS.WINDOW_MINIMIZE, 'minimize window');
+  }, [handleWindowAction]);
+
+  const handleWindowToggleMaximize = useCallback(() => {
+    void handleWindowAction(INVOKE_CHANNELS.WINDOW_TOGGLE_MAXIMIZE, 'toggle maximize window');
+  }, [handleWindowAction]);
+
+  const handleWindowClose = useCallback(() => {
+    void handleWindowAction(INVOKE_CHANNELS.WINDOW_CLOSE, 'close window');
+  }, [handleWindowAction]);
+
   const handleRunAutoCompaction = useCallback(async () => {
     setThinkingStatus(COMPACTION_THINKING_STATUS);
     setThinkingSourceEventType('context-compaction-started');
@@ -498,6 +518,35 @@ function ChatInterface({ focusComposerToken = 0 }) {
                 <Workflow size={18} />
               </button>
             ) : null}
+          </div>
+          <div className="chat-window-controls">
+            <button
+              type="button"
+              className="chat-window-control-btn chat-window-control-minimize"
+              aria-label="Minimize window"
+              title="Minimize"
+              onClick={handleWindowMinimize}
+            >
+              <Minus size={14} strokeWidth={2.2} />
+            </button>
+            <button
+              type="button"
+              className="chat-window-control-btn chat-window-control-maximize"
+              aria-label="Toggle maximize window"
+              title="Maximize or restore"
+              onClick={handleWindowToggleMaximize}
+            >
+              <Square size={11} strokeWidth={2.2} />
+            </button>
+            <button
+              type="button"
+              className="chat-window-control-btn chat-window-control-close"
+              aria-label="Close window"
+              title="Close"
+              onClick={handleWindowClose}
+            >
+              <X size={13} strokeWidth={2.2} />
+            </button>
           </div>
         </div>
       </header>

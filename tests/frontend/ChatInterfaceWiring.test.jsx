@@ -126,6 +126,9 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     GET_CONVERSATION: 'get-conversation',
     DELETE_CONVERSATION: 'delete-conversation',
     STORE_TRANSCRIPT: 'store-transcript',
+    WINDOW_MINIMIZE: 'window-minimize',
+    WINDOW_TOGGLE_MAXIMIZE: 'window-toggle-maximize',
+    WINDOW_CLOSE: 'window-close',
   },
   ON_CHANNELS: {
     FROM_BACKEND: 'from-backend',
@@ -216,6 +219,18 @@ describe('ChatInterface wiring', () => {
     render(<ChatInterface />);
 
     expect(screen.getByRole('button', { name: 'Toggle text-to-speech' })).toBeInTheDocument();
+  });
+
+  test('window controls invoke minimize, maximize, and close IPC channels', () => {
+    render(<ChatInterface />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Minimize window' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle maximize window' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Close window' }));
+
+    expect(mockIpcInvoke).toHaveBeenNthCalledWith(1, 'window-minimize');
+    expect(mockIpcInvoke).toHaveBeenNthCalledWith(2, 'window-toggle-maximize');
+    expect(mockIpcInvoke).toHaveBeenNthCalledWith(3, 'window-close');
   });
 
   test('shows connection warning when backend transport disconnects', () => {
