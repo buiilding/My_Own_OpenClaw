@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
+import { getAgentStopShortcutLabel } from '../../../infrastructure/shortcuts/agentStopShortcut';
 
-function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel = 'Shift + Tab' }) {
+function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel }) {
+  const resolvedStopShortcutLabel = stopAgentShortcutLabel || getAgentStopShortcutLabel();
   const slides = useMemo(() => ([
     {
       id: 'permissions',
@@ -15,9 +17,9 @@ function FrontendOnboardingSlideshow({ onComplete, stopAgentShortcutLabel = 'Shi
       title: 'Stop the agent during loops',
       body: 'Press this keybind to stop the active agent loop immediately.',
       emphasisLabel: 'Keybind',
-      emphasisValue: stopAgentShortcutLabel,
+      emphasisValue: resolvedStopShortcutLabel,
     },
-  ]), [stopAgentShortcutLabel]);
+  ]), [resolvedStopShortcutLabel]);
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
 
   const activeSlide = slides[activeSlideIndex];
