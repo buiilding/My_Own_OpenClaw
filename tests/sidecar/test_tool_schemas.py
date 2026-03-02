@@ -7,6 +7,7 @@ ensure_frontend_python_path()
 from tools.schemas import (  # noqa: E402
     KeyboardControlArgs,
     MouseControlArgs,
+    OpenAppArgs,
     ReplaceArgs,
     ReplaceOperationArgs,
     ScrollControlArgs,
@@ -127,3 +128,15 @@ def test_replace_args_default_context_and_matching_fields():
 def test_replace_operation_occurrence_index_must_be_positive():
     with pytest.raises(ValidationError):
         ReplaceOperationArgs(old_string="old", new_string="new", occurrence_index=0)
+
+
+def test_open_app_args_validate_command_and_timeout():
+    args = OpenAppArgs(command="notepad", verify="window", verify_timeout_seconds=5.0)
+    assert args.command == "notepad"
+    assert args.verify == "window"
+
+    with pytest.raises(ValidationError):
+        OpenAppArgs(command="   ")
+
+    with pytest.raises(ValidationError):
+        OpenAppArgs(command="notepad", verify_timeout_seconds=-1)

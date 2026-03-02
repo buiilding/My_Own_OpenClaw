@@ -1,7 +1,7 @@
 ---
 summary: "Frontend sidecar system-tools docs sub-hub for wait/window/stats runtime semantics, platform window-manager behavior, and system metrics collection contracts."
 read_when:
-  - When changing sidecar system tools (`wait`, `switch_tab`, `get_open_windows`, `get_system_stats`).
+  - When changing sidecar system tools (`wait`, `switch_tab`, `get_open_windows`, `get_system_stats`, `open_app`).
   - When debugging platform-specific window switching behavior or host metrics collection failures.
 title: "Frontend Sidecar System Tools Docs Hub"
 ---
@@ -25,6 +25,7 @@ title: "Frontend Sidecar System Tools Docs Hub"
 - `frontend/src/main/python/tools/system/wait_tool.py`
 - `frontend/src/main/python/tools/system/window_tool.py`
 - `frontend/src/main/python/tools/system/stats_tool.py`
+- `frontend/src/main/python/tools/system/open_app_tool.py`
 - `frontend/src/main/python/core/system_metrics.py`
 - `frontend/src/main/python/core/platform/__init__.py`
 - `frontend/src/main/python/core/platform/base.py`
