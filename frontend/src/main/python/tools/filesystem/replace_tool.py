@@ -11,6 +11,7 @@ import tempfile
 from pathlib import Path
 from typing import Any, Dict
 
+from core.executors import get_interactive_executor
 from tools.filesystem.replace_engine import ReplaceOperation
 from tools.filesystem.replace_engine import apply_patch_chunks
 from tools.filesystem.replace_engine import apply_operations
@@ -144,7 +145,7 @@ async def replace(args: Dict[str, Any]) -> ToolResult:
                 return path.read_text(encoding=DEFAULT_ENCODING, errors='replace')
 
         loop = asyncio.get_event_loop()
-        current_content = await loop.run_in_executor(None, _read_file)
+        current_content = await loop.run_in_executor(get_interactive_executor(), _read_file)
         normalized_content = normalize_line_endings(current_content)
 
         if using_patch_chunks:
@@ -165,7 +166,7 @@ async def replace(args: Dict[str, Any]) -> ToolResult:
         def _write_file() -> None:
             _write_file_atomic(path, new_content)
 
-        await loop.run_in_executor(None, _write_file)
+        await loop.run_in_executor(get_interactive_executor(), _write_file)
 
         return ToolResult.success_result(
             {

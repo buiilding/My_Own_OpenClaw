@@ -6,6 +6,7 @@ import asyncio
 import logging
 from typing import Dict, Any
 
+from core.executors import get_interactive_executor
 from tools.result import ToolResult
 
 logger = logging.getLogger(__name__)
@@ -131,7 +132,7 @@ async def execute_mouse_control(args: Dict[str, Any]) -> ToolResult:
                 raise ValueError(f"Unknown mouse action: {action}")
         
         loop = asyncio.get_event_loop()
-        result = await loop.run_in_executor(None, _execute_action)
+        result = await loop.run_in_executor(get_interactive_executor(), _execute_action)
         
         return ToolResult.success_result(result)
     except ImportError:

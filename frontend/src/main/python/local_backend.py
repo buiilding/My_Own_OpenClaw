@@ -25,6 +25,7 @@ from core.feature_pack_installer import (
     install_feature_pack,
     is_feature_pack_available,
 )
+from core.executors import configure_event_loop_default_executor, shutdown_all_executors
 from core.runtime_shutdown import (
     handle_shutdown_signal,
     register_shutdown_signal_handlers,
@@ -131,6 +132,8 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
         logger.info("Initializing local backend...")
         
         try:
+            configure_event_loop_default_executor(asyncio.get_running_loop())
+
             # Initialize memory store
             logger.info("Initializing memory store...")
             if LocalMemoryStore is None:
@@ -340,6 +343,8 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
         if self.memory_store:
             await self.memory_store.close()
             logger.info("Memory store closed")
+
+        shutdown_all_executors(wait=True)
         
         logger.info("Local backend shutdown complete")
 

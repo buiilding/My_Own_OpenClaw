@@ -12,6 +12,7 @@ import logging
 import time
 from typing import Dict, Any
 
+from core.executors import get_interactive_executor
 from .scroll_config import calculate_scroll_clicks
 
 logger = logging.getLogger(__name__)
@@ -140,7 +141,7 @@ async def execute_scroll_control(args: Dict[str, Any]) -> Dict[str, Any]:
                 raise ValueError(f"Unknown scroll action: {action}")
 
         loop = asyncio.get_event_loop()
-        result = await loop.run_in_executor(None, _execute_action)
+        result = await loop.run_in_executor(get_interactive_executor(), _execute_action)
 
         return {
             "success": True,

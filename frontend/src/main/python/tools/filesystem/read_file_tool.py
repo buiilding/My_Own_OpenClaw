@@ -10,6 +10,7 @@ import re
 from pathlib import Path
 from typing import Dict, Any
 
+from core.executors import get_interactive_executor
 from tools.result import ToolResult
 from tools.filesystem.file_utils import is_binary_file, detect_encoding
 
@@ -112,7 +113,7 @@ async def _read_image_file(path: Path) -> ToolResult:
     def _read_image_bytes() -> bytes:
         return path.read_bytes()
 
-    image_bytes = await loop.run_in_executor(None, _read_image_bytes)
+    image_bytes = await loop.run_in_executor(get_interactive_executor(), _read_image_bytes)
     if not image_bytes:
         return ToolResult.error_result(f"Image file is empty: {path}")
 
@@ -297,7 +298,7 @@ async def _read_pdf_file(
         reader = pypdf.PdfReader(str(path))
         return [page.extract_text() or "" for page in reader.pages]
 
-    page_texts = await loop.run_in_executor(None, _extract_pdf_pages)
+    page_texts = await loop.run_in_executor(get_interactive_executor(), _extract_pdf_pages)
     total_pages = len(page_texts)
     total_pages_all = total_pages
 
@@ -453,7 +454,10 @@ async def read_file(args: Dict[str, Any]) -> ToolResult:
             return collected_lines, total_lines, truncated_line_count
 
         loop = asyncio.get_running_loop()
-        content_lines, total_lines, truncated_line_count = await loop.run_in_executor(None, _read_file_window)
+        content_lines, total_lines, truncated_line_count = await loop.run_in_executor(
+            get_interactive_executor(),
+            _read_file_window,
+        )
 
         effective_start = min(start, total_lines)
         end = min(effective_start + line_limit, total_lines)

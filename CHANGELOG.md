@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- perf(sidecar-executor-bounds): split sidecar blocking offloads into bounded interactive/background executors, bind the event-loop default executor to the interactive pool to cap `run_in_executor(None, ...)` thread growth, route system/computer/filesystem hot paths to the interactive pool, keep legacy `core.thread_pool` as a background-compat wrapper, add executor regression coverage, and refresh sidecar core/performance docs for the new routing contract.
 - fix(frontend-electron-dev-python-env): snapshot the caller's active Conda
   interpreter into `WINDIE_PYTHON_PATH` before npm Electron launchers enter
   `bash -lc`, preventing login-shell startup from silently switching the local
