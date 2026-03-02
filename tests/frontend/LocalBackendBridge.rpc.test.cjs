@@ -152,7 +152,7 @@ describe('local_backend_bridge RPC handlers', () => {
     );
   });
 
-  test('suppresses known Node deprecation stderr lines from local backend logs', () => {
+  test('suppresses known deprecation and INFO stderr lines by default', () => {
     const { stderrHandler } = initBridge();
     markReady();
 
@@ -162,6 +162,7 @@ describe('local_backend_bridge RPC handlers', () => {
           '(node:71611) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized',
           '(Use `node --trace-deprecation ...` to show where the warning was created)',
           '2026-02-16 16:24:39,551 - tools.browser.controller - INFO - Connected to Chrome: chrome://new-tab-page/',
+          '2026-02-16 16:24:39,552 - local_backend - WARNING - Slow request',
         ].join('\n'),
       ),
     );
@@ -173,6 +174,26 @@ describe('local_backend_bridge RPC handlers', () => {
     expect(
       loggedLines.some((line) => line.includes('trace-deprecation')),
     ).toBe(false);
+    expect(
+      loggedLines.some((line) => line.includes('Connected to Chrome')),
+    ).toBe(false);
+    expect(
+      loggedLines.some((line) => line.includes('Slow request')),
+    ).toBe(true);
+  });
+
+  test('forwards INFO stderr lines when verbose sidecar stderr flag is enabled', () => {
+    process.env.WINDIE_VERBOSE_SIDECAR_STDERR = '1';
+    const { stderrHandler } = initBridge();
+    markReady();
+
+    stderrHandler()(
+      Buffer.from(
+        '2026-02-16 16:24:39,551 - tools.browser.controller - INFO - Connected to Chrome: chrome://new-tab-page/\n',
+      ),
+    );
+
+    const loggedLines = console.log.mock.calls.map((call) => call[0]);
     expect(
       loggedLines.some((line) => line.includes('Connected to Chrome')),
     ).toBe(true);

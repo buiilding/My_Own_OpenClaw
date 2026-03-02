@@ -15,7 +15,7 @@ const {
 } = require('./local_backend_bridge_windows.cjs');
 const {
   getErrorMessage,
-  shouldSuppressStderrLine,
+  shouldForwardStderrLine,
   toErrorResponse,
   withLocalBackendNodeOptions,
 } = require('./local_backend_bridge_utils.cjs');
@@ -233,7 +233,7 @@ function startLocalBackend(mainWindow, options = {}) {
     const lines = text.split('\n');
     for (const line of lines) {
       if (line.trim()) {
-        if (shouldSuppressStderrLine(line)) {
+        if (!shouldForwardStderrLine(line)) {
           continue;
         }
         console.log(`[LocalBackend Python] ${line}`);
