@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- style(frontend-model-dropdown-scroll): cap dashboard/chat model dropdown visible rows at five and enable internal menu scrolling so long model lists stay usable without oversized overlays.
 - fix(backend-test-compat-model-catalog): align backend provider/model tests with runtime-model-id normalization and dict-based online model catalog entries, and restore local provider request-param hook compatibility with base runtime-model-id hook signature.
 - perf(sidecar-browser-extract-no-llm): remove sidecar Browser Use extraction LLM wiring/deps, switch `extract`/`read_long_content` to deterministic markdown extraction in native runtime, and drop extraction-specific runtime requirement packs so browser sidecar stays lean while backend remains the only LLM inference path.
 - perf(sidecar-browser-llm-split): move Browser Use extraction SDKs into provider-scoped feature packs (`browser_llm_openai`, `browser_llm_google`) so non-extraction browser actions stay lean, and auto-install extraction packs only when `extract/read_long_content` actions run.
