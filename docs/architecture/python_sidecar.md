@@ -28,6 +28,9 @@ Electron Main (Node)  ── JSON-RPC (stdin/stdout) ──>  local_backend.py
 
 The bridge:
 - Spawns Python using `CONDA_PREFIX` if available, otherwise `python3`/`py`.
+- Frontend npm Electron launchers now snapshot the caller's active `CONDA_PREFIX` into
+  `WINDIE_PYTHON_PATH` before entering `bash -lc`, so login-shell startup files cannot
+  silently switch the sidecar back to a base Conda interpreter.
 - Sends `ping` until ready, then marks the sidecar as ready.
 - Uses bounded exponential-backoff retries and stale-callback guards in readiness checks to avoid old timeout callbacks marking restarted processes incorrectly.
 
