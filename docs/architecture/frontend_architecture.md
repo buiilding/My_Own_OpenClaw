@@ -122,7 +122,7 @@ Primary modules:
   - Sidecar subprocess start/readiness ping/retry.
   - JSON-RPC request correlation and timeout handling.
   - Tool execution handlers, system-state/memory RPC handlers.
-  - Screenshot execution wrapper that temporarily hides windows on Linux.
+  - Screenshot execution wrapper delegates to `main/local_backend_bridge_window_visibility.cjs`, which selects `main/platform/screenshot_window_visibility/*` per OS.
 - `main/wakeword_bridge.cjs`:
   - Wakeword subprocess lifecycle.
   - Binary length-prefixed detection frame parsing.
@@ -194,6 +194,7 @@ Primary modules:
 - `infrastructure/api/client.ts`: typed backend command emitter.
 - `infrastructure/transcript/TranscriptWriter.ts`: transcript session state + queued persistence.
 - `infrastructure/services/ToolExecutionService.ts`: tool execution/capture bundling.
+- `infrastructure/services/surfaceOrchestrator/platform/chatPillVisibility/*`: explicit per-OS screenshot chat-pill policy (Linux hides; Windows/macOS no-op).
 - `infrastructure/audio/PlayerService.ts`: chunk queue decode/playback.
 
 ## Sidecar Responsibilities (`frontend/src/main/python`)

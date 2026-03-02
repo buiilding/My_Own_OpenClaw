@@ -1,4 +1,7 @@
 const { nativeImage } = require('electron');
+const {
+  createContentProtectionRuntime,
+} = require('./platform/content_protection/index.cjs');
 const CHATBOX_OVERLAY_FIXED_WIDTH = 520;
 const CHATBOX_OVERLAY_FIXED_HEIGHT = 116;
 const OVERLAY_FOCUS_DEMOTION_SETTLE_MS = 50;
@@ -174,17 +177,12 @@ function enableContentProtectionSafely({
   windowLabel,
   warn = console.warn,
 }) {
-  if (platform !== 'win32' && platform !== 'darwin') {
-    return;
-  }
-  try {
-    targetWindow.setContentProtection(true);
-  } catch (error) {
-    warn(
-      `[Main] Failed to enable ${windowLabel} content protection:`,
-      error?.message || error,
-    );
-  }
+  const runtime = createContentProtectionRuntime(platform);
+  runtime({
+    targetWindow,
+    windowLabel,
+    warn,
+  });
 }
 
 function normalizeMainWindowOpenTarget({ options = {}, allowedTargets }) {
@@ -225,7 +223,6 @@ function createMainWindow({
   getLatestFrontendConfig,
   getWindows,
   setMainWindow,
-  enableContentProtectionSafely,
 }) {
   const allowDevTools = Boolean(enableDevTransparencyUi);
   const mainWindow = new BrowserWindow({

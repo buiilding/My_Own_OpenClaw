@@ -16,6 +16,7 @@ import {
 import {
   collapseChatPillForBackgroundCapture,
   restoreChatPillInactive,
+  shouldManageChatPillVisibilityForBackgroundCapture,
 } from './chatPillVisibility';
 import { prepareOverlayToolFocus } from './focusPreparation';
 import { resolveToolSurfaceMode } from './mode';
@@ -76,8 +77,10 @@ export async function prepareToolExecutionSurface(
   let surfaceToken: number | null = null;
   let overlayIgnoreEnabled = false;
   let overlayNonFocusableEnabled = false;
+  const shouldManageChatPillVisibility = shouldManageChatPillVisibilityForBackgroundCapture();
   const shouldCollapseForScreenshot = (
     mode === 'screenshot'
+    && shouldManageChatPillVisibility
     && !hasActiveSurfaceTokens()
     && await isMainWindowVisible()
   );

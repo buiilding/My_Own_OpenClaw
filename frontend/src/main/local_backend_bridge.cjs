@@ -428,6 +428,7 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
         }, { timeoutMs });
       const result = toolName === 'screenshot'
         ? await withHiddenWindowForScreenshot({
+          platform: process.platform,
           task: runTool,
           resolveWindows,
           resolveChatWindow,

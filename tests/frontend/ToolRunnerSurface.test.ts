@@ -9,13 +9,23 @@ import {
 import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 
 describe('toolRunnerSurface helpers', () => {
+  const originalUserAgent = navigator.userAgent;
+
   beforeEach(() => {
     __resetToolExecutionSurfaceStateForTests();
     jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({ success: true });
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'Mozilla/5.0 (X11; Linux x86_64)',
+    });
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: originalUserAgent,
+    });
   });
 
   test('resolves skip execution metadata flag', () => {

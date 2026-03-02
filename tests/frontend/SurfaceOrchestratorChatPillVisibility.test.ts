@@ -4,6 +4,7 @@ import * as chatPillVisibility from '../../frontend/src/renderer/infrastructure/
 const {
   collapseChatPillForBackgroundCapture,
   restoreChatPillInactive,
+  shouldManageChatPillVisibilityForBackgroundCapture,
 } = chatPillVisibility;
 
 describe('surfaceOrchestrator chatPillVisibility', () => {
@@ -26,6 +27,8 @@ describe('surfaceOrchestrator chatPillVisibility', () => {
   });
 
   test('collapses chat pill with deterministic hide-only ordering', async () => {
+    expect(shouldManageChatPillVisibilityForBackgroundCapture()).toBe(true);
+
     await collapseChatPillForBackgroundCapture();
 
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
@@ -56,6 +59,8 @@ describe('surfaceOrchestrator chatPillVisibility', () => {
       configurable: true,
       value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
     });
+
+    expect(shouldManageChatPillVisibilityForBackgroundCapture()).toBe(false);
 
     await collapseChatPillForBackgroundCapture();
     await restoreChatPillInactive();

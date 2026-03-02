@@ -18,7 +18,8 @@ Primary modules:
 - `frontend/src/main/overlay_ipc_runtime.cjs`
 - `frontend/src/main/window_visibility_runtime.cjs`
 - `frontend/src/main/ipc.cjs`
-- `frontend/src/main/local_backend_bridge_windows.cjs`
+- `frontend/src/main/local_backend_bridge_window_visibility.cjs`
+- `frontend/src/main/platform/screenshot_window_visibility/*`
 - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
 
@@ -203,9 +204,10 @@ For renderer-only deep dives:
 
 ## Linux Screenshot Guard
 
-`local_backend_bridge_windows.cjs:withHiddenWindowForScreenshot(...)`:
+`local_backend_bridge_window_visibility.cjs:withHiddenWindowForScreenshot(...)`:
 
-- only active on Linux
+- selects a platform-specific screenshot visibility runtime
+- Linux behavior lives in `platform/screenshot_window_visibility/linux.cjs`
 - temporarily hides app windows before screenshot tool execution
 - restores previous visibility/focus and always-on-top state after capture
 - prevents overlay artifacts leaking into screenshot payloads

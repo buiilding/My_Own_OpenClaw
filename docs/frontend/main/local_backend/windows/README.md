@@ -1,7 +1,7 @@
 ---
 summary: "Frontend main local-backend windows docs sub-hub for window resolver normalization and Linux screenshot hide/restore orchestration contracts."
 read_when:
-  - When changing `frontend/src/main/local_backend_bridge_windows.cjs` window resolver behavior.
+  - When changing `frontend/src/main/local_backend_bridge_window_visibility.cjs` window resolver behavior.
   - When debugging screenshot-tool window hide/restore regressions or overlay focus restoration on Linux.
 title: "Frontend Main Local-Backend Windows Docs Hub"
 ---
@@ -20,5 +20,6 @@ title: "Frontend Main Local-Backend Windows Docs Hub"
 
 ## Code Scope
 
-- `frontend/src/main/local_backend_bridge_windows.cjs`
+- `frontend/src/main/local_backend_bridge_window_visibility.cjs`
+- `frontend/src/main/platform/screenshot_window_visibility/linux.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
