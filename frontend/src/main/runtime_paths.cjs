@@ -31,6 +31,21 @@ function resolvePythonScriptPath(scriptName) {
 
   if (isPackagedApp()) {
     candidates.push(
+      path.join(process.resourcesPath, 'python-runtime', 'sidecar', scriptBaseName),
+    );
+    if (scriptBaseName.toLowerCase().endsWith('.py')) {
+      candidates.push(
+        path.join(
+          process.resourcesPath,
+          'python-runtime',
+          'sidecar',
+          `${scriptBaseName.slice(0, -3)}.pyc`,
+        ),
+      );
+    }
+    candidates.push(path.join(process.resourcesPath, 'python', 'sidecar', scriptBaseName));
+
+    candidates.push(
       path.join(process.resourcesPath, 'app.asar.unpacked', 'src', 'main', 'python', scriptBaseName),
     );
     candidates.push(path.join(process.resourcesPath, 'python', scriptBaseName));
@@ -90,7 +105,47 @@ function resolvePythonExecutablePath() {
   return process.platform === 'win32' ? 'py' : 'python3';
 }
 
+function resolveSidecarBinaryPath(serviceName) {
+  const normalizedServiceName = String(serviceName || '').trim().replace(/\.py$/i, '');
+  if (!normalizedServiceName || !isPackagedApp()) {
+    return null;
+  }
+
+  const extension = process.platform === 'win32' ? '.exe' : '';
+  const candidates = [
+    path.join(process.resourcesPath, 'sidecar-bin', `${normalizedServiceName}${extension}`),
+    path.join(process.resourcesPath, 'sidecar-bin', normalizedServiceName, `${normalizedServiceName}${extension}`),
+  ];
+  return firstExistingPath(candidates);
+}
+
+function resolveSidecarLaunchTarget(scriptName) {
+  const normalizedScript = String(scriptName || '').trim();
+  const serviceName = normalizedScript.replace(/\.py$/i, '');
+  const binaryPath = resolveSidecarBinaryPath(serviceName);
+  if (binaryPath) {
+    return {
+      kind: 'binary',
+      command: binaryPath,
+      args: [],
+      cwd: path.dirname(binaryPath),
+      resolvedPath: binaryPath,
+    };
+  }
+
+  const scriptPath = resolvePythonScriptPath(normalizedScript);
+  return {
+    kind: 'python',
+    command: resolvePythonExecutablePath(),
+    args: [scriptPath],
+    cwd: path.dirname(scriptPath),
+    resolvedPath: scriptPath,
+  };
+}
+
 module.exports = {
   resolvePythonExecutablePath,
   resolvePythonScriptPath,
+  resolveSidecarBinaryPath,
+  resolveSidecarLaunchTarget,
 };

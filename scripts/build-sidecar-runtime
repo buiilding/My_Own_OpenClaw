@@ -10,6 +10,7 @@ RUNTIME_REQS_BROWSER="${FRONTEND_DIR}/src/main/python/requirements.runtime.brows
 RUNTIME_REQS_FULL="${FRONTEND_DIR}/src/main/python/requirements.runtime.txt"
 MODE="${WINDIE_SIDECAR_RUNTIME_MODE:-slim}"
 PROFILE="${WINDIE_SIDECAR_RUNTIME_PROFILE:-core}"
+SOURCE_MODE="${WINDIE_SIDECAR_SOURCE_MODE:-sourceless}"
 INCLUDE_BROWSER_PACK=0
 
 if [[ ! -f "${RUNTIME_REQS_CORE}" ]]; then
@@ -40,6 +41,7 @@ fi
 
 echo "[build-sidecar-runtime] mode=${MODE}"
 echo "[build-sidecar-runtime] profile=${PROFILE}"
+echo "[build-sidecar-runtime] source_mode=${SOURCE_MODE}"
 echo "[build-sidecar-runtime] python=${BASE_PYTHON}"
 echo "[build-sidecar-runtime] runtime=${RUNTIME_DIR}"
 
@@ -120,9 +122,30 @@ else
   echo "[build-sidecar-runtime] skipping playwright browser payload (slim mode)"
 fi
 
+# Copy WindieOS sidecar source into runtime so packaged app can execute from
+# resources/python-runtime/sidecar without shipping plaintext app.asar sources.
+SIDECAR_SRC_DIR="${FRONTEND_DIR}/src/main/python"
+SIDECAR_DST_DIR="${RUNTIME_DIR}/sidecar"
+mkdir -p "${SIDECAR_DST_DIR}"
+cp -R "${SIDECAR_SRC_DIR}/." "${SIDECAR_DST_DIR}/"
+
+if [[ "${SOURCE_MODE}" == "sourceless" ]]; then
+  echo "[build-sidecar-runtime] compiling sidecar to sourceless bytecode"
+  "${RUNTIME_PYTHON}" -m compileall -q -b "${SIDECAR_DST_DIR}"
+  find "${SIDECAR_DST_DIR}" -type f -name "*.py" -delete
+elif [[ "${SOURCE_MODE}" != "source" ]]; then
+  echo "[build-sidecar-runtime] Unsupported WINDIE_SIDECAR_SOURCE_MODE=${SOURCE_MODE}" >&2
+  echo "[build-sidecar-runtime] Supported values: sourceless, source" >&2
+  exit 1
+fi
+
 # Shrink package output by removing transient bytecode caches.
 find "${RUNTIME_DIR}" -type d -name "__pycache__" -prune -exec rm -rf {} +
-find "${RUNTIME_DIR}" -type f -name "*.pyc" -delete
+if [[ "${SOURCE_MODE}" == "sourceless" ]]; then
+  find "${RUNTIME_DIR}" -type f -name "*.pyc" ! -path "${SIDECAR_DST_DIR}/*" -delete
+else
+  find "${RUNTIME_DIR}" -type f -name "*.pyc" -delete
+fi
 
 rm -f "${RUNTIME_ARCHIVE}"
 tar -C "${FRONTEND_DIR}" -czf "${RUNTIME_ARCHIVE}" "python-runtime"

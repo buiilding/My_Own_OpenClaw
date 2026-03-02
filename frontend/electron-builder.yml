@@ -7,13 +7,12 @@ directories:
 files:
   - dist/**/*
   - src/main/**/*
+  - "!src/main/python/**/*"
   - src/shared/**/*
   - src/preload.js
   - package.json
 
 asar: true
-asarUnpack:
-  - src/main/python/**/*
 
 publish: null
 
