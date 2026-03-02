@@ -170,6 +170,11 @@ class SentenceTransformerProvider(EmbeddingProvider):
             return [e for e in embeddings]
 
     @property
+    def model_name(self) -> str:
+        """Return configured embedding model name for health/reporting surfaces."""
+        return self._model_name
+
+    @property
     def dimension(self) -> int:
         """Returns the dimension of the embeddings."""
         if self._dimension is None:

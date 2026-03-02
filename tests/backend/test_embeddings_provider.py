@@ -50,6 +50,7 @@ async def test_provider_initialization_and_dimension(monkeypatch):
 
     await provider.initialize()
     assert provider.dimension == 3
+    assert provider.model_name == "all-MiniLM-L6-v2"
     assert provider.model.name == "all-MiniLM-L6-v2"
 
 

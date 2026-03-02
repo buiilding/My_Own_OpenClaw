@@ -14,6 +14,7 @@ Includes the last 300 commits on `main`.
 - perf(sidecar-screenshot-ref-transport): stop embedding screenshot JPEG base64 directly in sidecar JSON-RPC responses, return temporary screenshot file paths instead, upload those files to backend artifacts from Electron main (`screenshot_ref`/`screenshot_url` hydration + temp-file cleanup), and reuse pre-uploaded screenshot refs in renderer tool execution paths to avoid duplicate recapture/upload work.
 - perf(local-backend-stdout-parse-offload): offload oversized sidecar JSON-RPC stdout lines (>=128KB) to worker-thread JSON parsing in Electron main, keep smaller lines synchronous, and drain parsed responses through a serialized queue to reduce main-thread parse stalls during heavy tool traffic.
 - feat(system-open-app-detached-launch): add explicit `open_app` tool for detached GUI launches that survive sidecar/agent exit, with optional post-launch verification modes (`none`, `window`, `screenshot`), wire backend/sidecar remote tool registries and chat-mode allowlist, and add sidecar/backend regression coverage for schema, registry parity, and launch verification behavior.
+- fix(embeddings-health-model-name): expose `SentenceTransformerProvider.model_name` so `/api/embeddings/health` reports the real embedding model instead of `unknown`, with route/provider regression coverage.
 - fix(frontend-electron-dev-python-env): snapshot the caller's active Conda
   interpreter into `WINDIE_PYTHON_PATH` before npm Electron launchers enter
   `bash -lc`, preventing login-shell startup from silently switching the local
