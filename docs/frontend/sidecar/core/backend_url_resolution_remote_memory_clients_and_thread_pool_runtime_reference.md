@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for sidecar core connectivity/runtime helpers: backend HTTP URL env precedence, remote embedding/semantic/title client request contracts, shared base-client lifecycle semantics, and singleton thread-pool reuse/shutdown behavior."
+summary: "Deep reference for sidecar core connectivity/runtime helpers: backend HTTP URL env precedence, remote embedding/semantic/title client request contracts, and bounded interactive/background executor lifecycle behavior."
 read_when:
   - When changing `core/backend_config.py`, `core/remote_api_client_base.py`, `core/remote_embedding_client.py`, `core/remote_semantic_client.py`, `core/remote_title_client.py`, or `core/thread_pool.py`.
-  - When debugging backend URL drift, memory client HTTP errors, title client failures, base-client error wrappers, or thread-pool reuse/shutdown behavior.
+  - When debugging backend URL drift, memory client HTTP errors, title client failures, base-client error wrappers, or executor routing/reuse/shutdown behavior.
 title: "Backend URL Resolution, Remote Memory Clients, and Thread-Pool Runtime Reference"
 ---
 
@@ -15,6 +15,7 @@ title: "Backend URL Resolution, Remote Memory Clients, and Thread-Pool Runtime R
 - `frontend/src/main/python/core/remote_embedding_client.py`
 - `frontend/src/main/python/core/remote_semantic_client.py`
 - `frontend/src/main/python/core/remote_title_client.py`
+- `frontend/src/main/python/core/executors.py`
 - `frontend/src/main/python/core/thread_pool.py`
 - `frontend/src/main/python/memory/local_store.py`
 - `frontend/src/main/python/memory/summarizer.py`
@@ -23,6 +24,7 @@ title: "Backend URL Resolution, Remote Memory Clients, and Thread-Pool Runtime R
 - `tests/sidecar/test_remote_semantic_client.py`
 - `tests/sidecar/test_remote_title_client.py`
 - `tests/sidecar/remote_client_test_utils.py`
+- `tests/sidecar/test_executors.py`
 - `tests/sidecar/test_thread_pool.py`
 
 ## Backend HTTP URL Resolution
@@ -122,16 +124,39 @@ Shared-base note:
 - semantic/title clients route request/timeout/success/error handling through `RemoteApiClientBase._post_success_json(...)`
 - embedding client currently uses a parallel/manual path (does not inherit the base yet)
 
-## Thread-Pool Singleton Semantics
+## Executor Routing and Singleton Semantics
 
-`core/thread_pool.py` provides process-global executor:
+`core/executors.py` owns two process-global pools:
 
-- `_executor` singleton
-- `get_executor(max_workers=10)` creates once and reuses existing instance thereafter
-- first creation controls worker-count for that lifecycle
-- `shutdown_executor(wait=True)` shuts down and resets singleton
+- interactive executor (`get_interactive_executor`) for latency-sensitive tool/system-state offloads
+- background executor (`get_background_executor`) for memory/index persistence jobs
 
-This executor is intended for sidecar-wide blocking/CPU offload reuse.
+Worker-count behavior:
+
+- first creation controls worker count for that pool lifecycle
+- env overrides:
+  - `WINDIE_INTERACTIVE_WORKERS`
+  - `WINDIE_BACKGROUND_WORKERS`
+- defaults:
+  - interactive: macOS `3`, other platforms `4`
+  - background: macOS `1`, other platforms `2`
+
+Loop binding:
+
+- sidecar boot binds loop default executor to the interactive pool via `configure_event_loop_default_executor(...)`
+- uncategorized `run_in_executor(None, ...)` calls therefore remain bounded
+
+Compatibility:
+
+- `core/thread_pool.get_executor(max_workers=10)` now aliases the background executor for legacy memory paths
+- `core/thread_pool.shutdown_executor(...)` shuts down only that background executor
+
+Related runtime knobs:
+
+- `WINDIE_INTERACTIVE_WORKERS`
+- `WINDIE_BACKGROUND_WORKERS`
+- `WINDIE_SIDECAR_LOG_LEVEL` (default sidecar Python logger level is `WARNING`)
+- `WINDIE_VERBOSE_SIDECAR_STDERR=1` (forward all sidecar stderr lines through Electron main; default is severity-filtered forwarding)
 
 ## Test-Backed Invariants
 
@@ -168,17 +193,26 @@ This executor is intended for sidecar-wide blocking/CPU offload reuse.
 
 `tests/sidecar/test_thread_pool.py` verifies:
 
-- singleton reuse across repeated `get_executor` calls
-- shutdown wait argument forwarding
-- no-op shutdown when uninitialized
-- new executor creation after shutdown
+- background-executor singleton compatibility via `core.thread_pool`
+- shutdown safety and re-create behavior for legacy imports
+
+`tests/sidecar/test_executors.py` verifies:
+
+- interactive/background singleton behavior and first-call worker-count lock-in
+- background shutdown isolation from interactive pool
+- loop default-executor binding to interactive pool
+- interactive env worker override handling
 
 ## Drift Hotspots
 
 1. changing backend URL env precedence can silently redirect memory clients to wrong backend instance.
 2. dropping trailing-slash normalization can build malformed doubled-slash endpoint URLs.
-3. replacing singleton thread-pool reuse with per-call executors can increase thread churn and shutdown complexity.
-4. weakening remote-client error wrapping can leak inconsistent exception surfaces to memory-store/summarizer/title-generation callers.
+3. routing latency-sensitive tool calls through background executors can increase user-visible lag.
+4. eager browser tool imports during sidecar startup can increase initial boot latency; keep browser runtime import lazy.
+5. duplicate sync+async FAISS index reads during startup can increase local memory bootstrap time.
+6. weakening remote-client error wrapping can leak inconsistent exception surfaces to memory-store/summarizer/title-generation callers.
+7. returning inline screenshot base64 in sidecar JSON-RPC responses can bloat stdout lines and main-process parse work; keep screenshot transport on temp-file-ref + artifact-upload path.
+8. parsing oversized sidecar JSON-RPC lines on the Electron main thread can stall UI responsiveness; keep the worker-thread parse offload path for lines >=128KB.
 
 ## Related Pages
 

@@ -10,6 +10,7 @@ from backend.src.tools.categorization import ToolDomain
 from backend.src.tools.remote_tools.base import RemoteToolBase, RemoteToolResult
 from backend.src.tools.system.schemas import (
     GetSystemStatsArgs,
+    OpenAppArgs,
     ProcessShellCommandArgs,
     RunShellCommandArgs,
 )
@@ -47,7 +48,8 @@ class RemoteShellTool(RemoteToolBase, Tool[RunShellCommandArgs]):
         "- Do not embed large inline file content (HTML/JSON/source blobs) directly in shell command arguments.\n"
         "- For creating/updating file contents, use file-edit tools first (read_file + replace) and then run shell commands.\n"
         "- Split large workflows into multiple tool calls rather than one giant command payload.\n"
-        "- For GUI app launches or long-running processes, set run_in_background=True.\n"
+        "- For detached GUI app launches, prefer open_app instead of run_shell_command.\n"
+        "- For shell jobs you need to poll/terminate, keep run_in_background=True and manage via process tool.\n"
         "- After launch, capture a screenshot with wait to verify expected UI state.\n"
         "- Use get_open_windows + switch_tab for deterministic window focus.\n\n"
         "Optional wait parameter: If 'wait' is provided (in seconds), the tool will wait and capture a screenshot "
@@ -63,6 +65,28 @@ class RemoteShellTool(RemoteToolBase, Tool[RunShellCommandArgs]):
             args,
             ctx,
             log_message=f"Remote shell tool call: {args.command}",
+        )
+
+
+class RemoteOpenAppTool(RemoteToolBase, Tool[OpenAppArgs]):
+    name = "open_app"
+    description = (
+        "Launch a GUI app detached from sidecar/agent lifecycle so the app remains running even if "
+        "the current agent turn or sidecar process ends.\n\n"
+        "Verification modes:\n"
+        "- window (default): polls open windows for expected title.\n"
+        "- screenshot: captures visual proof after launch and returns screenshot artifact fields.\n"
+        "- none: fastest acknowledgment without verification.\n\n"
+        "Use this instead of run_shell_command for open-and-leave-running app workflows."
+    )
+    args_model = OpenAppArgs
+    category = ToolDomain.SYSTEM
+
+    async def execute_remote(self, args: OpenAppArgs, ctx: ToolContext) -> RemoteToolResult:
+        return self._build_remote_result(
+            args,
+            ctx,
+            log_message=f"Remote open app tool call: {args.command}",
         )
 
 

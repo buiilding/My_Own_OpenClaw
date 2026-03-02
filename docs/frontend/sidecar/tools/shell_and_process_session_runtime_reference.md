@@ -24,6 +24,8 @@ title: "Shell and Process Session Runtime Reference"
 
 `run_shell_command` executes shell commands in foreground or background, while `process` manages background sessions (`list`, `poll`, `log`, `write`, `send-keys`, `submit`, `paste`, `kill`, `clear`, `remove`).
 
+Detached GUI app launching is handled by `open_app` (outside shell session registry lifecycle).
+
 The design separates:
 
 - execution path + stream capture (`shell_tool.py`)

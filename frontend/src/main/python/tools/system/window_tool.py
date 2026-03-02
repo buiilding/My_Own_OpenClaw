@@ -6,6 +6,7 @@ import asyncio
 import logging
 from typing import Dict, Any
 
+from core.executors import get_interactive_executor
 from core.platform import WindowManager
 
 logger = logging.getLogger(__name__)
@@ -44,7 +45,7 @@ async def switch_to_window(args: Dict[str, Any]) -> Dict[str, Any]:
             return success
         
         loop = asyncio.get_event_loop()
-        success = await loop.run_in_executor(None, _switch)
+        success = await loop.run_in_executor(get_interactive_executor(), _switch)
         
         if not success:
             return {
@@ -94,7 +95,7 @@ async def get_open_windows(args: Dict[str, Any]) -> Dict[str, Any]:
             return window_titles
         
         loop = asyncio.get_event_loop()
-        window_titles = await loop.run_in_executor(None, _get_windows)
+        window_titles = await loop.run_in_executor(get_interactive_executor(), _get_windows)
         
         content = "\n".join(f"- {w}" for w in window_titles) if window_titles else "No open windows found."
         

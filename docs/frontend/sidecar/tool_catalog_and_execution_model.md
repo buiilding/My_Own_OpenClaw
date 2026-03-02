@@ -51,6 +51,7 @@ Deep runtime reference:
 
 ### System tools
 
+- `open_app`
 - `run_shell_command`
 - `process`
 - `switch_tab`
@@ -82,6 +83,7 @@ Schema classes include validation rules such as:
 - coordinate requirements for mouse actions
 - action-specific required fields for keyboard and scroll
 - shell command timeout/output limits
+- detached app launch verification controls
 - process tool action/session argument rules
 
 Current runtime boundary:

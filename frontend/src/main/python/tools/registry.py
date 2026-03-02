@@ -4,6 +4,8 @@ Tool Registry for Local Backend.
 Registers and executes all available tools.
 """
 
+import asyncio
+from importlib import import_module
 import logging
 from typing import Any, Callable, Dict
 
@@ -21,6 +23,7 @@ EXPOSED_TO_BACKEND_TOOLS = frozenset({
     "wait",
     "get_open_windows",
     "get_system_stats",
+    "open_app",
     "run_shell_command",
     "process",
     "read_file",
@@ -95,6 +98,12 @@ class ToolRegistry:
             logger.warning(f"Failed to import shell_tool: {e}")
 
         try:
+            from tools.system.open_app_tool import open_app
+            self.tools["open_app"] = open_app
+        except ImportError as e:
+            logger.warning(f"Failed to import open_app_tool: {e}")
+
+        try:
             from tools.system.process_tool import process_shell_command
             self.tools["process"] = process_shell_command
         except ImportError as e:
@@ -121,8 +130,10 @@ class ToolRegistry:
         
         # Browser tools
         try:
-            from tools.browser.browser_tool import execute_browser
-            self.tools["browser"] = execute_browser
+            self.tools["browser"] = self._build_lazy_tool(
+                module_name="tools.browser.browser_tool",
+                attr_name="execute_browser",
+            )
         except ImportError as e:
             logger.warning(f"Failed to import browser_tool: {e}")
 
@@ -139,6 +150,22 @@ class ToolRegistry:
     def get_exposed_tool_names() -> set[str]:
         """Return sidecar tools that are expected to be exposed by backend schemas."""
         return set(EXPOSED_TO_BACKEND_TOOLS)
+
+    @staticmethod
+    def _build_lazy_tool(module_name: str, attr_name: str) -> Callable[..., Any]:
+        """Lazily import heavy tool modules only when they are first executed."""
+        resolved_tool: Callable[..., Any] | None = None
+
+        async def _lazy_tool(args: Dict[str, Any]) -> Any:
+            nonlocal resolved_tool
+            if resolved_tool is None:
+                module = import_module(module_name)
+                resolved_tool = getattr(module, attr_name)
+            if asyncio.iscoroutinefunction(resolved_tool):
+                return await resolved_tool(args)
+            return resolved_tool(args)
+
+        return _lazy_tool
 
     @staticmethod
     def _extract_failure_payload(result: Dict[str, Any]) -> tuple[str, Dict[str, Any] | None]:
@@ -186,8 +213,6 @@ class ToolRegistry:
         
         # Execute tool (handle both sync and async)
         try:
-            import asyncio
-
             if asyncio.iscoroutinefunction(tool):
                 result = await tool(tool_args)
             else:

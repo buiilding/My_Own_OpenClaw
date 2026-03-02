@@ -33,7 +33,7 @@ Tool names expected by backend schemas are tracked in `EXPOSED_TO_BACKEND_TOOLS`
 Current exposed set includes:
 
 - computer: `mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`
-- system: `switch_tab`, `wait`, `get_open_windows`, `get_system_stats`, `run_shell_command`, `process`
+- system: `switch_tab`, `wait`, `get_open_windows`, `get_system_stats`, `open_app`, `run_shell_command`, `process`
 - filesystem: `read_file`, `replace`
 - browser: `browser`
 

@@ -43,7 +43,7 @@ frontend/src/main/python/
     │
     ├── computer/                      # Computer control tools
     │   ├── __init__.py                # Package initialization
-    │   ├── keyboard_tool.py           # execute_keyboard_control() - Keyboard input (type, press, hotkey) using pyautogui
+    │   ├── keyboard_tool.py           # execute_keyboard_control() - Keyboard input (type/paste/press/hotkey) with clipboard-safe paste for multiline/long text
     │   ├── mouse_tool.py              # execute_mouse_control() - Mouse actions (click, move, drag, scroll) using pyautogui
     │   ├── screenshot_tool.py         # capture_screenshot() - Screenshot capture with JPEG compression using pyautogui/PIL
     │   └── scroll_tool.py             # execute_scroll_control() - Scroll control (scroll, scroll_up, scroll_down) using pyautogui

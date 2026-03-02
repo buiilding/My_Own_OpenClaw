@@ -1,7 +1,7 @@
 """
 Pydantic schemas for system tools.
 """
-from typing import Optional
+from typing import Literal, Optional
 from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.tools.schema_fields import explanation_field
@@ -63,6 +63,44 @@ class RunShellCommandArgs(BaseModel):
             "to verify the UI state after launch."
         ),
     )
+
+
+class OpenAppArgs(BaseModel):
+    """Arguments for detached GUI app launch."""
+    model_config = ConfigDict(extra='forbid')
+
+    command: str = Field(
+        ...,
+        description=(
+            "Executable or app command to launch detached from sidecar lifecycle. "
+            "Use this for opening GUI apps that should remain running even if agent/sidecar exits."
+        ),
+    )
+    args: Optional[list[str]] = Field(
+        None,
+        description="(OPTIONAL) Positional arguments for command launch.",
+    )
+    directory: Optional[str] = Field(
+        None,
+        description="(OPTIONAL) Absolute working directory for launch.",
+    )
+    verify: Literal["none", "window", "screenshot"] = Field(
+        "window",
+        description=(
+            "(OPTIONAL) Post-launch verification mode: "
+            "`none` for fast ack, `window` to poll open windows, `screenshot` to capture visual proof."
+        ),
+    )
+    verify_window_title: Optional[str] = Field(
+        None,
+        description="(OPTIONAL) Window title substring expected after launch; improves window verification precision.",
+    )
+    verify_timeout_seconds: Optional[float] = Field(
+        6.0,
+        ge=0.0,
+        description="(OPTIONAL) Max seconds for post-launch verification polling/capture.",
+    )
+    explanation: str = explanation_field()
 
 
 class ProcessShellCommandArgs(BaseModel):

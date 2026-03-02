@@ -62,7 +62,6 @@ from memory.conversation_window_runtime import (
     mark_episodic_memories_semanticized as mark_semanticized_memories_runtime,
 )
 from memory.faiss_index import (
-    read_index_safe,
     read_index_safe_async,
     save_indices_async,
 )
@@ -128,7 +127,6 @@ class LocalMemoryStore:
             # Frontend has its own data folder, separate from backend config
             import os
             import platform
-            from pathlib import Path
             
             app_name = "desktop-assistant"
             
@@ -197,9 +195,9 @@ class LocalMemoryStore:
         if aiosqlite is None:
             raise ImportError("aiosqlite is not installed. Install with: pip install aiosqlite")
 
-        # Load or create FAISS indices
-        self.episodic_index = read_index_safe(self.episodic_index_path, faiss)
-        self.semantic_index = read_index_safe(self.semantic_index_path, faiss)
+        # Indices are loaded during async initialize() to avoid duplicate startup disk reads.
+        self.episodic_index = None
+        self.semantic_index = None
 
     async def initialize(self) -> None:
         """

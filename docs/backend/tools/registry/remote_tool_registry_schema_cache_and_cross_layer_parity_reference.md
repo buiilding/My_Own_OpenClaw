@@ -51,7 +51,7 @@ Remote registration behavior:
 Current names:
 
 - computer: `mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `switch_tab`, `wait`, `get_open_windows`
-- system: `get_system_stats`, `run_shell_command`, `process`
+- system: `get_system_stats`, `open_app`, `run_shell_command`, `process`
 - filesystem: `read_file`, `replace`
 - browser: `browser`
 

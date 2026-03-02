@@ -42,8 +42,14 @@ class KeyboardControlArgs(BaseModel):
     """Arguments for keyboard control tool."""
     model_config = ConfigDict(extra='ignore')
     
-    action: Literal["type", "press", "hotkey"] = Field(..., description="Keyboard action to perform")
-    text: Optional[str] = Field(None, description="Text to type (required for 'type' action)")
+    action: Literal["type", "paste", "press", "hotkey"] = Field(
+        ...,
+        description="Keyboard action to perform",
+    )
+    text: Optional[str] = Field(
+        None,
+        description="Text to input (required for 'type' and 'paste' actions)",
+    )
     key: Optional[str] = Field(None, description="Single key to press (required for 'press' action)")
     keys: Optional[List[str]] = Field(None, description="List of keys for hotkey (required for 'hotkey' action)")
     wait: Optional[float] = Field(
@@ -54,13 +60,13 @@ class KeyboardControlArgs(BaseModel):
     @model_validator(mode='after')
     def validate_action_fields(self):
         """Validate that required fields are present based on action."""
-        if self.action == "type" and not self.text:
-            raise ValueError("text parameter required for type action")
+        if self.action in {"type", "paste"} and not self.text:
+            raise ValueError("text parameter required for type or paste action")
         if self.action == "press" and not self.key:
             raise ValueError("key parameter required for press action")
         if self.action == "hotkey" and (not self.keys or len(self.keys) == 0):
             raise ValueError("keys parameter required for hotkey action")
-        if self.action == "type" and len(self.text) > 10000:
+        if self.action in {"type", "paste"} and len(self.text) > 10000:
             raise ValueError(f"Text too long: {len(self.text)} characters (max 10000)")
         return self
 
@@ -199,6 +205,49 @@ class RunShellCommandArgs(BaseModel):
         None,
         description="(OPTIONAL) Delay in seconds before taking a screenshot after tool execution. If provided, the tool will wait and capture a screenshot like computer-use tools."
     )
+
+
+class OpenAppArgs(BaseModel):
+    """Arguments for detached app launch tool."""
+    model_config = ConfigDict(extra='ignore')
+
+    command: str = Field(..., description="Executable or app command to launch")
+    args: Optional[list[str]] = Field(
+        None,
+        description="(OPTIONAL) Positional arguments for the app launch command.",
+    )
+    directory: Optional[str] = Field(
+        None,
+        description="(OPTIONAL) Working directory (must be absolute path).",
+    )
+    verify: Literal["none", "window", "screenshot"] = Field(
+        "window",
+        description=(
+            "(OPTIONAL) Post-launch verification mode: none (no verification), "
+            "window (poll open windows), screenshot (capture screenshot evidence)."
+        ),
+    )
+    verify_window_title: Optional[str] = Field(
+        None,
+        description="(OPTIONAL) Window title substring to verify after launch.",
+    )
+    verify_timeout_seconds: Optional[float] = Field(
+        6.0,
+        description="(OPTIONAL) Max seconds to wait for verification.",
+    )
+    explanation: Optional[str] = Field(
+        None,
+        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+    )
+
+    @model_validator(mode='after')
+    def validate_open_app_fields(self):
+        """Validate open_app argument constraints."""
+        if not self.command.strip():
+            raise ValueError("command must not be empty")
+        if self.verify_timeout_seconds is not None and self.verify_timeout_seconds < 0:
+            raise ValueError("verify_timeout_seconds must be non-negative")
+        return self
 
 
 class ProcessShellCommandArgs(BaseModel):

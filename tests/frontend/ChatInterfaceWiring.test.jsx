@@ -52,6 +52,7 @@ const mockGetTranscriptSessionInfo = jest.fn(() => ({
   userId: 'default_user',
 }));
 const mockIpcInvoke = jest.fn(async () => ({ success: true }));
+const mockIpcListeners = new Map();
 const mockMessageList = jest.fn(() => <div data-testid="message-list" />);
 const mockChatState = {
   messages: [],
@@ -113,7 +114,12 @@ jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWrite
 
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   IpcBridge: {
-    on: () => () => {},
+    on: (channel, listener) => {
+      mockIpcListeners.set(channel, listener);
+      return () => {
+        mockIpcListeners.delete(channel);
+      };
+    },
     invoke: (...args) => mockIpcInvoke(...args),
   },
   INVOKE_CHANNELS: {
@@ -123,6 +129,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
   ON_CHANNELS: {
     FROM_BACKEND: 'from-backend',
+    IPC_STATUS: 'ipc-status',
   },
 }));
 
@@ -184,6 +191,7 @@ describe('ChatInterface wiring', () => {
       userId: 'default_user',
     }));
     mockIpcInvoke.mockClear();
+    mockIpcListeners.clear();
     mockMessageList.mockClear();
     mockUpdateConfig.mockClear();
     mockIsDevUiEnabled.mockReset();
@@ -208,6 +216,27 @@ describe('ChatInterface wiring', () => {
     render(<ChatInterface />);
 
     expect(screen.getByRole('button', { name: 'Toggle text-to-speech' })).toBeInTheDocument();
+  });
+
+  test('shows connection warning when backend transport disconnects', () => {
+    render(<ChatInterface />);
+    expect(
+      screen.queryByText('Cannot connect to server right now, try again later.'),
+    ).not.toBeInTheDocument();
+
+    act(() => {
+      mockIpcListeners.get('ipc-status')?.({ isConnected: false });
+    });
+    expect(
+      screen.getByText('Cannot connect to server right now, try again later.'),
+    ).toBeInTheDocument();
+
+    act(() => {
+      mockIpcListeners.get('ipc-status')?.({ isConnected: true });
+    });
+    expect(
+      screen.queryByText('Cannot connect to server right now, try again later.'),
+    ).not.toBeInTheDocument();
   });
 
   test('does not render a duplicate header logo when sidebar is collapsed', () => {

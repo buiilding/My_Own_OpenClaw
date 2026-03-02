@@ -28,6 +28,9 @@ Electron Main (Node)  ── JSON-RPC (stdin/stdout) ──>  local_backend.py
 
 The bridge:
 - Spawns Python using `CONDA_PREFIX` if available, otherwise `python3`/`py`.
+- Frontend npm Electron launchers now snapshot the caller's active `CONDA_PREFIX` into
+  `WINDIE_PYTHON_PATH` before entering `bash -lc`, so login-shell startup files cannot
+  silently switch the sidecar back to a base Conda interpreter.
 - Sends `ping` until ready, then marks the sidecar as ready.
 - Uses bounded exponential-backoff retries and stale-callback guards in readiness checks to avoid old timeout callbacks marking restarted processes incorrectly.
 
@@ -52,6 +55,7 @@ The sidecar maintains a `ToolRegistry` (`frontend/src/main/python/tools/registry
 - Computer control (mouse, keyboard, scroll, screenshot)
 - Filesystem (read/write/list/search)
 - System stats and window info
+- Detached app launching (`open_app`)
 - Shell command execution (`run_shell_command`)
 - Background session management (`process`) for polling/logging/writing/killing running shell commands
   - Finished sessions are pruned after ~30 minutes (configurable via `WINDIE_SHELL_JOB_TTL_SECONDS`)
@@ -98,6 +102,7 @@ Wakeword detection runs as a separate Python subprocess:
   - `tests/frontend/LocalBackendBridge.test.cjs` validates stale readiness retry timers cannot override newer process readiness checks.
   - `tests/frontend/WakewordBridge.test.cjs` validates stale partial wakeword `stderr` buffers are cleared across stop/start restart.
 - Shell command sessions:
+  - Use `open_app` for detached GUI launches that should survive sidecar/agent exit.
   - `run_shell_command` supports `yield_after_seconds`, `env`, and best-effort `pty` (PTY on Unix; fallback on Windows).
   - If `directory` is omitted, `run_shell_command` starts in the OS user home directory.
   - Use `process` to list/poll/log/write/kill backgrounded shell sessions.

@@ -1,5 +1,9 @@
 /** @jest-environment node */
 
+const fsPromises = require('fs/promises');
+const os = require('os');
+const path = require('path');
+
 const {
   getLastWrittenRequest,
   initBridge,
@@ -54,6 +58,80 @@ describe('local_backend_bridge RPC handlers', () => {
 
     const result = await promise;
     expect(result).toEqual({ success: true, data: { value: 1 } });
+  });
+
+  test('execute-tool handles large JSON-RPC stdout lines', async () => {
+    const { handlers, stdoutHandler } = initBridge();
+    markReady();
+
+    const largePayload = 'x'.repeat(140 * 1024);
+    const promise = handlers['execute-tool'](null, {
+      toolName: 'read_file',
+      args: { file_path: '/tmp/a' },
+    });
+
+    emitRpcResult(stdoutHandler, {
+      success: true,
+      data: { large_payload: largePayload },
+    });
+
+    const result = await promise;
+    expect(result.success).toBe(true);
+    expect(result.data.large_payload).toHaveLength(140 * 1024);
+  });
+
+  test('execute-tool uploads screenshot temp-path responses and returns artifact refs', async () => {
+    const { handlers, stdoutHandler } = initBridge();
+    markReady();
+
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-shot-'));
+    const screenshotPath = path.join(tempDir, 'capture.jpg');
+    await fsPromises.writeFile(screenshotPath, Buffer.from('fake-jpeg-bytes'));
+
+    const originalFetch = global.fetch;
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        artifact_id: 'artifact-1',
+        url: 'http://127.0.0.1:8765/api/artifacts/artifact-1',
+      }),
+    });
+    global.fetch = fetchMock;
+
+    try {
+      const promise = handlers['execute-tool'](null, {
+        toolName: 'screenshot',
+        args: {},
+      });
+
+      emitRpcResult(stdoutHandler, {
+        success: true,
+        data: {
+          screenshot_path: screenshotPath,
+          screenshot_content_type: 'image/jpeg',
+          compression: 'jpeg',
+        },
+      });
+
+      await expect(promise).resolves.toEqual({
+        success: true,
+        data: {
+          screenshot_content_type: 'image/jpeg',
+          compression: 'jpeg',
+          screenshot_ref: 'artifact-1',
+          screenshot_url: 'http://127.0.0.1:8765/api/artifacts/artifact-1',
+        },
+      });
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        'http://127.0.0.1:8765/api/artifacts/',
+        expect.objectContaining({ method: 'POST' }),
+      );
+      await expect(fsPromises.access(screenshotPath)).rejects.toThrow();
+    } finally {
+      global.fetch = originalFetch;
+      await fsPromises.rm(tempDir, { recursive: true, force: true });
+    }
   });
 
   test('execute-tool injects native sudo auth mode when full sudo access is enabled', async () => {
@@ -152,7 +230,7 @@ describe('local_backend_bridge RPC handlers', () => {
     );
   });
 
-  test('suppresses known Node deprecation stderr lines from local backend logs', () => {
+  test('suppresses known deprecation and INFO stderr lines by default', () => {
     const { stderrHandler } = initBridge();
     markReady();
 
@@ -162,6 +240,7 @@ describe('local_backend_bridge RPC handlers', () => {
           '(node:71611) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized',
           '(Use `node --trace-deprecation ...` to show where the warning was created)',
           '2026-02-16 16:24:39,551 - tools.browser.controller - INFO - Connected to Chrome: chrome://new-tab-page/',
+          '2026-02-16 16:24:39,552 - local_backend - WARNING - Slow request',
         ].join('\n'),
       ),
     );
@@ -173,6 +252,26 @@ describe('local_backend_bridge RPC handlers', () => {
     expect(
       loggedLines.some((line) => line.includes('trace-deprecation')),
     ).toBe(false);
+    expect(
+      loggedLines.some((line) => line.includes('Connected to Chrome')),
+    ).toBe(false);
+    expect(
+      loggedLines.some((line) => line.includes('Slow request')),
+    ).toBe(true);
+  });
+
+  test('forwards INFO stderr lines when verbose sidecar stderr flag is enabled', () => {
+    process.env.WINDIE_VERBOSE_SIDECAR_STDERR = '1';
+    const { stderrHandler } = initBridge();
+    markReady();
+
+    stderrHandler()(
+      Buffer.from(
+        '2026-02-16 16:24:39,551 - tools.browser.controller - INFO - Connected to Chrome: chrome://new-tab-page/\n',
+      ),
+    );
+
+    const loggedLines = console.log.mock.calls.map((call) => call[0]);
     expect(
       loggedLines.some((line) => line.includes('Connected to Chrome')),
     ).toBe(true);

@@ -5,6 +5,8 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
+from core.executors import get_interactive_executor
+
 
 def _collect_system_stats_sync() -> dict[str, Any]:
     import psutil
@@ -31,4 +33,4 @@ def _collect_system_stats_sync() -> dict[str, Any]:
 async def collect_system_stats() -> dict[str, Any]:
     """Collect CPU/memory/battery metrics in a thread to avoid blocking the event loop."""
     loop = asyncio.get_event_loop()
-    return await loop.run_in_executor(None, _collect_system_stats_sync)
+    return await loop.run_in_executor(get_interactive_executor(), _collect_system_stats_sync)
