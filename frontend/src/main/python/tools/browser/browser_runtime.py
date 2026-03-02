@@ -14,6 +14,8 @@ from typing import Any, Awaitable, Callable, Mapping, Protocol
 
 from tools.browser.browser_runtime_extraction import (
     build_windie_extraction_llm,
+    ensure_extraction_feature_pack_available,
+    normalize_provider_name,
     resolve_windie_extraction_target,
 )
 
@@ -646,29 +648,22 @@ class _BrowserUseActionBridge:
         self._file_system = self._file_system_type(str(base_dir), create_default_files=True)
         return self._file_system
 
-    def _build_windie_extraction_llm(self) -> tuple[Any | None, str | None]:
-        provider_name, model_id, api_key, base_url = resolve_windie_extraction_target(
-            self._import_module,
-            provider_env=DEFAULT_EXTRACTION_PROVIDER_ENV,
-            model_id_env=DEFAULT_EXTRACTION_MODEL_ID_ENV,
-            api_key_env=DEFAULT_EXTRACTION_API_KEY_ENV,
-            base_url_env=DEFAULT_EXTRACTION_BASE_URL_ENV,
-        )
-        return build_windie_extraction_llm(
-            self._import_module,
-            provider_name=provider_name,
-            model_id=model_id,
-            api_key=api_key,
-            base_url=base_url,
-        )
-
-    def _ensure_page_extraction_llm(self) -> Any:
+    async def _ensure_page_extraction_llm(self) -> Any:
         if self._page_extraction_llm is not None:
             return self._page_extraction_llm
 
         model_name_raw = os.getenv(DEFAULT_EXTRACTION_MODEL_ENV, "")
         model_name = model_name_raw.strip()
         if model_name:
+            provider_guess = None
+            if "_" in model_name:
+                provider_guess = normalize_provider_name(model_name.split("_", 1)[0])
+            dependency_error = await asyncio.to_thread(
+                ensure_extraction_feature_pack_available,
+                provider_guess,
+            )
+            if dependency_error:
+                raise RuntimeError(dependency_error)
             llm_models_module = self._import_module("browser_use.llm.models")
             get_llm_by_name = getattr(llm_models_module, "get_llm_by_name", None)
             if not callable(get_llm_by_name):
@@ -677,7 +672,27 @@ class _BrowserUseActionBridge:
             self._page_extraction_llm = llm
             return llm
 
-        windie_llm, windie_resolution_error = self._build_windie_extraction_llm()
+        provider_name, model_id, api_key, base_url = resolve_windie_extraction_target(
+            self._import_module,
+            provider_env=DEFAULT_EXTRACTION_PROVIDER_ENV,
+            model_id_env=DEFAULT_EXTRACTION_MODEL_ID_ENV,
+            api_key_env=DEFAULT_EXTRACTION_API_KEY_ENV,
+            base_url_env=DEFAULT_EXTRACTION_BASE_URL_ENV,
+        )
+        dependency_error = await asyncio.to_thread(
+            ensure_extraction_feature_pack_available,
+            provider_name,
+        )
+        if dependency_error:
+            raise RuntimeError(dependency_error)
+
+        windie_llm, windie_resolution_error = build_windie_extraction_llm(
+            self._import_module,
+            provider_name=provider_name,
+            model_id=model_id,
+            api_key=api_key,
+            base_url=base_url,
+        )
         if windie_llm is not None:
             self._page_extraction_llm = windie_llm
             return windie_llm
@@ -767,7 +782,7 @@ class _BrowserUseActionBridge:
                     if isinstance(raw_path, str) and raw_path.strip():
                         available_file_paths.append(raw_path.strip())
                 page_extraction_llm = (
-                    self._ensure_page_extraction_llm()
+                    await self._ensure_page_extraction_llm()
                     if normalized_action in {"extract", "read_long_content"}
                     else None
                 )

@@ -26,6 +26,8 @@ frontend app and do not need Python installed system-wide.
   - `frontend/src/main/python/requirements.runtime.txt` (full aggregate profile)
   - `frontend/src/main/python/requirements.runtime.core.txt`
   - `frontend/src/main/python/requirements.runtime.browser.txt`
+  - `frontend/src/main/python/requirements.runtime.browser-llm-openai.txt`
+  - `frontend/src/main/python/requirements.runtime.browser-llm-google.txt`
 - Runtime build helper:
   - `scripts/build-sidecar-runtime`
 - Bundled-python packaging profile:
@@ -135,8 +137,12 @@ On a clean test machine:
 
 - Linux may require non-Python packages for some operations (for example `xdotool`).
 - Default slim+core runtime no longer bundles browser Python dependencies.
-  - On first browser-tool use, sidecar attempts to install the browser feature pack (`requirements.runtime.browser.txt`) into a user-writable runtime path.
+  - On first browser-tool use, sidecar attempts to install the browser core feature pack (`requirements.runtime.browser.txt`) into a user-writable runtime path.
+  - On first browser extraction action (`extract`/`read_long_content`), sidecar installs provider-specific extraction feature packs on-demand:
+    - OpenAI-compatible providers (`openai`, `openrouter`, `ollama`, `lmstudio`, `kimi_coding`) -> `requirements.runtime.browser-llm-openai.txt`
+    - Google provider (`google`) -> `requirements.runtime.browser-llm-google.txt`
   - If auto-install fails, WindieOS returns an actionable pip command in the tool error.
 - Playwright browser binary payload is installed only in full profile builds.
+- `full` runtime profile now pre-bundles browser core + extraction LLM feature-pack dependencies.
 - Browser launch now requires a system-installed Chromium-based browser (Chrome/Chromium/Edge/Brave); if missing, WindieOS returns install guidance instead of attempting an embedded browser bootstrap.
 - Wakeword model assets are pre-downloaded during runtime build step.

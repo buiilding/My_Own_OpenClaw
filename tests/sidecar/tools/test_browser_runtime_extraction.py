@@ -10,6 +10,8 @@ import pytest
 from tools.browser.browser_runtime_extraction import (
     OPENAI_COMPAT_EXTRACTION_DEFAULT_BASE_URLS,
     build_windie_extraction_llm,
+    ensure_extraction_feature_pack_available,
+    get_extraction_feature_pack,
     normalize_provider_name,
     resolve_windie_extraction_target,
 )
@@ -44,6 +46,13 @@ def test_normalize_provider_name_maps_aliases():
     assert normalize_provider_name("kimi-code") == "kimi_coding"
     assert normalize_provider_name("gemini") == "google"
     assert normalize_provider_name("OpenRouter") == "openrouter"
+
+
+def test_get_extraction_feature_pack_maps_supported_providers():
+    assert get_extraction_feature_pack("openai") == "browser_llm_openai"
+    assert get_extraction_feature_pack("openrouter") == "browser_llm_openai"
+    assert get_extraction_feature_pack("google") == "browser_llm_google"
+    assert get_extraction_feature_pack("mistral") is None
 
 
 def test_resolve_windie_extraction_target_uses_env_when_loader_unavailable():
@@ -178,3 +187,58 @@ def test_build_windie_extraction_llm_unknown_provider_returns_error():
 
     assert llm is None
     assert "unknown_provider" in (error or "")
+
+
+def test_ensure_extraction_feature_pack_available_returns_none_for_unmapped_provider():
+    assert ensure_extraction_feature_pack_available("mistral") is None
+
+
+def test_ensure_extraction_feature_pack_available_success_path(monkeypatch):
+    state = {"available": False}
+
+    monkeypatch.setattr(
+        "tools.browser.browser_runtime_extraction.ensure_feature_pack_site_packages_on_path",
+        lambda: None,
+    )
+    monkeypatch.setattr(
+        "tools.browser.browser_runtime_extraction.is_feature_pack_available",
+        lambda pack: state["available"] if pack == "browser_llm_openai" else False,
+    )
+
+    def _install_feature_pack(pack: str):
+        assert pack == "browser_llm_openai"
+        state["available"] = True
+        return True, None
+
+    monkeypatch.setattr(
+        "tools.browser.browser_runtime_extraction.install_feature_pack",
+        _install_feature_pack,
+    )
+
+    assert ensure_extraction_feature_pack_available("openai") is None
+
+
+def test_ensure_extraction_feature_pack_available_failure_includes_manual_command(monkeypatch):
+    monkeypatch.setattr(
+        "tools.browser.browser_runtime_extraction.ensure_feature_pack_site_packages_on_path",
+        lambda: None,
+    )
+    monkeypatch.setattr(
+        "tools.browser.browser_runtime_extraction.is_feature_pack_available",
+        lambda _pack: False,
+    )
+    monkeypatch.setattr(
+        "tools.browser.browser_runtime_extraction.install_feature_pack",
+        lambda _pack: (False, "network down"),
+    )
+    monkeypatch.setattr(
+        "tools.browser.browser_runtime_extraction.build_feature_pack_manual_install_message",
+        lambda _pack: "manual pip command",
+    )
+
+    error = ensure_extraction_feature_pack_available("google")
+
+    assert isinstance(error, str)
+    assert "browser_llm_google" in error
+    assert "network down" in error
+    assert "manual pip command" in error
