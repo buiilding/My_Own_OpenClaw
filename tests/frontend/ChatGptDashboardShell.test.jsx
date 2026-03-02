@@ -500,6 +500,51 @@ describe('ChatGptDashboardShell', () => {
     expect(screen.getByRole('button', { name: 'How are you' })).toBeInTheDocument();
   });
 
+  test('retries recent chats on startup when local backend is not ready', async () => {
+    jest.useFakeTimers();
+    const nowIso = new Date().toISOString();
+    let listCallCount = 0;
+    mockInvoke.mockImplementation(async (channel) => {
+      if (channel === 'list-conversations') {
+        listCallCount += 1;
+        if (listCallCount === 1) {
+          return {
+            success: false,
+            error: 'Local backend not ready',
+          };
+        }
+        return {
+          success: true,
+          data: {
+            conversations: [
+              {
+                conversation_id: 'conv-startup-1',
+                record_kind: 'transcript',
+                last_timestamp: nowIso,
+                title: 'Startup restored chat',
+              },
+            ],
+          },
+        };
+      }
+      return { success: true, data: {} };
+    });
+
+    try {
+      await renderDashboardShell();
+
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+      await flushMicrotasks();
+
+      expect(listCallCount).toBeGreaterThanOrEqual(2);
+      expect(screen.getByRole('button', { name: 'Startup restored chat' })).toBeInTheDocument();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   test('plays dashboard open animation on mount and when window becomes visible again', async () => {
     jest.useFakeTimers();
     let visibilityState = 'visible';
