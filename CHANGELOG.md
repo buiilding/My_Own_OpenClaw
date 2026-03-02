@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- perf(frontend-overlay-lazy-renderer-load): defer chat and response overlay renderer `loadRendererView` work until first window `show` in normal mode (keep debug response overlay eager), reducing launch-time renderer churn and startup lag; add `MainWindowRuntime` regressions for deferred chat/response load and debug eager-load behavior.
 - fix(frontend-screenshot-system-state-and-window-title): ensure explicit `screenshot` tool runs populate missing `system_state` via state-only capture when screenshot artifacts already exist, add regression coverage for the `screenshot_ref` path, and rename renderer document title from `Desktop Assistant` to `WindieOS` so active-window context reflects product branding.
 - fix(sidecar-memory-startup-backfill-filter): prefilter episodic startup backfill rows in SQL so non-embeddable transcript tool chatter (`tool-call`/`tool-output`) is skipped before iteration, reducing repeated launch-time scan churn; add sidecar regression coverage and memory-store reference docs.
 - fix(packaging-linux-xdotool-runtime-warning): declare `xdotool` as Linux `.deb`/`.rpm` package dependency, emit sidecar startup/status runtime warnings when `xdotool` is missing, and document AppImage manual-install expectation while preserving Xlib fallback behavior.
