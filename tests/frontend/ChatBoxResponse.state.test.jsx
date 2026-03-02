@@ -26,6 +26,9 @@ describe('ChatBoxResponse state behavior', () => {
     setChatState([
       { id: 'user-1', text: 'run command', sender: 'user' },
     ]);
+    useChatStore.setState({
+      isSending: true,
+    });
 
     render(<ChatBoxResponse />);
 
@@ -219,7 +222,7 @@ describe('ChatBoxResponse state behavior', () => {
     });
   });
 
-  test('snaps response pane height to deterministic fixed steps', async () => {
+  test('keeps response pane at a fixed height while content streams', async () => {
     const userMessage = { id: 'user-1', text: 'question', sender: 'user' };
     const assistantMessage = {
       id: 'assistant-1',
@@ -237,15 +240,8 @@ describe('ChatBoxResponse state behavior', () => {
     });
 
     const responsePane = container.querySelector('.chatbox-response-pill');
-    const responseBody = container.querySelector('.chatbox-response-body');
     expect(responsePane).toBeTruthy();
-    expect(responseBody).toBeTruthy();
-
-    let mockScrollHeight = 90;
-    Object.defineProperty(responseBody, 'scrollHeight', {
-      configurable: true,
-      get: () => mockScrollHeight,
-    });
+    expect(responsePane.style.height).toBe('236px');
 
     act(() => {
       useChatStore.setState({
@@ -260,41 +256,7 @@ describe('ChatBoxResponse state behavior', () => {
     });
 
     await waitFor(() => {
-      expect(responsePane.style.height).toBe('164px');
-    });
-
-    mockScrollHeight = 215;
-    act(() => {
-      useChatStore.setState({
-        messages: [
-          userMessage,
-          {
-            ...assistantMessage,
-            text: 'step two',
-          },
-        ],
-      });
-    });
-
-    await waitFor(() => {
-      expect(responsePane.style.height).toBe('324px');
-    });
-
-    mockScrollHeight = 700;
-    act(() => {
-      useChatStore.setState({
-        messages: [
-          userMessage,
-          {
-            ...assistantMessage,
-            text: 'step three',
-          },
-        ],
-      });
-    });
-
-    await waitFor(() => {
-      expect(responsePane.style.height).toBe('460px');
+      expect(responsePane.style.height).toBe('236px');
     });
   });
 
@@ -303,6 +265,7 @@ describe('ChatBoxResponse state behavior', () => {
       { id: 'user-1', text: 'think', sender: 'user' },
     ]);
     useChatStore.setState({
+      isSending: true,
       thinkingStatus: 'step 1\nstep 2',
     });
 
@@ -329,15 +292,18 @@ describe('ChatBoxResponse state behavior', () => {
     expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
   });
 
-  test('keeps overlay awaiting indicator latched through idle gap until first chunk arrives', async () => {
+  test('clears awaiting indicator on idle and only re-shows it for a live phase', async () => {
     setChatState([]);
     render(<ChatBoxResponse />);
 
     emitOverlayPhase('tool-output');
-    emitOverlayPhase('idle');
-
     await waitFor(() => {
       expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
+    });
+
+    emitOverlayPhase('idle');
+    await waitFor(() => {
+      expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
     });
 
     emitOverlayPhase('streaming');
@@ -346,7 +312,7 @@ describe('ChatBoxResponse state behavior', () => {
     });
   });
 
-  test('hides stale completed response while awaiting lock is active', async () => {
+  test('hides stale completed response while awaiting phase is active', async () => {
     setChatState([
       { id: 'user-1', text: 'run command', sender: 'user' },
       {
@@ -365,7 +331,6 @@ describe('ChatBoxResponse state behavior', () => {
     });
 
     emitOverlayPhase('tool-output');
-    emitOverlayPhase('idle');
 
     await waitFor(() => {
       expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
@@ -426,6 +391,9 @@ describe('ChatBoxResponse state behavior', () => {
     setChatState([
       { id: 'user-1', text: 'run command', sender: 'user' },
     ]);
+    useChatStore.setState({
+      isSending: true,
+    });
 
     render(<ChatBoxResponse />);
 

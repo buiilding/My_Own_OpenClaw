@@ -15,35 +15,26 @@ import {
   resolveResponseOverlayLayoutMode,
 } from '../utils/responseOverlayLayoutMode';
 import { RESPONSE_OVERLAY_PHASE } from '../utils/responseOverlayPhaseContract';
-import {
-  isLoopActivePhase,
-  isAwaitingFirstChunkPhase,
-  isOverlayAwaitingReplyPhase,
-  shouldOverlayClearAwaitingFirstChunk,
-} from '../utils/streamPhaseState';
+import { isOverlayAwaitingReplyPhase } from '../utils/streamPhaseState';
 import {
   findLastUserIndex,
   findLatestMessageAfterUser,
 } from './chatBoxResponseUtils';
 
 const RESPONSE_TYPES = new Set(['llm-text', 'error']);
-const FIRST_CHUNK_TYPES = new Set(['llm-text', 'error']);
-const RESPONSE_FIXED_HEIGHTS = [92, 164, 236, 324, 460];
-const RESPONSE_MIN_HEIGHT = RESPONSE_FIXED_HEIGHTS[0];
-const RESPONSE_CHROME_HEIGHT = 28;
+const RESPONSE_FIXED_HEIGHT = 236;
 const RESPONSE_BOTTOM_STICK_THRESHOLD = 20;
 const TYPING_FRAME_HEIGHT = 24;
 
-function resolveSteppedResponseHeight(measuredHeight) {
-  if (!Number.isFinite(measuredHeight)) {
-    return RESPONSE_MIN_HEIGHT;
-  }
-  for (const fixedHeight of RESPONSE_FIXED_HEIGHTS) {
-    if (measuredHeight <= fixedHeight) {
-      return fixedHeight;
-    }
-  }
-  return RESPONSE_FIXED_HEIGHTS[RESPONSE_FIXED_HEIGHTS.length - 1];
+function createHiddenFrameState() {
+  return {
+    width: 0,
+    height: 0,
+    visible: false,
+    fullScreenGhost: false,
+    compactHover: false,
+    layoutMode: RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
+  };
 }
 
 function renderResponseContent(response, markdownHtml) {
@@ -63,6 +54,36 @@ function renderResponseContent(response, markdownHtml) {
   );
 }
 
+function resolveOverlayPresentationState({
+  overlayPhase,
+  isSending,
+  activeResponse,
+  closedResponseId,
+}) {
+  const awaitingPhase = isOverlayAwaitingReplyPhase(overlayPhase);
+  const visibleResponse = (
+    activeResponse
+    && activeResponse.id !== closedResponseId
+  ) ? activeResponse : null;
+  const showResponse = Boolean(visibleResponse && !awaitingPhase);
+  const waitingForFirstVisibleChunk = (
+    overlayPhase === RESPONSE_OVERLAY_PHASE.STREAMING
+    && !visibleResponse
+  );
+
+  // Keep the overlay as a direct projection of shared stream state.
+  const showAwaitingReply = !showResponse && (
+    awaitingPhase
+    || waitingForFirstVisibleChunk
+    || (isSending && !visibleResponse)
+  );
+
+  return {
+    showAwaitingReply,
+    showResponse,
+  };
+}
+
 function ChatBoxResponse() {
   const {
     messages,
@@ -70,110 +91,42 @@ function ChatBoxResponse() {
     thinkingStatus,
   } = useChatStore(useShallow(selectChatBoxState));
   const [closedResponseId, setClosedResponseId] = useState(null);
-  const [awaitingFirstChunk, setAwaitingFirstChunk] = useState(false);
-  const [awaitingPhaseLatch, setAwaitingPhaseLatch] = useState(false);
-  const [awaitingOverlayLock, setAwaitingOverlayLock] = useState({
-    active: false,
-    baselineResponseId: null,
-    baselineResponseText: null,
-    correlationId: null,
-  });
-  const [overlayPhase, setOverlayPhase] = useState('idle');
+  const [overlayPhase, setOverlayPhase] = useState(RESPONSE_OVERLAY_PHASE.IDLE);
   const [hasOverflowAbove, setHasOverflowAbove] = useState(false);
-  const [responseHeight, setResponseHeight] = useState(RESPONSE_MIN_HEIGHT);
   const shellRef = useRef(null);
   const responsePillRef = useRef(null);
-  const responseBodyRef = useRef(null);
   const shouldStickToBottomRef = useRef(true);
-  const hideOverlayTimeoutRef = useRef(null);
-  const lastUserMessageIdRef = useRef(null);
-  const lastFrameRef = useRef({
-    width: 0,
-    height: 0,
-    visible: null,
-    fullScreenGhost: false,
-    compactHover: false,
-    layoutMode: RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
-  });
-  const activeResponseIdRef = useRef(null);
-  const activeResponseTextRef = useRef(null);
-  const clearAwaitingOverlayLock = useCallback(() => ({
-    active: false,
-    baselineResponseId: null,
-    baselineResponseText: null,
-    correlationId: null,
-  }), []);
+  const lastFrameRef = useRef(createHiddenFrameState());
 
   const lastUserIndex = useMemo(
     () => findLastUserIndex(messages),
     [messages],
   );
 
-  const lastUserMessageId = useMemo(() => {
-    if (lastUserIndex < 0) {
-      return null;
-    }
-    return messages[lastUserIndex]?.id || null;
-  }, [lastUserIndex, messages]);
-
   const activeResponse = useMemo(
     () => findLatestMessageAfterUser(messages, lastUserIndex, RESPONSE_TYPES),
     [messages, lastUserIndex],
   );
 
-  const firstTextOrError = useMemo(
-    () => findLatestMessageAfterUser(messages, lastUserIndex, FIRST_CHUNK_TYPES),
-    [messages, lastUserIndex],
-  );
-  const firstChunkId = firstTextOrError?.id || null;
+  const {
+    showAwaitingReply,
+    showResponse,
+  } = useMemo(() => resolveOverlayPresentationState({
+    overlayPhase,
+    isSending,
+    activeResponse,
+    closedResponseId,
+  }), [activeResponse, closedResponseId, isSending, overlayPhase]);
+
   const responseIsCloseable = useMemo(() => {
-    if (!activeResponse) {
+    if (!activeResponse || activeResponse.id === closedResponseId) {
       return false;
     }
     if (activeResponse.type === 'error') {
       return true;
     }
     return Boolean(activeResponse.isComplete);
-  }, [activeResponse]);
-  useEffect(() => {
-    activeResponseIdRef.current = activeResponse?.id || null;
-  }, [activeResponse?.id]);
-  useEffect(() => {
-    activeResponseTextRef.current = typeof activeResponse?.text === 'string'
-      ? activeResponse.text
-      : null;
-  }, [activeResponse?.text]);
-
-  const hasFreshChunkForOverlayLock = Boolean(
-    awaitingOverlayLock.active
-      && firstChunkId
-      && (
-        firstChunkId !== awaitingOverlayLock.baselineResponseId
-        || (
-          firstChunkId === awaitingOverlayLock.baselineResponseId
-          && typeof activeResponse?.text === 'string'
-          && typeof awaitingOverlayLock.baselineResponseText === 'string'
-          && activeResponse.text !== awaitingOverlayLock.baselineResponseText
-        )
-      ),
-  );
-  const shouldSuppressResponseForOverlayLock = (
-    awaitingOverlayLock.active
-    && !hasFreshChunkForOverlayLock
-  );
-  const shouldForceAwaitingState = (
-    (awaitingFirstChunk && !firstChunkId)
-    || awaitingPhaseLatch
-    || shouldSuppressResponseForOverlayLock
-    || isSending
-    || isOverlayAwaitingReplyPhase(overlayPhase)
-  );
-
-  const showResponse = Boolean(
-    activeResponse
-      && !shouldForceAwaitingState
-      && activeResponse.id !== closedResponseId,
-  );
+  }, [activeResponse, closedResponseId]);
 
   const responseMarkdownHtml = useMemo(() => {
     if (!activeResponse || activeResponse.type === 'tool-call' || activeResponse.type === 'error') {
@@ -187,21 +140,20 @@ function ChatBoxResponse() {
     });
     return toSanitizedMarkdownHtml(contract.markdown, { enableMath: contract.mathEnabled });
   }, [activeResponse]);
+
   const thinkingText = useMemo(
     () => (typeof thinkingStatus === 'string' ? thinkingStatus.trim() : ''),
     [thinkingStatus],
   );
-  const showAwaitingReply = (
-    shouldForceAwaitingState
-    && !showResponse
-  );
+
   const overlayLayoutMode = useMemo(() => resolveResponseOverlayLayoutMode({
     showResponse,
     showAwaitingReply,
   }), [showAwaitingReply, showResponse]);
   const isVisible = overlayLayoutMode !== RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN;
+
   const sourceTagForResponse = useMemo(() => {
-    if (!isDevUiEnabled() || !activeResponse) {
+    if (!isDevUiEnabled() || !activeResponse || !showResponse) {
       return null;
     }
     const sourceEventType = typeof activeResponse.sourceEventType === 'string' && activeResponse.sourceEventType
@@ -211,7 +163,8 @@ function ChatBoxResponse() {
       ? activeResponse.sourceChannel
       : 'unknown';
     return resolveSourceTag(sourceEventType, sourceChannel);
-  }, [activeResponse]);
+  }, [activeResponse, showResponse]);
+
   const reportOverlaySize = useCallback(async ({
     visible,
     layoutMode = RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
@@ -220,14 +173,7 @@ function ChatBoxResponse() {
       if (lastFrameRef.current.visible === false) {
         return;
       }
-      lastFrameRef.current = {
-        width: 0,
-        height: 0,
-        visible: false,
-        fullScreenGhost: false,
-        compactHover: false,
-        layoutMode: RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
-      };
+      lastFrameRef.current = createHiddenFrameState();
       try {
         await IpcBridge.invoke(INVOKE_CHANNELS.SET_RESPONSEBOX_SIZE, {
           visible: false,
@@ -247,7 +193,7 @@ function ChatBoxResponse() {
     const compactHover = isCompactHoverLayoutMode(layoutMode);
     let { width, height } = nextFrame;
     if (layoutMode === RESPONSE_OVERLAY_LAYOUT_MODE.AWAITING_TYPING) {
-      // Keep typing indicator hover position deterministic across tool/capture cycles.
+      // Typing mode stays on a fixed shell so the overlay never visibly jumps.
       height = TYPING_FRAME_HEIGHT;
     }
     const unchanged = (
@@ -283,101 +229,19 @@ function ChatBoxResponse() {
   }, []);
 
   useEffect(() => {
-    return subscribeResponseOverlayPhase((phase, payload = {}) => {
-      const payloadCorrelationId = (
-        typeof payload?.correlation_id === 'string' && payload.correlation_id.trim().length > 0
-      )
-        ? payload.correlation_id.trim()
-        : null;
+    return subscribeResponseOverlayPhase((phase) => {
       setOverlayPhase(phase);
-      if (isAwaitingFirstChunkPhase(phase)) {
-        setAwaitingFirstChunk(true);
+      if (phase === RESPONSE_OVERLAY_PHASE.AWAITING_FIRST_CHUNK) {
         setClosedResponseId(null);
-      } else if (shouldOverlayClearAwaitingFirstChunk(phase)) {
-        setAwaitingFirstChunk(false);
-      }
-      if (isOverlayAwaitingReplyPhase(phase) || isAwaitingFirstChunkPhase(phase)) {
-        setAwaitingPhaseLatch(true);
-        setAwaitingOverlayLock((currentLock) => {
-          if (currentLock.active) {
-            return {
-              ...currentLock,
-              correlationId: payloadCorrelationId || currentLock.correlationId,
-            };
-          }
-          return {
-            active: true,
-            baselineResponseId: activeResponseIdRef.current,
-            baselineResponseText: activeResponseTextRef.current,
-            correlationId: payloadCorrelationId,
-          };
-        });
-      } else if (
-        phase === RESPONSE_OVERLAY_PHASE.STREAMING
-        || phase === RESPONSE_OVERLAY_PHASE.COMPLETE
-        || phase === RESPONSE_OVERLAY_PHASE.ERROR
-      ) {
-        const isStreamingPhase = phase === RESPONSE_OVERLAY_PHASE.STREAMING;
-        setAwaitingPhaseLatch((currentLatch) => {
-          if (!currentLatch) {
-            return currentLatch;
-          }
-          if (!awaitingOverlayLock.active) {
-            return false;
-          }
-          if (!awaitingOverlayLock.correlationId || !payloadCorrelationId) {
-            return isStreamingPhase ? currentLatch : false;
-          }
-          return awaitingOverlayLock.correlationId === payloadCorrelationId ? false : currentLatch;
-        });
-        setAwaitingOverlayLock((currentLock) => {
-          if (!currentLock.active) {
-            return currentLock;
-          }
-          if (!currentLock.correlationId || !payloadCorrelationId) {
-            return isStreamingPhase ? currentLock : clearAwaitingOverlayLock();
-          }
-          return currentLock.correlationId === payloadCorrelationId
-            ? clearAwaitingOverlayLock()
-            : currentLock;
-        });
       }
     });
-  }, [awaitingOverlayLock.active, awaitingOverlayLock.correlationId, clearAwaitingOverlayLock]);
+  }, []);
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.RESPONSE_OVERLAY_VISIBILITY, (payload = {}) => {
       const overlayVisible = payload?.visible === true;
       if (!overlayVisible) {
-        lastFrameRef.current = {
-          width: 0,
-          height: 0,
-          visible: false,
-          fullScreenGhost: false,
-          compactHover: false,
-          layoutMode: RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
-        };
-        const shouldLatchAwaitingOnReappear = (
-          isSending
-          || awaitingFirstChunk
-          || awaitingPhaseLatch
-          || awaitingOverlayLock.active
-          || isLoopActivePhase(overlayPhase)
-        );
-        if (shouldLatchAwaitingOnReappear) {
-          setAwaitingPhaseLatch(true);
-          setAwaitingOverlayLock((currentLock) => {
-            if (currentLock.active) {
-              return currentLock;
-            }
-            return {
-              active: true,
-              baselineResponseId: activeResponseIdRef.current,
-              baselineResponseText: activeResponseTextRef.current,
-              correlationId: null,
-            };
-          });
-        }
+        lastFrameRef.current = createHiddenFrameState();
         return;
       }
       if (!isVisible) {
@@ -397,58 +261,7 @@ function ChatBoxResponse() {
     isVisible,
     overlayLayoutMode,
     reportOverlaySize,
-    isSending,
-    awaitingFirstChunk,
-    awaitingPhaseLatch,
-    awaitingOverlayLock.active,
-    overlayPhase,
   ]);
-
-  useEffect(() => {
-    if (!lastUserMessageId) {
-      return;
-    }
-    if (lastUserMessageIdRef.current === lastUserMessageId) {
-      return;
-    }
-    lastUserMessageIdRef.current = lastUserMessageId;
-    if (firstTextOrError) {
-      setAwaitingFirstChunk(false);
-      setAwaitingPhaseLatch(false);
-      setAwaitingOverlayLock(clearAwaitingOverlayLock());
-      setClosedResponseId(null);
-      return;
-    }
-    setAwaitingFirstChunk(true);
-    setAwaitingPhaseLatch(true);
-    setAwaitingOverlayLock({
-      active: true,
-      baselineResponseId: activeResponseIdRef.current,
-      baselineResponseText: activeResponseTextRef.current,
-      correlationId: null,
-    });
-    setClosedResponseId(null);
-    shouldStickToBottomRef.current = true;
-    setHasOverflowAbove(false);
-  }, [lastUserMessageId, firstTextOrError, clearAwaitingOverlayLock]);
-
-  useEffect(() => {
-    if (!awaitingFirstChunk || !firstTextOrError) {
-      return;
-    }
-    setAwaitingFirstChunk(false);
-  }, [awaitingFirstChunk, firstTextOrError]);
-
-  useEffect(() => {
-    if (hasFreshChunkForOverlayLock && awaitingOverlayLock.active) {
-      setAwaitingOverlayLock(clearAwaitingOverlayLock());
-      setAwaitingPhaseLatch(false);
-      return;
-    }
-    if (showResponse && awaitingPhaseLatch) {
-      setAwaitingPhaseLatch(false);
-    }
-  }, [showResponse, awaitingPhaseLatch, hasFreshChunkForOverlayLock, awaitingOverlayLock.active, clearAwaitingOverlayLock]);
 
   const syncScrollState = useCallback(() => {
     const responseEl = responsePillRef.current;
@@ -466,34 +279,6 @@ function ChatBoxResponse() {
   const handleResponseScroll = useCallback(() => {
     syncScrollState();
   }, [syncScrollState]);
-
-  useEffect(() => {
-    if (!showResponse) {
-      setResponseHeight(RESPONSE_MIN_HEIGHT);
-      return;
-    }
-
-    let cancelled = false;
-    const rafId = window.requestAnimationFrame(() => {
-      if (cancelled) {
-        return;
-      }
-      const bodyEl = responseBodyRef.current;
-      if (!bodyEl) {
-        return;
-      }
-      const measuredHeight = bodyEl.scrollHeight + RESPONSE_CHROME_HEIGHT;
-      const nextHeight = resolveSteppedResponseHeight(measuredHeight);
-      setResponseHeight((currentHeight) => (
-        currentHeight === nextHeight ? currentHeight : nextHeight
-      ));
-    });
-
-    return () => {
-      cancelled = true;
-      window.cancelAnimationFrame(rafId);
-    };
-  }, [showResponse, activeResponse?.id, activeResponse?.text, responseMarkdownHtml]);
 
   useEffect(() => {
     if (!showResponse) {
@@ -515,36 +300,18 @@ function ChatBoxResponse() {
       responseEl.scrollTop = responseEl.scrollHeight;
     }
     syncScrollState();
-  }, [showResponse, activeResponse?.id, activeResponse?.text, responseHeight, syncScrollState]);
+  }, [showResponse, activeResponse?.id, activeResponse?.text, syncScrollState]);
 
   useEffect(() => {
     let cancelled = false;
     let rafId = null;
 
-    if (hideOverlayTimeoutRef.current !== null) {
-      window.clearTimeout(hideOverlayTimeoutRef.current);
-      hideOverlayTimeoutRef.current = null;
-    }
-
     if (!isVisible) {
-      // Avoid single-frame hide/show oscillation during capture-return state updates.
-      hideOverlayTimeoutRef.current = window.setTimeout(() => {
-        if (cancelled) {
-          return;
-        }
-        hideOverlayTimeoutRef.current = null;
-        void reportOverlaySize({
-          visible: false,
-          layoutMode: RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
-        });
-      }, 120);
-      return () => {
-        cancelled = true;
-        if (hideOverlayTimeoutRef.current !== null) {
-          window.clearTimeout(hideOverlayTimeoutRef.current);
-          hideOverlayTimeoutRef.current = null;
-        }
-      };
+      void reportOverlaySize({
+        visible: false,
+        layoutMode: RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
+      });
+      return undefined;
     }
 
     const scheduleSizeUpdate = () => {
@@ -579,17 +346,13 @@ function ChatBoxResponse() {
     reportOverlaySize,
     activeResponse?.id,
     activeResponse?.text,
-    responseHeight,
     showResponse,
     thinkingText,
   ]);
 
   useEffect(() => {
     return () => {
-      if (hideOverlayTimeoutRef.current !== null) {
-        window.clearTimeout(hideOverlayTimeoutRef.current);
-        hideOverlayTimeoutRef.current = null;
-      }
+      lastFrameRef.current = createHiddenFrameState();
       void reportOverlaySize({
         visible: false,
         layoutMode: RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
@@ -615,7 +378,7 @@ function ChatBoxResponse() {
           <div
             className={`chatbox-response-pill${hasOverflowAbove ? ' has-overflow-above' : ''}`}
             ref={responsePillRef}
-            style={{ height: `${responseHeight}px` }}
+            style={{ height: `${RESPONSE_FIXED_HEIGHT}px` }}
             onScroll={handleResponseScroll}
           >
             <button
@@ -627,7 +390,7 @@ function ChatBoxResponse() {
             >
               ×
             </button>
-            <div className="chatbox-response-body" ref={responseBodyRef}>
+            <div className="chatbox-response-body">
               {sourceTagForResponse ? (
                 <div className="chatbox-source-badge" title={`source_event=${activeResponse?.sourceEventType || 'unknown'}`}>
                   {sourceTagForResponse}

@@ -104,7 +104,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     });
   });
 
-  test('switches response overlay phase back to awaiting-first-chunk after tool-output', () => {
+  test('switches response overlay phase to tool-output after tool-output', () => {
     const onResponseOverlayPhaseChange = jest.fn();
     const { ws } = setupOpenedIpc({ onResponseOverlayPhaseChange });
     emitBackendMessage(ws, { type: 'tool-call', payload: {} });
@@ -116,7 +116,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
       recovery_stage: 'tool-call',
     });
     expect(onResponseOverlayPhaseChange).toHaveBeenNthCalledWith(2, {
-      phase: 'awaiting-first-chunk',
+      phase: 'tool-output',
       source: 'backend',
       recovery_stage: 'tool-output',
     });

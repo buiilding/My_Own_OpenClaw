@@ -1,5 +1,5 @@
 ---
-summary: "Electron window lifecycle reference for main/dashboard window, chat overlay, response overlay, focus restoration, response sizing IPC, and overlay phase transitions."
+summary: "Electron window lifecycle reference for main/dashboard window, chat overlay, response overlay, blur-only capture prep, response sizing IPC, and overlay phase transitions."
 read_when:
   - When changing chat/response overlay behavior, window positioning, or click-through policy.
   - When adding/editing Electron IPC handlers for window state, sizing, focus, or display selection.
@@ -114,10 +114,10 @@ Visibility behavior:
 
 ## Focus and Foreground Behavior
 
-Windows-specific external focus preservation:
+Windows-specific external focus tracking:
 
 - before chat overlay focus, app snapshots external focused window id/title via `node-window-manager`
-- pre-capture hook (`prepareOverlayQueryCaptureFocus`) blurs app windows, restores previous external window, and waits `120ms`
+- pre-capture hook (`prepareOverlayQueryCaptureFocus`) only blurs app windows and waits `120ms`
 - interactive tool-run focus prep now passes `skipDemotion=true`, so overlay focus handoff avoids hide/show demotion flicker and relies on explicit click-through + non-focusable toggles
 - used before overlay query capture path to avoid self-capture interference
 
@@ -136,10 +136,9 @@ Windows-specific external focus preservation:
 
 Tool-execution chat-pill lifecycle (interactive computer-use path):
 
-- on tool-call execution prep, renderer requests `set-overlay-ignore-mouse(true)` and `set-overlay-focusable(false)` before focus verification so the chat/response overlays stay visible but non-interactive
-- focus handoff uses `prepare-overlay-tool-focus` with `skipDemotion=true` for tool-run/capture orchestrator paths, avoiding hide/show demotion flicker
-- while tool execution and follow-up auto-capture are active, overlay click-through/non-focusable state stays pinned by surface tokens and is only restored when the final token releases
-- screenshot capture visibility prep still collapses chat pill (`show-chatbox { focus: false }` + `hide-chatbox`) before capture and restores with `show-chatbox { focus: false }` after capture
+- shared response-overlay phase is now the only owner of active-loop interactivity: `awaiting-first-chunk|streaming|tool-call|tool-output` force chat/response overlays into click-through + non-focusable mode, terminal phases restore normal interactivity
+- tool-runner prep no longer performs external-window focus restoration/verification; frontend prep is blur-only and avoids hide/show focus demotion churn
+- screenshot capture visibility prep still collapses the chat pill on Linux before capture and restores with `show-chatbox { focus: false }` after capture; Windows/macOS keep overlays visible and rely on content protection
 - response overlay renderer now listens to `response-overlay-visibility`; hide marks the cached frame as hidden and show forces a fresh `set-responsebox-size` report (including `compact_hover`) so typing-indicator compact hover offset is re-applied after capture hide/show cycles
 
 Dashboard-to-chat-pill conversation continuity:
@@ -189,8 +188,8 @@ Main bridge fanout channel (`ipc.cjs`):
 
 - listens to `response-overlay-phase`
 - listens to `response-overlay-visibility` and re-reports compact frame size after hide/show cycles, preventing stale tall typing-indicator bounds after tool capture
-- uses explicit layout modes (`response`, `awaiting-typing`, `awaiting-thinking`, `hidden`) so sizing/reporting logic is deterministic across query/tool/capture transitions
-- response mode uses deterministic stepped heights (`92`, `164`, `236`, `324`, `460`) chosen by content-fit checks instead of continuous live measurement
+- uses explicit layout modes (`response`, `awaiting-typing`, `hidden`) so sizing/reporting logic is deterministic across query/tool/capture transitions
+- response mode uses a fixed `236px` shell height; streamed content scrolls inside the same frame instead of resizing the overlay mid-turn
 - `awaiting-typing` mode locks to a deterministic fixed frame height (`24px`) so typing-indicator vertical placement remains stable between turns
 - computes visibility from phase + stream content state
 - reports frame size via `SET_RESPONSEBOX_SIZE`
@@ -208,9 +207,9 @@ For renderer-only deep dives:
 
 - selects a platform-specific screenshot visibility runtime
 - Linux behavior lives in `platform/screenshot_window_visibility/linux.cjs`
-- temporarily hides app windows before screenshot tool execution
-- restores previous visibility/focus and always-on-top state after capture
-- prevents overlay artifacts leaking into screenshot payloads
+- Linux main-process runtime is now a no-op; renderer `SurfaceOrchestrator` owns the single hide/show path to avoid double-collapse races
+- Windows and macOS are also no-op here because overlay protection is handled elsewhere (`setContentProtection(true)`)
+- result: screenshot tool execution no longer adds a second hide/restore cycle on top of renderer capture prep
 
 For deeper focus/capture guard internals:
 

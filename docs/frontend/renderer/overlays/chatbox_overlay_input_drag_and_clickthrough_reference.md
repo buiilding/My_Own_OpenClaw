@@ -58,13 +58,9 @@ Send sequence in chatbox component:
 
 Right-side action button parity with dashboard composer:
 
-- send button (`ArrowUp`) is shown when composer is idle
-- stop button (`Square`) replaces send while query is active (`isSending || active stream phase`)
-- stop click applies shared stop-state helper (`applyStopQueryUiState`) before sending backend `stop-query`
-- during active loop phases, chat pill runs in stop-only mode:
-  - input, settings, screenshot, TTS, and dev compaction actions are disabled
-  - drag motion is disabled
-  - input auto-focus is suppressed until loop exits
+- send button (`ArrowUp`) remains mounted at all times
+- during active loop phases, the send button is disabled instead of becoming a local stop affordance
+- active loop lock disables input, settings, screenshot, TTS, dev compaction, drag, and input auto-focus until the loop exits
 
 Dashboard handoff affordance:
 
@@ -81,14 +77,13 @@ Dashboard handoff affordance:
 
 State inputs:
 
-- explicit interactive computer-use surface prep (`toolRunnerSurface`)
+- shared `response-overlay-phase`
 
 Behavior:
 
-- chatbox renderer defaults overlay to interactive (`ignore=false`) and keeps input-focus behavior
-- click-through is enabled only around interactive computer-use tool execution (`mouse_control`/`keyboard_control`/`scroll_control`) via `set-overlay-ignore-mouse(true)` in tool-surface prep
-- click-through is restored immediately after that tool surface completes (`set-overlay-ignore-mouse(false)`)
-- normal token streaming / waiting-for-tool-call phases do not force click-through
+- main-process overlay phase handler owns click-through + focusable policy for both chat and response overlays
+- active loop phases (`awaiting-first-chunk|streaming|tool-call|tool-output`) force click-through and `focusable=false`
+- terminal phases (`complete|error|idle`) restore normal interaction
 
 ## Focus Contract
 
@@ -112,6 +107,7 @@ This is required after main-process `showChatWindow({ focus: true })`.
 - compact default state centers the main control row vertically within the pill; preview-expanded state keeps controls anchored lower beneath the preview lane.
 - response/typing/context-label overlays in main process use a compact visual anchor height so their vertical position follows the visible compact pill baseline instead of the full transparent chat window height.
 - response/typing overlay uses a tighter chat-to-response vertical gap (`2px` in current non-dashboard main runtime) to keep the response pill visually near the chat pill.
+- response overlay content now stays inside one fixed response frame (`236px`) instead of stepping the overlay height while tokens stream.
 - clipboard image parsing is shared through `clipboardImageUtils.parseClipboardImageItems(...)` (also used by dashboard `MessageInput`) to keep screenshot/paste payload shape consistent across overlay and dashboard composer surfaces.
 - result: no live overlay window bounds churn while typing, startup, or adding/removing images.
 
