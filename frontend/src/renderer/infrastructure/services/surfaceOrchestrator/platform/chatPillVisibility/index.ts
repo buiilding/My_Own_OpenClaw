@@ -1,0 +1,34 @@
+import linuxRuntime from './linux';
+import macosRuntime from './macos';
+import windowsRuntime from './windows';
+
+type ChatPillVisibilityRuntime = typeof linuxRuntime;
+
+function resolveChatPillVisibilityRuntime(): ChatPillVisibilityRuntime {
+  if (typeof navigator === 'undefined') {
+    return windowsRuntime;
+  }
+  const userAgent = typeof navigator.userAgent === 'string' ? navigator.userAgent : '';
+  if (/windows/i.test(userAgent)) {
+    return windowsRuntime;
+  }
+  if (/macintosh|mac os x|macintel/i.test(userAgent)) {
+    return macosRuntime;
+  }
+  if (/linux/i.test(userAgent)) {
+    return linuxRuntime;
+  }
+  return windowsRuntime;
+}
+
+export function shouldManageChatPillVisibilityForBackgroundCapture(): boolean {
+  return resolveChatPillVisibilityRuntime().shouldManageChatPillVisibilityForBackgroundCapture();
+}
+
+export async function collapseChatPillForBackgroundCapture(): Promise<boolean> {
+  return await resolveChatPillVisibilityRuntime().collapseChatPillForBackgroundCapture();
+}
+
+export async function restoreChatPillInactive(): Promise<boolean> {
+  return await resolveChatPillVisibilityRuntime().restoreChatPillInactive();
+}

@@ -77,6 +77,7 @@ Module:
 - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/logging.ts`
 - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/loggingGate.ts`
 - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/chatPillVisibility.ts`
+- `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/platform/chatPillVisibility/*`
 - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/context.ts`
 - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/preparation.ts`
 - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/focusPreparation.ts`
@@ -90,6 +91,7 @@ Responsibilities:
 - typed surface transition APIs for tool execution and screenshot capture paths
 - centralized mode resolution (`none | interactive | screenshot`) for single tools and bundles
 - shared chat-pill visibility collapse/restore helper used by both tool-execution and screenshot-capture lifecycles
+- chat-pill visibility selector now routes Linux hide/show to `platform/chatPillVisibility/linux.ts`; Windows/macOS are explicit no-op modules because protected overlays already rely on Electron content protection
 - shared transition-context and focus-default resolver helper (`context.ts`) for source/correlation-id/wait-attempt defaults across tool and capture lifecycles
 - shared overlay-focus IPC normalization helper (`focusPreparation.ts`) reused by both tool and capture lifecycles so focus verification metadata and failure-reason parsing stay aligned (`skipDemotion=true` for orchestrator tool/capture handoffs)
 - capture restore path also resolves source/correlation through the shared context helper so hide/show completion logs keep the same normalized contract as prepare/focus transitions

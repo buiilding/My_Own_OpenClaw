@@ -55,7 +55,7 @@ Loads renderer routes for packaged and dev runtime:
 Creation behavior:
 
 - builds frameless hidden dashboard window (`1000x700`, `#111318`)
-- enables content protection on supported platforms
+- enables content protection through `frontend/src/main/platform/content_protection/*` (Windows/macOS only; Linux uses screenshot hide/restore policy instead)
 - initializes:
   - IPC bridge (`initializeIpc`)
   - wakeword bridge (`initializeWakewordBridge`)

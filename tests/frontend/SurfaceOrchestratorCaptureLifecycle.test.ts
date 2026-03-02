@@ -9,13 +9,23 @@ import {
 } from '../../frontend/src/renderer/infrastructure/services/SurfaceOrchestrator';
 
 describe('surfaceOrchestrator capture lifecycle', () => {
+  const originalUserAgent = navigator.userAgent;
+
   beforeEach(() => {
     __resetSurfaceOrchestratorStateForTests();
     jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({ success: true });
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'Mozilla/5.0 (X11; Linux x86_64)',
+    });
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: originalUserAgent,
+    });
   });
 
   test('reuses overlap capture preparation and restores chat pill only after final release', async () => {
@@ -114,5 +124,23 @@ describe('surfaceOrchestrator capture lifecycle', () => {
       waitMs: 120,
       skipDemotion: true,
     });
+  });
+
+  test('skips Linux-only capture hide bookkeeping on Windows', async () => {
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+    });
+
+    const preparation = await prepareScreenshotCaptureVisibility({ captureId: 'capture-win' });
+
+    expect(preparation).toEqual({
+      prepared: true,
+      captureId: 'capture-win',
+      restoreChatPillAfterCapture: false,
+    });
+
+    await restoreScreenshotCaptureVisibility(preparation);
+    expect(IpcBridge.invoke).not.toHaveBeenCalled();
   });
 });

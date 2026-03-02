@@ -9,8 +9,39 @@ jest.mock('electron', () => ({
 const {
   createMainWindow,
   createChatWindow,
+  enableContentProtectionSafely,
   prepareOverlayQueryCaptureFocus,
 } = require('../../frontend/src/main/main_window_runtime.cjs');
+
+describe('main_window_runtime enableContentProtectionSafely', () => {
+  test('enables content protection on Windows', () => {
+    const targetWindow = {
+      setContentProtection: jest.fn(),
+    };
+
+    enableContentProtectionSafely({
+      targetWindow,
+      platform: 'win32',
+      windowLabel: 'chat box',
+    });
+
+    expect(targetWindow.setContentProtection).toHaveBeenCalledWith(true);
+  });
+
+  test('skips content protection on Linux', () => {
+    const targetWindow = {
+      setContentProtection: jest.fn(),
+    };
+
+    enableContentProtectionSafely({
+      targetWindow,
+      platform: 'linux',
+      windowLabel: 'chat box',
+    });
+
+    expect(targetWindow.setContentProtection).not.toHaveBeenCalled();
+  });
+});
 
 describe('main_window_runtime prepareOverlayQueryCaptureFocus', () => {
   function createFocusableWindow() {

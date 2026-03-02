@@ -6,6 +6,7 @@ import {
 import {
   collapseChatPillForBackgroundCapture,
   restoreChatPillInactive,
+  shouldManageChatPillVisibilityForBackgroundCapture,
 } from './chatPillVisibility';
 import {
   hasActiveSurfaceTokens,
@@ -42,7 +43,19 @@ export async function prepareScreenshotCaptureVisibility(
   );
   const source = context.source;
   const captureId = context.correlationId;
-  const shouldRestoreChatPillAfterCapture = !hasActiveSurfaceTokens();
+  const shouldManageChatPillVisibility = shouldManageChatPillVisibilityForBackgroundCapture();
+  const shouldRestoreChatPillAfterCapture = (
+    shouldManageChatPillVisibility
+    && !hasActiveSurfaceTokens()
+  );
+
+  if (!shouldManageChatPillVisibility) {
+    return {
+      prepared: true,
+      captureId,
+      restoreChatPillAfterCapture: false,
+    };
+  }
 
   const activeCaptureCount = incrementActiveScreenshotCaptureCount();
   if (activeCaptureCount > 1) {
@@ -133,6 +146,9 @@ export async function restoreScreenshotCaptureVisibility(
   const source = context.source;
   const captureId = context.correlationId;
   if (!preparation.prepared) {
+    return;
+  }
+  if (!shouldManageChatPillVisibilityForBackgroundCapture()) {
     return;
   }
 

@@ -56,7 +56,7 @@ describe('PermissionOnboardingWizard', () => {
     expect(continueButton).toBeDisabled();
   });
 
-  test('enables continue when required permissions are granted and consent is checked', () => {
+  test('enables continue when required permissions are already granted', () => {
     usePermissionStore.setState({
       missingRequiredPermissions: [],
       statusesByPermissionId: {
@@ -84,8 +84,6 @@ describe('PermissionOnboardingWizard', () => {
     });
 
     render(<PermissionOnboardingWizard />);
-
-    fireEvent.click(screen.getByRole('checkbox'));
 
     expect(screen.getByRole('button', { name: 'Continue to WindieOS' })).toBeEnabled();
   });

@@ -43,12 +43,6 @@ export type CaptureMeta = {
   timestamp?: number;
 };
 
-type ExtractedScreenshotData = {
-  screenshot: string | null;
-  screenshotContentType: string | null;
-  captureMeta: CaptureMeta | null;
-};
-
 /**
  * Extract OS state (system state and/or screenshot) with configurable options.
  * Unified function for all screenshot and system state capture scenarios.
