@@ -7,7 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
-- fix(frontend-linux-capture-hide-regression): make Linux screenshot capture hide/restore depend on pending screenshot-surface restore state (not generic active surface tokens) so tool-loop auto-captures still hide chat pill before capture; add `SurfaceOrchestratorCaptureLifecycle` regression for interactive-token nested captures.
+- fix(frontend-linux-capture-hide-regression): make Linux screenshot capture hide/restore depend on pending screenshot-surface restore state (not generic active surface tokens) so tool-loop auto-captures still hide chat pill before capture, and force nested screenshot captures to re-show the chat pill at capture restore (clearing stale outer pending restore) so it does not remain hidden; add `SurfaceOrchestratorCaptureLifecycle` regressions for interactive-token and screenshot-token nested captures.
 - perf(memory-summarizer-batching): keep global run gate at 6 unsemanticized interaction rows, lower idle per-conversation summarize threshold to 3, and raise per-cycle summarize throughput to 3 conversations so low-volume chats semanticize sooner.
 - style(frontend-model-dropdown-scroll): cap dashboard/chat model dropdown visible rows at five and enable internal menu scrolling so long model lists stay usable without oversized overlays.
 - fix(backend-test-compat-model-catalog): align backend provider/model tests with runtime-model-id normalization and dict-based online model catalog entries, and restore local provider request-param hook compatibility with base runtime-model-id hook signature.

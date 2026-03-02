@@ -13,6 +13,7 @@ import {
   incrementActiveScreenshotCaptureCount,
   isPendingChatPillRestore,
   isPendingScreenshotCaptureRestore,
+  setPendingChatPillRestore,
   setPendingScreenshotCaptureRestore,
 } from './state';
 import {
@@ -74,6 +75,10 @@ export async function prepareScreenshotCaptureVisibility(
 
   try {
     if (!shouldRestoreChatPillAfterCapture) {
+      // Nested screenshot captures can run while an outer screenshot surface already
+      // collapsed the chat pill. Mark restore pending so this capture still guarantees
+      // re-show after screenshot completion.
+      setPendingScreenshotCaptureRestore(true);
       logSurfaceTransition({
         source,
         correlationId: captureId,
@@ -153,7 +158,6 @@ export async function restoreScreenshotCaptureVisibility(
   decrementActiveScreenshotCaptureCount();
   if (
     getActiveScreenshotCaptureCount() > 0
-    || !shouldRestoreChatPillAfterCapture
     || !isPendingScreenshotCaptureRestore()
   ) {
     return;
@@ -180,6 +184,9 @@ export async function restoreScreenshotCaptureVisibility(
       reason: SURFACE_REASON_CAPTURE_RESTORE_FAILED,
     });
   } finally {
+    if (!shouldRestoreChatPillAfterCapture) {
+      setPendingChatPillRestore(false);
+    }
     setPendingScreenshotCaptureRestore(false);
     logSurfaceTransition({
       source,
