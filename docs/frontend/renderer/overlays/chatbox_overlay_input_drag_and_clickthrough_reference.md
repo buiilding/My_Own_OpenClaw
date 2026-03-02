@@ -91,8 +91,12 @@ Listener:
 
 - channel: `chatbox-focus`
 - action:
-  - force `ignore=false`
-  - focus input element
+  - focus input element when loop lock is not active
+
+Non-listeners:
+
+- chatbox no longer re-focuses from generic browser `window.focus` or `visibilitychange` events
+- renderer focus behavior is explicit only: initial mount + main-process `chatbox-focus`
 
 This is required after main-process `showChatWindow({ focus: true })`.
 

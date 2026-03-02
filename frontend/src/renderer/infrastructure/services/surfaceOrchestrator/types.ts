@@ -15,12 +15,9 @@ export type SurfacePhase = (typeof SURFACE_PHASE)[keyof typeof SURFACE_PHASE];
 export type SurfaceTransitionSource = 'tool-runner' | 'system-capture';
 
 export type ToolSurfacePreparation = {
-  restoreChatPillAfterExecution: boolean;
   canExecute: boolean;
   failureReason: string | null;
   surfaceToken: number | null;
-  overlayIgnoreEnabled: boolean;
-  overlayNonFocusableEnabled: boolean;
   mode: SurfaceMode;
   correlationId: string;
 };
@@ -31,7 +28,4 @@ export type CaptureVisibilityPreparation = {
   restoreChatPillAfterCapture?: boolean;
 };
 
-export const DEFAULT_TOOL_FOCUS_PREPARE_WAIT_MS = 180;
-export const DEFAULT_TOOL_FOCUS_PREPARE_MAX_ATTEMPTS = 5;
-export const DEFAULT_CAPTURE_FOCUS_PREPARE_WAIT_MS = 120;
 export const OVERLAY_SURFACE_PREPARE_EXCEPTION = 'overlay_surface_prepare_exception';

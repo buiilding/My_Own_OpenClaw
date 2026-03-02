@@ -27,9 +27,6 @@ function mockInvokeForCapture(options: MockInvokeOptions = {}): jest.SpyInstance
   const screenshotQueue = [...(options.screenshotResults || [])];
 
   return jest.spyOn(IpcBridge, 'invoke').mockImplementation(async (channel: string) => {
-    if (channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS) {
-      return { success: true, data: { canVerifyExternalFocus: false } };
-    }
     if (channel === INVOKE_CHANNELS.SHOW_CHATBOX || channel === INVOKE_CHANNELS.HIDE_CHATBOX) {
       return { success: true };
     }
@@ -65,14 +62,10 @@ describe('SystemCapture', () => {
     const result = await extractOSstate(true, true, 0, true);
 
     expect(invokeSpy).toHaveBeenNthCalledWith(1, INVOKE_CHANNELS.HIDE_CHATBOX);
-    expect(invokeSpy).toHaveBeenNthCalledWith(2, INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
-      waitMs: 120,
-      skipDemotion: true,
-    });
-    expect(invokeSpy).toHaveBeenNthCalledWith(3, INVOKE_CHANNELS.GET_SYSTEM_STATE, {
+    expect(invokeSpy).toHaveBeenNthCalledWith(2, INVOKE_CHANNELS.GET_SYSTEM_STATE, {
       fields: ['active_window', 'mouse_position', 'screen_resolution', 'windows'],
     });
-    expect(invokeSpy).toHaveBeenNthCalledWith(4, INVOKE_CHANNELS.EXECUTE_TOOL, {
+    expect(invokeSpy).toHaveBeenNthCalledWith(3, INVOKE_CHANNELS.EXECUTE_TOOL, {
       toolName: 'screenshot',
       args: {
         explanation: 'Initial user message screenshot',
@@ -80,7 +73,7 @@ describe('SystemCapture', () => {
       },
       skipAutoCapture: false,
     });
-    expect(invokeSpy).toHaveBeenNthCalledWith(5, INVOKE_CHANNELS.SHOW_CHATBOX, {
+    expect(invokeSpy).toHaveBeenNthCalledWith(4, INVOKE_CHANNELS.SHOW_CHATBOX, {
       focus: false,
     });
     expect(result.systemState).toEqual({ active_window: 'App', mouse_position: '0,0' });
@@ -108,11 +101,7 @@ describe('SystemCapture', () => {
       captureMeta: null,
     });
     expect(invokeSpy).toHaveBeenNthCalledWith(1, INVOKE_CHANNELS.HIDE_CHATBOX);
-    expect(invokeSpy).toHaveBeenNthCalledWith(2, INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
-      waitMs: 120,
-      skipDemotion: true,
-    });
-    expect(invokeSpy).toHaveBeenNthCalledWith(5, INVOKE_CHANNELS.SHOW_CHATBOX, {
+    expect(invokeSpy).toHaveBeenNthCalledWith(4, INVOKE_CHANNELS.SHOW_CHATBOX, {
       focus: false,
     });
     setTimeoutSpy.mockRestore();
@@ -131,7 +120,7 @@ describe('SystemCapture', () => {
 
     await extractOSstate(true, true, 0, true);
 
-    expect(invokeSpy).toHaveBeenNthCalledWith(4, INVOKE_CHANNELS.EXECUTE_TOOL, {
+    expect(invokeSpy).toHaveBeenNthCalledWith(3, INVOKE_CHANNELS.EXECUTE_TOOL, {
       toolName: 'screenshot',
       args: {
         explanation: 'Initial user message screenshot',
@@ -140,7 +129,7 @@ describe('SystemCapture', () => {
       },
       skipAutoCapture: false,
     });
-    expect(invokeSpy).toHaveBeenNthCalledWith(5, INVOKE_CHANNELS.SHOW_CHATBOX, {
+    expect(invokeSpy).toHaveBeenNthCalledWith(4, INVOKE_CHANNELS.SHOW_CHATBOX, {
       focus: false,
     });
   });
@@ -152,11 +141,7 @@ describe('SystemCapture', () => {
 
     const result = await extractOSstate(false, true, 0, false);
 
-    expect(invokeSpy).toHaveBeenNthCalledWith(1, INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
-      waitMs: 120,
-      skipDemotion: true,
-    });
-    expect(invokeSpy).toHaveBeenNthCalledWith(2, INVOKE_CHANNELS.GET_SYSTEM_STATE, {
+    expect(invokeSpy).toHaveBeenNthCalledWith(1, INVOKE_CHANNELS.GET_SYSTEM_STATE, {
       fields: ['active_window', 'mouse_position', 'screen_resolution'],
     });
     expect(result.systemState).toEqual({ active_window: 'App', mouse_position: '1,1' });
@@ -171,11 +156,7 @@ describe('SystemCapture', () => {
     const result = await extractOSstate(true, false, 0, false);
 
     expect(invokeSpy).toHaveBeenNthCalledWith(1, INVOKE_CHANNELS.HIDE_CHATBOX);
-    expect(invokeSpy).toHaveBeenNthCalledWith(2, INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
-      waitMs: 120,
-      skipDemotion: true,
-    });
-    expect(invokeSpy).toHaveBeenNthCalledWith(3, INVOKE_CHANNELS.EXECUTE_TOOL, {
+    expect(invokeSpy).toHaveBeenNthCalledWith(2, INVOKE_CHANNELS.EXECUTE_TOOL, {
       toolName: 'screenshot',
       args: {
         explanation: 'Screenshot capture',
@@ -183,10 +164,10 @@ describe('SystemCapture', () => {
       },
       skipAutoCapture: false,
     });
-    expect(invokeSpy).toHaveBeenNthCalledWith(4, INVOKE_CHANNELS.SHOW_CHATBOX, {
+    expect(invokeSpy).toHaveBeenNthCalledWith(3, INVOKE_CHANNELS.SHOW_CHATBOX, {
       focus: false,
     });
-    expect(invokeSpy).toHaveBeenCalledTimes(4);
+    expect(invokeSpy).toHaveBeenCalledTimes(3);
     expect(result.systemState).toBeNull();
     expect(result.screenshot).toBe('shot');
   });
@@ -202,7 +183,7 @@ describe('SystemCapture', () => {
     const pngResult = await extractOSstate(true, false, 0, false);
     const jpgResult = await extractOSstate(true, false, 0, false);
 
-    expect(invokeSpy).toHaveBeenCalledTimes(8);
+    expect(invokeSpy).toHaveBeenCalledTimes(6);
     expect(pngResult).toEqual({
       systemState: null,
       screenshot: 'png-shot',

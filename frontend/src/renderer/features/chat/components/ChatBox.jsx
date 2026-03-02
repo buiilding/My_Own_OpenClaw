@@ -7,17 +7,12 @@ import { subscribeResponseOverlayPhase } from '../utils/overlayPhaseListener';
 import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { ApiClient } from '../../../infrastructure/api/client';
-import { getActiveConversationRef } from '../../../infrastructure/transcript/TranscriptWriter';
 import { isDevUiEnabled } from '../utils/devUiFlag';
 import { buildOutgoingMessage } from '../utils/messageInput';
 import { parseClipboardImageItems } from '../utils/clipboardImageUtils';
 import { COMPACTION_THINKING_STATUS } from '../utils/chatStreamThinkingStatus';
-import { applyStopQueryUiState } from '../utils/stopQueryState';
 import { extractOSstate } from '../../../infrastructure/services/SystemCapture';
-import {
-  isLoopActivePhase,
-  isStopControlAvailablePhase,
-} from '../utils/streamPhaseState';
+import { isLoopActivePhase } from '../utils/streamPhaseState';
 import {
   normalizeArtifactImageContentType,
   resolveArtifactImageExtension,
@@ -28,7 +23,6 @@ import {
   SendIcon,
   SettingsIcon,
   SoundIcon,
-  StopIcon,
 } from './ChatBoxIcons';
 import ChatBoxImagePreviewRow from './ChatBoxImagePreviewRow';
 
@@ -49,8 +43,6 @@ function ChatBox() {
   const isSending = useChatStore((state) => state.isSending);
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);
-  const setIsSending = useChatStore((state) => state.setIsSending);
-  const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
   const streamPhase = useChatStore((state) => state.streamTracking.phase);
   const { sendMessage } = useChatMessageSender(undefined, {
     senderSurface: 'overlay-chatbox',
@@ -59,7 +51,6 @@ function ChatBox() {
   const [wakewordSttSessionActive, setWakewordSttSessionActive] = useState(false);
   const [clipboardImages, setClipboardImages] = useState([]);
   const [isCapturingScreenshot, setIsCapturingScreenshot] = useState(false);
-  const ignoreMouseRef = useRef(undefined);
   const inputRef = useRef(null);
   const dragStateRef = useRef({
     isDragging: false,
@@ -73,9 +64,7 @@ function ChatBox() {
   const wakewordSttEnabled = config?.wakeword_stt_enabled === true;
   const speechModeEnabled = config?.speech_mode_enabled === true;
   const isLoopPhaseActive = isLoopActivePhase(streamPhase) || isLoopActivePhase(overlayPhase);
-  const stopOnlyModeActive = isSending || isLoopPhaseActive;
-  const canStop = isStopControlAvailablePhase(streamPhase);
-  const composerBusy = stopOnlyModeActive || canStop;
+  const loopInteractionLocked = isSending || isLoopPhaseActive;
   const devUiEnabled = isDevUiEnabled();
   const {
     inputValue,
@@ -86,52 +75,16 @@ function ChatBox() {
     handleInputChange,
   } = useTranscription();
 
-  const setOverlayIgnore = useCallback(async (ignore) => {
-    if (ignoreMouseRef.current === ignore) {
-      return;
-    }
-    ignoreMouseRef.current = ignore;
-    try {
-      await IpcBridge.invoke(INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE, { ignore });
-    } catch (error) {
-      console.warn('[ChatBox] Failed to toggle overlay mouse ignore:', error);
-    }
-  }, []);
-
   const focusInput = useCallback(() => {
-    if (stopOnlyModeActive) {
+    if (loopInteractionLocked) {
       inputRef.current?.blur();
       return;
     }
-    void setOverlayIgnore(false);
     inputRef.current?.focus();
-  }, [setOverlayIgnore, stopOnlyModeActive]);
-
-  useEffect(() => {
-    setOverlayIgnore(false);
-    return () => {
-      setOverlayIgnore(false);
-    };
-  }, [setOverlayIgnore]);
+  }, [loopInteractionLocked]);
 
   useEffect(() => {
     focusInput();
-
-    const handleWindowFocus = () => {
-      focusInput();
-    };
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        focusInput();
-      }
-    };
-
-    window.addEventListener('focus', handleWindowFocus);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
-      window.removeEventListener('focus', handleWindowFocus);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
   }, [focusInput]);
 
   useEffect(() => {
@@ -170,11 +123,11 @@ function ChatBox() {
   }, [wakewordSttEnabled, wakewordSttSessionActive]);
 
   useEffect(() => {
-    if (!stopOnlyModeActive) {
+    if (!loopInteractionLocked) {
       return;
     }
     inputRef.current?.blur();
-  }, [stopOnlyModeActive]);
+  }, [loopInteractionLocked]);
 
   useVoiceMode(
     wakewordSttEnabled && wakewordSttSessionActive,
@@ -190,7 +143,7 @@ function ChatBox() {
   );
 
   const handleSend = useCallback(async () => {
-    const outgoingMessage = buildOutgoingMessage(getInputValue(), composerBusy, clipboardImages);
+    const outgoingMessage = buildOutgoingMessage(getInputValue(), loopInteractionLocked, clipboardImages);
     if (!outgoingMessage) {
       return;
     }
@@ -199,20 +152,7 @@ function ChatBox() {
     setInputValue('');
     setClipboardImages([]);
     await sendMessage(outgoingMessage);
-  }, [clipboardImages, composerBusy, getInputValue, resetTranscription, sendMessage, setInputValue]);
-
-  const handleStopQuery = useCallback(() => {
-    if (!composerBusy) {
-      return;
-    }
-    applyStopQueryUiState({
-      setIsSending,
-      setThinkingStatus,
-      setThinkingSourceEventType,
-      updateStreamTracking,
-    });
-    ApiClient.stopQuery(getActiveConversationRef());
-  }, [composerBusy, setIsSending, setThinkingSourceEventType, setThinkingStatus, updateStreamTracking]);
+  }, [clipboardImages, getInputValue, loopInteractionLocked, resetTranscription, sendMessage, setInputValue]);
 
   const handleSubmit = useCallback((event) => {
     event.preventDefault();
@@ -220,7 +160,7 @@ function ChatBox() {
   }, [handleSend]);
 
   const handleOpenSettings = useCallback(async () => {
-    if (stopOnlyModeActive) {
+    if (loopInteractionLocked) {
       return;
     }
     try {
@@ -231,10 +171,10 @@ function ChatBox() {
     } catch (error) {
       console.warn('[ChatBox] Failed to show main window:', error);
     }
-  }, [stopOnlyModeActive]);
+  }, [loopInteractionLocked]);
 
   const handleComposerPaste = useCallback(async (event) => {
-    if (stopOnlyModeActive) {
+    if (loopInteractionLocked) {
       return;
     }
     try {
@@ -247,10 +187,10 @@ function ChatBox() {
     } catch (error) {
       console.warn('[ChatBox] Failed to parse pasted image:', error);
     }
-  }, [stopOnlyModeActive]);
+  }, [loopInteractionLocked]);
 
   const handleCaptureScreenshot = useCallback(async () => {
-    if (stopOnlyModeActive || composerBusy || isCapturingScreenshot) {
+    if (loopInteractionLocked || isCapturingScreenshot) {
       return;
     }
     setIsCapturingScreenshot(true);
@@ -277,10 +217,10 @@ function ChatBox() {
     } finally {
       setIsCapturingScreenshot(false);
     }
-  }, [composerBusy, focusInput, isCapturingScreenshot, stopOnlyModeActive]);
+  }, [focusInput, isCapturingScreenshot, loopInteractionLocked]);
 
   const handleToggleSpeechMode = useCallback(() => {
-    if (stopOnlyModeActive) {
+    if (loopInteractionLocked) {
       return;
     }
     if (typeof updateConfig !== 'function') {
@@ -289,16 +229,16 @@ function ChatBox() {
     updateConfig({
       speech_mode_enabled: !speechModeEnabled,
     });
-  }, [speechModeEnabled, stopOnlyModeActive, updateConfig]);
+  }, [speechModeEnabled, loopInteractionLocked, updateConfig]);
 
   const handleDevAutoCompaction = useCallback(() => {
-    if (stopOnlyModeActive) {
+    if (loopInteractionLocked) {
       return;
     }
     setThinkingStatus(COMPACTION_THINKING_STATUS);
     setThinkingSourceEventType('context-compaction-started');
     ApiClient.compactHistory(true);
-  }, [setThinkingSourceEventType, setThinkingStatus, stopOnlyModeActive]);
+  }, [loopInteractionLocked, setThinkingSourceEventType, setThinkingStatus]);
 
   const handleDragMove = useCallback((event) => {
     const dragState = dragStateRef.current;
@@ -347,7 +287,7 @@ function ChatBox() {
   }, [handleDragMove, stopDragging]);
 
   const handlePillMouseDown = useCallback((event) => {
-    if (stopOnlyModeActive || event.button !== 0 || isDragBlockedTarget(event.target)) {
+    if (loopInteractionLocked || event.button !== 0 || isDragBlockedTarget(event.target)) {
       return;
     }
     const screenX = Math.round(Number(event.screenX) || 0);
@@ -363,8 +303,7 @@ function ChatBox() {
     dragStateRef.current.lastTargetX = windowScreenX;
     dragStateRef.current.lastTargetY = windowScreenY;
     event.preventDefault();
-  }, [stopOnlyModeActive]);
-  const isLoopActive = isLoopPhaseActive;
+  }, [loopInteractionLocked]);
   const hasImagePreview = clipboardImages.length > 0;
 
   useEffect(() => {
@@ -388,7 +327,7 @@ function ChatBox() {
 
   return (
     <div
-      className={`chatbox-shell-wrap chatbox-input-shell-wrap${hasImagePreview ? ' with-preview' : ''}${isLoopActive ? ' loop-active' : ''}`}
+      className={`chatbox-shell-wrap chatbox-input-shell-wrap${hasImagePreview ? ' with-preview' : ''}${isLoopPhaseActive ? ' loop-active' : ''}`}
     >
       <div className="chatbox-shell">
         <form
@@ -409,7 +348,7 @@ function ChatBox() {
               onClick={handleOpenSettings}
               aria-label="Open dashboard"
               title="Open dashboard"
-              disabled={stopOnlyModeActive}
+              disabled={loopInteractionLocked}
             >
               <SettingsIcon />
             </button>
@@ -420,7 +359,7 @@ function ChatBox() {
                 onClick={handleDevAutoCompaction}
                 aria-label="Run auto compaction"
                 title="Run auto compaction"
-                disabled={stopOnlyModeActive}
+                disabled={loopInteractionLocked}
               >
                 <CompactIcon />
               </button>
@@ -434,7 +373,7 @@ function ChatBox() {
                 onPaste={handleComposerPaste}
                 placeholder="Ask me anything..."
                 className="chatbox-input"
-                disabled={stopOnlyModeActive || composerBusy}
+                disabled={loopInteractionLocked}
               />
             </div>
             <button
@@ -443,7 +382,7 @@ function ChatBox() {
               aria-label="Take screenshot"
               title="Take screenshot"
               onClick={handleCaptureScreenshot}
-              disabled={stopOnlyModeActive || composerBusy || isCapturingScreenshot}
+              disabled={loopInteractionLocked || isCapturingScreenshot}
             >
               <ScreenshotIcon />
             </button>
@@ -453,31 +392,19 @@ function ChatBox() {
               aria-label="Toggle text-to-speech"
               title={speechModeEnabled ? 'Disable text-to-speech' : 'Enable text-to-speech'}
               onClick={handleToggleSpeechMode}
-              disabled={stopOnlyModeActive}
+              disabled={loopInteractionLocked}
             >
               <SoundIcon />
             </button>
-            {composerBusy ? (
-              <button
-                type="button"
-                className="chatbox-icon chatbox-send chatbox-stop-button"
-                aria-label="Stop response"
-                title="Stop response"
-                onClick={handleStopQuery}
-              >
-                <StopIcon />
-              </button>
-            ) : (
-              <button
-                type="submit"
-                className="chatbox-icon chatbox-send"
-                aria-label="Send message"
-                title="Send message"
-                disabled={!inputValue.trim()}
-              >
-                <SendIcon />
-              </button>
-            )}
+            <button
+              type="submit"
+              className="chatbox-icon chatbox-send"
+              aria-label="Send message"
+              title="Send message"
+              disabled={loopInteractionLocked || !inputValue.trim()}
+            >
+              <SendIcon />
+            </button>
           </div>
         </form>
       </div>

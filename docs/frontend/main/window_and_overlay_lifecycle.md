@@ -180,8 +180,8 @@ Main bridge fanout channel (`ipc.cjs`):
 - keeps preview lane always mounted and toggles animated visibility on image attach/remove
 - uses deterministic class-based layout states: compact default pill (`64px` shell / `56px` pill) and fixed expanded `with-preview` pill while image attachments exist
 - reports chat visual anchor height (`64` compact / `116` with-preview) via IPC so response/context overlays re-anchor upward when preview mode is active
-- keeps overlay interactive by default; click-through is toggled only during explicit interactive computer-use tool execution surface prep
-- listens for `chatbox-focus` to force input focus
+- main-process overlay phase handler owns click-through + `focusable=false` during active loop phases; renderer no longer toggles overlay interactivity directly
+- listens for `chatbox-focus` to focus input when unlocked; renderer no longer re-focuses on generic window/tab visibility events
 - sends `MOVE_CHATBOX_TO` while dragging
 
 ### Response overlay (`ChatBoxResponse.jsx`)

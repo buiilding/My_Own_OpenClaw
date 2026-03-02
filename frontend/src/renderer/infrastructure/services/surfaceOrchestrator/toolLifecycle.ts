@@ -1,15 +1,11 @@
-import { IpcBridge, INVOKE_CHANNELS } from '../../ipc/bridge';
 import { logSurfaceTransition } from './logging';
 import {
-  resolveInteractiveFocusPreparationOptions,
   resolveSurfaceTransitionContext,
 } from './context';
 import { buildToolSurfacePreparation } from './preparation';
 import { isMainWindowVisible } from './windowVisibility';
 import {
-  SURFACE_REASON_EXTERNAL_FOCUS_NOT_VERIFIED,
   SURFACE_REASON_NO_TRANSITION_NEEDED,
-  SURFACE_REASON_OVERLAY_FOCUS_PREPARE_FAILED,
   SURFACE_REASON_RESTORE_CHATBOX_FAILED,
   SURFACE_REASON_RESTORE_NOT_REQUIRED,
 } from './reasons';
@@ -18,18 +14,13 @@ import {
   restoreChatPillInactive,
   shouldManageChatPillVisibilityForBackgroundCapture,
 } from './chatPillVisibility';
-import { prepareOverlayToolFocus } from './focusPreparation';
 import { resolveToolSurfaceMode } from './mode';
 import {
   hasActiveSurfaceTokens,
   isPendingChatPillRestore,
-  markOverlayIgnoreForToken,
-  markOverlayNonFocusableForToken,
   registerSurfaceToken,
   releaseSurfaceToken,
   setPendingChatPillRestore,
-  unmarkOverlayIgnoreForToken,
-  unmarkOverlayNonFocusableForToken,
 } from './state';
 import {
   OVERLAY_SURFACE_PREPARE_EXCEPTION,
@@ -44,8 +35,6 @@ export async function prepareToolExecutionSurface(
   options: {
     correlationId?: string | null;
     source?: SurfaceTransitionSource;
-    focusWaitMs?: number;
-    focusMaxAttempts?: number;
   } = {},
 ): Promise<ToolSurfacePreparation> {
   const context = resolveSurfaceTransitionContext(
@@ -65,18 +54,13 @@ export async function prepareToolExecutionSurface(
       reason: SURFACE_REASON_NO_TRANSITION_NEEDED,
     });
     return buildToolSurfacePreparation(mode, correlationId, {
-      restoreChatPillAfterExecution: false,
       canExecute: true,
       failureReason: null,
       surfaceToken: null,
-      overlayIgnoreEnabled: false,
-      overlayNonFocusableEnabled: false,
     });
   }
 
   let surfaceToken: number | null = null;
-  let overlayIgnoreEnabled = false;
-  let overlayNonFocusableEnabled = false;
   const shouldManageChatPillVisibility = shouldManageChatPillVisibilityForBackgroundCapture();
   const shouldCollapseForScreenshot = (
     mode === 'screenshot'
@@ -108,125 +92,31 @@ export async function prepareToolExecutionSurface(
     surfaceToken = registerSurfaceToken();
 
     if (mode === 'interactive') {
-      const interactiveFocusOptions = resolveInteractiveFocusPreparationOptions(
-        options.focusWaitMs,
-        options.focusMaxAttempts,
-      );
-      const { waitMs, maxAttempts } = interactiveFocusOptions;
-
-      for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-        if (!overlayIgnoreEnabled) {
-          try {
-            const ignoreResult = await IpcBridge.invoke(INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE, {
-              ignore: true,
-            });
-            overlayIgnoreEnabled = ignoreResult?.success !== false;
-            if (overlayIgnoreEnabled) {
-              markOverlayIgnoreForToken(surfaceToken);
-            }
-          } catch (error) {
-            console.warn('[SurfaceOrchestrator] Failed to enable overlay click-through for tool execution:', error);
-          }
-        }
-
-        if (!overlayNonFocusableEnabled) {
-          try {
-            const focusableResult = await IpcBridge.invoke(INVOKE_CHANNELS.SET_OVERLAY_FOCUSABLE, {
-              focusable: false,
-            });
-            overlayNonFocusableEnabled = focusableResult?.success !== false;
-            if (overlayNonFocusableEnabled) {
-              markOverlayNonFocusableForToken(surfaceToken);
-            }
-          } catch (error) {
-            console.warn('[SurfaceOrchestrator] Failed to disable overlay focus for tool execution:', error);
-          }
-        }
-
-        logSurfaceTransition({
-          source,
-          correlationId,
-          mode,
-          phaseBefore: attempt === 1
-            ? SURFACE_PHASE.IDLE
-            : SURFACE_PHASE.PREPARING_INTERACTIVE_FOCUS,
-          phaseAfter: SURFACE_PHASE.PREPARING_INTERACTIVE_FOCUS,
-          attempt,
-          maxAttempts,
-        });
-
-        const focusPreparation = await prepareOverlayToolFocus(waitMs, { skipDemotion: true });
-        const canVerifyExternalFocus = focusPreparation.canVerifyExternalFocus;
-        const externalFocusActive = focusPreparation.externalFocusActive;
-
-        if (!focusPreparation.success) {
-          const failureReason = focusPreparation.reason || SURFACE_REASON_OVERLAY_FOCUS_PREPARE_FAILED;
-          logSurfaceTransition({
-            source,
-            correlationId,
-            mode,
-            phaseBefore: SURFACE_PHASE.PREPARING_INTERACTIVE_FOCUS,
-            phaseAfter: SURFACE_PHASE.FAILED_TERMINAL,
-            attempt,
-            maxAttempts,
-            reason: failureReason,
-          });
-          return buildToolSurfacePreparation(mode, correlationId, {
-            restoreChatPillAfterExecution: true,
-            canExecute: false,
-            failureReason,
-            surfaceToken,
-            overlayIgnoreEnabled,
-            overlayNonFocusableEnabled,
-          });
-        }
-
-        if (!canVerifyExternalFocus || externalFocusActive) {
-          logSurfaceTransition({
-            source,
-            correlationId,
-            mode,
-            phaseBefore: SURFACE_PHASE.PREPARING_INTERACTIVE_FOCUS,
-            phaseAfter: SURFACE_PHASE.INTERACTIVE_READY,
-            attempt,
-            maxAttempts,
-          });
-          return buildToolSurfacePreparation(mode, correlationId, {
-            restoreChatPillAfterExecution: true,
-            canExecute: true,
-            failureReason: null,
-            surfaceToken,
-            overlayIgnoreEnabled,
-            overlayNonFocusableEnabled,
-          });
-        }
-      }
-
+      logSurfaceTransition({
+        source,
+        correlationId,
+        mode,
+        phaseBefore: SURFACE_PHASE.IDLE,
+        phaseAfter: SURFACE_PHASE.PREPARING_INTERACTIVE_FOCUS,
+      });
       logSurfaceTransition({
         source,
         correlationId,
         mode,
         phaseBefore: SURFACE_PHASE.PREPARING_INTERACTIVE_FOCUS,
-        phaseAfter: SURFACE_PHASE.FAILED_TERMINAL,
-        reason: SURFACE_REASON_EXTERNAL_FOCUS_NOT_VERIFIED,
+        phaseAfter: SURFACE_PHASE.INTERACTIVE_READY,
       });
       return buildToolSurfacePreparation(mode, correlationId, {
-        restoreChatPillAfterExecution: shouldCollapseForScreenshot,
-        canExecute: false,
-        failureReason: SURFACE_REASON_EXTERNAL_FOCUS_NOT_VERIFIED,
+        canExecute: true,
+        failureReason: null,
         surfaceToken,
-        overlayIgnoreEnabled,
-        overlayNonFocusableEnabled,
       });
     }
 
     return buildToolSurfacePreparation(mode, correlationId, {
-      restoreChatPillAfterExecution: shouldCollapseForScreenshot,
       canExecute: true,
       failureReason: null,
       surfaceToken,
-      overlayIgnoreEnabled,
-      overlayNonFocusableEnabled,
     });
   } catch (error) {
     console.warn('[SurfaceOrchestrator] Failed to prepare tool execution surface:', error);
@@ -241,12 +131,9 @@ export async function prepareToolExecutionSurface(
       reason: OVERLAY_SURFACE_PREPARE_EXCEPTION,
     });
     return buildToolSurfacePreparation(mode, correlationId, {
-      restoreChatPillAfterExecution: surfaceToken !== null,
       canExecute: false,
       failureReason: OVERLAY_SURFACE_PREPARE_EXCEPTION,
       surfaceToken,
-      overlayIgnoreEnabled,
-      overlayNonFocusableEnabled,
     });
   }
 }
@@ -272,22 +159,6 @@ export async function restoreToolExecutionSurface(
     phaseBefore: SURFACE_PHASE.IDLE,
     phaseAfter: SURFACE_PHASE.RESTORING_SURFACE,
   });
-
-  if (preparation.overlayIgnoreEnabled && unmarkOverlayIgnoreForToken(preparation.surfaceToken)) {
-    try {
-      await IpcBridge.invoke(INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE, { ignore: false });
-    } catch (error) {
-      console.warn('[SurfaceOrchestrator] Failed to disable overlay click-through after tool execution:', error);
-    }
-  }
-
-  if (preparation.overlayNonFocusableEnabled && unmarkOverlayNonFocusableForToken(preparation.surfaceToken)) {
-    try {
-      await IpcBridge.invoke(INVOKE_CHANNELS.SET_OVERLAY_FOCUSABLE, { focusable: true });
-    } catch (error) {
-      console.warn('[SurfaceOrchestrator] Failed to restore overlay focusability after tool execution:', error);
-    }
-  }
 
   const shouldRestoreChatPill = releaseSurfaceToken(preparation.surfaceToken);
   if (!shouldRestoreChatPill || !isPendingChatPillRestore()) {
@@ -331,8 +202,6 @@ export async function ensureToolExecutionSurface(
   options: {
     correlationId?: string | null;
     source?: SurfaceTransitionSource;
-    focusWaitMs?: number;
-    focusMaxAttempts?: number;
   } = {},
 ): Promise<ToolSurfacePreparation> {
   const mode = resolveToolSurfaceMode(toolName, args);
