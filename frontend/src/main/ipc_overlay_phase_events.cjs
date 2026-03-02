@@ -3,6 +3,29 @@ const {
   normalizeOverlayString,
 } = require('./ipc_overlay_phase_contract.cjs');
 
+const BACKEND_OVERLAY_PHASE_TRANSITIONS = Object.freeze({
+  'streaming-response': Object.freeze({
+    phase: 'streaming',
+    recoveryStage: null,
+  }),
+  'tool-call': Object.freeze({
+    phase: 'tool-call',
+    recoveryStage: 'tool-call',
+  }),
+  'tool-bundle': Object.freeze({
+    phase: 'tool-call',
+    recoveryStage: 'tool-call',
+  }),
+  'tool-output': Object.freeze({
+    phase: 'tool-output',
+    recoveryStage: 'tool-output',
+  }),
+  'streaming-complete': Object.freeze({
+    phase: 'complete',
+    recoveryStage: null,
+  }),
+});
+
 function resolveOverlayCorrelationId(data) {
   if (!data || typeof data !== 'object') {
     return null;
@@ -70,26 +93,14 @@ function resolveBackendOverlayPhaseTransition(data, currentPhase) {
     return null;
   }
 
-  if (data.type === 'streaming-response') {
-    return { phase: 'streaming', metadata: null };
-  }
-
-  if (data.type === 'tool-call' || data.type === 'tool-bundle') {
+  const transition = BACKEND_OVERLAY_PHASE_TRANSITIONS[data.type];
+  if (transition) {
     return {
-      phase: 'tool-call',
-      metadata: resolveOverlayPhaseMetadata(data, 'tool-call'),
+      phase: transition.phase,
+      metadata: transition.recoveryStage
+        ? resolveOverlayPhaseMetadata(data, transition.recoveryStage)
+        : null,
     };
-  }
-
-  if (data.type === 'tool-output') {
-    return {
-      phase: 'awaiting-first-chunk',
-      metadata: resolveOverlayPhaseMetadata(data, 'tool-output'),
-    };
-  }
-
-  if (data.type === 'streaming-complete') {
-    return { phase: 'complete', metadata: null };
   }
 
   if (data.type === 'error' && currentPhase !== 'idle') {
@@ -103,6 +114,7 @@ function resolveBackendOverlayPhaseTransition(data, currentPhase) {
 }
 
 module.exports = {
+  BACKEND_OVERLAY_PHASE_TRANSITIONS,
   resolveBackendOverlayPhaseTransition,
   resolveOverlayCorrelationId,
   resolveOverlayPhaseMetadata,

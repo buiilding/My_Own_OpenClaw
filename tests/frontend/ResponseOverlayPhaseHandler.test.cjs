@@ -1,8 +1,12 @@
 /** @jest-environment node */
 
 const {
+  RESPONSE_OVERLAY_WINDOW_MODE,
+  applyResponseOverlayWindowMode,
   handleResponseOverlayPhaseEvent,
   isStreamingResponseOverlayPhase,
+  resolveResponseOverlayWindowMode,
+  shouldRestoreTerminalResponseWindow,
 } = require('../../frontend/src/main/response_overlay_phase_handler.cjs');
 
 const PHASE = Object.freeze({
@@ -27,10 +31,14 @@ describe('response_overlay_phase_handler', () => {
         isDestroyed: jest.fn().mockReturnValue(false),
         isVisible: jest.fn().mockReturnValue(true),
         hide: jest.fn(),
+        setIgnoreMouseEvents: jest.fn(),
+        setFocusable: jest.fn(),
       },
       chatWindow: {
         isDestroyed: jest.fn().mockReturnValue(false),
         isVisible: jest.fn().mockReturnValue(true),
+        setIgnoreMouseEvents: jest.fn(),
+        setFocusable: jest.fn(),
       },
       ensureResponseOverlayFallbackBounds: jest.fn(),
       showResponseWindowWhenChatVisible: jest.fn(),
@@ -46,6 +54,19 @@ describe('response_overlay_phase_handler', () => {
     expect(isStreamingResponseOverlayPhase(PHASE.TOOL_CALL, PHASE)).toBe(true);
     expect(isStreamingResponseOverlayPhase(PHASE.TOOL_OUTPUT, PHASE)).toBe(true);
     expect(isStreamingResponseOverlayPhase(PHASE.COMPLETE, PHASE)).toBe(false);
+  });
+
+  test('maps phases onto explicit overlay window modes', () => {
+    expect(resolveResponseOverlayWindowMode(PHASE.IDLE, PHASE)).toBe(
+      RESPONSE_OVERLAY_WINDOW_MODE.HIDDEN,
+    );
+    expect(resolveResponseOverlayWindowMode(PHASE.STREAMING, PHASE)).toBe(
+      RESPONSE_OVERLAY_WINDOW_MODE.ACTIVE_LOOP,
+    );
+    expect(resolveResponseOverlayWindowMode(PHASE.COMPLETE, PHASE)).toBe(
+      RESPONSE_OVERLAY_WINDOW_MODE.TERMINAL,
+    );
+    expect(resolveResponseOverlayWindowMode('unknown-phase', PHASE)).toBeNull();
   });
 
   test('returns early when debug overlay mode is enabled', () => {
@@ -73,6 +94,8 @@ describe('response_overlay_phase_handler', () => {
     expect(deps.setResponseOverlayPhase).toHaveBeenCalledWith(PHASE.IDLE);
     expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(false);
     expect(deps.responseWindow.hide).toHaveBeenCalledTimes(1);
+    expect(deps.chatWindow.setIgnoreMouseEvents).toHaveBeenCalledWith(false);
+    expect(deps.responseWindow.setFocusable).toHaveBeenCalledWith(true);
   });
 
   test('handles streaming phase by making overlay visible and restoring bounds', () => {
@@ -84,6 +107,8 @@ describe('response_overlay_phase_handler', () => {
     expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(true);
     expect(deps.ensureResponseOverlayFallbackBounds).toHaveBeenCalledTimes(1);
     expect(deps.showResponseWindowWhenChatVisible).toHaveBeenCalledTimes(1);
+    expect(deps.chatWindow.setIgnoreMouseEvents).toHaveBeenCalledWith(true, { forward: true });
+    expect(deps.responseWindow.setFocusable).toHaveBeenCalledWith(false);
   });
 
   test('skips fallback/show when response window is unavailable in streaming phase', () => {
@@ -119,6 +144,27 @@ describe('response_overlay_phase_handler', () => {
     handleResponseOverlayPhaseEvent({ phase: PHASE.ERROR }, deps);
 
     expect(deps.showResponseWindowInactive).not.toHaveBeenCalled();
+    expect(deps.syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
+  });
+
+  test('terminal restore helper only returns true when response shell can be safely shown', () => {
+    const deps = createDeps({
+      getResponseOverlayVisible: jest.fn().mockReturnValue(true),
+    });
+    expect(shouldRestoreTerminalResponseWindow(deps)).toBe(true);
+
+    deps.chatWindow.isVisible.mockReturnValue(false);
+    expect(shouldRestoreTerminalResponseWindow(deps)).toBe(false);
+  });
+
+  test('applyResponseOverlayWindowMode keeps terminal sync behavior centralized', () => {
+    const deps = createDeps({
+      getResponseOverlayVisible: jest.fn().mockReturnValue(true),
+    });
+
+    applyResponseOverlayWindowMode(RESPONSE_OVERLAY_WINDOW_MODE.TERMINAL, deps);
+
+    expect(deps.showResponseWindowInactive).toHaveBeenCalledTimes(1);
     expect(deps.syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
   });
 });

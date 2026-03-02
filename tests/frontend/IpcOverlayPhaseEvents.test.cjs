@@ -1,6 +1,7 @@
 /** @jest-environment node */
 
 const {
+  BACKEND_OVERLAY_PHASE_TRANSITIONS,
   resolveBackendOverlayPhaseTransition,
   resolveOverlayCorrelationId,
   resolveOverlayPhaseMetadata,
@@ -80,6 +81,11 @@ describe('ipc_overlay_phase_events', () => {
   });
 
   test('maps backend events to overlay transitions', () => {
+    expect(BACKEND_OVERLAY_PHASE_TRANSITIONS['tool-output']).toEqual({
+      phase: 'tool-output',
+      recoveryStage: 'tool-output',
+    });
+
     expect(resolveBackendOverlayPhaseTransition(
       { type: 'streaming-response' },
       'awaiting-first-chunk',
@@ -114,7 +120,7 @@ describe('ipc_overlay_phase_events', () => {
       type: 'tool-output',
       payload: { request_id: 'req-9' },
     }, 'tool-call')).toEqual({
-      phase: 'awaiting-first-chunk',
+      phase: 'tool-output',
       metadata: {
         recovery_stage: 'tool-output',
         correlation_id: 'req-9',
