@@ -102,6 +102,16 @@ async def test_embeddings_health_check_unhealthy_on_failure() -> None:
     assert result["status"] == "unhealthy"
 
 
+@pytest.mark.asyncio
+async def test_embeddings_health_check_reports_embedder_model_name() -> None:
+    container = SimpleNamespace(embedder=FakeEmbedder())
+
+    result = await embeddings_routes.health_check(container)
+
+    assert result["status"] == "healthy"
+    assert result["model_name"] == "fake-embedder"
+
+
 def test_parse_summarization_response_extracts_summary_and_facts() -> None:
     text = (
         "**SUMMARY:** User prefers Python workflows.\n\n"

@@ -25,6 +25,7 @@ from core.feature_pack_installer import (
     install_feature_pack,
     is_feature_pack_available,
 )
+from core.executors import configure_event_loop_default_executor, shutdown_all_executors
 from core.runtime_shutdown import (
     handle_shutdown_signal,
     register_shutdown_signal_handlers,
@@ -48,16 +49,9 @@ except Exception as exc:  # pragma: no cover - exercised in dependency-missing r
     if _LOCAL_MEMORY_STORE_IMPORT_ERROR is None:
         _LOCAL_MEMORY_STORE_IMPORT_ERROR = exc
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    stream=sys.stderr  # Log to stderr to avoid interfering with stdout protocol
-)
-logger = logging.getLogger(__name__)
-_active_backend: Optional["LocalBackend"] = None
 ENV_ENABLE_SEMANTIC_SUMMARIZER = "WINDIE_ENABLE_SEMANTIC_SUMMARIZER"
 ENV_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL = "WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL"
+ENV_SIDECAR_LOG_LEVEL = "WINDIE_SIDECAR_LOG_LEVEL"
 
 
 def _env_flag_enabled(name: str, default: bool = True) -> bool:
@@ -71,6 +65,25 @@ def _env_flag_enabled(name: str, default: bool = True) -> bool:
     if normalized in {"1", "true", "on", "yes"}:
         return True
     return default
+
+
+def _resolve_sidecar_log_level() -> int:
+    """Resolve sidecar Python log level from env with warning-safe fallback."""
+    raw = os.getenv(ENV_SIDECAR_LOG_LEVEL)
+    if raw is None:
+        return logging.WARNING
+    normalized = raw.strip().upper()
+    return getattr(logging, normalized, logging.WARNING)
+
+
+# Configure logging
+logging.basicConfig(
+    level=_resolve_sidecar_log_level(),
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    stream=sys.stderr  # Log to stderr to avoid interfering with stdout protocol
+)
+logger = logging.getLogger(__name__)
+_active_backend: Optional["LocalBackend"] = None
 
 
 class LocalBackend(LocalBackendMemoryHandlersMixin):
@@ -131,6 +144,8 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
         logger.info("Initializing local backend...")
         
         try:
+            configure_event_loop_default_executor(asyncio.get_running_loop())
+
             # Initialize memory store
             logger.info("Initializing memory store...")
             if LocalMemoryStore is None:
@@ -340,6 +355,8 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
         if self.memory_store:
             await self.memory_store.close()
             logger.info("Memory store closed")
+
+        shutdown_all_executors(wait=True)
         
         logger.info("Local backend shutdown complete")
 

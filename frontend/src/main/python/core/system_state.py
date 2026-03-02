@@ -12,6 +12,7 @@ import platform
 from datetime import datetime
 from typing import Dict, Optional, Any
 
+from core.executors import get_interactive_executor
 from core.system_metrics import collect_system_stats
 
 logger = logging.getLogger(__name__)
@@ -185,7 +186,7 @@ async def _get_active_window_windows() -> Optional[str]:
         
         # Run in thread pool to avoid blocking
         loop = asyncio.get_event_loop()
-        title = await loop.run_in_executor(None, _get_window_title)
+        title = await loop.run_in_executor(get_interactive_executor(), _get_window_title)
         return title if title else None
     except ImportError:
         logger.warning("win32gui not available, cannot get active window on Windows")
@@ -207,7 +208,7 @@ async def _get_active_window_macos() -> Optional[str]:
         
         # Run in thread pool
         loop = asyncio.get_event_loop()
-        title = await loop.run_in_executor(None, _get_window_title)
+        title = await loop.run_in_executor(get_interactive_executor(), _get_window_title)
         return title if title else None
     except ImportError:
         logger.warning("AppKit not available, cannot get active window on macOS")
@@ -234,7 +235,7 @@ async def _get_active_window_linux() -> Optional[str]:
             return None
         
         loop = asyncio.get_event_loop()
-        title = await loop.run_in_executor(None, _get_window_title_xdotool)
+        title = await loop.run_in_executor(get_interactive_executor(), _get_window_title_xdotool)
         if title:
             return title
         
@@ -254,7 +255,7 @@ async def _get_mouse_position() -> Optional[str]:
             return pyautogui.position()
         
         loop = asyncio.get_event_loop()
-        pos = await loop.run_in_executor(None, _get_position)
+        pos = await loop.run_in_executor(get_interactive_executor(), _get_position)
         return f"({pos.x}, {pos.y})"
     except ImportError:
         logger.warning("pyautogui not available, cannot get mouse position")
@@ -273,7 +274,7 @@ async def _get_clipboard_preview(max_length: int = 100) -> str:
             return pyperclip.paste()
         
         loop = asyncio.get_event_loop()
-        content = await loop.run_in_executor(None, _read_clipboard)
+        content = await loop.run_in_executor(get_interactive_executor(), _read_clipboard)
         
         if not content:
             return "<empty>"
@@ -300,7 +301,7 @@ async def get_screen_resolution() -> Optional[str]:
             return pyautogui.size()
         
         loop = asyncio.get_event_loop()
-        size = await loop.run_in_executor(None, _get_size)
+        size = await loop.run_in_executor(get_interactive_executor(), _get_size)
         return f"{size.width}x{size.height}"
     except ImportError:
         logger.warning("pyautogui not available, cannot get screen resolution")
@@ -323,7 +324,7 @@ async def _get_all_open_windows() -> list:
             return window_titles
         
         loop = asyncio.get_event_loop()
-        windows = await loop.run_in_executor(None, _get_windows)
+        windows = await loop.run_in_executor(get_interactive_executor(), _get_windows)
         return windows
     except Exception as e:
         logger.error(f"Failed to get open windows: {e}", exc_info=True)

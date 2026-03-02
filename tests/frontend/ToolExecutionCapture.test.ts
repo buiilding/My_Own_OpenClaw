@@ -115,6 +115,27 @@ describe('ToolExecutionCapture', () => {
     expect(mockExtractOSstate).not.toHaveBeenCalled();
   });
 
+  test('ensureAutoCapture treats screenshot_ref as an existing capture and skips recapture', async () => {
+    const result = await ensureAutoCapture('screenshot', {}, false, {
+      success: true,
+      data: {
+        screenshot_ref: 'artifact-1',
+        screenshot_url: 'http://127.0.0.1:8765/api/artifacts/artifact-1',
+      },
+    } as any);
+
+    expect(result).toEqual({
+      screenshot: 'artifact://artifact-1',
+      screenshotContentType: null,
+      captureMeta: null,
+      systemState: null,
+      waitDelay: 0,
+      captureTime: 0,
+      isComputerTool: true,
+    });
+    expect(mockExtractOSstate).not.toHaveBeenCalled();
+  });
+
   test('ensureAutoCapture ignores non-string screenshot fields for non-capture tools', async () => {
     const result = await ensureAutoCapture('read_file', {}, false, {
       success: true,

@@ -7,6 +7,7 @@ ensure_frontend_python_path()
 from tools.schemas import (  # noqa: E402
     KeyboardControlArgs,
     MouseControlArgs,
+    OpenAppArgs,
     ReplaceArgs,
     ReplaceOperationArgs,
     ScrollControlArgs,
@@ -49,6 +50,9 @@ def test_keyboard_control_validates_action_fields_and_length():
         KeyboardControlArgs(action="type")
 
     with pytest.raises(ValidationError):
+        KeyboardControlArgs(action="paste")
+
+    with pytest.raises(ValidationError):
         KeyboardControlArgs(action="press")
 
     with pytest.raises(ValidationError):
@@ -57,8 +61,14 @@ def test_keyboard_control_validates_action_fields_and_length():
     with pytest.raises(ValidationError):
         KeyboardControlArgs(action="type", text="a" * 10001)
 
+    with pytest.raises(ValidationError):
+        KeyboardControlArgs(action="paste", text="a" * 10001)
+
     args = KeyboardControlArgs(action="type", text="hello")
     assert args.text == "hello"
+
+    paste_args = KeyboardControlArgs(action="paste", text="hello")
+    assert paste_args.text == "hello"
 
 
 def test_keyboard_control_accepts_press_and_hotkey_actions():
@@ -72,6 +82,9 @@ def test_keyboard_control_accepts_press_and_hotkey_actions():
 def test_keyboard_control_allows_text_length_boundary():
     args = KeyboardControlArgs(action="type", text="a" * 10000)
     assert len(args.text) == 10000
+
+    paste_args = KeyboardControlArgs(action="paste", text="a" * 10000)
+    assert len(paste_args.text) == 10000
 
 
 def test_scroll_control_requires_direction_for_scroll_action():
@@ -115,3 +128,15 @@ def test_replace_args_default_context_and_matching_fields():
 def test_replace_operation_occurrence_index_must_be_positive():
     with pytest.raises(ValidationError):
         ReplaceOperationArgs(old_string="old", new_string="new", occurrence_index=0)
+
+
+def test_open_app_args_validate_command_and_timeout():
+    args = OpenAppArgs(command="notepad", verify="window", verify_timeout_seconds=5.0)
+    assert args.command == "notepad"
+    assert args.verify == "window"
+
+    with pytest.raises(ValidationError):
+        OpenAppArgs(command="   ")
+
+    with pytest.raises(ValidationError):
+        OpenAppArgs(command="notepad", verify_timeout_seconds=-1)

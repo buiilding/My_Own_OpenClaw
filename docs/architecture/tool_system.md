@@ -68,7 +68,7 @@ Most tools are executed on the frontend Python sidecar:
 
 - **Computer Control Tools**: `mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `switch_tab`, `wait`
 - **File System Tools**: `read_file`, `replace`
-- **System Tools**: `get_system_stats`, `get_open_windows`, `run_shell_command`, `process`
+- **System Tools**: `get_system_stats`, `get_open_windows`, `open_app`, `run_shell_command`, `process`
 - **Browser Tools**: `browser`
 
 ### Backend Responsibilities (No Tool Execution)
@@ -403,6 +403,7 @@ No dual-shape fallback is supported in provider transport.
 
 - **get_system_stats**: System statistics
 - **get_open_windows**: List open windows
+- **open_app**: Launch GUI app detached from sidecar lifecycle with optional window/screenshot verification
 - **run_shell_command**: Execute shell command (supports `yield_after_seconds` + `env` overrides; defaults to user home directory when `directory` is omitted; foreground `llm_content` is truncated by default to ~10,000 tokens with marker support via `max_output_tokens`; use `process` for background sessions)
 - **process**: Manage background shell sessions (poll/log/write/kill)
 

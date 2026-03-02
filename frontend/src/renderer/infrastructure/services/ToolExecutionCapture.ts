@@ -220,5 +220,11 @@ function resolveScreenshotValue(data: Record<string, any>): string | null {
   if (typeof data.image_data === 'string') {
     return data.image_data;
   }
+  if (typeof data.screenshot_ref === 'string' && data.screenshot_ref.trim().length > 0) {
+    return `artifact://${data.screenshot_ref.trim()}`;
+  }
+  if (typeof data.screenshot_url === 'string' && data.screenshot_url.trim().length > 0) {
+    return data.screenshot_url.trim();
+  }
   return null;
 }
