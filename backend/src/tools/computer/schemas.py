@@ -123,14 +123,16 @@ class KeyboardControlArgs(BaseModel):
         description=(
             "Keyboard action to perform: type (text input), paste (clipboard insert), "
             "press (single key), or hotkey (combined keys)."
-            " Prefer keyboard-driven navigation over clicking when equivalent."
+            " Prefer keyboard-driven navigation over clicking when equivalent. "
+            "Use press/hotkey for submit actions only when submission is explicitly intended."
         ),
     )
     text: Optional[str] = Field(
         None,
         description=(
-            "Text payload for action='type' or action='paste'. Use with deterministic follow-up key presses when needed "
-            "(for example, submit after input)."
+            "Text payload for action='type' or action='paste'. For multiline or long text, prefer paste. "
+            "After input, verify the text is visible in the latest screenshot instead of assuming tool success means UI success. "
+            "If text is missing, retry once with the alternate input mode (type vs paste); if still missing, refocus the field and retry."
         ),
     )
     key: Optional[str] = Field(
