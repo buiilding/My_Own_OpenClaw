@@ -319,7 +319,7 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
                 "success": True,
                 "data": state
             }
-        except Exception as e:
+        except BaseException as e:
             logger.error(f"Failed to get system state: {e}", exc_info=True)
             return {
                 "success": False,
