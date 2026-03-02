@@ -16,7 +16,19 @@ from memory.watermark_state import WatermarkStateStore  # noqa: E402
 @pytest.fixture(autouse=True)
 def use_default_executor(monkeypatch):
     # Keep tests deterministic by using the loop default executor.
-    monkeypatch.setattr("core.thread_pool.get_executor", lambda: None)
+    monkeypatch.setattr(
+        "core.thread_pool.get_executor",
+        lambda max_workers=10: None,
+    )
+    monkeypatch.setattr(
+        "core.executors.get_interactive_executor",
+        lambda max_workers=None: None,
+    )
+    monkeypatch.setattr(
+        system_metrics_module,
+        "get_interactive_executor",
+        lambda max_workers=None: None,
+    )
 
 
 def test_collect_system_stats_sync_reads_cpu_memory_and_battery(monkeypatch):

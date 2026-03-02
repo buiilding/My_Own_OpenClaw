@@ -43,6 +43,7 @@ read_when:
 ## Sidecar
 
 - **Single capture after tool execution**: screenshots are captured once per tool/bundle to avoid redundant work.
+- **Bounded executor routing**: sidecar now uses split interactive/background executors, with interactive bound as loop default to prevent unbounded default-thread growth on macOS-heavy capture/state paths.
 
 ## Tips
 

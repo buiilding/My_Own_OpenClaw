@@ -15,6 +15,8 @@ import tempfile
 import time
 from typing import Dict, Any, Optional
 
+from core.executors import get_interactive_executor
+
 logger = logging.getLogger(__name__)
 
 
@@ -456,7 +458,7 @@ async def capture_screenshot(args: Dict[str, Any]) -> Dict[str, Any]:
             }
 
         loop = asyncio.get_event_loop()
-        capture_payload = await loop.run_in_executor(None, _capture)
+        capture_payload = await loop.run_in_executor(get_interactive_executor(), _capture)
 
         return {
             "success": True,
