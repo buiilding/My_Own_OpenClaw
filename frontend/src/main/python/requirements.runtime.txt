@@ -3,6 +3,9 @@
 # Aggregated full profile:
 # - core sidecar runtime dependencies
 # - browser feature-pack dependencies
+# - browser extraction LLM provider dependencies
 
 -r requirements.runtime.core.txt
 -r requirements.runtime.browser.txt
+-r requirements.runtime.browser-llm-openai.txt
+-r requirements.runtime.browser-llm-google.txt

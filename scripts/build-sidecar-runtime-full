@@ -2,5 +2,5 @@
 set -euo pipefail
 
 WINDIE_SIDECAR_RUNTIME_MODE=full \
-WINDIE_SIDECAR_RUNTIME_PROFILE=core+browser \
+WINDIE_SIDECAR_RUNTIME_PROFILE=full \
 bash "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/build-sidecar-runtime"

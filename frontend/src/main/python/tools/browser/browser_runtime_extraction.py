@@ -8,6 +8,13 @@ from pathlib import Path
 import sys
 from typing import Any, Callable
 
+from core.feature_pack_installer import (
+    build_feature_pack_manual_install_message,
+    ensure_feature_pack_site_packages_on_path,
+    install_feature_pack,
+    is_feature_pack_available,
+)
+
 ImportModuleFn = Callable[[str], Any]
 
 OPENAI_COMPAT_EXTRACTION_DEFAULT_BASE_URLS: dict[str, str] = {
@@ -15,6 +22,15 @@ OPENAI_COMPAT_EXTRACTION_DEFAULT_BASE_URLS: dict[str, str] = {
     "ollama": "http://localhost:11434/v1",
     "lmstudio": "http://localhost:1234/v1",
     "kimi_coding": "https://api.kimi.com/coding",
+}
+
+EXTRACTION_PROVIDER_FEATURE_PACKS: dict[str, str] = {
+    "openai": "browser_llm_openai",
+    "openrouter": "browser_llm_openai",
+    "ollama": "browser_llm_openai",
+    "lmstudio": "browser_llm_openai",
+    "kimi_coding": "browser_llm_openai",
+    "google": "browser_llm_google",
 }
 
 
@@ -29,6 +45,34 @@ def normalize_provider_name(provider_name: str | None) -> str | None:
     if normalized == "gemini":
         return "google"
     return normalized
+
+
+def get_extraction_feature_pack(provider_name: str | None) -> str | None:
+    normalized_provider = normalize_provider_name(provider_name)
+    if normalized_provider is None:
+        return None
+    return EXTRACTION_PROVIDER_FEATURE_PACKS.get(normalized_provider)
+
+
+def ensure_extraction_feature_pack_available(provider_name: str | None) -> str | None:
+    feature_pack = get_extraction_feature_pack(provider_name)
+    if feature_pack is None:
+        return None
+
+    ensure_feature_pack_site_packages_on_path()
+    if is_feature_pack_available(feature_pack):
+        return None
+
+    ok, install_error = install_feature_pack(feature_pack)
+    if ok and is_feature_pack_available(feature_pack):
+        return None
+
+    install_reason = install_error or "Unknown pip failure."
+    return (
+        f"Browser extraction feature pack '{feature_pack}' installation failed. "
+        f"{install_reason} "
+        f"{build_feature_pack_manual_install_message(feature_pack)}"
+    )
 
 
 def resolve_windie_extraction_target(

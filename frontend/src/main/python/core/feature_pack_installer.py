@@ -20,10 +20,14 @@ APP_NAME = "desktop-assistant"
 
 _FEATURE_PACK_REQUIREMENTS: Dict[str, str] = {
     "browser": "requirements.runtime.browser.txt",
+    "browser_llm_openai": "requirements.runtime.browser-llm-openai.txt",
+    "browser_llm_google": "requirements.runtime.browser-llm-google.txt",
 }
 
 _FEATURE_PACK_MODULE_MARKERS: Dict[str, Tuple[str, ...]] = {
-    "browser": ("playwright", "cdp_use", "httpx"),
+    "browser": ("playwright", "cdp_use", "httpx", "pyotp"),
+    "browser_llm_openai": ("openai",),
+    "browser_llm_google": ("google.genai",),
 }
 
 
