@@ -104,6 +104,7 @@ frontend/src/
 3. If required-now permission state is incomplete (or manifest version changed), app stays in onboarding wizard.
 4. Wizard/request actions call `REQUEST_PERMISSION` and `RUN_PERMISSION_PROBE`; settings "Data controls" renders the same control center component.
 5. Normal dashboard unlocks only after required permissions are granted and planned-system-access disclosure consent is stored.
+6. Post-permission first-run slideshow gate (renderer onboarding state in localStorage) presents two onboarding slides before dashboard mount.
 
 ## Main Process Responsibilities
 
@@ -156,6 +157,7 @@ Primary modules:
   - Executes incoming tool calls/bundles, stale-turn cancellation responses.
 - `features/chat/components/ChatInterface.jsx`:
   - Provider + model selectors, stop/new-chat actions, speech toggle, retry/edit message flows.
+  - Dedicated loop-stop shortcut handler (`Ctrl+Alt+.` on Windows/Linux, `Command+Option+.` on macOS) wired to the same stop-query path as the stop button.
 - `features/chat/components/MessageList.jsx`:
   - Message rendering + inline user-message editor.
 

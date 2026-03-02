@@ -12,6 +12,13 @@ read_when:
 2. Start the frontend UI: `./scripts/run-frontend-dev`
 3. Launch Electron: `./scripts/run-frontend-electron`
 
+## First-Run Onboarding
+
+- After required permission onboarding is complete, WindieOS shows a short two-step onboarding slideshow.
+- Slide 1 confirms access requirements for OS-level actions (screen state + control capabilities).
+- Slide 2 shows the dedicated loop-stop keybind: **Ctrl + Alt + .** (Windows/Linux) or **Command + Option + .** (macOS).
+- The slideshow is shown once and then persisted locally.
+
 ## Two Windows
 
 - **Chatbox**: small overlay at bottom-center. Always-on-top. Click-through when the agent is busy; clickable when idle.
@@ -47,6 +54,7 @@ Default section on open: **Chat**.
 - Mode badge shows **Chat** or **Agent**.
 - **New Chat** starts a fresh conversation immediately (new conversation id) and clears the visible timeline.
 - **Stop** cancels the active response/tool run and returns the UI to ready state.
+- Dedicated stop shortcut: **Ctrl + Alt + .** (Windows/Linux) or **Command + Option + .** (macOS).
 - **Shift + Tab** toggles Chat/Agent mode.
 
 ### Episodic Memory

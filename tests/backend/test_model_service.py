@@ -97,7 +97,7 @@ async def _get_local_models_with_factory(monkeypatch, factory: dict):
         "backend.src.llm.providers.create_provider_factory",
         lambda _cfg: factory,
     )
-    service = ModelService(AppConfig())
+    service = ModelService(AppConfig(model_mode="local"))
     return await service.get_local_models()
 
 
@@ -174,7 +174,12 @@ async def test_get_local_models_filters_invalid_model_entries(monkeypatch):
     models = await _get_local_models_with_factory(monkeypatch, factory)
 
     assert models == [
-        {"id": "valid-model", "provider": "ollama", "display_name": "ollama/valid-model"}
+        {
+            "id": "valid-model",
+            "provider": "ollama",
+            "display_name": "ollama/valid-model",
+            "runtime_model_id": "valid-model",
+        }
     ]
 
 
@@ -184,7 +189,12 @@ async def test_get_local_models_accepts_iterable_provider_payloads(monkeypatch):
     models = await _get_local_models_with_factory(monkeypatch, factory)
 
     assert models == [
-        {"id": "g-model", "provider": "ollama", "display_name": "ollama/g-model"}
+        {
+            "id": "g-model",
+            "provider": "ollama",
+            "display_name": "ollama/g-model",
+            "runtime_model_id": "g-model",
+        }
     ]
 
 
@@ -218,6 +228,7 @@ async def test_get_local_models_skips_provider_discovery_in_online_mode(monkeypa
                 "id": "spaced-model",
                 "provider": "ollama",
                 "display_name": "ollama/spaced-model",
+                "runtime_model_id": "spaced-model",
             },
         ),
         (
@@ -230,6 +241,7 @@ async def test_get_local_models_skips_provider_discovery_in_online_mode(monkeypa
                 "id": "valid-model",
                 "provider": "ollama",
                 "display_name": "ollama/valid-model",
+                "runtime_model_id": "valid-model",
             },
         ),
         (
@@ -242,6 +254,7 @@ async def test_get_local_models_skips_provider_discovery_in_online_mode(monkeypa
                 "id": "valid-model",
                 "provider": "ollama",
                 "display_name": "ollama/valid-model",
+                "runtime_model_id": "valid-model",
             },
         ),
     ],

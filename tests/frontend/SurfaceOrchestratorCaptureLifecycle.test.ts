@@ -46,7 +46,7 @@ describe('surfaceOrchestrator capture lifecycle', () => {
     ]);
   });
 
-  test('skips capture-level chat-pill restore when nested inside screenshot surface token', async () => {
+  test('restores chat pill at capture-level when nested inside screenshot surface token', async () => {
     (IpcBridge.invoke as jest.Mock).mockImplementation(async (channel: string) => {
       if (channel === INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY) {
         return { success: true, data: { visible: true } };
@@ -63,11 +63,34 @@ describe('surfaceOrchestrator capture lifecycle', () => {
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
       [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
       [INVOKE_CHANNELS.HIDE_CHATBOX],
+      [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
     ]);
 
     await restoreToolExecutionSurface(toolPreparation);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
       [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
+      [INVOKE_CHANNELS.HIDE_CHATBOX],
+      [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
+    ]);
+  });
+
+  test('hides and restores chat pill for capture nested inside interactive surface token', async () => {
+    const toolPreparation = await prepareToolExecutionSurface('interactive');
+    const capturePreparation = await prepareScreenshotCaptureVisibility({ captureId: 'capture-interactive-nested' });
+
+    expect(capturePreparation.restoreChatPillAfterCapture).toBe(true);
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
+      [INVOKE_CHANNELS.HIDE_CHATBOX],
+    ]);
+
+    await restoreScreenshotCaptureVisibility(capturePreparation);
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
+      [INVOKE_CHANNELS.HIDE_CHATBOX],
+      [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
+    ]);
+
+    await restoreToolExecutionSurface(toolPreparation);
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
       [INVOKE_CHANNELS.HIDE_CHATBOX],
       [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
     ]);

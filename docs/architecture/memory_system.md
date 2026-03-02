@@ -126,8 +126,10 @@ $mem = Join-Path $env:APPDATA "desktop-assistant\\memory"; Remove-Item -Force `
 - Batch gate still applies after run gate: a conversation batch is summarized only if batch size and age checks pass.
 - Batch gate defaults:
   - Immediate summarize when batch size `>= min_batch_size` (`6`).
-  - Otherwise requires `>= min_batch_size_idle` (`6`) plus age checks.
-- Because both defaults are `6`, the effective per-conversation requirement is typically at least 6 unsemanticized interaction rows.
+  - Otherwise requires `>= min_batch_size_idle` (`3`) plus age checks.
+- Effective behavior:
+  - active/high-volume conversations summarize at 6 rows.
+  - lower-volume conversations can summarize at 3 rows after idle/age checks.
 
 #### If there are 10 unsemanticized interaction rows, are exactly those 10 rows sent to one prompt?
 

@@ -83,6 +83,14 @@ class FakeShouldRunMemoryStore:
         return self.unsemanticized_count
 
 
+def test_summarizer_settings_defaults_favor_small_idle_batches_and_higher_cycle_throughput():
+    settings = SummarizerSettings()
+
+    assert settings.min_batch_size == 6
+    assert settings.min_batch_size_idle == 3
+    assert settings.max_summaries_per_cycle == 3
+
+
 @pytest.mark.asyncio
 async def test_summarizer_processes_interaction_batch():
     memories = [
