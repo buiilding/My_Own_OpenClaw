@@ -12,12 +12,12 @@ This page is the capability-first technical catalog for `frontend/src`.
 
 ## Coverage Snapshot (2026-02-27)
 
-- Main process (`frontend/src/main`, `.cjs|.js`): `35`
+- Main process (`frontend/src/main`, `.cjs|.js`): `37`
 - Sidecar runtime (`frontend/src/main/python`, `.py`): `141`
 - Renderer runtime (`frontend/src/renderer`, `.ts|.tsx|.js|.jsx`): `139`
 - Landing (`frontend/src/landing`, `.jsx|.css`): `13`
 - Preload bridge (`frontend/src/preload.js`): `1`
-- Total covered frontend files: `329`
+- Total covered frontend files: `331`
 
 ## IPC Surface Snapshot (Typed Renderer Channel Catalog)
 
@@ -33,7 +33,9 @@ Primary files:
 - `frontend/src/main/index.cjs`
 - `frontend/src/main/main_window_runtime.cjs`
 - `frontend/src/main/main_process_lifecycle_runtime.cjs`
-- `frontend/src/main/overlay_ipc_runtime.cjs`
+- `frontend/src/main/overlay_phase_ipc_runtime.cjs`
+- `frontend/src/main/window_controls_ipc_runtime.cjs`
+- `frontend/src/main/permission_ipc_runtime.cjs`
 - `frontend/src/main/window_visibility_runtime.cjs`
 - `frontend/src/main/overlay_signal_runtime.cjs`
 - `frontend/src/main/overlay_window_helpers_runtime.cjs`

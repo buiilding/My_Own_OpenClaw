@@ -27,7 +27,9 @@ const {
 const {
   initializeMainProcessLifecycleRuntime,
 } = require('./main_process_lifecycle_runtime.cjs');
-const { initializeOverlayHandlersRuntime } = require('./overlay_ipc_runtime.cjs');
+const { initializeOverlayPhaseHandlersRuntime } = require('./overlay_phase_ipc_runtime.cjs');
+const { initializeWindowControlHandlersRuntime } = require('./window_controls_ipc_runtime.cjs');
+const { initializePermissionHandlersRuntime } = require('./permission_ipc_runtime.cjs');
 const {
   getChatWindowBounds: getOverlayChatWindowBounds,
   getResponseWindowBounds: getOverlayResponseWindowBounds,
@@ -68,7 +70,7 @@ let mainWindow = null;
 let chatWindow = null;
 let responseWindow = null;
 let contextLabelWindow = null;
-let overlayHandlersInitialized = false;
+let mainProcessIpcHandlersInitialized = false;
 let responseOverlayVisible = false;
 let responseOverlayPhase = 'idle';
 const WAKEWORD_HOTKEY = 'Super+Alt+W';
@@ -120,7 +122,6 @@ function isResponseOverlayStreamingPhase() {
 const {
   ensureResponseOverlayFallbackBounds,
   positionChatWindow,
-  getChatWindowBounds,
   getResponseWindowBounds,
   positionResponseWindow,
   positionContextLabelWindow,
@@ -276,7 +277,7 @@ function createWindow() {
     showChatWindow,
     emitWakewordSttTrigger,
     initializeLocalBackendBridge,
-    initializeOverlayHandlers,
+    initializeOverlayHandlers: initializeMainProcessIpcHandlers,
     getLatestFrontendConfig,
     getWindows: () => ({
       mainWindow,
@@ -367,28 +368,23 @@ initializeMainProcessLifecycleRuntime({
   stopLocalBackend,
 });
 
-/**
- * Initializes IPC handler for delayed window minimization.
- * Minimizes window after 2 seconds if visible or focused, and not already minimized.
- */
-function initializeOverlayHandlers() {
-  if (overlayHandlersInitialized) {
+function initializeMainProcessIpcHandlers() {
+  if (mainProcessIpcHandlersInitialized) {
     return;
   }
-  overlayHandlersInitialized = true;
-  initializeOverlayHandlersRuntime({
+  mainProcessIpcHandlersInitialized = true;
+
+  const getWindows = () => ({
+    mainWindow,
+    chatWindow,
+    responseWindow,
+    contextLabelWindow,
+  });
+
+  initializeOverlayPhaseHandlersRuntime({
     ipcMain,
     screen,
-    shell,
-    systemPreferences,
-    platform: process.platform,
-    getWindows: () => ({
-      mainWindow,
-      chatWindow,
-      responseWindow,
-      contextLabelWindow,
-    }),
-    getChatWindowBounds,
+    getWindows,
     positionResponseWindow,
     positionContextLabelWindow,
     syncContextLabelWindowVisibility,
@@ -396,11 +392,24 @@ function initializeOverlayHandlers() {
     getResponseWindowBounds,
     setResponseOverlayVisibilityState,
     showResponseWindowWhenChatVisible,
-    showMainWindow,
     showChatWindow,
     hideChatWindow,
+    warn: console.warn,
+  });
+
+  initializeWindowControlHandlersRuntime({
+    ipcMain,
+    screen,
+    getWindows,
+    showMainWindow,
     normalizeMainWindowOpenTarget,
     emitMainWindowOpenTarget,
-    warn: console.warn,
+  });
+
+  initializePermissionHandlersRuntime({
+    ipcMain,
+    shell,
+    systemPreferences,
+    platform: process.platform,
   });
 }

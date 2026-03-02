@@ -26,7 +26,9 @@ title: "Frontend Contracts IPC Docs Hub"
 - `frontend/src/main/ipc_query_broadcast.cjs`
 - `frontend/src/main/ipc_query_events.cjs`
 - `frontend/src/main/index.cjs`
-- `frontend/src/main/overlay_ipc_runtime.cjs`
+- `frontend/src/main/overlay_phase_ipc_runtime.cjs`
+- `frontend/src/main/window_controls_ipc_runtime.cjs`
+- `frontend/src/main/permission_ipc_runtime.cjs`
 - `frontend/src/main/window_visibility_runtime.cjs`
 - `frontend/src/main/main_process_lifecycle_runtime.cjs`
 - `frontend/src/main/permission_service.cjs`

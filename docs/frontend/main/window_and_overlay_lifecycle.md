@@ -15,7 +15,9 @@ Primary modules:
 - `frontend/src/main/index.cjs`
 - `frontend/src/main/main_window_runtime.cjs`
 - `frontend/src/main/main_process_lifecycle_runtime.cjs`
-- `frontend/src/main/overlay_ipc_runtime.cjs`
+- `frontend/src/main/overlay_phase_ipc_runtime.cjs`
+- `frontend/src/main/window_controls_ipc_runtime.cjs`
+- `frontend/src/main/permission_ipc_runtime.cjs`
 - `frontend/src/main/window_visibility_runtime.cjs`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/local_backend_bridge_window_visibility.cjs`
@@ -149,16 +151,21 @@ Dashboard-to-chat-pill conversation continuity:
 
 ## Main IPC Handlers for Window Control
 
-Handlers in `overlay_ipc_runtime.cjs` (wired by `index.cjs`):
+Handlers split across narrow registrars (wired by `index.cjs`):
 
+- `overlay_phase_ipc_runtime.cjs`
 - `set-responsebox-size`:
   - default mode: bounded resize (`width <= 900`, `height <= 750`), show/hide + re-anchor above chat
   - fullscreen ghost mode (`full_screen=true`): expands response overlay to the active display bounds for anywhere-on-screen ghost cursor rendering
 - `move-chatbox-to`: direct chat overlay drag positioning
-- `show-main-window` (optional `{ open, maximize }`; forwards `main-window-open-target` when open target is accepted)
 - `show-chatbox`, `hide-chatbox`
+- `window_controls_ipc_runtime.cjs`
+- `show-main-window` (optional `{ open, maximize }`; forwards `main-window-open-target` when open target is accepted)
 - `get-displays`: returns display id/label/bounds/scaleFactor
 - `window-minimize`, `window-toggle-maximize`, `window-close`
+- `permission_ipc_runtime.cjs`
+- `set-agent-sudo-access`
+- `list-permissions`, `check-permissions`, `check-permission`, `run-permission-probe`, `request-permission`
 
 Legacy overlay interactivity/focus-prep invoke handlers were removed; the shared response-overlay phase handler now owns active-loop click-through/`focusable=false`, and query-capture focus prep remains an internal main-process callback.
 

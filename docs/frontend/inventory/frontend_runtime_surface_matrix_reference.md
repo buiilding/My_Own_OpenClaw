@@ -12,19 +12,19 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 
 ## Coverage Snapshot (2026-02-27)
 
-- Main process files: `35`
+- Main process files: `37`
 - Sidecar python files: `141`
 - Renderer files: `139`
 - Landing files: `13`
 - Preload files: `1`
-- Total covered frontend files: `329`
+- Total covered frontend files: `331`
 
 ## Runtime Surface Ownership
 
 | Surface | Primary entry modules | Core orchestrators | Exit/response paths |
 | --- | --- | --- | --- |
 | Electron app runtime | `frontend/src/main/index.cjs`, `frontend/src/main/main_window_runtime.cjs`, `frontend/src/main/main_process_lifecycle_runtime.cjs` | Window/tray setup, lifecycle listeners, bridge initializers | Renderer windows + process shutdown |
-| Main overlay/window runtime | `frontend/src/main/overlay_ipc_runtime.cjs`, `frontend/src/main/window_visibility_runtime.cjs`, `frontend/src/main/overlay_signal_runtime.cjs`, `frontend/src/main/overlay_window_helpers_runtime.cjs` | Overlay IPC registration, chat/main visibility transitions, overlay side-channel signals, positioning/top-most helpers | Overlay + main window state transitions |
+| Main overlay/window runtime | `frontend/src/main/{overlay_phase_ipc_runtime,window_controls_ipc_runtime,permission_ipc_runtime}.cjs`, `frontend/src/main/window_visibility_runtime.cjs`, `frontend/src/main/overlay_signal_runtime.cjs`, `frontend/src/main/overlay_window_helpers_runtime.cjs` | Split IPC registration, chat/main visibility transitions, overlay side-channel signals, positioning/top-most helpers | Overlay + main window state transitions |
 | Main process backend bridge | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc_runtime_helpers.cjs`, `frontend/src/main/ipc_renderer_windows.cjs`, `frontend/src/main/ipc_query_broadcast.cjs`, `frontend/src/main/ipc_settings_sync.cjs` | WebSocket session, settings ACK gate, relay fan-out | IPC events to renderer |
 | Main process sidecar bridge | `frontend/src/main/local_backend_bridge.cjs` | Python subprocess lifecycle, JSON-RPC correlation | Tool/system/memory responses |
 | Main process wakeword bridge | `frontend/src/main/wakeword_bridge.cjs` | Wakeword subprocess lifecycle + binary framing | Wakeword events to renderer/main IPC |

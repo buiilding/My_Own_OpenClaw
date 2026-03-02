@@ -33,7 +33,9 @@ frontend/src/
 │   ├── window_visibility_runtime.cjs      # Main/chat overlay visibility operations (show/hide/maximize)
 │   ├── overlay_window_helpers_runtime.cjs # Overlay bounds/position/on-top/context-label runtime helpers
 │   ├── overlay_signal_runtime.cjs         # Wakeword + overlay visibility signal fan-out helpers
-│   ├── overlay_ipc_runtime.cjs            # IPC channel registration for overlay/window/permission handlers
+│   ├── overlay_phase_ipc_runtime.cjs      # Phase-owned overlay surface IPC registration (chat/response shell sizing + visibility)
+│   ├── window_controls_ipc_runtime.cjs    # Main-window/display control IPC registration
+│   ├── permission_ipc_runtime.cjs         # Permission + sudo IPC registration
 │   ├── main_process_lifecycle_runtime.cjs # app.whenReady/activate/quit lifecycle wiring + shortcut registration
 │   ├── local_backend_bridge*.cjs          # Main <-> sidecar JSON-RPC bridge
 │   ├── wakeword_bridge.cjs                # Main <-> wakeword subprocess bridge
@@ -110,7 +112,7 @@ Primary modules:
 - `main/index.cjs`:
   - Main-process composition root: assembles runtime modules and shared state references.
   - Delegates lifecycle boot/activate/quit wiring to `main_process_lifecycle_runtime.cjs`.
-  - Delegates overlay/window/permission IPC handler registration to `overlay_ipc_runtime.cjs`.
+  - Delegates split IPC handler registration to `overlay_phase_ipc_runtime.cjs`, `window_controls_ipc_runtime.cjs`, and `permission_ipc_runtime.cjs`.
   - Delegates visibility and overlay positioning helpers to `window_visibility_runtime.cjs`, `overlay_window_helpers_runtime.cjs`, and `overlay_signal_runtime.cjs`.
 - `main/ipc.cjs`:
   - Single backend WebSocket client lifecycle and reconnect.

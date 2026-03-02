@@ -108,7 +108,7 @@ Renderer touchpoints:
 Main touchpoints:
 
 - `ipc.cjs` + `ipc_runtime_helpers.cjs` (backend message -> overlay phase mapping)
-- `overlay_ipc_runtime.cjs` (IPC handlers: show/hide/focus prep/click-through)
+- split IPC registrars (`overlay_phase_ipc_runtime.cjs`, `window_controls_ipc_runtime.cjs`, `permission_ipc_runtime.cjs`) now own show/hide and related main-process control channels; legacy focus-prep/click-through RPCs are gone
 - `main_window_runtime.cjs` (focus demotion + external focus verify)
 - `window_visibility_runtime.cjs` (chat/main visibility policy)
 - `external_focus_tracker.cjs` (platform focus tracking)

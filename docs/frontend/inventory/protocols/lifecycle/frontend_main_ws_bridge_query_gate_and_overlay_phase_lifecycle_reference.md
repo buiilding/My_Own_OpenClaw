@@ -23,7 +23,7 @@ Lifecycle contract sources:
 - Synthetic local query events: `frontend/src/main/ipc_query_events.cjs`
 - Overlay phase -> window visibility behavior: `frontend/src/main/response_overlay_phase_handler.cjs`, `frontend/src/main/index.cjs`
 - Wakeword + overlay signal emitters: `frontend/src/main/main_window_runtime.cjs`, `frontend/src/main/overlay_signal_runtime.cjs`
-- Main-window target routing from invoke handler to dashboard: `frontend/src/main/overlay_ipc_runtime.cjs`, `frontend/src/main/main_window_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
+- Main-window target routing from invoke handler to dashboard: `frontend/src/main/window_controls_ipc_runtime.cjs`, `frontend/src/main/main_window_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
 - Chatbox wakeword trigger handling: `frontend/src/renderer/features/chat/components/ChatBox.jsx`
 - Renderer boundary allowlists: `frontend/src/preload.js`, `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - Primary lifecycle tests: `tests/frontend/IpcMainBridge.lifecycle.test.cjs`, `tests/frontend/IpcMainBridge.query.test.cjs`, `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`, `tests/frontend/ChatGptDashboardShell.test.jsx`
@@ -183,7 +183,7 @@ Guardrails validated in tests:
 
 ## Main-Window Open Target Routing Lifecycle
 
-`show-main-window` invoke routing (`overlay_ipc_runtime.cjs`):
+`show-main-window` invoke routing (`window_controls_ipc_runtime.cjs`):
 
 1. `handleShowMainWindow(...)` executes window open/maximize behavior.
 2. Target normalization only accepts one of: `chat`, `memory`, `models`, `settings`.
@@ -235,7 +235,7 @@ When changing this lifecycle, keep synchronized:
 | query send bootstrap + optimistic local echo | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc_query_events.cjs` | outbound query uses resolved conversation context and emits synthetic local-user-message before backend response |
 | overlay phase transition fan-out | `frontend/src/main/ipc.cjs`, `frontend/src/main/response_overlay_phase_handler.cjs` | canonical phase set drives renderer/state sync and response-window visibility behavior |
 | wakeword callback -> STT trigger | `frontend/src/main/index.cjs`, `frontend/src/main/main_window_runtime.cjs` | STT trigger emits only after chat window show succeeds |
-| show-main-window target routing | `frontend/src/main/overlay_ipc_runtime.cjs`, dashboard shell listener | target normalization and event routing remain constrained to supported dashboard surfaces |
+| show-main-window target routing | `frontend/src/main/window_controls_ipc_runtime.cjs`, dashboard shell listener | target normalization and event routing remain constrained to supported dashboard surfaces |
 
 ## Related Deep Dives
 

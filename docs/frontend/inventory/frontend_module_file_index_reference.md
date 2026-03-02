@@ -14,7 +14,7 @@ This index maps frontend functionality to file ownership.
 
 | Surface | Files |
 | --- | ---: |
-| Main process (`frontend/src/main`, `.cjs`/`.js`) | 35 |
+| Main process (`frontend/src/main`, `.cjs`/`.js`) | 37 |
 | Sidecar Python (`frontend/src/main/python`, `.py`) | 141 |
 | Renderer runtime (`frontend/src/renderer`, TS/JS) | 139 |
 | Landing (`frontend/src/landing`, `.jsx`/`.css`) | 13 |
@@ -35,8 +35,9 @@ Core runtime:
 Overlay/window control helpers:
 
 - `frontend/src/main/overlay_visibility_handler.cjs`
-- `frontend/src/main/overlay_ipc_runtime.cjs`
-- `frontend/src/main/overlay_mouse_handler.cjs`
+- `frontend/src/main/overlay_phase_ipc_runtime.cjs`
+- `frontend/src/main/window_controls_ipc_runtime.cjs`
+- `frontend/src/main/permission_ipc_runtime.cjs`
 - `frontend/src/main/overlay_chatbox_handler.cjs`
 - `frontend/src/main/overlay_responsebox_handler.cjs`
 - `frontend/src/main/overlay_bounds.cjs`

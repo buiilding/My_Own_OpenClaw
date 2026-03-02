@@ -15,7 +15,9 @@ Primary entrypoint:
 - `frontend/src/main/index.cjs`
 - `frontend/src/main/main_window_runtime.cjs`
 - `frontend/src/main/main_process_lifecycle_runtime.cjs`
-- `frontend/src/main/overlay_ipc_runtime.cjs`
+- `frontend/src/main/overlay_phase_ipc_runtime.cjs`
+- `frontend/src/main/window_controls_ipc_runtime.cjs`
+- `frontend/src/main/permission_ipc_runtime.cjs`
 - `frontend/src/main/window_visibility_runtime.cjs`
 
 Responsibilities:
@@ -26,7 +28,7 @@ Responsibilities:
 - Registers tray/shortcuts and always-on-top behavior for overlay windows.
 - Delegates BrowserWindow factory/bootstrap helpers to `main_window_runtime.cjs`.
 - Delegates lifecycle listeners/startup wiring to `main_process_lifecycle_runtime.cjs`.
-- Delegates overlay/window IPC handler registration to `overlay_ipc_runtime.cjs`.
+- Delegates split IPC handler registration to `overlay_phase_ipc_runtime.cjs`, `window_controls_ipc_runtime.cjs`, and `permission_ipc_runtime.cjs`.
 - Delegates chat/main visibility transitions to `window_visibility_runtime.cjs`.
 
 See [Main Window Runtime Factory and Overlay Bootstrap Reference](main_window_runtime_factory_and_overlay_bootstrap_reference.md) for extracted helper boundaries.

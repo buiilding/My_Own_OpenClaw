@@ -14,12 +14,12 @@ This is the canonical current-state functionality inventory for `frontend/src`.
 
 Source counts used in this inventory:
 
-- Main process (`frontend/src/main`, `.cjs|.js`): `35`
+- Main process (`frontend/src/main`, `.cjs|.js`): `37`
 - Sidecar runtime (`frontend/src/main/python`, `.py`): `141`
 - Renderer runtime (`frontend/src/renderer`, `.ts|.tsx|.js|.jsx`): `139`
 - Landing (`frontend/src/landing`, `.jsx|.css`): `13`
 - Preload bridge (`frontend/src/preload.js`): `1`
-- Total covered frontend files: `329`
+- Total covered frontend files: `331`
 
 ## 1) Electron Main Process Inventory
 
@@ -30,11 +30,12 @@ Primary files:
 - `frontend/src/main/index.cjs`
 - `frontend/src/main/main_window_runtime.cjs`
 - `frontend/src/main/main_process_lifecycle_runtime.cjs`
-- `frontend/src/main/overlay_ipc_runtime.cjs`
+- `frontend/src/main/overlay_phase_ipc_runtime.cjs`
+- `frontend/src/main/window_controls_ipc_runtime.cjs`
+- `frontend/src/main/permission_ipc_runtime.cjs`
 - `frontend/src/main/window_visibility_runtime.cjs`
 - `frontend/src/main/overlay_bounds.cjs`
 - `frontend/src/main/overlay_visibility_handler.cjs`
-- `frontend/src/main/overlay_mouse_handler.cjs`
 - `frontend/src/main/overlay_chatbox_handler.cjs`
 - `frontend/src/main/overlay_responsebox_handler.cjs`
 - `frontend/src/main/overlay_renderer_registration.cjs`
@@ -53,7 +54,7 @@ Functionality:
 - Emits overlay visibility and wakeword-toggle side-channel events via overlay signal runtime.
 - Centralizes overlay positioning/top-most helpers in dedicated window-helper runtime module.
 - Maintains overlay z-order and click-through behavior.
-- Registers overlay/window/permission invoke handlers through dedicated overlay IPC runtime helper.
+- Registers split main-process IPC handlers through dedicated overlay-phase, window-control, and permission registrars.
 - Handles overlay repositioning on display/window changes.
 - Centralizes show/hide/main-window maximize/focus visibility flow in dedicated window visibility runtime helper.
 - Tracks external focused window before overlay query capture and restores focus.

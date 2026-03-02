@@ -20,7 +20,9 @@ title: "IPC Channel and Handler Reference"
 - `frontend/src/main/ipc_query_broadcast.cjs`
 - `frontend/src/main/ipc_query_events.cjs`
 - `frontend/src/main/index.cjs`
-- `frontend/src/main/overlay_ipc_runtime.cjs`
+- `frontend/src/main/overlay_phase_ipc_runtime.cjs`
+- `frontend/src/main/window_controls_ipc_runtime.cjs`
+- `frontend/src/main/permission_ipc_runtime.cjs`
 - `frontend/src/main/window_visibility_runtime.cjs`
 - `frontend/src/main/main_process_lifecycle_runtime.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
@@ -49,7 +51,7 @@ Behavior:
 
 ### `move-chatbox-to`
 
-Owner: `overlay_ipc_runtime.cjs` (registered via `index.cjs`)
+Owner: `overlay_phase_ipc_runtime.cjs` (registered via `index.cjs`)
 
 Behavior:
 
@@ -82,16 +84,23 @@ Behavior:
 - `get-client-user-id` -> returns websocket user/session endpoint metadata
 - `upload-artifact` -> multipart upload to backend HTTP `/api/artifacts/`
 
-## Window/overlay channels (`overlay_ipc_runtime.cjs`, wired by `index.cjs`)
+## Phase-owned overlay channels (`overlay_phase_ipc_runtime.cjs`, wired by `index.cjs`)
 
+- `set-chatbox-visual-anchor-height` -> chat-pill anchor height updates for deterministic response overlay re-anchoring
 - `set-responsebox-size` -> bounded response overlay resize/show/hide
-- `show-main-window` -> shows main window; optional payload `{ open?: 'chat' | 'memory' | 'models' | 'settings', maximize?: boolean }` emits `main-window-open-target` when accepted
 - `show-chatbox`
 - `hide-chatbox`
+
+## Window control channels (`window_controls_ipc_runtime.cjs`, wired by `index.cjs`)
+
+- `show-main-window` -> shows main window; optional payload `{ open?: 'chat' | 'memory' | 'models' | 'settings', maximize?: boolean }` emits `main-window-open-target` when accepted
 - `get-displays`
 - `window-minimize`
 - `window-toggle-maximize`
 - `window-close`
+
+## Permission channels (`permission_ipc_runtime.cjs`, wired by `index.cjs`)
+
 - `set-agent-sudo-access`
 - `list-permissions`
 - `check-permissions`
@@ -150,7 +159,7 @@ Permission onboarding and settings data-controls use invoke-only channels:
 - `run-permission-probe`: explicit one-permission probe rerun
 - `request-permission`: best-effort OS request flow + post-request probe
 
-These channels are registered in `overlay_ipc_runtime.cjs` and delegated to `permission_service.cjs`.
+These channels are registered in `permission_ipc_runtime.cjs` and delegated to `permission_service.cjs`.
 
 ## `to-backend` Query Relay Lifecycle (main process)
 
