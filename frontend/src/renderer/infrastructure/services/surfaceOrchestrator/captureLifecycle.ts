@@ -1,6 +1,5 @@
 import { logSurfaceTransition } from './logging';
 import {
-  resolveCaptureFocusPreparationWaitMs,
   resolveSurfaceTransitionContext,
 } from './context';
 import {
@@ -17,9 +16,9 @@ import {
   setPendingScreenshotCaptureRestore,
 } from './state';
 import {
-  SURFACE_REASON_CAPTURE_FOCUS_PREPARE_FAILED,
   SURFACE_REASON_CAPTURE_OVERLAP_REUSE,
   SURFACE_REASON_CAPTURE_RESTORE_FAILED,
+  SURFACE_REASON_NO_TRANSITION_NEEDED,
   SURFACE_REASON_PREPARE_CAPTURE_VISIBILITY_FAILED,
 } from './reasons';
 import {
@@ -27,7 +26,6 @@ import {
   type CaptureVisibilityPreparation,
   type SurfaceTransitionSource,
 } from './types';
-import { prepareOverlayToolFocus } from './focusPreparation';
 
 export async function prepareScreenshotCaptureVisibility(
   options: {
@@ -208,33 +206,12 @@ export async function prepareExternalFocusForCapture(
   );
   const source = context.source;
   const captureId = context.correlationId;
-  const waitMs = resolveCaptureFocusPreparationWaitMs(options.waitMs);
-
-  try {
-    logSurfaceTransition({
-      source,
-      correlationId: captureId,
-      mode: 'screenshot',
-      phaseBefore: SURFACE_PHASE.CAPTURE_READY,
-      phaseAfter: SURFACE_PHASE.PREPARING_INTERACTIVE_FOCUS,
-    });
-    await prepareOverlayToolFocus(waitMs, { skipDemotion: true });
-    logSurfaceTransition({
-      source,
-      correlationId: captureId,
-      mode: 'screenshot',
-      phaseBefore: SURFACE_PHASE.PREPARING_INTERACTIVE_FOCUS,
-      phaseAfter: SURFACE_PHASE.CAPTURE_READY,
-    });
-  } catch (error) {
-    console.warn('[SurfaceOrchestrator] Failed to prepare external focus before capture:', error);
-    logSurfaceTransition({
-      source,
-      correlationId: captureId,
-      mode: 'screenshot',
-      phaseBefore: SURFACE_PHASE.PREPARING_INTERACTIVE_FOCUS,
-      phaseAfter: SURFACE_PHASE.FAILED_TERMINAL,
-      reason: SURFACE_REASON_CAPTURE_FOCUS_PREPARE_FAILED,
-    });
-  }
+  logSurfaceTransition({
+    source,
+    correlationId: captureId,
+    mode: 'screenshot',
+    phaseBefore: SURFACE_PHASE.CAPTURE_READY,
+    phaseAfter: SURFACE_PHASE.CAPTURE_READY,
+    reason: SURFACE_REASON_NO_TRANSITION_NEEDED,
+  });
 }

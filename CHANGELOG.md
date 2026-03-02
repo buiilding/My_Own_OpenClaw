@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-surface-contract): trim the renderer surface-orchestrator payload/state to the minimal execution contract, remove generic window/tab refocus churn from the chat pill, and align focused overlay/runtime docs plus regressions with the explicit phase-owned interaction model.
 - refactor(frontend-overlay-phase-mode): centralize main-process overlay phase handling behind explicit phase-to-window modes, keep `tool-output` as its own shared overlay phase, and align focused phase-handler regressions with the simplified loop state model.
 - fix(frontend-chatpill-loop-simplification): remove Linux main-process duplicate screenshot hide/restore so renderer owns the only collapse path, lock the response overlay to a fixed height to avoid mid-stream resize flicker, and update stale frontend overlay/runtime regressions plus docs to match the simpler phase-driven chat pill model.
 - refactor(frontend-platform-screenshot-visibility): split frontend screenshot visibility and content protection policy into explicit Linux/Windows/macOS modules, keep renderer chat-pill hide/restore Linux-only, update related docs/tests, and refresh stale onboarding test coverage so frontend `test:ci` stays green.

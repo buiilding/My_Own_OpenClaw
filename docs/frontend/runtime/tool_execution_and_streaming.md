@@ -80,7 +80,6 @@ Module:
 - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/platform/chatPillVisibility/*`
 - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/context.ts`
 - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/preparation.ts`
-- `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/focusPreparation.ts`
 - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/windowVisibility.ts`
 - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/reasons.ts`
 - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/types.ts` (`SURFACE_PHASE` constants)
@@ -92,11 +91,11 @@ Responsibilities:
 - centralized mode resolution (`none | interactive | screenshot`) for single tools and bundles
 - shared chat-pill visibility collapse/restore helper used by both tool-execution and screenshot-capture lifecycles
 - chat-pill visibility selector now routes Linux hide/show to `platform/chatPillVisibility/linux.ts`; Windows/macOS are explicit no-op modules because protected overlays already rely on Electron content protection
-- shared transition-context and focus-default resolver helper (`context.ts`) for source/correlation-id/wait-attempt defaults across tool and capture lifecycles
+- shared transition-context resolver helper (`context.ts`) for source/correlation-id normalization across tool and capture lifecycles
 - capture focus prep now resolves as a no-op lifecycle marker; frontend no longer asks main process to restore/verify an external window before screenshot capture
 - main-process `platform/screenshot_window_visibility/*` runtimes are now no-op for all OSes; Linux capture hide/show is owned entirely by the renderer orchestrator so screenshot execution has one collapse/restore path
 - capture restore path also resolves source/correlation through the shared context helper so hide/show completion logs keep the same normalized contract as prepare/focus transitions
-- shared `ToolSurfacePreparation` builder helper (`preparation.ts`) to keep ready/failure payload shapes stable across tool-lifecycle branches
+- shared `ToolSurfacePreparation` builder helper (`preparation.ts`) keeps the tool-lifecycle payload minimal (`canExecute`, `failureReason`, `surfaceToken`, `mode`, `correlationId`)
 - shared main-window visibility probe helper (`windowVisibility.ts`) for screenshot-mode collapse decisions
 - shared transition/failure reason constants (`reasons.ts`) so logged `reason` fields stay stable across tool/capture paths
 - shared `SURFACE_PHASE` constants in `types.ts` to keep transition phase names consistent across all logs/branches

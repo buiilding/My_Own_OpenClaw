@@ -147,222 +147,80 @@ describe('toolRunnerSurface helpers', () => {
     ]);
   });
 
-  test('retries interactive focus preparation until external focus verifies', async () => {
-    let focusAttemptCount = 0;
-    (IpcBridge.invoke as jest.Mock).mockImplementation(async (channel: string) => {
-      if (channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS) {
-        focusAttemptCount += 1;
-        return {
-          success: true,
-          data: {
-            canVerifyExternalFocus: true,
-            externalFocusActive: focusAttemptCount >= 3,
-          },
-        };
-      }
-      return { success: true };
-    });
-
+  test('keeps interactive surface prep policy-only and avoids direct overlay toggles', async () => {
     const preparation = await prepareToolExecutionSurface('interactive');
     expect(preparation.canExecute).toBe(true);
     expect(preparation.failureReason).toBeNull();
-    expect(preparation.overlayIgnoreEnabled).toBe(true);
-    expect(preparation.overlayNonFocusableEnabled).toBe(true);
-    expect(focusAttemptCount).toBe(3);
-    expect(IpcBridge.invoke).toHaveBeenCalledWith(INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE, {
-      ignore: true,
-    });
-    expect(IpcBridge.invoke).toHaveBeenCalledWith(INVOKE_CHANNELS.SET_OVERLAY_FOCUSABLE, {
-      focusable: false,
-    });
-    expect(IpcBridge.invoke).toHaveBeenCalledWith(INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS, {
-      waitMs: 180,
-      skipDemotion: true,
-    });
-    const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
-    const firstIgnoreCallIndex = invokeCalls.findIndex(
-      ([channel]: unknown[]) => channel === INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE,
-    );
-    const firstFocusCallIndex = invokeCalls.findIndex(
-      ([channel]: unknown[]) => channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS,
-    );
-    expect(firstIgnoreCallIndex).toBeLessThan(firstFocusCallIndex);
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([]);
 
     await restoreToolExecutionSurface(preparation);
-    expect(IpcBridge.invoke).toHaveBeenCalledWith(INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE, {
-      ignore: false,
-    });
-    expect(IpcBridge.invoke).toHaveBeenCalledWith(INVOKE_CHANNELS.SET_OVERLAY_FOCUSABLE, {
-      focusable: true,
-    });
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([]);
   });
 
-  test('fails interactive surface prep after exhausting focus verification retries', async () => {
-    let focusAttemptCount = 0;
-    (IpcBridge.invoke as jest.Mock).mockImplementation(async (channel: string) => {
-      if (channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS) {
-        focusAttemptCount += 1;
-        return {
-          success: true,
-          data: {
-            canVerifyExternalFocus: true,
-            externalFocusActive: false,
-          },
-        };
-      }
-      return { success: true };
-    });
-
+  test('keeps interactive surface prep executable even without external focus verification', async () => {
     const preparation = await prepareToolExecutionSurface('interactive');
-    expect(preparation.canExecute).toBe(false);
-    expect(preparation.failureReason).toBe('external_window_focus_not_verified');
-    expect(focusAttemptCount).toBe(5);
+    expect(preparation.canExecute).toBe(true);
+    expect(preparation.failureReason).toBeNull();
   });
 
-  test('restores overlay interaction toggles when interactive focus prep exhausts retries', async () => {
-    (IpcBridge.invoke as jest.Mock).mockImplementation(async (channel: string) => {
-      if (channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS) {
-        return {
-          success: true,
-          data: {
-            canVerifyExternalFocus: true,
-            externalFocusActive: false,
-          },
-        };
-      }
-      return { success: true };
-    });
-
+  test('restores no renderer-side toggles after interactive execution completes', async () => {
     const preparation = await prepareToolExecutionSurface('interactive', {
-      correlationId: 'corr-no-click-through-on-failure',
-      focusMaxAttempts: 2,
+      correlationId: 'corr-interactive-complete',
     });
-    expect(preparation.canExecute).toBe(false);
-    expect(preparation.overlayIgnoreEnabled).toBe(true);
-    expect(preparation.overlayNonFocusableEnabled).toBe(true);
-    expect((IpcBridge.invoke as jest.Mock).mock.calls).toContainEqual([
-      INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE,
-      { ignore: true },
-    ]);
-    expect((IpcBridge.invoke as jest.Mock).mock.calls).toContainEqual([
-      INVOKE_CHANNELS.SET_OVERLAY_FOCUSABLE,
-      { focusable: false },
-    ]);
+    expect(preparation.canExecute).toBe(true);
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([]);
 
     await restoreToolExecutionSurface(preparation);
-    expect((IpcBridge.invoke as jest.Mock).mock.calls).toContainEqual([
-      INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE,
-      { ignore: false },
-    ]);
-    expect((IpcBridge.invoke as jest.Mock).mock.calls).toContainEqual([
-      INVOKE_CHANNELS.SET_OVERLAY_FOCUSABLE,
-      { focusable: true },
-    ]);
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([]);
   });
 
-  test('recovers from failed interactive prep on the next attempt', async () => {
-    let focusAttemptCount = 0;
-    (IpcBridge.invoke as jest.Mock).mockImplementation(async (channel: string) => {
-      if (channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS) {
-        focusAttemptCount += 1;
-        return {
-          success: true,
-          data: {
-            canVerifyExternalFocus: true,
-            externalFocusActive: focusAttemptCount >= 3,
-          },
-        };
-      }
-      return { success: true };
-    });
-
+  test('keeps overlapping interactive tokens free of renderer-side overlay IPC', async () => {
     const first = await prepareToolExecutionSurface('interactive', {
-      correlationId: 'corr-recovery-first',
-      focusMaxAttempts: 2,
+      correlationId: 'corr-overlap-first',
     });
-    expect(first.canExecute).toBe(false);
-    expect(first.overlayIgnoreEnabled).toBe(true);
-    expect(first.overlayNonFocusableEnabled).toBe(true);
-    await restoreToolExecutionSurface(first);
-
     const second = await prepareToolExecutionSurface('interactive', {
-      correlationId: 'corr-recovery-second',
-      focusMaxAttempts: 2,
+      correlationId: 'corr-overlap-second',
     });
     expect(second.canExecute).toBe(true);
-    expect(second.overlayIgnoreEnabled).toBe(true);
-    expect(second.overlayNonFocusableEnabled).toBe(true);
-    expect(IpcBridge.invoke).toHaveBeenCalledWith(INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE, {
-      ignore: true,
-    });
-    expect(IpcBridge.invoke).toHaveBeenCalledWith(INVOKE_CHANNELS.SET_OVERLAY_FOCUSABLE, {
-      focusable: false,
-    });
+
+    await restoreToolExecutionSurface(first);
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([]);
 
     await restoreToolExecutionSurface(second);
-    expect(IpcBridge.invoke).toHaveBeenCalledWith(INVOKE_CHANNELS.SET_OVERLAY_IGNORE_MOUSE, {
-      ignore: false,
-    });
-    expect(IpcBridge.invoke).toHaveBeenCalledWith(INVOKE_CHANNELS.SET_OVERLAY_FOCUSABLE, {
-      focusable: true,
-    });
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([]);
   });
 
-  test('allows interactive execution when external focus verification is unavailable', async () => {
-    (IpcBridge.invoke as jest.Mock).mockImplementation(async (channel: string) => {
-      if (channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS) {
-        return {
-          success: true,
-          data: {
-            canVerifyExternalFocus: false,
-            externalFocusActive: false,
-          },
-        };
-      }
-      return { success: true };
-    });
-
+  test('does not invoke focus preparation IPC for interactive execution', async () => {
     const preparation = await prepareToolExecutionSurface('interactive');
     expect(preparation.canExecute).toBe(true);
     expect(preparation.failureReason).toBeNull();
+    expect((IpcBridge.invoke as jest.Mock).mock.calls.some(
+      ([channel]: unknown[]) => channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS,
+    )).toBe(false);
   });
 
-  test('logs correlation-id retries and terminal failure transitions for interactive prep exhaustion', async () => {
+  test('logs ready transitions for interactive prep without retry metadata', async () => {
     const previousNodeEnv = process.env.NODE_ENV;
     process.env.NODE_ENV = 'development';
     const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
-    (IpcBridge.invoke as jest.Mock).mockImplementation(async (channel: string) => {
-      if (channel === INVOKE_CHANNELS.PREPARE_OVERLAY_TOOL_FOCUS) {
-        return {
-          success: true,
-          data: {
-            canVerifyExternalFocus: true,
-            externalFocusActive: false,
-          },
-        };
-      }
-      return { success: true };
-    });
 
     const preparation = await prepareToolExecutionSurface('interactive', {
-      correlationId: 'corr-focus-retry',
-      focusMaxAttempts: 2,
+      correlationId: 'corr-interactive-ready',
     });
 
-    expect(preparation.canExecute).toBe(false);
+    expect(preparation.canExecute).toBe(true);
     expect(consoleLogSpy).toHaveBeenCalledWith(
       '[SurfaceOrchestrator] transition',
       expect.objectContaining({
-        correlation_id: 'corr-focus-retry',
-        attempt: 1,
+        correlation_id: 'corr-interactive-ready',
+        phase_after: 'preparing_interactive_focus',
       }),
     );
     expect(consoleLogSpy).toHaveBeenCalledWith(
       '[SurfaceOrchestrator] transition',
       expect.objectContaining({
-        correlation_id: 'corr-focus-retry',
-        phase_after: 'failed_terminal',
-        reason: 'external_window_focus_not_verified',
+        correlation_id: 'corr-interactive-ready',
+        phase_after: 'interactive_ready',
       }),
     );
 

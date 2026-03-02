@@ -150,13 +150,13 @@ describe('ChatBox overlay mouse ignore', () => {
     jest.useRealTimers();
   });
 
-  test('defaults to interactive overlay without requesting live window resize', () => {
+  test('does not manage overlay click-through from the renderer and avoids live window resize', () => {
     render(<ChatBox />);
 
-    const sawInteractive = mockInvoke.mock.calls.some(
-      ([channel, payload]) => channel === 'set-overlay-ignore-mouse' && payload?.ignore === false,
+    const sawRendererMouseToggle = mockInvoke.mock.calls.some(
+      ([channel]) => channel === 'set-overlay-ignore-mouse',
     );
-    expect(sawInteractive).toBe(true);
+    expect(sawRendererMouseToggle).toBe(false);
     expect(mockInvoke.mock.calls.some(
       ([channel, payload]) => channel === 'set-chatbox-visual-anchor-height' && payload?.height === 64,
     )).toBe(true);
@@ -298,7 +298,7 @@ describe('ChatBox overlay mouse ignore', () => {
     );
   });
 
-  test('keeps only stop interactive during active loop phases', () => {
+  test('locks pill controls during active loop phases and leaves send disabled', () => {
     mockChatState.streamTracking.phase = 'streaming';
     render(<ChatBox />);
 
@@ -308,13 +308,9 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(screen.getByPlaceholderText('Ask me anything...')).toBeDisabled();
 
     fireEvent.click(screen.getByRole('button', { name: 'Open dashboard' }));
-    expectInvokeCall(([channel, payload]) => (
-      channel === 'set-overlay-ignore-mouse' && payload?.ignore === false
-    ));
     expect(mockInvoke.mock.calls.some(([channel]) => channel === 'show-main-window')).toBe(false);
-
-    fireEvent.click(screen.getByRole('button', { name: 'Stop response' }));
-    expect(mockStopQuery).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('button', { name: 'Send message' })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Stop response' })).not.toBeInTheDocument();
   });
 
   test('does not render compaction control when dev UI flag is disabled', () => {
@@ -357,21 +353,35 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(mockSend).not.toHaveBeenCalledWith('move-chatbox-to', expect.anything());
   });
 
-  test('auto-focuses input when chatbox window gains focus', () => {
+  test('auto-focuses input on mount', () => {
+    render(<ChatBox />);
+    const input = screen.getByPlaceholderText('Ask me anything...');
+
+    expect(document.activeElement).toBe(input);
+  });
+
+  test('responds only to explicit chatbox-focus events and ignores generic window focus churn', () => {
     render(<ChatBox />);
     const input = screen.getByPlaceholderText('Ask me anything...');
 
     input.blur();
     fireEvent.focus(window);
+    expect(document.activeElement).not.toBe(input);
+
+    act(() => {
+      mockListeners.get('chatbox-focus')?.();
+    });
     expect(document.activeElement).toBe(input);
   });
 
-  test('does not auto-focus input while stop-only mode is active', () => {
+  test('does not focus input from chatbox-focus while loop interaction is locked', () => {
     mockChatState.streamTracking.phase = 'tool-call';
     render(<ChatBox />);
     const input = screen.getByPlaceholderText('Ask me anything...');
 
-    fireEvent.focus(window);
+    act(() => {
+      mockListeners.get('chatbox-focus')?.();
+    });
     expect(document.activeElement).not.toBe(input);
   });
 
@@ -401,44 +411,27 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(input).toHaveValue('');
   });
 
-  test('replaces send button with stop button during active stream and dispatches stop-query', () => {
+  test('keeps send button rendered but disabled during active stream', () => {
     mockChatState.streamTracking.phase = 'streaming';
     render(<ChatBox />);
 
-    expect(screen.queryByRole('button', { name: 'Send message' })).not.toBeInTheDocument();
-    const stopButton = screen.getByRole('button', { name: 'Stop response' });
-    fireEvent.click(stopButton);
-
-    expect(mockStopQuery).toHaveBeenCalledTimes(1);
-    expect(mockSetIsSending).toHaveBeenCalledWith(false);
-    expect(mockSetThinkingStatus).toHaveBeenCalledWith(null);
-    expect(mockSetThinkingSourceEventType).toHaveBeenCalledWith(null);
-    expect(mockUpdateStreamTracking).toHaveBeenCalledTimes(1);
-
-    const streamUpdater = mockUpdateStreamTracking.mock.calls[0][0];
-    expect(typeof streamUpdater).toBe('function');
-    const nextState = streamUpdater({
-      phase: 'streaming',
-      completedAt: null,
-      lastEventAt: null,
-      lastEventType: null,
-    });
-    expect(nextState.phase).toBe('complete');
-    expect(nextState.lastEventType).toBe('stop-query');
-    expect(typeof nextState.completedAt).toBe('string');
-    expect(typeof nextState.lastEventAt).toBe('string');
+    expect(screen.getByRole('button', { name: 'Send message' })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Stop response' })).not.toBeInTheDocument();
+    expect(mockStopQuery).not.toHaveBeenCalled();
+    expect(mockSetIsSending).not.toHaveBeenCalled();
+    expect(mockUpdateStreamTracking).not.toHaveBeenCalled();
   });
 
-  test('dispatches stop-query immediately when isSending is true before first stream event', () => {
+  test('keeps send button disabled when isSending is true before first stream event', () => {
     mockChatState.streamTracking.phase = 'idle';
     mockChatState.isSending = true;
     render(<ChatBox />);
 
-    expect(screen.queryByRole('button', { name: 'Send message' })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Stop response' }));
-    expect(mockStopQuery).toHaveBeenCalledTimes(1);
-    expect(mockSetIsSending).toHaveBeenCalledWith(false);
-    expect(mockUpdateStreamTracking).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('button', { name: 'Send message' })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Stop response' })).not.toBeInTheDocument();
+    expect(mockStopQuery).not.toHaveBeenCalled();
+    expect(mockSetIsSending).not.toHaveBeenCalled();
+    expect(mockUpdateStreamTracking).not.toHaveBeenCalled();
   });
 
   test('does not start wakeword STT voice mode when setting is disabled', () => {

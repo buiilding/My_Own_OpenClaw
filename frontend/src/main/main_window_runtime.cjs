@@ -4,102 +4,32 @@ const {
 } = require('./platform/content_protection/index.cjs');
 const CHATBOX_OVERLAY_FIXED_WIDTH = 520;
 const CHATBOX_OVERLAY_FIXED_HEIGHT = 116;
-const OVERLAY_FOCUS_DEMOTION_SETTLE_MS = 50;
-
-function getOverlayRestoreList({ responseWindow, chatWindow }) {
-  return [responseWindow, chatWindow]
-    .filter((win) => win && !win.isDestroyed())
-    .map((win) => ({ win, wasVisible: win.isVisible() }));
-}
-
-async function demoteOverlayFocusWithoutStealing({
-  responseWindow,
-  chatWindow,
-}) {
-  const restoreList = getOverlayRestoreList({ responseWindow, chatWindow });
-  if (restoreList.length === 0) {
-    return false;
-  }
-  for (const { win, wasVisible } of restoreList) {
-    if (wasVisible) {
-      win.hide();
-    }
-  }
-  await new Promise((resolve) => setTimeout(resolve, OVERLAY_FOCUS_DEMOTION_SETTLE_MS));
-  for (const { win, wasVisible } of restoreList) {
-    if (!wasVisible || win.isDestroyed()) {
-      continue;
-    }
-    if (typeof win.showInactive === 'function') {
-      win.showInactive();
-    } else {
-      win.show();
-      if (typeof win.blur === 'function') {
-        win.blur();
-      }
-    }
-    try {
-      win.setAlwaysOnTop(true, 'floating');
-      if (typeof win.moveTop === 'function') {
-        win.moveTop();
-      }
-    } catch (_error) {
-      // No-op: best effort only.
-    }
-  }
-  return true;
-}
 
 async function prepareOverlayQueryCaptureFocus({
   chatWindow,
   responseWindow,
   mainWindow,
-  externalFocusTracker,
   waitMs = 120,
-  skipDemotion = false,
 }) {
   if (chatWindow && !chatWindow.isDestroyed() && typeof chatWindow.blur === 'function') {
     chatWindow.blur();
   }
+  if (responseWindow && !responseWindow.isDestroyed() && typeof responseWindow.blur === 'function') {
+    responseWindow.blur();
+  }
   if (mainWindow && !mainWindow.isDestroyed() && typeof mainWindow.blur === 'function') {
     mainWindow.blur();
   }
-  const canTrackExternalFocus = (
-    typeof externalFocusTracker?.canTrackExternalFocus === 'function'
-      ? externalFocusTracker.canTrackExternalFocus()
-      : false
-  );
-  const restoredExternalFocus = canTrackExternalFocus
-    ? externalFocusTracker.restorePreviousExternalFocusedWindow()
-    : false;
-  const demotedOverlayFocus = (!restoredExternalFocus && !skipDemotion)
-    ? await demoteOverlayFocusWithoutStealing({ responseWindow, chatWindow })
-    : false;
-  const canVerifyExternalFocus = (
-    canTrackExternalFocus
-    && typeof externalFocusTracker?.isPreviousExternalFocusedWindowActive === 'function'
-  );
-  const shouldWaitForVerification = restoredExternalFocus && canVerifyExternalFocus;
-  let externalFocusActive = false;
 
-  if (shouldWaitForVerification) {
-    const waitDeadline = Date.now() + Math.max(0, waitMs);
-    while (Date.now() <= waitDeadline) {
-      if (externalFocusTracker.isPreviousExternalFocusedWindowActive()) {
-        externalFocusActive = true;
-        break;
-      }
-      await new Promise((resolve) => setTimeout(resolve, 20));
-    }
-  } else if (waitMs > 0) {
+  if (waitMs > 0) {
     await new Promise((resolve) => setTimeout(resolve, waitMs));
   }
 
   return {
-    restoredExternalFocus,
-    demotedOverlayFocus,
-    externalFocusActive,
-    canVerifyExternalFocus,
+    restoredExternalFocus: false,
+    demotedOverlayFocus: false,
+    externalFocusActive: false,
+    canVerifyExternalFocus: false,
   };
 }
 

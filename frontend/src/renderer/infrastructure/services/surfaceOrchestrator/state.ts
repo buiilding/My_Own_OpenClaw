@@ -1,8 +1,6 @@
 type SurfaceOrchestratorState = {
   nextSurfaceToken: number;
   activeSurfaceTokens: Set<number>;
-  activeOverlayIgnoreTokens: Set<number>;
-  activeOverlayNonFocusableTokens: Set<number>;
   pendingChatPillRestore: boolean;
   activeScreenshotCaptureCount: number;
   pendingScreenshotCaptureRestore: boolean;
@@ -13,8 +11,6 @@ type SurfaceOrchestratorState = {
 const state: SurfaceOrchestratorState = {
   nextSurfaceToken: 1,
   activeSurfaceTokens: new Set<number>(),
-  activeOverlayIgnoreTokens: new Set<number>(),
-  activeOverlayNonFocusableTokens: new Set<number>(),
   pendingChatPillRestore: false,
   activeScreenshotCaptureCount: 0,
   pendingScreenshotCaptureRestore: false,
@@ -58,42 +54,6 @@ export function releaseSurfaceToken(surfaceToken: number | null): boolean {
   return state.activeSurfaceTokens.size === 0;
 }
 
-export function markOverlayIgnoreForToken(surfaceToken: number | null): void {
-  if (typeof surfaceToken !== 'number') {
-    return;
-  }
-  state.activeOverlayIgnoreTokens.add(surfaceToken);
-}
-
-export function unmarkOverlayIgnoreForToken(surfaceToken: number | null): boolean {
-  if (typeof surfaceToken !== 'number') {
-    return false;
-  }
-  if (!state.activeOverlayIgnoreTokens.has(surfaceToken)) {
-    return false;
-  }
-  state.activeOverlayIgnoreTokens.delete(surfaceToken);
-  return state.activeOverlayIgnoreTokens.size === 0;
-}
-
-export function markOverlayNonFocusableForToken(surfaceToken: number | null): void {
-  if (typeof surfaceToken !== 'number') {
-    return;
-  }
-  state.activeOverlayNonFocusableTokens.add(surfaceToken);
-}
-
-export function unmarkOverlayNonFocusableForToken(surfaceToken: number | null): boolean {
-  if (typeof surfaceToken !== 'number') {
-    return false;
-  }
-  if (!state.activeOverlayNonFocusableTokens.has(surfaceToken)) {
-    return false;
-  }
-  state.activeOverlayNonFocusableTokens.delete(surfaceToken);
-  return state.activeOverlayNonFocusableTokens.size === 0;
-}
-
 export function setPendingChatPillRestore(pending: boolean): void {
   state.pendingChatPillRestore = pending;
 }
@@ -126,8 +86,6 @@ export function isPendingScreenshotCaptureRestore(): boolean {
 
 export function resetSurfaceOrchestratorStateForTests(): void {
   state.activeSurfaceTokens.clear();
-  state.activeOverlayIgnoreTokens.clear();
-  state.activeOverlayNonFocusableTokens.clear();
   state.nextSurfaceToken = 1;
   state.pendingChatPillRestore = false;
   state.activeScreenshotCaptureCount = 0;

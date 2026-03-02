@@ -4,21 +4,15 @@ export function buildToolSurfacePreparation(
   mode: SurfaceMode,
   correlationId: string,
   options: {
-    restoreChatPillAfterExecution: boolean;
     canExecute: boolean;
     failureReason: string | null;
     surfaceToken: number | null;
-    overlayIgnoreEnabled: boolean;
-    overlayNonFocusableEnabled: boolean;
   },
 ): ToolSurfacePreparation {
   return {
-    restoreChatPillAfterExecution: options.restoreChatPillAfterExecution,
     canExecute: options.canExecute,
     failureReason: options.failureReason,
     surfaceToken: options.surfaceToken,
-    overlayIgnoreEnabled: options.overlayIgnoreEnabled,
-    overlayNonFocusableEnabled: options.overlayNonFocusableEnabled,
     mode,
     correlationId,
   };

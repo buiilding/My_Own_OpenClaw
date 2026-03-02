@@ -444,6 +444,10 @@ function initializeIpc(win, options = {}) {
       return;
     }
 
+    if (type === 'stop-query') {
+      setResponseOverlayPhase('complete', 'stop-query');
+    }
+
     // Only log important message types
     if (type === 'query' || type === 'wakeword-detected') {
       log(`Received ${type} from renderer`);

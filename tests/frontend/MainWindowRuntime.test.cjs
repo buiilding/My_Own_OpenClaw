@@ -51,8 +51,9 @@ describe('main_window_runtime prepareOverlayQueryCaptureFocus', () => {
     };
   }
 
-  test('blurs assistant windows and verifies restored external focus before return', async () => {
+  test('blurs assistant windows and returns a non-verifying result', async () => {
     const chatWindow = createFocusableWindow();
+    const responseWindow = createFocusableWindow();
     const mainWindow = createFocusableWindow();
     const externalFocusTracker = {
       canTrackExternalFocus: jest.fn().mockReturnValue(true),
@@ -62,25 +63,27 @@ describe('main_window_runtime prepareOverlayQueryCaptureFocus', () => {
 
     const result = await prepareOverlayQueryCaptureFocus({
       chatWindow,
+      responseWindow,
       mainWindow,
       externalFocusTracker,
       waitMs: 0,
     });
 
     expect(chatWindow.blur).toHaveBeenCalledTimes(1);
+    expect(responseWindow.blur).toHaveBeenCalledTimes(1);
     expect(mainWindow.blur).toHaveBeenCalledTimes(1);
-    expect(externalFocusTracker.canTrackExternalFocus).toHaveBeenCalledTimes(1);
-    expect(externalFocusTracker.restorePreviousExternalFocusedWindow).toHaveBeenCalledTimes(1);
-    expect(externalFocusTracker.isPreviousExternalFocusedWindowActive).toHaveBeenCalledTimes(1);
+    expect(externalFocusTracker.canTrackExternalFocus).not.toHaveBeenCalled();
+    expect(externalFocusTracker.restorePreviousExternalFocusedWindow).not.toHaveBeenCalled();
+    expect(externalFocusTracker.isPreviousExternalFocusedWindowActive).not.toHaveBeenCalled();
     expect(result).toEqual({
-      restoredExternalFocus: true,
+      restoredExternalFocus: false,
       demotedOverlayFocus: false,
-      externalFocusActive: true,
-      canVerifyExternalFocus: true,
+      externalFocusActive: false,
+      canVerifyExternalFocus: false,
     });
   });
 
-  test('returns inactive verification result when restored app is not active', async () => {
+  test('ignores external focus tracker state when capture prep is blur-only', async () => {
     const externalFocusTracker = {
       canTrackExternalFocus: jest.fn().mockReturnValue(true),
       restorePreviousExternalFocusedWindow: jest.fn().mockReturnValue(true),
@@ -92,49 +95,7 @@ describe('main_window_runtime prepareOverlayQueryCaptureFocus', () => {
       waitMs: 0,
     });
 
-    expect(externalFocusTracker.isPreviousExternalFocusedWindowActive).toHaveBeenCalledTimes(1);
-    expect(result).toEqual({
-      restoredExternalFocus: true,
-      demotedOverlayFocus: false,
-      externalFocusActive: false,
-      canVerifyExternalFocus: true,
-    });
-  });
-
-  test('skips active-window verification when external focus cannot be restored', async () => {
-    const externalFocusTracker = {
-      canTrackExternalFocus: jest.fn().mockReturnValue(true),
-      restorePreviousExternalFocusedWindow: jest.fn().mockReturnValue(false),
-      isPreviousExternalFocusedWindowActive: jest.fn().mockReturnValue(true),
-    };
-
-    const result = await prepareOverlayQueryCaptureFocus({
-      externalFocusTracker,
-      waitMs: 0,
-    });
-
-    expect(externalFocusTracker.restorePreviousExternalFocusedWindow).toHaveBeenCalledTimes(1);
-    expect(externalFocusTracker.isPreviousExternalFocusedWindowActive).not.toHaveBeenCalled();
-    expect(result).toEqual({
-      restoredExternalFocus: false,
-      demotedOverlayFocus: false,
-      externalFocusActive: false,
-      canVerifyExternalFocus: true,
-    });
-  });
-
-  test('reports focus verification unavailable when platform tracking is disabled', async () => {
-    const externalFocusTracker = {
-      canTrackExternalFocus: jest.fn().mockReturnValue(false),
-      restorePreviousExternalFocusedWindow: jest.fn(),
-      isPreviousExternalFocusedWindowActive: jest.fn(),
-    };
-
-    const result = await prepareOverlayQueryCaptureFocus({
-      externalFocusTracker,
-      waitMs: 0,
-    });
-
+    expect(externalFocusTracker.canTrackExternalFocus).not.toHaveBeenCalled();
     expect(externalFocusTracker.restorePreviousExternalFocusedWindow).not.toHaveBeenCalled();
     expect(externalFocusTracker.isPreviousExternalFocusedWindowActive).not.toHaveBeenCalled();
     expect(result).toEqual({
@@ -145,45 +106,28 @@ describe('main_window_runtime prepareOverlayQueryCaptureFocus', () => {
     });
   });
 
-  test('demotes overlay focus without stealing focus when restore is unavailable', async () => {
+  test('waits for the requested settle interval without restoring external focus', async () => {
     jest.useFakeTimers();
-    try {
-      const responseWindow = {
-        isDestroyed: jest.fn().mockReturnValue(false),
-        isVisible: jest.fn().mockReturnValue(true),
-        hide: jest.fn(),
-        showInactive: jest.fn(),
-        setAlwaysOnTop: jest.fn(),
-        moveTop: jest.fn(),
-      };
-      const chatWindow = {
-        isDestroyed: jest.fn().mockReturnValue(false),
-        isVisible: jest.fn().mockReturnValue(true),
-        hide: jest.fn(),
-        showInactive: jest.fn(),
-        setAlwaysOnTop: jest.fn(),
-        moveTop: jest.fn(),
-      };
-      const externalFocusTracker = {
-        canTrackExternalFocus: jest.fn().mockReturnValue(false),
-      };
+    const externalFocusTracker = {
+      canTrackExternalFocus: jest.fn().mockReturnValue(true),
+      restorePreviousExternalFocusedWindow: jest.fn().mockReturnValue(false),
+      isPreviousExternalFocusedWindowActive: jest.fn().mockReturnValue(true),
+    };
 
+    try {
       const pending = prepareOverlayQueryCaptureFocus({
-        responseWindow,
-        chatWindow,
         externalFocusTracker,
-        waitMs: 0,
+        waitMs: 25,
       });
-      jest.advanceTimersByTime(55);
+      jest.advanceTimersByTime(25);
       const result = await pending;
 
-      expect(responseWindow.hide).toHaveBeenCalledTimes(1);
-      expect(chatWindow.hide).toHaveBeenCalledTimes(1);
-      expect(responseWindow.showInactive).toHaveBeenCalledTimes(1);
-      expect(chatWindow.showInactive).toHaveBeenCalledTimes(1);
+      expect(externalFocusTracker.canTrackExternalFocus).not.toHaveBeenCalled();
+      expect(externalFocusTracker.restorePreviousExternalFocusedWindow).not.toHaveBeenCalled();
+      expect(externalFocusTracker.isPreviousExternalFocusedWindowActive).not.toHaveBeenCalled();
       expect(result).toEqual({
         restoredExternalFocus: false,
-        demotedOverlayFocus: true,
+        demotedOverlayFocus: false,
         externalFocusActive: false,
         canVerifyExternalFocus: false,
       });
@@ -192,7 +136,7 @@ describe('main_window_runtime prepareOverlayQueryCaptureFocus', () => {
     }
   });
 
-  test('skips overlay demotion when skipDemotion is requested', async () => {
+  test('ignores skipDemotion and still returns blur-only result', async () => {
     const responseWindow = {
       isDestroyed: jest.fn().mockReturnValue(false),
       isVisible: jest.fn().mockReturnValue(true),
@@ -223,6 +167,9 @@ describe('main_window_runtime prepareOverlayQueryCaptureFocus', () => {
 
     expect(responseWindow.hide).not.toHaveBeenCalled();
     expect(chatWindow.hide).not.toHaveBeenCalled();
+    expect(typeof responseWindow.blur).toBe('undefined');
+    expect(typeof chatWindow.blur).toBe('undefined');
+    expect(externalFocusTracker.canTrackExternalFocus).not.toHaveBeenCalled();
     expect(result).toEqual({
       restoredExternalFocus: false,
       demotedOverlayFocus: false,
