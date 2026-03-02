@@ -1,0 +1,210 @@
+name: Desktop Release Artifacts
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      sidecar_profile:
+        description: "Bundled sidecar profile"
+        required: true
+        default: "core"
+        type: choice
+        options:
+          - core
+          - core+browser
+          - full
+      run_signing:
+        description: "Sign/notarize artifacts (requires secrets)"
+        required: true
+        default: true
+        type: boolean
+      publish_release:
+        description: "Publish GitHub release with built artifacts"
+        required: true
+        default: false
+        type: boolean
+      release_tag:
+        description: "Required when publish_release=true on manual runs (example: v0.6.2)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: Package (${{ matrix.label }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            label: linux
+            package_script: package:linux:bundled-python
+            artifacts: |
+              frontend/release/windieos_*_x86_64.AppImage
+              frontend/release/windieos_*_amd64.deb
+              frontend/release/windieos_*_x86_64.rpm
+            smoke_script: scripts/ci/smoke-linux-packages.sh
+          - os: windows-latest
+            label: windows
+            package_script: package:win:bundled-python
+            artifacts: |
+              frontend/release/*.exe
+            smoke_script: scripts/ci/smoke-windows-packages.ps1
+          - os: macos-14
+            label: macos
+            package_script: package:mac:bundled-python
+            artifacts: |
+              frontend/release/*.dmg
+              frontend/release/*.zip
+            smoke_script: scripts/ci/smoke-macos-packages.sh
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.12.0"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Validate signing secrets
+        if: ${{ (github.event_name != 'workflow_dispatch' || github.event.inputs.run_signing == 'true') && matrix.label == 'windows' }}
+        shell: bash
+        env:
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          [[ -n "${CSC_LINK}" ]] || { echo "Missing secret: CSC_LINK"; exit 1; }
+          [[ -n "${CSC_KEY_PASSWORD}" ]] || { echo "Missing secret: CSC_KEY_PASSWORD"; exit 1; }
+
+      - name: Validate macOS signing/notarization secrets
+        if: ${{ (github.event_name != 'workflow_dispatch' || github.event.inputs.run_signing == 'true') && matrix.label == 'macos' }}
+        shell: bash
+        env:
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -euo pipefail
+          [[ -n "${CSC_LINK}" ]] || { echo "Missing secret: CSC_LINK"; exit 1; }
+          [[ -n "${CSC_KEY_PASSWORD}" ]] || { echo "Missing secret: CSC_KEY_PASSWORD"; exit 1; }
+          [[ -n "${APPLE_ID}" ]] || { echo "Missing secret: APPLE_ID"; exit 1; }
+          [[ -n "${APPLE_APP_SPECIFIC_PASSWORD}" ]] || { echo "Missing secret: APPLE_APP_SPECIFIC_PASSWORD"; exit 1; }
+          [[ -n "${APPLE_TEAM_ID}" ]] || { echo "Missing secret: APPLE_TEAM_ID"; exit 1; }
+
+      - name: Install Linux smoke dependencies
+        if: ${{ matrix.label == 'linux' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y rpm xvfb
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Package desktop artifact
+        working-directory: frontend
+        shell: bash
+        env:
+          SIDECAR_PROFILE: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.sidecar_profile || 'core' }}
+          RUN_SIGNING: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_signing || 'true' }}
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -euo pipefail
+          export WINDIE_SIDECAR_RUNTIME_PROFILE="${SIDECAR_PROFILE}"
+          if [[ "${RUN_SIGNING}" != "true" ]]; then
+            export CSC_IDENTITY_AUTO_DISCOVERY="false"
+            export CSC_LINK=""
+            export CSC_KEY_PASSWORD=""
+            export APPLE_ID=""
+            export APPLE_APP_SPECIFIC_PASSWORD=""
+            export APPLE_TEAM_ID=""
+          fi
+          npm run "${{ matrix.package_script }}"
+
+      - name: Smoke test packaged artifact (Linux/macOS)
+        if: ${{ matrix.label != 'windows' }}
+        env:
+          WINDIE_REQUIRE_SIGNING: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.run_signing == 'true' }}
+        shell: bash
+        run: bash ${{ matrix.smoke_script }}
+
+      - name: Smoke test packaged artifact (Windows)
+        if: ${{ matrix.label == 'windows' }}
+        env:
+          WINDIE_REQUIRE_SIGNING: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.run_signing == 'true' }}
+        shell: pwsh
+        run: pwsh -File ${{ matrix.smoke_script }}
+
+      - name: Upload packaged artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-${{ matrix.label }}-${{ github.sha }}
+          path: ${{ matrix.artifacts }}
+          if-no-files-found: error
+          retention-days: 14
+
+  publish-release:
+    name: Publish GitHub Release
+    needs: package
+    if: ${{ startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_release == 'true') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all desktop artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          pattern: desktop-*
+          merge-multiple: true
+
+      - name: Resolve release tag
+        id: release_tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            echo "tag=${GITHUB_REF_NAME}" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          TAG="${{ github.event.inputs.release_tag }}"
+          if [[ -z "${TAG}" ]]; then
+            echo "release_tag input is required for manual publish_release runs." >&2
+            exit 1
+          fi
+          if [[ "${TAG}" != v* ]]; then
+            echo "release_tag must start with 'v' (example: v0.6.2)." >&2
+            exit 1
+          fi
+          echo "tag=${TAG}" >> "${GITHUB_OUTPUT}"
+
+      - name: Create or update release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release_tag.outputs.tag }}
+          generate_release_notes: true
+          files: release-assets/**/*
+          fail_on_unmatched_files: true
