@@ -414,6 +414,22 @@ async def test_handle_get_system_state_error(monkeypatch):
     assert result["error"] == "nope"
 
 
+@pytest.mark.asyncio
+async def test_handle_get_system_state_system_exit_error(monkeypatch):
+    backend = LocalBackend()
+
+    async def raise_state(fields=None):
+        raise SystemExit("tkinter missing")
+
+    from core import system_state as system_state_module
+
+    monkeypatch.setattr(system_state_module, "get_system_state", raise_state)
+
+    result = await backend._handle_get_system_state(fields=["active_window"])
+    assert result["success"] is False
+    assert result["error"] == "tkinter missing"
+
+
 def test_initialize_methods_keeps_memory_handlers_registered():
     backend = LocalBackend()
 

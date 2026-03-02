@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(sidecar-system-state-pyautogui-systemexit-guard): harden sidecar system-state probes so `pyautogui`/`mouseinfo` `SystemExit` failures (for example missing Linux `tkinter`) no longer terminate local backend; return safe fallback system-state errors instead, with sidecar regressions for `SystemExit` handling in both system-state probes and local-backend handler.
 - fix(packaging-linux-desktop-entry-schema): move Linux desktop-entry keys (`Name`, `StartupWMClass`) under `linux.desktop.entry` in electron-builder config so `electron-builder@26` validation passes during bundled-python Linux packaging.
 - perf(frontend-overlay-lazy-renderer-load): defer chat and response overlay renderer `loadRendererView` work until first window `show` in normal mode (keep debug response overlay eager), reducing launch-time renderer churn and startup lag; add `MainWindowRuntime` regressions for deferred chat/response load and debug eager-load behavior.
 - fix(frontend-screenshot-system-state-and-window-title): ensure explicit `screenshot` tool runs populate missing `system_state` via state-only capture when screenshot artifacts already exist, add regression coverage for the `screenshot_ref` path, and rename renderer document title from `Desktop Assistant` to `WindieOS` so active-window context reflects product branding.

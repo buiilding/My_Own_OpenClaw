@@ -282,19 +282,13 @@ async def _get_clipboard_preview(max_length: int = 100) -> str:
 async def get_screen_resolution() -> Optional[str]:
     """Get screen resolution."""
     try:
-        import pyautogui
-        
-        def _get_size():
-            return pyautogui.size()
-        
         loop = asyncio.get_event_loop()
-        size = await loop.run_in_executor(get_interactive_executor(), _get_size)
-        return f"{size.width}x{size.height}"
-    except ImportError:
-        logger.warning("pyautogui not available, cannot get screen resolution")
-        return None
+        size = await loop.run_in_executor(get_interactive_executor(), _get_screen_resolution_pyautogui)
+        if size is None:
+            return None
+        return f"{size[0]}x{size[1]}"
     except Exception as e:
-        logger.error(f"Failed to get screen resolution: {e}", exc_info=True)
+        logger.warning("Failed to get screen resolution: %s", e)
         return None
 
 
@@ -404,9 +398,36 @@ def _get_active_window_linux_xlib() -> Optional[str]:
 
 
 def _get_mouse_position_pyautogui():
-    import pyautogui
+    try:
+        import pyautogui
+    except ImportError as exc:
+        raise RuntimeError("pyautogui not available") from exc
+    except BaseException as exc:  # pragma: no cover - platform/import edge case
+        raise RuntimeError(f"failed to import pyautogui: {exc}") from exc
 
-    return pyautogui.position()
+    try:
+        return pyautogui.position()
+    except BaseException as exc:
+        raise RuntimeError(f"failed to read mouse position via pyautogui: {exc}") from exc
+
+
+def _get_screen_resolution_pyautogui() -> Optional[tuple[int, int]]:
+    try:
+        import pyautogui
+    except ImportError:
+        logger.warning("pyautogui not available, cannot get screen resolution")
+        return None
+    except BaseException as exc:  # pragma: no cover - platform/import edge case
+        raise RuntimeError(f"failed to import pyautogui: {exc}") from exc
+
+    if not callable(getattr(pyautogui, "size", None)):
+        raise RuntimeError("pyautogui missing size()")
+
+    try:
+        size = pyautogui.size()
+        return int(size.width), int(size.height)
+    except BaseException as exc:
+        raise RuntimeError(f"failed to read screen resolution via pyautogui: {exc}") from exc
 
 
 def _get_mouse_position_linux_xlib() -> Optional[tuple[int, int]]:

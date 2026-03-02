@@ -223,3 +223,27 @@ async def test_mouse_position_falls_back_to_xlib_when_pyautogui_fails(monkeypatc
     result = await system_state_module._get_mouse_position()
 
     assert result == "(42, 64)"
+
+
+def test_mouse_position_pyautogui_wraps_system_exit(monkeypatch):
+    class _PyAutoGUI:
+        @staticmethod
+        def position():
+            raise SystemExit("tkinter missing")
+
+    monkeypatch.setitem(sys.modules, "pyautogui", _PyAutoGUI)
+
+    with pytest.raises(RuntimeError, match="mouse position"):
+        system_state_module._get_mouse_position_pyautogui()
+
+
+def test_screen_resolution_pyautogui_wraps_system_exit(monkeypatch):
+    class _PyAutoGUI:
+        @staticmethod
+        def size():
+            raise SystemExit("tkinter missing")
+
+    monkeypatch.setitem(sys.modules, "pyautogui", _PyAutoGUI)
+
+    with pytest.raises(RuntimeError, match="screen resolution"):
+        system_state_module._get_screen_resolution_pyautogui()
