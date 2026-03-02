@@ -30,7 +30,9 @@ mac:
     - target: zip
 
 linux:
-  icon: src/main/assets/icons/windieos.app.png
+  # Use a standard Linux icon-set directory (16x16..1024x1024) so deb/rpm ship
+  # launcher icons under /usr/share/icons instead of falling back to generic icons.
+  icon: src/main/assets/icons/linux
   executableName: windieos
   artifactName: windieos_${version}_${arch}.${ext}
   desktop:
