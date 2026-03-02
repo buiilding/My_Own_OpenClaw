@@ -137,6 +137,9 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
     createChatWindow();
     createResponseWindow();
     createTray();
+    // First launch should present the dashboard immediately. Tray/pill mode
+    // still applies after close via existing close-handler behavior.
+    showMainWindow({ focus: true });
     syncWakewordToggleForChatVisibility();
 
     registerOverlayRendererWindows(

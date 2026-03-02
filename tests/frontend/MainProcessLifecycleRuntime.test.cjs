@@ -99,6 +99,7 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
     expect(deps.createChatWindow).toHaveBeenCalledTimes(1);
     expect(deps.createResponseWindow).toHaveBeenCalledTimes(1);
     expect(deps.createTray).toHaveBeenCalledTimes(1);
+    expect(deps.showMainWindow).toHaveBeenCalledWith({ focus: true });
     expect(deps.syncWakewordToggleForChatVisibility).toHaveBeenCalledTimes(1);
     expect(deps.screen.on).toHaveBeenCalledWith(
       'display-metrics-changed',
