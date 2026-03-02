@@ -17,16 +17,19 @@ asarUnpack:
 publish: null
 
 win:
+  icon: src/main/assets/icons/windieos.ico
   target:
     - target: nsis
 
 mac:
+  icon: src/main/assets/icons/windieos.icns
   category: public.app-category.productivity
   target:
     - target: dmg
     - target: zip
 
 linux:
+  icon: src/main/assets/icons/windieos.app.png
   category: Utility
   maintainer: WindieOS <support@windieos.com>
   target:

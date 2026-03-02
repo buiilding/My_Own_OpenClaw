@@ -419,9 +419,9 @@ describe('main_window_runtime resolveAppIconPathRuntime', () => {
     const result = resolveAppIconPathRuntime({
       resourcesPath: '/opt/windie',
       cwd: '/workspace/windie',
-      existsSync: (candidate) => candidate === '/opt/windie/src/main/assets/icons/windieos.png',
+      existsSync: (candidate) => candidate === '/opt/windie/src/main/assets/icons/windieos.app.png',
     });
 
-    expect(result).toBe('/opt/windie/src/main/assets/icons/windieos.png');
+    expect(result).toBe('/opt/windie/src/main/assets/icons/windieos.app.png');
   });
 });
