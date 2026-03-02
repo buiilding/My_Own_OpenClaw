@@ -1,0 +1,117 @@
+.frontend-onboarding-shell {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+  background: #050505;
+  color: #f3f3f3;
+}
+
+.frontend-onboarding-card {
+  width: min(760px, 100%);
+  border: 1px solid #262626;
+  border-radius: 16px;
+  padding: 42px 44px;
+  background: #0b0b0b;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.45);
+  display: grid;
+  gap: 20px;
+  font-family: "Avenir Next", Avenir, "Nunito Sans", "Segoe UI", sans-serif;
+}
+
+.frontend-onboarding-progress {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.3;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #bdbdbd;
+}
+
+.frontend-onboarding-title {
+  margin: 0;
+  font-size: clamp(36px, 6vw, 58px);
+  line-height: 1.05;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  color: #ffffff;
+}
+
+.frontend-onboarding-body {
+  margin: 0;
+  font-size: clamp(18px, 2.5vw, 22px);
+  line-height: 1.45;
+  font-weight: 400;
+  color: #d8d8d8;
+  max-width: 60ch;
+}
+
+.frontend-onboarding-emphasis {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  border: 1px solid #3a3a3a;
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: #111111;
+}
+
+.frontend-onboarding-emphasis-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: #a5a5a5;
+}
+
+.frontend-onboarding-emphasis-value {
+  font-size: 16px;
+  line-height: 1.2;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.frontend-onboarding-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+
+.frontend-onboarding-action-spacer {
+  width: 84px;
+}
+
+.frontend-onboarding-button {
+  border: 1px solid #444444;
+  border-radius: 999px;
+  padding: 11px 22px;
+  font-size: 15px;
+  line-height: 1;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.frontend-onboarding-button.secondary {
+  color: #e2e2e2;
+  background: #0f0f0f;
+}
+
+.frontend-onboarding-button.secondary:hover {
+  background: #1a1a1a;
+}
+
+.frontend-onboarding-button.primary {
+  color: #0b0b0b;
+  background: #ffffff;
+  border-color: #ffffff;
+}
+
+.frontend-onboarding-button.primary:hover {
+  background: #ececec;
+  border-color: #ececec;
+}
+
