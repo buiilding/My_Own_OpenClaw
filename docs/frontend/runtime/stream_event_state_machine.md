@@ -158,7 +158,11 @@ Cross-layer parity is guarded by `tests/frontend/OverlayPhaseContractParity.test
 Renderer uses that channel in parallel with `streamTracking.phase`:
 
 - `ChatBox.jsx` uses stream/overlay phases for visual loop state only (not click-through toggling).
-- `ChatBoxResponse.jsx` chooses awaiting/tool-ghost/final response views using canonical overlay phase predicates in `streamPhaseState` (`isOverlayAwaitingReplyPhase`, `shouldOverlayClearAwaitingFirstChunk`).
+- `ChatBox.jsx` and `ChatBoxResponse.jsx` now share one renderer projection helper (`chatboxSurfaceState.js`) so the minimal chat pill follows a single explicit UI contract:
+- `compact` -> chat pill only
+- `awaiting-reply` -> chat pill + typing indicator
+- `response` -> chat pill + response overlay
+- `ChatBoxResponse.jsx` uses that shared contract plus the latest visible assistant response to swap between typing and response views without separate component-local transition rules.
 - payload contract now includes optional recovery metadata:
 - `correlation_id`
 - `attempt`

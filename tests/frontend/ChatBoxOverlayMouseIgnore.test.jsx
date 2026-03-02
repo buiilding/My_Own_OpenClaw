@@ -44,6 +44,12 @@ const expectInvokeCall = (predicate) => {
   expect(sawCall).toBe(true);
 };
 
+const emitOverlayPhase = (phase) => {
+  act(() => {
+    mockListeners.get('response-overlay-phase')?.({ phase });
+  });
+};
+
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   IpcBridge: {
     invoke: (...args) => mockInvoke(...args),
@@ -64,6 +70,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
   ON_CHANNELS: {
     CHATBOX_FOCUS: 'chatbox-focus',
+    RESPONSE_OVERLAY_PHASE: 'response-overlay-phase',
     WAKEWORD_STT_TRIGGER: 'wakeword-stt-trigger',
   },
 }));
@@ -162,9 +169,9 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(mockInvoke.mock.calls.some(([channel]) => channel === 'set-chatbox-size')).toBe(false);
   });
 
-  test('does not enable click-through from stream phase activity alone', () => {
-    mockChatState.streamTracking.phase = 'streaming';
+  test('does not enable click-through from response overlay phase activity', () => {
     render(<ChatBox />);
+    emitOverlayPhase('streaming');
 
     const enabledClickThrough = mockInvoke.mock.calls.some(
       ([channel, payload]) => channel === 'set-overlay-ignore-mouse' && payload?.ignore === true,
@@ -298,8 +305,8 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('locks pill controls during active loop phases and leaves send disabled', () => {
-    mockChatState.streamTracking.phase = 'streaming';
     render(<ChatBox />);
+    emitOverlayPhase('streaming');
 
     expect(screen.getByRole('button', { name: 'Open dashboard' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Toggle text-to-speech' })).toBeDisabled();
@@ -374,7 +381,7 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('does not focus input from chatbox-focus while loop interaction is locked', () => {
-    mockChatState.streamTracking.phase = 'tool-call';
+    mockChatState.isSending = true;
     render(<ChatBox />);
     const input = screen.getByPlaceholderText('Ask me anything...');
 
@@ -384,15 +391,15 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(document.activeElement).not.toBe(input);
   });
 
-  test('adds ambient loop glow class while active stream phases are running', () => {
-    mockChatState.streamTracking.phase = 'tool-call';
-    const { container, rerender } = render(<ChatBox />);
+  test('adds ambient loop glow class while active overlay phases are running', () => {
+    const { container } = render(<ChatBox />);
     const shellWrap = container.querySelector('.chatbox-shell-wrap');
     expect(shellWrap).toBeTruthy();
+
+    emitOverlayPhase('tool-call');
     expect(shellWrap.classList.contains('loop-active')).toBe(true);
 
-    mockChatState.streamTracking.phase = 'idle';
-    rerender(<ChatBox />);
+    emitOverlayPhase('idle');
     expect(shellWrap.classList.contains('loop-active')).toBe(false);
   });
 
@@ -411,8 +418,8 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('keeps send button rendered but disabled during active stream', () => {
-    mockChatState.streamTracking.phase = 'streaming';
     render(<ChatBox />);
+    emitOverlayPhase('streaming');
 
     expect(screen.getByRole('button', { name: 'Send message' })).toBeDisabled();
     expect(screen.queryByRole('button', { name: 'Stop response' })).not.toBeInTheDocument();

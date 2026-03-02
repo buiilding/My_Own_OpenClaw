@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
+import { useResponseOverlayPhase } from '../hooks/useResponseOverlayPhase';
 import { useTranscription } from '../hooks/useTranscription';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
-import { subscribeResponseOverlayPhase } from '../utils/overlayPhaseListener';
 import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { ApiClient } from '../../../infrastructure/api/client';
@@ -12,7 +12,7 @@ import { buildOutgoingMessage } from '../utils/messageInput';
 import { parseClipboardImageItems } from '../utils/clipboardImageUtils';
 import { COMPACTION_THINKING_STATUS } from '../utils/chatStreamThinkingStatus';
 import { extractOSstate } from '../../../infrastructure/services/SystemCapture';
-import { isLoopActivePhase } from '../utils/streamPhaseState';
+import { isChatboxLoopInteractionLocked } from '../utils/chatboxSurfaceState';
 import {
   normalizeArtifactImageContentType,
   resolveArtifactImageExtension,
@@ -43,11 +43,10 @@ function ChatBox() {
   const isSending = useChatStore((state) => state.isSending);
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);
-  const streamPhase = useChatStore((state) => state.streamTracking.phase);
   const { sendMessage } = useChatMessageSender(undefined, {
     senderSurface: 'overlay-chatbox',
   });
-  const [overlayPhase, setOverlayPhase] = useState('idle');
+  const overlayPhase = useResponseOverlayPhase();
   const [wakewordSttSessionActive, setWakewordSttSessionActive] = useState(false);
   const [clipboardImages, setClipboardImages] = useState([]);
   const [isCapturingScreenshot, setIsCapturingScreenshot] = useState(false);
@@ -63,8 +62,10 @@ function ChatBox() {
   });
   const wakewordSttEnabled = config?.wakeword_stt_enabled === true;
   const speechModeEnabled = config?.speech_mode_enabled === true;
-  const isLoopPhaseActive = isLoopActivePhase(streamPhase) || isLoopActivePhase(overlayPhase);
-  const loopInteractionLocked = isSending || isLoopPhaseActive;
+  const loopInteractionLocked = isChatboxLoopInteractionLocked({
+    overlayPhase,
+    isSending,
+  });
   const devUiEnabled = isDevUiEnabled();
   const {
     inputValue,
@@ -86,10 +87,6 @@ function ChatBox() {
   useEffect(() => {
     focusInput();
   }, [focusInput]);
-
-  useEffect(() => {
-    return subscribeResponseOverlayPhase(setOverlayPhase);
-  }, []);
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.CHATBOX_FOCUS, () => {
@@ -327,7 +324,7 @@ function ChatBox() {
 
   return (
     <div
-      className={`chatbox-shell-wrap chatbox-input-shell-wrap${hasImagePreview ? ' with-preview' : ''}${isLoopPhaseActive ? ' loop-active' : ''}`}
+      className={`chatbox-shell-wrap chatbox-input-shell-wrap${hasImagePreview ? ' with-preview' : ''}${loopInteractionLocked ? ' loop-active' : ''}`}
     >
       <div className="chatbox-shell">
         <form
