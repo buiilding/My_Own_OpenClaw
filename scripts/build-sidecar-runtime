@@ -77,7 +77,7 @@ if [[ "${INCLUDE_BROWSER_PACK}" -eq 1 ]]; then
 fi
 
 echo "[build-sidecar-runtime] prefetching wakeword model assets (best effort)"
-if ! "${RUNTIME_PYTHON}" - <<'PY'
+if "${RUNTIME_PYTHON}" - <<'PY'
 import importlib
 import inspect
 import pathlib

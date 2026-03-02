@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(packaging-wakeword-prefetch-log-branch): correct `build-sidecar-runtime` wakeword prefetch success/failure shell branch so successful model prefetch no longer logs a false warning fallback message.
 - fix(sidecar-system-state-pyautogui-systemexit-guard): harden sidecar system-state probes so `pyautogui`/`mouseinfo` `SystemExit` failures (for example missing Linux `tkinter`) no longer terminate local backend; return safe fallback system-state errors instead, with sidecar regressions for `SystemExit` handling in both system-state probes and local-backend handler.
 - fix(packaging-linux-desktop-entry-schema): move Linux desktop-entry keys (`Name`, `StartupWMClass`) under `linux.desktop.entry` in electron-builder config so `electron-builder@26` validation passes during bundled-python Linux packaging.
 - perf(frontend-overlay-lazy-renderer-load): defer chat and response overlay renderer `loadRendererView` work until first window `show` in normal mode (keep debug response overlay eager), reducing launch-time renderer churn and startup lag; add `MainWindowRuntime` regressions for deferred chat/response load and debug eager-load behavior.
