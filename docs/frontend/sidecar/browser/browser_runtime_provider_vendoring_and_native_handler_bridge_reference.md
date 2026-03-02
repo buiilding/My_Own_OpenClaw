@@ -2,7 +2,7 @@
 summary: "Deep reference for sidecar browser runtime-provider selection, vendored Browser Use import enforcement, native handler module loading, and BrowserUseNativeRuntimeProvider action execution semantics."
 read_when:
   - When changing `browser_runtime.py` provider selection, handler loading, or Browser Use bridge behavior.
-  - When debugging runtime import failures, missing native handlers, extraction LLM resolution issues, or snapshot/window state payloads.
+  - When debugging runtime import failures, missing native handlers, deterministic extraction failures, or snapshot/window state payloads.
 title: "Browser Runtime Provider, Vendoring, and Native Handler Bridge Reference"
 ---
 
@@ -11,12 +11,10 @@ title: "Browser Runtime Provider, Vendoring, and Native Handler Bridge Reference
 ## Canonical Modules
 
 - `frontend/src/main/python/tools/browser/browser_runtime.py`
-- `frontend/src/main/python/tools/browser/browser_runtime_extraction.py`
 - `frontend/src/main/python/tools/browser/browser_tool.py`
 - `frontend/src/main/python/tools/browser/controller.py`
 - `tests/sidecar/tools/test_browser_use_adapter.py`
 - `tests/sidecar/tools/test_browser_use_tool_parity.py`
-- `tests/sidecar/tools/test_browser_runtime_extraction.py`
 
 ## Runtime Provider Selection Contract
 
@@ -141,27 +139,40 @@ Filesystem behavior:
 - default: `~/.config/desktop-assistant/browser-use`
 - file system created lazily with `create_default_files=True`
 
-## Extraction LLM Resolution for Browser Use
+## Deterministic Extraction Contract
 
-`extract` and `read_long_content` require `page_extraction_llm`.
+`extract` and `read_long_content` run in sidecar-native deterministic mode.
 
-Resolution order:
+- no LLM adapter resolution in sidecar runtime
+- no extraction provider/model/api-key env requirements
+- Browser Use registry execution is bypassed for these two actions
 
-1. `WINDIE_BROWSER_USE_EXTRACTION_MODEL` (Browser Use model-name path)
-2. Windie override tuple:
-   - `WINDIE_BROWSER_USE_EXTRACTION_PROVIDER`
-   - `WINDIE_BROWSER_USE_EXTRACTION_MODEL_ID`
-   - optional:
-     - `WINDIE_BROWSER_USE_EXTRACTION_API_KEY`
-     - `WINDIE_BROWSER_USE_EXTRACTION_BASE_URL`
-3. runtime Windie config fallback via `backend.src.core.config.loader.load_settings_from_file()`
+Runtime path:
 
-Provider normalization aliases:
+1. call vendored `browser_use.dom.markdown_extractor.extract_clean_markdown(...)`
+2. build focused excerpt from markdown using query/goal terms
+3. return deterministic payload with extraction metadata
 
-- `kimi_code` -> `kimi_coding`
-- `gemini` -> `google`
+`extract` contract:
 
-Unsupported provider mapping returns explicit runtime error explaining env-based remediation.
+- requires non-empty `query`
+- optional `extract_links` (default `False`)
+- optional `max_chars` clamped to sidecar cap (`MAX_DETERMINISTIC_EXTRACT_CHARS`)
+- response includes:
+  - `content`
+  - `extracted_content`
+  - metadata: `extraction_backend="sidecar_deterministic"`, pagination window fields
+
+`read_long_content` contract:
+
+- requires non-empty `goal`
+- optional `offset` and `max_chars` (bounded)
+- uses markdown extraction with links enabled
+- response includes:
+  - `extracted_content`
+  - metadata: `extraction_backend="sidecar_deterministic"`, `offset`, `next_offset`, `has_more`, character counters
+
+All other Browser Use actions still route through Browser Use registry with `page_extraction_llm=None`.
 
 ## Snapshot/Status/Tabs State Payload Contract
 
@@ -194,11 +205,12 @@ If runtime creation fails:
 3. inspect native handler module/factory import errors
 4. verify Browser Use import path resolves under vendored directory
 
-If `extract`/`read_long_content` fails before execution:
+If `extract`/`read_long_content` fails:
 
-1. inspect extraction model env tuple
-2. inspect runtime config provider/model fallback values
-3. inspect provider mapping support in `_build_windie_extraction_llm`
+1. verify connected browser session exists
+2. verify required input (`query`/`goal`) is non-empty
+3. inspect markdown extractor import: `browser_use.dom.markdown_extractor.extract_clean_markdown`
+4. verify `offset/max_chars` window values are valid
 
 If snapshot pagination fails:
 
@@ -209,6 +221,6 @@ If snapshot pagination fails:
 ## Related Pages
 
 - [Frontend Sidecar Browser Docs Hub](README.md)
-- [Browser Runtime Extraction Provider, Model Resolution, and LLM Adapter Mapping Reference](browser_runtime_extraction_provider_model_resolution_and_llm_adapter_mapping_reference.md)
+- [Browser Runtime Deterministic Extraction Contract Reference](browser_runtime_deterministic_extraction_contract_reference.md)
 - [Browser Adapter Action Routing and Compatibility Semantics Reference](browser_adapter_action_routing_and_compatibility_semantics_reference.md)
 - [Browser Action Compatibility and Runtime Reference](../browser_action_compatibility_and_runtime_reference.md)

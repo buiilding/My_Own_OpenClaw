@@ -1,33 +1,8 @@
-Refactor the WindieOS frontend for long-term agent-loop maintainability.
-Do not code until the plan is approved.
-
-Start with a no-code design package:
-- state machine for all execution phases
-- ownership map across renderer/main/sidecar
-- current touchpoint inventory
-- target architecture
-- migration plan
-- explicit invariants for focus, click-through, overlay visibility, stop control
-  availability, and screenshot timing
-
-Then implement in small phases with no unintended behavior change:
-- centralize surface lifecycle control into a single `SurfaceOrchestrator`
-  (or equivalent) with typed transition APIs
-- remove duplicated toggles and timing logic spread across files
-- standardize backend-event-to-UI contracts for tool phases and recovery metadata
-- keep dev/prod gating explicit and test both paths
-- add deterministic correlation-id logs for each state transition, retry, and
-  terminal failure so race conditions are debuggable from logs
-
-Testing requirements:
-- add scenario tests for race-prone flows:
-  tool start/stop timing, click-through windows, hide-before-capture/show-after,
-  focus verification retries and bounded exhaustion, and recovery after failed
-  surface prep
-- update architecture docs with new boundaries and event contracts
-
-Acceptance criteria:
-- current behavior preserved
-- fewer files touched per future feature
-- single source of truth for surface state
-- passing tests proving transition stability
+I want you to refactor windieos frontend. seperate the files for windows, linux, and macos, dont mix them together. the chat pill hiding is only for linux, macos and windows already have content protection that hides the chatpill from screenshots. use jscpdfor code duplication, knip for
+dead code, running eslint’s react-compilerand deprecation plugins, checking if we introduced
+api routes that can be consolidated, maintaining my docs, breaking apart files that grew too
+large, adding tests and code comments for tricky parts, updating dependencies, tool
+upgrades, file restructuring, finding and rewriting slow tests, mentioning modern react
+patterns and rewriting code (e.g. you might not need useEffect). Of course, you can find
+other refactoring approaches and other optimization techniques, add tests, update docs. After that, run tests, fix if
+there are errors.

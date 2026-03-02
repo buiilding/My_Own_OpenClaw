@@ -39,6 +39,13 @@ class ToolRegistry:
     def __init__(self):
         self.tools: Dict[str, Callable[..., Any]] = {}
         self._register_tools()
+
+    def has_tool(self, tool_name: str) -> bool:
+        return tool_name in self.tools
+
+    def reload_tools(self) -> None:
+        self.tools.clear()
+        self._register_tools()
     
     def _register_tools(self):
         """Register all available tools."""

@@ -19,14 +19,34 @@ frontend_python_dir = Path(__file__).parent
 sys.path.insert(0, str(frontend_python_dir))
 
 from core.ipc_protocol import JSONRPCProtocol
+from core.feature_pack_installer import (
+    build_feature_pack_manual_install_message,
+    ensure_feature_pack_site_packages_on_path,
+    install_feature_pack,
+    is_feature_pack_available,
+)
 from core.runtime_shutdown import (
     handle_shutdown_signal,
     register_shutdown_signal_handlers,
     request_stdin_shutdown,
 )
 from local_backend_memory_handlers import LocalBackendMemoryHandlersMixin
-from memory.local_store import LocalMemoryStore
-from memory.summarizer import MemorySummarizer
+
+ensure_feature_pack_site_packages_on_path()
+
+_LOCAL_MEMORY_STORE_IMPORT_ERROR: Exception | None = None
+try:
+    from memory.local_store import LocalMemoryStore
+except Exception as exc:  # pragma: no cover - exercised in dependency-missing runtime paths
+    LocalMemoryStore = None  # type: ignore[assignment]
+    _LOCAL_MEMORY_STORE_IMPORT_ERROR = exc
+
+try:
+    from memory.summarizer import MemorySummarizer
+except Exception as exc:  # pragma: no cover - exercised in dependency-missing runtime paths
+    MemorySummarizer = None  # type: ignore[assignment]
+    if _LOCAL_MEMORY_STORE_IMPORT_ERROR is None:
+        _LOCAL_MEMORY_STORE_IMPORT_ERROR = exc
 
 # Configure logging
 logging.basicConfig(
@@ -37,6 +57,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 _active_backend: Optional["LocalBackend"] = None
 ENV_ENABLE_SEMANTIC_SUMMARIZER = "WINDIE_ENABLE_SEMANTIC_SUMMARIZER"
+ENV_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL = "WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL"
 
 
 def _env_flag_enabled(name: str, default: bool = True) -> bool:
@@ -61,12 +82,18 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
     
     def __init__(self):
         self.protocol = JSONRPCProtocol()
-        self.memory_store: LocalMemoryStore = None
+        self.memory_store = None
         self._summarizer: Optional[MemorySummarizer] = None
         self._semantic_summarizer_enabled = _env_flag_enabled(
             ENV_ENABLE_SEMANTIC_SUMMARIZER,
             default=True,
         )
+        self._browser_feature_pack_autoinstall_enabled = _env_flag_enabled(
+            ENV_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL,
+            default=True,
+        )
+        self._feature_pack_install_lock = asyncio.Lock()
+        self._memory_store_unavailable_error: Optional[str] = None
         self.running = False
         self._shutdown_requested = False
         # Initialize tool registry once (reused for all tool executions)
@@ -106,11 +133,21 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
         try:
             # Initialize memory store
             logger.info("Initializing memory store...")
-            self.memory_store = LocalMemoryStore()
-            await self.memory_store.initialize()
-            logger.info("Memory store initialized")
+            if LocalMemoryStore is None:
+                self.memory_store = None
+                self._memory_store_unavailable_error = (
+                    "memory runtime dependencies are unavailable"
+                )
+                logger.warning(
+                    "Memory store dependencies unavailable at startup: %s",
+                    _LOCAL_MEMORY_STORE_IMPORT_ERROR,
+                )
+            else:
+                self.memory_store = LocalMemoryStore()
+                await self.memory_store.initialize()
+                logger.info("Memory store initialized")
 
-            if self._semantic_summarizer_enabled:
+            if self._semantic_summarizer_enabled and self.memory_store and MemorySummarizer is not None:
                 try:
                     self._summarizer = MemorySummarizer(self.memory_store)
                     await self._summarizer.start()
@@ -130,6 +167,39 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
         except Exception as e:
             logger.error(f"Failed to initialize local backend: {e}", exc_info=True)
             raise
+
+    async def _ensure_browser_tool_ready(self) -> Optional[str]:
+        if self.tool_registry.has_tool("browser") and is_feature_pack_available("browser"):
+            return None
+
+        if not self._browser_feature_pack_autoinstall_enabled:
+            return (
+                "Browser feature pack is unavailable in this runtime. "
+                f"{build_feature_pack_manual_install_message('browser')}"
+            )
+
+        async with self._feature_pack_install_lock:
+            if self.tool_registry.has_tool("browser") and is_feature_pack_available("browser"):
+                return None
+
+            logger.info("Installing browser feature pack on-demand...")
+            ok, error = await asyncio.to_thread(install_feature_pack, "browser")
+            if not ok:
+                logger.error("Browser feature-pack installation failed: %s", error)
+                return (
+                    "Browser feature pack installation failed. "
+                    f"{error or 'Unknown pip failure.'} "
+                    f"{build_feature_pack_manual_install_message('browser')}"
+                )
+
+            self.tool_registry.reload_tools()
+            if not self.tool_registry.has_tool("browser"):
+                return (
+                    "Browser feature pack installed but browser tool is still unavailable. "
+                    "Restart WindieOS and retry."
+                )
+
+        return None
     
     async def _handle_ping(self) -> Dict[str, Any]:
         """Health check method."""
@@ -145,6 +215,10 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
                 "memory_store_initialized": self.memory_store is not None,
                 "tool_registry_initialized": hasattr(self, 'tool_registry') and self.tool_registry is not None,
                 "semantic_summarizer_enabled": self._semantic_summarizer_enabled,
+                "browser_feature_pack_available": is_feature_pack_available("browser"),
+                "browser_feature_pack_autoinstall_enabled": (
+                    self._browser_feature_pack_autoinstall_enabled
+                ),
             }
             
             if self.tool_registry:
@@ -158,7 +232,10 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
                 except Exception as e:
                     status["memory_store_status"] = f"error: {str(e)}"
             else:
-                status["memory_store_status"] = "not_initialized"
+                if self._memory_store_unavailable_error:
+                    status["memory_store_status"] = self._memory_store_unavailable_error
+                else:
+                    status["memory_store_status"] = "not_initialized"
             
             return status
         except Exception as e:
@@ -177,6 +254,14 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
             args: Tool arguments
         """
         try:
+            if tool_name == "browser":
+                browser_setup_error = await self._ensure_browser_tool_ready()
+                if browser_setup_error:
+                    return {
+                        "success": False,
+                        "error": browser_setup_error,
+                    }
+
             result = await self.tool_registry.execute_tool(tool_name, args)
             # Convert ToolResult to dict for JSON-RPC response
             return result.to_dict()

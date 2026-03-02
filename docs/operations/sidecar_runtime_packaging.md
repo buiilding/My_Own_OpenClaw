@@ -23,7 +23,9 @@ frontend app and do not need Python installed system-wide.
   - `frontend/src/main/local_backend_bridge.cjs`
   - `frontend/src/main/wakeword_bridge.cjs`
 - Runtime dependency set:
-  - `frontend/src/main/python/requirements.runtime.txt`
+  - `frontend/src/main/python/requirements.runtime.txt` (full aggregate profile)
+  - `frontend/src/main/python/requirements.runtime.core.txt`
+  - `frontend/src/main/python/requirements.runtime.browser.txt`
 - Runtime build helper:
   - `scripts/build-sidecar-runtime`
 - Bundled-python packaging profile:
@@ -41,7 +43,7 @@ Do not reuse one OS runtime for another OS release.
 
 ## Step 1: Build Sidecar Runtime
 
-From repo root (default slim profile):
+From repo root (default slim+core profile):
 
 ```bash
 bash scripts/build-sidecar-runtime
@@ -51,6 +53,12 @@ Optional full profile (includes Playwright Chromium payload):
 
 ```bash
 bash scripts/build-sidecar-runtime-full
+```
+
+Optional slim profile with browser Python deps pre-bundled (no browser binary payload):
+
+```bash
+WINDIE_SIDECAR_RUNTIME_PROFILE=core+browser bash scripts/build-sidecar-runtime
 ```
 
 This creates:
@@ -74,6 +82,14 @@ Full profile variants:
 npm run package:win:bundled-python:full
 npm run package:mac:bundled-python:full
 npm run package:linux:bundled-python:full
+```
+
+Core+browser-deps variants (no bundled Playwright browser binary payload):
+
+```bash
+npm run package:win:bundled-python:core+browser
+npm run package:mac:bundled-python:core+browser
+npm run package:linux:bundled-python:core+browser
 ```
 
 Use only the command for the OS you are currently building on.
@@ -118,5 +134,10 @@ On a clean test machine:
 ## Known Platform Notes
 
 - Linux may require non-Python packages for some operations (for example `xdotool`).
-- Playwright browser runtime is installed only in full profile builds.
+- Default slim+core runtime no longer bundles browser Python dependencies.
+  - On first browser-tool use, sidecar attempts to install the browser core feature pack (`requirements.runtime.browser.txt`) into a user-writable runtime path.
+  - If auto-install fails, WindieOS returns an actionable pip command in the tool error.
+- Playwright browser binary payload is installed only in full profile builds.
+- Browser `extract`/`read_long_content` now use deterministic markdown extraction in sidecar (no sidecar LLM provider SDK dependency).
+- Browser launch now requires a system-installed Chromium-based browser (Chrome/Chromium/Edge/Brave); if missing, WindieOS returns install guidance instead of attempting an embedded browser bootstrap.
 - Wakeword model assets are pre-downloaded during runtime build step.

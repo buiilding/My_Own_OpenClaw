@@ -2,6 +2,7 @@
 
 import asyncio
 import os
+import platform
 import shutil
 import tempfile
 from pathlib import Path
@@ -118,7 +119,7 @@ class LocalBrowserWatchdog(BaseWatchdog):
 				)
 
 				# Get browser executable
-				# Priority: custom executable > fallback paths > playwright subprocess
+				# Priority: custom executable > fallback paths
 				if profile.executable_path:
 					browser_path = profile.executable_path
 					self.logger.debug(f'[LocalBrowserWatchdog] 📦 Using custom local browser executable_path= {browser_path}')
@@ -126,15 +127,10 @@ class LocalBrowserWatchdog(BaseWatchdog):
 					# self.logger.debug('[LocalBrowserWatchdog] 🔍 Looking for local browser binary path...')
 					# Try fallback paths first (system browsers preferred)
 					browser_path = self._find_installed_browser_path()
-					if not browser_path:
-						self.logger.error(
-							'[LocalBrowserWatchdog] ⚠️ No local browser binary found, installing browser using playwright subprocess...'
-						)
-						browser_path = await self._install_browser_with_playwright()
 
 				self.logger.debug(f'[LocalBrowserWatchdog] 📦 Found local browser installed at executable_path= {browser_path}')
 				if not browser_path:
-					raise RuntimeError('No local Chrome/Chromium install found, and failed to install with playwright')
+					raise RuntimeError(self._build_missing_browser_error_message())
 
 				# Launch browser subprocess directly
 				self.logger.debug(f'[LocalBrowserWatchdog] 🚀 Launching browser subprocess with {len(launch_args)} args...')
@@ -321,41 +317,31 @@ class LocalBrowserWatchdog(BaseWatchdog):
 
 		return None
 
-	async def _install_browser_with_playwright(self) -> str:
-		"""Get browser executable path from playwright in a subprocess to avoid thread issues."""
-		import platform
-
-		# Build command - only use --with-deps on Linux (it fails on Windows/macOS)
-		cmd = ['uvx', 'playwright', 'install', 'chrome']
-		if platform.system() == 'Linux':
-			cmd.append('--with-deps')
-
-		# Run in subprocess with timeout
-		process = await asyncio.create_subprocess_exec(
-			*cmd,
-			stdout=asyncio.subprocess.PIPE,
-			stderr=asyncio.subprocess.PIPE,
+	@staticmethod
+	def _build_missing_browser_error_message(system_name: str | None = None) -> str:
+		system = system_name or platform.system()
+		base = (
+			'No local Chrome/Chromium browser installation detected. '
+			'WindieOS browser automation requires a system-installed Chromium-based browser.'
 		)
-
-		try:
-			stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=60.0)
-			self.logger.debug(f'[LocalBrowserWatchdog] 📦 Playwright install output: {stdout}')
-			browser_path = self._find_installed_browser_path()
-			if browser_path:
-				return browser_path
-			self.logger.error(f'[LocalBrowserWatchdog] ❌ Playwright local browser installation error: \n{stdout}\n{stderr}')
-			raise RuntimeError('No local browser path found after: uvx playwright install chrome')
-		except TimeoutError:
-			# Kill the subprocess if it times out
-			process.kill()
-			await process.wait()
-			raise RuntimeError('Timeout getting browser path from playwright')
-		except Exception as e:
-			# Make sure subprocess is terminated
-			if process.returncode is None:
-				process.kill()
-				await process.wait()
-			raise RuntimeError(f'Error getting browser path: {e}')
+		if system == 'Linux':
+			return (
+				f'{base} '
+				'Install Chrome or Chromium (for example: '
+				'`sudo apt install google-chrome-stable` or `sudo apt install chromium-browser`), '
+				'then retry.'
+			)
+		if system == 'Darwin':
+			return (
+				f'{base} '
+				'Install Google Chrome or Chromium in /Applications, then retry.'
+			)
+		if system == 'Windows':
+			return (
+				f'{base} '
+				'Install Google Chrome, Chromium, or Microsoft Edge, then retry.'
+			)
+		return f'{base} Install a supported browser and retry.'
 
 	@staticmethod
 	def _find_free_port() -> int:
