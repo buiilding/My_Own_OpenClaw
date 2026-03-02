@@ -46,7 +46,7 @@ describe('surfaceOrchestrator capture lifecycle', () => {
     ]);
   });
 
-  test('skips capture-level chat-pill restore when nested inside screenshot surface token', async () => {
+  test('restores chat pill at capture-level when nested inside screenshot surface token', async () => {
     (IpcBridge.invoke as jest.Mock).mockImplementation(async (channel: string) => {
       if (channel === INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY) {
         return { success: true, data: { visible: true } };
@@ -63,6 +63,7 @@ describe('surfaceOrchestrator capture lifecycle', () => {
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
       [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
       [INVOKE_CHANNELS.HIDE_CHATBOX],
+      [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
     ]);
 
     await restoreToolExecutionSurface(toolPreparation);
