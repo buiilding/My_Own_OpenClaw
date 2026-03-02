@@ -250,6 +250,15 @@ sudo apt purge -y windieos
 sudo apt autoremove --dry-run
 ```
 
+Linux packaging/runtime notes:
+
+- `.deb` and `.rpm` installers declare `xdotool` as a package dependency.
+- AppImage does not auto-install system packages; install `xdotool` manually on Linux hosts for best `active_window` / window-switch behavior:
+
+```bash
+sudo apt install -y xdotool
+```
+
 If you host the backend separately, set endpoint env vars before launching the
 packaged app:
 

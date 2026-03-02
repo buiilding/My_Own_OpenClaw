@@ -43,5 +43,11 @@ linux:
     - target: deb
     - target: rpm
 
+deb:
+  depends:
+    - xdotool
+
 rpm:
   compression: xz
+  depends:
+    - xdotool
