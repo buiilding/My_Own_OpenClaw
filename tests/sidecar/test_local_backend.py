@@ -96,6 +96,25 @@ class DummyRegistryRaises:
         raise self.error
 
 
+class BrowserToolRegistry:
+    def __init__(self, has_browser: bool, result: ToolResult):
+        self._result = result
+        self.tools = {"browser": object()} if has_browser else {}
+        self.reload_calls = 0
+        self.execute_calls = []
+
+    def has_tool(self, tool_name):
+        return tool_name in self.tools
+
+    def reload_tools(self):
+        self.reload_calls += 1
+        self.tools["browser"] = object()
+
+    async def execute_tool(self, tool_name, args):
+        self.execute_calls.append((tool_name, args))
+        return self._result
+
+
 class DummyMemoryStoreCapturing(DummyMemoryStore):
     def __init__(self, results):
         super().__init__()
@@ -189,6 +208,72 @@ async def test_handle_execute_tool_exception():
     result = await backend._handle_execute_tool("read_file", {"file_path": "/tmp/a"})
     assert result["success"] is False
     assert result["error"] == "Tool execution failed: boom"
+
+
+@pytest.mark.asyncio
+async def test_handle_execute_tool_browser_feature_pack_install_failure(monkeypatch):
+    backend = LocalBackend()
+    backend.tool_registry = BrowserToolRegistry(
+        has_browser=False,
+        result=ToolResult.success_result({"ok": True}),
+    )
+    backend._browser_feature_pack_autoinstall_enabled = True
+
+    monkeypatch.setattr(local_backend_module, "is_feature_pack_available", lambda *_: False)
+    monkeypatch.setattr(local_backend_module, "install_feature_pack", lambda *_: (False, "network down"))
+
+    result = await backend._handle_execute_tool("browser", {"action": "snapshot"})
+
+    assert result["success"] is False
+    assert "Browser feature pack installation failed" in result["error"]
+    assert "network down" in result["error"]
+    assert "pip install" in result["error"]
+    assert backend.tool_registry.execute_calls == []
+
+
+@pytest.mark.asyncio
+async def test_handle_execute_tool_browser_feature_pack_install_success(monkeypatch):
+    backend = LocalBackend()
+    backend.tool_registry = BrowserToolRegistry(
+        has_browser=False,
+        result=ToolResult.success_result({"ok": True}),
+    )
+    backend._browser_feature_pack_autoinstall_enabled = True
+    feature_state = {"available": False}
+
+    def _is_feature_pack_available(_pack):
+        return feature_state["available"]
+
+    def _install_feature_pack(_pack):
+        feature_state["available"] = True
+        return True, None
+
+    monkeypatch.setattr(local_backend_module, "is_feature_pack_available", _is_feature_pack_available)
+    monkeypatch.setattr(local_backend_module, "install_feature_pack", _install_feature_pack)
+
+    result = await backend._handle_execute_tool("browser", {"action": "snapshot"})
+
+    assert result == {"success": True, "data": {"ok": True}}
+    assert backend.tool_registry.reload_calls == 1
+    assert backend.tool_registry.execute_calls == [("browser", {"action": "snapshot"})]
+
+
+@pytest.mark.asyncio
+async def test_handle_execute_tool_browser_feature_pack_autoinstall_disabled(monkeypatch):
+    backend = LocalBackend()
+    backend.tool_registry = BrowserToolRegistry(
+        has_browser=False,
+        result=ToolResult.success_result({"ok": True}),
+    )
+    backend._browser_feature_pack_autoinstall_enabled = False
+
+    monkeypatch.setattr(local_backend_module, "is_feature_pack_available", lambda *_: False)
+
+    result = await backend._handle_execute_tool("browser", {"action": "snapshot"})
+
+    assert result["success"] is False
+    assert "Browser feature pack is unavailable in this runtime" in result["error"]
+    assert "pip install" in result["error"]
 
 
 @pytest.mark.asyncio

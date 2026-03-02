@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-WINDIE_SIDECAR_RUNTIME_MODE=full bash "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/build-sidecar-runtime"
+WINDIE_SIDECAR_RUNTIME_MODE=full \
+WINDIE_SIDECAR_RUNTIME_PROFILE=core+browser \
+bash "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/build-sidecar-runtime"
