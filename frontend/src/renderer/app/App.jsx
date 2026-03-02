@@ -6,6 +6,7 @@ import {
   loadFrontendOnboardingState,
   saveFrontendOnboardingState,
 } from '../features/onboarding/utils/frontendOnboardingStorage';
+import { getAgentStopShortcutLabel } from '../infrastructure/shortcuts/agentStopShortcut';
 import PermissionOnboardingWizard from '../features/permissions/components/PermissionOnboardingWizard';
 import { usePermissionStore } from '../features/permissions/stores/permissionStore';
 import { AppProvider } from './providers/AppProvider';
@@ -66,7 +67,7 @@ function AppContent() {
   if (!frontendOnboardingComplete) {
     return (
       <FrontendOnboardingSlideshow
-        stopAgentShortcutLabel="Shift + Tab"
+        stopAgentShortcutLabel={getAgentStopShortcutLabel()}
         onComplete={handleFrontendOnboardingComplete}
       />
     );

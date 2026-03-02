@@ -378,6 +378,50 @@ describe('ChatInterface wiring', () => {
     expect(mockUpdateStreamTracking).toHaveBeenCalledTimes(1);
   });
 
+  test('stop shortcut sends stop-query while stream is active', () => {
+    mockChatState.streamTracking.phase = 'streaming';
+
+    render(<ChatInterface />);
+
+    const shortcutEvent = new KeyboardEvent('keydown', {
+      key: '.',
+      code: 'Period',
+      ctrlKey: true,
+      altKey: true,
+      cancelable: true,
+      bubbles: true,
+    });
+    window.dispatchEvent(shortcutEvent);
+
+    expect(shortcutEvent.defaultPrevented).toBe(true);
+    expect(mockStopQuery).toHaveBeenCalledTimes(1);
+    expect(mockSetIsSending).toHaveBeenCalledWith(false);
+    expect(mockSetThinkingStatus).toHaveBeenCalledWith(null);
+    expect(mockUpdateStreamTracking).toHaveBeenCalledTimes(1);
+  });
+
+  test('stop shortcut ignores key presses when loop is idle', () => {
+    mockChatState.streamTracking.phase = 'idle';
+    mockChatState.isSending = false;
+
+    render(<ChatInterface />);
+
+    const shortcutEvent = new KeyboardEvent('keydown', {
+      key: '.',
+      code: 'Period',
+      ctrlKey: true,
+      altKey: true,
+      cancelable: true,
+      bubbles: true,
+    });
+    window.dispatchEvent(shortcutEvent);
+
+    expect(shortcutEvent.defaultPrevented).toBe(false);
+    expect(mockStopQuery).not.toHaveBeenCalled();
+    expect(mockSetIsSending).not.toHaveBeenCalled();
+    expect(mockUpdateStreamTracking).not.toHaveBeenCalled();
+  });
+
   test('stop response handler sends stop-query immediately after send while awaiting first event', () => {
     mockChatState.streamTracking.phase = 'idle';
     mockChatState.isSending = true;
