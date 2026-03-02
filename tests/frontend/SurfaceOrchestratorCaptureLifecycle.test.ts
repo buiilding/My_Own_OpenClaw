@@ -73,6 +73,28 @@ describe('surfaceOrchestrator capture lifecycle', () => {
     ]);
   });
 
+  test('hides and restores chat pill for capture nested inside interactive surface token', async () => {
+    const toolPreparation = await prepareToolExecutionSurface('interactive');
+    const capturePreparation = await prepareScreenshotCaptureVisibility({ captureId: 'capture-interactive-nested' });
+
+    expect(capturePreparation.restoreChatPillAfterCapture).toBe(true);
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
+      [INVOKE_CHANNELS.HIDE_CHATBOX],
+    ]);
+
+    await restoreScreenshotCaptureVisibility(capturePreparation);
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
+      [INVOKE_CHANNELS.HIDE_CHATBOX],
+      [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
+    ]);
+
+    await restoreToolExecutionSurface(toolPreparation);
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
+      [INVOKE_CHANNELS.HIDE_CHATBOX],
+      [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
+    ]);
+  });
+
   test('normalizes restore context defaults for source and fallback correlation id', async () => {
     const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
     await prepareScreenshotCaptureVisibility({ captureId: 'capture-prep' });

@@ -8,10 +8,10 @@ import {
   shouldManageChatPillVisibilityForBackgroundCapture,
 } from './chatPillVisibility';
 import {
-  hasActiveSurfaceTokens,
   decrementActiveScreenshotCaptureCount,
   getActiveScreenshotCaptureCount,
   incrementActiveScreenshotCaptureCount,
+  isPendingChatPillRestore,
   isPendingScreenshotCaptureRestore,
   setPendingScreenshotCaptureRestore,
 } from './state';
@@ -44,7 +44,7 @@ export async function prepareScreenshotCaptureVisibility(
   const shouldManageChatPillVisibility = shouldManageChatPillVisibilityForBackgroundCapture();
   const shouldRestoreChatPillAfterCapture = (
     shouldManageChatPillVisibility
-    && !hasActiveSurfaceTokens()
+    && !isPendingChatPillRestore()
   );
 
   if (!shouldManageChatPillVisibility) {
