@@ -46,6 +46,41 @@ If you changed backend runtime behavior, also run the backend with:
 - Tag the release (example): `git tag v0.7.0`.
 - Push commits and tags: `git push origin main --tags`.
 
+## Desktop Artifact Workflow
+
+Use GitHub Actions workflow:
+
+- `.github/workflows/desktop-release.yml`
+
+Behavior:
+
+- Builds bundled-python desktop artifacts on:
+  - Linux (`AppImage`, `deb`, `rpm`)
+  - Windows (`nsis .exe`)
+  - macOS (`dmg`, `zip`)
+- Runs install/launch smoke checks per platform before upload.
+- Uploads artifacts to workflow run.
+- Publishes GitHub release artifacts on tag pushes (`v*`) or manual dispatch with publish enabled.
+
+Manual dispatch inputs:
+
+- `sidecar_profile`: `core`, `core+browser`, `full`
+- `run_signing`: `true`/`false`
+- `publish_release`: `true`/`false`
+- `release_tag`: required when manual `publish_release=true`
+
+Required secrets when `run_signing=true`:
+
+- Windows signing:
+  - `CSC_LINK`
+  - `CSC_KEY_PASSWORD`
+- macOS signing + notarization:
+  - `CSC_LINK`
+  - `CSC_KEY_PASSWORD`
+  - `APPLE_ID`
+  - `APPLE_APP_SPECIFIC_PASSWORD`
+  - `APPLE_TEAM_ID`
+
 ## Post-release Checks
 
 - Verify tags exist in the remote.

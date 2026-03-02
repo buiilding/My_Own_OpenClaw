@@ -1,0 +1,82 @@
+from pathlib import Path
+from types import SimpleNamespace
+
+from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
+
+ensure_frontend_python_path()
+
+import wakeword_service  # noqa: E402
+
+
+class _NewApiModel:
+    def __init__(self, wakeword_model_paths=None):
+        self.wakeword_model_paths = wakeword_model_paths
+
+
+class _OldApiModel:
+    def __init__(self, wakeword_models=None, inference_framework=None):
+        if inference_framework == "tflite":
+            raise RuntimeError("tflite unavailable")
+        self.wakeword_models = wakeword_models
+        self.inference_framework = inference_framework
+
+
+class _PredictModel:
+    def predict(self, _audio):
+        return {"hey_jarvis": 0.73}
+
+
+def test_resolve_wakeword_model_prefers_hey_jarvis():
+    module = SimpleNamespace(
+        models={
+            "timer": {"model_path": "/tmp/timer.onnx"},
+            "hey_jarvis": {"model_path": "/tmp/hey_jarvis.onnx"},
+        }
+    )
+
+    model_name, model_path = wakeword_service.resolve_wakeword_model(module)
+
+    assert model_name == "hey_jarvis"
+    assert model_path == "/tmp/hey_jarvis.onnx"
+
+
+def test_create_model_supports_new_openwakeword_signature():
+    model, inference = wakeword_service.create_model(
+        _NewApiModel,
+        "hey_jarvis",
+        "/tmp/hey_jarvis.onnx",
+    )
+
+    assert isinstance(model, _NewApiModel)
+    assert model.wakeword_model_paths == ["/tmp/hey_jarvis.onnx"]
+    assert inference == "onnx"
+
+
+def test_create_model_old_signature_falls_back_to_onnx():
+    model, inference = wakeword_service.create_model(
+        _OldApiModel,
+        "hey_jarvis",
+        None,
+    )
+
+    assert isinstance(model, _OldApiModel)
+    assert model.wakeword_models == ["hey_jarvis"]
+    assert model.inference_framework == "onnx"
+    assert inference == "onnx"
+
+
+def test_ensure_models_available_returns_true_when_path_exists(tmp_path):
+    model_file = tmp_path / "hey_jarvis.onnx"
+    model_file.write_bytes(b"ok")
+
+    assert wakeword_service.ensure_models_available("hey_jarvis", str(model_file)) is True
+
+
+def test_process_audio_chunk_reports_detection():
+    audio = (b"\x00\x00" * 1600)
+
+    result = wakeword_service.process_audio_chunk(_PredictModel(), audio, "hey_jarvis")
+
+    assert result["detected"] is True
+    assert result["model"] == "hey_jarvis"
+    assert result["score"] == 0.73

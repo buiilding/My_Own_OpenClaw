@@ -94,6 +94,15 @@ npm run package:linux:bundled-python:core+browser
 
 Use only the command for the OS you are currently building on.
 
+CI equivalent:
+
+- Use `.github/workflows/desktop-release.yml` to build all OS artifacts on native runners.
+- The workflow enforces "build runtime on target OS" automatically.
+- Smoke checks run after packaging:
+  - Linux: install `deb`, launch check, AppImage check, rpm metadata/install probe
+  - Windows: silent installer run + launch check
+  - macOS: dmg mount/copy + launch check (+ codesign verify when signing enabled)
+
 ## Step 3: Configure Hosted Backend Endpoint
 
 Packaged builds default to hosted backend:
