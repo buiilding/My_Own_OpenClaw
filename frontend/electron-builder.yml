@@ -30,6 +30,11 @@ mac:
 
 linux:
   icon: src/main/assets/icons/windieos.app.png
+  executableName: windieos
+  artifactName: windieos_${version}_${arch}.${ext}
+  desktop:
+    Name: WindieOS
+    StartupWMClass: WindieOS
   category: Utility
   maintainer: WindieOS <support@windieos.com>
   target:
