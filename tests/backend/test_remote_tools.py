@@ -115,6 +115,11 @@ def test_get_remote_tool_unknown_name_returns_none():
     assert get_remote_tool("does-not-exist") is None
 
 
+def test_get_remote_tool_open_app_exists():
+    tool_class = get_remote_tool("open_app")
+    assert tool_class is not None
+
+
 def test_get_all_remote_tools_returns_copy():
     original = get_all_remote_tools()
     original.pop("mouse_control", None)

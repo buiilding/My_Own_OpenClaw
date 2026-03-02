@@ -13,6 +13,7 @@ This page documents sidecar system tools implemented in:
 - `frontend/src/main/python/tools/system/wait_tool.py`
 - `frontend/src/main/python/tools/system/window_tool.py`
 - `frontend/src/main/python/tools/system/stats_tool.py`
+- `frontend/src/main/python/tools/system/open_app_tool.py`
 - `frontend/src/main/python/core/system_metrics.py`
 - `frontend/src/main/python/core/platform/*`
 - `tests/sidecar/test_system_tools.py`
@@ -26,6 +27,7 @@ Registry names:
 - `switch_tab` -> `window_tool.switch_to_window`
 - `get_open_windows` -> `window_tool.get_open_windows`
 - `get_system_stats` -> `stats_tool.get_system_stats`
+- `open_app` -> `open_app_tool.open_app`
 
 All calls flow through `LocalBackend._handle_execute_tool` -> `ToolRegistry.execute_tool`.
 
@@ -197,6 +199,32 @@ Error semantics:
 
 - import failure -> `psutil library not available`
 - other failures -> `Failed to get system stats: ...`
+
+## Open App Tool (`open_app`)
+
+Contract:
+
+- input:
+  - required `command`
+  - optional `args[]`, `directory`
+  - optional `verify`: `none` | `window` | `screenshot` (default `window`)
+  - optional `verify_window_title`
+  - optional `verify_timeout_seconds`
+
+Runtime behavior:
+
+- launches process detached from sidecar lifecycle (app keeps running if agent/sidecar exits)
+- validates `directory` as absolute existing directory when provided
+- verification modes:
+  - `none`: immediate launch acknowledgment
+  - `window`: polls `get_open_windows` filter path for title match
+  - `screenshot`: runs window verification + captures screenshot evidence payload
+
+Return shape:
+
+- `detached`, `pid`, `verify_mode`
+- `verify_status`, `verified`, optional `matched_window_title`
+- screenshot mode includes screenshot payload fields (`screenshot_path`, `screenshot_content_type`, etc.)
 
 ## Known Boundary
 

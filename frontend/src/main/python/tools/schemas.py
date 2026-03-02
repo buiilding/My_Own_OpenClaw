@@ -207,6 +207,49 @@ class RunShellCommandArgs(BaseModel):
     )
 
 
+class OpenAppArgs(BaseModel):
+    """Arguments for detached app launch tool."""
+    model_config = ConfigDict(extra='ignore')
+
+    command: str = Field(..., description="Executable or app command to launch")
+    args: Optional[list[str]] = Field(
+        None,
+        description="(OPTIONAL) Positional arguments for the app launch command.",
+    )
+    directory: Optional[str] = Field(
+        None,
+        description="(OPTIONAL) Working directory (must be absolute path).",
+    )
+    verify: Literal["none", "window", "screenshot"] = Field(
+        "window",
+        description=(
+            "(OPTIONAL) Post-launch verification mode: none (no verification), "
+            "window (poll open windows), screenshot (capture screenshot evidence)."
+        ),
+    )
+    verify_window_title: Optional[str] = Field(
+        None,
+        description="(OPTIONAL) Window title substring to verify after launch.",
+    )
+    verify_timeout_seconds: Optional[float] = Field(
+        6.0,
+        description="(OPTIONAL) Max seconds to wait for verification.",
+    )
+    explanation: Optional[str] = Field(
+        None,
+        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+    )
+
+    @model_validator(mode='after')
+    def validate_open_app_fields(self):
+        """Validate open_app argument constraints."""
+        if not self.command.strip():
+            raise ValueError("command must not be empty")
+        if self.verify_timeout_seconds is not None and self.verify_timeout_seconds < 0:
+            raise ValueError("verify_timeout_seconds must be non-negative")
+        return self
+
+
 class ProcessShellCommandArgs(BaseModel):
     """Arguments for process tool (manage background shell sessions)."""
     model_config = ConfigDict(extra='ignore')

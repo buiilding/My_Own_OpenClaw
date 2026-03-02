@@ -23,6 +23,7 @@ EXPOSED_TO_BACKEND_TOOLS = frozenset({
     "wait",
     "get_open_windows",
     "get_system_stats",
+    "open_app",
     "run_shell_command",
     "process",
     "read_file",
@@ -95,6 +96,12 @@ class ToolRegistry:
             self.tools["run_shell_command"] = run_shell_command
         except ImportError as e:
             logger.warning(f"Failed to import shell_tool: {e}")
+
+        try:
+            from tools.system.open_app_tool import open_app
+            self.tools["open_app"] = open_app
+        except ImportError as e:
+            logger.warning(f"Failed to import open_app_tool: {e}")
 
         try:
             from tools.system.process_tool import process_shell_command

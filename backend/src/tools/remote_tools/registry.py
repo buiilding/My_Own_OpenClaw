@@ -23,6 +23,7 @@ from backend.src.tools.remote_tools.filesystem import (
 )
 from backend.src.tools.remote_tools.system import (
     RemoteGetSystemStatsTool,
+    RemoteOpenAppTool,
     RemoteProcessTool,
     RemoteShellTool,
 )
@@ -36,6 +37,7 @@ REMOTE_TOOLS: Dict[str, Type[Tool]] = {
     "wait": RemoteWaitTool,
     "get_open_windows": RemoteGetOpenWindowsTool,
     "get_system_stats": RemoteGetSystemStatsTool,
+    "open_app": RemoteOpenAppTool,
     "run_shell_command": RemoteShellTool,
     "process": RemoteProcessTool,
     "read_file": RemoteReadFileTool,

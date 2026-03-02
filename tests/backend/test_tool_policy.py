@@ -17,10 +17,10 @@ def test_filter_tool_names_applies_interaction_mode_allowlist():
     policy = ToolPolicy(config=AppConfig(interaction_mode="chat"), selection=None)
 
     filtered = policy.filter_tool_names(
-        ["read_file", "replace", "run_shell_command", "process", "screenshot", "browser"]
+        ["read_file", "replace", "run_shell_command", "open_app", "process", "screenshot", "browser"]
     )
 
-    assert filtered == ["read_file", "replace", "run_shell_command", "process", "screenshot"]
+    assert filtered == ["read_file", "replace", "run_shell_command", "open_app", "process", "screenshot"]
 
 
 def test_filter_tool_names_applies_dev_selection(tmp_path: Path):

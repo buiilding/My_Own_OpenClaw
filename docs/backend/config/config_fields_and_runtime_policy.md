@@ -64,7 +64,7 @@ Provider defaults in `LLMProviders`:
 
 `interaction_mode` policy:
 
-- `chat`: allowlist is `{"read_file", "replace", "run_shell_command", "process", "screenshot"}`.
+- `chat`: allowlist is `{"read_file", "replace", "run_shell_command", "open_app", "process", "screenshot"}`.
 - `agent`: no allowlist (`None`) so full policy surface is available.
 
 ### Conversation History Compaction
