@@ -43,6 +43,7 @@ def test_expected_provider_defaults_exist_in_catalog():
         for model in ONLINE_MODELS["kimi-coding"]
         if isinstance(model, dict) and model.get("id")
     }
+    assert "openrouter/auto" in openrouter_model_ids
     assert "qwen/qwen3-vl-235b-a22b-thinking" in openrouter_model_ids
     assert "k2p5" in kimi_model_ids
 

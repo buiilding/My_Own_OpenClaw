@@ -199,7 +199,7 @@ class TestAppConfig:
         config = AppConfig()
         assert config.model_mode == "online"
         assert config.model_provider == "openai"
-        assert config.selected_model_id == "gpt-5.1@@gpt-5-1-high-thinking"
+        assert config.selected_model_id == "gpt-5@@gpt-5-nonthinking"
         assert config.llm_timeout == 300
         assert config.query_timeout == 600
         assert config.debug_litellm is False

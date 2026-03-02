@@ -31,6 +31,10 @@ def _variant(
 
 
 OPENAI_PRESETS: List[Dict[str, Any]] = [
+    _variant(runtime_model_id="gpt-5", display_name="GPT-5", supports_thinking=False),
+    _variant(runtime_model_id="gpt-5.1", display_name="GPT-5.1", supports_thinking=False),
+    _variant(runtime_model_id="gpt-5-mini", display_name="GPT-5 Mini", supports_thinking=False),
+    _variant(runtime_model_id="gpt-4.1", display_name="GPT-4.1", supports_thinking=False),
     _variant(runtime_model_id="gpt-5.3-codex", display_name="GPT-5.3 Codex Low", supports_thinking=True, supports_thinking_text_stream=False),
     _variant(runtime_model_id="gpt-5.3-codex", display_name="GPT-5.3 Codex Low Fast", supports_thinking=True, supports_thinking_text_stream=False),
     _variant(runtime_model_id="gpt-5.3-codex", display_name="GPT-5.3 Codex", supports_thinking=True, supports_thinking_text_stream=False),
@@ -76,6 +80,11 @@ OPENAI_PRESETS: List[Dict[str, Any]] = [
 
 
 ANTHROPIC_PRESETS: List[Dict[str, Any]] = [
+    _variant(runtime_model_id="claude-sonnet-4-5-20250929", display_name="Claude Sonnet 4.5", supports_thinking=False),
+    _variant(runtime_model_id="claude-sonnet-4-5-20250929", display_name="Claude Sonnet 4.5", supports_thinking=True, supports_thinking_text_stream=True),
+    _variant(runtime_model_id="claude-opus-4-6", display_name="Claude Opus 4.6", supports_thinking=False),
+    _variant(runtime_model_id="claude-opus-4-6", display_name="Claude Opus 4.6", supports_thinking=True, supports_thinking_text_stream=True),
+    _variant(runtime_model_id="claude-haiku-4-5-20251001", display_name="Claude Haiku 4.5", supports_thinking=False),
     _variant(runtime_model_id="claude-sonnet-4-6", display_name="Sonnet 4.6", supports_thinking=False),
     _variant(runtime_model_id="claude-sonnet-4-6", display_name="Sonnet 4.6", supports_thinking=True, supports_thinking_text_stream=True),
     _variant(runtime_model_id="claude-opus-4-6", display_name="Opus 4.6", supports_thinking=False),
@@ -98,6 +107,8 @@ ANTHROPIC_PRESETS: List[Dict[str, Any]] = [
 
 
 GEMINI_PRESETS: List[Dict[str, Any]] = [
+    _variant(runtime_model_id="gemini-2.5-flash", display_name="Gemini 2.5 Flash", supports_thinking=False),
+    _variant(runtime_model_id="gemini-2.5-pro", display_name="Gemini 2.5 Pro", supports_thinking=True, supports_thinking_text_stream=True),
     _variant(runtime_model_id="gemini-3-pro-preview", display_name="Gemini 3 Pro", supports_thinking=True, supports_thinking_text_stream=True),
     _variant(runtime_model_id="gemini-3-flash-preview", display_name="Gemini 3 Flash", supports_thinking=True, supports_thinking_text_stream=True),
     _variant(runtime_model_id="gemini-3.1-pro-preview", display_name="Gemini 3.1 Pro", supports_thinking=False),
@@ -107,6 +118,12 @@ GEMINI_PRESETS: List[Dict[str, Any]] = [
 
 
 OPENROUTER_PRESETS: List[Dict[str, Any]] = [
+    {
+        "id": "openrouter/auto",
+        "runtime_model_id": "openrouter/auto",
+        "display_name": "OpenRouter Auto",
+        "supports_thinking": False,
+    },
     {
         "id": "qwen/qwen3-vl-235b-a22b-thinking",
         "runtime_model_id": "qwen/qwen3-vl-235b-a22b-thinking",

@@ -290,6 +290,25 @@ def test_get_all_online_models_deduplicates_provider_model_pairs():
     assert any(m.get("supports_thinking") for m in models)
 
 
+def test_get_all_online_models_provider_first_entries_are_consumer_defaults():
+    service = ModelService(AppConfig())
+    models = service.get_all_online_models()
+
+    first_by_provider = {}
+    for model in models:
+        provider = model.get("provider")
+        if provider and provider not in first_by_provider:
+            first_by_provider[provider] = model
+
+    assert first_by_provider["openai"]["runtime_model_id"] == "gpt-5"
+    assert first_by_provider["openai"]["supports_thinking"] is False
+    assert first_by_provider["anthropic"]["runtime_model_id"] == "claude-sonnet-4-5-20250929"
+    assert first_by_provider["gemini"]["runtime_model_id"] == "gemini-2.5-flash"
+    assert first_by_provider["mistral"]["runtime_model_id"] == "mistral-large-latest"
+    assert first_by_provider["openrouter"]["runtime_model_id"] == "openrouter/auto"
+    assert first_by_provider["kimi-coding"]["runtime_model_id"] == "k2p5"
+
+
 def test_get_all_online_models_marks_gemini_3_pro_preview_as_thinking_text_stream_capable():
     service = ModelService(AppConfig())
     models = service.get_all_online_models()
