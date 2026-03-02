@@ -49,6 +49,8 @@ class RemoteKeyboardTool(RemoteToolBase, Tool[KeyboardControlArgs]):
     description = (
         "Control keyboard input including typing text, clipboard paste, pressing keys, and shortcuts. "
         "For multiline or long text, prefer paste to avoid unintended Enter-driven app behaviors. "
+        "After input, verify text appears in the latest screenshot; do not assume tool success means input landed. "
+        "If text is missing, retry once with the alternate mode (type vs paste), then refocus the field and retry. "
         "Use deterministic action sequences for predictable flows (for example, input text then press Enter only when submit is intended). "
         "Prefer this tool over mouse clicks when a shortcut or key-driven path exists."
     )
