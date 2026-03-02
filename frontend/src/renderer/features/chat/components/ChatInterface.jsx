@@ -111,6 +111,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
   const {
     isBusy: composerBusy,
     isAwaitingReply: isAwaitingReply,
+    isTransportConnected,
   } = useChatLoopUiState({
     phase: streamPhase,
     isSending,
@@ -500,6 +501,11 @@ function ChatInterface({ focusComposerToken = 0 }) {
           </div>
         </div>
       </header>
+      {isTransportConnected ? null : (
+        <div className="chat-connection-warning" role="alert">
+          Cannot connect to server right now, try again later.
+        </div>
+      )}
 
       {messages.length === 0 ? (
         <div className="chat-empty-state" data-testid="chat-empty-state">
