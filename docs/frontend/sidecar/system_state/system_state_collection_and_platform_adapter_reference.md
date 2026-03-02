@@ -123,7 +123,9 @@ Per-field post-processing:
 ### Linux
 
 - active window: `xdotool getactivewindow getwindowname`
+- active-window fallback: Python Xlib probe of `_NET_ACTIVE_WINDOW` (`_NET_WM_NAME` / `WM_NAME`) when `xdotool` path fails
 - open windows: enumerate IDs with `xdotool search --name .*`, then names per ID
+- mouse-position fallback: Python Xlib pointer query (`root.query_pointer`) when `pyautogui.position()` path fails
 - switch behavior: exact -> normalized -> substring -> conservative fuzzy match
 - ambiguity guards prevent unsafe focus switching for close-match titles
 - dependency: `xdotool`

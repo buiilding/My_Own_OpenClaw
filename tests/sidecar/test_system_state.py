@@ -200,3 +200,26 @@ async def test_clipboard_preview_replaces_newlines_and_truncates(monkeypatch):
     result = await system_state_module._get_clipboard_preview(max_length=8)
 
     assert result == "line1\\nl..."
+
+
+@pytest.mark.asyncio
+async def test_active_window_linux_uses_xlib_fallback_when_xdotool_unavailable(monkeypatch):
+    monkeypatch.setattr(system_state_module, "_get_active_window_linux_xdotool", lambda: None)
+    monkeypatch.setattr(system_state_module, "_get_active_window_linux_xlib", lambda: "WindieOS")
+
+    result = await system_state_module._get_active_window_linux()
+
+    assert result == "WindieOS"
+
+
+@pytest.mark.asyncio
+async def test_mouse_position_falls_back_to_xlib_when_pyautogui_fails(monkeypatch):
+    def _raise_pyautogui_error():
+        raise RuntimeError("pyautogui unavailable")
+
+    monkeypatch.setattr(system_state_module, "_get_mouse_position_pyautogui", _raise_pyautogui_error)
+    monkeypatch.setattr(system_state_module, "_get_mouse_position_linux_xlib", lambda: (42, 64))
+
+    result = await system_state_module._get_mouse_position()
+
+    assert result == "(42, 64)"

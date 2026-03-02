@@ -56,9 +56,17 @@ def _load_download_models_func() -> Optional[Callable[[Iterable[str]], Any]]:
     return candidate if callable(candidate) else None
 
 
+def _resolve_openwakeword_models(openwakeword_mod: Any) -> Dict[str, Dict[str, Any]]:
+    for attr_name in ("models", "MODELS"):
+        models = getattr(openwakeword_mod, attr_name, None)
+        if isinstance(models, dict) and models:
+            return models
+    return {}
+
+
 def resolve_wakeword_model(openwakeword_mod: Any) -> Tuple[str, Optional[str]]:
-    models = getattr(openwakeword_mod, "models", None)
-    if not isinstance(models, dict) or not models:
+    models = _resolve_openwakeword_models(openwakeword_mod)
+    if not models:
         return WAKEWORD_NAME, None
 
     if WAKEWORD_NAME in models and isinstance(models[WAKEWORD_NAME], dict):
@@ -75,9 +83,78 @@ def resolve_wakeword_model(openwakeword_mod: Any) -> Tuple[str, Optional[str]]:
     return WAKEWORD_NAME, None
 
 
-def ensure_models_available(model_name: str, model_path: Optional[str]) -> bool:
+def resolve_wakeword_model_directory() -> Path:
+    env_dir = os.environ.get("WINDIE_WAKEWORD_MODEL_DIR", "").strip()
+    if env_dir:
+        return Path(env_dir).expanduser()
+
+    try:
+        from platformdirs import user_data_dir
+
+        return Path(user_data_dir("WindieOS", "WindieOS")) / "wakeword" / "models"
+    except Exception:
+        return Path.home() / ".local" / "share" / "WindieOS" / "wakeword" / "models"
+
+
+def resolve_model_path_from_directory(
+    model_name: str,
+    model_path: Optional[str],
+    model_directory: Optional[Path],
+) -> Optional[str]:
+    if model_directory is None:
+        return None
+    directory = Path(model_directory).expanduser()
+    if not directory.exists():
+        return None
+
+    candidates: list[Path] = []
+    if model_path:
+        candidates.append(directory / Path(model_path).name)
+
+    model_slug = model_name.strip()
+    if model_slug:
+        candidates.extend(
+            [
+                directory / f"{model_slug}.tflite",
+                directory / f"{model_slug}.onnx",
+                directory / f"{model_slug}_v0.1.tflite",
+                directory / f"{model_slug}_v0.1.onnx",
+            ]
+        )
+        for pattern in (
+            f"{model_slug}*.tflite",
+            f"{model_slug}*.onnx",
+            f"*{model_slug}*.tflite",
+            f"*{model_slug}*.onnx",
+        ):
+            candidates.extend(sorted(directory.glob(pattern)))
+
+    seen: set[str] = set()
+    for candidate in candidates:
+        candidate_str = str(candidate)
+        if candidate_str in seen:
+            continue
+        seen.add(candidate_str)
+        if candidate.exists():
+            return str(candidate)
+    return None
+
+
+def ensure_models_available(
+    model_name: str,
+    model_path: Optional[str],
+    target_directory: Optional[Path] = None,
+) -> bool:
     if model_path and Path(model_path).exists():
-        _emit_status("models_ready", f"Wakeword model available: {model_name}")
+        _emit_status("models_ready", f"Wakeword model available: {model_name}", model_path=model_path)
+        return True
+    resolved_downloaded_path = resolve_model_path_from_directory(model_name, model_path, target_directory)
+    if resolved_downloaded_path:
+        _emit_status(
+            "models_ready",
+            f"Wakeword model available: {model_name}",
+            model_path=resolved_downloaded_path,
+        )
         return True
 
     download_models = _load_download_models_func()
@@ -94,13 +171,30 @@ def ensure_models_available(model_name: str, model_path: Optional[str]) -> bool:
 
     _emit_status("downloading", f"Downloading wakeword model '{model_name}'...")
     try:
-        download_models([model_name])
+        model_directory_str = str(target_directory) if target_directory else None
+        init_params = inspect.signature(download_models).parameters
+        if model_directory_str and "target_directory" in init_params:
+            Path(model_directory_str).mkdir(parents=True, exist_ok=True)
+            download_models([model_name], target_directory=model_directory_str)
+        else:
+            download_models([model_name])
     except Exception as exc:
         _emit_status("error", f"Failed to download wakeword models: {exc}")
         return False
 
-    if model_path and not Path(model_path).exists():
-        _emit_status("error", f"Wakeword model still missing after download: {model_path}")
+    if resolve_model_path_from_directory(model_name, model_path, target_directory):
+        _emit_status("download_complete", "Wakeword models downloaded successfully")
+        return True
+
+    if model_path and Path(model_path).exists():
+        _emit_status("download_complete", "Wakeword models downloaded successfully")
+        return True
+
+    missing_reference = model_path
+    if not missing_reference and target_directory:
+        missing_reference = str(target_directory)
+    if missing_reference:
+        _emit_status("error", f"Wakeword model still missing after download: {missing_reference}")
         return False
 
     _emit_status("download_complete", "Wakeword models downloaded successfully")
@@ -109,16 +203,33 @@ def ensure_models_available(model_name: str, model_path: Optional[str]) -> bool:
 
 def create_model(model_cls: Any, model_name: str, model_path: Optional[str]) -> Tuple[Any, str]:
     init_params = inspect.signature(model_cls.__init__).parameters
+    supports_variadic_kwargs = any(
+        param.kind == inspect.Parameter.VAR_KEYWORD for param in init_params.values()
+    )
+    supports_model_paths = "wakeword_model_paths" in init_params or supports_variadic_kwargs
+    supports_model_names = "wakeword_models" in init_params
+    supports_framework = "inference_framework" in init_params
 
-    if "wakeword_model_paths" in init_params:
-        model_args: Dict[str, Any] = {}
-        if model_path:
-            model_args["wakeword_model_paths"] = [model_path]
+    if model_path and supports_model_paths:
+        model_args: Dict[str, Any] = {"wakeword_model_paths": [model_path]}
+        if supports_model_names:
+            model_args["wakeword_models"] = [model_name]
+        if supports_framework:
+            try:
+                return model_cls(**model_args, inference_framework="tflite"), "tflite"
+            except Exception as tflite_error:
+                _emit_status(
+                    "fallback",
+                    f"TFLite failed ({tflite_error}), retrying with ONNX",
+                )
+                return model_cls(**model_args, inference_framework="onnx"), "onnx"
         return model_cls(**model_args), "onnx"
 
-    if "wakeword_models" in init_params:
+    if supports_model_names:
         model_args = {"wakeword_models": [model_name]}
-        if "inference_framework" in init_params:
+        if model_path and supports_model_paths:
+            model_args["wakeword_model_paths"] = [model_path]
+        if supports_framework:
             try:
                 return model_cls(**model_args, inference_framework="tflite"), "tflite"
             except Exception as tflite_error:
@@ -192,8 +303,14 @@ def run_service() -> int:
         return 1
 
     model_name, model_path = resolve_wakeword_model(openwakeword_mod)
-    if not ensure_models_available(model_name, model_path):
+    model_directory = resolve_wakeword_model_directory()
+    if not ensure_models_available(model_name, model_path, target_directory=model_directory):
         return 1
+    model_path = (
+        model_path
+        if model_path and Path(model_path).exists()
+        else resolve_model_path_from_directory(model_name, model_path, model_directory)
+    )
 
     try:
         model, inference_type = create_model(model_cls, model_name, model_path)

@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(sidecar-wakeword-model-bootstrap-permissions): route wakeword model bootstrap to a user-writable cache fallback (`WINDIE_WAKEWORD_MODEL_DIR` override), support both `openwakeword.models` and `openwakeword.MODELS` metadata layouts, resolve concrete downloaded model paths for model init, and prefetch wakeword assets during runtime packaging to avoid first-run permission failures in read-only install paths.
+- fix(sidecar-linux-system-state-fallbacks): add Linux Xlib fallbacks for active-window and mouse-position probes when `xdotool`/`pyautogui` paths fail, reducing `Unknown` system-context values in packaged desktop runs.
 - fix(frontend-dashboard-sidebar-empty-state): show `No chats yet.` when recent chat list is empty but IPC transport is connected, and only show `Unable to load chats.` when transport is disconnected; wire dashboard shell IPC status into sidebar state and add regression coverage.
 - fix(frontend-packaged-blank-window): set Vite build `base` to `./` so packaged Electron `file://.../dist/index.html` resolves renderer assets via relative paths, preventing black/blank dashboard window in installed builds.
 - fix(frontend-main-startup-window-visibility): show dashboard main window on first app-ready startup (while preserving tray behavior after close) so launcher clicks no longer appear as no-op when chat overlay is hidden/unmapped.
