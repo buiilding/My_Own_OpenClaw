@@ -6,7 +6,7 @@ const {
 } = require('./platform/content_protection/index.cjs');
 const CHATBOX_OVERLAY_FIXED_WIDTH = 520;
 const CHATBOX_OVERLAY_FIXED_HEIGHT = 116;
-const APP_ICON_RELATIVE_PATH = nodePath.join('src', 'main', 'assets', 'icons', 'windieos.png');
+const APP_ICON_RELATIVE_PATH = nodePath.join('src', 'main', 'assets', 'icons', 'windieos.app.png');
 const TRAY_ICON_FALLBACK_DATA_URL = 'data:image/png;base64,iVBORw0KGgoAAAANSUEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
 
 function resolveAppIconPathRuntime({
@@ -15,7 +15,7 @@ function resolveAppIconPathRuntime({
   cwd = process.cwd(),
 } = {}) {
   const candidates = [
-    nodePath.join(__dirname, 'assets', 'icons', 'windieos.png'),
+    nodePath.join(__dirname, 'assets', 'icons', 'windieos.app.png'),
     resourcesPath ? nodePath.join(resourcesPath, APP_ICON_RELATIVE_PATH) : null,
     cwd ? nodePath.join(cwd, APP_ICON_RELATIVE_PATH) : null,
   ];
