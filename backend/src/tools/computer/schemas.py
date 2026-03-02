@@ -121,14 +121,15 @@ class KeyboardControlArgs(BaseModel):
     action: KeyboardAction = Field(
         ...,
         description=(
-            "Keyboard action to perform: type (text input), press (single key), or hotkey (combined keys)."
+            "Keyboard action to perform: type (text input), paste (clipboard insert), "
+            "press (single key), or hotkey (combined keys)."
             " Prefer keyboard-driven navigation over clicking when equivalent."
         ),
     )
     text: Optional[str] = Field(
         None,
         description=(
-            "Text payload for action='type'. Use with deterministic follow-up key presses when needed "
+            "Text payload for action='type' or action='paste'. Use with deterministic follow-up key presses when needed "
             "(for example, submit after input)."
         ),
     )

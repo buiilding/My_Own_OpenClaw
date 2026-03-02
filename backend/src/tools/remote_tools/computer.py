@@ -47,8 +47,9 @@ class RemoteMouseTool(RemoteToolBase, Tool[MouseControlArgs]):
 class RemoteKeyboardTool(RemoteToolBase, Tool[KeyboardControlArgs]):
     name = "keyboard_control"
     description = (
-        "Control keyboard input including typing text, pressing keys, and shortcuts. "
-        "Use deterministic action sequences for predictable flows (for example, type then press Enter). "
+        "Control keyboard input including typing text, clipboard paste, pressing keys, and shortcuts. "
+        "For multiline or long text, prefer paste to avoid unintended Enter-driven app behaviors. "
+        "Use deterministic action sequences for predictable flows (for example, input text then press Enter only when submit is intended). "
         "Prefer this tool over mouse clicks when a shortcut or key-driven path exists."
     )
     args_model = KeyboardControlArgs

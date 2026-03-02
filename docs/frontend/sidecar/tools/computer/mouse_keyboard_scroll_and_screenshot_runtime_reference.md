@@ -57,12 +57,12 @@ Output semantics:
 
 Supported actions:
 
-- `type`, `press`, `hotkey`
+- `type`, `paste`, `press`, `hotkey`
 
 Validation and guards:
 
 - missing `action` returns `{success: false, error: "action is required"}`
-- `type` requires `text`; hard limit `len(text) <= 10000`
+- `type`/`paste` require `text`; hard limit `len(text) <= 10000`
 - `press` requires `key`
 - `hotkey` requires non-empty `keys`
 - dangerous hotkeys are blocked:
@@ -78,7 +78,9 @@ Key normalization:
 Execution semantics:
 
 - runs in thread executor to avoid blocking event loop
-- `type` uses `pyautogui.write(text, interval=0.01)`
+- `type` uses `pyautogui.write(text, interval=0.01)` for short single-line input
+- `type` auto-switches to clipboard paste for multiline or long text
+- `paste` always uses clipboard + platform paste hotkey (`ctrl+v` on Windows/Linux, `command+v` on macOS), then attempts to restore prior clipboard content
 
 Output semantics:
 
