@@ -243,7 +243,7 @@ function emitMainWindowOpenTarget(target) {
   });
 }
 
-function handleResponseOverlayPhaseChange(event = {}) {
+function applyResponseOverlayPhase(event = {}) {
   handleResponseOverlayPhaseEvent(event, {
     ENABLE_OS_TOOL_GHOST_DEBUG,
     RESPONSE_OVERLAY_PHASE,
@@ -271,13 +271,13 @@ function createWindow() {
     platform: process.platform,
     enableDevTransparencyUi: ENABLE_DEV_TRANSPARENCY_UI,
     initializeIpc,
-    handleResponseOverlayPhaseChange,
+    applyResponseOverlayPhase,
     prepareOverlayQueryCaptureFocus,
     initializeWakewordBridge,
     showChatWindow,
     emitWakewordSttTrigger,
     initializeLocalBackendBridge,
-    initializeMainProcessIpcHandlers,
+    initializeMainProcessIpc,
     getLatestFrontendConfig,
     getWindows: () => ({
       mainWindow,
@@ -368,7 +368,7 @@ initializeMainProcessLifecycleRuntime({
   stopLocalBackend,
 });
 
-function initializeMainProcessIpcHandlers() {
+function initializeMainProcessIpc() {
   if (mainProcessIpcHandlersInitialized) {
     return;
   }

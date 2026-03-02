@@ -39,7 +39,7 @@ For deeper context-label runtime details, see [Context Label Overlay and Active-
 App-ready path (`app.whenReady()`):
 
 1. `initializeMainProcessLifecycleRuntime(...)` runs startup lifecycle listeners.
-2. `createWindow()` delegates to `createMainWindowRuntime(...)` to create `mainWindow` and wire IPC/wakeword/local-backend/overlay handlers.
+2. `createWindow()` delegates to `createMainWindowRuntime(...)` to create `mainWindow` and wire IPC/wakeword/local-backend/overlay phase coordination.
 3. `createChatWindow()` delegates to `createChatWindowRuntime(...)` for overlay input surface (`view=chatbox`).
 4. `createResponseWindow()` delegates to `createResponseWindowRuntime(...)` for response surface (`view=chatbox-response` or debug view).
 5. tray and global hotkey (`Super+Alt+W`) are initialized.
@@ -60,7 +60,7 @@ OS debug mode for ghost animation:
 - startup behavior:
   - `responseWindow` loads `view=tool-ghost-debug` instead of `chatbox-response`
   - response overlay starts visible (`520x620`) and remains phase-independent
-  - phase callback from backend (`handleResponseOverlayPhaseChange`) is ignored to prevent auto-hide during debug
+  - phase callback from backend (`applyResponseOverlayPhase`) is ignored to prevent auto-hide during debug
 - launcher: `cd frontend && npm run test:ghost-cursor`
 
 Global app policy:
@@ -106,7 +106,7 @@ Wiring:
 
 - backend events in `ipc.cjs` translate to phase transitions
 - phase broadcast channel: `response-overlay-phase`
-- main process callback `handleResponseOverlayPhaseChange(...)` drives response window visibility
+- main process callback `applyResponseOverlayPhase(...)` drives response window visibility
 
 Visibility behavior:
 

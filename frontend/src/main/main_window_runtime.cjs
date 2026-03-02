@@ -143,13 +143,13 @@ function createMainWindow({
   platform,
   enableDevTransparencyUi,
   initializeIpc,
-  handleResponseOverlayPhaseChange,
+  applyResponseOverlayPhase,
   prepareOverlayQueryCaptureFocus,
   initializeWakewordBridge,
   showChatWindow,
   emitWakewordSttTrigger,
   initializeLocalBackendBridge,
-  initializeMainProcessIpcHandlers,
+  initializeMainProcessIpc,
   getLatestFrontendConfig,
   getWindows,
   setMainWindow,
@@ -179,7 +179,7 @@ function createMainWindow({
   });
 
   initializeIpc(mainWindow, {
-    onResponseOverlayPhaseChange: handleResponseOverlayPhaseChange,
+    applyResponseOverlayPhase,
     onBeforeOverlayQueryCapture: prepareOverlayQueryCaptureFocus,
     isPackaged: app.isPackaged,
   });
@@ -193,7 +193,7 @@ function createMainWindow({
     getFrontendConfig: getLatestFrontendConfig,
     isPackaged: app.isPackaged,
   });
-  initializeMainProcessIpcHandlers();
+  initializeMainProcessIpc();
 
   if (platform !== 'darwin') {
     mainWindow.setMenuBarVisibility(false);

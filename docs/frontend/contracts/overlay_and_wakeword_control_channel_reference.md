@@ -88,7 +88,7 @@ Emit points:
 
 - `showChatWindow()` broadcasts current response overlay visibility
 - `hideChatWindow()` broadcasts `false`
-- `handleResponseOverlayPhaseChange()` broadcasts:
+- `applyResponseOverlayPhase()` broadcasts:
 - `false` on `idle`
 - `true` while streaming/tool-active phases
 
@@ -121,7 +121,7 @@ Consumer:
 Channel emissions are tied to window orchestration:
 
 - `showChatWindow` and `hideChatWindow` control both overlay windows and wakeword suppression
-- response overlay phase callback (`handleResponseOverlayPhaseChange`) coordinates window visibility plus visibility broadcasts
+- response overlay phase callback (`applyResponseOverlayPhase`) coordinates window visibility plus visibility broadcasts
 
 This means channel behavior depends on both backend stream state (`ipc.cjs`) and local overlay-window state (`index.cjs`).
 
