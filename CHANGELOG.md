@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-all-wakeword-and-watchdog-tests): dedupe wakeword model framework fallback path in sidecar service, align local browser watchdog error-message assertions with current runtime contract, and restore full sidecar suite green.
 - fix(frontend-all-chat-pill-topmost-workspaces): strengthen overlay window pinning so chat pill/response overlays request strongest topmost level (`screen-saver` with `floating` fallback), stay visible across fullscreen/workspaces (`skipTransformProcessType` on macOS), and add runtime/docs/test coverage for maximized-app on-top behavior.
 - refactor(frontend-all-runtime-storage-dedupe): dedupe Windows/macOS content-protection runtime via shared helper, dedupe onboarding/permission localStorage JSON handling via shared renderer storage utility, remove dead frontend exports flagged by knip, add permission-onboarding storage regressions, and keep `lint`/`typecheck`/`knip`/`test:ci` green.
 - fix(frontend-chat-pill-topmost-maximized-browser): add shared overlay topmost policy runtime with macOS `screen-saver` promotion fallback to `floating`, wire chat/response/context overlay reassert paths through it, and add focused frontend regressions so the chat pill stays above maximized browser windows more reliably.
