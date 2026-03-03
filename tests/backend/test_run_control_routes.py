@@ -43,6 +43,29 @@ async def test_create_run_returns_initial_state_and_created_event() -> None:
 
 
 @pytest.mark.asyncio
+async def test_create_run_rejects_when_workspace_active_limit_reached() -> None:
+    service = VmRunControlService(max_active_runs_per_workspace=1)
+    await runs_routes.create_run(
+        runs_routes.CreateRunRequest(
+            workspace_id="workspace-demo",
+            query="first run",
+        ),
+        service=service,
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        await runs_routes.create_run(
+            runs_routes.CreateRunRequest(
+                workspace_id="workspace-demo",
+                query="second run",
+            ),
+            service=service,
+        )
+
+    assert exc_info.value.status_code == 409
+
+
+@pytest.mark.asyncio
 async def test_control_run_requires_control_mode_for_set_control_mode_action() -> None:
     service = VmRunControlService()
     created = await runs_routes.create_run(
@@ -277,6 +300,59 @@ async def test_worker_poll_heartbeat_returns_pending_control_commands_once() -> 
     assert len(first.control_commands) == 1
     assert first.control_commands[0].action == "pause"
     assert second.control_commands == []
+
+
+@pytest.mark.asyncio
+async def test_stop_all_runs_sets_matching_active_runs_to_stopped() -> None:
+    service = VmRunControlService(max_active_runs_per_workspace=4)
+    run_a = await runs_routes.create_run(
+        runs_routes.CreateRunRequest(
+            workspace_id="workspace-demo",
+            query="run A",
+        ),
+        service=service,
+    )
+    run_b = await runs_routes.create_run(
+        runs_routes.CreateRunRequest(
+            workspace_id="workspace-demo",
+            query="run B",
+        ),
+        service=service,
+    )
+    run_other = await runs_routes.create_run(
+        runs_routes.CreateRunRequest(
+            workspace_id="workspace-other",
+            query="run C",
+        ),
+        service=service,
+    )
+
+    response = await runs_routes.stop_all_runs(
+        runs_routes.StopAllRunsRequest(
+            workspace_id="workspace-demo",
+            requested_by="tester",
+        ),
+        service=service,
+    )
+
+    assert response.count == 2
+    assert set(response.stopped_run_ids) == {run_a.run.run_id, run_b.run.run_id}
+    run_a_state = await runs_routes.get_run(run_a.run.run_id, service=service)
+    run_b_state = await runs_routes.get_run(run_b.run.run_id, service=service)
+    run_other_state = await runs_routes.get_run(run_other.run.run_id, service=service)
+    assert run_a_state.status == "stopped"
+    assert run_b_state.status == "stopped"
+    assert run_other_state.status == "awaiting_worker"
+
+
+def test_verify_runs_api_key_respects_demo_key_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("WINDIE_DEMO_API_KEY", "demo-key")
+    runs_routes.verify_runs_api_key("demo-key")
+    with pytest.raises(HTTPException) as exc_info:
+        runs_routes.verify_runs_api_key("wrong-key")
+    assert exc_info.value.status_code == 401
+    monkeypatch.delenv("WINDIE_DEMO_API_KEY", raising=False)
+    runs_routes.verify_runs_api_key(None)
 
 
 @pytest.mark.asyncio

@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import os
 from typing import Annotated, Any, Dict, List, Literal, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 
 from backend.src.services.vm_run_control import VmRunControlService
@@ -68,6 +69,17 @@ class RunControlRequest(BaseModel):
 class RunControlResponse(BaseModel):
     run: RunView
     latest_event: RunEvent
+
+
+class StopAllRunsRequest(BaseModel):
+    workspace_id: Optional[str] = None
+    requested_by: Optional[str] = None
+
+
+class StopAllRunsResponse(BaseModel):
+    workspace_id: Optional[str] = None
+    stopped_run_ids: List[str] = Field(default_factory=list)
+    count: int
 
 
 class WorkerHeartbeatRequest(BaseModel):
@@ -151,16 +163,59 @@ class RunEventsResponse(BaseModel):
     next_after_seq: int
 
 
+def _parse_positive_int(raw_value: Optional[str], default: int) -> int:
+    if raw_value is None:
+        return default
+    try:
+        parsed = int(raw_value.strip())
+    except (ValueError, AttributeError):
+        return default
+    return parsed if parsed > 0 else default
+
+
 def get_vm_run_control_service(request: Request) -> VmRunControlService:
     state = request.app.state
     service = getattr(state, "vm_run_control_service", None)
     if service is None:
-        service = VmRunControlService()
+        max_active_runs = _parse_positive_int(
+            os.getenv("WINDIE_VM_MAX_ACTIVE_RUNS_PER_WORKSPACE"),
+            default=1,
+        )
+        service = VmRunControlService(max_active_runs_per_workspace=max_active_runs)
         state.vm_run_control_service = service
     return service
 
 
 VmRunControlServiceDep = Annotated[VmRunControlService, Depends(get_vm_run_control_service)]
+
+
+def _normalize_optional_string(value: Optional[str]) -> Optional[str]:
+    if not isinstance(value, str):
+        return None
+    normalized = value.strip()
+    return normalized if normalized else None
+
+
+def _resolve_runs_api_key() -> Optional[str]:
+    return _normalize_optional_string(
+        os.getenv("WINDIE_RUNS_API_KEY") or os.getenv("WINDIE_DEMO_API_KEY")
+    )
+
+
+def verify_runs_api_key(
+    x_windie_runs_key: Optional[str] = Header(
+        default=None,
+        alias="x-windie-runs-key",
+    ),
+) -> None:
+    expected_key = _resolve_runs_api_key()
+    if expected_key is None:
+        return
+    if _normalize_optional_string(x_windie_runs_key) != expected_key:
+        raise HTTPException(status_code=401, detail="Invalid runs API key")
+
+
+RunsApiKeyDep = Annotated[None, Depends(verify_runs_api_key)]
 
 
 def _to_run_view(run: Dict[str, Any]) -> RunView:
@@ -171,15 +226,19 @@ def _to_run_view(run: Dict[str, Any]) -> RunView:
 async def create_run(
     payload: CreateRunRequest,
     service: VmRunControlServiceDep,
+    _api_key: RunsApiKeyDep = None,
 ) -> CreateRunResponse:
-    run = await service.create_run(
-        workspace_id=payload.workspace_id,
-        query=payload.query,
-        agent_id=payload.agent_id,
-        requested_by=payload.requested_by,
-        files=[file.model_dump() for file in payload.files],
-        metadata=payload.metadata,
-    )
+    try:
+        run = await service.create_run(
+            workspace_id=payload.workspace_id,
+            query=payload.query,
+            agent_id=payload.agent_id,
+            requested_by=payload.requested_by,
+            files=[file.model_dump() for file in payload.files],
+            metadata=payload.metadata,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
     events = run.get("events", [])
     return CreateRunResponse(
         run=_to_run_view(run),
@@ -191,6 +250,7 @@ async def create_run(
 async def worker_poll_heartbeat(
     payload: WorkerPollHeartbeatRequest,
     service: VmRunControlServiceDep,
+    _api_key: RunsApiKeyDep = None,
 ) -> WorkerPollHeartbeatResponse:
     result = await service.register_worker_heartbeat(
         workspace_id=payload.workspace_id,
@@ -215,6 +275,7 @@ async def worker_poll_heartbeat(
 async def get_run(
     run_id: str,
     service: VmRunControlServiceDep,
+    _api_key: RunsApiKeyDep = None,
 ) -> RunView:
     run = await service.get_run(run_id)
     if run is None:
@@ -226,6 +287,7 @@ async def get_run(
 async def list_run_events(
     run_id: str,
     service: VmRunControlServiceDep,
+    _api_key: RunsApiKeyDep = None,
     after_seq: int = Query(0, ge=0),
     limit: int = Query(200, ge=1, le=1000),
 ) -> RunEventsResponse:
@@ -247,6 +309,7 @@ async def ingest_run_event(
     run_id: str,
     payload: RunEventIngestRequest,
     service: VmRunControlServiceDep,
+    _api_key: RunsApiKeyDep = None,
 ) -> RunEventIngestResponse:
     result = await service.append_stream_event(
         run_id,
@@ -271,6 +334,7 @@ async def control_run(
     run_id: str,
     payload: RunControlRequest,
     service: VmRunControlServiceDep,
+    _api_key: RunsApiKeyDep = None,
 ) -> RunControlResponse:
     if payload.action == "set-control-mode" and payload.control_mode is None:
         raise HTTPException(
@@ -295,11 +359,29 @@ async def control_run(
     )
 
 
+@router.post("/stop-all", response_model=StopAllRunsResponse)
+async def stop_all_runs(
+    payload: StopAllRunsRequest,
+    service: VmRunControlServiceDep,
+    _api_key: RunsApiKeyDep = None,
+) -> StopAllRunsResponse:
+    stopped_run_ids = await service.stop_all_runs(
+        workspace_id=payload.workspace_id,
+        requested_by=payload.requested_by,
+    )
+    return StopAllRunsResponse(
+        workspace_id=payload.workspace_id,
+        stopped_run_ids=stopped_run_ids,
+        count=len(stopped_run_ids),
+    )
+
+
 @router.post("/{run_id}/worker-dispatched", response_model=WorkerDispatchedResponse)
 async def worker_dispatched(
     run_id: str,
     payload: WorkerDispatchedRequest,
     service: VmRunControlServiceDep,
+    _api_key: RunsApiKeyDep = None,
 ) -> WorkerDispatchedResponse:
     run = await service.acknowledge_run_dispatch(
         run_id,
@@ -325,6 +407,7 @@ async def worker_heartbeat(
     run_id: str,
     payload: WorkerHeartbeatRequest,
     service: VmRunControlServiceDep,
+    _api_key: RunsApiKeyDep = None,
 ) -> WorkerHeartbeatResponse:
     run = await service.record_worker_heartbeat(
         run_id,

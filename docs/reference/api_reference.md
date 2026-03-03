@@ -136,6 +136,12 @@ Fetch an artifact by ID (binary response).
 These endpoints provide a hosted control-plane contract for web dashboards that drive VM-backed Windie execution.
 Current implementation is an in-memory backend registry designed for demo/runtime integration.
 
+When `WINDIE_RUNS_API_KEY` (or `WINDIE_DEMO_API_KEY`) is configured, every runs endpoint requires:
+
+```http
+x-windie-runs-key: <shared-key>
+```
+
 ### POST `/api/runs/`
 
 Create a new run request for a workspace/agent.
@@ -161,6 +167,8 @@ Create a new run request for a workspace/agent.
 **Response**:
 - `run`: run state (`status`, `control_mode`, `conversation_ref`, worker binding fields)
 - `events`: initial event list (includes `run-created`)
+
+If workspace active-run cap is reached (`WINDIE_VM_MAX_ACTIVE_RUNS_PER_WORKSPACE`, default `1`), returns `409`.
 
 ### GET `/api/runs/{run_id}`
 
@@ -248,6 +256,27 @@ Supported `action` values:
 - `resume`
 - `stop`
 - `set-control-mode` (requires `control_mode`: `agent_only | shared_control | human_override`)
+
+### POST `/api/runs/stop-all`
+
+Emergency stop for all active runs (optionally workspace-scoped).
+
+**Request**:
+```json
+{
+  "workspace_id": "workspace-demo",
+  "requested_by": "operator"
+}
+```
+
+**Response**:
+```json
+{
+  "workspace_id": "workspace-demo",
+  "stopped_run_ids": ["run-1", "run-2"],
+  "count": 2
+}
+```
 
 ### POST `/api/runs/{run_id}/worker-dispatched`
 
