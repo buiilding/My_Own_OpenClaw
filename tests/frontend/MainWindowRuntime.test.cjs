@@ -308,6 +308,14 @@ describe('main_window_runtime createChatWindow', () => {
     handlers.show();
     expect(chatWindow.loadURL).toHaveBeenCalledTimes(1);
   });
+
+  test('uses aggressive always-on-top level on mac for chat overlay', () => {
+    const { deps, chatWindow } = createDeps({ platform: 'darwin' });
+
+    createChatWindow(deps);
+
+    expect(chatWindow.setAlwaysOnTop).toHaveBeenCalledWith(true, 'screen-saver');
+  });
 });
 
 describe('main_window_runtime createResponseWindow', () => {
@@ -371,6 +379,14 @@ describe('main_window_runtime createResponseWindow', () => {
     expect(deps.positionResponseWindow).toHaveBeenCalledTimes(1);
     expect(deps.showResponseWindowInactive).toHaveBeenCalledTimes(1);
     expect(deps.setResponseOverlayVisible).toHaveBeenCalledWith(true);
+  });
+
+  test('uses aggressive always-on-top level on mac for response overlay', () => {
+    const { deps, responseWindow } = createDeps({ platform: 'darwin' });
+
+    createResponseWindow(deps);
+
+    expect(responseWindow.setAlwaysOnTop).toHaveBeenCalledWith(true, 'screen-saver');
   });
 });
 

@@ -15,6 +15,7 @@ title: "Main Window Runtime Factory and Overlay Bootstrap Reference"
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
+- `frontend/src/main/overlay_topmost_runtime.cjs`
 
 ## Runtime Split
 
@@ -38,6 +39,9 @@ Shared overlay defaults for chat/response windows:
 - no resize/minimize/maximize/fullscreen controls
 - preload set to `frontend/src/preload.js`
 - context isolation on, Node integration off
+- topmost level policy from `overlay_topmost_runtime.cjs`:
+  - macOS: `screen-saver` first, fallback `floating`
+  - others: `floating`
 
 This centralizes overlay BrowserWindow option parity across both overlay surfaces.
 

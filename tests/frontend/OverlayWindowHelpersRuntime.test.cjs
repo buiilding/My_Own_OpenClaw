@@ -189,4 +189,36 @@ describe('overlay_window_helpers_runtime', () => {
       false,
     );
   });
+
+  test('re-promotes chat overlay with mac level fallback and moveTop', () => {
+    const chatWindow = {
+      isDestroyed: jest.fn(() => false),
+      setAlwaysOnTop: jest.fn()
+        .mockImplementationOnce(() => {
+          throw new Error('unsupported');
+        })
+        .mockImplementationOnce(() => {}),
+      moveTop: jest.fn(),
+    };
+
+    const runtime = createOverlayWindowHelpersRuntime({
+      screen: {},
+      platform: 'darwin',
+      getChatWindow: () => chatWindow,
+      getOverlayChatWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 520, height: 116 })),
+      getOverlayResponseWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
+      getOverlayContextLabelWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
+      contextLabelWidth: 280,
+      contextLabelHeight: 26,
+      contextLabelOffsetX: 14,
+      contextLabelGapAboveChatbox: -6,
+      warn: jest.fn(),
+    });
+
+    runtime.ensureChatWindowOnTop();
+
+    expect(chatWindow.setAlwaysOnTop).toHaveBeenNthCalledWith(1, true, 'screen-saver');
+    expect(chatWindow.setAlwaysOnTop).toHaveBeenNthCalledWith(2, true, 'floating');
+    expect(chatWindow.moveTop).toHaveBeenCalledTimes(1);
+  });
 });
