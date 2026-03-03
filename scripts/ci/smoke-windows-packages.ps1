@@ -24,6 +24,28 @@ if (-not (Test-Path $exe)) {
   throw "Installed executable not found at $exe"
 }
 
+$runtimeRoot = Join-Path $installDir "resources\python-runtime"
+$runtimePython = Join-Path $runtimeRoot "python.exe"
+if (-not (Test-Path $runtimePython)) {
+  $runtimePython = Join-Path $runtimeRoot "Scripts\python.exe"
+}
+if (-not (Test-Path $runtimePython)) {
+  throw "Bundled runtime python executable missing under $runtimeRoot"
+}
+
+$runtimeVersion = & $runtimePython -V 2>&1
+if ($LASTEXITCODE -ne 0) {
+  throw "Bundled runtime python failed to execute: $runtimeVersion"
+}
+
+$runtimePyvenvCfg = Join-Path $runtimeRoot "pyvenv.cfg"
+if (Test-Path $runtimePyvenvCfg) {
+  $pyvenvContent = Get-Content $runtimePyvenvCfg -Raw
+  if ($pyvenvContent -match "hostedtoolcache") {
+    throw "Bundled runtime pyvenv.cfg leaked CI host path: $runtimePyvenvCfg"
+  }
+}
+
 $launchProc = Start-Process -FilePath $exe -ArgumentList "--version" -PassThru
 Start-Sleep -Seconds 12
 if (-not $launchProc.HasExited) {
