@@ -3,6 +3,7 @@ from backend.src.llm.models.models_config import (
     ONLINE_MODELS,
     ONLINE_THINKING_MODELS,
     THINKING_TEXT_STREAM_UNSUPPORTED_MODELS,
+    resolve_provider_thinking_preference,
 )
 
 
@@ -53,3 +54,33 @@ def test_local_vision_model_lists_are_non_empty_and_unique():
     for provider, models in LOCAL_VISION_MODELS.items():
         assert models, f"{provider} should expose at least one local vision model"
         assert len(models) == len(set(models))
+
+
+def test_resolve_provider_thinking_preference_uses_preset_override():
+    assert (
+        resolve_provider_thinking_preference(
+            model_id="openrouter/auto",
+            provider_name="openrouter",
+        )
+        is False
+    )
+
+
+def test_resolve_provider_thinking_preference_matches_provider_thinking_catalog():
+    assert (
+        resolve_provider_thinking_preference(
+            model_id="qwen/qwen3-vl-235b-a22b-thinking",
+            provider_name="openrouter",
+        )
+        is True
+    )
+
+
+def test_resolve_provider_thinking_preference_returns_none_when_unknown():
+    assert (
+        resolve_provider_thinking_preference(
+            model_id="nonexistent/model",
+            provider_name="openrouter",
+        )
+        is None
+    )

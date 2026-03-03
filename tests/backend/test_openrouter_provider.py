@@ -30,3 +30,18 @@ def test_openrouter_provider_leaves_reasoning_unchanged_for_non_thinking_model()
     )
 
     assert "reasoning" not in updated
+
+
+def test_openrouter_provider_removes_reasoning_payload_for_nonthinking_preset():
+    provider = OpenRouterProvider(api_key="test-key")
+    params = {
+        "model": "openrouter/auto",
+        "reasoning": {"exclude": False},
+    }
+
+    updated = provider._apply_provider_request_params(
+        params,
+        model="openrouter/auto",
+    )
+
+    assert "reasoning" not in updated

@@ -204,6 +204,36 @@ def resolve_model_preset(model_id: str) -> Optional[Dict[str, Any]]:
     return dict(preset) if preset else None
 
 
+def resolve_provider_thinking_preference(
+    *,
+    model_id: str,
+    provider_name: str,
+) -> Optional[bool]:
+    """Resolve thinking preference for a model/provider pair.
+
+    Returns:
+        - True: thinking should be enabled
+        - False: thinking should be disabled
+        - None: no provider-level preference (leave caller defaults unchanged)
+    """
+    if not isinstance(model_id, str) or not isinstance(provider_name, str):
+        return None
+    normalized_model_id = model_id.strip()
+    normalized_provider = provider_name.strip().lower()
+    if not normalized_model_id or not normalized_provider:
+        return None
+
+    preset = resolve_model_preset(normalized_model_id)
+    supports_thinking = preset.get("supports_thinking") if isinstance(preset, dict) else None
+    if isinstance(supports_thinking, bool):
+        return supports_thinking
+
+    thinking_models = ONLINE_THINKING_MODELS.get(normalized_provider, [])
+    if normalized_model_id in thinking_models:
+        return True
+    return None
+
+
 def resolve_runtime_model_id(model_id: str) -> str:
     """Map selected preset id to runtime LiteLLM model id."""
     if not isinstance(model_id, str):
