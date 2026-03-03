@@ -10,9 +10,18 @@ const {
   systemPreferences,
 } = require('electron');
 const path = require('path');
-const { getLatestFrontendConfig, initializeIpc, registerRendererWindow } = require('./ipc.cjs');
+const {
+  getBackendConnectionState,
+  getLatestFrontendConfig,
+  initializeIpc,
+  registerBackendMessageObserver,
+  registerRendererWindow,
+  sendAutomatedQuery,
+  sendMessageToBackend,
+} = require('./ipc.cjs');
 const { initializeWakewordBridge } = require('./wakeword_bridge.cjs');
 const { initializeLocalBackendBridge, stopLocalBackend } = require('./local_backend_bridge.cjs');
+const { createVmWorkerRuntime } = require('./vm_worker_runtime.cjs');
 const { createExternalFocusTracker } = require('./external_focus_tracker.cjs');
 const {
   createChatWindow: createChatWindowRuntime,
@@ -53,6 +62,7 @@ const {
 } = require('./window_visibility_runtime.cjs');
 const { createResponseOverlayPhaseEnum } = require('./ipc_overlay_phase_contract.cjs');
 const { configureGpuRuntime } = require('./gpu_runtime.cjs');
+const { isVmModeEnabled, isVmWorkerModeEnabled } = require('./runtime_mode.cjs');
 let windowManager = null;
 try {
   ({ windowManager } = require('node-window-manager'));
@@ -86,7 +96,10 @@ const RESPONSE_OVERLAY_PHASE = createResponseOverlayPhaseEnum();
 const APP_WINDOW_TITLE_MARKERS = ['desktop assistant', 'windieos'];
 const ENABLE_OS_TOOL_GHOST_DEBUG = process.env.WINDIE_DEBUG_GHOST_OVERLAY === '1';
 const ENABLE_DEV_TRANSPARENCY_UI = process.env.WINDIE_DEV_UI === '1';
+const VM_MODE_ENABLED = isVmModeEnabled(process.env);
+const VM_WORKER_MODE_ENABLED = isVmWorkerModeEnabled(process.env);
 const RESPONSE_WINDOW_DEBUG_VIEW = 'tool-ghost-debug';
+let vmWorkerRuntime = null;
 const externalFocusTracker = createExternalFocusTracker({
   getPlatform: () => process.platform,
   windowManager,
@@ -275,6 +288,8 @@ function createWindow() {
     path,
     app,
     platform: process.platform,
+    vmMode: VM_MODE_ENABLED,
+    minimizeToTrayOnClose: !VM_MODE_ENABLED,
     enableDevTransparencyUi: ENABLE_DEV_TRANSPARENCY_UI,
     initializeIpc,
     applyResponseOverlayPhase,
@@ -296,6 +311,19 @@ function createWindow() {
     },
     enableContentProtectionSafely,
   });
+
+  if (VM_WORKER_MODE_ENABLED && !vmWorkerRuntime) {
+    vmWorkerRuntime = createVmWorkerRuntime({
+      env: process.env,
+      getBackendConnectionState,
+      sendAutomatedQuery,
+      sendMessageToBackend,
+      registerBackendMessageObserver,
+      log: (...args) => console.log(...args),
+      warn: (...args) => console.warn(...args),
+    });
+    vmWorkerRuntime.start();
+  }
 }
 
 function createChatWindow() {
@@ -360,6 +388,7 @@ initializeMainProcessLifecycleRuntime({
   registerRendererWindow,
   wakewordHotkey: WAKEWORD_HOTKEY,
   platform: process.platform,
+  vmMode: VM_MODE_ENABLED,
   createWindow,
   createChatWindow,
   createResponseWindow,
@@ -373,6 +402,12 @@ initializeMainProcessLifecycleRuntime({
   getChatWindow: () => chatWindow,
   getResponseWindow: () => responseWindow,
   stopLocalBackend,
+  stopVmWorker: () => {
+    if (vmWorkerRuntime) {
+      vmWorkerRuntime.stop();
+      vmWorkerRuntime = null;
+    }
+  },
 });
 
 function initializeMainProcessIpc() {

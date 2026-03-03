@@ -500,6 +500,30 @@ describe('main_window_runtime createMainWindow', () => {
     expect(nativeImage.createFromPath).toHaveBeenCalledWith('/tmp/windieos.png');
     expect(options.icon).toBe(icon);
   });
+
+  test('adds vm_mode query flag when VM mode is enabled', () => {
+    const { deps, mainWindow } = createDeps({
+      vmMode: true,
+    });
+
+    createMainWindow(deps);
+
+    expect(mainWindow.loadURL).toHaveBeenCalledTimes(1);
+    expect(mainWindow.loadURL).toHaveBeenCalledWith(expect.stringContaining('vm_mode=1'));
+  });
+
+  test('does not minimize to tray on close when minimizeToTrayOnClose is disabled', () => {
+    const { deps, handlers } = createDeps({
+      minimizeToTrayOnClose: false,
+    });
+    const closeEvent = { preventDefault: jest.fn() };
+
+    createMainWindow(deps);
+    handlers.close(closeEvent);
+
+    expect(closeEvent.preventDefault).not.toHaveBeenCalled();
+    expect(deps.showChatWindow).not.toHaveBeenCalled();
+  });
 });
 
 describe('main_window_runtime createTray', () => {

@@ -57,6 +57,7 @@ let latestFrontendConfig = null;
 let hasAttemptedInitialSettingsSync = false;
 let pendingSettingsSyncPromise = null;
 const pendingSettingsSyncs = new Map();
+const backendMessageObservers = new Set();
 let applyResponseOverlayPhase = null;
 let onBeforeOverlayQueryCapture = null;
 const responseOverlayPhaseState = createResponseOverlayPhaseState();
@@ -71,6 +72,19 @@ function log(message) {
   // Only log in development - production logging adds overhead
   if (process.env.NODE_ENV !== 'production') {
     console.log(`[IPC Bridge] ${message}`);
+  }
+}
+
+function notifyBackendMessageObservers(data) {
+  if (!data || typeof data !== 'object') {
+    return;
+  }
+  for (const observer of backendMessageObservers) {
+    try {
+      observer(data);
+    } catch (error) {
+      log(`Backend message observer error: ${error}`);
+    }
   }
 }
 
@@ -288,6 +302,7 @@ function connect() {
   ws.on('message', (message) => {
     try {
       const data = JSON.parse(message);
+      notifyBackendMessageObservers(data);
       processBackendMessageData(data, {
         setCurrentSessionId: (value) => {
           currentSessionId = value;
@@ -569,9 +584,109 @@ function getLatestFrontendConfig() {
   return { ...latestFrontendConfig };
 }
 
+function registerBackendMessageObserver(observer) {
+  if (typeof observer !== 'function') {
+    return () => {};
+  }
+  backendMessageObservers.add(observer);
+  return () => {
+    backendMessageObservers.delete(observer);
+  };
+}
+
+function getBackendConnectionState() {
+  return {
+    isConnected,
+    userId: currentUserId,
+    sessionId: currentSessionId,
+    serverUserId: currentServerUserId,
+    conversationRef: currentConversationRef,
+    backendWsUrl: BACKEND_URL,
+    backendHttpUrl: BACKEND_HTTP_URL,
+  };
+}
+
+async function sendAutomatedQuery(options = {}) {
+  const text = normalizeOptionalString(options.text);
+  if (!text) {
+    return { ok: false, error: 'Missing query text' };
+  }
+
+  if (!isConnected || !ws || ws.readyState !== WebSocket.OPEN) {
+    return { ok: false, error: 'Backend websocket is not connected' };
+  }
+
+  await ensureInitialSettingsSync();
+  if (pendingSettingsSyncPromise) {
+    await pendingSettingsSyncPromise;
+  }
+
+  const conversationRef = normalizeOptionalString(options.conversationRef)
+    || currentConversationRef
+    || `vm-run-${uuidv4()}`;
+  const attachmentContext = normalizeOptionalString(options.attachmentContext);
+  const normalizedAttachmentFilenames = Array.isArray(options.attachmentFilenames)
+    ? options.attachmentFilenames
+      .filter((filename) => typeof filename === 'string' && filename.trim().length > 0)
+      .map((filename) => filename.trim())
+    : [];
+  const memoryRetrievalEnabled = options.memoryRetrievalEnabled !== false;
+  const userId = currentUserId || generateUserId({
+    osUserInfo: () => os.userInfo(),
+    uuidGenerator: uuidv4,
+    log,
+  });
+
+  const contextType = isFirstQuery ? 'initial' : 'sequential';
+  const { content, runtimeSystemState } = await buildQueryPayloadContent({
+    text,
+    conversationRef,
+    userId,
+    contextType,
+    attachmentContext,
+    getSystemState,
+    searchMemory,
+    memoryRetrievalEnabled,
+    log,
+  });
+
+  const payload = {
+    text,
+    conversation_ref: conversationRef,
+    content,
+  };
+  if (runtimeSystemState) {
+    payload.system_state_internal = runtimeSystemState;
+  }
+  if (normalizedAttachmentFilenames.length > 0) {
+    payload.attachment_filenames = normalizedAttachmentFilenames;
+  }
+
+  const queryMessageId = uuidv4();
+  const messageId = sendMessageToBackend('query', payload, queryMessageId);
+  if (!messageId) {
+    return { ok: false, error: 'Failed to send query to backend' };
+  }
+
+  currentConversationRef = conversationRef;
+  if (contextType === 'initial') {
+    isFirstQuery = false;
+  }
+  return {
+    ok: true,
+    messageId,
+    queryMessageId,
+    conversationRef,
+    userId,
+  };
+}
+
 module.exports = {
+  getBackendConnectionState,
   getLatestFrontendConfig,
   initializeIpc,
+  registerBackendMessageObserver,
   registerRendererWindow,
+  sendAutomatedQuery,
   sendMessageToBackend,
 };

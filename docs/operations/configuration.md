@@ -159,6 +159,19 @@ When launching Electron (dev or packaged), these env vars can override defaults:
 - `WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL`: packaged-app default HTTP URL when no `BACKEND_*` override is set.
 - `WINDIE_DEFAULT_PACKAGED_BACKEND_WS_URL`: packaged-app default WS URL when no `BACKEND_*` override is set.
 - `WINDIE_PYTHON_PATH`: explicit Python executable path for sidecar processes.
+- `WINDIE_VM_MODE`: set to `1` to boot WindieOS in hosted VM dashboard mode.
+  - Disables first-run permission/onboarding gates in renderer.
+  - Hides dashboard sidebar + settings/models/memory panels.
+  - Disables tray + chat/response overlay windows and wakeword global shortcut in Electron main process.
+  - Main window close no longer minimizes to tray in this mode.
+- `WINDIE_VM_WORKER_MODE`: VM worker loop toggle.
+  - Defaults to VM mode (`WINDIE_VM_MODE`) when unset.
+  - Set to `1` to enable background worker heartbeat/poll loop in Electron main.
+- `WINDIE_VM_WORKSPACE_ID`: workspace routing key sent to `/api/runs/workers/heartbeat`.
+- `WINDIE_VM_WORKER_ID`: optional fixed worker identifier (defaults to `worker-<backend-user-id>`).
+- `WINDIE_VM_ID`: optional fixed VM identifier (defaults to `vm-<worker-id>`).
+- `WINDIE_VM_AGENT_ID`: optional agent identity attached to worker heartbeat payloads.
+- `WINDIE_VM_WORKER_HEARTBEAT_MS`: heartbeat interval in milliseconds (minimum 1000, default 5000).
 
 Default behavior:
 

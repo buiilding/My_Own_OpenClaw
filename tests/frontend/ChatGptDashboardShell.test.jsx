@@ -227,6 +227,28 @@ describe('ChatGptDashboardShell', () => {
     expect(screen.queryByTestId('models-section-stub')).not.toBeInTheDocument();
   });
 
+  test('vm mode hides sidebar and disables dashboard panel targets', async () => {
+    const view = render(
+      <ChatGptDashboardShell
+        config={{}}
+        availableModels={{ local: [], online: [] }}
+        onConfigChange={jest.fn()}
+        vmModeEnabled
+      />,
+    );
+
+    await flushMicrotasks();
+    expect(screen.getByTestId('chat-interface-stub')).toBeInTheDocument();
+    expect(view.container.querySelector('.cg-sidebar')).toBeNull();
+
+    act(() => {
+      const listener = mockListeners.get('main-window-open-target');
+      listener?.({ target: 'settings' });
+    });
+
+    expect(screen.queryByTestId('settings-section-stub')).not.toBeInTheDocument();
+  });
+
   test('opens recent conversation from sidebar history list', async () => {
     const nowIso = new Date().toISOString();
     mockInvoke.mockImplementation(async (channel) => {

@@ -157,6 +157,7 @@ jest.mock('../../frontend/src/renderer/features/chat/components/MessageInput', (
 
 describe('ChatInterface wiring', () => {
   beforeEach(() => {
+    window.history.replaceState({}, '', '/');
     mockConfig = {
       interaction_mode: 'chat',
       voice_mode_enabled: false,
@@ -231,6 +232,15 @@ describe('ChatInterface wiring', () => {
     expect(mockIpcInvoke).toHaveBeenNthCalledWith(1, 'window-minimize');
     expect(mockIpcInvoke).toHaveBeenNthCalledWith(2, 'window-toggle-maximize');
     expect(mockIpcInvoke).toHaveBeenNthCalledWith(3, 'window-close');
+  });
+
+  test('hides native window controls when vm_mode query flag is enabled', () => {
+    window.history.replaceState({}, '', '/?vm_mode=1');
+    render(<ChatInterface />);
+
+    expect(screen.queryByRole('button', { name: 'Minimize window' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Toggle maximize window' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Close window' })).not.toBeInTheDocument();
   });
 
   test('shows connection warning when backend transport disconnects', () => {

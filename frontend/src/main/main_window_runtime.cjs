@@ -98,11 +98,15 @@ function loadRendererView({
   view,
   app,
   path,
+  vmMode = false,
   enableDevTransparencyUi = false,
 }) {
   const query = {};
   if (view) {
     query.view = view;
+  }
+  if (vmMode) {
+    query.vm_mode = '1';
   }
   if (enableDevTransparencyUi) {
     query.dev_ui = '1';
@@ -205,6 +209,8 @@ function createMainWindow({
   path,
   app,
   platform,
+  vmMode = false,
+  minimizeToTrayOnClose = true,
   enableDevTransparencyUi,
   initializeIpc,
   applyResponseOverlayPhase,
@@ -247,6 +253,7 @@ function createMainWindow({
     targetWindow: mainWindow,
     app,
     path,
+    vmMode,
     enableDevTransparencyUi,
   });
 
@@ -272,12 +279,13 @@ function createMainWindow({
   }
 
   mainWindow.on('close', (event) => {
-    if (!app.isQuitting) {
+    if (minimizeToTrayOnClose && !app.isQuitting) {
       event.preventDefault();
       mainWindow.hide();
       showChatWindow({ focus: true });
+      return false;
     }
-    return false;
+    return undefined;
   });
 
   mainWindow.on('closed', () => {

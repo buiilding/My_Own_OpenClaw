@@ -210,4 +210,37 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
     handler(quittingEvent);
     expect(quittingEvent.preventDefault).not.toHaveBeenCalled();
   });
+
+  test('vm mode starts only main window and skips tray/overlay/hotkey wiring', async () => {
+    const { deps } = createRuntimeDeps({
+      vmMode: true,
+    });
+
+    initializeMainProcessLifecycleRuntime(deps);
+    await flushPromises();
+
+    expect(deps.createWindow).toHaveBeenCalledTimes(1);
+    expect(deps.createChatWindow).not.toHaveBeenCalled();
+    expect(deps.createResponseWindow).not.toHaveBeenCalled();
+    expect(deps.createTray).not.toHaveBeenCalled();
+    expect(deps.syncWakewordToggleForChatVisibility).not.toHaveBeenCalled();
+    expect(deps.globalShortcut.register).not.toHaveBeenCalled();
+    expect(deps.screen.on).not.toHaveBeenCalled();
+  });
+
+  test('vm mode does not prevent window-all-closed default behavior', async () => {
+    const { deps, appEvents } = createRuntimeDeps({
+      vmMode: true,
+    });
+
+    initializeMainProcessLifecycleRuntime(deps);
+    await flushPromises();
+
+    const handler = appEvents['window-all-closed'];
+    expect(typeof handler).toBe('function');
+
+    const event = { preventDefault: jest.fn() };
+    handler(event);
+    expect(event.preventDefault).not.toHaveBeenCalled();
+  });
 });

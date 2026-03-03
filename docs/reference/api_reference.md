@@ -131,6 +131,171 @@ Upload an artifact (multipart/form-data).
 
 Fetch an artifact by ID (binary response).
 
+## HTTP Endpoints (Runs / VM Control)
+
+These endpoints provide a hosted control-plane contract for web dashboards that drive VM-backed Windie execution.
+Current implementation is an in-memory backend registry designed for demo/runtime integration.
+
+### POST `/api/runs/`
+
+Create a new run request for a workspace/agent.
+
+**Request**:
+```json
+{
+  "workspace_id": "workspace-demo",
+  "agent_id": "agent-alpha",
+  "query": "apply this internship job for me",
+  "requested_by": "user_123",
+  "files": [
+    {
+      "artifact_id": "resume-uuid.pdf",
+      "filename": "resume.pdf",
+      "content_type": "application/pdf"
+    }
+  ],
+  "metadata": {}
+}
+```
+
+**Response**:
+- `run`: run state (`status`, `control_mode`, `conversation_ref`, worker binding fields)
+- `events`: initial event list (includes `run-created`)
+
+### GET `/api/runs/{run_id}`
+
+Fetch latest run state by ID.
+
+### GET `/api/runs/{run_id}/events?after_seq=0&limit=200`
+
+Poll incremental run events.
+
+**Response**:
+```json
+{
+  "run_id": "run-uuid",
+  "events": [
+    {
+      "seq": 2,
+      "timestamp": "2026-03-03T16:00:00Z",
+      "event_type": "worker-heartbeat",
+      "source": "worker",
+      "payload": {}
+    }
+  ],
+  "next_after_seq": 2
+}
+```
+
+### POST `/api/runs/workers/heartbeat`
+
+Worker registration + heartbeat polling endpoint.  
+Returns one assigned run (if available) and any queued control commands for that worker.
+
+**Request**:
+```json
+{
+  "workspace_id": "workspace-demo",
+  "worker_id": "worker-1",
+  "vm_id": "vm-1",
+  "user_id": "vm-user-1",
+  "session_id": "session-1",
+  "status": "ready",
+  "metadata": {}
+}
+```
+
+**Response**:
+```json
+{
+  "worker": {
+    "worker_id": "worker-1",
+    "workspace_id": "workspace-demo",
+    "vm_id": "vm-1",
+    "user_id": "vm-user-1",
+    "session_id": "session-1",
+    "status": "ready",
+    "metadata": {},
+    "last_heartbeat_at": "2026-03-03T16:00:00Z"
+  },
+  "assigned_run": {
+    "run_id": "run-uuid",
+    "workspace_id": "workspace-demo",
+    "conversation_ref": "run-run-uuid",
+    "query": "apply this internship job for me",
+    "files": [],
+    "metadata": {},
+    "control_mode": "agent_only"
+  },
+  "control_commands": []
+}
+```
+
+### POST `/api/runs/{run_id}/control`
+
+Apply run control actions.
+
+**Request**:
+```json
+{
+  "action": "pause",
+  "requested_by": "user_123"
+}
+```
+
+Supported `action` values:
+- `pause`
+- `resume`
+- `stop`
+- `set-control-mode` (requires `control_mode`: `agent_only | shared_control | human_override`)
+
+### POST `/api/runs/{run_id}/worker-dispatched`
+
+Worker acknowledges query dispatch for an assigned run and records `turn_ref`.
+
+**Request**:
+```json
+{
+  "worker_id": "worker-1",
+  "user_id": "vm-user-1",
+  "turn_ref": "turn-uuid",
+  "conversation_ref": "run-run-uuid"
+}
+```
+
+### POST `/api/runs/{run_id}/events`
+
+Worker relays backend stream events into run timeline.
+
+**Request**:
+```json
+{
+  "event_type": "tool-call",
+  "source": "worker-stream",
+  "payload": {
+    "payload": {},
+    "conversation_ref": "run-run-uuid",
+    "turn_ref": "turn-uuid"
+  }
+}
+```
+
+### POST `/api/runs/{run_id}/worker-heartbeat`
+
+Legacy run-scoped heartbeat endpoint (backward compatibility).
+
+**Request**:
+```json
+{
+  "worker_id": "worker-1",
+  "vm_id": "vm-1",
+  "session_id": "session-1",
+  "agent_id": "agent-alpha",
+  "status": "ready",
+  "metadata": {}
+}
+```
+
 ## Message Format
 
 ### Base Message Structure
