@@ -12,6 +12,55 @@ const {
 describe('local_backend_bridge process lifecycle', () => {
   registerBridgeSuiteLifecycleHooks();
 
+  test('packaged mode reports missing bundled python runtime without spawning sidecar', () => {
+    const originalResourcesPath = process.resourcesPath;
+    process.resourcesPath = '/opt/WindieOS/resources';
+
+    try {
+      const { mainWindow, spawn } = initBridge({
+        isPackaged: true,
+        mockExistsSync: (candidate) => (
+          candidate === '/opt/WindieOS/resources/python-runtime/sidecar/local_backend.pyc'
+        ),
+      });
+
+      if (spawn.mock.calls.length !== 0) {
+        throw new Error(`Expected no sidecar spawn, got ${spawn.mock.calls.length} call(s).`);
+      }
+      expect(mainWindow.webContents.send).toHaveBeenCalledWith('local-backend-status', {
+        ready: false,
+        error: 'Bundled Python runtime not found in app resources. Please reinstall WindieOS.',
+      });
+    } finally {
+      process.resourcesPath = originalResourcesPath;
+    }
+  });
+
+  test('packaged mode disables browser feature-pack autoinstall in sidecar env', () => {
+    const originalResourcesPath = process.resourcesPath;
+    process.resourcesPath = '/opt/WindieOS/resources';
+
+    try {
+      const { spawn } = initBridge({
+        isPackaged: true,
+        mockExistsSync: (candidate) => (
+          candidate === '/opt/WindieOS/resources/python-runtime/sidecar/local_backend.pyc'
+          || candidate === '/opt/WindieOS/resources/python-runtime/bin/python3'
+          || candidate === '/opt/WindieOS/resources/python-runtime/ms-playwright'
+        ),
+      });
+
+      const spawnOptions = spawn.mock.calls[0][2];
+      expect(spawnOptions.env).toEqual(expect.objectContaining({
+        WINDIE_PACKAGED_APP: '1',
+        WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL: '0',
+        PLAYWRIGHT_BROWSERS_PATH: '/opt/WindieOS/resources/python-runtime/ms-playwright',
+      }));
+    } finally {
+      process.resourcesPath = originalResourcesPath;
+    }
+  });
+
   test('execute-tool rejects in-flight request when sidecar exits', async () => {
     const { handlers, processHandlers } = initBridge();
     markReady();

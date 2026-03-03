@@ -278,9 +278,15 @@ The app still starts the local Python sidecar for local tool execution.
 Packaged builds look for Python in this order:
 
 1. `WINDIE_PYTHON_PATH`
-2. bundled runtime under app resources (`python-runtime`/`python`)
-3. `CONDA_PREFIX`
-4. system `python3` (macOS/Linux) or `py` (Windows)
+2. bundled runtime under app resources (`python-runtime`; Windows checks `python.exe` and `Scripts/python.exe`)
+
+If neither path is valid, packaged startup reports bundled-runtime missing and does
+not fall back to `CONDA_PREFIX` or system Python.
+
+Permission model for packaged installs:
+
+- Installers can bundle runtimes/dependencies, but OS privacy controls (microphone, screen capture, accessibility/input control) are granted by the user at runtime.
+- WindieOS requests these permissions during first-launch onboarding and provides deep links to OS settings when required.
 
 For full frontend-only installer workflow (bundled runtime build + packaging),
 see `docs/operations/sidecar_runtime_packaging.md`.

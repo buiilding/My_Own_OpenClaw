@@ -8,6 +8,9 @@ jest.mock('electron', () => ({
   ipcMain: {
     handle: jest.fn(),
   },
+  app: {
+    isPackaged: false,
+  },
 }));
 
 jest.mock('uuid', () => ({
@@ -55,7 +58,13 @@ function createMainWindow() {
 function initializeBridgeHarness(configureSpawn, options = {}) {
   resetHarnessState();
   spawn = require('child_process').spawn;
-  ipcMain = require('electron').ipcMain;
+  const electron = require('electron');
+  const fs = require('fs');
+  ipcMain = electron.ipcMain;
+  electron.app.isPackaged = options.isPackaged === true;
+  if (typeof options.mockExistsSync === 'function') {
+    fs.existsSync.mockImplementation(options.mockExistsSync);
+  }
   configureSpawn(spawn);
   ipcMain.handle.mockImplementation((channel, handler) => {
     handlers[channel] = handler;

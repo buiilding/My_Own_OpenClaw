@@ -6,7 +6,14 @@ jest.mock('child_process', () => ({
   spawn: jest.fn(),
 }));
 
+jest.mock('fs', () => ({
+  existsSync: jest.fn(() => true),
+}));
+
 jest.mock('electron', () => ({
+  app: {
+    isPackaged: false,
+  },
   ipcMain: {
     on: jest.fn(),
   },
@@ -30,7 +37,7 @@ describe('wakeword_bridge', () => {
     jest.restoreAllMocks();
   });
 
-  const initBridge = () => {
+  const initBridge = ({ isPackaged = false } = {}) => {
     jest.resetModules();
     handlers = {};
     stdoutHandler = null;
@@ -38,7 +45,9 @@ describe('wakeword_bridge', () => {
     beforeExitHandler = null;
 
     spawn = require('child_process').spawn;
-    ipcMain = require('electron').ipcMain;
+    const electron = require('electron');
+    electron.app.isPackaged = isPackaged;
+    ipcMain = electron.ipcMain;
     jest.spyOn(process, 'on').mockImplementation((event, handler) => {
       if (event === 'beforeExit') {
         beforeExitHandler = handler;
@@ -277,6 +286,17 @@ describe('wakeword_bridge', () => {
         error: expect.stringContaining("Python executable"),
       }),
     );
+  });
+
+  test('packaged mode disables wakeword runtime model downloads', () => {
+    initBridge({ isPackaged: true });
+    handlers['wakeword-enable']();
+
+    const spawnOptions = spawn.mock.calls[0][2];
+    expect(spawnOptions.env).toEqual(expect.objectContaining({
+      WINDIE_PACKAGED_APP: '1',
+      WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD: '0',
+    }));
   });
 
   test('maps non-zero wakeword process exits to wakeword-status error payload', () => {

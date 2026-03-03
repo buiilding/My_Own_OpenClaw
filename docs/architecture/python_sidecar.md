@@ -10,6 +10,11 @@ read_when:
 
 The Electron app spawns a **local Python sidecar** that executes tools, captures system state, and manages local memory. It communicates with the Electron main process over **JSON-RPC 2.0 via stdin/stdout**.
 
+Release contract:
+- End users do not need Python preinstalled.
+- Installer ships a bundled runtime under `resources/python-runtime`.
+- Sidecar and wakeword services run from bundled runtime in packaged apps.
+
 **Key files:**
 - Sidecar entrypoint: `frontend/src/main/python/local_backend.py`
 - Electron bridge: `frontend/src/main/local_backend_bridge.cjs`
@@ -27,12 +32,14 @@ Electron Main (Node)  ── JSON-RPC (stdin/stdout) ──>  local_backend.py
 ```
 
 The bridge:
-- Spawns Python using `CONDA_PREFIX` if available, otherwise `python3`/`py`.
+- In packaged apps, resolves Python from bundled runtime only (no fallback to user Python/Conda).
+- In dev/source runs, resolves `WINDIE_PYTHON_PATH` -> `CONDA_PREFIX` -> `python3`/`py`.
 - Frontend npm Electron launchers now snapshot the caller's active `CONDA_PREFIX` into
   `WINDIE_PYTHON_PATH` before entering `bash -lc`, so login-shell startup files cannot
   silently switch the sidecar back to a base Conda interpreter.
 - Sends `ping` until ready, then marks the sidecar as ready.
 - Uses bounded exponential-backoff retries and stale-callback guards in readiness checks to avoid old timeout callbacks marking restarted processes incorrectly.
+- Exports `PLAYWRIGHT_BROWSERS_PATH` to bundled runtime path when packaged payload exists.
 
 ## JSON-RPC Methods
 
@@ -82,8 +89,18 @@ Memory storage path:
 Wakeword detection runs as a separate Python subprocess:
 - `frontend/src/main/python/wakeword_service.py`
 - Managed by `frontend/src/main/wakeword_bridge.cjs`
+- In packaged apps, wakeword runtime model downloads are disabled; missing models are treated as packaging errors.
 - Bridge event handlers ignore stdout/stderr/exit events from stale process instances after restart, so old process callbacks cannot flip active service state.
 - Bridge clears the wakeword `stderr` parser buffer on stop/start so stale partial log lines cannot suppress the next process ready signal.
+
+## Packaging Expectations
+
+- Runtime build prefetches wakeword models into bundled runtime and verifies required model markers.
+- Full-profile runtime installs Playwright Chromium payload into bundled runtime.
+- Build is idempotent for bundled assets:
+  - If wakeword model assets already exist, prefetch download is skipped.
+  - If Playwright Chromium payload already exists, install is skipped.
+- Packaged app disables browser feature-pack runtime auto-install and expects browser deps to be bundled.
 
 ## Troubleshooting
 

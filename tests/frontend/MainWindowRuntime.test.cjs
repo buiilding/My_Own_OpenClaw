@@ -46,6 +46,21 @@ describe('main_window_runtime enableContentProtectionSafely', () => {
 
     expect(targetWindow.setContentProtection).not.toHaveBeenCalled();
   });
+
+  test('warns when content protection API is unavailable', () => {
+    const warn = jest.fn();
+
+    enableContentProtectionSafely({
+      targetWindow: {},
+      platform: 'win32',
+      windowLabel: 'chat box',
+      warn,
+    });
+
+    expect(warn).toHaveBeenCalledWith(
+      '[Main] Cannot enable chat box content protection: BrowserWindow.setContentProtection is unavailable.',
+    );
+  });
 });
 
 describe('main_window_runtime prepareOverlayQueryCaptureFocus', () => {

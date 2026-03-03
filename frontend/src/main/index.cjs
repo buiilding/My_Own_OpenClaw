@@ -69,7 +69,9 @@ let contextLabelWindow = null;
 let mainProcessIpcHandlersInitialized = false;
 let responseOverlayVisible = false;
 let responseOverlayPhase = 'idle';
-const WAKEWORD_HOTKEY = 'Super+Alt+W';
+const WAKEWORD_HOTKEY = process.platform === 'win32'
+  ? 'CommandOrControl+Alt+W'
+  : 'Super+Alt+W';
 const WAKEWORD_STT_TRIGGER_CHANNEL = 'wakeword-stt-trigger';
 const MAIN_WINDOW_OPEN_TARGET_CHANNEL = 'main-window-open-target';
 const MAIN_WINDOW_OPEN_TARGETS = new Set(['chat', 'memory', 'models', 'settings']);
@@ -102,11 +104,19 @@ async function prepareOverlayQueryCaptureFocus(options = {}) {
   });
 }
 
-function enableContentProtectionSafely(targetWindow, windowLabel) {
+function enableContentProtectionSafely(targetWindowOrOptions, windowLabel) {
+  const options = (
+    targetWindowOrOptions
+    && typeof targetWindowOrOptions === 'object'
+    && !Array.isArray(targetWindowOrOptions)
+    && Object.prototype.hasOwnProperty.call(targetWindowOrOptions, 'targetWindow')
+  )
+    ? targetWindowOrOptions
+    : { targetWindow: targetWindowOrOptions, windowLabel };
+
   enableContentProtectionSafelyRuntime({
-    targetWindow,
+    ...options,
     platform: process.platform,
-    windowLabel,
     warn: console.warn,
   });
 }
@@ -349,6 +359,7 @@ initializeMainProcessLifecycleRuntime({
   screen,
   registerRendererWindow,
   wakewordHotkey: WAKEWORD_HOTKEY,
+  platform: process.platform,
   createWindow,
   createChatWindow,
   createResponseWindow,

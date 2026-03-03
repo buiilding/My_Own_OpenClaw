@@ -14,6 +14,26 @@ function isPackagedApp() {
   return Boolean(app && app.isPackaged);
 }
 
+function getResourcesRoot() {
+  if (typeof process.resourcesPath === 'string' && process.resourcesPath.trim().length > 0) {
+    return process.resourcesPath;
+  }
+  // Fallback for test/runtime edge cases where Electron hasn't populated
+  // process.resourcesPath yet.
+  return path.join(process.cwd(), 'resources');
+}
+
+function getBundledRuntimeRoots() {
+  if (!isPackagedApp()) {
+    return [];
+  }
+  const resourcesRoot = getResourcesRoot();
+  return [
+    path.join(resourcesRoot, 'python-runtime'),
+    path.join(resourcesRoot, 'python'),
+  ];
+}
+
 function firstExistingPath(paths) {
   for (const candidate of paths) {
     if (!candidate) {
@@ -31,10 +51,11 @@ function resolvePythonScriptPath(scriptName) {
   const candidates = [];
 
   if (isPackagedApp()) {
+    const resourcesRoot = getResourcesRoot();
     if (scriptBaseName.toLowerCase().endsWith('.py')) {
       candidates.push(
         path.join(
-          process.resourcesPath,
+          resourcesRoot,
           'python-runtime',
           'sidecar',
           `${scriptBaseName.slice(0, -3)}.pyc`,
@@ -42,7 +63,7 @@ function resolvePythonScriptPath(scriptName) {
       );
     } else if (scriptBaseName.toLowerCase().endsWith('.pyc')) {
       candidates.push(
-        path.join(process.resourcesPath, 'python-runtime', 'sidecar', scriptBaseName),
+        path.join(resourcesRoot, 'python-runtime', 'sidecar', scriptBaseName),
       );
     }
     return firstExistingPath(candidates) || candidates[0];
@@ -58,14 +79,12 @@ function getBundledPythonExecutableCandidates() {
     return [];
   }
 
-  const runtimeRoots = [
-    path.join(process.resourcesPath, 'python-runtime'),
-    path.join(process.resourcesPath, 'python'),
-  ];
+  const runtimeRoots = getBundledRuntimeRoots();
 
   if (process.platform === 'win32') {
     return runtimeRoots.flatMap((root) => [
       path.join(root, 'python.exe'),
+      path.join(root, 'Scripts', 'python.exe'),
       path.join(root, 'bin', 'python.exe'),
     ]);
   }
@@ -78,6 +97,17 @@ function getBundledPythonExecutableCandidates() {
   ]);
 }
 
+function getBundledPlaywrightBrowsersPathCandidates() {
+  if (!isPackagedApp()) {
+    return [];
+  }
+  return getBundledRuntimeRoots().map((root) => path.join(root, 'ms-playwright'));
+}
+
+function resolveBundledPlaywrightBrowsersPath() {
+  return firstExistingPath(getBundledPlaywrightBrowsersPathCandidates());
+}
+
 function resolvePythonExecutablePath() {
   const explicitPythonPath = process.env.WINDIE_PYTHON_PATH;
   if (explicitPythonPath && fs.existsSync(explicitPythonPath)) {
@@ -87,6 +117,12 @@ function resolvePythonExecutablePath() {
   const bundledPython = firstExistingPath(getBundledPythonExecutableCandidates());
   if (bundledPython) {
     return bundledPython;
+  }
+
+  // Packaged apps should run with bundled sidecar runtime only.
+  // Avoid silently depending on a user-installed interpreter.
+  if (isPackagedApp()) {
+    return null;
   }
 
   const condaPrefix = process.env.CONDA_PREFIX;
@@ -109,9 +145,10 @@ function resolveSidecarBinaryPath(serviceName) {
   }
 
   const extension = process.platform === 'win32' ? '.exe' : '';
+  const resourcesRoot = getResourcesRoot();
   const candidates = [
-    path.join(process.resourcesPath, 'sidecar-bin', `${normalizedServiceName}${extension}`),
-    path.join(process.resourcesPath, 'sidecar-bin', normalizedServiceName, `${normalizedServiceName}${extension}`),
+    path.join(resourcesRoot, 'sidecar-bin', `${normalizedServiceName}${extension}`),
+    path.join(resourcesRoot, 'sidecar-bin', normalizedServiceName, `${normalizedServiceName}${extension}`),
   ];
   return firstExistingPath(candidates);
 }
@@ -141,6 +178,7 @@ function resolveSidecarLaunchTarget(scriptName) {
 }
 
 module.exports = {
+  resolveBundledPlaywrightBrowsersPath,
   resolvePythonExecutablePath,
   resolvePythonScriptPath,
   resolveSidecarBinaryPath,

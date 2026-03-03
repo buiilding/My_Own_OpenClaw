@@ -140,10 +140,17 @@ Optional repo-aligned Conda environment names:
 
 `frontend/src/main/runtime_paths.cjs` resolves Python in this order:
 
+Packaged app:
+
 1. `WINDIE_PYTHON_PATH` when set and file exists.
-2. Bundled runtime executable (packaged app).
-3. Active Conda interpreter from `CONDA_PREFIX`.
-4. Platform fallback command (`py` on Windows, `python3` on Linux/macOS).
+2. Bundled runtime executable (Windows also checks `python-runtime\Scripts\python.exe`).
+3. No external fallback; startup reports missing bundled runtime.
+
+Dev/source run:
+
+1. `WINDIE_PYTHON_PATH` when set and file exists.
+2. Active Conda interpreter from `CONDA_PREFIX`.
+3. Platform fallback command (`py` on Windows, `python3` on Linux/macOS).
 
 Set `WINDIE_PYTHON_PATH` explicitly during development to avoid accidental interpreter drift.
 

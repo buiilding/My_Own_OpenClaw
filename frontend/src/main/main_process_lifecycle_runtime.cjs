@@ -77,6 +77,33 @@ function logStartupMetricsSnapshot(label, deps = {}) {
   );
 }
 
+function buildWakewordHotkeyCandidates(wakewordHotkey, platform = process.platform) {
+  const candidates = [];
+  const seen = new Set();
+  const pushCandidate = (value) => {
+    if (typeof value !== 'string') {
+      return;
+    }
+    const normalized = value.trim();
+    if (!normalized || seen.has(normalized)) {
+      return;
+    }
+    seen.add(normalized);
+    candidates.push(normalized);
+  };
+
+  pushCandidate(wakewordHotkey);
+
+  if (platform === 'win32') {
+    // Keep Win-key-free options to avoid OS-reserved accelerator conflicts.
+    pushCandidate('CommandOrControl+Alt+W');
+    pushCandidate('CommandOrControl+Shift+W');
+    pushCandidate('CommandOrControl+Alt+J');
+  }
+
+  return candidates;
+}
+
 function initializeMainProcessLifecycleRuntime(deps = {}) {
   const {
     app,
@@ -85,6 +112,7 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
     screen,
     registerRendererWindow,
     wakewordHotkey,
+    platform = process.platform,
     createWindow,
     createChatWindow,
     createResponseWindow,
@@ -152,7 +180,7 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
       positionResponseWindow();
     });
 
-    const registered = globalShortcut.register(wakewordHotkey, () => {
+    const shortcutHandler = () => {
       const chatWindow = getChatWindow();
       if (!chatWindow || chatWindow.isDestroyed()) {
         return;
@@ -162,10 +190,26 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
       } else {
         showChatWindow({ focus: true });
       }
-    });
+    };
 
-    if (!registered) {
-      warn(`[Main] Failed to register global shortcut: ${wakewordHotkey}`);
+    const hotkeyCandidates = buildWakewordHotkeyCandidates(wakewordHotkey, platform);
+    let registeredHotkey = null;
+    for (const candidate of hotkeyCandidates) {
+      const registered = globalShortcut.register(candidate, shortcutHandler);
+      if (!registered) {
+        continue;
+      }
+      registeredHotkey = candidate;
+      break;
+    }
+
+    if (!registeredHotkey) {
+      warn(`[Main] Failed to register global shortcut. Tried: ${hotkeyCandidates.join(', ')}`);
+    } else if (registeredHotkey !== wakewordHotkey) {
+      warn(
+        `[Main] Registered fallback global shortcut: ${registeredHotkey} ` +
+        `(primary ${wakewordHotkey} unavailable)`,
+      );
     }
 
     logStartupMetricsSnapshot('startup-ready', {

@@ -16,6 +16,7 @@ frontend app and do not need Python installed system-wide.
 - Installer includes a bundled Python runtime at `resources/python-runtime`.
 - Sidecar processes run from `resources/python-runtime/sidecar`.
 - Runtime build ships sidecar bytecode (`.pyc`) only; sidecar plaintext `.py` files are removed before packaging.
+- Full-profile runtime bundles Playwright Chromium payload at `resources/python-runtime/ms-playwright`.
 
 ## Repository Pieces
 
@@ -44,21 +45,16 @@ Do not reuse one OS runtime for another OS release.
 
 ## Step 1: Build Sidecar Runtime
 
-From repo root (default slim+core profile):
-
-```bash
-bash scripts/build-sidecar-runtime
-```
-
-Optional full profile (includes Playwright Chromium payload):
+From repo root (release policy: full profile, all bundled):
 
 ```bash
 bash scripts/build-sidecar-runtime-full
 ```
 
-Optional slim profile with browser Python deps pre-bundled (no browser binary payload):
+Alternative profiles (for development only):
 
 ```bash
+WINDIE_SIDECAR_RUNTIME_MODE=slim \
 WINDIE_SIDECAR_RUNTIME_PROFILE=core+browser bash scripts/build-sidecar-runtime
 ```
 
@@ -72,12 +68,12 @@ This creates:
 From `frontend/`:
 
 ```bash
-npm run package:win:bundled-python
-npm run package:mac:bundled-python
-npm run package:linux:bundled-python
+npm run package:win
+npm run package:mac
+npm run package:linux
 ```
 
-Full profile variants:
+Explicit bundled/full variants:
 
 ```bash
 npm run package:win:bundled-python:full
@@ -128,6 +124,7 @@ export WINDIE_DEFAULT_PACKAGED_BACKEND_WS_URL="wss://your-api.example.com/ws"
 ## Optional Overrides
 
 - `WINDIE_PYTHON_PATH` can force a specific Python executable.
+- Packaged apps do not fall back to `CONDA_PREFIX` or system Python when bundled runtime is missing.
 - `BACKEND_HOST` + `BACKEND_PORT` can be used instead of full URL vars.
 
 ## Verification Checklist
@@ -150,11 +147,11 @@ On a clean test machine:
 - Linux may require non-Python packages for some operations (for example `xdotool`).
 - Linux `.deb`/`.rpm` installers declare `xdotool` package dependency; AppImage users must install `xdotool` manually.
 - Sidecar startup/status now emits runtime dependency warnings when `xdotool` is missing so degraded window probes are visible in logs/status payloads.
-- Default slim+core runtime no longer bundles browser Python dependencies.
-  - On first browser-tool use, sidecar attempts to install the browser core feature pack (`requirements.runtime.browser.txt`) into a user-writable runtime path.
-  - If auto-install fails, WindieOS returns an actionable pip command in the tool error.
-- Playwright browser binary payload is installed only in full profile builds.
+- Release runtime is full-profile and bundles browser Python dependencies + Playwright Chromium payload.
+- Packaged launch exports `PLAYWRIGHT_BROWSERS_PATH` to bundled runtime so browser automation uses bundled Chromium by default.
+- Runtime build is idempotent for bundled assets: wakeword prefetch and Playwright Chromium install are skipped when already present.
+- Packaged app disables browser feature-pack runtime auto-install; missing browser deps are treated as build/package errors.
 - Browser `extract`/`read_long_content` now use deterministic markdown extraction in sidecar (no sidecar LLM provider SDK dependency).
-- Browser launch now requires a system-installed Chromium-based browser (Chrome/Chromium/Edge/Brave); if missing, WindieOS returns install guidance instead of attempting an embedded browser bootstrap.
-- Wakeword model assets are pre-downloaded during runtime build step (best effort).
-- If packaged wakeword assets are missing at runtime, sidecar downloads wakeword models into a user-writable cache (`WINDIE_WAKEWORD_MODEL_DIR` override supported) instead of writing under read-only install paths.
+- Browser launch first checks bundled Playwright Chromium payload, then falls back to system-installed Chromium-based browsers.
+- Wakeword model prefetch is required during runtime build; build fails when prefetch fails (unless explicitly overridden via `WINDIE_REQUIRE_WAKEWORD_PREFETCH=0`).
+- Packaged wakeword runtime disables model download fallback; missing wakeword model is treated as packaging/install error.

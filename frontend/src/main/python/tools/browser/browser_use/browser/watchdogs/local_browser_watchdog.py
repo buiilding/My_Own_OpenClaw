@@ -321,25 +321,27 @@ class LocalBrowserWatchdog(BaseWatchdog):
 	def _build_missing_browser_error_message(system_name: str | None = None) -> str:
 		system = system_name or platform.system()
 		base = (
-			'No local Chrome/Chromium browser installation detected. '
-			'WindieOS browser automation requires a system-installed Chromium-based browser.'
+			'No Chromium browser binary was found in bundled Playwright runtime '
+			'or system browser locations.'
 		)
 		if system == 'Linux':
 			return (
 				f'{base} '
-				'Install Chrome or Chromium (for example: '
-				'`sudo apt install google-chrome-stable` or `sudo apt install chromium-browser`), '
-				'then retry.'
+				'Reinstall WindieOS to restore bundled runtime, or install Chrome/Chromium '
+				'(for example: `sudo apt install google-chrome-stable` or '
+				'`sudo apt install chromium-browser`), then retry.'
 			)
 		if system == 'Darwin':
 			return (
 				f'{base} '
-				'Install Google Chrome or Chromium in /Applications, then retry.'
+				'Reinstall WindieOS to restore bundled runtime, or install Google Chrome '
+				'or Chromium in /Applications, then retry.'
 			)
 		if system == 'Windows':
 			return (
 				f'{base} '
-				'Install Google Chrome, Chromium, or Microsoft Edge, then retry.'
+				'Reinstall WindieOS to restore bundled runtime, or install Google Chrome, '
+				'Chromium, or Microsoft Edge, then retry.'
 			)
 		return f'{base} Install a supported browser and retry.'
 

@@ -20,6 +20,7 @@ import numpy as np
 
 WAKEWORD_NAME = "hey_jarvis"
 DETECTION_THRESHOLD = 0.5
+ENV_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD = "WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD"
 
 
 def _emit_status(status: str, message: str | None = None, **extra: Any) -> None:
@@ -28,6 +29,18 @@ def _emit_status(status: str, message: str | None = None, **extra: Any) -> None:
         payload["message"] = message
     payload.update(extra)
     print(json.dumps(payload), file=sys.stderr, flush=True)
+
+
+def _env_flag_enabled(name: str, default: bool = True) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    normalized = raw.strip().lower()
+    if normalized in {"0", "false", "off", "no"}:
+        return False
+    if normalized in {"1", "true", "on", "yes"}:
+        return True
+    return default
 
 
 def _read_exact(reader, length: int) -> bytes:
@@ -144,6 +157,7 @@ def ensure_models_available(
     model_name: str,
     model_path: Optional[str],
     target_directory: Optional[Path] = None,
+    allow_runtime_download: bool = True,
 ) -> bool:
     if model_path and Path(model_path).exists():
         _emit_status("models_ready", f"Wakeword model available: {model_name}", model_path=model_path)
@@ -156,6 +170,17 @@ def ensure_models_available(
             model_path=resolved_downloaded_path,
         )
         return True
+
+    if not allow_runtime_download:
+        missing = model_path or f"model for '{model_name}'"
+        _emit_status(
+            "error",
+            (
+                "Wakeword model is missing from bundled runtime and runtime downloads are disabled. "
+                f"Missing: {missing}. Reinstall WindieOS."
+            ),
+        )
+        return False
 
     download_models = _load_download_models_func()
     if download_models is None:
@@ -304,7 +329,16 @@ def run_service() -> int:
 
     model_name, model_path = resolve_wakeword_model(openwakeword_mod)
     model_directory = resolve_wakeword_model_directory()
-    if not ensure_models_available(model_name, model_path, target_directory=model_directory):
+    allow_runtime_download = _env_flag_enabled(
+        ENV_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD,
+        default=True,
+    )
+    if not ensure_models_available(
+        model_name,
+        model_path,
+        target_directory=model_directory,
+        allow_runtime_download=allow_runtime_download,
+    ):
         return 1
     model_path = (
         model_path
