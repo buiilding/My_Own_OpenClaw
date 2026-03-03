@@ -8,6 +8,10 @@ import logging
 from typing import Any, Dict, List
 
 from backend.src.core.infrastructure.exceptions import LLMAPIError
+from backend.src.core.messages.tool_call_thought_signature import (
+    apply_tool_call_thought_signature,
+    extract_tool_call_thought_signature,
+)
 from backend.src.core.types.schemas import LLMMessage
 
 logger = logging.getLogger(__name__)
@@ -15,19 +19,6 @@ logger = logging.getLogger(__name__)
 
 def _model_requires_thought_signature(model: str) -> bool:
     return "gemini" in model.lower()
-
-
-def _extract_tool_call_thought_signature(raw_call: Dict[str, Any]) -> str:
-    function_block = raw_call.get("function")
-    candidate_sources = [raw_call]
-    if isinstance(function_block, dict):
-        candidate_sources.append(function_block)
-    for source in candidate_sources:
-        for key in ("thought_signature", "thoughtSignature"):
-            value = source.get(key)
-            if isinstance(value, str) and value.strip():
-                return value.strip()
-    return ""
 
 
 def _apply_thought_signature(
@@ -40,19 +31,10 @@ def _apply_thought_signature(
     if not thought_signature or not _model_requires_thought_signature(model):
         return False
 
-    changed = False
-    if normalized_call.get("thought_signature") != thought_signature:
-        normalized_call["thought_signature"] = thought_signature
-        changed = True
-
-    function_block = normalized_call.get("function")
-    if (
-        isinstance(function_block, dict)
-        and function_block.get("thought_signature") != thought_signature
-    ):
-        function_block["thought_signature"] = thought_signature
-        changed = True
-    return changed
+    return apply_tool_call_thought_signature(
+        normalized_call=normalized_call,
+        thought_signature=thought_signature,
+    )
 
 
 def normalize_messages_for_provider(
@@ -202,7 +184,10 @@ def normalize_assistant_tool_call_entry(
             normalized["function"]["arguments"] = "{}"
             changed = True
 
-        thought_signature = _extract_tool_call_thought_signature(raw_call)
+        thought_signature = extract_tool_call_thought_signature(
+            raw_call,
+            raw_call.get("function"),
+        )
         changed = _apply_thought_signature(
             normalized_call=normalized,
             thought_signature=thought_signature,
@@ -237,7 +222,10 @@ def normalize_assistant_tool_call_entry(
             "arguments": json.dumps(arguments, ensure_ascii=False, separators=(",", ":")),
         },
     }
-    thought_signature = _extract_tool_call_thought_signature(raw_call)
+    thought_signature = extract_tool_call_thought_signature(
+        raw_call,
+        raw_call.get("function"),
+    )
     _apply_thought_signature(
         normalized_call=normalized,
         thought_signature=thought_signature,
