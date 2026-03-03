@@ -196,6 +196,23 @@ describe('SystemCapture', () => {
     });
   });
 
+  test('extractOSstate preserves explicit screenshot content type when provided', async () => {
+    mockInvokeForCapture({
+      screenshotResults: [
+        { success: true, data: { screenshot: 'png-shot', screenshot_content_type: 'image/png' } },
+      ],
+    });
+
+    const result = await extractOSstate(true, false, 0, false);
+
+    expect(result).toEqual({
+      systemState: null,
+      screenshot: 'png-shot',
+      screenshotContentType: 'image/png',
+      captureMeta: null,
+    });
+  });
+
   test('extractOSstate extracts screenshot grounding metadata when available', async () => {
     mockInvokeForCapture({
       screenshotResults: [{

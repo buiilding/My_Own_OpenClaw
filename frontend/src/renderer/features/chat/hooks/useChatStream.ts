@@ -50,6 +50,7 @@ import {
 } from '../utils/chatStreamTracking';
 import {
   resolveEventConversationRef,
+  resolveConversationRefWithTurnFallback,
 } from '../utils/chatStreamConversationGate';
 import { resolveThinkingCapabilities } from '../utils/modelThinkingCapabilities';
 import {
@@ -94,18 +95,13 @@ export function useChatStream(enableTranscript: boolean = true) {
   });
 
   const resolveTargetConversationRef = useCallback((event: BackendEvent): string | null => {
-    const explicitConversationRef = resolveEventConversationRef(event);
-    if (explicitConversationRef) {
-      return explicitConversationRef;
-    }
-    const turnRef = typeof event.turn_ref === 'string' ? event.turn_ref.trim() : '';
-    if (turnRef) {
-      const mappedConversationRef = useChatStore.getState().resolveConversationRefForTurn(turnRef);
-      if (mappedConversationRef) {
-        return mappedConversationRef;
-      }
-    }
-    return getActiveConversationRef();
+    const store = useChatStore.getState();
+    return resolveConversationRefWithTurnFallback({
+      explicitConversationRef: resolveEventConversationRef(event),
+      turnRef: event.turn_ref,
+      resolveConversationRefForTurn: store.resolveConversationRefForTurn,
+      fallbackConversationRef: getActiveConversationRef(),
+    });
   }, []);
 
   const syncActiveConversationProjection = useCallback((

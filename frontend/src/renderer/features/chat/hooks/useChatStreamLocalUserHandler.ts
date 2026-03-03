@@ -6,23 +6,9 @@ import {
   buildScreenshotAttachments,
 } from '../utils/chatStreamEventUtils';
 import { GENERIC_THINKING_STATUS } from '../utils/chatStreamThinkingStatus';
-import { type TranscriptModelContext } from '../utils/chatStreamTypes';
+import type { ChatStreamThinkingStateDeps } from './chatStreamHandlerTypes';
 
-type TrackEventFn = (
-  eventType: 'local-user-message',
-  turnRef: string | null | undefined,
-  options?: Record<string, unknown>,
-  conversationRef?: string | null,
-) => void;
-
-type UseChatStreamLocalUserHandlerDeps = {
-  addMessage: (message: ChatMessage, conversationRef?: string | null) => void;
-  modelContextRef: { current: TranscriptModelContext };
-  recordTrackingEvent: TrackEventFn;
-  setIsSending: (value: boolean, conversationRef?: string | null) => void;
-  setThinkingSourceEventType: (value: string | null, conversationRef?: string | null) => void;
-  setThinkingStatus: (value: string | null, conversationRef?: string | null) => void;
-};
+type UseChatStreamLocalUserHandlerDeps = ChatStreamThinkingStateDeps<'local-user-message'>;
 
 export function useChatStreamLocalUserHandler({
   addMessage,

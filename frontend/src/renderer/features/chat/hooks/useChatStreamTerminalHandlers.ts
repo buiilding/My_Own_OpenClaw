@@ -10,23 +10,12 @@ import type {
   TokenCountEvent,
 } from '../../../types/backendEvents';
 import { resolveErrorText } from '../utils/chatStreamEventUtils';
-import { type TranscriptModelContext } from '../utils/chatStreamTypes';
+import type { ChatStreamThinkingStateDeps } from './chatStreamHandlerTypes';
 
-type TrackEventFn = (
-  eventType: 'token-count' | 'memory-store' | 'error',
-  turnRef: string | null | undefined,
-  options?: Record<string, unknown>,
-  conversationRef?: string | null,
-) => void;
-
-type UseChatStreamTerminalHandlersDeps = {
-  addMessage: (message: ChatMessage, conversationRef?: string | null) => void;
+type UseChatStreamTerminalHandlersDeps = ChatStreamThinkingStateDeps<
+  'token-count' | 'memory-store' | 'error'
+> & {
   enableTranscript: boolean;
-  modelContextRef: { current: TranscriptModelContext };
-  recordTrackingEvent: TrackEventFn;
-  setIsSending: (value: boolean, conversationRef?: string | null) => void;
-  setThinkingSourceEventType: (value: string | null, conversationRef?: string | null) => void;
-  setThinkingStatus: (value: string | null, conversationRef?: string | null) => void;
 };
 
 export function useChatStreamTerminalHandlers({

@@ -48,26 +48,18 @@ import {
   resolveToolRunnerPayloadCorrelationId,
   shouldDropUntrackedToolRunnerPayload,
 } from '../utils/toolRunnerBackendPayload';
+import { resolveConversationRefWithTurnFallback } from '../utils/chatStreamConversationGate';
 
 function resolveToolEventConversationRef(
   event: Pick<ToolCallEvent | ToolBundleEvent, 'conversation_ref' | 'turn_ref'>,
 ): string | null {
-  const explicitConversationRef = (
-    typeof event.conversation_ref === 'string'
-      ? event.conversation_ref.trim()
-      : ''
-  );
-  if (explicitConversationRef) {
-    return explicitConversationRef;
-  }
-  const turnRef = typeof event.turn_ref === 'string' ? event.turn_ref.trim() : '';
-  if (turnRef) {
-    const mappedConversationRef = useChatStore.getState().resolveConversationRefForTurn(turnRef);
-    if (mappedConversationRef) {
-      return mappedConversationRef;
-    }
-  }
-  return useChatStore.getState().activeConversationRef;
+  const store = useChatStore.getState();
+  return resolveConversationRefWithTurnFallback({
+    explicitConversationRef: event.conversation_ref,
+    turnRef: event.turn_ref,
+    resolveConversationRefForTurn: store.resolveConversationRefForTurn,
+    fallbackConversationRef: store.activeConversationRef,
+  });
 }
 
 function shouldIgnoreToolEventForTurn(

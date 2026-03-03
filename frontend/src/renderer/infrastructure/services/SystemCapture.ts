@@ -12,6 +12,10 @@ import {
   restoreScreenshotCaptureVisibility,
   type CaptureVisibilityPreparation,
 } from './SurfaceOrchestrator';
+import {
+  resolveScreenshotContentType,
+  sanitizeCaptureMeta,
+} from './CapturePayloadUtils';
 
 function buildScreenshotArgs(explanation: string) {
   const args: Record<string, any> = {
@@ -218,25 +222,6 @@ export async function extractOSstate(
   }
 }
 
-function resolveScreenshotContentType(data: Record<string, any>): string | null {
-  const format = (data.compression || data.format || '').toString().toLowerCase();
-  if (format === 'jpeg' || format === 'jpg') {
-    return 'image/jpeg';
-  }
-  if (format === 'png') {
-    return 'image/png';
-  }
-  return null;
-}
-
-function sanitizeCaptureMeta(value: unknown): CaptureMeta | null {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    return null;
-  }
-  const { screenshot_id: _ignoredScreenshotId, ...rest } = value as Record<string, unknown>;
-  return rest as CaptureMeta;
-}
-
 function extractScreenshotData(result: ToolResult): {
   screenshot: string | null;
   screenshotContentType: string | null;
@@ -253,7 +238,7 @@ function extractScreenshotData(result: ToolResult): {
   const screenshot = typeof result.data.screenshot === 'string'
     ? result.data.screenshot
     : null;
-  const captureMeta = sanitizeCaptureMeta(result.data.capture_meta);
+  const captureMeta = sanitizeCaptureMeta<CaptureMeta>(result.data.capture_meta);
   const screenshotContentType = resolveScreenshotContentType(result.data);
   return { screenshot, screenshotContentType, captureMeta };
 }

@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-all-stream-capture-dedupe): centralize conversation-ref turn fallback for stream/tool events, share chat-stream handler typing contracts, and unify screenshot payload normalization (`capture_meta` + content-type parsing) across `SystemCapture` and `ToolExecutionCapture`; add gate regressions and reduce frontend jscpd duplication to 0.06%.
 - refactor(sidecar-all-wakeword-and-watchdog-tests): dedupe wakeword model framework fallback path in sidecar service, align local browser watchdog error-message assertions with current runtime contract, and restore full sidecar suite green.
 - fix(frontend-all-chat-pill-topmost-workspaces): strengthen overlay window pinning so chat pill/response overlays request strongest topmost level (`screen-saver` with `floating` fallback), stay visible across fullscreen/workspaces (`skipTransformProcessType` on macOS), and add runtime/docs/test coverage for maximized-app on-top behavior.
 - refactor(frontend-all-runtime-storage-dedupe): dedupe Windows/macOS content-protection runtime via shared helper, dedupe onboarding/permission localStorage JSON handling via shared renderer storage utility, remove dead frontend exports flagged by knip, add permission-onboarding storage regressions, and keep `lint`/`typecheck`/`knip`/`test:ci` green.
