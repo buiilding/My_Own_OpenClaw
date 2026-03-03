@@ -147,6 +147,7 @@ On a clean test machine:
 - Linux may require non-Python packages for some operations (for example `xdotool`).
 - Linux `.deb`/`.rpm` installers declare `xdotool` package dependency; AppImage users must install `xdotool` manually.
 - Sidecar startup/status now emits runtime dependency warnings when `xdotool` is missing so degraded window probes are visible in logs/status payloads.
+- Windows bundled runtime now ships a relocatable CPython tree (not a host-bound `venv`) so installed apps do not depend on build-machine Python paths.
 - Release runtime is full-profile and bundles browser Python dependencies + Playwright Chromium payload.
 - Packaged launch exports `PLAYWRIGHT_BROWSERS_PATH` to bundled runtime so browser automation uses bundled Chromium by default.
 - Runtime build is idempotent for bundled assets: wakeword prefetch and Playwright Chromium install are skipped when already present.

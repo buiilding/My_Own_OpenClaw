@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(packaging-windows-relocatable-runtime): replace Windows bundled-runtime venv creation with a relocatable CPython runtime copy so installed WindieOS no longer references CI host paths (for example `C:\\hostedtoolcache\\...`) that break sidecar startup with `No Python at ...`; add Windows smoke check assertions that bundled runtime Python launches post-install and fails if `pyvenv.cfg` leaks hostedtoolcache paths.
 - chore(release-version-0.6.7): bump frontend app/package version from `0.6.1` to `0.6.7` so desktop artifacts and release outputs publish under `v0.6.7`.
 - fix(packaging-bundled-runtime-install-contract): make packaged desktop builds default to full bundled runtime across Windows/macOS/Linux, enforce bundled-only Python resolution in packaged mode (no user Python/Conda fallback), pass packaged runtime policy env flags to sidecar/wakeword (`WINDIE_PACKAGED_APP`, browser/wakeword runtime-download disable flags), export bundled Playwright browser path when present, and harden runtime/build checks so missing bundled deps surface as reinstall/build errors rather than runtime auto-bootstrap.
 - docs(frontend-sidecar-runtime-contract): refresh frontend/sidecar architecture and deployment docs to state end-user install contract (no preinstalled Python requirement), bundled wakeword/browser expectations, packaged permission-request boundaries, and idempotent bundled-asset behavior.

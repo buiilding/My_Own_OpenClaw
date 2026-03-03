@@ -44,13 +44,77 @@ echo "[build-sidecar-runtime] profile=${PROFILE}"
 echo "[build-sidecar-runtime] python=${BASE_PYTHON}"
 echo "[build-sidecar-runtime] runtime=${RUNTIME_DIR}"
 
-rm -rf "${RUNTIME_DIR}"
-# Use copies to avoid absolute symlinks in bundled runtime directories.
-# macOS codesign --deep --strict rejects app bundles containing symlinks that
-# resolve outside the bundle.
-"${BASE_PYTHON}" -m venv --copies "${RUNTIME_DIR}"
+PYTHON_PLATFORM="$("${BASE_PYTHON}" - <<'PY'
+import sys
+print(sys.platform)
+PY
+)"
 
-if [[ -x "${RUNTIME_DIR}/bin/python" ]]; then
+rm -rf "${RUNTIME_DIR}"
+
+if [[ "${PYTHON_PLATFORM}" == "win32" ]]; then
+  echo "[build-sidecar-runtime] creating relocatable Windows runtime (full CPython copy)"
+  "${BASE_PYTHON}" - "${RUNTIME_DIR}" <<'PY'
+from __future__ import annotations
+
+import shutil
+import sys
+from pathlib import Path
+
+dest = Path(sys.argv[1]).resolve()
+base = Path(sys.base_prefix).resolve()
+
+if dest.exists():
+    shutil.rmtree(dest)
+dest.mkdir(parents=True, exist_ok=True)
+
+runtime_entries = [
+    "python.exe",
+    "pythonw.exe",
+    "python3.dll",
+    f"python{sys.version_info.major}{sys.version_info.minor}.dll",
+    "DLLs",
+    "Lib",
+    "libs",
+    "Scripts",
+    "include",
+    "vcruntime140.dll",
+    "vcruntime140_1.dll",
+    "msvcp140.dll",
+]
+
+for entry in runtime_entries:
+    src = base / entry
+    if not src.exists():
+        continue
+    dst = dest / entry
+    if src.is_dir():
+        shutil.copytree(
+            src,
+            dst,
+            dirs_exist_ok=True,
+            ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"),
+        )
+        continue
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(src, dst)
+
+pyvenv_cfg = dest / "pyvenv.cfg"
+if pyvenv_cfg.exists():
+    pyvenv_cfg.unlink()
+
+print(f"[build-sidecar-runtime] copied CPython runtime from {base} to {dest}")
+PY
+else
+  # Use copies to avoid absolute symlinks in bundled runtime directories.
+  # macOS codesign --deep --strict rejects app bundles containing symlinks that
+  # resolve outside the bundle.
+  "${BASE_PYTHON}" -m venv --copies "${RUNTIME_DIR}"
+fi
+
+if [[ -x "${RUNTIME_DIR}/python.exe" ]]; then
+  RUNTIME_PYTHON="${RUNTIME_DIR}/python.exe"
+elif [[ -x "${RUNTIME_DIR}/bin/python" ]]; then
   RUNTIME_PYTHON="${RUNTIME_DIR}/bin/python"
 elif [[ -x "${RUNTIME_DIR}/Scripts/python.exe" ]]; then
   RUNTIME_PYTHON="${RUNTIME_DIR}/Scripts/python.exe"
