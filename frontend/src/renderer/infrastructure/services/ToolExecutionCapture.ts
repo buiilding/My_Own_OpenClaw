@@ -2,6 +2,10 @@ import { extractOSstate } from './SystemCapture';
 import { STANDARD_COMPUTER_USE_TOOLS } from './ToolComputerUseCatalog';
 import type { SystemState, ToolResult } from './MessageFormatter';
 import type { CaptureMeta } from './SystemCapture';
+import {
+  resolveScreenshotContentType,
+  sanitizeCaptureMeta,
+} from './CapturePayloadUtils';
 
 type ToolCaptureResult = {
   screenshot: string | null;
@@ -50,14 +54,6 @@ function getWaitSeconds(
   return defaultWaitSeconds;
 }
 
-function sanitizeCaptureMeta(value: unknown): CaptureMeta | null {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    return null;
-  }
-  const { screenshot_id: _ignoredScreenshotId, ...rest } = value as Record<string, unknown>;
-  return rest as CaptureMeta;
-}
-
 function extractCaptureFromResult(result: ToolResult): {
   screenshot: string | null;
   screenshotContentType: string | null;
@@ -65,9 +61,9 @@ function extractCaptureFromResult(result: ToolResult): {
   systemState: SystemState | null;
 } {
   if (result.data && typeof result.data === 'object' && !Array.isArray(result.data)) {
-    const screenshotContentType = resolveContentType(result.data);
+    const screenshotContentType = resolveScreenshotContentType(result.data);
     const screenshot = resolveScreenshotValue(result.data);
-    const captureMeta = sanitizeCaptureMeta(result.data.capture_meta);
+    const captureMeta = sanitizeCaptureMeta<CaptureMeta>(result.data.capture_meta);
     return {
       screenshot,
       screenshotContentType,
@@ -248,17 +244,6 @@ export async function captureAfterTool(
     waitSeconds,
     captureTime
   };
-}
-
-function resolveContentType(data: Record<string, any>): string | null {
-  const format = (data.screenshot_content_type || data.compression || data.format || '').toString().toLowerCase();
-  if (format === 'image/png' || format === 'png') {
-    return 'image/png';
-  }
-  if (format === 'image/jpeg' || format === 'jpeg' || format === 'jpg') {
-    return 'image/jpeg';
-  }
-  return null;
 }
 
 function resolveScreenshotValue(data: Record<string, any>): string | null {
