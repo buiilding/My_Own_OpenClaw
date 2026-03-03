@@ -1,4 +1,4 @@
-export function isMacPlatform() {
+function isMacPlatform() {
   if (typeof navigator === 'undefined') {
     return false;
   }
@@ -34,4 +34,3 @@ export function isAgentStopShortcutEvent(event) {
   }
   return event.ctrlKey && !event.metaKey;
 }
-

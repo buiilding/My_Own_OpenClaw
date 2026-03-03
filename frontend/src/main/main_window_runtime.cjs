@@ -4,7 +4,10 @@ const nodePath = require('path');
 const {
   createContentProtectionRuntime,
 } = require('./platform/content_protection/index.cjs');
-const { setOverlayAlwaysOnTop } = require('./overlay_topmost_runtime.cjs');
+const {
+  setOverlayAlwaysOnTop,
+  setOverlayVisibleOnAllWorkspaces,
+} = require('./overlay_topmost_runtime.cjs');
 const CHATBOX_OVERLAY_FIXED_WIDTH = 520;
 const CHATBOX_OVERLAY_FIXED_HEIGHT = 116;
 const APP_ICON_RELATIVE_PATH = nodePath.join('src', 'main', 'assets', 'icons', 'windieos.app.png');
@@ -321,7 +324,12 @@ function createChatWindow({
     warn,
     windowLabel: 'chat box',
   });
-  chatWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  setOverlayVisibleOnAllWorkspaces({
+    targetWindow: chatWindow,
+    platform,
+    warn,
+    windowLabel: 'chat box',
+  });
   chatWindow.setIgnoreMouseEvents(false);
   positionChatWindow();
 
@@ -418,7 +426,12 @@ function createResponseWindow({
     warn,
     windowLabel: 'response overlay',
   });
-  responseWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  setOverlayVisibleOnAllWorkspaces({
+    targetWindow: responseWindow,
+    platform,
+    warn,
+    windowLabel: 'response overlay',
+  });
 
   let responseRendererLoaded = false;
   const ensureResponseRendererLoaded = () => {
@@ -512,6 +525,4 @@ module.exports = {
   enableContentProtectionSafely,
   normalizeMainWindowOpenTarget,
   prepareOverlayQueryCaptureFocus,
-  resolveAppIconPathRuntime,
-  resolveAppIconNativeImage,
 };

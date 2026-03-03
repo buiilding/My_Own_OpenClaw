@@ -2,22 +2,7 @@
 
 const {
   configureGpuRuntime,
-  shouldForceSoftwareRendering,
 } = require('../../frontend/src/main/gpu_runtime.cjs');
-
-describe('gpu_runtime shouldForceSoftwareRendering', () => {
-  test('treats common truthy values as enabled', () => {
-    expect(shouldForceSoftwareRendering({ WINDIE_FORCE_SOFTWARE_RENDERING: '1' })).toBe(true);
-    expect(shouldForceSoftwareRendering({ WINDIE_FORCE_SOFTWARE_RENDERING: 'true' })).toBe(true);
-    expect(shouldForceSoftwareRendering({ WINDIE_FORCE_SOFTWARE_RENDERING: 'YES' })).toBe(true);
-    expect(shouldForceSoftwareRendering({ WINDIE_FORCE_SOFTWARE_RENDERING: 'on' })).toBe(true);
-  });
-
-  test('defaults to disabled', () => {
-    expect(shouldForceSoftwareRendering({})).toBe(false);
-    expect(shouldForceSoftwareRendering({ WINDIE_FORCE_SOFTWARE_RENDERING: '0' })).toBe(false);
-  });
-});
 
 describe('gpu_runtime configureGpuRuntime', () => {
   test('keeps hardware acceleration enabled by default', () => {
@@ -43,4 +28,17 @@ describe('gpu_runtime configureGpuRuntime', () => {
     expect(env.LIBGL_ALWAYS_SOFTWARE).toBe('1');
     expect(env.GALLIUM_DRIVER).toBe('llvmpipe');
   });
+
+  test.each(['1', 'true', 'YES', 'on'])(
+    'treats truthy env value "%s" as enabled',
+    (flagValue) => {
+      const app = { disableHardwareAcceleration: jest.fn() };
+      const env = { WINDIE_FORCE_SOFTWARE_RENDERING: flagValue };
+
+      const result = configureGpuRuntime({ app, env });
+
+      expect(result).toEqual({ softwareRenderingForced: true });
+      expect(app.disableHardwareAcceleration).toHaveBeenCalledTimes(1);
+    },
+  );
 });

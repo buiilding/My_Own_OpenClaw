@@ -27,5 +27,4 @@ function configureGpuRuntime({ app, env = process.env } = {}) {
 
 module.exports = {
   configureGpuRuntime,
-  shouldForceSoftwareRendering,
 };

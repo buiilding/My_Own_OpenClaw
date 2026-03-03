@@ -75,11 +75,8 @@ function shouldForwardStderrLine(line, env = process.env) {
 }
 
 module.exports = {
-  ENV_VERBOSE_SIDECAR_STDERR,
   getErrorMessage,
-  parsePythonLogLevel,
   shouldForwardStderrLine,
-  shouldSuppressStderrLine,
   toErrorResponse,
   withLocalBackendNodeOptions,
 };

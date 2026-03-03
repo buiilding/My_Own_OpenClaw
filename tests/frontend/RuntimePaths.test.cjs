@@ -168,9 +168,10 @@ describe('runtime_paths sidecar launch target resolution', () => {
         || candidate === devScriptPath
       ));
 
-      const scriptPath = runtimePaths.resolvePythonScriptPath('local_backend.py');
+      const target = runtimePaths.resolveSidecarLaunchTarget('local_backend.py');
 
-      expect(scriptPath.endsWith('/src/main/python/local_backend.py')).toBe(true);
+      expect(target.kind).toBe('python');
+      expect(target.resolvedPath.endsWith('/src/main/python/local_backend.py')).toBe(true);
     });
   });
 });
