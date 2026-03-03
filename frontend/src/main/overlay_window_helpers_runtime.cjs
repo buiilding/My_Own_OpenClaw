@@ -1,3 +1,5 @@
+const { setOverlayAlwaysOnTop } = require('./overlay_topmost_runtime.cjs');
+
 function createOverlayWindowHelpersRuntime(deps = {}) {
   const {
     screen,
@@ -13,6 +15,7 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     contextLabelOffsetX,
     contextLabelGapAboveChatbox,
     responseGap = 10,
+    platform = process.platform,
     getChatVisualAnchorHeight = null,
     chatVisualAnchorHeight = null,
     warn = console.warn,
@@ -139,13 +142,14 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     if (!chatWindow || chatWindow.isDestroyed()) {
       return;
     }
-    try {
-      chatWindow.setAlwaysOnTop(true, 'floating');
-      if (typeof chatWindow.moveTop === 'function') {
-        chatWindow.moveTop();
-      }
-    } catch (error) {
-      warn('[Main] Failed to keep chatbox on top:', error?.message || error);
+    const promoted = setOverlayAlwaysOnTop({
+      targetWindow: chatWindow,
+      platform,
+      warn,
+      windowLabel: 'chat box',
+    });
+    if (promoted && typeof chatWindow.moveTop === 'function') {
+      chatWindow.moveTop();
     }
   }
 
@@ -154,13 +158,14 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     if (!responseWindow || responseWindow.isDestroyed() || !getResponseOverlayVisible()) {
       return;
     }
-    try {
-      responseWindow.setAlwaysOnTop(true, 'floating');
-      if (typeof responseWindow.moveTop === 'function') {
-        responseWindow.moveTop();
-      }
-    } catch (error) {
-      warn('[Main] Failed to keep response overlay on top:', error?.message || error);
+    const promoted = setOverlayAlwaysOnTop({
+      targetWindow: responseWindow,
+      platform,
+      warn,
+      windowLabel: 'response overlay',
+    });
+    if (promoted && typeof responseWindow.moveTop === 'function') {
+      responseWindow.moveTop();
     }
   }
 
@@ -169,13 +174,14 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     if (!contextLabelWindow || contextLabelWindow.isDestroyed() || !contextLabelWindow.isVisible()) {
       return;
     }
-    try {
-      contextLabelWindow.setAlwaysOnTop(true, 'floating');
-      if (typeof contextLabelWindow.moveTop === 'function') {
-        contextLabelWindow.moveTop();
-      }
-    } catch (error) {
-      warn('[Main] Failed to keep context label on top:', error?.message || error);
+    const promoted = setOverlayAlwaysOnTop({
+      targetWindow: contextLabelWindow,
+      platform,
+      warn,
+      windowLabel: 'context label',
+    });
+    if (promoted && typeof contextLabelWindow.moveTop === 'function') {
+      contextLabelWindow.moveTop();
     }
   }
 
