@@ -69,6 +69,10 @@ jobs:
           if offenders:
               raise SystemExit(f"Package step still exports empty signing env vars: {offenders}")
 
+          runtime_builder = Path("scripts/build-sidecar-runtime").read_text(encoding="utf-8")
+          if '-m venv --copies "${RUNTIME_DIR}"' not in runtime_builder:
+              raise SystemExit("scripts/build-sidecar-runtime must create venv with --copies for macOS bundle safety")
+
           print("desktop-release workflow contract: ok")
           PY
 
