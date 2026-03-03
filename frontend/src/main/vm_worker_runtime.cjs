@@ -57,12 +57,14 @@ function buildAttachmentContextFromFiles(files) {
   return lines.join('\n');
 }
 
-async function postJson(fetchFn, url, payload) {
+async function postJson(fetchFn, url, payload, authHeaders = null) {
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(authHeaders || {}),
+  };
   const response = await fetchFn(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify(payload),
   });
   if (!response.ok) {
@@ -104,6 +106,12 @@ function createVmWorkerRuntime(options = {}) {
   const configuredVmId = normalizeOptionalString(env.WINDIE_VM_ID);
   const configuredAgentId = normalizeOptionalString(env.WINDIE_VM_AGENT_ID);
   const heartbeatMs = parseHeartbeatMs(env.WINDIE_VM_WORKER_HEARTBEAT_MS);
+  const runsApiKey = normalizeOptionalString(
+    env.WINDIE_VM_RUNS_API_KEY || env.WINDIE_RUNS_API_KEY || env.WINDIE_DEMO_API_KEY,
+  );
+  const runsApiHeaders = runsApiKey
+    ? { 'x-windie-runs-key': runsApiKey }
+    : null;
 
   let active = false;
   let inTick = false;
@@ -150,7 +158,7 @@ function createVmWorkerRuntime(options = {}) {
         session_id: data?.session_id || null,
         user_id: data?.user_id || null,
       },
-    });
+    }, runsApiHeaders);
   }
 
   async function onBackendMessage(data) {
@@ -213,7 +221,7 @@ function createVmWorkerRuntime(options = {}) {
         payload: {
           message: result?.error || 'Failed to dispatch VM run query',
         },
-      });
+      }, runsApiHeaders);
       return;
     }
 
@@ -225,7 +233,7 @@ function createVmWorkerRuntime(options = {}) {
       user_id: userId,
       turn_ref: result.queryMessageId || result.messageId,
       conversation_ref: conversationRef,
-    });
+    }, runsApiHeaders);
   }
 
   async function applyControlCommands(connection, controlCommands) {
@@ -265,7 +273,7 @@ function createVmWorkerRuntime(options = {}) {
             command_id: command.command_id || null,
             conversation_ref: conversationRef,
           },
-        });
+        }, runsApiHeaders);
       }
     }
   }
@@ -298,7 +306,7 @@ function createVmWorkerRuntime(options = {}) {
         metadata: {
           platform: process.platform,
         },
-      });
+      }, runsApiHeaders);
 
       await applyControlCommands(connection, response?.control_commands);
 

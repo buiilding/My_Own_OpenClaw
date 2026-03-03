@@ -21,12 +21,14 @@ class VmRunControlService:
         "streaming-complete": "completed",
         "error": "failed",
     }
+    _ACTIVE_STATUSES = frozenset({"awaiting_worker", "queued", "running", "paused"})
 
-    def __init__(self) -> None:
+    def __init__(self, *, max_active_runs_per_workspace: int = 1) -> None:
         self._runs: Dict[str, Dict[str, Any]] = {}
         self._workers: Dict[str, Dict[str, Any]] = {}
         self._workspace_run_queues: Dict[str, List[str]] = {}
         self._lock = asyncio.Lock()
+        self._max_active_runs_per_workspace = max(1, int(max_active_runs_per_workspace))
 
     @staticmethod
     def _normalize_files(files: Optional[List[Dict[str, Any]]]) -> List[Dict[str, Any]]:
@@ -108,6 +110,14 @@ class VmRunControlService:
     def _enqueue_run_locked(self, workspace_id: str, run_id: str) -> None:
         queue = self._workspace_run_queues.setdefault(workspace_id, [])
         queue.append(run_id)
+
+    def _count_active_runs_locked(self, workspace_id: str) -> int:
+        return sum(
+            1
+            for run in self._runs.values()
+            if run.get("workspace_id") == workspace_id
+            and run.get("status") in self._ACTIVE_STATUSES
+        )
 
     def _assign_next_run_to_worker_locked(
         self,
@@ -195,6 +205,13 @@ class VmRunControlService:
         metadata: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         async with self._lock:
+            active_runs = self._count_active_runs_locked(workspace_id)
+            if active_runs >= self._max_active_runs_per_workspace:
+                raise ValueError(
+                    "Active run limit reached for workspace "
+                    f"'{workspace_id}' ({self._max_active_runs_per_workspace})."
+                )
+
             run_id = str(uuid4())
             now = _now_iso()
             normalized_metadata = deepcopy(metadata) if isinstance(metadata, dict) else {}
@@ -355,6 +372,49 @@ class VmRunControlService:
                 },
             )
             return self._clone_run(run)
+
+    async def stop_all_runs(
+        self,
+        *,
+        workspace_id: Optional[str] = None,
+        requested_by: Optional[str] = None,
+    ) -> List[str]:
+        async with self._lock:
+            stopped_run_ids: List[str] = []
+            normalized_workspace_id = self._normalize_optional_string(workspace_id)
+            for run in self._runs.values():
+                if (
+                    normalized_workspace_id is not None
+                    and run.get("workspace_id") != normalized_workspace_id
+                ):
+                    continue
+                if run.get("status") not in self._ACTIVE_STATUSES:
+                    continue
+
+                run["status"] = "stopped"
+                command = {
+                    "command_id": str(uuid4()),
+                    "action": "stop",
+                    "requested_by": requested_by,
+                    "control_mode": run.get("control_mode"),
+                    "created_at": _now_iso(),
+                }
+                run.setdefault("pending_controls", []).append(command)
+                self._append_event_locked(
+                    run,
+                    event_type="run-control",
+                    source="api",
+                    payload={
+                        "action": "stop",
+                        "requested_by": requested_by,
+                        "control_mode": run.get("control_mode"),
+                        "status": run["status"],
+                        "command_id": command["command_id"],
+                        "bulk": True,
+                    },
+                )
+                stopped_run_ids.append(str(run.get("run_id")))
+            return stopped_run_ids
 
     async def register_worker_heartbeat(
         self,

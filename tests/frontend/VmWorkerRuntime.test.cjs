@@ -70,6 +70,7 @@ describe('vm_worker_runtime', () => {
         WINDIE_VM_WORKSPACE_ID: 'workspace-demo',
         WINDIE_VM_WORKER_MODE: '1',
         WINDIE_VM_WORKER_HEARTBEAT_MS: '9999',
+        WINDIE_VM_RUNS_API_KEY: 'demo-runs-key',
       },
       fetchFn,
       getBackendConnectionState: () => ({
@@ -97,7 +98,12 @@ describe('vm_worker_runtime', () => {
 
     expect(fetchFn).toHaveBeenCalledWith(
       'http://localhost:8000/api/runs/workers/heartbeat',
-      expect.objectContaining({ method: 'POST' }),
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({
+          'x-windie-runs-key': 'demo-runs-key',
+        }),
+      }),
     );
     expect(sendAutomatedQuery).toHaveBeenCalledWith(
       expect.objectContaining({
