@@ -113,6 +113,7 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
     registerRendererWindow,
     wakewordHotkey,
     platform = process.platform,
+    vmMode = false,
     createWindow,
     createChatWindow,
     createResponseWindow,
@@ -126,6 +127,7 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
     getChatWindow = () => null,
     getResponseWindow = () => null,
     stopLocalBackend,
+    stopVmWorker = () => {},
     log = console.log,
     warn = console.warn,
     scheduleTimeout = (fn, ms) => setTimeout(fn, ms),
@@ -162,54 +164,60 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
 
   app.whenReady().then(() => {
     createWindow();
-    createChatWindow();
-    createResponseWindow();
-    createTray();
+    let chatOverlay = null;
+    let responseOverlay = null;
+    if (!vmMode) {
+      chatOverlay = createChatWindow();
+      responseOverlay = createResponseWindow();
+      createTray();
+    }
     // First launch should present the dashboard immediately. Tray/pill mode
     // still applies after close via existing close-handler behavior.
     showMainWindow({ focus: true });
-    syncWakewordToggleForChatVisibility();
+    if (!vmMode) {
+      syncWakewordToggleForChatVisibility();
 
-    registerOverlayRendererWindows(
-      [getChatWindow(), getResponseWindow()],
-      { registerRendererWindow },
-    );
-
-    screen.on('display-metrics-changed', () => {
-      positionChatWindow();
-      positionResponseWindow();
-    });
-
-    const shortcutHandler = () => {
-      const chatWindow = getChatWindow();
-      if (!chatWindow || chatWindow.isDestroyed()) {
-        return;
-      }
-      if (chatWindow.isVisible()) {
-        hideChatWindow();
-      } else {
-        showChatWindow({ focus: true });
-      }
-    };
-
-    const hotkeyCandidates = buildWakewordHotkeyCandidates(wakewordHotkey, platform);
-    let registeredHotkey = null;
-    for (const candidate of hotkeyCandidates) {
-      const registered = globalShortcut.register(candidate, shortcutHandler);
-      if (!registered) {
-        continue;
-      }
-      registeredHotkey = candidate;
-      break;
-    }
-
-    if (!registeredHotkey) {
-      warn(`[Main] Failed to register global shortcut. Tried: ${hotkeyCandidates.join(', ')}`);
-    } else if (registeredHotkey !== wakewordHotkey) {
-      warn(
-        `[Main] Registered fallback global shortcut: ${registeredHotkey} ` +
-        `(primary ${wakewordHotkey} unavailable)`,
+      registerOverlayRendererWindows(
+        [chatOverlay || getChatWindow(), responseOverlay || getResponseWindow()],
+        { registerRendererWindow },
       );
+
+      screen.on('display-metrics-changed', () => {
+        positionChatWindow();
+        positionResponseWindow();
+      });
+
+      const shortcutHandler = () => {
+        const chatWindow = getChatWindow();
+        if (!chatWindow || chatWindow.isDestroyed()) {
+          return;
+        }
+        if (chatWindow.isVisible()) {
+          hideChatWindow();
+        } else {
+          showChatWindow({ focus: true });
+        }
+      };
+
+      const hotkeyCandidates = buildWakewordHotkeyCandidates(wakewordHotkey, platform);
+      let registeredHotkey = null;
+      for (const candidate of hotkeyCandidates) {
+        const registered = globalShortcut.register(candidate, shortcutHandler);
+        if (!registered) {
+          continue;
+        }
+        registeredHotkey = candidate;
+        break;
+      }
+
+      if (!registeredHotkey) {
+        warn(`[Main] Failed to register global shortcut. Tried: ${hotkeyCandidates.join(', ')}`);
+      } else if (registeredHotkey !== wakewordHotkey) {
+        warn(
+          `[Main] Registered fallback global shortcut: ${registeredHotkey} ` +
+          `(primary ${wakewordHotkey} unavailable)`,
+        );
+      }
     }
 
     logStartupMetricsSnapshot('startup-ready', {
@@ -230,12 +238,14 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) {
         createWindow();
-        const chatOverlay = createChatWindow();
-        const responseOverlay = createResponseWindow();
-        registerOverlayRendererWindows(
-          [chatOverlay, responseOverlay],
-          { registerRendererWindow },
-        );
+        if (!vmMode) {
+          const chatOverlay = createChatWindow();
+          const responseOverlay = createResponseWindow();
+          registerOverlayRendererWindows(
+            [chatOverlay, responseOverlay],
+            { registerRendererWindow },
+          );
+        }
       } else {
         showMainWindow({ focus: true });
       }
@@ -246,6 +256,7 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
     app.isQuitting = true;
     log('[Main] App quitting, cleaning up subprocesses...');
     stopLocalBackend();
+    stopVmWorker();
   });
 
   app.on('will-quit', () => {
@@ -253,7 +264,7 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
   });
 
   app.on('window-all-closed', (event) => {
-    if (!app.isQuitting) {
+    if (!app.isQuitting && !vmMode) {
       event.preventDefault();
     }
   });

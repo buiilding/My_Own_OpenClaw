@@ -28,6 +28,7 @@ import { applyStopQueryUiState } from '../utils/stopQueryState';
 import { useChatLoopUiState } from '../hooks/useChatLoopUiState';
 import { useTranscriptSessionInfo } from '../../dashboard/hooks/useTranscriptSessionInfo';
 import { isAgentStopShortcutEvent } from '../../../infrastructure/shortcuts/agentStopShortcut';
+import { isVmModeEnabled } from '../../../infrastructure/runtime/vmMode';
 import '../../../styles/ChatInterface.css';
 
 function waitForNextPaint() {
@@ -41,6 +42,7 @@ function waitForNextPaint() {
 }
 
 function ChatInterface({ focusComposerToken = 0 }) {
+  const vmModeEnabled = isVmModeEnabled();
   const formatProviderLabel = useCallback((providerValue) => {
     const provider = String(providerValue || '').trim();
     if (!provider) {
@@ -511,35 +513,37 @@ function ChatInterface({ focusComposerToken = 0 }) {
           </div>
         </div>
         <div className="chat-meta">
-          <div className="chat-window-controls">
-            <button
-              type="button"
-              className="chat-window-control-btn chat-window-control-minimize"
-              aria-label="Minimize window"
-              title="Minimize"
-              onClick={handleWindowMinimize}
-            >
-              <Minus size={14} strokeWidth={2.2} />
-            </button>
-            <button
-              type="button"
-              className="chat-window-control-btn chat-window-control-maximize"
-              aria-label="Toggle maximize window"
-              title="Maximize or restore"
-              onClick={handleWindowToggleMaximize}
-            >
-              <Square size={11} strokeWidth={2.2} />
-            </button>
-            <button
-              type="button"
-              className="chat-window-control-btn chat-window-control-close"
-              aria-label="Close window"
-              title="Close"
-              onClick={handleWindowClose}
-            >
-              <X size={13} strokeWidth={2.2} />
-            </button>
-          </div>
+          {!vmModeEnabled ? (
+            <div className="chat-window-controls">
+              <button
+                type="button"
+                className="chat-window-control-btn chat-window-control-minimize"
+                aria-label="Minimize window"
+                title="Minimize"
+                onClick={handleWindowMinimize}
+              >
+                <Minus size={14} strokeWidth={2.2} />
+              </button>
+              <button
+                type="button"
+                className="chat-window-control-btn chat-window-control-maximize"
+                aria-label="Toggle maximize window"
+                title="Maximize or restore"
+                onClick={handleWindowToggleMaximize}
+              >
+                <Square size={11} strokeWidth={2.2} />
+              </button>
+              <button
+                type="button"
+                className="chat-window-control-btn chat-window-control-close"
+                aria-label="Close window"
+                title="Close"
+                onClick={handleWindowClose}
+              >
+                <X size={13} strokeWidth={2.2} />
+              </button>
+            </div>
+          ) : null}
           <div className="chat-utility-controls">
             <button
               type="button"

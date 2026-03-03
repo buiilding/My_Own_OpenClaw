@@ -49,7 +49,12 @@ DashboardModal.propTypes = {
 const DASHBOARD_OPEN_ANIMATION_MS = 420;
 const DASHBOARD_SCROLL_LOCK_CLASS = 'cg-scroll-locked';
 
-function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
+function ChatGptDashboardShell({
+  config,
+  availableModels,
+  onConfigChange,
+  vmModeEnabled = false,
+}) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [dashboardOpening, setDashboardOpening] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -210,6 +215,9 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
 
 
   useEffect(() => {
+    if (vmModeEnabled) {
+      return undefined;
+    }
     const removeListener = IpcBridge.on(ON_CHANNELS.MAIN_WINDOW_OPEN_TARGET, (payload) => {
       const target = typeof payload?.target === 'string' ? payload.target : '';
       if (target === 'chat') {
@@ -232,7 +240,7 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
     return () => {
       removeListener?.();
     };
-  }, [handleChatSurface, openMemory, openModels, openSettings]);
+  }, [handleChatSurface, openMemory, openModels, openSettings, vmModeEnabled]);
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.IPC_STATUS, (payload) => {
@@ -253,86 +261,96 @@ function ChatGptDashboardShell({ config, availableModels, onConfigChange }) {
 
   return (
     <div className={`cg-dashboard-shell${dashboardOpening ? ' cg-dashboard-shell-opening' : ''}`}>
-      <DashboardSidebar
-        sidebarOpen={sidebarOpen}
-        onExpandSidebar={handleExpandSidebar}
-        onCollapseSidebar={handleCollapseSidebar}
-        onStartNewChat={handleStartNewChat}
-        onOpenSearch={handleOpenSearch}
-        onOpenMemory={handleMemorySurface}
-        onOpenUsage={openUsage}
-        onOpenModels={openModels}
-        onOpenSettings={openSettings}
-        searchOpen={searchOpen}
-        memoryOpen={memoryOpen}
-        usageOpen={usageOpen}
-        modelsOpen={modelsOpen}
-        isLoadingRecentConversations={isLoadingRecentConversations}
-        recentConversationsError={recentConversationsError}
-        recentConversationGroups={recentConversationGroups}
-        onOpenConversation={openConversationFromDashboard}
-        onRenameConversation={handleRenameConversation}
-        onTogglePinConversation={handleTogglePinConversation}
-        onDeleteConversation={handleDeleteConversation}
-        activeConversationRef={sessionInfo.conversationRef || null}
-        isTransportConnected={isTransportConnected}
-      />
+      {!vmModeEnabled ? (
+        <DashboardSidebar
+          sidebarOpen={sidebarOpen}
+          onExpandSidebar={handleExpandSidebar}
+          onCollapseSidebar={handleCollapseSidebar}
+          onStartNewChat={handleStartNewChat}
+          onOpenSearch={handleOpenSearch}
+          onOpenMemory={handleMemorySurface}
+          onOpenUsage={openUsage}
+          onOpenModels={openModels}
+          onOpenSettings={openSettings}
+          searchOpen={searchOpen}
+          memoryOpen={memoryOpen}
+          usageOpen={usageOpen}
+          modelsOpen={modelsOpen}
+          isLoadingRecentConversations={isLoadingRecentConversations}
+          recentConversationsError={recentConversationsError}
+          recentConversationGroups={recentConversationGroups}
+          onOpenConversation={openConversationFromDashboard}
+          onRenameConversation={handleRenameConversation}
+          onTogglePinConversation={handleTogglePinConversation}
+          onDeleteConversation={handleDeleteConversation}
+          activeConversationRef={sessionInfo.conversationRef || null}
+          isTransportConnected={isTransportConnected}
+        />
+      ) : null}
 
-      <main className={`cg-main-content${sidebarOpen ? '' : ' cg-main-content-collapsed'}`.trim()}>
+      <main className={`cg-main-content${
+        vmModeEnabled
+          ? ''
+          : (sidebarOpen ? '' : ' cg-main-content-collapsed')
+      }`.trim()}>
         <ChatInterface sidebarOpen={sidebarOpen} focusComposerToken={composerFocusToken} />
       </main>
 
-      <SearchChatsModal
-        isOpen={searchOpen}
-        onClose={() => setSearchOpen(false)}
-        onStartNewChat={handleStartNewChat}
-        onOpenConversation={openConversationFromDashboard}
-        query={searchQuery}
-        onQueryChange={setSearchQuery}
-        isSearching={isSearchingConversations}
-        searchError={searchConversationsError}
-        recentConversationGroups={recentConversationGroups}
-        searchConversationGroups={searchedConversationGroups}
-        activeConversationRef={sessionInfo.conversationRef || null}
-      />
-
-      <DashboardModal isOpen={memoryOpen} onClose={() => setMemoryOpen(false)}>
-        <div className="cg-panel-wrapper">
-          <MemorySection onClose={() => setMemoryOpen(false)} />
-        </div>
-      </DashboardModal>
-
-      <DashboardModal isOpen={modelsOpen} onClose={() => setModelsOpen(false)}>
-        <div className="cg-panel-wrapper">
-          <ModelsSection
-            config={config}
-            availableModels={availableModels}
-            onConfigChange={onConfigChange}
-            onClose={() => setModelsOpen(false)}
+      {!vmModeEnabled ? (
+        <>
+          <SearchChatsModal
+            isOpen={searchOpen}
+            onClose={() => setSearchOpen(false)}
+            onStartNewChat={handleStartNewChat}
+            onOpenConversation={openConversationFromDashboard}
+            query={searchQuery}
+            onQueryChange={setSearchQuery}
+            isSearching={isSearchingConversations}
+            searchError={searchConversationsError}
+            recentConversationGroups={recentConversationGroups}
+            searchConversationGroups={searchedConversationGroups}
+            activeConversationRef={sessionInfo.conversationRef || null}
           />
-        </div>
-      </DashboardModal>
 
-      <DashboardModal isOpen={usageOpen} onClose={() => setUsageOpen(false)}>
-        <div className="cg-panel-wrapper">
-          <UsageSection onClose={() => setUsageOpen(false)} />
-        </div>
-      </DashboardModal>
+          <DashboardModal isOpen={memoryOpen} onClose={() => setMemoryOpen(false)}>
+            <div className="cg-panel-wrapper">
+              <MemorySection onClose={() => setMemoryOpen(false)} />
+            </div>
+          </DashboardModal>
 
-      <DashboardModal
-        isOpen={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
-        className="cg-modal-settings"
-      >
-        <div className="cg-panel-wrapper">
-          <SettingsSection
-            config={config}
-            onConfigChange={onConfigChange}
-            initialTab={settingsInitialTab}
+          <DashboardModal isOpen={modelsOpen} onClose={() => setModelsOpen(false)}>
+            <div className="cg-panel-wrapper">
+              <ModelsSection
+                config={config}
+                availableModels={availableModels}
+                onConfigChange={onConfigChange}
+                onClose={() => setModelsOpen(false)}
+              />
+            </div>
+          </DashboardModal>
+
+          <DashboardModal isOpen={usageOpen} onClose={() => setUsageOpen(false)}>
+            <div className="cg-panel-wrapper">
+              <UsageSection onClose={() => setUsageOpen(false)} />
+            </div>
+          </DashboardModal>
+
+          <DashboardModal
+            isOpen={settingsOpen}
             onClose={() => setSettingsOpen(false)}
-          />
-        </div>
-      </DashboardModal>
+            className="cg-modal-settings"
+          >
+            <div className="cg-panel-wrapper">
+              <SettingsSection
+                config={config}
+                onConfigChange={onConfigChange}
+                initialTab={settingsInitialTab}
+                onClose={() => setSettingsOpen(false)}
+              />
+            </div>
+          </DashboardModal>
+        </>
+      ) : null}
     </div>
   );
 }
@@ -344,6 +362,7 @@ ChatGptDashboardShell.propTypes = {
     online: PropTypes.array,
   }),
   onConfigChange: PropTypes.func.isRequired,
+  vmModeEnabled: PropTypes.bool,
 };
 
 export default ChatGptDashboardShell;

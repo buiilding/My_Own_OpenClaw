@@ -7,6 +7,7 @@ import {
   saveFrontendOnboardingState,
 } from '../features/onboarding/utils/frontendOnboardingStorage';
 import { getAgentStopShortcutLabel } from '../infrastructure/shortcuts/agentStopShortcut';
+import { isVmModeEnabled } from '../infrastructure/runtime/vmMode';
 import PermissionOnboardingWizard from '../features/permissions/components/PermissionOnboardingWizard';
 import { usePermissionStore } from '../features/permissions/stores/permissionStore';
 import { AppProvider } from './providers/AppProvider';
@@ -26,6 +27,7 @@ import '../styles/accessibility.css';
  */
 function AppContent() {
   const { config, availableModels, updateConfig } = useAppConfigContext();
+  const vmModeEnabled = isVmModeEnabled();
   const bootstrapped = usePermissionStore((state) => state.bootstrapped);
   const isLoading = usePermissionStore((state) => state.isLoading);
   const needsOnboarding = usePermissionStore((state) => state.needsOnboarding);
@@ -48,6 +50,17 @@ function AppContent() {
     saveFrontendOnboardingState(completionState);
     setFrontendOnboardingComplete(true);
   }, []);
+
+  if (vmModeEnabled) {
+    return (
+      <ChatGptDashboardShell
+        config={config}
+        availableModels={availableModels}
+        onConfigChange={updateConfig}
+        vmModeEnabled
+      />
+    );
+  }
 
   if (!bootstrapped || isLoading) {
     return (
@@ -78,6 +91,7 @@ function AppContent() {
       config={config}
       availableModels={availableModels}
       onConfigChange={updateConfig}
+      vmModeEnabled={false}
     />
   );
 }
