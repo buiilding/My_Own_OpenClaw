@@ -235,10 +235,7 @@ def create_model(model_cls: Any, model_name: str, model_path: Optional[str]) -> 
     supports_model_names = "wakeword_models" in init_params
     supports_framework = "inference_framework" in init_params
 
-    if model_path and supports_model_paths:
-        model_args: Dict[str, Any] = {"wakeword_model_paths": [model_path]}
-        if supports_model_names:
-            model_args["wakeword_models"] = [model_name]
+    def _build_model_with_framework_fallback(model_args: Dict[str, Any]) -> Tuple[Any, str]:
         if supports_framework:
             try:
                 return model_cls(**model_args, inference_framework="tflite"), "tflite"
@@ -250,20 +247,17 @@ def create_model(model_cls: Any, model_name: str, model_path: Optional[str]) -> 
                 return model_cls(**model_args, inference_framework="onnx"), "onnx"
         return model_cls(**model_args), "onnx"
 
+    if model_path and supports_model_paths:
+        model_args: Dict[str, Any] = {"wakeword_model_paths": [model_path]}
+        if supports_model_names:
+            model_args["wakeword_models"] = [model_name]
+        return _build_model_with_framework_fallback(model_args)
+
     if supports_model_names:
         model_args = {"wakeword_models": [model_name]}
         if model_path and supports_model_paths:
             model_args["wakeword_model_paths"] = [model_path]
-        if supports_framework:
-            try:
-                return model_cls(**model_args, inference_framework="tflite"), "tflite"
-            except Exception as tflite_error:
-                _emit_status(
-                    "fallback",
-                    f"TFLite failed ({tflite_error}), retrying with ONNX",
-                )
-                return model_cls(**model_args, inference_framework="onnx"), "onnx"
-        return model_cls(**model_args), "onnx"
+        return _build_model_with_framework_fallback(model_args)
 
     # Last-resort compatibility for unrecognized constructor signatures.
     return model_cls(), "unknown"
