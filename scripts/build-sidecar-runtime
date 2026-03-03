@@ -44,7 +44,10 @@ echo "[build-sidecar-runtime] python=${BASE_PYTHON}"
 echo "[build-sidecar-runtime] runtime=${RUNTIME_DIR}"
 
 rm -rf "${RUNTIME_DIR}"
-"${BASE_PYTHON}" -m venv "${RUNTIME_DIR}"
+# Use copies to avoid absolute symlinks in bundled runtime directories.
+# macOS codesign --deep --strict rejects app bundles containing symlinks that
+# resolve outside the bundle.
+"${BASE_PYTHON}" -m venv --copies "${RUNTIME_DIR}"
 
 if [[ -x "${RUNTIME_DIR}/bin/python" ]]; then
   RUNTIME_PYTHON="${RUNTIME_DIR}/bin/python"

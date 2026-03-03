@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(packaging-macos-bundled-runtime-symlink-safety): build sidecar venv with `python -m venv --copies` to avoid absolute symlink targets inside packaged app resources that fail `codesign --verify --deep --strict` on macOS unsigned packaging runs; add CI contract check to keep `--copies` enforced.
 - fix(scripts-linux-reinstall-purge-detection): make `scripts/reinstall-windieos-linux.sh` detect installed package names via `dpkg-query` and only purge existing installs, avoiding noisy apt “Unable to locate package” errors when no prior package is installed.
 - chore(scripts-linux-reinstall-helper): add executable `scripts/reinstall-windieos-linux.sh` to fully purge previous Linux package install, rebuild bundled-python artifacts with pinned Conda/Python build interpreter, reinstall latest `.deb`, and verify bundled runtime `_tkinter`.
 - fix(frontend-dashboard-startup-chat-history-retry): auto-retry dashboard recent chat loading on startup after transient sidecar readiness failures (`Local backend not ready`/timeout), so “Your chats” populates without requiring the user to send a new query first; add dashboard regression coverage.
