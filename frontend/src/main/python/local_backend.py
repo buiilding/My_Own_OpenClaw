@@ -53,6 +53,7 @@ except Exception as exc:  # pragma: no cover - exercised in dependency-missing r
 
 ENV_ENABLE_SEMANTIC_SUMMARIZER = "WINDIE_ENABLE_SEMANTIC_SUMMARIZER"
 ENV_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL = "WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL"
+ENV_PACKAGED_APP = "WINDIE_PACKAGED_APP"
 ENV_SIDECAR_LOG_LEVEL = "WINDIE_SIDECAR_LOG_LEVEL"
 
 
@@ -122,6 +123,10 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
         self._browser_feature_pack_autoinstall_enabled = _env_flag_enabled(
             ENV_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL,
             default=True,
+        )
+        self._packaged_app = _env_flag_enabled(
+            ENV_PACKAGED_APP,
+            default=False,
         )
         self._feature_pack_install_lock = asyncio.Lock()
         self._memory_store_unavailable_error: Optional[str] = None
@@ -209,6 +214,11 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
             return None
 
         if not self._browser_feature_pack_autoinstall_enabled:
+            if self._packaged_app:
+                return (
+                    "Browser runtime dependencies are missing from the bundled WindieOS install. "
+                    "Reinstall WindieOS."
+                )
             return (
                 "Browser feature pack is unavailable in this runtime. "
                 f"{build_feature_pack_manual_install_message('browser')}"

@@ -6,7 +6,7 @@
  */
 
 const { spawn } = require('child_process');
-const { ipcMain } = require('electron');
+const { app, ipcMain } = require('electron');
 const {
   resolveSidecarLaunchTarget,
 } = require('./runtime_paths.cjs');
@@ -26,7 +26,20 @@ function startWakewordService(mainWindow, onWakewordDetected) {
   }
 
   const launchTarget = resolveSidecarLaunchTarget('wakeword_service.py');
+  const packagedApp = Boolean(app && app.isPackaged);
   stderrBuffer = '';
+
+  if (launchTarget.kind === 'python' && !launchTarget.command) {
+    const errorMessage = packagedApp
+      ? 'Bundled Python runtime not found in app resources. Please reinstall WindieOS.'
+      : 'Python executable not found. Please install Python 3 or ensure it is in your PATH.';
+    console.error(`[Wakeword] ${errorMessage}`);
+    mainWindow?.webContents.send('wakeword-status', {
+      ready: false,
+      error: errorMessage,
+    });
+    return;
+  }
 
   console.log(
     `[Wakeword] Starting service (${launchTarget.kind}): ` +
@@ -35,6 +48,12 @@ function startWakewordService(mainWindow, onWakewordDetected) {
   const spawnedProcess = spawn(launchTarget.command, launchTarget.args, {
     stdio: ['pipe', 'pipe', 'pipe'], // stdin, stdout, stderr
     cwd: launchTarget.cwd,
+    env: {
+      ...process.env,
+      PYTHONUNBUFFERED: '1',
+      WINDIE_PACKAGED_APP: packagedApp ? '1' : '0',
+      WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD: packagedApp ? '0' : '1',
+    },
   });
   pythonProcess = spawnedProcess;
 

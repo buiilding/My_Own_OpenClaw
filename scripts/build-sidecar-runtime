@@ -10,6 +10,7 @@ RUNTIME_REQS_BROWSER="${FRONTEND_DIR}/src/main/python/requirements.runtime.brows
 RUNTIME_REQS_FULL="${FRONTEND_DIR}/src/main/python/requirements.runtime.txt"
 MODE="${WINDIE_SIDECAR_RUNTIME_MODE:-slim}"
 PROFILE="${WINDIE_SIDECAR_RUNTIME_PROFILE:-core}"
+REQUIRE_WAKEWORD_PREFETCH="${WINDIE_REQUIRE_WAKEWORD_PREFETCH:-1}"
 INCLUDE_BROWSER_PACK=0
 
 if [[ ! -f "${RUNTIME_REQS_CORE}" ]]; then
@@ -79,46 +80,82 @@ if [[ "${INCLUDE_BROWSER_PACK}" -eq 1 ]]; then
   "${RUNTIME_PYTHON}" -m pip install -r "${RUNTIME_REQS_BROWSER}"
 fi
 
-echo "[build-sidecar-runtime] prefetching wakeword model assets (best effort)"
+echo "[build-sidecar-runtime] prefetching wakeword model assets"
 if "${RUNTIME_PYTHON}" - <<'PY'
 import importlib
 import inspect
 import pathlib
 import sys
 
-try:
-    openwakeword_mod = importlib.import_module("openwakeword")
-    utils_mod = importlib.import_module("openwakeword.utils")
-except Exception as exc:
-    print(f"[build-sidecar-runtime] wakeword prefetch skipped (import failed): {exc}", file=sys.stderr)
-    raise SystemExit(0)
-
-download_models = getattr(utils_mod, "download_models", None)
-if not callable(download_models):
-    print("[build-sidecar-runtime] wakeword prefetch skipped (download_models unavailable)", file=sys.stderr)
-    raise SystemExit(0)
+openwakeword_mod = importlib.import_module("openwakeword")
+utils_mod = importlib.import_module("openwakeword.utils")
 
 target_dir = pathlib.Path(openwakeword_mod.__file__).resolve().parent / "resources" / "models"
 target_dir.mkdir(parents=True, exist_ok=True)
-download_params = inspect.signature(download_models).parameters
+required_model_markers = [
+    "hey_jarvis",
+    "silero_vad",
+    "embedding_model",
+    "melspectrogram",
+]
 
-if "target_directory" in download_params:
-    download_models(["hey_jarvis"], target_directory=str(target_dir))
+def find_missing_markers() -> list[str]:
+    missing: list[str] = []
+    for marker in required_model_markers:
+        if not any(target_dir.glob(f"{marker}*")):
+            missing.append(marker)
+    return missing
+
+missing_markers = find_missing_markers()
+if missing_markers:
+    download_models = getattr(utils_mod, "download_models", None)
+    if not callable(download_models):
+        raise RuntimeError(
+            "openwakeword.utils.download_models is unavailable and required wakeword model "
+            "assets are missing from site-packages"
+        )
+    download_params = inspect.signature(download_models).parameters
+    if "target_directory" in download_params:
+        download_models(["hey_jarvis"], target_directory=str(target_dir))
+    else:
+        download_models(["hey_jarvis"])
+    missing_markers = find_missing_markers()
 else:
-    download_models(["hey_jarvis"])
+    print(
+        "[build-sidecar-runtime] wakeword models already present; skipping download",
+        file=sys.stderr,
+    )
+
+if missing_markers:
+    raise RuntimeError(
+        "Wakeword model prefetch incomplete; missing markers: "
+        + ", ".join(missing_markers)
+    )
 
 print(f"[build-sidecar-runtime] wakeword models prefetched to {target_dir}", file=sys.stderr)
 PY
 then
   echo "[build-sidecar-runtime] wakeword prefetch completed"
 else
-  echo "[build-sidecar-runtime] WARNING: wakeword prefetch failed; runtime will fall back to user cache download"
+  if [[ "${REQUIRE_WAKEWORD_PREFETCH}" == "1" ]]; then
+    echo "[build-sidecar-runtime] ERROR: wakeword prefetch failed; refusing to build runtime without bundled wakeword models" >&2
+    exit 1
+  fi
+  echo "[build-sidecar-runtime] WARNING: wakeword prefetch failed; continuing because WINDIE_REQUIRE_WAKEWORD_PREFETCH=${REQUIRE_WAKEWORD_PREFETCH}"
 fi
 
 if [[ "${MODE}" == "full" ]]; then
-  echo "[build-sidecar-runtime] installing playwright browser payload (full mode)"
-  PLAYWRIGHT_BROWSERS_PATH="${RUNTIME_DIR}/ms-playwright" \
-    "${RUNTIME_PYTHON}" -m playwright install chromium
+  if find "${RUNTIME_DIR}/ms-playwright" -maxdepth 2 -type d -name 'chromium-*' | grep -q .; then
+    echo "[build-sidecar-runtime] playwright chromium payload already present; skipping install"
+  else
+    echo "[build-sidecar-runtime] installing playwright browser payload (full mode)"
+    PLAYWRIGHT_BROWSERS_PATH="${RUNTIME_DIR}/ms-playwright" \
+      "${RUNTIME_PYTHON}" -m playwright install chromium
+  fi
+  if ! find "${RUNTIME_DIR}/ms-playwright" -maxdepth 2 -type d -name 'chromium-*' | grep -q .; then
+    echo "[build-sidecar-runtime] ERROR: playwright chromium payload missing after install" >&2
+    exit 1
+  fi
 else
   echo "[build-sidecar-runtime] skipping playwright browser payload (slim mode)"
 fi

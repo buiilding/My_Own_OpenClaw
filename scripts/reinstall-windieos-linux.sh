@@ -59,8 +59,8 @@ rm -rf release dist python-runtime python-runtime.tar.gz
 echo "[reinstall-windieos-linux] installing frontend dependencies"
 conda run -n "${CONDA_ENV}" npm ci
 
-echo "[reinstall-windieos-linux] building linux bundled-python package"
-conda run -n "${CONDA_ENV}" env WINDIE_PYTHON_BUILD="${PYTHON_BUILD}" npm run package:linux:bundled-python
+echo "[reinstall-windieos-linux] building linux full bundled-runtime package"
+conda run -n "${CONDA_ENV}" env WINDIE_PYTHON_BUILD="${PYTHON_BUILD}" npm run package:linux
 
 DEB_PATH="$(ls -t "${FRONTEND_DIR}"/release/windieos_*_amd64.deb | head -n 1)"
 if [[ -z "${DEB_PATH}" || ! -f "${DEB_PATH}" ]]; then

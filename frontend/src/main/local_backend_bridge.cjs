@@ -22,6 +22,7 @@ const {
   withLocalBackendNodeOptions,
 } = require('./local_backend_bridge_utils.cjs');
 const {
+  resolveBundledPlaywrightBrowsersPath,
   resolvePythonExecutablePath,
   resolveSidecarLaunchTarget,
 } = require('./runtime_paths.cjs');
@@ -37,6 +38,7 @@ let readinessCheckToken = 0;
 
 let cachedPythonPath = null;
 const LARGE_JSON_PARSE_OFFLOAD_THRESHOLD_BYTES = 128 * 1024;
+const isTestEnv = process.env.NODE_ENV === 'test';
 
 function isRecord(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -375,7 +377,9 @@ function checkReadiness(mainWindow, attempt = 1, maxAttempts = 10) {
         markBackendReady(mainWindow);
       } else {
         if (!scheduleReadinessRetry(mainWindow, attempt, maxAttempts, checkToken)) {
-          console.warn('[LocalBackend] Backend readiness check failed after max attempts, marking as ready');
+          if (!isTestEnv) {
+            console.warn('[LocalBackend] Backend readiness check failed after max attempts, marking as ready');
+          }
           markBackendReady(mainWindow);
         }
       }
@@ -389,7 +393,9 @@ function checkReadiness(mainWindow, attempt = 1, maxAttempts = 10) {
     if (readinessCheckCallback) {
       readinessCheckCallback = null;
       if (!scheduleReadinessRetry(mainWindow, attempt, maxAttempts, checkToken)) {
-        console.warn('[LocalBackend] Backend readiness check timed out after max attempts');
+        if (!isTestEnv) {
+          console.warn('[LocalBackend] Backend readiness check timed out after max attempts');
+        }
         markBackendReady(mainWindow);
       }
     }
@@ -405,6 +411,35 @@ function startLocalBackend(mainWindow, options = {}) {
   const launchTarget = resolveSidecarLaunchTarget('local_backend.py');
   const scriptPath = launchTarget.resolvedPath;
   const pythonPath = launchTarget.kind === 'python' ? getPythonPath() : launchTarget.command;
+  const packagedApp = options.isPackaged === true;
+  const bundledPlaywrightBrowsersPath = packagedApp
+    ? resolveBundledPlaywrightBrowsersPath()
+    : null;
+  if (packagedApp && !bundledPlaywrightBrowsersPath && process.env.NODE_ENV !== 'production') {
+    console.warn(
+      '[LocalBackend] Bundled Playwright browser payload not found; browser automation may be unavailable.',
+    );
+  }
+
+  if (launchTarget.kind === 'python' && !launchTarget.command) {
+    const errorMessage = options.isPackaged === true
+      ? (
+        'Bundled Python runtime not found in app resources. ' +
+        'Please reinstall WindieOS.'
+      )
+      : (
+        'Python executable not found. ' +
+        'Please install Python 3 or set WINDIE_PYTHON_PATH.'
+      );
+    if (process.env.NODE_ENV !== 'production') {
+      console.error(`[LocalBackend] ${errorMessage}`);
+    }
+    mainWindow?.webContents.send('local-backend-status', {
+      ready: false,
+      error: errorMessage,
+    });
+    return;
+  }
 
   if (launchTarget.kind === 'python' && !fs.existsSync(scriptPath)) {
     if (process.env.NODE_ENV !== 'production') {
@@ -435,6 +470,11 @@ function startLocalBackend(mainWindow, options = {}) {
       ...process.env,
       PYTHONUNBUFFERED: '1',
       WINDIE_BACKEND_HTTP_URL: backendEndpoints.httpUrl,
+      WINDIE_PACKAGED_APP: packagedApp ? '1' : '0',
+      WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL: packagedApp ? '0' : '1',
+      ...(bundledPlaywrightBrowsersPath
+        ? { PLAYWRIGHT_BROWSERS_PATH: bundledPlaywrightBrowsersPath }
+        : {}),
     }),
   });
   const processRef = pythonProcess;

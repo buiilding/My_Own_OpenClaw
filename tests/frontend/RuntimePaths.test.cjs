@@ -20,6 +20,7 @@ function withIsolatedRuntimePaths(testFn) {
 describe('runtime_paths sidecar launch target resolution', () => {
   const originalResourcesPath = process.resourcesPath;
   const originalCondaPrefix = process.env.CONDA_PREFIX;
+  const originalPlatform = process.platform;
 
   beforeEach(() => {
     process.resourcesPath = '/opt/WindieOS/resources';
@@ -30,6 +31,10 @@ describe('runtime_paths sidecar launch target resolution', () => {
 
   afterAll(() => {
     process.resourcesPath = originalResourcesPath;
+    Object.defineProperty(process, 'platform', {
+      value: originalPlatform,
+      configurable: true,
+    });
     if (typeof originalCondaPrefix === 'string') {
       process.env.CONDA_PREFIX = originalCondaPrefix;
     } else {
@@ -88,6 +93,69 @@ describe('runtime_paths sidecar launch target resolution', () => {
       expect(target.kind).toBe('python');
       expect(target.resolvedPath).toBe('/opt/WindieOS/resources/python-runtime/sidecar/local_backend.pyc');
       expect(target.args).toEqual(['/opt/WindieOS/resources/python-runtime/sidecar/local_backend.pyc']);
+    });
+  });
+
+  test('packaged Windows resolves bundled venv interpreter under Scripts/python.exe', () => {
+    Object.defineProperty(process, 'platform', {
+      value: 'win32',
+      configurable: true,
+    });
+
+    try {
+      withIsolatedRuntimePaths(({ fs, app, runtimePaths }) => {
+        app.isPackaged = true;
+        const sidecarPyc = '/opt/WindieOS/resources/python-runtime/sidecar/local_backend.pyc';
+        const runtimePython = '/opt/WindieOS/resources/python-runtime/Scripts/python.exe';
+        fs.existsSync.mockImplementation((candidate) => (
+          candidate === sidecarPyc
+          || candidate === runtimePython
+        ));
+
+        const target = runtimePaths.resolveSidecarLaunchTarget('local_backend.py');
+
+        expect(target.kind).toBe('python');
+        expect(target.command).toBe(runtimePython);
+        expect(target.args).toEqual([sidecarPyc]);
+        expect(target.resolvedPath).toBe(sidecarPyc);
+      });
+    } finally {
+      Object.defineProperty(process, 'platform', {
+        value: originalPlatform,
+        configurable: true,
+      });
+    }
+  });
+
+  test('packaged mode never falls back to external conda/python executables', () => {
+    withIsolatedRuntimePaths(({ fs, app, runtimePaths }) => {
+      app.isPackaged = true;
+      process.env.CONDA_PREFIX = '/opt/conda/envs/windie';
+      const sidecarPyc = '/opt/WindieOS/resources/python-runtime/sidecar/local_backend.pyc';
+      const condaPython = process.platform === 'win32'
+        ? '/opt/conda/envs/windie/python.exe'
+        : '/opt/conda/envs/windie/bin/python3';
+      fs.existsSync.mockImplementation((candidate) => (
+        candidate === sidecarPyc
+        || candidate === condaPython
+      ));
+
+      const target = runtimePaths.resolveSidecarLaunchTarget('local_backend.py');
+
+      expect(target.kind).toBe('python');
+      expect(target.command).toBe(null);
+      expect(target.args).toEqual([sidecarPyc]);
+      expect(target.resolvedPath).toBe(sidecarPyc);
+    });
+  });
+
+  test('resolves bundled playwright browser payload directory in packaged mode', () => {
+    withIsolatedRuntimePaths(({ fs, app, runtimePaths }) => {
+      app.isPackaged = true;
+      const bundledPlaywrightPath = '/opt/WindieOS/resources/python-runtime/ms-playwright';
+      fs.existsSync.mockImplementation((candidate) => candidate === bundledPlaywrightPath);
+
+      expect(runtimePaths.resolveBundledPlaywrightBrowsersPath()).toBe(bundledPlaywrightPath);
     });
   });
 

@@ -63,8 +63,11 @@ Bundled sidecar-runtime packaging profile:
 - `npm run package:win:bundled-python`
 - `npm run package:mac:bundled-python`
 - `npm run package:linux:bundled-python`
-- These default to the slim sidecar runtime profile.
-- Full profile (with Playwright Chromium payload): `npm run package:*:bundled-python:full`
+- These default to the full bundled runtime profile (includes Playwright Chromium payload).
+- Slim variants remain available as explicit opt-in:
+  - `npm run package:win:bundled-python:slim`
+  - `npm run package:mac:bundled-python:slim`
+  - `npm run package:linux:bundled-python:slim`
 - runtime build guide: `docs/operations/sidecar_runtime_packaging.md`
 
 ### Signing & update channels

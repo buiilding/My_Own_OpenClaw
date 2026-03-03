@@ -19,6 +19,17 @@ WindieOS frontend is a multi-runtime desktop stack:
 3. Preload boundary: allowlisted IPC bridge (`window.ipc`) between renderer and main.
 4. Sidecar (Python): local tool execution, local transcript/memory store, system-state capture, browser/file/system tool adapters.
 
+## Packaged Install Contract
+
+- End users install one OS-specific WindieOS package (Windows/macOS/Linux).
+- Packaged app ships bundled Python sidecar runtime; no system Python prerequisite.
+- Frontend main process starts sidecar/wakeword from bundled runtime paths and reports clear reinstall errors when runtime assets are missing.
+- Bundled runtime is expected to include:
+  - wakeword model assets
+  - browser Python dependencies
+  - Playwright Chromium payload (full profile)
+- Runtime bootstrap should not reinstall already-present bundled assets.
+
 ## Current Source Layout
 
 ```text

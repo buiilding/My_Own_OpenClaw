@@ -31,6 +31,7 @@ function createRuntimeDeps(overrides = {}) {
       on: jest.fn(),
     },
     registerRendererWindow: jest.fn(),
+    platform: 'linux',
     wakewordHotkey: 'Super+Alt+W',
     createWindow: jest.fn(),
     createChatWindow: jest.fn(),
@@ -101,9 +102,57 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
     expect(deps.createTray).toHaveBeenCalledTimes(1);
     expect(deps.showMainWindow).toHaveBeenCalledWith({ focus: true });
     expect(deps.syncWakewordToggleForChatVisibility).toHaveBeenCalledTimes(1);
+    expect(deps.globalShortcut.register).toHaveBeenCalledWith(
+      'Super+Alt+W',
+      expect.any(Function),
+    );
     expect(deps.screen.on).toHaveBeenCalledWith(
       'display-metrics-changed',
       expect.any(Function),
+    );
+  });
+
+  test('registers fallback hotkey on Windows when primary is unavailable', async () => {
+    const register = jest
+      .fn()
+      .mockReturnValueOnce(false)
+      .mockReturnValueOnce(true);
+    const { deps } = createRuntimeDeps({
+      platform: 'win32',
+      wakewordHotkey: 'Super+Alt+W',
+      globalShortcut: {
+        register,
+        unregisterAll: jest.fn(),
+      },
+    });
+
+    initializeMainProcessLifecycleRuntime(deps);
+    await flushPromises();
+
+    expect(register).toHaveBeenNthCalledWith(1, 'Super+Alt+W', expect.any(Function));
+    expect(register).toHaveBeenNthCalledWith(2, 'CommandOrControl+Alt+W', expect.any(Function));
+    expect(deps.warn).toHaveBeenCalledWith(
+      '[Main] Registered fallback global shortcut: CommandOrControl+Alt+W (primary Super+Alt+W unavailable)',
+    );
+  });
+
+  test('warns when no wakeword global shortcut can be registered', async () => {
+    const register = jest.fn(() => false);
+    const { deps } = createRuntimeDeps({
+      platform: 'win32',
+      wakewordHotkey: 'Super+Alt+W',
+      globalShortcut: {
+        register,
+        unregisterAll: jest.fn(),
+      },
+    });
+
+    initializeMainProcessLifecycleRuntime(deps);
+    await flushPromises();
+
+    expect(register).toHaveBeenCalledTimes(4);
+    expect(deps.warn).toHaveBeenCalledWith(
+      '[Main] Failed to register global shortcut. Tried: Super+Alt+W, CommandOrControl+Alt+W, CommandOrControl+Shift+W, CommandOrControl+Alt+J',
     );
   });
 
