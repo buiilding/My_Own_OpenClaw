@@ -1,19 +1,12 @@
+import {
+  readJsonObjectFromLocalStorage,
+  writeJsonObjectToLocalStorage,
+} from '../../../infrastructure/storage/jsonLocalStorage';
+
 const FRONTEND_ONBOARDING_STORAGE_KEY = 'windieos-frontend-onboarding';
 
 function readFrontendOnboardingState() {
-  try {
-    const raw = window.localStorage.getItem(FRONTEND_ONBOARDING_STORAGE_KEY);
-    if (!raw) {
-      return null;
-    }
-    const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== 'object') {
-      return null;
-    }
-    return parsed;
-  } catch {
-    return null;
-  }
+  return readJsonObjectFromLocalStorage(FRONTEND_ONBOARDING_STORAGE_KEY);
 }
 
 export function loadFrontendOnboardingState() {
@@ -32,13 +25,5 @@ export function loadFrontendOnboardingState() {
 }
 
 export function saveFrontendOnboardingState(state) {
-  try {
-    window.localStorage.setItem(
-      FRONTEND_ONBOARDING_STORAGE_KEY,
-      JSON.stringify(state),
-    );
-  } catch {
-    // best-effort persistence; onboarding still works in-memory
-  }
+  writeJsonObjectToLocalStorage(FRONTEND_ONBOARDING_STORAGE_KEY, state);
 }
-

@@ -14,8 +14,6 @@ const {
   createTray,
   enableContentProtectionSafely,
   prepareOverlayQueryCaptureFocus,
-  resolveAppIconNativeImage,
-  resolveAppIconPathRuntime,
 } = require('../../frontend/src/main/main_window_runtime.cjs');
 
 describe('main_window_runtime enableContentProtectionSafely', () => {
@@ -316,6 +314,17 @@ describe('main_window_runtime createChatWindow', () => {
 
     expect(chatWindow.setAlwaysOnTop).toHaveBeenCalledWith(true, 'screen-saver');
   });
+
+  test('pins chat overlay across workspaces and fullscreen spaces on mac', () => {
+    const { deps, chatWindow } = createDeps({ platform: 'darwin' });
+
+    createChatWindow(deps);
+
+    expect(chatWindow.setVisibleOnAllWorkspaces).toHaveBeenCalledWith(true, {
+      visibleOnFullScreen: true,
+      skipTransformProcessType: true,
+    });
+  });
 });
 
 describe('main_window_runtime createResponseWindow', () => {
@@ -387,6 +396,17 @@ describe('main_window_runtime createResponseWindow', () => {
     createResponseWindow(deps);
 
     expect(responseWindow.setAlwaysOnTop).toHaveBeenCalledWith(true, 'screen-saver');
+  });
+
+  test('pins response overlay across workspaces and fullscreen spaces on mac', () => {
+    const { deps, responseWindow } = createDeps({ platform: 'darwin' });
+
+    createResponseWindow(deps);
+
+    expect(responseWindow.setVisibleOnAllWorkspaces).toHaveBeenCalledWith(true, {
+      visibleOnFullScreen: true,
+      skipTransformProcessType: true,
+    });
   });
 });
 
@@ -527,33 +547,5 @@ describe('main_window_runtime createTray', () => {
 
     expect(nativeImage.createFromDataURL).toHaveBeenCalledTimes(1);
     expect(deps.warn).toHaveBeenCalled();
-  });
-});
-
-describe('main_window_runtime resolveAppIconPathRuntime', () => {
-  test('returns first existing icon candidate path', () => {
-    const result = resolveAppIconPathRuntime({
-      resourcesPath: '/opt/windie',
-      cwd: '/workspace/windie',
-      existsSync: (candidate) => candidate === '/opt/windie/src/main/assets/icons/windieos.app.png',
-    });
-
-    expect(result).toBe('/opt/windie/src/main/assets/icons/windieos.app.png');
-  });
-});
-
-describe('main_window_runtime resolveAppIconNativeImage', () => {
-  test('returns null and warns when resolved icon path is unreadable', () => {
-    const { nativeImage } = require('electron');
-    nativeImage.createFromPath.mockReturnValueOnce({ isEmpty: () => true });
-    const warn = jest.fn();
-
-    const result = resolveAppIconNativeImage({
-      resolveAppIconPath: () => '/tmp/missing.png',
-      warn,
-    });
-
-    expect(result).toBeNull();
-    expect(warn).toHaveBeenCalled();
   });
 });

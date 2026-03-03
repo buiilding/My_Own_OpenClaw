@@ -1,8 +1,6 @@
 function getOverlayAlwaysOnTopLevels(platform = process.platform) {
-  if (platform === 'darwin') {
-    return ['screen-saver', 'floating'];
-  }
-  return ['floating'];
+  void platform;
+  return ['screen-saver', 'floating'];
 }
 
 function setOverlayAlwaysOnTop({
@@ -34,7 +32,41 @@ function setOverlayAlwaysOnTop({
   }
 }
 
+function setOverlayVisibleOnAllWorkspaces({
+  targetWindow,
+  platform = process.platform,
+  warn = console.warn,
+  windowLabel = 'overlay window',
+} = {}) {
+  if (!targetWindow || typeof targetWindow.setVisibleOnAllWorkspaces !== 'function') {
+    return false;
+  }
+
+  const sharedOptions = { visibleOnFullScreen: true };
+  const preferredOptions = platform === 'darwin'
+    ? { ...sharedOptions, skipTransformProcessType: true }
+    : sharedOptions;
+
+  try {
+    targetWindow.setVisibleOnAllWorkspaces(true, preferredOptions);
+    return true;
+  } catch (_error) {
+    if (platform !== 'darwin') {
+      warn(`[Main] Failed to pin ${windowLabel} across workspaces/fullscreen:`, _error?.message || _error);
+      return false;
+    }
+  }
+
+  try {
+    targetWindow.setVisibleOnAllWorkspaces(true, sharedOptions);
+    return true;
+  } catch (error) {
+    warn(`[Main] Failed to pin ${windowLabel} across workspaces/fullscreen:`, error?.message || error);
+    return false;
+  }
+}
+
 module.exports = {
-  getOverlayAlwaysOnTopLevels,
   setOverlayAlwaysOnTop,
+  setOverlayVisibleOnAllWorkspaces,
 };

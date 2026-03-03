@@ -180,7 +180,5 @@ function resolveSidecarLaunchTarget(scriptName) {
 module.exports = {
   resolveBundledPlaywrightBrowsersPath,
   resolvePythonExecutablePath,
-  resolvePythonScriptPath,
-  resolveSidecarBinaryPath,
   resolveSidecarLaunchTarget,
 };

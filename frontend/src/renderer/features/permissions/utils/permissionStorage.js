@@ -1,19 +1,12 @@
+import {
+  readJsonObjectFromLocalStorage,
+  writeJsonObjectToLocalStorage,
+} from '../../../infrastructure/storage/jsonLocalStorage';
+
 const PERMISSION_ONBOARDING_STORAGE_KEY = 'windieos-permission-onboarding';
 
 function readFromStorage() {
-  try {
-    const raw = window.localStorage.getItem(PERMISSION_ONBOARDING_STORAGE_KEY);
-    if (!raw) {
-      return null;
-    }
-    const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== 'object') {
-      return null;
-    }
-    return parsed;
-  } catch {
-    return null;
-  }
+  return readJsonObjectFromLocalStorage(PERMISSION_ONBOARDING_STORAGE_KEY);
 }
 
 export function loadPermissionOnboardingState() {
@@ -36,12 +29,5 @@ export function loadPermissionOnboardingState() {
 }
 
 export function savePermissionOnboardingState(state) {
-  try {
-    window.localStorage.setItem(
-      PERMISSION_ONBOARDING_STORAGE_KEY,
-      JSON.stringify(state),
-    );
-  } catch {
-    // best-effort persistence; onboarding still works in-memory
-  }
+  writeJsonObjectToLocalStorage(PERMISSION_ONBOARDING_STORAGE_KEY, state);
 }
