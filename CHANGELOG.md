@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- chore(release-version-0.6.7): bump frontend app/package version from `0.6.1` to `0.6.7` so desktop artifacts and release outputs publish under `v0.6.7`.
 - fix(packaging-macos-bundled-runtime-symlink-safety): build sidecar venv with `python -m venv --copies` to avoid absolute symlink targets inside packaged app resources that fail `codesign --verify --deep --strict` on macOS unsigned packaging runs; add CI contract check to keep `--copies` enforced.
 - fix(scripts-linux-reinstall-purge-detection): make `scripts/reinstall-windieos-linux.sh` detect installed package names via `dpkg-query` and only purge existing installs, avoiding noisy apt “Unable to locate package” errors when no prior package is installed.
 - chore(scripts-linux-reinstall-helper): add executable `scripts/reinstall-windieos-linux.sh` to fully purge previous Linux package install, rebuild bundled-python artifacts with pinned Conda/Python build interpreter, reinstall latest `.deb`, and verify bundled runtime `_tkinter`.
