@@ -111,4 +111,26 @@ describe('chatStreamMessageUpdates', () => {
     expect(buildAssistantMessageFullUpdate({ content: 'a' })).toEqual({ content: 'a' });
     expect(buildAssistantMessageFullUpdate({ content: false as any })).toEqual({ content: '' });
   });
+
+  test('normalizes mojibake and lone surrogates in streaming and payload updates', () => {
+    expect(resolveStreamingResponseAction([], 'bad\udc9d')).toEqual({
+      type: 'new',
+      text: 'bad�',
+      turnRef: undefined,
+    });
+
+    expect(buildSystemPromptUpdate({
+      content: 'Active: â€œWindieOS â€” READMEâ€\u009d',
+      tool_schemas: [],
+    })).toEqual({
+      content: 'Active: “WindieOS — README”',
+      toolSchemas: [],
+    });
+
+    expect(buildAssistantMessageFullUpdate({
+      content: 'Done\udc9d',
+    })).toEqual({
+      content: 'Done�',
+    });
+  });
 });
