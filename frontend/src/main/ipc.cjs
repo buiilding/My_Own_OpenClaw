@@ -39,6 +39,9 @@ const {
 const {
   createResponseOverlayPhaseState,
 } = require('./ipc_overlay_phase_state.cjs');
+const {
+  createIpcEventReplayState,
+} = require('./ipc_event_replay_state.cjs');
 
 let BACKEND_ENDPOINTS = resolveBackendEndpoints();
 let BACKEND_URL = BACKEND_ENDPOINTS.wsUrl;
@@ -61,6 +64,7 @@ const backendMessageObservers = new Set();
 let applyResponseOverlayPhase = null;
 let onBeforeOverlayQueryCapture = null;
 const responseOverlayPhaseState = createResponseOverlayPhaseState();
+const ipcEventReplayState = createIpcEventReplayState();
 
 function refreshBackendEndpoints(options = {}) {
   BACKEND_ENDPOINTS = resolveBackendEndpoints(process.env, options);
@@ -238,6 +242,7 @@ function trackRendererWindow(win) {
     win,
     rendererWindows,
     getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
+    getReplayEvents: () => ipcEventReplayState.snapshot(),
   });
 }
 
@@ -275,6 +280,7 @@ function connect() {
     isFirstQuery = true; // Reset on new connection (new session)
     resetSettingsSyncState();
     setResponseOverlayPhase('idle', 'ws-open');
+    ipcEventReplayState.clear();
     log('Successfully connected to Python backend.');
 
     // Generate valid user_id (backend rejects 'default_user', empty, or whitespace-only)
@@ -302,6 +308,7 @@ function connect() {
   ws.on('message', (message) => {
     try {
       const data = JSON.parse(message);
+      ipcEventReplayState.appendForActiveTurn(data);
       notifyBackendMessageObservers(data);
       processBackendMessageData(data, {
         setCurrentSessionId: (value) => {
@@ -334,6 +341,7 @@ function connect() {
     resetSettingsSyncState();
     resetBackendSessionState();
     setResponseOverlayPhase('idle', 'ws-close');
+    ipcEventReplayState.clear();
     log('Disconnected from Python backend. Attempting to reconnect...');
     broadcastConnectionStatus(false);
     setTimeout(connect, reconnectInterval);
@@ -507,7 +515,7 @@ function initializeIpc(win, options = {}) {
       if (!payload.conversation_ref && conversationRef) {
         payload.conversation_ref = conversationRef;
       }
-      broadcastLocalUserMessageRuntime({
+      const localUserMessage = broadcastLocalUserMessageRuntime({
         sourceWebContents: event.sender,
         payload,
         queryMessageId,
@@ -520,6 +528,7 @@ function initializeIpc(win, options = {}) {
           broadcastToRenderers(channel, messagePayload, sourceWebContents);
         },
       });
+      ipcEventReplayState.startTurn(queryMessageId, localUserMessage);
       const contextType = isFirstQuery ? 'initial' : 'sequential';
       queryUsedInitialContext = contextType === 'initial';
       const userId = currentUserId || generateUserId({
@@ -555,6 +564,7 @@ function initializeIpc(win, options = {}) {
     
     const messageId = sendMessageToBackend(type, payload, queryMessageId);
     if (!messageId && type === 'query') {
+      ipcEventReplayState.clear();
       broadcastQuerySendFailureRuntime({
         queryMessageId,
         conversationRef: resolveConversationRefFromPayload(payload, currentConversationRef),

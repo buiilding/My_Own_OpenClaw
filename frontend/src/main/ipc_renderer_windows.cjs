@@ -2,6 +2,7 @@ function trackRendererWindow({
   win,
   rendererWindows,
   getResponseOverlayPhase,
+  getReplayEvents = null,
 }) {
   if (!win || (win.isDestroyed && win.isDestroyed())) {
     return;
@@ -16,7 +17,7 @@ function trackRendererWindow({
   const canCheckLoadingState = Boolean(
     webContents && typeof webContents.isLoadingMainFrame === 'function',
   );
-  const syncResponseOverlayPhase = () => {
+  const syncRendererRuntimeState = () => {
     if (!win || win.isDestroyed()) {
       return;
     }
@@ -27,19 +28,29 @@ function trackRendererWindow({
       phase: getResponseOverlayPhase(),
       source: 'sync',
     });
+    if (typeof getReplayEvents !== 'function') {
+      return;
+    }
+    const replayEvents = getReplayEvents();
+    if (!Array.isArray(replayEvents) || replayEvents.length === 0) {
+      return;
+    }
+    for (const replayEvent of replayEvents) {
+      webContents.send('from-backend', replayEvent);
+    }
   };
   if (canSubscribeToLoad) {
-    webContents.on('did-finish-load', syncResponseOverlayPhase);
+    webContents.on('did-finish-load', syncRendererRuntimeState);
   }
   if (!canCheckLoadingState || !webContents.isLoadingMainFrame()) {
-    syncResponseOverlayPhase();
+    syncRendererRuntimeState();
   }
   if (typeof win.on !== 'function') {
     return;
   }
   win.on('closed', () => {
     if (canSubscribeToLoad) {
-      webContents.removeListener('did-finish-load', syncResponseOverlayPhase);
+      webContents.removeListener('did-finish-load', syncRendererRuntimeState);
     }
     rendererWindows.delete(win);
   });

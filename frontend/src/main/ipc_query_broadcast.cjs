@@ -19,7 +19,7 @@ function broadcastLocalUserMessage({
   });
 
   if (!localUserMessage) {
-    return;
+    return null;
   }
 
   broadcastToRenderers({
@@ -27,6 +27,7 @@ function broadcastLocalUserMessage({
     payload: localUserMessage,
     sourceWebContents,
   });
+  return localUserMessage;
 }
 
 function broadcastQuerySendFailure({
