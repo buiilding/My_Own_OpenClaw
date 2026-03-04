@@ -21,12 +21,13 @@ const sessionState = createTranscriptSessionState(readSessionInfoFromStorage);
 const pendingAssistantQueue = createPendingAssistantQueue();
 const pendingUserQueue = createPendingUserQueue();
 const pendingToolQueue = createPendingToolQueue();
+const SURROGATE_PATTERN = /[\uD800-\uDFFF]/g;
 
 const normalizeOptionalString = (value: unknown): string | null => {
   if (typeof value !== 'string') {
     return null;
   }
-  const normalized = value.trim();
+  const normalized = value.replace(SURROGATE_PATTERN, '\uFFFD').trim();
   return normalized.length > 0 ? normalized : null;
 };
 
