@@ -185,7 +185,7 @@ class ToolSelection:
 
     @staticmethod
     def _get_mouse_args_properties(schema: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Navigate to mouse_control args.properties from canonical tool schema."""
+        """Navigate to mouse_control args.properties from canonical direct schema."""
         function_schema = schema.get("function")
         if not isinstance(function_schema, dict):
             return None
@@ -193,25 +193,9 @@ class ToolSelection:
         if not isinstance(parameters, dict):
             return None
 
-        try:
-            # Legacy wrapped computer-use schema
-            args_schema = (
-                parameters["properties"]["action"]["properties"]["functionCall"]["properties"]["args"]
-            )
-            properties = args_schema.get("properties")
-            if isinstance(properties, dict):
-                return properties
-        except (KeyError, TypeError):
-            pass
-
-        try:
-            # Native function-calling schema (direct args in parameters)
-            properties = parameters.get("properties")
-            if isinstance(properties, dict):
-                return properties
-        except (KeyError, TypeError):
-            pass
-
+        properties = parameters.get("properties")
+        if isinstance(properties, dict):
+            return properties
         return None
 
     def _is_allowlisted(self, normalized_tool_name: str) -> bool:
