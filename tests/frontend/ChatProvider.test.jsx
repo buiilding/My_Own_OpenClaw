@@ -92,7 +92,7 @@ describe('ChatProvider', () => {
     });
   });
 
-  test('clears active conversation when transcript session conversation ref is null', async () => {
+  test('does not clear active conversation when transcript session conversation ref is null', async () => {
     useChatStore.getState().setActiveConversationRef('conv-previous');
     mockUseTranscriptSessionInfo.mockReturnValue({
       conversationRef: null,
@@ -106,7 +106,7 @@ describe('ChatProvider', () => {
     );
 
     await waitFor(() => {
-      expect(useChatStore.getState().activeConversationRef).toBeNull();
+      expect(useChatStore.getState().activeConversationRef).toBe('conv-previous');
     });
   });
 
