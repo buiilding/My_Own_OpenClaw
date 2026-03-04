@@ -187,6 +187,30 @@ describe('TranscriptWriter user + assistant writes', () => {
     }));
   });
 
+  test('recordAssistantMessage sanitizes lone surrogates in transparency systemPrompt', async () => {
+    const { writer, invokeMock } = loadTranscriptWriter();
+    writer.updateTranscriptSession('conv-transparency-surrogate', 'user-transparency-surrogate');
+
+    writer.recordAssistantMessage('assistant with bad transparency', {
+      messageType: 'llm-text',
+      transparency: {
+        systemPrompt: 'Prompt with bad surrogate \uDC9D here',
+      },
+    });
+    await Promise.resolve();
+
+    expectStoreTranscriptCall(invokeMock, createStoreTranscriptPayload({
+      content: 'assistant with bad transparency',
+      userId: 'user-transparency-surrogate',
+      conversationRef: 'conv-transparency-surrogate',
+      role: 'assistant',
+      messageType: 'llm-text',
+      transparency: {
+        systemPrompt: 'Prompt with bad surrogate � here',
+      },
+    }));
+  });
+
   test('recordAssistantMessage emits transcript-entry-stored event after successful write', async () => {
     const { writer } = loadTranscriptWriter();
     writer.updateTranscriptSession('conv-event', 'user-event');
