@@ -1,4 +1,5 @@
 import signal
+import logging
 
 import pytest
 from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
@@ -939,9 +940,10 @@ async def test_handle_store_transcript_requires_content():
 
 
 @pytest.mark.asyncio
-async def test_handle_store_transcript_sanitizes_lone_surrogates_in_content():
+async def test_handle_store_transcript_sanitizes_lone_surrogates_in_content(caplog):
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStore()
+    caplog.set_level(logging.WARNING, logger="local_backend_memory_handlers")
 
     result = await backend._handle_store_transcript(
         content="bad\udc9dtitle",
@@ -954,6 +956,25 @@ async def test_handle_store_transcript_sanitizes_lone_surrogates_in_content():
     assert result["success"] is True
     content, _, _, _, _ = backend.memory_store.added[-1]
     assert content == "bad�title"
+    assert "store_transcript.content" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_handle_store_memory_logs_surrogate_field_paths(caplog):
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+    caplog.set_level(logging.WARNING, logger="local_backend_memory_handlers")
+
+    result = await backend._handle_store_memory(
+        user_query="bad\udc9dquery",
+        assistant_response="ok",
+        memory_type="episodic",
+        user_id="user-1",
+        session_id="conv-1",
+    )
+
+    assert result["success"] is True
+    assert "store_memory.user_query" in caplog.text
 
 
 def test_signal_handler_requests_shutdown(monkeypatch):
