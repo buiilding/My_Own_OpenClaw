@@ -8,6 +8,8 @@ import json
 import sys
 from typing import Any
 
+from core.unicode_sanitizer import sanitize_surrogates
+
 
 def write_json_line(payload: Any) -> None:
     """
@@ -16,7 +18,8 @@ def write_json_line(payload: Any) -> None:
     This keeps sidecar protocol writes consistent across JSON-RPC and
     lightweight line-based services.
     """
-    response_json = json.dumps(payload, ensure_ascii=False)
+    sanitized_payload = sanitize_surrogates(payload)
+    response_json = json.dumps(sanitized_payload, ensure_ascii=False)
     response_bytes = (response_json + "\n").encode("utf-8")
     sys.stdout.buffer.write(response_bytes)
     sys.stdout.buffer.flush()

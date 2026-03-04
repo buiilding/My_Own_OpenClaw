@@ -121,3 +121,24 @@ async def test_initialize_creates_single_session_and_close_resets(monkeypatch):
         remote_title_client_module.aiohttp,
         RemoteTitleClient(),
     )
+
+
+@pytest.mark.asyncio
+async def test_generate_title_sanitizes_lone_surrogates_in_payload():
+    response = DummyResponse(
+        200,
+        json_data={"success": True, "title": "ok"},
+    )
+    session = DummySession(response=response)
+    client = RemoteTitleClient()
+    client._session = session
+
+    await client.generate_title(
+        user_id="u-6",
+        user_message="hello\udc9duser",
+        assistant_message="hello\udc9dassistant",
+    )
+
+    _url, payload, _timeout = session.last_post
+    assert payload["user_message"] == "hello�user"
+    assert payload["assistant_message"] == "hello�assistant"

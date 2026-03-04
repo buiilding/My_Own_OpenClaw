@@ -10,6 +10,7 @@ from typing import Optional
 import numpy as np
 
 from core.backend_config import get_backend_http_url
+from core.unicode_sanitizer import sanitize_surrogates_in_text
 
 logger = logging.getLogger(__name__)
 
@@ -59,8 +60,9 @@ class RemoteEmbeddingClient:
             await self.initialize()
 
         try:
+            sanitized_text = sanitize_surrogates_in_text(text)
             payload = {
-                "text": text,
+                "text": sanitized_text,
                 "model_name": "default"
             }
 

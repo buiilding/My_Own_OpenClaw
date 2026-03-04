@@ -8,6 +8,7 @@ from typing import Any, Optional
 import aiohttp
 
 from core.backend_config import get_backend_http_url
+from core.unicode_sanitizer import sanitize_surrogates
 
 logger = logging.getLogger(__name__)
 
@@ -44,9 +45,10 @@ class RemoteApiClientBase:
             await self.initialize()
 
         try:
+            sanitized_payload = sanitize_surrogates(payload)
             async with self._session.post(
                 f"{self.backend_url}{path}",
-                json=payload,
+                json=sanitized_payload,
                 timeout=self._aiohttp.ClientTimeout(total=self.timeout_seconds),
             ) as response:
                 if response.status != 200:
