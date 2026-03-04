@@ -211,6 +211,30 @@ describe('TranscriptWriter user + assistant writes', () => {
     }));
   });
 
+  test('recordAssistantMessage repairs common mojibake in transparency systemPrompt', async () => {
+    const { writer, invokeMock } = loadTranscriptWriter();
+    writer.updateTranscriptSession('conv-transparency-mojibake', 'user-transparency-mojibake');
+
+    writer.recordAssistantMessage('assistant mojibake transparency', {
+      messageType: 'llm-text',
+      transparency: {
+        systemPrompt: 'Active window: â€œWindieOS â€” READMEâ€\u009d',
+      },
+    });
+    await Promise.resolve();
+
+    expectStoreTranscriptCall(invokeMock, createStoreTranscriptPayload({
+      content: 'assistant mojibake transparency',
+      userId: 'user-transparency-mojibake',
+      conversationRef: 'conv-transparency-mojibake',
+      role: 'assistant',
+      messageType: 'llm-text',
+      transparency: {
+        systemPrompt: 'Active window: “WindieOS — README”',
+      },
+    }));
+  });
+
   test('recordAssistantMessage emits transcript-entry-stored event after successful write', async () => {
     const { writer } = loadTranscriptWriter();
     writer.updateTranscriptSession('conv-event', 'user-event');

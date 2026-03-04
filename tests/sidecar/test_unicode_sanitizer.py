@@ -5,6 +5,7 @@ ensure_frontend_python_path()
 from core.unicode_sanitizer import (  # noqa: E402
     find_surrogate_paths,
     has_lone_surrogates,
+    repair_common_mojibake,
     sanitize_surrogates,
 )
 
@@ -43,3 +44,7 @@ def test_sanitize_surrogates_recursively_replaces_invalid_codepoints():
         "items": ["ok", "bad�item"],
     }
 
+
+def test_repair_common_mojibake_repairs_quotes_and_dash():
+    repaired = repair_common_mojibake("Active: â€œWindieOS â€” READMEâ€\u009d")
+    assert repaired == "Active: “WindieOS — README”"

@@ -9,6 +9,19 @@ from typing import Any
 
 _SURROGATE_RE = re.compile(r"[\ud800-\udfff]")
 _REPLACEMENT_CHAR = "\uFFFD"
+_MOJIBAKE_MARKERS = ("Ã", "â€", "â€™", "â€œ", "â€”", "â€“", "Â")
+_MOJIBAKE_REPLACEMENTS: tuple[tuple[str, str], ...] = (
+    ("â€œ", "“"),
+    ("â€\x9d", "”"),
+    ("â€˜", "‘"),
+    ("â€™", "’"),
+    ("â€”", "—"),
+    ("â€“", "–"),
+    ("â€¦", "…"),
+    ("â€¢", "•"),
+    ("Â ", " "),
+    ("Â", ""),
+)
 
 
 def sanitize_surrogates_in_text(value: str) -> str:
@@ -16,6 +29,41 @@ def sanitize_surrogates_in_text(value: str) -> str:
     if not value:
         return value
     return _SURROGATE_RE.sub(_REPLACEMENT_CHAR, value)
+
+
+def repair_common_mojibake(value: str) -> str:
+    """
+    Repair common UTF-8-as-CP1252 mojibake (for example: 'â€œ' -> '“').
+    """
+    if not value or not any(marker in value for marker in _MOJIBAKE_MARKERS):
+        return value
+
+    def _attempt_decode(encoding: str) -> str:
+        try:
+            return value.encode(encoding).decode("utf-8")
+        except Exception:
+            return value
+
+    repaired_cp1252 = _attempt_decode("cp1252")
+    repaired_latin1 = _attempt_decode("latin1")
+
+    def _apply_replacements(text: str) -> str:
+        repaired = text
+        for needle, replacement in _MOJIBAKE_REPLACEMENTS:
+            repaired = repaired.replace(needle, replacement)
+        return repaired
+
+    replaced_original = _apply_replacements(value)
+    replaced_cp1252 = _apply_replacements(repaired_cp1252)
+    replaced_latin1 = _apply_replacements(repaired_latin1)
+
+    def _score(text: str) -> int:
+        penalty = sum(text.count(marker) for marker in _MOJIBAKE_MARKERS)
+        return penalty
+
+    candidates = [value, repaired_cp1252, repaired_latin1, replaced_original, replaced_cp1252, replaced_latin1]
+    best = min(candidates, key=_score)
+    return best
 
 
 def has_lone_surrogates(value: str) -> bool:
