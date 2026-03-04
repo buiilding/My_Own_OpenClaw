@@ -33,6 +33,15 @@ _FILE_PATH_ESCAPED_JSON_PATTERN = re.compile(
 _CAT_REDIRECT_PATTERN = re.compile(
     r"cat\s*>\s*([^\s<>'\"`]+)"
 )
+_COMPUTER_USE_TOOL_NAME = "computer_use"
+_COMPUTER_SUBTOOLS = {
+    "mouse_control",
+    "keyboard_control",
+    "screenshot",
+    "scroll_control",
+    "switch_tab",
+    "wait",
+}
 
 
 def _extract_thought_signature(payload: Any) -> str:
@@ -82,6 +91,21 @@ def to_parsed_tool_call(tool_call: Dict[str, Any]) -> ParsedToolCall:
     metadata_payload = parameters.get("metadata")
     if isinstance(metadata_payload, dict):
         metadata.update(metadata_payload)
+        parameters = dict(parameters)
+        parameters.pop("metadata", None)
+
+    if normalized_tool_name == _COMPUTER_USE_TOOL_NAME:
+        mapped_tool = parameters.get("tool")
+        mapped_args = parameters.get("arguments")
+        if isinstance(mapped_tool, str) and mapped_tool.strip() in _COMPUTER_SUBTOOLS:
+            normalized_tool_name = mapped_tool.strip()
+        else:
+            normalized_tool_name = "invalid_computer_use_tool"
+        if isinstance(mapped_args, dict):
+            parameters = dict(mapped_args)
+        else:
+            parameters = {}
+
     return ParsedToolCall(
         tool_name=normalized_tool_name,
         parameters=parameters,

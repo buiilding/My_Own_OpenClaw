@@ -9,6 +9,7 @@ from typing import Dict, Optional, Type
 from backend.src.sdk.tool import Tool
 from backend.src.tools.remote_tools.browser import RemoteBrowserTool
 from backend.src.tools.remote_tools.computer import (
+    RemoteComputerUseTool,
     RemoteGetOpenWindowsTool,
     RemoteKeyboardTool,
     RemoteMouseTool,
@@ -29,6 +30,7 @@ from backend.src.tools.remote_tools.system import (
 )
 
 REMOTE_TOOLS: Dict[str, Type[Tool]] = {
+    "computer_use": RemoteComputerUseTool,
     "mouse_control": RemoteMouseTool,
     "keyboard_control": RemoteKeyboardTool,
     "screenshot": RemoteScreenshotTool,

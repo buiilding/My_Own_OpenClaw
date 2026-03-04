@@ -10,28 +10,31 @@ def test_extract_tool_call_standard_format_trims_tool_name():
     assert extracted == ("read_file", {"path": "/tmp/a"}, None)
 
 
-def test_extract_tool_call_metadata_wrapper_returns_metadata():
+def test_extract_tool_call_direct_metadata_returns_metadata():
     schema = ToolCallSchema()
     payload = {
-        "metadata": {
-            "description": "screen",
-            "explanation": "click",
-            "expectation": "dialog",
-        },
-        "action": {
-            "functionCall": {
-                "name": " mouse_control ",
-                "args": {"action": "click", "x": 1, "y": 2},
-            }
-        },
+        "functionCall": {
+            "name": " mouse_control ",
+            "args": {
+                "action": "click",
+                "x": 1,
+                "y": 2,
+                "metadata": {
+                    "description": "screen",
+                    "explanation": "click",
+                    "expectation": "dialog",
+                },
+            },
+        }
     }
 
+    expected_metadata = dict(payload["functionCall"]["args"]["metadata"])
     extracted = schema.extract_tool_call(payload)
 
     assert extracted == (
         "mouse_control",
         {"action": "click", "x": 1, "y": 2},
-        payload["metadata"],
+        expected_metadata,
     )
 
 
@@ -56,7 +59,7 @@ def test_extract_tool_call_rejects_non_dict_standard_function_call():
     assert schema.extract_tool_call(payload) is None
 
 
-def test_extract_tool_call_rejects_non_dict_wrapper_function_call():
+def test_extract_tool_call_rejects_legacy_metadata_action_wrapper():
     schema = ToolCallSchema()
     payload = {
         "metadata": {"description": "d", "explanation": "e", "expectation": "x"},
@@ -64,3 +67,30 @@ def test_extract_tool_call_rejects_non_dict_wrapper_function_call():
     }
 
     assert schema.extract_tool_call(payload) is None
+
+
+def test_extract_tool_call_unified_computer_use_maps_to_concrete_tool():
+    schema = ToolCallSchema()
+    payload = {
+        "functionCall": {
+            "name": "computer_use",
+            "args": {
+                "tool": "mouse_control",
+                "arguments": {"action": "click", "x": 10, "y": 20},
+                "metadata": {
+                    "description": "screen",
+                    "explanation": "click submit",
+                    "expectation": "dialog opens",
+                },
+            },
+        }
+    }
+
+    expected_metadata = dict(payload["functionCall"]["args"]["metadata"])
+    extracted = schema.extract_tool_call(payload)
+
+    assert extracted == (
+        "mouse_control",
+        {"action": "click", "x": 10, "y": 20},
+        expected_metadata,
+    )

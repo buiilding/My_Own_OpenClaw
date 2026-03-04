@@ -20,6 +20,17 @@ from backend.src.tools.tool_selection import ToolSelection, load_tool_selection
 logger = logging.getLogger(__name__)
 
 _UNSET = object()
+_LEGACY_COMPUTER_TOOL_NAMES = frozenset(
+    {
+        "mouse_control",
+        "keyboard_control",
+        "screenshot",
+        "scroll_control",
+        "switch_tab",
+        "wait",
+    }
+)
+_UNIFIED_COMPUTER_TOOL_NAME = "computer_use"
 
 
 @dataclass(slots=True)
@@ -51,6 +62,7 @@ class ToolPolicy:
         Preserves input ordering.
         """
         filtered = list(tool_names)
+        filtered = self._normalize_unified_computer_use_names(filtered)
         allowlist = self._get_interaction_allowlist()
         if allowlist is not None:
             filtered = [name for name in filtered if name in allowlist]
@@ -158,14 +170,39 @@ class ToolPolicy:
         if allowlist is None:
             return None
         if isinstance(allowlist, set):
-            return allowlist
+            return self._normalize_unified_computer_use_name_set(allowlist)
         if isinstance(allowlist, (list, tuple)):
-            return {
+            normalized = {
                 name
                 for name in allowlist
                 if isinstance(name, str)
             }
+            return self._normalize_unified_computer_use_name_set(normalized)
         return None
+
+    @staticmethod
+    def _normalize_unified_computer_use_names(tool_names: Sequence[str]) -> List[str]:
+        normalized: List[str] = []
+        saw_legacy = False
+        saw_unified = False
+        for name in tool_names:
+            if name in _LEGACY_COMPUTER_TOOL_NAMES:
+                saw_legacy = True
+                continue
+            if name == _UNIFIED_COMPUTER_TOOL_NAME:
+                saw_unified = True
+            normalized.append(name)
+        if saw_legacy and not saw_unified:
+            normalized.append(_UNIFIED_COMPUTER_TOOL_NAME)
+        return normalized
+
+    @staticmethod
+    def _normalize_unified_computer_use_name_set(tool_names: set[str]) -> set[str]:
+        normalized = set(tool_names)
+        if normalized & _LEGACY_COMPUTER_TOOL_NAMES:
+            normalized -= _LEGACY_COMPUTER_TOOL_NAMES
+            normalized.add(_UNIFIED_COMPUTER_TOOL_NAME)
+        return normalized
 
     @staticmethod
     def _extract_tool_name(schema: Dict[str, Any]) -> Optional[str]:

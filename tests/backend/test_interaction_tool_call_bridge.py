@@ -115,6 +115,72 @@ def test_extract_tool_call_ids_ignores_missing_or_invalid_values():
     assert ids == ["ok_1", "ok_2"]
 
 
+def test_to_parsed_response_maps_unified_computer_use_to_concrete_tool():
+    parsed = to_parsed_response(
+        {
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "call_mouse_1",
+                    "name": "computer_use",
+                    "arguments": {
+                        "tool": "mouse_control",
+                        "metadata": {
+                            "description": "screen",
+                            "explanation": "click target",
+                            "expectation": "dialog opens",
+                        },
+                        "arguments": {
+                            "action": "click",
+                            "x": 120,
+                            "y": 240,
+                        },
+                    },
+                }
+            ],
+        }
+    )
+
+    assert parsed.has_tool_calls is True
+    assert len(parsed.tool_calls) == 1
+    call = parsed.tool_calls[0]
+    assert call.tool_name == "mouse_control"
+    assert call.parameters == {"action": "click", "x": 120, "y": 240}
+    assert call.metadata == {
+        "tool_call_id": "call_mouse_1",
+        "description": "screen",
+        "explanation": "click target",
+        "expectation": "dialog opens",
+    }
+
+
+def test_to_parsed_response_marks_invalid_computer_use_tool_name():
+    parsed = to_parsed_response(
+        {
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "call_bad_1",
+                    "name": "computer_use",
+                    "arguments": {
+                        "tool": "unknown_computer_action",
+                        "metadata": {
+                            "description": "screen",
+                            "explanation": "try",
+                            "expectation": "none",
+                        },
+                        "arguments": {"action": "click"},
+                    },
+                }
+            ],
+        }
+    )
+
+    assert parsed.has_tool_calls is True
+    assert parsed.tool_calls[0].tool_name == "invalid_computer_use_tool"
+    assert parsed.tool_calls[0].parameters == {"action": "click"}
+
+
 def test_recoverable_error_detection_and_message_formatting():
     error_msg = (
         "Invalid response from stream: failed to parse streamed tool-call arguments "

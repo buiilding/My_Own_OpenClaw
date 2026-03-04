@@ -2047,3 +2047,4 @@ Includes the last 300 commits on `main`.
 - c5e7371 build(sidecar): add pytest dependencies to python requirements
 - 97fab14 chore: sync browser tools, logging, transcripts
 - 02dac42 chore: commit pending changes
+- unreleased fix(tool-calling): unify computer-use calls under computer_use with direct metadata args and legacy-wrapper rejection

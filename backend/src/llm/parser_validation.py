@@ -7,6 +7,17 @@ from backend.src.core.infrastructure.exceptions import ParseValidationError
 from backend.src.tools.tool_policy import ToolPolicy
 
 logger = logging.getLogger(__name__)
+_UNIFIED_COMPUTER_TOOL_NAME = "computer_use"
+_UNIFIED_COMPUTER_SUBTOOLS = frozenset(
+    {
+        "mouse_control",
+        "keyboard_control",
+        "screenshot",
+        "scroll_control",
+        "switch_tab",
+        "wait",
+    }
+)
 
 
 class ToolCallValidator:
@@ -154,10 +165,15 @@ class ToolCallValidator:
             name for name in raw_tool_names if isinstance(name, str)
         ]
         deduped_tool_names = sorted(set(valid_tool_names))
-        return self._tool_policy.filter_tool_names(
+        filtered_tool_names = self._tool_policy.filter_tool_names(
             deduped_tool_names,
             selection=self._dev_tool_selection,
         )
+        if _UNIFIED_COMPUTER_TOOL_NAME in filtered_tool_names:
+            filtered_tool_names = sorted(
+                set(filtered_tool_names) | _UNIFIED_COMPUTER_SUBTOOLS
+            )
+        return filtered_tool_names
 
     def _get_valid_tool_name_index(self) -> tuple[List[str], set[str]]:
         """
@@ -215,8 +231,8 @@ class ToolCallValidator:
         if metadata is None:
             validation_errors.append(
                 f"Computer-use tool '{tool_name}' is missing metadata. "
-                "Metadata MUST be generated first before the action. "
-                "Format: {\"metadata\": {\"explanation\": \"...\", \"expectation\": \"...\"}, \"action\": {...}}"
+                "Use direct tool-call format with the unified computer_use tool and include metadata in args. "
+                "Format: {\"functionCall\": {\"name\": \"computer_use\", \"args\": {\"tool\": \"mouse_control\", \"metadata\": {\"description\": \"...\", \"explanation\": \"...\", \"expectation\": \"...\"}, \"arguments\": {...}}}}"
             )
         elif not isinstance(metadata, dict):
             validation_errors.append(
@@ -255,6 +271,9 @@ class ToolCallValidator:
             )
 
     def _is_computer_use_tool(self, tool_name: str) -> bool:
+        if tool_name == _UNIFIED_COMPUTER_TOOL_NAME or tool_name in _UNIFIED_COMPUTER_SUBTOOLS:
+            return True
+
         from backend.src.tools.categorization import ToolDomain
 
         tool = self.tool_registry.get_tool(tool_name)

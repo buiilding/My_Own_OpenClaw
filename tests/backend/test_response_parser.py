@@ -48,34 +48,41 @@ async def test_parse_response_embedded_json_multiple_calls():
 
 @pytest.mark.asyncio
 async def test_parse_response_requires_metadata_for_computer_use_tools():
-    parser = _make_parser([DummyTool("mouse_control", ToolDomain.COMPUTER)])
-    response = '{"functionCall":{"name":"mouse_control","args":{"action":"click","x":1,"y":2}}}'
+    parser = _make_parser([DummyTool("computer_use", ToolDomain.COMPUTER)])
+    response = (
+        '{"functionCall":{"name":"computer_use","args":{"tool":"mouse_control",'
+        '"arguments":{"action":"click","x":1,"y":2}}}}'
+    )
     with pytest.raises(ParseValidationError):
         await parser.parse_response(response)
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize(
-    "response",
-    [
-        (
-            '{"metadata":{"description":"screen","explanation":"click","expectation":"dialog"},'
-            '"action":{"functionCall":{"name":"mouse_control","args":{"action":"click","x":1,"y":2}}}}'
-        ),
-        (
-            '{"action":{"functionCall":{"name":"mouse_control","args":{"action":"click","x":1,"y":2}}},'
-            '"metadata":{"description":"screen","explanation":"click","expectation":"dialog"}}'
-        ),
-    ],
-    ids=["metadata-first", "action-first"],
-)
-async def test_parse_response_accepts_computer_use_metadata_wrapper(response):
-    parser = _make_parser([DummyTool("mouse_control", ToolDomain.COMPUTER)])
+async def test_parse_response_accepts_direct_computer_use_metadata():
+    parser = _make_parser([DummyTool("computer_use", ToolDomain.COMPUTER)])
+    response = (
+        '{"functionCall":{"name":"computer_use","args":{"tool":"mouse_control",'
+        '"metadata":{"description":"screen","explanation":"click","expectation":"dialog"},'
+        '"arguments":{"action":"click","x":1,"y":2}}}}'
+    )
     parsed = await parser.parse_response(response)
     assert len(parsed.tool_calls) == 1
     tool_call: ParsedToolCall = parsed.tool_calls[0]
     assert tool_call.metadata["description"] == "screen"
+    assert tool_call.tool_name == "mouse_control"
     assert tool_call.parameters["action"] == "click"
+
+
+@pytest.mark.asyncio
+async def test_parse_response_rejects_legacy_computer_use_metadata_wrapper():
+    parser = _make_parser([DummyTool("computer_use", ToolDomain.COMPUTER)])
+    response = (
+        '{"metadata":{"description":"screen","explanation":"click","expectation":"dialog"},'
+        '"action":{"functionCall":{"name":"mouse_control","args":{"action":"click","x":1,"y":2}}}}'
+    )
+
+    with pytest.raises(ParseValidationError):
+        await parser.parse_response(response)
 
 
 @pytest.mark.asyncio
