@@ -296,6 +296,8 @@ export function useChatMessageSender(
     }
     
     let screenshot: string | null = firstClipboardImage?.base64 || null;
+    let autoCapturedScreenshotRef: string | null = null;
+    let autoCapturedScreenshotUrl: string | null = null;
     let screenshotContentType: string | null = userMessageScreenshotContentType;
     let captureMeta: CaptureMeta | null = null;
     const screenshotFilename: string | null = firstClipboardImage?.filename || null;
@@ -311,6 +313,8 @@ export function useChatMessageSender(
         );
 
         screenshot = osStateResult.screenshot;
+        autoCapturedScreenshotRef = osStateResult.screenshotRef || null;
+        autoCapturedScreenshotUrl = osStateResult.screenshotUrl || null;
         screenshotContentType = osStateResult.screenshotContentType;
         captureMeta = osStateResult.captureMeta;
       } catch (error) {
@@ -348,6 +352,11 @@ export function useChatMessageSender(
         console.warn('[useChatMessageSender] Failed to upload screenshot artifact:', error);
         uploadedArtifacts.push(null);
       }
+    } else if (autoCapturedScreenshotRef || autoCapturedScreenshotUrl) {
+      uploadedArtifacts.push({
+        artifactId: autoCapturedScreenshotRef,
+        url: autoCapturedScreenshotUrl,
+      });
     }
 
     const uploadedScreenshotEntries = clipboardImages.map((clipboardImage, index) => {
