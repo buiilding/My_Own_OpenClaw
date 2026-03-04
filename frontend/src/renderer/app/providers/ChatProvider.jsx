@@ -3,6 +3,7 @@ import { useChatStream } from '../../features/chat/hooks/useChatStream';
 import { useToolRunner } from '../../features/chat/hooks/useToolRunner';
 import { useChatStore } from '../../features/chat/stores/chatStore';
 import { useTranscriptSessionInfo } from '../../features/dashboard/hooks/useTranscriptSessionInfo';
+import { shouldProjectSessionConversationRef } from '../../features/chat/session/conversationSessionRuntime';
 import { ChatContext, EMPTY_CHAT_CONTEXT } from './ChatContext';
 
 /**
@@ -15,7 +16,7 @@ export function ChatProvider({ children, enableToolRunner = true, enableTranscri
 
   useEffect(() => {
     const conversationRef = transcriptSessionInfo?.conversationRef || null;
-    if (!conversationRef) {
+    if (!shouldProjectSessionConversationRef(conversationRef)) {
       return;
     }
     setActiveConversationRef(conversationRef);

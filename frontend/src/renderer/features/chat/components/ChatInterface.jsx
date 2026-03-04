@@ -80,17 +80,8 @@ function ChatInterface({ focusComposerToken = 0 }) {
   const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);
   const setTokenCounts = useChatStore((state) => state.setTokenCounts);
   const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
-  const setChatActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
   const { config, updateConfig, availableModels } = useAppConfigContext();
   const transcriptSessionInfo = useTranscriptSessionInfo();
-
-  useEffect(() => {
-    const conversationRef = transcriptSessionInfo.conversationRef || null;
-    if (!conversationRef) {
-      return;
-    }
-    setChatActiveConversationRef(conversationRef);
-  }, [setChatActiveConversationRef, transcriptSessionInfo.conversationRef]);
 
   const audioPlayerRef = useRef(null);
 

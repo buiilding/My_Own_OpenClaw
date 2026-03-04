@@ -30,6 +30,7 @@ import {
 import { createConversationRef } from '../utils/conversationRef';
 import { useChatCommonActions } from './useChatCommonActions';
 import { normalizeArtifactImageContentType } from '../../../infrastructure/services/ArtifactImageUtils';
+import { resolveConversationRefForSend } from '../session/conversationSessionRuntime';
 
 type ChatMessageSenderOptions = {
   senderSurface?: ChatSendSurface;
@@ -221,16 +222,16 @@ export function useChatMessageSender(
   }, [addMessage]);
 
   const ensureConversationRef = useCallback((): string => {
-    const activeRef = getActiveConversationRef();
-    if (activeRef) {
-      setChatActiveConversationRef(activeRef);
-      return activeRef;
-    }
-    const storeActiveRef = useChatStore.getState().activeConversationRef;
-    if (storeActiveRef) {
-      setActiveConversationRef(storeActiveRef);
-      setChatActiveConversationRef(storeActiveRef);
-      return storeActiveRef;
+    const resolvedConversationRef = resolveConversationRefForSend(
+      getActiveConversationRef(),
+      useChatStore.getState().activeConversationRef,
+    );
+    if (resolvedConversationRef.conversationRef) {
+      if (resolvedConversationRef.source === 'store') {
+        setActiveConversationRef(resolvedConversationRef.conversationRef);
+      }
+      setChatActiveConversationRef(resolvedConversationRef.conversationRef);
+      return resolvedConversationRef.conversationRef;
     }
     const generatedRef = createConversationRef();
     setActiveConversationRef(generatedRef);

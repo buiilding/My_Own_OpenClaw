@@ -39,13 +39,14 @@ Effect:
 
 1. calls `useChatStream(enableTranscript)`
 2. calls `useToolRunner(enableToolRunner)`
-3. syncs chat-store `activeConversationRef` from transcript session (`useTranscriptSessionInfo`)
+3. projects transcript-session `conversationRef` into chat-store `activeConversationRef` (`useTranscriptSessionInfo`) only when conversation ref is non-empty
 4. returns `ChatContext.Provider` with frozen empty object value
 
 Ownership model:
 
 - side effects live inside hooks (event listeners, transcript/tool execution wiring)
-- provider also owns active-conversation projection sync so overlay renderer stores select the same workspace as transcript session identity
+- provider is the single owner of transcript->chat-store active-conversation projection; leaf UIs should not duplicate this sync
+- null/empty transcript snapshots are ignored so transient startup/session sync races do not clobber active chat workspace identity
 
 ## Surface Flag Semantics
 
