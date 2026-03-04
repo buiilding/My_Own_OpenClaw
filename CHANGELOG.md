@@ -2048,3 +2048,4 @@ Includes the last 300 commits on `main`.
 - 97fab14 chore: sync browser tools, logging, transcripts
 - 02dac42 chore: commit pending changes
 - unreleased fix(tool-calling): unify computer-use calls under computer_use with direct metadata args and legacy-wrapper rejection
+- unreleased fix(tool-selection): remove legacy wrapped computer-use schema traversal; direct args schema only
