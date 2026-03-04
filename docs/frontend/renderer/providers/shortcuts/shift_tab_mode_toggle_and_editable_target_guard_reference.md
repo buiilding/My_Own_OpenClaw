@@ -39,7 +39,7 @@ Toggle only runs when all conditions hold:
 When matched:
 
 1. `event.preventDefault()`
-2. read current mode from `config.interaction_mode` (default `chat`)
+2. read current mode from `config.interaction_mode` (default `agent`)
 3. compute next mode: `chat -> agent`, `agent -> chat`
 4. call `updateConfig` with full merged config object including new `interaction_mode`
 

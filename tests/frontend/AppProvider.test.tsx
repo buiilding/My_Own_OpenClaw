@@ -150,7 +150,7 @@ describe('AppProvider', () => {
     }).not.toThrow();
   });
 
-  test('uses fallback chat mode when config is null', () => {
+  test('uses fallback agent mode when config is null', () => {
     mockConfigContext = {
       ...mockConfigContext,
       config: null as any,
@@ -162,7 +162,7 @@ describe('AppProvider', () => {
     window.dispatchEvent(event);
 
     expect(mockConfigContext.updateConfig).toHaveBeenCalledWith({
-      interaction_mode: 'agent',
+      interaction_mode: 'chat',
     });
   });
 
