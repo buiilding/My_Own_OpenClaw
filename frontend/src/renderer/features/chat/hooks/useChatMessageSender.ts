@@ -31,6 +31,11 @@ import { createConversationRef } from '../utils/conversationRef';
 import { useChatCommonActions } from './useChatCommonActions';
 import { normalizeArtifactImageContentType } from '../../../infrastructure/services/ArtifactImageUtils';
 import { resolveConversationRefForSend } from '../session/conversationSessionRuntime';
+import {
+  buildScreenshotRefs,
+  resolvePrimaryScreenshotAttachment,
+  toUploadedArtifactFromCaptureAttachment,
+} from '../utils/screenshotAttachmentContract';
 
 type ChatMessageSenderOptions = {
   senderSurface?: ChatSendSurface;
@@ -352,11 +357,14 @@ export function useChatMessageSender(
         console.warn('[useChatMessageSender] Failed to upload screenshot artifact:', error);
         uploadedArtifacts.push(null);
       }
-    } else if (autoCapturedScreenshotRef || autoCapturedScreenshotUrl) {
-      uploadedArtifacts.push({
-        artifactId: autoCapturedScreenshotRef,
-        url: autoCapturedScreenshotUrl,
+    } else {
+      const autoCapturedAttachment = toUploadedArtifactFromCaptureAttachment({
+        screenshotRef: autoCapturedScreenshotRef,
+        screenshotUrl: autoCapturedScreenshotUrl,
       });
+      if (autoCapturedAttachment) {
+        uploadedArtifacts.push(autoCapturedAttachment);
+      }
     }
 
     const uploadedScreenshotEntries = clipboardImages.map((clipboardImage, index) => {
@@ -368,16 +376,14 @@ export function useChatMessageSender(
         screenshotUrl: attachment.screenshotUrl,
       };
     });
-    const uploadedScreenshotRefs = uploadedScreenshotEntries
-      .map((entry) => entry.screenshotRef)
-      .filter((ref): ref is string => typeof ref === 'string' && ref.length > 0);
-    const firstUploadedScreenshotEntry = uploadedScreenshotEntries.find(
-      (entry) => typeof entry.screenshotRef === 'string' && entry.screenshotRef.length > 0,
-    ) || null;
-
     const fallbackAttachment = toScreenshotAttachment(uploadedArtifacts[0] || null);
-    const screenshotRef = firstUploadedScreenshotEntry?.screenshotRef || fallbackAttachment.screenshotRef;
-    const screenshotUrl = firstUploadedScreenshotEntry?.screenshotUrl || fallbackAttachment.screenshotUrl;
+    const primaryAttachment = resolvePrimaryScreenshotAttachment(
+      uploadedScreenshotEntries,
+      fallbackAttachment,
+    );
+    const screenshotRef = primaryAttachment.screenshotRef;
+    const screenshotUrl = primaryAttachment.screenshotUrl;
+    const screenshotRefs = buildScreenshotRefs(uploadedScreenshotEntries, screenshotRef);
     
     // Update message with screenshot
     updateMessage(userMessage.id, {
@@ -387,9 +393,6 @@ export function useChatMessageSender(
     }, conversationRef);
 
     const sessionInfo = getTranscriptSessionInfo();
-    const screenshotRefs = uploadedScreenshotRefs.length > 0
-      ? uploadedScreenshotRefs
-      : (screenshotRef ? [screenshotRef] : []);
     const attachmentContext = await buildReadableFileAttachmentContext(readableFiles);
 
     recordUserMessage(text, {

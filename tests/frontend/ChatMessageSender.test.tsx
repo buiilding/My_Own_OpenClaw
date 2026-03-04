@@ -411,6 +411,35 @@ describe('useChatMessageSender', () => {
     );
   });
 
+  test('reuses auto-capture screenshot_ref and screenshot_url when screenshot bytes are absent', async () => {
+    mockExtractOSstate.mockResolvedValue({
+      systemState: null,
+      screenshot: null,
+      screenshotRef: 'artifact-auto-1',
+      screenshotUrl: 'http://127.0.0.1:8765/api/artifacts/artifact-auto-1',
+      screenshotContentType: null,
+      captureMeta: null,
+    } as any);
+
+    const { result } = renderSender({ returnToChatboxPolicy: 'never' });
+    await sendText(result, 'hello auto screenshot');
+
+    expect(mockUploadArtifactBase64).not.toHaveBeenCalled();
+    expectSingleSendQueryCall(
+      'hello auto screenshot',
+      'conv_msg-1',
+      'artifact-auto-1',
+      'http://127.0.0.1:8765/api/artifacts/artifact-auto-1',
+      ['artifact-auto-1'],
+    );
+    expect(useChatStore.getState().messages[0]).toEqual(
+      expect.objectContaining({
+        screenshotRef: 'artifact-auto-1',
+        screenshotUrl: 'http://127.0.0.1:8765/api/artifacts/artifact-auto-1',
+      }),
+    );
+  });
+
   test('uploads pasted clipboard image and sends its artifact ref', async () => {
     mockUploadArtifactBase64.mockResolvedValue({
       artifactId: 'artifact-clipboard-1',

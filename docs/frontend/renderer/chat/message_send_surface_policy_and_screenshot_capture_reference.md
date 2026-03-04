@@ -12,6 +12,7 @@ title: "Message Send Surface Policy and Screenshot Capture Reference"
 
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/utils/chatMessageSenderUtils.ts`
+- `frontend/src/renderer/features/chat/utils/screenshotAttachmentContract.ts`
 - `frontend/src/renderer/features/chat/policies/messageSendUiPolicy.ts`
 - `frontend/src/renderer/features/chat/components/MessageInput.jsx`
 - `frontend/src/renderer/features/chat/utils/messageInput.js`
@@ -87,9 +88,13 @@ When attachment(s) exist:
   - clipboard image base64 list first
   - else OS screenshot capture path (if enabled for surface/config)
 8. upload artifact(s) when screenshot(s) exist.
-9. update optimistic message with `screenshotRef/screenshotUrl` (first uploaded ref) plus `screenshots[]`.
-10. write transcript user row (`recordUserMessage`) with conversation ref + first screenshot ref.
-11. send backend query (`ApiClient.sendQuery`) with:
+9. normalize screenshot attachment selection through `screenshotAttachmentContract`:
+  - prefer first uploaded/pasted entry with `screenshotRef`
+  - fallback to sidecar-provided auto-capture `screenshot_ref` / `screenshot_url` when base64 is absent
+  - dedupe final `screenshot_refs[]` for backend send
+10. update optimistic message with `screenshotRef/screenshotUrl` plus `screenshots[]`.
+11. write transcript user row (`recordUserMessage`) with conversation ref + primary screenshot ref.
+12. send backend query (`ApiClient.sendQuery`) with:
   - `screenshot_ref` (first ref, compatibility path)
   - `screenshot_refs` (all uploaded refs for multi-image queries)
   - optional `attachment_context` (hidden read_file output for selected non-image files)
@@ -120,6 +125,10 @@ Capture path specifics:
 
 - capture call: `extractOSstate(true, false, 0, isFirstUserMessage)`
 - `isFirstUserMessage` derived before insertion from existing chat store.
+- capture response may contain:
+  - inline `screenshot` base64
+  - `screenshotRef`/`screenshotUrl` artifact attachment only (no base64)
+- send path treats either shape as valid screenshot context and keeps user-row attachment rendering stable.
 
 ## Optimistic Message Contract
 
@@ -158,6 +167,7 @@ Fatal failure:
 - screenshot skip for main-window sends
 - continued send on capture/upload failures
 - upload refs included in query payload and store row
+- auto-capture artifact-only (`screenshotRef`/`screenshotUrl`) path without upload roundtrip
 - clipboard payload flow (base64 + content type + filename) bypasses OS capture
 
 `MessageInput.test.jsx` verifies:
