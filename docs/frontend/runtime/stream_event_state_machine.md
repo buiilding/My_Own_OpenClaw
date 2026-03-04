@@ -18,6 +18,7 @@ title: "Stream Event State Machine"
 - `frontend/src/renderer/features/chat/utils/chatStreamMessageUpdates.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamEventUtils.ts`
 - `frontend/src/renderer/features/chat/utils/streamPhaseState.js`
+- `frontend/src/renderer/features/chat/hooks/useChatSessionBootstrap.ts`
 
 ## Inbound Event Surface
 
@@ -47,6 +48,7 @@ Before dispatch:
 
 This prevents cross-conversation leakage when multiple threads are loaded locally.
 Terminal-vs-active stream turn gating is centralized in `streamPhaseState.isTerminalStreamPhase(...)` so stale-conversation filtering and tool-runner stale-turn behavior share one phase contract.
+Startup/bootstrap guard: `useChatSessionBootstrap(...)` now hydrates transcript/chat session refs from main-process `get-client-user-id` snapshot so first-send after close/reopen cannot race null session state.
 
 ## Stream Tracking Model
 

@@ -257,6 +257,11 @@ Treat this as the high-level mental model of WindieOS behavior.
 - Keep dev/prod gating explicit and test both paths when behavior differs by mode.
 - Add scenario tests for race-prone flows (tool execution start/stop, screenshot hide/show, focus verification, resume after failure).
 - If requirements conflict or timing semantics are ambiguous, stop and resolve spec conflicts before implementation.
+- Never generate a new conversation ref during first-send/startup until all three are checked: transcript session, chat store active ref, main-process session snapshot.
+- Closing dashboard must not reset chat continuity; chat pill send path must continue the active conversation if main process still has one.
+- `local-user-message` screenshot attachment contract: optimistic user row + dashboard replay must render `screenshotRef/screenshotUrl` immediately when provided; no UI-only drops.
+- Overlay startup contract: first query in minimal chat pill must show awaiting/response phases without needing a second send; phase listeners must be resilient to late mount timing.
+- Any change touching chat-pill send/session/overlay startup behavior requires regression tests in same PR (`ChatMessageSender`, `ChatProvider`, `IpcMainBridge` minimum).
 
 ## Git
 - Safe by default: `git status/diff/log`. Push only when user asks.

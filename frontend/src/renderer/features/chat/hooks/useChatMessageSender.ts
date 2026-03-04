@@ -14,6 +14,7 @@ import {
   getTranscriptSessionInfo,
   recordUserMessage,
   setActiveConversationRef,
+  updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
 import {
   buildArtifactUploadMeta,
@@ -30,7 +31,10 @@ import {
 import { createConversationRef } from '../utils/conversationRef';
 import { useChatCommonActions } from './useChatCommonActions';
 import { normalizeArtifactImageContentType } from '../../../infrastructure/services/ArtifactImageUtils';
-import { resolveConversationRefForSend } from '../session/conversationSessionRuntime';
+import {
+  normalizeMainSessionSnapshot,
+  resolveConversationRefForSend,
+} from '../session/conversationSessionRuntime';
 import {
   buildScreenshotRefs,
   resolvePrimaryScreenshotAttachment,
@@ -226,7 +230,26 @@ export function useChatMessageSender(
     }, conversationRef);
   }, [addMessage]);
 
-  const ensureConversationRef = useCallback((): string => {
+  const hydrateSessionFromMainSnapshot = useCallback(async (): Promise<string | null> => {
+    try {
+      const snapshotPayload = await IpcBridge.invoke(INVOKE_CHANNELS.GET_CLIENT_USER_ID);
+      const snapshot = normalizeMainSessionSnapshot(snapshotPayload);
+      if (!snapshot.conversationRef && !snapshot.userId) {
+        return null;
+      }
+      if (snapshot.conversationRef) {
+        setActiveConversationRef(snapshot.conversationRef);
+        setChatActiveConversationRef(snapshot.conversationRef);
+      }
+      updateTranscriptSession(snapshot.conversationRef, snapshot.userId);
+      return snapshot.conversationRef;
+    } catch (error) {
+      console.warn('[useChatMessageSender] Failed to load startup session snapshot:', error);
+      return null;
+    }
+  }, [setChatActiveConversationRef]);
+
+  const ensureConversationRef = useCallback(async (): Promise<string> => {
     const resolvedConversationRef = resolveConversationRefForSend(
       getActiveConversationRef(),
       useChatStore.getState().activeConversationRef,
@@ -238,11 +261,17 @@ export function useChatMessageSender(
       setChatActiveConversationRef(resolvedConversationRef.conversationRef);
       return resolvedConversationRef.conversationRef;
     }
+
+    const hydratedConversationRef = await hydrateSessionFromMainSnapshot();
+    if (hydratedConversationRef) {
+      return hydratedConversationRef;
+    }
+
     const generatedRef = createConversationRef();
     setActiveConversationRef(generatedRef);
     setChatActiveConversationRef(generatedRef);
     return generatedRef;
-  }, [setChatActiveConversationRef]);
+  }, [hydrateSessionFromMainSnapshot, setChatActiveConversationRef]);
 
   const sendMessage = useCallback(async (payload: OutgoingUserMessagePayload) => {
     const normalizedPayload = normalizeOutgoingPayload(payload);
@@ -262,7 +291,7 @@ export function useChatMessageSender(
     }
 
     const hadUserMessages = hasUserMessages(useChatStore.getState().messages);
-    const conversationRef = ensureConversationRef();
+    const conversationRef = await ensureConversationRef();
     
     // Create user message immediately for instant UI display
     const userMessageId = crypto.randomUUID();

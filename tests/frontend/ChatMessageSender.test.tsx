@@ -12,6 +12,7 @@ import {
   getTranscriptSessionInfo,
   recordUserMessage,
   setActiveConversationRef,
+  updateTranscriptSession,
 } from '../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter';
 
 let mockFrontendConfig: Record<string, unknown> = {
@@ -44,6 +45,10 @@ jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWrite
   setActiveConversationRef: jest.fn((ref: string | null) => {
     mockActiveConversationRef = ref;
   }),
+  updateTranscriptSession: jest.fn((conversationRef?: string | null, userId?: string | null) => ({
+    conversationRef: conversationRef ?? null,
+    userId: userId ?? null,
+  })),
   getTranscriptSessionInfo: jest.fn(() => ({
     conversationRef: mockActiveConversationRef,
     userId: null,
@@ -57,6 +62,7 @@ const mockUploadArtifactBase64 = uploadArtifactBase64 as jest.MockedFunction<typ
 const mockRecordUserMessage = recordUserMessage as jest.MockedFunction<typeof recordUserMessage>;
 const mockGetActiveConversationRef = getActiveConversationRef as jest.MockedFunction<typeof getActiveConversationRef>;
 const mockSetActiveConversationRef = setActiveConversationRef as jest.MockedFunction<typeof setActiveConversationRef>;
+const mockUpdateTranscriptSession = updateTranscriptSession as jest.MockedFunction<typeof updateTranscriptSession>;
 const mockGetTranscriptSessionInfo = getTranscriptSessionInfo as jest.MockedFunction<typeof getTranscriptSessionInfo>;
 const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
 
@@ -152,6 +158,7 @@ describe('useChatMessageSender', () => {
     mockFrontendConfig = { include_query_screenshot: true };
     mockGetActiveConversationRef.mockClear();
     mockSetActiveConversationRef.mockClear();
+    mockUpdateTranscriptSession.mockClear();
     mockGetTranscriptSessionInfo.mockClear();
     mockRecordUserMessage.mockClear();
 
@@ -179,9 +186,22 @@ describe('useChatMessageSender', () => {
 
     jest.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('msg-1');
 
+    const invoke = jest.fn().mockImplementation((channel: string) => {
+      if (channel === INVOKE_CHANNELS.GET_CLIENT_USER_ID) {
+        return Promise.resolve({
+          conversationRef: null,
+          userId: null,
+          isConnected: true,
+          backendWsUrl: 'ws://127.0.0.1:8765/ws',
+          backendHttpUrl: 'http://127.0.0.1:8765',
+        });
+      }
+      return Promise.resolve({ success: true });
+    });
+
     (window as any).ipc = {
       send: jest.fn(),
-      invoke: jest.fn().mockResolvedValue({ success: true }),
+      invoke,
       on: jest.fn(),
       once: jest.fn(),
     };
@@ -649,6 +669,29 @@ describe('useChatMessageSender', () => {
         conversationRef: 'conv_existing',
       }),
     );
+  });
+
+  test('hydrates missing conversation ref from main startup snapshot before first send', async () => {
+    (window as any).ipc.invoke = jest.fn().mockImplementation((channel: string) => {
+      if (channel === INVOKE_CHANNELS.GET_CLIENT_USER_ID) {
+        return Promise.resolve({
+          conversationRef: 'conv-main-snapshot',
+          userId: 'user-main-snapshot',
+          isConnected: true,
+        });
+      }
+      return Promise.resolve({ success: true });
+    });
+    mockActiveConversationRef = null;
+    useChatStore.setState({ activeConversationRef: null });
+
+    const { result } = renderSender({ returnToChatboxPolicy: 'never' });
+    await sendText(result, 'resume on startup');
+
+    expect(mockSetActiveConversationRef).toHaveBeenCalledWith('conv-main-snapshot');
+    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-main-snapshot', 'user-main-snapshot');
+    expect(mockSendQuery).toHaveBeenCalledTimes(1);
+    expect(mockSendQuery.mock.calls[0][1]).toBe('conv-main-snapshot');
   });
 
   test('reuses chat store active conversation ref when transcript session ref is temporarily missing', async () => {

@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useChatStream } from '../../features/chat/hooks/useChatStream';
 import { useToolRunner } from '../../features/chat/hooks/useToolRunner';
+import { useChatSessionBootstrap } from '../../features/chat/hooks/useChatSessionBootstrap';
 import { useChatStore } from '../../features/chat/stores/chatStore';
 import { useTranscriptSessionInfo } from '../../features/dashboard/hooks/useTranscriptSessionInfo';
 import { shouldProjectSessionConversationRef } from '../../features/chat/session/conversationSessionRuntime';
@@ -13,6 +14,11 @@ import { ChatContext, EMPTY_CHAT_CONTEXT } from './ChatContext';
 export function ChatProvider({ children, enableToolRunner = true, enableTranscript = true }) {
   const setActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
   const transcriptSessionInfo = useTranscriptSessionInfo();
+  const bootstrapSession = useChatSessionBootstrap();
+
+  useEffect(() => {
+    void bootstrapSession();
+  }, [bootstrapSession]);
 
   useEffect(() => {
     const conversationRef = transcriptSessionInfo?.conversationRef || null;
