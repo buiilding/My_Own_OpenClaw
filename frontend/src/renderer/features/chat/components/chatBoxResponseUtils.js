@@ -8,10 +8,8 @@ export function findLastUserIndex(messages) {
 }
 
 export function findLatestMessageAfterUser(messages, lastUserIndex, allowedTypes) {
-  if (lastUserIndex < 0) {
-    return null;
-  }
-  for (let i = messages.length - 1; i > lastUserIndex; i -= 1) {
+  const lowerBound = lastUserIndex >= 0 ? lastUserIndex + 1 : 0;
+  for (let i = messages.length - 1; i >= lowerBound; i -= 1) {
     const message = messages[i];
     if (message.sender !== 'assistant') {
       continue;
