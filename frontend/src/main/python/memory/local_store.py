@@ -26,7 +26,11 @@ except ImportError:
 
 from core.remote_embedding_client import RemoteEmbeddingClient
 from core.remote_title_client import RemoteTitleClient
-from core.unicode_sanitizer import sanitize_surrogates, sanitize_surrogates_in_text
+from core.unicode_sanitizer import (
+    find_surrogate_paths,
+    sanitize_surrogates,
+    sanitize_surrogates_in_text,
+)
 from memory.conversation_list_runtime import list_transcript_conversations
 from memory.conversation_semanticization_runtime import (
     count_unsemanticized_interaction_memories as fetch_unsemanticized_interaction_count,
@@ -562,6 +566,28 @@ class LocalMemoryStore:
         Returns:
             Memory ID string
         """
+        surrogate_paths = find_surrogate_paths(
+            {
+                "text": text,
+                "user_id": user_id,
+                "metadata": metadata,
+                "conversation_id": conversation_id,
+                "record_kind": record_kind,
+                "role": role,
+                "message_type": message_type,
+                "tool_name": tool_name,
+                "correlation_id": correlation_id,
+                "model_id": model_id,
+                "model_provider": model_provider,
+            },
+            root="local_store.add",
+        )
+        if surrogate_paths:
+            logger.warning(
+                "Lone surrogate reached LocalMemoryStore.add fields: %s",
+                ", ".join(surrogate_paths),
+            )
+
         text = sanitize_surrogates_in_text(text)
         user_id = sanitize_surrogates_in_text(user_id)
         conversation_id = sanitize_surrogates_in_text(conversation_id) if conversation_id else conversation_id

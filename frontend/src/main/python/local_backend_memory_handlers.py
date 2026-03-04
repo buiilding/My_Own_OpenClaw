@@ -17,7 +17,7 @@ from memory.operations import (
     normalize_and_store_interaction_memory,
     normalize_search_memory_payload,
 )
-from core.unicode_sanitizer import sanitize_surrogates_in_text
+from core.unicode_sanitizer import find_surrogate_paths, sanitize_surrogates_in_text
 
 logger = logging.getLogger(__name__)
 
@@ -403,6 +403,26 @@ class LocalBackendMemoryHandlersMixin:
             }
 
         try:
+            surrogate_paths = find_surrogate_paths(
+                {
+                    "content": content,
+                    "user_id": user_id,
+                    "conversation_ref": conversation_ref,
+                    "session_id": session_id,
+                    "role": role,
+                    "message_type": message_type,
+                    "tool_name": tool_name,
+                    "correlation_id": correlation_id,
+                    "model_id": model_id,
+                    "model_provider": model_provider,
+                },
+                root="store_transcript",
+            )
+            if surrogate_paths:
+                logger.warning(
+                    "Lone surrogate detected in transcript payload fields: %s",
+                    ", ".join(surrogate_paths),
+                )
             content = sanitize_surrogates_in_text(content)
             record_kind = "transcript"
             conversation_id = conversation_ref or session_id
@@ -480,6 +500,21 @@ class LocalBackendMemoryHandlersMixin:
     ) -> Dict[str, Any]:
         """Store memory."""
         try:
+            surrogate_paths = find_surrogate_paths(
+                {
+                    "user_query": user_query,
+                    "assistant_response": assistant_response,
+                    "memory_type": memory_type,
+                    "user_id": user_id,
+                    "session_id": session_id,
+                },
+                root="store_memory",
+            )
+            if surrogate_paths:
+                logger.warning(
+                    "Lone surrogate detected in interaction-memory payload fields: %s",
+                    ", ".join(surrogate_paths),
+                )
             stored, error = await normalize_and_store_interaction_memory(
                 self.memory_store,
                 user_query=user_query,
