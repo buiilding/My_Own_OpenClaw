@@ -207,7 +207,7 @@ class TestAppConfig:
         assert config.embedding_model == "all-MiniLM-L6-v2"
         assert config.max_history_length is None
         assert config.max_agent_iterations == 1000
-        assert config.interaction_mode == "chat"
+        assert config.interaction_mode == "agent"
         assert config.history_compaction_enabled is True
         assert config.history_compaction_manual_enabled is True
         assert config.history_compaction_openai_remote_enabled is False

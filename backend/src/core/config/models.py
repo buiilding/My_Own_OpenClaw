@@ -229,7 +229,7 @@ class AppConfig(BaseModel):
         ge=1,
     )  # Maximum conversation history messages (None disables pruning)
     max_agent_iterations: int = 1000  # Maximum tool execution iterations per query (high limit to effectively remove constraint)
-    interaction_mode: Literal["chat", "agent"] = "chat"
+    interaction_mode: Literal["chat", "agent"] = "agent"
     history_compaction_enabled: bool = True
     history_compaction_manual_enabled: bool = True
     history_compaction_openai_remote_enabled: bool = False

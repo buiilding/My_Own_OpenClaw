@@ -56,7 +56,7 @@ function AppContextCoordinator({ children }) {
 
       event.preventDefault();
       const currentConfig = configRef.current || {};
-      const currentMode = currentConfig.interaction_mode || 'chat';
+      const currentMode = currentConfig.interaction_mode || 'agent';
       const nextMode = currentMode === 'chat' ? 'agent' : 'chat';
       updateConfigRef.current({
         ...currentConfig,

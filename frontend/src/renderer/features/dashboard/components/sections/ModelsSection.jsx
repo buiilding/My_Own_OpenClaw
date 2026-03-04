@@ -34,7 +34,7 @@ function ModelsSection({ config, availableModels, onConfigChange, onClose = () =
   const selectedProvider = config?.model_provider || '';
   const providerApiKeys = normalizeProviderApiKeys(config?.provider_api_keys);
   const speechModeEnabled = config?.speech_mode_enabled ?? false;
-  const interactionMode = config?.interaction_mode || 'chat';
+  const interactionMode = config?.interaction_mode || 'agent';
 
   const currentModels = useMemo(
     () => getCurrentModels(availableModels, modelMode),

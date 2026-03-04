@@ -49,7 +49,7 @@ Shortcut trigger conditions:
 
 Toggle behavior:
 
-- current mode from `config.interaction_mode` defaulting to `"chat"`
+- current mode from `config.interaction_mode` defaulting to `"agent"`
 - switches `chat <-> agent`
 - calls `updateConfig({...currentConfig, interaction_mode: nextMode})`
 

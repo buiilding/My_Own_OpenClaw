@@ -33,7 +33,7 @@ Derived config inputs:
 - `selected_model_id` (default empty)
 - `model_provider` (default empty)
 - `speech_mode_enabled` (default `false`)
-- `interaction_mode` (default `chat`)
+- `interaction_mode` (default `agent`)
 - `provider_api_keys` normalized via `normalizeProviderApiKeys(...)`
 
 ## Provider-First Navigation Contract
