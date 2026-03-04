@@ -17,7 +17,11 @@ from memory.operations import (
     normalize_and_store_interaction_memory,
     normalize_search_memory_payload,
 )
-from core.unicode_sanitizer import find_surrogate_paths, sanitize_surrogates_in_text
+from core.unicode_sanitizer import (
+    find_surrogate_paths,
+    sanitize_surrogates,
+    sanitize_surrogates_in_text,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -46,12 +50,13 @@ class LocalBackendMemoryHandlersMixin:
         """Validate transcript transparency payload is JSON-serializable object data."""
         if not isinstance(transparency, dict):
             return None
+        sanitized_transparency = sanitize_surrogates(transparency)
         try:
-            json.dumps(transparency)
+            json.dumps(sanitized_transparency)
         except (TypeError, ValueError):
             logger.warning("Dropping non-serializable transcript transparency payload")
             return None
-        return dict(transparency)
+        return dict(sanitized_transparency)
 
     @staticmethod
     def _is_semantic_transcript_candidate(

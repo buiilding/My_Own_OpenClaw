@@ -960,6 +960,28 @@ async def test_handle_store_transcript_sanitizes_lone_surrogates_in_content(capl
 
 
 @pytest.mark.asyncio
+async def test_handle_store_transcript_sanitizes_surrogate_in_transparency():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+
+    result = await backend._handle_store_transcript(
+        content="assistant",
+        user_id="user-1",
+        conversation_ref="conv-1",
+        role="assistant",
+        message_type="llm-text",
+        transparency={
+            "systemPrompt": "bad\udc9dprompt",
+            "fullAssistantMessage": {"content": "ok"},
+        },
+    )
+
+    assert result["success"] is True
+    _, _, metadata, _, _ = backend.memory_store.added[-1]
+    assert metadata["transparency"]["systemPrompt"] == "bad�prompt"
+
+
+@pytest.mark.asyncio
 async def test_handle_store_memory_logs_surrogate_field_paths(caplog):
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStore()
