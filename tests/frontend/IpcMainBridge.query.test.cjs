@@ -176,6 +176,54 @@ describe('ipc.cjs bridge query handling', () => {
     expect(latestLocalUserMessage.payload.conversation_ref).toBe('conv-backfill');
   });
 
+  test('replays in-flight query events to late-mounted renderer windows', async () => {
+    const { handlers, ws, ipc } = setupQueryBridge({}, {
+      systemState: {
+        active_window: 'App',
+        mouse_position: '0,0',
+        screen_resolution: '1920x1080',
+        windows: ['A'],
+      },
+    });
+
+    await sendQuery(handlers, { text: 'first turn', conversation_ref: 'conv-replay' });
+
+    ws.handlers.message(JSON.stringify({
+      type: 'streaming-response',
+      turn_ref: 'uuid-1',
+      conversation_ref: 'conv-replay',
+      payload: {
+        text: 'chunk-1',
+      },
+    }));
+
+    const lateWindow = {
+      isDestroyed: jest.fn(() => false),
+      on: jest.fn(),
+      webContents: {
+        send: jest.fn(),
+        on: jest.fn(),
+        removeListener: jest.fn(),
+        isLoadingMainFrame: jest.fn(() => false),
+      },
+    };
+    ipc.registerRendererWindow(lateWindow);
+
+    const replayEvents = lateWindow.webContents.send.mock.calls
+      .filter(([channel]) => channel === 'from-backend')
+      .map(([, payload]) => payload);
+    expect(replayEvents).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        type: 'local-user-message',
+        turn_ref: 'uuid-1',
+      }),
+      expect.objectContaining({
+        type: 'streaming-response',
+        turn_ref: 'uuid-1',
+      }),
+    ]));
+  });
+
   test('escapes XML-sensitive query, system state, and memory content', async () => {
     const { handlers, ws } = setupQueryBridge({}, {
       systemState: {
