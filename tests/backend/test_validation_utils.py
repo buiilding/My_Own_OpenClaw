@@ -147,3 +147,28 @@ def test_validate_frontend_config_allows_subset_and_validates_values():
 
     with pytest.raises(ValidationError):
         validate_frontend_config({"model_mode": "invalid"})
+
+
+def test_validate_frontend_config_drops_blank_model_fields() -> None:
+    validated = validate_frontend_config(
+        {
+            "model_provider": "   ",
+            "selected_model_id": "",
+        }
+    )
+    assert "model_provider" not in validated
+    assert "selected_model_id" not in validated
+
+
+def test_validate_frontend_config_trims_model_fields() -> None:
+    validated = validate_frontend_config(
+        {
+            "model_provider": " gemini ",
+            "selected_model_id": " gemini-3-flash-preview@@gemini-3-flash-thinking ",
+        }
+    )
+    assert validated["model_provider"] == "gemini"
+    assert (
+        validated["selected_model_id"]
+        == "gemini-3-flash-preview@@gemini-3-flash-thinking"
+    )
