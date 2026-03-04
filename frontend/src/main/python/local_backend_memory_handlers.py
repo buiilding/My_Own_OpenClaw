@@ -17,6 +17,7 @@ from memory.operations import (
     normalize_and_store_interaction_memory,
     normalize_search_memory_payload,
 )
+from core.unicode_sanitizer import sanitize_surrogates_in_text
 
 logger = logging.getLogger(__name__)
 
@@ -402,6 +403,7 @@ class LocalBackendMemoryHandlersMixin:
             }
 
         try:
+            content = sanitize_surrogates_in_text(content)
             record_kind = "transcript"
             conversation_id = conversation_ref or session_id
             normalized_correlation_id = None

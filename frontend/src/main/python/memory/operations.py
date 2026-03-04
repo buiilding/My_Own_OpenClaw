@@ -6,6 +6,8 @@ from __future__ import annotations
 
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
+from core.unicode_sanitizer import sanitize_surrogates_in_text
+
 
 def build_memory_filters(memory_type: Optional[str]) -> Dict[str, str]:
     """Build optional memory type filter payload."""
@@ -97,7 +99,10 @@ def group_memory_texts(results: Iterable[Dict[str, Any]]) -> Dict[str, List[str]
 
 def format_interaction_memory(user_query: str, assistant_response: str) -> str:
     """Store user/assistant exchanges in the canonical memory text format."""
-    return f"User: {user_query}\nAssistant: {assistant_response}"
+    return (
+        f"User: {sanitize_surrogates_in_text(user_query)}\n"
+        f"Assistant: {sanitize_surrogates_in_text(assistant_response)}"
+    )
 
 
 def normalize_store_memory_payload(
@@ -121,8 +126,8 @@ def normalize_store_memory_payload(
     if memory_type is not None and not isinstance(memory_type, str):
         return None, "memory_type must be a string"
 
-    normalized_query = user_query.strip()
-    normalized_response = assistant_response.strip()
+    normalized_query = sanitize_surrogates_in_text(user_query.strip())
+    normalized_response = sanitize_surrogates_in_text(assistant_response.strip())
     normalized_memory_type = (memory_type or "episodic").strip().lower()
 
     if not normalized_query or not normalized_response:
