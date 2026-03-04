@@ -26,6 +26,7 @@ except ImportError:
 
 from core.remote_embedding_client import RemoteEmbeddingClient
 from core.remote_title_client import RemoteTitleClient
+from core.unicode_sanitizer import sanitize_surrogates, sanitize_surrogates_in_text
 from memory.conversation_list_runtime import list_transcript_conversations
 from memory.conversation_semanticization_runtime import (
     count_unsemanticized_interaction_memories as fetch_unsemanticized_interaction_count,
@@ -561,6 +562,19 @@ class LocalMemoryStore:
         Returns:
             Memory ID string
         """
+        text = sanitize_surrogates_in_text(text)
+        user_id = sanitize_surrogates_in_text(user_id)
+        conversation_id = sanitize_surrogates_in_text(conversation_id) if conversation_id else conversation_id
+        record_kind = sanitize_surrogates_in_text(record_kind)
+        role = sanitize_surrogates_in_text(role) if role else role
+        message_type = sanitize_surrogates_in_text(message_type) if message_type else message_type
+        tool_name = sanitize_surrogates_in_text(tool_name) if tool_name else tool_name
+        correlation_id = sanitize_surrogates_in_text(correlation_id) if correlation_id else correlation_id
+        model_id = sanitize_surrogates_in_text(model_id) if model_id else model_id
+        model_provider = sanitize_surrogates_in_text(model_provider) if model_provider else model_provider
+        screenshot = sanitize_surrogates_in_text(screenshot) if screenshot else screenshot
+        metadata = sanitize_surrogates(metadata) if metadata else metadata
+
         memory_id = str(uuid.uuid4())
         timestamp_value = self._normalize_timestamp(timestamp)
 

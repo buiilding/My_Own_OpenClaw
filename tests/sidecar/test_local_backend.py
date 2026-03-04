@@ -938,6 +938,24 @@ async def test_handle_store_transcript_requires_content():
     assert "Content is required" in result["error"]
 
 
+@pytest.mark.asyncio
+async def test_handle_store_transcript_sanitizes_lone_surrogates_in_content():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+
+    result = await backend._handle_store_transcript(
+        content="bad\udc9dtitle",
+        user_id="user-1",
+        conversation_ref="conv-1",
+        role="assistant",
+        message_type="llm-text",
+    )
+
+    assert result["success"] is True
+    content, _, _, _, _ = backend.memory_store.added[-1]
+    assert content == "bad�title"
+
+
 def test_signal_handler_requests_shutdown(monkeypatch):
     backend = LocalBackend()
     called = []

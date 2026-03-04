@@ -203,6 +203,27 @@ async def test_normalize_and_store_interaction_memory_persists_and_returns_metad
     ]
 
 
+@pytest.mark.asyncio
+async def test_normalize_and_store_interaction_memory_sanitizes_lone_surrogates():
+    store = _DummyStore()
+
+    stored, error = await normalize_and_store_interaction_memory(
+        store,
+        user_query="hello\udc9duser",
+        assistant_response="hello\udc9dassistant",
+        memory_type="episodic",
+        user_id="user-1",
+        session_id="session-1",
+    )
+
+    assert error is None
+    assert stored == {
+        "memory_id": "mem-42",
+        "memory_type": "episodic",
+    }
+    assert store.calls[0][0] == "User: hello�user\nAssistant: hello�assistant"
+
+
 def test_group_memory_texts_prefers_user_assistant_interactions_for_episodic():
     grouped = group_memory_texts([
         {
