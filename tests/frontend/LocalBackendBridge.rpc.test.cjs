@@ -614,6 +614,33 @@ describe('local_backend_bridge RPC handlers', () => {
     await expectResolvedSuccess(stdoutHandler, promise, { ok: true });
   });
 
+  test('store-transcript handler preserves emoji while replacing lone surrogate payload text', async () => {
+    const { handlers, stdoutHandler } = initBridge();
+    markReady();
+
+    const promise = handlers['store-transcript'](null, {
+      content: 'Hey 👋\udc9d',
+      userId: 'u-1',
+      conversationRef: 'conv-1',
+      role: 'assistant',
+      transparency: {
+        systemPrompt: 'Wave 👋 then lone \udc9d',
+      },
+    });
+
+    expectLastRequestWith('store_transcript', expect.objectContaining({
+      content: 'Hey 👋\uFFFD',
+      user_id: 'u-1',
+      conversation_ref: 'conv-1',
+      role: 'assistant',
+      transparency: {
+        systemPrompt: 'Wave 👋 then lone \uFFFD',
+      },
+    }));
+
+    await expectResolvedSuccess(stdoutHandler, promise, { ok: true });
+  });
+
   test('store-memory handler maps payload keys to backend params', async () => {
     const { handlers, stdoutHandler } = initBridge();
     markReady();
@@ -662,6 +689,29 @@ describe('local_backend_bridge RPC handlers', () => {
       user_id: 'u-1',
       session_id: 'session-7',
     });
+
+    await expectResolvedSuccess(stdoutHandler, promise, { stored: true });
+  });
+
+  test('store-memory handler preserves emoji while replacing lone surrogate payload text', async () => {
+    const { handlers, stdoutHandler } = initBridge();
+    markReady();
+
+    const promise = handlers['store-memory'](null, {
+      userQuery: 'What 👋\udc9d',
+      assistantResponse: 'Reply 👋\udc9d',
+      memoryType: 'semantic',
+      userId: 'u-1',
+      sessionId: 'session-7',
+    });
+
+    expectLastRequestWith('store_memory', expect.objectContaining({
+      user_query: 'What 👋\uFFFD',
+      assistant_response: 'Reply 👋\uFFFD',
+      memory_type: 'semantic',
+      user_id: 'u-1',
+      session_id: 'session-7',
+    }));
 
     await expectResolvedSuccess(stdoutHandler, promise, { stored: true });
   });

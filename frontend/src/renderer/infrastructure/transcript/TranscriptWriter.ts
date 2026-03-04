@@ -21,7 +21,6 @@ const sessionState = createTranscriptSessionState(readSessionInfoFromStorage);
 const pendingAssistantQueue = createPendingAssistantQueue();
 const pendingUserQueue = createPendingUserQueue();
 const pendingToolQueue = createPendingToolQueue();
-const SURROGATE_PATTERN = /[\uD800-\uDFFF]/g;
 const MOJIBAKE_REPLACEMENTS: Array<[string, string]> = [
   ['â€œ', '“'],
   ['â€\u009d', '”'],
@@ -34,6 +33,34 @@ const MOJIBAKE_REPLACEMENTS: Array<[string, string]> = [
   ['Â ', ' '],
   ['Â', ''],
 ];
+
+const replaceLoneSurrogates = (value: string): string => {
+  let normalized = '';
+  for (let index = 0; index < value.length; index += 1) {
+    const codeUnit = value.charCodeAt(index);
+    const isHighSurrogate = codeUnit >= 0xD800 && codeUnit <= 0xDBFF;
+    const isLowSurrogate = codeUnit >= 0xDC00 && codeUnit <= 0xDFFF;
+
+    if (!isHighSurrogate && !isLowSurrogate) {
+      normalized += value[index];
+      continue;
+    }
+
+    if (isHighSurrogate) {
+      const nextCodeUnit = value.charCodeAt(index + 1);
+      const nextIsLowSurrogate = nextCodeUnit >= 0xDC00 && nextCodeUnit <= 0xDFFF;
+      if (nextIsLowSurrogate) {
+        normalized += value[index] + value[index + 1];
+        index += 1;
+        continue;
+      }
+    }
+
+    normalized += '\uFFFD';
+  }
+
+  return normalized;
+};
 
 const repairCommonMojibake = (value: string): string => {
   let repaired = value;
@@ -48,7 +75,7 @@ const normalizeOptionalString = (value: unknown): string | null => {
     return null;
   }
   const repaired = repairCommonMojibake(value);
-  const normalized = repaired.replace(SURROGATE_PATTERN, '\uFFFD').trim();
+  const normalized = replaceLoneSurrogates(repaired).trim();
   return normalized.length > 0 ? normalized : null;
 };
 

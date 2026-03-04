@@ -5,7 +5,6 @@ function getPayloadObject(payload = {}) {
   return {};
 }
 
-const SURROGATE_PATTERN = /[\uD800-\uDFFF]/g;
 const MOJIBAKE_REPLACEMENTS = [
   ['â€œ', '“'],
   ['â€\u009d', '”'],
@@ -19,6 +18,34 @@ const MOJIBAKE_REPLACEMENTS = [
   ['Â', ''],
 ];
 
+function replaceLoneSurrogates(value) {
+  let normalized = '';
+  for (let index = 0; index < value.length; index += 1) {
+    const codeUnit = value.charCodeAt(index);
+    const isHighSurrogate = codeUnit >= 0xD800 && codeUnit <= 0xDBFF;
+    const isLowSurrogate = codeUnit >= 0xDC00 && codeUnit <= 0xDFFF;
+
+    if (!isHighSurrogate && !isLowSurrogate) {
+      normalized += value[index];
+      continue;
+    }
+
+    if (isHighSurrogate) {
+      const nextCodeUnit = value.charCodeAt(index + 1);
+      const nextIsLowSurrogate = nextCodeUnit >= 0xDC00 && nextCodeUnit <= 0xDFFF;
+      if (nextIsLowSurrogate) {
+        normalized += value[index] + value[index + 1];
+        index += 1;
+        continue;
+      }
+    }
+
+    normalized += '\uFFFD';
+  }
+
+  return normalized;
+}
+
 function normalizeTextValue(value) {
   if (typeof value !== 'string') {
     return value;
@@ -27,7 +54,7 @@ function normalizeTextValue(value) {
   for (const [needle, replacement] of MOJIBAKE_REPLACEMENTS) {
     repaired = repaired.split(needle).join(replacement);
   }
-  return repaired.replace(SURROGATE_PATTERN, '\uFFFD');
+  return replaceLoneSurrogates(repaired);
 }
 
 function sanitizePayloadValue(value) {
