@@ -148,6 +148,7 @@ async def test_websocket_endpoint_returns_early_when_handshake_fails(
 async def test_websocket_endpoint_sends_parse_errors_and_continues_loop(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    FakeSafeWebSocket.instances = []
     cleanup_calls: list[str] = []
     send_error_calls: list[tuple[object, str | None, str | None]] = []
     parse_calls: list[tuple[str, str, int]] = []
@@ -196,6 +197,7 @@ async def test_websocket_endpoint_sends_parse_errors_and_continues_loop(
     assert send_error_calls[0][1] is None
     assert send_error_calls[0][2] == "Malformed JSON"
     assert cleanup_calls == ["user_parse_error"]
+    assert FakeSafeWebSocket.instances[0].closed == [(1000, None)]
 
 
 @pytest.mark.asyncio

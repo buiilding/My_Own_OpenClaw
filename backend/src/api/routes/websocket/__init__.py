@@ -87,6 +87,7 @@ async def websocket_endpoint(
     
     # Initialize task manager
     task_manager = TaskManager(max_concurrent_tasks, task_cancellation_timeout)
+    close_requested = False
     
     # Perform handshake
     user_id = await perform_handshake(websocket, safe_ws)
@@ -109,6 +110,7 @@ async def websocket_endpoint(
                     user_id=user_id,
                     websocket_receive_timeout=websocket_receive_timeout,
                 )
+                close_requested = True
                 break
             
             # Parse and validate message
@@ -146,4 +148,13 @@ async def websocket_endpoint(
         # Re-raise to let FastAPI handle it appropriately
         raise
     finally:
+        if not close_requested:
+            try:
+                await safe_ws.close()
+            except Exception as close_error:
+                logger.debug(
+                    "WebSocket close during connection cleanup failed for user %s: %s",
+                    user_id,
+                    close_error,
+                )
         await cleanup_connection(task_manager, session_manager, user_id)

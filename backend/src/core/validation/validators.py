@@ -353,4 +353,17 @@ def validate_frontend_config(settings: Optional[Dict[str, Any]]) -> Dict[str, An
         )
         raise ValidationError(f"Invalid frontend config patch: {error_details}") from e
 
-    return patch.model_dump(exclude_unset=True)
+    validated = patch.model_dump(exclude_unset=True)
+
+    for key in ("model_provider", "selected_model_id"):
+        value = validated.get(key)
+        if not isinstance(value, str):
+            continue
+        trimmed = value.strip()
+        if not trimmed:
+            logger.warning("Ignoring blank frontend config field: %s", key)
+            validated.pop(key, None)
+            continue
+        validated[key] = trimmed
+
+    return validated
