@@ -14,7 +14,11 @@ export function ChatProvider({ children, enableToolRunner = true, enableTranscri
   const transcriptSessionInfo = useTranscriptSessionInfo();
 
   useEffect(() => {
-    setActiveConversationRef(transcriptSessionInfo?.conversationRef || null);
+    const conversationRef = transcriptSessionInfo?.conversationRef || null;
+    if (!conversationRef) {
+      return;
+    }
+    setActiveConversationRef(conversationRef);
   }, [setActiveConversationRef, transcriptSessionInfo?.conversationRef]);
 
   useChatStream(enableTranscript);

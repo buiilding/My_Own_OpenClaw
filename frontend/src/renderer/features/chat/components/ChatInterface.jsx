@@ -85,7 +85,11 @@ function ChatInterface({ focusComposerToken = 0 }) {
   const transcriptSessionInfo = useTranscriptSessionInfo();
 
   useEffect(() => {
-    setChatActiveConversationRef(transcriptSessionInfo.conversationRef || null);
+    const conversationRef = transcriptSessionInfo.conversationRef || null;
+    if (!conversationRef) {
+      return;
+    }
+    setChatActiveConversationRef(conversationRef);
   }, [setChatActiveConversationRef, transcriptSessionInfo.conversationRef]);
 
   const audioPlayerRef = useRef(null);
