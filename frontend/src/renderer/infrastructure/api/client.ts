@@ -57,6 +57,7 @@ export const ApiClient = {
         text,
         conversation_ref: conversationRef,
         screenshot_ref: screenshotRef,  // Optional screenshot reference
+        screenshot_url: screenshotUrl || null, // UI/local echo hint; stripped before backend send
         screenshot_refs: normalizedScreenshotRefs.length > 0 ? normalizedScreenshotRefs : null,
         capture_meta: captureMeta,
         attachment_context: (

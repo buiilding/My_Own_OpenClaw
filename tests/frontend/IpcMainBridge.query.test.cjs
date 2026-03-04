@@ -214,7 +214,7 @@ describe('ipc.cjs bridge query handling', () => {
   });
 
   test('strips query screenshot_url before sending to backend', async () => {
-    const { handlers, ws } = setupQueryBridge({}, {
+    const { handlers, ws, mainWindow } = setupQueryBridge({}, {
       systemState: {
         active_window: 'App',
         mouse_position: '0,0',
@@ -235,6 +235,10 @@ describe('ipc.cjs bridge query handling', () => {
     expect(lastMessage.payload.conversation_ref).toBe('conv-2');
     expect(lastMessage.payload.screenshot_ref).toBe('art_123');
     expect(lastMessage.payload).not.toHaveProperty('screenshot_url');
+
+    const localUserMessage = getLatestLocalUserMessage(mainWindow);
+    expect(localUserMessage.payload.screenshot_ref).toBe('art_123');
+    expect(localUserMessage.payload.screenshot_url).toBe('http://localhost:8765/api/artifacts/art_123');
   });
 
   test('strips tool-bundle-result screenshot_url fields before sending to backend', async () => {

@@ -37,6 +37,26 @@ describe('ChatBoxResponse state behavior', () => {
     });
   });
 
+  test('shows response overlay even when assistant text arrives before local user anchor', async () => {
+    setChatState([
+      {
+        id: 'assistant-early',
+        text: 'first response',
+        sender: 'assistant',
+        type: 'llm-text',
+        isComplete: false,
+      },
+    ]);
+
+    render(<ChatBoxResponse />);
+    emitOverlayPhase('streaming');
+
+    await waitFor(() => {
+      expect(screen.getByText('first response')).toBeInTheDocument();
+    });
+    expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
+  });
+
   test('hides awaiting indicator after first assistant chunk arrives during streaming', async () => {
     setChatState([
       { id: 'user-1', text: 'run command', sender: 'user' },
