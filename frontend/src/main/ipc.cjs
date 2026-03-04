@@ -523,6 +523,7 @@ function initializeIpc(win, options = {}) {
         currentSessionId,
         currentServerUserId,
         currentUserId,
+        backendHttpUrl: BACKEND_HTTP_URL,
         buildLocalUserMessage,
         broadcastToRenderers: ({ channel, payload: messagePayload, sourceWebContents }) => {
           broadcastToRenderers(channel, messagePayload, sourceWebContents);

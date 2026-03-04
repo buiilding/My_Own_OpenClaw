@@ -289,6 +289,32 @@ describe('ipc.cjs bridge query handling', () => {
     expect(localUserMessage.payload.screenshot_url).toBe('http://localhost:8765/api/artifacts/art_123');
   });
 
+  test('hydrates local-user-message screenshot_url from screenshot_ref when renderer payload omits url', async () => {
+    const { handlers, ws, mainWindow } = setupQueryBridge({}, {
+      systemState: {
+        active_window: 'App',
+        mouse_position: '0,0',
+        screen_resolution: '1920x1080',
+        windows: ['A'],
+      },
+    });
+
+    await sendQuery(handlers, {
+      text: 'hello',
+      conversation_ref: 'conv-2b',
+      screenshot_ref: 'art_999',
+    });
+
+    const lastMessage = getLastSentMessage(ws);
+    expect(lastMessage.type).toBe('query');
+    expect(lastMessage.payload.screenshot_ref).toBe('art_999');
+    expect(lastMessage.payload).not.toHaveProperty('screenshot_url');
+
+    const localUserMessage = getLatestLocalUserMessage(mainWindow);
+    expect(localUserMessage.payload.screenshot_ref).toBe('art_999');
+    expect(localUserMessage.payload.screenshot_url).toBe('http://127.0.0.1:8765/api/artifacts/art_999');
+  });
+
   test('strips tool-bundle-result screenshot_url fields before sending to backend', async () => {
     const { handlers, ws } = setupQueryBridge();
 

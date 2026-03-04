@@ -33,6 +33,7 @@ function buildLocalUserMessage({
   currentSessionId,
   currentServerUserId,
   currentUserId,
+  backendHttpUrl,
 }) {
   if (!payload?.text) {
     return null;
@@ -46,14 +47,22 @@ function buildLocalUserMessage({
     currentUserId,
   });
 
+  const screenshotRef = payload.screenshot_ref || null;
+  const screenshotUrl = payload.screenshot_url
+    || (
+      screenshotRef && typeof backendHttpUrl === 'string' && backendHttpUrl.trim().length > 0
+        ? `${backendHttpUrl.replace(/\/$/, '')}/api/artifacts/${screenshotRef}`
+        : null
+    );
+
   return {
     type: 'local-user-message',
     ...queryContext,
     payload: {
       text: payload.text,
-      screenshot_ref: payload.screenshot_ref || null,
+      screenshot_ref: screenshotRef,
       screenshot_refs: Array.isArray(payload.screenshot_refs) ? payload.screenshot_refs : null,
-      screenshot_url: payload.screenshot_url || null,
+      screenshot_url: screenshotUrl,
       attachment_filenames: Array.isArray(payload.attachment_filenames)
         ? payload.attachment_filenames
         : null,

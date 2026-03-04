@@ -6,6 +6,7 @@ function broadcastLocalUserMessage({
   currentSessionId,
   currentServerUserId,
   currentUserId,
+  backendHttpUrl,
   buildLocalUserMessage,
   broadcastToRenderers,
 }) {
@@ -16,6 +17,7 @@ function broadcastLocalUserMessage({
     currentSessionId,
     currentServerUserId,
     currentUserId,
+    backendHttpUrl,
   });
 
   if (!localUserMessage) {
