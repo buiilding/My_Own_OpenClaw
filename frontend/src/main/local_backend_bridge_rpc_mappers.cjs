@@ -5,6 +5,46 @@ function getPayloadObject(payload = {}) {
   return {};
 }
 
+const SURROGATE_PATTERN = /[\uD800-\uDFFF]/g;
+const MOJIBAKE_REPLACEMENTS = [
+  ['â€œ', '“'],
+  ['â€\u009d', '”'],
+  ['â€˜', '‘'],
+  ['â€™', '’'],
+  ['â€”', '—'],
+  ['â€“', '–'],
+  ['â€¦', '…'],
+  ['â€¢', '•'],
+  ['Â ', ' '],
+  ['Â', ''],
+];
+
+function normalizeTextValue(value) {
+  if (typeof value !== 'string') {
+    return value;
+  }
+  let repaired = value;
+  for (const [needle, replacement] of MOJIBAKE_REPLACEMENTS) {
+    repaired = repaired.split(needle).join(replacement);
+  }
+  return repaired.replace(SURROGATE_PATTERN, '\uFFFD');
+}
+
+function sanitizePayloadValue(value) {
+  if (typeof value === 'string') {
+    return normalizeTextValue(value);
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => sanitizePayloadValue(item));
+  }
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [key, sanitizePayloadValue(item)]),
+    );
+  }
+  return value;
+}
+
 function createPayloadMapper(fieldMap) {
   const compiledMappings = Object.entries(fieldMap).map(([targetKey, mapping]) => {
     if (typeof mapping === 'function') {
@@ -51,7 +91,7 @@ function createPayloadMapper(fieldMap) {
       mapped[compiled.targetKey] = source[compiled.sourceKey];
     }
 
-    return mapped;
+    return sanitizePayloadValue(mapped);
   };
 }
 

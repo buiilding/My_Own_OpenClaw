@@ -19,6 +19,31 @@ type StreamingResponseAction =
   | { type: 'append'; messageId: string; nextText: string }
   | { type: 'new'; text: string; turnRef?: string };
 
+const SURROGATE_PATTERN = /[\uD800-\uDFFF]/g;
+const MOJIBAKE_REPLACEMENTS: Array<[string, string]> = [
+  ['â€œ', '“'],
+  ['â€\u009d', '”'],
+  ['â€˜', '‘'],
+  ['â€™', '’'],
+  ['â€”', '—'],
+  ['â€“', '–'],
+  ['â€¦', '…'],
+  ['â€¢', '•'],
+  ['Â ', ' '],
+  ['Â', ''],
+];
+
+function normalizeIncomingText(value: unknown): string {
+  if (typeof value !== 'string') {
+    return '';
+  }
+  let repaired = value;
+  for (const [needle, replacement] of MOJIBAKE_REPLACEMENTS) {
+    repaired = repaired.split(needle).join(replacement);
+  }
+  return repaired.replace(SURROGATE_PATTERN, '\uFFFD');
+}
+
 function normalizeToolSchemas(value: unknown): ToolSchema[] | undefined {
   if (!Array.isArray(value)) {
     return undefined;
@@ -97,7 +122,7 @@ export function resolveStreamingResponseAction(
   chunkText: unknown,
   turnRef?: string,
 ): StreamingResponseAction {
-  const normalizedChunkText = typeof chunkText === 'string' ? chunkText : '';
+  const normalizedChunkText = normalizeIncomingText(chunkText);
   const lastMessage = messages[messages.length - 1];
   if (
     lastMessage
@@ -147,7 +172,7 @@ export function findStreamingCompleteAssistantMessage(
 
 export function buildSystemPromptUpdate(payload: SystemPromptPayload | null | undefined) {
   return {
-    content: typeof payload?.content === 'string' ? payload.content : '',
+    content: normalizeIncomingText(payload?.content),
     toolSchemas: normalizeToolSchemas(payload?.tool_schemas),
   };
 }
@@ -155,7 +180,7 @@ export function buildSystemPromptUpdate(payload: SystemPromptPayload | null | un
 export function buildUserMessageFullUpdate(payload: UserMessageFullPayload | null | undefined) {
   const metadata = payload?.metadata;
   return {
-    content: typeof payload?.content === 'string' ? payload.content : '',
+    content: normalizeIncomingText(payload?.content),
     metadata: metadata && typeof metadata === 'object' && !Array.isArray(metadata)
       ? metadata as Record<string, unknown>
       : undefined,
@@ -164,6 +189,6 @@ export function buildUserMessageFullUpdate(payload: UserMessageFullPayload | nul
 
 export function buildAssistantMessageFullUpdate(payload: AssistantMessageFullPayload | null | undefined) {
   return {
-    content: typeof payload?.content === 'string' ? payload.content : '',
+    content: normalizeIncomingText(payload?.content),
   };
 }

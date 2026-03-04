@@ -579,6 +579,41 @@ describe('local_backend_bridge RPC handlers', () => {
     await expect(promise).resolves.toEqual({ success: false, error: 'store failed' });
   });
 
+  test('store-transcript handler sanitizes surrogate and mojibake payload text', async () => {
+    const { handlers, stdoutHandler } = initBridge();
+    markReady();
+
+    const promise = handlers['store-transcript'](null, {
+      content: 'bad\udc9dcontent',
+      userId: 'u-1',
+      conversationRef: 'conv-1',
+      role: 'assistant',
+      transparency: {
+        systemPrompt: 'Active: â€œWindieOS â€” READMEâ€\u009d',
+      },
+    });
+
+    expectLastRequestWith('store_transcript', {
+      content: 'bad�content',
+      user_id: 'u-1',
+      conversation_ref: 'conv-1',
+      role: 'assistant',
+      message_type: undefined,
+      tool_name: undefined,
+      correlation_id: undefined,
+      message_index: undefined,
+      model_id: undefined,
+      model_provider: undefined,
+      screenshot: undefined,
+      timestamp: undefined,
+      transparency: {
+        systemPrompt: 'Active: “WindieOS — README”',
+      },
+    });
+
+    await expectResolvedSuccess(stdoutHandler, promise, { ok: true });
+  });
+
   test('store-memory handler maps payload keys to backend params', async () => {
     const { handlers, stdoutHandler } = initBridge();
     markReady();
@@ -604,6 +639,29 @@ describe('local_backend_bridge RPC handlers', () => {
         },
       }),
     );
+
+    await expectResolvedSuccess(stdoutHandler, promise, { stored: true });
+  });
+
+  test('store-memory handler sanitizes surrogate and mojibake payload text', async () => {
+    const { handlers, stdoutHandler } = initBridge();
+    markReady();
+
+    const promise = handlers['store-memory'](null, {
+      userQuery: 'What\udc9d',
+      assistantResponse: 'Active: â€œWindieOS â€” READMEâ€\u009d',
+      memoryType: 'semantic',
+      userId: 'u-1',
+      sessionId: 'session-7',
+    });
+
+    expectLastRequestWith('store_memory', {
+      user_query: 'What�',
+      assistant_response: 'Active: “WindieOS — README”',
+      memory_type: 'semantic',
+      user_id: 'u-1',
+      session_id: 'session-7',
+    });
 
     await expectResolvedSuccess(stdoutHandler, promise, { stored: true });
   });
