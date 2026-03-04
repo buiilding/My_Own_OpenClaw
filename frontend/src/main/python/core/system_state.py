@@ -7,6 +7,7 @@ Cross-platform support for Windows, macOS, and Linux.
 """
 
 import asyncio
+import ctypes
 import logging
 import os
 import platform
@@ -15,6 +16,7 @@ from typing import Dict, Optional, Any
 
 from core.executors import get_interactive_executor
 from core.system_metrics import collect_system_stats
+from core.unicode_sanitizer import repair_common_mojibake, sanitize_surrogates_in_text
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +24,14 @@ logger = logging.getLogger(__name__)
 IS_WINDOWS = platform.system() == "Windows"
 IS_MACOS = platform.system() == "Darwin"
 IS_LINUX = platform.system() == "Linux"
+
+
+def _normalize_runtime_text(value: Optional[str]) -> Optional[str]:
+    if value is None:
+        return None
+    repaired = repair_common_mojibake(value)
+    sanitized = sanitize_surrogates_in_text(repaired)
+    return sanitized
 
 
 async def get_system_state(
@@ -179,19 +189,27 @@ async def _get_active_window() -> Optional[str]:
 async def _get_active_window_windows() -> Optional[str]:
     """Get active window on Windows."""
     try:
-        import win32gui
-        
         def _get_window_title():
-            hwnd = win32gui.GetForegroundWindow()
-            return win32gui.GetWindowText(hwnd)
+            user32 = ctypes.windll.user32  # type: ignore[attr-defined]
+            hwnd = user32.GetForegroundWindow()
+            if not hwnd:
+                return None
+
+            length = user32.GetWindowTextLengthW(hwnd)
+            if length <= 0:
+                return None
+
+            buffer = ctypes.create_unicode_buffer(length + 1)
+            copied = user32.GetWindowTextW(hwnd, buffer, length + 1)
+            if copied <= 0:
+                return None
+            return buffer.value
         
         # Run in thread pool to avoid blocking
         loop = asyncio.get_event_loop()
         title = await loop.run_in_executor(get_interactive_executor(), _get_window_title)
-        return title if title else None
-    except ImportError:
-        logger.warning("win32gui not available, cannot get active window on Windows")
-        return None
+        normalized = _normalize_runtime_text(title)
+        return normalized if normalized else None
     except Exception as e:
         logger.error(f"Windows window detection failed: {e}", exc_info=True)
         return None
@@ -210,7 +228,8 @@ async def _get_active_window_macos() -> Optional[str]:
         # Run in thread pool
         loop = asyncio.get_event_loop()
         title = await loop.run_in_executor(get_interactive_executor(), _get_window_title)
-        return title if title else None
+        normalized = _normalize_runtime_text(title)
+        return normalized if normalized else None
     except ImportError:
         logger.warning("AppKit not available, cannot get active window on macOS")
         return None
@@ -338,7 +357,8 @@ def _get_active_window_linux_xdotool() -> Optional[str]:
         if result.returncode != 0:
             return None
         title = result.stdout.strip()
-        return title or None
+        normalized = _normalize_runtime_text(title)
+        return normalized or None
     except Exception:
         return None
 
@@ -346,13 +366,16 @@ def _get_active_window_linux_xdotool() -> Optional[str]:
 def _decode_x11_property(value: object) -> Optional[str]:
     if isinstance(value, bytes):
         decoded = value.decode("utf-8", errors="ignore").strip()
-        return decoded or None
+        normalized = _normalize_runtime_text(decoded)
+        return normalized or None
     if isinstance(value, str):
         decoded = value.strip()
-        return decoded or None
+        normalized = _normalize_runtime_text(decoded)
+        return normalized or None
     try:
         decoded = bytes(value).decode("utf-8", errors="ignore").strip()
-        return decoded or None
+        normalized = _normalize_runtime_text(decoded)
+        return normalized or None
     except Exception:
         return None
 

@@ -22,12 +22,33 @@ const pendingAssistantQueue = createPendingAssistantQueue();
 const pendingUserQueue = createPendingUserQueue();
 const pendingToolQueue = createPendingToolQueue();
 const SURROGATE_PATTERN = /[\uD800-\uDFFF]/g;
+const MOJIBAKE_REPLACEMENTS: Array<[string, string]> = [
+  ['â€œ', '“'],
+  ['â€\u009d', '”'],
+  ['â€˜', '‘'],
+  ['â€™', '’'],
+  ['â€”', '—'],
+  ['â€“', '–'],
+  ['â€¦', '…'],
+  ['â€¢', '•'],
+  ['Â ', ' '],
+  ['Â', ''],
+];
+
+const repairCommonMojibake = (value: string): string => {
+  let repaired = value;
+  for (const [needle, replacement] of MOJIBAKE_REPLACEMENTS) {
+    repaired = repaired.split(needle).join(replacement);
+  }
+  return repaired;
+};
 
 const normalizeOptionalString = (value: unknown): string | null => {
   if (typeof value !== 'string') {
     return null;
   }
-  const normalized = value.replace(SURROGATE_PATTERN, '\uFFFD').trim();
+  const repaired = repairCommonMojibake(value);
+  const normalized = repaired.replace(SURROGATE_PATTERN, '\uFFFD').trim();
   return normalized.length > 0 ? normalized : null;
 };
 
