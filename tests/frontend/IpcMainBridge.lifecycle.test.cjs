@@ -45,6 +45,23 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(handshake.user_id).toBe('bad_user_');
   });
 
+  test('exposes current conversation and session metadata in get-client-user-id snapshot', async () => {
+    const { handlers, ws } = setupOpenedIpc();
+    emitBackendMessage(ws, {
+      type: 'streaming-response',
+      conversation_ref: 'conv-snapshot-1',
+      session_id: 'session-snapshot-1',
+      user_id: 'server-user-1',
+    });
+
+    const clientInfo = await handlers['get-client-user-id']();
+    expect(clientInfo).toEqual(expect.objectContaining({
+      conversationRef: 'conv-snapshot-1',
+      sessionId: 'session-snapshot-1',
+      serverUserId: 'server-user-1',
+    }));
+  });
+
   test('keeps dashboard-selected conversation for chat-pill send after dashboard handoff', async () => {
     const { handlers, ws, mainWindow, backendBridge, ipc } = setupOpenedIpc();
     primeQueryContext(backendBridge);

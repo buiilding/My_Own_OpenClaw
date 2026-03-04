@@ -413,6 +413,9 @@ function initializeIpc(win, options = {}) {
   ipcMain.handle('get-client-user-id', async () => {
     return {
       userId: currentUserId,
+      conversationRef: currentConversationRef,
+      serverUserId: currentServerUserId,
+      sessionId: currentSessionId,
       isConnected,
       backendWsUrl: BACKEND_URL,
       backendHttpUrl: BACKEND_HTTP_URL,

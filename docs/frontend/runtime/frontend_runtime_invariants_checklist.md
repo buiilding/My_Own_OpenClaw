@@ -34,6 +34,10 @@ Any change touching renderer chat loop state, main-process overlay phase handlin
 7. Overlay geometry is stable.
    - avoid live resize/position churn during stream/token updates
    - avoid flicker from redundant hide/show cycles
+8. Startup session bootstrap is deterministic across dashboard + chat pill.
+   - renderer must hydrate transcript/chat active conversation from main-process snapshot before first-send fallback generation
+   - first query after close/reopen must reuse active conversation when one exists in main-session state
+   - conversation ref generation is allowed only when transcript store + chat store + main snapshot all report empty
 
 ## Required Regression Coverage (When Applicable)
 

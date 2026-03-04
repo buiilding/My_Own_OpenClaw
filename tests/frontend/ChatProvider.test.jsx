@@ -9,6 +9,7 @@ import { ChatProvider } from '../../frontend/src/renderer/app/providers/ChatProv
 const mockUseChatStream = jest.fn();
 const mockUseToolRunner = jest.fn();
 const mockUseTranscriptSessionInfo = jest.fn();
+const mockBootstrapSession = jest.fn().mockResolvedValue({ conversationRef: null, userId: null });
 const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
 
 function createInitialStreamTracking() {
@@ -41,6 +42,10 @@ jest.mock('../../frontend/src/renderer/features/dashboard/hooks/useTranscriptSes
   useTranscriptSessionInfo: () => mockUseTranscriptSessionInfo(),
 }));
 
+jest.mock('../../frontend/src/renderer/features/chat/hooks/useChatSessionBootstrap', () => ({
+  useChatSessionBootstrap: () => mockBootstrapSession,
+}));
+
 function resetChatStore() {
   useChatStore.setState({
     activeConversationRef: null,
@@ -69,6 +74,7 @@ describe('ChatProvider', () => {
     mockUseChatStream.mockReset();
     mockUseToolRunner.mockReset();
     mockUseTranscriptSessionInfo.mockReset();
+    mockBootstrapSession.mockClear();
     resetChatStore();
   });
 
@@ -86,6 +92,7 @@ describe('ChatProvider', () => {
 
     expect(mockUseChatStream).toHaveBeenCalledWith(false);
     expect(mockUseToolRunner).toHaveBeenCalledWith(false);
+    expect(mockBootstrapSession).toHaveBeenCalledTimes(1);
 
     await waitFor(() => {
       expect(useChatStore.getState().activeConversationRef).toBe('conv-overlay-1');

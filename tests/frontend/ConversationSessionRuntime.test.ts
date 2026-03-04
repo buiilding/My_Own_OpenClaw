@@ -1,4 +1,5 @@
 import {
+  normalizeMainSessionSnapshot,
   normalizeConversationRef,
   resolveConversationRefForSend,
   shouldProjectSessionConversationRef,
@@ -38,5 +39,22 @@ describe('conversationSessionRuntime', () => {
       source: null,
     });
   });
-});
 
+  test('normalizes main session snapshot payload fields', () => {
+    expect(normalizeMainSessionSnapshot({
+      conversationRef: ' conv-main ',
+      userId: ' user-main ',
+    })).toEqual({
+      conversationRef: 'conv-main',
+      userId: 'user-main',
+    });
+
+    expect(normalizeMainSessionSnapshot({
+      conversation_ref: ' conv-backend ',
+      user_id: ' user-backend ',
+    })).toEqual({
+      conversationRef: 'conv-backend',
+      userId: 'user-backend',
+    });
+  });
+});

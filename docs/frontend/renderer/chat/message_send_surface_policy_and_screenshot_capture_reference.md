@@ -81,6 +81,11 @@ When attachment(s) exist:
 1. normalize payload.
 2. optional `stopPlayback()`.
 3. resolve/create conversation ref.
+   - resolution order is deterministic:
+     - transcript session ref
+     - chat store active conversation ref
+     - main-process session snapshot (`get-client-user-id`) conversation ref
+     - generated new ref (only when all three are missing)
 4. append optimistic user message to store.
 5. set `isSending=true`, clear thinking status.
 6. optional overlay return-to-chatbox invoke.
