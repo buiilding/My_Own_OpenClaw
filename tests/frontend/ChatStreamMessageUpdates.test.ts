@@ -133,4 +133,18 @@ describe('chatStreamMessageUpdates', () => {
       content: 'Done�',
     });
   });
+
+  test('preserves valid emoji surrogate pairs while replacing lone surrogates', () => {
+    expect(resolveStreamingResponseAction([], 'Hey! 👋')).toEqual({
+      type: 'new',
+      text: 'Hey! 👋',
+      turnRef: undefined,
+    });
+
+    expect(buildAssistantMessageFullUpdate({
+      content: 'Wave 👋 then lone \udc9d',
+    })).toEqual({
+      content: 'Wave 👋 then lone \uFFFD',
+    });
+  });
 });

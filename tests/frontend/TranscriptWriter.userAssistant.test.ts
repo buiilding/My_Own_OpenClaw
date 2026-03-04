@@ -211,6 +211,30 @@ describe('TranscriptWriter user + assistant writes', () => {
     }));
   });
 
+  test('recordAssistantMessage preserves emoji in transparency systemPrompt', async () => {
+    const { writer, invokeMock } = loadTranscriptWriter();
+    writer.updateTranscriptSession('conv-transparency-emoji', 'user-transparency-emoji');
+
+    writer.recordAssistantMessage('assistant with emoji transparency', {
+      messageType: 'llm-text',
+      transparency: {
+        systemPrompt: 'Prompt with wave 👋 and lone \uDC9D',
+      },
+    });
+    await Promise.resolve();
+
+    expectStoreTranscriptCall(invokeMock, createStoreTranscriptPayload({
+      content: 'assistant with emoji transparency',
+      userId: 'user-transparency-emoji',
+      conversationRef: 'conv-transparency-emoji',
+      role: 'assistant',
+      messageType: 'llm-text',
+      transparency: {
+        systemPrompt: 'Prompt with wave 👋 and lone \uFFFD',
+      },
+    }));
+  });
+
   test('recordAssistantMessage repairs common mojibake in transparency systemPrompt', async () => {
     const { writer, invokeMock } = loadTranscriptWriter();
     writer.updateTranscriptSession('conv-transparency-mojibake', 'user-transparency-mojibake');
