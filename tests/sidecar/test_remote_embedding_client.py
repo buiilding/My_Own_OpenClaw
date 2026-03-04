@@ -130,6 +130,18 @@ async def test_embed_text_initializes_session_when_missing_and_normalizes_backen
     assert session.last_post[2].total == 30
 
 
+@pytest.mark.asyncio
+async def test_embed_text_sanitizes_lone_surrogates_in_payload():
+    response = DummyResponse(200, json_data={"embedding": [0.5]})
+    session = DummySession(response)
+    client = RemoteEmbeddingClient()
+    client._session = session
+
+    await client.embed_text("broken\udc9dtext")
+
+    assert session.last_post[1]["text"] == "broken�text"
+
+
 def test_dimension_property_returns_expected_default():
     client = RemoteEmbeddingClient()
 

@@ -48,6 +48,15 @@ def test_write_json_line_supports_array_payloads(monkeypatch):
     assert dummy_stdout.buffer.flush_calls == 1
 
 
+def test_write_json_line_replaces_lone_surrogates(monkeypatch):
+    dummy_stdout = _install_dummy_stdout(monkeypatch)
+
+    stdout_json_module.write_json_line({"text": "bad\udc9dtitle"})
+
+    assert dummy_stdout.buffer.writes == ['{"text": "bad�title"}\n'.encode("utf-8")]
+    assert dummy_stdout.buffer.flush_calls == 1
+
+
 def test_write_json_line_propagates_buffer_errors(monkeypatch):
     dummy_stdout = _install_dummy_stdout(monkeypatch, write_error=OSError("broken pipe"))
 
