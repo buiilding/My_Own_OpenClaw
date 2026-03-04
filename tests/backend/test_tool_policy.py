@@ -17,10 +17,26 @@ def test_filter_tool_names_applies_interaction_mode_allowlist():
     policy = ToolPolicy(config=AppConfig(interaction_mode="chat"), selection=None)
 
     filtered = policy.filter_tool_names(
-        ["read_file", "replace", "run_shell_command", "open_app", "process", "screenshot", "browser"]
+        [
+            "read_file",
+            "replace",
+            "run_shell_command",
+            "open_app",
+            "process",
+            "screenshot",
+            "computer_use",
+            "browser",
+        ]
     )
 
-    assert filtered == ["read_file", "replace", "run_shell_command", "open_app", "process", "screenshot"]
+    assert filtered == [
+        "read_file",
+        "replace",
+        "run_shell_command",
+        "open_app",
+        "process",
+        "computer_use",
+    ]
 
 
 def test_filter_tool_names_applies_dev_selection(tmp_path: Path):
@@ -37,6 +53,16 @@ def test_filter_tool_names_applies_dev_selection(tmp_path: Path):
     filtered = policy.filter_tool_names(["read_file", "write_file", "glob"])
 
     assert filtered == ["read_file", "write_file"]
+
+
+def test_filter_tool_names_normalizes_legacy_computer_tools_to_unified():
+    policy = ToolPolicy(config=AppConfig(interaction_mode="agent"), selection=None)
+
+    filtered = policy.filter_tool_names(
+        ["read_file", "mouse_control", "keyboard_control", "browser"]
+    )
+
+    assert filtered == ["read_file", "browser", "computer_use"]
 
 
 def test_filter_tool_schemas_filters_mouse_method_fields(tmp_path: Path):

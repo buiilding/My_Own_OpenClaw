@@ -36,11 +36,10 @@ class ParseRecoveryPolicy:
         return (
             f"[System Validation Error: {error_details}]\n\n"
             "Your tool call format was invalid. "
-            "For computer-use tools (mouse_control, keyboard_control, screenshot, scroll_control, switch_tab, wait), "
+            "For computer-use actions, use the unified computer_use tool and include metadata. "
             "you MUST use this format:\n"
-            '{"metadata": {"description": "...", "explanation": "...", "expectation": "..."}, '
-            '"action": {"functionCall": {"name": "tool_name", "args": {...}}}}\n\n'
-            "Metadata MUST come first, otherwise the tool call will be rejected. "
+            '{"functionCall": {"name": "computer_use", "args": {"tool": "mouse_control", "metadata": {"description": "...", "explanation": "...", "expectation": "..."}, "arguments": {...}}}}\n\n'
+            "Direct functionCall format is required. "
             "Please correct your format and try again."
         )
 

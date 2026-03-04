@@ -324,5 +324,12 @@ class AppConfig(BaseModel):
     def get_tool_allowlist(self) -> Optional[set[str]]:
         """Return allowed tool names for the current interaction mode."""
         if self.interaction_mode == "chat":
-            return {"read_file", "replace", "run_shell_command", "open_app", "process", "screenshot"}
+            return {
+                "read_file",
+                "replace",
+                "run_shell_command",
+                "open_app",
+                "process",
+                "computer_use",
+            }
         return None

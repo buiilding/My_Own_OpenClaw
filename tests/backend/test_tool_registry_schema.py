@@ -151,6 +151,18 @@ def test_tool_registry_filtered_declarations_include_only_requested_tool():
     assert [d["function"]["name"] for d in declarations] == ["dummy_tool"]
 
 
+def test_tool_registry_filtered_declarations_normalize_legacy_computer_tools():
+    config = AppConfig()
+    registry = ToolRegistry(config=config, cache_manager=CacheManager())
+
+    declarations = registry.get_function_declarations_filtered(
+        ["mouse_control", "keyboard_control", "screenshot", "switch_tab", "wait"]
+    )
+    names = [d["function"]["name"] for d in declarations]
+
+    assert names == ["computer_use"]
+
+
 def test_tool_registry_availability_and_capabilities_fallback():
     config = AppConfig()
     registry = ToolRegistry(config=config, cache_manager=CacheManager())

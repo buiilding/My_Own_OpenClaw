@@ -27,6 +27,17 @@ logger = logging.getLogger(__name__)
 
 _ENV_PATH = "WINDIEOS_DEV_TOOL_SELECTION_PATH"
 _MOUSE_COORD_METHODS: tuple[str, ...] = ("manual", "ocr", "prediction")
+_LEGACY_COMPUTER_TOOL_NAMES: frozenset[str] = frozenset(
+    {
+        "mouse_control",
+        "keyboard_control",
+        "screenshot",
+        "scroll_control",
+        "switch_tab",
+        "wait",
+    }
+)
+_UNIFIED_COMPUTER_TOOL_NAME = "computer_use"
 
 
 def _ordered_mouse_methods(methods: Sequence[str]) -> List[str]:
@@ -47,11 +58,12 @@ class ToolSelection:
 
     def is_tool_enabled(self, tool_name: str) -> bool:
         """Return True if the tool is enabled by top-level allow/deny policy."""
+        normalized_name = self._normalize_tool_name(tool_name)
         if not self.enabled:
             return True
         if self.mode == "allowlist":
-            return tool_name in self.tools
-        return tool_name not in self.tools
+            return self._is_allowlisted(normalized_name)
+        return self._is_not_denylisted(normalized_name)
 
     def get_allowed_mouse_coordinate_methods(self) -> frozenset[str]:
         """
@@ -61,7 +73,7 @@ class ToolSelection:
         - If mouse_control is disabled, this returns an empty set.
         - If enabled and method list is unspecified, all methods are allowed.
         """
-        if not self.is_tool_enabled("mouse_control"):
+        if not self.is_tool_enabled(_UNIFIED_COMPUTER_TOOL_NAME):
             return frozenset()
         if self.mouse_enabled_coordinate_methods is None:
             return frozenset(_MOUSE_COORD_METHODS)
@@ -73,14 +85,23 @@ class ToolSelection:
     def filter_tool_names(self, tool_names: Sequence[str]) -> List[str]:
         """Filter tool names according to selection mode (stable order)."""
         if not self.enabled:
-            return list(tool_names)
+            return self._normalize_unified_computer_use_tool_names(tool_names)
         filtered: List[str] = []
+        has_unified_computer = False
         for name in tool_names:
-            if not self.is_tool_enabled(name):
+            normalized_name = self._normalize_tool_name(name)
+            if not self.is_tool_enabled(normalized_name):
                 continue
-            if name == "mouse_control" and not self._is_mouse_control_effectively_enabled():
+            if (
+                normalized_name == _UNIFIED_COMPUTER_TOOL_NAME
+                and not self._is_mouse_control_effectively_enabled()
+            ):
                 continue
-            filtered.append(name)
+            if normalized_name == _UNIFIED_COMPUTER_TOOL_NAME:
+                if has_unified_computer:
+                    continue
+                has_unified_computer = True
+            filtered.append(normalized_name)
         return filtered
 
     def filter_tool_schemas(self, tool_schemas: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -89,6 +110,7 @@ class ToolSelection:
             return list(tool_schemas)
 
         filtered: List[Dict[str, Any]] = []
+        has_unified_computer = False
         for schema in tool_schemas:
             tool_name = self._get_tool_name(schema)
             if not isinstance(tool_name, str):
@@ -97,17 +119,25 @@ class ToolSelection:
                     filtered.append(schema)
                 continue
 
-            if not self.is_tool_enabled(tool_name):
+            normalized_name = self._normalize_tool_name(tool_name)
+            if not self.is_tool_enabled(normalized_name):
                 continue
 
-            if tool_name != "mouse_control":
+            if normalized_name != _UNIFIED_COMPUTER_TOOL_NAME:
                 filtered.append(schema)
                 continue
+
+            if has_unified_computer:
+                continue
+            has_unified_computer = True
 
             allowed_methods = self.get_allowed_mouse_coordinate_methods()
             if not allowed_methods:
                 continue
-            filtered.append(self._filter_mouse_control_schema(schema, allowed_methods))
+            if tool_name == "mouse_control":
+                filtered.append(self._filter_mouse_control_schema(schema, allowed_methods))
+            else:
+                filtered.append(schema)
 
         return filtered
 
@@ -183,6 +213,41 @@ class ToolSelection:
             pass
 
         return None
+
+    def _is_allowlisted(self, normalized_tool_name: str) -> bool:
+        if normalized_tool_name in self.tools:
+            return True
+        if normalized_tool_name == _UNIFIED_COMPUTER_TOOL_NAME:
+            return bool(self.tools & _LEGACY_COMPUTER_TOOL_NAMES)
+        return False
+
+    def _is_not_denylisted(self, normalized_tool_name: str) -> bool:
+        if normalized_tool_name in self.tools:
+            return False
+        if normalized_tool_name == _UNIFIED_COMPUTER_TOOL_NAME:
+            return not bool(self.tools & _LEGACY_COMPUTER_TOOL_NAMES)
+        return True
+
+    @staticmethod
+    def _normalize_tool_name(tool_name: str) -> str:
+        if tool_name in _LEGACY_COMPUTER_TOOL_NAMES:
+            return _UNIFIED_COMPUTER_TOOL_NAME
+        return tool_name
+
+    @classmethod
+    def _normalize_unified_computer_use_tool_names(
+        cls, tool_names: Sequence[str]
+    ) -> List[str]:
+        normalized: List[str] = []
+        has_unified = False
+        for name in tool_names:
+            mapped = cls._normalize_tool_name(name)
+            if mapped == _UNIFIED_COMPUTER_TOOL_NAME:
+                if has_unified:
+                    continue
+                has_unified = True
+            normalized.append(mapped)
+        return normalized
 
     @staticmethod
     def _get_tool_name(schema: Dict[str, Any]) -> Optional[str]:

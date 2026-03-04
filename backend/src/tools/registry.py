@@ -17,6 +17,17 @@ from backend.src.tools.schema_registry import SchemaRegistry
 from backend.src.tools.remote import get_all_remote_tools
 
 logger = logging.getLogger(__name__)
+_LEGACY_COMPUTER_TOOL_NAMES = frozenset(
+    {
+        "mouse_control",
+        "keyboard_control",
+        "screenshot",
+        "scroll_control",
+        "switch_tab",
+        "wait",
+    }
+)
+_UNIFIED_COMPUTER_TOOL_NAME = "computer_use"
 
 
 class ToolRegistry:
@@ -119,7 +130,8 @@ class ToolRegistry:
         Returns:
             List of function declaration dictionaries
         """
-        return self.schema_registry.get_declarations(self.get_all_tools())
+        declarations = self.schema_registry.get_declarations(self.get_all_tools())
+        return self._collapse_unified_computer_use_declarations(declarations)
 
     def get_function_declarations_filtered(
         self, tool_names: List[str]
@@ -133,9 +145,10 @@ class ToolRegistry:
         Returns:
             List of function declarations for the specified tools
         """
-        tool_name_set = set(tool_names)
+        tool_name_set = self._normalize_requested_tool_names(tool_names)
         filtered_tools = [tool for tool in self.get_all_tools() if tool.name in tool_name_set]
-        return self.schema_registry.get_declarations(filtered_tools)
+        declarations = self.schema_registry.get_declarations(filtered_tools)
+        return self._collapse_unified_computer_use_declarations(declarations)
 
     def is_tool_available(self, tool_name: str) -> bool:
         """Check if a tool is available."""
@@ -181,3 +194,36 @@ class ToolRegistry:
             "parameters": parameters,
             "requires_context": True,
         }
+    @staticmethod
+    def _collapse_unified_computer_use_declarations(
+        declarations: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        has_unified = any(
+            isinstance(item, dict)
+            and isinstance(item.get("function"), dict)
+            and item["function"].get("name") == _UNIFIED_COMPUTER_TOOL_NAME
+            for item in declarations
+        )
+        if not has_unified:
+            return declarations
+
+        collapsed: List[Dict[str, Any]] = []
+        for item in declarations:
+            fn = item.get("function") if isinstance(item, dict) else None
+            fn_name = fn.get("name") if isinstance(fn, dict) else None
+            if isinstance(fn_name, str) and fn_name in _LEGACY_COMPUTER_TOOL_NAMES:
+                continue
+            collapsed.append(item)
+        return collapsed
+
+    @staticmethod
+    def _normalize_requested_tool_names(tool_names: List[str]) -> set[str]:
+        normalized = {
+            name
+            for name in tool_names
+            if isinstance(name, str)
+        }
+        if normalized & _LEGACY_COMPUTER_TOOL_NAMES:
+            normalized -= _LEGACY_COMPUTER_TOOL_NAMES
+            normalized.add(_UNIFIED_COMPUTER_TOOL_NAME)
+        return normalized
