@@ -621,4 +621,23 @@ describe('useChatMessageSender', () => {
       }),
     );
   });
+
+  test('reuses chat store active conversation ref when transcript session ref is temporarily missing', async () => {
+    useChatStore.setState({
+      activeConversationRef: 'conv_store_active',
+    });
+    mockActiveConversationRef = null;
+
+    const { result } = renderSender({ returnToChatboxPolicy: 'never' });
+    await sendText(result, 'resume same chat');
+
+    expect(mockSetActiveConversationRef).toHaveBeenCalledWith('conv_store_active');
+    expect(mockSendQuery).toHaveBeenCalledTimes(1);
+    expect(mockSendQuery.mock.calls[0][1]).toBe('conv_store_active');
+    expect(mockRecordUserMessage.mock.calls[0][1]).toEqual(
+      expect.objectContaining({
+        conversationRef: 'conv_store_active',
+      }),
+    );
+  });
 });

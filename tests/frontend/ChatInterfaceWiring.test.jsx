@@ -54,6 +54,10 @@ const mockGetTranscriptSessionInfo = jest.fn(() => ({
 const mockIpcInvoke = jest.fn(async () => ({ success: true }));
 const mockIpcListeners = new Map();
 const mockMessageList = jest.fn(() => <div data-testid="message-list" />);
+let mockTranscriptSessionSnapshot = {
+  conversationRef: 'conv_existing',
+  userId: 'default_user',
+};
 const mockChatState = {
   messages: [],
   isSending: false,
@@ -137,10 +141,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 }));
 
 jest.mock('../../frontend/src/renderer/features/dashboard/hooks/useTranscriptSessionInfo', () => ({
-  useTranscriptSessionInfo: () => ({
-    conversationRef: 'conv_existing',
-    userId: 'default_user',
-  }),
+  useTranscriptSessionInfo: () => mockTranscriptSessionSnapshot,
 }));
 
 jest.mock('../../frontend/src/renderer/features/chat/utils/backendAudioEvents', () => ({
@@ -200,6 +201,10 @@ describe('ChatInterface wiring', () => {
     mockUpdateConfig.mockClear();
     mockIsDevUiEnabled.mockReset();
     mockIsDevUiEnabled.mockReturnValue(false);
+    mockTranscriptSessionSnapshot = {
+      conversationRef: 'conv_existing',
+      userId: 'default_user',
+    };
     mockChatState.streamTracking.phase = 'idle';
     mockChatState.messages = [];
     mockChatState.isSending = false;
@@ -214,6 +219,17 @@ describe('ChatInterface wiring', () => {
       expect.any(Function),
       { senderSurface: 'main-window' },
     );
+  });
+
+  test('does not clear active conversation mapping when transcript session conversation is temporarily null', () => {
+    mockTranscriptSessionSnapshot = {
+      conversationRef: null,
+      userId: 'default_user',
+    };
+
+    render(<ChatInterface />);
+
+    expect(mockSetChatActiveConversationRef).not.toHaveBeenCalledWith(null);
   });
 
   test('shows text-to-speech toggle in header', () => {

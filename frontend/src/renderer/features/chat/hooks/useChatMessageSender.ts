@@ -226,6 +226,12 @@ export function useChatMessageSender(
       setChatActiveConversationRef(activeRef);
       return activeRef;
     }
+    const storeActiveRef = useChatStore.getState().activeConversationRef;
+    if (storeActiveRef) {
+      setActiveConversationRef(storeActiveRef);
+      setChatActiveConversationRef(storeActiveRef);
+      return storeActiveRef;
+    }
     const generatedRef = createConversationRef();
     setActiveConversationRef(generatedRef);
     setChatActiveConversationRef(generatedRef);
