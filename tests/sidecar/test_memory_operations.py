@@ -254,3 +254,74 @@ def test_group_memory_texts_falls_back_when_no_interaction_style_episodic_rows()
 
     assert grouped["episodic"] == ["recent note"]
     assert grouped["semantic"] == ["works in short bursts"]
+
+
+def test_group_memory_texts_synthesizes_transcript_user_assistant_pairs():
+    grouped = group_memory_texts([
+        {
+            "type": "episodic",
+            "text": "Assistant confirms booking details",
+            "record_kind": "transcript",
+            "conversation_id": "conv-1",
+            "role": "assistant",
+            "message_index": 2,
+        },
+        {
+            "type": "episodic",
+            "text": "Book me a table for 2",
+            "record_kind": "transcript",
+            "conversation_id": "conv-1",
+            "role": "user",
+            "message_index": 1,
+        },
+        {
+            "type": "episodic",
+            "text": "Need vegetarian options",
+            "record_kind": "transcript",
+            "conversation_id": "conv-2",
+            "role": "user",
+            "message_index": 1,
+        },
+        {
+            "type": "episodic",
+            "text": "Assistant shares vegetarian restaurants",
+            "record_kind": "transcript",
+            "conversation_id": "conv-2",
+            "role": "assistant",
+            "message_index": 2,
+        },
+    ])
+
+    assert grouped["episodic"] == [
+        "User: Book me a table for 2\nAssistant: Assistant confirms booking details",
+        "User: Need vegetarian options\nAssistant: Assistant shares vegetarian restaurants",
+    ]
+
+
+def test_group_memory_texts_transcript_fallback_uses_metadata_fields():
+    grouped = group_memory_texts([
+        {
+            "type": "episodic",
+            "text": "Can you summarize yesterday?",
+            "metadata": {
+                "record_kind": "transcript",
+                "conversation_id": "conv-3",
+                "role": "user",
+                "message_index": 1,
+            },
+        },
+        {
+            "type": "episodic",
+            "text": "Sure, here is a summary.",
+            "metadata": {
+                "record_kind": "transcript",
+                "conversation_id": "conv-3",
+                "role": "assistant",
+                "message_index": 2,
+            },
+        },
+    ])
+
+    assert grouped["episodic"] == [
+        "User: Can you summarize yesterday?\nAssistant: Sure, here is a summary."
+    ]

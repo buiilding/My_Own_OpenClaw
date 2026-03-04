@@ -69,6 +69,7 @@ def group_memory_texts(results: Iterable[Dict[str, Any]]) -> Dict[str, List[str]
     grouped: Dict[str, List[str]] = {"semantic": [], "episodic": []}
     episodic_interactions: List[str] = []
     episodic_fallback: List[str] = []
+    episodic_structured_rows: List[Dict[str, Any]] = []
 
     def _is_user_assistant_interaction(result: Dict[str, Any], text: str) -> bool:
         metadata = result.get("metadata")
@@ -92,9 +93,129 @@ def group_memory_texts(results: Iterable[Dict[str, Any]]) -> Dict[str, List[str]
                 episodic_interactions.append(text)
             else:
                 episodic_fallback.append(text)
+                episodic_structured_rows.append(result)
 
-    grouped["episodic"] = episodic_interactions or episodic_fallback
+    if episodic_interactions:
+        grouped["episodic"] = episodic_interactions
+        return grouped
+
+    synthesized_pairs = synthesize_transcript_interaction_pairs(episodic_structured_rows)
+    grouped["episodic"] = synthesized_pairs or episodic_fallback
     return grouped
+
+
+def _normalize_message_index(value: Any) -> Optional[int]:
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, str):
+        stripped = value.strip()
+        if stripped.isdigit():
+            return int(stripped)
+    return None
+
+
+def _resolve_result_metadata(result: Dict[str, Any]) -> Dict[str, Any]:
+    metadata = result.get("metadata")
+    if isinstance(metadata, dict):
+        return metadata
+    return {}
+
+
+def synthesize_transcript_interaction_pairs(results: Iterable[Dict[str, Any]]) -> List[str]:
+    """
+    Build best-effort user/assistant pairs from transcript search rows.
+
+    This is a fallback for cases where explicit interaction memories are not returned
+    in top-k similarity results.
+    """
+    assistant_rows_by_conversation: Dict[str, List[Tuple[Optional[int], str]]] = {}
+    user_rows_by_conversation: Dict[str, List[Tuple[Optional[int], str]]] = {}
+
+    for result in results:
+        text = result.get("text")
+        if not isinstance(text, str) or not text.strip():
+            continue
+
+        metadata = _resolve_result_metadata(result)
+        record_kind = (
+            result.get("record_kind")
+            or metadata.get("record_kind")
+            or ""
+        )
+        if str(record_kind).strip().lower() != "transcript":
+            continue
+
+        conversation_id = (
+            result.get("conversation_id")
+            or metadata.get("conversation_id")
+            or "__unknown_conversation__"
+        )
+        normalized_conversation_id = str(conversation_id).strip() or "__unknown_conversation__"
+        role = (
+            result.get("role")
+            or metadata.get("role")
+            or ""
+        )
+        normalized_role = str(role).strip().lower()
+        message_index = _normalize_message_index(
+            result.get("message_index", metadata.get("message_index"))
+        )
+
+        if normalized_role == "assistant":
+            assistant_rows_by_conversation.setdefault(normalized_conversation_id, []).append((message_index, text))
+            continue
+        if normalized_role == "user":
+            user_rows_by_conversation.setdefault(normalized_conversation_id, []).append((message_index, text))
+
+    if not user_rows_by_conversation or not assistant_rows_by_conversation:
+        return []
+
+    def _row_sort_key(row: Tuple[Optional[int], str]) -> Tuple[int, int]:
+        message_index = row[0]
+        return (
+            message_index if message_index is not None else 10**9,
+            0 if message_index is not None else 1,
+        )
+
+    for conversation_id in assistant_rows_by_conversation:
+        assistant_rows_by_conversation[conversation_id] = sorted(
+            assistant_rows_by_conversation[conversation_id],
+            key=_row_sort_key,
+        )
+    for conversation_id in user_rows_by_conversation:
+        user_rows_by_conversation[conversation_id] = sorted(
+            user_rows_by_conversation[conversation_id],
+            key=_row_sort_key,
+        )
+
+    paired_interactions: List[str] = []
+    for conversation_id, user_rows in user_rows_by_conversation.items():
+        assistant_rows = assistant_rows_by_conversation.get(conversation_id, [])
+        for user_index, user_text in user_rows:
+            selected_assistant_idx = None
+            selected_assistant_text = None
+
+            for idx, (assistant_index, assistant_text) in enumerate(assistant_rows):
+                if user_index is None:
+                    selected_assistant_idx = idx
+                    selected_assistant_text = assistant_text
+                    break
+                if assistant_index is None or assistant_index > user_index:
+                    selected_assistant_idx = idx
+                    selected_assistant_text = assistant_text
+                    break
+
+            if selected_assistant_idx is None or selected_assistant_text is None:
+                continue
+
+            paired_interactions.append(
+                format_interaction_memory(user_text, selected_assistant_text)
+            )
+            assistant_rows.pop(selected_assistant_idx)
+
+    return paired_interactions
 
 
 def format_interaction_memory(user_query: str, assistant_response: str) -> str:

@@ -868,6 +868,7 @@ class LocalMemoryStore:
             db_path,
             memory_ids,
             include_conversation_id=(memory_type == "episodic"),
+            include_transcript_context=(memory_type == "episodic"),
         )
         results: List[Dict[str, Any]] = []
         # Reconstruct results in order of similarity
@@ -982,7 +983,7 @@ class LocalMemoryStore:
         similarity: float,
         memory_type: str,
     ) -> Dict[str, Any]:
-        return {
+        result = {
             "id": row["id"],
             "text": row["content"],
             "metadata": metadata,
@@ -991,12 +992,19 @@ class LocalMemoryStore:
             "type": memory_type,
             "conversation_id": row.get("conversation_id"),
         }
+        if memory_type == "episodic":
+            result["record_kind"] = row.get("record_kind")
+            result["role"] = row.get("role")
+            result["message_index"] = row.get("message_index")
+            result["message_type"] = row.get("message_type")
+        return result
 
     async def _fetch_rows_map(
         self,
         db_path: str,
         memory_ids: List[str],
         include_conversation_id: bool = False,
+        include_transcript_context: bool = False,
     ) -> Dict[str, Dict[str, Any]]:
         async with aiosqlite.connect(db_path) as conn:
             conn.row_factory = aiosqlite.Row
@@ -1006,6 +1014,8 @@ class LocalMemoryStore:
             select_columns = "id, user_id, content, timestamp, metadata"
             if include_conversation_id:
                 select_columns += ", conversation_id"
+            if include_transcript_context:
+                select_columns += ", record_kind, role, message_index, message_type"
             query = f"""
                 SELECT {select_columns}
                 FROM memories WHERE id IN ({placeholders})
