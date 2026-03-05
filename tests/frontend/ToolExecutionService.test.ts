@@ -19,6 +19,7 @@ import {
 } from '../../frontend/src/renderer/infrastructure/services/MessageFormatter';
 import { extractOSstate } from '../../frontend/src/renderer/infrastructure/services/SystemCapture';
 import { uploadArtifactBase64 } from '../../frontend/src/renderer/infrastructure/services/ArtifactUploader';
+import * as ToolExecutionBundleRunner from '../../frontend/src/renderer/infrastructure/services/ToolExecutionBundleRunner';
 
 const DISPLAY_BOUNDS_STORAGE_KEY = 'desktop-assistant-display-bounds';
 
@@ -464,5 +465,25 @@ describe('ToolExecutionService', () => {
       },
       skipAutoCapture: true,
     });
+  });
+
+  test('executeToolBundle sends deterministic failure envelope when bundle runner throws', async () => {
+    const runnerSpy = jest.spyOn(ToolExecutionBundleRunner, 'runToolBundle')
+      .mockRejectedValueOnce(new Error('bundle runner crashed'));
+    const { service, sendToBackend } = createServiceWithSendToBackend();
+
+    await expect(
+      service.executeToolBundle(
+        [{ toolName: 'read_file', args: { file_path: '/tmp/a' } }],
+        'bundle-runner-throw',
+      ),
+    ).rejects.toThrow('bundle runner crashed');
+
+    expectBundleResultEnvelope(sendToBackend, 'bundle-runner-throw', 'failure', {
+      step_results: [],
+      error: 'bundle runner crashed',
+    });
+
+    runnerSpy.mockRestore();
   });
 });

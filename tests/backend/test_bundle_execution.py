@@ -104,3 +104,55 @@ async def test_execute_bundle_handles_pydantic_step_results():
     assert len(result.tool_results) == 2
     assert result.tool_results[0].result.success is True
     assert "done" in (result.tool_results[0].result.llm_content or "")
+
+
+@pytest.mark.asyncio
+async def test_execute_bundle_uses_bundle_error_when_failed_step_has_no_output():
+    session = DummySession()
+    response = _make_response("bundle-no-step-output")
+
+    bundle_result = ToolResult(
+        success=False,
+        error="bundle execution failed upstream",
+        data={
+            "step_results": [
+                {"status": "ok", "output": "done"},
+                {"status": "error", "output": ""},
+            ],
+        },
+    )
+    session.get_result_storage().store_bundled_result(
+        "bundle-no-step-output",
+        bundle_result,
+    )
+
+    result = await execute_bundle(response, "bundle-no-step-output", session)
+
+    assert len(result.tool_results) == 2
+    assert result.tool_results[0].result.success is True
+    assert result.tool_results[1].result.success is False
+    assert result.tool_results[1].result.error == "bundle execution failed upstream"
+
+
+@pytest.mark.asyncio
+async def test_execute_bundle_marks_missing_step_results_as_failed():
+    session = DummySession()
+    response = _make_response("bundle-missing-step")
+
+    bundle_result = ToolResult(
+        success=False,
+        error="bundle returned fewer step results than expected",
+        data={
+            "step_results": [
+                {"status": "ok", "output": "done"},
+            ],
+        },
+    )
+    session.get_result_storage().store_bundled_result("bundle-missing-step", bundle_result)
+
+    result = await execute_bundle(response, "bundle-missing-step", session)
+
+    assert len(result.tool_results) == 2
+    assert result.tool_results[0].result.success is True
+    assert result.tool_results[1].result.success is False
+    assert result.tool_results[1].result.error == "bundle returned fewer step results than expected"

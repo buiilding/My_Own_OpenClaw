@@ -141,6 +141,15 @@ describe('ToolExecutionPayloads', () => {
     ).toBe('failure');
   });
 
+  test('resolveBundleStatus marks incomplete all-success results as partial failure', () => {
+    expect(
+      resolveBundleStatus(
+        [{ tool: 'a', status: 'ok', output: 'ok' }],
+        2,
+      ),
+    ).toBe('partial_failure');
+  });
+
   test('normalizes bundle step results and converts to bundle execution result shape', () => {
     const normalized = normalizeBundleStepResults([
       { tool: 'read_file', status: 'ok', output: 'done' },

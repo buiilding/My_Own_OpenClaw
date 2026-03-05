@@ -153,14 +153,13 @@ export function resolveBundleStatus(
   stepResults: BundleStepResult[],
   bundleLength: number,
 ): BundleStatus {
+  if (stepResults.length < bundleLength) {
+    return 'partial_failure';
+  }
+
   const allSuccess = stepResults.every((step) => step.status === 'ok');
   if (allSuccess) {
     return 'success';
-  }
-
-  const hasFailures = stepResults.some((step) => step.status === 'error');
-  if (hasFailures && stepResults.length < bundleLength) {
-    return 'partial_failure';
   }
 
   return 'failure';
