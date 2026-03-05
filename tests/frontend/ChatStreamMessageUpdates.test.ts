@@ -7,7 +7,7 @@ import {
   findLastMessageIdBySender,
   findStreamingCompleteAssistantMessage,
   resolveStreamingResponseAction,
-} from '../../frontend/src/renderer/features/chat/utils/chatStreamMessageUpdates';
+} from '../../frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates';
 
 describe('chatStreamMessageUpdates', () => {
   const messages = [

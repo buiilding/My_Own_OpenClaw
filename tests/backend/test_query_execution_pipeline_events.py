@@ -1,6 +1,6 @@
 import pytest
 
-from backend.src.api.services.query_execution_pipeline_events import (
+from backend.src.api.services.query_execution_support.query_execution_pipeline_events import (
     emit_completion_events,
     process_pipeline_event,
 )

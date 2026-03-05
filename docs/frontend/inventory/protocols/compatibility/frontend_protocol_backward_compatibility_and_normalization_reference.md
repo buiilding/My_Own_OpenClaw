@@ -21,7 +21,7 @@ Primary runtime sources:
 - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoStorage.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
-- `frontend/src/renderer/features/chat/utils/chatStreamConversationGate.ts`
+- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamConversationGate.ts`
 
 Primary test sources:
 
@@ -147,7 +147,7 @@ When changing compatibility behavior, keep aligned:
 | mixed-case RPC key normalization | `frontend/src/main/local_backend_bridge_rpc_mappers.cjs` | camelCase/snake_case payload variants map to canonical snake_case sidecar args |
 | legacy transcript session id fallback | `frontend/src/renderer/infrastructure/transcript/sessionInfoStorage.ts` | old `sessionId` storage key remains readable as conversation identity |
 | stream thought payload fallback | `frontend/src/renderer/features/chat/hooks/useChatStream.ts` | `payload.status` and fallback `payload.content` both interpreted for thought status |
-| missing conversation ref event tolerance | `frontend/src/renderer/features/chat/utils/chatStreamConversationGate.ts` | compatibility path allows events lacking `conversation_ref` without hard drop |
+| missing conversation ref event tolerance | `frontend/src/renderer/features/chat/utils/chatStream/chatStreamConversationGate.ts` | compatibility path allows events lacking `conversation_ref` without hard drop |
 
 ## Related Pages
 

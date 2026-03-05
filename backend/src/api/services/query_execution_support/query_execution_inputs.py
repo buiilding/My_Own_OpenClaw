@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, List, Optional, Type, Union
 
-from backend.src.api.services.query_execution_runtime import (
+from backend.src.api.services.query_execution_support.query_execution_runtime import (
     resolve_query_screenshot_metadata,
     resolve_screenshots,
 )

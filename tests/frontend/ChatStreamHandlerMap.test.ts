@@ -1,5 +1,5 @@
 import type { BackendEvent, BackendEventType } from '../../frontend/src/renderer/types/backendEvents';
-import { buildChatStreamHandlerMap } from '../../frontend/src/renderer/features/chat/utils/chatStreamHandlerMap';
+import { buildChatStreamHandlerMap } from '../../frontend/src/renderer/features/chat/utils/chatStream/chatStreamHandlerMap';
 
 const EVENT_TYPES: BackendEventType[] = [
   'llm-thought',

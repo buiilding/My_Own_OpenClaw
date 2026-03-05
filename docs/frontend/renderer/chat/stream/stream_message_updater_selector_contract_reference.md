@@ -11,7 +11,7 @@ title: "Stream Message Updater Selector Contract Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/features/chat/hooks/useStreamMessageUpdaters.ts`
-- `frontend/src/renderer/features/chat/utils/chatStreamMessageUpdates.ts`
+- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `tests/frontend/ChatStreamMessageUpdates.test.ts`

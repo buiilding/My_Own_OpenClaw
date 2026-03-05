@@ -11,8 +11,8 @@ import {
   buildAssistantMessageFullUpdate,
   buildSystemPromptUpdate,
   buildUserMessageFullUpdate,
-} from '../utils/chatStreamMessageUpdates';
-import type { StreamTrackingOptions } from '../utils/chatStreamTracking';
+} from '../utils/chatStream/chatStreamMessageUpdates';
+import type { StreamTrackingOptions } from '../utils/chatStream/chatStreamTracking';
 import type { ChatMessage } from '../stores/chatStore';
 
 type ResolveTargetConversationRef = (event: BackendEvent) => string | null;

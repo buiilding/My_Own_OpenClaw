@@ -5,7 +5,7 @@ import {
   COMPACTION_COMPLETED_THINKING_STATUS,
   COMPACTION_FAILED_THINKING_STATUS,
   COMPACTION_THINKING_STATUS,
-} from '../../frontend/src/renderer/features/chat/utils/chatStreamThinkingStatus';
+} from '../../frontend/src/renderer/features/chat/utils/chatStream/chatStreamThinkingStatus';
 
 describe('useChatStreamCompactionHandlers', () => {
   test('updates thinking state for compaction lifecycle events', () => {

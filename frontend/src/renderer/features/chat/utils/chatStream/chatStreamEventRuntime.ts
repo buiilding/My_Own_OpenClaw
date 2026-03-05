@@ -1,5 +1,5 @@
-import { type BackendEvent, type BackendEventType } from '../../../types/backendEvents';
-import { useChatStore } from '../stores/chatStore';
+import { type BackendEvent, type BackendEventType } from '../../../../types/backendEvents';
+import { useChatStore } from '../../stores/chatStore';
 import { applyTrackingEvent, type StreamTrackingOptions } from './chatStreamTracking';
 import { isStaleTurnForActiveStream } from './chatStreamTurnGuard';
 import {

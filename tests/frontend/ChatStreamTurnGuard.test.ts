@@ -1,4 +1,4 @@
-import { isStaleTurnForActiveStream } from '../../frontend/src/renderer/features/chat/utils/chatStreamTurnGuard';
+import { isStaleTurnForActiveStream } from '../../frontend/src/renderer/features/chat/utils/chatStream/chatStreamTurnGuard';
 
 describe('chatStreamTurnGuard', () => {
   test('treats missing event turn refs as non-stale', () => {

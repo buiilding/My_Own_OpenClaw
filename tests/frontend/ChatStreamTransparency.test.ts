@@ -1,4 +1,4 @@
-import { buildAssistantTranscriptTransparency } from '../../frontend/src/renderer/features/chat/utils/chatStreamTransparency';
+import { buildAssistantTranscriptTransparency } from '../../frontend/src/renderer/features/chat/utils/chatStream/chatStreamTransparency';
 import type { ChatMessage } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 
 function createUserMessage(overrides: Partial<ChatMessage> = {}): ChatMessage {

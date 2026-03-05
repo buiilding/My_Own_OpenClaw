@@ -25,7 +25,7 @@ title: "Frontend Protocol Compatibility Hub"
 - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoStorage.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
-- `frontend/src/renderer/features/chat/utils/chatStreamConversationGate.ts`
+- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamConversationGate.ts`
 - `tests/frontend/IpcMainBridge.lifecycle.test.cjs`
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`
 - `tests/frontend/TranscriptStorage.test.ts`

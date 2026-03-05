@@ -1,6 +1,6 @@
-import type { ToolSchema } from '../../../types/backendEvents';
-import type { ChatMessage } from '../stores/chatStore';
-import { normalizeIncomingText } from '../../../infrastructure/text/incomingTextNormalization';
+import type { ToolSchema } from '../../../../types/backendEvents';
+import type { ChatMessage } from '../../stores/chatStore';
+import { normalizeIncomingText } from '../../../../infrastructure/text/incomingTextNormalization';
 
 type SystemPromptPayload = {
   content?: unknown;

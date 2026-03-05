@@ -25,12 +25,12 @@ title: "Frontend Renderer Chat Stream Docs Hub"
 
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/hooks/useStreamMessageUpdaters.ts`
-- `frontend/src/renderer/features/chat/utils/chatStreamConversationGate.ts`
-- `frontend/src/renderer/features/chat/utils/chatStreamHandlerMap.ts`
-- `frontend/src/renderer/features/chat/utils/chatStreamTracking.ts`
-- `frontend/src/renderer/features/chat/utils/chatStreamFormatting.ts`
-- `frontend/src/renderer/features/chat/utils/chatStreamMessageUpdates.ts`
-- `frontend/src/renderer/features/chat/utils/chatStreamEventUtils.ts`
+- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamConversationGate.ts`
+- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamHandlerMap.ts`
+- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTracking.ts`
+- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamFormatting.ts`
+- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates.ts`
+- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventUtils.ts`
 - `tests/frontend/ChatStreamConversationGate.test.ts`
 - `tests/frontend/ChatStreamTracking.test.ts`
 - `tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx`

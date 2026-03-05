@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from backend.src.api.services.query_execution_cancellation import (
+from backend.src.api.services.query_execution_support.query_execution_cancellation import (
     finalize_pending_tool_calls_on_cancel,
 )
 

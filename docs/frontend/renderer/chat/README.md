@@ -45,11 +45,11 @@ title: "Frontend Renderer Chat Docs Hub"
 - `frontend/src/renderer/features/chat/hooks/useChatCommonActions.ts`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/features/chat/utils/chatMessageSenderUtils.ts`
-- `frontend/src/renderer/features/chat/utils/chatStreamConversationGate.ts`
-- `frontend/src/renderer/features/chat/utils/chatStreamTracking.ts`
-- `frontend/src/renderer/features/chat/utils/chatStreamFormatting.ts`
-- `frontend/src/renderer/features/chat/utils/chatStreamMessageUpdates.ts`
-- `frontend/src/renderer/features/chat/utils/chatStreamEventUtils.ts`
+- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamConversationGate.ts`
+- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTracking.ts`
+- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamFormatting.ts`
+- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates.ts`
+- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventUtils.ts`
 - `frontend/src/renderer/features/chat/utils/transcriptMessagePayload.js`
 - `frontend/src/renderer/features/chat/utils/messageTransparency.js`
 - `frontend/src/renderer/features/chat/utils/newChatSession.ts`

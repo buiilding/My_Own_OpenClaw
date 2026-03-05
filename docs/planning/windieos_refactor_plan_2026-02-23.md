@@ -270,7 +270,7 @@ read_when:
   - extracted shared text sanitization utility:
     - `frontend/src/renderer/infrastructure/text/incomingTextNormalization.ts`
   - rewired:
-    - `frontend/src/renderer/features/chat/utils/chatStreamMessageUpdates.ts`
+    - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates.ts`
     - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
     - `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js`
     - `frontend/src/renderer/features/chat/session/conversationSessionRuntime.ts`
@@ -296,7 +296,7 @@ read_when:
     - `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js`
   - extracted stream utility modules from `useChatStream.ts`:
     - `frontend/src/renderer/features/chat/utils/modelThinkingCapabilities.ts`
-    - `frontend/src/renderer/features/chat/utils/chatStreamToolMessages.ts`
+    - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamToolMessages.ts`
   - extracted shared dashboard conversation-group PropTypes:
     - `frontend/src/renderer/features/dashboard/components/shared/conversationGroupPropTypes.js`
   - result:
@@ -4966,7 +4966,7 @@ read_when:
 
 - Refactor slice (frontend chat stream decomposition): extracted transcript transparency assembly from `useChatStream` into a dedicated utility.
   - added:
-    - `frontend/src/renderer/features/chat/utils/chatStreamTransparency.ts`
+    - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTransparency.ts`
       - `buildAssistantTranscriptTransparency(...)` for deterministic transparency extraction/normalization from user+assistant message context.
   - rewired:
     - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
@@ -4983,7 +4983,7 @@ read_when:
     - `react-compiler/react-compiler`: clean
     - `deprecation/deprecation`: clean
 - Validation:
-  - `cd frontend && npm run lint -- src/renderer/features/chat/hooks/useChatStream.ts src/renderer/features/chat/utils/chatStreamTransparency.ts` (pass)
+  - `cd frontend && npm run lint -- src/renderer/features/chat/hooks/useChatStream.ts src/renderer/features/chat/utils/chatStream/chatStreamTransparency.ts` (pass)
   - `cd frontend && npm run test:ci -- ../tests/frontend/ChatStreamTransparency.test.ts` (pass)
   - `cd frontend && npm run test:ci -- tests/frontend/TranscriptWriter.userAssistant.test.ts tests/frontend/ChatStreamThinkingStatus.state.test.tsx` (pass)
   - `cd frontend && npm run lint:audit` (pass)
@@ -5033,7 +5033,7 @@ read_when:
 
 - Refactor slice (frontend chat stream event-runtime split + slow test trim):
   - extracted chat-stream conversation/turn runtime helpers from hook:
-    - added `frontend/src/renderer/features/chat/utils/chatStreamEventRuntime.ts`
+    - added `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventRuntime.ts`
       - `resolveTargetConversationRef(...)`
       - `syncActiveConversationProjection(...)`
       - `shouldIgnoreForStaleTurn(...)`
@@ -5063,7 +5063,7 @@ read_when:
     - `react-compiler/react-compiler`: clean
     - `deprecation/deprecation`: clean
 - Validation:
-  - `cd frontend && npm run lint -- src/renderer/features/chat/hooks/useChatStream.ts src/renderer/features/chat/utils/chatStreamEventRuntime.ts` (pass)
+  - `cd frontend && npm run lint -- src/renderer/features/chat/hooks/useChatStream.ts src/renderer/features/chat/utils/chatStream/chatStreamEventRuntime.ts` (pass)
   - `cd frontend && npm run test:ci -- ../tests/frontend/ChatStreamEventRuntime.test.ts ../tests/frontend/ChatStreamThinkingStatus.state.test.tsx ../tests/frontend/ChatGptDashboardShell.test.jsx` (pass)
   - `cd frontend && NODE_OPTIONS=--no-deprecation npx jest --config jest.config.cjs --runInBand --json --outputFile ../.audit/plan1/jest-report-current.json` (pass; 184 suites)
   - `cd frontend && npm run lint:audit` (pass)

@@ -10,9 +10,9 @@ title: "Conversation Gate and Conversation Isolation Reference"
 
 ## Canonical Modules
 
-- `frontend/src/renderer/features/chat/utils/chatStreamConversationGate.ts`
+- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamConversationGate.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
-- `frontend/src/renderer/features/chat/utils/chatStreamHandlerMap.ts`
+- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamHandlerMap.ts`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `tests/frontend/ChatStreamConversationGate.test.ts`
 - `tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx`

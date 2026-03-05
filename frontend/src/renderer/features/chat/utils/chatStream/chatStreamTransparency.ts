@@ -1,5 +1,5 @@
-import type { ChatMessage } from '../stores/chatStore';
-import type { TranscriptTransparencyData } from '../../../infrastructure/transcript/types';
+import type { ChatMessage } from '../../stores/chatStore';
+import type { TranscriptTransparencyData } from '../../../../infrastructure/transcript/types';
 
 function resolveUserMessageForTurn(
   messages: ChatMessage[],

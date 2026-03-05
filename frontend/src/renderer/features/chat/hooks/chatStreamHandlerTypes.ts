@@ -1,5 +1,5 @@
 import { type ChatMessage } from '../stores/chatStore';
-import { type TranscriptModelContext } from '../utils/chatStreamTypes';
+import { type TranscriptModelContext } from '../utils/chatStream/chatStreamTypes';
 
 export type TrackEventFn<EventType extends string = string> = (
   eventType: EventType,

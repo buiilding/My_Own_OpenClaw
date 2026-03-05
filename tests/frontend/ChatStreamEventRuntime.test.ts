@@ -4,7 +4,7 @@ import {
   resolveTargetConversationRef,
   shouldIgnoreForStaleTurn,
   syncActiveConversationProjection,
-} from '../../frontend/src/renderer/features/chat/utils/chatStreamEventRuntime';
+} from '../../frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventRuntime';
 
 function createEvent(overrides: Record<string, unknown> = {}) {
   return {

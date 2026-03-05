@@ -7,7 +7,7 @@ import {
   findFirstMessageIdBySender,
   findLastAssistantLlmTextMessageId,
   findLastMessageIdBySender,
-} from '../utils/chatStreamMessageUpdates';
+} from '../utils/chatStream/chatStreamMessageUpdates';
 
 export function useStreamMessageUpdaters(
   updateMessage: (

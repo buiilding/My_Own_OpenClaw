@@ -1,5 +1,5 @@
-import { getActiveConversationRef, updateTranscriptSession } from '../../../infrastructure/transcript/TranscriptWriter';
-import type { BackendEvent } from '../../../types/backendEvents';
+import { getActiveConversationRef, updateTranscriptSession } from '../../../../infrastructure/transcript/TranscriptWriter';
+import type { BackendEvent } from '../../../../types/backendEvents';
 
 type IngressDeps = {
   syncActiveConversationProjection: (event: BackendEvent, conversationRef: string | null) => void;

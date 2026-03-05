@@ -18,7 +18,7 @@ import type {
   ToolOutputEvent,
   ToolSchemasEvent,
   UserMessageFullEvent,
-} from '../../../types/backendEvents';
+} from '../../../../types/backendEvents';
 import { shouldIgnoreStreamError } from './chatStreamEventUtils';
 
 type ChatStreamEventHandlers = {

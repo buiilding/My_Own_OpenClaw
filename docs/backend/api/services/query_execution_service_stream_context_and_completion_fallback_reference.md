@@ -11,9 +11,9 @@ title: "Query Execution Service Stream Context and Completion Fallback Reference
 ## Canonical Modules
 
 - `backend/src/api/services/query_execution.py`
-- `backend/src/api/services/query_execution_cancellation.py`
-- `backend/src/api/services/query_execution_inputs.py`
-- `backend/src/api/services/query_execution_pipeline_events.py`
+- `backend/src/api/services/query_execution_support/query_execution_cancellation.py`
+- `backend/src/api/services/query_execution_support/query_execution_inputs.py`
+- `backend/src/api/services/query_execution_support/query_execution_pipeline_events.py`
 - `backend/src/api/services/query_event_extraction.py`
 - `backend/src/api/services/tts_session.py`
 - `backend/src/api/handlers/query.py`

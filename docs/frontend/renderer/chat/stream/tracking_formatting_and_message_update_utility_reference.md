@@ -10,10 +10,10 @@ title: "Tracking, Formatting, and Message-Update Utility Reference"
 
 ## Canonical Modules
 
-- `frontend/src/renderer/features/chat/utils/chatStreamTracking.ts`
-- `frontend/src/renderer/features/chat/utils/chatStreamFormatting.ts`
-- `frontend/src/renderer/features/chat/utils/chatStreamEventUtils.ts`
-- `frontend/src/renderer/features/chat/utils/chatStreamMessageUpdates.ts`
+- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTracking.ts`
+- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamFormatting.ts`
+- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventUtils.ts`
+- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates.ts`
 - `frontend/src/renderer/infrastructure/text/incomingTextNormalization.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `tests/frontend/ChatStreamTracking.test.ts`
