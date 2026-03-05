@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(sidecar-local-backend-computer-use-metadata-boundary): add `LocalBackend._handle_execute_tool` regressions with real `ToolRegistry` to ensure invalid unified `computer_use` metadata failures propagate at JSON-RPC boundary and trimmed-valid metadata still routes to concrete subtools deterministically.
 - test(backend-unified-computer-use-metadata-extraction-boundary): expand native tool-call bridge regressions so only top-level `computer_use.metadata` is promoted to parsed call metadata, nested `arguments.metadata` remains in tool arguments, and non-dict top-level metadata is ignored safely.
 - docs(backend-unified-metadata-promotion-boundary): update backend native tool-call bridge/parser trust-boundary references to explicitly document top-level-only `computer_use.metadata` promotion, nested `arguments.metadata` retention in executable params, and safe ignore semantics for non-dict top-level metadata.
 - test(sidecar-computer-use-metadata-envelope-strictness): extend sidecar regression coverage for strict top-level unified `computer_use.metadata` placement by rejecting legacy nested `arguments.metadata` wrappers and non-string required metadata fields before concrete subtool execution.
