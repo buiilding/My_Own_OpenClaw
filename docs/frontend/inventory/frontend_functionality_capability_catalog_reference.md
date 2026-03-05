@@ -10,20 +10,20 @@ title: "Frontend Functionality Capability Catalog Reference"
 
 This page is the capability-first technical catalog for `frontend/src`.
 
-## Coverage Snapshot (2026-02-27)
+## Coverage Snapshot (2026-03-05)
 
-- Main process (`frontend/src/main`, `.cjs|.js`): `37`
-- Sidecar runtime (`frontend/src/main/python`, `.py`): `141`
-- Renderer runtime (`frontend/src/renderer`, `.ts|.tsx|.js|.jsx`): `139`
+- Main process (`frontend/src/main`, `.cjs|.js`): `58`
+- Sidecar runtime (`frontend/src/main/python`, `.py`): `156`
+- Renderer runtime (`frontend/src/renderer`, `.ts|.tsx|.js|.jsx`): `200`
 - Landing (`frontend/src/landing`, `.jsx|.css`): `13`
 - Preload bridge (`frontend/src/preload.js`): `1`
-- Total covered frontend files: `331`
+- Total covered frontend files: `428`
 
 ## IPC Surface Snapshot (Typed Renderer Channel Catalog)
 
-- `SEND_CHANNELS`: `5`
-- `INVOKE_CHANNELS`: `33`
-- `ON_CHANNELS`: `11`
+- `SEND_CHANNELS`: `6`
+- `INVOKE_CHANNELS`: `35`
+- `ON_CHANNELS`: `12`
 - `ipc.cjs` settings ACK timeout (`SETTINGS_SYNC_TIMEOUT_MS`): `2500ms`
 
 ## 1) Main Process Capability Catalog
@@ -39,6 +39,9 @@ Primary files:
 - `frontend/src/main/window_visibility_runtime.cjs`
 - `frontend/src/main/overlay_signal_runtime.cjs`
 - `frontend/src/main/overlay_window_helpers_runtime.cjs`
+- `frontend/src/main/overlay_topmost_runtime.cjs`
+- `frontend/src/main/runtime_mode.cjs`
+- `frontend/src/main/vm_worker_runtime.cjs`
 
 Capabilities:
 
@@ -48,6 +51,7 @@ Capabilities:
 - Maintains overlay bounds, top-most order, click-through policy, and fallback positioning.
 - Supports wakeword hotkey toggle and wakeword STT trigger relays.
 - Preserves/restores external focused window around overlay query capture.
+- Gates VM mode/worker mode from env and starts an automated VM worker runtime loop when enabled.
 
 ## 2) Main IPC + Backend Relay
 
@@ -62,6 +66,7 @@ Primary files:
 - `frontend/src/main/query_payload_builder.cjs`
 - `frontend/src/main/backend_endpoints.cjs`
 - `frontend/src/main/ipc_frontend_config.cjs`
+- `frontend/src/main/openai_codex_oauth.cjs`
 
 Capabilities:
 
@@ -73,6 +78,7 @@ Capabilities:
 - Persists frontend config to disk and returns merged config payloads to renderer.
 - Query send path resolves `conversation_ref` from payload or cached backend-ref fallback and reuses it for both local echo and outbound websocket message.
 - Query send gates first turn on config sync only when cached frontend config payload is object-valid; invalid payloads are dropped instead of sent.
+- Exposes OpenAI Codex OAuth login/logout IPC handlers backed by PKCE + local callback server flow.
 
 ## 3) Main Local Sidecar + Permission/Privilege Bridges
 
@@ -99,6 +105,22 @@ Capabilities:
 - Local sidecar RPC request timeout defaults to `30s` (`120s` for browser tool), with canonical `{success:false,error}` response normalization for failures.
 - Linux-only screenshot guard hides visible WindieOS windows, waits `320ms`, runs screenshot tool, then restores prior visibility/focus/always-on-top state.
 - Wakeword bridge uses length-prefixed binary frame protocol for audio/result streams and clears stale stdout/stderr buffers on restart/exit.
+
+## 3.5) VM Worker and Hosted Runs Bridge
+
+Primary files:
+
+- `frontend/src/main/runtime_mode.cjs`
+- `frontend/src/main/vm_worker_runtime.cjs`
+- `frontend/src/main/index.cjs`
+
+Capabilities:
+
+- Resolves worker-mode activation from `WINDIE_VM_MODE` / `WINDIE_VM_WORKER_MODE`.
+- Polls backend `/api/runs/workers/heartbeat` on interval for assignments and control commands.
+- Dispatches assigned runs through existing websocket query path and acknowledges `/api/runs/{run_id}/worker-dispatched`.
+- Relays backend stream events into run timelines (`/api/runs/{run_id}/events`) with run/conversation correlation.
+- Applies stop controls via websocket `stop-query` for mapped run conversations.
 
 ## 4) Preload Boundary
 
