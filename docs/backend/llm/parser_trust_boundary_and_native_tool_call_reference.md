@@ -90,10 +90,17 @@ Strategy order:
 
 1. standard format:
    - `{"functionCall":{"name":"...","args":{...}}}`
-2. computer-use wrapper format:
-   - `{"metadata":{...},"action":{"functionCall":{"name":"...","args":{...}}}}`
+2. unified computer-use envelope:
+   - `{"functionCall":{"name":"computer_use","args":{"tool":"mouse_control","arguments":{...},"metadata":{...}}}}`
 
-Computer-use format returns both tool args and metadata payload for downstream metadata validation.
+Unified computer-use normalization behavior:
+
+- maps unified `tool` to concrete computer subtool name (`mouse_control`, `keyboard_control`, etc.)
+- forwards unified `metadata` for downstream metadata validation
+- defaults missing unified `arguments` to `{}`
+- rejects unknown unified subtools and non-dict `arguments`
+
+Legacy metadata/action wrapper payloads are rejected by current parser schema extraction.
 
 ## ToolCallValidator Enforcement
 
@@ -104,6 +111,11 @@ Computer-use format returns both tool args and metadata payload for downstream m
 - arg object type check
 - max parameter count (`max_parameter_count`)
 - parameter value size limits for strings and serialized dict/list values (`max_parameter_value_size`)
+
+Whitelist compatibility behavior:
+
+- when unified `computer_use` is present in filtered registry tool names, validator expands allowed names to include legacy concrete computer subtool names
+- this preserves backward-compatible concrete-name ingestion while keeping unified declaration surface available for tool schema exposure
 
 Method-level policy check:
 
@@ -118,6 +130,7 @@ Method-level policy check:
   - `description`
   - `explanation`
   - `expectation`
+- each required field must be non-whitespace text (`value.strip()` non-empty)
 
 Missing/invalid metadata raises `ParseValidationError`.
 

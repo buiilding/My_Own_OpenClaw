@@ -149,6 +149,8 @@ Handler map (`BackendEventType` -> behavior):
 - `tool-schemas`: annotate first user message with tool schema list
 - `token-count`: update token counters
 - `streaming-complete`: persist final streamed thinking text onto the same-turn assistant `llm-text` message (`thinkingText` + `thinkingSourceEventType`), then mark assistant message complete and clear transient `thinkingStatus`
+  - when `turn_ref` is present, completion targeting is strict to assistant rows with the same `turnRef` (no cross-turn fallback)
+  - duplicate completion events do not duplicate assistant transcript writes because transcript recording only runs for not-yet-complete assistant rows
 - `error`: append assistant error row unless ignored by settings-update-error filter
 
 Handler composition boundary:

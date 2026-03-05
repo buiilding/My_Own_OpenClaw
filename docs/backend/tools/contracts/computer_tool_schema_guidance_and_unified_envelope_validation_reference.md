@@ -80,6 +80,7 @@ Schema guidance also encodes execution-policy hints in field descriptions:
   - `description`
   - `explanation`
   - `expectation`
+  - schema-level `str_strip_whitespace=True` trims each field before `min_length=1` enforcement, so whitespace-only values are rejected
 - `arguments`: free-form object revalidated against the selected concrete tool schema
 
 Runtime revalidation path in `RemoteComputerUseTool`:
@@ -90,6 +91,7 @@ Runtime revalidation path in `RemoteComputerUseTool`:
 4. emit remote envelope with concrete `tool_name` and validated `args.model_dump()`
 
 This makes unified and direct tool calls converge onto the same concrete schema validators.
+It also means metadata whitespace normalization/rejection happens before remote envelope creation, not only in parser-layer metadata checks.
 
 ## Parser Mapping and Rejection Rules
 
