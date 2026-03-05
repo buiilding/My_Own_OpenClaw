@@ -2,6 +2,7 @@ import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS, SEND_CHANNELS } from '../ipc/b
 import { createPendingAssistantQueue } from './pendingAssistantQueue';
 import { createPendingUserQueue } from './pendingUserQueue';
 import { createPendingToolQueue } from './pendingToolQueue';
+import { normalizeOptionalIncomingText } from '../text/incomingTextNormalization';
 import {
   emitSessionUpdateEvent,
   persistSessionInfoToStorage,
@@ -21,62 +22,9 @@ const sessionState = createTranscriptSessionState(readSessionInfoFromStorage);
 const pendingAssistantQueue = createPendingAssistantQueue();
 const pendingUserQueue = createPendingUserQueue();
 const pendingToolQueue = createPendingToolQueue();
-const MOJIBAKE_REPLACEMENTS: Array<[string, string]> = [
-  ['â€œ', '“'],
-  ['â€\u009d', '”'],
-  ['â€˜', '‘'],
-  ['â€™', '’'],
-  ['â€”', '—'],
-  ['â€“', '–'],
-  ['â€¦', '…'],
-  ['â€¢', '•'],
-  ['Â ', ' '],
-  ['Â', ''],
-];
-
-const replaceLoneSurrogates = (value: string): string => {
-  let normalized = '';
-  for (let index = 0; index < value.length; index += 1) {
-    const codeUnit = value.charCodeAt(index);
-    const isHighSurrogate = codeUnit >= 0xD800 && codeUnit <= 0xDBFF;
-    const isLowSurrogate = codeUnit >= 0xDC00 && codeUnit <= 0xDFFF;
-
-    if (!isHighSurrogate && !isLowSurrogate) {
-      normalized += value[index];
-      continue;
-    }
-
-    if (isHighSurrogate) {
-      const nextCodeUnit = value.charCodeAt(index + 1);
-      const nextIsLowSurrogate = nextCodeUnit >= 0xDC00 && nextCodeUnit <= 0xDFFF;
-      if (nextIsLowSurrogate) {
-        normalized += value[index] + value[index + 1];
-        index += 1;
-        continue;
-      }
-    }
-
-    normalized += '\uFFFD';
-  }
-
-  return normalized;
-};
-
-const repairCommonMojibake = (value: string): string => {
-  let repaired = value;
-  for (const [needle, replacement] of MOJIBAKE_REPLACEMENTS) {
-    repaired = repaired.split(needle).join(replacement);
-  }
-  return repaired;
-};
 
 const normalizeOptionalString = (value: unknown): string | null => {
-  if (typeof value !== 'string') {
-    return null;
-  }
-  const repaired = repairCommonMojibake(value);
-  const normalized = replaceLoneSurrogates(repaired).trim();
-  return normalized.length > 0 ? normalized : null;
+  return normalizeOptionalIncomingText(value);
 };
 
 const normalizeTransparencyData = (

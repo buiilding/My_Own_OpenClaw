@@ -14,6 +14,7 @@ title: "Tracking, Formatting, and Message-Update Utility Reference"
 - `frontend/src/renderer/features/chat/utils/chatStreamFormatting.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamEventUtils.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamMessageUpdates.ts`
+- `frontend/src/renderer/infrastructure/text/incomingTextNormalization.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `tests/frontend/ChatStreamTracking.test.ts`
 - `tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx`
@@ -94,6 +95,7 @@ Metadata normalization:
 
 - `buildSystemPromptUpdate` validates `tool_schemas` shape before storing.
 - `buildUserMessageFullUpdate` and `buildAssistantMessageFullUpdate` coerce non-string content to empty string.
+- text repair/sanitization for stream chunks and transparency payload text is centralized in `incomingTextNormalization.ts` (mojibake repair + lone-surrogate replacement), shared with `TranscriptWriter`.
 
 ## Test-Backed Invariants
 

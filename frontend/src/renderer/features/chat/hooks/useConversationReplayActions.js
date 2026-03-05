@@ -69,6 +69,47 @@ function ensureConversationRef(sessionConversationRef) {
   return conversationRef;
 }
 
+async function executeReplayAction({
+  sessionInfo,
+  replayMessages,
+  preservedPayloads,
+  queryText,
+  screenshotRef,
+  screenshotUrl,
+  setMessages,
+  setThinkingStatus,
+  setThinkingSourceEventType,
+  setIsSending,
+  errorPrefix,
+}) {
+  const conversationRef = ensureConversationRef(sessionInfo.conversationRef);
+  updateTranscriptSession(conversationRef, sessionInfo.userId || undefined);
+
+  setMessages(replayMessages, conversationRef);
+  setThinkingStatus(null, conversationRef);
+  if (typeof setThinkingSourceEventType === 'function') {
+    setThinkingSourceEventType(null, conversationRef);
+  }
+  setIsSending(true, conversationRef);
+
+  try {
+    // Replay always rewrites transcript first, then rehydrates, then sends query.
+    // This preserves the same history reconstruction contract for edit + try-again.
+    await runReplayQueryFlow({
+      conversationRef,
+      userId: sessionInfo.userId,
+      transcriptMessages: replayMessages,
+      rehydratePayloads: preservedPayloads,
+      queryText,
+      screenshotRef: screenshotRef || null,
+      screenshotUrl: screenshotUrl || null,
+    });
+  } catch (error) {
+    console.error(`[ChatInterface] ${errorPrefix}:`, error);
+    setIsSending(false, conversationRef);
+  }
+}
+
 export function useConversationReplayActions({
   messages,
   setMessages,
@@ -100,30 +141,19 @@ export function useConversationReplayActions({
     const replayConversation = [...replayContextMessages, editUserMessage];
     const preservedPayloads = replayContextMessages.map(toRehydratePayload);
     const sessionInfo = getTranscriptSessionInfo();
-    const conversationRef = ensureConversationRef(sessionInfo.conversationRef);
-    updateTranscriptSession(conversationRef, sessionInfo.userId || undefined);
-
-    setMessages(replayConversation, conversationRef);
-    setThinkingStatus(null, conversationRef);
-    if (typeof setThinkingSourceEventType === 'function') {
-      setThinkingSourceEventType(null, conversationRef);
-    }
-    setIsSending(true, conversationRef);
-
-    try {
-      await runReplayQueryFlow({
-        conversationRef,
-        userId: sessionInfo.userId,
-        transcriptMessages: replayConversation,
-        rehydratePayloads: preservedPayloads,
-        queryText: normalizedEditedText,
-        screenshotRef: editUserMessage.screenshotRef || null,
-        screenshotUrl: editUserMessage.screenshotUrl || null,
-      });
-    } catch (error) {
-      console.error('[ChatInterface] Failed to edit user message:', error);
-      setIsSending(false, conversationRef);
-    }
+    await executeReplayAction({
+      sessionInfo,
+      replayMessages: replayConversation,
+      preservedPayloads,
+      queryText: normalizedEditedText,
+      screenshotRef: editUserMessage.screenshotRef,
+      screenshotUrl: editUserMessage.screenshotUrl,
+      setMessages,
+      setThinkingStatus,
+      setThinkingSourceEventType,
+      setIsSending,
+      errorPrefix: 'Failed to edit user message',
+    });
   }, [messages, setIsSending, setMessages, setThinkingSourceEventType, setThinkingStatus]);
 
   const handleTryAgainFromAssistant = useCallback(async (assistantMessageId) => {
@@ -152,30 +182,19 @@ export function useConversationReplayActions({
       .slice(0, -1)
       .map(toRehydratePayload);
     const sessionInfo = getTranscriptSessionInfo();
-    const conversationRef = ensureConversationRef(sessionInfo.conversationRef);
-    updateTranscriptSession(conversationRef, sessionInfo.userId || undefined);
-
-    setMessages(replayContextMessages, conversationRef);
-    setThinkingStatus(null, conversationRef);
-    if (typeof setThinkingSourceEventType === 'function') {
-      setThinkingSourceEventType(null, conversationRef);
-    }
-    setIsSending(true, conversationRef);
-
-    try {
-      await runReplayQueryFlow({
-        conversationRef,
-        userId: sessionInfo.userId,
-        transcriptMessages: replayContextMessages,
-        rehydratePayloads: preservedPayloads,
-        queryText: retryUserMessage.text,
-        screenshotRef: retryUserMessage.screenshotRef || null,
-        screenshotUrl: retryUserMessage.screenshotUrl || null,
-      });
-    } catch (error) {
-      console.error('[ChatInterface] Failed to retry assistant message:', error);
-      setIsSending(false, conversationRef);
-    }
+    await executeReplayAction({
+      sessionInfo,
+      replayMessages: replayContextMessages,
+      preservedPayloads,
+      queryText: retryUserMessage.text,
+      screenshotRef: retryUserMessage.screenshotRef,
+      screenshotUrl: retryUserMessage.screenshotUrl,
+      setMessages,
+      setThinkingStatus,
+      setThinkingSourceEventType,
+      setIsSending,
+      errorPrefix: 'Failed to retry assistant message',
+    });
   }, [messages, setIsSending, setMessages, setThinkingSourceEventType, setThinkingStatus]);
 
   return {

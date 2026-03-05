@@ -1,7 +1,6 @@
 /** @jest-environment node */
 
 const {
-  buildAttachmentContextFromFiles,
   createVmWorkerRuntime,
 } = require('../../frontend/src/main/vm_worker_runtime.cjs');
 
@@ -11,7 +10,17 @@ function flushPromises() {
 
 describe('vm_worker_runtime', () => {
   test('buildAttachmentContextFromFiles renders artifact list', () => {
-    const context = buildAttachmentContextFromFiles([
+    const runtime = createVmWorkerRuntime({
+      env: {
+        WINDIE_VM_WORKSPACE_ID: 'workspace-demo',
+      },
+      fetchFn: jest.fn(),
+      getBackendConnectionState: () => ({ isConnected: false }),
+      sendAutomatedQuery: jest.fn(),
+      sendMessageToBackend: jest.fn(),
+      registerBackendMessageObserver: () => () => {},
+    });
+    const context = runtime._internals.buildAttachmentContextFromFiles([
       {
         artifact_id: 'artifact-1',
         filename: 'resume.pdf',

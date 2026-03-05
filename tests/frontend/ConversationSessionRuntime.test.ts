@@ -1,16 +1,23 @@
 import {
   normalizeMainSessionSnapshot,
-  normalizeConversationRef,
   resolveConversationRefForSend,
   shouldProjectSessionConversationRef,
 } from '../../frontend/src/renderer/features/chat/session/conversationSessionRuntime';
 
 describe('conversationSessionRuntime', () => {
-  test('normalizes only non-empty string refs', () => {
-    expect(normalizeConversationRef(' conv-a ')).toBe('conv-a');
-    expect(normalizeConversationRef('')).toBeNull();
-    expect(normalizeConversationRef('   ')).toBeNull();
-    expect(normalizeConversationRef(null)).toBeNull();
+  test('normalizes refs through send-resolution path', () => {
+    expect(resolveConversationRefForSend(' conv-a ', ' conv-store ')).toEqual({
+      conversationRef: 'conv-a',
+      source: 'transcript',
+    });
+    expect(resolveConversationRefForSend('   ', ' conv-store ')).toEqual({
+      conversationRef: 'conv-store',
+      source: 'store',
+    });
+    expect(resolveConversationRefForSend('   ', null)).toEqual({
+      conversationRef: null,
+      source: null,
+    });
   });
 
   test('projects session conversation only when normalized ref is present', () => {
@@ -55,6 +62,14 @@ describe('conversationSessionRuntime', () => {
     })).toEqual({
       conversationRef: 'conv-backend',
       userId: 'user-backend',
+    });
+
+    expect(normalizeMainSessionSnapshot({
+      session_id: ' conv-legacy ',
+      userId: ' user-legacy ',
+    })).toEqual({
+      conversationRef: 'conv-legacy',
+      userId: 'user-legacy',
     });
   });
 });

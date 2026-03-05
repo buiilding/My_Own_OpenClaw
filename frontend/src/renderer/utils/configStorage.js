@@ -44,11 +44,7 @@ const DEFAULT_FRONTEND_CONFIG = {
 };
 
 function normalizeProviderApiKeys(overrides = null) {
-  const source = (
-    overrides
-    && typeof overrides === 'object'
-    && !Array.isArray(overrides)
-  ) ? overrides : {};
+  const source = toPlainRecord(overrides);
 
   const normalized = {};
   for (const [provider, defaultEntry] of Object.entries(DEFAULT_PROVIDER_API_KEYS)) {
@@ -66,11 +62,7 @@ function normalizeProviderApiKeys(overrides = null) {
 }
 
 function normalizeProviderOAuth(overrides = null) {
-  const source = (
-    overrides
-    && typeof overrides === 'object'
-    && !Array.isArray(overrides)
-  ) ? overrides : {};
+  const source = toPlainRecord(overrides);
 
   const normalized = {};
   for (const [provider, defaultEntry] of Object.entries(DEFAULT_PROVIDER_OAUTH)) {
@@ -108,6 +100,14 @@ function buildFrontendConfig(overrides = {}) {
     provider_api_keys: normalizeProviderApiKeys(overrides.provider_api_keys),
     provider_oauth: normalizeProviderOAuth(overrides.provider_oauth),
   };
+}
+
+function toPlainRecord(value) {
+  return (
+    value
+    && typeof value === 'object'
+    && !Array.isArray(value)
+  ) ? value : {};
 }
 
 function clearStoredConfigUnsafe() {
