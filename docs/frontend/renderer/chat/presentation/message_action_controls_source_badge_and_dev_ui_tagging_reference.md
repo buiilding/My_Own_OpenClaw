@@ -15,9 +15,12 @@ title: "Message Action Controls, Source Badge, and Dev-UI Tagging Reference"
 - `frontend/src/renderer/features/chat/components/UserMessageActions.jsx`
 - `frontend/src/renderer/features/chat/components/MessageSourceBadge.jsx`
 - `frontend/src/renderer/features/chat/hooks/useCopyMessageAction.js`
+- `frontend/src/renderer/features/chat/utils/messageTokenUsage.js`
 - `frontend/src/renderer/features/chat/utils/sourceTags.js`
 - `frontend/src/renderer/features/chat/utils/devUiFlag.js`
 - `tests/frontend/MessageListAssistantActions.test.jsx`
+- `tests/frontend/MessageSourceBadge.test.jsx`
+- `tests/frontend/MessageTokenUsage.test.js`
 
 ## Action-Row Render Gating (`MessageList`)
 
@@ -98,6 +101,15 @@ Badge label is resolved via `resolveSourceTag(sourceEventType, sourceChannel)`:
 - unknown event types use `<event> API` fallback
 - unknown channels use raw normalized channel fallback
 
+Per-message token telemetry tag:
+
+- `MessageSourceBadge` appends `resolveMessageTokenUsageTag(message)` output when present.
+- tags are intentionally approximate (`tokens~ ...`) and currently emitted for:
+  - user rows: `txt:<n> img(est):<n> total:<n>`
+    - text source precedence: `fullUserMessage.content` -> `message.text`
+    - image estimate: `85` tokens per screenshot attachment
+  - tool rows (`tool-call`, `tool-output`): `tokens~ <n>` from model-facing payload text.
+
 `isDevUiEnabled()` contract:
 
 - enabled only when URL query contains `dev_ui=1`
@@ -116,7 +128,7 @@ Badge label is resolved via `resolveSourceTag(sourceEventType, sourceChannel)`:
 
 Coverage note:
 
-- no dedicated unit test currently isolates `MessageSourceBadge` or `sourceTags` mapping behavior; behavior is indirectly exercised through dev-ui render paths.
+- dedicated tests now cover source-badge dev gating + token tag rendering (`MessageSourceBadge.test.jsx`) and token-tag derivation rules (`MessageTokenUsage.test.js`).
 
 ## Drift Hotspots
 
