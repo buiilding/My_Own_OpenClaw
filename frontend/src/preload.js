@@ -47,6 +47,8 @@ contextBridge.exposeInMainWorld('ipc', {
       'get-displays',
       'load-frontend-config',
       'save-frontend-config',
+      'openai-codex-oauth-login',
+      'openai-codex-oauth-logout',
       'set-agent-sudo-access',
       'list-permissions',
       'check-permissions',

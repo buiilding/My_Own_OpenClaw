@@ -23,6 +23,15 @@ const DEFAULT_FRONTEND_CONFIG = {
     mistral: { enabled: false, api_key: '' },
     kimi_coding: { enabled: false, api_key: '' },
   },
+  provider_oauth: {
+    openai_codex: {
+      connected: false,
+      access_token: '',
+      refresh_token: '',
+      expires_at: null,
+      profile_id: '',
+    },
+  },
 };
 
 describe('configStorage', () => {
@@ -78,6 +87,35 @@ describe('configStorage', () => {
     expect(result.provider_api_keys).toEqual({
       ...DEFAULT_FRONTEND_CONFIG.provider_api_keys,
       openai: { enabled: true, api_key: 'sk-openai' },
+    });
+  });
+
+  test('loadConfigFromStorage normalizes provider_oauth with defaults', () => {
+    localStorage.setItem(
+      CONFIG_KEY,
+      JSON.stringify({
+        provider_oauth: {
+          openai_codex: {
+            connected: true,
+            access_token: 'codex-access',
+            refresh_token: 'codex-refresh',
+            expires_at: 12345,
+            profile_id: 'openai-codex:default',
+          },
+        },
+      }),
+    );
+
+    const result = loadConfigFromStorage();
+    expect(result.provider_oauth).toEqual({
+      ...DEFAULT_FRONTEND_CONFIG.provider_oauth,
+      openai_codex: {
+        connected: true,
+        access_token: 'codex-access',
+        refresh_token: 'codex-refresh',
+        expires_at: 12345,
+        profile_id: 'openai-codex:default',
+      },
     });
   });
 

@@ -16,6 +16,9 @@ describe('configFilter', () => {
       provider_api_keys: {
         openai: { enabled: true, api_key: 'sk-test' },
       },
+      provider_oauth: {
+        openai_codex: { connected: true, access_token: 'token' },
+      },
       extra: 'ignore',
     });
 
@@ -30,6 +33,9 @@ describe('configFilter', () => {
       include_query_screenshot: false,
       provider_api_keys: {
         openai: { enabled: true, api_key: 'sk-test' },
+      },
+      provider_oauth: {
+        openai_codex: { connected: true, access_token: 'token' },
       },
     });
   });

@@ -135,6 +135,15 @@ def test_validate_frontend_config_allows_subset_and_validates_values():
         "provider_api_keys": {
             "openai": {"enabled": True, "api_key": "sk-openai"},
         },
+        "provider_oauth": {
+            "openai_codex": {
+                "connected": True,
+                "access_token": "codex-access",
+                "refresh_token": "codex-refresh",
+                "expires_at": 4102444800000,
+                "profile_id": "openai-codex:default",
+            },
+        },
         "not_allowed": "ignored",
     }
     validated = validate_frontend_config(payload)
@@ -144,6 +153,7 @@ def test_validate_frontend_config_allows_subset_and_validates_values():
     assert validated["agent_full_sudo_enabled"] is True
     assert validated["include_query_screenshot"] is True
     assert validated["provider_api_keys"]["openai"]["enabled"] is True
+    assert validated["provider_oauth"]["openai_codex"]["connected"] is True
 
     with pytest.raises(ValidationError):
         validate_frontend_config({"model_mode": "invalid"})
