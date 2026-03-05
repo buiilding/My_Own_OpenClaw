@@ -33,6 +33,8 @@ title: "Query Execution Helper Contracts and Compatibility Event Extraction Refe
 
 These helpers isolate parsing/compat logic from transport/tts orchestration.
 
+`QueryExecutionService` intentionally keeps `_extract_*`/`_resolve_completion_text` class wrappers as compatibility surface so legacy tests/callers can still bind helper behavior through the service class.
+
 ## Event-Type Compatibility Contract
 
 `extract_event_type(event)` supports:
@@ -43,6 +45,7 @@ These helpers isolate parsing/compat logic from transport/tts orchestration.
 
 Any other shape returns `None`.
 Whitespace-only type strings are normalized to `None` (trim + empty guard).
+Extracted type values are otherwise case-preserving and case-sensitive.
 
 This allows mixed event producers during migrations without failing the stream loop.
 
@@ -53,6 +56,8 @@ This allows mixed event producers during migrations without failing the stream l
 - check top-level key first (non-empty/trimmed for top-level value)
 - fallback to payload key inside object payload
 - optional `payload_key` override
+- when top-level field is accepted, return original top-level string value (not stripped)
+- payload value acceptance only checks `isinstance(value, str)` and returns raw payload string
 
 Used for:
 
@@ -68,6 +73,11 @@ Accepted chunk-like event types:
 - `streaming-response`
 
 `extract_non_empty_chunk_text` only returns non-whitespace strings; empty/whitespace-only chunks are ignored for aggregation.
+
+`extract_chunk_text(...)` source precedence:
+
+- dict event: top-level `content` first, payload `text` fallback
+- typed event: `.content` attribute only
 
 Aggregated text is used as one completion fallback source when explicit terminal text is absent.
 
@@ -90,6 +100,8 @@ If present, trimmed assistant full text is retained as secondary completion fall
 If `saw_text_chunk=True` but joined chunk text is whitespace-only, resolver falls through to assistant-full text (or fallback), not blank completion text.
 
 This ensures frontend receives deterministic terminal text even on malformed/incomplete streams.
+
+Note: `resolve_completion_text` only uses chunk aggregation when `saw_text_chunk=True`. Non-empty-looking raw chunks that never pass `extract_non_empty_chunk_text` are intentionally excluded.
 
 ## Synthetic Completion Emission Contract
 
