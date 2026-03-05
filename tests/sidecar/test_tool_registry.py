@@ -267,6 +267,66 @@ async def test_execute_computer_use_accepts_trimmed_required_metadata_fields():
 
 
 @pytest.mark.asyncio
+async def test_execute_computer_use_rejects_legacy_nested_arguments_metadata_wrapper():
+    registry = ToolRegistry()
+    captured = {"called": False}
+
+    def mouse_tool(_args):
+        captured["called"] = True
+        return ToolResult.success_result({"ok": True, "tool": "mouse_control"})
+
+    registry.tools["mouse_control"] = mouse_tool
+
+    result = await registry.execute_tool("computer_use", {
+        "tool": "mouse_control",
+        "arguments": {
+            "metadata": {
+                "description": "screen",
+                "explanation": "click target",
+                "expectation": "dialog opens",
+            },
+            "action": "click",
+            "x": 12,
+            "y": 34,
+        },
+    })
+
+    assert result.success is False
+    assert "computer_use.metadata must be an object" == result.error
+    assert captured["called"] is False
+
+
+@pytest.mark.asyncio
+async def test_execute_computer_use_rejects_non_string_required_metadata_fields():
+    registry = ToolRegistry()
+    captured = {"called": False}
+
+    def mouse_tool(_args):
+        captured["called"] = True
+        return ToolResult.success_result({"ok": True, "tool": "mouse_control"})
+
+    registry.tools["mouse_control"] = mouse_tool
+
+    result = await registry.execute_tool("computer_use", {
+        "tool": "mouse_control",
+        "metadata": {
+            "description": 123,
+            "explanation": "click target",
+            "expectation": "dialog opens",
+        },
+        "arguments": {
+            "action": "click",
+            "x": 12,
+            "y": 34,
+        },
+    })
+
+    assert result.success is False
+    assert "computer_use missing required metadata field: description" == result.error
+    assert captured["called"] is False
+
+
+@pytest.mark.asyncio
 async def test_browser_tool_imports_module_lazily(monkeypatch):
     registry = ToolRegistry()
     import_calls = []
