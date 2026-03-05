@@ -181,6 +181,117 @@ def test_to_parsed_response_marks_invalid_computer_use_tool_name():
     assert parsed.tool_calls[0].parameters == {"action": "click"}
 
 
+def test_to_parsed_response_maps_unified_computer_use_without_arguments_to_empty_parameters():
+    parsed = to_parsed_response(
+        {
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "call_wait_1",
+                    "name": "computer_use",
+                    "arguments": {
+                        "tool": "wait",
+                        "metadata": {
+                            "description": "screen",
+                            "explanation": "wait for response",
+                            "expectation": "new content appears",
+                        },
+                    },
+                }
+            ],
+        }
+    )
+
+    assert parsed.has_tool_calls is True
+    assert len(parsed.tool_calls) == 1
+    call = parsed.tool_calls[0]
+    assert call.tool_name == "wait"
+    assert call.parameters == {}
+    assert call.metadata == {
+        "tool_call_id": "call_wait_1",
+        "description": "screen",
+        "explanation": "wait for response",
+        "expectation": "new content appears",
+    }
+
+
+def test_to_parsed_response_unified_computer_use_does_not_promote_nested_arguments_metadata():
+    parsed = to_parsed_response(
+        {
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "call_mouse_nested_1",
+                    "name": "computer_use",
+                    "arguments": {
+                        "tool": "mouse_control",
+                        "arguments": {
+                            "metadata": {
+                                "description": "nested screen",
+                                "explanation": "nested click",
+                                "expectation": "nested dialog",
+                            },
+                            "action": "click",
+                            "x": 320,
+                            "y": 180,
+                        },
+                    },
+                }
+            ],
+        }
+    )
+
+    assert parsed.has_tool_calls is True
+    assert len(parsed.tool_calls) == 1
+    call = parsed.tool_calls[0]
+    assert call.tool_name == "mouse_control"
+    assert call.parameters == {
+        "metadata": {
+            "description": "nested screen",
+            "explanation": "nested click",
+            "expectation": "nested dialog",
+        },
+        "action": "click",
+        "x": 320,
+        "y": 180,
+    }
+    assert call.metadata == {
+        "tool_call_id": "call_mouse_nested_1",
+    }
+
+
+def test_to_parsed_response_unified_computer_use_ignores_non_dict_top_level_metadata():
+    parsed = to_parsed_response(
+        {
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "call_mouse_badmeta_1",
+                    "name": "computer_use",
+                    "arguments": {
+                        "tool": "mouse_control",
+                        "metadata": "not-an-object",
+                        "arguments": {
+                            "action": "click",
+                            "x": 100,
+                            "y": 200,
+                        },
+                    },
+                }
+            ],
+        }
+    )
+
+    assert parsed.has_tool_calls is True
+    assert len(parsed.tool_calls) == 1
+    call = parsed.tool_calls[0]
+    assert call.tool_name == "mouse_control"
+    assert call.parameters == {"action": "click", "x": 100, "y": 200}
+    assert call.metadata == {
+        "tool_call_id": "call_mouse_badmeta_1",
+    }
+
+
 def test_recoverable_error_detection_and_message_formatting():
     error_msg = (
         "Invalid response from stream: failed to parse streamed tool-call arguments "
