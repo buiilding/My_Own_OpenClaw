@@ -11,7 +11,12 @@ from backend.src.tools.remote import (
     get_all_remote_tools,
     get_remote_tool,
 )
-from backend.src.tools.computer.schemas import MouseControlArgs, ScrollControlArgs
+from backend.src.tools.remote_tools.computer import RemoteComputerUseTool
+from backend.src.tools.computer.schemas import (
+    ComputerUseArgs,
+    MouseControlArgs,
+    ScrollControlArgs,
+)
 
 
 def _make_context(metadata=None):
@@ -145,3 +150,57 @@ def test_remote_mouse_tool_schema_explicitly_guides_ocr_for_text_targets():
     assert "visible text" in parameters["find_coordinates_by"]["description"]
     assert "Beware of the mouse position on the image" in parameters["x"]["description"]
     assert "Beware of the mouse position on the image" in parameters["y"]["description"]
+
+
+def test_remote_computer_use_schema_enforces_metadata_shape_and_mouse_guidance():
+    tool = RemoteComputerUseTool()
+    schema = tool.get_json_schema()
+    function = schema["function"]
+    params = function["parameters"]["properties"]
+    metadata = params["metadata"]
+
+    assert "required metadata" in function["description"]
+    assert "find_coordinates_by='ocr'" in function["description"]
+    assert "find_coordinates_by='prediction'" in function["description"]
+
+    assert metadata["type"] == "object"
+    assert set(metadata["required"]) == {"description", "explanation", "expectation"}
+    assert metadata["properties"]["description"]["type"] == "string"
+    assert metadata["properties"]["description"]["minLength"] == 1
+    assert metadata["properties"]["explanation"]["type"] == "string"
+    assert metadata["properties"]["expectation"]["type"] == "string"
+    assert "find_coordinates_by" in params["arguments"]["description"]
+    assert "ocr_text" in params["arguments"]["description"]
+
+
+def test_computer_use_schema_rejects_whitespace_only_metadata_fields():
+    with pytest.raises(ValidationError):
+        ComputerUseArgs.model_validate(
+            {
+                "tool": "mouse_control",
+                "metadata": {
+                    "description": "   ",
+                    "explanation": "\n",
+                    "expectation": "\t",
+                },
+                "arguments": {"action": "click", "x": 10, "y": 20},
+            }
+        )
+
+
+def test_computer_use_schema_trims_metadata_fields_before_validation():
+    args = ComputerUseArgs.model_validate(
+        {
+            "tool": "mouse_control",
+            "metadata": {
+                "description": " current screen ",
+                "explanation": " click submit ",
+                "expectation": " modal opens ",
+            },
+            "arguments": {"action": "click", "x": 10, "y": 20},
+        }
+    )
+
+    assert args.metadata.description == "current screen"
+    assert args.metadata.explanation == "click submit"
+    assert args.metadata.expectation == "modal opens"
