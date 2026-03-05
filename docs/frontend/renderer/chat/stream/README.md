@@ -11,6 +11,7 @@ title: "Frontend Renderer Chat Stream Docs Hub"
 ## Deep Pages
 
 - [Conversation Gate and Active-Turn Filtering Reference](conversation_gate_and_active_turn_filtering_reference.md)
+- [Event Handler Map and Turn Guard Matrix Reference](event_handler_map_and_turn_guard_matrix_reference.md)
 - [Tracking, Formatting, and Message-Update Utility Reference](tracking_formatting_and_message_update_utility_reference.md)
 - [Stream Message Updater Selector Contract Reference](stream_message_updater_selector_contract_reference.md)
 
@@ -25,6 +26,7 @@ title: "Frontend Renderer Chat Stream Docs Hub"
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/hooks/useStreamMessageUpdaters.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamConversationGate.ts`
+- `frontend/src/renderer/features/chat/utils/chatStreamHandlerMap.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamTracking.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamFormatting.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamMessageUpdates.ts`

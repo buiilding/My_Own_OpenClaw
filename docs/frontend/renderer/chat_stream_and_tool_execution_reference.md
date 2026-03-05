@@ -126,6 +126,7 @@ Pre-routing and workspace resolution:
 
 - event shape validated by `isBackendEvent`
 - event conversation resolved from `conversation_ref`, then turn map fallback, then active transcript conversation
+- for `memory-store` events without `conversation_ref`, resolution falls back to `payload.session_id`, then top-level `session_id`
 - explicit `conversation_ref` events promote chat-store `activeConversationRef` when no active workspace exists; `local-user-message` also rebinds active workspace to the explicit conversation so overlay-only surfaces (`enableTranscript=false`) project the current turn
 - `turn_ref -> conversation_ref` map is updated opportunistically so later events without `conversation_ref` route correctly
 - handlers write into target conversation workspace instead of only active chat projection
@@ -159,6 +160,13 @@ Handler composition boundary:
 - local-user-message handling is delegated to `useChatStreamLocalUserHandler`
 - error/memory-store/token-count terminal behaviors are delegated to `useChatStreamTerminalHandlers`
 - tool-call/tool-output/tool-bundle handling is delegated to `useChatStreamToolHandlers`
+
+Turn guard + error suppression matrix:
+
+- `useChatStream` applies the same stale-turn guard to every handler except `local-user-message`
+- guard condition: `event.turn_ref` exists, workspace has `activeTurnRef`, and values mismatch
+- dropped stale events have no chat-store mutation and no transcript side effects
+- `error` has one extra gate in `buildChatStreamHandlerMap(...)`: `shouldIgnoreStreamError(...)` suppresses benign settings-sync errors before handler invocation
 
 Message targeting utilities:
 
