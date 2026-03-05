@@ -48,7 +48,14 @@ describe('permission_ipc_runtime', () => {
       permissionId: 'filesystem_workspace_access',
     });
 
-    expect(checkResult).toEqual(probeResult);
+    const checkStatus = checkResult?.data?.status || {};
+    const probeStatus = probeResult?.data?.status || {};
+    const { checked_at: checkCheckedAt, ...checkStatusWithoutTimestamp } = checkStatus;
+    const { checked_at: probeCheckedAt, ...probeStatusWithoutTimestamp } = probeStatus;
+
+    expect(checkStatusWithoutTimestamp).toEqual(probeStatusWithoutTimestamp);
+    expect(typeof checkCheckedAt).toBe('string');
+    expect(typeof probeCheckedAt).toBe('string');
     expect(checkResult).toEqual({
       success: true,
       data: {
