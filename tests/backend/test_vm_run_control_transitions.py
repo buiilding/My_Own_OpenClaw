@@ -1,4 +1,4 @@
-from backend.src.services.vm_run_control_transitions import (
+from backend.src.services.vm_run_control_support.vm_run_control_transitions import (
     apply_control_transition,
     apply_stream_event_transition,
     apply_worker_heartbeat_transition,

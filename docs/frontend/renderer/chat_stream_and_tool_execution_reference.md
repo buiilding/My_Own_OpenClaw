@@ -35,7 +35,7 @@ title: "Chat Stream and Tool Execution Reference"
 - `frontend/src/renderer/features/chat/utils/chatStreamTypes.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamBackendIngress.ts`
 - `frontend/src/renderer/features/chat/utils/modelThinkingCapabilities.ts`
-- `frontend/src/renderer/features/chat/utils/toolRunnerSurface.ts`
+- `frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerSurface.ts`
 - `frontend/src/renderer/infrastructure/hooks/useLatestRef.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionService.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionBundleRunner.ts`

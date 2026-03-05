@@ -2,7 +2,7 @@ import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/c
 import {
   resolveExecutionConversationRef,
   shouldAcceptExecutionResult,
-} from '../../frontend/src/renderer/features/chat/utils/toolRunnerExecutionState';
+} from '../../frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerExecutionState';
 
 describe('toolRunnerExecutionState', () => {
   beforeEach(() => {

@@ -1,4 +1,4 @@
-import { executeWithSurfaceLifecycle } from '../../frontend/src/renderer/features/chat/utils/toolRunnerSurfaceExecution';
+import { executeWithSurfaceLifecycle } from '../../frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerSurfaceExecution';
 
 type TestPreparation = {
   canExecute: boolean;

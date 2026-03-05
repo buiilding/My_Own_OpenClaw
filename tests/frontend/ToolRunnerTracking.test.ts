@@ -3,7 +3,7 @@ import {
   trackExecutionTurn,
   type TrackedExecution,
   untrackExecutionTurn,
-} from '../../frontend/src/renderer/features/chat/utils/toolRunnerTracking';
+} from '../../frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerTracking';
 
 describe('toolRunnerTracking', () => {
   test('tracks and untracks execution turns only when correlation id exists', () => {

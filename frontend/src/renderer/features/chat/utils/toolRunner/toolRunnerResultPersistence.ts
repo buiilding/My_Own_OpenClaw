@@ -2,8 +2,8 @@ import type { MutableRefObject } from 'react';
 import type {
   BundleExecutionResult,
   ToolExecutionResult,
-} from '../../../infrastructure/services/ToolExecutionService';
-import { recordToolMessage } from '../../../infrastructure/transcript/TranscriptWriter';
+} from '../../../../infrastructure/services/ToolExecutionService';
+import { recordToolMessage } from '../../../../infrastructure/transcript/TranscriptWriter';
 import {
   buildBundleOutputMessage,
   buildToolOutputMessage,

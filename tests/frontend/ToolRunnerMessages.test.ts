@@ -4,7 +4,7 @@ import {
   buildTranscriptMetadata,
   mapBundleTools,
   resolveToolCallCorrelationId,
-} from '../../frontend/src/renderer/features/chat/utils/toolRunnerMessages';
+} from '../../frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerMessages';
 
 describe('toolRunnerMessages', () => {
   test('buildToolOutputMessage maps tool result fields and metadata', () => {

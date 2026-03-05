@@ -4,8 +4,12 @@ from __future__ import annotations
 
 from typing import Any, Callable, Optional
 
-from backend.src.services.vm_run_control_event_payloads import build_worker_assigned_payload
-from backend.src.services.vm_run_control_worker_state import build_run_worker_state
+from backend.src.services.vm_run_control_support.vm_run_control_event_payloads import (
+    build_worker_assigned_payload,
+)
+from backend.src.services.vm_run_control_support.vm_run_control_worker_state import (
+    build_run_worker_state,
+)
 
 
 def assign_next_run_to_worker(

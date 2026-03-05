@@ -7,31 +7,33 @@ from copy import deepcopy
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
-from backend.src.services.vm_run_control_helpers import (
+from backend.src.services.vm_run_control_support.vm_run_control_helpers import (
     normalize_files,
     normalize_optional_string,
     now_iso,
 )
-from backend.src.services.vm_run_control_event_payloads import (
+from backend.src.services.vm_run_control_support.vm_run_control_event_payloads import (
     build_run_control_payload,
     build_run_created_payload,
     build_run_dispatched_payload,
 )
-from backend.src.services.vm_run_control_event_log import (
+from backend.src.services.vm_run_control_support.vm_run_control_event_log import (
     append_run_event,
     select_run_events,
 )
-from backend.src.services.vm_run_control_assignment import assign_next_run_to_worker
-from backend.src.services.vm_run_control_pending_controls import (
+from backend.src.services.vm_run_control_support.vm_run_control_assignment import (
+    assign_next_run_to_worker,
+)
+from backend.src.services.vm_run_control_support.vm_run_control_pending_controls import (
     collect_pending_control_commands_for_worker,
     create_control_command,
 )
-from backend.src.services.vm_run_control_worker_state import (
+from backend.src.services.vm_run_control_support.vm_run_control_worker_state import (
     build_registry_worker_state,
     build_run_worker_state,
     build_worker_heartbeat_event_payload,
 )
-from backend.src.services.vm_run_control_transitions import (
+from backend.src.services.vm_run_control_support.vm_run_control_transitions import (
     apply_control_transition,
     apply_stream_event_transition,
     apply_worker_heartbeat_transition,

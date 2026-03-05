@@ -38,11 +38,11 @@ Handled backend event families:
 Module:
 
 - `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
-- `frontend/src/renderer/features/chat/utils/toolRunnerFailureContracts.ts`
-- `frontend/src/renderer/features/chat/utils/toolRunnerResultContracts.ts`
-- `frontend/src/renderer/features/chat/utils/toolRunnerBackendPayload.ts`
-- `frontend/src/renderer/features/chat/utils/toolRunnerTracking.ts`
-- `frontend/src/renderer/features/chat/utils/toolRunnerSurfaceExecution.ts`
+- `frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerFailureContracts.ts`
+- `frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerResultContracts.ts`
+- `frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerBackendPayload.ts`
+- `frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerTracking.ts`
+- `frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerSurfaceExecution.ts`
 - `frontend/src/renderer/infrastructure/services/SurfaceOrchestrator.ts`
 - `frontend/src/renderer/infrastructure/services/CorrelationId.ts`
 - `frontend/src/renderer/infrastructure/services/ToolComputerUseCatalog.ts`

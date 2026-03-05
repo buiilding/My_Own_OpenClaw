@@ -11,8 +11,8 @@ title: "Tool Execution Service and Hook Runtime Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
-- `frontend/src/renderer/features/chat/utils/toolRunnerMessages.ts`
-- `frontend/src/renderer/features/chat/utils/toolRunnerResultPersistence.ts`
+- `frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerMessages.ts`
+- `frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerResultPersistence.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionService.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionResultDispatch.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionBundleRunner.ts`

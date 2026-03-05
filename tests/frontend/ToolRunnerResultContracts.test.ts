@@ -2,7 +2,7 @@ import {
   buildToolRunnerBundleResultEnvelope,
   buildToolRunnerResultEnvelope,
   resolveToolRunnerEnvelopeCorrelationId,
-} from '../../frontend/src/renderer/features/chat/utils/toolRunnerResultContracts';
+} from '../../frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerResultContracts';
 
 describe('toolRunnerResultContracts', () => {
   test('builds single and bundle result envelopes with canonical type fields', () => {
