@@ -5,13 +5,14 @@
  */
 
 import { useCallback, useEffect, useRef } from 'react';
-import { IpcBridge, ON_CHANNELS, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { IpcBridge, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { ToolExecutionService, type ToolExecutionResult, type BundleExecutionResult } from '../../../infrastructure/services/ToolExecutionService';
 import { useChatStore } from '../stores/chatStore';
 import { recordToolMessage } from '../../../infrastructure/transcript/TranscriptWriter';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
-import { type ToolBundleEvent, type ToolCallEvent, isBackendEvent } from '../../../types/backendEvents';
+import { type ToolBundleEvent, type ToolCallEvent } from '../../../types/backendEvents';
 import { useLatestRef } from '../../../infrastructure/hooks/useLatestRef';
+import { useToolRunnerBackendListener } from './useToolRunnerBackendListener';
 import {
   buildBundleOutputMessage,
   buildToolOutputMessage,
@@ -368,22 +369,9 @@ export function useToolRunner(enabled = true) {
     untrackExecution,
   ]);
 
-  useEffect(() => {
-    if (!enabled) {
-      return undefined;
-    }
-    const removeListener = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, (data: unknown) => {
-      if (!isBackendEvent(data)) {
-        return;
-      }
-      if (data.type === 'tool-bundle') {
-        handleToolBundle(data);
-      }
-      if (data.type === 'tool-call') {
-        handleToolCall(data);
-      }
-    });
-
-    return removeListener;
-  }, [enabled, handleToolBundle, handleToolCall]);
+  useToolRunnerBackendListener({
+    enabled,
+    handleToolBundle,
+    handleToolCall,
+  });
 }
