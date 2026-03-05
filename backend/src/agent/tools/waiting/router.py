@@ -124,11 +124,16 @@ class ToolResultRouter:
         """Best-effort session state update from tool result payload."""
         if not isinstance(tool_result.data, dict):
             return
-        runtime_state = tool_result.data.get("system_state_internal")
-        if isinstance(runtime_state, dict):
-            self.session.set_current_system_state(runtime_state)
+        if "system_state_internal" in tool_result.data:
+            runtime_state = tool_result.data.get("system_state_internal")
+            if runtime_state is None or isinstance(runtime_state, dict):
+                self.session.set_current_system_state(runtime_state)
             return
-        self.session.set_current_system_state(tool_result.data.get("system_state"))
+        if "system_state" not in tool_result.data:
+            return
+        legacy_state = tool_result.data.get("system_state")
+        if legacy_state is None or isinstance(legacy_state, dict):
+            self.session.set_current_system_state(legacy_state)
 
     @staticmethod
     def _extract_capture_meta(result_data: Any) -> Optional[dict]:
