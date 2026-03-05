@@ -86,15 +86,10 @@ export function useWakewordDetection(
   const captureGenerationRef = useRef(0);
   const isStartingCaptureRef = useRef(false);
   const localCaptureErrorRef = useRef(false);
-  const missingDeviceLockRef = useRef(false);
-  const nextCaptureRetryAtRef = useRef(0);
+  const missingDeviceLockRef = useRef(wakewordCaptureGuard.missingDeviceLocked);
+  const nextCaptureRetryAtRef = useRef(wakewordCaptureGuard.nextRetryAt);
   const lastDetectionRef = useRef(0);
   const onWakewordDetectedRef = useLatestRef(onWakewordDetected);
-
-  useEffect(() => {
-    missingDeviceLockRef.current = wakewordCaptureGuard.missingDeviceLocked;
-    nextCaptureRetryAtRef.current = wakewordCaptureGuard.nextRetryAt;
-  }, []);
 
   useEffect(() => {
     const warningMessage = getChunkSizeWarning(rawChunkSize, chunkSize);

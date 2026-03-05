@@ -8,6 +8,9 @@ import logging
 from typing import Any, Callable, Dict, Literal, Optional, Type, TypeVar
 from pydantic import BaseModel, ConfigDict, ValidationError as PydanticValidationError
 from backend.src.core.config import AppConfig
+from backend.src.core.validation.settings_update_rules import (
+    validate_settings_update_field,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -271,46 +274,11 @@ def validate_settings_update(settings: Dict[str, Any]) -> Dict[str, Any]:
             logger.warning(f"Unknown settings field: {key}")
             continue
 
-        # Type validation for common fields
-        # For other fields, we rely on AppConfig validation downstream
-        if key == "max_history_length":
-            if value is not None:
-                validate_field(value, key, int, required=False)
-        elif key in ("llm_timeout", "query_timeout"):
-            validate_field(value, key, (int, float), required=False)
-        elif key == "memory_enabled":
-            validate_field(value, key, bool, required=False)
-        elif key in (
-            "model_provider",
-            "selected_model_id",
-            "model_mode",
-            "embedding_model",
-            "interaction_mode",
-        ):
-            if value is not None:  # Some string fields can be None
-                validate_field(value, key, str, required=False)
-        elif key == "voice_mode_enabled":
-            validate_field(value, key, bool, required=False)
-        elif key in (
-            "history_compaction_enabled",
-            "history_compaction_manual_enabled",
-            "history_compaction_openai_remote_enabled",
-        ):
-            validate_field(value, key, bool, required=False)
-        elif key in (
-            "history_compaction_trigger_tokens",
-            "history_compaction_target_tokens",
-            "history_compaction_keep_recent_user_messages",
-            "history_compaction_summary_max_tokens",
-            "history_compaction_cooldown_turns",
-        ):
-            if value is not None:
-                validate_field(value, key, int, required=False)
-        elif key == "history_compaction_strategy":
-            validate_field(value, key, str, required=False)
-        elif key == "history_compaction_prompt":
-            if value is not None:
-                validate_field(value, key, str, required=False)
+        validate_settings_update_field(
+            key=key,
+            value=value,
+            validate_field=validate_field,
+        )
 
         validated[key] = value
 

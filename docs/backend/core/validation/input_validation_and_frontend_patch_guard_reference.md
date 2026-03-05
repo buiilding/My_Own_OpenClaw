@@ -11,6 +11,7 @@ title: "Input Validation and Frontend Patch Guard Reference"
 ## Canonical Modules
 
 - `backend/src/core/validation/validators.py`
+- `backend/src/core/validation/settings_update_rules.py`
 - `backend/src/api/schemas/common.py`
 - `backend/src/api/services/query_execution.py`
 - `backend/src/api/handlers/settings.py`
@@ -94,7 +95,7 @@ Integration:
 `validate_settings_update(...)`:
 
 - broad AppConfig-key filter based on `AppConfig.model_fields`
-- lightweight type checks for select keys
+- table-driven lightweight type checks for select keys via `settings_update_rules.py`
 - unknown fields dropped with warning
 
 `validate_frontend_config(...)`:
