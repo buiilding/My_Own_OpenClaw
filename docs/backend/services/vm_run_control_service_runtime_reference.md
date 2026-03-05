@@ -13,6 +13,7 @@ title: "VM Run Control Service Runtime Reference"
 - `backend/src/services/vm_run_control.py`
 - `backend/src/services/vm_run_control_event_payloads.py`
 - `backend/src/services/vm_run_control_helpers.py`
+- `backend/src/services/vm_run_control_pending_controls.py`
 - `backend/src/services/vm_run_control_worker_state.py`
 - `backend/src/services/vm_run_control_transitions.py`
 
@@ -76,6 +77,11 @@ Event payload shape construction is centralized in `vm_run_control_event_payload
 - `build_worker_assigned_payload(...)`
 - `build_run_control_payload(...)`
 - `build_run_dispatched_payload(...)`
+
+Pending-control command handling is centralized in `vm_run_control_pending_controls.py`:
+
+- `create_control_command(...)` for command object shaping
+- `collect_pending_control_commands_for_worker(...)` for one-shot drain semantics
 
 Assignment constraints (`_assign_next_run_to_worker_locked`):
 

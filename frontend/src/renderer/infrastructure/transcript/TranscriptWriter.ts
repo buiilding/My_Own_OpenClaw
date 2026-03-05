@@ -11,6 +11,7 @@ import {
 import { createTranscriptSessionState } from './sessionInfoState';
 import { normalizeTransparencyData } from './transparencyNormalization';
 import { recordImmediateTranscriptEntry } from './transcriptRecordWrite';
+import { flushPendingEntries, requeuePending } from './transcriptPendingFlush';
 import type {
   PendingAssistantMessage,
   PendingToolMessage,
@@ -99,34 +100,6 @@ const subscribeToTranscriptSessionSync = () => {
 
 subscribeToTranscriptSessionSync();
 
-const requeuePending = <T>(messages: T[], enqueue: (message: T) => void) => {
-  for (const message of messages) {
-    enqueue(message);
-  }
-};
-
-const flushPendingEntries = async <T>(
-  messages: T[],
-  toTranscriptEntry: (message: T) => TranscriptEntry,
-  requeue: (messages: T[]) => void,
-  category: 'user' | 'assistant' | 'tool',
-): Promise<boolean> => {
-  for (let index = 0; index < messages.length; index += 1) {
-    const message = messages[index];
-    try {
-      await storeTranscriptEntry(toTranscriptEntry(message));
-    } catch (error) {
-      requeue(messages.slice(index));
-      console.warn(
-        `[TranscriptWriter] Failed to flush pending ${category} transcript entries; requeued ${messages.length - index}`,
-        error,
-      );
-      return false;
-    }
-  }
-  return true;
-};
-
 const flushPendingMessages = async () => {
   const currentInfo = sessionState.get();
   if (
@@ -142,9 +115,9 @@ const flushPendingMessages = async () => {
   }
 
   const pendingUserMessages = pendingUserQueue.drain();
-  const flushedUserMessages = await flushPendingEntries<PendingUserMessage>(
-    pendingUserMessages,
-    (message) => ({
+  const flushedUserMessages = await flushPendingEntries<PendingUserMessage>({
+    messages: pendingUserMessages,
+    toTranscriptEntry: (message) => ({
       content: message.text,
       role: 'user',
       messageType: 'user',
@@ -154,17 +127,19 @@ const flushPendingMessages = async () => {
       screenshotRef: message.screenshotRef,
       transparency: message.transparency,
     }),
-    (messages) => requeuePending(messages, pendingUserQueue.enqueue),
-    'user',
-  );
+    requeue: (messages) => requeuePending(messages, pendingUserQueue.enqueue),
+    category: 'user',
+    storeTranscriptEntry,
+    warn: console.warn,
+  });
   if (!flushedUserMessages) {
     return;
   }
 
   const pendingAssistantMessages = pendingAssistantQueue.drain();
-  const flushedAssistantMessages = await flushPendingEntries<PendingAssistantMessage>(
-    pendingAssistantMessages,
-    (message) => ({
+  const flushedAssistantMessages = await flushPendingEntries<PendingAssistantMessage>({
+    messages: pendingAssistantMessages,
+    toTranscriptEntry: (message) => ({
       content: message.text,
       role: 'assistant',
       messageType: message.messageType || 'llm-text',
@@ -173,17 +148,19 @@ const flushPendingMessages = async () => {
       screenshotRef: message.screenshotRef,
       transparency: message.transparency,
     }),
-    (messages) => requeuePending(messages, pendingAssistantQueue.enqueue),
-    'assistant',
-  );
+    requeue: (messages) => requeuePending(messages, pendingAssistantQueue.enqueue),
+    category: 'assistant',
+    storeTranscriptEntry,
+    warn: console.warn,
+  });
   if (!flushedAssistantMessages) {
     return;
   }
 
   const pendingToolMessages = pendingToolQueue.drain();
-  await flushPendingEntries<PendingToolMessage>(
-    pendingToolMessages,
-    (message) => ({
+  await flushPendingEntries<PendingToolMessage>({
+    messages: pendingToolMessages,
+    toTranscriptEntry: (message) => ({
       content: message.text,
       role: 'tool',
       messageType: message.messageType,
@@ -194,9 +171,11 @@ const flushPendingMessages = async () => {
       screenshotRef: message.screenshotRef,
       transparency: message.transparency,
     }),
-    (messages) => requeuePending(messages, pendingToolQueue.enqueue),
-    'tool',
-  );
+    requeue: (messages) => requeuePending(messages, pendingToolQueue.enqueue),
+    category: 'tool',
+    storeTranscriptEntry,
+    warn: console.warn,
+  });
 };
 
 const queueUserMessageForRetry = (
