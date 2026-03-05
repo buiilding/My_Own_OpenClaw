@@ -10,18 +10,18 @@ title: "Backend Full Functionality Inventory Reference"
 
 This is the canonical current-state inventory for `backend/src`.
 
-## Coverage Snapshot (2026-02-27)
+## Coverage Snapshot (2026-03-05)
 
 Source counts used in this inventory:
 
-- Python files in `backend/src`: `322`
+- Python files in `backend/src`: `326`
 - Domain split:
   - `agent`: `70`
-  - `api`: `73`
-  - `core`: `77`
+  - `api`: `75`
+  - `core`: `78`
   - `tools`: `31`
   - `llm`: `33`
-  - `services`: `16`
+  - `services`: `17`
   - `simulation`: `12`
   - `sdk`: `6`
   - `embeddings`: `2`
@@ -54,6 +54,7 @@ Primary files:
 - `backend/src/api/routes/websocket/message_handler.py`
 - `backend/src/api/routes/websocket/task_manager.py`
 - `backend/src/api/routes/websocket/json_parse.py`
+- `backend/src/api/routes/runs.py`
 - `backend/src/api/routes/artifacts.py`
 - `backend/src/api/routes/memory/{embeddings,semantic,semantic_service,semantic_parser,health}.py`
 
@@ -63,6 +64,7 @@ Functionality:
 - Enforces per-connection task limits and cancellation/cleanup semantics.
 - Parses websocket frames with size-aware policy.
 - Dispatches validated incoming messages to typed handlers.
+- Exposes hosted VM run-control endpoints for run creation, worker heartbeat assignment, run control, and run event ingest.
 - Exposes artifact upload/download endpoints.
 - Exposes memory REST endpoints for embeddings/semantic summarize/title/health.
 
@@ -279,6 +281,7 @@ Primary files:
 - OCR: `backend/src/services/ocr/*`
 - Vision: `backend/src/services/vision/*`
 - Token service: `backend/src/services/token_service.py`
+- VM run control: `backend/src/services/vm_run_control.py`
 
 Functionality:
 
@@ -286,6 +289,7 @@ Functionality:
 - OCR runtime helpers and screenshot text extraction.
 - Vision provider runtime and coordinate scaling.
 - Token counting/message normalization fallback service.
+- In-memory VM run registry with worker assignment queue, control-command fanout, and ordered run event timelines.
 
 ## 8) Embedding + SDK + Simulation
 
@@ -319,6 +323,7 @@ Functionality:
 High-change areas likely to require docs updates when code changes:
 
 - `api/services/query_execution.py` and `agent/execution/interaction_loop.py` event sequencing.
+- `api/routes/runs.py` and `services/vm_run_control.py` worker assignment/control-command status transitions.
 - `tools/*` + `agent/tools/*` bundle/single execution and cleanup semantics.
 - `llm/providers/*` request/stream normalization behavior.
 - `api/processing/formatters/*` payload shape contracts consumed by renderer.

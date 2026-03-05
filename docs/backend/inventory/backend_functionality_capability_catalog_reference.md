@@ -10,16 +10,16 @@ title: "Backend Functionality Capability Catalog Reference"
 
 This page is the capability-first technical catalog for `backend/src`.
 
-## Coverage Snapshot (2026-02-27)
+## Coverage Snapshot (2026-03-05)
 
-- Python files in `backend/src`: `322`
+- Python files in `backend/src`: `326`
 - Domain split:
   - `agent`: `70`
-  - `api`: `73`
-  - `core`: `77`
+  - `api`: `75`
+  - `core`: `78`
   - `tools`: `31`
   - `llm`: `33`
-  - `services`: `16`
+  - `services`: `17`
   - `simulation`: `12`
   - `sdk`: `6`
   - `embeddings`: `2`
@@ -54,6 +54,7 @@ Capabilities:
 Primary files:
 
 - `backend/src/api/routes/websocket/{connection,message_handler,json_parse,task_manager}.py`
+- `backend/src/api/routes/runs.py`
 - `backend/src/api/routes/memory/{embeddings,semantic,semantic_service,semantic_parser,health}.py`
 - `backend/src/api/routes/artifacts.py`
 - `backend/src/api/transport/{websocket,sender,envelope,protocol}.py`
@@ -69,6 +70,7 @@ Capabilities:
 - Message-type constants and formatter registry own the outbound schema alignment contract for query/setting ACK/control events.
 - Memory REST routes for embeddings and semantic summarize/title workloads.
 - Artifact upload/download routes for screenshot and binary references.
+- Hosted VM run-control routes for run create/get/list events, worker heartbeat assignment, control commands, and worker event ingest.
 
 ## 3) Handler Layer Capability Map
 
@@ -203,6 +205,7 @@ Capabilities:
 Primary files:
 
 - `backend/src/services/token_service.py`
+- `backend/src/services/vm_run_control.py`
 - `backend/src/services/artifacts/*`
 - `backend/src/services/ocr/*`
 - `backend/src/services/vision/*`
@@ -216,6 +219,7 @@ Capabilities:
 - OCR service for screenshot text extraction with runtime fallback policy.
 - Vision providers for UI coordinate prediction and scale normalization.
 - Embedding provider abstraction used by memory/semantic endpoints.
+- In-memory VM run-state service with worker assignment queue, pending control-command draining, and per-run ordered event sequencing.
 
 ## 11) Simulation + SDK Surfaces
 
