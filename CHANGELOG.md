@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(sidecar-computer-use-metadata-envelope-strictness): extend sidecar regression coverage for strict top-level unified `computer_use.metadata` placement by rejecting legacy nested `arguments.metadata` wrappers and non-string required metadata fields before concrete subtool execution.
 - docs(agent-tool-bridge-and-hubs): add a dedicated backend agent reference for `tool_call_bridge` (native tool-call normalization, `computer_use` mapping, history-call shaping, and recoverable helper contracts), and wire backend/frontend docs hubs to the new backend bridge and renderer permission-store deep references.
 - test(sidecar-computer-use-metadata-runtime-enforcement): fail closed in sidecar `ToolRegistry` when unified `computer_use` envelopes omit/blank required metadata (`description`, `explanation`, `expectation`) and add regressions for missing, whitespace-only, missing-field, and trimmed-valid paths.
 - test(frontend-stale-turn-memory-store-gate): guard chat-stream `memory-store` handling by active turn so stale old-turn memory-store events cannot overwrite `streamTracking.activeTurnRef` or mutate current turn tracking counters.
