@@ -19,6 +19,10 @@ from backend.src.services.vm_run_control_event_payloads import (
     build_run_dispatched_payload,
     build_worker_assigned_payload,
 )
+from backend.src.services.vm_run_control_pending_controls import (
+    collect_pending_control_commands_for_worker,
+    create_control_command,
+)
 from backend.src.services.vm_run_control_worker_state import (
     build_registry_worker_state,
     build_run_worker_state,
@@ -146,20 +150,7 @@ class VmRunControlService:
         return None
 
     def _collect_pending_control_commands_locked(self, worker_id: str) -> List[Dict[str, Any]]:
-        commands: List[Dict[str, Any]] = []
-        for run in self._runs.values():
-            worker = run.get("worker")
-            if not isinstance(worker, dict) or worker.get("worker_id") != worker_id:
-                continue
-            pending_commands = run.get("pending_controls", [])
-            if not isinstance(pending_commands, list) or not pending_commands:
-                continue
-            for command in pending_commands:
-                if not isinstance(command, dict):
-                    continue
-                commands.append({"run_id": run["run_id"], **deepcopy(command)})
-            run["pending_controls"] = []
-        return commands
+        return collect_pending_control_commands_for_worker(self._runs, worker_id=worker_id)
 
     def _enqueue_control_command_locked(
         self,
@@ -170,13 +161,13 @@ class VmRunControlService:
         control_mode: Optional[str],
         bulk: bool = False,
     ) -> Dict[str, Any]:
-        command = {
-            "command_id": str(uuid4()),
-            "action": action,
-            "requested_by": requested_by,
-            "control_mode": control_mode,
-            "created_at": now_iso(),
-        }
+        command = create_control_command(
+            command_id=str(uuid4()),
+            action=action,
+            requested_by=requested_by,
+            control_mode=control_mode,
+            created_at=now_iso(),
+        )
         run.setdefault("pending_controls", []).append(command)
         self._append_event_locked(
             run,

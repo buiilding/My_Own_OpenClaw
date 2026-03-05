@@ -12,6 +12,7 @@ title: "Transcript Writer Queue Flush and Session Event Reference"
 
 - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
 - `frontend/src/renderer/infrastructure/transcript/transcriptRecordWrite.ts`
+- `frontend/src/renderer/infrastructure/transcript/transcriptPendingFlush.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoStorage.ts`
 - `frontend/src/renderer/infrastructure/transcript/pendingUserQueue.ts`
@@ -89,6 +90,12 @@ Flush order is strict and sequential:
 1. user queue
 2. assistant queue
 3. tool queue
+
+Shared flush helper boundary:
+
+- `transcriptPendingFlush.ts` owns:
+- `requeuePending(...)` FIFO requeue helper
+- `flushPendingEntries(...)` category-aware write loop + tail requeue + warning emission
 
 Failure semantics:
 
