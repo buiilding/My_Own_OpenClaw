@@ -10,14 +10,14 @@ title: "Frontend Runtime Surface Matrix Reference"
 
 This matrix maps runtime behavior to exact modules in `frontend/src`.
 
-## Coverage Snapshot (2026-02-27)
+## Coverage Snapshot (2026-03-05)
 
-- Main process files: `37`
-- Sidecar python files: `141`
-- Renderer files: `139`
+- Main process files: `58`
+- Sidecar python files: `156`
+- Renderer files: `201`
 - Landing files: `13`
 - Preload files: `1`
-- Total covered frontend files: `331`
+- Total covered frontend files: `429`
 
 ## Runtime Surface Ownership
 
@@ -28,6 +28,7 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 | Main process backend bridge | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc_runtime_helpers.cjs`, `frontend/src/main/ipc_renderer_windows.cjs`, `frontend/src/main/ipc_query_broadcast.cjs`, `frontend/src/main/ipc_settings_sync.cjs` | WebSocket session, settings ACK gate, relay fan-out | IPC events to renderer |
 | Main process sidecar bridge | `frontend/src/main/local_backend_bridge.cjs` | Python subprocess lifecycle, JSON-RPC correlation | Tool/system/memory responses |
 | Main process wakeword bridge | `frontend/src/main/wakeword_bridge.cjs` | Wakeword subprocess lifecycle + binary framing | Wakeword events to renderer/main IPC |
+| Main VM worker bridge | `frontend/src/main/{runtime_mode,vm_worker_runtime}.cjs` | Hosted `/api/runs/*` heartbeat polling, run dispatch, stream relay, control-command application | Websocket `stop-query` + `/api/runs/*` event/control updates |
 | Preload trust boundary | `frontend/src/preload.js` | Allowlisted IPC exposure only | `window.ipc` bridge methods |
 | Renderer app shell | `frontend/src/renderer/app/App.jsx` | Provider stack, main layout routing | Chat/dashboard surfaces |
 | Renderer chat runtime | `frontend/src/renderer/features/chat/hooks/useChatStream.ts` | Stream event handling, state transitions | Message list + overlay updates |

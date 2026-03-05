@@ -1,5 +1,5 @@
 ---
-summary: "Frontend renderer infrastructure docs hub for tool execution orchestration, audio playback queue runtime, capture/artifact upload behavior, and backend payload normalization boundaries."
+summary: "Frontend renderer infrastructure docs hub for tool execution orchestration, audio playback queue runtime, capture/artifact upload behavior, backend payload normalization boundaries, and incoming text sanitization contracts."
 read_when:
   - When changing `frontend/src/renderer/infrastructure/services/*` tool execution pipeline behavior.
   - When changing `frontend/src/renderer/infrastructure/audio/*` playback queue or cleanup behavior.
@@ -15,6 +15,7 @@ title: "Frontend Renderer Infrastructure Docs Hub"
 - [Player Service Queue, Generation, and Error-Recovery Reference](audio/player_service_queue_generation_and_error_recovery_reference.md)
 - [Tool Execution Service and Hook Runtime Reference](tool_execution_service_and_hook_runtime_reference.md)
 - [Capture, Artifact Upload, and Payload Normalization Reference](capture_artifact_upload_and_payload_normalization_reference.md)
+- [Incoming Text Normalization Contract Reference](incoming_text_normalization_mojibake_and_lone_surrogate_contract_reference.md)
 - [Conversation Transcript Loader and Display-Bounds Storage Reference](conversation_transcript_loader_and_display_bounds_storage_reference.md)
 
 ## Code Scope
@@ -34,6 +35,7 @@ title: "Frontend Renderer Infrastructure Docs Hub"
 - `frontend/src/renderer/infrastructure/services/ArtifactUploader.ts`
 - `frontend/src/renderer/infrastructure/services/ArtifactImageUtils.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionLogger.ts`
+- `frontend/src/renderer/infrastructure/text/incomingTextNormalization.ts`
 - `frontend/src/renderer/infrastructure/transcript/conversationTranscriptLoader.js`
 - `tests/frontend/ToolExecutionService.test.ts`
 - `tests/frontend/ToolExecutionBundleRunner.test.ts`
