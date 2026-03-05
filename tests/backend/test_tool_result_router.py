@@ -92,6 +92,28 @@ async def test_route_individual_result_without_screenshot():
 
 
 @pytest.mark.asyncio
+async def test_route_individual_result_preserves_existing_system_state_when_payload_omits_state_keys():
+    router = _make_router()
+    router.session.current_system_state = {"active_window": "Terminal"}
+    result = ToolResult(success=True, data={"output": "ok"})
+
+    await router.route_individual_result("req-1", result)
+
+    assert router.session.current_system_state == {"active_window": "Terminal"}
+
+
+@pytest.mark.asyncio
+async def test_route_individual_result_allows_explicit_null_system_state_to_clear_session_state():
+    router = _make_router()
+    router.session.current_system_state = {"active_window": "Terminal"}
+    result = ToolResult(success=True, data={"system_state": None})
+
+    await router.route_individual_result("req-1", result)
+
+    assert router.session.current_system_state is None
+
+
+@pytest.mark.asyncio
 async def test_route_individual_result_updates_session_system_state():
     router = _make_router()
     result = ToolResult(
