@@ -240,23 +240,35 @@ class ToolCallValidator:
                 "Metadata must be a dictionary."
             )
         else:
-            if not self._has_nonempty_text(metadata.get("description")):
+            description = metadata.get("description")
+            normalized_description = self._normalize_required_metadata_value(description)
+            if normalized_description is None:
                 validation_errors.append(
                     f"Computer-use tool '{tool_name}' is missing required metadata field 'description'. "
                     "Description describes the most recent screenshot provided to you."
                 )
+            else:
+                metadata["description"] = normalized_description
 
-            if not self._has_nonempty_text(metadata.get("explanation")):
+            explanation = metadata.get("explanation")
+            normalized_explanation = self._normalize_required_metadata_value(explanation)
+            if normalized_explanation is None:
                 validation_errors.append(
                     f"Computer-use tool '{tool_name}' is missing required metadata field 'explanation'. "
                     "Explanation describes why this tool is being used."
                 )
+            else:
+                metadata["explanation"] = normalized_explanation
 
-            if not self._has_nonempty_text(metadata.get("expectation")):
+            expectation = metadata.get("expectation")
+            normalized_expectation = self._normalize_required_metadata_value(expectation)
+            if normalized_expectation is None:
                 validation_errors.append(
                     f"Computer-use tool '{tool_name}' is missing required metadata field 'expectation'. "
                     "Expectation describes what you expect to see after execution."
                 )
+            else:
+                metadata["expectation"] = normalized_expectation
 
         if validation_errors:
             self.metrics.record_validation_violation(
@@ -284,6 +296,13 @@ class ToolCallValidator:
     @staticmethod
     def _has_nonempty_text(value: Any) -> bool:
         return isinstance(value, str) and bool(value.strip())
+
+    @staticmethod
+    def _normalize_required_metadata_value(value: Any) -> Optional[str]:
+        if not isinstance(value, str):
+            return None
+        normalized = value.strip()
+        return normalized if normalized else None
 
     @staticmethod
     def _safe_count(value: Any) -> Optional[int]:
