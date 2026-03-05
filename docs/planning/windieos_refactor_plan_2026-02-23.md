@@ -4830,3 +4830,44 @@ read_when:
   - `cd frontend && npm run audit:jscpd` (0 clones)
   - `cd frontend && npm run audit:knip` (clean)
   - `cd frontend && npm run lint:audit` (pass)
+
+## Phase 198 Outcome (2026-03-05)
+
+- Refactor slice (frontend chat stream event-runtime split + slow test trim):
+  - extracted chat-stream conversation/turn runtime helpers from hook:
+    - added `frontend/src/renderer/features/chat/utils/chatStreamEventRuntime.ts`
+      - `resolveTargetConversationRef(...)`
+      - `syncActiveConversationProjection(...)`
+      - `shouldIgnoreForStaleTurn(...)`
+      - `recordTrackingEvent(...)`
+  - rewired:
+    - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
+      - delegates event conversation resolution, stale-turn gate, projection sync, and stream-tracking event writes to shared utility.
+  - file-size delta:
+    - `useChatStream.ts` reduced from `640` LOC to `607` LOC.
+  - tests:
+    - added `tests/frontend/ChatStreamEventRuntime.test.ts` to lock turn fallback/projection/tracking behavior.
+- Slow-test optimization:
+  - updated `tests/frontend/ChatGptDashboardShell.test.jsx` microtask flush helper to avoid redundant queue drains per assertion path.
+  - runtime delta (full `frontend` suite json report):
+    - `ChatGptDashboardShell.test.jsx` improved from `1058ms` to `867ms` (~18.1% faster).
+- Route consolidation check:
+  - `npx jscpd --gitignore --min-lines 8 --reporters console --output ../.audit/plan1/jscpd-api-routes ../backend/src/api/routes`
+  - result: `0` clones; no route consolidation needed.
+- Dependency/tooling audit:
+  - `cd frontend && npm outdated`
+  - notable available upgrades include `electron` patch (`40.6.1 -> 40.7.0`) and multiple major-version jumps (`react`/`jest`/`eslint` families).
+  - no dependency bump applied in this slice to avoid mixing major toolchain migration risk with refactor/runtime cleanup.
+- Audit outcome:
+  - combined `backend/src` + `frontend/src` `jscpd`: `0` clones.
+  - `knip`: clean.
+  - ESLint audit plugins:
+    - `react-compiler/react-compiler`: clean
+    - `deprecation/deprecation`: clean
+- Validation:
+  - `cd frontend && npm run lint -- src/renderer/features/chat/hooks/useChatStream.ts src/renderer/features/chat/utils/chatStreamEventRuntime.ts` (pass)
+  - `cd frontend && npm run test:ci -- ../tests/frontend/ChatStreamEventRuntime.test.ts ../tests/frontend/ChatStreamThinkingStatus.state.test.tsx ../tests/frontend/ChatGptDashboardShell.test.jsx` (pass)
+  - `cd frontend && NODE_OPTIONS=--no-deprecation npx jest --config jest.config.cjs --runInBand --json --outputFile ../.audit/plan1/jest-report-current.json` (pass; 184 suites)
+  - `cd frontend && npm run lint:audit` (pass)
+  - `cd frontend && npm run audit:jscpd` (0 clones)
+  - `cd frontend && npm run audit:knip` (clean)

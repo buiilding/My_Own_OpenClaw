@@ -45,14 +45,8 @@ import {
   resolveStreamingResponseAction,
 } from '../utils/chatStreamMessageUpdates';
 import {
-  applyTrackingEvent,
   type StreamTrackingOptions,
 } from '../utils/chatStreamTracking';
-import { isStaleTurnForActiveStream } from '../utils/chatStreamTurnGuard';
-import {
-  resolveEventConversationRef,
-  resolveConversationRefWithTurnFallback,
-} from '../utils/chatStreamConversationGate';
 import { resolveThinkingCapabilities } from '../utils/modelThinkingCapabilities';
 import {
   COMPACTION_THINKING_STATUS,
@@ -71,6 +65,12 @@ import { useChatStreamTerminalHandlers } from './useChatStreamTerminalHandlers';
 import { buildChatStreamHandlerMap } from '../utils/chatStreamHandlerMap';
 import { useChatStreamLocalUserHandler } from './useChatStreamLocalUserHandler';
 import { buildAssistantTranscriptTransparency } from '../utils/chatStreamTransparency';
+import {
+  recordTrackingEvent as recordTrackingEventRuntime,
+  resolveTargetConversationRef as resolveTargetConversationRefRuntime,
+  shouldIgnoreForStaleTurn as shouldIgnoreForStaleTurnRuntime,
+  syncActiveConversationProjection as syncActiveConversationProjectionRuntime,
+} from '../utils/chatStreamEventRuntime';
 
 export function useChatStream(enableTranscript: boolean = true) {
   const {
@@ -96,73 +96,40 @@ export function useChatStream(enableTranscript: boolean = true) {
     supportsThinkingTextStream: modelCapabilities.supportsThinkingTextStream,
   });
 
-  const resolveTargetConversationRef = useCallback((event: BackendEvent): string | null => {
-    const store = useChatStore.getState();
-    return resolveConversationRefWithTurnFallback({
-      explicitConversationRef: resolveEventConversationRef(event),
-      turnRef: event.turn_ref,
-      resolveConversationRefForTurn: store.resolveConversationRefForTurn,
-      fallbackConversationRef: getActiveConversationRef(),
-    });
-  }, []);
+  const resolveTargetConversationRef = useCallback(
+    (event: BackendEvent): string | null => resolveTargetConversationRefRuntime(
+      event,
+      getActiveConversationRef(),
+    ),
+    [],
+  );
 
   const syncActiveConversationProjection = useCallback((
     event: BackendEvent,
     conversationRef: string | null,
-  ) => {
-    if (!conversationRef) {
-      return;
-    }
-    const explicitConversationRef = resolveEventConversationRef(event);
-    if (!explicitConversationRef) {
-      return;
-    }
-    const activeConversationRef = useChatStore.getState().activeConversationRef;
-    if (activeConversationRef === conversationRef) {
-      return;
-    }
-    if (!activeConversationRef || event.type === 'local-user-message') {
-      setActiveConversationRef(conversationRef);
-    }
-  }, [setActiveConversationRef]);
+  ) => syncActiveConversationProjectionRuntime(event, conversationRef, setActiveConversationRef), [
+    setActiveConversationRef,
+  ]);
 
   const recordTrackingEvent = useCallback((
     eventType: BackendEventType,
     turnRef: string | null | undefined,
     options: StreamTrackingOptions = {},
     conversationRef?: string | null,
-  ) => {
-    const now = new Date().toISOString();
-    updateStreamTracking(
-      (current) => applyTrackingEvent(current, eventType, turnRef, now, options),
-      conversationRef,
-    );
-  }, [updateStreamTracking]);
+  ) => recordTrackingEventRuntime(
+    updateStreamTracking,
+    eventType,
+    turnRef,
+    options,
+    conversationRef,
+  ), [updateStreamTracking]);
 
   // Active-turn gating is shared across most handlers so late events from older turns
   // never mutate the current workspace stream state.
   const shouldIgnoreForStaleTurn = useCallback((
     event: BackendEvent,
     conversationRef?: string | null,
-  ): boolean => {
-    if (!event.turn_ref) {
-      return false;
-    }
-    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
-    const activeTurnRef = workspace.streamTracking.activeTurnRef;
-    const isPendingNextTurnAfterTerminalPhase = (
-      workspace.isSending === true
-      && (
-        workspace.streamTracking.phase === 'idle'
-        || workspace.streamTracking.phase === 'complete'
-        || workspace.streamTracking.phase === 'error'
-      )
-    );
-    if (isPendingNextTurnAfterTerminalPhase) {
-      return false;
-    }
-    return isStaleTurnForActiveStream(event.turn_ref, activeTurnRef);
-  }, []);
+  ): boolean => shouldIgnoreForStaleTurnRuntime(event, conversationRef), []);
 
   const {
     updateLastMessageBySender,
