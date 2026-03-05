@@ -1,7 +1,7 @@
 ---
-summary: "Renderer settings sections docs sub-hub for clone-style settings panel tab routing, general-tab toggle ownership, and Data-controls permission-center behavior."
+summary: "Renderer settings sections docs sub-hub for current clone-style settings panel routing, general-tab control ownership, and optional data-controls permission-center path."
 read_when:
-  - When changing `SettingsSection.jsx` tab structure, close behavior, general-tab controls, or Data-controls tab routing.
+  - When changing `SettingsSection.jsx` tab structure, close behavior, general-tab controls, or data-controls branch routing.
   - When debugging which settings controls write AppConfig patches versus local-only UI state and shared permission store actions.
 title: "Renderer Settings Sections Docs Hub"
 ---

@@ -35,6 +35,11 @@ It does not own:
 
 Those behaviors remain in `permissionStore`.
 
+Current UI note:
+
+- `PermissionControlCenter` exposes `Re-run checks` and per-row `Re-check` actions
+- it does not expose a per-row `Request` action in current renderer code
+
 ## Bootstrap-on-Mount Contract
 
 On mount/update:
@@ -82,6 +87,11 @@ Per-row button (`runPermissionProbe`):
 
 Both paths recompute gate state through shared `buildStatusStateUpdate(...)` in store.
 
+Store/API surface note:
+
+- `permissionStore.requestPermission(permissionId)` and `REQUEST_PERMISSION` IPC still exist for non-ControlCenter flows
+- current ControlCenter runtime does not call that action
+
 ## Gate-State Coupling
 
 Although this component does not render gate booleans directly, it is coupled to onboarding/runtime gating through store recomputation of:
@@ -97,7 +107,7 @@ Any successful probe/recheck can therefore change onboarding eligibility state u
 
 Current frontend test coverage is indirect:
 
-- dashboard/app tests verify broader permissions/onboarding mount paths
+- dashboard/app tests verify broader settings and app-surface mount paths
 - no dedicated `PermissionControlCenter` component test currently asserts button disabled/loading/error/per-row action behavior
 
 Recommended tests when changing this module:
@@ -113,6 +123,7 @@ Recommended tests when changing this module:
 2. Switching global recheck from replace to merge semantics can preserve stale statuses for removed permissions.
 3. Bypassing store-level recompute helpers can desync settings UI from onboarding gate decisions.
 4. Hiding errors in component rendering can make failed probes appear as stale permission state.
+5. Reintroducing request buttons without clarifying probe-vs-request intent can blur permission refresh semantics.
 
 ## Related Docs
 

@@ -1,8 +1,8 @@
 ---
-summary: "Renderer permissions presentation contract for `PermissionRowMain` + `PermissionStatusBadge`: status-pill mapping, reason text visibility, and onboarding/control-center shared row rendering."
+summary: "Renderer permissions presentation contract for `PermissionRowMain` + `PermissionStatusBadge`: status-pill mapping, reason text visibility, and Control Center row rendering."
 read_when:
   - When changing permission status label semantics or CSS class mapping in `permissionStatus.js`.
-  - When changing onboarding or settings data-controls permission row rendering.
+  - When changing permission row rendering in settings Data controls or any future permission surface.
 title: "Permission Status Badge, Row Rendering, and Reason Visibility Reference"
 ---
 
@@ -13,16 +13,14 @@ title: "Permission Status Badge, Row Rendering, and Reason Visibility Reference"
 - `frontend/src/renderer/features/permissions/components/PermissionRowMain.jsx`
 - `frontend/src/renderer/features/permissions/components/PermissionStatusBadge.jsx`
 - `frontend/src/renderer/features/permissions/utils/permissionStatus.js`
-- `frontend/src/renderer/features/permissions/components/PermissionOnboardingWizard.jsx`
 - `frontend/src/renderer/features/permissions/components/PermissionControlCenter.jsx`
-- `frontend/src/renderer/styles/PermissionOnboarding.css`
+- `frontend/src/renderer/styles/CloneMemoryModels.css`
 
-## Shared Presentation Layer
+## Current Presentation Layer
 
-`PermissionRowMain` is the shared base row used by both:
+`PermissionRowMain` is the base permission row used by `PermissionControlCenter`.
 
-- onboarding wizard required-permission list
-- settings data-controls permission list
+It can be reused by future permission surfaces without changing badge/reason semantics.
 
 Row output shape:
 
@@ -59,25 +57,22 @@ Reason is rendered as:
 
 If reason missing/empty, no reason node is rendered.
 
-## Reuse Boundaries Across Surfaces
+## Reuse Boundary
 
-`PermissionOnboardingWizard` and `PermissionControlCenter` both compose:
+`PermissionControlCenter` composes one row wrapper with a `Re-check` action and shared `PermissionRowMain` content.
 
-- one row wrapper with surface-specific action buttons
-- the same `PermissionRowMain` core content for title/status/description/reason
-
-This keeps status wording and reason visibility consistent across onboarding and settings flows.
+As long as additional surfaces use `PermissionRowMain` + `PermissionStatusBadge`, status wording and reason visibility stay consistent.
 
 ## Drift Hotspots
 
 1. Changing status keywords from main/permission service/store without updating `getPermissionPill`.
 2. Adding new status values but leaving them to default `Not checked`.
-3. Diverging onboarding vs control-center row composition without shared `PermissionRowMain`.
+3. Diverging control-center vs future permission-surface row composition without shared `PermissionRowMain`.
 4. Renaming CSS class tokens (`permission-pill`, `permission-row-reason`) without style updates.
 
 ## Coverage Notes
 
-Current frontend tests cover onboarding gate/button flow and store interactions.
+Current frontend tests cover permission store and IPC/service behavior.
 
 Direct unit coverage for `PermissionStatusBadge` and `PermissionRowMain` rendering permutations is currently absent.
 

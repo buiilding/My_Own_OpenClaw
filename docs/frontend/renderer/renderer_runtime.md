@@ -83,14 +83,14 @@ Current dashboard behavior:
 
 Primary runtime:
 
-- `PermissionOnboardingWizard`
 - `PermissionControlCenter`
 - `usePermissionStore`
 
 Current behavior:
 
 - app startup is not permission-gated in current `App.jsx`; permission onboarding/runtime status is handled in dedicated permission/settings surfaces
-- data-controls settings tab renders live permission status/probe/request surface
+- `PermissionControlCenter` renders live permission status plus probe/recheck maintenance actions
+- `permissionStore` still derives onboarding/gate state (`needsOnboarding`, `completedForManifest`, required permission sets) and still exposes `requestPermission`, but current `PermissionControlCenter` UI does not call request action
 
 ### Voice (`features/voice`)
 

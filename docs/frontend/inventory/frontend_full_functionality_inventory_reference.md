@@ -187,7 +187,8 @@ Functionality:
 - Maintains wakeword preference/suppression state.
 - Coordinates save-state callback from config updates into status context.
 - Boots chat stream + tool runner hooks at app scope.
-- Enforces install-time permission onboarding gate before dashboard/chat runtime.
+- Routes startup by VM-mode + frontend onboarding slideshow state only (no permission gate in `App.jsx`).
+- Leaves permission runtime to settings/data-controls surfaces and permission store state.
 
 ### 3.2 Chat Feature Runtime
 
@@ -249,6 +250,9 @@ Functionality:
   - Provider-first model selector.
   - Missing-model fallback reconciliation.
   - Provider API-key enable/input controls.
+- Settings panel:
+  - current visible tab list is `general` only.
+  - optional `initialTab='data-controls'` still mounts `PermissionControlCenter` via `SettingsSection` route branch.
 
 ### 3.4 Voice Runtime
 

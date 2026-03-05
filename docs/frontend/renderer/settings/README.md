@@ -2,7 +2,7 @@
 summary: "Frontend renderer settings docs sub-hub for clone-style settings sections, frontend config ownership/persistence boundaries, and AppConfig update payload routing."
 read_when:
   - When changing settings controls in `frontend/src/renderer/features/dashboard/components/sections/SettingsSection.jsx`.
-  - When debugging wakeword/wakeword-STT behavior, permission Data-controls tab behavior, frontend config filtering/persistence, or settings update payload shape from settings UI.
+  - When debugging wakeword/wakeword-STT/agent-sudo behavior, optional Data-controls mounting, frontend config filtering/persistence, or settings update payload shape from settings UI.
 title: "Frontend Renderer Settings Docs Hub"
 ---
 
@@ -29,7 +29,6 @@ title: "Frontend Renderer Settings Docs Hub"
 
 - `frontend/src/renderer/features/dashboard/components/sections/SettingsSection.jsx`
 - `frontend/src/renderer/features/permissions/components/PermissionControlCenter.jsx`
-- `frontend/src/renderer/features/permissions/components/PermissionOnboardingWizard.jsx`
 - `frontend/src/renderer/features/permissions/stores/permissionStore.js`
 - `frontend/src/renderer/features/permissions/utils/permissionStorage.js`
 - `frontend/src/renderer/utils/configFilter.js`
@@ -39,7 +38,6 @@ title: "Frontend Renderer Settings Docs Hub"
 - `frontend/src/renderer/app/providers/appConfigEvents.js`
 - `frontend/src/renderer/features/settings/hooks/useSettingsManagement.ts`
 - `tests/frontend/SettingsSection.test.jsx`
-- `tests/frontend/PermissionOnboardingWizard.test.jsx`
 - `tests/frontend/configFilter.test.js`
 - `tests/frontend/configStorage.test.js`
 - `tests/frontend/AppConfigProvider.models.test.tsx`
