@@ -4950,3 +4950,37 @@ read_when:
   - `cd frontend && npm run lint:audit` (pass)
   - `cd frontend && npm run audit:jscpd` (0 clones)
   - `cd frontend && npm run audit:knip` (clean)
+
+## Phase 201 Outcome (2026-03-05)
+
+- Refactor slice (chat message sender decomposition):
+  - extracted payload normalization, attachment filename dedupe, and readable-file attachment-context building out of hook:
+    - added `frontend/src/renderer/features/chat/utils/chatMessageSenderPayloads.ts`
+      - `normalizeOutgoingPayload(...)`
+      - `normalizeAttachmentFilenames(...)`
+      - `buildReadableFileAttachmentContext(...)`
+  - rewired:
+    - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
+      - now delegates payload/attachment parsing to shared utility module.
+  - file-size delta:
+    - `useChatMessageSender.ts` reduced from `465` LOC to `322` LOC.
+  - tests:
+    - added `tests/frontend/ChatMessageSenderPayloads.test.ts` for new helper contracts.
+    - preserved existing `ChatMessageSender` + `ChatMessageSenderUtils` regression suites.
+- Modern React pattern applied:
+  - moved parsing/data-shaping logic out of hook body into pure utility functions, reducing callback closure complexity and making behavior testable without mounting React hooks.
+- Route consolidation check:
+  - `npx jscpd --gitignore --min-lines 8 --reporters console --output ../.audit/plan1/jscpd-api-routes ../backend/src/api/routes`
+  - result: `0` clones; no route consolidation needed.
+- Audit outcome:
+  - combined `backend/src` + `frontend/src` `jscpd`: `0` clones.
+  - `knip`: clean.
+  - ESLint audit plugins:
+    - `react-compiler/react-compiler`: clean
+    - `deprecation/deprecation`: clean
+- Validation:
+  - `cd frontend && npm run lint -- src/renderer/features/chat/hooks/useChatMessageSender.ts src/renderer/features/chat/utils/chatMessageSenderPayloads.ts` (pass)
+  - `cd frontend && npm run test:ci -- ../tests/frontend/ChatMessageSender.test.tsx ../tests/frontend/ChatMessageSenderPayloads.test.ts ../tests/frontend/ChatMessageSenderUtils.test.ts` (pass)
+  - `cd frontend && npm run lint:audit` (pass)
+  - `cd frontend && npm run audit:jscpd` (0 clones)
+  - `cd frontend && npm run audit:knip` (clean)
