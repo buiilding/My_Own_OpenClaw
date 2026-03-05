@@ -80,10 +80,13 @@ const expectBundleResultEnvelope = (
 
 describe('ToolExecutionService', () => {
   beforeEach(() => {
-    jest.restoreAllMocks();
     jest.clearAllMocks();
     jest.spyOn(console, 'error').mockImplementation(() => {});
     localStorage.clear();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   test('executeTool captures screenshot for computer-use tools without screenshot', async () => {
