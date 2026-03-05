@@ -135,4 +135,25 @@ describe('appConfigPersistence', () => {
       },
     });
   });
+
+  test('mergeFrontendProviderConfig deep-merges provider_oauth entries', () => {
+    expect(
+      mergeFrontendProviderConfig(
+        {
+          provider_oauth: {
+            openai_codex: { connected: true, access_token: 'base-token', profile_id: 'openai-codex:default' },
+          },
+        },
+        {
+          provider_oauth: {
+            openai_codex: { connected: false, access_token: '' },
+          },
+        },
+      ),
+    ).toEqual({
+      provider_oauth: {
+        openai_codex: { connected: false, access_token: '', profile_id: 'openai-codex:default' },
+      },
+    });
+  });
 });

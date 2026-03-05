@@ -1,4 +1,4 @@
-const { ipcMain } = require('electron');
+const { ipcMain, shell } = require('electron');
 const WebSocket = require('ws');
 const { v4: uuidv4 } = require('uuid');
 const os = require('os');
@@ -42,6 +42,10 @@ const {
 const {
   createIpcEventReplayState,
 } = require('./ipc_event_replay_state.cjs');
+const {
+  loginOpenAICodexOAuth,
+  logoutOpenAICodexOAuth,
+} = require('./openai_codex_oauth.cjs');
 
 let BACKEND_ENDPOINTS = resolveBackendEndpoints();
 let BACKEND_URL = BACKEND_ENDPOINTS.wsUrl;
@@ -431,6 +435,40 @@ function initializeIpc(win, options = {}) {
 
   ipcMain.handle('save-frontend-config', async (event, config) => {
     return await persistFrontendConfigToDisk(config);
+  });
+
+  ipcMain.handle('openai-codex-oauth-login', async () => {
+    try {
+      const result = await loginOpenAICodexOAuth({
+        openExternal: (url) => shell.openExternal(url),
+      });
+      return {
+        success: true,
+        token: result.token,
+        auth_path: result.authPath,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: String(error?.message || error || 'OpenAI Codex OAuth login failed.'),
+      };
+    }
+  });
+
+  ipcMain.handle('openai-codex-oauth-logout', async () => {
+    try {
+      const result = await logoutOpenAICodexOAuth();
+      return {
+        success: true,
+        removed: result.removed,
+        auth_path: result.authPath,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: String(error?.message || error || 'OpenAI Codex OAuth sign-out failed.'),
+      };
+    }
   });
 
   ipcMain.on('transcript-session-sync', (event, payload = {}) => {

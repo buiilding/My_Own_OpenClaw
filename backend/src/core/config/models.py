@@ -131,6 +131,22 @@ class ProviderApiKeys(BaseModel):
         return getattr(self, normalized)
 
 
+class ProviderOAuthEntry(BaseModel):
+    """Frontend-managed OAuth credential entry for a provider."""
+
+    connected: bool = False
+    access_token: str = ""
+    refresh_token: str = ""
+    expires_at: Optional[int] = None
+    profile_id: str = ""
+
+
+class ProviderOAuth(BaseModel):
+    """Frontend-managed OAuth credentials by provider."""
+
+    openai_codex: ProviderOAuthEntry = Field(default_factory=ProviderOAuthEntry)
+
+
 class Preferences(BaseModel):
     """User-specific preferences."""
 
@@ -254,6 +270,7 @@ class AppConfig(BaseModel):
     agent_full_sudo_enabled: bool = False
     include_query_screenshot: bool = True
     provider_api_keys: ProviderApiKeys = Field(default_factory=ProviderApiKeys)
+    provider_oauth: ProviderOAuth = Field(default_factory=ProviderOAuth)
 
     # Wakeword Settings
     wakeword_enabled: bool = True

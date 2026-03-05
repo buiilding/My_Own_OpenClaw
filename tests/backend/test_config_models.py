@@ -224,6 +224,8 @@ class TestAppConfig:
         assert config.provider_api_keys.openai.enabled is False
         assert config.provider_api_keys.openai.api_key == ""
         assert config.provider_api_keys.kimi_coding.enabled is False
+        assert config.provider_oauth.openai_codex.connected is False
+        assert config.provider_oauth.openai_codex.access_token == ""
         assert config.wakeword_enabled is True
         assert config.wakeword_phrase == "hey jarvis"
         assert len(config.wakeword_greetings) == 5

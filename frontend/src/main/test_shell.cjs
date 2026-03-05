@@ -4,7 +4,54 @@
  * Run with: node src/main/test_shell.cjs
  */
 
-const { runShellCommand } = require('./tools/system/shell.cjs');
+// NOTE: The shell tool implementation lives in Python (src/main/python/tools/system/shell_tool.py).
+// This JS smoke-test used to import a CJS wrapper that no longer exists.
+// For local smoke tests, we invoke the python module directly.
+const { spawn } = require('child_process');
+
+async function runShellCommand(params) {
+  const payload = JSON.stringify(params);
+
+  return await new Promise((resolve) => {
+    const python = process.env.WINDIE_PYTHON_PATH || 'python3';
+    const env = {
+      ...process.env,
+      // Ensure shell_tool.py can import `tools.*` from src/main/python
+      PYTHONPATH: [
+        process.env.PYTHONPATH,
+        'src/main/python',
+      ].filter(Boolean).join(':'),
+    };
+
+    const child = spawn(python, [
+      'src/main/python/tools/system/shell_tool.py',
+      payload,
+    ], {
+      cwd: process.cwd(),
+      env,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+
+    let out = '';
+    let err = '';
+
+    child.stdout.on('data', (d) => (out += d.toString()));
+    child.stderr.on('data', (d) => (err += d.toString()));
+
+    child.on('close', (code) => {
+      if (code === 0) {
+        try {
+          resolve({ success: true, data: JSON.parse(out) });
+        } catch (e) {
+          resolve({ success: false, error: `Failed to parse JSON: ${e.message}`, data: { raw: out, stderr: err } });
+        }
+      } else {
+        resolve({ success: false, error: err || `python exited with code ${code}`, data: { raw: out } });
+      }
+    });
+  });
+}
+
 
 // ANSI color codes for terminal output
 const colors = {

@@ -8,15 +8,55 @@ Configuration is loaded from backend.src.core.config.app_config module.
 import importlib
 import logging
 import os
+import time
 from pathlib import Path
 import platform
 
 from backend.src.core.config.models import AppConfig
+from backend.src.llm.models.models_config import resolve_runtime_model_id
 from backend.src.core.config.runtime import (
     assemble_runtime_config,
 )
 
 logger = logging.getLogger(__name__)
+
+OPENAI_CODEX_RUNTIME_MODEL_IDS = {
+    "gpt-5.3-codex",
+    "gpt-5.3-codex-spark",
+    "gpt-5.2-codex",
+    "gpt-5.1-codex",
+    "gpt-5.1-codex-mini",
+    "gpt-5.1-codex-max",
+}
+
+
+def _openai_model_supports_codex_oauth(selected_model_id: str) -> bool:
+    if not isinstance(selected_model_id, str):
+        return False
+    runtime_model_id = resolve_runtime_model_id(selected_model_id).strip().lower()
+    if not runtime_model_id:
+        return False
+    if "/" in runtime_model_id:
+        _, runtime_model_id = runtime_model_id.split("/", 1)
+    if runtime_model_id in OPENAI_CODEX_RUNTIME_MODEL_IDS:
+        return True
+    return runtime_model_id.startswith("gpt-5.") and "codex" in runtime_model_id
+
+
+def _resolve_openai_codex_oauth_access_token(cfg: AppConfig) -> str | None:
+    oauth = getattr(cfg, "provider_oauth", None)
+    codex = getattr(oauth, "openai_codex", None)
+    if codex is None or getattr(codex, "connected", False) is not True:
+        return None
+    token = str(getattr(codex, "access_token", "") or "").strip()
+    if not token:
+        return None
+    expires_at = getattr(codex, "expires_at", None)
+    if isinstance(expires_at, (int, float)) and expires_at <= 0:
+        return None
+    if isinstance(expires_at, (int, float)) and expires_at <= int(time.time() * 1000):
+        return None
+    return token
 
 
 def get_default_tts_model_path() -> str:
@@ -92,6 +132,14 @@ def load_api_key_for_provider(cfg: AppConfig) -> AppConfig:
     api_key_env_var = None
 
     provider_override = cfg.provider_api_keys.get_provider_override(provider_name)
+    if normalized_provider == "openai" and _openai_model_supports_codex_oauth(cfg.selected_model_id):
+        oauth_token = _resolve_openai_codex_oauth_access_token(cfg)
+        if oauth_token:
+            logger.info(
+                "[API Key Load] Routing OpenAI model '%s' via Codex OAuth token.",
+                cfg.selected_model_id,
+            )
+            return cfg.model_copy(update={"api_key": oauth_token})
     if provider_override and provider_override.enabled:
         user_api_key = provider_override.api_key.strip()
         if user_api_key:

@@ -1222,6 +1222,15 @@ async def test_update_settings_handler_updates_session():
             "provider_api_keys": {
                 "openai": {"enabled": True, "api_key": "sk-openai"},
             },
+            "provider_oauth": {
+                "openai_codex": {
+                    "connected": True,
+                    "access_token": "codex-access",
+                    "refresh_token": "codex-refresh",
+                    "expires_at": 4102444800000,
+                    "profile_id": "openai-codex:default",
+                },
+            },
         },
     )
 
@@ -1235,6 +1244,8 @@ async def test_update_settings_handler_updates_session():
     assert session_manager.session.cfg.agent_full_sudo_enabled is True
     assert session_manager.session.cfg.provider_api_keys.openai.enabled is True
     assert session_manager.session.cfg.provider_api_keys.openai.api_key == "sk-openai"
+    assert session_manager.session.cfg.provider_oauth.openai_codex.connected is True
+    assert session_manager.session.cfg.provider_oauth.openai_codex.access_token == "codex-access"
 
 
 @pytest.mark.asyncio
@@ -1289,6 +1300,15 @@ async def test_load_settings_handler_returns_frontend_config():
             "mistral": {"api_key": "", "enabled": False},
             "openai": {"api_key": "", "enabled": False},
             "openrouter": {"api_key": "", "enabled": False},
+        },
+        "provider_oauth": {
+            "openai_codex": {
+                "access_token": "",
+                "connected": False,
+                "expires_at": None,
+                "profile_id": "",
+                "refresh_token": "",
+            },
         },
         "selected_model_id": expected_selected_model_id,
         "speech_mode_enabled": False,

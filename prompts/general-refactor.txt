@@ -1,8 +1,13 @@
-I want you to refactor windieos. use jscpdfor code duplication, knip for
+refactor windieos. use jscpdfor code duplication, knip for
 dead code, running eslint’s react-compilerand deprecation plugins, checking if we introduced
 api routes that can be consolidated, maintaining my docs, breaking apart files that grew too
 large, adding tests and code comments for tricky parts, updating dependencies, tool
 upgrades, file restructuring, finding and rewriting slow tests, mentioning modern react
 patterns and rewriting code (e.g. you might not need useEffect). Of course, you can find
 other refactoring approaches and other optimization techniques, add tests, update docs. After that, run tests, fix if
-there are errors.
+there are errors. The backend is in charge of llm coordination, tool calling, ocr and vision handling -convert image and text into coordinates.
+The frontend is in charge of tool execution and display, the sidecar should be lightweight, dumb, only executing tools, nothing else. I hope to
+give the frontend and sidecar to users so i want it as light as possible. the frontend has a dashboard and a chat pill, make sure it is consistent
+with the backend, memory and chats are properly stored, each chat a session for that user. Make sure the data flow is preserved, you can refactor
+the frontend to remove race conditions as long as the behavior's flow is preserved. if you change the frontend, make commits saying it will affect
+only windows, or macos, or linux, or all.

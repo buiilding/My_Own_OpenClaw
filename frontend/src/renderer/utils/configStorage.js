@@ -19,6 +19,16 @@ const DEFAULT_PROVIDER_API_KEYS = {
   kimi_coding: { enabled: false, api_key: '' },
 };
 
+const DEFAULT_PROVIDER_OAUTH = {
+  openai_codex: {
+    connected: false,
+    access_token: '',
+    refresh_token: '',
+    expires_at: null,
+    profile_id: '',
+  },
+};
+
 const DEFAULT_FRONTEND_CONFIG = {
   model_mode: 'online',
   model_provider: 'openai',
@@ -30,6 +40,7 @@ const DEFAULT_FRONTEND_CONFIG = {
   agent_full_sudo_enabled: false,
   include_query_screenshot: true,
   provider_api_keys: DEFAULT_PROVIDER_API_KEYS,
+  provider_oauth: DEFAULT_PROVIDER_OAUTH,
 };
 
 function normalizeProviderApiKeys(overrides = null) {
@@ -54,11 +65,48 @@ function normalizeProviderApiKeys(overrides = null) {
   return normalized;
 }
 
+function normalizeProviderOAuth(overrides = null) {
+  const source = (
+    overrides
+    && typeof overrides === 'object'
+    && !Array.isArray(overrides)
+  ) ? overrides : {};
+
+  const normalized = {};
+  for (const [provider, defaultEntry] of Object.entries(DEFAULT_PROVIDER_OAUTH)) {
+    const candidate = (
+      source[provider]
+      && typeof source[provider] === 'object'
+      && !Array.isArray(source[provider])
+    ) ? source[provider] : {};
+    const expiresAt = (
+      typeof candidate.expires_at === 'number'
+      && Number.isFinite(candidate.expires_at)
+    ) ? candidate.expires_at : defaultEntry.expires_at;
+    normalized[provider] = {
+      connected: candidate.connected === true,
+      access_token: typeof candidate.access_token === 'string'
+        ? candidate.access_token
+        : defaultEntry.access_token,
+      refresh_token: typeof candidate.refresh_token === 'string'
+        ? candidate.refresh_token
+        : defaultEntry.refresh_token,
+      expires_at: expiresAt,
+      profile_id: typeof candidate.profile_id === 'string'
+        ? candidate.profile_id
+        : defaultEntry.profile_id,
+    };
+  }
+
+  return normalized;
+}
+
 function buildFrontendConfig(overrides = {}) {
   return {
     ...DEFAULT_FRONTEND_CONFIG,
     ...overrides,
     provider_api_keys: normalizeProviderApiKeys(overrides.provider_api_keys),
+    provider_oauth: normalizeProviderOAuth(overrides.provider_oauth),
   };
 }
 
