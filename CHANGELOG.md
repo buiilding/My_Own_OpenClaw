@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(frontend-stale-turn-compaction-gate): guard chat-stream context-compaction lifecycle events (`context-compaction-started/completed/failed`) by active turn so stale old-turn compaction packets cannot override current thinking status/source or stream-tracking phase during newer in-flight turns.
 - test(frontend-stale-turn-metadata-gate): guard chat-stream metadata enrichment events (`system-prompt`, `user-message-full`, `assistant-message-full`, `tool-schemas`) by active turn so stale old-turn metadata packets cannot mutate current in-flight turn transcript/message metadata.
 - docs(frontend-permissions-settings-runtime-alignment): refresh renderer/frontend architecture and inventory docs to match current non-permission-gated startup, current permissions surface (`PermissionControlCenter` + store-derived gate state), and current `SettingsSection` behavior (general tab + optional `data-controls` route branch).
 - test(frontend-stale-turn-token-count-gate): guard chat-stream `token-count` handling by active turn so stale turn token updates cannot overwrite active turn usage counters during in-flight responses.
