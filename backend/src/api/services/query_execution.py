@@ -29,6 +29,9 @@ from backend.src.api.services.query_execution_runtime import (
     resolve_query_screenshot_metadata,
     resolve_screenshots,
 )
+from backend.src.api.services.query_execution_stream_state import (
+    QueryExecutionStreamState,
+)
 from backend.src.api.services.tts_session import TTSSession
 from backend.src.api.transport.protocol import WebSocketSender
 from backend.src.api.transport.sender import WebSocketTransportSender
@@ -81,10 +84,7 @@ class QueryExecutionService:
             msg_id=msg_id,
             conversation_ref=message.payload.conversation_ref,
         )
-        saw_terminal_event = False
-        saw_text_chunk = False
-        text_chunks: list[str] = []
-        last_assistant_full_text: str = ""
+        stream_state = QueryExecutionStreamState()
 
         try:
             async with TTSSession(
@@ -118,7 +118,7 @@ class QueryExecutionService:
                 ):
                     event_type = self._extract_event_type(event)
 
-                    if saw_terminal_event:
+                    if stream_state.saw_terminal_event:
                         logger.debug(
                             "Ignoring post-terminal stream event "
                             "(user_id=%s, turn_ref=%s, event_type=%s)",
@@ -132,38 +132,35 @@ class QueryExecutionService:
                         event,
                         event_type=event_type,
                     )
-                    if chunk_text:
-                        saw_text_chunk = True
-                        text_chunks.append(chunk_text)
-
                     assistant_full_text = self._extract_assistant_full_text(
                         event,
                         event_type=event_type,
                     )
-                    if assistant_full_text:
-                        last_assistant_full_text = assistant_full_text
+                    stream_state.observe_texts(
+                        chunk_text=chunk_text,
+                        assistant_full_text=assistant_full_text,
+                    )
 
                     if event_type == "streaming-complete":
-                        saw_terminal_event = True
+                        stream_state.mark_terminal()
                         completion_text = self._resolve_completion_text(
-                            event=event,
-                            event_type=event_type,
-                            text_chunks=text_chunks,
-                            assistant_full_text=last_assistant_full_text,
-                            saw_text_chunk=saw_text_chunk,
+                            **stream_state.completion_kwargs(
+                                event=event,
+                                event_type=event_type,
+                            ),
                         )
-                        saw_text_chunk = await self._emit_completion_events(
+                        stream_state.saw_text_chunk = await self._emit_completion_events(
                             pipeline=pipeline,
                             tts_service=tts_session.service,
                             msg_id=msg_id,
                             stream_context=stream_context,
                             completion_text=completion_text,
-                            saw_text_chunk=saw_text_chunk,
+                            saw_text_chunk=stream_state.saw_text_chunk,
                         )
                         continue
 
                     if event_type == "error":
-                        saw_terminal_event = True
+                        stream_state.mark_terminal()
 
                     await self._process_pipeline_event(
                         pipeline=pipeline,
@@ -173,7 +170,7 @@ class QueryExecutionService:
                         stream_context=stream_context,
                     )
 
-                if not saw_terminal_event:
+                if not stream_state.saw_terminal_event:
                     logger.warning(
                         "Agent stream ended without terminal event; emitting fallback completion "
                         "(user_id=%s, turn_ref=%s)",
@@ -181,18 +178,18 @@ class QueryExecutionService:
                         msg_id,
                     )
                     completion_text = self._resolve_completion_text(
-                        event=None,
-                        text_chunks=text_chunks,
-                        assistant_full_text=last_assistant_full_text,
-                        saw_text_chunk=saw_text_chunk,
+                        **stream_state.completion_kwargs(
+                            event=None,
+                            event_type=None,
+                        ),
                     )
-                    saw_text_chunk = await self._emit_completion_events(
+                    stream_state.saw_text_chunk = await self._emit_completion_events(
                         pipeline=pipeline,
                         tts_service=tts_session.service,
                         msg_id=msg_id,
                         stream_context=stream_context,
                         completion_text=completion_text,
-                        saw_text_chunk=saw_text_chunk,
+                        saw_text_chunk=stream_state.saw_text_chunk,
                     )
 
                 if tts_session.service:

@@ -32,6 +32,7 @@ title: "Chat Stream and Tool Execution Reference"
 - `frontend/src/renderer/features/chat/utils/chatStreamToolMessages.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamThinkingStatus.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamTypes.ts`
+- `frontend/src/renderer/features/chat/utils/chatStreamBackendIngress.ts`
 - `frontend/src/renderer/features/chat/utils/modelThinkingCapabilities.ts`
 - `frontend/src/renderer/features/chat/utils/toolRunnerSurface.ts`
 - `frontend/src/renderer/infrastructure/hooks/useLatestRef.ts`
@@ -134,6 +135,7 @@ Pre-routing and workspace resolution:
 - `turn_ref -> conversation_ref` map is updated opportunistically so later events without `conversation_ref` route correctly
 - handlers write into target conversation workspace instead of only active chat projection
 - transcript session sync runs on each backend event and prefers current transcript active conversation ref; falls back to event-resolved conversation ref when no active transcript ref is set
+- ingress orchestration for projection sync, turn-map registration, transcript-session update, and handler dispatch is centralized in `chatStreamBackendIngress.ingestBackendEvent(...)`
 
 Handler map (`BackendEventType` -> behavior):
 
