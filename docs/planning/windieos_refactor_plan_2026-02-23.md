@@ -48,6 +48,28 @@ read_when:
 
 ## Frontend/Main Execution Log (2026-02-26)
 
+- ChatBox state-decomposition (2026-03-05):
+  - extracted chatbox drag/anchor/screenshot-preview helpers from:
+    - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
+    - into `frontend/src/renderer/features/chat/utils/chatBoxState.js`.
+  - moved drag-blocked-target checks and screenshot attachment payload shaping into pure helpers, keeping the component focused on event orchestration.
+  - result:
+    - `ChatBox.jsx` reduced from `418` LOC to `408` LOC.
+  - regression coverage:
+    - added `tests/frontend/ChatBoxState.test.js`.
+    - reran `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`.
+  - verification:
+    - `cd frontend && npm run test:ci -- ../tests/frontend/ChatBoxState.test.js ../tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`
+    - `cd frontend && npm run lint -- src/renderer/features/chat/components/ChatBox.jsx src/renderer/features/chat/utils/chatBoxState.js`
+    - `cd frontend && npm run lint:audit`
+    - `cd frontend && npm run audit:knip`
+    - `cd frontend && npm run audit:jscpd`
+    - `cd frontend && npx jscpd --gitignore --min-lines 5 --min-tokens 50 --reporters console --ignore \"**/__pycache__/**\" ../backend/src/api/routes`
+  - audit delta:
+    - `react-compiler`/`deprecation` lint audits clean.
+    - `knip` clean.
+    - `jscpd` remains `0` clones overall and `backend/src/api/routes` remains `0` clones.
+
 - ChatBox response state-decomposition (2026-03-05):
   - extracted response-visibility state selectors from:
     - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
