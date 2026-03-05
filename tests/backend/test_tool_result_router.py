@@ -180,6 +180,28 @@ async def test_route_bundle_result_processes_screenshot_and_resolves():
 
 
 @pytest.mark.asyncio
+async def test_route_bundle_result_preserves_existing_system_state_when_payload_omits_state_keys():
+    router = _make_router()
+    router.session.current_system_state = {"active_window": "Terminal"}
+    result = ToolResult(success=True, data={"status": "ok"})
+
+    await router.route_bundle_result("bundle-1", result)
+
+    assert router.session.current_system_state == {"active_window": "Terminal"}
+
+
+@pytest.mark.asyncio
+async def test_route_bundle_result_allows_explicit_null_system_state_to_clear_session_state():
+    router = _make_router()
+    router.session.current_system_state = {"active_window": "Terminal"}
+    result = ToolResult(success=True, data={"system_state_internal": None})
+
+    await router.route_bundle_result("bundle-1", result)
+
+    assert router.session.current_system_state is None
+
+
+@pytest.mark.asyncio
 async def test_route_bundle_result_resolves_screenshot_ref(monkeypatch):
     router = _make_router()
     monkeypatch.setattr(router, "_looks_like_artifact_id", lambda value: value == "bundle.jpg")
