@@ -17,6 +17,7 @@ title: "Chat Stream and Tool Execution Reference"
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
+- `frontend/src/renderer/features/chat/hooks/useChatStreamCompletionHandler.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStreamLocalUserHandler.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStreamTerminalHandlers.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStreamToolHandlers.ts`
@@ -161,6 +162,7 @@ Handler composition boundary:
 - local-user-message handling is delegated to `useChatStreamLocalUserHandler`
 - error/memory-store/token-count terminal behaviors are delegated to `useChatStreamTerminalHandlers`
 - tool-call/tool-output/tool-bundle handling is delegated to `useChatStreamToolHandlers`
+- streaming-complete finalization and transcript write side effects are delegated to `useChatStreamCompletionHandler`
 - turn-scoped wrapper callbacks for tool/memory/token/error/local-user events are centralized in `useTurnScopedBackendEventHandler`, with optional `skipStaleTurnGate` for `local-user-message` passthrough behavior.
 
 Turn guard + error suppression matrix:

@@ -7,10 +7,8 @@ import {
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import {
   getActiveConversationRef,
-  recordAssistantMessage,
   updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
-import type { TranscriptTransparencyData } from '../../../infrastructure/transcript/types';
 import {
   type BackendEvent,
   type BackendEventType,
@@ -31,7 +29,6 @@ import {
 } from '../utils/chatStreamFormatting';
 import {
   findLastAssistantLlmTextMessageId,
-  findStreamingCompleteAssistantMessage,
   resolveStreamingResponseAction,
 } from '../utils/chatStreamMessageUpdates';
 import {
@@ -53,7 +50,7 @@ import { useChatStreamLocalUserHandler } from './useChatStreamLocalUserHandler';
 import { useChatStreamCompactionHandlers } from './useChatStreamCompactionHandlers';
 import { useChatStreamMetadataHandlers } from './useChatStreamMetadataHandlers';
 import { useTurnScopedBackendEventHandler } from './useTurnScopedBackendEventHandler';
-import { buildAssistantTranscriptTransparency } from '../utils/chatStreamTransparency';
+import { useChatStreamCompletionHandler } from './useChatStreamCompletionHandler';
 import {
   recordTrackingEvent as recordTrackingEventRuntime,
   resolveTargetConversationRef as resolveTargetConversationRefRuntime,
@@ -336,51 +333,26 @@ export function useChatStream(enableTranscript: boolean = true) {
     skipStaleTurnGate: true,
   });
 
+  const processStreamingComplete = useChatStreamCompletionHandler({
+    enableTranscript,
+    modelContextRef,
+    recordTrackingEvent,
+    setIsSending,
+    setThinkingStatus,
+    setThinkingSourceEventType,
+    updateMessage,
+    persistThinkingForTurn,
+  });
+
   const handleStreamingComplete = useCallback((event: StreamingCompleteEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
     if (shouldIgnoreForStaleTurn(event, conversationRef)) {
       return;
     }
-    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
-    setIsSending(false, conversationRef);
-    persistThinkingForTurn(event.turn_ref || undefined, conversationRef);
-    setThinkingStatus(null, conversationRef);
-    setThinkingSourceEventType(null, conversationRef);
-
-    const currentMessages = workspace.messages;
-    const lastMessage = findStreamingCompleteAssistantMessage(
-      currentMessages,
-      event.turn_ref,
-    );
-    if (lastMessage && lastMessage.sender === 'assistant' && !lastMessage.isComplete) {
-      updateMessage(lastMessage.id, { isComplete: true }, conversationRef);
-      if (lastMessage.text && enableTranscript) {
-        const normalizedTransparency: TranscriptTransparencyData | undefined = (
-          buildAssistantTranscriptTransparency(currentMessages, lastMessage, event.turn_ref || undefined)
-        );
-        const modelContext = modelContextRef.current;
-        recordAssistantMessage(lastMessage.text, {
-          messageType: lastMessage.type || 'llm-text',
-          conversationRef: conversationRef || event.conversation_ref,
-          userId: event.user_id,
-          modelId: modelContext.modelId,
-          modelProvider: modelContext.modelProvider,
-          transparency: normalizedTransparency,
-        });
-      }
-    }
-
-    recordTrackingEvent('streaming-complete', event.turn_ref, { phase: 'complete' }, conversationRef);
+    processStreamingComplete(event, conversationRef);
   }, [
-    enableTranscript,
-    persistThinkingForTurn,
+    processStreamingComplete,
     resolveTargetConversationRef,
-    setIsSending,
-    setThinkingSourceEventType,
-    setThinkingStatus,
-    updateMessage,
-    modelContextRef,
-    recordTrackingEvent,
     shouldIgnoreForStaleTurn,
   ]);
 
