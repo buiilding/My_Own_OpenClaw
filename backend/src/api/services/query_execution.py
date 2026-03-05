@@ -22,6 +22,13 @@ from backend.src.api.services.query_event_extraction import (
     extract_streaming_complete_text,
     resolve_completion_text,
 )
+from backend.src.api.services.query_execution_runtime import (
+    apply_query_runtime_system_state,
+    build_stream_context,
+    resolve_query_runtime_system_state,
+    resolve_query_screenshot_metadata,
+    resolve_screenshots,
+)
 from backend.src.api.services.tts_session import TTSSession
 from backend.src.api.transport.protocol import WebSocketSender
 from backend.src.api.transport.sender import WebSocketTransportSender
@@ -258,104 +265,24 @@ class QueryExecutionService:
         message: QueryMessage,
         artifact_store_cls: Type[ArtifactStore],
     ) -> Optional[List[str]]:
-        """Resolve screenshots from inline payload and/or artifact references."""
-        screenshot = message.payload.screenshot
-        normalized_inline_screenshot = (
-            screenshot.strip() if isinstance(screenshot, str) else None
+        return resolve_screenshots(
+            message,
+            artifact_store_cls=artifact_store_cls,
+            session_manager_config=getattr(self._session_manager, "config", None),
         )
-        screenshot_ref = message.payload.screenshot_ref
-        normalized_single_ref = (
-            screenshot_ref.strip() if isinstance(screenshot_ref, str) else None
-        )
-        screenshot_refs = (
-            message.payload.screenshot_refs
-            if isinstance(message.payload.screenshot_refs, list)
-            else None
-        )
-
-        if normalized_inline_screenshot:
-            return [normalized_inline_screenshot]
-
-        normalized_ref_list = [
-            ref.strip()
-            for ref in (screenshot_refs or [])
-            if isinstance(ref, str) and ref.strip()
-        ]
-        ref_candidates = (
-            normalized_ref_list
-            if normalized_ref_list
-            else ([normalized_single_ref] if normalized_single_ref else [])
-        )
-        refs_to_resolve = ref_candidates
-        if not refs_to_resolve:
-            return None
-
-        resolved_screenshots: List[str] = []
-        try:
-            store = artifact_store_cls.from_config(self._session_manager.config)
-        except Exception as e:
-            logger.warning("Failed to initialize artifact store for screenshots %s: %s", refs_to_resolve, e)
-            return None
-
-        for ref in refs_to_resolve:
-            try:
-                resolved_screenshots.append(store.load_base64(ref))
-            except Exception as e:
-                logger.warning("Failed to load screenshot artifact %s: %s", ref, e)
-
-        return resolved_screenshots or None
 
     @staticmethod
     def _resolve_query_screenshot_metadata(
         message: QueryMessage,
     ) -> Optional[dict[str, Any]]:
-        capture_meta = message.payload.capture_meta
-        normalized_capture_meta = (
-            dict(capture_meta)
-            if isinstance(capture_meta, dict)
-            else None
-        )
-        return normalized_capture_meta
+        return resolve_query_screenshot_metadata(message)
 
     @staticmethod
     def _resolve_query_runtime_system_state(message: QueryMessage) -> Optional[dict[str, str]]:
-        """Extract backend-only runtime state (not model-facing prompt content)."""
-        payload_state = getattr(message.payload, "system_state_internal", None)
-        if not isinstance(payload_state, dict):
-            return None
-
-        runtime_state: dict[str, str] = {}
-        for key in ("active_window", "mouse_position", "screen_resolution"):
-            value = payload_state.get(key)
-            if isinstance(value, str) and value.strip():
-                runtime_state[key] = value.strip()
-
-        return runtime_state or None
+        return resolve_query_runtime_system_state(message)
 
     def _apply_query_runtime_system_state(self, agent_instance: Any, message: QueryMessage) -> None:
-        """Best-effort seed of session runtime state before tool preparation."""
-        runtime_state = self._resolve_query_runtime_system_state(message)
-        if not runtime_state:
-            return
-
-        setter = getattr(agent_instance, "set_current_system_state", None)
-        if not callable(setter):
-            return
-
-        getter = getattr(agent_instance, "get_current_system_state", None)
-        existing_state = getter() if callable(getter) else None
-        merged_state: dict[str, str] = {}
-        if isinstance(existing_state, dict):
-            for key in ("active_window", "mouse_position", "screen_resolution"):
-                value = existing_state.get(key)
-                if isinstance(value, str) and value.strip():
-                    merged_state[key] = value.strip()
-        merged_state.update(runtime_state)
-
-        try:
-            setter(merged_state)
-        except Exception as exc:
-            logger.warning("Failed to apply query runtime system state: %s", exc)
+        apply_query_runtime_system_state(agent_instance, message)
 
     @staticmethod
     def _build_stream_context(
@@ -364,17 +291,11 @@ class QueryExecutionService:
         msg_id: str,
         conversation_ref: Optional[str],
     ) -> dict[str, Optional[str]]:
-        """
-        Build immutable-per-query stream context once and reuse it across events.
-
-        Reduces per-event dictionary allocations on the hot query streaming path.
-        """
-        return {
-            "user_id": agent_instance.user_id,
-            "session_id": agent_instance.session_id,
-            "conversation_ref": conversation_ref,
-            "turn_ref": msg_id,
-        }
+        return build_stream_context(
+            agent_instance=agent_instance,
+            msg_id=msg_id,
+            conversation_ref=conversation_ref,
+        )
 
     @staticmethod
     async def _process_pipeline_event(

@@ -10,6 +10,7 @@ import {
 } from './sessionInfoStorage';
 import { createTranscriptSessionState } from './sessionInfoState';
 import { normalizeTransparencyData } from './transparencyNormalization';
+import { recordImmediateTranscriptEntry } from './transcriptRecordWrite';
 import type {
   PendingAssistantMessage,
   PendingToolMessage,
@@ -353,9 +354,6 @@ export const recordUserMessage = (
     timestamp?: string;
   } = {},
 ) => {
-  if (!text) {
-    return;
-  }
   const {
     conversationRef,
     sessionId,
@@ -375,26 +373,28 @@ export const recordUserMessage = (
     transparency: normalizedTransparency,
   };
   const queueForRetry = () => queueUserMessageForRetry(text, retryOptions);
-  const info = resolveSessionInfoOrQueue(
-    { conversationRef, sessionId, userId },
+  recordImmediateTranscriptEntry({
+    text,
+    resolveSessionInfo: () => resolveSessionInfoOrQueue(
+      { conversationRef, sessionId, userId },
+      queueForRetry,
+    ),
     queueForRetry,
-  );
-  if (!info) {
-    return;
-  }
-
-  storeImmediateTranscriptEntryWithRetry({
-    content: text,
-    role: 'user',
-    messageType: 'user',
-    timestamp,
-    modelId,
-    modelProvider,
-    screenshotRef,
-    transparency: normalizedTransparency,
-    conversationRef: info.conversationRef,
-    userId: info.userId,
-  }, queueForRetry, '[TranscriptWriter] Failed to store immediate user transcript entry; queued for retry');
+    buildEntry: (info) => ({
+      content: text,
+      role: 'user',
+      messageType: 'user',
+      timestamp,
+      modelId,
+      modelProvider,
+      screenshotRef,
+      transparency: normalizedTransparency,
+      conversationRef: info.conversationRef,
+      userId: info.userId,
+    }),
+    storeWithRetry: storeImmediateTranscriptEntryWithRetry,
+    warningMessage: '[TranscriptWriter] Failed to store immediate user transcript entry; queued for retry',
+  });
 };
 
 export const recordAssistantMessage = (
@@ -403,9 +403,6 @@ export const recordAssistantMessage = (
     messageType?: string;
   } = {},
 ) => {
-  if (!text) {
-    return;
-  }
   const messageType = options.messageType || 'llm-text';
   const normalizedTransparency = normalizeTransparencyData(options.transparency);
   const retryOptions = {
@@ -416,22 +413,24 @@ export const recordAssistantMessage = (
     transparency: normalizedTransparency,
   };
   const queueForRetry = () => queueAssistantMessageForRetry(text, retryOptions);
-  const info = resolveSessionInfoOrQueue(options, queueForRetry);
-  if (!info) {
-    return;
-  }
-
-  storeImmediateTranscriptEntryWithRetry({
-    content: text,
-    role: 'assistant',
-    messageType,
-    modelId: options.modelId,
-    modelProvider: options.modelProvider,
-    screenshotRef: options.screenshotRef,
-    transparency: normalizedTransparency,
-    conversationRef: info.conversationRef,
-    userId: info.userId,
-  }, queueForRetry, '[TranscriptWriter] Failed to store immediate assistant transcript entry; queued for retry');
+  recordImmediateTranscriptEntry({
+    text,
+    resolveSessionInfo: () => resolveSessionInfoOrQueue(options, queueForRetry),
+    queueForRetry,
+    buildEntry: (info) => ({
+      content: text,
+      role: 'assistant',
+      messageType,
+      modelId: options.modelId,
+      modelProvider: options.modelProvider,
+      screenshotRef: options.screenshotRef,
+      transparency: normalizedTransparency,
+      conversationRef: info.conversationRef,
+      userId: info.userId,
+    }),
+    storeWithRetry: storeImmediateTranscriptEntryWithRetry,
+    warningMessage: '[TranscriptWriter] Failed to store immediate assistant transcript entry; queued for retry',
+  });
 };
 
 export const recordToolMessage = (
@@ -442,9 +441,6 @@ export const recordToolMessage = (
     correlationId?: string;
   },
 ) => {
-  if (!text) {
-    return;
-  }
   const retryOptions = {
     messageType: options.messageType,
     toolName: options.toolName,
@@ -455,24 +451,26 @@ export const recordToolMessage = (
     transparency: normalizeTransparencyData(options.transparency),
   };
   const queueForRetry = () => queueToolMessageForRetry(text, retryOptions);
-  const info = resolveSessionInfoOrQueue(options, queueForRetry);
-  if (!info) {
-    return;
-  }
-
-  storeImmediateTranscriptEntryWithRetry({
-    content: text,
-    role: 'tool',
-    messageType: options.messageType,
-    toolName: options.toolName,
-    correlationId: options.correlationId,
-    modelId: options.modelId,
-    modelProvider: options.modelProvider,
-    screenshotRef: options.screenshotRef,
-    transparency: retryOptions.transparency,
-    conversationRef: info.conversationRef,
-    userId: info.userId,
-  }, queueForRetry, '[TranscriptWriter] Failed to store immediate tool transcript entry; queued for retry');
+  recordImmediateTranscriptEntry({
+    text,
+    resolveSessionInfo: () => resolveSessionInfoOrQueue(options, queueForRetry),
+    queueForRetry,
+    buildEntry: (info) => ({
+      content: text,
+      role: 'tool',
+      messageType: options.messageType,
+      toolName: options.toolName,
+      correlationId: options.correlationId,
+      modelId: options.modelId,
+      modelProvider: options.modelProvider,
+      screenshotRef: options.screenshotRef,
+      transparency: retryOptions.transparency,
+      conversationRef: info.conversationRef,
+      userId: info.userId,
+    }),
+    storeWithRetry: storeImmediateTranscriptEntryWithRetry,
+    warningMessage: '[TranscriptWriter] Failed to store immediate tool transcript entry; queued for retry',
+  });
 };
 
 const storeTranscriptEntry = async (entry: TranscriptEntry) => {
