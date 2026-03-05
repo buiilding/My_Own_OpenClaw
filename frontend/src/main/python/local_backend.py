@@ -27,6 +27,7 @@ from core.feature_pack_installer import (
     install_feature_pack,
     is_feature_pack_available,
 )
+from core.env_flags import env_flag_enabled
 from core.executors import configure_event_loop_default_executor, shutdown_all_executors
 from core.runtime_shutdown import (
     handle_shutdown_signal,
@@ -55,20 +56,6 @@ ENV_ENABLE_SEMANTIC_SUMMARIZER = "WINDIE_ENABLE_SEMANTIC_SUMMARIZER"
 ENV_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL = "WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL"
 ENV_PACKAGED_APP = "WINDIE_PACKAGED_APP"
 ENV_SIDECAR_LOG_LEVEL = "WINDIE_SIDECAR_LOG_LEVEL"
-
-
-def _env_flag_enabled(name: str, default: bool = True) -> bool:
-    """Parse permissive boolean env flags (1/0, true/false, on/off, yes/no)."""
-    raw = os.getenv(name)
-    if raw is None:
-        return default
-    normalized = raw.strip().lower()
-    if normalized in {"0", "false", "off", "no"}:
-        return False
-    if normalized in {"1", "true", "on", "yes"}:
-        return True
-    return default
-
 
 def _resolve_sidecar_log_level() -> int:
     """Resolve sidecar Python log level from env with warning-safe fallback."""
@@ -116,15 +103,15 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
         self.memory_store = None
         self._summarizer: Optional[MemorySummarizer] = None
         self._runtime_dependency_warnings: list[str] = []
-        self._semantic_summarizer_enabled = _env_flag_enabled(
+        self._semantic_summarizer_enabled = env_flag_enabled(
             ENV_ENABLE_SEMANTIC_SUMMARIZER,
             default=True,
         )
-        self._browser_feature_pack_autoinstall_enabled = _env_flag_enabled(
+        self._browser_feature_pack_autoinstall_enabled = env_flag_enabled(
             ENV_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL,
             default=True,
         )
-        self._packaged_app = _env_flag_enabled(
+        self._packaged_app = env_flag_enabled(
             ENV_PACKAGED_APP,
             default=False,
         )

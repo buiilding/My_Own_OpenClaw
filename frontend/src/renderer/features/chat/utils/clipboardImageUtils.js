@@ -1,38 +1,23 @@
 import {
-  normalizeArtifactImageContentType,
-  resolveArtifactImageExtension,
-} from '../../../infrastructure/services/ArtifactImageUtils';
+  parseBase64ImageDataUrl,
+  readFileAsDataUrl,
+} from './dataUrlImageUtils';
 
-function readFileAsDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        resolve(reader.result);
-        return;
-      }
-      reject(new Error('Failed to load pasted image data.'));
-    };
-    reader.onerror = () => {
-      reject(reader.error || new Error('Failed to read pasted image.'));
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-function parseDataUrlImage(dataUrl, fallbackContentType = null) {
-  const match = /^data:([^;]+);base64,(.+)$/i.exec(dataUrl);
-  if (!match) {
+function parseDataUrlImage(
+  dataUrl,
+  fallbackContentType = null,
+) {
+  const parsedImage = parseBase64ImageDataUrl(dataUrl, fallbackContentType);
+  if (!parsedImage) {
     return null;
   }
-  const contentType = normalizeArtifactImageContentType(match[1] || fallbackContentType);
-  const extension = resolveArtifactImageExtension(contentType);
+
   return {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
-    base64: match[2],
-    contentType,
-    filename: `clipboard-image.${extension}`,
-    previewUrl: dataUrl,
+    base64: parsedImage.base64,
+    contentType: parsedImage.contentType,
+    filename: `clipboard-image.${parsedImage.extension}`,
+    previewUrl: parsedImage.previewUrl,
   };
 }
 
@@ -47,7 +32,10 @@ export async function parseClipboardImageItems(clipboardItems = []) {
       if (!imageFile) {
         return null;
       }
-      const dataUrl = await readFileAsDataUrl(imageFile);
+      const dataUrl = await readFileAsDataUrl(imageFile, {
+        loadErrorMessage: 'Failed to load pasted image data.',
+        readErrorMessage: 'Failed to read pasted image.',
+      });
       return parseDataUrlImage(dataUrl, imageItem.type || imageFile.type || null);
     }),
   )).filter(Boolean);

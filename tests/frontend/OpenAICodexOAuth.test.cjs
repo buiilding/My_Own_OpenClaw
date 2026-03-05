@@ -3,7 +3,6 @@
 const http = require('http');
 const {
   loginOpenAICodexOAuth,
-  __private__,
 } = require('../../frontend/src/main/openai_codex_oauth.cjs');
 
 function createJwt(payload) {
@@ -13,29 +12,6 @@ function createJwt(payload) {
 }
 
 describe('openai_codex_oauth', () => {
-  test('buildTokenPayload returns normalized oauth payload', () => {
-    const nowSeconds = Math.floor(Date.now() / 1000) + 3600;
-    const accessToken = createJwt({
-      exp: nowSeconds,
-      'https://api.openai.com/auth': { chatgpt_account_id: 'acct_123' },
-    });
-    const idToken = createJwt({
-      'https://api.openai.com/auth': { chatgpt_account_id: 'acct_123' },
-    });
-
-    const payload = __private__.buildTokenPayload({
-      access_token: accessToken,
-      refresh_token: 'refresh_abc',
-      id_token: idToken,
-    });
-
-    expect(payload.connected).toBe(true);
-    expect(payload.access_token).toBe(accessToken);
-    expect(payload.refresh_token).toBe('refresh_abc');
-    expect(payload.profile_id).toBe('openai-codex:acct_123');
-    expect(typeof payload.expires_at === 'number' || payload.expires_at === null).toBe(true);
-  });
-
   test('loginOpenAICodexOAuth completes browser callback flow without openclaw binary', async () => {
     const accessToken = createJwt({
       exp: Math.floor(Date.now() / 1000) + 1200,

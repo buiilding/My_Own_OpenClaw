@@ -67,6 +67,22 @@ def _is_linux_x11_session() -> bool:
     return session_type == "x11"
 
 
+def _paste_cursor_overlay(
+    screenshot: object,
+    *,
+    cursor_image: object,
+    draw_x: int,
+    draw_y: int,
+) -> None:
+    if screenshot.mode != "RGBA":
+        screenshot_rgba = screenshot.convert("RGBA")
+    else:
+        screenshot_rgba = screenshot
+    screenshot_rgba.paste(cursor_image, (draw_x, draw_y), cursor_image)
+    if screenshot.mode != "RGBA":
+        screenshot.paste(screenshot_rgba.convert(screenshot.mode))
+
+
 def _capture_with_windows_cursor(region: Optional[tuple[int, int, int, int]]):
     """
     Capture screenshot via Win32 GDI and draw the real OS cursor.
@@ -286,14 +302,12 @@ def _overlay_linux_xfixes_cursor(
                 draw_x = int(cursor.x) - int(cursor.xhot) - int(left)
                 draw_y = int(cursor.y) - int(cursor.yhot) - int(top)
 
-                if screenshot.mode != "RGBA":
-                    screenshot_rgba = screenshot.convert("RGBA")
-                else:
-                    screenshot_rgba = screenshot
-                screenshot_rgba.paste(cursor_image, (draw_x, draw_y), cursor_image)
-
-                if screenshot.mode != "RGBA":
-                    screenshot.paste(screenshot_rgba.convert(screenshot.mode))
+                _paste_cursor_overlay(
+                    screenshot,
+                    cursor_image=cursor_image,
+                    draw_x=draw_x,
+                    draw_y=draw_y,
+                )
                 return True
             finally:
                 lib_x11.XFree(ctypes.cast(cursor_ptr, ctypes.c_void_p))
@@ -340,14 +354,12 @@ def _overlay_macos_appkit_cursor(
         draw_x = int(cursor_pos.x) - int(hot_spot.x) - int(left)
         draw_y = int(cursor_pos.y) - int(hot_spot.y) - int(top)
 
-        if screenshot.mode != "RGBA":
-            screenshot_rgba = screenshot.convert("RGBA")
-        else:
-            screenshot_rgba = screenshot
-        screenshot_rgba.paste(cursor_image, (draw_x, draw_y), cursor_image)
-
-        if screenshot.mode != "RGBA":
-            screenshot.paste(screenshot_rgba.convert(screenshot.mode))
+        _paste_cursor_overlay(
+            screenshot,
+            cursor_image=cursor_image,
+            draw_x=draw_x,
+            draw_y=draw_y,
+        )
         return True
     except Exception as exc:
         logger.debug("macOS AppKit cursor overlay failed: %s", exc)

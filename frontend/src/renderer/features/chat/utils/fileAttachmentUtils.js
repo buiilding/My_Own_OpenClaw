@@ -1,7 +1,7 @@
 import {
-  normalizeArtifactImageContentType,
-  resolveArtifactImageExtension,
-} from '../../../infrastructure/services/ArtifactImageUtils';
+  parseBase64ImageDataUrl,
+  readFileAsDataUrl,
+} from './dataUrlImageUtils';
 
 const IMAGE_FILE_EXTENSIONS = new Set([
   '.png',
@@ -46,38 +46,22 @@ function isImageFile(file) {
   return IMAGE_FILE_EXTENSIONS.has(extension);
 }
 
-function readFileAsDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        resolve(reader.result);
-        return;
-      }
-      reject(new Error('Failed to load attachment preview data.'));
-    };
-    reader.onerror = () => {
-      reject(reader.error || new Error('Failed to read attachment file.'));
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
 function parseDataUrlAttachmentImage(dataUrl, fallbackContentType = null, filename = null) {
-  const match = /^data:([^;]+);base64,(.+)$/i.exec(dataUrl);
-  if (!match) {
+  const parsedImage = parseBase64ImageDataUrl(dataUrl, fallbackContentType);
+  if (!parsedImage) {
     return null;
   }
-  const contentType = normalizeArtifactImageContentType(match[1] || fallbackContentType);
-  const extension = resolveArtifactImageExtension(contentType);
-  const normalizedFilename = normalizeFilename(filename, `attachment-image.${extension}`);
+  const normalizedFilename = normalizeFilename(
+    filename,
+    `attachment-image.${parsedImage.extension}`,
+  );
 
   return {
     id: buildAttachmentId('image'),
-    base64: match[2],
-    contentType,
+    base64: parsedImage.base64,
+    contentType: parsedImage.contentType,
     filename: normalizedFilename,
-    previewUrl: dataUrl,
+    previewUrl: parsedImage.previewUrl,
   };
 }
 
@@ -114,7 +98,10 @@ export async function parseSelectedComposerFiles(fileList = []) {
   for (const file of files) {
     const filename = normalizeFilename(file?.name);
     if (isImageFile(file)) {
-      const dataUrl = await readFileAsDataUrl(file);
+      const dataUrl = await readFileAsDataUrl(file, {
+        loadErrorMessage: 'Failed to load attachment preview data.',
+        readErrorMessage: 'Failed to read attachment file.',
+      });
       const parsedImage = parseDataUrlAttachmentImage(dataUrl, file?.type || null, filename);
       if (parsedImage) {
         imageAttachments.push(parsedImage);

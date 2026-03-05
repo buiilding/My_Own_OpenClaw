@@ -18,6 +18,8 @@ from typing import Any, Callable, Dict, Iterable, Optional, Tuple
 
 import numpy as np
 
+from core.env_flags import env_flag_enabled
+
 WAKEWORD_NAME = "hey_jarvis"
 DETECTION_THRESHOLD = 0.5
 ENV_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD = "WINDIE_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD"
@@ -29,18 +31,6 @@ def _emit_status(status: str, message: str | None = None, **extra: Any) -> None:
         payload["message"] = message
     payload.update(extra)
     print(json.dumps(payload), file=sys.stderr, flush=True)
-
-
-def _env_flag_enabled(name: str, default: bool = True) -> bool:
-    raw = os.getenv(name)
-    if raw is None:
-        return default
-    normalized = raw.strip().lower()
-    if normalized in {"0", "false", "off", "no"}:
-        return False
-    if normalized in {"1", "true", "on", "yes"}:
-        return True
-    return default
 
 
 def _read_exact(reader, length: int) -> bytes:
@@ -323,7 +313,7 @@ def run_service() -> int:
 
     model_name, model_path = resolve_wakeword_model(openwakeword_mod)
     model_directory = resolve_wakeword_model_directory()
-    allow_runtime_download = _env_flag_enabled(
+    allow_runtime_download = env_flag_enabled(
         ENV_WAKEWORD_ALLOW_RUNTIME_DOWNLOAD,
         default=True,
     )
