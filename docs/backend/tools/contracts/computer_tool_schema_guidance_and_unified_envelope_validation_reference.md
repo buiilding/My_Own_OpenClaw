@@ -11,13 +11,16 @@ title: "Computer Tool Schema Guidance and Unified Envelope Validation Reference"
 ## Canonical Modules
 
 - `backend/src/tools/computer/schemas.py`
+- `backend/src/tools/computer/unified_schema.py`
 - `backend/src/tools/remote_tools/computer.py`
+- `backend/src/tools/registry.py`
 - `backend/src/llm/parser_types.py`
 - `backend/src/llm/parser_validation.py`
 - `tests/backend/test_remote_tools.py`
 - `tests/backend/test_parser_types.py`
 - `tests/backend/test_parser_validation.py`
 - `tests/backend/test_response_parser.py`
+- `tests/backend/test_computer_use_schema_contract.py`
 
 ## Mouse Schema Conditional Contract
 
@@ -128,10 +131,10 @@ Unified registration compatibility:
 
 Registry declaration compatibility:
 
-- `ToolRegistry.get_function_declarations_filtered(["computer_use"])` still emits strict metadata contract on the unified declaration:
-  - `metadata` remains required
-  - metadata nested fields (`description`, `explanation`, `expectation`) remain required strings
-  - this prevents compatibility expansion from loosening model-facing envelope requirements
+- `ToolRegistry.get_function_declarations_filtered(["computer_use"])` now replaces the generated declaration with canonical schema from `backend/src/tools/computer/unified_schema.py`.
+- Canonical declaration includes explicit `arguments.oneOf` sub-schemas (`mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `switch_tab`, `wait`) plus conditional `allOf` requirements.
+- `metadata` remains required with required nested fields (`description`, `explanation`, `expectation`).
+- Compatibility expansion still allows legacy concrete tool-name parsing internally while preserving strict model-facing unified envelope requirements.
 
 ## Remote Tool Description Contract
 
