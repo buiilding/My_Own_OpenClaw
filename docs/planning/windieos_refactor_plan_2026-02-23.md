@@ -48,6 +48,28 @@ read_when:
 
 ## Frontend/Main Execution Log (2026-02-26)
 
+- Tool execution screenshot-selection decomposition (2026-03-05):
+  - extracted screenshot/image payload selection and upload metadata derivation from:
+    - `frontend/src/renderer/infrastructure/services/ToolExecutionService.ts`
+    - into `frontend/src/renderer/infrastructure/services/ToolExecutionScreenshotSelection.ts`.
+  - separated pure selection logic from side-effectful artifact upload calls to keep service orchestration easier to reason about.
+  - result:
+    - `ToolExecutionService.ts` reduced from `456` LOC to `446` LOC.
+  - regression coverage:
+    - added `tests/frontend/ToolExecutionScreenshotSelection.test.ts`.
+    - reran `tests/frontend/ToolExecutionService.test.ts`.
+  - verification:
+    - `cd frontend && npm run test:ci -- ../tests/frontend/ToolExecutionScreenshotSelection.test.ts ../tests/frontend/ToolExecutionService.test.ts`
+    - `cd frontend && npm run lint -- src/renderer/infrastructure/services/ToolExecutionService.ts src/renderer/infrastructure/services/ToolExecutionScreenshotSelection.ts`
+    - `cd frontend && npm run lint:audit`
+    - `cd frontend && npm run audit:knip`
+    - `cd frontend && npm run audit:jscpd`
+    - `cd frontend && npx jscpd --gitignore --min-lines 5 --min-tokens 50 --reporters console --ignore \"**/__pycache__/**\" ../backend/src/api/routes`
+  - audit delta:
+    - `react-compiler`/`deprecation` lint audits clean.
+    - `knip` clean.
+    - `jscpd` remains `0` clones overall and `backend/src/api/routes` remains `0` clones.
+
 - Message list state-decomposition (2026-03-05):
   - extracted scroll/awaiting-dot/compaction/action-gating selectors from:
     - `frontend/src/renderer/features/chat/components/MessageList.jsx`
