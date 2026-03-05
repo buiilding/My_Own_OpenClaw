@@ -19,6 +19,7 @@ title: "Chat Stream and Tool Execution Reference"
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStreamCompletionHandler.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStreamLocalUserHandler.ts`
+- `frontend/src/renderer/features/chat/hooks/useChatStreamTextHandlers.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStreamTerminalHandlers.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStreamToolHandlers.ts`
 - `frontend/src/renderer/features/chat/hooks/useTurnScopedBackendEventHandler.ts`
@@ -160,6 +161,7 @@ Handler composition boundary:
 
 - `buildChatStreamHandlerMap(...)` owns event-type to handler-function wiring
 - local-user-message handling is delegated to `useChatStreamLocalUserHandler`
+- `llm-thought` and `streaming-response` text/placeholder behavior is delegated to `useChatStreamTextHandlers`
 - error/memory-store/token-count terminal behaviors are delegated to `useChatStreamTerminalHandlers`
 - tool-call/tool-output/tool-bundle handling is delegated to `useChatStreamToolHandlers`
 - streaming-complete finalization and transcript write side effects are delegated to `useChatStreamCompletionHandler`

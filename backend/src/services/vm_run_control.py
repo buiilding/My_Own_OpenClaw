@@ -13,6 +13,12 @@ from backend.src.services.vm_run_control_helpers import (
     normalize_optional_string,
     now_iso,
 )
+from backend.src.services.vm_run_control_event_payloads import (
+    build_run_control_payload,
+    build_run_created_payload,
+    build_run_dispatched_payload,
+    build_worker_assigned_payload,
+)
 from backend.src.services.vm_run_control_worker_state import (
     build_registry_worker_state,
     build_run_worker_state,
@@ -126,14 +132,14 @@ class VmRunControlService:
                 run,
                 event_type="run-worker-assigned",
                 source="backend",
-                payload={
-                    "worker_id": worker_id,
-                    "user_id": user_id,
-                    "vm_id": vm_id,
-                    "session_id": session_id,
-                    "agent_id": agent_id,
-                    "status": run["status"],
-                },
+                payload=build_worker_assigned_payload(
+                    worker_id=worker_id,
+                    user_id=user_id,
+                    vm_id=vm_id,
+                    session_id=session_id,
+                    agent_id=agent_id,
+                    status=run["status"],
+                ),
             )
             return self._clone_run(run)
 
@@ -172,20 +178,18 @@ class VmRunControlService:
             "created_at": now_iso(),
         }
         run.setdefault("pending_controls", []).append(command)
-        payload: Dict[str, Any] = {
-            "action": action,
-            "requested_by": requested_by,
-            "control_mode": control_mode,
-            "status": run["status"],
-            "command_id": command["command_id"],
-        }
-        if bulk:
-            payload["bulk"] = True
         self._append_event_locked(
             run,
             event_type="run-control",
             source="api",
-            payload=payload,
+            payload=build_run_control_payload(
+                action=action,
+                requested_by=requested_by,
+                control_mode=control_mode,
+                status=run["status"],
+                command_id=command["command_id"],
+                bulk=bulk,
+            ),
         )
         return command
 
@@ -258,14 +262,14 @@ class VmRunControlService:
                 run,
                 event_type="run-created",
                 source="api",
-                payload={
-                    "run_id": run_id,
-                    "workspace_id": workspace_id,
-                    "agent_id": agent_id,
-                    "conversation_ref": conversation_ref,
-                    "status": run["status"],
-                    "control_mode": run["control_mode"],
-                },
+                payload=build_run_created_payload(
+                    run_id=run_id,
+                    workspace_id=workspace_id,
+                    agent_id=agent_id,
+                    conversation_ref=conversation_ref,
+                    status=run["status"],
+                    control_mode=run["control_mode"],
+                ),
             )
             self._runs[run_id] = run
             self._enqueue_run_locked(workspace_id, run_id)
@@ -472,12 +476,12 @@ class VmRunControlService:
                 run,
                 event_type="run-dispatched",
                 source="worker",
-                payload={
-                    "worker_id": worker_id,
-                    "user_id": user_id,
-                    "turn_ref": turn_ref,
-                    "conversation_ref": run["conversation_ref"],
-                },
+                payload=build_run_dispatched_payload(
+                    worker_id=worker_id,
+                    user_id=user_id,
+                    turn_ref=turn_ref,
+                    conversation_ref=run["conversation_ref"],
+                ),
             )
             return self._clone_run(run)
 

@@ -11,6 +11,7 @@ title: "VM Run Control Service Runtime Reference"
 ## Canonical Module
 
 - `backend/src/services/vm_run_control.py`
+- `backend/src/services/vm_run_control_event_payloads.py`
 - `backend/src/services/vm_run_control_helpers.py`
 - `backend/src/services/vm_run_control_worker_state.py`
 - `backend/src/services/vm_run_control_transitions.py`
@@ -68,6 +69,13 @@ Status transition logic is centralized in `vm_run_control_transitions.py`:
 - `apply_control_transition(...)` for pause/resume/stop/control-mode updates
 - `apply_stream_event_transition(...)` for stream terminal/non-terminal status transitions
 - `apply_worker_heartbeat_transition(...)` for ready/running promotion semantics
+
+Event payload shape construction is centralized in `vm_run_control_event_payloads.py`:
+
+- `build_run_created_payload(...)`
+- `build_worker_assigned_payload(...)`
+- `build_run_control_payload(...)`
+- `build_run_dispatched_payload(...)`
 
 Assignment constraints (`_assign_next_run_to_worker_locked`):
 
