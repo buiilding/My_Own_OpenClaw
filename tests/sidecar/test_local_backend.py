@@ -8,6 +8,7 @@ ensure_frontend_python_path()
 
 import local_backend as local_backend_module  # noqa: E402
 from local_backend import LocalBackend  # noqa: E402
+from tools.registry import ToolRegistry  # noqa: E402
 from tools.result import ToolResult  # noqa: E402
 
 
@@ -306,6 +307,70 @@ async def test_handle_execute_tool_preserves_computer_use_envelope_fields():
 
     assert result == {"success": True, "data": {"ok": True}}
     assert backend.tool_registry.execute_calls == [("computer_use", envelope)]
+
+
+@pytest.mark.asyncio
+async def test_handle_execute_tool_computer_use_rejects_missing_metadata_with_real_registry():
+    backend = LocalBackend()
+    registry = ToolRegistry()
+    captured = {"called": False}
+
+    def mouse_tool(_args):
+        captured["called"] = True
+        return ToolResult.success_result({"ok": True})
+
+    registry.tools["mouse_control"] = mouse_tool
+    backend.tool_registry = registry
+    envelope = {
+        "tool": "mouse_control",
+        "arguments": {
+            "action": "click",
+            "x": 10,
+            "y": 20,
+        },
+    }
+
+    result = await backend._handle_execute_tool("computer_use", envelope)
+
+    assert result == {"success": False, "error": "computer_use.metadata must be an object"}
+    assert captured["called"] is False
+
+
+@pytest.mark.asyncio
+async def test_handle_execute_tool_computer_use_trims_metadata_and_routes_with_real_registry():
+    backend = LocalBackend()
+    registry = ToolRegistry()
+    captured = {}
+
+    def mouse_tool(args):
+        captured["args"] = args
+        return ToolResult.success_result({"ok": True})
+
+    registry.tools["mouse_control"] = mouse_tool
+    backend.tool_registry = registry
+    envelope = {
+        "tool": "mouse_control",
+        "metadata": {
+            "description": " screen ",
+            "explanation": " click target ",
+            "expectation": " dialog opens ",
+        },
+        "arguments": {
+            "action": "click",
+            "x": 10,
+            "y": 20,
+        },
+    }
+
+    result = await backend._handle_execute_tool("computer_use", envelope)
+
+    assert result == {"success": True, "data": {"ok": True}}
+    assert envelope["metadata"] == {
+        "description": "screen",
+        "explanation": "click target",
+        "expectation": "dialog opens",
+    }
+    assert captured["args"] == {"action": "click", "x": 10, "y": 20}
 
 
 @pytest.mark.asyncio
