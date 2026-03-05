@@ -40,6 +40,11 @@ COMPUTER_USE_SUBTOOLS = frozenset({
     "switch_tab",
     "wait",
 })
+COMPUTER_USE_REQUIRED_METADATA_FIELDS = (
+    "description",
+    "explanation",
+    "expectation",
+)
 
 
 class ToolRegistry:
@@ -108,6 +113,20 @@ class ToolRegistry:
             tool_arguments = args.get("arguments", {})
             if not isinstance(tool_arguments, dict):
                 return ToolResult.error_result("computer_use.arguments must be an object")
+
+            metadata = args.get("metadata")
+            if not isinstance(metadata, dict):
+                return ToolResult.error_result("computer_use.metadata must be an object")
+
+            normalized_metadata: Dict[str, str] = {}
+            for field_name in COMPUTER_USE_REQUIRED_METADATA_FIELDS:
+                raw_value = metadata.get(field_name)
+                if not isinstance(raw_value, str) or not raw_value.strip():
+                    return ToolResult.error_result(
+                        f"computer_use missing required metadata field: {field_name}"
+                    )
+                normalized_metadata[field_name] = raw_value.strip()
+            args["metadata"] = normalized_metadata
 
             return await self.execute_tool(tool_name, tool_arguments)
 
