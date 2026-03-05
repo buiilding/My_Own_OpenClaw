@@ -9,7 +9,6 @@ import { resolveLlmOutputContract } from '../../../infrastructure/llmOutputContr
 import { selectChatBoxState } from '../utils/chatSelectors';
 import { getRoundedFrameSize } from '../utils/overlayFrameSize';
 import { isDevUiEnabled } from '../utils/devUiFlag';
-import { resolveSourceTag } from '../utils/sourceTags';
 import {
   hasVisibleChatboxResponse,
   resolveChatboxSurfaceStateFromLoopUiState,
@@ -26,6 +25,12 @@ import {
   findLastUserIndex,
   findLatestMessageAfterUser,
 } from './chatBoxResponseUtils';
+import {
+  isResponseCloseable,
+  normalizeThinkingText,
+  resolveSourceTagForResponse,
+  shouldRenderResponseMarkdown,
+} from '../utils/chatBoxResponseState';
 
 const RESPONSE_TYPES = new Set(['llm-text', 'error']);
 const RESPONSE_FIXED_HEIGHT = 236;
@@ -102,17 +107,11 @@ function ChatBoxResponse() {
   const showResponse = shouldShowChatboxResponse(surfaceState);
 
   const responseIsCloseable = useMemo(() => {
-    if (!visibleResponse) {
-      return false;
-    }
-    if (visibleResponse.type === 'error') {
-      return true;
-    }
-    return Boolean(visibleResponse.isComplete);
+    return isResponseCloseable(visibleResponse);
   }, [visibleResponse]);
 
   const responseMarkdownHtml = useMemo(() => {
-    if (!visibleResponse || visibleResponse.type === 'tool-call' || visibleResponse.type === 'error') {
+    if (!shouldRenderResponseMarkdown(visibleResponse)) {
       return '';
     }
     const contract = resolveLlmOutputContract(visibleResponse.text ?? '', {
@@ -125,7 +124,7 @@ function ChatBoxResponse() {
   }, [visibleResponse]);
 
   const thinkingText = useMemo(
-    () => (typeof thinkingStatus === 'string' ? thinkingStatus.trim() : ''),
+    () => normalizeThinkingText(thinkingStatus),
     [thinkingStatus],
   );
 
@@ -136,16 +135,11 @@ function ChatBoxResponse() {
   const isVisible = overlayLayoutMode !== RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN;
 
   const sourceTagForResponse = useMemo(() => {
-    if (!isDevUiEnabled() || !visibleResponse || !showResponse) {
-      return null;
-    }
-    const sourceEventType = typeof visibleResponse.sourceEventType === 'string' && visibleResponse.sourceEventType
-      ? visibleResponse.sourceEventType
-      : 'unknown';
-    const sourceChannel = typeof visibleResponse.sourceChannel === 'string' && visibleResponse.sourceChannel
-      ? visibleResponse.sourceChannel
-      : 'unknown';
-    return resolveSourceTag(sourceEventType, sourceChannel);
+    return resolveSourceTagForResponse({
+      visibleResponse,
+      showResponse,
+      devUiEnabled: isDevUiEnabled(),
+    });
   }, [showResponse, visibleResponse]);
 
   const reportOverlaySize = useCallback(async ({
