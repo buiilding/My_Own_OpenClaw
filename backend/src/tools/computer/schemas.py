@@ -227,7 +227,7 @@ class WaitToolArgs(BaseModel):
 class ComputerUseMetadata(BaseModel):
     """Required rationale payload for computer-use calls."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
     description: str = Field(
         ...,
@@ -275,5 +275,13 @@ class ComputerUseArgs(BaseModel):
     )
     arguments: Dict[str, Any] = Field(
         default_factory=dict,
-        description="Arguments for the selected `tool` action.",
+        description=(
+            "Arguments for the selected `tool` action. "
+            "For `mouse_control`, this follows mouse schema fields including "
+            "`action`, `find_coordinates_by` (`manual` | `ocr` | `prediction`), "
+            "`x`/`y` for manual, `ocr_text` or `candidate_id` for OCR, and "
+            "`description` for prediction. "
+            "For other tools, use the same arguments as their legacy schemas "
+            "(keyboard_control/screenshot/scroll_control/switch_tab/wait)."
+        ),
     )

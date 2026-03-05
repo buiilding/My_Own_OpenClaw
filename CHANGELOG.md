@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(computer-use-metadata-schema-strictness): enforce whitespace-stripping at `ComputerUseMetadata` schema level so `description`/`explanation`/`expectation` reject whitespace-only values across all call paths (not parser-only), and add backend regressions for reject + trim behavior.
 - test(tool-result-bundle-state-parity): add backend bundle-route regressions to ensure omitted state keys preserve existing runtime system-state and explicit `system_state_internal: null` still clears it, matching individual tool-result semantics.
 - test(frontend-stale-turn-stream-complete-gate): make `streaming-complete` assistant selection strict to provided `turn_ref` (no fallback to latest assistant message when the turn is missing), and add frontend regressions to prevent stale turn completions from marking active replies complete or writing transcript rows.
 - test(tool-result-state-transitions): preserve existing session system-state when tool-result payloads omit `system_state`/`system_state_internal`, while keeping explicit `null` state payloads able to clear runtime state; add backend router regressions for both behaviors.
