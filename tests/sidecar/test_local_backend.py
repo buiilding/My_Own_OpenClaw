@@ -374,6 +374,38 @@ async def test_handle_execute_tool_computer_use_trims_metadata_and_routes_with_r
 
 
 @pytest.mark.asyncio
+async def test_handle_execute_tool_computer_use_rejects_nested_arguments_metadata_wrapper():
+    backend = LocalBackend()
+    registry = ToolRegistry()
+    captured = {"called": False}
+
+    def mouse_tool(_args):
+        captured["called"] = True
+        return ToolResult.success_result({"ok": True})
+
+    registry.tools["mouse_control"] = mouse_tool
+    backend.tool_registry = registry
+    envelope = {
+        "tool": "mouse_control",
+        "arguments": {
+            "metadata": {
+                "description": "screen",
+                "explanation": "click target",
+                "expectation": "dialog opens",
+            },
+            "action": "click",
+            "x": 10,
+            "y": 20,
+        },
+    }
+
+    result = await backend._handle_execute_tool("computer_use", envelope)
+
+    assert result == {"success": False, "error": "computer_use.metadata must be an object"}
+    assert captured["called"] is False
+
+
+@pytest.mark.asyncio
 async def test_handle_execute_tool_exception():
     backend = LocalBackend()
     backend.tool_registry = DummyRegistryRaises(RuntimeError("boom"))
