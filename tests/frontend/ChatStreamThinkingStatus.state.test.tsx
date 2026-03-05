@@ -418,6 +418,60 @@ describe('useChatStream state + stream handling', () => {
     });
   });
 
+  test('ignores stale token-count event when a newer active turn is in progress', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.setState({
+        tokenCounts: {
+          prompt_tokens: 5,
+          visible_output_tokens: 2,
+          output_tokens_total: 2,
+          total_tokens: 7,
+          conversation_tokens: 70,
+          usage_source: 'provider',
+        },
+        streamTracking: {
+          activeTurnRef: 'turn-new',
+          phase: 'streaming',
+          startedAt: '2026-03-05T00:00:00.000Z',
+          firstChunkAt: '2026-03-05T00:00:01.000Z',
+          completedAt: null,
+          lastEventAt: '2026-03-05T00:00:01.000Z',
+          lastEventType: 'streaming-response',
+          eventCount: 2,
+          chunkCount: 1,
+          toolCallCount: 0,
+          toolOutputCount: 0,
+          lastChunkSize: 7,
+          lastError: null,
+        },
+      });
+
+      emitBackendEvent({
+        type: 'token-count',
+        turn_ref: 'turn-old',
+        payload: {
+          prompt_tokens: 99,
+          visible_output_tokens: 99,
+          output_tokens_total: 99,
+          total_tokens: 198,
+          conversation_tokens: 198,
+          usage_source: 'provider',
+        },
+      });
+    });
+
+    expect(useChatStore.getState().tokenCounts).toEqual({
+      prompt_tokens: 5,
+      visible_output_tokens: 2,
+      output_tokens_total: 2,
+      total_tokens: 7,
+      conversation_tokens: 70,
+      usage_source: 'provider',
+    });
+  });
+
   test('appends text to last incomplete assistant streaming message', () => {
     const { emitBackendEvent } = registerBackendListener();
 
