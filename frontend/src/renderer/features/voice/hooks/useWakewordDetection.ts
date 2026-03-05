@@ -16,6 +16,17 @@ import { useAudioCaptureRefs } from './useAudioCaptureRefs';
 import { useLatestRef } from '../../../infrastructure/hooks/useLatestRef';
 
 const WAKEWORD_COOLDOWN_MS = 2000;
+const CAPTURE_RETRY_DELAY_MS = 3000;
+
+function isMissingAudioDeviceError(error: unknown): boolean {
+  const name = typeof (error as { name?: unknown })?.name === 'string'
+    ? (error as { name: string }).name
+    : '';
+  const message = typeof (error as { message?: unknown })?.message === 'string'
+    ? (error as { message: string }).message.toLowerCase()
+    : '';
+  return name === 'NotFoundError' || message.includes('requested device not found');
+}
 
 /**
  * Custom hook for wakeword detection using openWakeWord.
@@ -57,6 +68,9 @@ export function useWakewordDetection(
   } = useAudioCaptureRefs();
   const isCapturingRef = useRef(false);
   const captureGenerationRef = useRef(0);
+  const isStartingCaptureRef = useRef(false);
+  const localCaptureErrorRef = useRef(false);
+  const nextCaptureRetryAtRef = useRef(0);
   const lastDetectionRef = useRef(0);
   const onWakewordDetectedRef = useLatestRef(onWakewordDetected);
 
@@ -92,9 +106,13 @@ export function useWakewordDetection(
 
   // Start audio capture
   const startAudioCapture = useCallback(async () => {
-    if (isCapturingRef.current) {
+    if (isCapturingRef.current || isStartingCaptureRef.current) {
       return;
     }
+    if (Date.now() < nextCaptureRetryAtRef.current) {
+      return;
+    }
+    isStartingCaptureRef.current = true;
     const generation = ++captureGenerationRef.current;
 
     try {
@@ -162,13 +180,25 @@ export function useWakewordDetection(
       setScriptNodeRef(scriptNode);
 
       isCapturingRef.current = true;
+      localCaptureErrorRef.current = false;
+      nextCaptureRetryAtRef.current = 0;
+      setError(null);
     } catch (err: any) {
       if (generation !== captureGenerationRef.current) {
         return;
       }
+      const errorMessage = isMissingAudioDeviceError(err)
+        ? 'Microphone device unavailable: requested input device was not found'
+        : `Audio capture failed: ${err.message}`;
       console.error('[Wakeword] Error starting audio capture:', err);
-      setError(`Audio capture failed: ${err.message}`);
+      setError(errorMessage);
+      localCaptureErrorRef.current = true;
+      nextCaptureRetryAtRef.current = Date.now() + CAPTURE_RETRY_DELAY_MS;
       isCapturingRef.current = false;
+    } finally {
+      if (generation === captureGenerationRef.current) {
+        isStartingCaptureRef.current = false;
+      }
     }
   }, [
     chunkSize,
@@ -184,6 +214,7 @@ export function useWakewordDetection(
   // Stop audio capture
   const stopAudioCapture = useCallback(async () => {
     captureGenerationRef.current += 1;
+    isStartingCaptureRef.current = false;
     const hadResources = Boolean(
       isCapturingRef.current
       || scriptNodeRef.current
@@ -265,7 +296,9 @@ export function useWakewordDetection(
           setError(null);
         }
       } else {
-        setError(null);
+        if (!localCaptureErrorRef.current) {
+          setError(null);
+        }
       }
     });
 
@@ -286,6 +319,9 @@ export function useWakewordDetection(
         void startAudioCapture();
       }
     } else {
+      localCaptureErrorRef.current = false;
+      nextCaptureRetryAtRef.current = 0;
+      setError(null);
       const hasCaptureResources = Boolean(
         isCapturingRef.current
         || scriptNodeRef.current

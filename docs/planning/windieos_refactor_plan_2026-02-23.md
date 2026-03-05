@@ -48,6 +48,28 @@ read_when:
 
 ## Frontend/Main Execution Log (2026-02-26)
 
+- Wakeword capture retry-loop hardening (2026-03-05):
+  - hardened renderer wakeword mic startup flow in:
+    - `frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts`
+  - changes:
+    - prevent concurrent `getUserMedia` startup races via `isStartingCaptureRef`.
+    - keep local capture failures sticky across healthy bridge status heartbeats (avoids error clear/restart loop).
+    - throttle automatic restart attempts for local capture errors (`CAPTURE_RETRY_DELAY_MS=3000`).
+    - normalize missing-device failures (`NotFoundError`) into clearer user-facing hook error text.
+  - regression coverage:
+    - expanded `tests/frontend/WakewordDetectionHook.test.ts` with local-error stickiness + no-immediate-retry assertion.
+  - verification:
+    - `cd frontend && npm run test:ci -- ../tests/frontend/WakewordDetectionHook.test.ts`
+    - `cd frontend && npm run lint -- src/renderer/features/voice/hooks/useWakewordDetection.ts`
+    - `cd frontend && npm run lint:audit`
+    - `cd frontend && npm run audit:knip`
+    - `cd frontend && npm run audit:jscpd`
+    - `cd frontend && npx jscpd --gitignore --min-lines 5 --min-tokens 50 --reporters console --ignore \"**/__pycache__/**\" ../backend/src/api/routes`
+  - audit delta:
+    - `react-compiler`/`deprecation` lint audits clean.
+    - `knip` clean.
+    - `jscpd` remains `0` clones overall and `backend/src/api/routes` remains `0` clones.
+
 - Chat stream handler decomposition (2026-03-05):
   - extracted compaction and metadata stream event handling from:
     - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`

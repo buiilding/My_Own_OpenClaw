@@ -110,6 +110,8 @@ Renderer hook guardrails (`useWakewordDetection`):
 - immediate `wakeword-disable` send after accepted detection to avoid buffered retriggers
 - threshold check (`confidence >= threshold`) before callback invocation
 - while wakeword is disabled, hook ignores bridge status errors to avoid disabled-mode noise
+- local microphone capture failures are tracked separately from bridge readiness errors so healthy `wakeword-status` heartbeats do not clear local capture failures
+- capture restart attempts are throttled (`3s`) after local start failures (for example `NotFoundError` missing input device) to avoid rapid retry loops and log spam
 
 ## Renderer Voice Stack Interaction
 
