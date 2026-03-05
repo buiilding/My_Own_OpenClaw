@@ -383,12 +383,21 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const handleStreamingComplete = useCallback((event: StreamingCompleteEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
+    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
+    const activeTurnRef = workspace.streamTracking.activeTurnRef;
+    if (
+      event.turn_ref
+      && activeTurnRef
+      && activeTurnRef !== event.turn_ref
+    ) {
+      return;
+    }
     setIsSending(false, conversationRef);
     persistThinkingForTurn(event.turn_ref || undefined, conversationRef);
     setThinkingStatus(null, conversationRef);
     setThinkingSourceEventType(null, conversationRef);
 
-    const currentMessages = useChatStore.getState().getWorkspaceState(conversationRef).messages;
+    const currentMessages = workspace.messages;
     const lastMessage = findStreamingCompleteAssistantMessage(
       currentMessages,
       event.turn_ref,
