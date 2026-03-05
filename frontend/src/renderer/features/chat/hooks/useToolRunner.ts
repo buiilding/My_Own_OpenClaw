@@ -36,10 +36,8 @@ import {
   restoreToolExecutionSurface,
   shouldSkipToolExecution,
 } from '../utils/toolRunnerSurface';
-import { isTerminalStreamPhase } from '../utils/streamPhaseState';
 import {
   type TrackedExecution,
-  isTrackedExecution,
   trackExecutionTurn,
   untrackExecutionTurn,
 } from '../utils/toolRunnerTracking';
@@ -48,36 +46,14 @@ import {
   resolveToolRunnerPayloadCorrelationId,
   shouldDropUntrackedToolRunnerPayload,
 } from '../utils/toolRunnerBackendPayload';
-import { resolveConversationRefWithTurnFallback } from '../utils/chatStreamConversationGate';
-
-function resolveToolEventConversationRef(
-  event: Pick<ToolCallEvent | ToolBundleEvent, 'conversation_ref' | 'turn_ref'>,
-): string | null {
-  const store = useChatStore.getState();
-  return resolveConversationRefWithTurnFallback({
-    explicitConversationRef: event.conversation_ref,
-    turnRef: event.turn_ref,
-    resolveConversationRefForTurn: store.resolveConversationRefForTurn,
-    fallbackConversationRef: store.activeConversationRef,
-  });
-}
-
-function shouldIgnoreToolEventForTurn(
-  turnRef: string | null | undefined,
-  conversationRef: string | null,
-): boolean {
-  if (!turnRef) {
-    return false;
-  }
-  const { streamTracking } = useChatStore.getState().getWorkspaceState(conversationRef);
-  if (!streamTracking.activeTurnRef) {
-    return true;
-  }
-  if (streamTracking.activeTurnRef !== turnRef) {
-    return true;
-  }
-  return isTerminalStreamPhase(streamTracking.phase);
-}
+import {
+  resolveToolEventConversationRef,
+  shouldIgnoreToolEventForTurn,
+} from '../utils/toolRunnerEventGuards';
+import {
+  resolveExecutionConversationRef as resolveExecutionConversationRefFromState,
+  shouldAcceptExecutionResult as shouldAcceptExecutionResultFromState,
+} from '../utils/toolRunnerExecutionState';
 
 /**
  * Custom hook for managing tool execution.
@@ -107,43 +83,17 @@ export function useToolRunner(enabled = true) {
   }, []);
 
   const shouldAcceptExecutionResult = useCallback((correlationId: string | null | undefined) => {
-    if (!isTrackedExecution(trackedExecutionTurnsRef.current, correlationId)) {
-      return false;
-    }
-    if (!correlationId) {
-      return true;
-    }
-    const trackedExecution = trackedExecutionTurnsRef.current.get(correlationId);
-    if (!trackedExecution) {
-      return false;
-    }
-    const streamTracking = useChatStore.getState()
-      .getWorkspaceState(trackedExecution.conversationRef)
-      .streamTracking;
-    if (
-      trackedExecution.turnRef
-      && streamTracking.activeTurnRef
-      && trackedExecution.turnRef !== streamTracking.activeTurnRef
-    ) {
-      trackedExecutionTurnsRef.current.delete(correlationId);
-      return false;
-    }
-    if (
-      trackedExecution.turnRef
-      && streamTracking.activeTurnRef === trackedExecution.turnRef
-      && isTerminalStreamPhase(streamTracking.phase)
-    ) {
-      trackedExecutionTurnsRef.current.delete(correlationId);
-      return false;
-    }
-    return true;
+    return shouldAcceptExecutionResultFromState(
+      trackedExecutionTurnsRef.current,
+      correlationId,
+    );
   }, []);
 
   const resolveExecutionConversationRef = useCallback((correlationId: string | null | undefined) => {
-    if (!correlationId) {
-      return null;
-    }
-    return trackedExecutionTurnsRef.current.get(correlationId)?.conversationRef || null;
+    return resolveExecutionConversationRefFromState(
+      trackedExecutionTurnsRef.current,
+      correlationId,
+    );
   }, []);
 
   const sendStaleToolCancellation = useCallback((requestId: string | null | undefined) => {
