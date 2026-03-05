@@ -295,13 +295,5 @@ async function logoutOpenAICodexOAuth() {
   return { authPath: null, removed: 1 };
 }
 
-module.exports = {
-  loginOpenAICodexOAuth,
-  logoutOpenAICodexOAuth,
-  __private__: {
-    buildAuthorizeUrl,
-    parseJwtClaims,
-    resolveExpiresAt,
-    buildTokenPayload,
-  },
-};
+exports.loginOpenAICodexOAuth = loginOpenAICodexOAuth;
+exports.logoutOpenAICodexOAuth = logoutOpenAICodexOAuth;

@@ -13,10 +13,6 @@ jest.mock('../../frontend/src/renderer/features/dashboard/components/ChatGptDash
   </div>
 ));
 
-jest.mock('../../frontend/src/renderer/features/permissions/components/PermissionOnboardingWizard', () => () => (
-  <div data-testid="permission-wizard-stub">permission wizard</div>
-));
-
 jest.mock('../../frontend/src/renderer/features/onboarding/components/FrontendOnboardingSlideshow', () => () => (
   <div data-testid="frontend-onboarding-stub">frontend onboarding</div>
 ));
@@ -59,7 +55,6 @@ describe('App VM mode', () => {
     render(<App />);
 
     expect(screen.getByTestId('dashboard-shell-stub')).toHaveTextContent('vmModeEnabled:true');
-    expect(screen.queryByTestId('permission-wizard-stub')).not.toBeInTheDocument();
     expect(screen.queryByTestId('frontend-onboarding-stub')).not.toBeInTheDocument();
   });
 });

@@ -102,10 +102,9 @@ frontend/src/renderer/
 │   │   └── hooks/                       # Settings business logic hooks
 │   │       └── useSettingsManagement.ts # useSettingsManagement - Handles model listing events from backend
 │   │
-│   ├── permissions/                      # Permission onboarding + settings control center
+│   ├── permissions/                      # Permission settings control center
 │   │   ├── components/                  # Permission UI
-│   │   │   ├── PermissionControlCenter.jsx # PermissionControlCenter - Settings "Data controls" live permission panel
-│   │   │   └── PermissionOnboardingWizard.jsx # PermissionOnboardingWizard - First-run permission checklist + disclosure
+│   │   │   └── PermissionControlCenter.jsx # PermissionControlCenter - Settings "Data controls" live permission panel
 │   │   ├── stores/                      # Permission state management
 │   │   │   └── permissionStore.js       # permissionStore (Zustand) - Manifest/statuses, probes, onboarding gate
 │   │   └── utils/                       # Permission persistence helpers

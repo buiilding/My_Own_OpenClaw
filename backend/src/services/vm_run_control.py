@@ -194,6 +194,59 @@ class VmRunControlService:
             run["pending_controls"] = []
         return commands
 
+    def _enqueue_control_command_locked(
+        self,
+        run: Dict[str, Any],
+        *,
+        action: str,
+        requested_by: Optional[str],
+        control_mode: Optional[str],
+        bulk: bool = False,
+    ) -> Dict[str, Any]:
+        command = {
+            "command_id": str(uuid4()),
+            "action": action,
+            "requested_by": requested_by,
+            "control_mode": control_mode,
+            "created_at": _now_iso(),
+        }
+        run.setdefault("pending_controls", []).append(command)
+        payload: Dict[str, Any] = {
+            "action": action,
+            "requested_by": requested_by,
+            "control_mode": control_mode,
+            "status": run["status"],
+            "command_id": command["command_id"],
+        }
+        if bulk:
+            payload["bulk"] = True
+        self._append_event_locked(
+            run,
+            event_type="run-control",
+            source="api",
+            payload=payload,
+        )
+        return command
+
+    def _append_event_for_run_locked(
+        self,
+        run_id: str,
+        *,
+        event_type: str,
+        source: str,
+        payload: Optional[Dict[str, Any]],
+    ) -> Optional[tuple[Dict[str, Any], Dict[str, Any]]]:
+        run = self._runs.get(run_id)
+        if not run:
+            return None
+        event = self._append_event_locked(
+            run,
+            event_type=event_type,
+            source=source,
+            payload=payload,
+        )
+        return run, event
+
     async def create_run(
         self,
         *,
@@ -289,15 +342,15 @@ class VmRunControlService:
         payload: Optional[Dict[str, Any]] = None,
     ) -> Optional[Dict[str, Any]]:
         async with self._lock:
-            run = self._runs.get(run_id)
-            if not run:
-                return None
-            event = self._append_event_locked(
-                run,
+            appended = self._append_event_for_run_locked(
+                run_id,
                 event_type=event_type,
                 source=source,
                 payload=payload,
             )
+            if appended is None:
+                return None
+            _, event = appended
             return deepcopy(event)
 
     async def append_stream_event(
@@ -309,16 +362,16 @@ class VmRunControlService:
         source: str = "worker-stream",
     ) -> Optional[Dict[str, Any]]:
         async with self._lock:
-            run = self._runs.get(run_id)
-            if not run:
-                return None
-
-            event = self._append_event_locked(
-                run,
+            appended = self._append_event_for_run_locked(
+                run_id,
                 event_type=event_type,
                 source=source,
                 payload=payload,
             )
+            if appended is None:
+                return None
+            run, event = appended
+
             if event_type in self._TERMINAL_EVENT_TO_STATUS:
                 run["status"] = self._TERMINAL_EVENT_TO_STATUS[event_type]
             elif run.get("status") in {"awaiting_worker", "queued"}:
@@ -351,25 +404,11 @@ class VmRunControlService:
             elif normalized_action == "set-control-mode" and control_mode:
                 run["control_mode"] = control_mode
 
-            command = {
-                "command_id": str(uuid4()),
-                "action": normalized_action,
-                "requested_by": requested_by,
-                "control_mode": control_mode,
-                "created_at": _now_iso(),
-            }
-            run.setdefault("pending_controls", []).append(command)
-            self._append_event_locked(
+            command = self._enqueue_control_command_locked(
                 run,
-                event_type="run-control",
-                source="api",
-                payload={
-                    "action": normalized_action,
-                    "requested_by": requested_by,
-                    "control_mode": run["control_mode"],
-                    "status": run["status"],
-                    "command_id": command["command_id"],
-                },
+                action=normalized_action,
+                requested_by=requested_by,
+                control_mode=run["control_mode"],
             )
             return self._clone_run(run)
 
@@ -392,26 +431,12 @@ class VmRunControlService:
                     continue
 
                 run["status"] = "stopped"
-                command = {
-                    "command_id": str(uuid4()),
-                    "action": "stop",
-                    "requested_by": requested_by,
-                    "control_mode": run.get("control_mode"),
-                    "created_at": _now_iso(),
-                }
-                run.setdefault("pending_controls", []).append(command)
-                self._append_event_locked(
+                self._enqueue_control_command_locked(
                     run,
-                    event_type="run-control",
-                    source="api",
-                    payload={
-                        "action": "stop",
-                        "requested_by": requested_by,
-                        "control_mode": run.get("control_mode"),
-                        "status": run["status"],
-                        "command_id": command["command_id"],
-                        "bulk": True,
-                    },
+                    action="stop",
+                    requested_by=requested_by,
+                    control_mode=run.get("control_mode"),
+                    bulk=True,
                 )
                 stopped_run_ids.append(str(run.get("run_id")))
             return stopped_run_ids
