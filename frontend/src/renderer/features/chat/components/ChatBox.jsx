@@ -25,18 +25,12 @@ import {
   SoundIcon,
 } from './ChatBoxIcons';
 import ChatBoxImagePreviewRow from './ChatBoxImagePreviewRow';
-
-const CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT = 64;
-const CHATBOX_VISUAL_ANCHOR_HEIGHT_WITH_PREVIEW = 116;
-
-function isDragBlockedTarget(target) {
-  if (!(target instanceof Element)) {
-    return false;
-  }
-  return Boolean(target.closest(
-    'button, a, [role="button"], input, textarea, select, option, label, [role="textbox"], [contenteditable=""], [contenteditable="true"], [contenteditable=true], .chatbox-input-wrap, .chatbox-actions',
-  ));
-}
+import {
+  CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT,
+  createClipboardScreenshotImage,
+  isDragBlockedTarget,
+  resolveChatboxVisualAnchorHeight,
+} from '../utils/chatBoxState';
 
 function ChatBox() {
   const { config, updateConfig } = useAppConfigContext();
@@ -206,13 +200,11 @@ function ChatBox() {
       const extension = resolveArtifactImageExtension(contentType);
       setClipboardImages((previous) => ([
         ...previous,
-        {
-          id: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
-          base64: capture.screenshot,
+        createClipboardScreenshotImage({
+          screenshot: capture.screenshot,
           contentType,
-          filename: `screenshot-${Date.now()}.${extension}`,
-          previewUrl: `data:${contentType};base64,${capture.screenshot}`,
-        },
+          extension,
+        }),
       ]));
       focusInput();
     } catch (error) {
@@ -310,9 +302,7 @@ function ChatBox() {
   const hasImagePreview = clipboardImages.length > 0;
 
   useEffect(() => {
-    const nextAnchorHeight = hasImagePreview
-      ? CHATBOX_VISUAL_ANCHOR_HEIGHT_WITH_PREVIEW
-      : CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT;
+    const nextAnchorHeight = resolveChatboxVisualAnchorHeight(hasImagePreview);
     IpcBridge.invoke(INVOKE_CHANNELS.SET_CHATBOX_VISUAL_ANCHOR_HEIGHT, {
       height: nextAnchorHeight,
     }).catch((error) => {
