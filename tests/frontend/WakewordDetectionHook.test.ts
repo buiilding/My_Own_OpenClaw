@@ -49,6 +49,18 @@ describe('useWakewordDetection', () => {
   };
 
   beforeEach(() => {
+    const globalWithWakewordGuard = globalThis as typeof globalThis & {
+      __windieWakewordCaptureGuard?: { missingDeviceLocked: boolean; nextRetryAt: number };
+    };
+    if (!globalWithWakewordGuard.__windieWakewordCaptureGuard) {
+      globalWithWakewordGuard.__windieWakewordCaptureGuard = {
+        missingDeviceLocked: false,
+        nextRetryAt: 0,
+      };
+    } else {
+      globalWithWakewordGuard.__windieWakewordCaptureGuard.missingDeviceLocked = false;
+      globalWithWakewordGuard.__windieWakewordCaptureGuard.nextRetryAt = 0;
+    }
     jest.spyOn(console, 'warn').mockImplementation(() => {});
     jest.spyOn(console, 'log').mockImplementation(() => {});
     jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -236,6 +248,58 @@ describe('useWakewordDetection', () => {
         });
         await act(async () => {
           statusHandler?.({ ready: true, error: null });
+          await Promise.resolve();
+        });
+        expect(getUserMedia).toHaveBeenCalledTimes(2);
+      },
+    );
+  });
+
+  test('persists missing-device lockout across remount until explicit disable', async () => {
+    const notFoundError = new Error('Requested device not found');
+    (notFoundError as Error & { name: string }).name = 'NotFoundError';
+    const getUserMedia = jest.fn(async () => {
+      throw notFoundError;
+    });
+
+    await withMockedMediaDevices(
+      { getUserMedia } as unknown as MediaDevices,
+      async () => {
+        const first = renderHook(
+          ({ enabled }) => useWakewordDetection(enabled),
+          { initialProps: { enabled: true } },
+        );
+        const firstStatusHandler = getChannelHandler(ON_CHANNELS.WAKEWORD_STATUS);
+
+        await act(async () => {
+          firstStatusHandler?.({ ready: true, error: null });
+          await Promise.resolve();
+        });
+        expect(getUserMedia).toHaveBeenCalledTimes(1);
+        first.unmount();
+
+        const second = renderHook(
+          ({ enabled }) => useWakewordDetection(enabled),
+          { initialProps: { enabled: true } },
+        );
+        const secondStatusHandler = getChannelHandler(ON_CHANNELS.WAKEWORD_STATUS);
+
+        await act(async () => {
+          secondStatusHandler?.({ ready: true, error: null });
+          await Promise.resolve();
+        });
+        expect(getUserMedia).toHaveBeenCalledTimes(1);
+
+        await act(async () => {
+          second.rerender({ enabled: false });
+          await Promise.resolve();
+        });
+        await act(async () => {
+          second.rerender({ enabled: true });
+          await Promise.resolve();
+        });
+        await act(async () => {
+          secondStatusHandler?.({ ready: true, error: null });
           await Promise.resolve();
         });
         expect(getUserMedia).toHaveBeenCalledTimes(2);

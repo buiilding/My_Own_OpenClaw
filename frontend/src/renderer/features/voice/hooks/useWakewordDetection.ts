@@ -18,6 +18,22 @@ import { useLatestRef } from '../../../infrastructure/hooks/useLatestRef';
 const WAKEWORD_COOLDOWN_MS = 2000;
 const CAPTURE_RETRY_DELAY_MS = 3000;
 
+type WakewordCaptureGuard = {
+  missingDeviceLocked: boolean;
+  nextRetryAt: number;
+};
+
+const globalWithWakewordGuard = globalThis as typeof globalThis & {
+  __windieWakewordCaptureGuard?: WakewordCaptureGuard;
+};
+
+// Persist lockout across remounts so missing-device failures do not spam retries.
+const wakewordCaptureGuard: WakewordCaptureGuard = globalWithWakewordGuard.__windieWakewordCaptureGuard ?? {
+  missingDeviceLocked: false,
+  nextRetryAt: 0,
+};
+globalWithWakewordGuard.__windieWakewordCaptureGuard = wakewordCaptureGuard;
+
 function isMissingAudioDeviceError(error: unknown): boolean {
   const name = typeof (error as { name?: unknown })?.name === 'string'
     ? (error as { name: string }).name
@@ -74,6 +90,11 @@ export function useWakewordDetection(
   const nextCaptureRetryAtRef = useRef(0);
   const lastDetectionRef = useRef(0);
   const onWakewordDetectedRef = useLatestRef(onWakewordDetected);
+
+  useEffect(() => {
+    missingDeviceLockRef.current = wakewordCaptureGuard.missingDeviceLocked;
+    nextCaptureRetryAtRef.current = wakewordCaptureGuard.nextRetryAt;
+  }, []);
 
   useEffect(() => {
     const warningMessage = getChunkSizeWarning(rawChunkSize, chunkSize);
@@ -201,8 +222,10 @@ export function useWakewordDetection(
       localCaptureErrorRef.current = true;
       if (missingDevice) {
         missingDeviceLockRef.current = true;
+        wakewordCaptureGuard.missingDeviceLocked = true;
       }
       nextCaptureRetryAtRef.current = Date.now() + CAPTURE_RETRY_DELAY_MS;
+      wakewordCaptureGuard.nextRetryAt = nextCaptureRetryAtRef.current;
       isCapturingRef.current = false;
     } finally {
       if (generation === captureGenerationRef.current) {
@@ -330,6 +353,8 @@ export function useWakewordDetection(
       localCaptureErrorRef.current = false;
       missingDeviceLockRef.current = false;
       nextCaptureRetryAtRef.current = 0;
+      wakewordCaptureGuard.missingDeviceLocked = false;
+      wakewordCaptureGuard.nextRetryAt = 0;
       setError(null);
       const hasCaptureResources = Boolean(
         isCapturingRef.current
