@@ -62,7 +62,8 @@ Missing tool behavior:
 Unified computer-use behavior:
 
 - `computer_use` accepts `{tool, metadata, arguments}` and routes execution to a concrete local sidecar tool (`mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `switch_tab`, `wait`).
-- `metadata` is ignored by sidecar execution (backend already validates it) and preserved as backend-owned orchestration context.
+- sidecar now enforces `metadata` as an object with required non-empty string fields: `description`, `explanation`, and `expectation` (whitespace-only rejected, values trimmed before delegation).
+- `arguments` must be an object; malformed envelopes fail closed in sidecar before subtool execution.
 
 Exception behavior:
 
@@ -113,6 +114,8 @@ Returned failure payload:
 - registered tool names must match exposed set, with optional runtime-missing `browser`
 - missing tool lookup returns canonical error
 - non-dict args are rejected before tool callable executes
+- `computer_use` fails closed when required metadata is missing/blank
+- `computer_use` accepts trimmed required metadata and still delegates unchanged concrete `arguments`
 - dict legacy success/failure normalization behaves as expected
 - nested legacy errors (for example usage text in `data.error`) are surfaced to top-level `ToolResult.error`
 - exceptions are captured and wrapped
@@ -124,6 +127,7 @@ Returned failure payload:
 Important runtime fact:
 
 - `ToolRegistry.execute_tool` does not currently instantiate/validate those schemas
+- exception: `computer_use` envelope fields are validated in registry router (`tool`, `metadata`, `arguments`) before dispatch
 - validation is therefore tool-implementation-specific unless callers validate upstream
 
 Operational consequence:
