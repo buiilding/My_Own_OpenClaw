@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(sidecar-local-backend-computer-use-legacy-wrapper-rejection): extend JSON-RPC boundary regressions so legacy nested `computer_use.arguments.metadata` wrapper payloads fail closed (`computer_use.metadata must be an object`) before concrete subtool execution.
 - test(backend-parser-metadata-type-guards): extend parser validation regressions for computer-use metadata type strictness by rejecting non-string required fields for concrete computer tools and non-dict metadata payloads for unified `computer_use`.
 - test(sidecar-local-backend-computer-use-metadata-boundary): add `LocalBackend._handle_execute_tool` regressions with real `ToolRegistry` to ensure invalid unified `computer_use` metadata failures propagate at JSON-RPC boundary and trimmed-valid metadata still routes to concrete subtools deterministically.
 - test(backend-unified-computer-use-metadata-extraction-boundary): expand native tool-call bridge regressions so only top-level `computer_use.metadata` is promoted to parsed call metadata, nested `arguments.metadata` remains in tool arguments, and non-dict top-level metadata is ignored safely.
