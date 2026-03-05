@@ -24,6 +24,7 @@ title: "Chat Stream and Tool Execution Reference"
 - `frontend/src/renderer/features/chat/hooks/useChatStreamToolHandlers.ts`
 - `frontend/src/renderer/features/chat/hooks/useTurnScopedBackendEventHandler.ts`
 - `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
+- `frontend/src/renderer/features/chat/hooks/useToolRunnerBackendListener.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamConversationGate.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamTracking.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamMessageUpdates.ts`
@@ -209,6 +210,8 @@ Ingress events:
 
 - `tool-call`
 - `tool-bundle`
+
+Tool-event backend listener binding is isolated in `useToolRunnerBackendListener` so `useToolRunner` orchestration remains focused on execution lifecycle and stale-turn/result guards.
 
 Stale-turn guardrails:
 

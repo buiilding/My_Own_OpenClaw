@@ -14,6 +14,7 @@ title: "Query Handler and Query Execution Service Runtime Reference"
 - `backend/src/api/services/query_execution.py`
 - `backend/src/api/services/query_execution_cancellation.py`
 - `backend/src/api/services/query_execution_inputs.py`
+- `backend/src/api/services/query_execution_pipeline_events.py`
 - `backend/src/api/services/query_execution_runtime.py`
 - `backend/src/api/services/query_execution_stream_state.py`
 - `backend/src/api/services/tts_session.py`
@@ -63,6 +64,12 @@ title: "Query Handler and Query Execution Service Runtime Reference"
 - terminal-event latch (`saw_terminal_event`)
 - text chunk aggregation (`saw_text_chunk`, `text_chunks`)
 - assistant-full fallback text tracking (`last_assistant_full_text`)
+
+`query_execution_pipeline_events.py` owns stream pipeline send helpers:
+
+- per-event forwarding with shared stream context
+- completion backfill + terminal emission ordering
+- typed shared helper boundary used by service wrapper methods
 
 ## Active Query Task Lifecycle
 

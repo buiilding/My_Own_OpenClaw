@@ -26,6 +26,10 @@ from backend.src.api.services.query_execution_cancellation import (
     finalize_pending_tool_calls_on_cancel,
 )
 from backend.src.api.services.query_execution_inputs import resolve_query_execution_inputs
+from backend.src.api.services.query_execution_pipeline_events import (
+    emit_completion_events,
+    process_pipeline_event,
+)
 from backend.src.api.services.query_execution_runtime import (
     apply_query_runtime_system_state,
     build_stream_context,
@@ -40,7 +44,6 @@ from backend.src.api.services.tts_session import TTSSession
 from backend.src.api.transport.protocol import WebSocketSender
 from backend.src.api.transport.sender import WebSocketTransportSender
 from backend.src.core.validation.validators import validate_query_text
-from backend.src.core.events.streaming_events import ChunkEvent, StreamingCompleteEvent
 from backend.src.services.artifacts import ArtifactStore
 
 if TYPE_CHECKING:
@@ -276,12 +279,12 @@ class QueryExecutionService:
         msg_id: str,
         stream_context: dict[str, Optional[str]],
     ) -> None:
-        """Forward one event through pipeline with prebuilt stream context."""
-        await pipeline.process(
-            event,
-            tts_service,
-            msg_id,
-            context=stream_context,
+        await process_pipeline_event(
+            pipeline=pipeline,
+            event=event,
+            tts_service=tts_service,
+            msg_id=msg_id,
+            stream_context=stream_context,
         )
 
     async def _emit_completion_events(
@@ -294,30 +297,14 @@ class QueryExecutionService:
         completion_text: str,
         saw_text_chunk: bool,
     ) -> bool:
-        """
-        Emit optional backfill chunk + terminal completion event using shared context.
-
-        Returns:
-            Updated saw_text_chunk flag.
-        """
-        if not saw_text_chunk and completion_text:
-            await self._process_pipeline_event(
-                pipeline=pipeline,
-                event=ChunkEvent(content=completion_text),
-                tts_service=tts_service,
-                msg_id=msg_id,
-                stream_context=stream_context,
-            )
-            saw_text_chunk = True
-
-        await self._process_pipeline_event(
+        return await emit_completion_events(
             pipeline=pipeline,
-            event=StreamingCompleteEvent(final_response=completion_text),
             tts_service=tts_service,
             msg_id=msg_id,
             stream_context=stream_context,
+            completion_text=completion_text,
+            saw_text_chunk=saw_text_chunk,
         )
-        return saw_text_chunk
 
     @staticmethod
     def _extract_event_type(event: Any) -> Optional[str]:

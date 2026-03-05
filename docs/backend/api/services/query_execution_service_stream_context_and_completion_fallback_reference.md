@@ -13,6 +13,7 @@ title: "Query Execution Service Stream Context and Completion Fallback Reference
 - `backend/src/api/services/query_execution.py`
 - `backend/src/api/services/query_execution_cancellation.py`
 - `backend/src/api/services/query_execution_inputs.py`
+- `backend/src/api/services/query_execution_pipeline_events.py`
 - `backend/src/api/services/query_event_extraction.py`
 - `backend/src/api/services/tts_session.py`
 - `backend/src/api/handlers/query.py`
@@ -107,6 +108,7 @@ This prevents lingering staged tool-call IDs after user stop/cancel races.
 - `turn_ref`
 
 All pipeline sends reuse this same object via `_process_pipeline_event(...)` to reduce hot-path allocations and keep context consistent across events.
+Service wrappers delegate the actual forwarding/backfill operations to `query_execution_pipeline_events.py`.
 
 ## Completion and Backfill State Machine
 
