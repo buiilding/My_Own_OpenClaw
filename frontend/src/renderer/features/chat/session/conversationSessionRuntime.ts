@@ -1,16 +1,11 @@
 type ConversationRefSource = 'transcript' | 'store' | 'generated';
-type OptionalString = string | null | undefined;
 
-export function normalizeConversationRef(value: unknown): string | null {
+function normalizeConversationRef(value: unknown): string | null {
   if (typeof value !== 'string') {
     return null;
   }
   const normalized = value.trim();
   return normalized.length > 0 ? normalized : null;
-}
-
-export function normalizeOptionalSessionField(value: OptionalString): string | null {
-  return normalizeConversationRef(value);
 }
 
 export function shouldProjectSessionConversationRef(value: unknown): boolean {
@@ -46,7 +41,7 @@ export function resolveConversationRefForSend(
   };
 }
 
-export type MainSessionSnapshot = {
+type MainSessionSnapshot = {
   conversationRef: string | null;
   userId: string | null;
 };

@@ -48,6 +48,31 @@ read_when:
 
 ## Frontend/Main Execution Log (2026-02-26)
 
+- Replay/session/text-normalization dedupe + dead-export cleanup (2026-03-05):
+  - extracted shared text sanitization utility:
+    - `frontend/src/renderer/infrastructure/text/incomingTextNormalization.ts`
+  - rewired:
+    - `frontend/src/renderer/features/chat/utils/chatStreamMessageUpdates.ts`
+    - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+    - `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js`
+    - `frontend/src/renderer/features/chat/session/conversationSessionRuntime.ts`
+    - `frontend/src/renderer/utils/configStorage.js`
+    - `frontend/src/main/vm_worker_runtime.cjs` (removed test-only export from production surface)
+  - test updates:
+    - added `tests/frontend/IncomingTextNormalization.test.ts`
+    - updated `tests/frontend/VmWorkerRuntime.test.cjs`
+    - updated `tests/frontend/ConversationSessionRuntime.test.ts`
+  - verification:
+    - `cd frontend && npm run lint`
+    - `cd frontend && npm run lint:audit`
+    - `cd frontend && npm run audit:knip`
+    - `cd frontend && npm run audit:jscpd`
+    - `cd frontend && npm run test:ci`
+    - `./scripts/test-sidecar`
+  - audit delta:
+    - frontend+backend `jscpd` total clones reduced from `8` to `4`.
+    - `knip` reduced unused exports from `5` to `2` (remaining two are known CJS/JSX false positives).
+
 - Chat stream + replay split:
   - extracted replay/edit-retry transcript/query flow from `ChatInterface.jsx` into:
     - `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js`

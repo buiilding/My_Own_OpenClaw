@@ -366,6 +366,5 @@ function createVmWorkerRuntime(options = {}) {
 }
 
 module.exports = {
-  buildAttachmentContextFromFiles,
   createVmWorkerRuntime,
 };

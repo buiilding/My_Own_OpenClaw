@@ -17,6 +17,7 @@ title: "Transcript Writer Queue Flush and Session Event Reference"
 - `frontend/src/renderer/infrastructure/transcript/pendingAssistantQueue.ts`
 - `frontend/src/renderer/infrastructure/transcript/pendingToolQueue.ts`
 - `frontend/src/renderer/infrastructure/transcript/types.ts`
+- `frontend/src/renderer/infrastructure/text/incomingTextNormalization.ts`
 - `frontend/src/renderer/features/dashboard/hooks/useTranscriptSessionInfo.js`
 - `tests/frontend/TranscriptWriter.session.test.ts`
 - `tests/frontend/TranscriptWriter.userAssistant.test.ts`
@@ -112,6 +113,7 @@ Payload defaults:
 - tool rows include optional `toolName`/`correlationId`
 - screenshot ref is passed under IPC field `screenshot`
 - assistant/user/tool rows can include optional `transparency` metadata; writer normalizes and drops empty/non-object snapshots before IPC persistence.
+- text normalization in transcript payloads (mojibake + lone-surrogate repair + trim/null collapse) is delegated to shared `incomingTextNormalization.ts`, matching stream-update normalization behavior.
 
 ## Session Update Entry Points
 
