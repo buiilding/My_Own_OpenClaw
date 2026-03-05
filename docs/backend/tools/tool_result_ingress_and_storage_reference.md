@@ -11,6 +11,7 @@ title: "Tool Result Ingress and Storage Reference"
 ## Canonical Modules
 
 - `backend/src/api/handlers/tool_result.py`
+- `backend/src/api/schemas/incoming.py`
 - `backend/src/agent/session/session.py`
 - `backend/src/agent/session/initializer.py`
 - `backend/src/agent/tools/waiting/handler.py`
@@ -35,6 +36,13 @@ API handler responsibilities:
 - normalize `data` and `step_results` into plain dict/list structures
 - resolve active `AgentSession` via `SessionManager`
 - delegate to session methods only
+
+Incoming schema nuance (`api/schemas/incoming.py`):
+
+- `tool-result.payload.data` uses `ToolResultData` with `extra="allow"`:
+  - shared typed keys (`llm_content`, `system_state`, `screenshot`, `screenshot_ref`, `capture_meta`) are first-class
+  - additional keys (for example renderer `system_state_internal`) are accepted and forwarded
+- `tool-bundle-result.payload.error` is nullable and may be `null` in non-failure bundle paths
 
 Session delegation:
 
@@ -65,9 +73,9 @@ Division of responsibilities:
 `process_frontend_tool_result(request_id, success, result_data, error)`:
 
 1. receiver creates `ToolResult.from_dict(...)`
-2. router updates session system-state if present
+2. router updates session system-state if present (`system_state_internal` preferred over `system_state`)
 3. router extracts screenshot bytes if present
-4. if only `screenshot_ref` exists, router attempts artifact load (`ArtifactStore.load_base64`)
+4. if only `screenshot_ref` exists, router attempts artifact load (`ArtifactStore.load_base64`) only when ref passes artifact-id heuristic (`.png/.jpg/.jpeg`, short token, no path separator)
 5. router stores result under request ID
 6. router resolves waiting request future when present
 
@@ -120,6 +128,13 @@ Special safety guard:
 - otherwise waits up to 120s for one bundle result
 - removes bundle future in `finally`
 - expands bundle step outputs back into per-tool `ToolExecutionBatch` entries for compatibility
+
+Bundle-status reminder:
+
+- frontend can return `status="partial_failure"` with `error=null`
+- backend bundle success is computed from both:
+  - `status == "success"`
+  - every step `status == "ok"`
 
 ## Send-Side Coupling (Why Some Results Pre-Exist)
 

@@ -48,6 +48,8 @@ Schema guidance also encodes execution-policy hints in field descriptions:
 - `action` supports `type|paste|press|hotkey`
 - guidance biases toward `type` first, `paste` as recovery override
 - submit-only intent guard for `press/hotkey`
+- backend schema is guidance-first here: it does not currently enforce action-specific required fields (`text` vs `key` vs `keys`) via validator
+  - stricter action-field enforcement is applied in sidecar runtime tool schemas/execution layer
 
 `ScrollControlArgs`:
 
@@ -137,6 +139,7 @@ Remote computer tool descriptions are part of schema prompt guidance and intenti
 2. Relaxing metadata validation in parser layers can allow empty rationale fields for computer actions.
 3. Diverging direct vs unified schema guidance can make model behavior inconsistent across providers.
 4. Removing `extra='forbid'` on core computer schemas can silently accept unsupported fields and hide malformed payloads.
+5. Adding strict backend keyboard action validators without aligned sidecar/runtime and parser test updates can introduce cross-layer behavior drift.
 
 ## Related Docs
 
