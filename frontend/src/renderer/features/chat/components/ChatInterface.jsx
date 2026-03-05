@@ -19,9 +19,16 @@ import {
 } from '../../../infrastructure/transcript/TranscriptWriter';
 import { toRehydrateMessagePayload } from '../../dashboard/utils/episodicMemoryUtils';
 import {
-  normalizeProvider,
-} from '../utils/transcriptMessagePayload';
-import { COMPACTION_THINKING_STATUS } from '../utils/chatStreamThinkingStatus';
+  COMPACTION_THINKING_STATUS,
+} from '../utils/chatStreamThinkingStatus';
+import {
+  buildChatModelOptions,
+  buildChatProviderOptions,
+  formatProviderLabel,
+  getAvailableModelPool,
+  resolveProviderModels,
+  resolveSelectedModelOption,
+} from '../utils/chatModelOptions';
 import { useConversationReplayActions } from '../hooks/useConversationReplayActions';
 import { isDevUiEnabled } from '../utils/devUiFlag';
 import { applyStopQueryUiState } from '../utils/stopQueryState';
@@ -41,33 +48,17 @@ function waitForNextPaint() {
   });
 }
 
-function ChatInterface({ focusComposerToken = 0 }) {
-  const vmModeEnabled = isVmModeEnabled();
-  const formatProviderLabel = useCallback((providerValue) => {
-    const provider = String(providerValue || '').trim();
-    if (!provider) {
-      return provider;
-    }
-    const lowerProvider = provider.toLowerCase();
-    if (lowerProvider === 'openai') {
-      return 'OpenAI';
-    }
-    if (lowerProvider === 'openrouter') {
-      return 'OpenRouter';
-    }
-    return provider
-      .split('-')
-      .filter(Boolean)
-      .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
-      .join('-');
-  }, []);
-
-  const renderModelLabel = useCallback((label, supportsThinking) => (
+function renderModelLabel(label, supportsThinking) {
+  return (
     <span className="chat-model-label">
       <span>{label}</span>
       {supportsThinking ? <Brain size={13} strokeWidth={2} aria-hidden="true" /> : null}
     </span>
-  ), []);
+  );
+}
+
+function ChatInterface({ focusComposerToken = 0 }) {
+  const vmModeEnabled = isVmModeEnabled();
 
   const { messages, isSending, thinkingStatus, thinkingSourceEventType, streamPhase } = useChatStore(
     useShallow(selectChatInterfaceState),
@@ -123,95 +114,21 @@ function ChatInterface({ focusComposerToken = 0 }) {
   const modelMode = config?.model_mode || 'online';
   const configuredProvider = config?.model_provider || '';
   const configuredModelId = config?.selected_model_id || '';
-  const availableModelPool = useMemo(() => {
-    const localModels = Array.isArray(availableModels?.local) ? availableModels.local : [];
-    const onlineModels = Array.isArray(availableModels?.online) ? availableModels.online : [];
-    return modelMode === 'local' ? localModels : onlineModels;
-  }, [availableModels, modelMode]);
-  const modelOptions = useMemo(() => {
-    const normalizedSelectedProvider = normalizeProvider(configuredProvider);
-    const seenModelIds = new Set();
-    const options = [];
-
-    availableModelPool.forEach((model) => {
-      const modelId = String(model?.id || '').trim();
-      if (!modelId || seenModelIds.has(modelId)) {
-        return;
-      }
-      if (
-        normalizedSelectedProvider
-        && normalizeProvider(model?.provider) !== normalizedSelectedProvider
-      ) {
-        return;
-      }
-      seenModelIds.add(modelId);
-      options.push({
-        id: modelId,
-        runtimeModelId: String(model?.runtime_model_id || '').trim(),
-        provider: String(model?.provider || configuredProvider || '').trim(),
-        label: String(model?.display_name || model?.displayName || modelId),
-        supportsThinking: model?.supports_thinking === true,
-      });
-    });
-
-    const selectedRuntimeIndex = options.findIndex(
-      (option) => option.runtimeModelId === configuredModelId,
-    );
-    if (configuredModelId && !seenModelIds.has(configuredModelId)) {
-      if (selectedRuntimeIndex >= 0) {
-        if (selectedRuntimeIndex > 0) {
-          const [selectedOption] = options.splice(selectedRuntimeIndex, 1);
-          options.unshift(selectedOption);
-        }
-        return options;
-      }
-      options.unshift({
-        id: configuredModelId,
-        runtimeModelId: '',
-        provider: String(configuredProvider || '').trim(),
-        label: configuredModelId,
-        supportsThinking: false,
-      });
-      return options;
-    }
-
-    const selectedIndex = options.findIndex((option) => option.id === configuredModelId);
-    if (selectedIndex > 0) {
-      const [selectedOption] = options.splice(selectedIndex, 1);
-      options.unshift(selectedOption);
-    }
-
-    return options;
-  }, [availableModelPool, configuredModelId, configuredProvider]);
-  const providerOptions = useMemo(() => {
-    const seenProviders = new Set();
-    const options = [];
-
-    availableModelPool.forEach((model) => {
-      const provider = String(model?.provider || '').trim();
-      if (!provider || seenProviders.has(provider)) {
-        return;
-      }
-      seenProviders.add(provider);
-      options.push(provider);
-    });
-
-    options.sort((left, right) => left.localeCompare(right));
-
-    if (
-      configuredProvider
-      && !options.some((provider) => normalizeProvider(provider) === normalizeProvider(configuredProvider))
-    ) {
-      options.unshift(configuredProvider);
-    }
-
-    return options;
-  }, [availableModelPool, configuredProvider]);
+  const availableModelPool = useMemo(
+    () => getAvailableModelPool(availableModels, modelMode),
+    [availableModels, modelMode],
+  );
+  const modelOptions = useMemo(() => buildChatModelOptions({
+    availableModelPool,
+    configuredModelId,
+    configuredProvider,
+  }), [availableModelPool, configuredModelId, configuredProvider]);
+  const providerOptions = useMemo(() => buildChatProviderOptions({
+    availableModelPool,
+    configuredProvider,
+  }), [availableModelPool, configuredProvider]);
   const providerLabel = formatProviderLabel(configuredProvider || providerOptions[0] || 'No providers available');
-  const selectedModelOption = modelOptions.find(
-    (option) => option.id === configuredModelId || option.runtimeModelId === configuredModelId,
-  )
-    || modelOptions[0];
+  const selectedModelOption = resolveSelectedModelOption(modelOptions, configuredModelId);
   const modelLabelBase = selectedModelOption?.label || configuredModelId || 'No models available';
   const devUiEnabled = isDevUiEnabled();
   const [providerMenuOpen, setProviderMenuOpen] = useState(false);
@@ -369,10 +286,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
       return;
     }
 
-    const normalizedSelectedProvider = normalizeProvider(selectedProvider);
-    const providerModels = availableModelPool.filter(
-      (model) => normalizeProvider(model?.provider) === normalizedSelectedProvider,
-    );
+    const providerModels = resolveProviderModels(availableModelPool, selectedProvider);
 
     let nextModelId = configuredModelId;
     const currentModelInProvider = providerModels.some(

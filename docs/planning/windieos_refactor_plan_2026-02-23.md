@@ -4791,3 +4791,42 @@ read_when:
   - `cd frontend && npm run lint:audit` (pass)
   - `cd frontend && npm run audit:jscpd` (0 clones)
   - `cd frontend && npm run audit:knip` (clean)
+
+## Phase 197 Outcome (2026-03-05)
+
+- Refactor slice (frontend chat model/provider selector decomposition + slow-test cleanup):
+  - extracted ChatInterface model/provider derivation into pure shared utilities:
+    - added `frontend/src/renderer/features/chat/utils/chatModelOptions.js`
+      - `formatProviderLabel`
+      - `getAvailableModelPool` (re-exported from dashboard model utility to avoid duplicate logic)
+      - `buildChatModelOptions`
+      - `buildChatProviderOptions`
+      - `resolveProviderModels`
+      - `resolveSelectedModelOption`
+  - rewired:
+    - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
+      - now delegates model/provider option assembly to shared utility functions.
+      - moved static model-label renderer out of hook scope.
+  - file-size delta:
+    - `ChatInterface.jsx` reduced from `612` LOC to `526` LOC.
+  - slow-test adjustment:
+    - `tests/frontend/ToolExecutionService.test.ts`
+      - moved expensive full mock restoration from `beforeEach` to `afterEach` while keeping per-test call-state reset.
+      - preserves test isolation while reducing repetitive setup overhead.
+  - tests:
+    - added `tests/frontend/ChatModelOptions.test.js` to lock selector option contracts and fallback behavior.
+- Route consolidation check:
+  - `npx jscpd --gitignore --min-lines 8 --reporters console --output ../.audit/plan1/jscpd-api-routes ../backend/src/api/routes`
+  - result: `0` clones in API route layer; no consolidation change required.
+- Audit outcome:
+  - combined `backend/src` + `frontend/src` `jscpd`: `0` clones.
+  - `knip`: clean.
+  - ESLint audit plugins:
+    - `react-compiler/react-compiler`: clean
+    - `deprecation/deprecation`: clean
+- Validation:
+  - `cd frontend && npm run lint -- src/renderer/features/chat/components/ChatInterface.jsx src/renderer/features/chat/utils/chatModelOptions.js` (pass)
+  - `cd frontend && npm run test:ci -- ../tests/frontend/ChatModelOptions.test.js ../tests/frontend/ChatInterfaceWiring.test.jsx ../tests/frontend/ToolExecutionService.test.ts` (pass)
+  - `cd frontend && npm run audit:jscpd` (0 clones)
+  - `cd frontend && npm run audit:knip` (clean)
+  - `cd frontend && npm run lint:audit` (pass)
