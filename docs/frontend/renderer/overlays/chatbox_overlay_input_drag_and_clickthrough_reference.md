@@ -12,6 +12,7 @@ title: "Chatbox Overlay Input, Drag, and Click-Through Reference"
 
 - `frontend/src/renderer/app/ChatBoxApp.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
+- `frontend/src/renderer/features/chat/hooks/useChatBoxBindings.js`
 - `frontend/src/renderer/features/chat/components/ChatBoxIcons.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBoxImagePreviewRow.jsx`
 - `frontend/src/renderer/features/chat/hooks/useResponseOverlayPhase.js`
@@ -45,6 +46,13 @@ This keeps overlay window lightweight:
 
 - `useChatMessageSender(undefined, { senderSurface: "overlay-chatbox" })`
 - `useResponseOverlayPhase()` so the overlay chat pill reads one shared main-process phase channel instead of carrying duplicated local phase listeners in each component.
+
+`useChatBoxBindings` encapsulates chatbox runtime effect bindings:
+
+- explicit focus lifecycle (`chatbox-focus` + mount focus)
+- wakeword STT trigger channel handling (`wakeword-stt-trigger`)
+- global drag window listeners (`mousemove`/`mouseup`/`blur`)
+- visual-anchor IPC sync and compact-height cleanup on unmount
 
 Resulting behavior in `useChatMessageSender`:
 

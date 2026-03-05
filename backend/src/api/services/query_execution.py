@@ -22,6 +22,9 @@ from backend.src.api.services.query_event_extraction import (
     extract_streaming_complete_text,
     resolve_completion_text,
 )
+from backend.src.api.services.query_execution_cancellation import (
+    finalize_pending_tool_calls_on_cancel,
+)
 from backend.src.api.services.query_execution_inputs import resolve_query_execution_inputs
 from backend.src.api.services.query_execution_runtime import (
     apply_query_runtime_system_state,
@@ -212,36 +215,11 @@ class QueryExecutionService:
         msg_id: str,
         conversation_ref: Optional[str],
     ) -> None:
-        """
-        Best-effort reconciliation for cancelled turns with pending tool_call ids.
-        """
-        history = getattr(agent_instance, "history", None)
-        finalize = getattr(history, "finalize_pending_tool_calls_as_cancelled", None)
-        if not callable(finalize):
-            return
-        try:
-            reconciled_count = int(finalize() or 0)
-        except Exception as exc:
-            logger.warning(
-                "[Query Cancelled] Failed to reconcile pending tool calls "
-                "(user_id=%s, session_id=%s, turn_ref=%s, conversation_ref=%s): %s",
-                getattr(agent_instance, "user_id", "unknown"),
-                getattr(agent_instance, "session_id", "unknown"),
-                msg_id,
-                conversation_ref,
-                exc,
-            )
-            return
-        if reconciled_count > 0:
-            logger.info(
-                "[Query Cancelled] Reconciled %s pending tool call(s) with synthetic "
-                "tool outputs (user_id=%s, session_id=%s, turn_ref=%s, conversation_ref=%s)",
-                reconciled_count,
-                getattr(agent_instance, "user_id", "unknown"),
-                getattr(agent_instance, "session_id", "unknown"),
-                msg_id,
-                conversation_ref,
-            )
+        finalize_pending_tool_calls_on_cancel(
+            agent_instance=agent_instance,
+            msg_id=msg_id,
+            conversation_ref=conversation_ref,
+        )
 
     def _resolve_screenshot(
         self,

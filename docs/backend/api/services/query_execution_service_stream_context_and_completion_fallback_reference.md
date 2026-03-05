@@ -11,6 +11,7 @@ title: "Query Execution Service Stream Context and Completion Fallback Reference
 ## Canonical Modules
 
 - `backend/src/api/services/query_execution.py`
+- `backend/src/api/services/query_execution_cancellation.py`
 - `backend/src/api/services/query_execution_inputs.py`
 - `backend/src/api/services/query_event_extraction.py`
 - `backend/src/api/services/tts_session.py`
@@ -84,6 +85,7 @@ This state is backend-only and not direct prompt text content.
 ## Cancellation Reconciliation Path
 
 `execute(...)` catches `asyncio.CancelledError` and calls `_finalize_pending_tool_calls_on_cancel(...)` before re-raising.
+The service wrapper delegates reconciliation internals to `query_execution_cancellation.finalize_pending_tool_calls_on_cancel(...)`.
 
 `_finalize_pending_tool_calls_on_cancel(...)` behavior:
 

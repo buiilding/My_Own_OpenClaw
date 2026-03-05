@@ -12,6 +12,7 @@ title: "Query Handler and Query Execution Service Runtime Reference"
 
 - `backend/src/api/handlers/query.py`
 - `backend/src/api/services/query_execution.py`
+- `backend/src/api/services/query_execution_cancellation.py`
 - `backend/src/api/services/query_execution_inputs.py`
 - `backend/src/api/services/query_execution_runtime.py`
 - `backend/src/api/services/query_execution_stream_state.py`
@@ -50,6 +51,12 @@ title: "Query Handler and Query Execution Service Runtime Reference"
 - screenshot -> `image_data` shape normalization (`str | list[str] | None`)
 - screenshot/capture metadata and payload field resolution for `process_query(...)`
 - stable extraction of `message_content` and `conversation_ref` from query payload
+
+`query_execution_cancellation.py` owns cancelled-turn reconciliation:
+
+- best-effort history hook invocation for pending tool-call finalization
+- warning/info log emission with turn/session correlation fields
+- no-op behavior when history lacks cancellation reconciliation support
 
 `query_execution_stream_state.py` centralizes mutable stream-tracking fields used during one query run:
 
