@@ -6,6 +6,58 @@ from copy import deepcopy
 from typing import Any, Dict
 
 
+def _require_manual_xy_for_coordinates() -> Dict[str, Any]:
+    return {
+        "if": {
+            "properties": {
+                "find_coordinates_by": {"const": "manual"}
+            },
+            "required": ["find_coordinates_by"],
+        },
+        "then": {"required": ["x", "y"]},
+    }
+
+
+def _require_ocr_text_or_candidate_id() -> Dict[str, Any]:
+    return {
+        "if": {
+            "properties": {"find_coordinates_by": {"const": "ocr"}},
+            "required": ["find_coordinates_by"],
+        },
+        "then": {
+            "anyOf": [
+                {"required": ["ocr_text"]},
+                {"required": ["candidate_id"]},
+            ]
+        },
+    }
+
+
+def _require_prediction_description() -> Dict[str, Any]:
+    return {
+        "if": {
+            "properties": {
+                "find_coordinates_by": {"const": "prediction"}
+            },
+            "required": ["find_coordinates_by"],
+        },
+        "then": {"required": ["description"]},
+    }
+
+
+def _post_action_wait_property() -> Dict[str, Any]:
+    return {
+        "type": "number",
+        "description": (
+            "Delay in seconds before the automatic post-action screenshot "
+            "capture."
+        ),
+        "default": 0,
+        "minimum": 0,
+        "maximum": 60,
+    }
+
+
 _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
     "type": "function",
     "function": {
@@ -222,47 +274,13 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                     "default": 5,
                                 },
                                 "wait": {
-                                    "type": "number",
-                                    "description": (
-                                        "Delay in seconds before the automatic post-action screenshot "
-                                        "capture."
-                                    ),
-                                    "default": 0,
-                                    "minimum": 0,
-                                    "maximum": 60,
+                                    **_post_action_wait_property(),
                                 },
                             },
                             "allOf": [
-                                {
-                                    "if": {
-                                        "properties": {
-                                            "find_coordinates_by": {"const": "manual"}
-                                        },
-                                        "required": ["find_coordinates_by"],
-                                    },
-                                    "then": {"required": ["x", "y"]},
-                                },
-                                {
-                                    "if": {
-                                        "properties": {"find_coordinates_by": {"const": "ocr"}},
-                                        "required": ["find_coordinates_by"],
-                                    },
-                                    "then": {
-                                        "anyOf": [
-                                            {"required": ["ocr_text"]},
-                                            {"required": ["candidate_id"]},
-                                        ]
-                                    },
-                                },
-                                {
-                                    "if": {
-                                        "properties": {
-                                            "find_coordinates_by": {"const": "prediction"}
-                                        },
-                                        "required": ["find_coordinates_by"],
-                                    },
-                                    "then": {"required": ["description"]},
-                                },
+                                _require_manual_xy_for_coordinates(),
+                                _require_ocr_text_or_candidate_id(),
+                                _require_prediction_description(),
                                 {
                                     "if": {
                                         "properties": {"action": {"const": "drag"}},
@@ -342,14 +360,7 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                     "maximum": 2000,
                                 },
                                 "wait": {
-                                    "type": "number",
-                                    "description": (
-                                        "Delay in seconds before the automatic post-action screenshot "
-                                        "capture."
-                                    ),
-                                    "default": 0,
-                                    "minimum": 0,
-                                    "maximum": 60,
+                                    **_post_action_wait_property(),
                                 },
                             },
                             "allOf": [
@@ -484,47 +495,13 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                     "maximum": 5000,
                                 },
                                 "wait": {
-                                    "type": "number",
-                                    "description": (
-                                        "Delay in seconds before the automatic post-action screenshot "
-                                        "capture."
-                                    ),
-                                    "default": 0,
-                                    "minimum": 0,
-                                    "maximum": 60,
+                                    **_post_action_wait_property(),
                                 },
                             },
                             "allOf": [
-                                {
-                                    "if": {
-                                        "properties": {
-                                            "find_coordinates_by": {"const": "manual"}
-                                        },
-                                        "required": ["find_coordinates_by"],
-                                    },
-                                    "then": {"required": ["x", "y"]},
-                                },
-                                {
-                                    "if": {
-                                        "properties": {"find_coordinates_by": {"const": "ocr"}},
-                                        "required": ["find_coordinates_by"],
-                                    },
-                                    "then": {
-                                        "anyOf": [
-                                            {"required": ["ocr_text"]},
-                                            {"required": ["candidate_id"]},
-                                        ]
-                                    },
-                                },
-                                {
-                                    "if": {
-                                        "properties": {
-                                            "find_coordinates_by": {"const": "prediction"}
-                                        },
-                                        "required": ["find_coordinates_by"],
-                                    },
-                                    "then": {"required": ["description"]},
-                                },
+                                _require_manual_xy_for_coordinates(),
+                                _require_ocr_text_or_candidate_id(),
+                                _require_prediction_description(),
                                 {
                                     "if": {
                                         "properties": {"action": {"const": "scroll"}},
@@ -555,14 +532,7 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                                     "enum": ["exact", "contains", "regex"],
                                 },
                                 "wait": {
-                                    "type": "number",
-                                    "description": (
-                                        "Delay in seconds before the automatic post-action screenshot "
-                                        "capture."
-                                    ),
-                                    "default": 0,
-                                    "minimum": 0,
-                                    "maximum": 60,
+                                    **_post_action_wait_property(),
                                 },
                             },
                         },
@@ -592,4 +562,3 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
 def get_unified_computer_use_function_declaration() -> Dict[str, Any]:
     """Return the canonical unified computer-use function declaration schema."""
     return deepcopy(_COMPUTER_USE_FUNCTION_DECLARATION)
-
