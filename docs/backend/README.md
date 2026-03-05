@@ -81,6 +81,7 @@ Covers:
 - [API and Transport](api/api_and_transport.md)
 - [Safe WebSocket and Transport Envelope Reference](api/transport/safe_websocket_and_transport_envelope_reference.md)
 - [HTTP and WebSocket Endpoint Reference](api/http_and_ws_endpoint_reference.md)
+- [Runs Route and VM Control Service Reference](api/runs_route_and_vm_control_service_reference.md)
 - [App Assembly and Container Dependency Reference](api/app_assembly_and_container_dependency_reference.md)
 - [Memory Route Validation and Fallback Reference](api/memory_route_validation_and_fallback_reference.md)
 - [API Memory Docs Hub](api/memory/README.md)

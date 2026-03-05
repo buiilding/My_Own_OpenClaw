@@ -13,6 +13,7 @@ title: "HTTP and WebSocket Endpoint Reference"
 Registered by `backend/src/api/routes/__init__.py` and attached in `api/app_assembly.py`:
 
 - WebSocket router (`/ws`)
+- Runs router (`/api/runs`)
 - Artifact router (`/api/artifacts`)
 - Embeddings router (`/api/embeddings`)
 - Semantic router (`/api/semantic`)
@@ -47,6 +48,123 @@ Failure behavior:
 
 - unknown artifact -> route raises `HTTPException` from store
 - unexpected errors -> HTTP 500 `Artifact lookup failed`
+
+### `POST /api/runs/`
+
+Owner: `backend/src/api/routes/runs.py:create_run`
+
+Behavior:
+
+- creates in-memory run state for workspace/agent/query metadata
+- enforces per-workspace active run cap (`WINDIE_VM_MAX_ACTIVE_RUNS_PER_WORKSPACE`, default `1`)
+- initializes status `awaiting_worker`, control mode `agent_only`
+- emits initial `run-created` event
+
+Auth note:
+
+- when `WINDIE_RUNS_API_KEY` or `WINDIE_DEMO_API_KEY` is set, runs routes require header `x-windie-runs-key`
+
+Failure behavior:
+
+- workspace cap exceeded -> HTTP 409
+
+### `POST /api/runs/workers/heartbeat`
+
+Owner: `backend/src/api/routes/runs.py:worker_poll_heartbeat`
+
+Behavior:
+
+- registers worker heartbeat metadata
+- may assign one queued run (`assigned_run`) for matching workspace
+- returns one-shot `control_commands` for that worker
+
+### `GET /api/runs/{run_id}`
+
+Owner: `backend/src/api/routes/runs.py:get_run`
+
+Behavior:
+
+- returns latest run snapshot
+
+Failure behavior:
+
+- unknown run id -> HTTP 404
+
+### `GET /api/runs/{run_id}/events`
+
+Owner: `backend/src/api/routes/runs.py:list_run_events`
+
+Behavior:
+
+- returns incremental event window (`seq > after_seq`)
+- bounded page size (`limit`: 1..1000)
+
+Failure behavior:
+
+- unknown run id -> HTTP 404
+
+### `POST /api/runs/{run_id}/events`
+
+Owner: `backend/src/api/routes/runs.py:ingest_run_event`
+
+Behavior:
+
+- appends worker/backend stream events into run timeline
+- updates status (`streaming-complete` -> `completed`, `error` -> `failed`)
+
+Failure behavior:
+
+- unknown run id -> HTTP 404
+
+### `POST /api/runs/{run_id}/control`
+
+Owner: `backend/src/api/routes/runs.py:control_run`
+
+Behavior:
+
+- applies control action (`pause`, `resume`, `stop`, `set-control-mode`)
+- queues control command for worker pickup
+- appends `run-control` timeline event
+
+Failure behavior:
+
+- unknown run id -> HTTP 404
+- missing `control_mode` on `set-control-mode` -> HTTP 422
+
+### `POST /api/runs/stop-all`
+
+Owner: `backend/src/api/routes/runs.py:stop_all_runs`
+
+Behavior:
+
+- bulk-stops active runs (optionally filtered by workspace)
+- queues `stop` control command per stopped run
+
+### `POST /api/runs/{run_id}/worker-dispatched`
+
+Owner: `backend/src/api/routes/runs.py:worker_dispatched`
+
+Behavior:
+
+- worker ack after dispatching query to backend websocket loop
+- stores `query_message_id` (`turn_ref`) and updates status to `running`
+
+Failure behavior:
+
+- unknown run id or worker mismatch -> HTTP 404
+
+### `POST /api/runs/{run_id}/worker-heartbeat`
+
+Owner: `backend/src/api/routes/runs.py:worker_heartbeat`
+
+Behavior:
+
+- backward-compatible run-scoped worker heartbeat
+- records worker metadata and emits `worker-heartbeat` event
+
+Failure behavior:
+
+- unknown run id -> HTTP 404
 
 ### `POST /api/embeddings/`
 
