@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for clone-style SettingsSection runtime: tab routing, general-tab toggle payload ownership, Data-controls permission-center routing, and local-only control state boundaries."
+summary: "Deep reference for current clone-style SettingsSection runtime: single-tab routing, wakeword/STT/sudo control ownership, optional data-controls fallback routing, and local-only selector state."
 read_when:
   - When changing `SettingsSection.jsx` tab layout, initial-tab behavior, or close controls.
-  - When debugging wakeword/wakeword-STT/show-additional-models settings update payloads or Data-controls permission-center mounting.
+  - When debugging wakeword/wakeword-STT/agent-sudo settings payloads or data-controls permission-center mounting.
 title: "Settings Section Clone Tabs and Wakeword Toggle Runtime Reference"
 ---
 
@@ -21,35 +21,26 @@ title: "Settings Section Clone Tabs and Wakeword Toggle Runtime Reference"
 
 - left sidebar tab list
 - right content pane
-- close controls on both columns (`onClose`)
+- one close control in sidebar (`onClose`)
 
-Tab ids:
+Current visible tab ids:
 
 - `general`
-- `notifications`
-- `personalization`
-- `apps`
-- `schedules`
-- `orders`
-- `data-controls`
-- `security`
-- `parental-controls`
-- `account`
 
 Routing model:
 
-- only `general` renders live settings controls
-- `data-controls` renders live `PermissionControlCenter`
-- remaining tabs render placeholder content via `PlaceholderTab`
+- `general` renders live settings controls (`GeneralTab`)
+- `data-controls` branch exists in `renderTabContent()` and renders `PermissionControlCenter`, but there is no current tab button for it in `SETTINGS_TABS`
+- unknown tabs fall back to `PlaceholderTab` title rendering
 
 `initialTab` behavior:
 
 - local `activeTab` state is reset from `initialTab` via effect
-- parent can reopen SettingsSection on a specific tab (for example personalization)
+- parent can reopen SettingsSection on a specific tab id; current first-party dashboard menu opens settings with `general`
 
 ## General Tab Ownership Model
 
-`GeneralTab` owns three control classes:
+`GeneralTab` owns four control classes:
 
 ### 1) AppConfigContext-driven wakeword preference
 
@@ -66,26 +57,26 @@ Suppression helper text appears only when:
 - `wakewordEnabled === true`
 - `wakewordSuppressed === true`
 
-### 2) Config patch toggles via `onConfigChange`
+### 2) Config patch toggle via `onConfigChange`
 
 `Speech-To-Text After "Hey Jarvis"` toggle emits:
 
 - `{ wakeword_stt_enabled: boolean }`
 
-`Show additional models` toggle emits merged config payload:
+### 3) Agent sudo access toggle with main-process handshake
 
-- `{ ...(config || {}), show_additional_models: boolean }`
+`Agent Full Sudo Access` toggle path:
 
-### 3) Local-only presentation state
+1. user confirmation dialog when enabling
+2. invoke `IpcBridge.invoke('set-agent-sudo-access', { enabled })`
+3. on success, emit `onConfigChange({ agent_full_sudo_enabled: enabled })`
+4. while in flight, toggle is disabled and helper text shows pending OS-auth prompt
+
+### 4) Local-only presentation state
 
 Current local-only controls do not emit config updates:
 
-- `appearance`
-- `accentColor`
-- `language`
-- `spokenLanguage`
 - `voice`
-- `separateVoice`
 
 These are UI state only in current implementation.
 
@@ -98,24 +89,24 @@ All config persistence/sync side effects are delegated through parent `onConfigC
 Exception:
 
 - `GeneralTab` invokes `IpcBridge.invoke('set-agent-sudo-access', { enabled })` for passwordless sudo toggle handshake before persisting `agent_full_sudo_enabled`.
-- `data-controls` tab mounts `PermissionControlCenter`, which calls permission probe/request channels through shared permission store.
+- `data-controls` branch mounts `PermissionControlCenter`, which uses permission-store probe/recheck actions.
 
 ## Test-Backed Invariants
 
 `tests/frontend/SettingsSection.test.jsx` verifies:
 
 - wakeword listening toggle calls `setWakewordEnabled`
+- only one left sidebar close button is rendered
 - suppression helper message render condition
 - wakeword STT toggle emits exact payload `{ wakeword_stt_enabled: true }`
 - agent full sudo toggle confirm/invoke/failure handling behavior
 
 ## Drift Hotspots
 
-1. Treating local-only appearance/voice selectors as persisted settings without wiring provider updates.
-2. Changing `show_additional_models` payload from merged object to partial patch can drop fields if provider merge semantics change.
-3. Replacing context-driven wakeword setter with direct patch writes can desync suppression-aware wakeword state.
-4. Adding live controls under placeholder tabs without updating tests and docs leaves hidden runtime contracts.
-5. Breaking `data-controls` route to `PermissionControlCenter` silently removes live permission recheck/request UX from settings.
+1. Replacing context-driven wakeword setter with direct config patches can desync suppression-aware wakeword state.
+2. Bypassing sudo toggle confirmation/invoke flow can persist `agent_full_sudo_enabled` without OS-auth success.
+3. Assuming `data-controls` is reachable from tab list can cause dead UI paths; it currently requires external `initialTab` routing.
+4. Treating local-only `voice` selector as persisted config without wiring provider updates.
 
 ## Related Pages
 

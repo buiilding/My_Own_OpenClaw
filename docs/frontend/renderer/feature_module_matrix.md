@@ -92,15 +92,16 @@ Path:
 
 Primary responsibilities:
 
-- install-time permission onboarding gate for default renderer app
-- permission manifest/status state model and gating derivation
-- permission probe/request actions shared by onboarding + settings data-controls
+- permission manifest/status state model and gate-state derivation (`needsOnboarding`, required permission sets, manifest-version completion)
+- settings-surface permission visibility and maintenance actions (`Re-run checks`, per-row `Re-check`)
+- shared permission status presentation (`PermissionRowMain`, `PermissionStatusBadge`)
 
 Core store/components:
 
 - `stores/permissionStore.js`
-- `components/PermissionOnboardingWizard.jsx`
 - `components/PermissionControlCenter.jsx`
+- `components/PermissionRowMain.jsx`
+- `components/PermissionStatusBadge.jsx`
 
 ## Voice Module
 

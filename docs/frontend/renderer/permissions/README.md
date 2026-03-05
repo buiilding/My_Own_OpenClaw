@@ -1,8 +1,8 @@
 ---
-summary: "Renderer permissions docs sub-hub for install-time onboarding gate state, manifest-version completion semantics, and settings data-controls permission center behavior."
+summary: "Renderer permissions docs sub-hub for current permission runtime surfaces: Control Center UI, status row presentation, and permission-store gate state derivation."
 read_when:
-  - When changing permission onboarding wizard flow or required-permission gate behavior in renderer app startup.
-  - When changing Data controls tab permission status/probe/request behavior in settings UI.
+  - When changing `PermissionControlCenter`, `PermissionRowMain`, or `PermissionStatusBadge` renderer behavior.
+  - When changing `permissionStore` gate-state derivation (`needsOnboarding`, manifest-version completion) or probe/recheck flows.
 title: "Renderer Permissions Docs Hub"
 ---
 
@@ -10,9 +10,10 @@ title: "Renderer Permissions Docs Hub"
 
 ## Deep Pages
 
-- [Permission Onboarding Gate, Manifest Version, and Data-Controls Runtime Reference](permission_onboarding_gate_manifest_version_and_data_controls_runtime_reference.md)
 - [Permission Status Badge, Row Rendering, and Reason Visibility Reference](permission_status_badge_row_rendering_and_reason_visibility_reference.md)
 - [Permission Control Center Probe and Recheck Store-Sync Runtime Reference](permission_control_center_probe_and_recheck_store_sync_runtime_reference.md)
+- [Permission Onboarding Gate, Manifest Version, and Data-Controls Runtime Reference](permission_onboarding_gate_manifest_version_and_data_controls_runtime_reference.md)
+  - historical/store-level gate semantics page; renderer app startup is not currently permission-gated
 
 ## Related Pages
 
@@ -23,11 +24,9 @@ title: "Renderer Permissions Docs Hub"
 ## Code Scope
 
 - `frontend/src/renderer/app/App.jsx`
-- `frontend/src/renderer/features/permissions/components/PermissionOnboardingWizard.jsx`
 - `frontend/src/renderer/features/permissions/components/PermissionControlCenter.jsx`
 - `frontend/src/renderer/features/permissions/components/PermissionRowMain.jsx`
 - `frontend/src/renderer/features/permissions/components/PermissionStatusBadge.jsx`
 - `frontend/src/renderer/features/permissions/stores/permissionStore.js`
 - `frontend/src/renderer/features/permissions/utils/permissionStatus.js`
 - `frontend/src/renderer/features/permissions/utils/permissionStorage.js`
-- `frontend/src/renderer/styles/PermissionOnboarding.css`

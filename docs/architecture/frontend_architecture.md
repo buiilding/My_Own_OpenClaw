@@ -108,14 +108,13 @@ frontend/src/
 3. Detection emits `wakeword-detected` back to renderer + `wakeword-detected` backend event.
 4. Renderer shows chatbox/focuses input; optional STT continuation uses voice-mode gateway hook.
 
-### Permission Onboarding Flow
+### Permission Runtime Flow (Settings + Store Gate State)
 
-1. Renderer `App.jsx` bootstraps `usePermissionStore` before dashboard/chat surfaces mount.
-2. Store invokes `LIST_PERMISSIONS` to fetch manifest + live status probes from main process.
-3. If required-now permission state is incomplete (or manifest version changed), app stays in onboarding wizard.
-4. Wizard/request actions call `REQUEST_PERMISSION` and `RUN_PERMISSION_PROBE`; settings "Data controls" renders the same control center component.
-5. Normal dashboard unlocks only after required permissions are granted and planned-system-access disclosure consent is stored.
-6. Post-permission first-run slideshow gate (renderer onboarding state in localStorage) presents two onboarding slides before dashboard mount.
+1. Renderer `App.jsx` startup is no longer permission-gated; it routes by VM mode + frontend onboarding slideshow state.
+2. `permissionStore` remains the canonical place for manifest fetch + permission gate derivation (`needsOnboarding`, required permission sets, manifest-version completion).
+3. `PermissionControlCenter` (settings surface) bootstraps permission state on mount when needed.
+4. Control center actions call `RUN_PERMISSION_PROBE` (per row) and `CHECK_PERMISSIONS` (global recheck) through store helpers.
+5. `REQUEST_PERMISSION` remains available in store/main IPC contracts but is not currently triggered by `PermissionControlCenter` UI.
 
 ## Main Process Responsibilities
 
@@ -149,7 +148,8 @@ Primary modules:
 ### Provider and App Composition
 
 - `renderer/app/App.jsx`: Root provider stack and dashboard shell mounting.
-  - Boot-time permission gate: permission store bootstrap + onboarding wizard route before normal shell.
+  - Startup route gate is VM mode + frontend onboarding slideshow completion.
+  - No boot-time renderer permission gate in current `App.jsx`.
 - `renderer/app/providers/AppConfigProvider.jsx`:
   - Frontend config load/merge/save.
   - Backend settings sync, backend model-list routing.
@@ -177,12 +177,10 @@ Primary modules:
 ### Permission Runtime
 
 - `features/permissions/stores/permissionStore.js`:
-  - Manifest/status fetch + probe/request actions.
-  - Required-now gate evaluation + onboarding completion persistence.
-- `features/permissions/components/PermissionOnboardingWizard.jsx`:
-  - First-run permission checklist + planned-system-access consent step.
+  - Manifest/status fetch + gate-state derivation (`needsOnboarding`, required IDs, missing required permissions, `completedForManifest`).
+  - Probe/recheck/request action helpers and onboarding-state persistence utilities.
 - `features/permissions/components/PermissionControlCenter.jsx`:
-  - Settings-tab live permission status, request/re-check actions, and full recheck.
+  - Settings-surface live permission status with `Re-check` per-row probe and `Re-run checks` global refresh.
 
 ### Dashboard Runtime
 

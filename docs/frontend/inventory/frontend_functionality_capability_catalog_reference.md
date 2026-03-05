@@ -191,7 +191,7 @@ Capabilities:
 - Memory panel supports episodic/semantic fetch, local edit/search state, and episodic/semantic delete for backend-backed rows.
 - Models panel reconciles provider/model selection + provider API-key controls.
 - Settings hook syncs renderer config edits through typed main-process IPC path.
-- Permissions store and onboarding wizard gate runtime until required capabilities are granted.
+- Permissions store derives runtime gate state from manifest/status/onboarding metadata, while current renderer startup is not blocked by a permission wizard gate.
 - Voice runtime supports wakeword detection path and Nova voice streaming mode.
 
 ## 8) Sidecar Runtime Capability Catalog
