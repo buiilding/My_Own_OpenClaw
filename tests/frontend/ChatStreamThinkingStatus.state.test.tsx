@@ -315,6 +315,193 @@ describe('useChatStream state + stream handling', () => {
     expect(state.thinkingStatus).toBeNull();
   });
 
+  test('ignores stale tool-call event when a newer active turn is in progress', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.setState({
+        messages: [
+          {
+            id: 'assistant-new-turn',
+            text: 'working',
+            sender: 'assistant',
+            type: 'llm-text',
+            isComplete: false,
+            turnRef: 'turn-new',
+          },
+        ],
+        isSending: true,
+        thinkingStatus: 'thinking',
+        streamTracking: {
+          activeTurnRef: 'turn-new',
+          phase: 'streaming',
+          startedAt: '2026-03-05T00:00:00.000Z',
+          firstChunkAt: '2026-03-05T00:00:01.000Z',
+          completedAt: null,
+          lastEventAt: '2026-03-05T00:00:01.000Z',
+          lastEventType: 'streaming-response',
+          eventCount: 2,
+          chunkCount: 1,
+          toolCallCount: 0,
+          toolOutputCount: 0,
+          lastChunkSize: 7,
+          lastError: null,
+        },
+      });
+
+      emitBackendEvent({
+        type: 'tool-call',
+        turn_ref: 'turn-old',
+        payload: { tool_name: 'screenshot', parameters: {} },
+      });
+    });
+
+    const state = useChatStore.getState();
+    expect(state.isSending).toBe(true);
+    expect(state.thinkingStatus).toBe('thinking');
+    expect(state.messages).toHaveLength(1);
+    expect(state.messages[0]).toEqual(
+      expect.objectContaining({
+        id: 'assistant-new-turn',
+        turnRef: 'turn-new',
+      }),
+    );
+    expect(state.streamTracking).toEqual(
+      expect.objectContaining({
+        activeTurnRef: 'turn-new',
+        phase: 'streaming',
+        eventCount: 2,
+        toolCallCount: 0,
+      }),
+    );
+  });
+
+  test('ignores stale tool-output event when a newer active turn is in progress', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.setState({
+        messages: [
+          {
+            id: 'assistant-new-turn',
+            text: 'working',
+            sender: 'assistant',
+            type: 'llm-text',
+            isComplete: false,
+            turnRef: 'turn-new',
+          },
+        ],
+        isSending: true,
+        thinkingStatus: 'thinking',
+        streamTracking: {
+          activeTurnRef: 'turn-new',
+          phase: 'streaming',
+          startedAt: '2026-03-05T00:00:00.000Z',
+          firstChunkAt: '2026-03-05T00:00:01.000Z',
+          completedAt: null,
+          lastEventAt: '2026-03-05T00:00:01.000Z',
+          lastEventType: 'streaming-response',
+          eventCount: 2,
+          chunkCount: 1,
+          toolCallCount: 0,
+          toolOutputCount: 0,
+          lastChunkSize: 7,
+          lastError: null,
+        },
+      });
+
+      emitBackendEvent({
+        type: 'tool-output',
+        turn_ref: 'turn-old',
+        payload: {
+          tool_name: 'screenshot',
+          output: 'stale output',
+        },
+      });
+    });
+
+    const state = useChatStore.getState();
+    expect(state.isSending).toBe(true);
+    expect(state.thinkingStatus).toBe('thinking');
+    expect(state.messages).toHaveLength(1);
+    expect(state.messages[0]).toEqual(
+      expect.objectContaining({
+        id: 'assistant-new-turn',
+        turnRef: 'turn-new',
+      }),
+    );
+    expect(state.streamTracking).toEqual(
+      expect.objectContaining({
+        activeTurnRef: 'turn-new',
+        phase: 'streaming',
+        eventCount: 2,
+        toolOutputCount: 0,
+      }),
+    );
+  });
+
+  test('ignores stale tool-bundle event when a newer active turn is in progress', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.setState({
+        messages: [
+          {
+            id: 'assistant-new-turn',
+            text: 'working',
+            sender: 'assistant',
+            type: 'llm-text',
+            isComplete: false,
+            turnRef: 'turn-new',
+          },
+        ],
+        thinkingStatus: 'thinking',
+        streamTracking: {
+          activeTurnRef: 'turn-new',
+          phase: 'streaming',
+          startedAt: '2026-03-05T00:00:00.000Z',
+          firstChunkAt: '2026-03-05T00:00:01.000Z',
+          completedAt: null,
+          lastEventAt: '2026-03-05T00:00:01.000Z',
+          lastEventType: 'streaming-response',
+          eventCount: 2,
+          chunkCount: 1,
+          toolCallCount: 0,
+          toolOutputCount: 0,
+          lastChunkSize: 7,
+          lastError: null,
+        },
+      });
+
+      emitBackendEvent({
+        type: 'tool-bundle',
+        turn_ref: 'turn-old',
+        payload: {
+          bundle_id: 'bundle-old',
+          tools: [{ name: 'screenshot', args: {} }],
+        },
+      });
+    });
+
+    const state = useChatStore.getState();
+    expect(state.thinkingStatus).toBe('thinking');
+    expect(state.messages).toHaveLength(1);
+    expect(state.messages[0]).toEqual(
+      expect.objectContaining({
+        id: 'assistant-new-turn',
+        turnRef: 'turn-new',
+      }),
+    );
+    expect(state.streamTracking).toEqual(
+      expect.objectContaining({
+        activeTurnRef: 'turn-new',
+        phase: 'streaming',
+        eventCount: 2,
+        toolCallCount: 0,
+      }),
+    );
+  });
+
   test('clears thinking status on streaming complete', () => {
     const { emitBackendEvent } = registerBackendListener();
 
