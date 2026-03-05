@@ -520,6 +520,15 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const handleErrorEvent = useCallback((event: ErrorEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
+    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
+    const activeTurnRef = workspace.streamTracking.activeTurnRef;
+    if (
+      event.turn_ref
+      && activeTurnRef
+      && activeTurnRef !== event.turn_ref
+    ) {
+      return;
+    }
     handleError(event, conversationRef);
   }, [handleError, resolveTargetConversationRef]);
 

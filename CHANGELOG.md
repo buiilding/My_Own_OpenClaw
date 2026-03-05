@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(frontend-stale-turn-error-gate): guard chat-stream `error` handling by active turn so stale terminal error events cannot clear sending/thinking state, overwrite stream tracking phase, or append erroneous error messages for newer in-flight turns.
 - test(parser-computer-use-metadata-normalization): normalize and trim required computer-use metadata fields in parser validation so parsed tool-call metadata is canonical (`description`/`explanation`/`expectation` stripped), with regressions for trimmed success and whitespace-only rejection on unified `computer_use` responses.
 - test(frontend-stale-turn-terminal-gate): guard chat-stream `streaming-complete` handling so stale terminal events (`turn_ref` not equal to active turn) are ignored and cannot clear active sending/thinking state or complete newer in-flight assistant messages.
 - test(query-terminal-error-gate): add backend query-handler regression ensuring events emitted after a terminal `error` event are ignored, preventing late post-error chunks from mutating stream output.
