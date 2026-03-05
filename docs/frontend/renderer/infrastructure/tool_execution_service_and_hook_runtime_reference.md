@@ -12,6 +12,7 @@ title: "Tool Execution Service and Hook Runtime Reference"
 
 - `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
 - `frontend/src/renderer/features/chat/utils/toolRunnerMessages.ts`
+- `frontend/src/renderer/features/chat/utils/toolRunnerResultPersistence.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionService.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionBundleRunner.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionTypes.ts`
@@ -28,7 +29,7 @@ title: "Tool Execution Service and Hook Runtime Reference"
 - backend event subscription (`from-backend`)
 - turn-level stale-event filtering
 - execution correlation tracking
-- wiring UI callbacks + transcript recording + backend send relay
+- wiring backend send relay and delegating tool/bundle result persistence to `toolRunnerResultPersistence.ts`
 
 `ToolExecutionService` owns:
 

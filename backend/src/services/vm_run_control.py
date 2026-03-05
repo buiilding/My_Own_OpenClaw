@@ -8,7 +8,6 @@ from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
 from backend.src.services.vm_run_control_helpers import (
-    build_run_event,
     normalize_files,
     normalize_optional_string,
     now_iso,
@@ -18,6 +17,10 @@ from backend.src.services.vm_run_control_event_payloads import (
     build_run_created_payload,
     build_run_dispatched_payload,
     build_worker_assigned_payload,
+)
+from backend.src.services.vm_run_control_event_log import (
+    append_run_event,
+    select_run_events,
 )
 from backend.src.services.vm_run_control_pending_controls import (
     collect_pending_control_commands_for_worker,
@@ -65,18 +68,12 @@ class VmRunControlService:
         source: str,
         payload: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
-        next_seq = int(run.get("last_event_seq", 0)) + 1
-        event_payload = deepcopy(payload) if isinstance(payload, dict) else {}
-        event = build_run_event(
-            seq=next_seq,
+        return append_run_event(
+            run,
             event_type=event_type,
             source=source,
-            payload=event_payload,
+            payload=payload,
         )
-        run["events"].append(event)
-        run["last_event_seq"] = next_seq
-        run["updated_at"] = event["timestamp"]
-        return event
 
     def _enqueue_run_locked(self, workspace_id: str, run_id: str) -> None:
         queue = self._workspace_run_queues.setdefault(workspace_id, [])
@@ -282,12 +279,11 @@ class VmRunControlService:
             run = self._runs.get(run_id)
             if not run:
                 return None
-            selected = [
-                deepcopy(event)
-                for event in run["events"]
-                if int(event.get("seq", 0)) > max(after_seq, 0)
-            ]
-            return selected[: max(1, min(limit, 1000))]
+            return select_run_events(
+                run,
+                after_seq=after_seq,
+                limit=limit,
+            )
 
     async def append_event(
         self,
