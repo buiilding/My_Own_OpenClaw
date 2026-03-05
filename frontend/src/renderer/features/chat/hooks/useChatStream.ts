@@ -6,7 +6,6 @@ import {
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import {
   getActiveConversationRef,
-  updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
 import {
   type BackendEvent,
@@ -41,6 +40,7 @@ import { useChatStreamMetadataHandlers } from './useChatStreamMetadataHandlers';
 import { useTurnScopedBackendEventHandler } from './useTurnScopedBackendEventHandler';
 import { useChatStreamCompletionHandler } from './useChatStreamCompletionHandler';
 import { useChatStreamTextHandlers } from './useChatStreamTextHandlers';
+import { ingestBackendEvent } from '../utils/chatStreamBackendIngress';
 import {
   recordTrackingEvent as recordTrackingEventRuntime,
   resolveTargetConversationRef as resolveTargetConversationRefRuntime,
@@ -326,18 +326,17 @@ export function useChatStream(enableTranscript: boolean = true) {
         return;
       }
       const conversationRef = resolveTargetConversationRef(data);
-      syncActiveConversationProjection(data, conversationRef);
-      if (conversationRef && data.turn_ref) {
-        registerTurnConversationRef(data.turn_ref, conversationRef);
-      }
-      if (enableTranscript) {
-        const activeConversationRef = getActiveConversationRef();
-        updateTranscriptSession(activeConversationRef || conversationRef || undefined, data.user_id);
-      }
-      const handler = handlers[data.type];
-      if (handler) {
-        handler(data);
-      }
+      ingestBackendEvent(data, conversationRef, {
+        syncActiveConversationProjection,
+        registerTurnConversationRef,
+        enableTranscript,
+        dispatchEvent: (event) => {
+          const handler = handlers[event.type];
+          if (handler) {
+            handler(event);
+          }
+        },
+      });
     });
 
     return removeListener;

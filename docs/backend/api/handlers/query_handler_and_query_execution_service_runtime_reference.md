@@ -13,6 +13,7 @@ title: "Query Handler and Query Execution Service Runtime Reference"
 - `backend/src/api/handlers/query.py`
 - `backend/src/api/services/query_execution.py`
 - `backend/src/api/services/query_execution_runtime.py`
+- `backend/src/api/services/query_execution_stream_state.py`
 - `backend/src/api/services/tts_session.py`
 - `backend/src/api/infrastructure/errors.py`
 - `backend/src/api/processing/pipeline.py`
@@ -42,6 +43,12 @@ title: "Query Handler and Query Execution Service Runtime Reference"
 - screenshot capture metadata normalization (`resolve_query_screenshot_metadata`)
 - runtime system-state filtering/merge (`resolve_query_runtime_system_state`, `apply_query_runtime_system_state`)
 - per-turn stream context assembly (`build_stream_context`)
+
+`query_execution_stream_state.py` centralizes mutable stream-tracking fields used during one query run:
+
+- terminal-event latch (`saw_terminal_event`)
+- text chunk aggregation (`saw_text_chunk`, `text_chunks`)
+- assistant-full fallback text tracking (`last_assistant_full_text`)
 
 ## Active Query Task Lifecycle
 
