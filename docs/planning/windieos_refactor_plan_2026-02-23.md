@@ -48,6 +48,28 @@ read_when:
 
 ## Frontend/Main Execution Log (2026-02-26)
 
+- Message list state-decomposition (2026-03-05):
+  - extracted scroll/awaiting-dot/compaction/action-gating selectors from:
+    - `frontend/src/renderer/features/chat/components/MessageList.jsx`
+    - into `frontend/src/renderer/features/chat/utils/messageListState.js`.
+  - kept `MessageList` focused on composition while moving render-state derivation into pure utilities.
+  - result:
+    - `MessageList.jsx` reduced from `442` LOC to `361` LOC.
+  - regression coverage:
+    - added `tests/frontend/MessageListState.test.js`.
+    - reran `MessageListScrollBehavior`, `MessageListAssistantActions`, and `MessageListThinkingDisplay` suites.
+  - verification:
+    - `cd frontend && npm run test:ci -- ../tests/frontend/MessageListState.test.js ../tests/frontend/MessageListScrollBehavior.test.jsx ../tests/frontend/MessageListAssistantActions.test.jsx ../tests/frontend/MessageListThinkingDisplay.test.jsx`
+    - `cd frontend && npm run lint -- src/renderer/features/chat/components/MessageList.jsx src/renderer/features/chat/utils/messageListState.js`
+    - `cd frontend && npm run lint:audit`
+    - `cd frontend && npm run audit:knip`
+    - `cd frontend && npm run audit:jscpd`
+    - `cd frontend && npx jscpd --gitignore --min-lines 5 --min-tokens 50 --reporters console --ignore \"**/__pycache__/**\" ../backend/src/api/routes`
+  - audit delta:
+    - `react-compiler`/`deprecation` lint audits clean.
+    - `knip` clean.
+    - `jscpd` remains `0` clones overall and `backend/src/api/routes` remains `0` clones.
+
 - Dashboard conversation-load decomposition (2026-03-05):
   - extracted recent-chat load/retry normalization helpers from:
     - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
