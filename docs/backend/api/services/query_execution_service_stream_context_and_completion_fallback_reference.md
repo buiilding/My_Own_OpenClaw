@@ -43,6 +43,7 @@ Service responsibilities:
 - `conversation_ref` -> injected into immutable stream context
 - `content` -> forwarded as `message_content` to `agent_instance.process_query(...)`
 - `screenshot` / `screenshot_ref` / `screenshot_refs[]` -> screenshot resolution path
+- `capture_meta` -> copied into `query_capture_meta` and forwarded to `agent_instance.process_query(...)`
 - `system_state_internal` -> backend-only runtime state seed
 
 ## Screenshot Resolution Semantics
@@ -112,6 +113,12 @@ Execution tracks:
 - `saw_text_chunk`
 - `text_chunks`
 - `last_assistant_full_text`
+
+Loop gate semantics:
+
+- once `saw_terminal_event=True`, all later events in the same stream iteration are ignored and only debug-logged
+- `streaming-complete` marks terminal, resolves completion text, emits backfill completion path, and skips direct pipeline forwarding of the original event
+- `error` marks terminal and is still forwarded once through `_process_pipeline_event(...)`
 
 ### Event extraction helpers
 
