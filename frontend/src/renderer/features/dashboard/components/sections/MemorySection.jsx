@@ -16,11 +16,15 @@ import {
 import MemoryItem from './MemoryItem';
 import {
   buildProceduralMemories,
-  formatDateLabel,
   MEMORY_TYPES,
   normalizeEpisodicMemories,
   normalizeSemanticMemories,
 } from './memorySectionData';
+import {
+  buildLocalMemoryDraft,
+  filterMemoriesByQuery,
+  resolveActiveMemoryTypeInfo,
+} from './memorySectionState';
 
 function MemorySection({ onClose = () => {} }) {
   const sessionInfo = useTranscriptSessionInfo();
@@ -85,29 +89,11 @@ function MemorySection({ onClose = () => {} }) {
   }, [loadMemories]);
 
   const activeTypeInfo = useMemo(() => {
-    return MEMORY_TYPES.find((type) => type.id === activeType) || MEMORY_TYPES[0];
+    return resolveActiveMemoryTypeInfo(activeType, MEMORY_TYPES);
   }, [activeType]);
 
   const filteredMemories = useMemo(() => {
-    const source = memoriesByType[activeType] || [];
-    if (!searchQuery.trim()) {
-      return source;
-    }
-
-    const normalized = searchQuery.trim().toLowerCase();
-    return source.filter((memory) => {
-      const title = (memory.title || '').toLowerCase();
-      const detail = (memory.detail || '').toLowerCase();
-      if (activeType !== 'episodic') {
-        return title.includes(normalized) || detail.includes(normalized);
-      }
-      const assistantResponse = (memory.assistantResponse || '').toLowerCase();
-      return (
-        title.includes(normalized)
-        || detail.includes(normalized)
-        || assistantResponse.includes(normalized)
-      );
-    });
+    return filterMemoriesByQuery(activeType, memoriesByType, searchQuery);
   }, [activeType, memoriesByType, searchQuery]);
 
   const handleDelete = useCallback(async (memory) => {
@@ -172,23 +158,10 @@ function MemorySection({ onClose = () => {} }) {
   }, [activeType, editedDetail]);
 
   const handleAdd = useCallback(() => {
-    if (!newTitle.trim()) {
+    const localMemory = buildLocalMemoryDraft(activeType, newTitle, newDetail);
+    if (!localMemory) {
       return;
     }
-
-    const now = new Date();
-    const localMemory = {
-      id: `local-${activeType}-${Date.now()}`,
-      title: newTitle.trim(),
-      detail: newDetail.trim() || '(empty memory)',
-      date: formatDateLabel(now.toISOString()),
-      tokens: Math.max(newDetail.trim().split(/\s+/).filter(Boolean).length, 0),
-      confidence: 'Medium',
-      source: 'manual',
-      timestamp: now.toISOString(),
-      backendMemoryId: null,
-      backendType: activeType,
-    };
 
     setMemoriesByType((previous) => ({
       ...previous,

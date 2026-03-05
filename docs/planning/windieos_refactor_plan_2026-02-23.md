@@ -48,6 +48,28 @@ read_when:
 
 ## Frontend/Main Execution Log (2026-02-26)
 
+- Memory section state-decomposition (2026-03-05):
+  - extracted MemorySection derived-state helpers from:
+    - `frontend/src/renderer/features/dashboard/components/sections/MemorySection.jsx`
+    - into `frontend/src/renderer/features/dashboard/components/sections/memorySectionState.js`.
+  - moved active memory-type resolution, memory search filtering, and local-memory draft shaping into pure helpers to reduce component branching.
+  - result:
+    - `MemorySection.jsx` reduced from `381` LOC to `354` LOC.
+  - regression coverage:
+    - added `tests/frontend/MemorySectionState.test.js`.
+    - reran `tests/frontend/MemorySection.test.jsx`.
+  - verification:
+    - `cd frontend && npm run test:ci -- ../tests/frontend/MemorySectionState.test.js ../tests/frontend/MemorySection.test.jsx`
+    - `cd frontend && npm run lint -- src/renderer/features/dashboard/components/sections/MemorySection.jsx src/renderer/features/dashboard/components/sections/memorySectionState.js`
+    - `cd frontend && npm run lint:audit`
+    - `cd frontend && npm run audit:knip`
+    - `cd frontend && npm run audit:jscpd`
+    - `cd frontend && npx jscpd --gitignore --min-lines 5 --min-tokens 50 --reporters console --ignore \"**/__pycache__/**\" ../backend/src/api/routes`
+  - audit delta:
+    - `react-compiler`/`deprecation` lint audits clean.
+    - `knip` clean.
+    - `jscpd` remains `0` clones overall and `backend/src/api/routes` remains `0` clones.
+
 - ChatBox state-decomposition (2026-03-05):
   - extracted chatbox drag/anchor/screenshot-preview helpers from:
     - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
