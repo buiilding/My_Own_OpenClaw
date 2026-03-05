@@ -147,6 +147,7 @@ Supporting modules:
 
 - `MessageFormatter.ts`
 - `ToolExecutionPayloads.ts`
+- `ToolExecutionBackendPayload.ts`
 - `ToolExecutionImagePayload.ts`
 - `ArtifactUploader.ts`
 - `ToolExecutionInvoker.ts`

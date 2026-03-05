@@ -24,7 +24,6 @@ import {
 } from './ToolExecutionCapture';
 import { invokeTool } from './ToolExecutionInvoker';
 import {
-  buildToolResultPayloadData,
   normalizeBundleStepResults,
   resolveBundleErrorMessage,
   resolveBundleStatus,
@@ -46,9 +45,10 @@ import {
 } from './ToolExecutionLogger';
 import { runToolBundle, type BundleStepResult } from './ToolExecutionBundleRunner';
 import {
-  buildToolBundleResultEnvelope,
-  buildToolResultEnvelope,
-} from './ToolResultEnvelope';
+  buildToolBundleBackendEnvelope,
+  type BundleExecutionStatus,
+  buildToolResultBackendEnvelope,
+} from './ToolExecutionBackendPayload';
 import type { CaptureMeta } from './SystemCapture';
 import {
   extractToolResultImage,
@@ -282,27 +282,22 @@ export class ToolExecutionService {
     if (!this.callbacks.sendToBackend) {
       return;
     }
-
-    const payloadData = buildToolResultPayloadData(result, formattedMessage, {
-      screenshotRef,
-      systemState,
-      includeScreenshot,
-      includeSystemState,
-    });
-
     this.callbacks.sendToBackend(
-      buildToolResultEnvelope({
-        request_id: correlationId,
-        success: result.success,
-        data: payloadData,
-        error: result.error,
+      buildToolResultBackendEnvelope({
+        correlationId,
+        result,
+        formattedMessage,
+        systemState,
+        includeScreenshot,
+        screenshotRef,
+        includeSystemState,
       }),
     );
   }
 
   private _sendBundleResult(
     bundleId: string,
-    status: string,
+    status: BundleExecutionStatus,
     stepResults: BundleStepResult[],
     screenshotRef: string | null,
     captureMeta: CaptureMeta | null,
@@ -314,26 +309,19 @@ export class ToolExecutionService {
     if (!this.callbacks.sendToBackend) {
       return;
     }
-
-    const payload: Record<string, unknown> = {
-      bundle_id: bundleId,
-      status,
-      step_results: stepResults,
-      error,
-    };
-
-    if (includeScreenshot && screenshotRef) {
-      payload.screenshot_ref = screenshotRef;
-    }
-    if (includeScreenshot && captureMeta) {
-      payload.capture_meta = captureMeta;
-    }
-
-    if (includeSystemState && systemState) {
-      payload.system_state = systemState;
-    }
-
-    this.callbacks.sendToBackend(buildToolBundleResultEnvelope(payload));
+    this.callbacks.sendToBackend(
+      buildToolBundleBackendEnvelope({
+        bundleId,
+        status,
+        stepResults,
+        screenshotRef,
+        captureMeta,
+        systemState,
+        error,
+        includeScreenshot,
+        includeSystemState,
+      }),
+    );
   }
 
   /**
