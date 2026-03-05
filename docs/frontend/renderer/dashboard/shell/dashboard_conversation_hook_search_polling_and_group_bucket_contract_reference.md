@@ -48,11 +48,13 @@ Hook-owned concerns:
 - drops rows without `conversation_id`
 - sorts by `last_timestamp` descending
 - prunes pinned ids no longer present in loaded list
+- dedupes concurrent loads for the same `userId` (reuses in-flight promise)
+- ignores stale completion paths when a newer `userId`-scoped load has already started
 
 Failure behavior:
 
 - sets `recentConversationsError`
-- clears `recentConversations`
+- preserves the current recent list
 
 ## Search Contract
 

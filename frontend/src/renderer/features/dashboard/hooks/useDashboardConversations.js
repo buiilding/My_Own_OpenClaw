@@ -47,42 +47,78 @@ function useDashboardConversations({
   const [recentConversationsError, setRecentConversationsError] = useState('');
   const pendingTitlePollTimersRef = useRef(new Map());
   const recentConversationsRetryAttemptRef = useRef(0);
+  const recentConversationLoadRequestIdRef = useRef(0);
+  const recentConversationLoadInFlightRef = useRef(null);
 
   const loadRecentConversations = useCallback(async () => {
+    const activeLoad = recentConversationLoadInFlightRef.current;
+    if (activeLoad && activeLoad.userId === resolvedUserId) {
+      return activeLoad.promise;
+    }
+
+    const requestId = recentConversationLoadRequestIdRef.current + 1;
+    recentConversationLoadRequestIdRef.current = requestId;
     setIsLoadingRecentConversations(true);
     setRecentConversationsError('');
 
-    try {
-      const result = await IpcBridge.invoke(INVOKE_CHANNELS.LIST_CONVERSATIONS, {
-        userId: resolvedUserId,
-        limit: 200,
-        recordKind: 'transcript',
-      });
-      if (!result || result.success === false) {
-        throw new Error(result?.error || 'Failed to load recent chats');
-      }
-
-      const list = (result?.data?.conversations ?? [])
-        .filter((conversation) => Boolean(conversation?.conversation_id))
-        .sort((a, b) => {
-          const aTime = Date.parse(a?.last_timestamp || '') || 0;
-          const bTime = Date.parse(b?.last_timestamp || '') || 0;
-          return bTime - aTime;
+    const loadMarker = {};
+    const requestPromise = (async () => {
+      try {
+        const result = await IpcBridge.invoke(INVOKE_CHANNELS.LIST_CONVERSATIONS, {
+          userId: resolvedUserId,
+          limit: 200,
+          recordKind: 'transcript',
         });
-      recentConversationsRetryAttemptRef.current = 0;
-      setRecentConversations(list);
-      setPinnedConversationRefs((current) => {
-        const knownIds = new Set(list.map((conversation) => conversation?.conversation_id));
-        return current.filter((conversationRef) => knownIds.has(conversationRef));
-      });
-      return list;
-    } catch (error) {
-      const errorMessage = error?.message || 'Failed to load recent chats';
-      setRecentConversationsError(errorMessage);
-      return [];
-    } finally {
-      setIsLoadingRecentConversations(false);
-    }
+        if (!result || result.success === false) {
+          throw new Error(result?.error || 'Failed to load recent chats');
+        }
+
+        const list = (result?.data?.conversations ?? [])
+          .filter((conversation) => Boolean(conversation?.conversation_id))
+          .sort((a, b) => {
+            const aTime = Date.parse(a?.last_timestamp || '') || 0;
+            const bTime = Date.parse(b?.last_timestamp || '') || 0;
+            return bTime - aTime;
+          });
+
+        // Ignore stale loads so older responses cannot overwrite newer user/session state.
+        if (recentConversationLoadRequestIdRef.current !== requestId) {
+          return list;
+        }
+
+        recentConversationsRetryAttemptRef.current = 0;
+        setRecentConversations(list);
+        setPinnedConversationRefs((current) => {
+          const knownIds = new Set(list.map((conversation) => conversation?.conversation_id));
+          return current.filter((conversationRef) => knownIds.has(conversationRef));
+        });
+
+        return list;
+      } catch (error) {
+        if (recentConversationLoadRequestIdRef.current !== requestId) {
+          return [];
+        }
+        const errorMessage = error?.message || 'Failed to load recent chats';
+        setRecentConversationsError(errorMessage);
+        return [];
+      } finally {
+        if (recentConversationLoadRequestIdRef.current === requestId) {
+          setIsLoadingRecentConversations(false);
+        }
+        const inFlightLoad = recentConversationLoadInFlightRef.current;
+        if (inFlightLoad?.marker === loadMarker) {
+          recentConversationLoadInFlightRef.current = null;
+        }
+      }
+    })();
+
+    recentConversationLoadInFlightRef.current = {
+      userId: resolvedUserId,
+      marker: loadMarker,
+      promise: requestPromise,
+    };
+
+    return requestPromise;
   }, [resolvedUserId]);
 
   const clearPendingTitlePoll = useCallback((conversationRef) => {

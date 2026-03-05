@@ -474,6 +474,77 @@ describe('ChatGptDashboardShell', () => {
     );
   });
 
+  test('ignores stale recent-chat response after transcript user switch', async () => {
+    const nowIso = new Date().toISOString();
+    let resolveDefaultUserList;
+    mockSessionInfo = { conversationRef: null, userId: null };
+    mockInvoke.mockImplementation(async (channel, payload) => {
+      if (channel !== 'list-conversations') {
+        return { success: true, data: {} };
+      }
+      if (payload?.userId === 'default_user') {
+        return new Promise((resolve) => {
+          resolveDefaultUserList = resolve;
+        });
+      }
+      if (payload?.userId === 'peter-bui') {
+        return {
+          success: true,
+          data: {
+            conversations: [
+              {
+                conversation_id: 'conv-user-peter',
+                record_kind: 'transcript',
+                last_timestamp: nowIso,
+                title: 'Peter active chat',
+              },
+            ],
+          },
+        };
+      }
+      return { success: true, data: { conversations: [] } };
+    });
+
+    await renderDashboardShell();
+    expect(mockInvoke).toHaveBeenCalledWith(
+      'list-conversations',
+      expect.objectContaining({ userId: 'default_user' }),
+    );
+
+    mockSessionInfo = { conversationRef: null, userId: 'peter-bui' };
+    act(() => {
+      window.dispatchEvent(new CustomEvent('transcript-session-update'));
+    });
+    await flushMicrotasks();
+
+    expect(mockInvoke).toHaveBeenCalledWith(
+      'list-conversations',
+      expect.objectContaining({ userId: 'peter-bui' }),
+    );
+    expect(screen.getByRole('button', { name: 'Peter active chat' })).toBeInTheDocument();
+
+    await act(async () => {
+      resolveDefaultUserList?.({
+        success: true,
+        data: {
+          conversations: [
+            {
+              conversation_id: 'conv-user-default',
+              record_kind: 'transcript',
+              last_timestamp: nowIso,
+              title: 'Default stale chat',
+            },
+          ],
+        },
+      });
+      await Promise.resolve();
+    });
+    await flushMicrotasks();
+
+    expect(screen.queryByRole('button', { name: 'Default stale chat' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Peter active chat' })).toBeInTheDocument();
+  });
+
   test('reloads recent chats after assistant llm transcript entry is stored', async () => {
     const nowIso = new Date().toISOString();
     let listCallCount = 0;
