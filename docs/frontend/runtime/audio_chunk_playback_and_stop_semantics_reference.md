@@ -13,6 +13,7 @@ title: "Audio Chunk Playback and Stop Semantics Reference"
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
+- `frontend/src/renderer/features/chat/hooks/useChatInterfaceBindings.js`
 - `frontend/src/renderer/features/chat/utils/stopQueryState.js`
 - `frontend/src/renderer/features/chat/utils/backendAudioEvents.js`
 - `frontend/src/renderer/infrastructure/audio/PlayerService.ts`
@@ -26,14 +27,14 @@ Audio output from backend follows this route:
 
 1. backend websocket sends event `type: "audio-chunk"`
 2. Electron main `ipc.cjs` parses message and relays `from-backend` to all renderer windows
-3. renderer `ChatInterface` listens to `ON_CHANNELS.FROM_BACKEND`
+3. renderer chat runtime (`useChatInterfaceAudioChunkStream` used by `ChatInterface`) listens to `ON_CHANNELS.FROM_BACKEND`
 4. `extractAudioChunkPayload(...)` filters and validates audio payload shape
 5. valid chunk is enqueued in `PlayerService`
 
 Important distinction:
 
 - typed stream handling in `useChatStream` uses `isBackendEvent` and does not include `audio-chunk`
-- audio chunk handling is intentionally separate and runs directly in `ChatInterface`
+- audio chunk handling is intentionally separate from typed stream handlers and is bound via dedicated `ChatInterface` runtime binding hooks
 
 ## Main-Process Relay Semantics
 

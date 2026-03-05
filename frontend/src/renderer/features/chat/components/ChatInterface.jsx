@@ -5,11 +5,16 @@ import MessageInput from './MessageInput';
 import ChatInterfaceHeaderControls from './ChatInterfaceHeaderControls';
 import { useChatStore } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
+import {
+  useChatInterfaceAudioChunkStream,
+  useChatInterfaceMenuDismiss,
+  useChatInterfaceNewChatEvent,
+  useChatInterfaceStopShortcut,
+} from '../hooks/useChatInterfaceBindings';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { ApiClient } from '../../../infrastructure/api/client';
 import { PlayerService } from '../../../infrastructure/audio/PlayerService';
-import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
-import { extractAudioChunkPayload } from '../utils/backendAudioEvents';
+import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { selectChatInterfaceState } from '../utils/chatSelectors';
 import { startNewChatSession } from '../utils/newChatSession';
 import { loadConversationTranscriptMemories } from '../../../infrastructure/transcript/conversationTranscriptLoader';
@@ -34,7 +39,6 @@ import { isDevUiEnabled } from '../utils/devUiFlag';
 import { applyStopQueryUiState } from '../utils/stopQueryState';
 import { useChatLoopUiState } from '../hooks/useChatLoopUiState';
 import { useTranscriptSessionInfo } from '../../dashboard/hooks/useTranscriptSessionInfo';
-import { isAgentStopShortcutEvent } from '../../../infrastructure/shortcuts/agentStopShortcut';
 import { isVmModeEnabled } from '../../../infrastructure/runtime/vmMode';
 import '../../../styles/ChatInterface.css';
 
@@ -74,15 +78,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
     };
   }, []);
 
-  useEffect(() => {
-    const removeListener = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, (data) => {
-      const audioChunk = extractAudioChunkPayload(data);
-      if (audioChunk && audioPlayerRef.current) {
-        audioPlayerRef.current.enqueueAudio(audioChunk);
-      }
-    });
-    return removeListener;
-  }, []);
+  useChatInterfaceAudioChunkStream(audioPlayerRef);
 
   const voiceModeEnabled = config?.voice_mode_enabled === true;
   const speechModeEnabled = config?.speech_mode_enabled === true;
@@ -129,26 +125,12 @@ function ChatInterface({ focusComposerToken = 0 }) {
   const providerMenuRef = useRef(null);
   const modelMenuRef = useRef(null);
 
-  useEffect(() => {
-    const handlePointerDown = (event) => {
-      if (
-        providerMenuRef.current
-        && !providerMenuRef.current.contains(event.target)
-      ) {
-        setProviderMenuOpen(false);
-      }
-      if (
-        modelMenuRef.current
-        && !modelMenuRef.current.contains(event.target)
-      ) {
-        setModelMenuOpen(false);
-      }
-    };
-    window.addEventListener('mousedown', handlePointerDown);
-    return () => {
-      window.removeEventListener('mousedown', handlePointerDown);
-    };
-  }, []);
+  useChatInterfaceMenuDismiss({
+    providerMenuRef,
+    modelMenuRef,
+    setProviderMenuOpen,
+    setModelMenuOpen,
+  });
 
   const stopPlayback = useCallback(() => {
     audioPlayerRef.current?.stopPlayback();
@@ -176,20 +158,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
     updateStreamTracking,
   ]);
 
-  useEffect(() => {
-    const handleStopShortcut = (event) => {
-      if (!canStop || !isAgentStopShortcutEvent(event)) {
-        return;
-      }
-      event.preventDefault();
-      handleStopQuery();
-    };
-
-    window.addEventListener('keydown', handleStopShortcut);
-    return () => {
-      window.removeEventListener('keydown', handleStopShortcut);
-    };
-  }, [canStop, handleStopQuery]);
+  useChatInterfaceStopShortcut(canStop, handleStopQuery);
 
   const handleNewChat = useCallback(() => {
     startNewChatSession({
@@ -317,15 +286,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
     setIsSending,
   });
 
-  useEffect(() => {
-    const handleDashboardNewChat = () => {
-      handleNewChat();
-    };
-    window.addEventListener('windie:new-chat', handleDashboardNewChat);
-    return () => {
-      window.removeEventListener('windie:new-chat', handleDashboardNewChat);
-    };
-  }, [handleNewChat]);
+  useChatInterfaceNewChatEvent(handleNewChat);
 
   const { sendMessage } = useChatMessageSender(stopPlayback, {
     senderSurface: 'main-window',
