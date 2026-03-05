@@ -39,6 +39,69 @@ describe('useChatStream state + stream handling', () => {
     expect(useChatStore.getState().thinkingStatus).toContain('thinking');
   });
 
+  test('ignores stale llm-thought event when a newer active turn is in progress', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.setState({
+        messages: [
+          {
+            id: 'assistant-new-turn',
+            text: '',
+            sender: 'assistant',
+            type: 'llm-text',
+            isComplete: false,
+            turnRef: 'turn-new',
+            thinkingText: 'current step',
+            thinkingSourceEventType: 'llm-thought',
+          },
+        ],
+        thinkingStatus: 'current step',
+        thinkingSourceEventType: 'llm-thought',
+        streamTracking: {
+          activeTurnRef: 'turn-new',
+          phase: 'streaming',
+          startedAt: '2026-03-05T00:00:00.000Z',
+          firstChunkAt: '2026-03-05T00:00:01.000Z',
+          completedAt: null,
+          lastEventAt: '2026-03-05T00:00:01.000Z',
+          lastEventType: 'streaming-response',
+          eventCount: 2,
+          chunkCount: 1,
+          toolCallCount: 0,
+          toolOutputCount: 0,
+          lastChunkSize: 7,
+          lastError: null,
+        },
+      });
+
+      emitBackendEvent({
+        type: 'llm-thought',
+        turn_ref: 'turn-old',
+        payload: { status: 'stale step' },
+      });
+    });
+
+    const state = useChatStore.getState();
+    expect(state.thinkingStatus).toBe('current step');
+    expect(state.thinkingSourceEventType).toBe('llm-thought');
+    expect(state.messages).toHaveLength(1);
+    expect(state.messages[0]).toEqual(
+      expect.objectContaining({
+        id: 'assistant-new-turn',
+        turnRef: 'turn-new',
+        thinkingText: 'current step',
+      }),
+    );
+    expect(state.streamTracking).toEqual(
+      expect.objectContaining({
+        activeTurnRef: 'turn-new',
+        phase: 'streaming',
+        eventCount: 2,
+      }),
+    );
+  });
+
   test('creates assistant placeholder with live thinking before first text chunk', () => {
     const { emitBackendEvent } = registerBackendListener();
 
@@ -583,6 +646,68 @@ describe('useChatStream state + stream handling', () => {
         text: 'new chunk',
         type: 'llm-text',
         isComplete: false,
+      }),
+    );
+  });
+
+  test('ignores stale streaming-response event when a newer active turn is in progress', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.setState({
+        messages: [
+          {
+            id: 'assistant-new-turn',
+            text: 'new answer',
+            sender: 'assistant',
+            type: 'llm-text',
+            isComplete: false,
+            turnRef: 'turn-new',
+          },
+        ],
+        isSending: true,
+        thinkingStatus: 'thinking',
+        streamTracking: {
+          activeTurnRef: 'turn-new',
+          phase: 'streaming',
+          startedAt: '2026-03-05T00:00:00.000Z',
+          firstChunkAt: '2026-03-05T00:00:01.000Z',
+          completedAt: null,
+          lastEventAt: '2026-03-05T00:00:01.000Z',
+          lastEventType: 'streaming-response',
+          eventCount: 2,
+          chunkCount: 1,
+          toolCallCount: 0,
+          toolOutputCount: 0,
+          lastChunkSize: 10,
+          lastError: null,
+        },
+      });
+
+      emitBackendEvent({
+        type: 'streaming-response',
+        turn_ref: 'turn-old',
+        payload: { text: 'stale chunk' },
+      });
+    });
+
+    const state = useChatStore.getState();
+    expect(state.isSending).toBe(true);
+    expect(state.thinkingStatus).toBe('thinking');
+    expect(state.messages).toHaveLength(1);
+    expect(state.messages[0]).toEqual(
+      expect.objectContaining({
+        id: 'assistant-new-turn',
+        text: 'new answer',
+        turnRef: 'turn-new',
+      }),
+    );
+    expect(state.streamTracking).toEqual(
+      expect.objectContaining({
+        activeTurnRef: 'turn-new',
+        phase: 'streaming',
+        eventCount: 2,
+        chunkCount: 1,
       }),
     );
   });

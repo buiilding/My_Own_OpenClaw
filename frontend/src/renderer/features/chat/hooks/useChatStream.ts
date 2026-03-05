@@ -160,7 +160,16 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const handleLlmThought = useCallback((event: LlmThoughtEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
-    const currentStatus = useChatStore.getState().getWorkspaceState(conversationRef).thinkingStatus;
+    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
+    const activeTurnRef = workspace.streamTracking.activeTurnRef;
+    if (
+      event.turn_ref
+      && activeTurnRef
+      && activeTurnRef !== event.turn_ref
+    ) {
+      return;
+    }
+    const currentStatus = workspace.thinkingStatus;
     const payload = event.payload as { status?: string; content?: string } | undefined;
     const thoughtChunk =
       typeof payload?.status === 'string'
@@ -222,6 +231,15 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const handleStreamingResponse = useCallback((event: StreamingResponseEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
+    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
+    const activeTurnRef = workspace.streamTracking.activeTurnRef;
+    if (
+      event.turn_ref
+      && activeTurnRef
+      && activeTurnRef !== event.turn_ref
+    ) {
+      return;
+    }
     setIsSending(false, conversationRef);
     const modelContext = modelContextRef.current;
     const modelMetadata = {
