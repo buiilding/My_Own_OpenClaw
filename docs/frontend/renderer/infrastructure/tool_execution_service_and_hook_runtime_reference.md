@@ -14,6 +14,7 @@ title: "Tool Execution Service and Hook Runtime Reference"
 - `frontend/src/renderer/features/chat/utils/toolRunnerMessages.ts`
 - `frontend/src/renderer/features/chat/utils/toolRunnerResultPersistence.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionService.ts`
+- `frontend/src/renderer/infrastructure/services/ToolExecutionResultDispatch.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionBundleRunner.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionTypes.ts`
 - `tests/frontend/ToolExecutionService.test.ts`
@@ -35,7 +36,7 @@ title: "Tool Execution Service and Hook Runtime Reference"
 
 - single-tool and bundle execution pipelines
 - capture/upload/format integration
-- normalized backend result envelope emission (`tool-result`, `tool-bundle-result`)
+- normalized backend result envelope emission (`tool-result`, `tool-bundle-result`) via `ToolExecutionResultDispatch`
 
 ## `useToolRunner` Event Gate and Correlation Model
 

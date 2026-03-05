@@ -13,6 +13,7 @@ title: "VM Run Control Service Runtime Reference"
 - `backend/src/services/vm_run_control.py`
 - `backend/src/services/vm_run_control_event_payloads.py`
 - `backend/src/services/vm_run_control_event_log.py`
+- `backend/src/services/vm_run_control_assignment.py`
 - `backend/src/services/vm_run_control_helpers.py`
 - `backend/src/services/vm_run_control_pending_controls.py`
 - `backend/src/services/vm_run_control_worker_state.py`
@@ -174,3 +175,9 @@ Run event-log append/read helpers are centralized in `vm_run_control_event_log.p
 
 - sequence increment + payload copy + updated-at mutation on append
 - bounded event selection by `after_seq` + `limit`
+
+Worker queue assignment logic is centralized in `vm_run_control_assignment.py`:
+
+- ready-status gate before queue consumption
+- queue pop/skip rules for missing/non-assignable runs
+- run worker-state hydration + `run-worker-assigned` event emission
