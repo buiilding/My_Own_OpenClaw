@@ -214,6 +214,65 @@ describe('useChatStream state + stream handling', () => {
     expect(useChatStore.getState().thinkingStatus).toBeNull();
   });
 
+  test('ignores stale streaming-complete turn when a newer active turn is in progress', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.setState({
+        messages: [
+          {
+            id: 'assistant-new-turn',
+            text: 'working',
+            sender: 'assistant',
+            type: 'llm-text',
+            isComplete: false,
+            turnRef: 'turn-new',
+          },
+        ],
+        isSending: true,
+        thinkingStatus: 'thinking',
+        streamTracking: {
+          activeTurnRef: 'turn-new',
+          phase: 'streaming',
+          startedAt: '2026-03-05T00:00:00.000Z',
+          firstChunkAt: '2026-03-05T00:00:01.000Z',
+          completedAt: null,
+          lastEventAt: '2026-03-05T00:00:01.000Z',
+          lastEventType: 'streaming-response',
+          eventCount: 2,
+          chunkCount: 1,
+          toolCallCount: 0,
+          toolOutputCount: 0,
+          lastChunkSize: 7,
+          lastError: null,
+        },
+      });
+
+      emitBackendEvent({
+        type: 'streaming-complete',
+        turn_ref: 'turn-old',
+        payload: {},
+      });
+    });
+
+    const state = useChatStore.getState();
+    expect(state.isSending).toBe(true);
+    expect(state.thinkingStatus).toBe('thinking');
+    expect(state.streamTracking).toEqual(
+      expect.objectContaining({
+        activeTurnRef: 'turn-new',
+        phase: 'streaming',
+        eventCount: 2,
+      }),
+    );
+    expect(state.messages[0]).toEqual(
+      expect.objectContaining({
+        id: 'assistant-new-turn',
+        isComplete: false,
+      }),
+    );
+  });
+
   test('persists streamed thinking text onto completed assistant message', () => {
     const { emitBackendEvent } = registerBackendListener();
 
