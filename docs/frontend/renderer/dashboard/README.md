@@ -12,6 +12,7 @@ title: "Renderer Dashboard Docs Hub"
 
 - [Dashboard Shell Docs Hub](shell/README.md)
 - [Dashboard Conversation Hook Search, Polling, and Group Bucket Contract Reference](shell/dashboard_conversation_hook_search_polling_and_group_bucket_contract_reference.md)
+- [Dashboard Recent Conversation Loader, Retry, and Title-Visibility Poll Runtime Reference](shell/dashboard_recent_conversation_loader_retry_and_title_visibility_poll_runtime_reference.md)
 - [Dashboard Sections Docs Hub](sections/README.md)
 - [Memory Section Data Normalization and Semantic Delete Contract Reference](sections/memory_section_data_normalization_and_semantic_delete_contract_reference.md)
 - [Models Section Selection Reconciliation and Dashboard Storage Contract Reference](sections/models_section_selection_reconciliation_and_dashboard_storage_contract_reference.md)

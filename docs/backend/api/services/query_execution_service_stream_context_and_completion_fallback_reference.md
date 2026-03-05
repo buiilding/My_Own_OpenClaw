@@ -35,6 +35,7 @@ Service responsibilities:
 - run agent stream through pipeline
 - synthesize fallback completion when stream is incomplete/silent
 - coordinate TTS session drain/flush at turn end
+- on cancelled query tasks, best-effort reconcile pending tool-call IDs into cancelled synthetic tool outputs
 
 ## Input Fields Consumed From `QueryMessage.payload`
 
@@ -77,6 +78,20 @@ This path is non-fatal by design; query execution continues without image contex
 - catches setter failures as warnings
 
 This state is backend-only and not direct prompt text content.
+
+## Cancellation Reconciliation Path
+
+`execute(...)` catches `asyncio.CancelledError` and calls `_finalize_pending_tool_calls_on_cancel(...)` before re-raising.
+
+`_finalize_pending_tool_calls_on_cancel(...)` behavior:
+
+- inspects `agent_instance.history.finalize_pending_tool_calls_as_cancelled` dynamically
+- no-ops when history or finalize hook is unavailable
+- logs warning (without swallowing cancellation) when reconciliation hook throws
+- logs info when reconciliation closes one or more pending tool calls
+- preserves cancellation semantics by re-raising `CancelledError` after best-effort reconciliation
+
+This prevents lingering staged tool-call IDs after user stop/cancel races.
 
 ## Reused Stream Context Contract
 
@@ -144,6 +159,7 @@ Within `async with TTSSession(...)`:
 - inline screenshot precedence over artifact refs
 - missing artifact refs do not abort query execution
 - `system_state_internal` application into agent runtime state
+- cancelled query path logs active-task cancellation and pending tool-call reconciliation when history returns reconciled IDs
 
 ## Drift Hotspots
 
@@ -151,6 +167,7 @@ Within `async with TTSSession(...)`:
 2. removing synthetic chunk backfill can yield terminal completion with empty visible content.
 3. replacing per-query shared context with per-event dicts increases allocation churn and may introduce metadata drift.
 4. making screenshot-ref lookup fatal can block query handling on artifact outages.
+5. skipping cancelled-turn pending tool-call reconciliation can leave staged IDs unresolved and break tool history continuity.
 
 ## Related Pages
 
