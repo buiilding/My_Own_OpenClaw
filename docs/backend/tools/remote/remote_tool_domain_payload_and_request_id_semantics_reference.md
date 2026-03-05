@@ -1,7 +1,7 @@
 ---
-summary: "Deep backend reference for remote tool stubs across computer/system/filesystem/browser domains: args-model binding, request-id sourcing, payload model_dump behavior, and cross-layer contract implications."
+summary: "Deep backend reference for remote tool stubs across computer/system/filesystem/browser domains: args-model binding, unified computer_use validation contract, request-id sourcing, payload model_dump behavior, and cross-layer contract implications."
 read_when:
-  - When modifying remote stub classes, especially request-id generation or payload serialization rules.
+  - When modifying remote stub classes, especially unified `computer_use` routing, request-id generation, or payload serialization rules.
   - When debugging mismatches where backend remote tool payload looks valid but sidecar execution fails or correlates to wrong request.
 title: "Remote Tool Domain Payload and Request-ID Semantics Reference"
 ---
@@ -62,6 +62,7 @@ Test-backed behavior:
 
 Classes:
 
+- `RemoteComputerUseTool` (`ComputerUseArgs`)
 - `RemoteMouseTool` (`MouseControlArgs`)
 - `RemoteKeyboardTool` (`KeyboardControlArgs`)
 - `RemoteScreenshotTool` (`ScreenshotToolArgs`)
@@ -72,12 +73,45 @@ Classes:
 
 Behavior:
 
-- all use `_build_remote_result(...)` except request-id override nuance below
+- `RemoteComputerUseTool` uses `_COMPUTER_USE_MODEL_BY_TOOL` to re-validate `arguments` with tool-specific schemas before envelope creation
+- `RemoteComputerUseTool` uses `_get_request_id(ctx)` and returns `RemoteToolResult` directly
+- non-unified computer stubs use `_build_remote_result(...)` except request-id override nuance below
 - `category` is `ToolDomain.COMPUTER`
 
 Nuance:
 
 - `RemoteWaitTool` forces a fresh UUID (`request_id=str(uuid.uuid4())`) rather than inheriting session metadata request id
+
+### Unified `computer_use` metadata and argument contract
+
+`ComputerUseArgs` enforces a strict envelope:
+
+- `tool`: one of `mouse_control|keyboard_control|screenshot|scroll_control|switch_tab|wait`
+- `metadata`: required `ComputerUseMetadata` object
+  - required string fields: `description`, `explanation`, `expectation`
+  - each field has `min_length=1`
+- `arguments`: free-form object validated at runtime against selected tool schema
+
+Runtime validation path:
+
+1. model parses envelope as `ComputerUseArgs`
+2. `RemoteComputerUseTool.execute_remote(...)` selects concrete Pydantic model using `_COMPUTER_USE_MODEL_BY_TOOL[tool]`
+3. selected model re-validates `arguments` (`model_validate(...)`)
+4. validated args are serialized with `model_dump()` into remote envelope
+
+This keeps unified `computer_use` and legacy direct tool schemas consistent on backend validation rules.
+
+Prompt/schema guidance contract for unified tool descriptions:
+
+- description explicitly requires metadata payload for every call
+- mouse targeting guidance instructs:
+  - `find_coordinates_by='ocr'` + exact `ocr_text` for text targets
+  - `find_coordinates_by='prediction'` + detailed visual `description` for non-text targets
+
+Test-backed coverage:
+
+- `tests/backend/test_remote_tools.py::test_remote_computer_use_schema_enforces_metadata_shape_and_mouse_guidance`
+- `tests/backend/test_remote_tools.py::test_remote_mouse_tool_schema_explicitly_guides_ocr_for_text_targets`
 
 ### System domain (`remote_tools/system.py`)
 
@@ -123,7 +157,7 @@ Other remote stubs generally use `args.model_dump()` (defaults retained).
 Because model_dump strategies differ by tool class:
 
 - browser payloads are sparse (only non-default and non-null)
-- most other tool payloads include defaulted fields
+- most other tool payloads include defaulted fields (including unified `computer_use` resolved `arguments`)
 
 Integration consequence:
 
@@ -164,7 +198,8 @@ If payload fields seem missing:
 
 1. check whether tool is browser (sparse `model_dump`) or non-browser (full `model_dump`)
 2. inspect schema defaults for omitted fields
-3. verify sidecar action adapter defaulting assumptions
+3. for unified `computer_use`, verify selected concrete model accepted `arguments` and filled defaults as expected
+4. verify sidecar action adapter defaulting assumptions
 
 ## Related Docs
 
