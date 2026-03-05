@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import time
 import asyncio
-from typing import TYPE_CHECKING, Any, List, Optional, Type, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Type
 
 from backend.src.api.processing.formatter import ResponseFormatter
 from backend.src.api.processing.pipeline import StreamPipeline
@@ -22,6 +22,7 @@ from backend.src.api.services.query_event_extraction import (
     extract_streaming_complete_text,
     resolve_completion_text,
 )
+from backend.src.api.services.query_execution_inputs import resolve_query_execution_inputs
 from backend.src.api.services.query_execution_runtime import (
     apply_query_runtime_system_state,
     build_stream_context,
@@ -97,24 +98,18 @@ class QueryExecutionService:
                 tts_processor = tts_processor_cls(self._tts_manager)
                 pipeline = pipeline_cls(tts_processor, self._response_formatter, transport)
 
-                resolved_screenshots = self._resolve_screenshots(message, artifact_store_cls)
-                image_data: Optional[Union[str, List[str]]] = None
-                if resolved_screenshots:
-                    image_data = (
-                        resolved_screenshots[0]
-                        if len(resolved_screenshots) == 1
-                        else resolved_screenshots
-                    )
-                query_capture_meta = self._resolve_query_screenshot_metadata(
-                    message
+                query_inputs = resolve_query_execution_inputs(
+                    message,
+                    artifact_store_cls=artifact_store_cls,
+                    session_manager_config=getattr(self._session_manager, "config", None),
                 )
 
                 async for event in agent_instance.process_query(
                     query_text,
-                    image_data=image_data,
-                    capture_meta=query_capture_meta,
-                    message_content=message.payload.content,
-                    conversation_ref=message.payload.conversation_ref,
+                    image_data=query_inputs.image_data,
+                    capture_meta=query_inputs.capture_meta,
+                    message_content=query_inputs.message_content,
+                    conversation_ref=query_inputs.conversation_ref,
                 ):
                     event_type = self._extract_event_type(event)
 

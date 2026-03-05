@@ -194,6 +194,55 @@ describe('useWakewordDetection', () => {
     );
   });
 
+  test('requires disable-reenable before retrying after missing device lockout', async () => {
+    const notFoundError = new Error('Requested device not found');
+    (notFoundError as Error & { name: string }).name = 'NotFoundError';
+    const getUserMedia = jest.fn(async () => {
+      throw notFoundError;
+    });
+
+    await withMockedMediaDevices(
+      { getUserMedia } as unknown as MediaDevices,
+      async () => {
+        const rendered = renderHook(
+          ({ enabled }) => useWakewordDetection(enabled),
+          { initialProps: { enabled: true } },
+        );
+        const statusHandler = getChannelHandler(ON_CHANNELS.WAKEWORD_STATUS);
+
+        await act(async () => {
+          statusHandler?.({ ready: true, error: null });
+          await Promise.resolve();
+        });
+        expect(getUserMedia).toHaveBeenCalledTimes(1);
+
+        await act(async () => {
+          statusHandler?.({ ready: false, error: null });
+          await Promise.resolve();
+        });
+        await act(async () => {
+          statusHandler?.({ ready: true, error: null });
+          await Promise.resolve();
+        });
+        expect(getUserMedia).toHaveBeenCalledTimes(1);
+
+        await act(async () => {
+          rendered.rerender({ enabled: false });
+          await Promise.resolve();
+        });
+        await act(async () => {
+          rendered.rerender({ enabled: true });
+          await Promise.resolve();
+        });
+        await act(async () => {
+          statusHandler?.({ ready: true, error: null });
+          await Promise.resolve();
+        });
+        expect(getUserMedia).toHaveBeenCalledTimes(2);
+      },
+    );
+  });
+
   test('stops audio safely when stop is triggered multiple times', async () => {
     const track = { stop: jest.fn() };
     const stream = {

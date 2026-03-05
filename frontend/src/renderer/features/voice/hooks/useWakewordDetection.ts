@@ -70,6 +70,7 @@ export function useWakewordDetection(
   const captureGenerationRef = useRef(0);
   const isStartingCaptureRef = useRef(false);
   const localCaptureErrorRef = useRef(false);
+  const missingDeviceLockRef = useRef(false);
   const nextCaptureRetryAtRef = useRef(0);
   const lastDetectionRef = useRef(0);
   const onWakewordDetectedRef = useLatestRef(onWakewordDetected);
@@ -109,11 +110,15 @@ export function useWakewordDetection(
     if (isCapturingRef.current || isStartingCaptureRef.current) {
       return;
     }
+    if (missingDeviceLockRef.current) {
+      return;
+    }
     if (Date.now() < nextCaptureRetryAtRef.current) {
       return;
     }
     isStartingCaptureRef.current = true;
     const generation = ++captureGenerationRef.current;
+    console.log('[Wakeword] Starting audio capture...');
 
     try {
       // Request microphone access
@@ -187,12 +192,16 @@ export function useWakewordDetection(
       if (generation !== captureGenerationRef.current) {
         return;
       }
-      const errorMessage = isMissingAudioDeviceError(err)
-        ? 'Microphone device unavailable: requested input device was not found'
+      const missingDevice = isMissingAudioDeviceError(err);
+      const errorMessage = missingDevice
+        ? 'Microphone device unavailable: requested input device was not found. Re-enable wakeword after reconnecting a microphone.'
         : `Audio capture failed: ${err.message}`;
       console.error('[Wakeword] Error starting audio capture:', err);
       setError(errorMessage);
       localCaptureErrorRef.current = true;
+      if (missingDevice) {
+        missingDeviceLockRef.current = true;
+      }
       nextCaptureRetryAtRef.current = Date.now() + CAPTURE_RETRY_DELAY_MS;
       isCapturingRef.current = false;
     } finally {
@@ -314,12 +323,12 @@ export function useWakewordDetection(
       // Ensure main process service is started when wakeword is enabled.
       requestWakewordEnable();
       if (isReady && !isCapturingRef.current) {
-        console.log('[Wakeword] Starting audio capture...');
         lastDetectionRef.current = Date.now();
         void startAudioCapture();
       }
     } else {
       localCaptureErrorRef.current = false;
+      missingDeviceLockRef.current = false;
       nextCaptureRetryAtRef.current = 0;
       setError(null);
       const hasCaptureResources = Boolean(

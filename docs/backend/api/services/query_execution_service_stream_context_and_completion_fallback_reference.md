@@ -11,6 +11,7 @@ title: "Query Execution Service Stream Context and Completion Fallback Reference
 ## Canonical Modules
 
 - `backend/src/api/services/query_execution.py`
+- `backend/src/api/services/query_execution_inputs.py`
 - `backend/src/api/services/query_event_extraction.py`
 - `backend/src/api/services/tts_session.py`
 - `backend/src/api/handlers/query.py`
@@ -31,7 +32,7 @@ Service responsibilities:
 - validate query text
 - get/create session
 - seed runtime system state
-- resolve screenshot from inline/ref artifact path
+- resolve query ingress payload (`image_data`, `capture_meta`, `message_content`, `conversation_ref`)
 - run agent stream through pipeline
 - synthesize fallback completion when stream is incomplete/silent
 - coordinate TTS session drain/flush at turn end
@@ -43,12 +44,12 @@ Service responsibilities:
 - `conversation_ref` -> injected into immutable stream context
 - `content` -> forwarded as `message_content` to `agent_instance.process_query(...)`
 - `screenshot` / `screenshot_ref` / `screenshot_refs[]` -> screenshot resolution path
-- `capture_meta` -> copied into `query_capture_meta` and forwarded to `agent_instance.process_query(...)`
+- `capture_meta` -> forwarded to `agent_instance.process_query(...)`
 - `system_state_internal` -> backend-only runtime state seed
 
 ## Screenshot Resolution Semantics
 
-`_resolve_screenshots(...)` precedence:
+`query_execution_inputs.resolve_query_execution_inputs(...)` uses screenshot resolution precedence:
 
 1. if inline `screenshot` exists, return `[screenshot]` and skip artifact refs.
 2. else build refs list from `screenshot_refs[]`; fallback single `screenshot_ref`.

@@ -120,6 +120,12 @@ Immediate disable is a guard against queued/buffered audio retriggering.
 - `isReady` state (with changed-state logging)
 - `error` state (non-empty error kept; otherwise cleared)
 
+Missing microphone behavior (`NotFoundError` / "requested device not found"):
+
+- local capture error is surfaced with reconnect guidance
+- capture startup enters missing-device lockout to prevent repeated start attempts/log spam while still enabled
+- lockout clears only when wakeword is disabled (toggle off/on), then capture can retry
+
 Audio context close errors are suppressed when message indicates already-closed context; unexpected close errors are warning-logged.
 
 ## Drift Hotspots
