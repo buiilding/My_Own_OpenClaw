@@ -169,3 +169,8 @@ Validated by:
 2. Removing tool-result processing from `finally` reintroduces leaked request ids and stale resolved-call state.
 3. Altering bundle detection/wait ordering can create race conditions where next iteration starts before bundle completion.
 4. Changing parsed-tool-call metadata handling can orphan request IDs needed for result correlation.
+
+## Related Docs
+
+- [Native Tool-Call Bridge and History Mapping Reference](native_tool_call_bridge_and_history_mapping_reference.md)
+- [Tool-Call Error Recovery and Synthetic Tool-Output Replay Reference](recovery/tool_call_error_recovery_and_synthetic_tool_output_replay_reference.md)
