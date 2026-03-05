@@ -26,7 +26,7 @@ title: "Frontend Renderer Infrastructure Docs Hub"
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
 - `frontend/src/renderer/infrastructure/audio/PlayerService.ts`
-- `frontend/src/renderer/features/chat/utils/toolRunnerMessages.ts`
+- `frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerMessages.ts`
 - `frontend/src/renderer/utils/displaySelection.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionService.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionBundleRunner.ts`

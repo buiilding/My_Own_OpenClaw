@@ -11,13 +11,13 @@ title: "VM Run Control Service Runtime Reference"
 ## Canonical Module
 
 - `backend/src/services/vm_run_control.py`
-- `backend/src/services/vm_run_control_event_payloads.py`
-- `backend/src/services/vm_run_control_event_log.py`
-- `backend/src/services/vm_run_control_assignment.py`
-- `backend/src/services/vm_run_control_helpers.py`
-- `backend/src/services/vm_run_control_pending_controls.py`
-- `backend/src/services/vm_run_control_worker_state.py`
-- `backend/src/services/vm_run_control_transitions.py`
+- `backend/src/services/vm_run_control_support/vm_run_control_event_payloads.py`
+- `backend/src/services/vm_run_control_support/vm_run_control_event_log.py`
+- `backend/src/services/vm_run_control_support/vm_run_control_assignment.py`
+- `backend/src/services/vm_run_control_support/vm_run_control_helpers.py`
+- `backend/src/services/vm_run_control_support/vm_run_control_pending_controls.py`
+- `backend/src/services/vm_run_control_support/vm_run_control_worker_state.py`
+- `backend/src/services/vm_run_control_support/vm_run_control_transitions.py`
 
 ## Runtime State Containers
 

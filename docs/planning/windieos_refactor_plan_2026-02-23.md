@@ -353,7 +353,7 @@ read_when:
     - `./scripts/python-in-env backend python -m pytest tests/backend/test_conversation_history.py tests/backend/test_api_handlers.py tests/backend/test_interaction_loop_compaction.py -q`
 - Frontend tool-runner payload dedupe:
   - extracted shared tool-output envelope field wiring in:
-    - `frontend/src/renderer/features/chat/utils/toolRunnerMessages.ts`
+    - `frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerMessages.ts`
   - preserved message payload shape for both single-tool and bundled-tool output messages.
   - verification:
     - `cd frontend && npm run test:ci -- tests/frontend/ToolRunnerMessages.test.ts`
@@ -5115,10 +5115,10 @@ read_when:
 
 - Refactor slice (tool-runner hook decomposition):
   - extracted `useToolRunner` turn/conversation guard and execution-acceptance state logic into focused utility modules:
-    - `frontend/src/renderer/features/chat/utils/toolRunnerEventGuards.ts`
+    - `frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerEventGuards.ts`
       - `resolveToolEventConversationRef(...)`
       - `shouldIgnoreToolEventForTurn(...)`
-    - `frontend/src/renderer/features/chat/utils/toolRunnerExecutionState.ts`
+    - `frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerExecutionState.ts`
       - `shouldAcceptExecutionResult(...)`
       - `resolveExecutionConversationRef(...)`
   - rewired:
@@ -5142,7 +5142,7 @@ read_when:
     - `react-compiler/react-compiler`: clean
     - `deprecation/deprecation`: clean
 - Validation:
-  - `cd frontend && npm run lint -- src/renderer/features/chat/hooks/useToolRunner.ts src/renderer/features/chat/utils/toolRunnerEventGuards.ts src/renderer/features/chat/utils/toolRunnerExecutionState.ts` (pass)
+  - `cd frontend && npm run lint -- src/renderer/features/chat/hooks/useToolRunner.ts src/renderer/features/chat/utils/toolRunner/toolRunnerEventGuards.ts src/renderer/features/chat/utils/toolRunner/toolRunnerExecutionState.ts` (pass)
   - `cd frontend && npm run test:ci -- ../tests/frontend/ToolRunnerHook.turnGuards.test.ts ../tests/frontend/ToolRunnerHook.events.test.ts ../tests/frontend/ToolRunnerExecutionState.test.ts ../tests/frontend/ChatInterfaceWiring.test.jsx` (pass)
   - `cd frontend && NODE_OPTIONS=--no-deprecation npx jest --config jest.config.cjs --runInBand --json --outputFile ../.audit/plan1/jest-report-current.json` (pass; 187 suites / 1217 tests)
   - `cd frontend && npm run lint:audit` (pass)

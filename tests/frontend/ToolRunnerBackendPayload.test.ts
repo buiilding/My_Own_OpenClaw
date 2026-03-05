@@ -1,7 +1,7 @@
 import {
   resolveToolRunnerPayloadCorrelationId,
   shouldDropUntrackedToolRunnerPayload,
-} from '../../frontend/src/renderer/features/chat/utils/toolRunnerBackendPayload';
+} from '../../frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerBackendPayload';
 
 describe('toolRunnerBackendPayload', () => {
   test('resolves correlation id from tool-result and tool-bundle-result payloads', () => {

@@ -1,4 +1,4 @@
-from backend.src.services.vm_run_control_assignment import assign_next_run_to_worker
+from backend.src.services.vm_run_control_support.vm_run_control_assignment import assign_next_run_to_worker
 
 
 def test_assign_next_run_to_worker_skips_when_worker_not_ready() -> None:

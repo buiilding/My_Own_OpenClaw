@@ -5,8 +5,7 @@ import {
   resolveToolRequestIdForCancellation,
   restoreToolExecutionSurface,
   shouldSkipToolExecution,
-} from '../../../infrastructure/services/SurfaceOrchestrator';
-
+} from '../../../../infrastructure/services/SurfaceOrchestrator';
 export {
   ensureToolExecutionSurface,
   prepareToolExecutionSurface,

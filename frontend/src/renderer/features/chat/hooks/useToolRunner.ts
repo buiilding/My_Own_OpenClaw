@@ -19,14 +19,14 @@ import {
   mapBundleTools,
   resolveToolCallCorrelationId,
   type TranscriptModelContext,
-} from '../utils/toolRunnerMessages';
+} from '../utils/toolRunner/toolRunnerMessages';
 import {
   buildBundleSurfaceFailureEnvelope,
   buildStaleBundleResultEnvelope,
   buildStaleToolResultEnvelope,
   buildSurfaceFailureError,
   buildToolSurfaceFailureEnvelope,
-} from '../utils/toolRunnerFailureContracts';
+} from '../utils/toolRunner/toolRunnerFailureContracts';
 import { formatToolOutputMessage } from '../../../infrastructure/services/MessageFormatter';
 import {
   ensureToolExecutionSurface,
@@ -35,29 +35,29 @@ import {
   resolveToolRequestIdForCancellation,
   restoreToolExecutionSurface,
   shouldSkipToolExecution,
-} from '../utils/toolRunnerSurface';
+} from '../utils/toolRunner/toolRunnerSurface';
 import {
   type TrackedExecution,
   trackExecutionTurn,
   untrackExecutionTurn,
-} from '../utils/toolRunnerTracking';
-import { executeWithSurfaceLifecycle } from '../utils/toolRunnerSurfaceExecution';
+} from '../utils/toolRunner/toolRunnerTracking';
+import { executeWithSurfaceLifecycle } from '../utils/toolRunner/toolRunnerSurfaceExecution';
 import {
   resolveToolRunnerPayloadCorrelationId,
   shouldDropUntrackedToolRunnerPayload,
-} from '../utils/toolRunnerBackendPayload';
+} from '../utils/toolRunner/toolRunnerBackendPayload';
 import {
   resolveToolEventConversationRef,
   shouldIgnoreToolEventForTurn,
-} from '../utils/toolRunnerEventGuards';
+} from '../utils/toolRunner/toolRunnerEventGuards';
 import {
   resolveExecutionConversationRef as resolveExecutionConversationRefFromState,
   shouldAcceptExecutionResult as shouldAcceptExecutionResultFromState,
-} from '../utils/toolRunnerExecutionState';
+} from '../utils/toolRunner/toolRunnerExecutionState';
 import {
   persistToolRunnerBundleResult,
   persistToolRunnerToolResult,
-} from '../utils/toolRunnerResultPersistence';
+} from '../utils/toolRunner/toolRunnerResultPersistence';
 
 /**
  * Custom hook for managing tool execution.

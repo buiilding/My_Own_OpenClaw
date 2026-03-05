@@ -5,7 +5,7 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import Any, Optional
 
-from backend.src.services.vm_run_control_helpers import build_run_event
+from backend.src.services.vm_run_control_support.vm_run_control_helpers import build_run_event
 
 
 def append_run_event(

@@ -72,7 +72,8 @@ frontend/src/renderer/
 │   │       ├── messageListClasses.js    # messageListClasses - Message row class-name builder (sender/type/streaming/screenshot flags)
 │   │       ├── messageScreenshots.js    # messageScreenshots - Screenshot presence predicates and screenshot-src resolution helpers
 │   │       ├── messageTransparency.js   # messageTransparency - Descriptor builder for transparency sections
-│   │       ├── toolRunnerMessages.ts    # toolRunnerMessages - Tool result/bundle message builders and tool-call/bundle mapping helpers
+│   │       ├── toolRunner/              # toolRunner - Tool runner guards, envelopes, surface lifecycle, and message persistence helpers
+│   │       │   ├── toolRunnerMessages.ts # toolRunnerMessages - Tool result/bundle message builders and tool-call/bundle mapping helpers
 │   │       ├── transcriptMessagePayload.js # transcriptMessagePayload - Transcript payload/role mapping for rehydrate writes
 │   │       └── transcriptionRegions.ts  # transcriptionRegions - Pure cursor/boundary helper logic for transcription updates
 │   │

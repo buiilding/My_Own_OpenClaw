@@ -1,4 +1,4 @@
-from backend.src.services.vm_run_control_event_log import append_run_event, select_run_events
+from backend.src.services.vm_run_control_support.vm_run_control_event_log import append_run_event, select_run_events
 
 
 def _build_run_state() -> dict:

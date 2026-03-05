@@ -1,5 +1,5 @@
-import { useChatStore } from '../stores/chatStore';
-import { isTerminalStreamPhase } from './streamPhaseState';
+import { useChatStore } from '../../stores/chatStore';
+import { isTerminalStreamPhase } from '../streamPhaseState';
 import {
   type TrackedExecution,
   isTrackedExecution,

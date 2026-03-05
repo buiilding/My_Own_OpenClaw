@@ -8,7 +8,7 @@ import { recordToolMessage } from '../../frontend/src/renderer/infrastructure/tr
 import {
   persistToolRunnerBundleResult,
   persistToolRunnerToolResult,
-} from '../../frontend/src/renderer/features/chat/utils/toolRunnerResultPersistence';
+} from '../../frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerResultPersistence';
 
 jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
   recordToolMessage: jest.fn(),

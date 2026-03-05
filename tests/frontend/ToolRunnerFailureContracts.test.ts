@@ -4,7 +4,7 @@ import {
   buildStaleToolResultEnvelope,
   buildSurfaceFailureError,
   buildToolSurfaceFailureEnvelope,
-} from '../../frontend/src/renderer/features/chat/utils/toolRunnerFailureContracts';
+} from '../../frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerFailureContracts';
 
 describe('toolRunnerFailureContracts', () => {
   test('builds surface failure error string with optional reason', () => {

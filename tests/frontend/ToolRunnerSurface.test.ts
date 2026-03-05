@@ -4,7 +4,7 @@ import {
   resolveBundleSurfaceMode,
   resolveToolRequestIdForCancellation,
   shouldSkipToolExecution,
-} from '../../frontend/src/renderer/features/chat/utils/toolRunnerSurface';
+} from '../../frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerSurface';
 import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 
 describe('toolRunnerSurface helpers', () => {

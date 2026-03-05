@@ -7,8 +7,8 @@ import {
   buildToolRunnerBundleResultEnvelope,
   buildToolRunnerResultEnvelope,
   resolveToolRunnerEnvelopeCorrelationId,
-} from '../../frontend/src/renderer/features/chat/utils/toolRunnerResultContracts';
-import { resolveToolRunnerPayloadCorrelationId } from '../../frontend/src/renderer/features/chat/utils/toolRunnerBackendPayload';
+} from '../../frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerResultContracts';
+import { resolveToolRunnerPayloadCorrelationId } from '../../frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerBackendPayload';
 
 describe('tool result contract parity', () => {
   test('tool-runner and infrastructure envelope builders stay wire-compatible', () => {

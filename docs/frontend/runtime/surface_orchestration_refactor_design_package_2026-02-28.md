@@ -98,7 +98,7 @@ Sidecar (`frontend/src/main/python`):
 Renderer touchpoints:
 
 - `features/chat/hooks/useToolRunner.ts` (tool-call/bundle intake + surface prep wiring)
-- `features/chat/utils/toolRunnerSurface.ts` (surface mode resolution + tokenized prep/restore)
+- `features/chat/utils/toolRunner/toolRunnerSurface.ts` (surface mode resolution + tokenized prep/restore)
 - `infrastructure/services/SystemCapture.ts` (capture hide/show + focus prep duplication)
 - `infrastructure/services/ToolExecutionCapture.ts` (autocapture entry)
 - `infrastructure/services/ToolExecutionService.ts` (tool/bundle execution + backend send)
