@@ -515,6 +515,15 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const handleTokenCountEvent = useCallback((event: TokenCountEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
+    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
+    const activeTurnRef = workspace.streamTracking.activeTurnRef;
+    if (
+      event.turn_ref
+      && activeTurnRef
+      && activeTurnRef !== event.turn_ref
+    ) {
+      return;
+    }
     handleTokenCount(event, conversationRef);
   }, [handleTokenCount, resolveTargetConversationRef]);
 
