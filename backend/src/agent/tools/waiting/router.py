@@ -128,7 +128,7 @@ class ToolResultRouter:
             runtime_state = tool_result.data.get("system_state_internal")
             if runtime_state is None or isinstance(runtime_state, dict):
                 self.session.set_current_system_state(runtime_state)
-            return
+                return
         if "system_state" not in tool_result.data:
             return
         legacy_state = tool_result.data.get("system_state")
