@@ -4,7 +4,13 @@ import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import { useChatLoopUiState } from '../hooks/useChatLoopUiState';
 import { useResponseOverlayPhase } from '../hooks/useResponseOverlayPhase';
 import { useTranscription } from '../hooks/useTranscription';
-import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { IpcBridge, INVOKE_CHANNELS, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import {
+  useChatboxDragWindowBindings,
+  useChatboxFocusBindings,
+  useChatboxVisualAnchorBindings,
+  useChatboxWakewordSttTriggerBinding,
+} from '../hooks/useChatBoxBindings';
 import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { ApiClient } from '../../../infrastructure/api/client';
@@ -26,10 +32,8 @@ import {
 } from './ChatBoxIcons';
 import ChatBoxImagePreviewRow from './ChatBoxImagePreviewRow';
 import {
-  CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT,
   createClipboardScreenshotImage,
   isDragBlockedTarget,
-  resolveChatboxVisualAnchorHeight,
 } from '../utils/chatBoxState';
 
 function ChatBox() {
@@ -80,34 +84,14 @@ function ChatBox() {
     inputRef.current?.focus();
   }, []);
 
-  useEffect(() => {
-    focusInput();
-  }, [focusInput]);
-
-  useEffect(() => {
-    const removeListener = IpcBridge.on(ON_CHANNELS.CHATBOX_FOCUS, () => {
-      focusInput();
-    });
-    return () => {
-      removeListener?.();
-    };
-  }, [focusInput]);
-
-  useEffect(() => {
-    const removeListener = IpcBridge.on(ON_CHANNELS.WAKEWORD_STT_TRIGGER, () => {
-      if (!wakewordSttEnabled) {
-        setWakewordSttSessionActive(false);
-        return;
-      }
-      resetTranscription();
-      setInputValue('');
-      setWakewordSttSessionActive(true);
-      focusInput();
-    });
-    return () => {
-      removeListener?.();
-    };
-  }, [focusInput, resetTranscription, setInputValue, wakewordSttEnabled]);
+  useChatboxFocusBindings(focusInput);
+  useChatboxWakewordSttTriggerBinding({
+    wakewordSttEnabled,
+    resetTranscription,
+    setInputValue,
+    setWakewordSttSessionActive,
+    focusInput,
+  });
 
   useEffect(() => {
     if (!wakewordSttEnabled && wakewordSttSessionActive) {
@@ -270,16 +254,7 @@ function ChatBox() {
     dragStateRef.current.lastTargetY = null;
   }, []);
 
-  useEffect(() => {
-    window.addEventListener('mousemove', handleDragMove);
-    window.addEventListener('mouseup', stopDragging);
-    window.addEventListener('blur', stopDragging);
-    return () => {
-      window.removeEventListener('mousemove', handleDragMove);
-      window.removeEventListener('mouseup', stopDragging);
-      window.removeEventListener('blur', stopDragging);
-    };
-  }, [handleDragMove, stopDragging]);
+  useChatboxDragWindowBindings(handleDragMove, stopDragging);
 
   const handlePillMouseDown = useCallback((event) => {
     if (loopInteractionLocked || event.button !== 0 || isDragBlockedTarget(event.target)) {
@@ -301,22 +276,7 @@ function ChatBox() {
   }, [loopInteractionLocked]);
   const hasImagePreview = clipboardImages.length > 0;
 
-  useEffect(() => {
-    const nextAnchorHeight = resolveChatboxVisualAnchorHeight(hasImagePreview);
-    IpcBridge.invoke(INVOKE_CHANNELS.SET_CHATBOX_VISUAL_ANCHOR_HEIGHT, {
-      height: nextAnchorHeight,
-    }).catch((error) => {
-      console.warn('[ChatBox] Failed to sync visual anchor height:', error);
-    });
-  }, [hasImagePreview]);
-
-  useEffect(() => {
-    return () => {
-      IpcBridge.invoke(INVOKE_CHANNELS.SET_CHATBOX_VISUAL_ANCHOR_HEIGHT, {
-        height: CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT,
-      }).catch(() => {});
-    };
-  }, []);
+  useChatboxVisualAnchorBindings(hasImagePreview);
 
   return (
     <div
