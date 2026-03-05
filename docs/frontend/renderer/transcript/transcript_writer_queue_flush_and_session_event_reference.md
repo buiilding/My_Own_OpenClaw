@@ -11,6 +11,7 @@ title: "Transcript Writer Queue Flush and Session Event Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+- `frontend/src/renderer/infrastructure/transcript/transcriptRecordWrite.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoStorage.ts`
 - `frontend/src/renderer/infrastructure/transcript/pendingUserQueue.ts`
@@ -106,6 +107,10 @@ Failure semantics:
 3. if identity incomplete: enqueue and return
 4. else invoke immediate `store-transcript` IPC write
 5. if immediate write fails: enqueue for retry and warn
+
+Shared immediate-write helper:
+
+- `recordImmediateTranscriptEntry(...)` in `transcriptRecordWrite.ts` centralizes the empty-text guard, session-resolution gate, and `storeImmediateTranscriptEntryWithRetry(...)` invocation so user/assistant/tool recorders keep one retry boundary contract.
 
 Payload defaults:
 

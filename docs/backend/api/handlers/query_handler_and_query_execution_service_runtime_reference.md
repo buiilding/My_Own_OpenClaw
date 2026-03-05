@@ -12,6 +12,7 @@ title: "Query Handler and Query Execution Service Runtime Reference"
 
 - `backend/src/api/handlers/query.py`
 - `backend/src/api/services/query_execution.py`
+- `backend/src/api/services/query_execution_runtime.py`
 - `backend/src/api/services/tts_session.py`
 - `backend/src/api/infrastructure/errors.py`
 - `backend/src/api/processing/pipeline.py`
@@ -34,6 +35,13 @@ title: "Query Handler and Query Execution Service Runtime Reference"
 - event stream processing through `StreamPipeline`
 - terminal completion fallback rules
 - TTS session lifecycle and drain/flush sequencing
+
+`query_execution_runtime.py` contains pure helper paths reused by `QueryExecutionService` wrappers:
+
+- screenshot/reference resolution (`resolve_screenshots`)
+- screenshot capture metadata normalization (`resolve_query_screenshot_metadata`)
+- runtime system-state filtering/merge (`resolve_query_runtime_system_state`, `apply_query_runtime_system_state`)
+- per-turn stream context assembly (`build_stream_context`)
 
 ## Active Query Task Lifecycle
 
