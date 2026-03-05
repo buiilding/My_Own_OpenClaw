@@ -106,8 +106,10 @@ This makes unified and direct tool calls converge onto the same concrete schema 
 
 - direct metadata extraction
 - unified mapping success paths
+- missing unified `arguments` defaults to `{}`
 - unknown-subtool/non-dict-arguments rejection
 - missing metadata rejection for computer-use flows
+- direct legacy computer subtool parse (`mouse_control`) acceptance when only `computer_use` is registered, with metadata still required
 
 ## Parser Validation and Policy Coupling
 
@@ -121,6 +123,13 @@ This makes unified and direct tool calls converge onto the same concrete schema 
 Unified registration compatibility:
 
 - when only `computer_use` is exposed in tool declarations, validation still accepts legacy concrete computer subtool names by expansion logic
+
+Registry declaration compatibility:
+
+- `ToolRegistry.get_function_declarations_filtered(["computer_use"])` still emits strict metadata contract on the unified declaration:
+  - `metadata` remains required
+  - metadata nested fields (`description`, `explanation`, `expectation`) remain required strings
+  - this prevents compatibility expansion from loosening model-facing envelope requirements
 
 ## Remote Tool Description Contract
 

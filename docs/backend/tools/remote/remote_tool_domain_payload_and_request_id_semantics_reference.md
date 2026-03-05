@@ -113,6 +113,12 @@ Test-backed coverage:
 - `tests/backend/test_remote_tools.py::test_remote_computer_use_schema_enforces_metadata_shape_and_mouse_guidance`
 - `tests/backend/test_remote_tools.py::test_remote_mouse_tool_schema_explicitly_guides_ocr_for_text_targets`
 
+Compatibility note:
+
+- parser/validator layers can accept direct legacy computer subtool names (for example `mouse_control`) even when registry exposure is only `computer_use`
+- metadata requirements remain enforced for computer-domain tool calls in that compatibility path
+- net effect: unified declaration for model/tool schema guidance, with backward-compatible concrete-name ingestion
+
 ### System domain (`remote_tools/system.py`)
 
 Classes:

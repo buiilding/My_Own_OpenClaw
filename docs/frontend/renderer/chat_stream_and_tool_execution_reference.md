@@ -17,12 +17,15 @@ title: "Chat Stream and Tool Execution Reference"
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
+- `frontend/src/renderer/features/chat/hooks/useChatStreamLocalUserHandler.ts`
+- `frontend/src/renderer/features/chat/hooks/useChatStreamTerminalHandlers.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStreamToolHandlers.ts`
 - `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamConversationGate.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamTracking.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamMessageUpdates.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamEventUtils.ts`
+- `frontend/src/renderer/features/chat/utils/chatStreamHandlerMap.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamToolMessages.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamThinkingStatus.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamTypes.ts`
@@ -126,6 +129,7 @@ Pre-routing and workspace resolution:
 - explicit `conversation_ref` events promote chat-store `activeConversationRef` when no active workspace exists; `local-user-message` also rebinds active workspace to the explicit conversation so overlay-only surfaces (`enableTranscript=false`) project the current turn
 - `turn_ref -> conversation_ref` map is updated opportunistically so later events without `conversation_ref` route correctly
 - handlers write into target conversation workspace instead of only active chat projection
+- transcript session sync runs on each backend event and prefers current transcript active conversation ref; falls back to event-resolved conversation ref when no active transcript ref is set
 
 Handler map (`BackendEventType` -> behavior):
 
@@ -147,6 +151,13 @@ Handler map (`BackendEventType` -> behavior):
 - `streaming-complete`: persist final streamed thinking text onto the same-turn assistant `llm-text` message (`thinkingText` + `thinkingSourceEventType`), then mark assistant message complete and clear transient `thinkingStatus`
 - `error`: append assistant error row unless ignored by settings-update-error filter
 
+Handler composition boundary:
+
+- `buildChatStreamHandlerMap(...)` owns event-type to handler-function wiring
+- local-user-message handling is delegated to `useChatStreamLocalUserHandler`
+- error/memory-store/token-count terminal behaviors are delegated to `useChatStreamTerminalHandlers`
+- tool-call/tool-output/tool-bundle handling is delegated to `useChatStreamToolHandlers`
+
 Message targeting utilities:
 
 - `findLastMessageIdBySender`
@@ -161,6 +172,18 @@ Tool-specific handler extraction (`useChatStreamToolHandlers`) ownership:
 - records transcript tool rows with model metadata from `modelContextRef`
 - resolves tool-output correlation id fallback via `resolveToolOutputCorrelationId(...)`
 - normalizes screenshot attachment from `payload.screenshot_ref`
+
+Streaming-complete transcript write nuance:
+
+- assistant transcript write on completion is conditional:
+  - assistant message must be found and not already complete
+  - message text must be non-empty
+  - `enableTranscript` must be true
+- transparency payload is assembled from current-turn user/assistant context when available:
+  - system prompt content
+  - tool schemas
+  - full user message content/metadata
+  - full assistant message content
 
 ## Tool Execution Runtime (`useToolRunner` + `ToolExecutionService`)
 
