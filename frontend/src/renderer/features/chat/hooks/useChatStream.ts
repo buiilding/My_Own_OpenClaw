@@ -322,6 +322,15 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const handleSystemPrompt = useCallback((event: SystemPromptEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
+    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
+    const activeTurnRef = workspace.streamTracking.activeTurnRef;
+    if (
+      event.turn_ref
+      && activeTurnRef
+      && activeTurnRef !== event.turn_ref
+    ) {
+      return;
+    }
     updateLastMessageBySender('user', {
       systemPrompt: buildSystemPromptUpdate(event.payload),
     }, event.turn_ref || undefined, conversationRef);
@@ -330,6 +339,15 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const handleUserMessageFull = useCallback((event: UserMessageFullEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
+    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
+    const activeTurnRef = workspace.streamTracking.activeTurnRef;
+    if (
+      event.turn_ref
+      && activeTurnRef
+      && activeTurnRef !== event.turn_ref
+    ) {
+      return;
+    }
     updateLastMessageBySender('user', {
       fullUserMessage: buildUserMessageFullUpdate(event.payload),
     }, event.turn_ref || undefined, conversationRef);
@@ -338,6 +356,15 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const handleAssistantMessageFull = useCallback((event: AssistantMessageFullEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
+    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
+    const activeTurnRef = workspace.streamTracking.activeTurnRef;
+    if (
+      event.turn_ref
+      && activeTurnRef
+      && activeTurnRef !== event.turn_ref
+    ) {
+      return;
+    }
     updateLastAssistantLlmTextMessage({
       fullAssistantMessage: buildAssistantMessageFullUpdate(event.payload),
     }, event.turn_ref || undefined, conversationRef);
@@ -346,6 +373,15 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const handleToolSchemas = useCallback((event: ToolSchemasEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
+    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
+    const activeTurnRef = workspace.streamTracking.activeTurnRef;
+    if (
+      event.turn_ref
+      && activeTurnRef
+      && activeTurnRef !== event.turn_ref
+    ) {
+      return;
+    }
     updateFirstMessageBySender('user', {
       toolSchemas: event.payload?.tool_schemas,
     }, conversationRef);

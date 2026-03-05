@@ -138,6 +138,66 @@ describe('useChatStream message metadata handling', () => {
     expect(toolOutput?.fullAssistantMessage).toBeUndefined();
   });
 
+  test('stale turn metadata events do not mutate active turn messages', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.setState({
+        messages: [
+          { id: 'user-1', sender: 'user', text: 'ask', turnRef: 'turn-new' },
+          { id: 'assistant-1', sender: 'assistant', text: 'reply', type: 'llm-text', turnRef: 'turn-new' },
+        ],
+        streamTracking: {
+          activeTurnRef: 'turn-new',
+          phase: 'streaming',
+          startedAt: '2026-03-05T00:00:00.000Z',
+          firstChunkAt: '2026-03-05T00:00:01.000Z',
+          completedAt: null,
+          lastEventAt: '2026-03-05T00:00:01.000Z',
+          lastEventType: 'streaming-response',
+          eventCount: 2,
+          chunkCount: 1,
+          toolCallCount: 0,
+          toolOutputCount: 0,
+          lastChunkSize: 5,
+          lastError: null,
+        },
+      });
+
+      emitBackendEvent({
+        type: 'system-prompt',
+        turn_ref: 'turn-old',
+        payload: {
+          content: 'stale prompt',
+          tool_schemas: [{ type: 'function', function: { name: 'tool-a', parameters: { type: 'object' } } }],
+        },
+      });
+      emitBackendEvent({
+        type: 'user-message-full',
+        turn_ref: 'turn-old',
+        payload: { content: 'stale user', metadata: { stale: true } },
+      });
+      emitBackendEvent({
+        type: 'assistant-message-full',
+        turn_ref: 'turn-old',
+        payload: { content: 'stale assistant' },
+      });
+      emitBackendEvent({
+        type: 'tool-schemas',
+        turn_ref: 'turn-old',
+        payload: {
+          tool_schemas: [{ type: 'function', function: { name: 'tool-stale', parameters: { type: 'object' } } }],
+        },
+      });
+    });
+
+    const [userMessage, assistantMessage] = useChatStore.getState().messages;
+    expect(userMessage.systemPrompt).toBeUndefined();
+    expect(userMessage.fullUserMessage).toBeUndefined();
+    expect(userMessage.toolSchemas).toBeUndefined();
+    expect(assistantMessage.fullAssistantMessage).toBeUndefined();
+  });
+
   test('tool-call message stores raw arguments preview metadata for recoverable parse failures', () => {
     const { emitBackendEvent } = registerBackendListener();
 
