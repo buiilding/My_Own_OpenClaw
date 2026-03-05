@@ -54,6 +54,8 @@ Metadata extraction:
 - if `arguments.metadata` is a dict:
   - merges it into parsed metadata
   - removes `metadata` key from executable `parameters`
+- if `arguments.metadata` is missing or not a dict:
+  - metadata merge is skipped safely (no parse failure)
 
 ## Unified `computer_use` Mapping
 
@@ -70,6 +72,12 @@ When normalized name is `computer_use`:
 - valid mapped name -> replace parsed `tool_name` with subtool
 - invalid/missing mapped name -> `tool_name = "invalid_computer_use_tool"`
 - executable parameters become `parameters.arguments` if dict, else `{}`
+
+Metadata-promotion boundary for unified envelopes:
+
+- only top-level unified `computer_use.metadata` is promoted to parsed metadata
+- nested `computer_use.arguments.metadata` is preserved in executable parameters (not promoted)
+- non-dict top-level unified metadata is ignored safely
 
 ## History Tool-Call Shaping
 
@@ -121,6 +129,7 @@ Extraction helpers:
 - missing tool name fallback
 - invalid computer-use tool mapping behavior
 - missing unified `arguments` -> empty parameters
+- top-level metadata promotion boundary (nested `arguments.metadata` remains in parameters; non-dict top-level metadata ignored)
 - recoverable error marker detection and parse-summary extraction
 - target-file extraction from raw-arguments preview
 - retry message includes file-target/edit-strategy hints when file path can be extracted
