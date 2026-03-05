@@ -5,6 +5,17 @@
  */
 
 import { create } from 'zustand';
+import {
+  DEFAULT_CHAT_WORKSPACE_REF,
+  createInitialStreamTracking,
+  createInitialWorkspaceState,
+  normalizeConversationRef,
+  readWorkspaceState,
+  resolveChatWorkspaceRef,
+  resolveWorkspaceConversationRef,
+  resolveWorkspaceKey,
+} from './chatWorkspaceState';
+import type { ChatWorkspaceState } from './chatWorkspaceState';
 
 /**
  * Message type definition
@@ -103,29 +114,6 @@ export interface StreamTracking {
   lastError: string | null;
 }
 
-interface ChatWorkspaceState {
-  messages: ChatMessage[];
-  isSending: boolean;
-  thinkingStatus: string | null;
-  thinkingSourceEventType: string | null;
-  tokenCounts: TokenCounts | null;
-  streamTracking: StreamTracking;
-}
-
-const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
-
-function normalizeConversationRef(value: string | null | undefined): string | null {
-  if (typeof value !== 'string') {
-    return null;
-  }
-  const normalized = value.trim();
-  return normalized.length > 0 ? normalized : null;
-}
-
-function resolveChatWorkspaceRef(conversationRef: string | null | undefined): string {
-  return normalizeConversationRef(conversationRef) || DEFAULT_CHAT_WORKSPACE_REF;
-}
-
 /**
  * Chat store state
  */
@@ -166,84 +154,6 @@ interface ChatState {
     conversationRef?: string | null,
   ) => void;
   clearMessages: (conversationRef?: string | null) => void;
-}
-
-function createInitialStreamTracking(): StreamTracking {
-  return {
-    activeTurnRef: null,
-    phase: 'idle',
-    startedAt: null,
-    firstChunkAt: null,
-    completedAt: null,
-    lastEventAt: null,
-    lastEventType: null,
-    eventCount: 0,
-    chunkCount: 0,
-    toolCallCount: 0,
-    toolOutputCount: 0,
-    lastChunkSize: 0,
-    lastError: null,
-  };
-}
-
-function createInitialWorkspaceState(): ChatWorkspaceState {
-  return {
-    messages: [],
-    isSending: false,
-    thinkingStatus: null,
-    thinkingSourceEventType: null,
-    tokenCounts: null,
-    streamTracking: createInitialStreamTracking(),
-  };
-}
-
-function resolveWorkspaceConversationRef(
-  requestedConversationRef: string | null | undefined,
-  activeConversationRef: string | null,
-): string | null {
-  return normalizeConversationRef(requestedConversationRef ?? activeConversationRef);
-}
-
-function resolveWorkspaceKey(
-  requestedConversationRef: string | null | undefined,
-  activeConversationRef: string | null,
-): string {
-  return resolveChatWorkspaceRef(
-    resolveWorkspaceConversationRef(requestedConversationRef, activeConversationRef),
-  );
-}
-
-function readWorkspaceState(state: ChatState, workspaceRef: string): ChatWorkspaceState {
-  const workspace = state.workspaces[workspaceRef];
-  const activeWorkspaceRef = resolveChatWorkspaceRef(state.activeConversationRef);
-  const activeRootWorkspace: ChatWorkspaceState = {
-    messages: state.messages,
-    isSending: state.isSending,
-    thinkingStatus: state.thinkingStatus,
-    thinkingSourceEventType: state.thinkingSourceEventType,
-    tokenCounts: state.tokenCounts,
-    streamTracking: state.streamTracking,
-  };
-  if (workspace) {
-    if (
-      workspaceRef === activeWorkspaceRef
-      && (
-        workspace.messages !== activeRootWorkspace.messages
-        || workspace.isSending !== activeRootWorkspace.isSending
-        || workspace.thinkingStatus !== activeRootWorkspace.thinkingStatus
-        || workspace.thinkingSourceEventType !== activeRootWorkspace.thinkingSourceEventType
-        || workspace.tokenCounts !== activeRootWorkspace.tokenCounts
-        || workspace.streamTracking !== activeRootWorkspace.streamTracking
-      )
-    ) {
-      return activeRootWorkspace;
-    }
-    return workspace;
-  }
-  if (workspaceRef === activeWorkspaceRef) {
-    return activeRootWorkspace;
-  }
-  return createInitialWorkspaceState();
 }
 
 /**

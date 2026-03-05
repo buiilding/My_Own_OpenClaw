@@ -48,6 +48,27 @@ read_when:
 
 ## Frontend/Main Execution Log (2026-02-26)
 
+- Chat store workspace-state decomposition (2026-03-05):
+  - extracted workspace normalization/read helpers from:
+    - `frontend/src/renderer/features/chat/stores/chatStore.ts`
+    - into `frontend/src/renderer/features/chat/stores/chatWorkspaceState.ts`
+  - preserved store behavior by keeping active-workspace snapshot reconciliation and default-workspace fallback rules in shared helpers.
+  - result:
+    - `chatStore.ts` reduced from `544` LOC to `454` LOC.
+  - regression coverage:
+    - added `tests/frontend/ChatWorkspaceState.test.ts`.
+    - reran `tests/frontend/ChatStore.test.ts`.
+  - verification:
+    - `cd frontend && npm run test:ci -- ../tests/frontend/ChatWorkspaceState.test.ts ../tests/frontend/ChatStore.test.ts`
+    - `cd frontend && npm run lint -- src/renderer/features/chat/stores/chatStore.ts src/renderer/features/chat/stores/chatWorkspaceState.ts`
+    - `cd frontend && npm run lint:audit`
+    - `cd frontend && npm run audit:knip`
+    - `cd frontend && npm run audit:jscpd`
+    - `cd frontend && npx jscpd --gitignore --min-lines 5 --min-tokens 50 --reporters console --ignore \"**/__pycache__/**\" ../backend/src/api/routes`
+  - audit delta:
+    - `knip` restored to clean after making `ChatWorkspaceStoreSnapshot` internal-only.
+    - `jscpd` remains `0` clones for combined backend/frontend scan and `backend/src/api/routes` scan remains `0` clones.
+
 - Backend/sidecar contract drift cleanup (2026-03-05):
   - aligned unified computer-use contract across backend + sidecar:
     - sidecar now exposes and executes `computer_use` by routing to concrete computer subtools in `frontend/src/main/python/tools/registry.py`.
