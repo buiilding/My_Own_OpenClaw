@@ -4763,3 +4763,31 @@ read_when:
   - `./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -q` (pass)
   - `cd frontend && npm run audit:jscpd` (0 clones)
   - `npx jscpd --gitignore --min-lines 8 --reporters console --output .audit/plan1/jscpd-api-routes backend/src/api/routes` (0 clones)
+
+## Phase 196 Outcome (2026-03-05)
+
+- Refactor slice (frontend chat stream decomposition): extracted transcript transparency assembly from `useChatStream` into a dedicated utility.
+  - added:
+    - `frontend/src/renderer/features/chat/utils/chatStreamTransparency.ts`
+      - `buildAssistantTranscriptTransparency(...)` for deterministic transparency extraction/normalization from user+assistant message context.
+  - rewired:
+    - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
+      - `streaming-complete` path now delegates transparency shaping to the new utility.
+  - tests:
+    - added `tests/frontend/ChatStreamTransparency.test.ts` to lock turn-matched transparency extraction, schema-source precedence, and empty-field pruning behavior.
+- Route consolidation check:
+  - reviewed `backend/src/api/routes/__init__.py` and mounted routers (`websocket`, `runs`, `artifacts`, `memory`).
+  - no duplicate route families identified; no route merge applied in this slice.
+- Audit outcome:
+  - combined `backend/src` + `frontend/src` `jscpd`: `0` clones.
+  - `knip`: no dead-code findings.
+  - ESLint audit plugins:
+    - `react-compiler/react-compiler`: clean
+    - `deprecation/deprecation`: clean
+- Validation:
+  - `cd frontend && npm run lint -- src/renderer/features/chat/hooks/useChatStream.ts src/renderer/features/chat/utils/chatStreamTransparency.ts` (pass)
+  - `cd frontend && npm run test:ci -- ../tests/frontend/ChatStreamTransparency.test.ts` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/TranscriptWriter.userAssistant.test.ts tests/frontend/ChatStreamThinkingStatus.state.test.tsx` (pass)
+  - `cd frontend && npm run lint:audit` (pass)
+  - `cd frontend && npm run audit:jscpd` (0 clones)
+  - `cd frontend && npm run audit:knip` (clean)
