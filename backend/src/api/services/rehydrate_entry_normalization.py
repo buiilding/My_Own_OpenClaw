@@ -11,14 +11,18 @@ from backend.src.api.services.rehydrate_tool_call_normalization import (
     extract_tool_call_details as extract_tool_call_details_helper,
     normalize_tool_calls as normalize_tool_calls_helper,
 )
+from backend.src.api.services.rehydrate_transparency_resolution import (
+    extract_system_prompt_from_transparency as extract_system_prompt_from_transparency_helper,
+    normalize_optional_string as normalize_optional_string_helper,
+    normalize_transparency as normalize_transparency_helper,
+    resolve_rehydrated_content as resolve_rehydrated_content_helper,
+    resolve_transparency_content as resolve_transparency_content_helper,
+)
 
 _TOOL_CALL_MESSAGE_TYPES = frozenset({"tool-call", "tool_call", "tool-bundle", "tool_bundle"})
 _TOOL_OUTPUT_MESSAGE_TYPES = frozenset({"tool-output", "tool_output", "tool-result", "tool_result"})
 _INTERNAL_BUNDLE_MESSAGE_TYPES = frozenset({"tool-bundle", "tool_bundle"})
 _INTERNAL_BUNDLE_TOOL_NAMES = frozenset({"tool-bundle", "tool_bundle", "bundled_tools", "bundled-tools"})
-_ASSISTANT_FULL_CONTENT_MESSAGE_TYPES = frozenset(
-    {"", "llm-text", "assistant", "assistant-response", "assistant-message"}
-)
 
 
 @dataclass(slots=True)
@@ -36,17 +40,14 @@ class RehydrateEntryNormalizer:
     def normalize_transparency(
         transparency: Any,
     ) -> Optional[Dict[str, Any]]:
-        if not isinstance(transparency, dict):
-            return None
-        return dict(transparency)
+        return normalize_transparency_helper(transparency)
 
     def extract_system_prompt_from_transparency(
         self,
         transparency: Optional[Dict[str, Any]],
     ) -> Optional[str]:
-        if not isinstance(transparency, dict):
-            return None
-        return self.normalize_optional_string(transparency.get("systemPrompt"))
+        _ = self
+        return extract_system_prompt_from_transparency_helper(transparency)
 
     def normalize_entry(
         self,
@@ -201,10 +202,7 @@ class RehydrateEntryNormalizer:
 
     @staticmethod
     def normalize_optional_string(value: Optional[str]) -> Optional[str]:
-        if not isinstance(value, str):
-            return None
-        normalized = value.strip()
-        return normalized or None
+        return normalize_optional_string_helper(value)
 
     def extract_tool_call_details(
         self,
@@ -257,26 +255,13 @@ class RehydrateEntryNormalizer:
         raw_content: Any,
         transparency: Optional[Dict[str, Any]],
     ) -> str:
-        base_content = raw_content if isinstance(raw_content, str) else ""
-        if not isinstance(transparency, dict):
-            return base_content
-
-        normalized_role = str(role or "").strip().lower()
-        if normalized_role == "user":
-            full_user_content = self.resolve_transparency_content(
-                transparency=transparency,
-                message_key="fullUserMessage",
-            )
-            return full_user_content or base_content
-
-        if normalized_role == "assistant" and normalized_message_type in _ASSISTANT_FULL_CONTENT_MESSAGE_TYPES:
-            full_assistant_content = self.resolve_transparency_content(
-                transparency=transparency,
-                message_key="fullAssistantMessage",
-            )
-            return full_assistant_content or base_content
-
-        return base_content
+        _ = self
+        return resolve_rehydrated_content_helper(
+            role=role,
+            normalized_message_type=normalized_message_type,
+            raw_content=raw_content,
+            transparency=transparency,
+        )
 
     def resolve_transparency_content(
         self,
@@ -284,10 +269,11 @@ class RehydrateEntryNormalizer:
         transparency: Dict[str, Any],
         message_key: str,
     ) -> Optional[str]:
-        payload = transparency.get(message_key)
-        if not isinstance(payload, dict):
-            return None
-        return self.normalize_optional_string(payload.get("content"))
+        _ = self
+        return resolve_transparency_content_helper(
+            transparency=transparency,
+            message_key=message_key,
+        )
 
     def normalize_tool_calls(self, raw_tool_calls: Any) -> List[Dict[str, Any]]:
         return normalize_tool_calls_helper(raw_tool_calls)
