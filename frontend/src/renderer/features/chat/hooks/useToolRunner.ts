@@ -14,7 +14,6 @@ import { type ToolBundleEvent, type ToolCallEvent } from '../../../types/backend
 import { useLatestRef } from '../../../infrastructure/hooks/useLatestRef';
 import { useToolRunnerBackendListener } from './useToolRunnerBackendListener';
 import {
-  buildBundleOutputMessage,
   buildToolOutputMessage,
   buildTranscriptMetadata,
   mapBundleTools,
@@ -55,6 +54,10 @@ import {
   resolveExecutionConversationRef as resolveExecutionConversationRefFromState,
   shouldAcceptExecutionResult as shouldAcceptExecutionResultFromState,
 } from '../utils/toolRunnerExecutionState';
+import {
+  persistToolRunnerBundleResult,
+  persistToolRunnerToolResult,
+} from '../utils/toolRunnerResultPersistence';
 
 /**
  * Custom hook for managing tool execution.
@@ -177,42 +180,20 @@ export function useToolRunner(enabled = true) {
     }
     const toolService = new ToolExecutionService({
       onToolResult: (result: ToolExecutionResult) => {
-        if (!shouldAcceptExecutionResult(result.correlationId)) {
-          return;
-        }
-        const conversationRef = resolveExecutionConversationRef(result.correlationId);
-        addMessage(buildToolOutputMessage(result), conversationRef);
-        recordToolMessage(
-          result.formattedMessage,
-          {
-            ...buildTranscriptMetadata(
-              result.toolName,
-              result.correlationId,
-              result.screenshotRef,
-              modelContextRef.current,
-            ),
-            conversationRef: conversationRef || undefined,
-          },
-        );
+        persistToolRunnerToolResult(result, {
+          shouldAcceptExecutionResult,
+          resolveExecutionConversationRef,
+          addMessage,
+          modelContextRef,
+        });
       },
       onBundleResult: (result: BundleExecutionResult) => {
-        if (!shouldAcceptExecutionResult(result.correlationId)) {
-          return;
-        }
-        const conversationRef = resolveExecutionConversationRef(result.correlationId);
-        addMessage(buildBundleOutputMessage(result), conversationRef);
-        recordToolMessage(
-          result.formattedMessage,
-          {
-            ...buildTranscriptMetadata(
-              'bundled_tools',
-              result.correlationId,
-              result.screenshotRef,
-              modelContextRef.current,
-            ),
-            conversationRef: conversationRef || undefined,
-          },
-        );
+        persistToolRunnerBundleResult(result, {
+          shouldAcceptExecutionResult,
+          resolveExecutionConversationRef,
+          addMessage,
+          modelContextRef,
+        });
       },
       sendToBackend: (payload: unknown) => {
         const correlationId = resolveToolRunnerPayloadCorrelationId(payload);

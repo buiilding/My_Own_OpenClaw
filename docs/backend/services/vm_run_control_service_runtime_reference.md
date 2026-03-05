@@ -12,6 +12,7 @@ title: "VM Run Control Service Runtime Reference"
 
 - `backend/src/services/vm_run_control.py`
 - `backend/src/services/vm_run_control_event_payloads.py`
+- `backend/src/services/vm_run_control_event_log.py`
 - `backend/src/services/vm_run_control_helpers.py`
 - `backend/src/services/vm_run_control_pending_controls.py`
 - `backend/src/services/vm_run_control_worker_state.py`
@@ -169,3 +170,7 @@ Caller safety:
 - [Runs Route and VM Control Service Reference](../api/runs_route_and_vm_control_service_reference.md)
 - [HTTP and WebSocket Endpoint Reference](../api/http_and_ws_endpoint_reference.md)
 - [Services and Storage](services_and_storage.md)
+Run event-log append/read helpers are centralized in `vm_run_control_event_log.py`:
+
+- sequence increment + payload copy + updated-at mutation on append
+- bounded event selection by `after_seq` + `limit`
