@@ -1,8 +1,8 @@
 ---
-summary: "Backend non-query websocket handler reference for settings/model listing, stop-query cancellation, wakeword activation, and transcript rehydrate flow."
+summary: "Backend non-query websocket handler reference for settings/model listing, stop-query cancellation, manual compaction flow, wakeword activation, and transcript rehydrate flow."
 read_when:
   - When changing websocket handlers outside core query streaming.
-  - When debugging settings ACK mismatches, stop-query behavior, wakeword greeting flow, or rehydrate transcript reconstruction.
+  - When debugging settings ACK mismatches, stop-query behavior, manual compaction events, wakeword greeting flow, or rehydrate transcript reconstruction.
 title: "Non-Query Handler and Control Flow Reference"
 ---
 
@@ -14,6 +14,7 @@ title: "Non-Query Handler and Control Flow Reference"
 - `backend/src/api/handlers/stop_query.py`
 - `backend/src/api/handlers/wakeword.py`
 - `backend/src/api/handlers/rehydrate.py`
+- `backend/src/api/handlers/compact_history.py`
 - `backend/src/api/services/wakeword_execution.py`
 - `backend/src/api/services/rehydrate_execution.py`
 - `backend/src/agent/session/manager.py`
@@ -68,6 +69,25 @@ Validation scope (`FrontendConfigPatch`):
 - `speech_mode_enabled`
 - `wakeword_stt_enabled`
 - `include_query_screenshot`
+
+## Manual Compaction Control Path
+
+`compact-history` -> `CompactHistoryHandler`
+
+Behavior:
+
+1. read `force` flag from payload
+2. reject when an active query task exists for this user
+3. create/load session and build user/session context metadata
+4. execute `session.run_history_compaction(reason=\"manual\", force=force)`
+5. emit lifecycle events:
+  - `context-compaction-started` when decision says compaction should run
+  - `context-compaction-completed` with either applied stats or `skipped_reason`
+
+Active-query rejection behavior:
+
+- emits `context-compaction-failed` with manual reason and user-facing guidance
+- does not start compaction engine
 
 ## Stop Query Control Path
 

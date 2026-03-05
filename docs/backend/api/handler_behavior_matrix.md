@@ -21,6 +21,7 @@ Handler implementations live in `backend/src/api/handlers/*` and are wired by `A
 - `list-models` -> `ListModelsHandler`
 - `load-settings` -> `LoadSettingsHandler`
 - `update-settings` -> `UpdateSettingsHandler`
+- `compact-history` -> `CompactHistoryHandler`
 
 ## Behavior Summary
 
@@ -54,6 +55,14 @@ Handler implementations live in `backend/src/api/handlers/*` and are wired by `A
 - delegates wakeword activation flow to `WakewordExecutionService`
 - supports greeting + optional TTS activation path
 
+### `CompactHistoryHandler`
+
+- rejects manual compaction while active query task exists for user
+- emits `context-compaction-failed` for active-query rejection path
+- otherwise runs `session.run_history_compaction(reason=\"manual\", force=payload.force)`
+- emits `context-compaction-started` when decision indicates compaction should run
+- always emits `context-compaction-completed` (applied or skipped with `skipped_reason`)
+
 ### `ListModelsHandler`
 
 - calls `ModelService.get_all_models()`
@@ -83,3 +92,4 @@ Handlers should:
 - Query and stop-query handlers interact with session task tracking.
 - Tool result handler mutates session runtime state through result routing/storage.
 - Update settings mutates session runtime config, not the global config singleton.
+- Compact-history mutates conversation history state and emits compaction lifecycle events.

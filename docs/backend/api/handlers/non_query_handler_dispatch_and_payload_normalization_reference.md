@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for non-query websocket handlers: typed dispatch contract, stop-query completion semantics, settings/model handlers, tool-result normalization, rehydrate reconstruction, and wakeword greeting/TTS flow."
+summary: "Deep reference for non-query websocket handlers: typed dispatch contract, stop-query and compact-history control semantics, settings/model handlers, tool-result normalization, rehydrate reconstruction, and wakeword greeting/TTS flow."
 read_when:
   - When changing non-query message handlers in `backend/src/api/handlers/*`.
   - When debugging tool-result/session routing, settings update validation, or rehydrate/wakeword behavior differences across clients.
@@ -16,6 +16,7 @@ title: "Non-Query Handler Dispatch and Payload Normalization Reference"
 - `backend/src/api/handlers/tool_result.py`
 - `backend/src/api/handlers/settings.py`
 - `backend/src/api/handlers/rehydrate.py`
+- `backend/src/api/handlers/compact_history.py`
 - `backend/src/api/services/rehydrate_execution.py`
 - `backend/src/api/handlers/wakeword.py`
 - `backend/src/api/services/wakeword_execution.py`
@@ -55,6 +56,16 @@ Properties:
 - always emits `streaming-complete` success response, even when no active task exists
 
 Reason: frontend must always exit active streaming state when stop is requested.
+
+## `CompactHistoryHandler` Semantics
+
+`compact-history` behavior:
+
+- rejects compaction when `session_manager.has_active_query_task(user_id)` is true
+- emits `context-compaction-failed` for active-query rejection path
+- otherwise delegates to `session.run_history_compaction(reason=\"manual\", force=payload.force)`
+- conditionally emits `context-compaction-started` when decision indicates compaction should run
+- always emits `context-compaction-completed` with either applied metrics or `skipped_reason`
 
 ## `ToolResultHandler` Normalization and Routing
 

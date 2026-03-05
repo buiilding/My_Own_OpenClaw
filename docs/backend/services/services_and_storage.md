@@ -1,141 +1,141 @@
 ---
-summary: "Backend runtime services and storage layers: vision, OCR, embeddings, artifacts, semantic APIs, and observability hooks."
+summary: "Backend services/runtime storage map covering artifacts, OCR, vision grounding, token counting, and VM run-control state handling."
 read_when:
-  - When changing OCR/vision behavior, embeddings, token counting, or artifact handling.
-  - When tracing performance and capacity issues in backend runtime services.
+  - When changing `backend/src/services/*` ownership boundaries or startup initialization behavior.
+  - When debugging artifact persistence, OCR/vision runtime fallback paths, token counting mismatches, or VM run-control state transitions.
 title: "Services and Storage"
 ---
 
 # Services and Storage
 
-## Vision Service
+## Canonical Modules
 
-Module:
+- `backend/src/services/artifacts/store.py`
+- `backend/src/services/ocr/ocr_service.py`
+- `backend/src/services/ocr/runtime_config.py`
+- `backend/src/services/vision/vision_service.py`
+- `backend/src/services/vision/coordinates.py`
+- `backend/src/services/vision/providers/*`
+- `backend/src/services/token_service.py`
+- `backend/src/services/vm_run_control.py`
+- `backend/src/core/container/{core_container,initializer,factories}.py`
 
-- `services/vision/vision_service.py`
+## Service Domain Map
 
-Responsibilities:
-
-- Owns singleton configured vision model instance.
-- Initializes asynchronously with lock-serialized init/unload operations.
-- Selects provider implementation by model family (InternVL vs Venus).
-- Exposes readiness/error state for startup diagnostics.
-
-Operational notes:
-
-- Includes explicit unload path for releasing GPU/system memory.
-- Handles CUDA cache clearing best-effort.
-
-## OCR Service
-
-Module:
-
-- `services/ocr/ocr_service.py`
+### Artifact storage (`ArtifactStore`)
 
 Responsibilities:
 
-- Provides OCR over base64 screenshots.
-- Initializes RapidOCR with CUDA preference and CPU fallback.
-- Tunes OCR params from `OCRConfig` and detected hardware capacity.
-- Runs OCR work on background thread path to avoid blocking async loop.
+- disk-backed upload storage with strict content-type allowlist (`image/png`, `image/jpeg`)
+- artifact id validation (`<uuid>.<png|jpg|jpeg>`)
+- max-bytes enforcement from `AppConfig.artifact_max_bytes`
+- legacy temp-dir fallback lookup and best-effort migration
 
-Behavioral highlights:
+Storage characteristics:
 
-- GPU-memory threshold based batch sizing.
-- Explicit OCR availability and dependency failure handling.
-- Normalizes OCR result fields before returning to callers.
+- local filesystem path from `AppConfig.artifact_store_path`
+- retrieval supports binary route download and base64 load path
 
-## Embedding Provider
-
-Module:
-
-- `embeddings/embeddings.py:SentenceTransformerProvider`
+### OCR runtime (`OcrService`)
 
 Responsibilities:
 
-- Loads sentence-transformer model asynchronously.
-- Uses lock to prevent concurrent double model load.
-- Supports cached single and batch embeddings via cache manager.
-- Offloads blocking encode calls to thread executor in runtime.
+- RapidOCR engine lifecycle with CUDA-first startup and CPU fallback
+- screenshot decode and OCR result normalization (`text`, `confidence`, `bbox` variants)
+- lazy engine initialization guard for first OCR call when startup init was skipped
 
-Used by:
+Runtime tuning:
 
-- `/api/embeddings` endpoint
-- memory-layer retrieval and indexing workflows
+- batch/thread sizing from `OCRConfig` via `runtime_config.py`
+- GPU-memory and CPU-core detection feed batch-size/thread calculations
 
-## Token Counting Service
-
-Module:
-
-- `services/token_service.py:TokenService`
+### Vision grounding runtime (`VisionService` + providers)
 
 Responsibilities:
 
-- Normalizes message role/content/tool-call payloads into LiteLLM-compatible shape.
-- Calls `litellm.token_counter(..., use_default_image_token_count=True)` for primary token counting.
-- Falls back to text-character heuristic (`chars // 4`) when LiteLLM counting fails.
-- Exposes process-wide singleton accessor (`get_token_service`) with lock-guarded lazy init.
+- singleton vision model lifecycle (initialize/unload under async lock)
+- model-family selection (`InternVLModel` vs `VenusVisionModel`) by configured model name
+- coordinate extraction/scaling from model text output through `coordinates.py`
 
-Used by:
+Runtime behaviors:
 
-- `agent/llm/token_counting.py` local token estimates in token-count event pipeline
-- conversation-history token cache recompute/increment paths
+- model load in executor to avoid blocking event loop
+- unload path forces GC and CUDA cache cleanup
+- provider helpers include chat/generate fallback strategy and flash-attention runtime disable path
 
-Deep reference:
-
-- `services/token/token_service_message_normalization_and_fallback_reference.md`
-
-## Artifact Storage
-
-Module:
-
-- `services/artifacts/store.py:ArtifactStore`
+### Token accounting runtime (`TokenService`)
 
 Responsibilities:
 
-- Receives uploaded image artifacts and stores on local disk.
-- Enforces strict allowed content types and maximum bytes.
-- Validates artifact IDs with safe pattern on retrieval.
-- Supports artifact-to-base64 resolution for query/tool payload assembly.
+- message/token counting via `litellm.token_counter`
+- normalization of internal assistant/tool-call message shapes to LiteLLM format
+- fallback text-based token estimation on counting failures
+- model alias normalization and model max-input-token overrides
 
-API integration:
+Contract notes:
 
-- `api/routes/artifacts.py`
+- applies tool-call thought-signature extraction/attachment when normalizing assistant tool calls
+- supports multimodal text-part character extraction in fallback estimation path
 
-## Semantic and Embedding APIs
+### VM run-control state runtime (`VmRunControlService`)
 
-### Semantic summarization
+Responsibilities:
 
-- `api/routes/memory/semantic.py`
-- Summarization service integrates LLM summarization and fallback fact extraction.
-- Strict request validation: user ID and bounded conversation list lengths.
+- in-memory run registry keyed by `run_id`
+- workspace queue assignment for worker heartbeat polling
+- ordered run event append (`seq`) and status transitions
+- control-command queueing (`pause/resume/stop/set-control-mode`) and one-shot worker drain
 
-### Embeddings
+Storage characteristics:
 
-- `api/routes/memory/embeddings.py`
-- Embedding generation for sidecar memory indexing/search.
-- Includes health probe verifying provider operability.
+- ephemeral process memory only (no durable DB)
+- single lock (`asyncio.Lock`) guards all state mutation
 
-## Eventing and Observability Primitives
+## Initialization and DI Ownership
 
-Core modules:
+Creation ownership:
 
-- `core/infrastructure/bus.py` (event bus)
-- `core/events/*` (internal and streaming events)
-- `core/observability/trust_boundary_metrics.py` (boundary metrics)
+- OCR and vision services are DI singletons from `core/container/core_container.py` via factory helpers
+- embedder initialization is coordinated in same initializer path for memory services
+- VM run-control service is route-scoped singleton attached to `app.state.vm_run_control_service` in `api/routes/runs.py`
 
-Agent/runtime usage:
+Startup initialization (`ContainerInitializer`):
 
-- publishes completion and memory-store events
-- captures trust-boundary violations in parser/prompt layers
+- config service init
+- optional vision init (tool-policy gated)
+- optional OCR init (tool-policy gated)
+- embedder init
+- context-factory wiring for OCR/vision services
 
-## Storage Model Summary
+## Data Durability and Failure Modes
 
-Backend persistent-ish storage responsibilities:
+Persistence tiers:
 
-- Artifact blobs: local filesystem under configured artifact directory
-- Config: Python module + in-memory runtime copy
-- Session state: in-process memory by user/session
-- Tool result pending/futures: in-process session-scoped structures
+- durable-ish local disk: artifacts
+- in-memory ephemeral: OCR/vision model objects, token service state, VM run-control state
 
-Frontend sidecar memory stores are separate and documented under frontend/sidecar docs.
+Failure posture:
+
+- artifact upload/read failures map to HTTP errors
+- OCR/vision initialization failures degrade gracefully (disabled/uninitialized service state)
+- token counting failure falls back to heuristic estimate
+- VM run-control state is lost on backend restart by design
+
+## Cross-Layer Touchpoints
+
+- API routes:
+  - artifacts routes use `ArtifactStore`
+  - memory routes consume embedder + semantic services
+  - `/api/runs/*` consumes `VmRunControlService`
+- agent/tool runtime:
+  - OCR and vision services are injected into session context for coordinate grounding
+- frontend VM worker runtime:
+  - polls/controls `/api/runs/*` and relays stream events into run timeline
+
+## Related Docs
+
+- [Backend Services Docs Hub](README.md)
+- [Artifact, Screenshot, and System-State Flow Reference](artifact_screenshot_and_system_state_flow_reference.md)
+- [OCR and Vision Coordinate Runtime Overview](ocr_and_vision_coordinate_runtime_reference.md)
+- [Token Service Message Normalization and Fallback Reference](token/token_service_message_normalization_and_fallback_reference.md)
+- [Runs Route and VM Control Service Reference](../api/runs_route_and_vm_control_service_reference.md)

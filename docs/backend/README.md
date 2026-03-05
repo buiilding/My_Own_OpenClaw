@@ -203,6 +203,7 @@ Covers:
 - [Prompt Constructor and Transparency Metadata Reference](llm/prompts/prompt_constructor_and_transparency_metadata_reference.md)
 - [Prompt Manager and System Prompt Lifecycle Reference](llm/prompts/prompt_manager_and_system_prompt_lifecycle_reference.md)
 - [Services and Storage](services/services_and_storage.md)
+- [VM Run Control Service Runtime Reference](services/vm_run_control_service_runtime_reference.md)
 - [Artifact Service Docs Hub](services/artifacts/README.md)
 - [Token Service Message Normalization and Fallback Reference](services/token/token_service_message_normalization_and_fallback_reference.md)
 - [Embedding and Semantic Memory Runtime Reference](services/embedding_and_semantic_memory_runtime_reference.md)
