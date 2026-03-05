@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-all-next-turn-stream-gate): relax chat stream stale-turn filtering during pending-next-turn handoff (`isSending=true` + terminal phase) so first chunks for new turns are not dropped when `local-user-message` echo is late/missing; add turn-guard utility coverage and stream-state regression for post-terminal follow-up sends.
 - feat(frontend-all-dev-source-badge-message-token-estimates): append per-message token telemetry to dev source badges for user/tool rows (`tokens~`), including user text token estimation from `fullUserMessage.content` fallback + image estimate breakdown (`txt/img/total`) and tool-call/tool-output payload token estimates; add focused renderer tests for token derivation and badge render gating.
 - fix(frontend-all-chat-pill-terminal-unlock): treat `complete`/`error` overlay phases as terminal in chat-loop lock resolution even when `isSending` is stale, so chat pill exits working tint and re-enables input after final assistant text; add `ChatLoopUiState` utility + hook regressions for stale send-latch terminal snapshots.
 - test(sidecar-local-backend-computer-use-legacy-wrapper-rejection): extend JSON-RPC boundary regressions so legacy nested `computer_use.arguments.metadata` wrapper payloads fail closed (`computer_use.metadata must be an object`) before concrete subtool execution.

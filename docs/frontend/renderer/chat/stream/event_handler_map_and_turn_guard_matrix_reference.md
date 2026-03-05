@@ -15,6 +15,7 @@ title: "Event Handler Map and Turn Guard Matrix Reference"
 - `frontend/src/renderer/features/chat/hooks/useChatStreamToolHandlers.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStreamTerminalHandlers.ts`
 - `frontend/src/renderer/features/chat/utils/chatStreamConversationGate.ts`
+- `frontend/src/renderer/features/chat/utils/chatStreamTurnGuard.ts`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 
 ## Dispatch Pipeline
@@ -52,6 +53,13 @@ Most handlers in `useChatStream` share the same stale-turn condition:
 - and target workspace has active turn
 - and active turn differs from event turn
 - then handler returns with no side effects
+
+Pending-next-turn exception:
+
+- when the workspace is in a terminal phase (`idle`/`complete`/`error`) and `isSending === true`,
+  stale-turn guard does **not** reject mismatched `turn_ref`.
+- this allows first chunks for the next turn to pass even if backend `local-user-message`
+  echo arrives late or is missing.
 
 Guarded events:
 

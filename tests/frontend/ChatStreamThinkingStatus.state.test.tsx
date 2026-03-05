@@ -977,6 +977,70 @@ describe('useChatStream state + stream handling', () => {
     );
   });
 
+  test('accepts next-turn first chunk after local send when previous turn is terminal', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.setState({
+        messages: [
+          {
+            id: 'assistant-old',
+            text: 'old final answer',
+            sender: 'assistant',
+            type: 'llm-text',
+            isComplete: true,
+            turnRef: 'turn-old',
+          },
+          {
+            id: 'user-new',
+            text: 'follow up',
+            sender: 'user',
+            turnRef: 'turn-new',
+          },
+        ],
+        isSending: true,
+        streamTracking: {
+          activeTurnRef: 'turn-old',
+          phase: 'complete',
+          startedAt: '2026-03-05T00:00:00.000Z',
+          firstChunkAt: '2026-03-05T00:00:01.000Z',
+          completedAt: '2026-03-05T00:00:03.000Z',
+          lastEventAt: '2026-03-05T00:00:03.000Z',
+          lastEventType: 'streaming-complete',
+          eventCount: 3,
+          chunkCount: 1,
+          toolCallCount: 0,
+          toolOutputCount: 0,
+          lastChunkSize: 14,
+          lastError: null,
+        },
+      });
+
+      emitBackendEvent({
+        type: 'streaming-response',
+        turn_ref: 'turn-new',
+        payload: { text: 'next answer' },
+      });
+    });
+
+    const state = useChatStore.getState();
+    expect(state.isSending).toBe(false);
+    expect(state.messages.at(-1)).toEqual(
+      expect.objectContaining({
+        sender: 'assistant',
+        type: 'llm-text',
+        text: 'next answer',
+        turnRef: 'turn-new',
+      }),
+    );
+    expect(state.streamTracking).toEqual(
+      expect.objectContaining({
+        activeTurnRef: 'turn-new',
+        phase: 'streaming',
+      }),
+    );
+  });
+
   test('ignores benign settings update errors', () => {
     const { emitBackendEvent } = registerBackendListener();
     act(() => {
