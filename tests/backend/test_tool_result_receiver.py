@@ -78,3 +78,46 @@ def test_receive_bundle_result_accepts_pydantic_step_models():
     assert isinstance(result.data, dict)
     assert isinstance(result.data["step_results"], list)
     assert result.data["step_results"][0]["status"] == "ok"
+
+
+def test_receive_bundle_result_partial_failure_never_reports_success():
+    receiver = ToolResultReceiver(DummySession())
+
+    result = receiver.receive_bundle_result(
+        bundle_id="bundle-partial",
+        status="partial_failure",
+        step_results=[
+            {"tool": "read_file", "status": "ok", "output": "done"},
+            {"tool": "write_file", "status": "ok", "output": "saved"},
+        ],
+        screenshot=None,
+        screenshot_ref=None,
+        capture_meta=None,
+        system_state=None,
+        error=None,
+    )
+
+    assert result.success is False
+    assert result.metadata == {"is_bundled": True, "bundle_id": "bundle-partial"}
+
+
+def test_receive_bundle_result_normalizes_unknown_step_payloads_to_empty_dict():
+    receiver = ToolResultReceiver(DummySession())
+
+    result = receiver.receive_bundle_result(
+        bundle_id="bundle-normalize-steps",
+        status="failure",
+        step_results=[{"status": "ok", "output": "done"}, "bad-step-payload"],
+        screenshot=None,
+        screenshot_ref=None,
+        capture_meta=None,
+        system_state=None,
+        error="failed",
+    )
+
+    assert result.success is False
+    assert result.data is not None
+    assert result.data["step_results"] == [
+        {"status": "ok", "output": "done"},
+        {},
+    ]

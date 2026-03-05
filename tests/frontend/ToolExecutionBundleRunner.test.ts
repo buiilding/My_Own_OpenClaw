@@ -206,4 +206,25 @@ describe('ToolExecutionBundleRunner', () => {
     expect(outcome.totalWaitDelay).toBe(1);
     expect(outcome.totalCaptureTime).toBe(0.5);
   });
+
+  test('fails current step when captureAfterTool throws for a computer-use tool', async () => {
+    mockInvokeTool.mockResolvedValueOnce({
+      result: { success: true, data: { output: 'step-1' } },
+      toolInvokeTime: 0.01,
+    } as any);
+    mockIsComputerUseTool.mockReturnValueOnce(true);
+    mockCaptureAfterTool.mockRejectedValueOnce(new Error('capture failed'));
+
+    const outcome = await runToolBundle(
+      [{ toolName: 'mouse_control', args: { action: 'click', x: 1, y: 2 } }],
+      'bundle-capture-throw',
+    );
+
+    expect(outcome.stepResults).toEqual([
+      { tool: 'mouse_control', status: 'ok', output: 'step-1' },
+      { tool: 'mouse_control', status: 'error', output: 'capture failed' },
+    ]);
+    expect(outcome.screenshot).toBeNull();
+    expect(outcome.systemState).toBeNull();
+  });
 });
