@@ -203,6 +203,20 @@ def test_validate_metadata_accepts_trimmed_nonempty_strings_for_computer_tools()
     }
 
 
+def test_validate_metadata_rejects_non_string_required_fields_for_computer_tools():
+    validator, _metrics = _make_validator_for_registry(ComputerRegistry(["mouse_control"]))
+
+    with pytest.raises(ParseValidationError, match="missing required metadata field"):
+        validator.validate_metadata(
+            "mouse_control",
+            {
+                "description": 123,
+                "explanation": {"why": "click"},
+                "expectation": ["dialog", "opens"],
+            },
+        )
+
+
 def test_validate_metadata_accepts_and_trims_metadata_for_unified_computer_use_tool():
     validator, _metrics = _make_validator(["computer_use"])
     metadata = {
@@ -218,6 +232,13 @@ def test_validate_metadata_accepts_and_trims_metadata_for_unified_computer_use_t
         "explanation": "click",
         "expectation": "opens",
     }
+
+
+def test_validate_metadata_rejects_non_dict_metadata_for_unified_computer_use_tool():
+    validator, _metrics = _make_validator(["computer_use"])
+
+    with pytest.raises(ParseValidationError, match="invalid metadata type"):
+        validator.validate_metadata("computer_use", "not-a-dict")
 
 
 def test_get_valid_tool_names_deduplicates_registry_values():
