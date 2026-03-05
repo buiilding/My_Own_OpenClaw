@@ -170,6 +170,26 @@ class DummyAssistantFullThenCompleteAgent:
         yield {"type": "streaming-complete", "payload": {}}
 
 
+class DummyPostTerminalNoiseAgent:
+    def __init__(self):
+        self.cfg = AppConfig()
+        self.user_id = "user_1"
+        self.session_id = "session_1"
+
+    async def process_query(
+        self,
+        text,
+        image_data=None,
+        screenshot_id=None,
+        capture_meta=None,
+        message_content=None,
+        conversation_ref=None,
+    ):
+        yield {"type": "chunk", "content": "first chunk"}
+        yield {"type": "streaming-complete", "payload": {"final_response": "done"}}
+        yield {"type": "chunk", "content": "late chunk"}
+
+
 class DummyBlockingAgent:
     def __init__(self, started_event: asyncio.Event, history=None):
         self.cfg = AppConfig()
@@ -522,6 +542,54 @@ async def test_query_handler_backfills_chunk_from_assistant_full_before_completi
     assert second_event.content == "Final answer from assistant full"
     assert isinstance(third_event, StreamingCompleteEvent)
     assert third_event.final_response == "Final answer from assistant full"
+
+
+@pytest.mark.asyncio
+async def test_query_handler_ignores_post_terminal_events_from_agent_stream(monkeypatch):
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    session_manager.session = DummyPostTerminalNoiseAgent()
+    handler = QueryMessageHandler(
+        session_manager, DummyTTSManager(), ResponseFormatter()
+    )
+    created_pipelines = []
+
+    class DummyPipeline:
+        def __init__(self, *_args, **_kwargs):
+            self.processed = []
+            created_pipelines.append(self)
+
+        async def process(self, event, tts_service, msg_id, context=None):
+            self.processed.append((event, msg_id, context))
+
+        async def wait_for_pending_tts(self):
+            return None
+
+    monkeypatch.setattr(
+        "backend.src.api.handlers.query.StreamPipeline",
+        DummyPipeline,
+    )
+
+    message = QueryMessage(
+        id="msg_terminal_gate_1",
+        type="query",
+        user_id="user_1",
+        payload={
+            "text": "hi",
+            "conversation_ref": "conv_test",
+            "content": "<user_query>hi</user_query>",
+        },
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert len(created_pipelines) == 1
+    assert len(created_pipelines[0].processed) == 2
+    first_event, *_ = created_pipelines[0].processed[0]
+    second_event, *_ = created_pipelines[0].processed[1]
+    assert first_event == {"type": "chunk", "content": "first chunk"}
+    assert isinstance(second_event, StreamingCompleteEvent)
+    assert second_event.final_response == "done"
 
 
 @pytest.mark.asyncio
