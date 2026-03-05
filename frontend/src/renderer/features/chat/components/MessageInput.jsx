@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   ArrowUp,
@@ -15,6 +15,12 @@ import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
 import VoiceStatus from '../../voice/components/VoiceStatus';
 import { parseClipboardImageItems } from '../utils/clipboardImageUtils';
 import { parseSelectedComposerFiles } from '../utils/fileAttachmentUtils';
+import {
+  useClosePlusMenuOnSending,
+  useComposerFocusRequest,
+  useDismissPlusMenu,
+  useTextareaAutoResize,
+} from '../hooks/useMessageInputUiBindings';
 
 function resolveReadableFileTypeLabel(filename) {
   if (typeof filename !== 'string') {
@@ -134,47 +140,34 @@ function MessageInput({
     }
   }, []);
 
-  useEffect(() => {
+  const resizeTextarea = useCallback(() => {
     if (!textareaRef.current) {
       return;
     }
     textareaRef.current.style.height = 'auto';
     textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
-  }, [inputValue]);
-
-  useEffect(() => {
-    const handlePointerDown = (event) => {
-      const target = event.target;
-      if (plusMenuRef.current && !plusMenuRef.current.contains(target)) {
-        setPlusMenuOpen(false);
-      }
-    };
-
-    window.addEventListener('mousedown', handlePointerDown);
-    return () => {
-      window.removeEventListener('mousedown', handlePointerDown);
-    };
   }, []);
 
-  useEffect(() => {
-    if (!isSending) {
+  const handleFocusRequest = useCallback((nextFocusRequestToken) => {
+    if (nextFocusRequestToken === lastHandledFocusRequestRef.current) {
       return;
     }
-    setPlusMenuOpen(false);
-  }, [isSending]);
-
-  useEffect(() => {
-    if (focusRequestToken === lastHandledFocusRequestRef.current) {
-      return;
-    }
-    lastHandledFocusRequestRef.current = focusRequestToken;
+    lastHandledFocusRequestRef.current = nextFocusRequestToken;
     if (!textareaRef.current || isSending) {
       return;
     }
     textareaRef.current.focus();
     const textLength = textareaRef.current.value.length;
     textareaRef.current.setSelectionRange(textLength, textLength);
-  }, [focusRequestToken, isSending]);
+  }, [isSending]);
+
+  useTextareaAutoResize(inputValue, resizeTextarea);
+  useDismissPlusMenu(plusMenuRef, setPlusMenuOpen);
+  useClosePlusMenuOnSending(isSending, setPlusMenuOpen);
+  useComposerFocusRequest({
+    focusRequestToken,
+    handleFocusRequest,
+  });
 
   const { isConnected, isRecording, error } = useVoiceMode(
     voiceModeEnabled,

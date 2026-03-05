@@ -11,6 +11,7 @@ title: "MessageInput Clipboard Image and Voice Submit Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/features/chat/components/MessageInput.jsx`
+- `frontend/src/renderer/features/chat/hooks/useMessageInputUiBindings.js`
 - `frontend/src/renderer/features/chat/utils/messageInput.js`
 - `frontend/src/renderer/features/chat/utils/dataUrlImageUtils.js`
 - `frontend/src/renderer/features/chat/utils/clipboardImageUtils.js`
@@ -30,6 +31,13 @@ Component-owned state:
 - UI menu: `plusMenuOpen`
 - clipboard previews: `clipboardImages[]`
 - readable file previews: `selectedReadableFiles[]`
+
+UI-effect bindings (`useMessageInputUiBindings`) own:
+
+- textarea auto-resize on input changes
+- plus-menu outside-click dismissal
+- automatic plus-menu close on send lock (`isSending=true`)
+- focus-request token handling for composer autofocus
 
 Hook-owned text/transcription state (`useTranscription`):
 
