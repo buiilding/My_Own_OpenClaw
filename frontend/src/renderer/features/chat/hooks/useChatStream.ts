@@ -17,13 +17,6 @@ import {
   type LlmThoughtEvent,
   type StreamingCompleteEvent,
   type StreamingResponseEvent,
-  type ContextCompactionStartedEvent,
-  type ContextCompactionCompletedEvent,
-  type ContextCompactionFailedEvent,
-  type SystemPromptEvent,
-  type UserMessageFullEvent,
-  type AssistantMessageFullEvent,
-  type ToolSchemasEvent,
   type ToolCallEvent,
   type ToolOutputEvent,
   type ToolBundleEvent,
@@ -37,9 +30,6 @@ import {
   buildThinkingStatus,
 } from '../utils/chatStreamFormatting';
 import {
-  buildAssistantMessageFullUpdate,
-  buildSystemPromptUpdate,
-  buildUserMessageFullUpdate,
   findLastAssistantLlmTextMessageId,
   findStreamingCompleteAssistantMessage,
   resolveStreamingResponseAction,
@@ -49,10 +39,6 @@ import {
 } from '../utils/chatStreamTracking';
 import { resolveThinkingCapabilities } from '../utils/modelThinkingCapabilities';
 import {
-  COMPACTION_THINKING_STATUS,
-  COMPACTION_COMPLETED_NO_CHANGES_THINKING_STATUS,
-  COMPACTION_COMPLETED_THINKING_STATUS,
-  COMPACTION_FAILED_THINKING_STATUS,
   GENERIC_THINKING_STATUS,
   normalizePersistedThinkingStatus,
 } from '../utils/chatStreamThinkingStatus';
@@ -64,6 +50,8 @@ import { useLatestRef } from '../../../infrastructure/hooks/useLatestRef';
 import { useChatStreamTerminalHandlers } from './useChatStreamTerminalHandlers';
 import { buildChatStreamHandlerMap } from '../utils/chatStreamHandlerMap';
 import { useChatStreamLocalUserHandler } from './useChatStreamLocalUserHandler';
+import { useChatStreamCompactionHandlers } from './useChatStreamCompactionHandlers';
+import { useChatStreamMetadataHandlers } from './useChatStreamMetadataHandlers';
 import { buildAssistantTranscriptTransparency } from '../utils/chatStreamTransparency';
 import {
   recordTrackingEvent as recordTrackingEventRuntime,
@@ -273,68 +261,17 @@ export function useChatStream(enableTranscript: boolean = true) {
     shouldIgnoreForStaleTurn,
   ]);
 
-  const handleContextCompactionStarted = useCallback((event: ContextCompactionStartedEvent) => {
-    const conversationRef = resolveTargetConversationRef(event);
-    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
-      return;
-    }
-    setThinkingStatus(COMPACTION_THINKING_STATUS, conversationRef);
-    setThinkingSourceEventType('context-compaction-started', conversationRef);
-    recordTrackingEvent('context-compaction-started', event.turn_ref, {}, conversationRef);
-  }, [
+  const {
+    handleContextCompactionStarted,
+    handleContextCompactionCompleted,
+    handleContextCompactionFailed,
+  } = useChatStreamCompactionHandlers({
     resolveTargetConversationRef,
-    setThinkingSourceEventType,
-    setThinkingStatus,
-    recordTrackingEvent,
     shouldIgnoreForStaleTurn,
-  ]);
-
-  const handleContextCompactionCompleted = useCallback((event: ContextCompactionCompletedEvent) => {
-    const conversationRef = resolveTargetConversationRef(event);
-    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
-      return;
-    }
-    const skippedReason = (
-      typeof event.payload?.skipped_reason === 'string'
-        ? event.payload.skipped_reason.trim()
-        : ''
-    );
-    setThinkingStatus(
-      skippedReason
-        ? COMPACTION_COMPLETED_NO_CHANGES_THINKING_STATUS
-        : COMPACTION_COMPLETED_THINKING_STATUS,
-      conversationRef,
-    );
-    setThinkingSourceEventType('context-compaction-completed', conversationRef);
-    recordTrackingEvent('context-compaction-completed', event.turn_ref, {}, conversationRef);
-  }, [
-    recordTrackingEvent,
-    resolveTargetConversationRef,
-    setThinkingSourceEventType,
     setThinkingStatus,
-    shouldIgnoreForStaleTurn,
-  ]);
-
-  const handleContextCompactionFailed = useCallback((event: ContextCompactionFailedEvent) => {
-    const conversationRef = resolveTargetConversationRef(event);
-    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
-      return;
-    }
-    const errorText = (
-      typeof event.payload?.error === 'string'
-        ? event.payload.error.trim()
-        : ''
-    );
-    setThinkingStatus(errorText || COMPACTION_FAILED_THINKING_STATUS, conversationRef);
-    setThinkingSourceEventType('context-compaction-failed', conversationRef);
-    recordTrackingEvent('context-compaction-failed', event.turn_ref, {}, conversationRef);
-  }, [
-    recordTrackingEvent,
-    resolveTargetConversationRef,
     setThinkingSourceEventType,
-    setThinkingStatus,
-    shouldIgnoreForStaleTurn,
-  ]);
+    recordTrackingEvent,
+  });
 
   const {
     handleToolCall,
@@ -350,69 +287,19 @@ export function useChatStream(enableTranscript: boolean = true) {
     recordTrackingEvent,
   });
 
-  const handleSystemPrompt = useCallback((event: SystemPromptEvent) => {
-    const conversationRef = resolveTargetConversationRef(event);
-    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
-      return;
-    }
-    updateLastMessageBySender('user', {
-      systemPrompt: buildSystemPromptUpdate(event.payload),
-    }, event.turn_ref || undefined, conversationRef);
-    recordTrackingEvent('system-prompt', event.turn_ref, {}, conversationRef);
-  }, [
+  const {
+    handleSystemPrompt,
+    handleUserMessageFull,
+    handleAssistantMessageFull,
+    handleToolSchemas,
+  } = useChatStreamMetadataHandlers({
     resolveTargetConversationRef,
-    updateLastMessageBySender,
-    recordTrackingEvent,
     shouldIgnoreForStaleTurn,
-  ]);
-
-  const handleUserMessageFull = useCallback((event: UserMessageFullEvent) => {
-    const conversationRef = resolveTargetConversationRef(event);
-    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
-      return;
-    }
-    updateLastMessageBySender('user', {
-      fullUserMessage: buildUserMessageFullUpdate(event.payload),
-    }, event.turn_ref || undefined, conversationRef);
-    recordTrackingEvent('user-message-full', event.turn_ref, {}, conversationRef);
-  }, [
-    resolveTargetConversationRef,
     updateLastMessageBySender,
-    recordTrackingEvent,
-    shouldIgnoreForStaleTurn,
-  ]);
-
-  const handleAssistantMessageFull = useCallback((event: AssistantMessageFullEvent) => {
-    const conversationRef = resolveTargetConversationRef(event);
-    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
-      return;
-    }
-    updateLastAssistantLlmTextMessage({
-      fullAssistantMessage: buildAssistantMessageFullUpdate(event.payload),
-    }, event.turn_ref || undefined, conversationRef);
-    recordTrackingEvent('assistant-message-full', event.turn_ref, {}, conversationRef);
-  }, [
-    resolveTargetConversationRef,
+    updateFirstMessageBySender,
     updateLastAssistantLlmTextMessage,
     recordTrackingEvent,
-    shouldIgnoreForStaleTurn,
-  ]);
-
-  const handleToolSchemas = useCallback((event: ToolSchemasEvent) => {
-    const conversationRef = resolveTargetConversationRef(event);
-    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
-      return;
-    }
-    updateFirstMessageBySender('user', {
-      toolSchemas: event.payload?.tool_schemas,
-    }, conversationRef);
-    recordTrackingEvent('tool-schemas', event.turn_ref, {}, conversationRef);
-  }, [
-    resolveTargetConversationRef,
-    updateFirstMessageBySender,
-    recordTrackingEvent,
-    shouldIgnoreForStaleTurn,
-  ]);
+  });
 
   const handleLocalUserMessage = useChatStreamLocalUserHandler({
     addMessage,
