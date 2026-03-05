@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(frontend-stale-turn-metadata-gate): guard chat-stream metadata enrichment events (`system-prompt`, `user-message-full`, `assistant-message-full`, `tool-schemas`) by active turn so stale old-turn metadata packets cannot mutate current in-flight turn transcript/message metadata.
+- docs(frontend-permissions-settings-runtime-alignment): refresh renderer/frontend architecture and inventory docs to match current non-permission-gated startup, current permissions surface (`PermissionControlCenter` + store-derived gate state), and current `SettingsSection` behavior (general tab + optional `data-controls` route branch).
 - test(frontend-stale-turn-token-count-gate): guard chat-stream `token-count` handling by active turn so stale turn token updates cannot overwrite active turn usage counters during in-flight responses.
 - test(tool-result-state-fallback-precedence): harden backend tool-result routing so malformed `system_state_internal` no longer blocks valid legacy `system_state` updates, with individual and bundle regressions that lock fallback precedence.
 - test(frontend-stale-turn-error-gate): guard chat-stream `error` handling by active turn so stale terminal error events cannot clear sending/thinking state, overwrite stream tracking phase, or append erroneous error messages for newer in-flight turns.
