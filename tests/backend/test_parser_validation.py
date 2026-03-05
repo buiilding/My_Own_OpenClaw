@@ -185,15 +185,39 @@ def test_validate_metadata_rejects_whitespace_only_fields_for_computer_tools():
 
 def test_validate_metadata_accepts_trimmed_nonempty_strings_for_computer_tools():
     validator, _metrics = _make_validator_for_registry(ComputerRegistry(["mouse_control"]))
+    metadata = {
+        "description": " current screen ",
+        "explanation": " click submit ",
+        "expectation": " modal opens ",
+    }
 
     validator.validate_metadata(
         "mouse_control",
-        {
-            "description": " current screen ",
-            "explanation": " click submit ",
-            "expectation": " modal opens ",
-        },
+        metadata,
     )
+
+    assert metadata == {
+        "description": "current screen",
+        "explanation": "click submit",
+        "expectation": "modal opens",
+    }
+
+
+def test_validate_metadata_accepts_and_trims_metadata_for_unified_computer_use_tool():
+    validator, _metrics = _make_validator(["computer_use"])
+    metadata = {
+        "description": " screen ",
+        "explanation": " click ",
+        "expectation": " opens ",
+    }
+
+    validator.validate_metadata("computer_use", metadata)
+
+    assert metadata == {
+        "description": "screen",
+        "explanation": "click",
+        "expectation": "opens",
+    }
 
 
 def test_get_valid_tool_names_deduplicates_registry_values():
@@ -260,3 +284,29 @@ def test_validate_tool_call_invalidates_cache_when_dev_selection_changes():
     )
     validator.validate_tool_call("read_file", {"file_path": "/tmp/b"})
     assert registry.calls == 2
+
+
+def test_validate_tool_call_accepts_legacy_mouse_name_when_unified_computer_use_is_registered():
+    validator, _metrics = _make_validator(["computer_use"])
+
+    validator.validate_tool_call(
+        "mouse_control",
+        {"action": "click", "x": 10, "y": 20},
+    )
+
+
+def test_get_valid_tool_names_expands_unified_computer_use_to_legacy_subtools():
+    validator, _metrics = _make_validator(["computer_use", "read_file"])
+
+    names = validator._get_valid_tool_names()
+
+    assert names == [
+        "computer_use",
+        "keyboard_control",
+        "mouse_control",
+        "read_file",
+        "screenshot",
+        "scroll_control",
+        "switch_tab",
+        "wait",
+    ]

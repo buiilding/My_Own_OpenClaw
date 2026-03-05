@@ -74,6 +74,70 @@ async def test_parse_response_accepts_direct_computer_use_metadata():
 
 
 @pytest.mark.asyncio
+async def test_parse_response_trims_direct_computer_use_metadata_fields():
+    parser = _make_parser([DummyTool("computer_use", ToolDomain.COMPUTER)])
+    response = (
+        '{"functionCall":{"name":"computer_use","args":{"tool":"mouse_control",'
+        '"metadata":{"description":" screen ","explanation":" click ","expectation":" dialog "},'
+        '"arguments":{"action":"click","x":1,"y":2}}}}'
+    )
+
+    parsed = await parser.parse_response(response)
+    tool_call: ParsedToolCall = parsed.tool_calls[0]
+    assert tool_call.metadata == {
+        "description": "screen",
+        "explanation": "click",
+        "expectation": "dialog",
+    }
+
+
+@pytest.mark.asyncio
+async def test_parse_response_accepts_direct_legacy_mouse_tool_when_only_computer_use_is_registered():
+    parser = _make_parser([DummyTool("computer_use", ToolDomain.COMPUTER)])
+    response = (
+        '{"functionCall":{"name":"mouse_control","args":{'
+        '"action":"click","x":2,"y":3,'
+        '"metadata":{"description":"screen","explanation":"click button","expectation":"dialog opens"}'
+        '}}}'
+    )
+
+    parsed = await parser.parse_response(response)
+    assert len(parsed.tool_calls) == 1
+    tool_call: ParsedToolCall = parsed.tool_calls[0]
+    assert tool_call.tool_name == "mouse_control"
+    assert tool_call.parameters == {"action": "click", "x": 2, "y": 3}
+    assert tool_call.metadata == {
+        "description": "screen",
+        "explanation": "click button",
+        "expectation": "dialog opens",
+    }
+
+
+@pytest.mark.asyncio
+async def test_parse_response_rejects_direct_legacy_mouse_tool_without_metadata():
+    parser = _make_parser([DummyTool("computer_use", ToolDomain.COMPUTER)])
+    response = (
+        '{"functionCall":{"name":"mouse_control","args":{"action":"click","x":2,"y":3}}}'
+    )
+
+    with pytest.raises(ParseValidationError, match="missing metadata"):
+        await parser.parse_response(response)
+
+
+@pytest.mark.asyncio
+async def test_parse_response_rejects_direct_computer_use_whitespace_only_metadata_fields():
+    parser = _make_parser([DummyTool("computer_use", ToolDomain.COMPUTER)])
+    response = (
+        '{"functionCall":{"name":"computer_use","args":{"tool":"mouse_control",'
+        '"metadata":{"description":"   ","explanation":"\\n","expectation":"\\t"},'
+        '"arguments":{"action":"click","x":1,"y":2}}}}'
+    )
+
+    with pytest.raises(ParseValidationError, match="missing required metadata field"):
+        await parser.parse_response(response)
+
+
+@pytest.mark.asyncio
 async def test_parse_response_rejects_legacy_computer_use_metadata_wrapper():
     parser = _make_parser([DummyTool("computer_use", ToolDomain.COMPUTER)])
     response = (
