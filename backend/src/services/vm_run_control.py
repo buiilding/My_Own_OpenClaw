@@ -4,13 +4,20 @@ from __future__ import annotations
 
 import asyncio
 from copy import deepcopy
-from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
-
-def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+from backend.src.services.vm_run_control_helpers import (
+    build_run_event,
+    normalize_files,
+    normalize_optional_string,
+    now_iso,
+)
+from backend.src.services.vm_run_control_worker_state import (
+    build_registry_worker_state,
+    build_run_worker_state,
+    build_worker_heartbeat_event_payload,
+)
 
 
 class VmRunControlService:
@@ -31,60 +38,8 @@ class VmRunControlService:
         self._max_active_runs_per_workspace = max(1, int(max_active_runs_per_workspace))
 
     @staticmethod
-    def _normalize_files(files: Optional[List[Dict[str, Any]]]) -> List[Dict[str, Any]]:
-        normalized: List[Dict[str, Any]] = []
-        if not isinstance(files, list):
-            return normalized
-        for item in files:
-            if not isinstance(item, dict):
-                continue
-            artifact_id = item.get("artifact_id")
-            if not isinstance(artifact_id, str) or not artifact_id.strip():
-                continue
-            normalized.append(
-                {
-                    "artifact_id": artifact_id.strip(),
-                    "filename": (
-                        item.get("filename").strip()
-                        if isinstance(item.get("filename"), str) and item.get("filename").strip()
-                        else None
-                    ),
-                    "content_type": (
-                        item.get("content_type").strip()
-                        if isinstance(item.get("content_type"), str)
-                        and item.get("content_type").strip()
-                        else None
-                    ),
-                }
-            )
-        return normalized
-
-    @staticmethod
-    def _build_event(
-        *,
-        seq: int,
-        event_type: str,
-        source: str,
-        payload: Dict[str, Any],
-    ) -> Dict[str, Any]:
-        return {
-            "seq": seq,
-            "timestamp": _now_iso(),
-            "event_type": event_type,
-            "source": source,
-            "payload": payload,
-        }
-
-    @staticmethod
     def _clone_run(run: Dict[str, Any]) -> Dict[str, Any]:
         return deepcopy(run)
-
-    @staticmethod
-    def _normalize_optional_string(value: Optional[str]) -> Optional[str]:
-        if not isinstance(value, str):
-            return None
-        normalized = value.strip()
-        return normalized if normalized else None
 
     def _append_event_locked(
         self,
@@ -96,7 +51,7 @@ class VmRunControlService:
     ) -> Dict[str, Any]:
         next_seq = int(run.get("last_event_seq", 0)) + 1
         event_payload = deepcopy(payload) if isinstance(payload, dict) else {}
-        event = self._build_event(
+        event = build_run_event(
             seq=next_seq,
             event_type=event_type,
             source=source,
@@ -148,7 +103,7 @@ class VmRunControlService:
             }:
                 continue
 
-            now = _now_iso()
+            now = now_iso()
             run["worker"] = {
                 "worker_id": worker_id,
                 "vm_id": vm_id,
@@ -208,7 +163,7 @@ class VmRunControlService:
             "action": action,
             "requested_by": requested_by,
             "control_mode": control_mode,
-            "created_at": _now_iso(),
+            "created_at": now_iso(),
         }
         run.setdefault("pending_controls", []).append(command)
         payload: Dict[str, Any] = {
@@ -266,9 +221,9 @@ class VmRunControlService:
                 )
 
             run_id = str(uuid4())
-            now = _now_iso()
+            now = now_iso()
             normalized_metadata = deepcopy(metadata) if isinstance(metadata, dict) else {}
-            explicit_conversation_ref = self._normalize_optional_string(
+            explicit_conversation_ref = normalize_optional_string(
                 normalized_metadata.get("conversation_ref")
             )
             conversation_ref = explicit_conversation_ref or f"run-{run_id}"
@@ -281,7 +236,7 @@ class VmRunControlService:
                 "query_message_id": None,
                 "query": query,
                 "requested_by": requested_by,
-                "files": self._normalize_files(files),
+                "files": normalize_files(files),
                 "metadata": normalized_metadata,
                 "status": "awaiting_worker",
                 "control_mode": "agent_only",
@@ -420,7 +375,7 @@ class VmRunControlService:
     ) -> List[str]:
         async with self._lock:
             stopped_run_ids: List[str] = []
-            normalized_workspace_id = self._normalize_optional_string(workspace_id)
+            normalized_workspace_id = normalize_optional_string(workspace_id)
             for run in self._runs.values():
                 if (
                     normalized_workspace_id is not None
@@ -454,18 +409,18 @@ class VmRunControlService:
         metadata: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         async with self._lock:
-            now = _now_iso()
-            worker = {
-                "worker_id": worker_id,
-                "workspace_id": workspace_id,
-                "vm_id": vm_id,
-                "user_id": user_id,
-                "session_id": session_id,
-                "agent_id": agent_id,
-                "status": status,
-                "metadata": deepcopy(metadata) if isinstance(metadata, dict) else {},
-                "last_heartbeat_at": now,
-            }
+            now = now_iso()
+            worker = build_registry_worker_state(
+                worker_id=worker_id,
+                workspace_id=workspace_id,
+                vm_id=vm_id,
+                user_id=user_id,
+                session_id=session_id,
+                agent_id=agent_id,
+                status=status,
+                metadata=metadata,
+                last_heartbeat_at=now,
+            )
             self._workers[worker_id] = worker
 
             assigned_run = self._assign_next_run_to_worker_locked(
@@ -506,7 +461,7 @@ class VmRunControlService:
 
             run["status"] = "running"
             run["query_message_id"] = turn_ref
-            normalized_conversation_ref = self._normalize_optional_string(conversation_ref)
+            normalized_conversation_ref = normalize_optional_string(conversation_ref)
             if normalized_conversation_ref:
                 run["conversation_ref"] = normalized_conversation_ref
             self._append_event_locked(
@@ -538,46 +493,46 @@ class VmRunControlService:
             run = self._runs.get(run_id)
             if not run:
                 return None
-            now = _now_iso()
+            now = now_iso()
             existing_worker = self._workers.get(worker_id, {})
-            worker_user_id = self._normalize_optional_string(existing_worker.get("user_id"))
-            worker_workspace_id = self._normalize_optional_string(existing_worker.get("workspace_id"))
-            run["worker"] = {
-                "worker_id": worker_id,
-                "vm_id": vm_id,
-                "session_id": session_id,
-                "agent_id": agent_id,
-                "user_id": worker_user_id,
-                "status": status,
-                "metadata": deepcopy(metadata) if isinstance(metadata, dict) else {},
-                "last_heartbeat_at": now,
-            }
+            worker_user_id = normalize_optional_string(existing_worker.get("user_id"))
+            worker_workspace_id = normalize_optional_string(existing_worker.get("workspace_id"))
+            run["worker"] = build_run_worker_state(
+                worker_id=worker_id,
+                vm_id=vm_id,
+                session_id=session_id,
+                agent_id=agent_id,
+                user_id=worker_user_id,
+                status=status,
+                metadata=metadata,
+                last_heartbeat_at=now,
+            )
             run["last_heartbeat_at"] = now
             if run["status"] in {"awaiting_worker", "queued"} and status in self._READY_WORKER_STATUSES:
                 run["status"] = "running"
 
-            self._workers[worker_id] = {
-                "worker_id": worker_id,
-                "workspace_id": worker_workspace_id or run.get("workspace_id"),
-                "vm_id": vm_id,
-                "user_id": worker_user_id,
-                "session_id": session_id,
-                "agent_id": agent_id,
-                "status": status,
-                "metadata": deepcopy(metadata) if isinstance(metadata, dict) else {},
-                "last_heartbeat_at": now,
-            }
+            self._workers[worker_id] = build_registry_worker_state(
+                worker_id=worker_id,
+                workspace_id=worker_workspace_id or run.get("workspace_id"),
+                vm_id=vm_id,
+                user_id=worker_user_id,
+                session_id=session_id,
+                agent_id=agent_id,
+                status=status,
+                metadata=metadata,
+                last_heartbeat_at=now,
+            )
 
             self._append_event_locked(
                 run,
                 event_type="worker-heartbeat",
                 source="worker",
-                payload={
-                    "worker_id": worker_id,
-                    "vm_id": vm_id,
-                    "session_id": session_id,
-                    "agent_id": agent_id,
-                    "status": status,
-                },
+                payload=build_worker_heartbeat_event_payload(
+                    worker_id=worker_id,
+                    vm_id=vm_id,
+                    session_id=session_id,
+                    agent_id=agent_id,
+                    status=status,
+                ),
             )
             return self._clone_run(run)
