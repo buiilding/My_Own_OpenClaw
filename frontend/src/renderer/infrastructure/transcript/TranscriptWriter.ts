@@ -2,13 +2,14 @@ import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS, SEND_CHANNELS } from '../ipc/b
 import { createPendingAssistantQueue } from './pendingAssistantQueue';
 import { createPendingUserQueue } from './pendingUserQueue';
 import { createPendingToolQueue } from './pendingToolQueue';
-import { normalizeOptionalIncomingText } from '../text/incomingTextNormalization';
+import { extractTranscriptSessionSyncPayload } from './sessionSyncPayload';
 import {
   emitSessionUpdateEvent,
   persistSessionInfoToStorage,
   readSessionInfoFromStorage,
 } from './sessionInfoStorage';
 import { createTranscriptSessionState } from './sessionInfoState';
+import { normalizeTransparencyData } from './transparencyNormalization';
 import type {
   PendingAssistantMessage,
   PendingToolMessage,
@@ -22,52 +23,6 @@ const sessionState = createTranscriptSessionState(readSessionInfoFromStorage);
 const pendingAssistantQueue = createPendingAssistantQueue();
 const pendingUserQueue = createPendingUserQueue();
 const pendingToolQueue = createPendingToolQueue();
-
-const normalizeOptionalString = (value: unknown): string | null => {
-  return normalizeOptionalIncomingText(value);
-};
-
-const normalizeTransparencyData = (
-  transparency: TranscriptTransparencyData | null | undefined,
-): TranscriptTransparencyData | null => {
-  if (!transparency || typeof transparency !== 'object') {
-    return null;
-  }
-
-  const normalized: TranscriptTransparencyData = {};
-  const systemPrompt = normalizeOptionalString(transparency.systemPrompt);
-  if (systemPrompt) {
-    normalized.systemPrompt = systemPrompt;
-  }
-
-  if (Array.isArray(transparency.toolSchemas) && transparency.toolSchemas.length > 0) {
-    normalized.toolSchemas = [...transparency.toolSchemas];
-  }
-
-  const fullUserContent = normalizeOptionalString(transparency.fullUserMessage?.content);
-  const fullUserMetadata = (
-    transparency.fullUserMessage?.metadata
-    && typeof transparency.fullUserMessage.metadata === 'object'
-    && !Array.isArray(transparency.fullUserMessage.metadata)
-  )
-    ? { ...transparency.fullUserMessage.metadata }
-    : null;
-  if (fullUserContent || fullUserMetadata) {
-    normalized.fullUserMessage = {
-      content: fullUserContent || undefined,
-      metadata: fullUserMetadata || undefined,
-    };
-  }
-
-  const fullAssistantContent = normalizeOptionalString(transparency.fullAssistantMessage?.content);
-  if (fullAssistantContent) {
-    normalized.fullAssistantMessage = {
-      content: fullAssistantContent,
-    };
-  }
-
-  return Object.keys(normalized).length > 0 ? normalized : null;
-};
 
 const sessionInfoChanged = (previous: SessionInfo, next: SessionInfo): boolean => (
   previous.conversationRef !== next.conversationRef
@@ -113,63 +68,6 @@ const applyTranscriptSessionUpdate = (
   }
   void flushPendingMessages();
   return nextInfo;
-};
-
-const hasOwnProperty = (value: unknown, key: string): boolean => {
-  return Boolean(value && typeof value === 'object' && Object.prototype.hasOwnProperty.call(value, key));
-};
-
-const normalizeOptionalSessionField = (value: unknown): string | null => {
-  if (value === null) {
-    return null;
-  }
-  return normalizeOptionalString(value);
-};
-
-const extractTranscriptSessionSyncPayload = (
-  payload: unknown,
-): {
-  conversationRef?: string | null;
-  userId?: string | null;
-} | null => {
-  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
-    return null;
-  }
-
-  const hasConversationRef = (
-    hasOwnProperty(payload, 'conversationRef')
-    || hasOwnProperty(payload, 'conversation_ref')
-    || hasOwnProperty(payload, 'sessionId')
-    || hasOwnProperty(payload, 'session_id')
-  );
-  const hasUserId = hasOwnProperty(payload, 'userId') || hasOwnProperty(payload, 'user_id');
-  if (!hasConversationRef && !hasUserId) {
-    return null;
-  }
-
-  const conversationRefCandidate = hasOwnProperty(payload, 'conversationRef')
-    ? (payload as { conversationRef?: unknown }).conversationRef
-    : (
-      hasOwnProperty(payload, 'conversation_ref')
-        ? (payload as { conversation_ref?: unknown }).conversation_ref
-        : (
-          hasOwnProperty(payload, 'sessionId')
-            ? (payload as { sessionId?: unknown }).sessionId
-            : (payload as { session_id?: unknown }).session_id
-        )
-    );
-  const userIdCandidate = hasOwnProperty(payload, 'userId')
-    ? (payload as { userId?: unknown }).userId
-    : (payload as { user_id?: unknown }).user_id;
-
-  return {
-    conversationRef: hasConversationRef
-      ? normalizeOptionalSessionField(conversationRefCandidate)
-      : undefined,
-    userId: hasUserId
-      ? normalizeOptionalSessionField(userIdCandidate)
-      : undefined,
-  };
 };
 
 let transcriptSessionSyncSubscribed = false;

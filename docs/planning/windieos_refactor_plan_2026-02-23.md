@@ -4871,3 +4871,44 @@ read_when:
   - `cd frontend && npm run lint:audit` (pass)
   - `cd frontend && npm run audit:jscpd` (0 clones)
   - `cd frontend && npm run audit:knip` (clean)
+
+## Phase 199 Outcome (2026-03-05)
+
+- Refactor slice (transcript writer decomposition + helper-level tests):
+  - split dense helper logic out of `TranscriptWriter` into dedicated modules:
+    - added `frontend/src/renderer/infrastructure/transcript/transparencyNormalization.ts`
+      - exports `normalizeTransparencyData(...)`
+    - added `frontend/src/renderer/infrastructure/transcript/sessionSyncPayload.ts`
+      - exports `extractTranscriptSessionSyncPayload(...)`
+  - rewired:
+    - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+      - now delegates transparency normalization and transcript-session sync payload parsing to shared helpers.
+  - file-size delta:
+    - `TranscriptWriter.ts` reduced from `604` LOC to `502` LOC.
+  - tests:
+    - added `tests/frontend/TranscriptTransparencyNormalization.test.ts`
+    - added `tests/frontend/TranscriptSessionSyncPayload.test.ts`
+- Dependency/tool upgrades (safe patch-level only):
+  - updated frontend deps:
+    - `electron`: `40.6.1 -> 40.7.0`
+    - `katex`: `0.16.33 -> 0.16.35`
+    - `marked`: `17.0.3 -> 17.0.4`
+    - `lucide-react`: `0.575.0 -> 0.577.0`
+  - no major-version migrations applied in this slice.
+- Route consolidation check:
+  - `npx jscpd --gitignore --min-lines 8 --reporters console --output ../.audit/plan1/jscpd-api-routes ../backend/src/api/routes`
+  - result: `0` clones; no route consolidation needed.
+- Audit outcome:
+  - combined `backend/src` + `frontend/src` `jscpd`: `0` clones.
+  - `knip`: clean.
+  - ESLint audit plugins:
+    - `react-compiler/react-compiler`: clean
+    - `deprecation/deprecation`: clean
+- Validation:
+  - `cd frontend && npm run lint -- src/renderer/infrastructure/transcript/TranscriptWriter.ts src/renderer/infrastructure/transcript/transparencyNormalization.ts src/renderer/infrastructure/transcript/sessionSyncPayload.ts` (pass)
+  - `cd frontend && npm run test:ci -- ../tests/frontend/TranscriptWriter.userAssistant.test.ts ../tests/frontend/TranscriptWriter.session.test.ts ../tests/frontend/TranscriptTransparencyNormalization.test.ts ../tests/frontend/TranscriptSessionSyncPayload.test.ts` (pass)
+  - `cd frontend && npm run test:ci -- ../tests/frontend/ChatGptDashboardShell.test.jsx ../tests/frontend/ChatStreamEventRuntime.test.ts` (pass)
+  - `cd frontend && npm run test:ci` (pass; 186 suites / 1213 tests)
+  - `cd frontend && npm run lint:audit` (pass)
+  - `cd frontend && npm run audit:jscpd` (0 clones)
+  - `cd frontend && npm run audit:knip` (clean)
