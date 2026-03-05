@@ -52,6 +52,7 @@ import { buildChatStreamHandlerMap } from '../utils/chatStreamHandlerMap';
 import { useChatStreamLocalUserHandler } from './useChatStreamLocalUserHandler';
 import { useChatStreamCompactionHandlers } from './useChatStreamCompactionHandlers';
 import { useChatStreamMetadataHandlers } from './useChatStreamMetadataHandlers';
+import { useTurnScopedBackendEventHandler } from './useTurnScopedBackendEventHandler';
 import { buildAssistantTranscriptTransparency } from '../utils/chatStreamTransparency';
 import {
   recordTrackingEvent as recordTrackingEventRuntime,
@@ -310,34 +311,30 @@ export function useChatStream(enableTranscript: boolean = true) {
     setThinkingStatus,
   });
 
-  const handleToolCallEvent = useCallback((event: ToolCallEvent) => {
-    const conversationRef = resolveTargetConversationRef(event);
-    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
-      return;
-    }
-    handleToolCall(event, conversationRef);
-  }, [handleToolCall, resolveTargetConversationRef, shouldIgnoreForStaleTurn]);
+  const handleToolCallEvent = useTurnScopedBackendEventHandler<ToolCallEvent>({
+    resolveTargetConversationRef,
+    shouldIgnoreForStaleTurn,
+    onEvent: handleToolCall,
+  });
 
-  const handleToolOutputEvent = useCallback((event: ToolOutputEvent) => {
-    const conversationRef = resolveTargetConversationRef(event);
-    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
-      return;
-    }
-    handleToolOutput(event, conversationRef);
-  }, [handleToolOutput, resolveTargetConversationRef, shouldIgnoreForStaleTurn]);
+  const handleToolOutputEvent = useTurnScopedBackendEventHandler<ToolOutputEvent>({
+    resolveTargetConversationRef,
+    shouldIgnoreForStaleTurn,
+    onEvent: handleToolOutput,
+  });
 
-  const handleToolBundleEvent = useCallback((event: ToolBundleEvent) => {
-    const conversationRef = resolveTargetConversationRef(event);
-    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
-      return;
-    }
-    handleToolBundle(event, conversationRef);
-  }, [handleToolBundle, resolveTargetConversationRef, shouldIgnoreForStaleTurn]);
+  const handleToolBundleEvent = useTurnScopedBackendEventHandler<ToolBundleEvent>({
+    resolveTargetConversationRef,
+    shouldIgnoreForStaleTurn,
+    onEvent: handleToolBundle,
+  });
 
-  const handleLocalUserMessageEvent = useCallback((event: LocalUserMessageEvent) => {
-    const conversationRef = resolveTargetConversationRef(event);
-    handleLocalUserMessage(event, conversationRef);
-  }, [handleLocalUserMessage, resolveTargetConversationRef]);
+  const handleLocalUserMessageEvent = useTurnScopedBackendEventHandler<LocalUserMessageEvent>({
+    resolveTargetConversationRef,
+    shouldIgnoreForStaleTurn,
+    onEvent: handleLocalUserMessage,
+    skipStaleTurnGate: true,
+  });
 
   const handleStreamingComplete = useCallback((event: StreamingCompleteEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
@@ -401,29 +398,23 @@ export function useChatStream(enableTranscript: boolean = true) {
     setThinkingStatus,
   });
 
-  const handleMemoryStoreEvent = useCallback((event: MemoryStoreEvent) => {
-    const conversationRef = resolveTargetConversationRef(event);
-    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
-      return;
-    }
-    handleMemoryStore(event, conversationRef);
-  }, [handleMemoryStore, resolveTargetConversationRef, shouldIgnoreForStaleTurn]);
+  const handleMemoryStoreEvent = useTurnScopedBackendEventHandler<MemoryStoreEvent>({
+    resolveTargetConversationRef,
+    shouldIgnoreForStaleTurn,
+    onEvent: handleMemoryStore,
+  });
 
-  const handleTokenCountEvent = useCallback((event: TokenCountEvent) => {
-    const conversationRef = resolveTargetConversationRef(event);
-    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
-      return;
-    }
-    handleTokenCount(event, conversationRef);
-  }, [handleTokenCount, resolveTargetConversationRef, shouldIgnoreForStaleTurn]);
+  const handleTokenCountEvent = useTurnScopedBackendEventHandler<TokenCountEvent>({
+    resolveTargetConversationRef,
+    shouldIgnoreForStaleTurn,
+    onEvent: handleTokenCount,
+  });
 
-  const handleErrorEvent = useCallback((event: ErrorEvent) => {
-    const conversationRef = resolveTargetConversationRef(event);
-    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
-      return;
-    }
-    handleError(event, conversationRef);
-  }, [handleError, resolveTargetConversationRef, shouldIgnoreForStaleTurn]);
+  const handleErrorEvent = useTurnScopedBackendEventHandler<ErrorEvent>({
+    resolveTargetConversationRef,
+    shouldIgnoreForStaleTurn,
+    onEvent: handleError,
+  });
 
   const handlers = useMemo<Record<BackendEventType, (event: BackendEvent) => void>>(() => buildChatStreamHandlerMap({
     handleLlmThought,

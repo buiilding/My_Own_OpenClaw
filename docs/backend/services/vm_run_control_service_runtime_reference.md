@@ -11,6 +11,8 @@ title: "VM Run Control Service Runtime Reference"
 ## Canonical Module
 
 - `backend/src/services/vm_run_control.py`
+- `backend/src/services/vm_run_control_helpers.py`
+- `backend/src/services/vm_run_control_worker_state.py`
 
 ## Runtime State Containers
 
@@ -52,6 +54,12 @@ Active-run cap enforcement:
 1. upsert worker record
 2. if worker status is `ready|running`, attempt queue assignment
 3. collect pending control commands for that worker
+
+Worker state shaping is centralized in `vm_run_control_worker_state.py`:
+
+- `build_registry_worker_state(...)` for `_workers` map entries
+- `build_run_worker_state(...)` for run-local worker snapshots
+- `build_worker_heartbeat_event_payload(...)` for `worker-heartbeat` event payloads
 
 Assignment constraints (`_assign_next_run_to_worker_locked`):
 
