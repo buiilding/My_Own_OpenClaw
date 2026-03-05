@@ -84,7 +84,10 @@ This keeps renderer text aligned with model-facing output when both output and e
 Message targeting:
 
 - `findLastMessageIdBySender` and `findLastAssistantLlmTextMessageId` support optional turn scoping.
-- `findStreamingCompleteAssistantMessage` prefers same-turn assistant message, then global last assistant llm-text.
+- `findStreamingCompleteAssistantMessage` is strict when `turnRef` is provided:
+  - only same-turn assistant `llm-text` messages are eligible
+  - no cross-turn fallback when scoped lookup misses
+  - global last assistant fallback is used only when no `turnRef` is provided
 
 Streaming append/new split:
 
@@ -110,6 +113,8 @@ Metadata normalization:
 
 - metadata-request-id fallback for tool-output correlation
 - streaming-complete marks last assistant message complete and writes transcript
+- stale `streaming-complete` turn does not complete active-turn assistant rows or write transcript entries
+- duplicate `streaming-complete` events do not duplicate assistant transcript writes
 - transcript-disabled mode skips transcript writes
 
 ## Drift Hotspots

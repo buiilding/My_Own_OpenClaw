@@ -22,20 +22,20 @@ title: "Stream Message Updater Selector Contract Reference"
 
 Returned helpers:
 
-- `updateLastMessageBySender(sender, updates, turnRef?)`
-- `updateFirstMessageBySender(sender, updates)`
-- `updateLastAssistantLlmTextMessage(updates, turnRef?)`
+- `updateLastMessageBySender(sender, updates, turnRef?, conversationRef?)`
+- `updateFirstMessageBySender(sender, updates, conversationRef?)`
+- `updateLastAssistantLlmTextMessage(updates, turnRef?, conversationRef?)`
 
 All helpers call provided `updateMessage(id, updates)` only when a message id is found.
 
 ## Selector Source of Truth
 
-Hook reads live messages from `useChatStore.getState().messages` per invocation.
+Hook reads live workspace messages from `useChatStore.getState().getWorkspaceState(conversationRef).messages` per invocation.
 
 Implications:
 
 - avoids stale closure snapshots from render-time arrays
-- update targeting follows latest stream-mutated state
+- update targeting follows latest stream-mutated state in the resolved conversation workspace
 
 ## Target Resolution Semantics
 
