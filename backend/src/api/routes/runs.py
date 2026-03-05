@@ -3,164 +3,35 @@
 from __future__ import annotations
 
 import os
-from typing import Annotated, Any, Dict, List, Literal, Optional
+from typing import Annotated, Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
-from pydantic import BaseModel, Field
 
+from backend.src.api.routes.run_models import (
+    CreateRunRequest,
+    CreateRunResponse,
+    RunControlRequest,
+    RunControlResponse,
+    RunEvent,
+    RunEventIngestRequest,
+    RunEventIngestResponse,
+    RunEventsResponse,
+    RunFileRef,
+    RunView,
+    StopAllRunsRequest,
+    StopAllRunsResponse,
+    WorkerAssignedRun,
+    WorkerControlCommand,
+    WorkerDispatchedRequest,
+    WorkerDispatchedResponse,
+    WorkerHeartbeatRequest,
+    WorkerHeartbeatResponse,
+    WorkerPollHeartbeatRequest,
+    WorkerPollHeartbeatResponse,
+)
 from backend.src.services.vm_run_control import VmRunControlService
 
 router = APIRouter(prefix="/api/runs", tags=["runs"])
-
-
-class RunFileRef(BaseModel):
-    artifact_id: str = Field(min_length=1)
-    filename: Optional[str] = None
-    content_type: Optional[str] = None
-
-
-class RunView(BaseModel):
-    run_id: str
-    workspace_id: str
-    agent_id: Optional[str] = None
-    conversation_ref: str
-    query_message_id: Optional[str] = None
-    query: str
-    requested_by: Optional[str] = None
-    files: List[RunFileRef] = Field(default_factory=list)
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-    status: str
-    control_mode: str
-    worker: Optional[Dict[str, Any]] = None
-    created_at: str
-    updated_at: str
-    last_heartbeat_at: Optional[str] = None
-    last_event_seq: int
-
-
-class RunEvent(BaseModel):
-    seq: int
-    timestamp: str
-    event_type: str
-    source: str
-    payload: Dict[str, Any] = Field(default_factory=dict)
-
-
-class CreateRunRequest(BaseModel):
-    workspace_id: str = Field(min_length=1)
-    query: str = Field(min_length=1)
-    agent_id: Optional[str] = None
-    requested_by: Optional[str] = None
-    files: List[RunFileRef] = Field(default_factory=list)
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-
-
-class CreateRunResponse(BaseModel):
-    run: RunView
-    events: List[RunEvent] = Field(default_factory=list)
-
-
-class RunControlRequest(BaseModel):
-    action: Literal["pause", "resume", "stop", "set-control-mode"]
-    requested_by: Optional[str] = None
-    control_mode: Optional[Literal["agent_only", "shared_control", "human_override"]] = None
-
-
-class RunControlResponse(BaseModel):
-    run: RunView
-    latest_event: RunEvent
-
-
-class StopAllRunsRequest(BaseModel):
-    workspace_id: Optional[str] = None
-    requested_by: Optional[str] = None
-
-
-class StopAllRunsResponse(BaseModel):
-    workspace_id: Optional[str] = None
-    stopped_run_ids: List[str] = Field(default_factory=list)
-    count: int
-
-
-class WorkerHeartbeatRequest(BaseModel):
-    worker_id: str = Field(min_length=1)
-    vm_id: str = Field(min_length=1)
-    session_id: str = Field(min_length=1)
-    agent_id: Optional[str] = None
-    status: str = "ready"
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-
-
-class WorkerHeartbeatResponse(BaseModel):
-    run: RunView
-    latest_event: RunEvent
-
-
-class WorkerPollHeartbeatRequest(BaseModel):
-    workspace_id: str = Field(min_length=1)
-    worker_id: str = Field(min_length=1)
-    vm_id: str = Field(min_length=1)
-    user_id: str = Field(min_length=1)
-    session_id: Optional[str] = None
-    agent_id: Optional[str] = None
-    status: str = "ready"
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-
-
-class WorkerAssignedRun(BaseModel):
-    run_id: str
-    workspace_id: str
-    agent_id: Optional[str] = None
-    conversation_ref: str
-    query: str
-    requested_by: Optional[str] = None
-    files: List[RunFileRef] = Field(default_factory=list)
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-    control_mode: str
-
-
-class WorkerControlCommand(BaseModel):
-    run_id: str
-    command_id: str
-    action: str
-    requested_by: Optional[str] = None
-    control_mode: Optional[str] = None
-    created_at: str
-
-
-class WorkerPollHeartbeatResponse(BaseModel):
-    worker: Dict[str, Any]
-    assigned_run: Optional[WorkerAssignedRun] = None
-    control_commands: List[WorkerControlCommand] = Field(default_factory=list)
-
-
-class WorkerDispatchedRequest(BaseModel):
-    worker_id: str = Field(min_length=1)
-    user_id: str = Field(min_length=1)
-    turn_ref: str = Field(min_length=1)
-    conversation_ref: Optional[str] = None
-
-
-class WorkerDispatchedResponse(BaseModel):
-    run: RunView
-    latest_event: RunEvent
-
-
-class RunEventIngestRequest(BaseModel):
-    event_type: str = Field(min_length=1)
-    payload: Dict[str, Any] = Field(default_factory=dict)
-    source: str = "worker-stream"
-
-
-class RunEventIngestResponse(BaseModel):
-    run: RunView
-    latest_event: RunEvent
-
-
-class RunEventsResponse(BaseModel):
-    run_id: str
-    events: List[RunEvent] = Field(default_factory=list)
-    next_after_seq: int
 
 
 def _parse_positive_int(raw_value: Optional[str], default: int) -> int:
@@ -222,6 +93,19 @@ def _to_run_view(run: Dict[str, Any]) -> RunView:
     return RunView(**{k: v for k, v in run.items() if k != "events"})
 
 
+def _require_run(run: Optional[Dict[str, Any]], detail: str = "Run not found") -> Dict[str, Any]:
+    if run is None:
+        raise HTTPException(status_code=404, detail=detail)
+    return run
+
+
+def _latest_run_event(run: Dict[str, Any], missing_detail: str) -> RunEvent:
+    events = run.get("events", [])
+    if not events:
+        raise HTTPException(status_code=500, detail=missing_detail)
+    return RunEvent(**events[-1])
+
+
 @router.post("/", response_model=CreateRunResponse)
 async def create_run(
     payload: CreateRunRequest,
@@ -277,10 +161,7 @@ async def get_run(
     service: VmRunControlServiceDep,
     _api_key: RunsApiKeyDep = None,
 ) -> RunView:
-    run = await service.get_run(run_id)
-    if run is None:
-        raise HTTPException(status_code=404, detail="Run not found")
-    return _to_run_view(run)
+    return _to_run_view(_require_run(await service.get_run(run_id)))
 
 
 @router.get("/{run_id}/events", response_model=RunEventsResponse)
@@ -341,21 +222,15 @@ async def control_run(
             status_code=422,
             detail="control_mode is required when action is set-control-mode",
         )
-    run = await service.apply_control(
+    run = _require_run(await service.apply_control(
         run_id,
         action=payload.action,
         requested_by=payload.requested_by,
         control_mode=payload.control_mode,
-    )
-    if run is None:
-        raise HTTPException(status_code=404, detail="Run not found")
-    events = run.get("events", [])
-    if not events:
-        raise HTTPException(status_code=500, detail="Run control event not recorded")
-    latest_event = events[-1]
+    ))
     return RunControlResponse(
         run=_to_run_view(run),
-        latest_event=RunEvent(**latest_event),
+        latest_event=_latest_run_event(run, missing_detail="Run control event not recorded"),
     )
 
 
@@ -383,22 +258,16 @@ async def worker_dispatched(
     service: VmRunControlServiceDep,
     _api_key: RunsApiKeyDep = None,
 ) -> WorkerDispatchedResponse:
-    run = await service.acknowledge_run_dispatch(
+    run = _require_run(await service.acknowledge_run_dispatch(
         run_id,
         worker_id=payload.worker_id,
         user_id=payload.user_id,
         turn_ref=payload.turn_ref,
         conversation_ref=payload.conversation_ref,
-    )
-    if run is None:
-        raise HTTPException(status_code=404, detail="Run not found or worker mismatch")
-    events = run.get("events", [])
-    if not events:
-        raise HTTPException(status_code=500, detail="Dispatch event not recorded")
-    latest_event = events[-1]
+    ), detail="Run not found or worker mismatch")
     return WorkerDispatchedResponse(
         run=_to_run_view(run),
-        latest_event=RunEvent(**latest_event),
+        latest_event=_latest_run_event(run, missing_detail="Dispatch event not recorded"),
     )
 
 
@@ -409,7 +278,7 @@ async def worker_heartbeat(
     service: VmRunControlServiceDep,
     _api_key: RunsApiKeyDep = None,
 ) -> WorkerHeartbeatResponse:
-    run = await service.record_worker_heartbeat(
+    run = _require_run(await service.record_worker_heartbeat(
         run_id,
         worker_id=payload.worker_id,
         vm_id=payload.vm_id,
@@ -417,14 +286,8 @@ async def worker_heartbeat(
         agent_id=payload.agent_id,
         status=payload.status,
         metadata=payload.metadata,
-    )
-    if run is None:
-        raise HTTPException(status_code=404, detail="Run not found")
-    events = run.get("events", [])
-    if not events:
-        raise HTTPException(status_code=500, detail="Worker heartbeat event not recorded")
-    latest_event = events[-1]
+    ))
     return WorkerHeartbeatResponse(
         run=_to_run_view(run),
-        latest_event=RunEvent(**latest_event),
+        latest_event=_latest_run_event(run, missing_detail="Worker heartbeat event not recorded"),
     )
