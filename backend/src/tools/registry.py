@@ -15,6 +15,9 @@ if TYPE_CHECKING:
     from backend.src.core.services.context_factory import ContextFactory
 from backend.src.tools.schema_registry import SchemaRegistry
 from backend.src.tools.remote import get_all_remote_tools
+from backend.src.tools.computer.unified_schema import (
+    get_unified_computer_use_function_declaration,
+)
 
 logger = logging.getLogger(__name__)
 _LEGACY_COMPUTER_TOOL_NAMES = frozenset(
@@ -207,13 +210,22 @@ class ToolRegistry:
         if not has_unified:
             return declarations
 
+        canonical_unified = get_unified_computer_use_function_declaration()
+        appended_unified = False
         collapsed: List[Dict[str, Any]] = []
         for item in declarations:
             fn = item.get("function") if isinstance(item, dict) else None
             fn_name = fn.get("name") if isinstance(fn, dict) else None
             if isinstance(fn_name, str) and fn_name in _LEGACY_COMPUTER_TOOL_NAMES:
                 continue
+            if fn_name == _UNIFIED_COMPUTER_TOOL_NAME:
+                if not appended_unified:
+                    collapsed.append(canonical_unified)
+                    appended_unified = True
+                continue
             collapsed.append(item)
+        if not appended_unified:
+            collapsed.append(canonical_unified)
         return collapsed
 
     @staticmethod
