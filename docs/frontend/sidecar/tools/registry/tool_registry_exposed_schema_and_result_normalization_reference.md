@@ -64,6 +64,9 @@ Unified computer-use behavior:
 - `computer_use` accepts `{tool, metadata, arguments}` and routes execution to a concrete local sidecar tool (`mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `switch_tab`, `wait`).
 - sidecar now enforces `metadata` as an object with required non-empty string fields: `description`, `explanation`, and `expectation` (whitespace-only rejected, values trimmed before delegation).
 - `arguments` must be an object; malformed envelopes fail closed in sidecar before subtool execution.
+- metadata must be top-level on the unified envelope; legacy nested wrappers such as `arguments.metadata` are rejected (`computer_use.metadata must be an object`).
+- non-string required metadata values fail closed as missing required fields.
+- normalized/trimmed metadata is written back to envelope args (`args["metadata"]`) for observability parity, while delegated concrete subtool receives only `arguments` payload.
 
 Exception behavior:
 
@@ -115,6 +118,7 @@ Returned failure payload:
 - missing tool lookup returns canonical error
 - non-dict args are rejected before tool callable executes
 - `computer_use` fails closed when required metadata is missing/blank
+- `computer_use` rejects legacy nested `arguments.metadata` wrappers and non-string required metadata fields
 - `computer_use` accepts trimmed required metadata and still delegates unchanged concrete `arguments`
 - dict legacy success/failure normalization behaves as expected
 - nested legacy errors (for example usage text in `data.error`) are surfaced to top-level `ToolResult.error`

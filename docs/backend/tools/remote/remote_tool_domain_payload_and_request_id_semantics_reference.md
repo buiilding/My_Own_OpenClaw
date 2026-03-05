@@ -119,6 +119,14 @@ Compatibility note:
 - metadata requirements remain enforced for computer-domain tool calls in that compatibility path
 - net effect: unified declaration for model/tool schema guidance, with backward-compatible concrete-name ingestion
 
+Cross-layer sidecar runtime enforcement:
+
+- sidecar `ToolRegistry` independently validates unified `computer_use` envelope before concrete dispatch:
+  - requires top-level `metadata` object with required non-empty string fields (`description`, `explanation`, `expectation`)
+  - rejects legacy nested metadata wrappers (`arguments.metadata`) even if concrete action args are otherwise valid
+  - requires `arguments` object and valid `tool` name before delegating to concrete sidecar tool
+- this means backend-accepted envelopes are still fail-closed at sidecar runtime if metadata shape/type contract is violated post-transport
+
 ### System domain (`remote_tools/system.py`)
 
 Classes:
