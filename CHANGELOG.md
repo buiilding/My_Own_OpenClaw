@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(frontend-stale-turn-stream-complete-gate): make `streaming-complete` assistant selection strict to provided `turn_ref` (no fallback to latest assistant message when the turn is missing), and add frontend regressions to prevent stale turn completions from marking active replies complete or writing transcript rows.
 - test(tool-result-state-transitions): preserve existing session system-state when tool-result payloads omit `system_state`/`system_state_internal`, while keeping explicit `null` state payloads able to clear runtime state; add backend router regressions for both behaviors.
 - test(query-terminal-idempotence): gate backend query stream processing after first terminal event to ignore late/duplicate post-terminal chunks, and add frontend transcript regression coverage ensuring duplicate `streaming-complete` events do not duplicate assistant transcript rows.
 - test(ipc-contract-parity): add backend websocket `tool-result` parser contract coverage, backend tool-result handler serialization fallback tests, sidecar local-backend execute-tool boundary-field passthrough regression, and frontend envelope parity + bridge-args passthrough tests for `computer_use` and `run_shell_command`.

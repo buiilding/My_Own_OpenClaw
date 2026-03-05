@@ -73,6 +73,7 @@ describe('chatStreamMessageUpdates', () => {
   test('findStreamingCompleteAssistantMessage returns last assistant llm-text candidate', () => {
     expect(findStreamingCompleteAssistantMessage(messages)?.id).toBe('a3');
     expect(findStreamingCompleteAssistantMessage(messages, 'turn-1')?.id).toBe('a1');
+    expect(findStreamingCompleteAssistantMessage(messages, 'turn-missing')).toBeNull();
     expect(
       findStreamingCompleteAssistantMessage([
         { id: 't1', sender: 'assistant', text: 'tool', type: 'tool-output' },

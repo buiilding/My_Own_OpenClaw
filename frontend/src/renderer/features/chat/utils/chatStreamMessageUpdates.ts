@@ -124,18 +124,18 @@ export function findStreamingCompleteAssistantMessage(
   messages: ChatMessage[],
   turnRef?: string,
 ): ChatMessage | null {
-  const withTurnRef = turnRef
-    ? findLastMessage(
+  if (turnRef) {
+    return (
+      findLastMessage(
       messages,
       (message) => (
         message.sender === 'assistant'
         && (!message.type || message.type === 'llm-text')
         && message.turnRef === turnRef
       ),
-    )
-    : null;
-  if (withTurnRef) {
-    return withTurnRef;
+      )
+      || null
+    );
   }
   return (
     findLastMessage(
