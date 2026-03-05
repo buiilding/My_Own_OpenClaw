@@ -15,8 +15,10 @@ class DummyRegistry:
     def __init__(self, result):
         self._result = result
         self.tools = {"read_file": object(), "write_file": object()}
+        self.execute_calls = []
 
     async def execute_tool(self, tool_name, args):
+        self.execute_calls.append((tool_name, args))
         return self._result
 
 
@@ -280,6 +282,30 @@ async def test_handle_execute_tool_preserves_contract_fields_for_backend_boundar
             },
         },
     }
+
+
+@pytest.mark.asyncio
+async def test_handle_execute_tool_preserves_computer_use_envelope_fields():
+    backend = LocalBackend()
+    backend.tool_registry = DummyRegistry(ToolResult.success_result({"ok": True}))
+    envelope = {
+        "tool": "mouse_control",
+        "metadata": {
+            "description": "screen visible",
+            "explanation": "click submit",
+            "expectation": "modal opens",
+        },
+        "arguments": {
+            "action": "click",
+            "find_coordinates_by": "ocr",
+            "ocr_text": "Submit",
+        },
+    }
+
+    result = await backend._handle_execute_tool("computer_use", envelope)
+
+    assert result == {"success": True, "data": {"ok": True}}
+    assert backend.tool_registry.execute_calls == [("computer_use", envelope)]
 
 
 @pytest.mark.asyncio

@@ -182,6 +182,38 @@ describe('local_backend_bridge RPC handlers', () => {
     await expect(promise).resolves.toEqual({ success: true, data: { value: 1 } });
   });
 
+  test('execute-tool forwards computer_use envelope unchanged', async () => {
+    const { handlers, stdoutHandler } = initBridge();
+    markReady();
+
+    const envelope = {
+      tool: 'mouse_control',
+      metadata: {
+        description: 'screen visible',
+        explanation: 'click submit',
+        expectation: 'modal opens',
+      },
+      arguments: {
+        action: 'click',
+        find_coordinates_by: 'ocr',
+        ocr_text: 'Submit',
+      },
+    };
+
+    const promise = handlers['execute-tool'](null, {
+      toolName: 'computer_use',
+      args: envelope,
+    });
+
+    expectLastRequestWith('execute_tool', {
+      tool_name: 'computer_use',
+      args: envelope,
+    });
+
+    emitRpcResult(stdoutHandler, { success: true, data: { ok: true } });
+    await expect(promise).resolves.toEqual({ success: true, data: { ok: true } });
+  });
+
   test('passes resolved backend http URL to Python sidecar env', () => {
     process.env.BACKEND_HOST = '192.168.1.55';
     process.env.BACKEND_PORT = '8811';
