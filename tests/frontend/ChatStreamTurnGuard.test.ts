@@ -1,0 +1,22 @@
+import { isStaleTurnForActiveStream } from '../../frontend/src/renderer/features/chat/utils/chatStreamTurnGuard';
+
+describe('chatStreamTurnGuard', () => {
+  test('treats missing event turn refs as non-stale', () => {
+    expect(isStaleTurnForActiveStream(undefined, 'turn-1')).toBe(false);
+    expect(isStaleTurnForActiveStream(null, 'turn-1')).toBe(false);
+  });
+
+  test('treats missing active turn refs as non-stale', () => {
+    expect(isStaleTurnForActiveStream('turn-1', undefined)).toBe(false);
+    expect(isStaleTurnForActiveStream('turn-1', null)).toBe(false);
+  });
+
+  test('marks mismatched turn refs as stale', () => {
+    expect(isStaleTurnForActiveStream('turn-new', 'turn-old')).toBe(true);
+  });
+
+  test('accepts matching turn refs', () => {
+    expect(isStaleTurnForActiveStream('turn-1', 'turn-1')).toBe(false);
+  });
+});
+

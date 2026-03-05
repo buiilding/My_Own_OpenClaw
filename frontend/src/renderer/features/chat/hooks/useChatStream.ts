@@ -48,6 +48,7 @@ import {
   applyTrackingEvent,
   type StreamTrackingOptions,
 } from '../utils/chatStreamTracking';
+import { isStaleTurnForActiveStream } from '../utils/chatStreamTurnGuard';
 import {
   resolveEventConversationRef,
   resolveConversationRefWithTurnFallback,
@@ -137,6 +138,31 @@ export function useChatStream(enableTranscript: boolean = true) {
     );
   }, [updateStreamTracking]);
 
+  // Active-turn gating is shared across most handlers so late events from older turns
+  // never mutate the current workspace stream state.
+  const shouldIgnoreForStaleTurn = useCallback((
+    event: BackendEvent,
+    conversationRef?: string | null,
+  ): boolean => {
+    if (!event.turn_ref) {
+      return false;
+    }
+    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
+    const activeTurnRef = workspace.streamTracking.activeTurnRef;
+    const isPendingNextTurnAfterTerminalPhase = (
+      workspace.isSending === true
+      && (
+        workspace.streamTracking.phase === 'idle'
+        || workspace.streamTracking.phase === 'complete'
+        || workspace.streamTracking.phase === 'error'
+      )
+    );
+    if (isPendingNextTurnAfterTerminalPhase) {
+      return false;
+    }
+    return isStaleTurnForActiveStream(event.turn_ref, activeTurnRef);
+  }, []);
+
   const {
     updateLastMessageBySender,
     updateFirstMessageBySender,
@@ -160,15 +186,10 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const handleLlmThought = useCallback((event: LlmThoughtEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
-    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
-    const activeTurnRef = workspace.streamTracking.activeTurnRef;
-    if (
-      event.turn_ref
-      && activeTurnRef
-      && activeTurnRef !== event.turn_ref
-    ) {
+    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
       return;
     }
+    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
     const currentStatus = workspace.thinkingStatus;
     const payload = event.payload as { status?: string; content?: string } | undefined;
     const thoughtChunk =
@@ -226,18 +247,13 @@ export function useChatStream(enableTranscript: boolean = true) {
     recordTrackingEvent,
     setThinkingSourceEventType,
     setThinkingStatus,
+    shouldIgnoreForStaleTurn,
     updateMessage,
   ]);
 
   const handleStreamingResponse = useCallback((event: StreamingResponseEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
-    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
-    const activeTurnRef = workspace.streamTracking.activeTurnRef;
-    if (
-      event.turn_ref
-      && activeTurnRef
-      && activeTurnRef !== event.turn_ref
-    ) {
+    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
       return;
     }
     setIsSending(false, conversationRef);
@@ -286,33 +302,28 @@ export function useChatStream(enableTranscript: boolean = true) {
     modelContextRef,
     resolveTargetConversationRef,
     recordTrackingEvent,
+    shouldIgnoreForStaleTurn,
   ]);
 
   const handleContextCompactionStarted = useCallback((event: ContextCompactionStartedEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
-    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
-    const activeTurnRef = workspace.streamTracking.activeTurnRef;
-    if (
-      event.turn_ref
-      && activeTurnRef
-      && activeTurnRef !== event.turn_ref
-    ) {
+    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
       return;
     }
     setThinkingStatus(COMPACTION_THINKING_STATUS, conversationRef);
     setThinkingSourceEventType('context-compaction-started', conversationRef);
     recordTrackingEvent('context-compaction-started', event.turn_ref, {}, conversationRef);
-  }, [resolveTargetConversationRef, setThinkingSourceEventType, setThinkingStatus, recordTrackingEvent]);
+  }, [
+    resolveTargetConversationRef,
+    setThinkingSourceEventType,
+    setThinkingStatus,
+    recordTrackingEvent,
+    shouldIgnoreForStaleTurn,
+  ]);
 
   const handleContextCompactionCompleted = useCallback((event: ContextCompactionCompletedEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
-    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
-    const activeTurnRef = workspace.streamTracking.activeTurnRef;
-    if (
-      event.turn_ref
-      && activeTurnRef
-      && activeTurnRef !== event.turn_ref
-    ) {
+    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
       return;
     }
     const skippedReason = (
@@ -328,17 +339,17 @@ export function useChatStream(enableTranscript: boolean = true) {
     );
     setThinkingSourceEventType('context-compaction-completed', conversationRef);
     recordTrackingEvent('context-compaction-completed', event.turn_ref, {}, conversationRef);
-  }, [recordTrackingEvent, resolveTargetConversationRef, setThinkingSourceEventType, setThinkingStatus]);
+  }, [
+    recordTrackingEvent,
+    resolveTargetConversationRef,
+    setThinkingSourceEventType,
+    setThinkingStatus,
+    shouldIgnoreForStaleTurn,
+  ]);
 
   const handleContextCompactionFailed = useCallback((event: ContextCompactionFailedEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
-    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
-    const activeTurnRef = workspace.streamTracking.activeTurnRef;
-    if (
-      event.turn_ref
-      && activeTurnRef
-      && activeTurnRef !== event.turn_ref
-    ) {
+    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
       return;
     }
     const errorText = (
@@ -349,7 +360,13 @@ export function useChatStream(enableTranscript: boolean = true) {
     setThinkingStatus(errorText || COMPACTION_FAILED_THINKING_STATUS, conversationRef);
     setThinkingSourceEventType('context-compaction-failed', conversationRef);
     recordTrackingEvent('context-compaction-failed', event.turn_ref, {}, conversationRef);
-  }, [recordTrackingEvent, resolveTargetConversationRef, setThinkingSourceEventType, setThinkingStatus]);
+  }, [
+    recordTrackingEvent,
+    resolveTargetConversationRef,
+    setThinkingSourceEventType,
+    setThinkingStatus,
+    shouldIgnoreForStaleTurn,
+  ]);
 
   const {
     handleToolCall,
@@ -367,71 +384,67 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const handleSystemPrompt = useCallback((event: SystemPromptEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
-    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
-    const activeTurnRef = workspace.streamTracking.activeTurnRef;
-    if (
-      event.turn_ref
-      && activeTurnRef
-      && activeTurnRef !== event.turn_ref
-    ) {
+    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
       return;
     }
     updateLastMessageBySender('user', {
       systemPrompt: buildSystemPromptUpdate(event.payload),
     }, event.turn_ref || undefined, conversationRef);
     recordTrackingEvent('system-prompt', event.turn_ref, {}, conversationRef);
-  }, [resolveTargetConversationRef, updateLastMessageBySender, recordTrackingEvent]);
+  }, [
+    resolveTargetConversationRef,
+    updateLastMessageBySender,
+    recordTrackingEvent,
+    shouldIgnoreForStaleTurn,
+  ]);
 
   const handleUserMessageFull = useCallback((event: UserMessageFullEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
-    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
-    const activeTurnRef = workspace.streamTracking.activeTurnRef;
-    if (
-      event.turn_ref
-      && activeTurnRef
-      && activeTurnRef !== event.turn_ref
-    ) {
+    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
       return;
     }
     updateLastMessageBySender('user', {
       fullUserMessage: buildUserMessageFullUpdate(event.payload),
     }, event.turn_ref || undefined, conversationRef);
     recordTrackingEvent('user-message-full', event.turn_ref, {}, conversationRef);
-  }, [resolveTargetConversationRef, updateLastMessageBySender, recordTrackingEvent]);
+  }, [
+    resolveTargetConversationRef,
+    updateLastMessageBySender,
+    recordTrackingEvent,
+    shouldIgnoreForStaleTurn,
+  ]);
 
   const handleAssistantMessageFull = useCallback((event: AssistantMessageFullEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
-    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
-    const activeTurnRef = workspace.streamTracking.activeTurnRef;
-    if (
-      event.turn_ref
-      && activeTurnRef
-      && activeTurnRef !== event.turn_ref
-    ) {
+    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
       return;
     }
     updateLastAssistantLlmTextMessage({
       fullAssistantMessage: buildAssistantMessageFullUpdate(event.payload),
     }, event.turn_ref || undefined, conversationRef);
     recordTrackingEvent('assistant-message-full', event.turn_ref, {}, conversationRef);
-  }, [resolveTargetConversationRef, updateLastAssistantLlmTextMessage, recordTrackingEvent]);
+  }, [
+    resolveTargetConversationRef,
+    updateLastAssistantLlmTextMessage,
+    recordTrackingEvent,
+    shouldIgnoreForStaleTurn,
+  ]);
 
   const handleToolSchemas = useCallback((event: ToolSchemasEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
-    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
-    const activeTurnRef = workspace.streamTracking.activeTurnRef;
-    if (
-      event.turn_ref
-      && activeTurnRef
-      && activeTurnRef !== event.turn_ref
-    ) {
+    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
       return;
     }
     updateFirstMessageBySender('user', {
       toolSchemas: event.payload?.tool_schemas,
     }, conversationRef);
     recordTrackingEvent('tool-schemas', event.turn_ref, {}, conversationRef);
-  }, [resolveTargetConversationRef, updateFirstMessageBySender, recordTrackingEvent]);
+  }, [
+    resolveTargetConversationRef,
+    updateFirstMessageBySender,
+    recordTrackingEvent,
+    shouldIgnoreForStaleTurn,
+  ]);
 
   const handleLocalUserMessage = useChatStreamLocalUserHandler({
     addMessage,
@@ -444,45 +457,27 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const handleToolCallEvent = useCallback((event: ToolCallEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
-    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
-    const activeTurnRef = workspace.streamTracking.activeTurnRef;
-    if (
-      event.turn_ref
-      && activeTurnRef
-      && activeTurnRef !== event.turn_ref
-    ) {
+    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
       return;
     }
     handleToolCall(event, conversationRef);
-  }, [handleToolCall, resolveTargetConversationRef]);
+  }, [handleToolCall, resolveTargetConversationRef, shouldIgnoreForStaleTurn]);
 
   const handleToolOutputEvent = useCallback((event: ToolOutputEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
-    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
-    const activeTurnRef = workspace.streamTracking.activeTurnRef;
-    if (
-      event.turn_ref
-      && activeTurnRef
-      && activeTurnRef !== event.turn_ref
-    ) {
+    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
       return;
     }
     handleToolOutput(event, conversationRef);
-  }, [handleToolOutput, resolveTargetConversationRef]);
+  }, [handleToolOutput, resolveTargetConversationRef, shouldIgnoreForStaleTurn]);
 
   const handleToolBundleEvent = useCallback((event: ToolBundleEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
-    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
-    const activeTurnRef = workspace.streamTracking.activeTurnRef;
-    if (
-      event.turn_ref
-      && activeTurnRef
-      && activeTurnRef !== event.turn_ref
-    ) {
+    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
       return;
     }
     handleToolBundle(event, conversationRef);
-  }, [handleToolBundle, resolveTargetConversationRef]);
+  }, [handleToolBundle, resolveTargetConversationRef, shouldIgnoreForStaleTurn]);
 
   const handleLocalUserMessageEvent = useCallback((event: LocalUserMessageEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
@@ -491,15 +486,10 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const handleStreamingComplete = useCallback((event: StreamingCompleteEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
-    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
-    const activeTurnRef = workspace.streamTracking.activeTurnRef;
-    if (
-      event.turn_ref
-      && activeTurnRef
-      && activeTurnRef !== event.turn_ref
-    ) {
+    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
       return;
     }
+    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
     setIsSending(false, conversationRef);
     persistThinkingForTurn(event.turn_ref || undefined, conversationRef);
     setThinkingStatus(null, conversationRef);
@@ -600,6 +590,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     updateMessage,
     modelContextRef,
     recordTrackingEvent,
+    shouldIgnoreForStaleTurn,
   ]);
 
   const {
@@ -618,45 +609,27 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const handleMemoryStoreEvent = useCallback((event: MemoryStoreEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
-    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
-    const activeTurnRef = workspace.streamTracking.activeTurnRef;
-    if (
-      event.turn_ref
-      && activeTurnRef
-      && activeTurnRef !== event.turn_ref
-    ) {
+    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
       return;
     }
     handleMemoryStore(event, conversationRef);
-  }, [handleMemoryStore, resolveTargetConversationRef]);
+  }, [handleMemoryStore, resolveTargetConversationRef, shouldIgnoreForStaleTurn]);
 
   const handleTokenCountEvent = useCallback((event: TokenCountEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
-    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
-    const activeTurnRef = workspace.streamTracking.activeTurnRef;
-    if (
-      event.turn_ref
-      && activeTurnRef
-      && activeTurnRef !== event.turn_ref
-    ) {
+    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
       return;
     }
     handleTokenCount(event, conversationRef);
-  }, [handleTokenCount, resolveTargetConversationRef]);
+  }, [handleTokenCount, resolveTargetConversationRef, shouldIgnoreForStaleTurn]);
 
   const handleErrorEvent = useCallback((event: ErrorEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
-    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
-    const activeTurnRef = workspace.streamTracking.activeTurnRef;
-    if (
-      event.turn_ref
-      && activeTurnRef
-      && activeTurnRef !== event.turn_ref
-    ) {
+    if (shouldIgnoreForStaleTurn(event, conversationRef)) {
       return;
     }
     handleError(event, conversationRef);
-  }, [handleError, resolveTargetConversationRef]);
+  }, [handleError, resolveTargetConversationRef, shouldIgnoreForStaleTurn]);
 
   const handlers = useMemo<Record<BackendEventType, (event: BackendEvent) => void>>(() => buildChatStreamHandlerMap({
     handleLlmThought,
