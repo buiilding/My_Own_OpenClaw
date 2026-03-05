@@ -144,6 +144,23 @@ async def test_route_individual_result_prefers_internal_system_state():
 
 
 @pytest.mark.asyncio
+async def test_route_individual_result_falls_back_to_legacy_system_state_when_internal_is_invalid():
+    router = _make_router()
+    result = ToolResult(
+        success=True,
+        data={
+            "output": "ok",
+            "system_state_internal": "bad-internal-state",
+            "system_state": {"active_window": "Browser"},
+        },
+    )
+
+    await router.route_individual_result("req-1", result)
+
+    assert router.session.current_system_state == {"active_window": "Browser"}
+
+
+@pytest.mark.asyncio
 async def test_route_individual_result_resolves_screenshot_ref(monkeypatch):
     router = _make_router()
     monkeypatch.setattr(router, "_looks_like_artifact_id", lambda value: value == "shot.png")
@@ -199,6 +216,23 @@ async def test_route_bundle_result_allows_explicit_null_system_state_to_clear_se
     await router.route_bundle_result("bundle-1", result)
 
     assert router.session.current_system_state is None
+
+
+@pytest.mark.asyncio
+async def test_route_bundle_result_falls_back_to_legacy_system_state_when_internal_is_invalid():
+    router = _make_router()
+    result = ToolResult(
+        success=True,
+        data={
+            "status": "ok",
+            "system_state_internal": ["bad", "state"],
+            "system_state": {"mouse_position": "(10, 20)"},
+        },
+    )
+
+    await router.route_bundle_result("bundle-1", result)
+
+    assert router.session.current_system_state == {"mouse_position": "(10, 20)"}
 
 
 @pytest.mark.asyncio
