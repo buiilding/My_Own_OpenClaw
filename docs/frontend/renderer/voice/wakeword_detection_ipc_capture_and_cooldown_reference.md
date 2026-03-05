@@ -124,6 +124,7 @@ Missing microphone behavior (`NotFoundError` / "requested device not found"):
 
 - local capture error is surfaced with reconnect guidance
 - capture startup enters missing-device lockout to prevent repeated start attempts/log spam while still enabled
+- lockout state is persisted across hook remounts to avoid repeated retries when UI surfaces restart while wakeword remains enabled
 - lockout clears only when wakeword is disabled (toggle off/on), then capture can retry
 
 Audio context close errors are suppressed when message indicates already-closed context; unexpected close errors are warning-logged.
