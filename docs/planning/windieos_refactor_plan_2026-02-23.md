@@ -48,6 +48,29 @@ read_when:
 
 ## Frontend/Main Execution Log (2026-02-26)
 
+- Chat stream handler decomposition (2026-03-05):
+  - extracted compaction and metadata stream event handling from:
+    - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
+    - into `useChatStreamCompactionHandlers.ts` and `useChatStreamMetadataHandlers.ts`.
+  - preserved stale-turn gating and tracking event behavior while reducing `useChatStream.ts` complexity and callback surface area.
+  - result:
+    - `useChatStream.ts` reduced from `607` LOC to `494` LOC.
+  - regression coverage:
+    - added `tests/frontend/ChatStreamCompactionHandlers.test.ts`.
+    - added `tests/frontend/ChatStreamMetadataHandlers.test.ts`.
+    - reran `ChatStreamThinkingStatus.state/metadata` suites for integration-level behavior parity.
+  - verification:
+    - `cd frontend && npm run test:ci -- ../tests/frontend/ChatStreamCompactionHandlers.test.ts ../tests/frontend/ChatStreamMetadataHandlers.test.ts ../tests/frontend/ChatStreamThinkingStatus.state.test.tsx ../tests/frontend/ChatStreamThinkingStatus.metadata.test.tsx`
+    - `cd frontend && npm run lint -- src/renderer/features/chat/hooks/useChatStream.ts src/renderer/features/chat/hooks/useChatStreamCompactionHandlers.ts src/renderer/features/chat/hooks/useChatStreamMetadataHandlers.ts`
+    - `cd frontend && npm run lint:audit`
+    - `cd frontend && npm run audit:knip`
+    - `cd frontend && npm run audit:jscpd`
+    - `cd frontend && npx jscpd --gitignore --min-lines 5 --min-tokens 50 --reporters console --ignore \"**/__pycache__/**\" ../backend/src/api/routes`
+  - audit delta:
+    - `react-compiler`/`deprecation` lint audits clean.
+    - `knip` clean.
+    - `jscpd` remains `0` clones overall and `backend/src/api/routes` remains `0` clones.
+
 - Chat store workspace-state decomposition (2026-03-05):
   - extracted workspace normalization/read helpers from:
     - `frontend/src/renderer/features/chat/stores/chatStore.ts`
