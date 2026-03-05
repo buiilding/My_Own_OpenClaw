@@ -1,5 +1,5 @@
 ---
-summary: "Backend SDK contract reference for Tool base-class requirements, schema normalization/caching, ToolContext structure, and ContextFactory service-injection semantics."
+summary: "Backend SDK contract reference for Tool base-class requirements, local-ref schema inlining/normalization behavior, ToolContext structure, and ContextFactory service-injection semantics."
 read_when:
   - When adding/changing SDK tool classes, argument models, or JSON schema output behavior.
   - When changing tool execution context shape, service injection defaults, or schema registry validation.
@@ -46,15 +46,27 @@ Optional metadata:
 
 Schema source is `args_model.model_json_schema()`, then `_clean_schema(...)` normalizes it for LLM consumption.
 
+Before cleaning, `_resolve_local_defs(...)` expands local schema references so nested object definitions survive cleanup:
+
+- inlines local `$ref` targets from `#/$defs/...`
+- flattens trivial `allOf` wrappers (`allOf` with a single branch)
+- merges inline extras onto resolved targets
+- strips `$defs` from resolved output tree
+
 Normalization rules in `_clean_schema(...)`:
 
 - recursively keeps `properties` and `required`
 - simplifies optional `anyOf[..., {"type":"null"}]` to non-null branch
+- preserves structural compositions when present (`oneOf`, `allOf`)
 - preserves constraints (`minimum`, `maximum`, `minLength`, `maxLength`, `pattern`, `enum`)
 - keeps non-null defaults only
-- strips noisy fields like `title`
+- strips noisy fields like `title` and `additionalProperties`
 - strips top-level `additionalProperties`
-- removes redundant top-level `type: object` when `properties` already present
+
+Top-level object-type guard:
+
+- after cleanup, if `properties` exists and `type` is missing, `get_json_schema()` enforces `parameters.type = "object"`
+- this keeps OpenAI/LiteLLM function-tool compatibility even when Pydantic output omitted explicit object type
 
 ## Registry + Cache Enforcement
 
