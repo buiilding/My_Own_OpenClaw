@@ -231,6 +231,58 @@ async def test_handle_execute_tool_preserves_empty_data_payload():
 
 
 @pytest.mark.asyncio
+async def test_handle_execute_tool_preserves_contract_fields_for_backend_boundary():
+    backend = LocalBackend()
+    backend.tool_registry = DummyRegistry(
+        ToolResult.success_result(
+            {
+                "llm_content": "ok",
+                "screenshot_ref": "artifact-1.png",
+                "capture_meta": {
+                    "source_w": 1920,
+                    "source_h": 1080,
+                    "crop_x": 0,
+                    "crop_y": 0,
+                    "crop_w": 1920,
+                    "crop_h": 1080,
+                    "timestamp": 1700000000000,
+                },
+                "system_state": {
+                    "active_window": "Terminal",
+                    "mouse_position": "(10, 20)",
+                },
+            }
+        )
+    )
+
+    result = await backend._handle_execute_tool(
+        "mouse_control",
+        {"action": "click", "x": 10, "y": 20},
+    )
+
+    assert result == {
+        "success": True,
+        "data": {
+            "llm_content": "ok",
+            "screenshot_ref": "artifact-1.png",
+            "capture_meta": {
+                "source_w": 1920,
+                "source_h": 1080,
+                "crop_x": 0,
+                "crop_y": 0,
+                "crop_w": 1920,
+                "crop_h": 1080,
+                "timestamp": 1700000000000,
+            },
+            "system_state": {
+                "active_window": "Terminal",
+                "mouse_position": "(10, 20)",
+            },
+        },
+    }
+
+
+@pytest.mark.asyncio
 async def test_handle_execute_tool_exception():
     backend = LocalBackend()
     backend.tool_registry = DummyRegistryRaises(RuntimeError("boom"))
