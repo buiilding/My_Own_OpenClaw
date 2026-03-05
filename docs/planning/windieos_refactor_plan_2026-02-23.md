@@ -48,6 +48,26 @@ read_when:
 
 ## Frontend/Main Execution Log (2026-02-26)
 
+- Backend/sidecar contract drift cleanup (2026-03-05):
+  - aligned unified computer-use contract across backend + sidecar:
+    - sidecar now exposes and executes `computer_use` by routing to concrete computer subtools in `frontend/src/main/python/tools/registry.py`.
+  - removed stale global tool-rule block from prompt source:
+    - deleted `<tool_chaining_guidelines>` section in `backend/src/llm/prompts/system_prompt.txt`.
+    - retained computer interaction guidance via `<interaction_personality>` and `<computer_interaction_behavior>` tags expected by prompt tests.
+  - updated stale backend expectations:
+    - `tests/backend/test_api_handlers.py` (`interaction_mode` default is `agent`)
+    - `tests/backend/test_config_models.py` (chat allowlist expects `computer_use`)
+    - `tests/backend/test_dev_tool_selection.py` (tool-selection normalization expects `computer_use`)
+  - added sidecar regression:
+    - `tests/sidecar/test_tool_registry.py::test_execute_computer_use_routes_to_selected_subtool`
+  - verification:
+    - `cd frontend && npm run lint && npm run lint:audit && npm run audit:knip && npm run audit:jscpd`
+    - `./scripts/test-backend`
+    - `./scripts/test-sidecar`
+    - `cd frontend && npm run test:ci`
+  - result:
+    - backend suite restored to green (`1454 passed`), sidecar green (`763 passed`), frontend green (`174 suites / 1140 tests`).
+
 - Replay/session/text-normalization dedupe + dead-export cleanup (2026-03-05):
   - extracted shared text sanitization utility:
     - `frontend/src/renderer/infrastructure/text/incomingTextNormalization.ts`

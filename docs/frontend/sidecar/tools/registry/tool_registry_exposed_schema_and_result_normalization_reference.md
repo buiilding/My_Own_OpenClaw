@@ -32,7 +32,7 @@ Tool names expected by backend schemas are tracked in `EXPOSED_TO_BACKEND_TOOLS`
 
 Current exposed set includes:
 
-- computer: `mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`
+- computer: `computer_use` (unified router), `mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`
 - system: `switch_tab`, `wait`, `get_open_windows`, `get_system_stats`, `open_app`, `run_shell_command`, `process`
 - filesystem: `read_file`, `replace`
 - browser: `browser`
@@ -58,6 +58,11 @@ Runtime flow:
 Missing tool behavior:
 
 - returns `ToolResult.error_result("Tool not found: <name>")`
+
+Unified computer-use behavior:
+
+- `computer_use` accepts `{tool, metadata, arguments}` and routes execution to a concrete local sidecar tool (`mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `switch_tab`, `wait`).
+- `metadata` is ignored by sidecar execution (backend already validates it) and preserved as backend-owned orchestration context.
 
 Exception behavior:
 

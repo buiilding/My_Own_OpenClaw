@@ -123,6 +123,36 @@ async def test_execute_tool_handles_exceptions():
 
 
 @pytest.mark.asyncio
+async def test_execute_computer_use_routes_to_selected_subtool():
+    registry = ToolRegistry()
+    captured = {}
+
+    def mouse_tool(args):
+        captured["args"] = args
+        return ToolResult.success_result({"ok": True, "tool": "mouse_control"})
+
+    registry.tools["mouse_control"] = mouse_tool
+
+    result = await registry.execute_tool("computer_use", {
+        "tool": "mouse_control",
+        "metadata": {
+            "description": "screen",
+            "explanation": "click target",
+            "expectation": "dialog opens",
+        },
+        "arguments": {
+            "action": "click",
+            "x": 12,
+            "y": 34,
+        },
+    })
+
+    assert result.success is True
+    assert result.data == {"ok": True, "tool": "mouse_control"}
+    assert captured["args"] == {"action": "click", "x": 12, "y": 34}
+
+
+@pytest.mark.asyncio
 async def test_browser_tool_imports_module_lazily(monkeypatch):
     registry = ToolRegistry()
     import_calls = []
