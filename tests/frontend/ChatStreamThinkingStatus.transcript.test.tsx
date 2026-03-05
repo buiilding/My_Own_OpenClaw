@@ -145,6 +145,47 @@ describe('useChatStream transcript + event filtering', () => {
     );
   });
 
+  test('duplicate streaming-complete does not duplicate assistant transcript writes', () => {
+    setMockActiveConversationRef('conv-1');
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.getState().setMessages([
+        {
+          id: 'user-1',
+          text: 'hi',
+          sender: 'user',
+          turnRef: 'turn-1',
+        },
+        {
+          id: 'assistant-1',
+          text: 'answer',
+          sender: 'assistant',
+          type: 'llm-text',
+          isComplete: false,
+          turnRef: 'turn-1',
+        },
+      ], 'conv-1');
+      emitBackendEvent({
+        type: 'streaming-complete',
+        conversation_ref: 'conv-1',
+        user_id: 'user-1',
+        turn_ref: 'turn-1',
+      });
+      emitBackendEvent({
+        type: 'streaming-complete',
+        conversation_ref: 'conv-1',
+        user_id: 'user-1',
+        turn_ref: 'turn-1',
+      });
+    });
+
+    expect(useChatStore.getState().getWorkspaceState('conv-1').messages.at(-1)).toEqual(
+      expect.objectContaining({ id: 'assistant-1', isComplete: true }),
+    );
+    expect(transcriptSpies.recordAssistantMessage).toHaveBeenCalledTimes(1);
+  });
+
   test('does not write transcript entries when transcript is disabled', () => {
     const { emitBackendEvent } = registerBackendListener(false);
 

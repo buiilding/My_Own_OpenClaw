@@ -393,7 +393,7 @@ export function useChatStream(enableTranscript: boolean = true) {
       currentMessages,
       event.turn_ref,
     );
-    if (lastMessage && lastMessage.sender === 'assistant') {
+    if (lastMessage && lastMessage.sender === 'assistant' && !lastMessage.isComplete) {
       updateMessage(lastMessage.id, { isComplete: true }, conversationRef);
       if (lastMessage.text && enableTranscript) {
         const userMessageForTurn = (

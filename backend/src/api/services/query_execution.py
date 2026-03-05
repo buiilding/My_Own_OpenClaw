@@ -111,6 +111,16 @@ class QueryExecutionService:
                 ):
                     event_type = self._extract_event_type(event)
 
+                    if saw_terminal_event:
+                        logger.debug(
+                            "Ignoring post-terminal stream event "
+                            "(user_id=%s, turn_ref=%s, event_type=%s)",
+                            agent_instance.user_id,
+                            msg_id,
+                            event_type,
+                        )
+                        continue
+
                     chunk_text = self._extract_non_empty_chunk_text(
                         event,
                         event_type=event_type,
