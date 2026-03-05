@@ -272,6 +272,15 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const handleContextCompactionStarted = useCallback((event: ContextCompactionStartedEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
+    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
+    const activeTurnRef = workspace.streamTracking.activeTurnRef;
+    if (
+      event.turn_ref
+      && activeTurnRef
+      && activeTurnRef !== event.turn_ref
+    ) {
+      return;
+    }
     setThinkingStatus(COMPACTION_THINKING_STATUS, conversationRef);
     setThinkingSourceEventType('context-compaction-started', conversationRef);
     recordTrackingEvent('context-compaction-started', event.turn_ref, {}, conversationRef);
@@ -279,6 +288,15 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const handleContextCompactionCompleted = useCallback((event: ContextCompactionCompletedEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
+    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
+    const activeTurnRef = workspace.streamTracking.activeTurnRef;
+    if (
+      event.turn_ref
+      && activeTurnRef
+      && activeTurnRef !== event.turn_ref
+    ) {
+      return;
+    }
     const skippedReason = (
       typeof event.payload?.skipped_reason === 'string'
         ? event.payload.skipped_reason.trim()
@@ -296,6 +314,15 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const handleContextCompactionFailed = useCallback((event: ContextCompactionFailedEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
+    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
+    const activeTurnRef = workspace.streamTracking.activeTurnRef;
+    if (
+      event.turn_ref
+      && activeTurnRef
+      && activeTurnRef !== event.turn_ref
+    ) {
+      return;
+    }
     const errorText = (
       typeof event.payload?.error === 'string'
         ? event.payload.error.trim()

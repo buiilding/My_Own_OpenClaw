@@ -164,6 +164,58 @@ describe('useChatStream state + stream handling', () => {
     expect(useChatStore.getState().thinkingSourceEventType).toBe('context-compaction-failed');
   });
 
+  test('ignores stale context-compaction lifecycle events for old turns', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.setState({
+        thinkingStatus: 'current thinking',
+        thinkingSourceEventType: 'llm-thought',
+        streamTracking: {
+          activeTurnRef: 'turn-new',
+          phase: 'streaming',
+          startedAt: '2026-03-05T00:00:00.000Z',
+          firstChunkAt: '2026-03-05T00:00:01.000Z',
+          completedAt: null,
+          lastEventAt: '2026-03-05T00:00:01.000Z',
+          lastEventType: 'streaming-response',
+          eventCount: 2,
+          chunkCount: 1,
+          toolCallCount: 0,
+          toolOutputCount: 0,
+          lastChunkSize: 7,
+          lastError: null,
+        },
+      });
+
+      emitBackendEvent({
+        type: 'context-compaction-started',
+        turn_ref: 'turn-old',
+        payload: { reason: 'manual', strategy: 'inline' },
+      });
+      emitBackendEvent({
+        type: 'context-compaction-completed',
+        turn_ref: 'turn-old',
+        payload: { reason: 'manual', strategy: 'inline' },
+      });
+      emitBackendEvent({
+        type: 'context-compaction-failed',
+        turn_ref: 'turn-old',
+        payload: { reason: 'manual', strategy: 'inline', error: 'stale' },
+      });
+    });
+
+    expect(useChatStore.getState().thinkingStatus).toBe('current thinking');
+    expect(useChatStore.getState().thinkingSourceEventType).toBe('llm-thought');
+    expect(useChatStore.getState().streamTracking).toEqual(
+      expect.objectContaining({
+        activeTurnRef: 'turn-new',
+        phase: 'streaming',
+        eventCount: 2,
+      }),
+    );
+  });
+
   test('clears thinking status on tool call', () => {
     const { emitBackendEvent } = registerBackendListener();
 
