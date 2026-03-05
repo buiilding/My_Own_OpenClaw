@@ -186,6 +186,8 @@ Each includes boundary metadata (`boundary_name="response_parser"` plus optional
   - maps `arguments.tool` to concrete computer subtool when in allowed set (`mouse_control|keyboard_control|screenshot|scroll_control|switch_tab|wait`)
   - invalid/unknown mapped subtool becomes `invalid_computer_use_tool`
   - missing/non-dict unified `arguments` becomes `parameters={}`
+  - only top-level unified `metadata` is promoted; nested `arguments.metadata` remains in tool parameters
+  - non-dict top-level unified metadata is ignored safely (no merge, no crash)
 
 History-call shaping via `tool_call_bridge.to_history_tool_calls(...)`:
 
