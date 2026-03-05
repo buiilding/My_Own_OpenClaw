@@ -1,5 +1,5 @@
 from backend.src.api.schema import QueryMessage
-from backend.src.api.services.query_execution_inputs import (
+from backend.src.api.services.query_execution_support.query_execution_inputs import (
     build_query_image_data,
     resolve_query_execution_inputs,
 )

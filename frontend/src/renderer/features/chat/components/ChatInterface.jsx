@@ -25,7 +25,7 @@ import {
 import { toRehydrateMessagePayload } from '../../dashboard/utils/episodicMemoryUtils';
 import {
   COMPACTION_THINKING_STATUS,
-} from '../utils/chatStreamThinkingStatus';
+} from '../utils/chatStream/chatStreamThinkingStatus';
 import {
   buildChatModelOptions,
   buildChatProviderOptions,

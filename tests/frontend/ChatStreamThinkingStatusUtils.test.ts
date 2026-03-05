@@ -5,7 +5,7 @@ import {
   COMPACTION_THINKING_STATUS,
   GENERIC_THINKING_STATUS,
   normalizePersistedThinkingStatus,
-} from '../../frontend/src/renderer/features/chat/utils/chatStreamThinkingStatus';
+} from '../../frontend/src/renderer/features/chat/utils/chatStream/chatStreamThinkingStatus';
 
 describe('chatStreamThinkingStatus helpers', () => {
   test('normalizes persisted thinking status by trimming whitespace', () => {

@@ -1,4 +1,4 @@
-from backend.src.api.services.query_execution_stream_state import QueryExecutionStreamState
+from backend.src.api.services.query_execution_support.query_execution_stream_state import QueryExecutionStreamState
 
 
 def test_stream_state_observes_chunk_and_assistant_text() -> None:

@@ -9,7 +9,7 @@ import type {
   MemoryStoreEvent,
   TokenCountEvent,
 } from '../../../types/backendEvents';
-import { resolveErrorText } from '../utils/chatStreamEventUtils';
+import { resolveErrorText } from '../utils/chatStream/chatStreamEventUtils';
 import type { ChatStreamThinkingStateDeps } from './chatStreamHandlerTypes';
 
 type UseChatStreamTerminalHandlersDeps = ChatStreamThinkingStateDeps<

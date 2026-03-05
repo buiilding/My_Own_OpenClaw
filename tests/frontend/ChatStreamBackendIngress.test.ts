@@ -1,4 +1,4 @@
-import { ingestBackendEvent } from '../../frontend/src/renderer/features/chat/utils/chatStreamBackendIngress';
+import { ingestBackendEvent } from '../../frontend/src/renderer/features/chat/utils/chatStream/chatStreamBackendIngress';
 
 const mockGetActiveConversationRef = jest.fn();
 const mockUpdateTranscriptSession = jest.fn();

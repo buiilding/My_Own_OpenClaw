@@ -4,7 +4,7 @@ import {
   resolveToolCallCorrelationId,
   resolveToolOutputCorrelationId,
   shouldIgnoreStreamError,
-} from '../../frontend/src/renderer/features/chat/utils/chatStreamEventUtils';
+} from '../../frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventUtils';
 
 describe('chatStreamEventUtils', () => {
   test('shouldIgnoreStreamError matches settings-update failures', () => {

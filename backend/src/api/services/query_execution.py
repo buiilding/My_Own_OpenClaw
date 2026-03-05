@@ -22,22 +22,22 @@ from backend.src.api.services.query_event_extraction import (
     extract_streaming_complete_text,
     resolve_completion_text,
 )
-from backend.src.api.services.query_execution_cancellation import (
+from backend.src.api.services.query_execution_support.query_execution_cancellation import (
     finalize_pending_tool_calls_on_cancel,
 )
-from backend.src.api.services.query_execution_inputs import resolve_query_execution_inputs
-from backend.src.api.services.query_execution_pipeline_events import (
+from backend.src.api.services.query_execution_support.query_execution_inputs import resolve_query_execution_inputs
+from backend.src.api.services.query_execution_support.query_execution_pipeline_events import (
     emit_completion_events,
     process_pipeline_event,
 )
-from backend.src.api.services.query_execution_runtime import (
+from backend.src.api.services.query_execution_support.query_execution_runtime import (
     apply_query_runtime_system_state,
     build_stream_context,
     resolve_query_runtime_system_state,
     resolve_query_screenshot_metadata,
     resolve_screenshots,
 )
-from backend.src.api.services.query_execution_stream_state import (
+from backend.src.api.services.query_execution_support.query_execution_stream_state import (
     QueryExecutionStreamState,
 )
 from backend.src.api.services.tts_session import TTSSession

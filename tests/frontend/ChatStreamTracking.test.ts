@@ -1,6 +1,6 @@
 import {
   applyTrackingEvent,
-} from '../../frontend/src/renderer/features/chat/utils/chatStreamTracking';
+} from '../../frontend/src/renderer/features/chat/utils/chatStream/chatStreamTracking';
 import type { StreamTracking } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 
 function buildTracking(overrides: Partial<StreamTracking> = {}): StreamTracking {

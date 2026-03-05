@@ -13,7 +13,7 @@ title: "Tool-Call and Tool-Output Recovery/Skip-Execution Contract Reference"
 - `frontend/src/renderer/types/backendEvents.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
-- `frontend/src/renderer/features/chat/utils/chatStreamEventUtils.ts`
+- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventUtils.ts`
 - `backend/src/agent/execution/interaction_loop.py`
 - `backend/src/api/processing/formatters/tool_call.py`
 - `backend/src/api/processing/formatters/tool_output.py`

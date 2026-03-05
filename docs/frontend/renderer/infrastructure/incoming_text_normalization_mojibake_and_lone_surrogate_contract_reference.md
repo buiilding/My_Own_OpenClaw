@@ -11,7 +11,7 @@ title: "Incoming Text Normalization Contract Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/infrastructure/text/incomingTextNormalization.ts`
-- `frontend/src/renderer/features/chat/utils/chatStreamMessageUpdates.ts`
+- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates.ts`
 - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
 - `tests/frontend/IncomingTextNormalization.test.ts`
 

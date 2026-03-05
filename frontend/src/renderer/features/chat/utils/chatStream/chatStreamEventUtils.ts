@@ -1,8 +1,8 @@
-import { buildArtifactUrl } from '../../../infrastructure/services/ArtifactUploader';
+import { buildArtifactUrl } from '../../../../infrastructure/services/ArtifactUploader';
 import {
   resolveToolCallCorrelationId as resolveSharedToolCallCorrelationId,
   resolveToolOutputCorrelationId as resolveSharedToolOutputCorrelationId,
-} from './toolCorrelationIds';
+} from '../toolCorrelationIds';
 
 const SETTINGS_UPDATE_ERROR_TEXT = 'Failed to update settings';
 const RECOVERABLE_TOOL_PARSE_ERROR_MARKERS = [

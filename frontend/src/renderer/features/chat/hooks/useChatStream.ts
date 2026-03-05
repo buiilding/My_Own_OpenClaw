@@ -24,29 +24,29 @@ import {
 } from '../../../types/backendEvents';
 import {
   type StreamTrackingOptions,
-} from '../utils/chatStreamTracking';
+} from '../utils/chatStream/chatStreamTracking';
 import { resolveThinkingCapabilities } from '../utils/modelThinkingCapabilities';
-import { normalizePersistedThinkingStatus } from '../utils/chatStreamThinkingStatus';
-import { type TranscriptModelContext } from '../utils/chatStreamTypes';
+import { normalizePersistedThinkingStatus } from '../utils/chatStream/chatStreamThinkingStatus';
+import { type TranscriptModelContext } from '../utils/chatStream/chatStreamTypes';
 import { useChatCommonActions } from './useChatCommonActions';
 import { useStreamMessageUpdaters } from './useStreamMessageUpdaters';
 import { useChatStreamToolHandlers } from './useChatStreamToolHandlers';
 import { useLatestRef } from '../../../infrastructure/hooks/useLatestRef';
 import { useChatStreamTerminalHandlers } from './useChatStreamTerminalHandlers';
-import { buildChatStreamHandlerMap } from '../utils/chatStreamHandlerMap';
+import { buildChatStreamHandlerMap } from '../utils/chatStream/chatStreamHandlerMap';
 import { useChatStreamLocalUserHandler } from './useChatStreamLocalUserHandler';
 import { useChatStreamCompactionHandlers } from './useChatStreamCompactionHandlers';
 import { useChatStreamMetadataHandlers } from './useChatStreamMetadataHandlers';
 import { useTurnScopedBackendEventHandler } from './useTurnScopedBackendEventHandler';
 import { useChatStreamCompletionHandler } from './useChatStreamCompletionHandler';
 import { useChatStreamTextHandlers } from './useChatStreamTextHandlers';
-import { ingestBackendEvent } from '../utils/chatStreamBackendIngress';
+import { ingestBackendEvent } from '../utils/chatStream/chatStreamBackendIngress';
 import {
   recordTrackingEvent as recordTrackingEventRuntime,
   resolveTargetConversationRef as resolveTargetConversationRefRuntime,
   shouldIgnoreForStaleTurn as shouldIgnoreForStaleTurnRuntime,
   syncActiveConversationProjection as syncActiveConversationProjectionRuntime,
-} from '../utils/chatStreamEventRuntime';
+} from '../utils/chatStream/chatStreamEventRuntime';
 
 export function useChatStream(enableTranscript: boolean = true) {
   const {

@@ -17,7 +17,7 @@ import { ApiClient } from '../../../infrastructure/api/client';
 import { isDevUiEnabled } from '../utils/devUiFlag';
 import { buildOutgoingMessage } from '../utils/messageInput';
 import { parseClipboardImageItems } from '../utils/clipboardImageUtils';
-import { COMPACTION_THINKING_STATUS } from '../utils/chatStreamThinkingStatus';
+import { COMPACTION_THINKING_STATUS } from '../utils/chatStream/chatStreamThinkingStatus';
 import { extractOSstate } from '../../../infrastructure/services/SystemCapture';
 import {
   normalizeArtifactImageContentType,

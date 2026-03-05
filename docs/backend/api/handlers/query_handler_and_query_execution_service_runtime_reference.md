@@ -12,11 +12,11 @@ title: "Query Handler and Query Execution Service Runtime Reference"
 
 - `backend/src/api/handlers/query.py`
 - `backend/src/api/services/query_execution.py`
-- `backend/src/api/services/query_execution_cancellation.py`
-- `backend/src/api/services/query_execution_inputs.py`
-- `backend/src/api/services/query_execution_pipeline_events.py`
-- `backend/src/api/services/query_execution_runtime.py`
-- `backend/src/api/services/query_execution_stream_state.py`
+- `backend/src/api/services/query_execution_support/query_execution_cancellation.py`
+- `backend/src/api/services/query_execution_support/query_execution_inputs.py`
+- `backend/src/api/services/query_execution_support/query_execution_pipeline_events.py`
+- `backend/src/api/services/query_execution_support/query_execution_runtime.py`
+- `backend/src/api/services/query_execution_support/query_execution_stream_state.py`
 - `backend/src/api/services/tts_session.py`
 - `backend/src/api/infrastructure/errors.py`
 - `backend/src/api/processing/pipeline.py`

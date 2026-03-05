@@ -11,8 +11,8 @@ import {
   COMPACTION_COMPLETED_NO_CHANGES_THINKING_STATUS,
   COMPACTION_COMPLETED_THINKING_STATUS,
   COMPACTION_FAILED_THINKING_STATUS,
-} from '../utils/chatStreamThinkingStatus';
-import type { StreamTrackingOptions } from '../utils/chatStreamTracking';
+} from '../utils/chatStream/chatStreamThinkingStatus';
+import type { StreamTrackingOptions } from '../utils/chatStream/chatStreamTracking';
 
 type ResolveTargetConversationRef = (event: BackendEvent) => string | null;
 

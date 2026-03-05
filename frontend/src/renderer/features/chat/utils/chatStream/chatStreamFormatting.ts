@@ -2,7 +2,7 @@ import type {
   ToolBundleEvent,
   ToolCallEvent,
   ToolOutputEvent,
-} from '../../../types/backendEvents';
+} from '../../../../types/backendEvents';
 
 const MAX_THINKING_STATUS_LENGTH = 5000;
 

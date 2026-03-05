@@ -4,8 +4,8 @@ import { type ChatMessage } from '../stores/chatStore';
 import {
   buildScreenshotAttachment,
   buildScreenshotAttachments,
-} from '../utils/chatStreamEventUtils';
-import { GENERIC_THINKING_STATUS } from '../utils/chatStreamThinkingStatus';
+} from '../utils/chatStream/chatStreamEventUtils';
+import { GENERIC_THINKING_STATUS } from '../utils/chatStream/chatStreamThinkingStatus';
 import type { ChatStreamThinkingStateDeps } from './chatStreamHandlerTypes';
 
 type UseChatStreamLocalUserHandlerDeps = ChatStreamThinkingStateDeps<'local-user-message'>;

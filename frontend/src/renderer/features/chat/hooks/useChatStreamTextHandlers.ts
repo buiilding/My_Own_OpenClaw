@@ -1,13 +1,13 @@
 import { useCallback } from 'react';
 import { useChatStore, type ChatMessage } from '../stores/chatStore';
 import type { LlmThoughtEvent, StreamingResponseEvent } from '../../../types/backendEvents';
-import { buildThinkingStatus } from '../utils/chatStreamFormatting';
+import { buildThinkingStatus } from '../utils/chatStream/chatStreamFormatting';
 import {
   findLastAssistantLlmTextMessageId,
   resolveStreamingResponseAction,
-} from '../utils/chatStreamMessageUpdates';
-import { GENERIC_THINKING_STATUS } from '../utils/chatStreamThinkingStatus';
-import type { TranscriptModelContext } from '../utils/chatStreamTypes';
+} from '../utils/chatStream/chatStreamMessageUpdates';
+import { GENERIC_THINKING_STATUS } from '../utils/chatStream/chatStreamThinkingStatus';
+import type { TranscriptModelContext } from '../utils/chatStream/chatStreamTypes';
 
 type UseChatStreamTextHandlersOptions = {
   addMessage: (message: ChatMessage, conversationRef?: string | null) => void;

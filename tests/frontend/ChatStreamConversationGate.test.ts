@@ -1,7 +1,7 @@
 import {
   resolveConversationRefWithTurnFallback,
   resolveEventConversationRef,
-} from '../../frontend/src/renderer/features/chat/utils/chatStreamConversationGate';
+} from '../../frontend/src/renderer/features/chat/utils/chatStream/chatStreamConversationGate';
 import type { BackendEvent } from '../../frontend/src/renderer/types/backendEvents';
 
 function buildEvent(overrides: Partial<BackendEvent>): BackendEvent {

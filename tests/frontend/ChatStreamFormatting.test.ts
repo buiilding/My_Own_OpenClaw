@@ -3,7 +3,7 @@ import {
   formatToolBundlePayload,
   formatToolCallPayload,
   formatToolOutputText,
-} from '../../frontend/src/renderer/features/chat/utils/chatStreamFormatting';
+} from '../../frontend/src/renderer/features/chat/utils/chatStream/chatStreamFormatting';
 
 describe('chatStreamFormatting utils', () => {
   test('trims thinking status to max window while appending chunks', () => {

@@ -3,10 +3,10 @@ import { useChatStore } from '../stores/chatStore';
 import { recordAssistantMessage } from '../../../infrastructure/transcript/TranscriptWriter';
 import type { TranscriptTransparencyData } from '../../../infrastructure/transcript/types';
 import type { StreamingCompleteEvent } from '../../../types/backendEvents';
-import { findStreamingCompleteAssistantMessage } from '../utils/chatStreamMessageUpdates';
-import { buildAssistantTranscriptTransparency } from '../utils/chatStreamTransparency';
-import type { TranscriptModelContext } from '../utils/chatStreamTypes';
-import type { StreamTrackingOptions } from '../utils/chatStreamTracking';
+import { findStreamingCompleteAssistantMessage } from '../utils/chatStream/chatStreamMessageUpdates';
+import { buildAssistantTranscriptTransparency } from '../utils/chatStream/chatStreamTransparency';
+import type { TranscriptModelContext } from '../utils/chatStream/chatStreamTypes';
+import type { StreamTrackingOptions } from '../utils/chatStream/chatStreamTracking';
 
 type UseChatStreamCompletionHandlerOptions = {
   enableTranscript: boolean;

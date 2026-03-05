@@ -2,8 +2,8 @@ import type {
   ToolBundleEvent,
   ToolCallEvent,
   ToolOutputEvent,
-} from '../../../types/backendEvents';
-import type { ChatMessage } from '../stores/chatStore';
+} from '../../../../types/backendEvents';
+import type { ChatMessage } from '../../stores/chatStore';
 import { resolveToolOutputCorrelationId } from './chatStreamEventUtils';
 
 type TranscriptModelContext = {

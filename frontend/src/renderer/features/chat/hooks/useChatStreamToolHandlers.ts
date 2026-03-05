@@ -12,17 +12,17 @@ import {
   formatToolCallPayload,
   formatToolOutputText,
   resolveModelFacingToolCall,
-} from '../utils/chatStreamFormatting';
+} from '../utils/chatStream/chatStreamFormatting';
 import {
   buildToolBundleMessage,
   buildToolCallMessage,
   buildToolOutputMessage,
-} from '../utils/chatStreamToolMessages';
+} from '../utils/chatStream/chatStreamToolMessages';
 import {
   buildScreenshotAttachment,
   resolveToolCallCorrelationId,
   resolveToolOutputCorrelationId,
-} from '../utils/chatStreamEventUtils';
+} from '../utils/chatStream/chatStreamEventUtils';
 
 type MinimalModelContext = {
   modelId: string | null;

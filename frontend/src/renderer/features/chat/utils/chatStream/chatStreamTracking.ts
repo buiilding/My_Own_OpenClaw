@@ -1,5 +1,5 @@
-import type { BackendEventType } from '../../../types/backendEvents';
-import type { StreamPhase, StreamTracking } from '../stores/chatStore';
+import type { BackendEventType } from '../../../../types/backendEvents';
+import type { StreamPhase, StreamTracking } from '../../stores/chatStore';
 
 export type StreamTrackingOptions = {
   phase?: StreamPhase;
