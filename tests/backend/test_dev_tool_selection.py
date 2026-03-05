@@ -43,7 +43,7 @@ def test_load_tool_selection_mouse_coordinate_methods(tmp_path: Path):
     selection = load_tool_selection(p)
     assert selection is not None
     assert selection.get_allowed_mouse_coordinate_methods() == {"manual", "ocr"}
-    assert selection.filter_tool_names(["mouse_control", "read_file"]) == ["mouse_control"]
+    assert selection.filter_tool_names(["mouse_control", "read_file"]) == ["computer_use"]
 
 
 def test_load_tool_selection_mouse_disabled_when_no_methods(tmp_path: Path):

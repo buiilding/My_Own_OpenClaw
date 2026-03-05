@@ -66,7 +66,7 @@ For planned schema-ownership migration (frontend-sourced runtime tool catalogs),
 
 Most tools are executed on the frontend Python sidecar:
 
-- **Computer Control Tools**: `mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `switch_tab`, `wait`
+- **Computer Control Tools**: unified `computer_use` schema entry (delegates to sidecar `mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `switch_tab`, `wait`)
 - **File System Tools**: `read_file`, `replace`
 - **System Tools**: `get_system_stats`, `get_open_windows`, `open_app`, `run_shell_command`, `process`
 - **Browser Tools**: `browser`

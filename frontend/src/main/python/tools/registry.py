@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 # Tools in this set are advertised by backend remote schema generation and may be
 # called by the LLM. Keep this list in sync with backend/src/tools/remote.py.
 EXPOSED_TO_BACKEND_TOOLS = frozenset({
+    "computer_use",
     "mouse_control",
     "keyboard_control",
     "screenshot",
@@ -29,6 +30,15 @@ EXPOSED_TO_BACKEND_TOOLS = frozenset({
     "read_file",
     "replace",
     "browser",
+})
+
+COMPUTER_USE_SUBTOOLS = frozenset({
+    "mouse_control",
+    "keyboard_control",
+    "screenshot",
+    "scroll_control",
+    "switch_tab",
+    "wait",
 })
 
 
@@ -76,6 +86,32 @@ class ToolRegistry:
             self.tools["scroll_control"] = execute_scroll_control
         except ImportError as e:
             logger.warning(f"Failed to import scroll_tool: {e}")
+
+        async def execute_computer_use(args: Dict[str, Any]) -> ToolResult:
+            """
+            Unified computer-use router.
+
+            Accepts `{tool, arguments, metadata}` and delegates to the selected
+            concrete sidecar tool so backend/sidecar exposed-tool sets stay in
+            sync while execution remains lightweight in the sidecar.
+            """
+            if not isinstance(args, dict):
+                return ToolResult.error_result("Tool args must be an object")
+
+            tool_name = args.get("tool")
+            if not isinstance(tool_name, str) or tool_name not in COMPUTER_USE_SUBTOOLS:
+                return ToolResult.error_result(
+                    "computer_use requires a valid 'tool' value "
+                    f"({', '.join(sorted(COMPUTER_USE_SUBTOOLS))})"
+                )
+
+            tool_arguments = args.get("arguments", {})
+            if not isinstance(tool_arguments, dict):
+                return ToolResult.error_result("computer_use.arguments must be an object")
+
+            return await self.execute_tool(tool_name, tool_arguments)
+
+        self.tools["computer_use"] = execute_computer_use
         
         # Filesystem tools
         try:

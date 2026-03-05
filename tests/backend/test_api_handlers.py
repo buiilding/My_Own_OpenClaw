@@ -1290,7 +1290,7 @@ async def test_load_settings_handler_returns_frontend_config():
     assert websocket.sent[0]["payload"]["config"] == {
         "agent_full_sudo_enabled": False,
         "include_query_screenshot": True,
-        "interaction_mode": "chat",
+        "interaction_mode": "agent",
         "model_mode": "online",
         "model_provider": "openai",
         "provider_api_keys": {
