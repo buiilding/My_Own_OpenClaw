@@ -175,8 +175,23 @@ Each includes boundary metadata (`boundary_name="response_parser"` plus optional
 
 - reads normalized payload from `LLMStreamProcessor.get_last_response_payload()`
 - maps each provider tool call to `ParsedToolCall` via `tool_call_bridge.to_parsed_response(...)`
-- persists `tool_call_id` under `ParsedToolCall.metadata`
-- defaults unknown/malformed names to `unknown_tool`
+- normalizes malformed base payloads:
+  - blank/missing tool `name` -> `unknown_tool`
+  - non-dict `arguments` -> `{}`
+- metadata merge behavior:
+  - carries provider `id` as `metadata.tool_call_id`
+  - carries `thought_signature`/`thoughtSignature` when present
+  - if `arguments.metadata` exists, merges it into `ParsedToolCall.metadata` and removes it from execution `parameters`
+- unified native `computer_use` bridge behavior:
+  - maps `arguments.tool` to concrete computer subtool when in allowed set (`mouse_control|keyboard_control|screenshot|scroll_control|switch_tab|wait`)
+  - invalid/unknown mapped subtool becomes `invalid_computer_use_tool`
+  - missing/non-dict unified `arguments` becomes `parameters={}`
+
+History-call shaping via `tool_call_bridge.to_history_tool_calls(...)`:
+
+- preserves extracted `tool_call_id` when present
+- defaults missing ids to `tool_call_<index>`
+- forwards `thought_signature` into assistant history `tool_calls[]` entries when available
 
 This preserves the existing downstream tool pipeline while bypassing parser JSON extraction for native SDK tool-call responses.
 

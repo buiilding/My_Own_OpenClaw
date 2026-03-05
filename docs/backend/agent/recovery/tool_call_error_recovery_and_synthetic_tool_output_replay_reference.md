@@ -61,6 +61,10 @@ Synthetic payload metadata:
 - `request_id`: extracted tool call id or generated fallback (`llm_tool_call_error_<12hex>`)
 - `llm_tool_call_validation_failed = True`
 - `skip_frontend_execution = True`
+- optional parse diagnostics:
+  - `llm_tool_call_raw_arguments_preview`
+  - `llm_tool_call_raw_arguments_preview_truncated` (`True` when preview ends with `...[truncated]`)
+  - `llm_tool_call_parse_error` (raw-arguments marker removed + whitespace-normalized summary)
 
 `ToolCallEvent` fields:
 
@@ -94,12 +98,35 @@ If id extraction fails, fallback id is generated and used as both protocol reque
 - `<tool_name> output:` header
 - fixed explanation: malformed tool-call arguments from model
 - compacted single-line error preview
+- retry guidance line: `retry_guidance: retry the same tool with smaller argument payload chunks.`
+- edit strategy line tuned by file-path detection (see below)
 - `status: failed`
 
 Error preview normalization:
 
 - whitespace collapsed
 - capped at `_TOOL_OUTPUT_ERROR_PREVIEW_CHARS` (`600`), with `...[truncated]` suffix when exceeded
+
+### Raw-arguments preview and target-file extraction
+
+`extract_raw_arguments_preview_from_error(...)` reads the provider error suffix after marker:
+
+- `Raw arguments preview:`
+
+`_extract_target_file_path(...)` then attempts file-target extraction from that preview:
+
+- JSON form: `"file_path": "..."`
+- escaped JSON form: `\"file_path\":\"...\"`
+- shell redirect form: `cat > <path>`
+
+When file path is extracted:
+
+- synthetic output adds `target_file: <path>`
+- `edit_strategy` becomes section-by-section replace/apply_patch guidance
+
+When no file path is extracted:
+
+- `edit_strategy` remains generic split-large-edit guidance
 
 ## History Replay Injection
 
