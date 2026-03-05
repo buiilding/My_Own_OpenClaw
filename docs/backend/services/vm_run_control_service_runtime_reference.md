@@ -13,6 +13,7 @@ title: "VM Run Control Service Runtime Reference"
 - `backend/src/services/vm_run_control.py`
 - `backend/src/services/vm_run_control_helpers.py`
 - `backend/src/services/vm_run_control_worker_state.py`
+- `backend/src/services/vm_run_control_transitions.py`
 
 ## Runtime State Containers
 
@@ -60,6 +61,13 @@ Worker state shaping is centralized in `vm_run_control_worker_state.py`:
 - `build_registry_worker_state(...)` for `_workers` map entries
 - `build_run_worker_state(...)` for run-local worker snapshots
 - `build_worker_heartbeat_event_payload(...)` for `worker-heartbeat` event payloads
+
+Status transition logic is centralized in `vm_run_control_transitions.py`:
+
+- `normalize_control_action(...)` for API action normalization
+- `apply_control_transition(...)` for pause/resume/stop/control-mode updates
+- `apply_stream_event_transition(...)` for stream terminal/non-terminal status transitions
+- `apply_worker_heartbeat_transition(...)` for ready/running promotion semantics
 
 Assignment constraints (`_assign_next_run_to_worker_locked`):
 

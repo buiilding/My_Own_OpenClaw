@@ -18,6 +18,12 @@ from backend.src.services.vm_run_control_worker_state import (
     build_run_worker_state,
     build_worker_heartbeat_event_payload,
 )
+from backend.src.services.vm_run_control_transitions import (
+    apply_control_transition,
+    apply_stream_event_transition,
+    apply_worker_heartbeat_transition,
+    normalize_control_action,
+)
 
 
 class VmRunControlService:
@@ -104,16 +110,16 @@ class VmRunControlService:
                 continue
 
             now = now_iso()
-            run["worker"] = {
-                "worker_id": worker_id,
-                "vm_id": vm_id,
-                "session_id": session_id,
-                "agent_id": agent_id,
-                "user_id": user_id,
-                "status": worker_status,
-                "metadata": deepcopy(self._workers.get(worker_id, {}).get("metadata", {})),
-                "last_heartbeat_at": now,
-            }
+            run["worker"] = build_run_worker_state(
+                worker_id=worker_id,
+                vm_id=vm_id,
+                session_id=session_id,
+                agent_id=agent_id,
+                user_id=user_id,
+                status=worker_status,
+                metadata=self._workers.get(worker_id, {}).get("metadata", {}),
+                last_heartbeat_at=now,
+            )
             run["last_heartbeat_at"] = now
             run["status"] = "queued"
             self._append_event_locked(
@@ -327,10 +333,11 @@ class VmRunControlService:
                 return None
             run, event = appended
 
-            if event_type in self._TERMINAL_EVENT_TO_STATUS:
-                run["status"] = self._TERMINAL_EVENT_TO_STATUS[event_type]
-            elif run.get("status") in {"awaiting_worker", "queued"}:
-                run["status"] = "running"
+            apply_stream_event_transition(
+                run,
+                event_type=event_type,
+                terminal_event_to_status=self._TERMINAL_EVENT_TO_STATUS,
+            )
             return {
                 "run": self._clone_run(run),
                 "event": deepcopy(event),
@@ -349,15 +356,12 @@ class VmRunControlService:
             if not run:
                 return None
 
-            normalized_action = action.strip().lower()
-            if normalized_action == "pause":
-                run["status"] = "paused"
-            elif normalized_action == "resume":
-                run["status"] = "running" if run.get("worker") else "awaiting_worker"
-            elif normalized_action == "stop":
-                run["status"] = "stopped"
-            elif normalized_action == "set-control-mode" and control_mode:
-                run["control_mode"] = control_mode
+            normalized_action = normalize_control_action(action)
+            apply_control_transition(
+                run,
+                action=normalized_action,
+                control_mode=control_mode,
+            )
 
             command = self._enqueue_control_command_locked(
                 run,
@@ -508,8 +512,11 @@ class VmRunControlService:
                 last_heartbeat_at=now,
             )
             run["last_heartbeat_at"] = now
-            if run["status"] in {"awaiting_worker", "queued"} and status in self._READY_WORKER_STATUSES:
-                run["status"] = "running"
+            apply_worker_heartbeat_transition(
+                run,
+                status=status,
+                ready_worker_statuses=self._READY_WORKER_STATUSES,
+            )
 
             self._workers[worker_id] = build_registry_worker_state(
                 worker_id=worker_id,
