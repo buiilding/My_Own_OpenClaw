@@ -10,14 +10,14 @@ title: "Frontend Capability to File Matrix Reference"
 
 This matrix maps frontend capabilities to implementation files.
 
-## Coverage Snapshot (2026-02-27)
+## Coverage Snapshot (2026-03-05)
 
-- Main process files: `37`
-- Sidecar python files: `141`
-- Renderer files: `139`
+- Main process files: `58`
+- Sidecar python files: `156`
+- Renderer files: `201`
 - Landing files: `13`
 - Preload files: `1`
-- Total covered frontend files: `331`
+- Total covered frontend files: `429`
 
 ## 1) Main Process Runtime
 
@@ -28,6 +28,7 @@ This matrix maps frontend capabilities to implementation files.
 | Split main-process IPC registrars | `frontend/src/main/{overlay_phase_ipc_runtime,window_controls_ipc_runtime,permission_ipc_runtime}.cjs`, `frontend/src/main/overlay_*_handler.cjs`, `frontend/src/main/main_window_controls_handler.cjs` | Phase-owned overlay shell channels, dashboard/display controls, and permission/sudo handlers. |
 | Overlay visibility and side-channel signaling | `frontend/src/main/overlay_signal_runtime.cjs`, `frontend/src/main/response_overlay_phase_handler.cjs` | Broadcasts overlay visibility + wakeword toggle/STT triggers. |
 | Overlay bounds and top-most helper runtime | `frontend/src/main/overlay_window_helpers_runtime.cjs`, `frontend/src/main/overlay_bounds.cjs` | Positioning, fallback bounds, always-on-top helpers, context-label sync. |
+| VM mode + worker bridge runtime | `frontend/src/main/runtime_mode.cjs`, `frontend/src/main/vm_worker_runtime.cjs` | Env-gated VM worker lifecycle, `/api/runs/*` heartbeat/dispatch/event relay, control command application. |
 | Main/chat visibility transitions | `frontend/src/main/window_visibility_runtime.cjs`, `frontend/src/main/overlay_visibility_handler.cjs` | Focus/hide/show policy across chat, response overlay, and main window. |
 | External focus capture/restore | `frontend/src/main/external_focus_tracker.cjs` | Restores prior focused non-Windie window after overlay capture flows. |
 
@@ -40,6 +41,7 @@ This matrix maps frontend capabilities to implementation files.
 | IPC helper module split | `frontend/src/main/ipc_runtime_helpers.cjs`, `frontend/src/main/ipc_renderer_windows.cjs`, `frontend/src/main/ipc_query_broadcast.cjs`, `frontend/src/main/ipc_query_events.cjs` | Shared helper boundaries for relay/send/failure semantics. |
 | Query payload construction | `frontend/src/main/query_payload_builder.cjs` | Adds system/memory context and query metadata before send. |
 | Frontend config load/save | `frontend/src/main/ipc_frontend_config.cjs` | Disk + in-memory config snapshot ownership. |
+| OpenAI Codex OAuth IPC flow | `frontend/src/main/openai_codex_oauth.cjs`, `frontend/src/main/ipc.cjs` | PKCE login + local callback server and logout response envelope routing to renderer settings. |
 | Local sidecar process lifecycle | `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/runtime_paths.cjs` | Spawns local backend python process and manages readiness. |
 | Sidecar RPC request mapping | `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`, `frontend/src/main/local_backend_bridge_utils.cjs`, `frontend/src/main/local_backend_bridge_windows.cjs` | JSON-RPC request correlation, timeout, and window guard behavior. |
 | Wakeword subprocess bridge | `frontend/src/main/wakeword_bridge.cjs` | Binary framing for wakeword audio input/output messages. |

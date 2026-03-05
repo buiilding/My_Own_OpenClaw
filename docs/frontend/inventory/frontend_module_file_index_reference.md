@@ -14,9 +14,9 @@ This index maps frontend functionality to file ownership.
 
 | Surface | Files |
 | --- | ---: |
-| Main process (`frontend/src/main`, `.cjs`/`.js`) | 37 |
-| Sidecar Python (`frontend/src/main/python`, `.py`) | 141 |
-| Renderer runtime (`frontend/src/renderer`, TS/JS) | 139 |
+| Main process (`frontend/src/main`, `.cjs`/`.js`) | 58 |
+| Sidecar Python (`frontend/src/main/python`, `.py`) | 156 |
+| Renderer runtime (`frontend/src/renderer`, TS/JS) | 201 |
 | Landing (`frontend/src/landing`, `.jsx`/`.css`) | 13 |
 | Preload bridge (`frontend/src/preload.js`) | 1 |
 
@@ -31,6 +31,9 @@ Core runtime:
 - `frontend/src/main/backend_endpoints.cjs`
 - `frontend/src/main/query_payload_builder.cjs`
 - `frontend/src/main/runtime_paths.cjs`
+- `frontend/src/main/runtime_mode.cjs`
+- `frontend/src/main/vm_worker_runtime.cjs`
+- `frontend/src/main/openai_codex_oauth.cjs`
 
 Overlay/window control helpers:
 
@@ -111,6 +114,7 @@ Infrastructure:
 - Audio player: `frontend/src/renderer/infrastructure/audio/PlayerService.ts`
 - Transcript runtime: `frontend/src/renderer/infrastructure/transcript/*`
 - Utility: `frontend/src/renderer/infrastructure/markdown.ts`
+- Incoming text normalization: `frontend/src/renderer/infrastructure/text/incomingTextNormalization.ts`
 
 Types and general utilities:
 
