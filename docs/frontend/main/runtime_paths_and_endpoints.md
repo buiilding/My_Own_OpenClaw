@@ -14,6 +14,8 @@ title: "Runtime Paths and Endpoints"
 - `frontend/src/main/runtime_paths.cjs`
 - `frontend/src/main/ipc_frontend_config.cjs`
 - `frontend/src/main/ipc.cjs`
+- `frontend/src/main/runtime_mode.cjs`
+- `frontend/src/main/vm_worker_runtime.cjs`
 
 ## Backend Endpoint Resolution
 
@@ -53,6 +55,21 @@ Returned object:
 - `httpUrl`
 - `wsUrl`
 - `wsOrigin` (set to `httpUrl` for ws client origin header)
+
+## VM Worker Endpoint Consumption
+
+When VM worker mode is enabled (`WINDIE_VM_MODE` / `WINDIE_VM_WORKER_MODE`), main-process worker runtime calls:
+
+- `POST {backendHttpUrl}/api/runs/workers/heartbeat`
+- `POST {backendHttpUrl}/api/runs/{run_id}/worker-dispatched`
+- `POST {backendHttpUrl}/api/runs/{run_id}/events`
+
+Optional runs auth header:
+
+- if any are set, first non-empty value is used for `x-windie-runs-key`:
+  - `WINDIE_VM_RUNS_API_KEY`
+  - `WINDIE_RUNS_API_KEY`
+  - `WINDIE_DEMO_API_KEY`
 
 ## Python Runtime and Script Resolution
 

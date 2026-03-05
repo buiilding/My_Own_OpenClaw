@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(api-services-compaction-maps): refresh backend API control-path docs to include `runs` REST surface and `compact-history` websocket handler semantics, replace corrupted `docs/backend/services/services_and_storage.md` with a current services/storage runtime map, and add a dedicated VM run-control service reference with hub wiring; also extend frontend runtime-path docs with VM worker `/api/runs/*` endpoint and auth-header details.
 - docs(backend-runs-vm-control): add deep backend API reference for `/api/runs` and `VmRunControlService` (worker assignment queue, control-command fanout, event sequencing), wire backend API hubs to the new page, and refresh backend inventory/capability snapshots with current file counts plus run-control ownership coverage.
 - docs(frontend-vm-worker-oauth-runtime): add deep main-process reference for VM worker runs bridge and OpenAI Codex OAuth PKCE flow, wire frontend main/hub docs to the new page, and refresh frontend inventory/capability snapshots with current file counts plus VM worker/runtime-mode coverage.
 - refactor(frontend-permission-gate-removal): remove renderer startup permission gating from `App` so dashboard/onboarding no longer blocks on permission grant flows, and remove Data Controls per-permission `Request` action from the frontend permission center UI (status + re-check only), with renderer docs updated to match.

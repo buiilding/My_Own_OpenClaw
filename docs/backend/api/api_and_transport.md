@@ -21,6 +21,7 @@ Transport deep reference:
 Registered routers (`api/routes/__init__.py`):
 
 - WebSocket router: `api/routes/websocket`
+- Runs router: `api/routes/runs`
 - Artifacts router: `api/routes/artifacts`
 - Embeddings router: `api/routes/memory/embeddings`
 - Semantic summarization router: `api/routes/memory/semantic`
@@ -56,6 +57,21 @@ Implementation:
 
 - `api/routes/memory/semantic.py`
 
+### Runs / VM Control
+
+- `POST /api/runs/`: create run request for workspace queue
+- `POST /api/runs/workers/heartbeat`: worker poll + assignment + pending control commands
+- `POST /api/runs/{run_id}/worker-dispatched`: worker dispatch acknowledgment
+- `POST /api/runs/{run_id}/events`: run event ingest (worker/backend stream relay)
+- `POST /api/runs/{run_id}/control`: run control command enqueue
+- `POST /api/runs/stop-all`: bulk stop active runs
+- `GET /api/runs/{run_id}` + `GET /api/runs/{run_id}/events`: run state/event polling
+
+Implementation:
+
+- `api/routes/runs.py`
+- `services/vm_run_control.py`
+
 ## WebSocket Lifecycle
 
 Entrypoint:
@@ -84,6 +100,7 @@ Discriminated union defined in `api/schemas/incoming.py`:
 - `list-models`
 - `load-settings`
 - `update-settings`
+- `compact-history`
 
 Routing table is canonical in `core/container/incoming_routing.py` and must match schema literals.
 
@@ -99,6 +116,7 @@ Registry is built by `ApiContainer` (`core/container/api_container.py`) and incl
 - List-models handler
 - Load-settings handler
 - Update-settings handler
+- Compact-history handler
 
 ## Outgoing Event Contract
 

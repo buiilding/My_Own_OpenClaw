@@ -1,7 +1,7 @@
 ---
-summary: "Backend services docs sub-hub for OCR/vision/embeddings/artifacts/token runtime services and storage responsibilities."
+summary: "Backend services docs sub-hub for OCR/vision/embeddings/artifacts/token runtime services, VM run-control state behavior, and storage responsibilities."
 read_when:
-  - When changing OCR/vision/embedding/artifact/token service behavior.
+  - When changing OCR/vision/embedding/artifact/token or VM run-control service behavior.
   - When debugging service initialization, storage constraints, or runtime throughput bottlenecks.
 title: "Backend Services Docs Hub"
 ---
@@ -11,6 +11,7 @@ title: "Backend Services Docs Hub"
 ## Deep Pages
 
 - [Services and Storage](services_and_storage.md)
+- [VM Run Control Service Runtime Reference](vm_run_control_service_runtime_reference.md)
 - [Artifact Service Docs Hub](artifacts/README.md)
 - [Embedding and Semantic Memory Runtime Reference](embedding_and_semantic_memory_runtime_reference.md)
 - [Artifact, Screenshot, and System-State Flow Reference](artifact_screenshot_and_system_state_flow_reference.md)
