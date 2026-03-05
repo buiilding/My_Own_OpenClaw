@@ -11,6 +11,7 @@ title: "Frontend Renderer Docs Hub"
 ## Deep Pages
 
 - [Renderer Runtime](renderer_runtime.md)
+- [App Startup VM-Mode and Frontend Onboarding Runtime Reference](app_startup_vm_mode_and_frontend_onboarding_runtime_reference.md)
 - [Renderer Chat Docs Hub](chat/README.md)
 - [Renderer Settings Docs Hub](settings/README.md)
 - [Renderer Permissions Docs Hub](permissions/README.md)

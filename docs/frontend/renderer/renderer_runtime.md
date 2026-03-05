@@ -34,6 +34,12 @@ Provider responsibilities:
 - `ChatProvider`:
   - initializes `useChatStream` + `useToolRunner`
 
+Startup surface routing in `AppContent`:
+
+- VM mode (`vm_mode=1` query param) renders `ChatGptDashboardShell` directly (`vmModeEnabled=true`)
+- non-VM mode renders frontend onboarding slideshow until persisted completion state is true
+- onboarding completion persists `windieos-frontend-onboarding` state (`completed`, `completed_at`) then routes to dashboard shell
+
 ## Feature Domains
 
 ### Chat (`features/chat`)
@@ -83,7 +89,7 @@ Primary runtime:
 
 Current behavior:
 
-- app startup gate blocks dashboard/chat shell until required-now permissions + planned-system-access consent are satisfied
+- app startup is not permission-gated in current `App.jsx`; permission onboarding/runtime status is handled in dedicated permission/settings surfaces
 - data-controls settings tab renders live permission status/probe/request surface
 
 ### Voice (`features/voice`)
@@ -132,6 +138,7 @@ Backend remains source of truth for non-frontend runtime fields.
 ## Related Docs
 
 - [Frontend Renderer Docs Hub](README.md)
+- [App Startup VM-Mode and Frontend Onboarding Runtime Reference](app_startup_vm_mode_and_frontend_onboarding_runtime_reference.md)
 - [Renderer Permissions Docs Hub](permissions/README.md)
 - [Frontend Renderer Provider Docs Hub](providers/README.md)
 - [Frontend Renderer Chat Docs Hub](chat/README.md)
