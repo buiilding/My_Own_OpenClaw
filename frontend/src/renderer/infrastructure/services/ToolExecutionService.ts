@@ -50,11 +50,7 @@ import {
   buildToolResultBackendEnvelope,
 } from './ToolExecutionBackendPayload';
 import type { CaptureMeta } from './SystemCapture';
-import {
-  extractToolResultImage,
-  extractToolResultScreenshotRef,
-  parseImagePayload,
-} from './ToolExecutionImagePayload';
+import { resolveToolExecutionScreenshotSelection } from './ToolExecutionScreenshotSelection';
 
 export {
   ToolExecutionResult,
@@ -111,29 +107,23 @@ export class ToolExecutionService {
         isComputerTool,
       } = capture;
 
-      const captureImage = (
-        typeof screenshot === 'string' && screenshot.length > 0
-          ? parseImagePayload(screenshot)
-          : null
+      const screenshotSelection = resolveToolExecutionScreenshotSelection(
+        toolName,
+        screenshot,
+        screenshotContentType,
+        result,
       );
-      const toolResultImage = extractToolResultImage(result);
-      const preUploadedScreenshot = extractToolResultScreenshotRef(result);
-      const selectedImage = captureImage || toolResultImage;
-      const effectiveScreenshot = selectedImage?.base64 || null;
-      const effectiveScreenshotContentType = (
-        screenshotContentType
-        || selectedImage?.contentType
-        || null
-      );
+      const effectiveScreenshot = screenshotSelection.screenshot;
+      const effectiveScreenshotContentType = screenshotSelection.screenshotContentType;
       const uploaded = effectiveScreenshot
         ? await uploadArtifactBase64(
             effectiveScreenshot,
-            normalizeArtifactImageContentType(effectiveScreenshotContentType),
-            `${toolName}-screenshot.${resolveArtifactImageExtension(effectiveScreenshotContentType)}`
+            screenshotSelection.uploadContentType,
+            screenshotSelection.uploadFilename || `${toolName}-screenshot.png`
           )
         : null;
-      const screenshotRef = uploaded?.artifactId || preUploadedScreenshot?.screenshotRef || null;
-      const screenshotUrl = uploaded?.url || preUploadedScreenshot?.screenshotUrl || null;
+      const screenshotRef = uploaded?.artifactId || screenshotSelection.preUploadedScreenshot?.screenshotRef || null;
+      const screenshotUrl = uploaded?.url || screenshotSelection.preUploadedScreenshot?.screenshotUrl || null;
 
       // Format complete message with system context XML
       const finalSystemState = resolveSystemState(systemState, result.data);
