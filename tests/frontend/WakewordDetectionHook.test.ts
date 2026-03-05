@@ -164,6 +164,36 @@ describe('useWakewordDetection', () => {
     );
   });
 
+  test('keeps local capture errors sticky and avoids immediate retry loops on healthy status updates', async () => {
+    const notFoundError = new Error('Requested device not found');
+    (notFoundError as Error & { name: string }).name = 'NotFoundError';
+    const getUserMedia = jest.fn(async () => {
+      throw notFoundError;
+    });
+
+    await withMockedMediaDevices(
+      { getUserMedia } as unknown as MediaDevices,
+      async () => {
+        const rendered = await renderEnabledHookAndEmitReady();
+        const statusHandler = getChannelHandler(ON_CHANNELS.WAKEWORD_STATUS);
+
+        await act(async () => {
+          await Promise.resolve();
+        });
+
+        expect(rendered.result.current.error).toContain('Microphone device unavailable');
+
+        await act(async () => {
+          statusHandler?.({ ready: true, error: null });
+          await Promise.resolve();
+        });
+
+        expect(rendered.result.current.error).toContain('Microphone device unavailable');
+        expect(getUserMedia).toHaveBeenCalledTimes(1);
+      },
+    );
+  });
+
   test('stops audio safely when stop is triggered multiple times', async () => {
     const track = { stop: jest.fn() };
     const stream = {
