@@ -63,6 +63,10 @@ Responsibilities:
 - routes bundle and single-tool surface lifecycle sequencing through shared `toolRunnerSurfaceExecution` (`track -> prepare -> execute -> restore`) so failure ordering stays aligned
 - delegates all surface preparation/restore transitions to `SurfaceOrchestrator` (single source of truth)
 - uses shared computer-use tool catalog (`ToolComputerUseCatalog`) so capture policy and surface mode resolution stay aligned
+- catalog contract keeps renderer classification concrete:
+  - interactive: `mouse_control`, `keyboard_control`, `scroll_control`, `click`, `type`, `scroll`
+  - capture-only: `screenshot`, `switch_tab`, `wait`
+  - excludes unified `computer_use` wrapper from renderer-side mode/capture checks
 - interactive computer-use execution no longer toggles overlay interactivity directly from the renderer; shared overlay phase in main process owns loop-wide click-through + `focusable=false`
 - focus verification retries were removed from renderer-side tool execution prep; orchestrator prep is policy-only and no longer performs external-window restore attempts
 - capture-only computer-use turns (`screenshot`, `switch_tab`, `wait`) use orchestrator capture-visibility transitions (hide-before-capture, show-after, overlap-safe restore)
@@ -162,3 +166,7 @@ Outbound payload types from renderer/main:
 - `tool-bundle-result`
 
 These are consumed by backend handler stack and routed into session tool-result waiting storage for loop continuation.
+
+## Related Docs
+
+- [Tool Computer-Use Catalog, Surface Mode, and Capture Policy Reference](../renderer/infrastructure/tool_computer_use_catalog_surface_mode_and_capture_policy_reference.md)
