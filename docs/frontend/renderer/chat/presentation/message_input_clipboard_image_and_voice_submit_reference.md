@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for MessageInput runtime: text/voice submit paths, clipboard-image paste parsing/preview, plus/thinking menu behavior, and send-button state guards."
+summary: "Deep reference for MessageInput runtime: text/voice submit paths, clipboard/file attachment parsing and preview contracts, plus/thinking menu behavior, and send-button state guards."
 read_when:
-  - When changing `MessageInput.jsx` input/submit behavior, pasted image UX, or voice-mode handoff.
-  - When debugging why submit is blocked, image preview payload is missing, or utterance-end auto-send differs from form submit.
+  - When changing `MessageInput.jsx` input/submit behavior, pasted image UX, file-attachment parsing, or voice-mode handoff.
+  - When debugging why submit is blocked, attachment payload is missing, or utterance-end auto-send differs from form submit.
 title: "MessageInput Clipboard Image and Voice Submit Reference"
 ---
 
@@ -12,12 +12,16 @@ title: "MessageInput Clipboard Image and Voice Submit Reference"
 
 - `frontend/src/renderer/features/chat/components/MessageInput.jsx`
 - `frontend/src/renderer/features/chat/utils/messageInput.js`
+- `frontend/src/renderer/features/chat/utils/dataUrlImageUtils.js`
+- `frontend/src/renderer/features/chat/utils/clipboardImageUtils.js`
+- `frontend/src/renderer/features/chat/utils/fileAttachmentUtils.js`
 - `frontend/src/renderer/features/chat/hooks/useTranscription.ts`
 - `frontend/src/renderer/features/voice/hooks/useVoiceMode.ts`
 - `frontend/src/renderer/features/voice/components/VoiceStatus.jsx`
-- `frontend/src/renderer/infrastructure/services/ArtifactImageUtils.ts`
 - `tests/frontend/MessageInput.test.jsx`
 - `tests/frontend/MessageInputUtils.test.js`
+- `tests/frontend/ClipboardImageUtils.test.js`
+- `tests/frontend/FileAttachmentUtils.test.js`
 
 ## Input State Surface
 
@@ -48,12 +52,18 @@ All submit paths call `submitMessageValue(...)`.
 
 `submitMessageValue(...)` behavior:
 
-1. build outgoing payload through `buildOutgoingMessage(input, isSending, clipboardImages)`.
+1. build outgoing payload through `buildOutgoingMessage(input, isSending, clipboardImages, selectedReadableFiles)`.
 2. if payload is null, abort.
 3. call `onSendMessage(payload)`.
 4. clear input/transcription.
-5. clear all clipboard previews.
+5. clear clipboard and readable-file previews.
 6. reset textarea height to auto baseline.
+
+Outgoing payload variants:
+
+- text-only: trimmed string
+- text + attachments: object payload
+- attachment-only: object payload with fallback text (`Please review the attached files.`)
 
 ## Clipboard Image Paste Flow
 
@@ -63,9 +73,7 @@ Paste handler logic:
 2. if no `image/*` item -> delegate to `handlePaste`.
 3. if one or more image items exist:
  - prevent default paste behavior
- - read each file as data URL (`FileReader`)
- - parse each data URL into structured payload
- - normalize content type + extension
+ - parse images via shared `parseClipboardImageItems(...)` helper
  - append new preview payload(s) into `clipboardImages[]` (do not replace previous pasted images)
 
 Parsed payload shape:
@@ -74,6 +82,25 @@ Parsed payload shape:
 - `contentType`
 - `filename` (`clipboard-image.<ext>`)
 - `previewUrl` (data URL for in-composer preview)
+
+The helper path uses shared data-URL parse/normalization primitives:
+
+- `readFileAsDataUrl(...)`
+- `parseBase64ImageDataUrl(...)`
+
+## File Attachment Picker Flow
+
+File-picker handler (`Add photos & files`) delegates to `parseSelectedComposerFiles(...)`.
+
+Result buckets:
+
+- `imageAttachments[]` -> merged into `clipboardImages[]`
+- `readableFiles[]` -> merged into `selectedReadableFiles[]`
+
+Readable-file entries require both:
+
+- `filename`
+- resolved `filePath` (`path`/`filepath`/`webkitRelativePath`)
 
 Preview UI:
 
@@ -102,7 +129,10 @@ Voice status component:
 Send button behavior:
 
 - shown only when `isSending=false`
-- disabled when `!inputValue.trim()`
+- disabled only when all are empty:
+ - `inputValue.trim()`
+ - `clipboardImages[]`
+ - `selectedReadableFiles[]`
 
 Stop button behavior:
 
@@ -135,17 +165,20 @@ The menu does not alter outbound query payload; it only opens the native file-pi
 - voice utterance-end submit with latest transcription value.
 - pasted-image preview render.
 - pasted-image payload shape passed to `onSendMessage` as `clipboardImages[]`.
+- selected readable-file payload shape passed to `onSendMessage` as `readableFiles[]`.
+- attachment-only send path is allowed.
 - remove-preview behavior before send.
 
 ## Drift Hotspots
 
-1. Changing paste parsing without updating `ArtifactImageUtils` normalization can break content-type/filename contract.
+1. Changing data-URL parse helpers without updating clipboard/file attachment utilities can break preview/base64 payload shaping.
 2. Diverging voice submit from form submit path creates inconsistent trim/block behavior.
-3. Removing clipboard preview reset after submit can leak stale image payload across messages.
+3. Removing preview reset after submit can leak stale image/file payloads across messages.
 4. Replacing `buildOutgoingMessage` with ad-hoc payload construction can desync sender hook payload union.
 
 ## Related Pages
 
 - [Renderer Chat Presentation Docs Hub](README.md)
+- [Data-URL Image Parsing and Attachment Payload Contract Reference](data_url_image_parsing_and_attachment_payload_contract_reference.md)
 - [Message Send Surface Policy and Screenshot Capture Reference](../message_send_surface_policy_and_screenshot_capture_reference.md)
 - [Voice Mode Gateway Connection and Transcription Region Reference](../../voice/voice_mode_gateway_connection_and_transcription_region_reference.md)

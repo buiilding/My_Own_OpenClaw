@@ -11,6 +11,7 @@ title: "Backend Tools Contracts Docs Hub"
 ## Deep Pages
 
 - [Tool Domain and Category Enum Contract Reference](tool_domain_and_category_enum_contract_reference.md)
+- [Computer Tool Schema Guidance and Unified Envelope Validation Reference](computer_tool_schema_guidance_and_unified_envelope_validation_reference.md)
 - [Schema Field Factory Explanation and Post-Action Wait Contract Reference](schema_field_factory_explanation_and_post_action_wait_contract_reference.md)
 - [Tool Execution Result and Batch Dataclass Contract Reference](tool_execution_result_and_batch_dataclass_contract_reference.md)
 - [Tool Result Helper Object Creation and Default Timing Contract Reference](tool_result_helper_object_creation_and_default_timing_contract_reference.md)
@@ -35,5 +36,9 @@ title: "Backend Tools Contracts Docs Hub"
 - `backend/src/tools/system/schemas.py`
 - `backend/src/tools/computer/schemas.py`
 - `backend/src/tools/filesystem/schemas.py`
+- `backend/src/llm/parser_types.py`
+- `backend/src/llm/parser_validation.py`
 - `tests/backend/test_categorization.py`
 - `tests/backend/test_result_helpers.py`
+- `tests/backend/test_parser_types.py`
+- `tests/backend/test_parser_validation.py`

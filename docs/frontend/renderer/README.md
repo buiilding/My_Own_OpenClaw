@@ -48,6 +48,7 @@ title: "Frontend Renderer Docs Hub"
 - [Renderer Chat Presentation Docs Hub](chat/presentation/README.md)
 - [Chat Common Actions Selector Boundary and Message-Input Send Guard Reference](chat/presentation/chat_common_actions_selector_boundary_and_message_input_send_guard_reference.md)
 - [MessageInput Clipboard Image and Voice Submit Reference](chat/presentation/message_input_clipboard_image_and_voice_submit_reference.md)
+- [Data-URL Image Parsing and Attachment Payload Contract Reference](chat/presentation/data_url_image_parsing_and_attachment_payload_contract_reference.md)
 - [Thinking Display Overflow, Message List Class Assembly, and Token Count Formatting Reference](chat/presentation/thinking_display_overflow_message_list_class_assembly_and_token_count_formatting_reference.md)
 - [Renderer Chat Response-Overlay Presentation Docs Hub](chat/presentation/response_overlay/README.md)
 - [Auto-Resized Response Height ResizeObserver and Clamp Contract Reference](chat/presentation/response_overlay/auto_resized_response_height_resizeobserver_and_clamp_contract_reference.md)

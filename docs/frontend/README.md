@@ -95,6 +95,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Renderer Chat Presentation Docs Hub](renderer/chat/presentation/README.md)
 - [Chat Common Actions Selector Boundary and Message-Input Send Guard Reference](renderer/chat/presentation/chat_common_actions_selector_boundary_and_message_input_send_guard_reference.md)
 - [MessageInput Clipboard Image and Voice Submit Reference](renderer/chat/presentation/message_input_clipboard_image_and_voice_submit_reference.md)
+- [Data-URL Image Parsing and Attachment Payload Contract Reference](renderer/chat/presentation/data_url_image_parsing_and_attachment_payload_contract_reference.md)
 - [Thinking Display Overflow, Message List Class Assembly, and Token Count Formatting Reference](renderer/chat/presentation/thinking_display_overflow_message_list_class_assembly_and_token_count_formatting_reference.md)
 - [Settings Section Clone Tabs and Wakeword Toggle Runtime Reference](renderer/settings/sections/settings_section_clone_tabs_and_wakeword_toggle_runtime_reference.md)
 - [Permission Onboarding Gate, Manifest Version, and Data-Controls Runtime Reference](renderer/permissions/permission_onboarding_gate_manifest_version_and_data_controls_runtime_reference.md)
