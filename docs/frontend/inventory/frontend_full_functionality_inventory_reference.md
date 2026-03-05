@@ -10,16 +10,16 @@ title: "Frontend Full Functionality Inventory Reference"
 
 This is the canonical current-state functionality inventory for `frontend/src`.
 
-## Coverage Snapshot (2026-02-27)
+## Coverage Snapshot (2026-03-05)
 
 Source counts used in this inventory:
 
-- Main process (`frontend/src/main`, `.cjs|.js`): `37`
-- Sidecar runtime (`frontend/src/main/python`, `.py`): `141`
-- Renderer runtime (`frontend/src/renderer`, `.ts|.tsx|.js|.jsx`): `139`
+- Main process (`frontend/src/main`, `.cjs|.js`): `58`
+- Sidecar runtime (`frontend/src/main/python`, `.py`): `156`
+- Renderer runtime (`frontend/src/renderer`, `.ts|.tsx|.js|.jsx`): `200`
 - Landing (`frontend/src/landing`, `.jsx|.css`): `13`
 - Preload bridge (`frontend/src/preload.js`): `1`
-- Total covered frontend files: `331`
+- Total covered frontend files: `428`
 
 ## 1) Electron Main Process Inventory
 
@@ -45,6 +45,9 @@ Primary files:
 - `frontend/src/main/external_focus_tracker.cjs`
 - `frontend/src/main/main_window_controls_handler.cjs`
 - `frontend/src/main/display_query_handler.cjs`
+- `frontend/src/main/overlay_topmost_runtime.cjs`
+- `frontend/src/main/runtime_mode.cjs`
+- `frontend/src/main/vm_worker_runtime.cjs`
 
 Functionality:
 
@@ -60,6 +63,7 @@ Functionality:
 - Tracks external focused window before overlay query capture and restores focus.
 - Applies Linux-specific screenshot hide/restore guard for overlays.
 - Registers global wakeword hotkey and open-target window routing.
+- Enables VM-mode renderer query-flag boot and optional VM worker runtime startup from env-gated mode helpers.
 
 ### 1.2 Backend WebSocket + IPC Orchestration
 
@@ -74,6 +78,7 @@ Primary files:
 - `frontend/src/main/ipc_query_events.cjs`
 - `frontend/src/main/ipc_frontend_config.cjs`
 - `frontend/src/main/ipc_settings_sync.cjs`
+- `frontend/src/main/openai_codex_oauth.cjs`
 
 Functionality:
 
@@ -85,6 +90,7 @@ Functionality:
 - Builds query payload content with system-context XML + memory sections.
 - Emits synthetic `local-user-message` and fallback error envelopes for failed sends through split broadcaster helpers.
 - Persists/loads frontend config to disk and keeps in-memory config snapshot.
+- Exposes OpenAI Codex OAuth login/logout IPC handlers and returns normalized token envelopes to renderer settings UI.
 
 ### 1.3 Local Sidecar Bridge (Main <-> Python)
 
@@ -127,6 +133,22 @@ Functionality:
   - Loads and evaluates permission manifest entries.
   - Runs per-permission probe/check/request handlers for onboarding/data controls.
   - Normalizes status payloads consumed by renderer permission store.
+
+### 1.5 VM Worker Bridge Runtime
+
+Primary files:
+
+- `frontend/src/main/runtime_mode.cjs`
+- `frontend/src/main/vm_worker_runtime.cjs`
+- `frontend/src/main/index.cjs`
+
+Functionality:
+
+- Resolves VM mode and VM worker mode from `WINDIE_VM_MODE` / `WINDIE_VM_WORKER_MODE`.
+- Polls backend `/api/runs/workers/heartbeat` for worker registration, run assignment, and queued control commands.
+- Dispatches assigned runs through existing websocket query path (`sendAutomatedQuery`) and acknowledges with `/api/runs/{run_id}/worker-dispatched`.
+- Relays backend stream events into run timelines via `/api/runs/{run_id}/events`.
+- Applies stop controls by issuing websocket `stop-query` with mapped `conversation_ref`.
 
 ## 2) Preload Boundary Inventory
 
