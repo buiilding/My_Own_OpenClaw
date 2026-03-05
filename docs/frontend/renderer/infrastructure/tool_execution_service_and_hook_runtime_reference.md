@@ -160,7 +160,7 @@ Single tool send:
 - payload:
   - `request_id`
   - `success`
-  - `data` (normalized object with `llm_content` and optional system/screenshot refs)
+  - `data` (normalized object with `llm_content` and optional `screenshot_ref`/`capture_meta` plus optional `system_state` and `system_state_internal`)
   - `error`
 
 Bundle send:
@@ -170,8 +170,14 @@ Bundle send:
   - `bundle_id`
   - `status`
   - `step_results` (`tool`, `status`, `output`)
-  - optional `error`
-  - optional `screenshot_ref` and `system_state`
+  - `error` (nullable; `null` in non-failure paths)
+  - optional `screenshot_ref`, `capture_meta`, and `system_state` (gated by include flags)
+
+Envelope-build ownership:
+
+- `ToolExecutionBackendPayload.ts` builds final backend envelopes
+- `ToolExecutionPayloads.ts` provides normalized `data` shaping for single-tool payloads
+- `ToolResultEnvelope.ts` is the canonical envelope-type + correlation-id resolver contract
 
 ## Test-Backed Invariants
 
@@ -181,6 +187,12 @@ Bundle send:
 - non-computer tools skip screenshot/system-state payload fields
 - result-provided screenshot/system_state are reused
 - bundle fail-fast, partial/failure status mapping, and screenshot tool display-bounds forwarding
+
+`tests/frontend/ToolExecutionBackendPayload.test.ts` verifies:
+
+- `tool-result` envelope `llm_content` normalization path
+- screenshot/system-state inclusion-gate behavior
+- bundle envelope `error: null` success path and failure error propagation
 
 `tests/frontend/ToolExecutionBundleRunner.test.ts` verifies:
 

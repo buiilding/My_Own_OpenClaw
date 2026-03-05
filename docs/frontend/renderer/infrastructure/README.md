@@ -14,6 +14,7 @@ title: "Frontend Renderer Infrastructure Docs Hub"
 - [Audio Docs Hub](audio/README.md)
 - [Player Service Queue, Generation, and Error-Recovery Reference](audio/player_service_queue_generation_and_error_recovery_reference.md)
 - [Tool Execution Service and Hook Runtime Reference](tool_execution_service_and_hook_runtime_reference.md)
+- [Tool Execution Backend Envelope Builder and Payload-Gating Reference](tool_execution_backend_envelope_builder_and_payload_gating_reference.md)
 - [Tool Computer-Use Catalog, Surface Mode, and Capture Policy Reference](tool_computer_use_catalog_surface_mode_and_capture_policy_reference.md)
 - [Capture, Artifact Upload, and Payload Normalization Reference](capture_artifact_upload_and_payload_normalization_reference.md)
 - [Incoming Text Normalization Contract Reference](incoming_text_normalization_mojibake_and_lone_surrogate_contract_reference.md)
@@ -29,6 +30,7 @@ title: "Frontend Renderer Infrastructure Docs Hub"
 - `frontend/src/renderer/utils/displaySelection.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionService.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionBundleRunner.ts`
+- `frontend/src/renderer/infrastructure/services/ToolExecutionBackendPayload.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionInvoker.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionCapture.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionPayloads.ts`
@@ -44,6 +46,7 @@ title: "Frontend Renderer Infrastructure Docs Hub"
 - `tests/frontend/ToolExecutionBundleRunner.test.ts`
 - `tests/frontend/ToolExecutionInvoker.test.ts`
 - `tests/frontend/ToolExecutionCapture.test.ts`
+- `tests/frontend/ToolExecutionBackendPayload.test.ts`
 - `tests/frontend/ToolExecutionPayloads.test.ts`
 - `tests/frontend/ToolComputerUseCatalog.test.ts`
 - `tests/frontend/ToolRunnerHook.events.test.ts`

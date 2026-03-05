@@ -14,6 +14,7 @@ title: "Capture, Artifact Upload, and Payload Normalization Reference"
 - `frontend/src/renderer/infrastructure/services/ToolExecutionInvoker.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionCapture.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionPayloads.ts`
+- `frontend/src/renderer/infrastructure/services/ToolExecutionBackendPayload.ts`
 - `frontend/src/renderer/infrastructure/services/ArtifactUploader.ts`
 - `frontend/src/renderer/infrastructure/services/ArtifactImageUtils.ts`
 - `frontend/src/renderer/infrastructure/services/MessageFormatter.ts`
@@ -21,6 +22,7 @@ title: "Capture, Artifact Upload, and Payload Normalization Reference"
 - `tests/frontend/SystemCapture.test.ts`
 - `tests/frontend/ToolExecutionCapture.test.ts`
 - `tests/frontend/ToolExecutionPayloads.test.ts`
+- `tests/frontend/ToolExecutionBackendPayload.test.ts`
 - `tests/frontend/ArtifactUploader.test.ts`
 - `tests/frontend/ArtifactImageUtils.test.ts`
 - `tests/frontend/ToolExecutionInvoker.test.ts`
@@ -147,6 +149,23 @@ Bundle helpers standardize UI/backend interchange:
 - `resolveBundleStatus(...)`: derives `success`/`partial_failure`/`failure`
 - `resolveBundleErrorMessage(...)`: only emits error for `failure`
 
+## Backend Envelope Builder Layer
+
+`ToolExecutionBackendPayload.ts` is the final send-side wrapper used by `ToolExecutionService`:
+
+- single-tool:
+  - delegates `data` normalization to `buildToolResultPayloadData(...)`
+  - wraps payload in `type: "tool-result"`
+- bundle:
+  - builds `type: "tool-bundle-result"`
+  - always includes `error` key (nullable)
+  - includes `screenshot_ref`/`capture_meta`/`system_state` only when include flags are true
+
+Correlation contract is inherited from `ToolResultEnvelope`:
+
+- single tool -> `payload.request_id`
+- bundle -> `payload.bundle_id`
+
 ## Message Formatter Contracts
 
 `formatToolOutputMessage(...)` and `formatBundledToolOutputMessage(...)`:
@@ -188,6 +207,12 @@ Error logs still emit through `console.error`.
 - screenshot_ref inclusion gates
 - required system-state fallback values
 - internal-only `screen_resolution` preservation behavior
+
+`tests/frontend/ToolExecutionBackendPayload.test.ts` verifies:
+
+- envelope type + payload key contracts for single-tool and bundle sends
+- `error: null` bundle success shape stability
+- inclusion gates for `screenshot_ref`, `capture_meta`, and `system_state`
 
 `tests/frontend/ArtifactUploader.test.ts` and `ArtifactImageUtils.test.ts` verify:
 
