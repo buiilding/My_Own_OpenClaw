@@ -45,12 +45,16 @@ import {
 } from './ToolExecutionLogger';
 import { runToolBundle, type BundleStepResult } from './ToolExecutionBundleRunner';
 import {
-  buildToolBundleBackendEnvelope,
   type BundleExecutionStatus,
-  buildToolResultBackendEnvelope,
 } from './ToolExecutionBackendPayload';
 import type { CaptureMeta } from './SystemCapture';
 import { resolveToolExecutionScreenshotSelection } from './ToolExecutionScreenshotSelection';
+import {
+  emitToolExecutionBundleResult,
+  emitToolExecutionResult,
+  sendToolExecutionBundleResultToBackend,
+  sendToolExecutionResultToBackend,
+} from './ToolExecutionResultDispatch';
 
 export {
   ToolExecutionResult,
@@ -223,9 +227,7 @@ export class ToolExecutionService {
   }
 
   private _emitToolResult(result: ToolExecutionResult): void {
-    if (this.callbacks.onToolResult) {
-      this.callbacks.onToolResult(result);
-    }
+    emitToolExecutionResult(this.callbacks, result);
   }
 
   private _handleToolError(
@@ -269,20 +271,15 @@ export class ToolExecutionService {
     screenshotRef?: string | null,
     includeSystemState: boolean = false,
   ): void {
-    if (!this.callbacks.sendToBackend) {
-      return;
-    }
-    this.callbacks.sendToBackend(
-      buildToolResultBackendEnvelope({
-        correlationId,
-        result,
-        formattedMessage,
-        systemState,
-        includeScreenshot,
-        screenshotRef,
-        includeSystemState,
-      }),
-    );
+    sendToolExecutionResultToBackend(this.callbacks, {
+      correlationId,
+      result,
+      formattedMessage,
+      systemState,
+      includeScreenshot,
+      screenshotRef,
+      includeSystemState,
+    });
   }
 
   private _sendBundleResult(
@@ -296,22 +293,17 @@ export class ToolExecutionService {
     includeScreenshot: boolean,
     includeSystemState: boolean,
   ): void {
-    if (!this.callbacks.sendToBackend) {
-      return;
-    }
-    this.callbacks.sendToBackend(
-      buildToolBundleBackendEnvelope({
-        bundleId,
-        status,
-        stepResults,
-        screenshotRef,
-        captureMeta,
-        systemState,
-        error,
-        includeScreenshot,
-        includeSystemState,
-      }),
-    );
+    sendToolExecutionBundleResultToBackend(this.callbacks, {
+      bundleId,
+      status,
+      stepResults,
+      screenshotRef,
+      captureMeta,
+      systemState,
+      error,
+      includeScreenshot,
+      includeSystemState,
+    });
   }
 
   /**
@@ -382,9 +374,7 @@ export class ToolExecutionService {
       };
 
       // Call UI callback
-      if (this.callbacks.onBundleResult) {
-        this.callbacks.onBundleResult(bundleResult);
-      }
+      emitToolExecutionBundleResult(this.callbacks, bundleResult);
 
       // Send atomic tool-bundle-result to backend
       logBundleDispatch();

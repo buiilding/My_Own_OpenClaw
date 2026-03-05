@@ -16,12 +16,12 @@ from backend.src.services.vm_run_control_event_payloads import (
     build_run_control_payload,
     build_run_created_payload,
     build_run_dispatched_payload,
-    build_worker_assigned_payload,
 )
 from backend.src.services.vm_run_control_event_log import (
     append_run_event,
     select_run_events,
 )
+from backend.src.services.vm_run_control_assignment import assign_next_run_to_worker
 from backend.src.services.vm_run_control_pending_controls import (
     collect_pending_control_commands_for_worker,
     create_control_command,
@@ -98,53 +98,22 @@ class VmRunControlService:
         agent_id: Optional[str],
         worker_status: str,
     ) -> Optional[Dict[str, Any]]:
-        if worker_status not in self._READY_WORKER_STATUSES:
-            return None
-
         queue = self._workspace_run_queues.get(workspace_id, [])
-        while queue:
-            run_id = queue.pop(0)
-            run = self._runs.get(run_id)
-            if not run:
-                continue
-            if run.get("status") not in {"awaiting_worker", "queued"}:
-                continue
-            assigned_worker = run.get("worker")
-            if isinstance(assigned_worker, dict) and assigned_worker.get("worker_id") not in {
-                None,
-                worker_id,
-            }:
-                continue
-
-            now = now_iso()
-            run["worker"] = build_run_worker_state(
-                worker_id=worker_id,
-                vm_id=vm_id,
-                session_id=session_id,
-                agent_id=agent_id,
-                user_id=user_id,
-                status=worker_status,
-                metadata=self._workers.get(worker_id, {}).get("metadata", {}),
-                last_heartbeat_at=now,
-            )
-            run["last_heartbeat_at"] = now
-            run["status"] = "queued"
-            self._append_event_locked(
-                run,
-                event_type="run-worker-assigned",
-                source="backend",
-                payload=build_worker_assigned_payload(
-                    worker_id=worker_id,
-                    user_id=user_id,
-                    vm_id=vm_id,
-                    session_id=session_id,
-                    agent_id=agent_id,
-                    status=run["status"],
-                ),
-            )
-            return self._clone_run(run)
-
-        return None
+        return assign_next_run_to_worker(
+            runs=self._runs,
+            workers=self._workers,
+            workspace_queue=queue,
+            worker_id=worker_id,
+            user_id=user_id,
+            vm_id=vm_id,
+            session_id=session_id,
+            agent_id=agent_id,
+            worker_status=worker_status,
+            ready_worker_statuses=self._READY_WORKER_STATUSES,
+            now_iso=now_iso,
+            append_event=self._append_event_locked,
+            clone_run=self._clone_run,
+        )
 
     def _collect_pending_control_commands_locked(self, worker_id: str) -> List[Dict[str, Any]]:
         return collect_pending_control_commands_for_worker(self._runs, worker_id=worker_id)
