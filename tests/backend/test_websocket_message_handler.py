@@ -10,7 +10,7 @@ from tests.backend.websocket_route_test_utils import (
 _original_deps = install_route_deps_shim()
 
 from backend.src.api.routes.websocket import message_handler as mh
-from backend.src.api.schema import QueryMessage, ToolBundleResultMessage
+from backend.src.api.schema import QueryMessage, ToolBundleResultMessage, ToolResultMessage
 
 restore_route_deps_shim(_original_deps)
 
@@ -404,6 +404,84 @@ async def test_parse_and_validate_message_accepts_structured_bundle_step_output(
     serialized_step = message.payload.step_results[0].model_dump()
     assert serialized_step["output"] == {"stdout": "line-1", "exit_code": 0}
     assert serialized_step["debug_trace"] == "trace-1"
+
+
+@pytest.mark.asyncio
+async def test_parse_and_validate_message_accepts_tool_result_contract_payload() -> None:
+    payload = json.dumps(
+        {
+            "id": "msg_tool_result_contract",
+            "type": "tool-result",
+            "payload": {
+                "request_id": "req-tool-1",
+                "success": True,
+                "data": {
+                    "llm_content": "ok",
+                    "system_state": {
+                        "active_window": "Terminal",
+                        "mouse_position": "(10, 20)",
+                    },
+                    "capture_meta": {
+                        "source_w": 1920,
+                        "source_h": 1080,
+                        "crop_x": 0,
+                        "crop_y": 0,
+                        "crop_w": 1920,
+                        "crop_h": 1080,
+                        "timestamp": 1700000000000,
+                        "capture_backend": "linux_gnome_screenshot_include_pointer",
+                    },
+                    "screenshot_ref": "artifact-1.png",
+                    "output": "ok",
+                },
+            },
+        }
+    )
+
+    message, error = await mh.parse_and_validate_message(
+        payload, user_id="user_1", max_message_size=4096
+    )
+
+    assert error is None
+    assert isinstance(message, ToolResultMessage)
+    serialized = message.payload.data.model_dump()
+    assert serialized["system_state"] == {
+        "active_window": "Terminal",
+        "mouse_position": "(10, 20)",
+    }
+    assert serialized["capture_meta"]["capture_backend"] == (
+        "linux_gnome_screenshot_include_pointer"
+    )
+    assert serialized["screenshot_ref"] == "artifact-1.png"
+    assert serialized["output"] == "ok"
+
+
+@pytest.mark.asyncio
+async def test_parse_and_validate_message_rejects_tool_result_system_state_without_mouse_position() -> None:
+    payload = json.dumps(
+        {
+            "id": "msg_tool_result_bad_state",
+            "type": "tool-result",
+            "payload": {
+                "request_id": "req-tool-2",
+                "success": True,
+                "data": {
+                    "llm_content": "ok",
+                    "system_state": {
+                        "active_window": "Terminal",
+                    },
+                },
+            },
+        }
+    )
+
+    message, error = await mh.parse_and_validate_message(
+        payload, user_id="user_1", max_message_size=4096
+    )
+
+    assert message is None
+    assert error is not None
+    assert "payload.data.system_state.mouse_position" in error
 
 
 @pytest.mark.asyncio

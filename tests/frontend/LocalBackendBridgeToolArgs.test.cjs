@@ -67,4 +67,33 @@ describe('local_backend_bridge_tool_args', () => {
     expect(resolveToolArgs('read_file', null, null)).toEqual({});
     expect(resolveToolArgs('read_file', ['x'], null)).toEqual({});
   });
+
+  test('run_shell_command normalizes non-object args to sudo_auth_mode payload', () => {
+    const result = resolveToolArgs(
+      'run_shell_command',
+      null,
+      () => ({ agent_full_sudo_enabled: true }),
+    );
+
+    expect(result).toEqual({
+      sudo_auth_mode: 'native',
+    });
+  });
+
+  test('passes through computer_use envelope unchanged for sidecar execution', () => {
+    const args = {
+      tool: 'mouse_control',
+      metadata: {
+        description: 'screen',
+        explanation: 'click target',
+        expectation: 'dialog opens',
+      },
+      arguments: { action: 'click', x: 10, y: 20 },
+    };
+
+    const result = resolveToolArgs('computer_use', args, null);
+
+    expect(result).toEqual(args);
+    expect(result).not.toBe(args);
+  });
 });

@@ -19,7 +19,11 @@ from backend.src.api.handlers.wakeword import WakewordHandler
 from backend.src.api.handlers import query as query_handler_module
 from backend.src.api.services import query_execution as query_execution_module
 from backend.src.api.services import rehydrate_execution as rehydrate_execution_module
-from backend.src.api.schemas.incoming import ToolResultData, ToolResultSystemState
+from backend.src.api.schemas.incoming import (
+    ToolBundleStepResult,
+    ToolResultData,
+    ToolResultSystemState,
+)
 from backend.src.api.schema import (
     ListModelsMessage,
     LoadSettingsMessage,
@@ -1157,6 +1161,40 @@ def test_tool_result_handler_serializes_tool_result_data_model():
         },
         "screenshot_ref": "artifact-1.png",
     }
+
+
+def test_tool_result_handler_serializes_step_models_and_falls_back_for_invalid_items():
+    session_manager = DummySessionManager()
+    handler = ToolResultHandler(session_manager)
+
+    serialized = handler._serialize_step_results(
+        [
+            ToolBundleStepResult(
+                tool="read_file",
+                status="ok",
+                output={"stdout": "line-1"},
+                debug_trace="trace-1",
+            ),
+            "bad-step",
+        ]
+    )
+
+    assert serialized == [
+        {
+            "tool": "read_file",
+            "status": "ok",
+            "output": {"stdout": "line-1"},
+            "debug_trace": "trace-1",
+        },
+        {},
+    ]
+
+
+def test_tool_result_handler_serializes_non_mapping_data_to_none():
+    session_manager = DummySessionManager()
+    handler = ToolResultHandler(session_manager)
+
+    assert handler._serialize_tool_result_data(["not", "a", "mapping"]) is None
 
 
 @pytest.mark.asyncio
