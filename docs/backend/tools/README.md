@@ -31,6 +31,7 @@ title: "Backend Tools Docs Hub"
 - [Tool Policy and Dev Tool Selection Runtime Reference](policy/tool_policy_and_dev_tool_selection_runtime_reference.md)
 - [Remote Tool Domain Payload and Request-ID Semantics Reference](remote/remote_tool_domain_payload_and_request_id_semantics_reference.md)
 - [Tool Domain and Category Enum Contract Reference](contracts/tool_domain_and_category_enum_contract_reference.md)
+- [Computer Tool Schema Guidance and Unified Envelope Validation Reference](contracts/computer_tool_schema_guidance_and_unified_envelope_validation_reference.md)
 - [Schema Field Factory Explanation and Post-Action Wait Contract Reference](contracts/schema_field_factory_explanation_and_post_action_wait_contract_reference.md)
 - [Tool Execution Result and Batch Dataclass Contract Reference](contracts/tool_execution_result_and_batch_dataclass_contract_reference.md)
 - [Tool Result Helper Object Creation and Default Timing Contract Reference](contracts/tool_result_helper_object_creation_and_default_timing_contract_reference.md)
