@@ -444,16 +444,43 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const handleToolCallEvent = useCallback((event: ToolCallEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
+    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
+    const activeTurnRef = workspace.streamTracking.activeTurnRef;
+    if (
+      event.turn_ref
+      && activeTurnRef
+      && activeTurnRef !== event.turn_ref
+    ) {
+      return;
+    }
     handleToolCall(event, conversationRef);
   }, [handleToolCall, resolveTargetConversationRef]);
 
   const handleToolOutputEvent = useCallback((event: ToolOutputEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
+    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
+    const activeTurnRef = workspace.streamTracking.activeTurnRef;
+    if (
+      event.turn_ref
+      && activeTurnRef
+      && activeTurnRef !== event.turn_ref
+    ) {
+      return;
+    }
     handleToolOutput(event, conversationRef);
   }, [handleToolOutput, resolveTargetConversationRef]);
 
   const handleToolBundleEvent = useCallback((event: ToolBundleEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
+    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
+    const activeTurnRef = workspace.streamTracking.activeTurnRef;
+    if (
+      event.turn_ref
+      && activeTurnRef
+      && activeTurnRef !== event.turn_ref
+    ) {
+      return;
+    }
     handleToolBundle(event, conversationRef);
   }, [handleToolBundle, resolveTargetConversationRef]);
 
