@@ -50,6 +50,17 @@ describe('chatLoopUiState', () => {
     expect(isChatLoopBusy(loopUiState)).toBe(false);
   });
 
+  test('treats complete phase as terminal even when send latch is stale', () => {
+    const loopUiState = resolveChatLoopUiState({
+      phase: 'complete',
+      isSending: true,
+      hasVisibleReply: false,
+    });
+
+    expect(loopUiState).toBe('idle');
+    expect(isChatLoopBusy(loopUiState)).toBe(false);
+  });
+
   test('forces idle when transport is disconnected', () => {
     const loopUiState = resolveChatLoopUiState({
       phase: 'tool-call',

@@ -125,6 +125,13 @@ describe('useChatLoopUiState', () => {
     expect(screen.getByTestId('loop-state-probe').dataset.loopUiState).toBe('active-response');
   });
 
+  test('keeps terminal complete state idle even when send latch is stale', () => {
+    render(<LoopStateProbe phase="complete" isSending hasVisibleReply={false} />);
+
+    expect(screen.getByTestId('loop-state-probe').dataset.loopUiState).toBe('idle');
+    expect(screen.getByTestId('loop-state-probe').dataset.isBusy).toBe('0');
+  });
+
   test('keeps watchdog disarmed when reconnect settles on terminal state with duplicate terminal snapshots', async () => {
     jest.useFakeTimers();
     const { rerender } = render(<LoopStateProbe phase="awaiting-first-chunk" isSending />);

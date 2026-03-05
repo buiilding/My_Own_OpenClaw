@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-all-chat-pill-terminal-unlock): treat `complete`/`error` overlay phases as terminal in chat-loop lock resolution even when `isSending` is stale, so chat pill exits working tint and re-enables input after final assistant text; add `ChatLoopUiState` utility + hook regressions for stale send-latch terminal snapshots.
 - test(sidecar-local-backend-computer-use-legacy-wrapper-rejection): extend JSON-RPC boundary regressions so legacy nested `computer_use.arguments.metadata` wrapper payloads fail closed (`computer_use.metadata must be an object`) before concrete subtool execution.
 - test(backend-parser-metadata-type-guards): extend parser validation regressions for computer-use metadata type strictness by rejecting non-string required fields for concrete computer tools and non-dict metadata payloads for unified `computer_use`.
 - test(sidecar-local-backend-computer-use-metadata-boundary): add `LocalBackend._handle_execute_tool` regressions with real `ToolRegistry` to ensure invalid unified `computer_use` metadata failures propagate at JSON-RPC boundary and trimmed-valid metadata still routes to concrete subtools deterministically.

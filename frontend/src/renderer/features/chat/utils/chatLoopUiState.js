@@ -46,6 +46,13 @@ export function resolveChatLoopUiState({
     return CHAT_LOOP_STATE_TRANSITIONS[CHAT_LOOP_UI_STATE.IDLE][CHAT_LOOP_INTENT.IDLE];
   }
 
+  if (
+    phase === RESPONSE_OVERLAY_PHASE.COMPLETE
+    || phase === RESPONSE_OVERLAY_PHASE.ERROR
+  ) {
+    return CHAT_LOOP_STATE_TRANSITIONS[CHAT_LOOP_UI_STATE.IDLE][CHAT_LOOP_INTENT.IDLE];
+  }
+
   let nextIntent = CHAT_LOOP_INTENT.IDLE;
   if (isSending) {
     nextIntent = CHAT_LOOP_INTENT.AWAITING_REPLY;
