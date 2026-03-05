@@ -18,7 +18,12 @@ describe('surfaceOrchestrator logging gate', () => {
     expect(shouldLogSurfaceTransitions()).toBe(false);
   });
 
-  test('emits logs in non-production by default', () => {
+  test('suppresses logs in test by default', () => {
+    process.env.NODE_ENV = 'test';
+    expect(shouldLogSurfaceTransitions()).toBe(false);
+  });
+
+  test('emits logs in development by default', () => {
     process.env.NODE_ENV = 'development';
     expect(shouldLogSurfaceTransitions()).toBe(true);
   });

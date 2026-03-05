@@ -105,7 +105,7 @@ Responsibilities:
 - shared `SURFACE_PHASE` constants in `types.ts` to keep transition phase names consistent across all logs/branches
 - response overlay layout mode helper centralizes `hidden/response/awaiting-typing` mode resolution so typing/awaiting frame sizing remains deterministic across tool/capture visibility cycles (`awaiting-typing` uses fixed `24px` frame height, `response` uses fixed `236px`)
 - deterministic transition logs (`correlation_id`, retry attempt, before/after phase, terminal reason)
-- explicit dev/prod log gating via `loggingGate.shouldLogSurfaceTransitions()` (production suppresses transition logs unless verbose override is enabled)
+- explicit env-gated log policy via `loggingGate.shouldLogSurfaceTransitions()` (`production` and `test` suppress transition logs unless verbose override is enabled)
 - fail-safe cleanup on both success and terminal failure paths; Linux chat-pill restore remains overlap-safe
 
 ## ToolExecutionService

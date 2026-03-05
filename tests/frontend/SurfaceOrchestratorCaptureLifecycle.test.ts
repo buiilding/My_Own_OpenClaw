@@ -97,6 +97,7 @@ describe('surfaceOrchestrator capture lifecycle', () => {
   });
 
   test('normalizes restore context defaults for source and fallback correlation id', async () => {
+    (window as any).__WINDIE_VERBOSE_TOOL_LOGS__ = true;
     const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
     await prepareScreenshotCaptureVisibility({ captureId: 'capture-prep' });
 
@@ -115,9 +116,11 @@ describe('surfaceOrchestrator capture lifecycle', () => {
     expect(hasRestoreLog).toBe(true);
 
     consoleLogSpy.mockRestore();
+    delete (window as any).__WINDIE_VERBOSE_TOOL_LOGS__;
   });
 
   test('logs no-op transition for capture focus preparation', async () => {
+    (window as any).__WINDIE_VERBOSE_TOOL_LOGS__ = true;
     const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
     const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
     (IpcBridge.invoke as jest.Mock).mockRejectedValueOnce(new Error('focus failed'));
@@ -137,6 +140,7 @@ describe('surfaceOrchestrator capture lifecycle', () => {
 
     consoleLogSpy.mockRestore();
     consoleWarnSpy.mockRestore();
+    delete (window as any).__WINDIE_VERBOSE_TOOL_LOGS__;
   });
 
   test('keeps capture focus handoff free of renderer IPC', async () => {

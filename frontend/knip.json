@@ -16,7 +16,6 @@
     "json-schema-to-typescript"
   ],
   "ignore": [
-    "src/main/test_shell.cjs",
     "src/types/schema.ts"
   ]
 }
