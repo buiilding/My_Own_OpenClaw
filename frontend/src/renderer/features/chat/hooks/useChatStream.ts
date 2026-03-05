@@ -618,6 +618,15 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const handleMemoryStoreEvent = useCallback((event: MemoryStoreEvent) => {
     const conversationRef = resolveTargetConversationRef(event);
+    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
+    const activeTurnRef = workspace.streamTracking.activeTurnRef;
+    if (
+      event.turn_ref
+      && activeTurnRef
+      && activeTurnRef !== event.turn_ref
+    ) {
+      return;
+    }
     handleMemoryStore(event, conversationRef);
   }, [handleMemoryStore, resolveTargetConversationRef]);
 

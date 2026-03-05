@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(frontend-stale-turn-memory-store-gate): guard chat-stream `memory-store` handling by active turn so stale old-turn memory-store events cannot overwrite `streamTracking.activeTurnRef` or mutate current turn tracking counters.
 - test(frontend-stale-turn-tool-lifecycle-gate): guard chat-stream `tool-call`, `tool-output`, and `tool-bundle` handlers by active turn so stale old-turn tool lifecycle packets cannot clear active sending/thinking state, append stale tool messages, or increment current turn tracking counters.
 - test(frontend-stale-turn-live-stream-gate): guard chat-stream `llm-thought` and `streaming-response` handlers by active turn so stale old-turn live-thought/chunk events cannot clear active send state, mutate current thinking text, or append stale assistant text during newer in-flight turns.
 - docs(backend-tool-call-bridge-recovery-contracts): expand backend parser/recovery references with native tool-call bridge normalization rules (`computer_use` mapping, metadata merge, history-id fallback) and recoverable malformed-tool output diagnostics (`Raw arguments preview` extraction, target-file detection, and retry/edit strategy lines).

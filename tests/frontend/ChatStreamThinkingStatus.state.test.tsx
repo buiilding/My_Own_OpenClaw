@@ -691,6 +691,84 @@ describe('useChatStream state + stream handling', () => {
     expect(useChatStore.getState().thinkingStatus).toBe('reasoning chunk');
   });
 
+  test('tracks memory-store events for the active turn', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.setState({
+        streamTracking: {
+          activeTurnRef: 'turn-1',
+          phase: 'streaming',
+          startedAt: '2026-03-05T00:00:00.000Z',
+          firstChunkAt: '2026-03-05T00:00:01.000Z',
+          completedAt: null,
+          lastEventAt: '2026-03-05T00:00:01.000Z',
+          lastEventType: 'streaming-response',
+          eventCount: 2,
+          chunkCount: 1,
+          toolCallCount: 0,
+          toolOutputCount: 0,
+          lastChunkSize: 7,
+          lastError: null,
+        },
+      });
+
+      emitBackendEvent({
+        type: 'memory-store',
+        turn_ref: 'turn-1',
+        payload: { status: 'stored' },
+      });
+    });
+
+    expect(useChatStore.getState().streamTracking).toEqual(
+      expect.objectContaining({
+        activeTurnRef: 'turn-1',
+        phase: 'streaming',
+        lastEventType: 'memory-store',
+        eventCount: 3,
+      }),
+    );
+  });
+
+  test('ignores stale memory-store event when a newer active turn is in progress', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.setState({
+        streamTracking: {
+          activeTurnRef: 'turn-new',
+          phase: 'streaming',
+          startedAt: '2026-03-05T00:00:00.000Z',
+          firstChunkAt: '2026-03-05T00:00:01.000Z',
+          completedAt: null,
+          lastEventAt: '2026-03-05T00:00:01.000Z',
+          lastEventType: 'streaming-response',
+          eventCount: 2,
+          chunkCount: 1,
+          toolCallCount: 0,
+          toolOutputCount: 0,
+          lastChunkSize: 7,
+          lastError: null,
+        },
+      });
+
+      emitBackendEvent({
+        type: 'memory-store',
+        turn_ref: 'turn-old',
+        payload: { status: 'stored' },
+      });
+    });
+
+    expect(useChatStore.getState().streamTracking).toEqual(
+      expect.objectContaining({
+        activeTurnRef: 'turn-new',
+        phase: 'streaming',
+        lastEventType: 'streaming-response',
+        eventCount: 2,
+      }),
+    );
+  });
+
   test('updates token counts from token-count events', () => {
     const { emitBackendEvent } = registerBackendListener();
 
