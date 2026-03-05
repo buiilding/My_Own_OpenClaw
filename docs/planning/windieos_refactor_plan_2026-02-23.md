@@ -4912,3 +4912,41 @@ read_when:
   - `cd frontend && npm run lint:audit` (pass)
   - `cd frontend && npm run audit:jscpd` (0 clones)
   - `cd frontend && npm run audit:knip` (clean)
+
+## Phase 200 Outcome (2026-03-05)
+
+- Refactor slice (tool-runner hook decomposition):
+  - extracted `useToolRunner` turn/conversation guard and execution-acceptance state logic into focused utility modules:
+    - `frontend/src/renderer/features/chat/utils/toolRunnerEventGuards.ts`
+      - `resolveToolEventConversationRef(...)`
+      - `shouldIgnoreToolEventForTurn(...)`
+    - `frontend/src/renderer/features/chat/utils/toolRunnerExecutionState.ts`
+      - `shouldAcceptExecutionResult(...)`
+      - `resolveExecutionConversationRef(...)`
+  - rewired:
+    - `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
+      - now delegates those responsibilities to shared utilities.
+  - file-size delta:
+    - `useToolRunner.ts` reduced from `439` LOC to `389` LOC.
+  - tests:
+    - added `tests/frontend/ToolRunnerExecutionState.test.ts` to lock execution acceptance/drop semantics for active-turn mismatch and terminal-turn behavior.
+    - existing `ToolRunnerHook.events/turnGuards/callbacks` suites continue to validate runtime integration paths.
+- Slow-test tracking:
+  - refreshed full-suite timing snapshot (`.audit/plan1/jest-report-current.json`) to keep current hotspots visible.
+  - current top file remains `ChatInterfaceWiring.test.jsx`; no additional timing-only test rewrite shipped in this slice to avoid introducing behavioral drift.
+- Route consolidation check:
+  - `npx jscpd --gitignore --min-lines 8 --reporters console --output ../.audit/plan1/jscpd-api-routes ../backend/src/api/routes`
+  - result: `0` clones; no consolidation needed.
+- Audit outcome:
+  - combined `backend/src` + `frontend/src` `jscpd`: `0` clones.
+  - `knip`: clean.
+  - ESLint audit plugins:
+    - `react-compiler/react-compiler`: clean
+    - `deprecation/deprecation`: clean
+- Validation:
+  - `cd frontend && npm run lint -- src/renderer/features/chat/hooks/useToolRunner.ts src/renderer/features/chat/utils/toolRunnerEventGuards.ts src/renderer/features/chat/utils/toolRunnerExecutionState.ts` (pass)
+  - `cd frontend && npm run test:ci -- ../tests/frontend/ToolRunnerHook.turnGuards.test.ts ../tests/frontend/ToolRunnerHook.events.test.ts ../tests/frontend/ToolRunnerExecutionState.test.ts ../tests/frontend/ChatInterfaceWiring.test.jsx` (pass)
+  - `cd frontend && NODE_OPTIONS=--no-deprecation npx jest --config jest.config.cjs --runInBand --json --outputFile ../.audit/plan1/jest-report-current.json` (pass; 187 suites / 1217 tests)
+  - `cd frontend && npm run lint:audit` (pass)
+  - `cd frontend && npm run audit:jscpd` (0 clones)
+  - `cd frontend && npm run audit:knip` (clean)
