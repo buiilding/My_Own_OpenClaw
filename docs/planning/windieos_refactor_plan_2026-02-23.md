@@ -48,6 +48,28 @@ read_when:
 
 ## Frontend/Main Execution Log (2026-02-26)
 
+- Dashboard conversation-load decomposition (2026-03-05):
+  - extracted recent-chat load/retry normalization helpers from:
+    - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
+    - into `frontend/src/renderer/features/dashboard/utils/dashboardConversationLoad.js`.
+  - moved retry gating into pure selectors (`shouldRetryRecentConversationsLoad`, `resolveRecentConversationsRetryDelayMs`) to keep effect logic smaller and easier to validate.
+  - result:
+    - `useDashboardConversations.js` reduced from `450` LOC to `423` LOC.
+  - regression coverage:
+    - added `tests/frontend/DashboardConversationLoad.test.js`.
+    - reran `tests/frontend/ChatGptDashboardShell.test.jsx` for integration parity.
+  - verification:
+    - `cd frontend && npm run test:ci -- ../tests/frontend/DashboardConversationLoad.test.js ../tests/frontend/ChatGptDashboardShell.test.jsx`
+    - `cd frontend && npm run lint -- src/renderer/features/dashboard/hooks/useDashboardConversations.js src/renderer/features/dashboard/utils/dashboardConversationLoad.js`
+    - `cd frontend && npm run lint:audit`
+    - `cd frontend && npm run audit:knip`
+    - `cd frontend && npm run audit:jscpd`
+    - `cd frontend && npx jscpd --gitignore --min-lines 5 --min-tokens 50 --reporters console --ignore \"**/__pycache__/**\" ../backend/src/api/routes`
+  - audit delta:
+    - `react-compiler`/`deprecation` lint audits clean.
+    - `knip` clean.
+    - `jscpd` remains `0` clones overall and `backend/src/api/routes` remains `0` clones.
+
 - Wakeword capture retry-loop hardening (2026-03-05):
   - hardened renderer wakeword mic startup flow in:
     - `frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts`

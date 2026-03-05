@@ -11,22 +11,12 @@ import {
   toRehydrateMessagePayload,
 } from '../utils/episodicMemoryUtils';
 import { buildConversationGroups } from '../utils/conversationGroups';
-
-const MAX_RECENT_CHAT_RETRY_ATTEMPTS = 8;
-const RECENT_CHAT_RETRY_BASE_DELAY_MS = 250;
-const RECENT_CHAT_RETRY_MAX_DELAY_MS = 2000;
-
-function isTransientRecentConversationsError(message) {
-  if (typeof message !== 'string') {
-    return false;
-  }
-  const normalized = message.trim().toLowerCase();
-  if (!normalized) {
-    return false;
-  }
-  return normalized.includes('local backend not ready')
-    || normalized.includes('request timed out');
-}
+import {
+  normalizeRecentConversations,
+  prunePinnedConversationRefs,
+  resolveRecentConversationsRetryDelayMs,
+  shouldRetryRecentConversationsLoad,
+} from '../utils/dashboardConversationLoad';
 
 function useDashboardConversations({
   resolvedUserId,
@@ -73,13 +63,7 @@ function useDashboardConversations({
           throw new Error(result?.error || 'Failed to load recent chats');
         }
 
-        const list = (result?.data?.conversations ?? [])
-          .filter((conversation) => Boolean(conversation?.conversation_id))
-          .sort((a, b) => {
-            const aTime = Date.parse(a?.last_timestamp || '') || 0;
-            const bTime = Date.parse(b?.last_timestamp || '') || 0;
-            return bTime - aTime;
-          });
+        const list = normalizeRecentConversations(result?.data?.conversations);
 
         // Ignore stale loads so older responses cannot overwrite newer user/session state.
         if (recentConversationLoadRequestIdRef.current !== requestId) {
@@ -88,10 +72,7 @@ function useDashboardConversations({
 
         recentConversationsRetryAttemptRef.current = 0;
         setRecentConversations(list);
-        setPinnedConversationRefs((current) => {
-          const knownIds = new Set(list.map((conversation) => conversation?.conversation_id));
-          return current.filter((conversationRef) => knownIds.has(conversationRef));
-        });
+        setPinnedConversationRefs((current) => prunePinnedConversationRefs(current, list));
 
         return list;
       } catch (error) {
@@ -305,24 +286,16 @@ function useDashboardConversations({
   }, [loadRecentConversations]);
 
   useEffect(() => {
-    if (isLoadingRecentConversations) {
-      return undefined;
-    }
-    if (recentConversations.length > 0) {
-      return undefined;
-    }
-    if (!isTransientRecentConversationsError(recentConversationsError)) {
-      return undefined;
-    }
-    if (recentConversationsRetryAttemptRef.current >= MAX_RECENT_CHAT_RETRY_ATTEMPTS) {
-      return undefined;
-    }
-
     const retryAttempt = recentConversationsRetryAttemptRef.current;
-    const retryDelayMs = Math.min(
-      RECENT_CHAT_RETRY_MAX_DELAY_MS,
-      RECENT_CHAT_RETRY_BASE_DELAY_MS * (2 ** retryAttempt),
-    );
+    if (!shouldRetryRecentConversationsLoad({
+      isLoadingRecentConversations,
+      recentConversationsCount: recentConversations.length,
+      recentConversationsError,
+      retryAttempt,
+    })) {
+      return undefined;
+    }
+    const retryDelayMs = resolveRecentConversationsRetryDelayMs(retryAttempt);
     recentConversationsRetryAttemptRef.current += 1;
 
     const timerId = window.setTimeout(() => {
