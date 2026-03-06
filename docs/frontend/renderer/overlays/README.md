@@ -12,6 +12,7 @@ title: "Frontend Renderer Overlay Docs Hub"
 
 - [Chatbox Overlay Input, Drag, and Click-Through Reference](chatbox_overlay_input_drag_and_clickthrough_reference.md)
 - [Response Overlay Phase Runtime Reference](response_overlay_phase_and_tool_ghost_runtime_reference.md)
+- [Overlay Phase Listener and Sync-Store Contract Reference](overlay_phase_listener_and_sync_external_store_contract_reference.md)
 - [Renderer Overlay Tool Ghost Docs Hub](tool_ghost/README.md)
 - [Tool Ghost Debug Cursor Payload and Timing Reference](tool_ghost/tool_ghost_preview_payload_parsing_and_target_mapping_reference.md)
 - [Renderer Tool-Ghost Lifecycle Docs Hub](tool_ghost/lifecycle/README.md)
