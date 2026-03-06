@@ -157,6 +157,6 @@ Import compatibility contract:
 ## Related Pages
 
 - [Runs Route and VM Control Service Reference](runs_route_and_vm_control_service_reference.md)
+- [Runs Route Helper Validation and Incremental Events Projection Contract Reference](runs_route_helper_validation_and_incremental_events_projection_contract_reference.md)
 - [Runs Route Support Helpers and API-Key Guard Reference](runs_route_support_helpers_and_api_key_guard_reference.md)
 - [VM Run Control Service Runtime Reference](../services/vm_run_control_service_runtime_reference.md)
-
