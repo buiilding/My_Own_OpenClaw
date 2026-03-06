@@ -2,9 +2,18 @@ export function isStaleTurnForActiveStream(
   eventTurnRef: string | null | undefined,
   activeTurnRef: string | null | undefined,
 ): boolean {
-  if (!eventTurnRef || !activeTurnRef) {
+  const normalizedEventTurnRef = (
+    typeof eventTurnRef === 'string'
+      ? eventTurnRef.trim()
+      : ''
+  );
+  const normalizedActiveTurnRef = (
+    typeof activeTurnRef === 'string'
+      ? activeTurnRef.trim()
+      : ''
+  );
+  if (!normalizedEventTurnRef || !normalizedActiveTurnRef) {
     return false;
   }
-  return activeTurnRef !== eventTurnRef;
+  return normalizedActiveTurnRef !== normalizedEventTurnRef;
 }
-
