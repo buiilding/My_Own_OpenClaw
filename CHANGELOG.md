@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(sidecar-computer-use-required-metadata-missing-field-matrix): add parameterized sidecar local-backend regressions for missing `description`/`explanation`/`expectation` fields in `computer_use.metadata`, asserting fail-closed error payloads and no downstream subtool execution for each missing field.
 - docs(backend-runs-route-helper-contracts-and-service-support-split): expand `/api/runs` route/service reference with current `vm_run_control_support/*` helper ownership, queue/transition/event cursor guarantees, and add a dedicated `route_helpers.py` contract page for control validation plus incremental event projection; wire the new page into backend API hub cross-links.
 - test(frontend-main-second-instance-throttle-zero-cooldown-override): add lifecycle regression that verifies `secondInstanceFocusCooldownMs=0` disables focus throttling and preserves one-focus-per-event behavior without throttled-log emission.
 - test(backend-computer-use-catalog-parity-contract): add backend cross-module parity regressions asserting unified `computer_use` tool enum stays aligned with remote execution mapping keys and registry legacy-name collapse set, preventing schema/registry/executor drift on supported computer subtools.

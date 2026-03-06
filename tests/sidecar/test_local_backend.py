@@ -356,6 +356,46 @@ async def test_handle_execute_tool_computer_use_rejects_missing_metadata_with_re
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("missing_field", ["description", "explanation", "expectation"])
+async def test_handle_execute_tool_computer_use_rejects_missing_required_metadata_field(
+    missing_field,
+):
+    backend = LocalBackend()
+    registry = ToolRegistry()
+    captured = {"called": False}
+
+    def mouse_tool(_args):
+        captured["called"] = True
+        return ToolResult.success_result({"ok": True})
+
+    registry.tools["mouse_control"] = mouse_tool
+    backend.tool_registry = registry
+    metadata = {
+        "description": "screen",
+        "explanation": "click target",
+        "expectation": "dialog opens",
+    }
+    metadata.pop(missing_field)
+    envelope = {
+        "tool": "mouse_control",
+        "metadata": metadata,
+        "arguments": {
+            "action": "click",
+            "x": 10,
+            "y": 20,
+        },
+    }
+
+    result = await backend._handle_execute_tool("computer_use", envelope)
+
+    assert result == {
+        "success": False,
+        "error": f"computer_use missing required metadata field: {missing_field}",
+    }
+    assert captured["called"] is False
+
+
+@pytest.mark.asyncio
 async def test_handle_execute_tool_computer_use_trims_metadata_and_routes_with_real_registry():
     backend = LocalBackend()
     registry = ToolRegistry()
