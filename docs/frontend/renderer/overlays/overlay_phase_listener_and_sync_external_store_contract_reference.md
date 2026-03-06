@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for renderer overlay phase listener internals: parsed payload gate, dual subscriber sets, lazy IPC subscription lifecycle, and `useSyncExternalStore` integration."
+summary: "Deep reference for renderer overlay phase listener internals: parsed payload gate, single store-subscriber set, lazy IPC subscription lifecycle, and `useSyncExternalStore` integration."
 read_when:
   - When changing `overlayPhaseListener.js`, `useResponseOverlayPhase.js`, or response-overlay phase payload parsing.
   - When debugging stale overlay phase snapshots, duplicate IPC listeners, or hook subscription cleanup behavior in chatbox overlays.
@@ -27,7 +27,7 @@ It owns:
 
 - one lazily-attached IPC listener on `ON_CHANNELS.RESPONSE_OVERLAY_PHASE`
 - current phase snapshot storage (`currentOverlayPhase`)
-- callback fan-out to two subscriber sets
+- callback fan-out to store subscribers
 
 It does not own:
 
@@ -42,7 +42,7 @@ Inbound payload flow:
 2. `parseResponseOverlayPhasePayload(payload)` validates/normalizes.
 3. invalid payloads are dropped (no phase write, no notifications).
 4. valid payload updates `currentOverlayPhase`.
-5. listener notifies phase subscribers, then store subscribers.
+5. listener notifies store subscribers.
 
 Snapshot contract:
 
@@ -50,19 +50,14 @@ Snapshot contract:
 - `getResponseOverlayPhaseSnapshot()` returns the last accepted parsed phase.
 - invalid payloads never mutate snapshot.
 
-## Dual Subscriber Sets
+## Store Subscriber Set
 
-Listener maintains separate registries:
+Listener maintains one registry:
 
-- `phaseSubscribers`: callback shape `(phase, parsedPayload)`
 - `storeSubscribers`: callback shape `() => void` for external-store change pings
 
-Public APIs:
+Public API:
 
-- `subscribeResponseOverlayPhase(onPhase)`:
-  - adds callback to `phaseSubscribers`
-  - ensures IPC subscription
-  - returns unsubscribe closure
 - `subscribeResponseOverlayPhaseStore(onStoreChange)`:
   - adds callback to `storeSubscribers`
   - ensures IPC subscription
@@ -77,13 +72,13 @@ Public APIs:
 
 `disposeIpcSubscriptionIfIdle()` contract:
 
-- unsubscribes IPC only when both sets are empty.
+- unsubscribes IPC only when `storeSubscribers` is empty.
 - safe when remover is absent (`removeIpcListener?.()`).
 - resets remover handle to `null` after cleanup.
 
 Result:
 
-- any number of hook/callback consumers share one IPC listener.
+- any number of hook consumers share one IPC listener.
 - listener is released when last subscriber unmounts/unsubscribes.
 
 ## `useSyncExternalStore` Hook Contract
@@ -127,14 +122,13 @@ Because both components can mount together, shared-listener ownership prevents d
 
 ## Drift Hotspots
 
-1. Conflating phase and store subscribers into separate IPC listeners can create duplicate event processing and inconsistent cleanup.
+1. Reintroducing separate callback and store subscriber channels can create duplicate event processing and inconsistent cleanup.
 2. Updating snapshot before parse validation would allow unknown phases to leak into hook consumers.
 3. Removing lazy unsubscribe logic can leak long-lived IPC listeners across overlay remounts.
-4. Changing notification order without care can break callback paths that expect phase snapshot to be written before store ping.
+4. Emitting store notifications before snapshot mutation would break `useSyncExternalStore` consumers expecting snapshot-before-notify semantics.
 
 ## Related Pages
 
 - [Response Overlay Phase Runtime Reference](response_overlay_phase_and_tool_ghost_runtime_reference.md)
 - [Frontend Renderer Overlay Docs Hub](README.md)
 - [Chat Stream and Tool Execution Reference](../chat_stream_and_tool_execution_reference.md)
-
