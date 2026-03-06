@@ -6,27 +6,13 @@ import AssistantMessageActions from './AssistantMessageActions';
 import UserMessageActions from './UserMessageActions';
 import MessageSourceBadge from './MessageSourceBadge';
 import UserMessageEditComposer from './UserMessageEditComposer';
+import messageShapePropType from './messageShapePropType';
 import { buildMessageClassName } from '../../utils/messageListClasses';
 import {
   shouldRenderAssistantActions,
   shouldRenderUserActions,
 } from '../../utils/messageListState';
 
-const messageShapePropType = PropTypes.shape({
-  id: PropTypes.string.isRequired,
-  text: PropTypes.string.isRequired,
-  sender: PropTypes.oneOf(['user', 'assistant']).isRequired,
-  isComplete: PropTypes.bool,
-  type: PropTypes.string,
-  feedback: PropTypes.oneOf(['like', 'dislike', null]),
-  screenshot: PropTypes.string,
-  screenshotRef: PropTypes.string,
-  screenshotUrl: PropTypes.string,
-  sourceEventType: PropTypes.string,
-  sourceChannel: PropTypes.string,
-  thinkingText: PropTypes.string,
-  thinkingSourceEventType: PropTypes.string,
-});
 
 const MessageItem = memo(function MessageItem({
   message,

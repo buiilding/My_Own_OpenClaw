@@ -31,5 +31,7 @@ title: "Backend API Memory Docs Hub"
 - `backend/src/api/routes/memory/semantic/service.py`
 - `backend/src/api/routes/memory/semantic/parser.py`
 - `backend/src/api/routes/memory/embeddings/router.py`
+- `backend/src/api/routes/memory/embeddings/models.py`
+- `backend/src/api/routes/memory/embeddings/service.py`
 - `backend/src/api/routes/memory/health.py`
 - `tests/backend/test_memory_routes.py`

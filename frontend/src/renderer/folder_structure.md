@@ -50,7 +50,14 @@ frontend/src/renderer/
 │   │   │   │   ├── AssistantMessageActions.jsx # Assistant action controls (copy/feedback/retry)
 │   │   │   │   ├── UserMessageActions.jsx # User action controls (copy/edit-and-resend)
 │   │   │   │   ├── MessageSourceBadge.jsx # Dev source + token badge renderer
-│   │   │   │   └── MessageItem.jsx      # Message row shell + action/transparency composition
+│   │   │   │   ├── MessageItem.jsx      # Message row shell + action/transparency composition
+│   │   │   │   └── content/             # MessageContent sub-renderers by payload type
+│   │   │   │       ├── MarkdownMessage.jsx # Provider-aware markdown rendering
+│   │   │   │       ├── ToolCallMessage.jsx # Tool call payload card + details toggle
+│   │   │   │       ├── ToolOutputMessage.jsx # Tool output payload card + details toggle
+│   │   │   │       ├── UserMessage.jsx   # User message attachments + screenshot gallery
+│   │   │   │       ├── ErrorMessage.jsx  # Error message card renderer
+│   │   │   │       └── AssistantThinkingSection.jsx # Collapsible assistant thinking panel
 │   │   │   └── chatBoxResponseUtils.js  # chatBoxResponseUtils - Response/tool-call selection + tool-ghost track style builders
 │   │   │
 │   │   ├── hooks/                       # Chat business logic hooks

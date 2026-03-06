@@ -6,6 +6,7 @@ import {
   useState,
 } from 'react';
 import PropTypes from 'prop-types';
+import messageShapePropType from './message/messageShapePropType';
 import MessageItem from './message/MessageItem';
 import {
   findAwaitingDotTargetMessageId,
@@ -14,21 +15,6 @@ import {
   scrollToConversationSwitchTarget,
 } from '../utils/messageListState';
 
-const messageShapePropType = PropTypes.shape({
-  id: PropTypes.string.isRequired,
-  text: PropTypes.string.isRequired,
-  sender: PropTypes.oneOf(['user', 'assistant']).isRequired,
-  isComplete: PropTypes.bool,
-  type: PropTypes.string,
-  feedback: PropTypes.oneOf(['like', 'dislike', null]),
-  screenshot: PropTypes.string,
-  screenshotRef: PropTypes.string,
-  screenshotUrl: PropTypes.string,
-  sourceEventType: PropTypes.string,
-  sourceChannel: PropTypes.string,
-  thinkingText: PropTypes.string,
-  thinkingSourceEventType: PropTypes.string,
-});
 
 function MessageList({
   messages,

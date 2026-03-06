@@ -11,8 +11,11 @@ title: "Embeddings Route Serialization, Sanitized Error Surface, and Health-Prob
 ## Canonical Modules
 
 - `backend/src/api/routes/memory/embeddings/router.py`
+- `backend/src/api/routes/memory/embeddings/models.py`
+- `backend/src/api/routes/memory/embeddings/service.py`
 - `backend/src/api/routes/memory/health.py`
 - `tests/backend/test_memory_routes.py`
+- `tests/backend/test_embeddings_service.py`
 
 ## Request/Response Schema Contract
 
@@ -29,7 +32,7 @@ Response (`EmbeddingResponse`):
 
 ## Embedding Serialization Helper
 
-`_embedding_to_list(embedding)` behavior:
+`embedding_to_list(embedding)` behavior:
 
 - prefers `.tolist()` when available (numpy-like vectors)
 - falls back to `list(embedding)` for generic iterables
@@ -45,7 +48,7 @@ Purpose:
 1. resolve `container.embedder`
 2. missing embedder -> `HTTPException(503, "Embedding service not available")`
 3. call `await embedding_provider.embed_text(request.text)`
-4. serialize vector with `_embedding_to_list`
+4. serialize vector with `embedding_to_list`
 5. return dimension and provider model name (provider attribute preferred over request hint)
 
 Exception handling:
@@ -91,6 +94,13 @@ Wrapped via `dependency_health_check(...)`:
 - embeddings health returns unhealthy when probe call fails
 - `dependency_health_check` handles missing dependencies + healthy probes
 - `safe_health_check` returns check payload on success and canonical unhealthy payload on exception
+
+`tests/backend/test_embeddings_service.py` verifies:
+
+- serialization helper handles both `.tolist()` and plain iterables
+- response shaping keeps provider model preference + correct dimension
+- health probe payload uses live embedder results
+- sanitized 500 error mapping helper raises `HTTPException`
 
 ## Drift Hotspots
 
