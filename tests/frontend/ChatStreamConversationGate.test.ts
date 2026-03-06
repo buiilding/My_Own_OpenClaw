@@ -123,4 +123,27 @@ describe('chatStreamConversationGate', () => {
     });
     expect(resolveEventConversationRef(event)).toBeNull();
   });
+
+  test('resolveEventConversationRef falls through whitespace top-level conversation_ref to local-user payload fallback', () => {
+    const event = buildEvent({
+      type: 'local-user-message',
+      conversation_ref: '   ',
+      payload: {
+        text: 'hello',
+        conversation_ref: 'conv-local-from-payload',
+      },
+    });
+    expect(resolveEventConversationRef(event)).toBe('conv-local-from-payload');
+  });
+
+  test('resolveEventConversationRef falls through whitespace top-level conversation_ref to memory-store payload session fallback', () => {
+    const event = buildEvent({
+      type: 'memory-store',
+      conversation_ref: '   ',
+      payload: {
+        session_id: 'conv-memory-from-payload',
+      },
+    });
+    expect(resolveEventConversationRef(event)).toBe('conv-memory-from-payload');
+  });
 });
