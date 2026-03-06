@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(backend-vm-run-control-support-helper-contracts): add a dedicated backend services deep reference for `vm_run_control_support/*` helper boundaries (assignment, transitions, pending-control draining, event log sequencing, payload shaping, worker-state normalization), and wire it into services hub plus VM run-control runtime references.
 - test(backend-response-parser-legacy-mouse-unexpected-metadata-rejection): add parser-boundary regression that direct legacy `mouse_control` payloads carrying extra metadata keys (for example `trace_id`) fail with the same strict `unexpected metadata fields` contract enforced for unified `computer_use`.
 - test(sidecar-tool-registry-computer-use-required-metadata-matrices): expand `tools.registry` runtime regressions with full required-field matrices for `computer_use.metadata` (missing and non-string `description`/`explanation`/`expectation`) while asserting fail-close no-subtool-execution behavior for each invalid case.
 - refactor(fullstack-chat-state-subfoldering-wakeword-retry-and-semantic-service-factory): moved chat state helpers into `frontend/src/renderer/features/chat/utils/state/` (components/hooks/tool-runner/tests/docs rewired), increased missing-device wakeword retry delay to `60s` with devicechange-based unlock in `useWakewordDetection`, and consolidated `/api/semantic` route dependency wiring through `_build_semantic_service()`.
