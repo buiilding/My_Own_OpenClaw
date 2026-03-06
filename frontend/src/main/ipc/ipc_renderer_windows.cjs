@@ -1,3 +1,7 @@
+function isDebugStreamTraceEnabled() {
+  return process.env.WINDIE_DEBUG_STREAM_EVENTS === '1';
+}
+
 function trackRendererWindow({
   win,
   rendererWindows,
@@ -62,6 +66,7 @@ function broadcastToRenderers({
   payload,
   sourceWebContents = null,
 }) {
+  let deliveredCount = 0;
   for (const win of rendererWindows) {
     if (!win || win.isDestroyed()) {
       rendererWindows.delete(win);
@@ -71,6 +76,15 @@ function broadcastToRenderers({
       continue;
     }
     win.webContents.send(channel, payload);
+    deliveredCount += 1;
+  }
+  if (isDebugStreamTraceEnabled() && channel === 'from-backend' && payload && typeof payload === 'object') {
+    const eventType = typeof payload.type === 'string' ? payload.type : 'unknown';
+    const turnRef = typeof payload.turn_ref === 'string' ? payload.turn_ref : '-';
+    const conversationRef = typeof payload.conversation_ref === 'string' ? payload.conversation_ref : '-';
+    console.log(
+      `[IPC Bridge] [StreamTrace][main][broadcast] channel=${channel} type=${eventType} turn=${turnRef} conv=${conversationRef} renderer_count=${deliveredCount}`,
+    );
   }
 }
 
