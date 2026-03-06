@@ -24,7 +24,7 @@ import { RESPONSE_OVERLAY_PHASE } from '../utils/responseOverlayPhaseContract';
 import {
   findLastUserIndex,
   findLatestMessageAfterUser,
-} from './chatBoxResponseUtils';
+} from './chatbox/chatBoxResponseUtils';
 import {
   isResponseCloseable,
   normalizeThinkingText,

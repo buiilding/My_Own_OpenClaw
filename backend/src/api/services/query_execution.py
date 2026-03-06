@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import time
 import asyncio
-from typing import TYPE_CHECKING, Any, List, Optional, Type
+from typing import TYPE_CHECKING, Any, Optional, Type
 
 from backend.src.api.processing.formatter import ResponseFormatter
 from backend.src.api.processing.pipeline import StreamPipeline
@@ -14,12 +14,8 @@ from backend.src.api.processing.tts.processor import TTSProcessor
 from backend.src.api.schema import QueryMessage
 from backend.src.api.services.query_event_extraction import (
     extract_assistant_full_text,
-    extract_chunk_text,
-    extract_dict_payload,
-    extract_dict_string_field,
     extract_event_type,
     extract_non_empty_chunk_text,
-    extract_streaming_complete_text,
     resolve_completion_text,
 )
 from backend.src.api.services.query_execution_support.query_execution_cancellation import (
@@ -33,9 +29,6 @@ from backend.src.api.services.query_execution_support.query_execution_pipeline_e
 from backend.src.api.services.query_execution_support.query_execution_runtime import (
     apply_query_runtime_system_state,
     build_stream_context,
-    resolve_query_runtime_system_state,
-    resolve_query_screenshot_metadata,
-    resolve_screenshots,
 )
 from backend.src.api.services.query_execution_support.query_execution_stream_state import (
     QueryExecutionStreamState,
@@ -117,7 +110,7 @@ class QueryExecutionService:
                     message_content=query_inputs.message_content,
                     conversation_ref=query_inputs.conversation_ref,
                 ):
-                    event_type = self._extract_event_type(event)
+                    event_type = extract_event_type(event)
 
                     if stream_state.saw_terminal_event:
                         logger.debug(
@@ -129,11 +122,11 @@ class QueryExecutionService:
                         )
                         continue
 
-                    chunk_text = self._extract_non_empty_chunk_text(
+                    chunk_text = extract_non_empty_chunk_text(
                         event,
                         event_type=event_type,
                     )
-                    assistant_full_text = self._extract_assistant_full_text(
+                    assistant_full_text = extract_assistant_full_text(
                         event,
                         event_type=event_type,
                     )
@@ -144,11 +137,12 @@ class QueryExecutionService:
 
                     if event_type == "streaming-complete":
                         stream_state.mark_terminal()
-                        completion_text = self._resolve_completion_text(
+                        completion_text = resolve_completion_text(
                             **stream_state.completion_kwargs(
                                 event=event,
                                 event_type=event_type,
                             ),
+                            empty_fallback=EMPTY_FINAL_RESPONSE_FALLBACK,
                         )
                         stream_state.saw_text_chunk = await self._emit_completion_events(
                             pipeline=pipeline,
@@ -183,6 +177,7 @@ class QueryExecutionService:
                             event=None,
                             event_type=None,
                         ),
+                        empty_fallback=EMPTY_FINAL_RESPONSE_FALLBACK,
                     )
                     stream_state.saw_text_chunk = await self._emit_completion_events(
                         pipeline=pipeline,
@@ -223,36 +218,6 @@ class QueryExecutionService:
             msg_id=msg_id,
             conversation_ref=conversation_ref,
         )
-
-    def _resolve_screenshot(
-        self,
-        message: QueryMessage,
-        artifact_store_cls: Type[ArtifactStore],
-    ) -> Optional[str]:
-        """Resolve screenshot from inline payload or artifact reference."""
-        screenshots = self._resolve_screenshots(message, artifact_store_cls)
-        return screenshots[0] if screenshots else None
-
-    def _resolve_screenshots(
-        self,
-        message: QueryMessage,
-        artifact_store_cls: Type[ArtifactStore],
-    ) -> Optional[List[str]]:
-        return resolve_screenshots(
-            message,
-            artifact_store_cls=artifact_store_cls,
-            session_manager_config=getattr(self._session_manager, "config", None),
-        )
-
-    @staticmethod
-    def _resolve_query_screenshot_metadata(
-        message: QueryMessage,
-    ) -> Optional[dict[str, Any]]:
-        return resolve_query_screenshot_metadata(message)
-
-    @staticmethod
-    def _resolve_query_runtime_system_state(message: QueryMessage) -> Optional[dict[str, str]]:
-        return resolve_query_runtime_system_state(message)
 
     def _apply_query_runtime_system_state(self, agent_instance: Any, message: QueryMessage) -> None:
         apply_query_runtime_system_state(agent_instance, message)
@@ -304,91 +269,4 @@ class QueryExecutionService:
             stream_context=stream_context,
             completion_text=completion_text,
             saw_text_chunk=saw_text_chunk,
-        )
-
-    @staticmethod
-    def _extract_event_type(event: Any) -> Optional[str]:
-        return extract_event_type(event)
-
-    @staticmethod
-    def _extract_dict_payload(event: Any) -> Optional[dict[str, Any]]:
-        return extract_dict_payload(event)
-
-    @classmethod
-    def _extract_dict_string_field(
-        cls,
-        event: Any,
-        *,
-        top_level_key: str,
-        payload_key: Optional[str] = None,
-    ) -> Optional[str]:
-        _ = cls  # compatibility wrapper
-        return extract_dict_string_field(
-            event,
-            top_level_key=top_level_key,
-            payload_key=payload_key,
-        )
-
-    @classmethod
-    def _extract_non_empty_chunk_text(
-        cls,
-        event: Any,
-        *,
-        event_type: Optional[str] = None,
-    ) -> str:
-        _ = cls  # compatibility wrapper
-        return extract_non_empty_chunk_text(
-            event,
-            event_type=event_type,
-        )
-
-    @classmethod
-    def _extract_chunk_text(cls, event: Any) -> Optional[str]:
-        _ = cls  # compatibility wrapper
-        return extract_chunk_text(event)
-
-    @classmethod
-    def _extract_assistant_full_text(
-        cls,
-        event: Any,
-        *,
-        event_type: Optional[str] = None,
-    ) -> str:
-        _ = cls  # compatibility wrapper
-        return extract_assistant_full_text(
-            event,
-            event_type=event_type,
-        )
-
-    @classmethod
-    def _extract_streaming_complete_text(
-        cls,
-        event: Any,
-        *,
-        event_type: Optional[str] = None,
-    ) -> str:
-        _ = cls  # compatibility wrapper
-        return extract_streaming_complete_text(
-            event,
-            event_type=event_type,
-        )
-
-    @classmethod
-    def _resolve_completion_text(
-        cls,
-        *,
-        event: Any,
-        event_type: Optional[str] = None,
-        text_chunks: list[str],
-        assistant_full_text: str,
-        saw_text_chunk: bool,
-    ) -> str:
-        _ = cls  # compatibility wrapper
-        return resolve_completion_text(
-            event=event,
-            event_type=event_type,
-            text_chunks=text_chunks,
-            assistant_full_text=assistant_full_text,
-            saw_text_chunk=saw_text_chunk,
-            empty_fallback=EMPTY_FINAL_RESPONSE_FALLBACK,
         )

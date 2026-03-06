@@ -7,6 +7,17 @@ from backend.src.api.services.query_execution import (
     EMPTY_FINAL_RESPONSE_FALLBACK,
     QueryExecutionService,
 )
+from backend.src.api.services.query_event_extraction import (
+    extract_chunk_text,
+    extract_dict_payload,
+    extract_dict_string_field,
+    extract_event_type,
+    resolve_completion_text,
+)
+from backend.src.api.services.query_execution_support.query_execution_runtime import (
+    resolve_query_runtime_system_state,
+    resolve_screenshots,
+)
 from backend.src.core.events.streaming_events import ChunkEvent, StreamingCompleteEvent
 
 
@@ -37,6 +48,20 @@ def _build_service(session_manager=None):
     return QueryExecutionService(manager, tts_manager=object(), response_formatter=object())
 
 
+def _first_screenshot(
+    message,
+    *,
+    artifact_store_cls,
+    session_manager_config,
+):
+    screenshots = resolve_screenshots(
+        message,
+        artifact_store_cls=artifact_store_cls,
+        session_manager_config=session_manager_config,
+    )
+    return screenshots[0] if screenshots else None
+
+
 def test_resolve_query_runtime_system_state_filters_to_allowed_string_keys():
     message = _build_message(
         system_state_internal={
@@ -48,7 +73,7 @@ def test_resolve_query_runtime_system_state_filters_to_allowed_string_keys():
         }
     )
 
-    state = QueryExecutionService._resolve_query_runtime_system_state(message)
+    state = resolve_query_runtime_system_state(message)
 
     assert state == {
         "active_window": "Terminal",
@@ -58,12 +83,10 @@ def test_resolve_query_runtime_system_state_filters_to_allowed_string_keys():
 
 
 def test_resolve_query_runtime_system_state_returns_none_for_missing_or_invalid_payload():
-    assert QueryExecutionService._resolve_query_runtime_system_state(_build_message()) is None
+    assert resolve_query_runtime_system_state(_build_message()) is None
 
     fake_message = SimpleNamespace(payload=SimpleNamespace(system_state_internal=["not", "a", "dict"]))
-    assert (
-        QueryExecutionService._resolve_query_runtime_system_state(fake_message) is None
-    )
+    assert resolve_query_runtime_system_state(fake_message) is None
 
 
 def test_apply_query_runtime_system_state_merges_existing_values():
@@ -126,10 +149,12 @@ def test_resolve_screenshot_prioritizes_inline_data():
         def from_config(cls, _config):
             raise AssertionError("artifact store should not be constructed for inline screenshots")
 
-    service = _build_service()
     message = _build_message(screenshot="inline-b64", screenshot_ref="artifact-ref")
-
-    assert service._resolve_screenshot(message, _ArtifactStore) == "inline-b64"
+    assert _first_screenshot(
+        message,
+        artifact_store_cls=_ArtifactStore,
+        session_manager_config=SimpleNamespace(),
+    ) == "inline-b64"
 
 
 def test_resolve_screenshot_loads_artifact_ref_when_inline_missing():
@@ -141,10 +166,12 @@ def test_resolve_screenshot_loads_artifact_ref_when_inline_missing():
         def load_base64(self, screenshot_ref):
             return f"resolved:{screenshot_ref}"
 
-    service = _build_service()
     message = _build_message(screenshot=None, screenshot_ref="artifact-ref")
-
-    assert service._resolve_screenshot(message, _ArtifactStore) == "resolved:artifact-ref"
+    assert _first_screenshot(
+        message,
+        artifact_store_cls=_ArtifactStore,
+        session_manager_config=SimpleNamespace(),
+    ) == "resolved:artifact-ref"
 
 
 def test_resolve_screenshots_loads_multi_artifact_refs_when_provided():
@@ -156,13 +183,16 @@ def test_resolve_screenshots_loads_multi_artifact_refs_when_provided():
         def load_base64(self, screenshot_ref):
             return f"resolved:{screenshot_ref}"
 
-    service = _build_service()
     message = _build_message(
         screenshot=None,
         screenshot_refs=["artifact-1", "artifact-2"],
     )
 
-    assert service._resolve_screenshots(message, _ArtifactStore) == [
+    assert resolve_screenshots(
+        message,
+        artifact_store_cls=_ArtifactStore,
+        session_manager_config=SimpleNamespace(),
+    ) == [
         "resolved:artifact-1",
         "resolved:artifact-2",
     ]
@@ -180,13 +210,16 @@ def test_resolve_screenshots_trims_refs_and_skips_blank_entries():
             calls.append(screenshot_ref)
             return f"resolved:{screenshot_ref}"
 
-    service = _build_service()
     message = _build_message(
         screenshot=None,
         screenshot_refs=[" artifact-1 ", "   ", "artifact-2"],
     )
 
-    assert service._resolve_screenshots(message, _ArtifactStore) == [
+    assert resolve_screenshots(
+        message,
+        artifact_store_cls=_ArtifactStore,
+        session_manager_config=SimpleNamespace(),
+    ) == [
         "resolved:artifact-1",
         "resolved:artifact-2",
     ]
@@ -199,10 +232,13 @@ def test_resolve_screenshots_returns_none_for_blank_single_ref():
         def from_config(cls, _config):
             raise AssertionError("artifact store should not be initialized")
 
-    service = _build_service()
     message = _build_message(screenshot=None, screenshot_ref="   ")
 
-    assert service._resolve_screenshots(message, _ArtifactStore) is None
+    assert resolve_screenshots(
+        message,
+        artifact_store_cls=_ArtifactStore,
+        session_manager_config=SimpleNamespace(),
+    ) is None
 
 
 def test_resolve_screenshots_falls_back_to_single_ref_when_ref_list_is_blank_only():
@@ -217,14 +253,17 @@ def test_resolve_screenshots_falls_back_to_single_ref_when_ref_list_is_blank_onl
             calls.append(screenshot_ref)
             return f"resolved:{screenshot_ref}"
 
-    service = _build_service()
     message = _build_message(
         screenshot=None,
         screenshot_ref="legacy-ref",
         screenshot_refs=["   ", ""],
     )
 
-    assert service._resolve_screenshots(message, _ArtifactStore) == [
+    assert resolve_screenshots(
+        message,
+        artifact_store_cls=_ArtifactStore,
+        session_manager_config=SimpleNamespace(),
+    ) == [
         "resolved:legacy-ref"
     ]
     assert calls == ["legacy-ref"]
@@ -244,13 +283,16 @@ def test_resolve_screenshots_keeps_successful_refs_when_one_load_fails():
                 raise RuntimeError("missing artifact")
             return f"resolved:{screenshot_ref}"
 
-    service = _build_service()
     message = _build_message(
         screenshot=None,
         screenshot_refs=["ok-ref", "bad-ref", "ok-ref-2"],
     )
 
-    assert service._resolve_screenshots(message, _ArtifactStore) == [
+    assert resolve_screenshots(
+        message,
+        artifact_store_cls=_ArtifactStore,
+        session_manager_config=SimpleNamespace(),
+    ) == [
         "resolved:ok-ref",
         "resolved:ok-ref-2",
     ]
@@ -263,13 +305,16 @@ def test_resolve_screenshots_returns_trimmed_inline_without_store():
         def from_config(cls, _config):
             raise AssertionError("artifact store should not be initialized")
 
-    service = _build_service()
     message = _build_message(
         screenshot="  inline-b64  ",
         screenshot_ref="artifact-ref",
     )
 
-    assert service._resolve_screenshots(message, _ArtifactStore) == ["inline-b64"]
+    assert resolve_screenshots(
+        message,
+        artifact_store_cls=_ArtifactStore,
+        session_manager_config=SimpleNamespace(),
+    ) == ["inline-b64"]
 
 
 def test_resolve_screenshot_returns_none_when_artifact_load_fails():
@@ -281,17 +326,23 @@ def test_resolve_screenshot_returns_none_when_artifact_load_fails():
         def load_base64(self, _screenshot_ref):
             raise RuntimeError("missing artifact")
 
-    service = _build_service()
     message = _build_message(screenshot=None, screenshot_ref="artifact-ref")
 
-    assert service._resolve_screenshot(message, _ArtifactStore) is None
+    assert _first_screenshot(
+        message,
+        artifact_store_cls=_ArtifactStore,
+        session_manager_config=SimpleNamespace(),
+    ) is None
 
 
 def test_resolve_screenshot_returns_none_when_no_inline_or_ref():
-    service = _build_service()
     message = _build_message(screenshot=None, screenshot_ref=None)
 
-    assert service._resolve_screenshot(message, artifact_store_cls=object) is None
+    assert _first_screenshot(
+        message,
+        artifact_store_cls=object,
+        session_manager_config=SimpleNamespace(),
+    ) is None
 
 
 def test_finalize_pending_tool_calls_on_cancel_handles_success_and_failures():
@@ -330,31 +381,28 @@ def test_finalize_pending_tool_calls_on_cancel_handles_success_and_failures():
     )
 
 
-def test_query_execution_extract_wrapper_methods_passthrough():
-    service_cls = QueryExecutionService
-
-    assert service_cls._extract_event_type({"type": "chunk"}) == "chunk"
-    assert service_cls._extract_dict_payload({"payload": {"x": 1}}) == {"x": 1}
+def test_query_execution_event_extraction_helpers_passthrough():
+    assert extract_event_type({"type": "chunk"}) == "chunk"
+    assert extract_dict_payload({"payload": {"x": 1}}) == {"x": 1}
     assert (
-        service_cls._extract_dict_string_field(
+        extract_dict_string_field(
             {"payload": {"text": "hello"}},
             top_level_key="content",
             payload_key="text",
         )
         == "hello"
     )
-    assert service_cls._extract_chunk_text({"content": "chunk"}) == "chunk"
+    assert extract_chunk_text({"content": "chunk"}) == "chunk"
 
 
-def test_query_execution_resolve_completion_text_wrapper_uses_empty_fallback():
-    service_cls = QueryExecutionService
-
-    fallback = service_cls._resolve_completion_text(
+def test_query_execution_resolve_completion_text_helper_uses_empty_fallback():
+    fallback = resolve_completion_text(
         event=None,
         event_type=None,
         text_chunks=[],
         assistant_full_text="",
         saw_text_chunk=False,
+        empty_fallback=EMPTY_FINAL_RESPONSE_FALLBACK,
     )
     assert fallback == EMPTY_FINAL_RESPONSE_FALLBACK
 

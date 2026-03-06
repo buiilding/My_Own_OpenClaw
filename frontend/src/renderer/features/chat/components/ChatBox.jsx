@@ -29,8 +29,8 @@ import {
   SendIcon,
   SettingsIcon,
   SoundIcon,
-} from './ChatBoxIcons';
-import ChatBoxImagePreviewRow from './ChatBoxImagePreviewRow';
+} from './chatbox/ChatBoxIcons';
+import ChatBoxImagePreviewRow from './chatbox/ChatBoxImagePreviewRow';
 import {
   createClipboardScreenshotImage,
   isDragBlockedTarget,
