@@ -256,20 +256,44 @@ async def test_parse_and_validate_message_includes_indexed_nested_validation_pat
 
 
 @pytest.mark.asyncio
-async def test_parse_and_validate_message_handles_unexpected_parse_errors(monkeypatch) -> None:
-    async def raise_unexpected(*_args, **_kwargs):
-        raise RuntimeError("decoder exploded")
+async def test_parse_and_validate_message_delegates_to_runtime_parser(monkeypatch) -> None:
+    captured = {}
 
-    monkeypatch.setattr(mh, "parse_json_object_payload", raise_unexpected)
+    async def fake_parse_runtime(
+        *,
+        data: str,
+        user_id: str,
+        max_message_size: int,
+        json_parse_offload_bytes: int,
+        parse_json_object_payload_fn,
+        loop_getter,
+        logger,
+    ):
+        captured["data"] = data
+        captured["user_id"] = user_id
+        captured["max_message_size"] = max_message_size
+        captured["json_parse_offload_bytes"] = json_parse_offload_bytes
+        captured["parse_json_object_payload_fn"] = parse_json_object_payload_fn
+        captured["loop_getter"] = loop_getter
+        captured["logger"] = logger
+        return None, "An internal error occurred"
+
+    monkeypatch.setattr(mh, "parse_and_validate_message_runtime", fake_parse_runtime)
 
     message, error = await mh.parse_and_validate_message(
-        '{"id":"msg_unexpected","type":"query","payload":{"text":"hello"}}',
+        '{"id":"msg_delegate","type":"query","payload":{"text":"hello"}}',
         user_id="user_1",
         max_message_size=2048,
     )
 
     assert message is None
     assert error == "An internal error occurred"
+    assert captured["user_id"] == "user_1"
+    assert captured["max_message_size"] == 2048
+    assert captured["json_parse_offload_bytes"] == mh._JSON_PARSE_OFFLOAD_BYTES
+    assert callable(captured["parse_json_object_payload_fn"])
+    assert callable(captured["loop_getter"])
+    assert captured["logger"] is mh.logger
 
 
 @pytest.mark.asyncio
@@ -579,54 +603,66 @@ async def test_parse_and_validate_message_rejects_whitespace_tool_result_correla
 
 
 @pytest.mark.asyncio
-async def test_parse_and_validate_message_small_payload_parses_inline(monkeypatch) -> None:
-    payload = json.dumps(
-        {
-            "id": "msg_inline",
-            "type": "query",
-            "payload": {"text": "hello", "conversation_ref": "conv_test"},
-        }
-    )
-    monkeypatch.setattr(mh.asyncio, "get_running_loop", lambda: (_ for _ in ()).throw(RuntimeError("should not be used")))
+async def test_parse_and_validate_message_passes_default_offload_threshold_to_runtime(monkeypatch) -> None:
+    captured = {}
+
+    async def fake_parse_runtime(
+        *,
+        data: str,
+        user_id: str,
+        max_message_size: int,
+        json_parse_offload_bytes: int,
+        parse_json_object_payload_fn,
+        loop_getter,
+        logger,
+    ):
+        captured["json_parse_offload_bytes"] = json_parse_offload_bytes
+        return _query_message("msg_inline"), None
+
+    monkeypatch.setattr(mh, "parse_and_validate_message_runtime", fake_parse_runtime)
 
     message, error = await mh.parse_and_validate_message(
-        payload, user_id="user_1", max_message_size=4096
+        '{"id":"msg_inline","type":"query","payload":{"text":"hello","conversation_ref":"conv_test"}}',
+        user_id="user_1",
+        max_message_size=4096,
     )
 
     assert error is None
     assert isinstance(message, QueryMessage)
+    assert captured["json_parse_offload_bytes"] == mh._JSON_PARSE_OFFLOAD_BYTES
 
 
 @pytest.mark.asyncio
-async def test_parse_and_validate_message_large_payload_uses_executor(monkeypatch) -> None:
-    payload = json.dumps(
-        {
-            "id": "msg_large",
-            "type": "query",
-            "payload": {"text": "hello", "conversation_ref": "conv_test"},
-        }
-    )
+async def test_parse_and_validate_message_passes_overridden_offload_threshold_to_runtime(
+    monkeypatch,
+) -> None:
     monkeypatch.setattr(mh, "_JSON_PARSE_OFFLOAD_BYTES", 1)
+    captured = {}
 
-    called = {"executor": False}
+    async def fake_parse_runtime(
+        *,
+        data: str,
+        user_id: str,
+        max_message_size: int,
+        json_parse_offload_bytes: int,
+        parse_json_object_payload_fn,
+        loop_getter,
+        logger,
+    ):
+        captured["json_parse_offload_bytes"] = json_parse_offload_bytes
+        return _query_message("msg_large"), None
 
-    async def fake_run_in_executor(_executor, fn, data):
-        called["executor"] = True
-        return fn(data)
-
-    monkeypatch.setattr(
-        mh.asyncio,
-        "get_running_loop",
-        lambda: SimpleNamespace(run_in_executor=fake_run_in_executor),
-    )
+    monkeypatch.setattr(mh, "parse_and_validate_message_runtime", fake_parse_runtime)
 
     message, error = await mh.parse_and_validate_message(
-        payload, user_id="user_1", max_message_size=4096
+        '{"id":"msg_large","type":"query","payload":{"text":"hello","conversation_ref":"conv_test"}}',
+        user_id="user_1",
+        max_message_size=4096,
     )
 
     assert error is None
     assert isinstance(message, QueryMessage)
-    assert called["executor"] is True
+    assert captured["json_parse_offload_bytes"] == 1
 
 
 @pytest.mark.asyncio
