@@ -61,6 +61,9 @@ export function shouldIgnoreForStaleTurn(
   // Keep first packets of the next turn when UI has already entered "sending" but
   // stream-tracking still points at a completed previous turn.
   if (isPendingNextTurnAfterTerminalPhase) {
+    if (activeTurnRef && event.turn_ref === activeTurnRef) {
+      return true;
+    }
     return false;
   }
   return isStaleTurnForActiveStream(event.turn_ref, activeTurnRef);

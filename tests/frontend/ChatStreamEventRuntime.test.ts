@@ -83,6 +83,32 @@ describe('chatStreamEventRuntime', () => {
     expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-new' }), null)).toBe(false);
   });
 
+  test('stale turn guard ignores packets from just-completed active turn during terminal pending handoff', () => {
+    useChatStore.setState((state) => ({
+      ...state,
+      isSending: true,
+      streamTracking: {
+        ...state.streamTracking,
+        activeTurnRef: 'turn-old',
+        phase: 'complete',
+      },
+      workspaces: {
+        ...state.workspaces,
+        __default__: {
+          ...state.workspaces.__default__,
+          isSending: true,
+          streamTracking: {
+            ...state.workspaces.__default__.streamTracking,
+            activeTurnRef: 'turn-old',
+            phase: 'complete',
+          },
+        },
+      },
+    }));
+
+    expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-old' }), null)).toBe(true);
+  });
+
   test('stale turn guard ignores old-turn packets during active stream', () => {
     expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-old' }), null)).toBe(true);
   });
