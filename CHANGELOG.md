@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-chat-stream-awaiting-first-chunk-turn-reanchor): allow turn-ref reanchor during `awaiting-first-chunk` when a renderer workspace is still sending but holds an older active turn ref, preventing stuck typing indicators when first backend packets arrive under a new turn id; added stale-turn guard regression coverage.
 - fix(frontend-chat-stream-transcript-session-conversation-precedence): make chat stream ingress sync transcript session with the resolved event conversation ref first (fallback to active ref only when event conversation is absent), so dashboard and minimal chat pill stay on the same active chat stream; updated `ChatStreamBackendIngress` regression coverage for precedence behavior.
 - docs(backend-protocol-surface-validation-state-runtime-parser-alignment): refresh backend protocol surface/validation/state references to current websocket parse-runtime split (`message_parse_runtime`, `json_parse`, `loop_runtime`), fix handshake control-path naming (`perform_handshake`), and update state coverage snapshot counts.
 - docs(backend-protocol-lifecycle-testing-helper-split-coverage): refresh backend protocol testing/lifecycle references with current websocket helper-module ownership (`connection`, `json_parse`, `message_parse_runtime`, `loop_runtime`, `task_manager`), add missing handshake/parse/task-runtime contract details, and update coverage snapshots/test index lists.

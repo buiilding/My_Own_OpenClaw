@@ -55,6 +55,22 @@ export function shouldIgnoreForStaleTurn(
   }
   const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
   const activeTurnRef = workspace.streamTracking.activeTurnRef;
+  const normalizedActiveTurnRef = (
+    typeof activeTurnRef === 'string'
+      ? activeTurnRef.trim()
+      : ''
+  );
+  // During awaiting-first-chunk, fail-open on turn-ref mismatch so the first real
+  // backend packets can re-anchor stream state if optimistic local turn wiring
+  // never seeded this workspace with the current turn ref.
+  if (
+    workspace.isSending === true
+    && workspace.streamTracking.phase === 'awaiting-first-chunk'
+    && normalizedActiveTurnRef
+    && eventTurnRef !== normalizedActiveTurnRef
+  ) {
+    return false;
+  }
   const isPendingNextTurnAfterTerminalPhase = (
     workspace.isSending === true
     && (
@@ -66,11 +82,6 @@ export function shouldIgnoreForStaleTurn(
   // Keep first packets of the next turn when UI has already entered "sending" but
   // stream-tracking still points at a completed previous turn.
   if (isPendingNextTurnAfterTerminalPhase) {
-    const normalizedActiveTurnRef = (
-      typeof activeTurnRef === 'string'
-        ? activeTurnRef.trim()
-        : ''
-    );
     if (normalizedActiveTurnRef && eventTurnRef === normalizedActiveTurnRef) {
       return true;
     }
