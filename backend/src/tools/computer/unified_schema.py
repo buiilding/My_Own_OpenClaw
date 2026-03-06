@@ -102,6 +102,7 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                 "Unified computer-use tool envelope. `tool` selects a concrete action. "
                 "`arguments` must match that action's schema. `metadata` is always required."
             ),
+            "additionalProperties": False,
             "required": ["tool", "metadata"],
             "properties": {
                 "tool": {
@@ -119,6 +120,7 @@ _COMPUTER_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                 "metadata": {
                     "type": "object",
                     "description": "Required execution rationale metadata for computer-use actions.",
+                    "additionalProperties": False,
                     "required": ["description", "explanation", "expectation"],
                     "properties": {
                         "description": {

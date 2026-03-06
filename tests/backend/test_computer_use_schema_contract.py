@@ -38,7 +38,9 @@ def test_unified_schema_requires_metadata_with_required_fields():
     parameters = declaration["function"]["parameters"]
     metadata = parameters["properties"]["metadata"]
 
+    assert parameters["additionalProperties"] is False
     assert set(parameters["required"]) == {"tool", "metadata"}
+    assert metadata["additionalProperties"] is False
     assert set(metadata["required"]) == {"description", "explanation", "expectation"}
     assert metadata["properties"]["description"]["minLength"] == 1
     assert metadata["properties"]["explanation"]["minLength"] == 1
