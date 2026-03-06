@@ -423,4 +423,55 @@ describe('useToolRunner callback wiring', () => {
 
     expect(IpcBridge.send).not.toHaveBeenCalled();
   });
+
+  test('accepts tracked bundled payloads when envelope bundle id is padded', async () => {
+    renderToolRunner(true);
+    const callbacks = getCapturedServiceCallbacks();
+
+    await emitBackendEventAsync({
+      type: 'tool-bundle',
+      payload: {
+        bundle_id: 'bundle-trim',
+        tools: [
+          { name: 'read_file', args: { file_path: '/tmp/a' } },
+        ],
+      },
+    });
+
+    callbacks.sendToBackend({
+      type: 'tool-bundle-result',
+      payload: {
+        bundle_id: '  bundle-trim  ',
+        status: 'success',
+        step_results: [],
+        error: null,
+      },
+    });
+
+    expect(IpcBridge.send).toHaveBeenCalledWith(
+      SEND_CHANNELS.TO_BACKEND,
+      {
+        type: 'tool-bundle-result',
+        payload: {
+          bundle_id: '  bundle-trim  ',
+          status: 'success',
+          step_results: [],
+          error: null,
+        },
+      },
+    );
+
+    (IpcBridge.send as jest.Mock).mockClear();
+    callbacks.sendToBackend({
+      type: 'tool-bundle-result',
+      payload: {
+        bundle_id: 'bundle-trim',
+        status: 'success',
+        step_results: [],
+        error: null,
+      },
+    });
+
+    expect(IpcBridge.send).not.toHaveBeenCalled();
+  });
 });
