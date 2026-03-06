@@ -65,6 +65,29 @@ def test_extract_tool_call_direct_metadata_does_not_mutate_input_payload():
     }
 
 
+def test_extract_tool_call_standard_format_returns_deep_copied_args():
+    schema = ToolCallSchema()
+    payload = {
+        "functionCall": {
+            "name": "read_file",
+            "args": {
+                "path": "/tmp/a",
+                "options": {"offset": 1, "limit": 10},
+            },
+        }
+    }
+
+    extracted = schema.extract_tool_call(payload)
+    assert extracted is not None
+    tool_name, args, metadata = extracted
+    assert tool_name == "read_file"
+    assert metadata is None
+
+    args["options"]["offset"] = 99
+
+    assert payload["functionCall"]["args"]["options"]["offset"] == 1
+
+
 def test_extract_tool_call_rejects_non_dict_args():
     schema = ToolCallSchema()
     payload = {"functionCall": {"name": "read_file", "args": "not-an-object"}}
@@ -147,6 +170,43 @@ def test_extract_tool_call_unified_computer_use_does_not_mutate_input_payload():
         "explanation": "click submit",
         "expectation": "dialog opens",
     }
+
+
+def test_extract_tool_call_unified_computer_use_returns_deep_copied_arguments():
+    schema = ToolCallSchema()
+    payload = {
+        "functionCall": {
+            "name": "computer_use",
+            "args": {
+                "tool": "mouse_control",
+                "arguments": {
+                    "action": "click",
+                    "x": 10,
+                    "y": 20,
+                    "nested": {"candidate_id": "cand-1"},
+                },
+                "metadata": {
+                    "description": "screen",
+                    "explanation": "click submit",
+                    "expectation": "dialog opens",
+                },
+            },
+        }
+    }
+
+    extracted = schema.extract_tool_call(payload)
+    assert extracted is not None
+    tool_name, args, metadata = extracted
+    assert tool_name == "mouse_control"
+    assert metadata == {
+        "description": "screen",
+        "explanation": "click submit",
+        "expectation": "dialog opens",
+    }
+
+    args["nested"]["candidate_id"] = "cand-2"
+
+    assert payload["functionCall"]["args"]["arguments"]["nested"]["candidate_id"] == "cand-1"
 
 
 def test_extract_tool_call_unified_computer_use_defaults_missing_arguments_to_empty_dict():

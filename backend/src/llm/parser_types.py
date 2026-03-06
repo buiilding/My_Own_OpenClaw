@@ -1,6 +1,7 @@
 """
 Parser data structures and schema helpers.
 """
+import copy
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -68,7 +69,7 @@ class ToolCallSchema:
         if not isinstance(args, dict):
             return None
 
-        return normalized_tool_name, dict(args)
+        return normalized_tool_name, copy.deepcopy(args)
 
     def extract_tool_call(
         self, parsed_json: Dict[str, Any]
@@ -110,7 +111,7 @@ class ToolCallSchema:
         if not isinstance(metadata_value, dict):
             return None
         args.pop("metadata", None)
-        return dict(metadata_value)
+        return copy.deepcopy(metadata_value)
 
     @staticmethod
     def _normalize_unified_computer_use(
@@ -130,4 +131,4 @@ class ToolCallSchema:
         if not isinstance(arguments, dict):
             return None
 
-        return normalized_tool_name, dict(arguments), metadata
+        return normalized_tool_name, copy.deepcopy(arguments), metadata
