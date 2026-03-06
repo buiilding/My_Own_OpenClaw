@@ -1,28 +1,28 @@
 import { useCallback } from 'react';
-import { recordToolMessage } from '../../../infrastructure/transcript/TranscriptWriter';
-import { type ChatMessage } from '../stores/chatStore';
+import { recordToolMessage } from '../../../../infrastructure/transcript/TranscriptWriter';
+import { type ChatMessage } from '../../stores/chatStore';
 import {
   type BackendEventType,
   type ToolBundleEvent,
   type ToolCallEvent,
   type ToolOutputEvent,
-} from '../../../types/backendEvents';
+} from '../../../../types/backendEvents';
 import {
   formatToolBundlePayload,
   formatToolCallPayload,
   formatToolOutputText,
   resolveModelFacingToolCall,
-} from '../utils/chatStream/chatStreamFormatting';
+} from '../../utils/chatStream/chatStreamFormatting';
 import {
   buildToolBundleMessage,
   buildToolCallMessage,
   buildToolOutputMessage,
-} from '../utils/chatStream/chatStreamToolMessages';
+} from '../../utils/chatStream/chatStreamToolMessages';
 import {
   buildScreenshotAttachment,
   resolveToolCallCorrelationId,
   resolveToolOutputCorrelationId,
-} from '../utils/chatStream/chatStreamEventUtils';
+} from '../../utils/chatStream/chatStreamEventUtils';
 
 type MinimalModelContext = {
   modelId: string | null;

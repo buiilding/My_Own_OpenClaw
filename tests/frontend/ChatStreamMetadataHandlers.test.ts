@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
-import { useChatStreamMetadataHandlers } from '../../frontend/src/renderer/features/chat/hooks/useChatStreamMetadataHandlers';
+import { useChatStreamMetadataHandlers } from '../../frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamMetadataHandlers';
 
 describe('useChatStreamMetadataHandlers', () => {
   test('routes metadata events to message updaters and tracking', () => {

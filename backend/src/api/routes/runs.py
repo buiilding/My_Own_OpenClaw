@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-import os
-from typing import Annotated, Any, Dict, Optional
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from backend.src.api.routes.run_models import (
     CreateRunRequest,
@@ -29,81 +28,20 @@ from backend.src.api.routes.run_models import (
     WorkerPollHeartbeatRequest,
     WorkerPollHeartbeatResponse,
 )
+from backend.src.api.routes.runs_support import (
+    get_vm_run_control_service,
+    latest_run_event_dict,
+    require_run,
+    to_run_view_dict,
+    verify_runs_api_key,
+)
 from backend.src.services.vm_run_control import VmRunControlService
 
 router = APIRouter(prefix="/api/runs", tags=["runs"])
 
-
-def _parse_positive_int(raw_value: Optional[str], default: int) -> int:
-    if raw_value is None:
-        return default
-    try:
-        parsed = int(raw_value.strip())
-    except (ValueError, AttributeError):
-        return default
-    return parsed if parsed > 0 else default
-
-
-def get_vm_run_control_service(request: Request) -> VmRunControlService:
-    state = request.app.state
-    service = getattr(state, "vm_run_control_service", None)
-    if service is None:
-        max_active_runs = _parse_positive_int(
-            os.getenv("WINDIE_VM_MAX_ACTIVE_RUNS_PER_WORKSPACE"),
-            default=1,
-        )
-        service = VmRunControlService(max_active_runs_per_workspace=max_active_runs)
-        state.vm_run_control_service = service
-    return service
-
-
 VmRunControlServiceDep = Annotated[VmRunControlService, Depends(get_vm_run_control_service)]
 
-
-def _normalize_optional_string(value: Optional[str]) -> Optional[str]:
-    if not isinstance(value, str):
-        return None
-    normalized = value.strip()
-    return normalized if normalized else None
-
-
-def _resolve_runs_api_key() -> Optional[str]:
-    return _normalize_optional_string(
-        os.getenv("WINDIE_RUNS_API_KEY") or os.getenv("WINDIE_DEMO_API_KEY")
-    )
-
-
-def verify_runs_api_key(
-    x_windie_runs_key: Optional[str] = Header(
-        default=None,
-        alias="x-windie-runs-key",
-    ),
-) -> None:
-    expected_key = _resolve_runs_api_key()
-    if expected_key is None:
-        return
-    if _normalize_optional_string(x_windie_runs_key) != expected_key:
-        raise HTTPException(status_code=401, detail="Invalid runs API key")
-
-
 RunsApiKeyDep = Annotated[None, Depends(verify_runs_api_key)]
-
-
-def _to_run_view(run: Dict[str, Any]) -> RunView:
-    return RunView(**{k: v for k, v in run.items() if k != "events"})
-
-
-def _require_run(run: Optional[Dict[str, Any]], detail: str = "Run not found") -> Dict[str, Any]:
-    if run is None:
-        raise HTTPException(status_code=404, detail=detail)
-    return run
-
-
-def _latest_run_event(run: Dict[str, Any], missing_detail: str) -> RunEvent:
-    events = run.get("events", [])
-    if not events:
-        raise HTTPException(status_code=500, detail=missing_detail)
-    return RunEvent(**events[-1])
 
 
 @router.post("/", response_model=CreateRunResponse)
@@ -125,7 +63,7 @@ async def create_run(
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     events = run.get("events", [])
     return CreateRunResponse(
-        run=_to_run_view(run),
+        run=RunView(**to_run_view_dict(run)),
         events=[RunEvent(**event) for event in events],
     )
 
@@ -161,7 +99,7 @@ async def get_run(
     service: VmRunControlServiceDep,
     _api_key: RunsApiKeyDep = None,
 ) -> RunView:
-    return _to_run_view(_require_run(await service.get_run(run_id)))
+    return RunView(**to_run_view_dict(require_run(await service.get_run(run_id))))
 
 
 @router.get("/{run_id}/events", response_model=RunEventsResponse)
@@ -205,7 +143,7 @@ async def ingest_run_event(
     if not isinstance(run, dict) or not isinstance(latest_event, dict):
         raise HTTPException(status_code=500, detail="Run event was not persisted")
     return RunEventIngestResponse(
-        run=_to_run_view(run),
+        run=RunView(**to_run_view_dict(run)),
         latest_event=RunEvent(**latest_event),
     )
 
@@ -222,15 +160,17 @@ async def control_run(
             status_code=422,
             detail="control_mode is required when action is set-control-mode",
         )
-    run = _require_run(await service.apply_control(
+    run = require_run(await service.apply_control(
         run_id,
         action=payload.action,
         requested_by=payload.requested_by,
         control_mode=payload.control_mode,
     ))
     return RunControlResponse(
-        run=_to_run_view(run),
-        latest_event=_latest_run_event(run, missing_detail="Run control event not recorded"),
+        run=RunView(**to_run_view_dict(run)),
+        latest_event=RunEvent(
+            **latest_run_event_dict(run, missing_detail="Run control event not recorded")
+        ),
     )
 
 
@@ -258,7 +198,7 @@ async def worker_dispatched(
     service: VmRunControlServiceDep,
     _api_key: RunsApiKeyDep = None,
 ) -> WorkerDispatchedResponse:
-    run = _require_run(await service.acknowledge_run_dispatch(
+    run = require_run(await service.acknowledge_run_dispatch(
         run_id,
         worker_id=payload.worker_id,
         user_id=payload.user_id,
@@ -266,8 +206,10 @@ async def worker_dispatched(
         conversation_ref=payload.conversation_ref,
     ), detail="Run not found or worker mismatch")
     return WorkerDispatchedResponse(
-        run=_to_run_view(run),
-        latest_event=_latest_run_event(run, missing_detail="Dispatch event not recorded"),
+        run=RunView(**to_run_view_dict(run)),
+        latest_event=RunEvent(
+            **latest_run_event_dict(run, missing_detail="Dispatch event not recorded")
+        ),
     )
 
 
@@ -278,7 +220,7 @@ async def worker_heartbeat(
     service: VmRunControlServiceDep,
     _api_key: RunsApiKeyDep = None,
 ) -> WorkerHeartbeatResponse:
-    run = _require_run(await service.record_worker_heartbeat(
+    run = require_run(await service.record_worker_heartbeat(
         run_id,
         worker_id=payload.worker_id,
         vm_id=payload.vm_id,
@@ -288,6 +230,8 @@ async def worker_heartbeat(
         metadata=payload.metadata,
     ))
     return WorkerHeartbeatResponse(
-        run=_to_run_view(run),
-        latest_event=_latest_run_event(run, missing_detail="Worker heartbeat event not recorded"),
+        run=RunView(**to_run_view_dict(run)),
+        latest_event=RunEvent(
+            **latest_run_event_dict(run, missing_detail="Worker heartbeat event not recorded")
+        ),
     )

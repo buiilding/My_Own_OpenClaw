@@ -12,8 +12,8 @@ title: "Event Handler Map and Turn Guard Matrix Reference"
 
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamHandlerMap.ts`
-- `frontend/src/renderer/features/chat/hooks/useChatStreamToolHandlers.ts`
-- `frontend/src/renderer/features/chat/hooks/useChatStreamTerminalHandlers.ts`
+- `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts`
+- `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamTerminalHandlers.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamConversationGate.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTurnGuard.ts`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`

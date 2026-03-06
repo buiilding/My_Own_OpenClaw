@@ -2,12 +2,12 @@ import { useCallback } from 'react';
 import {
   useChatStore,
   type ChatMessage,
-} from '../stores/chatStore';
+} from '../../stores/chatStore';
 import {
   findFirstMessageIdBySender,
   findLastAssistantLlmTextMessageId,
   findLastMessageIdBySender,
-} from '../utils/chatStream/chatStreamMessageUpdates';
+} from '../../utils/chatStream/chatStreamMessageUpdates';
 
 export function useStreamMessageUpdaters(
   updateMessage: (

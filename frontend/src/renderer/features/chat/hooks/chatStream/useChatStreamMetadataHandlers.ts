@@ -6,14 +6,14 @@ import type {
   SystemPromptEvent,
   ToolSchemasEvent,
   UserMessageFullEvent,
-} from '../../../types/backendEvents';
+} from '../../../../types/backendEvents';
 import {
   buildAssistantMessageFullUpdate,
   buildSystemPromptUpdate,
   buildUserMessageFullUpdate,
-} from '../utils/chatStream/chatStreamMessageUpdates';
-import type { StreamTrackingOptions } from '../utils/chatStream/chatStreamTracking';
-import type { ChatMessage } from '../stores/chatStore';
+} from '../../utils/chatStream/chatStreamMessageUpdates';
+import type { StreamTrackingOptions } from '../../utils/chatStream/chatStreamTracking';
+import type { ChatMessage } from '../../stores/chatStore';
 
 type ResolveTargetConversationRef = (event: BackendEvent) => string | null;
 

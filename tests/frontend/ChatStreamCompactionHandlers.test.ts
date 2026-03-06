@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
-import { useChatStreamCompactionHandlers } from '../../frontend/src/renderer/features/chat/hooks/useChatStreamCompactionHandlers';
+import { useChatStreamCompactionHandlers } from '../../frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamCompactionHandlers';
 import {
   COMPACTION_COMPLETED_NO_CHANGES_THINKING_STATUS,
   COMPACTION_COMPLETED_THINKING_STATUS,

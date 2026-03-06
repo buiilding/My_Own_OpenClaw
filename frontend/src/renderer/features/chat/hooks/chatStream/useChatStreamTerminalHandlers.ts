@@ -1,15 +1,15 @@
 import { useCallback } from 'react';
-import { recordAssistantMessage } from '../../../infrastructure/transcript/TranscriptWriter';
+import { recordAssistantMessage } from '../../../../infrastructure/transcript/TranscriptWriter';
 import {
   useChatStore,
   type ChatMessage,
-} from '../stores/chatStore';
+} from '../../stores/chatStore';
 import type {
   ErrorEvent,
   MemoryStoreEvent,
   TokenCountEvent,
-} from '../../../types/backendEvents';
-import { resolveErrorText } from '../utils/chatStream/chatStreamEventUtils';
+} from '../../../../types/backendEvents';
+import { resolveErrorText } from '../../utils/chatStream/chatStreamEventUtils';
 import type { ChatStreamThinkingStateDeps } from './chatStreamHandlerTypes';
 
 type UseChatStreamTerminalHandlersDeps = ChatStreamThinkingStateDeps<
