@@ -72,6 +72,19 @@ describe('electron-launcher', () => {
     });
   });
 
+  test('buildLaunchCommand launches electron directly on headless linux when xvfb-run is unavailable', () => {
+    const launch = buildLaunchCommand({
+      electronBinary: '/tmp/electron',
+      platform: 'linux',
+      env: {},
+      xvfbAvailable: false,
+    });
+    expect(launch).toEqual({
+      command: '/tmp/electron',
+      args: ['.'],
+    });
+  });
+
   test('buildLaunchCommand launches electron directly on windows', () => {
     const launch = buildLaunchCommand({
       electronBinary: 'C:\\bin\\electron.exe',
