@@ -50,6 +50,40 @@ def test_to_parsed_response_handles_invalid_native_payload_fields():
     assert parsed.tool_calls[0].metadata is None
 
 
+def test_to_parsed_response_returns_deep_copied_arguments():
+    payload = {
+        "content": "",
+        "tool_calls": [
+            {
+                "id": "call_read_1",
+                "name": "read_file",
+                "arguments": {
+                    "file_path": "/tmp/a",
+                    "options": {"offset": 1, "limit": 5},
+                },
+            }
+        ],
+    }
+
+    parsed = to_parsed_response(payload)
+    parsed.tool_calls[0].parameters["options"]["offset"] = 99
+
+    assert payload["tool_calls"][0]["arguments"]["options"]["offset"] == 1
+
+
+def test_to_history_tool_calls_returns_deep_copied_arguments():
+    parsed_tool_call = ParsedToolCall(
+        tool_name="read_file",
+        parameters={"file_path": "/tmp/a", "options": {"offset": 1, "limit": 5}},
+        metadata={"tool_call_id": "call_read_1"},
+    )
+
+    history_calls = to_history_tool_calls([parsed_tool_call])
+    history_calls[0]["arguments"]["options"]["offset"] = 77
+
+    assert parsed_tool_call.parameters["options"]["offset"] == 1
+
+
 def test_to_history_tool_calls_preserves_ids_with_fallback():
     history_calls = to_history_tool_calls(
         [

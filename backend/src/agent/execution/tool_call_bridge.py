@@ -1,5 +1,6 @@
 """Helpers for native tool-call bridging and recoverable tool-call error parsing."""
 
+import copy
 import re
 from typing import Any, Dict, List
 
@@ -105,6 +106,8 @@ def to_parsed_tool_call(tool_call: Dict[str, Any]) -> ParsedToolCall:
     parameters = tool_call.get("arguments") or {}
     if not isinstance(parameters, dict):
         parameters = {}
+    else:
+        parameters = copy.deepcopy(parameters)
 
     metadata: Dict[str, Any] = {}
     tool_call_id = tool_call.get("id")
@@ -117,7 +120,7 @@ def to_parsed_tool_call(tool_call: Dict[str, Any]) -> ParsedToolCall:
 
     metadata_payload = parameters.get("metadata")
     if isinstance(metadata_payload, dict):
-        metadata.update(metadata_payload)
+        metadata.update(copy.deepcopy(metadata_payload))
         parameters = dict(parameters)
         parameters.pop("metadata", None)
 
@@ -129,7 +132,7 @@ def to_parsed_tool_call(tool_call: Dict[str, Any]) -> ParsedToolCall:
         else:
             normalized_tool_name = "invalid_computer_use_tool"
         if isinstance(mapped_args, dict):
-            parameters = dict(mapped_args)
+            parameters = copy.deepcopy(mapped_args)
         else:
             parameters = {}
 
@@ -169,7 +172,7 @@ def to_history_tool_calls(
         history_call: Dict[str, Any] = {
             "id": tool_call_id,
             "name": tool_call.tool_name,
-            "arguments": dict(tool_call.parameters or {}),
+            "arguments": copy.deepcopy(tool_call.parameters or {}),
         }
         if thought_signature:
             history_call["thought_signature"] = thought_signature
