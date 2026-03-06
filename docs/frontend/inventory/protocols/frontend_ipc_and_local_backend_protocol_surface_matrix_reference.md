@@ -21,7 +21,7 @@ This page maps protocol surfaces across renderer, Electron main, and Python loca
 
 - Preload allowlist boundary: `frontend/src/preload.js`
 - Renderer channel constants + typed bridge: `frontend/src/renderer/infrastructure/ipc/channels.ts`, `frontend/src/renderer/infrastructure/ipc/bridge.ts`
-- Main WebSocket bridge and IPC handlers: `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs`, `frontend/src/main/index.cjs`
+- Main WebSocket bridge and IPC handlers: `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs`, `frontend/src/main/index.cjs`, `frontend/src/main/overlay_phase_ipc_runtime.cjs`, `frontend/src/main/window_controls_ipc_runtime.cjs`, `frontend/src/main/permission_ipc_runtime.cjs`
 - Wakeword IPC bridge: `frontend/src/main/wakeword_bridge.cjs`
 - Main-to-sidecar JSON-RPC bridge: `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 - Sidecar method registry and protocol parser: `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/core/ipc_protocol.py`
@@ -35,7 +35,7 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | Channel | Main owner | Primary behavior |
 |---|---|---|
 | `to-backend` | `main/ipc.cjs` | Sends structured websocket message to backend (`type`, `payload`, `id`, `user_id`, `timestamp`) |
-| `move-chatbox-to` | `main/index.cjs` | Repositions chatbox overlay window |
+| `move-chatbox-to` | `main/overlay_phase_ipc_runtime.cjs` | Repositions chatbox overlay window |
 | `wakeword-audio-chunk` | `main/wakeword_bridge.cjs` | Streams mic PCM chunks to wakeword subprocess |
 | `wakeword-enable` | `main/wakeword_bridge.cjs` | Enables wakeword detection / starts service if needed |
 | `wakeword-disable` | `main/wakeword_bridge.cjs` | Disables wakeword detection and flushes buffers |
@@ -61,20 +61,20 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `load-frontend-config` | `main/ipc.cjs` | Reads frontend config from disk |
 | `save-frontend-config` | `main/ipc.cjs` | Persists frontend config to disk |
 | `get-client-user-id` | `main/ipc.cjs` | Returns connection/user snapshot |
-| `set-agent-sudo-access` | `main/index.cjs` | Linux-only sudo access toggle via privileged command runner |
-| `list-permissions` | `main/index.cjs` | Returns permission manifest + status bundle |
-| `check-permissions` | `main/index.cjs` | Batch permission probe result list |
-| `check-permission` | `main/index.cjs` | Single permission probe shortcut |
-| `run-permission-probe` | `main/index.cjs` | Explicit probe execution for one permission |
-| `request-permission` | `main/index.cjs` | OS request/open-settings path per permission |
-| `set-responsebox-size` | `main/index.cjs` | Resize response overlay |
-| `show-main-window` | `main/index.cjs` | Show dashboard window; optional `{ open, maximize }`; `open` target must normalize to `chat|memory|models|settings` before emit |
-| `show-chatbox` | `main/index.cjs` | Show chatbox overlay |
-| `hide-chatbox` | `main/index.cjs` | Hide chatbox overlay |
-| `get-displays` | `main/index.cjs` | Return display inventory |
-| `window-minimize` | `main/index.cjs` | Minimize main window |
-| `window-toggle-maximize` | `main/index.cjs` | Toggle maximize state |
-| `window-close` | `main/index.cjs` | Close main window |
+| `set-agent-sudo-access` | `main/permission_ipc_runtime.cjs` | Linux-only sudo access toggle via privileged command runner (`agent_sudo_access_handler.cjs`) |
+| `list-permissions` | `main/permission_ipc_runtime.cjs` | Returns permission manifest + status bundle |
+| `check-permissions` | `main/permission_ipc_runtime.cjs` | Batch permission probe result list |
+| `check-permission` | `main/permission_ipc_runtime.cjs` | Single permission probe shortcut |
+| `run-permission-probe` | `main/permission_ipc_runtime.cjs` | Explicit probe execution for one permission |
+| `request-permission` | `main/permission_ipc_runtime.cjs` | OS request/open-settings path per permission |
+| `set-responsebox-size` | `main/overlay_phase_ipc_runtime.cjs` | Resize response overlay |
+| `show-main-window` | `main/window_controls_ipc_runtime.cjs` | Show dashboard window; optional `{ open, maximize }`; `open` target must normalize to `chat|memory|models|settings` before emit |
+| `show-chatbox` | `main/overlay_phase_ipc_runtime.cjs` | Show chatbox overlay |
+| `hide-chatbox` | `main/overlay_phase_ipc_runtime.cjs` | Hide chatbox overlay |
+| `get-displays` | `main/window_controls_ipc_runtime.cjs` | Return display inventory mapped as `{ id, label, isPrimary, bounds, scaleFactor }` |
+| `window-minimize` | `main/window_controls_ipc_runtime.cjs` | Minimize main window |
+| `window-toggle-maximize` | `main/window_controls_ipc_runtime.cjs` | Toggle maximize state |
+| `window-close` | `main/window_controls_ipc_runtime.cjs` | Close main window |
 
 ### `on`/`once` Channels (Main -> Renderer)
 
@@ -188,7 +188,7 @@ Registered callable surface:
 ## Drift Guards
 
 - Preload allowlists and renderer constants should remain in strict parity.
-- IPC handler registration is split across `ipc.cjs`, `index.cjs`, `local_backend_bridge.cjs`, and `wakeword_bridge.cjs`; ownership drift often appears when adding channels without updating all four surfaces.
+- IPC handler registration is split across `ipc.cjs`, `overlay_phase_ipc_runtime.cjs`, `window_controls_ipc_runtime.cjs`, `permission_ipc_runtime.cjs`, `local_backend_bridge.cjs`, and `wakeword_bridge.cjs`; ownership drift often appears when adding channels without updating all surfaces.
 - JSON-RPC channel maps are centralized in `local_backend_bridge_rpc_mappers.cjs`; direct ad-hoc mapping in other files should be avoided.
 
 ## Recompute Surface Commands
@@ -219,6 +219,8 @@ Use these commands to refresh protocol counts:
 - [Frontend Protocol Lifecycle Hub](lifecycle/README.md)
 - [Frontend Protocol State Hub](state/README.md)
 - [Frontend Protocol Compatibility Hub](compatibility/README.md)
+- [Display Query Handler Display Inventory Payload Contract Reference](../../main/display_query_handler_display_inventory_payload_contract_reference.md)
+- [Agent Sudo Access Handler PKExec and Non-Interactive Disable Contract Reference](../../main/agent_sudo_access_handler_pkexec_and_noninteractive_disable_contract_reference.md)
 - [Frontend Protocol Observability Hub](observability/README.md)
 - [Frontend Protocol Errors Hub](errors/README.md)
 - [Frontend Protocol Validation Hub](validation/README.md)
