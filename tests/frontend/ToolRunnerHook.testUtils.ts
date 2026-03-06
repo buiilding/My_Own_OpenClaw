@@ -25,7 +25,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWrite
   recordToolMessage: jest.fn(),
 }));
 
-jest.mock('../../frontend/src/renderer/infrastructure/services/ToolExecutionService', () => ({
+jest.mock('../../frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionService', () => ({
   ToolExecutionService: jest.fn().mockImplementation((callbacks) => {
     mockCapturedServiceCallbacks = callbacks;
     return {
@@ -66,7 +66,7 @@ export function getRemoveListenerMock() {
 
 export function getToolExecutionServiceMock() {
   return jest.requireMock(
-    '../../frontend/src/renderer/infrastructure/services/ToolExecutionService',
+    '../../frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionService',
   ).ToolExecutionService as jest.Mock;
 }
 

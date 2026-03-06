@@ -3,7 +3,7 @@ import {
   emitToolExecutionResult,
   sendToolExecutionBundleResultToBackend,
   sendToolExecutionResultToBackend,
-} from '../../frontend/src/renderer/infrastructure/services/ToolExecutionResultDispatch';
+} from '../../frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionResultDispatch';
 
 describe('ToolExecutionResultDispatch', () => {
   test('emits tool and bundle results when callbacks exist', () => {

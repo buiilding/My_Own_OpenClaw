@@ -7,7 +7,7 @@ import type {
   ToolResult,
   SystemState,
   BundledToolResult,
-} from './MessageFormatter';
+} from '../MessageFormatter';
 
 /**
  * Tool execution options.

@@ -6,7 +6,7 @@
 
 import { useCallback, useEffect, useRef } from 'react';
 import { IpcBridge, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
-import { ToolExecutionService, type ToolExecutionResult, type BundleExecutionResult } from '../../../infrastructure/services/ToolExecutionService';
+import { ToolExecutionService, type ToolExecutionResult, type BundleExecutionResult } from '../../../infrastructure/services/toolExecution/ToolExecutionService';
 import { useChatStore } from '../stores/chatStore';
 import { recordToolMessage } from '../../../infrastructure/transcript/TranscriptWriter';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';

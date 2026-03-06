@@ -1,4 +1,4 @@
-import { resolveToolExecutionScreenshotSelection } from '../../frontend/src/renderer/infrastructure/services/ToolExecutionScreenshotSelection';
+import { resolveToolExecutionScreenshotSelection } from '../../frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionScreenshotSelection';
 
 describe('ToolExecutionScreenshotSelection', () => {
   test('prefers capture screenshot over tool-result image payload', () => {

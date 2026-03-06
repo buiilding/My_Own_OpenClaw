@@ -14,6 +14,7 @@ This page documents the hosted VM run-control contract implemented by:
 
 - `backend/src/api/routes/runs/router.py`
 - `backend/src/api/routes/runs/models.py`
+- `backend/src/api/routes/runs/route_helpers.py`
 - `backend/src/api/routes/runs/response_builders.py`
 - `backend/src/services/vm_run_control.py`
 - `backend/src/services/vm_run_control_support/vm_run_control_bulk_stop.py`
@@ -24,6 +25,9 @@ Route-level helper/auth/bootstrap details are documented separately in:
 
 - [Runs Route Support Helpers and API-Key Guard Reference](runs_route_support_helpers_and_api_key_guard_reference.md)
 - [Runs Route Models and Package Export Contract Reference](runs_route_models_and_package_export_contract_reference.md)
+- Route helper projections/validation in `route_helpers.py`:
+  - `validate_control_request(...)` centralizes `set-control-mode` guardrails.
+  - `build_run_events_response(...)` centralizes incremental event response shaping.
 
 ## Route Registration and Protection
 

@@ -7,7 +7,7 @@ import {
   ensureAutoCapture,
   isComputerUseTool,
   resolveSystemState,
-} from '../../frontend/src/renderer/infrastructure/services/ToolExecutionCapture';
+} from '../../frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionCapture';
 import { extractOSstate } from '../../frontend/src/renderer/infrastructure/services/SystemCapture';
 
 const mockExtractOSstate = extractOSstate as jest.MockedFunction<typeof extractOSstate>;

@@ -1,4 +1,4 @@
-import type { BundledToolResult, SystemState, ToolResult } from './MessageFormatter';
+import type { BundledToolResult, SystemState, ToolResult } from '../MessageFormatter';
 import type { BundleStepResult } from './ToolExecutionBundleRunner';
 
 type BundleStatus = 'success' | 'partial_failure' | 'failure';

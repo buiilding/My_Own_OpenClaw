@@ -1,7 +1,7 @@
 import {
   buildToolBundleBackendEnvelope,
   buildToolResultBackendEnvelope,
-} from '../../frontend/src/renderer/infrastructure/services/ToolExecutionBackendPayload';
+} from '../../frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionBackendPayload';
 
 describe('ToolExecutionBackendPayload', () => {
   test('buildToolResultBackendEnvelope shapes tool-result payload with normalized llm content', () => {

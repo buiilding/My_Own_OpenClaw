@@ -159,13 +159,17 @@ frontend/src/renderer/
 │   │   ├── ArtifactUploader.ts          # ArtifactUploader - Uploads screenshot artifacts and builds artifact URLs
 │   │   ├── MessageFormatter.ts          # MessageFormatter - Pure functions for formatting tool output with system context XML
 │   │   ├── SystemCapture.ts             # SystemCapture - extractOSstate() - Unified screenshot and system state capture
-│   │   ├── ToolExecutionBundleRunner.ts # ToolExecutionBundleRunner - Runs atomic tool bundles and collects results
-│   │   ├── ToolExecutionCapture.ts      # ToolExecutionCapture - Auto-capture decisions and OS state capture helpers
-│   │   ├── ToolExecutionInvoker.ts      # ToolExecutionInvoker - IPC invocation wrapper with timing
-│   │   ├── ToolExecutionLogger.ts       # ToolExecutionLogger - Timing/log helpers
-│   │   ├── ToolExecutionPayloads.ts     # ToolExecutionPayloads - Shared tool/bundle payload/status shaping helpers
-│   │   ├── ToolExecutionService.ts      # ToolExecutionService - Tool execution orchestration (single tools and bundles)
-│   │   └── ToolExecutionTypes.ts        # ToolExecutionTypes - Type definitions and constants (COMPUTER_USE_TOOLS, etc.)
+│   │   └── toolExecution/               # toolExecution - Tool execution runtime, payload shaping, and envelope helpers
+│   │       ├── ToolExecutionService.ts  # Thin service wrapper that delegates to single-tool and bundle runtimes
+│   │       ├── singleToolExecution.ts   # Single-tool execution flow (invoke -> capture -> upload -> backend relay)
+│   │       ├── bundleExecution.ts       # Bundle execution flow (run -> format -> upload -> atomic relay)
+│   │       ├── ToolExecutionBundleRunner.ts # Runs atomic tool bundles and collects per-step results
+│   │       ├── ToolExecutionCapture.ts  # Auto-capture decisions and OS state capture helpers
+│   │       ├── ToolExecutionInvoker.ts  # IPC invocation wrapper with timing
+│   │       ├── ToolExecutionLogger.ts   # Timing/log helpers
+│   │       ├── ToolExecutionPayloads.ts # Shared tool/bundle payload/status shaping helpers
+│   │       ├── ToolExecutionTypes.ts    # Type definitions and constants (COMPUTER_USE_TOOLS, etc.)
+│   │       └── ToolResultEnvelope.ts    # Canonical tool-result and tool-bundle envelope builders
 │   │
 │   └── transcript/                       # Transcript persistence helpers
 │       ├── pending/                     # Pending transcript queue helpers
@@ -309,7 +313,7 @@ frontend/src/renderer/
        └─> Handle memory-store → IPC invoke STORE_MEMORY
            ↓
 3. TOOL EXECUTION SERVICE
-   └─> infrastructure/services/ToolExecutionService.ts
+   └─> infrastructure/services/toolExecution/ToolExecutionService.ts
        ├─> Execute tool via IPC (INVOKE_CHANNELS.EXECUTE_TOOL)
        ├─> Check if computer-use tool (needs screenshot)
        ├─> extractOSstate() - Capture screenshot/system state (if needed)
@@ -424,7 +428,7 @@ frontend/src/renderer/
        └─> IPC: ON_CHANNELS.FROM_BACKEND
            ↓
 2. TOOL EXECUTION SERVICE
-   └─> infrastructure/services/ToolExecutionService.ts
+   └─> infrastructure/services/toolExecution/ToolExecutionService.ts
        └─> executeToolBundle()
            ├─> Execute tools sequentially (with skipAutoCapture)
            ├─> Extract OS state after each computer-use tool

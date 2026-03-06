@@ -1,8 +1,8 @@
 import { captureAfterTool, isComputerUseTool } from './ToolExecutionCapture';
 import { logBundledToolStart, logBundledToolTiming } from './ToolExecutionLogger';
 import { invokeTool } from './ToolExecutionInvoker';
-import type { SystemState, ToolResult } from './MessageFormatter';
-import type { CaptureMeta } from './SystemCapture';
+import type { SystemState, ToolResult } from '../MessageFormatter';
+import type { CaptureMeta } from '../SystemCapture';
 
 export type BundleStepResult = {
   tool: string;

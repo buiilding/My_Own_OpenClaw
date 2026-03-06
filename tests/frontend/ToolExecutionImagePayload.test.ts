@@ -2,7 +2,7 @@ import {
   extractToolResultImage,
   extractToolResultScreenshotRef,
   parseImagePayload,
-} from '../../frontend/src/renderer/infrastructure/services/ToolExecutionImagePayload';
+} from '../../frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionImagePayload';
 
 describe('ToolExecutionImagePayload', () => {
   test('parseImagePayload parses data URL image payload', () => {

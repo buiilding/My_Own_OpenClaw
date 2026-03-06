@@ -4,7 +4,7 @@ import {
   resolveBundleErrorMessage,
   resolveBundleStatus,
   toBundleExecutionResults,
-} from '../../frontend/src/renderer/infrastructure/services/ToolExecutionPayloads';
+} from '../../frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionPayloads';
 
 describe('ToolExecutionPayloads', () => {
   test('buildToolResultPayloadData strips raw screenshot payload fields for non-computer tools', () => {

@@ -3,7 +3,7 @@ import type { MutableRefObject } from 'react';
 import type {
   BundleExecutionResult,
   ToolExecutionResult,
-} from '../../frontend/src/renderer/infrastructure/services/ToolExecutionService';
+} from '../../frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionService';
 import { recordToolMessage } from '../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter';
 import {
   persistToolRunnerBundleResult,
