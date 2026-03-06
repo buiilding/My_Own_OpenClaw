@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(backend-computer-use-schema-guidance-and-required-order-contract): strengthen canonical `computer_use` declaration regressions to lock grounding guidance phrases (OCR ambiguity retry, latest-screenshot/manual cursor reference, post-action screenshot verification) and exact required-field ordering for top-level (`tool`, `metadata`) plus metadata (`description`, `explanation`, `expectation`) contracts.
 - test(sidecar-computer-use-schema-contract-parity): add a sidecar/backend boundary regression that asserts sidecar `computer_use` required metadata fields and subtool allowlist remain in lockstep with backend canonical unified schema (`tool`/`metadata` required envelope plus metadata field ordering), preventing silent schema-vs-runtime drift.
 - fix(frontend-main-second-instance-focus-throttle): throttle rapid Electron `second-instance` focus requests in main-process lifecycle runtime to prevent repeated focus-stealing loops while preserving normal single-instance relaunch behavior; add deterministic lifecycle regression coverage with injected clock values.
 - fix(backend-tool-result-router-route-mode-validation-guard): make shared tool-result router fail closed on unexpected `route_mode` values instead of silently defaulting to individual semantics; add regression coverage asserting `ValueError` and no storage/screenshot side effects for invalid modes.

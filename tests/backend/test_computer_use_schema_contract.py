@@ -31,6 +31,9 @@ def test_unified_schema_function_description_includes_metadata_and_grounding_gui
     assert "find_coordinates_by='ocr'" in description
     assert "find_coordinates_by='prediction'" in description
     assert "candidate_id" in description
+    assert "latest screenshot" in description
+    assert "visible cursor position as a spatial reference" in description
+    assert "post-action screenshot" in description
 
 
 def test_unified_schema_requires_metadata_with_required_fields():
@@ -39,9 +42,9 @@ def test_unified_schema_requires_metadata_with_required_fields():
     metadata = parameters["properties"]["metadata"]
 
     assert parameters["additionalProperties"] is False
-    assert set(parameters["required"]) == {"tool", "metadata"}
+    assert parameters["required"] == ["tool", "metadata"]
     assert metadata["additionalProperties"] is False
-    assert set(metadata["required"]) == {"description", "explanation", "expectation"}
+    assert metadata["required"] == ["description", "explanation", "expectation"]
     assert metadata["properties"]["description"]["minLength"] == 1
     assert metadata["properties"]["explanation"]["minLength"] == 1
     assert metadata["properties"]["expectation"]["minLength"] == 1
