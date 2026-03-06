@@ -43,6 +43,7 @@ import {
 } from '../utils/toolRunner/toolRunnerTracking';
 import { executeWithSurfaceLifecycle } from '../utils/toolRunner/toolRunnerSurfaceExecution';
 import {
+  requiresToolRunnerPayloadCorrelationId,
   resolveToolRunnerPayloadCorrelationId,
   shouldDropUntrackedToolRunnerPayload,
 } from '../utils/toolRunner/toolRunnerBackendPayload';
@@ -197,6 +198,9 @@ export function useToolRunner(enabled = true) {
       },
       sendToBackend: (payload: unknown) => {
         const correlationId = resolveToolRunnerPayloadCorrelationId(payload);
+        if (!correlationId && requiresToolRunnerPayloadCorrelationId(payload)) {
+          return;
+        }
         if (shouldDropUntrackedToolRunnerPayload(correlationId, shouldAcceptExecutionResult)) {
           return;
         }
