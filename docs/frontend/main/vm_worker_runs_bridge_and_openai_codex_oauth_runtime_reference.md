@@ -19,6 +19,9 @@ This page documents two Electron-main runtime slices:
 - OpenAI Codex OAuth flow:
   - `frontend/src/main/openai_codex_oauth.cjs`
   - IPC handlers in `frontend/src/main/ipc.cjs`
+- Runtime contract tests:
+  - `tests/frontend/VmWorkerRuntime.test.cjs`
+  - `tests/frontend/OpenAICodexOAuth.test.cjs`
 
 ## VM Mode and Worker Activation
 
@@ -57,6 +60,11 @@ Optional env inputs:
 
 If key resolves, worker includes `x-windie-runs-key` on all `/api/runs/*` HTTP calls.
 
+Heartbeat interval parsing:
+
+- Runtime parses heartbeat ms as integer.
+- Non-numeric or `< 1000` values are clamped back to default `5000`.
+
 ## Heartbeat Tick Loop
 
 Every interval (plus immediate first tick), runtime:
@@ -71,6 +79,11 @@ Guardrails:
 
 - `inTick` prevents overlapping heartbeat requests.
 - Runtime no-ops safely on malformed command/run payloads.
+- Worker heartbeat payload details:
+  - `session_id` fallback order: `connection.sessionId` -> `connection.serverUserId` -> `userId`
+  - `status` is computed as:
+    - `running` when there is at least one active run mapping
+    - `ready` when no active run mapping exists
 
 ## Assigned Run Dispatch Path
 
@@ -85,6 +98,12 @@ For assigned runs, runtime:
 5. On failure:
   - writes error event to `POST /api/runs/{run_id}/events` with `event_type="error"`.
 
+Dispatch dedupe/validation:
+
+- Run dispatch requires non-empty `run_id`, `conversation_ref`, and `query`.
+- If `run_id` is already active in map state, dispatch is skipped.
+- `files[]` is normalized to artifact-backed refs only (`artifact_id` required, `filename/content_type` optional).
+
 ## Backend Stream Relay Path
 
 Runtime subscribes to backend messages via `registerBackendMessageObserver`.
@@ -93,7 +112,9 @@ For active mapped runs:
 
 - forwards stream envelopes to `POST /api/runs/{run_id}/events` with:
   - `event_type = backend type`
-  - payload includes nested original event payload plus `conversation_ref`, `turn_ref`, `session_id`, `user_id`
+  - payload shape:
+    - `payload.payload = original backend payload object`
+    - `payload.conversation_ref`, `payload.turn_ref`, `payload.session_id`, `payload.user_id`
 - clears run mapping after terminal `streaming-complete` or `error`.
 
 ## Control Command Application
@@ -105,6 +126,30 @@ Current implementation only executes `stop` controls:
 - emits run timeline event `run-control-applied` to `/api/runs/{run_id}/events`
 
 Other command actions are ignored by worker runtime today.
+
+Control command no-op cases:
+
+- command is non-object
+- action is not `stop`
+- command has no `run_id`
+- `run_id` does not resolve to an active conversation mapping
+- `sendMessageToBackend` dependency is not provided
+
+## Worker Runtime Lifecycle Cleanup
+
+`start()`:
+
+- installs backend observer callback
+- executes one immediate heartbeat tick
+- starts interval heartbeat loop
+
+`stop()`:
+
+- unregisters backend observer (when available)
+- clears heartbeat interval
+- clears both conversation<->run mapping maps
+
+This makes worker stop idempotent and prevents stale run mappings across app lifecycle transitions.
 
 ## OpenAI Codex OAuth Runtime
 
@@ -130,6 +175,11 @@ Renderer calls these through `INVOKE_CHANNELS.OPENAI_CODEX_OAUTH_LOGIN/LOGOUT`.
 6. Build normalized token payload:
   - `connected`, `access_token`, `refresh_token`, `expires_at`, `profile_id`
 
+Token completeness requirement:
+
+- Token exchange result must include non-empty `access_token`, `refresh_token`, and `id_token`.
+- Missing any required token field raises a normalized login error.
+
 Timeout/failure behavior:
 
 - Callback timeout: 10 minutes.
@@ -139,6 +189,14 @@ Timeout/failure behavior:
 
 - `expires_at` prefers `expires_in`; falls back to JWT `exp` claim.
 - `profile_id` uses `chatgpt_account_id` claim when available; falls back to `openai-codex:default`.
+- `profile_id` is always prefixed with `openai-codex:`.
+
+Callback server behaviors:
+
+- Callback listener binds to `127.0.0.1:1455`.
+- Non-callback paths return `404`.
+- State mismatch and provider callback errors return `400` and fail the login promise.
+- After callback completion, extra callback requests return `410`.
 
 ### Logout Flow
 
@@ -153,3 +211,4 @@ Timeout/failure behavior:
 
 - VM worker runtime tests: `tests/frontend/VmWorkerRuntime.test.cjs`
 - Runtime mode env tests: `tests/frontend/RuntimeMode.test.cjs`
+- OpenAI Codex OAuth flow test: `tests/frontend/OpenAICodexOAuth.test.cjs`
