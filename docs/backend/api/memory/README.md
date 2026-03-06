@@ -14,6 +14,7 @@ title: "Backend API Memory Docs Hub"
 - [Semantic Parser Summary/Fact Extraction and Fallback-Bullet Contract Reference](semantic_parser_summary_fact_extraction_and_fallback_bullet_contract_reference.md)
 - [Semantic Title Generation Route, Model-Override, and Parser-Fallback Contract Reference](semantic_title_generation_route_model_override_and_parser_fallback_contract_reference.md)
 - [Semantic Route Package Split and Compatibility Export Contract Reference](semantic_route_package_split_and_compatibility_export_contract_reference.md)
+- [Embeddings Route Package Split and Compatibility Export Contract Reference](embeddings_route_package_split_and_compatibility_export_contract_reference.md)
 - [Embeddings Route Serialization, Sanitized Error Surface, and Health-Probe Contract Reference](embeddings_route_serialization_sanitized_error_surface_and_health_probe_contract_reference.md)
 - [Health Helper Safe-Check, Dependency-Probe, and Payload Contract Reference](health_helper_safe_check_dependency_probe_and_payload_contract_reference.md)
 
@@ -30,6 +31,7 @@ title: "Backend API Memory Docs Hub"
 - `backend/src/api/routes/memory/semantic/models.py`
 - `backend/src/api/routes/memory/semantic/service.py`
 - `backend/src/api/routes/memory/semantic/parser.py`
+- `backend/src/api/routes/memory/embeddings/__init__.py`
 - `backend/src/api/routes/memory/embeddings/router.py`
 - `backend/src/api/routes/memory/embeddings/models.py`
 - `backend/src/api/routes/memory/embeddings/service.py`
