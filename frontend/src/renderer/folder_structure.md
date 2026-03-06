@@ -81,10 +81,14 @@ frontend/src/renderer/
 │   │       │   ├── chatStreamFormatting.ts # chatStreamFormatting - Thought/tool message formatting helpers
 │   │       │   ├── chatStreamMessageUpdates.ts # chatStreamMessageUpdates - Message selection and streaming/system/full-message update shaping helpers
 │   │       │   ├── chatStreamTracking.ts # chatStreamTracking - Stream phase/counter transition helpers
-│   │       ├── messageInput.js          # messageInput - Input normalization helper before send dispatch
-│   │       ├── messageListClasses.js    # messageListClasses - Message row class-name builder (sender/type/streaming/screenshot flags)
-│   │       ├── messageScreenshots.js    # messageScreenshots - Screenshot presence predicates and screenshot-src resolution helpers
-│   │       ├── messageTransparency.js   # messageTransparency - Descriptor builder for transparency sections
+│   │       ├── message/                 # message - Message-focused formatting, screenshot, and source-tag helpers
+│   │       │   ├── messageInput.js      # messageInput - Input normalization helper before send dispatch
+│   │       │   ├── messageListClasses.js # messageListClasses - Message row class-name builder (sender/type/streaming/screenshot flags)
+│   │       │   ├── messageListState.js  # messageListState - Message edit/scroll/runtime state helpers
+│   │       │   ├── messageScreenshots.js # messageScreenshots - Screenshot presence predicates and screenshot-src resolution helpers
+│   │       │   ├── messageTokenUsage.js # messageTokenUsage - Token usage/source label formatting helpers
+│   │       │   ├── messageTransparency.js # messageTransparency - Descriptor builder for transparency sections
+│   │       │   └── sourceTags.js        # sourceTags - Source tag derivation for message badges/thinking labels
 │   │       ├── toolRunner/              # toolRunner - Tool runner guards, envelopes, surface lifecycle, and message persistence helpers
 │   │       │   ├── toolRunnerMessages.ts # toolRunnerMessages - Tool result/bundle message builders and tool-call/bundle mapping helpers
 │   │       ├── transcriptMessagePayload.js # transcriptMessagePayload - Transcript payload/role mapping for rehydrate writes

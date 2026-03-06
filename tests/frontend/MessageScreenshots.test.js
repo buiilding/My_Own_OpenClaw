@@ -2,7 +2,7 @@ import {
   hasMessageScreenshot,
   isUserMessageWithScreenshot,
   resolveMessageScreenshotSrcList,
-} from '../../frontend/src/renderer/features/chat/utils/messageScreenshots';
+} from '../../frontend/src/renderer/features/chat/utils/message/messageScreenshots';
 
 describe('messageScreenshots', () => {
   test('detects screenshot fields from url/ref/inline payload', () => {

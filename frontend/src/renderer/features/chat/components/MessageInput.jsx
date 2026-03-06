@@ -10,7 +10,7 @@ import {
   X,
 } from 'lucide-react';
 import { useTranscription } from '../hooks/useTranscription';
-import { buildOutgoingMessage } from '../utils/messageInput';
+import { buildOutgoingMessage } from '../utils/message/messageInput';
 import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
 import VoiceStatus from '../../voice/components/VoiceStatus';
 import { parseClipboardImageItems } from '../utils/clipboardImageUtils';

@@ -30,14 +30,11 @@ from .response_builders import (
     build_ingested_run_event_response,
     build_run_control_response,
     build_run_view,
+    build_worker_dispatched_response,
+    build_worker_heartbeat_response,
     build_worker_poll_heartbeat_response,
 )
-from .support import (
-    get_vm_run_control_service,
-    latest_run_event_dict,
-    require_run,
-    verify_runs_api_key,
-)
+from .support import get_vm_run_control_service, require_run, verify_runs_api_key
 from backend.src.services.vm_run_control import VmRunControlService
 
 router = APIRouter(prefix="/api/runs", tags=["runs"])
@@ -189,12 +186,7 @@ async def worker_dispatched(
         turn_ref=payload.turn_ref,
         conversation_ref=payload.conversation_ref,
     ), detail="Run not found or worker mismatch")
-    return WorkerDispatchedResponse(
-        run=build_run_view(run),
-        latest_event=RunEvent(
-            **latest_run_event_dict(run, missing_detail="Dispatch event not recorded")
-        ),
-    )
+    return build_worker_dispatched_response(run)
 
 
 @router.post("/{run_id}/worker-heartbeat", response_model=WorkerHeartbeatResponse)
@@ -213,9 +205,4 @@ async def worker_heartbeat(
         status=payload.status,
         metadata=payload.metadata,
     ))
-    return WorkerHeartbeatResponse(
-        run=build_run_view(run),
-        latest_event=RunEvent(
-            **latest_run_event_dict(run, missing_detail="Worker heartbeat event not recorded")
-        ),
-    )
+    return build_worker_heartbeat_response(run)

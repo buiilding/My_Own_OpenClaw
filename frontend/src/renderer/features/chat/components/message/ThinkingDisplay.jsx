@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { isDevUiEnabled } from '../../utils/devUiFlag';
-import { resolveSourceTag } from '../../utils/sourceTags';
+import { resolveSourceTag } from '../../utils/message/sourceTags';
 import '../../../../styles/ThinkingDisplay.css';
 
 const THINKING_BOTTOM_STICK_THRESHOLD = 12;

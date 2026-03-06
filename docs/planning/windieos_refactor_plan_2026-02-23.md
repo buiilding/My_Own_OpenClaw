@@ -139,7 +139,7 @@ read_when:
 - Message list state-decomposition (2026-03-05):
   - extracted scroll/awaiting-dot/compaction/action-gating selectors from:
     - `frontend/src/renderer/features/chat/components/MessageList.jsx`
-    - into `frontend/src/renderer/features/chat/utils/messageListState.js`.
+    - into `frontend/src/renderer/features/chat/utils/message/messageListState.js`.
   - kept `MessageList` focused on composition while moving render-state derivation into pure utilities.
   - result:
     - `MessageList.jsx` reduced from `442` LOC to `361` LOC.
@@ -148,7 +148,7 @@ read_when:
     - reran `MessageListScrollBehavior`, `MessageListAssistantActions`, and `MessageListThinkingDisplay` suites.
   - verification:
     - `cd frontend && npm run test:ci -- ../tests/frontend/MessageListState.test.js ../tests/frontend/MessageListScrollBehavior.test.jsx ../tests/frontend/MessageListAssistantActions.test.jsx ../tests/frontend/MessageListThinkingDisplay.test.jsx`
-    - `cd frontend && npm run lint -- src/renderer/features/chat/components/MessageList.jsx src/renderer/features/chat/utils/messageListState.js`
+    - `cd frontend && npm run lint -- src/renderer/features/chat/components/MessageList.jsx src/renderer/features/chat/utils/message/messageListState.js`
     - `cd frontend && npm run lint:audit`
     - `cd frontend && npm run audit:knip`
     - `cd frontend && npm run audit:jscpd`

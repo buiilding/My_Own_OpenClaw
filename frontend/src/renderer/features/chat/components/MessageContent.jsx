@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { isUserMessageWithScreenshot } from '../utils/messageScreenshots';
+import { isUserMessageWithScreenshot } from '../utils/message/messageScreenshots';
 import AssistantThinkingSection from './message/content/AssistantThinkingSection';
 import ErrorMessage from './message/content/ErrorMessage';
 import MarkdownMessage from './message/content/MarkdownMessage';

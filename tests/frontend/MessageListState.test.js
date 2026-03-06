@@ -3,7 +3,7 @@ import {
   resolveCompactionStatusText,
   shouldRenderAssistantActions,
   shouldRenderUserActions,
-} from '../../frontend/src/renderer/features/chat/utils/messageListState';
+} from '../../frontend/src/renderer/features/chat/utils/message/messageListState';
 
 describe('messageListState', () => {
   test('findAwaitingDotTargetMessageId returns latest user message id when enabled', () => {

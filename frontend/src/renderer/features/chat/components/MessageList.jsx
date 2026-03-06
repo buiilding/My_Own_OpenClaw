@@ -13,7 +13,7 @@ import {
   isNearBottom,
   resolveCompactionStatusText,
   scrollToConversationSwitchTarget,
-} from '../utils/messageListState';
+} from '../utils/message/messageListState';
 
 
 function MessageList({

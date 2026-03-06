@@ -1,4 +1,4 @@
-import { buildTransparencySectionConfigs } from '../../frontend/src/renderer/features/chat/utils/messageTransparency';
+import { buildTransparencySectionConfigs } from '../../frontend/src/renderer/features/chat/utils/message/messageTransparency';
 
 describe('messageTransparency utils', () => {
   test('returns empty list when message has no transparency payloads', () => {

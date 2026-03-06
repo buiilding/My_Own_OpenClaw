@@ -1,6 +1,6 @@
 import {
   buildOutgoingMessage,
-} from '../../frontend/src/renderer/features/chat/utils/messageInput';
+} from '../../frontend/src/renderer/features/chat/utils/message/messageInput';
 
 describe('messageInput utils', () => {
   test('returns null for blank/whitespace-only messages', () => {
