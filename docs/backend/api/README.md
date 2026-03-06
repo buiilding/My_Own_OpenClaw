@@ -20,6 +20,7 @@ title: "Backend API Docs Hub"
 - [API WebSocket Docs Hub](websocket/README.md)
 - [API WebSocket Connection Docs Hub](websocket/connection/README.md)
 - [API Memory Docs Hub](memory/README.md)
+- [Artifacts Route Package Split and Compatibility Export Contract Reference](artifacts_route_package_split_and_compatibility_export_contract_reference.md)
 - [HTTP and WebSocket Endpoint Reference](http_and_ws_endpoint_reference.md)
 - [Runs Route and VM Control Service Reference](runs_route_and_vm_control_service_reference.md)
 - [Runs Route Support Helpers and API-Key Guard Reference](runs_route_support_helpers_and_api_key_guard_reference.md)
