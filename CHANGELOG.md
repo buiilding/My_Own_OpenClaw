@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(frontend-local-backend-rpc-computer-use-metadata-allowlist-rejection): extend `LocalBackendBridge.rpc` coverage with a paired boundary assertion that extra `computer_use.metadata` fields are forwarded unchanged to sidecar and return deterministic allowlist-rejection errors.
 - fix(fullstack-computer-use-metadata-allowlist-enforcement): enforce strict `computer_use` metadata allowlist (`description`, `explanation`, `expectation`) across backend parser validation, backend native tool-call bridge normalization, and sidecar registry dispatch so unexpected metadata keys fail closed instead of being preserved/dropped silently; add regression updates for backend bridge/validator and sidecar local-backend/registry boundaries.
 - fix(backend-native-tool-call-id-whitespace-normalization): trim and reject whitespace-only native tool-call ids in bridge parsing/history mapping (`to_parsed_tool_call`, `to_history_tool_calls`, `extract_tool_call_ids`) so correlation falls back deterministically instead of emitting blank ids; add bridge regressions for whitespace-id rejection and fallback behavior.
 - test(frontend-local-backend-rpc-run-shell-args-immutability): extend `LocalBackendBridge.rpc` coverage to lock that `execute-tool` sudo-mode injection for `run_shell_command` does not mutate caller payload objects while preserving expected JSON-RPC argument shape.

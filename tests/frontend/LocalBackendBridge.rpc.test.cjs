@@ -303,6 +303,45 @@ describe('local_backend_bridge RPC handlers', () => {
     await expect(promise).resolves.toEqual({ success: false, error: 'computer_use.metadata must be an object' });
   });
 
+  test('execute-tool preserves extra computer_use metadata fields for sidecar allowlist rejection', async () => {
+    const { handlers, stdoutHandler } = initBridge();
+    markReady();
+
+    const envelope = {
+      tool: 'mouse_control',
+      metadata: {
+        description: 'screen visible',
+        explanation: 'click submit',
+        expectation: 'modal opens',
+        extra_debug_field: 'not-allowed',
+      },
+      arguments: {
+        action: 'click',
+        x: 10,
+        y: 20,
+      },
+    };
+
+    const promise = handlers['execute-tool'](null, {
+      toolName: 'computer_use',
+      args: envelope,
+    });
+
+    expectLastRequestWith('execute_tool', {
+      tool_name: 'computer_use',
+      args: envelope,
+    });
+
+    emitRpcResult(stdoutHandler, {
+      success: false,
+      error: 'computer_use.metadata contains unexpected fields: extra_debug_field',
+    });
+    await expect(promise).resolves.toEqual({
+      success: false,
+      error: 'computer_use.metadata contains unexpected fields: extra_debug_field',
+    });
+  });
+
   test('passes resolved backend http URL to Python sidecar env', () => {
     process.env.BACKEND_HOST = '192.168.1.55';
     process.env.BACKEND_PORT = '8811';
