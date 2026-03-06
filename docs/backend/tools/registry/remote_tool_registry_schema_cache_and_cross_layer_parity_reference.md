@@ -68,6 +68,23 @@ Ordering behavior:
 
 - filtered declarations keep order from `get_all_tools()` (registration/insertion order)
 
+Computer-tool normalization behavior:
+
+- `_normalize_requested_tool_names(...)` rewrites any requested legacy computer-tool names
+  (`mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `switch_tab`, `wait`)
+  to unified `computer_use` before filtering
+- if the request list contains only legacy computer names, filtered declarations still return
+  a single unified `computer_use` declaration
+
+Unified declaration collapse behavior:
+
+- `_collapse_unified_computer_use_declarations(...)` runs on both full and filtered declaration paths
+- when a unified declaration is present, it removes legacy computer-tool declarations from the
+  outgoing list and injects canonical schema from
+  `backend/src/tools/computer/unified_schema.py::get_unified_computer_use_function_declaration()`
+- this means outbound `computer_use` declaration shape is sourced from canonical unified schema,
+  not from per-class schema generation in legacy stubs
+
 Capabilities API:
 
 - `get_tool_capabilities(tool_name)` returns:
@@ -119,6 +136,9 @@ Test-backed behavior from `test_tool_registry_schema.py`:
 - schema errors are contained and return `None`
 - registrations with same name overwrite previous tool instance
 - `get_tool_names()` returns sorted list
+- filtered declaration requests with legacy computer names normalize to `computer_use`
+- unified declaration includes required `metadata.description|explanation|expectation` fields
+- capabilities fallback returns `{}` parameters when schema/function payload shape is malformed
 
 ## RemoteToolBase and Request-ID Semantics
 

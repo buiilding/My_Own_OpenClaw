@@ -33,6 +33,13 @@ title: "Permission Store Gate-State and IPC Action Contract Reference"
 - lifecycle/error fields: `isLoading`, `bootstrapped`, `error`
 - persisted onboarding snapshot: `onboardingState`
 
+Current runtime-consumer reality:
+
+- active UI callers in current renderer runtime are `bootstrapPermissions`, `runPermissionProbe`,
+  and `recheckAllPermissions` (via `PermissionControlCenter`)
+- `requestPermission`, `setPlannedSystemAccessConsent`, and `completeOnboarding` remain exported
+  but have no active renderer caller in current code paths
+
 ## Status Normalization Contract
 
 `mapStatusesByPermissionId(statuses)` fail-closes malformed payloads and returns an id-indexed map.
@@ -99,18 +106,21 @@ Callers:
 - invokes `RUN_PERMISSION_PROBE` for one id
 - requires `{ success:true, data.status }` response shape
 - merges normalized status and recomputes gate fields
+- does not set or clear `isLoading`; action-level in-flight state is not tracked
 
 ### `requestPermission(permissionId)`
 
 - invokes `REQUEST_PERMISSION` and then applies returned `data.status`
 - shares merge/recompute semantics with probe path
 - currently not called by `PermissionControlCenter` UI, but remains part of store/runtime contract
+- does not set or clear `isLoading`
 
 ### `recheckAllPermissions`
 
 - builds `permissionIds` from current manifest snapshot
 - invokes `CHECK_PERMISSIONS` batch handler
 - replaces entire status map with fresh normalized statuses
+- does not set or clear `isLoading`; repeated clicks can trigger overlapping recheck requests
 
 ### `setPlannedSystemAccessConsent(consent)`
 
@@ -154,6 +164,8 @@ On guard failure:
 - Renderer `App.jsx` startup is not permission-gated in current runtime.
 - `PermissionControlCenter` mounts this store and uses probe/recheck actions.
 - Store gate-state fields remain authoritative for any surfaces that still depend on onboarding state.
+- Current renderer runtime has no mounted onboarding wizard component that consumes
+  `needsOnboarding`, consent toggles, or `completeOnboarding()`.
 
 ## Test-Backed Notes
 

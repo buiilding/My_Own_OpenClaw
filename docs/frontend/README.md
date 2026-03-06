@@ -101,6 +101,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [Thinking Display Overflow, Message List Class Assembly, and Token Count Formatting Reference](renderer/chat/presentation/thinking_display_overflow_message_list_class_assembly_and_token_count_formatting_reference.md)
 - [Settings Section Clone Tabs and Wakeword Toggle Runtime Reference](renderer/settings/sections/settings_section_clone_tabs_and_wakeword_toggle_runtime_reference.md)
 - [Permission Onboarding Gate, Manifest Version, and Data-Controls Runtime Reference](renderer/permissions/permission_onboarding_gate_manifest_version_and_data_controls_runtime_reference.md)
+- [Permission Store Action Liveness and Active Consumer Map Reference](renderer/permissions/permission_store_action_liveness_and_active_consumer_map_reference.md)
 - [Permission Status Badge, Row Rendering, and Reason Visibility Reference](renderer/permissions/permission_status_badge_row_rendering_and_reason_visibility_reference.md)
 - [Permission Control Center Probe and Recheck Store-Sync Runtime Reference](renderer/permissions/permission_control_center_probe_and_recheck_store_sync_runtime_reference.md)
 - [Frontend Config Filter, Storage, and Provider Merge Runtime Reference](renderer/settings/config/frontend_config_filter_storage_and_provider_merge_runtime_reference.md)
