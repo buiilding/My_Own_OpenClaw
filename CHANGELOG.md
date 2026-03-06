@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(frontend-chat-stream-backend-ingress-transcript-undefined-fallback): add ingress regression ensuring transcript sync falls back to `undefined` conversation id when both active transcript ref and resolved event conversation ref are absent, preserving deterministic session-update call shape.
 - test(frontend-chat-stream-backend-ingress-failsafe-chain): harden ingress recovery so exceptions in conversation projection sync and turn-map registration are treated as best-effort failures that cannot block transcript session sync or stream event dispatch; add regression coverage for both thrown-dependency paths.
 - test(frontend-chat-stream-backend-ingress-turn-map-gates): extend ingress regression coverage to ensure `registerTurnConversationRef` only runs when both `conversationRef` and `event.turn_ref` are present, preventing accidental turn-map writes from partial payloads.
 - test(frontend-chat-stream-backend-ingress-transcript-failsafe): make transcript session sync best-effort in `ingestBackendEvent` so exceptions from `updateTranscriptSession` cannot block stream event dispatch; add regression coverage for dispatch continuity under transcript update failure.

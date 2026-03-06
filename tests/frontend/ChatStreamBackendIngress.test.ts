@@ -120,6 +120,19 @@ describe('chatStreamBackendIngress', () => {
     expect(mockUpdateTranscriptSession).not.toHaveBeenCalled();
   });
 
+  test('uses undefined transcript fallback when no active or resolved conversation ref exists', () => {
+    mockGetActiveConversationRef.mockReturnValue(null);
+
+    ingestBackendEvent({ type: 'token-count', user_id: 'user-none' } as any, null, {
+      syncActiveConversationProjection: jest.fn(),
+      registerTurnConversationRef: jest.fn(),
+      enableTranscript: true,
+      dispatchEvent: jest.fn(),
+    });
+
+    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith(undefined, 'user-none');
+  });
+
   test('continues dispatch when transcript session update throws', () => {
     mockUpdateTranscriptSession.mockImplementation(() => {
       throw new Error('transcript write failed');
