@@ -253,6 +253,33 @@ async def test_remote_computer_use_run_routes_to_concrete_tool_with_validated_ar
 
 
 @pytest.mark.asyncio
+async def test_remote_computer_use_run_generates_request_id_when_session_missing_request_id(monkeypatch):
+    monkeypatch.setattr(uuid, "uuid4", lambda: "req-generated-computer-use")
+    ctx = _make_context(metadata={})
+    tool = RemoteComputerUseTool()
+    args = ComputerUseArgs.model_validate(
+        {
+            "tool": "mouse_control",
+            "metadata": {
+                "description": "current screen",
+                "explanation": "click submit",
+                "expectation": "dialog opens",
+            },
+            "arguments": {
+                "action": "click",
+                "x": 1,
+                "y": 2,
+            },
+        }
+    )
+
+    result = await tool.run(args, ctx)
+
+    assert result.request_id == "req-generated-computer-use"
+    assert result.tool_name == "mouse_control"
+
+
+@pytest.mark.asyncio
 async def test_remote_computer_use_run_revalidates_selected_tool_arguments():
     ctx = _make_context(metadata={"request_id": "req-computer-2"})
     tool = RemoteComputerUseTool()
