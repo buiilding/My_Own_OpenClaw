@@ -136,6 +136,53 @@ async def test_prepare_mouse_control_manual_without_screenshot_id_uses_current_f
     _assert_single_result_with_coordinate_method(events, result, "manual")
 
 
+@pytest.mark.asyncio
+async def test_prepare_single_invalid_computer_use_tool_returns_preparation_error():
+    preparer = ToolPreparer(object(), object(), object())
+    tool_call = ParsedToolCall(
+        tool_name="invalid_computer_use_tool",
+        parameters={"action": "click", "x": 1, "y": 2},
+        raw_call="{}",
+    )
+
+    _events, result = await _collect_preparation(preparer, [tool_call])
+
+    assert result is not None
+    assert result.bundle_id is None
+    assert result.resolved_calls == []
+    assert len(result.errors) == 1
+    failed_call, error_message = result.errors[0]
+    assert failed_call is tool_call
+    assert "computer_use call is invalid" in error_message
+    assert "request_id" in tool_call.metadata
+
+
+@pytest.mark.asyncio
+async def test_prepare_bundle_invalid_computer_use_tool_returns_bundle_error_without_resolved_calls():
+    preparer = ToolPreparer(object(), object(), object())
+    first_call = ParsedToolCall(
+        tool_name="invalid_computer_use_tool",
+        parameters={"action": "click"},
+        raw_call="{}",
+    )
+    second_call = ParsedToolCall(
+        tool_name="read_file",
+        parameters={"file_path": "/tmp/a"},
+        raw_call="{}",
+    )
+
+    _events, result = await _collect_preparation(preparer, [first_call, second_call])
+
+    assert result is not None
+    assert result.bundle_id is not None
+    assert result.resolved_calls == []
+    assert len(result.errors) == 1
+    failed_call, error_message = result.errors[0]
+    assert failed_call is first_call
+    assert "computer_use call is invalid" in error_message
+    assert first_call.metadata["bundle_id"] == result.bundle_id
+
+
 def test_tool_call_needs_coordinate_resolution_requires_mouse_control_and_supported_method():
     assert (
         tool_call_needs_coordinate_resolution(
