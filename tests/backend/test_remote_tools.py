@@ -204,3 +204,56 @@ def test_computer_use_schema_trims_metadata_fields_before_validation():
     assert args.metadata.description == "current screen"
     assert args.metadata.explanation == "click submit"
     assert args.metadata.expectation == "modal opens"
+
+
+@pytest.mark.asyncio
+async def test_remote_computer_use_run_routes_to_concrete_tool_with_validated_arguments():
+    ctx = _make_context(metadata={"request_id": "req-computer-1"})
+    tool = RemoteComputerUseTool()
+    args = ComputerUseArgs.model_validate(
+        {
+            "tool": "mouse_control",
+            "metadata": {
+                "description": "current screen",
+                "explanation": "click submit",
+                "expectation": "dialog opens",
+            },
+            "arguments": {
+                "action": "click",
+                "x": 10,
+                "y": 20,
+            },
+        }
+    )
+
+    result = await tool.run(args, ctx)
+
+    assert result.tool_name == "mouse_control"
+    assert result.request_id == "req-computer-1"
+    assert result.args["action"] == "click"
+    assert result.args["x"] == 10
+    assert result.args["y"] == 20
+    assert "metadata" not in result.args
+
+
+@pytest.mark.asyncio
+async def test_remote_computer_use_run_revalidates_selected_tool_arguments():
+    ctx = _make_context(metadata={"request_id": "req-computer-2"})
+    tool = RemoteComputerUseTool()
+    args = ComputerUseArgs.model_validate(
+        {
+            "tool": "mouse_control",
+            "metadata": {
+                "description": "current screen",
+                "explanation": "click submit",
+                "expectation": "dialog opens",
+            },
+            "arguments": {
+                "action": "click",
+                "x": 10,
+            },
+        }
+    )
+
+    with pytest.raises(ValidationError):
+        await tool.run(args, ctx)
