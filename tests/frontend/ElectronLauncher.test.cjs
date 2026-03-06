@@ -59,6 +59,19 @@ describe('electron-launcher', () => {
     });
   });
 
+  test('buildLaunchCommand launches electron directly on linux when DISPLAY is set', () => {
+    const launch = buildLaunchCommand({
+      electronBinary: '/tmp/electron',
+      platform: 'linux',
+      env: { DISPLAY: ':0' },
+      xvfbAvailable: true,
+    });
+    expect(launch).toEqual({
+      command: '/tmp/electron',
+      args: ['.'],
+    });
+  });
+
   test('buildLaunchCommand launches electron directly on windows', () => {
     const launch = buildLaunchCommand({
       electronBinary: 'C:\\bin\\electron.exe',

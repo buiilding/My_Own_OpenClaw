@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(frontend-electron-launcher-display-present-no-xvfb-wrap): add Linux launcher regression ensuring `buildLaunchCommand` executes Electron directly when `DISPLAY` is present, preventing unnecessary `xvfb-run` wrapping on already-graphical sessions.
 - test(frontend-electron-launcher-binary-path-trim-and-empty-validation): extend launcher binary-resolution regressions to lock whitespace-trim normalization for valid paths and fail-close rejection for blank/empty electron binary inputs with deterministic startup error messaging.
 - test(backend-websocket-tool-result-correlation-type-and-bundle-step-contracts): expand websocket parser regressions to fail-close non-string `tool-result.request_id`/`tool-bundle-result.bundle_id` payloads and bundle-result payloads missing required `step_results`, locking strict inbound schema boundary behavior.
 - docs(frontend-runtime-paths-and-local-backend-launch-contract-refresh): align Electron main runtime path docs with current bundled-runtime behavior (`resolveSidecarLaunchTarget` binary-first fallback, packaged `.pyc` script path resolution, bundled Playwright browser path export, and packaged Python fail-close policy), and refresh local-backend lifecycle docs to match the same spawn/env contracts.
