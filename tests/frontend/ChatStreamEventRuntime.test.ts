@@ -109,6 +109,88 @@ describe('chatStreamEventRuntime', () => {
     expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-old' }), null)).toBe(true);
   });
 
+  test('stale turn guard allows next-turn packets during idle pending handoff', () => {
+    useChatStore.setState((state) => ({
+      ...state,
+      isSending: true,
+      streamTracking: {
+        ...state.streamTracking,
+        activeTurnRef: 'turn-old',
+        phase: 'idle',
+      },
+      workspaces: {
+        ...state.workspaces,
+        __default__: {
+          ...state.workspaces.__default__,
+          isSending: true,
+          streamTracking: {
+            ...state.workspaces.__default__.streamTracking,
+            activeTurnRef: 'turn-old',
+            phase: 'idle',
+          },
+        },
+      },
+    }));
+
+    expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-new' }), null)).toBe(false);
+  });
+
+  test('stale turn guard allows next-turn packets during error pending handoff', () => {
+    useChatStore.setState((state) => ({
+      ...state,
+      isSending: true,
+      streamTracking: {
+        ...state.streamTracking,
+        activeTurnRef: 'turn-old',
+        phase: 'error',
+      },
+      workspaces: {
+        ...state.workspaces,
+        __default__: {
+          ...state.workspaces.__default__,
+          isSending: true,
+          streamTracking: {
+            ...state.workspaces.__default__.streamTracking,
+            activeTurnRef: 'turn-old',
+            phase: 'error',
+          },
+        },
+      },
+    }));
+
+    expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-new' }), null)).toBe(false);
+  });
+
+  test('stale turn guard keeps packets when turn ref is absent', () => {
+    expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: undefined }), null)).toBe(false);
+  });
+
+  test('stale turn guard allows next-turn packets when pending handoff has no active turn ref', () => {
+    useChatStore.setState((state) => ({
+      ...state,
+      isSending: true,
+      streamTracking: {
+        ...state.streamTracking,
+        activeTurnRef: null,
+        phase: 'complete',
+      },
+      workspaces: {
+        ...state.workspaces,
+        __default__: {
+          ...state.workspaces.__default__,
+          isSending: true,
+          streamTracking: {
+            ...state.workspaces.__default__.streamTracking,
+            activeTurnRef: null,
+            phase: 'complete',
+          },
+        },
+      },
+    }));
+
+    expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-new' }), null)).toBe(false);
+  });
+
   test('stale turn guard ignores old-turn packets during active stream', () => {
     expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-old' }), null)).toBe(true);
   });
