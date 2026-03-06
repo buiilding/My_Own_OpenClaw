@@ -1,17 +1,17 @@
 ---
-summary: "Lifecycle-level contract for frontend main-process websocket bridge: connection state, settings ACK gate, query enrichment/send path, synthetic events, and response-overlay phase transitions."
+summary: "Lifecycle-level contract for frontend main-process websocket bridge: connection state, settings ACK gate, query enrichment/send path, split IPC registrar ownership, and response-overlay phase transitions."
 read_when:
   - When changing `frontend/src/main/ipc.cjs` ws/query/settings sequencing.
-  - When tracing phase desync, failed first-query settings sync, or reconnect edge cases.
+  - When tracing phase desync, failed first-query settings sync, reconnect edge cases, or split registrar ownership drift.
 title: "Frontend Main WS Bridge, Query Gate, and Overlay Phase Lifecycle Reference"
 ---
 
 # Frontend Main WS Bridge, Query Gate, and Overlay Phase Lifecycle Reference
 
-## Coverage Snapshot (2026-02-27)
+## Coverage Snapshot (2026-03-06)
 
-- Lifecycle-focused protocol test files: `4`
-- Total test cases across listed files: `54`
+- Lifecycle-focused protocol test files: `8`
+- Total test cases across listed files: `90`
 
 ## Scope and Sources
 
@@ -21,12 +21,41 @@ Lifecycle contract sources:
 - Settings-sync ACK gate helpers: `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - Query payload enrichment: `frontend/src/main/query_payload_builder.cjs`
 - Synthetic local query events: `frontend/src/main/ipc/ipc_query_events.cjs`
+- Main-process IPC registrar split: `frontend/src/main/index.cjs`, `frontend/src/main/overlay_phase_ipc_runtime.cjs`, `frontend/src/main/window_controls_ipc_runtime.cjs`, `frontend/src/main/permission_ipc_runtime.cjs`
 - Overlay phase -> window visibility behavior: `frontend/src/main/response_overlay_phase_handler.cjs`, `frontend/src/main/index.cjs`
-- Wakeword + overlay signal emitters: `frontend/src/main/main_window_runtime.cjs`, `frontend/src/main/overlay_signal_runtime.cjs`
-- Main-window target routing from invoke handler to dashboard: `frontend/src/main/window_controls_ipc_runtime.cjs`, `frontend/src/main/main_window_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
+- Wakeword + overlay signal emitters: `frontend/src/main/main_window_runtime.cjs`, `frontend/src/main/overlay_signal_runtime.cjs`, `frontend/src/main/wakeword_bridge.cjs`
+- Main-window target routing and display inventory invoke handlers: `frontend/src/main/window_controls_ipc_runtime.cjs`, `frontend/src/main/display_query_handler.cjs`, `frontend/src/main/main_window_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
+- Permission/sudo invoke lifecycle owners: `frontend/src/main/permission_ipc_runtime.cjs`, `frontend/src/main/permission_service.cjs`, `frontend/src/main/agent_sudo_access_handler.cjs`
 - Chatbox wakeword trigger handling: `frontend/src/renderer/features/chat/components/ChatBox.jsx`
 - Renderer boundary allowlists: `frontend/src/preload.js`, `frontend/src/renderer/infrastructure/ipc/channels.ts`
-- Primary lifecycle tests: `tests/frontend/IpcMainBridge.lifecycle.test.cjs`, `tests/frontend/IpcMainBridge.query.test.cjs`, `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`, `tests/frontend/ChatGptDashboardShell.test.jsx`
+- Primary lifecycle tests: `tests/frontend/IpcMainBridge.lifecycle.test.cjs`, `tests/frontend/IpcMainBridge.query.test.cjs`, `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`, `tests/frontend/ChatGptDashboardShell.test.jsx`, `tests/frontend/OverlayPhaseIpcRuntime.test.cjs`, `tests/frontend/WindowControlsIpcRuntime.test.cjs`, `tests/frontend/PermissionIpcRuntime.test.cjs`, `tests/frontend/DisplayQueryHandler.test.cjs`
+
+## Main-Process IPC Registrar Split Lifecycle
+
+`initializeMainProcessIpc()` in `index.cjs` is one-shot (`mainProcessIpcHandlersInitialized` guard) and delegates invoke/event channel registration to three runtime modules:
+
+- `initializeOverlayPhaseHandlersRuntime(...)`:
+  - `set-chatbox-visual-anchor-height`
+  - `move-chatbox-to`
+  - `set-responsebox-size`
+  - `show-chatbox`
+  - `hide-chatbox`
+- `initializeWindowControlHandlersRuntime(...)`:
+  - `show-main-window`
+  - `get-main-window-visibility`
+  - `get-displays`
+  - `window-minimize`
+  - `window-toggle-maximize`
+  - `window-close`
+- `initializePermissionHandlersRuntime(...)`:
+  - `set-agent-sudo-access`
+  - `list-permissions`
+  - `check-permissions`
+  - `check-permission`
+  - `run-permission-probe`
+  - `request-permission`
+
+Lifecycle implication: channel ownership drift is now a split-runtime problem, not a monolithic `index.cjs` handler block.
 
 ## Main Bridge State Model
 
@@ -198,6 +227,27 @@ Renderer consumption contract (`ChatGptDashboardShell.jsx`):
 Coverage anchors:
 
 - `tests/frontend/ChatGptDashboardShell.test.jsx` checks settings-target open and chat-target modal-close behavior.
+- `tests/frontend/WindowControlsIpcRuntime.test.cjs` checks runtime-owner routing and `show-main-window` target emission boundary.
+
+## Display and Permission Runtime Lifecycle Contracts
+
+Display query lifecycle contracts:
+
+- `window_controls_ipc_runtime.cjs` owns `get-displays` invoke registration.
+- `display_query_handler.cjs` maps Electron `screen.getAllDisplays()` to frontend-safe payloads:
+  - `id`
+  - `label` (`Display N (WxH)`)
+  - `isPrimary`
+  - `bounds`
+  - `scaleFactor`
+- Coverage: `tests/frontend/DisplayQueryHandler.test.cjs`.
+
+Permission/sudo lifecycle contracts:
+
+- `permission_ipc_runtime.cjs` owns the permission + sudo invoke channels and shared `permissionDeps` wiring.
+- `check-permission` and `run-permission-probe` are intentionally equivalent envelope paths.
+- Linux sudo toggle behavior is delegated to `agent_sudo_access_handler.cjs` through `set-agent-sudo-access`.
+- Coverage: `tests/frontend/PermissionIpcRuntime.test.cjs`, `tests/frontend/PermissionService.test.cjs`, `tests/frontend/AgentSudoAccessHandler.test.cjs`.
 
 ## Overlay Visibility Broadcast Contract
 
@@ -211,6 +261,7 @@ Call sites include:
 
 - `response_overlay_phase_handler.cjs` phase transitions (`idle`, streaming phases, terminal phases).
 - response window close flow (`main_window_runtime.cjs`) which forces visibility false.
+- overlay hide/show flows in `window_visibility_runtime.cjs` via `showChatWindow(...)` and `hideChatWindow(...)`.
 
 Channel typing surface:
 
@@ -224,6 +275,7 @@ When changing this lifecycle, keep synchronized:
 - `preload.js` allowlists and renderer typed channel constants.
 - ACK/control message type assumptions (`settings-updated`, error id correlation).
 - Overlay phase literals used by `ipc.cjs` and `response_overlay_phase_handler.cjs`.
+- split invoke handler ownership across `overlay_phase_ipc_runtime.cjs`, `window_controls_ipc_runtime.cjs`, and `permission_ipc_runtime.cjs`.
 - Synthetic `local-user-message` / send-failure error envelopes consumed by renderer stream hooks.
 
 ## Lifecycle Control-Path Index
@@ -233,9 +285,12 @@ When changing this lifecycle, keep synchronized:
 | websocket open/close transition | `frontend/src/main/ipc.cjs` | connection state reset, handshake send, settings-gate reset, and reconnect scheduling remain coupled |
 | first-query settings ACK gate | `frontend/src/main/ipc.cjs` | first query/wakeword send waits for settings sync outcome, with bounded timeout fallback |
 | query send bootstrap + optimistic local echo | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_query_events.cjs` | outbound query uses resolved conversation context and emits synthetic local-user-message before backend response |
+| split IPC registrar bootstrap | `frontend/src/main/index.cjs`, `frontend/src/main/overlay_phase_ipc_runtime.cjs`, `frontend/src/main/window_controls_ipc_runtime.cjs`, `frontend/src/main/permission_ipc_runtime.cjs` | invoke/event registration is one-shot and split by runtime ownership instead of monolithic main handler registration |
 | overlay phase transition fan-out | `frontend/src/main/ipc.cjs`, `frontend/src/main/response_overlay_phase_handler.cjs` | canonical phase set drives renderer/state sync and response-window visibility behavior |
-| wakeword callback -> STT trigger | `frontend/src/main/index.cjs`, `frontend/src/main/main_window_runtime.cjs` | STT trigger emits only after chat window show succeeds |
-| show-main-window target routing | `frontend/src/main/window_controls_ipc_runtime.cjs`, dashboard shell listener | target normalization and event routing remain constrained to supported dashboard surfaces |
+| wakeword callback -> STT trigger | `frontend/src/main/main_window_runtime.cjs`, `frontend/src/main/overlay_signal_runtime.cjs`, `frontend/src/main/wakeword_bridge.cjs` | STT trigger emits only after chat window show succeeds and is routed only to chat window |
+| show-main-window target routing | `frontend/src/main/window_controls_ipc_runtime.cjs`, `frontend/src/main/main_window_runtime.cjs`, dashboard shell listener | target normalization and event routing remain constrained to supported dashboard surfaces |
+| display inventory query mapping | `frontend/src/main/window_controls_ipc_runtime.cjs`, `frontend/src/main/display_query_handler.cjs` | display payload normalization remains stable for renderer selection surfaces |
+| permission/sudo invoke lifecycle | `frontend/src/main/permission_ipc_runtime.cjs`, `frontend/src/main/permission_service.cjs`, `frontend/src/main/agent_sudo_access_handler.cjs` | permission probes/requests and sudo toggle remain isolated from overlay/window registrars |
 
 ## Related Deep Dives
 
