@@ -102,4 +102,21 @@ describe('electron-launcher', () => {
       "Electron binary mismatch for platform 'linux': received Windows executable",
     );
   });
+
+  test('resolveElectronBinaryForPlatform trims surrounding whitespace for valid paths', () => {
+    const resolved = resolveElectronBinaryForPlatform('  /tmp/electron  ', {
+      platform: 'linux',
+      existsSync: () => false,
+    });
+    expect(resolved).toBe('/tmp/electron');
+  });
+
+  test('resolveElectronBinaryForPlatform rejects missing/blank binary paths', () => {
+    expect(() =>
+      resolveElectronBinaryForPlatform('', { platform: 'linux' }),
+    ).toThrow('Electron binary path is missing or invalid.');
+    expect(() =>
+      resolveElectronBinaryForPlatform('   ', { platform: 'linux' }),
+    ).toThrow('Electron binary path is missing or invalid.');
+  });
 });
