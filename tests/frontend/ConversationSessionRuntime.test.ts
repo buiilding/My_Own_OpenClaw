@@ -1,4 +1,5 @@
 import {
+  applyMainSessionSnapshot,
   normalizeMainSessionSnapshot,
   resolveConversationRefForSend,
   shouldProjectSessionConversationRef,
@@ -71,5 +72,44 @@ describe('conversationSessionRuntime', () => {
       conversationRef: 'conv-legacy',
       userId: 'user-legacy',
     });
+  });
+
+  test('applyMainSessionSnapshot projects conversation refs and transcript session through shared callbacks', () => {
+    const setTranscriptConversationRef = jest.fn();
+    const setChatConversationRef = jest.fn();
+    const updateTranscriptSession = jest.fn();
+    const snapshot = {
+      conversationRef: 'conv-main',
+      userId: 'user-main',
+    };
+
+    expect(applyMainSessionSnapshot(snapshot, {
+      setTranscriptConversationRef,
+      setChatConversationRef,
+      updateTranscriptSession,
+    })).toEqual(snapshot);
+    expect(setTranscriptConversationRef).toHaveBeenCalledWith('conv-main');
+    expect(setChatConversationRef).toHaveBeenCalledWith('conv-main');
+    expect(updateTranscriptSession).toHaveBeenCalledWith('conv-main', 'user-main');
+  });
+
+  test('applyMainSessionSnapshot still updates transcript session when conversation ref is missing', () => {
+    const setTranscriptConversationRef = jest.fn();
+    const setChatConversationRef = jest.fn();
+    const updateTranscriptSession = jest.fn();
+    const snapshot = {
+      conversationRef: null,
+      userId: 'user-main',
+    };
+
+    applyMainSessionSnapshot(snapshot, {
+      setTranscriptConversationRef,
+      setChatConversationRef,
+      updateTranscriptSession,
+    });
+
+    expect(setTranscriptConversationRef).not.toHaveBeenCalled();
+    expect(setChatConversationRef).not.toHaveBeenCalled();
+    expect(updateTranscriptSession).toHaveBeenCalledWith(null, 'user-main');
   });
 });

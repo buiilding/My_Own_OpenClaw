@@ -41,7 +41,7 @@ export function resolveConversationRefForSend(
   };
 }
 
-type MainSessionSnapshot = {
+export type MainSessionSnapshot = {
   conversationRef: string | null;
   userId: string | null;
 };
@@ -61,4 +61,28 @@ export function normalizeMainSessionSnapshot(payload: unknown): MainSessionSnaps
       source.userId ?? source.user_id,
     ),
   };
+}
+
+type SessionProjectionCallbacks = {
+  setTranscriptConversationRef: (conversationRef: string) => void;
+  setChatConversationRef: (conversationRef: string) => void;
+  updateTranscriptSession: (conversationRef: string | null, userId: string | null) => void;
+};
+
+export function applyMainSessionSnapshot(
+  snapshot: MainSessionSnapshot,
+  callbacks: SessionProjectionCallbacks,
+): MainSessionSnapshot {
+  const {
+    setTranscriptConversationRef,
+    setChatConversationRef,
+    updateTranscriptSession,
+  } = callbacks;
+
+  if (snapshot.conversationRef) {
+    setTranscriptConversationRef(snapshot.conversationRef);
+    setChatConversationRef(snapshot.conversationRef);
+  }
+  updateTranscriptSession(snapshot.conversationRef, snapshot.userId);
+  return snapshot;
 }
