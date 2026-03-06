@@ -188,6 +188,22 @@ def test_computer_use_schema_rejects_whitespace_only_metadata_fields():
         )
 
 
+def test_computer_use_schema_rejects_unexpected_metadata_fields():
+    with pytest.raises(ValidationError):
+        ComputerUseArgs.model_validate(
+            {
+                "tool": "mouse_control",
+                "metadata": {
+                    "description": "screen",
+                    "explanation": "click submit",
+                    "expectation": "dialog opens",
+                    "extra_debug_field": "not allowed",
+                },
+                "arguments": {"action": "click", "x": 10, "y": 20},
+            }
+        )
+
+
 def test_computer_use_schema_trims_metadata_fields_before_validation():
     args = ComputerUseArgs.model_validate(
         {
