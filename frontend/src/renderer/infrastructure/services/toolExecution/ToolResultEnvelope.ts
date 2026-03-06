@@ -10,17 +10,28 @@ type ToolResultEnvelopeCandidate = {
   payload?: ToolResultEnvelopePayload | null;
 } | null;
 
+function cloneToolResultEnvelopePayload(payload: ToolResultEnvelopePayload): ToolResultEnvelopePayload {
+  if (typeof structuredClone === 'function') {
+    return structuredClone(payload);
+  }
+  try {
+    return JSON.parse(JSON.stringify(payload));
+  } catch (_error) {
+    return { ...payload };
+  }
+}
+
 export function buildToolResultEnvelope(payload: ToolResultEnvelopePayload) {
   return {
     type: TOOL_RESULT_ENVELOPE_TYPE,
-    payload,
+    payload: cloneToolResultEnvelopePayload(payload),
   };
 }
 
 export function buildToolBundleResultEnvelope(payload: ToolResultEnvelopePayload) {
   return {
     type: TOOL_BUNDLE_RESULT_ENVELOPE_TYPE,
-    payload,
+    payload: cloneToolResultEnvelopePayload(payload),
   };
 }
 

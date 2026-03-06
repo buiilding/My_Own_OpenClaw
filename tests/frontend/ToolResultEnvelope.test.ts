@@ -17,6 +17,34 @@ describe('ToolResultEnvelope', () => {
     });
   });
 
+  test('build helpers deep-clone payloads to prevent mutation leaks', () => {
+    const singlePayload = {
+      request_id: 'req-original',
+      metadata: { source: 'single' },
+    };
+    const bundlePayload = {
+      bundle_id: 'bundle-original',
+      metadata: { source: 'bundle' },
+    };
+
+    const singleEnvelope = buildToolResultEnvelope(singlePayload);
+    const bundleEnvelope = buildToolBundleResultEnvelope(bundlePayload);
+
+    singlePayload.request_id = 'req-mutated';
+    singlePayload.metadata.source = 'single-mutated';
+    bundlePayload.bundle_id = 'bundle-mutated';
+    bundlePayload.metadata.source = 'bundle-mutated';
+
+    expect(singleEnvelope.payload).toEqual({
+      request_id: 'req-original',
+      metadata: { source: 'single' },
+    });
+    expect(bundleEnvelope.payload).toEqual({
+      bundle_id: 'bundle-original',
+      metadata: { source: 'bundle' },
+    });
+  });
+
   test('resolves correlation id from supported envelopes only', () => {
     expect(resolveToolResultEnvelopeCorrelationId({
       type: 'tool-result',
