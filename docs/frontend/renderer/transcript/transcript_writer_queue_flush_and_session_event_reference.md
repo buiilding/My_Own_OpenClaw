@@ -14,6 +14,7 @@ title: "Transcript Writer Queue Flush and Session Event Reference"
 - `frontend/src/renderer/infrastructure/transcript/transcriptRecordWrite.ts`
 - `frontend/src/renderer/infrastructure/transcript/pending/pendingTranscriptMessages.ts`
 - `frontend/src/renderer/infrastructure/transcript/pending/transcriptPendingFlush.ts`
+- `frontend/src/renderer/infrastructure/transcript/sessionSyncPayload.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoStorage.ts`
 - `frontend/src/renderer/infrastructure/transcript/pending/pendingUserQueue.ts`
@@ -62,6 +63,7 @@ Session event boundary:
 - dashboard hook `useTranscriptSessionInfo` consumes event with `useSyncExternalStore` and referentially-stable snapshots
 - local session changes are mirrored to main process over `SEND_CHANNELS.TRANSCRIPT_SESSION_SYNC`
 - inbound `ON_CHANNELS.TRANSCRIPT_SESSION_SYNC` updates are applied with rebroadcast disabled to avoid loopback storms
+- inbound sync payload parser accepts alias keys (`conversationRef|conversation_ref|sessionId|session_id`, `userId|user_id`) and trims/normalizes values before applying state updates
 
 ## Queue Families and FIFO Semantics
 
@@ -210,6 +212,7 @@ Payload defaults:
 - [Frontend Renderer Transcript Docs Hub](README.md)
 - [Transcript Queue Docs Hub](queue/README.md)
 - [Pending Transcript Queue FIFO and Requeue Contract Reference](queue/pending_transcript_queue_fifo_and_requeue_contract_reference.md)
+- [Transcript Session Sync Payload Normalization and Alias Contract Reference](contracts/transcript_session_sync_payload_normalization_and_alias_contract_reference.md)
 - [Transcript Session and Rehydrate Reference](../transcript_session_and_rehydrate_reference.md)
 - [Memory IPC and RPC Mapping Reference](../../contracts/memory_ipc_and_rpc_mapping_reference.md)
 - [Transcript Storage, Semantic Candidate, and Watermark Reference](../../sidecar/memory/transcript_storage_semantic_candidate_and_watermark_reference.md)
