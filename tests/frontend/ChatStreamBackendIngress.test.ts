@@ -34,6 +34,35 @@ describe('chatStreamBackendIngress', () => {
     expect(dispatchEvent).toHaveBeenCalledWith(event);
   });
 
+  test('sync projection receives normalized null conversation ref for whitespace input', () => {
+    const syncActiveConversationProjection = jest.fn();
+
+    ingestBackendEvent({ type: 'streaming-response', turn_ref: 'turn-1', user_id: 'user-1' } as any, '   ', {
+      syncActiveConversationProjection,
+      registerTurnConversationRef: jest.fn(),
+      enableTranscript: true,
+      dispatchEvent: jest.fn(),
+    });
+
+    expect(syncActiveConversationProjection).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'streaming-response', turn_ref: 'turn-1' }),
+      null,
+    );
+  });
+
+  test('registers turn mapping with trimmed turn and conversation refs', () => {
+    const registerTurnConversationRef = jest.fn();
+
+    ingestBackendEvent({ type: 'streaming-response', turn_ref: ' turn-1 ', user_id: 'user-1' } as any, ' conv-1 ', {
+      syncActiveConversationProjection: jest.fn(),
+      registerTurnConversationRef,
+      enableTranscript: true,
+      dispatchEvent: jest.fn(),
+    });
+
+    expect(registerTurnConversationRef).toHaveBeenCalledWith('turn-1', 'conv-1');
+  });
+
   test('uses active transcript conversation when present', () => {
     mockGetActiveConversationRef.mockReturnValue('conv-active');
     const dispatchEvent = jest.fn();
@@ -46,6 +75,20 @@ describe('chatStreamBackendIngress', () => {
     });
 
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-active', 'user-2');
+  });
+
+  test('ignores whitespace active transcript conversation and falls back to resolved conversation', () => {
+    mockGetActiveConversationRef.mockReturnValue('   ');
+    const dispatchEvent = jest.fn();
+
+    ingestBackendEvent({ type: 'token-count', user_id: 'user-2' } as any, 'conv-fallback', {
+      syncActiveConversationProjection: jest.fn(),
+      registerTurnConversationRef: jest.fn(),
+      enableTranscript: true,
+      dispatchEvent,
+    });
+
+    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-fallback', 'user-2');
   });
 
   test('does not register turn mapping when conversation ref is missing', () => {
