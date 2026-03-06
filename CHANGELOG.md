@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(backend-computer-use-catalog-parity-contract): add backend cross-module parity regressions asserting unified `computer_use` tool enum stays aligned with remote execution mapping keys and registry legacy-name collapse set, preventing schema/registry/executor drift on supported computer subtools.
 - fix(frontend-electron-launcher-platform-binary-guard): add platform-aware electron binary resolution in launcher runtime so Linux/WSL rejects Windows-only `electron.exe` paths with a clear reinstall hint (and uses non-`.exe` sibling when present); add frontend launcher regressions for Windows pass-through, Linux sibling fallback, and mismatch error contract.
 - test(sidecar-computer-use-required-metadata-string-validation): add sidecar local-backend regression that rejects non-string required metadata values inside `computer_use.metadata` (for example object-valued `explanation`) and asserts fail-closed no-subtool-execution behavior.
 - test(backend-computer-use-schema-guidance-and-required-order-contract): strengthen canonical `computer_use` declaration regressions to lock grounding guidance phrases (OCR ambiguity retry, latest-screenshot/manual cursor reference, post-action screenshot verification) and exact required-field ordering for top-level (`tool`, `metadata`) plus metadata (`description`, `explanation`, `expectation`) contracts.
