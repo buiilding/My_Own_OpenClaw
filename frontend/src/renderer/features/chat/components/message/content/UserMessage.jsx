@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import {
   resolveMessageScreenshotSrcList,
-} from '../../../utils/messageScreenshots';
+} from '../../../utils/message/messageScreenshots';
 import MarkdownMessage from './MarkdownMessage';
 
 export default function UserMessage({ message }) {

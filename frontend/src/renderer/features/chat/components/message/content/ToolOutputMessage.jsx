@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
-import { resolveMessageScreenshotSrc } from '../../../utils/messageScreenshots';
+import { resolveMessageScreenshotSrc } from '../../../utils/message/messageScreenshots';
 
 export default function ToolOutputMessage({ message }) {
   const [showDetails, setShowDetails] = useState(false);

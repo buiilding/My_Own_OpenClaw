@@ -26,7 +26,7 @@ title: "Renderer Chat Payload Docs Hub"
 - `frontend/src/renderer/features/chat/components/message/MessageTransparencySections.jsx`
 - `frontend/src/renderer/features/chat/components/message/TransparencySection.jsx`
 - `frontend/src/renderer/features/chat/utils/transcriptMessagePayload.js`
-- `frontend/src/renderer/features/chat/utils/messageTransparency.js`
+- `frontend/src/renderer/features/chat/utils/message/messageTransparency.js`
 - `tests/frontend/MessageContent.test.jsx`
 - `tests/frontend/MessageTransparency.test.js`
 - `tests/frontend/TranscriptMessagePayload.test.js`

@@ -1,4 +1,4 @@
-import { buildMessageClassName } from '../../frontend/src/renderer/features/chat/utils/messageListClasses';
+import { buildMessageClassName } from '../../frontend/src/renderer/features/chat/utils/message/messageListClasses';
 
 describe('buildMessageClassName', () => {
   test('builds base user message class names', () => {

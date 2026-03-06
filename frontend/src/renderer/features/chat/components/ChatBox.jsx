@@ -15,7 +15,7 @@ import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { ApiClient } from '../../../infrastructure/api/client';
 import { isDevUiEnabled } from '../utils/devUiFlag';
-import { buildOutgoingMessage } from '../utils/messageInput';
+import { buildOutgoingMessage } from '../utils/message/messageInput';
 import { parseClipboardImageItems } from '../utils/clipboardImageUtils';
 import { COMPACTION_THINKING_STATUS } from '../utils/chatStream/chatStreamThinkingStatus';
 import { extractOSstate } from '../../../infrastructure/services/SystemCapture';

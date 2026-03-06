@@ -45,12 +45,12 @@ title: "Renderer Chat Presentation Docs Hub"
 - `frontend/src/renderer/features/chat/components/ToolGhostCursor.jsx`
 - `frontend/src/renderer/features/chat/hooks/useAutoResizedResponseHeight.js`
 - `frontend/src/renderer/features/chat/hooks/useCopyMessageAction.js`
-- `frontend/src/renderer/features/chat/utils/messageInput.js`
+- `frontend/src/renderer/features/chat/utils/message/messageInput.js`
 - `frontend/src/renderer/features/chat/utils/dataUrlImageUtils.js`
 - `frontend/src/renderer/features/chat/utils/clipboardImageUtils.js`
 - `frontend/src/renderer/features/chat/utils/fileAttachmentUtils.js`
-- `frontend/src/renderer/features/chat/utils/messageListClasses.js`
-- `frontend/src/renderer/features/chat/utils/sourceTags.js`
+- `frontend/src/renderer/features/chat/utils/message/messageListClasses.js`
+- `frontend/src/renderer/features/chat/utils/message/sourceTags.js`
 - `frontend/src/renderer/features/chat/utils/devUiFlag.js`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `tests/frontend/MessageInput.test.jsx`

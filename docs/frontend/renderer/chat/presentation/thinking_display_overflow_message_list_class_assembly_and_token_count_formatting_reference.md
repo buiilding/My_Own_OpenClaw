@@ -14,7 +14,7 @@ title: "Thinking Display Overflow, Message List Class Assembly, and Stream Token
 - `frontend/src/renderer/features/chat/components/MessageList.jsx`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
-- `frontend/src/renderer/features/chat/utils/messageListClasses.js`
+- `frontend/src/renderer/features/chat/utils/message/messageListClasses.js`
 - `tests/frontend/ThinkingDisplay.test.jsx`
 - `tests/frontend/MessageListThinkingDisplay.test.jsx`
 - `tests/frontend/MessageListClasses.test.js`

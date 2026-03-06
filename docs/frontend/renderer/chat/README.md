@@ -57,7 +57,7 @@ title: "Frontend Renderer Chat Docs Hub"
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventUtils.ts`
 - `frontend/src/renderer/features/chat/utils/transcriptMessagePayload.js`
-- `frontend/src/renderer/features/chat/utils/messageTransparency.js`
+- `frontend/src/renderer/features/chat/utils/message/messageTransparency.js`
 - `frontend/src/renderer/features/chat/utils/newChatSession.ts`
 - `frontend/src/renderer/features/chat/utils/conversationRef.ts`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`

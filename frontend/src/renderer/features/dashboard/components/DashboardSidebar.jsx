@@ -156,6 +156,20 @@ function DashboardSidebar({
     setCollapsedHeaderHovered(false);
   }, [isCollapsed]);
 
+  const resetCollapsedHeaderHover = useCallback(() => {
+    setCollapsedHeaderHovered(false);
+  }, []);
+
+  const handleExpandSidebar = useCallback(() => {
+    resetCollapsedHeaderHover();
+    onExpandSidebar();
+  }, [onExpandSidebar, resetCollapsedHeaderHover]);
+
+  const handleCollapseSidebar = useCallback(() => {
+    resetCollapsedHeaderHover();
+    onCollapseSidebar();
+  }, [onCollapseSidebar, resetCollapsedHeaderHover]);
+
   return (
     <aside className={`cg-sidebar${isCollapsed ? ' collapsed' : ''}`.trim()}>
       <div className="cg-sidebar-header">
@@ -164,7 +178,7 @@ function DashboardSidebar({
             <button
               type="button"
               className="cg-sidebar-brand-toggle"
-              onClick={onExpandSidebar}
+              onClick={handleExpandSidebar}
               aria-label={expandSidebarLabel}
               title={expandSidebarLabel}
               data-testid="sidebar-expand-button"
@@ -199,7 +213,7 @@ function DashboardSidebar({
             <button
               type="button"
               className="cg-sidebar-toggle"
-              onClick={onCollapseSidebar}
+              onClick={handleCollapseSidebar}
               aria-label={collapseSidebarLabel}
               title={collapseSidebarLabel}
               data-testid="sidebar-collapse-button"

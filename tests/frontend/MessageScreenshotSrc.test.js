@@ -1,4 +1,4 @@
-import { resolveMessageScreenshotSrc } from '../../frontend/src/renderer/features/chat/utils/messageScreenshots';
+import { resolveMessageScreenshotSrc } from '../../frontend/src/renderer/features/chat/utils/message/messageScreenshots';
 
 describe('resolveMessageScreenshotSrc', () => {
   test('prefers screenshot URL when url and inline data both exist', () => {

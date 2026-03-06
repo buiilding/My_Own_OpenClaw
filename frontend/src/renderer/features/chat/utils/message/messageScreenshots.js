@@ -1,5 +1,5 @@
-import { normalizeArtifactImageContentType } from '../../../infrastructure/services/ArtifactImageUtils';
-import { buildArtifactUrl } from '../../../infrastructure/services/ArtifactUploader';
+import { normalizeArtifactImageContentType } from '../../../../infrastructure/services/ArtifactImageUtils';
+import { buildArtifactUrl } from '../../../../infrastructure/services/ArtifactUploader';
 
 function resolveAttachmentSrc(attachment) {
   if (!attachment || typeof attachment !== 'object') {

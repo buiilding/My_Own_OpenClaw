@@ -6,6 +6,8 @@ from fastapi import HTTPException
 from backend.src.api.routes.runs.response_builders import (
     build_ingested_run_event_response,
     build_run_control_response,
+    build_worker_dispatched_response,
+    build_worker_heartbeat_response,
     build_worker_poll_heartbeat_response,
 )
 from backend.src.services.vm_run_control import VmRunControlService
@@ -48,3 +50,47 @@ def test_build_worker_poll_heartbeat_response_handles_empty_assignment() -> None
     assert response.worker["worker_id"] == "worker-1"
     assert response.assigned_run is None
     assert response.control_commands == []
+
+
+@pytest.mark.asyncio
+async def test_build_worker_dispatched_response_uses_dispatch_latest_event() -> None:
+    service = VmRunControlService()
+    run = await service.create_run(workspace_id="workspace-1", query="run this")
+    await service.record_worker_heartbeat(
+        run["run_id"],
+        worker_id="worker-1",
+        vm_id="vm-1",
+        session_id="session-1",
+        status="running",
+    )
+    await service.acknowledge_run_dispatch(
+        run["run_id"],
+        worker_id="worker-1",
+        user_id="user-1",
+        turn_ref="turn-1",
+    )
+    updated_run = await service.get_run(run["run_id"])
+    assert updated_run is not None
+
+    response = build_worker_dispatched_response(updated_run)
+
+    assert response.latest_event.event_type == "run-dispatched"
+
+
+@pytest.mark.asyncio
+async def test_build_worker_heartbeat_response_uses_worker_heartbeat_event() -> None:
+    service = VmRunControlService()
+    run = await service.create_run(workspace_id="workspace-1", query="run this")
+    await service.record_worker_heartbeat(
+        run["run_id"],
+        worker_id="worker-1",
+        vm_id="vm-1",
+        session_id="session-1",
+        status="running",
+    )
+    updated_run = await service.get_run(run["run_id"])
+    assert updated_run is not None
+
+    response = build_worker_heartbeat_response(updated_run)
+
+    assert response.latest_event.event_type == "worker-heartbeat"

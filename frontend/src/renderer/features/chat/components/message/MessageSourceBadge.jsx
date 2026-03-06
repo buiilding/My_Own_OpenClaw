@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import { isDevUiEnabled } from '../../utils/devUiFlag';
-import { resolveMessageTokenUsageTag } from '../../utils/messageTokenUsage';
-import { resolveSourceTag } from '../../utils/sourceTags';
+import { resolveMessageTokenUsageTag } from '../../utils/message/messageTokenUsage';
+import { resolveSourceTag } from '../../utils/message/sourceTags';
 
 export default function MessageSourceBadge({ message }) {
   if (!isDevUiEnabled()) {

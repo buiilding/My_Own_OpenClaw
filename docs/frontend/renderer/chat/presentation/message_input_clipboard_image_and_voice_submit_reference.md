@@ -12,7 +12,7 @@ title: "MessageInput Clipboard Image and Voice Submit Reference"
 
 - `frontend/src/renderer/features/chat/components/MessageInput.jsx`
 - `frontend/src/renderer/features/chat/hooks/useMessageInputUiBindings.js`
-- `frontend/src/renderer/features/chat/utils/messageInput.js`
+- `frontend/src/renderer/features/chat/utils/message/messageInput.js`
 - `frontend/src/renderer/features/chat/utils/dataUrlImageUtils.js`
 - `frontend/src/renderer/features/chat/utils/clipboardImageUtils.js`
 - `frontend/src/renderer/features/chat/utils/fileAttachmentUtils.js`

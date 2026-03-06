@@ -1,4 +1,4 @@
-import { resolveMessageTokenUsageTag } from '../../frontend/src/renderer/features/chat/utils/messageTokenUsage';
+import { resolveMessageTokenUsageTag } from '../../frontend/src/renderer/features/chat/utils/message/messageTokenUsage';
 
 describe('messageTokenUsage', () => {
   test('uses fullUserMessage content for user text token estimate and reports image estimate separately', () => {
