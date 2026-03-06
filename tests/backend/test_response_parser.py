@@ -138,6 +138,19 @@ async def test_parse_response_rejects_direct_computer_use_whitespace_only_metada
 
 
 @pytest.mark.asyncio
+async def test_parse_response_rejects_direct_computer_use_unexpected_metadata_fields():
+    parser = _make_parser([DummyTool("computer_use", ToolDomain.COMPUTER)])
+    response = (
+        '{"functionCall":{"name":"computer_use","args":{"tool":"mouse_control",'
+        '"metadata":{"description":"screen","explanation":"click","expectation":"dialog","trace_id":"abc-123"},'
+        '"arguments":{"action":"click","x":1,"y":2}}}}'
+    )
+
+    with pytest.raises(ParseValidationError, match="unexpected metadata fields"):
+        await parser.parse_response(response)
+
+
+@pytest.mark.asyncio
 async def test_parse_response_rejects_legacy_computer_use_metadata_wrapper():
     parser = _make_parser([DummyTool("computer_use", ToolDomain.COMPUTER)])
     response = (
