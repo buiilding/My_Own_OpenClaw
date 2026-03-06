@@ -142,6 +142,7 @@ Tool-execution chat-pill lifecycle (interactive computer-use path):
 - shared response-overlay phase is now the only owner of active-loop interactivity: `awaiting-first-chunk|streaming|tool-call|tool-output` force chat/response overlays into click-through + non-focusable mode, terminal phases restore normal interactivity
 - tool-runner prep no longer performs external-window focus restoration/verification; frontend prep is blur-only and avoids hide/show focus demotion churn
 - screenshot capture visibility prep still collapses the chat pill on Linux before capture and restores with `show-chatbox { focus: false }` after capture; Windows/macOS keep overlays visible and rely on content protection
+- Linux collapse now waits a bounded compositor-settle interval (`120ms`) after `hide-chatbox` before invoking the screenshot tool so the hidden pill does not leak into captured frames
 - response overlay renderer now listens to `response-overlay-visibility`; hide marks the cached frame as hidden and show forces a fresh `set-responsebox-size` report (including `compact_hover`) so typing-indicator compact hover offset is re-applied after capture hide/show cycles
 
 Dashboard-to-chat-pill conversation continuity:

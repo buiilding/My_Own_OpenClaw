@@ -27,13 +27,32 @@ describe('surfaceOrchestrator chatPillVisibility', () => {
   });
 
   test('collapses chat pill with deterministic hide-only ordering', async () => {
-    expect(shouldManageChatPillVisibilityForBackgroundCapture()).toBe(true);
+    jest.useFakeTimers();
+    try {
+      expect(shouldManageChatPillVisibilityForBackgroundCapture()).toBe(true);
 
-    await collapseChatPillForBackgroundCapture();
+      const pending = collapseChatPillForBackgroundCapture();
 
-    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.HIDE_CHATBOX],
-    ]);
+      expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
+        [INVOKE_CHANNELS.HIDE_CHATBOX],
+      ]);
+
+      let settled = false;
+      void pending.then(() => {
+        settled = true;
+      });
+      await Promise.resolve();
+      expect(settled).toBe(false);
+
+      jest.advanceTimersByTime(120);
+      await pending;
+
+      expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
+        [INVOKE_CHANNELS.HIDE_CHATBOX],
+      ]);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   test('restores chat pill as non-focusing show', async () => {
