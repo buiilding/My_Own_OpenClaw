@@ -32,6 +32,12 @@ Common input normalization:
 - shallow-copies object payload only
 - drops malformed events early
 
+Endpoint context for relay calls:
+
+- websocket send target and origin come from `resolveBackendEndpoints(...)` state in `ipc.cjs`
+- `initializeIpc(..., { isPackaged })` refreshes endpoint resolution at startup to select dev or packaged fallback policy
+- `get-client-user-id` snapshot includes resolved `backendWsUrl` and `backendHttpUrl` values for renderer diagnostics
+
 Special handling paths:
 
 - `update-settings`: delegated to settings ACK pipeline, no generic relay path
