@@ -1104,6 +1104,33 @@ async def test_tool_result_handler_routes_to_session():
 
 
 @pytest.mark.asyncio
+async def test_tool_result_handler_trims_request_id_before_session_routing():
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    session_manager.session_instance = DummySession()
+    handler = ToolResultHandler(session_manager)
+
+    message = ToolResultMessage(
+        id="msg_4_trimmed_request_id",
+        type="tool-result",
+        user_id="user_1",
+        payload={
+            "request_id": "  req_trimmed  ",
+            "success": True,
+            "data": {
+                "llm_content": "ok",
+                "output": "ok",
+            },
+        },
+    )
+
+    await handler.handle(message, websocket, "user_1")
+    assert session_manager.session_instance.tool_calls
+    routed_call = session_manager.session_instance.tool_calls[0]
+    assert routed_call["request_id"] == "req_trimmed"
+
+
+@pytest.mark.asyncio
 async def test_tool_result_handler_routes_without_system_state_for_non_computer_tools():
     websocket = FakeWebSocket()
     session_manager = DummySessionManager()
@@ -1198,6 +1225,32 @@ async def test_tool_bundle_result_handler_routes_to_session():
     assert isinstance(
         session_manager.session_instance.bundle_calls[0]["step_results"][0], dict
     )
+
+
+@pytest.mark.asyncio
+async def test_tool_bundle_result_handler_trims_bundle_id_before_session_routing():
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    session_manager.session_instance = DummySession()
+    handler = ToolResultHandler(session_manager)
+
+    message = ToolBundleResultMessage(
+        id="msg_5_trimmed_bundle_id",
+        type="tool-bundle-result",
+        user_id="user_1",
+        payload={
+            "bundle_id": "  bundle_trimmed  ",
+            "status": "success",
+            "step_results": [{"tool": "read_file", "status": "ok", "output": "done"}],
+            "screenshot": None,
+            "system_state": None,
+            "error": None,
+        },
+    )
+
+    await handler.handle(message, websocket, "user_1")
+    assert session_manager.session_instance.bundle_calls
+    assert session_manager.session_instance.bundle_calls[0]["bundle_id"] == "bundle_trimmed"
 
 
 @pytest.mark.asyncio
