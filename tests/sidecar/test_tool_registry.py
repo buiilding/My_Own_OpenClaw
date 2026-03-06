@@ -153,6 +153,62 @@ async def test_execute_computer_use_routes_to_selected_subtool():
 
 
 @pytest.mark.asyncio
+async def test_execute_computer_use_rejects_unknown_subtool_name():
+    registry = ToolRegistry()
+    captured = {"called": False}
+
+    def mouse_tool(_args):
+        captured["called"] = True
+        return ToolResult.success_result({"ok": True, "tool": "mouse_control"})
+
+    registry.tools["mouse_control"] = mouse_tool
+
+    result = await registry.execute_tool("computer_use", {
+        "tool": "mouse_control_typo",
+        "metadata": {
+            "description": "screen",
+            "explanation": "click target",
+            "expectation": "dialog opens",
+        },
+        "arguments": {
+            "action": "click",
+            "x": 12,
+            "y": 34,
+        },
+    })
+
+    assert result.success is False
+    assert "computer_use requires a valid 'tool' value" in (result.error or "")
+    assert captured["called"] is False
+
+
+@pytest.mark.asyncio
+async def test_execute_computer_use_rejects_non_object_arguments():
+    registry = ToolRegistry()
+    captured = {"called": False}
+
+    def mouse_tool(_args):
+        captured["called"] = True
+        return ToolResult.success_result({"ok": True, "tool": "mouse_control"})
+
+    registry.tools["mouse_control"] = mouse_tool
+
+    result = await registry.execute_tool("computer_use", {
+        "tool": "mouse_control",
+        "metadata": {
+            "description": "screen",
+            "explanation": "click target",
+            "expectation": "dialog opens",
+        },
+        "arguments": "not-a-dict",
+    })
+
+    assert result.success is False
+    assert result.error == "computer_use.arguments must be an object"
+    assert captured["called"] is False
+
+
+@pytest.mark.asyncio
 async def test_execute_computer_use_rejects_missing_metadata():
     registry = ToolRegistry()
     captured = {"called": False}
