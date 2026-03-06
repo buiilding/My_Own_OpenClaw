@@ -101,6 +101,48 @@ async def test_send_tools_marks_failed_coordinate_resolution_as_non_executable()
 
 
 @pytest.mark.asyncio
+async def test_send_tools_marks_invalid_computer_use_preparation_failure_as_validation_error():
+    request_id = "req-invalid-computer-1"
+    failed_call = ParsedToolCall(
+        tool_name="invalid_computer_use_tool",
+        parameters={"action": "click"},
+        metadata={
+            "request_id": request_id,
+            "description": "screen",
+            "explanation": "click target",
+            "expectation": "dialog opens",
+        },
+    )
+
+    sender = _build_sender(
+        PreparationResult(
+            resolved_calls=[],
+            errors=[(
+                failed_call,
+                "computer_use call is invalid and was rejected before frontend execution.",
+            )],
+            bundle_id=None,
+        )
+    )
+    session = _DummySession()
+    emitted = await _collect_emitted_events(sender, [failed_call], session)
+
+    assert len(emitted) == 2
+    assert isinstance(emitted[0], ToolCallEvent)
+    assert emitted[0].metadata["skip_frontend_execution"] is True
+    assert emitted[0].metadata["computer_use_validation_failed"] is True
+    assert "coordinate_resolution_failed" not in emitted[0].metadata
+
+    assert isinstance(emitted[1], ToolOutputEvent)
+    assert emitted[1].metadata["skip_frontend_execution"] is True
+    assert emitted[1].metadata["computer_use_validation_failed"] is True
+    assert "coordinate_resolution_failed" not in emitted[1].metadata
+
+    assert request_id in session.pending_results
+    assert "computer_use call is invalid" in (session.pending_results[request_id].error or "")
+
+
+@pytest.mark.asyncio
 async def test_send_tools_does_not_dispatch_bundle_when_preparation_fails():
     bundle_id = "bundle-123"
     first_call = ParsedToolCall(
