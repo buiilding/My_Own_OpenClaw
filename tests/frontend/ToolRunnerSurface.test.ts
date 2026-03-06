@@ -30,6 +30,14 @@ describe('toolRunnerSurface helpers', () => {
     expect(shouldSkipToolExecution(undefined)).toBe(false);
     expect(shouldSkipToolExecution({ skip_frontend_execution: false })).toBe(false);
     expect(shouldSkipToolExecution({ skip_frontend_execution: true })).toBe(true);
+    expect(shouldSkipToolExecution({
+      computer_use_validation_failed: true,
+      skip_frontend_execution: true,
+    })).toBe(true);
+    expect(shouldSkipToolExecution({
+      computer_use_validation_failed: true,
+      skip_frontend_execution: false,
+    })).toBe(false);
   });
 
   test('resolves cancellation request id with request_id precedence', () => {

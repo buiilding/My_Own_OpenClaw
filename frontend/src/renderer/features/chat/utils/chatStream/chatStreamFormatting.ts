@@ -115,6 +115,7 @@ export function resolveModelFacingToolCall(payload?: ToolCallPayloadLike): {
   )
     ? modelArguments
     : (fallbackParameters || {});
+  const frontendExecutionSkipped = metadata?.skip_frontend_execution === true;
 
   if (isRecoverableParseFailure) {
     return {
@@ -127,7 +128,7 @@ export function resolveModelFacingToolCall(payload?: ToolCallPayloadLike): {
       thought_signature: thoughtSignature || undefined,
       raw_arguments_preview: rawArgumentsPreview || undefined,
       parse_error: parseError || undefined,
-      frontend_execution_skipped: metadata?.skip_frontend_execution === true,
+      frontend_execution_skipped: frontendExecutionSkipped || undefined,
     };
   }
 
@@ -140,5 +141,6 @@ export function resolveModelFacingToolCall(payload?: ToolCallPayloadLike): {
     ),
     arguments: resolvedArguments,
     thought_signature: thoughtSignature || undefined,
+    frontend_execution_skipped: frontendExecutionSkipped || undefined,
   };
 }
