@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(backend-websocket-tool-result-correlation-type-and-bundle-step-contracts): expand websocket parser regressions to fail-close non-string `tool-result.request_id`/`tool-bundle-result.bundle_id` payloads and bundle-result payloads missing required `step_results`, locking strict inbound schema boundary behavior.
 - docs(frontend-runtime-paths-and-local-backend-launch-contract-refresh): align Electron main runtime path docs with current bundled-runtime behavior (`resolveSidecarLaunchTarget` binary-first fallback, packaged `.pyc` script path resolution, bundled Playwright browser path export, and packaged Python fail-close policy), and refresh local-backend lifecycle docs to match the same spawn/env contracts.
 - test(sidecar-tool-registry-computer-use-unexpected-metadata-ordering): add sidecar regression ensuring `computer_use.metadata` unexpected-field error output is deterministically sorted when multiple extra keys are present, while preserving fail-close no-subtool-execution behavior.
 - test(frontend-tool-runner-result-contract-payload-clone-boundary): extend wrapper-level result-envelope regressions so `buildToolRunnerResultEnvelope`/`buildToolRunnerBundleResultEnvelope` preserve cloned payload snapshots and do not inherit caller mutations after envelope construction.
