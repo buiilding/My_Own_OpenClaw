@@ -5,7 +5,7 @@ import { IpcBridge, INVOKE_CHANNELS } from '../infrastructure/ipc/bridge';
 import { useAppConfigContext } from './providers/AppContextHooks';
 
 function WakewordController() {
-  const { wakewordActive } = useAppConfigContext();
+  const { wakewordActive, wakewordEnabled } = useAppConfigContext();
 
   const handleWakewordDetected = useCallback(() => {
     console.log('[WakewordController] Wakeword detected!');
@@ -15,7 +15,9 @@ function WakewordController() {
     });
   }, []);
 
-  useWakewordDetection(wakewordActive, handleWakewordDetected);
+  useWakewordDetection(wakewordActive, handleWakewordDetected, {
+    wakewordPreferenceEnabled: wakewordEnabled,
+  });
 
   return null;
 }

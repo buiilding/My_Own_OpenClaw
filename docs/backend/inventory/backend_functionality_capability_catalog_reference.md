@@ -56,7 +56,7 @@ Primary files:
 - `backend/src/api/routes/websocket/{connection,message_handler,json_parse,task_manager}.py`
 - `backend/src/api/routes/runs/router.py`
 - `backend/src/api/routes/memory/{embeddings,semantic,semantic_service,semantic_parser,health}.py`
-- `backend/src/api/routes/artifacts.py`
+- `backend/src/api/routes/artifacts/router.py`
 - `backend/src/api/transport/{websocket,sender,envelope,protocol}.py`
 - `backend/src/api/contracts/{message_types,formatter_specs,registry}.py`
 - `backend/src/api/schemas/{incoming,outgoing,common}.py`

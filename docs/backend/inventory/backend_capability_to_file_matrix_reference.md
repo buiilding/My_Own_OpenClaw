@@ -25,7 +25,7 @@ This matrix maps backend capabilities to implementation files.
 | Outgoing event envelope/send safety | `backend/src/api/transport/{websocket,sender,envelope,protocol}.py` | Serialized websocket send and standard context envelope fields. |
 | Stream formatter routing | `backend/src/api/processing/formatter.py`, `backend/src/api/contracts/formatter_specs.py`, `backend/src/api/processing/formatters/*.py` | Internal event -> outgoing message contract mapping. |
 | Memory REST endpoints | `backend/src/api/routes/memory/{embeddings,semantic,semantic_service,semantic_parser,health}.py` | Embeddings + semantic summarize/title flows. |
-| Artifact upload/download endpoints | `backend/src/api/routes/artifacts.py`, `backend/src/services/artifacts/store.py` | Artifact IDs and base64 load/store support. |
+| Artifact upload/download endpoints | `backend/src/api/routes/artifacts/router.py`, `backend/src/services/artifacts/store.py` | Artifact IDs and base64 load/store support. |
 
 ## 2) Handler Responsibilities
 

@@ -37,7 +37,7 @@ Count includes package `__init__.py` modules.
 - Routes:
 - `backend/src/api/routes/websocket/{__init__,connection,message_handler,json_parse,task_manager}.py`
 - `backend/src/api/routes/memory/{embeddings,semantic,semantic_service,semantic_parser,health}.py`
-- `backend/src/api/routes/artifacts.py`
+- `backend/src/api/routes/artifacts/router.py`
 - Infrastructure:
 - `backend/src/api/infrastructure/{handler,registry,errors}.py`
 - Handlers:

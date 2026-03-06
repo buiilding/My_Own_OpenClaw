@@ -35,7 +35,7 @@ Registered routers (`api/routes/__init__.py`):
 
 Implementation:
 
-- `api/routes/artifacts.py`
+- `api/routes/artifacts/router.py`
 - `services/artifacts/store.py`
 
 ### Embeddings

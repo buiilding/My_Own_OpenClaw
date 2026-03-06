@@ -11,7 +11,7 @@ title: "Artifact, Screenshot, and System-State Flow Reference"
 ## Canonical Modules
 
 - `backend/src/services/artifacts/store.py`
-- `backend/src/api/routes/artifacts.py`
+- `backend/src/api/routes/artifacts/router.py`
 - `backend/src/api/services/query_execution.py`
 - `backend/src/agent/tools/waiting/router.py`
 - `backend/src/agent/tools/preparation/screenshot/manager.py`

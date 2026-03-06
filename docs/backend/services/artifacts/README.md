@@ -2,7 +2,7 @@
 summary: "Backend artifact service docs sub-hub for upload stream-write limits, artifact-id/path validation, base64 retrieval limits, and HTTP route error mapping."
 read_when:
   - When changing `backend/src/services/artifacts/store.py` upload/lookup behavior or ID/content-type policy.
-  - When changing `backend/src/api/routes/artifacts.py` response schema, URL construction, or error mapping.
+  - When changing `backend/src/api/routes/artifacts/router.py` response schema, URL construction, or error mapping.
 title: "Backend Artifact Service Docs Hub"
 ---
 
@@ -23,6 +23,7 @@ title: "Backend Artifact Service Docs Hub"
 
 - `backend/src/services/artifacts/store.py`
 - `backend/src/services/artifacts/__init__.py`
-- `backend/src/api/routes/artifacts.py`
+- `backend/src/api/routes/artifacts/router.py`
+- `backend/src/api/routes/artifacts/models.py`
 - `tests/backend/test_artifacts_store.py`
 - `tests/backend/test_artifact_routes.py`
