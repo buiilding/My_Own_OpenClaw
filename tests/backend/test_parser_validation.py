@@ -248,6 +248,30 @@ def test_validate_metadata_accepts_and_trims_metadata_for_unified_computer_use_t
     }
 
 
+def test_validate_metadata_accepts_legacy_computer_tool_name_when_unified_tool_is_registered():
+    validator, _metrics = _make_validator(["computer_use"])
+    metadata = {
+        "description": " screen ",
+        "explanation": " click ",
+        "expectation": " opens ",
+    }
+
+    validator.validate_metadata("mouse_control", metadata)
+
+    assert metadata == {
+        "description": "screen",
+        "explanation": "click",
+        "expectation": "opens",
+    }
+
+
+def test_validate_metadata_rejects_missing_metadata_for_legacy_name_when_unified_tool_is_registered():
+    validator, _metrics = _make_validator(["computer_use"])
+
+    with pytest.raises(ParseValidationError, match="missing metadata"):
+        validator.validate_metadata("mouse_control", None)
+
+
 def test_validate_metadata_rejects_non_dict_metadata_for_unified_computer_use_tool():
     validator, _metrics = _make_validator(["computer_use"])
 
