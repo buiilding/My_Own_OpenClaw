@@ -1,17 +1,17 @@
 ---
-summary: "Deep frontend protocol test reference mapping renderer IPC validation, main-query transport behavior, enriched query payload construction, local-backend bridge lifecycle/RPC mappings, and wakeword subprocess restart safety to concrete tests."
+summary: "Deep frontend protocol test reference mapping renderer IPC validation, websocket/query lifecycle behavior, split main-process IPC registrar ownership, local-backend bridge contracts, and wakeword restart safety to concrete tests."
 read_when:
   - When changing `frontend/src/main/ipc.cjs` query send behavior, settings-ack gating, or outbound payload normalization.
-  - When changing renderer IPC channel guards, local-backend JSON-RPC parameter mapping, or wakeword process/buffer lifecycle handling.
+  - When changing renderer IPC channel guards, split main-process IPC registrars, local-backend JSON-RPC parameter mapping, or wakeword process/buffer lifecycle handling.
 title: "Frontend IPC and Local-Backend Protocol Test Coverage and Runtime Contract Reference"
 ---
 
 # Frontend IPC and Local-Backend Protocol Test Coverage and Runtime Contract Reference
 
-## Coverage Snapshot (2026-02-27)
+## Coverage Snapshot (2026-03-06)
 
-- Protocol test files in this reference: `11`
-- Total test cases across listed files: `79`
+- Protocol test files in this reference: `15`
+- Total test cases across listed files: `161`
 
 ## Scope and Sources
 
@@ -23,6 +23,10 @@ Primary runtime modules:
 - `frontend/src/main/query_payload_builder.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
+- `frontend/src/main/overlay_phase_ipc_runtime.cjs`
+- `frontend/src/main/window_controls_ipc_runtime.cjs`
+- `frontend/src/main/permission_ipc_runtime.cjs`
+- `frontend/src/main/display_query_handler.cjs`
 
 Primary protocol tests:
 
@@ -37,6 +41,10 @@ Primary protocol tests:
 - `tests/frontend/PermissionService.test.cjs`
 - `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`
 - `tests/frontend/ChatGptDashboardShell.test.jsx`
+- `tests/frontend/OverlayPhaseIpcRuntime.test.cjs`
+- `tests/frontend/WindowControlsIpcRuntime.test.cjs`
+- `tests/frontend/PermissionIpcRuntime.test.cjs`
+- `tests/frontend/DisplayQueryHandler.test.cjs`
 
 ## Contract Coverage Matrix
 
@@ -50,6 +58,9 @@ Primary protocol tests:
 | conversation-ref fallback lifecycle | `currentConversationRef` handling (`ipc.cjs`) | conversation-ref tests in `IpcMainBridge.query.test.cjs` | backend-streamed `conversation_ref` backfills local echo + outbound query; reconnect clears stale fallback before next turn |
 | local backend process lifecycle safety | process state/reset + readiness tokening (`local_backend_bridge.cjs`) | `LocalBackendBridge.lifecycle.test.cjs` | in-flight RPCs resolve with standardized errors on exit/error; stale readiness timers from old process generations do not clobber new process state |
 | local backend RPC shape mapping | handler registration + mapper utilities (`local_backend_bridge.cjs`) | `LocalBackendBridge.rpc.test.cjs` | IPC payload keys map to backend snake_case params; non-object payloads normalize safely; error responses use canonical `{success:false,error}` shape |
+| overlay IPC registrar ownership boundary | `overlay_phase_ipc_runtime.cjs` | `OverlayPhaseIpcRuntime.test.cjs` | overlay phase module registers only overlay-owned channels (`set-responsebox-size`, `set-chatbox-visual-anchor-height`, `show-chatbox`, `hide-chatbox`, `move-chatbox-to`) and does not own deprecated focus/interactivity channels |
+| window-control IPC registrar + display mapping | `window_controls_ipc_runtime.cjs`, `display_query_handler.cjs` | `WindowControlsIpcRuntime.test.cjs`, `DisplayQueryHandler.test.cjs` | `show-main-window` normalization/route emit stays in window-control module; display inventory payload is mapped to stable `{ id, label, isPrimary, bounds, scaleFactor }` |
+| permission/sudo IPC registrar ownership | `permission_ipc_runtime.cjs` | `PermissionIpcRuntime.test.cjs` | permission and sudo invoke handlers are registered in the permission runtime module and remain isolated from overlay/window channels |
 | wakeword stream/restart robustness | wakeword subprocess + framed parser (`wakeword_bridge.cjs`) | `WakewordBridge.test.cjs` | detection callback + renderer event fire only when enabled; process restarts keep callback wiring; stale stdout/stderr partial buffers are cleared across restarts |
 | sudo access command-runner protocol | `agent_sudo_access_handler.cjs` | `AgentSudoAccessHandler.test.cjs` | Linux-only guard, pkexec/sudo command execution paths, cancel/auth-failure normalization, and non-interactive disable semantics |
 | permission probe/request protocol | `permission_service.cjs` | `PermissionService.test.cjs` | manifest/status shape, per-permission probe behavior, unknown-permission error surface, and request flow normalization |
@@ -64,7 +75,11 @@ Primary protocol tests:
 | connection snapshot + handshake bootstrap (`get-client-user-id`, `ipc-status`) | `frontend/src/main/ipc.cjs` | `IpcMainBridge.lifecycle.test.cjs`, `AppConfigProvider.storageAndIpc.test.tsx` |
 | query send + settings ACK gate + synthetic local echo | `frontend/src/main/ipc.cjs` | `IpcMainBridge.query.test.cjs` |
 | overlay pre-capture + response-overlay phase transitions | `frontend/src/main/ipc.cjs`, `frontend/src/main/response_overlay_phase_handler.cjs` | `IpcMainBridge.query.test.cjs`, `IpcMainBridge.lifecycle.test.cjs`, `OverlayPhaseListener.test.js` |
-| wakeword detect -> STT trigger channel | `frontend/src/main/index.cjs`, `frontend/src/main/wakeword_bridge.cjs` | `WakewordBridge.test.cjs`, `ChatBoxOverlayMouseIgnore.test.jsx` |
+| overlay IPC runtime channel ownership | `frontend/src/main/overlay_phase_ipc_runtime.cjs` | `OverlayPhaseIpcRuntime.test.cjs` |
+| window-control IPC runtime target routing + visibility handlers | `frontend/src/main/window_controls_ipc_runtime.cjs` | `WindowControlsIpcRuntime.test.cjs` |
+| display query payload mapping | `frontend/src/main/display_query_handler.cjs` | `DisplayQueryHandler.test.cjs` |
+| permission/sudo IPC runtime channel ownership | `frontend/src/main/permission_ipc_runtime.cjs` | `PermissionIpcRuntime.test.cjs` |
+| wakeword detect -> STT trigger channel | `frontend/src/main/main_window_runtime.cjs`, `frontend/src/main/overlay_signal_runtime.cjs`, `frontend/src/main/wakeword_bridge.cjs` | `WakewordBridge.test.cjs`, `ChatBoxOverlayMouseIgnore.test.jsx` |
 | show-main-window target normalization -> dashboard surface routing | `frontend/src/main/window_controls_ipc_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx` | `ChatGptDashboardShell.test.jsx` |
 | local sidecar RPC mapping + sudo mode propagation | `frontend/src/main/local_backend_bridge.cjs` | `LocalBackendBridge.rpc.test.cjs`, `LocalBackendBridge.lifecycle.test.cjs` |
 
@@ -168,6 +183,29 @@ This reflects current intent: runtime safety in preload, fast-fail ergonomics in
 - Probe behavior for known permission IDs and unknown-ID error handling.
 - Permission request flow returns normalized status payload.
 
+`tests/frontend/PermissionIpcRuntime.test.cjs` validates:
+
+- Permission + sudo channels are registered by `permission_ipc_runtime.cjs` rather than overlay/window registrars.
+- `check-permission` and `run-permission-probe` return the same canonical status envelope shape.
+
+## Split Registrar Runtime Contracts
+
+`tests/frontend/OverlayPhaseIpcRuntime.test.cjs` validates:
+
+- Overlay runtime registers only phase-owned overlay channels.
+- Deprecated channels (`set-overlay-ignore-mouse`, `set-overlay-focusable`, `prepare-overlay-tool-focus`) remain unregistered.
+- `set-chatbox-visual-anchor-height` updates propagate to response/context-label positioning sync.
+
+`tests/frontend/WindowControlsIpcRuntime.test.cjs` validates:
+
+- `show-main-window` routing + open-target emission is owned by `window_controls_ipc_runtime.cjs`.
+- Main-window visibility and window-control invoke handlers are registered in the same module boundary.
+
+`tests/frontend/DisplayQueryHandler.test.cjs` validates:
+
+- Display list responses use stable ordinal labels (`Display N (WxH)`).
+- Primary display mapping and empty-list behavior are deterministic.
+
 ## Residual Risk and Suggested Additions
 
 Useful expansions if protocol surface changes:
@@ -194,6 +232,10 @@ Use this command to inspect protocol-test breadth:
 - `  'tests/frontend/PermissionService.test.cjs',`
 - `  'tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx',`
 - `  'tests/frontend/ChatGptDashboardShell.test.jsx',`
+- `  'tests/frontend/OverlayPhaseIpcRuntime.test.cjs',`
+- `  'tests/frontend/WindowControlsIpcRuntime.test.cjs',`
+- `  'tests/frontend/PermissionIpcRuntime.test.cjs',`
+- `  'tests/frontend/DisplayQueryHandler.test.cjs',`
 - `]`
 - `for p in paths:`
 - `    import re`

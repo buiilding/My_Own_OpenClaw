@@ -1,8 +1,8 @@
 ---
-summary: "Frontend protocol lifecycle sub-hub for main-process websocket bridge state, query settings-gate sequencing, wakeword trigger flow, main-window target routing, and response-overlay phase/visibility transitions."
+summary: "Frontend protocol lifecycle sub-hub for main-process websocket bridge state, query settings-gate sequencing, split IPC registrar ownership, wakeword trigger flow, and response-overlay visibility transitions."
 read_when:
   - When changing `ipc.cjs` connection/query flow state machines.
-  - When debugging settings ACK gate timing, reconnect behavior, wakeword STT trigger behavior, or overlay phase drift.
+  - When debugging settings ACK gate timing, reconnect behavior, split registrar ownership drift, wakeword STT trigger behavior, or overlay phase drift.
 title: "Frontend Protocol Lifecycle Hub"
 ---
 
@@ -31,8 +31,15 @@ title: "Frontend Protocol Lifecycle Hub"
 - `frontend/src/main/window_controls_ipc_runtime.cjs`
 - `frontend/src/main/permission_ipc_runtime.cjs`
 - `frontend/src/main/main_window_runtime.cjs`
+- `frontend/src/main/overlay_signal_runtime.cjs`
+- `frontend/src/main/display_query_handler.cjs`
+- `frontend/src/main/wakeword_bridge.cjs`
 - `frontend/src/main/index.cjs`
 - `tests/frontend/IpcMainBridge.lifecycle.test.cjs`
 - `tests/frontend/IpcMainBridge.query.test.cjs`
 - `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`
 - `tests/frontend/ChatGptDashboardShell.test.jsx`
+- `tests/frontend/OverlayPhaseIpcRuntime.test.cjs`
+- `tests/frontend/WindowControlsIpcRuntime.test.cjs`
+- `tests/frontend/PermissionIpcRuntime.test.cjs`
+- `tests/frontend/DisplayQueryHandler.test.cjs`

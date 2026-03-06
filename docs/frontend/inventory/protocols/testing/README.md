@@ -1,8 +1,8 @@
 ---
-summary: "Frontend protocol testing sub-hub for renderer IPC validation, websocket bridge lifecycle/query contracts, local-backend JSON-RPC lifecycle handling, wakeword STT trigger flow, and dashboard target-routing coverage."
+summary: "Frontend protocol testing sub-hub for renderer IPC validation, websocket/query lifecycle contracts, split IPC registrar ownership, local-backend JSON-RPC handling, and wakeword/dashboard routing coverage."
 read_when:
   - When changing renderer IPC channel validation behavior, Electron main websocket/query orchestration, or query payload enrichment rules.
-  - When changing local-backend bridge JSON-RPC mappings/timeouts or wakeword subprocess status/detection handling.
+  - When changing local-backend bridge JSON-RPC mappings/timeouts, split IPC registrar ownership, or wakeword subprocess status/detection handling.
 title: "Frontend Protocol Testing Hub"
 ---
 
@@ -28,9 +28,17 @@ title: "Frontend Protocol Testing Hub"
 - `tests/frontend/LocalBackendBridge.lifecycle.test.cjs`
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`
 - `tests/frontend/WakewordBridge.test.cjs`
+- `tests/frontend/OverlayPhaseIpcRuntime.test.cjs`
+- `tests/frontend/WindowControlsIpcRuntime.test.cjs`
+- `tests/frontend/PermissionIpcRuntime.test.cjs`
+- `tests/frontend/DisplayQueryHandler.test.cjs`
 - `tests/frontend/ChatGptDashboardShell.test.jsx`
 - `frontend/src/renderer/infrastructure/ipc/bridge.ts`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/query_payload_builder.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
+- `frontend/src/main/overlay_phase_ipc_runtime.cjs`
+- `frontend/src/main/window_controls_ipc_runtime.cjs`
+- `frontend/src/main/permission_ipc_runtime.cjs`
+- `frontend/src/main/display_query_handler.cjs`
