@@ -163,6 +163,27 @@ def test_tool_registry_filtered_declarations_normalize_legacy_computer_tools():
     assert names == ["computer_use"]
 
 
+def test_tool_registry_computer_use_declaration_includes_metadata_fields():
+    config = AppConfig()
+    registry = ToolRegistry(config=config, cache_manager=CacheManager())
+
+    declarations = registry.get_function_declarations_filtered(["computer_use"])
+    assert len(declarations) == 1
+
+    parameters = declarations[0]["function"]["parameters"]
+    metadata = parameters["properties"]["metadata"]
+
+    assert "metadata" in parameters["required"]
+    assert metadata["type"] == "object"
+    assert set(metadata["required"]) == {"description", "explanation", "expectation"}
+    assert metadata["properties"]["description"]["type"] == "string"
+    assert metadata["properties"]["description"]["minLength"] == 1
+    assert metadata["properties"]["explanation"]["type"] == "string"
+    assert metadata["properties"]["explanation"]["minLength"] == 1
+    assert metadata["properties"]["expectation"]["type"] == "string"
+    assert metadata["properties"]["expectation"]["minLength"] == 1
+
+
 def test_tool_registry_availability_and_capabilities_fallback():
     config = AppConfig()
     registry = ToolRegistry(config=config, cache_manager=CacheManager())
