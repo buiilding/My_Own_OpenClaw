@@ -16,6 +16,7 @@ title: "Backend Remote Tools Docs Hub"
 
 - [Remote Tool Registry, Schema Cache, and Cross-Layer Parity Reference](../registry/remote_tool_registry_schema_cache_and_cross_layer_parity_reference.md)
 - [Browser Remote Schema Surface and Compatibility Contract Reference](../browser/browser_remote_schema_surface_and_compatibility_contract_reference.md)
+- [Computer Tool Schema Guidance and Unified Envelope Validation Reference](../contracts/computer_tool_schema_guidance_and_unified_envelope_validation_reference.md)
 
 ## Code Scope
 

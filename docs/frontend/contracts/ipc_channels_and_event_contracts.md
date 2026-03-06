@@ -37,8 +37,12 @@ Key examples:
 - `search-memory`, `search-conversations`, `store-memory`, list/get/delete memory records
 - config load/save
 - window management and display queries
+- `get-displays` payload includes `{ id, label, isPrimary, bounds, scaleFactor }` from main-process display mapper
+  - details: [Display Query Handler Display Inventory Payload Contract Reference](../main/display_query_handler_display_inventory_payload_contract_reference.md)
 - sudo access toggle and permission onboarding channels
   - `set-agent-sudo-access`
+    - Linux-only privileged toggle (`pkexec` enable + `sudo -n` disable)
+    - details: [Agent Sudo Access Handler PKExec and Non-Interactive Disable Contract Reference](../main/agent_sudo_access_handler_pkexec_and_noninteractive_disable_contract_reference.md)
   - `list-permissions`, `check-permissions`, `check-permission`, `run-permission-probe`, `request-permission`
 - `show-main-window` supports optional `{ open?: 'chat' | 'memory' | 'models' | 'settings', maximize?: boolean }`
 

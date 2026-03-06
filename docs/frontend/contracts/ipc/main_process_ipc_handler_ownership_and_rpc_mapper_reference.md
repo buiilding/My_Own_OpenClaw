@@ -20,7 +20,9 @@ title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 - `frontend/src/main/index.cjs`
 - `frontend/src/main/overlay_phase_ipc_runtime.cjs`
 - `frontend/src/main/window_controls_ipc_runtime.cjs`
+- `frontend/src/main/display_query_handler.cjs`
 - `frontend/src/main/permission_ipc_runtime.cjs`
+- `frontend/src/main/agent_sudo_access_handler.cjs`
 - `frontend/src/main/window_visibility_runtime.cjs`
 - `frontend/src/main/main_process_lifecycle_runtime.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
@@ -104,6 +106,7 @@ Notable behavior:
 
 - `show-main-window` normalizes optional open-target payload and emits `main-window-open-target` to renderer on accepted target
 - `show-main-window { maximize:true }` restores/minimizes state and maximizes before focusing dashboard window
+- `get-displays` returns mapped inventory rows `{ id, label, isPrimary, bounds, scaleFactor }` produced by `display_query_handler.cjs` (label format: `Display N (WIDTHxHEIGHT)`)
 
 ### `permission_ipc_runtime.cjs` (invoked from `index.cjs`)
 
@@ -119,6 +122,7 @@ Notable behavior:
 Notable behavior:
 
 - permission handlers delegate to `permission_service.cjs` using shared deps (`platform`, `shell`, `systemPreferences`)
+- `set-agent-sudo-access` delegates to `agent_sudo_access_handler.cjs` and is Linux-only; enable path uses `pkexec`, disable path uses non-interactive `sudo -n` with normalized auth-cancel/error messaging
 
 ### `window_visibility_runtime.cjs`
 
@@ -213,3 +217,5 @@ If sidecar memory operations return wrong filters:
 - [Frontend Contracts IPC Docs Hub](README.md)
 - [Preload Allowlist and Channel-Constant Parity Reference](preload_allowlist_and_channel_constant_parity_reference.md)
 - [IPC Channel and Handler Reference](../ipc_channel_and_handler_reference.md)
+- [Display Query Handler Display Inventory Payload Contract Reference](../../main/display_query_handler_display_inventory_payload_contract_reference.md)
+- [Agent Sudo Access Handler PKExec and Non-Interactive Disable Contract Reference](../../main/agent_sudo_access_handler_pkexec_and_noninteractive_disable_contract_reference.md)

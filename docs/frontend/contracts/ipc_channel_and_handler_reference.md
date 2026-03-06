@@ -22,7 +22,9 @@ title: "IPC Channel and Handler Reference"
 - `frontend/src/main/index.cjs`
 - `frontend/src/main/overlay_phase_ipc_runtime.cjs`
 - `frontend/src/main/window_controls_ipc_runtime.cjs`
+- `frontend/src/main/display_query_handler.cjs`
 - `frontend/src/main/permission_ipc_runtime.cjs`
+- `frontend/src/main/agent_sudo_access_handler.cjs`
 - `frontend/src/main/window_visibility_runtime.cjs`
 - `frontend/src/main/main_process_lifecycle_runtime.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
@@ -95,6 +97,9 @@ Behavior:
 
 - `show-main-window` -> shows main window; optional payload `{ open?: 'chat' | 'memory' | 'models' | 'settings', maximize?: boolean }` emits `main-window-open-target` when accepted
 - `get-displays`
+  - returns mapped display inventory rows `{ id, label, isPrimary, bounds, scaleFactor }`
+  - label contract uses positional format `Display N (WIDTHxHEIGHT)`
+  - detailed mapping contract: [Display Query Handler Display Inventory Payload Contract Reference](../main/display_query_handler_display_inventory_payload_contract_reference.md)
 - `window-minimize`
 - `window-toggle-maximize`
 - `window-close`
@@ -102,6 +107,8 @@ Behavior:
 ## Permission channels (`permission_ipc_runtime.cjs`, wired by `index.cjs`)
 
 - `set-agent-sudo-access`
+  - Linux-only privileged sudoers toggle flow (`pkexec` enable + `sudo -n` disable) with normalized canceled/error semantics
+  - detailed runtime contract: [Agent Sudo Access Handler PKExec and Non-Interactive Disable Contract Reference](../main/agent_sudo_access_handler_pkexec_and_noninteractive_disable_contract_reference.md)
 - `list-permissions`
 - `check-permissions`
 - `check-permission`

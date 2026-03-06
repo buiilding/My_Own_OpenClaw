@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(fullstack-ipc-display-sudo-contract-details-and-remote-tool-serialization-notes): enrich frontend IPC contract docs with concrete `get-displays` payload and Linux sudo-toggle runtime behavior (with direct deep-reference links), and expand backend remote tool domain docs with explicit default-arg serialization and unified `computer_use` envelope-to-concrete-tool output shaping details.
 - docs(backend-compaction-crosslink-in-config-and-session-runtime): extend backend config/session runtime docs with direct compaction-engine execution links and runtime-attachment notes for manual/auto compaction paths.
 - docs(frontend-display-query-handler-payload-contract): add a dedicated Electron-main deep reference for `get-displays` payload shaping (`id`, positional label format, `isPrimary`, bounds, scale factor), plus cross-links from main/frontend lifecycle and IPC docs.
 - docs(backend-compaction-engine-decision-strategy-and-events): add a dedicated backend agent deep reference for `agent/compaction/*` internals, including decision gating (`disabled`/`below-threshold`/`cooldown`), trigger fallback resolution, inline summary strategy/fallback behavior, and auto-pre/auto-mid/manual lifecycle event integration points.
