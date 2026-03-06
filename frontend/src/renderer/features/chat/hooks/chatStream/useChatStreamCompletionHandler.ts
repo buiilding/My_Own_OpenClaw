@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useChatStore } from '../../stores/chatStore';
+import { useChatStore, type ChatMessage } from '../../stores/chatStore';
 import { recordAssistantMessage } from '../../../../infrastructure/transcript/TranscriptWriter';
 import type { TranscriptTransparencyData } from '../../../../infrastructure/transcript/types';
 import type { StreamingCompleteEvent } from '../../../../types/backendEvents';
@@ -7,8 +7,10 @@ import { findStreamingCompleteAssistantMessage } from '../../utils/chatStream/ch
 import { buildAssistantTranscriptTransparency } from '../../utils/chatStream/chatStreamTransparency';
 import type { TranscriptModelContext } from '../../utils/chatStream/chatStreamTypes';
 import type { StreamTrackingOptions } from '../../utils/chatStream/chatStreamTracking';
+import { normalizeIncomingText } from '../../../../infrastructure/text/incomingTextNormalization';
 
 type UseChatStreamCompletionHandlerOptions = {
+  addMessage: (message: ChatMessage, conversationRef?: string | null) => void;
   enableTranscript: boolean;
   modelContextRef: { current: TranscriptModelContext };
   recordTrackingEvent: (
@@ -25,6 +27,7 @@ type UseChatStreamCompletionHandlerOptions = {
 };
 
 export const useChatStreamCompletionHandler = ({
+  addMessage,
   enableTranscript,
   modelContextRef,
   recordTrackingEvent,
@@ -46,14 +49,25 @@ export const useChatStreamCompletionHandler = ({
       currentMessages,
       event.turn_ref,
     );
+    const completionText = normalizeIncomingText(event.payload?.final_response)
+      || normalizeIncomingText(lastMessage?.fullAssistantMessage?.content);
+    const modelContext = modelContextRef.current;
     if (lastMessage && lastMessage.sender === 'assistant' && !lastMessage.isComplete) {
-      updateMessage(lastMessage.id, { isComplete: true }, conversationRef);
-      if (lastMessage.text && enableTranscript) {
+      const nextText = lastMessage.text || completionText;
+      updateMessage(lastMessage.id, {
+        text: nextText,
+        isComplete: true,
+        type: 'llm-text',
+        sourceEventType: lastMessage.sourceEventType || 'streaming-complete',
+        sourceChannel: lastMessage.sourceChannel || 'from-backend',
+        modelId: lastMessage.modelId || modelContext.modelId,
+        modelProvider: lastMessage.modelProvider || modelContext.modelProvider,
+      }, conversationRef);
+      if (nextText && enableTranscript) {
         const normalizedTransparency: TranscriptTransparencyData | undefined = (
           buildAssistantTranscriptTransparency(currentMessages, lastMessage, event.turn_ref || undefined)
         );
-        const modelContext = modelContextRef.current;
-        recordAssistantMessage(lastMessage.text, {
+        recordAssistantMessage(nextText, {
           messageType: lastMessage.type || 'llm-text',
           conversationRef: conversationRef || event.conversation_ref,
           userId: event.user_id,
@@ -62,10 +76,35 @@ export const useChatStreamCompletionHandler = ({
           transparency: normalizedTransparency,
         });
       }
+    } else if (completionText) {
+      const newMessage: ChatMessage = {
+        id: crypto.randomUUID(),
+        text: completionText,
+        sender: 'assistant',
+        isComplete: true,
+        type: 'llm-text',
+        sourceEventType: 'streaming-complete',
+        sourceChannel: 'from-backend',
+        turnRef: event.turn_ref || undefined,
+        modelId: modelContext.modelId,
+        modelProvider: modelContext.modelProvider,
+      };
+      addMessage(newMessage, conversationRef);
+      if (enableTranscript) {
+        recordAssistantMessage(completionText, {
+          messageType: 'llm-text',
+          conversationRef: conversationRef || event.conversation_ref,
+          userId: event.user_id,
+          modelId: modelContext.modelId,
+          modelProvider: modelContext.modelProvider,
+          transparency: undefined,
+        });
+      }
     }
 
     recordTrackingEvent('streaming-complete', event.turn_ref, { phase: 'complete' }, conversationRef);
   }, [
+    addMessage,
     enableTranscript,
     modelContextRef,
     persistThinkingForTurn,

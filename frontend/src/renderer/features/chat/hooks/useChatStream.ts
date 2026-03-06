@@ -228,6 +228,7 @@ export function useChatStream(enableTranscript: boolean = true) {
   });
 
   const processStreamingComplete = useChatStreamCompletionHandler({
+    addMessage,
     enableTranscript,
     modelContextRef,
     recordTrackingEvent,

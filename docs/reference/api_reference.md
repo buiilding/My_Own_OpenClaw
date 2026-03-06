@@ -908,14 +908,16 @@ End of streaming response.
 
 **Type**: `streaming-complete`
 
-**Payload**: `{}`
+**Payload**: `{ "final_response"?: string }`
 
 **Example**:
 ```json
 {
   "id": "123e4567-e89b-12d3-a456-426614174010",
   "type": "streaming-complete",
-  "payload": {},
+  "payload": {
+    "final_response": "Done."
+  },
   "timestamp": "2025-01-20T10:00:00Z"
 }
 ```

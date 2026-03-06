@@ -145,6 +145,57 @@ describe('useChatStream transcript + event filtering', () => {
     );
   });
 
+  test('streaming-complete materializes empty assistant placeholder from final response payload', () => {
+    setMockActiveConversationRef('conv-1');
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.getState().setMessages([
+        {
+          id: 'user-1',
+          text: 'hi',
+          sender: 'user',
+          turnRef: 'turn-1',
+        },
+        {
+          id: 'assistant-1',
+          text: '',
+          sender: 'assistant',
+          type: 'llm-text',
+          isComplete: false,
+          turnRef: 'turn-1',
+          fullAssistantMessage: {
+            content: 'backend full reply',
+          },
+        },
+      ], 'conv-1');
+      emitBackendEvent({
+        type: 'streaming-complete',
+        conversation_ref: 'conv-1',
+        user_id: 'user-1',
+        turn_ref: 'turn-1',
+        payload: {
+          final_response: 'backend full reply',
+        },
+      });
+    });
+
+    expect(useChatStore.getState().getWorkspaceState('conv-1').messages.at(-1)).toEqual(
+      expect.objectContaining({
+        id: 'assistant-1',
+        text: 'backend full reply',
+        isComplete: true,
+      }),
+    );
+    expect(transcriptSpies.recordAssistantMessage).toHaveBeenCalledWith(
+      'backend full reply',
+      expect.objectContaining({
+        conversationRef: 'conv-1',
+        userId: 'user-1',
+      }),
+    );
+  });
+
   test('duplicate streaming-complete does not duplicate assistant transcript writes', () => {
     setMockActiveConversationRef('conv-1');
     const { emitBackendEvent } = registerBackendListener();
