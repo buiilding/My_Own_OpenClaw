@@ -14,11 +14,14 @@ title: "Query Execution Service Stream Context and Completion Fallback Reference
 - `backend/src/api/services/query_execution_support/query_execution_cancellation.py`
 - `backend/src/api/services/query_execution_support/query_execution_inputs.py`
 - `backend/src/api/services/query_execution_support/query_execution_pipeline_events.py`
+- `backend/src/api/services/query_execution_support/query_execution_stream_state.py`
 - `backend/src/api/services/query_event_extraction.py`
 - `backend/src/api/services/tts_session.py`
 - `backend/src/api/handlers/query.py`
 - `backend/src/api/processing/pipeline.py`
 - `tests/backend/test_api_handlers.py`
+- `tests/backend/test_query_execution_service_helpers.py`
+- `tests/backend/test_query_event_extraction.py`
 
 ## Service Boundary
 
@@ -127,16 +130,16 @@ Loop gate semantics:
 
 ### Event extraction helpers
 
-Helper parsing/completion logic is single-sourced in `query_event_extraction.py`.
-`QueryExecutionService` keeps compatibility wrapper methods.
+Helper parsing/completion logic is single-sourced in `query_event_extraction.py` and invoked
+directly from `QueryExecutionService.execute(...)`.
 
-- `_extract_event_type` supports both dict and dataclass-like events
-- `_extract_event_type` trims type strings and treats whitespace-only values as missing
-- `_extract_non_empty_chunk_text` only accepts `chunk/content/streaming-response`
-- `_extract_assistant_full_text` only accepts `assistant_message_full`
-- `_extract_streaming_complete_text` only accepts `streaming-complete`
+- `extract_event_type` supports both dict and dataclass-like events
+- `extract_event_type` trims type strings and treats whitespace-only values as missing
+- `extract_non_empty_chunk_text` only accepts `chunk/content/streaming-response`
+- `extract_assistant_full_text` only accepts `assistant_message_full`
+- `resolve_completion_text` uses terminal/chunk/assistant/fallback precedence
 
-### Completion text precedence (`_resolve_completion_text`)
+### Completion text precedence (`resolve_completion_text`)
 
 1. explicit `streaming-complete.final_response`
 2. concatenated streamed chunk text
@@ -148,7 +151,7 @@ Helper parsing/completion logic is single-sourced in `query_event_extraction.py`
 - emits synthetic `ChunkEvent` if no chunk was seen and completion text is non-empty
 - always emits terminal `StreamingCompleteEvent`
 
-If agent stream exits with no terminal event, service still emits fallback completion sequence.
+If agent stream exits with no terminal event, service attempts the same fallback completion sequence.
 
 ## TTS Session Coupling
 
@@ -173,6 +176,15 @@ Within `async with TTSSession(...)`:
 - `system_state_internal` application into agent runtime state
 - cancelled query path logs active-task cancellation and pending tool-call reconciliation when history returns reconciled IDs
 
+`tests/backend/test_query_execution_service_helpers.py` validates:
+
+- screenshot ref trimming, blank-ref drop behavior, and single-ref fallback when `screenshot_refs` is blank-only
+- per-ref artifact failure handling that preserves successful refs
+- direct helper passthrough for event extraction primitives
+- completion backfill ordering (`ChunkEvent` before `StreamingCompleteEvent`) and stream-context reuse in helper forwarding
+
+`tests/backend/test_query_event_extraction.py` validates resolver precedence and empty-chunk fallback behavior.
+
 ## Drift Hotspots
 
 1. changing completion precedence can regress frontend phase transitions.
@@ -180,9 +192,11 @@ Within `async with TTSSession(...)`:
 3. replacing per-query shared context with per-event dicts increases allocation churn and may introduce metadata drift.
 4. making screenshot-ref lookup fatal can block query handling on artifact outages.
 5. skipping cancelled-turn pending tool-call reconciliation can leave staged IDs unresolved and break tool history continuity.
+6. terminal-missing fallback path currently depends on class symbol `_resolve_completion_text`; if wrapper removal continues without matching call-site update, fallback completion can regress.
 
 ## Related Pages
 
 - [Backend API Services Docs Hub](README.md)
+- [Query Execution Support Helper Module Boundary Reference](query_execution_support_helper_module_boundary_reference.md)
 - [Rehydrate and Wakeword Execution Service and TTS Session Reference](rehydrate_and_wakeword_execution_service_and_tts_session_reference.md)
 - [Query Handler and Query Execution Service Runtime Reference](../handlers/query_handler_and_query_execution_service_runtime_reference.md)

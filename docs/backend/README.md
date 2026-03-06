@@ -94,6 +94,7 @@ Covers:
 - [Query Handler and Query Execution Service Runtime Reference](api/handlers/query_handler_and_query_execution_service_runtime_reference.md)
 - [Non-Query Handler Dispatch and Payload Normalization Reference](api/handlers/non_query_handler_dispatch_and_payload_normalization_reference.md)
 - [Query Execution Service Stream Context and Completion Fallback Reference](api/services/query_execution_service_stream_context_and_completion_fallback_reference.md)
+- [Query Execution Support Helper Module Boundary Reference](api/services/query_execution_support_helper_module_boundary_reference.md)
 - [Rehydrate and Wakeword Execution Service and TTS Session Reference](api/services/rehydrate_and_wakeword_execution_service_and_tts_session_reference.md)
 - [Handshake Parse, Validation, and Policy-Close Contract Reference](api/websocket/connection/handshake_parse_validation_and_policy_close_contract_reference.md)
 - [Task Manager Concurrency Limit, Rejected-Coroutine Close, and Cleanup Contract Reference](api/websocket/connection/task_manager_concurrency_limit_rejected_coroutine_close_and_cleanup_contract_reference.md)

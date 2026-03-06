@@ -37,6 +37,7 @@ title: "Backend API Docs Hub"
 - [Query Handler and Query Execution Service Runtime Reference](handlers/query_handler_and_query_execution_service_runtime_reference.md)
 - [Non-Query Handler Dispatch and Payload Normalization Reference](handlers/non_query_handler_dispatch_and_payload_normalization_reference.md)
 - [Query Execution Service Stream Context and Completion Fallback Reference](services/query_execution_service_stream_context_and_completion_fallback_reference.md)
+- [Query Execution Support Helper Module Boundary Reference](services/query_execution_support_helper_module_boundary_reference.md)
 - [Rehydrate and Wakeword Execution Service and TTS Session Reference](services/rehydrate_and_wakeword_execution_service_and_tts_session_reference.md)
 - [Non-Query Handler and Control Flow Reference](non_query_handler_and_control_flow_reference.md)
 - [Formatter Dispatch and Schema Alignment Reference](processing/formatter_dispatch_and_schema_alignment_reference.md)

@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for QueryExecutionService internals: runtime system-state merge rules, multi-screenshot artifact resolution, stream context attachment, and completion-text resolver helpers."
 read_when:
-  - When changing `backend/src/api/services/query_execution.py` helper methods or completion fallback behavior.
+  - When changing `backend/src/api/services/query_execution_support/*` helper methods or completion fallback behavior.
   - When debugging missing screenshot artifacts (`screenshot_ref`/`screenshot_refs`), wrong stream context fields, or empty-final-response synthesis.
 title: "Query Execution Runtime-State and Completion Resolver Reference"
 ---
@@ -12,14 +12,21 @@ title: "Query Execution Runtime-State and Completion Resolver Reference"
 
 - `backend/src/api/services/query_execution.py`
 - `backend/src/api/services/query_event_extraction.py`
+- `backend/src/api/services/query_execution_support/query_execution_runtime.py`
+- `backend/src/api/services/query_execution_support/query_execution_inputs.py`
+- `backend/src/api/services/query_execution_support/query_execution_pipeline_events.py`
+- `backend/src/api/services/query_execution_support/query_execution_stream_state.py`
 - `backend/src/api/schema.py`
 - `backend/src/services/artifacts.py`
 - `backend/src/api/transport/envelope.py`
 - `backend/src/api/processing/pipeline.py`
+- `tests/backend/test_query_execution_service_helpers.py`
+- `tests/backend/test_query_event_extraction.py`
 
 ## Runtime System-State Seeding Rules
 
-`_resolve_query_runtime_system_state(message)` only accepts `system_state_internal` keys:
+`query_execution_runtime.resolve_query_runtime_system_state(message)` only accepts
+`system_state_internal` keys:
 
 - `active_window`
 - `mouse_position`
@@ -31,7 +38,7 @@ Filter behavior:
 - string must be non-empty after trim
 - unknown keys are dropped
 
-`_apply_query_runtime_system_state(agent_instance, message)`:
+`query_execution_runtime.apply_query_runtime_system_state(agent_instance, message)`:
 
 1. fetch current session state via `get_current_system_state` when available
 2. copy same allowed keys from existing state
@@ -43,7 +50,8 @@ This state is backend-runtime-only context for tool preparation; it is not promp
 
 ## Screenshot Resolution Boundary
 
-`_resolve_screenshots(message, artifact_store_cls)` behavior:
+`query_execution_runtime.resolve_screenshots(message, artifact_store_cls, session_manager_config)`
+behavior:
 
 - returns `[payload.screenshot]` when inline screenshot is present
 - if no inline screenshot, resolves refs from:
@@ -53,7 +61,8 @@ This state is backend-runtime-only context for tool preparation; it is not promp
 - artifact load failure logs warning and continues resolving remaining refs
 - returns `None` only when no screenshot data resolves
 
-`execute(...)` then maps resolved screenshots to `image_data`:
+`query_execution_inputs.resolve_query_execution_inputs(...)` then maps resolved screenshots to
+`image_data`:
 
 - single screenshot -> string payload
 - multiple screenshots -> list payload
@@ -63,14 +72,15 @@ Failure is non-fatal; query continues without screenshot payload.
 
 ## Stream Context Attachment Contract
 
-`_build_stream_context(...)` creates immutable per-query dict:
+`query_execution_runtime.build_stream_context(...)` creates immutable per-query dict:
 
 - `user_id`
 - `session_id`
 - `conversation_ref`
 - `turn_ref`
 
-Every pipeline event uses this same context object via `_process_pipeline_event(...)`.
+Every pipeline event uses this same context object via
+`query_execution_pipeline_events.process_pipeline_event(...)`.
 
 `ResponseFormatter` then attaches context fields to outgoing envelopes.
 
@@ -94,7 +104,7 @@ Chunk extraction compatibility:
 
 ## Completion Resolver Precedence
 
-`_resolve_completion_text(...)` order:
+`query_event_extraction.resolve_completion_text(...)` order:
 
 1. streaming-complete event `final_response`
 2. concatenated non-empty streamed chunk text
@@ -102,7 +112,7 @@ Chunk extraction compatibility:
 4. constant fallback message:
    - `"I completed the requested action(s), but the model returned an empty final response."`
 
-`_emit_completion_events(...)` behavior:
+`query_execution_pipeline_events.emit_completion_events(...)` behavior:
 
 - when no chunk was observed and completion text exists:
   - emits synthetic `ChunkEvent(content=completion_text)` first
@@ -147,6 +157,17 @@ If completion text is empty despite chunk output:
 1. verify chunk event type is in `TEXT_CHUNK_EVENT_TYPES`
 2. verify chunk payload text is non-whitespace
 3. verify `saw_text_chunk` flag transitions before completion handling
+
+## Test-Backed Notes
+
+`tests/backend/test_query_execution_service_helpers.py` covers:
+
+- runtime-state filtering/merge rules
+- screenshot ref trimming, fallback, and partial-failure behavior
+- completion helper backfill ordering and context passthrough
+
+`tests/backend/test_query_event_extraction.py` covers resolver precedence and assistant fallback
+behavior when seen chunks are empty.
 
 ## Related Pages
 

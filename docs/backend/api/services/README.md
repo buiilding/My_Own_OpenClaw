@@ -11,6 +11,7 @@ title: "Backend API Services Docs Hub"
 ## Deep Pages
 
 - [Query Execution Service Stream Context and Completion Fallback Reference](query_execution_service_stream_context_and_completion_fallback_reference.md)
+- [Query Execution Support Helper Module Boundary Reference](query_execution_support_helper_module_boundary_reference.md)
 - [Rehydrate and Wakeword Execution Service and TTS Session Reference](rehydrate_and_wakeword_execution_service_and_tts_session_reference.md)
 
 ## Related Pages
@@ -24,8 +25,10 @@ title: "Backend API Services Docs Hub"
 
 - `backend/src/api/services/query_execution.py`
 - `backend/src/api/services/query_event_extraction.py`
+- `backend/src/api/services/query_execution_support/*`
 - `backend/src/api/services/rehydrate_execution.py`
 - `backend/src/api/services/wakeword_execution.py`
 - `backend/src/api/services/tts_session.py`
 - `tests/backend/test_api_handlers.py`
+- `tests/backend/test_query_execution_service_helpers.py`
 - `tests/backend/test_query_event_extraction.py`

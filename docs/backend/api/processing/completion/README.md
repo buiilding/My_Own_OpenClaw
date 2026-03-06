@@ -21,5 +21,9 @@ title: "API Processing Completion Docs Hub"
 ## Code Scope
 
 - `backend/src/api/services/query_execution.py`
+- `backend/src/api/services/query_event_extraction.py`
+- `backend/src/api/services/query_execution_support/query_execution_pipeline_events.py`
+- `backend/src/api/services/query_execution_support/query_execution_stream_state.py`
 - `backend/src/api/processing/pipeline.py`
 - `tests/backend/test_stream_pipeline.py`
+- `tests/backend/test_query_execution_service_helpers.py`
