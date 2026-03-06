@@ -111,6 +111,12 @@ class Tool(ABC, Generic[TArgs]):
                 cleaned["anyOf"] = [self._clean_schema(t) for t in any_of]
         elif "type" in schema:
             cleaned["type"] = schema["type"]
+
+        # Keep oneOf/allOf compositions when present
+        if "oneOf" in schema:
+            cleaned["oneOf"] = [self._clean_schema(t) for t in schema["oneOf"]]
+        if "allOf" in schema:
+            cleaned["allOf"] = [self._clean_schema(t) for t in schema["allOf"]]
         
         # Handle array items
         if "items" in schema:
@@ -131,6 +137,62 @@ class Tool(ABC, Generic[TArgs]):
                 cleaned[key] = schema[key]
         
         return cleaned
+
+    def _resolve_local_defs(self, schema: dict[str, Any]) -> dict[str, Any]:
+        """
+        Inline local $defs/$ref references so nested object schemas survive cleaning.
+        """
+        defs = schema.get("$defs")
+        if not isinstance(defs, dict):
+            return schema
+
+        def _resolve(node: Any) -> Any:
+            if isinstance(node, list):
+                return [_resolve(item) for item in node]
+
+            if not isinstance(node, dict):
+                return node
+
+            # Inline simple local refs.
+            ref = node.get("$ref")
+            if isinstance(ref, str) and ref.startswith("#/$defs/"):
+                key = ref[len("#/$defs/"):]
+                target = defs.get(key)
+                if isinstance(target, dict):
+                    resolved_target = _resolve(target)
+                    extras = {
+                        k: _resolve(v)
+                        for k, v in node.items()
+                        if k != "$ref"
+                    }
+                    if isinstance(resolved_target, dict):
+                        merged = dict(resolved_target)
+                        merged.update(extras)
+                        return merged
+                    return extras or resolved_target
+
+            # Flatten trivial allOf wrappers commonly emitted by Pydantic for refs.
+            all_of = node.get("allOf")
+            if isinstance(all_of, list) and len(all_of) == 1:
+                resolved_base = _resolve(all_of[0])
+                extras = {
+                    k: _resolve(v)
+                    for k, v in node.items()
+                    if k != "allOf"
+                }
+                if isinstance(resolved_base, dict):
+                    merged = dict(resolved_base)
+                    merged.update(extras)
+                    return merged
+                return extras or resolved_base
+
+            return {
+                k: _resolve(v)
+                for k, v in node.items()
+                if k != "$defs"
+            }
+
+        return _resolve(schema)
     
     def get_json_schema(self) -> dict[str, Any]:
         """
@@ -144,9 +206,10 @@ class Tool(ABC, Generic[TArgs]):
         Returns a cleaned, optimized schema format.
         """
         raw_schema = self.args_model.model_json_schema()
+        resolved_schema = self._resolve_local_defs(raw_schema)
         
         # Clean the schema
-        cleaned_params = self._clean_schema(raw_schema)
+        cleaned_params = self._clean_schema(resolved_schema)
         
         # Remove unnecessary top-level fields
         cleaned_params.pop("title", None)

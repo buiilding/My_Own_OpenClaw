@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for renderer permission onboarding: manifest/status bootstrap, required-now gate evaluation, consent persistence, and shared Data-controls permission center actions."
+summary: "Deep reference for renderer permission state surfaces: manifest/status bootstrap, required-now evaluation, consent persistence, and Data-controls status checks."
 read_when:
   - When changing onboarding gate logic in `App.jsx` or `permissionStore`.
   - When changing permission request/re-check flows in onboarding wizard or settings Data controls tab.
@@ -22,16 +22,12 @@ title: "Permission Onboarding Gate, Manifest Version, and Data-Controls Runtime 
 - `frontend/src/renderer/styles/PermissionOnboarding.css`
 - `tests/frontend/PermissionOnboardingWizard.test.jsx`
 
-## Startup Gate Flow (`App.jsx`)
+## Startup Behavior (`App.jsx`)
 
-`AppContent` enforces permission bootstrap before dashboard/chat shell render:
+`AppContent` no longer enforces a renderer permission gate before shell render.
 
-1. if `!bootstrapped && !isLoading`, invoke `bootstrapPermissions()`
-2. while loading, render permission loading card
-3. if `needsOnboarding === true`, render `PermissionOnboardingWizard`
-4. only render `ChatGptDashboardShell` after onboarding gate is satisfied
-
-This gate is renderer-side and blocks normal UX surfaces until required permission criteria pass.
+- startup now routes directly between VM dashboard mode and frontend onboarding slideshow completion state
+- permission onboarding is no longer a startup blocker for dashboard/chat shell access
 
 ## Store State Model
 
@@ -60,7 +56,6 @@ Store actions call typed invoke channels:
 
 - `LIST_PERMISSIONS` during bootstrap
 - `RUN_PERMISSION_PROBE` for one permission
-- `REQUEST_PERMISSION` for one permission
 - `CHECK_PERMISSIONS` for batch re-check
 
 Response normalization:
@@ -112,7 +107,7 @@ When satisfied:
 `PermissionControlCenter` provides runtime monitoring/maintenance:
 
 - per-permission status pills + reason text
-- per-permission `Request` + `Re-check`
+- per-permission `Re-check`
 - global `Re-run checks`
 
 This shares store state/actions with onboarding flow, so both surfaces stay consistent.
