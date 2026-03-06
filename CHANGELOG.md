@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(backend-incoming-tool-result-schema-contracts): add direct schema-level regressions for incoming `ToolResultPayload`/`ToolBundleResultPayload` contracts covering correlation-id trim/reject behavior, bundle required fields/status validation, strict `capture_meta` extra-field rejection, and allowed tool-specific extra keys in `ToolResultData`.
 - test(frontend-electron-launcher-display-present-no-xvfb-wrap): add Linux launcher regression ensuring `buildLaunchCommand` executes Electron directly when `DISPLAY` is present, preventing unnecessary `xvfb-run` wrapping on already-graphical sessions.
 - test(frontend-electron-launcher-binary-path-trim-and-empty-validation): extend launcher binary-resolution regressions to lock whitespace-trim normalization for valid paths and fail-close rejection for blank/empty electron binary inputs with deterministic startup error messaging.
 - test(backend-websocket-tool-result-correlation-type-and-bundle-step-contracts): expand websocket parser regressions to fail-close non-string `tool-result.request_id`/`tool-bundle-result.bundle_id` payloads and bundle-result payloads missing required `step_results`, locking strict inbound schema boundary behavior.
