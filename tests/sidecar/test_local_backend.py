@@ -406,6 +406,67 @@ async def test_handle_execute_tool_computer_use_rejects_nested_arguments_metadat
 
 
 @pytest.mark.asyncio
+async def test_handle_execute_tool_computer_use_rejects_unknown_subtool_with_real_registry():
+    backend = LocalBackend()
+    registry = ToolRegistry()
+    captured = {"called": False}
+
+    def mouse_tool(_args):
+        captured["called"] = True
+        return ToolResult.success_result({"ok": True})
+
+    registry.tools["mouse_control"] = mouse_tool
+    backend.tool_registry = registry
+    envelope = {
+        "tool": "mouse_control_typo",
+        "metadata": {
+            "description": "screen",
+            "explanation": "click target",
+            "expectation": "dialog opens",
+        },
+        "arguments": {
+            "action": "click",
+            "x": 10,
+            "y": 20,
+        },
+    }
+
+    result = await backend._handle_execute_tool("computer_use", envelope)
+
+    assert result["success"] is False
+    assert "computer_use requires a valid 'tool' value" in (result["error"] or "")
+    assert captured["called"] is False
+
+
+@pytest.mark.asyncio
+async def test_handle_execute_tool_computer_use_rejects_non_object_arguments_with_real_registry():
+    backend = LocalBackend()
+    registry = ToolRegistry()
+    captured = {"called": False}
+
+    def mouse_tool(_args):
+        captured["called"] = True
+        return ToolResult.success_result({"ok": True})
+
+    registry.tools["mouse_control"] = mouse_tool
+    backend.tool_registry = registry
+    envelope = {
+        "tool": "mouse_control",
+        "metadata": {
+            "description": "screen",
+            "explanation": "click target",
+            "expectation": "dialog opens",
+        },
+        "arguments": "not-a-dict",
+    }
+
+    result = await backend._handle_execute_tool("computer_use", envelope)
+
+    assert result == {"success": False, "error": "computer_use.arguments must be an object"}
+    assert captured["called"] is False
+
+
+@pytest.mark.asyncio
 async def test_handle_execute_tool_exception():
     backend = LocalBackend()
     backend.tool_registry = DummyRegistryRaises(RuntimeError("boom"))
