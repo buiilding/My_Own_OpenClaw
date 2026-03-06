@@ -12,7 +12,7 @@ Architecture:
 - contracts/: API-owned contract adapter for message/formatter registries
 
 Message Flow:
-1. Client connects via WebSocket → routes/websocket/__init__.py
+1. Client connects via WebSocket → routes/websocket/router.py
 2. Message validated via Pydantic → schema.py
 3. Message routed to handler → infrastructure/registry.py (MessageHandlerRegistry)
 4. Handler processes → interacts with agent/core services

@@ -15,9 +15,9 @@ title: "Response Overlay Phase Runtime Reference"
 - `frontend/src/renderer/features/chat/components/chatbox/chatBoxResponseUtils.js`
 - `frontend/src/renderer/features/chat/utils/chatSelectors.js`
 - `frontend/src/renderer/features/chat/hooks/useResponseOverlayPhase.js`
-- `frontend/src/renderer/features/chat/utils/overlayPhaseListener.js`
-- `frontend/src/renderer/features/chat/utils/responseOverlayPhasePayload.js`
-- `frontend/src/renderer/features/chat/utils/overlayFrameSize.js`
+- `frontend/src/renderer/features/chat/utils/overlay/overlayPhaseListener.js`
+- `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhasePayload.js`
+- `frontend/src/renderer/features/chat/utils/overlay/overlayFrameSize.js`
 - `frontend/src/renderer/infrastructure/markdown.ts`
 - `tests/frontend/ChatBoxResponse.state.test.jsx`
 - `tests/frontend/OverlayPhaseListener.test.js`

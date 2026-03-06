@@ -10,10 +10,10 @@ title: "Overlay Phase Listener and Sync-Store Contract Reference"
 
 ## Canonical Modules
 
-- `frontend/src/renderer/features/chat/utils/overlayPhaseListener.js`
+- `frontend/src/renderer/features/chat/utils/overlay/overlayPhaseListener.js`
 - `frontend/src/renderer/features/chat/hooks/useResponseOverlayPhase.js`
-- `frontend/src/renderer/features/chat/utils/responseOverlayPhasePayload.js`
-- `frontend/src/renderer/features/chat/utils/responseOverlayPhaseContract.js`
+- `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhasePayload.js`
+- `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhaseContract.js`
 - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
 - `tests/frontend/OverlayPhaseListener.test.js`

@@ -1621,13 +1621,13 @@ read_when:
 
 - Chat overlay listener dedupe shipped:
   - added shared response-overlay phase subscriber helper:
-    - `frontend/src/renderer/features/chat/utils/overlayPhaseListener.js`
+    - `frontend/src/renderer/features/chat/utils/overlay/overlayPhaseListener.js`
   - replaced duplicated phase-payload parsing/listener wiring in:
     - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
     - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
 - Chat overlay frame-size dedupe shipped:
   - added shared frame-size normalization helper:
-    - `frontend/src/renderer/features/chat/utils/overlayFrameSize.js`
+    - `frontend/src/renderer/features/chat/utils/overlay/overlayFrameSize.js`
   - replaced duplicate element-rect size normalization blocks in `ChatBox` and `ChatBoxResponse`.
 - Regression coverage shipped:
   - added:

@@ -1,4 +1,4 @@
-import { RESPONSE_OVERLAY_PHASE } from './responseOverlayPhaseContract';
+import { RESPONSE_OVERLAY_PHASE } from './overlay/responseOverlayPhaseContract';
 import {
   isAwaitingFirstChunkPhase,
   isLoopActivePhase,

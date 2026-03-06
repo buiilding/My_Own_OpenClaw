@@ -12,7 +12,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 import {
   getResponseOverlayPhaseSnapshot,
   subscribeResponseOverlayPhaseStore,
-} from '../../frontend/src/renderer/features/chat/utils/overlayPhaseListener';
+} from '../../frontend/src/renderer/features/chat/utils/overlay/overlayPhaseListener';
 
 describe('overlayPhaseListener', () => {
   beforeEach(() => {

@@ -244,7 +244,7 @@ Behavior:
 
 ## WebSocket Endpoint: `/ws`
 
-Owner: `backend/src/api/routes/websocket/__init__.py:websocket_endpoint`
+Owner: `backend/src/api/routes/websocket/router.py:websocket_endpoint`
 
 ### Handshake
 

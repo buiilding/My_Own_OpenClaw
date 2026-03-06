@@ -1,9 +1,9 @@
 import {
   parseResponseOverlayPhasePayload,
-} from '../../frontend/src/renderer/features/chat/utils/responseOverlayPhasePayload';
+} from '../../frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhasePayload';
 import {
   RESPONSE_OVERLAY_PHASE,
-} from '../../frontend/src/renderer/features/chat/utils/responseOverlayPhaseContract';
+} from '../../frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhaseContract';
 
 describe('responseOverlayPhasePayload', () => {
   test('exports canonical response overlay phases', () => {

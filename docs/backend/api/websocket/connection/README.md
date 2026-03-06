@@ -23,7 +23,7 @@ title: "Backend API WebSocket Connection Docs Hub"
 
 - `backend/src/api/routes/websocket/connection.py`
 - `backend/src/api/routes/websocket/task_manager.py`
-- `backend/src/api/routes/websocket/__init__.py`
+- `backend/src/api/routes/websocket/router.py`
 - `backend/src/api/schemas/common.py`
 - `backend/src/core/validation/validators.py`
 - `tests/backend/test_websocket_connection.py`

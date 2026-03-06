@@ -1,4 +1,4 @@
-import { getRoundedFrameSize } from '../../frontend/src/renderer/features/chat/utils/overlayFrameSize';
+import { getRoundedFrameSize } from '../../frontend/src/renderer/features/chat/utils/overlay/overlayFrameSize';
 
 describe('overlayFrameSize', () => {
   test('returns rounded frame size with minimum 1x1 bounds', () => {

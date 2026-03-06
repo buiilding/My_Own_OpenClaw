@@ -17,7 +17,7 @@ title: "Overlay and Wakeword Control Channel Reference"
 - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
-- `frontend/src/renderer/features/chat/utils/overlayPhaseListener.js`
+- `frontend/src/renderer/features/chat/utils/overlay/overlayPhaseListener.js`
 
 ## Channel Set
 

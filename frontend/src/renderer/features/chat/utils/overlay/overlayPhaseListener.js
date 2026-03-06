@@ -1,4 +1,4 @@
-import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { IpcBridge, ON_CHANNELS } from '../../../../infrastructure/ipc/bridge';
 import { parseResponseOverlayPhasePayload } from './responseOverlayPhasePayload';
 import { RESPONSE_OVERLAY_PHASE } from './responseOverlayPhaseContract';
 

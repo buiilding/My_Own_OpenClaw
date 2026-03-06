@@ -7,7 +7,7 @@ import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure
 import { toSanitizedMarkdownHtml } from '../../../infrastructure/markdown';
 import { resolveLlmOutputContract } from '../../../infrastructure/llmOutputContract';
 import { selectChatBoxState } from '../utils/chatSelectors';
-import { getRoundedFrameSize } from '../utils/overlayFrameSize';
+import { getRoundedFrameSize } from '../utils/overlay/overlayFrameSize';
 import { isDevUiEnabled } from '../utils/devUiFlag';
 import {
   hasVisibleChatboxResponse,
@@ -19,8 +19,8 @@ import {
   isCompactHoverLayoutMode,
   RESPONSE_OVERLAY_LAYOUT_MODE,
   resolveResponseOverlayLayoutMode,
-} from '../utils/responseOverlayLayoutMode';
-import { RESPONSE_OVERLAY_PHASE } from '../utils/responseOverlayPhaseContract';
+} from '../utils/overlay/responseOverlayLayoutMode';
+import { RESPONSE_OVERLAY_PHASE } from '../utils/overlay/responseOverlayPhaseContract';
 import {
   findLastUserIndex,
   findLatestMessageAfterUser,

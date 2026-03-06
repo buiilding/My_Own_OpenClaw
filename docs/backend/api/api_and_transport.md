@@ -76,7 +76,7 @@ Implementation:
 
 Entrypoint:
 
-- `api/routes/websocket/__init__.py` + helpers in `connection.py`, `message_handler.py`, `task_manager.py`
+- `api/routes/websocket/router.py` + helpers in `connection.py`, `message_handler.py`, `task_manager.py`
 
 Lifecycle:
 

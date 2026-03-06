@@ -4,7 +4,7 @@ import {
   normalizeResponseOverlayString,
   RESPONSE_OVERLAY_METADATA_KEYS,
   RESPONSE_OVERLAY_PHASE,
-} from '../../frontend/src/renderer/features/chat/utils/responseOverlayPhaseContract';
+} from '../../frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhaseContract';
 
 describe('responseOverlayPhaseContract', () => {
   test('exports canonical phase list and enum object', () => {
