@@ -13,7 +13,7 @@ title: "Tool Execution and Streaming"
 Module:
 
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
-- `frontend/src/renderer/features/chat/utils/streamPhaseState.js`
+- `frontend/src/renderer/features/chat/utils/state/streamPhaseState.js`
 
 Responsibilities:
 

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
-import { CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT, resolveChatboxVisualAnchorHeight } from '../utils/chatBoxState';
+import { CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT, resolveChatboxVisualAnchorHeight } from '../utils/state/chatBoxState';
 
 export function useChatboxFocusBindings(focusInput) {
   useEffect(() => {

@@ -3,8 +3,8 @@ import {
   resolveChatboxSurfaceStateFromLoopUiState,
   shouldShowChatboxAwaitingReply,
   shouldShowChatboxResponse,
-} from '../../frontend/src/renderer/features/chat/utils/chatboxSurfaceState';
-import { resolveChatLoopUiState } from '../../frontend/src/renderer/features/chat/utils/chatLoopUiState';
+} from '../../frontend/src/renderer/features/chat/utils/state/chatboxSurfaceState';
+import { resolveChatLoopUiState } from '../../frontend/src/renderer/features/chat/utils/state/chatLoopUiState';
 
 describe('chatboxSurfaceState', () => {
   function deriveSurfaceState({

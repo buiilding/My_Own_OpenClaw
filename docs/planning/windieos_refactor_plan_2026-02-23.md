@@ -73,7 +73,7 @@ read_when:
 - ChatBox state-decomposition (2026-03-05):
   - extracted chatbox drag/anchor/screenshot-preview helpers from:
     - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
-    - into `frontend/src/renderer/features/chat/utils/chatBoxState.js`.
+    - into `frontend/src/renderer/features/chat/utils/state/chatBoxState.js`.
   - moved drag-blocked-target checks and screenshot attachment payload shaping into pure helpers, keeping the component focused on event orchestration.
   - result:
     - `ChatBox.jsx` reduced from `418` LOC to `408` LOC.
@@ -82,7 +82,7 @@ read_when:
     - reran `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`.
   - verification:
     - `cd frontend && npm run test:ci -- ../tests/frontend/ChatBoxState.test.js ../tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`
-    - `cd frontend && npm run lint -- src/renderer/features/chat/components/ChatBox.jsx src/renderer/features/chat/utils/chatBoxState.js`
+    - `cd frontend && npm run lint -- src/renderer/features/chat/components/ChatBox.jsx src/renderer/features/chat/utils/state/chatBoxState.js`
     - `cd frontend && npm run lint:audit`
     - `cd frontend && npm run audit:knip`
     - `cd frontend && npm run audit:jscpd`
@@ -95,7 +95,7 @@ read_when:
 - ChatBox response state-decomposition (2026-03-05):
   - extracted response-visibility state selectors from:
     - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
-    - into `frontend/src/renderer/features/chat/utils/chatBoxResponseState.js`.
+    - into `frontend/src/renderer/features/chat/utils/state/chatBoxResponseState.js`.
   - moved closeability, thinking-text normalization, source-tag gating, and markdown-eligibility checks into pure helpers to reduce component branching.
   - result:
     - `ChatBoxResponse.jsx` reduced from `398` LOC to `392` LOC.
@@ -104,7 +104,7 @@ read_when:
     - reran `tests/frontend/ChatBoxResponse.state.test.jsx`.
   - verification:
     - `cd frontend && npm run test:ci -- ../tests/frontend/ChatBoxResponseState.test.js ../tests/frontend/ChatBoxResponse.state.test.jsx`
-    - `cd frontend && npm run lint -- src/renderer/features/chat/components/ChatBoxResponse.jsx src/renderer/features/chat/utils/chatBoxResponseState.js`
+    - `cd frontend && npm run lint -- src/renderer/features/chat/components/ChatBoxResponse.jsx src/renderer/features/chat/utils/state/chatBoxResponseState.js`
     - `cd frontend && npm run lint:audit`
     - `cd frontend && npm run audit:knip`
     - `cd frontend && npm run audit:jscpd`

@@ -23,6 +23,7 @@ import { useLatestRef } from '../../../infrastructure/hooks/useLatestRef';
 
 const WAKEWORD_COOLDOWN_MS = 2000;
 const CAPTURE_RETRY_DELAY_MS = 3000;
+const MISSING_DEVICE_RETRY_DELAY_MS = 60000;
 const wakewordCaptureGuard = getWakewordCaptureGuard();
 
 /**
@@ -90,7 +91,7 @@ export function useWakewordDetection(
     }
     const hasAudioInput = await hasAvailableAudioInputDevice();
     if (!hasAudioInput) {
-      nextCaptureRetryAtRef.current = Date.now() + CAPTURE_RETRY_DELAY_MS;
+      nextCaptureRetryAtRef.current = Date.now() + MISSING_DEVICE_RETRY_DELAY_MS;
       wakewordCaptureGuard.nextRetryAt = nextCaptureRetryAtRef.current;
       return false;
     }
@@ -226,8 +227,10 @@ export function useWakewordDetection(
       if (missingDevice) {
         missingDeviceLockRef.current = true;
         wakewordCaptureGuard.missingDeviceLocked = true;
+        nextCaptureRetryAtRef.current = Date.now() + MISSING_DEVICE_RETRY_DELAY_MS;
+      } else {
+        nextCaptureRetryAtRef.current = Date.now() + CAPTURE_RETRY_DELAY_MS;
       }
-      nextCaptureRetryAtRef.current = Date.now() + CAPTURE_RETRY_DELAY_MS;
       wakewordCaptureGuard.nextRetryAt = nextCaptureRetryAtRef.current;
       isCapturingRef.current = false;
     } finally {

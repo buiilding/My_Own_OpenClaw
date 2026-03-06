@@ -4,7 +4,7 @@ import {
   isChatLoopAwaitingReply,
   isChatLoopBusy,
   resolveChatLoopUiState,
-} from '../utils/chatLoopUiState';
+} from '../utils/state/chatLoopUiState';
 
 const CHAT_LOOP_MACHINE_EVENT = Object.freeze({
   SNAPSHOT: 'snapshot',

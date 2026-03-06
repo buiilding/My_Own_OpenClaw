@@ -81,6 +81,13 @@ frontend/src/renderer/
 │   │       │   ├── conversationRef.ts   # conversationRef - Conversation ref creation helper
 │   │       │   ├── newChatSession.ts    # newChatSession - New chat reset/rotation flow helper
 │   │       │   └── transcriptMessagePayload.js # transcriptMessagePayload - Transcript payload/role mapping for rehydrate writes
+│   │       ├── state/                   # state - Chat loop/surface/query-stop projection helpers
+│   │       │   ├── chatBoxResponseState.js # chatBoxResponseState - Response closeability, thinking text normalization, source-tag projection
+│   │       │   ├── chatBoxState.js      # chatBoxState - Chatbox drag-block targets + visual anchor height helpers
+│   │       │   ├── chatLoopUiState.js   # chatLoopUiState - Stream-phase/transport/isSending -> loop UI state reducer
+│   │       │   ├── chatboxSurfaceState.js # chatboxSurfaceState - Loop state + visible response -> compact/awaiting/response surface mode
+│   │       │   ├── stopQueryState.js    # stopQueryState - Stop-query UI patch helper for stream tracking + thinking reset
+│   │       │   └── streamPhaseState.js  # streamPhaseState - Phase predicates (active/terminal/awaiting/stop-control)
 │   │       ├── chatSelectors.js         # chatSelectors - Shared Zustand selectors for ChatInterface/ChatBox
 │   │       ├── chatStream/              # chatStream - Stream ingress/event/update/tracking/thinking/transparency utility helpers
 │   │       │   ├── chatStreamConversationGate.ts # chatStreamConversationGate - Active-conversation filtering helpers for backend stream events

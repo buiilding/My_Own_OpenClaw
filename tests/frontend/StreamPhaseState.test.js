@@ -4,7 +4,7 @@ import {
   isOverlayAwaitingReplyPhase,
   isTerminalStreamPhase,
   isStopControlAvailablePhase,
-} from '../../frontend/src/renderer/features/chat/utils/streamPhaseState';
+} from '../../frontend/src/renderer/features/chat/utils/state/streamPhaseState';
 
 describe('streamPhaseState', () => {
   test('detects active loop phases only', () => {

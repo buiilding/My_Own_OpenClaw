@@ -14,7 +14,7 @@ import {
   resolveChatboxSurfaceStateFromLoopUiState,
   shouldShowChatboxAwaitingReply,
   shouldShowChatboxResponse,
-} from '../utils/chatboxSurfaceState';
+} from '../utils/state/chatboxSurfaceState';
 import {
   isCompactHoverLayoutMode,
   RESPONSE_OVERLAY_LAYOUT_MODE,
@@ -30,7 +30,7 @@ import {
   normalizeThinkingText,
   resolveSourceTagForResponse,
   shouldRenderResponseMarkdown,
-} from '../utils/chatBoxResponseState';
+} from '../utils/state/chatBoxResponseState';
 
 const RESPONSE_TYPES = new Set(['llm-text', 'error']);
 const RESPONSE_FIXED_HEIGHT = 236;

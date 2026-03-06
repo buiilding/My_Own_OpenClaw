@@ -18,11 +18,11 @@ title: "Chatbox Overlay Input, Drag, and Click-Through Reference"
 - `frontend/src/renderer/features/chat/hooks/useResponseOverlayPhase.js`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/policies/messageSendUiPolicy.ts`
-- `frontend/src/renderer/features/chat/utils/chatboxSurfaceState.js`
+- `frontend/src/renderer/features/chat/utils/state/chatboxSurfaceState.js`
 - `frontend/src/renderer/features/chat/utils/clipboardImageUtils.js`
 - `frontend/src/renderer/features/chat/utils/overlay/overlayPhaseListener.js`
-- `frontend/src/renderer/features/chat/utils/stopQueryState.js`
-- `frontend/src/renderer/features/chat/utils/streamPhaseState.js`
+- `frontend/src/renderer/features/chat/utils/state/stopQueryState.js`
+- `frontend/src/renderer/features/chat/utils/state/streamPhaseState.js`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 

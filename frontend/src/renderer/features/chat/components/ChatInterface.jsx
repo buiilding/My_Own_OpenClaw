@@ -36,7 +36,7 @@ import {
 } from '../utils/chatModelOptions';
 import { useConversationReplayActions } from '../hooks/useConversationReplayActions';
 import { isDevUiEnabled } from '../utils/devUiFlag';
-import { applyStopQueryUiState } from '../utils/stopQueryState';
+import { applyStopQueryUiState } from '../utils/state/stopQueryState';
 import { useChatLoopUiState } from '../hooks/useChatLoopUiState';
 import { useTranscriptSessionInfo } from '../../dashboard/hooks/useTranscriptSessionInfo';
 import { isVmModeEnabled } from '../../../infrastructure/runtime/vmMode';

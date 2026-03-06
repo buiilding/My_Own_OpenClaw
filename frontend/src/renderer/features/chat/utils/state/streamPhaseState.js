@@ -1,4 +1,4 @@
-import { RESPONSE_OVERLAY_PHASE } from './overlay/responseOverlayPhaseContract';
+import { RESPONSE_OVERLAY_PHASE } from '../overlay/responseOverlayPhaseContract';
 
 const ACTIVE_LOOP_PHASES = Object.freeze([
   RESPONSE_OVERLAY_PHASE.AWAITING_FIRST_CHUNK,

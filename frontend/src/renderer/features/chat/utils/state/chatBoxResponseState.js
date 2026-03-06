@@ -1,4 +1,4 @@
-import { resolveSourceTag } from './sourceTags';
+import { resolveSourceTag } from '../message/sourceTags';
 
 export function isResponseCloseable(response) {
   if (!response) {

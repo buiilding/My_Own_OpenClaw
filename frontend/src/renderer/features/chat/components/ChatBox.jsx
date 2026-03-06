@@ -34,7 +34,7 @@ import ChatBoxImagePreviewRow from './chatbox/ChatBoxImagePreviewRow';
 import {
   createClipboardScreenshotImage,
   isDragBlockedTarget,
-} from '../utils/chatBoxState';
+} from '../utils/state/chatBoxState';
 
 function ChatBox() {
   const { config, updateConfig } = useAppConfigContext();

@@ -10,10 +10,10 @@ title: "Chat Loop UI State Disconnect Recovery and Surface Projection Reference"
 
 ## Canonical Modules
 
-- `frontend/src/renderer/features/chat/utils/chatLoopUiState.js`
+- `frontend/src/renderer/features/chat/utils/state/chatLoopUiState.js`
 - `frontend/src/renderer/features/chat/hooks/useChatLoopUiState.js`
-- `frontend/src/renderer/features/chat/utils/streamPhaseState.js`
-- `frontend/src/renderer/features/chat/utils/chatboxSurfaceState.js`
+- `frontend/src/renderer/features/chat/utils/state/streamPhaseState.js`
+- `frontend/src/renderer/features/chat/utils/state/chatboxSurfaceState.js`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`

@@ -38,7 +38,7 @@ title: "Semantic Summarization Service Config Resolution, Prompt Assembly, and P
 
 ## Route-to-Service Composition
 
-`summarize_conversations(...)` composes service dependencies explicitly:
+`summarize_conversations(...)` builds the service through `_build_semantic_service()`, which composes dependencies explicitly:
 
 - `get_llm_client`
 - `load_api_key_for_provider`
@@ -47,7 +47,7 @@ title: "Semantic Summarization Service Config Resolution, Prompt Assembly, and P
 
 Then calls `service.summarize(...)` and returns `SummarizeResponse(success=True)`.
 
-`generate_conversation_title(...)` uses the same service dependency set, then calls
+`generate_conversation_title(...)` uses the same `_build_semantic_service()` dependency set, then calls
 `service.generate_title(...)` and returns `GenerateTitleResponse(success=True)`.
 
 ## Effective Config Resolution Contract
