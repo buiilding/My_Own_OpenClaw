@@ -374,6 +374,44 @@ async def test_handle_execute_tool_computer_use_trims_metadata_and_routes_with_r
 
 
 @pytest.mark.asyncio
+async def test_handle_execute_tool_computer_use_drops_non_required_metadata_fields():
+    backend = LocalBackend()
+    registry = ToolRegistry()
+    captured = {}
+
+    def mouse_tool(args):
+        captured["args"] = args
+        return ToolResult.success_result({"ok": True})
+
+    registry.tools["mouse_control"] = mouse_tool
+    backend.tool_registry = registry
+    envelope = {
+        "tool": "mouse_control",
+        "metadata": {
+            "description": "screen",
+            "explanation": "click target",
+            "expectation": "dialog opens",
+            "extra_debug_field": "should-be-dropped",
+        },
+        "arguments": {
+            "action": "click",
+            "x": 10,
+            "y": 20,
+        },
+    }
+
+    result = await backend._handle_execute_tool("computer_use", envelope)
+
+    assert result == {"success": True, "data": {"ok": True}}
+    assert envelope["metadata"] == {
+        "description": "screen",
+        "explanation": "click target",
+        "expectation": "dialog opens",
+    }
+    assert captured["args"] == {"action": "click", "x": 10, "y": 20}
+
+
+@pytest.mark.asyncio
 async def test_handle_execute_tool_computer_use_rejects_nested_arguments_metadata_wrapper():
     backend = LocalBackend()
     registry = ToolRegistry()
