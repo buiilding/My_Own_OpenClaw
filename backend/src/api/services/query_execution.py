@@ -16,7 +16,9 @@ from backend.src.api.services.query_event_extraction import (
     extract_assistant_full_text,
     extract_event_type,
     extract_non_empty_chunk_text,
-    resolve_completion_text,
+)
+from backend.src.api.services.query_execution_support.query_execution_completion import (
+    complete_query_stream,
 )
 from backend.src.api.services.query_execution_support.query_execution_cancellation import (
     finalize_pending_tool_calls_on_cancel,
@@ -136,21 +138,15 @@ class QueryExecutionService:
                     )
 
                     if event_type == "streaming-complete":
-                        stream_state.mark_terminal()
-                        completion_text = resolve_completion_text(
-                            **stream_state.completion_kwargs(
-                                event=event,
-                                event_type=event_type,
-                            ),
-                            empty_fallback=EMPTY_FINAL_RESPONSE_FALLBACK,
-                        )
-                        stream_state.saw_text_chunk = await self._emit_completion_events(
+                        stream_state.saw_text_chunk = await complete_query_stream(
                             pipeline=pipeline,
                             tts_service=tts_session.service,
                             msg_id=msg_id,
                             stream_context=stream_context,
-                            completion_text=completion_text,
-                            saw_text_chunk=stream_state.saw_text_chunk,
+                            stream_state=stream_state,
+                            event=event,
+                            event_type=event_type,
+                            empty_fallback=EMPTY_FINAL_RESPONSE_FALLBACK,
                         )
                         continue
 
@@ -172,20 +168,15 @@ class QueryExecutionService:
                         agent_instance.user_id,
                         msg_id,
                     )
-                    completion_text = self._resolve_completion_text(
-                        **stream_state.completion_kwargs(
-                            event=None,
-                            event_type=None,
-                        ),
-                        empty_fallback=EMPTY_FINAL_RESPONSE_FALLBACK,
-                    )
-                    stream_state.saw_text_chunk = await self._emit_completion_events(
+                    stream_state.saw_text_chunk = await complete_query_stream(
                         pipeline=pipeline,
                         tts_service=tts_session.service,
                         msg_id=msg_id,
                         stream_context=stream_context,
-                        completion_text=completion_text,
-                        saw_text_chunk=stream_state.saw_text_chunk,
+                        stream_state=stream_state,
+                        event=None,
+                        event_type=None,
+                        empty_fallback=EMPTY_FINAL_RESPONSE_FALLBACK,
                     )
 
                 if tts_session.service:

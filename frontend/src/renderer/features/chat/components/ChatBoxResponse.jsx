@@ -31,6 +31,7 @@ import {
   resolveSourceTagForResponse,
   shouldRenderResponseMarkdown,
 } from '../utils/state/chatBoxResponseState';
+import { logRendererResponseSurfaceTrace } from '../utils/chatStream/chatStreamDebugTrace';
 
 const RESPONSE_TYPES = new Set(['llm-text', 'error']);
 const RESPONSE_FIXED_HEIGHT = 236;
@@ -143,11 +144,7 @@ function ChatBoxResponse() {
   }, [showResponse, visibleResponse]);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !window.location.search.includes('dev_ui=1')) {
-      return;
-    }
-    console.log('[StreamTrace][renderer][response-surface]', {
-      view: new URLSearchParams(window.location.search || '').get('view') || 'main',
+    logRendererResponseSurfaceTrace({
       overlayPhase,
       isSending,
       messageCount: messages.length,

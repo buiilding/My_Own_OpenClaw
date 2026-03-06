@@ -47,43 +47,7 @@ import {
   shouldIgnoreForStaleTurn as shouldIgnoreForStaleTurnRuntime,
   syncActiveConversationProjection as syncActiveConversationProjectionRuntime,
 } from '../utils/chatStream/chatStreamEventRuntime';
-
-function isRendererStreamTraceEnabled() {
-  if (typeof window === 'undefined') {
-    return false;
-  }
-  const search = typeof window.location?.search === 'string' ? window.location.search : '';
-  return search.includes('dev_ui=1');
-}
-
-function getRendererTraceView() {
-  if (typeof window === 'undefined') {
-    return 'unknown';
-  }
-  const params = new URLSearchParams(window.location.search || '');
-  return params.get('view') || 'main';
-}
-
-function summarizeWorkspaceForTrace(conversationRef: string | null) {
-  const store = useChatStore.getState();
-  const workspace = store.getWorkspaceState(conversationRef);
-  const lastMessage = workspace.messages[workspace.messages.length - 1] || null;
-  return {
-    activeConversationRef: store.activeConversationRef,
-    workspaceMessageCount: workspace.messages.length,
-    isSending: workspace.isSending,
-    thinkingStatus: workspace.thinkingStatus,
-    phase: workspace.streamTracking.phase,
-    activeTurnRef: workspace.streamTracking.activeTurnRef,
-    lastMessage: lastMessage ? {
-      sender: lastMessage.sender,
-      type: lastMessage.type || null,
-      textLength: typeof lastMessage.text === 'string' ? lastMessage.text.length : 0,
-      turnRef: lastMessage.turnRef || null,
-      sourceEventType: lastMessage.sourceEventType || null,
-    } : null,
-  };
-}
+import { logRendererStreamTrace } from '../utils/chatStream/chatStreamDebugTrace';
 
 export function useChatStream(enableTranscript: boolean = true) {
   const {
@@ -364,16 +328,11 @@ export function useChatStream(enableTranscript: boolean = true) {
         return;
       }
       const conversationRef = resolveTargetConversationRef(data);
-      const traceEnabled = isRendererStreamTraceEnabled();
-      if (traceEnabled) {
-        console.log('[StreamTrace][renderer][before]', {
-          view: getRendererTraceView(),
-          eventType: data.type,
-          turnRef: data.turn_ref || null,
-          conversationRef,
-          ...summarizeWorkspaceForTrace(conversationRef),
-        });
-      }
+      logRendererStreamTrace('before', {
+        eventType: data.type,
+        turnRef: data.turn_ref,
+        conversationRef,
+      });
       ingestBackendEvent(data, conversationRef, {
         syncActiveConversationProjection,
         registerTurnConversationRef,
@@ -385,15 +344,11 @@ export function useChatStream(enableTranscript: boolean = true) {
           }
         },
       });
-      if (traceEnabled) {
-        console.log('[StreamTrace][renderer][after]', {
-          view: getRendererTraceView(),
-          eventType: data.type,
-          turnRef: data.turn_ref || null,
-          conversationRef,
-          ...summarizeWorkspaceForTrace(conversationRef),
-        });
-      }
+      logRendererStreamTrace('after', {
+        eventType: data.type,
+        turnRef: data.turn_ref,
+        conversationRef,
+      });
     });
 
     return removeListener;

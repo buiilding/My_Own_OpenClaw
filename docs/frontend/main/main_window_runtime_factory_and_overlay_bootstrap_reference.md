@@ -54,6 +54,7 @@ Loads renderer routes for packaged and dev runtime:
 - view routing uses `?view=...`
 - VM mode routing flag uses `?vm_mode=1`
 - debug transparency UI uses `?dev_ui=1` when enabled
+- stream-event trace logging uses `?debug_stream=1` only when `WINDIE_DEBUG_STREAM_EVENTS=1` is enabled in the Electron launcher/runtime env
 
 ## Main Window Bootstrap (`createMainWindow`)
 

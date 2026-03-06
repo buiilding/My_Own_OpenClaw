@@ -14,9 +14,16 @@ from backend.src.api.services.query_event_extraction import (
     extract_event_type,
     resolve_completion_text,
 )
+from backend.src.api.services.query_execution_support.query_execution_completion import (
+    complete_query_stream,
+    resolve_query_completion_text,
+)
 from backend.src.api.services.query_execution_support.query_execution_runtime import (
     resolve_query_runtime_system_state,
     resolve_screenshots,
+)
+from backend.src.api.services.query_execution_support.query_execution_stream_state import (
+    QueryExecutionStreamState,
 )
 from backend.src.core.events.streaming_events import ChunkEvent, StreamingCompleteEvent
 
@@ -408,6 +415,56 @@ def test_query_execution_resolve_completion_text_helper_uses_empty_fallback():
 
 
 @pytest.mark.asyncio
+async def test_complete_query_stream_marks_terminal_and_emits_backfill_chunk_then_terminal_event():
+    observed = []
+
+    class _Pipeline:
+        async def process(self, event, tts_service, msg_id, context):
+            observed.append((event, tts_service, msg_id, context))
+
+    state = QueryExecutionStreamState()
+
+    saw_text_chunk = await complete_query_stream(
+        pipeline=_Pipeline(),
+        tts_service=None,
+        msg_id="turn-1",
+        stream_context={"user_id": "u-1"},
+        stream_state=state,
+        event=None,
+        event_type=None,
+        empty_fallback=EMPTY_FINAL_RESPONSE_FALLBACK,
+    )
+
+    assert state.saw_terminal_event is True
+    assert saw_text_chunk is True
+    assert isinstance(observed[0][0], ChunkEvent)
+    assert observed[0][0].content == EMPTY_FINAL_RESPONSE_FALLBACK
+    assert isinstance(observed[1][0], StreamingCompleteEvent)
+    assert observed[1][0].final_response == EMPTY_FINAL_RESPONSE_FALLBACK
+
+
+def test_resolve_query_completion_text_prefers_event_completion_then_state_fallbacks():
+    state = QueryExecutionStreamState(
+        saw_text_chunk=True,
+        text_chunks=["partial ", "answer"],
+        last_assistant_full_text="assistant full",
+    )
+
+    assert resolve_query_completion_text(
+        stream_state=state,
+        event={"type": "streaming-complete", "payload": {"final_response": "done"}},
+        event_type="streaming-complete",
+        empty_fallback=EMPTY_FINAL_RESPONSE_FALLBACK,
+    ) == "done"
+    assert resolve_query_completion_text(
+        stream_state=state,
+        event=None,
+        event_type=None,
+        empty_fallback=EMPTY_FINAL_RESPONSE_FALLBACK,
+    ) == "partial answer"
+
+
+@pytest.mark.asyncio
 async def test_emit_completion_events_emits_backfill_chunk_then_terminal_event():
     observed = []
 
@@ -486,3 +543,60 @@ async def test_emit_completion_events_skips_backfill_when_chunk_already_seen():
     assert saw_text_chunk is True
     assert len(observed) == 1
     assert isinstance(observed[0], StreamingCompleteEvent)
+
+
+@pytest.mark.asyncio
+async def test_execute_emits_fallback_completion_when_agent_stream_ends_without_terminal_event():
+    observed_events = []
+
+    class _Pipeline:
+        def __init__(self, *_args, **_kwargs):
+            pass
+
+        async def process(self, event, _tts_service, _msg_id, context):
+            observed_events.append((event, context))
+
+        async def wait_for_pending_tts(self):
+            return None
+
+    class _TtsManager:
+        async def initialize_if_enabled(self, _config):
+            return None
+
+        async def cleanup(self, _service, _task):
+            return None
+
+    class _SessionManager:
+        def __init__(self):
+            self.config = SimpleNamespace()
+
+        async def get_or_create_session(self, _user_id):
+            class _Agent:
+                user_id = "user-1"
+                session_id = "session-1"
+                cfg = SimpleNamespace()
+
+                async def process_query(self, *_args, **_kwargs):
+                    yield {"type": "streaming-response", "payload": {"text": "hello "}}
+                    yield {"type": "assistant_message_full", "content": "hello there"}
+
+            return _Agent()
+
+    service = QueryExecutionService(
+        _SessionManager(),
+        tts_manager=_TtsManager(),
+        response_formatter=object(),
+    )
+
+    await service.execute(
+        _build_message(),
+        websocket=object(),
+        user_id="user-1",
+        pipeline_cls=_Pipeline,
+    )
+
+    assert len(observed_events) == 3
+    assert observed_events[0][0]["type"] == "streaming-response"
+    assert observed_events[1][0]["type"] == "assistant_message_full"
+    assert isinstance(observed_events[2][0], StreamingCompleteEvent)
+    assert observed_events[2][0].final_response == "hello"

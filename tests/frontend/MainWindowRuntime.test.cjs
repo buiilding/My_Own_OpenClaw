@@ -307,6 +307,17 @@ describe('main_window_runtime createChatWindow', () => {
     expect(chatWindow.loadURL).toHaveBeenCalledTimes(1);
   });
 
+  test('adds debug_stream query flag to chat overlay when stream tracing is enabled', () => {
+    const { deps, handlers, chatWindow } = createDeps({
+      enableDebugStreamTrace: true,
+    });
+
+    createChatWindow(deps);
+    handlers.show();
+
+    expect(chatWindow.loadURL).toHaveBeenCalledWith(expect.stringContaining('debug_stream=1'));
+  });
+
   test('uses aggressive always-on-top level on mac for chat overlay', () => {
     const { deps, chatWindow } = createDeps({ platform: 'darwin' });
 
@@ -388,6 +399,17 @@ describe('main_window_runtime createResponseWindow', () => {
     expect(deps.positionResponseWindow).toHaveBeenCalledTimes(1);
     expect(deps.showResponseWindowInactive).toHaveBeenCalledTimes(1);
     expect(deps.setResponseOverlayVisible).toHaveBeenCalledWith(true);
+  });
+
+  test('adds debug_stream query flag to response overlay when stream tracing is enabled', () => {
+    const { deps, handlers, responseWindow } = createDeps({
+      enableDebugStreamTrace: true,
+    });
+
+    createResponseWindow(deps);
+    handlers.show();
+
+    expect(responseWindow.loadURL).toHaveBeenCalledWith(expect.stringContaining('debug_stream=1'));
   });
 
   test('uses aggressive always-on-top level on mac for response overlay', () => {
@@ -510,6 +532,16 @@ describe('main_window_runtime createMainWindow', () => {
 
     expect(mainWindow.loadURL).toHaveBeenCalledTimes(1);
     expect(mainWindow.loadURL).toHaveBeenCalledWith(expect.stringContaining('vm_mode=1'));
+  });
+
+  test('adds debug_stream query flag to dashboard when stream tracing is enabled', () => {
+    const { deps, mainWindow } = createDeps({
+      enableDebugStreamTrace: true,
+    });
+
+    createMainWindow(deps);
+
+    expect(mainWindow.loadURL).toHaveBeenCalledWith(expect.stringContaining('debug_stream=1'));
   });
 
   test('does not minimize to tray on close when minimizeToTrayOnClose is disabled', () => {
