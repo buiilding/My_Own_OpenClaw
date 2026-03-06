@@ -17,6 +17,10 @@ This page documents the hosted VM run-control contract implemented by:
 
 This flow is HTTP-only and separate from the `/ws` chat transport. It is designed as a lightweight control plane for VM worker orchestration.
 
+Route-level helper/auth/bootstrap details are documented separately in:
+
+- [Runs Route Support Helpers and API-Key Guard Reference](runs_route_support_helpers_and_api_key_guard_reference.md)
+
 ## Route Registration and Protection
 
 Registered in `backend/src/api/routes/__init__.py` as:
