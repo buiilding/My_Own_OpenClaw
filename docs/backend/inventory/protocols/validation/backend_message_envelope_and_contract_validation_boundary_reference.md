@@ -8,7 +8,7 @@ title: "Backend Message Envelope and Contract Validation Boundary Reference"
 
 # Backend Message Envelope and Contract Validation Boundary Reference
 
-## Coverage Snapshot (2026-02-27)
+## Coverage Snapshot (2026-03-06)
 
 - Incoming message-type literals: `10`
 - Schema-validated outgoing message types: `19`
@@ -20,7 +20,7 @@ Validation boundary sources:
 
 - Envelope primitives: `backend/src/api/schemas/common.py`
 - Incoming schema union: `backend/src/api/schemas/incoming.py`, `backend/src/api/schema.py`
-- Parse + adapter validation flow: `backend/src/api/routes/websocket/message_handler.py`, `backend/src/api/routes/websocket/json_parse.py`
+- Parse + adapter validation flow: `backend/src/api/routes/websocket/message_handler.py`, `backend/src/api/routes/websocket/message_parse_runtime.py`, `backend/src/api/routes/websocket/json_parse.py`
 - Shared validators: `backend/src/core/validation/validators.py`
 - Incoming route-table validation: `backend/src/core/container/incoming_routing.py`
 - Contract-registry parity checks: `backend/src/api/contracts/registry.py`, `backend/src/api/contracts/message_types.py`
@@ -81,10 +81,11 @@ Failure effect:
 
 `parse_and_validate_message(...)` pipeline:
 
-1. max-byte check vs `max_message_size`
-2. parse JSON with object-root requirement
-3. inject connection-context `user_id` into parsed object
-4. validate via pre-allocated `TypeAdapter(IncomingMessage)`
+1. delegates into `parse_and_validate_message_runtime(...)`
+2. max-byte check vs `max_message_size`
+3. parse JSON with object-root requirement
+4. inject connection-context `user_id` into parsed object
+5. validate via pre-allocated `TypeAdapter(IncomingMessage)`
 
 ### Incoming union discriminator contract
 
@@ -190,7 +191,7 @@ When editing validation logic, verify:
 | Validation control path | Runtime owner | Safety contract |
 |---|---|---|
 | handshake envelope gate | `backend/src/api/schemas/common.py`, websocket route handshake path | rejects missing/invalid handshake identity before entering normal receive loop |
-| message-size + JSON-root parse gate | `backend/src/api/routes/websocket/message_handler.py`, `backend/src/api/routes/websocket/json_parse.py` | oversized/malformed/non-object payloads fail before schema/model routing |
+| message-size + JSON-root parse gate | `backend/src/api/routes/websocket/message_parse_runtime.py`, `backend/src/api/routes/websocket/json_parse.py` | oversized/malformed/non-object payloads fail before schema/model routing |
 | incoming discriminated-union validation | `backend/src/api/schemas/incoming.py`, `TypeAdapter(IncomingMessage)` | unknown message types and invalid payload shapes fail with structured validation errors |
 | route-table parity/startup guard | `backend/src/core/container/incoming_routing.py` | startup fails if incoming schema literals and route declarations diverge |
 | contract-registry parity guard | `backend/src/api/contracts/registry.py` | startup/tests fail when incoming/outgoing contract registries diverge from canonical type constants |
