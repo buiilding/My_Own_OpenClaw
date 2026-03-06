@@ -82,6 +82,8 @@ Provider defaults in `LLMProviders`:
 | `history_compaction_prompt` | `str \| None` | `None` | Optional custom compaction prompt override. |
 | `history_compaction_cooldown_turns` | `int` | `1` | Prevents repeated compaction on adjacent user turns. |
 
+Execution/event semantics for these fields (decision skip reasons, trigger fallback order, and auto-pre/auto-mid/manual lifecycle emissions) are documented in [History Compaction Engine Decision, Strategy, and Event Contract Reference](../agent/history_compaction_engine_decision_strategy_and_event_contract_reference.md).
+
 ### Voice, Wakeword, and TTS
 
 | Field | Type | Default | Notes |

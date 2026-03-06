@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(backend-compaction-crosslink-in-config-and-session-runtime): extend backend config/session runtime docs with direct compaction-engine execution links and runtime-attachment notes for manual/auto compaction paths.
 - docs(frontend-display-query-handler-payload-contract): add a dedicated Electron-main deep reference for `get-displays` payload shaping (`id`, positional label format, `isPrimary`, bounds, scale factor), plus cross-links from main/frontend lifecycle and IPC docs.
 - docs(backend-compaction-engine-decision-strategy-and-events): add a dedicated backend agent deep reference for `agent/compaction/*` internals, including decision gating (`disabled`/`below-threshold`/`cooldown`), trigger fallback resolution, inline summary strategy/fallback behavior, and auto-pre/auto-mid/manual lifecycle event integration points.
 - docs(frontend-agent-sudo-toggle-runtime-contract): add a dedicated Electron-main reference for Linux `set-agent-sudo-access` behavior (username sanitization, sudoers rule scripts, `pkexec` enable flow, `sudo -n` disable flow, cancel/error normalization), and wire cross-links from main/frontend permission docs.

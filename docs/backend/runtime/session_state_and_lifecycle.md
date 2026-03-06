@@ -89,6 +89,12 @@ Cleanup:
 - `ocr_completion_event: asyncio.Event`
 - `background_tasks: set[Task]`
 
+Compaction runtime attachment:
+
+- `AgentSession` also keeps `compaction_engine` (initialized in `session/initializer.py`).
+- manual compaction runs through `run_history_compaction(...)` under session lock.
+- auto compaction is invoked by executor/interaction-loop paths during active query turns.
+
 ### Screenshot/OCR state (`ScreenshotState`)
 
 - stores only current screenshot + current OCR result set (no history chain).
