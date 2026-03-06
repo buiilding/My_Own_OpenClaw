@@ -1,4 +1,4 @@
-import { normalizeProvider } from './transcriptMessagePayload';
+import { normalizeProvider } from './session/transcriptMessagePayload';
 import { getCurrentModels } from '../../dashboard/utils/modelSelectionUtils';
 
 export function formatProviderLabel(providerValue) {

@@ -22,7 +22,7 @@ import {
   type ChatSendSurface,
   type ReturnToChatboxPolicy,
 } from '../policies/messageSendUiPolicy';
-import { createConversationRef } from '../utils/conversationRef';
+import { createConversationRef } from '../utils/session/conversationRef';
 import { useChatCommonActions } from './useChatCommonActions';
 import { normalizeArtifactImageContentType } from '../../../infrastructure/services/ArtifactImageUtils';
 import {

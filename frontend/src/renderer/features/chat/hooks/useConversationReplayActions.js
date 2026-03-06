@@ -7,12 +7,12 @@ import {
   setActiveConversationRef,
   updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
-import { createConversationRef } from '../utils/conversationRef';
+import { createConversationRef } from '../utils/session/conversationRef';
 import {
   resolveTranscriptMessageType,
   resolveTranscriptRole,
   toRehydratePayload,
-} from '../utils/transcriptMessagePayload';
+} from '../utils/session/transcriptMessagePayload';
 import { buildReplayContextMessages } from '../utils/conversationReplayToolMessages';
 
 async function replayTranscriptMessages(messages, userId, conversationRef) {

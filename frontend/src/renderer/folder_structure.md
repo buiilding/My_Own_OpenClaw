@@ -77,6 +77,10 @@ frontend/src/renderer/
 │   │       │   ├── chatMessageSenderUtils.ts # chatMessageSenderUtils - User-message creation, first-message detection, and screenshot artifact mapping helpers
 │   │       │   ├── chatMessageSenderPayloads.ts # chatMessageSenderPayloads - Outgoing payload and attachment filename normalization
 │   │       │   └── readableFileAttachmentContext.ts # readableFileAttachmentContext - Hidden read_file attachment context assembly for readable file uploads
+│   │       ├── session/                 # session - Conversation/session ref and transcript-rehydrate payload helpers
+│   │       │   ├── conversationRef.ts   # conversationRef - Conversation ref creation helper
+│   │       │   ├── newChatSession.ts    # newChatSession - New chat reset/rotation flow helper
+│   │       │   └── transcriptMessagePayload.js # transcriptMessagePayload - Transcript payload/role mapping for rehydrate writes
 │   │       ├── chatSelectors.js         # chatSelectors - Shared Zustand selectors for ChatInterface/ChatBox
 │   │       ├── chatStream/              # chatStream - Stream ingress/event/update/tracking/thinking/transparency utility helpers
 │   │       │   ├── chatStreamConversationGate.ts # chatStreamConversationGate - Active-conversation filtering helpers for backend stream events
@@ -94,7 +98,6 @@ frontend/src/renderer/
 │   │       │   └── sourceTags.js        # sourceTags - Source tag derivation for message badges/thinking labels
 │   │       ├── toolRunner/              # toolRunner - Tool runner guards, envelopes, surface lifecycle, and message persistence helpers
 │   │       │   ├── toolRunnerMessages.ts # toolRunnerMessages - Tool result/bundle message builders and tool-call/bundle mapping helpers
-│   │       ├── transcriptMessagePayload.js # transcriptMessagePayload - Transcript payload/role mapping for rehydrate writes
 │   │       └── transcriptionRegions.ts  # transcriptionRegions - Pure cursor/boundary helper logic for transcription updates
 │   │
 │   ├── dashboard/                        # Dashboard feature module

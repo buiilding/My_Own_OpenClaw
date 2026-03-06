@@ -3,12 +3,9 @@ Message Handling for WebSocket Routes.
 
 Handles message parsing, validation, routing, and error responses.
 """
-import json
-import logging
 import asyncio
+import logging
 from typing import Optional
-
-from pydantic import ValidationError as PydanticValidationError, TypeAdapter
 
 from backend.src.api.infrastructure.registry import MessageHandlerRegistry
 from backend.src.api.infrastructure.errors import send_error_response, sanitize_error_message
@@ -16,23 +13,15 @@ from backend.src.api.transport.websocket import SafeWebSocket
 from backend.src.api.schema import IncomingMessage
 from backend.src.api.routes.websocket.json_parse import (
     DEFAULT_JSON_PARSE_OFFLOAD_BYTES,
-    JsonRootTypeError,
     parse_json_object_payload,
+)
+from backend.src.api.routes.websocket.message_parse_runtime import (
+    parse_and_validate_message_runtime,
 )
 
 logger = logging.getLogger(__name__)
 
-# Create TypeAdapter once at module level for performance
-_INCOMING_MESSAGE_ADAPTER = TypeAdapter(IncomingMessage)
 _JSON_PARSE_OFFLOAD_BYTES = DEFAULT_JSON_PARSE_OFFLOAD_BYTES
-
-
-def _format_validation_errors(error: PydanticValidationError) -> str:
-    return "; ".join(
-        f"{'.'.join(str(loc) for loc in err['loc'])}: {err['msg']}"
-        for err in error.errors()
-    )
-
 
 async def parse_and_validate_message(
     data: str,
@@ -50,45 +39,15 @@ async def parse_and_validate_message(
     Returns:
         Tuple of (validated message or None, error message or None)
     """
-    data_size = len(data.encode("utf-8"))
-    # SECURITY: Validate message size after receiving
-    if data_size > max_message_size:
-        return None, (
-            f"Message too large: {data_size} bytes (max: {max_message_size} bytes)"
-        )
-    
-    try:
-        json_data = await parse_json_object_payload(
-            data,
-            offload_threshold_bytes=_JSON_PARSE_OFFLOAD_BYTES,
-            loop_getter=asyncio.get_running_loop,
-        )
-        
-        # Inject user_id from connection context BEFORE validation
-        # BaseMessage requires user_id, but it comes from connection context, not client JSON
-        json_data["user_id"] = user_id
-        
-        # Validate and parse message using Pydantic
-        try:
-            # Use pre-created TypeAdapter for performance
-            validated_msg = _INCOMING_MESSAGE_ADAPTER.validate_python(json_data)
-            return validated_msg, None
-        except PydanticValidationError as e:
-            # Validation failed - format error details
-            error_details = _format_validation_errors(e)
-            return None, f"Invalid message format: {error_details}"
-    
-    except JsonRootTypeError as e:
-        return None, (
-            f"Invalid message format: root must be an object, got {e.payload_type}"
-        )
-    except json.JSONDecodeError:
-        # Malformed JSON
-        return None, "Malformed JSON"
-    except Exception as e:
-        # Unexpected error - sanitize for client
-        logger.error(f"Unexpected error parsing message: {e}", exc_info=True)
-        return None, "An internal error occurred"
+    return await parse_and_validate_message_runtime(
+        data=data,
+        user_id=user_id,
+        max_message_size=max_message_size,
+        json_parse_offload_bytes=_JSON_PARSE_OFFLOAD_BYTES,
+        parse_json_object_payload_fn=parse_json_object_payload,
+        loop_getter=asyncio.get_running_loop,
+        logger=logger,
+    )
 
 
 async def handle_message(

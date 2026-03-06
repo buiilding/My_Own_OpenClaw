@@ -1,5 +1,5 @@
-import type { TokenCounts } from '../stores/chatStore';
-import { setActiveConversationRef } from '../../../infrastructure/transcript/TranscriptWriter';
+import type { TokenCounts } from '../../stores/chatStore';
+import { setActiveConversationRef } from '../../../../infrastructure/transcript/TranscriptWriter';
 import { createConversationRef } from './conversationRef';
 
 type NewChatSessionOptions = {
