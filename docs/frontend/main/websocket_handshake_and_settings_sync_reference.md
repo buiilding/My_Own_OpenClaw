@@ -12,6 +12,7 @@ title: "WebSocket Handshake and Settings Sync Reference"
 
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
+- `frontend/src/main/ipc/ipc_event_replay_state.cjs`
 - `frontend/src/main/ipc/ipc_overlay_phase_events.cjs`
 - `frontend/src/main/ipc/ipc_overlay_phase_contract.cjs`
 - `frontend/src/main/ipc/ipc_renderer_windows.cjs`
@@ -49,9 +50,10 @@ On open:
 1. mark `isConnected=true`
 2. reset first-query/settings-sync flags for this connection
 3. reset overlay phase to `idle`
-4. generate valid client `user_id`
-5. send backend `handshake` message
-6. broadcast `ipc-status` to renderer windows
+4. clear turn replay buffer
+5. generate valid client `user_id`
+6. send backend `handshake` message
+7. broadcast `ipc-status` to renderer windows
 
 On close:
 
@@ -59,8 +61,9 @@ On close:
 2. clear pending settings ACK waiters
 3. clear backend session context (`session_id`, server `user_id`, `conversation_ref`)
 4. set overlay phase `idle`
-5. broadcast disconnected status
-6. schedule reconnect after `reconnectInterval` (5s)
+5. clear turn replay buffer
+6. broadcast disconnected status
+7. schedule reconnect after `reconnectInterval` (5s)
 
 ## Identity and Session Context Tracking
 
@@ -86,6 +89,7 @@ Window-aware behavior:
 - optional source window exclusion for synthetic local events
 
 `trackRendererWindow(...)` also syncs latest overlay phase to windows after `did-finish-load`.
+When replay state has buffered events for the active turn, it then replays those events on `from-backend` after phase sync.
 
 Overlay transition contract:
 
@@ -140,6 +144,7 @@ Purpose:
 If backend send fails for query path:
 
 - overlay phase reset to `idle`
+- replay state cleared for that turn
 - synthetic error event built by `buildQuerySendFailure(...)`
 - event includes query context ids + user-facing failure message
 - broadcast to renderer on `from-backend`
@@ -156,6 +161,16 @@ Before successful backend query send, main emits synthetic:
 Built via `buildLocalUserMessage(...)` and broadcast to other renderer windows (excluding sender when provided).
 
 Broadcast plumbing is delegated to `ipc_query_broadcast.cjs`.
+
+## Transcript Session Sync Coupling
+
+`ipc.cjs` also owns a cross-window `transcript-session-sync` bridge:
+
+- normalizes alias keys from renderer payloads
+- updates tracked `currentConversationRef` / `currentUserId` where applicable
+- rebroadcasts normalized shape to other renderer windows (sender excluded)
+
+This contract keeps main-process query fallback identity and renderer transcript identity synchronized in multi-window sessions.
 
 ## Debug Checklist
 
@@ -178,3 +193,4 @@ If user/session context is inconsistent across windows:
 3. verify renderer windows were registered with `registerRendererWindow`
 
 For helper-module split ownership details, see [IPC Helper Module Split and Runtime Boundary Reference](ipc_helper_module_split_and_runtime_boundary_reference.md).
+For replay/transcript channel details, see [IPC Event Replay and Transcript Session Sync Reference](ipc_event_replay_and_transcript_session_sync_reference.md).

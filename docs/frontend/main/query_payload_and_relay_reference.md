@@ -12,6 +12,7 @@ title: "Query Payload and Relay Reference"
 
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
+- `frontend/src/main/ipc/ipc_event_replay_state.cjs`
 - `frontend/src/main/ipc/ipc_query_broadcast.cjs`
 - `frontend/src/main/ipc/ipc_renderer_windows.cjs`
 - `frontend/src/main/query_payload_builder.cjs`
@@ -19,6 +20,7 @@ title: "Query Payload and Relay Reference"
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/backend_endpoints.cjs`
+- `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
 
 ## Relay Entry: `ipcMain.on('to-backend', ...)`
 
@@ -79,6 +81,10 @@ Main broadcasts synthetic `local-user-message` to renderer via `from-backend` ch
 - includes session/user/conversation context fields
 - uses `broadcastLocalUserMessage` in `ipc_query_broadcast.cjs` with shape builder from `ipc_query_events.cjs`
 
+Replay tie-in:
+
+- query path seeds `ipcEventReplayState.startTurn(queryMessageId, localUserMessage)` so late-mounted renderer windows can rehydrate the in-flight turn.
+
 ### 4) Context-enriched payload assembly
 
 Main calls `buildQueryPayloadContent(...)` with:
@@ -100,6 +106,7 @@ Output injected into query payload:
 
 - sends websocket message with stable message id
 - on send failure, emits synthetic renderer error event via `buildQuerySendFailure(...)`
+- on send failure, clears replay buffer so stale optimistic events are not replayed after reconnect
 
 ## Query Payload Builder Internals
 
@@ -147,6 +154,12 @@ Main enriches backend and local events with tracked runtime context:
 - `currentSessionId`
 - `currentConversationRef`
 
+Transcript session sync bridge:
+
+- renderer transcript subsystem emits `transcript-session-sync` on conversation/user updates
+- main normalizes payload aliases (`conversationRef|conversation_ref|sessionId|session_id`, `userId|user_id`) and rebroadcasts to other windows
+- this keeps query fallback conversation context and transcript writer session state aligned across multi-window sessions
+
 Overlay phase updates during relay/stream lifecycle:
 
 - query send -> `awaiting-first-chunk`
@@ -177,3 +190,4 @@ If renderer shows user message but backend never streams:
 3. inspect synthetic `buildQuerySendFailure` error event path for failed send
 
 For module ownership details of query/local synthetic event broadcasters and renderer-window fan-out, see [IPC Helper Module Split and Runtime Boundary Reference](ipc_helper_module_split_and_runtime_boundary_reference.md).
+For replay and transcript session-sync normalization details, see [IPC Event Replay and Transcript Session Sync Reference](ipc_event_replay_and_transcript_session_sync_reference.md).

@@ -1,7 +1,7 @@
 ---
 summary: "Electron main IPC helper-module split reference for websocket event processing, renderer-window fan-out, and query-local event broadcast boundaries."
 read_when:
-  - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_overlay_phase_events.cjs`, `ipc_renderer_windows.cjs`, `ipc_query_broadcast.cjs`, or `ipc_settings_sync.cjs`.
+  - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_event_replay_state.cjs`, `ipc_overlay_phase_events.cjs`, `ipc_renderer_windows.cjs`, `ipc_query_broadcast.cjs`, or `ipc_settings_sync.cjs`.
   - When debugging renderer fan-out drift, overlay pre-capture hook timing, or synthetic query/local-user message behavior.
 title: "IPC Helper Module Split and Runtime Boundary Reference"
 ---
@@ -12,12 +12,14 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
+- `frontend/src/main/ipc/ipc_event_replay_state.cjs`
 - `frontend/src/main/ipc/ipc_overlay_phase_events.cjs`
 - `frontend/src/main/ipc/ipc_overlay_phase_contract.cjs`
 - `frontend/src/main/ipc/ipc_renderer_windows.cjs`
 - `frontend/src/main/ipc/ipc_query_broadcast.cjs`
 - `frontend/src/main/ipc/ipc_query_events.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`
+- `frontend/src/main/ipc/ipc_frontend_config.cjs`
 - `frontend/src/main/ipc/ipc_memory_store_persistence.cjs`
 
 ## Split Ownership Model
@@ -47,6 +49,15 @@ Owns cross-cutting utilities used by relay hot paths:
   - applies response-overlay transitions resolved by `ipc_overlay_phase_events.cjs`
   - renderer fan-out to `from-backend`
 
+### `ipc_event_replay_state.cjs`
+
+Owns turn-scoped replay buffer primitives used for late renderer mount recovery:
+
+- `createIpcEventReplayState(maxEvents=240)`
+- `startTurn(turnRef, seedEvent)` optimistic turn seed
+- `appendForActiveTurn` turn-id-gated replay collection
+- `snapshot`/`clear` replay lifecycle helpers
+
 ### `ipc_overlay_phase_events.cjs`
 
 Owns backend-event to response-overlay transition contract:
@@ -68,6 +79,7 @@ Owns shared overlay phase contract primitives used by both state and event mappe
 Owns renderer-window lifecycle and generic fan-out:
 
 - `trackRendererWindow`: register + prune windows, sync current overlay phase after load
+- `trackRendererWindow`: optionally replays buffered in-flight turn events to late windows (`getReplayEvents`)
 - `broadcastToRenderers`: channel payload fan-out with optional source-window exclusion
 
 ### `ipc_query_broadcast.cjs`
@@ -94,6 +106,13 @@ Owns settings ACK gate primitives used by `ipc.cjs`:
 - `resolveSettingsSync`
 - `clearPendingSettingsSyncs`
 
+### `ipc_frontend_config.cjs`
+
+Owns persisted frontend-config disk I/O:
+
+- `loadFrontendConfigFromDisk`
+- `saveFrontendConfigToDisk` with tmp-write + rename replacement
+
 ### `ipc_memory_store_persistence.cjs`
 
 Owns backend `memory-store` event side effect persistence:
@@ -107,10 +126,11 @@ This isolates persistence to main process once per backend event before renderer
 ## Delegation Flow in `ipc.cjs`
 
 1. register/broadcast wiring delegates to `ipc_renderer_windows.cjs`.
-2. websocket inbound messages delegate event processing to `processBackendMessageData`.
+2. websocket inbound messages append turn-scoped replay state before delegating event processing to `processBackendMessageData`.
 3. query pre-capture delegates chatbox-only hook guard to `runBeforeOverlayQueryCapture`.
-4. query optimistic/synthetic events delegate to `ipc_query_broadcast.cjs` with builders from `ipc_query_events.cjs`.
-5. artifact upload handler delegates to `uploadArtifact`.
+4. query optimistic/synthetic events delegate to `ipc_query_broadcast.cjs` with builders from `ipc_query_events.cjs` and seed replay state for late-window hydration.
+5. frontend config load/save handlers delegate to `ipc_frontend_config.cjs`.
+6. artifact upload handler delegates to `uploadArtifact`.
 
 ## Drift Hotspots
 
@@ -118,11 +138,13 @@ This isolates persistence to main process once per backend event before renderer
 2. Bypassing `ipc_query_broadcast.cjs` for synthetic events can break sender-window exclusion behavior.
 3. Changing `normalizeBackendPayload` field stripping without backend contract check can leak unsupported payload keys.
 4. Mutating query-context envelope shape in broadcasters without matching `ipc_query_events.cjs` updates can desync renderer expectations.
+5. Changing replay turn gating (`appendForActiveTurn`) can replay stale-turn packets into newly registered windows.
 
 ## Related Pages
 
 - [Frontend Main Docs Hub](README.md)
 - [Electron Main and IPC](electron_main_and_ipc.md)
+- [IPC Event Replay and Transcript Session Sync Reference](ipc_event_replay_and_transcript_session_sync_reference.md)
 - [Query Payload and Relay Reference](query_payload_and_relay_reference.md)
 - [WebSocket Handshake and Settings Sync Reference](websocket_handshake_and_settings_sync_reference.md)
 - [IPC Memory-Store Event Persistence Payload Fallback and Fail-Open Logging Contract Reference](ipc_memory_store_event_persistence_payload_fallback_and_fail_open_logging_contract_reference.md)
