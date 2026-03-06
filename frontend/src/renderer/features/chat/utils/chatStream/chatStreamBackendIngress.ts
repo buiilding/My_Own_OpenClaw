@@ -25,8 +25,12 @@ export const ingestBackendEvent = (
     registerTurnConversationRef(event.turn_ref, conversationRef);
   }
   if (enableTranscript) {
-    const activeConversationRef = getActiveConversationRef();
-    updateTranscriptSession(activeConversationRef || conversationRef || undefined, event.user_id);
+    try {
+      const activeConversationRef = getActiveConversationRef();
+      updateTranscriptSession(activeConversationRef || conversationRef || undefined, event.user_id);
+    } catch {
+      // Transcript session sync is best-effort. Stream event dispatch must continue.
+    }
   }
   dispatchEvent(event);
 };
