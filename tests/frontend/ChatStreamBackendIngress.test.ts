@@ -91,6 +91,26 @@ describe('chatStreamBackendIngress', () => {
     expect(dispatchEvent).toHaveBeenCalledWith(event);
   });
 
+  test('continues turn-map and transcript processing when projection sync throws', () => {
+    const syncActiveConversationProjection = jest.fn(() => {
+      throw new Error('projection failed');
+    });
+    const registerTurnConversationRef = jest.fn();
+    const dispatchEvent = jest.fn();
+    const event = { type: 'streaming-response', turn_ref: 'turn-proj-chain', user_id: 'user-proj-chain' } as any;
+
+    expect(() => ingestBackendEvent(event, 'conv-proj-chain', {
+      syncActiveConversationProjection,
+      registerTurnConversationRef,
+      enableTranscript: true,
+      dispatchEvent,
+    })).not.toThrow();
+
+    expect(registerTurnConversationRef).toHaveBeenCalledWith('turn-proj-chain', 'conv-proj-chain');
+    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-proj-chain', 'user-proj-chain');
+    expect(dispatchEvent).toHaveBeenCalledWith(event);
+  });
+
   test('continues dispatch and transcript sync when turn-map registration throws', () => {
     const registerTurnConversationRef = jest.fn(() => {
       throw new Error('turn-map failed');
@@ -107,6 +127,29 @@ describe('chatStreamBackendIngress', () => {
 
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-map', 'user-map');
     expect(dispatchEvent).toHaveBeenCalledWith(event);
+  });
+
+  test('runs ingress bookkeeping before dispatching event handlers', () => {
+    const syncActiveConversationProjection = jest.fn();
+    const registerTurnConversationRef = jest.fn();
+    const dispatchEvent = jest.fn();
+    const event = { type: 'streaming-response', turn_ref: 'turn-order', user_id: 'user-order' } as any;
+
+    ingestBackendEvent(event, 'conv-order', {
+      syncActiveConversationProjection,
+      registerTurnConversationRef,
+      enableTranscript: true,
+      dispatchEvent,
+    });
+
+    const syncOrder = syncActiveConversationProjection.mock.invocationCallOrder[0];
+    const turnMapOrder = registerTurnConversationRef.mock.invocationCallOrder[0];
+    const transcriptOrder = mockUpdateTranscriptSession.mock.invocationCallOrder[0];
+    const dispatchOrder = dispatchEvent.mock.invocationCallOrder[0];
+
+    expect(syncOrder).toBeLessThan(dispatchOrder);
+    expect(turnMapOrder).toBeLessThan(dispatchOrder);
+    expect(transcriptOrder).toBeLessThan(dispatchOrder);
   });
 
   test('skips transcript update when transcript is disabled', () => {
