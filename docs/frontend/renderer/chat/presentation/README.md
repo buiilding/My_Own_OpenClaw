@@ -10,6 +10,7 @@ title: "Renderer Chat Presentation Docs Hub"
 
 ## Deep Pages
 
+- [Chatbox Component Split and Overlay Pill Runtime Reference](chatbox_component_split_and_overlay_pill_runtime_reference.md)
 - [Chat Common Actions Selector Boundary and Message-Input Send Guard Reference](chat_common_actions_selector_boundary_and_message_input_send_guard_reference.md)
 - [MessageInput Clipboard Image and Voice Submit Reference](message_input_clipboard_image_and_voice_submit_reference.md)
 - [Data-URL Image Parsing and Attachment Payload Contract Reference](data_url_image_parsing_and_attachment_payload_contract_reference.md)
@@ -38,6 +39,9 @@ title: "Renderer Chat Presentation Docs Hub"
 - `frontend/src/renderer/features/chat/components/ThinkingDisplay.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
+- `frontend/src/renderer/features/chat/components/chatbox/ChatBoxIcons.jsx`
+- `frontend/src/renderer/features/chat/components/chatbox/ChatBoxImagePreviewRow.jsx`
+- `frontend/src/renderer/features/chat/components/chatbox/chatBoxResponseUtils.js`
 - `frontend/src/renderer/features/chat/components/ToolGhostCursor.jsx`
 - `frontend/src/renderer/features/chat/hooks/useAutoResizedResponseHeight.js`
 - `frontend/src/renderer/features/chat/hooks/useCopyMessageAction.js`
