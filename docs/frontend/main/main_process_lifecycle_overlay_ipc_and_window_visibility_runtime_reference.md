@@ -76,6 +76,8 @@ Owns dashboard/display window control channels:
 - `show-main-window`
 - `get-main-window-visibility`
 - `get-displays`
+  - mapped payload shape is `{ id, label, isPrimary, bounds, scaleFactor }` with label format `Display N (WIDTHxHEIGHT)`
+  - detailed mapper contract: [Display Query Handler Display Inventory Payload Contract Reference](display_query_handler_display_inventory_payload_contract_reference.md)
 - `window-minimize`
 - `window-toggle-maximize`
 - `window-close`
@@ -85,6 +87,8 @@ Owns dashboard/display window control channels:
 Owns privilege/permission channels:
 
 - `set-agent-sudo-access`
+  - Linux-only privileged toggle routed through `agent_sudo_access_handler.cjs` (`pkexec` enable, `sudo -n` disable)
+  - detailed runtime contract: [Agent Sudo Access Handler PKExec and Non-Interactive Disable Contract Reference](agent_sudo_access_handler_pkexec_and_noninteractive_disable_contract_reference.md)
 - `list-permissions`
 - `check-permissions`
 - `check-permission`
