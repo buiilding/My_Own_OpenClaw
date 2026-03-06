@@ -52,6 +52,8 @@ Before cleaning, `_resolve_local_defs(...)` expands local schema references so n
 - flattens trivial `allOf` wrappers (`allOf` with a single branch)
 - merges inline extras onto resolved targets
 - strips `$defs` from resolved output tree
+- unresolved/non-local refs are preserved (only `#/$defs/...` refs are inlined)
+- list nodes are resolved element-by-element, so nested compositions survive in arrays (`items`, `oneOf`, etc.)
 
 Normalization rules in `_clean_schema(...)`:
 
@@ -62,11 +64,13 @@ Normalization rules in `_clean_schema(...)`:
 - keeps non-null defaults only
 - strips noisy fields like `title` and `additionalProperties`
 - strips top-level `additionalProperties`
+- keys outside this allowlist are intentionally dropped to keep function-schema payloads compact for model context budgets
 
 Top-level object-type guard:
 
 - after cleanup, if `properties` exists and `type` is missing, `get_json_schema()` enforces `parameters.type = "object"`
 - this keeps OpenAI/LiteLLM function-tool compatibility even when Pydantic output omitted explicit object type
+- top-level `title` and `additionalProperties` are removed after cleaning; nested `additionalProperties` are also excluded because cleaner never re-emits them
 
 ## Registry + Cache Enforcement
 
