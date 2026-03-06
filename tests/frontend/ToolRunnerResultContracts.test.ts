@@ -17,6 +17,34 @@ describe('toolRunnerResultContracts', () => {
     });
   });
 
+  test('build helpers clone payloads so caller mutation does not rewrite envelopes', () => {
+    const singlePayload = {
+      request_id: 'req-wrap',
+      metadata: { source: 'wrapper-single' },
+    };
+    const bundlePayload = {
+      bundle_id: 'bundle-wrap',
+      metadata: { source: 'wrapper-bundle' },
+    };
+
+    const singleEnvelope = buildToolRunnerResultEnvelope(singlePayload);
+    const bundleEnvelope = buildToolRunnerBundleResultEnvelope(bundlePayload);
+
+    singlePayload.request_id = 'req-wrap-mutated';
+    singlePayload.metadata.source = 'wrapper-single-mutated';
+    bundlePayload.bundle_id = 'bundle-wrap-mutated';
+    bundlePayload.metadata.source = 'wrapper-bundle-mutated';
+
+    expect(singleEnvelope.payload).toEqual({
+      request_id: 'req-wrap',
+      metadata: { source: 'wrapper-single' },
+    });
+    expect(bundleEnvelope.payload).toEqual({
+      bundle_id: 'bundle-wrap',
+      metadata: { source: 'wrapper-bundle' },
+    });
+  });
+
   test('resolves correlation id from supported envelopes only', () => {
     expect(resolveToolRunnerEnvelopeCorrelationId({
       type: 'tool-result',
