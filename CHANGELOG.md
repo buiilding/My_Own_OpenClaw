@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-backend-endpoint-resolution-packaged-fallback-and-origin-contract): extend websocket/query/compatibility docs with explicit packaged endpoint fallback env behavior (`WINDIE_DEFAULT_PACKAGED_BACKEND_*`), IPC initialization refresh semantics (`isPackaged`), and `wsOrigin` relay diagnostics contract.
 - docs(frontend-main-lifecycle-registrar-channel-detail-links): extend main-process lifecycle registrar docs with explicit `get-displays` mapped payload shape and Linux sudo-toggle runtime-link details for `set-agent-sudo-access`.
 - docs(fullstack-ipc-display-sudo-contract-details-and-remote-tool-serialization-notes): enrich frontend IPC contract docs with concrete `get-displays` payload and Linux sudo-toggle runtime behavior (with direct deep-reference links), and expand backend remote tool domain docs with explicit default-arg serialization and unified `computer_use` envelope-to-concrete-tool output shaping details.
 - docs(backend-compaction-crosslink-in-config-and-session-runtime): extend backend config/session runtime docs with direct compaction-engine execution links and runtime-attachment notes for manual/auto compaction paths.

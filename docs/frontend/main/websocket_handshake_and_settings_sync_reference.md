@@ -32,12 +32,21 @@ title: "WebSocket Handshake and Settings Sync Reference"
 - final fallback:
   - dev/source runs: `127.0.0.1:8765` (`ws://.../ws`, `http://...`)
   - packaged runs: hosted defaults (`wss://api.windieos.com/ws`, `https://api.windieos.com`)
+  - packaged fallback env overrides:
+    - `WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL`
+    - `WINDIE_DEFAULT_PACKAGED_BACKEND_WS_URL`
 
 Relay state keeps:
 
 - `BACKEND_URL` (ws)
 - `BACKEND_HTTP_URL` (http for artifact upload)
 - `wsOrigin` for websocket constructor origin
+
+`initializeIpc(win, options)` refreshes endpoints with:
+
+- `refreshBackendEndpoints({ isPackaged: options.isPackaged === true })`
+
+This means packaged-vs-dev fallback selection is determined at IPC bridge initialization time, not only process boot.
 
 ## Connection Lifecycle (`connect`)
 
