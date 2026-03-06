@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-screenshot-visibility-runtime-ownership-contract-refresh): update local-backend screenshot/window-guard docs to current behavior where platform `screenshot_window_visibility/*` runtimes are pass-through wrappers and Linux hide/show ownership lives in renderer `SurfaceOrchestrator`; refresh linked local-backend windows/overlay hub pages and sidecar lifecycle reference wording accordingly.
 - test(backend-incoming-tool-result-schema-contracts): add direct schema-level regressions for incoming `ToolResultPayload`/`ToolBundleResultPayload` contracts covering correlation-id trim/reject behavior, bundle required fields/status validation, strict `capture_meta` extra-field rejection, and allowed tool-specific extra keys in `ToolResultData`.
 - test(frontend-electron-launcher-display-present-no-xvfb-wrap): add Linux launcher regression ensuring `buildLaunchCommand` executes Electron directly when `DISPLAY` is present, preventing unnecessary `xvfb-run` wrapping on already-graphical sessions.
 - test(frontend-electron-launcher-binary-path-trim-and-empty-validation): extend launcher binary-resolution regressions to lock whitespace-trim normalization for valid paths and fail-close rejection for blank/empty electron binary inputs with deterministic startup error messaging.

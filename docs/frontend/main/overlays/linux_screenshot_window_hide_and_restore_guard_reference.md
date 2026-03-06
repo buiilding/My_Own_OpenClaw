@@ -1,20 +1,23 @@
----
-summary: "Deep reference for Linux-only screenshot guard that hides main/chat/response windows around sidecar screenshot tool execution and restores visibility/focus/topmost state."
+summary: "Deep reference for screenshot visibility runtime dispatch used by local-backend screenshot execution: current platform pass-through behavior and renderer-owned Linux hide/restore ownership."
 read_when:
-  - When changing local-backend screenshot execution wrappers on Linux.
-  - When debugging overlay artifacts in screenshots or post-capture focus/always-on-top regressions.
-title: "Linux Screenshot Window Hide and Restore Guard Reference"
+  - When changing `local_backend_bridge_window_visibility.cjs` or platform `screenshot_window_visibility/*` modules.
+  - When debugging whether screenshot overlay hide/show is owned by Electron main process or renderer orchestration.
+title: "Linux Screenshot Window Visibility Runtime Dispatch Reference"
 ---
 
-# Linux Screenshot Window Hide and Restore Guard Reference
+# Linux Screenshot Window Visibility Runtime Dispatch Reference
 
 ## Canonical Modules
 
-- `frontend/src/main/local_backend_bridge_windows.cjs`
+- `frontend/src/main/local_backend_bridge_window_visibility.cjs`
+- `frontend/src/main/platform/screenshot_window_visibility/index.cjs`
+- `frontend/src/main/platform/screenshot_window_visibility/linux.cjs`
+- `frontend/src/main/platform/screenshot_window_visibility/windows.cjs`
+- `frontend/src/main/platform/screenshot_window_visibility/macos.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
-- `frontend/src/main/index.cjs`
+- `frontend/src/renderer/infrastructure/services/SurfaceOrchestrator.ts`
 
-## Guard Scope and Entry
+## Runtime Scope and Entry
 
 Guard helper:
 
@@ -22,85 +25,58 @@ Guard helper:
 
 Used in local backend bridge:
 
-- wrapped around `execute-tool` only for screenshot tool requests on Linux
+- wrapped around `execute-tool` only for screenshot tool requests
 
-Platform gate:
+Platform dispatch:
 
-- if platform is not Linux, wrapper runs `task()` directly
+- `createScreenshotWindowVisibilityRuntime(platform)` selects:
+  - `windows.cjs` for `win32`
+  - `macos.cjs` for `darwin`
+  - `linux.cjs` otherwise
 
-## Hide Phase
+## Current Behavior (All Platforms)
 
-Before task execution:
+Current platform runtime modules are pass-through wrappers:
 
-1. resolve live windows from `resolveWindows()`
-2. snapshot each window state:
-   - visibility
-   - focus
-   - minimized
-3. hide windows that were visible and not minimized
-4. wait `320ms` before running screenshot task
+- `windows.cjs` -> `return task()`
+- `macos.cjs` -> `return task()`
+- `linux.cjs` -> `return task()` and explicitly documents renderer ownership for hide/show lifecycle
 
-Reason:
+Implication:
 
-- compositor latency + overlay transparency can leak stale frame contents into captures
+- no Electron-main window hide/restore is performed by this wrapper today
+- screenshot window visibility control on Linux is owned by renderer `SurfaceOrchestrator` capture flow
 
-## Restore Phase (`finally`)
+## Resolver Argument Compatibility
 
-After task completion/failure:
+`withHiddenWindowForScreenshot(...)` still accepts resolver arguments:
 
-1. restore each previously visible, non-minimized window
-2. overlay windows (`chatWindow`/`responseWindow`) prefer `showInactive()` when available
-3. non-overlay windows call `show()`
-4. chat overlay gets `blur()` when it was not focused pre-hide
-5. overlays reassert topmost flags:
-   - `setAlwaysOnTop(true, "floating")`
-   - optional `moveTop()`
-6. re-focus previously focused window when still alive
+- `resolveWindows`
+- `resolveChatWindow`
+- `resolveResponseWindow`
+- `task`
 
-All restore operations are best effort; overlay topmost failures log warnings.
-
-## Resolver Contracts
-
-`createWindowResolvers(getWindows)` supports:
-
-- function returning `{ mainWindow, chatWindow, responseWindow }`
-- object with those keys
-- single BrowserWindow fallback
-
-Output helpers:
-
-- `resolveWindows()`
-- `resolveChatWindow()`
-- `resolveResponseWindow()`
-
-Including response window in resolver input is required for correct overlay restore behavior.
+Current platform runtimes ignore resolver arguments, but they remain part of the function contract for compatibility and future runtime strategy changes.
 
 ## Error and Cancellation Semantics
 
-`task` errors propagate to caller after restore sequence runs.
+`task` errors propagate to caller unchanged.
 
 This means:
 
-- screenshot tool failures still restore window stack
+- screenshot tool failures keep request timeout/error behavior unchanged
 - request timeout/error logic in `local_backend_bridge.cjs` stays unchanged
 
 ## Drift Hotspots
 
-1. skipping minimized-state checks and unminimizing windows unexpectedly
-2. not restoring overlay topmost flags and causing overlays to appear behind other windows
-3. removing settle delay and reintroducing self-capture artifacts
-4. not preserving focused window and stealing focus after screenshot operations
+1. Reintroducing main-process hide/restore behavior without updating renderer `SurfaceOrchestrator` ownership docs can create double-hide races.
+2. Changing platform runtime modules to use resolver arguments without updating wrapper call contracts can break screenshot execution paths.
+3. Assuming Linux-only behavior in callers is incorrect; wrapper is called for screenshot tool requests and runtime selection handles platform semantics.
 
 ## Debug Checklist
 
 If Linux screenshots contain overlay UI:
 
-1. verify screenshot execute-tool path is wrapped by guard
-2. verify guard platform check sees `linux`
-3. verify windows were hidden before task (log or temporary probes)
-
-If overlays stop floating on top after screenshot:
-
-1. inspect overlay restore branch (`setAlwaysOnTop` + `moveTop`)
-2. verify resolver still returns chat/response windows
-3. inspect warnings for topmost restore failures
+1. verify screenshot execute-tool path still wraps task via `withHiddenWindowForScreenshot(...)`
+2. verify renderer `SurfaceOrchestrator` capture prep/hide logic ran as expected
+3. verify no legacy Electron-main hide/restore assumptions remain in debugging scripts

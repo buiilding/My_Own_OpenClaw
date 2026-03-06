@@ -1,8 +1,7 @@
----
-summary: "Frontend main overlay docs sub-hub for external-focus snapshot/restore flow and Linux screenshot hide-restore guard behavior."
+summary: "Frontend main overlay docs sub-hub for external-focus snapshot/restore flow and screenshot visibility runtime ownership contracts."
 read_when:
   - When changing overlay focus handoff behavior before query screenshot capture.
-  - When debugging Linux self-capture artifacts or overlay window restore ordering after screenshot tools.
+  - When debugging screenshot visibility ownership between renderer capture orchestration and main-process wrapper dispatch.
 title: "Frontend Main Overlay Focus Docs Hub"
 ---
 
@@ -11,7 +10,7 @@ title: "Frontend Main Overlay Focus Docs Hub"
 ## Deep Pages
 
 - [External Focus Snapshot, Restore, and Query-Capture Reference](external_focus_snapshot_restore_and_query_capture_reference.md)
-- [Linux Screenshot Window Hide and Restore Guard Reference](linux_screenshot_window_hide_and_restore_guard_reference.md)
+- [Linux Screenshot Window Visibility Runtime Dispatch Reference](linux_screenshot_window_hide_and_restore_guard_reference.md)
 
 ## Code Scope
 

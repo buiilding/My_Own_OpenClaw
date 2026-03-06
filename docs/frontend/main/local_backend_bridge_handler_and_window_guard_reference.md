@@ -1,8 +1,7 @@
----
-summary: "Electron main local-backend bridge overview covering startup/handler boundaries, with links to focused lifecycle and RPC-mapper deep references."
+summary: "Electron main local-backend bridge overview covering startup/handler boundaries, with links to focused lifecycle, RPC-mapper, and screenshot visibility runtime ownership references."
 read_when:
   - When changing `frontend/src/main/local_backend_bridge*.cjs` and deciding where local-backend behavior documentation belongs.
-  - When tracing local-backend issues across process lifecycle, payload mapping, and Linux screenshot overlay guard boundaries.
+  - When tracing local-backend issues across process lifecycle, payload mapping, and screenshot visibility ownership boundaries.
 title: "Local Backend Bridge Overview and Window Guard Index"
 ---
 
@@ -19,12 +18,12 @@ This page is the entrypoint for Electron-main local-backend bridge behavior. Det
 - [Local-Backend RPC Handler Registry and Payload-Mapper Reference](local_backend/rpc_handler_registry_and_payload_mapper_reference.md)
 - [Tool Arg Sudo-Auth Mode Resolution and Config-Guard Contract Reference](local_backend/tool_arg_sudo_auth_mode_resolution_and_config_guard_contract_reference.md)
 - [Local-Backend Windows Docs Hub](local_backend/windows/README.md)
-- [Window Resolver Shapes and Linux Screenshot Hide/Restore Orchestration Reference](local_backend/windows/window_resolver_shapes_and_linux_screenshot_hide_restore_orchestration_reference.md)
+- [Window Resolver Shapes and Screenshot Visibility Runtime Dispatch Reference](local_backend/windows/window_resolver_shapes_and_linux_screenshot_hide_restore_orchestration_reference.md)
 
 ## Window Guard Docs (Detailed)
 
 - [Main Overlay Focus Docs Hub](overlays/README.md)
-- [Linux Screenshot Window Hide and Restore Guard Reference](overlays/linux_screenshot_window_hide_and_restore_guard_reference.md)
+- [Linux Screenshot Window Visibility Runtime Dispatch Reference](overlays/linux_screenshot_window_hide_and_restore_guard_reference.md)
 - [External Focus Snapshot, Restore, and Query-Capture Reference](overlays/external_focus_snapshot_restore_and_query_capture_reference.md)
 
 ## Bridge Boundary (Condensed)
@@ -35,7 +34,7 @@ Bridge responsibilities in `frontend/src/main/local_backend_bridge.cjs`:
 2. gate request sending on readiness (`isPythonReady`)
 3. map renderer IPC channels to sidecar JSON-RPC methods
 4. normalize error payloads for renderer callers
-5. route Linux screenshot tool calls through overlay hide/restore guard
+5. route screenshot tool calls through platform screenshot visibility runtime wrapper (current runtime behavior is pass-through; Linux hide/show ownership lives in renderer capture orchestration)
 
 ## Canonical Modules
 
