@@ -14,6 +14,14 @@ def _validate_conversation_ref(value: str) -> str:
         raise ValueError("conversation_ref cannot be empty or whitespace-only")
     return normalized
 
+
+def _validate_correlation_ref(value: str, *, field_name: str) -> str:
+    """Normalize and validate correlation ids carried in tool-result payloads."""
+    normalized = value.strip()
+    if not normalized:
+        raise ValueError(f"{field_name} cannot be empty or whitespace-only")
+    return normalized
+
 from backend.src.api.schemas.common import BaseMessage
 
 
@@ -278,6 +286,11 @@ class ToolResultPayload(BaseModel):
     data: Optional[ToolResultData] = None
     error: Optional[str] = None
 
+    @field_validator("request_id")
+    @classmethod
+    def validate_request_id(cls, value: str) -> str:
+        return _validate_correlation_ref(value, field_name="request_id")
+
 
 class ToolResultMessage(BaseMessage):
     type: Literal["tool-result"]
@@ -309,6 +322,11 @@ class ToolBundleResultPayload(BaseModel):
     system_state: Optional[Dict[str, Any]] = None
     step_results: List[ToolBundleStepResult]
     error: Optional[str] = None
+
+    @field_validator("bundle_id")
+    @classmethod
+    def validate_bundle_id(cls, value: str) -> str:
+        return _validate_correlation_ref(value, field_name="bundle_id")
 
 
 class ToolBundleResultMessage(BaseMessage):
