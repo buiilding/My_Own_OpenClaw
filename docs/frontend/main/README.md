@@ -16,6 +16,7 @@ title: "Frontend Main Docs Hub"
 - [Main Window Runtime Factory and Overlay Bootstrap Reference](main_window_runtime_factory_and_overlay_bootstrap_reference.md)
 - [Main Process Lifecycle, Overlay IPC, and Window Visibility Runtime Reference](main_process_lifecycle_overlay_ipc_and_window_visibility_runtime_reference.md)
 - [Context Label Overlay and Active-Window Runtime Reference](context_label_overlay_and_active_window_runtime_reference.md)
+- [Display Query Handler Display Inventory Payload Contract Reference](display_query_handler_display_inventory_payload_contract_reference.md)
 - [Runtime Paths and Endpoints](runtime_paths_and_endpoints.md)
 - [Query Payload and Relay Reference](query_payload_and_relay_reference.md)
 - [WebSocket Handshake and Settings Sync Reference](websocket_handshake_and_settings_sync_reference.md)
