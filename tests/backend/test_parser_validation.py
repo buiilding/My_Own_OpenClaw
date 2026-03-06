@@ -28,6 +28,13 @@ class ComputerRegistry(DummyRegistry):
         return None
 
 
+class CustomComputerRegistry(DummyRegistry):
+    def get_tool(self, name):
+        if name == "custom_computer_action":
+            return DummyTool(ToolDomain.COMPUTER)
+        return None
+
+
 class CountingRegistry(DummyRegistry):
     def __init__(self, tool_names):
         super().__init__(tool_names)
@@ -277,6 +284,34 @@ def test_validate_metadata_rejects_non_dict_metadata_for_unified_computer_use_to
 
     with pytest.raises(ParseValidationError, match="invalid metadata type"):
         validator.validate_metadata("computer_use", "not-a-dict")
+
+
+def test_validate_metadata_rejects_missing_metadata_for_category_based_computer_tool():
+    validator, _metrics = _make_validator_for_registry(
+        CustomComputerRegistry(["custom_computer_action"]),
+    )
+
+    with pytest.raises(ParseValidationError, match="missing metadata"):
+        validator.validate_metadata("custom_computer_action", None)
+
+
+def test_validate_metadata_accepts_trimmed_metadata_for_category_based_computer_tool():
+    validator, _metrics = _make_validator_for_registry(
+        CustomComputerRegistry(["custom_computer_action"]),
+    )
+    metadata = {
+        "description": " screen ",
+        "explanation": " click ",
+        "expectation": " opens ",
+    }
+
+    validator.validate_metadata("custom_computer_action", metadata)
+
+    assert metadata == {
+        "description": "screen",
+        "explanation": "click",
+        "expectation": "opens",
+    }
 
 
 def test_validate_metadata_ignores_non_computer_tool_metadata():
