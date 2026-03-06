@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for transcript type aliases: SessionInfo identity shape, pending user/assistant/tool queue payload fields, and normalized TranscriptEntry persistence contract."
+summary: "Deep reference for transcript type aliases: SessionInfo identity shape, transparency payload contract, pending user/assistant/tool queue payload fields, and normalized TranscriptEntry persistence contract."
 read_when:
   - When changing transcript queue message types or `TranscriptEntry` field names in `types.ts`.
   - When debugging type mismatches between transcript queue producers, writer payload mapping, and storage schema expectations.
@@ -22,6 +22,17 @@ Fields:
 
 This is the minimal identity tuple used to gate flush eligibility.
 
+## `TranscriptTransparencyData` Contract
+
+Optional transparency snapshot payload used on pending and persisted transcript rows:
+
+- `systemPrompt?: string | null`
+- `toolSchemas?: unknown[] | null`
+- `fullUserMessage?: { content?: string | null; metadata?: Record<string, unknown> | null } | null`
+- `fullAssistantMessage?: { content?: string | null } | null`
+
+Type alias is shape-only and intentionally permissive for renderer-captured transparency snapshots.
+
 ## Pending Queue Message Contracts
 
 ### `PendingUserMessage`
@@ -36,6 +47,7 @@ Optional metadata:
 - `timestamp`
 - `modelId`
 - `modelProvider`
+- `transparency`
 
 ### `PendingToolMessage`
 
@@ -51,6 +63,7 @@ Optional metadata:
 - `modelId`
 - `modelProvider`
 - `screenshotRef`
+- `transparency`
 
 ### `PendingAssistantMessage`
 
@@ -64,6 +77,7 @@ Optional metadata:
 - `modelId`
 - `modelProvider`
 - `screenshotRef`
+- `transparency`
 
 ## Persisted Row Contract (`TranscriptEntry`)
 
@@ -73,6 +87,7 @@ Optional metadata:
 - role/message fields (`role`, `messageType`)
 - tool correlation fields (`toolName`, `correlationId`)
 - model/screenshot metadata (`modelId`, `modelProvider`, `screenshotRef`)
+- optional transparency snapshot (`transparency`)
 - `timestamp`
 
 This broad optional surface allows mixed row origins while keeping one unified type.
@@ -88,8 +103,10 @@ They do not implement validation logic themselves; runtime filtering/normalizati
 1. Renaming fields in `types.ts` without synchronized writer mapping changes breaks persisted payload shape.
 2. Tightening optional fields can force broad queue/writer refactors and invalidate existing data paths.
 3. Allowing incompatible messageType values without schema guards can leak malformed rows to sidecar storage.
+4. Drifting transparency object shape between producer hooks and writer mapping can silently drop prompt/tool-schema context in persisted rows.
 
 ## Related Pages
 
 - [Frontend Renderer Transcript Contracts Docs Hub](README.md)
+- [Transcript Session Sync Payload Normalization and Alias Contract Reference](transcript_session_sync_payload_normalization_and_alias_contract_reference.md)
 - [Transcript Writer Queue Flush and Session Event Reference](../transcript_writer_queue_flush_and_session_event_reference.md)
