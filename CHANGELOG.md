@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(frontend-tool-runner-bundle-correlation-trim-tracking): extend callback send-gate regressions so tracked bundle payloads with whitespace-padded `bundle_id` are accepted via normalized correlation resolution, then dropped after untracking to preserve late-result suppression symmetry with single-tool paths.
 - test(backend-api-tool-result-handler-correlation-trim-routing): extend API handler regressions so `ToolResultMessage` and `ToolBundleResultMessage` payload ids with surrounding whitespace are normalized by schema validation before session routing (`request_id`/`bundle_id` trimmed at boundary).
 - test(backend-websocket-message-handler-runtime-delegation-contract): refresh websocket message-handler parse tests to assert delegation into `message_parse_runtime` with forwarded offload/runtime dependencies, replacing stale monkeypatch assumptions on removed module-local parser internals.
 - refactor(fullstack-chat-session-utils-subfolder-and-websocket-message-parse-runtime): moved chat session helpers into `frontend/src/renderer/features/chat/utils/session/` (`conversationRef`, `newChatSession`, `transcriptMessagePayload`), extracted websocket parse/validation runtime into `backend/src/api/routes/websocket/message_parse_runtime.py` while preserving `message_handler.py` monkeypatch compatibility seams, added focused backend parse-runtime tests, and updated chat/websocket docs plus renderer folder structure references.
