@@ -82,6 +82,17 @@ describe('chatStreamConversationGate', () => {
     expect(resolveEventConversationRef(event)).toBe('conv-memory-event');
   });
 
+  test('resolveEventConversationRef ignores whitespace memory-store payload session and falls back to event.session_id', () => {
+    const event = buildEvent({
+      type: 'memory-store',
+      payload: {
+        session_id: '   ',
+      },
+      session_id: 'conv-memory-event',
+    });
+    expect(resolveEventConversationRef(event)).toBe('conv-memory-event');
+  });
+
   test('resolveEventConversationRef returns null for local-user-message without payload conversation ref', () => {
     const event = buildEvent({
       type: 'local-user-message',
@@ -98,6 +109,17 @@ describe('chatStreamConversationGate', () => {
       payload: {
         content: 'chunk',
       } as any,
+    });
+    expect(resolveEventConversationRef(event)).toBeNull();
+  });
+
+  test('resolveEventConversationRef ignores whitespace local-user payload conversation ref', () => {
+    const event = buildEvent({
+      type: 'local-user-message',
+      payload: {
+        text: 'hello',
+        conversation_ref: '   ',
+      },
     });
     expect(resolveEventConversationRef(event)).toBeNull();
   });
