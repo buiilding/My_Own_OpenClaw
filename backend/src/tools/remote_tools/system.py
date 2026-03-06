@@ -4,16 +4,62 @@ Remote system-domain tool stubs.
 
 from __future__ import annotations
 
+from typing import Any, Type
+
 from backend.src.sdk.context import ToolContext
 from backend.src.sdk.tool import Tool
 from backend.src.tools.categorization import ToolDomain
+from backend.src.tools.filesystem.schemas import ReadFileArgs, ReplaceArgs
 from backend.src.tools.remote_tools.base import RemoteToolBase, RemoteToolResult
 from backend.src.tools.system.schemas import (
+    GetOpenWindowsArgs,
     GetSystemStatsArgs,
     OpenAppArgs,
     ProcessShellCommandArgs,
     RunShellCommandArgs,
+    SystemUseArgs,
 )
+
+_SYSTEM_USE_MODEL_BY_TOOL: dict[str, Type[Any]] = {
+    "run_shell_command": RunShellCommandArgs,
+    "replace": ReplaceArgs,
+    "replace_file": ReplaceArgs,
+    "read_file": ReadFileArgs,
+    "get_system_stats": GetSystemStatsArgs,
+    "get_open_windows": GetOpenWindowsArgs,
+}
+
+_SYSTEM_USE_TARGET_TOOL_BY_TOOL: dict[str, str] = {
+    "run_shell_command": "run_shell_command",
+    "replace": "replace",
+    "replace_file": "replace",
+    "read_file": "read_file",
+    "get_system_stats": "get_system_stats",
+    "get_open_windows": "get_open_windows",
+}
+
+
+class RemoteSystemUseTool(RemoteToolBase, Tool[SystemUseArgs]):
+    name = "system_use"
+    description = (
+        "Unified system/filesystem tool. Select concrete action via `tool` and pass "
+        "action arguments via `arguments`. Supports: run_shell_command, replace "
+        "(or replace_file alias), read_file, get_system_stats, get_open_windows."
+    )
+    args_model = SystemUseArgs
+    category = ToolDomain.SYSTEM
+
+    async def execute_remote(self, args: SystemUseArgs, ctx: ToolContext) -> RemoteToolResult:
+        tool_name = args.tool
+        model = _SYSTEM_USE_MODEL_BY_TOOL[tool_name]
+        target_tool_name = _SYSTEM_USE_TARGET_TOOL_BY_TOOL[tool_name]
+        validated_args = model.model_validate(args.arguments)
+        request_id = self._get_request_id(ctx)
+        return RemoteToolResult(
+            tool_name=target_tool_name,
+            args=validated_args.model_dump(),
+            request_id=request_id,
+        )
 
 
 class RemoteGetSystemStatsTool(RemoteToolBase, Tool[GetSystemStatsArgs]):

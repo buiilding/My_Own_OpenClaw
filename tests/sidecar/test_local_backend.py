@@ -11,6 +11,7 @@ from local_backend import LocalBackend  # noqa: E402
 from tools.registry import (  # noqa: E402
     COMPUTER_USE_REQUIRED_METADATA_FIELDS,
     COMPUTER_USE_SUBTOOLS,
+    SYSTEM_USE_SUBTOOLS,
     ToolRegistry,
 )
 from tools.result import ToolResult  # noqa: E402
@@ -313,6 +314,25 @@ async def test_handle_execute_tool_preserves_computer_use_envelope_fields():
     assert backend.tool_registry.execute_calls == [("computer_use", envelope)]
 
 
+@pytest.mark.asyncio
+async def test_handle_execute_tool_preserves_system_use_envelope_fields():
+    backend = LocalBackend()
+    backend.tool_registry = DummyRegistry(ToolResult.success_result({"ok": True}))
+    envelope = {
+        "tool": "run_shell_command",
+        "arguments": {
+            "command": "echo hi",
+            "run_in_background": False,
+            "explanation": "verify route",
+        },
+    }
+
+    result = await backend._handle_execute_tool("system_use", envelope)
+
+    assert result == {"success": True, "data": {"ok": True}}
+    assert backend.tool_registry.execute_calls == [("system_use", envelope)]
+
+
 def test_computer_use_sidecar_contract_stays_in_sync_with_backend_unified_schema():
     from backend.src.tools.computer.unified_schema import (  # noqa: E402
         get_unified_computer_use_function_declaration,
@@ -326,6 +346,19 @@ def test_computer_use_sidecar_contract_stays_in_sync_with_backend_unified_schema
     assert parameters["required"] == ["tool", "metadata"]
     assert tuple(metadata["required"]) == COMPUTER_USE_REQUIRED_METADATA_FIELDS
     assert set(tool_enum) == COMPUTER_USE_SUBTOOLS
+
+
+def test_system_use_sidecar_contract_stays_in_sync_with_backend_unified_schema():
+    from backend.src.tools.system.unified_schema import (  # noqa: E402
+        get_unified_system_use_function_declaration,
+    )
+
+    declaration = get_unified_system_use_function_declaration()
+    parameters = declaration["function"]["parameters"]
+    tool_enum = parameters["properties"]["tool"]["enum"]
+
+    assert parameters["required"] == ["tool"]
+    assert set(tool_enum) == SYSTEM_USE_SUBTOOLS
 
 
 @pytest.mark.asyncio

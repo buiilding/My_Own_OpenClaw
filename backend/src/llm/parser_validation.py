@@ -18,6 +18,16 @@ _UNIFIED_COMPUTER_SUBTOOLS = frozenset(
         "wait",
     }
 )
+_UNIFIED_SYSTEM_TOOL_NAME = "system_use"
+_UNIFIED_SYSTEM_SUBTOOLS = frozenset(
+    {
+        "run_shell_command",
+        "replace",
+        "read_file",
+        "get_system_stats",
+        "get_open_windows",
+    }
+)
 _COMPUTER_REQUIRED_METADATA_FIELDS = frozenset(
     {
         "description",
@@ -179,6 +189,10 @@ class ToolCallValidator:
         if _UNIFIED_COMPUTER_TOOL_NAME in filtered_tool_names:
             filtered_tool_names = sorted(
                 set(filtered_tool_names) | _UNIFIED_COMPUTER_SUBTOOLS
+            )
+        if _UNIFIED_SYSTEM_TOOL_NAME in filtered_tool_names:
+            filtered_tool_names = sorted(
+                set(filtered_tool_names) | _UNIFIED_SYSTEM_SUBTOOLS
             )
         return filtered_tool_names
 

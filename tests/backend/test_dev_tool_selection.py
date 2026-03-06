@@ -25,7 +25,7 @@ def test_load_tool_selection_allowlist_filters(tmp_path: Path):
     p.write_text('enabled = true\nmode = "allowlist"\ntools = ["read_file"]\n', encoding="utf-8")
     selection = load_tool_selection(p)
     assert selection is not None
-    assert selection.filter_tool_names(["read_file", "write_file"]) == ["read_file"]
+    assert selection.filter_tool_names(["read_file", "write_file"]) == ["system_use"]
 
 
 def test_load_tool_selection_mouse_coordinate_methods(tmp_path: Path):

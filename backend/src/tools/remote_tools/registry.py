@@ -27,6 +27,7 @@ from backend.src.tools.remote_tools.system import (
     RemoteOpenAppTool,
     RemoteProcessTool,
     RemoteShellTool,
+    RemoteSystemUseTool,
 )
 
 REMOTE_TOOLS: Dict[str, Type[Tool]] = {
@@ -37,6 +38,7 @@ REMOTE_TOOLS: Dict[str, Type[Tool]] = {
     "scroll_control": RemoteScrollTool,
     "switch_tab": RemoteSwitchTabTool,
     "wait": RemoteWaitTool,
+    "system_use": RemoteSystemUseTool,
     "get_open_windows": RemoteGetOpenWindowsTool,
     "get_system_stats": RemoteGetSystemStatsTool,
     "open_app": RemoteOpenAppTool,

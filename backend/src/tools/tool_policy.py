@@ -31,6 +31,17 @@ _LEGACY_COMPUTER_TOOL_NAMES = frozenset(
     }
 )
 _UNIFIED_COMPUTER_TOOL_NAME = "computer_use"
+_LEGACY_SYSTEM_TOOL_NAMES = frozenset(
+    {
+        "run_shell_command",
+        "replace",
+        "replace_file",
+        "read_file",
+        "get_system_stats",
+        "get_open_windows",
+    }
+)
+_UNIFIED_SYSTEM_TOOL_NAME = "system_use"
 
 
 @dataclass(slots=True)
@@ -63,6 +74,7 @@ class ToolPolicy:
         """
         filtered = list(tool_names)
         filtered = self._normalize_unified_computer_use_names(filtered)
+        filtered = self._normalize_unified_system_use_names(filtered)
         allowlist = self._get_interaction_allowlist()
         if allowlist is not None:
             filtered = [name for name in filtered if name in allowlist]
@@ -86,7 +98,7 @@ class ToolPolicy:
             filtered = [
                 schema
                 for schema in filtered
-                if self._extract_tool_name(schema) in allowlist
+                if self._normalize_tool_name(self._extract_tool_name(schema)) in allowlist
             ]
 
         effective_selection = self._resolve_selection(selection)
@@ -170,14 +182,18 @@ class ToolPolicy:
         if allowlist is None:
             return None
         if isinstance(allowlist, set):
-            return self._normalize_unified_computer_use_name_set(allowlist)
+            return self._normalize_unified_system_use_name_set(
+                self._normalize_unified_computer_use_name_set(allowlist)
+            )
         if isinstance(allowlist, (list, tuple)):
             normalized = {
                 name
                 for name in allowlist
                 if isinstance(name, str)
             }
-            return self._normalize_unified_computer_use_name_set(normalized)
+            return self._normalize_unified_system_use_name_set(
+                self._normalize_unified_computer_use_name_set(normalized)
+            )
         return None
 
     @staticmethod
@@ -205,6 +221,30 @@ class ToolPolicy:
         return normalized
 
     @staticmethod
+    def _normalize_unified_system_use_names(tool_names: Sequence[str]) -> List[str]:
+        normalized: List[str] = []
+        saw_legacy = False
+        saw_unified = False
+        for name in tool_names:
+            if name in _LEGACY_SYSTEM_TOOL_NAMES:
+                saw_legacy = True
+                continue
+            if name == _UNIFIED_SYSTEM_TOOL_NAME:
+                saw_unified = True
+            normalized.append(name)
+        if saw_legacy and not saw_unified:
+            normalized.append(_UNIFIED_SYSTEM_TOOL_NAME)
+        return normalized
+
+    @staticmethod
+    def _normalize_unified_system_use_name_set(tool_names: set[str]) -> set[str]:
+        normalized = set(tool_names)
+        if normalized & _LEGACY_SYSTEM_TOOL_NAMES:
+            normalized -= _LEGACY_SYSTEM_TOOL_NAMES
+            normalized.add(_UNIFIED_SYSTEM_TOOL_NAME)
+        return normalized
+
+    @staticmethod
     def _extract_tool_name(schema: Dict[str, Any]) -> Optional[str]:
         """Extract canonical tool name from OpenAI/LiteLLM tool object."""
         function_schema = schema.get("function")
@@ -212,3 +252,11 @@ class ToolPolicy:
             return None
         tool_name = function_schema.get("name")
         return tool_name if isinstance(tool_name, str) else None
+
+    @staticmethod
+    def _normalize_tool_name(tool_name: Optional[str]) -> Optional[str]:
+        if tool_name in _LEGACY_COMPUTER_TOOL_NAMES:
+            return _UNIFIED_COMPUTER_TOOL_NAME
+        if tool_name in _LEGACY_SYSTEM_TOOL_NAMES:
+            return _UNIFIED_SYSTEM_TOOL_NAME
+        return tool_name

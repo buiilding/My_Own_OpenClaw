@@ -15,6 +15,18 @@ _COMPUTER_SUBTOOLS = {
     "switch_tab",
     "wait",
 }
+_SYSTEM_USE_TOOL_NAME = "system_use"
+_SYSTEM_SUBTOOLS = {
+    "run_shell_command",
+    "replace",
+    "replace_file",
+    "read_file",
+    "get_system_stats",
+    "get_open_windows",
+}
+_SYSTEM_SUBTOOL_ALIAS_TO_CONCRETE = {
+    "replace_file": "replace",
+}
 
 
 @dataclass
@@ -100,6 +112,11 @@ class ToolCallSchema:
                 if normalized is None:
                     return None
                 return normalized
+            if normalized_tool_name == _SYSTEM_USE_TOOL_NAME:
+                normalized = self._normalize_unified_system_use(args, metadata)
+                if normalized is None:
+                    return None
+                return normalized
 
             return (normalized_tool_name, args, metadata)
 
@@ -124,6 +141,30 @@ class ToolCallSchema:
         normalized_tool_name = tool_name.strip()
         if not normalized_tool_name or normalized_tool_name not in _COMPUTER_SUBTOOLS:
             return None
+
+        arguments = args.get("arguments")
+        if arguments is None:
+            arguments = {}
+        if not isinstance(arguments, dict):
+            return None
+
+        return normalized_tool_name, copy.deepcopy(arguments), metadata
+
+    @staticmethod
+    def _normalize_unified_system_use(
+        args: Dict[str, Any],
+        metadata: Optional[Dict[str, Any]],
+    ) -> Optional[Tuple[str, Dict[str, Any], Optional[Dict[str, Any]]]]:
+        tool_name = args.get("tool")
+        if not isinstance(tool_name, str):
+            return None
+        normalized_tool_name = tool_name.strip()
+        if not normalized_tool_name or normalized_tool_name not in _SYSTEM_SUBTOOLS:
+            return None
+        normalized_tool_name = _SYSTEM_SUBTOOL_ALIAS_TO_CONCRETE.get(
+            normalized_tool_name,
+            normalized_tool_name,
+        )
 
         arguments = args.get("arguments")
         if arguments is None:

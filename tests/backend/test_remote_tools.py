@@ -12,11 +12,13 @@ from backend.src.tools.remote import (
     get_remote_tool,
 )
 from backend.src.tools.remote_tools.computer import RemoteComputerUseTool
+from backend.src.tools.remote_tools.system import RemoteSystemUseTool
 from backend.src.tools.computer.schemas import (
     ComputerUseArgs,
     MouseControlArgs,
     ScrollControlArgs,
 )
+from backend.src.tools.system.schemas import SystemUseArgs
 
 
 def _make_context(metadata=None):
@@ -294,6 +296,67 @@ async def test_remote_computer_use_run_revalidates_selected_tool_arguments():
             "arguments": {
                 "action": "click",
                 "x": 10,
+            },
+        }
+    )
+
+    with pytest.raises(ValidationError):
+        await tool.run(args, ctx)
+
+
+def test_remote_system_use_schema_includes_replace_file_alias_and_supported_tools():
+    tool = RemoteSystemUseTool()
+    schema = tool.get_json_schema()
+    function = schema["function"]
+    params = function["parameters"]["properties"]
+
+    assert function["name"] == "system_use"
+    assert "replace_file alias" in function["description"]
+    assert set(params["tool"]["enum"]) == {
+        "run_shell_command",
+        "replace",
+        "replace_file",
+        "read_file",
+        "get_system_stats",
+        "get_open_windows",
+    }
+    assert params["arguments"]["type"] == "object"
+
+
+@pytest.mark.asyncio
+async def test_remote_system_use_run_routes_replace_file_alias_to_replace():
+    ctx = _make_context(metadata={"request_id": "req-system-1"})
+    tool = RemoteSystemUseTool()
+    args = SystemUseArgs.model_validate(
+        {
+            "tool": "replace_file",
+            "arguments": {
+                "file_path": "/tmp/example.txt",
+                "old_string": "old",
+                "new_string": "new",
+                "explanation": "apply update",
+            },
+        }
+    )
+
+    result = await tool.run(args, ctx)
+
+    assert result.tool_name == "replace"
+    assert result.request_id == "req-system-1"
+    assert result.args["file_path"] == "/tmp/example.txt"
+    assert result.args["old_string"] == "old"
+    assert result.args["new_string"] == "new"
+
+
+@pytest.mark.asyncio
+async def test_remote_system_use_run_revalidates_selected_tool_arguments():
+    ctx = _make_context(metadata={"request_id": "req-system-2"})
+    tool = RemoteSystemUseTool()
+    args = SystemUseArgs.model_validate(
+        {
+            "tool": "run_shell_command",
+            "arguments": {
+                "command": "echo hi",
             },
         }
     )

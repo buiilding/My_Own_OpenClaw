@@ -18,6 +18,9 @@ from backend.src.tools.remote import get_all_remote_tools
 from backend.src.tools.computer.unified_schema import (
     get_unified_computer_use_function_declaration,
 )
+from backend.src.tools.system.unified_schema import (
+    get_unified_system_use_function_declaration,
+)
 
 logger = logging.getLogger(__name__)
 _LEGACY_COMPUTER_TOOL_NAMES = frozenset(
@@ -31,6 +34,17 @@ _LEGACY_COMPUTER_TOOL_NAMES = frozenset(
     }
 )
 _UNIFIED_COMPUTER_TOOL_NAME = "computer_use"
+_LEGACY_SYSTEM_TOOL_NAMES = frozenset(
+    {
+        "run_shell_command",
+        "replace",
+        "replace_file",
+        "read_file",
+        "get_system_stats",
+        "get_open_windows",
+    }
+)
+_UNIFIED_SYSTEM_TOOL_NAME = "system_use"
 
 
 class ToolRegistry:
@@ -134,7 +148,7 @@ class ToolRegistry:
             List of function declaration dictionaries
         """
         declarations = self.schema_registry.get_declarations(self.get_all_tools())
-        return self._collapse_unified_computer_use_declarations(declarations)
+        return self._collapse_unified_declarations(declarations)
 
     def get_function_declarations_filtered(
         self, tool_names: List[str]
@@ -151,7 +165,7 @@ class ToolRegistry:
         tool_name_set = self._normalize_requested_tool_names(tool_names)
         filtered_tools = [tool for tool in self.get_all_tools() if tool.name in tool_name_set]
         declarations = self.schema_registry.get_declarations(filtered_tools)
-        return self._collapse_unified_computer_use_declarations(declarations)
+        return self._collapse_unified_declarations(declarations)
 
     def is_tool_available(self, tool_name: str) -> bool:
         """Check if a tool is available."""
@@ -197,6 +211,7 @@ class ToolRegistry:
             "parameters": parameters,
             "requires_context": True,
         }
+
     @staticmethod
     def _collapse_unified_computer_use_declarations(
         declarations: List[Dict[str, Any]],
@@ -229,6 +244,46 @@ class ToolRegistry:
         return collapsed
 
     @staticmethod
+    def _collapse_unified_system_use_declarations(
+        declarations: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        has_unified = any(
+            isinstance(item, dict)
+            and isinstance(item.get("function"), dict)
+            and item["function"].get("name") == _UNIFIED_SYSTEM_TOOL_NAME
+            for item in declarations
+        )
+        if not has_unified:
+            return declarations
+
+        canonical_unified = get_unified_system_use_function_declaration()
+        appended_unified = False
+        collapsed: List[Dict[str, Any]] = []
+        for item in declarations:
+            fn = item.get("function") if isinstance(item, dict) else None
+            fn_name = fn.get("name") if isinstance(fn, dict) else None
+            if isinstance(fn_name, str) and fn_name in _LEGACY_SYSTEM_TOOL_NAMES:
+                continue
+            if fn_name == _UNIFIED_SYSTEM_TOOL_NAME:
+                if not appended_unified:
+                    collapsed.append(canonical_unified)
+                    appended_unified = True
+                continue
+            collapsed.append(item)
+        if not appended_unified:
+            collapsed.append(canonical_unified)
+        return collapsed
+
+    @classmethod
+    def _collapse_unified_declarations(
+        cls,
+        declarations: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        collapsed = cls._collapse_unified_computer_use_declarations(declarations)
+        collapsed = cls._collapse_unified_system_use_declarations(collapsed)
+        return collapsed
+
+    @staticmethod
     def _normalize_requested_tool_names(tool_names: List[str]) -> set[str]:
         normalized = {
             name
@@ -238,4 +293,7 @@ class ToolRegistry:
         if normalized & _LEGACY_COMPUTER_TOOL_NAMES:
             normalized -= _LEGACY_COMPUTER_TOOL_NAMES
             normalized.add(_UNIFIED_COMPUTER_TOOL_NAME)
+        if normalized & _LEGACY_SYSTEM_TOOL_NAMES:
+            normalized -= _LEGACY_SYSTEM_TOOL_NAMES
+            normalized.add(_UNIFIED_SYSTEM_TOOL_NAME)
         return normalized

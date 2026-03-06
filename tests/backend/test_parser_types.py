@@ -413,3 +413,93 @@ def test_extract_tool_call_unified_computer_use_ignores_non_dict_top_level_metad
     extracted = schema.extract_tool_call(payload)
 
     assert extracted == ("mouse_control", {"action": "click", "x": 3, "y": 4}, None)
+
+
+def test_extract_tool_call_unified_system_use_maps_to_concrete_tool():
+    schema = ToolCallSchema()
+    payload = {
+        "functionCall": {
+            "name": "system_use",
+            "args": {
+                "tool": "run_shell_command",
+                "arguments": {
+                    "command": "echo hi",
+                    "run_in_background": False,
+                    "explanation": "verify shell",
+                },
+            },
+        }
+    }
+
+    extracted = schema.extract_tool_call(payload)
+
+    assert extracted == (
+        "run_shell_command",
+        {
+            "command": "echo hi",
+            "run_in_background": False,
+            "explanation": "verify shell",
+        },
+        None,
+    )
+
+
+def test_extract_tool_call_unified_system_use_maps_replace_file_alias_to_replace():
+    schema = ToolCallSchema()
+    payload = {
+        "functionCall": {
+            "name": "system_use",
+            "args": {
+                "tool": "replace_file",
+                "arguments": {
+                    "file_path": "/tmp/a",
+                    "old_string": "x",
+                    "new_string": "y",
+                    "explanation": "apply patch",
+                },
+            },
+        }
+    }
+
+    extracted = schema.extract_tool_call(payload)
+
+    assert extracted == (
+        "replace",
+        {
+            "file_path": "/tmp/a",
+            "old_string": "x",
+            "new_string": "y",
+            "explanation": "apply patch",
+        },
+        None,
+    )
+
+
+def test_extract_tool_call_unified_system_use_rejects_unknown_subtool():
+    schema = ToolCallSchema()
+    payload = {
+        "functionCall": {
+            "name": "system_use",
+            "args": {
+                "tool": "unknown_system_action",
+                "arguments": {},
+            },
+        }
+    }
+
+    assert schema.extract_tool_call(payload) is None
+
+
+def test_extract_tool_call_unified_system_use_rejects_non_dict_arguments():
+    schema = ToolCallSchema()
+    payload = {
+        "functionCall": {
+            "name": "system_use",
+            "args": {
+                "tool": "read_file",
+                "arguments": "not-an-object",
+            },
+        }
+    }
+
+    assert schema.extract_tool_call(payload) is None

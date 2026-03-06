@@ -43,6 +43,15 @@ _COMPUTER_SUBTOOLS = {
     "switch_tab",
     "wait",
 }
+_SYSTEM_USE_TOOL_NAME = "system_use"
+_SYSTEM_SUBTOOL_TO_CONCRETE = {
+    "run_shell_command": "run_shell_command",
+    "replace": "replace",
+    "replace_file": "replace",
+    "read_file": "read_file",
+    "get_system_stats": "get_system_stats",
+    "get_open_windows": "get_open_windows",
+}
 _COMPUTER_REQUIRED_METADATA_FIELDS = (
     "description",
     "explanation",
@@ -155,6 +164,18 @@ def to_parsed_tool_call(tool_call: Dict[str, Any]) -> ParsedToolCall:
             parameters = copy.deepcopy(mapped_args)
         else:
             parameters = {}
+
+    if normalized_tool_name == _SYSTEM_USE_TOOL_NAME:
+        mapped_tool = parameters.get("tool")
+        mapped_args = parameters.get("arguments")
+        if isinstance(mapped_tool, str):
+            mapped_tool_name = _SYSTEM_SUBTOOL_TO_CONCRETE.get(mapped_tool.strip())
+            if mapped_tool_name is not None:
+                normalized_tool_name = mapped_tool_name
+                if isinstance(mapped_args, dict):
+                    parameters = copy.deepcopy(mapped_args)
+                else:
+                    parameters = {}
 
     if normalized_tool_name in _COMPUTER_SUBTOOLS:
         normalized_metadata, has_all_required_metadata = _normalize_computer_metadata(

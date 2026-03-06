@@ -24,6 +24,25 @@ async def test_parse_response_pure_json_tool_call():
 
 
 @pytest.mark.asyncio
+async def test_parse_response_maps_unified_system_use_to_concrete_tool():
+    parser = _make_parser([DummyTool("system_use", ToolDomain.SYSTEM)])
+    response = (
+        '{"functionCall":{"name":"system_use","args":{"tool":"run_shell_command",'
+        '"arguments":{"command":"echo hi","run_in_background":false,"explanation":"verify shell"}}}}'
+    )
+
+    parsed = await parser.parse_response(response)
+    assert parsed.has_tool_calls is True
+    assert len(parsed.tool_calls) == 1
+    assert parsed.tool_calls[0].tool_name == "run_shell_command"
+    assert parsed.tool_calls[0].parameters == {
+        "command": "echo hi",
+        "run_in_background": False,
+        "explanation": "verify shell",
+    }
+
+
+@pytest.mark.asyncio
 async def test_parse_response_embedded_json_multiple_calls():
     parser = _make_parser(
         [
