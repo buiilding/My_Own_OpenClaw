@@ -214,6 +214,34 @@ describe('local_backend_bridge RPC handlers', () => {
     await expect(promise).resolves.toEqual({ success: true, data: { ok: true } });
   });
 
+  test('execute-tool preserves malformed computer_use envelope for sidecar validation', async () => {
+    const { handlers, stdoutHandler } = initBridge();
+    markReady();
+
+    const envelope = {
+      tool: 'mouse_control_typo',
+      metadata: {
+        description: 'screen visible',
+        explanation: 'click submit',
+        expectation: 'modal opens',
+      },
+      arguments: 'not-a-dict',
+    };
+
+    const promise = handlers['execute-tool'](null, {
+      toolName: 'computer_use',
+      args: envelope,
+    });
+
+    expectLastRequestWith('execute_tool', {
+      tool_name: 'computer_use',
+      args: envelope,
+    });
+
+    emitRpcResult(stdoutHandler, { success: false, error: 'computer_use.arguments must be an object' });
+    await expect(promise).resolves.toEqual({ success: false, error: 'computer_use.arguments must be an object' });
+  });
+
   test('passes resolved backend http URL to Python sidecar env', () => {
     process.env.BACKEND_HOST = '192.168.1.55';
     process.env.BACKEND_PORT = '8811';
