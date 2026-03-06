@@ -147,6 +147,7 @@ Route-level expectations in `tests/backend/test_run_control_routes.py` validate 
 ## Related Pages
 
 - [Runs Route and VM Control Service Reference](runs_route_and_vm_control_service_reference.md)
+- [Runs Route Helper Validation and Incremental Events Projection Contract Reference](runs_route_helper_validation_and_incremental_events_projection_contract_reference.md)
 - [Runs Route Support Helpers and API-Key Guard Reference](runs_route_support_helpers_and_api_key_guard_reference.md)
 - [Runs Route Models and Package Export Contract Reference](runs_route_models_and_package_export_contract_reference.md)
 - [Backend API Docs Hub](README.md)
