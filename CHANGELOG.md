@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-local-backend-window-visibility-module-canonical-path-sync): update main/inventory docs to use `local_backend_bridge_window_visibility.cjs` as the canonical module path (instead of compatibility alias `local_backend_bridge_windows.cjs`) and align capability matrix wording with screenshot visibility runtime wrapper ownership.
 - docs(frontend-screenshot-runtime-inventory-and-jsonrpc-contract-sync): align inventory, JSON-RPC, and local-backend RPC/lifecycle docs with current screenshot visibility runtime ownership (main-process wrapper pass-through, renderer-owned Linux hide/show orchestration) and remove stale Linux hide/restore claims.
 - test(frontend-electron-launcher-headless-no-xvfb-direct-launch): add Linux launcher regression ensuring headless sessions without `xvfb-run` availability fall back to direct Electron execution instead of attempting wrapper-only launch behavior.
 - test(frontend-tool-result-envelope-structured-clone-fallback-contract): add frontend regression that forces `structuredClone` absence and verifies `ToolResultEnvelope` builders still deep-clone payloads through fallback logic, preventing mutation leaks on runtimes without native `structuredClone`.

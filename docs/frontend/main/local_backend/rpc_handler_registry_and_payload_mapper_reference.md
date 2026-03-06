@@ -13,7 +13,7 @@ title: "Local-Backend RPC Handler Registry and Payload-Mapper Reference"
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/local_backend_bridge_tool_args.cjs`
-- `frontend/src/main/local_backend_bridge_windows.cjs`
+- `frontend/src/main/local_backend_bridge_window_visibility.cjs`
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`
 - `tests/frontend/LocalBackendBridgeToolArgs.test.cjs`
 

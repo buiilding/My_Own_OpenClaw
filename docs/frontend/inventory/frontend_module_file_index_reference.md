@@ -58,7 +58,7 @@ Bridge/support modules:
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/local_backend_bridge_utils.cjs`
-- `frontend/src/main/local_backend_bridge_windows.cjs`
+- `frontend/src/main/local_backend_bridge_window_visibility.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
 - `frontend/src/main/permission_service.cjs`
 - `frontend/src/main/ipc/ipc_query_events.cjs`
