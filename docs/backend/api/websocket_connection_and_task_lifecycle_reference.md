@@ -10,7 +10,7 @@ title: "WebSocket Connection and Task Lifecycle Reference"
 
 ## Canonical Modules
 
-- `backend/src/api/routes/websocket/__init__.py`
+- `backend/src/api/routes/websocket/router.py`
 - `backend/src/api/routes/websocket/connection.py`
 - `backend/src/api/routes/websocket/message_handler.py`
 - `backend/src/api/routes/websocket/task_manager.py`

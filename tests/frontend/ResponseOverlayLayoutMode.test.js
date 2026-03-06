@@ -2,7 +2,7 @@ import {
   isCompactHoverLayoutMode,
   RESPONSE_OVERLAY_LAYOUT_MODE,
   resolveResponseOverlayLayoutMode,
-} from '../../frontend/src/renderer/features/chat/utils/responseOverlayLayoutMode';
+} from '../../frontend/src/renderer/features/chat/utils/overlay/responseOverlayLayoutMode';
 
 describe('responseOverlayLayoutMode', () => {
   test('resolves response mode when response content is visible', () => {

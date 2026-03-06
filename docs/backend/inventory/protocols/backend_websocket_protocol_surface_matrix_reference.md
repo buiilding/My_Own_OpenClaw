@@ -19,7 +19,7 @@ title: "Backend WebSocket Protocol Surface Matrix Reference"
 
 This page maps the live websocket protocol owned by backend runtime code:
 
-- Handshake + lifecycle: `backend/src/api/routes/websocket/__init__.py`, `backend/src/api/routes/websocket/connection.py`
+- Handshake + lifecycle: `backend/src/api/routes/websocket/router.py`, `backend/src/api/routes/websocket/connection.py`
 - Incoming parsing/validation: `backend/src/api/routes/websocket/message_handler.py`
 - Message envelope primitives: `backend/src/api/schemas/common.py`
 - Incoming/outgoing schema unions: `backend/src/api/schemas/incoming.py`, `backend/src/api/schemas/outgoing.py`, `backend/src/api/schemas/__init__.py`

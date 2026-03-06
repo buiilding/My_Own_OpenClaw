@@ -89,12 +89,12 @@ backend/src/api/
 
 ```
 1. CLIENT CONNECTION
-   └─> routes/websocket/__init__.py
+   └─> routes/websocket/router.py
        ├─> routes/websocket/connection.py (handshake, user_id extraction)
        └─> routes/websocket/task_manager.py (initialize task tracking)
 
 2. MESSAGE RECEIVED
-   └─> routes/websocket/__init__.py (main loop)
+   └─> routes/websocket/router.py (main loop)
        └─> routes/websocket/message_handler.py
            ├─> parse_and_validate_message() (JSON parsing, Pydantic validation)
            └─> handle_message() (route to handler)

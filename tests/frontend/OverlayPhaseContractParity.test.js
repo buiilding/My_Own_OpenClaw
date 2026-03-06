@@ -3,7 +3,7 @@
 import {
   RESPONSE_OVERLAY_METADATA_KEYS as rendererMetadataKeys,
   RESPONSE_OVERLAY_PHASE as rendererPhaseEnum,
-} from '../../frontend/src/renderer/features/chat/utils/responseOverlayPhaseContract';
+} from '../../frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhaseContract';
 
 const {
   createResponseOverlayPhaseEnum,

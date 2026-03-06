@@ -27,7 +27,7 @@ title: "Backend Protocol Testing Hub"
 - `tests/backend/test_incoming_routing.py`
 - `tests/backend/test_outgoing_schema_contract.py`
 - `tests/backend/test_transport_envelope.py`
-- `backend/src/api/routes/websocket/__init__.py`
+- `backend/src/api/routes/websocket/router.py`
 - `backend/src/api/routes/websocket/message_handler.py`
 - `backend/src/api/transport/websocket.py`
 - `backend/src/core/container/incoming_routing.py`

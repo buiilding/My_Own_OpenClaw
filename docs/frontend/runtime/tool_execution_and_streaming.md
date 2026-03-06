@@ -87,7 +87,7 @@ Module:
 - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/windowVisibility.ts`
 - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/reasons.ts`
 - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/types.ts` (`SURFACE_PHASE` constants)
-- `frontend/src/renderer/features/chat/utils/responseOverlayLayoutMode.js`
+- `frontend/src/renderer/features/chat/utils/overlay/responseOverlayLayoutMode.js`
 
 Responsibilities:
 

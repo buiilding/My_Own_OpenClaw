@@ -17,7 +17,7 @@ title: "Backend WebSocket Receive Loop and Task Cancellation Contract Reference"
 
 Lifecycle contract sources:
 
-- Route entrypoint + loop: `backend/src/api/routes/websocket/__init__.py`
+- Route entrypoint + loop: `backend/src/api/routes/websocket/router.py`
 - Handshake: `backend/src/api/routes/websocket/connection.py`
 - Message parse/validate/dispatch: `backend/src/api/routes/websocket/message_handler.py`
 - Per-connection task tracking: `backend/src/api/routes/websocket/task_manager.py`
@@ -177,7 +177,7 @@ When changing lifecycle code, keep these aligned:
 | Lifecycle control path | Runtime owner | Lifecycle contract |
 |---|---|---|
 | handshake bootstrapping | `backend/src/api/routes/websocket/connection.py` | initial frame validation gates entry into receive loop with policy-close on failure |
-| receive-loop parse/dispatch pipeline | `backend/src/api/routes/websocket/__init__.py`, `message_handler.py` | message-size/parse/schema validation occurs before handler routing on every frame |
+| receive-loop parse/dispatch pipeline | `backend/src/api/routes/websocket/router.py`, `message_handler.py` | message-size/parse/schema validation occurs before handler routing on every frame |
 | per-connection task cap enforcement | `backend/src/api/routes/websocket/task_manager.py` | concurrent task limit blocks new requests safely without leaking coroutine warnings |
 | disconnect cancellation + session cleanup | websocket route cleanup + session manager | pending tasks are canceled with bounded timeout and session is ended once per disconnect |
 | serialized sender queue lifecycle | `backend/src/api/transport/websocket.py` | write serialization/backpressure prevents racey concurrent sends and fails fast on terminal sender errors |

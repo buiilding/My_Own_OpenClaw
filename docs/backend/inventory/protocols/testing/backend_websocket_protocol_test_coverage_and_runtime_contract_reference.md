@@ -17,7 +17,7 @@ title: "Backend WebSocket Protocol Test Coverage and Runtime Contract Reference"
 
 Primary runtime modules:
 
-- `backend/src/api/routes/websocket/__init__.py`
+- `backend/src/api/routes/websocket/router.py`
 - `backend/src/api/routes/websocket/message_handler.py`
 - `backend/src/api/transport/websocket.py`
 - `backend/src/core/container/incoming_routing.py`
@@ -52,7 +52,7 @@ Primary protocol tests:
 
 | Control path | Runtime owner | Primary test anchors |
 |---|---|---|
-| websocket idle timeout + cleanup lifecycle | `backend/src/api/routes/websocket/__init__.py` | `test_websocket_route.py` |
+| websocket idle timeout + cleanup lifecycle | `backend/src/api/routes/websocket/router.py` | `test_websocket_route.py` |
 | parse/validation gate + inbound schema enforcement | `backend/src/api/routes/websocket/message_handler.py` | `test_websocket_message_handler.py` |
 | route-table parity vs schema discriminators | `backend/src/core/container/incoming_routing.py` | `test_incoming_routing.py` |
 | transport sender queue safety + close semantics | `backend/src/api/transport/websocket.py` | `test_safe_websocket.py` |

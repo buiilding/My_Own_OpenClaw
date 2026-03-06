@@ -26,8 +26,8 @@ title: "Frontend Renderer Overlay Docs Hub"
 - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
 - `frontend/src/renderer/features/chat/components/chatbox/chatBoxResponseUtils.js`
-- `frontend/src/renderer/features/chat/utils/overlayPhaseListener.js`
-- `frontend/src/renderer/features/chat/utils/overlayFrameSize.js`
+- `frontend/src/renderer/features/chat/utils/overlay/overlayPhaseListener.js`
+- `frontend/src/renderer/features/chat/utils/overlay/overlayFrameSize.js`
 - `frontend/src/renderer/app/ToolGhostDebugApp.jsx`
 - `frontend/src/renderer/features/chat/components/ToolGhostCursor.jsx`
 - `frontend/src/renderer/features/chat/constants/toolGhostRuntime.ts`

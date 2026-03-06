@@ -11,7 +11,7 @@ title: "Task Manager Concurrency Limit, Rejected-Coroutine Close, and Cleanup Co
 ## Canonical Modules
 
 - `backend/src/api/routes/websocket/task_manager.py`
-- `backend/src/api/routes/websocket/__init__.py`
+- `backend/src/api/routes/websocket/router.py`
 - `tests/backend/test_websocket_task_manager.py`
 - `tests/backend/test_websocket_route.py`
 
