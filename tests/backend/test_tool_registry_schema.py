@@ -174,7 +174,9 @@ def test_tool_registry_computer_use_declaration_includes_metadata_fields():
     metadata = parameters["properties"]["metadata"]
 
     assert "metadata" in parameters["required"]
+    assert parameters["additionalProperties"] is False
     assert metadata["type"] == "object"
+    assert metadata["additionalProperties"] is False
     assert set(metadata["required"]) == {"description", "explanation", "expectation"}
     assert metadata["properties"]["description"]["type"] == "string"
     assert metadata["properties"]["description"]["minLength"] == 1
