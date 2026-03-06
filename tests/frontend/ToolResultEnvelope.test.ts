@@ -38,4 +38,26 @@ describe('ToolResultEnvelope', () => {
       payload: { request_id: 'req-3' },
     })).toBeNull();
   });
+
+  test('normalizes whitespace in envelope correlation ids', () => {
+    expect(resolveToolResultEnvelopeCorrelationId({
+      type: 'tool-result',
+      payload: { request_id: '  req-4  ' },
+    })).toBe('req-4');
+
+    expect(resolveToolResultEnvelopeCorrelationId({
+      type: 'tool-bundle-result',
+      payload: { bundle_id: '  bundle-4  ' },
+    })).toBe('bundle-4');
+
+    expect(resolveToolResultEnvelopeCorrelationId({
+      type: 'tool-result',
+      payload: { request_id: '   ' },
+    })).toBeNull();
+
+    expect(resolveToolResultEnvelopeCorrelationId({
+      type: 'tool-bundle-result',
+      payload: { bundle_id: '   ' },
+    })).toBeNull();
+  });
 });
