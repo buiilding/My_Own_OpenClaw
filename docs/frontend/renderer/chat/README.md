@@ -47,7 +47,9 @@ title: "Frontend Renderer Chat Docs Hub"
 - `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatCommonActions.ts`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
-- `frontend/src/renderer/features/chat/utils/chatMessageSenderUtils.ts`
+- `frontend/src/renderer/features/chat/utils/messageSender/chatMessageSenderUtils.ts`
+- `frontend/src/renderer/features/chat/utils/messageSender/chatMessageSenderPayloads.ts`
+- `frontend/src/renderer/features/chat/utils/messageSender/readableFileAttachmentContext.ts`
 - `frontend/src/renderer/features/chat/utils/chatLoopUiState.js`
 - `frontend/src/renderer/features/chat/utils/streamPhaseState.js`
 - `frontend/src/renderer/features/chat/utils/chatboxSurfaceState.js`

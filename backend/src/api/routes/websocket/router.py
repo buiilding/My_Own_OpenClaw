@@ -9,6 +9,10 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from backend.src.api.deps import HandlerRegistryDep, SessionManagerDep
 from backend.src.api.routes.websocket.connection import cleanup_connection, perform_handshake
+from backend.src.api.routes.websocket.loop_runtime import (
+    close_connection_on_timeout,
+    schedule_validated_message_task,
+)
 from backend.src.api.routes.websocket.message_handler import (
     handle_message,
     parse_and_validate_message,
@@ -26,17 +30,13 @@ async def _close_connection_on_timeout(
     user_id: str,
     websocket_receive_timeout: float,
 ) -> None:
-    """Close timed-out connections with policy-violation semantics."""
-    logger.info(
-        "Connection timeout for user %s (no data received in %ss)",
-        user_id,
-        websocket_receive_timeout,
+    """Compatibility wrapper retained for package-level monkeypatch tests."""
+    await close_connection_on_timeout(
+        safe_ws=safe_ws,
+        user_id=user_id,
+        websocket_receive_timeout=websocket_receive_timeout,
+        logger=logger,
     )
-    try:
-        await safe_ws.close(code=1008, reason="Connection timeout - no data received")
-    except Exception:
-        # Connection may already be closed.
-        pass
 
 
 @router.websocket("/ws")
@@ -70,10 +70,11 @@ async def websocket_endpoint(
                     timeout=websocket_receive_timeout,
                 )
             except asyncio.TimeoutError:
-                await _close_connection_on_timeout(
+                await close_connection_on_timeout(
                     safe_ws=safe_ws,
                     user_id=user_id,
                     websocket_receive_timeout=websocket_receive_timeout,
+                    logger=logger,
                 )
                 close_requested = True
                 break
@@ -89,25 +90,17 @@ async def websocket_endpoint(
             if not validated_msg:
                 continue
 
-            msg_id = validated_msg.id
-            task, limit_exceeded = await task_manager.create_task_if_under_limit(
-                handle_message(safe_ws, validated_msg, handler_registry, user_id),
-                user_id,
+            await schedule_validated_message_task(
+                task_manager=task_manager,
+                safe_ws=safe_ws,
+                validated_msg=validated_msg,
+                handler_registry=handler_registry,
+                user_id=user_id,
+                max_concurrent_tasks=max_concurrent_tasks,
+                send_error=send_error,
+                handle_message=handle_message,
+                logger=logger,
             )
-            if limit_exceeded:
-                logger.warning(
-                    "User %s exceeded max concurrent tasks (%s)",
-                    user_id,
-                    max_concurrent_tasks,
-                )
-                await send_error(
-                    safe_ws,
-                    msg_id,
-                    "Too many concurrent requests. Please wait.",
-                )
-                continue
-
-            _ = task
 
     except WebSocketDisconnect:
         logger.info("Client %s disconnected", user_id)

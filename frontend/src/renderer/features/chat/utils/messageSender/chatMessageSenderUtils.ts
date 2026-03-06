@@ -1,7 +1,7 @@
 import {
   normalizeArtifactImageContentType,
   resolveArtifactImageExtension,
-} from '../../../infrastructure/services/ArtifactImageUtils';
+} from '../../../../infrastructure/services/ArtifactImageUtils';
 import type { ChatMessage } from '../stores/chatStore';
 
 type UploadedArtifact = {

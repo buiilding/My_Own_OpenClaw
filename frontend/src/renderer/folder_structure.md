@@ -73,7 +73,10 @@ frontend/src/renderer/
 │   │   │
 │   │   └── utils/                       # Chat presentation/formatting selectors and helpers
 │   │       ├── backendAudioEvents.js    # backendAudioEvents - Validates/extracts audio-chunk payloads for playback
-│   │       ├── chatMessageSenderUtils.ts # chatMessageSenderUtils - User-message creation, first-message detection, and screenshot artifact mapping helpers
+│   │       ├── messageSender/            # messageSender - Payload normalization and attachment context/upload helper utilities
+│   │       │   ├── chatMessageSenderUtils.ts # chatMessageSenderUtils - User-message creation, first-message detection, and screenshot artifact mapping helpers
+│   │       │   ├── chatMessageSenderPayloads.ts # chatMessageSenderPayloads - Outgoing payload and attachment filename normalization
+│   │       │   └── readableFileAttachmentContext.ts # readableFileAttachmentContext - Hidden read_file attachment context assembly for readable file uploads
 │   │       ├── chatSelectors.js         # chatSelectors - Shared Zustand selectors for ChatInterface/ChatBox
 │   │       ├── chatStream/              # chatStream - Stream ingress/event/update/tracking/thinking/transparency utility helpers
 │   │       │   ├── chatStreamConversationGate.ts # chatStreamConversationGate - Active-conversation filtering helpers for backend stream events

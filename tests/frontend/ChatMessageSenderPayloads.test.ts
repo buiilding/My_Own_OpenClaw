@@ -1,8 +1,8 @@
 import {
-  buildReadableFileAttachmentContext,
   normalizeAttachmentFilenames,
   normalizeOutgoingPayload,
-} from '../../frontend/src/renderer/features/chat/utils/chatMessageSenderPayloads';
+} from '../../frontend/src/renderer/features/chat/utils/messageSender/chatMessageSenderPayloads';
+import { buildReadableFileAttachmentContext } from '../../frontend/src/renderer/features/chat/utils/messageSender/readableFileAttachmentContext';
 import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 
 describe('chatMessageSenderPayloads', () => {
