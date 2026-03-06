@@ -479,6 +479,55 @@ async def test_handle_execute_tool_computer_use_drops_non_required_metadata_fiel
 
 
 @pytest.mark.asyncio
+async def test_handle_execute_tool_computer_use_prevents_subtool_argument_mutation_leak():
+    backend = LocalBackend()
+    registry = ToolRegistry()
+    captured = {}
+
+    def mouse_tool(args):
+        captured["before"] = {
+            "action": args.get("action"),
+            "x": args.get("x"),
+            "nested": dict(args.get("nested", {})),
+        }
+        args["x"] = 999
+        nested = args.get("nested")
+        if isinstance(nested, dict):
+            nested["candidate_id"] = "mutated"
+        return ToolResult.success_result({"ok": True})
+
+    registry.tools["mouse_control"] = mouse_tool
+    backend.tool_registry = registry
+    envelope = {
+        "tool": "mouse_control",
+        "metadata": {
+            "description": "screen",
+            "explanation": "click target",
+            "expectation": "dialog opens",
+        },
+        "arguments": {
+            "action": "click",
+            "x": 10,
+            "nested": {"candidate_id": "cand-1"},
+        },
+    }
+
+    result = await backend._handle_execute_tool("computer_use", envelope)
+
+    assert result == {"success": True, "data": {"ok": True}}
+    assert captured["before"] == {
+        "action": "click",
+        "x": 10,
+        "nested": {"candidate_id": "cand-1"},
+    }
+    assert envelope["arguments"] == {
+        "action": "click",
+        "x": 10,
+        "nested": {"candidate_id": "cand-1"},
+    }
+
+
+@pytest.mark.asyncio
 async def test_handle_execute_tool_computer_use_rejects_nested_arguments_metadata_wrapper():
     backend = LocalBackend()
     registry = ToolRegistry()
