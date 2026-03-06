@@ -12,12 +12,13 @@ title: "Transcript Writer Queue Flush and Session Event Reference"
 
 - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
 - `frontend/src/renderer/infrastructure/transcript/transcriptRecordWrite.ts`
-- `frontend/src/renderer/infrastructure/transcript/transcriptPendingFlush.ts`
+- `frontend/src/renderer/infrastructure/transcript/pending/pendingTranscriptMessages.ts`
+- `frontend/src/renderer/infrastructure/transcript/pending/transcriptPendingFlush.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoStorage.ts`
-- `frontend/src/renderer/infrastructure/transcript/pendingUserQueue.ts`
-- `frontend/src/renderer/infrastructure/transcript/pendingAssistantQueue.ts`
-- `frontend/src/renderer/infrastructure/transcript/pendingToolQueue.ts`
+- `frontend/src/renderer/infrastructure/transcript/pending/pendingUserQueue.ts`
+- `frontend/src/renderer/infrastructure/transcript/pending/pendingAssistantQueue.ts`
+- `frontend/src/renderer/infrastructure/transcript/pending/pendingToolQueue.ts`
 - `frontend/src/renderer/infrastructure/transcript/types.ts`
 - `frontend/src/renderer/infrastructure/text/incomingTextNormalization.ts`
 - `frontend/src/renderer/features/dashboard/hooks/useTranscriptSessionInfo.js`
@@ -26,6 +27,7 @@ title: "Transcript Writer Queue Flush and Session Event Reference"
 - `tests/frontend/TranscriptWriter.tool.test.ts`
 - `tests/frontend/TranscriptSessionState.test.ts`
 - `tests/frontend/TranscriptStorage.test.ts`
+- `tests/frontend/TranscriptPendingFlush.test.ts`
 
 ## Session Identity State Machine
 
@@ -58,10 +60,12 @@ Session event boundary:
 - writer emits `window` custom event `transcript-session-update`
 - emission happens only when `(conversationRef,userId)` actually changed
 - dashboard hook `useTranscriptSessionInfo` consumes event with `useSyncExternalStore` and referentially-stable snapshots
+- local session changes are mirrored to main process over `SEND_CHANNELS.TRANSCRIPT_SESSION_SYNC`
+- inbound `ON_CHANNELS.TRANSCRIPT_SESSION_SYNC` updates are applied with rebroadcast disabled to avoid loopback storms
 
 ## Queue Families and FIFO Semantics
 
-Three independent in-memory queues:
+Three independent in-memory queues under `pending/`:
 
 - user queue
 - assistant queue
@@ -80,6 +84,14 @@ Drain behavior:
 
 ## Flush Pipeline (`flushPendingMessages`)
 
+`pendingTranscriptMessages.ts` owns queue orchestration and exports:
+
+- `hasPendingEntries()`
+- `queueUserMessageForRetry(...)`
+- `queueAssistantMessageForRetry(...)`
+- `queueToolMessageForRetry(...)`
+- `flushPendingMessages(sessionInfo)`
+
 Flush preconditions:
 
 - both `conversationRef` and `userId` are present
@@ -93,9 +105,8 @@ Flush order is strict and sequential:
 
 Shared flush helper boundary:
 
-- `transcriptPendingFlush.ts` owns:
-- `requeuePending(...)` FIFO requeue helper
-- `flushPendingEntries(...)` category-aware write loop + tail requeue + warning emission
+- `pending/transcriptPendingFlush.ts` owns `requeuePending(...)` for FIFO requeue.
+- `pending/transcriptPendingFlush.ts` owns `flushPendingEntries(...)` for category-aware write loops and tail requeue.
 
 Failure semantics:
 
@@ -126,6 +137,7 @@ Payload defaults:
 - screenshot ref is passed under IPC field `screenshot`
 - assistant/user/tool rows can include optional `transparency` metadata; writer normalizes and drops empty/non-object snapshots before IPC persistence.
 - text normalization in transcript payloads (mojibake + lone-surrogate repair + trim/null collapse) is delegated to shared `incomingTextNormalization.ts`, matching stream-update normalization behavior.
+- successful writes dispatch `window` custom event `transcript-entry-stored` with persisted identity + row metadata
 
 ## Session Update Entry Points
 
@@ -151,6 +163,8 @@ Payload defaults:
 - changed updates persist and emit `transcript-session-update`
 - redundant updates do not re-persist or re-emit
 - clearing conversation (`setActiveConversationRef(null)`) queues future writes until conversation restored
+- local transcript session updates send `transcript-session-sync` payloads to main process
+- inbound `transcript-session-sync` packets update local state without echo-send
 
 `TranscriptWriter.userAssistant.test.ts` validates:
 
@@ -158,6 +172,7 @@ Payload defaults:
 - immediate write failures are requeued and retried on later session updates
 - queued flush failures requeue remaining entries and preserve FIFO order
 - empty text writes are ignored
+- successful assistant writes emit `transcript-entry-stored`
 
 `TranscriptWriter.tool.test.ts` validates:
 
@@ -176,6 +191,12 @@ Payload defaults:
 - malformed payload fallback to null-state
 - storage errors are non-fatal
 - custom session-update event emission payload
+
+`TranscriptPendingFlush.test.ts` validates:
+
+- ordered `requeuePending(...)` behavior
+- success path for `flushPendingEntries(...)`
+- failure-tail requeue behavior for `flushPendingEntries(...)`
 
 ## Drift Hotspots
 

@@ -15,9 +15,11 @@ title: "Transcript Session and Rehydrate Reference"
 - `frontend/src/renderer/infrastructure/transcript/conversationTranscriptLoader.js`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoStorage.ts`
-- `frontend/src/renderer/infrastructure/transcript/pendingUserQueue.ts`
-- `frontend/src/renderer/infrastructure/transcript/pendingAssistantQueue.ts`
-- `frontend/src/renderer/infrastructure/transcript/pendingToolQueue.ts`
+- `frontend/src/renderer/infrastructure/transcript/pending/pendingTranscriptMessages.ts`
+- `frontend/src/renderer/infrastructure/transcript/pending/pendingUserQueue.ts`
+- `frontend/src/renderer/infrastructure/transcript/pending/pendingAssistantQueue.ts`
+- `frontend/src/renderer/infrastructure/transcript/pending/pendingToolQueue.ts`
+- `frontend/src/renderer/infrastructure/transcript/pending/transcriptPendingFlush.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js`
@@ -55,6 +57,7 @@ Session info is persisted/emitted only when changed:
 
 - writes to `sessionStorage`
 - dispatches browser event `transcript-session-update`
+- sends IPC event `transcript-session-sync` so main process session snapshots track renderer transcript identity
 
 Dashboard consumers subscribe via `useSyncExternalStore` (`useTranscriptSessionInfo`) for stable snapshot behavior.
 
@@ -89,6 +92,8 @@ Stored fields include:
   - `fullUserMessage`
   - `fullAssistantMessage`
 
+Successful writes dispatch browser event `transcript-entry-stored` so dashboard/chat consumers can refresh derived rows without a full reload.
+
 ## Queue and Retry Semantics
 
 Separate FIFO queues:
@@ -103,6 +108,7 @@ Flush behavior (`flushPendingMessages`):
 - no-op if identity incomplete or queues empty
 - fixed category order: user -> assistant -> tool
 - if a category fails mid-flush, remaining items in that category are requeued and later categories wait for next pass
+- flush helpers in `pending/transcriptPendingFlush.ts` requeue only unflushed message suffixes to prevent duplicate writes
 
 ## Call-Site Wiring Across Renderer
 
