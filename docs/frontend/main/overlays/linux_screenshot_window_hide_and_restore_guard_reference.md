@@ -1,3 +1,4 @@
+---
 summary: "Deep reference for screenshot visibility runtime dispatch used by local-backend screenshot execution: current platform pass-through behavior and renderer-owned Linux hide/restore ownership."
 read_when:
   - When changing `local_backend_bridge_window_visibility.cjs` or platform `screenshot_window_visibility/*` modules.
