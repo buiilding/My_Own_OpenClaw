@@ -388,6 +388,22 @@ describe('useToolRunner callback wiring', () => {
     expect(IpcBridge.send).not.toHaveBeenCalled();
   });
 
+  test('drops malformed correlated backend payloads with whitespace-only ids', () => {
+    renderToolRunner(true);
+    const callbacks = getCapturedServiceCallbacks();
+
+    callbacks.sendToBackend({
+      type: 'tool-result',
+      payload: { request_id: '   ', success: true, data: {} },
+    });
+    callbacks.sendToBackend({
+      type: 'tool-bundle-result',
+      payload: { bundle_id: ' \t ', status: 'success', step_results: [] },
+    });
+
+    expect(IpcBridge.send).not.toHaveBeenCalled();
+  });
+
   test('accepts tracked backend payloads when envelope correlation id is padded', async () => {
     renderToolRunner(true);
     const callbacks = getCapturedServiceCallbacks();
