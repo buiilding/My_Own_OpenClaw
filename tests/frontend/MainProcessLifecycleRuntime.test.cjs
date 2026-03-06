@@ -117,6 +117,31 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
     );
   });
 
+  test('supports disabling second-instance throttle via zero cooldown override', async () => {
+    const now = jest
+      .fn()
+      .mockReturnValueOnce(1_000)
+      .mockReturnValueOnce(1_100)
+      .mockReturnValueOnce(1_200);
+    const { deps, appEvents } = createRuntimeDeps({
+      now,
+      secondInstanceFocusCooldownMs: 0,
+    });
+
+    initializeMainProcessLifecycleRuntime(deps);
+    await flushPromises();
+
+    appEvents['second-instance']();
+    appEvents['second-instance']();
+    appEvents['second-instance']();
+
+    // one startup focus + three second-instance focus calls
+    expect(deps.showMainWindow).toHaveBeenCalledTimes(4);
+    expect(deps.log).not.toHaveBeenCalledWith(
+      '[Main][StartupMetrics] second-instance event throttled; skip focus to avoid loop.',
+    );
+  });
+
   test('starts windows and tray once app becomes ready', async () => {
     const { deps } = createRuntimeDeps();
 
