@@ -20,9 +20,17 @@ export const ingestBackendEvent = (
     dispatchEvent,
   } = deps;
 
-  syncActiveConversationProjection(event, conversationRef);
+  try {
+    syncActiveConversationProjection(event, conversationRef);
+  } catch {
+    // Projection updates are best-effort. Stream event dispatch must continue.
+  }
   if (conversationRef && event.turn_ref) {
-    registerTurnConversationRef(event.turn_ref, conversationRef);
+    try {
+      registerTurnConversationRef(event.turn_ref, conversationRef);
+    } catch {
+      // Turn-map registration is best-effort. Stream event dispatch must continue.
+    }
   }
   if (enableTranscript) {
     try {
