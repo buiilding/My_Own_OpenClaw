@@ -34,19 +34,22 @@ Delegated runtime modules:
 
 `initializeMainProcessLifecycleRuntime(deps)` owns:
 
+- single-instance lock acquisition and duplicate-process exit path (`requestSingleInstanceLock` / `quitApp`)
+- second-instance focus throttling (`secondInstanceFocusCooldownMs`, default `1000ms`) before `showMainWindow(...)`
 - `app.whenReady()` startup sequence:
   - `createWindow`
-  - `createChatWindow`
-  - `createResponseWindow`
-  - `createTray`
+  - non-VM mode only:
+    - `createChatWindow`
+    - `createResponseWindow`
+    - `createTray`
   - overlay renderer registration
-- display-metrics listener for overlay repositioning
-- global wakeword hotkey registration and toggle behavior
+- display-metrics listener for overlay repositioning (non-VM mode only)
+- global wakeword hotkey registration and toggle behavior (non-VM mode only)
 - app activation behavior (`create*Window` path when all windows closed, else `showMainWindow`)
 - app quit lifecycle:
-  - `before-quit`: mark `app.isQuitting=true`, stop local backend
+  - `before-quit`: mark `app.isQuitting=true`, stop local backend, stop VM worker runtime
   - `will-quit`: unregister shortcuts
-  - `window-all-closed`: prevent app quit (tray runtime)
+- `window-all-closed`: prevent app quit only in non-VM mode
 
 ## Split Main-Process IPC Registrars
 
@@ -131,6 +134,7 @@ Behavior:
 2. Adding new main-process channels directly in `index.cjs` and skipping the split registrar modules breaks registration centralization.
 3. Mutating window visibility behavior in one path (`window_visibility_runtime`) but not corresponding overlay handler call sites can desync UX.
 4. Changing dependency names in `initialize*Runtime` calls without matching runtime module contracts breaks startup silently.
+5. Losing VM-mode guards (`if (!vmMode)`) can accidentally create overlay windows/tray/hotkeys in hosted VM surfaces where dashboard-only behavior is expected.
 
 ## Related Pages
 

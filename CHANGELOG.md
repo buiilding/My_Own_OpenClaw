@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-main-vm-mode-lifecycle-and-overlay-bootstrap-corrections): align main-process docs with current runtime contracts (single-instance throttle flow, VM-mode overlay/tray/hotkey guards, before-quit VM worker shutdown, chat overlay `520x116` size, lazy renderer loading, and overlay-only content-protection ownership).
 - docs(backend-vm-run-control-support-helper-contracts): add a dedicated backend services deep reference for `vm_run_control_support/*` helper boundaries (assignment, transitions, pending-control draining, event log sequencing, payload shaping, worker-state normalization), and wire it into services hub plus VM run-control runtime references.
 - test(backend-response-parser-legacy-mouse-unexpected-metadata-rejection): add parser-boundary regression that direct legacy `mouse_control` payloads carrying extra metadata keys (for example `trace_id`) fail with the same strict `unexpected metadata fields` contract enforced for unified `computer_use`.
 - test(sidecar-tool-registry-computer-use-required-metadata-matrices): expand `tools.registry` runtime regressions with full required-field matrices for `computer_use.metadata` (missing and non-string `description`/`explanation`/`expectation`) while asserting fail-close no-subtool-execution behavior for each invalid case.
