@@ -32,6 +32,7 @@ function disposeIpcSubscriptionIfIdle() {
   }
   removeIpcListener?.();
   removeIpcListener = null;
+  currentOverlayPhase = RESPONSE_OVERLAY_PHASE.IDLE;
 }
 
 export function subscribeResponseOverlayPhaseStore(onStoreChange) {
