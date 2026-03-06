@@ -362,16 +362,20 @@ describe('useChatMessageSender', () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     mockExtractOSstate.mockRejectedValue(new Error('capture-failed'));
 
-    const { result } = renderSender({ returnToChatboxPolicy: 'never' });
-    await sendText(result, 'hello');
+    try {
+      const { result } = renderSender({ returnToChatboxPolicy: 'never' });
+      await sendText(result, 'hello');
 
-    expect(mockUploadArtifactBase64).not.toHaveBeenCalled();
-    expectSingleSendQueryCall('hello', 'conv_msg-1');
-    expect(errorSpy).toHaveBeenCalledWith(
-      '[useChatMessageSender] Failed to extract OS state:',
-      expect.any(Error),
-    );
-    errorSpy.mockRestore();
+      expect(mockUploadArtifactBase64).not.toHaveBeenCalled();
+      expectSingleSendQueryCall('hello', 'conv_msg-1');
+      expect(errorSpy.mock.calls.some(([message, error]) => (
+        message === '[queryScreenshotPipeline] Failed to extract OS state:'
+        && error instanceof Error
+        && error.message === 'capture-failed'
+      ))).toBe(true);
+    } finally {
+      errorSpy.mockRestore();
+    }
   });
 
   test('continues sending query when artifact upload fails', async () => {

@@ -13,6 +13,7 @@ title: "Message Send Surface Policy and Screenshot Capture Reference"
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/utils/messageSender/chatMessageSenderUtils.ts`
 - `frontend/src/renderer/features/chat/utils/messageSender/chatMessageSenderPayloads.ts`
+- `frontend/src/renderer/features/chat/utils/messageSender/queryScreenshotPipeline.ts`
 - `frontend/src/renderer/features/chat/utils/messageSender/readableFileAttachmentContext.ts`
 - `frontend/src/renderer/features/chat/utils/screenshotAttachmentContract.ts`
 - `frontend/src/renderer/features/chat/policies/messageSendUiPolicy.ts`
@@ -95,6 +96,7 @@ When attachment(s) exist:
   - clipboard image base64 list first
   - else OS screenshot capture path (if enabled for surface/config)
 8. upload artifact(s) when screenshot(s) exist.
+   - this branch is centralized in `queryScreenshotPipeline.ts`
 9. normalize screenshot attachment selection through `screenshotAttachmentContract`:
   - prefer first uploaded/pasted entry with `screenshotRef`
   - fallback to sidecar-provided auto-capture `screenshot_ref` / `screenshot_url` when base64 is absent
