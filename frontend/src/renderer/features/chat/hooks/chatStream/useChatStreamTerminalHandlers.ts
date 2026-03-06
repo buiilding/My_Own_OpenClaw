@@ -30,13 +30,47 @@ export function useChatStreamTerminalHandlers({
   const setTokenCounts = useChatStore((state) => state.setTokenCounts);
 
   const handleTokenCount = useCallback((event: TokenCountEvent, conversationRef?: string | null) => {
+    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
+    const shouldFinalizePendingStream = (
+      workspace.isSending === true
+      && workspace.streamTracking.phase !== 'complete'
+      && workspace.streamTracking.phase !== 'error'
+    );
+    if (shouldFinalizePendingStream) {
+      setIsSending(false, conversationRef);
+      setThinkingStatus(null, conversationRef);
+      setThinkingSourceEventType(null, conversationRef);
+      recordTrackingEvent('streaming-complete', event.turn_ref, { phase: 'complete' }, conversationRef);
+    }
     setTokenCounts(event.payload ?? null, conversationRef);
     recordTrackingEvent('token-count', event.turn_ref, undefined, conversationRef);
-  }, [setTokenCounts, recordTrackingEvent]);
+  }, [
+    setTokenCounts,
+    recordTrackingEvent,
+    setIsSending,
+    setThinkingSourceEventType,
+    setThinkingStatus,
+  ]);
 
   const handleMemoryStore = useCallback((event: MemoryStoreEvent, conversationRef?: string | null) => {
+    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
+    const shouldFinalizePendingStream = (
+      workspace.isSending === true
+      && workspace.streamTracking.phase === 'awaiting-first-chunk'
+    );
+    if (shouldFinalizePendingStream) {
+      setIsSending(false, conversationRef);
+      setThinkingStatus(null, conversationRef);
+      setThinkingSourceEventType(null, conversationRef);
+      recordTrackingEvent('streaming-complete', event.turn_ref, { phase: 'complete' }, conversationRef);
+    }
     recordTrackingEvent('memory-store', event.turn_ref, undefined, conversationRef);
-  }, [recordTrackingEvent]);
+  }, [
+    recordTrackingEvent,
+    setIsSending,
+    setThinkingSourceEventType,
+    setThinkingStatus,
+  ]);
 
   const handleError = useCallback((event: ErrorEvent, conversationRef?: string | null) => {
     setIsSending(false, conversationRef);
