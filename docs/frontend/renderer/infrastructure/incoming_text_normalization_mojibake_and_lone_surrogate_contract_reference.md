@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for renderer incoming text normalization: mojibake repair, lone-surrogate replacement, and optional-trim/null helpers shared by chat stream and transcript writes."
+summary: "Deep reference for renderer incoming text normalization: mojibake repair, lone-surrogate replacement, and optional-trim/null helpers shared by chat stream and transcript session/transparency parsing."
 read_when:
   - When changing renderer text sanitization behavior for streamed assistant content or transcript persistence.
   - When debugging mojibake artifacts, invalid surrogate crashes, or unexpected empty-text drops.
@@ -12,17 +12,20 @@ title: "Incoming Text Normalization Contract Reference"
 
 - `frontend/src/renderer/infrastructure/text/incomingTextNormalization.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates.ts`
-- `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+- `frontend/src/renderer/infrastructure/transcript/sessionSyncPayload.ts`
+- `frontend/src/renderer/infrastructure/transcript/transparencyNormalization.ts`
 - `tests/frontend/IncomingTextNormalization.test.ts`
+- `tests/frontend/TranscriptSessionSyncPayload.test.ts`
+- `tests/frontend/TranscriptTransparencyNormalization.test.ts`
 
 ## Purpose
 
-The normalization helper centralizes incoming text cleanup for two runtime paths:
+The normalization helper centralizes incoming text cleanup for stream and transcript metadata paths:
 
 - backend stream/update payload text before renderer message updates
-- transcript persistence text before `store-transcript` IPC writes
+- transcript session-sync payload parsing and transparency snapshot normalization
 
-This prevents divergence between on-screen text and persisted transcript text normalization.
+This prevents normalization drift between stream rendering and transcript metadata/session identity parsing.
 
 ## Core APIs
 
@@ -74,13 +77,24 @@ This avoids invalid UTF-16 payload propagation while preserving valid non-BMP ch
 - chunk text (`streaming-response` append/new actions)
 - transparency content fields (`system-prompt`, `user-message-full`, `assistant-message-full`)
 
-### Transcript writer
+### Transcript session-sync payload parsing
 
-`TranscriptWriter.ts` normalizes optional message text fields before persistence:
+`sessionSyncPayload.ts` uses `normalizeOptionalIncomingText(...)` for:
 
-- user message text
-- assistant message text
-- tool output text (when persisted as transcript row text)
+- `conversationRef|conversation_ref|sessionId|session_id`
+- `userId|user_id`
+
+Whitespace-only values collapse to `null`; omitted keys remain `undefined` for partial-update semantics.
+
+### Transcript transparency normalization
+
+`transparencyNormalization.ts` uses `normalizeOptionalIncomingText(...)` for:
+
+- `systemPrompt`
+- `fullUserMessage.content`
+- `fullAssistantMessage.content`
+
+This keeps prompt/transparency snapshots trimmed and safe before `store-transcript` persistence.
 
 ## Test-Backed Invariants
 
@@ -96,10 +110,11 @@ This avoids invalid UTF-16 payload propagation while preserving valid non-BMP ch
 
 1. Changing replacement ordering may alter output for overlapping mojibake patterns.
 2. Removing lone-surrogate replacement can reintroduce invalid UTF encoding errors in downstream persistence/transport paths.
-3. Diverging stream vs transcript normalization paths causes UI/transcript mismatch for the same response text.
+3. Diverging stream vs session-sync/transparency normalization paths can cause conversation-id drift or dropped transparency fields.
 
 ## Related Docs
 
 - [Tracking, Formatting, and Message-Update Utility Reference](../chat/stream/tracking_formatting_and_message_update_utility_reference.md)
+- [Transcript Session Sync Payload Normalization and Alias Contract Reference](../transcript/contracts/transcript_session_sync_payload_normalization_and_alias_contract_reference.md)
 - [Transcript Writer Queue Flush and Session Event Reference](../transcript/transcript_writer_queue_flush_and_session_event_reference.md)
 - [Frontend Renderer Infrastructure Docs Hub](README.md)
