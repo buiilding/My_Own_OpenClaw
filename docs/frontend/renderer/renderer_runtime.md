@@ -90,7 +90,8 @@ Current behavior:
 
 - app startup is not permission-gated in current `App.jsx`; permission onboarding/runtime status is handled in dedicated permission/settings surfaces
 - `PermissionControlCenter` renders live permission status plus probe/recheck maintenance actions
-- `permissionStore` still derives onboarding/gate state (`needsOnboarding`, `completedForManifest`, required permission sets) and still exposes `requestPermission`, but current `PermissionControlCenter` UI does not call request action
+- `permissionStore` still derives onboarding/gate state (`needsOnboarding`, `completedForManifest`, required permission sets)
+- store onboarding actions (`requestPermission`, `setPlannedSystemAccessConsent`, `completeOnboarding`) remain exported but are not currently called by mounted renderer UI surfaces
 
 ### Voice (`features/voice`)
 

@@ -45,7 +45,7 @@ Current UI note:
 On mount/update:
 
 - if `bootstrapped` is false, call `bootstrapPermissions()` once via effect
-- while bootstrap/recheck is active (`isLoading` true), global recheck button is disabled
+- while bootstrap is active (`isLoading` true), global recheck button is disabled
 
 `bootstrapPermissions()` in store:
 
@@ -53,6 +53,12 @@ On mount/update:
 - normalizes manifest + status rows
 - computes onboarding gate state from manifest + status + saved onboarding state
 - sets `bootstrapped=true` even on failure so UI can render error state instead of spinning indefinitely
+
+Action-loading nuance:
+
+- `runPermissionProbe()` and `recheckAllPermissions()` currently do not toggle `isLoading`
+- global `Re-run checks` and per-row `Re-check` buttons therefore remain clickable while those
+  requests are in-flight
 
 ## Rendered UI Shape
 
@@ -91,6 +97,11 @@ Store/API surface note:
 
 - `permissionStore.requestPermission(permissionId)` and `REQUEST_PERMISSION` IPC still exist for non-ControlCenter flows
 - current ControlCenter runtime does not call that action
+
+Concurrency implication:
+
+- because action-level loading is not tracked, overlapping manual probe/recheck calls can race
+  and whichever response lands last wins for that permission/status map write
 
 ## Gate-State Coupling
 
