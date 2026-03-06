@@ -42,6 +42,11 @@ _COMPUTER_SUBTOOLS = {
     "switch_tab",
     "wait",
 }
+_COMPUTER_REQUIRED_METADATA_FIELDS = (
+    "description",
+    "explanation",
+    "expectation",
+)
 
 
 def _extract_thought_signature(payload: Any) -> str:
@@ -52,6 +57,28 @@ def _extract_thought_signature(payload: Any) -> str:
         if isinstance(value, str) and value.strip():
             return value.strip()
     return ""
+
+
+def _normalize_required_metadata_value(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+    normalized = value.strip()
+    return normalized if normalized else None
+
+
+def _normalize_computer_metadata(
+    metadata: Dict[str, Any],
+) -> tuple[Dict[str, Any], bool]:
+    normalized = dict(metadata)
+    has_all_required = True
+    for field_name in _COMPUTER_REQUIRED_METADATA_FIELDS:
+        field_value = _normalize_required_metadata_value(metadata.get(field_name))
+        if field_value is None:
+            normalized.pop(field_name, None)
+            has_all_required = False
+            continue
+        normalized[field_name] = field_value
+    return normalized, has_all_required
 
 
 def to_parsed_response(normalized_response: NormalizedLLMResponse) -> ParsedResponse:
@@ -105,6 +132,14 @@ def to_parsed_tool_call(tool_call: Dict[str, Any]) -> ParsedToolCall:
             parameters = dict(mapped_args)
         else:
             parameters = {}
+
+    if normalized_tool_name in _COMPUTER_SUBTOOLS:
+        normalized_metadata, has_all_required_metadata = _normalize_computer_metadata(
+            metadata
+        )
+        metadata = normalized_metadata
+        if not has_all_required_metadata:
+            normalized_tool_name = "invalid_computer_use_tool"
 
     return ParsedToolCall(
         tool_name=normalized_tool_name,

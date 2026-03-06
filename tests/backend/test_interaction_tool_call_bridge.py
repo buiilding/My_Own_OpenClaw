@@ -244,7 +244,7 @@ def test_to_parsed_response_unified_computer_use_does_not_promote_nested_argumen
     assert parsed.has_tool_calls is True
     assert len(parsed.tool_calls) == 1
     call = parsed.tool_calls[0]
-    assert call.tool_name == "mouse_control"
+    assert call.tool_name == "invalid_computer_use_tool"
     assert call.parameters == {
         "metadata": {
             "description": "nested screen",
@@ -260,7 +260,7 @@ def test_to_parsed_response_unified_computer_use_does_not_promote_nested_argumen
     }
 
 
-def test_to_parsed_response_unified_computer_use_ignores_non_dict_top_level_metadata():
+def test_to_parsed_response_unified_computer_use_rejects_non_dict_top_level_metadata():
     parsed = to_parsed_response(
         {
             "content": "",
@@ -285,11 +285,145 @@ def test_to_parsed_response_unified_computer_use_ignores_non_dict_top_level_meta
     assert parsed.has_tool_calls is True
     assert len(parsed.tool_calls) == 1
     call = parsed.tool_calls[0]
-    assert call.tool_name == "mouse_control"
+    assert call.tool_name == "invalid_computer_use_tool"
     assert call.parameters == {"action": "click", "x": 100, "y": 200}
     assert call.metadata == {
         "tool_call_id": "call_mouse_badmeta_1",
     }
+
+
+def test_to_parsed_response_unified_computer_use_rejects_missing_required_metadata():
+    parsed = to_parsed_response(
+        {
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "call_mouse_missing_meta_1",
+                    "name": "computer_use",
+                    "arguments": {
+                        "tool": "mouse_control",
+                        "arguments": {
+                            "action": "click",
+                            "x": 10,
+                            "y": 20,
+                        },
+                    },
+                }
+            ],
+        }
+    )
+
+    assert parsed.has_tool_calls is True
+    assert len(parsed.tool_calls) == 1
+    call = parsed.tool_calls[0]
+    assert call.tool_name == "invalid_computer_use_tool"
+    assert call.parameters == {"action": "click", "x": 10, "y": 20}
+    assert call.metadata == {"tool_call_id": "call_mouse_missing_meta_1"}
+
+
+def test_to_parsed_response_unified_computer_use_rejects_blank_required_metadata_values():
+    parsed = to_parsed_response(
+        {
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "call_mouse_blank_meta_1",
+                    "name": "computer_use",
+                    "arguments": {
+                        "tool": "mouse_control",
+                        "metadata": {
+                            "description": "screen",
+                            "explanation": "   ",
+                            "expectation": "dialog opens",
+                        },
+                        "arguments": {
+                            "action": "click",
+                            "x": 10,
+                            "y": 20,
+                        },
+                    },
+                }
+            ],
+        }
+    )
+
+    assert parsed.has_tool_calls is True
+    assert len(parsed.tool_calls) == 1
+    call = parsed.tool_calls[0]
+    assert call.tool_name == "invalid_computer_use_tool"
+    assert call.parameters == {"action": "click", "x": 10, "y": 20}
+    assert call.metadata == {
+        "tool_call_id": "call_mouse_blank_meta_1",
+        "description": "screen",
+        "expectation": "dialog opens",
+    }
+
+
+def test_to_parsed_response_unified_computer_use_normalizes_required_metadata_whitespace():
+    parsed = to_parsed_response(
+        {
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "call_mouse_trimmed_meta_1",
+                    "name": "computer_use",
+                    "arguments": {
+                        "tool": "mouse_control",
+                        "metadata": {
+                            "description": "  screen  ",
+                            "explanation": "  click target ",
+                            "expectation": " dialog opens  ",
+                            "trace_id": "abc-123",
+                        },
+                        "arguments": {
+                            "action": "click",
+                            "x": 10,
+                            "y": 20,
+                        },
+                    },
+                }
+            ],
+        }
+    )
+
+    assert parsed.has_tool_calls is True
+    assert len(parsed.tool_calls) == 1
+    call = parsed.tool_calls[0]
+    assert call.tool_name == "mouse_control"
+    assert call.parameters == {"action": "click", "x": 10, "y": 20}
+    assert call.metadata == {
+        "tool_call_id": "call_mouse_trimmed_meta_1",
+        "description": "screen",
+        "explanation": "click target",
+        "expectation": "dialog opens",
+        "trace_id": "abc-123",
+    }
+
+
+def test_to_parsed_response_direct_computer_subtool_requires_metadata():
+    parsed = to_parsed_response(
+        {
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "call_direct_mouse_1",
+                    "name": "mouse_control",
+                    "arguments": {
+                        "action": "click",
+                        "x": 11,
+                        "y": 22,
+                    },
+                }
+            ],
+        }
+    )
+
+    assert parsed.has_tool_calls is True
+    assert len(parsed.tool_calls) == 1
+    call = parsed.tool_calls[0]
+    assert call.tool_name == "invalid_computer_use_tool"
+    assert call.parameters == {"action": "click", "x": 11, "y": 22}
+    assert call.metadata == {"tool_call_id": "call_direct_mouse_1"}
 
 
 def test_recoverable_error_detection_and_message_formatting():
