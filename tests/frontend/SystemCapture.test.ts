@@ -97,7 +97,7 @@ describe('SystemCapture', () => {
     const pending = extractOSstate(true, true, 0.25, false);
     expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 250);
 
-    jest.runAllTimers();
+    await jest.runAllTimersAsync();
     const result = await pending;
 
     expect(result).toEqual(expectedCaptureResult({
@@ -106,6 +106,57 @@ describe('SystemCapture', () => {
     }));
     setTimeoutSpy.mockRestore();
     jest.useRealTimers();
+  });
+
+  test('extractOSstate waits for chat pill hide settlement before screenshot capture on Linux', async () => {
+    jest.useFakeTimers();
+    const originalUserAgent = navigator.userAgent;
+    const invokeSpy = mockInvokeForCapture({
+      screenshotResults: [{ success: true, data: { screenshot: 'shot' } }],
+    });
+
+    try {
+      Object.defineProperty(window.navigator, 'userAgent', {
+        configurable: true,
+        value: 'Mozilla/5.0 (X11; Linux x86_64)',
+      });
+      const pending = extractOSstate(true, false, 0, false);
+      await jest.advanceTimersByTimeAsync(0);
+
+      expect(invokeSpy.mock.calls).toEqual([
+        [INVOKE_CHANNELS.HIDE_CHATBOX],
+      ]);
+
+      await jest.advanceTimersByTimeAsync(119);
+      expect(invokeSpy.mock.calls).toEqual([
+        [INVOKE_CHANNELS.HIDE_CHATBOX],
+      ]);
+
+      await jest.advanceTimersByTimeAsync(1);
+      const result = await pending;
+
+      expect(invokeSpy.mock.calls).toEqual([
+        [INVOKE_CHANNELS.HIDE_CHATBOX],
+        [INVOKE_CHANNELS.EXECUTE_TOOL, {
+          toolName: 'screenshot',
+          args: {
+            explanation: 'Screenshot capture',
+            expectation: 'Current screen state',
+          },
+          skipAutoCapture: false,
+        }],
+        [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
+      ]);
+      expect(result).toEqual(expectedCaptureResult({
+        screenshot: 'shot',
+      }));
+    } finally {
+      Object.defineProperty(window.navigator, 'userAgent', {
+        configurable: true,
+        value: originalUserAgent,
+      });
+      jest.useRealTimers();
+    }
   });
 
   test('extractOSstate includes stored display bounds in screenshot args', async () => {

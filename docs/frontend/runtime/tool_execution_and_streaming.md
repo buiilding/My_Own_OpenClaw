@@ -95,6 +95,7 @@ Responsibilities:
 - centralized mode resolution (`none | interactive | screenshot`) for single tools and bundles
 - shared chat-pill visibility collapse/restore helper used by both tool-execution and screenshot-capture lifecycles
 - chat-pill visibility selector now routes Linux hide/show to `platform/chatPillVisibility/linux.ts`; Windows/macOS are explicit no-op modules because protected overlays already rely on Electron content protection
+- Linux capture collapse includes a bounded `hide-chatbox -> settle -> screenshot` wait so compositor lag does not leave the pill visible inside captured screenshots
 - shared transition-context resolver helper (`context.ts`) for source/correlation-id normalization across tool and capture lifecycles
 - capture focus prep now resolves as a no-op lifecycle marker; frontend no longer asks main process to restore/verify an external window before screenshot capture
 - main-process `platform/screenshot_window_visibility/*` runtimes are now no-op for all OSes; Linux capture hide/show is owned entirely by the renderer orchestrator so screenshot execution has one collapse/restore path
