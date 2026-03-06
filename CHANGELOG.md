@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(frontend-tool-runner-correlated-payload-whitespace-id-drop): extend callback send-gate regressions so correlated `tool-result`/`tool-bundle-result` payloads with whitespace-only ids are dropped (same fail-close path as missing ids), preventing malformed id formatting from leaking to backend routing.
 - test(backend-websocket-message-parse-runtime-error-mapping-and-dependency-forwarding): expand parse-runtime coverage for parser dependency forwarding (`offload_threshold_bytes` + injected loop getter), malformed JSON mapping, non-object root mapping, and unexpected-error fallback logging/response (`An internal error occurred`).
 - test(frontend-tool-runner-bundle-correlation-trim-tracking): extend callback send-gate regressions so tracked bundle payloads with whitespace-padded `bundle_id` are accepted via normalized correlation resolution, then dropped after untracking to preserve late-result suppression symmetry with single-tool paths.
 - test(backend-api-tool-result-handler-correlation-trim-routing): extend API handler regressions so `ToolResultMessage` and `ToolBundleResultMessage` payload ids with surrounding whitespace are normalized by schema validation before session routing (`request_id`/`bundle_id` trimmed at boundary).
