@@ -130,6 +130,16 @@ class ToolRegistry:
                         f"computer_use missing required metadata field: {field_name}"
                     )
                 normalized_metadata[field_name] = raw_value.strip()
+            unexpected_metadata_fields = sorted(
+                key
+                for key in metadata.keys()
+                if key not in COMPUTER_USE_REQUIRED_METADATA_FIELDS
+            )
+            if unexpected_metadata_fields:
+                return ToolResult.error_result(
+                    "computer_use.metadata contains unexpected fields: "
+                    f"{', '.join(unexpected_metadata_fields)}"
+                )
             args["metadata"] = normalized_metadata
 
             return await self.execute_tool(tool_name, tool_arguments)

@@ -421,7 +421,7 @@ def test_to_parsed_response_unified_computer_use_rejects_blank_required_metadata
     }
 
 
-def test_to_parsed_response_unified_computer_use_normalizes_required_metadata_whitespace():
+def test_to_parsed_response_unified_computer_use_rejects_unexpected_metadata_fields():
     parsed = to_parsed_response(
         {
             "content": "",
@@ -451,14 +451,13 @@ def test_to_parsed_response_unified_computer_use_normalizes_required_metadata_wh
     assert parsed.has_tool_calls is True
     assert len(parsed.tool_calls) == 1
     call = parsed.tool_calls[0]
-    assert call.tool_name == "mouse_control"
+    assert call.tool_name == "invalid_computer_use_tool"
     assert call.parameters == {"action": "click", "x": 10, "y": 20}
     assert call.metadata == {
         "tool_call_id": "call_mouse_trimmed_meta_1",
         "description": "screen",
         "explanation": "click target",
         "expectation": "dialog opens",
-        "trace_id": "abc-123",
     }
 
 

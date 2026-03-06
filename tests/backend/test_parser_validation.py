@@ -238,6 +238,21 @@ def test_validate_metadata_rejects_non_string_required_fields_for_computer_tools
         )
 
 
+def test_validate_metadata_rejects_unexpected_metadata_fields_for_computer_tools():
+    validator, _metrics = _make_validator_for_registry(ComputerRegistry(["mouse_control"]))
+
+    with pytest.raises(ParseValidationError, match="unexpected metadata fields"):
+        validator.validate_metadata(
+            "mouse_control",
+            {
+                "description": "screen",
+                "explanation": "click submit",
+                "expectation": "dialog opens",
+                "trace_id": "abc-123",
+            },
+        )
+
+
 def test_validate_metadata_accepts_and_trims_metadata_for_unified_computer_use_tool():
     validator, _metrics = _make_validator(["computer_use"])
     metadata = {
