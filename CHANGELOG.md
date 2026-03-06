@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-inventory-ipc-surface-owner-split-alignment): refresh frontend inventory protocol surface matrix to current split registrar ownership (`overlay_phase_ipc_runtime`, `window_controls_ipc_runtime`, `permission_ipc_runtime`) for invoke/send channels, and add direct deep-reference links for `get-displays` and Linux sudo-toggle runtime contracts.
 - docs(frontend-backend-endpoint-resolution-packaged-fallback-and-origin-contract): extend websocket/query/compatibility docs with explicit packaged endpoint fallback env behavior (`WINDIE_DEFAULT_PACKAGED_BACKEND_*`), IPC initialization refresh semantics (`isPackaged`), and `wsOrigin` relay diagnostics contract.
 - docs(frontend-main-lifecycle-registrar-channel-detail-links): extend main-process lifecycle registrar docs with explicit `get-displays` mapped payload shape and Linux sudo-toggle runtime-link details for `set-agent-sudo-access`.
 - docs(fullstack-ipc-display-sudo-contract-details-and-remote-tool-serialization-notes): enrich frontend IPC contract docs with concrete `get-displays` payload and Linux sudo-toggle runtime behavior (with direct deep-reference links), and expand backend remote tool domain docs with explicit default-arg serialization and unified `computer_use` envelope-to-concrete-tool output shaping details.
