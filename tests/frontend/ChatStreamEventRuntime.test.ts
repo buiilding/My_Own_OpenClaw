@@ -57,6 +57,65 @@ describe('chatStreamEventRuntime', () => {
     expect(ref).toBe('conv-mapped');
   });
 
+  test('resolves conversation ref from memory-store payload session id fallback', () => {
+    const ref = resolveTargetConversationRef(
+      createEvent({
+        type: 'memory-store',
+        payload: { session_id: 'conv-memory-payload' },
+      }),
+    );
+
+    expect(ref).toBe('conv-memory-payload');
+  });
+
+  test('resolves conversation ref from memory-store event session id when payload session missing', () => {
+    const ref = resolveTargetConversationRef(
+      createEvent({
+        type: 'memory-store',
+        payload: {},
+        session_id: 'conv-memory-event',
+      }),
+    );
+
+    expect(ref).toBe('conv-memory-event');
+  });
+
+  test('resolves conversation ref from local-user-message payload fallback', () => {
+    const ref = resolveTargetConversationRef(
+      createEvent({
+        type: 'local-user-message',
+        payload: { text: 'hello', conversation_ref: 'conv-local-payload' },
+      }),
+    );
+
+    expect(ref).toBe('conv-local-payload');
+  });
+
+  test('resolveTargetConversationRef keeps explicit conversation ref precedence over compatibility fallbacks', () => {
+    const ref = resolveTargetConversationRef(
+      createEvent({
+        type: 'memory-store',
+        conversation_ref: 'conv-explicit',
+        payload: { session_id: 'conv-memory-payload' },
+        session_id: 'conv-memory-event',
+      }),
+    );
+
+    expect(ref).toBe('conv-explicit');
+  });
+
+  test('resolveTargetConversationRef uses provided fallback conversation ref when no explicit or mapped identity exists', () => {
+    const ref = resolveTargetConversationRef(
+      createEvent({
+        type: 'streaming-response',
+        payload: { content: 'chunk' },
+      }),
+      'conv-fallback-active',
+    );
+
+    expect(ref).toBe('conv-fallback-active');
+  });
+
   test('stale turn guard allows next-turn packets during terminal pending handoff', () => {
     useChatStore.setState((state) => ({
       ...state,
