@@ -63,6 +63,18 @@ describe('local_backend_bridge_tool_args', () => {
     expect(result).not.toBe(baseArgs);
   });
 
+  test('returns deep-cloned nested args for non shell tools', () => {
+    const baseArgs = {
+      file_path: '/tmp/a',
+      options: { offset: 1, limit: 10 },
+    };
+    const result = resolveToolArgs('read_file', baseArgs, null);
+
+    result.options.offset = 99;
+
+    expect(baseArgs.options.offset).toBe(1);
+  });
+
   test('returns empty object for non-object args', () => {
     expect(resolveToolArgs('read_file', null, null)).toEqual({});
     expect(resolveToolArgs('read_file', ['x'], null)).toEqual({});
@@ -95,6 +107,28 @@ describe('local_backend_bridge_tool_args', () => {
 
     expect(result).toEqual(args);
     expect(result).not.toBe(args);
+  });
+
+  test('returns deep-cloned nested computer_use envelope for sidecar execution', () => {
+    const args = {
+      tool: 'mouse_control',
+      metadata: {
+        description: 'screen',
+        explanation: 'click target',
+        expectation: 'dialog opens',
+      },
+      arguments: {
+        action: 'click',
+        target: { x: 10, y: 20 },
+      },
+    };
+
+    const result = resolveToolArgs('computer_use', args, null);
+    result.metadata.description = 'changed';
+    result.arguments.target.x = 999;
+
+    expect(args.metadata.description).toBe('screen');
+    expect(args.arguments.target.x).toBe(10);
   });
 
   test('keeps legacy nested arguments.metadata wrapper unchanged for computer_use payloads', () => {
