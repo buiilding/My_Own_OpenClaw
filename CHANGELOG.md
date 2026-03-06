@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(backend-interaction-loop-native-computer-use-fail-close): add interaction-loop regression covering native `computer_use` calls missing required metadata, asserting bridge normalization to `invalid_computer_use_tool`, staged tool-call id continuity, and final-turn completion behavior after failed tool execution path.
 - fix(sidecar-computer-use-arguments-deep-copy-boundary): deep-copy unified `computer_use.arguments` before subtool dispatch in the sidecar registry so subtool-local argument mutations cannot leak back into the original envelope; add sidecar regression coverage that reproduces and blocks mutation leakage.
 - fix(frontend-local-backend-tool-args-deep-copy): deep-copy nested tool argument payloads in `local_backend_bridge_tool_args` (including unified `computer_use` envelopes and non-shell tool args) before JSON-RPC handoff so bridge-side mutations cannot alias caller state; add frontend regressions that reproduce nested aliasing and lock immutability.
 - test(backend-computer-use-schema-grounding-and-metadata-contract): extend unified `computer_use` schema contract coverage to lock required metadata fields (`description`, `explanation`, `expectation`), description-level OCR/prediction guidance, and mouse argument conditional requirements for manual coordinates, OCR (`ocr_text` or `candidate_id`), and prediction description.
