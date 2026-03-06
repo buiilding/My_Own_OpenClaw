@@ -6,9 +6,7 @@
 import { useCallback, useMemo } from 'react';
 import { ApiClient } from '../../../infrastructure/api/client';
 import { useChatStore, type ChatMessage } from '../stores/chatStore';
-import { extractOSstate, type CaptureMeta } from '../../../infrastructure/services/SystemCapture';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
-import { uploadArtifactBase64 } from '../../../infrastructure/services/ArtifactUploader';
 import {
   getActiveConversationRef,
   getTranscriptSessionInfo,
@@ -30,22 +28,16 @@ import {
   resolveConversationRefForSend,
 } from '../session/conversationSessionRuntime';
 import {
-  buildScreenshotRefs,
-  resolvePrimaryScreenshotAttachment,
-  toUploadedArtifactFromCaptureAttachment,
-} from '../utils/screenshotAttachmentContract';
-import {
   normalizeAttachmentFilenames,
   normalizeOutgoingPayload,
   type OutgoingUserMessagePayload,
 } from '../utils/messageSender/chatMessageSenderPayloads';
 import { buildReadableFileAttachmentContext } from '../utils/messageSender/readableFileAttachmentContext';
 import {
-  buildArtifactUploadMeta,
   buildPendingUserMessage,
   hasUserMessages,
-  toScreenshotAttachment,
 } from '../utils/messageSender/chatMessageSenderUtils';
+import { resolveQueryScreenshotArtifacts } from '../utils/messageSender/queryScreenshotPipeline';
 
 type ChatMessageSenderOptions = {
   senderSurface?: ChatSendSurface;
@@ -186,90 +178,17 @@ export function useChatMessageSender(
       }
     }
     
-    let screenshot: string | null = firstClipboardImage?.base64 || null;
-    let autoCapturedScreenshotRef: string | null = null;
-    let autoCapturedScreenshotUrl: string | null = null;
-    let screenshotContentType: string | null = userMessageScreenshotContentType;
-    let captureMeta: CaptureMeta | null = null;
-    const screenshotFilename: string | null = firstClipboardImage?.filename || null;
-    if (!screenshot && shouldCaptureQueryScreenshot) {
-      // Extract OS state (screenshot and system state).
-      const isFirstUserMessage = !hadUserMessages;
-      try {
-        const osStateResult = await extractOSstate(
-          true,  // enable_screenshot
-          false, // enable_system_state (unused for user-message send path)
-          0,     // wait (0 seconds for user messages)
-          isFirstUserMessage  // is_first_user_message
-        );
-
-        screenshot = osStateResult.screenshot;
-        autoCapturedScreenshotRef = osStateResult.screenshotRef || null;
-        autoCapturedScreenshotUrl = osStateResult.screenshotUrl || null;
-        screenshotContentType = osStateResult.screenshotContentType;
-        captureMeta = osStateResult.captureMeta;
-      } catch (error) {
-        console.error('[useChatMessageSender] Failed to extract OS state:', error);
-        // Continue without screenshot/system state if capture fails
-      }
-    }
-
-    const uploadedArtifacts: Array<{ artifactId?: string | null; url?: string | null } | null> = [];
-    if (clipboardImages.length > 0) {
-      for (const clipboardImage of clipboardImages) {
-        const artifactUploadMeta = buildArtifactUploadMeta(clipboardImage.contentType);
-        try {
-          const uploaded = await uploadArtifactBase64(
-            clipboardImage.base64,
-            artifactUploadMeta.contentType,
-            clipboardImage.filename || artifactUploadMeta.filename,
-          );
-          uploadedArtifacts.push(uploaded || null);
-        } catch (error) {
-          console.warn('[useChatMessageSender] Failed to upload screenshot artifact:', error);
-          uploadedArtifacts.push(null);
-        }
-      }
-    } else if (screenshot) {
-      const artifactUploadMeta = buildArtifactUploadMeta(screenshotContentType);
-      try {
-        const uploaded = await uploadArtifactBase64(
-          screenshot,
-          artifactUploadMeta.contentType,
-          screenshotFilename || artifactUploadMeta.filename,
-        );
-        uploadedArtifacts.push(uploaded || null);
-      } catch (error) {
-        console.warn('[useChatMessageSender] Failed to upload screenshot artifact:', error);
-        uploadedArtifacts.push(null);
-      }
-    } else {
-      const autoCapturedAttachment = toUploadedArtifactFromCaptureAttachment({
-        screenshotRef: autoCapturedScreenshotRef,
-        screenshotUrl: autoCapturedScreenshotUrl,
-      });
-      if (autoCapturedAttachment) {
-        uploadedArtifacts.push(autoCapturedAttachment);
-      }
-    }
-
-    const uploadedScreenshotEntries = clipboardImages.map((clipboardImage, index) => {
-      const attachment = toScreenshotAttachment(uploadedArtifacts[index] || null);
-      return {
-        screenshot: clipboardImage.base64,
-        screenshotContentType: normalizeArtifactImageContentType(clipboardImage.contentType),
-        screenshotRef: attachment.screenshotRef,
-        screenshotUrl: attachment.screenshotUrl,
-      };
-    });
-    const fallbackAttachment = toScreenshotAttachment(uploadedArtifacts[0] || null);
-    const primaryAttachment = resolvePrimaryScreenshotAttachment(
+    const {
+      captureMeta,
       uploadedScreenshotEntries,
-      fallbackAttachment,
-    );
-    const screenshotRef = primaryAttachment.screenshotRef;
-    const screenshotUrl = primaryAttachment.screenshotUrl;
-    const screenshotRefs = buildScreenshotRefs(uploadedScreenshotEntries, screenshotRef);
+      screenshotRef,
+      screenshotUrl,
+      screenshotRefs,
+    } = await resolveQueryScreenshotArtifacts({
+      clipboardImages,
+      shouldCaptureQueryScreenshot,
+      isFirstUserMessage: !hadUserMessages,
+    });
     
     // Update message with screenshot
     updateMessage(userMessage.id, {
