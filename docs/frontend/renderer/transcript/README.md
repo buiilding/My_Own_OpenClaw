@@ -21,11 +21,14 @@ title: "Frontend Renderer Transcript Docs Hub"
 - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoStorage.ts`
-- `frontend/src/renderer/infrastructure/transcript/pendingUserQueue.ts`
-- `frontend/src/renderer/infrastructure/transcript/pendingAssistantQueue.ts`
-- `frontend/src/renderer/infrastructure/transcript/pendingToolQueue.ts`
+- `frontend/src/renderer/infrastructure/transcript/pending/pendingTranscriptMessages.ts`
+- `frontend/src/renderer/infrastructure/transcript/pending/pendingUserQueue.ts`
+- `frontend/src/renderer/infrastructure/transcript/pending/pendingAssistantQueue.ts`
+- `frontend/src/renderer/infrastructure/transcript/pending/pendingToolQueue.ts`
+- `frontend/src/renderer/infrastructure/transcript/pending/transcriptPendingFlush.ts`
 - `frontend/src/renderer/infrastructure/transcript/types.ts`
 - `tests/frontend/TranscriptPendingQueue.test.ts`
+- `tests/frontend/TranscriptPendingFlush.test.ts`
 - `tests/frontend/TranscriptWriter.session.test.ts`
 - `tests/frontend/TranscriptWriter.userAssistant.test.ts`
 - `tests/frontend/TranscriptWriter.tool.test.ts`

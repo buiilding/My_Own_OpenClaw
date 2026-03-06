@@ -21,6 +21,8 @@ title: "Frontend Renderer Transcript Contracts Docs Hub"
 
 - `frontend/src/renderer/infrastructure/transcript/types.ts`
 - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
-- `frontend/src/renderer/infrastructure/transcript/pendingUserQueue.ts`
-- `frontend/src/renderer/infrastructure/transcript/pendingAssistantQueue.ts`
-- `frontend/src/renderer/infrastructure/transcript/pendingToolQueue.ts`
+- `frontend/src/renderer/infrastructure/transcript/pending/pendingTranscriptMessages.ts`
+- `frontend/src/renderer/infrastructure/transcript/pending/pendingUserQueue.ts`
+- `frontend/src/renderer/infrastructure/transcript/pending/pendingAssistantQueue.ts`
+- `frontend/src/renderer/infrastructure/transcript/pending/pendingToolQueue.ts`
+- `frontend/src/renderer/infrastructure/transcript/pending/transcriptPendingFlush.ts`

@@ -10,11 +10,14 @@ title: "Pending Transcript Queue FIFO and Requeue Contract Reference"
 
 ## Canonical Modules
 
-- `frontend/src/renderer/infrastructure/transcript/pendingUserQueue.ts`
-- `frontend/src/renderer/infrastructure/transcript/pendingAssistantQueue.ts`
-- `frontend/src/renderer/infrastructure/transcript/pendingToolQueue.ts`
+- `frontend/src/renderer/infrastructure/transcript/pending/pendingTranscriptMessages.ts`
+- `frontend/src/renderer/infrastructure/transcript/pending/pendingUserQueue.ts`
+- `frontend/src/renderer/infrastructure/transcript/pending/pendingAssistantQueue.ts`
+- `frontend/src/renderer/infrastructure/transcript/pending/pendingToolQueue.ts`
+- `frontend/src/renderer/infrastructure/transcript/pending/transcriptPendingFlush.ts`
 - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
 - `tests/frontend/TranscriptPendingQueue.test.ts`
+- `tests/frontend/TranscriptPendingFlush.test.ts`
 - `tests/frontend/TranscriptWriter.userAssistant.test.ts`
 - `tests/frontend/TranscriptWriter.tool.test.ts`
 
@@ -58,13 +61,13 @@ Test anchor:
 
 ## TranscriptWriter Flush Interaction
 
-`TranscriptWriter.flushPendingMessages()` drains category arrays in fixed order:
+`pendingTranscriptMessages.flushPendingMessages(sessionInfo)` drains category arrays in fixed order:
 
 1. user
 2. assistant
 3. tool
 
-Each category flush uses `flushPendingEntries(...)`:
+Each category flush uses `flushPendingEntries(...)` from `pending/transcriptPendingFlush.ts`:
 
 - writes one entry at a time
 - on first write failure:
@@ -91,6 +94,8 @@ Direct queue unit coverage exists for:
 - user queue implementation behavior (`TranscriptPendingQueue.test.ts`)
 
 Assistant/tool queue behavior is covered indirectly through writer integration tests that exercise queue/retry flow.
+
+`TranscriptPendingFlush.test.ts` adds direct helper coverage for `requeuePending(...)` ordering and `flushPendingEntries(...)` success/failure-tail behavior.
 
 Potential gap:
 
