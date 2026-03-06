@@ -11,7 +11,7 @@ title: "Embedding and Semantic Memory Runtime Reference"
 ## Canonical Modules
 
 - `backend/src/embeddings/embeddings.py`
-- `backend/src/api/routes/memory/embeddings.py`
+- `backend/src/api/routes/memory/embeddings/router.py`
 - `backend/src/api/routes/memory/semantic/router.py`
 - `backend/src/api/routes/memory/semantic/service.py`
 - `backend/src/api/routes/memory/semantic/parser.py`

@@ -10,7 +10,7 @@ title: "Embeddings Route Serialization, Sanitized Error Surface, and Health-Prob
 
 ## Canonical Modules
 
-- `backend/src/api/routes/memory/embeddings.py`
+- `backend/src/api/routes/memory/embeddings/router.py`
 - `backend/src/api/routes/memory/health.py`
 - `tests/backend/test_memory_routes.py`
 

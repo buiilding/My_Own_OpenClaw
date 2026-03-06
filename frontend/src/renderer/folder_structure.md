@@ -43,10 +43,15 @@ frontend/src/renderer/
 │   │   │   ├── MessageContent.jsx       # MessageContent - Renders message body by type
 │   │   │   ├── MessageInput.jsx         # MessageInput - Input field with voice transcription support
 │   │   │   ├── MessageList.jsx          # MessageList - Renders messages with transparency sections
-│   │   │   ├── MessageTransparencySections.jsx # MessageTransparencySections - Renders transparency panels
-│   │   │   ├── ThinkingDisplay.jsx      # ThinkingDisplay - Displays LLM thinking/reasoning tokens (collapsible)
-│   │   │   ├── chatBoxResponseUtils.js  # chatBoxResponseUtils - Response/tool-call selection + tool-ghost track style builders
-│   │   │   └── TransparencySection.jsx  # TransparencySection - Collapsible sections for system prompts, tool schemas, full messages
+│   │   │   ├── message/                 # Message-specific subcomponents
+│   │   │   │   ├── MessageTransparencySections.jsx # MessageTransparencySections - Renders transparency panels
+│   │   │   │   ├── ThinkingDisplay.jsx  # ThinkingDisplay - Displays LLM thinking/reasoning tokens (collapsible)
+│   │   │   │   ├── TransparencySection.jsx # TransparencySection - Collapsible sections for system prompts/tool schemas/full messages
+│   │   │   │   ├── AssistantMessageActions.jsx # Assistant action controls (copy/feedback/retry)
+│   │   │   │   ├── UserMessageActions.jsx # User action controls (copy/edit-and-resend)
+│   │   │   │   ├── MessageSourceBadge.jsx # Dev source + token badge renderer
+│   │   │   │   └── MessageItem.jsx      # Message row shell + action/transparency composition
+│   │   │   └── chatBoxResponseUtils.js  # chatBoxResponseUtils - Response/tool-call selection + tool-ghost track style builders
 │   │   │
 │   │   ├── hooks/                       # Chat business logic hooks
 │   │   │   ├── useChatMessageSender.ts  # useChatMessageSender - Handles message sending (dashboard sends skip screenshot capture/window handoff)

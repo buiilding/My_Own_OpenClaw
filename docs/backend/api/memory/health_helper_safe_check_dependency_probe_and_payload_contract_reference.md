@@ -11,7 +11,7 @@ title: "Health Helper Safe-Check, Dependency-Probe, and Payload Contract Referen
 ## Canonical Modules
 
 - `backend/src/api/routes/memory/health.py`
-- `backend/src/api/routes/memory/embeddings.py`
+- `backend/src/api/routes/memory/embeddings/router.py`
 - `backend/src/api/routes/memory/semantic/router.py`
 - `tests/backend/test_memory_routes.py`
 

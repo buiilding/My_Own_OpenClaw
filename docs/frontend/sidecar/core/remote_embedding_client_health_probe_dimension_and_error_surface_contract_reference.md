@@ -12,7 +12,7 @@ title: "Remote Embedding Client Health-Probe, Dimension, and Error-Surface Contr
 
 - `frontend/src/main/python/core/remote_embedding_client.py`
 - `frontend/src/main/python/core/backend_config.py`
-- `backend/src/api/routes/memory/embeddings.py`
+- `backend/src/api/routes/memory/embeddings/router.py`
 - `backend/src/api/routes/memory/health.py`
 - `tests/sidecar/test_remote_embedding_client.py`
 - `tests/backend/test_memory_routes.py`

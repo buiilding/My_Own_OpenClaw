@@ -42,7 +42,10 @@ backend/src/api/
 │   │
 │   └── memory/                        # Memory-related REST endpoints
 │       ├── __init__.py                # Package exports: embeddings, semantic routers
-│       ├── embeddings.py              # REST endpoint - Embedding generation (/api/embeddings)
+│       ├── embeddings/                # Embeddings route package (/api/embeddings)
+│       │   ├── __init__.py            # Compatibility exports (router + models)
+│       │   ├── models.py              # Pydantic request/response models
+│       │   └── router.py              # REST endpoint handlers
 │       └── semantic.py                # REST endpoint - Semantic memory summarization (/api/semantic)
 │
 ├── handlers/                           # HANDLER LAYER - Message type-specific processing
@@ -148,7 +151,7 @@ backend/src/api/
 
 ```
 1. HTTP REQUEST
-   └─> routes/memory/semantic.py or routes/memory/embeddings.py
+   └─> routes/memory/semantic/router.py or routes/memory/embeddings/router.py
 
 2. DEPENDENCY INJECTION
    └─> deps.py
@@ -158,7 +161,7 @@ backend/src/api/
    ├─> routes/memory/semantic.py
    │   └─> LLM client (summarization)
    │
-   └─> routes/memory/embeddings.py
+   └─> routes/memory/embeddings/router.py
        └─> Embedding provider (vector generation)
 
 4. RESPONSE

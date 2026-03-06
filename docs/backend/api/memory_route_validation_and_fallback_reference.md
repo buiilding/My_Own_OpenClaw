@@ -10,7 +10,7 @@ title: "Memory Route Validation and Fallback Reference"
 
 ## Canonical Modules
 
-- `backend/src/api/routes/memory/embeddings.py`
+- `backend/src/api/routes/memory/embeddings/router.py`
 - `backend/src/api/routes/memory/semantic/__init__.py`
 - `backend/src/api/routes/memory/semantic/router.py`
 - `backend/src/api/routes/memory/semantic/models.py`
