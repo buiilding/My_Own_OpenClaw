@@ -1,18 +1,20 @@
----
-summary: "Deep reference for local-backend bridge window resolver input-shape normalization and Linux-only screenshot hide/restore/focus restoration sequencing."
+summary: "Deep reference for local-backend bridge window-resolver input normalization and screenshot visibility runtime dispatch wiring."
 read_when:
-  - When changing resolver input contracts (`getWindows` function/object/window instance) or overlay window detection logic.
-  - When debugging screenshot captures that include overlays, miss focus restoration, or alter always-on-top behavior after restore.
-title: "Window Resolver Shapes and Linux Screenshot Hide/Restore Orchestration Reference"
+  - When changing resolver input contracts in `local_backend_bridge_window_visibility.cjs`.
+  - When changing screenshot visibility runtime dispatch between platform modules and local-backend screenshot execution wrappers.
+title: "Window Resolver Shapes and Screenshot Visibility Runtime Dispatch Reference"
 ---
 
-# Window Resolver Shapes and Linux Screenshot Hide/Restore Orchestration Reference
+# Window Resolver Shapes and Screenshot Visibility Runtime Dispatch Reference
 
 ## Canonical Modules
 
-- `frontend/src/main/local_backend_bridge_windows.cjs`
+- `frontend/src/main/local_backend_bridge_window_visibility.cjs`
+- `frontend/src/main/platform/screenshot_window_visibility/index.cjs`
+- `frontend/src/main/platform/screenshot_window_visibility/linux.cjs`
+- `frontend/src/main/platform/screenshot_window_visibility/windows.cjs`
+- `frontend/src/main/platform/screenshot_window_visibility/macos.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
-- `frontend/src/main/index.cjs`
 
 ## Resolver Input Normalization
 
@@ -36,95 +38,58 @@ Design intent:
 
 - keep call sites simple even when they can only provide one window handle
 
-## Linux Screenshot Wrapper Activation Boundary
+## Screenshot Visibility Runtime Dispatch Boundary
 
 `withHiddenWindowForScreenshot(...)` runs only when:
 
-- `process.platform === 'linux'`
+- `execute-tool` requests target screenshot tool path in local backend bridge
 
-Non-Linux path:
+Dispatch behavior:
 
-- executes `task()` directly with no window mutations
+- selects platform runtime by `process.platform` through `createScreenshotWindowVisibilityRuntime(...)`
+- forwards resolver callbacks and `task` to selected runtime module
 
-Linux preconditions:
+Current runtime implementation contract:
 
-- windows list resolved from `resolveWindows()`
-- destroyed windows filtered out before hide/restore logic
-- if no candidate windows, executes `task()` directly
+- all platform modules (`linux`, `windows`, `macos`) execute `task()` directly
+- Linux runtime explicitly documents renderer `SurfaceOrchestrator` as owner of hide/show capture lifecycle
 
-## Hide Phase Contract
+## Why Resolver Contracts Still Matter
 
-For each tracked window:
+Although platform modules are currently pass-through, resolver helpers remain part of the wrapper API:
 
-- captures state snapshot:
-  - `wasVisible`
-  - `wasFocused`
-  - `wasMinimized`
-- hides window only when:
-  - `wasVisible` and not `wasMinimized`
-
-After hide pass:
-
-- waits `320ms` before calling screenshot task
-- goal: allow compositor/UI to settle before capture
-
-## Restore Phase Contract
-
-Restore runs in `finally` (always):
-
-Per window restore condition:
-
-- restore only if initially visible, not minimized, and still not destroyed
-
-Overlay identification:
-
-- window equals resolved `chatWindow` or `responseWindow`
-
-Restore behavior:
-
-- overlay window:
-  - prefer `showInactive()` when available
-  - re-assert always-on-top (`setAlwaysOnTop(true, 'floating')`)
-  - call `moveTop()` when available
-- non-overlay window:
-  - `show()`
-  - if chat window was not previously focused, call `blur()` to avoid focus steal
-
-Focus restoration:
-
-- attempts to focus originally focused window (if still alive) after restore
+- preserves compatibility for future runtime strategies
+- keeps local-backend screenshot call-sites stable across platform behavior changes
 
 ## Error Handling Semantics
 
-- screenshot task error is propagated to caller (not swallowed)
-- restore still executes because of `finally`
-- always-on-top reassert failures are logged with warning but do not fail overall flow
+- task errors are propagated to caller (not swallowed)
+- no main-process restore stage exists in current platform runtimes
+- timeout and JSON-RPC failure behavior remains owned by local-backend bridge request logic
 
 ## Integration Boundary in Bridge
 
 `local_backend_bridge.cjs` execute-tool handler:
 
-- only wraps `toolName === 'screenshot'` with `withHiddenWindowForScreenshot(...)`
-- all other tools bypass window hide/restore guard
+- wraps only `toolName === 'screenshot'` with `withHiddenWindowForScreenshot(...)`
+- all other tools bypass screenshot visibility runtime wrapper
 
 Implication:
 
-- overlay-safe screenshot capture is intentional/specific behavior, not a general tool wrapper
+- screenshot visibility behavior is intentional and scoped, but Linux hide/show ownership now lives in renderer orchestration rather than this main-process module
 
 ## Drift Hotspots
 
 1. changing resolver shape handling can silently drop `responseWindow` in callers that pass object snapshots.
-2. removing the 320ms settle delay can reintroduce overlays in captured screenshots.
-3. skipping always-on-top reassert on overlay windows can leave overlays behind other apps after screenshot tasks.
-4. altering focus restore order can steal focus from external apps unexpectedly.
-5. broadening wrapper to non-screenshot tools can produce unnecessary Linux UI flicker.
+2. reintroducing main-process hide/restore logic without coordinating renderer capture ownership can create double-collapse races.
+3. broadening wrapper to non-screenshot tools can produce unnecessary platform behavior coupling.
+4. changing platform runtime dispatch without updating docs can hide ownership drift during screenshot debugging.
 
 ## Change Checklist
 
 When touching window wrapper flow:
 
-1. verify Linux screenshot hides overlays before capture
-2. verify overlay windows recover always-on-top and stacking order
-3. verify previously focused window regains focus when still available
-4. verify non-Linux behavior remains pass-through
-5. verify screenshot tool only path remains scoped in execute-tool handler
+1. verify resolver output shape (`main/chat/response`) remains stable for callers
+2. verify screenshot tool only path remains scoped in execute-tool handler
+3. verify platform runtime dispatch still matches `process.platform`
+4. verify renderer capture orchestration assumptions stay aligned with Linux runtime comment/ownership

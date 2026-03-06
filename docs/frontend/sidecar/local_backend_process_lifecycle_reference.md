@@ -1,5 +1,4 @@
----
-summary: "Electron main local-backend process lifecycle reference: Python spawn/runtime env, readiness probe loop, request correlation/timeouts, stderr filtering, and failure recovery behavior."
+summary: "Electron main local-backend process lifecycle reference: sidecar launch-target resolution (binary-first packaged paths), readiness probe loop, request correlation/timeouts, and failure recovery behavior."
 read_when:
   - When changing local backend process startup, readiness checks, or request timeout behavior.
   - When debugging sidecar startup failures, unknown-response warnings, or stuck pending JSON-RPC requests.
@@ -11,7 +10,7 @@ title: "Local Backend Process Lifecycle Reference"
 ## Canonical Modules
 
 - `frontend/src/main/local_backend_bridge.cjs`
-- `frontend/src/main/local_backend_bridge_windows.cjs`
+- `frontend/src/main/local_backend_bridge_window_visibility.cjs`
 - `frontend/src/main/local_backend_bridge_utils.cjs`
 - `frontend/src/main/runtime_paths.cjs`
 - `frontend/src/main/backend_endpoints.cjs`
@@ -30,18 +29,24 @@ Startup sequence:
 
 `startLocalBackend(...)` behavior:
 
-1. resolve Python executable path (`resolvePythonExecutablePath`)
-2. resolve script path (`resolvePythonScriptPath('local_backend.py')`)
-3. verify script exists
-4. spawn child process with:
+1. resolve launch target (`resolveSidecarLaunchTarget('local_backend.py')`)
+2. packaged builds probe bundled Playwright browser payload (`resolveBundledPlaywrightBrowsersPath`)
+3. fail-close when launch target is python and command is missing:
+- packaged: bundled runtime reinstall guidance
+- dev: install Python / set `WINDIE_PYTHON_PATH` guidance
+4. fail-close when launch target is python and script path is missing
+5. spawn child process with:
 - `cwd` = script directory
 - `PYTHONUNBUFFERED=1`
 - `WINDIE_BACKEND_HTTP_URL` from `resolveBackendEndpoints().httpUrl`
+- `WINDIE_PACKAGED_APP` and `WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL`
+- optional `PLAYWRIGHT_BROWSERS_PATH` when bundled browser payload exists
 - `NODE_OPTIONS` amended with `--no-deprecation`
 
 If executable missing (`ENOENT`):
 
-- emits user-facing local-backend-status error with Python missing guidance
+- binary launch path emits bundled sidecar executable reinstall guidance
+- python launch path emits Python missing guidance
 
 ## Readiness Probe Loop
 
@@ -117,18 +122,9 @@ On process `exit` or `error`:
 
 For `execute-tool` where `toolName === 'screenshot'`:
 
-- on Linux only, runs inside `withHiddenWindowForScreenshot(...)`
-
-Behavior:
-
-1. hide visible non-minimized windows
-2. wait 320ms before capture
-3. run screenshot RPC
-4. restore window visibility/focus and overlay always-on-top state
-
-Purpose:
-
-- avoid capturing WindieOS overlay windows in screenshots
+- wraps call with `withHiddenWindowForScreenshot(...)`, which dispatches platform runtime behavior
+- current runtime modules are pass-through on all platforms
+- Linux hide/show ownership is renderer-side (`SurfaceOrchestrator`), not Electron-main hide/restore logic in this module
 
 ## IPC Handlers Registered by Bridge
 
@@ -157,5 +153,5 @@ If requests time out unexpectedly:
 If Linux screenshots include overlays:
 
 1. verify screenshot calls go through `execute-tool` with tool name `screenshot`
-2. verify window resolver returns chat/response windows
-3. inspect restoration logic for overlay `alwaysOnTop` reapplication
+2. verify renderer capture prep/hide flow (`SurfaceOrchestrator`) executed
+3. verify no legacy main-process hide/restore assumptions remain in local debugging instrumentation
