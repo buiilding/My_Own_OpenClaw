@@ -288,6 +288,52 @@ class _NativeComputerUseMissingMetadataLLMHandler:
         return {"content": "Final answer after failed tool call."}
 
 
+class _NativeComputerUseUnexpectedMetadataLLMHandler:
+    def __init__(self):
+        self.calls = 0
+
+    async def get_response(
+        self,
+        prompt,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+    ):
+        _ = (prompt, tools, tool_choice, parallel_tool_calls)
+        self.calls += 1
+        if self.calls == 1:
+            yield FullResponseEvent(content="")
+            return
+        yield FullResponseEvent(content="Final answer after metadata allowlist rejection.")
+
+    def get_last_response_payload(self):
+        if self.calls == 1:
+            return {
+                "content": "",
+                "tool_calls": [
+                    {
+                        "id": "call_mouse_extra_meta_1",
+                        "name": "computer_use",
+                        "arguments": {
+                            "tool": "mouse_control",
+                            "metadata": {
+                                "description": "screen",
+                                "explanation": "click target",
+                                "expectation": "dialog opens",
+                                "trace_id": "abc-123",
+                            },
+                            "arguments": {
+                                "action": "click",
+                                "x": 10,
+                                "y": 20,
+                            },
+                        },
+                    }
+                ],
+            }
+        return {"content": "Final answer after metadata allowlist rejection."}
+
+
 @pytest.mark.asyncio
 async def test_interaction_loop_stops_after_nonrecoverable_stream_error_event():
     stored_messages = []
@@ -339,3 +385,36 @@ async def test_interaction_loop_fail_closes_native_computer_use_without_required
     ]
     assert session.history.staged_tool_call_ids[0] == (["call_mouse_1"], False)
     assert session.history.assistant_messages[-1][0] == "Final answer after failed tool call."
+
+
+@pytest.mark.asyncio
+async def test_interaction_loop_fail_closes_native_computer_use_with_unexpected_metadata_fields():
+    session = _FakeSession(stored_messages=[])
+    tool_executor = _CapturingToolExecutor()
+    loop = InteractionLoop(
+        session=session,
+        prompt_coordinator=_FakePromptCoordinator(),
+        llm_handler=_NativeComputerUseUnexpectedMetadataLLMHandler(),
+        tool_executor=tool_executor,
+        event_presenter=_FakeEventPresenter(),
+    )
+
+    events = [event async for event in loop.run_loop()]
+
+    assert any(isinstance(event, StreamingCompleteEvent) for event in events)
+    assert tool_executor.execute_called is True
+    assert tool_executor.executed_tool_names == ["invalid_computer_use_tool"]
+    assert tool_executor.executed_parameters == [
+        {"action": "click", "x": 10, "y": 20},
+    ]
+    assert session.history.assistant_messages[0][1] == [
+        {
+            "id": "call_mouse_extra_meta_1",
+            "name": "invalid_computer_use_tool",
+            "arguments": {"action": "click", "x": 10, "y": 20},
+        }
+    ]
+    assert session.history.staged_tool_call_ids[0] == (["call_mouse_extra_meta_1"], False)
+    assert session.history.assistant_messages[-1][0] == (
+        "Final answer after metadata allowlist rejection."
+    )
