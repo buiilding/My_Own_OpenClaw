@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-window-lifecycle-vm-mode-consistency-and-backend-services-crosslink): align window/overlay lifecycle startup and shutdown docs with VM-mode conditional behavior (`createChatWindow`/tray/hotkey gating and `before-quit` VM worker stop), and link backend services storage map to the new VM run-control support-helper deep reference.
 - fix(frontend-tool-result-envelope-payload-clone-boundary): deep-clone tool-result/tool-bundle-result envelope payloads at construction time to prevent caller-side mutation leaks from rewriting queued correlation/result data; add frontend regression coverage for both top-level and nested payload aliasing.
 - docs(frontend-main-vm-mode-lifecycle-and-overlay-bootstrap-corrections): align main-process docs with current runtime contracts (single-instance throttle flow, VM-mode overlay/tray/hotkey guards, before-quit VM worker shutdown, chat overlay `520x116` size, lazy renderer loading, and overlay-only content-protection ownership).
 - docs(backend-vm-run-control-support-helper-contracts): add a dedicated backend services deep reference for `vm_run_control_support/*` helper boundaries (assignment, transitions, pending-control draining, event log sequencing, payload shaping, worker-state normalization), and wire it into services hub plus VM run-control runtime references.

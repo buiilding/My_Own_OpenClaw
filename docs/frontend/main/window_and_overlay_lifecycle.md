@@ -41,10 +41,10 @@ App-ready path (`app.whenReady()`):
 
 1. `initializeMainProcessLifecycleRuntime(...)` runs startup lifecycle listeners.
 2. `createWindow()` delegates to `createMainWindowRuntime(...)` to create `mainWindow` and wire IPC/wakeword/local-backend/overlay phase coordination.
-3. `createChatWindow()` delegates to `createChatWindowRuntime(...)` for overlay input surface (`view=chatbox`).
-4. `createResponseWindow()` delegates to `createResponseWindowRuntime(...)` for response surface (`view=chatbox-response` or debug view).
-5. tray and global hotkey (`Super+Alt+W`) are initialized.
-6. chat/response windows are registered in IPC broadcaster set.
+3. when VM mode is disabled, `createChatWindow()` delegates to `createChatWindowRuntime(...)` for overlay input surface (`view=chatbox`).
+4. when VM mode is disabled, `createResponseWindow()` delegates to `createResponseWindowRuntime(...)` for response surface (`view=chatbox-response` or debug view).
+5. when VM mode is disabled, tray and global hotkey (`Super+Alt+W`) are initialized.
+6. chat/response windows are registered in IPC broadcaster set only when those overlay windows are created.
 
 For extracted factory/helper ownership details, see [Main Window Runtime Factory and Overlay Bootstrap Reference](main_window_runtime_factory_and_overlay_bootstrap_reference.md).
 For lifecycle + overlay-handler split details, see [Main Process Lifecycle, Overlay IPC, and Window Visibility Runtime Reference](main_process_lifecycle_overlay_ipc_and_window_visibility_runtime_reference.md).
@@ -68,8 +68,8 @@ Global app policy:
 
 - startup acquires `app.requestSingleInstanceLock()`; duplicate launches exit and trigger `second-instance` on the primary process to focus the existing main window.
 - startup emits `[Main][StartupMetrics]` snapshots (ready + 2s delayed) with PID, RSS/heap, and Electron process-type counts for repeated-launch diagnostics.
-- `window-all-closed` is prevented only while tray mode is active (`!app.isQuitting`).
-- `before-quit` sets `app.isQuitting=true` and stops local backend sidecar process.
+- `window-all-closed` is prevented only while tray mode is active (`!app.isQuitting && !vmMode`).
+- `before-quit` sets `app.isQuitting=true`, stops local backend sidecar process, and stops VM worker runtime when active.
 
 ## Positioning and Bounds Rules
 
