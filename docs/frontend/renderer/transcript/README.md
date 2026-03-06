@@ -29,6 +29,7 @@ title: "Frontend Renderer Transcript Docs Hub"
 - `frontend/src/renderer/infrastructure/transcript/types.ts`
 - `tests/frontend/TranscriptPendingQueue.test.ts`
 - `tests/frontend/TranscriptPendingFlush.test.ts`
+- `tests/frontend/TranscriptPendingMessages.test.ts`
 - `tests/frontend/TranscriptWriter.session.test.ts`
 - `tests/frontend/TranscriptWriter.userAssistant.test.ts`
 - `tests/frontend/TranscriptWriter.tool.test.ts`
