@@ -315,3 +315,18 @@ async def test_route_result_drops_whitespace_only_correlation_id(route_mode: str
     assert router.result_storage.bundled == []
     assert router.result_storage.bundle_resolves == []
     assert router.session.current_system_state == {"active_window": "Terminal"}
+
+
+@pytest.mark.asyncio
+async def test_route_result_rejects_unknown_route_mode():
+    router = _make_router()
+    result = ToolResult(success=True, data={"output": "ok"})
+
+    with pytest.raises(ValueError, match="Unsupported route_mode: unexpected"):
+        await router.route_result("req-1", result, route_mode="unexpected")  # type: ignore[arg-type]
+
+    assert router.screenshot_processor.calls == []
+    assert router.result_storage.pending == []
+    assert router.result_storage.pending_resolves == []
+    assert router.result_storage.bundled == []
+    assert router.result_storage.bundle_resolves == []

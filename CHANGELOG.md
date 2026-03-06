@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(backend-tool-result-router-route-mode-validation-guard): make shared tool-result router fail closed on unexpected `route_mode` values instead of silently defaulting to individual semantics; add regression coverage asserting `ValueError` and no storage/screenshot side effects for invalid modes.
 - fix(backend-tool-result-router-correlation-id-trim-and-fail-close): normalize correlation ids inside shared `ToolResultRouter.route_result` (trim padded ids before screenshot/storage routing) and fail closed for whitespace-only ids to prevent state/storage mutation when correlation identity is invalid; add router regressions for trimmed single/bundle paths and whitespace-drop behavior.
 - test(frontend-tool-runner-correlated-payload-whitespace-id-drop): extend callback send-gate regressions so correlated `tool-result`/`tool-bundle-result` payloads with whitespace-only ids are dropped (same fail-close path as missing ids), preventing malformed id formatting from leaking to backend routing.
 - test(backend-websocket-message-parse-runtime-error-mapping-and-dependency-forwarding): expand parse-runtime coverage for parser dependency forwarding (`offload_threshold_bytes` + injected loop getter), malformed JSON mapping, non-object root mapping, and unexpected-error fallback logging/response (`An internal error occurred`).

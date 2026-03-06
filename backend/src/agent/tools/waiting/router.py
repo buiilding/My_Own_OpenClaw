@@ -224,6 +224,9 @@ class ToolResultRouter:
             tool_result: Tool result to route
             route_mode: Routing mode ("individual" or "bundle")
         """
+        if route_mode not in ("individual", "bundle"):
+            raise ValueError(f"Unsupported route_mode: {route_mode}")
+
         normalized_correlation_id = self._normalize_correlation_id(correlation_id)
         if not normalized_correlation_id:
             logger.warning(
