@@ -370,4 +370,40 @@ describe('useToolRunner callback wiring', () => {
 
     expect(IpcBridge.send).not.toHaveBeenCalled();
   });
+
+  test('accepts tracked backend payloads when envelope correlation id is padded', async () => {
+    renderToolRunner(true);
+    const callbacks = getCapturedServiceCallbacks();
+
+    await emitBackendEventAsync({
+      type: 'tool-call',
+      id: 'event-track-corr-trim',
+      payload: {
+        tool_name: 'read_file',
+        parameters: { file_path: '/tmp/a' },
+        correlation_id: 'corr-trim',
+      },
+    });
+
+    callbacks.sendToBackend({
+      type: 'tool-result',
+      payload: { request_id: '  corr-trim  ', success: true, data: {} },
+    });
+
+    expect(IpcBridge.send).toHaveBeenCalledWith(
+      SEND_CHANNELS.TO_BACKEND,
+      {
+        type: 'tool-result',
+        payload: { request_id: '  corr-trim  ', success: true, data: {} },
+      },
+    );
+
+    (IpcBridge.send as jest.Mock).mockClear();
+    callbacks.sendToBackend({
+      type: 'tool-result',
+      payload: { request_id: 'corr-trim', success: true, data: {} },
+    });
+
+    expect(IpcBridge.send).not.toHaveBeenCalled();
+  });
 });
