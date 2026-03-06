@@ -163,6 +163,18 @@ def test_tool_registry_filtered_declarations_normalize_legacy_computer_tools():
     assert names == ["computer_use"]
 
 
+def test_tool_registry_filtered_declarations_normalize_legacy_system_tools():
+    config = AppConfig()
+    registry = ToolRegistry(config=config, cache_manager=CacheManager())
+
+    declarations = registry.get_function_declarations_filtered(
+        ["run_shell_command", "replace", "replace_file", "read_file", "get_system_stats", "get_open_windows"]
+    )
+    names = [d["function"]["name"] for d in declarations]
+
+    assert names == ["system_use"]
+
+
 def test_tool_registry_computer_use_declaration_includes_metadata_fields():
     config = AppConfig()
     registry = ToolRegistry(config=config, cache_manager=CacheManager())
@@ -184,6 +196,36 @@ def test_tool_registry_computer_use_declaration_includes_metadata_fields():
     assert metadata["properties"]["explanation"]["minLength"] == 1
     assert metadata["properties"]["expectation"]["type"] == "string"
     assert metadata["properties"]["expectation"]["minLength"] == 1
+
+
+def test_tool_registry_system_use_declaration_constrains_tool_enum_and_arguments():
+    config = AppConfig()
+    registry = ToolRegistry(config=config, cache_manager=CacheManager())
+
+    declarations = registry.get_function_declarations_filtered(["system_use"])
+    assert len(declarations) == 1
+
+    parameters = declarations[0]["function"]["parameters"]
+    tool_enum = parameters["properties"]["tool"]["enum"]
+    argument_variants = parameters["properties"]["arguments"]["oneOf"]
+
+    assert parameters["required"] == ["tool"]
+    assert parameters["additionalProperties"] is False
+    assert set(tool_enum) == {
+        "run_shell_command",
+        "replace",
+        "replace_file",
+        "read_file",
+        "get_system_stats",
+        "get_open_windows",
+    }
+    assert {entry["title"] for entry in argument_variants} == {
+        "run_shell_command arguments",
+        "replace arguments",
+        "read_file arguments",
+        "get_system_stats arguments",
+        "get_open_windows arguments",
+    }
 
 
 def test_tool_registry_availability_and_capabilities_fallback():

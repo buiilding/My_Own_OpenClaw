@@ -362,13 +362,27 @@ def test_validate_metadata_ignores_non_computer_tool_metadata():
 def test_get_valid_tool_names_deduplicates_registry_values():
     validator, _metrics = _make_validator(["read_file", "read_file", "replace"])
 
-    assert validator._get_valid_tool_names() == ["read_file", "replace"]
+    assert validator._get_valid_tool_names() == [
+        "get_open_windows",
+        "get_system_stats",
+        "read_file",
+        "replace",
+        "run_shell_command",
+        "system_use",
+    ]
 
 
 def test_get_valid_tool_names_returns_sorted_output():
     validator, _metrics = _make_validator({"replace", "read_file"})
 
-    assert validator._get_valid_tool_names() == ["read_file", "replace"]
+    assert validator._get_valid_tool_names() == [
+        "get_open_windows",
+        "get_system_stats",
+        "read_file",
+        "replace",
+        "run_shell_command",
+        "system_use",
+    ]
 
 
 def test_validate_tool_call_uses_compact_json_size_for_nested_params():
@@ -441,11 +455,25 @@ def test_get_valid_tool_names_expands_unified_computer_use_to_legacy_subtools():
 
     assert names == [
         "computer_use",
+        "get_open_windows",
+        "get_system_stats",
         "keyboard_control",
         "mouse_control",
         "read_file",
+        "replace",
+        "run_shell_command",
         "screenshot",
         "scroll_control",
         "switch_tab",
+        "system_use",
         "wait",
     ]
+
+
+def test_validate_tool_call_accepts_legacy_system_name_when_unified_system_use_is_registered():
+    validator, _metrics = _make_validator(["system_use"])
+
+    validator.validate_tool_call(
+        "read_file",
+        {"file_path": "/tmp/a", "explanation": "inspect file"},
+    )

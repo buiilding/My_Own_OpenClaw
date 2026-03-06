@@ -342,11 +342,9 @@ class AppConfig(BaseModel):
         """Return allowed tool names for the current interaction mode."""
         if self.interaction_mode == "chat":
             return {
-                "read_file",
-                "replace",
-                "run_shell_command",
                 "open_app",
                 "process",
                 "computer_use",
+                "system_use",
             }
         return None

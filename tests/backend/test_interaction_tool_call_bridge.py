@@ -487,6 +487,102 @@ def test_to_parsed_response_direct_computer_subtool_requires_metadata():
     assert call.metadata == {"tool_call_id": "call_direct_mouse_1"}
 
 
+def test_to_parsed_response_maps_unified_system_use_to_concrete_tool():
+    parsed = to_parsed_response(
+        {
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "call_shell_1",
+                    "name": "system_use",
+                    "arguments": {
+                        "tool": "run_shell_command",
+                        "arguments": {
+                            "command": "echo hi",
+                            "run_in_background": False,
+                            "explanation": "verify shell path",
+                        },
+                    },
+                }
+            ],
+        }
+    )
+
+    assert parsed.has_tool_calls is True
+    assert len(parsed.tool_calls) == 1
+    call = parsed.tool_calls[0]
+    assert call.tool_name == "run_shell_command"
+    assert call.parameters == {
+        "command": "echo hi",
+        "run_in_background": False,
+        "explanation": "verify shell path",
+    }
+    assert call.metadata == {"tool_call_id": "call_shell_1"}
+
+
+def test_to_parsed_response_maps_unified_system_use_replace_file_alias_to_replace():
+    parsed = to_parsed_response(
+        {
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "call_replace_1",
+                    "name": "system_use",
+                    "arguments": {
+                        "tool": "replace_file",
+                        "arguments": {
+                            "file_path": "/tmp/a.txt",
+                            "old_string": "x",
+                            "new_string": "y",
+                            "explanation": "patch file",
+                        },
+                    },
+                }
+            ],
+        }
+    )
+
+    assert parsed.has_tool_calls is True
+    assert len(parsed.tool_calls) == 1
+    call = parsed.tool_calls[0]
+    assert call.tool_name == "replace"
+    assert call.parameters == {
+        "file_path": "/tmp/a.txt",
+        "old_string": "x",
+        "new_string": "y",
+        "explanation": "patch file",
+    }
+    assert call.metadata == {"tool_call_id": "call_replace_1"}
+
+
+def test_to_parsed_response_keeps_unified_system_use_when_subtool_is_invalid():
+    parsed = to_parsed_response(
+        {
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "call_system_bad_1",
+                    "name": "system_use",
+                    "arguments": {
+                        "tool": "not_a_real_system_tool",
+                        "arguments": {"command": "echo hi"},
+                    },
+                }
+            ],
+        }
+    )
+
+    assert parsed.has_tool_calls is True
+    assert len(parsed.tool_calls) == 1
+    call = parsed.tool_calls[0]
+    assert call.tool_name == "system_use"
+    assert call.parameters == {
+        "tool": "not_a_real_system_tool",
+        "arguments": {"command": "echo hi"},
+    }
+    assert call.metadata == {"tool_call_id": "call_system_bad_1"}
+
+
 def test_recoverable_error_detection_and_message_formatting():
     error_msg = (
         "Invalid response from stream: failed to parse streamed tool-call arguments "

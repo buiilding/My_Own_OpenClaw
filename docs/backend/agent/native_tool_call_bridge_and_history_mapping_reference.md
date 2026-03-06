@@ -87,6 +87,22 @@ Metadata-promotion boundary for unified envelopes:
 - computer required metadata fields (`description`, `explanation`, `expectation`) are normalized with trim semantics
 - if any required computer metadata field is missing/blank/non-string after normalization, bridge marks call as `invalid_computer_use_tool`
 
+## Unified `system_use` Mapping
+
+When normalized name is `system_use`:
+
+- reads mapped subtool from `parameters.tool`
+- supported mapped names:
+  - `run_shell_command`
+  - `replace`
+  - `replace_file` (alias; normalized to `replace`)
+  - `read_file`
+  - `get_system_stats`
+  - `get_open_windows`
+- valid mapped name -> replace parsed `tool_name` with normalized concrete name
+- executable parameters become `parameters.arguments` if dict, else `{}`
+- invalid mapped names are left as `system_use` so downstream wrapper validation can return a deterministic tool error message
+
 ## History Tool-Call Shaping
 
 `to_history_tool_calls(parsed_tool_calls)` returns assistant-history `tool_calls` rows:
@@ -164,6 +180,7 @@ Extraction helpers:
 2. Removing `arguments.metadata` stripping can leak metadata fields into executable tool parameter payloads.
 3. Changing history id fallback format can break downstream assumptions in tool-output correlation/debug tooling.
 4. Modifying recoverable marker heuristics can convert retryable malformed-tool-call events into hard loop aborts.
+5. Changing `system_use` alias normalization (`replace_file` -> `replace`) without schema/sidecar updates can desync wrapper routing.
 
 ## Related Docs
 

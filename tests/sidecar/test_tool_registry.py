@@ -587,6 +587,150 @@ async def test_execute_computer_use_rejects_non_string_required_metadata_fields(
 
 
 @pytest.mark.asyncio
+async def test_execute_system_use_routes_to_selected_subtool():
+    registry = ToolRegistry()
+    captured = {}
+
+    def shell_tool(args):
+        captured["args"] = args
+        return ToolResult.success_result({"ok": True, "tool": "run_shell_command"})
+
+    registry.tools["run_shell_command"] = shell_tool
+
+    result = await registry.execute_tool(
+        "system_use",
+        {
+            "tool": "run_shell_command",
+            "arguments": {
+                "command": "echo hi",
+                "run_in_background": False,
+                "explanation": "verify route",
+            },
+        },
+    )
+
+    assert result.success is True
+    assert result.data == {"ok": True, "tool": "run_shell_command"}
+    assert captured["args"] == {
+        "command": "echo hi",
+        "run_in_background": False,
+        "explanation": "verify route",
+    }
+
+
+@pytest.mark.asyncio
+async def test_execute_system_use_maps_replace_file_alias_to_replace():
+    registry = ToolRegistry()
+    captured = {"called": False}
+
+    def replace_tool(args):
+        captured["called"] = True
+        captured["args"] = args
+        return ToolResult.success_result({"ok": True, "tool": "replace"})
+
+    registry.tools["replace"] = replace_tool
+
+    result = await registry.execute_tool(
+        "system_use",
+        {
+            "tool": "replace_file",
+            "arguments": {
+                "file_path": "/tmp/a.txt",
+                "old_string": "x",
+                "new_string": "y",
+                "explanation": "patch",
+            },
+        },
+    )
+
+    assert result.success is True
+    assert result.data == {"ok": True, "tool": "replace"}
+    assert captured["called"] is True
+    assert captured["args"] == {
+        "file_path": "/tmp/a.txt",
+        "old_string": "x",
+        "new_string": "y",
+        "explanation": "patch",
+    }
+
+
+@pytest.mark.asyncio
+async def test_execute_system_use_rejects_unknown_subtool_name():
+    registry = ToolRegistry()
+
+    result = await registry.execute_tool(
+        "system_use",
+        {
+            "tool": "unknown_system_tool",
+            "arguments": {},
+        },
+    )
+
+    assert result.success is False
+    assert "system_use requires a valid 'tool' value" in (result.error or "")
+
+
+@pytest.mark.asyncio
+async def test_execute_system_use_rejects_non_object_arguments():
+    registry = ToolRegistry()
+
+    result = await registry.execute_tool(
+        "system_use",
+        {
+            "tool": "read_file",
+            "arguments": "not-a-dict",
+        },
+    )
+
+    assert result.success is False
+    assert result.error == "system_use.arguments must be an object"
+
+
+@pytest.mark.asyncio
+async def test_execute_system_use_prevents_subtool_argument_mutation_from_leaking_to_envelope():
+    registry = ToolRegistry()
+    captured = {}
+
+    def replace_tool(args):
+        captured["before"] = {
+            "file_path": args.get("file_path"),
+            "nested": dict(args.get("nested", {})),
+        }
+        args["file_path"] = "/tmp/mutated.txt"
+        nested = args.get("nested")
+        if isinstance(nested, dict):
+            nested["marker"] = "mutated"
+        return ToolResult.success_result({"ok": True, "tool": "replace"})
+
+    registry.tools["replace"] = replace_tool
+    envelope = {
+        "tool": "replace_file",
+        "arguments": {
+            "file_path": "/tmp/original.txt",
+            "old_string": "x",
+            "new_string": "y",
+            "explanation": "patch",
+            "nested": {"marker": "original"},
+        },
+    }
+
+    result = await registry.execute_tool("system_use", envelope)
+
+    assert result.success is True
+    assert captured["before"] == {
+        "file_path": "/tmp/original.txt",
+        "nested": {"marker": "original"},
+    }
+    assert envelope["arguments"] == {
+        "file_path": "/tmp/original.txt",
+        "old_string": "x",
+        "new_string": "y",
+        "explanation": "patch",
+        "nested": {"marker": "original"},
+    }
+
+
+@pytest.mark.asyncio
 async def test_browser_tool_imports_module_lazily(monkeypatch):
     registry = ToolRegistry()
     import_calls = []

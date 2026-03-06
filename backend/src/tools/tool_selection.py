@@ -38,6 +38,17 @@ _LEGACY_COMPUTER_TOOL_NAMES: frozenset[str] = frozenset(
     }
 )
 _UNIFIED_COMPUTER_TOOL_NAME = "computer_use"
+_LEGACY_SYSTEM_TOOL_NAMES: frozenset[str] = frozenset(
+    {
+        "run_shell_command",
+        "replace",
+        "replace_file",
+        "read_file",
+        "get_system_stats",
+        "get_open_windows",
+    }
+)
+_UNIFIED_SYSTEM_TOOL_NAME = "system_use"
 
 
 def _ordered_mouse_methods(methods: Sequence[str]) -> List[str]:
@@ -88,6 +99,7 @@ class ToolSelection:
             return self._normalize_unified_computer_use_tool_names(tool_names)
         filtered: List[str] = []
         has_unified_computer = False
+        has_unified_system = False
         for name in tool_names:
             normalized_name = self._normalize_tool_name(name)
             if not self.is_tool_enabled(normalized_name):
@@ -101,6 +113,10 @@ class ToolSelection:
                 if has_unified_computer:
                     continue
                 has_unified_computer = True
+            if normalized_name == _UNIFIED_SYSTEM_TOOL_NAME:
+                if has_unified_system:
+                    continue
+                has_unified_system = True
             filtered.append(normalized_name)
         return filtered
 
@@ -111,6 +127,7 @@ class ToolSelection:
 
         filtered: List[Dict[str, Any]] = []
         has_unified_computer = False
+        has_unified_system = False
         for schema in tool_schemas:
             tool_name = self._get_tool_name(schema)
             if not isinstance(tool_name, str):
@@ -124,6 +141,10 @@ class ToolSelection:
                 continue
 
             if normalized_name != _UNIFIED_COMPUTER_TOOL_NAME:
+                if normalized_name == _UNIFIED_SYSTEM_TOOL_NAME:
+                    if has_unified_system:
+                        continue
+                    has_unified_system = True
                 filtered.append(schema)
                 continue
 
@@ -203,6 +224,8 @@ class ToolSelection:
             return True
         if normalized_tool_name == _UNIFIED_COMPUTER_TOOL_NAME:
             return bool(self.tools & _LEGACY_COMPUTER_TOOL_NAMES)
+        if normalized_tool_name == _UNIFIED_SYSTEM_TOOL_NAME:
+            return bool(self.tools & _LEGACY_SYSTEM_TOOL_NAMES)
         return False
 
     def _is_not_denylisted(self, normalized_tool_name: str) -> bool:
@@ -210,12 +233,16 @@ class ToolSelection:
             return False
         if normalized_tool_name == _UNIFIED_COMPUTER_TOOL_NAME:
             return not bool(self.tools & _LEGACY_COMPUTER_TOOL_NAMES)
+        if normalized_tool_name == _UNIFIED_SYSTEM_TOOL_NAME:
+            return not bool(self.tools & _LEGACY_SYSTEM_TOOL_NAMES)
         return True
 
     @staticmethod
     def _normalize_tool_name(tool_name: str) -> str:
         if tool_name in _LEGACY_COMPUTER_TOOL_NAMES:
             return _UNIFIED_COMPUTER_TOOL_NAME
+        if tool_name in _LEGACY_SYSTEM_TOOL_NAMES:
+            return _UNIFIED_SYSTEM_TOOL_NAME
         return tool_name
 
     @classmethod
@@ -224,12 +251,17 @@ class ToolSelection:
     ) -> List[str]:
         normalized: List[str] = []
         has_unified = False
+        has_unified_system = False
         for name in tool_names:
             mapped = cls._normalize_tool_name(name)
             if mapped == _UNIFIED_COMPUTER_TOOL_NAME:
                 if has_unified:
                     continue
                 has_unified = True
+            if mapped == _UNIFIED_SYSTEM_TOOL_NAME:
+                if has_unified_system:
+                    continue
+                has_unified_system = True
             normalized.append(mapped)
         return normalized
 

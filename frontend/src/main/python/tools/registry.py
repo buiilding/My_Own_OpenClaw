@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 # called by the LLM. Keep this list in sync with backend/src/tools/remote.py.
 EXPOSED_TO_BACKEND_TOOLS = frozenset({
     "computer_use",
+    "system_use",
     "mouse_control",
     "keyboard_control",
     "screenshot",
@@ -46,6 +47,22 @@ COMPUTER_USE_REQUIRED_METADATA_FIELDS = (
     "explanation",
     "expectation",
 )
+SYSTEM_USE_SUBTOOLS = frozenset({
+    "run_shell_command",
+    "replace",
+    "replace_file",
+    "read_file",
+    "get_system_stats",
+    "get_open_windows",
+})
+SYSTEM_USE_TOOL_NAME_TO_EXECUTOR = {
+    "run_shell_command": "run_shell_command",
+    "replace": "replace",
+    "replace_file": "replace",
+    "read_file": "read_file",
+    "get_system_stats": "get_system_stats",
+    "get_open_windows": "get_open_windows",
+}
 
 
 class ToolRegistry:
@@ -145,6 +162,34 @@ class ToolRegistry:
             return await self.execute_tool(tool_name, tool_arguments)
 
         self.tools["computer_use"] = execute_computer_use
+
+        async def execute_system_use(args: Dict[str, Any]) -> ToolResult:
+            """
+            Unified system/filesystem router.
+
+            Accepts `{tool, arguments}` and delegates to the selected concrete
+            sidecar tool. `replace_file` is treated as an alias of `replace`.
+            """
+            if not isinstance(args, dict):
+                return ToolResult.error_result("Tool args must be an object")
+
+            raw_tool_name = args.get("tool")
+            tool_name = raw_tool_name.strip() if isinstance(raw_tool_name, str) else None
+            if not tool_name or tool_name not in SYSTEM_USE_SUBTOOLS:
+                return ToolResult.error_result(
+                    "system_use requires a valid 'tool' value "
+                    f"({', '.join(sorted(SYSTEM_USE_SUBTOOLS))})"
+                )
+            args["tool"] = tool_name
+
+            tool_arguments = args.get("arguments", {})
+            if not isinstance(tool_arguments, dict):
+                return ToolResult.error_result("system_use.arguments must be an object")
+            tool_arguments = copy.deepcopy(tool_arguments)
+            target_tool_name = SYSTEM_USE_TOOL_NAME_TO_EXECUTOR[tool_name]
+            return await self.execute_tool(target_tool_name, tool_arguments)
+
+        self.tools["system_use"] = execute_system_use
         
         # Filesystem tools
         try:

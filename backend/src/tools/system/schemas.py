@@ -1,7 +1,7 @@
 """
 Pydantic schemas for system tools.
 """
-from typing import Literal, Optional
+from typing import Any, Dict, Literal, Optional
 from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.tools.schema_fields import explanation_field
@@ -9,6 +9,28 @@ from backend.src.tools.schema_fields import explanation_field
 
 def _optional_process_field(description: str):
     return Field(None, description=description)
+
+
+class SystemUseArgs(BaseModel):
+    """Arguments for unified system/filesystem tool wrapper."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    tool: Literal[
+        "run_shell_command",
+        "replace",
+        "replace_file",
+        "read_file",
+        "get_system_stats",
+        "get_open_windows",
+    ] = Field(
+        ...,
+        description="Concrete system/filesystem action to execute.",
+    )
+    arguments: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Arguments for the selected `tool` action.",
+    )
 
 
 # --- Shell Tool Schemas ---
