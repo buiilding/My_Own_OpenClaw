@@ -50,6 +50,22 @@ describe('chatStreamBackendIngress', () => {
     );
   });
 
+  test('sync projection receives trimmed conversation ref', () => {
+    const syncActiveConversationProjection = jest.fn();
+
+    ingestBackendEvent({ type: 'streaming-response', turn_ref: 'turn-1', user_id: 'user-1' } as any, ' conv-1 ', {
+      syncActiveConversationProjection,
+      registerTurnConversationRef: jest.fn(),
+      enableTranscript: true,
+      dispatchEvent: jest.fn(),
+    });
+
+    expect(syncActiveConversationProjection).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'streaming-response', turn_ref: 'turn-1' }),
+      'conv-1',
+    );
+  });
+
   test('registers turn mapping with trimmed turn and conversation refs', () => {
     const registerTurnConversationRef = jest.fn();
 
@@ -65,6 +81,20 @@ describe('chatStreamBackendIngress', () => {
 
   test('uses active transcript conversation when present', () => {
     mockGetActiveConversationRef.mockReturnValue('conv-active');
+    const dispatchEvent = jest.fn();
+
+    ingestBackendEvent({ type: 'token-count', user_id: 'user-2' } as any, 'conv-fallback', {
+      syncActiveConversationProjection: jest.fn(),
+      registerTurnConversationRef: jest.fn(),
+      enableTranscript: true,
+      dispatchEvent,
+    });
+
+    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-active', 'user-2');
+  });
+
+  test('uses trimmed active transcript conversation when present', () => {
+    mockGetActiveConversationRef.mockReturnValue(' conv-active ');
     const dispatchEvent = jest.fn();
 
     ingestBackendEvent({ type: 'token-count', user_id: 'user-2' } as any, 'conv-fallback', {
