@@ -31,4 +31,14 @@ describe('ToolComputerUseCatalog', () => {
     const uniqueNames = new Set(STANDARD_COMPUTER_USE_TOOLS);
     expect(uniqueNames.size).toBe(STANDARD_COMPUTER_USE_TOOLS.length);
   });
+
+  test('keeps renderer execution catalog concrete and excludes unified computer_use wrapper', () => {
+    expect(STANDARD_COMPUTER_USE_TOOLS).not.toContain('computer_use');
+    expect(INTERACTIVE_COMPUTER_USE_TOOLS).toEqual(
+      expect.arrayContaining(['mouse_control', 'keyboard_control', 'scroll_control']),
+    );
+    expect(CAPTURE_ONLY_COMPUTER_USE_TOOLS).toEqual(
+      expect.arrayContaining(['screenshot', 'switch_tab', 'wait']),
+    );
+  });
 });

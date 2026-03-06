@@ -1,0 +1,1559 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "computer_use",
+      "description": "Unified computer-use tool.\n\nUse this tool to control a remote desktop style UI with keyboard, mouse, scrolling, window focus, and screenshots.\n\nCore contract:\n- Select a concrete action via `tool`.\n- Pass action arguments via `arguments`.\n- Always include required `metadata` fields: `description`, `explanation`, `expectation`.\n\nGrounding rules:\n- Prefer keyboard shortcuts and app-native navigation over mouse when equivalent.\n- For text-labeled targets, use mouse `find_coordinates_by='ocr'` with exact `ocr_text` first.\n- If OCR returns multiple matches, retry with `candidate_id` from the ambiguity response.\n- For non-text targets, use `find_coordinates_by='prediction'` with a detailed visual description.\n- For manual coordinates, use screenshot pixel coordinates from the latest screenshot and treat the visible cursor position as a spatial reference.\n- Do not treat tool execution status alone as success. Verify the expected UI change via the tool's always-on post-action screenshot.\n\nTiming rules:\n- Most actions support `wait` to delay before the automatic post-action screenshot capture.\n- Use `wait` when you expect animations, loading spinners, or async UI updates.\n\nTools supported:\n- mouse_control: click, move, drag, scroll with OCR, prediction, or manual targeting.\n- keyboard_control: type, paste, press, hotkey.\n- screenshot: capture the screen.\n- scroll_control: scroll up/down/left/right, optionally moving to x/y first.\n- switch_tab: focus a window/tab by title.\n- wait: pause for seconds and capture state.\n",
+      "parameters": {
+        "type": "object",
+        "description": "Unified computer-use tool envelope. `tool` selects a concrete action. `arguments` must match that action's schema. `metadata` is always required.",
+        "required": [
+          "tool",
+          "metadata"
+        ],
+        "properties": {
+          "tool": {
+            "type": "string",
+            "description": "Concrete computer-use action to execute.",
+            "enum": [
+              "mouse_control",
+              "keyboard_control",
+              "screenshot",
+              "scroll_control",
+              "switch_tab",
+              "wait"
+            ]
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Required execution rationale metadata for computer-use actions.",
+            "required": [
+              "description",
+              "explanation",
+              "expectation"
+            ],
+            "properties": {
+              "description": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Current observed UI or screen state before the action."
+              },
+              "explanation": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Why this action is needed to achieve the immediate goal."
+              },
+              "expectation": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Expected UI or screen state after the action."
+              }
+            }
+          },
+          "arguments": {
+            "type": "object",
+            "description": "Arguments for the selected `tool` action. Must match the corresponding action schema.",
+            "oneOf": [
+              {
+                "title": "mouse_control arguments",
+                "type": "object",
+                "required": [
+                  "action"
+                ],
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "description": "Mouse action to perform. Prefer keyboard shortcuts when equivalent. Always verify UI state change after.",
+                    "enum": [
+                      "click",
+                      "double_click",
+                      "right_click",
+                      "move",
+                      "drag",
+                      "scroll"
+                    ]
+                  },
+                  "find_coordinates_by": {
+                    "type": "string",
+                    "description": "Coordinate targeting strategy. Use 'ocr' for visible text targets, 'prediction' for icons and non-text targets, 'manual' only when you have reliable coordinates from the latest screenshot.",
+                    "default": "manual",
+                    "enum": [
+                      "manual",
+                      "ocr",
+                      "prediction"
+                    ]
+                  },
+                  "x": {
+                    "type": "integer",
+                    "description": "X coordinate in screenshot pixels. Required when find_coordinates_by='manual'."
+                  },
+                  "y": {
+                    "type": "integer",
+                    "description": "Y coordinate in screenshot pixels. Required when find_coordinates_by='manual'."
+                  },
+                  "ocr_text": {
+                    "type": "string",
+                    "description": "Exact visible on-screen text for OCR targeting. Required when find_coordinates_by='ocr' unless candidate_id is provided. Keep to one line."
+                  },
+                  "candidate_id": {
+                    "type": "string",
+                    "description": "Stable OCR candidate id from an earlier ambiguity response. Use for deterministic follow-up selection when multiple OCR matches exist."
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Detailed visual description for find_coordinates_by='prediction'. Describe shape, icon, color, and relative position. Do not combine with ocr_text."
+                  },
+                  "model_name": {
+                    "type": "string",
+                    "description": "Optional vision model name to use for prediction grounding."
+                  },
+                  "button": {
+                    "type": "string",
+                    "description": "Mouse button for click actions.",
+                    "default": "left",
+                    "enum": [
+                      "left",
+                      "right",
+                      "middle"
+                    ]
+                  },
+                  "drag_to_x": {
+                    "type": "integer",
+                    "description": "Destination X for drag. Required when action='drag' in manual mode."
+                  },
+                  "drag_to_y": {
+                    "type": "integer",
+                    "description": "Destination Y for drag. Required when action='drag' in manual mode."
+                  },
+                  "duration": {
+                    "type": "number",
+                    "description": "Duration in seconds for drag operations.",
+                    "default": 0.5,
+                    "minimum": 0
+                  },
+                  "scroll_amount": {
+                    "type": "integer",
+                    "description": "Amount to scroll. Positive scrolls down or right, negative scrolls up or left. Required when action='scroll' unless clicks is used.",
+                    "minimum": -5000,
+                    "maximum": 5000
+                  },
+                  "scroll_direction": {
+                    "type": "string",
+                    "description": "Scroll axis for mouse scroll action.",
+                    "default": "vertical",
+                    "enum": [
+                      "vertical",
+                      "horizontal"
+                    ]
+                  },
+                  "clicks": {
+                    "type": "integer",
+                    "description": "Scroll step count. Positive moves up or right, negative moves down or left. Alternative to scroll_amount.",
+                    "default": 5
+                  },
+                  "wait": {
+                    "type": "number",
+                    "description": "Delay in seconds before the automatic post-action screenshot capture.",
+                    "default": 0,
+                    "minimum": 0,
+                    "maximum": 60
+                  }
+                },
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "find_coordinates_by": {
+                          "const": "manual"
+                        }
+                      },
+                      "required": [
+                        "find_coordinates_by"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "x",
+                        "y"
+                      ]
+                    }
+                  },
+                  {
+                    "if": {
+                      "properties": {
+                        "find_coordinates_by": {
+                          "const": "ocr"
+                        }
+                      },
+                      "required": [
+                        "find_coordinates_by"
+                      ]
+                    },
+                    "then": {
+                      "anyOf": [
+                        {
+                          "required": [
+                            "ocr_text"
+                          ]
+                        },
+                        {
+                          "required": [
+                            "candidate_id"
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "if": {
+                      "properties": {
+                        "find_coordinates_by": {
+                          "const": "prediction"
+                        }
+                      },
+                      "required": [
+                        "find_coordinates_by"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "description"
+                      ]
+                    }
+                  },
+                  {
+                    "if": {
+                      "properties": {
+                        "action": {
+                          "const": "drag"
+                        }
+                      },
+                      "required": [
+                        "action"
+                      ]
+                    },
+                    "then": {
+                      "anyOf": [
+                        {
+                          "required": [
+                            "drag_to_x",
+                            "drag_to_y"
+                          ]
+                        },
+                        {
+                          "required": [
+                            "description"
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "if": {
+                      "properties": {
+                        "action": {
+                          "const": "scroll"
+                        }
+                      },
+                      "required": [
+                        "action"
+                      ]
+                    },
+                    "then": {
+                      "anyOf": [
+                        {
+                          "required": [
+                            "scroll_amount"
+                          ]
+                        },
+                        {
+                          "required": [
+                            "clicks"
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "title": "keyboard_control arguments",
+                "type": "object",
+                "required": [
+                  "action"
+                ],
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "description": "Keyboard action to perform. Use type for normal entry, paste as fallback when type fails, press for a single key, hotkey for combos.",
+                    "enum": [
+                      "type",
+                      "paste",
+                      "press",
+                      "hotkey"
+                    ]
+                  },
+                  "text": {
+                    "type": "string",
+                    "description": "Text for action='type' or action='paste'. Verify text appears in UI after input.",
+                    "maxLength": 10000
+                  },
+                  "key": {
+                    "type": "string",
+                    "description": "Single key for action='press' such as enter, esc, tab, backspace."
+                  },
+                  "keys": {
+                    "type": "array",
+                    "description": "Ordered key list for action='hotkey', for example ['ctrl','l'] or ['cmd','shift','p'].",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 2
+                  },
+                  "repeat": {
+                    "type": "integer",
+                    "description": "Repeat count for press or hotkey.",
+                    "default": 1,
+                    "minimum": 1,
+                    "maximum": 50
+                  },
+                  "interval_ms": {
+                    "type": "integer",
+                    "description": "Delay between repeats in milliseconds.",
+                    "default": 0,
+                    "minimum": 0,
+                    "maximum": 2000
+                  },
+                  "wait": {
+                    "type": "number",
+                    "description": "Delay in seconds before the automatic post-action screenshot capture.",
+                    "default": 0,
+                    "minimum": 0,
+                    "maximum": 60
+                  }
+                },
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "action": {
+                          "const": "type"
+                        }
+                      },
+                      "required": [
+                        "action"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "text"
+                      ]
+                    }
+                  },
+                  {
+                    "if": {
+                      "properties": {
+                        "action": {
+                          "const": "paste"
+                        }
+                      },
+                      "required": [
+                        "action"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "text"
+                      ]
+                    }
+                  },
+                  {
+                    "if": {
+                      "properties": {
+                        "action": {
+                          "const": "press"
+                        }
+                      },
+                      "required": [
+                        "action"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "key"
+                      ]
+                    }
+                  },
+                  {
+                    "if": {
+                      "properties": {
+                        "action": {
+                          "const": "hotkey"
+                        }
+                      },
+                      "required": [
+                        "action"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "keys"
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "title": "screenshot arguments",
+                "type": "object",
+                "properties": {
+                  "wait": {
+                    "type": "number",
+                    "description": "Optional delay in seconds before capturing a screenshot.",
+                    "minimum": 0,
+                    "maximum": 60
+                  }
+                }
+              },
+              {
+                "title": "scroll_control arguments",
+                "type": "object",
+                "required": [
+                  "action"
+                ],
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "description": "Scroll action to perform.",
+                    "enum": [
+                      "scroll",
+                      "scroll_up",
+                      "scroll_down",
+                      "scroll_left",
+                      "scroll_right"
+                    ]
+                  },
+                  "find_coordinates_by": {
+                    "type": "string",
+                    "description": "How to select the scroll focus point. Use manual x/y when you know the scrollable region. Use OCR to move over a labeled scroll container if needed.",
+                    "default": "manual",
+                    "enum": [
+                      "manual",
+                      "ocr",
+                      "prediction"
+                    ]
+                  },
+                  "x": {
+                    "type": "integer",
+                    "description": "Screen X coordinate to move to before scrolling. Required when find_coordinates_by='manual'."
+                  },
+                  "y": {
+                    "type": "integer",
+                    "description": "Screen Y coordinate to move to before scrolling. Required when find_coordinates_by='manual'."
+                  },
+                  "ocr_text": {
+                    "type": "string",
+                    "description": "Exact visible on-screen text to locate a scrollable region via OCR."
+                  },
+                  "candidate_id": {
+                    "type": "string",
+                    "description": "Stable OCR candidate id from a prior ambiguity response."
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Prediction description to locate a scrollable region when it is not text-labeled."
+                  },
+                  "direction": {
+                    "type": "string",
+                    "description": "Direction for action='scroll'. Required when action is 'scroll'.",
+                    "enum": [
+                      "up",
+                      "down",
+                      "left",
+                      "right"
+                    ]
+                  },
+                  "clicks": {
+                    "type": "integer",
+                    "description": "Scroll click count. Positive moves up/left, negative moves down/right when using direction. If you prefer absolute, use amount.",
+                    "default": 5
+                  },
+                  "amount": {
+                    "type": "integer",
+                    "description": "Scroll amount in pixels-like units. Use when you want more consistent magnitude than clicks.",
+                    "minimum": 100,
+                    "maximum": 5000
+                  },
+                  "wait": {
+                    "type": "number",
+                    "description": "Delay in seconds before the automatic post-action screenshot capture.",
+                    "default": 0,
+                    "minimum": 0,
+                    "maximum": 60
+                  }
+                },
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "find_coordinates_by": {
+                          "const": "manual"
+                        }
+                      },
+                      "required": [
+                        "find_coordinates_by"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "x",
+                        "y"
+                      ]
+                    }
+                  },
+                  {
+                    "if": {
+                      "properties": {
+                        "find_coordinates_by": {
+                          "const": "ocr"
+                        }
+                      },
+                      "required": [
+                        "find_coordinates_by"
+                      ]
+                    },
+                    "then": {
+                      "anyOf": [
+                        {
+                          "required": [
+                            "ocr_text"
+                          ]
+                        },
+                        {
+                          "required": [
+                            "candidate_id"
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "if": {
+                      "properties": {
+                        "find_coordinates_by": {
+                          "const": "prediction"
+                        }
+                      },
+                      "required": [
+                        "find_coordinates_by"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "description"
+                      ]
+                    }
+                  },
+                  {
+                    "if": {
+                      "properties": {
+                        "action": {
+                          "const": "scroll"
+                        }
+                      },
+                      "required": [
+                        "action"
+                      ]
+                    },
+                    "then": {
+                      "required": [
+                        "direction"
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "title": "switch_tab arguments",
+                "type": "object",
+                "required": [
+                  "tab_name"
+                ],
+                "properties": {
+                  "tab_name": {
+                    "type": "string",
+                    "description": "Exact window or tab title to focus, matching the system's open-window list output exactly."
+                  },
+                  "match_mode": {
+                    "type": "string",
+                    "description": "How to match tab_name against open window titles.",
+                    "default": "exact",
+                    "enum": [
+                      "exact",
+                      "contains",
+                      "regex"
+                    ]
+                  },
+                  "wait": {
+                    "type": "number",
+                    "description": "Delay in seconds before the automatic post-action screenshot capture.",
+                    "default": 0,
+                    "minimum": 0,
+                    "maximum": 60
+                  }
+                }
+              },
+              {
+                "title": "wait arguments",
+                "type": "object",
+                "required": [
+                  "seconds"
+                ],
+                "properties": {
+                  "seconds": {
+                    "type": "number",
+                    "description": "Number of seconds to wait before capturing a screenshot.",
+                    "minimum": 0,
+                    "maximum": 60
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "get_open_windows",
+      "description": "Lists all currently open window titles. Use this to check if an app is already open before launching a new instance, and as the source of exact target names for switch_tab.",
+      "parameters": {
+        "properties": {
+          "filter_text": {
+            "type": "string",
+            "description": "Optional text to filter window titles by (case-insensitive).",
+            "default": ""
+          },
+          "explanation": {
+            "type": "string",
+            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+          }
+        },
+        "required": [
+          "explanation"
+        ],
+        "type": "object",
+        "description": "Arguments for listing open windows."
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "get_system_stats",
+      "description": "Returns current system resource usage (CPU %, Memory %, Battery). Use this to check system performance before running resource-intensive operations.",
+      "parameters": {
+        "properties": {
+          "explanation": {
+            "type": "string",
+            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+          }
+        },
+        "required": [
+          "explanation"
+        ],
+        "type": "object",
+        "description": "Arguments for checking system stats."
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "run_shell_command",
+      "description": "This tool executes shell commands on the local system. Commands are executed in the specified directory (or OS user home directory if not specified).\n\nExecution Modes:\n- Foreground (run_in_background=False): Waits for command completion and returns output. Use terminate_after_seconds to set a timeout (default 120 seconds). If timeout is reached, the command is terminated and current output is returned. Foreground llm_content is truncated by default to about 10,000 tokens; override with max_output_tokens.\n- Background (run_in_background=True): Starts the command and returns immediately with execution confirmation. Does not wait for output or completion.\n- Yield (yield_after_seconds): Returns early if the command runs longer than the yield time; the command continues in the background and can be managed with the process tool.\n\nOperational Guidance:\n- Prefer short commands focused on one step per tool call.\n- Do not embed large inline file content (HTML/JSON/source blobs) directly in shell command arguments.\n- For creating/updating file contents, use file-edit tools first (read_file + replace) and then run shell commands.\n- Split large workflows into multiple tool calls rather than one giant command payload.\n- For detached GUI app launches, prefer open_app instead of run_shell_command.\n- For shell jobs you need to poll/terminate, keep run_in_background=True and manage via process tool.\n- After launch, capture a screenshot with wait to verify expected UI state.\n- Use get_open_windows + switch_tab for deterministic window focus.\n\nOptional wait parameter: If 'wait' is provided (in seconds), the tool will wait and capture a screenshot after execution, similar to computer-use tools. This is useful when the command opens a GUI application or makes visual changes that need to be captured.\n\nReturns: Command output, exit code, execution time, and any errors.",
+      "parameters": {
+        "properties": {
+          "command": {
+            "type": "string",
+            "description": "Exact command to execute"
+          },
+          "directory": {
+            "type": "string",
+            "description": "(OPTIONAL) The absolute path of the directory to run the command in. If not provided, defaults to the OS user home directory. Must be an absolute path and must already exist."
+          },
+          "run_in_background": {
+            "type": "boolean",
+            "description": "If True, start command asynchronously and return immediately with a session id. Use this for GUI app launches and long-running commands so the agent does not block. Then use the process tool to poll logs, write input, or terminate the session. If False, wait for command completion and return output."
+          },
+          "terminate_after_seconds": {
+            "type": "number",
+            "description": "(OPTIONAL, only used when run_in_background=False) Maximum time in seconds to wait before terminating the command and returning current output. Default is 120 seconds (2 minutes). Set to None for no timeout limit.",
+            "default": 120
+          },
+          "yield_after_seconds": {
+            "type": "number",
+            "description": "(OPTIONAL) Return early if the command runs longer than this duration. The process keeps running in the background and can be managed with the process tool."
+          },
+          "max_output_tokens": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "description": "(OPTIONAL) Maximum number of output tokens to include in llm_content for foreground responses. Defaults to 10000 when omitted. Excess output is truncated with a marker."
+          },
+          "env": {
+            "type": "object",
+            "description": "(OPTIONAL) Environment variable overrides for the command."
+          },
+          "pty": {
+            "type": "boolean",
+            "description": "(OPTIONAL) Request a pseudo-terminal (best-effort)."
+          },
+          "explanation": {
+            "type": "string",
+            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+          },
+          "wait": {
+            "type": "number",
+            "description": "(OPTIONAL) Delay in seconds before taking a screenshot after execution. Use this when command effects are visual (for example, launching a GUI app) to verify the UI state after launch."
+          }
+        },
+        "required": [
+          "command",
+          "run_in_background",
+          "explanation"
+        ],
+        "type": "object"
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "process",
+      "description": "Manage background shell command sessions started by run_shell_command: list, poll, log, write, send-keys, submit, paste, kill, clear, remove.",
+      "parameters": {
+        "properties": {
+          "action": {
+            "type": "string",
+            "description": "Action to perform on background shell sessions from run_shell_command: list, poll, log, write, send-keys, submit, paste, kill, clear, remove."
+          },
+          "session_id": {
+            "type": "string",
+            "description": "Session id returned by run_shell_command (required for actions other than list/clear)."
+          },
+          "data": {
+            "type": "string",
+            "description": "Data to write for write action"
+          },
+          "keys": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Key tokens for send-keys action"
+          },
+          "hex": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Hex bytes for send-keys action"
+          },
+          "literal": {
+            "type": "string",
+            "description": "Literal text for send-keys action"
+          },
+          "text": {
+            "type": "string",
+            "description": "Text for paste action"
+          },
+          "bracketed": {
+            "type": "boolean",
+            "description": "Wrap paste in bracketed mode"
+          },
+          "eof": {
+            "type": "boolean",
+            "description": "Close stdin after write action"
+          },
+          "offset": {
+            "type": "integer",
+            "description": "Log line offset"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Log line limit"
+          }
+        },
+        "required": [
+          "action"
+        ],
+        "type": "object"
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "read_file",
+      "description": "Read file contents. Use this tool to examine existing files.",
+      "parameters": {
+        "properties": {
+          "file_path": {
+            "type": "string",
+            "description": "The path to the file to read (absolute path)"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "0-based line offset to start reading from (defaults to 0)"
+          },
+          "limit": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "description": "Maximum number of lines to read (defaults to 2000 when omitted)"
+          },
+          "explanation": {
+            "type": "string",
+            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+          }
+        },
+        "required": [
+          "file_path",
+          "explanation"
+        ],
+        "type": "object",
+        "description": "Arguments for read file tool."
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "replace",
+      "description": "Replace text in a file using exact or context-anchored matching. Supports single edits and batched replacements.\n\nOperational Guidance:\n- Prefer focused edits per tool call.\n- Do not send giant new_string payloads in one call.\n- For large changes, split into multiple replace/apply_patch-style calls section-by-section.",
+      "parameters": {
+        "properties": {
+          "file_path": {
+            "type": "string",
+            "description": "The path to the file to edit (absolute path). If the file does not exist, creation is allowed only when exactly one replacement operation has old_string=''."
+          },
+          "old_string": {
+            "type": "string",
+            "description": "Single-operation old string. Use this with new_string for legacy single replace."
+          },
+          "new_string": {
+            "type": "string",
+            "description": "Single-operation replacement string. Required when old_string is used. Do not send giant payloads in one call; chunk large edits across multiple calls."
+          },
+          "replace_all": {
+            "type": "boolean",
+            "description": "Single-operation flag: replace all matches of old_string.",
+            "default": false
+          },
+          "before_context": {
+            "type": "string",
+            "description": "Single-operation optional context before old_string."
+          },
+          "after_context": {
+            "type": "string",
+            "description": "Single-operation optional context after old_string."
+          },
+          "occurrence_index": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Single-operation 1-based match index to replace."
+          },
+          "require_eof": {
+            "type": "boolean",
+            "description": "Single-operation EOF constraint.",
+            "default": false
+          },
+          "match_mode": {
+            "type": "string",
+            "description": "Matching mode for single operation and default for batch operations.",
+            "default": "lenient",
+            "enum": [
+              "strict",
+              "lenient"
+            ]
+          },
+          "replacements": {
+            "type": "array",
+            "items": {
+              "properties": {
+                "old_string": {
+                  "type": "string",
+                  "description": "The exact string to replace for this operation."
+                },
+                "new_string": {
+                  "type": "string",
+                  "description": "Replacement string for this operation. Keep payloads focused; split large edits across multiple replace/apply_patch-style calls."
+                },
+                "replace_all": {
+                  "type": "boolean",
+                  "description": "If true, replace all matches for this operation.",
+                  "default": false
+                },
+                "before_context": {
+                  "type": "string",
+                  "description": "Optional exact text that must appear immediately before old_string."
+                },
+                "after_context": {
+                  "type": "string",
+                  "description": "Optional exact text that must appear immediately after old_string."
+                },
+                "occurrence_index": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "Optional 1-based match index to replace when multiple matches exist."
+                },
+                "require_eof": {
+                  "type": "boolean",
+                  "description": "If true, match must end at file EOF (allowing trailing newline).",
+                  "default": false
+                },
+                "match_mode": {
+                  "type": "string",
+                  "enum": [
+                    "strict",
+                    "lenient"
+                  ],
+                  "description": "Matching mode for this operation; defaults to top-level match_mode."
+                }
+              },
+              "required": [
+                "old_string",
+                "new_string"
+              ],
+              "type": "object",
+              "description": "One replacement operation for batched replace calls."
+            },
+            "description": "Optional batched replacements applied atomically in order. When provided, these operations are used instead of top-level old/new fields."
+          },
+          "patch_chunks": {
+            "type": "array",
+            "items": {
+              "properties": {
+                "change_context": {
+                  "type": "string",
+                  "description": "Optional single-line context anchor. Matching starts after this line."
+                },
+                "old_lines": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Exact old lines to replace (line content only; no newline characters)."
+                },
+                "new_lines": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Replacement lines (line content only; no newline characters)."
+                },
+                "is_end_of_file": {
+                  "type": "boolean",
+                  "description": "If true, old_lines must match at end-of-file.",
+                  "default": false
+                }
+              },
+              "required": [
+                "old_lines",
+                "new_lines"
+              ],
+              "type": "object",
+              "description": "One structured patch chunk for apply_patch-style ordered updates."
+            },
+            "description": "Optional apply_patch-style ordered update chunks for robust multi-region edits. When provided, patch_chunks cannot be combined with old_string/new_string/replacements. Prefer multiple focused chunks/calls over one oversized payload."
+          },
+          "explanation": {
+            "type": "string",
+            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+          }
+        },
+        "required": [
+          "file_path",
+          "explanation"
+        ],
+        "type": "object",
+        "description": "Arguments for replace tool."
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "browser",
+      "description": "Control a web browser for online tasks.\n\nConnection model:\n- WindieOS always uses a dedicated browser instance/profile (persistent credentials, isolated from the user's default browser profile).\n- `connect` auto-attaches to that WindieOS instance if running, or launches it if not.\n\nWorkflow:\n1. Connect: browser(action=\"connect\")\n2. Navigate: browser(action=\"navigate\", url=\"https://example.com\")\n3. Snapshot: browser(action=\"snapshot\") - shows page with numbered refs like [1] button\n4. Interact (canonical): browser(action=\"click\", ref=\"1\"), browser(action=\"input\", index=2, text=\"hello\"), browser(action=\"send_keys\", keys=\"Enter\")\n5. Close: browser(action=\"close\")\n\nSnapshot pagination contract (important):\n- Snapshot responses can be paginated: `offset`, `limit`, `returned_chars`, `total_chars`, `has_more`, `next_offset`.\n- If `has_more=true`, continue reading by calling `browser(action=\"snapshot\", offset=<next_offset>, limit=<same_limit>)`.\n- During that pagination loop, do not scroll/click/navigate/type; those mutate page state and invalidate the snapshot window.\n- Only scroll or interact after pagination is complete (`has_more=false`) or when you intentionally want a new page state, then restart pagination at `offset=0`.\n\nAutomatic `post_action_snapshot` attachment is temporarily disabled for testing.\nUse explicit `browser(action=\"snapshot\", ...)` calls when snapshot data is needed.\n\nActions:\n- canonical: connect, status, profiles, navigate, snapshot, extract, click, input, send_keys, scroll, screenshot, wait, get_tabs, switch, evaluate, close\n- canonical helpers: done, search, go_back, search_page, find_elements, find_text, close_tab, dropdown_options, select_dropdown, upload_file, write_file, replace_file, read_file, read_long_content\n- removed legacy aliases: `type` (use `input`), `open` (use `navigate`), `switch_tab` (use `switch`), `press` (use `send_keys`), and `act` (use canonical actions directly)\n\nFile-edit payload guidance:\n- For `write_file`/`replace_file`, avoid giant content payloads in one call.\n- Split large file edits into multiple focused calls section-by-section.\n\nCompatibility validation notes:\n- snapshot rejects compatibility fields `format`/`snapshotFormat`/`wait_until`/`state`/`mode`/`max_chars`/`refs`/`interactive`/`compact`/`depth`/`selector`/`frame`\n- extract rejects compatibility fields `mode`/`selector`/`frame`\n- screenshot supports Browser Use-native parameters (for WindieOS this is currently optional `file_name`)",
+      "parameters": {
+        "properties": {
+          "clear": {
+            "type": "boolean",
+            "description": "Clear retained console/dialog events"
+          },
+          "timeoutMs": {
+            "type": "integer",
+            "description": "Timeout in milliseconds"
+          },
+          "timeout_ms": {
+            "type": "integer",
+            "description": "Timeout in milliseconds (snake_case)"
+          },
+          "accept": {
+            "type": "boolean",
+            "description": "Dialog accept/dismiss policy"
+          },
+          "promptText": {
+            "type": "string",
+            "description": "Prompt text for dialog.accept()"
+          },
+          "prompt_text": {
+            "type": "string",
+            "description": "Prompt text for dialog.accept() (snake_case)"
+          },
+          "cookies": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "description": "Cookies payload for cookies_set"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "local",
+              "session"
+            ],
+            "description": "Storage kind"
+          },
+          "values": {
+            "type": "object",
+            "description": "Storage key-values"
+          },
+          "value": {
+            "description": "Single storage value"
+          },
+          "contains": {
+            "type": "string",
+            "description": "Requests contains filter"
+          },
+          "filter": {
+            "type": "string",
+            "description": "Requests filter alias"
+          },
+          "snapshots": {
+            "type": "boolean",
+            "description": "Trace snapshots toggle"
+          },
+          "screenshots": {
+            "type": "boolean",
+            "description": "Trace screenshots toggle"
+          },
+          "sources": {
+            "type": "boolean",
+            "description": "Trace sources toggle"
+          },
+          "offline": {
+            "type": "boolean",
+            "description": "Offline toggle"
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "Offline alias"
+          },
+          "headers": {
+            "type": "object",
+            "description": "Extra HTTP headers"
+          },
+          "username": {
+            "type": "string",
+            "description": "HTTP auth username"
+          },
+          "user": {
+            "type": "string",
+            "description": "HTTP auth username alias"
+          },
+          "password": {
+            "type": "string",
+            "description": "HTTP auth password"
+          },
+          "latitude": {
+            "type": "number",
+            "description": "Geolocation latitude"
+          },
+          "longitude": {
+            "type": "number",
+            "description": "Geolocation longitude"
+          },
+          "accuracy": {
+            "type": "number",
+            "description": "Geolocation accuracy meters"
+          },
+          "media": {
+            "type": "string",
+            "description": "Media type emulation"
+          },
+          "color_scheme": {
+            "type": "string",
+            "description": "Color scheme emulation"
+          },
+          "colorScheme": {
+            "type": "string",
+            "description": "Color scheme emulation alias"
+          },
+          "timezone": {
+            "type": "string",
+            "description": "Timezone id"
+          },
+          "locale": {
+            "type": "string",
+            "description": "Locale id"
+          },
+          "device": {
+            "type": "string",
+            "description": "Device preset name"
+          },
+          "content": {
+            "type": "string",
+            "description": "Content for write_file action. Keep payloads small; split large content into multiple write_file/replace_file calls."
+          },
+          "append": {
+            "type": "boolean",
+            "description": "Append mode for write_file"
+          },
+          "trailing_newline": {
+            "type": "boolean",
+            "description": "Append trailing newline for write_file"
+          },
+          "leading_newline": {
+            "type": "boolean",
+            "description": "Append leading newline for write_file"
+          },
+          "old_str": {
+            "type": "string",
+            "description": "Target string for replace_file"
+          },
+          "new_str": {
+            "type": "string",
+            "description": "Replacement string for replace_file"
+          },
+          "path": {
+            "type": "string",
+            "description": "File path for upload_file"
+          },
+          "goal": {
+            "type": "string",
+            "description": "Goal for read_long_content"
+          },
+          "source": {
+            "type": "string",
+            "description": "Source for read_long_content"
+          },
+          "context": {
+            "type": "string",
+            "description": "Context for read_long_content"
+          },
+          "keys": {
+            "type": "string",
+            "description": "Keyboard sequence for send_keys"
+          },
+          "success": {
+            "type": "boolean",
+            "description": "Success flag for done action"
+          },
+          "files_to_display": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Optional attachment paths for done action"
+          },
+          "profile": {
+            "type": "string",
+            "description": "Compatibility field (unused in WindieOS)"
+          },
+          "node": {
+            "type": "string",
+            "description": "Compatibility field (unused in WindieOS)"
+          },
+          "target": {
+            "type": "string",
+            "enum": [
+              "sandbox",
+              "host",
+              "node"
+            ],
+            "description": "Compatibility field (unused in WindieOS)"
+          },
+          "mode": {
+            "type": "string",
+            "description": "Compatibility field for connect action ('user_chrome'/'managed') (ignored at runtime), snapshot mode ('efficient'), or extract modes ('focused'/'full_text'/'structured').",
+            "default": "user_chrome",
+            "enum": [
+              "user_chrome",
+              "managed",
+              "efficient",
+              "focused",
+              "full_text",
+              "structured"
+            ]
+          },
+          "cdp_url": {
+            "type": "string",
+            "description": "Compatibility field for connect action (ignored at runtime).",
+            "default": "http://127.0.0.1:9333"
+          },
+          "headless": {
+            "type": "boolean",
+            "description": "Run managed browser headless",
+            "default": false
+          },
+          "url": {
+            "type": "string",
+            "description": "URL for navigate action"
+          },
+          "wait_until": {
+            "type": "string",
+            "description": "Navigation wait condition",
+            "default": "load",
+            "enum": [
+              "load",
+              "domcontentloaded",
+              "networkidle",
+              "commit"
+            ]
+          },
+          "format": {
+            "type": "string",
+            "description": "Snapshot format: 'ai' (interactive + contextual snapshot) or 'aria' (accessibility tree)",
+            "default": "ai",
+            "enum": [
+              "ai",
+              "aria"
+            ]
+          },
+          "max_chars": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 120000,
+            "description": "Optional max snapshot chars (defaults to 12,000 for ai; 4,000 in efficient mode; aria snapshots are capped at 4,000)"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Optional character offset into snapshot text for paginated reads."
+          },
+          "refs": {
+            "type": "string",
+            "enum": [
+              "role",
+              "aria"
+            ],
+            "description": "Reference mode for role snapshots."
+          },
+          "interactive": {
+            "type": "boolean",
+            "description": "Only include interactive roles in role snapshot output."
+          },
+          "compact": {
+            "type": "boolean",
+            "description": "Prune structural noise from role snapshot output."
+          },
+          "depth": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 20,
+            "description": "Maximum role snapshot depth (0=root only)."
+          },
+          "selector": {
+            "type": "string",
+            "description": "Optional CSS selector scope for role snapshots."
+          },
+          "frame": {
+            "type": "string",
+            "description": "Optional iframe selector scope for role snapshots."
+          },
+          "snapshotFormat": {
+            "type": "string",
+            "enum": [
+              "ai",
+              "aria"
+            ],
+            "description": "Snapshot format alias."
+          },
+          "query": {
+            "type": "string",
+            "description": "Extraction goal/query for extract action."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description for go_back action"
+          },
+          "extract_links": {
+            "type": "boolean",
+            "description": "Include links in extracted source text before query filtering (extract action).",
+            "default": false
+          },
+          "start_from_char": {
+            "type": "integer",
+            "description": "Character offset into extracted source text for continuation (extract action).",
+            "default": 0,
+            "minimum": 0
+          },
+          "output_schema": {
+            "type": "object",
+            "description": "Optional JSON schema hint for caller-side structured parsing (extract action)."
+          },
+          "engine": {
+            "type": "string",
+            "description": "Search engine for search action"
+          },
+          "pattern": {
+            "type": "string",
+            "description": "Pattern for search_page/find_text"
+          },
+          "regex": {
+            "type": "boolean",
+            "description": "Regex toggle for search_page"
+          },
+          "case_sensitive": {
+            "type": "boolean",
+            "description": "Case-sensitive toggle for search_page"
+          },
+          "context_chars": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Context chars for search_page"
+          },
+          "css_scope": {
+            "type": "string",
+            "description": "CSS scope for search_page"
+          },
+          "max_results": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Max results for find/search"
+          },
+          "attributes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Attributes for find_elements output"
+          },
+          "include_text": {
+            "type": "boolean",
+            "description": "Include element text for find_elements"
+          },
+          "index": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Browser Use element index"
+          },
+          "tab_id": {
+            "type": "string",
+            "description": "Browser Use tab id"
+          },
+          "file_name": {
+            "type": "string",
+            "description": "Filename for file or screenshot actions"
+          },
+          "ref": {
+            "type": "string",
+            "description": "Element reference from snapshot"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 10000,
+            "description": "Text for type action"
+          },
+          "submit": {
+            "type": "boolean",
+            "description": "Submit after type",
+            "default": false
+          },
+          "key": {
+            "type": "string",
+            "description": "Key for press action or storage key"
+          },
+          "code": {
+            "type": "string",
+            "description": "Browser Use evaluate code"
+          },
+          "double_click": {
+            "type": "boolean",
+            "description": "Double click",
+            "default": false
+          },
+          "coordinate_x": {
+            "type": "integer",
+            "description": "Browser Use coordinate click X position (requires coordinate_y)."
+          },
+          "coordinate_y": {
+            "type": "integer",
+            "description": "Browser Use coordinate click Y position (requires coordinate_x)."
+          },
+          "button": {
+            "type": "string",
+            "description": "Mouse button",
+            "default": "left",
+            "enum": [
+              "left",
+              "right",
+              "middle"
+            ]
+          },
+          "direction": {
+            "type": "string",
+            "description": "Scroll direction",
+            "default": "down",
+            "enum": [
+              "up",
+              "down",
+              "left",
+              "right"
+            ]
+          },
+          "amount": {
+            "type": "integer",
+            "description": "Scroll amount",
+            "default": 500,
+            "minimum": 100,
+            "maximum": 5000
+          },
+          "down": {
+            "type": "boolean",
+            "description": "Browser Use scroll direction flag"
+          },
+          "pages": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Browser Use page count"
+          },
+          "state": {
+            "type": "string",
+            "description": "Wait state",
+            "default": "networkidle",
+            "enum": [
+              "load",
+              "domcontentloaded",
+              "networkidle"
+            ]
+          },
+          "seconds": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 60,
+            "description": "Wait seconds"
+          },
+          "target_id": {
+            "type": "string",
+            "description": "Tab target ID"
+          },
+          "targetId": {
+            "type": "string",
+            "description": "Tab target ID (camelCase alias)"
+          },
+          "target_url": {
+            "type": "string",
+            "description": "Open/navigate URL (snake_case)"
+          },
+          "new_tab": {
+            "type": "boolean",
+            "description": "Open navigate URL in new tab"
+          },
+          "targetUrl": {
+            "type": "string",
+            "description": "Open/navigate URL (camelCase)"
+          },
+          "input_ref": {
+            "type": "string",
+            "description": "Input ref for upload action"
+          },
+          "inputRef": {
+            "type": "string",
+            "description": "Input ref for upload action (camelCase)"
+          },
+          "paths": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "File paths for upload action"
+          },
+          "level": {
+            "type": "string",
+            "description": "Console log level filter"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Result item limit (or snapshot character page size when action='snapshot')"
+          },
+          "script": {
+            "type": "string",
+            "maxLength": 5000,
+            "description": "JavaScript to evaluate"
+          },
+          "action": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "connect",
+                  "status",
+                  "profiles",
+                  "navigate",
+                  "snapshot",
+                  "extract",
+                  "click",
+                  "input",
+                  "send_keys",
+                  "scroll",
+                  "screenshot",
+                  "wait",
+                  "get_tabs",
+                  "switch",
+                  "evaluate",
+                  "done",
+                  "search",
+                  "go_back",
+                  "search_page",
+                  "find_elements",
+                  "find_text",
+                  "close_tab",
+                  "dropdown_options",
+                  "select_dropdown",
+                  "upload_file",
+                  "write_file",
+                  "replace_file",
+                  "read_file",
+                  "read_long_content",
+                  "close"
+                ]
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "type",
+                  "open",
+                  "switch_tab",
+                  "press",
+                  "act"
+                ]
+              }
+            ],
+            "description": "Browser action to perform"
+          }
+        },
+        "required": [
+          "action"
+        ],
+        "type": "object",
+        "description": "Unified browser control arguments accepted at the backend boundary.\n\nKeeps removed aliases parseable for explicit migration errors and guidance."
+      }
+    }
+  }
+]

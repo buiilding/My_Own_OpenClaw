@@ -11,7 +11,6 @@ function PermissionControlCenter() {
   const error = usePermissionStore((state) => state.error);
   const bootstrapPermissions = usePermissionStore((state) => state.bootstrapPermissions);
   const runPermissionProbe = usePermissionStore((state) => state.runPermissionProbe);
-  const requestPermission = usePermissionStore((state) => state.requestPermission);
   const recheckAllPermissions = usePermissionStore((state) => state.recheckAllPermissions);
 
   useEffect(() => {
@@ -52,14 +51,6 @@ function PermissionControlCenter() {
                   }}
                 >
                   Re-check
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    void requestPermission(permission.permission_id);
-                  }}
-                >
-                  Request
                 </button>
               </div>
             </div>

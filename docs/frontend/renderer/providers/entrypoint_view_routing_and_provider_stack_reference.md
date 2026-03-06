@@ -15,8 +15,6 @@ title: "Entrypoint View Routing and Provider Stack Reference"
 - `frontend/src/renderer/app/ChatBoxApp.jsx`
 - `frontend/src/renderer/app/ChatBoxResponseApp.jsx`
 - `frontend/src/renderer/app/ChatBoxContextLabelApp.jsx`
-- `frontend/src/renderer/features/permissions/components/PermissionOnboardingWizard.jsx`
-- `frontend/src/renderer/features/permissions/stores/permissionStore.js`
 - `frontend/src/renderer/components/ErrorBoundary.jsx`
 - `frontend/src/renderer/app/WakewordController.jsx`
 - `frontend/src/renderer/app/providers/AppProvider.jsx`
@@ -65,10 +63,8 @@ All surfaces mount `AppProvider`, which means:
 
 `AppContent` behavior:
 
-- bootstraps permission store before normal shell mount
-- renders onboarding-loading card while permission profile is loading
-- renders `PermissionOnboardingWizard` when required permission gate is not satisfied
-- renders conversation-first shell only after permission gate clears
+- does not block startup behind renderer permission onboarding
+- always routes to dashboard shell or frontend onboarding slideshow based on VM mode and slideshow completion
 - within shell, opens memory/models/settings as modal panels over chat
 
 ## Overlay App Stacks
@@ -107,7 +103,8 @@ Overlay-only windows do not host this controller, avoiding duplicate detection s
 1. adding new `view` value in main process without matching renderer route
 2. enabling `ChatProvider` tool runner in overlay surfaces (can duplicate executions)
 3. mounting `WakewordController` in multiple surfaces (duplicate wakeword events)
-4. changing provider order and breaking context hook assumptions
+4. reintroducing permission-gate dependencies in `App.jsx` and blocking normal shell startup
+5. changing provider order and breaking context hook assumptions
 
 ## Debug Checklist
 

@@ -26,7 +26,3 @@ For every phase, report:
 - tests added/updated
 - what bug/regression they protect
 - why the assertions are stable
-
-Run targeted suites after each phase, then full gate at the end
-(backend + sidecar pytest, frontend jest, lint/typecheck where relevant).
-If any tests fail, fix them or explicitly document blockers and residual risk.

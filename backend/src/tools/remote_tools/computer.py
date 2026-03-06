@@ -38,7 +38,10 @@ class RemoteComputerUseTool(RemoteToolBase, Tool[ComputerUseArgs]):
         "Unified computer-use tool. "
         "Select concrete action via `tool`, pass action arguments via `arguments`, "
         "and always include required metadata "
-        "(`description`, `explanation`, `expectation`)."
+        "(`description`, `explanation`, `expectation`). "
+        "For mouse targeting, use `find_coordinates_by='ocr'` with exact `ocr_text` "
+        "for text targets, and use `find_coordinates_by='prediction'` with "
+        "a detailed visual `description` for non-text targets."
     )
     args_model = ComputerUseArgs
     category = ToolDomain.COMPUTER
