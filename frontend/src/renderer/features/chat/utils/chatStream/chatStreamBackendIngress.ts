@@ -44,7 +44,12 @@ export const ingestBackendEvent = (
   }
   if (enableTranscript) {
     try {
-      const activeConversationRef = getActiveConversationRef();
+      const rawActiveConversationRef = getActiveConversationRef();
+      const activeConversationRef = (
+        typeof rawActiveConversationRef === 'string'
+          ? rawActiveConversationRef.trim()
+          : ''
+      );
       updateTranscriptSession(activeConversationRef || normalizedConversationRef || undefined, event.user_id);
     } catch {
       // Transcript session sync is best-effort. Stream event dispatch must continue.
