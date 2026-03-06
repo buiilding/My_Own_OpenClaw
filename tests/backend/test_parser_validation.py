@@ -204,6 +204,27 @@ def test_validate_metadata_rejects_missing_metadata_for_unified_computer_use_too
         validator.validate_metadata("computer_use", None)
 
 
+@pytest.mark.parametrize("tool_name", ["mouse_control", "computer_use"])
+@pytest.mark.parametrize("missing_field", ["description", "explanation", "expectation"])
+def test_validate_metadata_rejects_missing_required_fields_for_computer_tools(
+    tool_name: str,
+    missing_field: str,
+):
+    validator, _metrics = _make_validator(["computer_use"])
+    metadata = {
+        "description": "screen",
+        "explanation": "click submit",
+        "expectation": "dialog opens",
+    }
+    metadata.pop(missing_field)
+
+    with pytest.raises(
+        ParseValidationError,
+        match=f"missing required metadata field '{missing_field}'",
+    ):
+        validator.validate_metadata(tool_name, metadata)
+
+
 def test_validate_metadata_accepts_trimmed_nonempty_strings_for_computer_tools():
     validator, _metrics = _make_validator_for_registry(ComputerRegistry(["mouse_control"]))
     metadata = {
