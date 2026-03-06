@@ -22,24 +22,38 @@ title: "Local-Backend Process Lifecycle, Readiness, and Request-Correlation Refe
 `startLocalBackend(mainWindow)`:
 
 1. no-op when a process already exists (`pythonProcess` truthy)
-2. resolves executable through `getPythonPath()` (cached) -> `resolvePythonExecutablePath()`
-3. resolves script path through `resolvePythonScriptPath('local_backend.py')`
-4. fail-fast when script path is missing and emits:
+2. resolves launch target via `resolveSidecarLaunchTarget('local_backend.py')`
+3. packaged-only browser bundle probe:
+  - `resolveBundledPlaywrightBrowsersPath()`
+  - missing bundle logs warning in non-production mode
+4. fail-fast when launch target is python and command is missing (`command=null`) and emits:
+   - packaged: bundled-runtime reinstall guidance
+   - dev: install Python / set `WINDIE_PYTHON_PATH` guidance
+5. fail-fast when launch target is python and script path is missing and emits:
    - `local-backend-status { ready:false, error:"Local backend script not found: ..." }`
-5. resolves backend URLs once via `resolveBackendEndpoints()`
-6. spawns child process with:
+6. resolves backend URLs once via `resolveBackendEndpoints()`
+7. spawns child process with:
    - `cwd = path.dirname(scriptPath)`
    - `stdio = ['pipe', 'pipe', 'pipe']`
    - env merge with `PYTHONUNBUFFERED=1`
    - env merge with `WINDIE_BACKEND_HTTP_URL=<resolved httpUrl>`
+   - env merge with `WINDIE_PACKAGED_APP` and `WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL`
+   - env merge with `PLAYWRIGHT_BROWSERS_PATH` when bundled browser payload is present
    - `NODE_OPTIONS` amended by `withLocalBackendNodeOptions(...)` (adds `--no-deprecation` exactly once)
 
-`runtime_paths.cjs` executable preference order:
+`runtime_paths.cjs` launch preference order:
+
+1. packaged sidecar binary under `resources/sidecar-bin` (when present)
+2. python launch target with:
+  - command from `resolvePythonExecutablePath()`
+  - script from bundled `.pyc` (packaged) or source `.py` (dev)
+
+`resolvePythonExecutablePath()` preference order:
 
 1. `WINDIE_PYTHON_PATH` (must exist)
 2. packaged bundled runtime candidates (`python-runtime`/`python`)
-3. `CONDA_PREFIX` python
-4. fallback launcher (`py` on Windows, `python3` elsewhere)
+3. dev-only `CONDA_PREFIX` python
+4. dev-only fallback launcher (`py` on Windows, `python3` elsewhere)
 
 ## Readiness Probe and Stale-Timer Isolation
 
@@ -131,6 +145,8 @@ Error handler:
 
 - resets process state
 - maps `ENOENT` to explicit user-facing Python installation guidance
+  - binary launch path: bundled sidecar executable reinstall guidance
+  - python launch path: Python executable guidance
 - emits `local-backend-status { ready:false, error }`
 
 `stopLocalBackend()`:

@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-runtime-paths-and-local-backend-launch-contract-refresh): align Electron main runtime path docs with current bundled-runtime behavior (`resolveSidecarLaunchTarget` binary-first fallback, packaged `.pyc` script path resolution, bundled Playwright browser path export, and packaged Python fail-close policy), and refresh local-backend lifecycle docs to match the same spawn/env contracts.
 - test(sidecar-tool-registry-computer-use-unexpected-metadata-ordering): add sidecar regression ensuring `computer_use.metadata` unexpected-field error output is deterministically sorted when multiple extra keys are present, while preserving fail-close no-subtool-execution behavior.
 - test(frontend-tool-runner-result-contract-payload-clone-boundary): extend wrapper-level result-envelope regressions so `buildToolRunnerResultEnvelope`/`buildToolRunnerBundleResultEnvelope` preserve cloned payload snapshots and do not inherit caller mutations after envelope construction.
 - docs(frontend-window-lifecycle-vm-mode-consistency-and-backend-services-crosslink): align window/overlay lifecycle startup and shutdown docs with VM-mode conditional behavior (`createChatWindow`/tray/hotkey gating and `before-quit` VM worker stop), and link backend services storage map to the new VM run-control support-helper deep reference.
