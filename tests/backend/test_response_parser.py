@@ -202,6 +202,20 @@ async def test_parse_response_rejects_direct_computer_use_unexpected_metadata_fi
 
 
 @pytest.mark.asyncio
+async def test_parse_response_rejects_direct_legacy_mouse_tool_unexpected_metadata_fields():
+    parser = _make_parser([DummyTool("computer_use", ToolDomain.COMPUTER)])
+    response = (
+        '{"functionCall":{"name":"mouse_control","args":{'
+        '"action":"click","x":2,"y":3,'
+        '"metadata":{"description":"screen","explanation":"click button","expectation":"dialog opens","trace_id":"abc-123"}'
+        '}}}'
+    )
+
+    with pytest.raises(ParseValidationError, match="unexpected metadata fields"):
+        await parser.parse_response(response)
+
+
+@pytest.mark.asyncio
 async def test_parse_response_rejects_legacy_computer_use_metadata_wrapper():
     parser = _make_parser([DummyTool("computer_use", ToolDomain.COMPUTER)])
     response = (
