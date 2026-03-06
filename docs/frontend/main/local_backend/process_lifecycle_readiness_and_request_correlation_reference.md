@@ -168,7 +168,7 @@ Test-backed guarantee:
 Linux screenshot path:
 
 - only `toolName === 'screenshot'` is wrapped in `withHiddenWindowForScreenshot(...)`
-- see overlay deep pages for hide/restore details
+- see overlay deep pages for screenshot visibility runtime ownership details
 
 ## Debug Sequence
 

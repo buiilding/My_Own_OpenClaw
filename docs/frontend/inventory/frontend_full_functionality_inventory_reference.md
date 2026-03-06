@@ -61,7 +61,7 @@ Functionality:
 - Handles overlay repositioning on display/window changes.
 - Centralizes show/hide/main-window maximize/focus visibility flow in dedicated window visibility runtime helper.
 - Tracks external focused window before overlay query capture and restores focus.
-- Applies Linux-specific screenshot hide/restore guard for overlays.
+- Routes screenshot tool execution through platform screenshot visibility runtime wrapper (current main-process behavior is pass-through; Linux hide/show ownership is renderer-side).
 - Registers global wakeword hotkey and open-target window routing.
 - Enables VM-mode renderer query-flag boot and optional VM worker runtime startup from env-gated mode helpers.
 
@@ -108,7 +108,7 @@ Functionality:
 - Correlates JSON-RPC request/response ids and enforces request timeouts.
 - Registers mapped IPC handlers for memory/transcript/system APIs.
 - Executes tool calls and normalizes tool args (`run_shell_command` sudo mode injection).
-- Applies Linux screenshot execution window hiding/restoration.
+- Applies screenshot visibility runtime wrapper for screenshot tool execution.
 
 ### 1.4 Wakeword + Permission + Privilege Bridges
 

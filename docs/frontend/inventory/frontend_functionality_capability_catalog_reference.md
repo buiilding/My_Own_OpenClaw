@@ -96,14 +96,14 @@ Capabilities:
 
 - Starts and supervises sidecar process, ping-readiness, and JSON-RPC request correlation.
 - Executes sidecar-exposed tool and memory/transcript RPC handlers through typed mapper layer.
-- Handles Linux screenshot hide/restore guard for tool execution.
+- Routes screenshot tool execution through platform screenshot visibility runtime wrapper.
 - Streams wakeword audio binary frames and receives framed detection payloads.
 - Provides permission list/check/request/probe IPC contracts for onboarding.
 - Provides Linux sudo enable/disable path with normalized renderer-safe result semantics.
 - Sidecar spawn env injects `WINDIE_BACKEND_HTTP_URL` and enforces `NODE_OPTIONS=--no-deprecation` append policy via bridge utils.
 - Sidecar readiness checks use bounded ping retry (`<=10` attempts, exponential backoff capped at `1000ms`) with stale-generation token guards.
 - Local sidecar RPC request timeout defaults to `30s` (`120s` for browser tool), with canonical `{success:false,error}` response normalization for failures.
-- Linux-only screenshot guard hides visible WindieOS windows, waits `320ms`, runs screenshot tool, then restores prior visibility/focus/always-on-top state.
+- Screenshot visibility runtime wrapper currently executes pass-through behavior across platforms; Linux hide/show ownership is renderer capture orchestration.
 - Wakeword bridge uses length-prefixed binary frame protocol for audio/result streams and clears stale stdout/stderr buffers on restart/exit.
 
 ## 3.5) VM Worker and Hosted Runs Bridge
