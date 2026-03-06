@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-overlay-phase-listener-sync-store-contract): add a dedicated renderer overlays deep reference for `overlayPhaseListener` and `useResponseOverlayPhase` contracts (parsed payload gating, shared lazy IPC subscription lifecycle, dual subscriber sets, and `useSyncExternalStore` snapshot semantics), and link it from the overlays docs hub.
 - docs(backend-vm-run-bulk-stop-helper-contract): add a dedicated backend services deep reference for `vm_run_control_bulk_stop.stop_active_runs` (workspace/status filtering, callback invocation order, and `VmRunControlService.stop_all_runs` integration), and link it from VM run-control service docs hub/reference pages.
 - docs(frontend-ipc-replay-and-transcript-sync-contracts): add a dedicated Electron-main deep reference for turn-scoped replay buffering and cross-window `transcript-session-sync` normalization, and update IPC split/query relay/websocket handshake/main hub docs with replay lifecycle and session-sync integration details.
 - docs(backend-runs-route-model-and-export-contracts): add a dedicated `/api/runs` models/package-export deep reference covering `models.py` request/response literals, endpoint model bindings, and `runs/__init__.py` compatibility exports; update runs route/support docs and backend API hub links to reflect the split package surface (`router.py`, `support.py`, `models.py`).
