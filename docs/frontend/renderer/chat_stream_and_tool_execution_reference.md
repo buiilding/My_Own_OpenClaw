@@ -137,6 +137,7 @@ Pre-routing and workspace resolution:
 - handlers write into target conversation workspace instead of only active chat projection
 - transcript session sync runs on each backend event and prefers current transcript active conversation ref; falls back to event-resolved conversation ref when no active transcript ref is set
 - ingress orchestration for projection sync, turn-map registration, transcript-session update, and handler dispatch is centralized in `chatStreamBackendIngress.ingestBackendEvent(...)`
+- ingress bookkeeping steps are fail-safe isolated (`try/catch` per step) so projection/turn-map/transcript sync errors cannot suppress final handler dispatch for the event
 
 Handler map (`BackendEventType` -> behavior):
 
