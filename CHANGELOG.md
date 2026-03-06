@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(backend-response-parser-computer-use-missing-metadata-field-matrix): add parser-boundary regression matrices for both unified `computer_use` and direct legacy `mouse_control` payloads that omit each required metadata key (`description`, `explanation`, `expectation`), asserting deterministic `ParseValidationError` fail-close behavior per missing field.
 - docs(frontend-vm-worker-and-codex-oauth-runtime-contracts): expand Electron main VM worker docs with heartbeat/session fallback and mapping-lifecycle guarantees, control-command no-op gates, stream relay payload shape, and OpenAI Codex OAuth callback/token-completeness normalization details plus direct test references.
 - test(sidecar-computer-use-required-metadata-missing-field-matrix): add parameterized sidecar local-backend regressions for missing `description`/`explanation`/`expectation` fields in `computer_use.metadata`, asserting fail-closed error payloads and no downstream subtool execution for each missing field.
 - docs(backend-runs-route-helper-contracts-and-service-support-split): expand `/api/runs` route/service reference with current `vm_run_control_support/*` helper ownership, queue/transition/event cursor guarantees, and add a dedicated `route_helpers.py` contract page for control validation plus incremental event projection; wire the new page into backend API hub cross-links.

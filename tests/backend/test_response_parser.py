@@ -58,6 +58,31 @@ async def test_parse_response_requires_metadata_for_computer_use_tools():
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("missing_field", ["description", "explanation", "expectation"])
+async def test_parse_response_rejects_direct_computer_use_missing_required_metadata_field(
+    missing_field,
+):
+    parser = _make_parser([DummyTool("computer_use", ToolDomain.COMPUTER)])
+    metadata = {
+        "description": "screen",
+        "explanation": "click",
+        "expectation": "dialog",
+    }
+    metadata.pop(missing_field)
+    response = (
+        '{"functionCall":{"name":"computer_use","args":{"tool":"mouse_control",'
+        f'"metadata":{metadata!r},'
+        '"arguments":{"action":"click","x":1,"y":2}}}}'
+    ).replace("'", '"')
+
+    with pytest.raises(
+        ParseValidationError,
+        match=f"missing required metadata field '{missing_field}'",
+    ):
+        await parser.parse_response(response)
+
+
+@pytest.mark.asyncio
 async def test_parse_response_accepts_direct_computer_use_metadata():
     parser = _make_parser([DummyTool("computer_use", ToolDomain.COMPUTER)])
     response = (
@@ -121,6 +146,32 @@ async def test_parse_response_rejects_direct_legacy_mouse_tool_without_metadata(
     )
 
     with pytest.raises(ParseValidationError, match="missing metadata"):
+        await parser.parse_response(response)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("missing_field", ["description", "explanation", "expectation"])
+async def test_parse_response_rejects_direct_legacy_mouse_tool_missing_required_metadata_field(
+    missing_field,
+):
+    parser = _make_parser([DummyTool("computer_use", ToolDomain.COMPUTER)])
+    metadata = {
+        "description": "screen",
+        "explanation": "click button",
+        "expectation": "dialog opens",
+    }
+    metadata.pop(missing_field)
+    response = (
+        '{"functionCall":{"name":"mouse_control","args":{'
+        '"action":"click","x":2,"y":3,'
+        f'"metadata":{metadata!r}'
+        '}}}'
+    ).replace("'", '"')
+
+    with pytest.raises(
+        ParseValidationError,
+        match=f"missing required metadata field '{missing_field}'",
+    ):
         await parser.parse_response(response)
 
 
