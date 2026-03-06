@@ -50,7 +50,7 @@ export const ingestBackendEvent = (
           ? rawActiveConversationRef.trim()
           : ''
       );
-      updateTranscriptSession(activeConversationRef || normalizedConversationRef || undefined, event.user_id);
+      updateTranscriptSession(normalizedConversationRef || activeConversationRef || undefined, event.user_id);
     } catch {
       // Transcript session sync is best-effort. Stream event dispatch must continue.
     }
