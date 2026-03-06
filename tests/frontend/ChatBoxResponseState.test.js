@@ -3,7 +3,7 @@ import {
   normalizeThinkingText,
   resolveSourceTagForResponse,
   shouldRenderResponseMarkdown,
-} from '../../frontend/src/renderer/features/chat/utils/chatBoxResponseState';
+} from '../../frontend/src/renderer/features/chat/utils/state/chatBoxResponseState';
 
 describe('chatBoxResponseState', () => {
   test('isResponseCloseable allows complete and error responses', () => {

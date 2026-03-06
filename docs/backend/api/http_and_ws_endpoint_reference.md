@@ -208,7 +208,7 @@ Request model (`SummarizeRequest`):
 
 Behavior:
 
-- builds `SemanticSummarizationService`
+- builds `SemanticSummarizationService` through `_build_semantic_service()`
 - resolves provider client via backend config/API-key path
 - parses/fallback-extracts semantic facts
 - returns `summary`, `facts[]`, `success=true`
@@ -227,7 +227,7 @@ Request model (`GenerateTitleRequest`):
 
 Behavior:
 
-- builds `SemanticSummarizationService`
+- builds `SemanticSummarizationService` through `_build_semantic_service()`
 - resolves config from matching session or container defaults
 - applies optional override model/provider
 - generates one short title string

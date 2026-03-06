@@ -3,7 +3,7 @@ import {
   createClipboardScreenshotImage,
   isDragBlockedTarget,
   resolveChatboxVisualAnchorHeight,
-} from '../../frontend/src/renderer/features/chat/utils/chatBoxState';
+} from '../../frontend/src/renderer/features/chat/utils/state/chatBoxState';
 
 describe('chatBoxState', () => {
   test('isDragBlockedTarget matches interactive controls and ignores non-elements', () => {

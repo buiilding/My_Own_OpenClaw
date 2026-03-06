@@ -1,6 +1,6 @@
 import {
   applyStopQueryUiState,
-} from '../../frontend/src/renderer/features/chat/utils/stopQueryState';
+} from '../../frontend/src/renderer/features/chat/utils/state/stopQueryState';
 
 describe('stopQueryState', () => {
   test('applyStopQueryUiState clears sending/thinking state and updates stream tracking', () => {

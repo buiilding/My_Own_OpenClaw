@@ -22,7 +22,7 @@ title: "Stream Event State Machine"
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTurnGuard.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTracking.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatLoopUiState.js`
-- `frontend/src/renderer/features/chat/utils/chatLoopUiState.js`
+- `frontend/src/renderer/features/chat/utils/state/chatLoopUiState.js`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/types/backendEvents.ts`
 

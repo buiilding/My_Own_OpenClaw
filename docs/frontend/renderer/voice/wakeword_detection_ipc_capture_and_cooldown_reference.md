@@ -90,11 +90,12 @@ On disable path, hook also:
 Retry-delay constant:
 
 - `CAPTURE_RETRY_DELAY_MS = 3000`
+- `MISSING_DEVICE_RETRY_DELAY_MS = 60000`
 
 Failure behavior:
 
-- missing-device errors set lock + next retry timestamp
-- other capture errors still set next retry timestamp
+- missing-device errors set lock + long retry timestamp (`60s`) to suppress repeated startup/error loops while no mic exists
+- other capture errors still use short retry timestamp (`3s`)
 - local failure marks `localCaptureErrorRef=true` to keep local capture errors sticky
 
 ## Generation Guard Against Async Races

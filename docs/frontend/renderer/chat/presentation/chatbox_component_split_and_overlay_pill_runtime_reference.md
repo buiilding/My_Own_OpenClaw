@@ -16,9 +16,9 @@ title: "Chatbox Component Split and Overlay Pill Runtime Reference"
 - `frontend/src/renderer/features/chat/components/chatbox/ChatBoxImagePreviewRow.jsx`
 - `frontend/src/renderer/features/chat/components/chatbox/chatBoxResponseUtils.js`
 - `frontend/src/renderer/features/chat/hooks/useChatBoxBindings.js`
-- `frontend/src/renderer/features/chat/utils/chatBoxState.js`
-- `frontend/src/renderer/features/chat/utils/chatBoxResponseState.js`
-- `frontend/src/renderer/features/chat/utils/chatboxSurfaceState.js`
+- `frontend/src/renderer/features/chat/utils/state/chatBoxState.js`
+- `frontend/src/renderer/features/chat/utils/state/chatBoxResponseState.js`
+- `frontend/src/renderer/features/chat/utils/state/chatboxSurfaceState.js`
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayLayoutMode.js`
 - `frontend/src/renderer/features/chat/utils/overlay/overlayFrameSize.js`
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhaseContract.js`

@@ -26,6 +26,16 @@ from backend.src.llm.client import get_llm_client
 router = APIRouter(prefix="/api/semantic", tags=["semantic"])
 logger = logging.getLogger(__name__)
 
+
+def _build_semantic_service() -> SemanticSummarizationService:
+    return SemanticSummarizationService(
+        get_llm_client_fn=get_llm_client,
+        load_api_key_fn=load_api_key_for_provider,
+        parse_response_fn=parse_summarization_response,
+        fallback_facts_fn=extract_fallback_facts,
+    )
+
+
 @router.post("/summarize", response_model=SummarizeResponse)
 async def summarize_conversations(
     request: SummarizeRequest,
@@ -33,12 +43,7 @@ async def summarize_conversations(
     session_manager: SessionManagerDep,
 ) -> SummarizeResponse:
     """Summarize conversations and extract semantic information."""
-    service = SemanticSummarizationService(
-        get_llm_client_fn=get_llm_client,
-        load_api_key_fn=load_api_key_for_provider,
-        parse_response_fn=parse_summarization_response,
-        fallback_facts_fn=extract_fallback_facts,
-    )
+    service = _build_semantic_service()
     summary, facts = await service.summarize(
         conversations=request.conversations,
         user_id=request.user_id,
@@ -63,12 +68,7 @@ async def generate_conversation_title(
     session_manager: SessionManagerDep,
 ) -> GenerateTitleResponse:
     """Generate a conversation title using the active user model."""
-    service = SemanticSummarizationService(
-        get_llm_client_fn=get_llm_client,
-        load_api_key_fn=load_api_key_for_provider,
-        parse_response_fn=parse_summarization_response,
-        fallback_facts_fn=extract_fallback_facts,
-    )
+    service = _build_semantic_service()
     title = await service.generate_title(
         user_message=request.user_message,
         assistant_message=request.assistant_message,

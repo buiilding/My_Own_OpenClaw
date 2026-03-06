@@ -62,7 +62,7 @@ This allows existing imports like `from ...memory import semantic as semantic_ro
 
 ## Handler Injection and Monkeypatch Contract
 
-Each route handler in `router.py` constructs `SemanticSummarizationService` with explicit callables:
+Route handlers in `router.py` call `_build_semantic_service()`, which constructs `SemanticSummarizationService` with explicit callables:
 
 - `get_llm_client`
 - `load_api_key_for_provider`

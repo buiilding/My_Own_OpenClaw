@@ -2,7 +2,7 @@ import {
   isChatLoopAwaitingReply,
   isChatLoopBusy,
   resolveChatLoopUiState,
-} from '../../frontend/src/renderer/features/chat/utils/chatLoopUiState';
+} from '../../frontend/src/renderer/features/chat/utils/state/chatLoopUiState';
 
 describe('chatLoopUiState', () => {
   test('treats local send latch as awaiting reply', () => {
