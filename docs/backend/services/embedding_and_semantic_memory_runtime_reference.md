@@ -12,9 +12,9 @@ title: "Embedding and Semantic Memory Runtime Reference"
 
 - `backend/src/embeddings/embeddings.py`
 - `backend/src/api/routes/memory/embeddings.py`
-- `backend/src/api/routes/memory/semantic.py`
-- `backend/src/api/routes/memory/semantic_service.py`
-- `backend/src/api/routes/memory/semantic_parser.py`
+- `backend/src/api/routes/memory/semantic/router.py`
+- `backend/src/api/routes/memory/semantic/service.py`
+- `backend/src/api/routes/memory/semantic/parser.py`
 - `backend/src/api/routes/memory/health.py`
 - `backend/src/core/container/memory_container.py`
 - `backend/src/core/container/factories.py`

@@ -7,7 +7,7 @@ import {
   resolveMessageScreenshotSrc,
   resolveMessageScreenshotSrcList,
 } from '../utils/messageScreenshots';
-import ThinkingDisplay from './ThinkingDisplay';
+import ThinkingDisplay from './message/ThinkingDisplay';
 
 function MarkdownMessage({
   text,

@@ -20,7 +20,7 @@ This matrix maps runtime responsibilities to exact modules in `backend/src`.
 | Runtime flow | Entry module | Core orchestrators | Completion/exit modules |
 | --- | --- | --- | --- |
 | Process startup + app assembly | `backend/src/main.py` | `backend/src/core/bootstrap/coordinator.py`, `backend/src/api/app_assembly.py` | FastAPI lifespan shutdown in `backend/src/main.py` |
-| HTTP memory route flow | `backend/src/api/routes/memory/{embeddings,semantic,health}.py` | `backend/src/api/routes/memory/semantic_service.py`, `backend/src/api/routes/memory/semantic_parser.py` | Route response + sanitized error mapping |
+| HTTP memory route flow | `backend/src/api/routes/memory/{embeddings,semantic,health}.py` | `backend/src/api/routes/memory/semantic/service.py`, `backend/src/api/routes/memory/semantic/parser.py` | Route response + sanitized error mapping |
 | HTTP artifact upload/load flow | `backend/src/api/routes/artifacts.py` | `backend/src/services/artifacts/store.py` | Route response envelope |
 | WebSocket connection + handshake | `backend/src/api/routes/websocket/router.py` | `backend/src/api/routes/websocket/connection.py`, `backend/src/api/routes/websocket/task_manager.py` | Connection cleanup + session end |
 | Incoming message parse/validation | `backend/src/api/routes/websocket/message_handler.py` | `backend/src/api/routes/websocket/json_parse.py`, `backend/src/api/schemas/incoming.py` | Handler dispatch via registry |

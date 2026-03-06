@@ -12,7 +12,7 @@ title: "Remote Title Client Generation Payload, Model-Override, Timeout, and Err
 
 - `frontend/src/main/python/core/remote_title_client.py`
 - `frontend/src/main/python/core/remote_api_client_base.py`
-- `backend/src/api/routes/memory/semantic.py`
+- `backend/src/api/routes/memory/semantic/router.py`
 - `tests/sidecar/test_remote_title_client.py`
 - `tests/sidecar/remote_client_test_utils.py`
 

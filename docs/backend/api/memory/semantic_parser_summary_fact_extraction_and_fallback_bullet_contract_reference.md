@@ -1,7 +1,7 @@
 ---
-summary: "Deep reference for `semantic_parser.py`: SUMMARY/FACTS extraction regex contracts, numbered/bulleted fact parsing behavior, and fallback bullet filtering semantics."
+summary: "Deep reference for `parser.py` in the semantic route package: SUMMARY/FACTS extraction regex contracts, numbered/bulleted fact parsing behavior, and fallback bullet filtering semantics."
 read_when:
-  - When changing `parse_summarization_response` or `extract_fallback_facts` logic in `semantic_parser.py`.
+  - When changing `parse_summarization_response` or `extract_fallback_facts` logic in `backend/src/api/routes/memory/semantic/parser.py`.
   - When debugging missing summary/facts output caused by model formatting drift in semantic summarize responses.
 title: "Semantic Parser Summary/Fact Extraction and Fallback-Bullet Contract Reference"
 ---
@@ -10,15 +10,15 @@ title: "Semantic Parser Summary/Fact Extraction and Fallback-Bullet Contract Ref
 
 ## Canonical Modules
 
-- `backend/src/api/routes/memory/semantic_parser.py`
-- `backend/src/api/routes/memory/semantic_service.py`
-- `backend/src/api/routes/memory/semantic.py`
+- `backend/src/api/routes/memory/semantic/parser.py`
+- `backend/src/api/routes/memory/semantic/service.py`
+- `backend/src/api/routes/memory/semantic/router.py`
 - `tests/backend/test_memory_routes.py`
 - `tests/backend/test_semantic_parser_service.py`
 
 ## Parser Surface
 
-`semantic_parser.py` exports:
+`backend/src/api/routes/memory/semantic/parser.py` exports:
 
 - `parse_summarization_response(response_text) -> (summary, facts)`
 - `extract_fallback_facts(response_text) -> facts`
@@ -111,3 +111,4 @@ Parser functions intentionally do not raise on mismatched text shape.
 - [Backend API Memory Docs Hub](README.md)
 - [Semantic Summarization Service Config Resolution, Prompt Assembly, and Parser-Fallback Contract Reference](semantic_summarization_service_config_resolution_prompt_assembly_and_parser_fallback_contract_reference.md)
 - [Semantic Title Generation Route, Model-Override, and Parser-Fallback Contract Reference](semantic_title_generation_route_model_override_and_parser_fallback_contract_reference.md)
+- [Semantic Route Package Split and Compatibility Export Contract Reference](semantic_route_package_split_and_compatibility_export_contract_reference.md)

@@ -8,10 +8,10 @@ import {
 } from 'react';
 import PropTypes from 'prop-types';
 import MessageContent from './MessageContent';
-import MessageTransparencySections from './MessageTransparencySections';
-import AssistantMessageActions from './AssistantMessageActions';
-import UserMessageActions from './UserMessageActions';
-import MessageSourceBadge from './MessageSourceBadge';
+import MessageTransparencySections from './message/MessageTransparencySections';
+import AssistantMessageActions from './message/AssistantMessageActions';
+import UserMessageActions from './message/UserMessageActions';
+import MessageSourceBadge from './message/MessageSourceBadge';
 import { buildMessageClassName } from '../utils/messageListClasses';
 import {
   findAwaitingDotTargetMessageId,

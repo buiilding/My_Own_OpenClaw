@@ -10,8 +10,8 @@ title: "Semantic Title Generation Route, Model-Override, and Parser-Fallback Con
 
 ## Canonical Modules
 
-- `backend/src/api/routes/memory/semantic.py`
-- `backend/src/api/routes/memory/semantic_service.py`
+- `backend/src/api/routes/memory/semantic/router.py`
+- `backend/src/api/routes/memory/semantic/service.py`
 - `backend/src/core/validation/validators.py`
 - `backend/src/core/config/manager.py`
 - `backend/src/llm/client.py`
@@ -144,4 +144,5 @@ This preserves sanitized client-facing errors while keeping internal stack trace
 
 - [Backend API Memory Docs Hub](README.md)
 - [Semantic Summarization Service Config Resolution, Prompt Assembly, and Parser-Fallback Contract Reference](semantic_summarization_service_config_resolution_prompt_assembly_and_parser_fallback_contract_reference.md)
+- [Semantic Route Package Split and Compatibility Export Contract Reference](semantic_route_package_split_and_compatibility_export_contract_reference.md)
 - [Memory Route Validation and Fallback Reference](../memory_route_validation_and_fallback_reference.md)

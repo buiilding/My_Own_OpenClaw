@@ -63,13 +63,13 @@ title: "Frontend Renderer Chat Docs Hub"
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/features/chat/components/MessageInput.jsx`
 - `frontend/src/renderer/features/chat/components/MessageList.jsx`
-- `frontend/src/renderer/features/chat/components/ThinkingDisplay.jsx`
+- `frontend/src/renderer/features/chat/components/message/ThinkingDisplay.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
 - `frontend/src/renderer/features/chat/components/ToolGhostCursor.jsx`
 - `frontend/src/renderer/features/chat/components/MessageContent.jsx`
-- `frontend/src/renderer/features/chat/components/MessageTransparencySections.jsx`
-- `frontend/src/renderer/features/chat/components/TransparencySection.jsx`
+- `frontend/src/renderer/features/chat/components/message/MessageTransparencySections.jsx`
+- `frontend/src/renderer/features/chat/components/message/TransparencySection.jsx`
 - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
 - `tests/frontend/ChatMessageSender.test.tsx`
 - `tests/frontend/ChatLoopUiState.test.js`

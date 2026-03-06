@@ -33,10 +33,10 @@ title: "Renderer Chat Presentation Docs Hub"
 - `frontend/src/renderer/features/chat/hooks/useChatCommonActions.ts`
 - `frontend/src/renderer/features/chat/components/MessageInput.jsx`
 - `frontend/src/renderer/features/chat/components/MessageList.jsx`
-- `frontend/src/renderer/features/chat/components/AssistantMessageActions.jsx`
-- `frontend/src/renderer/features/chat/components/UserMessageActions.jsx`
-- `frontend/src/renderer/features/chat/components/MessageSourceBadge.jsx`
-- `frontend/src/renderer/features/chat/components/ThinkingDisplay.jsx`
+- `frontend/src/renderer/features/chat/components/message/AssistantMessageActions.jsx`
+- `frontend/src/renderer/features/chat/components/message/UserMessageActions.jsx`
+- `frontend/src/renderer/features/chat/components/message/MessageSourceBadge.jsx`
+- `frontend/src/renderer/features/chat/components/message/ThinkingDisplay.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
 - `frontend/src/renderer/features/chat/components/chatbox/ChatBoxIcons.jsx`

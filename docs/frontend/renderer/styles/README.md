@@ -32,5 +32,5 @@ title: "Frontend Renderer Styles Docs Hub"
 - `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/features/chat/components/MessageList.jsx`
-- `frontend/src/renderer/features/chat/components/ThinkingDisplay.jsx`
+- `frontend/src/renderer/features/chat/components/message/ThinkingDisplay.jsx`
 - `frontend/src/renderer/features/voice/components/VoiceStatus.jsx`

@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import MessageSourceBadge from '../../frontend/src/renderer/features/chat/components/MessageSourceBadge';
+import MessageSourceBadge from '../../frontend/src/renderer/features/chat/components/message/MessageSourceBadge';
 import { isDevUiEnabled } from '../../frontend/src/renderer/features/chat/utils/devUiFlag';
 
 jest.mock('../../frontend/src/renderer/features/chat/utils/devUiFlag', () => ({

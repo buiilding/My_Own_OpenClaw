@@ -14,7 +14,7 @@ This page documents:
 - `frontend/src/renderer/styles/ThinkingDisplay.css`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/features/chat/components/MessageList.jsx`
-- `frontend/src/renderer/features/chat/components/ThinkingDisplay.jsx`
+- `frontend/src/renderer/features/chat/components/message/ThinkingDisplay.jsx`
 
 ## Chat Header and Control Surface Contract (`ChatInterface.css`)
 
