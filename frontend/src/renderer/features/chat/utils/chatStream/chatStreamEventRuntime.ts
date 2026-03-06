@@ -36,9 +36,10 @@ export function syncActiveConversationProjection(
   if (activeConversationRef === conversationRef) {
     return;
   }
-  if (!activeConversationRef || event.type === 'local-user-message') {
-    setActiveConversationRef(conversationRef);
-  }
+  // Conversation-scoped backend events are the authoritative active-chat signal
+  // for each renderer window. This lets late-mounted overlay windows re-anchor
+  // to the current stream even if they missed the initial local-user-message.
+  setActiveConversationRef(conversationRef);
 }
 
 export function shouldIgnoreForStaleTurn(
