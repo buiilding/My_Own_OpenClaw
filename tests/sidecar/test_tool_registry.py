@@ -387,7 +387,7 @@ async def test_execute_computer_use_accepts_trimmed_required_metadata_fields():
 
 
 @pytest.mark.asyncio
-async def test_execute_computer_use_drops_non_required_metadata_fields_before_subtool_execution():
+async def test_execute_computer_use_rejects_non_required_metadata_fields_before_subtool_execution():
     registry = ToolRegistry()
     captured = {}
 
@@ -413,14 +413,15 @@ async def test_execute_computer_use_drops_non_required_metadata_fields_before_su
 
     result = await registry.execute_tool("computer_use", envelope)
 
-    assert result.success is True
-    assert result.data == {"ok": True, "tool": "mouse_control"}
+    assert result.success is False
+    assert result.error == "computer_use.metadata contains unexpected fields: extra_debug_field"
     assert envelope["metadata"] == {
         "description": "screen",
         "explanation": "click target",
         "expectation": "dialog opens",
+        "extra_debug_field": "drop-me",
     }
-    assert captured["args"] == {"action": "click", "x": 12, "y": 34}
+    assert "args" not in captured
 
 
 @pytest.mark.asyncio

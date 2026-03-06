@@ -441,7 +441,7 @@ async def test_handle_execute_tool_computer_use_rejects_whitespace_only_subtool_
 
 
 @pytest.mark.asyncio
-async def test_handle_execute_tool_computer_use_drops_non_required_metadata_fields():
+async def test_handle_execute_tool_computer_use_rejects_non_required_metadata_fields():
     backend = LocalBackend()
     registry = ToolRegistry()
     captured = {}
@@ -469,13 +469,17 @@ async def test_handle_execute_tool_computer_use_drops_non_required_metadata_fiel
 
     result = await backend._handle_execute_tool("computer_use", envelope)
 
-    assert result == {"success": True, "data": {"ok": True}}
+    assert result == {
+        "success": False,
+        "error": "computer_use.metadata contains unexpected fields: extra_debug_field",
+    }
     assert envelope["metadata"] == {
         "description": "screen",
         "explanation": "click target",
         "expectation": "dialog opens",
+        "extra_debug_field": "should-be-dropped",
     }
-    assert captured["args"] == {"action": "click", "x": 10, "y": 20}
+    assert "args" not in captured
 
 
 @pytest.mark.asyncio

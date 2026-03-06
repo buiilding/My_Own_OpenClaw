@@ -18,6 +18,13 @@ _UNIFIED_COMPUTER_SUBTOOLS = frozenset(
         "wait",
     }
 )
+_COMPUTER_REQUIRED_METADATA_FIELDS = frozenset(
+    {
+        "description",
+        "explanation",
+        "expectation",
+    }
+)
 
 
 class ToolCallValidator:
@@ -269,6 +276,17 @@ class ToolCallValidator:
                 )
             else:
                 metadata["expectation"] = normalized_expectation
+
+            unexpected_fields = sorted(
+                key for key in metadata.keys() if key not in _COMPUTER_REQUIRED_METADATA_FIELDS
+            )
+            if unexpected_fields:
+                validation_errors.append(
+                    "Computer-use tool "
+                    f"'{tool_name}' has unexpected metadata fields: "
+                    f"{', '.join(unexpected_fields)}. "
+                    "Allowed fields: description, explanation, expectation."
+                )
 
         if validation_errors:
             self.metrics.record_validation_violation(

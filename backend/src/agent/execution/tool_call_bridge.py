@@ -48,6 +48,10 @@ _COMPUTER_REQUIRED_METADATA_FIELDS = (
     "explanation",
     "expectation",
 )
+_COMPUTER_INTERNAL_METADATA_FIELDS = (
+    "tool_call_id",
+    "thought_signature",
+)
 
 
 def _extract_thought_signature(payload: Any) -> str:
@@ -77,16 +81,25 @@ def _normalize_tool_call_id(value: Any) -> str | None:
 def _normalize_computer_metadata(
     metadata: Dict[str, Any],
 ) -> tuple[Dict[str, Any], bool]:
-    normalized = dict(metadata)
+    normalized: Dict[str, Any] = {}
     has_all_required = True
+    for field_name in _COMPUTER_INTERNAL_METADATA_FIELDS:
+        if field_name in metadata:
+            normalized[field_name] = metadata[field_name]
     for field_name in _COMPUTER_REQUIRED_METADATA_FIELDS:
         field_value = _normalize_required_metadata_value(metadata.get(field_name))
         if field_value is None:
-            normalized.pop(field_name, None)
             has_all_required = False
             continue
         normalized[field_name] = field_value
-    return normalized, has_all_required
+    unexpected_fields = [
+        field_name
+        for field_name in metadata.keys()
+        if field_name not in _COMPUTER_REQUIRED_METADATA_FIELDS
+        and field_name not in _COMPUTER_INTERNAL_METADATA_FIELDS
+    ]
+    has_only_allowed_fields = len(unexpected_fields) == 0
+    return normalized, has_all_required and has_only_allowed_fields
 
 
 def to_parsed_response(normalized_response: NormalizedLLMResponse) -> ParsedResponse:
