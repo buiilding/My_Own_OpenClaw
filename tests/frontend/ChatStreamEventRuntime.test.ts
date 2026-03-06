@@ -80,10 +80,34 @@ describe('chatStreamEventRuntime', () => {
     expect(ref).toBe('conv-memory-event');
   });
 
+  test('resolves conversation ref from memory-store event session id when payload session id is whitespace', () => {
+    const ref = resolveTargetConversationRef(
+      createEvent({
+        type: 'memory-store',
+        payload: { session_id: '   ' },
+        session_id: 'conv-memory-event',
+      }),
+    );
+
+    expect(ref).toBe('conv-memory-event');
+  });
+
   test('resolves conversation ref from local-user-message payload fallback', () => {
     const ref = resolveTargetConversationRef(
       createEvent({
         type: 'local-user-message',
+        payload: { text: 'hello', conversation_ref: 'conv-local-payload' },
+      }),
+    );
+
+    expect(ref).toBe('conv-local-payload');
+  });
+
+  test('resolves conversation ref from local-user payload when top-level conversation ref is whitespace', () => {
+    const ref = resolveTargetConversationRef(
+      createEvent({
+        type: 'local-user-message',
+        conversation_ref: '   ',
         payload: { text: 'hello', conversation_ref: 'conv-local-payload' },
       }),
     );
