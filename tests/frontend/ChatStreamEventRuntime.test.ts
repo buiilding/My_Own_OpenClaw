@@ -244,6 +244,32 @@ describe('chatStreamEventRuntime', () => {
     expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-new' }), null)).toBe(false);
   });
 
+  test('stale turn guard allows mismatched turn packets while sending during awaiting-first-chunk', () => {
+    useChatStore.setState((state) => ({
+      ...state,
+      isSending: true,
+      streamTracking: {
+        ...state.streamTracking,
+        activeTurnRef: 'turn-old',
+        phase: 'awaiting-first-chunk',
+      },
+      workspaces: {
+        ...state.workspaces,
+        __default__: {
+          ...state.workspaces.__default__,
+          isSending: true,
+          streamTracking: {
+            ...state.workspaces.__default__.streamTracking,
+            activeTurnRef: 'turn-old',
+            phase: 'awaiting-first-chunk',
+          },
+        },
+      },
+    }));
+
+    expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-new' }), null)).toBe(false);
+  });
+
   test('stale turn guard keeps packets when turn ref is absent', () => {
     expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: undefined }), null)).toBe(false);
   });
