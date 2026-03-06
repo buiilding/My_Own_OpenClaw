@@ -3,6 +3,7 @@ const path = require('path');
 const {
   buildLaunchCommand,
   parseOptions,
+  resolveElectronBinaryForPlatform,
   resolveCondaPythonPath,
 } = require('../../frontend/scripts/electron-launcher.cjs');
 
@@ -69,5 +70,36 @@ describe('electron-launcher', () => {
       command: 'C:\\bin\\electron.exe',
       args: ['.'],
     });
+  });
+
+  test('resolveElectronBinaryForPlatform accepts .exe on windows', () => {
+    const resolved = resolveElectronBinaryForPlatform(
+      'C:\\bin\\electron.exe',
+      { platform: 'win32', existsSync: () => false },
+    );
+    expect(resolved).toBe('C:\\bin\\electron.exe');
+  });
+
+  test('resolveElectronBinaryForPlatform swaps .exe for linux sibling when available', () => {
+    const resolved = resolveElectronBinaryForPlatform(
+      '/workspace/frontend/node_modules/electron/dist/electron.exe',
+      {
+        platform: 'linux',
+        existsSync: (candidate) =>
+          candidate === '/workspace/frontend/node_modules/electron/dist/electron',
+      },
+    );
+    expect(resolved).toBe('/workspace/frontend/node_modules/electron/dist/electron');
+  });
+
+  test('resolveElectronBinaryForPlatform throws clear error when linux receives windows-only binary', () => {
+    expect(() =>
+      resolveElectronBinaryForPlatform(
+        '/workspace/frontend/node_modules/electron/dist/electron.exe',
+        { platform: 'linux', existsSync: () => false },
+      ),
+    ).toThrow(
+      "Electron binary mismatch for platform 'linux': received Windows executable",
+    );
   });
 });

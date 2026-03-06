@@ -52,6 +52,31 @@ function buildLaunchCommand({
   };
 }
 
+function resolveElectronBinaryForPlatform(
+  electronBinary,
+  { platform, existsSync = fs.existsSync } = {},
+) {
+  if (typeof electronBinary !== 'string' || !electronBinary.trim()) {
+    throw new Error('Electron binary path is missing or invalid.');
+  }
+
+  const normalizedPlatform = typeof platform === 'string' ? platform : process.platform;
+  const normalizedBinary = electronBinary.trim();
+  if (normalizedPlatform === 'win32' || !normalizedBinary.toLowerCase().endsWith('.exe')) {
+    return normalizedBinary;
+  }
+
+  const siblingBinary = normalizedBinary.slice(0, -4);
+  if (existsSync(siblingBinary)) {
+    return siblingBinary;
+  }
+
+  throw new Error(
+    `Electron binary mismatch for platform '${normalizedPlatform}': received Windows executable ` +
+      `(${normalizedBinary}). Reinstall frontend dependencies in this OS environment.`,
+  );
+}
+
 function printModeBanner(options) {
   if (options.dev) {
     console.log('[WindieOS] Developer mode launch (dev UI/source tags enabled).');
@@ -81,7 +106,9 @@ function main() {
     env.WINDIE_PYTHON_PATH = condaPython;
   }
 
-  const electronBinary = require('electron');
+  const electronBinary = resolveElectronBinaryForPlatform(require('electron'), {
+    platform: process.platform,
+  });
   const launch = buildLaunchCommand({
     electronBinary,
     platform: process.platform,
@@ -116,5 +143,6 @@ module.exports = {
   buildLaunchCommand,
   hasXvfbRun,
   parseOptions,
+  resolveElectronBinaryForPlatform,
   resolveCondaPythonPath,
 };
