@@ -135,6 +135,7 @@ Failure posture:
 ## Related Docs
 
 - [Backend Services Docs Hub](README.md)
+- [VM Run Control Support Helper Module Contract Reference](vm_run_control_support_helper_module_contract_reference.md)
 - [Artifact, Screenshot, and System-State Flow Reference](artifact_screenshot_and_system_state_flow_reference.md)
 - [OCR and Vision Coordinate Runtime Overview](ocr_and_vision_coordinate_runtime_reference.md)
 - [Token Service Message Normalization and Fallback Reference](token/token_service_message_normalization_and_fallback_reference.md)
