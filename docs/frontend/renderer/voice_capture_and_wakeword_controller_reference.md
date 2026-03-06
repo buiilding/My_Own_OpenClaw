@@ -23,6 +23,7 @@ title: "Voice Capture and Wakeword Controller Reference"
 - `frontend/src/renderer/features/voice/utils/wakewordEventUtils.ts`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/renderer/infrastructure/api/client.ts`
+- `tests/frontend/voice/WakewordDetectionHook.test.ts`
 
 ## Two Distinct Voice Pipelines
 
@@ -46,6 +47,7 @@ They share microphone primitives but have different transport paths:
 - `wakewordActive = wakewordEnabled && !wakewordSuppressed`: input to `WakewordController`
 
 `WakewordController` is always mounted under `App`, but the hook is inert when `wakewordActive` is false.
+It also passes `wakewordEnabled` separately so the capture hook can distinguish temporary suppression from explicit user disable when handling missing-device lockout.
 
 ## Live Transcription Flow (`useVoiceMode`)
 
@@ -135,6 +137,13 @@ Chunk-size normalization:
 
 - requested ScriptProcessor size is normalized to nearest supported power-of-two-like value set
 - warning logged when normalized value differs
+
+Missing-device guardrails:
+
+- capture startup retry uses `CAPTURE_RETRY_DELAY_MS = 3000`
+- missing-mic failures lock capture via `globalThis.__windieWakewordCaptureGuard`
+- lock persists across hook remounts until disable path resets guard state
+- local capture errors remain sticky across healthy status packets (`localCaptureErrorRef` gate)
 
 ## Failure and Drift Hotspots
 
