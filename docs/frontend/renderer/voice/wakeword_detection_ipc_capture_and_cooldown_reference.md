@@ -19,6 +19,7 @@ title: "Wakeword Detection IPC Capture and Cooldown Reference"
 - `frontend/src/renderer/features/voice/hooks/useAudioCaptureRefs.ts`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
+- `tests/frontend/voice/WakewordDetectionHook.test.ts`
 
 ## Activation Gate
 
@@ -34,6 +35,13 @@ Detection callback behavior:
 
 1. send backend `wakeword-detected` signal via `ApiClient`
 2. invoke `show-chatbox` through IPC
+
+Controller wiring:
+
+- `WakewordController` passes `wakewordActive` as hook enable flag
+- callback side effects are centralized in one app-level owner:
+  - backend `wakeword-detected` API call
+  - `show-chatbox` IPC invoke
 
 ## IPC Channel Contract
 
@@ -68,6 +76,25 @@ On disable path, hook also:
 
 - resets cooldown timestamp
 - sends explicit `wakeword-disable` to clear service buffers
+
+## Capture Start + Retry Guard Contract
+
+`startAudioCapture()` no-ops when any guard is active:
+
+- capture already running (`isCapturingRef`)
+- capture startup already in-flight (`isStartingCaptureRef`)
+- missing-device lock enabled (`missingDeviceLockRef`)
+- retry delay not elapsed (`Date.now() < nextCaptureRetryAtRef`)
+
+Retry-delay constant:
+
+- `CAPTURE_RETRY_DELAY_MS = 3000`
+
+Failure behavior:
+
+- missing-device errors set lock + next retry timestamp
+- other capture errors still set next retry timestamp
+- local failure marks `localCaptureErrorRef=true` to keep local capture errors sticky
 
 ## Generation Guard Against Async Races
 
@@ -125,9 +152,18 @@ Missing microphone behavior (`NotFoundError` / "requested device not found"):
 - local capture error is surfaced with reconnect guidance
 - capture startup enters missing-device lockout to prevent repeated start attempts/log spam while still enabled
 - lockout state is persisted across hook remounts to avoid repeated retries when UI surfaces restart while wakeword remains enabled
-- lockout clears only when wakeword is disabled (toggle off/on), then capture can retry
+- lockout state is stored on `globalThis.__windieWakewordCaptureGuard` with:
+  - `missingDeviceLocked`
+  - `nextRetryAt`
+- lockout clears on disable path (`enabled=false`), which resets refs + global guard values
 
 Audio context close errors are suppressed when message indicates already-closed context; unexpected close errors are warning-logged.
+
+Status/error precedence details:
+
+- `wakeword-status.error` sets hook error while enabled
+- `wakeword-status` without error clears error only when `localCaptureErrorRef` is false
+- this prevents healthy-status noise from immediately hiding local mic-capture failures
 
 ## Drift Hotspots
 
@@ -135,6 +171,18 @@ Audio context close errors are suppressed when message indicates already-closed 
 2. weakening generation guards can leak or resurrect old capture sessions.
 3. changing channel names without preload/main parity update breaks wakeword runtime silently.
 4. skipping cooldown reset on disable/re-enable can cause instant false retriggers.
+
+## Test-Locked Invariants
+
+`tests/frontend/voice/WakewordDetectionHook.test.ts` validates:
+
+- listener registration and enable/disable send-gating
+- confidence parsing + cooldown behavior with immediate disable on accepted detection
+- late `getUserMedia` resolution cleanup after disable
+- missing-device lockout persistence across remounts
+- disable/re-enable requirement before retry after missing-device lockout
+- sticky local-capture error behavior under healthy status packets
+- idempotent stop cleanup under repeated disable/unmount paths
 
 ## Related Pages
 
