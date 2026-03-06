@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(backend-websocket-message-parse-runtime-error-mapping-and-dependency-forwarding): expand parse-runtime coverage for parser dependency forwarding (`offload_threshold_bytes` + injected loop getter), malformed JSON mapping, non-object root mapping, and unexpected-error fallback logging/response (`An internal error occurred`).
 - test(frontend-tool-runner-bundle-correlation-trim-tracking): extend callback send-gate regressions so tracked bundle payloads with whitespace-padded `bundle_id` are accepted via normalized correlation resolution, then dropped after untracking to preserve late-result suppression symmetry with single-tool paths.
 - test(backend-api-tool-result-handler-correlation-trim-routing): extend API handler regressions so `ToolResultMessage` and `ToolBundleResultMessage` payload ids with surrounding whitespace are normalized by schema validation before session routing (`request_id`/`bundle_id` trimmed at boundary).
 - test(backend-websocket-message-handler-runtime-delegation-contract): refresh websocket message-handler parse tests to assert delegation into `message_parse_runtime` with forwarded offload/runtime dependencies, replacing stale monkeypatch assumptions on removed module-local parser internals.
