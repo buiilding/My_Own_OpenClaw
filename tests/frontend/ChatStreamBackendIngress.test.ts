@@ -79,11 +79,25 @@ describe('chatStreamBackendIngress', () => {
     expect(registerTurnConversationRef).toHaveBeenCalledWith('turn-1', 'conv-1');
   });
 
-  test('uses active transcript conversation when present', () => {
+  test('prefers resolved event conversation over active transcript conversation', () => {
     mockGetActiveConversationRef.mockReturnValue('conv-active');
     const dispatchEvent = jest.fn();
 
-    ingestBackendEvent({ type: 'token-count', user_id: 'user-2' } as any, 'conv-fallback', {
+    ingestBackendEvent({ type: 'token-count', user_id: 'user-2' } as any, 'conv-event', {
+      syncActiveConversationProjection: jest.fn(),
+      registerTurnConversationRef: jest.fn(),
+      enableTranscript: true,
+      dispatchEvent,
+    });
+
+    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-event', 'user-2');
+  });
+
+  test('uses active transcript conversation when resolved event conversation is missing', () => {
+    mockGetActiveConversationRef.mockReturnValue('conv-active');
+    const dispatchEvent = jest.fn();
+
+    ingestBackendEvent({ type: 'token-count', user_id: 'user-2' } as any, null, {
       syncActiveConversationProjection: jest.fn(),
       registerTurnConversationRef: jest.fn(),
       enableTranscript: true,
@@ -93,11 +107,11 @@ describe('chatStreamBackendIngress', () => {
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-active', 'user-2');
   });
 
-  test('uses trimmed active transcript conversation when present', () => {
+  test('uses trimmed active transcript conversation when resolved event conversation is missing', () => {
     mockGetActiveConversationRef.mockReturnValue(' conv-active ');
     const dispatchEvent = jest.fn();
 
-    ingestBackendEvent({ type: 'token-count', user_id: 'user-2' } as any, 'conv-fallback', {
+    ingestBackendEvent({ type: 'token-count', user_id: 'user-2' } as any, null, {
       syncActiveConversationProjection: jest.fn(),
       registerTurnConversationRef: jest.fn(),
       enableTranscript: true,
