@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import type { BackendEvent } from '../../../types/backendEvents';
+import type { BackendEvent } from '../../../../types/backendEvents';
 
 type UseTurnScopedBackendEventHandlerOptions<TEvent extends BackendEvent> = {
   resolveTargetConversationRef: (event: TEvent) => string | null;

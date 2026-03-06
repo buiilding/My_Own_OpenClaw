@@ -29,17 +29,17 @@ import { resolveThinkingCapabilities } from '../utils/modelThinkingCapabilities'
 import { normalizePersistedThinkingStatus } from '../utils/chatStream/chatStreamThinkingStatus';
 import { type TranscriptModelContext } from '../utils/chatStream/chatStreamTypes';
 import { useChatCommonActions } from './useChatCommonActions';
-import { useStreamMessageUpdaters } from './useStreamMessageUpdaters';
-import { useChatStreamToolHandlers } from './useChatStreamToolHandlers';
+import { useStreamMessageUpdaters } from './chatStream/useStreamMessageUpdaters';
+import { useChatStreamToolHandlers } from './chatStream/useChatStreamToolHandlers';
 import { useLatestRef } from '../../../infrastructure/hooks/useLatestRef';
-import { useChatStreamTerminalHandlers } from './useChatStreamTerminalHandlers';
+import { useChatStreamTerminalHandlers } from './chatStream/useChatStreamTerminalHandlers';
 import { buildChatStreamHandlerMap } from '../utils/chatStream/chatStreamHandlerMap';
-import { useChatStreamLocalUserHandler } from './useChatStreamLocalUserHandler';
-import { useChatStreamCompactionHandlers } from './useChatStreamCompactionHandlers';
-import { useChatStreamMetadataHandlers } from './useChatStreamMetadataHandlers';
-import { useTurnScopedBackendEventHandler } from './useTurnScopedBackendEventHandler';
-import { useChatStreamCompletionHandler } from './useChatStreamCompletionHandler';
-import { useChatStreamTextHandlers } from './useChatStreamTextHandlers';
+import { useChatStreamLocalUserHandler } from './chatStream/useChatStreamLocalUserHandler';
+import { useChatStreamCompactionHandlers } from './chatStream/useChatStreamCompactionHandlers';
+import { useChatStreamMetadataHandlers } from './chatStream/useChatStreamMetadataHandlers';
+import { useTurnScopedBackendEventHandler } from './chatStream/useTurnScopedBackendEventHandler';
+import { useChatStreamCompletionHandler } from './chatStream/useChatStreamCompletionHandler';
+import { useChatStreamTextHandlers } from './chatStream/useChatStreamTextHandlers';
 import { ingestBackendEvent } from '../utils/chatStream/chatStreamBackendIngress';
 import {
   recordTrackingEvent as recordTrackingEventRuntime,
