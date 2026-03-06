@@ -80,6 +80,25 @@ async def test_route_individual_result_processes_screenshot_and_stores():
 
 
 @pytest.mark.asyncio
+async def test_route_individual_result_trims_correlation_id_before_processing_and_storage():
+    router = _make_router()
+    result = ToolResult(
+        success=True,
+        data={
+            "screenshot": "shot",
+        },
+    )
+
+    await router.route_individual_result("  req-trim  ", result)
+
+    assert router.screenshot_processor.calls == [
+        (router.session, "shot", "req-trim", None)
+    ]
+    assert router.result_storage.pending == [("req-trim", result)]
+    assert router.result_storage.pending_resolves == [("req-trim", result)]
+
+
+@pytest.mark.asyncio
 async def test_route_individual_result_without_screenshot():
     router = _make_router()
     result = ToolResult(success=True, data={"output": "ok"})
@@ -197,6 +216,25 @@ async def test_route_bundle_result_processes_screenshot_and_resolves():
 
 
 @pytest.mark.asyncio
+async def test_route_bundle_result_trims_correlation_id_before_processing_and_storage():
+    router = _make_router()
+    result = ToolResult(
+        success=True,
+        data={
+            "screenshot": "shot",
+        },
+    )
+
+    await router.route_bundle_result("  bundle-trim  ", result)
+
+    assert router.screenshot_processor.calls == [
+        (router.session, "shot", "bundle-trim", None)
+    ]
+    assert router.result_storage.bundled == [("bundle-trim", result)]
+    assert router.result_storage.bundle_resolves == [("bundle-trim", result)]
+
+
+@pytest.mark.asyncio
 async def test_route_bundle_result_preserves_existing_system_state_when_payload_omits_state_keys():
     router = _make_router()
     router.session.current_system_state = {"active_window": "Terminal"}
@@ -260,3 +298,20 @@ async def test_route_result_shared_pipeline_for_bundle_updates_state_and_storage
     assert router.session.current_system_state == {"active_window": "Browser"}
     assert router.result_storage.bundled == [("bundle-2", result)]
     assert router.result_storage.bundle_resolves == [("bundle-2", result)]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("route_mode", ["individual", "bundle"])
+async def test_route_result_drops_whitespace_only_correlation_id(route_mode: str):
+    router = _make_router()
+    router.session.current_system_state = {"active_window": "Terminal"}
+    result = ToolResult(success=True, data={"system_state": {"active_window": "Browser"}})
+
+    await router.route_result("   ", result, route_mode=route_mode)  # type: ignore[arg-type]
+
+    assert router.screenshot_processor.calls == []
+    assert router.result_storage.pending == []
+    assert router.result_storage.pending_resolves == []
+    assert router.result_storage.bundled == []
+    assert router.result_storage.bundle_resolves == []
+    assert router.session.current_system_state == {"active_window": "Terminal"}

@@ -144,6 +144,13 @@ class ToolResultRouter:
             return dict(capture_meta)
         return None
 
+    @staticmethod
+    def _normalize_correlation_id(value: str) -> Optional[str]:
+        if not isinstance(value, str):
+            return None
+        trimmed = value.strip()
+        return trimmed or None
+
     def _extract_screenshot_from_result_data(
         self,
         result_data: Any,
@@ -217,6 +224,14 @@ class ToolResultRouter:
             tool_result: Tool result to route
             route_mode: Routing mode ("individual" or "bundle")
         """
+        normalized_correlation_id = self._normalize_correlation_id(correlation_id)
+        if not normalized_correlation_id:
+            logger.warning(
+                "Skipping %s tool result routing due to missing correlation id",
+                route_mode,
+            )
+            return
+
         is_bundle = route_mode == "bundle"
         context = "Bundle result" if is_bundle else "Tool result"
 
@@ -226,7 +241,7 @@ class ToolResultRouter:
         if is_bundle:
             logger.info(
                 "Routing atomic bundle result: bundle_id=%s, status=%s",
-                correlation_id[:15],
+                normalized_correlation_id[:15],
                 "success" if tool_result.success else "failure",
             )
 
@@ -237,12 +252,12 @@ class ToolResultRouter:
         capture_meta = self._extract_capture_meta(tool_result.data)
         await self._process_screenshot(
             screenshot_data,
-            correlation_id,
+            normalized_correlation_id,
             context,
             capture_meta=capture_meta,
         )
 
         if is_bundle:
-            self._store_and_resolve_bundle_result(correlation_id, tool_result)
+            self._store_and_resolve_bundle_result(normalized_correlation_id, tool_result)
             return
-        self._store_and_resolve_individual_result(correlation_id, tool_result)
+        self._store_and_resolve_individual_result(normalized_correlation_id, tool_result)
