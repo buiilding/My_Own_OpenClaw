@@ -30,6 +30,7 @@ title: "Backend API Docs Hub"
 - [Embeddings Route Serialization, Sanitized Error Surface, and Health-Probe Contract Reference](memory/embeddings_route_serialization_sanitized_error_surface_and_health_probe_contract_reference.md)
 - [WebSocket Connection and Task Lifecycle Reference](websocket_connection_and_task_lifecycle_reference.md)
 - [WebSocket Message Parse, Validation Guard, and Task-Scheduling Reference](websocket/websocket_message_parse_validation_guard_and_task_scheduling_reference.md)
+- [WebSocket Route Package Split and Monkeypatch-Compatibility Reference](websocket/websocket_route_package_router_split_and_monkeypatch_compat_reference.md)
 - [Handshake Parse, Validation, and Policy-Close Contract Reference](websocket/connection/handshake_parse_validation_and_policy_close_contract_reference.md)
 - [Task Manager Concurrency Limit, Rejected-Coroutine Close, and Cleanup Contract Reference](websocket/connection/task_manager_concurrency_limit_rejected_coroutine_close_and_cleanup_contract_reference.md)
 - [Handler Registry and Error Envelope Reference](handler_registry_and_error_envelope_reference.md)
