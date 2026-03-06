@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(frontend-chat-stream-backend-ingress-failsafe-chain): harden ingress recovery so exceptions in conversation projection sync and turn-map registration are treated as best-effort failures that cannot block transcript session sync or stream event dispatch; add regression coverage for both thrown-dependency paths.
 - test(frontend-chat-stream-backend-ingress-turn-map-gates): extend ingress regression coverage to ensure `registerTurnConversationRef` only runs when both `conversationRef` and `event.turn_ref` are present, preventing accidental turn-map writes from partial payloads.
 - test(frontend-chat-stream-backend-ingress-transcript-failsafe): make transcript session sync best-effort in `ingestBackendEvent` so exceptions from `updateTranscriptSession` cannot block stream event dispatch; add regression coverage for dispatch continuity under transcript update failure.
 - refactor(fullstack-runs-route-support-split-and-chat-stream-hook-folder-reorg): extracted `/api/runs` shared service/auth/run-shaping helpers into `backend/src/api/routes/runs_support.py`, moved chat-stream helper hooks into `frontend/src/renderer/features/chat/hooks/chatStream/` (while keeping `useChatStream.ts` as the root stream entrypoint), rewired imports/tests/docs, and revalidated targeted backend/frontend suites plus refactor audit gates (`lint:audit`, `knip`, `jscpd`, API-routes clone scan all passing).

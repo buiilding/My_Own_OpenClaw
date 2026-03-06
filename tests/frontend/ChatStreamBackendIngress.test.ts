@@ -74,6 +74,41 @@ describe('chatStreamBackendIngress', () => {
     expect(registerTurnConversationRef).not.toHaveBeenCalled();
   });
 
+  test('continues dispatch when projection sync throws', () => {
+    const syncActiveConversationProjection = jest.fn(() => {
+      throw new Error('projection failed');
+    });
+    const dispatchEvent = jest.fn();
+    const event = { type: 'streaming-response', turn_ref: 'turn-proj', user_id: 'user-proj' } as any;
+
+    expect(() => ingestBackendEvent(event, 'conv-proj', {
+      syncActiveConversationProjection,
+      registerTurnConversationRef: jest.fn(),
+      enableTranscript: true,
+      dispatchEvent,
+    })).not.toThrow();
+
+    expect(dispatchEvent).toHaveBeenCalledWith(event);
+  });
+
+  test('continues dispatch and transcript sync when turn-map registration throws', () => {
+    const registerTurnConversationRef = jest.fn(() => {
+      throw new Error('turn-map failed');
+    });
+    const dispatchEvent = jest.fn();
+    const event = { type: 'streaming-response', turn_ref: 'turn-map', user_id: 'user-map' } as any;
+
+    expect(() => ingestBackendEvent(event, 'conv-map', {
+      syncActiveConversationProjection: jest.fn(),
+      registerTurnConversationRef,
+      enableTranscript: true,
+      dispatchEvent,
+    })).not.toThrow();
+
+    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-map', 'user-map');
+    expect(dispatchEvent).toHaveBeenCalledWith(event);
+  });
+
   test('skips transcript update when transcript is disabled', () => {
     ingestBackendEvent({ type: 'error', user_id: 'user-3' } as any, null, {
       syncActiveConversationProjection: jest.fn(),
