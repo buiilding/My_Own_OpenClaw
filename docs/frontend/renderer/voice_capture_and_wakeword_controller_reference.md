@@ -21,6 +21,7 @@ title: "Voice Capture and Wakeword Controller Reference"
 - `frontend/src/renderer/features/voice/utils/audioEncoding.ts`
 - `frontend/src/renderer/features/voice/utils/audioCaptureCleanup.ts`
 - `frontend/src/renderer/features/voice/utils/wakewordEventUtils.ts`
+- `frontend/src/renderer/features/voice/utils/wakewordCaptureGuard.ts`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/renderer/infrastructure/api/client.ts`
 - `tests/frontend/voice/WakewordDetectionHook.test.ts`
@@ -142,7 +143,9 @@ Missing-device guardrails:
 
 - capture startup retry uses `CAPTURE_RETRY_DELAY_MS = 3000`
 - missing-mic failures lock capture via `globalThis.__windieWakewordCaptureGuard`
-- lock persists across hook remounts until disable path resets guard state
+- lock persists across hook remounts
+- temporary suppression (`wakewordActive=false` while `wakewordEnabled=true`) keeps lockout active
+- lockout clears when wakeword preference is explicitly disabled or when `devicechange` detects an available `audioinput`
 - local capture errors remain sticky across healthy status packets (`localCaptureErrorRef` gate)
 
 ## Failure and Drift Hotspots
@@ -165,6 +168,7 @@ Missing-device guardrails:
 - Renderer voice utils hub: `docs/frontend/renderer/voice/utils/README.md`
 - Voice gateway/transcription-region internals: `docs/frontend/renderer/voice/voice_mode_gateway_connection_and_transcription_region_reference.md`
 - Wakeword IPC/cooldown internals: `docs/frontend/renderer/voice/wakeword_detection_ipc_capture_and_cooldown_reference.md`
+- Wakeword capture guard utility internals: `docs/frontend/renderer/voice/utils/wakeword_capture_guard_global_lockout_and_device_probe_reference.md`
 - Audio encoding/chunk/cleanup utility internals: `docs/frontend/renderer/voice/utils/audio_encoding_chunk_normalization_and_capture_cleanup_reference.md`
 - Transcription-region state-machine internals: `docs/frontend/renderer/voice/utils/transcription_region_state_machine_and_input_edit_reconciliation_reference.md`
 - Wakeword bridge internals: `docs/frontend/sidecar/wakeword_bridge_and_audio_framing_reference.md`
