@@ -89,6 +89,7 @@ Covers:
 - [Embeddings Route Serialization, Sanitized Error Surface, and Health-Probe Contract Reference](api/memory/embeddings_route_serialization_sanitized_error_surface_and_health_probe_contract_reference.md)
 - [WebSocket Connection and Task Lifecycle Reference](api/websocket_connection_and_task_lifecycle_reference.md)
 - [API WebSocket Connection Docs Hub](api/websocket/connection/README.md)
+- [WebSocket Route Package Split and Monkeypatch-Compatibility Reference](api/websocket/websocket_route_package_router_split_and_monkeypatch_compat_reference.md)
 - [Handler Registry and Error Envelope Reference](api/handler_registry_and_error_envelope_reference.md)
 - [Non-Query Handler and Control Flow Reference](api/non_query_handler_and_control_flow_reference.md)
 - [Query Handler and Query Execution Service Runtime Reference](api/handlers/query_handler_and_query_execution_service_runtime_reference.md)
