@@ -11,6 +11,7 @@ title: "Frontend Renderer Transcript Queue Docs Hub"
 ## Deep Pages
 
 - [Pending Transcript Queue FIFO and Requeue Contract Reference](pending_transcript_queue_fifo_and_requeue_contract_reference.md)
+- [Pending Transcript Messages Orchestrator Flush Order and Retry Contract Reference](pending_transcript_messages_orchestrator_flush_order_and_retry_contract_reference.md)
 
 ## Related Pages
 
@@ -28,5 +29,6 @@ title: "Frontend Renderer Transcript Queue Docs Hub"
 - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
 - `tests/frontend/TranscriptPendingQueue.test.ts`
 - `tests/frontend/TranscriptPendingFlush.test.ts`
+- `tests/frontend/TranscriptPendingMessages.test.ts`
 - `tests/frontend/TranscriptWriter.userAssistant.test.ts`
 - `tests/frontend/TranscriptWriter.tool.test.ts`
