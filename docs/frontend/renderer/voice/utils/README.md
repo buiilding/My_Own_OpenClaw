@@ -11,6 +11,7 @@ title: "Frontend Renderer Voice Utils Docs Hub"
 ## Deep Pages
 
 - [Audio Encoding, Chunk Normalization, and Capture Cleanup Reference](audio_encoding_chunk_normalization_and_capture_cleanup_reference.md)
+- [Wakeword Capture Guard Utility Reference](wakeword_capture_guard_global_lockout_and_device_probe_reference.md)
 - [Transcription Region State Machine and Input Edit Reconciliation Reference](transcription_region_state_machine_and_input_edit_reconciliation_reference.md)
 
 ## Related Pages
@@ -25,6 +26,7 @@ title: "Frontend Renderer Voice Utils Docs Hub"
 - `frontend/src/renderer/features/voice/utils/audioEncoding.ts`
 - `frontend/src/renderer/features/voice/utils/audioCaptureCleanup.ts`
 - `frontend/src/renderer/features/voice/utils/wakewordEventUtils.ts`
+- `frontend/src/renderer/features/voice/utils/wakewordCaptureGuard.ts`
 - `frontend/src/renderer/features/voice/hooks/useAudioCaptureRefs.ts`
 - `frontend/src/renderer/features/chat/hooks/useTranscription.ts`
 - `frontend/src/renderer/features/chat/utils/transcriptionRegions.ts`

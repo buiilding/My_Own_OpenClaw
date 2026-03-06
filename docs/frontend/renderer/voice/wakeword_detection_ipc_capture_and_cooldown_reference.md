@@ -16,6 +16,7 @@ title: "Wakeword Detection IPC Capture and Cooldown Reference"
 - `frontend/src/renderer/features/voice/utils/audioEncoding.ts`
 - `frontend/src/renderer/features/voice/utils/audioCaptureCleanup.ts`
 - `frontend/src/renderer/features/voice/utils/audioProcessorNode.ts`
+- `frontend/src/renderer/features/voice/utils/wakewordCaptureGuard.ts`
 - `frontend/src/renderer/features/voice/hooks/useAudioCaptureRefs.ts`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
@@ -193,6 +194,7 @@ Status/error precedence details:
 
 - [Frontend Renderer Voice Docs Hub](README.md)
 - [Frontend Renderer Voice Utils Docs Hub](utils/README.md)
+- [Wakeword Capture Guard Utility Reference](utils/wakeword_capture_guard_global_lockout_and_device_probe_reference.md)
 - [Voice Mode Gateway Connection and Transcription Region Reference](voice_mode_gateway_connection_and_transcription_region_reference.md)
 - [Audio Encoding, Chunk Normalization, and Capture Cleanup Reference](utils/audio_encoding_chunk_normalization_and_capture_cleanup_reference.md)
 - [Frontend Overlay and Wakeword Control Channel Reference](../../contracts/overlay_and_wakeword_control_channel_reference.md)
