@@ -48,6 +48,32 @@ describe('chatStreamBackendIngress', () => {
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-active', 'user-2');
   });
 
+  test('does not register turn mapping when conversation ref is missing', () => {
+    const registerTurnConversationRef = jest.fn();
+
+    ingestBackendEvent({ type: 'streaming-response', turn_ref: 'turn-2', user_id: 'user-2' } as any, null, {
+      syncActiveConversationProjection: jest.fn(),
+      registerTurnConversationRef,
+      enableTranscript: true,
+      dispatchEvent: jest.fn(),
+    });
+
+    expect(registerTurnConversationRef).not.toHaveBeenCalled();
+  });
+
+  test('does not register turn mapping when turn ref is missing', () => {
+    const registerTurnConversationRef = jest.fn();
+
+    ingestBackendEvent({ type: 'streaming-response', user_id: 'user-2' } as any, 'conv-2', {
+      syncActiveConversationProjection: jest.fn(),
+      registerTurnConversationRef,
+      enableTranscript: true,
+      dispatchEvent: jest.fn(),
+    });
+
+    expect(registerTurnConversationRef).not.toHaveBeenCalled();
+  });
+
   test('skips transcript update when transcript is disabled', () => {
     ingestBackendEvent({ type: 'error', user_id: 'user-3' } as any, null, {
       syncActiveConversationProjection: jest.fn(),
