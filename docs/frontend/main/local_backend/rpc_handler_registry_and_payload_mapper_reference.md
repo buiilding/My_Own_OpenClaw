@@ -163,7 +163,7 @@ From `tests/frontend/LocalBackendBridge.rpc.test.cjs`:
 1. channel constants drift between preload allowlist and `ipcMain.handle` registration
 2. renamed payload keys in renderer invoke calls not mirrored in mapper field map
 3. method name drift (`delete_semantic_memory`, `store_transcript`, etc.) breaking sidecar routing silently
-4. wrapper-specific behavior drift (`screenshot` Linux hide/restore path, browser timeout tier)
+4. wrapper-specific behavior drift (`screenshot` visibility runtime wrapper ownership, browser timeout tier)
 
 ## Related Pages
 

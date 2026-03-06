@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-screenshot-runtime-inventory-and-jsonrpc-contract-sync): align inventory, JSON-RPC, and local-backend RPC/lifecycle docs with current screenshot visibility runtime ownership (main-process wrapper pass-through, renderer-owned Linux hide/show orchestration) and remove stale Linux hide/restore claims.
 - test(frontend-electron-launcher-headless-no-xvfb-direct-launch): add Linux launcher regression ensuring headless sessions without `xvfb-run` availability fall back to direct Electron execution instead of attempting wrapper-only launch behavior.
 - test(frontend-tool-result-envelope-structured-clone-fallback-contract): add frontend regression that forces `structuredClone` absence and verifies `ToolResultEnvelope` builders still deep-clone payloads through fallback logic, preventing mutation leaks on runtimes without native `structuredClone`.
 - docs(frontend-screenshot-visibility-runtime-ownership-contract-refresh): update local-backend screenshot/window-guard docs to current behavior where platform `screenshot_window_visibility/*` runtimes are pass-through wrappers and Linux hide/show ownership lives in renderer `SurfaceOrchestrator`; refresh linked local-backend windows/overlay hub pages and sidecar lifecycle reference wording accordingly.
