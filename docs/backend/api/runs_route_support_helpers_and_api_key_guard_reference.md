@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for `/api/runs` route-support helpers: per-process service singleton bootstrap, API-key guard resolution, run-not-found/error helpers, and response-shape projection boundaries."
 read_when:
-  - When changing `/api/runs` dependency helpers in `runs_support.py` or route-level auth/service wiring in `runs.py`.
+  - When changing `/api/runs` dependency helpers in `support.py` or route-level auth/service wiring in `router.py`.
   - When debugging inconsistent runs API auth behavior, missing service state initialization, or route helper error/status mismatches.
 title: "Runs Route Support Helpers and API-Key Guard Reference"
 ---
@@ -17,7 +17,7 @@ title: "Runs Route Support Helpers and API-Key Guard Reference"
 
 ## Helper Ownership Boundary
 
-`runs_support.py` owns lightweight, route-facing support helpers:
+`support.py` owns lightweight, route-facing support helpers:
 
 - singleton service bootstrap on `app.state`
 - optional API-key validation dependency
@@ -73,7 +73,7 @@ Both are normalized through `normalize_optional_string(...)` (trim + empty->`Non
 - returns shallow projection excluding `events`
 - used to satisfy `RunView` response model surfaces without duplicating event history payloads in non-events endpoints
 
-## Route Wiring in `runs.py`
+## Route Wiring in `router.py`
 
 Dependency aliases:
 
@@ -91,11 +91,12 @@ Helper usage patterns:
 ## Drift Hotspots
 
 1. Changing `normalize_optional_string` semantics in helpers without matching route/auth expectations can silently alter valid-key matching.
-2. Removing shared dependency aliases in `runs.py` can create endpoint-specific auth drift.
+2. Removing shared dependency aliases in `router.py` can create endpoint-specific auth drift.
 3. Returning full run objects (with `events`) in non-events routes can inflate payload size and duplicate event data contracts.
 4. Diverging missing-run handling away from `require_run` can produce inconsistent HTTP status/detail surfaces across endpoints.
 
 ## Related Pages
 
 - [Runs Route and VM Control Service Reference](runs_route_and_vm_control_service_reference.md)
+- [Runs Route Models and Package Export Contract Reference](runs_route_models_and_package_export_contract_reference.md)
 - [Backend API Docs Hub](README.md)
