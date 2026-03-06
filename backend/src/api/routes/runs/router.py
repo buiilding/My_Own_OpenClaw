@@ -15,12 +15,9 @@ from .models import (
     RunEventIngestRequest,
     RunEventIngestResponse,
     RunEventsResponse,
-    RunFileRef,
     RunView,
     StopAllRunsRequest,
     StopAllRunsResponse,
-    WorkerAssignedRun,
-    WorkerControlCommand,
     WorkerDispatchedRequest,
     WorkerDispatchedResponse,
     WorkerHeartbeatRequest,
@@ -28,11 +25,17 @@ from .models import (
     WorkerPollHeartbeatRequest,
     WorkerPollHeartbeatResponse,
 )
+from .response_builders import (
+    build_create_run_response,
+    build_ingested_run_event_response,
+    build_run_control_response,
+    build_run_view,
+    build_worker_poll_heartbeat_response,
+)
 from .support import (
     get_vm_run_control_service,
     latest_run_event_dict,
     require_run,
-    to_run_view_dict,
     verify_runs_api_key,
 )
 from backend.src.services.vm_run_control import VmRunControlService
@@ -61,11 +64,7 @@ async def create_run(
         )
     except ValueError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
-    events = run.get("events", [])
-    return CreateRunResponse(
-        run=RunView(**to_run_view_dict(run)),
-        events=[RunEvent(**event) for event in events],
-    )
+    return build_create_run_response(run)
 
 
 @router.post("/workers/heartbeat", response_model=WorkerPollHeartbeatResponse)
@@ -84,13 +83,7 @@ async def worker_poll_heartbeat(
         status=payload.status,
         metadata=payload.metadata,
     )
-    assigned_run = result.get("assigned_run")
-    control_commands = result.get("control_commands", [])
-    return WorkerPollHeartbeatResponse(
-        worker=dict(result.get("worker", {})),
-        assigned_run=WorkerAssignedRun(**assigned_run) if isinstance(assigned_run, dict) else None,
-        control_commands=[WorkerControlCommand(**command) for command in control_commands],
-    )
+    return build_worker_poll_heartbeat_response(result)
 
 
 @router.get("/{run_id}", response_model=RunView)
@@ -99,7 +92,7 @@ async def get_run(
     service: VmRunControlServiceDep,
     _api_key: RunsApiKeyDep = None,
 ) -> RunView:
-    return RunView(**to_run_view_dict(require_run(await service.get_run(run_id))))
+    return build_run_view(require_run(await service.get_run(run_id)))
 
 
 @router.get("/{run_id}/events", response_model=RunEventsResponse)
@@ -138,14 +131,7 @@ async def ingest_run_event(
     )
     if result is None:
         raise HTTPException(status_code=404, detail="Run not found")
-    run = result.get("run")
-    latest_event = result.get("event")
-    if not isinstance(run, dict) or not isinstance(latest_event, dict):
-        raise HTTPException(status_code=500, detail="Run event was not persisted")
-    return RunEventIngestResponse(
-        run=RunView(**to_run_view_dict(run)),
-        latest_event=RunEvent(**latest_event),
-    )
+    return build_ingested_run_event_response(result)
 
 
 @router.post("/{run_id}/control", response_model=RunControlResponse)
@@ -166,11 +152,9 @@ async def control_run(
         requested_by=payload.requested_by,
         control_mode=payload.control_mode,
     ))
-    return RunControlResponse(
-        run=RunView(**to_run_view_dict(run)),
-        latest_event=RunEvent(
-            **latest_run_event_dict(run, missing_detail="Run control event not recorded")
-        ),
+    return build_run_control_response(
+        run,
+        missing_detail="Run control event not recorded",
     )
 
 
@@ -206,7 +190,7 @@ async def worker_dispatched(
         conversation_ref=payload.conversation_ref,
     ), detail="Run not found or worker mismatch")
     return WorkerDispatchedResponse(
-        run=RunView(**to_run_view_dict(run)),
+        run=build_run_view(run),
         latest_event=RunEvent(
             **latest_run_event_dict(run, missing_detail="Dispatch event not recorded")
         ),
@@ -230,7 +214,7 @@ async def worker_heartbeat(
         metadata=payload.metadata,
     ))
     return WorkerHeartbeatResponse(
-        run=RunView(**to_run_view_dict(run)),
+        run=build_run_view(run),
         latest_event=RunEvent(
             **latest_run_event_dict(run, missing_detail="Worker heartbeat event not recorded")
         ),

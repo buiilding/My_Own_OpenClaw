@@ -164,7 +164,12 @@ frontend/src/renderer/
 │   │   └── ToolExecutionTypes.ts        # ToolExecutionTypes - Type definitions and constants (COMPUTER_USE_TOOLS, etc.)
 │   │
 │   └── transcript/                       # Transcript persistence helpers
-│       ├── pendingUserQueue.ts          # pendingUserQueue - Queue container for user messages awaiting session info
+│       ├── pending/                     # Pending transcript queue helpers
+│       │   ├── pendingAssistantQueue.ts # pendingAssistantQueue - Queue container for assistant messages awaiting session info
+│       │   ├── pendingToolQueue.ts      # pendingToolQueue - Queue container for tool messages awaiting session info
+│       │   ├── pendingTranscriptMessages.ts # pendingTranscriptMessages - Flush orchestration + retry queue facade
+│       │   ├── pendingUserQueue.ts      # pendingUserQueue - Queue container for user messages awaiting session info
+│       │   └── transcriptPendingFlush.ts # transcriptPendingFlush - FIFO flush/requeue helper
 │       ├── sessionInfoState.ts          # sessionInfoState - Lazy-loaded session resolver/update state machine
 │       ├── sessionInfoStorage.ts        # sessionInfoStorage - sessionStorage read/write + update event emitter
 │       ├── TranscriptWriter.ts          # TranscriptWriter - Session-aware transcript write queue + IPC storage calls

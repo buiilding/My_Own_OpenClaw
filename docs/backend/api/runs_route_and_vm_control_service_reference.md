@@ -14,6 +14,7 @@ This page documents the hosted VM run-control contract implemented by:
 
 - `backend/src/api/routes/runs/router.py`
 - `backend/src/api/routes/runs/models.py`
+- `backend/src/api/routes/runs/response_builders.py`
 - `backend/src/services/vm_run_control.py`
 - `backend/src/services/vm_run_control_support/vm_run_control_bulk_stop.py`
 

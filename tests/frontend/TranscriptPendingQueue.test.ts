@@ -1,4 +1,4 @@
-import { createPendingUserQueue } from '../../frontend/src/renderer/infrastructure/transcript/pendingUserQueue';
+import { createPendingUserQueue } from '../../frontend/src/renderer/infrastructure/transcript/pending/pendingUserQueue';
 
 describe('pendingUserQueue', () => {
   test('enqueues pending user messages and drains in insertion order', () => {
