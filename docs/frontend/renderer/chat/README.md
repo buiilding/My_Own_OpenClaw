@@ -21,6 +21,7 @@ title: "Frontend Renderer Chat Docs Hub"
 - [Tool Call/Output and Transparency Section Rendering Reference](payloads/tool_call_output_and_transparency_section_rendering_reference.md)
 - [Transcript Message Payload Role, Type, and Rehydrate Shape Reference](payloads/transcript_message_payload_role_type_and_rehydrate_shape_reference.md)
 - [Renderer Chat Presentation Docs Hub](presentation/README.md)
+- [Chatbox Component Split and Overlay Pill Runtime Reference](presentation/chatbox_component_split_and_overlay_pill_runtime_reference.md)
 - [Chat Common Actions Selector Boundary and Message-Input Send Guard Reference](presentation/chat_common_actions_selector_boundary_and_message_input_send_guard_reference.md)
 - [MessageInput Clipboard Image and Voice Submit Reference](presentation/message_input_clipboard_image_and_voice_submit_reference.md)
 - [Data-URL Image Parsing and Attachment Payload Contract Reference](presentation/data_url_image_parsing_and_attachment_payload_contract_reference.md)
