@@ -457,6 +457,54 @@ async def test_parse_and_validate_message_accepts_tool_result_contract_payload()
 
 
 @pytest.mark.asyncio
+async def test_parse_and_validate_message_trims_tool_result_request_id() -> None:
+    payload = json.dumps(
+        {
+            "id": "msg_tool_result_trimmed_request_id",
+            "type": "tool-result",
+            "payload": {
+                "request_id": "  req-tool-trimmed  ",
+                "success": True,
+                "data": {
+                    "llm_content": "ok",
+                },
+            },
+        }
+    )
+
+    message, error = await mh.parse_and_validate_message(
+        payload, user_id="user_1", max_message_size=4096
+    )
+
+    assert error is None
+    assert isinstance(message, ToolResultMessage)
+    assert message.payload.request_id == "req-tool-trimmed"
+
+
+@pytest.mark.asyncio
+async def test_parse_and_validate_message_trims_tool_bundle_result_bundle_id() -> None:
+    payload = json.dumps(
+        {
+            "id": "msg_tool_bundle_result_trimmed_bundle_id",
+            "type": "tool-bundle-result",
+            "payload": {
+                "bundle_id": "  bundle-trimmed  ",
+                "status": "success",
+                "step_results": [],
+            },
+        }
+    )
+
+    message, error = await mh.parse_and_validate_message(
+        payload, user_id="user_1", max_message_size=4096
+    )
+
+    assert error is None
+    assert isinstance(message, ToolBundleResultMessage)
+    assert message.payload.bundle_id == "bundle-trimmed"
+
+
+@pytest.mark.asyncio
 async def test_parse_and_validate_message_rejects_tool_result_system_state_without_mouse_position() -> None:
     payload = json.dumps(
         {
@@ -482,6 +530,52 @@ async def test_parse_and_validate_message_rejects_tool_result_system_state_witho
     assert message is None
     assert error is not None
     assert "payload.data.system_state.mouse_position" in error
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "payload, expected_field",
+    [
+        (
+            {
+                "id": "msg_tool_result_whitespace_request_id",
+                "type": "tool-result",
+                "payload": {
+                    "request_id": " \t ",
+                    "success": True,
+                    "data": {"llm_content": "ok"},
+                },
+            },
+            "payload.request_id",
+        ),
+        (
+            {
+                "id": "msg_tool_bundle_result_whitespace_bundle_id",
+                "type": "tool-bundle-result",
+                "payload": {
+                    "bundle_id": " \n ",
+                    "status": "success",
+                    "step_results": [],
+                },
+            },
+            "payload.bundle_id",
+        ),
+    ],
+    ids=["tool-result", "tool-bundle-result"],
+)
+async def test_parse_and_validate_message_rejects_whitespace_tool_result_correlation_ids(
+    payload: dict,
+    expected_field: str,
+) -> None:
+    message, error = await mh.parse_and_validate_message(
+        json.dumps(payload),
+        user_id="user_1",
+        max_message_size=4096,
+    )
+
+    assert message is None
+    assert error is not None
+    assert expected_field in error
 
 
 @pytest.mark.asyncio
