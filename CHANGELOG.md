@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(backend-runs-route-support-helper-contracts): add a dedicated backend API deep reference for `runs_support.py` helper boundaries (service singleton bootstrap, API-key guard env/header normalization, run-not-found/latest-event helper semantics, and route response projection contracts), and link it from `/api/runs` route docs and backend API hub pages.
 - test(frontend-chat-stream-backend-ingress-transcript-undefined-fallback): add ingress regression ensuring transcript sync falls back to `undefined` conversation id when both active transcript ref and resolved event conversation ref are absent, preserving deterministic session-update call shape.
 - test(frontend-chat-stream-backend-ingress-failsafe-chain): harden ingress recovery so exceptions in conversation projection sync and turn-map registration are treated as best-effort failures that cannot block transcript session sync or stream event dispatch; add regression coverage for both thrown-dependency paths.
 - test(frontend-chat-stream-backend-ingress-turn-map-gates): extend ingress regression coverage to ensure `registerTurnConversationRef` only runs when both `conversationRef` and `event.turn_ref` are present, preventing accidental turn-map writes from partial payloads.
