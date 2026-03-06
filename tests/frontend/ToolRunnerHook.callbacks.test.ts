@@ -38,11 +38,12 @@ describe('useToolRunner callback wiring', () => {
       }),
     );
 
-    callbacks.sendToBackend({ type: 'tool-result', payload: { ok: true } });
-    expect(IpcBridge.send).toHaveBeenCalledWith(
+    callbacks.sendToBackend({ type: 'query', payload: { ok: true } });
+    const sendCalls = (IpcBridge.send as jest.Mock).mock.calls;
+    expect(sendCalls.at(-1)).toEqual([
       SEND_CHANNELS.TO_BACKEND,
-      { type: 'tool-result', payload: { ok: true } },
-    );
+      { type: 'query', payload: { ok: true } },
+    ]);
 
     act(() => {
       emitBackendEvent({
@@ -366,6 +367,22 @@ describe('useToolRunner callback wiring', () => {
     callbacks.sendToBackend({
       type: 'tool-bundle-result',
       payload: { bundle_id: 'unknown-bundle', status: 'success', step_results: [] },
+    });
+
+    expect(IpcBridge.send).not.toHaveBeenCalled();
+  });
+
+  test('drops malformed correlated backend payloads that omit request or bundle ids', () => {
+    renderToolRunner(true);
+    const callbacks = getCapturedServiceCallbacks();
+
+    callbacks.sendToBackend({
+      type: 'tool-result',
+      payload: { success: true, data: {} },
+    });
+    callbacks.sendToBackend({
+      type: 'tool-bundle-result',
+      payload: { status: 'success', step_results: [] },
     });
 
     expect(IpcBridge.send).not.toHaveBeenCalled();

@@ -1,4 +1,5 @@
 import {
+  requiresToolRunnerPayloadCorrelationId,
   resolveToolRunnerPayloadCorrelationId,
   shouldDropUntrackedToolRunnerPayload,
 } from '../../frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerBackendPayload';
@@ -63,5 +64,24 @@ describe('toolRunnerBackendPayload', () => {
     expect(accept).toHaveBeenCalledWith('req-4');
 
     expect(shouldDropUntrackedToolRunnerPayload(null, reject)).toBe(false);
+  });
+
+  test('marks tool result envelopes as requiring correlation ids', () => {
+    expect(requiresToolRunnerPayloadCorrelationId({
+      type: 'tool-result',
+      payload: { request_id: 'req-1' },
+    })).toBe(true);
+
+    expect(requiresToolRunnerPayloadCorrelationId({
+      type: 'tool-bundle-result',
+      payload: { bundle_id: 'bundle-1' },
+    })).toBe(true);
+
+    expect(requiresToolRunnerPayloadCorrelationId({
+      type: 'query',
+      payload: { request_id: 'req-1' },
+    })).toBe(false);
+
+    expect(requiresToolRunnerPayloadCorrelationId(null)).toBe(false);
   });
 });
