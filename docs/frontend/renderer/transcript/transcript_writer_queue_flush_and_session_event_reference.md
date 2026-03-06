@@ -12,6 +12,7 @@ title: "Transcript Writer Queue Flush and Session Event Reference"
 
 - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
 - `frontend/src/renderer/infrastructure/transcript/transcriptRecordWrite.ts`
+- `frontend/src/renderer/infrastructure/transcript/transparencyNormalization.ts`
 - `frontend/src/renderer/infrastructure/transcript/pending/pendingTranscriptMessages.ts`
 - `frontend/src/renderer/infrastructure/transcript/pending/transcriptPendingFlush.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionSyncPayload.ts`
@@ -29,6 +30,7 @@ title: "Transcript Writer Queue Flush and Session Event Reference"
 - `tests/frontend/TranscriptSessionState.test.ts`
 - `tests/frontend/TranscriptStorage.test.ts`
 - `tests/frontend/TranscriptPendingFlush.test.ts`
+- `tests/frontend/TranscriptTransparencyNormalization.test.ts`
 
 ## Session Identity State Machine
 
@@ -137,8 +139,7 @@ Payload defaults:
 - assistant default `messageType` is `llm-text`
 - tool rows include optional `toolName`/`correlationId`
 - screenshot ref is passed under IPC field `screenshot`
-- assistant/user/tool rows can include optional `transparency` metadata; writer normalizes and drops empty/non-object snapshots before IPC persistence.
-- text normalization in transcript payloads (mojibake + lone-surrogate repair + trim/null collapse) is delegated to shared `incomingTextNormalization.ts`, matching stream-update normalization behavior.
+- assistant/user/tool rows can include optional `transparency` metadata; writer normalizes and prunes empty snapshots through `normalizeTransparencyData(...)` before queue/persistence mapping.
 - successful writes dispatch `window` custom event `transcript-entry-stored` with persisted identity + row metadata
 
 ## Session Update Entry Points
@@ -200,6 +201,12 @@ Payload defaults:
 - success path for `flushPendingEntries(...)`
 - failure-tail requeue behavior for `flushPendingEntries(...)`
 
+`TranscriptTransparencyNormalization.test.ts` validates:
+
+- empty/invalid transparency payload collapse to `null`
+- normalized trimming behavior for snapshot text fields
+- retention of valid user-message metadata snapshots
+
 ## Drift Hotspots
 
 1. Changing update semantics for empty `userId` can accidentally clear identity and stall flushes.
@@ -213,6 +220,7 @@ Payload defaults:
 - [Transcript Queue Docs Hub](queue/README.md)
 - [Pending Transcript Queue FIFO and Requeue Contract Reference](queue/pending_transcript_queue_fifo_and_requeue_contract_reference.md)
 - [Transcript Session Sync Payload Normalization and Alias Contract Reference](contracts/transcript_session_sync_payload_normalization_and_alias_contract_reference.md)
+- [Transcript Transparency Normalization and Snapshot Pruning Contract Reference](contracts/transcript_transparency_normalization_and_snapshot_pruning_contract_reference.md)
 - [Transcript Session and Rehydrate Reference](../transcript_session_and_rehydrate_reference.md)
 - [Memory IPC and RPC Mapping Reference](../../contracts/memory_ipc_and_rpc_mapping_reference.md)
 - [Transcript Storage, Semantic Candidate, and Watermark Reference](../../sidecar/memory/transcript_storage_semantic_candidate_and_watermark_reference.md)

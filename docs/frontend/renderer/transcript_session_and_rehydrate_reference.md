@@ -97,6 +97,7 @@ Stored fields include:
   - `toolSchemas`
   - `fullUserMessage`
   - `fullAssistantMessage`
+- transparency snapshots are normalized via `normalizeTransparencyData(...)` before queueing/persistence so empty/invalid snapshots are dropped
 
 Successful writes dispatch browser event `transcript-entry-stored` so dashboard/chat consumers can refresh derived rows without a full reload.
 
@@ -214,5 +215,6 @@ If resumed conversation loses screenshot/tool linkage:
 - [Transcript Queue Docs Hub](transcript/queue/README.md)
 - [Pending Transcript Queue FIFO and Requeue Contract Reference](transcript/queue/pending_transcript_queue_fifo_and_requeue_contract_reference.md)
 - [Transcript Session Sync Payload Normalization and Alias Contract Reference](transcript/contracts/transcript_session_sync_payload_normalization_and_alias_contract_reference.md)
+- [Transcript Transparency Normalization and Snapshot Pruning Contract Reference](transcript/contracts/transcript_transparency_normalization_and_snapshot_pruning_contract_reference.md)
 - [Memory IPC and RPC Mapping Reference](../contracts/memory_ipc_and_rpc_mapping_reference.md)
 - [Transcript Storage, Semantic Candidate, and Watermark Reference](../sidecar/memory/transcript_storage_semantic_candidate_and_watermark_reference.md)
