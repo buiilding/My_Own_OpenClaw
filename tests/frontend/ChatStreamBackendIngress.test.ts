@@ -192,4 +192,25 @@ describe('chatStreamBackendIngress', () => {
 
     expect(dispatchEvent).toHaveBeenCalledWith(event);
   });
+
+  test('keeps projection and turn-map bookkeeping when transcript update throws', () => {
+    mockUpdateTranscriptSession.mockImplementation(() => {
+      throw new Error('transcript write failed');
+    });
+    const syncActiveConversationProjection = jest.fn();
+    const registerTurnConversationRef = jest.fn();
+    const dispatchEvent = jest.fn();
+    const event = { type: 'streaming-response', turn_ref: 'turn-transcript-err', user_id: 'user-transcript-err' } as any;
+
+    expect(() => ingestBackendEvent(event, 'conv-transcript-err', {
+      syncActiveConversationProjection,
+      registerTurnConversationRef,
+      enableTranscript: true,
+      dispatchEvent,
+    })).not.toThrow();
+
+    expect(syncActiveConversationProjection).toHaveBeenCalledWith(event, 'conv-transcript-err');
+    expect(registerTurnConversationRef).toHaveBeenCalledWith('turn-transcript-err', 'conv-transcript-err');
+    expect(dispatchEvent).toHaveBeenCalledWith(event);
+  });
 });
