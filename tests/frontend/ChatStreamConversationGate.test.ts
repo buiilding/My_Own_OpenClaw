@@ -47,6 +47,24 @@ describe('chatStreamConversationGate', () => {
     })).toBe('conv-active');
   });
 
+  test('resolveConversationRefWithTurnFallback trims turn ref for lookup and trims mapped conversation ref result', () => {
+    expect(resolveConversationRefWithTurnFallback({
+      explicitConversationRef: null,
+      turnRef: ' turn-2 ',
+      resolveConversationRefForTurn: (turnRef) => turnRef === 'turn-2' ? ' conv-turn-trimmed ' : null,
+      fallbackConversationRef: 'conv-active',
+    })).toBe('conv-turn-trimmed');
+  });
+
+  test('resolveConversationRefWithTurnFallback returns null when only whitespace fallback is available', () => {
+    expect(resolveConversationRefWithTurnFallback({
+      explicitConversationRef: null,
+      turnRef: '',
+      resolveConversationRefForTurn: () => null,
+      fallbackConversationRef: '   ',
+    })).toBeNull();
+  });
+
   test('resolveEventConversationRef uses top-level conversation_ref first', () => {
     const event = buildEvent({ conversation_ref: 'conv-1' });
     expect(resolveEventConversationRef(event)).toBe('conv-1');
