@@ -4,7 +4,6 @@
  */
 
 import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
-import { getStoredDisplayBounds } from '../../utils/displaySelection';
 import type { SystemState, ToolResult } from './MessageFormatter';
 import {
   prepareExternalFocusForCapture,
@@ -13,54 +12,11 @@ import {
   type CaptureVisibilityPreparation,
 } from './SurfaceOrchestrator';
 import {
-  resolveScreenshotContentType,
-  sanitizeCaptureMeta,
-} from './CapturePayloadUtils';
-
-function buildScreenshotArgs(explanation: string) {
-  const args: Record<string, any> = {
-    explanation,
-    expectation: 'Current screen state',
-  };
-  const displayBounds = getStoredDisplayBounds();
-  if (displayBounds) {
-    args.display_bounds = displayBounds;
-  }
-  return args;
-}
-
-export type CaptureMeta = {
-  source_w?: number;
-  source_h?: number;
-  crop_x?: number;
-  crop_y?: number;
-  crop_w?: number;
-  crop_h?: number;
-  desktop_virtual_bounds?: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  } | null;
-  monitor_id?: string | null;
-  timestamp?: number;
-};
-
-function normalizeOptionalString(value: unknown): string | null {
-  if (typeof value !== 'string') {
-    return null;
-  }
-  const normalized = value.trim();
-  return normalized.length > 0 ? normalized : null;
-}
-
-function inferArtifactRefFromUrl(url: string | null): string | null {
-  if (!url) {
-    return null;
-  }
-  const match = url.match(/\/api\/artifacts\/([^/?#]+)/i);
-  return match?.[1] || null;
-}
+  buildExtractOsStateResult,
+  buildScreenshotArgs,
+  createEmptyExtractOsStateResult,
+  extractScreenshotData,
+} from './systemCaptureRuntime';
 
 /**
  * Extract OS state (system state and/or screenshot) with configurable options.
@@ -78,14 +34,7 @@ export async function extractOSstate(
   wait: number,
   is_first_user_message: boolean = false,
   captureCorrelationId: string | null = null,
-): Promise<{
-  systemState: SystemState | null;
-  screenshot: string | null;
-  screenshotRef: string | null;
-  screenshotUrl: string | null;
-  screenshotContentType: string | null;
-  captureMeta: CaptureMeta | null;
-}> {
+): Promise<ReturnType<typeof createEmptyExtractOsStateResult>> {
   const shouldEmitCaptureEvent = enable_screenshot && typeof window !== 'undefined';
   let screenshotVisibilityPreparation: CaptureVisibilityPreparation = {
     prepared: false,
@@ -143,35 +92,18 @@ export async function extractOSstate(
         const systemState = enable_system_state ? stateResult : null;
         const screenshotData = enable_screenshot
           ? extractScreenshotData(screenshotResult)
-          : {
-            screenshot: null,
-            screenshotRef: null,
-            screenshotUrl: null,
-            screenshotContentType: null,
-            captureMeta: null,
-          };
+          : createEmptyExtractOsStateResult();
 
-        return {
+        return buildExtractOsStateResult({
           systemState,
-          screenshot: screenshotData.screenshot,
-          screenshotRef: screenshotData.screenshotRef,
-          screenshotUrl: screenshotData.screenshotUrl,
-          screenshotContentType: screenshotData.screenshotContentType,
-          captureMeta: screenshotData.captureMeta,
-        };
+          screenshotData,
+        });
       } catch (err) {
         console.error(
           '[extractOSstate] Failed to extract OS state (first user message):',
           err,
         );
-        return {
-          systemState: null,
-          screenshot: null,
-          screenshotRef: null,
-          screenshotUrl: null,
-          screenshotContentType: null,
-          captureMeta: null,
-        };
+        return createEmptyExtractOsStateResult();
       }
     }
 
@@ -201,11 +133,7 @@ export async function extractOSstate(
       const results = await Promise.all(promises);
 
       let systemState: SystemState | null = null;
-      let screenshot: string | null = null;
-      let screenshotRef: string | null = null;
-      let screenshotUrl: string | null = null;
-      let screenshotContentType: string | null = null;
-      let captureMeta: CaptureMeta | null = null;
+      let screenshotData = createEmptyExtractOsStateResult();
 
       let resultIndex = 0;
       if (enable_system_state) {
@@ -215,32 +143,16 @@ export async function extractOSstate(
 
       if (enable_screenshot) {
         const screenshotResult = results[resultIndex];
-        const screenshotData = extractScreenshotData(screenshotResult);
-        screenshot = screenshotData.screenshot;
-        screenshotRef = screenshotData.screenshotRef;
-        screenshotUrl = screenshotData.screenshotUrl;
-        screenshotContentType = screenshotData.screenshotContentType;
-        captureMeta = screenshotData.captureMeta;
+        screenshotData = extractScreenshotData(screenshotResult);
       }
 
-      return {
+      return buildExtractOsStateResult({
         systemState,
-        screenshot,
-        screenshotRef,
-        screenshotUrl,
-        screenshotContentType,
-        captureMeta,
-      };
+        screenshotData,
+      });
     } catch (err) {
       console.error('[extractOSstate] Failed to extract OS state:', err);
-      return {
-        systemState: null,
-        screenshot: null,
-        screenshotRef: null,
-        screenshotUrl: null,
-        screenshotContentType: null,
-        captureMeta: null,
-      };
+      return createEmptyExtractOsStateResult();
     }
   } finally {
     await restoreScreenshotCaptureVisibility(screenshotVisibilityPreparation, {
@@ -252,38 +164,4 @@ export async function extractOSstate(
       }));
     }
   }
-}
-
-function extractScreenshotData(result: ToolResult): {
-  screenshot: string | null;
-  screenshotRef: string | null;
-  screenshotUrl: string | null;
-  screenshotContentType: string | null;
-  captureMeta: CaptureMeta | null;
-} {
-  if (!result.success || !result.data || typeof result.data !== 'object') {
-    return {
-      screenshot: null,
-      screenshotRef: null,
-      screenshotUrl: null,
-      screenshotContentType: null,
-      captureMeta: null,
-    };
-  }
-
-  const screenshot = normalizeOptionalString(result.data.screenshot);
-  const screenshotUrl = normalizeOptionalString(result.data.screenshot_url);
-  const screenshotRef = (
-    normalizeOptionalString(result.data.screenshot_ref)
-    || inferArtifactRefFromUrl(screenshotUrl)
-  );
-  const captureMeta = sanitizeCaptureMeta<CaptureMeta>(result.data.capture_meta);
-  const screenshotContentType = resolveScreenshotContentType(result.data);
-  return {
-    screenshot,
-    screenshotRef,
-    screenshotUrl,
-    screenshotContentType,
-    captureMeta,
-  };
 }
