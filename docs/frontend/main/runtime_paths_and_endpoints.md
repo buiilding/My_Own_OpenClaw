@@ -12,6 +12,8 @@ title: "Runtime Paths and Endpoints"
 
 - `frontend/src/main/backend_endpoints.cjs`
 - `frontend/src/main/runtime_paths.cjs`
+- `frontend/src/main/local_backend_bridge.cjs`
+- `frontend/src/main/wakeword_bridge.cjs`
 - `frontend/src/main/ipc/ipc_frontend_config.cjs`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/runtime_mode.cjs`
@@ -81,25 +83,48 @@ Resolution order:
 
 1. `WINDIE_PYTHON_PATH` if exists
 2. bundled runtime candidates (packaged app)
-3. active conda env (`CONDA_PREFIX`) python
-4. fallback command (`py` on Windows, `python3` elsewhere)
+3. dev-only fallback: active conda env (`CONDA_PREFIX`) python
+4. dev-only fallback command (`py` on Windows, `python3` elsewhere)
+
+Packaged guardrail:
+
+- packaged apps do not fall back to user/system Python.
+- if bundled Python is missing, resolver returns `null` and launch callers fail closed with reinstall guidance.
 
 Bundled runtime candidate roots:
 
 - `<resources>/python-runtime`
 - `<resources>/python`
 
-### `resolvePythonScriptPath(scriptName)`
+### `resolveSidecarLaunchTarget(scriptName)`
 
-Dev vs packaged behavior:
+This is the canonical sidecar launch resolver used by both:
 
-- packaged: checks `app.asar.unpacked/src/main/python/<scriptName>` first, then `<resources>/python/<scriptName>`
-- dev: `frontend/src/main/python/<scriptName>`
+- `local_backend_bridge.cjs`
+- `wakeword_bridge.cjs`
 
-Purpose:
+Resolution behavior:
 
-- avoids executing scripts from `app.asar` archive directly
-- keeps sidecar launch working in production installers
+1. packaged binary-first lookup:
+  - `<resources>/sidecar-bin/<service>[.exe]`
+  - `<resources>/sidecar-bin/<service>/<service>[.exe]`
+2. fallback python launch target:
+  - command: `resolvePythonExecutablePath()`
+  - script path:
+    - packaged: `<resources>/python-runtime/sidecar/<script>.pyc`
+    - dev: `frontend/src/main/python/<script>.py`
+
+Returned launch target object:
+
+- `kind`: `binary` or `python`
+- `command`, `args`, `cwd`, `resolvedPath`
+
+### `resolveBundledPlaywrightBrowsersPath()`
+
+Packaged-only helper:
+
+- returns first existing `<resources>/{python-runtime|python}/ms-playwright`
+- used by local backend bridge to set `PLAYWRIGHT_BROWSERS_PATH` when bundled browser payload exists
 
 ## Frontend Config Persistence Path
 
@@ -124,7 +149,8 @@ Read behavior (`loadFrontendConfigFromDisk`):
 - `BACKEND_URL` for websocket client
 - `BACKEND_HTTP_URL` for artifact upload route
 - `load-frontend-config` / `save-frontend-config` invoke handlers
-- local sidecar bridge and wakeword bridge spawn Python scripts via runtime-path helpers
+- VM worker HTTP calls to `/api/runs/*` consume resolved `backendHttpUrl`
+- local backend and wakeword bridges consume `resolveSidecarLaunchTarget(...)`
 
 ## Operational Debug Checklist
 
@@ -136,9 +162,10 @@ If backend relay fails:
 
 If sidecar fails to start in packaged builds:
 
-1. verify unpacked python scripts exist under `app.asar.unpacked`
-2. verify bundled python executable exists under `resources/python-runtime` or `resources/python`
-3. check `WINDIE_PYTHON_PATH` overrides and file existence
+1. verify bundled sidecar binary exists under `resources/sidecar-bin` (if using binary launch path)
+2. if python launch path is used, verify bundled `.pyc` exists under `resources/python-runtime/sidecar`
+3. verify bundled python executable exists under `resources/python-runtime` or `resources/python`
+4. check `WINDIE_PYTHON_PATH` overrides and file existence in dev mode
 
 If settings persistence fails:
 
