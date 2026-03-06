@@ -13,6 +13,7 @@ title: "Runs Route and VM Control Service Reference"
 This page documents the hosted VM run-control contract implemented by:
 
 - `backend/src/api/routes/runs/router.py`
+- `backend/src/api/routes/runs/models.py`
 - `backend/src/services/vm_run_control.py`
 
 This flow is HTTP-only and separate from the `/ws` chat transport. It is designed as a lightweight control plane for VM worker orchestration.
@@ -20,6 +21,7 @@ This flow is HTTP-only and separate from the `/ws` chat transport. It is designe
 Route-level helper/auth/bootstrap details are documented separately in:
 
 - [Runs Route Support Helpers and API-Key Guard Reference](runs_route_support_helpers_and_api_key_guard_reference.md)
+- [Runs Route Models and Package Export Contract Reference](runs_route_models_and_package_export_contract_reference.md)
 
 ## Route Registration and Protection
 
