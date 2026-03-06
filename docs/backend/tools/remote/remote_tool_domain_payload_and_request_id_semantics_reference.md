@@ -1,7 +1,8 @@
 ---
-summary: "Deep backend reference for remote tool stubs across computer/system/filesystem/browser domains: args-model binding, unified computer_use validation contract, request-id sourcing, payload model_dump behavior, and cross-layer contract implications."
+summary: "Deep backend reference for remote tool stubs across computer/system/filesystem/browser domains: args-model binding, unified computer_use normalization/validation contracts, request-id sourcing, payload model_dump behavior, and cross-layer dispatch implications."
 read_when:
   - When modifying remote stub classes, especially unified `computer_use` routing, request-id generation, or payload serialization rules.
+  - When changing parser/native-tool-call normalization for `computer_use` and concrete computer subtool dispatch.
   - When debugging mismatches where backend remote tool payload looks valid but sidecar execution fails or correlates to wrong request.
 title: "Remote Tool Domain Payload and Request-ID Semantics Reference"
 ---
@@ -16,6 +17,9 @@ This page documents behavior in:
 - `backend/src/tools/remote_tools/system.py`
 - `backend/src/tools/remote_tools/filesystem.py`
 - `backend/src/tools/remote_tools/browser.py`
+- `backend/src/llm/parser_types.py`
+- `backend/src/agent/execution/tool_call_bridge.py`
+- `frontend/src/main/python/tools/registry.py`
 - `tests/backend/test_remote_tools.py`
 - `tests/backend/test_browser_remote_tool.py`
 - `tests/backend/test_remote_tool_contract.py`
@@ -119,13 +123,31 @@ Compatibility note:
 - metadata requirements remain enforced for computer-domain tool calls in that compatibility path
 - net effect: unified declaration for model/tool schema guidance, with backward-compatible concrete-name ingestion
 
-Cross-layer sidecar runtime enforcement:
+### Dispatch-path normalization before remote stubs
 
-- sidecar `ToolRegistry` independently validates unified `computer_use` envelope before concrete dispatch:
+Standard backend tool-call ingress paths normalize `computer_use` into concrete computer subtool names before remote-tool dispatch:
+
+1. parser path (`ToolCallSchema.extract_tool_call` in `parser_types.py`):
+  - extracts `metadata` from `args.metadata`
+  - maps `computer_use` + `args.tool` to concrete subtool (`mouse_control`, `keyboard_control`, etc.)
+  - forwards only `args.arguments` as concrete tool parameters
+2. native tool-call bridge path (`tool_call_bridge.to_parsed_tool_call`):
+  - performs equivalent normalization for provider-native tool-call payloads
+  - maps invalid subtool names to `invalid_computer_use_tool`
+
+Consequence:
+
+- normal model-driven execution usually hits concrete remote stubs (`RemoteMouseTool`, `RemoteKeyboardTool`, etc.)
+- `RemoteComputerUseTool` remains a compatibility/explicit invocation path when `computer_use` reaches remote-tool dispatch without pre-normalization
+
+### Sidecar `computer_use` compatibility router
+
+- sidecar `ToolRegistry` exposes and validates a unified `computer_use` envelope before concrete dispatch when that tool name is invoked directly:
   - requires top-level `metadata` object with required non-empty string fields (`description`, `explanation`, `expectation`)
   - rejects legacy nested metadata wrappers (`arguments.metadata`) even if concrete action args are otherwise valid
   - requires `arguments` object and valid `tool` name before delegating to concrete sidecar tool
-- this means backend-accepted envelopes are still fail-closed at sidecar runtime if metadata shape/type contract is violated post-transport
+- in standard backend-normalized flows (concrete tool names already selected), sidecar executes concrete tool handlers directly and does not re-parse unified `computer_use` metadata envelope
+- this router therefore acts as fail-closed compatibility coverage for direct/manual `computer_use` invocations
 
 ### System domain (`remote_tools/system.py`)
 
