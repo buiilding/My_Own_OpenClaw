@@ -10,6 +10,7 @@ title: "Frontend Renderer Chat Stream Docs Hub"
 
 ## Deep Pages
 
+- [Backend Ingress Fail-Safe and Dispatch Order Reference](backend_ingress_failsafe_and_dispatch_order_reference.md)
 - [Conversation Gate and Active-Turn Filtering Reference](conversation_gate_and_active_turn_filtering_reference.md)
 - [Event Handler Map and Turn Guard Matrix Reference](event_handler_map_and_turn_guard_matrix_reference.md)
 - [Tracking, Formatting, and Message-Update Utility Reference](tracking_formatting_and_message_update_utility_reference.md)
@@ -24,6 +25,7 @@ title: "Frontend Renderer Chat Stream Docs Hub"
 ## Code Scope
 
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
+- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamBackendIngress.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useStreamMessageUpdaters.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamConversationGate.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamHandlerMap.ts`
@@ -32,5 +34,6 @@ title: "Frontend Renderer Chat Stream Docs Hub"
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventUtils.ts`
 - `tests/frontend/ChatStreamConversationGate.test.ts`
+- `tests/frontend/ChatStreamBackendIngress.test.ts`
 - `tests/frontend/ChatStreamTracking.test.ts`
 - `tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx`
