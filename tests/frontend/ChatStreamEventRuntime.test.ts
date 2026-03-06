@@ -248,6 +248,35 @@ describe('chatStreamEventRuntime', () => {
     expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: undefined }), null)).toBe(false);
   });
 
+  test('stale turn guard treats whitespace turn ref as absent', () => {
+    expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: '   ' }), null)).toBe(false);
+  });
+
+  test('stale turn guard compares normalized turn refs', () => {
+    useChatStore.setState((state) => ({
+      ...state,
+      streamTracking: {
+        ...state.streamTracking,
+        activeTurnRef: 'turn-1',
+        phase: 'streaming',
+      },
+      workspaces: {
+        ...state.workspaces,
+        __default__: {
+          ...state.workspaces.__default__,
+          isSending: false,
+          streamTracking: {
+            ...state.workspaces.__default__.streamTracking,
+            activeTurnRef: 'turn-1',
+            phase: 'streaming',
+          },
+        },
+      },
+    }));
+
+    expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: ' turn-1 ' }), null)).toBe(false);
+  });
+
   test('stale turn guard allows next-turn packets when pending handoff has no active turn ref', () => {
     useChatStore.setState((state) => ({
       ...state,

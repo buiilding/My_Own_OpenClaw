@@ -45,7 +45,12 @@ export function shouldIgnoreForStaleTurn(
   event: BackendEvent,
   conversationRef?: string | null,
 ): boolean {
-  if (!event.turn_ref) {
+  const eventTurnRef = (
+    typeof event.turn_ref === 'string'
+      ? event.turn_ref.trim()
+      : ''
+  );
+  if (!eventTurnRef) {
     return false;
   }
   const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
@@ -61,12 +66,17 @@ export function shouldIgnoreForStaleTurn(
   // Keep first packets of the next turn when UI has already entered "sending" but
   // stream-tracking still points at a completed previous turn.
   if (isPendingNextTurnAfterTerminalPhase) {
-    if (activeTurnRef && event.turn_ref === activeTurnRef) {
+    const normalizedActiveTurnRef = (
+      typeof activeTurnRef === 'string'
+        ? activeTurnRef.trim()
+        : ''
+    );
+    if (normalizedActiveTurnRef && eventTurnRef === normalizedActiveTurnRef) {
       return true;
     }
     return false;
   }
-  return isStaleTurnForActiveStream(event.turn_ref, activeTurnRef);
+  return isStaleTurnForActiveStream(eventTurnRef, activeTurnRef);
 }
 
 type UpdateStreamTracking = (
