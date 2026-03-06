@@ -84,6 +84,7 @@ Schema guidance also encodes execution-policy hints in field descriptions:
   - `explanation`
   - `expectation`
   - schema-level `str_strip_whitespace=True` trims each field before `min_length=1` enforcement, so whitespace-only values are rejected
+  - schema-level `extra='forbid'` rejects unknown metadata keys (strict rationale allowlist)
 - `arguments`: free-form object revalidated against the selected concrete tool schema
 
 Runtime revalidation path in `RemoteComputerUseTool`:
@@ -146,6 +147,11 @@ Remote computer tool descriptions are part of schema prompt guidance and intenti
 - switch-tab requirement to use exact names from `get_open_windows`
 
 `tests/backend/test_remote_tools.py` locks these description-level contracts.
+Additional `ComputerUseMetadata` strictness regressions are locked in:
+
+- `test_computer_use_schema_rejects_whitespace_only_metadata_fields`
+- `test_computer_use_schema_rejects_unexpected_metadata_fields`
+- `test_computer_use_schema_trims_metadata_fields_before_validation`
 
 ## Drift Hotspots
 
