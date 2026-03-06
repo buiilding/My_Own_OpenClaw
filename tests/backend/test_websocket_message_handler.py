@@ -603,6 +603,76 @@ async def test_parse_and_validate_message_rejects_whitespace_tool_result_correla
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "payload, expected_field",
+    [
+        (
+            {
+                "id": "msg_tool_result_non_string_request_id",
+                "type": "tool-result",
+                "payload": {
+                    "request_id": 123,
+                    "success": True,
+                    "data": {"llm_content": "ok"},
+                },
+            },
+            "payload.request_id",
+        ),
+        (
+            {
+                "id": "msg_tool_bundle_result_non_string_bundle_id",
+                "type": "tool-bundle-result",
+                "payload": {
+                    "bundle_id": 456,
+                    "status": "success",
+                    "step_results": [],
+                },
+            },
+            "payload.bundle_id",
+        ),
+    ],
+    ids=["tool-result", "tool-bundle-result"],
+)
+async def test_parse_and_validate_message_rejects_non_string_tool_result_correlation_ids(
+    payload: dict,
+    expected_field: str,
+) -> None:
+    message, error = await mh.parse_and_validate_message(
+        json.dumps(payload),
+        user_id="user_1",
+        max_message_size=4096,
+    )
+
+    assert message is None
+    assert error is not None
+    assert expected_field in error
+
+
+@pytest.mark.asyncio
+async def test_parse_and_validate_message_rejects_tool_bundle_result_missing_step_results() -> None:
+    payload = json.dumps(
+        {
+            "id": "msg_tool_bundle_result_missing_step_results",
+            "type": "tool-bundle-result",
+            "payload": {
+                "bundle_id": "bundle-missing-steps",
+                "status": "success",
+            },
+        }
+    )
+
+    message, error = await mh.parse_and_validate_message(
+        payload,
+        user_id="user_1",
+        max_message_size=4096,
+    )
+
+    assert message is None
+    assert error is not None
+    assert "payload.step_results" in error
+
+
+@pytest.mark.asyncio
 async def test_parse_and_validate_message_passes_default_offload_threshold_to_runtime(monkeypatch) -> None:
     captured = {}
 
