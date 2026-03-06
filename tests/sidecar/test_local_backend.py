@@ -8,7 +8,11 @@ ensure_frontend_python_path()
 
 import local_backend as local_backend_module  # noqa: E402
 from local_backend import LocalBackend  # noqa: E402
-from tools.registry import ToolRegistry  # noqa: E402
+from tools.registry import (  # noqa: E402
+    COMPUTER_USE_REQUIRED_METADATA_FIELDS,
+    COMPUTER_USE_SUBTOOLS,
+    ToolRegistry,
+)
 from tools.result import ToolResult  # noqa: E402
 
 
@@ -307,6 +311,21 @@ async def test_handle_execute_tool_preserves_computer_use_envelope_fields():
 
     assert result == {"success": True, "data": {"ok": True}}
     assert backend.tool_registry.execute_calls == [("computer_use", envelope)]
+
+
+def test_computer_use_sidecar_contract_stays_in_sync_with_backend_unified_schema():
+    from backend.src.tools.computer.unified_schema import (  # noqa: E402
+        get_unified_computer_use_function_declaration,
+    )
+
+    declaration = get_unified_computer_use_function_declaration()
+    parameters = declaration["function"]["parameters"]
+    metadata = parameters["properties"]["metadata"]
+    tool_enum = parameters["properties"]["tool"]["enum"]
+
+    assert parameters["required"] == ["tool", "metadata"]
+    assert tuple(metadata["required"]) == COMPUTER_USE_REQUIRED_METADATA_FIELDS
+    assert set(tool_enum) == COMPUTER_USE_SUBTOOLS
 
 
 @pytest.mark.asyncio

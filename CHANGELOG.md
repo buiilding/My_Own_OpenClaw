@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(sidecar-computer-use-schema-contract-parity): add a sidecar/backend boundary regression that asserts sidecar `computer_use` required metadata fields and subtool allowlist remain in lockstep with backend canonical unified schema (`tool`/`metadata` required envelope plus metadata field ordering), preventing silent schema-vs-runtime drift.
 - fix(frontend-main-second-instance-focus-throttle): throttle rapid Electron `second-instance` focus requests in main-process lifecycle runtime to prevent repeated focus-stealing loops while preserving normal single-instance relaunch behavior; add deterministic lifecycle regression coverage with injected clock values.
 - fix(backend-tool-result-router-route-mode-validation-guard): make shared tool-result router fail closed on unexpected `route_mode` values instead of silently defaulting to individual semantics; add regression coverage asserting `ValueError` and no storage/screenshot side effects for invalid modes.
 - fix(backend-tool-result-router-correlation-id-trim-and-fail-close): normalize correlation ids inside shared `ToolResultRouter.route_result` (trim padded ids before screenshot/storage routing) and fail closed for whitespace-only ids to prevent state/storage mutation when correlation identity is invalid; add router regressions for trimmed single/bundle paths and whitespace-drop behavior.
