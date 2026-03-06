@@ -3,7 +3,7 @@ import {
   buildPendingUserMessage,
   hasUserMessages,
   toScreenshotAttachment,
-} from '../../frontend/src/renderer/features/chat/utils/chatMessageSenderUtils';
+} from '../../frontend/src/renderer/features/chat/utils/messageSender/chatMessageSenderUtils';
 
 describe('chatMessageSenderUtils', () => {
   test('hasUserMessages detects whether user messages exist', () => {

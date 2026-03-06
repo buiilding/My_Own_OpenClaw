@@ -3,7 +3,7 @@
  * Handles sending user messages with screenshot capture and window management.
  */
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { ApiClient } from '../../../infrastructure/api/client';
 import { useChatStore, type ChatMessage } from '../stores/chatStore';
 import { extractOSstate, type CaptureMeta } from '../../../infrastructure/services/SystemCapture';
@@ -16,12 +16,6 @@ import {
   setActiveConversationRef,
   updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
-import {
-  buildArtifactUploadMeta,
-  buildPendingUserMessage,
-  hasUserMessages,
-  toScreenshotAttachment,
-} from '../utils/chatMessageSenderUtils';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import {
   resolveMessageSendUiBehavior,
@@ -41,11 +35,17 @@ import {
   toUploadedArtifactFromCaptureAttachment,
 } from '../utils/screenshotAttachmentContract';
 import {
-  buildReadableFileAttachmentContext,
   normalizeAttachmentFilenames,
   normalizeOutgoingPayload,
   type OutgoingUserMessagePayload,
-} from '../utils/chatMessageSenderPayloads';
+} from '../utils/messageSender/chatMessageSenderPayloads';
+import { buildReadableFileAttachmentContext } from '../utils/messageSender/readableFileAttachmentContext';
+import {
+  buildArtifactUploadMeta,
+  buildPendingUserMessage,
+  hasUserMessages,
+  toScreenshotAttachment,
+} from '../utils/messageSender/chatMessageSenderUtils';
 
 type ChatMessageSenderOptions = {
   senderSurface?: ChatSendSurface;
@@ -66,11 +66,11 @@ export function useChatMessageSender(
   const { senderSurface = 'overlay-chatbox', returnToChatboxPolicy } = options;
   const includeQueryScreenshot = config?.include_query_screenshot ?? true;
   const shouldCaptureQueryScreenshot = senderSurface !== 'main-window' && includeQueryScreenshot;
-  const sendUiBehavior = resolveMessageSendUiBehavior({
+  const sendUiBehavior = useMemo(() => resolveMessageSendUiBehavior({
     senderSurface,
     returnToChatboxPolicy,
     includeQueryScreenshot: shouldCaptureQueryScreenshot,
-  });
+  }), [senderSurface, returnToChatboxPolicy, shouldCaptureQueryScreenshot]);
   const shouldReturnToChatboxOnSend = senderSurface === 'main-window'
     ? false
     : sendUiBehavior.shouldReturnToChatboxOnSend;

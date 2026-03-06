@@ -11,6 +11,7 @@ title: "WebSocket Route Package Split and Monkeypatch-Compatibility Reference"
 ## Canonical Modules
 
 - `backend/src/api/routes/websocket/router.py`
+- `backend/src/api/routes/websocket/loop_runtime.py`
 - `backend/src/api/routes/websocket/__init__.py`
 - `backend/src/api/routes/websocket/connection.py`
 - `backend/src/api/routes/websocket/message_handler.py`
@@ -31,10 +32,15 @@ Package `__init__.py` preserves import compatibility for existing callers/tests 
 
 - APIRouter construction and route decoration
 - WebSocket accept/receive loop
-- timeout-close behavior (`_close_connection_on_timeout`)
+- timeout-close compatibility wrapper (`_close_connection_on_timeout`)
 - parse/validate/send-error loop control
 - task-manager fanout and limit handling
 - final close + connection cleanup sequencing
+
+`loop_runtime.py` owns:
+
+- canonical timeout-close implementation (`close_connection_on_timeout`)
+- validated-message task scheduling + task-limit error dispatch (`schedule_validated_message_task`)
 
 Config values read from `session_manager.config`:
 
