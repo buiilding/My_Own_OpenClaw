@@ -38,6 +38,15 @@ describe('chatStreamConversationGate', () => {
     })).toBe('conv-active');
   });
 
+  test('resolveConversationRefWithTurnFallback ignores blank turn mapping and falls back to active ref', () => {
+    expect(resolveConversationRefWithTurnFallback({
+      explicitConversationRef: null,
+      turnRef: 'turn-blank-mapped',
+      resolveConversationRefForTurn: () => '   ',
+      fallbackConversationRef: 'conv-active',
+    })).toBe('conv-active');
+  });
+
   test('resolveEventConversationRef uses top-level conversation_ref first', () => {
     const event = buildEvent({ conversation_ref: 'conv-1' });
     expect(resolveEventConversationRef(event)).toBe('conv-1');
@@ -62,5 +71,34 @@ describe('chatStreamConversationGate', () => {
       },
     });
     expect(resolveEventConversationRef(event)).toBe('conv-memory');
+  });
+
+  test('resolveEventConversationRef falls back to memory-store event.session_id when payload session is missing', () => {
+    const event = buildEvent({
+      type: 'memory-store',
+      payload: {},
+      session_id: 'conv-memory-event',
+    });
+    expect(resolveEventConversationRef(event)).toBe('conv-memory-event');
+  });
+
+  test('resolveEventConversationRef returns null for local-user-message without payload conversation ref', () => {
+    const event = buildEvent({
+      type: 'local-user-message',
+      payload: {
+        text: 'hello',
+      },
+    });
+    expect(resolveEventConversationRef(event)).toBeNull();
+  });
+
+  test('resolveEventConversationRef returns null for non-local events without explicit ref', () => {
+    const event = buildEvent({
+      type: 'streaming-response',
+      payload: {
+        content: 'chunk',
+      } as any,
+    });
+    expect(resolveEventConversationRef(event)).toBeNull();
   });
 });
