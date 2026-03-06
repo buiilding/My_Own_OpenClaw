@@ -33,6 +33,21 @@ Public prefixes:
 - `/api/embeddings`
 - `/api/semantic`
 
+## Embeddings Package-Split Import Surface
+
+`backend/src/api/routes/memory/embeddings/` is now a package. Route registration still
+uses `embeddings.router` via package exports.
+
+Compatibility contract from `embeddings/__init__.py`:
+
+- re-exports route handlers (`generate_embedding`, `health_check`)
+- re-exports models (`EmbeddingRequest`, `EmbeddingResponse`)
+- re-exports `router` and `logger`
+
+This keeps package-level imports used by route tests stable
+(`from ...memory import embeddings as embeddings_routes`) while allowing helper extraction
+into `embeddings/service.py`.
+
 ## Semantic Package-Split Import Surface
 
 `backend/src/api/routes/memory/semantic/` is now a package (not a flat single module). The
@@ -218,4 +233,5 @@ If health route reports unhealthy unexpectedly:
 - [Semantic Parser Summary/Fact Extraction and Fallback-Bullet Contract Reference](memory/semantic_parser_summary_fact_extraction_and_fallback_bullet_contract_reference.md)
 - [Semantic Title Generation Route, Model-Override, and Parser-Fallback Contract Reference](memory/semantic_title_generation_route_model_override_and_parser_fallback_contract_reference.md)
 - [Semantic Route Package Split and Compatibility Export Contract Reference](memory/semantic_route_package_split_and_compatibility_export_contract_reference.md)
+- [Embeddings Route Package Split and Compatibility Export Contract Reference](memory/embeddings_route_package_split_and_compatibility_export_contract_reference.md)
 - [Embeddings Route Serialization, Sanitized Error Surface, and Health-Probe Contract Reference](memory/embeddings_route_serialization_sanitized_error_surface_and_health_probe_contract_reference.md)

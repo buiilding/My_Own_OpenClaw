@@ -10,6 +10,7 @@ title: "Embeddings Route Serialization, Sanitized Error Surface, and Health-Prob
 
 ## Canonical Modules
 
+- `backend/src/api/routes/memory/embeddings/__init__.py`
 - `backend/src/api/routes/memory/embeddings/router.py`
 - `backend/src/api/routes/memory/embeddings/models.py`
 - `backend/src/api/routes/memory/embeddings/service.py`
@@ -29,6 +30,17 @@ Response (`EmbeddingResponse`):
 - `embedding: list[float]`
 - `model_name: str`
 - `dimension: int`
+
+## Package Export Compatibility Surface
+
+`embeddings/__init__.py` re-exports:
+
+- `router`, `generate_embedding`, `health_check`
+- `EmbeddingRequest`, `EmbeddingResponse`
+- `logger`
+
+This preserves package-level import compatibility for existing route tests and callers while
+keeping helper logic split into `embeddings/service.py`.
 
 ## Embedding Serialization Helper
 
@@ -111,6 +123,7 @@ Wrapped via `dependency_health_check(...)`:
 ## Related Pages
 
 - [Backend API Memory Docs Hub](README.md)
+- [Embeddings Route Package Split and Compatibility Export Contract Reference](embeddings_route_package_split_and_compatibility_export_contract_reference.md)
 - [Health Helper Safe-Check, Dependency-Probe, and Payload Contract Reference](health_helper_safe_check_dependency_probe_and_payload_contract_reference.md)
 - [Semantic Summarization Service Config Resolution, Prompt Assembly, and Parser-Fallback Contract Reference](semantic_summarization_service_config_resolution_prompt_assembly_and_parser_fallback_contract_reference.md)
 - [Memory Route Validation and Fallback Reference](../memory_route_validation_and_fallback_reference.md)
