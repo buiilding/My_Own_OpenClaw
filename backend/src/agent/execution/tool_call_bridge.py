@@ -67,6 +67,13 @@ def _normalize_required_metadata_value(value: Any) -> str | None:
     return normalized if normalized else None
 
 
+def _normalize_tool_call_id(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+    normalized = value.strip()
+    return normalized if normalized else None
+
+
 def _normalize_computer_metadata(
     metadata: Dict[str, Any],
 ) -> tuple[Dict[str, Any], bool]:
@@ -110,8 +117,8 @@ def to_parsed_tool_call(tool_call: Dict[str, Any]) -> ParsedToolCall:
         parameters = copy.deepcopy(parameters)
 
     metadata: Dict[str, Any] = {}
-    tool_call_id = tool_call.get("id")
-    if isinstance(tool_call_id, str) and tool_call_id:
+    tool_call_id = _normalize_tool_call_id(tool_call.get("id"))
+    if tool_call_id:
         metadata["tool_call_id"] = tool_call_id
 
     thought_signature = _extract_thought_signature(tool_call)
@@ -159,8 +166,8 @@ def to_history_tool_calls(
     for index, tool_call in enumerate(parsed_tool_calls):
         tool_call_id = None
         if isinstance(tool_call.metadata, dict):
-            candidate = tool_call.metadata.get("tool_call_id")
-            if isinstance(candidate, str) and candidate:
+            candidate = _normalize_tool_call_id(tool_call.metadata.get("tool_call_id"))
+            if candidate:
                 tool_call_id = candidate
         if tool_call_id is None:
             tool_call_id = f"tool_call_{index}"
@@ -189,8 +196,8 @@ def extract_tool_call_ids(parsed_tool_calls: List[ParsedToolCall]) -> List[str]:
     for tool_call in parsed_tool_calls:
         if not isinstance(tool_call.metadata, dict):
             continue
-        candidate = tool_call.metadata.get("tool_call_id")
-        if isinstance(candidate, str) and candidate:
+        candidate = _normalize_tool_call_id(tool_call.metadata.get("tool_call_id"))
+        if candidate:
             tool_call_ids.append(candidate)
     return tool_call_ids
 
