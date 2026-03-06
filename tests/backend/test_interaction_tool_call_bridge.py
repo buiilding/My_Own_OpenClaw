@@ -149,6 +149,34 @@ def test_extract_tool_call_ids_ignores_missing_or_invalid_values():
     assert ids == ["ok_1", "ok_2"]
 
 
+def test_extract_tool_call_ids_ignores_whitespace_only_ids():
+    ids = extract_tool_call_ids(
+        [
+            ParsedToolCall(tool_name="a", parameters={}, metadata={"tool_call_id": "  "}),
+            ParsedToolCall(tool_name="b", parameters={}, metadata={"tool_call_id": "\n"}),
+            ParsedToolCall(tool_name="c", parameters={}, metadata={"tool_call_id": "ok_3"}),
+        ]
+    )
+
+    assert ids == ["ok_3"]
+
+
+def test_to_history_tool_calls_falls_back_when_tool_call_id_is_whitespace():
+    history_calls = to_history_tool_calls(
+        [
+            ParsedToolCall(
+                tool_name="read_file",
+                parameters={"file_path": "/tmp/a"},
+                metadata={"tool_call_id": "   "},
+            ),
+        ]
+    )
+
+    assert history_calls == [
+        {"id": "tool_call_0", "name": "read_file", "arguments": {"file_path": "/tmp/a"}},
+    ]
+
+
 def test_to_parsed_response_maps_unified_computer_use_to_concrete_tool():
     parsed = to_parsed_response(
         {

@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(backend-native-tool-call-id-whitespace-normalization): trim and reject whitespace-only native tool-call ids in bridge parsing/history mapping (`to_parsed_tool_call`, `to_history_tool_calls`, `extract_tool_call_ids`) so correlation falls back deterministically instead of emitting blank ids; add bridge regressions for whitespace-id rejection and fallback behavior.
 - test(frontend-local-backend-rpc-run-shell-args-immutability): extend `LocalBackendBridge.rpc` coverage to lock that `execute-tool` sudo-mode injection for `run_shell_command` does not mutate caller payload objects while preserving expected JSON-RPC argument shape.
 - test(sidecar-local-backend-computer-use-mutation-boundary): add `_handle_execute_tool` regression ensuring mutating subtools cannot leak `computer_use.arguments` mutations back into caller envelopes, pairing sidecar registry immutability assertions at the local-backend execution boundary.
 - test(backend-interaction-loop-native-computer-use-fail-close): add interaction-loop regression covering native `computer_use` calls missing required metadata, asserting bridge normalization to `invalid_computer_use_tool`, staged tool-call id continuity, and final-turn completion behavior after failed tool execution path.
