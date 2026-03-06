@@ -170,6 +170,7 @@ Caller safety:
 ## Related Docs
 
 - [Runs Route and VM Control Service Reference](../api/runs_route_and_vm_control_service_reference.md)
+- [VM Run Control Support Helper Module Contract Reference](vm_run_control_support_helper_module_contract_reference.md)
 - [VM Run Control Bulk-Stop Helper Contract Reference](vm_run_control_bulk_stop_helper_contract_reference.md)
 - [HTTP and WebSocket Endpoint Reference](../api/http_and_ws_endpoint_reference.md)
 - [Services and Storage](services_and_storage.md)
