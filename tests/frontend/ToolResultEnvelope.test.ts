@@ -45,6 +45,31 @@ describe('ToolResultEnvelope', () => {
     });
   });
 
+  test('build helpers preserve clone behavior when structuredClone is unavailable', () => {
+    const originalStructuredClone = globalThis.structuredClone;
+    // Force JSON clone fallback branch.
+    (globalThis as { structuredClone?: (value: unknown) => unknown }).structuredClone = undefined;
+
+    try {
+      const payload = {
+        request_id: 'req-fallback',
+        metadata: { source: 'fallback' },
+      };
+      const envelope = buildToolResultEnvelope(payload);
+
+      payload.request_id = 'req-fallback-mutated';
+      payload.metadata.source = 'fallback-mutated';
+
+      expect(envelope.payload).toEqual({
+        request_id: 'req-fallback',
+        metadata: { source: 'fallback' },
+      });
+    } finally {
+      (globalThis as { structuredClone?: (value: unknown) => unknown }).structuredClone =
+        originalStructuredClone;
+    }
+  });
+
   test('resolves correlation id from supported envelopes only', () => {
     expect(resolveToolResultEnvelopeCorrelationId({
       type: 'tool-result',
