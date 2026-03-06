@@ -3,7 +3,7 @@ import {
   buildTranscriptTransparencyFromChatMessage,
   normalizeOptionalString,
   resolveRehydrateContent,
-} from '../../../infrastructure/transcript/rehydratePayload';
+} from '../../../../infrastructure/transcript/rehydratePayload';
 
 const TOOL_MESSAGE_TYPES = new Set(['tool-call', 'tool-output']);
 

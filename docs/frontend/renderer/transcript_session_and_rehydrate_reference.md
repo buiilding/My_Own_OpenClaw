@@ -25,7 +25,7 @@ title: "Transcript Session and Rehydrate Reference"
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js`
 - `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
-- `frontend/src/renderer/features/chat/utils/newChatSession.ts`
+- `frontend/src/renderer/features/chat/utils/session/newChatSession.ts`
 - `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
 - `frontend/src/renderer/features/dashboard/hooks/useTranscriptSessionInfo.js`
 - `frontend/src/renderer/features/dashboard/utils/episodicMemoryUtils.js`

@@ -11,7 +11,7 @@ title: "Transcript Message Payload Role, Type, and Rehydrate Shape Reference"
 
 ## Canonical Modules
 
-- `frontend/src/renderer/features/chat/utils/transcriptMessagePayload.js`
+- `frontend/src/renderer/features/chat/utils/session/transcriptMessagePayload.js`
 - `frontend/src/renderer/infrastructure/transcript/rehydratePayload.js`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js`

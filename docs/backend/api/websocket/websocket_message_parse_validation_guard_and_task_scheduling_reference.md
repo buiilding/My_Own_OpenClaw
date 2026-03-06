@@ -14,11 +14,13 @@ title: "WebSocket Message Parse, Validation Guard, and Task-Scheduling Reference
 - `backend/src/api/routes/websocket/loop_runtime.py`
 - `backend/src/api/routes/websocket/connection.py`
 - `backend/src/api/routes/websocket/message_handler.py`
+- `backend/src/api/routes/websocket/message_parse_runtime.py`
 - `backend/src/api/routes/websocket/task_manager.py`
 - `backend/src/api/routes/websocket/json_parse.py`
 - `tests/backend/test_websocket_route.py`
 - `tests/backend/test_websocket_connection.py`
 - `tests/backend/test_websocket_message_handler.py`
+- `tests/backend/test_websocket_message_parse_runtime.py`
 - `tests/backend/test_websocket_task_manager.py`
 - `tests/backend/test_websocket_loop_runtime.py`
 - `tests/backend/test_websocket_json_parse.py`

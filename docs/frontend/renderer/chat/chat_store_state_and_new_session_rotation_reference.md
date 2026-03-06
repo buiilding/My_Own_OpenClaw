@@ -11,8 +11,8 @@ title: "Chat Store State and New Session Rotation Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
-- `frontend/src/renderer/features/chat/utils/newChatSession.ts`
-- `frontend/src/renderer/features/chat/utils/conversationRef.ts`
+- `frontend/src/renderer/features/chat/utils/session/newChatSession.ts`
+- `frontend/src/renderer/features/chat/utils/session/conversationRef.ts`
 - `frontend/src/renderer/features/chat/utils/chatSelectors.js`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`

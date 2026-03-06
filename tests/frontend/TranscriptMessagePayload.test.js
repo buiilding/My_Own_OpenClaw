@@ -3,7 +3,7 @@ import {
   resolveTranscriptMessageType,
   resolveTranscriptRole,
   toRehydratePayload,
-} from '../../frontend/src/renderer/features/chat/utils/transcriptMessagePayload';
+} from '../../frontend/src/renderer/features/chat/utils/session/transcriptMessagePayload';
 
 describe('transcriptMessagePayload', () => {
   test('normalizeProvider lowercases and trims values', () => {

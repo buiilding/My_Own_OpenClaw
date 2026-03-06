@@ -16,7 +16,7 @@ import { ApiClient } from '../../../infrastructure/api/client';
 import { PlayerService } from '../../../infrastructure/audio/PlayerService';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { selectChatInterfaceState } from '../utils/chatSelectors';
-import { startNewChatSession } from '../utils/newChatSession';
+import { startNewChatSession } from '../utils/session/newChatSession';
 import { loadConversationTranscriptMemories } from '../../../infrastructure/transcript/conversationTranscriptLoader';
 import {
   getActiveConversationRef,
