@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(frontend-turn-scoped-handler-gate-contract): extend `useTurnScopedBackendEventHandler` regressions to ensure stale-turn guard receives the resolved conversation ref and is fully bypassed (not invoked) when `skipStaleTurnGate` is enabled for passthrough events.
 - test(backend-parser-types-computer-use-metadata-extraction-boundary): extend `ToolCallSchema` regressions so unified `computer_use` keeps legacy nested `arguments.metadata` inside executable arguments (not promoted to parsed metadata) and safely ignores non-dict top-level metadata.
 - test(frontend-local-backend-computer-use-arg-forwarding-boundary): extend frontend bridge arg-contract regressions so unified `computer_use` envelopes are forwarded verbatim (including legacy nested `arguments.metadata` wrappers) and missing top-level metadata is not auto-synthesized before sidecar validation.
 - refactor(fullstack-folder-reorg-query-execution-and-chatstream-utils): reorganized backend query-execution support helpers into `backend/src/api/services/query_execution_support/`, reorganized frontend chat-stream utilities into `frontend/src/renderer/features/chat/utils/chatStream/`, rewired imports/tests/docs to new folder boundaries, and revalidated lint/duplication/dead-code/API-routes consolidation gates.
