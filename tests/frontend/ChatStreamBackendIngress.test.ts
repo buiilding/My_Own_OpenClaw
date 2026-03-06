@@ -74,6 +74,32 @@ describe('chatStreamBackendIngress', () => {
     expect(registerTurnConversationRef).not.toHaveBeenCalled();
   });
 
+  test('does not register turn mapping when conversation ref is whitespace', () => {
+    const registerTurnConversationRef = jest.fn();
+
+    ingestBackendEvent({ type: 'streaming-response', turn_ref: 'turn-2', user_id: 'user-2' } as any, '   ', {
+      syncActiveConversationProjection: jest.fn(),
+      registerTurnConversationRef,
+      enableTranscript: true,
+      dispatchEvent: jest.fn(),
+    });
+
+    expect(registerTurnConversationRef).not.toHaveBeenCalled();
+  });
+
+  test('does not register turn mapping when turn ref is whitespace', () => {
+    const registerTurnConversationRef = jest.fn();
+
+    ingestBackendEvent({ type: 'streaming-response', turn_ref: '   ', user_id: 'user-2' } as any, 'conv-2', {
+      syncActiveConversationProjection: jest.fn(),
+      registerTurnConversationRef,
+      enableTranscript: true,
+      dispatchEvent: jest.fn(),
+    });
+
+    expect(registerTurnConversationRef).not.toHaveBeenCalled();
+  });
+
   test('continues dispatch when projection sync throws', () => {
     const syncActiveConversationProjection = jest.fn(() => {
       throw new Error('projection failed');
@@ -167,6 +193,19 @@ describe('chatStreamBackendIngress', () => {
     mockGetActiveConversationRef.mockReturnValue(null);
 
     ingestBackendEvent({ type: 'token-count', user_id: 'user-none' } as any, null, {
+      syncActiveConversationProjection: jest.fn(),
+      registerTurnConversationRef: jest.fn(),
+      enableTranscript: true,
+      dispatchEvent: jest.fn(),
+    });
+
+    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith(undefined, 'user-none');
+  });
+
+  test('uses undefined transcript fallback when resolved conversation ref is whitespace', () => {
+    mockGetActiveConversationRef.mockReturnValue(null);
+
+    ingestBackendEvent({ type: 'token-count', user_id: 'user-none' } as any, '   ', {
       syncActiveConversationProjection: jest.fn(),
       registerTurnConversationRef: jest.fn(),
       enableTranscript: true,

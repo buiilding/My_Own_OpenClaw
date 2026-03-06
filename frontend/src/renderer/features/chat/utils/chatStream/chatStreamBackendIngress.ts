@@ -19,15 +19,25 @@ export const ingestBackendEvent = (
     enableTranscript,
     dispatchEvent,
   } = deps;
+  const normalizedConversationRef = (
+    typeof conversationRef === 'string'
+      ? conversationRef.trim()
+      : ''
+  ) || null;
+  const normalizedTurnRef = (
+    typeof event.turn_ref === 'string'
+      ? event.turn_ref.trim()
+      : ''
+  );
 
   try {
-    syncActiveConversationProjection(event, conversationRef);
+    syncActiveConversationProjection(event, normalizedConversationRef);
   } catch {
     // Projection updates are best-effort. Stream event dispatch must continue.
   }
-  if (conversationRef && event.turn_ref) {
+  if (normalizedConversationRef && normalizedTurnRef) {
     try {
-      registerTurnConversationRef(event.turn_ref, conversationRef);
+      registerTurnConversationRef(normalizedTurnRef, normalizedConversationRef);
     } catch {
       // Turn-map registration is best-effort. Stream event dispatch must continue.
     }
@@ -35,7 +45,7 @@ export const ingestBackendEvent = (
   if (enableTranscript) {
     try {
       const activeConversationRef = getActiveConversationRef();
-      updateTranscriptSession(activeConversationRef || conversationRef || undefined, event.user_id);
+      updateTranscriptSession(activeConversationRef || normalizedConversationRef || undefined, event.user_id);
     } catch {
       // Transcript session sync is best-effort. Stream event dispatch must continue.
     }
