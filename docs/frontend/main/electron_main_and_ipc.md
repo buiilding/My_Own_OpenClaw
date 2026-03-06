@@ -120,6 +120,8 @@ Responsibilities:
 Main modules:
 
 - `frontend/src/main/permission_service.cjs`
+- `frontend/src/main/permission_ipc_runtime.cjs`
+- `frontend/src/main/agent_sudo_access_handler.cjs`
 - `frontend/src/main/index.cjs`
 - `frontend/src/shared/permissions/permission_manifest.json`
 
@@ -134,6 +136,7 @@ Responsibilities:
   - `check-permission`
   - `run-permission-probe`
   - `request-permission`
+  - `set-agent-sudo-access` (Linux passwordless-sudo toggle path)
 
 ## IPC Channel Taxonomy
 
@@ -148,3 +151,5 @@ From renderer usage perspective:
 - on channels: backend stream events, connection status, wakeword events (including `wakeword-stt-trigger`), overlay phase updates
 
 Canonical constants are in renderer infra (`frontend/src/renderer/infrastructure/ipc/channels.ts`) and must stay aligned with main-process handlers.
+
+For Linux sudo toggle command/runtime details, see [Agent Sudo Access Handler PKExec and Non-Interactive Disable Contract Reference](agent_sudo_access_handler_pkexec_and_noninteractive_disable_contract_reference.md).

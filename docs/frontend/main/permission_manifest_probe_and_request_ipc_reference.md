@@ -124,6 +124,7 @@ Channel names:
 ## Related Pages
 
 - [Frontend Main Docs Hub](README.md)
+- [Agent Sudo Access Handler PKExec and Non-Interactive Disable Contract Reference](agent_sudo_access_handler_pkexec_and_noninteractive_disable_contract_reference.md)
 - [Renderer Permissions Docs Hub](../renderer/permissions/README.md)
 - [Permission Onboarding Gate, Manifest Version, and Data-Controls Runtime Reference](../renderer/permissions/permission_onboarding_gate_manifest_version_and_data_controls_runtime_reference.md)
 - [IPC Channel and Handler Reference](../contracts/ipc_channel_and_handler_reference.md)

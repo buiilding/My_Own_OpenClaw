@@ -176,3 +176,7 @@ If rehydrate loses tool linkage:
 1. verify transcript entries include `tool_call_id` or `correlation_id`
 2. inspect normalized tool-call generation path for synthetic IDs
 3. verify artifact screenshot refs are resolvable in backend artifact store
+
+## Related Docs
+
+- [History Compaction Engine Decision, Strategy, and Event Contract Reference](../agent/history_compaction_engine_decision_strategy_and_event_contract_reference.md)

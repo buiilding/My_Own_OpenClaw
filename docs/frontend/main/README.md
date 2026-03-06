@@ -23,6 +23,7 @@ title: "Frontend Main Docs Hub"
 - [IPC Helper Module Split and Runtime Boundary Reference](ipc_helper_module_split_and_runtime_boundary_reference.md)
 - [IPC Event Replay and Transcript Session Sync Reference](ipc_event_replay_and_transcript_session_sync_reference.md)
 - [IPC Memory-Store Event Persistence Payload Fallback and Fail-Open Logging Contract Reference](ipc_memory_store_event_persistence_payload_fallback_and_fail_open_logging_contract_reference.md)
+- [Agent Sudo Access Handler PKExec and Non-Interactive Disable Contract Reference](agent_sudo_access_handler_pkexec_and_noninteractive_disable_contract_reference.md)
 - [Main Local-Backend Docs Hub](local_backend/README.md)
 - [Main Testing Docs Hub](testing/README.md)
 - [Main Testing Data-Seed Docs Hub](testing/data_seed/README.md)

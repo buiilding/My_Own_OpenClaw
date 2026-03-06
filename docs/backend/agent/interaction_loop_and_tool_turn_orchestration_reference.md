@@ -54,6 +54,21 @@ This structure centralizes orchestration in `executor.py` while preserving singl
   - publish `InteractionCompleted`
   - emit/publish `MemoryStoreEvent` fallback (uses resolved raw user query, not full enriched content envelope)
 
+### Auto-Compaction Integration
+
+`AgentExecutor.process_query(...)` runs pre-query compaction evaluation before appending the new user message:
+
+- reason: `auto-pre`
+- includes `pending_user_content=final_content` in projected token estimate
+- emits `context-compaction-started/completed/failed` events around the compaction attempt
+
+`InteractionLoop.run_loop(...)` runs mid-loop compaction checks on iterations greater than `1`:
+
+- reason: `auto-mid`
+- emits the same compaction lifecycle event types before next prompt sampling
+
+Both flows include strategy and token metrics in event payloads and continue the turn if compaction is skipped.
+
 Important reliability behavior:
 
 - memory/publish side effects run in `finally`
@@ -174,3 +189,4 @@ Validated by:
 
 - [Native Tool-Call Bridge and History Mapping Reference](native_tool_call_bridge_and_history_mapping_reference.md)
 - [Tool-Call Error Recovery and Synthetic Tool-Output Replay Reference](recovery/tool_call_error_recovery_and_synthetic_tool_output_replay_reference.md)
+- [History Compaction Engine Decision, Strategy, and Event Contract Reference](history_compaction_engine_decision_strategy_and_event_contract_reference.md)

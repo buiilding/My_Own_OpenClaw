@@ -135,6 +135,7 @@ Covers:
 - [Session State and Lifecycle](runtime/session_state_and_lifecycle.md)
 - [Session Runtime and Config Rewire Reference](agent/session_runtime_and_config_rewire_reference.md)
 - [Interaction Loop and Tool-Turn Orchestration Reference](agent/interaction_loop_and_tool_turn_orchestration_reference.md)
+- [History Compaction Engine Decision, Strategy, and Event Contract Reference](agent/history_compaction_engine_decision_strategy_and_event_contract_reference.md)
 - [Conversation Context and Event Presenter Prompt-Metadata Reference](agent/llm/conversation_context_and_event_presenter_prompt_metadata_reference.md)
 - [LLM Stream Processor Token Count and Cache Diagnostics Reference](agent/llm/llm_stream_processor_token_count_and_cache_diagnostics_reference.md)
 - [History Committer and Result-Processor Boundary Reference](agent/history/history_committer_and_result_processor_boundary_reference.md)
