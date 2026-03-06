@@ -8,6 +8,13 @@ from typing import Any, Dict, Literal, Optional
 ExecutionKind = Literal["single", "bundle"]
 
 
+def _normalize_execution_id(value: Any) -> Optional[str]:
+    if not isinstance(value, str):
+        return None
+    trimmed = value.strip()
+    return trimmed or None
+
+
 @dataclass(frozen=True, slots=True)
 class ExecutionRef:
     """
@@ -34,12 +41,12 @@ class ExecutionRef:
         if not isinstance(metadata, dict):
             return None
 
-        request_id = metadata.get("request_id")
-        if isinstance(request_id, str) and request_id:
+        request_id = _normalize_execution_id(metadata.get("request_id"))
+        if request_id:
             return cls.single(request_id)
 
-        bundle_id = metadata.get("bundle_id")
-        if isinstance(bundle_id, str) and bundle_id:
+        bundle_id = _normalize_execution_id(metadata.get("bundle_id"))
+        if bundle_id:
             return cls.bundle(bundle_id)
 
         return None

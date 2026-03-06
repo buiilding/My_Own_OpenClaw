@@ -37,4 +37,23 @@ describe('tool result contract parity', () => {
       );
     }
   });
+
+  test('correlation id normalization parity includes trim-and-empty semantics', () => {
+    const normalizedEnvelope = buildToolResultEnvelope({
+      request_id: '  req-normalized  ',
+      success: true,
+    });
+    const emptyEnvelope = buildToolResultEnvelope({
+      request_id: '   ',
+      success: true,
+    });
+
+    expect(resolveToolRunnerEnvelopeCorrelationId(normalizedEnvelope)).toBe('req-normalized');
+    expect(resolveToolResultEnvelopeCorrelationId(normalizedEnvelope)).toBe('req-normalized');
+    expect(resolveToolRunnerPayloadCorrelationId(normalizedEnvelope)).toBe('req-normalized');
+
+    expect(resolveToolRunnerEnvelopeCorrelationId(emptyEnvelope)).toBeNull();
+    expect(resolveToolResultEnvelopeCorrelationId(emptyEnvelope)).toBeNull();
+    expect(resolveToolRunnerPayloadCorrelationId(emptyEnvelope)).toBeNull();
+  });
 });

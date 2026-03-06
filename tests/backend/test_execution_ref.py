@@ -30,7 +30,26 @@ def test_execution_ref_from_metadata_returns_none_for_invalid_payloads():
     assert ExecutionRef.from_metadata("not-a-dict") is None
     assert ExecutionRef.from_metadata({}) is None
     assert ExecutionRef.from_metadata({"request_id": ""}) is None
+    assert ExecutionRef.from_metadata({"request_id": "   "}) is None
     assert ExecutionRef.from_metadata({"bundle_id": ""}) is None
+    assert ExecutionRef.from_metadata({"bundle_id": "   "}) is None
+
+
+def test_execution_ref_from_metadata_trims_whitespace_ids_and_falls_back_to_bundle():
+    request_ref = ExecutionRef.from_metadata({"request_id": "  req-4  "})
+    bundle_ref = ExecutionRef.from_metadata(
+        {"request_id": "   ", "bundle_id": "  bundle-4  "},
+    )
+
+    assert request_ref is not None
+    assert request_ref.kind == "single"
+    assert request_ref.request_id == "req-4"
+    assert request_ref.bundle_id is None
+
+    assert bundle_ref is not None
+    assert bundle_ref.kind == "bundle"
+    assert bundle_ref.bundle_id == "bundle-4"
+    assert bundle_ref.request_id is None
 
 
 def test_execution_ref_apply_to_metadata_rewrites_correlation_keys():

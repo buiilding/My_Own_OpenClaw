@@ -16,6 +16,23 @@ describe('toolRunnerBackendPayload', () => {
     })).toBe('bundle-1');
   });
 
+  test('normalizes whitespace in resolved correlation ids', () => {
+    expect(resolveToolRunnerPayloadCorrelationId({
+      type: 'tool-result',
+      payload: { request_id: '  req-5  ' },
+    })).toBe('req-5');
+
+    expect(resolveToolRunnerPayloadCorrelationId({
+      type: 'tool-bundle-result',
+      payload: { bundle_id: '  bundle-5  ' },
+    })).toBe('bundle-5');
+
+    expect(resolveToolRunnerPayloadCorrelationId({
+      type: 'tool-result',
+      payload: { request_id: '   ' },
+    })).toBeNull();
+  });
+
   test('returns null for unsupported payloads or missing ids', () => {
     expect(resolveToolRunnerPayloadCorrelationId({
       type: 'tool-result',

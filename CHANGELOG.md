@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(fullstack-tool-correlation-id-whitespace-normalization): normalize/trim execution correlation ids at backend `ExecutionRef.from_metadata` and frontend tool-result envelope resolvers so whitespace-only ids are rejected and padded ids resolve consistently; add backend and frontend regressions (including runner/backend parity) for trim-and-empty-id semantics.
 - test(backend-tool-sender-preparation-failure-model-facing-metadata): extend tool-sender preparation-failure regressions so both coordinate-resolution failures and `invalid_computer_use_tool` validation failures still emit `model_facing_tool_call` metadata on `ToolCallEvent`, preserving frontend transparency payload shape when execution is skipped.
 - test(frontend-tool-runner-stale-turn-skip-precedence): extend stale-turn guard coverage so `tool-call` events tagged with `computer_use_validation_failed + skip_frontend_execution` still produce deterministic `frontend_stale_turn_cancelled` result envelopes when the turn is stale, preventing metadata-based bypass of turn identity gating.
 - fix(frontend-tool-runner-event-guard-import-path): update `toolRunnerEventGuards` to import `chatStreamConversationGate` from the post-reorg `utils/chatStream/` module path so tool-runner hook suites resolve deterministically; add hook-level regression coverage that `computer_use_validation_failed + skip_frontend_execution` tool calls are skipped without sidecar execution.

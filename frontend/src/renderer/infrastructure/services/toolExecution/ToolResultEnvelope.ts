@@ -1,3 +1,5 @@
+import { resolveCorrelationId } from '../CorrelationId';
+
 const TOOL_RESULT_ENVELOPE_TYPE = 'tool-result';
 const TOOL_BUNDLE_RESULT_ENVELOPE_TYPE = 'tool-bundle-result';
 
@@ -28,14 +30,14 @@ export function resolveToolResultEnvelopeCorrelationId(envelope: unknown): strin
   const payloadBody = candidate?.payload;
 
   if (payloadType === TOOL_RESULT_ENVELOPE_TYPE && typeof payloadBody?.request_id === 'string') {
-    return payloadBody.request_id;
+    return resolveCorrelationId(payloadBody.request_id);
   }
 
   if (
     payloadType === TOOL_BUNDLE_RESULT_ENVELOPE_TYPE
     && typeof payloadBody?.bundle_id === 'string'
   ) {
-    return payloadBody.bundle_id;
+    return resolveCorrelationId(payloadBody.bundle_id);
   }
 
   return null;
