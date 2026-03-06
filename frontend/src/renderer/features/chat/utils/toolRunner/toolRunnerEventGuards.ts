@@ -1,6 +1,6 @@
 import { type ToolBundleEvent, type ToolCallEvent } from '../../../../types/backendEvents';
 import { useChatStore } from '../../stores/chatStore';
-import { resolveConversationRefWithTurnFallback } from '../chatStreamConversationGate';
+import { resolveConversationRefWithTurnFallback } from '../chatStream/chatStreamConversationGate';
 import { isTerminalStreamPhase } from '../streamPhaseState';
 
 type ToolEventRef = Pick<ToolCallEvent | ToolBundleEvent, 'conversation_ref' | 'turn_ref'>;

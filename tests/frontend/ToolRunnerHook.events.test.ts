@@ -495,6 +495,33 @@ describe('useToolRunner event handling', () => {
     expect(mockExecuteTool).not.toHaveBeenCalled();
   });
 
+  test('skips frontend execution for computer-use validation-failure metadata', async () => {
+    renderToolRunner(true);
+
+    await emitBackendEventAsync({
+      type: 'tool-call',
+      id: 'event-skip-computer-use-validation-failed',
+      payload: {
+        tool_name: 'computer_use',
+        parameters: {
+          tool: 'mouse_control',
+          metadata: {
+            description: 'Click submit',
+            explanation: 'Complete form submission',
+            expectation: 'Submit button is pressed',
+          },
+          arguments: { action: 'click', x: 100, y: 200 },
+        },
+        metadata: {
+          computer_use_validation_failed: true,
+          skip_frontend_execution: true,
+        },
+      },
+    });
+
+    expect(mockExecuteTool).not.toHaveBeenCalled();
+  });
+
   test('logs executeToolBundle failures', async () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     mockExecuteToolBundle.mockRejectedValueOnce(new Error('bundle-failed'));
