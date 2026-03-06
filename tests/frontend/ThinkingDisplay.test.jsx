@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
-import ThinkingDisplay from '../../frontend/src/renderer/features/chat/components/ThinkingDisplay';
+import ThinkingDisplay from '../../frontend/src/renderer/features/chat/components/message/ThinkingDisplay';
 
 describe('ThinkingDisplay', () => {
   test('renders nothing for empty status', () => {

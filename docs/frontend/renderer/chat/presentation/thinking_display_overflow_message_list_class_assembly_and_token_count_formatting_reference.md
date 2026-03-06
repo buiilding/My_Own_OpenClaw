@@ -10,7 +10,7 @@ title: "Thinking Display Overflow, Message List Class Assembly, and Stream Token
 
 ## Canonical Modules
 
-- `frontend/src/renderer/features/chat/components/ThinkingDisplay.jsx`
+- `frontend/src/renderer/features/chat/components/message/ThinkingDisplay.jsx`
 - `frontend/src/renderer/features/chat/components/MessageList.jsx`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`

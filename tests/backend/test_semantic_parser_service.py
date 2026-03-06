@@ -9,11 +9,11 @@ from tests.backend.websocket_route_test_utils import (
 
 _original_deps = install_route_deps_shim()
 
-from backend.src.api.routes.memory.semantic_parser import (
+from backend.src.api.routes.memory.semantic.parser import (
     extract_fallback_facts,
     parse_summarization_response,
 )
-from backend.src.api.routes.memory.semantic_service import (
+from backend.src.api.routes.memory.semantic.service import (
     FALLBACK_TITLE,
     SemanticSummarizationService,
 )

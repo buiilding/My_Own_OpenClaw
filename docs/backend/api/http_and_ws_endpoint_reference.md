@@ -198,7 +198,7 @@ Behavior:
 
 ### `POST /api/semantic/summarize`
 
-Owner: `backend/src/api/routes/memory/semantic.py:summarize_conversations`
+Owner: `backend/src/api/routes/memory/semantic/router.py:summarize_conversations`
 
 Request model (`SummarizeRequest`):
 
@@ -215,7 +215,7 @@ Behavior:
 
 ### `POST /api/semantic/title`
 
-Owner: `backend/src/api/routes/memory/semantic.py:generate_conversation_title`
+Owner: `backend/src/api/routes/memory/semantic/router.py:generate_conversation_title`
 
 Request model (`GenerateTitleRequest`):
 
@@ -235,7 +235,7 @@ Behavior:
 
 ### `GET /api/semantic/health`
 
-Owner: `backend/src/api/routes/memory/semantic.py:health_check`
+Owner: `backend/src/api/routes/memory/semantic/router.py:health_check`
 
 Behavior:
 

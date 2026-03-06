@@ -11,9 +11,9 @@ title: "Message Action Controls, Source Badge, and Dev-UI Tagging Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/features/chat/components/MessageList.jsx`
-- `frontend/src/renderer/features/chat/components/AssistantMessageActions.jsx`
-- `frontend/src/renderer/features/chat/components/UserMessageActions.jsx`
-- `frontend/src/renderer/features/chat/components/MessageSourceBadge.jsx`
+- `frontend/src/renderer/features/chat/components/message/AssistantMessageActions.jsx`
+- `frontend/src/renderer/features/chat/components/message/UserMessageActions.jsx`
+- `frontend/src/renderer/features/chat/components/message/MessageSourceBadge.jsx`
 - `frontend/src/renderer/features/chat/hooks/useCopyMessageAction.js`
 - `frontend/src/renderer/features/chat/utils/messageTokenUsage.js`
 - `frontend/src/renderer/features/chat/utils/sourceTags.js`

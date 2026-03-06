@@ -12,8 +12,8 @@ title: "Tool Call/Output and Transparency Section Rendering Reference"
 
 - `frontend/src/renderer/features/chat/components/MessageContent.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
-- `frontend/src/renderer/features/chat/components/MessageTransparencySections.jsx`
-- `frontend/src/renderer/features/chat/components/TransparencySection.jsx`
+- `frontend/src/renderer/features/chat/components/message/MessageTransparencySections.jsx`
+- `frontend/src/renderer/features/chat/components/message/TransparencySection.jsx`
 - `frontend/src/renderer/features/chat/utils/messageTransparency.js`
 - `frontend/src/renderer/features/chat/utils/messageScreenshots.js`
 - `frontend/src/renderer/infrastructure/llmOutputContract.ts`

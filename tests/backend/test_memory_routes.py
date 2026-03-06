@@ -1,3 +1,4 @@
+import importlib
 from types import SimpleNamespace
 
 import pytest
@@ -12,7 +13,7 @@ _original_deps = install_route_deps_shim()
 
 from backend.src.api.routes.memory import embeddings as embeddings_routes
 from backend.src.api.routes.memory import health as health_routes
-from backend.src.api.routes.memory import semantic as semantic_routes
+semantic_routes = importlib.import_module("backend.src.api.routes.memory.semantic.router")
 from backend.src.core.config.models import AppConfig
 
 restore_route_deps_shim(_original_deps)

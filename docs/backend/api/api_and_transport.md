@@ -55,7 +55,7 @@ Implementation:
 
 Implementation:
 
-- `api/routes/memory/semantic.py`
+- `api/routes/memory/semantic/router.py`
 
 ### Runs / VM Control
 

@@ -11,9 +11,11 @@ title: "Memory Route Validation and Fallback Reference"
 ## Canonical Modules
 
 - `backend/src/api/routes/memory/embeddings.py`
-- `backend/src/api/routes/memory/semantic.py`
-- `backend/src/api/routes/memory/semantic_service.py`
-- `backend/src/api/routes/memory/semantic_parser.py`
+- `backend/src/api/routes/memory/semantic/__init__.py`
+- `backend/src/api/routes/memory/semantic/router.py`
+- `backend/src/api/routes/memory/semantic/models.py`
+- `backend/src/api/routes/memory/semantic/service.py`
+- `backend/src/api/routes/memory/semantic/parser.py`
 - `backend/src/api/routes/memory/health.py`
 - `backend/src/core/validation/validators.py`
 - `backend/src/api/routes/__init__.py`
@@ -30,6 +32,22 @@ Public prefixes:
 
 - `/api/embeddings`
 - `/api/semantic`
+
+## Semantic Package-Split Import Surface
+
+`backend/src/api/routes/memory/semantic/` is now a package (not a flat single module). The
+runtime route object remains `semantic.router` through package exports:
+
+- route registration keeps importing `from .memory import embeddings, semantic`
+- `API_ROUTERS` still appends `semantic.router`
+
+Compatibility contract from `semantic/__init__.py`:
+
+- re-exports route handlers and helper aliases (`_parse_summarization_response`, `_extract_fallback_facts`)
+- re-exports `SemanticSummarizationService` and `FALLBACK_TITLE`
+
+This keeps imports used in existing route tests stable (`from ...memory import semantic as semantic_routes`) while
+semantic internals remain split into `router.py`, `models.py`, `parser.py`, and `service.py`.
 
 ## `/api/embeddings` Contract
 
@@ -199,4 +217,5 @@ If health route reports unhealthy unexpectedly:
 - [Semantic Summarization Service Config Resolution, Prompt Assembly, and Parser-Fallback Contract Reference](memory/semantic_summarization_service_config_resolution_prompt_assembly_and_parser_fallback_contract_reference.md)
 - [Semantic Parser Summary/Fact Extraction and Fallback-Bullet Contract Reference](memory/semantic_parser_summary_fact_extraction_and_fallback_bullet_contract_reference.md)
 - [Semantic Title Generation Route, Model-Override, and Parser-Fallback Contract Reference](memory/semantic_title_generation_route_model_override_and_parser_fallback_contract_reference.md)
+- [Semantic Route Package Split and Compatibility Export Contract Reference](memory/semantic_route_package_split_and_compatibility_export_contract_reference.md)
 - [Embeddings Route Serialization, Sanitized Error Surface, and Health-Probe Contract Reference](memory/embeddings_route_serialization_sanitized_error_surface_and_health_probe_contract_reference.md)

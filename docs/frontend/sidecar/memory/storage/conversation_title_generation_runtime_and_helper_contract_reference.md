@@ -16,8 +16,8 @@ title: "Conversation Title Generation Runtime and Helper Contract Reference"
 - `frontend/src/main/python/memory/conversation_titles.py`
 - `frontend/src/main/python/core/remote_title_client.py`
 - `frontend/src/main/python/memory/sqlite_store.py`
-- `backend/src/api/routes/memory/semantic.py`
-- `backend/src/api/routes/memory/semantic_service.py`
+- `backend/src/api/routes/memory/semantic/router.py`
+- `backend/src/api/routes/memory/semantic/service.py`
 - `tests/sidecar/test_conversation_titles.py`
 - `tests/sidecar/test_conversation_title_helpers.py`
 - `tests/sidecar/test_conversation_title_runtime.py`

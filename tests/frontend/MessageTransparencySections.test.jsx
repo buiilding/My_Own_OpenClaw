@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 
-import MessageTransparencySections from '../../frontend/src/renderer/features/chat/components/MessageTransparencySections';
+import MessageTransparencySections from '../../frontend/src/renderer/features/chat/components/message/MessageTransparencySections';
 
 const mockIsDevUiEnabled = jest.fn(() => false);
 

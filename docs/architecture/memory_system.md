@@ -14,7 +14,7 @@ Memory is implemented in the **frontend Python sidecar**, not the backend. The s
 - Sidecar implementation: `frontend/src/main/python/memory/`
 - Memory orchestration: `frontend/src/main/python/local_backend.py`
 - Embeddings API (backend): `backend/src/api/routes/memory/embeddings.py`
-- Semantic summary API (backend): `backend/src/api/routes/memory/semantic.py`
+- Semantic summary API (backend): `backend/src/api/routes/memory/semantic/router.py`
 
 ## Architecture
 
