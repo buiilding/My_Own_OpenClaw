@@ -59,6 +59,7 @@ Test-backed behavior:
 - metadata request-id reuse works
 - generated fallback ID works when metadata is absent
 - explicit override beats metadata-sourced request id
+- `_build_remote_result(...)` keeps model defaults in serialized args payload (for example optional defaults like mouse `duration`)
 
 ## Domain Class Matrix
 
@@ -102,6 +103,11 @@ Runtime validation path:
 2. `RemoteComputerUseTool.execute_remote(...)` selects concrete Pydantic model using `_COMPUTER_USE_MODEL_BY_TOOL[tool]`
 3. selected model re-validates `arguments` (`model_validate(...)`)
 4. validated args are serialized with `model_dump()` into remote envelope
+
+Runtime envelope shaping nuance:
+
+- emitted `tool_name` becomes selected concrete subtool name (for example `mouse_control`), not `computer_use`
+- `metadata` fields do not flow into emitted `args`; only validated concrete action arguments are forwarded
 
 This keeps unified `computer_use` and legacy direct tool schemas consistent on backend validation rules.
 
