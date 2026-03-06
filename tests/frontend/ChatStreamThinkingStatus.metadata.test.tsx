@@ -229,4 +229,48 @@ describe('useChatStream message metadata handling', () => {
     }));
     expect((toolCallMessage?.modelFacingToolCall as Record<string, unknown>)?.arguments).toBeUndefined();
   });
+
+  test('tool-call message marks frontend execution skipped for computer-use validation failures', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      emitBackendEvent({
+        type: 'tool-call',
+        payload: {
+          tool_name: 'computer_use',
+          parameters: {
+            tool: 'mouse_control',
+            metadata: {
+              description: 'Click submit',
+              explanation: 'Complete form submission',
+              expectation: 'Submit button is pressed',
+            },
+            arguments: { action: 'click', x: 100, y: 200 },
+          },
+          metadata: {
+            computer_use_validation_failed: true,
+            skip_frontend_execution: true,
+          },
+        },
+      });
+    });
+
+    const toolCallMessage = useChatStore.getState().messages.at(-1);
+    expect(toolCallMessage).toEqual(expect.objectContaining({
+      type: 'tool-call',
+      modelFacingToolCall: expect.objectContaining({
+        name: 'computer_use',
+        frontend_execution_skipped: true,
+        arguments: {
+          tool: 'mouse_control',
+          metadata: {
+            description: 'Click submit',
+            explanation: 'Complete form submission',
+            expectation: 'Submit button is pressed',
+          },
+          arguments: { action: 'click', x: 100, y: 200 },
+        },
+      }),
+    }));
+  });
 });
