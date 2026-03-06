@@ -11,6 +11,12 @@ title: "Tool Call/Output and Transparency Section Rendering Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/features/chat/components/MessageContent.jsx`
+- `frontend/src/renderer/features/chat/components/message/content/MarkdownMessage.jsx`
+- `frontend/src/renderer/features/chat/components/message/content/ToolCallMessage.jsx`
+- `frontend/src/renderer/features/chat/components/message/content/ToolOutputMessage.jsx`
+- `frontend/src/renderer/features/chat/components/message/content/UserMessage.jsx`
+- `frontend/src/renderer/features/chat/components/message/content/ErrorMessage.jsx`
+- `frontend/src/renderer/features/chat/components/message/content/AssistantThinkingSection.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
 - `frontend/src/renderer/features/chat/components/message/MessageTransparencySections.jsx`
 - `frontend/src/renderer/features/chat/components/message/TransparencySection.jsx`
