@@ -18,6 +18,7 @@ title: "VM Run Control Service Runtime Reference"
 - `backend/src/services/vm_run_control_support/vm_run_control_pending_controls.py`
 - `backend/src/services/vm_run_control_support/vm_run_control_worker_state.py`
 - `backend/src/services/vm_run_control_support/vm_run_control_transitions.py`
+- `backend/src/services/vm_run_control_support/vm_run_control_bulk_stop.py`
 
 ## Runtime State Containers
 
@@ -129,10 +130,10 @@ Control update (`apply_control`):
 
 Bulk stop (`stop_all_runs`):
 
-- iterates all runs, optional workspace filter
-- only affects active statuses
-- sets status `stopped`
-- appends queued `stop` command and `run-control` event (`bulk=true`)
+- delegates selection + stop-state mutation to `stop_active_runs(...)` helper
+- helper applies optional normalized workspace filter and active-status gate
+- helper sets run status `stopped` before callback
+- service-provided callback appends queued `stop` command and `run-control` event (`bulk=true`)
 
 Worker drain behavior:
 
@@ -169,15 +170,6 @@ Caller safety:
 ## Related Docs
 
 - [Runs Route and VM Control Service Reference](../api/runs_route_and_vm_control_service_reference.md)
+- [VM Run Control Bulk-Stop Helper Contract Reference](vm_run_control_bulk_stop_helper_contract_reference.md)
 - [HTTP and WebSocket Endpoint Reference](../api/http_and_ws_endpoint_reference.md)
 - [Services and Storage](services_and_storage.md)
-Run event-log append/read helpers are centralized in `vm_run_control_event_log.py`:
-
-- sequence increment + payload copy + updated-at mutation on append
-- bounded event selection by `after_seq` + `limit`
-
-Worker queue assignment logic is centralized in `vm_run_control_assignment.py`:
-
-- ready-status gate before queue consumption
-- queue pop/skip rules for missing/non-assignable runs
-- run worker-state hydration + `run-worker-assigned` event emission
