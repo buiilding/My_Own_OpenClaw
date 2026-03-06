@@ -22,7 +22,7 @@ Registered by `backend/src/api/routes/__init__.py` and attached in `api/app_asse
 
 ### `POST /api/artifacts/`
 
-Owner: `backend/src/api/routes/artifacts.py:upload_artifact`
+Owner: `backend/src/api/routes/artifacts/router.py:upload_artifact`
 
 Behavior:
 
@@ -37,7 +37,7 @@ Failure behavior:
 
 ### `GET /api/artifacts/{artifact_id}`
 
-Owner: `backend/src/api/routes/artifacts.py:get_artifact`
+Owner: `backend/src/api/routes/artifacts/router.py:get_artifact`
 
 Behavior:
 

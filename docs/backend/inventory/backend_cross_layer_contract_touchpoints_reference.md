@@ -52,7 +52,7 @@ This reference lists backend-owned contracts that have direct frontend or sideca
 | --- | --- | --- | --- |
 | `/api/embeddings` route | `api/routes/memory/embeddings/router.py` | Sidecar `remote_embedding_client.py` | Request/response schema stability for vector generation |
 | `/api/semantic/summarize` route | `api/routes/memory/semantic/router.py` | Sidecar `remote_semantic_client.py`, summarizer | Summary/facts parser fallback behavior impacts store |
-| Artifact route/store | `api/routes/artifacts.py`, `services/artifacts/store.py` | Main `ipc.cjs` artifact upload + renderer screenshot URL usage | Artifact id/url/data lookup consistency |
+| Artifact route/store | `api/routes/artifacts/router.py`, `services/artifacts/store.py` | Main `ipc.cjs` artifact upload + renderer screenshot URL usage | Artifact id/url/data lookup consistency |
 
 ## TTS + Wakeword Contract Touchpoints
 

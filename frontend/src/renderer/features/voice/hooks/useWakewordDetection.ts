@@ -12,37 +12,18 @@ import {
   isWithinCooldown,
   resolveConfidence,
 } from '../utils/wakewordEventUtils';
+import {
+  clearWakewordCaptureGuard,
+  getWakewordCaptureGuard,
+  hasAvailableAudioInputDevice,
+  isMissingAudioDeviceError,
+} from '../utils/wakewordCaptureGuard';
 import { useAudioCaptureRefs } from './useAudioCaptureRefs';
 import { useLatestRef } from '../../../infrastructure/hooks/useLatestRef';
 
 const WAKEWORD_COOLDOWN_MS = 2000;
 const CAPTURE_RETRY_DELAY_MS = 3000;
-
-type WakewordCaptureGuard = {
-  missingDeviceLocked: boolean;
-  nextRetryAt: number;
-};
-
-const globalWithWakewordGuard = globalThis as typeof globalThis & {
-  __windieWakewordCaptureGuard?: WakewordCaptureGuard;
-};
-
-// Persist lockout across remounts so missing-device failures do not spam retries.
-const wakewordCaptureGuard: WakewordCaptureGuard = globalWithWakewordGuard.__windieWakewordCaptureGuard ?? {
-  missingDeviceLocked: false,
-  nextRetryAt: 0,
-};
-globalWithWakewordGuard.__windieWakewordCaptureGuard = wakewordCaptureGuard;
-
-function isMissingAudioDeviceError(error: unknown): boolean {
-  const name = typeof (error as { name?: unknown })?.name === 'string'
-    ? (error as { name: string }).name
-    : '';
-  const message = typeof (error as { message?: unknown })?.message === 'string'
-    ? (error as { message: string }).message.toLowerCase()
-    : '';
-  return name === 'NotFoundError' || message.includes('requested device not found');
-}
+const wakewordCaptureGuard = getWakewordCaptureGuard();
 
 /**
  * Custom hook for wakeword detection using openWakeWord.
@@ -58,12 +39,18 @@ function isMissingAudioDeviceError(error: unknown): boolean {
 export function useWakewordDetection(
   enabled: boolean,
   onWakewordDetected?: (data: { model: string; confidence: number; score?: number }) => void,
-  options: { sampleRate?: number; chunkSize?: number; threshold?: number } = {}
+  options: {
+    sampleRate?: number;
+    chunkSize?: number;
+    threshold?: number;
+    wakewordPreferenceEnabled?: boolean;
+  } = {}
 ) {
   const {
     sampleRate = 16000,
     chunkSize: rawChunkSize = 1024,
     threshold = 0.5,
+    wakewordPreferenceEnabled = enabled,
   } = options;
 
   // Ensure chunkSize is a valid power of 2
@@ -90,6 +77,26 @@ export function useWakewordDetection(
   const nextCaptureRetryAtRef = useRef(wakewordCaptureGuard.nextRetryAt);
   const lastDetectionRef = useRef(0);
   const onWakewordDetectedRef = useLatestRef(onWakewordDetected);
+
+  const clearMissingDeviceLock = useCallback(() => {
+    missingDeviceLockRef.current = false;
+    nextCaptureRetryAtRef.current = 0;
+    clearWakewordCaptureGuard(wakewordCaptureGuard);
+  }, []);
+
+  const refreshMissingDeviceLock = useCallback(async () => {
+    if (!missingDeviceLockRef.current) {
+      return true;
+    }
+    const hasAudioInput = await hasAvailableAudioInputDevice();
+    if (!hasAudioInput) {
+      nextCaptureRetryAtRef.current = Date.now() + CAPTURE_RETRY_DELAY_MS;
+      wakewordCaptureGuard.nextRetryAt = nextCaptureRetryAtRef.current;
+      return false;
+    }
+    clearMissingDeviceLock();
+    return true;
+  }, [clearMissingDeviceLock]);
 
   useEffect(() => {
     const warningMessage = getChunkSizeWarning(rawChunkSize, chunkSize);
@@ -126,10 +133,11 @@ export function useWakewordDetection(
     if (isCapturingRef.current || isStartingCaptureRef.current) {
       return;
     }
-    if (missingDeviceLockRef.current) {
+    if (Date.now() < nextCaptureRetryAtRef.current) {
       return;
     }
-    if (Date.now() < nextCaptureRetryAtRef.current) {
+    const shouldStartCapture = await refreshMissingDeviceLock();
+    if (!shouldStartCapture) {
       return;
     }
     isStartingCaptureRef.current = true;
@@ -230,6 +238,7 @@ export function useWakewordDetection(
   }, [
     chunkSize,
     logUnexpectedAudioContextCloseError,
+    refreshMissingDeviceLock,
     sampleRate,
     setAudioContextRef,
     setMediaStreamRef,
@@ -346,10 +355,6 @@ export function useWakewordDetection(
       }
     } else {
       localCaptureErrorRef.current = false;
-      missingDeviceLockRef.current = false;
-      nextCaptureRetryAtRef.current = 0;
-      wakewordCaptureGuard.missingDeviceLocked = false;
-      wakewordCaptureGuard.nextRetryAt = 0;
       setError(null);
       const hasCaptureResources = Boolean(
         isCapturingRef.current
@@ -384,6 +389,38 @@ export function useWakewordDetection(
     startAudioCapture,
     stopAudioCapture,
   ]);
+
+  useEffect(() => {
+    if (wakewordPreferenceEnabled) {
+      return;
+    }
+    localCaptureErrorRef.current = false;
+    clearMissingDeviceLock();
+    setError(null);
+  }, [clearMissingDeviceLock, wakewordPreferenceEnabled]);
+
+  useEffect(() => {
+    const mediaDevices = navigator.mediaDevices;
+    if (!mediaDevices || typeof mediaDevices.addEventListener !== 'function') {
+      return undefined;
+    }
+
+    const handleDeviceChange = () => {
+      if (!missingDeviceLockRef.current) {
+        return;
+      }
+      void refreshMissingDeviceLock().then((isUnlocked) => {
+        if (isUnlocked && enabled && isReady && !isCapturingRef.current) {
+          void startAudioCapture();
+        }
+      });
+    };
+
+    mediaDevices.addEventListener('devicechange', handleDeviceChange);
+    return () => {
+      mediaDevices.removeEventListener('devicechange', handleDeviceChange);
+    };
+  }, [enabled, isReady, refreshMissingDeviceLock, startAudioCapture]);
 
   return {
     isReady,

@@ -55,7 +55,7 @@ Primary files:
 - `backend/src/api/routes/websocket/task_manager.py`
 - `backend/src/api/routes/websocket/json_parse.py`
 - `backend/src/api/routes/runs/router.py`
-- `backend/src/api/routes/artifacts.py`
+- `backend/src/api/routes/artifacts/router.py`
 - `backend/src/api/routes/memory/{embeddings,semantic,semantic_service,semantic_parser,health}.py`
 
 Functionality:

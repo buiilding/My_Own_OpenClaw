@@ -155,7 +155,10 @@ Missing microphone behavior (`NotFoundError` / "requested device not found"):
 - lockout state is stored on `globalThis.__windieWakewordCaptureGuard` with:
   - `missingDeviceLocked`
   - `nextRetryAt`
-- lockout clears on disable path (`enabled=false`), which resets refs + global guard values
+- suppression-only disable (`wakewordActive=false` while `wakewordPreferenceEnabled=true`) does not clear lockout
+- lockout clears when:
+  - user preference is explicitly disabled (`wakewordPreferenceEnabled=false`)
+  - `mediaDevices.devicechange` indicates an `audioinput` device is available again
 
 Audio context close errors are suppressed when message indicates already-closed context; unexpected close errors are warning-logged.
 
@@ -180,7 +183,9 @@ Status/error precedence details:
 - confidence parsing + cooldown behavior with immediate disable on accepted detection
 - late `getUserMedia` resolution cleanup after disable
 - missing-device lockout persistence across remounts
-- disable/re-enable requirement before retry after missing-device lockout
+- suppression-only toggles keep lockout active
+- explicit preference disable clears lockout
+- `devicechange` unlock retries capture once an audio input exists
 - sticky local-capture error behavior under healthy status packets
 - idempotent stop cleanup under repeated disable/unmount paths
 

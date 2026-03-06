@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for artifact HTTP routes: upload response envelope, base-url artifact URL synthesis, store delegation boundaries, and fetch route error mapping."
 read_when:
-  - When changing `/api/artifacts` route schemas or endpoint behavior in `backend/src/api/routes/artifacts.py`.
+  - When changing `/api/artifacts` route schemas or endpoint behavior in `backend/src/api/routes/artifacts/router.py`.
   - When debugging artifact upload URL mismatches or unexpected 500 responses during artifact fetch.
 title: "Artifact HTTP Route Error Mapping and URL Construction Reference"
 ---
@@ -10,7 +10,8 @@ title: "Artifact HTTP Route Error Mapping and URL Construction Reference"
 
 ## Canonical Modules
 
-- `backend/src/api/routes/artifacts.py`
+- `backend/src/api/routes/artifacts/router.py`
+- `backend/src/api/routes/artifacts/models.py`
 - `backend/src/services/artifacts/store.py`
 - `tests/backend/test_artifact_routes.py`
 - `tests/backend/test_artifacts_store.py`

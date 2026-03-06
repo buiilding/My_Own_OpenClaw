@@ -6,25 +6,17 @@ HTTP endpoints for uploading and retrieving large artifacts (screenshots).
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
 
 from fastapi import APIRouter, File, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
 
 from backend.src.api.deps import ContainerDep
 from backend.src.services.artifacts import ArtifactStore
 
+from .models import ArtifactUploadResponse
+
 router = APIRouter(prefix="/api/artifacts", tags=["artifacts"])
 logger = logging.getLogger(__name__)
-
-
-class ArtifactUploadResponse(BaseModel):
-    artifact_id: str
-    content_type: str
-    size_bytes: int
-    sha256: str
-    url: str
 
 
 @router.post("/", response_model=ArtifactUploadResponse)
