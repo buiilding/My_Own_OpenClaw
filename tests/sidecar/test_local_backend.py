@@ -374,6 +374,40 @@ async def test_handle_execute_tool_computer_use_trims_metadata_and_routes_with_r
 
 
 @pytest.mark.asyncio
+async def test_handle_execute_tool_computer_use_accepts_trimmed_subtool_name_with_real_registry():
+    backend = LocalBackend()
+    registry = ToolRegistry()
+    captured = {"called": False}
+
+    def mouse_tool(args):
+        captured["called"] = True
+        captured["args"] = args
+        return ToolResult.success_result({"ok": True})
+
+    registry.tools["mouse_control"] = mouse_tool
+    backend.tool_registry = registry
+    envelope = {
+        "tool": " mouse_control ",
+        "metadata": {
+            "description": "screen",
+            "explanation": "click target",
+            "expectation": "dialog opens",
+        },
+        "arguments": {
+            "action": "click",
+            "x": 10,
+            "y": 20,
+        },
+    }
+
+    result = await backend._handle_execute_tool("computer_use", envelope)
+
+    assert result == {"success": True, "data": {"ok": True}}
+    assert captured["called"] is True
+    assert captured["args"] == {"action": "click", "x": 10, "y": 20}
+
+
+@pytest.mark.asyncio
 async def test_handle_execute_tool_computer_use_drops_non_required_metadata_fields():
     backend = LocalBackend()
     registry = ToolRegistry()
