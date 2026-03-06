@@ -1,5 +1,5 @@
 ---
-summary: "Lifecycle-level backend websocket protocol contract from handshake through receive-loop dispatch, task-limit enforcement, cancellation cleanup, and stop-query completion semantics."
+summary: "Lifecycle-level backend websocket protocol contract from handshake through receive-loop helper dispatch, task-limit enforcement, cancellation cleanup, and stop-query completion semantics."
 read_when:
   - When changing `/ws` receive-loop timeout/concurrency behavior.
   - When investigating stale tasks, cancellation lag, or protocol error responses under load.
@@ -8,10 +8,10 @@ title: "Backend WebSocket Receive Loop and Task Cancellation Contract Reference"
 
 # Backend WebSocket Receive Loop and Task Cancellation Contract Reference
 
-## Coverage Snapshot (2026-02-27)
+## Coverage Snapshot (2026-03-06)
 
-- Lifecycle-focused protocol test files: `6`
-- Total test cases across listed files: `73`
+- Lifecycle-focused protocol test files: `8`
+- Total test cases across listed files: `100`
 
 ## Scope and Sources
 
@@ -19,7 +19,9 @@ Lifecycle contract sources:
 
 - Route entrypoint + loop: `backend/src/api/routes/websocket/router.py`
 - Handshake: `backend/src/api/routes/websocket/connection.py`
+- Receive-loop helper split: `backend/src/api/routes/websocket/loop_runtime.py`
 - Message parse/validate/dispatch: `backend/src/api/routes/websocket/message_handler.py`
+- Parse-runtime + shared JSON helpers: `backend/src/api/routes/websocket/message_parse_runtime.py`, `backend/src/api/routes/websocket/json_parse.py`
 - Per-connection task tracking: `backend/src/api/routes/websocket/task_manager.py`
 - Sender serialization/backpressure: `backend/src/api/transport/websocket.py`
 - Stop-query terminal behavior: `backend/src/api/handlers/stop_query.py`
@@ -30,11 +32,13 @@ Lifecycle contract sources:
 Primary lifecycle test sources:
 
 - `tests/backend/test_websocket_route.py`
-- `tests/backend/test_websocket_message_handler.py`
+- `tests/backend/test_websocket_connection.py`
+- `tests/backend/test_websocket_loop_runtime.py`
+- `tests/backend/test_websocket_message_parse_runtime.py`
+- `tests/backend/test_websocket_task_manager.py`
 - `tests/backend/test_safe_websocket.py`
 - `tests/backend/test_api_handlers.py`
 - `tests/backend/test_compact_history_handler.py`
-- `tests/backend/test_session_manager.py`
 
 ## Connection Timeline
 
@@ -48,7 +52,7 @@ Primary lifecycle test sources:
 4. Main receive loop starts:
    - `asyncio.wait_for(websocket.receive_text(), timeout=websocket_receive_timeout)`
    - parse/validate payload
-   - schedule handler task via `TaskManager`
+   - schedule validated message via `schedule_validated_message_task(...)`
 5. On disconnect or fatal loop error: `cleanup_connection(...)` cancels pending tasks and ends session.
 
 ## Handshake Rules
@@ -61,6 +65,7 @@ Primary lifecycle test sources:
 Notes:
 
 - JSON parsing offloads to thread pool for payloads >= `64 * 1024` bytes.
+- offload threshold comparisons use UTF-8 byte size, not Python character length.
 - Validation and JSON-root failures log as warning; unexpected runtime failures log as error.
 
 ## Receive-Loop Dispatch Contract
@@ -80,6 +85,23 @@ Error response behavior:
 - schema mismatch -> `"Invalid message format: ..."`
 - unexpected internal failures -> sanitized `"An internal error occurred"`
 
+## Receive-Loop Helper Split Contract
+
+`loop_runtime.py` now owns two route-loop helper contracts used by `router.py`:
+
+- `close_connection_on_timeout(...)`:
+  - logs timeout context (`user_id`, timeout seconds)
+  - closes with policy-violation code `1008` and timeout reason
+  - swallows close failures to preserve cleanup execution
+- `schedule_validated_message_task(...)`:
+  - delegates task admission to `TaskManager.create_task_if_under_limit(...)`
+  - on limit-exceeded branch, emits deterministic client error using message id
+  - on admitted branch, schedules handler coroutine without route-level duplicate send/error logic
+
+Lifecycle implication:
+
+- timeout policy and limit-error semantics are centralized in one helper layer, reducing drift between route tests and production behavior.
+
 ## Concurrency and Task-Limit Contract
 
 `TaskManager.create_task_if_under_limit(...)` guarantees:
@@ -91,6 +113,7 @@ Error response behavior:
   - no task is created,
   - route layer sends client error: `"Too many concurrent requests. Please wait."`.
 - Accepted tasks are added atomically under lock and tracked with done-callback eviction.
+- task-creation failures close coroutine inputs before re-raising.
 
 ## Disconnect Cleanup Contract
 
@@ -167,6 +190,7 @@ This helper is shared by stop-query and compact-history handlers so context prop
 When changing lifecycle code, keep these aligned:
 
 - `AppConfig` websocket fields and route usage in `websocket_endpoint(...)`.
+- `DEFAULT_JSON_PARSE_OFFLOAD_BYTES` threshold assumptions in handshake and message parse paths.
 - Message-size/parse/schema error surfaces expected by frontend error handling.
 - Task-limit cap and cancel timeout semantics versus frontend retry/stop behavior.
 - `streaming-complete` stop-query guarantee.
@@ -177,7 +201,8 @@ When changing lifecycle code, keep these aligned:
 | Lifecycle control path | Runtime owner | Lifecycle contract |
 |---|---|---|
 | handshake bootstrapping | `backend/src/api/routes/websocket/connection.py` | initial frame validation gates entry into receive loop with policy-close on failure |
-| receive-loop parse/dispatch pipeline | `backend/src/api/routes/websocket/router.py`, `message_handler.py` | message-size/parse/schema validation occurs before handler routing on every frame |
+| receive-loop timeout + task-scheduling helper split | `backend/src/api/routes/websocket/router.py`, `loop_runtime.py` | timeout close semantics and limit-exceeded error emission remain centralized and deterministic |
+| receive-loop parse/dispatch pipeline | `backend/src/api/routes/websocket/message_parse_runtime.py`, `message_handler.py` | message-size/parse/schema validation occurs before handler routing on every frame with canonical error mapping |
 | per-connection task cap enforcement | `backend/src/api/routes/websocket/task_manager.py` | concurrent task limit blocks new requests safely without leaking coroutine warnings |
 | disconnect cancellation + session cleanup | websocket route cleanup + session manager | pending tasks are canceled with bounded timeout and session is ended once per disconnect |
 | serialized sender queue lifecycle | `backend/src/api/transport/websocket.py` | write serialization/backpressure prevents racey concurrent sends and fails fast on terminal sender errors |

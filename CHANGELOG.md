@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(backend-protocol-lifecycle-testing-helper-split-coverage): refresh backend protocol testing/lifecycle references with current websocket helper-module ownership (`connection`, `json_parse`, `message_parse_runtime`, `loop_runtime`, `task_manager`), add missing handshake/parse/task-runtime contract details, and update coverage snapshots/test index lists.
 - docs(frontend-protocol-lifecycle-testing-split-registrar-coverage): refresh frontend protocol lifecycle/testing references with current split IPC registrar ownership (`overlay_phase_ipc_runtime`, `window_controls_ipc_runtime`, `permission_ipc_runtime`), add display-query and permission-runtime lifecycle/test contract details, and update coverage snapshots/test index lists to current test-surface counts.
 - docs(frontend-inventory-ipc-surface-owner-split-alignment): refresh frontend inventory protocol surface matrix to current split registrar ownership (`overlay_phase_ipc_runtime`, `window_controls_ipc_runtime`, `permission_ipc_runtime`) for invoke/send channels, and add direct deep-reference links for `get-displays` and Linux sudo-toggle runtime contracts.
 - docs(frontend-backend-endpoint-resolution-packaged-fallback-and-origin-contract): extend websocket/query/compatibility docs with explicit packaged endpoint fallback env behavior (`WINDIE_DEFAULT_PACKAGED_BACKEND_*`), IPC initialization refresh semantics (`isPackaged`), and `wsOrigin` relay diagnostics contract.
