@@ -136,4 +136,23 @@ describe('local_backend_bridge_tool_args', () => {
     expect(result).not.toBe(args);
     expect(Object.prototype.hasOwnProperty.call(result, 'metadata')).toBe(false);
   });
+
+  test('preserves malformed computer_use envelope for sidecar-owned validation', () => {
+    const args = {
+      tool: 'mouse_control_typo',
+      metadata: {
+        description: 'screen',
+        explanation: 'click target',
+        expectation: 'dialog opens',
+      },
+      arguments: 'not-a-dict',
+    };
+
+    const result = resolveToolArgs('computer_use', args, null);
+
+    expect(result).toEqual(args);
+    expect(result).not.toBe(args);
+    expect(result.tool).toBe('mouse_control_typo');
+    expect(result.arguments).toBe('not-a-dict');
+  });
 });
