@@ -8,7 +8,7 @@ title: "Backend WebSocket Protocol Surface Matrix Reference"
 
 # Backend WebSocket Protocol Surface Matrix Reference
 
-## Coverage Snapshot (2026-02-27)
+## Coverage Snapshot (2026-03-06)
 
 - Incoming message types: `10` (`INCOMING_MESSAGE_TYPES`)
 - Schema-validated outgoing message types: `19` (`OUTGOING_SCHEMA_MESSAGE_TYPES`)
@@ -20,7 +20,8 @@ title: "Backend WebSocket Protocol Surface Matrix Reference"
 This page maps the live websocket protocol owned by backend runtime code:
 
 - Handshake + lifecycle: `backend/src/api/routes/websocket/router.py`, `backend/src/api/routes/websocket/connection.py`
-- Incoming parsing/validation: `backend/src/api/routes/websocket/message_handler.py`
+- Incoming parsing/validation: `backend/src/api/routes/websocket/message_handler.py`, `backend/src/api/routes/websocket/message_parse_runtime.py`, `backend/src/api/routes/websocket/json_parse.py`
+- Receive-loop timeout/task scheduling helpers: `backend/src/api/routes/websocket/loop_runtime.py`, `backend/src/api/routes/websocket/task_manager.py`
 - Message envelope primitives: `backend/src/api/schemas/common.py`
 - Incoming/outgoing schema unions: `backend/src/api/schemas/incoming.py`, `backend/src/api/schemas/outgoing.py`, `backend/src/api/schemas/__init__.py`
 - Canonical message type constants: `backend/src/api/contracts/message_types.py`
@@ -46,7 +47,7 @@ Notes:
 
 Runtime flow for each frame after handshake:
 
-1. `parse_and_validate_message(...)` checks max message bytes.
+1. `parse_and_validate_message(...)` delegates size/parse/schema checks to `parse_and_validate_message_runtime(...)`.
 2. JSON root must be an object.
 3. Route layer injects `user_id` from connection context before schema validation.
 4. `IncomingMessage` discriminated union validates by `type`.
@@ -77,7 +78,7 @@ Runtime flow for each frame after handshake:
 
 | Runtime control path | Incoming trigger | Primary handler key | Primary outbound/control effects | Deep contract |
 |---|---|---|---|---|
-| Handshake identity bootstrap | websocket initial frame | route bootstrap (`validate_handshake`) | establishes validated `user_id` for all subsequent schema validations + context attachment | [Backend Protocol Identity and Context-Field Propagation Reference](state/backend_protocol_identity_and_context_field_propagation_reference.md) |
+| Handshake identity bootstrap | websocket initial frame | route bootstrap (`perform_handshake`) | establishes validated `user_id` for all subsequent schema validations + context attachment | [Backend Protocol Identity and Context-Field Propagation Reference](state/backend_protocol_identity_and_context_field_propagation_reference.md) |
 | Query loop + stream lifecycle | `query` | `query_handler` | `streaming-response`, `tool-call`, `tool-output`, `streaming-complete`, `error` | [Backend WebSocket Receive Loop and Task-Cancellation Contract Reference](lifecycle/backend_websocket_receive_loop_and_task_cancellation_contract_reference.md) |
 | Active-query cancellation | `stop-query` | `stop_query_handler` | cancel active task, emit completion/error path, keep session context stable | [Backend WebSocket Receive Loop and Task-Cancellation Contract Reference](lifecycle/backend_websocket_receive_loop_and_task_cancellation_contract_reference.md) |
 | Settings ACK control path | `update-settings` | `update_settings_handler` | emits `settings-updated` or `error` with request correlation id | [Backend Message Envelope and Contract Validation Boundary Reference](validation/backend_message_envelope_and_contract_validation_boundary_reference.md) |
@@ -162,6 +163,7 @@ All helper send paths (`send_success_response`, formatter pipeline with context)
 
 - `validate_incoming_routes()` fails startup if route table diverges from incoming schema union.
 - `validate_registry_alignment()` fails startup/tests if contract registries diverge from constant lists.
+- parse/runtime seams rely on `DEFAULT_JSON_PARSE_OFFLOAD_BYTES` UTF-8 byte-size threshold behavior for both handshake and normal message parsing.
 - Incoming parser returns structured `error` messages for malformed JSON, invalid root type, oversized payload, or schema validation issues.
 - Unexpected handler exceptions are sanitized through `sanitize_error_message(...)` before client delivery.
 

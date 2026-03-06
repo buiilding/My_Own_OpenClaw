@@ -8,10 +8,10 @@ title: "Backend Protocol Identity and Context-Field Propagation Reference"
 
 # Backend Protocol Identity and Context-Field Propagation Reference
 
-## Coverage Snapshot (2026-02-27)
+## Coverage Snapshot (2026-03-06)
 
 - State-focused protocol test files: `6`
-- Total test cases across listed files: `78`
+- Total test cases across listed files: `94`
 
 ## Scope and Sources
 
@@ -19,6 +19,7 @@ Primary runtime sources:
 
 - `backend/src/api/routes/websocket/connection.py`
 - `backend/src/api/routes/websocket/message_handler.py`
+- `backend/src/api/routes/websocket/message_parse_runtime.py`
 - `backend/src/api/services/query_execution.py`
 - `backend/src/api/handlers/query.py`
 - `backend/src/api/handlers/stop_query.py`
@@ -42,7 +43,7 @@ Primary test sources:
 
 | State Field | First authority | Propagation owner | Outgoing attach point | Key tests |
 |---|---|---|---|---|
-| `user_id` | websocket handshake payload validated by `HandshakeMessage` | route injects user into every parsed incoming message | `build_transport_message(..., context=...)` / `attach_context_fields(...)` | `test_query_handler_success`, `test_send_success_response_attaches_context_fields` |
+| `user_id` | websocket handshake payload validated by `HandshakeMessage` | parse-runtime injects connection user into every parsed incoming message | `build_transport_message(..., context=...)` / `attach_context_fields(...)` | `test_query_handler_success`, `test_send_success_response_attaches_context_fields` |
 | `session_id` | `AgentSession.session_id` from session manager | query stream context builder / stop-query context builder | formatter output + success helper context | `test_query_handler_success`, `test_stop_query_handler_cancels_active_query_and_emits_streaming_complete` |
 | `conversation_ref` | incoming `query.payload.conversation_ref` or canceled active query metadata | query stream context builder / stop-query canceled tuple | formatter output + success helper context | `test_query_handler_success`, `test_stop_query_handler_cancels_active_query_and_emits_streaming_complete` |
 | `turn_ref` | incoming message `id` | query stream context builder / active task registry / stop-query cancellation | formatter output + success helper context | `test_query_handler_success`, `test_cancel_active_query_task_cancels_all_tasks_and_returns_last_metadata` |
@@ -53,7 +54,7 @@ Primary test sources:
 Identity flow is two-stage:
 
 1. `perform_handshake(...)` accepts the first websocket frame and validates `{type:'handshake', user_id}` through `HandshakeMessage`.
-2. For all post-handshake frames, `parse_and_validate_message(...)` injects connection `user_id` into parsed JSON before validating `IncomingMessage`.
+2. For all post-handshake frames, `parse_and_validate_message(...)` delegates to `parse_and_validate_message_runtime(...)`, which injects connection `user_id` into parsed JSON before validating `IncomingMessage`.
 
 Result:
 
@@ -169,7 +170,7 @@ When modifying this surface, keep aligned:
 | State control path | Runtime owner | State contract |
 |---|---|---|
 | handshake user identity establishment | `backend/src/api/routes/websocket/connection.py` | accepted handshake `user_id` becomes authoritative identity for route context |
-| route-level user injection into incoming frames | `backend/src/api/routes/websocket/message_handler.py` | per-message user identity is injected server-side before schema validation |
+| route-level user injection into incoming frames | `backend/src/api/routes/websocket/message_parse_runtime.py`, `message_handler.py` | per-message user identity is injected server-side before schema validation |
 | query turn correlation context assembly | query handler + query execution service | `user_id`/`session_id`/`conversation_ref`/`turn_ref` context stays stable across all stream events in a turn |
 | stop-query cancellation correlation propagation | `backend/src/agent/session/manager.py`, `backend/src/api/handlers/stop_query.py` | canceled task metadata feeds terminal `streaming-complete` context fields |
 | generic envelope context attachment | `backend/src/api/transport/envelope.py`, `backend/src/api/infrastructure/errors.py` | context fields attach only when truthy and are shared across success/error helper paths |
