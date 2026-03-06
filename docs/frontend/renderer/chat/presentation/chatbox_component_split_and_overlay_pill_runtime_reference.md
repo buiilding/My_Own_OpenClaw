@@ -19,7 +19,9 @@ title: "Chatbox Component Split and Overlay Pill Runtime Reference"
 - `frontend/src/renderer/features/chat/utils/chatBoxState.js`
 - `frontend/src/renderer/features/chat/utils/chatBoxResponseState.js`
 - `frontend/src/renderer/features/chat/utils/chatboxSurfaceState.js`
-- `frontend/src/renderer/features/chat/utils/responseOverlayLayoutMode.js`
+- `frontend/src/renderer/features/chat/utils/overlay/responseOverlayLayoutMode.js`
+- `frontend/src/renderer/features/chat/utils/overlay/overlayFrameSize.js`
+- `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhaseContract.js`
 - `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`
 - `tests/frontend/ChatBoxResponse.state.test.jsx`
 
@@ -150,3 +152,4 @@ Closeability:
 - [Frontend Renderer Chat Docs Hub](../README.md)
 - [Chatbox Overlay Input, Drag, and Click-Through Reference](../../overlays/chatbox_overlay_input_drag_and_clickthrough_reference.md)
 - [Response Overlay Phase and Tool-Ghost Runtime Reference](../../overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md)
+- [Response Overlay Utility Contract Reference](../../overlays/response_overlay_phase_contract_payload_layout_and_frame_utilities_reference.md)
