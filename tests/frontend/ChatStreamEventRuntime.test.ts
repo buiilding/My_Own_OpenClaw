@@ -181,6 +181,82 @@ describe('chatStreamEventRuntime', () => {
     ).toBe(true);
   });
 
+  test('active conversation projection is a no-op when resolved conversation ref is missing', () => {
+    const setActiveConversationRef = jest.fn();
+
+    syncActiveConversationProjection(
+      createEvent({ conversation_ref: 'conv-explicit' }),
+      null,
+      setActiveConversationRef,
+    );
+
+    expect(setActiveConversationRef).not.toHaveBeenCalled();
+  });
+
+  test('active conversation projection is a no-op when event has no explicit conversation identity', () => {
+    const setActiveConversationRef = jest.fn();
+    useChatStore.setState((state) => ({
+      ...state,
+      activeConversationRef: null,
+    }));
+
+    syncActiveConversationProjection(
+      createEvent({ turn_ref: 'turn-mapped-no-explicit' }),
+      'conv-mapped',
+      setActiveConversationRef,
+    );
+
+    expect(setActiveConversationRef).not.toHaveBeenCalled();
+  });
+
+  test('active conversation projection is a no-op when active conversation already matches', () => {
+    const setActiveConversationRef = jest.fn();
+    useChatStore.setState((state) => ({
+      ...state,
+      activeConversationRef: 'conv-current',
+    }));
+
+    syncActiveConversationProjection(
+      createEvent({ conversation_ref: 'conv-current' }),
+      'conv-current',
+      setActiveConversationRef,
+    );
+
+    expect(setActiveConversationRef).not.toHaveBeenCalled();
+  });
+
+  test('active conversation projection promotes explicit ref when active conversation is empty', () => {
+    const setActiveConversationRef = jest.fn();
+    useChatStore.setState((state) => ({
+      ...state,
+      activeConversationRef: null,
+    }));
+
+    syncActiveConversationProjection(
+      createEvent({ conversation_ref: 'conv-next' }),
+      'conv-next',
+      setActiveConversationRef,
+    );
+
+    expect(setActiveConversationRef).toHaveBeenCalledWith('conv-next');
+  });
+
+  test('active conversation projection does not replace a different active conversation for non-local events', () => {
+    const setActiveConversationRef = jest.fn();
+    useChatStore.setState((state) => ({
+      ...state,
+      activeConversationRef: 'conv-current',
+    }));
+
+    syncActiveConversationProjection(
+      createEvent({ conversation_ref: 'conv-next' }),
+      'conv-next',
+      setActiveConversationRef,
+    );
+
+    expect(setActiveConversationRef).not.toHaveBeenCalled();
+  });
+
   test('active conversation projection promotes explicit ref on local-user-message', () => {
     const setActiveConversationRef = jest.fn();
     useChatStore.setState((state) => ({
