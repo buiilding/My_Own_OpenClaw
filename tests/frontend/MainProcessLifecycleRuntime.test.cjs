@@ -90,6 +90,33 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
     expect(deps.showMainWindow).toHaveBeenCalledWith({ focus: true });
   });
 
+  test('throttles rapid second-instance focus storms to prevent focus stealing loops', async () => {
+    const now = jest
+      .fn()
+      .mockReturnValueOnce(1_000)
+      .mockReturnValueOnce(1_200)
+      .mockReturnValueOnce(1_300)
+      .mockReturnValueOnce(2_500);
+    const { deps, appEvents } = createRuntimeDeps({ now });
+
+    initializeMainProcessLifecycleRuntime(deps);
+    await flushPromises();
+
+    expect(typeof appEvents['second-instance']).toBe('function');
+    appEvents['second-instance']();
+    appEvents['second-instance']();
+    appEvents['second-instance']();
+    appEvents['second-instance']();
+
+    expect(deps.showMainWindow).toHaveBeenCalledTimes(3);
+    expect(deps.showMainWindow).toHaveBeenNthCalledWith(1, { focus: true }); // startup ready
+    expect(deps.showMainWindow).toHaveBeenNthCalledWith(2, { focus: true }); // first second-instance
+    expect(deps.showMainWindow).toHaveBeenNthCalledWith(3, { focus: true }); // post-throttle second-instance
+    expect(deps.log).toHaveBeenCalledWith(
+      '[Main][StartupMetrics] second-instance event throttled; skip focus to avoid loop.',
+    );
+  });
+
   test('starts windows and tray once app becomes ready', async () => {
     const { deps } = createRuntimeDeps();
 
