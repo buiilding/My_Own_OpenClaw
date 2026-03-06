@@ -17,12 +17,12 @@ title: "Chat Stream and Tool Execution Reference"
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
-- `frontend/src/renderer/features/chat/hooks/useChatStreamCompletionHandler.ts`
-- `frontend/src/renderer/features/chat/hooks/useChatStreamLocalUserHandler.ts`
-- `frontend/src/renderer/features/chat/hooks/useChatStreamTextHandlers.ts`
-- `frontend/src/renderer/features/chat/hooks/useChatStreamTerminalHandlers.ts`
-- `frontend/src/renderer/features/chat/hooks/useChatStreamToolHandlers.ts`
-- `frontend/src/renderer/features/chat/hooks/useTurnScopedBackendEventHandler.ts`
+- `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamCompletionHandler.ts`
+- `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamLocalUserHandler.ts`
+- `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamTextHandlers.ts`
+- `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamTerminalHandlers.ts`
+- `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts`
+- `frontend/src/renderer/features/chat/hooks/chatStream/useTurnScopedBackendEventHandler.ts`
 - `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
 - `frontend/src/renderer/features/chat/hooks/useToolRunnerBackendListener.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamConversationGate.ts`
@@ -152,7 +152,7 @@ Handler map (`BackendEventType` -> behavior):
 - `system-prompt`: annotate last user message with system prompt + tool schema snapshot
 - `user-message-full`: annotate user message with full payload metadata
 - `assistant-message-full`: annotate latest assistant `llm-text` message
-- `memory-store`: forward backend-provided `{user_query, assistant_response}` pair to sidecar `store-memory` IPC so episodic interaction memory is persisted
+- `memory-store`: renderer chat stream path records tracking only; no direct local-memory write side effect is executed in `useChatStreamTerminalHandlers`
 - `tool-schemas`: annotate first user message with tool schema list
 - `token-count`: update token counters
 - `streaming-complete`: persist final streamed thinking text onto the same-turn assistant `llm-text` message (`thinkingText` + `thinkingSourceEventType`), then mark assistant message complete and clear transient `thinkingStatus`

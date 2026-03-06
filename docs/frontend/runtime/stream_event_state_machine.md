@@ -1,8 +1,8 @@
 ---
-summary: "Renderer stream state-machine reference: backend event filtering, per-turn tracking, phase transitions, and message/transcript side effects in useChatStream."
+summary: "Renderer stream runtime reference: backend-event ingress routing, turn-scoped stale-event guards, stream tracking transitions, and loop-state projection to dashboard/chatbox surfaces."
 read_when:
-  - When changing backend event handling, stream phase transitions, or per-turn message updates.
-  - When debugging stale conversation events, duplicate assistant chunks, or completion/error edge cases.
+  - When changing chat stream handler composition, backend event ingress, or stream-tracking updates.
+  - When debugging reconnect races, stale-turn event drops, or stuck loop-busy UI after terminal events are missed.
 title: "Stream Event State Machine"
 ---
 
@@ -11,44 +11,84 @@ title: "Stream Event State Machine"
 ## Owner Modules
 
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
+- `frontend/src/renderer/features/chat/hooks/chatStream/useTurnScopedBackendEventHandler.ts`
+- `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamTextHandlers.ts`
+- `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts`
+- `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamCompletionHandler.ts`
+- `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamTerminalHandlers.ts`
+- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamBackendIngress.ts`
+- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventRuntime.ts`
+- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamConversationGate.ts`
+- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTurnGuard.ts`
+- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTracking.ts`
+- `frontend/src/renderer/features/chat/hooks/useChatLoopUiState.js`
+- `frontend/src/renderer/features/chat/utils/chatLoopUiState.js`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/types/backendEvents.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamConversationGate.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTracking.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventUtils.ts`
-- `frontend/src/renderer/features/chat/utils/streamPhaseState.js`
-- `frontend/src/renderer/features/chat/hooks/useChatSessionBootstrap.ts`
 
 ## Inbound Event Surface
 
-Backend event union (`BackendEventType`):
+Handled backend event types:
 
+- `local-user-message`
 - `llm-thought`
 - `streaming-response`
 - `streaming-complete`
+- `context-compaction-started`
+- `context-compaction-completed`
+- `context-compaction-failed`
 - `tool-call`
 - `tool-output`
 - `tool-bundle`
-- `local-user-message`
 - `system-prompt`
 - `user-message-full`
 - `assistant-message-full`
-- `token-count`
 - `tool-schemas`
+- `memory-store`
+- `token-count`
 - `error`
 
-## Conversation Guard and Session Sync
+## Event Ingress and Conversation Routing
 
-Before dispatch:
+`useChatStream` listener flow:
 
-1. `isBackendEvent(...)` type-guards incoming payload.
-2. `shouldIgnoreEventForActiveConversation(...)` drops events whose `conversation_ref` does not match active transcript conversation.
-3. transcript session metadata is refreshed (`updateTranscriptSession(...)`) when transcript mode is enabled.
+1. validate payload with `isBackendEvent(...)`
+2. resolve target conversation ref through `chatStreamEventRuntime.resolveTargetConversationRef(...)`
+3. call `ingestBackendEvent(...)` to:
+  - sync active conversation projection when event has explicit conversation identity
+  - register `turn_ref -> conversation_ref` mapping
+  - refresh transcript session binding (`activeConversationRef || resolvedConversationRef`)
+  - dispatch to event-type handler map
 
-This prevents cross-conversation leakage when multiple threads are loaded locally.
-Terminal-vs-active stream turn gating is centralized in `streamPhaseState.isTerminalStreamPhase(...)` so stale-conversation filtering and tool-runner stale-turn behavior share one phase contract.
-Startup/bootstrap guard: `useChatSessionBootstrap(...)` now hydrates transcript/chat session refs from main-process `get-client-user-id` snapshot so first-send after close/reopen cannot race null session state.
+Conversation resolution order:
+
+1. explicit `event.conversation_ref`
+2. compatibility fallbacks:
+  - `memory-store`: `payload.session_id`, then `event.session_id`
+  - `local-user-message`: `payload.conversation_ref`
+3. `turn_ref` workspace mapping
+4. active transcript conversation fallback
+
+This is workspace routing, not active-chat filtering. Background conversations keep receiving their own events.
+
+## Turn-Scoped Stale Event Guard
+
+Most handlers run through `useTurnScopedBackendEventHandler(...)` with a shared guard:
+
+- compare incoming `event.turn_ref` with workspace `streamTracking.activeTurnRef`
+- drop when values differ
+
+Guard exception:
+
+- if workspace is sending a new turn (`isSending=true`) while stream phase is terminal (`idle|complete|error`), stale-turn guard is temporarily relaxed so first packets of the new turn are not dropped due to lagging turn-reset bookkeeping.
+
+Handler-level skip:
+
+- `local-user-message` uses `skipStaleTurnGate=true` because it seeds turn state.
+
+Extra error gate:
+
+- `buildChatStreamHandlerMap(...)` suppresses benign errors through `shouldIgnoreStreamError(...)` before `handleError(...)`.
 
 ## Stream Tracking Model
 
@@ -56,140 +96,91 @@ Startup/bootstrap guard: `useChatSessionBootstrap(...)` now hydrates transcript/
 
 - `activeTurnRef`
 - `phase`: `idle | awaiting-first-chunk | streaming | tool-call | tool-output | complete | error`
-- timing: `startedAt`, `firstChunkAt`, `completedAt`, `lastEventAt`
-- counters: `eventCount`, `chunkCount`, `toolCallCount`, `toolOutputCount`
-- diagnostics: `lastEventType`, `lastChunkSize`, `lastError`
+- `startedAt`, `firstChunkAt`, `completedAt`, `lastEventAt`
+- `eventCount`, `chunkCount`, `toolCallCount`, `toolOutputCount`
+- `lastEventType`, `lastChunkSize`, `lastError`
 
-`recordTrackingEvent(...)` rules:
+Transition reducer is centralized in `applyTrackingEvent(...)`.
 
-- new turn reset is triggered by `local-user-message` (`resetForTurn=true`).
-- first streaming chunk sets `firstChunkAt` if unset.
-- tool events increment dedicated counters and phase.
-- terminal error stores `lastError` and `completedAt`.
-- completion sets `phase=complete` and fills `completedAt`.
-- transition math is centralized in `applyTrackingEvent(...)` to keep hook handlers thin and deterministic.
+Reset/start contract:
 
-## Event-to-UI State Transitions
+- `local-user-message` records `phase='awaiting-first-chunk'` with `resetForTurn=true`
 
-### `local-user-message`
+Automatic updates:
 
-Effects:
+- `streaming-response` increments `chunkCount`, sets first chunk timestamp, defaults phase to `streaming`
+- tool handlers increment tool call/output counters
+- error options set `lastError`, terminal phase, and completion timestamp
+- `phase='complete'` stamps completion timestamp when missing
 
-- append user chat row immediately (optimistic local echo).
-- set `isSending=true` for the target workspace.
-- optional screenshot refs attached.
-- transition phase to `awaiting-first-chunk`.
-- reset stream-tracking counters for new turn.
+## Event-to-State Side Effects
 
-### `llm-thought`
+`local-user-message`:
 
-Effects:
+- add optimistic user row
+- set sending true
+- initialize thinking fallback for non-thinking-text models
+- reset stream tracking for new turn
 
-- updates `thinkingStatus` string via `buildThinkingStatus(...)`.
-- tracking event recorded without changing message rows.
+`llm-thought`:
 
-### `streaming-response`
+- accumulate thinking status and thinking text on current assistant row
+- create assistant placeholder row when needed
 
-Effects:
+`streaming-response`:
 
-- `setIsSending(false)` once chunks arrive.
-- resolves append-or-create behavior:
-- append to last assistant llm-text row for same turn when possible
-- otherwise create new assistant llm-text row
-- tracking phase -> `streaming`.
+- clear sending latch
+- append/extend assistant `llm-text` row for the turn
 
-### `tool-call` and `tool-bundle`
+Compaction events:
 
-Effects:
+- update thinking status/source with compaction start/success/failure messaging
 
-- clear thinking status.
-- append assistant row (`type='tool-call'`) with formatted payload.
-- increment tool-call counters.
-- optional transcript write (`recordToolMessage`) with model/provider metadata and correlation id.
+Tool events:
 
-### `tool-output`
+- clear transient thinking state
+- append tool-call/tool-output/tool-bundle rows
+- record transcript rows for tool-call/tool-output when transcript is enabled
 
-Effects:
+Metadata/transparency events (`system-prompt`, `user-message-full`, `assistant-message-full`, `tool-schemas`):
 
-- clear thinking status.
-- append assistant row (`type='tool-output'`) with:
-- formatted output text
-- screenshot reference/url
-- tool metadata, execution time, success flag
-- correlation id
-- tracking phase -> `tool-output`.
-- optional transcript write as tool-output message.
+- update metadata on existing user/assistant rows
+- no new assistant text rows
 
-### `system-prompt` / `tool-schemas` / `user-message-full` / `assistant-message-full`
+Terminal/diagnostic events:
 
-Effects:
+- `token-count`: update token counts
+- `memory-store`: tracking-only side effect in renderer stream handler path
+- `streaming-complete`: persist final thinking text, mark assistant row complete, optionally write assistant transcript row
+- `error`: clear sending/thinking, append assistant error row, optionally record transcript error row
 
-- update existing message metadata-only transparency fields.
-- no new visible assistant chunk row is created by these events.
+## Loop UI Projection Coupling
 
-### `token-count`
+`useChatLoopUiState` projects stream/transport signals into shared loop UI states:
 
-Effects:
-
-- updates token counters store (`setTokenCounts`).
-
-### `streaming-complete`
-
-Effects:
-
-- clears `isSending` and thinking status.
-- marks final assistant llm-text row complete when found.
-- writes assistant transcript row (if enabled).
-- tracking phase -> `complete`.
-
-### `error`
-
-Effects:
-
-- ignored when `shouldIgnoreStreamError(...)` says non-fatal.
-- otherwise appends assistant error row, clears sending/thinking, records transcript, phase -> `error`.
-
-## Overlay Phase Coupling
-
-Overlay phase is maintained in Electron main via `ipc.cjs` and emitted as `response-overlay-phase`.
-
-Main process phase names and metadata keys are centralized in `frontend/src/main/ipc_overlay_phase_contract.cjs`, sourced from shared contract data in `frontend/src/shared/response_overlay_phase_contract.json`; `index.cjs` consumes `createResponseOverlayPhaseEnum()` so handler/runtime wiring cannot drift from the canonical phase contract.
-Renderer phase predicates and payload parsing now share the same contract module (`frontend/src/renderer/features/chat/utils/responseOverlayPhaseContract.js`), which reads the same shared JSON contract so stream-phase guards and overlay event payload parsing use one canonical phase/metadata vocabulary.
-Cross-layer parity is guarded by `tests/frontend/OverlayPhaseContractParity.test.js`, which asserts renderer/main phase names, metadata keys, and enum mapping remain identical.
-
-Renderer uses that channel in parallel with `streamTracking.phase`:
-
-- `ChatBox.jsx` uses stream/overlay phases for visual loop state only (not click-through toggling).
-- `chatLoopUiState.js` now provides a shared finite-state transition table (`idle|awaiting-reply|active-response`) and `useChatLoopUiState(...)` is the single reducer-driven runtime used by both dashboard and overlay surfaces.
 - `idle`
 - `awaiting-reply`
 - `active-response`
-- `ChatBox.jsx` and `ChatBoxResponse.jsx` now share one renderer projection helper (`chatboxSurfaceState.js`) so the minimal chat pill follows a single explicit UI contract:
-- `compact` -> chat pill only
-- `awaiting-reply` -> chat pill + typing indicator
-- `response` -> chat pill + response overlay
-- `ChatInterface.jsx` uses that same loop vocabulary for dashboard stop-button state and awaiting-dot behavior, including the race where `streaming` arrives before the first assistant row renders.
-- `ChatBoxResponse.jsx` uses that shared contract plus the latest visible assistant response to swap between typing and response views without separate component-local transition rules.
-- `useChatLoopUiState(...)` listens to main-process `ipc-status` updates and applies a reconnect watchdog so missing terminal stream events after backend disconnect/reconnect cannot leave dashboard/chat pill permanently loop-locked.
-- payload contract now includes optional recovery metadata:
-- `correlation_id`
-- `attempt`
-- `max_attempts`
-- `recovery_stage`
-- `failure_reason`
-- renderer phase listeners must treat these fields as optional and remain backward-compatible with phase-only payloads.
+
+Transport safety:
+
+- `ipc-status` disconnect forces loop UI state to `idle`
+- reconnect arms a watchdog; if no stream progress arrives before timeout, state is forced back to `idle`
+
+Consumers:
+
+- `ChatInterface.jsx` stop button and awaiting-dot behavior
+- `ChatBox.jsx` interaction-lock behavior
+- `ChatBoxResponse.jsx` compact/awaiting/response surface mode via `chatboxSurfaceState`
 
 ## Turn Correlation and Late Event Safety
 
-Correlation helpers:
+- `turn_ref` is persisted on chat rows and stream tracking
+- `turn_ref -> conversation_ref` map allows late events without conversation refs to route correctly
+- stale-turn guards in stream handlers and tool-runner callbacks prevent old-turn payloads from mutating active-turn UI
 
-- `turn_ref` is propagated through chat rows.
-- tool output correlation id is derived from payload (`correlation_id` or request id fallback).
-- tool-call/tool-bundle correlation ids are normalized via `chatStreamEventUtils` helpers so whitespace-only ids are ignored consistently across transcript metadata and tracking logs.
-- shared normalization now routes through `toolCorrelationIds.ts` so tool-call/tool-output/tool-bundle correlation precedence stays consistent between stream handlers and tool runner message assembly.
+## Related Pages
 
-Late-event mitigation:
-
-- conversation mismatch events are dropped.
-- tool-runner layer adds stale-turn guards before executing tool calls (`useToolRunner`).
-- stream completion logic scopes updates to active turn where possible.
+- [Chat Stream and Tool Execution Reference](../renderer/chat_stream_and_tool_execution_reference.md)
+- [Frontend Renderer Chat Stream Docs Hub](../renderer/chat/stream/README.md)
+- [Chat Loop UI State Disconnect Recovery and Surface Projection Reference](../renderer/chat/loop_ui_state_disconnect_recovery_and_surface_projection_reference.md)
