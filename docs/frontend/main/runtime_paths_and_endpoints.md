@@ -12,7 +12,7 @@ title: "Runtime Paths and Endpoints"
 
 - `frontend/src/main/backend_endpoints.cjs`
 - `frontend/src/main/runtime_paths.cjs`
-- `frontend/src/main/ipc_frontend_config.cjs`
+- `frontend/src/main/ipc/ipc_frontend_config.cjs`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/runtime_mode.cjs`
 - `frontend/src/main/vm_worker_runtime.cjs`

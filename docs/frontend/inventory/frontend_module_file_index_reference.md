@@ -61,12 +61,12 @@ Bridge/support modules:
 - `frontend/src/main/local_backend_bridge_windows.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
 - `frontend/src/main/permission_service.cjs`
-- `frontend/src/main/ipc_query_events.cjs`
-- `frontend/src/main/ipc_query_broadcast.cjs`
-- `frontend/src/main/ipc_renderer_windows.cjs`
-- `frontend/src/main/ipc_runtime_helpers.cjs`
-- `frontend/src/main/ipc_frontend_config.cjs`
-- `frontend/src/main/ipc_settings_sync.cjs`
+- `frontend/src/main/ipc/ipc_query_events.cjs`
+- `frontend/src/main/ipc/ipc_query_broadcast.cjs`
+- `frontend/src/main/ipc/ipc_renderer_windows.cjs`
+- `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
+- `frontend/src/main/ipc/ipc_frontend_config.cjs`
+- `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - `frontend/src/main/test_shell.cjs`
 
 ## Renderer File Index

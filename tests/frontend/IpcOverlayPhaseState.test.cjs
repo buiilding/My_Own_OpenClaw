@@ -2,10 +2,10 @@
 
 const {
   createResponseOverlayPhaseState,
-} = require('../../frontend/src/main/ipc_overlay_phase_state.cjs');
+} = require('../../frontend/src/main/ipc/ipc_overlay_phase_state.cjs');
 const {
   RESPONSE_OVERLAY_PHASES,
-} = require('../../frontend/src/main/ipc_overlay_phase_contract.cjs');
+} = require('../../frontend/src/main/ipc/ipc_overlay_phase_contract.cjs');
 
 describe('ipc_overlay_phase_state', () => {
   test('exports supported overlay phases', () => {

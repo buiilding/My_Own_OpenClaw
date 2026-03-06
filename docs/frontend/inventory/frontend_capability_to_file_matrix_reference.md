@@ -37,10 +37,10 @@ This matrix maps frontend capabilities to implementation files.
 | Capability | Primary files | Notes |
 | --- | --- | --- |
 | Backend websocket handshake + relay | `frontend/src/main/ipc.cjs`, `frontend/src/main/backend_endpoints.cjs` | Manages `/ws` session and relays stream events to renderer. |
-| First-query settings ACK gate | `frontend/src/main/ipc_settings_sync.cjs`, `frontend/src/main/ipc.cjs` | Runs timeout-bound settings ACK before first query send. |
-| IPC helper module split | `frontend/src/main/ipc_runtime_helpers.cjs`, `frontend/src/main/ipc_renderer_windows.cjs`, `frontend/src/main/ipc_query_broadcast.cjs`, `frontend/src/main/ipc_query_events.cjs` | Shared helper boundaries for relay/send/failure semantics. |
+| First-query settings ACK gate | `frontend/src/main/ipc/ipc_settings_sync.cjs`, `frontend/src/main/ipc.cjs` | Runs timeout-bound settings ACK before first query send. |
+| IPC helper module split | `frontend/src/main/ipc/ipc_runtime_helpers.cjs`, `frontend/src/main/ipc/ipc_renderer_windows.cjs`, `frontend/src/main/ipc/ipc_query_broadcast.cjs`, `frontend/src/main/ipc/ipc_query_events.cjs` | Shared helper boundaries for relay/send/failure semantics. |
 | Query payload construction | `frontend/src/main/query_payload_builder.cjs` | Adds system/memory context and query metadata before send. |
-| Frontend config load/save | `frontend/src/main/ipc_frontend_config.cjs` | Disk + in-memory config snapshot ownership. |
+| Frontend config load/save | `frontend/src/main/ipc/ipc_frontend_config.cjs` | Disk + in-memory config snapshot ownership. |
 | OpenAI Codex OAuth IPC flow | `frontend/src/main/openai_codex_oauth.cjs`, `frontend/src/main/ipc.cjs` | PKCE login + local callback server and logout response envelope routing to renderer settings. |
 | Local sidecar process lifecycle | `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/runtime_paths.cjs` | Spawns local backend python process and manages readiness. |
 | Sidecar RPC request mapping | `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`, `frontend/src/main/local_backend_bridge_utils.cjs`, `frontend/src/main/local_backend_bridge_windows.cjs` | JSON-RPC request correlation, timeout, and window guard behavior. |

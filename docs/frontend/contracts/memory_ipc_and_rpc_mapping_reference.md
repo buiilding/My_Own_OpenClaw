@@ -14,7 +14,7 @@ title: "Memory IPC and RPC Mapping Reference"
 - `frontend/src/renderer/infrastructure/ipc/bridge.ts`
 - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
 - `frontend/src/renderer/features/dashboard/components/sections/MemorySection.jsx`
-- `frontend/src/main/ipc_memory_store_persistence.cjs`
+- `frontend/src/main/ipc/ipc_memory_store_persistence.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/python/local_backend.py`

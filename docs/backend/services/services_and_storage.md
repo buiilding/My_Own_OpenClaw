@@ -97,7 +97,7 @@ Creation ownership:
 
 - OCR and vision services are DI singletons from `core/container/core_container.py` via factory helpers
 - embedder initialization is coordinated in same initializer path for memory services
-- VM run-control service is route-scoped singleton attached to `app.state.vm_run_control_service` in `api/routes/runs.py`
+- VM run-control service is route-scoped singleton attached to `app.state.vm_run_control_service` in `api/routes/runs/router.py`
 
 Startup initialization (`ContainerInitializer`):
 

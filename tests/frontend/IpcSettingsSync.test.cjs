@@ -5,7 +5,7 @@ const {
   isValidConfigPayload,
   resolveSettingsSync,
   waitForSettingsAck,
-} = require('../../frontend/src/main/ipc_settings_sync.cjs');
+} = require('../../frontend/src/main/ipc/ipc_settings_sync.cjs');
 
 describe('ipc_settings_sync', () => {
   test('isValidConfigPayload accepts plain objects only', () => {

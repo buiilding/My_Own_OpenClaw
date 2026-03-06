@@ -215,7 +215,7 @@ read_when:
     - reran `ChatStreamThinkingStatus.state/metadata` suites for integration-level behavior parity.
   - verification:
     - `cd frontend && npm run test:ci -- ../tests/frontend/ChatStreamCompactionHandlers.test.ts ../tests/frontend/ChatStreamMetadataHandlers.test.ts ../tests/frontend/ChatStreamThinkingStatus.state.test.tsx ../tests/frontend/ChatStreamThinkingStatus.metadata.test.tsx`
-    - `cd frontend && npm run lint -- src/renderer/features/chat/hooks/useChatStream.ts src/renderer/features/chat/hooks/useChatStreamCompactionHandlers.ts src/renderer/features/chat/hooks/useChatStreamMetadataHandlers.ts`
+    - `cd frontend && npm run lint -- src/renderer/features/chat/hooks/useChatStream.ts src/renderer/features/chat/hooks/chatStream/useChatStreamCompactionHandlers.ts src/renderer/features/chat/hooks/chatStream/useChatStreamMetadataHandlers.ts`
     - `cd frontend && npm run lint:audit`
     - `cd frontend && npm run audit:knip`
     - `cd frontend && npm run audit:jscpd`
@@ -462,9 +462,9 @@ read_when:
   - result: `ChatGptDashboardShell.jsx` reduced from `700` LOC to `313` LOC.
 - Main IPC split:
   - extracted helper modules from `frontend/src/main/ipc.cjs`:
-    - `frontend/src/main/ipc_runtime_helpers.cjs`
-    - `frontend/src/main/ipc_renderer_windows.cjs`
-    - `frontend/src/main/ipc_query_broadcast.cjs`
+    - `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
+    - `frontend/src/main/ipc/ipc_renderer_windows.cjs`
+    - `frontend/src/main/ipc/ipc_query_broadcast.cjs`
   - result: `ipc.cjs` reduced from `675` LOC to `499` LOC (under file-size target).
 - Main process index split:
   - extracted runtime modules from `frontend/src/main/index.cjs`:
@@ -2455,7 +2455,7 @@ read_when:
 
 - Main-process IPC structure cleanup shipped:
   - extracted frontend config disk persistence helpers into:
-    - `frontend/src/main/ipc_frontend_config.cjs`
+    - `frontend/src/main/ipc/ipc_frontend_config.cjs`
   - rewired `frontend/src/main/ipc.cjs` to use:
     - `loadCachedFrontendConfigFromDisk`
     - `persistFrontendConfigToDisk`

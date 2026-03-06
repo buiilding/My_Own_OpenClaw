@@ -6,7 +6,7 @@ const {
   RESPONSE_OVERLAY_PHASES,
   normalizeOverlayNumber,
   normalizeOverlayString,
-} = require('../../frontend/src/main/ipc_overlay_phase_contract.cjs');
+} = require('../../frontend/src/main/ipc/ipc_overlay_phase_contract.cjs');
 
 describe('ipc_overlay_phase_contract', () => {
   test('exports canonical phase and metadata keys', () => {

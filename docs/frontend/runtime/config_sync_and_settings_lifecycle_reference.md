@@ -18,7 +18,7 @@ title: "Config Sync and Settings Lifecycle Reference"
 - `frontend/src/renderer/utils/configStorage.js`
 - `frontend/src/renderer/features/settings/hooks/useSettingsManagement.ts`
 - `frontend/src/main/ipc.cjs`
-- `frontend/src/main/ipc_frontend_config.cjs`
+- `frontend/src/main/ipc/ipc_frontend_config.cjs`
 
 ## Config Ownership Boundary
 

@@ -21,7 +21,7 @@ Validation boundary sources:
 
 - Preload IPC allowlists: `frontend/src/preload.js`
 - Renderer typed channel/bridge checks: `frontend/src/renderer/infrastructure/ipc/channels.ts`, `frontend/src/renderer/infrastructure/ipc/bridge.ts`
-- Main bridge payload normalization and user-id generation: `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc_settings_sync.cjs`
+- Main bridge payload normalization and user-id generation: `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - Query content escaping and fallback handling: `frontend/src/main/query_payload_builder.cjs`
 - Local-backend RPC mapping utilities: `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 
@@ -143,7 +143,7 @@ High-risk drift points to monitor:
 | preload channel allowlist gate | `frontend/src/preload.js` | unallowlisted channels never cross renderer->main boundary |
 | renderer development-time channel assertions | `frontend/src/renderer/infrastructure/ipc/bridge.ts` | fail-fast on typos/drift in dev while production defers to preload policy |
 | outbound websocket payload normalization | `frontend/src/main/ipc.cjs` | strips unsupported fields (`screenshot_url`) before backend schema enforcement |
-| handshake user-id sanitization | `frontend/src/main/ipc_runtime_helpers.cjs` (`generateUserId`) | avoids backend handshake rejects from invalid/unsafe user-id values |
+| handshake user-id sanitization | `frontend/src/main/ipc/ipc_runtime_helpers.cjs` (`generateUserId`) | avoids backend handshake rejects from invalid/unsafe user-id values |
 | query XML/context sanitization fallback | `frontend/src/main/query_payload_builder.cjs` | escapes XML-sensitive content and guarantees structured fallback blocks |
 | local-backend mapper compatibility transforms | `frontend/src/main/local_backend_bridge_rpc_mappers.cjs` | camelCase/snake_case fallback compatibility and safe default object coercion |
 

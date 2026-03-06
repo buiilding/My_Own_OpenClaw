@@ -70,14 +70,14 @@ Functionality:
 Primary files:
 
 - `frontend/src/main/ipc.cjs`
-- `frontend/src/main/ipc_runtime_helpers.cjs`
-- `frontend/src/main/ipc_renderer_windows.cjs`
-- `frontend/src/main/ipc_query_broadcast.cjs`
+- `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
+- `frontend/src/main/ipc/ipc_renderer_windows.cjs`
+- `frontend/src/main/ipc/ipc_query_broadcast.cjs`
 - `frontend/src/main/backend_endpoints.cjs`
 - `frontend/src/main/query_payload_builder.cjs`
-- `frontend/src/main/ipc_query_events.cjs`
-- `frontend/src/main/ipc_frontend_config.cjs`
-- `frontend/src/main/ipc_settings_sync.cjs`
+- `frontend/src/main/ipc/ipc_query_events.cjs`
+- `frontend/src/main/ipc/ipc_frontend_config.cjs`
+- `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - `frontend/src/main/openai_codex_oauth.cjs`
 
 Functionality:

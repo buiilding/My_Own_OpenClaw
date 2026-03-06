@@ -2,7 +2,7 @@
 
 const {
   persistMemoryStoreEvent,
-} = require('../../frontend/src/main/ipc_memory_store_persistence.cjs');
+} = require('../../frontend/src/main/ipc/ipc_memory_store_persistence.cjs');
 
 describe('ipc_memory_store_persistence', () => {
   test('maps payload-first memory store fields with session fallbacks', async () => {

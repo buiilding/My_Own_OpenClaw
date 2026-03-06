@@ -19,8 +19,8 @@ Primary sources:
 
 - Preload boundary: `frontend/src/preload.js`
 - Main websocket bridge/state: `frontend/src/main/ipc.cjs`
-- Settings-sync ACK timeout helpers: `frontend/src/main/ipc_settings_sync.cjs`
-- Synthetic query failure events: `frontend/src/main/ipc_query_events.cjs`
+- Settings-sync ACK timeout helpers: `frontend/src/main/ipc/ipc_settings_sync.cjs`
+- Synthetic query failure events: `frontend/src/main/ipc/ipc_query_events.cjs`
 - Local backend bridge + utils: `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/local_backend_bridge_utils.cjs`
 - Wakeword subprocess bridge: `frontend/src/main/wakeword_bridge.cjs`
 
@@ -176,7 +176,7 @@ When changing error semantics, keep aligned:
 |---|---|---|
 | invalid IPC channel invoke/send/listen | `frontend/src/preload.js` + renderer bridge wrapper | invalid `invoke` rejects; invalid `send/on/once` do not cross boundary |
 | websocket disconnect/error converge path | `frontend/src/main/ipc.cjs` | socket errors converge into close path; state reset + reconnect timer restoration |
-| query send unavailable fallback | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc_query_events.cjs` | failed send emits synthetic backend-style `error` event with preserved turn/session context |
+| query send unavailable fallback | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_query_events.cjs` | failed send emits synthetic backend-style `error` event with preserved turn/session context |
 | settings ACK timeout fallback | `frontend/src/main/ipc.cjs` | unresolved ACKs auto-resolve false after `2500ms`; pending maps cleared on reconnect |
 | local-backend request/process failure handling | `frontend/src/main/local_backend_bridge.cjs` | RPC failures normalize to `{success:false,error}`; process failure rejects pending requests and broadcasts unavailable status |
 | wakeword subprocess failure/status handling | `frontend/src/main/wakeword_bridge.cjs` | startup/exit/stderr failures normalize to `wakeword-status` `{ready:false,error?}` without crashing bridge loops |

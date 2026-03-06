@@ -11,8 +11,8 @@ title: "IPC Memory-Store Event Persistence Payload Fallback and Fail-Open Loggin
 ## Canonical Modules
 
 - `frontend/src/main/ipc.cjs`
-- `frontend/src/main/ipc_runtime_helpers.cjs`
-- `frontend/src/main/ipc_memory_store_persistence.cjs`
+- `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
+- `frontend/src/main/ipc/ipc_memory_store_persistence.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
 - `tests/frontend/IpcMemoryStorePersistence.test.cjs`
 - `tests/frontend/IpcMainBridge.query.test.cjs`
