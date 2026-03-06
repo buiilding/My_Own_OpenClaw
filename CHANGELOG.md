@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(backend-compaction-engine-decision-strategy-and-events): add a dedicated backend agent deep reference for `agent/compaction/*` internals, including decision gating (`disabled`/`below-threshold`/`cooldown`), trigger fallback resolution, inline summary strategy/fallback behavior, and auto-pre/auto-mid/manual lifecycle event integration points.
+- docs(frontend-agent-sudo-toggle-runtime-contract): add a dedicated Electron-main reference for Linux `set-agent-sudo-access` behavior (username sanitization, sudoers rule scripts, `pkexec` enable flow, `sudo -n` disable flow, cancel/error normalization), and wire cross-links from main/frontend permission docs.
 - docs(frontend-screenshot-visibility-reference-label-and-frontmatter-sync): fix malformed front-matter opening delimiter in the Linux screenshot visibility runtime reference and align frontend hub/main hub link labels with the canonical page title.
 - docs(frontend-local-backend-window-visibility-module-canonical-path-sync): update main/inventory docs to use `local_backend_bridge_window_visibility.cjs` as the canonical module path (instead of compatibility alias `local_backend_bridge_windows.cjs`) and align capability matrix wording with screenshot visibility runtime wrapper ownership.
 - docs(frontend-screenshot-runtime-inventory-and-jsonrpc-contract-sync): align inventory, JSON-RPC, and local-backend RPC/lifecycle docs with current screenshot visibility runtime ownership (main-process wrapper pass-through, renderer-owned Linux hide/show orchestration) and remove stale Linux hide/restore claims.
