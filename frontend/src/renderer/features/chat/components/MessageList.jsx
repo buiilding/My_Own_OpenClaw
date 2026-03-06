@@ -1,5 +1,4 @@
 import {
-  memo,
   useCallback,
   useEffect,
   useMemo,
@@ -7,19 +6,12 @@ import {
   useState,
 } from 'react';
 import PropTypes from 'prop-types';
-import MessageContent from './MessageContent';
-import MessageTransparencySections from './message/MessageTransparencySections';
-import AssistantMessageActions from './message/AssistantMessageActions';
-import UserMessageActions from './message/UserMessageActions';
-import MessageSourceBadge from './message/MessageSourceBadge';
-import { buildMessageClassName } from '../utils/messageListClasses';
+import MessageItem from './message/MessageItem';
 import {
   findAwaitingDotTargetMessageId,
   isNearBottom,
   resolveCompactionStatusText,
   scrollToConversationSwitchTarget,
-  shouldRenderAssistantActions,
-  shouldRenderUserActions,
 } from '../utils/messageListState';
 
 const messageShapePropType = PropTypes.shape({
@@ -37,121 +29,6 @@ const messageShapePropType = PropTypes.shape({
   thinkingText: PropTypes.string,
   thinkingSourceEventType: PropTypes.string,
 });
-
-function UserMessageEditComposer({
-  value,
-  onChange,
-  onCancel,
-  onSubmit,
-}) {
-  return (
-    <div className="user-message-editor" role="group" aria-label="Edit user message">
-      <textarea
-        className="user-message-editor-input"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter' && !event.shiftKey) {
-            event.preventDefault();
-            onSubmit();
-          }
-        }}
-        rows={3}
-        autoFocus
-      />
-      <div className="user-message-editor-actions">
-        <button
-          type="button"
-          className="user-message-editor-btn"
-          onClick={onCancel}
-        >
-          Cancel
-        </button>
-        <button
-          type="button"
-          className="user-message-editor-btn primary"
-          onClick={onSubmit}
-        >
-          Send
-        </button>
-      </div>
-    </div>
-  );
-}
-
-UserMessageEditComposer.propTypes = {
-  value: PropTypes.string.isRequired,
-  onChange: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
-  onSubmit: PropTypes.func.isRequired,
-};
-
-const MessageItem = memo(function MessageItem({
-  message,
-  enableAssistantActions,
-  enableUserActions,
-  disableAssistantActions,
-  onAssistantFeedbackChange,
-  onAssistantTryAgain,
-  isUserEditing,
-  userEditDraft,
-  onUserEditDraftChange,
-  onStartUserEdit,
-  onCancelUserEdit,
-  onSubmitUserEdit,
-}) {
-  const messageClass = buildMessageClassName(message);
-  const showUserEditComposer = shouldRenderUserActions(message, enableUserActions) && isUserEditing;
-
-  return (
-    <div className={messageClass}>
-      {showUserEditComposer ? (
-        <UserMessageEditComposer
-          value={userEditDraft}
-          onChange={onUserEditDraftChange}
-          onCancel={onCancelUserEdit}
-          onSubmit={onSubmitUserEdit}
-        />
-      ) : (
-        <MessageContent message={message} />
-      )}
-      <MessageSourceBadge message={message} />
-      {shouldRenderAssistantActions(message, enableAssistantActions) ? (
-        <AssistantMessageActions
-          messageId={message.id}
-          messageText={message.text}
-          feedback={message.feedback ?? null}
-          disabled={disableAssistantActions}
-          onFeedbackChange={onAssistantFeedbackChange}
-          onTryAgain={onAssistantTryAgain}
-        />
-      ) : null}
-      {shouldRenderUserActions(message, enableUserActions) && !showUserEditComposer ? (
-        <UserMessageActions
-          messageId={message.id}
-          messageText={message.text}
-          onEdit={onStartUserEdit}
-        />
-      ) : null}
-      <MessageTransparencySections message={message} />
-    </div>
-  );
-});
-
-MessageItem.propTypes = {
-  message: messageShapePropType.isRequired,
-  enableAssistantActions: PropTypes.bool,
-  enableUserActions: PropTypes.bool,
-  disableAssistantActions: PropTypes.bool,
-  onAssistantFeedbackChange: PropTypes.func,
-  onAssistantTryAgain: PropTypes.func,
-  isUserEditing: PropTypes.bool,
-  userEditDraft: PropTypes.string,
-  onUserEditDraftChange: PropTypes.func,
-  onStartUserEdit: PropTypes.func,
-  onCancelUserEdit: PropTypes.func,
-  onSubmitUserEdit: PropTypes.func,
-};
 
 function MessageList({
   messages,

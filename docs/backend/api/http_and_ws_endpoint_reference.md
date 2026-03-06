@@ -168,7 +168,7 @@ Failure behavior:
 
 ### `POST /api/embeddings/`
 
-Owner: `backend/src/api/routes/memory/embeddings.py:generate_embedding`
+Owner: `backend/src/api/routes/memory/embeddings/router.py:generate_embedding`
 
 Request model (`EmbeddingRequest`):
 
@@ -188,7 +188,7 @@ Failure behavior:
 
 ### `GET /api/embeddings/health`
 
-Owner: `backend/src/api/routes/memory/embeddings.py:health_check`
+Owner: `backend/src/api/routes/memory/embeddings/router.py:health_check`
 
 Behavior:
 

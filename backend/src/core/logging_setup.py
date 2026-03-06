@@ -53,7 +53,7 @@ _IMPORTANT_PROFILE_LOGGERS: Dict[str, int] = {
     "backend.src.llm.models.model_service": logging.WARNING,
     # Simulation + embeddings noise
     "backend.src.simulation.mock_llm_client": logging.WARNING,
-    "backend.src.api.routes.memory.embeddings": logging.WARNING,
+    "backend.src.api.routes.memory.embeddings.router": logging.WARNING,
     # OCR/Vision progress
     "backend.src.services.ocr": logging.WARNING,
     "backend.src.services.vision": logging.WARNING,

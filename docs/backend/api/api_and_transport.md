@@ -45,7 +45,7 @@ Implementation:
 
 Implementation:
 
-- `api/routes/memory/embeddings.py`
+- `api/routes/memory/embeddings/router.py`
 
 ### Semantic Summarization
 
