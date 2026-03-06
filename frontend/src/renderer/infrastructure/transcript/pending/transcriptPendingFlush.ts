@@ -1,4 +1,4 @@
-import type { TranscriptEntry } from './types';
+import type { TranscriptEntry } from '../types';
 
 type WarnFn = (message: string, error: unknown) => void;
 

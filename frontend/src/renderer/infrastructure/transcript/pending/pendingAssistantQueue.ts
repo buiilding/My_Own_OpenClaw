@@ -1,4 +1,4 @@
-import type { PendingAssistantMessage } from './types';
+import type { PendingAssistantMessage } from '../types';
 
 type PendingAssistantQueue = {
   size: () => number;

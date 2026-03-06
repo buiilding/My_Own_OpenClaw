@@ -1,7 +1,5 @@
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS, SEND_CHANNELS } from '../ipc/bridge';
-import { createPendingAssistantQueue } from './pendingAssistantQueue';
-import { createPendingUserQueue } from './pendingUserQueue';
-import { createPendingToolQueue } from './pendingToolQueue';
+import { createPendingTranscriptMessages } from './pending/pendingTranscriptMessages';
 import { extractTranscriptSessionSyncPayload } from './sessionSyncPayload';
 import {
   emitSessionUpdateEvent,
@@ -11,20 +9,13 @@ import {
 import { createTranscriptSessionState } from './sessionInfoState';
 import { normalizeTransparencyData } from './transparencyNormalization';
 import { recordImmediateTranscriptEntry } from './transcriptRecordWrite';
-import { flushPendingEntries, requeuePending } from './transcriptPendingFlush';
 import type {
-  PendingAssistantMessage,
-  PendingToolMessage,
-  PendingUserMessage,
   SessionInfo,
   TranscriptTransparencyData,
   TranscriptEntry,
 } from './types';
 
 const sessionState = createTranscriptSessionState(readSessionInfoFromStorage);
-const pendingAssistantQueue = createPendingAssistantQueue();
-const pendingUserQueue = createPendingUserQueue();
-const pendingToolQueue = createPendingToolQueue();
 
 const sessionInfoChanged = (previous: SessionInfo, next: SessionInfo): boolean => (
   previous.conversationRef !== next.conversationRef
@@ -101,145 +92,10 @@ const subscribeToTranscriptSessionSync = () => {
 subscribeToTranscriptSessionSync();
 
 const flushPendingMessages = async () => {
-  const currentInfo = sessionState.get();
-  if (
-    !currentInfo.conversationRef
-    || !currentInfo.userId
-    || (
-      pendingUserQueue.size() === 0
-      && pendingAssistantQueue.size() === 0
-      && pendingToolQueue.size() === 0
-    )
-  ) {
+  if (!pendingTranscriptMessages.hasPendingEntries()) {
     return;
   }
-
-  const pendingUserMessages = pendingUserQueue.drain();
-  const flushedUserMessages = await flushPendingEntries<PendingUserMessage>({
-    messages: pendingUserMessages,
-    toTranscriptEntry: (message) => ({
-      content: message.text,
-      role: 'user',
-      messageType: 'user',
-      timestamp: message.timestamp,
-      modelId: message.modelId,
-      modelProvider: message.modelProvider,
-      screenshotRef: message.screenshotRef,
-      transparency: message.transparency,
-    }),
-    requeue: (messages) => requeuePending(messages, pendingUserQueue.enqueue),
-    category: 'user',
-    storeTranscriptEntry,
-    warn: console.warn,
-  });
-  if (!flushedUserMessages) {
-    return;
-  }
-
-  const pendingAssistantMessages = pendingAssistantQueue.drain();
-  const flushedAssistantMessages = await flushPendingEntries<PendingAssistantMessage>({
-    messages: pendingAssistantMessages,
-    toTranscriptEntry: (message) => ({
-      content: message.text,
-      role: 'assistant',
-      messageType: message.messageType || 'llm-text',
-      modelId: message.modelId,
-      modelProvider: message.modelProvider,
-      screenshotRef: message.screenshotRef,
-      transparency: message.transparency,
-    }),
-    requeue: (messages) => requeuePending(messages, pendingAssistantQueue.enqueue),
-    category: 'assistant',
-    storeTranscriptEntry,
-    warn: console.warn,
-  });
-  if (!flushedAssistantMessages) {
-    return;
-  }
-
-  const pendingToolMessages = pendingToolQueue.drain();
-  await flushPendingEntries<PendingToolMessage>({
-    messages: pendingToolMessages,
-    toTranscriptEntry: (message) => ({
-      content: message.text,
-      role: 'tool',
-      messageType: message.messageType,
-      toolName: message.toolName || undefined,
-      correlationId: message.correlationId || undefined,
-      modelId: message.modelId,
-      modelProvider: message.modelProvider,
-      screenshotRef: message.screenshotRef,
-      transparency: message.transparency,
-    }),
-    requeue: (messages) => requeuePending(messages, pendingToolQueue.enqueue),
-    category: 'tool',
-    storeTranscriptEntry,
-    warn: console.warn,
-  });
-};
-
-const queueUserMessageForRetry = (
-  text: string,
-  options: {
-    timestamp?: string;
-    modelId?: string | null;
-    modelProvider?: string | null;
-    screenshotRef?: string | null;
-    transparency?: TranscriptTransparencyData | null;
-  } = {},
-) => {
-  pendingUserQueue.enqueue({
-    text,
-    timestamp: options.timestamp,
-    modelId: options.modelId,
-    modelProvider: options.modelProvider,
-    screenshotRef: options.screenshotRef,
-    transparency: options.transparency,
-  });
-};
-
-const queueAssistantMessageForRetry = (
-  text: string,
-  options: {
-    messageType?: string;
-    modelId?: string | null;
-    modelProvider?: string | null;
-    screenshotRef?: string | null;
-    transparency?: TranscriptTransparencyData | null;
-  } = {},
-) => {
-  pendingAssistantQueue.enqueue({
-    text,
-    messageType: options.messageType,
-    modelId: options.modelId,
-    modelProvider: options.modelProvider,
-    screenshotRef: options.screenshotRef,
-    transparency: options.transparency,
-  });
-};
-
-const queueToolMessageForRetry = (
-  text: string,
-  options: {
-    messageType: string;
-    toolName?: string;
-    correlationId?: string;
-    modelId?: string | null;
-    modelProvider?: string | null;
-    screenshotRef?: string | null;
-    transparency?: TranscriptTransparencyData | null;
-  },
-) => {
-  pendingToolQueue.enqueue({
-    text,
-    messageType: options.messageType,
-    toolName: options.toolName,
-    correlationId: options.correlationId,
-    modelId: options.modelId,
-    modelProvider: options.modelProvider,
-    screenshotRef: options.screenshotRef,
-    transparency: options.transparency,
-  });
+  await pendingTranscriptMessages.flushPendingMessages(sessionState.get());
 };
 
 const emitTranscriptEntryStoredEvent = (
@@ -351,7 +207,7 @@ export const recordUserMessage = (
     screenshotRef,
     transparency: normalizedTransparency,
   };
-  const queueForRetry = () => queueUserMessageForRetry(text, retryOptions);
+  const queueForRetry = () => pendingTranscriptMessages.queueUserMessageForRetry(text, retryOptions);
   recordImmediateTranscriptEntry({
     text,
     resolveSessionInfo: () => resolveSessionInfoOrQueue(
@@ -391,7 +247,7 @@ export const recordAssistantMessage = (
     screenshotRef: options.screenshotRef,
     transparency: normalizedTransparency,
   };
-  const queueForRetry = () => queueAssistantMessageForRetry(text, retryOptions);
+  const queueForRetry = () => pendingTranscriptMessages.queueAssistantMessageForRetry(text, retryOptions);
   recordImmediateTranscriptEntry({
     text,
     resolveSessionInfo: () => resolveSessionInfoOrQueue(options, queueForRetry),
@@ -429,7 +285,7 @@ export const recordToolMessage = (
     screenshotRef: options.screenshotRef,
     transparency: normalizeTransparencyData(options.transparency),
   };
-  const queueForRetry = () => queueToolMessageForRetry(text, retryOptions);
+  const queueForRetry = () => pendingTranscriptMessages.queueToolMessageForRetry(text, retryOptions);
   recordImmediateTranscriptEntry({
     text,
     resolveSessionInfo: () => resolveSessionInfoOrQueue(options, queueForRetry),
@@ -477,3 +333,8 @@ const storeTranscriptEntry = async (entry: TranscriptEntry) => {
   });
   emitTranscriptEntryStoredEvent(entry, info);
 };
+
+const pendingTranscriptMessages = createPendingTranscriptMessages({
+  storeTranscriptEntry,
+  warn: console.warn,
+});

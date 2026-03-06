@@ -1,4 +1,4 @@
-import { flushPendingEntries, requeuePending } from '../../frontend/src/renderer/infrastructure/transcript/transcriptPendingFlush';
+import { flushPendingEntries, requeuePending } from '../../frontend/src/renderer/infrastructure/transcript/pending/transcriptPendingFlush';
 
 describe('transcriptPendingFlush', () => {
   test('requeuePending enqueues each message in order', () => {

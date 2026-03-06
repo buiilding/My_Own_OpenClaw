@@ -1,4 +1,4 @@
-import type { PendingToolMessage } from './types';
+import type { PendingToolMessage } from '../types';
 
 type PendingToolQueue = {
   size: () => number;
