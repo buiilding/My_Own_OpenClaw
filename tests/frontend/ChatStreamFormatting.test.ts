@@ -80,6 +80,40 @@ describe('chatStreamFormatting utils', () => {
     expect(parsed.arguments).toBeUndefined();
   });
 
+  test('includes frontend skip marker for computer-use validation failures', () => {
+    const formatted = formatToolCallPayload({
+      tool_name: 'computer_use',
+      parameters: {
+        tool: 'mouse_control',
+        metadata: {
+          description: 'Click submit',
+          explanation: 'Complete form submission',
+          expectation: 'Submit button is pressed',
+        },
+        arguments: { action: 'click', x: 100, y: 200 },
+      },
+      metadata: {
+        computer_use_validation_failed: true,
+        skip_frontend_execution: true,
+      },
+    });
+
+    const parsed = JSON.parse(formatted);
+    expect(parsed.name).toBe('computer_use');
+    expect(parsed.arguments).toEqual({
+      tool: 'mouse_control',
+      metadata: {
+        description: 'Click submit',
+        explanation: 'Complete form submission',
+        expectation: 'Submit button is pressed',
+      },
+      arguments: { action: 'click', x: 100, y: 200 },
+    });
+    expect(parsed.frontend_execution_skipped).toBe(true);
+    expect(parsed.parse_error).toBeUndefined();
+    expect(parsed.raw_arguments_preview).toBeUndefined();
+  });
+
   test('suppresses duplicate fallback argument preview fields on validation failures', () => {
     const formatted = formatToolCallPayload({
       tool_name: 'replace',
