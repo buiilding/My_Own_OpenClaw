@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for native tool-call bridging in `tool_call_bridge.py`: ParsedResponse conversion, `computer_use` normalization, history tool-call shaping, and recoverable-error helper contracts."
+summary: "Deep reference for native tool-call bridging in `tool_call_bridge.py`: ParsedResponse conversion, `computer_use` normalization, whitespace-safe tool-call-id handling, history tool-call shaping, and recoverable-error helper contracts."
 read_when:
   - When changing `backend/src/agent/execution/tool_call_bridge.py` conversion behavior or metadata extraction.
   - When debugging mismatches between provider-native `tool_calls` payloads and downstream parsed/history tool-call shapes.
@@ -48,6 +48,7 @@ This lets `InteractionLoop` consume provider-native `tool_calls` without running
 Metadata extraction:
 
 - carries `tool_call.id` into `metadata.tool_call_id` when present
+- normalizes `tool_call.id` with whitespace trim; blank/whitespace-only ids are dropped
 - extracts thought signature from either:
   - `thought_signature`
   - `thoughtSignature`
@@ -56,6 +57,11 @@ Metadata extraction:
   - removes `metadata` key from executable `parameters`
 - if `arguments.metadata` is missing or not a dict:
   - metadata merge is skipped safely (no parse failure)
+
+Deep-copy boundary:
+
+- tool-call `arguments` are deep-copied before normalization/mutation
+- metadata extraction and `computer_use` reshaping never mutate provider payload dictionaries in place
 
 ## Unified `computer_use` Mapping
 
@@ -78,6 +84,8 @@ Metadata-promotion boundary for unified envelopes:
 - only top-level unified `computer_use.metadata` is promoted to parsed metadata
 - nested `computer_use.arguments.metadata` is preserved in executable parameters (not promoted)
 - non-dict top-level unified metadata is ignored safely
+- computer required metadata fields (`description`, `explanation`, `expectation`) are normalized with trim semantics
+- if any required computer metadata field is missing/blank/non-string after normalization, bridge marks call as `invalid_computer_use_tool`
 
 ## History Tool-Call Shaping
 
@@ -85,12 +93,19 @@ Metadata-promotion boundary for unified envelopes:
 
 - `id`:
   - uses `metadata.tool_call_id` when present
+  - trims metadata id and treats blank/whitespace-only ids as missing
   - otherwise fallback `tool_call_<index>`
 - `name`: parsed `tool_name`
 - `arguments`: parsed `parameters` copy
 - `thought_signature`: included when metadata contains non-empty signature
 
 `extract_tool_call_ids(...)` returns only metadata-backed ids, preserving emission order.
+Ids are trim-normalized and whitespace-only values are ignored.
+
+Deep-copy boundary:
+
+- history `tool_calls[].arguments` payloads are deep-copied from parsed call parameters
+- mutating generated history payloads does not back-propagate into `ParsedToolCall.parameters`
 
 ## Recoverable Error Helper Surface
 
@@ -127,9 +142,12 @@ Extraction helpers:
 `tests/backend/test_interaction_tool_call_bridge.py` covers:
 
 - missing tool name fallback
+- native payload argument deep-copy immutability
+- history argument deep-copy immutability
 - invalid computer-use tool mapping behavior
 - missing unified `arguments` -> empty parameters
 - top-level metadata promotion boundary (nested `arguments.metadata` remains in parameters; non-dict top-level metadata ignored)
+- whitespace-only tool-call id handling in both `extract_tool_call_ids(...)` and history id fallback
 - recoverable error marker detection and parse-summary extraction
 - target-file extraction from raw-arguments preview
 - retry message includes file-target/edit-strategy hints when file path can be extracted
