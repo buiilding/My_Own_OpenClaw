@@ -17,7 +17,13 @@ This page documents the hosted VM run-control contract implemented by:
 - `backend/src/api/routes/runs/route_helpers.py`
 - `backend/src/api/routes/runs/response_builders.py`
 - `backend/src/services/vm_run_control.py`
+- `backend/src/services/vm_run_control_support/vm_run_control_assignment.py`
 - `backend/src/services/vm_run_control_support/vm_run_control_bulk_stop.py`
+- `backend/src/services/vm_run_control_support/vm_run_control_event_log.py`
+- `backend/src/services/vm_run_control_support/vm_run_control_event_payloads.py`
+- `backend/src/services/vm_run_control_support/vm_run_control_pending_controls.py`
+- `backend/src/services/vm_run_control_support/vm_run_control_transitions.py`
+- `backend/src/services/vm_run_control_support/vm_run_control_worker_state.py`
 
 This flow is HTTP-only and separate from the `/ws` chat transport. It is designed as a lightweight control plane for VM worker orchestration.
 
@@ -25,9 +31,22 @@ Route-level helper/auth/bootstrap details are documented separately in:
 
 - [Runs Route Support Helpers and API-Key Guard Reference](runs_route_support_helpers_and_api_key_guard_reference.md)
 - [Runs Route Models and Package Export Contract Reference](runs_route_models_and_package_export_contract_reference.md)
+- [Runs Route Helper Validation and Incremental Events Projection Contract Reference](runs_route_helper_validation_and_incremental_events_projection_contract_reference.md)
 - Route helper projections/validation in `route_helpers.py`:
   - `validate_control_request(...)` centralizes `set-control-mode` guardrails.
   - `build_run_events_response(...)` centralizes incremental event response shaping.
+
+## Service Support Module Boundaries
+
+`VmRunControlService` owns lock-scoped orchestration and delegates pure shaping/mutation to helper modules:
+
+- `vm_run_control_assignment.py`: queue pop/worker ownership checks and `run-worker-assigned` event append.
+- `vm_run_control_transitions.py`: action/event/heartbeat status transitions.
+- `vm_run_control_pending_controls.py`: control command creation + one-shot command draining.
+- `vm_run_control_event_log.py`: append/select event helpers with deep-copy output and sequence increments.
+- `vm_run_control_event_payloads.py`: canonical payload shape builders for created/assigned/control/dispatched events.
+- `vm_run_control_worker_state.py`: run and registry worker snapshot shaping with metadata copy semantics.
+- `vm_run_control_bulk_stop.py`: workspace-filtered active-run stop loop used by `/stop-all`.
 
 ## Route Registration and Protection
 
@@ -70,6 +89,11 @@ Per-run persisted fields include:
 - `shared_control`
 - `human_override`
 
+`create_run(...)` conversation reference policy:
+
+- If `metadata.conversation_ref` is a non-empty string, it is used.
+- Otherwise, fallback is `run-{run_id}`.
+
 ## Endpoint Behavior Matrix
 
 ### `POST /api/runs/`
@@ -86,7 +110,7 @@ Worker poll/registration endpoint.
 
 - Registers/updates worker record (`workspace_id`, `worker_id`, `vm_id`, `user_id`, `session_id`, `status`, metadata).
 - If worker is `ready` or `running`, tries queue assignment:
-  - Picks first queued run in same workspace with status `awaiting_worker|queued`.
+  - Pops workspace queue ids until finding first eligible run with status `awaiting_worker|queued`.
   - Rejects run if it is bound to a different worker id.
   - On assign: sets run `worker`, `last_heartbeat_at`, status `queued`, emits `run-worker-assigned`.
 - Returns one `assigned_run` max.
@@ -112,7 +136,7 @@ Ingests worker/backend stream events into run timeline.
 - Status transition rules:
   - `streaming-complete` -> `completed`
   - `error` -> `failed`
-  - otherwise `awaiting_worker|queued` -> `running`
+  - otherwise `awaiting_worker|queued` -> `running` (non-active statuses are unchanged)
 
 ### `POST /api/runs/{run_id}/control`
 
@@ -125,6 +149,10 @@ Supported actions:
 - `stop` -> `stopped`
 - `set-control-mode` -> updates `control_mode` (requires `control_mode` field)
 
+Action normalization:
+
+- Service normalizes control action as `strip().lower()` before transition/queueing.
+
 Every action appends:
 
 - `pending_controls += {command_id, action, requested_by, control_mode, created_at}`
@@ -135,6 +163,7 @@ Every action appends:
 Bulk stop helper.
 
 - Optional workspace filter.
+- Workspace filter is trimmed; blank values behave like no filter.
 - Only active-status runs are affected.
 - Each affected run receives `status="stopped"`, one queued `stop` command, and `run-control` event payload with `bulk=true`.
 - Service implementation delegates filtering/mutation loop to `vm_run_control_bulk_stop.stop_active_runs(...)` and injects the queued-control callback from `VmRunControlService`.
@@ -161,6 +190,7 @@ Legacy run-scoped heartbeat path retained for compatibility/tests.
 - Events are append-only and ordered by per-run `seq`.
 - `last_event_seq` increments by one on every event write.
 - API responses deep-clone run/event payloads before returning, so callers cannot mutate service state by reference.
+- Event polling applies bounded selection (`seq > after_seq`) and clamps limits to `1..1000`.
 
 ## Concurrency and Durability
 
