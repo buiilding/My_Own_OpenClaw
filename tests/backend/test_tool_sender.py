@@ -91,6 +91,10 @@ async def test_send_tools_marks_failed_coordinate_resolution_as_non_executable()
     assert emitted[0].metadata["coordinate_resolution_failed"] is True
     assert emitted[0].metadata["skip_frontend_execution"] is True
     assert emitted[0].metadata["request_id"] == request_id
+    assert emitted[0].metadata["model_facing_tool_call"] == {
+        "name": "mouse_control",
+        "arguments": {"action": "click"},
+    }
 
     assert isinstance(emitted[1], ToolOutputEvent)
     assert emitted[1].metadata["coordinate_resolution_failed"] is True
@@ -132,6 +136,10 @@ async def test_send_tools_marks_invalid_computer_use_preparation_failure_as_vali
     assert emitted[0].metadata["skip_frontend_execution"] is True
     assert emitted[0].metadata["computer_use_validation_failed"] is True
     assert "coordinate_resolution_failed" not in emitted[0].metadata
+    assert emitted[0].metadata["model_facing_tool_call"] == {
+        "name": "invalid_computer_use_tool",
+        "arguments": {"action": "click"},
+    }
 
     assert isinstance(emitted[1], ToolOutputEvent)
     assert emitted[1].metadata["skip_frontend_execution"] is True
