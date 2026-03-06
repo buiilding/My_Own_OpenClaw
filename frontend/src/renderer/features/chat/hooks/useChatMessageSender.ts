@@ -24,6 +24,7 @@ import { createConversationRef } from '../utils/session/conversationRef';
 import { useChatCommonActions } from './useChatCommonActions';
 import { normalizeArtifactImageContentType } from '../../../infrastructure/services/ArtifactImageUtils';
 import {
+  applyMainSessionSnapshot,
   normalizeMainSessionSnapshot,
   resolveConversationRefForSend,
 } from '../session/conversationSessionRuntime';
@@ -86,12 +87,11 @@ export function useChatMessageSender(
       if (!snapshot.conversationRef && !snapshot.userId) {
         return null;
       }
-      if (snapshot.conversationRef) {
-        setActiveConversationRef(snapshot.conversationRef);
-        setChatActiveConversationRef(snapshot.conversationRef);
-      }
-      updateTranscriptSession(snapshot.conversationRef, snapshot.userId);
-      return snapshot.conversationRef;
+      return applyMainSessionSnapshot(snapshot, {
+        setTranscriptConversationRef: setActiveConversationRef,
+        setChatConversationRef: setChatActiveConversationRef,
+        updateTranscriptSession,
+      }).conversationRef;
     } catch (error) {
       console.warn('[useChatMessageSender] Failed to load startup session snapshot:', error);
       return null;

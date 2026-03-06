@@ -17,6 +17,7 @@ title: "Message Send Surface Policy and Screenshot Capture Reference"
 - `frontend/src/renderer/features/chat/utils/messageSender/readableFileAttachmentContext.ts`
 - `frontend/src/renderer/features/chat/utils/screenshotAttachmentContract.ts`
 - `frontend/src/renderer/features/chat/policies/messageSendUiPolicy.ts`
+- `frontend/src/renderer/features/chat/session/conversationSessionRuntime.ts`
 - `frontend/src/renderer/features/chat/components/MessageInput.jsx`
 - `frontend/src/renderer/features/chat/utils/message/messageInput.js`
 - `frontend/src/renderer/features/chat/utils/fileAttachmentUtils.js`
@@ -90,6 +91,7 @@ When attachment(s) exist:
      - chat store active conversation ref
      - main-process session snapshot (`get-client-user-id`) conversation ref
      - generated new ref (only when all three are missing)
+   - snapshot projection into transcript/chat state is centralized in `conversationSessionRuntime.ts`
 4. append optimistic user message to store.
 5. set `isSending=true`, clear thinking status.
 6. optional overlay return-to-chatbox invoke.

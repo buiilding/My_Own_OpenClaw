@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-session-snapshot-projection-runtime-sharing): move main-session snapshot projection into shared `conversationSessionRuntime.ts` so `useChatMessageSender` and `useChatSessionBootstrap` apply the same transcript/chat conversation update contract; added direct runtime tests and updated send-path docs.
 - refactor(frontend-system-capture-runtime-extraction): extract `SystemCapture` screenshot-argument building, screenshot payload normalization, and empty-result composition into `systemCaptureRuntime.ts`, leaving `extractOSstate` focused on IPC/capture lifecycle orchestration; added direct helper regressions and refreshed send/capture docs.
 - refactor(frontend-query-screenshot-pipeline-extraction): move query screenshot capture/upload/ref-resolution out of `useChatMessageSender` into `queryScreenshotPipeline.ts`, keeping the hook focused on conversation/session orchestration while preserving clipboard-first, auto-capture fallback, and artifact-ref normalization behavior; updated send-path docs and added direct helper regression coverage.
 - fix(frontend-linux-chat-pill-screenshot-hide-settlement): add a bounded `120ms` Linux compositor-settle wait after renderer-owned `hide-chatbox` capture collapse so minimal chat pill screenshots no longer capture the disappearing overlay frame; added chat-pill visibility and `SystemCapture` ordering regressions to lock `hide -> settle -> screenshot -> restore`.
