@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(backend-tool-registry-computer-use-additional-properties-contract): extend tool-registry declaration regressions to assert canonical `computer_use` function parameters and metadata objects emit `additionalProperties: false`, locking strict schema allowlist guarantees at provider-facing declaration boundaries.
 - test(backend-interaction-loop-native-computer-use-metadata-allowlist-fail-close): extend interaction-loop native tool-call regressions to assert `computer_use` calls with unexpected metadata fields are normalized to `invalid_computer_use_tool` before execution/history staging, preserving deterministic staged-id and terminal-completion behavior.
 - test(backend-response-parser-computer-use-metadata-allowlist-rejection): extend parser trust-boundary coverage to assert direct unified `computer_use` calls fail with `ParseValidationError` when metadata includes unexpected fields, pairing strict metadata allowlist enforcement with end-to-end JSON response parsing tests.
 - fix(backend-unified-computer-use-schema-additional-properties-guard): lock strict JSON-schema allowlists in canonical unified `computer_use` declaration by adding `additionalProperties: false` on the top-level envelope and required metadata object; extend schema contract tests to prevent permissive drift.
