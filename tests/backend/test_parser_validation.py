@@ -183,6 +183,20 @@ def test_validate_metadata_rejects_whitespace_only_fields_for_computer_tools():
         )
 
 
+def test_validate_metadata_rejects_missing_metadata_for_legacy_computer_tool():
+    validator, _metrics = _make_validator_for_registry(ComputerRegistry(["mouse_control"]))
+
+    with pytest.raises(ParseValidationError, match="missing metadata"):
+        validator.validate_metadata("mouse_control", None)
+
+
+def test_validate_metadata_rejects_missing_metadata_for_unified_computer_use_tool():
+    validator, _metrics = _make_validator(["computer_use"])
+
+    with pytest.raises(ParseValidationError, match="missing metadata"):
+        validator.validate_metadata("computer_use", None)
+
+
 def test_validate_metadata_accepts_trimmed_nonempty_strings_for_computer_tools():
     validator, _metrics = _make_validator_for_registry(ComputerRegistry(["mouse_control"]))
     metadata = {
@@ -239,6 +253,15 @@ def test_validate_metadata_rejects_non_dict_metadata_for_unified_computer_use_to
 
     with pytest.raises(ParseValidationError, match="invalid metadata type"):
         validator.validate_metadata("computer_use", "not-a-dict")
+
+
+def test_validate_metadata_ignores_non_computer_tool_metadata():
+    validator, _metrics = _make_validator(["read_file"])
+    metadata = {"description": "not required for read_file"}
+
+    validator.validate_metadata("read_file", metadata)
+
+    assert metadata == {"description": "not required for read_file"}
 
 
 def test_get_valid_tool_names_deduplicates_registry_values():
