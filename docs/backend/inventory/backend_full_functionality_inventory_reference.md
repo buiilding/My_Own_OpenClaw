@@ -54,7 +54,7 @@ Primary files:
 - `backend/src/api/routes/websocket/message_handler.py`
 - `backend/src/api/routes/websocket/task_manager.py`
 - `backend/src/api/routes/websocket/json_parse.py`
-- `backend/src/api/routes/runs.py`
+- `backend/src/api/routes/runs/router.py`
 - `backend/src/api/routes/artifacts.py`
 - `backend/src/api/routes/memory/{embeddings,semantic,semantic_service,semantic_parser,health}.py`
 
@@ -323,7 +323,7 @@ Functionality:
 High-change areas likely to require docs updates when code changes:
 
 - `api/services/query_execution.py` and `agent/execution/interaction_loop.py` event sequencing.
-- `api/routes/runs.py` and `services/vm_run_control.py` worker assignment/control-command status transitions.
+- `api/routes/runs/router.py` and `services/vm_run_control.py` worker assignment/control-command status transitions.
 - `tools/*` + `agent/tools/*` bundle/single execution and cleanup semantics.
 - `llm/providers/*` request/stream normalization behavior.
 - `api/processing/formatters/*` payload shape contracts consumed by renderer.

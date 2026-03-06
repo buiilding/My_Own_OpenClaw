@@ -60,7 +60,7 @@ const {
   showChatWindow: showChatWindowRuntime,
   showMainWindow: showMainWindowRuntime,
 } = require('./window_visibility_runtime.cjs');
-const { createResponseOverlayPhaseEnum } = require('./ipc_overlay_phase_contract.cjs');
+const { createResponseOverlayPhaseEnum } = require('./ipc/ipc_overlay_phase_contract.cjs');
 const { configureGpuRuntime } = require('./gpu_runtime.cjs');
 const { isVmModeEnabled, isVmWorkerModeEnabled } = require('./runtime_mode.cjs');
 let windowManager = null;

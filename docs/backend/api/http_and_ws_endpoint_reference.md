@@ -51,7 +51,7 @@ Failure behavior:
 
 ### `POST /api/runs/`
 
-Owner: `backend/src/api/routes/runs.py:create_run`
+Owner: `backend/src/api/routes/runs/router.py:create_run`
 
 Behavior:
 
@@ -70,7 +70,7 @@ Failure behavior:
 
 ### `POST /api/runs/workers/heartbeat`
 
-Owner: `backend/src/api/routes/runs.py:worker_poll_heartbeat`
+Owner: `backend/src/api/routes/runs/router.py:worker_poll_heartbeat`
 
 Behavior:
 
@@ -80,7 +80,7 @@ Behavior:
 
 ### `GET /api/runs/{run_id}`
 
-Owner: `backend/src/api/routes/runs.py:get_run`
+Owner: `backend/src/api/routes/runs/router.py:get_run`
 
 Behavior:
 
@@ -92,7 +92,7 @@ Failure behavior:
 
 ### `GET /api/runs/{run_id}/events`
 
-Owner: `backend/src/api/routes/runs.py:list_run_events`
+Owner: `backend/src/api/routes/runs/router.py:list_run_events`
 
 Behavior:
 
@@ -105,7 +105,7 @@ Failure behavior:
 
 ### `POST /api/runs/{run_id}/events`
 
-Owner: `backend/src/api/routes/runs.py:ingest_run_event`
+Owner: `backend/src/api/routes/runs/router.py:ingest_run_event`
 
 Behavior:
 
@@ -118,7 +118,7 @@ Failure behavior:
 
 ### `POST /api/runs/{run_id}/control`
 
-Owner: `backend/src/api/routes/runs.py:control_run`
+Owner: `backend/src/api/routes/runs/router.py:control_run`
 
 Behavior:
 
@@ -133,7 +133,7 @@ Failure behavior:
 
 ### `POST /api/runs/stop-all`
 
-Owner: `backend/src/api/routes/runs.py:stop_all_runs`
+Owner: `backend/src/api/routes/runs/router.py:stop_all_runs`
 
 Behavior:
 
@@ -142,7 +142,7 @@ Behavior:
 
 ### `POST /api/runs/{run_id}/worker-dispatched`
 
-Owner: `backend/src/api/routes/runs.py:worker_dispatched`
+Owner: `backend/src/api/routes/runs/router.py:worker_dispatched`
 
 Behavior:
 
@@ -155,7 +155,7 @@ Failure behavior:
 
 ### `POST /api/runs/{run_id}/worker-heartbeat`
 
-Owner: `backend/src/api/routes/runs.py:worker_heartbeat`
+Owner: `backend/src/api/routes/runs/router.py:worker_heartbeat`
 
 Behavior:
 

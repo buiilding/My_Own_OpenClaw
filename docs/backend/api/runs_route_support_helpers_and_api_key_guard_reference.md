@@ -10,8 +10,8 @@ title: "Runs Route Support Helpers and API-Key Guard Reference"
 
 ## Canonical Modules
 
-- `backend/src/api/routes/runs_support.py`
-- `backend/src/api/routes/runs.py`
+- `backend/src/api/routes/runs/support.py`
+- `backend/src/api/routes/runs/router.py`
 - `backend/src/services/vm_run_control.py`
 - `tests/backend/test_run_control_routes.py`
 

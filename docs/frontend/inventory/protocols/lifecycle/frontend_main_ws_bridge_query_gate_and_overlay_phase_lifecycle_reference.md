@@ -18,9 +18,9 @@ title: "Frontend Main WS Bridge, Query Gate, and Overlay Phase Lifecycle Referen
 Lifecycle contract sources:
 
 - Main websocket bridge/state machine: `frontend/src/main/ipc.cjs`
-- Settings-sync ACK gate helpers: `frontend/src/main/ipc_settings_sync.cjs`
+- Settings-sync ACK gate helpers: `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - Query payload enrichment: `frontend/src/main/query_payload_builder.cjs`
-- Synthetic local query events: `frontend/src/main/ipc_query_events.cjs`
+- Synthetic local query events: `frontend/src/main/ipc/ipc_query_events.cjs`
 - Overlay phase -> window visibility behavior: `frontend/src/main/response_overlay_phase_handler.cjs`, `frontend/src/main/index.cjs`
 - Wakeword + overlay signal emitters: `frontend/src/main/main_window_runtime.cjs`, `frontend/src/main/overlay_signal_runtime.cjs`
 - Main-window target routing from invoke handler to dashboard: `frontend/src/main/window_controls_ipc_runtime.cjs`, `frontend/src/main/main_window_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
@@ -232,7 +232,7 @@ When changing this lifecycle, keep synchronized:
 |---|---|---|
 | websocket open/close transition | `frontend/src/main/ipc.cjs` | connection state reset, handshake send, settings-gate reset, and reconnect scheduling remain coupled |
 | first-query settings ACK gate | `frontend/src/main/ipc.cjs` | first query/wakeword send waits for settings sync outcome, with bounded timeout fallback |
-| query send bootstrap + optimistic local echo | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc_query_events.cjs` | outbound query uses resolved conversation context and emits synthetic local-user-message before backend response |
+| query send bootstrap + optimistic local echo | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_query_events.cjs` | outbound query uses resolved conversation context and emits synthetic local-user-message before backend response |
 | overlay phase transition fan-out | `frontend/src/main/ipc.cjs`, `frontend/src/main/response_overlay_phase_handler.cjs` | canonical phase set drives renderer/state sync and response-window visibility behavior |
 | wakeword callback -> STT trigger | `frontend/src/main/index.cjs`, `frontend/src/main/main_window_runtime.cjs` | STT trigger emits only after chat window show succeeds |
 | show-main-window target routing | `frontend/src/main/window_controls_ipc_runtime.cjs`, dashboard shell listener | target normalization and event routing remain constrained to supported dashboard surfaces |

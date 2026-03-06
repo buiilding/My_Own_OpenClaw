@@ -2,7 +2,7 @@
 
 const {
   resolveBackendOverlayPhaseTransition,
-} = require('../../frontend/src/main/ipc_overlay_phase_events.cjs');
+} = require('../../frontend/src/main/ipc/ipc_overlay_phase_events.cjs');
 
 describe('ipc_overlay_phase_events', () => {
   test('maps backend tool events using payload id precedence then event id fallback', () => {

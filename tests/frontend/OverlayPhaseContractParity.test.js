@@ -9,7 +9,7 @@ const {
   createResponseOverlayPhaseEnum,
   RESPONSE_OVERLAY_METADATA_KEYS: mainMetadataKeys,
   RESPONSE_OVERLAY_PHASES: mainPhaseSet,
-} = require('../../frontend/src/main/ipc_overlay_phase_contract.cjs');
+} = require('../../frontend/src/main/ipc/ipc_overlay_phase_contract.cjs');
 
 describe('overlay phase contract parity', () => {
   test('keeps renderer and main phase sequence in lockstep', () => {

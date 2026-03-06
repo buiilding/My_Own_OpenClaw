@@ -11,7 +11,7 @@ title: "Local User Message and Query Send-Failure Synthesis Reference"
 ## Canonical Modules
 
 - `frontend/src/main/ipc.cjs`
-- `frontend/src/main/ipc_query_events.cjs`
+- `frontend/src/main/ipc/ipc_query_events.cjs`
 - `frontend/src/renderer/types/backendEvents.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 

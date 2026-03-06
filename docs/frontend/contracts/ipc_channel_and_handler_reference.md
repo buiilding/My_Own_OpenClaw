@@ -15,10 +15,10 @@ title: "IPC Channel and Handler Reference"
 - Typed bridge wrapper: `frontend/src/renderer/infrastructure/ipc/bridge.ts`
 - Main-process handlers:
 - `frontend/src/main/ipc.cjs`
-- `frontend/src/main/ipc_runtime_helpers.cjs`
-- `frontend/src/main/ipc_renderer_windows.cjs`
-- `frontend/src/main/ipc_query_broadcast.cjs`
-- `frontend/src/main/ipc_query_events.cjs`
+- `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
+- `frontend/src/main/ipc/ipc_renderer_windows.cjs`
+- `frontend/src/main/ipc/ipc_query_broadcast.cjs`
+- `frontend/src/main/ipc/ipc_query_events.cjs`
 - `frontend/src/main/index.cjs`
 - `frontend/src/main/overlay_phase_ipc_runtime.cjs`
 - `frontend/src/main/window_controls_ipc_runtime.cjs`

@@ -25,7 +25,7 @@ title: "Frontend Protocol State Hub"
 ## Code Scope
 
 - `frontend/src/main/ipc.cjs`
-- `frontend/src/main/ipc_query_events.cjs`
+- `frontend/src/main/ipc/ipc_query_events.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`

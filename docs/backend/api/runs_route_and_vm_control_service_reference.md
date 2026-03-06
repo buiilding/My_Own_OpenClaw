@@ -12,7 +12,7 @@ title: "Runs Route and VM Control Service Reference"
 
 This page documents the hosted VM run-control contract implemented by:
 
-- `backend/src/api/routes/runs.py`
+- `backend/src/api/routes/runs/router.py`
 - `backend/src/services/vm_run_control.py`
 
 This flow is HTTP-only and separate from the `/ws` chat transport. It is designed as a lightweight control plane for VM worker orchestration.

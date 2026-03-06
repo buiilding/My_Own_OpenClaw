@@ -7,41 +7,41 @@ const { resolveBackendEndpoints } = require('./backend_endpoints.cjs');
 const {
   loadFrontendConfigFromDisk,
   saveFrontendConfigToDisk,
-} = require('./ipc_frontend_config.cjs');
+} = require('./ipc/ipc_frontend_config.cjs');
 const {
   clearPendingSettingsSyncs,
   isValidConfigPayload,
   resolveSettingsSync,
   waitForSettingsAck,
-} = require('./ipc_settings_sync.cjs');
-const { persistMemoryStoreEvent } = require('./ipc_memory_store_persistence.cjs');
+} = require('./ipc/ipc_settings_sync.cjs');
+const { persistMemoryStoreEvent } = require('./ipc/ipc_memory_store_persistence.cjs');
 const { buildQueryPayloadContent } = require('./query_payload_builder.cjs');
 const {
   resolveConversationRef: resolveConversationRefFromPayload,
   buildLocalUserMessage,
   buildQuerySendFailure,
-} = require('./ipc_query_events.cjs');
+} = require('./ipc/ipc_query_events.cjs');
 const {
   generateUserId,
   normalizeBackendPayload,
   processBackendMessageData,
   runBeforeOverlayQueryCapture,
   uploadArtifact,
-} = require('./ipc_runtime_helpers.cjs');
+} = require('./ipc/ipc_runtime_helpers.cjs');
 const {
   trackRendererWindow: trackRendererWindowRuntime,
   broadcastToRenderers: broadcastToRenderersRuntime,
-} = require('./ipc_renderer_windows.cjs');
+} = require('./ipc/ipc_renderer_windows.cjs');
 const {
   broadcastLocalUserMessage: broadcastLocalUserMessageRuntime,
   broadcastQuerySendFailure: broadcastQuerySendFailureRuntime,
-} = require('./ipc_query_broadcast.cjs');
+} = require('./ipc/ipc_query_broadcast.cjs');
 const {
   createResponseOverlayPhaseState,
-} = require('./ipc_overlay_phase_state.cjs');
+} = require('./ipc/ipc_overlay_phase_state.cjs');
 const {
   createIpcEventReplayState,
-} = require('./ipc_event_replay_state.cjs');
+} = require('./ipc/ipc_event_replay_state.cjs');
 const {
   loginOpenAICodexOAuth,
   logoutOpenAICodexOAuth,

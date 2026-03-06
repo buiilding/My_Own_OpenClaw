@@ -11,12 +11,12 @@ title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 ## Canonical Modules
 
 - `frontend/src/main/ipc.cjs`
-- `frontend/src/main/ipc_settings_sync.cjs`
-- `frontend/src/main/ipc_runtime_helpers.cjs`
-- `frontend/src/main/ipc_renderer_windows.cjs`
-- `frontend/src/main/ipc_query_broadcast.cjs`
-- `frontend/src/main/ipc_query_events.cjs`
-- `frontend/src/main/ipc_memory_store_persistence.cjs`
+- `frontend/src/main/ipc/ipc_settings_sync.cjs`
+- `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
+- `frontend/src/main/ipc/ipc_renderer_windows.cjs`
+- `frontend/src/main/ipc/ipc_query_broadcast.cjs`
+- `frontend/src/main/ipc/ipc_query_events.cjs`
+- `frontend/src/main/ipc/ipc_memory_store_persistence.cjs`
 - `frontend/src/main/index.cjs`
 - `frontend/src/main/overlay_phase_ipc_runtime.cjs`
 - `frontend/src/main/window_controls_ipc_runtime.cjs`
@@ -27,7 +27,7 @@ title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/local_backend_bridge_tool_args.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
-- `frontend/src/main/ipc_frontend_config.cjs`
+- `frontend/src/main/ipc/ipc_frontend_config.cjs`
 - `frontend/src/main/permission_service.cjs`
 
 ## Registration Topology

@@ -21,7 +21,7 @@ title: "Frontend Contracts Events Docs Hub"
 ## Code Scope
 
 - `frontend/src/main/ipc.cjs`
-- `frontend/src/main/ipc_query_events.cjs`
+- `frontend/src/main/ipc/ipc_query_events.cjs`
 - `frontend/src/renderer/types/backendEvents.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
