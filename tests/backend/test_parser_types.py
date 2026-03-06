@@ -38,6 +38,33 @@ def test_extract_tool_call_direct_metadata_returns_metadata():
     )
 
 
+def test_extract_tool_call_direct_metadata_does_not_mutate_input_payload():
+    schema = ToolCallSchema()
+    payload = {
+        "functionCall": {
+            "name": "mouse_control",
+            "args": {
+                "action": "click",
+                "x": 1,
+                "y": 2,
+                "metadata": {
+                    "description": "screen",
+                    "explanation": "click",
+                    "expectation": "dialog",
+                },
+            },
+        }
+    }
+
+    _ = schema.extract_tool_call(payload)
+
+    assert payload["functionCall"]["args"]["metadata"] == {
+        "description": "screen",
+        "explanation": "click",
+        "expectation": "dialog",
+    }
+
+
 def test_extract_tool_call_rejects_non_dict_args():
     schema = ToolCallSchema()
     payload = {"functionCall": {"name": "read_file", "args": "not-an-object"}}
@@ -94,6 +121,32 @@ def test_extract_tool_call_unified_computer_use_maps_to_concrete_tool():
         {"action": "click", "x": 10, "y": 20},
         expected_metadata,
     )
+
+
+def test_extract_tool_call_unified_computer_use_does_not_mutate_input_payload():
+    schema = ToolCallSchema()
+    payload = {
+        "functionCall": {
+            "name": "computer_use",
+            "args": {
+                "tool": "mouse_control",
+                "arguments": {"action": "click", "x": 10, "y": 20},
+                "metadata": {
+                    "description": "screen",
+                    "explanation": "click submit",
+                    "expectation": "dialog opens",
+                },
+            },
+        }
+    }
+
+    _ = schema.extract_tool_call(payload)
+
+    assert payload["functionCall"]["args"]["metadata"] == {
+        "description": "screen",
+        "explanation": "click submit",
+        "expectation": "dialog opens",
+    }
 
 
 def test_extract_tool_call_unified_computer_use_defaults_missing_arguments_to_empty_dict():

@@ -68,7 +68,7 @@ class ToolCallSchema:
         if not isinstance(args, dict):
             return None
 
-        return normalized_tool_name, args
+        return normalized_tool_name, dict(args)
 
     def extract_tool_call(
         self, parsed_json: Dict[str, Any]
