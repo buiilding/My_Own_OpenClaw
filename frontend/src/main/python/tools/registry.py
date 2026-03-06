@@ -103,12 +103,14 @@ class ToolRegistry:
             if not isinstance(args, dict):
                 return ToolResult.error_result("Tool args must be an object")
 
-            tool_name = args.get("tool")
-            if not isinstance(tool_name, str) or tool_name not in COMPUTER_USE_SUBTOOLS:
+            raw_tool_name = args.get("tool")
+            tool_name = raw_tool_name.strip() if isinstance(raw_tool_name, str) else None
+            if not tool_name or tool_name not in COMPUTER_USE_SUBTOOLS:
                 return ToolResult.error_result(
                     "computer_use requires a valid 'tool' value "
                     f"({', '.join(sorted(COMPUTER_USE_SUBTOOLS))})"
                 )
+            args["tool"] = tool_name
 
             tool_arguments = args.get("arguments", {})
             if not isinstance(tool_arguments, dict):

@@ -153,6 +153,39 @@ async def test_execute_computer_use_routes_to_selected_subtool():
 
 
 @pytest.mark.asyncio
+async def test_execute_computer_use_accepts_trimmed_subtool_name():
+    registry = ToolRegistry()
+    captured = {"called": False}
+
+    def mouse_tool(args):
+        captured["called"] = True
+        captured["args"] = args
+        return ToolResult.success_result({"ok": True, "tool": "mouse_control"})
+
+    registry.tools["mouse_control"] = mouse_tool
+    envelope = {
+        "tool": " mouse_control ",
+        "metadata": {
+            "description": "screen",
+            "explanation": "click target",
+            "expectation": "dialog opens",
+        },
+        "arguments": {
+            "action": "click",
+            "x": 12,
+            "y": 34,
+        },
+    }
+
+    result = await registry.execute_tool("computer_use", envelope)
+
+    assert result.success is True
+    assert result.data == {"ok": True, "tool": "mouse_control"}
+    assert captured["called"] is True
+    assert captured["args"] == {"action": "click", "x": 12, "y": 34}
+
+
+@pytest.mark.asyncio
 async def test_execute_computer_use_rejects_unknown_subtool_name():
     registry = ToolRegistry()
     captured = {"called": False}
