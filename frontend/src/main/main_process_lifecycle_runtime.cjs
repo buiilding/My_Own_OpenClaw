@@ -139,6 +139,8 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
       }
       return [];
     },
+    now = () => Date.now(),
+    secondInstanceFocusCooldownMs = 1000,
     requestSingleInstanceLock = () => {
       if (typeof app?.requestSingleInstanceLock === 'function') {
         return app.requestSingleInstanceLock();
@@ -157,7 +159,20 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
     return;
   }
 
+  let lastSecondInstanceFocusAt = null;
+  const focusCooldownMs = Math.max(0, Number(secondInstanceFocusCooldownMs) || 0);
   app.on('second-instance', () => {
+    const currentTime = Number(now?.());
+    const focusTimestamp = Number.isFinite(currentTime) ? currentTime : Date.now();
+    if (
+      focusCooldownMs > 0 &&
+      Number.isFinite(lastSecondInstanceFocusAt) &&
+      focusTimestamp - lastSecondInstanceFocusAt < focusCooldownMs
+    ) {
+      log('[Main][StartupMetrics] second-instance event throttled; skip focus to avoid loop.');
+      return;
+    }
+    lastSecondInstanceFocusAt = focusTimestamp;
     log('[Main][StartupMetrics] second-instance event received; focusing existing window.');
     showMainWindow({ focus: true });
   });
