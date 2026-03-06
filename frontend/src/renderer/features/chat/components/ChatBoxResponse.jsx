@@ -142,6 +142,35 @@ function ChatBoxResponse() {
     });
   }, [showResponse, visibleResponse]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.location.search.includes('dev_ui=1')) {
+      return;
+    }
+    console.log('[StreamTrace][renderer][response-surface]', {
+      view: new URLSearchParams(window.location.search || '').get('view') || 'main',
+      overlayPhase,
+      isSending,
+      messageCount: messages.length,
+      activeResponseTextLength: typeof activeResponse?.text === 'string' ? activeResponse.text.length : 0,
+      activeResponseType: activeResponse?.type || null,
+      visibleResponseId: visibleResponse?.id || null,
+      showAwaitingReply,
+      showResponse,
+      thinkingTextLength: typeof thinkingText === 'string' ? thinkingText.length : 0,
+    });
+  }, [
+    activeResponse?.id,
+    activeResponse?.text,
+    activeResponse?.type,
+    isSending,
+    messages.length,
+    overlayPhase,
+    showAwaitingReply,
+    showResponse,
+    thinkingText,
+    visibleResponse?.id,
+  ]);
+
   const reportOverlaySize = useCallback(async ({
     visible,
     layoutMode = RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
