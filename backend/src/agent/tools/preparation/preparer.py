@@ -36,6 +36,7 @@ if TYPE_CHECKING:
     from backend.src.core.interfaces.vision import IVisionService
 
 logger = logging.getLogger(__name__)
+_INVALID_COMPUTER_USE_TOOL_NAME = "invalid_computer_use_tool"
 
 
 @dataclass
@@ -93,6 +94,18 @@ class ToolPreparer:
             preparation_total_time,
         )
         return result
+
+    @staticmethod
+    def _is_invalid_computer_use_tool(tool_call: ParsedToolCall) -> bool:
+        return tool_call.tool_name == _INVALID_COMPUTER_USE_TOOL_NAME
+
+    @staticmethod
+    def _invalid_computer_use_error_message() -> str:
+        return (
+            "computer_use call is invalid and was rejected before frontend execution. "
+            "Re-emit computer_use with a valid 'tool' and only required metadata fields: "
+            "description, explanation, expectation."
+        )
 
     @staticmethod
     def _initialize_resolved_call(
@@ -159,6 +172,10 @@ class ToolPreparer:
         for tool_call in tool_calls:
             resolved_call = self._initialize_resolved_call(tool_call, execution_ref)
 
+            if self._is_invalid_computer_use_tool(tool_call):
+                errors.append((tool_call, self._invalid_computer_use_error_message()))
+                break
+
             if self._needs_coordinate_resolution(tool_call):
                 try:
                     await self._resolve_coordinates_for_call(
@@ -218,6 +235,12 @@ class ToolPreparer:
         tool_preparation_start_time = time.perf_counter()
 
         resolved_call = self._initialize_resolved_call(tool_call, execution_ref)
+
+        if self._is_invalid_computer_use_tool(tool_call):
+            return PreparationResult(
+                resolved_calls=[],
+                errors=[(tool_call, self._invalid_computer_use_error_message())],
+            )
 
         if self._needs_coordinate_resolution(tool_call):
             try:
