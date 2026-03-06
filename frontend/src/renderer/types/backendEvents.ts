@@ -42,7 +42,9 @@ export type ToolSchema = {
 
 export type LlmThoughtEvent = BackendEventBase<'llm-thought', { status?: string }>;
 export type StreamingResponseEvent = BackendEventBase<'streaming-response', { text?: string }>;
-export type StreamingCompleteEvent = BackendEventBase<'streaming-complete'>;
+export type StreamingCompleteEvent = BackendEventBase<'streaming-complete', {
+  final_response?: string;
+}>;
 export type ContextCompactionStartedEvent = BackendEventBase<'context-compaction-started', {
   reason?: string;
   strategy?: string;

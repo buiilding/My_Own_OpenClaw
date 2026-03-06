@@ -79,16 +79,16 @@ Schema expectation:
 `StreamingCompleteEventFormatter` always emits:
 
 - `type: "streaming-complete"`
-- `payload: {}`
+- `payload: { "final_response"?: string }`
 
-It ignores event content (including `final_response`) by design; completion signal is status-only.
+When `StreamingCompleteEvent.final_response` is present, the formatter forwards it in `payload.final_response` so renderer consumers can materialize the final assistant text even if no streamed chunk arrived.
 
 ## Skip vs Pass-Through Matrix
 
 - assistant formatter: strict required field, may skip
 - user formatter: pass-through
 - system formatter: pass-through
-- complete formatter: static payload
+- complete formatter: optional final-response payload
 
 Operational implication:
 

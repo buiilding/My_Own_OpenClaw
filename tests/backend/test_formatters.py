@@ -128,7 +128,7 @@ class TestStreamingCompleteEventFormatter:
         return StreamingCompleteEventFormatter()
 
     def test_format(self, formatter):
-        event = {"type": "complete"}
+        event = {"type": "complete", "final_response": "done"}
         msg_id = "msg-123"
         
         result = formatter.format(event, msg_id)
@@ -136,7 +136,7 @@ class TestStreamingCompleteEventFormatter:
         assert result == {
             "type": "streaming-complete",
             "id": msg_id,
-            "payload": {},
+            "payload": {"final_response": "done"},
         }
 
     def test_format_with_empty_event(self, formatter):
@@ -146,6 +146,17 @@ class TestStreamingCompleteEventFormatter:
             "type": "streaming-complete",
             "id": "msg-123",
             "payload": {},
+        }
+
+    def test_format_with_streaming_event_final_response(self, formatter):
+        event = StreamingCompleteEventClass(final_response="typed done")
+
+        result = formatter.format(event, "msg-456")
+
+        assert result == {
+            "type": "streaming-complete",
+            "id": "msg-456",
+            "payload": {"final_response": "typed done"},
         }
 
 
