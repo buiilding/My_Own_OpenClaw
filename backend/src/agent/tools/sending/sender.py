@@ -24,6 +24,7 @@ if TYPE_CHECKING:
     from backend.src.llm.parser_types import ParsedToolCall
 
 logger = logging.getLogger(__name__)
+_INVALID_COMPUTER_USE_TOOL_NAME = "invalid_computer_use_tool"
 
 
 class ToolSender:
@@ -96,9 +97,11 @@ class ToolSender:
                     metadata=tool_call.metadata,
                 ),
             )
-            tool_metadata["coordinate_resolution_failed"] = True
-            tool_metadata["skip_frontend_execution"] = True
-            tool_metadata.setdefault("request_id", request_id)
+            failure_metadata = self._build_preparation_failure_metadata(
+                tool_call=tool_call,
+                request_id=request_id,
+            )
+            tool_metadata.update(failure_metadata)
             yield ToolCallEvent(
                 tool_name=tool_call.tool_name,
                 parameters=tool_call.parameters,  # Use original parameters (coordinate resolution failed)
@@ -117,11 +120,7 @@ class ToolSender:
                 output=error_msg,
                 error=error_msg,
                 execution_time=0.0,
-                metadata={
-                    "coordinate_resolution_failed": True,
-                    "skip_frontend_execution": True,
-                    "request_id": request_id,
-                },
+                metadata=failure_metadata,
             )
 
         if preparation_result.errors and preparation_result.bundle_id:
@@ -192,6 +191,22 @@ class ToolSender:
             ),
         )
         return tool_metadata
+
+    @staticmethod
+    def _build_preparation_failure_metadata(
+        *,
+        tool_call: "ParsedToolCall",
+        request_id: str,
+    ) -> Dict[str, Any]:
+        metadata: Dict[str, Any] = {
+            "skip_frontend_execution": True,
+            "request_id": request_id,
+        }
+        if tool_call.tool_name == _INVALID_COMPUTER_USE_TOOL_NAME:
+            metadata["computer_use_validation_failed"] = True
+        else:
+            metadata["coordinate_resolution_failed"] = True
+        return metadata
 
     @staticmethod
     def _build_model_facing_tool_call(
