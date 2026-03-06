@@ -165,6 +165,86 @@ def test_extract_tool_call_unified_computer_use_rejects_unknown_subtool():
     assert schema.extract_tool_call(payload) is None
 
 
+def test_extract_tool_call_unified_computer_use_trims_subtool_name():
+    schema = ToolCallSchema()
+    payload = {
+        "functionCall": {
+            "name": "computer_use",
+            "args": {
+                "tool": "  mouse_control  ",
+                "arguments": {"action": "click", "x": 9, "y": 8},
+                "metadata": {
+                    "description": "screen",
+                    "explanation": "click",
+                    "expectation": "dialog opens",
+                },
+            },
+        }
+    }
+
+    extracted = schema.extract_tool_call(payload)
+
+    assert extracted == (
+        "mouse_control",
+        {"action": "click", "x": 9, "y": 8},
+        {
+            "description": "screen",
+            "explanation": "click",
+            "expectation": "dialog opens",
+        },
+    )
+
+
+def test_extract_tool_call_unified_computer_use_rejects_blank_subtool_after_trim():
+    schema = ToolCallSchema()
+    payload = {
+        "functionCall": {
+            "name": "computer_use",
+            "args": {
+                "tool": "   ",
+                "arguments": {"action": "click", "x": 1, "y": 2},
+                "metadata": {
+                    "description": "screen",
+                    "explanation": "click",
+                    "expectation": "dialog opens",
+                },
+            },
+        }
+    }
+
+    assert schema.extract_tool_call(payload) is None
+
+
+def test_extract_tool_call_unified_computer_use_defaults_null_arguments_to_empty_dict():
+    schema = ToolCallSchema()
+    payload = {
+        "functionCall": {
+            "name": "computer_use",
+            "args": {
+                "tool": "wait",
+                "arguments": None,
+                "metadata": {
+                    "description": "screen",
+                    "explanation": "pause",
+                    "expectation": "next state visible",
+                },
+            },
+        }
+    }
+
+    extracted = schema.extract_tool_call(payload)
+
+    assert extracted == (
+        "wait",
+        {},
+        {
+            "description": "screen",
+            "explanation": "pause",
+            "expectation": "next state visible",
+        },
+    )
+
+
 def test_extract_tool_call_unified_computer_use_keeps_nested_arguments_metadata_unpromoted():
     schema = ToolCallSchema()
     payload = {
