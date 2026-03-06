@@ -12,14 +12,18 @@ title: "Query Execution Helper Contracts and Compatibility Event Extraction Refe
 
 - `backend/src/api/services/query_execution.py`
 - `backend/src/api/services/query_event_extraction.py`
+- `backend/src/api/services/query_execution_support/query_execution_pipeline_events.py`
+- `backend/src/api/services/query_execution_support/query_execution_stream_state.py`
 - `backend/src/api/processing/pipeline.py`
 - `backend/src/core/events/streaming_events.py`
 - `tests/backend/test_stream_pipeline.py`
 - `tests/backend/test_query_event_extraction.py`
+- `tests/backend/test_query_execution_service_helpers.py`
 
 ## Helper Surface in Query Execution
 
-`QueryExecutionService.execute(...)` relies on module-level helper functions in `query_event_extraction.py` (plus compatibility wrapper methods in `QueryExecutionService`) to keep stream-loop logic compatible across event shapes:
+`QueryExecutionService.execute(...)` relies on module-level helper functions in
+`query_event_extraction.py` to keep stream-loop logic compatible across event shapes:
 
 - `extract_event_type`
 - `extract_dict_payload`
@@ -33,7 +37,9 @@ title: "Query Execution Helper Contracts and Compatibility Event Extraction Refe
 
 These helpers isolate parsing/compat logic from transport/tts orchestration.
 
-`QueryExecutionService` intentionally keeps `_extract_*`/`_resolve_completion_text` class wrappers as compatibility surface so legacy tests/callers can still bind helper behavior through the service class.
+`QueryExecutionStreamState` (`query_execution_support/query_execution_stream_state.py`) owns mutable
+per-turn aggregation/latch state and produces stable kwargs payloads consumed by
+`resolve_completion_text(...)`.
 
 ## Event-Type Compatibility Contract
 
@@ -118,7 +124,7 @@ Return value updates `saw_text_chunk` so caller state remains consistent.
 When stream iteration finishes without terminal event:
 
 - service logs warning
-- reuses same `_resolve_completion_text` + `_emit_completion_events` path
+- reuses same completion-resolver + `_emit_completion_events` path
 
 This keeps end-of-stream behavior uniform regardless of whether terminal event came from upstream model stream.
 
@@ -137,13 +143,15 @@ Current explicit tests cover:
 
 - `StreamPipeline` concurrency/error isolation (`tests/backend/test_stream_pipeline.py`)
 - query event helper extraction/completion precedence contracts (`tests/backend/test_query_event_extraction.py`)
-- compatibility wrappers through API handler tests (`tests/backend/test_api_handlers.py`)
+- query-execution helper module behavior (`tests/backend/test_query_execution_service_helpers.py`)
+- integration usage through API handler tests (`tests/backend/test_api_handlers.py`)
 
 ## Drift Hotspots
 
 1. narrowing accepted chunk event aliases can drop streamed text aggregation for legacy emitters.
 2. changing helper precedence can produce empty or duplicated final responses.
 3. removing synthetic chunk backfill can yield completion-only turns with no visible assistant text in some frontend paths.
+4. desynchronizing stream-state helper shape (`completion_kwargs`) from resolver call signature can regress terminal fallback behavior.
 
 ## Related Pages
 
