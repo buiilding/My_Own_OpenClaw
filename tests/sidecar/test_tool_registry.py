@@ -328,7 +328,8 @@ async def test_execute_computer_use_rejects_whitespace_only_required_metadata_fi
 
 
 @pytest.mark.asyncio
-async def test_execute_computer_use_rejects_missing_required_metadata_field():
+@pytest.mark.parametrize("missing_field", ["description", "explanation", "expectation"])
+async def test_execute_computer_use_rejects_missing_required_metadata_field(missing_field):
     registry = ToolRegistry()
     captured = {"called": False}
 
@@ -338,21 +339,28 @@ async def test_execute_computer_use_rejects_missing_required_metadata_field():
 
     registry.tools["mouse_control"] = mouse_tool
 
-    result = await registry.execute_tool("computer_use", {
-        "tool": "mouse_control",
-        "metadata": {
-            "description": "screen",
-            "explanation": "click target",
+    metadata = {
+        "description": "screen",
+        "explanation": "click target",
+        "expectation": "dialog opens",
+    }
+    metadata.pop(missing_field)
+
+    result = await registry.execute_tool(
+        "computer_use",
+        {
+            "tool": "mouse_control",
+            "metadata": metadata,
+            "arguments": {
+                "action": "click",
+                "x": 12,
+                "y": 34,
+            },
         },
-        "arguments": {
-            "action": "click",
-            "x": 12,
-            "y": 34,
-        },
-    })
+    )
 
     assert result.success is False
-    assert "computer_use missing required metadata field: expectation" == result.error
+    assert f"computer_use missing required metadata field: {missing_field}" == result.error
     assert captured["called"] is False
 
 
@@ -502,7 +510,13 @@ async def test_execute_computer_use_rejects_legacy_nested_arguments_metadata_wra
 
 
 @pytest.mark.asyncio
-async def test_execute_computer_use_rejects_non_string_required_metadata_fields():
+@pytest.mark.parametrize(
+    ("invalid_field", "invalid_value"),
+    [("description", 123), ("explanation", {"why": "click"}), ("expectation", ["dialog"])],
+)
+async def test_execute_computer_use_rejects_non_string_required_metadata_fields(
+    invalid_field, invalid_value
+):
     registry = ToolRegistry()
     captured = {"called": False}
 
@@ -512,22 +526,28 @@ async def test_execute_computer_use_rejects_non_string_required_metadata_fields(
 
     registry.tools["mouse_control"] = mouse_tool
 
-    result = await registry.execute_tool("computer_use", {
-        "tool": "mouse_control",
-        "metadata": {
-            "description": 123,
-            "explanation": "click target",
-            "expectation": "dialog opens",
+    metadata = {
+        "description": "screen",
+        "explanation": "click target",
+        "expectation": "dialog opens",
+    }
+    metadata[invalid_field] = invalid_value
+
+    result = await registry.execute_tool(
+        "computer_use",
+        {
+            "tool": "mouse_control",
+            "metadata": metadata,
+            "arguments": {
+                "action": "click",
+                "x": 12,
+                "y": 34,
+            },
         },
-        "arguments": {
-            "action": "click",
-            "x": 12,
-            "y": 34,
-        },
-    })
+    )
 
     assert result.success is False
-    assert "computer_use missing required metadata field: description" == result.error
+    assert f"computer_use missing required metadata field: {invalid_field}" == result.error
     assert captured["called"] is False
 
 

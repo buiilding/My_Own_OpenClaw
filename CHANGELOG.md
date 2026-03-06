@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(sidecar-tool-registry-computer-use-required-metadata-matrices): expand `tools.registry` runtime regressions with full required-field matrices for `computer_use.metadata` (missing and non-string `description`/`explanation`/`expectation`) while asserting fail-close no-subtool-execution behavior for each invalid case.
 - refactor(fullstack-chat-state-subfoldering-wakeword-retry-and-semantic-service-factory): moved chat state helpers into `frontend/src/renderer/features/chat/utils/state/` (components/hooks/tool-runner/tests/docs rewired), increased missing-device wakeword retry delay to `60s` with devicechange-based unlock in `useWakewordDetection`, and consolidated `/api/semantic` route dependency wiring through `_build_semantic_service()`.
 - test(backend-parser-validation-computer-use-missing-field-matrix): add validator-level metadata matrix coverage for both legacy (`mouse_control`) and unified (`computer_use`) tool names when each required metadata field is omitted, enforcing deterministic `ParseValidationError` fail-close behavior by missing key.
 - docs(backend-runs-doc-crosslink-discoverability): add `/api/runs` helper-contract cross-links from model and response-builder deep references so validation/projection ownership is discoverable from all runs route contract pages.
