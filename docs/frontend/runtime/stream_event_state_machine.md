@@ -59,6 +59,7 @@ Handled backend event types:
   - register `turn_ref -> conversation_ref` mapping
   - refresh transcript session binding (`activeConversationRef || resolvedConversationRef`)
   - dispatch to event-type handler map
+4. optional renderer trace logging (`[StreamTrace][renderer][before|after]`) runs only when the window URL includes `debug_stream=1` so normal `electron:dev` sessions do not spam console output
 
 Conversation resolution order:
 

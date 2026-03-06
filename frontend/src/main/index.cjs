@@ -96,6 +96,7 @@ const RESPONSE_OVERLAY_PHASE = createResponseOverlayPhaseEnum();
 const APP_WINDOW_TITLE_MARKERS = ['desktop assistant', 'windieos'];
 const ENABLE_OS_TOOL_GHOST_DEBUG = process.env.WINDIE_DEBUG_GHOST_OVERLAY === '1';
 const ENABLE_DEV_TRANSPARENCY_UI = process.env.WINDIE_DEV_UI === '1';
+const ENABLE_DEBUG_STREAM_TRACE = process.env.WINDIE_DEBUG_STREAM_EVENTS === '1';
 const VM_MODE_ENABLED = isVmModeEnabled(process.env);
 const VM_WORKER_MODE_ENABLED = isVmWorkerModeEnabled(process.env);
 const RESPONSE_WINDOW_DEBUG_VIEW = 'tool-ghost-debug';
@@ -291,6 +292,7 @@ function createWindow() {
     vmMode: VM_MODE_ENABLED,
     minimizeToTrayOnClose: !VM_MODE_ENABLED,
     enableDevTransparencyUi: ENABLE_DEV_TRANSPARENCY_UI,
+    enableDebugStreamTrace: ENABLE_DEBUG_STREAM_TRACE,
     initializeIpc,
     applyResponseOverlayPhase,
     prepareOverlayQueryCaptureFocus,
@@ -333,6 +335,7 @@ function createChatWindow() {
     app,
     platform: process.platform,
     enableDevTransparencyUi: ENABLE_DEV_TRANSPARENCY_UI,
+    enableDebugStreamTrace: ENABLE_DEBUG_STREAM_TRACE,
     positionChatWindow,
     hideChatWindow,
     syncWakewordToggleForChatVisibility,
@@ -353,6 +356,7 @@ function createResponseWindow() {
     app,
     platform: process.platform,
     enableDevTransparencyUi: ENABLE_DEV_TRANSPARENCY_UI,
+    enableDebugStreamTrace: ENABLE_DEBUG_STREAM_TRACE,
     enableOsToolGhostDebug: ENABLE_OS_TOOL_GHOST_DEBUG,
     responseWindowDebugView: RESPONSE_WINDOW_DEBUG_VIEW,
     positionResponseWindow,

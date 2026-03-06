@@ -77,6 +77,7 @@ When `streaming-complete` arrives:
 2. concatenated chunk text
 3. assistant full text
 4. deterministic fallback text
+- both normal terminal handling and no-terminal fallback now run through the same completion helper so backfill-chunk + terminal-event behavior stays identical on both paths
 - if no prior text chunk but completion exists, emit synthetic chunk backfill before completion
 - always emit terminal completion event through pipeline
 
