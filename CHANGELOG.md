@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(backend-parser-types-computer-use-metadata-extraction-boundary): extend `ToolCallSchema` regressions so unified `computer_use` keeps legacy nested `arguments.metadata` inside executable arguments (not promoted to parsed metadata) and safely ignores non-dict top-level metadata.
 - test(frontend-local-backend-computer-use-arg-forwarding-boundary): extend frontend bridge arg-contract regressions so unified `computer_use` envelopes are forwarded verbatim (including legacy nested `arguments.metadata` wrappers) and missing top-level metadata is not auto-synthesized before sidecar validation.
 - refactor(fullstack-folder-reorg-query-execution-and-chatstream-utils): reorganized backend query-execution support helpers into `backend/src/api/services/query_execution_support/`, reorganized frontend chat-stream utilities into `frontend/src/renderer/features/chat/utils/chatStream/`, rewired imports/tests/docs to new folder boundaries, and revalidated lint/duplication/dead-code/API-routes consolidation gates.
 - refactor(fullstack-folder-reorg-vm-run-control-and-toolrunner-utils): reorganized backend VM run-control helper modules under `backend/src/services/vm_run_control_support/`, reorganized frontend tool-runner utilities under `frontend/src/renderer/features/chat/utils/toolRunner/`, rewired all imports/docs/tests to new folder structure, and revalidated lint/duplication/dead-code/API-routes consolidation gates.
