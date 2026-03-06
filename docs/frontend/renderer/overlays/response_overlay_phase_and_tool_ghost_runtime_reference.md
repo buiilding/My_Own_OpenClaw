@@ -1,7 +1,7 @@
 ---
-summary: "Deep reference for response overlay renderer behavior: phase-driven visibility, awaiting/thinking states, closeability rules, and deterministic stepped sizing IPC updates."
+summary: "Deep reference for response overlay renderer behavior: phase-driven visibility, awaiting vs response states, closeability rules, and deterministic fixed-frame sizing IPC updates."
 read_when:
-  - When changing `ChatBoxResponse.jsx` rendering logic or response overlay UX states.
+  - When changing `ChatBoxResponse.jsx` rendering logic, overlay utility contracts, or response overlay UX states.
   - When debugging missing response panes, stale awaiting indicators, or incorrect response overlay resize behavior.
 title: "Response Overlay Phase Runtime Reference"
 ---
@@ -16,7 +16,9 @@ title: "Response Overlay Phase Runtime Reference"
 - `frontend/src/renderer/features/chat/utils/chatSelectors.js`
 - `frontend/src/renderer/features/chat/hooks/useResponseOverlayPhase.js`
 - `frontend/src/renderer/features/chat/utils/overlay/overlayPhaseListener.js`
+- `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhaseContract.js`
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhasePayload.js`
+- `frontend/src/renderer/features/chat/utils/overlay/responseOverlayLayoutMode.js`
 - `frontend/src/renderer/features/chat/utils/overlay/overlayFrameSize.js`
 - `frontend/src/renderer/infrastructure/markdown.ts`
 - `tests/frontend/ChatBoxResponse.state.test.jsx`
@@ -71,28 +73,31 @@ Rendering:
 
 - `error` renders plain text.
 - `llm-text` renders sanitized markdown.
-- response pane height snaps to 1 of 5 fixed values based on content fit:
-  - `92`, `164`, `236`, `324`, `460`
-- sizing is step-based (no continuous live resize).
+- response pane height is fixed at `236px` while tokens stream.
 
 Scroll behavior:
 
 - tracks overflow-above class state.
 - bottom-stick threshold keeps stream pinned until user scrolls up.
 
-## Awaiting and Thinking Stream Behavior
+## Awaiting Indicator Behavior
 
 - awaiting mode shows typing indicator.
-- thinking text renders in dedicated stream container with independent overflow tracking.
-- thinking stream uses separate bottom-stick threshold from response pane.
-- compaction-start status (`Compacting conversation history...`) reuses the same awaiting/thinking stream elements.
+- `ChatBoxResponse` does not render a separate reasoning/thinking stream region.
+- compaction status text alone does not render overlay content unless awaiting/response mode is active.
 
 ## Overlay Size IPC Contract
 
 `set-responsebox-size` payloads:
 
 - hidden: `{ visible: false, width: 0, height: 0 }`
-- shown: `{ visible: true, width, height }`
+- shown: `{ visible: true, width, height, compact_hover }`
+
+Layout-specific sizing:
+
+- `response` mode reports measured shell width + fixed response frame height
+- `awaiting-typing` mode forces `height=24` and reports `compact_hover=true`
+- `hidden` mode reports zero size and `visible=false`
 
 Dedupe behavior:
 
@@ -108,6 +113,7 @@ Remaining tool-ghost UI pieces are debug-harness scoped (`ToolGhostDebugApp`, `T
 ## Related Pages
 
 - [Frontend Renderer Overlay Docs Hub](README.md)
+- [Response Overlay Utility Contract Reference](response_overlay_phase_contract_payload_layout_and_frame_utilities_reference.md)
 - [Renderer Overlay Tool Ghost Docs Hub](tool_ghost/README.md)
 - [Tool Ghost Debug Cursor Payload and Timing Reference](tool_ghost/tool_ghost_preview_payload_parsing_and_target_mapping_reference.md)
 - [Chat Stream and Tool Execution Reference](../chat_stream_and_tool_execution_reference.md)

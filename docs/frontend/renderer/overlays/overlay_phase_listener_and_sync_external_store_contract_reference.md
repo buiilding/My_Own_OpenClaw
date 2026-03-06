@@ -130,5 +130,6 @@ Because both components can mount together, shared-listener ownership prevents d
 ## Related Pages
 
 - [Response Overlay Phase Runtime Reference](response_overlay_phase_and_tool_ghost_runtime_reference.md)
+- [Response Overlay Utility Contract Reference](response_overlay_phase_contract_payload_layout_and_frame_utilities_reference.md)
 - [Frontend Renderer Overlay Docs Hub](README.md)
 - [Chat Stream and Tool Execution Reference](../chat_stream_and_tool_execution_reference.md)
