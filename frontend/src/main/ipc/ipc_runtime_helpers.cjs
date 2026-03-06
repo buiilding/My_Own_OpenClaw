@@ -2,6 +2,30 @@ const {
   resolveBackendOverlayPhaseTransition,
 } = require('./ipc_overlay_phase_events.cjs');
 
+function isDebugStreamTraceEnabled() {
+  return process.env.WINDIE_DEBUG_STREAM_EVENTS === '1';
+}
+
+function buildBackendEventTraceSummary(data) {
+  if (!data || typeof data !== 'object') {
+    return 'invalid-event';
+  }
+  const payload = (
+    data.payload && typeof data.payload === 'object' && !Array.isArray(data.payload)
+  ) ? data.payload : {};
+  const text = typeof payload.text === 'string' ? payload.text : '';
+  const finalResponse = typeof payload.final_response === 'string' ? payload.final_response : '';
+  const content = typeof payload.content === 'string' ? payload.content : '';
+  return [
+    `type=${typeof data.type === 'string' ? data.type : 'unknown'}`,
+    `turn=${typeof data.turn_ref === 'string' ? data.turn_ref : '-'}`,
+    `conv=${typeof data.conversation_ref === 'string' ? data.conversation_ref : '-'}`,
+    `text_len=${text.length}`,
+    `final_len=${finalResponse.length}`,
+    `content_len=${content.length}`,
+  ].join(' ');
+}
+
 function resolveRendererViewFromWebContents(webContents) {
   if (!webContents || typeof webContents.getURL !== 'function') {
     return null;
@@ -133,6 +157,9 @@ function processBackendMessageData(data, {
   broadcastToRenderers,
   log,
 }) {
+  if (isDebugStreamTraceEnabled()) {
+    log(`[StreamTrace][main][recv] ${buildBackendEventTraceSummary(data)}`);
+  }
   if (data && typeof data === 'object') {
     if (data.session_id) {
       setCurrentSessionId(data.session_id);
@@ -172,7 +199,9 @@ function processBackendMessageData(data, {
 }
 
 module.exports = {
+  buildBackendEventTraceSummary,
   generateUserId,
+  isDebugStreamTraceEnabled,
   normalizeBackendPayload,
   processBackendMessageData,
   runBeforeOverlayQueryCapture,
