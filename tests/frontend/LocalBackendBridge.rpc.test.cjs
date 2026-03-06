@@ -182,6 +182,35 @@ describe('local_backend_bridge RPC handlers', () => {
     await expect(promise).resolves.toEqual({ success: true, data: { value: 1 } });
   });
 
+  test('execute-tool does not mutate caller run_shell_command args when injecting sudo mode', async () => {
+    const { handlers, stdoutHandler } = initBridge({
+      frontendConfig: { agent_full_sudo_enabled: true },
+    });
+    markReady();
+
+    const callerArgs = { command: 'sudo apt update', run_in_background: false };
+    const payload = {
+      toolName: 'run_shell_command',
+      args: callerArgs,
+    };
+
+    const promise = handlers['execute-tool'](null, payload);
+
+    expect(payload.args).toEqual({ command: 'sudo apt update', run_in_background: false });
+    expect(callerArgs).toEqual({ command: 'sudo apt update', run_in_background: false });
+    expectLastRequestWith('execute_tool', {
+      tool_name: 'run_shell_command',
+      args: {
+        command: 'sudo apt update',
+        run_in_background: false,
+        sudo_auth_mode: 'native',
+      },
+    });
+
+    emitRpcResult(stdoutHandler, { success: true, data: { value: 1 } });
+    await expect(promise).resolves.toEqual({ success: true, data: { value: 1 } });
+  });
+
   test('execute-tool forwards computer_use envelope unchanged', async () => {
     const { handlers, stdoutHandler } = initBridge();
     markReady();
