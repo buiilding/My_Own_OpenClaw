@@ -52,6 +52,7 @@ Loads renderer routes for packaged and dev runtime:
 - packaged: `dist/index.html` with optional query params
 - dev: `http://localhost:5173` + optional query string
 - view routing uses `?view=...`
+- VM mode routing flag uses `?vm_mode=1`
 - debug transparency UI uses `?dev_ui=1` when enabled
 
 ## Main Window Bootstrap (`createMainWindow`)
@@ -59,12 +60,16 @@ Loads renderer routes for packaged and dev runtime:
 Creation behavior:
 
 - builds frameless hidden dashboard window (`1000x700`, `#111318`)
-- enables content protection through `frontend/src/main/platform/content_protection/*` (Windows/macOS only; Linux uses screenshot hide/restore policy instead)
 - initializes:
   - IPC bridge (`initializeIpc`)
   - wakeword bridge (`initializeWakewordBridge`)
   - local backend bridge (`initializeLocalBackendBridge`)
   - main-process IPC registration (`initializeMainProcessIpc`)
+
+Important ownership note:
+
+- `createMainWindow(...)` does not call `enableContentProtectionSafely(...)`.
+- Content protection in this module is applied to overlay windows (`createChatWindow`, `createResponseWindow`) only.
 
 Close behavior:
 
@@ -75,10 +80,11 @@ Close behavior:
 
 Creation behavior:
 
-- builds overlay window (`520x96`)
+- builds overlay window (`520x116`)
 - positions via injected `positionChatWindow`
-- loads renderer route `view=chatbox`
+- lazily loads renderer route `view=chatbox` on first `show` event
 - syncs wakeword toggle on show/hide
+- applies content protection and topmost/workspace visibility policy through shared runtime helpers
 
 Close behavior:
 
@@ -90,12 +96,14 @@ Creation behavior:
 
 - builds overlay window (default hidden, height `1` unless debug mode)
 - loads:
-  - `view=chatbox-response` (normal mode)
+  - `view=chatbox-response` (normal mode; lazy-loaded on first show)
   - debug view (ghost overlay mode) when `enableOsToolGhostDebug=true`
 - syncs response overlay visibility state via injected setters
+- applies content protection and topmost/workspace visibility policy through shared runtime helpers
 
 Debug mode behavior:
 
+- response overlay renderer is eagerly loaded
 - response overlay starts visible and positioned immediately
 
 Close behavior:
