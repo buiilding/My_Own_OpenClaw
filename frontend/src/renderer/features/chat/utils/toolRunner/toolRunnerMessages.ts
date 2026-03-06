@@ -1,4 +1,4 @@
-import type { BundleExecutionResult, ToolExecutionResult } from '../../../../infrastructure/services/ToolExecutionService';
+import type { BundleExecutionResult, ToolExecutionResult } from '../../../../infrastructure/services/toolExecution/ToolExecutionService';
 import type { ChatMessage } from '../../stores/chatStore';
 import { resolveToolCallCorrelationId as resolveSharedToolCallCorrelationId } from '../toolCorrelationIds';
 

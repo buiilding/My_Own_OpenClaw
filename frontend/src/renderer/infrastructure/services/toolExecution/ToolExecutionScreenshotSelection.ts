@@ -1,8 +1,8 @@
-import type { ToolResult } from './MessageFormatter';
+import type { ToolResult } from '../MessageFormatter';
 import {
   normalizeArtifactImageContentType,
   resolveArtifactImageExtension,
-} from './ArtifactImageUtils';
+} from '../ArtifactImageUtils';
 import {
   extractToolResultImage,
   extractToolResultScreenshotRef,

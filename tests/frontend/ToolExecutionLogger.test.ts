@@ -7,7 +7,7 @@ import {
   logBundleTiming,
   logToolStart,
   logToolTiming,
-} from '../../frontend/src/renderer/infrastructure/services/ToolExecutionLogger';
+} from '../../frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionLogger';
 
 describe('ToolExecutionLogger', () => {
   let logSpy: jest.SpyInstance;

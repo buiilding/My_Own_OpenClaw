@@ -11,7 +11,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/services/ArtifactUploader'
   uploadArtifactBase64: jest.fn().mockResolvedValue(null),
 }));
 
-import { ToolExecutionService } from '../../frontend/src/renderer/infrastructure/services/ToolExecutionService';
+import { ToolExecutionService } from '../../frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionService';
 import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import {
   formatBundledToolOutputMessage,
@@ -19,7 +19,7 @@ import {
 } from '../../frontend/src/renderer/infrastructure/services/MessageFormatter';
 import { extractOSstate } from '../../frontend/src/renderer/infrastructure/services/SystemCapture';
 import { uploadArtifactBase64 } from '../../frontend/src/renderer/infrastructure/services/ArtifactUploader';
-import * as ToolExecutionBundleRunner from '../../frontend/src/renderer/infrastructure/services/ToolExecutionBundleRunner';
+import * as ToolExecutionBundleRunner from '../../frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionBundleRunner';
 
 const DISPLAY_BOUNDS_STORAGE_KEY = 'desktop-assistant-display-bounds';
 

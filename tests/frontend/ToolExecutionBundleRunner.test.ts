@@ -1,23 +1,23 @@
-jest.mock('../../frontend/src/renderer/infrastructure/services/ToolExecutionInvoker', () => ({
+jest.mock('../../frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionInvoker', () => ({
   invokeTool: jest.fn(),
 }));
 
-jest.mock('../../frontend/src/renderer/infrastructure/services/ToolExecutionCapture', () => ({
+jest.mock('../../frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionCapture', () => ({
   captureAfterTool: jest.fn(),
   isComputerUseTool: jest.fn(),
 }));
 
-jest.mock('../../frontend/src/renderer/infrastructure/services/ToolExecutionLogger', () => ({
+jest.mock('../../frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionLogger', () => ({
   logBundledToolStart: jest.fn(),
   logBundledToolTiming: jest.fn(),
 }));
 
-import { runToolBundle } from '../../frontend/src/renderer/infrastructure/services/ToolExecutionBundleRunner';
-import { invokeTool } from '../../frontend/src/renderer/infrastructure/services/ToolExecutionInvoker';
+import { runToolBundle } from '../../frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionBundleRunner';
+import { invokeTool } from '../../frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionInvoker';
 import {
   captureAfterTool,
   isComputerUseTool,
-} from '../../frontend/src/renderer/infrastructure/services/ToolExecutionCapture';
+} from '../../frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionCapture';
 
 const mockInvokeTool = invokeTool as jest.MockedFunction<typeof invokeTool>;
 const mockCaptureAfterTool = captureAfterTool as jest.MockedFunction<typeof captureAfterTool>;

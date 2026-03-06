@@ -1,4 +1,4 @@
-import type { ToolResult } from './MessageFormatter';
+import type { ToolResult } from '../MessageFormatter';
 
 type ExtractedToolResultImage = {
   base64: string;

@@ -1,11 +1,11 @@
-import { extractOSstate } from './SystemCapture';
-import { STANDARD_COMPUTER_USE_TOOLS } from './ToolComputerUseCatalog';
-import type { SystemState, ToolResult } from './MessageFormatter';
-import type { CaptureMeta } from './SystemCapture';
+import { extractOSstate } from '../SystemCapture';
+import { STANDARD_COMPUTER_USE_TOOLS } from '../ToolComputerUseCatalog';
+import type { SystemState, ToolResult } from '../MessageFormatter';
+import type { CaptureMeta } from '../SystemCapture';
 import {
   resolveScreenshotContentType,
   sanitizeCaptureMeta,
-} from './CapturePayloadUtils';
+} from '../CapturePayloadUtils';
 
 type ToolCaptureResult = {
   screenshot: string | null;

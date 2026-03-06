@@ -1,6 +1,6 @@
-import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
-import { getStoredDisplayBounds } from '../../utils/displaySelection';
-import type { ToolResult } from './MessageFormatter';
+import { IpcBridge, INVOKE_CHANNELS } from '../../ipc/bridge';
+import { getStoredDisplayBounds } from '../../../utils/displaySelection';
+import type { ToolResult } from '../MessageFormatter';
 
 type ToolInvokeOutcome = {
   result: ToolResult;

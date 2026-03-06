@@ -2,7 +2,7 @@ import {
   buildToolBundleResultEnvelope,
   buildToolResultEnvelope,
   resolveToolResultEnvelopeCorrelationId,
-} from '../../frontend/src/renderer/infrastructure/services/ToolResultEnvelope';
+} from '../../frontend/src/renderer/infrastructure/services/toolExecution/ToolResultEnvelope';
 import {
   buildToolRunnerBundleResultEnvelope,
   buildToolRunnerResultEnvelope,

@@ -2,7 +2,7 @@ import type { MutableRefObject } from 'react';
 import type {
   BundleExecutionResult,
   ToolExecutionResult,
-} from '../../../../infrastructure/services/ToolExecutionService';
+} from '../../../../infrastructure/services/toolExecution/ToolExecutionService';
 import { recordToolMessage } from '../../../../infrastructure/transcript/TranscriptWriter';
 import {
   buildBundleOutputMessage,

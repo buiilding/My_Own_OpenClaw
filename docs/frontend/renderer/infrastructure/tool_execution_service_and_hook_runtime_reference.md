@@ -13,10 +13,12 @@ title: "Tool Execution Service and Hook Runtime Reference"
 - `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
 - `frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerMessages.ts`
 - `frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerResultPersistence.ts`
-- `frontend/src/renderer/infrastructure/services/ToolExecutionService.ts`
-- `frontend/src/renderer/infrastructure/services/ToolExecutionResultDispatch.ts`
-- `frontend/src/renderer/infrastructure/services/ToolExecutionBundleRunner.ts`
-- `frontend/src/renderer/infrastructure/services/ToolExecutionTypes.ts`
+- `frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionService.ts`
+- `frontend/src/renderer/infrastructure/services/toolExecution/singleToolExecution.ts`
+- `frontend/src/renderer/infrastructure/services/toolExecution/bundleExecution.ts`
+- `frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionResultDispatch.ts`
+- `frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionBundleRunner.ts`
+- `frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionTypes.ts`
 - `tests/frontend/ToolExecutionService.test.ts`
 - `tests/frontend/ToolExecutionBundleRunner.test.ts`
 - `tests/frontend/ToolRunnerHook.events.test.ts`
@@ -34,7 +36,9 @@ title: "Tool Execution Service and Hook Runtime Reference"
 
 `ToolExecutionService` owns:
 
-- single-tool and bundle execution pipelines
+- service-level callback state and delegation into:
+  - `singleToolExecution.ts`
+  - `bundleExecution.ts`
 - capture/upload/format integration
 - normalized backend result envelope emission (`tool-result`, `tool-bundle-result`) via `ToolExecutionResultDispatch`
 

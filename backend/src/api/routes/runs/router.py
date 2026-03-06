@@ -11,7 +11,6 @@ from .models import (
     CreateRunResponse,
     RunControlRequest,
     RunControlResponse,
-    RunEvent,
     RunEventIngestRequest,
     RunEventIngestResponse,
     RunEventsResponse,
@@ -25,6 +24,7 @@ from .models import (
     WorkerPollHeartbeatRequest,
     WorkerPollHeartbeatResponse,
 )
+from .route_helpers import build_run_events_response, validate_control_request
 from .response_builders import (
     build_create_run_response,
     build_ingested_run_event_response,
@@ -103,14 +103,7 @@ async def list_run_events(
     events = await service.list_events(run_id, after_seq=after_seq, limit=limit)
     if events is None:
         raise HTTPException(status_code=404, detail="Run not found")
-    next_after_seq = after_seq
-    if events:
-        next_after_seq = int(events[-1]["seq"])
-    return RunEventsResponse(
-        run_id=run_id,
-        events=[RunEvent(**event) for event in events],
-        next_after_seq=next_after_seq,
-    )
+    return build_run_events_response(run_id, events, after_seq)
 
 
 @router.post("/{run_id}/events", response_model=RunEventIngestResponse)
@@ -138,11 +131,7 @@ async def control_run(
     service: VmRunControlServiceDep,
     _api_key: RunsApiKeyDep = None,
 ) -> RunControlResponse:
-    if payload.action == "set-control-mode" and payload.control_mode is None:
-        raise HTTPException(
-            status_code=422,
-            detail="control_mode is required when action is set-control-mode",
-        )
+    validate_control_request(payload)
     run = require_run(await service.apply_control(
         run_id,
         action=payload.action,

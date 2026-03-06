@@ -1,5 +1,5 @@
 import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
-import { invokeTool } from '../../frontend/src/renderer/infrastructure/services/ToolExecutionInvoker';
+import { invokeTool } from '../../frontend/src/renderer/infrastructure/services/toolExecution/ToolExecutionInvoker';
 
 const DISPLAY_BOUNDS_STORAGE_KEY = 'desktop-assistant-display-bounds';
 
