@@ -14,12 +14,14 @@ title: "Response Overlay Phase Runtime Reference"
 - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
 - `frontend/src/renderer/features/chat/components/chatBoxResponseUtils.js`
 - `frontend/src/renderer/features/chat/utils/chatSelectors.js`
+- `frontend/src/renderer/features/chat/hooks/useResponseOverlayPhase.js`
 - `frontend/src/renderer/features/chat/utils/overlayPhaseListener.js`
 - `frontend/src/renderer/features/chat/utils/responseOverlayPhasePayload.js`
 - `frontend/src/renderer/features/chat/utils/overlayFrameSize.js`
 - `frontend/src/renderer/infrastructure/markdown.ts`
 - `tests/frontend/ChatBoxResponse.state.test.jsx`
 - `tests/frontend/OverlayPhaseListener.test.js`
+- `tests/frontend/UseResponseOverlayPhase.test.jsx`
 - `tests/frontend/OverlayFrameSize.test.js`
 
 ## Input State and Message Selection
@@ -47,6 +49,7 @@ Payload normalization boundary:
 
 - `responseOverlayPhasePayload.parseResponseOverlayPhasePayload(...)` is the canonical parser for phase + recovery metadata (`correlation_id`, `attempt`, `max_attempts`, `recovery_stage`, `failure_reason`).
 - `overlayPhaseListener` forwards only parsed payloads; invalid phase strings are dropped.
+- `useResponseOverlayPhase` consumes overlay phase via `useSyncExternalStore` against `overlayPhaseListener` snapshot/store subscription helpers, removing component-local `useEffect` wiring for this external event source.
 
 Modes:
 

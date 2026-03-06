@@ -12,6 +12,9 @@ from backend.src.services.vm_run_control_support.vm_run_control_helpers import (
     normalize_optional_string,
     now_iso,
 )
+from backend.src.services.vm_run_control_support.vm_run_control_bulk_stop import (
+    stop_active_runs,
+)
 from backend.src.services.vm_run_control_support.vm_run_control_event_payloads import (
     build_run_control_payload,
     build_run_created_payload,
@@ -340,18 +343,7 @@ class VmRunControlService:
         requested_by: Optional[str] = None,
     ) -> List[str]:
         async with self._lock:
-            stopped_run_ids: List[str] = []
-            normalized_workspace_id = normalize_optional_string(workspace_id)
-            for run in self._runs.values():
-                if (
-                    normalized_workspace_id is not None
-                    and run.get("workspace_id") != normalized_workspace_id
-                ):
-                    continue
-                if run.get("status") not in self._ACTIVE_STATUSES:
-                    continue
-
-                run["status"] = "stopped"
+            def enqueue_stop_control(run: Dict[str, Any]) -> None:
                 self._enqueue_control_command_locked(
                     run,
                     action="stop",
@@ -359,8 +351,13 @@ class VmRunControlService:
                     control_mode=run.get("control_mode"),
                     bulk=True,
                 )
-                stopped_run_ids.append(str(run.get("run_id")))
-            return stopped_run_ids
+
+            return stop_active_runs(
+                self._runs,
+                workspace_id=workspace_id,
+                active_statuses=self._ACTIVE_STATUSES,
+                on_stop=enqueue_stop_control,
+            )
 
     async def register_worker_heartbeat(
         self,

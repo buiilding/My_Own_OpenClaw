@@ -9,14 +9,17 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
 }));
 
-import { subscribeResponseOverlayPhase } from '../../frontend/src/renderer/features/chat/utils/overlayPhaseListener';
+import {
+  getResponseOverlayPhaseSnapshot,
+  subscribeResponseOverlayPhaseStore,
+} from '../../frontend/src/renderer/features/chat/utils/overlayPhaseListener';
 
 describe('overlayPhaseListener', () => {
   beforeEach(() => {
     mockOn.mockReset();
   });
 
-  test('subscribes to response-overlay-phase and forwards valid phase strings', () => {
+  test('store subscribers receive parsed phase updates', () => {
     let listener = null;
     const removeListener = jest.fn();
     mockOn.mockImplementation((_channel, handler) => {
@@ -24,78 +27,26 @@ describe('overlayPhaseListener', () => {
       return removeListener;
     });
 
-    const onPhase = jest.fn();
-    const unsubscribe = subscribeResponseOverlayPhase(onPhase);
+    const onStoreChange = jest.fn();
+    const unsubscribeStore = subscribeResponseOverlayPhaseStore(onStoreChange);
+    expect(typeof getResponseOverlayPhaseSnapshot()).toBe('string');
 
-    expect(mockOn).toHaveBeenCalledWith('response-overlay-phase', expect.any(Function));
+    listener?.({ phase: 'awaiting-first-chunk' });
+    expect(onStoreChange).toHaveBeenCalledTimes(1);
+    expect(getResponseOverlayPhaseSnapshot() === 'awaiting-first-chunk').toBe(true);
 
-    listener?.({
-      phase: 'streaming',
-      source: 'backend',
-      correlation_id: 'req-1',
-      attempt: 1,
-      max_attempts: 5,
-      recovery_stage: 'tool-output',
-      failure_reason: 'focus_retrying',
-    });
-    listener?.({
-      phase: 'tool-call',
-      correlation_id: '   ',
-      recovery_stage: '\t',
-      failure_reason: ' ',
-    });
-    listener?.({ phase: 'complete' });
-    listener?.({ phase: 'unknown-phase' });
-    listener?.({ phase: 'error', attempt: Infinity });
-    listener?.({ phase: 7 });
-    listener?.({});
-    listener?.(null);
+    listener?.({ phase: 'invalid' });
+    expect(onStoreChange).toHaveBeenCalledTimes(1);
+    expect(getResponseOverlayPhaseSnapshot() === 'awaiting-first-chunk').toBe(true);
 
-    expect(onPhase).toHaveBeenCalledTimes(4);
-    expect(onPhase).toHaveBeenNthCalledWith(
-      1,
-      'streaming',
-      {
-        phase: 'streaming',
-        source: 'backend',
-        correlation_id: 'req-1',
-        attempt: 1,
-        max_attempts: 5,
-        recovery_stage: 'tool-output',
-        failure_reason: 'focus_retrying',
-      },
-    );
-    expect(onPhase).toHaveBeenNthCalledWith(
-      2,
-      'tool-call',
-      expect.objectContaining({
-        phase: 'tool-call',
-        correlation_id: undefined,
-        recovery_stage: undefined,
-        failure_reason: undefined,
-      }),
-    );
-    expect(onPhase).toHaveBeenNthCalledWith(
-      3,
-      'complete',
-      expect.objectContaining({ phase: 'complete' }),
-    );
-    expect(onPhase).toHaveBeenNthCalledWith(
-      4,
-      'error',
-      expect.objectContaining({
-        phase: 'error',
-        attempt: undefined,
-      }),
-    );
-
-    unsubscribe();
+    unsubscribeStore();
     expect(removeListener).toHaveBeenCalledTimes(1);
   });
 
   test('unsubscribe is safe when ipc subscription has no cleanup fn', () => {
     mockOn.mockReturnValue(undefined);
-    const unsubscribe = subscribeResponseOverlayPhase(jest.fn());
+    const unsubscribe = subscribeResponseOverlayPhaseStore(jest.fn());
     expect(() => unsubscribe()).not.toThrow();
   });
 });
+

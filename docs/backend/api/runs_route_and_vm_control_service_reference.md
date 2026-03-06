@@ -15,6 +15,7 @@ This page documents the hosted VM run-control contract implemented by:
 - `backend/src/api/routes/runs/router.py`
 - `backend/src/api/routes/runs/models.py`
 - `backend/src/services/vm_run_control.py`
+- `backend/src/services/vm_run_control_support/vm_run_control_bulk_stop.py`
 
 This flow is HTTP-only and separate from the `/ws` chat transport. It is designed as a lightweight control plane for VM worker orchestration.
 
@@ -131,6 +132,7 @@ Bulk stop helper.
 - Optional workspace filter.
 - Only active-status runs are affected.
 - Each affected run receives `status="stopped"`, one queued `stop` command, and `run-control` event payload with `bulk=true`.
+- Service implementation delegates filtering/mutation loop to `vm_run_control_bulk_stop.stop_active_runs(...)` and injects the queued-control callback from `VmRunControlService`.
 
 ### `POST /api/runs/{run_id}/worker-dispatched`
 
