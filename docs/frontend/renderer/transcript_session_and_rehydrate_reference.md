@@ -13,6 +13,7 @@ title: "Transcript Session and Rehydrate Reference"
 
 - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
 - `frontend/src/renderer/infrastructure/transcript/conversationTranscriptLoader.js`
+- `frontend/src/renderer/infrastructure/transcript/sessionSyncPayload.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoStorage.ts`
 - `frontend/src/renderer/infrastructure/transcript/pending/pendingTranscriptMessages.ts`
@@ -58,6 +59,11 @@ Session info is persisted/emitted only when changed:
 - writes to `sessionStorage`
 - dispatches browser event `transcript-session-update`
 - sends IPC event `transcript-session-sync` so main process session snapshots track renderer transcript identity
+- inbound `transcript-session-sync` packets are normalized by `extractTranscriptSessionSyncPayload(...)` before state updates:
+  - accepts alias keys (`conversationRef|conversation_ref|sessionId|session_id`, `userId|user_id`)
+  - trims/normalizes text and converts blank values to `null`
+  - supports partial updates (one field may be `undefined`)
+- inbound sync updates apply with rebroadcast disabled to avoid renderer/main loopback storms
 
 Dashboard consumers subscribe via `useSyncExternalStore` (`useTranscriptSessionInfo`) for stable snapshot behavior.
 
@@ -207,5 +213,6 @@ If resumed conversation loses screenshot/tool linkage:
 - [Transcript Writer Queue Flush and Session Event Reference](transcript/transcript_writer_queue_flush_and_session_event_reference.md)
 - [Transcript Queue Docs Hub](transcript/queue/README.md)
 - [Pending Transcript Queue FIFO and Requeue Contract Reference](transcript/queue/pending_transcript_queue_fifo_and_requeue_contract_reference.md)
+- [Transcript Session Sync Payload Normalization and Alias Contract Reference](transcript/contracts/transcript_session_sync_payload_normalization_and_alias_contract_reference.md)
 - [Memory IPC and RPC Mapping Reference](../contracts/memory_ipc_and_rpc_mapping_reference.md)
 - [Transcript Storage, Semantic Candidate, and Watermark Reference](../sidecar/memory/transcript_storage_semantic_candidate_and_watermark_reference.md)
