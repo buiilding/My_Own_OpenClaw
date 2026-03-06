@@ -5,6 +5,7 @@ Registers and executes all available tools.
 """
 
 import asyncio
+import copy
 from importlib import import_module
 import logging
 from typing import Any, Callable, Dict
@@ -115,6 +116,7 @@ class ToolRegistry:
             tool_arguments = args.get("arguments", {})
             if not isinstance(tool_arguments, dict):
                 return ToolResult.error_result("computer_use.arguments must be an object")
+            tool_arguments = copy.deepcopy(tool_arguments)
 
             metadata = args.get("metadata")
             if not isinstance(metadata, dict):
