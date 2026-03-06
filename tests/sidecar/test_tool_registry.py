@@ -323,6 +323,43 @@ async def test_execute_computer_use_accepts_trimmed_required_metadata_fields():
 
 
 @pytest.mark.asyncio
+async def test_execute_computer_use_drops_non_required_metadata_fields_before_subtool_execution():
+    registry = ToolRegistry()
+    captured = {}
+
+    def mouse_tool(args):
+        captured["args"] = args
+        return ToolResult.success_result({"ok": True, "tool": "mouse_control"})
+
+    registry.tools["mouse_control"] = mouse_tool
+    envelope = {
+        "tool": "mouse_control",
+        "metadata": {
+            "description": "screen",
+            "explanation": "click target",
+            "expectation": "dialog opens",
+            "extra_debug_field": "drop-me",
+        },
+        "arguments": {
+            "action": "click",
+            "x": 12,
+            "y": 34,
+        },
+    }
+
+    result = await registry.execute_tool("computer_use", envelope)
+
+    assert result.success is True
+    assert result.data == {"ok": True, "tool": "mouse_control"}
+    assert envelope["metadata"] == {
+        "description": "screen",
+        "explanation": "click target",
+        "expectation": "dialog opens",
+    }
+    assert captured["args"] == {"action": "click", "x": 12, "y": 34}
+
+
+@pytest.mark.asyncio
 async def test_execute_computer_use_rejects_legacy_nested_arguments_metadata_wrapper():
     registry = ToolRegistry()
     captured = {"called": False}
