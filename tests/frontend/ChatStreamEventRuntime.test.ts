@@ -113,6 +113,74 @@ describe('chatStreamEventRuntime', () => {
     expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-old' }), null)).toBe(true);
   });
 
+  test('stale turn guard is scoped to the provided conversation workspace', () => {
+    useChatStore.setState((state) => ({
+      ...state,
+      workspaces: {
+        ...state.workspaces,
+        __default__: {
+          ...state.workspaces.__default__,
+          isSending: false,
+          streamTracking: {
+            ...state.workspaces.__default__.streamTracking,
+            activeTurnRef: 'turn-default',
+            phase: 'streaming',
+          },
+        },
+        'conv-scoped': {
+          ...state.workspaces.__default__,
+          isSending: false,
+          streamTracking: {
+            ...state.workspaces.__default__.streamTracking,
+            activeTurnRef: 'turn-conv',
+            phase: 'streaming',
+          },
+        },
+      },
+    }));
+
+    expect(
+      shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-default' }), 'conv-scoped'),
+    ).toBe(true);
+  });
+
+  test('terminal handoff allowance does not leak across workspaces', () => {
+    useChatStore.setState((state) => ({
+      ...state,
+      isSending: true,
+      streamTracking: {
+        ...state.streamTracking,
+        activeTurnRef: 'turn-default-old',
+        phase: 'complete',
+      },
+      workspaces: {
+        ...state.workspaces,
+        __default__: {
+          ...state.workspaces.__default__,
+          isSending: true,
+          streamTracking: {
+            ...state.workspaces.__default__.streamTracking,
+            activeTurnRef: 'turn-default-old',
+            phase: 'complete',
+          },
+        },
+        'conv-scoped': {
+          ...state.workspaces.__default__,
+          isSending: false,
+          streamTracking: {
+            ...state.workspaces.__default__.streamTracking,
+            activeTurnRef: 'turn-conv-old',
+            phase: 'streaming',
+          },
+        },
+      },
+    }));
+
+    expect(
+      shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-conv-new' }), 'conv-scoped'),
+    ).toBe(true);
+  });
+
   test('active conversation projection promotes explicit ref on local-user-message', () => {
     const setActiveConversationRef = jest.fn();
     useChatStore.setState((state) => ({
