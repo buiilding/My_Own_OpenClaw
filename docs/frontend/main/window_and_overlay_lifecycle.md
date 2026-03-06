@@ -163,9 +163,11 @@ Handlers split across narrow registrars (wired by `index.cjs`):
 - `window_controls_ipc_runtime.cjs`
 - `show-main-window` (optional `{ open, maximize }`; forwards `main-window-open-target` when open target is accepted)
 - `get-displays`: returns display id/label/bounds/scaleFactor
+  - details: `display_query_handler.cjs` mapping contract is documented in [Display Query Handler Display Inventory Payload Contract Reference](display_query_handler_display_inventory_payload_contract_reference.md)
 - `window-minimize`, `window-toggle-maximize`, `window-close`
 - `permission_ipc_runtime.cjs`
 - `set-agent-sudo-access`
+  - details: Linux privilege-toggle command/runtime behavior is documented in [Agent Sudo Access Handler PKExec and Non-Interactive Disable Contract Reference](agent_sudo_access_handler_pkexec_and_noninteractive_disable_contract_reference.md)
 - `list-permissions`, `check-permissions`, `check-permission`, `run-permission-probe`, `request-permission`
 
 Legacy overlay interactivity/focus-prep invoke handlers were removed; the shared response-overlay phase handler now owns active-loop click-through/`focusable=false`, and query-capture focus prep remains an internal main-process callback.
