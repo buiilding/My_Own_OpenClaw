@@ -218,6 +218,32 @@ describe('chatStreamEventRuntime', () => {
     expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-new' }), null)).toBe(false);
   });
 
+  test('stale turn guard keeps same-turn packets during idle sending handoff after re-anchor', () => {
+    useChatStore.setState((state) => ({
+      ...state,
+      isSending: true,
+      streamTracking: {
+        ...state.streamTracking,
+        activeTurnRef: 'turn-current',
+        phase: 'idle',
+      },
+      workspaces: {
+        ...state.workspaces,
+        __default__: {
+          ...state.workspaces.__default__,
+          isSending: true,
+          streamTracking: {
+            ...state.workspaces.__default__.streamTracking,
+            activeTurnRef: 'turn-current',
+            phase: 'idle',
+          },
+        },
+      },
+    }));
+
+    expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-current' }), null)).toBe(false);
+  });
+
   test('stale turn guard allows next-turn packets during error pending handoff', () => {
     useChatStore.setState((state) => ({
       ...state,
