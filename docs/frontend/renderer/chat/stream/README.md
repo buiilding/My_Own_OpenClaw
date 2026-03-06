@@ -24,7 +24,7 @@ title: "Frontend Renderer Chat Stream Docs Hub"
 ## Code Scope
 
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
-- `frontend/src/renderer/features/chat/hooks/useStreamMessageUpdaters.ts`
+- `frontend/src/renderer/features/chat/hooks/chatStream/useStreamMessageUpdaters.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamConversationGate.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamHandlerMap.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTracking.ts`

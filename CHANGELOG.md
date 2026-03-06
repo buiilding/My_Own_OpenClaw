@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(frontend-chat-loop-and-stream-runtime-contracts): add a dedicated renderer deep reference for `chatLoopUiState`/`useChatLoopUiState` disconnect-recovery watchdog and dashboard/chatbox surface projection behavior, refresh frontend runtime stream state-machine docs for the split `hooks/chatStream/*` ingress/turn-guard architecture, and align chat hub/reference pages with current module paths plus `memory-store` tracking-only renderer behavior.
 - test(frontend-chat-stream-stale-turn-workspace-scoping): extend `chatStreamEventRuntime.shouldIgnoreForStaleTurn` regressions to ensure stale-turn checks and terminal-handoff exceptions are scoped to the target conversation workspace, preventing default-workspace state from leaking into other conversation streams.
 - test(frontend-chat-stream-terminal-handoff-stale-gate): tighten `shouldIgnoreForStaleTurn` terminal-handoff semantics so next-turn first packets remain allowed, but late packets for the just-completed active turn are ignored; add runtime regression coverage for both paths.
 - test(frontend-turn-scoped-handler-gate-contract): extend `useTurnScopedBackendEventHandler` regressions to ensure stale-turn guard receives the resolved conversation ref and is fully bypassed (not invoked) when `skipStaleTurnGate` is enabled for passthrough events.

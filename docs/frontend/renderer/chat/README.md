@@ -12,6 +12,7 @@ title: "Frontend Renderer Chat Docs Hub"
 
 - [Message Send Surface Policy and Screenshot Capture Reference](message_send_surface_policy_and_screenshot_capture_reference.md)
 - [Chat Store State and New Session Rotation Reference](chat_store_state_and_new_session_rotation_reference.md)
+- [Chat Loop UI State Disconnect Recovery and Surface Projection Reference](loop_ui_state_disconnect_recovery_and_surface_projection_reference.md)
 - [Renderer Chat Stream Docs Hub](stream/README.md)
 - [Conversation Gate and Active-Turn Filtering Reference](stream/conversation_gate_and_active_turn_filtering_reference.md)
 - [Tracking, Formatting, and Message-Update Utility Reference](stream/tracking_formatting_and_message_update_utility_reference.md)
@@ -39,12 +40,16 @@ title: "Frontend Renderer Chat Docs Hub"
 ## Code Scope
 
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
+- `frontend/src/renderer/features/chat/hooks/useChatLoopUiState.js`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
-- `frontend/src/renderer/features/chat/hooks/useStreamMessageUpdaters.ts`
+- `frontend/src/renderer/features/chat/hooks/chatStream/useStreamMessageUpdaters.ts`
 - `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatCommonActions.ts`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/features/chat/utils/chatMessageSenderUtils.ts`
+- `frontend/src/renderer/features/chat/utils/chatLoopUiState.js`
+- `frontend/src/renderer/features/chat/utils/streamPhaseState.js`
+- `frontend/src/renderer/features/chat/utils/chatboxSurfaceState.js`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamConversationGate.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTracking.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamFormatting.ts`
@@ -66,6 +71,8 @@ title: "Frontend Renderer Chat Docs Hub"
 - `frontend/src/renderer/features/chat/components/TransparencySection.jsx`
 - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
 - `tests/frontend/ChatMessageSender.test.tsx`
+- `tests/frontend/ChatLoopUiState.test.js`
+- `tests/frontend/ChatLoopUiStateHook.test.jsx`
 - `tests/frontend/ChatStore.test.ts`
 - `tests/frontend/ChatStreamTracking.test.ts`
 - `tests/frontend/ChatStreamMessageUpdates.test.ts`
