@@ -26,6 +26,12 @@ const BACKEND_OVERLAY_PHASE_TRANSITIONS = Object.freeze({
   }),
 });
 
+const TERMINAL_FALLBACK_OVERLAY_EVENT_TYPES = new Set([
+  'token-count',
+  'memory-store',
+  'assistant-message-full',
+]);
+
 function resolveOverlayCorrelationId(data) {
   if (!data || typeof data !== 'object') {
     return null;
@@ -100,6 +106,18 @@ function resolveBackendOverlayPhaseTransition(data, currentPhase) {
       metadata: transition.recoveryStage
         ? resolveOverlayPhaseMetadata(data, transition.recoveryStage)
         : null,
+    };
+  }
+
+  if (
+    TERMINAL_FALLBACK_OVERLAY_EVENT_TYPES.has(data.type)
+    && currentPhase !== 'idle'
+    && currentPhase !== 'complete'
+    && currentPhase !== 'error'
+  ) {
+    return {
+      phase: 'complete',
+      metadata: null,
     };
   }
 

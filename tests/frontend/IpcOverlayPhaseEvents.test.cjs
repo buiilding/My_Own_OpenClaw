@@ -192,8 +192,23 @@ describe('ipc_overlay_phase_events', () => {
     });
   });
 
+  test('treats terminal fallback events as complete when stream is active', () => {
+    expect(resolveBackendOverlayPhaseTransition({ type: 'token-count' }, 'streaming')).toEqual({
+      phase: 'complete',
+      metadata: null,
+    });
+    expect(resolveBackendOverlayPhaseTransition({ type: 'memory-store' }, 'tool-output')).toEqual({
+      phase: 'complete',
+      metadata: null,
+    });
+    expect(resolveBackendOverlayPhaseTransition({ type: 'assistant-message-full' }, 'awaiting-first-chunk')).toEqual({
+      phase: 'complete',
+      metadata: null,
+    });
+    expect(resolveBackendOverlayPhaseTransition({ type: 'token-count' }, 'idle')).toBeNull();
+  });
+
   test('returns null for unsupported backend event types', () => {
-    expect(resolveBackendOverlayPhaseTransition({ type: 'token-count' }, 'streaming')).toBeNull();
     expect(resolveBackendOverlayPhaseTransition({}, 'streaming')).toBeNull();
     expect(resolveBackendOverlayPhaseTransition(null, 'streaming')).toBeNull();
   });
