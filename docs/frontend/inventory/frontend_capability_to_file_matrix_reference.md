@@ -43,7 +43,7 @@ This matrix maps frontend capabilities to implementation files.
 | Frontend config load/save | `frontend/src/main/ipc/ipc_frontend_config.cjs` | Disk + in-memory config snapshot ownership. |
 | OpenAI Codex OAuth IPC flow | `frontend/src/main/openai_codex_oauth.cjs`, `frontend/src/main/ipc.cjs` | PKCE login + local callback server and logout response envelope routing to renderer settings. |
 | Local sidecar process lifecycle | `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/runtime_paths.cjs` | Spawns local backend python process and manages readiness. |
-| Sidecar RPC request mapping | `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`, `frontend/src/main/local_backend_bridge_utils.cjs`, `frontend/src/main/local_backend_bridge_windows.cjs` | JSON-RPC request correlation, timeout, and window guard behavior. |
+| Sidecar RPC request mapping | `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`, `frontend/src/main/local_backend_bridge_utils.cjs`, `frontend/src/main/local_backend_bridge_window_visibility.cjs` | JSON-RPC request correlation, timeout, and window/screenshot visibility runtime wrapper behavior. |
 | Wakeword subprocess bridge | `frontend/src/main/wakeword_bridge.cjs` | Binary framing for wakeword audio input/output messages. |
 | Permission + sudo system bridges | `frontend/src/main/permission_service.cjs`, `frontend/src/main/agent_sudo_access_handler.cjs` | OS permission probe/request and Linux sudo grant/revoke flows. |
 

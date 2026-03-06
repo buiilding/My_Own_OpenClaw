@@ -39,7 +39,7 @@ Bridge responsibilities in `frontend/src/main/local_backend_bridge.cjs`:
 ## Canonical Modules
 
 - `frontend/src/main/local_backend_bridge.cjs`
-- `frontend/src/main/local_backend_bridge_windows.cjs`
+- `frontend/src/main/local_backend_bridge_window_visibility.cjs`
 - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/local_backend_bridge_tool_args.cjs`
 - `frontend/src/main/local_backend_bridge_utils.cjs`

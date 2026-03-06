@@ -14,20 +14,20 @@ title: "Frontend Main Local-Backend Docs Hub"
 - [Local-Backend RPC Handler Registry and Payload-Mapper Reference](rpc_handler_registry_and_payload_mapper_reference.md)
 - [Tool Arg Sudo-Auth Mode Resolution and Config-Guard Contract Reference](tool_arg_sudo_auth_mode_resolution_and_config_guard_contract_reference.md)
 - [Local-Backend Windows Docs Hub](windows/README.md)
-- [Window Resolver Shapes and Linux Screenshot Hide/Restore Orchestration Reference](windows/window_resolver_shapes_and_linux_screenshot_hide_restore_orchestration_reference.md)
+- [Window Resolver Shapes and Screenshot Visibility Runtime Dispatch Reference](windows/window_resolver_shapes_and_linux_screenshot_hide_restore_orchestration_reference.md)
 
 ## Related Pages
 
 - [Local Backend Bridge Handler and Window Guard Reference](../local_backend_bridge_handler_and_window_guard_reference.md)
 - [Main Overlay Focus Docs Hub](../overlays/README.md)
-- [Linux Screenshot Window Hide and Restore Guard Reference](../overlays/linux_screenshot_window_hide_and_restore_guard_reference.md)
+- [Linux Screenshot Window Visibility Runtime Dispatch Reference](../overlays/linux_screenshot_window_hide_and_restore_guard_reference.md)
 
 ## Code Scope
 
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/local_backend_bridge_tool_args.cjs`
-- `frontend/src/main/local_backend_bridge_windows.cjs`
+- `frontend/src/main/local_backend_bridge_window_visibility.cjs`
 - `frontend/src/main/local_backend_bridge_utils.cjs`
 - `frontend/src/main/runtime_paths.cjs`
 - `frontend/src/main/backend_endpoints.cjs`

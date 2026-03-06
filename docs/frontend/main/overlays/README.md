@@ -15,5 +15,5 @@ title: "Frontend Main Overlay Focus Docs Hub"
 ## Code Scope
 
 - `frontend/src/main/index.cjs`
-- `frontend/src/main/local_backend_bridge_windows.cjs`
+- `frontend/src/main/local_backend_bridge_window_visibility.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
