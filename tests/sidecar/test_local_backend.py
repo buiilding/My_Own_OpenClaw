@@ -502,6 +502,41 @@ async def test_handle_execute_tool_computer_use_rejects_non_required_metadata_fi
 
 
 @pytest.mark.asyncio
+async def test_handle_execute_tool_computer_use_rejects_non_string_required_metadata_values():
+    backend = LocalBackend()
+    registry = ToolRegistry()
+    captured = {"called": False}
+
+    def mouse_tool(_args):
+        captured["called"] = True
+        return ToolResult.success_result({"ok": True})
+
+    registry.tools["mouse_control"] = mouse_tool
+    backend.tool_registry = registry
+    envelope = {
+        "tool": "mouse_control",
+        "metadata": {
+            "description": "screen",
+            "explanation": {"reason": "not-a-string"},
+            "expectation": "dialog opens",
+        },
+        "arguments": {
+            "action": "click",
+            "x": 10,
+            "y": 20,
+        },
+    }
+
+    result = await backend._handle_execute_tool("computer_use", envelope)
+
+    assert result == {
+        "success": False,
+        "error": "computer_use missing required metadata field: explanation",
+    }
+    assert captured["called"] is False
+
+
+@pytest.mark.asyncio
 async def test_handle_execute_tool_computer_use_prevents_subtool_argument_mutation_leak():
     backend = LocalBackend()
     registry = ToolRegistry()
