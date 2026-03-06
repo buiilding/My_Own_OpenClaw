@@ -94,3 +94,129 @@ def test_extract_tool_call_unified_computer_use_maps_to_concrete_tool():
         {"action": "click", "x": 10, "y": 20},
         expected_metadata,
     )
+
+
+def test_extract_tool_call_unified_computer_use_defaults_missing_arguments_to_empty_dict():
+    schema = ToolCallSchema()
+    payload = {
+        "functionCall": {
+            "name": "computer_use",
+            "args": {
+                "tool": "wait",
+                "metadata": {
+                    "description": "screen",
+                    "explanation": "pause for load",
+                    "expectation": "next state visible",
+                },
+            },
+        }
+    }
+
+    extracted = schema.extract_tool_call(payload)
+
+    assert extracted == (
+        "wait",
+        {},
+        {
+            "description": "screen",
+            "explanation": "pause for load",
+            "expectation": "next state visible",
+        },
+    )
+
+
+def test_extract_tool_call_unified_computer_use_rejects_non_dict_arguments():
+    schema = ToolCallSchema()
+    payload = {
+        "functionCall": {
+            "name": "computer_use",
+            "args": {
+                "tool": "mouse_control",
+                "arguments": "not-an-object",
+                "metadata": {
+                    "description": "screen",
+                    "explanation": "click",
+                    "expectation": "dialog opens",
+                },
+            },
+        }
+    }
+
+    assert schema.extract_tool_call(payload) is None
+
+
+def test_extract_tool_call_unified_computer_use_rejects_unknown_subtool():
+    schema = ToolCallSchema()
+    payload = {
+        "functionCall": {
+            "name": "computer_use",
+            "args": {
+                "tool": "totally_unknown",
+                "arguments": {},
+                "metadata": {
+                    "description": "screen",
+                    "explanation": "try action",
+                    "expectation": "none",
+                },
+            },
+        }
+    }
+
+    assert schema.extract_tool_call(payload) is None
+
+
+def test_extract_tool_call_unified_computer_use_keeps_nested_arguments_metadata_unpromoted():
+    schema = ToolCallSchema()
+    payload = {
+        "functionCall": {
+            "name": "computer_use",
+            "args": {
+                "tool": "mouse_control",
+                "arguments": {
+                    "metadata": {
+                        "description": "nested screen",
+                        "explanation": "nested click",
+                        "expectation": "nested dialog",
+                    },
+                    "action": "click",
+                    "x": 30,
+                    "y": 40,
+                },
+            },
+        }
+    }
+
+    extracted = schema.extract_tool_call(payload)
+
+    assert extracted == (
+        "mouse_control",
+        {
+            "metadata": {
+                "description": "nested screen",
+                "explanation": "nested click",
+                "expectation": "nested dialog",
+            },
+            "action": "click",
+            "x": 30,
+            "y": 40,
+        },
+        None,
+    )
+
+
+def test_extract_tool_call_unified_computer_use_ignores_non_dict_top_level_metadata():
+    schema = ToolCallSchema()
+    payload = {
+        "functionCall": {
+            "name": "computer_use",
+            "args": {
+                "tool": "mouse_control",
+                "metadata": "not-an-object",
+                "arguments": {"action": "click", "x": 3, "y": 4},
+            },
+        }
+    }
+
+    extracted = schema.extract_tool_call(payload)
+
+    assert extracted == ("mouse_control", {"action": "click", "x": 3, "y": 4}, None)
