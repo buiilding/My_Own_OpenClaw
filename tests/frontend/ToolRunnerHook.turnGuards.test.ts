@@ -115,4 +115,50 @@ describe('useToolRunner stale turn guards', () => {
       },
     );
   });
+
+  test('stale-turn guard still cancels skipped computer-use validation failures', async () => {
+    setStreamTracking({
+      activeTurnRef: 'turn-active',
+      phase: 'streaming',
+    });
+
+    renderToolRunner(true);
+
+    await emitBackendEventAsync({
+      type: 'tool-call',
+      id: 'event-stale-skip-computer-use',
+      turn_ref: 'turn-old',
+      payload: {
+        tool_name: 'computer_use',
+        parameters: {
+          tool: 'mouse_control',
+          metadata: {
+            description: 'Click submit',
+            explanation: 'Complete form submission',
+            expectation: 'Submit button is pressed',
+          },
+          arguments: { action: 'click', x: 100, y: 200 },
+        },
+        request_id: 'req-stale-skip-computer-use',
+        metadata: {
+          computer_use_validation_failed: true,
+          skip_frontend_execution: true,
+        },
+      },
+    });
+
+    expect(mockExecuteTool).not.toHaveBeenCalled();
+    expect(IpcBridge.send).toHaveBeenCalledWith(
+      SEND_CHANNELS.TO_BACKEND,
+      {
+        type: 'tool-result',
+        payload: {
+          request_id: 'req-stale-skip-computer-use',
+          success: false,
+          data: null,
+          error: 'frontend_stale_turn_cancelled',
+        },
+      },
+    );
+  });
 });
