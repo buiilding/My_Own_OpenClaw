@@ -214,7 +214,7 @@ export async function captureScreenshotAttachment({
 }: CaptureScreenshotOptions = {}): Promise<ScreenshotAttachment> {
   const totalStartTime = performance.now();
   let waitTime = 0;
-  let prepareVisibilityTime = 0;
+  let preparationTime = 0;
   let hideInvokeTime = 0;
   let settleTime = 0;
   let focusPrepTime = 0;
@@ -239,7 +239,7 @@ export async function captureScreenshotAttachment({
       source: 'system-capture',
       waitMs: Math.max(0, waitSeconds) * 1000,
     });
-    prepareVisibilityTime = (performance.now() - prepareVisibilityStartTime) / 1000;
+    preparationTime = (performance.now() - prepareVisibilityStartTime) / 1000;
     waitTime = screenshotVisibilityPreparation.timing?.waitTime || 0;
     hideInvokeTime = screenshotVisibilityPreparation.timing?.hideInvokeTime || 0;
     settleTime = screenshotVisibilityPreparation.timing?.settleTime || 0;
@@ -280,7 +280,7 @@ export async function captureScreenshotAttachment({
     logScreenshotCaptureTiming({
       correlationId,
       waitTime,
-      prepareVisibilityTime,
+      preparationTime,
       hideInvokeTime,
       settleTime,
       focusPrepTime,
