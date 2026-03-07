@@ -110,6 +110,7 @@ Safety behavior:
 Module:
 
 - `frontend/src/main/wakeword_bridge.cjs`
+- `frontend/src/main/wakeword_bridge_runtime.cjs`
 
 Responsibilities:
 
@@ -117,6 +118,7 @@ Responsibilities:
 - Streams binary audio chunks to Python service.
 - Parses framed binary wakeword detection responses.
 - Supports wakeword enable/disable state and buffer flushing.
+- Delegates stderr status parsing/noisy-line suppression, startup/process error message mapping, and audio-chunk normalization to `wakeword_bridge_runtime.cjs`.
 
 ## Permission Runtime
 

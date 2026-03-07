@@ -11,9 +11,21 @@ title: "Wakeword Bridge and Audio Framing Reference"
 ## Canonical Modules
 
 - `frontend/src/main/wakeword_bridge.cjs`
+- `frontend/src/main/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/runtime_paths.cjs`
 - `frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts`
 - `frontend/src/renderer/features/voice/hooks/useVoiceMode.ts`
+
+## Runtime Split
+
+`wakeword_bridge.cjs` owns subprocess lifecycle, binary frame buffering, and IPC handler wiring.
+
+`wakeword_bridge_runtime.cjs` owns focused helper primitives:
+
+- stderr-line status parsing/log filtering (`handleWakewordStderrLine`)
+- ready/error event emission helper (`emitWakewordStatus`)
+- startup/process error message mapping (`resolveWakewordStartErrorMessage`, `resolveWakewordProcessErrorMessage`)
+- audio input normalization (`normalizeAudioChunk`)
 
 ## Process Lifecycle (Main Process)
 
@@ -29,6 +41,11 @@ Startup path (lazy):
 4. bridge parses readiness/error status messages from stderr JSON lines
 5. bridge parses detection payload stream from stdout (length-prefixed JSON frames)
 
+Startup failure mapping nuance:
+
+- packaged builds with missing bundled runtime emit deterministic reinstall guidance
+- dev/non-packaged runs with missing Python emit explicit PATH/install guidance
+
 Ready state signal:
 
 - bridge emits `wakeword-status { ready: true|false, error? }` to renderer
@@ -37,6 +54,7 @@ Failure behavior:
 
 - process `exit`/`error` clears buffers and ready state
 - emits status with explicit error message where available
+- stderr parser suppresses known noisy GPU/OpenCL lines to avoid readiness/error drift from non-actionable logs
 
 ## IPC Surface
 
