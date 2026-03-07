@@ -57,3 +57,13 @@ def test_tool_bundle_formatter_dict_preserves_explicit_none_tools():
 
     assert result["payload"]["bundle_id"] == "b-none"
     assert result["payload"]["tools"] is None
+
+
+def test_tool_bundle_formatter_dict_preserves_non_list_tools_for_compatibility_paths():
+    formatter = ToolBundleEventFormatter()
+    event = {"bundle_id": "b-string", "tools": "not-a-list"}
+
+    result = formatter.format(event, "msg-6")
+
+    assert result["payload"]["bundle_id"] == "b-string"
+    assert result["payload"]["tools"] == "not-a-list"

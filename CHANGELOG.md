@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(fullstack-tool-bundle-malformed-tools-tolerance): add backend `ToolBundleEventFormatter` compatibility coverage for non-list `tools` passthrough and frontend chat-stream regressions proving `tool-bundle` malformed/null `tools` payloads fail closed to `tools: []` without crashing or writing transcript tool-call rows.
 - fix(frontend-chat-stream-tool-bundle-malformed-tools-guard): normalize `formatToolBundlePayload` to treat non-array `payload.tools` as empty so malformed backend `tool-bundle` events cannot throw during renderer formatting, and add regression coverage in `ChatStreamFormatting.test.ts`.
 - test(fullstack-tool-output-malformed-stream-contract): add frontend `useChatStreamToolHandlers` regressions for malformed `tool-output` payload safety (no-throw/state reset/correlation fallback) plus remote-screenshot precedence over inline screenshots, and add backend formatter coverage that preserves `tool-output.payload.metadata.request_id` for frontend correlation fallback paths.
 - test(fullstack-ipc-tool-lifecycle-malformed-payload-guards): add backend websocket parse-runtime regressions for malformed `tool-result`/`tool-bundle-result` payload shapes and frontend tool-runner regressions that fail closed on malformed bundle/tool payloads (including non-array bundle tools) while preserving stable no-execution behavior.
