@@ -59,3 +59,28 @@ async def test_emit_completion_events_backfills_chunk_and_terminal():
     assert isinstance(observed[1][0], StreamingCompleteEvent)
     assert observed[0][1] is context
     assert observed[1][1] is context
+
+
+@pytest.mark.asyncio
+async def test_emit_completion_events_skips_backfill_when_completion_text_empty():
+    observed = []
+
+    class _Pipeline:
+        async def process(self, event, tts_service, msg_id, context):
+            observed.append((event, context))
+
+    context = {"turn_ref": "turn-3"}
+    saw_text_chunk = await emit_completion_events(
+        pipeline=_Pipeline(),
+        tts_service=None,
+        msg_id="turn-3",
+        stream_context=context,
+        completion_text="",
+        saw_text_chunk=False,
+    )
+
+    assert saw_text_chunk is False
+    assert len(observed) == 1
+    assert isinstance(observed[0][0], StreamingCompleteEvent)
+    assert observed[0][0].final_response == ""
+    assert observed[0][1] is context

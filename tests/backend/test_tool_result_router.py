@@ -195,6 +195,27 @@ async def test_route_individual_result_resolves_screenshot_ref(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_route_individual_result_prefers_inline_screenshot_over_artifact_ref(monkeypatch):
+    router = _make_router()
+
+    def _unexpected_artifact_lookup(_value):
+        raise AssertionError("artifact lookup should not run when inline screenshot is present")
+
+    monkeypatch.setattr(router, "_looks_like_artifact_id", _unexpected_artifact_lookup)
+    result = ToolResult(
+        success=True,
+        data={"screenshot": "inline-shot", "screenshot_ref": "artifact.png"},
+    )
+
+    await router.route_individual_result("req-inline", result)
+
+    assert router.screenshot_processor.calls == [
+        (router.session, "inline-shot", "req-inline", None)
+    ]
+    assert result.artifacts is None
+
+
+@pytest.mark.asyncio
 async def test_route_bundle_result_processes_screenshot_and_resolves():
     router = _make_router()
     result = ToolResult(
@@ -213,6 +234,21 @@ async def test_route_bundle_result_processes_screenshot_and_resolves():
     ]
     assert router.result_storage.bundled == [("bundle-1", result)]
     assert router.result_storage.bundle_resolves == [("bundle-1", result)]
+
+
+@pytest.mark.asyncio
+async def test_route_result_keeps_individual_and_bundle_storage_isolated_for_same_correlation_id():
+    router = _make_router()
+    individual_result = ToolResult(success=True, data={"output": "single"})
+    bundle_result = ToolResult(success=False, data={"status": "failed"})
+
+    await router.route_individual_result("corr-shared", individual_result)
+    await router.route_bundle_result("corr-shared", bundle_result)
+
+    assert router.result_storage.pending == [("corr-shared", individual_result)]
+    assert router.result_storage.pending_resolves == [("corr-shared", individual_result)]
+    assert router.result_storage.bundled == [("corr-shared", bundle_result)]
+    assert router.result_storage.bundle_resolves == [("corr-shared", bundle_result)]
 
 
 @pytest.mark.asyncio
