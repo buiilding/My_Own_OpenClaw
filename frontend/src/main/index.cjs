@@ -244,6 +244,7 @@ function showChatWindow({ focus = true } = {}) {
     syncWakewordToggleForChatVisibility,
     syncWindowDisplayAffinity,
     setActiveDisplayAffinity: setActiveDisplayAffinityRuntime,
+    getActiveDisplayAffinity: getActiveDisplayAffinityRuntime,
     externalFocusTracker,
   });
 }
@@ -266,6 +267,7 @@ function showMainWindow(options = {}) {
     chatWindow,
     syncWindowDisplayAffinity,
     setActiveDisplayAffinity: setActiveDisplayAffinityRuntime,
+    getActiveDisplayAffinity: getActiveDisplayAffinityRuntime,
     hideChatWindow,
   });
 }

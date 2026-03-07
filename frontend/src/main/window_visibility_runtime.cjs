@@ -11,6 +11,7 @@ function showChatWindow(options = {}, deps = {}) {
     positionChatWindow = () => {},
     syncWindowDisplayAffinity = () => {},
     setActiveDisplayAffinity = () => {},
+    getActiveDisplayAffinity = () => null,
     responseOverlayVisible,
     isResponseOverlayStreamingPhase = () => false,
     setResponseOverlayVisible = () => {},
@@ -45,8 +46,14 @@ function showChatWindow(options = {}, deps = {}) {
   if (mainWindow && !mainWindow.isDestroyed() && mainWindow.isVisible()) {
     mainWindow.hide();
   }
-  if (targetDisplayAffinity) {
-    setActiveDisplayAffinity(targetDisplayAffinity);
+  const shouldRetargetHiddenChatWindow = !chatWindow.isVisible();
+  const resolvedTargetDisplayAffinity = targetDisplayAffinity || (
+    shouldRetargetHiddenChatWindow
+      ? getActiveDisplayAffinity()
+      : null
+  );
+  if (resolvedTargetDisplayAffinity) {
+    setActiveDisplayAffinity(resolvedTargetDisplayAffinity);
     positionChatWindow();
   }
   if (!chatWindow.isVisible()) {
@@ -113,6 +120,7 @@ function showMainWindow(options = {}, deps = {}) {
     chatWindow,
     syncWindowDisplayAffinity = () => {},
     setActiveDisplayAffinity = () => {},
+    getActiveDisplayAffinity = () => null,
     hideChatWindow = () => {},
   } = deps;
   const focus = options?.focus !== false;
@@ -128,22 +136,28 @@ function showMainWindow(options = {}, deps = {}) {
     options?.targetDisplayAffinity
     && typeof options.targetDisplayAffinity === 'object'
   ) ? options.targetDisplayAffinity : null;
-  if (targetDisplayAffinity) {
-    setActiveDisplayAffinity(targetDisplayAffinity);
+  const shouldRetargetHiddenMainWindow = !mainWindow.isVisible();
+  const resolvedTargetDisplayAffinity = targetDisplayAffinity || (
+    shouldRetargetHiddenMainWindow
+      ? getActiveDisplayAffinity()
+      : null
+  );
+  if (resolvedTargetDisplayAffinity) {
+    setActiveDisplayAffinity(resolvedTargetDisplayAffinity);
     if (typeof mainWindow.isMaximized === 'function' && mainWindow.isMaximized()) {
       mainWindow.unmaximize();
     }
     if (maximize) {
-      fitWindowToDisplayWorkArea(mainWindow, targetDisplayAffinity);
+      fitWindowToDisplayWorkArea(mainWindow, resolvedTargetDisplayAffinity);
     } else {
-      centerWindowOnDisplayWorkArea(mainWindow, targetDisplayAffinity);
+      centerWindowOnDisplayWorkArea(mainWindow, resolvedTargetDisplayAffinity);
     }
   }
   if (!mainWindow.isVisible()) {
     mainWindow.show();
   }
   syncWindowDisplayAffinity(mainWindow);
-  if (maximize && !targetDisplayAffinity) {
+  if (maximize && !resolvedTargetDisplayAffinity) {
     if (mainWindow.isMinimized()) {
       mainWindow.restore();
     }

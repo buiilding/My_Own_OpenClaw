@@ -84,6 +84,38 @@ describe('window_visibility_runtime showChatWindow', () => {
     expect(chatWindow.show).toHaveBeenCalledTimes(1);
   });
 
+  test('repositions hidden chat window onto stored active display affinity when no explicit target is provided', () => {
+    const chatWindow = createWindow({ visible: false });
+    const positionChatWindow = jest.fn();
+    const setActiveDisplayAffinity = jest.fn();
+    const getActiveDisplayAffinity = jest.fn(() => ({
+      monitor_id: '2',
+      bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+      workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+    }));
+
+    const result = showChatWindow(
+      { focus: true },
+      {
+        chatWindow,
+        positionChatWindow,
+        setActiveDisplayAffinity,
+        getActiveDisplayAffinity,
+        syncWindowDisplayAffinity: jest.fn(),
+        syncWakewordToggleForChatVisibility: jest.fn(),
+      },
+    );
+
+    expect(result).toEqual({ success: true });
+    expect(setActiveDisplayAffinity).toHaveBeenCalledWith({
+      monitor_id: '2',
+      bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+      workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+    });
+    expect(positionChatWindow).toHaveBeenCalledTimes(1);
+    expect(chatWindow.show).toHaveBeenCalledTimes(1);
+  });
+
   test('falls back to show when showInactive is unavailable', () => {
     const chatWindow = createWindow({ visible: false });
     chatWindow.showInactive = undefined;
@@ -187,6 +219,51 @@ describe('window_visibility_runtime showMainWindow', () => {
         },
       },
       { mainWindow, syncWindowDisplayAffinity, setActiveDisplayAffinity },
+    );
+
+    expect(result).toEqual({ success: true });
+    expect(mainWindow.setBounds).toHaveBeenCalledWith({
+      x: 2700,
+      y: 350,
+      width: 1000,
+      height: 700,
+    }, false);
+    expect(setActiveDisplayAffinity).toHaveBeenCalledWith({
+      monitor_id: '2',
+      bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+      workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+    });
+    expect(mainWindow.show).toHaveBeenCalledTimes(1);
+    expect(syncWindowDisplayAffinity).toHaveBeenCalledWith(mainWindow);
+    expect(mainWindow.focus).toHaveBeenCalledTimes(1);
+  });
+
+  test('repositions hidden main window onto stored active display affinity when no explicit target is provided', () => {
+    const mainWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => false),
+      isMaximized: jest.fn(() => false),
+      getSize: jest.fn(() => [1000, 700]),
+      setBounds: jest.fn(),
+      show: jest.fn(),
+      focus: jest.fn(),
+    };
+    const syncWindowDisplayAffinity = jest.fn();
+    const setActiveDisplayAffinity = jest.fn();
+    const getActiveDisplayAffinity = jest.fn(() => ({
+      monitor_id: '2',
+      bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+      workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+    }));
+
+    const result = showMainWindow(
+      { focus: true },
+      {
+        mainWindow,
+        syncWindowDisplayAffinity,
+        setActiveDisplayAffinity,
+        getActiveDisplayAffinity,
+      },
     );
 
     expect(result).toEqual({ success: true });
