@@ -48,6 +48,7 @@ const {
   getContextLabelWindowBounds: getOverlayContextLabelWindowBounds,
 } = require('./overlay_bounds.cjs');
 const {
+  getActiveDisplayAffinity: getActiveDisplayAffinityRuntime,
   setActiveDisplayAffinity: setActiveDisplayAffinityRuntime,
   syncActiveDisplayAffinityForWindow: syncActiveDisplayAffinityForWindowRuntime,
 } = require('./display_affinity_runtime.cjs');
@@ -164,6 +165,7 @@ const {
   syncContextLabelWindowVisibility,
 } = createOverlayWindowHelpersRuntime({
   screen,
+  getActiveDisplayAffinity: getActiveDisplayAffinityRuntime,
   getChatWindow: () => chatWindow,
   getResponseWindow: () => responseWindow,
   getContextLabelWindow: () => contextLabelWindow,

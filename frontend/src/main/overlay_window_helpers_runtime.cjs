@@ -3,6 +3,7 @@ const { setOverlayAlwaysOnTop } = require('./overlay_topmost_runtime.cjs');
 function createOverlayWindowHelpersRuntime(deps = {}) {
   const {
     screen,
+    getActiveDisplayAffinity = () => null,
     getChatWindow = () => null,
     getResponseWindow = () => null,
     getContextLabelWindow = () => null,
@@ -48,7 +49,12 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
   }
 
   function getChatWindowBounds(width, height) {
-    return getOverlayChatWindowBounds({ screen, width, height });
+    return getOverlayChatWindowBounds({
+      screen,
+      width,
+      height,
+      displayAffinity: getActiveDisplayAffinity(),
+    });
   }
 
   function getResponseWindowBounds(width, height, options = {}) {
@@ -63,6 +69,7 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
       screen,
       width,
       height,
+      displayAffinity: getActiveDisplayAffinity(),
       chatBounds: anchoredChatBounds,
       gap: responseGap,
       compactHover: options?.compactHover === true,
@@ -79,6 +86,7 @@ function createOverlayWindowHelpersRuntime(deps = {}) {
     const anchoredChatBounds = getAnchoredChatBounds(chatBounds);
     return getOverlayContextLabelWindowBounds({
       screen,
+      displayAffinity: getActiveDisplayAffinity(),
       chatBounds: anchoredChatBounds,
       labelWidth: contextLabelWidth,
       labelHeight: contextLabelHeight,

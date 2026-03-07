@@ -216,6 +216,37 @@ describe('overlay_window_helpers_runtime', () => {
     expect(chatWindow.setPosition).toHaveBeenNthCalledWith(2, 2100, 120, false);
   });
 
+  test('positions chat window on active display affinity when no manual position exists', () => {
+    const chatWindow = {
+      isDestroyed: jest.fn(() => false),
+      getSize: jest.fn(() => [520, 116]),
+      setPosition: jest.fn(),
+    };
+    const runtime = createOverlayWindowHelpersRuntime({
+      screen: {
+        getPrimaryDisplay: jest.fn(() => ({
+          workArea: { x: 0, y: 0, width: 1920, height: 1080 },
+        })),
+      },
+      getActiveDisplayAffinity: () => ({
+        monitor_id: '2',
+        workArea: { x: 1920, y: 40, width: 2560, height: 1400 },
+      }),
+      getChatWindow: () => chatWindow,
+      getOverlayChatWindowBounds: jest.requireActual('../../frontend/src/main/overlay_bounds.cjs').getChatWindowBounds,
+      getOverlayResponseWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
+      getOverlayContextLabelWindowBounds: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0 })),
+      contextLabelWidth: 280,
+      contextLabelHeight: 26,
+      contextLabelOffsetX: 14,
+      contextLabelGapAboveChatbox: -6,
+    });
+
+    runtime.positionChatWindow();
+
+    expect(chatWindow.setPosition).toHaveBeenCalledWith(2940, 1300, false);
+  });
+
   test('re-promotes chat overlay with mac level fallback and moveTop', () => {
     const chatWindow = {
       isDestroyed: jest.fn(() => false),
