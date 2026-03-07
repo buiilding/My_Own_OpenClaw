@@ -4,6 +4,7 @@ const {
   centerWindowOnDisplayWorkArea,
   getActiveDisplayAffinity,
   resolveActiveSurfaceDisplayAffinity,
+  resolveActiveSurfaceDisplayAffinityForWindows,
   resolveDisplayAffinityForWebContents,
   resolveVisibleSurfaceDisplayAffinity,
   syncActiveDisplayAffinityForWindow,
@@ -302,6 +303,24 @@ describe('display_affinity_runtime', () => {
     })).toEqual({ monitor_id: '7' });
     expect(syncActiveDisplayAffinityForWindow).toHaveBeenCalledTimes(1);
     expect(syncActiveDisplayAffinityForWindow).toHaveBeenCalledWith({}, chatWindow, { requireVisible: true });
+  });
+
+  test('resolves active surface display affinity for windows using getWindows chat and main surfaces', () => {
+    const getWindows = jest.fn(() => ({
+      chatWindow: { id: 'chat' },
+      mainWindow: { id: 'main' },
+    }));
+    const getActiveDisplayAffinity = jest.fn(() => ({ monitor_id: 'stored' }));
+    const result = resolveActiveSurfaceDisplayAffinityForWindows({
+      BrowserWindow: {},
+      screen: {},
+      webContents: { id: 7 },
+      getWindows,
+      getActiveDisplayAffinity,
+    });
+
+    expect(getWindows).toHaveBeenCalledTimes(1);
+    expect(result).toEqual({ monitor_id: 'stored' });
   });
 
   test('resolves active surface affinity from visible chat before stored fallback', () => {

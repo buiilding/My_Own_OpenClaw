@@ -4,15 +4,19 @@ function resolveScreenshotToolDisplayBounds({
   webContents,
   resolveChatWindow,
   resolveMainWindow,
-  resolveActiveSurfaceDisplayAffinity,
+  resolveActiveSurfaceDisplayAffinityForWindows,
+  getActiveDisplayAffinity = () => null,
   toScreenshotDisplayBounds,
 }) {
-  const displayAffinity = resolveActiveSurfaceDisplayAffinity({
+  const displayAffinity = resolveActiveSurfaceDisplayAffinityForWindows({
     BrowserWindow,
     screen,
     webContents,
-    chatWindow: typeof resolveChatWindow === 'function' ? resolveChatWindow() : null,
-    mainWindow: typeof resolveMainWindow === 'function' ? resolveMainWindow() : null,
+    getWindows: () => ({
+      chatWindow: typeof resolveChatWindow === 'function' ? resolveChatWindow() : null,
+      mainWindow: typeof resolveMainWindow === 'function' ? resolveMainWindow() : null,
+    }),
+    getActiveDisplayAffinity,
   });
   return toScreenshotDisplayBounds(displayAffinity);
 }

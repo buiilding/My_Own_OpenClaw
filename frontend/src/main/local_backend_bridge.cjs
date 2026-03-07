@@ -31,7 +31,8 @@ const {
   resolveSidecarLaunchTarget,
 } = require('./runtime_paths.cjs');
 const {
-  resolveActiveSurfaceDisplayAffinity,
+  getActiveDisplayAffinity,
+  resolveActiveSurfaceDisplayAffinityForWindows,
   toScreenshotDisplayBounds,
 } = require('./display_affinity_runtime.cjs');
 
@@ -610,7 +611,8 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
             webContents: event?.sender || null,
             resolveChatWindow,
             resolveMainWindow,
-            resolveActiveSurfaceDisplayAffinity,
+            getActiveDisplayAffinity,
+            resolveActiveSurfaceDisplayAffinityForWindows,
             toScreenshotDisplayBounds,
           }),
         },

@@ -6,7 +6,7 @@ const {
 
 describe('local_backend_bridge_display_bounds', () => {
   test('prefers visible sender display affinity for screenshot tool args', () => {
-    const resolveActiveSurfaceDisplayAffinity = jest.fn(() => ({
+    const resolveActiveSurfaceDisplayAffinityForWindows = jest.fn(() => ({
       monitor_id: '2',
       bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
       workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
@@ -19,17 +19,21 @@ describe('local_backend_bridge_display_bounds', () => {
       webContents: { id: 1 },
       resolveChatWindow: jest.fn(() => null),
       resolveMainWindow: jest.fn(() => null),
-      resolveActiveSurfaceDisplayAffinity,
+      resolveActiveSurfaceDisplayAffinityForWindows,
       toScreenshotDisplayBounds: jest.fn((affinity) => ({
         ...affinity.bounds,
         monitor_id: affinity.monitor_id,
       })),
     });
 
-    expect(resolveActiveSurfaceDisplayAffinity).toHaveBeenCalledWith({
+    expect(resolveActiveSurfaceDisplayAffinityForWindows).toHaveBeenCalledWith({
       BrowserWindow: {},
       screen: {},
       webContents: { id: 1 },
+      getWindows: expect.any(Function),
+      getActiveDisplayAffinity: expect.any(Function),
+    });
+    expect(resolveActiveSurfaceDisplayAffinityForWindows.mock.calls[0][0].getWindows()).toEqual({
       chatWindow: null,
       mainWindow: null,
     });
@@ -43,7 +47,7 @@ describe('local_backend_bridge_display_bounds', () => {
   });
 
   test('falls back to active display affinity when sender window is hidden', () => {
-    const resolveActiveSurfaceDisplayAffinity = jest.fn(() => ({
+    const resolveActiveSurfaceDisplayAffinityForWindows = jest.fn(() => ({
       monitor_id: '3',
       bounds: { x: -1600, y: 0, width: 1600, height: 900 },
       workArea: { x: -1600, y: 0, width: 1600, height: 860 },
@@ -56,7 +60,7 @@ describe('local_backend_bridge_display_bounds', () => {
       webContents: { id: 2 },
       resolveChatWindow: jest.fn(() => null),
       resolveMainWindow: jest.fn(() => null),
-      resolveActiveSurfaceDisplayAffinity,
+      resolveActiveSurfaceDisplayAffinityForWindows,
       toScreenshotDisplayBounds: jest.fn((affinity) => ({
         ...affinity.bounds,
         monitor_id: affinity.monitor_id,
@@ -64,7 +68,7 @@ describe('local_backend_bridge_display_bounds', () => {
       })),
     });
 
-    expect(resolveActiveSurfaceDisplayAffinity).toHaveBeenCalledTimes(1);
+    expect(resolveActiveSurfaceDisplayAffinityForWindows).toHaveBeenCalledTimes(1);
     expect(result).toEqual({
       x: -1600,
       y: 0,
@@ -78,7 +82,7 @@ describe('local_backend_bridge_display_bounds', () => {
   test('prefers visible chat window display affinity over stale active affinity when sender window is hidden', () => {
     const chatWindow = { id: 'chat-window' };
     const mainWindow = { id: 'main-window' };
-    const resolveActiveSurfaceDisplayAffinity = jest.fn(() => ({
+    const resolveActiveSurfaceDisplayAffinityForWindows = jest.fn(() => ({
       monitor_id: '7',
       bounds: { x: 3000, y: 0, width: 1920, height: 1080 },
       workArea: { x: 3000, y: 0, width: 1920, height: 1040 },
@@ -91,7 +95,7 @@ describe('local_backend_bridge_display_bounds', () => {
       webContents: { id: 2 },
       resolveChatWindow: jest.fn(() => chatWindow),
       resolveMainWindow: jest.fn(() => mainWindow),
-      resolveActiveSurfaceDisplayAffinity,
+      resolveActiveSurfaceDisplayAffinityForWindows,
       toScreenshotDisplayBounds: jest.fn((affinity) => ({
         ...affinity.bounds,
         monitor_id: affinity.monitor_id,
@@ -108,7 +112,7 @@ describe('local_backend_bridge_display_bounds', () => {
   });
 
   test('does not treat response overlay as a screenshot monitor source of truth', () => {
-    const resolveActiveSurfaceDisplayAffinity = jest.fn(() => ({
+    const resolveActiveSurfaceDisplayAffinityForWindows = jest.fn(() => ({
       monitor_id: '1',
       bounds: { x: 0, y: 0, width: 1920, height: 1080 },
       workArea: { x: 0, y: 0, width: 1920, height: 1040 },
@@ -121,7 +125,7 @@ describe('local_backend_bridge_display_bounds', () => {
       webContents: { id: 2 },
       resolveChatWindow: jest.fn(() => null),
       resolveMainWindow: jest.fn(() => null),
-      resolveActiveSurfaceDisplayAffinity,
+      resolveActiveSurfaceDisplayAffinityForWindows,
       toScreenshotDisplayBounds: jest.fn((affinity) => ({
         ...affinity.bounds,
         monitor_id: affinity.monitor_id,
