@@ -10,6 +10,13 @@ const { app, ipcMain } = require('electron');
 const {
   resolveSidecarLaunchTarget,
 } = require('./runtime_paths.cjs');
+const {
+  emitWakewordStatus,
+  handleWakewordStderrLine,
+  normalizeAudioChunk,
+  resolveWakewordProcessErrorMessage,
+  resolveWakewordStartErrorMessage,
+} = require('./wakeword_bridge_runtime.cjs');
 
 let pythonProcess = null;
 let isPythonReady = false;
@@ -29,14 +36,12 @@ function startWakewordService(mainWindow, onWakewordDetected) {
   const packagedApp = Boolean(app && app.isPackaged);
   stderrBuffer = '';
 
-  if (launchTarget.kind === 'python' && !launchTarget.command) {
-    const errorMessage = packagedApp
-      ? 'Bundled Python runtime not found in app resources. Please reinstall WindieOS.'
-      : 'Python executable not found. Please install Python 3 or ensure it is in your PATH.';
-    console.error(`[Wakeword] ${errorMessage}`);
-    mainWindow?.webContents.send('wakeword-status', {
+  const startErrorMessage = resolveWakewordStartErrorMessage({ launchTarget, packagedApp });
+  if (startErrorMessage) {
+    console.error(`[Wakeword] ${startErrorMessage}`);
+    emitWakewordStatus(mainWindow, {
       ready: false,
-      error: errorMessage,
+      error: startErrorMessage,
     });
     return;
   }
@@ -73,45 +78,14 @@ function startWakewordService(mainWindow, onWakewordDetected) {
     stderrBuffer = lines.pop() || ''; // Keep incomplete line in buffer
     
     for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed) continue;
-      
-      // Filter out harmless graphics driver warnings
-      if (trimmed.includes('terminator_CreateInstance') || 
-          trimmed.includes('Failed to CreateInstance in ICD')) {
-        // Suppress this harmless warning
-        continue;
-      }
-      
-      // Only try to parse lines that look like JSON
-      if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
-        try {
-          const message = JSON.parse(trimmed);
-          if (message.status === 'ready') {
-            if (!isPythonReady) {
-              isPythonReady = true;
-              mainWindow?.webContents.send('wakeword-status', { ready: true });
-            }
-          } else if (message.status === 'error') {
-            console.error('[Wakeword] Python error:', message.message);
-            isPythonReady = false;
-            mainWindow?.webContents.send('wakeword-status', { 
-              ready: false, 
-              error: message.message 
-            });
-          }
-        } catch (e) {
-          // Silently ignore JSON parse errors for non-JSON lines
-        }
-      } else {
-        // Display Python logs (confidence scores, detections, etc.)
-        if (trimmed.includes('[Python]') || trimmed.includes('DETECTED') || trimmed.includes('hey_jarvis')) {
-          console.log(trimmed);
-        } else if (trimmed.toLowerCase().includes('error')) {
-          console.error(trimmed);
-        }
-        // Ignore other messages (warnings, etc.)
-      }
+      handleWakewordStderrLine({
+        line,
+        mainWindow,
+        getIsPythonReady: () => isPythonReady,
+        setIsPythonReady: (nextReady) => {
+          isPythonReady = Boolean(nextReady);
+        },
+      });
     }
   });
 
@@ -143,13 +117,13 @@ function startWakewordService(mainWindow, onWakewordDetected) {
       }
       
       console.error(`[Wakeword] ${errorMessage}`);
-      mainWindow?.webContents.send('wakeword-status', { 
+      emitWakewordStatus(mainWindow, { 
         ready: false,
         error: errorMessage
       });
     } else {
       console.log('[Wakeword] Python process exited normally');
-      mainWindow?.webContents.send('wakeword-status', { ready: false });
+      emitWakewordStatus(mainWindow, { ready: false });
     }
   });
 
@@ -163,14 +137,9 @@ function startWakewordService(mainWindow, onWakewordDetected) {
     stderrBuffer = '';
     clearResultBuffer();
     
-    let errorMessage = error.message;
-    if (error.code === 'ENOENT') {
-      errorMessage = launchTarget.kind === 'binary'
-        ? `Bundled wakeword executable '${launchTarget.command}' not found. Reinstall WindieOS.`
-        : `Python executable '${launchTarget.command}' not found. Please install Python 3 or ensure it is in your PATH.`;
-    }
+    const errorMessage = resolveWakewordProcessErrorMessage({ launchTarget, error });
     
-    mainWindow?.webContents.send('wakeword-status', { 
+    emitWakewordStatus(mainWindow, { 
       ready: false, 
       error: errorMessage 
     });
@@ -299,14 +268,8 @@ function initializeWakewordBridge(mainWindow, onWakewordDetected) {
     receivedChunkCount++;
     
     // Convert base64 or buffer to Buffer
-    let audioBuffer;
-    if (typeof audioData === 'string') {
-      audioBuffer = Buffer.from(audioData, 'base64');
-    } else if (Buffer.isBuffer(audioData)) {
-      audioBuffer = audioData;
-    } else if (audioData instanceof ArrayBuffer) {
-      audioBuffer = Buffer.from(audioData);
-    } else {
+    const audioBuffer = normalizeAudioChunk(audioData);
+    if (!audioBuffer) {
       console.error('[Wakeword] Invalid audio data format:', typeof audioData);
       return;
     }
@@ -322,7 +285,7 @@ function initializeWakewordBridge(mainWindow, onWakewordDetected) {
       startWakewordService(mainWindow, wakewordDetectedCallback);
     } else if (isPythonReady) {
       // Service already ready, send status immediately (silently, renderer will handle it)
-      mainWindow?.webContents.send('wakeword-status', { ready: true });
+      emitWakewordStatus(mainWindow, { ready: true });
     }
     // If service is starting, status will be sent when ready - no need to log
   });
