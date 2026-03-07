@@ -12,7 +12,8 @@ title: "Response Overlay Phase Runtime Reference"
 
 - `frontend/src/renderer/app/ChatBoxResponseApp.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
-- `frontend/src/renderer/features/chat/utils/message/latestVisibleAssistantReply.js`
+- `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
+- `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/utils/chatSelectors.js`
 - `frontend/src/renderer/features/chat/hooks/useResponseOverlayPhase.js`
 - `frontend/src/renderer/features/chat/utils/overlay/overlayPhaseListener.js`
@@ -35,8 +36,8 @@ Primary inputs:
 
 Selection logic:
 
-1. `findLastUserIndex(messages)` resolves latest user turn boundary.
-2. `findLatestVisibleAssistantReply(messages, allowedTypes)` scans backward only after that boundary.
+1. `useCurrentTurnPresentationState(...)` resolves the latest user turn boundary.
+2. It projects the latest visible assistant reply only from rows after that boundary.
 3. candidate row must be `sender="assistant"`, non-empty `text`, and `type` in allowed set (`llm-text`, `error`).
 
 Closeability:

@@ -26,7 +26,8 @@ title: "Frontend Renderer Overlay Docs Hub"
 - `frontend/src/renderer/app/ChatBoxResponseApp.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
-- `frontend/src/renderer/features/chat/utils/message/latestVisibleAssistantReply.js`
+- `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
+- `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhaseContract.js`
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhasePayload.js`
 - `frontend/src/renderer/features/chat/utils/overlay/overlayPhaseListener.js`

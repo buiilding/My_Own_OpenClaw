@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
-import { useChatLoopUiState } from '../hooks/useChatLoopUiState';
+import { useCurrentTurnPresentationState } from '../hooks/useCurrentTurnPresentationState';
 import { useResponseOverlayPhase } from '../hooks/useResponseOverlayPhase';
 import { useTranscription } from '../hooks/useTranscription';
 import { IpcBridge, INVOKE_CHANNELS, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
@@ -38,6 +38,7 @@ import {
 
 function ChatBox() {
   const { config, updateConfig } = useAppConfigContext();
+  const messages = useChatStore((state) => state.messages);
   const isSending = useChatStore((state) => state.isSending);
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);
@@ -61,10 +62,10 @@ function ChatBox() {
   });
   const wakewordSttEnabled = config?.wakeword_stt_enabled === true;
   const speechModeEnabled = config?.speech_mode_enabled === true;
-  const { isBusy: loopInteractionLocked } = useChatLoopUiState({
+  const { isBusy: loopInteractionLocked } = useCurrentTurnPresentationState({
     phase: overlayPhase,
     isSending,
-    hasVisibleReply: false,
+    messages,
   });
   const devUiEnabled = isDevUiEnabled();
   const {

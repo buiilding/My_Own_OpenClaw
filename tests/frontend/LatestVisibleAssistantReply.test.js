@@ -1,9 +1,9 @@
 import {
   findLastUserIndex,
   findLatestVisibleAssistantReply,
-} from '../../frontend/src/renderer/features/chat/utils/message/latestVisibleAssistantReply';
+} from '../../frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState';
 
-describe('latestVisibleAssistantReply', () => {
+describe('chatTurnPresentationState visible reply helpers', () => {
   test('finds the latest user index', () => {
     expect(findLastUserIndex([
       { sender: 'user', text: 'first' },

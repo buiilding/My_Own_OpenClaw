@@ -1,25 +1,26 @@
 import {
   hasVisibleChatboxResponse,
-  resolveChatboxSurfaceStateFromLoopUiState,
+  resolveChatboxSurfaceState,
+  resolveChatTurnPresentationState,
   shouldShowChatboxAwaitingReply,
   shouldShowChatboxResponse,
-} from '../../frontend/src/renderer/features/chat/utils/state/chatboxSurfaceState';
+} from '../../frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState';
 import { resolveChatLoopUiState } from '../../frontend/src/renderer/features/chat/utils/state/chatLoopUiState';
 
-describe('chatboxSurfaceState', () => {
+describe('chatTurnPresentationState chatbox projection', () => {
   function deriveSurfaceState({
     overlayPhase,
     isSending,
-    hasVisibleResponse,
+    activeResponse = null,
   }) {
     const loopUiState = resolveChatLoopUiState({
       phase: overlayPhase,
       isSending,
-      hasVisibleReply: hasVisibleResponse,
+      hasVisibleReply: Boolean(activeResponse),
     });
-    return resolveChatboxSurfaceStateFromLoopUiState({
+    return resolveChatboxSurfaceState({
       loopUiState,
-      hasVisibleResponse,
+      activeResponse,
     });
   }
 
@@ -27,7 +28,7 @@ describe('chatboxSurfaceState', () => {
     const surfaceState = deriveSurfaceState({
       overlayPhase: 'idle',
       isSending: true,
-      hasVisibleResponse: false,
+      activeResponse: null,
     });
 
     expect(surfaceState).toBe('awaiting-reply');
@@ -39,7 +40,7 @@ describe('chatboxSurfaceState', () => {
     const surfaceState = deriveSurfaceState({
       overlayPhase: 'streaming',
       isSending: false,
-      hasVisibleResponse: true,
+      activeResponse: { id: 'assistant-1', type: 'llm-text' },
     });
 
     expect(surfaceState).toBe('response');
@@ -51,7 +52,7 @@ describe('chatboxSurfaceState', () => {
     const surfaceState = deriveSurfaceState({
       overlayPhase: 'tool-output',
       isSending: false,
-      hasVisibleResponse: true,
+      activeResponse: { id: 'assistant-1', type: 'llm-text' },
     });
 
     expect(surfaceState).toBe('awaiting-reply');
@@ -62,7 +63,7 @@ describe('chatboxSurfaceState', () => {
     const surfaceState = deriveSurfaceState({
       overlayPhase: 'complete',
       isSending: false,
-      hasVisibleResponse: false,
+      activeResponse: null,
     });
 
     expect(surfaceState).toBe('compact');
@@ -73,5 +74,29 @@ describe('chatboxSurfaceState', () => {
   test('treats dismissed responses as not visible', () => {
     expect(hasVisibleChatboxResponse({ id: 'assistant-1' }, 'assistant-1')).toBe(false);
     expect(hasVisibleChatboxResponse({ id: 'assistant-1' }, 'assistant-2')).toBe(true);
+  });
+
+  test('keeps tool rows from suppressing awaiting state after the latest user turn', () => {
+    const loopUiState = resolveChatLoopUiState({
+      phase: 'tool-output',
+      isSending: false,
+      hasVisibleReply: false,
+    });
+
+    const state = resolveChatTurnPresentationState({
+      messages: [
+        { id: 'user-1', sender: 'user', text: 'first task', type: 'user' },
+        { id: 'assistant-1', sender: 'assistant', text: 'done', type: 'llm-text' },
+        { id: 'user-2', sender: 'user', text: 'second task', type: 'user' },
+        { id: 'tool-call-2', sender: 'assistant', text: '{"name":"tool"}', type: 'tool-call' },
+        { id: 'tool-output-2', sender: 'assistant', text: '{"ok":true}', type: 'tool-output' },
+      ],
+      loopUiState,
+    });
+
+    expect(state.hasVisibleReply).toBe(false);
+    expect(state.showAssistantAwaitingDot).toBe(true);
+    expect(state.showChatboxAwaitingReply).toBe(true);
+    expect(state.showChatboxResponse).toBe(false);
   });
 });

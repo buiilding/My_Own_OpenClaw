@@ -12,8 +12,9 @@ title: "Chat Loop UI State Disconnect Recovery and Surface Projection Reference"
 
 - `frontend/src/renderer/features/chat/utils/state/chatLoopUiState.js`
 - `frontend/src/renderer/features/chat/hooks/useChatLoopUiState.js`
+- `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/utils/state/streamPhaseState.js`
-- `frontend/src/renderer/features/chat/utils/state/chatboxSurfaceState.js`
+- `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
@@ -115,16 +116,19 @@ It does not mutate stream tracking or backend query state; it is UI projection o
 
 `ChatInterface.jsx`:
 
+- consumes `useCurrentTurnPresentationState(...)`
 - uses `isBusy` as the stop-query affordance gate
-- uses `isAwaitingReply` for the awaiting dot before first assistant content
+- uses `showAssistantAwaitingDot` from the shared current-turn projection instead of component-local reply scanning
 
 `ChatBox.jsx`:
 
+- consumes `useCurrentTurnPresentationState(...)`
 - treats `isBusy` as loop-interaction lock for pill controls/input/drag/actions
 
 `ChatBoxResponse.jsx`:
 
-- combines loop state with `hasVisibleResponse` via `chatboxSurfaceState`:
+- consumes `useCurrentTurnPresentationState(...)`, which layers current-turn assistant-reply detection on top of `useChatLoopUiState(...)`
+- uses the derived chatbox surface state:
   - `compact`
   - `awaiting-reply`
   - `response`

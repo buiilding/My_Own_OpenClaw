@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useChatStore } from '../stores/chatStore';
-import { useChatLoopUiState } from '../hooks/useChatLoopUiState';
+import { useCurrentTurnPresentationState } from '../hooks/useCurrentTurnPresentationState';
 import { useResponseOverlayPhase } from '../hooks/useResponseOverlayPhase';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { toSanitizedMarkdownHtml } from '../../../infrastructure/markdown';
@@ -10,20 +10,11 @@ import { selectChatBoxState } from '../utils/chatSelectors';
 import { getRoundedFrameSize } from '../utils/overlay/overlayFrameSize';
 import { isDevUiEnabled } from '../utils/devUiFlag';
 import {
-  hasVisibleChatboxResponse,
-  resolveChatboxSurfaceStateFromLoopUiState,
-  shouldShowChatboxAwaitingReply,
-  shouldShowChatboxResponse,
-} from '../utils/state/chatboxSurfaceState';
-import {
   isCompactHoverLayoutMode,
   RESPONSE_OVERLAY_LAYOUT_MODE,
   resolveResponseOverlayLayoutMode,
 } from '../utils/overlay/responseOverlayLayoutMode';
 import { RESPONSE_OVERLAY_PHASE } from '../utils/overlay/responseOverlayPhaseContract';
-import {
-  findLatestVisibleAssistantReply,
-} from '../utils/message/latestVisibleAssistantReply';
 import {
   isResponseCloseable,
   normalizeThinkingText,
@@ -79,27 +70,18 @@ function ChatBoxResponse() {
   const shouldStickToBottomRef = useRef(true);
   const lastFrameRef = useRef(createHiddenFrameState());
 
-  const activeResponse = useMemo(
-    () => findLatestVisibleAssistantReply(messages, RESPONSE_TYPES),
-    [messages],
-  );
-
-  const visibleResponse = useMemo(
-    () => (hasVisibleChatboxResponse(activeResponse, closedResponseId) ? activeResponse : null),
-    [activeResponse, closedResponseId],
-  );
-
-  const { loopUiState } = useChatLoopUiState({
+  const {
+    activeResponse,
+    visibleResponse,
+    showChatboxAwaitingReply: showAwaitingReply,
+    showChatboxResponse: showResponse,
+  } = useCurrentTurnPresentationState({
     phase: overlayPhase,
     isSending,
-    hasVisibleReply: Boolean(visibleResponse),
+    messages,
+    dismissedResponseId: closedResponseId,
+    allowedTypes: RESPONSE_TYPES,
   });
-  const surfaceState = useMemo(() => resolveChatboxSurfaceStateFromLoopUiState({
-    loopUiState,
-    hasVisibleResponse: Boolean(visibleResponse),
-  }), [loopUiState, visibleResponse]);
-  const showAwaitingReply = shouldShowChatboxAwaitingReply(surfaceState);
-  const showResponse = shouldShowChatboxResponse(surfaceState);
 
   const responseIsCloseable = useMemo(() => {
     return isResponseCloseable(visibleResponse);

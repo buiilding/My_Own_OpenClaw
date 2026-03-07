@@ -61,6 +61,7 @@ frontend/src/renderer/
 │   │   │
 │   │   ├── hooks/                       # Chat business logic hooks
 │   │   │   ├── useChatMessageSender.ts  # useChatMessageSender - Handles message sending (dashboard sends skip screenshot capture/window handoff)
+│   │   │   ├── useCurrentTurnPresentationState.js # useCurrentTurnPresentationState - Shared dashboard/chatbox current-turn reply + awaiting/response projection hook
 │   │   │   ├── useChatStream.ts         # useChatStream - Handles streaming events (llm-thought, streaming-response, tool-call, etc.)
 │   │   │   ├── useCopyMessageAction.js  # useCopyMessageAction - Shared clipboard copy-success state/timer logic for user/assistant message action rows
 │   │   │   ├── useStreamMessageUpdaters.ts # useStreamMessageUpdaters - Shared message update callbacks extracted from useChatStream
@@ -72,8 +73,6 @@ frontend/src/renderer/
 │   │   │
 │   │   └── utils/                       # Chat presentation/formatting selectors and helpers
 │   │       ├── backendAudioEvents.js    # backendAudioEvents - Validates/extracts audio-chunk payloads for playback
-│   │       ├── message/                 # message - Shared message list/reply visibility/status helper utilities
-│   │       │   └── latestVisibleAssistantReply.js # latestVisibleAssistantReply - Finds the latest visible assistant reply after the current user and ignores tool rows
 │   │       ├── messageSender/            # messageSender - Payload normalization and attachment context/upload helper utilities
 │   │       │   ├── chatMessageSenderUtils.ts # chatMessageSenderUtils - User-message creation, first-message detection, and screenshot artifact mapping helpers
 │   │       │   ├── chatMessageSenderPayloads.ts # chatMessageSenderPayloads - Outgoing payload and attachment filename normalization
@@ -86,7 +85,7 @@ frontend/src/renderer/
 │   │       │   ├── chatBoxResponseState.js # chatBoxResponseState - Response closeability, thinking text normalization, source-tag projection
 │   │       │   ├── chatBoxState.js      # chatBoxState - Chatbox drag-block targets + visual anchor height helpers
 │   │       │   ├── chatLoopUiState.js   # chatLoopUiState - Stream-phase/transport/isSending -> loop UI state reducer
-│   │       │   ├── chatboxSurfaceState.js # chatboxSurfaceState - Loop state + visible response -> compact/awaiting/response surface mode
+│   │       │   ├── chatTurnPresentationState.js # chatTurnPresentationState - Shared current-turn reply detection + dashboard/chatbox surface projection helpers
 │   │       │   ├── stopQueryState.js    # stopQueryState - Stop-query UI patch helper for stream tracking + thinking reset
 │   │       │   └── streamPhaseState.js  # streamPhaseState - Phase predicates (active/terminal/awaiting/stop-control)
 │   │       ├── chatSelectors.js         # chatSelectors - Shared Zustand selectors for ChatInterface/ChatBox

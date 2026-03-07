@@ -40,9 +40,10 @@ title: "Renderer Chat Presentation Docs Hub"
 - `frontend/src/renderer/features/chat/components/message/ThinkingDisplay.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
+- `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/components/chatbox/ChatBoxIcons.jsx`
 - `frontend/src/renderer/features/chat/components/chatbox/ChatBoxImagePreviewRow.jsx`
-- `frontend/src/renderer/features/chat/utils/message/latestVisibleAssistantReply.js`
+- `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/components/ToolGhostCursor.jsx`
 - `frontend/src/renderer/features/chat/hooks/useCopyMessageAction.js`
 - `frontend/src/renderer/features/chat/utils/message/messageInput.js`
