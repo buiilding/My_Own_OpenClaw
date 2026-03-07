@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(backend-system-prompt-identity-directive-surface): document the literal `system_prompt.txt` runtime identity and main-window-title directives (`windieos`) in the backend prompt lifecycle reference so prompt-contract docs stay aligned with active backend prompt text.
 - docs(frontend-wakeword-helper-and-system-use-shell-contract-alignment): refresh frontend inventory/protocol/IPC and local-backend deep references to include `wakeword_bridge_runtime.cjs` ownership in wakeword surfaces and document wrapper-aware `system_use -> run_shell_command` `sudo_auth_mode` injection semantics (including non-object nested-arguments pass-through for sidecar validation ownership).
 - fix(fullstack-system-use-shell-sudo-auth-propagation): inject `sudo_auth_mode` into frontend `system_use -> run_shell_command` arguments so full-sudo configuration propagates through unified wrapper flows, with deterministic backend parser + sidecar registry + frontend bridge regression coverage for explanation precedence and non-object argument validation boundaries.
 - test(fullstack-cancel-and-toolrunner-error-recovery): add deterministic backend/frontend regressions for cancellation recovery by asserting `QueryExecutionService.execute` re-raises `CancelledError` while reconciling pending tool calls, and ensuring renderer tool-runner drops correlated backend payloads after execution failure untracks the request.
