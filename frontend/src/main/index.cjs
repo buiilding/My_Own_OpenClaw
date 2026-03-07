@@ -226,8 +226,9 @@ function setResponseOverlayVisibilityState(visible) {
   });
 }
 
-function showChatWindow({ focus = true } = {}) {
-  return showChatWindowRuntime({ focus }, {
+function showChatWindow(options = {}) {
+  const focus = options?.focus !== false;
+  return showChatWindowRuntime({ ...options, focus }, {
     chatWindow,
     mainWindow,
     responseWindow,
