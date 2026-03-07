@@ -22,9 +22,8 @@ import {
 } from '../utils/overlay/responseOverlayLayoutMode';
 import { RESPONSE_OVERLAY_PHASE } from '../utils/overlay/responseOverlayPhaseContract';
 import {
-  findLastUserIndex,
-  findLatestMessageAfterUser,
-} from './chatbox/chatBoxResponseUtils';
+  findLatestVisibleAssistantReply,
+} from '../utils/message/latestVisibleAssistantReply';
 import {
   isResponseCloseable,
   normalizeThinkingText,
@@ -80,14 +79,9 @@ function ChatBoxResponse() {
   const shouldStickToBottomRef = useRef(true);
   const lastFrameRef = useRef(createHiddenFrameState());
 
-  const lastUserIndex = useMemo(
-    () => findLastUserIndex(messages),
-    [messages],
-  );
-
   const activeResponse = useMemo(
-    () => findLatestMessageAfterUser(messages, lastUserIndex, RESPONSE_TYPES),
-    [messages, lastUserIndex],
+    () => findLatestVisibleAssistantReply(messages, RESPONSE_TYPES),
+    [messages],
   );
 
   const visibleResponse = useMemo(

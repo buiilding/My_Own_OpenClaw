@@ -40,6 +40,7 @@ import { applyStopQueryUiState } from '../utils/state/stopQueryState';
 import { useChatLoopUiState } from '../hooks/useChatLoopUiState';
 import { useTranscriptSessionInfo } from '../../dashboard/hooks/useTranscriptSessionInfo';
 import { isVmModeEnabled } from '../../../infrastructure/runtime/vmMode';
+import { findLatestVisibleAssistantReply } from '../utils/message/latestVisibleAssistantReply';
 import '../../../styles/ChatInterface.css';
 
 function waitForNextPaint() {
@@ -53,6 +54,7 @@ function waitForNextPaint() {
 }
 
 function ChatInterface({ focusComposerToken = 0 }) {
+  const visibleAssistantReplyTypes = useMemo(() => new Set(['llm-text', 'error']), []);
   const vmModeEnabled = isVmModeEnabled();
 
   const { messages, isSending, thinkingStatus, thinkingSourceEventType, streamPhase } = useChatStore(
@@ -82,7 +84,10 @@ function ChatInterface({ focusComposerToken = 0 }) {
 
   const voiceModeEnabled = config?.voice_mode_enabled === true;
   const speechModeEnabled = config?.speech_mode_enabled === true;
-  const hasVisibleReply = messages[messages.length - 1]?.sender === 'assistant';
+  const hasVisibleReply = useMemo(
+    () => Boolean(findLatestVisibleAssistantReply(messages, visibleAssistantReplyTypes)),
+    [messages, visibleAssistantReplyTypes],
+  );
   const {
     isBusy: composerBusy,
     isAwaitingReply: isAwaitingReply,

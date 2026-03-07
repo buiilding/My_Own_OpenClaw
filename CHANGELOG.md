@@ -2368,3 +2368,4 @@ Includes the last 300 commits on `main`.
 - unreleased fix(frontend-display-affinity): prevent destroyed or invalid visible-surface candidates from collapsing monitor resolution back to the primary display when `requireVisible` monitor selection is in effect
 - unreleased refactor(frontend-display-affinity): extract shared visible-surface and hidden-show monitor helpers so lifecycle and visibility runtimes stop duplicating the same chat/dashboard targeting policy
 - unreleased refactor(frontend-display-affinity): route IPC-triggered chat, dashboard, and screenshot monitor targeting through one shared active-surface resolver helper instead of rebuilding sender/chat/main closures in each entry point
+- unreleased fix(frontend-dashboard): keep the awaiting typing indicator visible until an actual assistant reply row appears after the latest user message instead of treating tool-call/tool-output rows as visible replies
