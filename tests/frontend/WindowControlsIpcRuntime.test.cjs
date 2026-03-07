@@ -39,6 +39,11 @@ describe('window_controls_ipc_runtime', () => {
     const showMainWindow = jest.fn(() => ({ success: true }));
     const normalizeMainWindowOpenTarget = jest.fn(() => 'settings');
     const emitMainWindowOpenTarget = jest.fn();
+    const senderWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => true),
+      getBounds: jest.fn(() => ({ x: 1920, y: 10, width: 500, height: 300 })),
+    };
     const screen = {
       getAllDisplays: jest.fn(() => ([
         {
@@ -68,12 +73,19 @@ describe('window_controls_ipc_runtime', () => {
       showMainWindow,
       normalizeMainWindowOpenTarget,
       emitMainWindowOpenTarget,
+      BrowserWindow: {
+        fromWebContents: jest.fn(() => senderWindow),
+      },
+      getWindows: () => ({
+        mainWindow: senderWindow,
+        chatWindow: null,
+      }),
     });
 
     const result = await invokeHandlers['show-main-window']({ sender: {} }, { open: 'settings' });
 
     expect(result).toEqual({ success: true });
-    expect(showMainWindow).toHaveBeenCalledWith({
+    expect(showMainWindow.mock.calls[0][0]).toEqual({
       focus: true,
       maximize: false,
       targetDisplayAffinity: {
@@ -152,7 +164,81 @@ describe('window_controls_ipc_runtime', () => {
     const result = await invokeHandlers['show-main-window']({ sender: {} }, { open: 'settings' });
 
     expect(result).toEqual({ success: true });
-    expect(showMainWindow).toHaveBeenCalledWith({
+    expect(showMainWindow.mock.calls[0][0]).toEqual({
+      focus: true,
+      maximize: false,
+      targetDisplayAffinity: {
+        monitor_id: '2',
+        bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+        workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+        desktopVirtualBounds: { x: 0, y: 0, width: 4480, height: 1440 },
+      },
+    });
+  });
+
+  test('show-main-window ignores a visible non-surface sender and still uses the visible chat surface', async () => {
+    const showMainWindow = jest.fn(() => ({ success: true }));
+    const screen = {
+      getAllDisplays: jest.fn(() => ([
+        {
+          id: 1,
+          bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+          workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+        },
+        {
+          id: 2,
+          bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+          workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+        },
+      ])),
+      getDisplayMatching: jest.fn((bounds) => {
+        if (bounds && bounds.x >= 1920) {
+          return {
+            id: 2,
+            bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+            workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+          };
+        }
+        return {
+          id: 1,
+          bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+          workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+        };
+      }),
+      getPrimaryDisplay: jest.fn(() => ({
+        id: 1,
+        bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+        workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+      })),
+    };
+    const { invokeHandlers } = createRuntime({
+      screen,
+      showMainWindow,
+      BrowserWindow: {
+        fromWebContents: jest.fn(() => ({
+          isDestroyed: jest.fn(() => false),
+          isVisible: jest.fn(() => true),
+          getBounds: jest.fn(() => ({ x: 100, y: 40, width: 420, height: 280 })),
+        })),
+      },
+      getWindows: () => ({
+        mainWindow: {
+          isDestroyed: jest.fn(() => false),
+          isVisible: jest.fn(() => false),
+          getBounds: jest.fn(() => ({ x: 0, y: 0, width: 1000, height: 700 })),
+        },
+        chatWindow: {
+          isDestroyed: jest.fn(() => false),
+          isVisible: jest.fn(() => true),
+          getBounds: jest.fn(() => ({ x: 2200, y: 60, width: 520, height: 116 })),
+        },
+      }),
+    });
+
+    const result = await invokeHandlers['show-main-window']({ sender: {} }, { open: 'settings' });
+
+    expect(result).toEqual({ success: true });
+    expect(showMainWindow.mock.calls[0][0]).toEqual({
       focus: true,
       maximize: false,
       targetDisplayAffinity: {
