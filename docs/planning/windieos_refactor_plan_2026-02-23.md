@@ -48,6 +48,28 @@ read_when:
 
 ## Frontend/Main Execution Log (2026-02-26)
 
+- Frontend main index bootstrap runtime extraction (2026-03-07):
+  - extracted main/chat/response/tray bootstrap wiring and VM-worker startup guard from:
+    - `frontend/src/main/index.cjs`
+    - into `frontend/src/main/main_process_bootstrap_runtime.cjs`.
+  - kept `index.cjs` focused on top-level state composition, overlay signal wrappers, lifecycle registration, and IPC registrar wiring.
+  - result:
+    - `frontend/src/main/index.cjs` reduced from `470` LOC to `444` LOC.
+    - frontend `jscpd` remains `0` TypeScript/JavaScript clones; remaining clones are only in unrelated dirty backend Python files outside this slice.
+    - `backend/src/api/routes` remains `0` clones.
+  - regression coverage:
+    - added `tests/frontend/MainProcessBootstrapRuntime.test.cjs`.
+    - reran `tests/frontend/MainProcessLifecycleRuntime.test.cjs`, `tests/frontend/MainWindowRuntime.test.cjs`, `tests/frontend/MainWindowIconRuntime.test.cjs`, and `tests/frontend/MainWindowOverlayRuntime.test.cjs`.
+  - verification:
+    - `cd frontend && npm run test:ci -- ../tests/frontend/MainProcessBootstrapRuntime.test.cjs ../tests/frontend/MainProcessLifecycleRuntime.test.cjs ../tests/frontend/MainWindowRuntime.test.cjs ../tests/frontend/MainWindowIconRuntime.test.cjs ../tests/frontend/MainWindowOverlayRuntime.test.cjs`
+    - `cd frontend && npm run lint -- src/main/index.cjs src/main/main_process_bootstrap_runtime.cjs src/main/main_window_runtime.cjs src/main/main_window_icon_runtime.cjs src/main/main_window_overlay_runtime.cjs`
+    - `cd frontend && npm run audit:knip`
+    - `cd frontend && npm run audit:jscpd`
+    - `cd frontend && npx jscpd --gitignore --min-lines 5 --min-tokens 50 --reporters console --ignore \"**/__pycache__/**\" ../backend/src/api/routes`
+  - audit delta:
+    - `knip` clean.
+    - `jscpd` clean for frontend (`0` TypeScript/JavaScript clones).
+
 - Frontend main window runtime helper extraction (2026-03-07):
   - extracted app/tray icon path and native-image resolution from:
     - `frontend/src/main/main_window_runtime.cjs`

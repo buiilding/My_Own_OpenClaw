@@ -36,6 +36,9 @@ const {
 const {
   initializeMainProcessLifecycleRuntime,
 } = require('./main_process_lifecycle_runtime.cjs');
+const {
+  createWindowBootstrapRuntime,
+} = require('./main_process_bootstrap_runtime.cjs');
 const { initializeOverlayPhaseHandlersRuntime } = require('./overlay_phase_ipc_runtime.cjs');
 const { initializeWindowControlHandlersRuntime } = require('./window_controls_ipc_runtime.cjs');
 const { initializePermissionHandlersRuntime } = require('./permission_ipc_runtime.cjs');
@@ -287,109 +290,80 @@ function applyResponseOverlayPhase(event = {}) {
   });
 }
 
-function createWindow() {
-  mainWindow = createMainWindowRuntime({
-    BrowserWindow,
-    path,
-    app,
-    platform: process.platform,
-    vmMode: VM_MODE_ENABLED,
-    minimizeToTrayOnClose: !VM_MODE_ENABLED,
-    enableDevTransparencyUi: ENABLE_DEV_TRANSPARENCY_UI,
-    enableDebugStreamTrace: ENABLE_DEBUG_STREAM_TRACE,
-    enableDebugToolScreenshot: ENABLE_DEBUG_TOOL_SCREENSHOT,
-    initializeIpc,
-    applyResponseOverlayPhase,
-    prepareOverlayQueryCaptureFocus,
-    initializeWakewordBridge,
-    showChatWindow,
-    emitWakewordSttTrigger,
-    initializeLocalBackendBridge,
-    initializeMainProcessIpc,
-    getLatestFrontendConfig,
-    getWindows: () => ({
+const {
+  createWindow,
+  createChatWindow,
+  createResponseWindow,
+  createTray,
+} = createWindowBootstrapRuntime({
+  BrowserWindow,
+  Tray,
+  Menu,
+  path,
+  app,
+  platform: process.platform,
+  enableDevTransparencyUi: ENABLE_DEV_TRANSPARENCY_UI,
+  enableDebugStreamTrace: ENABLE_DEBUG_STREAM_TRACE,
+  enableDebugToolScreenshot: ENABLE_DEBUG_TOOL_SCREENSHOT,
+  vmMode: VM_MODE_ENABLED,
+  vmWorkerMode: VM_WORKER_MODE_ENABLED,
+  enableOsToolGhostDebug: ENABLE_OS_TOOL_GHOST_DEBUG,
+  responseWindowDebugView: RESPONSE_WINDOW_DEBUG_VIEW,
+  initializeIpc,
+  initializeWakewordBridge,
+  initializeLocalBackendBridge,
+  initializeMainProcessIpc,
+  createVmWorkerRuntime,
+  getBackendConnectionState,
+  sendAutomatedQuery,
+  sendMessageToBackend,
+  registerBackendMessageObserver,
+  createMainWindowRuntime,
+  createChatWindowRuntime,
+  createResponseWindowRuntime,
+  createTrayRuntime,
+  prepareOverlayQueryCaptureFocus,
+  showChatWindow,
+  hideChatWindow,
+  showMainWindow,
+  emitWakewordSttTrigger,
+  getLatestFrontendConfig,
+  positionChatWindow,
+  positionResponseWindow,
+  showResponseWindowInactive,
+  syncWakewordToggleForChatVisibility,
+  syncContextLabelWindowVisibility,
+  setResponseOverlayVisibilityState,
+  enableContentProtectionSafely,
+  externalFocusTracker,
+  getState: () => ({
+    windows: {
       mainWindow,
       chatWindow,
       responseWindow,
       contextLabelWindow,
-    }),
-    setMainWindow: (nextWindow) => {
-      mainWindow = nextWindow;
     },
-    enableContentProtectionSafely,
-  });
-
-  if (VM_WORKER_MODE_ENABLED && !vmWorkerRuntime) {
-    vmWorkerRuntime = createVmWorkerRuntime({
-      env: process.env,
-      getBackendConnectionState,
-      sendAutomatedQuery,
-      sendMessageToBackend,
-      registerBackendMessageObserver,
-      log: (...args) => console.log(...args),
-      warn: (...args) => console.warn(...args),
-    });
-    vmWorkerRuntime.start();
-  }
-}
-
-function createChatWindow() {
-  chatWindow = createChatWindowRuntime({
-    BrowserWindow,
-    path,
-    app,
-    platform: process.platform,
-    enableDevTransparencyUi: ENABLE_DEV_TRANSPARENCY_UI,
-    enableDebugStreamTrace: ENABLE_DEBUG_STREAM_TRACE,
-    enableDebugToolScreenshot: ENABLE_DEBUG_TOOL_SCREENSHOT,
-    positionChatWindow,
-    hideChatWindow,
-    syncWakewordToggleForChatVisibility,
-    externalFocusTracker,
-    setChatWindow: (nextWindow) => {
-      chatWindow = nextWindow;
-    },
-    enableContentProtectionSafely,
-  });
-
-  return chatWindow;
-}
-
-function createResponseWindow() {
-  responseWindow = createResponseWindowRuntime({
-    BrowserWindow,
-    path,
-    app,
-    platform: process.platform,
-    enableDevTransparencyUi: ENABLE_DEV_TRANSPARENCY_UI,
-    enableDebugStreamTrace: ENABLE_DEBUG_STREAM_TRACE,
-    enableDebugToolScreenshot: ENABLE_DEBUG_TOOL_SCREENSHOT,
-    enableOsToolGhostDebug: ENABLE_OS_TOOL_GHOST_DEBUG,
-    responseWindowDebugView: RESPONSE_WINDOW_DEBUG_VIEW,
-    positionResponseWindow,
-    showResponseWindowInactive,
+    vmWorkerRuntime,
+    applyResponseOverlayPhase,
     setResponseOverlayVisible: (nextVisible) => {
       responseOverlayVisible = Boolean(nextVisible);
     },
-    setResponseOverlayVisibilityState,
-    syncContextLabelWindowVisibility,
-    setResponseWindow: (nextWindow) => {
-      responseWindow = nextWindow;
-    },
-    enableContentProtectionSafely,
-  });
-
-  return responseWindow;
-}
-
-function createTray() {
-  createTrayRuntime({
-    Tray,
-    Menu,
-    showMainWindow,
-    app,
-  });
-}
+  }),
+  setMainWindow: (nextWindow) => {
+    mainWindow = nextWindow;
+  },
+  setChatWindow: (nextWindow) => {
+    chatWindow = nextWindow;
+  },
+  setResponseWindow: (nextWindow) => {
+    responseWindow = nextWindow;
+  },
+  setVmWorkerRuntime: (nextRuntime) => {
+    vmWorkerRuntime = nextRuntime;
+  },
+  log: (...args) => console.log(...args),
+  warn: (...args) => console.warn(...args),
+});
 
 initializeMainProcessLifecycleRuntime({
   app,
