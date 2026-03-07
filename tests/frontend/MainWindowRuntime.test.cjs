@@ -318,6 +318,17 @@ describe('main_window_runtime createChatWindow', () => {
     expect(chatWindow.loadURL).toHaveBeenCalledWith(expect.stringContaining('debug_stream=1'));
   });
 
+  test('adds debug_tool_screenshot query flag to chat overlay when tool screenshot tracing is enabled', () => {
+    const { deps, handlers, chatWindow } = createDeps({
+      enableDebugToolScreenshot: true,
+    });
+
+    createChatWindow(deps);
+    handlers.show();
+
+    expect(chatWindow.loadURL).toHaveBeenCalledWith(expect.stringContaining('debug_tool_screenshot=1'));
+  });
+
   test('uses aggressive always-on-top level on mac for chat overlay', () => {
     const { deps, chatWindow } = createDeps({ platform: 'darwin' });
 
@@ -410,6 +421,17 @@ describe('main_window_runtime createResponseWindow', () => {
     handlers.show();
 
     expect(responseWindow.loadURL).toHaveBeenCalledWith(expect.stringContaining('debug_stream=1'));
+  });
+
+  test('adds debug_tool_screenshot query flag to response overlay when tool screenshot tracing is enabled', () => {
+    const { deps, handlers, responseWindow } = createDeps({
+      enableDebugToolScreenshot: true,
+    });
+
+    createResponseWindow(deps);
+    handlers.show();
+
+    expect(responseWindow.loadURL).toHaveBeenCalledWith(expect.stringContaining('debug_tool_screenshot=1'));
   });
 
   test('uses aggressive always-on-top level on mac for response overlay', () => {
@@ -542,6 +564,16 @@ describe('main_window_runtime createMainWindow', () => {
     createMainWindow(deps);
 
     expect(mainWindow.loadURL).toHaveBeenCalledWith(expect.stringContaining('debug_stream=1'));
+  });
+
+  test('adds debug_tool_screenshot query flag to dashboard when tool screenshot tracing is enabled', () => {
+    const { deps, mainWindow } = createDeps({
+      enableDebugToolScreenshot: true,
+    });
+
+    createMainWindow(deps);
+
+    expect(mainWindow.loadURL).toHaveBeenCalledWith(expect.stringContaining('debug_tool_screenshot=1'));
   });
 
   test('does not minimize to tray on close when minimizeToTrayOnClose is disabled', () => {
