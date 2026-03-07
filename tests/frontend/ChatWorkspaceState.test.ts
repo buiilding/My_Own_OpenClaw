@@ -6,6 +6,7 @@ import {
   resolveChatWorkspaceRef,
   resolveWorkspaceConversationRef,
   resolveWorkspaceKey,
+  selectActiveWorkspaceState,
 } from '../../frontend/src/renderer/features/chat/stores/chatWorkspaceState';
 
 function createStreamTracking(overrides: Partial<StreamTracking> = {}): StreamTracking {
@@ -95,5 +96,31 @@ describe('chatWorkspaceState', () => {
         eventCount: 0,
       }),
     }));
+  });
+
+  test('selects active workspace through the shared active-workspace projection', () => {
+    const staleWorkspace = {
+      ...createInitialWorkspaceState(),
+      messages: [{ id: 'stale', text: 'stale', sender: 'assistant' as const }],
+    };
+    const rootMessages = [{ id: 'root', text: 'root', sender: 'assistant' as const }];
+    const state = {
+      activeConversationRef: 'thread-1',
+      workspaces: {
+        'thread-1': staleWorkspace,
+      },
+      messages: rootMessages,
+      isSending: true,
+      thinkingStatus: 'thinking',
+      thinkingSourceEventType: 'llm-thought',
+      tokenCounts: { total_tokens: 4 },
+      streamTracking: createStreamTracking({ phase: 'streaming', eventCount: 2 }),
+    };
+
+    const resolved = selectActiveWorkspaceState(state);
+    expect(resolved.messages).toBe(rootMessages);
+    expect(resolved.isSending).toBe(true);
+    expect(resolved.thinkingStatus).toBe('thinking');
+    expect(resolved.streamTracking.phase).toBe('streaming');
   });
 });

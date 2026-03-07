@@ -19,6 +19,7 @@ describe('chatSelectors', () => {
       messages: state.messages,
       isSending: true,
       thinkingStatus: 'thinking',
+      thinkingSourceEventType: null,
       tokenCounts: { total_tokens: 42 },
       streamPhase: 'streaming',
     });
@@ -38,6 +39,7 @@ describe('chatSelectors', () => {
       messages: state.messages,
       isSending: false,
       thinkingStatus: null,
+      thinkingSourceEventType: null,
     });
   });
 
@@ -61,7 +63,7 @@ describe('chatSelectors', () => {
     expect(chatBox.messages).toBe(messages);
   });
 
-  test('returns undefined tokenCounts when not present', () => {
+  test('defaults optional active-workspace fields when not present', () => {
     const selected = selectChatInterfaceState({
       messages: [],
       isSending: false,
@@ -72,7 +74,8 @@ describe('chatSelectors', () => {
       messages: [],
       isSending: false,
       thinkingStatus: null,
-      tokenCounts: undefined,
+      thinkingSourceEventType: null,
+      tokenCounts: null,
       streamPhase: 'idle',
     });
   });
