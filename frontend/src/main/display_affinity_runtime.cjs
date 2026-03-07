@@ -104,16 +104,16 @@ function resolveDisplayAffinityForBounds(screen, bounds) {
 
 function resolveDisplayAffinityForWindow(screen, targetWindow, { requireVisible = false } = {}) {
   if (!targetWindow || typeof targetWindow !== 'object') {
-    return resolvePrimaryDisplayAffinity(screen);
+    return requireVisible ? null : resolvePrimaryDisplayAffinity(screen);
   }
   if (typeof targetWindow.isDestroyed === 'function' && targetWindow.isDestroyed()) {
-    return resolvePrimaryDisplayAffinity(screen);
+    return requireVisible ? null : resolvePrimaryDisplayAffinity(screen);
   }
   if (requireVisible && typeof targetWindow.isVisible === 'function' && !targetWindow.isVisible()) {
     return null;
   }
   if (typeof targetWindow.getBounds !== 'function') {
-    return resolvePrimaryDisplayAffinity(screen);
+    return requireVisible ? null : resolvePrimaryDisplayAffinity(screen);
   }
   return resolveDisplayAffinityForBounds(screen, targetWindow.getBounds());
 }
@@ -125,7 +125,7 @@ function resolveDisplayAffinityForWebContents({
   requireVisible = false,
 }) {
   if (!BrowserWindow || typeof BrowserWindow.fromWebContents !== 'function' || !webContents) {
-    return resolvePrimaryDisplayAffinity(screen);
+    return requireVisible ? null : resolvePrimaryDisplayAffinity(screen);
   }
   const targetWindow = BrowserWindow.fromWebContents(webContents);
   return resolveDisplayAffinityForWindow(screen, targetWindow, { requireVisible });

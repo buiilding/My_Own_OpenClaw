@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(fullstack-tool-output-malformed-stream-contract): add frontend `useChatStreamToolHandlers` regressions for malformed `tool-output` payload safety (no-throw/state reset/correlation fallback) plus remote-screenshot precedence over inline screenshots, and add backend formatter coverage that preserves `tool-output.payload.metadata.request_id` for frontend correlation fallback paths.
 - test(fullstack-ipc-tool-lifecycle-malformed-payload-guards): add backend websocket parse-runtime regressions for malformed `tool-result`/`tool-bundle-result` payload shapes and frontend tool-runner regressions that fail closed on malformed bundle/tool payloads (including non-array bundle tools) while preserving stable no-execution behavior.
 - docs(backend-system-use-and-browser-projection-detail-refinement): refine backend parser/native-bridge/remote-tool contract docs with explicit `system_use` explanation trim semantics and enumerated `RemoteBrowserTool.get_json_schema(...)` action/property projection filters for better cross-layer debugging precision.
 - docs(frontend-window-visibility-active-display-fallback): refresh frontend main lifecycle/window visibility/display-affinity inventory docs to document hidden-window monitor targeting fallback (`showChatWindow`/`showMainWindow` reuse stored active display affinity when no explicit target is provided).
@@ -2354,3 +2355,4 @@ Includes the last 300 commits on `main`.
 - unreleased fix(frontend-display-affinity): preserve active monitor affinity across backend websocket/session resets so surface-owned monitor selection does not collapse on reconnect
 - unreleased fix(frontend-display-affinity): make hidden dashboard/chat show paths default to the active monitor so tray, hotkey, startup, and lifecycle opens follow the same surface contract without caller-specific targeting
 - unreleased fix(frontend-display-affinity): refresh active monitor affinity from the visible chat/dashboard surface before overlay repositioning on display-metrics changes so screenshot targeting stays aligned after monitor layout updates
+- unreleased fix(frontend-display-affinity): prevent destroyed or invalid visible-surface candidates from collapsing monitor resolution back to the primary display when `requireVisible` monitor selection is in effect
