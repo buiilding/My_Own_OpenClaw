@@ -92,12 +92,24 @@ Strategy order:
    - `{"functionCall":{"name":"...","args":{...}}}`
 2. unified computer-use envelope:
    - `{"functionCall":{"name":"computer_use","args":{"tool":"mouse_control","arguments":{...},"metadata":{...}}}}`
+3. unified system/filesystem envelope:
+   - `{"functionCall":{"name":"system_use","args":{"tool":"run_shell_command","explanation":"...","arguments":{...}}}}`
 
 Unified computer-use normalization behavior:
 
 - maps unified `tool` to concrete computer subtool name (`mouse_control`, `keyboard_control`, etc.)
 - forwards unified `metadata` for downstream metadata validation
 - defaults missing unified `arguments` to `{}`
+- rejects unknown unified subtools and non-dict `arguments`
+
+Unified system-use normalization behavior:
+
+- maps unified `tool` to concrete action (`run_shell_command|replace|read_file|get_system_stats|get_open_windows`)
+- defaults missing unified `arguments` to `{}`
+- resolves explanation with precedence:
+  - top-level unified `explanation`
+  - fallback nested `arguments.explanation` (legacy compatibility)
+- injects resolved explanation into concrete tool parameters
 - rejects unknown unified subtools and non-dict `arguments`
 
 Legacy metadata/action wrapper payloads are rejected by current parser schema extraction.
@@ -116,6 +128,8 @@ Whitelist compatibility behavior:
 
 - when unified `computer_use` is present in filtered registry tool names, validator expands allowed names to include legacy concrete computer subtool names
 - this preserves backward-compatible concrete-name ingestion while keeping unified declaration surface available for tool schema exposure
+- when unified `system_use` is present in filtered registry tool names, validator expands allowed names to include legacy concrete system/filesystem action names
+- this preserves compatibility for direct concrete names while keeping the model-facing declaration surface unified
 
 Method-level policy check:
 
@@ -188,6 +202,11 @@ Each includes boundary metadata (`boundary_name="response_parser"` plus optional
   - missing/non-dict unified `arguments` becomes `parameters={}`
   - only top-level unified `metadata` is promoted; nested `arguments.metadata` remains in tool parameters
   - non-dict top-level unified metadata is ignored safely (no merge, no crash)
+- unified native `system_use` bridge behavior:
+  - maps `arguments.tool` to concrete tool (`run_shell_command|replace|read_file|get_system_stats|get_open_windows`) when valid
+  - resolves rationale from top-level `explanation` then nested `arguments.explanation` fallback
+  - injects resolved explanation into concrete parameters when present
+  - invalid mapped subtool is kept as `tool_name="system_use"` so downstream wrapper validation emits deterministic errors in native path
 
 History-call shaping via `tool_call_bridge.to_history_tool_calls(...)`:
 
@@ -209,5 +228,6 @@ If parser tests fail on limits/validation:
 
 1. inspect `SecurityLimits` changes
 2. inspect tool whitelist filtering (`ToolPolicy` + `ToolRegistry`)
-3. inspect parser strategy selection (`_should_try_parse_json_response`)
-4. inspect trust-boundary exception metadata and boundary metrics payloads
+3. inspect unified-wrapper compatibility expansion in `ToolCallValidator` (computer + system legacy names)
+4. inspect parser strategy selection (`_should_try_parse_json_response`)
+5. inspect trust-boundary exception metadata and boundary metrics payloads

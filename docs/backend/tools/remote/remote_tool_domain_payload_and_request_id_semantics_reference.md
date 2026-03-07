@@ -1,8 +1,8 @@
 ---
-summary: "Deep backend reference for remote tool stubs across computer/system/filesystem/browser domains: args-model binding, unified computer_use normalization/validation contracts, request-id sourcing, payload model_dump behavior, and cross-layer dispatch implications."
+summary: "Deep backend reference for remote tool stubs across computer/system/filesystem/browser domains: args-model binding, unified computer/system normalization contracts, request-id sourcing, payload model_dump behavior, and cross-layer dispatch implications."
 read_when:
-  - When modifying remote stub classes, especially unified `computer_use` routing, request-id generation, or payload serialization rules.
-  - When changing parser/native-tool-call normalization for `computer_use` and concrete computer subtool dispatch.
+  - When modifying remote stub classes, especially unified `computer_use`/`system_use` routing, request-id generation, or payload serialization rules.
+  - When changing parser/native-tool-call normalization for unified wrappers and concrete subtool dispatch.
   - When debugging mismatches where backend remote tool payload looks valid but sidecar execution fails or correlates to wrong request.
 title: "Remote Tool Domain Payload and Request-ID Semantics Reference"
 ---
@@ -131,20 +131,21 @@ Compatibility note:
 
 ### Dispatch-path normalization before remote stubs
 
-Standard backend tool-call ingress paths normalize `computer_use` into concrete computer subtool names before remote-tool dispatch:
+Standard backend tool-call ingress paths normalize unified wrappers into concrete tool names before remote-tool dispatch:
 
 1. parser path (`ToolCallSchema.extract_tool_call` in `parser_types.py`):
-  - extracts `metadata` from `args.metadata`
-  - maps `computer_use` + `args.tool` to concrete subtool (`mouse_control`, `keyboard_control`, etc.)
-  - forwards only `args.arguments` as concrete tool parameters
+  - `computer_use`: extracts top-level `metadata`, maps `args.tool` to concrete computer subtool, forwards `args.arguments`
+  - `system_use`: maps `args.tool` to concrete system/filesystem tool, forwards `args.arguments`, resolves `explanation` from top-level with nested fallback
+  - parser path rejects unknown unified subtools and non-dict `arguments` (`extract_tool_call(...) -> None`)
 2. native tool-call bridge path (`tool_call_bridge.to_parsed_tool_call`):
-  - performs equivalent normalization for provider-native tool-call payloads
-  - maps invalid subtool names to `invalid_computer_use_tool`
+  - performs equivalent normalization for provider-native payloads
+  - `computer_use`: invalid mapped subtool becomes `invalid_computer_use_tool`
+  - `system_use`: invalid mapped subtool keeps `tool_name="system_use"` so downstream wrapper validation emits deterministic tool error
 
 Consequence:
 
-- normal model-driven execution usually hits concrete remote stubs (`RemoteMouseTool`, `RemoteKeyboardTool`, etc.)
-- `RemoteComputerUseTool` remains a compatibility/explicit invocation path when `computer_use` reaches remote-tool dispatch without pre-normalization
+- normal model-driven execution usually hits concrete remote stubs (`RemoteMouseTool`, `RemoteKeyboardTool`, `RemoteShellTool`, `RemoteReplaceTool`, etc.)
+- `RemoteComputerUseTool` and `RemoteSystemUseTool` remain compatibility/explicit invocation paths when unified wrappers reach remote-tool dispatch without pre-normalization
 
 ### Sidecar `computer_use` compatibility router
 
@@ -155,10 +156,20 @@ Consequence:
 - in standard backend-normalized flows (concrete tool names already selected), sidecar executes concrete tool handlers directly and does not re-parse unified `computer_use` metadata envelope
 - this router therefore acts as fail-closed compatibility coverage for direct/manual `computer_use` invocations
 
+### Sidecar `system_use` compatibility router
+
+- sidecar `ToolRegistry` validates unified `system_use` envelope shape when that wrapper name is invoked directly:
+  - requires valid `tool` in supported set and object `arguments`
+  - resolves rationale from top-level `explanation`, with legacy nested `arguments.explanation` fallback
+  - injects resolved explanation into delegated concrete args when present
+  - routes to mapped concrete executor (`run_shell_command`, `replace`, `read_file`, `get_system_stats`, `get_open_windows`)
+- in backend-normalized flows where concrete tool names are already selected, sidecar executes concrete tool handlers directly
+
 ### System domain (`remote_tools/system.py`)
 
 Classes:
 
+- `RemoteSystemUseTool` (`SystemUseArgs`)
 - `RemoteGetSystemStatsTool` (`GetSystemStatsArgs`)
 - `RemoteShellTool` (`RunShellCommandArgs`)
 - `RemoteProcessTool` (`ProcessShellCommandArgs`)
@@ -167,6 +178,28 @@ Behavior:
 
 - category `ToolDomain.SYSTEM`
 - all call `_build_remote_result(...)` with default request-id sourcing
+
+### Unified `system_use` explanation and argument contract
+
+`SystemUseArgs` is the backend wrapper model for system/filesystem actions:
+
+- `tool`: one of `run_shell_command|replace|read_file|get_system_stats|get_open_windows`
+- `explanation`: canonical top-level rationale field for the unified wrapper
+- `arguments`: action payload object, re-validated against the selected concrete tool model
+
+Normalization behavior in `SystemUseArgs.normalize_explanation`:
+
+- top-level `explanation` is preferred when non-empty
+- backward-compatible fallback accepts legacy nested `arguments.explanation`
+
+Runtime path in `RemoteSystemUseTool.execute_remote(...)`:
+
+1. resolve selected model from `_SYSTEM_USE_MODEL_BY_TOOL`
+2. deep-copy `arguments`
+3. resolve explanation from top-level or nested fallback
+4. inject resolved explanation into concrete args when present
+5. validate concrete args with `model_validate(...)`
+6. emit `RemoteToolResult` where `tool_name` is the concrete tool (not `system_use`)
 
 ### Filesystem domain (`remote_tools/filesystem.py`)
 
@@ -199,7 +232,7 @@ Other remote stubs generally use `args.model_dump()` (defaults retained).
 Because model_dump strategies differ by tool class:
 
 - browser payloads are sparse (only non-default and non-null)
-- most other tool payloads include defaulted fields (including unified `computer_use` resolved `arguments`)
+- most other tool payloads include defaulted fields (including unified-wrapper resolved concrete args for `computer_use` and `system_use`)
 
 Integration consequence:
 
@@ -240,8 +273,9 @@ If payload fields seem missing:
 
 1. check whether tool is browser (sparse `model_dump`) or non-browser (full `model_dump`)
 2. inspect schema defaults for omitted fields
-3. for unified `computer_use`, verify selected concrete model accepted `arguments` and filled defaults as expected
-4. verify sidecar action adapter defaulting assumptions
+3. for unified wrappers, verify selected concrete model accepted `arguments` and filled defaults as expected
+4. for `system_use`, verify explanation resolution source (top-level vs nested fallback)
+5. verify sidecar action adapter defaulting assumptions
 
 ## Related Docs
 
