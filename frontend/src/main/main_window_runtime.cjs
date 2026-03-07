@@ -1,6 +1,3 @@
-const { nativeImage } = require('electron');
-const fs = require('fs');
-const nodePath = require('path');
 const {
   createContentProtectionRuntime,
 } = require('./platform/content_protection/index.cjs');
@@ -8,62 +5,19 @@ const {
   setOverlayAlwaysOnTop,
   setOverlayVisibleOnAllWorkspaces,
 } = require('./overlay_topmost_runtime.cjs');
+const {
+  resolveAppIconNativeImage,
+  resolveAppIconPathRuntime,
+  resolveTrayIconNativeImage,
+} = require('./main_window_icon_runtime.cjs');
+const {
+  createLazyRendererViewLoader,
+  createOverlayBrowserWindow,
+  loadRendererView,
+} = require('./main_window_overlay_runtime.cjs');
+
 const CHATBOX_OVERLAY_FIXED_WIDTH = 520;
 const CHATBOX_OVERLAY_FIXED_HEIGHT = 116;
-const APP_ICON_RELATIVE_PATH = nodePath.join('src', 'main', 'assets', 'icons', 'windieos.app.png');
-const TRAY_ICON_FALLBACK_DATA_URL = 'data:image/png;base64,iVBORw0KGgoAAAANSUEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
-
-function resolveAppIconPathRuntime({
-  existsSync = fs.existsSync,
-  resourcesPath = process.resourcesPath,
-  cwd = process.cwd(),
-} = {}) {
-  const candidates = [
-    nodePath.join(__dirname, 'assets', 'icons', 'windieos.app.png'),
-    resourcesPath ? nodePath.join(resourcesPath, APP_ICON_RELATIVE_PATH) : null,
-    cwd ? nodePath.join(cwd, APP_ICON_RELATIVE_PATH) : null,
-  ];
-
-  for (const candidate of candidates) {
-    if (!candidate || typeof candidate !== 'string') {
-      continue;
-    }
-    if (existsSync(candidate)) {
-      return candidate;
-    }
-  }
-  return null;
-}
-
-function resolveTrayIconNativeImage({
-  iconPath,
-  warn = console.warn,
-} = {}) {
-  if (iconPath && typeof nativeImage.createFromPath === 'function') {
-    const resolvedIcon = nativeImage.createFromPath(iconPath);
-    if (resolvedIcon && typeof resolvedIcon.isEmpty === 'function' && !resolvedIcon.isEmpty()) {
-      return resolvedIcon;
-    }
-    warn(`[Main] Tray icon path was empty or unreadable: ${iconPath}`);
-  }
-  return nativeImage.createFromDataURL(TRAY_ICON_FALLBACK_DATA_URL);
-}
-
-function resolveAppIconNativeImage({
-  resolveAppIconPath = resolveAppIconPathRuntime,
-  warn = console.warn,
-} = {}) {
-  const iconPath = resolveAppIconPath();
-  if (!iconPath || typeof nativeImage.createFromPath !== 'function') {
-    return null;
-  }
-  const resolvedIcon = nativeImage.createFromPath(iconPath);
-  if (resolvedIcon && typeof resolvedIcon.isEmpty === 'function' && !resolvedIcon.isEmpty()) {
-    return resolvedIcon;
-  }
-  warn(`[Main] App icon path was empty or unreadable: ${iconPath}`);
-  return null;
-}
 
 async function prepareOverlayQueryCaptureFocus({
   chatWindow,
@@ -91,90 +45,6 @@ async function prepareOverlayQueryCaptureFocus({
     externalFocusActive: false,
     canVerifyExternalFocus: false,
   };
-}
-
-function loadRendererView({
-  targetWindow,
-  view,
-  app,
-  path,
-  vmMode = false,
-  enableDevTransparencyUi = false,
-  enableDebugStreamTrace = false,
-  enableDebugToolScreenshot = false,
-}) {
-  const query = {};
-  if (view) {
-    query.view = view;
-  }
-  if (vmMode) {
-    query.vm_mode = '1';
-  }
-  if (enableDevTransparencyUi) {
-    query.dev_ui = '1';
-  }
-  if (enableDebugStreamTrace) {
-    query.debug_stream = '1';
-  }
-  if (enableDebugToolScreenshot) {
-    query.debug_tool_screenshot = '1';
-  }
-
-  if (app.isPackaged) {
-    const rendererEntryFile = path.join(__dirname, '../../dist/index.html');
-    targetWindow.loadFile(
-      rendererEntryFile,
-      Object.keys(query).length > 0 ? { query } : undefined,
-    );
-    return;
-  }
-
-  const devUrl = 'http://localhost:5173';
-  const queryString = new URLSearchParams(query).toString();
-  if (queryString) {
-    targetWindow.loadURL(`${devUrl}?${queryString}`);
-  } else {
-    targetWindow.loadURL(devUrl);
-  }
-}
-
-function createOverlayBrowserWindow({
-  BrowserWindow,
-  path,
-  width,
-  height,
-  show,
-  icon = null,
-  allowDevTools = false,
-}) {
-  const windowOptions = {
-    width,
-    height,
-    frame: false,
-    transparent: true,
-    backgroundColor: '#00000000',
-    resizable: false,
-    minimizable: false,
-    maximizable: false,
-    fullscreenable: false,
-    skipTaskbar: true,
-    alwaysOnTop: true,
-    hasShadow: false,
-    type: 'toolbar',
-    webPreferences: {
-      preload: path.join(__dirname, '../preload.js'),
-      contextIsolation: true,
-      nodeIntegration: false,
-      devTools: Boolean(allowDevTools),
-    },
-  };
-  if (icon) {
-    windowOptions.icon = icon;
-  }
-  if (typeof show === 'boolean') {
-    windowOptions.show = show;
-  }
-  return new BrowserWindow(windowOptions);
 }
 
 function enableContentProtectionSafely({
@@ -355,22 +225,15 @@ function createChatWindow({
   chatWindow.setIgnoreMouseEvents(false);
   positionChatWindow();
 
-  let chatRendererLoaded = false;
-  const ensureChatRendererLoaded = () => {
-    if (chatRendererLoaded) {
-      return;
-    }
-    chatRendererLoaded = true;
-    loadRendererView({
-      targetWindow: chatWindow,
-      view: 'chatbox',
-      app,
-      path,
-      enableDevTransparencyUi,
-      enableDebugStreamTrace,
-      enableDebugToolScreenshot,
-    });
-  };
+  const ensureChatRendererLoaded = createLazyRendererViewLoader({
+    targetWindow: chatWindow,
+    view: 'chatbox',
+    app,
+    path,
+    enableDevTransparencyUi,
+    enableDebugStreamTrace,
+    enableDebugToolScreenshot,
+  });
 
   chatWindow.on('close', (event) => {
     if (!app.isQuitting) {
@@ -459,22 +322,15 @@ function createResponseWindow({
     windowLabel: 'response overlay',
   });
 
-  let responseRendererLoaded = false;
-  const ensureResponseRendererLoaded = () => {
-    if (responseRendererLoaded) {
-      return;
-    }
-    responseRendererLoaded = true;
-    loadRendererView({
-      targetWindow: responseWindow,
-      view: enableOsToolGhostDebug ? responseWindowDebugView : 'chatbox-response',
-      app,
-      path,
-      enableDevTransparencyUi,
-      enableDebugStreamTrace,
-      enableDebugToolScreenshot,
-    });
-  };
+  const ensureResponseRendererLoaded = createLazyRendererViewLoader({
+    targetWindow: responseWindow,
+    view: enableOsToolGhostDebug ? responseWindowDebugView : 'chatbox-response',
+    app,
+    path,
+    enableDevTransparencyUi,
+    enableDebugStreamTrace,
+    enableDebugToolScreenshot,
+  });
 
   if (enableOsToolGhostDebug) {
     ensureResponseRendererLoaded();
