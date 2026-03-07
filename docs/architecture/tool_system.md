@@ -67,7 +67,7 @@ For planned schema-ownership migration (frontend-sourced runtime tool catalogs),
 Most tools are executed on the frontend Python sidecar:
 
 - **Computer Control Tools**: unified `computer_use` schema entry (delegates to sidecar `mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `switch_tab`, `wait`)
-- **System/Filesystem Tools**: unified `system_use` schema entry (delegates to sidecar `run_shell_command`, `replace`/`replace_file`, `read_file`, `get_system_stats`, `get_open_windows`)
+- **System/Filesystem Tools**: unified `system_use` schema entry (delegates to sidecar `run_shell_command`, `replace`, `read_file`, `get_system_stats`, `get_open_windows`)
 - **Additional System Tools**: `open_app`, `process`
 - **Browser Tools**: `browser`
 
@@ -381,7 +381,6 @@ No dual-shape fallback is supported in provider transport.
 - **replace**: Replace text in a file (single operation or batched operations)
 
 These tools are exposed to the LLM via unified `system_use` with `tool` + `arguments` envelope.
-`replace_file` is accepted as an alias and routes to `replace`.
 
 `read_file` behavior:
 - Reads file content as line slices with `offset` (0-based) and `limit`.
@@ -406,7 +405,7 @@ These tools are exposed to the LLM via unified `system_use` with `tool` + `argum
 
 - **get_system_stats**: System statistics
 - **get_open_windows**: List open windows
-- **system_use**: Unified wrapper for `run_shell_command`, `replace`/`replace_file`, `read_file`, `get_system_stats`, and `get_open_windows`
+- **system_use**: Unified wrapper for `run_shell_command`, `replace`, `read_file`, `get_system_stats`, and `get_open_windows`
 - **open_app**: Launch GUI app detached from sidecar lifecycle with optional window/screenshot verification
 - **run_shell_command**: Execute shell command (supports `yield_after_seconds` + `env` overrides; defaults to user home directory when `directory` is omitted; foreground `llm_content` is truncated by default to ~10,000 tokens with marker support via `max_output_tokens`; use `process` for background sessions)
 - **process**: Manage background shell sessions (poll/log/write/kill)

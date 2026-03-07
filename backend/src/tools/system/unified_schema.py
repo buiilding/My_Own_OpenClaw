@@ -17,10 +17,10 @@ _SYSTEM_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
             "Core contract:\n"
             "- Select a concrete action via `tool`.\n"
             "- Pass action arguments via `arguments`.\n"
-            "- `replace_file` is accepted as an alias for the underlying `replace` tool.\n\n"
+            "\n"
             "Tools supported:\n"
             "- run_shell_command: execute shell commands in foreground/background modes.\n"
-            "- replace / replace_file: edit files via exact/context anchored replacements.\n"
+            "- replace: edit files via exact/context anchored replacements.\n"
             "- read_file: read files by offset/limit windows.\n"
             "- get_system_stats: read CPU/memory/battery usage.\n"
             "- get_open_windows: list open window titles for deterministic focus flows.\n"
@@ -40,7 +40,6 @@ _SYSTEM_USE_FUNCTION_DECLARATION: Dict[str, Any] = {
                     "enum": [
                         "run_shell_command",
                         "replace",
-                        "replace_file",
                         "read_file",
                         "get_system_stats",
                         "get_open_windows",

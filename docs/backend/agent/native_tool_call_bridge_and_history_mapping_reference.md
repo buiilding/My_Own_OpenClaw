@@ -95,7 +95,6 @@ When normalized name is `system_use`:
 - supported mapped names:
   - `run_shell_command`
   - `replace`
-  - `replace_file` (alias; normalized to `replace`)
   - `read_file`
   - `get_system_stats`
   - `get_open_windows`
@@ -180,7 +179,7 @@ Extraction helpers:
 2. Removing `arguments.metadata` stripping can leak metadata fields into executable tool parameter payloads.
 3. Changing history id fallback format can break downstream assumptions in tool-output correlation/debug tooling.
 4. Modifying recoverable marker heuristics can convert retryable malformed-tool-call events into hard loop aborts.
-5. Changing `system_use` alias normalization (`replace_file` -> `replace`) without schema/sidecar updates can desync wrapper routing.
+5. Changing `system_use` mapped subtool names without schema/sidecar updates can desync wrapper routing.
 
 ## Related Docs
 

@@ -444,13 +444,13 @@ def test_extract_tool_call_unified_system_use_maps_to_concrete_tool():
     )
 
 
-def test_extract_tool_call_unified_system_use_maps_replace_file_alias_to_replace():
+def test_extract_tool_call_unified_system_use_maps_replace_to_replace():
     schema = ToolCallSchema()
     payload = {
         "functionCall": {
             "name": "system_use",
             "args": {
-                "tool": "replace_file",
+                "tool": "replace",
                 "arguments": {
                     "file_path": "/tmp/a",
                     "old_string": "x",

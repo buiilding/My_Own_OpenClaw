@@ -19,7 +19,6 @@ def test_registry_normalizes_legacy_system_tool_names_to_canonical_unified_schem
         [
             "run_shell_command",
             "replace",
-            "replace_file",
             "read_file",
             "get_system_stats",
             "get_open_windows",
@@ -29,14 +28,14 @@ def test_registry_normalizes_legacy_system_tool_names_to_canonical_unified_schem
     assert declarations == [get_unified_system_use_function_declaration()]
 
 
-def test_unified_system_use_schema_description_includes_alias_and_supported_tools():
+def test_unified_system_use_schema_description_includes_supported_tools():
     declaration = get_unified_system_use_function_declaration()
     function = declaration["function"]
     description = function["description"]
 
     assert "`tool`" in description
     assert "`arguments`" in description
-    assert "replace_file" in description
+    assert "replace" in description
     assert "run_shell_command" in description
     assert "get_open_windows" in description
 
@@ -51,7 +50,6 @@ def test_unified_system_use_schema_requires_tool_and_constrains_arguments_varian
     assert set(tool_enum) == {
         "run_shell_command",
         "replace",
-        "replace_file",
         "read_file",
         "get_system_stats",
         "get_open_windows",

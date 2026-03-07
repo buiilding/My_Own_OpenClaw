@@ -38,7 +38,6 @@ _LEGACY_SYSTEM_TOOL_NAMES = frozenset(
     {
         "run_shell_command",
         "replace",
-        "replace_file",
         "read_file",
         "get_system_stats",
         "get_open_windows",

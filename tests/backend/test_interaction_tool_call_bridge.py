@@ -520,7 +520,7 @@ def test_to_parsed_response_maps_unified_system_use_to_concrete_tool():
     assert call.metadata == {"tool_call_id": "call_shell_1"}
 
 
-def test_to_parsed_response_maps_unified_system_use_replace_file_alias_to_replace():
+def test_to_parsed_response_maps_unified_system_use_replace_to_replace():
     parsed = to_parsed_response(
         {
             "content": "",
@@ -529,7 +529,7 @@ def test_to_parsed_response_maps_unified_system_use_replace_file_alias_to_replac
                     "id": "call_replace_1",
                     "name": "system_use",
                     "arguments": {
-                        "tool": "replace_file",
+                        "tool": "replace",
                         "arguments": {
                             "file_path": "/tmp/a.txt",
                             "old_string": "x",
