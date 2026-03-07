@@ -3,6 +3,9 @@ const {
   handlePrepareChatboxForScreenshot,
   handleShowChatbox,
 } = require('./overlay_visibility_handler.cjs');
+const {
+  resolveActiveSurfaceDisplayAffinity,
+} = require('./display_affinity_runtime.cjs');
 const { handleMoveChatboxTo } = require('./overlay_chatbox_handler.cjs');
 const { handleSetChatboxVisualAnchorHeight } = require('./overlay_chatbox_visual_anchor_handler.cjs');
 const { handleSetResponseboxSize } = require('./overlay_responsebox_handler.cjs');
@@ -23,6 +26,8 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
     getResponseWindowBounds,
     setResponseOverlayVisibilityState,
     showResponseWindowWhenChatVisible,
+    positionChatWindow,
+    setActiveDisplayAffinity = () => {},
     showChatWindow,
     hideChatWindow,
     warn = console.warn,
@@ -66,8 +71,23 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
     });
   });
 
-  ipcMain.handle('show-chatbox', async (_event, options = {}) => {
-    return handleShowChatbox(options, { showChatWindow });
+  ipcMain.handle('show-chatbox', async (event, options = {}) => {
+    return handleShowChatbox(options, {
+      showChatWindow,
+      resolveTargetDisplayAffinity: () => {
+        const { mainWindow, chatWindow } = getWindows();
+        return resolveActiveSurfaceDisplayAffinity({
+          BrowserWindow,
+          screen,
+          webContents: event?.sender || null,
+          chatWindow,
+          mainWindow,
+          getActiveDisplayAffinity,
+        });
+      },
+      positionChatWindow,
+      setActiveDisplayAffinity,
+    });
   });
 
   ipcMain.handle('hide-chatbox', async () => {

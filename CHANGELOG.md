@@ -2339,3 +2339,4 @@ Includes the last 300 commits on `main`.
 - unreleased fix(frontend-display-affinity): seed query-time active monitor state from the same dashboard/chat active-surface resolver used elsewhere, instead of directly from sender webContents
 - unreleased fix(frontend-display-affinity): avoid implicit primary-display fallback inside the active-surface resolver when no sender webContents exist, so sender-less fullscreen/overlay paths still honor chat/dashboard monitor state
 - unreleased fix(frontend-display-affinity): make default chat-pill/response/context-label fallback bounds use active display affinity instead of always anchoring to the primary display
+- unreleased fix(frontend-display-affinity): route `show-chatbox` through the active-surface monitor resolver and allow chat-window shows to re-anchor to an explicit target display when requested

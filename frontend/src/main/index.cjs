@@ -230,6 +230,7 @@ function showChatWindow({ focus = true } = {}) {
     chatWindow,
     mainWindow,
     responseWindow,
+    positionChatWindow,
     responseOverlayVisible,
     isResponseOverlayStreamingPhase,
     setResponseOverlayVisible: (nextVisible) => {
@@ -242,6 +243,7 @@ function showChatWindow({ focus = true } = {}) {
     syncContextLabelWindowVisibility,
     syncWakewordToggleForChatVisibility,
     syncWindowDisplayAffinity,
+    setActiveDisplayAffinity: setActiveDisplayAffinityRuntime,
     externalFocusTracker,
   });
 }

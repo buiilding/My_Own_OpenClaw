@@ -47,6 +47,43 @@ describe('window_visibility_runtime showChatWindow', () => {
     expect(chatWindow.webContents.send).not.toHaveBeenCalled();
   });
 
+  test('repositions chat window onto target display affinity before showing', () => {
+    const chatWindow = createWindow({ visible: false });
+    const positionChatWindow = jest.fn();
+    const setActiveDisplayAffinity = jest.fn();
+    const externalFocusTracker = {
+      capturePreviousExternalFocusedWindow: jest.fn(),
+    };
+
+    const result = showChatWindow(
+      {
+        focus: true,
+        targetDisplayAffinity: {
+          monitor_id: '2',
+          bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+          workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+        },
+      },
+      {
+        chatWindow,
+        externalFocusTracker,
+        positionChatWindow,
+        setActiveDisplayAffinity,
+        syncWindowDisplayAffinity: jest.fn(),
+        syncWakewordToggleForChatVisibility: jest.fn(),
+      },
+    );
+
+    expect(result).toEqual({ success: true });
+    expect(setActiveDisplayAffinity).toHaveBeenCalledWith({
+      monitor_id: '2',
+      bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+      workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+    });
+    expect(positionChatWindow).toHaveBeenCalledTimes(1);
+    expect(chatWindow.show).toHaveBeenCalledTimes(1);
+  });
+
   test('falls back to show when showInactive is unavailable', () => {
     const chatWindow = createWindow({ visible: false });
     chatWindow.showInactive = undefined;

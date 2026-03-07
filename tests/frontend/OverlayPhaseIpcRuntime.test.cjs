@@ -85,4 +85,79 @@ describe('overlay_phase_ipc_runtime', () => {
     expect(positionContextLabelWindow).toHaveBeenCalledTimes(1);
     expect(syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
   });
+
+  test('show-chatbox resolves target display affinity from the active surface contract', async () => {
+    const showChatWindow = jest.fn(() => ({ success: true }));
+    const screen = {
+      getAllDisplays: jest.fn(() => ([
+        {
+          id: 1,
+          bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+          workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+        },
+        {
+          id: 2,
+          bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+          workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+        },
+      ])),
+      getPrimaryDisplay: jest.fn(() => ({
+        id: 1,
+        bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+        workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+      })),
+      getDisplayMatching: jest.fn((bounds) => {
+        if (bounds && bounds.x >= 1920) {
+          return {
+            id: 2,
+            bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+            workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+          };
+        }
+        return {
+          id: 1,
+          bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+          workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+        };
+      }),
+    };
+    const BrowserWindow = {
+      fromWebContents: jest.fn(() => ({
+        isDestroyed: jest.fn(() => false),
+        isVisible: jest.fn(() => false),
+        getBounds: jest.fn(() => ({ x: 0, y: 0, width: 400, height: 200 })),
+      })),
+    };
+    const { invokeHandlers } = createRuntime({
+      BrowserWindow,
+      screen,
+      getWindows: () => ({
+        mainWindow: {
+          isDestroyed: jest.fn(() => false),
+          isVisible: jest.fn(() => false),
+          getBounds: jest.fn(() => ({ x: 0, y: 0, width: 1000, height: 700 })),
+        },
+        chatWindow: {
+          isDestroyed: jest.fn(() => false),
+          isVisible: jest.fn(() => true),
+          getBounds: jest.fn(() => ({ x: 2200, y: 80, width: 520, height: 116 })),
+        },
+      }),
+      showChatWindow,
+      getActiveDisplayAffinity: jest.fn(() => null),
+    });
+
+    const result = await invokeHandlers['show-chatbox']({ sender: {} }, { focus: true });
+
+    expect(result).toEqual({ success: true });
+    expect(showChatWindow).toHaveBeenCalledWith({
+      focus: true,
+      targetDisplayAffinity: {
+        monitor_id: '2',
+        bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+        workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+        desktopVirtualBounds: { x: 0, y: 0, width: 4480, height: 1440 },
+      },
+    });
+  });
 });
