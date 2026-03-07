@@ -1,7 +1,7 @@
 ---
-summary: "Deep reference for `main_window_runtime.cjs`: BrowserWindow factory helpers, renderer view loading, overlay creation contracts, and tray bootstrap behavior delegated from `index.cjs`."
+summary: "Deep reference for `main_window_runtime.cjs`: main/chat/response/tray bootstrap orchestration, close/hide lifecycle contracts, and delegation into icon/overlay helper runtimes."
 read_when:
-  - When changing main/chat/response window creation defaults or shared overlay BrowserWindow options.
+  - When changing main/chat/response window creation defaults or startup bootstrap delegation into icon/overlay helper runtimes.
   - When changing startup bootstrap wiring between `index.cjs` and `main_window_runtime.cjs`.
 title: "Main Window Runtime Factory and Overlay Bootstrap Reference"
 ---
@@ -11,50 +11,33 @@ title: "Main Window Runtime Factory and Overlay Bootstrap Reference"
 ## Canonical Modules
 
 - `frontend/src/main/main_window_runtime.cjs`
+- `frontend/src/main/main_window_icon_runtime.cjs`
+- `frontend/src/main/main_window_overlay_runtime.cjs`
 - `frontend/src/main/index.cjs`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/wakeword_bridge.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/overlay_topmost_runtime.cjs`
+- `tests/frontend/MainWindowRuntime.test.cjs`
+- `tests/frontend/MainWindowIconRuntime.test.cjs`
+- `tests/frontend/MainWindowOverlayRuntime.test.cjs`
 
 ## Runtime Split
 
 `index.cjs` owns mutable app state and runtime callbacks.
 
-`main_window_runtime.cjs` owns reusable window/bootstrap factories:
+`main_window_runtime.cjs` owns high-level window/bootstrap orchestration:
 
 - main dashboard window creation (`createMainWindow`)
 - chat overlay window creation (`createChatWindow`)
 - response overlay window creation (`createResponseWindow`)
 - tray menu creation (`createTray`)
-- shared helpers (`loadRendererView`, `createOverlayBrowserWindow`, target normalization/emission)
+- open-target normalization/emission helpers
 
-## Shared Window Factory Contracts
+Delegated helper ownership:
 
-### `createOverlayBrowserWindow(...)`
-
-Shared overlay defaults for chat/response windows:
-
-- frameless + transparent + skip taskbar + always-on-top
-- no resize/minimize/maximize/fullscreen controls
-- preload set to `frontend/src/preload.js`
-- context isolation on, Node integration off
-- topmost level policy from `overlay_topmost_runtime.cjs`:
-  - macOS: `screen-saver` first, fallback `floating`
-  - others: `floating`
-
-This centralizes overlay BrowserWindow option parity across both overlay surfaces.
-
-### `loadRendererView(...)`
-
-Loads renderer routes for packaged and dev runtime:
-
-- packaged: `dist/index.html` with optional query params
-- dev: `http://localhost:5173` + optional query string
-- view routing uses `?view=...`
-- VM mode routing flag uses `?vm_mode=1`
-- debug transparency UI uses `?dev_ui=1` when enabled
-- stream-event trace logging uses `?debug_stream=1` only when `WINDIE_DEBUG_STREAM_EVENTS=1` is enabled in the Electron launcher/runtime env
+- icon resolution + fallback behavior: `main_window_icon_runtime.cjs`
+- renderer view loading + shared overlay BrowserWindow defaults + lazy loader: `main_window_overlay_runtime.cjs`
 
 ## Main Window Bootstrap (`createMainWindow`)
 
@@ -76,6 +59,18 @@ Close behavior:
 
 - when app not quitting, close is intercepted
 - window is hidden and chat overlay is shown/focused
+
+`prepareOverlayQueryCaptureFocus(...)` helper contract:
+
+- blur chat/response/main windows (when present + not destroyed)
+- wait bounded settle delay (`120ms` default)
+- return deterministic no-op focus-prep payload:
+  - `restoredExternalFocus=false`
+  - `demotedOverlayFocus=false`
+  - `externalFocusActive=false`
+  - `canVerifyExternalFocus=false`
+
+This keeps overlay query-capture prep blur-only and avoids hide/show demotion churn in active interaction flows.
 
 ## Chat Overlay Bootstrap (`createChatWindow`)
 
@@ -129,6 +124,9 @@ Close behavior:
   - `Show App` -> `showMainWindow({ focus: true })`
   - `Quit` -> mark quitting and call `app.quit()`
 - double-click opens app
+- tray icon creation delegates to `resolveTrayIconNativeImage(...)`:
+  - path candidate resolution from `resolveAppIconPathRuntime(...)`
+  - fallback to embedded data-url icon when path image is empty/unreadable
 
 ## Drift Hotspots
 
@@ -140,5 +138,6 @@ Close behavior:
 ## Related Pages
 
 - [Frontend Main Docs Hub](README.md)
+- [Main Window Icon and Overlay Runtime Reference](main_window_icon_and_overlay_runtime_reference.md)
 - [Window and Overlay Lifecycle](window_and_overlay_lifecycle.md)
 - [Electron Main and IPC](electron_main_and_ipc.md)

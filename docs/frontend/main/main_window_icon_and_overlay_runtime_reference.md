@@ -1,0 +1,134 @@
+---
+summary: "Deep reference for Electron-main window bootstrap helper modules split from `main_window_runtime.cjs`: app/tray icon resolution and shared renderer-overlay window loader factories."
+read_when:
+  - When changing icon path/native-image fallback behavior in `main_window_icon_runtime.cjs`.
+  - When changing shared renderer view loading or overlay BrowserWindow defaults in `main_window_overlay_runtime.cjs`.
+  - When debugging missing app/tray icons, empty nativeImage paths, or overlay renderer lazy-load behavior.
+title: "Main Window Icon and Overlay Runtime Reference"
+---
+
+# Main Window Icon and Overlay Runtime Reference
+
+## Canonical Modules
+
+- `frontend/src/main/main_window_runtime.cjs`
+- `frontend/src/main/main_window_icon_runtime.cjs`
+- `frontend/src/main/main_window_overlay_runtime.cjs`
+- `tests/frontend/MainWindowIconRuntime.test.cjs`
+- `tests/frontend/MainWindowOverlayRuntime.test.cjs`
+- `tests/frontend/MainWindowRuntime.test.cjs`
+
+## Split Ownership
+
+`main_window_runtime.cjs` orchestrates high-level window bootstrap (`createMainWindow`, `createChatWindow`, `createResponseWindow`, `createTray`).
+
+Helper modules own shared primitives:
+
+- `main_window_icon_runtime.cjs`: app/tray icon resolution and native-image fallback
+- `main_window_overlay_runtime.cjs`: renderer route loader + shared overlay BrowserWindow factory + lazy loader
+
+## Icon Runtime Contract (`main_window_icon_runtime.cjs`)
+
+### `resolveAppIconPathRuntime(...)`
+
+Candidate search order:
+
+1. `frontend/src/main/assets/icons/windieos.app.png` relative to module `__dirname`
+2. packaged resources path candidate: `${process.resourcesPath}/src/main/assets/icons/windieos.app.png`
+3. cwd fallback candidate: `${process.cwd()}/src/main/assets/icons/windieos.app.png`
+
+Returns first existing path (`existsSync`) or `null`.
+
+### `resolveAppIconNativeImage(...)`
+
+- resolves icon path via injected `resolveAppIconPath` (defaults to `resolveAppIconPathRuntime`)
+- returns `nativeImage.createFromPath(...)` only when non-empty image
+- returns `null` when no valid path/image is available
+- logs warning when path resolves but image is empty/unreadable
+
+Used by:
+
+- `createMainWindow` (dashboard window icon)
+- `createChatWindow` (chat overlay icon)
+- `createResponseWindow` (response overlay icon)
+
+### `resolveTrayIconNativeImage(...)`
+
+- attempts `nativeImage.createFromPath(iconPath)` when provided
+- if path image is empty/unreadable, logs warning and falls back to embedded data URL icon
+- fallback uses `nativeImage.createFromDataURL(TRAY_ICON_FALLBACK_DATA_URL)`
+
+Used by:
+
+- `createTray`
+
+## Overlay Runtime Contract (`main_window_overlay_runtime.cjs`)
+
+### `loadRendererView(...)`
+
+Query-flag assembly:
+
+- `view=<route>` when provided
+- `vm_mode=1` when VM mode enabled
+- `dev_ui=1` when transparency/debug UI enabled
+- `debug_stream=1` when stream debug enabled
+- `debug_tool_screenshot=1` when screenshot debug enabled
+
+Load behavior:
+
+- packaged app: `targetWindow.loadFile(dist/index.html, { query })`
+- dev app: `targetWindow.loadURL(http://localhost:5173?...query...)`
+
+### `createOverlayBrowserWindow(...)`
+
+Shared overlay defaults:
+
+- frameless transparent toolbar window
+- non-resizable/minimizable/maximizable/fullscreenable
+- `skipTaskbar=true`, `alwaysOnTop=true`, `hasShadow=false`
+- preload: `frontend/src/preload.js`
+- `contextIsolation=true`, `nodeIntegration=false`
+- optional `show` and `icon` overrides
+- `devTools` gated by `allowDevTools`
+
+### `createLazyRendererViewLoader(options)`
+
+- returns closure that loads renderer view exactly once
+- first call: runs `loadRendererView(options)` and returns `true`
+- later calls: no-op and returns `false`
+
+Used by:
+
+- chat window `show` event (lazy `view=chatbox`)
+- response window `show` event (lazy `view=chatbox-response` unless debug mode)
+
+## Test-Backed Invariants
+
+`tests/frontend/MainWindowIconRuntime.test.cjs`:
+
+- path runtime returns first existing candidate
+- app icon resolver returns null when no path resolves
+- tray icon resolver falls back to data-url icon when path image is empty
+
+`tests/frontend/MainWindowOverlayRuntime.test.cjs`:
+
+- dev URL includes expected query flags
+- lazy loader performs single load
+- overlay BrowserWindow factory enforces toolbar/transparent defaults
+
+`tests/frontend/MainWindowRuntime.test.cjs`:
+
+- window/tray bootstrap wiring preserves icon resolver injection contracts and tray tooltip/menu behavior
+
+## Drift Hotspots
+
+1. Diverging icon candidate path order from packaged layout can break production icons while dev icons still work.
+2. Removing empty-image guards can produce invisible tray icons on unreadable paths.
+3. Duplicating overlay BrowserWindow options in `main_window_runtime.cjs` can desync chat/response defaults from shared factory.
+4. Bypassing lazy renderer loader for overlay windows can regress startup performance and mount timing assumptions.
+
+## Related Pages
+
+- [Main Window Runtime Factory and Overlay Bootstrap Reference](main_window_runtime_factory_and_overlay_bootstrap_reference.md)
+- [Runtime Paths and Endpoints](runtime_paths_and_endpoints.md)
+- [Window and Overlay Lifecycle](window_and_overlay_lifecycle.md)
