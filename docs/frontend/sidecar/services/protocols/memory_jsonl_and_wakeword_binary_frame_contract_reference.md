@@ -13,6 +13,7 @@ title: "Memory JSONL and Wakeword Binary Frame Contract Reference"
 - `frontend/src/main/python/memory_service.py`
 - `frontend/src/main/python/wakeword_service.py`
 - `frontend/src/main/wakeword_bridge.cjs`
+- `frontend/src/main/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/python/core/stdout_json.py`
 - `frontend/src/main/python/core/runtime_shutdown.py`
 
@@ -90,6 +91,9 @@ Stderr handling:
 - status JSON lines parsed from stderr
 - non-JSON debug lines filtered/logged selectively
 - `status=ready` toggles renderer wakeword-ready status
+- helper ownership:
+  - `wakeword_bridge_runtime.cjs::handleWakewordStderrLine(...)` parses status lines and applies known noisy-log suppression
+  - `wakeword_bridge_runtime.cjs::emitWakewordStatus(...)` is the single wakeword-status emit surface used by bridge startup/error paths
 
 ## Failure and Compatibility Boundaries
 

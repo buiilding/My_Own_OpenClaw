@@ -12,6 +12,7 @@ title: "Wakeword Service Model Bootstrap and Binary Framing Reference"
 
 - `frontend/src/main/python/wakeword_service.py`
 - `frontend/src/main/wakeword_bridge.cjs`
+- `frontend/src/main/wakeword_bridge_runtime.cjs`
 - `frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts`
 - `docs/frontend/sidecar/wakeword_bridge_and_audio_framing_reference.md`
 
@@ -107,6 +108,13 @@ This framing is consumed by `wakeword_bridge.cjs` buffered parser.
 - parses stderr JSON lines for readiness/error
 - parses stdout length-prefixed JSON result frames
 - on `wakeword-disable`, sends reset frame (`length=0`) and clears buffered results
+
+`wakeword_bridge_runtime.cjs` provides helper logic used by the bridge:
+
+- status emission helper (`emitWakewordStatus`)
+- stderr line parser with noisy-line suppression (`handleWakewordStderrLine`)
+- startup/process error text mapping for packaged-vs-dev launch modes
+- audio payload normalization for base64/Buffer/ArrayBuffer ingress
 
 Renderer wakeword hook adds cooldown/threshold gate on top of service output.
 
