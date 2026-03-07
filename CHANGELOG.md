@@ -2347,3 +2347,4 @@ Includes the last 300 commits on `main`.
 - unreleased fix(frontend-display-affinity): route `show-chatbox` through the active-surface monitor resolver and allow chat-window shows to re-anchor to an explicit target display when requested
 - unreleased fix(frontend-display-affinity): scope manual chat-pill positions to the monitor they were dragged on so stale coordinates stop pulling the pill back across monitor changes
 - unreleased fix(frontend-display-affinity): restrict active monitor resolution to dashboard/chat surfaces so non-surface overlay senders cannot override screenshot and dashboard targeting
+- unreleased fix(frontend-display-affinity): preserve active monitor affinity across backend websocket/session resets so surface-owned monitor selection does not collapse on reconnect

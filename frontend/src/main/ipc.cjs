@@ -130,7 +130,6 @@ function resetBackendSessionState() {
   currentSessionId = null;
   currentServerUserId = null;
   currentConversationRef = null;
-  setActiveDisplayAffinity(null);
 }
 
 function buildIpcStatusPayload(connected) {
