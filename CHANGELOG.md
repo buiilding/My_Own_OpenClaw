@@ -2334,3 +2334,4 @@ Includes the last 300 commits on `main`.
 - unreleased refactor(frontend-tool-capture): collapse screenshot/system-state handling onto a single internal capture snapshot so auto-capture branches stop threading parallel attachment fields
 - unreleased feat(frontend-display-affinity): move automatic screenshot monitor selection and dashboard-open placement to main-owned window display affinity, removing renderer localStorage monitor selection from the automatic path
 - unreleased fix(frontend-display-affinity): treat the dashboard and chat pill as the only screenshot monitor sources of truth, ignoring response-overlay visibility and centralizing active-surface display resolution in main
+- unreleased fix(frontend-display-affinity): route dashboard-open monitor targeting through the same active-surface resolver used by screenshot capture, instead of using raw sender-window display matching

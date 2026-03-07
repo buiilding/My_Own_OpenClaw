@@ -90,6 +90,80 @@ describe('window_controls_ipc_runtime', () => {
     expect(typeof invokeHandlers['window-close']).toBe('function');
   });
 
+  test('show-main-window prefers visible chat surface over a non-surface sender fallback', async () => {
+    const showMainWindow = jest.fn(() => ({ success: true }));
+    const screen = {
+      getAllDisplays: jest.fn(() => ([
+        {
+          id: 1,
+          bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+          workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+        },
+        {
+          id: 2,
+          bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+          workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+        },
+      ])),
+      getDisplayMatching: jest.fn((bounds) => {
+        if (bounds && bounds.x >= 1920) {
+          return {
+            id: 2,
+            bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+            workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+          };
+        }
+        return {
+          id: 1,
+          bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+          workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+        };
+      }),
+      getPrimaryDisplay: jest.fn(() => ({
+        id: 1,
+        bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+        workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+      })),
+    };
+    const { invokeHandlers } = createRuntime({
+      screen,
+      showMainWindow,
+      BrowserWindow: {
+        fromWebContents: jest.fn(() => ({
+          isDestroyed: jest.fn(() => false),
+          isVisible: jest.fn(() => false),
+          getBounds: jest.fn(() => ({ x: 0, y: 0, width: 400, height: 300 })),
+        })),
+      },
+      getWindows: () => ({
+        mainWindow: {
+          isDestroyed: jest.fn(() => false),
+          isVisible: jest.fn(() => false),
+          getBounds: jest.fn(() => ({ x: 0, y: 0, width: 1000, height: 700 })),
+        },
+        chatWindow: {
+          isDestroyed: jest.fn(() => false),
+          isVisible: jest.fn(() => true),
+          getBounds: jest.fn(() => ({ x: 2200, y: 60, width: 520, height: 116 })),
+        },
+      }),
+    });
+
+    const result = await invokeHandlers['show-main-window']({ sender: {} }, { open: 'settings' });
+
+    expect(result).toEqual({ success: true });
+    expect(showMainWindow).toHaveBeenCalledWith({
+      focus: true,
+      maximize: false,
+      targetDisplayAffinity: {
+        monitor_id: '2',
+        bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+        workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+        desktopVirtualBounds: { x: 0, y: 0, width: 4480, height: 1440 },
+      },
+    });
+  });
+
   test('reports main window visibility through get-main-window-visibility handler', async () => {
     const visibleMainWindow = {
       isDestroyed: jest.fn(() => false),
