@@ -167,6 +167,24 @@ describe('chatStreamFormatting utils', () => {
     );
   });
 
+  test('formats bundle payload with malformed non-array tools as empty list', () => {
+    expect(
+      formatToolBundlePayload({
+        bundle_id: 'bundle-3',
+        tools: 'not-an-array' as any,
+      }),
+    ).toBe(
+      JSON.stringify(
+        {
+          bundle_id: 'bundle-3',
+          tools: [],
+        },
+        null,
+        2,
+      ),
+    );
+  });
+
   test('formats tool output error and success payloads', () => {
     expect(formatToolOutputText({ error: 'boom', output: 'model-facing output' })).toBe('model-facing output');
     expect(formatToolOutputText({ output: 'all good' })).toBe('all good');
