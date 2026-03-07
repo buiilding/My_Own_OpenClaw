@@ -176,6 +176,89 @@ describe('ipc.cjs bridge query handling', () => {
     expect(latestLocalUserMessage.payload.conversation_ref).toBe('conv-backfill');
   });
 
+  test('seeds active display affinity from visible chat surface instead of hidden sender window', async () => {
+    const senderWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => false),
+      getBounds: jest.fn(() => ({ x: 0, y: 0, width: 400, height: 300 })),
+    };
+    const chatWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => true),
+      getBounds: jest.fn(() => ({ x: 2200, y: 80, width: 520, height: 116 })),
+    };
+
+    const { handlers, backendBridge } = setupQueryBridge({ chatWindow });
+    const electron = require('electron');
+    electron.screen.getAllDisplays.mockReturnValue([
+      {
+        id: 1,
+        bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+        workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+      },
+      {
+        id: 2,
+        bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+        workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+      },
+    ]);
+    electron.screen.getPrimaryDisplay.mockReturnValue({
+      id: 1,
+      bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+      workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+    });
+    electron.screen.getDisplayMatching.mockImplementation((bounds) => {
+      if (bounds && bounds.x >= 1920) {
+        return {
+          id: 2,
+          bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+          workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+        };
+      }
+      return {
+        id: 1,
+        bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+        workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+      };
+    });
+    electron.BrowserWindow.fromWebContents.mockImplementation(() => senderWindow);
+    const {
+      getActiveDisplayAffinity,
+      setActiveDisplayAffinity,
+    } = require('../../frontend/src/main/display_affinity_runtime.cjs');
+    setActiveDisplayAffinity(null);
+    primeQueryContext(backendBridge);
+
+    await sendQuery(
+      handlers,
+      { text: 'chat surface query' },
+      { getURL: () => 'http://localhost:5173/?view=chatbox' },
+    );
+
+    const activeDisplayAffinity = getActiveDisplayAffinity();
+    if (!activeDisplayAffinity || activeDisplayAffinity.monitor_id !== '2') {
+      throw new Error(`Expected monitor_id=2, received ${JSON.stringify(activeDisplayAffinity)}`);
+    }
+    expect(JSON.stringify(activeDisplayAffinity.bounds)).toBe(JSON.stringify({
+      x: 1920,
+      y: 0,
+      width: 2560,
+      height: 1440,
+    }));
+    expect(JSON.stringify(activeDisplayAffinity.workArea)).toBe(JSON.stringify({
+      x: 1920,
+      y: 0,
+      width: 2560,
+      height: 1400,
+    }));
+    expect(JSON.stringify(activeDisplayAffinity.desktopVirtualBounds)).toBe(JSON.stringify({
+      x: 0,
+      y: 0,
+      width: 4480,
+      height: 1440,
+    }));
+  });
+
   test('replays in-flight query events to late-mounted renderer windows', async () => {
     const { handlers, ws, ipc } = setupQueryBridge({}, {
       systemState: {

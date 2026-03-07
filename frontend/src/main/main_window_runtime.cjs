@@ -144,6 +144,7 @@ function createMainWindow({
     applyResponseOverlayPhase,
     onBeforeOverlayQueryCapture: prepareOverlayQueryCaptureFocus,
     isPackaged: app.isPackaged,
+    getWindows,
   });
   initializeWakewordBridge(mainWindow, () => {
     const result = showChatWindow({ focus: true });
