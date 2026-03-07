@@ -290,4 +290,44 @@ describe('display_affinity_runtime', () => {
       desktopVirtualBounds: { x: 0, y: 0, width: 4480, height: 1440 },
     });
   });
+
+  test('does not fall back to primary display through sender resolution when webContents is absent', () => {
+    const chatWindow = { id: 'chat' };
+    const resolveDisplayAffinityForWindow = jest.fn((_screen, targetWindow) => {
+      if (targetWindow === chatWindow) {
+        return {
+          monitor_id: '3',
+          bounds: { x: 2560, y: 0, width: 1600, height: 900 },
+          workArea: { x: 2560, y: 0, width: 1600, height: 860 },
+          desktopVirtualBounds: { x: 0, y: 0, width: 4160, height: 1080 },
+        };
+      }
+      return null;
+    });
+    const resolveDisplayAffinityForWebContents = jest.fn(() => ({
+      monitor_id: '1',
+      bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+      workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+      desktopVirtualBounds: { x: 0, y: 0, width: 4160, height: 1080 },
+    }));
+
+    const result = resolveActiveSurfaceDisplayAffinity({
+      BrowserWindow: {},
+      screen: {},
+      webContents: null,
+      chatWindow,
+      mainWindow: null,
+      resolveDisplayAffinityForWindow,
+      resolveDisplayAffinityForWebContents,
+      getActiveDisplayAffinity: jest.fn(() => null),
+    });
+
+    expect(resolveDisplayAffinityForWebContents).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      monitor_id: '3',
+      bounds: { x: 2560, y: 0, width: 1600, height: 900 },
+      workArea: { x: 2560, y: 0, width: 1600, height: 860 },
+      desktopVirtualBounds: { x: 0, y: 0, width: 4160, height: 1080 },
+    });
+  });
 });
