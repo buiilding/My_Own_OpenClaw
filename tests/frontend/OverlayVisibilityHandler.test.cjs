@@ -3,6 +3,7 @@
 const {
   handleHideChatbox,
   handlePrepareSurfaceForScreenshot,
+  handleRestoreSurfaceAfterScreenshot,
   resolveHiddenSurfaceForScreenshot,
   handleShowChatbox,
   handleShowMainWindow,
@@ -100,6 +101,33 @@ describe('overlay_visibility_handler', () => {
 
     expect(result).toEqual({ success: true, hidden: true });
     expect(hideChatWindow).toHaveBeenCalledTimes(1);
+  });
+
+  test('restore-surface-after-screenshot restores chatbox with response overlay support', () => {
+    const showChatWindow = jest.fn().mockReturnValue({ success: true });
+
+    const result = handleRestoreSurfaceAfterScreenshot(
+      { hiddenSurface: 'chatbox' },
+      { showChatWindow },
+    );
+
+    expect(result).toEqual({ success: true });
+    expect(showChatWindow).toHaveBeenCalledWith({
+      focus: false,
+      restoreResponseOverlay: true,
+    });
+  });
+
+  test('restore-surface-after-screenshot restores dashboard when needed', () => {
+    const showMainWindow = jest.fn().mockReturnValue({ success: true });
+
+    const result = handleRestoreSurfaceAfterScreenshot(
+      { hiddenSurface: 'main-window' },
+      { showMainWindow },
+    );
+
+    expect(result).toEqual({ success: true });
+    expect(showMainWindow).toHaveBeenCalledWith({ focus: false });
   });
 
   test('prepare-surface-for-screenshot hides then waits in main process', async () => {

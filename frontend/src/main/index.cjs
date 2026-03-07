@@ -447,6 +447,7 @@ function initializeMainProcessIpc() {
     getResponseWindowBounds,
     setResponseOverlayVisibilityState,
     showResponseWindowWhenChatVisible,
+    showMainWindow,
     showChatWindow,
     hideChatWindow,
     hideMainWindow,

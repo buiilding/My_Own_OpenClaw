@@ -35,6 +35,27 @@ function handleHideChatbox(deps = {}) {
   return hideChatWindow();
 }
 
+function handleRestoreSurfaceAfterScreenshot(options = {}, deps = {}) {
+  const {
+    showChatWindow,
+    showMainWindow,
+  } = deps;
+  const hiddenSurface = typeof options?.hiddenSurface === 'string'
+    ? options.hiddenSurface
+    : 'none';
+
+  if (hiddenSurface === 'chatbox') {
+    return showChatWindow({
+      focus: false,
+      restoreResponseOverlay: true,
+    });
+  }
+  if (hiddenSurface === 'main-window') {
+    return showMainWindow({ focus: false });
+  }
+  return { success: true, restored: false };
+}
+
 function isUsableWindow(targetWindow) {
   return Boolean(
     targetWindow
@@ -142,6 +163,7 @@ async function handlePrepareSurfaceForScreenshot(
 module.exports = {
   handleHideChatbox,
   handlePrepareSurfaceForScreenshot,
+  handleRestoreSurfaceAfterScreenshot,
   resolveHiddenSurfaceForScreenshot,
   handleShowChatbox,
   handleShowMainWindow,

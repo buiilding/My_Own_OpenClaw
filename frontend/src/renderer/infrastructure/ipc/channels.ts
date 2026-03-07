@@ -41,6 +41,7 @@ export const INVOKE_CHANNELS = {
   SHOW_CHATBOX: 'show-chatbox',
   HIDE_CHATBOX: 'hide-chatbox',
   PREPARE_SURFACE_FOR_SCREENSHOT: 'prepare-surface-for-screenshot',
+  RESTORE_SURFACE_AFTER_SCREENSHOT: 'restore-surface-after-screenshot',
   GET_DISPLAYS: 'get-displays',
   LOAD_FRONTEND_CONFIG: 'load-frontend-config',
   SAVE_FRONTEND_CONFIG: 'save-frontend-config',
