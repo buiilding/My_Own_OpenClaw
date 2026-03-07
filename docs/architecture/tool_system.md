@@ -8,7 +8,7 @@ read_when:
 
 ## Overview
 
-The Tool System enables the Desktop Assistant to interact with the computer through a set of specialized tools. **Tools are executed in the frontend Python sidecar**, while the backend provides tool schemas, coordinates resolution, and orchestration.
+The Tool System enables WindieOS to interact with the computer through a set of specialized tools. **Tools are executed in the frontend Python sidecar**, while the backend provides tool schemas, coordinates resolution, and orchestration.
 
 For planned schema-ownership migration (frontend-sourced runtime tool catalogs), see `docs/adr/005-frontend-tool-schema-source-of-truth.md`.
 

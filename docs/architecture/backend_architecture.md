@@ -214,7 +214,7 @@ Centralized storage for tool execution results.
 
 #### ToolRegistry (`tools/registry.py`)
 
-Registry for managing tools in the Desktop Assistant.
+Registry for managing tools in WindieOS.
 
 **Responsibilities**:
 - Register and manage tool instances
