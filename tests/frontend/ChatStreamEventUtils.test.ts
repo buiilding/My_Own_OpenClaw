@@ -1,5 +1,6 @@
 import {
   buildScreenshotAttachment,
+  buildScreenshotAttachments,
   resolveErrorText,
   resolveToolCallCorrelationId,
   resolveToolOutputCorrelationId,
@@ -46,6 +47,20 @@ describe('chatStreamEventUtils', () => {
       screenshotRef: null,
       screenshotUrl: null,
     });
+  });
+
+  test('buildScreenshotAttachments normalizes trimmed refs and drops whitespace entries', () => {
+    expect(
+      buildScreenshotAttachments(
+        [' artifact-1 ', '   ', null, 'artifact-2'],
+        ' https://cdn.example/override.png ',
+      ),
+    ).toEqual([
+      { screenshotRef: 'artifact-1', screenshotUrl: 'https://cdn.example/override.png' },
+      { screenshotRef: 'artifact-2', screenshotUrl: expect.stringContaining('/api/artifacts/artifact-2') },
+    ]);
+
+    expect(buildScreenshotAttachments(['   ', null], '   ')).toEqual([]);
   });
 
   test('resolveToolOutputCorrelationId prioritizes request id then metadata then event id', () => {
