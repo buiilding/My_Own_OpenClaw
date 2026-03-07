@@ -407,19 +407,19 @@ describe('main_window_runtime createResponseWindow', () => {
     handlers.show();
     expect(responseWindow.loadURL).toHaveBeenCalledTimes(1);
     expect(responseWindow.loadURL).toHaveBeenCalledWith(expect.stringContaining('view=chatbox-response'));
-    expect(deps.syncWindowDisplayAffinity).toHaveBeenCalledWith(responseWindow);
+    expect(deps.syncWindowDisplayAffinity).not.toHaveBeenCalled();
 
     handlers.show();
     expect(responseWindow.loadURL).toHaveBeenCalledTimes(1);
   });
 
-  test('syncs response display affinity on move events', () => {
-    const { deps, handlers, responseWindow } = createDeps();
+  test('does not sync active display affinity from response overlay move events', () => {
+    const { deps, handlers } = createDeps();
 
     createResponseWindow(deps);
-    handlers.move();
+    expect(handlers.move).toBeUndefined();
 
-    expect(deps.syncWindowDisplayAffinity).toHaveBeenCalledWith(responseWindow);
+    expect(deps.syncWindowDisplayAffinity).not.toHaveBeenCalled();
   });
 
   test('keeps debug response overlay eager-loaded', () => {

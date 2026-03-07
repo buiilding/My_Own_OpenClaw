@@ -131,6 +131,43 @@ function resolveDisplayAffinityForWebContents({
   return resolveDisplayAffinityForWindow(screen, targetWindow, { requireVisible });
 }
 
+function resolveActiveSurfaceDisplayAffinity({
+  BrowserWindow,
+  screen,
+  webContents,
+  chatWindow = null,
+  mainWindow = null,
+  resolveDisplayAffinityForWindow: resolveWindowAffinity = resolveDisplayAffinityForWindow,
+  resolveDisplayAffinityForWebContents: resolveWebContentsAffinity = resolveDisplayAffinityForWebContents,
+  getActiveDisplayAffinity: getStoredAffinity = getActiveDisplayAffinity,
+}) {
+  const visibleSenderDisplayAffinity = resolveWebContentsAffinity({
+    BrowserWindow,
+    screen,
+    webContents: webContents || null,
+    requireVisible: true,
+  });
+  if (visibleSenderDisplayAffinity) {
+    return visibleSenderDisplayAffinity;
+  }
+
+  const visibleChatDisplayAffinity = chatWindow
+    ? resolveWindowAffinity(screen, chatWindow, { requireVisible: true })
+    : null;
+  if (visibleChatDisplayAffinity) {
+    return visibleChatDisplayAffinity;
+  }
+
+  const visibleMainDisplayAffinity = mainWindow
+    ? resolveWindowAffinity(screen, mainWindow, { requireVisible: true })
+    : null;
+  if (visibleMainDisplayAffinity) {
+    return visibleMainDisplayAffinity;
+  }
+
+  return getStoredAffinity();
+}
+
 function toScreenshotDisplayBounds(displayAffinity) {
   if (!displayAffinity || typeof displayAffinity !== 'object' || !displayAffinity.bounds) {
     return null;
@@ -241,6 +278,7 @@ module.exports = {
   centerWindowOnDisplayWorkArea,
   fitWindowToDisplayWorkArea,
   getActiveDisplayAffinity,
+  resolveActiveSurfaceDisplayAffinity,
   resolveDisplayAffinityForWindow,
   resolveDisplayAffinityForWebContents,
   setActiveDisplayAffinity,
