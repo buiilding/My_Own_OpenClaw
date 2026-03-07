@@ -128,6 +128,7 @@ Windows-specific external focus tracking:
 `showChatWindow({focus})` behavior:
 
 - hides main window if visible
+- when chat window is hidden and caller omits an explicit display target, reuses stored active display affinity before show
 - shows chat overlay and restores response overlay if stream is active
 - `focus=false` path uses non-activating show (`showInactive`) when available to avoid stealing active external window
 - `focus=true` path focuses chat overlay and emits `chatbox-focus` to renderer
@@ -181,6 +182,7 @@ Main bridge fanout channel (`ipc.cjs`):
 `show-main-window` behavior details:
 
 - hides overlay windows before dashboard handoff.
+- when main window is hidden and caller omits `targetDisplayAffinity`, opens on stored active display affinity.
 - `maximize=true` restores and maximizes main window before focus.
 - `open` target still routes to renderer as `main-window-open-target`.
 

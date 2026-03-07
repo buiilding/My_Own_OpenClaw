@@ -123,6 +123,8 @@ Behavior:
 
 - captures previous external focused window snapshot before transition when tracker is available
 - hide main window if visible
+- when chat window is hidden and no explicit display target is provided, resolves target monitor from stored active display affinity (`getActiveDisplayAffinity()`)
+- applies resolved display affinity (explicit or stored fallback) before show by updating active affinity + repositioning chat window
 - show/focus chat window
 - optionally restore response overlay if active stream/visible flag says so
 - non-focusing restores (`focus=false`) do not auto-restore response overlay even when stream phase is active
@@ -146,6 +148,7 @@ Behavior:
   - centered in target display work area for normal open
   - fit to target display work area when `maximize=true`
   - if currently maximized, unmaximize before display-targeted placement
+- when main window is hidden and `targetDisplayAffinity` is omitted, reuses stored active display affinity to preserve monitor continuity
 - show main window
 - optional maximize flow (`restore` + `maximize`)
 - optional focus
