@@ -2,7 +2,7 @@
 summary: "Deep reference for Electron-main turn-scoped backend-event replay and cross-window transcript-session sync normalization between main and renderer."
 read_when:
   - When changing turn replay buffering in `ipc_event_replay_state.cjs`, renderer window registration fan-out, or query optimistic event seeding.
-  - When changing `transcript-session-sync` payload normalization/forwarding between `ipc.cjs` and renderer `TranscriptWriter`.
+  - When changing `transcript-session-sync` payload normalization/forwarding between `ipc_transcript_session_sync.cjs` and renderer `TranscriptWriter`.
 title: "IPC Event Replay and Transcript Session Sync Reference"
 ---
 
@@ -12,6 +12,7 @@ title: "IPC Event Replay and Transcript Session Sync Reference"
 
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_event_replay_state.cjs`
+- `frontend/src/main/ipc/ipc_transcript_session_sync.cjs`
 - `frontend/src/main/ipc/ipc_renderer_windows.cjs`
 - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionSyncPayload.ts`
@@ -83,7 +84,11 @@ Channel name is shared both directions:
 - renderer -> main: `SEND_CHANNELS.TRANSCRIPT_SESSION_SYNC`
 - main -> renderer: `ON_CHANNELS.TRANSCRIPT_SESSION_SYNC`
 
-### Main-process normalization (`normalizeTranscriptSessionSyncPayload`)
+### Main-process normalization (`ipc_transcript_session_sync.cjs`)
+
+`applyTranscriptSessionSync(...)` owns normalization and next-state derivation.
+
+Underlying payload normalizer: `normalizeTranscriptSessionSyncPayload(...)`.
 
 Accepted conversation keys:
 
@@ -106,8 +111,9 @@ Normalization semantics:
 
 Main update behavior:
 
-- `conversationRef` updates `currentConversationRef` when field is present (including null clear)
-- `userId` only updates `currentUserId` when normalized value is a non-empty string
+- helper returns `nextConversationRef` and `nextUserId` for `ipc.cjs` state assignment
+- `conversationRef` updates include explicit null clears
+- `userId` update only occurs when normalized value is a non-empty string
 - rebroadcast excludes sender window (`broadcastToRenderers(..., sourceWebContents)`)
 
 ### Renderer normalization (`extractTranscriptSessionSyncPayload`)
@@ -135,7 +141,7 @@ Durability side effects:
 ## Related Pages
 
 - [IPC Helper Module Split and Runtime Boundary Reference](ipc_helper_module_split_and_runtime_boundary_reference.md)
+- [IPC Query Runtime and Transcript Sync Helper Reference](ipc_query_runtime_and_transcript_sync_helper_reference.md)
 - [Query Payload and Relay Reference](query_payload_and_relay_reference.md)
 - [WebSocket Handshake and Settings Sync Reference](websocket_handshake_and_settings_sync_reference.md)
 - [Transcript Session and Rehydrate Reference](../renderer/transcript_session_and_rehydrate_reference.md)
-

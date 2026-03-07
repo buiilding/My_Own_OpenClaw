@@ -1,7 +1,7 @@
 ---
 summary: "Electron main IPC helper-module split reference for websocket event processing, renderer-window fan-out, and query-local event broadcast boundaries."
 read_when:
-  - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_event_replay_state.cjs`, `ipc_overlay_phase_events.cjs`, `ipc_renderer_windows.cjs`, `ipc_query_broadcast.cjs`, or `ipc_settings_sync.cjs`.
+  - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_query_runtime.cjs`, `ipc_transcript_session_sync.cjs`, `ipc_event_replay_state.cjs`, `ipc_overlay_phase_events.cjs`, `ipc_renderer_windows.cjs`, `ipc_query_broadcast.cjs`, or `ipc_settings_sync.cjs`.
   - When debugging renderer fan-out drift, overlay pre-capture hook timing, or synthetic query/local-user message behavior.
 title: "IPC Helper Module Split and Runtime Boundary Reference"
 ---
@@ -12,6 +12,8 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
+- `frontend/src/main/ipc/ipc_query_runtime.cjs`
+- `frontend/src/main/ipc/ipc_transcript_session_sync.cjs`
 - `frontend/src/main/ipc/ipc_event_replay_state.cjs`
 - `frontend/src/main/ipc/ipc_overlay_phase_events.cjs`
 - `frontend/src/main/ipc/ipc_overlay_phase_contract.cjs`
@@ -48,6 +50,21 @@ Owns cross-cutting utilities used by relay hot paths:
   - settings ACK resolution (`settings-updated` / `error` by id)
   - applies response-overlay transitions resolved by `ipc_overlay_phase_events.cjs`
   - renderer fan-out to `from-backend`
+
+### `ipc_query_runtime.cjs`
+
+Owns query payload shaping helpers used by both renderer query sends and automated VM query sends:
+
+- `prepareRendererQueryPayload` (attachment/memory toggle/conversation-ref normalization)
+- `buildQueryPayload` (context-type/user-id derivation + `buildQueryPayloadContent` composition)
+- `prepareAutomatedQueryPayload` (sendAutomatedQuery option normalization + validation)
+
+### `ipc_transcript_session_sync.cjs`
+
+Owns transcript sync payload normalization and next-state derivation:
+
+- `normalizeTranscriptSessionSyncPayload` (alias-key support + trim/null semantics)
+- `applyTranscriptSessionSync` (state advance + sibling-window broadcast)
 
 ### `ipc_event_replay_state.cjs`
 
@@ -129,8 +146,10 @@ This isolates persistence to main process once per backend event before renderer
 2. websocket inbound messages append turn-scoped replay state before delegating event processing to `processBackendMessageData`.
 3. query pre-capture delegates chatbox-only hook guard to `runBeforeOverlayQueryCapture`.
 4. query optimistic/synthetic events delegate to `ipc_query_broadcast.cjs` with builders from `ipc_query_events.cjs` and seed replay state for late-window hydration.
-5. frontend config load/save handlers delegate to `ipc_frontend_config.cjs`.
-6. artifact upload handler delegates to `uploadArtifact`.
+5. query payload shaping and automated-query normalization delegate to `ipc_query_runtime.cjs`.
+6. transcript-session-sync normalization and state updates delegate to `ipc_transcript_session_sync.cjs`.
+7. frontend config load/save handlers delegate to `ipc_frontend_config.cjs`.
+8. artifact upload handler delegates to `uploadArtifact`.
 
 ## Drift Hotspots
 
@@ -139,12 +158,14 @@ This isolates persistence to main process once per backend event before renderer
 3. Changing `normalizeBackendPayload` field stripping without backend contract check can leak unsupported payload keys.
 4. Mutating query-context envelope shape in broadcasters without matching `ipc_query_events.cjs` updates can desync renderer expectations.
 5. Changing replay turn gating (`appendForActiveTurn`) can replay stale-turn packets into newly registered windows.
+6. Duplicating transcript-session normalization logic outside `ipc_transcript_session_sync.cjs` can desync alias/null handling between channels.
 
 ## Related Pages
 
 - [Frontend Main Docs Hub](README.md)
 - [Electron Main and IPC](electron_main_and_ipc.md)
 - [IPC Event Replay and Transcript Session Sync Reference](ipc_event_replay_and_transcript_session_sync_reference.md)
+- [IPC Query Runtime and Transcript Sync Helper Reference](ipc_query_runtime_and_transcript_sync_helper_reference.md)
 - [Query Payload and Relay Reference](query_payload_and_relay_reference.md)
 - [WebSocket Handshake and Settings Sync Reference](websocket_handshake_and_settings_sync_reference.md)
 - [IPC Memory-Store Event Persistence Payload Fallback and Fail-Open Logging Contract Reference](ipc_memory_store_event_persistence_payload_fallback_and_fail_open_logging_contract_reference.md)

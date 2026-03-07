@@ -47,6 +47,7 @@ This hub documents WindieOS frontend implementation details across Electron main
 - [WebSocket Handshake and Settings Sync Reference](main/websocket_handshake_and_settings_sync_reference.md)
 - [VM Worker Runs Bridge and OpenAI Codex OAuth Runtime Reference](main/vm_worker_runs_bridge_and_openai_codex_oauth_runtime_reference.md)
 - [IPC Helper Module Split and Runtime Boundary Reference](main/ipc_helper_module_split_and_runtime_boundary_reference.md)
+- [IPC Query Runtime and Transcript Sync Helper Reference](main/ipc_query_runtime_and_transcript_sync_helper_reference.md)
 - [Agent Sudo Access Handler PKExec and Non-Interactive Disable Contract Reference](main/agent_sudo_access_handler_pkexec_and_noninteractive_disable_contract_reference.md)
 - [Main Local-Backend Docs Hub](main/local_backend/README.md)
 - [Main Testing Docs Hub](main/testing/README.md)
