@@ -93,7 +93,7 @@ Behavior:
 - `set-responsebox-size` -> bounded response overlay resize/show/hide
 - `show-chatbox`
 - `hide-chatbox`
-- `prepare-chatbox-for-screenshot` -> bounded pre-capture wait + optional chat hide + settle delay; returns timing metrics
+- `prepare-surface-for-screenshot` -> bounded pre-capture wait + optional chat hide + settle delay; returns timing metrics
 
 ## Window control channels (`window_controls_ipc_runtime.cjs`, wired by `index.cjs`)
 

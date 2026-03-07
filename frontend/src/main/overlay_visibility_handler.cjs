@@ -79,7 +79,7 @@ function resolveHiddenSurfaceForScreenshot(event = {}, deps = {}) {
   return 'none';
 }
 
-async function handlePrepareChatboxForScreenshot(
+async function handlePrepareSurfaceForScreenshot(
   event = null,
   options = {},
   deps = {},
@@ -141,7 +141,7 @@ async function handlePrepareChatboxForScreenshot(
 
 module.exports = {
   handleHideChatbox,
-  handlePrepareChatboxForScreenshot,
+  handlePrepareSurfaceForScreenshot,
   resolveHiddenSurfaceForScreenshot,
   handleShowChatbox,
   handleShowMainWindow,

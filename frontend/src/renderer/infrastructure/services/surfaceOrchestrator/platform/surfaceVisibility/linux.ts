@@ -7,12 +7,12 @@ import type {
 
 const CHAT_PILL_HIDE_SETTLE_MS = 120;
 
-const linuxChatPillVisibilityRuntime = {
-  shouldManageChatPillVisibilityForBackgroundCapture(): boolean {
+const linuxSurfaceVisibilityRuntime = {
+  shouldManageSurfaceVisibilityForBackgroundCapture(): boolean {
     return true;
   },
 
-  async collapseChatPillForBackgroundCapture(
+  async suppressSurfaceForBackgroundCapture(
     options: { waitMs?: number } = {},
   ): Promise<SurfaceCollapseResult> {
     // Full screenshot prep runs in Electron main so the hidden overlay renderer
@@ -26,13 +26,13 @@ const linuxChatPillVisibilityRuntime = {
       hideInvokeTime?: number;
       settleTime?: number;
       hiddenSurface?: HiddenSurface;
-    }>(INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, {
+    }>(INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT, {
       waitMs: typeof options.waitMs === 'number' ? Math.max(0, options.waitMs) : 0,
       settleMs: CHAT_PILL_HIDE_SETTLE_MS,
       hideSurface: true,
     });
     if (result?.success !== true) {
-      throw new Error(result?.reason || 'prepare-chatbox-for-screenshot failed');
+      throw new Error(result?.reason || 'prepare-surface-for-screenshot failed');
     }
     return {
       collapsed: result?.hiddenSurface === 'chatbox' || result?.hiddenSurface === 'main-window',
@@ -51,7 +51,7 @@ const linuxChatPillVisibilityRuntime = {
     };
   },
 
-  async restoreChatPillInactive(hiddenSurface: HiddenSurface = 'chatbox'): Promise<SurfaceRestoreResult> {
+  async restoreSurfaceAfterBackgroundCapture(hiddenSurface: HiddenSurface = 'chatbox'): Promise<SurfaceRestoreResult> {
     const restoreStartTime = performance.now();
     if (hiddenSurface === 'main-window') {
       await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_MAIN_WINDOW, { focus: false });
@@ -66,4 +66,4 @@ const linuxChatPillVisibilityRuntime = {
   },
 };
 
-export default linuxChatPillVisibilityRuntime;
+export default linuxSurfaceVisibilityRuntime;

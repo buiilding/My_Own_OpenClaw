@@ -218,7 +218,7 @@ Primary modules:
 - `infrastructure/api/client.ts`: typed backend command emitter.
 - `infrastructure/transcript/TranscriptWriter.ts`: transcript session state + queued persistence.
 - `infrastructure/services/ToolExecutionService.ts`: tool execution/capture bundling.
-- `infrastructure/services/surfaceOrchestrator/platform/chatPillVisibility/*`: explicit per-OS screenshot chat-pill policy (Linux hides; Windows/macOS no-op).
+- `infrastructure/services/surfaceOrchestrator/platform/surfaceVisibility/*`: explicit per-OS screenshot chat-pill policy (Linux hides; Windows/macOS no-op).
 - `infrastructure/audio/PlayerService.ts`: chunk queue decode/playback.
 
 ## Sidecar Responsibilities (`frontend/src/main/python`)

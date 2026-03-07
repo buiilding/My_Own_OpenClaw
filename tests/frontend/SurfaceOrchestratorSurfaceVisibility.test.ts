@@ -1,13 +1,13 @@
 import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
-import * as chatPillVisibility from '../../frontend/src/renderer/infrastructure/services/surfaceOrchestrator/chatPillVisibility';
+import * as surfaceVisibility from '../../frontend/src/renderer/infrastructure/services/surfaceOrchestrator/surfaceVisibility';
 
 const {
-  collapseChatPillForBackgroundCapture,
-  restoreChatPillInactive,
-  shouldManageChatPillVisibilityForBackgroundCapture,
-} = chatPillVisibility;
+  suppressSurfaceForBackgroundCapture,
+  restoreSurfaceAfterBackgroundCapture,
+  shouldManageSurfaceVisibilityForBackgroundCapture,
+} = surfaceVisibility;
 
-describe('surfaceOrchestrator chatPillVisibility', () => {
+describe('surfaceOrchestrator surfaceVisibility', () => {
   const originalUserAgent = navigator.userAgent;
 
   beforeEach(() => {
@@ -26,16 +26,16 @@ describe('surfaceOrchestrator chatPillVisibility', () => {
     });
   });
 
-  test('collapses chat pill with deterministic hide-only ordering', async () => {
+  test('suppresses the active surface with deterministic hide-only ordering', async () => {
     (IpcBridge.invoke as jest.Mock).mockResolvedValueOnce({
       success: true,
       settleMs: 120,
       hiddenSurface: 'chatbox',
     });
 
-    expect(shouldManageChatPillVisibilityForBackgroundCapture()).toBe(true);
+    expect(shouldManageSurfaceVisibilityForBackgroundCapture()).toBe(true);
 
-    await expect(collapseChatPillForBackgroundCapture()).resolves.toEqual({
+    await expect(suppressSurfaceForBackgroundCapture()).resolves.toEqual({
       collapsed: true,
       hiddenSurface: 'chatbox',
       timing: {
@@ -46,12 +46,12 @@ describe('surfaceOrchestrator chatPillVisibility', () => {
     });
 
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
+      [INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
     ]);
   });
 
-  test('restores chat pill as non-focusing show', async () => {
-    await expect(restoreChatPillInactive()).resolves.toEqual({
+  test('restores the hidden surface as non-focusing show', async () => {
+    await expect(restoreSurfaceAfterBackgroundCapture()).resolves.toEqual({
       restored: true,
       restoredSurface: 'chatbox',
       restoreInvokeTime: expect.any(Number),
@@ -66,9 +66,9 @@ describe('surfaceOrchestrator chatPillVisibility', () => {
     (IpcBridge.invoke as jest.Mock)
       .mockRejectedValueOnce(new Error('hide-failed'));
 
-    await expect(collapseChatPillForBackgroundCapture()).rejects.toThrow('hide-failed');
+    await expect(suppressSurfaceForBackgroundCapture()).rejects.toThrow('hide-failed');
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
+      [INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
     ]);
   });
 
@@ -78,9 +78,9 @@ describe('surfaceOrchestrator chatPillVisibility', () => {
       value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
     });
 
-    expect(shouldManageChatPillVisibilityForBackgroundCapture()).toBe(true);
+    expect(shouldManageSurfaceVisibilityForBackgroundCapture()).toBe(true);
 
-    await expect(collapseChatPillForBackgroundCapture()).resolves.toEqual({
+    await expect(suppressSurfaceForBackgroundCapture()).resolves.toEqual({
       collapsed: true,
       hiddenSurface: 'chatbox',
       timing: {
@@ -89,14 +89,14 @@ describe('surfaceOrchestrator chatPillVisibility', () => {
         settleTime: 0,
       },
     });
-    await expect(restoreChatPillInactive()).resolves.toEqual({
+    await expect(restoreSurfaceAfterBackgroundCapture()).resolves.toEqual({
       restored: true,
       restoredSurface: 'chatbox',
       restoreInvokeTime: 0,
     });
 
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
-      [INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, { waitMs: 0, settleMs: 0, hideSurface: true }],
+      [INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT, { waitMs: 0, settleMs: 0, hideSurface: true }],
       [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
     ]);
   });

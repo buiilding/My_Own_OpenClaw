@@ -2,7 +2,7 @@
 
 const {
   handleHideChatbox,
-  handlePrepareChatboxForScreenshot,
+  handlePrepareSurfaceForScreenshot,
   resolveHiddenSurfaceForScreenshot,
   handleShowChatbox,
   handleShowMainWindow,
@@ -102,7 +102,7 @@ describe('overlay_visibility_handler', () => {
     expect(hideChatWindow).toHaveBeenCalledTimes(1);
   });
 
-  test('prepare-chatbox-for-screenshot hides then waits in main process', async () => {
+  test('prepare-surface-for-screenshot hides then waits in main process', async () => {
     const hideChatWindow = jest.fn().mockReturnValue({ success: true, hidden: true });
     const hideMainWindow = jest.fn().mockReturnValue({ success: true, hidden: true });
     const waitInMain = jest.fn().mockResolvedValue(undefined);
@@ -122,7 +122,7 @@ describe('overlay_visibility_handler', () => {
       },
     });
 
-    const result = await handlePrepareChatboxForScreenshot(
+    const result = await handlePrepareSurfaceForScreenshot(
       event,
       { waitMs: 2000, settleMs: 120 },
       { getWindows, hideChatWindow, hideMainWindow, waitInMain },
@@ -145,7 +145,7 @@ describe('overlay_visibility_handler', () => {
     expect(waitInMain).toHaveBeenNthCalledWith(2, 120);
   });
 
-  test('prepare-chatbox-for-screenshot hides the dashboard surface when sender is main window', async () => {
+  test('prepare-surface-for-screenshot hides the dashboard surface when sender is main window', async () => {
     const hideChatWindow = jest.fn().mockReturnValue({ success: true, hidden: true });
     const hideMainWindow = jest.fn().mockResolvedValue({
       success: true,
@@ -169,7 +169,7 @@ describe('overlay_visibility_handler', () => {
       },
     });
 
-    const result = await handlePrepareChatboxForScreenshot(
+    const result = await handlePrepareSurfaceForScreenshot(
       event,
       { waitMs: 2000, settleMs: 120 },
       { getWindows, hideChatWindow, hideMainWindow, waitInMain },
@@ -192,7 +192,7 @@ describe('overlay_visibility_handler', () => {
     expect(hideChatWindow).not.toHaveBeenCalled();
   });
 
-  test('prepare-chatbox-for-screenshot returns hide failure without waiting', async () => {
+  test('prepare-surface-for-screenshot returns hide failure without waiting', async () => {
     const hideChatWindow = jest.fn().mockReturnValue({ success: false, reason: 'Chat window not available' });
     const hideMainWindow = jest.fn().mockReturnValue({ success: true, hidden: true });
     const waitInMain = jest.fn().mockResolvedValue(undefined);
@@ -212,7 +212,7 @@ describe('overlay_visibility_handler', () => {
       },
     });
 
-    const result = await handlePrepareChatboxForScreenshot(
+    const result = await handlePrepareSurfaceForScreenshot(
       event,
       { waitMs: 2000, settleMs: 120 },
       { getWindows, hideChatWindow, hideMainWindow, waitInMain },

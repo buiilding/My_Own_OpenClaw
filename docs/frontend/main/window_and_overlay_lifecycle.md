@@ -233,7 +233,7 @@ For renderer-only deep dives:
 
 - selects a platform-specific screenshot visibility runtime
 - Linux behavior lives in `platform/screenshot_window_visibility/linux.cjs`
-- platform-specific screenshot-window runtimes are now bypassed for WindieOS-owned capture prep; renderer `SurfaceOrchestrator` and main-process `prepare-chatbox-for-screenshot` own the single active-surface hide/show path to avoid double-collapse races
+- platform-specific screenshot-window runtimes are now bypassed for WindieOS-owned capture prep; renderer `SurfaceOrchestrator` and main-process `prepare-surface-for-screenshot` own the single active-surface hide/show path to avoid double-collapse races
 - result: screenshot tool execution no longer adds a second hide/restore cycle on top of renderer capture prep, and dashboard-originated captures use the same prep/restore symmetry as pill-originated captures
 
 For deeper focus/capture guard internals:

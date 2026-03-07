@@ -7,9 +7,9 @@ import type {
   HiddenSurface,
 } from '../../types';
 
-type ChatPillVisibilityRuntime = typeof linuxRuntime;
+type SurfaceVisibilityRuntime = typeof linuxRuntime;
 
-function resolveChatPillVisibilityRuntime(): ChatPillVisibilityRuntime {
+function resolveSurfaceVisibilityRuntime(): SurfaceVisibilityRuntime {
   if (typeof navigator === 'undefined') {
     return windowsRuntime;
   }
@@ -26,18 +26,18 @@ function resolveChatPillVisibilityRuntime(): ChatPillVisibilityRuntime {
   return windowsRuntime;
 }
 
-export function shouldManageChatPillVisibilityForBackgroundCapture(): boolean {
-  return resolveChatPillVisibilityRuntime().shouldManageChatPillVisibilityForBackgroundCapture();
+export function shouldManageSurfaceVisibilityForBackgroundCapture(): boolean {
+  return resolveSurfaceVisibilityRuntime().shouldManageSurfaceVisibilityForBackgroundCapture();
 }
 
-export async function collapseChatPillForBackgroundCapture(
+export async function suppressSurfaceForBackgroundCapture(
   options: { waitMs?: number } = {},
 ): Promise<SurfaceCollapseResult> {
-  return await resolveChatPillVisibilityRuntime().collapseChatPillForBackgroundCapture(options);
+  return await resolveSurfaceVisibilityRuntime().suppressSurfaceForBackgroundCapture(options);
 }
 
-export async function restoreChatPillInactive(
+export async function restoreSurfaceAfterBackgroundCapture(
   hiddenSurface: HiddenSurface = 'chatbox',
 ): Promise<SurfaceRestoreResult> {
-  return await resolveChatPillVisibilityRuntime().restoreChatPillInactive(hiddenSurface);
+  return await resolveSurfaceVisibilityRuntime().restoreSurfaceAfterBackgroundCapture(hiddenSurface);
 }

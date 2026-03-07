@@ -5,13 +5,13 @@ import type {
   SurfaceRestoreResult,
 } from '../../types';
 
-export function createNoopChatPillVisibilityRuntime() {
+export function createNoopSurfaceVisibilityRuntime() {
   return {
-    shouldManageChatPillVisibilityForBackgroundCapture(): boolean {
+    shouldManageSurfaceVisibilityForBackgroundCapture(): boolean {
       return true;
     },
 
-    async collapseChatPillForBackgroundCapture(
+    async suppressSurfaceForBackgroundCapture(
       options: { waitMs?: number } = {},
     ): Promise<SurfaceCollapseResult> {
       const result = await IpcBridge.invoke<{
@@ -21,13 +21,13 @@ export function createNoopChatPillVisibilityRuntime() {
         waitTime?: number;
         hideInvokeTime?: number;
         hiddenSurface?: HiddenSurface;
-      }>(INVOKE_CHANNELS.PREPARE_CHATBOX_FOR_SCREENSHOT, {
+      }>(INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT, {
         waitMs: typeof options.waitMs === 'number' ? Math.max(0, options.waitMs) : 0,
         settleMs: 0,
         hideSurface: true,
       });
       if (result?.success !== true) {
-        throw new Error(result?.reason || 'prepare-chatbox-for-screenshot failed');
+        throw new Error(result?.reason || 'prepare-surface-for-screenshot failed');
       }
       return {
         collapsed: result?.hiddenSurface === 'chatbox' || result?.hiddenSurface === 'main-window',
@@ -44,7 +44,7 @@ export function createNoopChatPillVisibilityRuntime() {
       };
     },
 
-    async restoreChatPillInactive(hiddenSurface: HiddenSurface = 'chatbox'): Promise<SurfaceRestoreResult> {
+    async restoreSurfaceAfterBackgroundCapture(hiddenSurface: HiddenSurface = 'chatbox'): Promise<SurfaceRestoreResult> {
       if (hiddenSurface === 'main-window') {
         await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_MAIN_WINDOW, { focus: false });
       } else if (hiddenSurface === 'chatbox') {

@@ -1,6 +1,6 @@
 const {
   handleHideChatbox,
-  handlePrepareChatboxForScreenshot,
+  handlePrepareSurfaceForScreenshot,
   handleShowChatbox,
 } = require('./overlay_visibility_handler.cjs');
 const {
@@ -91,8 +91,8 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
     return handleHideChatbox({ hideChatWindow });
   });
 
-  ipcMain.handle('prepare-chatbox-for-screenshot', async (event, options = {}) => {
-    return await handlePrepareChatboxForScreenshot(event, options, {
+  ipcMain.handle('prepare-surface-for-screenshot', async (event, options = {}) => {
+    return await handlePrepareSurfaceForScreenshot(event, options, {
       getWindows,
       hideChatWindow,
       hideMainWindow,
