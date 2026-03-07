@@ -145,3 +145,58 @@ async def test_parse_and_validate_message_runtime_maps_unexpected_errors_to_inte
     assert message is None
     assert error == "An internal error occurred"
     assert any("Unexpected error parsing message" in record.message for record in caplog.records)
+
+
+@pytest.mark.asyncio
+async def test_parse_and_validate_message_runtime_rejects_tool_result_missing_request_id() -> None:
+    payload = json.dumps(
+        {
+            "id": "msg-tool-result-missing-request-id",
+            "type": "tool-result",
+            "payload": {
+                "success": True,
+                "data": {"llm_content": "ok"},
+            },
+        }
+    )
+
+    message, error = await parse_and_validate_message_runtime(
+        data=payload,
+        user_id="user-1",
+        max_message_size=1024 * 1024,
+        json_parse_offload_bytes=64 * 1024,
+        logger=logging.getLogger("test.websocket.message_parse_runtime"),
+    )
+
+    assert message is None
+    assert error is not None
+    assert "Invalid message format:" in error
+    assert "payload.request_id" in error
+
+
+@pytest.mark.asyncio
+async def test_parse_and_validate_message_runtime_rejects_tool_bundle_result_non_list_step_results() -> None:
+    payload = json.dumps(
+        {
+            "id": "msg-tool-bundle-invalid-step-results",
+            "type": "tool-bundle-result",
+            "payload": {
+                "bundle_id": "bundle-1",
+                "status": "success",
+                "step_results": {"tool": "read_file"},
+            },
+        }
+    )
+
+    message, error = await parse_and_validate_message_runtime(
+        data=payload,
+        user_id="user-1",
+        max_message_size=1024 * 1024,
+        json_parse_offload_bytes=64 * 1024,
+        logger=logging.getLogger("test.websocket.message_parse_runtime"),
+    )
+
+    assert message is None
+    assert error is not None
+    assert "Invalid message format:" in error
+    assert "payload.step_results" in error

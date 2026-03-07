@@ -122,7 +122,8 @@ export function buildTranscriptMetadata(
 export function mapBundleTools(
   tools: BundleToolInput[] | null | undefined,
 ): Array<{ toolName: string; args: Record<string, unknown> }> {
-  return (tools || [])
+  const normalizedTools = Array.isArray(tools) ? tools : [];
+  return normalizedTools
     .filter((tool) => typeof tool?.name === 'string' && tool.name.length > 0)
     .map((tool) => ({
       toolName: tool.name as string,
