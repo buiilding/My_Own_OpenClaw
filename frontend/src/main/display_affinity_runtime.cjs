@@ -229,6 +229,7 @@ module.exports = {
   centerWindowOnDisplayWorkArea,
   fitWindowToDisplayWorkArea,
   getActiveDisplayAffinity,
+  resolveDisplayAffinityForWindow,
   resolveDisplayAffinityForWebContents,
   setActiveDisplayAffinity,
   toScreenshotDisplayBounds,

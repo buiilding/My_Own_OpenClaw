@@ -34,6 +34,14 @@ function createWindowResolvers(getWindows) {
     return null;
   };
 
+  const resolveMainWindow = () => {
+    const result = getWindowState();
+    if (result && typeof result === 'object') {
+      return result.mainWindow || null;
+    }
+    return null;
+  };
+
   const resolveResponseWindow = () => {
     const result = getWindowState();
     if (result && typeof result === 'object') {
@@ -43,6 +51,7 @@ function createWindowResolvers(getWindows) {
   };
 
   return {
+    resolveMainWindow,
     resolveChatWindow,
     resolveResponseWindow,
     resolveWindows,
