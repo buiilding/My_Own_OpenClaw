@@ -558,7 +558,7 @@ describe('ChatInterface wiring', () => {
     const { rerender } = render(<ChatInterface />);
 
     let lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
-    expect(lastMessageListProps.showAssistantAwaitingDot).toBe(true);
+    expect(lastMessageListProps.awaitingDotTargetMessageId).toBe('user-1');
 
     mockChatState.streamTracking.phase = 'streaming';
     mockChatState.messages = [
@@ -567,7 +567,7 @@ describe('ChatInterface wiring', () => {
     ];
     rerender(<ChatInterface />);
     lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
-    expect(lastMessageListProps.showAssistantAwaitingDot).toBe(false);
+    expect(lastMessageListProps.awaitingDotTargetMessageId).toBeNull();
   });
 
   test('passes active conversation ref to MessageList for conversation-switch scroll resets', () => {
@@ -592,7 +592,7 @@ describe('ChatInterface wiring', () => {
     render(<ChatInterface />);
 
     const lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
-    expect(lastMessageListProps.showAssistantAwaitingDot).toBe(true);
+    expect(lastMessageListProps.awaitingDotTargetMessageId).toBe('user-1');
   });
 
   test('keeps awaiting dot visible if streaming phase arrives before the first assistant row renders', () => {
@@ -605,7 +605,7 @@ describe('ChatInterface wiring', () => {
     render(<ChatInterface />);
 
     const lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
-    expect(lastMessageListProps.showAssistantAwaitingDot).toBe(true);
+    expect(lastMessageListProps.awaitingDotTargetMessageId).toBe('user-1');
   });
 
   test('keeps awaiting dot visible during a later turn when only tool rows exist after the latest user message', () => {
@@ -622,7 +622,7 @@ describe('ChatInterface wiring', () => {
     render(<ChatInterface />);
 
     const lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
-    expect(lastMessageListProps.showAssistantAwaitingDot).toBe(true);
+    expect(lastMessageListProps.awaitingDotTargetMessageId).toBe('user-2');
   });
 
   test('keeps awaiting dot visible during a later turn while send latch is active over a terminal previous phase', () => {
@@ -637,7 +637,7 @@ describe('ChatInterface wiring', () => {
     render(<ChatInterface />);
 
     const lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
-    expect(lastMessageListProps.showAssistantAwaitingDot).toBe(true);
+    expect(lastMessageListProps.awaitingDotTargetMessageId).toBe('user-2');
   });
 
   test('stop response handler is a no-op when no active stream is running', () => {

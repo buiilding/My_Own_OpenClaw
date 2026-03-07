@@ -9,7 +9,6 @@ import PropTypes from 'prop-types';
 import messageShapePropType from './message/messageShapePropType';
 import MessageItem from './message/MessageItem';
 import {
-  findAwaitingDotTargetMessageId,
   isNearBottom,
   resolveCompactionStatusText,
   scrollToConversationSwitchTarget,
@@ -21,7 +20,7 @@ function MessageList({
   conversationRef = null,
   thinkingStatus = null,
   thinkingSourceEventType = null,
-  showAssistantAwaitingDot = false,
+  awaitingDotTargetMessageId = null,
   enableAssistantActions = false,
   enableUserActions = false,
   disableAssistantActions = false,
@@ -70,10 +69,6 @@ function MessageList({
       setEditingUserDraft('');
     }
   }, [editingUserMessageId, messages]);
-
-  const awaitingDotTargetMessageId = useMemo(() => {
-    return findAwaitingDotTargetMessageId(messages, showAssistantAwaitingDot);
-  }, [messages, showAssistantAwaitingDot]);
 
   const renderedMessages = useMemo(
     () => messages.flatMap((msg) => {
@@ -212,7 +207,7 @@ MessageList.propTypes = {
   conversationRef: PropTypes.string,
   thinkingStatus: PropTypes.string,
   thinkingSourceEventType: PropTypes.string,
-  showAssistantAwaitingDot: PropTypes.bool,
+  awaitingDotTargetMessageId: PropTypes.string,
   enableAssistantActions: PropTypes.bool,
   enableUserActions: PropTypes.bool,
   disableAssistantActions: PropTypes.bool,

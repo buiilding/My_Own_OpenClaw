@@ -1,4 +1,8 @@
-import { isChatLoopAwaitingReply } from './chatLoopUiState';
+import {
+  isChatLoopAwaitingReply,
+  isChatLoopBusy,
+  resolveChatLoopUiState,
+} from './chatLoopUiState';
 
 export const CHATBOX_SURFACE_STATE = Object.freeze({
   COMPACT: 'compact',
@@ -45,6 +49,18 @@ export function hasVisibleChatTurnReply(activeResponse) {
   return Boolean(activeResponse);
 }
 
+export function findAwaitingDotTargetMessageId(messages, showAssistantAwaitingDot) {
+  if (!showAssistantAwaitingDot) {
+    return null;
+  }
+  const lastUserIndex = findLastUserIndex(messages);
+  if (lastUserIndex === -1) {
+    return null;
+  }
+  const message = messages[lastUserIndex];
+  return typeof message?.id === 'string' && message.id ? message.id : null;
+}
+
 export function hasVisibleChatboxResponse(activeResponse, dismissedResponseId) {
   return Boolean(activeResponse && activeResponse.id !== dismissedResponseId);
 }
@@ -72,9 +88,11 @@ export function shouldShowChatboxResponse(surfaceState) {
   return surfaceState === CHATBOX_SURFACE_STATE.RESPONSE;
 }
 
-export function resolveChatTurnPresentationState({
+export function resolveCurrentTurnPresentationState({
+  phase,
+  isSending,
   messages,
-  loopUiState,
+  transportConnected = true,
   dismissedResponseId = null,
   allowedTypes = DEFAULT_VISIBLE_ASSISTANT_REPLY_TYPES,
   activeResponse: providedActiveResponse,
@@ -82,6 +100,17 @@ export function resolveChatTurnPresentationState({
   const activeResponse = providedActiveResponse
     ?? findLatestVisibleAssistantReply(messages, allowedTypes);
   const hasVisibleReply = hasVisibleChatTurnReply(activeResponse);
+  const loopUiState = resolveChatLoopUiState({
+    phase,
+    isSending,
+    hasVisibleReply,
+    transportConnected,
+  });
+  const showAssistantAwaitingDot = (
+    isChatLoopAwaitingReply(loopUiState)
+    && messages.length > 0
+    && !hasVisibleReply
+  );
   const chatboxSurfaceState = resolveChatboxSurfaceState({
     loopUiState,
     activeResponse,
@@ -91,11 +120,11 @@ export function resolveChatTurnPresentationState({
   return {
     activeResponse,
     hasVisibleReply,
-    showAssistantAwaitingDot: (
-      isChatLoopAwaitingReply(loopUiState)
-      && messages.length > 0
-      && !hasVisibleReply
-    ),
+    loopUiState,
+    isBusy: isChatLoopBusy(loopUiState),
+    isAwaitingReply: isChatLoopAwaitingReply(loopUiState),
+    showAssistantAwaitingDot,
+    awaitingDotTargetMessageId: findAwaitingDotTargetMessageId(messages, showAssistantAwaitingDot),
     visibleResponse: hasVisibleChatboxResponse(activeResponse, dismissedResponseId)
       ? activeResponse
       : null,

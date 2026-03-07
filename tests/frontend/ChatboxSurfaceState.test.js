@@ -1,7 +1,7 @@
 import {
   hasVisibleChatboxResponse,
   resolveChatboxSurfaceState,
-  resolveChatTurnPresentationState,
+  resolveCurrentTurnPresentationState,
   shouldShowChatboxAwaitingReply,
   shouldShowChatboxResponse,
 } from '../../frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState';
@@ -77,13 +77,9 @@ describe('chatTurnPresentationState chatbox projection', () => {
   });
 
   test('keeps tool rows from suppressing awaiting state after the latest user turn', () => {
-    const loopUiState = resolveChatLoopUiState({
+    const state = resolveCurrentTurnPresentationState({
       phase: 'tool-output',
       isSending: false,
-      hasVisibleReply: false,
-    });
-
-    const state = resolveChatTurnPresentationState({
       messages: [
         { id: 'user-1', sender: 'user', text: 'first task', type: 'user' },
         { id: 'assistant-1', sender: 'assistant', text: 'done', type: 'llm-text' },
@@ -91,7 +87,6 @@ describe('chatTurnPresentationState chatbox projection', () => {
         { id: 'tool-call-2', sender: 'assistant', text: '{"name":"tool"}', type: 'tool-call' },
         { id: 'tool-output-2', sender: 'assistant', text: '{"ok":true}', type: 'tool-output' },
       ],
-      loopUiState,
     });
 
     expect(state.hasVisibleReply).toBe(false);
