@@ -145,7 +145,12 @@ Recovery path bypasses tool execution entirely (`continue` after synthetic event
 
 ## Parser Recovery Policy Boundary (`policies.py`)
 
-`ParseRecoveryPolicy.build_validation_error_user_message(...)` exists separately for parser-level validation failures and emits corrective system guidance (metadata-first format).
+`ParseRecoveryPolicy.build_validation_error_user_message(...)` exists separately for parser-level validation failures and emits corrective system guidance.
+
+Current corrective guidance includes both canonical unified wrapper examples:
+
+- `computer_use` with required top-level `metadata` (`description`, `explanation`, `expectation`) plus nested `arguments`
+- `system_use` with top-level `tool` + `explanation` + nested `arguments`
 
 This is distinct from stream error recovery path above, but both aim to keep model retry loop alive with structured corrective context.
 

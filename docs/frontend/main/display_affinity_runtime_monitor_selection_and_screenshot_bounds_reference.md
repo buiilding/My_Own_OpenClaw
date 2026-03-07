@@ -1,0 +1,119 @@
+---
+summary: "Deep reference for main-process display-affinity resolution: monitor/work-area normalization, active query display tracking, screenshot display-bounds payload shaping, and target-display window placement contracts."
+read_when:
+  - When changing display selection logic in `display_affinity_runtime.cjs`.
+  - When debugging screenshot monitor routing drift between query-origin context and hidden-window tool execution.
+  - When changing display-targeted `show-main-window` placement behavior.
+title: "Display-Affinity Monitor Selection and Screenshot Bounds Reference"
+---
+
+# Display-Affinity Monitor Selection and Screenshot Bounds Reference
+
+## Canonical Modules
+
+- `frontend/src/main/display_affinity_runtime.cjs`
+- `frontend/src/main/ipc.cjs`
+- `frontend/src/main/local_backend_bridge.cjs`
+- `frontend/src/main/local_backend_bridge_tool_args.cjs`
+- `frontend/src/main/window_visibility_runtime.cjs`
+- `tests/frontend/DisplayAffinityRuntime.test.cjs`
+- `tests/frontend/LocalBackendBridge.rpc.test.cjs`
+
+## Display-Affinity Shape
+
+Normalized affinity object:
+
+- `monitor_id: string | null`
+- `bounds: { x, y, width, height }`
+- `workArea: { x, y, width, height }`
+- `desktopVirtualBounds: { x, y, width, height } | null`
+
+Screenshot payload shape (`toScreenshotDisplayBounds(...)`):
+
+- `x`, `y`, `width`, `height`
+- `monitor_id`
+- optional `desktop_virtual_bounds`
+
+## Core Resolution Functions
+
+`normalizeBounds(...)`:
+
+- accepts finite numeric bounds
+- rounds numeric values
+- rejects non-positive `width`/`height`
+
+`resolveDesktopVirtualBounds(screen)`:
+
+- computes union rectangle across all display bounds
+- returns `null` when displays are unavailable/invalid
+
+`createDisplayAffinity(display, { desktopVirtualBounds })`:
+
+- normalizes `display.bounds` and `display.workArea` (`workArea` falls back to `bounds`)
+- normalizes `display.id` to string `monitor_id`
+
+`resolveDisplayAffinityForBounds(screen, bounds)`:
+
+- uses `screen.getDisplayMatching(bounds)` when available
+- falls back to primary display when matching is unavailable/fails
+
+`resolveDisplayAffinityForWindow(screen, targetWindow, { requireVisible })`:
+
+- returns primary display affinity when target window is missing/destroyed/no bounds accessor
+- returns `null` when `requireVisible=true` and window is hidden
+
+`resolveDisplayAffinityForWebContents({ BrowserWindow, screen, webContents, requireVisible })`:
+
+- resolves owner window from sender webContents
+- applies window-level rules above
+
+## Active Query Display-Affinity Lifecycle
+
+Main process stores active query-origin display affinity via:
+
+- `setActiveDisplayAffinity(...)` in `ipc.cjs` query-send path
+
+Reset conditions:
+
+- backend/session reset calls `setActiveDisplayAffinity(null)` (`resetBackendSessionState` in `ipc.cjs`)
+
+Stored state access:
+
+- `getActiveDisplayAffinity()` returns defensive clones
+
+## Screenshot Monitor Routing Contract
+
+`execute-tool` screenshot calls in `local_backend_bridge.cjs` resolve display bounds in strict order:
+
+1. visible sender-window display affinity (`resolveDisplayAffinityForWebContents(..., requireVisible:true)`)
+2. active query-origin display affinity fallback (`getActiveDisplayAffinity()`)
+3. no display bounds when neither exists
+
+Resolved affinity is transformed with `toScreenshotDisplayBounds(...)` and provided to
+`resolveToolArgs(..., { displayBounds })`, which injects default `display_bounds` only when
+caller args do not already contain valid explicit bounds.
+
+## Display-Targeted Main-Window Placement
+
+`showMainWindow({ targetDisplayAffinity, maximize })` in `window_visibility_runtime.cjs`:
+
+- without `maximize`, centers current window size inside target display `workArea`
+- with `maximize`, fits window bounds to target display `workArea` (does not call native maximize path)
+- if currently maximized, unmaximizes before display-targeted placement
+
+When no target affinity is provided:
+
+- legacy behavior remains (`restore` + native `maximize` when requested)
+
+## Drift Hotspots
+
+1. Losing `requireVisible:true` on screenshot sender-affinity lookup can route captures to hidden/off-screen windows.
+2. Failing to clear active affinity on backend/session reset can leak stale monitor routing into later conversations.
+3. Overwriting explicit renderer screenshot `display_bounds` with fallback affinity breaks user-selected monitor capture.
+4. Regressing cloned affinity storage can allow downstream mutation to corrupt future routing.
+
+## Related Pages
+
+- [Main Process Lifecycle, Overlay IPC, and Window Visibility Runtime Reference](main_process_lifecycle_overlay_ipc_and_window_visibility_runtime_reference.md)
+- [Local-Backend RPC Handler Registry and Payload-Mapper Reference](local_backend/rpc_handler_registry_and_payload_mapper_reference.md)
+- [Tool Arg Sudo-Auth Mode Resolution and Config-Guard Contract Reference](local_backend/tool_arg_sudo_auth_mode_resolution_and_config_guard_contract_reference.md)

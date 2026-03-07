@@ -65,8 +65,14 @@ Tool-arg normalization behavior:
 - `run_shell_command` always receives derived `sudo_auth_mode`
   - `native` when frontend config has `agent_full_sudo_enabled=true`
   - `os_prompt` otherwise (including config-read failure)
-- non-shell tools receive cloned object args
+- non-shell tools receive deep-cloned object args
 - non-object args normalize to `{}`
+- screenshot tools may receive injected fallback `display_bounds` derived from main-process display-affinity runtime when explicit bounds are missing
+
+Display-affinity fallback precedence for screenshot `execute-tool` calls:
+
+1. visible sender-window affinity (`resolveDisplayAffinityForWebContents(..., requireVisible:true)`)
+2. active query-origin affinity (`getActiveDisplayAffinity()`) when sender window is hidden/unavailable
 
 Timeout tiers:
 
@@ -82,6 +88,13 @@ Response normalization:
 - backend `result.success === false` -> `{ success:false, error:result.error }`
 - backend success -> `{ success:true, data:result.data || result }`
 - thrown bridge errors -> `{ success:false, error:getErrorMessage(error) }`
+
+Screenshot result materialization:
+
+- if sidecar returns `data.screenshot_path`, bridge attempts artifact upload (`POST /api/artifacts/`)
+- success path injects `screenshot_ref` + `screenshot_url`
+- upload failure falls back to inline base64 `screenshot`
+- bridge always deletes temp screenshot path and removes `screenshot_path` field before returning
 
 ### `get-system-state`
 
@@ -157,6 +170,8 @@ From `tests/frontend/LocalBackendBridge.rpc.test.cjs`:
 - `store-transcript` errors normalize to `{ success:false, error }`
 - `WINDIE_BACKEND_HTTP_URL` env and `NODE_OPTIONS --no-deprecation` propagation are validated at spawn
 - deprecation stderr lines are filtered while normal stderr lines remain logged
+- screenshot path materialization returns artifact refs on success and inline fallback on upload failures
+- screenshot tool request path injects active display-affinity bounds when sender window is hidden
 
 ## Drift and Regression Hotspots
 

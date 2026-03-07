@@ -92,6 +92,7 @@ Behavior:
 - `set-responsebox-size` -> bounded response overlay resize/show/hide
 - `show-chatbox`
 - `hide-chatbox`
+- `prepare-chatbox-for-screenshot` -> bounded pre-capture wait + optional chat hide + settle delay; returns timing metrics
 
 ## Window control channels (`window_controls_ipc_runtime.cjs`, wired by `index.cjs`)
 
@@ -138,6 +139,13 @@ Removed legacy renderer-callable channels:
 - `store-memory`
 - `store-transcript`
 
+`execute-tool` runtime nuances:
+
+- screenshot calls resolve display bounds in main-process order:
+  1. visible sender window display affinity
+  2. active query-origin display affinity fallback
+- sidecar `screenshot_path` responses are materialized into artifact refs (`screenshot_ref`/`screenshot_url`) when upload succeeds, with inline base64 fallback on upload failure
+
 ## Main -> Renderer Event Channels (`on`)
 
 ### Backend relay/events
@@ -177,8 +185,9 @@ Owner: `ipc.cjs` (with helper-module delegation to `ipc_runtime_helpers.cjs`, `i
 3. runs overlay pre-capture hook for chatbox sender.
 4. generates local optimistic user event (`local-user-message`) to render instantly.
 5. enriches payload `content` with XML system context + episodic/semantic memory snippets (`query_payload_builder.cjs`).
-6. injects runtime-only `system_state_internal` (screen resolution) when available.
-7. sends normalized backend message over websocket.
+6. stores active sender display affinity in main process for follow-on screenshot tool fallback routing.
+7. injects runtime-only `system_state_internal` (screen resolution) when available.
+8. sends normalized backend message over websocket.
 
 ## Backend Relay Normalization
 

@@ -19,6 +19,7 @@ title: "Frontend Main Local-Backend Docs Hub"
 ## Related Pages
 
 - [Local Backend Bridge Handler and Window Guard Reference](../local_backend_bridge_handler_and_window_guard_reference.md)
+- [Display-Affinity Monitor Selection and Screenshot Bounds Reference](../display_affinity_runtime_monitor_selection_and_screenshot_bounds_reference.md)
 - [Main Overlay Focus Docs Hub](../overlays/README.md)
 - [Linux Screenshot Window Visibility Runtime Dispatch Reference](../overlays/linux_screenshot_window_hide_and_restore_guard_reference.md)
 
