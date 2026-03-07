@@ -1,7 +1,7 @@
 ---
-summary: "Deep backend browser-tool reference for BrowserControlArgs action categories, OpenClaw compatibility-field surfaces, and removed-alias runtime semantics."
+summary: "Deep backend browser-tool reference for BrowserControlArgs action categories, model-facing schema projection, OpenClaw compatibility-field surfaces, and removed-alias runtime semantics."
 read_when:
-  - When changing backend browser action literal sets, removed-alias policy, or remote browser tool runtime gates.
+  - When changing backend browser action literal sets, model-facing browser schema projection, removed-alias policy, or remote browser tool runtime gates.
   - When debugging backend-accepted browser payloads that are rejected as removed aliases before sidecar execution.
 title: "Browser Remote Schema Surface and Compatibility Contract Reference"
 ---
@@ -42,9 +42,14 @@ Action categories:
 
 `BrowserOpenClawAction` intentionally excludes removed aliases.
 
-## Unified Schema Exposed to Tool Calling
+Important distinction:
 
-`BrowserControlArgs` (`browser_control_args_schema.py`) is the LLM-facing backend schema.
+- this section is the full `BrowserControlArgs` acceptance/action surface
+- model-facing function declaration is further narrowed by `RemoteBrowserTool.get_json_schema(...)`
+
+## Unified Base Schema (`BrowserControlArgs`)
+
+`BrowserControlArgs` (`browser_control_args_schema.py`) is the base backend parse model used by `RemoteBrowserTool`.
 
 Design characteristics:
 
@@ -63,6 +68,7 @@ Important boundary:
 
 - unified model intentionally accepts broad payloads
 - action-specific strictness is enforced later in sidecar adapter/runtime boundaries
+- model-facing declaration exposure is further narrowed by `RemoteBrowserTool.get_json_schema(...)`
 
 ## Action-Specific Validator Models
 
@@ -87,7 +93,20 @@ It exists for compatibility modeling and tests while `RemoteBrowserTool` accepts
 - `name = "browser"`
 - `args_model = BrowserControlArgs`
 - `category = ToolDomain.BROWSER`
-- description includes canonical actions, removed-alias policy, and migration guidance
+- description focuses on canonical action workflow and compatibility notes
+
+Model-facing declaration projection (`get_json_schema(...)`):
+
+- starts from base schema (`super().get_json_schema()`) and deep-copies
+- rewrites `action` enum to canonical non-file-edit action set:
+  - keeps canonical runtime + helper actions
+  - excludes removed aliases (`type`, `open`, `switch_tab`, `press`, `act`)
+  - excludes file-edit browser actions (`write_file`, `replace_file`, `read_file`)
+- removes selected compatibility/camelCase/legacy-edit properties from model-facing properties:
+  - `timeoutMs`, `promptText`, `colorScheme`, `targetId`, `targetUrl`, `inputRef`, `snapshotFormat`
+  - `content`, `append`, `trailing_newline`, `leading_newline`, `old_str`, `new_str`
+
+Runtime gating still applies after declaration projection:
 
 `execute_remote(...)` behavior:
 
@@ -103,7 +122,12 @@ It exists for compatibility modeling and tests while `RemoteBrowserTool` accepts
 
 ## Backend vs Runtime Enforcement Boundary
 
-Backend schema acceptance is broader than sidecar runtime acceptance.
+Backend effective behavior has two layers:
+
+1. model-facing declaration (projected/narrowed by `RemoteBrowserTool.get_json_schema(...)`)
+2. runtime parsing/validation (`BrowserControlArgs` + removed-alias gate)
+
+Manual/direct payloads can still hit the broader runtime parse boundary even when model-facing declaration omits those fields/actions.
 
 Implication:
 
@@ -123,6 +147,8 @@ Cross-layer debugging rule:
 - remote payload emission semantics
 - unified schema defaults/aliases
 - canonical + compatibility action parsing coverage
+- model-facing action projection excludes removed aliases and browser file-edit actions
+- model-facing property projection hides selected camelCase compatibility fields while keeping snake_case canonical fields
 - removed-alias policy behavior
 - OpenClaw compatibility model availability
 

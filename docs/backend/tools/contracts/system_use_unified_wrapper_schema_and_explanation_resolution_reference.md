@@ -113,6 +113,19 @@ Equivalent filtered requests:
 
 Both return the same canonical declaration from `unified_schema.py`.
 
+## Sidecar Compatibility Router Contract
+
+`frontend/src/main/python/tools/registry.py` also supports direct `system_use` wrapper execution as a compatibility path:
+
+- accepts `{tool, explanation, arguments}`
+- requires valid `tool` and dict `arguments`
+- resolves explanation using same precedence:
+  1. top-level `explanation`
+  2. fallback nested `arguments.explanation`
+- deep-copies delegated concrete arguments before dispatch to prevent mutation leaks
+
+This keeps backend wrapper guidance and sidecar direct-wrapper behavior aligned when wrapper payloads bypass backend normalization.
+
 ## Test-Backed Invariants
 
 `test_system_use_schema_contract.py` / `test_tool_registry_schema.py`:
@@ -133,6 +146,12 @@ Both return the same canonical declaration from `unified_schema.py`.
 - parser path maps valid `system_use` envelope to concrete tool
 - parser supports nested explanation fallback
 - native bridge supports top-level and nested fallback explanation resolution
+
+`tests/sidecar/test_tool_registry.py`:
+
+- `system_use` routes to expected concrete tools with top-level explanation
+- nested explanation fallback is accepted
+- delegated argument mutation does not leak back to original wrapper envelope
 
 ## Drift Hotspots
 

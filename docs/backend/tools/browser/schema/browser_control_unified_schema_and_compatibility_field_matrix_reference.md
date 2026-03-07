@@ -89,6 +89,7 @@ Semantic boundary:
 
 - removed aliases remain parseable for clear migration errors at runtime
 - strict execution semantics are enforced by backend remote tool gates and sidecar runtime
+- model-facing declaration shown to tool-calling providers is additionally projected by `RemoteBrowserTool.get_json_schema(...)` and can be narrower than raw `BrowserControlArgs` acceptance surface
 
 ## Layer 5: Action-Specific Models (`schemas.py`)
 
@@ -136,6 +137,16 @@ Consequences:
 - defaults/`None` values are omitted from transport payloads
 - sidecar defaults/normalization behavior matters for omitted fields
 
+## Model-Facing Projection Nuance
+
+`RemoteBrowserTool.get_json_schema(...)` applies a declaration projection layer on top of `BrowserControlArgs`:
+
+- action enum is narrowed to canonical non-file-edit actions
+- removed aliases are excluded from model-facing enum (still runtime-parseable for migration error handling)
+- selected compatibility/camelCase and legacy file-edit payload keys are removed from model-facing `properties`
+
+This means provider tool-call generation surface can be narrower than backend parse-time compatibility acceptance.
+
 ## Test-Backed Anchors
 
 `tests/backend/test_browser_remote_tool.py` asserts:
@@ -144,6 +155,8 @@ Consequences:
 - unified schema accepts canonical + compatibility action samples
 - action-specific models remain usable
 - compatibility model remains importable/usable
+- model-facing action enum excludes removed aliases and file-edit actions
+- model-facing property map hides selected camelCase compatibility fields
 
 ## Related Pages
 
