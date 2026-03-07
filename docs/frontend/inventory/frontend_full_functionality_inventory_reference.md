@@ -60,6 +60,7 @@ Functionality:
 - Registers split main-process IPC handlers through dedicated overlay-phase, window-control, and permission registrars.
 - Handles overlay repositioning on display/window changes.
 - Centralizes show/hide/main-window maximize/focus visibility flow in dedicated window visibility runtime helper.
+- Hidden chat/main window show paths reuse stored active display affinity when explicit target display is omitted, preserving monitor continuity for tray/hotkey/startup/lifecycle opens.
 - Tracks external focused window before overlay query capture and restores focus.
 - Routes screenshot tool execution through platform screenshot visibility runtime wrapper (current main-process behavior is pass-through; Linux hide/show ownership is renderer-side).
 - Registers global wakeword hotkey and open-target window routing.

@@ -103,10 +103,16 @@ caller args do not already contain valid explicit bounds.
 - without `maximize`, centers current window size inside target display `workArea`
 - with `maximize`, fits window bounds to target display `workArea` (does not call native maximize path)
 - if currently maximized, unmaximizes before display-targeted placement
+- when hidden and `targetDisplayAffinity` is omitted, falls back to stored active display affinity to keep open-target monitor continuity
 
 When no target affinity is provided:
 
 - legacy behavior remains (`restore` + native `maximize` when requested)
+
+`showChatWindow({ ... })` in `window_visibility_runtime.cjs`:
+
+- when hidden and no explicit display target is supplied, falls back to stored active display affinity
+- applies that affinity before show by updating active affinity and repositioning chat overlay
 
 ## Drift Hotspots
 
