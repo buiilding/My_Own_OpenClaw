@@ -6,6 +6,17 @@ function isDebugStreamTraceEnabled() {
   return process.env.WINDIE_DEBUG_STREAM_EVENTS === '1';
 }
 
+function isDebugToolScreenshotEnabled() {
+  return process.env.WINDIE_DEBUG_TOOL_SCREENSHOT === '1';
+}
+
+function logToolShotDebug(stage, payload) {
+  if (!isDebugToolScreenshotEnabled()) {
+    return;
+  }
+  console.log('[ToolShotDebug][main]', stage, payload);
+}
+
 function buildBackendEventTraceSummary(data) {
   if (!data || typeof data !== 'object') {
     return 'invalid-event';
@@ -123,6 +134,14 @@ async function uploadArtifact({ base64, contentType, filename, backendHttpUrl })
   const ext = resolvedContentType === 'image/png' ? 'png' : 'jpg';
   const safeName = filename && typeof filename === 'string' ? filename : `artifact.${ext}`;
 
+  logToolShotDebug('upload-request', {
+    hasBase64: typeof base64 === 'string' && base64.length > 0,
+    base64Length: typeof base64 === 'string' ? base64.length : 0,
+    contentType: resolvedContentType,
+    filename: safeName,
+    backendHttpUrl,
+  });
+
   try {
     const buffer = Buffer.from(base64, 'base64');
     const blob = new Blob([buffer], { type: resolvedContentType });
@@ -134,14 +153,32 @@ async function uploadArtifact({ base64, contentType, filename, backendHttpUrl })
       body: form,
     });
 
+    logToolShotDebug('upload-http-response', {
+      ok: response.ok,
+      status: response.status,
+      statusText: response.statusText,
+    });
+
     if (!response.ok) {
       const errorText = await response.text();
+      logToolShotDebug('upload-http-error', {
+        status: response.status,
+        errorText,
+      });
       return { success: false, error: `Upload failed (${response.status}): ${errorText}` };
     }
 
     const data = await response.json();
+    logToolShotDebug('upload-success', {
+      artifactId: data?.artifact_id || null,
+      url: data?.url || null,
+      contentType: data?.content_type || null,
+    });
     return { success: true, data };
   } catch (error) {
+    logToolShotDebug('upload-exception', {
+      error: error.message || String(error),
+    });
     return { success: false, error: error.message || String(error) };
   }
 }
@@ -201,7 +238,9 @@ function processBackendMessageData(data, {
 module.exports = {
   buildBackendEventTraceSummary,
   generateUserId,
+  isDebugToolScreenshotEnabled,
   isDebugStreamTraceEnabled,
+  logToolShotDebug,
   normalizeBackendPayload,
   processBackendMessageData,
   runBeforeOverlayQueryCapture,

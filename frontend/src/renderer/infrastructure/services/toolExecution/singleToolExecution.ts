@@ -13,6 +13,18 @@ import {
 } from './ToolExecutionResultDispatch';
 import type { ToolExecutionCallbacks, ToolExecutionOptions, ToolExecutionResult } from './ToolExecutionTypes';
 
+const DEBUG_TOOL_SCREENSHOT = (
+  typeof process !== 'undefined'
+  && process?.env?.WINDIE_DEBUG_TOOL_SCREENSHOT === '1'
+);
+
+function logToolScreenshotDebug(stage: string, payload: Record<string, unknown>): void {
+  if (!DEBUG_TOOL_SCREENSHOT) {
+    return;
+  }
+  console.log('[ToolShotDebug][renderer]', stage, payload);
+}
+
 export async function executeSingleTool(
   callbacks: ToolExecutionCallbacks,
   toolName: string,
@@ -44,6 +56,26 @@ export async function executeSingleTool(
       isComputerTool,
     } = capture;
 
+    logToolScreenshotDebug('post-capture', {
+      toolName,
+      correlationId: options.correlationId,
+      isComputerTool,
+      hasCaptureScreenshot: Boolean(screenshot),
+      captureScreenshotLength: typeof screenshot === 'string' ? screenshot.length : 0,
+      captureScreenshotContentType: screenshotContentType,
+      hasSystemState: Boolean(systemState),
+      resultHasScreenshot: Boolean(
+        result?.data
+        && typeof result.data === 'object'
+        && !Array.isArray(result.data)
+        && (
+          'screenshot' in result.data
+          || 'image_data' in result.data
+          || 'screenshot_ref' in result.data
+        )
+      ),
+    });
+
     const screenshotSelection = resolveToolExecutionScreenshotSelection(
       toolName,
       screenshot,
@@ -52,6 +84,18 @@ export async function executeSingleTool(
     );
     const effectiveScreenshot = screenshotSelection.screenshot;
     const effectiveScreenshotContentType = screenshotSelection.screenshotContentType;
+
+    logToolScreenshotDebug('selection', {
+      toolName,
+      correlationId: options.correlationId,
+      selectedHasInlineScreenshot: Boolean(effectiveScreenshot),
+      selectedInlineScreenshotLength: typeof effectiveScreenshot === 'string' ? effectiveScreenshot.length : 0,
+      selectedScreenshotContentType: effectiveScreenshotContentType,
+      preUploadedScreenshotRef: screenshotSelection.preUploadedScreenshot?.screenshotRef || null,
+      preUploadedScreenshotUrl: screenshotSelection.preUploadedScreenshot?.screenshotUrl || null,
+      uploadFilename: screenshotSelection.uploadFilename || null,
+    });
+
     const uploaded = effectiveScreenshot
       ? await uploadArtifactBase64(
           effectiveScreenshot,
@@ -61,6 +105,17 @@ export async function executeSingleTool(
       : null;
     const screenshotRef = uploaded?.artifactId || screenshotSelection.preUploadedScreenshot?.screenshotRef || null;
     const screenshotUrl = uploaded?.url || screenshotSelection.preUploadedScreenshot?.screenshotUrl || null;
+
+    logToolScreenshotDebug('post-upload', {
+      toolName,
+      correlationId: options.correlationId,
+      uploadReturnedArtifact: Boolean(uploaded),
+      uploadedArtifactId: uploaded?.artifactId || null,
+      uploadedUrl: uploaded?.url || null,
+      finalScreenshotRef: screenshotRef,
+      finalScreenshotUrl: screenshotUrl,
+      finalKeepsInlineScreenshot: !screenshotRef && Boolean(effectiveScreenshot),
+    });
 
     const finalSystemState = resolveSystemState(systemState, result.data);
     const formattedMessage = formatToolOutputMessage(
@@ -84,6 +139,14 @@ export async function executeSingleTool(
     };
     // Preserve existing UI-before-backend ordering so transcript and chat rows appear immediately.
     emitToolExecutionResult(callbacks, executionResult);
+
+    logToolScreenshotDebug('before-backend-send', {
+      toolName,
+      correlationId: options.correlationId,
+      includeScreenshot: isComputerTool,
+      backendWillSendScreenshotRef: screenshotRef,
+      backendWillSendInlineScreenshot: screenshotRef ? null : Boolean(effectiveScreenshot),
+    });
 
     sendToolExecutionResultToBackend(callbacks, {
       correlationId: options.correlationId,
