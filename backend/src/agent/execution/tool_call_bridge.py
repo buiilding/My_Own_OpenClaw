@@ -47,7 +47,6 @@ _SYSTEM_USE_TOOL_NAME = "system_use"
 _SYSTEM_SUBTOOL_TO_CONCRETE = {
     "run_shell_command": "run_shell_command",
     "replace": "replace",
-    "replace_file": "replace",
     "read_file": "read_file",
     "get_system_stats": "get_system_stats",
     "get_open_windows": "get_open_windows",

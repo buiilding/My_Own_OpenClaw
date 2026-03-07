@@ -304,18 +304,16 @@ async def test_remote_computer_use_run_revalidates_selected_tool_arguments():
         await tool.run(args, ctx)
 
 
-def test_remote_system_use_schema_includes_replace_file_alias_and_supported_tools():
+def test_remote_system_use_schema_includes_supported_tools():
     tool = RemoteSystemUseTool()
     schema = tool.get_json_schema()
     function = schema["function"]
     params = function["parameters"]["properties"]
 
     assert function["name"] == "system_use"
-    assert "replace_file alias" in function["description"]
     assert set(params["tool"]["enum"]) == {
         "run_shell_command",
         "replace",
-        "replace_file",
         "read_file",
         "get_system_stats",
         "get_open_windows",
@@ -324,12 +322,12 @@ def test_remote_system_use_schema_includes_replace_file_alias_and_supported_tool
 
 
 @pytest.mark.asyncio
-async def test_remote_system_use_run_routes_replace_file_alias_to_replace():
+async def test_remote_system_use_run_routes_replace():
     ctx = _make_context(metadata={"request_id": "req-system-1"})
     tool = RemoteSystemUseTool()
     args = SystemUseArgs.model_validate(
         {
-            "tool": "replace_file",
+            "tool": "replace",
             "arguments": {
                 "file_path": "/tmp/example.txt",
                 "old_string": "old",

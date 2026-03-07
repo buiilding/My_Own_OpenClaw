@@ -50,7 +50,6 @@ COMPUTER_USE_REQUIRED_METADATA_FIELDS = (
 SYSTEM_USE_SUBTOOLS = frozenset({
     "run_shell_command",
     "replace",
-    "replace_file",
     "read_file",
     "get_system_stats",
     "get_open_windows",
@@ -58,7 +57,6 @@ SYSTEM_USE_SUBTOOLS = frozenset({
 SYSTEM_USE_TOOL_NAME_TO_EXECUTOR = {
     "run_shell_command": "run_shell_command",
     "replace": "replace",
-    "replace_file": "replace",
     "read_file": "read_file",
     "get_system_stats": "get_system_stats",
     "get_open_windows": "get_open_windows",
@@ -168,7 +166,7 @@ class ToolRegistry:
             Unified system/filesystem router.
 
             Accepts `{tool, arguments}` and delegates to the selected concrete
-            sidecar tool. `replace_file` is treated as an alias of `replace`.
+            sidecar tool.
             """
             if not isinstance(args, dict):
                 return ToolResult.error_result("Tool args must be an object")

@@ -19,13 +19,9 @@ _SYSTEM_USE_TOOL_NAME = "system_use"
 _SYSTEM_SUBTOOLS = {
     "run_shell_command",
     "replace",
-    "replace_file",
     "read_file",
     "get_system_stats",
     "get_open_windows",
-}
-_SYSTEM_SUBTOOL_ALIAS_TO_CONCRETE = {
-    "replace_file": "replace",
 }
 
 
@@ -161,10 +157,6 @@ class ToolCallSchema:
         normalized_tool_name = tool_name.strip()
         if not normalized_tool_name or normalized_tool_name not in _SYSTEM_SUBTOOLS:
             return None
-        normalized_tool_name = _SYSTEM_SUBTOOL_ALIAS_TO_CONCRETE.get(
-            normalized_tool_name,
-            normalized_tool_name,
-        )
 
         arguments = args.get("arguments")
         if arguments is None:

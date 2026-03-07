@@ -168,7 +168,7 @@ def test_tool_registry_filtered_declarations_normalize_legacy_system_tools():
     registry = ToolRegistry(config=config, cache_manager=CacheManager())
 
     declarations = registry.get_function_declarations_filtered(
-        ["run_shell_command", "replace", "replace_file", "read_file", "get_system_stats", "get_open_windows"]
+        ["run_shell_command", "replace", "read_file", "get_system_stats", "get_open_windows"]
     )
     names = [d["function"]["name"] for d in declarations]
 
@@ -214,7 +214,6 @@ def test_tool_registry_system_use_declaration_constrains_tool_enum_and_arguments
     assert set(tool_enum) == {
         "run_shell_command",
         "replace",
-        "replace_file",
         "read_file",
         "get_system_stats",
         "get_open_windows",

@@ -619,7 +619,7 @@ async def test_execute_system_use_routes_to_selected_subtool():
 
 
 @pytest.mark.asyncio
-async def test_execute_system_use_maps_replace_file_alias_to_replace():
+async def test_execute_system_use_routes_replace_to_replace():
     registry = ToolRegistry()
     captured = {"called": False}
 
@@ -633,7 +633,7 @@ async def test_execute_system_use_maps_replace_file_alias_to_replace():
     result = await registry.execute_tool(
         "system_use",
         {
-            "tool": "replace_file",
+            "tool": "replace",
             "arguments": {
                 "file_path": "/tmp/a.txt",
                 "old_string": "x",
@@ -704,7 +704,7 @@ async def test_execute_system_use_prevents_subtool_argument_mutation_from_leakin
 
     registry.tools["replace"] = replace_tool
     envelope = {
-        "tool": "replace_file",
+        "tool": "replace",
         "arguments": {
             "file_path": "/tmp/original.txt",
             "old_string": "x",
