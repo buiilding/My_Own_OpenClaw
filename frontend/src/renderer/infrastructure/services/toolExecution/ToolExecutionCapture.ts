@@ -32,6 +32,10 @@ type AutoCaptureResult = {
   isComputerTool: boolean;
 };
 
+type CaptureSnapshot = ScreenshotAttachment & {
+  systemState: SystemState | null;
+};
+
 const DEFAULT_COMPUTER_TOOL_WAIT_SECONDS = 2;
 const DEFAULT_SCREENSHOT_WAIT_SECONDS = 0;
 
@@ -60,57 +64,65 @@ function getWaitSeconds(
   return defaultWaitSeconds;
 }
 
-function extractCaptureFromResult(result: ToolResult): {
-  screenshot: string | null;
-  screenshotRef: string | null;
-  screenshotUrl: string | null;
-  screenshotContentType: string | null;
-  captureMeta: CaptureMeta | null;
-  systemState: SystemState | null;
-} {
-  const attachment = extractScreenshotAttachment(result);
-  if (result.data && typeof result.data === 'object' && !Array.isArray(result.data)) {
-    return {
-      screenshot: attachment.screenshot,
-      screenshotRef: attachment.screenshotRef,
-      screenshotUrl: attachment.screenshotUrl,
-      screenshotContentType: attachment.screenshotContentType,
-      captureMeta: attachment.captureMeta,
-      systemState: result.data.system_state || null,
-    };
-  }
+function createCaptureSnapshot(
+  attachment: ScreenshotAttachment,
+  systemState: SystemState | null,
+): CaptureSnapshot {
   return {
-    screenshot: null,
-    screenshotRef: null,
-    screenshotUrl: null,
-    screenshotContentType: null,
-    captureMeta: null,
-    systemState: null,
+    screenshot: attachment.screenshot,
+    screenshotRef: attachment.screenshotRef,
+    screenshotUrl: attachment.screenshotUrl,
+    screenshotContentType: attachment.screenshotContentType,
+    captureMeta: attachment.captureMeta,
+    systemState,
   };
 }
 
-function applyCaptureToResult(
-  result: ToolResult,
-  attachment: ScreenshotAttachment,
-  systemState: SystemState | null,
-): void {
+function extractCaptureSnapshotFromResult(result: ToolResult): CaptureSnapshot {
+  const attachment = extractScreenshotAttachment(result);
+  if (result.data && typeof result.data === 'object' && !Array.isArray(result.data)) {
+    return createCaptureSnapshot(attachment, result.data.system_state || null);
+  }
+  return createCaptureSnapshot(attachment, null);
+}
+
+function applyCaptureSnapshotToResult(result: ToolResult, snapshot: CaptureSnapshot): void {
   if (
-    !hasScreenshotAttachment(attachment)
-    && !systemState
+    !hasScreenshotAttachment(snapshot)
+    && !snapshot.systemState
   ) {
     return;
   }
   if (result.data && typeof result.data === 'object' && !Array.isArray(result.data)) {
     result.data = {
       ...result.data,
-      screenshot: attachment.screenshot ?? undefined,
-      screenshot_ref: attachment.screenshotRef ?? undefined,
-      screenshot_url: attachment.screenshotUrl ?? undefined,
-      capture_meta: attachment.captureMeta ?? undefined,
-      system_state: systemState ?? undefined,
-      screenshot_content_type: attachment.screenshotContentType ?? undefined,
+      screenshot: snapshot.screenshot ?? undefined,
+      screenshot_ref: snapshot.screenshotRef ?? undefined,
+      screenshot_url: snapshot.screenshotUrl ?? undefined,
+      capture_meta: snapshot.captureMeta ?? undefined,
+      system_state: snapshot.systemState ?? undefined,
+      screenshot_content_type: snapshot.screenshotContentType ?? undefined,
     };
   }
+}
+
+function toAutoCaptureResult(
+  snapshot: CaptureSnapshot,
+  waitDelay: number,
+  captureTime: number,
+  isComputerTool: boolean,
+): AutoCaptureResult {
+  return {
+    screenshot: snapshot.screenshot,
+    screenshotRef: snapshot.screenshotRef,
+    screenshotUrl: snapshot.screenshotUrl,
+    screenshotContentType: snapshot.screenshotContentType,
+    captureMeta: snapshot.captureMeta,
+    systemState: snapshot.systemState,
+    waitDelay,
+    captureTime,
+    isComputerTool,
+  };
 }
 
 export function resolveSystemState(
@@ -140,24 +152,11 @@ export async function ensureAutoCapture(
   captureCorrelationId?: string | null,
 ): Promise<AutoCaptureResult> {
   const isComputerTool = isComputerUseTool(toolName, args);
-  let {
-    screenshot,
-    screenshotRef,
-    screenshotUrl,
-    screenshotContentType,
-    captureMeta,
-    systemState,
-  } = extractCaptureFromResult(result);
+  let snapshot = extractCaptureSnapshotFromResult(result);
   let waitDelay = 0;
   let captureTime = 0;
 
-  const hasExistingAttachment = hasScreenshotAttachment({
-    screenshot,
-    screenshotRef,
-    screenshotUrl,
-    screenshotContentType,
-    captureMeta,
-  });
+  const hasExistingAttachment = hasScreenshotAttachment(snapshot);
   const shouldCapture = !skipAutoCapture && !hasExistingAttachment && (isComputerTool || toolName === 'screenshot');
   if (shouldCapture) {
     const capture = await captureAfterTool(
@@ -169,28 +168,13 @@ export async function ensureAutoCapture(
     );
     waitDelay = capture.waitSeconds;
     captureTime = capture.captureTime;
-    systemState = capture.systemState;
-    screenshot = capture.screenshot;
-    screenshotRef = capture.screenshotRef;
-    screenshotUrl = capture.screenshotUrl;
-    screenshotContentType = capture.screenshotContentType;
-    captureMeta = capture.captureMeta;
-    applyCaptureToResult(
-      result,
-      {
-        screenshot,
-        screenshotRef,
-        screenshotUrl,
-        screenshotContentType,
-        captureMeta,
-      },
-      systemState,
-    );
+    snapshot = createCaptureSnapshot(capture, capture.systemState);
+    applyCaptureSnapshotToResult(result, snapshot);
   } else {
     const shouldCaptureSystemStateOnly = (
       !skipAutoCapture
       && hasExistingAttachment
-      && !systemState
+      && !snapshot.systemState
       && (isComputerTool || toolName === 'screenshot')
     );
     if (shouldCaptureSystemStateOnly) {
@@ -202,32 +186,15 @@ export async function ensureAutoCapture(
       );
       waitDelay = stateCapture.waitSeconds;
       captureTime = stateCapture.captureTime;
-      systemState = stateCapture.systemState;
-      applyCaptureToResult(
-        result,
-        {
-          screenshot,
-          screenshotRef,
-          screenshotUrl,
-          screenshotContentType,
-          captureMeta,
-        },
-        systemState,
-      );
+      snapshot = {
+        ...snapshot,
+        systemState: stateCapture.systemState,
+      };
+      applyCaptureSnapshotToResult(result, snapshot);
     }
   }
 
-  return {
-    screenshot,
-    screenshotRef,
-    screenshotUrl,
-    screenshotContentType,
-    captureMeta,
-    systemState,
-    waitDelay,
-    captureTime,
-    isComputerTool
-  };
+  return toAutoCaptureResult(snapshot, waitDelay, captureTime, isComputerTool);
 }
 
 async function captureSystemStateAfterTool(
