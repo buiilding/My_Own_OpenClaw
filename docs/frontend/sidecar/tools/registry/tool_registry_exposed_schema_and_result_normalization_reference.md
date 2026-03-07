@@ -32,8 +32,9 @@ Tool names expected by backend schemas are tracked in `EXPOSED_TO_BACKEND_TOOLS`
 
 Current exposed set includes:
 
-- computer: `computer_use` (unified router), `mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`
-- system: `switch_tab`, `wait`, `get_open_windows`, `get_system_stats`, `open_app`, `run_shell_command`, `process`
+- unified wrappers: `computer_use`, `system_use`
+- computer: `mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `switch_tab`, `wait`
+- system: `get_open_windows`, `get_system_stats`, `open_app`, `run_shell_command`, `process`
 - filesystem: `read_file`, `replace`
 - browser: `browser`
 
@@ -67,6 +68,16 @@ Unified computer-use behavior:
 - metadata must be top-level on the unified envelope; legacy nested wrappers such as `arguments.metadata` are rejected (`computer_use.metadata must be an object`).
 - non-string required metadata values fail closed as missing required fields.
 - normalized/trimmed metadata is written back to envelope args (`args["metadata"]`) for observability parity, while delegated concrete subtool receives only `arguments` payload.
+
+Unified system-use behavior:
+
+- `system_use` accepts `{tool, explanation, arguments}` and routes to mapped concrete local tools (`run_shell_command`, `replace`, `read_file`, `get_system_stats`, `get_open_windows`).
+- `tool` is trim-normalized and must be in the supported set, else fail-closed (`system_use requires a valid 'tool' value ...`).
+- `arguments` must be an object, else fail-closed (`system_use.arguments must be an object`).
+- explanation resolution precedence:
+  1. top-level `explanation` when non-empty
+  2. fallback nested `arguments.explanation` (legacy compatibility)
+- delegated concrete subtool receives a deep-copied `arguments` payload (plus resolved explanation when available), preventing subtool mutations from leaking back into wrapper envelope input.
 
 Exception behavior:
 
@@ -120,6 +131,9 @@ Returned failure payload:
 - `computer_use` fails closed when required metadata is missing/blank
 - `computer_use` rejects legacy nested `arguments.metadata` wrappers and non-string required metadata fields
 - `computer_use` accepts trimmed required metadata and still delegates unchanged concrete `arguments`
+- `system_use` routes supported wrappers to the expected concrete subtool and injects resolved explanation into delegated args
+- `system_use` supports nested explanation fallback for legacy payload compatibility
+- `system_use` rejects unknown wrapper subtool names and non-object `arguments`
 - dict legacy success/failure normalization behaves as expected
 - nested legacy errors (for example usage text in `data.error`) are surfaced to top-level `ToolResult.error`
 - exceptions are captured and wrapped
@@ -131,7 +145,9 @@ Returned failure payload:
 Important runtime fact:
 
 - `ToolRegistry.execute_tool` does not currently instantiate/validate those schemas
-- exception: `computer_use` envelope fields are validated in registry router (`tool`, `metadata`, `arguments`) before dispatch
+- exception: unified wrapper envelope fields are validated in registry routers before dispatch:
+  - `computer_use`: `tool`, `metadata`, `arguments`
+  - `system_use`: `tool`, optional top-level `explanation`, `arguments`
 - validation is therefore tool-implementation-specific unless callers validate upstream
 
 Operational consequence:
