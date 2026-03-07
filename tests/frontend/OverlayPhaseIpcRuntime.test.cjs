@@ -31,6 +31,7 @@ describe('overlay_phase_ipc_runtime', () => {
       setResponseOverlayVisibilityState: jest.fn(),
       showResponseWindowWhenChatVisible: jest.fn(),
       showChatWindow: jest.fn(),
+      showMainWindow: jest.fn(),
       hideChatWindow: jest.fn(),
       warn: jest.fn(),
       ...overrides,
@@ -59,6 +60,7 @@ describe('overlay_phase_ipc_runtime', () => {
     expect(typeof invokeHandlers['show-chatbox']).toBe('function');
     expect(typeof invokeHandlers['hide-chatbox']).toBe('function');
     expect(typeof invokeHandlers['prepare-surface-for-screenshot']).toBe('function');
+    expect(typeof invokeHandlers['restore-surface-after-screenshot']).toBe('function');
     expect(typeof eventHandlers['move-chatbox-to']).toBe('function');
     expect(invokeHandlers['show-main-window']).toBeUndefined();
     expect(invokeHandlers['list-permissions']).toBeUndefined();

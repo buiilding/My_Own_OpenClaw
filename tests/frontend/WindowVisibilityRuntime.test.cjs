@@ -239,6 +239,34 @@ describe('window_visibility_runtime showChatWindow', () => {
     expect(ensureResponseOverlayFallbackBounds).not.toHaveBeenCalled();
     expect(setResponseOverlayVisible).not.toHaveBeenCalled();
   });
+
+  test('restores response overlay on non-focusing screenshot restore when explicitly requested', () => {
+    const chatWindow = createWindow({ visible: false });
+    const responseWindow = createWindow({ visible: false });
+    const showResponseWindowInactive = jest.fn();
+    const ensureResponseOverlayFallbackBounds = jest.fn();
+    const setResponseOverlayVisible = jest.fn();
+
+    const result = showChatWindow(
+      { focus: false, restoreResponseOverlay: true },
+      {
+        chatWindow,
+        responseWindow,
+        syncWindowDisplayAffinity: jest.fn(),
+        responseOverlayVisible: true,
+        isResponseOverlayStreamingPhase: () => true,
+        showResponseWindowInactive,
+        ensureResponseOverlayFallbackBounds,
+        setResponseOverlayVisible,
+        syncWakewordToggleForChatVisibility: jest.fn(),
+      },
+    );
+
+    expect(result).toEqual({ success: true });
+    expect(showResponseWindowInactive).toHaveBeenCalledTimes(1);
+    expect(ensureResponseOverlayFallbackBounds).toHaveBeenCalledTimes(1);
+    expect(setResponseOverlayVisible).toHaveBeenCalledWith(true);
+  });
 });
 
 describe('window_visibility_runtime showMainWindow', () => {

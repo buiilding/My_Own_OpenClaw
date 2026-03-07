@@ -121,7 +121,7 @@ describe('toolRunnerSurface helpers', () => {
     const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
     expect(invokeCalls).toEqual([
       [INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
-      [INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false }],
+      [INVOKE_CHANNELS.RESTORE_SURFACE_AFTER_SCREENSHOT, { hiddenSurface: 'chatbox' }],
     ]);
   });
 
@@ -151,7 +151,7 @@ describe('toolRunnerSurface helpers', () => {
     const invokeCalls = (IpcBridge.invoke as jest.Mock).mock.calls;
     expect(invokeCalls).toEqual([
       [INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
-      [INVOKE_CHANNELS.SHOW_MAIN_WINDOW, { focus: false }],
+      [INVOKE_CHANNELS.RESTORE_SURFACE_AFTER_SCREENSHOT, { hiddenSurface: 'main-window' }],
     ]);
   });
 
@@ -183,7 +183,7 @@ describe('toolRunnerSurface helpers', () => {
     await restoreToolExecutionSurface(second);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
       [INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
-      [INVOKE_CHANNELS.SHOW_MAIN_WINDOW, { focus: false }],
+      [INVOKE_CHANNELS.RESTORE_SURFACE_AFTER_SCREENSHOT, { hiddenSurface: 'main-window' }],
     ]);
   });
 

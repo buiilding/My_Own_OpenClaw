@@ -45,6 +45,7 @@ contextBridge.exposeInMainWorld('ipc', {
       'show-chatbox',
       'hide-chatbox',
       'prepare-surface-for-screenshot',
+      'restore-surface-after-screenshot',
       'get-displays',
       'load-frontend-config',
       'save-frontend-config',

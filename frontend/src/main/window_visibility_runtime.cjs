@@ -148,6 +148,7 @@ function showChatWindow(options = {}, deps = {}) {
     externalFocusTracker,
   } = deps;
   const focus = options?.focus !== false;
+  const restoreResponseOverlay = options?.restoreResponseOverlay === true;
   const capturePreviousExternalFocus = (
     typeof externalFocusTracker?.capturePreviousExternalFocusedWindow === 'function'
       ? externalFocusTracker.capturePreviousExternalFocusedWindow.bind(externalFocusTracker)
@@ -186,7 +187,10 @@ function showChatWindow(options = {}, deps = {}) {
   ensureChatWindowOnTop();
   // Non-focusing chatbox restores (tool/capture lifecycle) should not resurrect
   // stale response overlays before renderer awaiting state is ready.
-  const shouldRestoreResponse = focus && (responseOverlayVisible || isResponseOverlayStreamingPhase());
+  const shouldRestoreResponse = (
+    (focus || restoreResponseOverlay)
+    && (responseOverlayVisible || isResponseOverlayStreamingPhase())
+  );
   if (responseWindow && !responseWindow.isDestroyed() && shouldRestoreResponse) {
     if (isResponseOverlayStreamingPhase()) {
       setResponseOverlayVisible(true);

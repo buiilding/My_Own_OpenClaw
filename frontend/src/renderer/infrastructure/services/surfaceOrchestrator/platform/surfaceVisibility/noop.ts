@@ -45,11 +45,7 @@ export function createNoopSurfaceVisibilityRuntime() {
     },
 
     async restoreSurfaceAfterBackgroundCapture(hiddenSurface: HiddenSurface = 'chatbox'): Promise<SurfaceRestoreResult> {
-      if (hiddenSurface === 'main-window') {
-        await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_MAIN_WINDOW, { focus: false });
-      } else if (hiddenSurface === 'chatbox') {
-        await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false });
-      }
+      await IpcBridge.invoke(INVOKE_CHANNELS.RESTORE_SURFACE_AFTER_SCREENSHOT, { hiddenSurface });
       return {
         restored: hiddenSurface !== 'none',
         restoredSurface: hiddenSurface,

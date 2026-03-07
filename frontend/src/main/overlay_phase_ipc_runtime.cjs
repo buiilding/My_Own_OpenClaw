@@ -1,6 +1,7 @@
 const {
   handleHideChatbox,
   handlePrepareSurfaceForScreenshot,
+  handleRestoreSurfaceAfterScreenshot,
   handleShowChatbox,
 } = require('./overlay_visibility_handler.cjs');
 const {
@@ -96,6 +97,13 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
       getWindows,
       hideChatWindow,
       hideMainWindow,
+    });
+  });
+
+  ipcMain.handle('restore-surface-after-screenshot', async (_event, options = {}) => {
+    return handleRestoreSurfaceAfterScreenshot(options, {
+      showChatWindow,
+      showMainWindow: (showOptions = {}) => deps.showMainWindow?.(showOptions),
     });
   });
 }
