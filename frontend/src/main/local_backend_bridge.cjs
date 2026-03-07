@@ -32,6 +32,7 @@ const {
 } = require('./runtime_paths.cjs');
 const {
   getActiveDisplayAffinity,
+  resolveDisplayAffinityForWindow,
   resolveDisplayAffinityForWebContents,
   toScreenshotDisplayBounds,
 } = require('./display_affinity_runtime.cjs');
@@ -579,6 +580,7 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
   const backendEndpoints = resolveBackendEndpoints(process.env, { isPackaged });
   const {
     resolveWindows,
+    resolveMainWindow,
     resolveChatWindow,
     resolveResponseWindow,
   } = createWindowResolvers(getWindows);
@@ -608,7 +610,11 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
             BrowserWindow,
             screen,
             webContents: event?.sender || null,
+            resolveChatWindow,
+            resolveMainWindow,
+            resolveResponseWindow,
             getActiveDisplayAffinity,
+            resolveDisplayAffinityForWindow,
             resolveDisplayAffinityForWebContents,
             toScreenshotDisplayBounds,
           }),

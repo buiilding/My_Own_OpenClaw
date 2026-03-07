@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-display-affinity): resolve screenshot monitor bounds from the live visible chat/dashboard surface before falling back to stored query-origin affinity, so hidden dashboard tool execution during chat-pill sessions follows the monitor the user is currently using; added display-bounds regressions for hidden-sender plus visible-chat fallback.
 - fix(frontend-display-affinity): inject active-monitor screenshot bounds into unified `computer_use` screenshot arguments so sidecar screenshot requests no longer bypass the single-monitor crop path and fall back to full-desktop capture; added nested wrapper regression coverage in `LocalBackendBridgeToolArgs.test.cjs`.
 - test(fullstack-tool-lifecycle-and-completion-contract-regressions): add deterministic backend/sidecar/frontend regressions for `system_use` explanation precedence (top-level over nested fallback), tool-result routing storage isolation and inline-screenshot precedence, empty completion backfill suppression, and renderer tool-result payload normalization precedence (`screenshot_ref` over inline screenshot plus camelCase system-state fallback normalization).
 - docs(frontend-main-wakeword-helper-reference): add a dedicated Electron-main deep reference for `wakeword_bridge_runtime.cjs` helper contracts (stderr status parsing/noisy-log suppression, startup/process error mapping, audio-chunk normalization), and wire links from frontend/main hubs plus wakeword bridge docs.
