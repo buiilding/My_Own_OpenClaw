@@ -16,6 +16,7 @@ import {
   restoreScreenshotCaptureVisibility,
   type CaptureVisibilityPreparation,
 } from './SurfaceOrchestrator';
+import { logScreenshotCaptureTiming } from './toolExecution/ToolExecutionLogger';
 
 export type CaptureMeta = {
   source_w?: number;
@@ -219,10 +220,17 @@ export async function captureScreenshotAttachment({
   correlationId = null,
   explanation,
 }: CaptureScreenshotOptions = {}): Promise<ScreenshotAttachment> {
+  const totalStartTime = performance.now();
+  let waitTime = 0;
+  let prepareVisibilityTime = 0;
+  let focusPrepTime = 0;
+  let screenshotInvokeTime = 0;
+  let restoreVisibilityTime = 0;
   let screenshotVisibilityPreparation: CaptureVisibilityPreparation = {
     prepared: false,
     captureId: 'capture-uninitialized',
   };
+  let attachment = createEmptyScreenshotAttachment();
   const shouldEmitCaptureEvent = typeof window !== 'undefined';
   if (shouldEmitCaptureEvent) {
     window.dispatchEvent(new CustomEvent('windie:screenshot-capture', {
@@ -231,38 +239,61 @@ export async function captureScreenshotAttachment({
   }
 
   try {
+    const waitStartTime = performance.now();
     await waitForCaptureDelay(waitSeconds);
+    waitTime = (performance.now() - waitStartTime) / 1000;
+
+    const prepareVisibilityStartTime = performance.now();
     screenshotVisibilityPreparation = await prepareScreenshotCaptureVisibility({
       captureId: correlationId,
       source: 'system-capture',
     });
+    prepareVisibilityTime = (performance.now() - prepareVisibilityStartTime) / 1000;
+
     const captureFocusCorrelationId = screenshotVisibilityPreparation.prepared
       ? screenshotVisibilityPreparation.captureId
       : correlationId;
+
+    const focusPrepStartTime = performance.now();
     await prepareExternalFocusForCapture({
       captureId: captureFocusCorrelationId,
       source: 'system-capture',
     });
+    focusPrepTime = (performance.now() - focusPrepStartTime) / 1000;
 
+    const screenshotInvokeStartTime = performance.now();
     const screenshotResult = await IpcBridge.invoke<ToolResult>(INVOKE_CHANNELS.EXECUTE_TOOL, {
       toolName: 'screenshot',
       args: buildScreenshotArgs(resolveScreenshotExplanation(explanation, isFirstUserMessage)),
       skipAutoCapture: false,
     });
-    return extractScreenshotAttachment(screenshotResult);
+    screenshotInvokeTime = (performance.now() - screenshotInvokeStartTime) / 1000;
+    attachment = extractScreenshotAttachment(screenshotResult);
   } catch (error) {
     console.error('[captureScreenshotAttachment] Failed to capture screenshot:', error);
-    return createEmptyScreenshotAttachment();
+    attachment = createEmptyScreenshotAttachment();
   } finally {
+    const restoreVisibilityStartTime = performance.now();
     await restoreScreenshotCaptureVisibility(screenshotVisibilityPreparation, {
       source: 'system-capture',
     });
+    restoreVisibilityTime = (performance.now() - restoreVisibilityStartTime) / 1000;
     if (shouldEmitCaptureEvent) {
       window.dispatchEvent(new CustomEvent('windie:screenshot-capture', {
         detail: { active: false },
       }));
     }
+    logScreenshotCaptureTiming({
+      correlationId,
+      waitTime,
+      prepareVisibilityTime,
+      focusPrepTime,
+      screenshotInvokeTime,
+      restoreVisibilityTime,
+      totalTime: (performance.now() - totalStartTime) / 1000,
+    });
   }
+  return attachment;
 }
 
 export async function materializeScreenshotAttachment(

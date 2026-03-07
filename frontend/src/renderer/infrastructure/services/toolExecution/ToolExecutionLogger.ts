@@ -26,6 +26,58 @@ function shortCorrelationId(correlationId?: string): string {
   return correlationId ? correlationId.substring(0, 15) : 'unknown';
 }
 
+export function logScreenshotCaptureTiming(params: {
+  correlationId?: string | null;
+  waitTime: number;
+  prepareVisibilityTime: number;
+  focusPrepTime: number;
+  screenshotInvokeTime: number;
+  restoreVisibilityTime: number;
+  totalTime: number;
+}): void {
+  const {
+    correlationId,
+    waitTime,
+    prepareVisibilityTime,
+    focusPrepTime,
+    screenshotInvokeTime,
+    restoreVisibilityTime,
+    totalTime,
+  } = params;
+  logInfo(
+    `[Timing] Screenshot capture completed ` +
+    `(wait: ${waitTime.toFixed(3)}s, surface: ${prepareVisibilityTime.toFixed(3)}s, ` +
+    `focus: ${focusPrepTime.toFixed(3)}s, screenshot IPC: ${screenshotInvokeTime.toFixed(3)}s, ` +
+    `restore: ${restoreVisibilityTime.toFixed(3)}s, total: ${totalTime.toFixed(3)}s) ` +
+    `(capture_id=${shortCorrelationId(correlationId || undefined)})`,
+  );
+}
+
+export function logSystemStateCaptureTiming(params: {
+  correlationId?: string | null;
+  waitTime: number;
+  focusPrepTime: number;
+  systemStateInvokeTime: number;
+  totalTime: number;
+  includeWindows: boolean;
+}): void {
+  const {
+    correlationId,
+    waitTime,
+    focusPrepTime,
+    systemStateInvokeTime,
+    totalTime,
+    includeWindows,
+  } = params;
+  logInfo(
+    `[Timing] System state capture completed ` +
+    `(wait: ${waitTime.toFixed(3)}s, focus: ${focusPrepTime.toFixed(3)}s, ` +
+    `state IPC: ${systemStateInvokeTime.toFixed(3)}s, total: ${totalTime.toFixed(3)}s, ` +
+    `includeWindows=${includeWindows}) ` +
+    `(capture_id=${shortCorrelationId(correlationId || undefined)})`,
+  );
+}
+
 export function logToolStart(toolName: string, correlationId?: string): string {
   const shortId = shortCorrelationId(correlationId);
   logInfo(`[Timing] Tool execution started: ${toolName} (request_id=${shortId})`);
