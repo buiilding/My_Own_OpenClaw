@@ -230,6 +230,24 @@ function resolveActiveSurfaceDisplayAffinity({
   return getStoredAffinity();
 }
 
+function resolveActiveSurfaceDisplayAffinityForWindows({
+  BrowserWindow,
+  screen,
+  webContents = null,
+  getWindows = () => ({}),
+  getActiveDisplayAffinity: getStoredAffinity = getActiveDisplayAffinity,
+}) {
+  const { chatWindow = null, mainWindow = null } = getWindows() || {};
+  return resolveActiveSurfaceDisplayAffinity({
+    BrowserWindow,
+    screen,
+    webContents,
+    chatWindow,
+    mainWindow,
+    getActiveDisplayAffinity: getStoredAffinity,
+  });
+}
+
 function toScreenshotDisplayBounds(displayAffinity) {
   if (!displayAffinity || typeof displayAffinity !== 'object' || !displayAffinity.bounds) {
     return null;
@@ -341,6 +359,7 @@ module.exports = {
   fitWindowToDisplayWorkArea,
   getActiveDisplayAffinity,
   resolveActiveSurfaceDisplayAffinity,
+  resolveActiveSurfaceDisplayAffinityForWindows,
   resolveVisibleSurfaceDisplayAffinity,
   resolveDisplayAffinityForWindow,
   resolveDisplayAffinityForWebContents,

@@ -2365,3 +2365,4 @@ Includes the last 300 commits on `main`.
 - unreleased fix(frontend-display-affinity): refresh active monitor affinity from the visible chat/dashboard surface before overlay repositioning on display-metrics changes so screenshot targeting stays aligned after monitor layout updates
 - unreleased fix(frontend-display-affinity): prevent destroyed or invalid visible-surface candidates from collapsing monitor resolution back to the primary display when `requireVisible` monitor selection is in effect
 - unreleased refactor(frontend-display-affinity): extract shared visible-surface and hidden-show monitor helpers so lifecycle and visibility runtimes stop duplicating the same chat/dashboard targeting policy
+- unreleased refactor(frontend-display-affinity): route IPC-triggered chat, dashboard, and screenshot monitor targeting through one shared active-surface resolver helper instead of rebuilding sender/chat/main closures in each entry point
