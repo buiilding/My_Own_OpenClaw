@@ -7,6 +7,7 @@ import {
   emitBackendEventAsync,
   getCapturedServiceCallbacks,
   getToolExecutionServiceMock,
+  mockExecuteTool,
   recordToolMessage,
   renderToolRunner,
   renderToolRunnerWithProps,
@@ -330,6 +331,38 @@ describe('useToolRunner callback wiring', () => {
 
     expect(useChatStore.getState().messages.length).toBe(messagesBefore);
     expect(recordToolMessage).not.toHaveBeenCalled();
+    expect(IpcBridge.send).not.toHaveBeenCalled();
+  });
+
+  test('drops correlated backend payloads after executeTool failure untracks the request', async () => {
+    mockExecuteTool.mockRejectedValueOnce(new Error('tool-failed'));
+    renderToolRunner(true);
+
+    await emitBackendEventAsync({
+      type: 'tool-call',
+      id: 'event-track-corr-failed',
+      payload: {
+        tool_name: 'read_file',
+        parameters: { file_path: '/tmp/a' },
+        correlation_id: 'corr-failed',
+      },
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    const callbacks = getCapturedServiceCallbacks();
+    callbacks.sendToBackend({
+      type: 'tool-result',
+      payload: { request_id: 'corr-failed', success: false, error: 'tool-failed', data: null },
+    });
+
+    expect(mockExecuteTool).toHaveBeenCalledWith(
+      'read_file',
+      { file_path: '/tmp/a' },
+      { correlationId: 'corr-failed', skipAutoCapture: false },
+    );
     expect(IpcBridge.send).not.toHaveBeenCalled();
   });
 
