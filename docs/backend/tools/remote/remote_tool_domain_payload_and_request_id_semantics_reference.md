@@ -171,6 +171,7 @@ Classes:
 
 - `RemoteSystemUseTool` (`SystemUseArgs`)
 - `RemoteGetSystemStatsTool` (`GetSystemStatsArgs`)
+- `RemoteOpenAppTool` (`OpenAppArgs`)
 - `RemoteShellTool` (`RunShellCommandArgs`)
 - `RemoteProcessTool` (`ProcessShellCommandArgs`)
 
@@ -186,6 +187,11 @@ Behavior:
 - `tool`: one of `run_shell_command|replace|read_file|get_system_stats|get_open_windows`
 - `explanation`: canonical top-level rationale field for the unified wrapper
 - `arguments`: action payload object, re-validated against the selected concrete tool model
+
+Wrapper boundary:
+
+- `open_app` and `process` are intentionally **not** part of `system_use.tool`.
+- those actions remain direct tools (`open_app`, `process`) in backend declarations and sidecar runtime.
 
 Normalization behavior in `SystemUseArgs.normalize_explanation`:
 

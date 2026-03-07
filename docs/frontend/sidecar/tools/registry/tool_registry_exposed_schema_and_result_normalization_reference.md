@@ -78,6 +78,7 @@ Unified system-use behavior:
   1. top-level `explanation` when non-empty
   2. fallback nested `arguments.explanation` (legacy compatibility)
 - delegated concrete subtool receives a deep-copied `arguments` payload (plus resolved explanation when available), preventing subtool mutations from leaking back into wrapper envelope input.
+- wrapper scope is intentionally limited to those five actions; `open_app` and `process` remain direct tools and are rejected when sent as `system_use.tool` values.
 
 Exception behavior:
 
@@ -133,7 +134,7 @@ Returned failure payload:
 - `computer_use` accepts trimmed required metadata and still delegates unchanged concrete `arguments`
 - `system_use` routes supported wrappers to the expected concrete subtool and injects resolved explanation into delegated args
 - `system_use` supports nested explanation fallback for legacy payload compatibility
-- `system_use` rejects unknown wrapper subtool names and non-object `arguments`
+- `system_use` rejects unknown wrapper subtool names (including `open_app` and `process`) and non-object `arguments`
 - dict legacy success/failure normalization behaves as expected
 - nested legacy errors (for example usage text in `data.error`) are surfaced to top-level `ToolResult.error`
 - exceptions are captured and wrapped

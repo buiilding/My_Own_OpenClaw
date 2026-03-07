@@ -14,6 +14,7 @@ title: "Backend Agent Docs Hub"
 - [Agent LLM Docs Hub](llm/README.md)
 - [Session Runtime and Config Rewire Reference](session_runtime_and_config_rewire_reference.md)
 - [Interaction Loop and Tool-Turn Orchestration Reference](interaction_loop_and_tool_turn_orchestration_reference.md)
+- [Execution Policy Iteration, Parse-Recovery, and Bundle Gate Reference](execution_policy_iteration_parse_recovery_and_bundle_gate_reference.md)
 - [History Compaction Engine Decision, Strategy, and Event Contract Reference](history_compaction_engine_decision_strategy_and_event_contract_reference.md)
 - [Native Tool-Call Bridge and History Mapping Reference](native_tool_call_bridge_and_history_mapping_reference.md)
 - [Conversation Context and Event Presenter Prompt-Metadata Reference](llm/conversation_context_and_event_presenter_prompt_metadata_reference.md)

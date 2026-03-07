@@ -58,6 +58,11 @@ Metadata extraction:
 - if `arguments.metadata` is missing or not a dict:
   - metadata merge is skipped safely (no parse failure)
 
+Metadata precedence nuance:
+
+- provider-level fields (`id` -> `metadata.tool_call_id`, `thought_signature`) are seeded first
+- top-level `arguments.metadata` merge runs after seeding, so overlapping keys in wrapper metadata can override seeded values
+
 Deep-copy boundary:
 
 - tool-call `arguments` are deep-copied before normalization/mutation
@@ -85,7 +90,15 @@ Metadata-promotion boundary for unified envelopes:
 - nested `computer_use.arguments.metadata` is preserved in executable parameters (not promoted)
 - non-dict top-level unified metadata is ignored safely
 - computer required metadata fields (`description`, `explanation`, `expectation`) are normalized with trim semantics
-- if any required computer metadata field is missing/blank/non-string after normalization, bridge marks call as `invalid_computer_use_tool`
+- bridge permits only this metadata allowlist for computer-use normalization:
+  - required rationale fields: `description`, `explanation`, `expectation`
+  - internal passthrough fields: `tool_call_id`, `thought_signature`
+- if any required field is missing/blank/non-string, or any unexpected metadata key is present, bridge marks call as `invalid_computer_use_tool`
+
+Direct computer-subtool parity:
+
+- direct native calls named `mouse_control|keyboard_control|screenshot|scroll_control|switch_tab|wait` pass through the same metadata normalization gate.
+- missing/invalid metadata in direct computer-subtool calls also resolves to `invalid_computer_use_tool`.
 
 ## Unified `system_use` Mapping
 
@@ -174,6 +187,7 @@ Extraction helpers:
 - missing unified `arguments` -> empty parameters
 - top-level metadata promotion boundary (nested `arguments.metadata` remains in parameters; non-dict top-level metadata ignored)
 - whitespace-only tool-call id handling in both `extract_tool_call_ids(...)` and history id fallback
+- strict computer metadata allowlist behavior (unexpected keys invalidate unified/direct computer calls)
 - recoverable error marker detection and parse-summary extraction
 - target-file extraction from raw-arguments preview
 - retry message includes file-target/edit-strategy hints when file path can be extracted

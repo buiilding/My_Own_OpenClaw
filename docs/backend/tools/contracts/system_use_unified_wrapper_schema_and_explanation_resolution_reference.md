@@ -34,6 +34,13 @@ Supported concrete actions:
 - `get_system_stats`
 - `get_open_windows`
 
+Explicit non-wrapper actions:
+
+- `open_app`
+- `process`
+
+`open_app` and `process` stay as direct tool names in backend/sidecar registries and are not valid values for `system_use.tool`.
+
 Envelope fields:
 
 - `tool`
@@ -126,6 +133,11 @@ Both return the same canonical declaration from `unified_schema.py`.
 
 This keeps backend wrapper guidance and sidecar direct-wrapper behavior aligned when wrapper payloads bypass backend normalization.
 
+Direct-tool boundary remains unchanged in sidecar:
+
+- `open_app` and `process` are executed as direct tools.
+- `system_use` wrapper dispatch does not route to those actions.
+
 ## Test-Backed Invariants
 
 `test_system_use_schema_contract.py` / `test_tool_registry_schema.py`:
@@ -152,10 +164,11 @@ This keeps backend wrapper guidance and sidecar direct-wrapper behavior aligned 
 - `system_use` routes to expected concrete tools with top-level explanation
 - nested explanation fallback is accepted
 - delegated argument mutation does not leak back to original wrapper envelope
+- wrapper rejects unknown subtool names (for example `open_app`/`process`) with deterministic invalid-tool errors
 
 ## Drift Hotspots
 
-1. Diverging `tool` enums across `SystemUseArgs`, unified declaration schema, and remote mapping tables creates runtime-only failures.
+1. Diverging `tool` enums across `SystemUseArgs`, unified declaration schema, remote mapping tables, and sidecar wrapper router creates runtime-only failures.
 2. Requiring nested `arguments.explanation` in one layer while top-level is canonical in another causes model/schema drift.
 3. Changing parser rejection behavior for unknown `system_use.tool` without matching native bridge semantics can produce inconsistent error surfaces between providers.
 4. Removing declaration-level required `explanation` weakens rationale guarantees even if remote runtime still injects fallback.
