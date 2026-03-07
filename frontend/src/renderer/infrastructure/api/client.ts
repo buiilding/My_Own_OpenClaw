@@ -22,6 +22,14 @@ type RehydrateConversationEntry = {
   transparency?: Record<string, unknown> | null;
 };
 
+function normalizeNonEmptyString(value: unknown): string | null {
+  if (typeof value !== 'string') {
+    return null;
+  }
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
 export const ApiClient = {
   /**
    * Send a user query to the backend
@@ -41,9 +49,12 @@ export const ApiClient = {
     attachmentContext: string | null = null,
     attachmentFilenames: string[] | null = null,
   ): Promise<void> => {
-    void screenshotUrl;
+    const normalizedScreenshotRef = normalizeNonEmptyString(screenshotRef);
+    const normalizedScreenshotUrl = normalizeNonEmptyString(screenshotUrl);
     const normalizedScreenshotRefs = Array.isArray(screenshotRefs)
-      ? screenshotRefs.filter((ref): ref is string => typeof ref === 'string' && ref.length > 0)
+      ? screenshotRefs
+        .map((ref) => normalizeNonEmptyString(ref))
+        .filter((ref): ref is string => Boolean(ref))
       : [];
     const normalizedAttachmentFilenames = Array.isArray(attachmentFilenames)
       ? attachmentFilenames
@@ -56,8 +67,8 @@ export const ApiClient = {
       payload: {
         text,
         conversation_ref: conversationRef,
-        screenshot_ref: screenshotRef,  // Optional screenshot reference
-        screenshot_url: screenshotUrl || null, // UI/local echo hint; stripped before backend send
+        screenshot_ref: normalizedScreenshotRef,  // Optional screenshot reference
+        screenshot_url: normalizedScreenshotUrl, // UI/local echo hint; stripped before backend send
         screenshot_refs: normalizedScreenshotRefs.length > 0 ? normalizedScreenshotRefs : null,
         capture_meta: captureMeta,
         attachment_context: (
