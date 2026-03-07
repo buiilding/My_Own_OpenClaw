@@ -86,6 +86,7 @@ Important declaration boundary:
 4. resolves explanation with precedence:
   - top-level `args.explanation`
   - fallback nested `arguments.explanation`
+  - resolved text is trim-normalized; whitespace-only values are treated as missing
 5. injects resolved explanation into concrete arguments when present
 6. re-validates concrete arguments with selected model (`model_validate`)
 7. emits `RemoteToolResult` with concrete `tool_name` (not `system_use`)
@@ -129,6 +130,7 @@ Both return the same canonical declaration from `unified_schema.py`.
 - resolves explanation using same precedence:
   1. top-level `explanation`
   2. fallback nested `arguments.explanation`
+- trim-normalizes resolved explanation text and ignores whitespace-only values
 - deep-copies delegated concrete arguments before dispatch to prevent mutation leaks
 
 This keeps backend wrapper guidance and sidecar direct-wrapper behavior aligned when wrapper payloads bypass backend normalization.
