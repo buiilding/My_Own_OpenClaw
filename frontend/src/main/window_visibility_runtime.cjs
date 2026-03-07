@@ -10,14 +10,6 @@ function setWindowOpacityIfSupported(targetWindow, opacity) {
   targetWindow.setOpacity(opacity);
 }
 
-function isWindowMinimized(targetWindow) {
-  return Boolean(
-    targetWindow
-    && typeof targetWindow.isMinimized === 'function'
-    && targetWindow.isMinimized()
-  );
-}
-
 function isWindowVisible(targetWindow) {
   return Boolean(
     targetWindow
@@ -26,8 +18,57 @@ function isWindowVisible(targetWindow) {
   );
 }
 
+function isWindowMinimized(targetWindow) {
+  return Boolean(
+    targetWindow
+    && typeof targetWindow.isMinimized === 'function'
+    && targetWindow.isMinimized()
+  );
+}
+
+function getWindowBounds(targetWindow) {
+  if (!targetWindow || typeof targetWindow.getBounds !== 'function') {
+    return null;
+  }
+  return targetWindow.getBounds();
+}
+
+function setWindowBounds(targetWindow, bounds) {
+  if (!targetWindow || typeof targetWindow.setBounds !== 'function') {
+    return false;
+  }
+  targetWindow.setBounds(bounds, false);
+  return true;
+}
+
+function createOffscreenBounds(bounds) {
+  if (!bounds) {
+    return null;
+  }
+  return {
+    ...bounds,
+    x: -50000 - Math.max(0, bounds.width || 0),
+    y: -50000 - Math.max(0, bounds.height || 0),
+  };
+}
+
+function isWindowOffscreenForScreenshot(targetWindow) {
+  const bounds = getWindowBounds(targetWindow);
+  if (!bounds) {
+    return false;
+  }
+  return (
+    bounds.x + Math.max(0, bounds.width || 0) < -1000
+    || bounds.y + Math.max(0, bounds.height || 0) < -1000
+  );
+}
+
 function isMainWindowSuppressedForScreenshot(targetWindow) {
-  return isWindowMinimized(targetWindow) || !isWindowVisible(targetWindow);
+  return (
+    isWindowMinimized(targetWindow)
+    || !isWindowVisible(targetWindow)
+    || isWindowOffscreenForScreenshot(targetWindow)
+  );
 }
 
 async function waitForMainWindowSuppressedForScreenshot(
@@ -46,6 +87,25 @@ async function waitForMainWindowSuppressedForScreenshot(
     await waitInMain(pollMs);
   }
   return isMainWindowSuppressedForScreenshot(targetWindow);
+}
+
+function rememberWindowBoundsForScreenshotSuppression(targetWindow) {
+  if (!targetWindow || targetWindow.__windieScreenshotRestoreBounds) {
+    return;
+  }
+  const bounds = getWindowBounds(targetWindow);
+  if (bounds) {
+    targetWindow.__windieScreenshotRestoreBounds = bounds;
+  }
+}
+
+function restoreWindowBoundsFromScreenshotSuppression(targetWindow) {
+  const bounds = targetWindow?.__windieScreenshotRestoreBounds || null;
+  if (!bounds) {
+    return false;
+  }
+  delete targetWindow.__windieScreenshotRestoreBounds;
+  return setWindowBounds(targetWindow, bounds);
 }
 
 function resolveShowTargetDisplayAffinity({
@@ -184,20 +244,14 @@ async function hideMainWindow(options = {}, deps = {}) {
   }
   if (mainWindow.isVisible()) {
     setWindowOpacityIfSupported(mainWindow, 0);
-    if (
-      suppressForScreenshot
-      && typeof mainWindow.minimize === 'function'
-      && typeof mainWindow.isMinimized === 'function'
-      && !mainWindow.isMinimized()
-    ) {
-      mainWindow.minimize();
-      const suppressed = await waitForMainWindowSuppressedForScreenshot(mainWindow, { waitInMain });
-      if (!suppressed) {
-        mainWindow.hide();
+    if (suppressForScreenshot) {
+      rememberWindowBoundsForScreenshotSuppression(mainWindow);
+      const offscreenBounds = createOffscreenBounds(getWindowBounds(mainWindow));
+      if (offscreenBounds) {
+        setWindowBounds(mainWindow, offscreenBounds);
       }
-    } else {
-      mainWindow.hide();
     }
+    mainWindow.hide();
   }
   const suppressedForScreenshot = suppressForScreenshot
     ? await waitForMainWindowSuppressedForScreenshot(mainWindow, { waitInMain })
@@ -233,6 +287,7 @@ function showMainWindow(options = {}, deps = {}) {
     getActiveDisplayAffinity,
   });
   if (resolvedTargetDisplayAffinity) {
+    delete mainWindow.__windieScreenshotRestoreBounds;
     setActiveDisplayAffinity(resolvedTargetDisplayAffinity);
     if (typeof mainWindow.isMaximized === 'function' && mainWindow.isMaximized()) {
       mainWindow.unmaximize();
@@ -245,6 +300,9 @@ function showMainWindow(options = {}, deps = {}) {
   }
   if (isWindowMinimized(mainWindow) && typeof mainWindow.restore === 'function') {
     mainWindow.restore();
+  }
+  if (!resolvedTargetDisplayAffinity) {
+    restoreWindowBoundsFromScreenshotSuppression(mainWindow);
   }
   setWindowOpacityIfSupported(mainWindow, 1);
   if (!mainWindow.isVisible()) {
@@ -270,11 +328,17 @@ function showMainWindow(options = {}, deps = {}) {
 }
 
 module.exports = {
+  createOffscreenBounds,
+  getWindowBounds,
   hideMainWindow,
   hideChatWindow,
   isMainWindowSuppressedForScreenshot,
+  isWindowOffscreenForScreenshot,
+  rememberWindowBoundsForScreenshotSuppression,
   resolveShowTargetDisplayAffinity,
+  restoreWindowBoundsFromScreenshotSuppression,
   setWindowOpacityIfSupported,
+  setWindowBounds,
   showChatWindow,
   showMainWindow,
   waitForMainWindowSuppressedForScreenshot,
