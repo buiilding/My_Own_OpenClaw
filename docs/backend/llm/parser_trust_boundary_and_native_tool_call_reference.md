@@ -237,3 +237,9 @@ If parser tests fail on limits/validation:
 3. inspect unified-wrapper compatibility expansion in `ToolCallValidator` (computer + system legacy names)
 4. inspect parser strategy selection (`_should_try_parse_json_response`)
 5. inspect trust-boundary exception metadata and boundary metrics payloads
+
+## Related Pages
+
+- [Backend LLM Docs Hub](README.md)
+- [ToolCallSchema Extraction and Unified Wrapper Normalization Reference](tool_call_schema_extraction_and_unified_wrapper_normalization_reference.md)
+- [Native Tool-Call Bridge and History Mapping Reference](../agent/native_tool_call_bridge_and_history_mapping_reference.md)

@@ -12,7 +12,7 @@ title: "Response Overlay Phase Runtime Reference"
 
 - `frontend/src/renderer/app/ChatBoxResponseApp.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
-- `frontend/src/renderer/features/chat/components/chatbox/chatBoxResponseUtils.js`
+- `frontend/src/renderer/features/chat/utils/message/latestVisibleAssistantReply.js`
 - `frontend/src/renderer/features/chat/utils/chatSelectors.js`
 - `frontend/src/renderer/features/chat/hooks/useResponseOverlayPhase.js`
 - `frontend/src/renderer/features/chat/utils/overlay/overlayPhaseListener.js`
@@ -36,7 +36,8 @@ Primary inputs:
 Selection logic:
 
 1. `findLastUserIndex(messages)` resolves latest user turn boundary.
-2. `findLatestMessageAfterUser(...)` resolves latest assistant `llm-text`/`error` after boundary.
+2. `findLatestVisibleAssistantReply(messages, allowedTypes)` scans backward only after that boundary.
+3. candidate row must be `sender="assistant"`, non-empty `text`, and `type` in allowed set (`llm-text`, `error`).
 
 Closeability:
 
@@ -114,6 +115,7 @@ Remaining tool-ghost UI pieces are debug-harness scoped (`ToolGhostDebugApp`, `T
 
 - [Frontend Renderer Overlay Docs Hub](README.md)
 - [Response Overlay Utility Contract Reference](response_overlay_phase_contract_payload_layout_and_frame_utilities_reference.md)
+- [Latest Visible Assistant Reply Turn-Boundary and Allowed-Type Contract Reference](../chat/presentation/latest_visible_assistant_reply_turn_boundary_and_allowed_type_contract_reference.md)
 - [Renderer Overlay Tool Ghost Docs Hub](tool_ghost/README.md)
 - [Tool Ghost Debug Cursor Payload and Timing Reference](tool_ghost/tool_ghost_preview_payload_parsing_and_target_mapping_reference.md)
 - [Chat Stream and Tool Execution Reference](../chat_stream_and_tool_execution_reference.md)
