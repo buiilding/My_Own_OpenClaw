@@ -18,6 +18,7 @@ title: "WebSocket Handshake and Settings Sync Reference"
 - `frontend/src/main/ipc/ipc_renderer_windows.cjs`
 - `frontend/src/main/ipc/ipc_query_broadcast.cjs`
 - `frontend/src/main/ipc/ipc_query_events.cjs`
+- `frontend/src/main/ipc/ipc_transcript_session_sync.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - `frontend/src/main/ipc/ipc_frontend_config.cjs`
 - `frontend/src/main/backend_endpoints.cjs`
@@ -173,7 +174,7 @@ Broadcast plumbing is delegated to `ipc_query_broadcast.cjs`.
 
 ## Transcript Session Sync Coupling
 
-`ipc.cjs` also owns a cross-window `transcript-session-sync` bridge:
+`ipc.cjs` delegates cross-window `transcript-session-sync` handling to `applyTranscriptSessionSync(...)` (`ipc_transcript_session_sync.cjs`):
 
 - normalizes alias keys from renderer payloads
 - updates tracked `currentConversationRef` / `currentUserId` where applicable
@@ -203,3 +204,4 @@ If user/session context is inconsistent across windows:
 
 For helper-module split ownership details, see [IPC Helper Module Split and Runtime Boundary Reference](ipc_helper_module_split_and_runtime_boundary_reference.md).
 For replay/transcript channel details, see [IPC Event Replay and Transcript Session Sync Reference](ipc_event_replay_and_transcript_session_sync_reference.md).
+For helper-level transcript/query payload normalization functions, see [IPC Query Runtime and Transcript Sync Helper Reference](ipc_query_runtime_and_transcript_sync_helper_reference.md).

@@ -1,7 +1,7 @@
 ---
 summary: "Electron main query relay reference: renderer to-backend handling, initial settings ACK gating, system/memory context payload assembly, and local-user-message/failure event synthesis."
 read_when:
-  - When changing query transport from renderer to backend websocket.
+  - When changing query transport from renderer to backend websocket, including helper payload shaping in `ipc_query_runtime.cjs`.
   - When debugging first-query context assembly, settings-sync gate timing, or local-user-message/error event behavior.
 title: "Query Payload and Relay Reference"
 ---
@@ -12,6 +12,8 @@ title: "Query Payload and Relay Reference"
 
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
+- `frontend/src/main/ipc/ipc_query_runtime.cjs`
+- `frontend/src/main/ipc/ipc_transcript_session_sync.cjs`
 - `frontend/src/main/ipc/ipc_event_replay_state.cjs`
 - `frontend/src/main/ipc/ipc_query_broadcast.cjs`
 - `frontend/src/main/ipc/ipc_renderer_windows.cjs`
@@ -74,8 +76,11 @@ When `type === 'query'`, main performs extra steps before websocket send.
 
 ### 2) Conversation identity resolution
 
-- resolves `conversation_ref` from payload or current backend conversation state
-- injects resolved ref into payload if missing
+- delegated to `prepareRendererQueryPayload(...)` in `ipc_query_runtime.cjs`:
+  - resolves `conversation_ref` from payload or current backend conversation state
+  - injects resolved ref into payload when missing
+  - strips relay-only fields (`attachment_context`, `memory_retrieval_enabled`) from outbound payload
+  - normalizes `attachment_filenames` for local optimistic message metadata
 
 ### 3) Local optimistic user event
 
@@ -93,7 +98,7 @@ Replay tie-in:
 
 ### 4) Context-enriched payload assembly
 
-Main calls `buildQueryPayloadContent(...)` with:
+Main delegates to `buildQueryPayload(...)` (`ipc_query_runtime.cjs`), which calls `buildQueryPayloadContent(...)` with:
 
 - raw query text
 - conversation ref
@@ -103,10 +108,11 @@ Main calls `buildQueryPayloadContent(...)` with:
 - optional hidden `attachment_context` generated from sender-side `read_file` calls for selected non-image files
 - local backend bridge methods (`getSystemState`, `searchMemory`)
 
-Output injected into query payload:
+Output from `buildQueryPayload(...)`:
 
-- `content` (XML-enriched user message)
+- normalized payload containing `content` (XML-enriched user message)
 - optional `system_state_internal` (runtime-only state for backend normalization)
+- resolved `userId` used by automated query return path
 
 ### 5) Backend send + failure fallback
 
@@ -174,7 +180,8 @@ Main enriches backend and local events with tracked runtime context:
 Transcript session sync bridge:
 
 - renderer transcript subsystem emits `transcript-session-sync` on conversation/user updates
-- main normalizes payload aliases (`conversationRef|conversation_ref|sessionId|session_id`, `userId|user_id`) and rebroadcasts to other windows
+- main delegates normalization/state-advance to `applyTranscriptSessionSync(...)` (`ipc_transcript_session_sync.cjs`) using aliases (`conversationRef|conversation_ref|sessionId|session_id`, `userId|user_id`)
+- normalized sync envelope is rebroadcast to other windows
 - this keeps query fallback conversation context and transcript writer session state aligned across multi-window sessions
 
 Overlay phase updates during relay/stream lifecycle:
@@ -196,7 +203,7 @@ If first query lacks expected settings:
 
 If query content misses memory/system context:
 
-1. verify `buildQueryPayloadContent(...)` executes without fallback exception
+1. verify `buildQueryPayload(...)` path executes without fallback exception from `buildQueryPayloadContent(...)`
 2. inspect local backend bridge readiness (`Local backend not ready` errors)
 3. verify memory search payload mapping includes expected conversation exclusion key
 
@@ -208,3 +215,4 @@ If renderer shows user message but backend never streams:
 
 For module ownership details of query/local synthetic event broadcasters and renderer-window fan-out, see [IPC Helper Module Split and Runtime Boundary Reference](ipc_helper_module_split_and_runtime_boundary_reference.md).
 For replay and transcript session-sync normalization details, see [IPC Event Replay and Transcript Session Sync Reference](ipc_event_replay_and_transcript_session_sync_reference.md).
+For helper-level contracts (`prepareRendererQueryPayload`, `buildQueryPayload`, `prepareAutomatedQueryPayload`, `applyTranscriptSessionSync`), see [IPC Query Runtime and Transcript Sync Helper Reference](ipc_query_runtime_and_transcript_sync_helper_reference.md).
