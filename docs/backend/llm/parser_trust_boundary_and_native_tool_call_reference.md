@@ -202,6 +202,11 @@ Each includes boundary metadata (`boundary_name="response_parser"` plus optional
   - missing/non-dict unified `arguments` becomes `parameters={}`
   - only top-level unified `metadata` is promoted; nested `arguments.metadata` remains in tool parameters
   - non-dict top-level unified metadata is ignored safely (no merge, no crash)
+  - strict metadata allowlist applies during native bridge normalization:
+    - required fields: `description`, `explanation`, `expectation`
+    - allowed internal passthrough fields: `tool_call_id`, `thought_signature`
+    - unexpected metadata keys invalidate the call (`invalid_computer_use_tool`)
+  - direct native computer-subtool names (`mouse_control|keyboard_control|screenshot|scroll_control|switch_tab|wait`) run through the same metadata gate; missing/invalid metadata resolves to `invalid_computer_use_tool`
 - unified native `system_use` bridge behavior:
   - maps `arguments.tool` to concrete tool (`run_shell_command|replace|read_file|get_system_stats|get_open_windows`) when valid
   - resolves rationale from top-level `explanation` then nested `arguments.explanation` fallback

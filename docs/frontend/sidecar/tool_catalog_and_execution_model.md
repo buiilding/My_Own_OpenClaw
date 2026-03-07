@@ -94,6 +94,7 @@ Current runtime boundary:
 - `ToolRegistry` validates envelope shape for unified wrappers before delegation:
   - `computer_use`: requires `tool` + required `metadata` + object `arguments`
   - `system_use`: requires valid `tool` + object `arguments`, with top-level `explanation` or nested fallback
+    - wrapper scope is limited to `run_shell_command|replace|read_file|get_system_stats|get_open_windows`; `open_app` and `process` remain direct-only tools
 - Effective validation today is split between callers and tool implementations themselves.
 
 Implication:
